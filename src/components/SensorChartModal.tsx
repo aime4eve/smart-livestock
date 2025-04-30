@@ -25,12 +25,16 @@ export const SensorChartModal: React.FC<Props> = ({ data, onClose }) => {
         data: data.stomachTemperatures,
         borderColor: '#ff6384',
         yAxisID: 'temperature',
+        tension: 0.4,
+        fill: false,
       },
       {
         label: '蠕动次数 (次/分钟)',
         data: data.peristalticCounts,
         borderColor: '#36a2eb',
         yAxisID: 'peristaltic',
+        tension: 0.4,
+        fill: false,
       }
     ]
   };

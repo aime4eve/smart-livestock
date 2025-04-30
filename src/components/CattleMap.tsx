@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import { StatsPanel } from './StatsPanel';
 import { SensorChartModal } from './SensorChartModal';
 import 'leaflet/dist/leaflet.css';
@@ -20,13 +20,22 @@ const FullScreenControl = () => {
   
   // 使用useEffect确保全屏控件只添加一次
   useEffect(() => {
-    L.control.fullscreen().addTo(map);
+    // 添加全屏控件
+    const fullscreenControl = L.control.fullscreen();
+    fullscreenControl.addTo(map);
     
-    // 返回清理函数(可选)
+    // 返回清理函数，在组件卸载时移除控件
     return () => {
-      // 如果需要在组件卸载时移除控件，可以在这里添加清理代码
+      // 如果Leaflet提供了移除控件的方法，可以在这里调用
+      if (map && fullscreenControl) {
+        try {
+          map.removeControl(fullscreenControl);
+        } catch (e) {
+          console.warn('无法移除全屏控件', e);
+        }
+      }
     };
-  }, []); // 空依赖数组确保只执行一次
+  }, [map]); // 添加map作为依赖
   
   return null;
 };
