@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { StatsPanel } from './StatsPanel';
 import { SensorChartModal } from './SensorChartModal';
@@ -17,20 +17,41 @@ interface CattleData {
 // 全屏控制组件
 const FullScreenControl = () => {
   const map = useMap();
-  L.control.fullscreen().addTo(map);
+  
+  // 使用useEffect确保全屏控件只添加一次
+  useEffect(() => {
+    L.control.fullscreen().addTo(map);
+    
+    // 返回清理函数(可选)
+    return () => {
+      // 如果需要在组件卸载时移除控件，可以在这里添加清理代码
+    };
+  }, []); // 空依赖数组确保只执行一次
+  
   return null;
 };
 
-const CattleMap = () => {
-  // 模拟牛数据
-  const cattleData: CattleData[] = Array.from({ length: 50 }, (_, i) => ({
-    id: (i + 1).toString(),
-    position: [28.25 + Math.random() * 0.01, 112.895 + Math.random() * 0.015],
-    healthStatus: Math.random() < 0.8 ? 'healthy' : (Math.random() < 0.5 ? 'warning' : 'critical'),
-    sensorData: generateSensorData()
-  }));
+// 生成模拟牛数据的函数
+const generateCattleData = (count: number): CattleData[] => {
+  return Array.from({ length: count }, (_, i) => {
+    const cattleId = (i + 1).toString();
+    return {
+      id: cattleId,
+      position: [28.25 + Math.random() * 0.01, 112.895 + Math.random() * 0.015],
+      healthStatus: Math.random() < 0.8 ? 'healthy' : (Math.random() < 0.5 ? 'warning' : 'critical'),
+      sensorData: generateSensorData(cattleId)
+    };
+  });
+};
 
+const CattleMap = () => {
+  const [cattleData, setCattleData] = useState<CattleData[]>([]);
   const [selectedCattle, setSelectedCattle] = useState<CattleData | null>(null);
+
+  // 只在组件首次加载时生成数据
+  useEffect(() => {
+    setCattleData(generateCattleData(50));
+  }, []);
 
   // 健康状态对应颜色
   const getMarkerIcon = (status: string) => {
