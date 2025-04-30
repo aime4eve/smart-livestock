@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { StatsPanel } from './StatsPanel';
+import { SensorChartModal } from './SensorChartModal';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import 'leaflet.fullscreen';
+import { CattleSensorData, generateSensorData } from '../types/sensor';
 
 interface CattleData {
   id: string;
   position: [number, number];
   healthStatus: 'healthy' | 'warning' | 'critical';
+  sensorData: CattleSensorData;
 }
 
 // 全屏控制组件
@@ -19,20 +22,15 @@ const FullScreenControl = () => {
 };
 
 const CattleMap = () => {
-  // 模拟牛只数据
-const cattleData: CattleData[] = [
-  // 新地理范围坐标（纬度28.25-28.26，经度112.895-112.910）
-  { id: '1', position: [28.2551, 112.8953], healthStatus: 'healthy' },   // 公园西侧
-  { id: '2', position: [28.2518, 112.9106], healthStatus: 'warning' },  // 公园东部
-  { id: '3', position: [28.2594, 112.9082], healthStatus: 'critical' }, // 公园中侧
-  { id: '4', position: [28.2532, 112.8991], healthStatus: 'healthy' },  // 观鸟台区域
-  { id: '5', position: [28.2576, 112.9027], healthStatus: 'healthy' },  // 林荫大道
-  { id: '6', position: [28.2543, 112.9075], healthStatus: 'warning' },   // 生态展示区
-  { id: '7', position: [28.2569, 112.8964], healthStatus: 'healthy' },  // 西侧缓冲区
-  { id: '8', position: [28.2588, 112.9093], healthStatus: 'critical' }, // 科研监测点
-  { id: '9', position: [28.2521, 112.9048], healthStatus: 'healthy' },   // 游客中心
-  { id: '10', position: [28.2559, 112.9012], healthStatus: 'healthy' }   // 休息区
-];
+  // 模拟牛数据
+  const cattleData: CattleData[] = Array.from({ length: 50 }, (_, i) => ({
+    id: (i + 1).toString(),
+    position: [28.25 + Math.random() * 0.01, 112.895 + Math.random() * 0.015],
+    healthStatus: Math.random() < 0.8 ? 'healthy' : (Math.random() < 0.5 ? 'warning' : 'critical'),
+    sensorData: generateSensorData()
+  }));
+
+  const [selectedCattle, setSelectedCattle] = useState<CattleData | null>(null);
 
   // 健康状态对应颜色
   const getMarkerIcon = (status: string) => {
@@ -60,29 +58,26 @@ const cattleData: CattleData[] = [
     <div className="map-container" style={{ position: 'relative', height: '100%' }}>
       <StatsPanel cattleData={cattleData} />
       <MapContainer
-      center={[28.2282, 112.9388]}
-      zoom={12}
-      style={{ height: 'calc(100vh - 64px)', minHeight: '480px', width: '100%' }}
-      zoomControl={true}
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='© OpenStreetMap contributors'
-      />
-      <FullScreenControl />
-      {cattleData.map((cattle) => (
-        <Marker
-          key={cattle.id}
-          position={cattle.position}
-          icon={createCustomIcon(getMarkerIcon(cattle.healthStatus))}
-        >
-          <Popup>
-            牛只ID: {cattle.id}<br />
-            健康状态: {cattle.healthStatus}
-          </Popup>
-        </Marker>
+        center={[28.2282, 112.9388]}
+        zoom={12}
+        style={{ height: 'calc(100vh - 64px)', minHeight: '480px', width: '100%' }}
+        zoomControl={true}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='© OpenStreetMap contributors'
+        />
+        <FullScreenControl />
+        {cattleData.map((cattle) => (
+          <Marker
+            key={cattle.id}
+            position={cattle.position}
+            icon={createCustomIcon(getMarkerIcon(cattle.healthStatus))}
+            eventHandlers={{ click: () => setSelectedCattle(cattle) }}
+          />
         ))}
-    </MapContainer>
+      </MapContainer>
+      {selectedCattle && <SensorChartModal data={selectedCattle.sensorData} onClose={() => setSelectedCattle(null)} />}
     </div>
   );
 };

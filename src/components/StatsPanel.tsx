@@ -44,7 +44,7 @@ export const StatsPanel: React.FC<Props> = ({ cattleData }) => {
       boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
       zIndex: 1000
     }}>
-      <h3 style={{ marginTop: 0 }}>健康状态统计</h3>
+      <h3 style={{ marginTop: 0 }}>牛群健康统计</h3>
       <div>健康：{stats.healthy}%</div>
       <div>警告：{stats.warning}%</div>
       <div>严重：{stats.critical}%</div>
