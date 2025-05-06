@@ -1,78 +1,394 @@
 .cattle-register-container {
-  max-width: 800px;
-  margin: 20px auto;
   padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  max-width: 1200px;
+  margin: 0 auto;
+  
+  h2 {
+    color: #333;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #4CAF50;
+    padding-bottom: 10px;
+  }
 }
 
-h2 {
-  color: #1976d2;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #eee;
-}
-
-.register-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-label {
-  font-weight: 500;
-  color: #555;
-}
-
-input {
+/* 调试信息样式 */
+.debug-info {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
   padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 16px;
-  
-  &:focus {
-    outline: none;
-    border-color: #1976d2;
-    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
-  }
-}
-
-.form-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.submit-btn {
-  background-color: #1976d2;
-  color: white;
-  
-  &:hover {
-    background-color: #1565c0;
-  }
-}
-
-.cancel-btn {
-  background-color: #f5f5f5;
+  margin-bottom: 15px;
+  font-family: monospace;
   color: #333;
+}
+
+/* 加载状态样式 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
   
-  &:hover {
-    background-color: #e0e0e0;
+  .loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #4CAF50;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+  }
+  
+  p {
+    color: #666;
+    font-size: 16px;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+}
+
+/* 错误状态样式 */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 0;
+  
+  .error-icon {
+    width: 40px;
+    height: 40px;
+    background-color: #f44336;
+    color: white;
+    font-size: 30px;
+    font-weight: bold;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+  }
+  
+  p {
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 15px;
+  }
+  
+  .retry-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    
+    &:hover {
+      background-color: #3e9142;
+    }
+  }
+}
+
+/* 查询表单样式 */
+.search-container {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+  .search-form {
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .form-group {
+      flex: 1;
+      min-width: 200px;
+      
+      label {
+        display: block;
+        margin-bottom: 5px;
+        color: #555;
+        font-weight: 500;
+      }
+      
+      input, select {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        
+        &:focus {
+          outline: none;
+          border-color: #4CAF50;
+          box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+      }
+      
+      .range-input {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        
+        input {
+          flex: 1;
+        }
+        
+        span {
+          color: #666;
+        }
+      }
+    }
+    
+    .search-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 10px;
+      
+      button {
+        padding: 8px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+      
+      .search-btn {
+        background-color: #4CAF50;
+        color: white;
+        
+        &:hover {
+          background-color: #3e9142;
+        }
+      }
+      
+      .reset-btn {
+        background-color: #f5f5f5;
+        color: #333;
+        border: 1px solid #ddd;
+        
+        &:hover {
+          background-color: #e8e8e8;
+        }
+      }
+      
+      .add-btn {
+        background-color: #2196F3;
+        color: white;
+        
+        &:hover {
+          background-color: #0b7dda;
+        }
+      }
+    }
+  }
+}
+
+/* 列表样式 */
+.cattle-list-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  
+  .cattle-table {
+    width: 100%;
+    border-collapse: collapse;
+    
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    
+    th {
+      background-color: #f5f5f5;
+      color: #333;
+      font-weight: 600;
+    }
+    
+    tr:hover {
+      background-color: #f9f9f9;
+    }
+    
+    .edit-btn {
+      background-color: #FFC107;
+      color: #333;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      
+      &:hover {
+        background-color: #e6ac00;
+      }
+    }
+    
+    .no-data {
+      text-align: center;
+      color: #999;
+      padding: 30px;
+      font-style: italic;
+    }
+  }
+  
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    gap: 10px;
+    
+    .page-btn {
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #333;
+      
+      &:hover:not([disabled]) {
+        background-color: #e8e8e8;
+      }
+      
+      &[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+    
+    .page-info {
+      color: #666;
+    }
+  }
+}
+
+/* 模态窗样式 */
+.modal {
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  .modal-content {
+    background-color: white;
+    width: 90%;
+    max-width: 600px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    
+    .modal-header {
+      padding: 15px 20px;
+      background-color: #4CAF50;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      h3 {
+        margin: 0;
+      }
+      
+      .close-btn {
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        
+        &:hover {
+          color: #eee;
+        }
+      }
+    }
+    
+    .modal-body {
+      padding: 20px;
+    }
+  }
+  
+  .register-form {
+    .form-group {
+      margin-bottom: 15px;
+      
+      label {
+        display: block;
+        margin-bottom: 5px;
+        color: #555;
+        font-weight: 500;
+      }
+      
+      input, select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        
+        &:focus {
+          outline: none;
+          border-color: #4CAF50;
+          box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        
+        &:disabled {
+          background-color: #f5f5f5;
+          cursor: not-allowed;
+        }
+      }
+    }
+    
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+      
+      button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+      
+      .submit-btn {
+        background-color: #4CAF50;
+        color: white;
+        
+        &:hover {
+          background-color: #3e9142;
+        }
+      }
+      
+      .cancel-btn {
+        background-color: #f5f5f5;
+        color: #333;
+        border: 1px solid #ddd;
+        
+        &:hover {
+          background-color: #e8e8e8;
+        }
+      }
+    }
   }
 }

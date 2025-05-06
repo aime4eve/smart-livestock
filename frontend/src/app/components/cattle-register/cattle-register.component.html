@@ -1,64 +1,229 @@
 <div class="cattle-register-container">
   <h2>牛群信息登记</h2>
   
-  <form (ngSubmit)="registerCattle()" class="register-form">
-    <div class="form-group">
-      <label for="cattleName">牛名称</label>
-      <input 
-        type="text" 
-        id="cattleName" 
-        name="cattleName" 
-        [(ngModel)]="cattleName" 
-        required
-        placeholder="请输入牛的名称">
+  <!-- 调试信息 -->
+  <div class="debug-info">
+    <code>组件状态: isLoading={{isLoading}}, hasError={{hasError}}, cattleList长度={{cattleList.length}}</code>
+  </div>
+  
+  <!-- 查询条件表单 -->
+  <div class="search-container">
+    <div class="search-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="breedSearch">品种</label>
+          <input 
+            type="text" 
+            id="breedSearch" 
+            [(ngModel)]="queryParams.breed" 
+            placeholder="输入品种">
+        </div>
+        
+        <div class="form-group">
+          <label for="genderSearch">性别</label>
+          <select id="genderSearch" [(ngModel)]="queryParams.gender">
+            <option value="">全部</option>
+            <option value="公牛">公牛</option>
+            <option value="母牛">母牛</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="weightMinSearch">体重范围(kg)</label>
+          <div class="range-input">
+            <input 
+              type="number" 
+              id="weightMinSearch" 
+              [(ngModel)]="queryParams.weight_min" 
+              placeholder="最小值">
+            <span>-</span>
+            <input 
+              type="number" 
+              id="weightMaxSearch" 
+              [(ngModel)]="queryParams.weight_max" 
+              placeholder="最大值">
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="birthDateStart">出生日期范围</label>
+          <div class="range-input">
+            <input 
+              type="date" 
+              id="birthDateStart" 
+              [(ngModel)]="queryParams.birth_date_start">
+            <span>-</span>
+            <input 
+              type="date" 
+              id="birthDateEnd" 
+              [(ngModel)]="queryParams.birth_date_end">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="createdAtStart">登记时间范围</label>
+          <div class="range-input">
+            <input 
+              type="date" 
+              id="createdAtStart" 
+              [(ngModel)]="queryParams.created_at_start">
+            <span>-</span>
+            <input 
+              type="date" 
+              id="createdAtEnd" 
+              [(ngModel)]="queryParams.created_at_end">
+          </div>
+        </div>
+      </div>
+      
+      <div class="search-actions">
+        <button class="search-btn" (click)="searchCattle()">查询</button>
+        <button class="reset-btn" (click)="resetQuery()">重置</button>
+        <button class="add-btn" (click)="openAddForm()">新增牛只</button>
+      </div>
     </div>
+  </div>
+  
+  <!-- 加载状态 -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="loading-spinner"></div>
+    <p>数据加载中，请稍候...</p>
+  </div>
+  
+  <!-- 错误状态 -->
+  <div class="error-container" *ngIf="hasError">
+    <div class="error-icon">!</div>
+    <p>{{errorMessage}}</p>
+    <button class="retry-btn" (click)="loadCattleData()">重试</button>
+  </div>
+  
+  <!-- 列表展示 -->
+  <div class="cattle-list-container" *ngIf="!isLoading && !hasError">
+    <table class="cattle-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>品种</th>
+          <th>性别</th>
+          <th>体重(kg)</th>
+          <th>出生日期</th>
+          <th>登记时间</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let cattle of cattleList">
+          <td>{{ cattle.cattle_id }}</td>
+          <td>{{ cattle.breed }}</td>
+          <td>{{ cattle.gender }}</td>
+          <td>{{ cattle.weight }}</td>
+          <td>{{ cattle.birth_date }}</td>
+          <td>{{ cattle.created_at | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+          <td>
+            <button class="edit-btn" (click)="openEditForm(cattle)">编辑</button>
+          </td>
+        </tr>
+        <tr *ngIf="cattleList.length === 0">
+          <td colspan="7" class="no-data">暂无牛只数据</td>
+        </tr>
+      </tbody>
+    </table>
     
-    <div class="form-group">
-      <label for="cattleId">牛编号</label>
-      <input 
-        type="text" 
-        id="cattleId" 
-        name="cattleId" 
-        [(ngModel)]="cattleId" 
-        required
-        placeholder="请输入牛的编号">
+    <!-- 分页控件 -->
+    <div class="pagination" *ngIf="pagedResult.total > 0">
+      <button 
+        class="page-btn" 
+        [disabled]="pagedResult.page === 1" 
+        (click)="changePage(pagedResult.page - 1)">
+        上一页
+      </button>
+      <span class="page-info">
+        {{ pagedResult.page }} / {{ pagedResult.total_pages }} 页
+        (共 {{ pagedResult.total }} 条记录)
+      </span>
+      <button 
+        class="page-btn" 
+        [disabled]="pagedResult.page === pagedResult.total_pages" 
+        (click)="changePage(pagedResult.page + 1)">
+        下一页
+      </button>
     </div>
-    
-    <div class="form-group">
-      <label for="breed">品种</label>
-      <input 
-        type="text" 
-        id="breed" 
-        name="breed" 
-        [(ngModel)]="breed" 
-        required
-        placeholder="请输入牛的品种">
+  </div>
+  
+  <!-- 添加/编辑表单模态窗 -->
+  <div class="modal" *ngIf="showForm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>{{ isEditMode ? '编辑牛只信息' : '新增牛只信息' }}</h3>
+        <button class="close-btn" (click)="closeForm()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="saveCattle()" class="register-form">
+          <div class="form-group" *ngIf="isEditMode">
+            <label for="cattleId">牛ID</label>
+            <input 
+              type="number"
+              id="cattleId"
+              [(ngModel)]="formData.cattle_id"
+              name="cattle_id"
+              disabled>
+          </div>
+          
+          <div class="form-group">
+            <label for="breed">品种</label>
+            <input 
+              type="text" 
+              id="breed" 
+              name="breed" 
+              [(ngModel)]="formData.breed" 
+              required
+              placeholder="请输入牛的品种">
+          </div>
+          
+          <div class="form-group">
+            <label for="gender">性别</label>
+            <select 
+              id="gender" 
+              name="gender" 
+              [(ngModel)]="formData.gender" 
+              required>
+              <option value="">请选择性别</option>
+              <option value="公牛">公牛</option>
+              <option value="母牛">母牛</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="birthDate">出生日期</label>
+            <input 
+              type="date" 
+              id="birthDate" 
+              name="birth_date" 
+              [(ngModel)]="formData.birth_date" 
+              required>
+          </div>
+          
+          <div class="form-group">
+            <label for="weight">体重(kg)</label>
+            <input 
+              type="number" 
+              id="weight" 
+              name="weight" 
+              [(ngModel)]="formData.weight" 
+              required
+              min="0"
+              step="0.01"
+              placeholder="请输入牛的体重">
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="submit-btn">{{ isEditMode ? '更新信息' : '登记信息' }}</button>
+            <button type="button" class="cancel-btn" (click)="closeForm()">取消</button>
+          </div>
+        </form>
+      </div>
     </div>
-    
-    <div class="form-group">
-      <label for="birthDate">出生日期</label>
-      <input 
-        type="date" 
-        id="birthDate" 
-        name="birthDate" 
-        [(ngModel)]="birthDate" 
-        required>
-    </div>
-    
-    <div class="form-group">
-      <label for="weight">体重(kg)</label>
-      <input 
-        type="number" 
-        id="weight" 
-        name="weight" 
-        [(ngModel)]="weight" 
-        required
-        placeholder="请输入牛的体重">
-    </div>
-    
-    <div class="form-actions">
-      <button type="submit" class="submit-btn">登记信息</button>
-      <button type="button" class="cancel-btn">取消</button>
-    </div>
-  </form>
+  </div>
 </div>

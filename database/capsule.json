@@ -1,0 +1,122 @@
+[
+  {
+    "capsule_id": "a1b2c3d4-e5f6-47g8-h9i0-j1k2l3m4n5o6",
+    "production_batch": "PB20241125-001",
+    "activation_date": "2024-12-15",
+    "expiration_date": "2026-12-15",
+    "status": "已安装",
+    "created_at": "2025-01-12T10:30:22"
+  },
+  {
+    "capsule_id": "b2c3d4e5-f6g7-48h9-i0j1-k2l3m4n5o6p7",
+    "production_batch": "PB20241220-001",
+    "activation_date": "2025-01-10",
+    "expiration_date": "2027-01-10",
+    "status": "已安装",
+    "created_at": "2025-02-07T09:45:18"
+  },
+  {
+    "capsule_id": "c3d4e5f6-g7h8-49i0-j1k2-l3m4n5o6p7q8",
+    "production_batch": "PB20241120-001",
+    "activation_date": "2024-12-08",
+    "expiration_date": "2026-12-08",
+    "status": "已安装",
+    "created_at": "2025-01-05T14:22:36"
+  },
+  {
+    "capsule_id": "d4e5f6g7-h8i9-50j1-k2l3-m4n5o6p7q8r9",
+    "production_batch": "PB20250130-001",
+    "activation_date": "2025-02-18",
+    "expiration_date": "2027-02-18",
+    "status": "已安装",
+    "created_at": "2025-03-18T11:15:43"
+  },
+  {
+    "capsule_id": "e5f6g7h8-i9j0-51k2-l3m4-n5o6p7q8r9s0",
+    "production_batch": "PB20250305-001",
+    "activation_date": "2025-03-25",
+    "expiration_date": "2027-03-25",
+    "status": "库存",
+    "created_at": "2025-04-22T08:30:15"
+  },
+  {
+    "capsule_id": "f6g7h8i9-j0k1-52l3-m4n5-o6p7q8r9s0t1",
+    "production_batch": "PB20241215-002",
+    "activation_date": "2025-01-05",
+    "expiration_date": "2027-01-05",
+    "status": "已安装",
+    "created_at": "2025-02-02T16:45:28"
+  },
+  {
+    "capsule_id": "g7h8i9j0-k1l2-53m4-n5o6-p7q8r9s0t1u2",
+    "production_batch": "PB20250325-001",
+    "activation_date": "2025-04-12",
+    "expiration_date": "2027-04-12",
+    "status": "库存",
+    "created_at": "2025-05-10T13:20:55"
+  },
+  {
+    "capsule_id": "h8i9j0k1-l2m3-54n5-o6p7-q8r9s0t1u2v3",
+    "production_batch": "PB20241205-001",
+    "activation_date": "2024-12-22",
+    "expiration_date": "2026-12-22",
+    "status": "已安装",
+    "created_at": "2025-01-19T09:10:33"
+  },
+  {
+    "capsule_id": "i9j0k1l2-m3n4-55o6-p7q8-r9s0t1u2v3w4",
+    "production_batch": "PB20250115-002",
+    "activation_date": "2025-02-03",
+    "expiration_date": "2027-02-03",
+    "status": "已安装",
+    "created_at": "2025-03-03T15:35:47"
+  },
+  {
+    "capsule_id": "j0k1l2m3-n4o5-56p7-q8r9-s0t1u2v3w4x5",
+    "production_batch": "PB20250105-002",
+    "activation_date": "2025-01-25",
+    "expiration_date": "2027-01-25",
+    "status": "已安装",
+    "created_at": "2025-02-22T12:25:18"
+  },
+  {
+    "capsule_id": "k1l2m3n4-o5p6-57q8-r9s0-t1u2v3w4x5y6",
+    "production_batch": "PB20250410-002",
+    "activation_date": "2025-04-30",
+    "expiration_date": "2027-04-30",
+    "status": "库存",
+    "created_at": "2025-05-28T10:40:22"
+  },
+  {
+    "capsule_id": "l2m3n4o5-p6q7-58r9-s0t1-u2v3w4x5y6z7",
+    "production_batch": "PB20250220-002",
+    "activation_date": "2025-03-08",
+    "expiration_date": "2027-03-08",
+    "status": "库存",
+    "created_at": "2025-04-05T14:15:36"
+  },
+  {
+    "capsule_id": "m3n4o5p6-q7r8-59s0-t1u2-v3w4x5y6z7a8",
+    "production_batch": "PB20241115-002",
+    "activation_date": "2024-12-05",
+    "expiration_date": "2026-12-05",
+    "status": "已安装",
+    "created_at": "2025-01-02T11:50:42"
+  },
+  {
+    "capsule_id": "n4o5p6q7-r8s9-60t1-u2v3-w4x5y6z7a8b9",
+    "production_batch": "PB20250125-001",
+    "activation_date": "2025-02-15",
+    "expiration_date": "2027-02-15",
+    "status": "已安装",
+    "created_at": "2025-03-15T09:30:15"
+  },
+  {
+    "capsule_id": "o5p6q7r8-s9t0-61u2-v3w4-x5y6z7a8b9c0",
+    "production_batch": "PB20250415-001",
+    "activation_date": "2025-05-01",
+    "expiration_date": "2027-05-01",
+    "status": "库存",
+    "created_at": "2025-05-29T16:20:33"
+  }
+]

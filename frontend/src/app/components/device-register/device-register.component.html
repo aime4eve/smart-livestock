@@ -1,74 +1,186 @@
 <div class="device-register-container">
   <h2>设备信息登记</h2>
   
-  <form (ngSubmit)="registerDevice()" class="register-form">
-    <div class="form-group">
-      <label for="deviceName">设备名称</label>
-      <input 
-        type="text" 
-        id="deviceName" 
-        name="deviceName" 
-        [(ngModel)]="deviceName" 
-        required
-        placeholder="请输入设备名称">
+  <!-- 搜索表单 -->
+  <div class="search-container">
+    <form [formGroup]="searchForm" (ngSubmit)="search()" class="search-form">
+      <div class="search-row">
+        <div class="search-field">
+          <label for="capsule_id">设备ID</label>
+          <input type="text" id="capsule_id" formControlName="capsule_id">
+        </div>
+        <div class="search-field">
+          <label for="production_batch">生产批次</label>
+          <input type="text" id="production_batch" formControlName="production_batch">
+        </div>
+        <div class="search-field">
+          <label for="status">设备状态</label>
+          <select id="status" formControlName="status">
+            <option value="">全部</option>
+            <option *ngFor="let option of statusOptions" [value]="option">{{option}}</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="search-row">
+        <div class="search-field">
+          <label for="created_at">创建日期</label>
+          <input type="date" id="created_at" formControlName="created_at">
+        </div>
+        <div class="search-field">
+          <label for="activation_date">激活日期</label>
+          <input type="date" id="activation_date" formControlName="activation_date">
+        </div>
+        <div class="search-field">
+          <label for="expiration_date">失效日期</label>
+          <input type="date" id="expiration_date" formControlName="expiration_date">
+        </div>
+      </div>
+      
+      <div class="button-row">
+        <div class="spacer"></div>
+        <button type="submit" class="search-btn">搜索</button>
+        <button type="button" class="reset-btn" (click)="resetSearch()">重置</button>
+        <button type="button" class="add-btn" (click)="openAddForm()">添加设备</button>
+      </div>
+    </form>
+  </div>
+  
+  <!-- 数据表格 -->
+  <div class="data-table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>设备ID</th>
+          <th>生产批次</th>
+          <th>激活日期</th>
+          <th>过期日期</th>
+          <th>状态</th>
+          <th>创建时间</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let capsule of capsules">
+          <td>{{capsule.capsule_id}}</td>
+          <td>{{capsule.production_batch}}</td>
+          <td>{{capsule.activation_date}}</td>
+          <td>{{capsule.expiration_date}}</td>
+          <td>{{capsule.status}}</td>
+          <td>{{capsule.created_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+          <td>
+            <button class="edit-btn" (click)="openEditForm(capsule)">编辑</button>
+          </td>
+        </tr>
+        <tr *ngIf="capsules.length === 0">
+          <td colspan="7" class="no-data">暂无数据</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- 分页控件 -->
+  <div class="pagination" *ngIf="totalItems > 0">
+    <button 
+      class="page-btn" 
+      [disabled]="currentPage === 0" 
+      (click)="onPageChange(currentPage - 1)">
+      上一页
+    </button>
+    <button 
+      *ngFor="let page of pageNumbers" 
+      class="page-btn" 
+      [class.active]="page === currentPage" 
+      (click)="onPageChange(page)">
+      {{page + 1}}
+    </button>
+    <button 
+      class="page-btn" 
+      [disabled]="currentPage >= Math.ceil(totalItems / pageSize) - 1" 
+      (click)="onPageChange(currentPage + 1)">
+      下一页
+    </button>
+    <span class="page-info">
+      共 {{totalItems}} 条记录，{{Math.ceil(totalItems / pageSize)}} 页
+    </span>
+  </div>
+  
+  <!-- 添加/编辑表单 -->
+  <div class="form-modal" *ngIf="showForm">
+    <div class="form-container">
+      <h3>{{isEditMode ? '编辑设备信息' : '添加设备信息'}}</h3>
+      <form [formGroup]="capsuleForm" (ngSubmit)="submitForm()" class="capsule-form">
+        <div class="form-group">
+          <label for="form-capsule-id">设备ID</label>
+          <input 
+            type="text" 
+            id="form-capsule-id" 
+            formControlName="capsule_id" 
+            [readonly]="isEditMode"
+            required>
+          <div *ngIf="capsuleForm.get('capsule_id')?.invalid && capsuleForm.get('capsule_id')?.touched" class="error-message">
+            设备ID不能为空
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="form-production-batch">生产批次</label>
+          <input 
+            type="text" 
+            id="form-production-batch" 
+            formControlName="production_batch" 
+            required>
+          <div *ngIf="capsuleForm.get('production_batch')?.invalid && capsuleForm.get('production_batch')?.touched" class="error-message">
+            生产批次不能为空
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="form-activation-date">激活日期</label>
+          <input 
+            type="date" 
+            id="form-activation-date" 
+            formControlName="activation_date" 
+            required>
+          <div *ngIf="capsuleForm.get('activation_date')?.invalid && capsuleForm.get('activation_date')?.touched" class="error-message">
+            激活日期不能为空
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="form-expiration-date">过期日期</label>
+          <input 
+            type="date" 
+            id="form-expiration-date" 
+            formControlName="expiration_date" 
+            required>
+          <div *ngIf="capsuleForm.get('expiration_date')?.invalid && capsuleForm.get('expiration_date')?.touched" class="error-message">
+            过期日期不能为空
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="form-status">设备状态</label>
+          <select 
+            id="form-status" 
+            formControlName="status"
+            [attr.disabled]="!isEditMode ? true : null"
+            required>
+            <option *ngFor="let option of statusOptions" [value]="option">{{option}}</option>
+          </select>
+          <div *ngIf="!isEditMode" class="field-info">
+            新添加的设备默认状态为"库存"
+          </div>
+          <div *ngIf="capsuleForm.get('status')?.invalid && capsuleForm.get('status')?.touched" class="error-message">
+            设备状态不能为空
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <button type="submit" class="submit-btn" [disabled]="capsuleForm.invalid">提交</button>
+          <button type="button" class="cancel-btn" (click)="cancelForm()">取消</button>
+        </div>
+      </form>
     </div>
-    
-    <div class="form-group">
-      <label for="deviceId">设备编号</label>
-      <input 
-        type="text" 
-        id="deviceId" 
-        name="deviceId" 
-        [(ngModel)]="deviceId" 
-        required
-        placeholder="请输入设备编号">
-    </div>
-    
-    <div class="form-group">
-      <label for="deviceType">设备类型</label>
-      <input 
-        type="text" 
-        id="deviceType" 
-        name="deviceType" 
-        [(ngModel)]="deviceType" 
-        required
-        placeholder="请输入设备类型">
-    </div>
-    
-    <div class="form-group">
-      <label for="installDate">安装日期</label>
-      <input 
-        type="date" 
-        id="installDate" 
-        name="installDate" 
-        [(ngModel)]="installDate" 
-        required>
-    </div>
-    
-    <div class="form-group">
-      <label for="status">设备状态</label>
-      <select 
-        id="status" 
-        name="status" 
-        [(ngModel)]="status" 
-        required>
-        <option *ngFor="let option of statusOptions" [value]="option">{{option}}</option>
-      </select>
-    </div>
-    
-    <div class="form-group">
-      <label for="description">设备描述</label>
-      <textarea 
-        id="description" 
-        name="description" 
-        [(ngModel)]="description" 
-        rows="4"
-        placeholder="请输入设备描述和用途"></textarea>
-    </div>
-    
-    <div class="form-actions">
-      <button type="submit" class="submit-btn">登记信息</button>
-      <button type="button" class="cancel-btn">取消</button>
-    </div>
-  </form>
+  </div>
 </div>

@@ -1,0 +1,82 @@
+[
+  {
+    "cattle_id": 1,
+    "breed": "安格斯",
+    "birth_date": "2021-03-15",
+    "weight": 623.45,
+    "gender": "公牛",
+    "created_at": "2023-05-10T08:30:22"
+  },
+  {
+    "cattle_id": 2,
+    "breed": "荷斯坦",
+    "birth_date": "2020-07-22",
+    "weight": 578.90,
+    "gender": "母牛",
+    "created_at": "2023-05-12T14:15:36"
+  },
+  {
+    "cattle_id": 3,
+    "breed": "海福特",
+    "birth_date": "2022-01-05",
+    "weight": 432.20,
+    "gender": "公牛",
+    "created_at": "2023-05-14T10:45:18"
+  },
+  {
+    "cattle_id": 4,
+    "breed": "夏洛莱",
+    "birth_date": "2021-11-30",
+    "weight": 545.75,
+    "gender": "母牛",
+    "created_at": "2023-05-18T09:22:41"
+  },
+  {
+    "cattle_id": 5,
+    "breed": "利木赞",
+    "birth_date": "2020-09-18",
+    "weight": 612.30,
+    "gender": "公牛",
+    "created_at": "2023-06-01T11:05:37"
+  },
+  {
+    "cattle_id": 6,
+    "breed": "西门塔尔",
+    "birth_date": "2022-02-28",
+    "weight": 389.65,
+    "gender": "母牛",
+    "created_at": "2023-06-05T16:30:48"
+  },
+  {
+    "cattle_id": 7,
+    "breed": "布拉曼",
+    "birth_date": "2021-05-10",
+    "weight": 567.80,
+    "gender": "公牛",
+    "created_at": "2023-06-10T13:12:29"
+  },
+  {
+    "cattle_id": 8,
+    "breed": "娟姗",
+    "birth_date": "2020-12-03",
+    "weight": 498.50,
+    "gender": "母牛",
+    "created_at": "2023-06-15T10:40:15"
+  },
+  {
+    "cattle_id": 9,
+    "breed": "南德文",
+    "birth_date": "2021-08-25",
+    "weight": 534.25,
+    "gender": "公牛",
+    "created_at": "2023-06-20T08:55:33"
+  },
+  {
+    "cattle_id": 10,
+    "breed": "短角",
+    "birth_date": "2022-04-17",
+    "weight": 410.70,
+    "gender": "母牛",
+    "created_at": "2023-06-25T15:18:52"
+  }
+]
