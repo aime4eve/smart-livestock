@@ -81,8 +81,8 @@ export class CattleMapComponent implements AfterViewInit, OnDestroy {
   private initMap(): void {
     // 创建地图实例
     this.map = this.L.map('map', {
-      center: [28.2282, 112.9388],
-      zoom: 13,
+      center: [28.2458, 112.8519],// 初始中心坐标 华宽通
+      zoom: 17,
       zoomControl: true
     });
 

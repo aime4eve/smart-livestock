@@ -76,8 +76,8 @@ export class CattleService {
    */
   private convertDTOToCattle(dto: CattleDTO, location?: any): Cattle {
     // 默认位置数据（如果没有位置记录，则使用随机位置）
-    let lat = 28.22 + (Math.random() * 0.05);
-    let lng = 112.93 + (Math.random() * 0.05);
+    let lat = 28.2458 + (Math.random() * 0.05);
+    let lng = 112.8519 + (Math.random() * 0.05);
     
     // 如果有真实位置数据，则使用
     if (location) {
