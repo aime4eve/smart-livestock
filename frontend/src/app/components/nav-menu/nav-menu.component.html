@@ -1,0 +1,34 @@
+<nav class="nav-menu">
+  <ul class="menu-list">
+    <li *ngFor="let item of menuItems" class="menu-item">
+      <!-- 主菜单项 -->
+      <div 
+        class="menu-item-content" 
+        [class.active]="item.route && item.route === currentRoute"
+        (click)="item.children ? toggleSubmenu(item) : navigateTo(item.route)">
+        
+        <div class="menu-dropdown-toggle">
+          <span class="menu-icon">
+            <!-- 图标占位符 -->
+            <span class="icon-placeholder">{{item.icon?.charAt(0)}}</span>
+          </span>
+          <span class="menu-label">{{item.label}}</span>
+          <span *ngIf="item.children" class="dropdown-indicator" [class.expanded]="item.expanded">▼</span>
+        </div>
+      </div>
+      
+      <!-- 子菜单 -->
+      <ul *ngIf="item.children && item.expanded" class="submenu-list">
+        <li *ngFor="let child of item.children" class="submenu-item">
+          <div class="submenu-link" (click)="navigateTo(child.route)">
+            <span class="menu-icon">
+              <!-- 图标占位符 -->
+              <span class="icon-placeholder">{{child.icon?.charAt(0)}}</span>
+            </span>
+            <span class="menu-label">{{child.label}}</span>
+          </div>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>

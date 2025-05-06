@@ -1,0 +1,28 @@
+<div class="stats-panel">
+  <h3>牛群健康统计</h3>
+  @if (cattleData.length > 0) {
+    <div class="stat-item">
+      <div class="stat-label">健康：</div>
+      <div class="stat-value">{{ calculateStats().healthy }}%</div>
+      <div class="stat-bar">
+        <div class="stat-bar-fill healthy" [style.width.%]="calculateStats().healthy"></div>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">警告：</div>
+      <div class="stat-value">{{ calculateStats().warning }}%</div>
+      <div class="stat-bar">
+        <div class="stat-bar-fill warning" [style.width.%]="calculateStats().warning"></div>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">严重：</div>
+      <div class="stat-value">{{ calculateStats().critical }}%</div>
+      <div class="stat-bar">
+        <div class="stat-bar-fill critical" [style.width.%]="calculateStats().critical"></div>
+      </div>
+    </div>
+  } @else {
+    <div class="no-data">暂无数据</div>
+  }
+</div>

@@ -1,46 +1,97 @@
-# Getting Started with Create React App
+# 智慧畜牧系统
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+智慧畜牧系统是一个用于畜牧场管理的综合系统，包含前端和后端组件。
 
-## Available Scripts
+## 项目结构
 
-In the project directory, you can run:
+项目采用前后端分离的架构：
 
-### `npm start`
+- `frontend/`: Angular 19 + TypeScript前端应用
+- `backend/`: Express + MongoDB后端API服务
+- `frontend-react-backup/`: 原React前端代码备份
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## 安装与运行
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### 安装依赖
 
-### `npm test`
+```bash
+# 安装根目录依赖
+npm install
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# 安装前端依赖
+cd frontend && npm install
 
-### `npm run build`
+# 安装后端依赖
+cd backend && npm install
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 开发模式
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+同时启动前端和后端服务：
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+npm start
+```
 
-### `npm run eject`
+只启动前端：
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```bash
+cd frontend && npm start
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+只启动后端：
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+```bash
+cd backend && npm start
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### 构建前端
 
-## Learn More
+```bash
+cd frontend && npm run build
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 技术栈
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### 前端
+- Angular 19
+- TypeScript
+- Chart.js
+- Leaflet (地图功能)
+
+### 后端
+- Node.js
+- Express
+- MongoDB
+- JWT 认证
+
+## 主要功能
+
+该系统提供以下主要功能：
+
+1. **地图显示**：在地图上实时显示牛只位置和健康状态
+2. **健康监控**：通过颜色和统计图表直观展示牛只健康状况
+3. **传感器数据分析**：查看单个牛只的温度和蠕动次数等传感器数据
+4. **数据统计**：提供整体牧场的健康状态百分比统计
+
+## 模块说明
+
+### 前端模块
+
+- `cattle-map`: 地图组件，显示牛只位置和健康状态
+- `stats-panel`: 统计面板，展示牛群健康状况统计
+- `sensor-chart-modal`: 传感器数据图表，显示单个牛只的传感器数据
+- `cattle.service`: 服务模块，处理与后端API的通信
+
+### 后端模块
+
+- API服务：提供RESTful API接口
+- 数据存储：处理MongoDB数据库操作
+- 认证服务：处理用户认证和授权
+
+## 开发文档
+
+详细的开发文档请参考各目录下的README文件：
+
+- [前端文档](./frontend/README.md)
+- [后端文档](./backend/README.md)

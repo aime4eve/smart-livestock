@@ -1,0 +1,43 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.app-header {
+  position: relative;
+  background-color: #1976d2;
+  color: white;
+  padding: 8px 16px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  z-index: 1001;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.app-nav {
+  flex-shrink: 0;
+}
+
+.app-content {
+  flex: 1;
+  position: relative;
+  overflow: auto;
+  padding: 15px;
+}

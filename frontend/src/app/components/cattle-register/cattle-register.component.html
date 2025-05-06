@@ -1,0 +1,64 @@
+<div class="cattle-register-container">
+  <h2>牛群信息登记</h2>
+  
+  <form (ngSubmit)="registerCattle()" class="register-form">
+    <div class="form-group">
+      <label for="cattleName">牛名称</label>
+      <input 
+        type="text" 
+        id="cattleName" 
+        name="cattleName" 
+        [(ngModel)]="cattleName" 
+        required
+        placeholder="请输入牛的名称">
+    </div>
+    
+    <div class="form-group">
+      <label for="cattleId">牛编号</label>
+      <input 
+        type="text" 
+        id="cattleId" 
+        name="cattleId" 
+        [(ngModel)]="cattleId" 
+        required
+        placeholder="请输入牛的编号">
+    </div>
+    
+    <div class="form-group">
+      <label for="breed">品种</label>
+      <input 
+        type="text" 
+        id="breed" 
+        name="breed" 
+        [(ngModel)]="breed" 
+        required
+        placeholder="请输入牛的品种">
+    </div>
+    
+    <div class="form-group">
+      <label for="birthDate">出生日期</label>
+      <input 
+        type="date" 
+        id="birthDate" 
+        name="birthDate" 
+        [(ngModel)]="birthDate" 
+        required>
+    </div>
+    
+    <div class="form-group">
+      <label for="weight">体重(kg)</label>
+      <input 
+        type="number" 
+        id="weight" 
+        name="weight" 
+        [(ngModel)]="weight" 
+        required
+        placeholder="请输入牛的体重">
+    </div>
+    
+    <div class="form-actions">
+      <button type="submit" class="submit-btn">登记信息</button>
+      <button type="button" class="cancel-btn">取消</button>
+    </div>
+  </form>
+</div>

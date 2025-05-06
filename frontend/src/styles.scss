@@ -1,0 +1,57 @@
+/* You can add global styles to this file, and also import other style files */
+@import 'leaflet/dist/leaflet.css';
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* 地图标记自定义样式 */
+.custom-marker {
+  text-align: center;
+}
+
+.marker-container {
+  display: inline-block;
+}
+
+.critical-pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* CSS兼容性修复 */
+.leaflet-container {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.leaflet-control-attribution {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* 减少内容区域的上边距 */
+app-root > * {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* 确保内容区域紧贴在一起 */
+.main-content {
+  padding-top: 0;
+  margin-top: 0;
+}

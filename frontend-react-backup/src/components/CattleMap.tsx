@@ -5,14 +5,9 @@ import { SensorChartModal } from './SensorChartModal';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import 'leaflet.fullscreen';
-import { CattleSensorData, generateSensorData } from '../types/sensor';
-
-interface CattleData {
-  id: string;
-  position: [number, number];
-  healthStatus: 'healthy' | 'warning' | 'critical';
-  sensorData: CattleSensorData;
-}
+import { CattleSensorData } from '../types/sensor';
+import { getAllCattle, getCattleSensorData, CattleData } from '../api/cattleApi';
+import LoadingSpinner from './common/LoadingSpinner';
 
 // 全屏控制组件
 const FullScreenControl = () => {
@@ -40,27 +35,51 @@ const FullScreenControl = () => {
   return null;
 };
 
-// 生成模拟牛数据的函数
-const generateCattleData = (count: number): CattleData[] => {
-  return Array.from({ length: count }, (_, i) => {
-    const cattleId = (i + 1).toString();
-    return {
-      id: cattleId,
-      position: [28.25 + Math.random() * 0.01, 112.895 + Math.random() * 0.015],
-      healthStatus: Math.random() < 0.8 ? 'healthy' : (Math.random() < 0.5 ? 'warning' : 'critical'),
-      sensorData: generateSensorData(cattleId)
-    };
-  });
-};
+interface SelectedCattleData extends CattleData {
+  sensorData: CattleSensorData;
+}
 
 const CattleMap = () => {
   const [cattleData, setCattleData] = useState<CattleData[]>([]);
-  const [selectedCattle, setSelectedCattle] = useState<CattleData | null>(null);
+  const [selectedCattle, setSelectedCattle] = useState<SelectedCattleData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // 只在组件首次加载时生成数据
+  // 加载牛只数据
   useEffect(() => {
-    setCattleData(generateCattleData(50));
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const data = await getAllCattle();
+        setCattleData(data);
+        setError(null);
+      } catch (err) {
+        console.error('获取牛只数据失败:', err);
+        setError('无法加载牛只数据，请稍后再试');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
+
+  // 选择牛只时获取传感器数据
+  const handleSelectCattle = async (cattle: CattleData) => {
+    try {
+      setLoading(true);
+      const sensorData = await getCattleSensorData(cattle.id);
+      setSelectedCattle({
+        ...cattle,
+        sensorData
+      });
+    } catch (err) {
+      console.error('获取传感器数据失败:', err);
+      setError('无法加载传感器数据，请稍后再试');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // 健康状态对应颜色
   const getMarkerIcon = (status: string) => {
@@ -84,9 +103,20 @@ const CattleMap = () => {
     });
   };
 
+  // 加载中状态显示
+  if (loading && cattleData.length === 0) {
+    return <LoadingSpinner message="正在加载牛只数据..." />;
+  }
+
+  // 错误状态显示
+  if (error && cattleData.length === 0) {
+    return <div className="error-message">{error}</div>;
+  }
+
   return (
     <div className="map-container" style={{ position: 'relative', height: '100%' }}>
       <StatsPanel cattleData={cattleData} />
+      {loading && <div className="loading-overlay">加载中...</div>}
       <MapContainer
         center={[28.2282, 112.9388]}
         zoom={12}
@@ -103,7 +133,7 @@ const CattleMap = () => {
             key={cattle.id}
             position={cattle.position}
             icon={createCustomIcon(getMarkerIcon(cattle.healthStatus))}
-            eventHandlers={{ click: () => setSelectedCattle(cattle) }}
+            eventHandlers={{ click: () => handleSelectCattle(cattle) }}
           />
         ))}
       </MapContainer>

@@ -1,0 +1,26 @@
+<div class="map-wrapper">
+  @if (loading && cattleData.length === 0) {
+    <app-loading-spinner message="正在加载牛只数据..."></app-loading-spinner>
+  }
+  @if (error && cattleData.length === 0) {
+    <div class="error-message">{{ error }}</div>
+  }
+  
+  <div id="map"></div>
+  
+  <!-- 移到地图上方 -->
+  <div class="stats-panel-overlay">
+    <app-stats-panel [cattleData]="cattleData"></app-stats-panel>
+  </div>
+  
+  @if (loadingSensorData) {
+    <div class="loading-overlay">加载传感器数据中...</div>
+  }
+  
+  @if (selectedCattle) {
+    <app-sensor-chart-modal 
+      [data]="selectedCattle.sensorData" 
+      (close)="closeModal()">
+    </app-sensor-chart-modal>
+  }
+</div>

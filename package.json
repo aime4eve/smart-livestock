@@ -1,52 +1,21 @@
 {
   "name": "smart-livestock",
-  "version": "0.2.0",
+  "version": "1.0.0",
+  "description": "智慧畜牧系统 - 包含前端和后端",
   "private": true,
-  "dependencies": {
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^13.5.0",
-    "@types/chart.js": "^2.9.41",
-    "@types/jest": "^27.5.2",
-    "@types/leaflet": "^1.9.17",
-    "@types/leaflet.fullscreen": "^3.0.2",
-    "@types/node": "^16.18.126",
-    "@types/react": "^19.1.2",
-    "@types/react-dom": "^19.1.2",
-    "chart.js": "^4.4.9",
-    "leaflet": "^1.9.4",
-    "leaflet.fullscreen": "^4.0.0",
-    "react": "^19.1.0",
-    "react-chartjs-2": "^5.3.0",
-    "react-dom": "^19.1.0",
-    "react-leaflet": "^5.0.0",
-    "react-scripts": "5.0.1",
-    "typescript": "^4.9.5",
-    "web-vitals": "^2.1.4"
-  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
-    "start": "set PORT=3000 && react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
+    "start:frontend": "cd frontend && npm start",
+    "start:backend": "cd backend && npm start",
+    "build": "cd frontend && npm run build",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "test": "cd frontend && npm test"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }
