@@ -18,14 +18,14 @@ export class CattleRegisterComponent implements OnInit {
     items: [],
     total: 0,
     page: 1,
-    page_size: 20,
+    page_size: 7,
     total_pages: 0
   };
   
   // 查询条件
   queryParams: CattleQueryParams = {
     page: 1,
-    page_size: 20
+    page_size: 7
   };
   
   // 表单数据
@@ -94,7 +94,7 @@ export class CattleRegisterComponent implements OnInit {
     console.log('重置查询条件');
     this.queryParams = {
       page: 1,
-      page_size: 20
+      page_size: 7
     };
     this.loadCattleData();
   }

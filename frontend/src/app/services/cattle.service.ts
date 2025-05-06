@@ -248,7 +248,7 @@ export class CattleService {
   getFilteredCattle(params: CattleQueryParams = {}): Observable<PagedResult<CattleDTO>> {
     console.log('getFilteredCattle 方法被调用，参数:', params);
     const page = params.page || 1;
-    const pageSize = params.page_size || 20;
+    const pageSize = params.page_size || 7;
     
     return this.getAllCattleDTO().pipe(
       map(allCattle => {
