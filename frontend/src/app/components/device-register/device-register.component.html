@@ -1,6 +1,12 @@
 <div class="device-register-container">
   <h2>设备信息登记</h2>
   
+  <!-- 错误提示 -->
+  <div *ngIf="loadError" class="error-alert">
+    <p>{{ loadError }}</p>
+    <button (click)="reloadData()">重新加载</button>
+  </div>
+  
   <!-- 搜索表单 -->
   <div class="search-container">
     <form [formGroup]="searchForm" (ngSubmit)="search()" class="search-form">
@@ -48,7 +54,30 @@
   
   <!-- 数据表格 -->
   <div class="data-table-container">
-    <table class="data-table">
+    <!-- 调试信息 -->
+    <div class="debug-info" *ngIf="isLoading">
+      <p>正在加载数据，请查看控制台日志获取详细信息...</p>
+    </div>
+
+    <!-- 加载中提示 -->
+    <div *ngIf="isLoading" class="loading-indicator">
+      <p>正在加载数据，请稍候...</p>
+    </div>
+    
+    <!-- 调试信息 -->
+    <div class="debug-info" *ngIf="!isLoading && capsules.length === 0">
+      <p>未加载到数据，请检查以下几点：</p>
+      <ol>
+        <li>控制台是否有加载错误</li>
+        <li>assets/data/capsule.json 文件是否存在</li>
+        <li>文件路径是否正确</li>
+        <li>文件格式是否为有效的JSON</li>
+      </ol>
+      <p>可以点击下方按钮尝试重新加载：</p>
+      <button (click)="reloadData()">重新加载数据</button>
+    </div>
+
+    <table class="data-table" *ngIf="!isLoading">
       <thead>
         <tr>
           <th>设备ID</th>
@@ -72,7 +101,7 @@
             <button class="edit-btn" (click)="openEditForm(capsule)">编辑</button>
           </td>
         </tr>
-        <tr *ngIf="capsules.length === 0">
+        <tr *ngIf="capsules.length === 0 && !isLoading">
           <td colspan="7" class="no-data">暂无数据</td>
         </tr>
       </tbody>
@@ -80,7 +109,7 @@
   </div>
   
   <!-- 分页控件 -->
-  <div class="pagination" *ngIf="totalItems > 0">
+  <div class="pagination" *ngIf="totalItems > 0 && !isLoading">
     <button 
       class="page-btn" 
       [disabled]="currentPage === 0" 

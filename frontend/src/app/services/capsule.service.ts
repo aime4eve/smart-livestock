@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of, from, BehaviorSubject } from 'rxjs';
+import { map, switchMap, tap, catchError, first } from 'rxjs/operators';
 import { Capsule, CapsuleQueryParams } from '../models/capsule';
 import { environment } from '../../environments/environment';
 
@@ -12,156 +12,231 @@ export class CapsuleService {
   // 使用更安全的方式定义apiUrl
   private apiUrl = environment.apiUrl ? `${environment.apiUrl}/capsules` : '/api/capsules';
   
-  // 临时使用的模拟数据
-  private mockCapsules: Capsule[] = [
-    {
-      "capsule_id": "a1b2c3d4-e5f6-47g8-h9i0-j1k2l3m4n5o6",
-      "production_batch": "PB20241125-001",
-      "activation_date": "2024-12-15",
-      "expiration_date": "2026-12-15",
-      "status": "已安装",
-      "created_at": "2025-01-12T10:30:22"
-    },
-    {
-      "capsule_id": "b2c3d4e5-f6g7-48h9-i0j1-k2l3m4n5o6p7",
-      "production_batch": "PB20241220-001",
-      "activation_date": "2025-01-10",
-      "expiration_date": "2027-01-10",
-      "status": "已安装",
-      "created_at": "2025-02-07T09:45:18"
-    }
-  ];
+  // JSON文件路径 - 从assets目录加载
+  private jsonDataUrl = 'assets/data/capsule.json';
+  
+  // 存储从JSON文件加载的数据
+  private capsules: Capsule[] = [];
+  private dataLoaded = false;
+  
+  // 用于跟踪数据加载状态的Subject
+  private dataLoadingSubject = new BehaviorSubject<boolean>(false);
+  
+  // 用于缓存已加载的数据
+  private dataCache: BehaviorSubject<Capsule[]> = new BehaviorSubject<Capsule[]>([]);
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+    // 初始化时加载数据
+    console.log('CapsuleService 初始化...');
+    this.loadCapsuleData();
+  }
+
+  // 从JSON文件加载数据
+  private loadCapsuleData(): void {
+    // 如果数据已经加载或正在加载中，则跳过
+    if (this.dataLoaded || this.dataLoadingSubject.value) {
+      console.log('数据已加载或正在加载中，跳过加载操作');
+      return;
+    }
+    
+    // 标记为正在加载
+    this.dataLoadingSubject.next(true);
+    
+    // 记录完整的JSON文件URL
+    const fullUrl = this.getFullUrl(this.jsonDataUrl);
+    console.log('尝试加载胶囊数据，URL:', fullUrl);
+    
+    this.http.get<Capsule[]>(this.jsonDataUrl)
+      .subscribe({
+        next: (data) => {
+          console.log('成功获取到胶囊数据，返回数据类型:', typeof data);
+          console.log('返回数据条数:', data?.length);
+          
+          if (data && Array.isArray(data)) {
+            this.capsules = data;
+            this.dataLoaded = true;
+            
+            // 更新缓存
+            this.dataCache.next(this.capsules);
+            
+            console.log('胶囊数据加载成功，共加载', this.capsules.length, '条记录');
+            console.log('数据示例:', this.capsules.length > 0 ? this.capsules[0] : '无数据');
+          } else {
+            console.error('返回的数据不是数组格式:', data);
+            this.capsules = [];
+            this.dataCache.next([]);
+          }
+          
+          // 标记加载完成
+          this.dataLoadingSubject.next(false);
+        },
+        error: (error) => {
+          console.error('加载胶囊数据失败, 详细错误:', error);
+          console.error('请求URL:', fullUrl);
+          this.dataLoaded = false;
+          this.capsules = [];
+          
+          // 标记加载失败
+          this.dataLoadingSubject.next(false);
+          
+          // 更新缓存为空数组
+          this.dataCache.next([]);
+        }
+      });
+  }
+
+  // 获取完整URL（用于调试）
+  private getFullUrl(relativeUrl: string): string {
+    // 创建一个a标签来解析相对URL
+    const link = document.createElement('a');
+    link.href = relativeUrl;
+    return link.href;
+  }
+
+  // 确保数据已加载
+  private ensureDataLoaded(): Observable<Capsule[]> {
+    // 如果数据已加载，直接返回数据
+    if (this.dataLoaded) {
+      console.log('数据已加载，直接返回缓存数据，条数:', this.capsules.length);
+      return of(this.capsules);
+    }
+    
+    // 如果数据正在加载中，等待加载完成
+    if (this.dataLoadingSubject.value) {
+      console.log('数据正在加载中，等待加载完成...');
+      return this.dataCache.pipe(
+        first(data => data.length > 0 || !this.dataLoadingSubject.value),
+        tap(data => console.log('等待结束，获取到数据条数:', data.length))
+      );
+    }
+    
+    // 如果数据未加载且不在加载中，开始加载
+    console.log('数据未加载，开始加载数据...');
+    this.loadCapsuleData();
+    
+    return this.dataCache.pipe(
+      first(data => data.length > 0 || !this.dataLoadingSubject.value),
+      tap(data => console.log('加载结束，获取到数据条数:', data.length))
+    );
+  }
 
   // 获取胶囊列表，支持分页和查询条件
   getCapsules(queryParams: CapsuleQueryParams = {}): Observable<{data: Capsule[], total: number}> {
-    // 注意：这里使用模拟数据，实际项目中应该连接到真实API
-    // 真实API代码示例:
-    /*
-    let params = new HttpParams();
+    console.log('getCapsules 被调用，参数:', queryParams);
     
-    if (queryParams.capsule_id) {
-      params = params.set('capsule_id', queryParams.capsule_id);
-    }
-    if (queryParams.production_batch) {
-      params = params.set('production_batch', queryParams.production_batch);
-    }
-    if (queryParams.activation_date) {
-      params = params.set('activation_date', queryParams.activation_date);
-    }
-    if (queryParams.expiration_date) {
-      params = params.set('expiration_date', queryParams.expiration_date);
-    }
-    if (queryParams.status) {
-      params = params.set('status', queryParams.status);
-    }
-    if (queryParams.created_at) {
-      params = params.set('created_at', queryParams.created_at);
-    }
-    
-    const page = queryParams.page || 0;
-    const pageSize = queryParams.pageSize || 20;
-    
-    params = params.set('page', page.toString());
-    params = params.set('size', pageSize.toString());
-    
-    return this.http.get<{data: Capsule[], total: number}>(this.apiUrl, { params })
-      .pipe(
-        catchError(this.handleError<{data: Capsule[], total: number}>('getCapsules', {data: [], total: 0}))
-      );
-    */
-    
-    // 模拟实现：过滤和分页
-    let filteredCapsules = [...this.mockCapsules];
-    
-    if (queryParams.capsule_id) {
-      filteredCapsules = filteredCapsules.filter(c => 
-        c.capsule_id.includes(queryParams.capsule_id || ''));
-    }
-    if (queryParams.production_batch) {
-      filteredCapsules = filteredCapsules.filter(c => 
-        c.production_batch.includes(queryParams.production_batch || ''));
-    }
-    if (queryParams.activation_date) {
-      filteredCapsules = filteredCapsules.filter(c => 
-        c.activation_date.includes(queryParams.activation_date || ''));
-    }
-    if (queryParams.expiration_date) {
-      filteredCapsules = filteredCapsules.filter(c => 
-        c.expiration_date.includes(queryParams.expiration_date || ''));
-    }
-    if (queryParams.status) {
-      filteredCapsules = filteredCapsules.filter(c => 
-        c.status === queryParams.status);
-    }
-    if (queryParams.created_at) {
-      filteredCapsules = filteredCapsules.filter(c => 
-        c.created_at.includes(queryParams.created_at || ''));
-    }
-    
-    const total = filteredCapsules.length;
-    const page = queryParams.page || 0;
-    const pageSize = queryParams.pageSize || 20;
-    
-    // 分页
-    const startIndex = page * pageSize;
-    const endIndex = startIndex + pageSize;
-    const paginatedCapsules = filteredCapsules.slice(startIndex, endIndex);
-    
-    return of({
-      data: paginatedCapsules,
-      total: total
-    });
+    return this.ensureDataLoaded().pipe(
+      map(allCapsules => {
+        console.log('ensureDataLoaded 返回的数据条数:', allCapsules.length);
+        
+        // 使用加载的数据进行过滤和分页
+        let filteredCapsules = [...allCapsules];
+        
+        if (queryParams.capsule_id) {
+          filteredCapsules = filteredCapsules.filter(c => 
+            c.capsule_id.includes(queryParams.capsule_id || ''));
+        }
+        if (queryParams.production_batch) {
+          filteredCapsules = filteredCapsules.filter(c => 
+            c.production_batch.includes(queryParams.production_batch || ''));
+        }
+        if (queryParams.activation_date) {
+          filteredCapsules = filteredCapsules.filter(c => 
+            c.activation_date.includes(queryParams.activation_date || ''));
+        }
+        if (queryParams.expiration_date) {
+          filteredCapsules = filteredCapsules.filter(c => 
+            c.expiration_date.includes(queryParams.expiration_date || ''));
+        }
+        if (queryParams.status) {
+          filteredCapsules = filteredCapsules.filter(c => 
+            c.status === queryParams.status);
+        }
+        if (queryParams.created_at) {
+          filteredCapsules = filteredCapsules.filter(c => 
+            c.created_at.includes(queryParams.created_at || ''));
+        }
+        
+        const total = filteredCapsules.length;
+        const page = queryParams.page || 0;
+        const pageSize = queryParams.pageSize || 20;
+        
+        // 分页
+        const startIndex = page * pageSize;
+        const endIndex = startIndex + pageSize;
+        const paginatedCapsules = filteredCapsules.slice(startIndex, endIndex);
+        
+        console.log(`查询结果: 过滤后总数=${total}, 当前页=${page}, 页大小=${pageSize}, 返回数据条数=${paginatedCapsules.length}`);
+        
+        return {
+          data: paginatedCapsules,
+          total: total
+        };
+      })
+    );
   }
 
   // 获取单个胶囊信息
   getCapsule(id: string): Observable<Capsule | null> {
-    // 实际环境: return this.http.get<Capsule>(`${this.apiUrl}/${id}`);
-    
-    // 模拟实现
-    const capsule = this.mockCapsules.find(c => c.capsule_id === id);
-    return of(capsule || null);
+    return this.ensureDataLoaded().pipe(
+      map(allCapsules => {
+        const capsule = allCapsules.find(c => c.capsule_id === id);
+        return capsule || null;
+      })
+    );
   }
 
   // 创建新胶囊
   createCapsule(capsule: Capsule): Observable<Capsule> {
-    // 实际环境: return this.http.post<Capsule>(this.apiUrl, capsule);
-    
-    // 模拟实现
-    this.mockCapsules.push(capsule);
-    return of(capsule);
+    return this.ensureDataLoaded().pipe(
+      map(allCapsules => {
+        this.capsules.push(capsule);
+        // 更新缓存
+        this.dataCache.next(this.capsules);
+        return capsule;
+      })
+    );
   }
 
   // 更新胶囊信息
   updateCapsule(capsule: Capsule): Observable<Capsule> {
-    // 实际环境: return this.http.put<Capsule>(`${this.apiUrl}/${capsule.capsule_id}`, capsule);
-    
-    // 模拟实现
-    const index = this.mockCapsules.findIndex(c => c.capsule_id === capsule.capsule_id);
-    if (index !== -1) {
-      this.mockCapsules[index] = capsule;
-    }
-    return of(capsule);
+    return this.ensureDataLoaded().pipe(
+      map(allCapsules => {
+        const index = this.capsules.findIndex(c => c.capsule_id === capsule.capsule_id);
+        if (index !== -1) {
+          this.capsules[index] = capsule;
+          // 更新缓存
+          this.dataCache.next(this.capsules);
+        }
+        return capsule;
+      })
+    );
   }
 
   // 删除胶囊
-  deleteCapsule(id: string): Observable<void> {
-    // 实际环境: return this.http.delete<void>(`${this.apiUrl}/${id}`);
-    
-    // 模拟实现
-    const index = this.mockCapsules.findIndex(c => c.capsule_id === id);
-    if (index !== -1) {
-      this.mockCapsules.splice(index, 1);
-    }
-    return of(void 0);
+  deleteCapsule(id: string): Observable<boolean> {
+    return this.ensureDataLoaded().pipe(
+      map(allCapsules => {
+        const index = this.capsules.findIndex(c => c.capsule_id === id);
+        if (index !== -1) {
+          this.capsules.splice(index, 1);
+          // 更新缓存
+          this.dataCache.next(this.capsules);
+          return true;
+        }
+        return false;
+      })
+    );
   }
 
-  // 错误处理
-  private handleError<T>(operation = 'operation', result?: T) {
-    return (error: any): Observable<T> => {
-      console.error(`${operation} failed: ${error.message}`);
-      return of(result as T);
-    };
+  // 重新加载数据
+  reloadData(): Observable<boolean> {
+    console.log('强制重新加载数据...');
+    this.dataLoaded = false;
+    this.loadCapsuleData();
+    
+    return this.dataLoadingSubject.pipe(
+      first(isLoading => !isLoading),
+      map(() => this.dataLoaded)
+    );
   }
 } 

@@ -18,6 +18,10 @@ export class DeviceRegisterComponent implements OnInit {
   capsules: Capsule[] = [];
   totalItems: number = 0;
   
+  // 加载状态
+  isLoading: boolean = false;
+  loadError: string | null = null;
+  
   // 分页
   currentPage: number = 0;
   pageSize: number = 20;
@@ -76,11 +80,44 @@ export class DeviceRegisterComponent implements OnInit {
 
   // 加载胶囊设备列表
   loadCapsules(): void {
+    this.isLoading = true;
+    this.loadError = null;
+    
+    console.log('开始加载设备数据...');
+    
     this.capsuleService.getCapsules(this.queryParams)
-      .subscribe(response => {
-        this.capsules = response.data;
-        this.totalItems = response.total;
+      .subscribe({
+        next: (response) => {
+          this.capsules = response.data;
+          this.totalItems = response.total;
+          this.isLoading = false;
+          console.log(`成功加载设备数据: ${this.capsules.length} 条记录，总计 ${this.totalItems} 条`);
+        },
+        error: (error) => {
+          console.error('加载设备数据失败:', error);
+          this.loadError = '加载数据失败，请重试';
+          this.isLoading = false;
+          this.capsules = [];
+          this.totalItems = 0;
+        }
       });
+  }
+
+  // 重新加载数据
+  reloadData(): void {
+    this.capsuleService.reloadData().subscribe({
+      next: (success) => {
+        if (success) {
+          this.loadCapsules();
+        } else {
+          this.loadError = '重新加载数据失败，请重试';
+        }
+      },
+      error: (error) => {
+        console.error('重新加载数据出错:', error);
+        this.loadError = '重新加载数据出错，请重试';
+      }
+    });
   }
 
   // 搜索
@@ -162,18 +199,30 @@ export class DeviceRegisterComponent implements OnInit {
     if (!this.isEditMode) {
       // 创建新记录
       this.capsuleService.createCapsule(capsuleData)
-        .subscribe(response => {
-          this.showForm = false;
-          this.loadCapsules();
-          alert('设备信息添加成功！');
+        .subscribe({
+          next: (response) => {
+            this.showForm = false;
+            this.loadCapsules();
+            alert('设备信息添加成功！');
+          },
+          error: (error) => {
+            console.error('添加设备信息失败:', error);
+            alert('添加设备信息失败，请重试！');
+          }
         });
     } else {
       // 更新记录
       this.capsuleService.updateCapsule(capsuleData)
-        .subscribe(response => {
-          this.showForm = false;
-          this.loadCapsules();
-          alert('设备信息更新成功！');
+        .subscribe({
+          next: (response) => {
+            this.showForm = false;
+            this.loadCapsules();
+            alert('设备信息更新成功！');
+          },
+          error: (error) => {
+            console.error('更新设备信息失败:', error);
+            alert('更新设备信息失败，请重试！');
+          }
         });
     }
   }

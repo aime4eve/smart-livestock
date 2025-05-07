@@ -2,9 +2,10 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, catchError, throwError, of, map, forkJoin } from 'rxjs';
 import { Cattle, CattleDTO, CattleQueryParams, PagedResult, HealthStatus } from '../models/cattle';
-import { Sensor, generateSensorData } from '../models/sensor';
+import { Sensor } from '../models/sensor';
 import { environment } from '../../environments/environment';
 import { LocationService } from './location.service';
+import { SensorService } from './sensor.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +19,8 @@ export class CattleService {
   
   constructor(
     private http: HttpClient,
-    private locationService: LocationService
+    private locationService: LocationService,
+    private sensorService: SensorService
   ) {
     console.log('CattleService 已初始化');
     // 初始化时预先生成一些地图数据
@@ -412,15 +414,31 @@ export class CattleService {
    */
   getCattleSensorData(id: string, period: number = 1): Observable<Sensor> {
     console.log('getCattleSensorData 方法被调用，ID:', id, 'period:', period);
-    // 使用模拟数据
-    return of(this.getMockSensorData(id));
+    
+    // 使用SensorService获取真实的温度数据
+    return this.sensorService.getSensorData(id);
   }
 
   /**
    * 模拟生成传感器数据（用于开发测试）
+   * @deprecated 已替换为真实数据，仅作为备用
    */
   getMockSensorData(cattleId: string): Sensor {
     console.log('getMockSensorData 方法被调用，ID:', cattleId);
-    return generateSensorData(cattleId);
+    // 生成默认的传感器数据
+    const now = new Date();
+    return {
+      cattleId: cattleId,
+      timestamps: Array.from({ length: 60 }, (_, i) => {
+        const d = new Date(now.getTime() - (60 - i) * 60000);
+        return d.toISOString();
+      }),
+      stomachTemperatures: Array.from({ length: 60 }, () => 
+        Number((38.5 + Math.random() * 0.5 - 0.2).toFixed(1))
+      ),
+      peristalticCounts: Array.from({ length: 60 }, () =>
+        Math.floor(4 + Math.random() * 3 - 1)
+      )
+    };
   }
 }

@@ -11,6 +11,66 @@
   }
 }
 
+// 错误提示样式
+.error-alert {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 12px 20px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  
+  p {
+    margin: 0;
+  }
+  
+  button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    
+    &:hover {
+      background-color: #c82333;
+    }
+  }
+}
+
+// 加载状态样式
+.loading-indicator {
+  background-color: #f8f9fa;
+  padding: 30px;
+  text-align: center;
+  border-radius: 4px;
+  
+  p {
+    color: #6c757d;
+    margin: 0;
+    font-size: 16px;
+    
+    &::after {
+      content: '...';
+      animation: dots 1.5s infinite;
+    }
+  }
+}
+
+@keyframes dots {
+  0%, 20% {
+    content: '.';
+  }
+  40% {
+    content: '..';
+  }
+  60%, 100% {
+    content: '...';
+  }
+}
+
 // 搜索表单样式
 .search-container {
   background-color: #fff;
@@ -320,6 +380,45 @@
           }
         }
       }
+    }
+  }
+}
+
+// 调试信息样式
+.debug-info {
+  background-color: #cce5ff;
+  color: #004085;
+  padding: 15px 20px;
+  margin: 10px 0;
+  border-radius: 4px;
+  border-left: 5px solid #004085;
+  
+  p {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+  }
+  
+  ol {
+    margin: 0 0 10px 20px;
+    padding: 0;
+    
+    li {
+      margin-bottom: 5px;
+      font-size: 13px;
+    }
+  }
+  
+  button {
+    background-color: #004085;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    
+    &:hover {
+      background-color: #002752;
     }
   }
 }
