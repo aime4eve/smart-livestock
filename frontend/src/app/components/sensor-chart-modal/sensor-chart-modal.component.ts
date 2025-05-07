@@ -17,15 +17,16 @@ export class SensorChartModalComponent implements OnInit, OnChanges {
   @Input() data!: Sensor;
   @Output() close = new EventEmitter<void>();
   
-  private chart: Chart | null = null;
+  private temperatureChart: Chart | null = null;
+  private peristalticChart: Chart | null = null;
 
   ngOnInit(): void {
-    this.initializeChart();
+    this.initializeCharts();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['data'] && !changes['data'].firstChange) {
-      this.updateChart();
+      this.updateCharts();
     }
   }
 
@@ -33,71 +34,138 @@ export class SensorChartModalComponent implements OnInit, OnChanges {
     this.close.emit();
   }
 
-  private initializeChart(): void {
+  private initializeCharts(): void {
     // 确保可以获取到DOM元素
     setTimeout(() => {
-      const ctx = document.getElementById('sensorChart') as HTMLCanvasElement;
-      if (!ctx) return;
-
-      const formattedLabels = this.data.timestamps.map(
-        timestamp => new Date(timestamp).toLocaleTimeString()
-      );
-
-      // 创建Chart.js配置
-      const config: ChartConfiguration<'line'> = {
-        type: 'line',
-        data: {
-          labels: formattedLabels,
-          datasets: [
-            {
-              label: '胃温度 (°C)',
-              data: this.data.stomachTemperatures,
-              borderColor: '#ff6384',
-              yAxisID: 'temperature',
-              tension: 0.4,
-              fill: false,
-            },
-            {
-              label: '蠕动次数 (次/分钟)',
-              data: this.data.peristalticCounts,
-              borderColor: '#36a2eb',
-              yAxisID: 'peristaltic',
-              tension: 0.4,
-              fill: false,
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            title: {
-              display: true,
-              text: `牛只 ${this.data.cattleId} 传感器数据`
-            }
-          },
-          scales: {
-            temperature: {
-              type: 'linear',
-              position: 'left',
-              title: { display: true, text: '温度 (°C)' }
-            },
-            peristaltic: {
-              type: 'linear',
-              position: 'right',
-              title: { display: true, text: '蠕动次数' },
-              grid: { display: false }
-            }
-          }
-        }
-      };
-
-      this.chart = new Chart(ctx, config);
+      this.initializeTemperatureChart();
+      this.initializePeristalticChart();
     }, 0);
   }
 
-  private updateChart(): void {
-    if (!this.chart) {
-      this.initializeChart();
+  private initializeTemperatureChart(): void {
+    const ctx = document.getElementById('temperatureChart') as HTMLCanvasElement;
+    if (!ctx) return;
+
+    const formattedLabels = this.data.timestamps.map(
+      timestamp => new Date(timestamp).toLocaleTimeString()
+    );
+
+    // 创建温度图表配置
+    const config: ChartConfiguration<'line'> = {
+      type: 'line',
+      data: {
+        labels: formattedLabels,
+        datasets: [
+          {
+            label: '胃温度 (°C)',
+            data: this.data.stomachTemperatures,
+            borderColor: '#ff6384',
+            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+            borderWidth: 2,
+            pointRadius: 3,
+            tension: 0.4,
+            fill: true,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: '温度 (°C)'
+            },
+            ticks: {
+              precision: 1
+            }
+          }
+        }
+      }
+    };
+
+    this.temperatureChart = new Chart(ctx, config);
+  }
+
+  private initializePeristalticChart(): void {
+    const ctx = document.getElementById('peristalticChart') as HTMLCanvasElement;
+    if (!ctx) return;
+
+    const formattedLabels = this.data.timestamps.map(
+      timestamp => new Date(timestamp).toLocaleTimeString()
+    );
+
+    // 创建蠕动图表配置
+    const config: ChartConfiguration<'line'> = {
+      type: 'line',
+      data: {
+        labels: formattedLabels,
+        datasets: [
+          {
+            label: '蠕动次数 (次/分钟)',
+            data: this.data.peristalticCounts,
+            borderColor: '#36a2eb',
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            borderWidth: 2,
+            pointRadius: 3,
+            tension: 0.4,
+            fill: true,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: '蠕动次数'
+            },
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1,
+              precision: 0
+            }
+          }
+        }
+      }
+    };
+
+    this.peristalticChart = new Chart(ctx, config);
+  }
+
+  private updateCharts(): void {
+    this.updateTemperatureChart();
+    this.updatePeristalticChart();
+  }
+
+  private updateTemperatureChart(): void {
+    if (!this.temperatureChart) {
+      this.initializeTemperatureChart();
       return;
     }
 
@@ -105,17 +173,29 @@ export class SensorChartModalComponent implements OnInit, OnChanges {
       timestamp => new Date(timestamp).toLocaleTimeString()
     );
 
-    this.chart.data.labels = formattedLabels;
-    if (this.chart.data.datasets && this.chart.data.datasets.length >= 2) {
-      this.chart.data.datasets[0].data = this.data.stomachTemperatures;
-      this.chart.data.datasets[1].data = this.data.peristalticCounts;
+    this.temperatureChart.data.labels = formattedLabels;
+    if (this.temperatureChart.data.datasets && this.temperatureChart.data.datasets.length > 0) {
+      this.temperatureChart.data.datasets[0].data = this.data.stomachTemperatures;
     }
 
-    // 更新标题
-    if (this.chart.options && this.chart.options.plugins && this.chart.options.plugins.title) {
-      this.chart.options.plugins.title.text = `牛只 ${this.data.cattleId} 传感器数据`;
+    this.temperatureChart.update();
+  }
+
+  private updatePeristalticChart(): void {
+    if (!this.peristalticChart) {
+      this.initializePeristalticChart();
+      return;
     }
 
-    this.chart.update();
+    const formattedLabels = this.data.timestamps.map(
+      timestamp => new Date(timestamp).toLocaleTimeString()
+    );
+
+    this.peristalticChart.data.labels = formattedLabels;
+    if (this.peristalticChart.data.datasets && this.peristalticChart.data.datasets.length > 0) {
+      this.peristalticChart.data.datasets[0].data = this.data.peristalticCounts;
+    }
+
+    this.peristalticChart.update();
   }
 }

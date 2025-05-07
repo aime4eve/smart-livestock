@@ -24,3 +24,12 @@ export interface PeristalticLog {
   peristalsis_count: number;
   log_time: string;
 }
+
+// 胶囊安装记录接口
+export interface CapsuleInstallation {
+  install_id: number;
+  cattle_id: number;
+  capsule_id: string;
+  install_time: string;
+  operator: string;
+}

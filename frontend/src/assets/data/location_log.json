@@ -1,0 +1,72 @@
+[
+  {
+    "log_id": 1,
+    "cattle_id": 1,
+    "latitude": 28.2452,
+    "longitude": 112.8514,
+    "log_time": "2023-09-15T08:32:45"
+  },
+  {
+    "log_id": 2,
+    "cattle_id": 2,
+    "latitude": 28.2461,
+    "longitude": 112.8522,
+    "log_time": "2023-09-15T09:15:27"
+  },
+  {
+    "log_id": 3,
+    "cattle_id": 3,
+    "latitude": 28.2458,
+    "longitude": 112.8517,
+    "log_time": "2023-09-15T08:45:19"
+  },
+  {
+    "log_id": 4,
+    "cattle_id": 4,
+    "latitude": 28.2453,
+    "longitude": 112.8512,
+    "log_time": "2023-09-15T10:03:51"
+  },
+  {
+    "log_id": 5,
+    "cattle_id": 5,
+    "latitude": 28.2464,
+    "longitude": 112.8525,
+    "log_time": "2023-09-15T09:37:22"
+  },
+  {
+    "log_id": 6,
+    "cattle_id": 6,
+    "latitude": 28.2456,
+    "longitude": 112.8515,
+    "log_time": "2023-09-15T11:22:08"
+  },
+  {
+    "log_id": 7,
+    "cattle_id": 7,
+    "latitude": 28.2451,
+    "longitude": 112.8511,
+    "log_time": "2023-09-15T10:48:33"
+  },
+  {
+    "log_id": 8,
+    "cattle_id": 8,
+    "latitude": 28.2459,
+    "longitude": 112.8526,
+    "log_time": "2023-09-15T09:51:47"
+  },
+  {
+    "log_id": 9,
+    "cattle_id": 9,
+    "latitude": 28.2465,
+    "longitude": 112.8527,
+    "log_time": "2023-09-15T08:17:39"
+  },
+  {
+    "log_id": 10,
+    "cattle_id": 10,
+    "latitude": 28.2455,
+    "longitude": 112.8519,
+    "log_time": "2023-09-15T11:05:14"
+  }
+] 

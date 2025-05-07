@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, catchError, throwError, of, map, forkJoin } from 'rxjs';
+import { Observable, catchError, throwError, of, map, forkJoin, BehaviorSubject } from 'rxjs';
 import { Cattle, CattleDTO, CattleQueryParams, PagedResult, HealthStatus } from '../models/cattle';
 import { Sensor } from '../models/sensor';
 import { environment } from '../../environments/environment';
@@ -14,8 +14,21 @@ export class CattleService {
   // 使用类型断言直接解决问题
   private apiUrl: string = (environment as any).apiUrl;
   
+  // JSON文件路径 - 从assets目录加载
+  private jsonDataUrl = 'assets/data/cattle.json';
+  
   // 保存原始地图数据的缓存，提高效率
   private cattleMapCache: Cattle[] = [];
+  
+  // 存储从JSON文件加载的数据
+  private cattleData: CattleDTO[] = [];
+  private dataLoaded = false;
+  
+  // 用于跟踪数据加载状态的Subject
+  private dataLoadingSubject = new BehaviorSubject<boolean>(false);
+  
+  // 用于缓存已加载的数据
+  private dataCache: BehaviorSubject<CattleDTO[]> = new BehaviorSubject<CattleDTO[]>([]);
   
   constructor(
     private http: HttpClient,
@@ -23,8 +36,8 @@ export class CattleService {
     private sensorService: SensorService
   ) {
     console.log('CattleService 已初始化');
-    // 初始化时预先生成一些地图数据
-    this.generateMapData();
+    // 初始化时加载数据
+    this.loadCattleData();
   }
 
   // 获取请求头
@@ -44,6 +57,91 @@ export class CattleService {
     console.warn('使用模拟数据替代API数据');
     return of(null); // 返回null而不是抛出错误
   }
+  
+  // 从JSON文件加载数据
+  private loadCattleData(): void {
+    // 如果数据已经加载或正在加载中，则跳过
+    if (this.dataLoaded || this.dataLoadingSubject.value) {
+      console.log('牛只数据已加载或正在加载中，跳过加载操作');
+      return;
+    }
+    
+    // 标记为正在加载
+    this.dataLoadingSubject.next(true);
+    
+    console.log('开始加载牛只数据，URL:', this.jsonDataUrl);
+    
+    this.http.get<CattleDTO[]>(this.jsonDataUrl)
+      .subscribe({
+        next: (data) => {
+          console.log('成功获取到牛只数据，返回数据类型:', typeof data);
+          console.log('返回数据条数:', data?.length);
+          
+          if (data && Array.isArray(data)) {
+            this.cattleData = data;
+            this.dataLoaded = true;
+            
+            // 更新缓存
+            this.dataCache.next(this.cattleData);
+            
+            // 数据加载完成后，初始化地图数据
+            this.generateMapData();
+            
+            console.log('牛只数据加载成功，共加载', this.cattleData.length, '条记录');
+            console.log('数据示例:', this.cattleData.length > 0 ? this.cattleData[0] : '无数据');
+          } else {
+            console.error('返回的数据不是数组格式:', data);
+            this.cattleData = [];
+            this.dataCache.next([]);
+          }
+          
+          // 标记加载完成
+          this.dataLoadingSubject.next(false);
+        },
+        error: (error) => {
+          console.error('加载牛只数据失败:', error);
+          this.dataLoaded = false;
+          this.cattleData = [];
+          
+          // 标记加载失败
+          this.dataLoadingSubject.next(false);
+          
+          // 更新缓存为空数组
+          this.dataCache.next([]);
+        }
+      });
+  }
+  
+  // 确保数据已加载
+  private ensureDataLoaded(): Observable<CattleDTO[]> {
+    // 如果数据已加载，直接返回数据
+    if (this.dataLoaded) {
+      console.log('牛只数据已加载，直接返回缓存数据，条数:', this.cattleData.length);
+      return of(this.cattleData);
+    }
+    
+    // 如果数据正在加载中，等待加载完成
+    if (this.dataLoadingSubject.value) {
+      console.log('牛只数据正在加载中，等待加载完成...');
+      return this.dataCache.pipe(
+        map(data => {
+          console.log('等待结束，获取到牛只数据条数:', data.length);
+          return data;
+        })
+      );
+    }
+    
+    // 如果数据未加载且不在加载中，开始加载
+    console.log('牛只数据未加载，开始加载数据...');
+    this.loadCattleData();
+    
+    return this.dataCache.pipe(
+      map(data => {
+        console.log('加载结束，获取到牛只数据条数:', data.length);
+        return data;
+      })
+    );
+  }
 
   /**
    * 生成地图使用的牛只数据
@@ -52,19 +150,16 @@ export class CattleService {
   private generateMapData(): void {
     console.log('生成地图数据');
     
-    // 获取牛只基本信息和位置信息
-    forkJoin({
-      cattle: this.getAllCattleDTO(),
-      locations: this.locationService.getAllLocations()
-    }).subscribe(result => {
+    // 获取位置信息
+    this.locationService.getAllLocations().subscribe(locations => {
       // 位置数据Map，方便查找
       const locationMap = new Map();
-      result.locations.forEach(loc => {
+      locations.forEach(loc => {
         locationMap.set(loc.cattle_id, loc);
       });
       
       // 转换数据并更新缓存
-      this.cattleMapCache = result.cattle.map(dto => 
+      this.cattleMapCache = this.cattleData.map(dto => 
         this.convertDTOToCattle(dto, locationMap.get(dto.cattle_id))
       );
       
@@ -116,26 +211,29 @@ export class CattleService {
       return of([...this.cattleMapCache]);
     }
     
-    // 否则重新获取数据并生成地图数据
-    return forkJoin({
-      cattle: this.getAllCattleDTO(),
-      locations: this.locationService.getAllLocations()
-    }).pipe(
-      map(result => {
-        // 位置数据Map，方便查找
-        const locationMap = new Map();
-        result.locations.forEach(loc => {
-          locationMap.set(loc.cattle_id, loc);
-        });
+    // 否则确保数据加载后再生成地图数据
+    return this.ensureDataLoaded().pipe(
+      map(data => {
+        // 如果地图数据还没生成，先生成
+        if (this.cattleMapCache.length === 0) {
+          this.generateMapData();
+        }
         
-        // 转换数据并更新缓存
-        const mappedData = result.cattle.map(dto => 
-          this.convertDTOToCattle(dto, locationMap.get(dto.cattle_id))
-        );
+        // 防止地图数据为空的情况
+        if (this.cattleMapCache.length === 0) {
+          console.log('地图数据为空，生成临时数据');
+          this.cattleMapCache = data.map(dto => {
+            // 生成临时的地图数据
+            return {
+              id: dto.cattle_id.toString(),
+              position: [28.2458 + (Math.random() * 0.05), 112.8519 + (Math.random() * 0.05)],
+              healthStatus: 'healthy',
+              lastUpdate: dto.created_at
+            };
+          });
+        }
         
-        // 更新缓存
-        this.cattleMapCache = [...mappedData];
-        return mappedData;
+        return [...this.cattleMapCache];
       })
     );
   }
@@ -145,102 +243,7 @@ export class CattleService {
    */
   getAllCattleDTO(): Observable<CattleDTO[]> {
     console.log('getAllCattleDTO 方法被调用');
-    // 由于我们处于开发阶段，暂时直接返回模拟数据
-    const mockData: CattleDTO[] = [
-      {
-        cattle_id: 1,
-        breed: "安格斯",
-        birth_date: "2021-03-15",
-        weight: 623.45,
-        gender: "公牛",
-        created_at: "2023-05-10T08:30:22"
-      },
-      {
-        cattle_id: 2,
-        breed: "荷斯坦",
-        birth_date: "2020-07-22",
-        weight: 578.90,
-        gender: "母牛",
-        created_at: "2023-05-12T14:15:36"
-      },
-      {
-        cattle_id: 3,
-        breed: "海福特",
-        birth_date: "2022-01-05",
-        weight: 432.20,
-        gender: "公牛",
-        created_at: "2023-05-14T10:45:18"
-      },
-      {
-        cattle_id: 4,
-        breed: "夏洛莱",
-        birth_date: "2021-11-30",
-        weight: 545.75,
-        gender: "母牛",
-        created_at: "2023-05-18T09:22:41"
-      },
-      {
-        cattle_id: 5,
-        breed: "利木赞",
-        birth_date: "2020-09-18",
-        weight: 612.30,
-        gender: "公牛",
-        created_at: "2023-06-01T11:05:37"
-      },
-      {
-        cattle_id: 6,
-        breed: "西门塔尔",
-        birth_date: "2022-02-28",
-        weight: 389.65,
-        gender: "母牛",
-        created_at: "2023-06-05T16:30:48"
-      },
-      {
-        cattle_id: 7,
-        breed: "布拉曼",
-        birth_date: "2021-05-10",
-        weight: 567.80,
-        gender: "公牛",
-        created_at: "2023-06-10T13:12:29"
-      },
-      {
-        cattle_id: 8,
-        breed: "娟姗",
-        birth_date: "2020-12-03",
-        weight: 498.50,
-        gender: "母牛",
-        created_at: "2023-06-15T10:40:15"
-      },
-      {
-        cattle_id: 9,
-        breed: "南德文",
-        birth_date: "2021-08-25",
-        weight: 534.25,
-        gender: "公牛",
-        created_at: "2023-06-20T08:55:33"
-      },
-      {
-        cattle_id: 10,
-        breed: "短角",
-        birth_date: "2022-04-17",
-        weight: 410.70,
-        gender: "母牛",
-        created_at: "2023-06-25T15:18:52"
-      }
-    ];
-    console.log('返回模拟DTO数据，共', mockData.length, '条记录');
-    return of(mockData);
-    
-    // 实际开发中应使用以下API调用
-    /*
-    return this.http.get<CattleDTO[]>(`${this.apiUrl}/api/cattle`)
-      .pipe(
-        catchError(err => {
-          console.error('获取牛只数据失败:', err);
-          return throwError(() => new Error('无法加载牛只数据，请稍后再试'));
-        })
-      );
-    */
+    return this.ensureDataLoaded();
   }
 
   /**
@@ -249,74 +252,69 @@ export class CattleService {
    */
   getFilteredCattle(params: CattleQueryParams = {}): Observable<PagedResult<CattleDTO>> {
     console.log('getFilteredCattle 方法被调用，参数:', params);
-    const page = params.page || 1;
-    const pageSize = params.page_size || 7;
     
-    return this.getAllCattleDTO().pipe(
-      map(allCattle => {
-        console.log('获取到所有牛只数据，开始过滤，总数据量:', allCattle.length);
-        // 应用过滤条件
-        let filteredCattle = this.filterCattle(allCattle, params);
-        console.log('过滤后数据量:', filteredCattle.length);
+    return this.ensureDataLoaded().pipe(
+      map(allData => {
+        // 过滤数据
+        const filteredData = this.filterCattle(allData, params);
         
-        // 计算分页
-        const total = filteredCattle.length;
-        const totalPages = Math.ceil(total / pageSize);
-        const start = (page - 1) * pageSize;
+        // 计算分页信息
+        const page = params.page || 0;
+        const pageSize = params.page_size || 10;
+        const start = page * pageSize;
         const end = start + pageSize;
-        const items = filteredCattle.slice(start, end);
-        console.log(`分页信息: 第${page}页，每页${pageSize}条，当前页数据量:${items.length}`);
+        const paginatedData = filteredData.slice(start, end);
         
-        const result = {
-          items,
-          total,
-          page,
+        console.log(`过滤后总数: ${filteredData.length}, 页码: ${page}, 每页大小: ${pageSize}`);
+        
+        return {
+          items: paginatedData,
+          total: filteredData.length,
+          page: page,
           page_size: pageSize,
-          total_pages: totalPages
+          total_pages: Math.ceil(filteredData.length / pageSize)
         };
-        console.log('返回结果:', result);
-        return result;
       })
     );
   }
-  
+
   /**
-   * 根据查询条件过滤牛群数据
+   * 过滤牛只数据
+   * 根据查询参数过滤
    */
   private filterCattle(cattle: CattleDTO[], params: CattleQueryParams): CattleDTO[] {
-    console.log('filterCattle 方法被调用，参数:', params);
-    return cattle.filter(cow => {
+    return cattle.filter(c => {
       // 品种过滤
-      if (params.breed && !cow.breed.includes(params.breed)) {
+      if (params.breed && !c.breed.includes(params.breed)) {
         return false;
       }
       
       // 性别过滤
-      if (params.gender && cow.gender !== params.gender) {
+      if (params.gender && c.gender !== params.gender) {
         return false;
       }
       
       // 体重范围过滤
-      if (params.weight_min && cow.weight < params.weight_min) {
+      if (params.weight_min !== undefined && c.weight < params.weight_min) {
         return false;
       }
-      if (params.weight_max && cow.weight > params.weight_max) {
+      if (params.weight_max !== undefined && c.weight > params.weight_max) {
         return false;
       }
       
       // 出生日期范围过滤
-      if (params.birth_date_start && new Date(cow.birth_date) < new Date(params.birth_date_start)) {
+      if (params.birth_date_start && c.birth_date < params.birth_date_start) {
         return false;
       }
-      if (params.birth_date_end && new Date(cow.birth_date) > new Date(params.birth_date_end)) {
+      if (params.birth_date_end && c.birth_date > params.birth_date_end) {
         return false;
       }
       
-      // 创建时间范围过滤
-      if (params.created_at_start && new Date(cow.created_at) < new Date(params.created_at_start)) {
+      // 创建日期范围过滤
+      if (params.created_at_start && c.created_at < params.created_at_start) {
         return false;
       }
-      if (params.created_at_end && new Date(cow.created_at) > new Date(params.created_at_end)) {
+      if (params.created_at_end && c.created_at > params.created_at_end) {
         return false;
       }
       
@@ -325,107 +323,115 @@ export class CattleService {
   }
 
   /**
-   * 获取单个牛只信息
-   * @param id 牛只ID
+   * 根据ID获取牛只数据（原始格式）
+   * 主要供地图组件使用
    */
   getCattleById(id: string): Observable<Cattle | undefined> {
     console.log('getCattleById 方法被调用，ID:', id);
     
-    // 先尝试从缓存中查找
+    // 先从缓存中查找
     if (this.cattleMapCache.length > 0) {
-      const cachedCattle = this.cattleMapCache.find(c => c.id === id);
-      if (cachedCattle) {
-        console.log('从缓存中找到牛只信息');
-        return of(cachedCattle);
+      const found = this.cattleMapCache.find(c => c.id === id);
+      if (found) {
+        return of(found);
       }
     }
     
-    return this.getAllCattleDTO().pipe(
-      map(cattleDTOs => {
-        const foundCattleDTO = cattleDTOs.find(cow => cow.cattle_id.toString() === id);
-        console.log('根据ID查找牛只DTO:', foundCattleDTO ? '找到' : '未找到');
-        return foundCattleDTO ? this.convertDTOToCattle(foundCattleDTO) : undefined;
+    // 如果缓存中没有，先获取DTO数据，再转换
+    return this.getCattleDTOById(Number(id)).pipe(
+      map(dto => {
+        if (!dto) return undefined;
+        
+        // 转换为Cattle类型
+        return this.convertDTOToCattle(dto);
       })
     );
   }
-  
+
   /**
-   * 根据ID获取牛只DTO信息
+   * 根据ID获取牛只数据（DTO格式）
    */
   getCattleDTOById(id: number): Observable<CattleDTO | undefined> {
     console.log('getCattleDTOById 方法被调用，ID:', id);
-    return this.getAllCattleDTO().pipe(
-      map(cattleDTOs => {
-        const foundCattleDTO = cattleDTOs.find(cow => cow.cattle_id === id);
-        console.log('根据ID查找牛只DTO:', foundCattleDTO ? '找到' : '未找到');
-        return foundCattleDTO;
+    
+    return this.ensureDataLoaded().pipe(
+      map(allData => {
+        return allData.find(c => c.cattle_id === id);
       })
     );
   }
-  
+
   /**
-   * 添加新牛只记录
-   * @param cattle 牛只数据
+   * 添加新的牛只数据
    */
   addCattle(cattle: CattleDTO): Observable<CattleDTO> {
-    console.log('addCattle 方法被调用，数据:', cattle);
-    // 由于是前端模拟，我们只能返回输入数据
-    console.log('添加牛只记录（模拟）:', cattle);
-    return of(cattle);
+    console.log('addCattle 方法被调用');
     
-    // 真实API调用（目前注释掉，使用模拟数据）
-    /*
-    return this.http.post<CattleDTO>(`${this.apiUrl}/api/cattle`, cattle, { headers: this.getHeaders() })
-      .pipe(
-        catchError(err => {
-          console.error('添加牛只失败:', err);
-          return throwError(() => new Error('无法添加牛只记录，请稍后再试'));
-        })
-      );
-    */
+    return this.ensureDataLoaded().pipe(
+      map(allData => {
+        // 生成新的ID
+        const maxId = Math.max(...allData.map(c => c.cattle_id), 0);
+        const newCattle: CattleDTO = {
+          ...cattle,
+          cattle_id: maxId + 1,
+          created_at: new Date().toISOString()
+        };
+        
+        // 添加到数据集
+        this.cattleData.push(newCattle);
+        
+        // 更新缓存
+        this.dataCache.next(this.cattleData);
+        
+        // 重新生成地图数据
+        this.generateMapData();
+        
+        return newCattle;
+      })
+    );
   }
-  
+
   /**
-   * 更新牛只记录
-   * @param cattle 牛只数据
+   * 更新牛只数据
    */
   updateCattle(cattle: CattleDTO): Observable<CattleDTO> {
-    console.log('updateCattle 方法被调用，数据:', cattle);
-    // 由于是前端模拟，我们只能返回输入数据
-    console.log('更新牛只记录（模拟）:', cattle);
-    return of(cattle);
+    console.log('updateCattle 方法被调用');
     
-    // 真实API调用（目前注释掉，使用模拟数据）
-    /*
-    return this.http.put<CattleDTO>(`${this.apiUrl}/api/cattle/${cattle.cattle_id}`, cattle, { headers: this.getHeaders() })
-      .pipe(
-        catchError(err => {
-          console.error('更新牛只失败:', err);
-          return throwError(() => new Error('无法更新牛只记录，请稍后再试'));
-        })
-      );
-    */
+    return this.ensureDataLoaded().pipe(
+      map(allData => {
+        const index = this.cattleData.findIndex(c => c.cattle_id === cattle.cattle_id);
+        
+        if (index !== -1) {
+          // 更新数据
+          this.cattleData[index] = cattle;
+          
+          // 更新缓存
+          this.dataCache.next(this.cattleData);
+          
+          // 重新生成地图数据
+          this.generateMapData();
+        }
+        
+        return cattle;
+      })
+    );
   }
 
   /**
    * 获取牛只传感器数据
-   * @param id 牛只ID
-   * @param period 时间周期(小时)，默认1小时
    */
   getCattleSensorData(id: string, period: number = 1): Observable<Sensor> {
-    console.log('getCattleSensorData 方法被调用，ID:', id, 'period:', period);
-    
-    // 使用SensorService获取真实的温度数据
+    console.log('获取牛只传感器数据, ID:', id);
     return this.sensorService.getSensorData(id);
   }
 
   /**
-   * 模拟生成传感器数据（用于开发测试）
-   * @deprecated 已替换为真实数据，仅作为备用
+   * 获取模拟的传感器数据 - 已弃用，使用SensorService.getSensorData代替
+   * 保留此方法是为了兼容旧代码
    */
-  getMockSensorData(cattleId: string): Sensor {
-    console.log('getMockSensorData 方法被调用，ID:', cattleId);
-    // 生成默认的传感器数据
+  private getMockSensorData(cattleId: string): Sensor {
+    console.warn('getMockSensorData已弃用，请使用SensorService.getSensorData');
+    // 创建默认传感器数据
     const now = new Date();
     return {
       cattleId: cattleId,
@@ -440,5 +446,19 @@ export class CattleService {
         Math.floor(4 + Math.random() * 3 - 1)
       )
     };
+  }
+  
+  /**
+   * 重新加载数据
+   */
+  reloadData(): Observable<boolean> {
+    console.log('强制重新加载牛只数据...');
+    this.dataLoaded = false;
+    this.cattleMapCache = [];
+    this.loadCattleData();
+    
+    return this.dataLoadingSubject.pipe(
+      map(isLoading => !isLoading && this.dataLoaded)
+    );
   }
 }

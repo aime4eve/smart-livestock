@@ -22,9 +22,9 @@ export class DeviceRegisterComponent implements OnInit {
   isLoading: boolean = false;
   loadError: string | null = null;
   
-  // 分页
+  // 分页 - 修改每页显示数量为7条
   currentPage: number = 0;
-  pageSize: number = 20;
+  pageSize: number = 7;
   
   // 查询参数
   queryParams: CapsuleQueryParams = {
@@ -91,7 +91,7 @@ export class DeviceRegisterComponent implements OnInit {
           this.capsules = response.data;
           this.totalItems = response.total;
           this.isLoading = false;
-          console.log(`成功加载设备数据: ${this.capsules.length} 条记录，总计 ${this.totalItems} 条`);
+          console.log(`成功加载设备数据: ${this.capsules.length} 条记录，总计 ${this.totalItems} 条，每页显示 ${this.pageSize} 条`);
         },
         error: (error) => {
           console.error('加载设备数据失败:', error);

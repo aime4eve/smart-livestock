@@ -1,8 +1,20 @@
 <div class="modal">
   <div class="modal-content">
     <button class="close-button" (click)="onClose()">×</button>
-    <div class="chart-container">
-      <canvas id="sensorChart"></canvas>
+    <div class="chart-title">牛只 {{data.cattleId}} 传感器数据</div>
+    <div class="charts-container">
+      <div class="chart-wrapper">
+        <div class="chart-subtitle">胃温度数据 (°C)</div>
+        <div class="chart-container">
+          <canvas id="temperatureChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-wrapper">
+        <div class="chart-subtitle">胃蠕动次数 (次/分钟)</div>
+        <div class="chart-container">
+          <canvas id="peristalticChart"></canvas>
+        </div>
+      </div>
     </div>
   </div>
 </div>
