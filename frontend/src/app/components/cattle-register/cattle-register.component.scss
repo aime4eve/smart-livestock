@@ -1,83 +1,94 @@
 .cattle-register-container {
-  padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 20px;
   
   h2 {
+    text-align: center;
+    margin-bottom: 30px;
     color: #333;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #4CAF50;
-    padding-bottom: 10px;
+    font-size: 22px;
   }
 }
 
 /* 加载状态样式 */
 .loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
+  background-color: #f8f9fa;
+  padding: 30px;
   text-align: center;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-left-color: #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 16px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #4a90e2;
+    border-radius: 50%;
+    animation: spin 1.5s infinite linear;
+    margin: 0 auto 15px;
+  }
+  
+  p {
+    color: #6c757d;
+    margin: 0;
+    font-size: 16px;
+  }
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-/* 错误状态样式 */
+/* 错误提示样式 */
 .error-container {
-  display: flex;
-  align-items: center;
-  padding: 20px;
-  background-color: #ffebee;
-  border-radius: 8px;
-  margin: 20px 0;
-}
-
-.error-icon {
-  width: 40px;
-  height: 40px;
-  background-color: #f44336;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  margin-right: 16px;
-}
-
-.error-message {
-  flex: 1;
-  h3 {
-    margin: 0 0 8px 0;
-    color: #d32f2f;
-  }
-  p {
-    margin: 0 0 12px 0;
-  }
-}
-
-.retry-btn {
-  background-color: #d32f2f;
-  color: white;
-  border: none;
-  padding: 8px 16px;
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 12px 20px;
   border-radius: 4px;
-  cursor: pointer;
-  &:hover {
-    background-color: #b71c1c;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  
+  .error-icon {
+    width: 30px;
+    height: 30px;
+    background-color: #dc3545;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-right: 15px;
+  }
+  
+  .error-message {
+    flex: 1;
+    
+    h3 {
+      margin: 0 0 5px 0;
+      font-size: 16px;
+    }
+    
+    p {
+      margin: 0;
+    }
+  }
+  
+  .retry-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    margin-left: 15px;
+    
+    &:hover {
+      background-color: #c82333;
+    }
   }
 }
 
@@ -118,234 +129,118 @@
   }
 }
 
-/* 分页控件样式优化 */
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 20px;
-  
-  .page-btn {
-    padding: 8px 16px;
-    background-color: #f5f5f5;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s;
-    
-    &:hover:not([disabled]) {
-      background-color: #e0e0e0;
-    }
-    
-    &[disabled] {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-  
-  .page-info {
-    margin: 0 16px;
-    color: #666;
-  }
-}
-
-/* 调试信息样式 */
-.debug-info {
-  background-color: #f8f9fa;
-  padding: 8px 12px;
-  border-radius: 4px;
-  border-left: 4px solid #4caf50;
-  margin-bottom: 16px;
-  
-  p {
-    margin: 0;
-    font-family: monospace;
-  }
-}
-
-/* 表单控件通用样式 */
-.form-controls {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-  
-  button {
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    border: none;
-    font-weight: 500;
-    
-    &.search-btn {
-      background-color: #2196f3;
-      color: white;
-      &:hover { background-color: #1976d2; }
-    }
-    
-    &.reset-btn {
-      background-color: #f5f5f5;
-      color: #333;
-      &:hover { background-color: #e0e0e0; }
-    }
-    
-    &.add-btn {
-      background-color: #4caf50;
-      color: white;
-      &:hover { background-color: #388e3c; }
-    }
-    
-    &.save-btn {
-      background-color: #4caf50;
-      color: white;
-      &:hover { background-color: #388e3c; }
-    }
-    
-    &.cancel-btn {
-      background-color: #f5f5f5;
-      color: #333;
-      &:hover { background-color: #e0e0e0; }
-    }
-  }
-}
-
-/* 表单模态窗样式优化 */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background-color: white;
-  border-radius: 8px;
-  padding: 24px;
-  width: 100%;
-  max-width: 500px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  
-  h3 {
-    margin-top: 0;
-    margin-bottom: 24px;
-    color: #333;
-    font-size: 20px;
-  }
-}
-
-/* 查询表单样式 */
+/* 搜索表单样式 */
 .search-container {
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  padding: 15px;
+  background-color: #fff;
+  padding: 20px 30px;
+  border-radius: 4px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   
   .search-form {
     .form-row {
       display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      margin-bottom: 15px;
+      justify-content: space-between;
+      gap: 40px;
+      margin-bottom: 25px;
     }
     
     .form-group {
       flex: 1;
-      min-width: 200px;
+      min-width: 0;
+      max-width: 26%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
       
       label {
-        display: block;
-        margin-bottom: 5px;
-        color: #555;
-        font-weight: 500;
+        font-weight: normal;
+        font-size: 14px;
+        white-space: nowrap;
       }
       
       input, select {
         width: 100%;
         padding: 8px 10px;
-        border: 1px solid #ddd;
+        border: 1px solid #ccc;
         border-radius: 4px;
         font-size: 14px;
         
         &:focus {
           outline: none;
-          border-color: #4CAF50;
-          box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+          border-color: #4a90e2;
+          box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
         }
       }
       
       .range-input {
         display: flex;
-        align-items: center;
         gap: 5px;
+        align-items: center;
         
         input {
           flex: 1;
         }
         
         span {
-          color: #666;
+          display: inline-block;
+          margin: 0 5px;
         }
       }
     }
     
-    .search-actions {
+    .form-controls {
       display: flex;
-      gap: 10px;
       justify-content: flex-end;
-      margin-top: 10px;
+      gap: 15px;
+      margin-top: 15px;
+      padding-right: 5px;
       
       button {
         padding: 8px 15px;
         border: none;
         border-radius: 4px;
         cursor: pointer;
-        font-weight: 500;
-        transition: all 0.2s;
-      }
-      
-      .search-btn {
-        background-color: #4CAF50;
-        color: white;
+        font-size: 14px;
+        min-width: 70px;
         
-        &:hover {
-          background-color: #3e9142;
+        &.search-btn {
+          background-color: #4a90e2;
+          color: white;
+          
+          &:hover {
+            background-color: #3a7bc8;
+          }
         }
-      }
-      
-      .reset-btn {
-        background-color: #f5f5f5;
-        color: #333;
-        border: 1px solid #ddd;
         
-        &:hover {
-          background-color: #e8e8e8;
+        &.reset-btn {
+          background-color: #6c757d;
+          color: white;
+          
+          &:hover {
+            background-color: #5a6268;
+          }
         }
-      }
-      
-      .add-btn {
-        background-color: #2196F3;
-        color: white;
         
-        &:hover {
-          background-color: #0b7dda;
+        &.add-btn {
+          background-color: #28a745;
+          color: white;
+          
+          &:hover {
+            background-color: #218838;
+          }
         }
       }
     }
   }
 }
 
-/* 列表样式 */
+/* 数据表格样式 */
 .cattle-list-container {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  overflow-x: auto;
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   
   .cattle-table {
     width: 100%;
@@ -358,180 +253,222 @@
     }
     
     th {
-      background-color: #f5f5f5;
+      background-color: #f8f9fa;
+      font-weight: 500;
       color: #333;
-      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    td {
+      font-size: 14px;
     }
     
     tr:hover {
-      background-color: #f9f9f9;
+      background-color: #f5f5f5;
     }
     
-    .edit-btn {
-      background-color: #FFC107;
-      color: #333;
-      border: none;
-      padding: 5px 10px;
-      border-radius: 4px;
-      cursor: pointer;
+    .empty-state {
+      padding: 40px 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       
-      &:hover {
-        background-color: #e6ac00;
+      .empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+      }
+      
+      p {
+        font-size: 18px;
+        margin: 0 0 8px 0;
+        color: #666;
+      }
+      
+      small {
+        color: #999;
+        margin-bottom: 16px;
+      }
+      
+      .first-page-btn {
+        background-color: #e0e0e0;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        &:hover {
+          background-color: #bdbdbd;
+        }
       }
     }
     
     .no-data {
       text-align: center;
-      color: #999;
-      padding: 30px;
-      font-style: italic;
+      padding: 20px;
+      color: #6c757d;
     }
-  }
-  
-  .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 15px;
-    gap: 10px;
     
-    .page-btn {
-      background-color: #f5f5f5;
-      border: 1px solid #ddd;
-      padding: 6px 12px;
+    .edit-btn {
+      padding: 5px 12px;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
       border-radius: 4px;
       cursor: pointer;
-      color: #333;
       
-      &:hover:not([disabled]) {
-        background-color: #e8e8e8;
+      &:hover {
+        background-color: #3a7bc8;
       }
-      
-      &[disabled] {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-    }
-    
-    .page-info {
-      color: #666;
     }
   }
 }
 
-/* 模态窗样式 */
-.modal {
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+/* 分页控件样式 */
+.pagination {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 20px;
   
-  .modal-content {
+  .page-btn {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
     background-color: white;
-    width: 90%;
-    max-width: 600px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
     
-    .modal-header {
-      padding: 15px 20px;
-      background-color: #4CAF50;
-      color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      
-      h3 {
-        margin: 0;
-      }
-      
-      .close-btn {
-        background: transparent;
-        border: none;
-        color: white;
-        font-size: 24px;
-        cursor: pointer;
-        
-        &:hover {
-          color: #eee;
-        }
-      }
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
     
-    .modal-body {
-      padding: 20px;
+    &.active {
+      background-color: #4a90e2;
+      color: white;
+      border-color: #4a90e2;
     }
   }
   
-  .register-form {
-    .form-group {
-      margin-bottom: 15px;
+  .page-info {
+    margin: 0 10px;
+    color: #6c757d;
+    font-size: 14px;
+  }
+}
+
+/* 表单模态窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 8px;
+  padding: 24px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  z-index: 10000;
+  position: relative;
+  
+  h3 {
+    margin-top: 0;
+    margin-bottom: 24px;
+    color: #333;
+    font-size: 20px;
+    text-align: center;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: normal;
+      color: #333;
+      font-size: 14px;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
       
-      label {
-        display: block;
-        margin-bottom: 5px;
-        color: #555;
-        font-weight: 500;
+      &:focus {
+        outline: none;
+        border-color: #4a90e2;
+        box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
       }
       
-      input, select {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 14px;
-        
-        &:focus {
-          outline: none;
-          border-color: #4CAF50;
-          box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-        }
-        
-        &:disabled {
-          background-color: #f5f5f5;
-          cursor: not-allowed;
-        }
+      &:read-only, &:disabled {
+        background-color: #f5f5f5;
+        cursor: not-allowed;
       }
     }
     
-    .form-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      margin-top: 20px;
+    .field-info {
+      margin-top: 6px;
+      font-size: 13px;
+      color: #6c757d;
+      line-height: 1.4;
+    }
+    
+    .error-message {
+      color: #dc3545;
+      font-size: 13px;
+      margin-top: 5px;
+    }
+  }
+  
+  .form-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 30px;
+    
+    button {
+      padding: 8px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      min-width: 85px;
       
-      button {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: all 0.2s;
-      }
-      
-      .submit-btn {
-        background-color: #4CAF50;
+      &.save-btn {
+        background-color: #28a745;
         color: white;
         
         &:hover {
-          background-color: #3e9142;
+          background-color: #218838;
+        }
+        
+        &:disabled {
+          background-color: #87cb95;
+          cursor: not-allowed;
         }
       }
       
-      .cancel-btn {
-        background-color: #f5f5f5;
-        color: #333;
-        border: 1px solid #ddd;
+      &.cancel-btn {
+        background-color: #6c757d;
+        color: white;
         
         &:hover {
-          background-color: #e8e8e8;
+          background-color: #5a6268;
         }
       }
     }

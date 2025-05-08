@@ -18,6 +18,7 @@ export interface CattleDTO {
   weight: number;
   gender: string;
   created_at: string;
+  hasCapsule?: string; // 是否安装胶囊，取值"是"或"否"
 }
 
 // 查询条件接口

@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CattleService } from '../../services/cattle.service';
+import { CapsuleService } from '../../services/capsule.service';
 import { CattleDTO, CattleQueryParams, PagedResult } from '../../models/cattle';
+import { Capsule } from '../../models/capsule';
 
 @Component({
   selector: 'app-cattle-register',
@@ -47,9 +49,19 @@ export class CattleRegisterComponent implements OnInit {
   hasError = false;
   errorMessage = '';
   
-  constructor(private cattleService: CattleService) {
+  // 库存胶囊列表
+  inventoryCapsules: Capsule[] = [];
+  // 选中的胶囊
+  selectedCapsule: Capsule | null = null;
+  
+  constructor(
+    private cattleService: CattleService,
+    private capsuleService: CapsuleService,
+    private cdr: ChangeDetectorRef
+  ) {
     console.log('CattleRegisterComponent 已创建');
     console.log('CattleService 注入状态:', !!cattleService);
+    console.log('CapsuleService 注入状态:', !!capsuleService);
   }
   
   ngOnInit(): void {
@@ -147,9 +159,48 @@ export class CattleRegisterComponent implements OnInit {
       birth_date: '',
       weight: 0,
       gender: '',
-      created_at: ''
+      created_at: '',
+      hasCapsule: '否'
     };
+    this.selectedCapsule = null;
+    this.loadInventoryCapsules();
     this.showForm = true;
+    
+    // 强制检测变更
+    this.cdr.detectChanges();
+  }
+  
+  // 加载库存胶囊
+  loadInventoryCapsules(): void {
+    console.log('加载库存胶囊');
+    this.capsuleService.getInventoryCapsules().subscribe({
+      next: (capsules) => {
+        this.inventoryCapsules = capsules;
+        console.log(`成功加载${this.inventoryCapsules.length}个库存胶囊`);
+      },
+      error: (err) => {
+        console.error('加载库存胶囊失败', err);
+        this.inventoryCapsules = [];
+      }
+    });
+  }
+  
+  // 选择胶囊
+  onCapsuleSelected(capsuleId: string): void {
+    console.log('选择胶囊:', capsuleId);
+    if (!capsuleId) {
+      this.selectedCapsule = null;
+      return;
+    }
+    
+    const capsule = this.inventoryCapsules.find(c => c.capsule_id === capsuleId);
+    this.selectedCapsule = capsule || null;
+    
+    if (this.selectedCapsule) {
+      this.formData.hasCapsule = '是';
+    } else {
+      this.formData.hasCapsule = '否';
+    }
   }
   
   // 打开编辑表单
@@ -158,6 +209,45 @@ export class CattleRegisterComponent implements OnInit {
     this.isEditMode = true;
     this.formData = { ...cattle };
     this.showForm = true;
+    
+    // 加载库存胶囊
+    this.loadInventoryCapsules();
+    
+    // 查询该牛只是否已关联胶囊
+    this.checkCattleCapsuleRelation(cattle.cattle_id);
+  }
+  
+  // 查询牛只与胶囊的关联关系
+  checkCattleCapsuleRelation(cattleId: number): void {
+    console.log('查询牛只与胶囊的关联关系:', cattleId);
+    this.selectedCapsule = null;
+    
+    this.cattleService.getCapsuleInstallation(cattleId).subscribe({
+      next: (installation) => {
+        if (installation) {
+          console.log('找到牛只关联的胶囊安装记录:', installation);
+          // 获取关联的胶囊详细信息
+          this.capsuleService.getCapsuleById(installation.capsule_id).subscribe({
+            next: (capsule) => {
+              console.log('获取到关联的胶囊信息:', capsule);
+              this.selectedCapsule = capsule;
+              this.formData.hasCapsule = '是';
+            },
+            error: (err) => {
+              console.error('获取关联胶囊信息失败', err);
+              this.formData.hasCapsule = '否';
+            }
+          });
+        } else {
+          console.log('该牛只未关联胶囊');
+          this.formData.hasCapsule = '否';
+        }
+      },
+      error: (err) => {
+        console.error('查询牛只胶囊关联关系失败', err);
+        this.formData.hasCapsule = '否';
+      }
+    });
   }
   
   // 关闭表单
@@ -187,13 +277,68 @@ export class CattleRegisterComponent implements OnInit {
     this.cattleService.addCattle(this.formData).subscribe({
       next: (result) => {
         console.log('牛只信息登记成功', result);
-        this.showForm = false;
-        this.loadCattleData(); // 重新加载数据
-        alert('牛只信息登记成功！');
+        
+        // 如果选择了胶囊，添加关联关系
+        if (this.selectedCapsule) {
+          this.saveCapsuleInstallation(result.cattle_id, this.selectedCapsule.capsule_id);
+        } else {
+          this.showForm = false;
+          this.loadCattleData(); // 重新加载数据
+          alert('牛只信息登记成功！');
+        }
       },
       error: (err) => {
         console.error('牛只信息登记失败', err);
         alert('牛只信息登记失败，请稍后再试');
+      }
+    });
+  }
+  
+  // 保存胶囊安装记录
+  saveCapsuleInstallation(cattleId: number, capsuleId: string): void {
+    console.log('保存胶囊安装记录', cattleId, capsuleId);
+    
+    const installation = {
+      cattle_id: cattleId,
+      capsule_id: capsuleId,
+      install_time: new Date().toISOString(),
+      operator: 'admin'
+    };
+    
+    this.cattleService.saveCapsuleInstallation(installation).subscribe({
+      next: () => {
+        console.log('胶囊安装记录保存成功');
+        
+        // 更新胶囊状态为已安装
+        if (this.selectedCapsule) {
+          const updatedCapsule = {...this.selectedCapsule};
+          updatedCapsule.status = '已安装';
+          
+          this.capsuleService.updateCapsule(updatedCapsule).subscribe({
+            next: () => {
+              console.log('胶囊状态更新成功');
+              this.showForm = false;
+              this.loadCattleData(); // 重新加载数据
+              alert('牛只信息及胶囊关联登记成功！');
+            },
+            error: (err) => {
+              console.error('胶囊状态更新失败', err);
+              this.showForm = false;
+              this.loadCattleData(); // 重新加载数据
+              alert('牛只信息登记成功，但胶囊状态更新失败！');
+            }
+          });
+        } else {
+          this.showForm = false;
+          this.loadCattleData(); // 重新加载数据
+          alert('牛只信息登记成功！');
+        }
+      },
+      error: (err) => {
+        console.error('胶囊安装记录保存失败', err);
+        this.showForm = false;
+        this.loadCattleData(); // 重新加载数据
+        alert('牛只信息登记成功，但胶囊关联失败！');
       }
     });
   }
@@ -204,9 +349,34 @@ export class CattleRegisterComponent implements OnInit {
     this.cattleService.updateCattle(this.formData).subscribe({
       next: (result) => {
         console.log('牛只信息更新成功', result);
-        this.showForm = false;
-        this.loadCattleData(); // 重新加载数据
-        alert('牛只信息更新成功！');
+        
+        // 处理胶囊关联
+        if (this.selectedCapsule) {
+          // 检查是否已经关联了该胶囊
+          this.cattleService.getCapsuleInstallation(result.cattle_id).subscribe({
+            next: (installation) => {
+              if (installation && installation.capsule_id === this.selectedCapsule!.capsule_id) {
+                console.log('该牛只已关联相同胶囊，无需更新');
+                this.showForm = false;
+                this.loadCattleData();
+                alert('牛只信息更新成功！');
+              } else {
+                // 添加新的关联关系
+                this.saveCapsuleInstallation(result.cattle_id, this.selectedCapsule!.capsule_id);
+              }
+            },
+            error: (err) => {
+              console.error('检查胶囊关联失败', err);
+              this.showForm = false;
+              this.loadCattleData();
+              alert('牛只信息更新成功，但检查胶囊关联失败！');
+            }
+          });
+        } else {
+          this.showForm = false;
+          this.loadCattleData();
+          alert('牛只信息更新成功！');
+        }
       },
       error: (err) => {
         console.error('牛只信息更新失败', err);

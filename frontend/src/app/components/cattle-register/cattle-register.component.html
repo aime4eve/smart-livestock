@@ -76,7 +76,7 @@
       <div class="form-controls">
         <button class="search-btn" (click)="searchCattle()">查询</button>
         <button class="reset-btn" (click)="resetQuery()">重置</button>
-        <button class="add-btn" (click)="openAddForm()">添加牛只</button>
+        <button class="add-btn" (click)="openAddForm(); $event.stopPropagation();" id="addCattleBtn">添加牛只</button>
       </div>
     </div>
   </div>
@@ -99,11 +99,6 @@
   
   <!-- 数据列表 -->
   <div class="cattle-list-container" *ngIf="!isLoading && !hasError">
-    <!-- 数据调试信息 -->
-    <div class="debug-info" style="margin-bottom: 10px; font-size: 0.8em; color: #666;">
-      <p>总记录数: {{ pagedResult.total }} | 当前页: {{ pagedResult.page }} / {{ pagedResult.total_pages }}</p>
-    </div>
-    
     <table class="cattle-table">
       <thead>
         <tr>
@@ -113,6 +108,7 @@
           <th>体重(kg)</th>
           <th>出生日期</th>
           <th>登记时间</th>
+          <th>牛胃胶囊</th>
           <th>操作</th>
         </tr>
       </thead>
@@ -124,12 +120,13 @@
           <td>{{ cattle.weight }}</td>
           <td>{{ cattle.birth_date }}</td>
           <td>{{ cattle.created_at | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+          <td>{{ cattle.hasCapsule || '否' }}</td>
           <td>
             <button class="edit-btn" (click)="openEditForm(cattle)">编辑</button>
           </td>
         </tr>
         <tr *ngIf="cattleList.length === 0">
-          <td colspan="7" class="no-data">
+          <td colspan="8" class="no-data">
             <div class="empty-state">
               <div class="empty-icon">📋</div>
               <p>暂无牛只数据</p>
@@ -203,6 +200,26 @@
           <option value="公牛">公牛</option>
           <option value="母牛">母牛</option>
         </select>
+      </div>
+      
+      <!-- 胶囊选择 -->
+      <div class="form-group">
+        <label for="capsule">关联牛胃胶囊</label>
+        <select id="capsule" #capsuleSelect (change)="onCapsuleSelected(capsuleSelect.value)">
+          <option value="">不关联胶囊</option>
+          <option *ngFor="let capsule of inventoryCapsules" [value]="capsule.capsule_id" [selected]="selectedCapsule?.capsule_id === capsule.capsule_id">
+            {{ capsule.capsule_id }} ({{ capsule.production_batch }})
+          </option>
+        </select>
+        <div class="field-info" *ngIf="inventoryCapsules.length === 0">
+          当前没有可用的库存胶囊
+        </div>
+        <div class="field-info" *ngIf="selectedCapsule">
+          已选择胶囊: {{ selectedCapsule.capsule_id }}<br>
+          生产批次: {{ selectedCapsule.production_batch }}<br>
+          激活日期: {{ selectedCapsule.activation_date }}<br>
+          过期日期: {{ selectedCapsule.expiration_date }}
+        </div>
       </div>
       
       <div class="form-controls">

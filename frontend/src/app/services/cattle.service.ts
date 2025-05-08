@@ -1,11 +1,20 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, catchError, throwError, of, map, forkJoin, BehaviorSubject } from 'rxjs';
+import { Observable, catchError, throwError, of, map, forkJoin, BehaviorSubject, tap } from 'rxjs';
 import { Cattle, CattleDTO, CattleQueryParams, PagedResult, HealthStatus } from '../models/cattle';
 import { Sensor } from '../models/sensor';
 import { environment } from '../../environments/environment';
 import { LocationService } from './location.service';
 import { SensorService } from './sensor.service';
+
+// 定义胶囊安装记录类型
+export interface CapsuleInstallation {
+  install_id: number;
+  cattle_id: number;
+  capsule_id: string;
+  install_time: string;
+  operator: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -16,27 +25,34 @@ export class CattleService {
   
   // JSON文件路径 - 从assets目录加载
   private jsonDataUrl = 'assets/data/cattle.json';
+  private capsuleInstallationUrl = 'assets/data/capsule_installation.json';
   
   // 保存原始地图数据的缓存，提高效率
   private cattleMapCache: Cattle[] = [];
   
   // 存储从JSON文件加载的数据
   private cattleData: CattleDTO[] = [];
+  private capsuleInstallations: CapsuleInstallation[] = [];
   private dataLoaded = false;
+  private capsuleDataLoaded = false;
   
   // 用于跟踪数据加载状态的Subject
   private dataLoadingSubject = new BehaviorSubject<boolean>(false);
   
   // 用于缓存已加载的数据
-  private dataCache: BehaviorSubject<CattleDTO[]> = new BehaviorSubject<CattleDTO[]>([]);
+  private dataCache = new BehaviorSubject<CattleDTO[]>([]);
+  
+  // 胶囊安装记录缓存
+  private capsuleInstallationCache = new BehaviorSubject<CapsuleInstallation[]>([]);
   
   constructor(
     private http: HttpClient,
     private locationService: LocationService,
     private sensorService: SensorService
   ) {
-    console.log('CattleService 已初始化');
+    console.log('CattleService已创建');
     // 初始化时加载数据
+    this.loadCapsuleInstallationData();
     this.loadCattleData();
   }
 
@@ -56,6 +72,43 @@ export class CattleService {
     // 由于是开发测试阶段，我们使用模拟数据而不是抛出错误
     console.warn('使用模拟数据替代API数据');
     return of(null); // 返回null而不是抛出错误
+  }
+
+  // 加载胶囊安装数据
+  private loadCapsuleInstallationData(): void {
+    if (this.capsuleDataLoaded) {
+      console.log('胶囊安装数据已加载，跳过加载操作');
+      return;
+    }
+
+    console.log('开始加载胶囊安装数据，URL:', this.capsuleInstallationUrl);
+    
+    // 添加时间戳避免缓存
+    const urlWithTimestamp = `${this.capsuleInstallationUrl}?t=${new Date().getTime()}`;
+    
+    this.http.get<CapsuleInstallation[]>(urlWithTimestamp)
+      .subscribe({
+        next: (data) => {
+          if (data && Array.isArray(data)) {
+            this.capsuleInstallations = data;
+            this.capsuleDataLoaded = true;
+            console.log('胶囊安装数据加载成功，共加载', this.capsuleInstallations.length, '条记录');
+            
+            // 如果牛只数据已加载，更新胶囊状态
+            if (this.dataLoaded && this.cattleData.length > 0) {
+              this.updateCattleWithCapsuleInfo();
+            }
+          } else {
+            console.error('返回的胶囊安装数据不是数组格式:', data);
+            this.capsuleInstallations = [];
+          }
+        },
+        error: (error) => {
+          console.error('加载胶囊安装数据失败:', error);
+          this.capsuleInstallations = [];
+          this.capsuleDataLoaded = false;
+        }
+      });
   }
   
   // 从JSON文件加载数据
@@ -90,6 +143,11 @@ export class CattleService {
           if (data && Array.isArray(data)) {
             this.cattleData = data;
             this.dataLoaded = true;
+            
+            // 如果胶囊数据已加载，更新牛只的胶囊状态
+            if (this.capsuleDataLoaded && this.capsuleInstallations.length > 0) {
+              this.updateCattleWithCapsuleInfo();
+            }
             
             // 更新缓存
             this.dataCache.next(this.cattleData);
@@ -132,7 +190,8 @@ export class CattleService {
               birth_date: "2021-03-15",
               weight: 623.55,
               gender: "公牛",
-              created_at: "2023-05-10T08:30:22"
+              created_at: "2023-05-10T08:30:22",
+              hasCapsule: "否"
             },
             {
               cattle_id: 2,
@@ -140,7 +199,8 @@ export class CattleService {
               birth_date: "2020-07-22",
               weight: 578.90,
               gender: "母牛",
-              created_at: "2023-05-12T14:15:36"
+              created_at: "2023-05-12T14:15:36",
+              hasCapsule: "否"
             }
           ];
           
@@ -151,6 +211,26 @@ export class CattleService {
           console.log('已加载模拟备用数据，共', this.cattleData.length, '条');
         }
       });
+  }
+
+  // 更新牛只数据的胶囊信息
+  private updateCattleWithCapsuleInfo(): void {
+    // 创建胶囊安装Map，便于快速查找
+    const capsuleMap = new Map<number, string>();
+    this.capsuleInstallations.forEach(installation => {
+      capsuleMap.set(installation.cattle_id, installation.capsule_id);
+    });
+
+    // 更新牛只数据中的胶囊状态
+    this.cattleData.forEach(cattle => {
+      const capsuleId = capsuleMap.get(cattle.cattle_id);
+      cattle.hasCapsule = capsuleId ? "是" : "否";
+    });
+
+    console.log('牛只胶囊信息更新完成');
+    
+    // 更新缓存
+    this.dataCache.next(this.cattleData);
   }
   
   // 确保数据已加载
@@ -457,26 +537,101 @@ export class CattleService {
    * 更新牛只数据
    */
   updateCattle(cattle: CattleDTO): Observable<CattleDTO> {
-    console.log('updateCattle 方法被调用');
+    const index = this.cattleData.findIndex(c => c.cattle_id === cattle.cattle_id);
+    if (index === -1) {
+      return throwError(() => new Error('未找到牛只记录'));
+    }
     
-    return this.ensureDataLoaded().pipe(
-      map(allData => {
-        const index = this.cattleData.findIndex(c => c.cattle_id === cattle.cattle_id);
+    // 更新本地数据
+    this.cattleData[index] = { ...cattle };
+    
+    // 更新缓存
+    this.dataCache.next([...this.cattleData]);
+    
+    return of(cattle);
+  }
+
+  /**
+   * 保存胶囊安装记录
+   */
+  saveCapsuleInstallation(installation: {
+    cattle_id: number;
+    capsule_id: string;
+    install_time: string;
+    operator: string;
+  }): Observable<any> {
+    console.log('保存胶囊安装记录', installation);
+    
+    // 生成新的安装记录ID
+    const newInstallId = this.capsuleInstallations.length > 0 
+      ? Math.max(...this.capsuleInstallations.map(i => i.install_id)) + 1 
+      : 1;
+    
+    const newInstallation: CapsuleInstallation = {
+      install_id: newInstallId,
+      cattle_id: installation.cattle_id,
+      capsule_id: installation.capsule_id,
+      install_time: installation.install_time,
+      operator: installation.operator
+    };
+    
+    // 添加到本地缓存
+    this.capsuleInstallations.push(newInstallation);
+    
+    // 更新牛只胶囊状态
+    const cattleIndex = this.cattleData.findIndex(c => c.cattle_id === installation.cattle_id);
+    if (cattleIndex !== -1) {
+      this.cattleData[cattleIndex].hasCapsule = '是';
+      this.dataCache.next(this.cattleData);
+    }
+    
+    // 模拟API调用
+    return of(newInstallation);
+  }
+  
+  // 查询牛只胶囊安装记录
+  getCapsuleInstallation(cattleId: number): Observable<CapsuleInstallation | null> {
+    console.log('查询牛只与胶囊的关联关系:', cattleId);
+    
+    // 如果已经加载了数据，直接从本地缓存查询
+    if (this.capsuleDataLoaded && this.capsuleInstallations.length > 0) {
+      console.log('使用本地缓存数据查询胶囊安装记录');
+      // 查找该牛只的最新安装记录
+      const installation = this.capsuleInstallations
+        .filter(inst => inst.cattle_id === cattleId)
+        .sort((a, b) => {
+          // 按照安装时间倒序排序，获取最新的安装记录
+          const timeA = new Date(a.install_time).getTime();
+          const timeB = new Date(b.install_time).getTime();
+          return timeB - timeA;
+        })[0] || null;
         
-        if (index !== -1) {
-          // 更新数据
-          this.cattleData[index] = cattle;
-          
-          // 更新缓存
-          this.dataCache.next(this.cattleData);
-          
-          // 重新生成地图数据
-          this.generateMapData();
-        }
+      console.log('查询结果:', installation);
+      return of(installation);
+    }
+    
+    // 如果数据尚未加载，则先加载数据再查询
+    console.log('数据尚未加载，先加载再查询');
+    
+    // 使用已有的loadCapsuleInstallationData方法刷新数据
+    this.loadCapsuleInstallationData();
+    
+    // 等待数据加载完成再返回结果
+    // 由于现有的loadCapsuleInstallationData是void返回，这里使用setTimeout模拟异步等待
+    return new Observable<CapsuleInstallation | null>(observer => {
+      setTimeout(() => {
+        const installation = this.capsuleInstallations
+          .filter(inst => inst.cattle_id === cattleId)
+          .sort((a, b) => {
+            const timeA = new Date(a.install_time).getTime();
+            const timeB = new Date(b.install_time).getTime();
+            return timeB - timeA;
+          })[0] || null;
         
-        return cattle;
-      })
-    );
+        observer.next(installation);
+        observer.complete();
+      }, 500); // 等待500ms，确保数据加载完成
+    });
   }
 
   /**

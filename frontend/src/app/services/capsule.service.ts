@@ -228,6 +228,30 @@ export class CapsuleService {
     );
   }
 
+  // 获取库存状态的胶囊
+  getInventoryCapsules(): Observable<Capsule[]> {
+    console.log('获取库存状态的胶囊');
+    return this.ensureDataLoaded().pipe(
+      map(allCapsules => {
+        const inventoryCapsules = allCapsules.filter(c => c.status === '库存');
+        console.log(`找到${inventoryCapsules.length}个库存状态的胶囊`);
+        return inventoryCapsules;
+      })
+    );
+  }
+
+  // 根据ID获取胶囊
+  getCapsuleById(id: string): Observable<Capsule | null> {
+    console.log('根据ID获取胶囊:', id);
+    return this.ensureDataLoaded().pipe(
+      map(allCapsules => {
+        const capsule = allCapsules.find(c => c.capsule_id === id);
+        console.log('查询结果:', capsule || '未找到');
+        return capsule || null;
+      })
+    );
+  }
+
   // 重新加载数据
   reloadData(): Observable<boolean> {
     console.log('强制重新加载数据...');
