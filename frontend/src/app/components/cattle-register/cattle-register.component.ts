@@ -17,14 +17,14 @@ export class CattleRegisterComponent implements OnInit {
   pagedResult: PagedResult<CattleDTO> = {
     items: [],
     total: 0,
-    page: 1,
+    page: 1,  // 确保从第1页开始
     page_size: 7,
     total_pages: 0
   };
   
-  // 查询条件
+  // 查询条件 - 确保page从1开始
   queryParams: CattleQueryParams = {
-    page: 1,
+    page: 1,  // 页码从1开始，而非0开始
     page_size: 7
   };
   
@@ -54,29 +54,56 @@ export class CattleRegisterComponent implements OnInit {
   
   ngOnInit(): void {
     console.log('CattleRegisterComponent 初始化');
-    this.loadCattleData();
+    console.log('初始查询参数:', JSON.stringify(this.queryParams));
+    // 确保组件初始化时加载数据
+    setTimeout(() => {
+      console.log('执行延迟加载，确保服务准备就绪');
+      this.loadCattleData();
+    }, 500);
   }
   
   // 加载牛群数据
   loadCattleData(): void {
-    console.log('开始加载牛群数据，参数:', this.queryParams);
+    console.log('开始加载牛群数据，参数:', JSON.stringify(this.queryParams));
     this.isLoading = true;
     this.hasError = false;
     
     this.cattleService.getFilteredCattle(this.queryParams).subscribe({
       next: (result) => {
-        console.log('获取数据成功:', result);
+        console.log('获取数据成功, 总数:', result.total);
+        console.log('分页信息: 当前页', result.page, '总页数', result.total_pages);
+        console.log('返回数据条数:', result.items?.length || 0);
+        console.log('返回数据示例:', result.items?.length > 0 ? JSON.stringify(result.items[0]).substring(0, 100) + '...' : '无数据');
+        
         this.pagedResult = result;
         this.cattleList = result.items;
         console.log('列表数据已更新，当前列表长度:', this.cattleList.length);
+        
+        // 如果列表为空但总数不为0，可能是分页问题，尝试回到第一页
+        if (this.cattleList.length === 0 && result.total > 0) {
+          console.warn('检测到数据异常：总数大于0但当前页为空，尝试回到第一页');
+          this.queryParams.page = 1;
+          this.loadCattleData();
+          return;
+        }
+        
         this.isLoading = false;
+        
+        // 显示数据加载成功的调试信息
+        if (this.cattleList.length > 0) {
+          console.log('数据加载成功示例 - 第一条:', this.cattleList[0]);
+        }
       },
       error: (err) => {
         console.error('加载牛群数据失败', err);
+        console.error('错误详情:', err.message);
+        
         this.hasError = true;
         this.errorMessage = '加载牛群数据失败，请稍后再试';
         this.isLoading = false;
-        alert('加载牛群数据失败，请稍后再试');
+        
+        // 显示错误信息但不弹窗，减少干扰
+        console.warn('加载牛群数据失败，请检查网络或服务状态');
       }
     });
   }

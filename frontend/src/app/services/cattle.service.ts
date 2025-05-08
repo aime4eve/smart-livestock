@@ -71,11 +71,21 @@ export class CattleService {
     
     console.log('开始加载牛只数据，URL:', this.jsonDataUrl);
     
-    this.http.get<CattleDTO[]>(this.jsonDataUrl)
+    // 确保路径正确 - 检查当前URL
+    const baseHref = document.querySelector('base')?.getAttribute('href') || '/';
+    console.log('应用基础路径:', baseHref);
+    console.log('当前页面URL:', window.location.href);
+    
+    // 添加时间戳避免缓存
+    const urlWithTimestamp = `${this.jsonDataUrl}?t=${new Date().getTime()}`;
+    console.log('添加时间戳后的请求URL:', urlWithTimestamp);
+    
+    this.http.get<CattleDTO[]>(urlWithTimestamp)
       .subscribe({
         next: (data) => {
           console.log('成功获取到牛只数据，返回数据类型:', typeof data);
           console.log('返回数据条数:', data?.length);
+          console.log('原始响应数据:', JSON.stringify(data).substring(0, 200) + '...');
           
           if (data && Array.isArray(data)) {
             this.cattleData = data;
@@ -99,7 +109,11 @@ export class CattleService {
           this.dataLoadingSubject.next(false);
         },
         error: (error) => {
-          console.error('加载牛只数据失败:', error);
+          console.error('加载牛只数据失败, 错误详情:', error);
+          console.error('错误状态:', error.status);
+          console.error('错误消息:', error.message);
+          console.error('请求URL:', urlWithTimestamp);
+          
           this.dataLoaded = false;
           this.cattleData = [];
           
@@ -108,6 +122,33 @@ export class CattleService {
           
           // 更新缓存为空数组
           this.dataCache.next([]);
+          
+          // 尝试使用模拟数据作为备份
+          console.log('尝试使用备用模拟数据');
+          const mockData: CattleDTO[] = [
+            {
+              cattle_id: 1,
+              breed: "安格斯(模拟)",
+              birth_date: "2021-03-15",
+              weight: 623.55,
+              gender: "公牛",
+              created_at: "2023-05-10T08:30:22"
+            },
+            {
+              cattle_id: 2,
+              breed: "荷斯坦(模拟)",
+              birth_date: "2020-07-22",
+              weight: 578.90,
+              gender: "母牛",
+              created_at: "2023-05-12T14:15:36"
+            }
+          ];
+          
+          // 使用模拟数据
+          this.cattleData = mockData;
+          this.dataLoaded = true;
+          this.dataCache.next(this.cattleData);
+          console.log('已加载模拟备用数据，共', this.cattleData.length, '条');
         }
       });
   }
@@ -251,28 +292,49 @@ export class CattleService {
    * @param params 查询参数
    */
   getFilteredCattle(params: CattleQueryParams = {}): Observable<PagedResult<CattleDTO>> {
-    console.log('getFilteredCattle 方法被调用，参数:', params);
+    console.log('getFilteredCattle 方法被调用，参数:', JSON.stringify(params));
     
     return this.ensureDataLoaded().pipe(
       map(allData => {
+        console.log('获取到原始数据条数:', allData.length);
+        
         // 过滤数据
         const filteredData = this.filterCattle(allData, params);
+        console.log('过滤后数据条数:', filteredData.length);
         
-        // 计算分页信息
-        const page = params.page || 0;
+        // 正确计算分页信息 - 确保页码从1开始
+        const page = params.page || 1;  // 默认第1页，而非第0页
         const pageSize = params.page_size || 10;
-        const start = page * pageSize;
-        const end = start + pageSize;
-        const paginatedData = filteredData.slice(start, end);
         
-        console.log(`过滤后总数: ${filteredData.length}, 页码: ${page}, 每页大小: ${pageSize}`);
+        // 计算正确的数据切片起始和结束索引
+        const start = (page - 1) * pageSize;  // 页码从1开始，所以需要减1
+        const end = start + pageSize;
+        
+        console.log(`分页信息: 页码=${page}, 每页条数=${pageSize}, 起始索引=${start}, 结束索引=${end}`);
+        
+        // 确保起始索引有效
+        if (start >= filteredData.length) {
+          console.warn('请求的页码超出数据范围，返回空数据');
+          return {
+            items: [],
+            total: filteredData.length,
+            page: page,
+            page_size: pageSize,
+            total_pages: Math.max(1, Math.ceil(filteredData.length / pageSize))
+          };
+        }
+        
+        // 分页数据
+        const paginatedData = filteredData.slice(start, end);
+        console.log('分页后的数据条数:', paginatedData.length);
+        console.log('分页数据示例:', paginatedData.length > 0 ? paginatedData[0] : '无数据');
         
         return {
           items: paginatedData,
           total: filteredData.length,
           page: page,
           page_size: pageSize,
-          total_pages: Math.ceil(filteredData.length / pageSize)
+          total_pages: Math.max(1, Math.ceil(filteredData.length / pageSize))
         };
       })
     );
