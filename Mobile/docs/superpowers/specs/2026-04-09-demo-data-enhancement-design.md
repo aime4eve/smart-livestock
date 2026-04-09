@@ -1,7 +1,8 @@
 # Demo 数据与场景全面增强设计
 
 **日期**: 2026-04-09
-**状态**: Draft
+**状态**: 已落地（部分）
+**复核日期**: 2026-04-09
 **方案**: 混合方案（静态种子 + 运行时生成）
 
 ---
@@ -18,11 +19,7 @@
 
 ## ID 体系设计
 
-当前代码库中存在两种 ID 体系：
-- **地图/告警模块**：使用耳标签字符串（如 `耳标-001`）
-- **孪生模块**：使用纯数字 4 位数 ID（如 `3872`、`5621`）
-
-增强后统一为以下体系，确保跨模块导航（告警 → 牛只详情 → 孪生详情）可正确链接：
+升级前 Demo 曾混用两套 ID；**当前实现**已统一为下列体系，确保跨模块导航（告警 → 牛只详情 → 孪生详情）可正确链接：
 
 | ID 类型 | 格式 | 示例 | 用途 |
 |---------|------|------|------|
@@ -320,12 +317,50 @@ abstract class TimeSeriesGenerator<T> {
 
 Live 模式下，Mock Server 返回种子数据（确定性），Flutter 端 Live Repository 从 ApiCache 解析。时序数据生成器仅存在于 Flutter Mock Repository 中。
 
+**已知差异（已接受，需在迭代中显式处理或文档化）**:
+- `seed.js` **不导出** 100 台设备明细；设备清单与绑定关系以 `demo_seed.dart` 为准。若 Live 模式需要设备 CRUD 与 Dart 完全一致，需扩展后端种子与路由。
+- `twin_seed.js` 中体温/蠕动等为 **稀疏占位序列**；与 Flutter `TwinSeed` + 生成器的 **高密度时序** 不一致。Mock 模式演示以客户端为准；Live 模式以 API 返回为准。
+- 图表 **降采样**（见下文「性能考虑」）在实现层 **尚未统一落实**；若大图卡顿再补。
+
+---
+
+## 实现偏差（相对本文初稿）
+
+| 主题 | 设计描述 | 当前实现 |
+|------|----------|----------|
+| 通用接口 | `TimeSeriesGenerator<T>` 抽象类 | 各生成器独立实现，未抽公共抽象 |
+| GPS 行为 | 锚点、行为时间表、饮水/休息区、越界异常注入 | 围栏包围盒内随机游走 + 昼夜步长差异；无锚点与显式越界注入 |
+| GPS 缓存 | 按牛只缓存轨迹 | `GpsTrajectoryGenerator` 仅按 `earTag` 缓存；**未纳入时间区间**，切换 24h/7d/30d 时可能与预期不符，需后续修正缓存键或策略 |
+| 孪生概览 | 企业级汇总 + 「当前牧区」标注 | 数据层未强制；**UI 标注未做**（见「不在范围内」） |
+
 ---
 
 ## 不在范围内
 
-- UI/UX 改动（本次仅增强数据层）
+- UI/UX 改动（本次仅增强数据层）；**孪生概览「当前牧区」筛选/标注**归入后续 UI 迭代
 - 真实后端实现
-- 性能优化（除非数据量导致明显卡顿）
+- 性能优化（除非数据量导致明显卡顿）；**图表降采样**若未触发卡顿可延后
 - 新增功能模块
 - `tools/generate_seeds.dart` 构建脚本（改用手动同步 + 检查清单）
+
+---
+
+## 下一步开发任务（建议）
+
+已在 GitHub 拆分为独立 Issue，并在仓库内维护执行计划：
+
+- **Issue 列表与执行计划**: [plans/2026-04-09-demo-data-followups.md](../plans/2026-04-09-demo-data-followups.md)
+- **P0** — [#2](https://github.com/aime4eve/smart-livestock/issues/2) GPS 轨迹缓存键纳入时间区间
+- **P1** — [#3](https://github.com/aime4eve/smart-livestock/issues/3) 孪生体温/蠕动图表降采样；[#4](https://github.com/aime4eve/smart-livestock/issues/4) GPS 行为逼真度（可选）
+- **P2** — [#5](https://github.com/aime4eve/smart-livestock/issues/5) Live 孪生时序对齐；[#6](https://github.com/aime4eve/smart-livestock/issues/6) 后端设备种子；[#7](https://github.com/aime4eve/smart-livestock/issues/7) 孪生概览「当前牧区」UI
+- **P3** — [#8](https://github.com/aime4eve/smart-livestock/issues/8) `TimeSeriesGenerator` 抽象（可选）
+
+（以下为原始条目备忘，与 Issue 一一对应。）
+
+1. **P0 — GPS 轨迹缓存键**：将 `GpsTrajectoryGenerator` 的缓存纳入 `start`/`end`（或与 `TrajectoryRange` 等价的键），保证同一牛只切换 24h/7d/30d 时轨迹与时间范围一致。→ **#2**
+2. **P1 — 图表降采样**：在孪生体温/蠕动图表数据绑定前，对长序列做按小时均值或固定上限点数抽样，与设计文档「性能考虑」对齐；真机验证后再定阈值。→ **#3**
+3. **P1 — GPS 行为逼真度（可选）**：按设计补充锚点、休息区 `fence_rest`、接近边界采样等，仅影响 Mock 演示路径。→ **#4**
+4. **P2 — Live 孪生时序对齐**：若产品要求 Live 与 Mock 曲线一致，扩展 `twin_seed.js` 与 twin 相关 API，或约定「Live 为简化曲线」并在 UI 提示。→ **#5**
+5. **P2 — 后端设备种子**：若设备管理页在 Live 模式需与 `demo_seed` 100 台设备一致，在 `seed.js` 增加 devices 导出及对应路由。→ **#6**
+6. **P2 — UI**：孪生概览增加「当前牧区」与 Demo 牧区（50 头）上下文说明，与 `TwinOverviewStats` 企业级数字并存。→ **#7**
+7. **P3 — 重构**：可选抽取 `TimeSeriesGenerator<T>`，统一生成器参数与缓存策略。→ **#8**

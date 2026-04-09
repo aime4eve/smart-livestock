@@ -1,6 +1,10 @@
 # Demo 数据增强 Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **实施状态（2026-04-09 复核）:** 本计划所列开发任务已在 `Mobile/mobile_app` 与 `Mobile/backend` **落地**；下列 Step 级 checkbox 已全部勾选，仅作历史记录。与初稿的偏差见 `specs/2026-04-09-demo-data-enhancement-design.md`（实现偏差、已知差异）。
+
+> **后续迭代:** GitHub Issues [#2](https://github.com/aime4eve/smart-livestock/issues/2)–[#8](https://github.com/aime4eve/smart-livestock/issues/8) 与执行计划 `plans/2026-04-09-demo-data-followups.md` 同步。
+
+> **For agentic workers:** 新增量开发请跟 `2026-04-09-demo-data-followups.md` 与对应 Issue，而非重复本文件步骤。
 
 **Goal:** 将 Demo 数据从 3 头牛/2 围栏扩展到 50 头牛/4 围栏/100 设备/18 告警，并添加时序数据生成器，使演示数据达到中型牧场运营水平。
 
@@ -60,7 +64,7 @@ These repos read from `DemoSeed`/`TwinSeed` and will automatically use new data 
 - Modify: `lib/core/models/demo_models.dart`
 - Test: `test/seed_data_test.dart`
 
-- [ ] **Step 1: Write failing test for new models**
+- [x] **Step 1: Write failing test for new models**
 
 Create `test/seed_data_test.dart`:
 
@@ -122,12 +126,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/seed_data_test.dart -v`
 Expected: FAIL — `LivestockInfo` and `AlertItem` classes don't exist, `LivestockDetail` missing fields.
 
-- [ ] **Step 3: Implement model extensions**
+- [x] **Step 3: Implement model extensions**
 
 Add to `lib/core/models/demo_models.dart` (after `LivestockHealth` enum, before `LivestockDetail`):
 
@@ -217,12 +221,12 @@ class LivestockDetail {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `flutter test test/seed_data_test.dart -v`
 Expected: PASS
 
-- [ ] **Step 5: Fix compile errors in existing code**
+- [x] **Step 5: Fix compile errors in existing code**
 
 Adding required `livestockId`/`fenceId` to `LivestockDetail` will break `DemoSeed.livestockDetail` and `DemoSeed.livestockDetailWatch`. Temporarily add placeholder values to keep compilation passing until Task 2 replaces them:
 
@@ -233,7 +237,7 @@ In `lib/core/data/demo_seed.dart`, update both `LivestockDetail` instances:
 Run: `flutter analyze`
 Expected: No errors
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add lib/core/models/demo_models.dart lib/core/data/demo_seed.dart test/seed_data_test.dart
@@ -248,7 +252,7 @@ git commit -m "feat: add LivestockInfo, AlertItem models; extend LivestockDetail
 - Modify: `lib/core/data/demo_seed.dart`
 - Test: `test/seed_data_test.dart`
 
-- [ ] **Step 1: Write failing tests for seed data**
+- [x] **Step 1: Write failing tests for seed data**
 
 Append to `test/seed_data_test.dart`:
 
@@ -334,12 +338,12 @@ import 'package:smart_livestock_demo/core/data/demo_seed.dart';
   });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/seed_data_test.dart -v`
 Expected: FAIL — `DemoSeed.livestock`, `DemoSeed.alerts`, `DemoSeed.getLivestockDetail` don't exist yet.
 
-- [ ] **Step 3: Implement DemoSeed expansion**
+- [x] **Step 3: Implement DemoSeed expansion**
 
 Replace the entire content of `lib/core/data/demo_seed.dart`:
 
@@ -673,17 +677,17 @@ class DemoSeed {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `flutter test test/seed_data_test.dart -v`
 Expected: All tests PASS
 
-- [ ] **Step 5: Run static analysis**
+- [x] **Step 5: Run static analysis**
 
 Run: `flutter analyze`
 Expected: No errors (there may be warnings in files that reference old `DemoSeed.livestockDetail` — these will be fixed in Task 6)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add lib/core/data/demo_seed.dart test/seed_data_test.dart
@@ -699,7 +703,7 @@ git commit -m "feat: expand DemoSeed to 50 cattle, 4 fences, 100 devices, 18 ale
 - Modify: `lib/features/alerts/data/mock_alerts_repository.dart`
 - Test: `test/seed_data_test.dart`
 
-- [ ] **Step 1: Write failing test**
+- [x] **Step 1: Write failing test**
 
 Append to `test/seed_data_test.dart`:
 
@@ -735,12 +739,12 @@ import 'package:smart_livestock_demo/features/alerts/domain/alerts_repository.da
   });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/seed_data_test.dart --name="alert" -v`
 Expected: FAIL — `AlertsViewData` has no `items` field.
 
-- [ ] **Step 3: Extend AlertsViewData**
+- [x] **Step 3: Extend AlertsViewData**
 
 In `lib/features/alerts/domain/alerts_repository.dart`, add `items` field:
 
@@ -785,7 +789,7 @@ abstract class AlertsRepository {
 }
 ```
 
-- [ ] **Step 4: Update MockAlertsRepository**
+- [x] **Step 4: Update MockAlertsRepository**
 
 Replace `lib/features/alerts/data/mock_alerts_repository.dart`:
 
@@ -837,12 +841,12 @@ class MockAlertsRepository implements AlertsRepository {
 }
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `flutter test test/seed_data_test.dart --name="alert" -v`
 Expected: PASS
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add lib/features/alerts/domain/alerts_repository.dart lib/features/alerts/data/mock_alerts_repository.dart test/seed_data_test.dart
@@ -860,7 +864,7 @@ git commit -m "feat: extend AlertsViewData with items list, refactor MockAlertsR
 - Create: `lib/core/data/generators/estrus_score_generator.dart`
 - Test: `test/generator_test.dart`
 
-- [ ] **Step 1: Write failing tests for all generators**
+- [x] **Step 1: Write failing tests for all generators**
 
 Create `test/generator_test.dart`:
 
@@ -1038,16 +1042,16 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/generator_test.dart -v`
 Expected: FAIL — generator files don't exist.
 
-- [ ] **Step 3: Create generators directory**
+- [x] **Step 3: Create generators directory**
 
 Run: `mkdir -p lib/core/data/generators`
 
-- [ ] **Step 4: Implement GpsTrajectoryGenerator**
+- [x] **Step 4: Implement GpsTrajectoryGenerator**
 
 Create `lib/core/data/generators/gps_trajectory_generator.dart`:
 
@@ -1126,7 +1130,7 @@ class GpsTrajectoryGenerator {
 }
 ```
 
-- [ ] **Step 5: Implement TemperatureGenerator**
+- [x] **Step 5: Implement TemperatureGenerator**
 
 Create `lib/core/data/generators/temperature_generator.dart`:
 
@@ -1210,7 +1214,7 @@ class TemperatureGenerator {
 }
 ```
 
-- [ ] **Step 6: Implement MotilityGenerator**
+- [x] **Step 6: Implement MotilityGenerator**
 
 Create `lib/core/data/generators/motility_generator.dart`:
 
@@ -1286,7 +1290,7 @@ class MotilityGenerator {
 }
 ```
 
-- [ ] **Step 7: Implement EstrusScoreGenerator**
+- [x] **Step 7: Implement EstrusScoreGenerator**
 
 Create `lib/core/data/generators/estrus_score_generator.dart`:
 
@@ -1356,12 +1360,12 @@ class EstrusScoreGenerator {
 }
 ```
 
-- [ ] **Step 8: Run tests to verify all pass**
+- [x] **Step 8: Run tests to verify all pass**
 
 Run: `flutter test test/generator_test.dart -v`
 Expected: All tests PASS
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add lib/core/data/generators/ test/generator_test.dart
@@ -1376,7 +1380,7 @@ git commit -m "feat: add GPS, temperature, motility, estrus generators with fixe
 - Modify: `lib/core/data/twin_seed.dart`
 - Test: `test/seed_data_test.dart`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Append to `test/seed_data_test.dart`:
 
@@ -1419,12 +1423,12 @@ import 'package:smart_livestock_demo/core/data/twin_seed.dart';
   });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/seed_data_test.dart --name="TwinSeed" -v`
 Expected: FAIL — current TwinSeed only has 5 fever baselines, 4 digestive items.
 
-- [ ] **Step 3: Implement TwinSeed expansion**
+- [x] **Step 3: Implement TwinSeed expansion**
 
 Replace the entire content of `lib/core/data/twin_seed.dart`:
 
@@ -1658,12 +1662,12 @@ class TwinSeed {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `flutter test test/seed_data_test.dart --name="TwinSeed" -v`
 Expected: All TwinSeed tests PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/core/data/twin_seed.dart test/seed_data_test.dart
@@ -1678,7 +1682,7 @@ git commit -m "feat: expand TwinSeed to 30 cattle with generator-powered time se
 - Modify: `lib/features/map/data/mock_map_repository.dart`
 - Modify: `lib/features/livestock/data/mock_livestock_repository.dart`
 
-- [ ] **Step 1: Update MockMapRepository**
+- [x] **Step 1: Update MockMapRepository**
 
 Replace `lib/features/map/data/mock_map_repository.dart`:
 
@@ -1771,7 +1775,7 @@ class MockMapRepository implements MapRepository {
 }
 ```
 
-- [ ] **Step 2: Update MockLivestockRepository**
+- [x] **Step 2: Update MockLivestockRepository**
 
 Replace `lib/features/livestock/data/mock_livestock_repository.dart`:
 
@@ -1803,12 +1807,12 @@ class MockLivestockRepository implements LivestockRepository {
 }
 ```
 
-- [ ] **Step 3: Run static analysis**
+- [x] **Step 3: Run static analysis**
 
 Run: `flutter analyze`
 Expected: No errors
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add lib/features/map/data/mock_map_repository.dart lib/features/livestock/data/mock_livestock_repository.dart
@@ -1822,7 +1826,7 @@ git commit -m "feat: update MockMapRepository with GPS generator, MockLivestockR
 **Files:**
 - Modify: `lib/features/map/data/live_map_repository.dart`
 
-- [ ] **Step 1: Fix LiveMapRepository hardcoded references**
+- [x] **Step 1: Fix LiveMapRepository hardcoded references**
 
 In `lib/features/map/data/live_map_repository.dart`, replace the hardcoded `DemoSeed.livestockLocations` and `DemoSeed.trajectoryPoints` with ApiCache-derived data. Change lines 69-72:
 
@@ -1872,12 +1876,12 @@ Also remove the unused `DemoSeed` import if no other references remain. Keep `Ap
 
 **Note:** Check `ApiCache` class to verify that `cache.get('trajectoryPoints')` is the correct accessor. If `ApiCache` doesn't have a generic `get` method, adapt to available methods. The key goal is to stop using `DemoSeed.livestockLocations` and `DemoSeed.trajectoryPoints` in the live repository.
 
-- [ ] **Step 2: Run static analysis**
+- [x] **Step 2: Run static analysis**
 
 Run: `flutter analyze`
 Expected: No errors
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/features/map/data/live_map_repository.dart
@@ -1893,7 +1897,7 @@ git commit -m "fix: remove hardcoded DemoSeed references from LiveMapRepository"
 - Modify: `backend/data/twin_seed.js`
 - Modify: `backend/routes/map.js`
 
-- [ ] **Step 1: Update backend seed.js**
+- [x] **Step 1: Update backend seed.js**
 
 Replace `backend/data/seed.js` with expanded data. Use JavaScript generation for bulk data:
 
@@ -2007,7 +2011,7 @@ const tenants = [
 module.exports = { users, dashboardMetrics, animals, fences, alerts, tenants };
 ```
 
-- [ ] **Step 2: Update backend twin_seed.js**
+- [x] **Step 2: Update backend twin_seed.js**
 
 Replace `backend/data/twin_seed.js`:
 
@@ -2101,7 +2105,7 @@ const epidemicContacts = [
 module.exports = { overview, feverListItems, digestiveListItems, estrusListItems, epidemicSummary, epidemicContacts };
 ```
 
-- [ ] **Step 3: Update map route with range filter**
+- [x] **Step 3: Update map route with range filter**
 
 In `backend/routes/map.js`, the route already accepts `range` query param and validates it. Add trajectory filtering logic. Replace the file:
 
@@ -2165,12 +2169,12 @@ function generateTrajectory(animal, start, end) {
 module.exports = router;
 ```
 
-- [ ] **Step 4: Test backend starts correctly**
+- [x] **Step 4: Test backend starts correctly**
 
 Run: `cd Mobile/backend && node -e "require('./data/seed'); require('./data/twin_seed'); console.log('OK')"`
 Expected: `OK`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/data/seed.js backend/data/twin_seed.js backend/routes/map.js
@@ -2185,7 +2189,7 @@ git commit -m "feat: sync backend seed data to 50 cattle/100 devices/18 alerts, 
 - Modify: `test/mock_repository_state_test.dart`
 - Modify: `test/flow_smoke_test.dart`
 
-- [ ] **Step 1: Fix mock_repository_state_test.dart**
+- [x] **Step 1: Fix mock_repository_state_test.dart**
 
 In `test/mock_repository_state_test.dart`, update earTag references:
 
@@ -2210,7 +2214,7 @@ The map test block should become:
   });
 ```
 
-- [ ] **Step 2: Fix flow_smoke_test.dart**
+- [x] **Step 2: Fix flow_smoke_test.dart**
 
 In `test/flow_smoke_test.dart`, update the map flow test:
 
@@ -2245,7 +2249,7 @@ The map flow test should become:
   });
 ```
 
-- [ ] **Step 3: Run all tests**
+- [x] **Step 3: Run all tests**
 
 Run: `flutter test`
 Expected: All tests PASS
@@ -2255,12 +2259,12 @@ If any test fails, investigate the specific failure. Common issues:
 - Dashboard widget key changes — if tests look for `dashboard-metric-alert-pending` or `dashboard-metric-health-watch`, update to new keys
 - `DemoSeed.livestockDetail` usage outside of `MockLivestockRepository` — check compile errors
 
-- [ ] **Step 4: Run static analysis**
+- [x] **Step 4: Run static analysis**
 
 Run: `flutter analyze`
 Expected: No errors
 
-- [ ] **Step 5: Verify data consistency between Dart and JS seeds**
+- [x] **Step 5: Verify data consistency between Dart and JS seeds**
 
 Manual checklist:
 1. ✅ Both have 50 animals with earTag `SL-2024-001` to `SL-2024-050`
@@ -2270,14 +2274,14 @@ Manual checklist:
 5. ✅ TwinSeed: 30 fever baselines, 30 digestive items, 3 estrus items (0012, 0024, 0028)
 6. ✅ Pending tasks reference new IDs: 0048, 0049, 0012
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add test/mock_repository_state_test.dart test/flow_smoke_test.dart
 git commit -m "fix: update tests for new earTag format SL-2024-NNN"
 ```
 
-- [ ] **Step 7: Final full test run**
+- [x] **Step 7: Final full test run**
 
 Run: `flutter test && flutter analyze`
 Expected: All tests pass, no analysis errors.
