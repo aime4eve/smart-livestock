@@ -350,14 +350,14 @@ Live 模式下，Mock Server 返回种子数据（确定性），Flutter 端 Liv
 已在 GitHub 拆分为独立 Issue，并在仓库内维护执行计划：
 
 - **Issue 列表与执行计划**: [plans/2026-04-09-demo-data-followups.md](../plans/2026-04-09-demo-data-followups.md)
-- **P0** — [#2](https://github.com/aime4eve/smart-livestock/issues/2) GPS 轨迹缓存键纳入时间区间
+- **P0** — ~~[#2](https://github.com/aime4eve/smart-livestock/issues/2) GPS 轨迹缓存键~~ **已完成**（PR [#9](https://github.com/aime4eve/smart-livestock/pull/9)）
 - **P1** — [#3](https://github.com/aime4eve/smart-livestock/issues/3) 孪生体温/蠕动图表降采样；[#4](https://github.com/aime4eve/smart-livestock/issues/4) GPS 行为逼真度（可选）
 - **P2** — [#5](https://github.com/aime4eve/smart-livestock/issues/5) Live 孪生时序对齐；[#6](https://github.com/aime4eve/smart-livestock/issues/6) 后端设备种子；[#7](https://github.com/aime4eve/smart-livestock/issues/7) 孪生概览「当前牧区」UI
 - **P3** — [#8](https://github.com/aime4eve/smart-livestock/issues/8) `TimeSeriesGenerator` 抽象（可选）
 
 （以下为原始条目备忘，与 Issue 一一对应。）
 
-1. **P0 — GPS 轨迹缓存键**：将 `GpsTrajectoryGenerator` 的缓存纳入 `start`/`end`（或与 `TrajectoryRange` 等价的键），保证同一牛只切换 24h/7d/30d 时轨迹与时间范围一致。→ **#2**
+1. **P0 — GPS 轨迹缓存键**：~~同上~~ → **#2** ✅（PR [#9](https://github.com/aime4eve/smart-livestock/pull/9)）
 2. **P1 — 图表降采样**：在孪生体温/蠕动图表数据绑定前，对长序列做按小时均值或固定上限点数抽样，与设计文档「性能考虑」对齐；真机验证后再定阈值。→ **#3**
 3. **P1 — GPS 行为逼真度（可选）**：按设计补充锚点、休息区 `fence_rest`、接近边界采样等，仅影响 Mock 演示路径。→ **#4**
 4. **P2 — Live 孪生时序对齐**：若产品要求 Live 与 Mock 曲线一致，扩展 `twin_seed.js` 与 twin 相关 API，或约定「Live 为简化曲线」并在 UI 提示。→ **#5**
