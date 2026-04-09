@@ -28,7 +28,13 @@ class MotilityChart extends StatelessWidget {
         .toList();
     final minX = spots.first.x;
     final maxX = spots.last.x;
-    final maxY = baseline * 1.5;
+    var maxSpotY = spots.first.y;
+    for (final s in spots) {
+      if (s.y > maxSpotY) maxSpotY = s.y;
+    }
+    final maxY = maxSpotY > baseline * 1.5
+        ? maxSpotY * 1.12
+        : baseline * 1.5;
     return SizedBox(
       height: 200,
       child: LineChart(

@@ -152,7 +152,7 @@ class TwinSeed {
     final result = <DigestiveHealth>[];
     for (var i = 1; i <= 30; i++) {
       final id = i.toString().padLeft(4, '0');
-      final baseMot = 1.3 + (i % 5) * 0.05;
+      final baseMot = 1.12 + (i % 5) * 0.07;
 
       String status;
       String advice;

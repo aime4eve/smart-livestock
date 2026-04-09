@@ -32,27 +32,32 @@ class MotilityGenerator {
     final rng = Random(seed + livestockId.hashCode);
     final records = <MotilityRecord>[];
 
-    final healthFactor = switch (healthLevel) {
-      'critical' => 0.3,
-      'warning' => 0.55,
-      _ => 1.0,
-    };
-
     var t = start;
     while (t.isBefore(end)) {
       final hour = t.hour;
 
-      double baseFreq;
-      if ((hour >= 6 && hour < 8) || (hour >= 17 && hour < 19)) {
-        baseFreq = 3.0 + rng.nextDouble() * 2.0;
-      } else if ((hour >= 9 && hour < 12) || (hour >= 20 && hour < 23)) {
-        baseFreq = 1.0 + rng.nextDouble() * 1.0;
+      double baseRpm;
+      if ((hour >= 6 && hour < 10) || (hour >= 16 && hour < 20)) {
+        baseRpm = 1.1 + rng.nextDouble() * 0.45;
+      } else if (hour >= 23 || hour < 5) {
+        baseRpm = 0.72 + rng.nextDouble() * 0.32;
       } else {
-        baseFreq = 0.3 + rng.nextDouble() * 0.5;
+        baseRpm = 0.92 + rng.nextDouble() * 0.42;
       }
 
-      final freq = baseFreq * healthFactor;
-      final intensity = freq > 0.1 ? 0.5 + rng.nextDouble() * 0.4 : 0.0;
+      var freq = baseRpm + (rng.nextDouble() - 0.5) * 0.14;
+      if (healthLevel == 'critical') {
+        freq *= 0.06 + rng.nextDouble() * 0.14;
+        if (rng.nextDouble() < 0.38) {
+          freq = 0;
+        }
+      } else if (healthLevel == 'warning') {
+        freq *= 0.38 + rng.nextDouble() * 0.22;
+      }
+      freq = freq.clamp(0.0, 2.2);
+
+      final intensity =
+          freq > 0.12 ? 0.45 + rng.nextDouble() * 0.45 : 0.0;
 
       records.add(MotilityRecord(
         livestockId: livestockId,
