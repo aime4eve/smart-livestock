@@ -10,7 +10,7 @@
 
 ## 如何完成 Issue 并与本文件同步
 
-1. **认领**: 在对应 Issue 下留言或 assign 自己；按上文「执行顺序建议」优先 **#2**。
+1. **认领**: 在对应 Issue 下留言或 assign 自己；按上文「执行顺序建议」下一项优先 **#3**（#2 已完成）。
 2. **分支**: 从 `master` 拉分支，命名示例 `fix/2-gps-trajectory-cache`、`feat/3-chart-downsample`（含 issue 编号便于追溯）。
 3. **开发**: 仅改 `Mobile/`（遵守 `AGENTS.md`）；完成后本地 `flutter analyze`、`flutter test`（及相关目录命令）。
 4. **PR**: 标题写清意图；正文用 **`Closes #2`**（或 `Fixes #2`）关联 Issue，合并进默认分支后 **GitHub 会自动关闭** 该 Issue。
@@ -39,17 +39,17 @@
 
 | 完成日期 | Issue | PR | 备注 |
 |----------|-------|-----|------|
-|  |  |  | 例：合并后填 `https://github.com/aime4eve/smart-livestock/pull/N` |
+| 2026-04-09 | [#2](https://github.com/aime4eve/smart-livestock/issues/2) | [#9](https://github.com/aime4eve/smart-livestock/pull/9) | 缓存键含 earTag、围栏指纹、start/end；`generator_test` 覆盖 24h vs 7d |
 
 ---
 
-## #2 — P0：GPS 轨迹缓存键
+## #2 — P0：GPS 轨迹缓存键（已完成）
 
 **目标**: `GpsTrajectoryGenerator` 缓存键包含时间范围（或等价于 `TrajectoryRange`），避免换区间仍命中旧缓存。
 
-**主要涉及**: `Mobile/mobile_app/lib/core/data/generators/gps_trajectory_generator.dart`、`mock_map_repository.dart`（调用方式若需调整）
+**主要涉及**: `Mobile/mobile_app/lib/core/data/generators/gps_trajectory_generator.dart`（`mock_map_repository` 无需改调用签名）
 
-**验收**: 见 Issue #2；`flutter analyze`、`flutter test` 通过。
+**验收**: Issue #2 已关闭；实现见 PR [#9](https://github.com/aime4eve/smart-livestock/pull/9)；`flutter analyze`、`flutter test` 通过。
 
 ---
 

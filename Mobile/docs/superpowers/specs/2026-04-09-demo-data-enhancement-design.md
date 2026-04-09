@@ -330,7 +330,7 @@ Live 模式下，Mock Server 返回种子数据（确定性），Flutter 端 Liv
 |------|----------|----------|
 | 通用接口 | `TimeSeriesGenerator<T>` 抽象类 | 各生成器独立实现，未抽公共抽象 |
 | GPS 行为 | 锚点、行为时间表、饮水/休息区、越界异常注入 | 围栏包围盒内随机游走 + 昼夜步长差异；无锚点与显式越界注入 |
-| GPS 缓存 | 按牛只缓存轨迹 | `GpsTrajectoryGenerator` 仅按 `earTag` 缓存；**未纳入时间区间**，切换 24h/7d/30d 时可能与预期不符，需后续修正缓存键或策略 |
+| GPS 缓存 | 按牛只缓存轨迹 | ~~已修复~~：`GpsTrajectoryGenerator` 缓存键含 **围栏指纹 + start/end**（PR [#9](https://github.com/aime4eve/smart-livestock/pull/9) / Issue [#2](https://github.com/aime4eve/smart-livestock/issues/2)） |
 | 孪生概览 | 企业级汇总 + 「当前牧区」标注 | 数据层未强制；**UI 标注未做**（见「不在范围内」） |
 
 ---
