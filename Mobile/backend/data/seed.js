@@ -1,7 +1,3 @@
-/**
- * Mock seed data — aligned with mobile_app/lib/core/data/demo_seed.dart
- */
-
 const users = {
   owner: {
     userId: 'u_001',
@@ -49,177 +45,138 @@ const users = {
     name: '运维管理员',
     role: 'ops',
     mobile: '13800000002',
-    permissions: [
-      'tenant:view',
-      'tenant:create',
-      'tenant:toggle',
-      'license:manage',
-    ],
+    permissions: ['tenant:view', 'tenant:create', 'tenant:toggle', 'license:manage'],
   },
 };
 
 const dashboardMetrics = [
-  { key: 'animal_total', title: '牲畜总数', value: '128' },
-  { key: 'device_online', title: '在线设备', value: '96' },
-  { key: 'alert_pending', title: '未处理告警', value: '7' },
-  { key: 'health_watch', title: '健康关注', value: '12' },
+  { key: 'animal_total', title: '牲畜总数', value: '50' },
+  { key: 'device_online', title: '在线设备', value: '85' },
+  { key: 'alert_today', title: '今日告警', value: '8' },
+  { key: 'health_rate', title: '健康率', value: '92%' },
 ];
 
-const animals = [
-  { id: 'animal_001', earTag: '耳标-001', lat: 28.2282, lng: 112.9385 },
-  { id: 'animal_002', earTag: '耳标-002', lat: 28.2302, lng: 112.9375 },
-  { id: 'animal_003', earTag: '耳标-003', lat: 28.2260, lng: 112.9410 },
-];
+function generateAnimals() {
+  const breeds = ['西门塔尔牛', '安格斯牛', '利木赞牛'];
+  const breedCounts = [20, 15, 15];
+  let breedIdx = 0;
+  const breedRemaining = [...breedCounts];
 
-const trajectoryPoints = [
-  { lat: 28.2280, lng: 112.9380, ts: '2026-03-30T08:00:00' },
-  { lat: 28.2288, lng: 112.9385, ts: '2026-03-30T08:15:00' },
-  { lat: 28.2295, lng: 112.9390, ts: '2026-03-30T08:30:00' },
-  { lat: 28.2300, lng: 112.9398, ts: '2026-03-30T08:45:00' },
-  { lat: 28.2305, lng: 112.9405, ts: '2026-03-30T09:00:00' },
-  { lat: 28.2298, lng: 112.9410, ts: '2026-03-30T09:15:00' },
-  { lat: 28.2290, lng: 112.9400, ts: '2026-03-30T09:30:00' },
-  { lat: 28.2285, lng: 112.9392, ts: '2026-03-30T09:45:00' },
-  { lat: 28.2282, lng: 112.9385, ts: '2026-03-30T10:00:00' },
-  { lat: 28.2288, lng: 112.9378, ts: '2026-03-30T10:15:00' },
-  { lat: 28.2295, lng: 112.9370, ts: '2026-03-30T10:30:00' },
-  { lat: 28.2302, lng: 112.9375, ts: '2026-03-30T10:45:00' },
-];
+  const fenceConfigs = [
+    { id: 'fence_pasture_a', count: 25, latMin: 28.2305, latMax: 28.2340, lngMin: 112.9400, lngMax: 112.9440 },
+    { id: 'fence_pasture_b', count: 18, latMin: 28.2240, latMax: 28.2275, lngMin: 112.9320, lngMax: 112.9360 },
+    { id: 'fence_rest', count: 4, latMin: 28.2280, latMax: 28.2295, lngMin: 112.9380, lngMax: 112.9400 },
+    { id: 'fence_quarantine', count: 3, latMin: 28.2248, latMax: 28.2255, lngMin: 112.9400, lngMax: 112.9410 },
+  ];
 
-const alerts = [
-  {
-    id: 'alert_001',
-    title: '越界 · 耳标-001',
-    occurredAt: '2026-03-26T10:12:00+08:00',
-    stage: 'pending',
-    level: 'warning',
-  },
-  {
-    id: 'alert_002',
-    title: '电池低电 · 耳标-002',
-    occurredAt: '2026-03-26T11:30:00+08:00',
-    stage: 'pending',
-    level: 'critical',
-  },
-  {
-    id: 'alert_003',
-    title: '信号丢失 · 耳标-003',
-    occurredAt: '2026-03-25T09:00:00+08:00',
-    stage: 'acknowledged',
-    level: 'info',
-  },
-  {
-    id: 'alert_004',
-    title: '越界 · 耳标-002',
-    occurredAt: '2026-03-24T14:20:00+08:00',
-    stage: 'handled',
-    level: 'warning',
-  },
-  {
-    id: 'alert_005',
-    title: '越界 · 耳标-001',
-    occurredAt: '2026-03-23T08:45:00+08:00',
-    stage: 'archived',
-    level: 'warning',
-  },
-  {
-    id: 'alert_006',
-    title: '电池低电 · 耳标-001',
-    occurredAt: '2026-03-22T16:00:00+08:00',
-    stage: 'pending',
-    level: 'critical',
-  },
-  {
-    id: 'alert_007',
-    title: '信号丢失 · 耳标-002',
-    occurredAt: '2026-03-22T10:30:00+08:00',
-    stage: 'pending',
-    level: 'info',
-  },
-  {
-    id: 'alert_twin_001',
-    type: 'fever_warning',
-    title: '牛#3872 温度异常 — 当前39.8°C，基线38.6°C',
-    occurredAt: '2026-04-07T10:30:00+08:00',
-    stage: 'pending',
-    level: 'critical',
-  },
-  {
-    id: 'alert_twin_002',
-    type: 'motility_stop',
-    title: '牛#1205 蠕动停止',
-    occurredAt: '2026-04-07T10:22:00+08:00',
-    stage: 'pending',
-    level: 'critical',
-  },
-  {
-    id: 'alert_twin_003',
-    type: 'estrus_high',
-    title: '牛#2158 发情指数 92',
-    occurredAt: '2026-04-07T09:58:00+08:00',
-    stage: 'pending',
-    level: 'warning',
-  },
-  {
-    id: 'alert_twin_004',
-    type: 'herd_abnormal',
-    title: 'A区群体体温偏高',
-    occurredAt: '2026-04-07T08:00:00+08:00',
-    stage: 'pending',
-    level: 'warning',
-  },
-];
+  const result = [];
+  let seed = 42;
+  function seededRandom() {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+  }
+
+  for (const fc of fenceConfigs) {
+    for (let i = 0; i < fc.count; i++) {
+      const n = result.length + 1;
+      while (breedRemaining[breedIdx] <= 0) breedIdx++;
+      breedRemaining[breedIdx]--;
+      const nn = n.toString().padStart(3, '0');
+      result.push({
+        id: `animal_${nn}`,
+        earTag: `SL-2024-${nn}`,
+        livestockId: n.toString().padStart(4, '0'),
+        breed: breeds[breedIdx],
+        fenceId: fc.id,
+        lat: +(fc.latMin + seededRandom() * (fc.latMax - fc.latMin)).toFixed(4),
+        lng: +(fc.lngMin + seededRandom() * (fc.lngMax - fc.lngMin)).toFixed(4),
+      });
+    }
+  }
+  return result;
+}
+
+const animals = generateAnimals();
 
 const fences = [
   {
-    id: 'fence_001',
-    name: '北区围栏',
+    id: 'fence_pasture_a',
+    name: '放牧A区',
     type: 'polygon',
     status: 'active',
     alarmEnabled: true,
     coordinates: [
-      [112.9360, 28.2310],
-      [112.9430, 28.2310],
-      [112.9430, 28.2260],
-      [112.9360, 28.2260],
+      [112.94, 28.234],
+      [112.944, 28.234],
+      [112.944, 28.2305],
+      [112.94, 28.2305],
     ],
   },
   {
-    id: 'fence_002',
-    name: '河谷育肥区',
-    type: 'circle',
+    id: 'fence_pasture_b',
+    name: '放牧B区',
+    type: 'polygon',
+    status: 'active',
+    alarmEnabled: true,
+    coordinates: [
+      [112.932, 28.2275],
+      [112.936, 28.2275],
+      [112.936, 28.224],
+      [112.932, 28.224],
+    ],
+  },
+  {
+    id: 'fence_rest',
+    name: '夜间休息区',
+    type: 'polygon',
     status: 'active',
     alarmEnabled: false,
     coordinates: [
-      [112.9320, 28.2330],
-      [112.9350, 28.2350],
+      [112.938, 28.2295],
+      [112.94, 28.2295],
+      [112.94, 28.228],
+      [112.938, 28.228],
+    ],
+  },
+  {
+    id: 'fence_quarantine',
+    name: '隔离区',
+    type: 'polygon',
+    status: 'active',
+    alarmEnabled: true,
+    coordinates: [
+      [112.94, 28.2255],
+      [112.941, 28.2255],
+      [112.941, 28.2248],
+      [112.94, 28.2248],
     ],
   },
 ];
 
-const tenants = [
-  {
-    id: 'tenant_001',
-    name: '华东示范牧场',
-    status: 'active',
-    licenseUsed: 428,
-    licenseTotal: 500,
-  },
-  {
-    id: 'tenant_002',
-    name: '西部高原牧场',
-    status: 'active',
-    licenseUsed: 120,
-    licenseTotal: 200,
-  },
+const alerts = [
+  { id: 'alert-001', type: 'geofence', title: '越界 · SL-2024-003', occurredAt: '2026-04-08T14:23:00+08:00', stage: 'pending', level: 'critical', earTag: 'SL-2024-003', priority: 'P0' },
+  { id: 'alert-002', type: 'fever', title: '体温异常 · SL-2024-048', occurredAt: '2026-04-08T11:05:00+08:00', stage: 'acknowledged', level: 'critical', earTag: 'SL-2024-048', priority: 'P0' },
+  { id: 'alert-003', type: 'geofence', title: '越界 · SL-2024-017', occurredAt: '2026-04-07T16:30:00+08:00', stage: 'handled', level: 'critical', earTag: 'SL-2024-017', priority: 'P0' },
+  { id: 'alert-004', type: 'fever', title: '体温异常 · SL-2024-049', occurredAt: '2026-04-07T09:15:00+08:00', stage: 'handled', level: 'critical', earTag: 'SL-2024-049', priority: 'P0' },
+  { id: 'alert-005', type: 'offline', title: '设备离线 · SL-2024-043', occurredAt: '2026-04-08T13:40:00+08:00', stage: 'pending', level: 'warning', earTag: 'SL-2024-043', priority: 'P1' },
+  { id: 'alert-006', type: 'lowbattery', title: '低电量 · SL-2024-045', occurredAt: '2026-04-08T12:20:00+08:00', stage: 'pending', level: 'warning', earTag: 'SL-2024-045', priority: 'P1' },
+  { id: 'alert-007', type: 'offline', title: '设备离线 · SL-2024-044', occurredAt: '2026-04-08T08:50:00+08:00', stage: 'acknowledged', level: 'warning', earTag: 'SL-2024-044', priority: 'P1' },
+  { id: 'alert-008', type: 'lowbattery', title: '低电量 · SL-2024-046', occurredAt: '2026-04-07T15:10:00+08:00', stage: 'handled', level: 'warning', earTag: 'SL-2024-046', priority: 'P1' },
+  { id: 'alert-009', type: 'offline', title: '设备离线 · SL-2024-042', occurredAt: '2026-04-07T10:25:00+08:00', stage: 'handled', level: 'warning', earTag: 'SL-2024-042', priority: 'P1' },
+  { id: 'alert-010', type: 'behavior', title: '行为异常 · SL-2024-047', occurredAt: '2026-04-08T09:30:00+08:00', stage: 'pending', level: 'info', earTag: 'SL-2024-047', priority: 'P2' },
+  { id: 'alert-011', type: 'geofence', title: '围栏接近 · SL-2024-012', occurredAt: '2026-04-07T14:50:00+08:00', stage: 'handled', level: 'info', earTag: 'SL-2024-012', priority: 'P2' },
+  { id: 'alert-012', type: 'behavior', title: '行为异常 · SL-2024-050', occurredAt: '2026-04-07T11:35:00+08:00', stage: 'handled', level: 'info', earTag: 'SL-2024-050', priority: 'P2' },
+  { id: 'alert-013', type: 'geofence', title: '围栏接近 · SL-2024-008', occurredAt: '2026-04-06T16:45:00+08:00', stage: 'handled', level: 'info', earTag: 'SL-2024-008', priority: 'P2' },
+  { id: 'alert-014', type: 'behavior', title: '行为异常 · SL-2024-030', occurredAt: '2026-04-06T10:00:00+08:00', stage: 'archived', level: 'info', earTag: 'SL-2024-030', priority: 'P2' },
+  { id: 'alert-015', type: 'geofence', title: '越界 · SL-2024-005', occurredAt: '2026-04-05T09:10:00+08:00', stage: 'archived', level: 'critical', earTag: 'SL-2024-005', priority: 'P0' },
+  { id: 'alert-016', type: 'offline', title: '设备离线 · SL-2024-041', occurredAt: '2026-04-04T14:30:00+08:00', stage: 'archived', level: 'warning', earTag: 'SL-2024-041', priority: 'P1' },
+  { id: 'alert-017', type: 'lowbattery', title: '低电量 · SL-2024-047', occurredAt: '2026-04-03T11:20:00+08:00', stage: 'archived', level: 'warning', earTag: 'SL-2024-047', priority: 'P1' },
+  { id: 'alert-018', type: 'fever', title: '体温异常 · SL-2024-050', occurredAt: '2026-04-02T08:00:00+08:00', stage: 'archived', level: 'critical', earTag: 'SL-2024-050', priority: 'P0' },
 ];
 
-module.exports = {
-  users,
-  dashboardMetrics,
-  animals,
-  trajectoryPoints,
-  alerts,
-  fences,
-  tenants,
-};
+const tenants = [
+  { id: 'tenant_001', name: '华东示范牧场', status: 'active', licenseUsed: 50, licenseTotal: 200 },
+  { id: 'tenant_002', name: '西部高原牧场', status: 'active', licenseUsed: 120, licenseTotal: 200 },
+];
+
+module.exports = { users, dashboardMetrics, animals, fences, alerts, tenants };
