@@ -1,17 +1,20 @@
-# smart_livestock_demo
+# smart_livestock_demo（Flutter）
 
-A new Flutter project.
+智慧畜牧 **Mobile** 端应用。仓库总览与 Mock Server 说明见仓库根目录 [`README.md`](../../README.md)。
 
-## Getting Started
+## 技术栈
 
-This project is a starting point for a Flutter application.
+- Flutter · `flutter_riverpod` · `go_router` · `flutter_map` · `fl_chart`
+- 运行模式：`APP_MODE=mock`（默认，本地 `DemoSeed`）或 `APP_MODE=live`（HTTP 访问 Mock API，需先启动 `Mobile/backend`）
 
-A few resources to get you started if this is your first Flutter project:
+## 常用命令
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```bash
+flutter pub get
+flutter analyze
+flutter test
+flutter run
+flutter run --dart-define=APP_MODE=live
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+详细目录结构、测试约定与主题规范见 [`../AGENTS.md`](../AGENTS.md)。
