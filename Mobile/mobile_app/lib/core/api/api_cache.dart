@@ -16,6 +16,7 @@ class ApiCache {
 
   List<Map<String, dynamic>> _dashboardMetrics = [];
   List<Map<String, dynamic>> _animals = [];
+  List<Map<String, dynamic>> _mapTrajectoryPoints = [];
   List<Map<String, dynamic>> _alerts = [];
   List<Map<String, dynamic>> _fences = [];
   List<Map<String, dynamic>> _tenants = [];
@@ -30,6 +31,7 @@ class ApiCache {
 
   List<Map<String, dynamic>> get dashboardMetrics => _dashboardMetrics;
   List<Map<String, dynamic>> get animals => _animals;
+  List<Map<String, dynamic>> get mapTrajectoryPoints => _mapTrajectoryPoints;
   List<Map<String, dynamic>> get alerts => _alerts;
   List<Map<String, dynamic>> get fences => _fences;
   List<Map<String, dynamic>> get tenants => _tenants;
@@ -75,6 +77,8 @@ class ApiCache {
       if (mapData != null) {
         _animals =
             List<Map<String, dynamic>>.from(mapData['animals'] ?? []);
+        _mapTrajectoryPoints =
+            List<Map<String, dynamic>>.from(mapData['points'] ?? []);
       }
 
       final alertsData = results[2];

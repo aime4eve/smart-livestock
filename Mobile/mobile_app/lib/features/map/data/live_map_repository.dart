@@ -68,8 +68,8 @@ class LiveMapRepository implements MapRepository {
       fallbackItems: fallbackItems,
       mapCenter: DemoSeed.mapCenter,
       zoom: DemoSeed.defaultZoom,
-      livestockLocations: DemoSeed.livestockLocations,
-      trajectoryPoints: DemoSeed.trajectoryPoints,
+      livestockLocations: _parseLocations(cache.animals),
+      trajectoryPoints: _parseTrajectory(cache),
       fences: fences,
       message: switch (viewState) {
         ViewState.loading => '加载中',
@@ -80,5 +80,29 @@ class LiveMapRepository implements MapRepository {
         ViewState.normal => null,
       },
     );
+  }
+
+  static List<GeoPoint> _parseLocations(List<Map<String, dynamic>> animals) {
+    return animals
+        .map(
+          (a) => GeoPoint(
+            lat: (a['lat'] as num?)?.toDouble() ?? 0,
+            lng: (a['lng'] as num?)?.toDouble() ?? 0,
+            timestamp: a['timestamp'] as String? ?? '',
+          ),
+        )
+        .toList();
+  }
+
+  static List<GeoPoint> _parseTrajectory(ApiCache cache) {
+    return cache.mapTrajectoryPoints
+        .map(
+          (p) => GeoPoint(
+            lat: (p['lat'] as num?)?.toDouble() ?? 0,
+            lng: (p['lng'] as num?)?.toDouble() ?? 0,
+            timestamp: p['ts'] as String? ?? p['timestamp'] as String? ?? '',
+          ),
+        )
+        .toList();
   }
 }
