@@ -1,6 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_livestock_demo/core/data/demo_seed.dart';
 import 'package:smart_livestock_demo/core/models/demo_models.dart';
+import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/core/models/view_state.dart';
+import 'package:smart_livestock_demo/features/alerts/data/mock_alerts_repository.dart';
+import 'package:smart_livestock_demo/features/alerts/domain/alerts_repository.dart';
 
 void main() {
   test('LivestockInfo can be constructed with all fields', () {
@@ -128,5 +132,28 @@ void main() {
 
   test('getLivestockDetail returns null for unknown earTag', () {
     expect(DemoSeed.getLivestockDetail('UNKNOWN'), isNull);
+  });
+
+  test('MockAlertsRepository returns alert items list', () {
+    const repo = MockAlertsRepository();
+    final data = repo.load(
+      viewState: ViewState.normal,
+      role: DemoRole.owner,
+      stage: AlertStage.pending,
+    );
+    expect(data.items, isNotEmpty);
+    expect(data.items.first.earTag, startsWith('SL-2024-'));
+  });
+
+  test('AlertsViewData filters by stage', () {
+    const repo = MockAlertsRepository();
+    final pending = repo.load(
+      viewState: ViewState.normal,
+      role: DemoRole.owner,
+      stage: AlertStage.pending,
+    );
+    for (final item in pending.items) {
+      expect(item.stage, 'pending');
+    }
   });
 }

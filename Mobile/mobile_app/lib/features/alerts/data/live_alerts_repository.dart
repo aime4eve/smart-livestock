@@ -1,4 +1,5 @@
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
+import 'package:smart_livestock_demo/core/models/demo_models.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/features/alerts/data/mock_alerts_repository.dart';
@@ -8,6 +9,39 @@ class LiveAlertsRepository implements AlertsRepository {
   const LiveAlertsRepository();
 
   static const MockAlertsRepository _fallback = MockAlertsRepository();
+
+  static AlertItem _alertFromMap(Map<String, dynamic> m) {
+    final id = m['id'] as String;
+    final title = m['title'] as String;
+    final ts = m['occurredAt'] as String? ?? '';
+    var subtitle = '';
+    if (ts.length >= 16) {
+      subtitle =
+          ts.replaceFirst(RegExp(r'T'), ' ').substring(0, 16);
+    }
+    final level = m['level'] as String? ?? 'warning';
+    final priority = switch (level) {
+      'critical' => 'P0',
+      'warning' => 'P1',
+      _ => 'P2',
+    };
+    final type = m['type'] as String? ?? 'unknown';
+    final stageStr = m['stage'] as String? ?? 'pending';
+    final earTagFromSl =
+        RegExp(r'SL-2024-\d{3}').firstMatch(title)?.group(0) ?? '';
+    final earTag = earTagFromSl.isNotEmpty
+        ? earTagFromSl
+        : (RegExp(r'耳标-\d+').firstMatch(title)?.group(0) ?? '-');
+    return AlertItem(
+      id: id,
+      title: title,
+      subtitle: subtitle,
+      priority: priority,
+      type: type,
+      stage: stageStr,
+      earTag: earTag,
+    );
+  }
 
   @override
   AlertsViewData load({
@@ -20,21 +54,22 @@ class LiveAlertsRepository implements AlertsRepository {
       return _fallback.load(viewState: viewState, role: role, stage: stage);
     }
 
-    // Filter alerts by stage
     final filtered = cache.alerts
         .where((a) => a['stage'] == stage.name)
         .toList();
     final first = filtered.isNotEmpty ? filtered.first : null;
 
-    // Format timestamp for subtitle
     String subtitle = '';
     if (first != null) {
       final ts = first['occurredAt'] as String;
-      // "2026-03-26T10:12:00+08:00" → "2026-03-26 10:12"
       subtitle = ts
           .replaceFirst(RegExp(r'T'), ' ')
           .substring(0, 16);
     }
+
+    final items = viewState == ViewState.normal
+        ? filtered.map(_alertFromMap).toList()
+        : const <AlertItem>[];
 
     return AlertsViewData(
       viewState: viewState,
@@ -42,6 +77,7 @@ class LiveAlertsRepository implements AlertsRepository {
       stage: stage,
       title: first?['title'] as String? ?? '暂无告警',
       subtitle: subtitle,
+      items: items,
       message: switch (viewState) {
         ViewState.loading => '加载中',
         ViewState.empty => '暂无告警',

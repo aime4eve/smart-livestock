@@ -1,3 +1,4 @@
+import 'package:smart_livestock_demo/core/models/demo_models.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 
@@ -15,6 +16,7 @@ class AlertsViewData {
     required this.stage,
     required this.title,
     required this.subtitle,
+    this.items = const [],
     this.message,
   });
 
@@ -23,6 +25,7 @@ class AlertsViewData {
   final AlertStage stage;
   final String title;
   final String subtitle;
+  final List<AlertItem> items;
   final String? message;
 }
 
