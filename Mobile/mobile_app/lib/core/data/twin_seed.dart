@@ -1,204 +1,50 @@
+import 'package:smart_livestock_demo/core/data/generators/estrus_score_generator.dart';
+import 'package:smart_livestock_demo/core/data/generators/motility_generator.dart';
+import 'package:smart_livestock_demo/core/data/generators/temperature_generator.dart';
 import 'package:smart_livestock_demo/core/models/twin_models.dart';
 
 class TwinSeed {
   const TwinSeed._();
 
-  static DateTime _t(int year, int month, int day, int h, [int m = 0]) =>
-      DateTime.utc(year, month, day, h, m);
+  static final _tempGen = TemperatureGenerator(seed: 42);
+  static final _motilityGen = MotilityGenerator(seed: 42);
+  static final _estrusGen = EstrusScoreGenerator(seed: 42);
 
-  static List<TemperatureRecord> _buildTemps(
-    String id,
-    double baseline,
-    String status,
-  ) {
-    final end = _t(2026, 4, 7, 10, 0);
-    final records = <TemperatureRecord>[];
-    for (var i = 0; i < 48; i++) {
-      final ts = end.subtract(Duration(hours: 47 - i));
-      double temp = baseline + (i % 4) * 0.04;
-      if (status == 'critical' && i > 30) {
-        temp += 0.8 + i * 0.02;
-      } else if (status == 'warning' && i > 35) {
-        temp += 0.45;
-      }
-      records.add(
-        TemperatureRecord(livestockId: id, temperature: temp, timestamp: ts),
-      );
-    }
-    return records;
-  }
+  static final DateTime _start = DateTime.utc(2026, 4, 1);
+  static final DateTime _end = DateTime.utc(2026, 4, 8);
 
-  static List<MotilityRecord> _buildMotility(
-    String id,
-    double baseline,
-    String status,
-  ) {
-    final end = _t(2026, 4, 7, 10, 0);
-    final records = <MotilityRecord>[];
-    for (var i = 0; i < 24; i++) {
-      final ts = end.subtract(Duration(hours: 23 - i));
-      double f = baseline + (i % 3) * 0.05;
-      double inten = 0.75;
-      if (status == 'critical' && i > 18) {
-        f = 0;
-        inten = 0;
-      } else if (status == 'warning') {
-        f *= 0.55;
-      }
-      records.add(
-        MotilityRecord(
-          livestockId: id,
-          frequency: f,
-          intensity: inten,
-          timestamp: ts,
-        ),
-      );
-    }
-    return records;
-  }
+  static final List<TemperatureBaseline> feverBaselines =
+      _buildFeverBaselines();
 
-  static List<EstrusTrendPoint> _trend7d(int base) {
-    return List.generate(7, (i) {
-      final s = base + i * 11;
-      return EstrusTrendPoint(
-        score: s.toDouble(),
-        timestamp: _t(2026, 4, 1 + i, 10, 0),
-      );
-    });
-  }
+  static final List<DigestiveHealth> digestiveItems = _buildDigestiveItems();
 
-  static final List<TemperatureBaseline> feverBaselines = [
-    TemperatureBaseline(
-      livestockId: '3872',
-      baselineTemp: 38.6,
-      threshold: 39.1,
-      recent72h: _buildTemps('3872', 38.6, 'critical'),
-      status: 'critical',
-      conclusion: '温度升高+活动量下降，高概率感染，建议隔离检查',
-    ),
-    TemperatureBaseline(
-      livestockId: '5621',
-      baselineTemp: 38.5,
-      threshold: 39.0,
-      recent72h: _buildTemps('5621', 38.5, 'warning'),
-      status: 'warning',
-      conclusion: '体温轻度升高，建议持续观察饮水与采食',
-    ),
-    TemperatureBaseline(
-      livestockId: '3400',
-      baselineTemp: 38.4,
-      threshold: 38.9,
-      recent72h: _buildTemps('3400', 38.4, 'normal'),
-      status: 'normal',
-      conclusion: '体温稳定，未见异常波动',
-    ),
-    TemperatureBaseline(
-      livestockId: '3401',
-      baselineTemp: 38.5,
-      threshold: 39.0,
-      recent72h: _buildTemps('3401', 38.45, 'normal'),
-      status: 'normal',
-      conclusion: '个体状态良好',
-    ),
-    TemperatureBaseline(
-      livestockId: '3402',
-      baselineTemp: 38.3,
-      threshold: 38.8,
-      recent72h: _buildTemps('3402', 38.35, 'normal'),
-      status: 'normal',
-      conclusion: '未见发热迹象',
-    ),
-  ];
-
-  static final List<DigestiveHealth> digestiveItems = [
-    DigestiveHealth(
-      livestockId: '1205',
-      motilityBaseline: 1.5,
-      status: 'critical',
-      advice: '蠕动完全停止，疑似瘤胃臌气，需立即处理',
-      recent24h: _buildMotility('1205', 1.45, 'critical'),
-    ),
-    DigestiveHealth(
-      livestockId: '3403',
-      motilityBaseline: 1.4,
-      status: 'warning',
-      advice: '蠕动频率下降，建议检查饲粮与饮水',
-      recent24h: _buildMotility('3403', 1.35, 'warning'),
-    ),
-    DigestiveHealth(
-      livestockId: '3404',
-      motilityBaseline: 1.5,
-      status: 'normal',
-      advice: '蠕动节律正常',
-      recent24h: _buildMotility('3404', 1.48, 'normal'),
-    ),
-    DigestiveHealth(
-      livestockId: '3405',
-      motilityBaseline: 1.45,
-      status: 'normal',
-      advice: '消化系统运行稳定',
-      recent24h: _buildMotility('3405', 1.46, 'normal'),
-    ),
-  ];
-
-  static final List<EstrusScore> estrusItems = [
-    EstrusScore(
-      livestockId: '2158',
-      score: 92,
-      stepIncreasePercent: 320,
-      tempDelta: 0.4,
-      distanceDelta: 3.5,
-      timestamp: _t(2026, 4, 7, 9, 58),
-      advice: '步数增加320%，建议6小时内配种',
-      trend7d: _trend7d(12),
-    ),
-    EstrusScore(
-      livestockId: '2160',
-      score: 78,
-      stepIncreasePercent: 180,
-      tempDelta: 0.2,
-      distanceDelta: 2.1,
-      timestamp: _t(2026, 4, 7, 8, 12),
-      advice: '发情信号增强，建议12小时内关注配种窗口',
-      trend7d: _trend7d(20),
-    ),
-    EstrusScore(
-      livestockId: '2162',
-      score: 42,
-      stepIncreasePercent: 40,
-      tempDelta: 0.05,
-      distanceDelta: 0.4,
-      timestamp: _t(2026, 4, 6, 16, 0),
-      advice: '暂未达到配种建议阈值',
-      trend7d: _trend7d(8),
-    ),
-  ];
+  static final List<EstrusScore> estrusItems = _buildEstrusItems();
 
   static final HerdHealthMetrics epidemicMetrics = HerdHealthMetrics(
     avgTemperature: 38.7,
     avgActivity: 72.5,
-    abnormalRate: 0.9,
-    totalLivestock: 3847,
-    abnormalCount: 35,
+    abnormalRate: 6.0,
+    totalLivestock: 50,
+    abnormalCount: 3,
   );
 
   static final List<ContactTrace> epidemicContacts = [
     ContactTrace(
-      fromId: '3872',
-      toId: '3901',
-      lastContact: _t(2026, 4, 7, 8, 30),
+      fromId: '0048',
+      toId: '0049',
+      lastContact: DateTime.utc(2026, 4, 7, 8, 30),
       proximity: 5.2,
     ),
     ContactTrace(
-      fromId: '3901',
-      toId: '3920',
-      lastContact: _t(2026, 4, 7, 7, 10),
+      fromId: '0049',
+      toId: '0050',
+      lastContact: DateTime.utc(2026, 4, 7, 7, 10),
       proximity: 8.1,
     ),
     ContactTrace(
-      fromId: '3872',
-      toId: '3400',
-      lastContact: _t(2026, 4, 6, 18, 0),
+      fromId: '0048',
+      toId: '0001',
+      lastContact: DateTime.utc(2026, 4, 6, 18, 0),
       proximity: 12.0,
     ),
   ];
@@ -218,33 +64,162 @@ class TwinSeed {
       );
 
   static TwinSceneSummary get sceneSummary => TwinSceneSummary(
-        fever: SceneSummaryFever(abnormalCount: 3, criticalCount: 2),
-        digestive: SceneSummaryDigestive(abnormalCount: 1, watchCount: 5),
+        fever: SceneSummaryFever(abnormalCount: 5, criticalCount: 3),
+        digestive: SceneSummaryDigestive(abnormalCount: 2, watchCount: 3),
         estrus: SceneSummaryEstrus(highScoreCount: 2, breedingAdvice: true),
-        epidemic: SceneSummaryEpidemic(status: 'normal', abnormalRate: 0.9),
+        epidemic: SceneSummaryEpidemic(status: 'normal', abnormalRate: 6.0),
       );
 
   static List<TwinPendingTask> get pendingTasks => [
         const TwinPendingTask(
           id: 'pt1',
-          title: '牛#3872 体温紧急',
+          title: '牛#0048 体温紧急',
           subtitle: '较基线升高 1.2°C · 建议立即复核',
-          routePath: '/twin/fever/3872',
+          routePath: '/twin/fever/0048',
           severity: 'critical',
         ),
         const TwinPendingTask(
           id: 'pt2',
-          title: '牛#1205 蠕动停止',
+          title: '牛#0049 蠕动停止',
           subtitle: '消化系统 · 需现场处置',
-          routePath: '/twin/digestive/1205',
+          routePath: '/twin/digestive/0049',
           severity: 'critical',
         ),
         const TwinPendingTask(
           id: 'pt3',
-          title: '牛#2158 发情高分',
+          title: '牛#0012 发情高分',
           subtitle: '评分 92 · 建议6小时内配种',
-          routePath: '/twin/estrus/2158',
+          routePath: '/twin/estrus/0012',
           severity: 'warning',
         ),
       ];
+
+  static List<TemperatureBaseline> _buildFeverBaselines() {
+    final result = <TemperatureBaseline>[];
+    for (var i = 1; i <= 30; i++) {
+      final id = i.toString().padLeft(4, '0');
+      final baseTemp = 38.0 + (i % 6) * 0.25;
+
+      String status;
+      String conclusion;
+      List<AbnormalTempEvent> events;
+
+      if (i >= 28) {
+        status = 'critical';
+        conclusion = '温度升高+活动量下降，高概率感染，建议隔离检查';
+        events = [
+          AbnormalTempEvent(
+            time: DateTime.utc(2026, 4, 5, 10),
+            peakDelta: 1.5,
+            durationHours: 48,
+          ),
+        ];
+      } else if (i >= 26) {
+        status = 'warning';
+        conclusion = '体温轻度升高，建议持续观察饮水与采食';
+        events = [
+          AbnormalTempEvent(
+            time: DateTime.utc(2026, 4, 6, 14),
+            peakDelta: 0.6,
+            durationHours: 24,
+          ),
+        ];
+      } else {
+        status = 'normal';
+        conclusion = '体温稳定，未见异常波动';
+        events = [];
+      }
+
+      result.add(TemperatureBaseline(
+        livestockId: id,
+        baselineTemp: double.parse(baseTemp.toStringAsFixed(1)),
+        threshold: double.parse((baseTemp + 0.5).toStringAsFixed(1)),
+        recent72h: _tempGen.generate(
+          livestockId: id,
+          baselineTemp: baseTemp,
+          start: _start,
+          end: _end,
+          abnormalEvents: events,
+        ),
+        status: status,
+        conclusion: conclusion,
+      ));
+    }
+    return result;
+  }
+
+  static List<DigestiveHealth> _buildDigestiveItems() {
+    final result = <DigestiveHealth>[];
+    for (var i = 1; i <= 30; i++) {
+      final id = i.toString().padLeft(4, '0');
+      final baseMot = 1.3 + (i % 5) * 0.05;
+
+      String status;
+      String advice;
+      String healthLevel;
+
+      if (i >= 29) {
+        status = 'critical';
+        advice = '蠕动完全停止，疑似瘤胃臌气，需立即处理';
+        healthLevel = 'critical';
+      } else if (i >= 26) {
+        status = 'warning';
+        advice = '蠕动频率下降，建议检查饲粮与饮水';
+        healthLevel = 'warning';
+      } else {
+        status = 'normal';
+        advice = '蠕动节律正常';
+        healthLevel = 'normal';
+      }
+
+      result.add(DigestiveHealth(
+        livestockId: id,
+        motilityBaseline: double.parse(baseMot.toStringAsFixed(2)),
+        status: status,
+        advice: advice,
+        recent24h: _motilityGen.generate(
+          livestockId: id,
+          healthLevel: healthLevel,
+          start: _start,
+          end: _end,
+        ),
+      ));
+    }
+    return result;
+  }
+
+  static List<EstrusScore> _buildEstrusItems() {
+    final estrusCows = [
+      (id: '0012', cycleDay: 17),
+      (id: '0024', cycleDay: 18),
+      (id: '0028', cycleDay: 19),
+    ];
+    final result = <EstrusScore>[];
+
+    for (final cow in estrusCows) {
+      final trend = _estrusGen.generate(
+        livestockId: cow.id,
+        inEstrus: true,
+        cycleDay: cow.cycleDay,
+        start: _start,
+        end: _end,
+      );
+      final lastScore = trend.last;
+
+      result.add(EstrusScore(
+        livestockId: cow.id,
+        score: lastScore.score.round(),
+        stepIncreasePercent: 180 + (cow.id.hashCode % 200),
+        tempDelta: 0.2 + (cow.id.hashCode % 3) * 0.1,
+        distanceDelta: 1.5 + (cow.id.hashCode % 30) * 0.1,
+        timestamp: _end.subtract(const Duration(hours: 2)),
+        advice: lastScore.score > 80
+            ? '步数显著增加，建议6小时内配种'
+            : '发情信号增强，建议12小时内关注配种窗口',
+        trend7d: trend,
+      ));
+    }
+
+    return result;
+  }
 }

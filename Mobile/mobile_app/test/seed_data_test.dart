@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_livestock_demo/core/data/demo_seed.dart';
+import 'package:smart_livestock_demo/core/data/twin_seed.dart';
 import 'package:smart_livestock_demo/core/models/demo_models.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
@@ -154,6 +155,39 @@ void main() {
     );
     for (final item in pending.items) {
       expect(item.stage, 'pending');
+    }
+  });
+
+  test('TwinSeed has 30 fever baselines', () {
+    expect(TwinSeed.feverBaselines.length, 30);
+  });
+
+  test('TwinSeed fever baselines use livestockId 0001-0030', () {
+    final ids = TwinSeed.feverBaselines.map((b) => b.livestockId).toSet();
+    for (var i = 1; i <= 30; i++) {
+      expect(ids.contains(i.toString().padLeft(4, '0')), isTrue);
+    }
+  });
+
+  test('TwinSeed has 30 digestive items', () {
+    expect(TwinSeed.digestiveItems.length, 30);
+  });
+
+  test('TwinSeed has 3 estrus items in estrus', () {
+    expect(TwinSeed.estrusItems.length, 3);
+    final ids = TwinSeed.estrusItems.map((e) => e.livestockId).toSet();
+    expect(ids, containsAll(['0012', '0024', '0028']));
+  });
+
+  test('TwinSeed fever baselines have temperature records', () {
+    for (final b in TwinSeed.feverBaselines) {
+      expect(b.recent72h, isNotEmpty);
+    }
+  });
+
+  test('TwinSeed digestive items have motility records', () {
+    for (final d in TwinSeed.digestiveItems) {
+      expect(d.recent24h, isNotEmpty);
     }
   });
 }
