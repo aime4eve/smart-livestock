@@ -44,7 +44,7 @@ void main() {
       }
     });
 
-    test('results are cached per earTag', () {
+    test('results are cached for identical earTag, fence, and range', () {
       final gen = GpsTrajectoryGenerator(seed: 42);
       const fence = [
         LatLng(28.2305, 112.9400),
@@ -63,6 +63,30 @@ void main() {
         end: DateTime.utc(2026, 4, 8),
       );
       expect(identical(a, b), isTrue);
+    });
+
+    test('different time ranges use separate cache entries', () {
+      final gen = GpsTrajectoryGenerator(seed: 42);
+      const fence = [
+        LatLng(28.2305, 112.9400),
+        LatLng(28.2340, 112.9440),
+      ];
+      final end = DateTime.utc(2026, 4, 8, 10);
+      final day24 = gen.generate(
+        earTag: 'SL-2024-001',
+        fenceBoundary: fence,
+        start: end.subtract(const Duration(hours: 24)),
+        end: end,
+      );
+      final week7 = gen.generate(
+        earTag: 'SL-2024-001',
+        fenceBoundary: fence,
+        start: end.subtract(const Duration(days: 7)),
+        end: end,
+      );
+      expect(day24.length, 24);
+      expect(week7.length, 168);
+      expect(identical(day24, week7), isFalse);
     });
   });
 
