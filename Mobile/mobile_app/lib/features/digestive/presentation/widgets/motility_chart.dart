@@ -18,15 +18,18 @@ class MotilityChart extends StatelessWidget {
     if (records.isEmpty) {
       return const SizedBox(height: 200);
     }
-    final spots = records
+    final sorted = List<MotilityRecord>.from(records)
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    final ms0 = sorted.first.timestamp.millisecondsSinceEpoch;
+    final spots = sorted
         .map(
           (r) => FlSpot(
-            r.timestamp.millisecondsSinceEpoch.toDouble(),
+            (r.timestamp.millisecondsSinceEpoch - ms0) / 3600000.0,
             r.frequency,
           ),
         )
         .toList();
-    final minX = spots.first.x;
+    const minX = 0.0;
     final maxX = spots.last.x;
     var maxSpotY = spots.first.y;
     for (final s in spots) {
@@ -47,7 +50,7 @@ class MotilityChart extends StatelessWidget {
             show: true,
             drawVerticalLine: false,
             horizontalInterval: maxY / 4,
-            getDrawingHorizontalLine: (v) => FlLine(
+            getDrawingHorizontalLine: (v) => const FlLine(
               color: AppColors.border,
               strokeWidth: 1,
             ),
@@ -66,7 +69,7 @@ class MotilityChart extends StatelessWidget {
                 reservedSize: 22,
                 interval: (maxX - minX) / 4,
                 getTitlesWidget: (v, _) => Text(
-                  '${(v / 3600000).round()}h',
+                  '${v.round()}h',
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
               ),
@@ -87,7 +90,7 @@ class MotilityChart extends StatelessWidget {
           lineBarsData: [
             LineChartBarData(
               spots: spots,
-              isCurved: true,
+              isCurved: false,
               color: AppColors.accent,
               barWidth: 2,
               belowBarData: BarAreaData(
