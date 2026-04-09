@@ -20,7 +20,7 @@ class TwinSeed {
 
   static final List<EstrusScore> estrusItems = _buildEstrusItems();
 
-  static final HerdHealthMetrics epidemicMetrics = HerdHealthMetrics(
+  static const HerdHealthMetrics epidemicMetrics = HerdHealthMetrics(
     avgTemperature: 38.7,
     avgActivity: 72.5,
     abnormalRate: 6.0,
@@ -49,7 +49,7 @@ class TwinSeed {
     ),
   ];
 
-  static TwinOverviewStats get overviewStats => TwinOverviewStats(
+  static TwinOverviewStats get overviewStats => const TwinOverviewStats(
         totalLivestock: 3847,
         healthyRate: 99.1,
         alertCount: 35,
@@ -63,7 +63,7 @@ class TwinSeed {
         livestockTrend: '+12 本周新增',
       );
 
-  static TwinSceneSummary get sceneSummary => TwinSceneSummary(
+  static TwinSceneSummary get sceneSummary => const TwinSceneSummary(
         fever: SceneSummaryFever(abnormalCount: 5, criticalCount: 3),
         digestive: SceneSummaryDigestive(abnormalCount: 2, watchCount: 3),
         estrus: SceneSummaryEstrus(highScoreCount: 2, breedingAdvice: true),

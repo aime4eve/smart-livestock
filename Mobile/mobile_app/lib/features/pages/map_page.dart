@@ -198,7 +198,7 @@ class _RealMapView extends StatelessWidget {
                     points: data.trajectoryPoints.map((p) => p.toLatLng()).toList(),
                     color: AppColors.accent,
                     strokeWidth: 3.0,
-                    pattern: StrokePattern.dashed(segments: [10, 6]),
+                    pattern: StrokePattern.dashed(segments: const [10, 6]),
                   ),
               ],
             ),

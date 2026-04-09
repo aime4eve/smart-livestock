@@ -54,7 +54,7 @@ class GpsTrajectoryGenerator {
       currentLat += (rng.nextDouble() - 0.5) * step * 2;
       currentLng += (rng.nextDouble() - 0.5) * step * 2;
 
-      final margin = 0.0001;
+      const margin = 0.0001;
       currentLat = currentLat.clamp(minLat + margin, maxLat - margin);
       currentLng = currentLng.clamp(minLng + margin, maxLng - margin);
 

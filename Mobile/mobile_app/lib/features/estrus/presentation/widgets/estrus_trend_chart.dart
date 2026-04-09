@@ -36,7 +36,7 @@ class EstrusTrendChart extends StatelessWidget {
             show: true,
             drawVerticalLine: false,
             horizontalInterval: 25,
-            getDrawingHorizontalLine: (v) => FlLine(
+            getDrawingHorizontalLine: (v) => const FlLine(
               color: AppColors.border,
               strokeWidth: 1,
             ),

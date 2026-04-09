@@ -94,12 +94,9 @@ class EstrusDetailPage extends ConsumerWidget {
                             child: const Text('标记配种'),
                           )
                         else
-                          Tooltip(
+                          const Tooltip(
                             message: '牧工账号仅可查看，配种操作需牧场主处理',
-                            child: FilledButton(
-                              onPressed: null,
-                              child: const Text('标记配种'),
-                            ),
+                            child: _EstrusBreedingDisabledButton(),
                           ),
                       ],
                     ),
@@ -107,6 +104,18 @@ class EstrusDetailPage extends ConsumerWidget {
                 ],
               ),
             ),
+    );
+  }
+}
+
+class _EstrusBreedingDisabledButton extends StatelessWidget {
+  const _EstrusBreedingDisabledButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const FilledButton(
+      onPressed: null,
+      child: Text('标记配种'),
     );
   }
 }
