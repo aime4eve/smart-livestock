@@ -11,6 +11,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 两个子项目各自独立开发，不共享代码或依赖。
 
+## 当前工作重点
+
+**PC/ 目录暂不维护，所有开发工作集中在 Mobile/ 端。** 读取、搜索、修改代码时仅关注 Mobile/ 目录，不要主动分析或修改 PC/ 下的文件。
+
+---
+
+## GitHub 仓库
+
+- **仓库地址**: https://github.com/aime4eve/smart-livestock
+- **默认分支**: `master`
+- **Git 协议**: HTTPS（已配置 gh credential helper，push/pull 免输密码）
+- **GitHub CLI**: `gh` 已安装并认证（账号 `aime4eve`）
+
+### 常用 Git 操作
+
+```bash
+git push origin master        # 推送到远程
+git pull                      # 拉取最新
+gh pr list                    # 查看 Pull Requests
+gh issue list                 # 查看 Issues
+gh pr create                  # 创建 PR
+```
+
 ---
 
 ## PC 端
