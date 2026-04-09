@@ -27,11 +27,11 @@ void main() {
     for (final state in ViewState.values) {
       final data = repository.load(
         viewState: state,
-        selectedAnimal: '耳标-002',
+        selectedAnimal: 'SL-2024-002',
         selectedRange: TrajectoryRange.d7,
       );
       expect(data.viewState, state);
-      expect(data.selectedAnimal, '耳标-002');
+      expect(data.selectedAnimal, 'SL-2024-002');
       expect(data.selectedRange, TrajectoryRange.d7);
     }
   });

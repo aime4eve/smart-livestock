@@ -51,7 +51,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('map-animal-filter')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('耳标-002').last);
+    await tester.tap(find.text('SL-2024-002').last);
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('7d'));
@@ -59,7 +59,7 @@ void main() {
 
     final summary =
         tester.widget<Text>(find.byKey(const Key('map-flow-summary')));
-    expect(summary.data, contains('耳标-002'));
+    expect(summary.data, contains('SL-2024-002'));
     expect(summary.data, contains('7d'));
   });
 

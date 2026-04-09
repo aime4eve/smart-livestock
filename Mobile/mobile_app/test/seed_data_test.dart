@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:smart_livestock_demo/core/data/demo_seed.dart';
 import 'package:smart_livestock_demo/core/models/demo_models.dart';
 
 void main() {
@@ -51,5 +52,81 @@ void main() {
     );
     expect(detail.livestockId, '0001');
     expect(detail.fenceId, 'fence_pasture_a');
+  });
+
+  test('DemoSeed has 50 cattle', () {
+    expect(DemoSeed.livestock.length, 50);
+  });
+
+  test('earTags follow SL-2024-NNN format', () {
+    for (final cow in DemoSeed.livestock) {
+      expect(cow.earTag, matches(RegExp(r'^SL-2024-\d{3}$')));
+    }
+  });
+
+  test('livestockIds follow 4-digit format', () {
+    for (final cow in DemoSeed.livestock) {
+      expect(cow.livestockId, matches(RegExp(r'^\d{4}$')));
+    }
+  });
+
+  test('earTag to livestockId mapping is consistent', () {
+    for (final cow in DemoSeed.livestock) {
+      final n = int.parse(cow.earTag.split('-').last);
+      expect(cow.livestockId, n.toString().padLeft(4, '0'));
+    }
+  });
+
+  test('health distribution: 43 healthy, 4 watch, 3 abnormal', () {
+    final counts = <LivestockHealth, int>{};
+    for (final cow in DemoSeed.livestock) {
+      counts[cow.health] = (counts[cow.health] ?? 0) + 1;
+    }
+    expect(counts[LivestockHealth.healthy], 43);
+    expect(counts[LivestockHealth.watch], 4);
+    expect(counts[LivestockHealth.abnormal], 3);
+  });
+
+  test('DemoSeed has 4 fences', () {
+    expect(DemoSeed.fencePolygons.length, 4);
+  });
+
+  test('DemoSeed has 100 devices', () {
+    expect(DemoSeed.devices.length, 100);
+  });
+
+  test('device type counts: 50 GPS, 30 RC, 20 ACC', () {
+    final counts = <DeviceType, int>{};
+    for (final d in DemoSeed.devices) {
+      counts[d.type] = (counts[d.type] ?? 0) + 1;
+    }
+    expect(counts[DeviceType.gps], 50);
+    expect(counts[DeviceType.rumenCapsule], 30);
+    expect(counts[DeviceType.accelerometer], 20);
+  });
+
+  test('DemoSeed has 18 alerts', () {
+    expect(DemoSeed.alerts.length, 18);
+  });
+
+  test('earTags list is derived from livestock', () {
+    expect(DemoSeed.earTags.length, 50);
+    expect(DemoSeed.earTags.first, 'SL-2024-001');
+  });
+
+  test('livestockLocations list has 50 entries', () {
+    expect(DemoSeed.livestockLocations.length, 50);
+  });
+
+  test('getLivestockDetail returns valid detail', () {
+    final detail = DemoSeed.getLivestockDetail('SL-2024-001');
+    expect(detail, isNotNull);
+    expect(detail!.livestockId, '0001');
+    expect(detail.fenceId, isNotEmpty);
+    expect(detail.devices, isNotEmpty);
+  });
+
+  test('getLivestockDetail returns null for unknown earTag', () {
+    expect(DemoSeed.getLivestockDetail('UNKNOWN'), isNull);
   });
 }

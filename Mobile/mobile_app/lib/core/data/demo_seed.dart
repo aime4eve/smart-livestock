@@ -1,233 +1,326 @@
+import 'dart:math';
+
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/core/models/demo_models.dart';
 
 class DemoSeed {
   const DemoSeed._();
 
-  static const List<String> earTags = ['耳标-001', '耳标-002', '耳标-003'];
-
-  // Mock GPS center: 长沙市 (28.2282, 112.9388)
   static const LatLng mapCenter = LatLng(28.2282, 112.9388);
-  static const double defaultZoom = 13.0;
+  static const double defaultZoom = 14.0;
 
-  // 轨迹点 — 模拟长沙望城区牧场周边
-  static const List<GeoPoint> trajectoryPoints = [
-    GeoPoint(lat: 28.2280, lng: 112.9380, timestamp: '2026-03-30T08:00:00'),
-    GeoPoint(lat: 28.2288, lng: 112.9385, timestamp: '2026-03-30T08:15:00'),
-    GeoPoint(lat: 28.2295, lng: 112.9390, timestamp: '2026-03-30T08:30:00'),
-    GeoPoint(lat: 28.2300, lng: 112.9398, timestamp: '2026-03-30T08:45:00'),
-    GeoPoint(lat: 28.2305, lng: 112.9405, timestamp: '2026-03-30T09:00:00'),
-    GeoPoint(lat: 28.2298, lng: 112.9410, timestamp: '2026-03-30T09:15:00'),
-    GeoPoint(lat: 28.2290, lng: 112.9400, timestamp: '2026-03-30T09:30:00'),
-    GeoPoint(lat: 28.2285, lng: 112.9392, timestamp: '2026-03-30T09:45:00'),
-    GeoPoint(lat: 28.2282, lng: 112.9385, timestamp: '2026-03-30T10:00:00'),
-    GeoPoint(lat: 28.2288, lng: 112.9378, timestamp: '2026-03-30T10:15:00'),
-    GeoPoint(lat: 28.2295, lng: 112.9370, timestamp: '2026-03-30T10:30:00'),
-    GeoPoint(lat: 28.2302, lng: 112.9375, timestamp: '2026-03-30T10:45:00'),
-  ];
+  static const List<GeoPoint> trajectoryPoints = [];
 
-  // 牲畜当前 GPS 位置
-  static const List<GeoPoint> livestockLocations = [
-    GeoPoint(lat: 28.2282, lng: 112.9385, timestamp: '2026-03-30T10:00:00'),
-    GeoPoint(lat: 28.2302, lng: 112.9375, timestamp: '2026-03-30T10:45:00'),
-    GeoPoint(lat: 28.2260, lng: 112.9410, timestamp: '2026-03-30T10:30:00'),
-  ];
-
-  // 围栏区域 — 长沙望城牧场
   static const List<FencePolygon> fencePolygons = [
     FencePolygon(
-      id: 'fence_001',
-      name: '北区围栏',
+      id: 'fence_pasture_a',
+      name: '放牧A区',
       points: [
-        LatLng(28.2310, 112.9360),
-        LatLng(28.2310, 112.9430),
-        LatLng(28.2260, 112.9430),
-        LatLng(28.2260, 112.9360),
+        LatLng(28.2340, 112.9400),
+        LatLng(28.2340, 112.9440),
+        LatLng(28.2305, 112.9440),
+        LatLng(28.2305, 112.9400),
       ],
       colorValue: 0xFF4C9A5F,
     ),
     FencePolygon(
-      id: 'fence_002',
-      name: '河谷育肥区',
+      id: 'fence_pasture_b',
+      name: '放牧B区',
       points: [
-        LatLng(28.2330, 112.9320),
-        LatLng(28.2350, 112.9350),
-        LatLng(28.2320, 112.9360),
+        LatLng(28.2275, 112.9320),
+        LatLng(28.2275, 112.9360),
+        LatLng(28.2240, 112.9360),
+        LatLng(28.2240, 112.9320),
       ],
       colorValue: 0xFF2F6B3B,
     ),
+    FencePolygon(
+      id: 'fence_rest',
+      name: '夜间休息区',
+      points: [
+        LatLng(28.2295, 112.9380),
+        LatLng(28.2295, 112.9400),
+        LatLng(28.2280, 112.9400),
+        LatLng(28.2280, 112.9380),
+      ],
+      colorValue: 0xFFD28A2D,
+    ),
+    FencePolygon(
+      id: 'fence_quarantine',
+      name: '隔离区',
+      points: [
+        LatLng(28.2255, 112.9400),
+        LatLng(28.2255, 112.9410),
+        LatLng(28.2248, 112.9410),
+        LatLng(28.2248, 112.9400),
+      ],
+      colorValue: 0xFFB84040,
+    ),
+  ];
+
+  static final List<LivestockInfo> livestock = _generateLivestock();
+
+  static List<String> get earTags =>
+      livestock.map((l) => l.earTag).toList();
+
+  static List<GeoPoint> get livestockLocations => livestock
+      .map((l) => GeoPoint(
+            lat: l.lat,
+            lng: l.lng,
+            timestamp: '2026-04-08T10:00:00',
+          ))
+      .toList();
+
+  static Map<String, String> get earTagToLivestockId => {
+        for (final l in livestock) l.earTag: l.livestockId,
+      };
+
+  static LivestockDetail? getLivestockDetail(String earTag) {
+    LivestockInfo? info;
+    for (final l in livestock) {
+      if (l.earTag == earTag) {
+        info = l;
+        break;
+      }
+    }
+    if (info == null) return null;
+
+    final boundDevices =
+        devices.where((d) => d.boundEarTag == earTag).toList();
+
+    String fenceName = '';
+    for (final f in fencePolygons) {
+      if (f.id == info.fenceId) {
+        fenceName = f.name;
+        break;
+      }
+    }
+
+    final tempByHealth = switch (info.health) {
+      LivestockHealth.healthy =>
+        38.3 + Random(info.earTag.hashCode).nextDouble() * 0.6,
+      LivestockHealth.watch =>
+        39.2 + Random(info.earTag.hashCode).nextDouble() * 0.4,
+      LivestockHealth.abnormal =>
+        39.8 + Random(info.earTag.hashCode).nextDouble() * 0.5,
+    };
+
+    return LivestockDetail(
+      earTag: info.earTag,
+      livestockId: info.livestockId,
+      breed: info.breed,
+      ageMonths: info.ageMonths,
+      weightKg: info.weightKg,
+      health: info.health,
+      fenceId: info.fenceId,
+      devices: boundDevices,
+      bodyTemp: double.parse(tempByHealth.toStringAsFixed(1)),
+      activityLevel: switch (info.health) {
+        LivestockHealth.healthy =>
+          '正常（步数 ${1800 + Random(info.earTag.hashCode).nextInt(1200)}）',
+        LivestockHealth.watch =>
+          '偏低（步数 ${600 + Random(info.earTag.hashCode).nextInt(400)}）',
+        LivestockHealth.abnormal =>
+          '异常（步数 ${200 + Random(info.earTag.hashCode).nextInt(300)}）',
+      },
+      ruminationFreq: switch (info.health) {
+        LivestockHealth.healthy =>
+          '正常（每日 ${(7.5 + Random(info.earTag.hashCode).nextDouble() * 1.5).toStringAsFixed(1)} 小时）',
+        LivestockHealth.watch =>
+          '偏低（每日 ${(4.5 + Random(info.earTag.hashCode).nextDouble() * 1.0).toStringAsFixed(1)} 小时）',
+        LivestockHealth.abnormal =>
+          '异常（每日 ${(2.0 + Random(info.earTag.hashCode).nextDouble() * 1.0).toStringAsFixed(1)} 小时）',
+      },
+      lastLocation: '$fenceName · 区域${1 + Random(info.earTag.hashCode).nextInt(3)}',
+    );
+  }
+
+  static final List<DeviceItem> devices = _generateDevices();
+
+  static final List<AlertItem> alerts = [
+    const AlertItem(id: 'alert-001', title: '越界 · SL-2024-003', subtitle: '2026-04-08 14:23', priority: 'P0', type: 'geofence', stage: 'pending', earTag: 'SL-2024-003'),
+    const AlertItem(id: 'alert-002', title: '体温异常 · SL-2024-048', subtitle: '2026-04-08 11:05', priority: 'P0', type: 'fever', stage: 'acknowledged', earTag: 'SL-2024-048', livestockId: '0048'),
+    const AlertItem(id: 'alert-003', title: '越界 · SL-2024-017', subtitle: '2026-04-07 16:30', priority: 'P0', type: 'geofence', stage: 'handled', earTag: 'SL-2024-017'),
+    const AlertItem(id: 'alert-004', title: '体温异常 · SL-2024-049', subtitle: '2026-04-07 09:15', priority: 'P0', type: 'fever', stage: 'handled', earTag: 'SL-2024-049', livestockId: '0049'),
+    const AlertItem(id: 'alert-005', title: '设备离线 · SL-2024-043', subtitle: '2026-04-08 13:40', priority: 'P1', type: 'offline', stage: 'pending', earTag: 'SL-2024-043'),
+    const AlertItem(id: 'alert-006', title: '低电量 · SL-2024-045', subtitle: '2026-04-08 12:20', priority: 'P1', type: 'lowbattery', stage: 'pending', earTag: 'SL-2024-045'),
+    const AlertItem(id: 'alert-007', title: '设备离线 · SL-2024-044', subtitle: '2026-04-08 08:50', priority: 'P1', type: 'offline', stage: 'acknowledged', earTag: 'SL-2024-044'),
+    const AlertItem(id: 'alert-008', title: '低电量 · SL-2024-046', subtitle: '2026-04-07 15:10', priority: 'P1', type: 'lowbattery', stage: 'handled', earTag: 'SL-2024-046'),
+    const AlertItem(id: 'alert-009', title: '设备离线 · SL-2024-042', subtitle: '2026-04-07 10:25', priority: 'P1', type: 'offline', stage: 'handled', earTag: 'SL-2024-042'),
+    const AlertItem(id: 'alert-010', title: '行为异常 · SL-2024-047', subtitle: '2026-04-08 09:30', priority: 'P2', type: 'behavior', stage: 'pending', earTag: 'SL-2024-047', livestockId: '0047'),
+    const AlertItem(id: 'alert-011', title: '围栏接近 · SL-2024-012', subtitle: '2026-04-07 14:50', priority: 'P2', type: 'geofence', stage: 'handled', earTag: 'SL-2024-012'),
+    const AlertItem(id: 'alert-012', title: '行为异常 · SL-2024-050', subtitle: '2026-04-07 11:35', priority: 'P2', type: 'behavior', stage: 'handled', earTag: 'SL-2024-050', livestockId: '0050'),
+    const AlertItem(id: 'alert-013', title: '围栏接近 · SL-2024-008', subtitle: '2026-04-06 16:45', priority: 'P2', type: 'geofence', stage: 'handled', earTag: 'SL-2024-008'),
+    const AlertItem(id: 'alert-014', title: '行为异常 · SL-2024-030', subtitle: '2026-04-06 10:00', priority: 'P2', type: 'behavior', stage: 'archived', earTag: 'SL-2024-030', livestockId: '0030'),
+    const AlertItem(id: 'alert-015', title: '越界 · SL-2024-005', subtitle: '2026-04-05 09:10', priority: 'P0', type: 'geofence', stage: 'archived', earTag: 'SL-2024-005'),
+    const AlertItem(id: 'alert-016', title: '设备离线 · SL-2024-041', subtitle: '2026-04-04 14:30', priority: 'P1', type: 'offline', stage: 'archived', earTag: 'SL-2024-041'),
+    const AlertItem(id: 'alert-017', title: '低电量 · SL-2024-047', subtitle: '2026-04-03 11:20', priority: 'P1', type: 'lowbattery', stage: 'archived', earTag: 'SL-2024-047'),
+    const AlertItem(id: 'alert-018', title: '体温异常 · SL-2024-050', subtitle: '2026-04-02 08:00', priority: 'P0', type: 'fever', stage: 'archived', earTag: 'SL-2024-050', livestockId: '0050'),
   ];
 
   static const List<DashboardMetric> dashboardMetrics = [
-    DashboardMetric(
-      widgetKey: 'dashboard-metric-animal-total',
-      title: '牲畜总数',
-      value: '128',
-    ),
-    DashboardMetric(
-      widgetKey: 'dashboard-metric-device-online',
-      title: '在线设备',
-      value: '96',
-    ),
-    DashboardMetric(
-      widgetKey: 'dashboard-metric-alert-pending',
-      title: '未处理告警',
-      value: '7',
-    ),
-    DashboardMetric(
-      widgetKey: 'dashboard-metric-health-watch',
-      title: '健康关注',
-      value: '12',
-    ),
-  ];
-
-  static const livestockDetail = LivestockDetail(
-    earTag: '耳标-001',
-    livestockId: '0001',
-    breed: '西门塔尔牛',
-    ageMonths: 36,
-    weightKg: 520.0,
-    health: LivestockHealth.healthy,
-    fenceId: 'fence_001',
-    devices: [
-      DeviceItem(
-        id: 'dev-gps-001',
-        name: 'GPS项圈-001',
-        type: DeviceType.gps,
-        status: DeviceStatus.online,
-        boundEarTag: '耳标-001',
-        batteryPercent: 85,
-        signalStrength: '强',
-        lastSync: '2 分钟前',
-      ),
-      DeviceItem(
-        id: 'dev-rumen-001',
-        name: '瘤胃胶囊-001',
-        type: DeviceType.rumenCapsule,
-        status: DeviceStatus.online,
-        boundEarTag: '耳标-001',
-        batteryPercent: 92,
-        signalStrength: '中',
-        lastSync: '5 分钟前',
-      ),
-    ],
-    bodyTemp: 38.6,
-    activityLevel: '正常（步数 2,340）',
-    ruminationFreq: '正常（每日 8.2 小时）',
-    lastLocation: '北区围栏 · 东坡草地',
-  );
-
-  static const livestockDetailWatch = LivestockDetail(
-    earTag: '耳标-002',
-    livestockId: '0002',
-    breed: '安格斯牛',
-    ageMonths: 24,
-    weightKg: 410.0,
-    health: LivestockHealth.watch,
-    fenceId: 'fence_001',
-    devices: [
-      DeviceItem(
-        id: 'dev-gps-002',
-        name: 'GPS项圈-002',
-        type: DeviceType.gps,
-        status: DeviceStatus.lowBattery,
-        boundEarTag: '耳标-002',
-        batteryPercent: 12,
-        signalStrength: '弱',
-        lastSync: '18 分钟前',
-      ),
-    ],
-    bodyTemp: 39.8,
-    activityLevel: '偏低（步数 890）',
-    ruminationFreq: '偏低（每日 5.1 小时）',
-    lastLocation: '南区围栏 · 河谷附近',
-  );
-
-  static const List<DeviceItem> devices = [
-    DeviceItem(
-      id: 'dev-gps-001',
-      name: 'GPS项圈-001',
-      type: DeviceType.gps,
-      status: DeviceStatus.online,
-      boundEarTag: '耳标-001',
-      batteryPercent: 85,
-      signalStrength: '强',
-      lastSync: '2 分钟前',
-    ),
-    DeviceItem(
-      id: 'dev-gps-002',
-      name: 'GPS项圈-002',
-      type: DeviceType.gps,
-      status: DeviceStatus.lowBattery,
-      boundEarTag: '耳标-002',
-      batteryPercent: 12,
-      signalStrength: '弱',
-      lastSync: '18 分钟前',
-    ),
-    DeviceItem(
-      id: 'dev-rumen-001',
-      name: '瘤胃胶囊-001',
-      type: DeviceType.rumenCapsule,
-      status: DeviceStatus.online,
-      boundEarTag: '耳标-001',
-      batteryPercent: 92,
-      signalStrength: '中',
-      lastSync: '5 分钟前',
-    ),
-    DeviceItem(
-      id: 'dev-gps-003',
-      name: 'GPS项圈-003',
-      type: DeviceType.gps,
-      status: DeviceStatus.offline,
-      boundEarTag: '耳标-023',
-      signalStrength: '无',
-      lastSync: '3 小时前',
-    ),
-    DeviceItem(
-      id: 'dev-acc-001',
-      name: '加速度计-001',
-      type: DeviceType.accelerometer,
-      status: DeviceStatus.online,
-      boundEarTag: '耳标-001',
-      batteryPercent: 78,
-      signalStrength: '强',
-      lastSync: '1 分钟前',
-    ),
+    DashboardMetric(widgetKey: 'dashboard-metric-animal-total', title: '牲畜总数', value: '50'),
+    DashboardMetric(widgetKey: 'dashboard-metric-device-online', title: '在线设备', value: '85'),
+    DashboardMetric(widgetKey: 'dashboard-metric-alert-today', title: '今日告警', value: '8'),
+    DashboardMetric(widgetKey: 'dashboard-metric-health-rate', title: '健康率', value: '92%'),
   ];
 
   static const healthSummary = StatsHealthSummary(
-    healthyCount: 108,
-    watchCount: 12,
-    abnormalCount: 8,
+    healthyCount: 43,
+    watchCount: 4,
+    abnormalCount: 3,
   );
 
   static const alertSummary = StatsAlertSummary(
-    fenceBreachCount: 12,
-    batteryLowCount: 5,
+    fenceBreachCount: 4,
+    batteryLowCount: 3,
     signalLostCount: 3,
     dailyTrend: [
-      StatsChartData(label: '周一', value: 3, color: 0xFF4C9A5F),
-      StatsChartData(label: '周二', value: 5, color: 0xFF4C9A5F),
-      StatsChartData(label: '周三', value: 2, color: 0xFF4C9A5F),
-      StatsChartData(label: '周四', value: 7, color: 0xFFD28A2D),
-      StatsChartData(label: '周五', value: 4, color: 0xFF4C9A5F),
-      StatsChartData(label: '周六', value: 1, color: 0xFF4C9A5F),
-      StatsChartData(label: '周日', value: 3, color: 0xFF4C9A5F),
+      StatsChartData(label: '周一', value: 2.0, color: 0xFF4C9A5F),
+      StatsChartData(label: '周二', value: 3.0, color: 0xFF4C9A5F),
+      StatsChartData(label: '周三', value: 1.0, color: 0xFF4C9A5F),
+      StatsChartData(label: '周四', value: 4.0, color: 0xFFD28A2D),
+      StatsChartData(label: '周五', value: 3.0, color: 0xFF4C9A5F),
+      StatsChartData(label: '周六', value: 2.0, color: 0xFF4C9A5F),
+      StatsChartData(label: '周日', value: 3.0, color: 0xFF4C9A5F),
     ],
   );
 
   static const deviceSummary = StatsDeviceSummary(
-    totalDevices: 96,
-    onlineCount: 91,
-    weeklyOnlineRate: 94.2,
+    totalDevices: 100,
+    onlineCount: 85,
+    weeklyOnlineRate: 85.0,
     weeklyTrend: [
-      StatsChartData(label: '周一', value: 95.0, color: 0xFF2F6B3B),
-      StatsChartData(label: '周二', value: 93.5, color: 0xFF2F6B3B),
-      StatsChartData(label: '周三', value: 94.8, color: 0xFF2F6B3B),
-      StatsChartData(label: '周四', value: 92.1, color: 0xFF2F6B3B),
-      StatsChartData(label: '周五', value: 96.0, color: 0xFF2F6B3B),
-      StatsChartData(label: '周六', value: 94.5, color: 0xFF2F6B3B),
-      StatsChartData(label: '周日', value: 93.8, color: 0xFF2F6B3B),
+      StatsChartData(label: '周一', value: 87.0, color: 0xFF2F6B3B),
+      StatsChartData(label: '周二', value: 84.5, color: 0xFF2F6B3B),
+      StatsChartData(label: '周三', value: 86.0, color: 0xFF2F6B3B),
+      StatsChartData(label: '周四', value: 83.0, color: 0xFF2F6B3B),
+      StatsChartData(label: '周五', value: 85.5, color: 0xFF2F6B3B),
+      StatsChartData(label: '周六', value: 86.0, color: 0xFF2F6B3B),
+      StatsChartData(label: '周日', value: 84.0, color: 0xFF2F6B3B),
     ],
   );
+
+  static List<LivestockInfo> _generateLivestock() {
+    final rng = Random(42);
+    final result = <LivestockInfo>[];
+
+    const breeds = ['西门塔尔牛', '安格斯牛', '利木赞牛'];
+    final breedWeightRanges = [
+      (450.0, 650.0),
+      (400.0, 550.0),
+      (350.0, 500.0),
+    ];
+    var breedCounts = [20, 15, 15];
+    var breedIdx = 0;
+
+    void addCattle(
+      int count,
+      String fenceId,
+      LivestockHealth health,
+      double latMin,
+      double latMax,
+      double lngMin,
+      double lngMax,
+    ) {
+      for (var i = 0; i < count; i++) {
+        final n = result.length + 1;
+        while (breedCounts[breedIdx] <= 0) {
+          breedIdx++;
+        }
+        breedCounts[breedIdx]--;
+
+        final wRange = breedWeightRanges[breedIdx];
+        result.add(LivestockInfo(
+          earTag: 'SL-2024-${n.toString().padLeft(3, '0')}',
+          livestockId: n.toString().padLeft(4, '0'),
+          breed: breeds[breedIdx],
+          ageMonths: 18 + rng.nextInt(55),
+          weightKg: double.parse(
+            (wRange.$1 + rng.nextDouble() * (wRange.$2 - wRange.$1))
+                .toStringAsFixed(1),
+          ),
+          health: health,
+          fenceId: fenceId,
+          lat: double.parse(
+            (latMin + rng.nextDouble() * (latMax - latMin))
+                .toStringAsFixed(4),
+          ),
+          lng: double.parse(
+            (lngMin + rng.nextDouble() * (lngMax - lngMin))
+                .toStringAsFixed(4),
+          ),
+        ));
+      }
+    }
+
+    addCattle(25, 'fence_pasture_a', LivestockHealth.healthy,
+        28.2305, 28.2340, 112.9400, 112.9440);
+    addCattle(18, 'fence_pasture_b', LivestockHealth.healthy,
+        28.2240, 28.2275, 112.9320, 112.9360);
+    addCattle(4, 'fence_rest', LivestockHealth.watch,
+        28.2280, 28.2295, 112.9380, 112.9400);
+    addCattle(3, 'fence_quarantine', LivestockHealth.abnormal,
+        28.2248, 28.2255, 112.9400, 112.9410);
+
+    return result;
+  }
+
+  static List<DeviceItem> _generateDevices() {
+    final result = <DeviceItem>[];
+
+    void addBatch(
+      int count,
+      String idPrefix,
+      DeviceType type,
+      String namePrefix,
+      int onlineCount,
+      int offlineCount,
+      int lowBatteryCount,
+    ) {
+      for (var i = 1; i <= count; i++) {
+        final id = '$idPrefix-${i.toString().padLeft(3, '0')}';
+        final name = '$namePrefix-${i.toString().padLeft(3, '0')}';
+        final earTag = 'SL-2024-${i.toString().padLeft(3, '0')}';
+
+        DeviceStatus status;
+        if (i <= onlineCount) {
+          status = DeviceStatus.online;
+        } else if (i <= onlineCount + offlineCount) {
+          status = DeviceStatus.offline;
+        } else {
+          status = DeviceStatus.lowBattery;
+        }
+
+        result.add(DeviceItem(
+          id: id,
+          name: name,
+          type: type,
+          status: status,
+          boundEarTag: earTag,
+          batteryPercent: switch (status) {
+            DeviceStatus.online => 60 + (i * 3 % 35),
+            DeviceStatus.lowBattery => 5 + (i % 10),
+            DeviceStatus.offline => null,
+          },
+          signalStrength: switch (status) {
+            DeviceStatus.online => i % 3 == 0 ? '中' : '强',
+            DeviceStatus.lowBattery => '弱',
+            DeviceStatus.offline => '无',
+          },
+          lastSync: switch (status) {
+            DeviceStatus.online => '${1 + i % 5} 分钟前',
+            DeviceStatus.lowBattery => '${10 + i % 20} 分钟前',
+            DeviceStatus.offline => '${1 + i % 6} 小时前',
+          },
+        ));
+      }
+    }
+
+    addBatch(50, 'DEV-GPS', DeviceType.gps, 'GPS追踪器', 42, 4, 4);
+    addBatch(30, 'DEV-RC', DeviceType.rumenCapsule, '瘤胃胶囊', 26, 2, 2);
+    addBatch(20, 'DEV-ACC', DeviceType.accelerometer, '加速度计', 17, 2, 1);
+
+    return result;
+  }
 }

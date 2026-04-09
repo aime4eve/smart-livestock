@@ -8,9 +8,7 @@ class MockLivestockRepository implements LivestockRepository {
   @override
   LivestockViewData load(
       {required ViewState viewState, required String earTag}) {
-    final detail = earTag == '耳标-002'
-        ? DemoSeed.livestockDetailWatch
-        : DemoSeed.livestockDetail;
+    final detail = DemoSeed.getLivestockDetail(earTag);
     return LivestockViewData(
       viewState: viewState,
       detail: viewState == ViewState.normal ? detail : null,

@@ -9,7 +9,7 @@ class MockDevicesRepository implements DevicesRepository {
   @override
   DevicesViewData load(
       {required ViewState viewState, required DeviceStatus? filter}) {
-    const all = DemoSeed.devices;
+    final all = DemoSeed.devices;
     final filtered =
         filter == null ? all : all.where((d) => d.status == filter).toList();
     return DevicesViewData(
