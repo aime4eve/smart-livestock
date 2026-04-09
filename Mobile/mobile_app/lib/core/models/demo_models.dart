@@ -37,13 +37,39 @@ class DashboardMetric {
 
 enum LivestockHealth { healthy, watch, abnormal }
 
-class LivestockDetail {
-  const LivestockDetail({
+class LivestockInfo {
+  const LivestockInfo({
     required this.earTag,
+    required this.livestockId,
     required this.breed,
     required this.ageMonths,
     required this.weightKg,
     required this.health,
+    required this.fenceId,
+    required this.lat,
+    required this.lng,
+  });
+
+  final String earTag;
+  final String livestockId;
+  final String breed;
+  final int ageMonths;
+  final double weightKg;
+  final LivestockHealth health;
+  final String fenceId;
+  final double lat;
+  final double lng;
+}
+
+class LivestockDetail {
+  const LivestockDetail({
+    required this.earTag,
+    required this.livestockId,
+    required this.breed,
+    required this.ageMonths,
+    required this.weightKg,
+    required this.health,
+    required this.fenceId,
     required this.devices,
     required this.bodyTemp,
     required this.activityLevel,
@@ -52,10 +78,12 @@ class LivestockDetail {
   });
 
   final String earTag;
+  final String livestockId;
   final String breed;
   final int ageMonths;
   final double weightKg;
   final LivestockHealth health;
+  final String fenceId;
   final List<DeviceItem> devices;
   final double bodyTemp;
   final String activityLevel;
@@ -142,3 +170,25 @@ class StatsDeviceSummary {
 }
 
 enum StatsTimeRange { d7, d30 }
+
+class AlertItem {
+  const AlertItem({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.priority,
+    required this.type,
+    required this.stage,
+    required this.earTag,
+    this.livestockId,
+  });
+
+  final String id;
+  final String title;
+  final String subtitle;
+  final String priority;
+  final String type;
+  final String stage;
+  final String earTag;
+  final String? livestockId;
+}

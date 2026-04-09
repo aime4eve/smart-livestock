@@ -83,10 +83,12 @@ class DemoSeed {
 
   static const livestockDetail = LivestockDetail(
     earTag: '耳标-001',
+    livestockId: '0001',
     breed: '西门塔尔牛',
     ageMonths: 36,
     weightKg: 520.0,
     health: LivestockHealth.healthy,
+    fenceId: 'fence_001',
     devices: [
       DeviceItem(
         id: 'dev-gps-001',
@@ -117,10 +119,12 @@ class DemoSeed {
 
   static const livestockDetailWatch = LivestockDetail(
     earTag: '耳标-002',
+    livestockId: '0002',
     breed: '安格斯牛',
     ageMonths: 24,
     weightKg: 410.0,
     health: LivestockHealth.watch,
+    fenceId: 'fence_001',
     devices: [
       DeviceItem(
         id: 'dev-gps-002',
