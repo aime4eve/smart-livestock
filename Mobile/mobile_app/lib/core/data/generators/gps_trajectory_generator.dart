@@ -9,13 +9,26 @@ class GpsTrajectoryGenerator {
   final int seed;
   final Map<String, List<GeoPoint>> _cache = {};
 
+  static String _cacheKey(
+    String earTag,
+    List<LatLng> fenceBoundary,
+    DateTime start,
+    DateTime end,
+  ) {
+    final fenceFp = Object.hashAll(
+      fenceBoundary.map((p) => Object.hash(p.latitude, p.longitude)),
+    );
+    return '$earTag|$fenceFp|${start.millisecondsSinceEpoch}|${end.millisecondsSinceEpoch}';
+  }
+
   List<GeoPoint> generate({
     required String earTag,
     required List<LatLng> fenceBoundary,
     required DateTime start,
     required DateTime end,
   }) {
-    return _cache.putIfAbsent(earTag, () => _doGenerate(
+    final key = _cacheKey(earTag, fenceBoundary, start, end);
+    return _cache.putIfAbsent(key, () => _doGenerate(
           earTag: earTag,
           fenceBoundary: fenceBoundary,
           start: start,
