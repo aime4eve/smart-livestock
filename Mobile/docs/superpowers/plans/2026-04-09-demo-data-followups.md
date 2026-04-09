@@ -4,6 +4,23 @@
 **前置计划（已落地）**: `plans/2026-04-09-demo-data-enhancement.md`  
 **仓库**: https://github.com/aime4eve/smart-livestock
 
+**真相来源**: Issue 的 **open/closed** 以 GitHub 为准；本文件记录范围说明、依赖与 **关闭后** 的归档信息。
+
+---
+
+## 如何完成 Issue 并与本文件同步
+
+1. **认领**: 在对应 Issue 下留言或 assign 自己；按上文「执行顺序建议」优先 **#2**。
+2. **分支**: 从 `master` 拉分支，命名示例 `fix/2-gps-trajectory-cache`、`feat/3-chart-downsample`（含 issue 编号便于追溯）。
+3. **开发**: 仅改 `Mobile/`（遵守 `AGENTS.md`）；完成后本地 `flutter analyze`、`flutter test`（及相关目录命令）。
+4. **PR**: 标题写清意图；正文用 **`Closes #2`**（或 `Fixes #2`）关联 Issue，合并进默认分支后 **GitHub 会自动关闭** 该 Issue。
+5. **同步本文档**（合并 PR 的同一提交或跟投小 PR）:
+   - 在下方 **完成记录** 表增加一行：完成日期、PR 链接、对应 Issue 号；
+   - 若验收标准或涉及路径有变化，顺改本文件中该 Issue 的小节。
+6. **核对**: `gh issue view 2 --json state` 或网页确认已 closed；本地 `git pull` 后文档与仓库一致。
+
+本地快速查看未关闭 Issue：`gh issue list --repo aime4eve/smart-livestock --state open`。
+
 ---
 
 ## Issue 索引
@@ -17,6 +34,12 @@
 | P2 | [#6](https://github.com/aime4eve/smart-livestock/issues/6) | 后端设备种子与 demo_seed 对齐 |
 | P2 | [#7](https://github.com/aime4eve/smart-livestock/issues/7) | 孪生概览「当前牧区」上下文（UI） |
 | P3 | [#8](https://github.com/aime4eve/smart-livestock/issues/8) | TimeSeriesGenerator 抽象（可选重构） |
+
+### 完成记录
+
+| 完成日期 | Issue | PR | 备注 |
+|----------|-------|-----|------|
+|  |  |  | 例：合并后填 `https://github.com/aime4eve/smart-livestock/pull/N` |
 
 ---
 
