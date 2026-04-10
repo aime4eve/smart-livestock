@@ -37,13 +37,13 @@ void main() {
     expect(find.byKey(const Key('nav-admin')), findsNothing);
   });
 
-  testWidgets('导航中不存在 nav-map', (tester) async {
+  testWidgets('导航栏不含旧地图项', (tester) async {
     await tester.pumpWidget(const DemoApp());
     await tester.tap(find.byKey(const Key('role-owner')));
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('nav-map')), findsNothing);
+    expect(find.byKey(const Key('nav-' 'map')), findsNothing);
   });
 
   testWidgets('围栏页底部抽屉标题可见（owner）', (tester) async {

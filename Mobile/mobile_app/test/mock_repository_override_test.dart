@@ -79,7 +79,7 @@ class _FakeFenceRepository implements FenceRepository {
 
   @override
   List<FenceItem> loadAll() {
-    return [
+    return const [
       FenceItem(
         id: 'fake-fence-1',
         name: '测试围栏',
@@ -89,7 +89,7 @@ class _FakeFenceRepository implements FenceRepository {
         areaHectares: 5.0,
         livestockCount: 10,
         colorValue: 0xFF4C9A5F,
-        points: const [
+        points: [
           LatLng(28.230, 112.940),
           LatLng(28.230, 112.944),
           LatLng(28.234, 112.944),
