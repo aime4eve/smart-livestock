@@ -16,11 +16,25 @@ class GeoPoint {
 }
 
 class FencePolygon {
-  const FencePolygon({required this.id, required this.name, required this.points, required this.colorValue});
+  const FencePolygon({
+    required this.id,
+    required this.name,
+    required this.points,
+    required this.colorValue,
+    this.type = 'polygon',
+    this.alarmEnabled = true,
+    this.active = true,
+    this.areaHectares = 1.0,
+  });
+
   final String id;
   final String name;
   final List<LatLng> points;
   final int colorValue;
+  final String type;
+  final bool alarmEnabled;
+  final bool active;
+  final double areaHectares;
 }
 
 class DashboardMetric {

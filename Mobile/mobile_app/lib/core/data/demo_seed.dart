@@ -22,6 +22,8 @@ class DemoSeed {
         LatLng(28.2305, 112.9400),
       ],
       colorValue: 0xFF4C9A5F,
+      type: 'rectangle',
+      areaHectares: 15.2,
     ),
     FencePolygon(
       id: 'fence_pasture_b',
@@ -33,6 +35,8 @@ class DemoSeed {
         LatLng(28.2240, 112.9320),
       ],
       colorValue: 0xFF2F6B3B,
+      type: 'rectangle',
+      areaHectares: 14.8,
     ),
     FencePolygon(
       id: 'fence_rest',
@@ -44,6 +48,8 @@ class DemoSeed {
         LatLng(28.2280, 112.9380),
       ],
       colorValue: 0xFFD28A2D,
+      type: 'rectangle',
+      areaHectares: 3.5,
     ),
     FencePolygon(
       id: 'fence_quarantine',
@@ -55,6 +61,8 @@ class DemoSeed {
         LatLng(28.2248, 112.9400),
       ],
       colorValue: 0xFFB84040,
+      type: 'rectangle',
+      areaHectares: 0.8,
     ),
   ];
 
