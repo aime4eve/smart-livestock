@@ -1,7 +1,6 @@
 enum AppRoute {
   login('/login', 'login', '登录'),
   twin('/twin', 'twin', '孪生'),
-  map('/map', 'map', '地图'),
   alerts('/alerts', 'alerts', '告警'),
   mine('/mine', 'mine', '我的'),
   fence('/fence', 'fence', '围栏'),
@@ -9,7 +8,7 @@ enum AppRoute {
   opsAdmin('/ops/admin', 'ops-admin', '运维后台'),
   livestockDetail('/livestock/:id', 'livestock-detail', '牲畜详情'),
   devices('/devices', 'devices', '设备管理'),
-  fenceCreate('/fence/create', 'fence-create', '创建围栏'),
+  fenceForm('/fence/form', 'fence-form', '围栏表单'),
   stats('/stats', 'stats', '数据统计'),
   twinFever('/twin/fever', 'twin-fever', '发热预警'),
   twinFeverDetail('/twin/fever/:livestockId', 'twin-fever-detail', '发热详情'),

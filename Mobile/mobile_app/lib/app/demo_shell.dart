@@ -84,10 +84,10 @@ class DemoShell extends ConsumerWidget {
         route: AppRoute.twin,
       ),
       const _NavItem(
-        key: Key('nav-map'),
+        key: Key('nav-fence'),
         icon: Icons.map,
-        label: '地图',
-        route: AppRoute.map,
+        label: '围栏',
+        route: AppRoute.fence,
       ),
       const _NavItem(
         key: Key('nav-alerts'),
@@ -100,12 +100,6 @@ class DemoShell extends ConsumerWidget {
         icon: Icons.person,
         label: '我的',
         route: AppRoute.mine,
-      ),
-      const _NavItem(
-        key: Key('nav-fence'),
-        icon: Icons.fence,
-        label: '围栏',
-        route: AppRoute.fence,
       ),
     ];
     if (role == DemoRole.owner) {
