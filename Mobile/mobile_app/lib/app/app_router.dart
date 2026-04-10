@@ -16,12 +16,11 @@ import 'package:smart_livestock_demo/features/pages/digestive_page.dart';
 import 'package:smart_livestock_demo/features/pages/epidemic_page.dart';
 import 'package:smart_livestock_demo/features/pages/estrus_detail_page.dart';
 import 'package:smart_livestock_demo/features/pages/estrus_page.dart';
-import 'package:smart_livestock_demo/features/pages/fence_create_page.dart';
+import 'package:smart_livestock_demo/features/pages/fence_form_page.dart';
 import 'package:smart_livestock_demo/features/pages/fence_page.dart';
 import 'package:smart_livestock_demo/features/pages/fever_detail_page.dart';
 import 'package:smart_livestock_demo/features/pages/fever_warning_page.dart';
 import 'package:smart_livestock_demo/features/pages/livestock_detail_page.dart';
-import 'package:smart_livestock_demo/features/pages/map_page.dart';
 import 'package:smart_livestock_demo/features/pages/mine_page.dart';
 import 'package:smart_livestock_demo/features/pages/stats_page.dart';
 import 'package:smart_livestock_demo/features/pages/twin_overview_page.dart';
@@ -147,11 +146,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
           GoRoute(
-            path: AppRoute.map.path,
-            name: AppRoute.map.routeName,
-            builder: (context, state) => const MapPage(),
-          ),
-          GoRoute(
             path: AppRoute.alerts.path,
             name: AppRoute.alerts.routeName,
             builder: (context, state) => Consumer(
@@ -169,12 +163,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoute.fence.path,
             name: AppRoute.fence.routeName,
-            builder: (context, state) => Consumer(
-              builder: (context, ref, child) {
-                final role = ref.watch(sessionControllerProvider).role!;
-                return FencePage(role: role);
-              },
-            ),
+            builder: (context, state) => const FencePage(),
+          ),
+          GoRoute(
+            path: AppRoute.fenceForm.path,
+            name: AppRoute.fenceForm.routeName,
+            builder: (context, state) {
+              final id = state.uri.queryParameters['id'];
+              return FenceFormPage(fenceId: id);
+            },
           ),
           GoRoute(
             path: AppRoute.admin.path,
@@ -198,11 +195,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoute.devices.path,
             name: AppRoute.devices.routeName,
             builder: (context, state) => const DevicesPage(),
-          ),
-          GoRoute(
-            path: AppRoute.fenceCreate.path,
-            name: AppRoute.fenceCreate.routeName,
-            builder: (context, state) => const FenceCreatePage(),
           ),
           GoRoute(
             path: AppRoute.stats.path,

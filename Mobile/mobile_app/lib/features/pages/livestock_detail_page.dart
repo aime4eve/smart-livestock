@@ -292,7 +292,7 @@ class _LocationCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           OutlinedButton.icon(
             key: const Key('livestock-view-track'),
-            onPressed: () => context.go(AppRoute.map.path),
+            onPressed: () => context.go(AppRoute.fence.path),
             icon: const Icon(Icons.map_outlined),
             label: const Text('查看完整轨迹'),
           ),
