@@ -1,30 +1,34 @@
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
+import 'package:smart_livestock_demo/core/data/demo_seed.dart';
+import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_repository.dart';
 
 class MockFenceRepository implements FenceRepository {
   const MockFenceRepository();
 
   @override
-  FenceViewData load({
-    required ViewState viewState,
-    required DemoRole role,
-    required bool editSaved,
-  }) {
-    return FenceViewData(
-      viewState: viewState,
-      role: role,
-      fenceTitle: '北区围栏',
-      fenceSubtitle: '生效中 · 越界告警开',
-      editSaved: editSaved,
-      message: switch (viewState) {
-        ViewState.loading => '加载中',
-        ViewState.empty => '暂无围栏',
-        ViewState.error => '围栏加载失败（演示）',
-        ViewState.forbidden => '无权限管理围栏（演示）',
-        ViewState.offline => '离线：展示本地缓存围栏列表（演示）',
-        ViewState.normal => null,
-      },
-    );
+  List<FenceItem> loadAll() {
+    return DemoSeed.fencePolygons.map((fp) {
+      final count =
+          DemoSeed.livestock.where((l) => l.fenceId == fp.id).length;
+      return FenceItem(
+        id: fp.id,
+        name: fp.name,
+        type: _parseType(fp.type),
+        alarmEnabled: fp.alarmEnabled,
+        active: fp.active,
+        areaHectares: fp.areaHectares,
+        livestockCount: count,
+        colorValue: fp.colorValue,
+        points: fp.points,
+      );
+    }).toList();
+  }
+
+  static FenceType _parseType(String type) {
+    return switch (type) {
+      'rectangle' => FenceType.rectangle,
+      'circle' => FenceType.circle,
+      _ => FenceType.polygon,
+    };
   }
 }
