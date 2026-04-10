@@ -48,6 +48,8 @@ void main() {
 
     await tester.tap(find.byKey(const Key('nav-fence')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('fence-panel-toggle')));
+    await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('fence-drawer-title')), findsOneWidget);
     expect(find.byKey(const Key('fence-card-fence_pasture_a')), findsOneWidget);
@@ -61,6 +63,8 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('nav-fence')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('fence-panel-toggle')));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('fence-add')));
@@ -80,6 +84,8 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('nav-fence')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('fence-panel-toggle')));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('fence-card-fence_pasture_a')), findsOneWidget);

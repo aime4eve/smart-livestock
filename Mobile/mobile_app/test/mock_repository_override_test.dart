@@ -51,6 +51,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('nav-fence')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('fence-panel-toggle')));
+    await tester.pumpAndSettle();
 
     expect(find.text('测试围栏'), findsOneWidget);
   });

@@ -1,3 +1,5 @@
+import 'dart:math' show min;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,6 +27,7 @@ class FencePage extends ConsumerStatefulWidget {
 
 class _FencePageState extends ConsumerState<FencePage> {
   final _mapController = MapController();
+  bool _panelOpen = false;
 
   @override
   void dispose() {
@@ -76,150 +79,169 @@ class _FencePageState extends ConsumerState<FencePage> {
     FenceController controller,
     bool canManage,
   ) {
-    return Stack(
-      children: [
-        FlutterMap(
-          mapController: _mapController,
-          options: const MapOptions(
-            initialCenter: DemoSeed.mapCenter,
-            initialZoom: DemoSeed.defaultZoom,
-            interactionOptions: InteractionOptions(
-              flags: InteractiveFlag.all,
-            ),
-          ),
+    const panelAnimDuration = Duration(milliseconds: 280);
+    const panelCurve = Curves.easeOutCubic;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final panelW = min(300.0, constraints.maxWidth * 0.82);
+        return Stack(
+          clipBehavior: Clip.none,
           children: [
-            TileLayer(
-              urlTemplate: MapConfig.tileUrlTemplate,
-              userAgentPackageName: 'com.smartlivestock.demo',
-              maxZoom: MapConfig.cacheMaxZoom.toDouble(),
-            ),
-            PolygonLayer(
-              polygons: fenceState.fences.map((fence) {
-                final color = Color(fence.colorValue);
-                final selected = fence.id == fenceState.selectedFenceId;
-                return Polygon(
-                  points: fence.points,
-                  color: color.withValues(alpha: selected ? 0.4 : 0.2),
-                  borderColor: color,
-                  borderStrokeWidth: selected ? 3.5 : 2.0,
-                );
-              }).toList(),
-            ),
-            MarkerLayer(
-              markers: [
-                for (int i = 0; i < DemoSeed.livestockLocations.length; i++)
-                  Marker(
-                    point: DemoSeed.livestockLocations[i].toLatLng(),
-                    width: 56,
-                    height: 56,
-                    child: _MapMarker(
-                      label: DemoSeed
-                          .earTags[i < DemoSeed.earTags.length ? i : 0],
-                      isAlert: i == 0,
-                    ),
+            Positioned.fill(
+              child: FlutterMap(
+                mapController: _mapController,
+                options: const MapOptions(
+                  initialCenter: DemoSeed.mapCenter,
+                  initialZoom: DemoSeed.defaultZoom,
+                  interactionOptions: InteractionOptions(
+                    flags: InteractiveFlag.all,
                   ),
-              ],
-            ),
-          ],
-        ),
-        DraggableScrollableSheet(
-          initialChildSize: 0.15,
-          minChildSize: 0.15,
-          maxChildSize: 0.6,
-          snap: true,
-          snapSizes: const [0.15, 0.6],
-          builder: (context, scrollController) {
-            return Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppSpacing.lg),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, -2),
+                children: [
+                  TileLayer(
+                    urlTemplate: MapConfig.tileUrlTemplate,
+                    userAgentPackageName: 'com.smartlivestock.demo',
+                    maxZoom: MapConfig.cacheMaxZoom.toDouble(),
+                  ),
+                  PolygonLayer(
+                    polygons: fenceState.fences.map((fence) {
+                      final color = Color(fence.colorValue);
+                      final selected = fence.id == fenceState.selectedFenceId;
+                      return Polygon(
+                        points: fence.points,
+                        color: color.withValues(alpha: selected ? 0.4 : 0.2),
+                        borderColor: color,
+                        borderStrokeWidth: selected ? 3.5 : 2.0,
+                      );
+                    }).toList(),
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      for (int i = 0;
+                          i < DemoSeed.livestockLocations.length;
+                          i++)
+                        Marker(
+                          point: DemoSeed.livestockLocations[i].toLatLng(),
+                          width: 56,
+                          height: 56,
+                          child: _MapMarker(
+                            label: DemoSeed
+                                .earTags[i < DemoSeed.earTags.length ? i : 0],
+                            isAlert: i == 0,
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ),
-              child: SingleChildScrollView(
-                controller: scrollController,
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: AppSpacing.md),
-                        decoration: BoxDecoration(
-                          color: AppColors.border,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            ),
+            AnimatedPositioned(
+              duration: panelAnimDuration,
+              curve: panelCurve,
+              left: _panelOpen ? 0 : -panelW,
+              top: 0,
+              bottom: 0,
+              width: panelW,
+              child: Material(
+                elevation: 8,
+                shadowColor: Colors.black38,
+                color: Theme.of(context).colorScheme.surface,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.horizontal(
+                    right: Radius.circular(AppSpacing.lg),
+                  ),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: SafeArea(
+                  right: false,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(
-                          '围栏 (${fenceState.fences.length})',
-                          key: const Key('fence-drawer-title'),
-                          style: Theme.of(context).textTheme.titleMedium,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '牧场 (${fenceState.fences.length})',
+                              key: const Key('fence-drawer-title'),
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            if (canManage)
+                              IconButton(
+                                key: const Key('fence-add'),
+                                onPressed: () =>
+                                    context.push(AppRoute.fenceForm.path),
+                                icon: const Icon(Icons.add_circle_outline),
+                                tooltip: '新建围栏',
+                              ),
+                          ],
                         ),
-                        if (canManage)
-                          IconButton(
-                            key: const Key('fence-add'),
-                            onPressed: () =>
-                                context.push(AppRoute.fenceForm.path),
-                            icon: const Icon(Icons.add_circle_outline),
-                            tooltip: '新建围栏',
-                          ),
+                        if (fenceState.fences.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: AppSpacing.xl),
+                            child: Center(
+                              child: Text(
+                                '暂无围栏，打开菜单后点 + 创建',
+                                key: const Key('fence-empty-hint'),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                        color: AppColors.textSecondary),
+                              ),
+                            ),
+                          )
+                        else
+                          for (final fence in fenceState.fences)
+                            _FenceCard(
+                              fence: fence,
+                              isSelected:
+                                  fence.id == fenceState.selectedFenceId,
+                              canManage: canManage,
+                              onTap: () {
+                                controller.select(fence.id);
+                                _mapController.move(
+                                  _fenceCenter(fence.points),
+                                  16.0,
+                                );
+                                setState(() => _panelOpen = false);
+                              },
+                              onEdit: () => context.push(
+                                '${AppRoute.fenceForm.path}?id=${fence.id}',
+                              ),
+                              onDelete: () => _showDeleteDialog(
+                                  context, fence, controller),
+                            ),
                       ],
                     ),
-                    if (fenceState.fences.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: AppSpacing.xl),
-                        child: Center(
-                          child: Text(
-                            '暂无围栏，点击 + 创建',
-                            key: const Key('fence-empty-hint'),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(color: AppColors.textSecondary),
-                          ),
-                        ),
-                      )
-                    else
-                      for (final fence in fenceState.fences)
-                        _FenceCard(
-                          fence: fence,
-                          isSelected:
-                              fence.id == fenceState.selectedFenceId,
-                          canManage: canManage,
-                          onTap: () {
-                            controller.select(fence.id);
-                            _mapController.move(
-                              _fenceCenter(fence.points),
-                              16.0,
-                            );
-                          },
-                          onEdit: () => context.push(
-                            '${AppRoute.fenceForm.path}?id=${fence.id}',
-                          ),
-                          onDelete: () =>
-                              _showDeleteDialog(context, fence, controller),
-                        ),
-                  ],
+                  ),
                 ),
               ),
-            );
-          },
-        ),
-      ],
+            ),
+            AnimatedPositioned(
+              duration: panelAnimDuration,
+              curve: panelCurve,
+              left: _panelOpen ? panelW + 12 : 12,
+              top: 0,
+              bottom: 0,
+              child: Align(
+                alignment: Alignment.center,
+                child: FloatingActionButton.small(
+                  key: const Key('fence-panel-toggle'),
+                  heroTag: 'fence-panel-toggle',
+                  onPressed: () =>
+                      setState(() => _panelOpen = !_panelOpen),
+                  tooltip: _panelOpen ? '收起牧场列表' : '牧场列表',
+                  child: Icon(_panelOpen ? Icons.chevron_left : Icons.menu),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

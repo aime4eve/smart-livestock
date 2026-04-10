@@ -46,13 +46,15 @@ void main() {
     expect(find.byKey(const Key('nav-' 'map')), findsNothing);
   });
 
-  testWidgets('围栏页底部抽屉标题可见（owner）', (tester) async {
+  testWidgets('围栏页左侧牧场列表打开后标题可见（owner）', (tester) async {
     await tester.pumpWidget(const DemoApp());
     await tester.tap(find.byKey(const Key('role-owner')));
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('nav-fence')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('fence-panel-toggle')));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('fence-drawer-title')), findsOneWidget);
