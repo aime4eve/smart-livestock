@@ -96,6 +96,13 @@ void main() {
     expect(DemoSeed.fencePolygons.length, 4);
   });
 
+  test('FencePolygon 包含扩展字段', () {
+    for (final f in DemoSeed.fencePolygons) {
+      expect(f.type, isNotEmpty);
+      expect(f.areaHectares, greaterThan(0));
+    }
+  });
+
   test('DemoSeed has 100 devices', () {
     expect(DemoSeed.devices.length, 100);
   });

@@ -143,75 +143,78 @@ class _FencePageState extends ConsumerState<FencePage> {
                   ),
                 ],
               ),
-              child: ListView(
+              child: SingleChildScrollView(
                 controller: scrollController,
                 padding: const EdgeInsets.all(AppSpacing.lg),
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: AppSpacing.md),
-                      decoration: BoxDecoration(
-                        color: AppColors.border,
-                        borderRadius: BorderRadius.circular(2),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: AppColors.border,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
                     ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '围栏 (${fenceState.fences.length})',
-                        key: const Key('fence-drawer-title'),
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      if (canManage)
-                        IconButton(
-                          key: const Key('fence-add'),
-                          onPressed: () =>
-                              context.push(AppRoute.fenceForm.path),
-                          icon: const Icon(Icons.add_circle_outline),
-                          tooltip: '新建围栏',
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '围栏 (${fenceState.fences.length})',
+                          key: const Key('fence-drawer-title'),
+                          style: Theme.of(context).textTheme.titleMedium,
                         ),
-                    ],
-                  ),
-                  if (fenceState.fences.isEmpty)
-                    Padding(
-                      padding:
-                          const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-                      child: Center(
-                        child: Text(
-                          '暂无围栏，点击 + 创建',
-                          key: const Key('fence-empty-hint'),
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(color: AppColors.textSecondary),
+                        if (canManage)
+                          IconButton(
+                            key: const Key('fence-add'),
+                            onPressed: () =>
+                                context.push(AppRoute.fenceForm.path),
+                            icon: const Icon(Icons.add_circle_outline),
+                            tooltip: '新建围栏',
+                          ),
+                      ],
+                    ),
+                    if (fenceState.fences.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: AppSpacing.xl),
+                        child: Center(
+                          child: Text(
+                            '暂无围栏，点击 + 创建',
+                            key: const Key('fence-empty-hint'),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(color: AppColors.textSecondary),
+                          ),
                         ),
-                      ),
-                    )
-                  else
-                    for (final fence in fenceState.fences)
-                      _FenceCard(
-                        fence: fence,
-                        isSelected:
-                            fence.id == fenceState.selectedFenceId,
-                        canManage: canManage,
-                        onTap: () {
-                          controller.select(fence.id);
-                          _mapController.move(
-                            _fenceCenter(fence.points),
-                            16.0,
-                          );
-                        },
-                        onEdit: () => context.push(
-                          '${AppRoute.fenceForm.path}?id=${fence.id}',
+                      )
+                    else
+                      for (final fence in fenceState.fences)
+                        _FenceCard(
+                          fence: fence,
+                          isSelected:
+                              fence.id == fenceState.selectedFenceId,
+                          canManage: canManage,
+                          onTap: () {
+                            controller.select(fence.id);
+                            _mapController.move(
+                              _fenceCenter(fence.points),
+                              16.0,
+                            );
+                          },
+                          onEdit: () => context.push(
+                            '${AppRoute.fenceForm.path}?id=${fence.id}',
+                          ),
+                          onDelete: () =>
+                              _showDeleteDialog(context, fence, controller),
                         ),
-                        onDelete: () =>
-                            _showDeleteDialog(context, fence, controller),
-                      ),
-                ],
+                  ],
+                ),
               ),
             );
           },

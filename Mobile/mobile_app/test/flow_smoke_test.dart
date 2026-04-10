@@ -40,82 +40,67 @@ void main() {
     expect(find.text('演示：批量处理待接入'), findsOneWidget);
   });
 
-  testWidgets('流程2：地图 筛选牲畜与切换回放区间', (tester) async {
+  testWidgets('流程4a：围栏页显示抽屉标题和围栏卡片（owner）', (tester) async {
     await tester.pumpWidget(const DemoApp());
     await tester.tap(find.byKey(const Key('role-owner')));
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('nav-map')));
+    await tester.tap(find.byKey(const Key('nav-fence')));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('map-animal-filter')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('SL-2024-002').last);
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('7d'));
-    await tester.pumpAndSettle();
-
-    final summary =
-        tester.widget<Text>(find.byKey(const Key('map-flow-summary')));
-    expect(summary.data, contains('SL-2024-002'));
-    expect(summary.data, contains('7d'));
+    expect(find.byKey(const Key('fence-drawer-title')), findsOneWidget);
+    expect(find.byKey(const Key('fence-card-fence_pasture_a')), findsOneWidget);
+    expect(find.byKey(const Key('fence-add')), findsOneWidget);
   });
 
-  testWidgets('流程4a：围栏编辑演示反馈（owner）', (tester) async {
+  testWidgets('流程4b：围栏新增跳转表单页再返回（owner）', (tester) async {
     await tester.pumpWidget(const DemoApp());
     await tester.tap(find.byKey(const Key('role-owner')));
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('围栏'));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const Key('fence-edit-action')));
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const Key('fence-flow-edit-saved')), findsOneWidget);
-  });
-
-  testWidgets('流程4c：围栏新增与删除给出演示反馈（owner）', (tester) async {
-    await tester.pumpWidget(const DemoApp());
-    await tester.tap(find.byKey(const Key('role-owner')));
-    await tester.tap(find.byKey(const Key('login-submit')));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('围栏'));
+    await tester.tap(find.byKey(const Key('nav-fence')));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('fence-add')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('page-fence-create')), findsOneWidget);
+    expect(find.byKey(const Key('page-fence-form')), findsOneWidget);
+    expect(find.text('新建围栏'), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('fence-create-back')));
+    await tester.tap(find.byKey(const Key('fence-form-back')));
     await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const Key('fence-delete')));
-    await tester.pumpAndSettle();
-    expect(find.text('演示：删除围栏待接入'), findsOneWidget);
+    expect(find.byKey(const Key('page-fence')), findsOneWidget);
   });
 
-  testWidgets('流程4d：围栏分组、模板与图层可演示（owner）', (tester) async {
+  testWidgets('流程4c：围栏删除弹窗确认后移除（owner）', (tester) async {
     await tester.pumpWidget(const DemoApp());
     await tester.tap(find.byKey(const Key('role-owner')));
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('nav-map')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('map-layer-fence-toggle')), findsOneWidget);
-
     await tester.tap(find.byKey(const Key('nav-fence')));
     await tester.pumpAndSettle();
-    expect(find.text('矩形'), findsOneWidget);
-    expect(find.byKey(const Key('fence-group-chip')), findsOneWidget);
+
+    expect(find.byKey(const Key('fence-card-fence_pasture_a')), findsOneWidget);
+
+    await tester.ensureVisible(
+        find.byKey(const Key('fence-delete-fence_pasture_a')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('fence-delete-fence_pasture_a')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('确认删除'), findsOneWidget);
+    expect(find.text('确认删除「放牧A区」？删除后无法恢复。'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('fence-delete-confirm')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('fence-card-fence_pasture_a')), findsNothing);
+    expect(find.text('已删除「放牧A区」'), findsOneWidget);
   });
 
-  testWidgets('流程4b：租户 license 调整演示反馈（owner）', (tester) async {
+  testWidgets('流程4d：租户 license 调整演示反馈（owner）', (tester) async {
     await tester.pumpWidget(const DemoApp());
     await tester.tap(find.byKey(const Key('role-owner')));
     await tester.tap(find.byKey(const Key('login-submit')));

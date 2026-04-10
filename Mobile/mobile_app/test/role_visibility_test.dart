@@ -17,30 +17,38 @@ void main() {
     expect(find.byKey(const Key('nav-alerts')), findsNothing);
   });
 
-  testWidgets('点击 role-worker -> 登录 -> 进入围栏页且不可见编辑按钮', (tester) async {
+  testWidgets('worker 进入围栏页后不可见编辑/删除按钮', (tester) async {
     await tester.pumpWidget(const DemoApp());
 
     await tester.tap(find.byKey(const Key('role-worker')));
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('围栏'));
+    await tester.tap(find.byKey(const Key('nav-fence')));
     await tester.pumpAndSettle();
 
-    expect(find.text('围栏页'), findsOneWidget);
-    expect(find.byKey(const Key('fence-edit-action')), findsNothing);
+    expect(find.byKey(const Key('page-fence')), findsOneWidget);
+    expect(find.byKey(const Key('fence-drawer-title')), findsOneWidget);
+    expect(find.byKey(const Key('fence-edit-fence_pasture_a')), findsNothing);
+    expect(find.byKey(const Key('fence-delete-fence_pasture_a')), findsNothing);
+    expect(find.byKey(const Key('fence-add')), findsNothing);
   });
 
-  testWidgets('owner 登录后 fence-edit-action 可见', (tester) async {
+  testWidgets('owner 进入围栏页后可见编辑/删除/新增按钮', (tester) async {
     await tester.pumpWidget(const DemoApp());
 
     await tester.tap(find.byKey(const Key('role-owner')));
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('围栏'));
+    await tester.tap(find.byKey(const Key('nav-fence')));
     await tester.pumpAndSettle();
 
-    expect(find.text('围栏页'), findsOneWidget);
-    expect(find.byKey(const Key('fence-edit-action')), findsOneWidget);
+    expect(find.byKey(const Key('page-fence')), findsOneWidget);
+    await tester.ensureVisible(
+        find.byKey(const Key('fence-edit-fence_pasture_a')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('fence-edit-fence_pasture_a')), findsOneWidget);
+    expect(find.byKey(const Key('fence-delete-fence_pasture_a')), findsOneWidget);
+    expect(find.byKey(const Key('fence-add')), findsOneWidget);
   });
 
   testWidgets('owner 可进入我的页并看到高保真个人卡片', (tester) async {
@@ -55,7 +63,7 @@ void main() {
     expect(find.byKey(const Key('mine-profile-card')), findsOneWidget);
   });
 
-  testWidgets('ops 登录后进入租户后台占位且不显示业务端围栏元素', (tester) async {
+  testWidgets('ops 登录后进入租户后台且不显示围栏元素', (tester) async {
     await tester.pumpWidget(const DemoApp());
 
     await tester.tap(find.byKey(const Key('role-ops')));
@@ -63,9 +71,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('租户后台占位'), findsOneWidget);
-    expect(find.text('围栏'), findsNothing);
-    expect(find.text('围栏页'), findsNothing);
-    expect(find.byKey(const Key('fence-edit-action')), findsNothing);
+    expect(find.byKey(const Key('nav-fence')), findsNothing);
+    expect(find.byKey(const Key('page-fence')), findsNothing);
   });
 
   test('ops 角色枚举存在', () {

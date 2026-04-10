@@ -1,32 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_livestock_demo/app/demo_app.dart';
+import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
 
 void main() {
-  testWidgets('地图筛选条件在路由切换后保持不丢失', (tester) async {
+  testWidgets('围栏选中状态在路由切换后保持', (tester) async {
     await tester.pumpWidget(const DemoApp());
     await tester.tap(find.byKey(const Key('role-owner')));
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('nav-map')));
+    await tester.tap(find.byKey(const Key('nav-fence')));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('map-animal-filter')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('SL-2024-002').last);
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('7d'));
+    final fenceCtx = tester.element(find.byKey(const Key('page-fence')));
+    ProviderScope.containerOf(fenceCtx)
+        .read(fenceControllerProvider.notifier)
+        .select('fence_pasture_a');
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('nav-alerts')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('nav-map')));
+    await tester.tap(find.byKey(const Key('nav-fence')));
     await tester.pumpAndSettle();
 
-    final summary = tester.widget<Text>(find.byKey(const Key('map-flow-summary')));
-    expect(summary.data, contains('SL-2024-002'));
-    expect(summary.data, contains('7d'));
+    final state = ProviderScope.containerOf(
+      tester.element(find.byKey(const Key('page-fence'))),
+    ).read(fenceControllerProvider);
+    expect(state.selectedFenceId, 'fence_pasture_a');
   });
 }

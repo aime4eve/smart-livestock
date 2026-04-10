@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/app/demo_app.dart';
@@ -8,8 +7,9 @@ import 'package:smart_livestock_demo/core/models/demo_models.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/features/dashboard/domain/dashboard_repository.dart';
 import 'package:smart_livestock_demo/features/dashboard/presentation/dashboard_controller.dart';
-import 'package:smart_livestock_demo/features/map/domain/map_repository.dart';
-import 'package:smart_livestock_demo/features/map/presentation/map_controller.dart';
+import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
+import 'package:smart_livestock_demo/features/fence/domain/fence_repository.dart';
+import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
 
 void main() {
   testWidgets('Dashboard 可通过仓储 override 注入自定义指标', (tester) async {
@@ -35,11 +35,13 @@ void main() {
     expect(find.text('999'), findsOneWidget);
   });
 
-  testWidgets('Map 可通过仓储 override 注入自定义摘要与回退列表', (tester) async {
+  testWidgets('Fence 可通过仓储 override 注入自定义围栏列表', (tester) async {
     await tester.pumpWidget(
       DemoApp(
         overrides: [
-          mapRepositoryProvider.overrideWithValue(const _FakeMapRepository()),
+          fenceRepositoryProvider.overrideWithValue(
+            const _FakeFenceRepository(),
+          ),
         ],
       ),
     );
@@ -47,18 +49,10 @@ void main() {
     await tester.tap(find.byKey(const Key('role-owner')));
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('nav-map')));
+    await tester.tap(find.byKey(const Key('nav-fence')));
     await tester.pumpAndSettle();
 
-    expect(find.text('自定义地图摘要'), findsOneWidget);
-
-    final mapCtx = tester.element(find.byKey(const Key('page-map')));
-    ProviderScope.containerOf(mapCtx)
-        .read(mapControllerProvider.notifier)
-        .setViewState(ViewState.error);
-    await tester.pumpAndSettle();
-
-    expect(find.text('自定义回退项'), findsOneWidget);
+    expect(find.text('测试围栏'), findsOneWidget);
   });
 }
 
@@ -80,35 +74,28 @@ class _FakeDashboardRepository implements DashboardRepository {
   }
 }
 
-class _FakeMapRepository implements MapRepository {
-  const _FakeMapRepository();
+class _FakeFenceRepository implements FenceRepository {
+  const _FakeFenceRepository();
 
   @override
-  MapViewData load({
-    required ViewState viewState,
-    required String selectedAnimal,
-    required TrajectoryRange selectedRange,
-  }) {
-    return MapViewData(
-      viewState: viewState,
-      availableAnimals: const ['耳标-X'],
-      selectedAnimal: '耳标-X',
-      selectedRange: TrajectoryRange.d30,
-      summaryText: '自定义地图摘要',
-      fallbackItems: const ['自定义回退项'],
-      mapCenter: const LatLng(30.25, 120.15),
-      zoom: 13.0,
-      livestockLocations: const [],
-      trajectoryPoints: const [],
-      fences: const [],
-      message: switch (viewState) {
-        ViewState.loading => '加载中',
-        ViewState.empty => '空态',
-        ViewState.error => '错误态',
-        ViewState.forbidden => '无权限',
-        ViewState.offline => '离线',
-        ViewState.normal => null,
-      },
-    );
+  List<FenceItem> loadAll() {
+    return [
+      FenceItem(
+        id: 'fake-fence-1',
+        name: '测试围栏',
+        type: FenceType.rectangle,
+        alarmEnabled: true,
+        active: true,
+        areaHectares: 5.0,
+        livestockCount: 10,
+        colorValue: 0xFF4C9A5F,
+        points: const [
+          LatLng(28.230, 112.940),
+          LatLng(28.230, 112.944),
+          LatLng(28.234, 112.944),
+          LatLng(28.234, 112.940),
+        ],
+      ),
+    ];
   }
 }
