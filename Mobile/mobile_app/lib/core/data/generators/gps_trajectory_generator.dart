@@ -1,13 +1,11 @@
 import 'dart:math';
 
 import 'package:latlong2/latlong.dart';
+import 'package:smart_livestock_demo/core/data/generators/time_series_generator.dart';
 import 'package:smart_livestock_demo/core/models/demo_models.dart';
 
-class GpsTrajectoryGenerator {
-  GpsTrajectoryGenerator({this.seed = 42});
-
-  final int seed;
-  final Map<String, List<GeoPoint>> _cache = {};
+class GpsTrajectoryGenerator extends TimeSeriesGenerator<GeoPoint> {
+  GpsTrajectoryGenerator({super.seed});
 
   static String _cacheKey(
     String earTag,
@@ -28,7 +26,7 @@ class GpsTrajectoryGenerator {
     required DateTime end,
   }) {
     final key = _cacheKey(earTag, fenceBoundary, start, end);
-    return _cache.putIfAbsent(key, () => _doGenerate(
+    return memoized(key, () => _doGenerate(
           earTag: earTag,
           fenceBoundary: fenceBoundary,
           start: start,
@@ -42,7 +40,7 @@ class GpsTrajectoryGenerator {
     required DateTime start,
     required DateTime end,
   }) {
-    final rng = Random(seed + earTag.hashCode);
+    final rng = rngForEntity(earTag);
     final points = <GeoPoint>[];
 
     final lats = fenceBoundary.map((p) => p.latitude).toList();

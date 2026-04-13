@@ -1,5 +1,4 @@
-import 'dart:math';
-
+import 'package:smart_livestock_demo/core/data/generators/time_series_generator.dart';
 import 'package:smart_livestock_demo/core/models/twin_models.dart';
 
 class AbnormalTempEvent {
@@ -14,11 +13,8 @@ class AbnormalTempEvent {
   final int durationHours;
 }
 
-class TemperatureGenerator {
-  TemperatureGenerator({this.seed = 42});
-
-  final int seed;
-  final Map<String, List<TemperatureRecord>> _cache = {};
+class TemperatureGenerator extends TimeSeriesGenerator<TemperatureRecord> {
+  TemperatureGenerator({super.seed});
 
   List<TemperatureRecord> generate({
     required String livestockId,
@@ -27,7 +23,7 @@ class TemperatureGenerator {
     required DateTime end,
     List<AbnormalTempEvent> abnormalEvents = const [],
   }) {
-    return _cache.putIfAbsent(livestockId, () => _doGenerate(
+    return memoized(livestockId, () => _doGenerate(
           livestockId: livestockId,
           baselineTemp: baselineTemp,
           start: start,
@@ -43,7 +39,7 @@ class TemperatureGenerator {
     required DateTime end,
     required List<AbnormalTempEvent> abnormalEvents,
   }) {
-    final rng = Random(seed + livestockId.hashCode);
+    final rng = rngForEntity(livestockId);
     final records = <TemperatureRecord>[];
 
     var t = start;

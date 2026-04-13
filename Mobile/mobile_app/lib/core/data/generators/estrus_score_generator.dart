@@ -1,12 +1,8 @@
-import 'dart:math';
-
+import 'package:smart_livestock_demo/core/data/generators/time_series_generator.dart';
 import 'package:smart_livestock_demo/core/models/twin_models.dart';
 
-class EstrusScoreGenerator {
-  EstrusScoreGenerator({this.seed = 42});
-
-  final int seed;
-  final Map<String, List<EstrusTrendPoint>> _cache = {};
+class EstrusScoreGenerator extends TimeSeriesGenerator<EstrusTrendPoint> {
+  EstrusScoreGenerator({super.seed});
 
   List<EstrusTrendPoint> generate({
     required String livestockId,
@@ -15,7 +11,7 @@ class EstrusScoreGenerator {
     required DateTime start,
     required DateTime end,
   }) {
-    return _cache.putIfAbsent(livestockId, () => _doGenerate(
+    return memoized(livestockId, () => _doGenerate(
           livestockId: livestockId,
           inEstrus: inEstrus,
           cycleDay: cycleDay,
@@ -31,7 +27,7 @@ class EstrusScoreGenerator {
     required DateTime start,
     required DateTime end,
   }) {
-    final rng = Random(seed + livestockId.hashCode);
+    final rng = rngForEntity(livestockId);
     final points = <EstrusTrendPoint>[];
 
     var t = start;
