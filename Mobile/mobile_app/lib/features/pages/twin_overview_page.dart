@@ -171,7 +171,8 @@ class TwinOverviewPage extends ConsumerWidget {
                         title: Text(data.pendingTasks[i].title),
                         subtitle: Text(data.pendingTasks[i].subtitle),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () => context.go(data.pendingTasks[i].routePath),
+                        onTap: () =>
+                            context.push(data.pendingTasks[i].routePath),
                       ),
                     ],
                   ],
@@ -193,7 +194,7 @@ class TwinOverviewPage extends ConsumerWidget {
                   value: _commaInt(stats.totalLivestock),
                   trend: stats.livestockTrend,
                   caption: stats.livestockCaption,
-                  onTap: () => context.go(AppRoute.twinEpidemic.path),
+                  onTap: () => context.push(AppRoute.twinEpidemic.path),
                 ),
                 HighfiStatTile(
                   title: '健康率',
@@ -207,7 +208,7 @@ class TwinOverviewPage extends ConsumerWidget {
                   value: '${stats.alertCount}',
                   caption: stats.alertCaption,
                   valueColor: alertColor,
-                  onTap: () => context.go(AppRoute.alerts.path),
+                  onTap: () => context.push(AppRoute.alerts.path),
                 ),
                 HighfiStatTile(
                   title: '设备在线',
@@ -226,7 +227,7 @@ class TwinOverviewPage extends ConsumerWidget {
               alertLevel: scene.fever.criticalCount > 0
                   ? 'critical'
                   : (scene.fever.abnormalCount > 0 ? 'warning' : null),
-              onTap: () => context.go(AppRoute.twinFever.path),
+              onTap: () => context.push(AppRoute.twinFever.path),
             ),
             const SizedBox(height: AppSpacing.md),
             TwinSceneCard(
@@ -238,7 +239,7 @@ class TwinOverviewPage extends ConsumerWidget {
               alertLevel: scene.digestive.abnormalCount > 0
                   ? 'critical'
                   : null,
-              onTap: () => context.go(AppRoute.twinDigestive.path),
+              onTap: () => context.push(AppRoute.twinDigestive.path),
             ),
             const SizedBox(height: AppSpacing.md),
             TwinSceneCard(
@@ -249,7 +250,7 @@ class TwinOverviewPage extends ConsumerWidget {
                   '${scene.estrus.highScoreCount} 头高分 · ${scene.estrus.breedingAdvice ? '建议配种' : '暂无需配种'}',
               alertLevel:
                   scene.estrus.highScoreCount > 0 ? 'warning' : null,
-              onTap: () => context.go(AppRoute.twinEstrus.path),
+              onTap: () => context.push(AppRoute.twinEstrus.path),
             ),
             const SizedBox(height: AppSpacing.md),
             TwinSceneCard(
@@ -259,7 +260,7 @@ class TwinOverviewPage extends ConsumerWidget {
               summary:
                   '${scene.epidemic.status == 'normal' ? '群体正常' : '需关注'} · 异常率 ${scene.epidemic.abnormalRate}%',
               alertLevel: null,
-              onTap: () => context.go(AppRoute.twinEpidemic.path),
+              onTap: () => context.push(AppRoute.twinEpidemic.path),
             ),
           ],
         );

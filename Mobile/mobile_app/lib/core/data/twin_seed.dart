@@ -101,7 +101,7 @@ class TwinSeed {
 
   static List<TemperatureBaseline> _buildFeverBaselines() {
     final result = <TemperatureBaseline>[];
-    for (var i = 1; i <= 30; i++) {
+    for (var i = 1; i <= 50; i++) {
       final id = i.toString().padLeft(4, '0');
       final baseTemp = 38.0 + (i % 6) * 0.25;
 
@@ -157,7 +157,7 @@ class TwinSeed {
 
   static List<DigestiveHealth> _buildDigestiveItems() {
     final result = <DigestiveHealth>[];
-    for (var i = 1; i <= 30; i++) {
+    for (var i = 1; i <= 50; i++) {
       final id = i.toString().padLeft(4, '0');
       final baseMot = 1.12 + (i % 5) * 0.07;
 

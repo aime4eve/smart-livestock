@@ -2,10 +2,17 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-const String _apiBaseUrl = String.fromEnvironment(
+const String _apiBaseUrlFromEnv = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'http://localhost:3001/api',
+  defaultValue: '',
 );
+
+String _resolveApiBaseUrl() {
+  if (_apiBaseUrlFromEnv.isNotEmpty) {
+    return _apiBaseUrlFromEnv;
+  }
+  return kIsWeb ? 'http://127.0.0.1:3001/api' : 'http://localhost:3001/api';
+}
 
 class ApiCache {
   ApiCache._();
@@ -148,10 +155,12 @@ class ApiCache {
     String path,
     Map<String, String> headers,
   ) async {
-    final response = await http.get(
-      Uri.parse('$_apiBaseUrl$path'),
-      headers: headers,
-    );
+    final response = await http
+        .get(
+          Uri.parse('${_resolveApiBaseUrl()}$path'),
+          headers: headers,
+        )
+        .timeout(const Duration(seconds: 20));
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       if (body['code'] == 'OK') {
