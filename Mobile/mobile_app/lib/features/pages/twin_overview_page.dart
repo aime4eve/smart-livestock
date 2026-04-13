@@ -121,6 +121,30 @@ class TwinOverviewPage extends ConsumerWidget {
                 ],
               ),
             ),
+            if (data.pastureHeadline != null && data.pastureDetail != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              HighfiCard(
+                key: const Key('twin-pasture-context'),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      data.pastureHeadline!,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      data.pastureDetail!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             if (data.pendingTasks.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.md),
               HighfiCard(

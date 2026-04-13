@@ -1,10 +1,15 @@
 import 'package:smart_livestock_demo/core/data/generators/estrus_score_generator.dart';
 import 'package:smart_livestock_demo/core/data/generators/motility_generator.dart';
 import 'package:smart_livestock_demo/core/data/generators/temperature_generator.dart';
+import 'package:smart_livestock_demo/core/data/twin_series_downsample.dart';
 import 'package:smart_livestock_demo/core/models/twin_models.dart';
 
 class TwinSeed {
   const TwinSeed._();
+
+  static const String overviewPastureHeadline = '当前演示牧区';
+  static const String overviewPastureDetail =
+      '本分区含 50 头演示个体；下方牲畜总数等指标为集团孪生汇总口径。';
 
   static final _tempGen = TemperatureGenerator(seed: 42);
   static final _motilityGen = MotilityGenerator(seed: 42);
@@ -134,12 +139,14 @@ class TwinSeed {
         livestockId: id,
         baselineTemp: double.parse(baseTemp.toStringAsFixed(1)),
         threshold: double.parse((baseTemp + 0.5).toStringAsFixed(1)),
-        recent72h: _tempGen.generate(
-          livestockId: id,
-          baselineTemp: baseTemp,
-          start: _start,
-          end: _end,
-          abnormalEvents: events,
+        recent72h: TwinSeriesDownsample.hourlyMeanTemperature(
+          _tempGen.generate(
+            livestockId: id,
+            baselineTemp: baseTemp,
+            start: _start,
+            end: _end,
+            abnormalEvents: events,
+          ),
         ),
         status: status,
         conclusion: conclusion,
@@ -177,11 +184,13 @@ class TwinSeed {
         motilityBaseline: double.parse(baseMot.toStringAsFixed(2)),
         status: status,
         advice: advice,
-        recent24h: _motilityGen.generate(
-          livestockId: id,
-          healthLevel: healthLevel,
-          start: _start,
-          end: _end,
+        recent24h: TwinSeriesDownsample.hourlyMeanMotility(
+          _motilityGen.generate(
+            livestockId: id,
+            healthLevel: healthLevel,
+            start: _start,
+            end: _end,
+          ),
         ),
       ));
     }

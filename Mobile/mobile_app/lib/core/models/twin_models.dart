@@ -23,6 +23,8 @@ class TwinOverviewViewData {
     this.sceneSummary,
     this.pendingTasks = const [],
     this.message,
+    this.pastureHeadline,
+    this.pastureDetail,
   });
 
   final ViewState viewState;
@@ -30,6 +32,8 @@ class TwinOverviewViewData {
   final TwinSceneSummary? sceneSummary;
   final List<TwinPendingTask> pendingTasks;
   final String? message;
+  final String? pastureHeadline;
+  final String? pastureDetail;
 }
 
 class TwinOverviewStats {

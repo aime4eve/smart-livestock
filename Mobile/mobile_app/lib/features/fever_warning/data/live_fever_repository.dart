@@ -1,4 +1,5 @@
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
+import 'package:smart_livestock_demo/core/data/twin_series_downsample.dart';
 import 'package:smart_livestock_demo/core/models/twin_models.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/features/fever_warning/data/mock_fever_repository.dart';
@@ -64,7 +65,7 @@ class LiveFeverRepository implements FeverRepository {
         livestockId: id,
         baselineTemp: (m['baselineTemp'] as num).toDouble(),
         threshold: (m['threshold'] as num).toDouble(),
-        recent72h: records,
+        recent72h: TwinSeriesDownsample.hourlyMeanTemperature(records),
         status: m['status'] as String,
         conclusion: m['conclusion'] as String?,
       );

@@ -179,4 +179,55 @@ const tenants = [
   { id: 'tenant_002', name: '西部高原牧场', status: 'active', licenseUsed: 120, licenseTotal: 200 },
 ];
 
-module.exports = { users, dashboardMetrics, animals, fences, alerts, tenants };
+function generateDevices() {
+  const result = [];
+  function addBatch(count, idPrefix, type, namePrefix, onlineCount, offlineCount, lowBatteryCount) {
+    for (let i = 1; i <= count; i++) {
+      const id = `${idPrefix}-${i.toString().padStart(3, '0')}`;
+      const name = `${namePrefix}-${i.toString().padStart(3, '0')}`;
+      const earTag = `SL-2024-${i.toString().padStart(3, '0')}`;
+      let status;
+      if (i <= onlineCount) {
+        status = 'online';
+      } else if (i <= onlineCount + offlineCount) {
+        status = 'offline';
+      } else {
+        status = 'lowBattery';
+      }
+      let batteryPercent;
+      let signalStrength;
+      let lastSync;
+      if (status === 'online') {
+        batteryPercent = 60 + ((i * 3) % 35);
+        signalStrength = i % 3 === 0 ? '中' : '强';
+        lastSync = `${1 + (i % 5)} 分钟前`;
+      } else if (status === 'lowBattery') {
+        batteryPercent = 5 + (i % 10);
+        signalStrength = '弱';
+        lastSync = `${10 + (i % 20)} 分钟前`;
+      } else {
+        batteryPercent = null;
+        signalStrength = '无';
+        lastSync = `${1 + (i % 6)} 小时前`;
+      }
+      result.push({
+        id,
+        name,
+        type,
+        status,
+        boundEarTag: earTag,
+        batteryPercent,
+        signalStrength,
+        lastSync,
+      });
+    }
+  }
+  addBatch(50, 'DEV-GPS', 'gps', 'GPS追踪器', 42, 4, 4);
+  addBatch(30, 'DEV-RC', 'rumenCapsule', '瘤胃胶囊', 26, 2, 2);
+  addBatch(20, 'DEV-ACC', 'accelerometer', '加速度计', 17, 2, 1);
+  return result;
+}
+
+const devices = generateDevices();
+
+module.exports = { users, dashboardMetrics, animals, fences, alerts, tenants, devices };

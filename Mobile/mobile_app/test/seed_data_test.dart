@@ -189,12 +189,14 @@ void main() {
   test('TwinSeed fever baselines have temperature records', () {
     for (final b in TwinSeed.feverBaselines) {
       expect(b.recent72h, isNotEmpty);
+      expect(b.recent72h.length, lessThanOrEqualTo(200));
     }
   });
 
   test('TwinSeed digestive items have motility records', () {
     for (final d in TwinSeed.digestiveItems) {
       expect(d.recent24h, isNotEmpty);
+      expect(d.recent24h.length, lessThanOrEqualTo(200));
     }
   });
 }

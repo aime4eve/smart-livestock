@@ -15,6 +15,10 @@ class MockTwinOverviewRepository implements TwinOverviewRepository {
           desiredState == ViewState.normal ? TwinSeed.sceneSummary : null,
       pendingTasks:
           desiredState == ViewState.normal ? TwinSeed.pendingTasks : const [],
+      pastureHeadline:
+          desiredState == ViewState.normal ? TwinSeed.overviewPastureHeadline : null,
+      pastureDetail:
+          desiredState == ViewState.normal ? TwinSeed.overviewPastureDetail : null,
       message: switch (desiredState) {
         ViewState.loading => '加载中',
         ViewState.empty => '暂无孪生数据',

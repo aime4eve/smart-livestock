@@ -28,6 +28,7 @@ class ApiCache {
   List<Map<String, dynamic>> _estrusList = [];
   Map<String, dynamic>? _epidemicSummary;
   List<Map<String, dynamic>> _epidemicContacts = [];
+  List<Map<String, dynamic>> _devices = [];
 
   List<Map<String, dynamic>> get dashboardMetrics => _dashboardMetrics;
   List<Map<String, dynamic>> get animals => _animals;
@@ -43,6 +44,7 @@ class ApiCache {
   List<Map<String, dynamic>> get estrusList => _estrusList;
   Map<String, dynamic>? get epidemicSummary => _epidemicSummary;
   List<Map<String, dynamic>> get epidemicContacts => _epidemicContacts;
+  List<Map<String, dynamic>> get devices => _devices;
 
   Future<void> init(String role) async {
     final token = 'mock-token-$role';
@@ -65,6 +67,7 @@ class ApiCache {
         _get('/twin/estrus/list', headers),
         _get('/twin/epidemic/summary', headers),
         _get('/twin/epidemic/contacts', headers),
+        _get('/devices?pageSize=200', headers),
       ]);
 
       final dashData = results[0];
@@ -127,6 +130,12 @@ class ApiCache {
       if (contactsData != null) {
         _epidemicContacts =
             List<Map<String, dynamic>>.from(contactsData['items'] ?? []);
+      }
+
+      final devicesData = results[12];
+      if (devicesData != null) {
+        _devices =
+            List<Map<String, dynamic>>.from(devicesData['items'] ?? []);
       }
 
       _initialized = true;

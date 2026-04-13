@@ -12,6 +12,7 @@ const fencesRoutes = require('./routes/fences');
 const tenantsRoutes = require('./routes/tenants');
 const profileRoutes = require('./routes/profile');
 const twinRoutes = require('./routes/twin');
+const devicesRoutes = require('./routes/devices');
 
 const app = express();
 const PORT = 3001;
@@ -31,6 +32,7 @@ app.use('/api/fences', fencesRoutes);
 app.use('/api/tenants', tenantsRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/twin', twinRoutes);
+app.use('/api/devices', devicesRoutes);
 
 // 404 fallback
 app.use((req, res) => {
@@ -66,6 +68,7 @@ const ROUTE_TABLE = [
   ['GET',    '/api/twin/estrus/:id'],
   ['GET',    '/api/twin/epidemic/summary'],
   ['GET',    '/api/twin/epidemic/contacts'],
+  ['GET',    '/api/devices'],
 ];
 
 // Start server
