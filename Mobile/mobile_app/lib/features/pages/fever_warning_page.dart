@@ -127,7 +127,7 @@ class FeverWarningPage extends ConsumerWidget {
               _FeverListItem(
                 key: Key('fever-item-${item.livestockId}'),
                 item: item,
-                onTap: () => context.go(
+                onTap: () => context.push(
                   AppRoute.twinFeverDetail.path.replaceFirst(
                     ':livestockId',
                     item.livestockId,

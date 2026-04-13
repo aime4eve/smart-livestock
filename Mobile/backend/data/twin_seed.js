@@ -1,4 +1,8 @@
 const overview = {
+  pastureBanner: {
+    headline: '当前演示牧区',
+    detail: '本分区含 50 头演示个体；下方牲畜总数等指标为集团孪生汇总口径。',
+  },
   stats: {
     totalLivestock: 3847,
     healthyRate: 99.1,
@@ -25,8 +29,127 @@ const overview = {
   ],
 };
 
-function tempPoint(t, temp) {
-  return { temperature: temp, timestamp: t };
+function mulberry32(a) {
+  return function () {
+    let t = (a += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function hashCodeStr(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  }
+  return h >>> 0;
+}
+
+function reduceTemperatureToHourlyMean(points) {
+  const groups = new Map();
+  for (const p of points) {
+    const d = new Date(p.timestamp);
+    const k = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours());
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(p.temperature);
+  }
+  const keys = [...groups.keys()].sort((a, b) => a - b);
+  return keys.map((k) => ({
+    temperature: +(groups.get(k).reduce((s, x) => s + x, 0) / groups.get(k).length).toFixed(2),
+    timestamp: new Date(k).toISOString(),
+  }));
+}
+
+function buildThirtyMinuteTempSeries(livestockId, baselineTemp, status) {
+  const rng = mulberry32((hashCodeStr(livestockId) + 42) >>> 0);
+  const records = [];
+  const start = Date.UTC(2026, 3, 1);
+  const end = Date.UTC(2026, 3, 8);
+  for (let t = start; t < end; t += 30 * 60 * 1000) {
+    const d = new Date(t);
+    const hour = d.getUTCHours();
+    const circadian = hour >= 8 && hour <= 18 ? 0.2 : -0.1;
+    const noise = (rng() - 0.5) * 0.2;
+    let temp = baselineTemp + circadian + noise;
+    if (status === 'critical') {
+      const spike = (t - Date.UTC(2026, 3, 5, 10)) / (1000 * 60 * 60);
+      if (spike >= 0 && spike < 48) {
+        const progress = spike / 48;
+        const envelope = progress < 0.3 ? progress / 0.3 : 1 - (progress - 0.3) / 0.7;
+        temp += 1.5 * envelope;
+      }
+    } else if (status === 'warning') {
+      const spike = (t - Date.UTC(2026, 3, 6, 14)) / (1000 * 60 * 60);
+      if (spike >= 0 && spike < 24) {
+        const progress = spike / 24;
+        const envelope = progress < 0.3 ? progress / 0.3 : 1 - (progress - 0.3) / 0.7;
+        temp += 0.6 * envelope;
+      }
+    }
+    records.push({
+      temperature: +temp.toFixed(2),
+      timestamp: d.toISOString(),
+    });
+  }
+  return reduceTemperatureToHourlyMean(records);
+}
+
+function reduceMotilityToHourlyMean(points) {
+  const freqG = new Map();
+  const intG = new Map();
+  for (const p of points) {
+    const d = new Date(p.timestamp);
+    const k = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours());
+    if (!freqG.has(k)) {
+      freqG.set(k, []);
+      intG.set(k, []);
+    }
+    freqG.get(k).push(p.frequency);
+    intG.get(k).push(p.intensity);
+  }
+  const keys = [...freqG.keys()].sort((a, b) => a - b);
+  return keys.map((k) => ({
+    frequency: +(freqG.get(k).reduce((s, x) => s + x, 0) / freqG.get(k).length).toFixed(2),
+    intensity: +(intG.get(k).reduce((s, x) => s + x, 0) / intG.get(k).length).toFixed(2),
+    timestamp: new Date(k).toISOString(),
+  }));
+}
+
+function buildThirtyMinuteMotilitySeries(livestockId, healthLevel) {
+  const rng = mulberry32((hashCodeStr(`${livestockId}_${healthLevel}`) + 42) >>> 0);
+  const records = [];
+  const start = Date.UTC(2026, 3, 1);
+  const end = Date.UTC(2026, 3, 8);
+  for (let t = start; t < end; t += 30 * 60 * 1000) {
+    const d = new Date(t);
+    const hour = d.getUTCHours();
+    let baseRpm;
+    if ((hour >= 6 && hour < 10) || (hour >= 16 && hour < 20)) {
+      baseRpm = 1.1 + rng() * 0.45;
+    } else if (hour >= 23 || hour < 5) {
+      baseRpm = 0.72 + rng() * 0.32;
+    } else {
+      baseRpm = 0.92 + rng() * 0.42;
+    }
+    let freq = baseRpm + (rng() - 0.5) * 0.14;
+    if (healthLevel === 'critical') {
+      freq *= 0.06 + rng() * 0.14;
+      if (rng() < 0.38) {
+        freq = 0;
+      }
+    } else if (healthLevel === 'warning') {
+      freq *= 0.38 + rng() * 0.22;
+    }
+    freq = Math.min(2.2, Math.max(0, freq));
+    const intensity = freq > 0.12 ? 0.45 + rng() * 0.45 : 0;
+    records.push({
+      frequency: +freq.toFixed(2),
+      intensity: +intensity.toFixed(2),
+      timestamp: d.toISOString(),
+    });
+  }
+  return reduceMotilityToHourlyMean(records);
 }
 
 function buildFeverList() {
@@ -52,14 +175,7 @@ function buildFeverList() {
       threshold: +(base + 0.5).toFixed(1),
       status,
       conclusion,
-      recent72h: [
-        tempPoint('2026-04-05T10:00:00Z', base),
-        tempPoint('2026-04-06T10:00:00Z', status === 'critical' ? base + 1.0 : base + 0.1),
-        tempPoint(
-          '2026-04-07T10:00:00Z',
-          status === 'critical' ? base + 1.5 : status === 'warning' ? base + 0.5 : base + 0.05,
-        ),
-      ],
+      recent72h: buildThirtyMinuteTempSeries(id, base, status),
     });
   }
   return result;
@@ -74,28 +190,26 @@ function buildDigestiveList() {
     const base = 1.3 + (i % 5) * 0.05;
     let status;
     let advice;
+    let healthLevel;
     if (i >= 29) {
       status = 'critical';
       advice = '蠕动完全停止，疑似瘤胃臌气，需立即处理';
+      healthLevel = 'critical';
     } else if (i >= 26) {
       status = 'warning';
       advice = '蠕动频率下降，建议检查饲粮与饮水';
+      healthLevel = 'warning';
     } else {
       status = 'normal';
       advice = '蠕动节律正常';
+      healthLevel = 'normal';
     }
     result.push({
       livestockId: id,
       motilityBaseline: +base.toFixed(2),
       status,
       advice,
-      recent24h: [
-        {
-          frequency: status === 'critical' ? 0 : base,
-          intensity: status === 'critical' ? 0 : 0.8,
-          timestamp: '2026-04-07T10:00:00Z',
-        },
-      ],
+      recent24h: buildThirtyMinuteMotilitySeries(id, healthLevel),
     });
   }
   return result;

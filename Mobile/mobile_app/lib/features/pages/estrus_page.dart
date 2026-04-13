@@ -119,7 +119,7 @@ class EstrusPage extends ConsumerWidget {
               _EstrusListItem(
                 key: Key('estrus-item-${item.livestockId}'),
                 item: item,
-                onTap: () => context.go(
+                onTap: () => context.push(
                   AppRoute.twinEstrusDetail.path.replaceFirst(
                     ':livestockId',
                     item.livestockId,

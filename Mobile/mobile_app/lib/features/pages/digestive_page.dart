@@ -135,7 +135,7 @@ class DigestivePage extends ConsumerWidget {
                 key: Key('digestive-item-${item.livestockId}'),
                 item: item,
                 motilityLabel: _motilityLabel(item.status),
-                onTap: () => context.go(
+                onTap: () => context.push(
                   AppRoute.twinDigestiveDetail.path.replaceFirst(
                     ':livestockId',
                     item.livestockId,

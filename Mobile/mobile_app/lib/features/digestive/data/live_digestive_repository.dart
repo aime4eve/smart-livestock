@@ -1,4 +1,5 @@
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
+import 'package:smart_livestock_demo/core/data/twin_series_downsample.dart';
 import 'package:smart_livestock_demo/core/models/twin_models.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/features/digestive/data/mock_digestive_repository.dart';
@@ -63,7 +64,7 @@ class LiveDigestiveRepository implements DigestiveRepository {
         motilityBaseline: (m['motilityBaseline'] as num).toDouble(),
         status: m['status'] as String,
         advice: m['advice'] as String?,
-        recent24h: records,
+        recent24h: TwinSeriesDownsample.hourlyMeanMotility(records),
       );
     } catch (_) {
       return null;

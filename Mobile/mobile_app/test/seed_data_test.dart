@@ -165,19 +165,19 @@ void main() {
     }
   });
 
-  test('TwinSeed has 30 fever baselines', () {
-    expect(TwinSeed.feverBaselines.length, 30);
+  test('TwinSeed has 50 fever baselines', () {
+    expect(TwinSeed.feverBaselines.length, 50);
   });
 
-  test('TwinSeed fever baselines use livestockId 0001-0030', () {
+  test('TwinSeed fever baselines use livestockId 0001-0050', () {
     final ids = TwinSeed.feverBaselines.map((b) => b.livestockId).toSet();
-    for (var i = 1; i <= 30; i++) {
+    for (var i = 1; i <= 50; i++) {
       expect(ids.contains(i.toString().padLeft(4, '0')), isTrue);
     }
   });
 
-  test('TwinSeed has 30 digestive items', () {
-    expect(TwinSeed.digestiveItems.length, 30);
+  test('TwinSeed has 50 digestive items', () {
+    expect(TwinSeed.digestiveItems.length, 50);
   });
 
   test('TwinSeed has 3 estrus items in estrus', () {
@@ -189,12 +189,14 @@ void main() {
   test('TwinSeed fever baselines have temperature records', () {
     for (final b in TwinSeed.feverBaselines) {
       expect(b.recent72h, isNotEmpty);
+      expect(b.recent72h.length, lessThanOrEqualTo(200));
     }
   });
 
   test('TwinSeed digestive items have motility records', () {
     for (final d in TwinSeed.digestiveItems) {
       expect(d.recent24h, isNotEmpty);
+      expect(d.recent24h.length, lessThanOrEqualTo(200));
     }
   });
 }

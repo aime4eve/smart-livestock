@@ -1,4 +1,5 @@
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
+import 'package:smart_livestock_demo/core/data/twin_seed.dart';
 import 'package:smart_livestock_demo/core/models/twin_models.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/features/twin_overview/data/mock_twin_overview_repository.dart';
@@ -22,6 +23,14 @@ class LiveTwinOverviewRepository implements TwinOverviewRepository {
     if (statsMap == null || sceneMap == null) {
       return _fallback.load(desiredState);
     }
+
+    final banner = raw['pastureBanner'] as Map<String, dynamic>?;
+    final pastureHeadline = (banner?['headline'] as String?)?.trim().isNotEmpty == true
+        ? banner!['headline'] as String
+        : TwinSeed.overviewPastureHeadline;
+    final pastureDetail = (banner?['detail'] as String?)?.trim().isNotEmpty == true
+        ? banner!['detail'] as String
+        : TwinSeed.overviewPastureDetail;
 
     final fever = sceneMap['fever'] as Map<String, dynamic>?;
     final digestive = sceneMap['digestive'] as Map<String, dynamic>?;
@@ -83,6 +92,8 @@ class LiveTwinOverviewRepository implements TwinOverviewRepository {
       stats: stats,
       sceneSummary: sceneSummary,
       pendingTasks: pendingTasks,
+      pastureHeadline: desiredState == ViewState.normal ? pastureHeadline : null,
+      pastureDetail: desiredState == ViewState.normal ? pastureDetail : null,
       message: switch (desiredState) {
         ViewState.loading => '加载中',
         ViewState.empty => '暂无孪生数据',
