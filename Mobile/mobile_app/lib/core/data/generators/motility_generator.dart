@@ -1,12 +1,8 @@
-import 'dart:math';
-
+import 'package:smart_livestock_demo/core/data/generators/time_series_generator.dart';
 import 'package:smart_livestock_demo/core/models/twin_models.dart';
 
-class MotilityGenerator {
-  MotilityGenerator({this.seed = 42});
-
-  final int seed;
-  final Map<String, List<MotilityRecord>> _cache = {};
+class MotilityGenerator extends TimeSeriesGenerator<MotilityRecord> {
+  MotilityGenerator({super.seed});
 
   List<MotilityRecord> generate({
     required String livestockId,
@@ -15,7 +11,7 @@ class MotilityGenerator {
     required DateTime end,
   }) {
     final key = '${livestockId}_$healthLevel';
-    return _cache.putIfAbsent(key, () => _doGenerate(
+    return memoized(key, () => _doGenerate(
           livestockId: livestockId,
           healthLevel: healthLevel,
           start: start,
@@ -29,7 +25,7 @@ class MotilityGenerator {
     required DateTime start,
     required DateTime end,
   }) {
-    final rng = Random(seed + livestockId.hashCode);
+    final rng = rngForEntity(livestockId);
     final records = <MotilityRecord>[];
 
     var t = start;
