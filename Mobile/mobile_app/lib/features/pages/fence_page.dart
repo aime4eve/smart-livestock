@@ -11,6 +11,7 @@ import 'package:smart_livestock_demo/app/session/session_controller.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/api/api_role.dart';
 import 'package:smart_livestock_demo/core/data/demo_seed.dart';
+import 'package:smart_livestock_demo/core/data/generators/gps_trajectory_generator.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
 import 'package:smart_livestock_demo/core/mock/mock_config.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
@@ -30,6 +31,7 @@ class FencePage extends ConsumerStatefulWidget {
 
 class _FencePageState extends ConsumerState<FencePage> {
   final _mapController = MapController();
+  final _trajectoryGenerator = GpsTrajectoryGenerator(seed: 42);
   bool _panelOpen = false;
 
   @override
@@ -103,6 +105,9 @@ class _FencePageState extends ConsumerState<FencePage> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final panelW = min(300.0, constraints.maxWidth * 0.82);
+        final mockTrajectoryPoints = appMode.isMock
+            ? _buildMockTrajectoryPoints(fenceState)
+            : const <LatLng>[];
         return Stack(
           clipBehavior: Clip.none,
           children: [
@@ -134,6 +139,16 @@ class _FencePageState extends ConsumerState<FencePage> {
                       );
                     }).toList(),
                   ),
+                  if (appMode.isMock && mockTrajectoryPoints.isNotEmpty)
+                    PolylineLayer(
+                      polylines: [
+                        Polyline(
+                          points: mockTrajectoryPoints,
+                          color: AppColors.primary,
+                          strokeWidth: 3,
+                        ),
+                      ],
+                    ),
                   if (appMode.isLive &&
                       ApiCache.instance.initialized &&
                       ApiCache.instance.mapTrajectoryPoints.isNotEmpty)
@@ -337,6 +352,40 @@ class _FencePageState extends ConsumerState<FencePage> {
           ),
         ),
     ];
+  }
+
+  List<LatLng> _buildMockTrajectoryPoints(FenceState fenceState) {
+    final selectedFenceId =
+        fenceState.selectedFenceId ?? 'fence_pasture_a';
+    List<LatLng>? boundary;
+    for (final fence in fenceState.fences) {
+      if (fence.id == selectedFenceId) {
+        boundary = fence.points;
+        break;
+      }
+    }
+    if (boundary == null || boundary.length < 2) {
+      return const [];
+    }
+
+    String? earTag;
+    for (final livestock in DemoSeed.livestock) {
+      if (livestock.fenceId == selectedFenceId) {
+        earTag = livestock.earTag;
+        break;
+      }
+    }
+    final activeEarTag = earTag ?? DemoSeed.earTags.first;
+    final restFence = DemoSeed.fencePointsById('fence_rest');
+    final points = _trajectoryGenerator.generate(
+      earTag: activeEarTag,
+      fenceBoundary: boundary,
+      restFenceBoundary: restFence.isEmpty ? null : restFence,
+      anchorPoints: DemoSeed.gpsAnchorPoints,
+      start: DateTime.utc(2026, 4, 7, 10),
+      end: DateTime.utc(2026, 4, 8, 10),
+    );
+    return points.map((p) => p.toLatLng()).toList();
   }
 
   LatLng _fenceCenter(List<LatLng> points) {

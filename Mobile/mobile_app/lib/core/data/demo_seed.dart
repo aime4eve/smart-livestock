@@ -11,6 +11,13 @@ class DemoSeed {
 
   static const List<GeoPoint> trajectoryPoints = [];
 
+  static const List<LatLng> gpsAnchorPoints = [
+    LatLng(28.2336, 112.9435),
+    LatLng(28.2312, 112.9409),
+    LatLng(28.2268, 112.9342),
+    LatLng(28.2254, 112.9357),
+  ];
+
   static const List<FencePolygon> fencePolygons = [
     FencePolygon(
       id: 'fence_pasture_a',
@@ -67,6 +74,15 @@ class DemoSeed {
   ];
 
   static final List<LivestockInfo> livestock = _generateLivestock();
+
+  static List<LatLng> fencePointsById(String fenceId) {
+    for (final fence in fencePolygons) {
+      if (fence.id == fenceId) {
+        return fence.points;
+      }
+    }
+    return const [];
+  }
 
   static List<String> get earTags =>
       livestock.map((l) => l.earTag).toList();
