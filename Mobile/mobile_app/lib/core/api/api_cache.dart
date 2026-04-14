@@ -7,11 +7,18 @@ const String _apiBaseUrlFromEnv = String.fromEnvironment(
   defaultValue: '',
 );
 
-String _resolveApiBaseUrl() {
+String resolveApiBaseUrl() {
   if (_apiBaseUrlFromEnv.isNotEmpty) {
     return _apiBaseUrlFromEnv;
   }
   return kIsWeb ? 'http://127.0.0.1:3001/api' : 'http://localhost:3001/api';
+}
+
+Map<String, String> _headers(String role) {
+  return {
+    'Authorization': 'Bearer mock-token-$role',
+    'Content-Type': 'application/json',
+  };
 }
 
 class ApiCache {
@@ -54,11 +61,7 @@ class ApiCache {
   List<Map<String, dynamic>> get devices => _devices;
 
   Future<void> init(String role) async {
-    final token = 'mock-token-$role';
-    final headers = {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    };
+    final headers = _headers(role);
 
     try {
       final results = await Future.wait([
@@ -157,7 +160,7 @@ class ApiCache {
   ) async {
     final response = await http
         .get(
-          Uri.parse('${_resolveApiBaseUrl()}$path'),
+          Uri.parse('${resolveApiBaseUrl()}$path'),
           headers: headers,
         )
         .timeout(const Duration(seconds: 20));
@@ -168,5 +171,75 @@ class ApiCache {
       }
     }
     return null;
+  }
+
+  Future<void> refreshFencesAndMap(String role) async {
+    final headers = _headers(role);
+    final fencesData = await _get('/fences?pageSize=100', headers);
+    if (fencesData != null) {
+      _fences =
+          List<Map<String, dynamic>>.from(fencesData['items'] ?? []);
+    }
+    final mapData = await _get(
+      '/map/trajectories?animalId=animal_001&range=24h',
+      headers,
+    );
+    if (mapData != null) {
+      _animals =
+          List<Map<String, dynamic>>.from(mapData['animals'] ?? []);
+      _mapTrajectoryPoints =
+          List<Map<String, dynamic>>.from(mapData['points'] ?? []);
+    }
+  }
+
+  Future<bool> deleteFenceRemote(String role, String id) async {
+    final response = await http
+        .delete(
+          Uri.parse('${resolveApiBaseUrl()}/fences/$id'),
+          headers: _headers(role),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      return body['code'] == 'OK';
+    }
+    return false;
+  }
+
+  Future<bool> createFenceRemote(
+    String role,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await http
+        .post(
+          Uri.parse('${resolveApiBaseUrl()}/fences'),
+          headers: _headers(role),
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      return decoded['code'] == 'OK';
+    }
+    return false;
+  }
+
+  Future<bool> updateFenceRemote(
+    String role,
+    String id,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await http
+        .put(
+          Uri.parse('${resolveApiBaseUrl()}/fences/$id'),
+          headers: _headers(role),
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      return decoded['code'] == 'OK';
+    }
+    return false;
   }
 }

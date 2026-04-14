@@ -1,6 +1,8 @@
 const { Router } = require('express');
 const { authMiddleware, requirePermission } = require('../middleware/auth');
-const { animals, fences } = require('../data/seed');
+const { animals } = require('../data/seed');
+const fenceStore = require('../data/fenceStore');
+const { boundaryStatusForPoint } = require('../utils/geo');
 
 const router = Router();
 
@@ -23,13 +25,26 @@ router.get(
 
     const points = generateTrajectory(selected, since, now);
 
+    const fenceList = fenceStore.getAll();
+    const animalsOut = animals.map((a) => {
+      const boundaryStatus = boundaryStatusForPoint(fenceList, a.lng, a.lat);
+      return {
+        id: a.id,
+        earTag: a.earTag,
+        lat: a.lat,
+        lng: a.lng,
+        fenceId: a.fenceId,
+        boundaryStatus,
+      };
+    });
+
     res.ok({
-      animals: animals.map((a) => ({ id: a.id, earTag: a.earTag, lat: a.lat, lng: a.lng })),
+      animals: animalsOut,
       selectedAnimalId: selected.id,
       selectedRange: range,
       summaryText: `${selected.earTag} · ${range}`,
       points,
-      fences,
+      fences: fenceList,
       fallbackList: animals.slice(0, 5).map((a) => ({ label: `${a.earTag} · 最近点` })),
     });
   },

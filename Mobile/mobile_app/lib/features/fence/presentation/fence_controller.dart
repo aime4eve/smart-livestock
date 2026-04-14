@@ -55,6 +55,19 @@ class FenceController extends Notifier<FenceState> {
       viewState: newFences.isEmpty ? ViewState.empty : state.viewState,
     );
   }
+
+  void reloadFromRepository() {
+    final fences = ref.read(fenceRepositoryProvider).loadAll();
+    var selected = state.selectedFenceId;
+    if (selected != null && !fences.any((f) => f.id == selected)) {
+      selected = null;
+    }
+    state = FenceState(
+      fences: fences,
+      selectedFenceId: selected,
+      viewState: fences.isEmpty ? ViewState.empty : ViewState.normal,
+    );
+  }
 }
 
 final fenceControllerProvider =
