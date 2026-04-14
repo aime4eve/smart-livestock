@@ -4,6 +4,25 @@ const fenceStore = require('../data/fenceStore');
 
 const router = Router();
 
+function handleValidationError(res, error) {
+  if (error === 'name_required') {
+    return res.fail(422, 'VALIDATION_ERROR', 'name 为必填项');
+  }
+  if (error === 'type_invalid') {
+    return res.fail(422, 'VALIDATION_ERROR', 'type 必须为 polygon / circle / rectangle');
+  }
+  if (error === 'coordinates_invalid') {
+    return res.fail(422, 'VALIDATION_ERROR', 'coordinates 必须为至少 3 个有效坐标点');
+  }
+  if (error === 'alarm_enabled_invalid') {
+    return res.fail(422, 'VALIDATION_ERROR', 'alarmEnabled 必须为布尔值');
+  }
+  if (error === 'status_invalid') {
+    return res.fail(422, 'VALIDATION_ERROR', 'status 必须为 active / inactive');
+  }
+  return null;
+}
+
 router.get(
   '/',
   authMiddleware,
@@ -14,14 +33,28 @@ router.get(
   },
 );
 
+router.get(
+  '/:id',
+  authMiddleware,
+  requirePermission('fence:view'),
+  (req, res) => {
+    const { id } = req.params;
+    const fence = fenceStore.findById(id);
+    if (!fence) {
+      return res.fail(404, 'RESOURCE_NOT_FOUND', '围栏不存在');
+    }
+    res.ok(fence);
+  },
+);
+
 router.post(
   '/',
   authMiddleware,
   requirePermission('fence:manage'),
   (req, res) => {
     const result = fenceStore.createFence(req.body || {});
-    if (result.error === 'name_required') {
-      return res.fail(422, 'VALIDATION_ERROR', 'name 为必填项');
+    if (result.error) {
+      return handleValidationError(res, result.error);
     }
     res.ok(result.fence);
   },
@@ -36,6 +69,9 @@ router.put(
     const result = fenceStore.updateFence(id, req.body || {});
     if (result.error === 'not_found') {
       return res.fail(404, 'RESOURCE_NOT_FOUND', '围栏不存在');
+    }
+    if (result.error) {
+      return handleValidationError(res, result.error);
     }
     res.ok(result.fence);
   },

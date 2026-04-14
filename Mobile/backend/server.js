@@ -51,6 +51,7 @@ const ROUTE_TABLE = [
   ['POST',   '/api/alerts/:id/archive'],
   ['POST',   '/api/alerts/batch-handle'],
   ['GET',    '/api/fences'],
+  ['GET',    '/api/fences/:id'],
   ['POST',   '/api/fences'],
   ['PUT',    '/api/fences/:id'],
   ['DELETE', '/api/fences/:id'],

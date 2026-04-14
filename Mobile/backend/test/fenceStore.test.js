@@ -1,0 +1,82 @@
+const assert = require('assert');
+const fenceStore = require('../data/fenceStore');
+
+fenceStore.reset();
+
+const created = fenceStore.createFence({
+  name: '  新围栏  ',
+  type: 'rectangle',
+  coordinates: [
+    [112.1, 28.1],
+    [112.2, 28.2],
+    [112.3, 28.3],
+  ],
+  alarmEnabled: false,
+});
+assert.ok(!created.error);
+assert.strictEqual(created.fence.name, '新围栏');
+assert.strictEqual(created.fence.type, 'rectangle');
+assert.strictEqual(created.fence.alarmEnabled, false);
+
+const invalidCreate = fenceStore.createFence({
+  name: '',
+  type: 'triangle',
+  coordinates: [[112.1, 28.1]],
+});
+assert.strictEqual(invalidCreate.error, 'name_required');
+
+const invalidType = fenceStore.createFence({
+  name: '围栏2',
+  type: 'triangle',
+});
+assert.strictEqual(invalidType.error, 'type_invalid');
+
+const invalidCoordinates = fenceStore.createFence({
+  name: '围栏3',
+  coordinates: [[112.1, 28.1]],
+});
+assert.strictEqual(invalidCoordinates.error, 'coordinates_invalid');
+
+const invalidAlarmEnabled = fenceStore.createFence({
+  name: '围栏4',
+  coordinates: [
+    [112.1, 28.1],
+    [112.2, 28.2],
+    [112.3, 28.3],
+  ],
+  alarmEnabled: 'yes',
+});
+assert.strictEqual(invalidAlarmEnabled.error, 'alarm_enabled_invalid');
+
+const existedFence = fenceStore.getAll()[0];
+const updated = fenceStore.updateFence(existedFence.id, {
+  name: '  更新后围栏  ',
+  status: 'inactive',
+});
+assert.ok(!updated.error);
+assert.strictEqual(updated.fence.name, '更新后围栏');
+assert.strictEqual(updated.fence.status, 'inactive');
+
+const invalidUpdateStatus = fenceStore.updateFence(existedFence.id, {
+  status: 'disabled',
+});
+assert.strictEqual(invalidUpdateStatus.error, 'status_invalid');
+
+const invalidUpdateName = fenceStore.updateFence(existedFence.id, {
+  name: '   ',
+});
+assert.strictEqual(invalidUpdateName.error, 'name_required');
+
+const notFoundUpdate = fenceStore.updateFence('missing-id', {
+  name: 'x',
+});
+assert.strictEqual(notFoundUpdate.error, 'not_found');
+
+const removed = fenceStore.removeFence(existedFence.id);
+assert.ok(!removed.error);
+assert.strictEqual(removed.removed.id, existedFence.id);
+
+const notFoundRemove = fenceStore.removeFence('missing-id');
+assert.strictEqual(notFoundRemove.error, 'not_found');
+
+console.log('fenceStore.test.js OK');
