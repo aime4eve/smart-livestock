@@ -16,6 +16,7 @@
 
 | 完成日期 | Issue | PR | 备注 |
 |----------|-------|----|------|
+| 2026-04-14 | [#17](https://github.com/aime4eve/smart-livestock/issues/17) | [#18](https://github.com/aime4eve/smart-livestock/pull/18) | 已合并至 master；含 GET /api/fences/:id、fenceStore 校验与 npm test |
 
 ---
 
