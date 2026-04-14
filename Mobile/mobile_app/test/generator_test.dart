@@ -88,6 +88,108 @@ void main() {
       expect(week7.length, 168);
       expect(identical(day24, week7), isFalse);
     });
+
+    test('enhanced mode keeps nighttime points in rest fence', () {
+      final gen = GpsTrajectoryGenerator(seed: 42);
+      const pastureFence = [
+        LatLng(28.2305, 112.9400),
+        LatLng(28.2340, 112.9440),
+      ];
+      const restFence = [
+        LatLng(28.2280, 112.9380),
+        LatLng(28.2295, 112.9400),
+      ];
+      const anchors = [
+        LatLng(28.2335, 112.9435),
+        LatLng(28.2310, 112.9408),
+      ];
+      final points = gen.generate(
+        earTag: 'SL-2024-001',
+        fenceBoundary: pastureFence,
+        restFenceBoundary: restFence,
+        anchorPoints: anchors,
+        start: DateTime.utc(2026, 4, 1),
+        end: DateTime.utc(2026, 4, 2),
+      );
+      final nightPoints = points.where((p) {
+        final hour = DateTime.parse(p.timestamp).hour;
+        return hour < 6 || hour >= 18;
+      });
+      expect(nightPoints, isNotEmpty);
+      for (final p in nightPoints) {
+        expect(p.lat, greaterThanOrEqualTo(28.2280));
+        expect(p.lat, lessThanOrEqualTo(28.2295));
+        expect(p.lng, greaterThanOrEqualTo(112.9380));
+        expect(p.lng, lessThanOrEqualTo(112.9400));
+      }
+    });
+
+    test('enhanced mode remains deterministic with same inputs', () {
+      final gen = GpsTrajectoryGenerator(seed: 42);
+      const pastureFence = [
+        LatLng(28.2305, 112.9400),
+        LatLng(28.2340, 112.9440),
+      ];
+      const restFence = [
+        LatLng(28.2280, 112.9380),
+        LatLng(28.2295, 112.9400),
+      ];
+      const anchors = [
+        LatLng(28.2335, 112.9435),
+        LatLng(28.2310, 112.9408),
+      ];
+      final a = gen.generate(
+        earTag: 'SL-2024-003',
+        fenceBoundary: pastureFence,
+        restFenceBoundary: restFence,
+        anchorPoints: anchors,
+        start: DateTime.utc(2026, 4, 1),
+        end: DateTime.utc(2026, 4, 2),
+      );
+      final b = gen.generate(
+        earTag: 'SL-2024-003',
+        fenceBoundary: pastureFence,
+        restFenceBoundary: restFence,
+        anchorPoints: anchors,
+        start: DateTime.utc(2026, 4, 1),
+        end: DateTime.utc(2026, 4, 2),
+      );
+      expect(identical(a, b), isTrue);
+      for (var i = 0; i < a.length; i++) {
+        expect(a[i].lat, equals(b[i].lat));
+        expect(a[i].lng, equals(b[i].lng));
+        expect(a[i].timestamp, equals(b[i].timestamp));
+      }
+    });
+
+    test('enhanced cache key separates different anchor sets', () {
+      final gen = GpsTrajectoryGenerator(seed: 42);
+      const pastureFence = [
+        LatLng(28.2305, 112.9400),
+        LatLng(28.2340, 112.9440),
+      ];
+      const restFence = [
+        LatLng(28.2280, 112.9380),
+        LatLng(28.2295, 112.9400),
+      ];
+      final a = gen.generate(
+        earTag: 'SL-2024-005',
+        fenceBoundary: pastureFence,
+        restFenceBoundary: restFence,
+        anchorPoints: const [LatLng(28.2335, 112.9435)],
+        start: DateTime.utc(2026, 4, 1),
+        end: DateTime.utc(2026, 4, 2),
+      );
+      final b = gen.generate(
+        earTag: 'SL-2024-005',
+        fenceBoundary: pastureFence,
+        restFenceBoundary: restFence,
+        anchorPoints: const [LatLng(28.2310, 112.9408)],
+        start: DateTime.utc(2026, 4, 1),
+        end: DateTime.utc(2026, 4, 2),
+      );
+      expect(identical(a, b), isFalse);
+    });
   });
 
   group('TemperatureGenerator', () {
