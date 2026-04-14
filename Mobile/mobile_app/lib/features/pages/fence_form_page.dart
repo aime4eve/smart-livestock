@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smart_livestock_demo/app/app_mode.dart';
+import 'package:smart_livestock_demo/core/api/api_cache.dart';
+import 'package:smart_livestock_demo/core/api/api_role.dart';
 import 'package:smart_livestock_demo/core/data/demo_seed.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
@@ -54,9 +57,51 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
+
+    final appMode = ref.read(appModeProvider);
+    final controller = ref.read(fenceControllerProvider.notifier);
+
+    if (appMode.isLive) {
+      final coords = _coordinatesForSave();
+      final body = <String, dynamic>{
+        'name': _nameController.text.trim(),
+        'type': _type.name,
+        'coordinates': coords,
+        'alarmEnabled': _alarmEnabled,
+      };
+      if (_isEdit) {
+        body['status'] = _active ? 'active' : 'inactive';
+      }
+      final ok = _isEdit
+          ? await ApiCache.instance.updateFenceRemote(
+              apiRoleFromEnvironment,
+              widget.fenceId!,
+              body,
+            )
+          : await ApiCache.instance.createFenceRemote(
+              apiRoleFromEnvironment,
+              body,
+            );
+      if (!ok) {
+        if (mounted) {
+          setState(() => _saving = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('保存失败，请稍后重试')),
+          );
+        }
+        return;
+      }
+      await ApiCache.instance.refreshFencesAndMap(apiRoleFromEnvironment);
+      controller.reloadFromRepository();
+      if (mounted) {
+        setState(() => _saving = false);
+        context.pop();
+      }
+      return;
+    }
+
     await Future.delayed(const Duration(milliseconds: 500));
 
-    final controller = ref.read(fenceControllerProvider.notifier);
     if (_isEdit) {
       final fenceState = ref.read(fenceControllerProvider);
       FenceItem? existing;
@@ -91,7 +136,32 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
       ));
     }
 
-    if (mounted) context.pop();
+    if (mounted) {
+      setState(() => _saving = false);
+      context.pop();
+    }
+  }
+
+  List<List<double>> _coordinatesForSave() {
+    final fenceState = ref.read(fenceControllerProvider);
+    if (_isEdit) {
+      FenceItem? existing;
+      for (final f in fenceState.fences) {
+        if (f.id == widget.fenceId) {
+          existing = f;
+          break;
+        }
+      }
+      if (existing != null) {
+        final pts = existing.type == _type
+            ? existing.points
+            : FenceItem.defaultPointsForType(_type, DemoSeed.mapCenter);
+        return pts.map((p) => [p.longitude, p.latitude]).toList();
+      }
+    }
+    return FenceItem.defaultPointsForType(_type, DemoSeed.mapCenter)
+        .map((p) => [p.longitude, p.latitude])
+        .toList();
   }
 
   @override

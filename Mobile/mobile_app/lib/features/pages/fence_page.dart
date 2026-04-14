@@ -5,8 +5,11 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
+import 'package:smart_livestock_demo/core/api/api_cache.dart';
+import 'package:smart_livestock_demo/core/api/api_role.dart';
 import 'package:smart_livestock_demo/core/data/demo_seed.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
 import 'package:smart_livestock_demo/core/mock/mock_config.dart';
@@ -38,6 +41,7 @@ class _FencePageState extends ConsumerState<FencePage> {
   @override
   Widget build(BuildContext context) {
     final fenceState = ref.watch(fenceControllerProvider);
+    final appMode = ref.watch(appModeProvider);
     final controller = ref.read(fenceControllerProvider.notifier);
     final role = ref.watch(sessionControllerProvider).role!;
     final canManage = RolePermission.canEditFence(role);
@@ -45,7 +49,13 @@ class _FencePageState extends ConsumerState<FencePage> {
     return Scaffold(
       key: const Key('page-fence'),
       appBar: AppBar(title: const Text(MockConfig.ranchName)),
-      body: _buildBody(context, fenceState, controller, canManage),
+      body: _buildBody(
+        context,
+        fenceState,
+        controller,
+        canManage,
+        appMode,
+      ),
     );
   }
 
@@ -54,6 +64,7 @@ class _FencePageState extends ConsumerState<FencePage> {
     FenceState fenceState,
     FenceController controller,
     bool canManage,
+    AppMode appMode,
   ) {
     switch (fenceState.viewState) {
       case ViewState.loading:
@@ -69,7 +80,13 @@ class _FencePageState extends ConsumerState<FencePage> {
         );
       case ViewState.normal:
       case ViewState.empty:
-        return _buildMapWithDrawer(context, fenceState, controller, canManage);
+        return _buildMapWithDrawer(
+          context,
+          fenceState,
+          controller,
+          canManage,
+          appMode,
+        );
     }
   }
 
@@ -78,6 +95,7 @@ class _FencePageState extends ConsumerState<FencePage> {
     FenceState fenceState,
     FenceController controller,
     bool canManage,
+    AppMode appMode,
   ) {
     const panelAnimDuration = Duration(milliseconds: 280);
     const panelCurve = Curves.easeOutCubic;
@@ -116,22 +134,26 @@ class _FencePageState extends ConsumerState<FencePage> {
                       );
                     }).toList(),
                   ),
-                  MarkerLayer(
-                    markers: [
-                      for (int i = 0;
-                          i < DemoSeed.livestockLocations.length;
-                          i++)
-                        Marker(
-                          point: DemoSeed.livestockLocations[i].toLatLng(),
-                          width: 56,
-                          height: 56,
-                          child: _MapMarker(
-                            label: DemoSeed
-                                .earTags[i < DemoSeed.earTags.length ? i : 0],
-                            isAlert: i == 0,
-                          ),
+                  if (appMode.isLive &&
+                      ApiCache.instance.initialized &&
+                      ApiCache.instance.mapTrajectoryPoints.isNotEmpty)
+                    PolylineLayer(
+                      polylines: [
+                        Polyline(
+                          points: [
+                            for (final p in ApiCache.instance.mapTrajectoryPoints)
+                              LatLng(
+                                (p['lat'] as num).toDouble(),
+                                (p['lng'] as num).toDouble(),
+                              ),
+                          ],
+                          color: AppColors.primary,
+                          strokeWidth: 3,
                         ),
-                    ],
+                      ],
+                    ),
+                  MarkerLayer(
+                    markers: _buildLivestockMarkers(appMode),
                   ),
                 ],
               ),
@@ -171,8 +193,15 @@ class _FencePageState extends ConsumerState<FencePage> {
                             if (canManage)
                               IconButton(
                                 key: const Key('fence-add'),
-                                onPressed: () =>
-                                    context.push(AppRoute.fenceForm.path),
+                                onPressed: () => context
+                                    .push(AppRoute.fenceForm.path)
+                                    .then((_) {
+                                  if (appMode.isLive) {
+                                    ref
+                                        .read(fenceControllerProvider.notifier)
+                                        .reloadFromRepository();
+                                  }
+                                }),
                                 icon: const Icon(Icons.add_circle_outline),
                                 tooltip: '新建围栏',
                               ),
@@ -209,11 +238,23 @@ class _FencePageState extends ConsumerState<FencePage> {
                                 );
                                 setState(() => _panelOpen = false);
                               },
-                              onEdit: () => context.push(
+                              onEdit: () => context
+                                  .push(
                                 '${AppRoute.fenceForm.path}?id=${fence.id}',
-                              ),
+                              )
+                                  .then((_) {
+                                if (appMode.isLive) {
+                                  ref
+                                      .read(fenceControllerProvider.notifier)
+                                      .reloadFromRepository();
+                                }
+                              }),
                               onDelete: () => _showDeleteDialog(
-                                  context, fence, controller),
+                                context,
+                                fence,
+                                controller,
+                                appMode,
+                              ),
                             ),
                       ],
                     ),
@@ -245,6 +286,59 @@ class _FencePageState extends ConsumerState<FencePage> {
     );
   }
 
+  List<Marker> _buildLivestockMarkers(AppMode appMode) {
+    if (appMode.isMock) {
+      return [
+        for (int i = 0; i < DemoSeed.livestockLocations.length; i++)
+          Marker(
+            key: Key('fence-map-marker-$i'),
+            point: DemoSeed.livestockLocations[i].toLatLng(),
+            width: 56,
+            height: 56,
+            child: _MapMarker(
+              label: DemoSeed
+                  .earTags[i < DemoSeed.earTags.length ? i : 0],
+              isAlert: i == 0,
+            ),
+          ),
+      ];
+    }
+    if (!ApiCache.instance.initialized ||
+        ApiCache.instance.animals.isEmpty) {
+      return [
+        for (int i = 0; i < DemoSeed.livestockLocations.length; i++)
+          Marker(
+            key: Key('fence-map-marker-fallback-$i'),
+            point: DemoSeed.livestockLocations[i].toLatLng(),
+            width: 56,
+            height: 56,
+            child: _MapMarker(
+              label: DemoSeed
+                  .earTags[i < DemoSeed.earTags.length ? i : 0],
+              isAlert: i == 0,
+            ),
+          ),
+      ];
+    }
+    final animals = ApiCache.instance.animals;
+    return [
+      for (var i = 0; i < animals.length; i++)
+        Marker(
+          key: Key('fence-map-marker-$i'),
+          point: LatLng(
+            (animals[i]['lat'] as num).toDouble(),
+            (animals[i]['lng'] as num).toDouble(),
+          ),
+          width: 56,
+          height: 56,
+          child: _MapMarker(
+            label: animals[i]['earTag'] as String? ?? '-',
+            isAlert: animals[i]['boundaryStatus'] == 'outside',
+          ),
+        ),
+    ];
+  }
+
   LatLng _fenceCenter(List<LatLng> points) {
     double lat = 0, lng = 0;
     for (final p in points) {
@@ -258,6 +352,7 @@ class _FencePageState extends ConsumerState<FencePage> {
     BuildContext context,
     FenceItem fence,
     FenceController controller,
+    AppMode appMode,
   ) {
     showDialog<void>(
       context: context,
@@ -272,14 +367,41 @@ class _FencePageState extends ConsumerState<FencePage> {
           ),
           TextButton(
             key: const Key('fence-delete-confirm'),
-            onPressed: () {
-              controller.delete(fence.id);
+            onPressed: () async {
               Navigator.of(ctx).pop();
-              ScaffoldMessenger.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(
-                  SnackBar(content: Text('已删除「${fence.name}」')),
-                );
+              if (appMode.isLive) {
+                final ok = await ApiCache.instance
+                    .deleteFenceRemote(apiRoleFromEnvironment, fence.id);
+                if (!context.mounted) {
+                  return;
+                }
+                if (ok) {
+                  await ApiCache.instance
+                      .refreshFencesAndMap(apiRoleFromEnvironment);
+                  if (!context.mounted) {
+                    return;
+                  }
+                  controller.reloadFromRepository();
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      SnackBar(content: Text('已删除「${fence.name}」')),
+                    );
+                } else {
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      const SnackBar(content: Text('删除失败，请稍后重试')),
+                    );
+                }
+              } else {
+                controller.delete(fence.id);
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(content: Text('已删除「${fence.name}」')),
+                  );
+              }
             },
             child: const Text('删除', style: TextStyle(color: AppColors.danger)),
           ),
