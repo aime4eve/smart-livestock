@@ -14,6 +14,7 @@ import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
 import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
+import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_template_picker.dart';
 
 class FenceFormPage extends ConsumerStatefulWidget {
   const FenceFormPage({super.key, this.fenceId});
@@ -29,6 +30,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
   final _nameController = TextEditingController();
   final _formMapController = MapController();
   FenceType _type = FenceType.rectangle;
+  FenceTemplate? _selectedTemplate;
   bool _alarmEnabled = true;
   bool _active = true;
   bool _saving = false;
@@ -310,9 +312,22 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
 
   void _resetDrawing() {
     setState(() {
+      _selectedTemplate = null;
       _drawingPoints = [];
       _clearTransientGesture();
     });
+  }
+
+  void _applyTemplate(FenceTemplate template) {
+    final preset = fenceTemplatePresetFor(template);
+    setState(() {
+      _selectedTemplate = template;
+      _type = preset.type;
+      _drawingPoints = List<LatLng>.from(preset.drawingPoints);
+      _drawMode = true;
+      _clearTransientGesture();
+    });
+    _formMapController.move(preset.focusPoint, 15.0);
   }
 
   double _calcAreaHectares() {
@@ -418,6 +433,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                   FenceType.polygon => points,
                 };
                 setState(() {
+                  _selectedTemplate = null;
                   _drawingPoints = usedPoints;
                   _drawMode = false;
                   _clearTransientGesture();
@@ -466,9 +482,12 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
             );
       if (!ok) {
         if (mounted) {
+          final message = fenceSaveErrorMessageForStatusCode(
+            ApiCache.instance.lastFenceSaveStatusCode,
+          );
           setState(() => _saving = false);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('保存失败，请稍后重试')),
+            SnackBar(content: Text(message)),
           );
         }
         return;
@@ -660,6 +679,13 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (!_isEdit) ...[
+                FenceTemplatePicker(
+                  selectedTemplate: _selectedTemplate,
+                  onSelected: _applyTemplate,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+              ],
               TextFormField(
                 key: const Key('fence-form-name'),
                 controller: _nameController,
@@ -697,6 +723,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                   onChanged: (v) {
                     if (v != null) {
                       setState(() {
+                        _selectedTemplate = null;
                         _type = v;
                         _drawingPoints = [];
                         _drawMode = false;
