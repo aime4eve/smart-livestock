@@ -21,6 +21,24 @@ Map<String, String> _headers(String role) {
   };
 }
 
+String fenceSaveErrorMessageForStatusCode(int? statusCode) {
+  switch (statusCode) {
+    case 409:
+      return '围栏已被其他人更新，请刷新后重试';
+    case 422:
+      return '数据校验失败，请检查后重试';
+    default:
+      return '保存失败，请稍后重试';
+  }
+}
+
+class FenceSaveResult {
+  const FenceSaveResult({required this.ok, this.statusCode});
+
+  final bool ok;
+  final int? statusCode;
+}
+
 class ApiCache {
   ApiCache._();
   static final ApiCache instance = ApiCache._();
@@ -210,6 +228,11 @@ class ApiCache {
     String role,
     Map<String, dynamic> body,
   ) async {
+    if (createFenceRemoteOverride != null) {
+      final result = await createFenceRemoteOverride!(role, body);
+      lastFenceSaveStatusCode = result.ok ? null : result.statusCode;
+      return result.ok;
+    }
     final response = await http
         .post(
           Uri.parse('${resolveApiBaseUrl()}/fences'),
@@ -217,9 +240,14 @@ class ApiCache {
           body: jsonEncode(body),
         )
         .timeout(const Duration(seconds: 20));
+    lastFenceSaveStatusCode = response.statusCode;
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-      return decoded['code'] == 'OK';
+      final ok = decoded['code'] == 'OK';
+      if (ok) {
+        lastFenceSaveStatusCode = null;
+      }
+      return ok;
     }
     return false;
   }
@@ -229,6 +257,11 @@ class ApiCache {
     String id,
     Map<String, dynamic> body,
   ) async {
+    if (updateFenceRemoteOverride != null) {
+      final result = await updateFenceRemoteOverride!(role, id, body);
+      lastFenceSaveStatusCode = result.ok ? null : result.statusCode;
+      return result.ok;
+    }
     final response = await http
         .put(
           Uri.parse('${resolveApiBaseUrl()}/fences/$id'),
@@ -236,10 +269,28 @@ class ApiCache {
           body: jsonEncode(body),
         )
         .timeout(const Duration(seconds: 20));
+    lastFenceSaveStatusCode = response.statusCode;
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-      return decoded['code'] == 'OK';
+      final ok = decoded['code'] == 'OK';
+      if (ok) {
+        lastFenceSaveStatusCode = null;
+      }
+      return ok;
     }
     return false;
   }
+
+  @visibleForTesting
+  Future<FenceSaveResult> Function(String role, Map<String, dynamic> body)?
+      createFenceRemoteOverride;
+
+  @visibleForTesting
+  Future<FenceSaveResult> Function(
+    String role,
+    String id,
+    Map<String, dynamic> body,
+  )? updateFenceRemoteOverride;
+
+  int? lastFenceSaveStatusCode;
 }
