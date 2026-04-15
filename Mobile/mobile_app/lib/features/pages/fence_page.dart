@@ -19,6 +19,7 @@ import 'package:smart_livestock_demo/core/permissions/role_permission.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
+import 'package:smart_livestock_demo/features/fence/domain/fence_polygon_contains.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_edit_session.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_state.dart';
 import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
@@ -34,19 +35,45 @@ class FencePage extends ConsumerStatefulWidget {
 }
 
 class _FencePageState extends ConsumerState<FencePage> {
-  final _mapController = MapController();
+  final _browseMapController = MapController();
+  final _editMapController = MapController();
   final _trajectoryGenerator = GpsTrajectoryGenerator(seed: 42);
   bool _panelOpen = false;
 
   @override
   void dispose() {
-    _mapController.dispose();
+    _browseMapController.dispose();
+    _editMapController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final fenceState = ref.watch(fenceControllerProvider);
+    ref.listen<FenceState>(fenceControllerProvider, (previous, next) {
+      if (previous == null) {
+        return;
+      }
+      final hadSession = previous.editSession;
+      final hasSession = next.editSession;
+      if (hadSession == null && hasSession != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) {
+            return;
+          }
+          final c = _browseMapController.camera;
+          _editMapController.move(c.center, c.zoom);
+        });
+      } else if (hadSession != null && hasSession == null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) {
+            return;
+          }
+          final c = _editMapController.camera;
+          _browseMapController.move(c.center, c.zoom);
+        });
+      }
+    });
     final role = ref.watch(sessionControllerProvider).role!;
     final canManage = RolePermission.canEditFence(role);
 
@@ -124,7 +151,7 @@ class _FencePageState extends ConsumerState<FencePage> {
       return Stack(
         children: [
           FenceEditOverlay(
-            mapController: _mapController,
+            mapController: _editMapController,
             points: editSession.points,
             isInteractive: !isSaving,
             activeTool: editSession.tool,
@@ -178,12 +205,18 @@ class _FencePageState extends ConsumerState<FencePage> {
           children: [
             Positioned.fill(
               child: FlutterMap(
-                mapController: _mapController,
-                options: const MapOptions(
+                key: const Key('fence-browse-map'),
+                mapController: _browseMapController,
+                options: MapOptions(
                   initialCenter: DemoSeed.mapCenter,
                   initialZoom: DemoSeed.defaultZoom,
-                  interactionOptions: InteractionOptions(
+                  interactionOptions: const InteractionOptions(
                     flags: InteractiveFlag.all,
+                  ),
+                  onTap: (tapPosition, point) => _handleMapTap(
+                    point,
+                    fenceState,
+                    controller,
                   ),
                 ),
                 children: [
@@ -315,23 +348,21 @@ class _FencePageState extends ConsumerState<FencePage> {
                                 canManage: canManage,
                                 onTap: () {
                                   controller.select(fence.id);
-                                  _mapController.move(
+                                  _browseMapController.move(
                                     _fenceCenter(fence.points),
                                     16.0,
                                   );
                                   setState(() => _panelOpen = false);
                                 },
-                                onEdit: () => context
-                                    .push(
-                                  '${AppRoute.fenceForm.path}?id=${fence.id}',
-                                )
-                                    .then((_) {
-                                  if (appMode.isLive) {
-                                    ref
-                                        .read(fenceControllerProvider.notifier)
-                                        .reloadFromRepository();
-                                  }
-                                }),
+                                onEdit: () {
+                                  controller.select(fence.id);
+                                  controller.startEditing(fence.id);
+                                  _browseMapController.move(
+                                    _fenceCenter(fence.points),
+                                    16.0,
+                                  );
+                                  setState(() => _panelOpen = false);
+                                },
                                 onDelete: () => _showDeleteDialog(
                                   context,
                                   fence,
@@ -370,12 +401,20 @@ class _FencePageState extends ConsumerState<FencePage> {
                 child: FloatingActionButton.extended(
                   key: const Key('fence-start-edit'),
                   heroTag: 'fence-start-edit',
-                  onPressed: selectedFenceId == null
-                      ? null
-                      : () {
-                          controller.startEditing(selectedFenceId);
-                          setState(() => _panelOpen = false);
-                        },
+                  onPressed: () {
+                    if (selectedFenceId == null) {
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(
+                          const SnackBar(
+                            content: Text('请先选择一个牧场'),
+                          ),
+                        );
+                      return;
+                    }
+                    controller.startEditing(selectedFenceId);
+                    setState(() => _panelOpen = false);
+                  },
                   icon: const Icon(Icons.edit_location_alt_outlined),
                   label: const Text('编辑边界'),
                 ),
@@ -614,6 +653,21 @@ class _FencePageState extends ConsumerState<FencePage> {
       lng += p.longitude;
     }
     return LatLng(lat / points.length, lng / points.length);
+  }
+
+  void _handleMapTap(
+    LatLng point,
+    FenceState fenceState,
+    FenceController controller,
+  ) {
+    for (final fence in fenceState.fences) {
+      if (fencePolygonContainsLatLng(point, fence.points)) {
+        controller.select(fence.id);
+        _browseMapController.move(_fenceCenter(fence.points), 16.0);
+        return;
+      }
+    }
+    controller.select(null);
   }
 
   void _showDeleteDialog(

@@ -14,15 +14,29 @@ void main() {
     ApiCache.instance.lastFenceSaveStatusCode = null;
   });
 
-  testWidgets('未选中围栏时编辑入口禁用且不会误编辑第一条', (tester) async {
+  testWidgets('未选中围栏时点击编辑边界显示提示且不进入编辑态', (tester) async {
     await _openFencePage(tester);
 
-    final FloatingActionButton button = tester.widget<FloatingActionButton>(
+    final fab = tester.widget<FloatingActionButton>(
       find.byKey(const Key('fence-start-edit')),
     );
+    expect(fab.onPressed, isNotNull);
 
-    expect(button.onPressed, isNull);
+    await tester.tap(find.byKey(const Key('fence-start-edit')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('请先选择一个牧场'), findsOneWidget);
     expect(find.byKey(const Key('fence-edit-overlay')), findsNothing);
+  });
+
+  testWidgets('侧栏编辑按钮直接进入边界编辑', (tester) async {
+    await _openFencePage(tester);
+    await tester.tap(find.byKey(const Key('fence-panel-toggle')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('fence-edit-fence_pasture_a')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('fence-edit-overlay')), findsOneWidget);
   });
 
   testWidgets('进入编辑全屏后可直接退出并恢复浏览列表', (tester) async {

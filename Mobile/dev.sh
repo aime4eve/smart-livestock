@@ -7,6 +7,7 @@
 #   ./dev.sh stop           # 停止所有服务
 #   ./dev.sh restart [mock|live]  # 重启所有服务
 #   ./dev.sh status         # 查看服务状态
+#   ./dev.sh diagnose       # 打印最近日志与关键错误行（便于白屏/WASM 等问题排查）
 
 set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -58,15 +59,20 @@ start_backend() {
 
 # ---------- 启动 Flutter App ----------
 start_flutter() {
-  local mode="${1:-mock}"
+  local mode="${1:-live}"
+  local device="${2:-chrome}"
 
   if is_running flutter; then
     warn "Flutter App 已在运行 (PID $(cat "$PID_DIR/flutter.pid"))"
     return 0
   fi
 
-  info "启动 Flutter App (APP_MODE=$mode)..."
-  (cd "$MOBILE_DIR" && flutter run --dart-define=APP_MODE="$mode" > "$LOG_DIR/flutter.log" 2>&1) &
+  info "启动 Flutter App (APP_MODE=$mode, device=$device)..."
+  if [[ "$device" == "chrome" ]]; then
+    (cd "$MOBILE_DIR" && flutter run -d "$device" --no-web-resources-cdn --dart-define=APP_MODE="$mode" > "$LOG_DIR/flutter.log" 2>&1) &
+  else
+    (cd "$MOBILE_DIR" && flutter run -d "$device" --dart-define=APP_MODE="$mode" > "$LOG_DIR/flutter.log" 2>&1) &
+  fi
   local pid=$!
   echo "$pid" > "$PID_DIR/flutter.pid"
   info "Flutter App 已启动 (PID $pid, APP_MODE=$mode)"
@@ -154,6 +160,42 @@ show_logs() {
   fi
 }
 
+# ---------- 诊断（最近日志 + 关键行） ----------
+diagnose() {
+  ensure_dirs
+  echo ""
+  info "=== 进程状态 ==="
+  show_status
+  echo ""
+  local flutter_log="$LOG_DIR/flutter.log"
+  local backend_log="$LOG_DIR/backend.log"
+
+  if [[ -f "$flutter_log" ]]; then
+    info "=== Flutter 最近 100 行 ($flutter_log) ==="
+    tail -n 100 "$flutter_log"
+  else
+    warn "Flutter 日志不存在: $flutter_log（可能未用本脚本启动或未产生日志）"
+  fi
+  echo ""
+  if [[ -f "$backend_log" ]]; then
+    info "=== Mock Server 最近 100 行 ($backend_log) ==="
+    tail -n 100 "$backend_log"
+  else
+    warn "Backend 日志不存在: $backend_log"
+  fi
+  echo ""
+  if [[ -f "$flutter_log" ]]; then
+    info "=== Flutter 关键行（匹配 error/exception/fail/abort/wasm 等，最多 50 行）==="
+    grep -E -i 'error|exception|fail|abort|fatal|TypeError|webassembly|wasm|rejected|cannot|unhandled' "$flutter_log" 2>/dev/null | tail -n 50 || true
+  fi
+  if [[ -f "$backend_log" ]]; then
+    info "=== Mock Server 关键行（同上，最多 50 行）==="
+    grep -E -i 'error|exception|fail|abort|fatal|EADDRINUSE|listen|ECONNREFUSED' "$backend_log" 2>/dev/null | tail -n 50 || true
+  fi
+  echo ""
+  info "完整日志目录: $LOG_DIR/"
+}
+
 # ---------- 清理 ----------
 cleanup() {
   echo ""
@@ -164,28 +206,37 @@ cleanup() {
 
 # ---------- 主入口 ----------
 case "${1:-help}" in
+  start_live)
+    start_backend
+    start_flutter "live" "chrome"
+    ;;
+  start_mock)
+    start_backend
+    start_flutter "mock" "chrome"
+    ;;
   start)
     ensure_dirs
     # 注册退出清理
     trap cleanup INT TERM
 
-    local mode="${2:-mock}"
+    mode="${2:-mock}"
+    device="${3:-chrome}"
     if [[ "$mode" != "mock" && "$mode" != "live" ]]; then
       error "无效模式: $mode（可选 mock / live）"
       exit 1
     fi
 
     start_backend
-    # live 模式需要等 Mock Server 就绪
     if [[ "$mode" == "live" ]]; then
       info "等待 Mock Server 就绪..."
       sleep 1
     fi
-    start_flutter "$mode"
+    start_flutter "$mode" "$device"
 
     info "========================================="
     info "  所有服务已启动"
     info "  模式: $mode"
+    info "  设备: $device"
     info "  Mock Server: http://localhost:3001"
     info "  日志目录: $LOG_DIR/"
     info "  按 Ctrl+C 停止所有服务"
@@ -202,7 +253,7 @@ case "${1:-help}" in
   restart)
     stop_all
     sleep 1
-    exec "$0" start "${2:-mock}"
+    exec "$0" start "${2:-mock}" "${3:-chrome}"
     ;;
 
   status)
@@ -217,14 +268,19 @@ case "${1:-help}" in
     esac
     ;;
 
+  diagnose)
+    diagnose
+    ;;
+
   help|*)
     echo "智慧畜牧 App 开发控制脚本"
     echo ""
     echo "用法:"
-    echo "  $0 start [mock|live]   启动所有服务（默认 mock 模式）"
-    echo "  $0 stop                停止所有服务"
-    echo "  $0 restart [mock|live] 重启所有服务"
-    echo "  $0 status              查看服务状态"
-    echo "  $0 logs [backend|flutter]  查看日志（实时跟踪）"
+    echo "  $0 start [mock|live] [chrome|macos]  启动所有服务（默认 mock + chrome）"
+    echo "  $0 stop                              停止所有服务"
+    echo "  $0 restart [mock|live] [chrome|macos] 重启所有服务"
+    echo "  $0 status                            查看服务状态"
+    echo "  $0 logs [backend|flutter]            查看日志（实时跟踪）"
+    echo "  $0 diagnose                          诊断：最近 100 行日志 + 关键错误行"
     ;;
 esac

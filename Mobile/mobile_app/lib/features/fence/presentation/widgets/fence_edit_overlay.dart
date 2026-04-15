@@ -46,6 +46,22 @@ class _FenceEditOverlayState extends State<FenceEditOverlay> {
 
   final _gestureKey = GlobalKey();
   Offset? _lastTranslateOffset;
+  int? _draggingVertexIndex;
+
+  @override
+  void didUpdateWidget(covariant FenceEditOverlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.activeTool != widget.activeTool) {
+      _draggingVertexIndex = null;
+    } else if (widget.activeTool == FenceEditTool.moveVertex &&
+        oldWidget.points.length != widget.points.length) {
+      _draggingVertexIndex = null;
+    }
+    if (_draggingVertexIndex != null &&
+        _draggingVertexIndex! >= widget.points.length) {
+      _draggingVertexIndex = null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +72,11 @@ class _FenceEditOverlayState extends State<FenceEditOverlay> {
     final initialCenter =
         widget.points.isNotEmpty ? widget.points.first : DemoSeed.mapCenter;
     final translateHitPolygon = _translateHitPolygon();
+    final mapInteractionFlags =
+        widget.activeTool == FenceEditTool.moveVertex ||
+                widget.activeTool == FenceEditTool.translate
+            ? InteractiveFlag.none
+            : InteractiveFlag.all;
 
     return Positioned.fill(
       child: Container(
@@ -63,19 +84,22 @@ class _FenceEditOverlayState extends State<FenceEditOverlay> {
         color: AppColors.surface,
         child: Stack(
           children: [
-            GestureDetector(
+            Container(
               key: _gestureKey,
-              behavior: HitTestBehavior.translucent,
-              onTapUp: widget.isInteractive ? _handleTapUp : null,
+              color: Colors.transparent,
               child: FlutterMap(
                 key: const Key('fence-edit-map'),
                 mapController: widget.mapController,
                 options: MapOptions(
                   initialCenter: initialCenter,
                   initialZoom: 16,
-                  interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.all,
+                  interactionOptions: InteractionOptions(
+                    flags: mapInteractionFlags,
                   ),
+                  onTap: widget.isInteractive &&
+                          widget.activeTool == FenceEditTool.insertVertex
+                      ? _handleMapTapInsert
+                      : null,
                 ),
                 children: [
                   TileLayer(
@@ -110,22 +134,63 @@ class _FenceEditOverlayState extends State<FenceEditOverlay> {
                         Marker(
                           key: Key('fence-edit-vertex-marker-$i'),
                           point: widget.points[i],
-                          width: 36,
-                          height: 36,
+                          width: 88,
+                          height: 88,
+                          alignment: Alignment.center,
                           child: GestureDetector(
                             key: Key('fence-edit-vertex-$i'),
                             behavior: HitTestBehavior.opaque,
-                            onTap: widget.isInteractive &&
-                                    widget.activeTool == FenceEditTool.deleteVertex
-                                ? () => widget.onRemoveVertex(i)
+                            onTap: widget.isInteractive
+                                ? () {
+                                    if (widget.activeTool ==
+                                        FenceEditTool.deleteVertex) {
+                                      widget.onRemoveVertex(i);
+                                    }
+                                  }
+                                : null,
+                            onPanStart: widget.isInteractive &&
+                                    widget.activeTool ==
+                                        FenceEditTool.moveVertex
+                                ? (_) {
+                                    setState(() => _draggingVertexIndex = i);
+                                  }
                                 : null,
                             onPanUpdate: widget.isInteractive &&
-                                    widget.activeTool == FenceEditTool.moveVertex
-                                ? (details) => _handleVertexPanUpdate(i, details.globalPosition)
+                                    widget.activeTool ==
+                                        FenceEditTool.moveVertex
+                                ? (details) {
+                                    if (_draggingVertexIndex != i) {
+                                      return;
+                                    }
+                                    _handleVertexPanUpdate(
+                                      i,
+                                      details.globalPosition,
+                                    );
+                                  }
                                 : null,
-                            child: _VertexHandle(
-                              highlight: widget.activeTool == FenceEditTool.moveVertex ||
-                                  widget.activeTool == FenceEditTool.deleteVertex,
+                            onPanEnd: widget.isInteractive &&
+                                    widget.activeTool ==
+                                        FenceEditTool.moveVertex
+                                ? (_) {
+                                    setState(() => _draggingVertexIndex = null);
+                                  }
+                                : null,
+                            onPanCancel: widget.isInteractive &&
+                                    widget.activeTool ==
+                                        FenceEditTool.moveVertex
+                                ? () {
+                                    setState(() => _draggingVertexIndex = null);
+                                  }
+                                : null,
+                            child: Center(
+                              child: _VertexHandle(
+                                highlight: widget.activeTool ==
+                                        FenceEditTool.moveVertex ||
+                                    widget.activeTool ==
+                                        FenceEditTool.deleteVertex,
+                                selected: false,
+                                dimmed: false,
+                              ),
                             ),
                           ),
                         ),
@@ -187,19 +252,24 @@ class _FenceEditOverlayState extends State<FenceEditOverlay> {
     );
   }
 
-  void _handleTapUp(TapUpDetails details) {
-    if (widget.activeTool != FenceEditTool.insertVertex) {
+  void _handleMapTapInsert(TapPosition tapPosition, LatLng _) {
+    if (!widget.isInteractive ||
+        widget.activeTool != FenceEditTool.insertVertex) {
       return;
     }
-    final edgeHit = _findNearestEdge(details.localPosition);
+    final local = tapPosition.relative;
+    if (local == null) {
+      return;
+    }
+    final edgeHit = _findNearestEdge(local);
     if (edgeHit == null || edgeHit.distance > _edgeHitThreshold) {
       return;
     }
-    final point = _latLngFromLocal(details.localPosition);
-    if (point == null) {
+    final insertPoint = _latLngFromLocal(local);
+    if (insertPoint == null) {
       return;
     }
-    widget.onInsertVertex(edgeHit.edgeStartIndex, point);
+    widget.onInsertVertex(edgeHit.edgeStartIndex, insertPoint);
   }
 
   void _handlePanStart(DragStartDetails details) {
@@ -335,31 +405,57 @@ class _FenceEditOverlayState extends State<FenceEditOverlay> {
 }
 
 class _VertexHandle extends StatelessWidget {
-  const _VertexHandle({required this.highlight});
+  const _VertexHandle({
+    required this.highlight,
+    this.selected = false,
+    this.dimmed = false,
+  });
+
+  static const double _outerDiameter = 44;
 
   final bool highlight;
+  final bool selected;
+  final bool dimmed;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: highlight ? AppColors.primary : Colors.white,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: highlight ? Colors.white : AppColors.primary,
-          width: 2,
+    final effectiveHighlight = highlight && !dimmed;
+    final outerColor = selected || effectiveHighlight
+        ? AppColors.primary
+        : Colors.white;
+    const borderColor = AppColors.primary;
+    final innerColor = selected || effectiveHighlight
+        ? Colors.white
+        : AppColors.primary;
+    const borderWidth = 2.0;
+    const innerDot = 10.0;
+
+    return SizedBox(
+      width: _outerDiameter,
+      height: _outerDiameter,
+      child: Container(
+        decoration: BoxDecoration(
+          color: outerColor,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: borderColor,
+            width: borderWidth,
+          ),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 4,
+            ),
+          ],
         ),
-        boxShadow: const [
-          BoxShadow(color: Colors.black26, blurRadius: 4),
-        ],
-      ),
-      child: Center(
-        child: Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: highlight ? Colors.white : AppColors.primary,
-            shape: BoxShape.circle,
+        child: Center(
+          child: Container(
+            width: innerDot,
+            height: innerDot,
+            decoration: BoxDecoration(
+              color: innerColor,
+              shape: BoxShape.circle,
+            ),
           ),
         ),
       ),

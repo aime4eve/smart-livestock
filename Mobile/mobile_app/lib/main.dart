@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
@@ -19,10 +21,10 @@ void main() async {
     const String.fromEnvironment('APP_MODE', defaultValue: 'mock'),
   );
 
+  runApp(DemoApp(appMode: appMode));
+
   if (appMode.isLive) {
     const apiRole = String.fromEnvironment('API_ROLE', defaultValue: 'owner');
-    await ApiCache.instance.init(apiRole);
+    unawaited(ApiCache.instance.init(apiRole));
   }
-
-  runApp(const DemoApp());
 }
