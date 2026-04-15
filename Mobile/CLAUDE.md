@@ -210,6 +210,26 @@ MVP 阶段将用 FastAPI 替换 Mock Server，遵循以下分层：
 
 云端部署时，所有业务表包含 `tenant_id`，查询强制注入租户条件。
 
+## Issue 驱动工作流
+
+GitHub Issues 是任务跟踪的入口，`docs/superpowers/plans/` 是实施细节的真相来源。每个 plan 文件包含 Issue 索引表和完成记录表。
+
+当用户说"处理 issue #N"或类似指令时，按以下步骤执行：
+
+1. **认领**: `gh issue edit <N> --add-assignee aime4eve`
+2. **查找 Plan**: 在 `docs/superpowers/plans/*.md` 中搜索 `#N` 定位对应 plan 文件和具体小节
+3. **阅读规格**: 读取 plan 中该 issue 的目标、涉及文件和验收标准
+4. **实现**: 按计划开发，`flutter analyze` + `flutter test` 通过后提交
+5. **关闭 Issue**: PR 正文写 `Closes #N`，合并后 GitHub 自动关闭
+6. **同步 Plan**: 在 plan 文件的「完成记录」表中增加一行（完成日期、PR 链接、备注）
+
+### Plan 文件约定
+
+每个 plan 文件应包含：
+- **Issue 索引表**: `| 优先级 | Issue | 标题 |` 格式，列出所有关联 issue
+- **完成记录表**: `| 完成日期 | Issue | PR | 备注 |`，issue 关闭后立即更新
+- 每个 issue 对应一个 `## #N — 标题` 小节，包含目标、涉及文件、验收标准
+
 ## 设计文档
 
 - API 契约: [docs/api-contracts/mobile-app-mock-api-contract.md](docs/api-contracts/mobile-app-mock-api-contract.md)
