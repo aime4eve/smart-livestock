@@ -668,7 +668,6 @@ class _FencePageState extends ConsumerState<FencePage> {
     for (final fence in fenceState.fences) {
       if (fencePolygonContainsLatLng(point, fence.points)) {
         controller.select(fence.id);
-        _browseMapController.move(_fenceCenter(fence.points), 16.0);
         return;
       }
     }
