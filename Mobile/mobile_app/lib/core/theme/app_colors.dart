@@ -19,4 +19,6 @@ class AppColors {
   static const Color warning = Color(0xFFD28A2D);
   static const Color danger = Color(0xFFC2564B);
   static const Color info = Color(0xFF4A7F9D);
+
+  static const Color overlayDark = Color(0xB3000000);
 }
