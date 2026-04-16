@@ -1,4 +1,5 @@
 import 'dart:math' show min;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -18,13 +19,14 @@ import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/permissions/role_permission.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_polygon_contains.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_edit_session.dart';
+import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_state.dart';
 import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_edit_overlay.dart';
+import 'package:smart_livestock_demo/features/fence/presentation/fence_hit_detection.dart';
+import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_candidate_sheet.dart';
 import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_edit_toolbar.dart';
+import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_mini_title_bar.dart';
 import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_unsaved_dialog.dart';
 
 class FencePage extends ConsumerStatefulWidget {
@@ -34,62 +36,65 @@ class FencePage extends ConsumerStatefulWidget {
   ConsumerState<FencePage> createState() => _FencePageState();
 }
 
-class _FencePageState extends ConsumerState<FencePage> {
-  final _browseMapController = MapController();
-  final _editMapController = MapController();
+class _FencePageState extends ConsumerState<FencePage>
+    with TickerProviderStateMixin {
+  final _mapController = MapController();
   final _trajectoryGenerator = GpsTrajectoryGenerator(seed: 42);
+  final _gestureKey = GlobalKey();
   bool _panelOpen = false;
+
+  late final AnimationController _breathingController;
+
+  int _activePointerCount = 0;
+  bool _isMultiTouch = false;
+  int? _draggingVertexIndex;
+  Offset? _lastTranslateOffset;
+
+  @override
+  void initState() {
+    super.initState();
+    _breathingController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+  }
 
   @override
   void dispose() {
-    _browseMapController.dispose();
-    _editMapController.dispose();
+    _breathingController.dispose();
+    _mapController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final fenceState = ref.watch(fenceControllerProvider);
-    ref.listen<FenceState>(fenceControllerProvider, (previous, next) {
-      if (previous == null) {
-        return;
-      }
-      final hadSession = previous.editSession;
-      final hasSession = next.editSession;
-      if (hadSession == null && hasSession != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) {
-            return;
-          }
-          final c = _browseMapController.camera;
-          _editMapController.move(c.center, c.zoom);
-        });
-      } else if (hadSession != null && hasSession == null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) {
-            return;
-          }
-          final c = _editMapController.camera;
-          _browseMapController.move(c.center, c.zoom);
-        });
-      }
-    });
     final role = ref.watch(sessionControllerProvider).role!;
     final canManage = RolePermission.canEditFence(role);
+    final isEditing = fenceState.editSession != null;
+
+    if (fenceState.selectedFenceId != null && !isEditing) {
+      if (!_breathingController.isAnimating) {
+        _breathingController.repeat(reverse: true);
+      }
+    } else {
+      if (_breathingController.isAnimating) {
+        _breathingController.stop();
+        _breathingController.value = 0;
+      }
+    }
 
     return PopScope<void>(
-      canPop: fenceState.editSession == null,
+      canPop: !isEditing,
       onPopInvokedWithResult: (didPop, _) async {
-        if (didPop) {
-          return;
-        }
+        if (didPop) return;
         await _handlePagePop(context);
       },
       child: Scaffold(
         key: const Key('page-fence'),
-        appBar: fenceState.editSession == null
-            ? AppBar(title: const Text(MockConfig.ranchName))
-            : null,
+        appBar: isEditing
+            ? null
+            : AppBar(title: const Text(MockConfig.ranchName)),
         body: _buildBody(
           context,
           fenceState,
@@ -122,17 +127,13 @@ class _FencePageState extends ConsumerState<FencePage> {
         );
       case ViewState.normal:
       case ViewState.empty:
-        return _buildMapWithDrawer(
-          context,
-          fenceState,
-          controller,
-          canManage,
-          appMode,
+        return _buildMap(
+          context, fenceState, controller, canManage, appMode,
         );
     }
   }
 
-  Widget _buildMapWithDrawer(
+  Widget _buildMap(
     BuildContext context,
     FenceState fenceState,
     FenceController controller,
@@ -144,55 +145,7 @@ class _FencePageState extends ConsumerState<FencePage> {
     final editSession = fenceState.editSession;
     final isEditing = editSession != null;
     final isSaving = fenceState.editMode == FenceEditMode.saving;
-    final canSaveEditing = controller.canSaveSession(editSession);
     final selectedFenceId = fenceState.selectedFenceId;
-
-    if (isEditing) {
-      return Stack(
-        children: [
-          FenceEditOverlay(
-            mapController: _editMapController,
-            points: editSession.points,
-            isInteractive: !isSaving,
-            activeTool: editSession.tool,
-            onMoveVertex: controller.moveDraftVertex,
-            onInsertVertex: controller.insertDraftVertex,
-            onRemoveVertex: (vertexIndex) => _handleRemoveVertex(
-              context,
-              controller,
-              editSession,
-              vertexIndex,
-            ),
-            onTranslate: controller.translateDraft,
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: FenceEditToolbar(
-              activeTool: editSession.tool,
-              onSave: () => _handleEditSave(
-                context,
-                controller,
-                appMode,
-              ),
-              canSave: canSaveEditing,
-              canExit: !isSaving,
-              onExit: () => _handleEditExit(
-                context,
-                controller,
-              ),
-              onUndo: controller.undoEdit,
-              onRedo: controller.redoEdit,
-              canUndo: editSession.canUndo &&
-                  !isSaving,
-              canRedo: editSession.canRedo &&
-                  !isSaving,
-              canSelectTool: !isSaving,
-              onSelectTool: controller.selectEditTool,
-            ),
-          ),
-        ],
-      );
-    }
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -200,82 +153,193 @@ class _FencePageState extends ConsumerState<FencePage> {
         final mockTrajectoryPoints = appMode.isMock
             ? _buildMockTrajectoryPoints(fenceState)
             : const <LatLng>[];
+
         return Stack(
           clipBehavior: Clip.none,
           children: [
             Positioned.fill(
-              child: FlutterMap(
-                key: const Key('fence-browse-map'),
-                mapController: _browseMapController,
-                options: MapOptions(
-                  initialCenter: DemoSeed.mapCenter,
-                  initialZoom: DemoSeed.defaultZoom,
-                  interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.all,
-                  ),
-                  onTap: (tapPosition, point) => _handleMapTap(
-                    point,
-                    fenceState,
-                    controller,
-                  ),
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate: MapConfig.tileUrlTemplate,
-                    userAgentPackageName: 'com.smartlivestock.demo',
-                    maxZoom: MapConfig.cacheMaxZoom.toDouble(),
-                  ),
-                  PolygonLayer(
-                    polygons: fenceState.fences.map((fence) {
-                      final color = Color(fence.colorValue);
-                      final selected = fence.id == fenceState.selectedFenceId;
-                      final hasSelection = fenceState.selectedFenceId != null;
-                      return Polygon(
-                        points: fence.points,
-                        color: selected
-                            ? color.withValues(alpha: 0.4)
-                            : color.withValues(alpha: hasSelection ? 0.1 : 0.2),
-                        borderColor: selected
-                            ? color
-                            : color.withValues(alpha: hasSelection ? 0.5 : 1.0),
-                        borderStrokeWidth: selected ? 3.5 : (hasSelection ? 1.5 : 2.0),
-                      );
-                    }).toList(),
-                  ),
-                  if (appMode.isMock && mockTrajectoryPoints.isNotEmpty)
-                    PolylineLayer(
-                      polylines: [
-                        Polyline(
-                          points: mockTrajectoryPoints,
-                          color: AppColors.primary,
-                          strokeWidth: 3,
+              child: Listener(
+                onPointerDown: _onPointerDown,
+                onPointerUp: _onPointerUp,
+                onPointerCancel: _onPointerCancel,
+                child: Stack(
+                  children: [
+                    Container(
+                      key: _gestureKey,
+                      child: FlutterMap(
+                        key: const Key('fence-map'),
+                        mapController: _mapController,
+                        options: MapOptions(
+                          initialCenter: DemoSeed.mapCenter,
+                          initialZoom: DemoSeed.defaultZoom,
+                          interactionOptions: const InteractionOptions(
+                            flags: InteractiveFlag.all,
+                          ),
+                          onTap: isEditing
+                              ? (editSession.tool ==
+                                      FenceEditTool.insertVertex
+                                  ? (tapPos, _) =>
+                                      _handleEditMapTapInsert(
+                                        tapPos, editSession, controller,
+                                      )
+                                  : null)
+                              : (tapPosition, point) =>
+                                  _handleMapTap(
+                                    tapPosition,
+                                    point,
+                                    fenceState,
+                                    controller,
+                                  ),
                         ),
-                      ],
-                    ),
-                  if (appMode.isLive &&
-                      ApiCache.instance.initialized &&
-                      ApiCache.instance.mapTrajectoryPoints.isNotEmpty)
-                    PolylineLayer(
-                      polylines: [
-                        Polyline(
-                          points: [
-                            for (final p in ApiCache.instance.mapTrajectoryPoints)
-                              LatLng(
-                                (p['lat'] as num).toDouble(),
-                                (p['lng'] as num).toDouble(),
+                        children: [
+                          TileLayer(
+                            urlTemplate: MapConfig.tileUrlTemplate,
+                            userAgentPackageName:
+                                'com.smartlivestock.demo',
+                            maxZoom: MapConfig.cacheMaxZoom.toDouble(),
+                          ),
+                          if (!isEditing)
+                            AnimatedBuilder(
+                              animation: _breathingController,
+                              builder: (context, _) => PolygonLayer(
+                                polygons:
+                                    _buildBrowsePolygons(fenceState),
                               ),
-                          ],
-                          color: AppColors.primary,
-                          strokeWidth: 3,
-                        ),
-                      ],
+                            )
+                          else
+                            PolygonLayer(
+                              polygons:
+                                  _buildEditPolygons(editSession),
+                            ),
+                          if (!isEditing &&
+                              editSession == null &&
+                              appMode.isMock &&
+                              mockTrajectoryPoints.isNotEmpty)
+                            PolylineLayer(
+                              polylines: [
+                                Polyline(
+                                  points: mockTrajectoryPoints,
+                                  color: AppColors.primary,
+                                  strokeWidth: 3,
+                                ),
+                              ],
+                            ),
+                          if (!isEditing &&
+                              appMode.isLive &&
+                              ApiCache.instance.initialized &&
+                              ApiCache.instance
+                                  .mapTrajectoryPoints.isNotEmpty)
+                            PolylineLayer(
+                              polylines: [
+                                Polyline(
+                                  points: [
+                                    for (final p in ApiCache
+                                        .instance.mapTrajectoryPoints)
+                                      LatLng(
+                                        (p['lat'] as num).toDouble(),
+                                        (p['lng'] as num).toDouble(),
+                                      ),
+                                  ],
+                                  color: AppColors.primary,
+                                  strokeWidth: 3,
+                                ),
+                              ],
+                            ),
+                          if (isEditing &&
+                              editSession.points.length >= 2)
+                            PolylineLayer(
+                              polylines: [
+                                Polyline(
+                                  points: [
+                                    ...editSession.points,
+                                    editSession.points.first,
+                                  ],
+                                  color: AppColors.primary,
+                                  strokeWidth: 2.5,
+                                ),
+                              ],
+                            ),
+                          MarkerLayer(
+                            markers: [
+                              if (!isEditing)
+                                ..._buildLivestockMarkers(appMode),
+                              if (isEditing)
+                                ..._buildVertexMarkers(
+                                  editSession, controller, isSaving,
+                                ),
+                              if (isEditing &&
+                                  editSession.tool ==
+                                      FenceEditTool.insertVertex)
+                                ..._buildEdgeMidpointMarkers(
+                                  editSession, controller, isSaving,
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  MarkerLayer(
-                    markers: _buildLivestockMarkers(appMode),
-                  ),
-                ],
+                    if (isEditing &&
+                        !isSaving &&
+                        editSession.tool == FenceEditTool.translate &&
+                        editSession.points.length >= 3)
+                      Positioned.fill(
+                        child: ClipPath(
+                          clipper:
+                              _PolygonClipper(_translateHitPolygon(editSession)),
+                          child: GestureDetector(
+                            key: const Key(
+                                'fence-edit-translate-hit-area'),
+                            behavior: HitTestBehavior.opaque,
+                            onPanStart: _handleTranslatePanStart,
+                            onPanUpdate: _handleTranslatePanUpdate,
+                            onPanEnd: (_) =>
+                                _lastTranslateOffset = null,
+                            onPanCancel: () =>
+                                _lastTranslateOffset = null,
+                            child: const ColoredBox(
+                                color: Colors.transparent),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
+
+            if (isEditing)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: FenceMiniTitleBar(
+                  fenceName: fenceState.selectedFence?.name ?? '',
+                  onBack: () => _handleEditExit(context, controller),
+                  onUndo: controller.undoEdit,
+                  onRedo: controller.redoEdit,
+                  canUndo: editSession.canUndo && !isSaving,
+                  canRedo: editSession.canRedo && !isSaving,
+                ),
+              ),
+
+            if (isEditing)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: FenceEditToolbar(
+                  activeTool: editSession.tool,
+                  onSave: () =>
+                      _handleEditSave(context, controller, appMode),
+                  canSave:
+                      controller.canSaveSession(editSession),
+                  canExit: !isSaving,
+                  onExit: () =>
+                      _handleEditExit(context, controller),
+                  canSelectTool: !isSaving,
+                  onSelectTool: controller.selectEditTool,
+                ),
+              ),
+
             if (!isEditing)
               AnimatedPositioned(
                 duration: panelAnimDuration,
@@ -302,12 +366,15 @@ class _FencePageState extends ConsumerState<FencePage> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 '牧场 (${fenceState.fences.length})',
                                 key: const Key('fence-drawer-title'),
-                                style: Theme.of(context).textTheme.titleMedium,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium,
                               ),
                               if (canManage)
                                 IconButton(
@@ -317,11 +384,13 @@ class _FencePageState extends ConsumerState<FencePage> {
                                       .then((_) {
                                     if (appMode.isLive) {
                                       ref
-                                          .read(fenceControllerProvider.notifier)
+                                          .read(fenceControllerProvider
+                                              .notifier)
                                           .reloadFromRepository();
                                     }
                                   }),
-                                  icon: const Icon(Icons.add_circle_outline),
+                                  icon: const Icon(
+                                      Icons.add_circle_outline),
                                   tooltip: '新建围栏',
                                 ),
                             ],
@@ -339,7 +408,8 @@ class _FencePageState extends ConsumerState<FencePage> {
                                       .textTheme
                                       .bodyMedium
                                       ?.copyWith(
-                                        color: AppColors.textSecondary,
+                                        color:
+                                            AppColors.textSecondary,
                                       ),
                                 ),
                               ),
@@ -348,27 +418,31 @@ class _FencePageState extends ConsumerState<FencePage> {
                             for (final fence in fenceState.fences)
                               _FenceCard(
                                 fence: fence,
-                                isSelected:
-                                    fence.id == fenceState.selectedFenceId,
+                                isSelected: fence.id ==
+                                    fenceState.selectedFenceId,
                                 canManage: canManage,
                                 onTap: () {
                                   controller.select(fence.id);
-                                  _browseMapController.move(
+                                  _mapController.move(
                                     _fenceCenter(fence.points),
                                     16.0,
                                   );
-                                  setState(() => _panelOpen = false);
+                                  setState(
+                                      () => _panelOpen = false);
                                 },
                                 onEdit: () {
                                   controller.select(fence.id);
-                                  controller.startEditing(fence.id);
-                                  _browseMapController.move(
+                                  controller
+                                      .startEditing(fence.id);
+                                  _mapController.move(
                                     _fenceCenter(fence.points),
                                     16.0,
                                   );
-                                  setState(() => _panelOpen = false);
+                                  setState(
+                                      () => _panelOpen = false);
                                 },
-                                onDelete: () => _showDeleteDialog(
+                                onDelete: () =>
+                                    _showDeleteDialog(
                                   context,
                                   fence,
                                   controller,
@@ -381,6 +455,7 @@ class _FencePageState extends ConsumerState<FencePage> {
                   ),
                 ),
               ),
+
             if (!isEditing)
               AnimatedPositioned(
                 duration: panelAnimDuration,
@@ -393,13 +468,20 @@ class _FencePageState extends ConsumerState<FencePage> {
                   child: FloatingActionButton.small(
                     key: const Key('fence-panel-toggle'),
                     heroTag: 'fence-panel-toggle',
-                    onPressed: () => setState(() => _panelOpen = !_panelOpen),
-                    tooltip: _panelOpen ? '收起牧场列表' : '牧场列表',
-                    child: Icon(_panelOpen ? Icons.chevron_left : Icons.menu),
+                    onPressed: () =>
+                        setState(() => _panelOpen = !_panelOpen),
+                    tooltip:
+                        _panelOpen ? '收起牧场列表' : '牧场列表',
+                    child: Icon(_panelOpen
+                        ? Icons.chevron_left
+                        : Icons.menu),
                   ),
                 ),
               ),
-            if (!isEditing && canManage && fenceState.fences.isNotEmpty)
+
+            if (!isEditing &&
+                canManage &&
+                fenceState.fences.isNotEmpty)
               Positioned(
                 right: AppSpacing.md,
                 bottom: AppSpacing.md,
@@ -420,7 +502,8 @@ class _FencePageState extends ConsumerState<FencePage> {
                     controller.startEditing(selectedFenceId);
                     setState(() => _panelOpen = false);
                   },
-                  icon: const Icon(Icons.edit_location_alt_outlined),
+                  icon: const Icon(
+                      Icons.edit_location_alt_outlined),
                   label: const Text('编辑边界'),
                 ),
               ),
@@ -430,34 +513,363 @@ class _FencePageState extends ConsumerState<FencePage> {
     );
   }
 
+  List<Polygon> _buildBrowsePolygons(FenceState fenceState) {
+    final t = _breathingController.value;
+    final hasSelection = fenceState.selectedFenceId != null;
+    return fenceState.fences.map((fence) {
+      final color = Color(fence.colorValue);
+      final selected = fence.id == fenceState.selectedFenceId;
+      if (selected) {
+        return Polygon(
+          points: fence.points,
+          color: color.withValues(alpha: 0.3 + 0.1 * t),
+          borderColor: color,
+          borderStrokeWidth: 3.0 + 1.5 * t,
+        );
+      }
+      return Polygon(
+        points: fence.points,
+        color: color.withValues(alpha: hasSelection ? 0.08 : 0.15),
+        borderColor:
+            hasSelection ? color.withValues(alpha: 0.4) : color,
+        borderStrokeWidth: hasSelection ? 1.5 : 2.0,
+      );
+    }).toList();
+  }
+
+  List<Polygon> _buildEditPolygons(FenceEditSession editSession) {
+    if (editSession.points.length < 3) return const [];
+    return [
+      Polygon(
+        points: editSession.points,
+        color: AppColors.primary.withValues(alpha: 0.22),
+        borderColor: AppColors.primary,
+        borderStrokeWidth: 2.5,
+      ),
+    ];
+  }
+
+  List<Marker> _buildVertexMarkers(
+    FenceEditSession editSession,
+    FenceController controller,
+    bool isSaving,
+  ) {
+    final isInteractive = !isSaving;
+    return [
+      for (var i = 0; i < editSession.points.length; i++)
+        Marker(
+          key: Key('fence-edit-vertex-marker-$i'),
+          point: editSession.points[i],
+          width: 88,
+          height: 88,
+          alignment: Alignment.center,
+          child: GestureDetector(
+            key: Key('fence-edit-vertex-$i'),
+            behavior: HitTestBehavior.opaque,
+            onTap: isInteractive
+                ? () {
+                    if (editSession.tool == FenceEditTool.deleteVertex) {
+                      _handleRemoveVertex(
+                        context, controller, editSession, i,
+                      );
+                    }
+                  }
+                : null,
+            onPanStart: isInteractive &&
+                    editSession.tool == FenceEditTool.moveVertex
+                ? (_) {
+                    if (_isMultiTouch) return;
+                    setState(() => _draggingVertexIndex = i);
+                  }
+                : null,
+            onPanUpdate: isInteractive &&
+                    editSession.tool == FenceEditTool.moveVertex
+                ? (details) {
+                    if (_isMultiTouch || _draggingVertexIndex != i) {
+                      return;
+                    }
+                    _handleVertexPanUpdate(i, details.globalPosition, controller);
+                  }
+                : null,
+            onPanEnd: isInteractive &&
+                    editSession.tool == FenceEditTool.moveVertex
+                ? (_) {
+                    setState(() => _draggingVertexIndex = null);
+                  }
+                : null,
+            onPanCancel: isInteractive &&
+                    editSession.tool == FenceEditTool.moveVertex
+                ? () {
+                    setState(() => _draggingVertexIndex = null);
+                  }
+                : null,
+            child: Center(
+              child: _VertexHandle(
+                highlight:
+                    editSession.tool == FenceEditTool.moveVertex ||
+                        editSession.tool == FenceEditTool.deleteVertex,
+              ),
+            ),
+          ),
+        ),
+    ];
+  }
+
+  List<Marker> _buildEdgeMidpointMarkers(
+    FenceEditSession editSession,
+    FenceController controller,
+    bool isSaving,
+  ) {
+    return [
+      for (var i = 0; i < editSession.points.length; i++)
+        Marker(
+          key: Key('fence-edit-edge-marker-$i'),
+          point: _midPointForEdge(editSession.points, i),
+          width: 28,
+          height: 28,
+          child: GestureDetector(
+            key: Key('fence-edit-edge-$i'),
+            behavior: HitTestBehavior.opaque,
+            onTap: !isSaving
+                ? () => controller.insertDraftVertex(
+                      i,
+                      _midPointForEdge(editSession.points, i),
+                    )
+                : null,
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black26, blurRadius: 4),
+                ],
+              ),
+              child: const Icon(Icons.add, size: 16, color: Colors.white),
+            ),
+          ),
+        ),
+    ];
+  }
+
+  void _onPointerDown(PointerDownEvent event) {
+    _activePointerCount++;
+    if (_activePointerCount >= 2) {
+      _isMultiTouch = true;
+      if (_draggingVertexIndex != null || _lastTranslateOffset != null) {
+        setState(() {
+          _draggingVertexIndex = null;
+          _lastTranslateOffset = null;
+        });
+      }
+    }
+  }
+
+  void _onPointerUp(PointerUpEvent event) {
+    _activePointerCount--;
+    if (_activePointerCount <= 0) {
+      _activePointerCount = 0;
+      _isMultiTouch = false;
+    }
+  }
+
+  void _onPointerCancel(PointerCancelEvent event) {
+    _activePointerCount--;
+    if (_activePointerCount <= 0) {
+      _activePointerCount = 0;
+      _isMultiTouch = false;
+    }
+  }
+
+  void _handleMapTap(
+    TapPosition tapPosition,
+    LatLng point,
+    FenceState fenceState,
+    FenceController controller,
+  ) {
+    final screenPoint = tapPosition.relative;
+    if (screenPoint == null) return;
+    final camera = _mapController.camera;
+
+    Offset project(LatLng ll) {
+      final p = camera.latLngToScreenOffset(ll);
+      return Offset((p.dx as num).toDouble(), (p.dy as num).toDouble());
+    }
+
+    final hits = detectFenceHits(
+      tapScreenPoint: screenPoint,
+      tapLatLng: point,
+      fences: fenceState.fences,
+      project: project,
+    );
+
+    if (hits.isEmpty) {
+      controller.select(null);
+      return;
+    }
+
+    if (hits.length == 1) {
+      controller.select(hits.first.fenceId);
+      return;
+    }
+
+    final candidates = <FenceItem>[];
+    for (final hit in hits) {
+      for (final fence in fenceState.fences) {
+        if (fence.id == hit.fenceId) {
+          candidates.add(fence);
+          break;
+        }
+      }
+    }
+    showFenceCandidateSheet(context, candidates).then((selectedId) {
+      if (selectedId != null) {
+        controller.select(selectedId);
+      }
+    });
+  }
+
+  void _handleEditMapTapInsert(
+    TapPosition tapPosition,
+    FenceEditSession editSession,
+    FenceController controller,
+  ) {
+    final local = tapPosition.relative;
+    if (local == null) return;
+    final edgeHit = _findNearestEdge(local, editSession.points);
+    if (edgeHit == null || edgeHit.distance > 24.0) return;
+    final insertPoint = _latLngFromLocal(local);
+    if (insertPoint == null) return;
+    controller.insertDraftVertex(edgeHit.edgeStartIndex, insertPoint);
+  }
+
+  void _handleVertexPanUpdate(
+    int vertexIndex,
+    Offset globalPosition,
+    FenceController controller,
+  ) {
+    final context = _gestureKey.currentContext;
+    if (context == null) return;
+    final renderBox = context.findRenderObject();
+    if (renderBox is! RenderBox) return;
+    final local = renderBox.globalToLocal(globalPosition);
+    final nextPoint = _latLngFromLocal(local);
+    if (nextPoint == null) return;
+    controller.moveDraftVertex(vertexIndex, nextPoint);
+  }
+
+  void _handleTranslatePanStart(DragStartDetails details) {
+    if (_isMultiTouch) return;
+    _lastTranslateOffset = details.localPosition;
+  }
+
+  void _handleTranslatePanUpdate(DragUpdateDetails details) {
+    if (_isMultiTouch) {
+      _lastTranslateOffset = null;
+      return;
+    }
+    final previous = _lastTranslateOffset;
+    final current = details.localPosition;
+    if (previous == null) {
+      _lastTranslateOffset = current;
+      return;
+    }
+    final previousLatLng = _latLngFromLocal(previous);
+    final currentLatLng = _latLngFromLocal(current);
+    if (previousLatLng == null || currentLatLng == null) {
+      _lastTranslateOffset = current;
+      return;
+    }
+    ref.read(fenceControllerProvider.notifier).translateDraft(
+          currentLatLng.latitude - previousLatLng.latitude,
+          currentLatLng.longitude - previousLatLng.longitude,
+        );
+    _lastTranslateOffset = current;
+  }
+
+  LatLng? _latLngFromLocal(Offset localPosition) {
+    try {
+      final camera = _mapController.camera;
+      if (camera.size.width == 0 || camera.size.height == 0) return null;
+      return camera.screenOffsetToLatLng(localPosition);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Offset? _offsetForPoint(LatLng point) {
+    try {
+      final offset = _mapController.camera.latLngToScreenOffset(point);
+      return Offset(
+        (offset.dx as num).toDouble(),
+        (offset.dy as num).toDouble(),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  _EdgeHit? _findNearestEdge(Offset localPosition, List<LatLng> points) {
+    if (points.length < 2) return null;
+    _EdgeHit? best;
+    for (var i = 0; i < points.length; i++) {
+      final start = _offsetForPoint(points[i]);
+      final end = _offsetForPoint(points[(i + 1) % points.length]);
+      if (start == null || end == null) continue;
+      final d = distanceToSegment(localPosition, start, end);
+      if (best == null || d < best.distance) {
+        best = _EdgeHit(edgeStartIndex: i, distance: d);
+      }
+    }
+    return best;
+  }
+
+  List<Offset> _translateHitPolygon(FenceEditSession editSession) {
+    final offsets = <Offset>[];
+    for (final point in editSession.points) {
+      final offset = _offsetForPoint(point);
+      if (offset == null) return const [];
+      offsets.add(offset);
+    }
+    return offsets;
+  }
+
+  static LatLng _midPointForEdge(List<LatLng> points, int edgeStartIndex) {
+    final start = points[edgeStartIndex];
+    final end = points[(edgeStartIndex + 1) % points.length];
+    return LatLng(
+      (start.latitude + end.latitude) / 2,
+      (start.longitude + end.longitude) / 2,
+    );
+  }
+
+  LatLng _fenceCenter(List<LatLng> points) {
+    double lat = 0, lng = 0;
+    for (final p in points) {
+      lat += p.latitude;
+      lng += p.longitude;
+    }
+    return LatLng(lat / points.length, lng / points.length);
+  }
+
   Future<void> _handleEditExit(
     BuildContext context,
     FenceController controller,
   ) async {
     final fenceState = ref.read(fenceControllerProvider);
-    if (fenceState.editMode == FenceEditMode.saving) {
-      return;
-    }
+    if (fenceState.editMode == FenceEditMode.saving) return;
     final hasChanges = fenceState.editSession?.hasChanges ?? false;
     if (!hasChanges) {
       controller.cancelEditing();
-      if (mounted) {
-        setState(() => _panelOpen = true);
-      }
+      if (mounted) setState(() => _panelOpen = true);
       return;
     }
-
     final action = await showFenceUnsavedDialog(context);
-    if (!context.mounted || action == null) {
-      return;
-    }
-
+    if (!context.mounted || action == null) return;
     switch (action) {
       case FenceUnsavedAction.save:
         await _handleEditSave(
-          context,
-          controller,
-          ref.read(appModeProvider),
+          context, controller, ref.read(appModeProvider),
         );
         return;
       case FenceUnsavedAction.discard:
@@ -475,23 +887,18 @@ class _FencePageState extends ConsumerState<FencePage> {
     AppMode appMode,
   ) async {
     final session = ref.read(fenceControllerProvider).editSession;
-    if (session == null || !session.hasChanges) {
-      return;
-    }
-    final geometryError = FenceController.validateDraftGeometry(session.points);
+    if (session == null || !session.hasChanges) return;
+    final geometryError =
+        FenceController.validateDraftGeometry(session.points);
     if (geometryError != null) {
       _showSnackBar(context, geometryError);
       return;
     }
-
     if (appMode.isMock) {
       controller.saveEditing();
-      if (mounted) {
-        setState(() => _panelOpen = true);
-      }
+      if (mounted) setState(() => _panelOpen = true);
       return;
     }
-
     final sessionInstanceId = session.sessionInstanceId;
     final fenceId = session.fenceId;
     controller.markSavingEdit();
@@ -500,12 +907,14 @@ class _FencePageState extends ConsumerState<FencePage> {
       fenceId,
       {
         'coordinates': [
-          for (final point in session.points) [point.longitude, point.latitude],
+          for (final point in session.points)
+            [point.longitude, point.latitude],
         ],
       },
     );
     if (!ok) {
-      final restored = controller.restoreEditingAfterSaveFailureIfCurrent(
+      final restored =
+          controller.restoreEditingAfterSaveFailureIfCurrent(
         sessionInstanceId: sessionInstanceId,
         fenceId: fenceId,
       );
@@ -519,25 +928,22 @@ class _FencePageState extends ConsumerState<FencePage> {
       }
       return;
     }
-
     final saved = controller.saveEditingIfCurrent(
       sessionInstanceId: sessionInstanceId,
       fenceId: fenceId,
     );
-    if (!saved) {
-      return;
-    }
-    await ApiCache.instance.refreshFencesAndMap(apiRoleFromEnvironment);
+    if (!saved) return;
+    await ApiCache.instance
+        .refreshFencesAndMap(apiRoleFromEnvironment);
     controller.reloadFromRepository();
-    if (context.mounted) {
-      setState(() => _panelOpen = true);
-    }
+    if (context.mounted) setState(() => _panelOpen = true);
   }
 
   Future<void> _handlePagePop(BuildContext context) async {
     final fenceState = ref.read(fenceControllerProvider);
     final controller = ref.read(fenceControllerProvider.notifier);
-    if (fenceState.editSession == null || fenceState.editMode == FenceEditMode.saving) {
+    if (fenceState.editSession == null ||
+        fenceState.editMode == FenceEditMode.saving) {
       return;
     }
     await _handleEditExit(context, controller);
@@ -546,9 +952,7 @@ class _FencePageState extends ConsumerState<FencePage> {
   void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _handleRemoveVertex(
@@ -627,10 +1031,7 @@ class _FencePageState extends ConsumerState<FencePage> {
         break;
       }
     }
-    if (boundary == null || boundary.length < 2) {
-      return const [];
-    }
-
+    if (boundary == null || boundary.length < 2) return const [];
     String? earTag;
     for (final livestock in DemoSeed.livestock) {
       if (livestock.fenceId == selectedFenceId) {
@@ -649,29 +1050,6 @@ class _FencePageState extends ConsumerState<FencePage> {
       end: DateTime.utc(2026, 4, 8, 10),
     );
     return points.map((p) => p.toLatLng()).toList();
-  }
-
-  LatLng _fenceCenter(List<LatLng> points) {
-    double lat = 0, lng = 0;
-    for (final p in points) {
-      lat += p.latitude;
-      lng += p.longitude;
-    }
-    return LatLng(lat / points.length, lng / points.length);
-  }
-
-  void _handleMapTap(
-    LatLng point,
-    FenceState fenceState,
-    FenceController controller,
-  ) {
-    for (final fence in fenceState.fences) {
-      if (fencePolygonContainsLatLng(point, fence.points)) {
-        controller.select(fence.id);
-        return;
-      }
-    }
-    controller.select(null);
   }
 
   void _showDeleteDialog(
@@ -696,28 +1074,26 @@ class _FencePageState extends ConsumerState<FencePage> {
             onPressed: () async {
               Navigator.of(ctx).pop();
               if (appMode.isLive) {
-                final ok = await ApiCache.instance
-                    .deleteFenceRemote(apiRoleFromEnvironment, fence.id);
-                if (!context.mounted) {
-                  return;
-                }
+                final ok = await ApiCache.instance.deleteFenceRemote(
+                    apiRoleFromEnvironment, fence.id);
+                if (!context.mounted) return;
                 if (ok) {
                   await ApiCache.instance
                       .refreshFencesAndMap(apiRoleFromEnvironment);
-                  if (!context.mounted) {
-                    return;
-                  }
+                  if (!context.mounted) return;
                   controller.reloadFromRepository();
                   ScaffoldMessenger.of(context)
                     ..hideCurrentSnackBar()
                     ..showSnackBar(
-                      SnackBar(content: Text('已删除「${fence.name}」')),
+                      SnackBar(
+                          content: Text('已删除「${fence.name}」')),
                     );
                 } else {
                   ScaffoldMessenger.of(context)
                     ..hideCurrentSnackBar()
                     ..showSnackBar(
-                      const SnackBar(content: Text('删除失败，请稍后重试')),
+                      const SnackBar(
+                          content: Text('删除失败，请稍后重试')),
                     );
                 }
               } else {
@@ -729,11 +1105,79 @@ class _FencePageState extends ConsumerState<FencePage> {
                   );
               }
             },
-            child: const Text('删除', style: TextStyle(color: AppColors.danger)),
+            child: const Text('删除',
+                style: TextStyle(color: AppColors.danger)),
           ),
         ],
       ),
     );
+  }
+}
+
+class _VertexHandle extends StatelessWidget {
+  const _VertexHandle({required this.highlight});
+
+  static const double _outerDiameter = 44;
+  final bool highlight;
+
+  @override
+  Widget build(BuildContext context) {
+    final outerColor = highlight ? AppColors.primary : Colors.white;
+    const borderColor = AppColors.primary;
+    final innerColor = highlight ? Colors.white : AppColors.primary;
+
+    return SizedBox(
+      width: _outerDiameter,
+      height: _outerDiameter,
+      child: Container(
+        decoration: BoxDecoration(
+          color: outerColor,
+          shape: BoxShape.circle,
+          border: Border.all(color: borderColor, width: 2),
+          boxShadow: const [
+            BoxShadow(color: Colors.black26, blurRadius: 4),
+          ],
+        ),
+        child: Center(
+          child: Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              color: innerColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EdgeHit {
+  const _EdgeHit({required this.edgeStartIndex, required this.distance});
+  final int edgeStartIndex;
+  final double distance;
+}
+
+class _PolygonClipper extends CustomClipper<ui.Path> {
+  const _PolygonClipper(this.points);
+  final List<Offset> points;
+
+  @override
+  ui.Path getClip(Size size) {
+    final path = ui.Path();
+    if (points.length < 3) return path;
+    path.addPolygon(points, true);
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant _PolygonClipper oldClipper) {
+    if (oldClipper.points.length != points.length) return true;
+    for (var i = 0; i < points.length; i++) {
+      if (oldClipper.points[i] != points[i]) return true;
+    }
+    return false;
   }
 }
 
@@ -787,7 +1231,8 @@ class _FenceCard extends StatelessWidget {
                   children: [
                     Text(
                       fence.name,
-                      style: Theme.of(context).textTheme.titleSmall,
+                      style:
+                          Theme.of(context).textTheme.titleSmall,
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Row(
@@ -796,7 +1241,9 @@ class _FenceCard extends StatelessWidget {
                         const SizedBox(width: AppSpacing.sm),
                         Text(
                           '${fence.livestockCount}头',
-                          style: Theme.of(context).textTheme.bodySmall,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall,
                         ),
                       ],
                     ),
@@ -807,13 +1254,15 @@ class _FenceCard extends StatelessWidget {
                 IconButton(
                   key: Key('fence-edit-${fence.id}'),
                   onPressed: onEdit,
-                  icon: const Icon(Icons.edit_outlined, size: 20),
+                  icon:
+                      const Icon(Icons.edit_outlined, size: 20),
                   tooltip: '编辑',
                 ),
                 IconButton(
                   key: Key('fence-delete-${fence.id}'),
                   onPressed: onDelete,
-                  icon: const Icon(Icons.delete_outline, size: 20),
+                  icon: const Icon(Icons.delete_outline,
+                      size: 20),
                   tooltip: '删除',
                 ),
               ],
@@ -827,13 +1276,13 @@ class _FenceCard extends StatelessWidget {
 
 class _StatusLabel extends StatelessWidget {
   const _StatusLabel({required this.active});
-
   final bool active;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm, vertical: 2),
       decoration: BoxDecoration(
         color: active
             ? AppColors.success.withValues(alpha: 0.1)
@@ -843,7 +1292,9 @@ class _StatusLabel extends StatelessWidget {
       child: Text(
         active ? '启用' : '停用',
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: active ? AppColors.success : AppColors.textSecondary,
+              color: active
+                  ? AppColors.success
+                  : AppColors.textSecondary,
               fontSize: 11,
             ),
       ),
@@ -881,10 +1332,12 @@ class _MapMarker extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(Icons.pets, color: Colors.white, size: 14),
+            child: const Icon(Icons.pets,
+                color: Colors.white, size: 14),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+            padding: const EdgeInsets.symmetric(
+                horizontal: 4, vertical: 1),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(4),
@@ -896,10 +1349,11 @@ class _MapMarker extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                  ),
+              style:
+                  Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
             ),
           ),
         ],
