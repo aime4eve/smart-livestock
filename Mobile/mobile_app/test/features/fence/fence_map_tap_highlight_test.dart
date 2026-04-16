@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/app/demo_app.dart';
 import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
 
@@ -57,6 +58,68 @@ void main() {
     expect(polygonA.color!.a, closeTo(0.1, 0.05));
     expect(polygonA.borderStrokeWidth, 1.5);
   });
+
+  testWidgets('先选A区再选三角围栏可切换选中且地图视角不跳转', (tester) async {
+    await _openFencePage(tester);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byKey(const Key('page-fence'))),
+    );
+    final fences = container.read(fenceControllerProvider).fences;
+    final fenceA = fences.firstWhere((f) => f.id == 'fence_pasture_a');
+    final triangleFence = fences.firstWhere((f) => f.id == 'fence_rest');
+
+    final map = tester.widget<FlutterMap>(find.byKey(const Key('fence-browse-map')));
+    final mapController = map.mapController!;
+    final onMapTap = map.options.onTap!;
+    final centerBefore = mapController.camera.center;
+    final zoomBefore = mapController.camera.zoom;
+
+    onMapTap(
+      const TapPosition(Offset.zero, Offset.zero),
+      _fenceCenter(fenceA.points),
+    );
+    await tester.pumpAndSettle();
+    expect(container.read(fenceControllerProvider).selectedFenceId, fenceA.id);
+    expect(
+      mapController.camera.center.latitude,
+      closeTo(centerBefore.latitude, 0.0001),
+    );
+    expect(
+      mapController.camera.center.longitude,
+      closeTo(centerBefore.longitude, 0.0001),
+    );
+    expect(mapController.camera.zoom, closeTo(zoomBefore, 0.0001));
+
+    onMapTap(
+      const TapPosition(Offset.zero, Offset.zero),
+      _fenceCenter(triangleFence.points),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      container.read(fenceControllerProvider).selectedFenceId,
+      triangleFence.id,
+    );
+    expect(
+      mapController.camera.center.latitude,
+      closeTo(centerBefore.latitude, 0.0001),
+    );
+    expect(
+      mapController.camera.center.longitude,
+      closeTo(centerBefore.longitude, 0.0001),
+    );
+    expect(mapController.camera.zoom, closeTo(zoomBefore, 0.0001));
+  });
+}
+
+LatLng _fenceCenter(List<LatLng> points) {
+  var lat = 0.0;
+  var lng = 0.0;
+  for (final point in points) {
+    lat += point.latitude;
+    lng += point.longitude;
+  }
+  return LatLng(lat / points.length, lng / points.length);
 }
 
 Future<void> _openFencePage(WidgetTester tester) async {
