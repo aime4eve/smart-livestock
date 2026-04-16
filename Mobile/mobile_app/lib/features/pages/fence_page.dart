@@ -229,11 +229,16 @@ class _FencePageState extends ConsumerState<FencePage> {
                     polygons: fenceState.fences.map((fence) {
                       final color = Color(fence.colorValue);
                       final selected = fence.id == fenceState.selectedFenceId;
+                      final hasSelection = fenceState.selectedFenceId != null;
                       return Polygon(
                         points: fence.points,
-                        color: color.withValues(alpha: selected ? 0.4 : 0.2),
-                        borderColor: color,
-                        borderStrokeWidth: selected ? 3.5 : 2.0,
+                        color: selected
+                            ? color.withValues(alpha: 0.4)
+                            : color.withValues(alpha: hasSelection ? 0.1 : 0.2),
+                        borderColor: selected
+                            ? color
+                            : color.withValues(alpha: hasSelection ? 0.5 : 1.0),
+                        borderStrokeWidth: selected ? 3.5 : (hasSelection ? 1.5 : 2.0),
                       );
                     }).toList(),
                   ),
