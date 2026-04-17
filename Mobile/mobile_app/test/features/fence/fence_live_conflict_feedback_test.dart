@@ -40,7 +40,7 @@ void main() {
     await tester.tap(find.byKey(const Key('fence-panel-toggle')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('fence-card-fence_pasture_a')));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 100));
     await tester.tap(find.byKey(const Key('fence-start-edit')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('fence-edit-tool-insert')));
@@ -52,6 +52,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('围栏已被其他人更新，请刷新后重试'), findsOneWidget);
-    expect(find.byKey(const Key('fence-edit-overlay')), findsOneWidget);
+    expect(find.byKey(const Key('fence-edit-mini-title')), findsOneWidget);
   });
 }

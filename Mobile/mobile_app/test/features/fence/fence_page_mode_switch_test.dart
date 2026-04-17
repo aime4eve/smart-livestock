@@ -26,7 +26,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('请先选择一个牧场'), findsOneWidget);
-    expect(find.byKey(const Key('fence-edit-overlay')), findsNothing);
+    expect(find.byKey(const Key('fence-edit-mini-title')), findsNothing);
   });
 
   testWidgets('侧栏编辑按钮直接进入边界编辑', (tester) async {
@@ -36,7 +36,7 @@ void main() {
     await tester.tap(find.byKey(const Key('fence-edit-fence_pasture_a')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('fence-edit-overlay')), findsOneWidget);
+    expect(find.byKey(const Key('fence-edit-mini-title')), findsOneWidget);
   });
 
   testWidgets('进入编辑全屏后可直接退出并恢复浏览列表', (tester) async {
@@ -46,14 +46,14 @@ void main() {
     await tester.tap(find.byKey(const Key('fence-start-edit')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('fence-edit-overlay')), findsOneWidget);
+    expect(find.byKey(const Key('fence-edit-mini-title')), findsOneWidget);
     expect(find.byType(AppBar), findsNothing);
     expect(find.text('智慧牧场示范场'), findsNothing);
 
     await tester.tap(find.byKey(const Key('fence-edit-exit')));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.byKey(const Key('fence-edit-overlay')), findsNothing);
+    expect(find.byKey(const Key('fence-edit-mini-title')), findsNothing);
     expect(find.byType(AppBar), findsOneWidget);
     expect(find.byKey(const Key('fence-drawer-title')), findsOneWidget);
   });
@@ -83,7 +83,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('fence-unsaved-dialog')), findsNothing);
-    expect(find.byKey(const Key('fence-edit-overlay')), findsOneWidget);
+    expect(find.byKey(const Key('fence-edit-mini-title')), findsOneWidget);
   });
 
   testWidgets('编辑态保存按钮仅在有未保存改动时可用', (tester) async {
@@ -124,9 +124,9 @@ void main() {
     await tester.tap(find.byKey(const Key('fence-edit-exit')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('fence-unsaved-discard')));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.byKey(const Key('fence-edit-overlay')), findsNothing);
+    expect(find.byKey(const Key('fence-edit-mini-title')), findsNothing);
     expect(find.byKey(const Key('fence-drawer-title')), findsOneWidget);
     expect(
       container.read(fenceControllerProvider).fences.first.points.first,
@@ -152,9 +152,9 @@ void main() {
     await tester.tap(find.byKey(const Key('fence-edit-exit')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('fence-unsaved-save')));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.byKey(const Key('fence-edit-overlay')), findsNothing);
+    expect(find.byKey(const Key('fence-edit-mini-title')), findsNothing);
     expect(find.byKey(const Key('fence-drawer-title')), findsOneWidget);
     expect(
       container.read(fenceControllerProvider).fences.first.points.length,
@@ -180,7 +180,7 @@ void main() {
       find.byKey(const Key('fence-edit-exit')),
     );
     expect(exitButton.onPressed, isNull);
-    expect(find.byKey(const Key('fence-edit-overlay')), findsOneWidget);
+    expect(find.byKey(const Key('fence-edit-mini-title')), findsOneWidget);
 
     completer.complete(const FenceSaveResult(ok: false, statusCode: 500));
     await tester.pumpAndSettle();
@@ -201,7 +201,7 @@ void main() {
     expect(find.byKey(const Key('fence-unsaved-save')), findsOneWidget);
     expect(find.byKey(const Key('fence-unsaved-discard')), findsOneWidget);
     expect(find.byKey(const Key('fence-unsaved-continue')), findsOneWidget);
-    expect(find.byKey(const Key('fence-edit-overlay')), findsOneWidget);
+    expect(find.byKey(const Key('fence-edit-mini-title')), findsOneWidget);
   });
 
   testWidgets('非法几何时保存按钮禁用且通过退出保存会被拦截并提示', (tester) async {
@@ -230,7 +230,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('边界不能有连续重复点'), findsOneWidget);
-    expect(find.byKey(const Key('fence-edit-overlay')), findsOneWidget);
+    expect(find.byKey(const Key('fence-edit-mini-title')), findsOneWidget);
   });
 
   testWidgets('删点到最少三点后继续删除会提示失败原因', (tester) async {
@@ -279,7 +279,7 @@ Future<void> _selectFenceA(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('fence-panel-toggle')));
   await tester.pumpAndSettle();
   await tester.tap(find.byKey(const Key('fence-card-fence_pasture_a')));
-  await tester.pumpAndSettle();
+  await tester.pump(const Duration(milliseconds: 100));
 }
 
 Future<void> _insertEdgePoint(WidgetTester tester) async {

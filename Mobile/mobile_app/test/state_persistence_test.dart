@@ -18,12 +18,13 @@ void main() {
     ProviderScope.containerOf(fenceCtx)
         .read(fenceControllerProvider.notifier)
         .select('fence_pasture_a');
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 100));
 
     await tester.tap(find.byKey(const Key('nav-alerts')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('nav-fence')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     final state = ProviderScope.containerOf(
       tester.element(find.byKey(const Key('page-fence'))),
