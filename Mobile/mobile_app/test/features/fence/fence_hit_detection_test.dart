@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
@@ -137,11 +135,6 @@ void main() {
       'small',
       const [LatLng(0, 0), LatLng(0, 10), LatLng(10, 10), LatLng(10, 0)],
       area: 1.0,
-    );
-    final largeFence = _makeFence(
-      'large',
-      const [LatLng(-50, -50), LatLng(-50, 150), LatLng(150, 150), LatLng(150, -50)],
-      area: 100.0,
     );
 
     test('点在围栏内部命中（Tier 1）', () {
