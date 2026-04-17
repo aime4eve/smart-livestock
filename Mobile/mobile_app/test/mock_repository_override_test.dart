@@ -54,7 +54,17 @@ void main() {
     await tester.tap(find.byKey(const Key('fence-panel-toggle')));
     await tester.pumpAndSettle();
 
-    expect(find.text('测试围栏'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('fence-card-fake-fence-1')),
+        matching: find.text('测试围栏'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('fence-map-name-fake-fence-1')),
+      findsOneWidget,
+    );
   });
 }
 

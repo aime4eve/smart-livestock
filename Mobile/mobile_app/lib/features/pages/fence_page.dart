@@ -263,6 +263,8 @@ class _FencePageState extends ConsumerState<FencePage>
                             markers: [
                               if (!isEditing)
                                 ..._buildLivestockMarkers(appMode),
+                              if (!isEditing)
+                                ..._buildFenceNameMarkers(fenceState),
                               if (isEditing)
                                 ..._buildVertexMarkers(
                                   editSession, controller, isSaving,
@@ -968,6 +970,25 @@ class _FencePageState extends ConsumerState<FencePage>
     controller.removeDraftVertex(vertexIndex);
   }
 
+  List<Marker> _buildFenceNameMarkers(FenceState fenceState) {
+    return [
+      for (final fence in fenceState.fences)
+        if (fence.points.isNotEmpty)
+          Marker(
+            key: Key('fence-map-name-${fence.id}'),
+            point: _fenceCenter(fence.points),
+            width: 140,
+            height: 40,
+            alignment: Alignment.center,
+            child: _FenceMapNameChip(
+              name: fence.name,
+              colorValue: fence.colorValue,
+              selected: fence.id == fenceState.selectedFenceId,
+            ),
+          ),
+    ];
+  }
+
   List<Marker> _buildLivestockMarkers(AppMode appMode) {
     if (appMode.isMock) {
       return [
@@ -1297,6 +1318,57 @@ class _StatusLabel extends StatelessWidget {
                   : AppColors.textSecondary,
               fontSize: 11,
             ),
+      ),
+    );
+  }
+}
+
+class _FenceMapNameChip extends StatelessWidget {
+  const _FenceMapNameChip({
+    required this.name,
+    required this.colorValue,
+    required this.selected,
+  });
+
+  final String name;
+  final int colorValue;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = Color(colorValue);
+    return IgnorePointer(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 132),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm,
+            vertical: AppSpacing.xs,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.92),
+            borderRadius: BorderRadius.circular(AppSpacing.sm),
+            border: Border.all(
+              color: selected ? accent : accent.withValues(alpha: 0.45),
+              width: selected ? 2 : 1,
+            ),
+            boxShadow: const [
+              BoxShadow(color: Colors.black26, blurRadius: 3),
+            ],
+          ),
+          child: Text(
+            name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontSize: 12,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+          ),
+        ),
       ),
     );
   }
