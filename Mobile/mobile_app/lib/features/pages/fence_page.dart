@@ -710,11 +710,33 @@ class _FencePageState extends ConsumerState<FencePage>
       return;
     }
 
+    // Tier 1: inside-polygon hit — select directly, ignore boundary hits
+    if (hits.first.isInside) {
+      controller.select(hits.first.fenceId);
+      return;
+    }
+
+    // Tier 2: boundary-only hits
     if (hits.length == 1) {
       controller.select(hits.first.fenceId);
       return;
     }
 
+    // Multiple boundary hits — check distance ratio
+    if (hits.first.boundaryDistance < 1.0) {
+      // Practically on the boundary — no ambiguity.
+      // Also guards against boundaryDistance == 0 (division by zero).
+      controller.select(hits.first.fenceId);
+      return;
+    }
+    final ratio = hits[1].boundaryDistance / hits.first.boundaryDistance;
+    if (ratio >= 1.5) {
+      // Closest fence is significantly nearer
+      controller.select(hits.first.fenceId);
+      return;
+    }
+
+    // Ambiguous — show candidate BottomSheet
     final candidates = <FenceItem>[];
     for (final hit in hits) {
       for (final fence in fenceState.fences) {

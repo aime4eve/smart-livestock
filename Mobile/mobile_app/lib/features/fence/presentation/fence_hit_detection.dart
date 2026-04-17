@@ -7,10 +7,17 @@ import 'package:smart_livestock_demo/features/fence/domain/fence_polygon_contain
 typedef LatLngToOffset = Offset Function(LatLng);
 
 class FenceHitResult {
-  const FenceHitResult({required this.fenceId, required this.areaHectares});
+  const FenceHitResult({
+    required this.fenceId,
+    required this.areaHectares,
+    required this.isInside,
+    required this.boundaryDistance,
+  });
 
   final String fenceId;
   final double areaHectares;
+  final bool isInside;
+  final double boundaryDistance;
 }
 
 double distanceToSegment(Offset point, Offset start, Offset end) {
@@ -29,22 +36,32 @@ double distanceToSegment(Offset point, Offset start, Offset end) {
   return (point - projection).distance;
 }
 
+double nearestDistanceToPolygonBoundary(
+  Offset point,
+  List<Offset> polygonScreenPoints,
+) {
+  if (polygonScreenPoints.length < 2) {
+    return double.infinity;
+  }
+  var minDist = double.infinity;
+  for (var i = 0; i < polygonScreenPoints.length; i++) {
+    final start = polygonScreenPoints[i];
+    final end = polygonScreenPoints[(i + 1) % polygonScreenPoints.length];
+    final d = distanceToSegment(point, start, end);
+    if (d < minDist) {
+      minDist = d;
+    }
+  }
+  return minDist;
+}
+
+// Kept for backward compatibility with existing tests.
 bool isPointNearPolygonBoundary(
   Offset point,
   List<Offset> polygonScreenPoints,
   double tolerance,
 ) {
-  if (polygonScreenPoints.length < 2) {
-    return false;
-  }
-  for (var i = 0; i < polygonScreenPoints.length; i++) {
-    final start = polygonScreenPoints[i];
-    final end = polygonScreenPoints[(i + 1) % polygonScreenPoints.length];
-    if (distanceToSegment(point, start, end) < tolerance) {
-      return true;
-    }
-  }
-  return false;
+  return nearestDistanceToPolygonBoundary(point, polygonScreenPoints) < tolerance;
 }
 
 List<FenceHitResult> detectFenceHits({
@@ -62,34 +79,47 @@ List<FenceHitResult> detectFenceHits({
 
     final insideGeo = fencePolygonContainsLatLng(tapLatLng, fence.points);
 
-    var nearBoundary = false;
-    if (!insideGeo) {
-      final screenPoints = <Offset>[];
-      var projectionFailed = false;
-      for (final p in fence.points) {
-        try {
-          screenPoints.add(project(p));
-        } catch (_) {
-          projectionFailed = true;
-          break;
-        }
-      }
-      if (!projectionFailed) {
-        nearBoundary = isPointNearPolygonBoundary(
-          tapScreenPoint,
-          screenPoints,
-          boundaryTolerancePx,
-        );
-      }
-    }
-
-    if (insideGeo || nearBoundary) {
+    if (insideGeo) {
       results.add(FenceHitResult(
         fenceId: fence.id,
         areaHectares: fence.areaHectares,
+        isInside: true,
+        boundaryDistance: 0,
       ));
+      continue;
+    }
+
+    final screenPoints = <Offset>[];
+    var projectionFailed = false;
+    for (final p in fence.points) {
+      try {
+        screenPoints.add(project(p));
+      } catch (_) {
+        projectionFailed = true;
+        break;
+      }
+    }
+    if (!projectionFailed) {
+      final distance = nearestDistanceToPolygonBoundary(
+        tapScreenPoint,
+        screenPoints,
+      );
+      if (distance < boundaryTolerancePx) {
+        results.add(FenceHitResult(
+          fenceId: fence.id,
+          areaHectares: fence.areaHectares,
+          isInside: false,
+          boundaryDistance: distance,
+        ));
+      }
     }
   }
-  results.sort((a, b) => a.areaHectares.compareTo(b.areaHectares));
+
+  results.sort((a, b) {
+    if (a.isInside != b.isInside) return a.isInside ? -1 : 1;
+    if (a.isInside) return a.areaHectares.compareTo(b.areaHectares);
+    return a.boundaryDistance.compareTo(b.boundaryDistance);
+  });
+
   return results;
 }
