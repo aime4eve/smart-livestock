@@ -172,8 +172,12 @@ class _FencePageState extends ConsumerState<FencePage>
                         options: MapOptions(
                           initialCenter: DemoSeed.mapCenter,
                           initialZoom: DemoSeed.defaultZoom,
-                          interactionOptions: const InteractionOptions(
-                            flags: InteractiveFlag.all,
+                          interactionOptions: InteractionOptions(
+                            flags: isEditing &&
+                                    editSession.tool ==
+                                        FenceEditTool.moveVertex
+                                ? InteractiveFlag.all & ~InteractiveFlag.drag
+                                : InteractiveFlag.all,
                           ),
                           onTap: isEditing
                               ? (editSession.tool ==
