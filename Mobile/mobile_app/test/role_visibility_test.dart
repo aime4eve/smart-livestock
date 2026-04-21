@@ -13,7 +13,7 @@ void main() {
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('admin-overview-card')), findsOneWidget);
+    expect(find.byKey(const Key('page-tenant-list')), findsOneWidget);
     expect(find.byKey(const Key('nav-alerts')), findsNothing);
   });
 
@@ -74,7 +74,7 @@ void main() {
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pumpAndSettle();
 
-    expect(find.text('租户后台占位'), findsOneWidget);
+    expect(find.byKey(const Key('page-tenant-list')), findsOneWidget);
     expect(find.byKey(const Key('nav-fence')), findsNothing);
     expect(find.byKey(const Key('page-fence')), findsNothing);
   });

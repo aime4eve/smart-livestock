@@ -131,13 +131,14 @@ void main() {
     expect(find.byKey(const Key('nav-admin')), findsNothing);
   });
 
-  testWidgets('流程1：ops 直达租户后台', (tester) async {
+  testWidgets('流程1：ops 直达租户列表', (tester) async {
     await tester.pumpWidget(const DemoApp());
     await tester.tap(find.byKey(const Key('role-ops')));
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pumpAndSettle();
 
-    expect(find.text('租户后台占位'), findsOneWidget);
+    expect(find.byKey(const Key('page-tenant-list')), findsOneWidget);
+    expect(find.text('华东示范牧场'), findsOneWidget);
     expect(find.byKey(const Key('nav-alerts')), findsNothing);
   });
 }
