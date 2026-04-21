@@ -22,4 +22,17 @@ class RolePermission {
   static bool canBatchAlerts(DemoRole role) => role == DemoRole.owner;
 
   static bool canTwinBreedingAction(DemoRole role) => role == DemoRole.owner;
+
+  static bool canManageTenants(DemoRole role) =>
+      role == DemoRole.owner || role == DemoRole.ops;
+
+  static bool canCreateTenant(DemoRole role) => canManageTenants(role);
+
+  static bool canEditTenant(DemoRole role) => canManageTenants(role);
+
+  static bool canDeleteTenant(DemoRole role) => canManageTenants(role);
+
+  static bool canToggleTenantStatus(DemoRole role) => canManageTenants(role);
+
+  static bool canAdjustLicense(DemoRole role) => canManageTenants(role);
 }
