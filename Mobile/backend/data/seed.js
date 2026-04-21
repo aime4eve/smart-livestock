@@ -20,6 +20,8 @@ const users = {
       'tenant:create',
       'tenant:toggle',
       'license:manage',
+      'tenant:edit',
+      'tenant:delete',
       'profile:view',
     ],
   },
@@ -45,7 +47,7 @@ const users = {
     name: '运维管理员',
     role: 'ops',
     mobile: '13800000002',
-    permissions: ['tenant:view', 'tenant:create', 'tenant:toggle', 'license:manage'],
+    permissions: ['tenant:view', 'tenant:create', 'tenant:toggle', 'license:manage', 'tenant:edit', 'tenant:delete'],
   },
 };
 
@@ -177,6 +179,10 @@ const alerts = [
 const tenants = [
   { id: 'tenant_001', name: '华东示范牧场', status: 'active', licenseUsed: 50, licenseTotal: 200 },
   { id: 'tenant_002', name: '西部高原牧场', status: 'active', licenseUsed: 120, licenseTotal: 200 },
+  { id: 'tenant_003', name: '东北黑土地牧场', status: 'active', licenseUsed: 180, licenseTotal: 250 },
+  { id: 'tenant_004', name: '华南热带牧场', status: 'disabled', licenseUsed: 30, licenseTotal: 100 },
+  { id: 'tenant_005', name: '西南高山牧场', status: 'active', licenseUsed: 95, licenseTotal: 150 },
+  { id: 'tenant_006', name: '华北草原牧场', status: 'active', licenseUsed: 75, licenseTotal: 180 },
 ];
 
 function generateDevices() {
