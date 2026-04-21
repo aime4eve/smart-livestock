@@ -2,15 +2,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/tenant_list_controller.dart';
 
-class TenantDetailController
-    extends FamilyNotifier<TenantDetailViewData, String> {
+class TenantDetailController extends Notifier<TenantDetailViewData> {
+  TenantDetailController(this.id);
+
+  final String id;
+
   @override
-  TenantDetailViewData build(String id) {
+  TenantDetailViewData build() {
     return ref.watch(tenantRepositoryProvider).loadDetail(id);
   }
 
   void refresh() {
-    state = ref.read(tenantRepositoryProvider).loadDetail(arg);
+    state = ref.read(tenantRepositoryProvider).loadDetail(id);
   }
 }
 
