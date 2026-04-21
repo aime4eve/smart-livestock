@@ -39,6 +39,21 @@ class FenceSaveResult {
   final int? statusCode;
 }
 
+class TenantWriteResult {
+  const TenantWriteResult({
+    required this.ok,
+    this.tenant,
+    this.errorCode,
+    this.statusCode,
+    this.message,
+  });
+  final bool ok;
+  final Map<String, dynamic>? tenant;
+  final String? errorCode;
+  final int? statusCode;
+  final String? message;
+}
+
 class ApiCache {
   ApiCache._();
   static final ApiCache instance = ApiCache._();
@@ -191,6 +206,118 @@ class ApiCache {
     return null;
   }
 
+  Future<void> refreshTenants(String role) async {
+    final headers = _headers(role);
+    final data = await _get('/tenants?pageSize=100', headers);
+    if (data != null) {
+      _tenants = List<Map<String, dynamic>>.from(data['items'] ?? []);
+    }
+  }
+
+  Future<Map<String, dynamic>?> fetchTenantDetail(String role, String id) async {
+    final response = await http
+        .get(Uri.parse('${resolveApiBaseUrl()}/tenants/$id'),
+            headers: _headers(role))
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      if (body['code'] == 'OK') {
+        return body['data'] as Map<String, dynamic>?;
+      }
+    }
+    return null;
+  }
+
+  Future<TenantWriteResult> createTenantRemote(
+    String role,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await http
+        .post(
+          Uri.parse('${resolveApiBaseUrl()}/tenants'),
+          headers: _headers(role),
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 20));
+    return _parseTenantWrite(response);
+  }
+
+  Future<TenantWriteResult> updateTenantRemote(
+    String role,
+    String id,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await http
+        .put(
+          Uri.parse('${resolveApiBaseUrl()}/tenants/$id'),
+          headers: _headers(role),
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 20));
+    return _parseTenantWrite(response);
+  }
+
+  Future<TenantWriteResult> toggleTenantStatusRemote(
+    String role,
+    String id,
+    String status,
+  ) async {
+    final response = await http
+        .post(
+          Uri.parse('${resolveApiBaseUrl()}/tenants/$id/status'),
+          headers: _headers(role),
+          body: jsonEncode({'status': status}),
+        )
+        .timeout(const Duration(seconds: 20));
+    return _parseTenantWrite(response);
+  }
+
+  Future<TenantWriteResult> adjustTenantLicenseRemote(
+    String role,
+    String id,
+    int licenseTotal,
+  ) async {
+    final response = await http
+        .post(
+          Uri.parse('${resolveApiBaseUrl()}/tenants/$id/license'),
+          headers: _headers(role),
+          body: jsonEncode({'licenseTotal': licenseTotal}),
+        )
+        .timeout(const Duration(seconds: 20));
+    return _parseTenantWrite(response);
+  }
+
+  Future<TenantWriteResult> deleteTenantRemote(String role, String id) async {
+    final response = await http
+        .delete(
+          Uri.parse('${resolveApiBaseUrl()}/tenants/$id'),
+          headers: _headers(role),
+        )
+        .timeout(const Duration(seconds: 20));
+    return _parseTenantWrite(response);
+  }
+
+  TenantWriteResult _parseTenantWrite(http.Response response) {
+    try {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      if (response.statusCode == 200 && body['code'] == 'OK') {
+        final data = body['data'];
+        return TenantWriteResult(
+          ok: true,
+          tenant: data is Map<String, dynamic> ? data : null,
+        );
+      }
+      return TenantWriteResult(
+        ok: false,
+        errorCode: body['code'] as String?,
+        statusCode: response.statusCode,
+        message: body['message'] as String?,
+      );
+    } catch (_) {
+      return TenantWriteResult(ok: false, statusCode: response.statusCode);
+    }
+  }
+
   Future<void> refreshFencesAndMap(String role) async {
     final headers = _headers(role);
     final fencesData = await _get('/fences?pageSize=100', headers);
@@ -293,4 +420,20 @@ class ApiCache {
   )? updateFenceRemoteOverride;
 
   int? lastFenceSaveStatusCode;
+
+  @visibleForTesting
+  void debugReset() {
+    _initialized = false;
+    _tenants = [];
+  }
+
+  @visibleForTesting
+  void debugSetInitialized(bool value) {
+    _initialized = value;
+  }
+
+  @visibleForTesting
+  void debugSetTenants(List<Map<String, dynamic>> value) {
+    _tenants = value;
+  }
 }
