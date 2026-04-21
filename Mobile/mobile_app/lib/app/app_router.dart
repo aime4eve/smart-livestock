@@ -24,6 +24,10 @@ import 'package:smart_livestock_demo/features/pages/livestock_detail_page.dart';
 import 'package:smart_livestock_demo/features/pages/mine_page.dart';
 import 'package:smart_livestock_demo/features/pages/stats_page.dart';
 import 'package:smart_livestock_demo/features/pages/twin_overview_page.dart';
+import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_create_page.dart';
+import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_detail_page.dart';
+import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_edit_page.dart';
+import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_list_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final appMode = ref.watch(appModeProvider);
@@ -48,13 +52,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       final role = session.role!;
       if (role == DemoRole.ops) {
-        return location == AppRoute.opsAdmin.path
+        return location.startsWith(AppRoute.opsAdmin.path)
             ? null
             : AppRoute.opsAdmin.path;
       }
 
       if (location == AppRoute.login.path ||
-          location == AppRoute.opsAdmin.path) {
+          location.startsWith(AppRoute.opsAdmin.path)) {
         return AppRoute.twin.path;
       }
 
@@ -181,7 +185,32 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoute.opsAdmin.path,
             name: AppRoute.opsAdmin.routeName,
-            builder: (context, state) => const AdminPage(),
+            builder: (context, state) => const TenantListPage(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'ops-tenant-create',
+                builder: (context, state) => const TenantCreatePage(),
+              ),
+              GoRoute(
+                path: ':id',
+                name: 'ops-tenant-detail',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return TenantDetailPage(id: id);
+                },
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: 'ops-tenant-edit',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return TenantEditPage(id: id);
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
           GoRoute(
             path: AppRoute.livestockDetail.path,
