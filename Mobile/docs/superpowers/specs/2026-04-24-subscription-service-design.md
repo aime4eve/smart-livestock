@@ -16,7 +16,8 @@
 
 ### 计费示例
 
-牧场主养 350 头牛 → ¥299（含 200 头）+ ¥150（超出 150 头，3×¥50）= ¥449/月
+- 标准版：牧场主养 350 头牛 → ¥299（含 200 头）+ ¥150（超出 150 头，3×¥50）= ¥449/月
+- 高级版：牧场主养 1500 头牛 → ¥699（含 1000 头）+ ¥400（超出 500 头，5×¥80）= ¥1,099/月
 
 ## Feature Flag 清单
 
@@ -36,6 +37,12 @@
 | `data_retention_days` | service | 7 | 30 | 365 | ∞ |
 | `alert_history` | service | ✗ | ✓ | ✓ | ✓ |
 | `dedicated_support` | service | ✗ | ✗ | ✓ | ✓ |
+| `device_management` | management | ✓ | ✓ | ✓ | ✓ |
+| `livestock_detail` | management | ✓ | ✓ | ✓ | ✓ |
+| `stats` | analytics | ✓ | ✓ | ✓ | ✓ |
+| `dashboard_summary` | analytics | ✓ limit | ✓ | ✓ | ✓ |
+| `profile` | management | ✓ | ✓ | ✓ | ✓ |
+| `tenant_admin` | management | ✓ | ✓ | ✓ | ✓ |
 
 ## 数据模型
 
@@ -45,9 +52,9 @@
 SubscriptionTier {
   id: 'basic' | 'standard' | 'premium' | 'enterprise',
   name: String,
-  monthlyPrice: int,        // 月费（分），enterprise 为 null
-  includedLivestock: int,   // 包含牲畜数，enterprise 为 Infinity
-  perUnitPrice: int,        // 超出后每单位价格（分）
+  monthlyPrice: int,        // 月费，单位：分。basic=0, standard=29900, premium=69900, enterprise=null（定制报价）
+  includedLivestock: int,   // 包含牲畜数，enterprise 为 -1（表示无限）
+  perUnitPrice: int,        // 超出后每单位价格，单位：分
   perUnitSize: int,         // 每单位包含牲畜数
 }
 ```
@@ -62,28 +69,83 @@ SubscriptionStatus {
   currentPeriodEnd: DateTime,
   status: 'active' | 'trial' | 'expired' | 'cancelled',
   livestockCount: int,
-  calculatedPrice: int,     // 实际月费（含超量加价）
+  calculatedPrice: int,     // 实际月费，单位：分（含超量加价）
+  trialEndsAt: DateTime?,   // 试用结束时间（仅 status='trial' 时有值）
 }
 ```
 
-## 后端架构：后置响应塑造
+## 后端架构：响应塑造
 
 ### 核心机制
 
-采用后置响应塑造（Tiered Response Shaping），现有路由处理函数不感知订阅，由统一的 response-shaping 中间件在后置阶段根据订阅层级改造响应。
+采用响应塑造（Response Shaping），通过替换 Express 的 `res.ok()` 辅助函数实现。现有路由处理函数调用 `res.ok(data)` 时，shaping 逻辑在数据序列化之前介入，根据订阅层级改造数据后返回。
+
+### 技术实现：替换 res.ok()
+
+现有 `envelopeMiddleware` 为 `res` 挂载了 `res.ok(data)` 和 `res.fail()` 辅助函数。shaping 中间件通过包装 `res.ok()` 实现后置拦截：
+
+```javascript
+// middleware/feature-flag.js
+function shapingMiddleware(req, res, next) {
+  const originalOk = res.ok.bind(res);
+  res.ok = (data) => {
+    const tier = getSubscriptionTier(req.tenantId);
+    const shaped = applyShapingRules(data, tier, req.routeFeatureKey);
+    originalOk(shaped);
+  };
+  next();
+}
+```
+
+路由处理函数不感知订阅，调用 `res.ok(data)` 时 shaping 自动生效。
 
 ### 请求生命周期
 
 ```
 请求进入
   → auth 中间件：解析 Bearer token → 角色 + tenantId
-  → 路由处理函数：正常执行（不感知订阅）
-  → response-shaping 中间件（后置拦截）：
+  → shaping 中间件：包装 res.ok()，注入 shaping 逻辑
+  → 路由处理函数：正常执行，调用 res.ok(data)
+  → res.ok() 被拦截：
       1. 查询 tenantId 对应的订阅层级
       2. 根据 tier 查 Feature Flag 配置
-      3. 遍历响应数据，对每个 feature_key 执行 shaping 规则
-  → envelope 中间件：包裹统一响应格式
-  → 返回给前端
+      3. 对 data 执行 shaping 规则
+      4. 调用原始 res.ok(shapedData)
+  → envelope 中间件：包裹统一响应格式，发送给前端
+```
+
+### Locked 注入结构
+
+lock 策略在**信封级别**注入 locked 状态，不修改 items 数组内容：
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "requestId": "xxx",
+  "data": {
+    "locked": true,
+    "upgradeTier": "premium",
+    "message": "发情检测需要高级版",
+    "items": [],
+    "total": 0
+  }
+}
+```
+
+前端根据 `data.locked` 判断：如果为 true，渲染 LockedOverlay 遮罩，items 为空或仅含预览数据。
+
+limit 策略在 data 级别注入限制信息：
+
+```json
+{
+  "code": 200,
+  "data": {
+    "items": [...],
+    "total": 3,
+    "limit": { "maxCount": 3, "locked": true, "upgradeTier": "standard", "message": "基础版最多 3 个围栏" }
+  }
+}
 ```
 
 ### 四种 Shaping 策略
@@ -141,7 +203,8 @@ backend/
 
 | 现有端点 | Shaping 行为 |
 |---------|-------------|
-| `GET /api/map` | 按 `data_retention_days` 过滤超期位置数据 |
+| `GET /api/map/positions` | 所有层级可用，GPS 定位不受限 |
+| `GET /api/map/trajectories` | basic 注入 locked，standard+ 按 `data_retention_days` 过滤 |
 | `GET /api/fences` | basic 用户限制最多 3 个围栏 |
 | `POST /api/fences` | basic 已有 3 个围栏时返回 locked |
 | `GET /api/twin/fever/*` | 所有层级可用（temperature_monitor 在 basic 开放） |
@@ -149,7 +212,10 @@ backend/
 | `GET /api/twin/estrus/*` | basic/standard 注入 locked，premium+ 正常 |
 | `GET /api/twin/epidemic/*` | basic/standard 注入 locked，premium+ 正常 |
 | `GET /api/alerts` | basic 按 7 天截断，standard 30 天 |
-| `GET /api/dashboard/summary` | 按 tier 过滤统计面板中的高级指标 |
+| `GET /api/dashboard/summary` | basic 隐藏高级指标，standard+ 完整 |
+| `GET /api/devices` | 所有层级可用 |
+| `GET /api/profile` | 所有层级可用 |
+| `GET /api/tenants/*` | 所有层级可用（ops 角色权限控制） |
 
 ### 订阅管理 API
 
@@ -166,6 +232,10 @@ backend/
 ### 模块结构
 
 ```
+core/models/
+└── subscription_tier.dart              # Tier 枚举 + Feature 定义（跨模块共享）
+widgets/
+└── locked_overlay.dart                 # 通用锁定遮罩组件（跨模块共享）
 features/subscription/
 ├── domain/
 │   └── subscription_repository.dart
@@ -180,9 +250,7 @@ features/subscription/
 │   └── widgets/
 │       ├── tier_card.dart                 # 单个套餐卡片
 │       ├── feature_comparison_table.dart  # 功能对比表
-│       ├── locked_overlay.dart            # 通用锁定遮罩组件
 │       └── usage_progress_bar.dart        # 用量进度条
-└── subscription_tier.dart                # Tier 枚举 + Feature 定义
 ```
 
 ### LockedOverlay 统一组件
@@ -221,14 +289,28 @@ LockedOverlay(
   - ops 无需订阅（租户管理后台）
 ```
 
-### 路由新增
+### 路由新增与守卫
 
 ```dart
 subscription,    // /subscription — 套餐选择/升级页
 checkout,        // /subscription/checkout — Mock 支付页
 ```
 
+路由守卫规则：
+- 仅 `owner` 角色可访问 `/subscription` 和 `/subscription/checkout`
+- `worker` 访问时重定向到 `/mine`（"我的"页面不显示订阅入口）
+- `ops` 角色无订阅相关入口
+- 两个路由放在 `ShellRoute` 外部（不显示底部导航），独立全屏页面
+
 入口：`features/mine/presentation/` 的"我的"页面中嵌入 `SubscriptionStatusCard`，点击跳转。
+
+### ApiCache 集成
+
+新增预加载端点（加入 `ApiCache.init()` 列表）：
+- `GET /api/subscription/current` — 当前订阅状态
+- `GET /api/subscription/features` — 功能清单 + locked 状态
+
+缓存失效策略：Mock 支付成功（checkout）后，调用 `ApiCache.instance.init()` 完全重新初始化缓存。这确保所有端点数据根据新订阅层级重新加载（locked 状态解除、数据过滤范围变化等）。
 
 ### 种子数据对齐
 
@@ -239,11 +321,13 @@ checkout,        // /subscription/checkout — Mock 支付页
 
 ```
 用户点击"订阅标准版"
-  → POST /api/subscription/checkout { tier: 'standard', period: 'monthly' }
+  → POST /api/subscription/checkout { tier: 'standard', period: 'monthly', idempotencyKey: 'uuid-xxx' }
   → 服务端：模拟支付延迟（500ms）→ 更新内存中租户订阅状态
   → 返回 { success: true, newTier: 'standard', validUntil: '2026-05-24' }
-  → 前端：刷新 ApiCache → SubscriptionController 更新 → 跳转回"我的"
+  → 前端：调用 ApiCache.instance.init() 完全重载 → SubscriptionController 更新 → 跳转回"我的"
 ```
+
+`idempotencyKey`：前端生成的 UUID，防止双击重复提交。服务端记忆最近一个 key，相同 key 返回上一次结果。
 
 ### 升级/降级处理
 
