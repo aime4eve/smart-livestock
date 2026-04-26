@@ -1,38 +1,24 @@
 const express = require('express');
 const cors = require('cors');
 
+const { buildRuntimeConfig } = require('./config/runtimeConfig');
 const { envelopeMiddleware } = require('./middleware/envelope');
-
-const authRoutes = require('./routes/auth');
-const meRoutes = require('./routes/me');
-const dashboardRoutes = require('./routes/dashboard');
-const mapRoutes = require('./routes/map');
-const alertsRoutes = require('./routes/alerts');
-const fencesRoutes = require('./routes/fences');
-const tenantsRoutes = require('./routes/tenants');
-const profileRoutes = require('./routes/profile');
-const twinRoutes = require('./routes/twin');
-const devicesRoutes = require('./routes/devices');
+const { requestContext } = require('./middleware/requestContext');
+const { registerApiRoutes } = require('./routes/registerApiRoutes');
 
 const app = express();
 const PORT = 3001;
+const runtimeConfig = buildRuntimeConfig();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(requestContext(runtimeConfig));
 app.use(envelopeMiddleware);
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/me', meRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/map', mapRoutes);
-app.use('/api/alerts', alertsRoutes);
-app.use('/api/fences', fencesRoutes);
-app.use('/api/tenants', tenantsRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/twin', twinRoutes);
-app.use('/api/devices', devicesRoutes);
+registerApiRoutes(app, '/api');
+registerApiRoutes(app, '/api/v1');
 
 // 404 fallback
 app.use((req, res) => {
@@ -40,47 +26,55 @@ app.use((req, res) => {
 });
 
 // Known routes (printed at startup for convenience)
-const ROUTE_TABLE = [
-  ['POST',   '/api/auth/login'],
-  ['GET',    '/api/me'],
-  ['GET',    '/api/dashboard/summary'],
-  ['GET',    '/api/map/trajectories'],
-  ['GET',    '/api/alerts'],
-  ['POST',   '/api/alerts/:id/ack'],
-  ['POST',   '/api/alerts/:id/handle'],
-  ['POST',   '/api/alerts/:id/archive'],
-  ['POST',   '/api/alerts/batch-handle'],
-  ['GET',    '/api/fences'],
-  ['GET',    '/api/fences/:id'],
-  ['POST',   '/api/fences'],
-  ['PUT',    '/api/fences/:id'],
-  ['DELETE', '/api/fences/:id'],
-  ['GET',    '/api/tenants'],
-  ['GET',    '/api/tenants/:id'],
-  ['POST',   '/api/tenants'],
-  ['PUT',    '/api/tenants/:id'],
-  ['DELETE', '/api/tenants/:id'],
-  ['POST',   '/api/tenants/:id/status'],
-  ['POST',   '/api/tenants/:id/license'],
-  ['GET',    '/api/profile'],
-  ['GET',    '/api/twin/overview'],
-  ['GET',    '/api/twin/fever/list'],
-  ['GET',    '/api/twin/fever/:id'],
-  ['GET',    '/api/twin/digestive/list'],
-  ['GET',    '/api/twin/digestive/:id'],
-  ['GET',    '/api/twin/estrus/list'],
-  ['GET',    '/api/twin/estrus/:id'],
-  ['GET',    '/api/twin/epidemic/summary'],
-  ['GET',    '/api/twin/epidemic/contacts'],
-  ['GET',    '/api/devices'],
+const API_PREFIXES = ['/api', '/api/v1'];
+const ROUTE_DEFINITIONS = [
+  ['POST',   '/auth/login'],
+  ['GET',    '/me'],
+  ['GET',    '/dashboard/summary'],
+  ['GET',    '/map/trajectories'],
+  ['GET',    '/alerts'],
+  ['POST',   '/alerts/:id/ack'],
+  ['POST',   '/alerts/:id/handle'],
+  ['POST',   '/alerts/:id/archive'],
+  ['POST',   '/alerts/batch-handle'],
+  ['GET',    '/fences'],
+  ['GET',    '/fences/:id'],
+  ['POST',   '/fences'],
+  ['PUT',    '/fences/:id'],
+  ['DELETE', '/fences/:id'],
+  ['GET',    '/tenants'],
+  ['GET',    '/tenants/:id'],
+  ['POST',   '/tenants'],
+  ['PUT',    '/tenants/:id'],
+  ['DELETE', '/tenants/:id'],
+  ['POST',   '/tenants/:id/status'],
+  ['POST',   '/tenants/:id/license'],
+  ['GET',    '/profile'],
+  ['GET',    '/twin/overview'],
+  ['GET',    '/twin/fever/list'],
+  ['GET',    '/twin/fever/:id'],
+  ['GET',    '/twin/digestive/list'],
+  ['GET',    '/twin/digestive/:id'],
+  ['GET',    '/twin/estrus/list'],
+  ['GET',    '/twin/estrus/:id'],
+  ['GET',    '/twin/epidemic/summary'],
+  ['GET',    '/twin/epidemic/contacts'],
+  ['GET',    '/devices'],
 ];
+const ROUTE_TABLE = API_PREFIXES.flatMap((prefix) =>
+  ROUTE_DEFINITIONS.map(([method, path]) => [method, `${prefix}${path}`])
+);
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`\n  Mock API Server running at http://localhost:${PORT}\n`);
-  console.log('  Registered routes:');
-  ROUTE_TABLE.forEach(([method, path]) =>
-    console.log(`  ${method.padEnd(7)} ${path}`)
-  );
-  console.log('');
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`\n  Mock API Server running at http://localhost:${PORT}\n`);
+    console.log('  Registered routes:');
+    ROUTE_TABLE.forEach(([method, path]) =>
+      console.log(`  ${method.padEnd(7)} ${path}`)
+    );
+    console.log('');
+  });
+}
+
+module.exports = { app };

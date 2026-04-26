@@ -25,6 +25,6 @@ void main() async {
 
   if (appMode.isLive) {
     const apiRole = String.fromEnvironment('API_ROLE', defaultValue: 'owner');
-    unawaited(ApiCache.instance.init(apiRole));
+    unawaited(ApiCache.instance.initWithRoleAuth(apiRole));
   }
 }
