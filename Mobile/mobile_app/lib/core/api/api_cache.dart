@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:smart_livestock_demo/core/api/api_auth.dart';
+import 'package:smart_livestock_demo/core/api/api_http_client.dart';
+import 'package:smart_livestock_demo/core/models/demo_role.dart';
 
 const String _apiBaseUrlFromEnv = String.fromEnvironment(
   'API_BASE_URL',
@@ -11,14 +14,22 @@ String resolveApiBaseUrl() {
   if (_apiBaseUrlFromEnv.isNotEmpty) {
     return _apiBaseUrlFromEnv;
   }
-  return kIsWeb ? 'http://127.0.0.1:3001/api' : 'http://localhost:3001/api';
+  return kIsWeb
+      ? 'http://127.0.0.1:3001/api/v1'
+      : 'http://localhost:3001/api/v1';
 }
 
-Map<String, String> _headers(String role) {
-  return {
-    'Authorization': 'Bearer mock-token-$role',
-    'Content-Type': 'application/json',
-  };
+Map<String, String> _headers(
+  String role, {
+  ApiAuthTokens? tokens,
+  bool allowMockTokenFallback = false,
+  Map<String, ApiAuthTokens> roleTokens = const {},
+}) {
+  return apiHeaders(
+    role: DemoRole.values.byName(role),
+    tokens: tokens ?? roleTokens[role],
+    allowMockTokenFallback: allowMockTokenFallback,
+  );
 }
 
 String fenceSaveErrorMessageForStatusCode(int? statusCode) {
@@ -60,6 +71,10 @@ class ApiCache {
 
   bool _initialized = false;
   bool get initialized => _initialized;
+  String? _lastLiveSource;
+  String? get lastLiveSource => _lastLiveSource;
+  ApiHttpClient _httpClient = const DefaultApiHttpClient();
+  final Map<String, ApiAuthTokens> _roleTokens = {};
 
   List<Map<String, dynamic>> _dashboardMetrics = [];
   List<Map<String, dynamic>> _animals = [];
@@ -93,8 +108,57 @@ class ApiCache {
   List<Map<String, dynamic>> get epidemicContacts => _epidemicContacts;
   List<Map<String, dynamic>> get devices => _devices;
 
-  Future<void> init(String role) async {
-    final headers = _headers(role);
+  Future<ApiAuthTokens?> authenticateRole(String role) async {
+    final response = await _httpClient.post(
+      Uri.parse('${resolveApiBaseUrl()}/auth/login'),
+      headers: const {'Content-Type': 'application/json'},
+      body: jsonEncode({'role': role}),
+    );
+    if (response.statusCode != 200) {
+      return null;
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (body['code'] != 'OK') {
+      return null;
+    }
+    final data = body['data'];
+    if (data is! Map<String, dynamic>) {
+      return null;
+    }
+    final accessToken = data['accessToken'];
+    if (accessToken is! String || accessToken.isEmpty) {
+      return null;
+    }
+    final expiresAtRaw = data['expiresAt'];
+    final tokens = ApiAuthTokens(
+      accessToken: accessToken,
+      refreshToken: data['refreshToken'] as String?,
+      expiresAt: expiresAtRaw is String ? DateTime.tryParse(expiresAtRaw) : null,
+    );
+    _roleTokens[role] = tokens;
+    return tokens;
+  }
+
+  Future<void> initWithRoleAuth(String role) async {
+    final tokens = await authenticateRole(role);
+    if (tokens == null) {
+      debugPrint('ApiCache auth failed for role: $role');
+      return;
+    }
+    await init(role, tokens: tokens);
+  }
+
+  Future<void> init(
+    String role, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
+    final headers = _headers(
+      role,
+      tokens: tokens,
+      allowMockTokenFallback: allowMockTokenFallback,
+      roleTokens: _roleTokens,
+    );
 
     try {
       final results = await Future.wait([
@@ -113,6 +177,11 @@ class ApiCache {
         _get('/devices?pageSize=200', headers),
       ]);
 
+      if (results.every((data) => data == null)) {
+        _initialized = false;
+        return;
+      }
+
       final dashData = results[0];
       if (dashData != null) {
         _dashboardMetrics =
@@ -121,28 +190,24 @@ class ApiCache {
 
       final mapData = results[1];
       if (mapData != null) {
-        _animals =
-            List<Map<String, dynamic>>.from(mapData['animals'] ?? []);
+        _animals = List<Map<String, dynamic>>.from(mapData['animals'] ?? []);
         _mapTrajectoryPoints =
             List<Map<String, dynamic>>.from(mapData['points'] ?? []);
       }
 
       final alertsData = results[2];
       if (alertsData != null) {
-        _alerts =
-            List<Map<String, dynamic>>.from(alertsData['items'] ?? []);
+        _alerts = List<Map<String, dynamic>>.from(alertsData['items'] ?? []);
       }
 
       final fencesData = results[3];
       if (fencesData != null) {
-        _fences =
-            List<Map<String, dynamic>>.from(fencesData['items'] ?? []);
+        _fences = List<Map<String, dynamic>>.from(fencesData['items'] ?? []);
       }
 
       final tenantsData = results[4];
       if (tenantsData != null) {
-        _tenants =
-            List<Map<String, dynamic>>.from(tenantsData['items'] ?? []);
+        _tenants = List<Map<String, dynamic>>.from(tenantsData['items'] ?? []);
       }
 
       _profile = results[5];
@@ -151,8 +216,7 @@ class ApiCache {
 
       final feverData = results[7];
       if (feverData != null) {
-        _feverList =
-            List<Map<String, dynamic>>.from(feverData['items'] ?? []);
+        _feverList = List<Map<String, dynamic>>.from(feverData['items'] ?? []);
       }
 
       final digestiveData = results[8];
@@ -177,8 +241,7 @@ class ApiCache {
 
       final devicesData = results[12];
       if (devicesData != null) {
-        _devices =
-            List<Map<String, dynamic>>.from(devicesData['items'] ?? []);
+        _devices = List<Map<String, dynamic>>.from(devicesData['items'] ?? []);
       }
 
       _initialized = true;
@@ -191,33 +254,51 @@ class ApiCache {
     String path,
     Map<String, String> headers,
   ) async {
-    final response = await http
-        .get(
-          Uri.parse('${resolveApiBaseUrl()}$path'),
-          headers: headers,
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _httpClient.get(
+      Uri.parse('${resolveApiBaseUrl()}$path'),
+      headers: headers,
+    );
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       if (body['code'] == 'OK') {
+        _lastLiveSource = 'api';
         return body['data'] as Map<String, dynamic>?;
       }
     }
     return null;
   }
 
-  Future<void> refreshTenants(String role) async {
-    final headers = _headers(role);
+  Future<void> refreshTenants(
+    String role, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
+    final headers = _headers(
+      role,
+      tokens: tokens,
+      allowMockTokenFallback: allowMockTokenFallback,
+      roleTokens: _roleTokens,
+    );
     final data = await _get('/tenants?pageSize=100', headers);
     if (data != null) {
       _tenants = List<Map<String, dynamic>>.from(data['items'] ?? []);
     }
   }
 
-  Future<Map<String, dynamic>?> fetchTenantDetail(String role, String id) async {
+  Future<Map<String, dynamic>?> fetchTenantDetail(
+    String role,
+    String id, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
     final response = await http
         .get(Uri.parse('${resolveApiBaseUrl()}/tenants/$id'),
-            headers: _headers(role))
+            headers: _headers(
+              role,
+              tokens: tokens,
+              allowMockTokenFallback: allowMockTokenFallback,
+              roleTokens: _roleTokens,
+            ))
         .timeout(const Duration(seconds: 20));
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -230,12 +311,19 @@ class ApiCache {
 
   Future<TenantWriteResult> createTenantRemote(
     String role,
-    Map<String, dynamic> body,
-  ) async {
+    Map<String, dynamic> body, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
     final response = await http
         .post(
           Uri.parse('${resolveApiBaseUrl()}/tenants'),
-          headers: _headers(role),
+          headers: _headers(
+            role,
+            tokens: tokens,
+            allowMockTokenFallback: allowMockTokenFallback,
+            roleTokens: _roleTokens,
+          ),
           body: jsonEncode(body),
         )
         .timeout(const Duration(seconds: 20));
@@ -245,12 +333,19 @@ class ApiCache {
   Future<TenantWriteResult> updateTenantRemote(
     String role,
     String id,
-    Map<String, dynamic> body,
-  ) async {
+    Map<String, dynamic> body, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
     final response = await http
         .put(
           Uri.parse('${resolveApiBaseUrl()}/tenants/$id'),
-          headers: _headers(role),
+          headers: _headers(
+            role,
+            tokens: tokens,
+            allowMockTokenFallback: allowMockTokenFallback,
+            roleTokens: _roleTokens,
+          ),
           body: jsonEncode(body),
         )
         .timeout(const Duration(seconds: 20));
@@ -260,12 +355,19 @@ class ApiCache {
   Future<TenantWriteResult> toggleTenantStatusRemote(
     String role,
     String id,
-    String status,
-  ) async {
+    String status, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
     final response = await http
         .post(
           Uri.parse('${resolveApiBaseUrl()}/tenants/$id/status'),
-          headers: _headers(role),
+          headers: _headers(
+            role,
+            tokens: tokens,
+            allowMockTokenFallback: allowMockTokenFallback,
+            roleTokens: _roleTokens,
+          ),
           body: jsonEncode({'status': status}),
         )
         .timeout(const Duration(seconds: 20));
@@ -275,23 +377,40 @@ class ApiCache {
   Future<TenantWriteResult> adjustTenantLicenseRemote(
     String role,
     String id,
-    int licenseTotal,
-  ) async {
+    int licenseTotal, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
     final response = await http
         .post(
           Uri.parse('${resolveApiBaseUrl()}/tenants/$id/license'),
-          headers: _headers(role),
+          headers: _headers(
+            role,
+            tokens: tokens,
+            allowMockTokenFallback: allowMockTokenFallback,
+            roleTokens: _roleTokens,
+          ),
           body: jsonEncode({'licenseTotal': licenseTotal}),
         )
         .timeout(const Duration(seconds: 20));
     return _parseTenantWrite(response);
   }
 
-  Future<TenantWriteResult> deleteTenantRemote(String role, String id) async {
+  Future<TenantWriteResult> deleteTenantRemote(
+    String role,
+    String id, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
     final response = await http
         .delete(
           Uri.parse('${resolveApiBaseUrl()}/tenants/$id'),
-          headers: _headers(role),
+          headers: _headers(
+            role,
+            tokens: tokens,
+            allowMockTokenFallback: allowMockTokenFallback,
+            roleTokens: _roleTokens,
+          ),
         )
         .timeout(const Duration(seconds: 20));
     return _parseTenantWrite(response);
@@ -318,30 +437,47 @@ class ApiCache {
     }
   }
 
-  Future<void> refreshFencesAndMap(String role) async {
-    final headers = _headers(role);
+  Future<void> refreshFencesAndMap(
+    String role, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
+    final headers = _headers(
+      role,
+      tokens: tokens,
+      allowMockTokenFallback: allowMockTokenFallback,
+      roleTokens: _roleTokens,
+    );
     final fencesData = await _get('/fences?pageSize=100', headers);
     if (fencesData != null) {
-      _fences =
-          List<Map<String, dynamic>>.from(fencesData['items'] ?? []);
+      _fences = List<Map<String, dynamic>>.from(fencesData['items'] ?? []);
     }
     final mapData = await _get(
       '/map/trajectories?animalId=animal_001&range=24h',
       headers,
     );
     if (mapData != null) {
-      _animals =
-          List<Map<String, dynamic>>.from(mapData['animals'] ?? []);
+      _animals = List<Map<String, dynamic>>.from(mapData['animals'] ?? []);
       _mapTrajectoryPoints =
           List<Map<String, dynamic>>.from(mapData['points'] ?? []);
     }
   }
 
-  Future<bool> deleteFenceRemote(String role, String id) async {
+  Future<bool> deleteFenceRemote(
+    String role,
+    String id, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
     final response = await http
         .delete(
           Uri.parse('${resolveApiBaseUrl()}/fences/$id'),
-          headers: _headers(role),
+          headers: _headers(
+            role,
+            tokens: tokens,
+            allowMockTokenFallback: allowMockTokenFallback,
+            roleTokens: _roleTokens,
+          ),
         )
         .timeout(const Duration(seconds: 20));
     if (response.statusCode == 200) {
@@ -353,8 +489,10 @@ class ApiCache {
 
   Future<bool> createFenceRemote(
     String role,
-    Map<String, dynamic> body,
-  ) async {
+    Map<String, dynamic> body, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
     if (createFenceRemoteOverride != null) {
       final result = await createFenceRemoteOverride!(role, body);
       lastFenceSaveStatusCode = result.ok ? null : result.statusCode;
@@ -363,7 +501,12 @@ class ApiCache {
     final response = await http
         .post(
           Uri.parse('${resolveApiBaseUrl()}/fences'),
-          headers: _headers(role),
+          headers: _headers(
+            role,
+            tokens: tokens,
+            allowMockTokenFallback: allowMockTokenFallback,
+            roleTokens: _roleTokens,
+          ),
           body: jsonEncode(body),
         )
         .timeout(const Duration(seconds: 20));
@@ -382,8 +525,10 @@ class ApiCache {
   Future<bool> updateFenceRemote(
     String role,
     String id,
-    Map<String, dynamic> body,
-  ) async {
+    Map<String, dynamic> body, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
     if (updateFenceRemoteOverride != null) {
       final result = await updateFenceRemoteOverride!(role, id, body);
       lastFenceSaveStatusCode = result.ok ? null : result.statusCode;
@@ -392,7 +537,12 @@ class ApiCache {
     final response = await http
         .put(
           Uri.parse('${resolveApiBaseUrl()}/fences/$id'),
-          headers: _headers(role),
+          headers: _headers(
+            role,
+            tokens: tokens,
+            allowMockTokenFallback: allowMockTokenFallback,
+            roleTokens: _roleTokens,
+          ),
           body: jsonEncode(body),
         )
         .timeout(const Duration(seconds: 20));
@@ -419,12 +569,46 @@ class ApiCache {
     Map<String, dynamic> body,
   )? updateFenceRemoteOverride;
 
+  @visibleForTesting
+  static Map<String, String> headersForTesting({
+    required DemoRole role,
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) {
+    return apiHeaders(
+      role: role,
+      tokens: tokens,
+      allowMockTokenFallback: allowMockTokenFallback,
+    );
+  }
+
   int? lastFenceSaveStatusCode;
 
   @visibleForTesting
   void debugReset() {
     _initialized = false;
+    _lastLiveSource = null;
+    _httpClient = const DefaultApiHttpClient();
+    _roleTokens.clear();
+    _dashboardMetrics = [];
+    _animals = [];
+    _mapTrajectoryPoints = [];
+    _alerts = [];
+    _fences = [];
     _tenants = [];
+    _profile = null;
+    _twinOverview = null;
+    _feverList = [];
+    _digestiveList = [];
+    _estrusList = [];
+    _epidemicSummary = null;
+    _epidemicContacts = [];
+    _devices = [];
+  }
+
+  @visibleForTesting
+  void debugSetHttpClient(ApiHttpClient client) {
+    _httpClient = client;
   }
 
   @visibleForTesting

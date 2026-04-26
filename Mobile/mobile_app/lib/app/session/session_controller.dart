@@ -10,6 +10,20 @@ class SessionController extends Notifier<AppSession> {
     state = AppSession.authenticated(role);
   }
 
+  void loginWithTokens({
+    required DemoRole role,
+    required String accessToken,
+    String? refreshToken,
+    DateTime? expiresAt,
+  }) {
+    state = AppSession.withTokens(
+      role: role,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      expiresAt: expiresAt,
+    );
+  }
+
   void logout() {
     state = const AppSession.loggedOut();
   }

@@ -1,4 +1,6 @@
 const { users } = require('../data/seed');
+const { buildRuntimeConfig } = require('../config/runtimeConfig');
+const { verifyAccessToken } = require('../services/mockTokenService');
 
 /**
  * Map token -> role for simple mock auth
@@ -12,23 +14,44 @@ const TOKEN_MAP = {
 /**
  * Extract role from Bearer token
  */
-function extractRole(req) {
+function extractBearerToken(req) {
   const auth = req.headers.authorization || '';
   if (!auth.startsWith('Bearer ')) return null;
-  const token = auth.slice(7);
-  return TOKEN_MAP[token] || null;
+  return auth.slice(7);
 }
 
 /**
  * Auth middleware: sets req.userRole and req.user
  */
 function authMiddleware(req, res, next) {
-  const role = extractRole(req);
+  const token = extractBearerToken(req);
+  if (!token) {
+    return res.fail(401, 'AUTH_UNAUTHORIZED', '未登录或 token 失效');
+  }
+
+  const jwtUser = verifyAccessToken(token);
+  if (jwtUser) {
+    const runtimeConfig = buildRuntimeConfig(process.env);
+    req.userRole = jwtUser.role;
+    req.user = jwtUser;
+    req.authMode = 'jwt';
+    if (runtimeConfig.exposeDebugHeaders) {
+      res.setHeader('X-Auth-Mode', req.authMode);
+    }
+    return next();
+  }
+
+  const runtimeConfig = buildRuntimeConfig(process.env);
+  const role = runtimeConfig.enableMockToken ? TOKEN_MAP[token] : null;
   if (!role) {
     return res.fail(401, 'AUTH_UNAUTHORIZED', '未登录或 token 失效');
   }
   req.userRole = role;
   req.user = users[role];
+  req.authMode = 'mock';
+  if (runtimeConfig.exposeDebugHeaders) {
+    res.setHeader('X-Auth-Mode', req.authMode);
+  }
   next();
 }
 
@@ -47,4 +70,4 @@ function requirePermission(permission) {
   };
 }
 
-module.exports = { authMiddleware, requirePermission, TOKEN_MAP };
+module.exports = { authMiddleware, requirePermission, TOKEN_MAP, extractBearerToken };

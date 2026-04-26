@@ -8,10 +8,16 @@ const router = Router();
 let alerts = seedAlerts.map((a) => ({ ...a }));
 
 const VALID_STAGES = ['pending', 'acknowledged', 'handled', 'archived'];
+const VALID_BATCH_ACTIONS = ['ack', 'handle', 'archive'];
 const STAGE_TRANSITIONS = {
   pending: 'acknowledged',
   acknowledged: 'handled',
   handled: 'archived',
+};
+const ACTION_TARGET_STAGE = {
+  ack: 'acknowledged',
+  handle: 'handled',
+  archive: 'archived',
 };
 
 /**
@@ -87,8 +93,8 @@ router.post(
     if (!Array.isArray(alertIds) || !alertIds.length) {
       return res.fail(422, 'VALIDATION_ERROR', 'alertIds 必须为非空数组');
     }
-    if (!VALID_STAGES.includes(action)) {
-      return res.fail(422, 'VALIDATION_ERROR', `action 必须为 ${VALID_STAGES.join(' / ')}`);
+    if (!VALID_BATCH_ACTIONS.includes(action)) {
+      return res.fail(422, 'VALIDATION_ERROR', `action 必须为 ${VALID_BATCH_ACTIONS.join(' / ')}`);
     }
 
     const updated = [];
@@ -101,15 +107,7 @@ router.post(
         continue;
       }
       const expected = STAGE_TRANSITIONS[alert.stage];
-      if (action === 'ack' && expected !== 'acknowledged') {
-        errors.push({ id, error: 'INVALID_TRANSITION', currentStage: alert.stage });
-        continue;
-      }
-      if (action === 'handle' && expected !== 'handled') {
-        errors.push({ id, error: 'INVALID_TRANSITION', currentStage: alert.stage });
-        continue;
-      }
-      if (action === 'archive' && expected !== 'archived') {
+      if (expected !== ACTION_TARGET_STAGE[action]) {
         errors.push({ id, error: 'INVALID_TRANSITION', currentStage: alert.stage });
         continue;
       }
