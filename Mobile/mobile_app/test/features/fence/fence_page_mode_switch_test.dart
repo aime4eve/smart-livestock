@@ -12,6 +12,7 @@ void main() {
   tearDown(() {
     ApiCache.instance.updateFenceRemoteOverride = null;
     ApiCache.instance.lastFenceSaveStatusCode = null;
+    ApiCache.instance.debugReset();
   });
 
   testWidgets('未选中围栏时点击编辑边界显示提示且不进入编辑态', (tester) async {
@@ -165,6 +166,7 @@ void main() {
   testWidgets('保存中退出按钮禁用且不会退出编辑态', (tester) async {
     final completer = Completer<FenceSaveResult>();
     ApiCache.instance.updateFenceRemoteOverride = (_, __, ___) => completer.future;
+    _seedLiveFenceCache();
 
     await _openFencePage(tester, appMode: AppMode.live);
     await _selectFenceA(tester);
@@ -280,6 +282,27 @@ Future<void> _selectFenceA(WidgetTester tester) async {
   await tester.pumpAndSettle();
   await tester.tap(find.byKey(const Key('fence-card-fence_pasture_a')));
   await tester.pump(const Duration(milliseconds: 100));
+}
+
+void _seedLiveFenceCache() {
+  ApiCache.instance
+    ..debugReset()
+    ..debugSetInitialized(true)
+    ..debugSetFences([
+      {
+        'id': 'fence_pasture_a',
+        'name': '放牧A区',
+        'type': 'polygon',
+        'status': 'active',
+        'alarmEnabled': true,
+        'coordinates': [
+          [112.9400, 28.2340],
+          [112.9440, 28.2340],
+          [112.9440, 28.2305],
+          [112.9400, 28.2305],
+        ],
+      },
+    ]);
 }
 
 Future<void> _insertEdgePoint(WidgetTester tester) async {

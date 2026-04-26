@@ -1,18 +1,21 @@
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/models/demo_models.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/dashboard/data/mock_dashboard_repository.dart';
 import 'package:smart_livestock_demo/features/dashboard/domain/dashboard_repository.dart';
 
 class LiveDashboardRepository implements DashboardRepository {
   const LiveDashboardRepository();
 
-  static const MockDashboardRepository _fallback = MockDashboardRepository();
-
   @override
   DashboardViewData load(ViewState viewState) {
     final cache = ApiCache.instance;
-    if (!cache.initialized) return _fallback.load(viewState);
+    if (!cache.initialized || cache.lastLiveSource != 'api') {
+      return const DashboardViewData(
+        viewState: ViewState.error,
+        metrics: [],
+        message: 'Live API 未连接',
+      );
+    }
 
     final metrics = cache.dashboardMetrics
         .map((m) => DashboardMetric(

@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { authMiddleware, requirePermission } = require('../middleware/auth');
-const { tenants } = require('../data/seed');
+const { buildUserProjection } = require('../services/userProjectionService');
 
 const router = Router();
 
@@ -12,15 +12,7 @@ router.get(
   authMiddleware,
   requirePermission('profile:view'),
   (req, res) => {
-    const { userId, name, mobile, tenantId } = req.user;
-    const tenant = tenants.find((t) => t.id === tenantId);
-    res.ok({
-      userId,
-      name,
-      mobile,
-      tenantName: tenant ? tenant.name : null,
-      notificationEnabled: true,
-    });
+    res.ok(buildUserProjection(req.user));
   }
 );
 
