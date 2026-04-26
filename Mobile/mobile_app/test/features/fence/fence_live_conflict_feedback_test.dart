@@ -6,6 +6,7 @@ import 'package:smart_livestock_demo/core/api/api_cache.dart';
 
 void main() {
   setUp(() {
+    _seedLiveFenceCache();
     ApiCache.instance.createFenceRemoteOverride = null;
     ApiCache.instance.updateFenceRemoteOverride = null;
     ApiCache.instance.lastFenceSaveStatusCode = null;
@@ -15,6 +16,7 @@ void main() {
     ApiCache.instance.createFenceRemoteOverride = null;
     ApiCache.instance.updateFenceRemoteOverride = null;
     ApiCache.instance.lastFenceSaveStatusCode = null;
+    ApiCache.instance.debugReset();
   });
 
   test('状态码映射包含 409/422/default', () {
@@ -54,4 +56,25 @@ void main() {
     expect(find.text('围栏已被其他人更新，请刷新后重试'), findsOneWidget);
     expect(find.byKey(const Key('fence-edit-mini-title')), findsOneWidget);
   });
+}
+
+void _seedLiveFenceCache() {
+  ApiCache.instance
+    ..debugReset()
+    ..debugSetInitialized(true)
+    ..debugSetFences([
+      {
+        'id': 'fence_pasture_a',
+        'name': '放牧A区',
+        'type': 'polygon',
+        'status': 'active',
+        'alarmEnabled': true,
+        'coordinates': [
+          [112.9400, 28.2340],
+          [112.9440, 28.2340],
+          [112.9440, 28.2305],
+          [112.9400, 28.2305],
+        ],
+      },
+    ]);
 }

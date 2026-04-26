@@ -10,9 +10,9 @@
 
 | 模块 | `/api` 兼容承诺 | `/api/v1` 契约 | 负责人 | 测试状态 | 最后复核 |
 |------|-----------------|----------------|--------|----------|----------|
-| auth / me / profile | 保留登录、刷新、登出、`/me`、`/profile` | 规范源 | Backend | Planned | 2026-04-26 |
-| tenant | 保留 Phase 1 CRUD、状态、许可 | 规范源 | Backend | Planned | 2026-04-26 |
-| fence | 保留列表、详情、创建、更新、删除 | 规范源 | Backend | Planned | 2026-04-26 |
-| alert | 保留列表、单条状态流转、批量处理 | 规范源 | Backend | Planned | 2026-04-26 |
-| dashboard / map / devices / twin | 保留当前 live 预加载端点 | 规范源 | Backend | Planned | 2026-04-26 |
+| auth / me / profile | 保留登录、刷新、登出、`/me`、`/profile` | 规范源 | Backend | Covered by `apiVersionRoutes.test.js` / `authChain.test.js` | 2026-04-26 |
+| tenant | 保留 Phase 1 CRUD、状态、许可 | 规范源 | Backend | Covered by route equivalence tests | 2026-04-26 |
+| fence | 保留列表、详情、创建、更新、删除 | 规范源 | Backend | Covered by route equivalence tests | 2026-04-26 |
+| alert | 保留列表、单条状态流转、批量处理 | 规范源 | Backend | Covered by route equivalence tests | 2026-04-26 |
+| dashboard / map / devices / twin | 保留当前 live 预加载端点 | 规范源 | Backend | Covered by Flutter live v1 contract test | 2026-04-26 |
 | stats / livestock extension | 默认不回迁 | 规范源 | TBD | Not started | 2026-04-26 |

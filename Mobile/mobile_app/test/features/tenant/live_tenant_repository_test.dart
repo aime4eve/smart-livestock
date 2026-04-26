@@ -10,10 +10,11 @@ void main() {
     ApiCache.instance.debugReset();
   });
 
-  test('LiveRepository 未初始化时回退 Mock', () {
+  test('LiveRepository 未初始化时返回错误态', () {
     final repo = LiveTenantRepository();
     final data = repo.loadList(const TenantListQuery());
-    expect(data.viewState, anyOf(ViewState.normal, ViewState.empty));
+    expect(data.viewState, ViewState.error);
+    expect(data.tenants, isEmpty);
   });
 
   test('LiveRepository 解析缓存返回正确状态', () {

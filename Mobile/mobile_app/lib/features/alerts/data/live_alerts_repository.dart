@@ -2,13 +2,10 @@ import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/models/demo_models.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/alerts/data/mock_alerts_repository.dart';
 import 'package:smart_livestock_demo/features/alerts/domain/alerts_repository.dart';
 
 class LiveAlertsRepository implements AlertsRepository {
   const LiveAlertsRepository();
-
-  static const MockAlertsRepository _fallback = MockAlertsRepository();
 
   static AlertItem _alertFromMap(Map<String, dynamic> m) {
     final id = m['id'] as String;
@@ -50,8 +47,15 @@ class LiveAlertsRepository implements AlertsRepository {
     required AlertStage stage,
   }) {
     final cache = ApiCache.instance;
-    if (!cache.initialized) {
-      return _fallback.load(viewState: viewState, role: role, stage: stage);
+    if (!cache.initialized || cache.lastLiveSource != 'api') {
+      return AlertsViewData(
+        viewState: ViewState.error,
+        role: role,
+        stage: stage,
+        title: '告警列表加载失败',
+        subtitle: '',
+        message: 'Live API 未连接',
+      );
     }
 
     final filtered = cache.alerts

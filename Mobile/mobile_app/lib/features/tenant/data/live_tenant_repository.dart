@@ -1,6 +1,5 @@
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/tenant/data/mock_tenant_repository.dart';
 import 'package:smart_livestock_demo/features/tenant/data/tenant_dto.dart';
 import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
 import 'package:smart_livestock_demo/features/tenant/domain/tenant_query.dart';
@@ -10,13 +9,17 @@ import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dar
 class LiveTenantRepository implements TenantRepository {
   LiveTenantRepository();
 
-  final MockTenantRepository _fallback = MockTenantRepository();
-
   @override
   TenantListViewData loadList(TenantListQuery query) {
     final cache = ApiCache.instance;
-    if (!cache.initialized || cache.tenants.isEmpty) {
-      return _fallback.loadList(query);
+    if (!cache.initialized || cache.lastLiveSource != 'api') {
+      return TenantListViewData(
+        viewState: ViewState.error,
+        query: query,
+        tenants: const [],
+        total: 0,
+        message: 'Live API 未连接',
+      );
     }
     var all = cache.tenants
         .map(TenantDto.fromJson)
@@ -56,7 +59,12 @@ class LiveTenantRepository implements TenantRepository {
   @override
   TenantDetailViewData loadDetail(String id) {
     final cache = ApiCache.instance;
-    if (!cache.initialized) return _fallback.loadDetail(id);
+    if (!cache.initialized || cache.lastLiveSource != 'api') {
+      return const TenantDetailViewData(
+        viewState: ViewState.error,
+        message: 'Live API 未连接',
+      );
+    }
     Map<String, dynamic>? map;
     for (final t in cache.tenants) {
       if (t['id'] == id) {
@@ -65,7 +73,10 @@ class LiveTenantRepository implements TenantRepository {
       }
     }
     if (map == null) {
-      return _fallback.loadDetail(id);
+      return const TenantDetailViewData(
+        viewState: ViewState.empty,
+        message: '租户不存在',
+      );
     }
     final tenant = TenantDto.fromJson(map);
     if (tenant == null) {

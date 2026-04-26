@@ -4,6 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/api/api_http_client.dart';
+import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/core/models/view_state.dart';
+import 'package:smart_livestock_demo/features/alerts/data/live_alerts_repository.dart';
+import 'package:smart_livestock_demo/features/alerts/domain/alerts_repository.dart';
+import 'package:smart_livestock_demo/features/dashboard/data/live_dashboard_repository.dart';
+import 'package:smart_livestock_demo/features/fence/data/live_fence_repository.dart';
+import 'package:smart_livestock_demo/features/tenant/data/live_tenant_repository.dart';
+import 'package:smart_livestock_demo/features/tenant/domain/tenant_query.dart';
 
 class RecordingApiHttpClient implements ApiHttpClient {
   final uris = <Uri>[];
@@ -96,6 +104,33 @@ class RecordingApiHttpClient implements ApiHttpClient {
   }
 }
 
+class FailingApiHttpClient implements ApiHttpClient {
+  @override
+  Future<ApiHttpResponse> get(Uri uri, {Map<String, String>? headers}) {
+    throw Exception('network down');
+  }
+
+  @override
+  Future<ApiHttpResponse> post(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    throw Exception('network down');
+  }
+}
+
+class FailingAuthApiHttpClient extends RecordingApiHttpClient {
+  @override
+  Future<ApiHttpResponse> post(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    throw Exception('auth down');
+  }
+}
+
 void main() {
   test('ApiCache live init requests v1 endpoints with access token', () async {
     final client = RecordingApiHttpClient();
@@ -175,5 +210,68 @@ void main() {
     );
     expect(ApiCache.instance.initialized, isTrue);
     expect(ApiCache.instance.lastLiveSource, 'api');
+  });
+
+  test('ApiCache clears live source when role auth fails', () async {
+    final okClient = RecordingApiHttpClient();
+    ApiCache.instance.debugReset();
+    ApiCache.instance.debugSetHttpClient(okClient);
+    await ApiCache.instance.initWithRoleAuth('owner');
+    expect(ApiCache.instance.initialized, isTrue);
+    expect(ApiCache.instance.lastLiveSource, 'api');
+
+    ApiCache.instance.debugSetHttpClient(FailingAuthApiHttpClient());
+    await ApiCache.instance.initWithRoleAuth('owner');
+
+    expect(ApiCache.instance.initialized, isFalse);
+    expect(ApiCache.instance.lastLiveSource, isNull);
+  });
+
+  test('ApiCache clears live source when init fails', () async {
+    final okClient = RecordingApiHttpClient();
+    ApiCache.instance.debugReset();
+    ApiCache.instance.debugSetHttpClient(okClient);
+    await ApiCache.instance.init(
+      'owner',
+      tokens: const ApiAuthTokens(accessToken: 'jwt-token'),
+    );
+    expect(ApiCache.instance.initialized, isTrue);
+    expect(ApiCache.instance.lastLiveSource, 'api');
+
+    ApiCache.instance.debugSetHttpClient(FailingApiHttpClient());
+    await ApiCache.instance.init(
+      'owner',
+      tokens: const ApiAuthTokens(accessToken: 'jwt-token'),
+    );
+
+    expect(ApiCache.instance.initialized, isFalse);
+    expect(ApiCache.instance.lastLiveSource, isNull);
+  });
+
+  test('core live repositories do not silently fallback to mock data', () {
+    ApiCache.instance.debugReset();
+
+    final dashboard = const LiveDashboardRepository().load(ViewState.normal);
+    expect(dashboard.viewState, ViewState.error);
+    expect(dashboard.metrics, isEmpty);
+
+    final tenants = LiveTenantRepository().loadList(const TenantListQuery());
+    expect(tenants.viewState, ViewState.error);
+    expect(tenants.tenants, isEmpty);
+
+    final tenantDetail = LiveTenantRepository().loadDetail('tenant_001');
+    expect(tenantDetail.viewState, ViewState.error);
+    expect(tenantDetail.tenant, isNull);
+
+    final fences = const LiveFenceRepository().loadAll();
+    expect(fences, isEmpty);
+
+    final alerts = const LiveAlertsRepository().load(
+      viewState: ViewState.normal,
+      role: DemoRole.owner,
+      stage: AlertStage.pending,
+    );
+    expect(alerts.viewState, ViewState.error);
+    expect(alerts.items, isEmpty);
   });
 }

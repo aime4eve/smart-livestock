@@ -15,13 +15,13 @@
 
 | 形态 | URL |
 |------|-----|
-| 开发（Web） | `http://127.0.0.1:3001/api` |
-| 开发（Native） | `http://localhost:3001/api` |
+| 开发（Web） | `http://127.0.0.1:3001/api/v1` |
+| 开发（Native） | `http://localhost:3001/api/v1` |
+| 回滚兼容（Web） | `http://127.0.0.1:3001/api` |
+| 回滚兼容（Native） | `http://localhost:3001/api` |
 | 编译期覆盖 | `--dart-define=API_BASE_URL=<url>` |
 
-所有路径均以 `/api` 开头；文档接下来只写 `/api` 之后的部分。
-
-新后端迁移后 `/api/v1` 是规范契约源；`/api` 长期保留为兼容入口。兼容承诺见 `api-compatibility-matrix.md`。
+所有新接口以 `/api/v1` 为规范入口；文档接下来只写版本前缀之后的部分。`/api` 长期保留为兼容入口，兼容承诺见 `api-compatibility-matrix.md`。
 
 ### 1.2 响应包络
 

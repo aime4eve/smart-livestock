@@ -140,12 +140,18 @@ class ApiCache {
   }
 
   Future<void> initWithRoleAuth(String role) async {
-    final tokens = await authenticateRole(role);
-    if (tokens == null) {
-      debugPrint('ApiCache auth failed for role: $role');
-      return;
+    try {
+      final tokens = await authenticateRole(role);
+      if (tokens == null) {
+        _clearLiveData();
+        debugPrint('ApiCache auth failed for role: $role');
+        return;
+      }
+      await init(role, tokens: tokens);
+    } catch (e) {
+      _clearLiveData();
+      debugPrint('ApiCache auth failed for role: $role, $e');
     }
-    await init(role, tokens: tokens);
   }
 
   Future<void> init(
@@ -153,6 +159,7 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
+    _clearLiveData();
     final headers = _headers(
       role,
       tokens: tokens,
@@ -179,6 +186,7 @@ class ApiCache {
 
       if (results.every((data) => data == null)) {
         _initialized = false;
+        _lastLiveSource = null;
         return;
       }
 
@@ -246,6 +254,7 @@ class ApiCache {
 
       _initialized = true;
     } catch (e) {
+      _clearLiveData();
       debugPrint('ApiCache init failed: $e');
     }
   }
@@ -584,12 +593,9 @@ class ApiCache {
 
   int? lastFenceSaveStatusCode;
 
-  @visibleForTesting
-  void debugReset() {
+  void _clearLiveData() {
     _initialized = false;
     _lastLiveSource = null;
-    _httpClient = const DefaultApiHttpClient();
-    _roleTokens.clear();
     _dashboardMetrics = [];
     _animals = [];
     _mapTrajectoryPoints = [];
@@ -607,6 +613,13 @@ class ApiCache {
   }
 
   @visibleForTesting
+  void debugReset() {
+    _clearLiveData();
+    _httpClient = const DefaultApiHttpClient();
+    _roleTokens.clear();
+  }
+
+  @visibleForTesting
   void debugSetHttpClient(ApiHttpClient client) {
     _httpClient = client;
   }
@@ -614,10 +627,21 @@ class ApiCache {
   @visibleForTesting
   void debugSetInitialized(bool value) {
     _initialized = value;
+    _lastLiveSource = value ? 'api' : null;
   }
 
   @visibleForTesting
   void debugSetTenants(List<Map<String, dynamic>> value) {
     _tenants = value;
+  }
+
+  @visibleForTesting
+  void debugSetFences(List<Map<String, dynamic>> value) {
+    _fences = value;
+  }
+
+  @visibleForTesting
+  void debugSetAnimals(List<Map<String, dynamic>> value) {
+    _animals = value;
   }
 }
