@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:smart_livestock_demo/core/data/demo_seed.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
@@ -130,6 +132,37 @@ class MockTenantRepository implements TenantRepository {
       healthRate: healthRate,
       alertCount: alertCount,
       lastSync: '2 分钟前',
+    );
+  }
+
+  @override
+  TenantTrendsViewData loadTrends(String id) {
+    final tenant = _seed.where((t) => t.id == id).toList();
+    if (tenant.isEmpty) {
+      return const TenantTrendsViewData(
+        viewState: ViewState.empty,
+        dailyStats: [],
+        message: '租户不存在',
+      );
+    }
+    final now = DateTime.now();
+    final stats = <DailyStatPoint>[];
+    final baseHash = id.hashCode.abs();
+    for (var i = 29; i >= 0; i--) {
+      final d = now.subtract(Duration(days: i));
+      final date =
+          '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+      final sinVal = sin(d.month * d.day * 0.3);
+      stats.add(DailyStatPoint(
+        date: date,
+        alerts: ((baseHash + i * 7) % 8 + (sinVal * 3).round()).abs(),
+        deviceOnlineRate: (80 + (baseHash + i * 3) % 20).toDouble(),
+        healthRate: (75 + (baseHash + i * 5) % 25).toDouble(),
+      ));
+    }
+    return TenantTrendsViewData(
+      viewState: ViewState.normal,
+      dailyStats: stats,
     );
   }
 }

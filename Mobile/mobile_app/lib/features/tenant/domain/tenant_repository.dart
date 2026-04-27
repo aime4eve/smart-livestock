@@ -7,4 +7,5 @@ abstract class TenantRepository {
   TenantDevicesViewData loadDevices(String id);
   TenantLogsViewData loadLogs(String id);
   TenantStatsViewData loadStats(String id);
+  TenantTrendsViewData loadTrends(String id);
 }

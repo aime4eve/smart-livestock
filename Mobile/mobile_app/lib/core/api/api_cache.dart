@@ -97,6 +97,7 @@ class ApiCache {
   final Map<String, List<DeviceItem>> _tenantDevicesCache = {};
   final Map<String, List<TenantLogEntry>> _tenantLogsCache = {};
   final Map<String, Map<String, dynamic>> _tenantStatsCache = {};
+  Map<String, Map<String, dynamic>>? _tenantTrends;
 
   List<Map<String, dynamic>> get dashboardMetrics => _dashboardMetrics;
   List<Map<String, dynamic>> get animals => _animals;
@@ -117,6 +118,7 @@ class ApiCache {
   List<DeviceItem>? tenantDevices(String tenantId) => _tenantDevicesCache[tenantId];
   List<TenantLogEntry>? tenantLogs(String tenantId) => _tenantLogsCache[tenantId];
   Map<String, dynamic>? tenantStats(String tenantId) => _tenantStatsCache[tenantId];
+  Map<String, Map<String, dynamic>>? get tenantTrends => _tenantTrends;
 
   Future<void> fetchTenantDevices(
     String role,
@@ -302,6 +304,7 @@ class ApiCache {
       if (results.every((data) => data == null)) {
         _initialized = false;
         _lastLiveSource = null;
+        _tenantTrends = null;
         return;
       }
 
@@ -406,6 +409,14 @@ class ApiCache {
     final data = await _get('/tenants?pageSize=100', headers);
     if (data != null) {
       _tenants = List<Map<String, dynamic>>.from(data['items'] ?? []);
+    }
+  }
+
+  Future<void> refreshTenantTrends(String role, String tenantId) async {
+    final data = await _get('/tenants/$tenantId/trends', _headers(role));
+    if (data != null) {
+      _tenantTrends ??= {};
+      _tenantTrends![tenantId] = data;
     }
   }
 
@@ -732,6 +743,7 @@ class ApiCache {
     _clearLiveData();
     _httpClient = const DefaultApiHttpClient();
     _roleTokens.clear();
+    _tenantTrends = null;
   }
 
   @visibleForTesting

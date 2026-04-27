@@ -101,3 +101,29 @@ class TenantStatsViewData {
   final String? lastSync;
   final String? message;
 }
+
+class DailyStatPoint {
+  const DailyStatPoint({
+    required this.date,
+    required this.alerts,
+    required this.deviceOnlineRate,
+    required this.healthRate,
+  });
+
+  final String date;
+  final int alerts;
+  final double deviceOnlineRate;
+  final double healthRate;
+}
+
+class TenantTrendsViewData {
+  const TenantTrendsViewData({
+    required this.viewState,
+    required this.dailyStats,
+    this.message,
+  });
+
+  final ViewState viewState;
+  final List<DailyStatPoint> dailyStats;
+  final String? message;
+}

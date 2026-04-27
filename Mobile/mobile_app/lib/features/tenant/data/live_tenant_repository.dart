@@ -10,7 +10,7 @@ import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dar
 class LiveTenantRepository implements TenantRepository {
   LiveTenantRepository();
 
-  static final MockTenantRepository _mock = MockTenantRepository();
+  static final MockTenantRepository _fallback = MockTenantRepository();
 
   @override
   TenantListViewData loadList(TenantListQuery query) {
@@ -63,10 +63,10 @@ class LiveTenantRepository implements TenantRepository {
   TenantDevicesViewData loadDevices(String id) {
     final cache = ApiCache.instance;
     if (!cache.initialized || cache.lastLiveSource != 'api') {
-      return _mock.loadDevices(id);
+      return _fallback.loadDevices(id);
     }
     final list = cache.tenantDevices(id);
-    if (list == null) return _mock.loadDevices(id);
+    if (list == null) return _fallback.loadDevices(id);
     return TenantDevicesViewData(
       viewState: list.isEmpty ? ViewState.empty : ViewState.normal,
       devices: list,
@@ -79,10 +79,10 @@ class LiveTenantRepository implements TenantRepository {
   TenantLogsViewData loadLogs(String id) {
     final cache = ApiCache.instance;
     if (!cache.initialized || cache.lastLiveSource != 'api') {
-      return _mock.loadLogs(id);
+      return _fallback.loadLogs(id);
     }
     final list = cache.tenantLogs(id);
-    if (list == null) return _mock.loadLogs(id);
+    if (list == null) return _fallback.loadLogs(id);
     return TenantLogsViewData(
       viewState: list.isEmpty ? ViewState.empty : ViewState.normal,
       logs: list,
@@ -95,10 +95,10 @@ class LiveTenantRepository implements TenantRepository {
   TenantStatsViewData loadStats(String id) {
     final cache = ApiCache.instance;
     if (!cache.initialized || cache.lastLiveSource != 'api') {
-      return _mock.loadStats(id);
+      return _fallback.loadStats(id);
     }
     final data = cache.tenantStats(id);
-    if (data == null) return _mock.loadStats(id);
+    if (data == null) return _fallback.loadStats(id);
     return TenantStatsViewData(
       viewState: ViewState.normal,
       livestockTotal: data['livestockTotal'] as int? ?? 0,
@@ -143,6 +143,31 @@ class LiveTenantRepository implements TenantRepository {
     return TenantDetailViewData(
       viewState: ViewState.normal,
       tenant: tenant,
+    );
+  }
+
+  @override
+  TenantTrendsViewData loadTrends(String id) {
+    final cache = ApiCache.instance;
+    if (!cache.initialized) return _fallback.loadTrends(id);
+    final trendsCache = cache.tenantTrends;
+    if (trendsCache == null || trendsCache.isEmpty) return _fallback.loadTrends(id);
+    final map = trendsCache[id];
+    if (map == null) return _fallback.loadTrends(id);
+    final dailyStats = (map['dailyStats'] as List<dynamic>?)
+        ?.map((e) => DailyStatPoint(
+              date: e['date'] as String,
+              alerts: e['alerts'] as int,
+              deviceOnlineRate: (e['deviceOnlineRate'] as num).toDouble(),
+              healthRate: (e['healthRate'] as num).toDouble(),
+            ))
+        .toList();
+    if (dailyStats == null || dailyStats.isEmpty) {
+      return _fallback.loadTrends(id);
+    }
+    return TenantTrendsViewData(
+      viewState: ViewState.normal,
+      dailyStats: dailyStats,
     );
   }
 }
