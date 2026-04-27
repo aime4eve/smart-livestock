@@ -11,11 +11,15 @@ class DemoSeed {
 
   static const List<GeoPoint> trajectoryPoints = [];
 
+  // Anchor points represent water troughs, feeding stations, and salt licks.
+  // During feeding hours (6-8, 17-19) cattle move toward these and stay nearby.
   static const List<LatLng> gpsAnchorPoints = [
-    LatLng(28.2336, 112.9435),
-    LatLng(28.2312, 112.9409),
-    LatLng(28.2268, 112.9342),
-    LatLng(28.2254, 112.9357),
+    LatLng(28.2336, 112.9435), // 放牧A区 — 饮水点
+    LatLng(28.2312, 112.9409), // 放牧A区 — 喂食站
+    LatLng(28.2268, 112.9342), // 放牧B区 — 饮水点
+    LatLng(28.2254, 112.9357), // 放牧B区 — 喂食站
+    LatLng(28.2332, 112.9415), // 放牧A区 — 盐砖
+    LatLng(28.2250, 112.9330), // 放牧B区 — 盐砖
   ];
 
   static const List<FencePolygon> fencePolygons = [

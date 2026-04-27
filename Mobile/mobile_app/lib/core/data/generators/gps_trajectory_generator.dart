@@ -147,33 +147,66 @@ class GpsTrajectoryGenerator extends TimeSeriesGenerator<GeoPoint> {
     final restBounds = _boundsFromPolygon(restFenceBoundary);
     final nearBoundaryMode = earTag.hashCode.abs() % 23 == 0;
 
+    final startIsNight = start.hour < 6 || start.hour >= 18;
+    final startBounds = startIsNight ? restBounds : mainBounds;
     var currentLat =
-        mainBounds.centerLat + (rng.nextDouble() - 0.5) * mainBounds.latSpan * 0.3;
+        startBounds.centerLat + (rng.nextDouble() - 0.5) * startBounds.latSpan * 0.3;
     var currentLng =
-        mainBounds.centerLng + (rng.nextDouble() - 0.5) * mainBounds.lngSpan * 0.3;
+        startBounds.centerLng + (rng.nextDouble() - 0.5) * startBounds.lngSpan * 0.3;
 
     var t = start;
-    var wasNight = false;
+    var wasNight = startIsNight;
+    var transitionHours = 99;
     while (t.isBefore(end)) {
       final hour = t.hour;
       final isNight = hour < 6 || hour >= 18;
-      final activeBounds = isNight ? restBounds : mainBounds;
+      final isFeedingHour = (hour >= 6 && hour < 8) || (hour >= 17 && hour < 19);
+      final isMiddayRest = hour >= 11 && hour < 14;
 
-      if (isNight && !wasNight) {
-        currentLat = restBounds.centerLat + (rng.nextDouble() - 0.5) * 0.0002;
-        currentLng = restBounds.centerLng + (rng.nextDouble() - 0.5) * 0.0002;
+      if (isNight != wasNight) {
+        transitionHours = 0;
+      } else {
+        transitionHours++;
+      }
+      final inTransition = transitionHours < 2;
+      final activeBounds = isNight ? restBounds : mainBounds;
+      final priorBounds = isNight ? mainBounds : restBounds;
+
+      // Gradual transition instead of snap: bias toward new fence center
+      if (inTransition) {
+        final targetLat = activeBounds.centerLat;
+        final targetLng = activeBounds.centerLng;
+        currentLat += (targetLat - currentLat) * 0.35;
+        currentLng += (targetLng - currentLng) * 0.35;
       }
 
+      // Anchor attraction with stay behavior during feeding/drinking hours
+      double anchorBias = 0;
       if (!isNight && anchorPoints.isNotEmpty) {
         final idx =
             (earTag.hashCode.abs() + _dayOfYear(t) + hour) % anchorPoints.length;
         final target = anchorPoints[idx];
-        final bias = hour % 3 == 0 ? 0.32 : 0.14;
-        currentLat += (target.latitude - currentLat) * bias;
-        currentLng += (target.longitude - currentLng) * bias;
+
+        if (isFeedingHour) {
+          anchorBias = 0.40;
+        } else if (isMiddayRest) {
+          anchorBias = 0.22;
+        } else {
+          anchorBias = 0.14;
+        }
+
+        currentLat += (target.latitude - currentLat) * anchorBias;
+        currentLng += (target.longitude - currentLng) * anchorBias;
       }
 
-      final step = isNight ? 0.00005 : 0.00028;
+      double step;
+      if (isNight) {
+        step = 0.00005;
+      } else if (isFeedingHour || isMiddayRest) {
+        step = 0.00008;
+      } else {
+        step = 0.00028;
+      }
       currentLat += (rng.nextDouble() - 0.5) * step * 2;
       currentLng += (rng.nextDouble() - 0.5) * step * 2;
 
@@ -196,14 +229,37 @@ class GpsTrajectoryGenerator extends TimeSeriesGenerator<GeoPoint> {
       }
 
       const margin = 0.0001;
-      currentLat = currentLat.clamp(
-        activeBounds.minLat + margin,
-        activeBounds.maxLat - margin,
-      );
-      currentLng = currentLng.clamp(
-        activeBounds.minLng + margin,
-        activeBounds.maxLng - margin,
-      );
+      if (inTransition) {
+        final unionMinLat = activeBounds.minLat < priorBounds.minLat
+            ? activeBounds.minLat
+            : priorBounds.minLat;
+        final unionMaxLat = activeBounds.maxLat > priorBounds.maxLat
+            ? activeBounds.maxLat
+            : priorBounds.maxLat;
+        final unionMinLng = activeBounds.minLng < priorBounds.minLng
+            ? activeBounds.minLng
+            : priorBounds.minLng;
+        final unionMaxLng = activeBounds.maxLng > priorBounds.maxLng
+            ? activeBounds.maxLng
+            : priorBounds.maxLng;
+        currentLat = currentLat.clamp(
+          unionMinLat + margin,
+          unionMaxLat - margin,
+        );
+        currentLng = currentLng.clamp(
+          unionMinLng + margin,
+          unionMaxLng - margin,
+        );
+      } else {
+        currentLat = currentLat.clamp(
+          activeBounds.minLat + margin,
+          activeBounds.maxLat - margin,
+        );
+        currentLng = currentLng.clamp(
+          activeBounds.minLng + margin,
+          activeBounds.maxLng - margin,
+        );
+      }
 
       points.add(GeoPoint(
         lat: double.parse(currentLat.toStringAsFixed(4)),
