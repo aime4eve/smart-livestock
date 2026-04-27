@@ -15,13 +15,14 @@
 
 ## 概述
 
-本设计文档定义智慧畜牧系统的统一商业模型，同时支撑三种商业通道：
+本设计文档定义智慧畜牧系统的统一商业模型，同时支撑四种商业通道：
 
 | 通道 | 计费方 | 付费方 | 计费方式 |
 |---|---|---|---|
 | B2C 直订阅 | 平台 | 牧场主 | 设备月费 + tier 月费 |
 | B2B 云托管分润 | B端客户 | B端客户的最终用户 | 设备月费 + tier 月费，平台按合同比例分润 |
 | B2B 独立部署 | 平台 | B端客户 | License 年费（含设备和 tier） |
+| **API 开放平台** | 平台 | 外部第三方 / B端客户 | API Tier 月费 + 超出调用量
 
 核心设计原则：**tenant 统一为"付钱给我们的实体"**，而非"牧场运营单元"。
 
@@ -33,7 +34,7 @@
 |---|---|---|---|
 | **平台** | 我们 | `platform_admin` (原 ops) | — |
 | **B端客户** | 合作商/代理商，和我们签合同 | `b2b_admin`（新增） | 按旗下牧场主实付订阅费 × 合同分润比，和我们分账 |
-| **牧场主** | 养殖户，B端客户发展的最终用户 | `owner`（保留） | 按牛数 × 设备月费向 B端客户付费。可拥有多个牧场 |
+| **牧场主** | 养殖户，B端客户发展的最终用户（B2B）或平台的直接客户（B2C） | `owner`（保留） | 按牛数 × 设备月费向 B端客户或平台付费（取决于 billingModel）。可拥有多个牧场 |
 | **牧场** | 运营单元，包含牛/设备/围栏/告警 | owner + `worker`（保留） | 订阅套餐绑定在此层 |
 | **牧工** | 牧场主的员工 | worker | 不付费，继承所属牧场的权限 |
 | **API客户** | 外部第三方，独立购买 API | `api_consumer`（新增） | 按 API 调用量 / API Tier 独立计费 |
@@ -87,6 +88,7 @@ heartbeatAt: datetime | null,
 apiTier: 'free' | 'growth' | 'scale' | null,
 apiKey: string | null,
 apiCallQuota: int | null,             // 月调用量上限
+accessibleFarmTenantIds: string[] | null,  // 可访问的 farm tenant 列表（null 表示仅统计端点）
 
 // === farm 专用 ===
 ownerId: string | null,               // 牧场主 user id
@@ -113,6 +115,15 @@ api tenant (type=api)
   billingModel = 'api_usage'
   apiTier = free / growth / scale
 ```
+
+**继承机制**：farm tenant 的 `entitlementTier` 和 `billingModel` 字段在本行存储的值可能为 null（当该 farm 归属 partner 时）。Shaping 中间件和前端读取时通过以下链查找：
+
+```
+farm.entitlementTier ?? parent.entitlementTier ?? 'basic'
+farm.billingModel ?? parent.billingModel ?? 'direct'
+```
+
+即：farm 自有值优先，null 时查 parent partner。不采用双向同步（父改子同步）以避免一致性负担。parent partner 的 tier 变更立即对所有子 farm 生效（因为每次请求实时 lookup）。
 
 ### 2.4 种子数据兼容
 
@@ -211,6 +222,8 @@ GPS + 胶囊（双配）:
   └── 基础档案管理         → livestock_detail, device_management
 ```
 
+本节省略了无设备依赖的 Feature Flags（如 `stats`、`dashboard_summary`、`profile`、`tenant_admin`、`alert_history`、`dedicated_support`、`data_retention_days`、`gait_analysis`、`behavior_stats`、`api_access`），完整 20 个 key 列表及 Tier 映射见订阅服务设计规格 Section "Feature Flag 清单"。
+
 ### 4.1.1 双门控机制：Tier + 设备依赖
 
 功能可用性由两层门控共同决定：
@@ -267,6 +280,11 @@ GPS + 胶囊（双配）:
 
 Tier 绑定于 partner tenant 或 direct farm tenant。非 direct 模式的 farm 继承 parent partner 的 tier。
 
+**Tier 到 Feature Flag 的完整映射**和牲畜上限规则（basic=50, standard=200, premium=1000, enterprise=无限）见订阅服务设计规格 Section "Feature Flag 清单"。本规格不重复该表，仅在此明确：
+
+- **设备月费（Layer 1）**是本规格新增的计费维度，独立于 tier 月费。每头牛按实际佩戴设备计费。
+- **牲畜上限（原订阅规格）**保留，但语义调整为"tier 包含牲畜数内不额外叠加设备溢价"。超出上限部分按原规格的阶梯单价叠加。两套公式共存：`总月费 = 设备月费 + tier 月费 + 超出上限阶梯费`。
+
 注意：premium 及以上 tier 包含的 ML 功能（健康评分、发情检测、疫病预警）需要双配设备数据才能实际生效。数据不满足条件时，前端显示"需要安装瘤胃胶囊"而非"升级套餐"。
 
 #### Layer 3: API 增值
@@ -300,7 +318,7 @@ Tier 绑定于 partner tenant 或 direct farm tenant。非 direct 模式的 farm
 | tier 绑定 tenant | partner/direct 类型 tenant 绑定 tier，farm 类型继承 parent |
 | Feature Flag 定义（20 个 key） | 新增设备依赖约束 |
 | 价格展示 | direct 模式显示价格；非 direct 模式显示"由经销商管理" |
-| 试用机制 | 仅 direct farm 新注册时触发；partner 下 farm 由 B端客户决定 |
+| 试用机制 | 仅 direct farm 新注册时触发（高级版 14 天免费试用，到期自动降级为基础版，详见订阅服务设计规格 Section "订阅层级"）；partner 下 farm 由 B端客户决定 |
 
 ---
 
@@ -344,11 +362,13 @@ scale (¥2,000/月):
 
 ### 5.3 API 客户的数据隔离
 
-| 授权模式 | 描述 | 实现 |
-|---|---|---|
-| 自有数据 | 保险公司自己买了胶囊设备给牛戴 → 查自己的数据 | `api_consumer` 绑定自己的 `api tenant`，只能查关联的 farm |
-| 平台全量（受限） | 政府畜牧部门 → 查脱敏统计 | `api tenant` 无关联 farm，只能调聚合统计端点 |
-| B端客户代调 | 代理商调用旗下牧场数据 | `b2b_admin` 用 Bearer token 直接调 App API，不走 Open API |
+| 授权模式 | 描述 | accessibleFarmTenantIds | 可调端点 |
+|---|---|---|---|
+| 自有数据 | 保险公司自己买了胶囊设备给牛戴 → 查自己的数据 | 已关联的 farm 列表 | 全部授权的端点 |
+| 平台全量（受限） | 政府畜牧部门 → 查脱敏统计 | `null`（表示仅统计） | 仅聚合统计端点，不能查个体 |
+| B端客户代调 | 代理商调用旗下牧场数据 | — | `b2b_admin` 用 Bearer token 直接调 App API，不走 Open API |
+
+API 客户通过 `accessibleFarmTenantIds` 字段关联其可访问的 farm tenant（见 Section 2.2）。授权中间件在验证 API Key 后，查找对应的 api tenant，将 `accessibleFarmTenantIds` 注入请求上下文作为数据过滤条件。
 
 ### 5.4 与 App 内 `api_access` Feature Flag 的关系
 
@@ -422,8 +442,9 @@ api_consumer（外部第三方）:
 | 租户 | `tenantStore.js` | 扩展字段（type/billingModel/parentTenantId 等） |
 | 租户 | `tenants.js` 路由 | 新增按 type 过滤、按 parentTenantId 查询子 tenant |
 | 订阅 | `subscriptions.js`（计划中） | tier 继承逻辑（farm 从 parent partner 继承）、设备费计算 |
-| 围栏/设备/告警 | 现有路由 | 隔离维度从 tenantId 改为 farm tenantId |
-| Shaping 中间件 | `feature-flag.js`（计划中） | 不改，数据驱动 |
+| 围栏/设备/告警 | 现有路由 + `auth.js` | **重点重构**：隔离维度从单一 `tenantId` 改为 farm tenant ID。当前 `req.user.tenantId` 在 owner 多 farm 场景下不再有唯一值。Phase 1 策略：引入"当前激活 farm"上下文（`req.activeFarmTenantId`），owner 操作时从请求参数或 session 中提取。auth 中间件提取 active farm 逻辑，Shaping 中间件使用 `activeFarmTenantId` 查询 tier。multi-farm UI 切换推迟至 Phase 2，Phase 1 中 owner 默认操作第一个绑定 farm |
+| API 前缀 | 所有路由 | 新增 `/api/v1/*` 前缀（保持 `/api/*` 兼容，两者并存）。Open API 使用独立 `/api/open/v1/*` 前缀。`ApiCache` 预加载列表需同步更新 |
+| Shaping 中间件 | `feature-flag.js`（计划中） | 核心逻辑不改。新增：读取 `req.activeFarmTenantId` 查询 tier；调用 `deviceCheck()` 验证设备依赖（Section 4.1.1） |
 
 **Store 关系说明**：Section 6.1 架构图中的 `EntitlementStore` 即当前订阅计划中的 `subscriptions.js` / `subscriptionStore` 的扩展版本。`subscriptionStore` 的既有函数（`createTrial`、`getByTenantId`、`checkout`、`cancel`、`renew`）保留，但扩展为支持 `billingModel` 参数。`EntitlementStore` 在 Phase 1 仅实现 `direct` 分支（等价于当前 subscriptionStore 功能），`ContractStore` / `LicenseStore` / `ApiTierStore` 在 Phase 1 仅定义接口框架（返回静态数据），Phase 2 实现完整逻辑。
 
