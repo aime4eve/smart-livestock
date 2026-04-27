@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_http_client.dart';
+import 'package:smart_livestock_demo/core/models/demo_models.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
 
 const String _apiBaseUrlFromEnv = String.fromEnvironment(
   'API_BASE_URL',
@@ -92,6 +94,10 @@ class ApiCache {
   List<Map<String, dynamic>> _epidemicContacts = [];
   List<Map<String, dynamic>> _devices = [];
 
+  final Map<String, List<DeviceItem>> _tenantDevicesCache = {};
+  final Map<String, List<TenantLogEntry>> _tenantLogsCache = {};
+  final Map<String, Map<String, dynamic>> _tenantStatsCache = {};
+
   List<Map<String, dynamic>> get dashboardMetrics => _dashboardMetrics;
   List<Map<String, dynamic>> get animals => _animals;
   List<Map<String, dynamic>> get mapTrajectoryPoints => _mapTrajectoryPoints;
@@ -107,6 +113,115 @@ class ApiCache {
   Map<String, dynamic>? get epidemicSummary => _epidemicSummary;
   List<Map<String, dynamic>> get epidemicContacts => _epidemicContacts;
   List<Map<String, dynamic>> get devices => _devices;
+
+  List<DeviceItem>? tenantDevices(String tenantId) => _tenantDevicesCache[tenantId];
+  List<TenantLogEntry>? tenantLogs(String tenantId) => _tenantLogsCache[tenantId];
+  Map<String, dynamic>? tenantStats(String tenantId) => _tenantStatsCache[tenantId];
+
+  Future<void> fetchTenantDevices(
+    String role,
+    String tenantId, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
+    final headers = _headers(
+      role,
+      tokens: tokens,
+      allowMockTokenFallback: allowMockTokenFallback,
+      roleTokens: _roleTokens,
+    );
+    final data = await _get('/tenants/$tenantId/devices', headers);
+    if (data != null && data['items'] is List) {
+      _tenantDevicesCache[tenantId] = (data['items'] as List)
+          .whereType<Map<String, dynamic>>()
+          .map(_parseDeviceItem)
+          .whereType<DeviceItem>()
+          .toList();
+    }
+  }
+
+  Future<void> fetchTenantLogs(
+    String role,
+    String tenantId, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
+    final headers = _headers(
+      role,
+      tokens: tokens,
+      allowMockTokenFallback: allowMockTokenFallback,
+      roleTokens: _roleTokens,
+    );
+    final data = await _get('/tenants/$tenantId/logs', headers);
+    if (data != null && data['items'] is List) {
+      _tenantLogsCache[tenantId] = (data['items'] as List)
+          .whereType<Map<String, dynamic>>()
+          .map(_parseTenantLogEntry)
+          .whereType<TenantLogEntry>()
+          .toList();
+    }
+  }
+
+  Future<void> fetchTenantStats(
+    String role,
+    String tenantId, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
+    final headers = _headers(
+      role,
+      tokens: tokens,
+      allowMockTokenFallback: allowMockTokenFallback,
+      roleTokens: _roleTokens,
+    );
+    final data = await _get('/tenants/$tenantId/stats', headers);
+    if (data != null) {
+      _tenantStatsCache[tenantId] = data;
+    }
+  }
+
+  DeviceItem? _parseDeviceItem(Map<String, dynamic> json) {
+    try {
+      final typeStr = json['type'] as String? ?? '';
+      final statusStr = json['status'] as String? ?? '';
+      final type = switch (typeStr) {
+        'gps' => DeviceType.gps,
+        'rumenCapsule' => DeviceType.rumenCapsule,
+        _ => DeviceType.accelerometer,
+      };
+      final status = switch (statusStr) {
+        'online' => DeviceStatus.online,
+        'offline' => DeviceStatus.offline,
+        _ => DeviceStatus.lowBattery,
+      };
+      return DeviceItem(
+        id: json['id'] as String? ?? '',
+        name: json['name'] as String? ?? '',
+        type: type,
+        status: status,
+        boundEarTag: json['boundEarTag'] as String? ?? '',
+        batteryPercent: json['batteryPercent'] as int?,
+        signalStrength: json['signalStrength'] as String?,
+        lastSync: json['lastSync'] as String?,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  TenantLogEntry? _parseTenantLogEntry(Map<String, dynamic> json) {
+    try {
+      return TenantLogEntry(
+        id: json['id'] as String? ?? '',
+        action: json['action'] as String? ?? '',
+        detail: json['detail'] as String? ?? '',
+        operator: json['operator'] as String? ?? '',
+        createdAt: json['createdAt'] as String? ?? '',
+      );
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<ApiAuthTokens?> authenticateRole(String role) async {
     final response = await _httpClient.post(

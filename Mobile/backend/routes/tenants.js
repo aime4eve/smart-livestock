@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { authMiddleware, requirePermission } = require('../middleware/auth');
 const store = require('../data/tenantStore');
+const { devices } = require('../data/seed');
 
 const router = Router();
 
@@ -100,6 +101,80 @@ router.post(
     const result = store.adjustLicense(req.params.id, licenseTotal);
     if (result.error) return sendErr(res, result.error, existing);
     res.ok(result.tenant);
+  }
+);
+
+router.get(
+  '/:id/devices',
+  authMiddleware,
+  requirePermission('tenant:view'),
+  (req, res) => {
+    const tenant = store.findById(req.params.id);
+    if (!tenant) return sendErr(res, 'not_found');
+
+    const tenantIdx = parseInt(tenant.id.split('_')[1], 10) || 1;
+    // Distribute devices across tenants: tenant_001 gets all, others get a subset
+    const subset = tenantIdx === 1
+      ? devices
+      : devices.filter((_, i) => (i % (tenantIdx + 2)) === 0);
+
+    res.ok({
+      items: subset,
+      page: 1,
+      pageSize: subset.length,
+      total: subset.length,
+    });
+  }
+);
+
+router.get(
+  '/:id/logs',
+  authMiddleware,
+  requirePermission('tenant:view'),
+  (req, res) => {
+    const tenant = store.findById(req.params.id);
+    if (!tenant) return sendErr(res, 'not_found');
+
+    const logs = [
+      { id: 'log-001', action: '租户创建', detail: `创建租户「${tenant.name}」`, operator: '运维管理员', createdAt: tenant.createdAt || '2025-08-12T09:00:00+08:00' },
+      { id: 'log-002', action: 'License 调整', detail: `配额从 ${Math.max(tenant.licenseTotal - 50, 50)} 调整为 ${tenant.licenseTotal}`, operator: '运维管理员', createdAt: tenant.updatedAt || '2026-04-20T14:30:00+08:00' },
+      { id: 'log-003', action: '状态变更', detail: `状态变更为「${tenant.status === 'active' ? '启用中' : '已禁用'}」`, operator: '运维管理员', createdAt: tenant.updatedAt || '2026-04-20T14:30:00+08:00' },
+      { id: 'log-004', action: '信息更新', detail: '更新租户基本信息', operator: '运维管理员', createdAt: tenant.updatedAt || '2026-04-19T10:00:00+08:00' },
+    ];
+
+    res.ok({
+      items: logs,
+      page: 1,
+      pageSize: logs.length,
+      total: logs.length,
+    });
+  }
+);
+
+router.get(
+  '/:id/stats',
+  authMiddleware,
+  requirePermission('tenant:view'),
+  (req, res) => {
+    const tenant = store.findById(req.params.id);
+    if (!tenant) return sendErr(res, 'not_found');
+
+    const tenantIdx = parseInt(tenant.id.split('_')[1], 10) || 1;
+    const deviceCount = tenantIdx === 1 ? 100 : Math.max(10, 100 - tenantIdx * 15);
+    const onlineCount = Math.round(deviceCount * 0.85);
+    const livestockCount = Math.round(tenant.licenseUsed * 1.0);
+    const healthRate = 88 + (tenantIdx % 10);
+    const alertCount = 3 + (tenantIdx % 6);
+
+    res.ok({
+      livestockTotal: livestockCount,
+      deviceTotal: deviceCount,
+      deviceOnline: onlineCount,
+      deviceOnlineRate: deviceCount > 0 ? Math.round((onlineCount / deviceCount) * 100) : 0,
+      healthRate,
+      alertCount,
+      lastSync: '2 分钟前',
+    });
   }
 );
 

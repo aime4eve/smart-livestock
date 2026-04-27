@@ -1,5 +1,6 @@
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
+import 'package:smart_livestock_demo/features/tenant/data/mock_tenant_repository.dart';
 import 'package:smart_livestock_demo/features/tenant/data/tenant_dto.dart';
 import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
 import 'package:smart_livestock_demo/features/tenant/domain/tenant_query.dart';
@@ -8,6 +9,8 @@ import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dar
 
 class LiveTenantRepository implements TenantRepository {
   LiveTenantRepository();
+
+  static final MockTenantRepository _mock = MockTenantRepository();
 
   @override
   TenantListViewData loadList(TenantListQuery query) {
@@ -53,6 +56,58 @@ class LiveTenantRepository implements TenantRepository {
       tenants: items,
       total: total,
       message: items.isEmpty ? '暂无租户' : null,
+    );
+  }
+
+  @override
+  TenantDevicesViewData loadDevices(String id) {
+    final cache = ApiCache.instance;
+    if (!cache.initialized || cache.lastLiveSource != 'api') {
+      return _mock.loadDevices(id);
+    }
+    final list = cache.tenantDevices(id);
+    if (list == null) return _mock.loadDevices(id);
+    return TenantDevicesViewData(
+      viewState: list.isEmpty ? ViewState.empty : ViewState.normal,
+      devices: list,
+      total: list.length,
+      message: list.isEmpty ? '暂无设备' : null,
+    );
+  }
+
+  @override
+  TenantLogsViewData loadLogs(String id) {
+    final cache = ApiCache.instance;
+    if (!cache.initialized || cache.lastLiveSource != 'api') {
+      return _mock.loadLogs(id);
+    }
+    final list = cache.tenantLogs(id);
+    if (list == null) return _mock.loadLogs(id);
+    return TenantLogsViewData(
+      viewState: list.isEmpty ? ViewState.empty : ViewState.normal,
+      logs: list,
+      total: list.length,
+      message: list.isEmpty ? '暂无操作日志' : null,
+    );
+  }
+
+  @override
+  TenantStatsViewData loadStats(String id) {
+    final cache = ApiCache.instance;
+    if (!cache.initialized || cache.lastLiveSource != 'api') {
+      return _mock.loadStats(id);
+    }
+    final data = cache.tenantStats(id);
+    if (data == null) return _mock.loadStats(id);
+    return TenantStatsViewData(
+      viewState: ViewState.normal,
+      livestockTotal: data['livestockTotal'] as int? ?? 0,
+      deviceTotal: data['deviceTotal'] as int? ?? 0,
+      deviceOnline: data['deviceOnline'] as int? ?? 0,
+      deviceOnlineRate: data['deviceOnlineRate'] as int? ?? 0,
+      healthRate: data['healthRate'] as int? ?? 0,
+      alertCount: data['alertCount'] as int? ?? 0,
+      lastSync: data['lastSync'] as String?,
     );
   }
 

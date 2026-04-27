@@ -63,19 +63,28 @@ function sliceForPage(query) {
 }
 
 function createTenant(body) {
-  const { name: rawName, licenseTotal = 100 } = body || {};
+  const { name: rawName, licenseTotal = 100, contactName, contactPhone, contactEmail, region, remarks } = body || {};
   const name = typeof rawName === 'string' ? rawName.trim() : rawName;
   if (!name) return { error: 'name_required' };
   if (typeof licenseTotal !== 'number' || licenseTotal < 0) {
     return { error: 'license_invalid' };
   }
   if (nameExists(name)) return { error: 'name_conflict' };
+  const now = new Date().toISOString().replace('Z', '+08:00').replace(/\.\d{3}/, '');
   const tenant = {
     id: `tenant_${String(nextId++).padStart(3, '0')}`,
     name,
     status: 'active',
     licenseUsed: 0,
     licenseTotal,
+    contactName: contactName ?? null,
+    contactPhone: contactPhone ?? null,
+    contactEmail: contactEmail ?? null,
+    region: region ?? null,
+    remarks: remarks ?? null,
+    createdAt: now,
+    updatedAt: now,
+    lastUpdatedBy: '运维管理员',
   };
   tenants.push(tenant);
   return { tenant };
@@ -84,13 +93,21 @@ function createTenant(body) {
 function updateTenant(id, body) {
   const tenant = findById(id);
   if (!tenant) return { error: 'not_found' };
-  const { name: rawName } = body || {};
+  const { name: rawName, contactName, contactPhone, contactEmail, region, remarks } = body || {};
   if (rawName !== undefined) {
     const name = typeof rawName === 'string' ? rawName.trim() : rawName;
     if (!name) return { error: 'name_required' };
     if (nameExists(name, id)) return { error: 'name_conflict' };
     tenant.name = name;
   }
+  if (contactName !== undefined) tenant.contactName = contactName ?? null;
+  if (contactPhone !== undefined) tenant.contactPhone = contactPhone ?? null;
+  if (contactEmail !== undefined) tenant.contactEmail = contactEmail ?? null;
+  if (region !== undefined) tenant.region = region ?? null;
+  if (remarks !== undefined) tenant.remarks = remarks ?? null;
+  const now = new Date().toISOString().replace('Z', '+08:00').replace(/\.\d{3}/, '');
+  tenant.updatedAt = now;
+  tenant.lastUpdatedBy = '运维管理员';
   return { tenant };
 }
 

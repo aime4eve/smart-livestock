@@ -4,4 +4,7 @@ import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dar
 abstract class TenantRepository {
   TenantListViewData loadList(TenantListQuery query);
   TenantDetailViewData loadDetail(String id);
+  TenantDevicesViewData loadDevices(String id);
+  TenantLogsViewData loadLogs(String id);
+  TenantStatsViewData loadStats(String id);
 }
