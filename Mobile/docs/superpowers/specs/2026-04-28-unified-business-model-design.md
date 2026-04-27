@@ -68,6 +68,9 @@
 type: 'partner' | 'farm' | 'api',    // 默认 'farm'（兼容现有种子数据）
 parentTenantId: string | null,       // farm 归属哪个 partner
 
+// === 订阅权限 ===
+entitlementTier: 'basic' | 'standard' | 'premium' | 'enterprise',  // partner/direct 直接绑定，farm 继承 parent
+
 // === 商业模式 ===
 billingModel: 'direct' | 'revenue_share' | 'licensed' | 'api_usage',
 
@@ -170,7 +173,7 @@ api_consumer:       按 apiKey 识别，只能调用授权的端点，看不到 
 
 | 模块 | 改动 |
 |---|---|
-| `auth.js` 中间件 | 新增 `b2b_admin`、`api_consumer` 角色，`requirePermission` 扩展权限集 |
+| `auth.js` 中间件 | 新增 `b2b_admin`、`api_consumer` 角色，`requirePermission` 扩展权限集。`ops` → `platform_admin` 为简单查找替换，不改变权限逻辑 |
 | `users` 种子数据 | 新增 b2b_admin 和 api_consumer 示例用户 |
 | `TOKEN_MAP` | 新增 `mock-token-b2b-admin`、`mock-token-api-consumer` |
 | App Session | `AppSession` 新增 role 枚举值，路由守卫适配 |
@@ -204,14 +207,45 @@ GPS + 胶囊（双配）:
   └── 基础档案管理         → livestock_detail, device_management
 ```
 
+### 4.1.1 双门控机制：Tier + 设备依赖
+
+功能可用性由两层门控共同决定：
+
+```
+功能可用 = tier_gate(tier, feature) AND device_gate(cattleId, feature)
+```
+
+| 场景 | Tier 满足？ | 设备满足？ | 前端表现 |
+|---|---|---|---|
+| 正常使用 | 是 | 是 | 功能正常可用 |
+| 需升级 | 否 | 是 | LockedOverlay："升级到 premium 解锁此功能" |
+| 缺设备 | 是 | 否 | LockedOverlay："此功能需要安装瘤胃胶囊"，不显示升级按钮 |
+| 都缺 | 否 | 否 | LockedOverlay：提示需升级（因为缺设备时升级也无意义） |
+
+**设备检查位置**：在后端 Shaping 中间件中，`applyShapingRules()` 为每个 feature key 判断 `locked` 时，需额外查询该请求对应的牛是否具备所需设备。若 tier 满足但设备不满足，返回 `locked: true` 且 `message` 指向设备缺失而非 tier 不足，且 `upgradeTier` 字段为 null（前端据此判断不显示升级按钮）。
+
+**设备判断粒度**：
+- 单牛查询（如 `/twin/fever/:id`）：检查该牛的设备列表
+- 牛只列表（如 `/twin/fever/list`）：按牛粒度逐条检查，返回 `locked` 标记
+- 非牛相关端点（如 `/dashboard/summary`）：不检查设备依赖
+
+**device_gate 规则表**：
+
+| Feature Flag | 所需设备 |
+|---|---|
+| `fence`, `gps_location`, `trajectory` | GPS 追踪器 |
+| `temperature_monitor`, `peristaltic_monitor` | 瘤胃胶囊 |
+| `health_score`, `estrus_detect`, `epidemic_alert` | GPS 追踪器 + 瘤胃胶囊（双配） |
+| 其他 Feature Flag | 无设备依赖 |
+
 ### 4.2 三层计费结构
 
 #### Layer 1: 设备月费
 
 计费单元：每头牛 × 佩戴的设备
 
-- GPS 追踪器: ¥c /牛/月
-- 瘤胃胶囊: ¥d /牛/月
+- GPS 追踪器: ¥c /牛/月（TBD，待与业务方确定）
+- 瘤胃胶囊: ¥d /牛/月（TBD，待与业务方确定）
 - farm 总费用 = ∑(每头牛的设备配置月费)
 
 面向所有 farm tenant，用途：B2C 散户直接付平台 / B2B 牧场主付 B端客户。
@@ -387,6 +421,8 @@ api_consumer（外部第三方）:
 | 围栏/设备/告警 | 现有路由 | 隔离维度从 tenantId 改为 farm tenantId |
 | Shaping 中间件 | `feature-flag.js`（计划中） | 不改，数据驱动 |
 
+**Store 关系说明**：Section 6.1 架构图中的 `EntitlementStore` 即当前订阅计划中的 `subscriptions.js` / `subscriptionStore` 的扩展版本。`subscriptionStore` 的既有函数（`createTrial`、`getByTenantId`、`checkout`、`cancel`、`renew`）保留，但扩展为支持 `billingModel` 参数。`EntitlementStore` 在 Phase 1 仅实现 `direct` 分支（等价于当前 subscriptionStore 功能），`ContractStore` / `LicenseStore` / `ApiTierStore` 在 Phase 1 仅定义接口框架（返回静态数据），Phase 2 实现完整逻辑。
+
 ---
 
 ## 七、分阶段落地路径
@@ -398,6 +434,7 @@ api_consumer（外部第三方）:
 - 订阅模型拆分（设备月费 + tier 月费）
 - B2C 完整链路可用
 - B2B2C 数据模型就绪（接口预留）
+- **不在 Phase 1**：多牧场切换 UI（owner 管理多个 farm 的 farm switcher、跨 farm 聚合视图）推迟至 Phase 2，与 B端管理后台一起交付。Phase 1 中 owner 虽可绑定多个 farm，但前端仅展示第一个 farm 的数据。
 
 ### Phase 2：B2B2C 核心能力
 
