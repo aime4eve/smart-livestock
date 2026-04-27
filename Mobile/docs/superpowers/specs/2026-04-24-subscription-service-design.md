@@ -394,7 +394,7 @@ function createTrial(tenantId) {
 |---------|-------------|
 | `GET /api/map/trajectories` | featureKeys: `['trajectory', 'data_retention_days']` — basic: lock 注入 + filter 按 7 天截断 `recordedAt`；standard+: filter 按层级天数，无 lock |
 | `GET /api/fences` | featureKeys: `['fence']` — basic 用户限制最多 3 个围栏 |
-| `POST /api/fences` | featureKeys: `['fence']` — basic 已有 3 个围栏时返回 locked |
+| `POST /api/fences` | featureKeys: `['fence']` — basic 已有 3 个围栏时返回 locked。**注意**：POST 不返回列表，shaping 中间件仅拦截 `res.ok()` 调用。POST handler 需在调用 `res.ok()` 前自行检查围栏数量并注入 locked。 |
 | `GET /api/twin/fever/list` `GET /api/twin/fever/:id` | 所有层级可用（temperature_monitor 在 basic 开放），无 locked/filter |
 | `GET /api/twin/digestive/list` `GET /api/twin/digestive/:id` | 所有层级可用（peristaltic_monitor 在 basic 开放），无 locked/filter |
 | `GET /api/twin/estrus/list` `GET /api/twin/estrus/:id` | basic/standard 注入 locked（trial/premium+ 正常）；降级后仅 lock 新请求，历史数据可读 |
@@ -406,6 +406,8 @@ function createTrial(tenantId) {
 | `GET /api/tenants/*` | 所有层级可用（ops 角色权限控制） |
 
 ### 订阅管理 API
+
+> **重要**：`/api/subscription/*` 路由**不注册 shaping 中间件**（仅注册 authMiddleware），避免订阅端点自身被 shaping 拦截（如 `/api/subscription/current` 返回 locked）。
 
 | 端点 | 方法 | 说明 |
 |------|------|------|
@@ -672,7 +674,7 @@ GoRouter(
 
 降级（包括取消到期、试用到期、手动降级）后，超出基础版限制的数据**隐藏但保留**：
 
-- **lock 类功能**（发情检测、疫病预警等）：历史数据在 API 响应中保留（不注入 locked），前端正常展示；只有新请求才响应 locked。即降级后该功能变为"只读"——历史可看，新操作锁定。
+- **lock 类功能**（发情检测、疫病预警等）：降级前已在客户端缓存中的数据保持可见（前端不主动清除）；降级后新的 API 请求响应注入 `locked: true`，阻止刷新获取新数据。即降级后该功能变为"只读"——已缓存数据可看，新请求锁定。
 - **filter 类数据**（告警历史等）：shaping 按基础版规则（7天）过滤，超过 7 天的数据不返回。重新订阅高级版后恢复 365 天范围。
 - **limit 类资源**（围栏等）：shaping 返回 limit 对象限制新建，已有资源保留可查看/编辑。
 
