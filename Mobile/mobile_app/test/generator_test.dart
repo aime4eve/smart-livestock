@@ -89,7 +89,7 @@ void main() {
       expect(identical(day24, week7), isFalse);
     });
 
-    test('enhanced mode keeps nighttime points in rest fence', () {
+    test('enhanced mode keeps nighttime points in rest fence after transition', () {
       final gen = GpsTrajectoryGenerator(seed: 42);
       const pastureFence = [
         LatLng(28.2305, 112.9400),
@@ -111,9 +111,10 @@ void main() {
         start: DateTime.utc(2026, 4, 1),
         end: DateTime.utc(2026, 4, 2),
       );
+      // Exclude first 2 hours after day→night transition (18-19)
       final nightPoints = points.where((p) {
         final hour = DateTime.parse(p.timestamp).hour;
-        return hour < 6 || hour >= 18;
+        return hour >= 20 || hour < 6;
       });
       expect(nightPoints, isNotEmpty);
       for (final p in nightPoints) {
