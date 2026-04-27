@@ -52,6 +52,7 @@ const ROUTE_DEFINITIONS = [
   ['GET',    '/tenants/:id/devices'],
   ['GET',    '/tenants/:id/logs'],
   ['GET',    '/tenants/:id/stats'],
+  ['GET',    '/tenants/:id/trends'],
   ['GET',    '/profile'],
   ['GET',    '/twin/overview'],
   ['GET',    '/twin/fever/list'],

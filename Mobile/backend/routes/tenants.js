@@ -178,4 +178,43 @@ router.get(
   }
 );
 
-module.exports = router;
+function generateTrends(tenantId) {
+  const now = new Date();
+  const dailyStats = [];
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const date = d.toISOString().substring(0, 10);
+    const base = Math.abs(hashCode(tenantId + date));
+    dailyStats.push({
+      date,
+      alerts: Math.max(0, Math.round((base % 8) + (Math.sin(i * 0.3) * 3))),
+      deviceOnlineRate: Math.min(100, 80 + (base % 20)),
+      healthRate: Math.min(100, 75 + (base % 25)),
+    });
+  }
+  return { dailyStats };
+}
+
+function hashCode(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+router.get(
+  '/:id/trends',
+  authMiddleware,
+  requirePermission('tenant:view'),
+  (req, res) => {
+    const tenant = store.findById(req.params.id);
+    if (!tenant) {
+      return res.fail(404, 'RESOURCE_NOT_FOUND', '租户不存在');
+    }
+    res.ok(generateTrends(req.params.id));
+  }
+);
+
+module.exports = { router, generateTrends };
