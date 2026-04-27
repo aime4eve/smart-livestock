@@ -18,8 +18,11 @@ import 'package:smart_livestock_demo/features/tenant/presentation/tenant_devices
 import 'package:smart_livestock_demo/features/tenant/presentation/tenant_list_controller.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/tenant_logs_controller.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/tenant_stats_controller.dart';
+import 'package:smart_livestock_demo/features/tenant/presentation/tenant_trends_controller.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/widgets/license_adjust_dialog.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/widgets/tenant_delete_dialog.dart';
+import 'package:smart_livestock_demo/features/tenant/presentation/widgets/tenant_skeleton.dart';
+import 'package:smart_livestock_demo/features/tenant/presentation/widgets/tenant_trend_chart.dart';
 
 class TenantDetailPage extends ConsumerWidget {
   const TenantDetailPage({super.key, required this.id});
@@ -37,6 +40,12 @@ class TenantDetailPage extends ConsumerWidget {
   }
 
   Widget _buildBody(BuildContext context, WidgetRef ref, TenantDetailViewData data) {
+    if (data.viewState == ViewState.loading) {
+      return const SingleChildScrollView(
+        padding: EdgeInsets.all(AppSpacing.lg),
+        child: TenantSkeleton(),
+      );
+    }
     if (data.viewState != ViewState.normal || data.tenant == null) {
       return HighfiEmptyErrorState(
         title: '无法加载',
@@ -55,6 +64,8 @@ class TenantDetailPage extends ConsumerWidget {
           _buildActionsCard(context, ref, t),
           const SizedBox(height: AppSpacing.md),
           _buildStatsCard(context, ref),
+          const SizedBox(height: AppSpacing.md),
+          _buildTrendCard(context, ref),
           const SizedBox(height: AppSpacing.md),
           _buildDevicesCard(context, ref),
           const SizedBox(height: AppSpacing.md),
@@ -193,8 +204,14 @@ class TenantDetailPage extends ConsumerWidget {
 
   Widget _buildStatsCard(BuildContext context, WidgetRef ref) {
     final data = ref.watch(tenantStatsControllerProvider(id));
-    if (data.viewState != ViewState.normal) {
+    if (data.viewState == ViewState.loading) {
       return const SizedBox.shrink();
+    }
+    if (data.viewState != ViewState.normal) {
+      return const TenantEmptyCard(
+        title: '暂无统计数据',
+        icon: Icons.bar_chart_outlined,
+      );
     }
     return HighfiCard(
       key: const Key('tenant-detail-card-stats'),
@@ -203,44 +220,31 @@ class TenantDetailPage extends ConsumerWidget {
         children: [
           Text('统计概览', style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: AppSpacing.md),
-          Row(
+          GridView.count(
+            crossAxisCount: 2,
+            mainAxisSpacing: AppSpacing.sm,
+            crossAxisSpacing: AppSpacing.sm,
+            childAspectRatio: 1.3,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
             children: [
-              Expanded(
-                child: _statItem('牲畜总数', '${data.livestockTotal}'),
-              ),
-              Expanded(
-                child: _statItem('在线设备', '${data.deviceOnline}/${data.deviceTotal}'),
-              ),
+              _statMiniTile('牲畜总数', '${data.livestockTotal}', '头'),
+              _statMiniTile('在线设备', '${data.deviceOnline}/${data.deviceTotal}',
+                  '在线率 ${data.deviceOnlineRate}%'),
+              _statMiniTile('健康率', '${data.healthRate}%', null),
+              _statMiniTile('今日告警', '${data.alertCount}',
+                  data.lastSync != null ? '同步 $data.lastSync' : null),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              Expanded(
-                child: _statItem('健康率', '${data.healthRate}%'),
-              ),
-              Expanded(
-                child: _statItem('今日告警', '${data.alertCount}'),
-              ),
-            ],
-          ),
-          if (data.lastSync != null) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              '最近同步 ${data.lastSync}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-            ),
-          ],
         ],
       ),
     );
   }
 
-  Widget _statItem(String label, String value) {
+  Widget _statMiniTile(String label, String value, String? caption) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           value,
@@ -251,14 +255,26 @@ class TenantDetailPage extends ConsumerWidget {
           label,
           style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
         ),
+        if (caption != null)
+          Text(
+            caption,
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+          ),
       ],
     );
   }
 
   Widget _buildDevicesCard(BuildContext context, WidgetRef ref) {
     final data = ref.watch(tenantDevicesControllerProvider(id));
-    if (data.viewState != ViewState.normal) {
+    if (data.viewState == ViewState.loading) {
       return const SizedBox.shrink();
+    }
+    if (data.viewState != ViewState.normal) {
+      return const TenantEmptyCard(
+        title: '暂无设备数据',
+        icon: Icons.devices_outlined,
+        description: '该租户下暂未绑定设备',
+      );
     }
     final shown = data.devices.take(5).toList();
     final more = data.devices.length - shown.length;
@@ -350,8 +366,14 @@ class TenantDetailPage extends ConsumerWidget {
 
   Widget _buildLogsCard(BuildContext context, WidgetRef ref) {
     final data = ref.watch(tenantLogsControllerProvider(id));
-    if (data.viewState != ViewState.normal) {
+    if (data.viewState == ViewState.loading) {
       return const SizedBox.shrink();
+    }
+    if (data.viewState != ViewState.normal) {
+      return const TenantEmptyCard(
+        title: '暂无操作日志',
+        icon: Icons.history_outlined,
+      );
     }
     return HighfiCard(
       key: const Key('tenant-detail-card-logs'),
@@ -394,6 +416,27 @@ class TenantDetailPage extends ConsumerWidget {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrendCard(BuildContext context, WidgetRef ref) {
+    final data = ref.watch(tenantTrendsControllerProvider(id));
+    if (data.viewState == ViewState.loading) {
+      return const SizedBox.shrink();
+    }
+    if (data.viewState != ViewState.normal || data.dailyStats.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return HighfiCard(
+      key: const Key('tenant-detail-card-trends'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('30 天告警趋势', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: AppSpacing.sm),
+          TenantTrendChart(dailyStats: data.dailyStats),
         ],
       ),
     );
