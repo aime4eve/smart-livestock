@@ -238,3 +238,146 @@ test('batch-handle success remains equivalent across legacy and v1 routes', asyn
   assert.equal(legacy.body.data.updated, v1.body.data.updated);
   assert.deepEqual(legacy.body.data.errors, v1.body.data.errors);
 });
+
+// ── Second batch: live preload endpoints ──────────────────────────────
+
+test('/api and /api/v1 return equivalent /dashboard/summary', async () => {
+  const headers = mockHeaders('owner');
+  const legacy = await request('/api/dashboard/summary', headers);
+  const v1 = await request('/api/v1/dashboard/summary', headers);
+
+  assert.equal(legacy.status, 200);
+  assert.equal(v1.status, 200);
+  assert.equal(legacy.body.code, 'OK');
+  assert.equal(v1.body.code, 'OK');
+  assert.deepEqual(legacy.body.data.metrics, v1.body.data.metrics);
+  assert.ok(typeof legacy.body.data.lastSyncAt === 'string');
+  assert.ok(typeof v1.body.data.lastSyncAt === 'string');
+});
+
+test('/api and /api/v1 return equivalent /map/trajectories', async () => {
+  const headers = mockHeaders('owner');
+  const legacy = await request('/api/map/trajectories?range=24h', headers);
+  const v1 = await request('/api/v1/map/trajectories?range=24h', headers);
+
+  assert.equal(legacy.status, 200);
+  assert.equal(v1.status, 200);
+  assert.equal(legacy.body.code, 'OK');
+  assert.equal(v1.body.code, 'OK');
+  assert.equal(legacy.body.data.selectedAnimalId, v1.body.data.selectedAnimalId);
+  assert.equal(legacy.body.data.selectedRange, v1.body.data.selectedRange);
+  assert.equal(legacy.body.data.animals.length, v1.body.data.animals.length);
+});
+
+test('/map/trajectories validates range parameter across both prefixes', async () => {
+  const headers = mockHeaders('owner');
+  const legacy = await request('/api/map/trajectories?range=invalid', headers);
+  const v1 = await request('/api/v1/map/trajectories?range=invalid', headers);
+
+  assert.equal(legacy.status, 422);
+  assert.equal(v1.status, 422);
+  assert.equal(legacy.body.code, 'VALIDATION_ERROR');
+  assert.equal(v1.body.code, 'VALIDATION_ERROR');
+});
+
+test('/api and /api/v1 return equivalent /profile', async () => {
+  const headers = mockHeaders('owner');
+  const legacy = await request('/api/profile', headers);
+  const v1 = await request('/api/v1/profile', headers);
+
+  assert.equal(legacy.status, 200);
+  assert.equal(v1.status, 200);
+  assert.equal(legacy.body.code, 'OK');
+  assert.equal(v1.body.code, 'OK');
+  assert.equal(legacy.body.data.userId, v1.body.data.userId);
+  assert.equal(legacy.body.data.tenantName, v1.body.data.tenantName);
+});
+
+test('/api and /api/v1 return equivalent /devices', async () => {
+  const headers = mockHeaders('owner');
+  const legacy = await request('/api/devices', headers);
+  const v1 = await request('/api/v1/devices', headers);
+
+  assert.equal(legacy.status, 200);
+  assert.equal(v1.status, 200);
+  assert.equal(legacy.body.code, 'OK');
+  assert.equal(v1.body.code, 'OK');
+  assert.equal(legacy.body.data.total, v1.body.data.total);
+  assert.equal(legacy.body.data.items.length, v1.body.data.items.length);
+});
+
+test('/api and /api/v1 return equivalent /twin/overview', async () => {
+  const headers = mockHeaders('owner');
+  const legacy = await request('/api/twin/overview', headers);
+  const v1 = await request('/api/v1/twin/overview', headers);
+
+  assert.equal(legacy.status, 200);
+  assert.equal(v1.status, 200);
+  assert.equal(legacy.body.code, 'OK');
+  assert.equal(v1.body.code, 'OK');
+  assert.equal(legacy.body.data.totalAnimals, v1.body.data.totalAnimals);
+});
+
+test('/api and /api/v1 return equivalent /twin/fever/list', async () => {
+  const headers = mockHeaders('owner');
+  const legacy = await request('/api/twin/fever/list', headers);
+  const v1 = await request('/api/v1/twin/fever/list', headers);
+
+  assert.equal(legacy.status, 200);
+  assert.equal(v1.status, 200);
+  assert.equal(legacy.body.code, 'OK');
+  assert.equal(v1.body.code, 'OK');
+  assert.equal(legacy.body.data.total, v1.body.data.total);
+  assert.equal(legacy.body.data.items.length, v1.body.data.items.length);
+});
+
+test('/api and /api/v1 return equivalent /twin/digestive/list', async () => {
+  const headers = mockHeaders('owner');
+  const legacy = await request('/api/twin/digestive/list', headers);
+  const v1 = await request('/api/v1/twin/digestive/list', headers);
+
+  assert.equal(legacy.status, 200);
+  assert.equal(v1.status, 200);
+  assert.equal(legacy.body.code, 'OK');
+  assert.equal(v1.body.code, 'OK');
+  assert.equal(legacy.body.data.total, v1.body.data.total);
+  assert.equal(legacy.body.data.items.length, v1.body.data.items.length);
+});
+
+test('/api and /api/v1 return equivalent /twin/estrus/list', async () => {
+  const headers = mockHeaders('owner');
+  const legacy = await request('/api/twin/estrus/list', headers);
+  const v1 = await request('/api/v1/twin/estrus/list', headers);
+
+  assert.equal(legacy.status, 200);
+  assert.equal(v1.status, 200);
+  assert.equal(legacy.body.code, 'OK');
+  assert.equal(v1.body.code, 'OK');
+  assert.equal(legacy.body.data.total, v1.body.data.total);
+  assert.equal(legacy.body.data.items.length, v1.body.data.items.length);
+});
+
+test('/api and /api/v1 return equivalent /twin/epidemic/summary', async () => {
+  const headers = mockHeaders('owner');
+  const legacy = await request('/api/twin/epidemic/summary', headers);
+  const v1 = await request('/api/v1/twin/epidemic/summary', headers);
+
+  assert.equal(legacy.status, 200);
+  assert.equal(v1.status, 200);
+  assert.equal(legacy.body.code, 'OK');
+  assert.equal(v1.body.code, 'OK');
+  assert.equal(legacy.body.data.riskLevel, v1.body.data.riskLevel);
+});
+
+test('/api and /api/v1 return equivalent /twin/epidemic/contacts', async () => {
+  const headers = mockHeaders('owner');
+  const legacy = await request('/api/twin/epidemic/contacts', headers);
+  const v1 = await request('/api/v1/twin/epidemic/contacts', headers);
+
+  assert.equal(legacy.status, 200);
+  assert.equal(v1.status, 200);
+  assert.equal(legacy.body.code, 'OK');
+  assert.equal(v1.body.code, 'OK');
+  assert.equal(legacy.body.data.total, v1.body.data.total);
+  assert.equal(legacy.body.data.items.length, v1.body.data.items.length);
+});

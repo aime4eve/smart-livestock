@@ -107,6 +107,7 @@ const fences = [
     type: 'polygon',
     status: 'active',
     alarmEnabled: true,
+    version: 1,
     coordinates: [
       [112.94, 28.234],
       [112.944, 28.234],
@@ -120,6 +121,7 @@ const fences = [
     type: 'polygon',
     status: 'active',
     alarmEnabled: true,
+    version: 1,
     coordinates: [
       [112.932, 28.2275],
       [112.936, 28.2275],
@@ -133,6 +135,7 @@ const fences = [
     type: 'polygon',
     status: 'active',
     alarmEnabled: false,
+    version: 1,
     coordinates: [
       [112.938, 28.2295],
       [112.94, 28.2295],
@@ -146,6 +149,7 @@ const fences = [
     type: 'polygon',
     status: 'active',
     alarmEnabled: true,
+    version: 1,
     coordinates: [
       [112.94, 28.2255],
       [112.941, 28.2255],

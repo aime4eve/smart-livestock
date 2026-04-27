@@ -83,3 +83,4 @@ coverage/
 .dev-pids/
 .dev-logs/
 .worktrees/
+.superpowers/

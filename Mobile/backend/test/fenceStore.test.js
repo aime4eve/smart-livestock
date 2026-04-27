@@ -79,4 +79,33 @@ assert.strictEqual(removed.removed.id, existedFence.id);
 const notFoundRemove = fenceStore.removeFence('missing-id');
 assert.strictEqual(notFoundRemove.error, 'not_found');
 
+// Version conflict: providing wrong version returns error
+fenceStore.reset();
+const vFence = fenceStore.getAll()[0];
+const initialVersion = vFence.version;
+assert.strictEqual(initialVersion, 1);
+
+const versionConflict = fenceStore.updateFence(vFence.id, {
+  name: '冲突更新',
+  version: initialVersion + 1,
+});
+assert.strictEqual(versionConflict.error, 'version_conflict');
+assert.strictEqual(versionConflict.currentVersion, initialVersion);
+
+// Version match: providing correct version succeeds and increments version
+const correctVersion = fenceStore.updateFence(vFence.id, {
+  name: '正确版本更新',
+  version: initialVersion,
+});
+assert.ok(!correctVersion.error);
+assert.strictEqual(correctVersion.fence.name, '正确版本更新');
+assert.strictEqual(correctVersion.fence.version, initialVersion + 1);
+
+// Update without version works (backwards compatible)
+const noVersion = fenceStore.updateFence(vFence.id, {
+  name: '无版本更新',
+});
+assert.ok(!noVersion.error);
+assert.strictEqual(noVersion.fence.version, initialVersion + 2);
+
 console.log('fenceStore.test.js OK');

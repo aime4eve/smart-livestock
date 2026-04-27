@@ -20,6 +20,9 @@ function handleValidationError(res, error) {
   if (error === 'status_invalid') {
     return res.fail(422, 'VALIDATION_ERROR', 'status 必须为 active / inactive');
   }
+  if (error === 'version_conflict') {
+    return res.fail(409, 'CONFLICT', '围栏已被其他用户修改，请刷新后重试');
+  }
   return null;
 }
 

@@ -59,6 +59,7 @@ function createFence(body) {
     type,
     status: 'active',
     alarmEnabled,
+    version: 1,
     coordinates,
   };
   fences.push(fence);
@@ -76,7 +77,13 @@ function updateFence(id, body) {
     coordinates,
     alarmEnabled,
     status,
+    version,
   } = body || {};
+
+  if (version !== undefined && version !== fence.version) {
+    return { error: 'version_conflict', currentVersion: fence.version };
+  }
+
   const name = normalizeName(rawName);
   if (rawName !== undefined && !name) {
     return { error: 'name_required' };
@@ -98,6 +105,7 @@ function updateFence(id, body) {
   if (coordinates !== undefined) fence.coordinates = coordinates;
   if (alarmEnabled !== undefined) fence.alarmEnabled = alarmEnabled;
   if (status !== undefined) fence.status = status;
+  fence.version = (fence.version || 1) + 1;
   return { fence };
 }
 
