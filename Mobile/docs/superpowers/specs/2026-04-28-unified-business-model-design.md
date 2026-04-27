@@ -158,6 +158,9 @@ api_consumer    → tenantId = api tenant id
 | 订阅套餐管理 | ✗ | ✗ | ✓（B2C 散户） | ✗ | ✗ |
 | API 调用 | ✗ | ✗ | ✗ | ✗ | ✓（按 apiTier） |
 | 查看用量统计 | ✓ | ✓（旗下 farm） | ✓（自己的 farm） | ✗ | ✓（自己的调用量） |
+| 创建/管理 worker | ✓ | ✗（Phase 2） | ✓（自己的 farm） | ✗ | ✗ |
+
+> 注：b2b_admin 创建/管理 worker 推迟至 Phase 2（与 B端管理后台一起交付）。Phase 1 中 farm worker 的分配由 platform_admin 或 farm owner 负责。
 
 ### 3.4 数据隔离
 
@@ -195,7 +198,8 @@ api_consumer:       按 apiKey 识别，只能调用授权的端点，看不到 
 仅 瘤胃胶囊:
   ├── 体温监测             → temperature_monitor
   ├── 蠕动监测             → peristaltic_monitor
-  └── 消化健康             → health_score
+  │                          （以上两队即覆盖基础消化健康）
+  │
 
 GPS + 胶囊（双配）:
   ├── 上述全部
@@ -275,7 +279,7 @@ Tier 绑定于 partner tenant 或 direct farm tenant。非 direct 模式的 farm
 | growth (¥500/月) | 10,000 calls | ¥0.01/call | 全部 twin |
 | scale (¥2,000/月) | 100,000 calls | ¥0.005/call | 全部 + 写入 |
 
-面向 api tenant（外部第三方）。enterprise App 用户通过 Feature Flag `api_access` 获得 free tier。
+注意：`free` tier 不单独销售，仅捆绑 enterprise 订阅。外部 `api_consumer` 客户最小起步为 `growth` tier。面向 api tenant（外部第三方）。enterprise App 用户通过 Feature Flag `api_access` 获得 free tier。
 
 ### 4.3 三种商业模式下的计费路径
 
@@ -458,7 +462,7 @@ api_consumer（外部第三方）:
 
 | 资产 | 来源 | 复用范围 | 改动 |
 |---|---|---|---|
-| Feature Flag 定义（20 个 key） | 订阅服务 | 三种模型共享 | 不改 |
+| Feature Flag 定义（20 个 key） | 订阅服务 | 三种模型共享 | 小改：每 key 新增 `requiredDevices` 字段 |
 | Shaping 中间件（filter→limit→lock） | 订阅服务 | 三种模型共享 | 不改 |
 | LockedOverlay 组件 | 订阅服务 | 三种模型共享 | 不改 |
 | SubscriptionRenewalBanner | 订阅服务 | 三种模型共享 | 不改 |
