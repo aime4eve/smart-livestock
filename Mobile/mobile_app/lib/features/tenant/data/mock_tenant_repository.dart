@@ -148,7 +148,7 @@ class MockTenantRepository implements TenantRepository {
     final now = DateTime.now();
     final stats = <DailyStatPoint>[];
     final baseHash = id.hashCode.abs();
-    for (var i = 29; i >= 0; i--) {
+    for (var i = 0; i < 30; i++) {
       final d = now.subtract(Duration(days: i));
       final date =
           '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
