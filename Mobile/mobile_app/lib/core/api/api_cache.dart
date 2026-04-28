@@ -99,6 +99,11 @@ class ApiCache {
   final Map<String, Map<String, dynamic>> _tenantStatsCache = {};
   Map<String, Map<String, dynamic>>? _tenantTrends;
 
+  Map<String, dynamic>? _subscriptionCurrent;
+  List<Map<String, dynamic>>? _subscriptionPlans;
+  Map<String, dynamic>? _subscriptionFeatures;
+  Map<String, dynamic>? _subscriptionUsage;
+
   List<Map<String, dynamic>> get dashboardMetrics => _dashboardMetrics;
   List<Map<String, dynamic>> get animals => _animals;
   List<Map<String, dynamic>> get mapTrajectoryPoints => _mapTrajectoryPoints;
@@ -119,6 +124,11 @@ class ApiCache {
   List<TenantLogEntry>? tenantLogs(String tenantId) => _tenantLogsCache[tenantId];
   Map<String, dynamic>? tenantStats(String tenantId) => _tenantStatsCache[tenantId];
   Map<String, Map<String, dynamic>>? get tenantTrends => _tenantTrends;
+
+  Map<String, dynamic>? get subscriptionCurrent => _subscriptionCurrent;
+  List<Map<String, dynamic>>? get subscriptionPlans => _subscriptionPlans;
+  Map<String, dynamic>? get subscriptionFeatures => _subscriptionFeatures;
+  Map<String, dynamic>? get subscriptionUsage => _subscriptionUsage;
 
   Future<void> fetchTenantDevices(
     String role,
@@ -736,6 +746,10 @@ class ApiCache {
     _epidemicSummary = null;
     _epidemicContacts = [];
     _devices = [];
+    _subscriptionCurrent = null;
+    _subscriptionPlans = null;
+    _subscriptionFeatures = null;
+    _subscriptionUsage = null;
   }
 
   @visibleForTesting

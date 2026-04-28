@@ -6,6 +6,7 @@ import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/app/demo_shell.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/features/auth/login_page.dart';
 import 'package:smart_livestock_demo/features/pages/admin_page.dart';
 import 'package:smart_livestock_demo/features/pages/b2b_admin_placeholder_page.dart';
@@ -25,6 +26,8 @@ import 'package:smart_livestock_demo/features/pages/livestock_detail_page.dart';
 import 'package:smart_livestock_demo/features/pages/mine_page.dart';
 import 'package:smart_livestock_demo/features/pages/stats_page.dart';
 import 'package:smart_livestock_demo/features/pages/twin_overview_page.dart';
+import 'package:smart_livestock_demo/features/subscription/presentation/subscription_checkout_page.dart';
+import 'package:smart_livestock_demo/features/subscription/presentation/subscription_plan_page.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_create_page.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_detail_page.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_edit_page.dart';
@@ -243,6 +246,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const DashboardPage(),
           ),
         ],
+      ),
+      GoRoute(
+        path: AppRoute.subscriptionPlan.path,
+        name: AppRoute.subscriptionPlan.routeName,
+        builder: (context, state) => const SubscriptionPlanPage(),
+      ),
+      GoRoute(
+        path: AppRoute.subscription.path,
+        name: AppRoute.subscription.routeName,
+        builder: (context, state) => const SubscriptionPlanPage(),
+      ),
+      GoRoute(
+        path: AppRoute.checkout.path,
+        name: AppRoute.checkout.routeName,
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return SubscriptionCheckoutPage(
+            tier: extra['tier'] as SubscriptionTier,
+            livestockCount: extra['livestockCount'] as int,
+          );
+        },
       ),
       GoRoute(
         path: AppRoute.b2bAdmin.path,
