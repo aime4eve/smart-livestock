@@ -38,6 +38,14 @@ function createTrial(tenantId) {
     updatedAt: now.toISOString(),
   };
   subscriptions.push(sub);
+
+  // 同步 tenant.entitlementTier
+  try {
+    const tenantStore = require('./tenantStore');
+    const tenant = tenantStore.findById(tenantId);
+    if (tenant) tenant.entitlementTier = sub.tier;
+  } catch (_) { /* tenantStore not needed if not available */ }
+
   return { subscription: sub };
 }
 

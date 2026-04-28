@@ -113,7 +113,12 @@ function applyShapingRules(data, tier, featureKeys) {
     } else if (flag.shape === 'filter') {
       result = applyFilter(result, getEffectiveDataRetention(tier));
     } else if (flag.shape === 'limit') {
-      result = applyLimit(result, flag.limit);
+      // limit only applies to the lowest tier that has access;
+      // higher tiers are unlimited
+      const minTier = getMinTierForFeature(flag.tiers);
+      if (tier === minTier) {
+        result = applyLimit(result, flag.limit);
+      }
     }
     // shape === 'none' → no action needed
   }
