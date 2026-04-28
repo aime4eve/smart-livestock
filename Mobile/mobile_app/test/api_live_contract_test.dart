@@ -148,7 +148,7 @@ void main() {
     });
 
     expect(client.uris, isNotEmpty);
-    expect(client.uris, hasLength(13));
+    expect(client.uris, hasLength(17));
     expect(
       requestedPaths,
       containsAll([
@@ -165,6 +165,10 @@ void main() {
         '/api/v1/twin/epidemic/summary',
         '/api/v1/twin/epidemic/contacts',
         '/api/v1/devices?pageSize=200',
+        '/api/v1/subscription/current',
+        '/api/v1/subscription/features',
+        '/api/v1/subscription/plans',
+        '/api/v1/subscription/usage',
       ]),
     );
     expect(client.uris.every((uri) => uri.path.startsWith('/api/v1/')), isTrue);
@@ -192,6 +196,10 @@ void main() {
     expect(ApiCache.instance.epidemicSummary, isNull);
     expect(ApiCache.instance.epidemicContacts, isEmpty);
     expect(ApiCache.instance.devices, isEmpty);
+    expect(ApiCache.instance.subscriptionCurrent, isNull);
+    expect(ApiCache.instance.subscriptionPlans, isNull);
+    expect(ApiCache.instance.subscriptionFeatures, isNull);
+    expect(ApiCache.instance.subscriptionUsage, isNull);
   });
 
   test('ApiCache can authenticate role before live init', () async {
@@ -203,7 +211,7 @@ void main() {
 
     expect(client.postUris, hasLength(1));
     expect(client.postUris.single.path, '/api/v1/auth/login');
-    expect(client.uris, hasLength(13));
+    expect(client.uris, hasLength(17));
     expect(
       client.authHeaders.every((value) => value == 'Bearer jwt-token'),
       isTrue,

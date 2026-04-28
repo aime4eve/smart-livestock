@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
+import 'package:smart_livestock_demo/app/session/session_controller.dart';
+import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
@@ -10,6 +12,7 @@ import 'package:smart_livestock_demo/features/highfi/widgets/highfi_empty_error_
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
 import 'package:smart_livestock_demo/features/mine/domain/mine_repository.dart';
 import 'package:smart_livestock_demo/features/mine/presentation/mine_controller.dart';
+import 'package:smart_livestock_demo/features/subscription/presentation/widgets/subscription_status_card.dart';
 
 class MinePage extends ConsumerWidget {
   const MinePage({super.key});
@@ -17,6 +20,7 @@ class MinePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final data = ref.watch(mineControllerProvider);
+    final role = ref.watch(sessionControllerProvider).role;
     return SingleChildScrollView(
       key: const Key('page-mine'),
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -24,6 +28,22 @@ class MinePage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildStateBody(context, data),
+          if (role == DemoRole.owner) ...[
+            const SizedBox(height: AppSpacing.md),
+            const SubscriptionStatusCard(),
+            const SizedBox(height: AppSpacing.md),
+            HighfiCard(
+              child: ListTile(
+                key: const Key('mine-subscription-manage'),
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.workspace_premium),
+                title: const Text('订阅管理'),
+                subtitle: const Text('查看和升级订阅套餐'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.go(AppRoute.subscriptionPlan.path),
+              ),
+            ),
+          ],
         ],
       ),
     );

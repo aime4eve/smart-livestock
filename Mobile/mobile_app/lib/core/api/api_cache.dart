@@ -309,6 +309,10 @@ class ApiCache {
         _get('/twin/epidemic/summary', headers),
         _get('/twin/epidemic/contacts', headers),
         _get('/devices?pageSize=200', headers),
+        _get('/subscription/current', headers),
+        _get('/subscription/features', headers),
+        _get('/subscription/plans', headers),
+        _get('/subscription/usage', headers),
       ]);
 
       if (results.every((data) => data == null)) {
@@ -379,6 +383,17 @@ class ApiCache {
       if (devicesData != null) {
         _devices = List<Map<String, dynamic>>.from(devicesData['items'] ?? []);
       }
+
+      _subscriptionCurrent = results[13];
+      _subscriptionFeatures = results[14];
+
+      final plansData = results[15];
+      if (plansData != null) {
+        _subscriptionPlans =
+            List<Map<String, dynamic>>.from(plansData['items'] ?? []);
+      }
+
+      _subscriptionUsage = results[16];
 
       _initialized = true;
     } catch (e) {
