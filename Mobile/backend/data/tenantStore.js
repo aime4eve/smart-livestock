@@ -34,14 +34,23 @@ function sliceForPage(query) {
     page = '1',
     pageSize = '20',
     status,
+    type,
+    parentTenantId,
     search,
     sort = 'name',
     order = 'asc',
   } = query || {};
+  const ALLOWED_TYPES = ['partner', 'farm', 'api'];
   let filtered = tenants.slice();
 
   if (status && ALLOWED_STATUS.includes(status)) {
     filtered = filtered.filter((t) => t.status === status);
+  }
+  if (type && ALLOWED_TYPES.includes(type)) {
+    filtered = filtered.filter((t) => t.type === type);
+  }
+  if (parentTenantId) {
+    filtered = filtered.filter((t) => t.parentTenantId === parentTenantId);
   }
   if (search && typeof search === 'string' && search.trim() !== '') {
     const kw = search.toLowerCase();

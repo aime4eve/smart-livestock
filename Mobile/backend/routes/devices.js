@@ -1,12 +1,11 @@
 const { Router } = require('express');
 const { devices } = require('../data/seed');
-const { authMiddleware, requirePermission } = require('../middleware/auth');
+const { requirePermission } = require('../middleware/auth');
 
 const router = Router();
 
 router.get(
   '/',
-  authMiddleware,
   requirePermission('dashboard:view'),
   (req, res) => {
     res.ok({

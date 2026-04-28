@@ -8,6 +8,8 @@ const { router: tenantsRoutes } = require('./tenants');
 const profileRoutes = require('./profile');
 const twinRoutes = require('./twin');
 const devicesRoutes = require('./devices');
+const subscriptionRoutes = require('./subscription');
+const b2bAdminRoutes = require('./b2bAdmin');
 
 function registerApiRoutes(app, prefix) {
   app.use(`${prefix}/auth`, authRoutes);
@@ -20,6 +22,8 @@ function registerApiRoutes(app, prefix) {
   app.use(`${prefix}/profile`, profileRoutes);
   app.use(`${prefix}/twin`, twinRoutes);
   app.use(`${prefix}/devices`, devicesRoutes);
+  app.use(`${prefix}/subscription`, subscriptionRoutes);
+  app.use(`${prefix}/b2b`, b2bAdminRoutes);
 }
 
 module.exports = { registerApiRoutes };

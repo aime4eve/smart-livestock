@@ -25,7 +25,15 @@ function extractBearerToken(req) {
 /**
  * Auth middleware: sets req.userRole and req.user
  */
+// Routes that don't require authentication
+const PUBLIC_PATHS = ['/auth/login', '/auth/refresh', '/auth/logout'];
+
 function authMiddleware(req, res, next) {
+  // Skip auth for public paths
+  if (PUBLIC_PATHS.some((p) => req.path.endsWith(p))) {
+    return next();
+  }
+
   const token = extractBearerToken(req);
   if (!token) {
     return res.fail(401, 'AUTH_UNAUTHORIZED', '未登录或 token 失效');

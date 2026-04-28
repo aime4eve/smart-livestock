@@ -7,11 +7,10 @@ const {
   epidemicSummary,
   epidemicContacts,
 } = require('../data/twin_seed');
-const { authMiddleware, requirePermission } = require('../middleware/auth');
+const { requirePermission } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.use(authMiddleware);
 router.use(requirePermission('twin:view'));
 
 router.get('/overview', (req, res) => {

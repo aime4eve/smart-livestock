@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { authMiddleware, requirePermission } = require('../middleware/auth');
+const { requirePermission } = require('../middleware/auth');
 const { alerts: seedAlerts } = require('../data/seed');
 
 const router = Router();
@@ -25,7 +25,7 @@ const ACTION_TARGET_STAGE = {
  */
 router.get(
   '/',
-  authMiddleware,
+
   requirePermission('alert:view'),
   (req, res) => {
     const { stage, page = '1', pageSize = '20' } = req.query;
@@ -50,7 +50,7 @@ router.get(
  */
 router.post(
   '/:id/ack',
-  authMiddleware,
+
   requirePermission('alert:ack'),
   (req, res) => {
     transitionAlert(req, res, 'acknowledged');
@@ -62,7 +62,7 @@ router.post(
  */
 router.post(
   '/:id/handle',
-  authMiddleware,
+
   requirePermission('alert:handle'),
   (req, res) => {
     transitionAlert(req, res, 'handled');
@@ -74,7 +74,7 @@ router.post(
  */
 router.post(
   '/:id/archive',
-  authMiddleware,
+
   requirePermission('alert:archive'),
   (req, res) => {
     transitionAlert(req, res, 'archived');
@@ -86,7 +86,7 @@ router.post(
  */
 router.post(
   '/batch-handle',
-  authMiddleware,
+
   requirePermission('alert:batch'),
   (req, res) => {
     const { alertIds, action } = req.body || {};
