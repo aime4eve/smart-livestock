@@ -8,6 +8,7 @@ import 'package:smart_livestock_demo/app/session/session_controller.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/features/auth/login_page.dart';
 import 'package:smart_livestock_demo/features/pages/admin_page.dart';
+import 'package:smart_livestock_demo/features/pages/b2b_admin_placeholder_page.dart';
 import 'package:smart_livestock_demo/features/pages/alerts_page.dart';
 import 'package:smart_livestock_demo/features/pages/dashboard_page.dart';
 import 'package:smart_livestock_demo/features/pages/devices_page.dart';
@@ -55,6 +56,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return location.startsWith(AppRoute.opsAdmin.path)
             ? null
             : AppRoute.opsAdmin.path;
+      }
+
+      if (role == DemoRole.b2bAdmin) {
+        return location.startsWith(AppRoute.b2bAdmin.path)
+            ? null
+            : AppRoute.b2bAdmin.path;
       }
 
       if (location == AppRoute.login.path ||
@@ -236,6 +243,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const DashboardPage(),
           ),
         ],
+      ),
+      GoRoute(
+        path: AppRoute.b2bAdmin.path,
+        name: AppRoute.b2bAdmin.routeName,
+        builder: (context, state) => const B2bAdminPlaceholderPage(),
       ),
     ],
   );

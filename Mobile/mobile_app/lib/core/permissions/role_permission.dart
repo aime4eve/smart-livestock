@@ -35,4 +35,7 @@ class RolePermission {
   static bool canToggleTenantStatus(DemoRole role) => canManageTenants(role);
 
   static bool canAdjustLicense(DemoRole role) => canManageTenants(role);
+
+  static bool canManageSubscription(DemoRole role) =>
+      role == DemoRole.owner;
 }

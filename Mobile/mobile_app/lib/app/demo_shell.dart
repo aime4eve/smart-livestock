@@ -19,7 +19,7 @@ class DemoShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionControllerProvider);
     final role = session.role;
-    if (role == null || role == DemoRole.ops) {
+    if (role == null || role == DemoRole.ops || role == DemoRole.b2bAdmin) {
       return Scaffold(body: child);
     }
 

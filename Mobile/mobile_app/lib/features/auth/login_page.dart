@@ -95,6 +95,20 @@ class _LoginPageState extends State<LoginPage> {
                               onTap: () =>
                                   setState(() => _selectedRole = DemoRole.ops),
                             ),
+                            _RoleButton(
+                              buttonKey: const Key('role-b2b-admin'),
+                              label: 'B端客户',
+                              selected: _selectedRole == DemoRole.b2bAdmin,
+                              onTap: () =>
+                                  setState(() => _selectedRole = DemoRole.b2bAdmin),
+                            ),
+                            _RoleButton(
+                              buttonKey: const Key('role-api-consumer'),
+                              label: 'API客户',
+                              selected: _selectedRole == DemoRole.apiConsumer,
+                              onTap: () =>
+                                  setState(() => _selectedRole = DemoRole.apiConsumer),
+                            ),
                           ],
                         ),
                         const SizedBox(height: AppSpacing.lg),
