@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const { requirePermission } = require('../middleware/auth');
+const { featureKeys } = require('../middleware/feature-flag');
 const { alerts: seedAlerts } = require('../data/seed');
 
 const router = Router();
@@ -25,8 +26,8 @@ const ACTION_TARGET_STAGE = {
  */
 router.get(
   '/',
-
   requirePermission('alert:view'),
+  featureKeys('alert_history', 'data_retention_days'),
   (req, res) => {
     const { stage, page = '1', pageSize = '20' } = req.query;
     const p = Math.max(1, parseInt(page, 10) || 1);

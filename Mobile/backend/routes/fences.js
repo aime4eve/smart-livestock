@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const { requirePermission } = require('../middleware/auth');
+const { featureKeys } = require('../middleware/feature-flag');
 const fenceStore = require('../data/fenceStore');
 
 const router = Router();
@@ -29,6 +30,7 @@ function handleValidationError(res, error) {
 router.get(
   '/',
   requirePermission('fence:view'),
+  featureKeys('fence'),
   (req, res) => {
     const { page = '1', pageSize = '20' } = req.query;
     res.ok(fenceStore.sliceForPage(page, pageSize));

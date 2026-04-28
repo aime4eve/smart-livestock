@@ -8,76 +8,84 @@ const {
   epidemicContacts,
 } = require('../data/twin_seed');
 const { requirePermission } = require('../middleware/auth');
+const { featureKeys } = require('../middleware/feature-flag');
+const { injectDeviceGate, getCattleById } = require('../services/deviceGate');
 
 const router = express.Router();
+const perm = requirePermission('twin:view');
 
-router.use(requirePermission('twin:view'));
-
-router.get('/overview', (req, res) => {
+router.get('/overview', perm, (req, res) => {
   res.ok(overview);
 });
 
-router.get('/fever/list', (req, res) => {
+router.get('/fever/list', perm, featureKeys('temperature_monitor'), (req, res) => {
+  const items = injectDeviceGate(feverListItems, 'temperature_monitor');
   res.ok({
-    items: feverListItems,
+    items,
     page: 1,
     pageSize: 20,
-    total: feverListItems.length,
+    total: items.length,
   });
 });
 
-router.get('/fever/:id', (req, res) => {
+router.get('/fever/:id', perm, featureKeys('temperature_monitor'), (req, res) => {
   const item = feverListItems.find((x) => x.livestockId === req.params.id);
   if (!item) {
     return res.fail(404, 'RESOURCE_NOT_FOUND', '未找到个体');
   }
-  res.ok(item);
+  const cattle = getCattleById(item.livestockId);
+  res.ok(injectDeviceGate(item, 'temperature_monitor', () => cattle));
 });
 
-router.get('/digestive/list', (req, res) => {
+router.get('/digestive/list', perm, featureKeys('peristaltic_monitor'), (req, res) => {
+  const items = injectDeviceGate(digestiveListItems, 'peristaltic_monitor');
   res.ok({
-    items: digestiveListItems,
+    items,
     page: 1,
     pageSize: 20,
-    total: digestiveListItems.length,
+    total: items.length,
   });
 });
 
-router.get('/digestive/:id', (req, res) => {
+router.get('/digestive/:id', perm, featureKeys('peristaltic_monitor'), (req, res) => {
   const item = digestiveListItems.find((x) => x.livestockId === req.params.id);
   if (!item) {
     return res.fail(404, 'RESOURCE_NOT_FOUND', '未找到个体');
   }
-  res.ok(item);
+  const cattle = getCattleById(item.livestockId);
+  res.ok(injectDeviceGate(item, 'peristaltic_monitor', () => cattle));
 });
 
-router.get('/estrus/list', (req, res) => {
+router.get('/estrus/list', perm, featureKeys('estrus_detect'), (req, res) => {
+  const items = injectDeviceGate(estrusListItems, 'estrus_detect');
   res.ok({
-    items: estrusListItems,
+    items,
     page: 1,
     pageSize: 20,
-    total: estrusListItems.length,
+    total: items.length,
   });
 });
 
-router.get('/estrus/:id', (req, res) => {
+router.get('/estrus/:id', perm, featureKeys('estrus_detect'), (req, res) => {
   const item = estrusListItems.find((x) => x.livestockId === req.params.id);
   if (!item) {
     return res.fail(404, 'RESOURCE_NOT_FOUND', '未找到个体');
   }
-  res.ok(item);
+  const cattle = getCattleById(item.livestockId);
+  res.ok(injectDeviceGate(item, 'estrus_detect', () => cattle));
 });
 
-router.get('/epidemic/summary', (req, res) => {
-  res.ok(epidemicSummary);
+router.get('/epidemic/summary', perm, featureKeys('epidemic_alert'), (req, res) => {
+  res.ok(injectDeviceGate(epidemicSummary, 'epidemic_alert'));
 });
 
-router.get('/epidemic/contacts', (req, res) => {
+router.get('/epidemic/contacts', perm, featureKeys('epidemic_alert'), (req, res) => {
+  const items = injectDeviceGate(epidemicContacts, 'epidemic_alert');
   res.ok({
-    items: epidemicContacts,
+    items,
     page: 1,
     pageSize: 50,
-    total: epidemicContacts.length,
+    total: items.length,
   });
 });
 

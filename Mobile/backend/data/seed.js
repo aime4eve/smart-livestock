@@ -105,12 +105,16 @@ function generateAnimals() {
       while (breedRemaining[breedIdx] <= 0) breedIdx++;
       breedRemaining[breedIdx]--;
       const nn = n.toString().padStart(3, '0');
+      const deviceList = [];
+      if (n % 5 !== 0) deviceList.push({ type: 'gps', id: `DEV-GPS-${String(n % 42 || 42).padStart(3, '0')}` });
+      if (n % 4 === 0) deviceList.push({ type: 'capsule', id: `DEV-CAP-${String(n).padStart(3, '0')}` });
       result.push({
         id: `animal_${nn}`,
         earTag: `SL-2024-${nn}`,
         livestockId: n.toString().padStart(4, '0'),
         breed: breeds[breedIdx],
         fenceId: fc.id,
+        devices: deviceList,
         lat: +(fc.latMin + seededRandom() * (fc.latMax - fc.latMin)).toFixed(4),
         lng: +(fc.lngMin + seededRandom() * (fc.lngMax - fc.lngMin)).toFixed(4),
       });
