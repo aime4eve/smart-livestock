@@ -9,6 +9,8 @@ const TOKEN_MAP = {
   'mock-token-owner': 'owner',
   'mock-token-worker': 'worker',
   'mock-token-ops': 'ops',
+  'mock-token-b2b-admin': 'b2b_admin',
+  'mock-token-api-consumer': 'api_consumer',
 };
 
 /**
