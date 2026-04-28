@@ -7,8 +7,8 @@ test('tenantStore: sliceForPage 默认分页返回全部', () => {
   const res = store.sliceForPage({});
   assert.equal(res.page, 1);
   assert.equal(res.pageSize, 20);
-  assert.equal(res.total, 6);
-  assert.equal(res.items.length, 6);
+  assert.equal(res.total, 8);
+  assert.equal(res.items.length, 8);
 });
 
 test('tenantStore: sliceForPage 支持 status 过滤', () => {
@@ -99,4 +99,53 @@ test('tenantStore: removeTenant 成功', () => {
   const { removed } = store.removeTenant('tenant_001');
   assert.equal(removed.id, 'tenant_001');
   assert.equal(store.findById('tenant_001'), undefined);
+});
+
+test('tenantStore: findByOwnerId returns farms owned by user', () => {
+  store.reset();
+  const ownerFarms = store.findByOwnerId('u_001');
+  assert.ok(Array.isArray(ownerFarms), 'findByOwnerId should return an array');
+  assert.equal(ownerFarms.length, 1, 'u_001 should own exactly 1 farm');
+  assert.equal(ownerFarms[0].id, 'tenant_001', 'u_001 should own tenant_001');
+});
+
+test('tenantStore: findByOwnerId with non-existent owner returns empty', () => {
+  store.reset();
+  const noFarms = store.findByOwnerId('nonexistent');
+  assert.equal(noFarms.length, 0, 'non-existent owner should return empty array');
+});
+
+test('tenantStore: findByParentTenantId returns children', () => {
+  store.reset();
+  const children = store.findByParentTenantId('tenant_p001');
+  assert.equal(children.length, 0, 'seed data has no child farms of tenant_p001');
+});
+
+test('tenantStore: createTenant with new fields', () => {
+  store.reset();
+  const result = store.createTenant({
+    name: 'test_farm_fields',
+    type: 'farm',
+    billingModel: 'direct',
+    entitlementTier: 'premium',
+    ownerId: 'u_001',
+  });
+  assert.equal(result.error, undefined, 'create should succeed');
+  const created = store.findById(result.tenant.id);
+  assert.equal(created.type, 'farm');
+  assert.equal(created.billingModel, 'direct');
+  assert.equal(created.entitlementTier, 'premium');
+  assert.equal(created.ownerId, 'u_001');
+});
+
+test('tenantStore: createTenant defaults for optional fields', () => {
+  store.reset();
+  const result2 = store.createTenant({ name: 'test_defaults' });
+  assert.equal(result2.error, undefined);
+  const created2 = store.findById(result2.tenant.id);
+  assert.equal(created2.type, 'farm');
+  assert.equal(created2.billingModel, 'direct');
+  assert.equal(created2.entitlementTier, 'basic');
+  assert.equal(created2.ownerId, null);
+  assert.equal(created2.parentTenantId, null);
 });
