@@ -7,7 +7,7 @@ function farmContextMiddleware(req, res, next) {
   } else if (req.user?.role === 'worker') {
     req.activeFarmTenantId = req.user.tenantId ?? null;
   } else {
-    // platform_admin (ops), b2b_admin, api_consumer — no farm context
+    // platform_admin, b2b_admin, api_consumer — no farm context
     req.activeFarmTenantId = null;
   }
   next();

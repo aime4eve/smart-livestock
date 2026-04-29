@@ -31,7 +31,7 @@ class AppSession {
 
   bool get isLoggedIn => role != null;
 
-  bool get isOps => role == DemoRole.ops;
+  bool get isPlatformAdmin => role == DemoRole.platformAdmin;
 
   bool get isB2bAdmin => role == DemoRole.b2bAdmin;
 

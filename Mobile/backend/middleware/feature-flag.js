@@ -6,7 +6,7 @@ function shapingMiddleware(req, res, next) {
 
   res.ok = function(data, message) {
     const farmTenantId = req.activeFarmTenantId;
-    // ops / b2b_admin / api_consumer 无 farm context，直接跳过 shaping
+    // platform_admin / b2b_admin / api_consumer 无 farm context，直接跳过 shaping
     if (!farmTenantId) return originalOk(data, message);
 
     const tier = getEffectiveTier(farmTenantId);

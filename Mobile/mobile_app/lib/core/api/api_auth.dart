@@ -19,7 +19,7 @@ Map<String, String> apiHeaders({
 }) {
   final accessToken = tokens?.accessToken;
   final authorizationValue =
-      accessToken ?? (allowMockTokenFallback ? 'mock-token-${role.name}' : null);
+      accessToken ?? (allowMockTokenFallback ? role.mockToken : null);
   return {
     'Content-Type': 'application/json',
     if (authorizationValue != null)

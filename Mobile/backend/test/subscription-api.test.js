@@ -176,10 +176,10 @@ describe('subscription API endpoints', () => {
     }
   });
 
-  test('GET /subscription/current returns 400 for ops (no farm context)', async () => {
+  test('GET /subscription/current returns 400 for platform_admin (no farm context)', async () => {
     tenantStore.reset();
     subscriptionStore.reset();
-    const token = await loginGetToken('ops');
+    const token = await loginGetToken('platform_admin');
     const server = app.listen(0);
     try {
       const { port } = server.address();

@@ -28,7 +28,7 @@ function publicUser(user) {
 router.post('/login', (req, res) => {
   const role = resolveRole(req.body);
   if (!role) {
-    return res.fail(422, 'VALIDATION_ERROR', 'role 或 account 必须映射到 owner / worker / ops');
+    return res.fail(422, 'VALIDATION_ERROR', 'role 或 account 必须映射到 owner / worker / platform_admin');
   }
   const tokens = issueTokenPair(role);
   const user = publicUser(users[role]);

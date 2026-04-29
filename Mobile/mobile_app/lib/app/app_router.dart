@@ -56,10 +56,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       final role = session.role!;
-      if (role == DemoRole.ops) {
-        return location.startsWith(AppRoute.opsAdmin.path)
+      if (role == DemoRole.platformAdmin) {
+        return location.startsWith(AppRoute.platformAdmin.path)
             ? null
-            : AppRoute.opsAdmin.path;
+            : AppRoute.platformAdmin.path;
       }
 
       if (role == DemoRole.b2bAdmin) {
@@ -69,7 +69,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (location == AppRoute.login.path ||
-          location.startsWith(AppRoute.opsAdmin.path)) {
+          location.startsWith(AppRoute.platformAdmin.path)) {
         return AppRoute.twin.path;
       }
 
@@ -90,6 +90,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 ref
                     .read(sessionControllerProvider.notifier)
                     .login(selectedRole);
+              },
+              onTokenSubmit: (token) {
+                ref
+                    .read(sessionControllerProvider.notifier)
+                    .loginWithToken(token);
               },
             );
           },
@@ -196,8 +201,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const AdminPage(),
           ),
           GoRoute(
-            path: AppRoute.opsAdmin.path,
-            name: AppRoute.opsAdmin.routeName,
+            path: AppRoute.platformAdmin.path,
+            name: AppRoute.platformAdmin.routeName,
             builder: (context, state) => const TenantListPage(),
             routes: [
               GoRoute(

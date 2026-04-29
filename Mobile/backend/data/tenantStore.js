@@ -100,6 +100,7 @@ function createTenant(body) {
     return { error: 'license_invalid' };
   }
   if (nameExists(name)) return { error: 'name_conflict' };
+  // ownerId 非唯一：同一 owner 可拥有多个 farm（Phase 2a 确认）
   const now = new Date().toISOString().replace('Z', '+08:00').replace(/\.\d{3}/, '');
   const tenant = {
     id: `tenant_${String(nextId++).padStart(3, '0')}`,
@@ -119,7 +120,7 @@ function createTenant(body) {
     remarks: remarks ?? null,
     createdAt: now,
     updatedAt: now,
-    lastUpdatedBy: '运维管理员',
+    lastUpdatedBy: '平台管理员',
   };
   tenants.push(tenant);
   return { tenant };
@@ -142,7 +143,7 @@ function updateTenant(id, body) {
   if (remarks !== undefined) tenant.remarks = remarks ?? null;
   const now = new Date().toISOString().replace('Z', '+08:00').replace(/\.\d{3}/, '');
   tenant.updatedAt = now;
-  tenant.lastUpdatedBy = '运维管理员';
+  tenant.lastUpdatedBy = '平台管理员';
   return { tenant };
 }
 

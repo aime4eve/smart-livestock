@@ -38,9 +38,9 @@ test('farmContext: worker without tenantId gets null', () => {
   assert.equal(req.activeFarmTenantId, null);
 });
 
-test('farmContext: ops role sets activeFarmTenantId to null', () => {
+test('farmContext: platform_admin role sets activeFarmTenantId to null', () => {
   tenantStore.reset();
-  const req = mockReq({ userId: 'u_003', role: 'ops', tenantId: 'tenant_003' });
+  const req = mockReq({ userId: 'u_003', role: 'platform_admin', tenantId: 'tenant_003' });
 
   farmContextMiddleware(req, mockRes(), () => {});
   assert.equal(req.activeFarmTenantId, null);

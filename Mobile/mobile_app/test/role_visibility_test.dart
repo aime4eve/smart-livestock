@@ -9,7 +9,7 @@ void main() {
 
     expect(find.byKey(const Key('login-hero-card')), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('role-ops')));
+    await tester.tap(find.byKey(const Key('role-platform-admin')));
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pumpAndSettle();
 
@@ -47,11 +47,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('page-fence')), findsOneWidget);
-    await tester.ensureVisible(
-        find.byKey(const Key('fence-edit-fence_pasture_a')));
+    await tester
+        .ensureVisible(find.byKey(const Key('fence-edit-fence_pasture_a')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('fence-edit-fence_pasture_a')), findsOneWidget);
-    expect(find.byKey(const Key('fence-delete-fence_pasture_a')), findsOneWidget);
+    expect(
+        find.byKey(const Key('fence-delete-fence_pasture_a')), findsOneWidget);
     expect(find.byKey(const Key('fence-add')), findsOneWidget);
   });
 
@@ -67,10 +68,10 @@ void main() {
     expect(find.byKey(const Key('mine-profile-card')), findsOneWidget);
   });
 
-  testWidgets('ops 登录后进入租户后台且不显示围栏元素', (tester) async {
+  testWidgets('platform_admin 登录后进入租户后台且不显示围栏元素', (tester) async {
     await tester.pumpWidget(const DemoApp());
 
-    await tester.tap(find.byKey(const Key('role-ops')));
+    await tester.tap(find.byKey(const Key('role-platform-admin')));
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pumpAndSettle();
 
@@ -79,7 +80,7 @@ void main() {
     expect(find.byKey(const Key('page-fence')), findsNothing);
   });
 
-  test('ops 角色枚举存在', () {
-    expect(DemoRole.values, contains(DemoRole.ops));
+  test('platform_admin 角色枚举存在', () {
+    expect(DemoRole.values, contains(DemoRole.platformAdmin));
   });
 }

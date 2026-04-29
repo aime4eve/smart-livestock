@@ -42,11 +42,11 @@ const users = {
       'profile:view',
     ],
   },
-  ops: {
+  platform_admin: {
     userId: 'u_003',
     tenantId: null,
-    name: '运维管理员',
-    role: 'ops',
+    name: '平台管理员',
+    role: 'platform_admin',
     mobile: '13800000002',
     permissions: ['tenant:view', 'tenant:create', 'tenant:toggle', 'license:manage', 'tenant:edit', 'tenant:delete'],
   },
@@ -206,12 +206,12 @@ const alerts = [
 ];
 
 const tenants = [
-  { id: 'tenant_001', name: '华东示范牧场', type: 'farm', parentTenantId: null, billingModel: 'direct', entitlementTier: 'basic', ownerId: 'u_001', status: 'active', licenseUsed: 50, licenseTotal: 200, contactName: '张国庆', contactPhone: '13900010001', contactEmail: 'zhang@eastdairy.cn', region: '华东', remarks: '总部示范牧场，最先部署 IoT 设备。', createdAt: '2025-08-12T09:00:00+08:00', updatedAt: '2026-04-20T14:30:00+08:00', lastUpdatedBy: '运维管理员' },
-  { id: 'tenant_002', name: '西部高原牧场', type: 'farm', parentTenantId: null, billingModel: 'direct', entitlementTier: 'basic', ownerId: null, status: 'active', licenseUsed: 120, licenseTotal: 200, contactName: '索南扎西', contactPhone: '13900020002', contactEmail: 'szz@westplateau.cn', region: '西北', remarks: '高原牦牛试点，海拔 3500m。', createdAt: '2025-10-05T11:00:00+08:00', updatedAt: '2026-04-18T09:15:00+08:00', lastUpdatedBy: '运维管理员' },
-  { id: 'tenant_003', name: '东北黑土地牧场', type: 'farm', parentTenantId: null, billingModel: 'direct', entitlementTier: 'basic', ownerId: null, status: 'active', licenseUsed: 180, licenseTotal: 250, contactName: '王大壮', contactPhone: '13900030003', contactEmail: 'wangdz@northeast.cn', region: '东北', remarks: '大型肉牛育肥场，年出栏 5000+。', createdAt: '2025-09-20T08:30:00+08:00', updatedAt: '2026-04-15T16:45:00+08:00', lastUpdatedBy: '运维管理员' },
-  { id: 'tenant_004', name: '华南热带牧场', type: 'farm', parentTenantId: null, billingModel: 'direct', entitlementTier: 'basic', ownerId: null, status: 'disabled', licenseUsed: 30, licenseTotal: 100, contactName: '林伟雄', contactPhone: '13900040004', contactEmail: 'linwx@southtropic.cn', region: '华南', remarks: '热带环境试点，夏季高温预警测试。', createdAt: '2025-11-01T10:00:00+08:00', updatedAt: '2026-03-30T11:20:00+08:00', lastUpdatedBy: '运维管理员' },
-  { id: 'tenant_005', name: '西南高山牧场', type: 'farm', parentTenantId: null, billingModel: 'direct', entitlementTier: 'basic', ownerId: null, status: 'active', licenseUsed: 95, licenseTotal: 150, contactName: '杨志勇', contactPhone: '13900050005', contactEmail: 'yangzy@swhigh.cn', region: '西南', remarks: '山地放牧模式，GPS 信号挑战场景。', createdAt: '2025-12-15T14:00:00+08:00', updatedAt: '2026-04-22T08:00:00+08:00', lastUpdatedBy: '运维管理员' },
-  { id: 'tenant_006', name: '华北草原牧场', type: 'farm', parentTenantId: null, billingModel: 'direct', entitlementTier: 'basic', ownerId: null, status: 'active', licenseUsed: 75, licenseTotal: 180, contactName: '赵牧仁', contactPhone: '13900060006', contactEmail: 'zhaomr@northgrass.cn', region: '华北', remarks: '草原散养奶牛，乳制品供应链上游。', createdAt: '2026-01-10T09:30:00+08:00', updatedAt: '2026-04-25T13:10:00+08:00', lastUpdatedBy: '运维管理员' },
+  { id: 'tenant_001', name: '华东示范牧场', type: 'farm', parentTenantId: null, billingModel: 'direct', entitlementTier: 'basic', ownerId: 'u_001', status: 'active', licenseUsed: 50, licenseTotal: 200, contactName: '张国庆', contactPhone: '13900010001', contactEmail: 'zhang@eastdairy.cn', region: '华东', remarks: '总部示范牧场，最先部署 IoT 设备。', createdAt: '2025-08-12T09:00:00+08:00', updatedAt: '2026-04-20T14:30:00+08:00', lastUpdatedBy: '平台管理员' },
+  { id: 'tenant_002', name: '西部高原牧场', type: 'farm', parentTenantId: null, billingModel: 'direct', entitlementTier: 'basic', ownerId: null, status: 'active', licenseUsed: 120, licenseTotal: 200, contactName: '索南扎西', contactPhone: '13900020002', contactEmail: 'szz@westplateau.cn', region: '西北', remarks: '高原牦牛试点，海拔 3500m。', createdAt: '2025-10-05T11:00:00+08:00', updatedAt: '2026-04-18T09:15:00+08:00', lastUpdatedBy: '平台管理员' },
+  { id: 'tenant_003', name: '东北黑土地牧场', type: 'farm', parentTenantId: null, billingModel: 'direct', entitlementTier: 'basic', ownerId: null, status: 'active', licenseUsed: 180, licenseTotal: 250, contactName: '王大壮', contactPhone: '13900030003', contactEmail: 'wangdz@northeast.cn', region: '东北', remarks: '大型肉牛育肥场，年出栏 5000+。', createdAt: '2025-09-20T08:30:00+08:00', updatedAt: '2026-04-15T16:45:00+08:00', lastUpdatedBy: '平台管理员' },
+  { id: 'tenant_004', name: '华南热带牧场', type: 'farm', parentTenantId: null, billingModel: 'direct', entitlementTier: 'basic', ownerId: null, status: 'disabled', licenseUsed: 30, licenseTotal: 100, contactName: '林伟雄', contactPhone: '13900040004', contactEmail: 'linwx@southtropic.cn', region: '华南', remarks: '热带环境试点，夏季高温预警测试。', createdAt: '2025-11-01T10:00:00+08:00', updatedAt: '2026-03-30T11:20:00+08:00', lastUpdatedBy: '平台管理员' },
+  { id: 'tenant_005', name: '西南高山牧场', type: 'farm', parentTenantId: null, billingModel: 'direct', entitlementTier: 'basic', ownerId: null, status: 'active', licenseUsed: 95, licenseTotal: 150, contactName: '杨志勇', contactPhone: '13900050005', contactEmail: 'yangzy@swhigh.cn', region: '西南', remarks: '山地放牧模式，GPS 信号挑战场景。', createdAt: '2025-12-15T14:00:00+08:00', updatedAt: '2026-04-22T08:00:00+08:00', lastUpdatedBy: '平台管理员' },
+  { id: 'tenant_006', name: '华北草原牧场', type: 'farm', parentTenantId: null, billingModel: 'direct', entitlementTier: 'basic', ownerId: null, status: 'active', licenseUsed: 75, licenseTotal: 180, contactName: '赵牧仁', contactPhone: '13900060006', contactEmail: 'zhaomr@northgrass.cn', region: '华北', remarks: '草原散养奶牛，乳制品供应链上游。', createdAt: '2026-01-10T09:30:00+08:00', updatedAt: '2026-04-25T13:10:00+08:00', lastUpdatedBy: '平台管理员' },
   {
     id: 'tenant_p001',
     name: '星辰牧业（代理商）',

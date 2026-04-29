@@ -132,10 +132,10 @@ router.get(
     if (!tenant) return sendErr(res, 'not_found');
 
     const logs = [
-      { id: 'log-001', action: '租户创建', detail: `创建租户「${tenant.name}」`, operator: '运维管理员', createdAt: tenant.createdAt || '2025-08-12T09:00:00+08:00' },
-      { id: 'log-002', action: 'License 调整', detail: `配额从 ${Math.max(tenant.licenseTotal - 50, 50)} 调整为 ${tenant.licenseTotal}`, operator: '运维管理员', createdAt: tenant.updatedAt || '2026-04-20T14:30:00+08:00' },
-      { id: 'log-003', action: '状态变更', detail: `状态变更为「${tenant.status === 'active' ? '启用中' : '已禁用'}」`, operator: '运维管理员', createdAt: tenant.updatedAt || '2026-04-20T14:30:00+08:00' },
-      { id: 'log-004', action: '信息更新', detail: '更新租户基本信息', operator: '运维管理员', createdAt: tenant.updatedAt || '2026-04-19T10:00:00+08:00' },
+      { id: 'log-001', action: '租户创建', detail: `创建租户「${tenant.name}」`, operator: '平台管理员', createdAt: tenant.createdAt || '2025-08-12T09:00:00+08:00' },
+      { id: 'log-002', action: 'License 调整', detail: `配额从 ${Math.max(tenant.licenseTotal - 50, 50)} 调整为 ${tenant.licenseTotal}`, operator: '平台管理员', createdAt: tenant.updatedAt || '2026-04-20T14:30:00+08:00' },
+      { id: 'log-003', action: '状态变更', detail: `状态变更为「${tenant.status === 'active' ? '启用中' : '已禁用'}」`, operator: '平台管理员', createdAt: tenant.updatedAt || '2026-04-20T14:30:00+08:00' },
+      { id: 'log-004', action: '信息更新', detail: '更新租户基本信息', operator: '平台管理员', createdAt: tenant.updatedAt || '2026-04-19T10:00:00+08:00' },
     ];
 
     res.ok({

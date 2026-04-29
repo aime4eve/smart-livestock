@@ -8,10 +8,18 @@ const { verifyAccessToken } = require('../services/mockTokenService');
 const TOKEN_MAP = {
   'mock-token-owner': 'owner',
   'mock-token-worker': 'worker',
-  'mock-token-ops': 'ops',
+  'mock-token-platform-admin': 'platform_admin',
   'mock-token-b2b-admin': 'b2b_admin',
   'mock-token-api-consumer': 'api_consumer',
 };
+
+const TOKEN_USER_OVERRIDES = {};
+
+function registerMockUserToken(token, user) {
+  TOKEN_MAP[token] = user.role;
+  TOKEN_USER_OVERRIDES[token] = user;
+  users[user.userId] = user;
+}
 
 /**
  * Extract role from Bearer token
@@ -57,7 +65,7 @@ function authMiddleware(req, res, next) {
     return res.fail(401, 'AUTH_UNAUTHORIZED', '未登录或 token 失效');
   }
   req.userRole = role;
-  req.user = users[role];
+  req.user = TOKEN_USER_OVERRIDES[token] ?? users[role];
   req.authMode = 'mock';
   if (runtimeConfig.exposeDebugHeaders) {
     res.setHeader('X-Auth-Mode', req.authMode);
@@ -80,4 +88,10 @@ function requirePermission(permission) {
   };
 }
 
-module.exports = { authMiddleware, requirePermission, TOKEN_MAP, extractBearerToken };
+module.exports = {
+  authMiddleware,
+  requirePermission,
+  TOKEN_MAP,
+  extractBearerToken,
+  registerMockUserToken,
+};

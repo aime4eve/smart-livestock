@@ -5,7 +5,7 @@ enum AppRoute {
   mine('/mine', 'mine', '我的'),
   fence('/fence', 'fence', '围栏'),
   admin('/admin', 'admin', '后台'),
-  opsAdmin('/ops/admin', 'ops-admin', '运维后台'),
+  platformAdmin('/ops/admin', 'platform-admin', '平台后台'),
   livestockDetail('/livestock/:id', 'livestock-detail', '牲畜详情'),
   devices('/devices', 'devices', '设备管理'),
   fenceForm('/fence/form', 'fence-form', '围栏表单'),

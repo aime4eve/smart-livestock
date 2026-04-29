@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/app/app_mode.dart';
+import 'package:smart_livestock_demo/core/data/apply_mock_shaping.dart';
+import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/features/fence/data/live_fence_repository.dart';
 import 'package:smart_livestock_demo/features/fence/data/mock_fence_repository.dart';
@@ -10,6 +12,7 @@ import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_repository.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_state.dart';
 import 'package:smart_livestock_demo/features/fence/presentation/fence_analytics.dart';
+import 'package:smart_livestock_demo/features/subscription/presentation/subscription_controller.dart';
 
 final fenceRepositoryProvider = Provider<FenceRepository>((ref) {
   switch (ref.watch(appModeProvider)) {
@@ -25,11 +28,36 @@ class FenceController extends Notifier<FenceState> {
 
   @override
   FenceState build() {
-    final fences = ref.watch(fenceRepositoryProvider).loadAll();
+    final fences = _loadShapedFences(watchRepository: true);
     return FenceState(
       fences: fences,
       viewState: fences.isEmpty ? ViewState.empty : ViewState.normal,
     );
+  }
+
+  List<FenceItem> _loadShapedFences({required bool watchRepository}) {
+    var fences = watchRepository
+        ? ref.watch(fenceRepositoryProvider).loadAll()
+        : ref.read(fenceRepositoryProvider).loadAll();
+    final appMode = ref.watch(appModeProvider);
+    if (appMode.isLive || fences.isEmpty) return fences;
+
+    final tier = ref.watch(subscriptionControllerProvider).tier;
+    final itemMaps = fences
+        .map((f) => <String, dynamic>{
+              'id': f.id,
+              'name': f.name,
+            })
+        .toList();
+    final result = shapeListItems(
+      items: itemMaps,
+      tier: tier,
+      featureKeys: [FeatureFlags.fence],
+    );
+    if (result.retainedCount < fences.length) {
+      fences = fences.take(result.retainedCount).toList();
+    }
+    return fences;
   }
 
   void select(String? id) {
@@ -67,7 +95,7 @@ class FenceController extends Notifier<FenceState> {
   }
 
   void reloadFromRepository() {
-    final fences = ref.read(fenceRepositoryProvider).loadAll();
+    final fences = _loadShapedFences(watchRepository: false);
     var selected = state.selectedFenceId;
     if (selected != null && !fences.any((f) => f.id == selected)) {
       selected = null;
@@ -184,7 +212,8 @@ class FenceController extends Notifier<FenceState> {
     if (session == null || session.undoStack.isEmpty) return;
 
     final previousPoints = session.undoStack.last;
-    final nextUndoStack = session.undoStack.take(session.undoStack.length - 1).toList();
+    final nextUndoStack =
+        session.undoStack.take(session.undoStack.length - 1).toList();
     final nextSession = session.copyWith(
       points: previousPoints,
       undoStack: nextUndoStack,
@@ -204,7 +233,8 @@ class FenceController extends Notifier<FenceState> {
     if (session == null || session.redoStack.isEmpty) return;
 
     final nextPoints = session.redoStack.last;
-    final nextRedoStack = session.redoStack.take(session.redoStack.length - 1).toList();
+    final nextRedoStack =
+        session.redoStack.take(session.redoStack.length - 1).toList();
     final nextSession = session.copyWith(
       points: nextPoints,
       undoStack: [...session.undoStack, session.points],
@@ -227,7 +257,8 @@ class FenceController extends Notifier<FenceState> {
     final session = state.editSession;
     if (session == null) return;
     state = state.copyWith(
-      editMode: session.hasChanges ? FenceEditMode.editDirty : FenceEditMode.editIdle,
+      editMode:
+          session.hasChanges ? FenceEditMode.editDirty : FenceEditMode.editIdle,
     );
   }
 
@@ -376,8 +407,7 @@ class FenceController extends Notifier<FenceState> {
     for (var i = 0; i < points.length; i++) {
       final current = points[i];
       final next = points[(i + 1) % points.length];
-      doubleArea +=
-          (current.longitude * next.latitude) -
+      doubleArea += (current.longitude * next.latitude) -
           (next.longitude * current.latitude);
     }
     return doubleArea / 2;

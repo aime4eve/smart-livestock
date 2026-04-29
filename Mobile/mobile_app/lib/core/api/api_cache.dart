@@ -27,8 +27,9 @@ Map<String, String> _headers(
   bool allowMockTokenFallback = false,
   Map<String, ApiAuthTokens> roleTokens = const {},
 }) {
+  final demoRole = demoRoleFromWireName(role);
   return apiHeaders(
-    role: DemoRole.values.byName(role),
+    role: demoRole,
     tokens: tokens ?? roleTokens[role],
     allowMockTokenFallback: allowMockTokenFallback,
   );
@@ -120,9 +121,12 @@ class ApiCache {
   List<Map<String, dynamic>> get epidemicContacts => _epidemicContacts;
   List<Map<String, dynamic>> get devices => _devices;
 
-  List<DeviceItem>? tenantDevices(String tenantId) => _tenantDevicesCache[tenantId];
-  List<TenantLogEntry>? tenantLogs(String tenantId) => _tenantLogsCache[tenantId];
-  Map<String, dynamic>? tenantStats(String tenantId) => _tenantStatsCache[tenantId];
+  List<DeviceItem>? tenantDevices(String tenantId) =>
+      _tenantDevicesCache[tenantId];
+  List<TenantLogEntry>? tenantLogs(String tenantId) =>
+      _tenantLogsCache[tenantId];
+  Map<String, dynamic>? tenantStats(String tenantId) =>
+      _tenantStatsCache[tenantId];
   Map<String, Map<String, dynamic>>? get tenantTrends => _tenantTrends;
 
   Map<String, dynamic>? get subscriptionCurrent => _subscriptionCurrent;
@@ -360,7 +364,8 @@ class ApiCache {
     final tokens = ApiAuthTokens(
       accessToken: accessToken,
       refreshToken: data['refreshToken'] as String?,
-      expiresAt: expiresAtRaw is String ? DateTime.tryParse(expiresAtRaw) : null,
+      expiresAt:
+          expiresAtRaw is String ? DateTime.tryParse(expiresAtRaw) : null,
     );
     _roleTokens[role] = tokens;
     return tokens;

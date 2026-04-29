@@ -90,8 +90,8 @@ void main() {
 
     expect(find.byKey(const Key('fence-card-fence_pasture_a')), findsOneWidget);
 
-    await tester.ensureVisible(
-        find.byKey(const Key('fence-delete-fence_pasture_a')));
+    await tester
+        .ensureVisible(find.byKey(const Key('fence-delete-fence_pasture_a')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('fence-delete-fence_pasture_a')));
     await tester.pumpAndSettle();
@@ -131,9 +131,9 @@ void main() {
     expect(find.byKey(const Key('nav-admin')), findsNothing);
   });
 
-  testWidgets('流程1：ops 直达租户列表', (tester) async {
+  testWidgets('流程1：platform_admin 直达租户列表', (tester) async {
     await tester.pumpWidget(const DemoApp());
-    await tester.tap(find.byKey(const Key('role-ops')));
+    await tester.tap(find.byKey(const Key('role-platform-admin')));
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pumpAndSettle();
 
