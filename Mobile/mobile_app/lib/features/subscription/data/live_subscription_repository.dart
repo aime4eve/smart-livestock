@@ -1,11 +1,14 @@
+import 'dart:async';
+
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/features/subscription/data/mock_subscription_repository.dart';
 import 'package:smart_livestock_demo/features/subscription/domain/subscription_repository.dart';
 
 class LiveSubscriptionRepository implements SubscriptionRepository {
-  const LiveSubscriptionRepository();
+  const LiveSubscriptionRepository({this.role = 'owner'});
 
+  final String role;
   MockSubscriptionRepository get _mock => MockSubscriptionRepository();
 
   @override
@@ -46,23 +49,40 @@ class LiveSubscriptionRepository implements SubscriptionRepository {
   @override
   SubscriptionStatus checkout(SubscriptionTier tier, int livestockCount,
       {String? idempotencyKey}) {
-    // In live mode, this would make an HTTP POST to the backend.
-    // For now, fallback to mock.
-    return _mock.checkout(tier, livestockCount);
+    // Fire async POST to backend, return mock result for sync UI update
+    unawaited(ApiCache.instance.checkoutSubscriptionRemote(
+      role,
+      tier: tier.name,
+      livestockCount: livestockCount,
+      idempotencyKey: idempotencyKey,
+    ));
+
+    final result = _mock.checkout(tier, livestockCount, idempotencyKey: idempotencyKey);
+    // Update cache so subsequent reads see the new state
+    ApiCache.instance.updateSubscriptionCurrent(_statusToJson(result));
+    return result;
   }
 
   @override
   SubscriptionStatus cancel() {
-    // In live mode, this would make an HTTP POST to the backend.
-    // For now, fallback to mock.
-    return _mock.cancel();
+    unawaited(ApiCache.instance.cancelSubscriptionRemote(role));
+
+    final result = _mock.cancel();
+    ApiCache.instance.updateSubscriptionCurrent(_statusToJson(result));
+    return result;
   }
 
   @override
   SubscriptionStatus renew(int livestockCount, {String? idempotencyKey}) {
-    // In live mode, this would make an HTTP POST to the backend.
-    // For now, fallback to mock.
-    return _mock.renew(livestockCount);
+    unawaited(ApiCache.instance.renewSubscriptionRemote(
+      role,
+      livestockCount: livestockCount,
+      idempotencyKey: idempotencyKey,
+    ));
+
+    final result = _mock.renew(livestockCount, idempotencyKey: idempotencyKey);
+    ApiCache.instance.updateSubscriptionCurrent(_statusToJson(result));
+    return result;
   }
 
   @override
@@ -72,4 +92,17 @@ class LiveSubscriptionRepository implements SubscriptionRepository {
     if (data == null) return _mock.loadUsage();
     return data;
   }
+
+  Map<String, dynamic> _statusToJson(SubscriptionStatus status) => {
+        'id': status.id,
+        'tenantId': status.tenantId,
+        'tier': status.tier.name,
+        'status': status.status,
+        'trialEndsAt': status.trialEndsAt?.toIso8601String(),
+        'currentPeriodEnd': status.currentPeriodEnd?.toIso8601String(),
+        'livestockCount': status.livestockCount,
+        'calculatedDeviceFee': status.calculatedDeviceFee,
+        'calculatedTierFee': status.calculatedTierFee,
+        'calculatedTotal': status.calculatedTotal,
+      };
 }

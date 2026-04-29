@@ -130,6 +130,106 @@ class ApiCache {
   Map<String, dynamic>? get subscriptionFeatures => _subscriptionFeatures;
   Map<String, dynamic>? get subscriptionUsage => _subscriptionUsage;
 
+  /// Updates the cached subscription state (used by LiveSubscriptionRepository after writes).
+  void updateSubscriptionCurrent(Map<String, dynamic>? value) {
+    _subscriptionCurrent = value;
+  }
+
+  Future<bool> checkoutSubscriptionRemote(
+    String role, {
+    required String tier,
+    required int livestockCount,
+    String? idempotencyKey,
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
+    final body = <String, dynamic>{
+      'tier': tier,
+      'livestockCount': livestockCount,
+    };
+    if (idempotencyKey != null) body['idempotencyKey'] = idempotencyKey;
+
+    final response = await http
+        .post(
+          Uri.parse('${resolveApiBaseUrl()}/subscription/checkout'),
+          headers: _headers(
+            role,
+            tokens: tokens,
+            allowMockTokenFallback: allowMockTokenFallback,
+            roleTokens: _roleTokens,
+          ),
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      if (decoded['code'] == 'OK') {
+        _subscriptionCurrent = decoded['data'] as Map<String, dynamic>?;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Future<bool> cancelSubscriptionRemote(
+    String role, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
+    final response = await http
+        .post(
+          Uri.parse('${resolveApiBaseUrl()}/subscription/cancel'),
+          headers: _headers(
+            role,
+            tokens: tokens,
+            allowMockTokenFallback: allowMockTokenFallback,
+            roleTokens: _roleTokens,
+          ),
+          body: jsonEncode({}),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      if (decoded['code'] == 'OK') {
+        _subscriptionCurrent = decoded['data'] as Map<String, dynamic>?;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Future<bool> renewSubscriptionRemote(
+    String role, {
+    required int livestockCount,
+    String? idempotencyKey,
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
+    final body = <String, dynamic>{'livestockCount': livestockCount};
+    if (idempotencyKey != null) body['idempotencyKey'] = idempotencyKey;
+
+    final response = await http
+        .post(
+          Uri.parse('${resolveApiBaseUrl()}/subscription/renew'),
+          headers: _headers(
+            role,
+            tokens: tokens,
+            allowMockTokenFallback: allowMockTokenFallback,
+            roleTokens: _roleTokens,
+          ),
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      if (decoded['code'] == 'OK') {
+        _subscriptionCurrent = decoded['data'] as Map<String, dynamic>?;
+        return true;
+      }
+    }
+    return false;
+  }
+
   Future<void> fetchTenantDevices(
     String role,
     String tenantId, {
