@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/core/models/twin_models.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
@@ -7,6 +8,8 @@ import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/epidemic/presentation/epidemic_controller.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_empty_error_state.dart';
+import 'package:smart_livestock_demo/features/subscription/presentation/subscription_controller.dart';
+import 'package:smart_livestock_demo/features/subscription/presentation/widgets/locked_overlay.dart';
 
 class EpidemicPage extends ConsumerWidget {
   const EpidemicPage({super.key});
@@ -15,8 +18,12 @@ class EpidemicPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final data = ref.watch(epidemicControllerProvider);
     final notifier = ref.read(epidemicControllerProvider.notifier);
+    final subStatus = ref.watch(subscriptionControllerProvider);
 
-    return SingleChildScrollView(
+    return LockedOverlay(
+      locked: !checkTierAccess(subStatus.tier, FeatureFlags.epidemicAlert),
+      upgradeTier: '高级版',
+      child: SingleChildScrollView(
       key: const Key('page-twin-epidemic'),
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -42,6 +49,7 @@ class EpidemicPage extends ConsumerWidget {
           _buildBody(context, data, notifier),
         ],
       ),
+    ),
     );
   }
 

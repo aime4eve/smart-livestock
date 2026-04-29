@@ -44,9 +44,15 @@ class _SubscriptionCheckoutPageState
     return info.monthlyPrice < 0 ? 0.0 : info.monthlyPrice;
   }
 
+  int get _excessCount {
+    final info = SubscriptionTierInfo.all[widget.tier]!;
+    final limit = info.livestockLimit < 0 ? _livestockCount : info.livestockLimit;
+    return _livestockCount > limit ? _livestockCount - limit : 0;
+  }
+
   double get _deviceFee {
     final info = SubscriptionTierInfo.all[widget.tier]!;
-    return _livestockCount * info.perUnitPrice;
+    return _excessCount * info.perUnitPrice;
   }
 
   double get _total => _tierFee + _deviceFee;
@@ -172,7 +178,9 @@ class _SubscriptionCheckoutPageState
                     const SizedBox(height: AppSpacing.sm),
                     _priceRow(
                       context,
-                      '设备费（$_livestockCount头 × ¥${tierInfo.perUnitPrice.toStringAsFixed(0)}/头）',
+                      _excessCount > 0
+                          ? '超出设备费（超出$_excessCount头 × ¥${tierInfo.perUnitPrice.toStringAsFixed(0)}/头）'
+                          : '超出设备费（在${tierInfo.livestockLimit < 0 ? "不限" : "${tierInfo.livestockLimit}头"}额度内）',
                       _deviceFee,
                     ),
                     const SizedBox(height: AppSpacing.sm),

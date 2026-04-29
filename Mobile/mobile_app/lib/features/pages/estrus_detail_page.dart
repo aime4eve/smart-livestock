@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/core/permissions/role_permission.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/estrus/presentation/estrus_controller.dart';
 import 'package:smart_livestock_demo/features/estrus/presentation/widgets/estrus_trend_chart.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
+import 'package:smart_livestock_demo/features/subscription/presentation/subscription_controller.dart';
+import 'package:smart_livestock_demo/features/subscription/presentation/widgets/locked_overlay.dart';
 
 class EstrusDetailPage extends ConsumerWidget {
   const EstrusDetailPage({super.key, required this.livestockId});
@@ -19,14 +22,18 @@ class EstrusDetailPage extends ConsumerWidget {
     final repo = ref.watch(estrusRepositoryProvider);
     final score = repo.loadDetail(livestockId);
     final role = ref.watch(sessionControllerProvider).role ?? DemoRole.worker;
+    final subStatus = ref.watch(subscriptionControllerProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: Text('牛#$livestockId 发情详情'),
       ),
-      body: score == null
-          ? const Center(child: Text('未找到个体数据'))
-          : SingleChildScrollView(
+      body: LockedOverlay(
+        locked: !checkTierAccess(subStatus.tier, FeatureFlags.estrusDetect),
+        upgradeTier: '高级版',
+        child: score == null
+            ? const Center(child: Text('未找到个体数据'))
+            : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -104,6 +111,7 @@ class EstrusDetailPage extends ConsumerWidget {
                 ],
               ),
             ),
+      ),
     );
   }
 }

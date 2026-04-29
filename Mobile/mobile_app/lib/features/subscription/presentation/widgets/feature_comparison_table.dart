@@ -53,21 +53,31 @@ class FeatureComparisonTable extends ConsumerWidget {
     if (def == null) return '—';
     if (!_hasAccess(tier, def)) return '—';
 
-    if (featureKey == FeatureFlags.dataRetentionDays) {
-      final tiersConfig = def.tiers;
-      if (tiersConfig is Map) {
-        final v = tiersConfig[tier.name];
-        if (v is num && v == double.infinity) return '永久';
-        if (v is num) return '${v.toInt()}天';
+    final tiersConfig = def.tiers;
+
+    // Tier-based numeric values (Map tiers)
+    if (tiersConfig is Map) {
+      final v = tiersConfig[tier.name];
+      if (v is num) {
+        if (featureKey == FeatureFlags.fence) {
+          return v == -1 ? '不限' : '${v.toInt()}个';
+        }
+        if (featureKey == FeatureFlags.alertHistory) {
+          return v >= 365 ? '1年' : '${v.toInt()}天';
+        }
+        if (featureKey == FeatureFlags.dataRetentionDays) {
+          if (v >= 1095) return '${(v.toInt() / 365).round()}年';
+          if (v == double.infinity || v == -1) return '永久';
+          return '${v.toInt()}天';
+        }
+        return '${v.toInt()}';
       }
     }
 
+    // Legacy single-limit features
     if (def.shape == FeatureShape.limit && def.limit != null) {
       if (featureKey == FeatureFlags.dashboardSummary) {
         return '${def.limit}项';
-      }
-      if (featureKey == FeatureFlags.fence) {
-        return '${def.limit}个';
       }
     }
 

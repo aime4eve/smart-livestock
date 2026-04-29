@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
+import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/core/models/twin_models.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
@@ -9,6 +10,8 @@ import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/estrus/presentation/estrus_controller.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_empty_error_state.dart';
+import 'package:smart_livestock_demo/features/subscription/presentation/subscription_controller.dart';
+import 'package:smart_livestock_demo/features/subscription/presentation/widgets/locked_overlay.dart';
 
 class EstrusPage extends ConsumerWidget {
   const EstrusPage({super.key});
@@ -28,8 +31,12 @@ class EstrusPage extends ConsumerWidget {
     final notifier = ref.read(estrusControllerProvider.notifier);
     final data = state.viewData;
     final filtered = _applyFilter(data.items, state.filter);
+    final subStatus = ref.watch(subscriptionControllerProvider);
 
-    return SingleChildScrollView(
+    return LockedOverlay(
+      locked: !checkTierAccess(subStatus.tier, FeatureFlags.estrusDetect),
+      upgradeTier: '高级版',
+      child: SingleChildScrollView(
       key: const Key('page-twin-estrus'),
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -55,6 +62,7 @@ class EstrusPage extends ConsumerWidget {
           _buildContent(context, state, notifier, data, filtered),
         ],
       ),
+    ),
     );
   }
 

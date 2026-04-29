@@ -22,7 +22,7 @@ void main() {
       expect(info.name, '基础版');
       expect(info.monthlyPrice, 0);
       expect(info.livestockLimit, 50);
-      expect(info.perUnitPrice, 2);
+      expect(info.perUnitPrice, 3);
       expect(info.features.isNotEmpty, true);
     });
 
@@ -39,7 +39,7 @@ void main() {
       expect(info.name, '高级版');
       expect(info.monthlyPrice, 699);
       expect(info.livestockLimit, 1000);
-      expect(info.perUnitPrice, 2);
+      expect(info.perUnitPrice, 1);
     });
 
     test('enterprise tier has sentinel values', () {
@@ -174,10 +174,10 @@ void main() {
       expect(keys.toSet().length, 20);
     });
 
-    test('fence has limit shape and requiredDevices', () {
+    test('fence has limit shape and tier-based limits', () {
       final def = FeatureFlags.all[FeatureFlags.fence]!;
       expect(def.shape, FeatureShape.limit);
-      expect(def.limit, 3);
+      expect(def.tiers, isA<Map>());
       expect(def.requiredDevices, ['gps']);
     });
 
@@ -225,8 +225,8 @@ void main() {
       expect(checkTierAccess(SubscriptionTier.standard, FeatureFlags.alertHistory), true);
     });
 
-    test('basic tier cannot access alert_history', () {
-      expect(checkTierAccess(SubscriptionTier.basic, FeatureFlags.alertHistory), false);
+    test('basic tier can access alert_history (filter type, all tiers)', () {
+      expect(checkTierAccess(SubscriptionTier.basic, FeatureFlags.alertHistory), true);
     });
 
     test('enterprise can access all locked features', () {

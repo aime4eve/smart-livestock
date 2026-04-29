@@ -11,6 +11,7 @@ import 'package:smart_livestock_demo/features/highfi/widgets/highfi_empty_error_
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_stat_tile.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
 import 'package:smart_livestock_demo/features/pages/widgets/twin_scene_card.dart';
+import 'package:smart_livestock_demo/features/subscription/presentation/widgets/subscription_renewal_banner.dart';
 import 'package:smart_livestock_demo/features/twin_overview/presentation/twin_overview_controller.dart';
 
 class TwinOverviewPage extends ConsumerWidget {
@@ -87,6 +88,8 @@ class TwinOverviewPage extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const SubscriptionRenewalBanner(),
+            const SizedBox(height: AppSpacing.md),
             HighfiCard(
               key: const Key('twin-farm-header'),
               child: Column(

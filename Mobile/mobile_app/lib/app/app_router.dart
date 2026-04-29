@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/app/demo_shell.dart';
+import 'package:smart_livestock_demo/app/expiry_popup_handler.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
@@ -96,9 +97,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       ShellRoute(
         builder: (context, state, child) {
-          return DemoShell(
-            location: state.uri.path,
-            child: child,
+          return ExpiryPopupHandler(
+            child: DemoShell(
+              location: state.uri.path,
+              child: child,
+            ),
           );
         },
         routes: [
@@ -261,7 +264,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoute.checkout.path,
         name: AppRoute.checkout.routeName,
         builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>;
+          final extra = state.extra as Map<String, dynamic>?;
+          if (extra == null) return const SubscriptionPlanPage();
           return SubscriptionCheckoutPage(
             tier: extra['tier'] as SubscriptionTier,
             livestockCount: extra['livestockCount'] as int,

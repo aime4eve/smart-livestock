@@ -39,8 +39,8 @@ class SubscriptionTierInfo {
       name: '基础版',
       monthlyPrice: 0,
       livestockLimit: 50,
-      perUnitPrice: 2,
-      features: ['GPS定位', '电子围栏(3个)', '告警历史(7天)', '基础看板'],
+      perUnitPrice: 3,
+      features: ['GPS定位', '电子围栏(3个)', '告警历史(7天)', '数据保留(7天)', '基础看板'],
     ),
     SubscriptionTier.standard: SubscriptionTierInfo(
       tier: SubscriptionTier.standard,
@@ -50,12 +50,12 @@ class SubscriptionTierInfo {
       perUnitPrice: 2,
       features: [
         'GPS定位',
-        '电子围栏(3个)',
-        '告警历史(7天)',
-        '基础看板',
-        '历史轨迹',
-        '高级看板',
+        '电子围栏(5个)',
         '告警历史(30天)',
+        '数据保留(30天)',
+        '基础看板',
+        '高级看板',
+        '历史轨迹',
         '设备管理',
       ],
     ),
@@ -64,21 +64,20 @@ class SubscriptionTierInfo {
       name: '高级版',
       monthlyPrice: 699,
       livestockLimit: 1000,
-      perUnitPrice: 2,
+      perUnitPrice: 1,
       features: [
         'GPS定位',
-        '电子围栏(3个)',
-        '告警历史(7天)',
+        '电子围栏(10个)',
+        '告警历史(90天)',
+        '数据保留(365天)',
         '基础看板',
-        '历史轨迹',
         '高级看板',
-        '告警历史(30天)',
+        '历史轨迹',
         '设备管理',
         '健康评分',
         '发情检测',
         '疫病预警',
         '专属客服',
-        '数据保留(365天)',
       ],
     ),
     SubscriptionTier.enterprise: SubscriptionTierInfo(
@@ -89,18 +88,17 @@ class SubscriptionTierInfo {
       perUnitPrice: 0,
       features: [
         'GPS定位',
-        '电子围栏(3个)',
-        '告警历史(7天)',
+        '电子围栏(不限)',
+        '告警历史(1年)',
+        '数据保留(3年)',
         '基础看板',
-        '历史轨迹',
         '高级看板',
-        '告警历史(30天)',
+        '历史轨迹',
         '设备管理',
         '健康评分',
         '发情检测',
         '疫病预警',
         '专属客服',
-        '数据保留(365天)',
         '步态分析',
         '行为统计',
         'API访问',
@@ -155,6 +153,12 @@ class SubscriptionStatus {
           (json['calculatedTotal'] as num).toDouble(),
     );
   }
+
+  int get daysUntilExpiry {
+    final end = status == 'trial' ? trialEndsAt : currentPeriodEnd;
+    if (end == null) return -1;
+    return end.difference(DateTime.now()).inDays;
+  }
 }
 
 class FeatureFlags {
@@ -188,8 +192,12 @@ class FeatureFlags {
     ),
     FeatureFlags.fence: FeatureDefinition(
       shape: FeatureShape.limit,
-      tiers: ['basic', 'standard', 'premium', 'enterprise'],
-      limit: 3,
+      tiers: {
+        'basic': 3,
+        'standard': 5,
+        'premium': 10,
+        'enterprise': -1,
+      },
       requiredDevices: ['gps'],
     ),
     FeatureFlags.trajectory: FeatureDefinition(
@@ -249,12 +257,17 @@ class FeatureFlags {
         'basic': 7,
         'standard': 30,
         'premium': 365,
-        'enterprise': double.infinity,
+        'enterprise': 1095,
       },
     ),
     FeatureFlags.alertHistory: FeatureDefinition(
-      shape: FeatureShape.lock,
-      tiers: ['standard', 'premium', 'enterprise'],
+      shape: FeatureShape.filter,
+      tiers: {
+        'basic': 7,
+        'standard': 30,
+        'premium': 90,
+        'enterprise': 365,
+      },
     ),
     FeatureFlags.dedicatedSupport: FeatureDefinition(
       shape: FeatureShape.lock,
