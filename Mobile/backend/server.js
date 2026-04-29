@@ -4,7 +4,12 @@ const cors = require('cors');
 const { buildRuntimeConfig } = require('./config/runtimeConfig');
 const { envelopeMiddleware } = require('./middleware/envelope');
 const { requestContext } = require('./middleware/requestContext');
+const { authMiddleware } = require('./middleware/auth');
+const { farmContextMiddleware } = require('./middleware/farmContext');
+const { shapingMiddleware } = require('./middleware/feature-flag');
 const { registerApiRoutes } = require('./routes/registerApiRoutes');
+const subscriptionStore = require('./data/subscriptions');
+const tenantStore = require('./data/tenantStore');
 
 const app = express();
 const PORT = 3001;
@@ -16,9 +21,22 @@ app.use(express.json());
 app.use(requestContext(runtimeConfig));
 app.use(envelopeMiddleware);
 
+// Global middleware chain: auth → farmContext → shaping
+app.use(authMiddleware);           // 1. 认证 + 注入 req.user
+app.use(farmContextMiddleware);    // 2. 提取 req.activeFarmTenantId
+app.use(shapingMiddleware);        // 3. 包装 res.ok() 加入 shaping
+
 // Routes
 registerApiRoutes(app, '/api');
 registerApiRoutes(app, '/api/v1');
+
+// Seed trial subscriptions for existing farm tenants that don't have one
+const allTenants = tenantStore.getAll();
+allTenants.filter(t => t.type === 'farm').forEach(t => {
+  if (!subscriptionStore.getByTenantId(t.id)) {
+    subscriptionStore.createTrial(t.id);
+  }
+});
 
 // 404 fallback
 app.use((req, res) => {
@@ -64,6 +82,14 @@ const ROUTE_DEFINITIONS = [
   ['GET',    '/twin/epidemic/summary'],
   ['GET',    '/twin/epidemic/contacts'],
   ['GET',    '/devices'],
+  ['GET',    '/subscription/current'],
+  ['GET',    '/subscription/features'],
+  ['GET',    '/subscription/plans'],
+  ['POST',   '/subscription/checkout'],
+  ['POST',   '/subscription/cancel'],
+  ['POST',   '/subscription/renew'],
+  ['GET',    '/subscription/usage'],
+  ['GET',    '/b2b/status'],
 ];
 const ROUTE_TABLE = API_PREFIXES.flatMap((prefix) =>
   ROUTE_DEFINITIONS.map(([method, path]) => [method, `${prefix}${path}`])

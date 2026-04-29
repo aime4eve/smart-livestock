@@ -1,6 +1,7 @@
 const { Router } = require('express');
-const { authMiddleware, requirePermission } = require('../middleware/auth');
+const { requirePermission } = require('../middleware/auth');
 const store = require('../data/tenantStore');
+const subscriptionStore = require('../data/subscriptions');
 const { devices } = require('../data/seed');
 
 const router = Router();
@@ -25,17 +26,15 @@ function sendErr(res, tenantError, tenantContext) {
 
 router.get(
   '/',
-  authMiddleware,
   requirePermission('tenant:view'),
   (req, res) => {
-    const { page, pageSize, status, search, sort, order } = req.query;
-    res.ok(store.sliceForPage({ page, pageSize, status, search, sort, order }));
+    const { page, pageSize, status, type, parentTenantId, search, sort, order } = req.query;
+    res.ok(store.sliceForPage({ page, pageSize, status, type, parentTenantId, search, sort, order }));
   }
 );
 
 router.get(
   '/:id',
-  authMiddleware,
   requirePermission('tenant:view'),
   (req, res) => {
     const tenant = store.findById(req.params.id);
@@ -46,19 +45,21 @@ router.get(
 
 router.post(
   '/',
-  authMiddleware,
   requirePermission('tenant:create'),
   (req, res) => {
-    const { name, licenseTotal = 100 } = req.body || {};
-    const result = store.createTenant({ name, licenseTotal });
+    const { name, licenseTotal = 100, type, billingModel, entitlementTier, ownerId, parentTenantId } = req.body || {};
+    const result = store.createTenant({ name, licenseTotal, type, billingModel, entitlementTier, ownerId, parentTenantId });
     if (result.error) return sendErr(res, result.error);
+    // 为新 farm 租户创建试用订阅
+    if (result.tenant.type === 'farm') {
+      subscriptionStore.createTrial(result.tenant.id);
+    }
     res.ok(result.tenant);
   }
 );
 
 router.put(
   '/:id',
-  authMiddleware,
   requirePermission('tenant:edit'),
   (req, res) => {
     const { name } = req.body || {};
@@ -70,7 +71,6 @@ router.put(
 
 router.delete(
   '/:id',
-  authMiddleware,
   requirePermission('tenant:delete'),
   (req, res) => {
     const result = store.removeTenant(req.params.id);
@@ -81,7 +81,6 @@ router.delete(
 
 router.post(
   '/:id/status',
-  authMiddleware,
   requirePermission('tenant:toggle'),
   (req, res) => {
     const { status } = req.body || {};
@@ -93,7 +92,6 @@ router.post(
 
 router.post(
   '/:id/license',
-  authMiddleware,
   requirePermission('license:manage'),
   (req, res) => {
     const { licenseTotal } = req.body || {};
@@ -106,7 +104,6 @@ router.post(
 
 router.get(
   '/:id/devices',
-  authMiddleware,
   requirePermission('tenant:view'),
   (req, res) => {
     const tenant = store.findById(req.params.id);
@@ -129,7 +126,6 @@ router.get(
 
 router.get(
   '/:id/logs',
-  authMiddleware,
   requirePermission('tenant:view'),
   (req, res) => {
     const tenant = store.findById(req.params.id);
@@ -153,7 +149,6 @@ router.get(
 
 router.get(
   '/:id/stats',
-  authMiddleware,
   requirePermission('tenant:view'),
   (req, res) => {
     const tenant = store.findById(req.params.id);
@@ -206,7 +201,6 @@ function hashCode(str) {
 
 router.get(
   '/:id/trends',
-  authMiddleware,
   requirePermission('tenant:view'),
   (req, res) => {
     const tenant = store.findById(req.params.id);

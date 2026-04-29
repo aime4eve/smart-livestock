@@ -1,5 +1,6 @@
 const { Router } = require('express');
-const { authMiddleware, requirePermission } = require('../middleware/auth');
+const { requirePermission } = require('../middleware/auth');
+const { featureKeys } = require('../middleware/feature-flag');
 const { animals } = require('../data/seed');
 const fenceStore = require('../data/fenceStore');
 const { boundaryStatusForPoint } = require('../utils/geo');
@@ -8,8 +9,8 @@ const router = Router();
 
 router.get(
   '/trajectories',
-  authMiddleware,
   requirePermission('map:view'),
+  featureKeys('gps_location', 'trajectory'),
   (req, res) => {
     const { animalId, range } = req.query;
 

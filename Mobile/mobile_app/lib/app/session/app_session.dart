@@ -33,5 +33,9 @@ class AppSession {
 
   bool get isOps => role == DemoRole.ops;
 
+  bool get isB2bAdmin => role == DemoRole.b2bAdmin;
+
+  bool get isApiConsumer => role == DemoRole.apiConsumer;
+
   bool get canAccessAdminTab => role == DemoRole.owner;
 }

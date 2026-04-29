@@ -17,6 +17,14 @@ function findById(id) {
   return tenants.find((t) => t.id === id);
 }
 
+function findByOwnerId(ownerId) {
+  return tenants.filter((t) => t.ownerId === ownerId);
+}
+
+function findByParentTenantId(parentTenantId) {
+  return tenants.filter((t) => t.parentTenantId === parentTenantId);
+}
+
 function nameExists(name, excludeId) {
   return tenants.some((t) => t.name === name && t.id !== excludeId);
 }
@@ -26,14 +34,23 @@ function sliceForPage(query) {
     page = '1',
     pageSize = '20',
     status,
+    type,
+    parentTenantId,
     search,
     sort = 'name',
     order = 'asc',
   } = query || {};
+  const ALLOWED_TYPES = ['partner', 'farm', 'api'];
   let filtered = tenants.slice();
 
   if (status && ALLOWED_STATUS.includes(status)) {
     filtered = filtered.filter((t) => t.status === status);
+  }
+  if (type && ALLOWED_TYPES.includes(type)) {
+    filtered = filtered.filter((t) => t.type === type);
+  }
+  if (parentTenantId) {
+    filtered = filtered.filter((t) => t.parentTenantId === parentTenantId);
   }
   if (search && typeof search === 'string' && search.trim() !== '') {
     const kw = search.toLowerCase();
@@ -63,7 +80,20 @@ function sliceForPage(query) {
 }
 
 function createTenant(body) {
-  const { name: rawName, licenseTotal = 100, contactName, contactPhone, contactEmail, region, remarks } = body || {};
+  const {
+    name: rawName,
+    licenseTotal = 100,
+    contactName,
+    contactPhone,
+    contactEmail,
+    region,
+    remarks,
+    type = 'farm',
+    parentTenantId = null,
+    billingModel = 'direct',
+    entitlementTier = 'basic',
+    ownerId = null,
+  } = body || {};
   const name = typeof rawName === 'string' ? rawName.trim() : rawName;
   if (!name) return { error: 'name_required' };
   if (typeof licenseTotal !== 'number' || licenseTotal < 0) {
@@ -74,6 +104,11 @@ function createTenant(body) {
   const tenant = {
     id: `tenant_${String(nextId++).padStart(3, '0')}`,
     name,
+    type,
+    parentTenantId,
+    billingModel,
+    entitlementTier,
+    ownerId,
     status: 'active',
     licenseUsed: 0,
     licenseTotal,
@@ -142,6 +177,8 @@ function removeTenant(id) {
 module.exports = {
   getAll,
   findById,
+  findByOwnerId,
+  findByParentTenantId,
   sliceForPage,
   createTenant,
   updateTenant,

@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { authMiddleware } = require('../middleware/auth');
+// authMiddleware is now global (registered in server.js)
 const { buildUserProjection } = require('../services/userProjectionService');
 
 const router = Router();
@@ -7,7 +7,7 @@ const router = Router();
 /**
  * GET /api/me
  */
-router.get('/', authMiddleware, (req, res) => {
+router.get('/', (req, res) => {
   res.ok(buildUserProjection(req.user));
 });
 

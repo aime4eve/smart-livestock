@@ -24,7 +24,11 @@ enum AppRoute {
     'twin-estrus-detail',
     '发情详情',
   ),
-  twinEpidemic('/twin/epidemic', 'twin-epidemic', '疫病防控');
+  twinEpidemic('/twin/epidemic', 'twin-epidemic', '疫病防控'),
+  b2bAdmin('/b2b/admin', 'b2b-admin', 'B端控制台'),
+  subscription('/subscription', 'subscription', '订阅管理'),
+  checkout('/subscription/checkout', 'checkout', '确认支付'),
+  subscriptionPlan('/subscription/plans', 'subscription-plan', '套餐选择');
 
   const AppRoute(this.path, this.routeName, this.label);
 

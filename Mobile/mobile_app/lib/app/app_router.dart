@@ -4,10 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/app/demo_shell.dart';
+import 'package:smart_livestock_demo/app/expiry_popup_handler.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/features/auth/login_page.dart';
 import 'package:smart_livestock_demo/features/pages/admin_page.dart';
+import 'package:smart_livestock_demo/features/pages/b2b_admin_placeholder_page.dart';
 import 'package:smart_livestock_demo/features/pages/alerts_page.dart';
 import 'package:smart_livestock_demo/features/pages/dashboard_page.dart';
 import 'package:smart_livestock_demo/features/pages/devices_page.dart';
@@ -24,6 +27,8 @@ import 'package:smart_livestock_demo/features/pages/livestock_detail_page.dart';
 import 'package:smart_livestock_demo/features/pages/mine_page.dart';
 import 'package:smart_livestock_demo/features/pages/stats_page.dart';
 import 'package:smart_livestock_demo/features/pages/twin_overview_page.dart';
+import 'package:smart_livestock_demo/features/subscription/presentation/subscription_checkout_page.dart';
+import 'package:smart_livestock_demo/features/subscription/presentation/subscription_plan_page.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_create_page.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_detail_page.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_edit_page.dart';
@@ -57,6 +62,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             : AppRoute.opsAdmin.path;
       }
 
+      if (role == DemoRole.b2bAdmin) {
+        return location.startsWith(AppRoute.b2bAdmin.path)
+            ? null
+            : AppRoute.b2bAdmin.path;
+      }
+
       if (location == AppRoute.login.path ||
           location.startsWith(AppRoute.opsAdmin.path)) {
         return AppRoute.twin.path;
@@ -86,9 +97,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       ShellRoute(
         builder: (context, state, child) {
-          return DemoShell(
-            location: state.uri.path,
-            child: child,
+          return ExpiryPopupHandler(
+            child: DemoShell(
+              location: state.uri.path,
+              child: child,
+            ),
           );
         },
         routes: [
@@ -236,6 +249,33 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const DashboardPage(),
           ),
         ],
+      ),
+      GoRoute(
+        path: AppRoute.subscriptionPlan.path,
+        name: AppRoute.subscriptionPlan.routeName,
+        builder: (context, state) => const SubscriptionPlanPage(),
+      ),
+      GoRoute(
+        path: AppRoute.subscription.path,
+        name: AppRoute.subscription.routeName,
+        builder: (context, state) => const SubscriptionPlanPage(),
+      ),
+      GoRoute(
+        path: AppRoute.checkout.path,
+        name: AppRoute.checkout.routeName,
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          if (extra == null) return const SubscriptionPlanPage();
+          return SubscriptionCheckoutPage(
+            tier: extra['tier'] as SubscriptionTier,
+            livestockCount: extra['livestockCount'] as int,
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoute.b2bAdmin.path,
+        name: AppRoute.b2bAdmin.routeName,
+        builder: (context, state) => const B2bAdminPlaceholderPage(),
       ),
     ],
   );

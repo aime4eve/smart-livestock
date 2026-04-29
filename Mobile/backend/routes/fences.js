@@ -1,5 +1,6 @@
 const { Router } = require('express');
-const { authMiddleware, requirePermission } = require('../middleware/auth');
+const { requirePermission } = require('../middleware/auth');
+const { featureKeys } = require('../middleware/feature-flag');
 const fenceStore = require('../data/fenceStore');
 
 const router = Router();
@@ -28,8 +29,8 @@ function handleValidationError(res, error) {
 
 router.get(
   '/',
-  authMiddleware,
   requirePermission('fence:view'),
+  featureKeys('fence'),
   (req, res) => {
     const { page = '1', pageSize = '20' } = req.query;
     res.ok(fenceStore.sliceForPage(page, pageSize));
@@ -38,7 +39,6 @@ router.get(
 
 router.get(
   '/:id',
-  authMiddleware,
   requirePermission('fence:view'),
   (req, res) => {
     const { id } = req.params;
@@ -52,7 +52,6 @@ router.get(
 
 router.post(
   '/',
-  authMiddleware,
   requirePermission('fence:manage'),
   (req, res) => {
     const result = fenceStore.createFence(req.body || {});
@@ -65,7 +64,6 @@ router.post(
 
 router.put(
   '/:id',
-  authMiddleware,
   requirePermission('fence:manage'),
   (req, res) => {
     const { id } = req.params;
@@ -82,7 +80,6 @@ router.put(
 
 router.delete(
   '/:id',
-  authMiddleware,
   requirePermission('fence:manage'),
   (req, res) => {
     const { id } = req.params;

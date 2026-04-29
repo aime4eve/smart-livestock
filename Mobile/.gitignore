@@ -4,4 +4,4 @@
 *.log
 backend/node_modules/
 .dev-pids/
-.dev-logs/
+.worktrees/
