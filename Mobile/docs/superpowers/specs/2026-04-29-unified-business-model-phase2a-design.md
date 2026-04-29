@@ -1,7 +1,7 @@
 # 统一商业模型 Phase 2a 设计规格
 
 > **文档编号**: SL-BIZ-2026-002
-> **版本**: v1.1
+> **版本**: v1.2
 > **编制日期**: 2026-04-29
 > **修订日期**: 2026-04-29
 > **状态**: 已修订（按 R1 评审报告修复 6 个 P0 + 10 个 P1 问题）
@@ -102,6 +102,8 @@ ViewData applyMockShaping(
 - `mock_stats_repository.dart`（feature: `stats`）
 - 其他返回需 shaping 的数据的 repository（根据 feature key 逐个判断）
 
+**迁移方式**：函数内部从 `viewData.data` 提取 `Map<String, dynamic>`，执行 shaping 后构造新 `ViewData.success(shapedData)` 返回。调用方只需将 `return ViewData.success(data)` 改为 `return applyMockShaping(ViewData.success(data), tier, keys)`。
+
 ### 1.3 ownerId 唯一约束
 
 Phase 1 计划中声明 `ownerId` 唯一约束，但实际代码 `tenantStore.createTenant()` 未实现该校验。E1 无需改动后端代码，仅在 `tenantStore.createTenant()` 注释中标注 `ownerId` 允许多个 farm 共享同一 owner。seed 数据不变。
@@ -121,11 +123,13 @@ Phase 1 计划中声明 `ownerId` 唯一约束，但实际代码 `tenantStore.cr
 
 **`GET /api/v1/my-farms` 响应**：
 
+非分页端点（owner 的 farm 数量有限，无需分页），使用 `farms` 数组而非 `items`：
+
 ```json
 {
   "code": 200,
   "data": {
-    "items": [
+    "farms": [
       {
         "id": "tenant_001",
         "name": "张三的牧场",
@@ -407,7 +411,13 @@ B端控制台（侧边栏导航，无底部 Tab）
 1. `type='farm'`，`parentTenantId` = 当前 b2b_admin 的 partner tenant ID
 2. `billingModel` 和 `entitlementTier` 继承 parent partner
 3. **仅 direct farm** 调用 `subscriptionStore.createTrial()`（partner 下 farm 的 `getEffectiveTier()` 通过 parent lookup 绕过 subscription 检查，无需 trial）
-4. 若指定 `ownerName`，自动创建 owner 用户并关联
+4. 若指定 `ownerName`，自动创建 owner 用户并关联：
+   - `userId`: `u_${Date.now()}`（内存生成，不保证唯一性，仅 Mock 环境）
+   - `tenantId`: 新创建的 farm ID
+   - `role: 'owner'`
+   - `permissions`: 同现有 owner 模板
+   - `mobile`: 取 `contactPhone` 字段值
+   - **Mock token 自动注册**：在 `TOKEN_MAP` 中添加 `mock-token-{userId}` → `'owner'` 映射，在 `users` 对象中添加对应条目。前端需同步更新登录页角色列表或提供直接 token 输入方式
 
 ### 3.4 合同信息
 
@@ -427,6 +437,8 @@ B端控制台（侧边栏导航，无底部 Tab）
 ```
 
 辅助方法：`getByPartnerTenantId(partnerTenantId)`。
+
+**数据所有权说明**：`revenueShareRatio` 在 Phase 2a 中仅存在于 ContractStore（权威来源）。父规格 Section 2.2 定义的 tenant 模型 `revenueShareRatio` 字段推迟到 Phase 2b 实现（届时需将 ContractStore 的值同步到 tenant 字段或改为 tenant 引用 ContractStore）。Phase 2a 实施时无需在 tenant 模型中添加此字段。
 
 | 端点 | 方法 | 说明 | 权限 |
 |------|------|------|------|
