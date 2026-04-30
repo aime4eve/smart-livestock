@@ -7,8 +7,8 @@ test('tenantStore: sliceForPage 默认分页返回全部', () => {
   const res = store.sliceForPage({});
   assert.equal(res.page, 1);
   assert.equal(res.pageSize, 20);
-  assert.equal(res.total, 9);
-  assert.equal(res.items.length, 9);
+  assert.equal(res.total, 10);
+  assert.equal(res.items.length, 10);
 });
 
 test('tenantStore: sliceForPage 支持 status 过滤', () => {
@@ -118,7 +118,8 @@ test('tenantStore: findByOwnerId with non-existent owner returns empty', () => {
 test('tenantStore: findByParentTenantId returns children', () => {
   store.reset();
   const children = store.findByParentTenantId('tenant_p001');
-  assert.equal(children.length, 0, 'seed data has no child farms of tenant_p001');
+  assert.equal(children.length, 1, 'seed data has one child farm of tenant_p001');
+  assert.equal(children[0].parentTenantId, 'tenant_p001');
 });
 
 test('tenantStore: createTenant with new fields', () => {

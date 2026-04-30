@@ -10,7 +10,9 @@ import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/features/auth/login_page.dart';
 import 'package:smart_livestock_demo/features/pages/admin_page.dart';
-import 'package:smart_livestock_demo/features/pages/b2b_admin_placeholder_page.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_contract_page.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_dashboard_page.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_farm_list_page.dart';
 import 'package:smart_livestock_demo/features/pages/alerts_page.dart';
 import 'package:smart_livestock_demo/features/pages/dashboard_page.dart';
 import 'package:smart_livestock_demo/features/pages/devices_page.dart';
@@ -264,6 +266,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'legacy-dashboard',
             builder: (context, state) => const DashboardPage(),
           ),
+          GoRoute(
+            path: AppRoute.b2bAdmin.path,
+            name: AppRoute.b2bAdmin.routeName,
+            builder: (context, state) => const B2bDashboardPage(),
+            routes: [
+              GoRoute(
+                path: 'farms',
+                name: AppRoute.b2bAdminFarms.routeName,
+                builder: (context, state) => const B2bFarmListPage(),
+              ),
+              GoRoute(
+                path: 'contract',
+                name: AppRoute.b2bAdminContract.routeName,
+                builder: (context, state) => const B2bContractPage(),
+              ),
+            ],
+          ),
         ],
       ),
       GoRoute(
@@ -287,11 +306,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             livestockCount: extra['livestockCount'] as int,
           );
         },
-      ),
-      GoRoute(
-        path: AppRoute.b2bAdmin.path,
-        name: AppRoute.b2bAdmin.routeName,
-        builder: (context, state) => const B2bAdminPlaceholderPage(),
       ),
     ],
   );

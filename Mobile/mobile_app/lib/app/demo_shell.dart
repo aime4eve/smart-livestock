@@ -23,9 +23,12 @@ class DemoShell extends ConsumerWidget {
     final session = ref.watch(sessionControllerProvider);
     final role = session.role;
     if (role == null ||
-        role == DemoRole.platformAdmin ||
-        role == DemoRole.b2bAdmin) {
+        role == DemoRole.platformAdmin) {
       return Scaffold(body: child);
+    }
+
+    if (role == DemoRole.b2bAdmin) {
+      return _B2bAdminShell(child: child);
     }
 
     final showFarmContext =
@@ -169,4 +172,58 @@ class _NavItem {
   final IconData icon;
   final String label;
   final AppRoute route;
+}
+
+class _B2bAdminShell extends StatelessWidget {
+  const _B2bAdminShell({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Row(
+        children: [
+          NavigationRail(
+            selectedIndex: _calculateIndex(context),
+            onDestinationSelected: (index) => _navigate(context, index),
+            labelType: NavigationRailLabelType.all,
+            destinations: const [
+              NavigationRailDestination(
+                icon: Icon(Icons.dashboard),
+                label: Text('概览'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.agriculture),
+                label: Text('牧场'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.description),
+                label: Text('合同'),
+              ),
+            ],
+          ),
+          const VerticalDivider(thickness: 1, width: 1),
+          Expanded(child: child),
+        ],
+      ),
+    );
+  }
+
+  int _calculateIndex(BuildContext context) {
+    final location = GoRouterState.of(context).uri.toString();
+    if (location.contains('/farms')) return 1;
+    if (location.contains('/contract')) return 2;
+    return 0;
+  }
+
+  void _navigate(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        context.go(AppRoute.b2bAdmin.path);
+      case 1:
+        context.go(AppRoute.b2bAdminFarms.path);
+      case 2:
+        context.go(AppRoute.b2bAdminContract.path);
+    }
+  }
 }

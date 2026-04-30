@@ -9,7 +9,7 @@ const profileRoutes = require('./profile');
 const twinRoutes = require('./twin');
 const devicesRoutes = require('./devices');
 const subscriptionRoutes = require('./subscription');
-const b2bAdminRoutes = require('./b2bAdmin');
+const b2bDashboardRoutes = require('./b2bDashboard');
 const farmRoutes = require('./farmRoutes');
 const workerRoutes = require('./workerRoutes');
 
@@ -25,7 +25,7 @@ function registerApiRoutes(app, prefix) {
   app.use(`${prefix}/twin`, twinRoutes);
   app.use(`${prefix}/devices`, devicesRoutes);
   app.use(`${prefix}/subscription`, subscriptionRoutes);
-  app.use(`${prefix}/b2b`, b2bAdminRoutes);
+  app.use(`${prefix}/b2b`, b2bDashboardRoutes);
   app.use(`${prefix}/farm`, farmRoutes);
   app.use(`${prefix}/farms`, workerRoutes);
 }

@@ -1,10 +1,10 @@
 # 统一商业模型 Phase 2a 设计规格
 
 > **文档编号**: SL-BIZ-2026-002
-> **版本**: v1.2
+> **版本**: v1.3
 > **编制日期**: 2026-04-29
 > **修订日期**: 2026-04-29
-> **状态**: 已修订（按 R1 评审报告修复 6 个 P0 + 10 个 P1 问题）
+> **状态**: 已修订（R2 评审修复 4 个 P0 + 6 个 P1 + 2 个 P2 问题）
 > **受众**: 产品经理 + 技术团队
 > **前置文档**: `docs/superpowers/specs/2026-04-28-unified-business-model-design.md` (v1.3)
 > **前置计划**: `docs/superpowers/plans/2026-04-28-unified-business-model-phase1.md`（Phase 1 已完成）
@@ -15,7 +15,7 @@
 
 Phase 2a 是统一商业模型 Phase 2 的第一个子阶段，聚焦三项交付：
 
-1. **E1: 技术债清理** — ops→platform_admin 全局改名 + applyMockShaping 接通 + ownerId 唯一约束移除
+1. **E1: 技术债清理** — ops→platform_admin 全局改名 + applyMockShaping 接通 + ownerId 非唯一性标注（Phase 1 未实施唯一约束，E1 仅在代码注释中明确该设计决策）
 2. **E2: 多 farm 支持** — owner 多 farm 切换 + worker 多 farm 分配 + farmContextMiddleware 扩展
 3. **E3: B端管理后台** — b2b_admin 完整 UI（用量看板 + 旗下 farm 管理 + 合同信息）+ ContractStore 真实逻辑
 
@@ -100,13 +100,15 @@ ViewData applyMockShaping(
 - `mock_fence_repository.dart`（feature: `fence`）
 - `mock_dashboard_repository.dart`（feature: `dashboard_summary`）
 - `mock_stats_repository.dart`（feature: `stats`）
-- 其他返回需 shaping 的数据的 repository（根据 feature key 逐个判断）
+- 其他返回需 shaping 的数据的 repository（在 plan 阶段逐一确认完整列表，对照 `feature-flags.js` 中的 feature key 与 repository 的对应关系）
 
 **迁移方式**：函数内部从 `viewData.data` 提取 `Map<String, dynamic>`，执行 shaping 后构造新 `ViewData.success(shapedData)` 返回。调用方只需将 `return ViewData.success(data)` 改为 `return applyMockShaping(ViewData.success(data), tier, keys)`。
 
+**非 success 状态处理**：若传入的 `ViewData` 状态非 `success`（如 loading / empty / error / unauthorized / offline），函数直接返回原 `ViewData` 不做 shaping。实现逻辑：`if (viewData.state != ViewState.success) return viewData;`。
+
 ### 1.3 ownerId 唯一约束
 
-Phase 1 计划中声明 `ownerId` 唯一约束，但实际代码 `tenantStore.createTenant()` 未实现该校验。E1 无需改动后端代码，仅在 `tenantStore.createTenant()` 注释中标注 `ownerId` 允许多个 farm 共享同一 owner。seed 数据不变。
+Phase 1 计划中声明 `ownerId` 唯一约束，但实际代码 `tenantStore.createTenant()` 未实现该校验。经 E2 多 farm 需求确认，`ownerId` 不应为唯一约束（同一 owner 可拥有多个 farm）。E1 无需改动后端代码，仅在 `tenantStore.createTenant()` 注释中标注此设计决策：`// ownerId 非唯一：同一 owner 可拥有多个 farm（Phase 2a 确认）`。seed 数据不变。
 
 ---
 
@@ -143,9 +145,9 @@ Phase 1 计划中声明 `ownerId` 唯一约束，但实际代码 `tenantStore.cr
 }
 ```
 
-- owner：`items` 来自 `tenantStore.findByOwnerId(userId)`
-- worker：`items` 来自 `workerFarmStore.findByUserId(userId)` 映射 farm 详情
-- `activeFarmId`：来自 `req.headers['x-active-farm']`，若无 header 则取 items[0].id
+- owner：`farms` 来自 `tenantStore.findByOwnerId(userId)`
+- worker：`farms` 来自 `workerFarmStore.findByUserId(userId)` 映射 farm 详情
+- `activeFarmId`：来自 `req.headers['x-active-farm']`，若无 header 则取 farms[0].id
 
 **`POST /api/v1/switch-farm` 请求/响应**：
 
@@ -163,7 +165,7 @@ Phase 1 计划中声明 `ownerId` 唯一约束，但实际代码 `tenantStore.cr
 { "code": 404, "message": "牧场不存在" }
 ```
 
-**farm 切换机制**：客户端在每次请求中通过 `x-active-farm` header 携带当前活跃 farm ID。`switch-farm` 端点仅做权限校验（确认该 farm 属于当前用户），不做服务端 session 存储。前端 `FarmSwitcherController` 维护 `activeFarmTenantId` 状态，切换时更新状态并在后续请求中自动注入 header。
+**farm 切换机制**：客户端在每次请求中通过 `x-active-farm` header 携带当前活跃 farm ID。`farmContextMiddleware` 会自动校验 header 值是否属于当前用户（非法值被忽略，回退到默认 farm），因此 `switch-farm` 端点并非严格必需——前端可以直接切换本地状态。该端点存在的理由：(1) 为未来 MVP 后端提供集中式切换校验入口（服务端可记录切换审计日志）；(2) 前端可在切换后立即验证 farm 存在性，避免后续请求静默回退到错误 farm。若实施时希望减少端点数量，可省略此端点，前端仅靠本地状态切换 + middleware 兜底。
 
 **`farmContextMiddleware` 扩展**（替换 Phase 1 版本）：
 
@@ -188,6 +190,7 @@ function farmContextMiddleware(req, res, next) {
       req.activeFarmTenantId = farmIds.length > 0 ? farmIds[0] : null;
     }
   } else {
+    // platform_admin (原 ops)、b2b_admin、api_consumer — 无 farm 上下文
     req.activeFarmTenantId = null;
   }
   next();
@@ -317,10 +320,10 @@ B端控制台（侧边栏导航，无底部 Tab）
 
 | 指标 | 数据来源 |
 |------|---------|
-| 总牲畜数 | 各 farm 的 cattleStore 按 parentTenantId 聚合 |
-| 总设备数 | 各 farm 的 devicesStore 聚合 |
-| 待处理告警数 | alertsStore 按 farmTenantId 聚合 |
-| farm 数量 | tenantStore.findByParentTenantId() |
+| 总牲畜数 | 遍历 `tenantStore.findByParentTenantId()` 获取旗下 farm 列表，逐个 farm 累加 cattleStore 牲畜数量 |
+| 总设备数 | 同上，累加 devicesStore 设备数量 |
+| 待处理告警数 | 同上，累加 alertsStore 中 status=pending 的告警数量 |
+| farm 数量 | `tenantStore.findByParentTenantId().length` |
 
 端点：`GET /api/v1/b2b/dashboard`
 
@@ -410,14 +413,15 @@ B端控制台（侧边栏导航，无底部 Tab）
 创建子 farm 逻辑：
 1. `type='farm'`，`parentTenantId` = 当前 b2b_admin 的 partner tenant ID
 2. `billingModel` 和 `entitlementTier` 继承 parent partner
-3. **仅 direct farm** 调用 `subscriptionStore.createTrial()`（partner 下 farm 的 `getEffectiveTier()` 通过 parent lookup 绕过 subscription 检查，无需 trial）
+3. **仅 direct farm** 调用 `subscriptionStore.createTrial()`。注意：b2b_admin 创建的 farm 必然有 `parentTenantId`，不会触发此分支；此逻辑为 Phase 2b platform_admin 直接创建 farm 或 API 开放平台预留
 4. 若指定 `ownerName`，自动创建 owner 用户并关联：
-   - `userId`: `u_${Date.now()}`（内存生成，不保证唯一性，仅 Mock 环境）
+   - `userId`: `u_${Date.now()}`（内存生成，仅 Mock 环境使用；seed 数据中预置用户使用递增编号如 `u_006`，动态创建用户使用时间戳格式，两种格式均为 Mock-only 约定）
    - `tenantId`: 新创建的 farm ID
    - `role: 'owner'`
    - `permissions`: 同现有 owner 模板
    - `mobile`: 取 `contactPhone` 字段值
-   - **Mock token 自动注册**：在 `TOKEN_MAP` 中添加 `mock-token-{userId}` → `'owner'` 映射，在 `users` 对象中添加对应条目。前端需同步更新登录页角色列表或提供直接 token 输入方式
+   - **Mock token 自动注册**：在 `TOKEN_MAP` 中添加 `mock-token-{userId}` → `'owner'` 映射，在 `users` 对象中添加对应条目。
+   - **前端登录适配**：动态创建的 owner 用户不在登录页固定角色按钮中。Phase 2a 的解决方案：登录页 owner 角色按钮点击后弹出用户选择器（列出该 tenant 下的所有 owner 用户，包括动态创建的），或提供"直接输入 token"输入框作为 Mock 环境的 escape hatch。实施时优先选择后者（输入框），改动最小且覆盖所有角色。
 
 ### 3.4 合同信息
 
@@ -442,10 +446,10 @@ B端控制台（侧边栏导航，无底部 Tab）
 
 | 端点 | 方法 | 说明 | 权限 |
 |------|------|------|------|
-| `/api/v1/contract/current` | GET | 查看自己合同 | b2b_admin |
-| `/api/v1/contract/usage-summary` | GET | 旗下 farm 用量聚合（与 dashboard 数据源相同，但按月分组） | b2b_admin |
+| `/api/v1/b2b/contract/current` | GET | 查看自己合同 | b2b_admin |
+| `/api/v1/b2b/contract/usage-summary` | GET | 旗下 farm 用量聚合（与 dashboard 数据源相同，但按月分组） | b2b_admin |
 
-**`GET /api/v1/contract/current` 响应**：
+**`GET /api/v1/b2b/contract/current` 响应**：
 
 ```json
 {
@@ -464,7 +468,7 @@ B端控制台（侧边栏导航，无底部 Tab）
 ```
 无合同时返回 `{ "code": 200, "data": null }`（不返回 404）。
 
-**`GET /api/v1/contract/usage-summary` 响应**：
+**`GET /api/v1/b2b/contract/usage-summary` 响应**：
 
 ```json
 {
@@ -532,9 +536,10 @@ Phase 2a 中合同为只读展示（合同创建/编辑由 platform_admin 在后
 ```javascript
 b2b_admin: {
   // 现有
-  'tenant:view', 'tenant:create', 'farm:view_summary',
+  'tenant:view', 'farm:view_summary',
   // 新增
   'contract:view', 'farm:create', 'b2b:dashboard',
+  // 注意：不使用 tenant:create，b2b_admin 仅能通过 farm:create 创建旗下子 farm
 }
 ```
 

@@ -26,6 +26,8 @@ enum AppRoute {
   ),
   twinEpidemic('/twin/epidemic', 'twin-epidemic', '疫病防控'),
   b2bAdmin('/b2b/admin', 'b2b-admin', 'B端控制台'),
+  b2bAdminFarms('/b2b/admin/farms', 'b2b-admin-farms', '牧场管理'),
+  b2bAdminContract('/b2b/admin/contract', 'b2b-admin-contract', '合同信息'),
   subscription('/subscription', 'subscription', '订阅管理'),
   checkout('/subscription/checkout', 'checkout', '确认支付'),
   subscriptionPlan('/subscription/plans', 'subscription-plan', '套餐选择'),
