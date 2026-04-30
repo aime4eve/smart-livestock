@@ -1,6 +1,6 @@
 # 统一商业模型 Phase 2a 实施计划
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** 清理 Phase 1 遗留技术债（ops 改名 + shaping 接通），新增多 farm 切换与 B端管理后台，为多租户商业模型奠定基础。
 
@@ -20,16 +20,17 @@
 
 | 优先级 | Issue | 标题 |
 |--------|-------|------|
-| P0 | 待创建 | E1: 技术债清理 — ops→platform_admin 改名 + applyMockShaping 接通 |
-| P0 | 待创建 | E2: 多 farm 支持 — owner 多 farm 切换 + worker 多 farm 分配 |
-| P0 | 待创建 | E3: B端管理后台 — 用量看板 + 旗下 farm 管理 + 合同信息 |
+| P0 | 已完成 | E1: 技术债清理 — ops→platform_admin 改名 + applyMockShaping 接通 |
+| P0 | 已完成 | E2: 多 farm 支持 — owner 多 farm 切换 + worker 多 farm 分配 |
+| P0 | 已完成 | E3: B端管理后台 — 用量看板 + 旗下 farm 管理 + 合同信息 |
 
 ### 完成记录
 
 | 完成日期 | Issue | PR | 备注 |
 |----------|-------|-----|------|
-| 2026-04-30 | E1 | 未提 PR | ops→platform_admin 改名、ownerId 非唯一注释、applyMockShaping 接通；未提交 commit |
-| 2026-04-30 | E2 | — | 多 farm 支持：workerFarmStore、my-farms/switch-farm、/farms/:farmId/workers、FarmSwitcher + ApiCache、牧工管理；代码已提交于分支 feat/ubm-e2-multi-farm，待合并 master |
+| 2026-04-30 | E1 | — | ops→platform_admin 改名、ownerId 非唯一注释、applyMockShaping 接通；commit 5e889df |
+| 2026-04-30 | E2 | #31 | 多 farm 支持：workerFarmStore、my-farms/switch-farm、/farms/:farmId/workers、FarmSwitcher + ApiCache、牧工管理；已合并 master |
+| 2026-05-01 | E3 | #32 | B端管理后台：contractStore、b2bDashboard 路由、B端 Shell + 侧边栏、概览/牧场管理/合同三页面；代码在 feat/ubm-e3-b2b-admin |
 
 ---
 
@@ -295,7 +296,7 @@ curl -s http://localhost:3001/api/me -H "Authorization: Bearer mock-token-platfo
 # Expected: 200, role: "platform_admin"
 ```
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 cd Mobile
@@ -506,7 +507,7 @@ void loginWithToken(String token) {
 Run: `cd Mobile/mobile_app && flutter test`
 Expected: 全部 PASS
 
-- [ ] **Step 13: Commit**
+- [x] **Step 13: Commit**
 
 ```bash
 cd Mobile
@@ -529,7 +530,7 @@ git commit -m "refactor(frontend): rename ops role to platformAdmin"
 // ownerId 非唯一：同一 owner 可拥有多个 farm（Phase 2a 确认）
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 cd Mobile
@@ -832,7 +833,7 @@ return data;
 Run: `cd Mobile/mobile_app && flutter test`
 Expected: 全部 PASS，无回归
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 cd Mobile
@@ -866,7 +867,7 @@ Expected: 0 issues, 全部 PASS
 - Modify: `backend/data/seed.js`
 - Test: `backend/test/workerFarmStore.test.js`
 
-- [ ] **Step 1: 写 workerFarmStore 单元测试**
+- [x] **Step 1: 写 workerFarmStore 单元测试**
 
 创建 `backend/test/workerFarmStore.test.js`：
 
@@ -916,12 +917,12 @@ describe('workerFarmStore', () => {
 });
 ```
 
-- [ ] **Step 2: 运行测试确认失败**
+- [x] **Step 2: 运行测试确认失败**
 
 Run: `cd Mobile/backend && node --test test/workerFarmStore.test.js`
 Expected: FAIL — module not found
 
-- [ ] **Step 3: 实现 workerFarmStore**
+- [x] **Step 3: 实现 workerFarmStore**
 
 创建 `backend/data/workerFarmStore.js`：
 
@@ -988,12 +989,12 @@ function unassign(assignmentId) {
 module.exports = { findByUserId, findByFarmId, assign, unassign };
 ```
 
-- [ ] **Step 4: 运行测试确认通过**
+- [x] **Step 4: 运行测试确认通过**
 
 Run: `cd Mobile/backend && node --test test/workerFarmStore.test.js`
 Expected: 全部 PASS
 
-- [ ] **Step 5: 扩展 seed.js — 新增 tenant_007**
+- [x] **Step 5: 扩展 seed.js — 新增 tenant_007**
 
 在 `backend/data/seed.js` 的 tenants 数组中新增 owner（张三）的第二个 farm：
 
@@ -1020,7 +1021,7 @@ Expected: 全部 PASS
 },
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd Mobile
@@ -1039,7 +1040,7 @@ git commit -m "feat(backend): add workerFarmStore + seed tenant_007 for multi-fa
 - Create: `backend/routes/farmRoutes.js`
 - Test: `backend/test/farm-switch.test.js`
 
-- [ ] **Step 1: 写 farm 切换 API 集成测试**
+- [x] **Step 1: 写 farm 切换 API 集成测试**
 
 创建 `backend/test/farm-switch.test.js`：
 
@@ -1130,12 +1131,12 @@ describe('Farm switching API', () => {
 });
 ```
 
-- [ ] **Step 2: 运行测试确认失败**
+- [x] **Step 2: 运行测试确认失败**
 
 Run: `cd Mobile/backend && node --test test/farm-switch.test.js`
 Expected: FAIL — route not found
 
-- [ ] **Step 3: 扩展 farmContextMiddleware**
+- [x] **Step 3: 扩展 farmContextMiddleware**
 
 替换 `backend/middleware/farmContext.js` 全部内容：
 
@@ -1171,7 +1172,7 @@ function farmContextMiddleware(req, res, next) {
 module.exports = { farmContextMiddleware };
 ```
 
-- [ ] **Step 4: 创建 farmRoutes.js**
+- [x] **Step 4: 创建 farmRoutes.js**
 
 创建 `backend/routes/farmRoutes.js`：
 
@@ -1258,7 +1259,7 @@ router.post('/switch-farm', (req, res) => {
 module.exports = router;
 ```
 
-- [ ] **Step 5: 注册路由**
+- [x] **Step 5: 注册路由**
 
 在 `backend/routes/registerApiRoutes.js` 中添加：
 
@@ -1278,12 +1279,12 @@ function registerApiRoutes(app, prefix) {
 ['POST',   '/farm/switch-farm'],
 ```
 
-- [ ] **Step 6: 运行测试确认通过**
+- [x] **Step 6: 运行测试确认通过**
 
 Run: `cd Mobile/backend && node --test test/farm-switch.test.js test/farmContext.test.js`
 Expected: 全部 PASS
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd Mobile
@@ -1301,7 +1302,7 @@ git commit -m "feat(backend): multi-farm support — farmContextMiddleware + my-
 - Modify: `backend/server.js`
 - Test: `backend/test/worker-routes.test.js`
 
-- [ ] **Step 1: 写 workers CRUD API 集成测试**
+- [x] **Step 1: 写 workers CRUD API 集成测试**
 
 创建 `backend/test/worker-routes.test.js`：
 
@@ -1368,12 +1369,12 @@ describe('Workers CRUD API', () => {
 });
 ```
 
-- [ ] **Step 2: 运行测试确认失败**
+- [x] **Step 2: 运行测试确认失败**
 
 Run: `cd Mobile/backend && node --test test/worker-routes.test.js`
 Expected: FAIL — route not found
 
-- [ ] **Step 3: 创建 workerRoutes.js**
+- [x] **Step 3: 创建 workerRoutes.js**
 
 规格 Section 2.2 定义路径为 `/api/v1/farms/:farmId/workers`，因此 workers CRUD 不挂到 `/farm` 前缀下，避免生成 `/api/v1/farm/farms/...`。
 
@@ -1443,7 +1444,7 @@ router.delete('/:farmId/workers/:id', (req, res) => {
 module.exports = router;
 ```
 
-- [ ] **Step 4: 注册路由**
+- [x] **Step 4: 注册路由**
 
 在 `backend/routes/registerApiRoutes.js` 中添加：
 
@@ -1456,7 +1457,7 @@ function registerApiRoutes(app, prefix) {
 }
 ```
 
-- [ ] **Step 5: 更新 server.js ROUTE_DEFINITIONS**
+- [x] **Step 5: 更新 server.js ROUTE_DEFINITIONS**
 
 在 `ROUTE_DEFINITIONS` 数组中添加：
 
@@ -1466,12 +1467,12 @@ function registerApiRoutes(app, prefix) {
 ['DELETE', '/farms/:farmId/workers/:id'],
 ```
 
-- [ ] **Step 6: 运行后端全量测试**
+- [x] **Step 6: 运行后端全量测试**
 
 Run: `cd Mobile/backend && node --test test/*.test.js`
 Expected: 全部 PASS
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd Mobile
@@ -1487,7 +1488,7 @@ git commit -m "feat(backend): add workers CRUD endpoints for farm management"
 - Modify: `mobile_app/lib/app/session/app_session.dart`
 - Create: `mobile_app/lib/features/farm_switcher/farm_switcher_controller.dart`
 
-- [ ] **Step 1: 扩展 AppSession**
+- [x] **Step 1: 扩展 AppSession**
 
 在 `lib/app/session/app_session.dart` 中添加 `activeFarmTenantId` 字段：
 
@@ -1543,7 +1544,7 @@ class AppSession {
 }
 ```
 
-- [ ] **Step 2: 创建 FarmSwitcherController**
+- [x] **Step 2: 创建 FarmSwitcherController**
 
 创建 `lib/features/farm_switcher/farm_switcher_controller.dart`：
 
@@ -1662,7 +1663,7 @@ final farmSwitcherControllerProvider =
 
 注意：需要在 `SessionController` 中添加 `updateActiveFarm` 方法（下一步实现）。
 
-- [ ] **Step 3: 在 SessionController 添加 updateActiveFarm 方法**
+- [x] **Step 3: 在 SessionController 添加 updateActiveFarm 方法**
 
 在 `lib/app/session/session_controller.dart` 的 `SessionController` 类中添加：
 
@@ -1674,7 +1675,7 @@ void updateActiveFarm(String farmId) {
 }
 ```
 
-- [ ] **Step 4: 扩展 ApiCache 添加 myFarms**
+- [x] **Step 4: 扩展 ApiCache 添加 myFarms**
 
 在 `lib/core/api/api_cache.dart` 中添加 `myFarms`、`workers`、`b2bDashboard`、`b2bContract` 字段。在 `init()` 方法中根据角色预加载：
 
@@ -1718,12 +1719,12 @@ if (role == 'b2b_admin') {
 
 在 `_clearLiveData()` 中同步清空这 4 个字段。
 
-- [ ] **Step 5: 运行前端测试验证**
+- [x] **Step 5: 运行前端测试验证**
 
 Run: `cd Mobile/mobile_app && flutter test`
 Expected: 全部 PASS
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd Mobile
@@ -1739,7 +1740,7 @@ git commit -m "feat(frontend): add FarmSwitcherController + extend AppSession wi
 - Create: `mobile_app/lib/features/farm_switcher/farm_switcher_widget.dart`
 - Modify: `mobile_app/lib/app/demo_shell.dart`
 
-- [ ] **Step 1: 创建 FarmSwitcher Widget**
+- [x] **Step 1: 创建 FarmSwitcher Widget**
 
 创建 `lib/features/farm_switcher/farm_switcher_widget.dart`：
 
@@ -1796,7 +1797,7 @@ class FarmSwitcher extends ConsumerWidget {
 }
 ```
 
-- [ ] **Step 2: 在 DemoShell AppBar 中嵌入 FarmSwitcher**
+- [x] **Step 2: 在 DemoShell AppBar 中嵌入 FarmSwitcher**
 
 在 `lib/app/demo_shell.dart` 中，为 owner/worker 角色的 AppBar actions 添加 FarmSwitcher：
 
@@ -1821,12 +1822,12 @@ if ((role == DemoRole.owner || role == DemoRole.worker) &&
 }
 ```
 
-- [ ] **Step 3: 运行前端测试**
+- [x] **Step 3: 运行前端测试**
 
 Run: `cd Mobile/mobile_app && flutter test`
 Expected: 全部 PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd Mobile
@@ -1843,7 +1844,7 @@ git commit -m "feat(frontend): add FarmSwitcher widget and integrate into DemoSh
 - Create: `mobile_app/lib/features/worker_management/data/mock_worker_repository.dart`
 - Create: `mobile_app/lib/features/worker_management/data/live_worker_repository.dart`
 
-- [ ] **Step 1: 创建 Repository 接口**
+- [x] **Step 1: 创建 Repository 接口**
 
 创建 `lib/features/worker_management/domain/worker_repository.dart`：
 
@@ -1890,7 +1891,7 @@ abstract class WorkerRepository {
 }
 ```
 
-- [ ] **Step 2: 创建 Mock 实现**
+- [x] **Step 2: 创建 Mock 实现**
 
 创建 `lib/features/worker_management/data/mock_worker_repository.dart`：
 
@@ -1951,7 +1952,7 @@ class MockWorkerRepository implements WorkerRepository {
 }
 ```
 
-- [ ] **Step 3: 创建 Live 实现**
+- [x] **Step 3: 创建 Live 实现**
 
 创建 `lib/features/worker_management/data/live_worker_repository.dart`：
 
@@ -2013,7 +2014,7 @@ class LiveWorkerRepository implements WorkerRepository {
 }
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd Mobile
@@ -2032,7 +2033,7 @@ git commit -m "feat(frontend): add worker management domain + data layer"
 - Modify: `mobile_app/lib/app/app_route.dart`
 - Modify: `mobile_app/lib/app/app_router.dart`
 
-- [ ] **Step 1: 创建 WorkerController**
+- [x] **Step 1: 创建 WorkerController**
 
 创建 `lib/features/worker_management/presentation/worker_controller.dart`：
 
@@ -2083,7 +2084,7 @@ final workerControllerProvider =
 );
 ```
 
-- [ ] **Step 2: 创建 WorkerListPage**
+- [x] **Step 2: 创建 WorkerListPage**
 
 创建 `lib/features/worker_management/presentation/worker_list_page.dart`：
 
@@ -2161,7 +2162,7 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
 }
 ```
 
-- [ ] **Step 3: 添加路由**
+- [x] **Step 3: 添加路由**
 
 在 `lib/app/app_route.dart` 中添加枚举值：
 
@@ -2179,7 +2180,7 @@ GoRoute(
 ),
 ```
 
-- [ ] **Step 4: 在 MinePage 添加入口**
+- [x] **Step 4: 在 MinePage 添加入口**
 
 在 `lib/features/pages/mine_page.dart` 中，为 owner 角色添加"牧工管理"列表项：
 
@@ -2195,12 +2196,12 @@ if (role == DemoRole.owner)
   ),
 ```
 
-- [ ] **Step 5: 运行测试验证**
+- [x] **Step 5: 运行测试验证**
 
 Run: `cd Mobile/mobile_app && flutter test`
 Expected: 全部 PASS
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd Mobile
@@ -2221,7 +2222,7 @@ git commit -m "feat(frontend): add worker management page and mine page entry"
 - Modify: `backend/data/seed.js`
 - Test: `backend/test/contractStore.test.js`
 
-- [ ] **Step 1: 写 contractStore 单元测试**
+- [x] **Step 1: 写 contractStore 单元测试**
 
 创建 `backend/test/contractStore.test.js`：
 
@@ -2249,12 +2250,12 @@ describe('contractStore', () => {
 });
 ```
 
-- [ ] **Step 2: 运行测试确认失败**
+- [x] **Step 2: 运行测试确认失败**
 
 Run: `cd Mobile/backend && node --test test/contractStore.test.js`
 Expected: FAIL — module not found
 
-- [ ] **Step 3: 实现 contractStore**
+- [x] **Step 3: 实现 contractStore**
 
 创建 `backend/data/contractStore.js`：
 
@@ -2282,12 +2283,12 @@ function getByPartnerTenantId(partnerTenantId) {
 module.exports = { getByPartnerTenantId };
 ```
 
-- [ ] **Step 4: 运行测试确认通过**
+- [x] **Step 4: 运行测试确认通过**
 
 Run: `cd Mobile/backend && node --test test/contractStore.test.js`
 Expected: PASS
 
-- [ ] **Step 5: 扩展 seed.js — 新增 partner 旗下 farm + 用户**
+- [x] **Step 5: 扩展 seed.js — 新增 partner 旗下 farm + 用户**
 
 在 `backend/data/seed.js` 中：
 
@@ -2360,7 +2361,7 @@ const TOKEN_MAP = {
 
 这样通过 `mock-token-u_006` 登录时，`req.userRole === 'owner'` 且 `req.user === users.u_006`，不会错误地回落到默认 `users.owner`。
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd Mobile
@@ -2379,7 +2380,7 @@ git commit -m "feat(backend): add contractStore + seed partner farm data"
 - Delete: `backend/routes/b2bAdmin.js`
 - Test: `backend/test/b2b-dashboard.test.js`
 
-- [ ] **Step 1: 写 B端控制台集成测试**
+- [x] **Step 1: 写 B端控制台集成测试**
 
 创建 `backend/test/b2b-dashboard.test.js`：
 
@@ -2487,12 +2488,12 @@ describe('B2B Dashboard API', () => {
 });
 ```
 
-- [ ] **Step 2: 运行测试确认失败**
+- [x] **Step 2: 运行测试确认失败**
 
 Run: `cd Mobile/backend && node --test test/b2b-dashboard.test.js`
 Expected: FAIL — route returns placeholder or 404
 
-- [ ] **Step 3: 创建 b2bDashboard.js**
+- [x] **Step 3: 创建 b2bDashboard.js**
 
 创建 `backend/routes/b2bDashboard.js`（替换 b2bAdmin.js）：
 
@@ -2645,7 +2646,7 @@ router.get('/contract/usage-summary', (req, res) => {
 module.exports = router;
 ```
 
-- [ ] **Step 4: 更新路由注册**
+- [x] **Step 4: 更新路由注册**
 
 在 `backend/routes/registerApiRoutes.js` 中：
 
@@ -2661,7 +2662,7 @@ const b2bDashboardRoutes = require('./b2bDashboard');
 app.use(`${prefix}/b2b`, b2bDashboardRoutes);
 ```
 
-- [ ] **Step 5: 更新 server.js 路由表**
+- [x] **Step 5: 更新 server.js 路由表**
 
 在 `ROUTE_DEFINITIONS` 中替换 `/b2b/status` 为：
 
@@ -2673,18 +2674,18 @@ app.use(`${prefix}/b2b`, b2bDashboardRoutes);
 ['GET',    '/b2b/contract/usage-summary'],
 ```
 
-- [ ] **Step 6: 删除旧文件**
+- [x] **Step 6: 删除旧文件**
 
 ```bash
 rm backend/routes/b2bAdmin.js
 ```
 
-- [ ] **Step 7: 运行测试确认通过**
+- [x] **Step 7: 运行测试确认通过**
 
 Run: `cd Mobile/backend && node --test test/b2b-dashboard.test.js test/contractStore.test.js`
 Expected: 全部 PASS
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 cd Mobile
@@ -2703,7 +2704,7 @@ git commit -m "feat(backend): replace b2bAdmin placeholder with full B2B dashboa
 - Modify: `mobile_app/lib/core/permissions/role_permission.dart`
 - Delete: `mobile_app/lib/features/pages/b2b_admin_placeholder_page.dart`
 
-- [ ] **Step 1: 扩展 RolePermission**
+- [x] **Step 1: 扩展 RolePermission**
 
 在 `lib/core/permissions/role_permission.dart` 底部添加：
 
@@ -2714,7 +2715,7 @@ static bool canCreateFarm(DemoRole role) =>
 static bool canViewB2bDashboard(DemoRole role) => role == DemoRole.b2bAdmin;
 ```
 
-- [ ] **Step 2: 扩展 AppRoute 枚举**
+- [x] **Step 2: 扩展 AppRoute 枚举**
 
 在 `lib/app/app_route.dart` 中添加 B端子路由：
 
@@ -2724,7 +2725,7 @@ b2bAdminFarms('/b2b/admin/farms', 'b2b-admin-farms', '牧场管理'),
 b2bAdminContract('/b2b/admin/contract', 'b2b-admin-contract', '合同信息'),
 ```
 
-- [ ] **Step 3: 更新 AppRouter 注册 B端子路由**
+- [x] **Step 3: 更新 AppRouter 注册 B端子路由**
 
 在 `lib/app/app_router.dart` 中，当前 B端路由位于主 `ShellRoute`（包含 `ExpiryPopupHandler` + `DemoShell`）**内部**。**不要创建独立 ShellRoute** — 保持 B端路由在主 ShellRoute 内部以维持 `ExpiryPopupHandler` 包装和路由守卫。
 
@@ -2750,7 +2751,7 @@ GoRoute(
 ),
 ```
 
-- [ ] **Step 4: 修改 DemoShell b2bAdmin 分支**
+- [x] **Step 4: 修改 DemoShell b2bAdmin 分支**
 
 在 `lib/app/demo_shell.dart` 中，将 b2bAdmin 的 `Scaffold(body: child)` 改为渲染带侧边栏的布局：
 
@@ -2821,13 +2822,13 @@ class _B2bAdminShell extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 5: 删除占位页面**
+- [x] **Step 5: 删除占位页面**
 
 ```bash
 rm mobile_app/lib/features/pages/b2b_admin_placeholder_page.dart
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd Mobile
@@ -2843,7 +2844,7 @@ git commit -m "feat(frontend): B2B admin shell with sidebar navigation and route
 - Create: `mobile_app/lib/features/b2b_admin/data/b2b_repository.dart`
 - Create: `mobile_app/lib/features/b2b_admin/presentation/b2b_controller.dart`
 
-- [ ] **Step 1: 创建 B2B Repository（接口 + mock + live 合一）**
+- [x] **Step 1: 创建 B2B Repository（接口 + mock + live 合一）**
 
 创建 `lib/features/b2b_admin/data/b2b_repository.dart`：
 
@@ -3028,7 +3029,7 @@ class B2bRepository {
 }
 ```
 
-- [ ] **Step 2: 创建 B2B Controller**
+- [x] **Step 2: 创建 B2B Controller**
 
 创建 `lib/features/b2b_admin/presentation/b2b_controller.dart`：
 
@@ -3070,11 +3071,11 @@ final b2bContractControllerProvider =
 
 注意：需在文件顶部添加 `import 'package:smart_livestock_demo/core/models/view_state.dart';`。
 
-- [ ] **Step 3: 扩展 ApiCache**
+- [x] **Step 3: 扩展 ApiCache**
 
 在 `lib/core/api/api_cache.dart` 中添加 `b2bDashboard` 和 `b2bContract` 字段。在 `init()` 方法中添加 `/api/v1/b2b/dashboard` 和 `/api/v1/b2b/contract/current` 的预加载（仅 b2b_admin 角色加载）。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd Mobile
@@ -3089,7 +3090,7 @@ git commit -m "feat(frontend): add B2B repository and controllers"
 **Files:**
 - Create: `mobile_app/lib/features/b2b_admin/presentation/b2b_dashboard_page.dart`
 
-- [ ] **Step 1: 创建 B2bDashboardPage**
+- [x] **Step 1: 创建 B2bDashboardPage**
 
 创建 `lib/features/b2b_admin/presentation/b2b_dashboard_page.dart`：
 
@@ -3204,7 +3205,7 @@ class _MetricCard extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 cd Mobile
@@ -3219,7 +3220,7 @@ git commit -m "feat(frontend): add B2B dashboard overview page"
 **Files:**
 - Create: `mobile_app/lib/features/b2b_admin/presentation/b2b_farm_list_page.dart`
 
-- [ ] **Step 1: 创建 B2bFarmListPage**
+- [x] **Step 1: 创建 B2bFarmListPage**
 
 创建 `lib/features/b2b_admin/presentation/b2b_farm_list_page.dart`：
 
@@ -3314,7 +3315,7 @@ class B2bFarmListPage extends ConsumerWidget {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 cd Mobile
@@ -3329,7 +3330,7 @@ git commit -m "feat(frontend): add B2B farm list page with create dialog"
 **Files:**
 - Create: `mobile_app/lib/features/b2b_admin/presentation/b2b_contract_page.dart`
 
-- [ ] **Step 1: 创建 B2bContractPage**
+- [x] **Step 1: 创建 B2bContractPage**
 
 创建 `lib/features/b2b_admin/presentation/b2b_contract_page.dart`：
 
@@ -3445,7 +3446,7 @@ class _InfoRow extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 cd Mobile
@@ -3457,17 +3458,17 @@ git commit -m "feat(frontend): add B2B contract page"
 
 ### Task 20: E2+E3 全量回归测试
 
-- [ ] **Step 1: 后端全量测试**
+- [x] **Step 1: 后端全量测试**
 
 Run: `cd Mobile/backend && node --test test/*.test.js`
 Expected: 全部 PASS
 
-- [ ] **Step 2: 前端静态分析 + 全量测试**
+- [x] **Step 2: 前端静态分析 + 全量测试**
 
 Run: `cd Mobile/mobile_app && flutter analyze && flutter test`
 Expected: 0 issues, 全部 PASS
 
-- [ ] **Step 3: 端到端冒烟验证**
+- [x] **Step 3: 端到端冒烟验证**
 
 1. 启动 Mock Server：`cd Mobile/backend && node server.js`
 2. 确认新端点可达：
@@ -3484,7 +3485,7 @@ curl -s http://localhost:3001/api/v1/b2b/farms -H "Authorization: Bearer mock-to
 
 Expected: 全部返回 200 + 正确数据
 
-- [ ] **Step 4: 创建合并 commit**
+- [x] **Step 4: 创建合并 commit**
 
 ```bash
 cd Mobile
