@@ -33,6 +33,7 @@ import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_c
 import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_detail_page.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_edit_page.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_list_page.dart';
+import 'package:smart_livestock_demo/features/worker_management/presentation/worker_list_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final appMode = ref.watch(appModeProvider);
@@ -74,6 +75,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (location == AppRoute.admin.path && !session.canAccessAdminTab) {
+        return AppRoute.twin.path;
+      }
+
+      if (location == AppRoute.workerManagement.path &&
+          role != DemoRole.owner) {
         return AppRoute.twin.path;
       }
 
@@ -181,6 +187,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoute.mine.path,
             name: AppRoute.mine.routeName,
             builder: (context, state) => const MinePage(),
+          ),
+          GoRoute(
+            path: AppRoute.workerManagement.path,
+            name: AppRoute.workerManagement.routeName,
+            builder: (context, state) => const WorkerListPage(),
           ),
           GoRoute(
             path: AppRoute.fence.path,

@@ -4,7 +4,7 @@ const { farmContextMiddleware } = require('../middleware/farmContext');
 const tenantStore = require('../data/tenantStore');
 
 function mockReq(user) {
-  return { user };
+  return { user, headers: {} };
 }
 
 function mockRes() {
@@ -22,20 +22,38 @@ test('farmContext: owner role sets activeFarmTenantId from findByOwnerId', () =>
     'owner u_001 should resolve to tenant_001');
 });
 
-test('farmContext: worker role uses tenantId directly', () => {
+test('farmContext: worker role uses first farm assignment', () => {
   tenantStore.reset();
   const req = mockReq({ userId: 'u_002', role: 'worker', tenantId: 'tenant_002' });
 
   farmContextMiddleware(req, mockRes(), () => {});
-  assert.equal(req.activeFarmTenantId, 'tenant_002');
+  assert.equal(req.activeFarmTenantId, 'tenant_001');
 });
 
-test('farmContext: worker without tenantId gets null', () => {
+test('farmContext: worker without farm assignment gets null', () => {
   tenantStore.reset();
-  const req = mockReq({ userId: 'u_002', role: 'worker' });
+  const req = mockReq({ userId: 'nonexistent', role: 'worker' });
 
   farmContextMiddleware(req, mockRes(), () => {});
   assert.equal(req.activeFarmTenantId, null);
+});
+
+test('farmContext: owner can select farm from x-active-farm header', () => {
+  tenantStore.reset();
+  const req = mockReq({ userId: 'u_001', role: 'owner', tenantId: 'tenant_001' });
+  req.headers['x-active-farm'] = 'tenant_007';
+
+  farmContextMiddleware(req, mockRes(), () => {});
+  assert.equal(req.activeFarmTenantId, 'tenant_007');
+});
+
+test('farmContext: worker can select assigned farm from x-active-farm header', () => {
+  tenantStore.reset();
+  const req = mockReq({ userId: 'u_002', role: 'worker', tenantId: 'tenant_001' });
+  req.headers['x-active-farm'] = 'tenant_007';
+
+  farmContextMiddleware(req, mockRes(), () => {});
+  assert.equal(req.activeFarmTenantId, 'tenant_007');
 });
 
 test('farmContext: platform_admin role sets activeFarmTenantId to null', () => {

@@ -29,6 +29,7 @@
 | 完成日期 | Issue | PR | 备注 |
 |----------|-------|-----|------|
 | 2026-04-30 | E1 | 未提 PR | ops→platform_admin 改名、ownerId 非唯一注释、applyMockShaping 接通；未提交 commit |
+| 2026-04-30 | E2 | — | 多 farm 支持：workerFarmStore、my-farms/switch-farm、/farms/:farmId/workers、FarmSwitcher + ApiCache、牧工管理；代码已提交于分支 feat/ubm-e2-multi-farm，待合并 master |
 
 ---
 

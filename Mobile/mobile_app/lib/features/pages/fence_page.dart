@@ -28,6 +28,7 @@ import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_c
 import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_edit_toolbar.dart';
 import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_mini_title_bar.dart';
 import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_unsaved_dialog.dart';
+import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_widget.dart';
 
 class FencePage extends ConsumerStatefulWidget {
   const FencePage({super.key});
@@ -94,7 +95,12 @@ class _FencePageState extends ConsumerState<FencePage>
         key: const Key('page-fence'),
         appBar: isEditing
             ? null
-            : AppBar(title: const Text(MockConfig.ranchName)),
+            : AppBar(
+                title: const Text(MockConfig.ranchName),
+                actions: const [
+                  FarmSwitcher(),
+                ],
+              ),
         body: _buildBody(
           context,
           fenceState,

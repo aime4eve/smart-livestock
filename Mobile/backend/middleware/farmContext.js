@@ -1,13 +1,25 @@
 const tenantStore = require('../data/tenantStore');
+const workerFarmStore = require('../data/workerFarmStore');
 
 function farmContextMiddleware(req, res, next) {
+  const headerFarmId = req.headers?.['x-active-farm'];
+
   if (req.user?.role === 'owner') {
     const farms = tenantStore.findByOwnerId(req.user.userId);
-    req.activeFarmTenantId = farms.length > 0 ? farms[0].id : null;
+    if (headerFarmId && farms.some((farm) => farm.id === headerFarmId)) {
+      req.activeFarmTenantId = headerFarmId;
+    } else {
+      req.activeFarmTenantId = farms.length > 0 ? farms[0].id : null;
+    }
   } else if (req.user?.role === 'worker') {
-    req.activeFarmTenantId = req.user.tenantId ?? null;
+    const assignments = workerFarmStore.findByUserId(req.user.userId);
+    const farmIds = assignments.map((assignment) => assignment.farmTenantId);
+    if (headerFarmId && farmIds.includes(headerFarmId)) {
+      req.activeFarmTenantId = headerFarmId;
+    } else {
+      req.activeFarmTenantId = farmIds.length > 0 ? farmIds[0] : null;
+    }
   } else {
-    // platform_admin, b2b_admin, api_consumer — no farm context
     req.activeFarmTenantId = null;
   }
   next();

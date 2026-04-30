@@ -288,6 +288,12 @@ void _seedLiveFenceCache() {
   ApiCache.instance
     ..debugReset()
     ..debugSetInitialized(true)
+    ..debugSetMyFarms({
+      'activeFarmId': 'tenant_001',
+      'farms': [
+        {'id': 'tenant_001', 'name': '青山牧场', 'status': 'active'},
+      ],
+    })
     ..debugSetFences([
       {
         'id': 'fence_pasture_a',

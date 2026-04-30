@@ -15,12 +15,14 @@ class SessionController extends Notifier<AppSession> {
     required String accessToken,
     String? refreshToken,
     DateTime? expiresAt,
+    String? activeFarmTenantId,
   }) {
     state = AppSession.withTokens(
       role: role,
       accessToken: accessToken,
       refreshToken: refreshToken,
       expiresAt: expiresAt,
+      activeFarmTenantId: activeFarmTenantId,
     );
   }
 
@@ -44,6 +46,10 @@ class SessionController extends Notifier<AppSession> {
       role: role,
       accessToken: trimmed,
     );
+  }
+
+  void updateActiveFarm(String farmId) {
+    state = state.copyWith(activeFarmTenantId: farmId);
   }
 
   void logout() {

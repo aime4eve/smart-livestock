@@ -43,6 +43,18 @@ class MinePage extends ConsumerWidget {
                 onTap: () => context.go(AppRoute.subscriptionPlan.path),
               ),
             ),
+            const SizedBox(height: AppSpacing.md),
+            HighfiCard(
+              child: ListTile(
+                key: const Key('mine-worker-management'),
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.groups_2_outlined),
+                title: const Text('牧工管理'),
+                subtitle: const Text('查看和移除当前牧场牧工'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.go(AppRoute.workerManagement.path),
+              ),
+            ),
           ],
         ],
       ),
