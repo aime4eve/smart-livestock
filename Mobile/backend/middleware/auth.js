@@ -11,9 +11,12 @@ const TOKEN_MAP = {
   'mock-token-platform-admin': 'platform_admin',
   'mock-token-b2b-admin': 'b2b_admin',
   'mock-token-api-consumer': 'api_consumer',
+  'mock-token-u_006': 'owner',
 };
 
-const TOKEN_USER_OVERRIDES = {};
+const TOKEN_USER_OVERRIDES = {
+  'mock-token-u_006': users.u_006,
+};
 
 function registerMockUserToken(token, user) {
   TOKEN_MAP[token] = user.role;

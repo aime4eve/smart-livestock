@@ -38,4 +38,11 @@ class RolePermission {
 
   static bool canManageSubscription(DemoRole role) =>
       role == DemoRole.owner;
+
+  static bool canViewContract(DemoRole role) => role == DemoRole.b2bAdmin;
+
+  static bool canCreateFarm(DemoRole role) =>
+      role == DemoRole.b2bAdmin || role == DemoRole.platformAdmin;
+
+  static bool canViewB2bDashboard(DemoRole role) => role == DemoRole.b2bAdmin;
 }
