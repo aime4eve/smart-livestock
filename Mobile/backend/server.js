@@ -90,6 +90,11 @@ const ROUTE_DEFINITIONS = [
   ['POST',   '/subscription/renew'],
   ['GET',    '/subscription/usage'],
   ['GET',    '/b2b/status'],
+  ['GET',    '/farm/my-farms'],
+  ['POST',   '/farm/switch-farm'],
+  ['GET',    '/farms/:farmId/workers'],
+  ['POST',   '/farms/:farmId/workers'],
+  ['DELETE', '/farms/:farmId/workers/:id'],
 ];
 const ROUTE_TABLE = API_PREFIXES.flatMap((prefix) =>
   ROUTE_DEFINITIONS.map(([method, path]) => [method, `${prefix}${path}`])

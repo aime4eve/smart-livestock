@@ -46,9 +46,8 @@ Map<String, dynamic> _applyFilter(
 
   final filtered = items.where((item) {
     if (item is! Map<String, dynamic>) return true;
-    final dateStr = item['occurredAt'] ??
-        item['recordedAt'] ??
-        item['timestamp'];
+    final dateStr =
+        item['occurredAt'] ?? item['recordedAt'] ?? item['timestamp'];
     if (dateStr == null) return true;
     return DateTime.parse(dateStr as String).isAfter(cutoff);
   }).toList();
@@ -86,9 +85,15 @@ Map<String, dynamic> applyMockShaping(
         }
         break;
       case FeatureShape.limit:
-        final minTier = _getMinTierForFeature(flag);
-        if (tier.name == minTier && flag.limit != null) {
-          result = _applyLimit(result, flag.limit!);
+        final tiersConfig = flag.tiers;
+        final tierLimit = tiersConfig is Map ? tiersConfig[tier.name] : null;
+        if (tierLimit is num && tierLimit >= 0) {
+          result = _applyLimit(result, tierLimit.toInt());
+        } else {
+          final minTier = _getMinTierForFeature(flag);
+          if (tier.name == minTier && flag.limit != null) {
+            result = _applyLimit(result, flag.limit!);
+          }
         }
         break;
       case FeatureShape.filter:
@@ -99,4 +104,47 @@ Map<String, dynamic> applyMockShaping(
   }
 
   return result;
+}
+
+class ShapingResult {
+  const ShapingResult({
+    this.locked = false,
+    this.upgradeTier,
+    required this.retainedCount,
+    this.originalCount,
+  });
+
+  final bool locked;
+  final String? upgradeTier;
+  final int retainedCount;
+  final int? originalCount;
+}
+
+ShapingResult shapeListItems({
+  required List<Map<String, dynamic>> items,
+  required SubscriptionTier tier,
+  required List<String> featureKeys,
+}) {
+  final data = <String, dynamic>{
+    'items': items,
+    'total': items.length,
+  };
+  final shaped = applyMockShaping(data, tier, featureKeys);
+
+  if (shaped['locked'] == true) {
+    return ShapingResult(
+      locked: true,
+      upgradeTier: shaped['upgradeTier'] as String?,
+      retainedCount: 0,
+      originalCount: items.length,
+    );
+  }
+
+  final retained = shaped['items'] as List? ?? items;
+  return ShapingResult(
+    retainedCount: retained.length,
+    originalCount: (shaped['filteredTotal'] ??
+        shaped['totalBeforeLimit'] ??
+        items.length) as int?,
+  );
 }

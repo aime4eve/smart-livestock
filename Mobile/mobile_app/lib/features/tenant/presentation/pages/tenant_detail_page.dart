@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
+import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/core/models/demo_models.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
@@ -39,7 +40,8 @@ class TenantDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildBody(BuildContext context, WidgetRef ref, TenantDetailViewData data) {
+  Widget _buildBody(
+      BuildContext context, WidgetRef ref, TenantDetailViewData data) {
     if (data.viewState == ViewState.loading) {
       return const SingleChildScrollView(
         padding: EdgeInsets.all(AppSpacing.lg),
@@ -84,8 +86,8 @@ class TenantDetailPage extends ConsumerWidget {
           Row(
             children: [
               Expanded(
-                child: Text(t.name,
-                    style: Theme.of(context).textTheme.titleLarge),
+                child:
+                    Text(t.name, style: Theme.of(context).textTheme.titleLarge),
               ),
               HighfiStatusChip(
                 label: t.status == TenantStatus.active ? '启用中' : '已禁用',
@@ -156,7 +158,8 @@ class TenantDetailPage extends ConsumerWidget {
           const SizedBox(width: AppSpacing.sm),
           Text(
             '$label：',
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            style:
+                const TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
           Text(value, style: const TextStyle(fontSize: 13)),
         ],
@@ -258,7 +261,8 @@ class TenantDetailPage extends ConsumerWidget {
         if (caption != null)
           Text(
             caption,
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+            style:
+                const TextStyle(color: AppColors.textSecondary, fontSize: 11),
           ),
       ],
     );
@@ -407,11 +411,16 @@ class TenantDetailPage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(log.action, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-                Text(log.detail, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                Text(log.action,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w500)),
+                Text(log.detail,
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
                 Text(
                   '${log.operator}  ·  ${log.createdAt.substring(0, 10)}',
-                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                  style: const TextStyle(
+                      fontSize: 11, color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -442,18 +451,20 @@ class TenantDetailPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _toggleStatus(BuildContext context, WidgetRef ref, Tenant t) async {
+  Future<void> _toggleStatus(
+      BuildContext context, WidgetRef ref, Tenant t) async {
     final next = t.status == TenantStatus.active
         ? TenantStatus.disabled
         : TenantStatus.active;
     if (ref.read(appModeProvider).isLive) {
-      final role = ref.read(sessionControllerProvider).role?.name ?? 'ops';
+      final role = ref.read(sessionControllerProvider).role?.wireName ??
+          'platform_admin';
       final r = await ApiCache.instance
           .toggleTenantStatusRemote(role, t.id, next.wireValue);
       if (!context.mounted) return;
       if (!r.ok) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(r.message ?? '状态切换失败')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(r.message ?? '状态切换失败')));
         return;
       }
       await ApiCache.instance.refreshTenants(role);
@@ -465,19 +476,22 @@ class TenantDetailPage extends ConsumerWidget {
         .showSnackBar(const SnackBar(content: Text('已更新租户状态')));
   }
 
-  Future<void> _adjustLicense(BuildContext context, WidgetRef ref, Tenant t) async {
+  Future<void> _adjustLicense(
+      BuildContext context, WidgetRef ref, Tenant t) async {
     final next = await showDialog<int>(
       context: context,
       builder: (_) => LicenseAdjustDialog(tenant: t),
     );
     if (next == null) return;
     if (ref.read(appModeProvider).isLive) {
-      final role = ref.read(sessionControllerProvider).role?.name ?? 'ops';
-      final r = await ApiCache.instance.adjustTenantLicenseRemote(role, t.id, next);
+      final role = ref.read(sessionControllerProvider).role?.wireName ??
+          'platform_admin';
+      final r =
+          await ApiCache.instance.adjustTenantLicenseRemote(role, t.id, next);
       if (!context.mounted) return;
       if (!r.ok) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(r.message ?? 'License 调整失败')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(r.message ?? 'License 调整失败')));
         return;
       }
       await ApiCache.instance.refreshTenants(role);
@@ -485,31 +499,33 @@ class TenantDetailPage extends ConsumerWidget {
     ref.read(tenantListControllerProvider.notifier).refresh();
     ref.read(tenantDetailControllerProvider(t.id).notifier).refresh();
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('License 已调整')));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('License 已调整')));
   }
 
-  Future<void> _deleteTenant(BuildContext context, WidgetRef ref, Tenant t) async {
+  Future<void> _deleteTenant(
+      BuildContext context, WidgetRef ref, Tenant t) async {
     final reason = await showDialog<String>(
       context: context,
       builder: (_) => TenantDeleteDialog(tenantName: t.name),
     );
     if (reason == null) return;
     if (ref.read(appModeProvider).isLive) {
-      final role = ref.read(sessionControllerProvider).role?.name ?? 'ops';
+      final role = ref.read(sessionControllerProvider).role?.wireName ??
+          'platform_admin';
       final r = await ApiCache.instance.deleteTenantRemote(role, t.id);
       if (!context.mounted) return;
       if (!r.ok) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(r.message ?? '删除失败')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(r.message ?? '删除失败')));
         return;
       }
       await ApiCache.instance.refreshTenants(role);
     }
     ref.read(tenantListControllerProvider.notifier).refresh();
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('租户已删除')));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('租户已删除')));
     context.go('/ops/admin');
   }
 }

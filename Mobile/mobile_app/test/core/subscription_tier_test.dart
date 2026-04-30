@@ -6,9 +6,12 @@ void main() {
     test('enum has 4 values', () {
       expect(SubscriptionTier.values.length, 4);
       expect(SubscriptionTier.values.byName('basic'), SubscriptionTier.basic);
-      expect(SubscriptionTier.values.byName('standard'), SubscriptionTier.standard);
-      expect(SubscriptionTier.values.byName('premium'), SubscriptionTier.premium);
-      expect(SubscriptionTier.values.byName('enterprise'), SubscriptionTier.enterprise);
+      expect(SubscriptionTier.values.byName('standard'),
+          SubscriptionTier.standard);
+      expect(
+          SubscriptionTier.values.byName('premium'), SubscriptionTier.premium);
+      expect(SubscriptionTier.values.byName('enterprise'),
+          SubscriptionTier.enterprise);
     });
   });
 
@@ -139,7 +142,8 @@ void main() {
       };
 
       final status = SubscriptionStatus.fromJson(json);
-      expect(status.calculatedTotal, status.calculatedDeviceFee + status.calculatedTierFee);
+      expect(status.calculatedTotal,
+          status.calculatedDeviceFee + status.calculatedTierFee);
     });
   });
 
@@ -174,10 +178,11 @@ void main() {
       expect(keys.toSet().length, 20);
     });
 
-    test('fence has limit shape and tier-based limits', () {
+    test('fence has limit shape for lowest tier', () {
       final def = FeatureFlags.all[FeatureFlags.fence]!;
       expect(def.shape, FeatureShape.limit);
-      expect(def.tiers, isA<Map>());
+      expect(def.tiers, ['basic', 'standard', 'premium', 'enterprise']);
+      expect(def.limit, 3);
       expect(def.requiredDevices, ['gps']);
     });
 
@@ -210,29 +215,44 @@ void main() {
 
   group('checkTierAccess', () {
     test('basic tier can access gps_location', () {
-      expect(checkTierAccess(SubscriptionTier.basic, FeatureFlags.gpsLocation), true);
+      expect(checkTierAccess(SubscriptionTier.basic, FeatureFlags.gpsLocation),
+          true);
     });
 
     test('basic tier cannot access health_score (lock)', () {
-      expect(checkTierAccess(SubscriptionTier.basic, FeatureFlags.healthScore), false);
+      expect(checkTierAccess(SubscriptionTier.basic, FeatureFlags.healthScore),
+          false);
     });
 
     test('premium tier can access health_score', () {
-      expect(checkTierAccess(SubscriptionTier.premium, FeatureFlags.healthScore), true);
+      expect(
+          checkTierAccess(SubscriptionTier.premium, FeatureFlags.healthScore),
+          true);
     });
 
     test('standard tier can access alert_history', () {
-      expect(checkTierAccess(SubscriptionTier.standard, FeatureFlags.alertHistory), true);
+      expect(
+          checkTierAccess(SubscriptionTier.standard, FeatureFlags.alertHistory),
+          true);
     });
 
-    test('basic tier can access alert_history (filter type, all tiers)', () {
-      expect(checkTierAccess(SubscriptionTier.basic, FeatureFlags.alertHistory), true);
+    test('basic tier cannot access alert_history', () {
+      expect(checkTierAccess(SubscriptionTier.basic, FeatureFlags.alertHistory),
+          false);
     });
 
     test('enterprise can access all locked features', () {
-      expect(checkTierAccess(SubscriptionTier.enterprise, FeatureFlags.gaitAnalysis), true);
-      expect(checkTierAccess(SubscriptionTier.enterprise, FeatureFlags.behaviorStats), true);
-      expect(checkTierAccess(SubscriptionTier.enterprise, FeatureFlags.apiAccess), true);
+      expect(
+          checkTierAccess(
+              SubscriptionTier.enterprise, FeatureFlags.gaitAnalysis),
+          true);
+      expect(
+          checkTierAccess(
+              SubscriptionTier.enterprise, FeatureFlags.behaviorStats),
+          true);
+      expect(
+          checkTierAccess(SubscriptionTier.enterprise, FeatureFlags.apiAccess),
+          true);
     });
 
     test('unknown feature key returns false', () {
@@ -240,8 +260,14 @@ void main() {
     });
 
     test('data_retention_days uses Map tiers config', () {
-      expect(checkTierAccess(SubscriptionTier.basic, FeatureFlags.dataRetentionDays), true);
-      expect(checkTierAccess(SubscriptionTier.standard, FeatureFlags.dataRetentionDays), true);
+      expect(
+          checkTierAccess(
+              SubscriptionTier.basic, FeatureFlags.dataRetentionDays),
+          true);
+      expect(
+          checkTierAccess(
+              SubscriptionTier.standard, FeatureFlags.dataRetentionDays),
+          true);
     });
   });
 }

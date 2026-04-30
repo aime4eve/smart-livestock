@@ -27,8 +27,9 @@ Map<String, String> _headers(
   bool allowMockTokenFallback = false,
   Map<String, ApiAuthTokens> roleTokens = const {},
 }) {
+  final demoRole = demoRoleFromWireName(role);
   return apiHeaders(
-    role: DemoRole.values.byName(role),
+    role: demoRole,
     tokens: tokens ?? roleTokens[role],
     allowMockTokenFallback: allowMockTokenFallback,
   );
@@ -77,6 +78,7 @@ class ApiCache {
   String? get lastLiveSource => _lastLiveSource;
   ApiHttpClient _httpClient = const DefaultApiHttpClient();
   final Map<String, ApiAuthTokens> _roleTokens = {};
+  int _initGeneration = 0;
 
   List<Map<String, dynamic>> _dashboardMetrics = [];
   List<Map<String, dynamic>> _animals = [];
@@ -103,6 +105,11 @@ class ApiCache {
   List<Map<String, dynamic>>? _subscriptionPlans;
   Map<String, dynamic>? _subscriptionFeatures;
   Map<String, dynamic>? _subscriptionUsage;
+  Map<String, dynamic>? _myFarms;
+  Map<String, dynamic>? _workers;
+  String? _workersFarmId;
+  Map<String, dynamic>? _b2bDashboard;
+  Map<String, dynamic>? _b2bContract;
 
   List<Map<String, dynamic>> get dashboardMetrics => _dashboardMetrics;
   List<Map<String, dynamic>> get animals => _animals;
@@ -120,19 +127,90 @@ class ApiCache {
   List<Map<String, dynamic>> get epidemicContacts => _epidemicContacts;
   List<Map<String, dynamic>> get devices => _devices;
 
-  List<DeviceItem>? tenantDevices(String tenantId) => _tenantDevicesCache[tenantId];
-  List<TenantLogEntry>? tenantLogs(String tenantId) => _tenantLogsCache[tenantId];
-  Map<String, dynamic>? tenantStats(String tenantId) => _tenantStatsCache[tenantId];
+  List<DeviceItem>? tenantDevices(String tenantId) =>
+      _tenantDevicesCache[tenantId];
+  List<TenantLogEntry>? tenantLogs(String tenantId) =>
+      _tenantLogsCache[tenantId];
+  Map<String, dynamic>? tenantStats(String tenantId) =>
+      _tenantStatsCache[tenantId];
   Map<String, Map<String, dynamic>>? get tenantTrends => _tenantTrends;
 
   Map<String, dynamic>? get subscriptionCurrent => _subscriptionCurrent;
   List<Map<String, dynamic>>? get subscriptionPlans => _subscriptionPlans;
   Map<String, dynamic>? get subscriptionFeatures => _subscriptionFeatures;
   Map<String, dynamic>? get subscriptionUsage => _subscriptionUsage;
+  Map<String, dynamic>? get myFarms => _myFarms;
+  Map<String, dynamic>? get workers => _workers;
+  String? get workersFarmId => _workersFarmId;
+  Map<String, dynamic>? get b2bDashboard => _b2bDashboard;
+  Map<String, dynamic>? get b2bContract => _b2bContract;
 
   /// Updates the cached subscription state (used by LiveSubscriptionRepository after writes).
   void updateSubscriptionCurrent(Map<String, dynamic>? value) {
     _subscriptionCurrent = value;
+  }
+
+  bool addWorkerAssignment({
+    required String farmId,
+    required String id,
+    required String userId,
+    required String userName,
+    required String role,
+    required String assignedAt,
+  }) {
+    final current = _workers;
+    final rawItems = current?['items'];
+    if (!_canMutateWorkers(farmId) || current == null || rawItems is! List) {
+      return false;
+    }
+    final duplicate = rawItems.whereType<Map<String, dynamic>>().any(
+          (item) => item['userId'] == userId,
+        );
+    if (duplicate) return false;
+
+    final items = List<dynamic>.from(rawItems)
+      ..add({
+        'id': id,
+        'userId': userId,
+        'userName': userName,
+        'role': role,
+        'assignedAt': assignedAt,
+      });
+    _workers = _withWorkerItems(current, items);
+    return true;
+  }
+
+  bool removeWorkerAssignment(String assignmentId) {
+    final current = _workers;
+    final rawItems = current?['items'];
+    if (!_hasWorkersCache || current == null || rawItems is! List) {
+      return false;
+    }
+    final items = List<dynamic>.from(rawItems);
+    final before = items.length;
+    items.removeWhere((item) => item is Map && item['id'] == assignmentId);
+    if (items.length == before) return false;
+
+    _workers = _withWorkerItems(current, items);
+    return true;
+  }
+
+  bool _canMutateWorkers(String farmId) {
+    return _hasWorkersCache && _workersFarmId == farmId;
+  }
+
+  bool get _hasWorkersCache {
+    return _initialized && _lastLiveSource == 'api' && _workers != null;
+  }
+
+  Map<String, dynamic> _withWorkerItems(
+    Map<String, dynamic> current,
+    List<dynamic> items,
+  ) {
+    final updated = Map<String, dynamic>.from(current);
+    updated['items'] = items;
+    updated['total'] = items.length;
+    return updated;
   }
 
   Future<bool> checkoutSubscriptionRemote(
@@ -336,6 +414,14 @@ class ApiCache {
   }
 
   Future<ApiAuthTokens?> authenticateRole(String role) async {
+    final tokens = await _authenticateRole(role);
+    if (tokens != null) {
+      _roleTokens[role] = tokens;
+    }
+    return tokens;
+  }
+
+  Future<ApiAuthTokens?> _authenticateRole(String role) async {
     final response = await _httpClient.post(
       Uri.parse('${resolveApiBaseUrl()}/auth/login'),
       headers: const {'Content-Type': 'application/json'},
@@ -360,29 +446,49 @@ class ApiCache {
     final tokens = ApiAuthTokens(
       accessToken: accessToken,
       refreshToken: data['refreshToken'] as String?,
-      expiresAt: expiresAtRaw is String ? DateTime.tryParse(expiresAtRaw) : null,
+      expiresAt:
+          expiresAtRaw is String ? DateTime.tryParse(expiresAtRaw) : null,
     );
-    _roleTokens[role] = tokens;
     return tokens;
   }
 
   Future<void> initWithRoleAuth(String role) async {
+    final generation = _startInitGeneration();
     try {
-      final tokens = await authenticateRole(role);
+      final tokens = await _authenticateRole(role);
+      if (!_isCurrentGeneration(generation)) return;
       if (tokens == null) {
         _clearLiveData();
         debugPrint('ApiCache auth failed for role: $role');
         return;
       }
-      await init(role, tokens: tokens);
+      _roleTokens[role] = tokens;
+      await _initForGeneration(role, generation, tokens: tokens);
     } catch (e) {
-      _clearLiveData();
+      if (_isCurrentGeneration(generation)) {
+        _clearLiveData();
+      }
       debugPrint('ApiCache auth failed for role: $role, $e');
     }
   }
 
   Future<void> init(
     String role, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
+    final generation = _startInitGeneration();
+    await _initForGeneration(
+      role,
+      generation,
+      tokens: tokens,
+      allowMockTokenFallback: allowMockTokenFallback,
+    );
+  }
+
+  Future<void> _initForGeneration(
+    String role,
+    int generation, {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
@@ -393,27 +499,31 @@ class ApiCache {
       allowMockTokenFallback: allowMockTokenFallback,
       roleTokens: _roleTokens,
     );
+    Future<Map<String, dynamic>?> initGet(String path) =>
+        _get(path, headers, markLiveSource: false);
 
     try {
       final results = await Future.wait([
-        _get('/dashboard/summary', headers),
-        _get('/map/trajectories?animalId=animal_001&range=24h', headers),
-        _get('/alerts?pageSize=100', headers),
-        _get('/fences?pageSize=100', headers),
-        _get('/tenants?pageSize=100', headers),
-        _get('/profile', headers),
-        _get('/twin/overview', headers),
-        _get('/twin/fever/list', headers),
-        _get('/twin/digestive/list', headers),
-        _get('/twin/estrus/list', headers),
-        _get('/twin/epidemic/summary', headers),
-        _get('/twin/epidemic/contacts', headers),
-        _get('/devices?pageSize=200', headers),
-        _get('/subscription/current', headers),
-        _get('/subscription/features', headers),
-        _get('/subscription/plans', headers),
-        _get('/subscription/usage', headers),
+        initGet('/dashboard/summary'),
+        initGet('/map/trajectories?animalId=animal_001&range=24h'),
+        initGet('/alerts?pageSize=100'),
+        initGet('/fences?pageSize=100'),
+        initGet('/tenants?pageSize=100'),
+        initGet('/profile'),
+        initGet('/twin/overview'),
+        initGet('/twin/fever/list'),
+        initGet('/twin/digestive/list'),
+        initGet('/twin/estrus/list'),
+        initGet('/twin/epidemic/summary'),
+        initGet('/twin/epidemic/contacts'),
+        initGet('/devices?pageSize=200'),
+        initGet('/subscription/current'),
+        initGet('/subscription/features'),
+        initGet('/subscription/plans'),
+        initGet('/subscription/usage'),
       ]);
+
+      if (!_isCurrentGeneration(generation)) return;
 
       if (results.every((data) => data == null)) {
         _initialized = false;
@@ -421,6 +531,7 @@ class ApiCache {
         _tenantTrends = null;
         return;
       }
+      _lastLiveSource = 'api';
 
       final dashData = results[0];
       if (dashData != null) {
@@ -495,17 +606,52 @@ class ApiCache {
 
       _subscriptionUsage = results[16];
 
+      if (role == DemoRole.owner.wireName || role == DemoRole.worker.wireName) {
+        final myFarms = await initGet('/farm/my-farms');
+        if (!_isCurrentGeneration(generation)) return;
+        _myFarms = myFarms;
+        final activeFarmId = myFarms?['activeFarmId'];
+        if (role == DemoRole.owner.wireName &&
+            activeFarmId is String &&
+            activeFarmId.isNotEmpty) {
+          final workers = await initGet('/farms/$activeFarmId/workers');
+          if (!_isCurrentGeneration(generation)) return;
+          _workers = workers;
+          _workersFarmId = workers == null ? null : activeFarmId;
+        }
+      }
+
+      if (role == DemoRole.b2bAdmin.wireName) {
+        final b2bDashboard = await initGet('/b2b/dashboard');
+        if (!_isCurrentGeneration(generation)) return;
+        final b2bContract = await initGet('/b2b/contract/current');
+        if (!_isCurrentGeneration(generation)) return;
+        _b2bDashboard = b2bDashboard;
+        _b2bContract = b2bContract;
+      }
+
       _initialized = true;
     } catch (e) {
-      _clearLiveData();
+      if (_isCurrentGeneration(generation)) {
+        _clearLiveData();
+      }
       debugPrint('ApiCache init failed: $e');
     }
   }
 
+  int _startInitGeneration() {
+    _initGeneration += 1;
+    return _initGeneration;
+  }
+
+  bool _isCurrentGeneration(int generation) => generation == _initGeneration;
+
   Future<Map<String, dynamic>?> _get(
     String path,
     Map<String, String> headers,
-  ) async {
+    {
+    bool markLiveSource = true,
+  }) async {
     final response = await _httpClient.get(
       Uri.parse('${resolveApiBaseUrl()}$path'),
       headers: headers,
@@ -513,7 +659,9 @@ class ApiCache {
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       if (body['code'] == 'OK') {
-        _lastLiveSource = 'api';
+        if (markLiveSource) {
+          _lastLiveSource = 'api';
+        }
         return body['data'] as Map<String, dynamic>?;
       }
     }
@@ -865,6 +1013,14 @@ class ApiCache {
     _subscriptionPlans = null;
     _subscriptionFeatures = null;
     _subscriptionUsage = null;
+    _myFarms = null;
+    _workers = null;
+    _workersFarmId = null;
+    _b2bDashboard = null;
+    _b2bContract = null;
+    _tenantDevicesCache.clear();
+    _tenantLogsCache.clear();
+    _tenantStatsCache.clear();
   }
 
   @visibleForTesting
@@ -873,6 +1029,7 @@ class ApiCache {
     _httpClient = const DefaultApiHttpClient();
     _roleTokens.clear();
     _tenantTrends = null;
+    _initGeneration += 1;
   }
 
   @visibleForTesting
@@ -899,5 +1056,10 @@ class ApiCache {
   @visibleForTesting
   void debugSetAnimals(List<Map<String, dynamic>> value) {
     _animals = value;
+  }
+
+  @visibleForTesting
+  void debugSetMyFarms(Map<String, dynamic>? value) {
+    _myFarms = value;
   }
 }

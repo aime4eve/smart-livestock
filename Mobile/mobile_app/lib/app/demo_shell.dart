@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
+import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_widget.dart';
 
 class DemoShell extends ConsumerWidget {
   const DemoShell({
@@ -19,10 +22,21 @@ class DemoShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionControllerProvider);
     final role = session.role;
-    if (role == null || role == DemoRole.ops || role == DemoRole.b2bAdmin) {
+    if (role == null ||
+        role == DemoRole.platformAdmin ||
+        role == DemoRole.b2bAdmin) {
       return Scaffold(body: child);
     }
 
+    final showFarmContext =
+        role == DemoRole.owner || role == DemoRole.worker;
+    final farmState =
+        showFarmContext ? ref.watch(farmSwitcherControllerProvider) : null;
+    final body = farmState != null && !farmState.hasFarms
+        ? const _FarmEmptyGuidance()
+        : child;
+    final showShellAppBar =
+        showFarmContext && location != AppRoute.fence.path;
     final navItems = _buildBusinessNavItems(role);
     final currentIndex = navItems.indexWhere((item) {
       if (item.route == AppRoute.twin) {
@@ -34,7 +48,15 @@ class DemoShell extends ConsumerWidget {
     final selectedIndex = currentIndex >= 0 ? currentIndex : 0;
 
     return Scaffold(
-      body: child,
+      appBar: showShellAppBar
+          ? AppBar(
+              actions: const [
+                FarmSwitcher(),
+                SizedBox(width: AppSpacing.sm),
+              ],
+            )
+          : null,
+      body: body,
       bottomNavigationBar: Container(
         height: 72,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -113,6 +135,25 @@ class DemoShell extends ConsumerWidget {
       );
     }
     return items;
+  }
+}
+
+class _FarmEmptyGuidance extends StatelessWidget {
+  const _FarmEmptyGuidance();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      key: const Key('farm-empty-guidance'),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Text(
+          '请创建您的第一个牧场',
+          style: Theme.of(context).textTheme.titleMedium,
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
   }
 }
 

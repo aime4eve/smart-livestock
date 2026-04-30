@@ -6,6 +6,7 @@ class AppSession {
     this.accessToken,
     this.refreshToken,
     this.expiresAt,
+    this.activeFarmTenantId,
   });
 
   const AppSession.loggedOut() : this._();
@@ -17,21 +18,40 @@ class AppSession {
     required String accessToken,
     String? refreshToken,
     DateTime? expiresAt,
+    String? activeFarmTenantId,
   }) : this._(
           role: role,
           accessToken: accessToken,
           refreshToken: refreshToken,
           expiresAt: expiresAt,
+          activeFarmTenantId: activeFarmTenantId,
         );
 
   final DemoRole? role;
   final String? accessToken;
   final String? refreshToken;
   final DateTime? expiresAt;
+  final String? activeFarmTenantId;
+
+  AppSession copyWith({
+    DemoRole? role,
+    String? accessToken,
+    String? refreshToken,
+    DateTime? expiresAt,
+    String? activeFarmTenantId,
+  }) {
+    return AppSession._(
+      role: role ?? this.role,
+      accessToken: accessToken ?? this.accessToken,
+      refreshToken: refreshToken ?? this.refreshToken,
+      expiresAt: expiresAt ?? this.expiresAt,
+      activeFarmTenantId: activeFarmTenantId ?? this.activeFarmTenantId,
+    );
+  }
 
   bool get isLoggedIn => role != null;
 
-  bool get isOps => role == DemoRole.ops;
+  bool get isPlatformAdmin => role == DemoRole.platformAdmin;
 
   bool get isB2bAdmin => role == DemoRole.b2bAdmin;
 

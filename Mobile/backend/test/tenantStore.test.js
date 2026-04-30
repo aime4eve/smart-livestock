@@ -7,8 +7,8 @@ test('tenantStore: sliceForPage 默认分页返回全部', () => {
   const res = store.sliceForPage({});
   assert.equal(res.page, 1);
   assert.equal(res.pageSize, 20);
-  assert.equal(res.total, 8);
-  assert.equal(res.items.length, 8);
+  assert.equal(res.total, 9);
+  assert.equal(res.items.length, 9);
 });
 
 test('tenantStore: sliceForPage 支持 status 过滤', () => {
@@ -105,8 +105,8 @@ test('tenantStore: findByOwnerId returns farms owned by user', () => {
   store.reset();
   const ownerFarms = store.findByOwnerId('u_001');
   assert.ok(Array.isArray(ownerFarms), 'findByOwnerId should return an array');
-  assert.equal(ownerFarms.length, 1, 'u_001 should own exactly 1 farm');
-  assert.equal(ownerFarms[0].id, 'tenant_001', 'u_001 should own tenant_001');
+  assert.equal(ownerFarms.length, 2, 'u_001 should own exactly 2 farms');
+  assert.deepEqual(ownerFarms.map((f) => f.id), ['tenant_001', 'tenant_007']);
 });
 
 test('tenantStore: findByOwnerId with non-existent owner returns empty', () => {

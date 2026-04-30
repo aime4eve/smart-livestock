@@ -15,13 +15,41 @@ class SessionController extends Notifier<AppSession> {
     required String accessToken,
     String? refreshToken,
     DateTime? expiresAt,
+    String? activeFarmTenantId,
   }) {
     state = AppSession.withTokens(
       role: role,
       accessToken: accessToken,
       refreshToken: refreshToken,
       expiresAt: expiresAt,
+      activeFarmTenantId: activeFarmTenantId,
     );
+  }
+
+  DemoRole? _roleFromMockToken(String token) {
+    return switch (token) {
+      'mock-token-owner' => DemoRole.owner,
+      'mock-token-worker' => DemoRole.worker,
+      'mock-token-platform-admin' => DemoRole.platformAdmin,
+      'mock-token-b2b-admin' => DemoRole.b2bAdmin,
+      'mock-token-api-consumer' => DemoRole.apiConsumer,
+      _ when token.startsWith('mock-token-u_') => DemoRole.owner,
+      _ => null,
+    };
+  }
+
+  void loginWithToken(String token) {
+    final trimmed = token.trim();
+    final role = _roleFromMockToken(trimmed);
+    if (role == null) return;
+    state = AppSession.withTokens(
+      role: role,
+      accessToken: trimmed,
+    );
+  }
+
+  void updateActiveFarm(String farmId) {
+    state = state.copyWith(activeFarmTenantId: farmId);
   }
 
   void logout() {

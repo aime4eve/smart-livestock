@@ -145,12 +145,9 @@ class SubscriptionStatus {
           ? DateTime.parse(json['currentPeriodEnd'] as String)
           : null,
       livestockCount: json['livestockCount'] as int,
-      calculatedDeviceFee:
-          (json['calculatedDeviceFee'] as num).toDouble(),
-      calculatedTierFee:
-          (json['calculatedTierFee'] as num).toDouble(),
-      calculatedTotal:
-          (json['calculatedTotal'] as num).toDouble(),
+      calculatedDeviceFee: (json['calculatedDeviceFee'] as num).toDouble(),
+      calculatedTierFee: (json['calculatedTierFee'] as num).toDouble(),
+      calculatedTotal: (json['calculatedTotal'] as num).toDouble(),
     );
   }
 
@@ -192,12 +189,8 @@ class FeatureFlags {
     ),
     FeatureFlags.fence: FeatureDefinition(
       shape: FeatureShape.limit,
-      tiers: {
-        'basic': 3,
-        'standard': 5,
-        'premium': 10,
-        'enterprise': -1,
-      },
+      tiers: ['basic', 'standard', 'premium', 'enterprise'],
+      limit: 3,
       requiredDevices: ['gps'],
     ),
     FeatureFlags.trajectory: FeatureDefinition(
@@ -261,13 +254,8 @@ class FeatureFlags {
       },
     ),
     FeatureFlags.alertHistory: FeatureDefinition(
-      shape: FeatureShape.filter,
-      tiers: {
-        'basic': 7,
-        'standard': 30,
-        'premium': 90,
-        'enterprise': 365,
-      },
+      shape: FeatureShape.lock,
+      tiers: ['standard', 'premium', 'enterprise'],
     ),
     FeatureFlags.dedicatedSupport: FeatureDefinition(
       shape: FeatureShape.lock,

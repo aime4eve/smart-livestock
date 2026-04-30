@@ -38,7 +38,7 @@ class AdminPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.md),
                 const HighfiStatusChip(
-                  label: 'ops / owner 演示入口',
+                  label: 'platform_admin / owner 演示入口',
                   color: AppColors.info,
                   icon: Icons.admin_panel_settings_outlined,
                 ),

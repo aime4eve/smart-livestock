@@ -81,7 +81,8 @@ class RecordingApiHttpClient implements ApiHttpClient {
     if (path.endsWith('/alerts') ||
         path.endsWith('/fences') ||
         path.endsWith('/tenants') ||
-        path.endsWith('/devices')) {
+        path.endsWith('/devices') ||
+        path.endsWith('/workers')) {
       return {
         'items': [
           {'id': 'item_001'},
@@ -90,6 +91,21 @@ class RecordingApiHttpClient implements ApiHttpClient {
         'pageSize': 20,
         'total': 1,
       };
+    }
+    if (path.endsWith('/farm/my-farms')) {
+      return {
+        'activeFarmId': 'tenant_001',
+        'farms': [
+          {'id': 'tenant_001', 'name': '青山牧场', 'status': 'active'},
+          {'id': 'tenant_007', 'name': '河谷牧场', 'status': 'active'},
+        ],
+      };
+    }
+    if (path.endsWith('/b2b/dashboard')) {
+      return {'contractCount': 3};
+    }
+    if (path.endsWith('/b2b/contract/current')) {
+      return {'id': 'contract_001'};
     }
     if (path.contains('/twin/') &&
         !path.endsWith('/overview') &&
@@ -148,7 +164,7 @@ void main() {
     });
 
     expect(client.uris, isNotEmpty);
-    expect(client.uris, hasLength(17));
+    expect(client.uris, hasLength(19));
     expect(
       requestedPaths,
       containsAll([
@@ -169,6 +185,8 @@ void main() {
         '/api/v1/subscription/features',
         '/api/v1/subscription/plans',
         '/api/v1/subscription/usage',
+        '/api/v1/farm/my-farms',
+        '/api/v1/farms/tenant_001/workers',
       ]),
     );
     expect(client.uris.every((uri) => uri.path.startsWith('/api/v1/')), isTrue);
@@ -200,6 +218,10 @@ void main() {
     expect(ApiCache.instance.subscriptionPlans, isNull);
     expect(ApiCache.instance.subscriptionFeatures, isNull);
     expect(ApiCache.instance.subscriptionUsage, isNull);
+    expect(ApiCache.instance.myFarms, isNull);
+    expect(ApiCache.instance.workers, isNull);
+    expect(ApiCache.instance.b2bDashboard, isNull);
+    expect(ApiCache.instance.b2bContract, isNull);
   });
 
   test('ApiCache can authenticate role before live init', () async {
@@ -211,13 +233,67 @@ void main() {
 
     expect(client.postUris, hasLength(1));
     expect(client.postUris.single.path, '/api/v1/auth/login');
-    expect(client.uris, hasLength(17));
+    expect(client.uris, hasLength(19));
     expect(
       client.authHeaders.every((value) => value == 'Bearer jwt-token'),
       isTrue,
     );
     expect(ApiCache.instance.initialized, isTrue);
     expect(ApiCache.instance.lastLiveSource, 'api');
+  });
+
+  test('ApiCache partitions farm and b2b endpoints by role', () async {
+    final ownerClient = RecordingApiHttpClient();
+    ApiCache.instance.debugReset();
+    ApiCache.instance.debugSetHttpClient(ownerClient);
+
+    await ApiCache.instance.init(
+      'owner',
+      tokens: const ApiAuthTokens(accessToken: 'jwt-token'),
+    );
+
+    final ownerPaths = ownerClient.uris.map((uri) => uri.path).toList();
+    expect(ownerPaths, contains('/api/v1/farm/my-farms'));
+    expect(ownerPaths, contains('/api/v1/farms/tenant_001/workers'));
+    expect(ownerPaths, isNot(contains('/api/v1/b2b/dashboard')));
+    expect(ownerPaths, isNot(contains('/api/v1/b2b/contract/current')));
+    expect(ApiCache.instance.myFarms?['activeFarmId'], 'tenant_001');
+    expect(ApiCache.instance.workers?['items'], isA<List>());
+
+    final workerClient = RecordingApiHttpClient();
+    ApiCache.instance.debugReset();
+    ApiCache.instance.debugSetHttpClient(workerClient);
+
+    await ApiCache.instance.init(
+      'worker',
+      tokens: const ApiAuthTokens(accessToken: 'jwt-token'),
+    );
+
+    final workerPaths = workerClient.uris.map((uri) => uri.path).toList();
+    expect(workerPaths, contains('/api/v1/farm/my-farms'));
+    expect(workerPaths, isNot(contains('/api/v1/farms/tenant_001/workers')));
+    expect(workerPaths, isNot(contains('/api/v1/b2b/dashboard')));
+    expect(workerPaths, isNot(contains('/api/v1/b2b/contract/current')));
+
+    final b2bClient = RecordingApiHttpClient();
+    ApiCache.instance.debugReset();
+    ApiCache.instance.debugSetHttpClient(b2bClient);
+
+    await ApiCache.instance.init(
+      'b2b_admin',
+      tokens: const ApiAuthTokens(accessToken: 'jwt-token'),
+    );
+
+    final b2bPaths = b2bClient.uris.map((uri) => uri.path).toList();
+    expect(b2bPaths, contains('/api/v1/b2b/dashboard'));
+    expect(b2bPaths, contains('/api/v1/b2b/contract/current'));
+    expect(b2bPaths, isNot(contains('/api/v1/farm/my-farms')));
+    expect(
+      b2bPaths.any((path) => path.contains('/farms/') && path.endsWith('/workers')),
+      isFalse,
+    );
+    expect(ApiCache.instance.b2bDashboard?['contractCount'], 3);
+    expect(ApiCache.instance.b2bContract?['id'], 'contract_001');
   });
 
   test('ApiCache clears live source when role auth fails', () async {

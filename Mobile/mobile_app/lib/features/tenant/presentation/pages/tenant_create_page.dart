@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
+import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/tenant_list_controller.dart';
 
@@ -33,7 +34,8 @@ class _TenantCreatePageState extends ConsumerState<TenantCreatePage> {
     setState(() => _submitting = true);
     final mode = ref.read(appModeProvider);
     if (mode.isLive) {
-      final role = ref.read(sessionControllerProvider).role?.name ?? 'ops';
+      final role = ref.read(sessionControllerProvider).role?.wireName ??
+          'platform_admin';
       final result = await ApiCache.instance.createTenantRemote(role, {
         'name': _nameCtrl.text.trim(),
         'licenseTotal': int.parse(_licenseCtrl.text),

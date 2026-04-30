@@ -5,7 +5,7 @@ enum AppRoute {
   mine('/mine', 'mine', '我的'),
   fence('/fence', 'fence', '围栏'),
   admin('/admin', 'admin', '后台'),
-  opsAdmin('/ops/admin', 'ops-admin', '运维后台'),
+  platformAdmin('/ops/admin', 'platform-admin', '平台后台'),
   livestockDetail('/livestock/:id', 'livestock-detail', '牲畜详情'),
   devices('/devices', 'devices', '设备管理'),
   fenceForm('/fence/form', 'fence-form', '围栏表单'),
@@ -28,7 +28,8 @@ enum AppRoute {
   b2bAdmin('/b2b/admin', 'b2b-admin', 'B端控制台'),
   subscription('/subscription', 'subscription', '订阅管理'),
   checkout('/subscription/checkout', 'checkout', '确认支付'),
-  subscriptionPlan('/subscription/plans', 'subscription-plan', '套餐选择');
+  subscriptionPlan('/subscription/plans', 'subscription-plan', '套餐选择'),
+  workerManagement('/mine/workers', 'worker-management', '牧工管理');
 
   const AppRoute(this.path, this.routeName, this.label);
 

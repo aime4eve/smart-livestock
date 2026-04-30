@@ -33,6 +33,7 @@ import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_c
 import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_detail_page.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_edit_page.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_list_page.dart';
+import 'package:smart_livestock_demo/features/worker_management/presentation/worker_list_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final appMode = ref.watch(appModeProvider);
@@ -56,10 +57,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       final role = session.role!;
-      if (role == DemoRole.ops) {
-        return location.startsWith(AppRoute.opsAdmin.path)
+      if (role == DemoRole.platformAdmin) {
+        return location.startsWith(AppRoute.platformAdmin.path)
             ? null
-            : AppRoute.opsAdmin.path;
+            : AppRoute.platformAdmin.path;
       }
 
       if (role == DemoRole.b2bAdmin) {
@@ -69,11 +70,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (location == AppRoute.login.path ||
-          location.startsWith(AppRoute.opsAdmin.path)) {
+          location.startsWith(AppRoute.platformAdmin.path)) {
         return AppRoute.twin.path;
       }
 
       if (location == AppRoute.admin.path && !session.canAccessAdminTab) {
+        return AppRoute.twin.path;
+      }
+
+      if (location == AppRoute.workerManagement.path &&
+          role != DemoRole.owner) {
         return AppRoute.twin.path;
       }
 
@@ -90,6 +96,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 ref
                     .read(sessionControllerProvider.notifier)
                     .login(selectedRole);
+              },
+              onTokenSubmit: (token) {
+                ref
+                    .read(sessionControllerProvider.notifier)
+                    .loginWithToken(token);
               },
             );
           },
@@ -178,6 +189,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const MinePage(),
           ),
           GoRoute(
+            path: AppRoute.workerManagement.path,
+            name: AppRoute.workerManagement.routeName,
+            builder: (context, state) => const WorkerListPage(),
+          ),
+          GoRoute(
             path: AppRoute.fence.path,
             name: AppRoute.fence.routeName,
             builder: (context, state) => const FencePage(),
@@ -196,8 +212,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const AdminPage(),
           ),
           GoRoute(
-            path: AppRoute.opsAdmin.path,
-            name: AppRoute.opsAdmin.routeName,
+            path: AppRoute.platformAdmin.path,
+            name: AppRoute.platformAdmin.routeName,
             builder: (context, state) => const TenantListPage(),
             routes: [
               GoRoute(
