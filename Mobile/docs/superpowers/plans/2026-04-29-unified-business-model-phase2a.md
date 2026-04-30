@@ -30,7 +30,7 @@
 |----------|-------|-----|------|
 | 2026-04-30 | E1 | — | ops→platform_admin 改名、ownerId 非唯一注释、applyMockShaping 接通；commit 5e889df |
 | 2026-04-30 | E2 | #31 | 多 farm 支持：workerFarmStore、my-farms/switch-farm、/farms/:farmId/workers、FarmSwitcher + ApiCache、牧工管理；已合并 master |
-| 2026-05-01 | E3 | #32 | B端管理后台：contractStore、b2bDashboard 路由、B端 Shell + 侧边栏、概览/牧场管理/合同三页面；代码在 feat/ubm-e3-b2b-admin |
+| 2026-05-01 | E3 | #32 | B端管理后台：contractStore、b2bDashboard 路由、B端 Shell + 侧边栏、概览/牧场管理/合同三页面；已合并 master |
 
 ---
 
