@@ -48,11 +48,11 @@
 
 **本计划不覆盖:**
 - 分润引擎 + 对账看板 → Phase 2b
-- License 激活 + 心跳监控 → Phase 2b
+- 订阅服务激活 + 心跳监控 → Phase 2b
 - 合同创建/编辑（platform_admin 后台操作） → Phase 2b
 - b2b_admin 管理旗下 farm 的 worker → Phase 2b
 - API 开放平台 `/api/open/v1/*` → Phase 2c
-- LicenseStore / ApiTierStore 真实逻辑 → Phase 2b
+- subscriptionServiceStore / ApiTierStore 真实逻辑 → Phase 2b
 
 ---
 
