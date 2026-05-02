@@ -128,7 +128,12 @@ const ROUTE_DEFINITIONS = [
   ['POST',   '/subscription-services/:id/revoke'],
   ['POST',   '/subscription-services/heartbeat'],
 
-  // E6-TODO: contracts 端点
+  // --- E6 合同管理 ---
+  ['GET',    '/contracts'],
+  ['POST',   '/contracts'],
+  ['GET',    '/contracts/:id'],
+  ['PUT',    '/contracts/:id'],
+  ['POST',   '/contracts/:id/terminate'],
   // --- E4 分润对账 ---
   ['GET',    '/revenue/periods'],
   ['GET',    '/revenue/periods/:id'],
