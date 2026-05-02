@@ -9,11 +9,7 @@ const { requirePermission } = require('../middleware/auth');
 const router = Router();
 
 // GET /subscription-services — 分页列表
-router.get('/', requirePermission('tenant:view'), (req, res) => {
-  if (req.userRole !== 'platform_admin') {
-    return res.fail(403, 'AUTH_FORBIDDEN', '仅平台管理员可访问');
-  }
-
+router.get('/', requirePermission('subscription-service:view'), (req, res) => {
   const { partnerTenantId, status, page, pageSize } = req.query;
   const result = subscriptionServiceStore.list({ partnerTenantId, status, page, pageSize });
   res.ok(result);
@@ -21,10 +17,6 @@ router.get('/', requirePermission('tenant:view'), (req, res) => {
 
 // POST /subscription-services — 创建订阅服务
 router.post('/', requirePermission('subscription-service:manage'), (req, res) => {
-  if (req.userRole !== 'platform_admin') {
-    return res.fail(403, 'AUTH_FORBIDDEN', '仅平台管理员可访问');
-  }
-
   const { partnerTenantId, deploymentType, effectiveTier, expiresAt } = req.body || {};
   if (!partnerTenantId) {
     return res.fail(422, 'VALIDATION_ERROR', 'partnerTenantId 为必填项');
@@ -49,11 +41,7 @@ router.post('/', requirePermission('subscription-service:manage'), (req, res) =>
 });
 
 // GET /subscription-services/:id — 详情
-router.get('/:id', requirePermission('tenant:view'), (req, res) => {
-  if (req.userRole !== 'platform_admin') {
-    return res.fail(403, 'AUTH_FORBIDDEN', '仅平台管理员可访问');
-  }
-
+router.get('/:id', requirePermission('subscription-service:view'), (req, res) => {
   const svc = subscriptionServiceStore.getById(req.params.id);
   if (!svc) {
     return res.fail(404, 'RESOURCE_NOT_FOUND', '订阅服务不存在');
@@ -64,10 +52,6 @@ router.get('/:id', requirePermission('tenant:view'), (req, res) => {
 
 // POST /subscription-services/:id/renew — 续期
 router.post('/:id/renew', requirePermission('subscription-service:manage'), (req, res) => {
-  if (req.userRole !== 'platform_admin') {
-    return res.fail(403, 'AUTH_FORBIDDEN', '仅平台管理员可访问');
-  }
-
   const { expiresAt } = req.body || {};
   if (!expiresAt) {
     return res.fail(422, 'VALIDATION_ERROR', 'expiresAt 为必填项');
@@ -86,10 +70,6 @@ router.post('/:id/renew', requirePermission('subscription-service:manage'), (req
 
 // POST /subscription-services/:id/revoke — 吊销
 router.post('/:id/revoke', requirePermission('subscription-service:manage'), (req, res) => {
-  if (req.userRole !== 'platform_admin') {
-    return res.fail(403, 'AUTH_FORBIDDEN', '仅平台管理员可访问');
-  }
-
   const result = subscriptionServiceStore.revoke(req.params.id);
   if (result.error) {
     if (result.error === 'not_found') {
@@ -119,39 +99,50 @@ router.post('/heartbeat', (req, res) => {
     return res.fail(400, 'BAD_REQUEST', result.message);
   }
 
-  // Build response based on subscription status
-  // heartbeat returns: { status, tier, expiresAt, lastHeartbeatAt, message }
-  let responseStatus = result.status;
+  // Build response — precedence: revoked > expired > status-based
+  const GRACE_PERIOD_DAYS = subscriptionServiceStore.GRACE_PERIOD_DAYS;
+  let responseStatus;
   let responseMessage = null;
 
-  if (result.status === 'active') {
-    responseStatus = 'ok';
-    responseMessage = null;
-  } else if (result.status === 'grace_period') {
-    responseStatus = 'grace_period';
-    if (result.lastHeartbeatAt) {
-      const lastBeat = new Date(result.lastHeartbeatAt.replace('+08:00', '+08:00'));
-      const now = new Date();
-      const daysPassed = Math.floor((now - lastBeat) / (24 * 60 * 60 * 1000));
-      const remaining = Math.max(0, 15 - daysPassed);
-      responseMessage = `宽限期内，还有 ${remaining} 天恢复`;
-    } else {
-      responseMessage = '宽限期内，请尽快恢复服务连接';
-    }
-  } else if (result.status === 'degraded') {
-    responseStatus = 'degraded';
-    responseMessage = '订阅服务已过期，请联系续期';
-  } else if (result.status === 'revoked') {
+  // 1. Revoked is terminal — check first
+  if (result.status === 'revoked') {
     responseStatus = 'revoked';
     responseMessage = '订阅服务已吊销';
   }
-
-  // Check if subscription has expired
-  if (result.expiresAt) {
-    const expiry = new Date(result.expiresAt.replace('+08:00', '+08:00'));
+  // 2. Expiry by date — check before status mapping
+  else if (result.expiresAt && new Date(result.expiresAt) > new Date(0)) {
+    const expiry = new Date(result.expiresAt);
     if (new Date() > expiry) {
       responseStatus = 'expired';
       responseMessage = '订阅服务已过期，请联系续期';
+    }
+  }
+
+  // 3. Status-based mapping (only if not already set)
+  if (!responseStatus) {
+    switch (result.status) {
+      case 'active':
+        responseStatus = 'ok';
+        break;
+      case 'grace_period':
+        responseStatus = 'grace_period';
+        if (result.gracePeriodEnteredAt) {
+          const enteredAt = new Date(result.gracePeriodEnteredAt);
+          const now = new Date();
+          const daysPassed = Math.floor((now - enteredAt) / (24 * 60 * 60 * 1000));
+          const remaining = Math.max(0, GRACE_PERIOD_DAYS - daysPassed);
+          responseMessage = `宽限期内，还有 ${remaining} 天恢复`;
+        } else {
+          responseMessage = '宽限期内，请尽快恢复服务连接';
+        }
+        break;
+      case 'degraded':
+        responseStatus = 'degraded';
+        responseMessage = '订阅服务已过期，请联系续期';
+        break;
+      default:
+        responseStatus = 'ok';
+        break;
     }
   }
 
