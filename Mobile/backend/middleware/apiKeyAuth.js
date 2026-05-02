@@ -2,6 +2,7 @@
 // Open API authentication — validates X-API-Key header
 
 const apiKeyStore = require('../data/apiKeyStore');
+const tenantStore = require('../data/tenantStore');
 
 function apiKeyAuthMiddleware(req, res, next) {
   const apiKey = req.headers['x-api-key'];
@@ -14,7 +15,6 @@ function apiKeyAuthMiddleware(req, res, next) {
   req.apiTier = result.apiTier;
 
   // inject accessibleFarmTenantIds from tenantStore
-  const tenantStore = require('../data/tenantStore');
   const tenant = tenantStore.findById(result.apiTenantId);
   req.accessibleFarmTenantIds = tenant?.accessibleFarmTenantIds ?? [];
 
