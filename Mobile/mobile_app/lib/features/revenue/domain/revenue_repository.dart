@@ -18,6 +18,18 @@ class RevenuePeriod {
   final double partnerShare;
   final String status; // pending, confirmed, paid
   final String? confirmedAt;
+
+  factory RevenuePeriod.fromJson(Map<String, dynamic> json) {
+    return RevenuePeriod(
+      id: json['id'] as String,
+      periodLabel: json['periodLabel'] as String? ?? '',
+      totalRevenue: (json['totalRevenue'] as num?)?.toDouble() ?? 0.0,
+      platformShare: (json['platformShare'] as num?)?.toDouble() ?? 0.0,
+      partnerShare: (json['partnerShare'] as num?)?.toDouble() ?? 0.0,
+      status: json['status'] as String? ?? 'pending',
+      confirmedAt: json['confirmedAt'] as String?,
+    );
+  }
 }
 
 class RevenueListViewData {
