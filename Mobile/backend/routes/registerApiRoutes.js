@@ -12,6 +12,7 @@ const subscriptionRoutes = require('./subscription');
 const b2bDashboardRoutes = require('./b2bDashboard');
 const farmRoutes = require('./farmRoutes');
 const workerRoutes = require('./workerRoutes');
+const subscriptionServiceRoutes = require('./subscriptionServiceRoutes');
 
 function registerApiRoutes(app, prefix) {
   app.use(`${prefix}/auth`, authRoutes);
@@ -28,6 +29,7 @@ function registerApiRoutes(app, prefix) {
   app.use(`${prefix}/b2b`, b2bDashboardRoutes);
   app.use(`${prefix}/farm`, farmRoutes);
   app.use(`${prefix}/farms`, workerRoutes);
+  app.use(`${prefix}/subscription-services`, subscriptionServiceRoutes);
 }
 
 module.exports = { registerApiRoutes };

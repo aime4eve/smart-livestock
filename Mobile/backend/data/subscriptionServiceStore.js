@@ -112,7 +112,7 @@ function heartbeat(rawServiceKey, _instanceInfo) {
   const tenantStore = _getTenantStore();
   tenantStore.updateTenantField(svc.partnerTenantId, 'heartbeatAt', now);
 
-  return { status: svc.status, message: 'ok' };
+  return { status: svc.status, tier: svc.effectiveTier, expiresAt: svc.expiresAt, lastHeartbeatAt: svc.lastHeartbeatAt, message: 'ok' };
 }
 
 // ---- Status scanning ----
