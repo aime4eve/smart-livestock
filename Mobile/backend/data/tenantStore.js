@@ -191,11 +191,11 @@ function removeTenant(id) {
 }
 
 function findByServiceKey(keyHash) {
-  return tenants.find((t) => t.serviceKey === keyHash) || null;
+  return tenants.find((t) => t.serviceKey === keyHash);
 }
 
 function findByApiKey(keyHash) {
-  return tenants.find((t) => t.apiKey === keyHash) || null;
+  return tenants.find((t) => t.apiKey === keyHash);
 }
 
 function updateTenantField(id, field, value) {

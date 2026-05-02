@@ -150,3 +150,116 @@ test('tenantStore: createTenant defaults for optional fields', () => {
   assert.equal(created2.ownerId, null);
   assert.equal(created2.parentTenantId, null);
 });
+
+test('tenantStore: findByServiceKey returns undefined when no match', () => {
+  store.reset();
+  const result = store.findByServiceKey('some_hash');
+  assert.equal(result, undefined);
+});
+
+test('tenantStore: findByApiKey returns undefined when no match', () => {
+  store.reset();
+  const result = store.findByApiKey('some_hash');
+  assert.equal(result, undefined);
+});
+
+test('tenantStore: updateTenantField updates single field and returns tenant', () => {
+  store.reset();
+  const before = store.findById('tenant_001');
+  const beforeUpdatedAt = before.updatedAt;
+  const { tenant } = store.updateTenantField('tenant_001', 'deploymentType', 'cloud');
+  assert.equal(tenant.deploymentType, 'cloud');
+  assert.ok(tenant.updatedAt !== beforeUpdatedAt);
+});
+
+test('tenantStore: updateTenantField returns error for unknown id', () => {
+  store.reset();
+  const { error } = store.updateTenantField('tenant_999', 'deploymentType', 'cloud');
+  assert.equal(error, 'not_found');
+});
+
+test('tenantStore: updateTenantField rejects field not in SYNCABLE_FIELDS allowlist', () => {
+  store.reset();
+  const { error } = store.updateTenantField('tenant_001', 'name', '新名称');
+  assert.equal(error, 'field_not_allowed');
+});
+
+test('tenantStore: findByServiceKey returns tenant matching key hash', () => {
+  store.reset();
+  // Set a serviceKey on an existing tenant and find it
+  store.updateTenantField('tenant_001', 'serviceKey', 'svc-hash-abc123');
+  const found = store.findByServiceKey('svc-hash-abc123');
+  assert.equal(found.id, 'tenant_001');
+  assert.equal(found.serviceKey, 'svc-hash-abc123');
+  // findByApiKey: set an apiKey and find it
+  store.updateTenantField('tenant_002', 'apiKey', 'api-hash-xyz789');
+  const apiFound = store.findByApiKey('api-hash-xyz789');
+  assert.equal(apiFound.id, 'tenant_002');
+  assert.equal(apiFound.apiKey, 'api-hash-xyz789');
+  // Verify no false positive: empty search returns undefined (no match)
+  assert.equal(store.findByServiceKey('nonexistent'), undefined);
+  assert.equal(store.findByApiKey('nonexistent'), undefined);
+});
+
+test('tenantStore: updateTenantField accepts all SYNCABLE_FIELDS values', () => {
+  store.reset();
+  const testValues = {
+    contractId: 'contract_test_001',
+    revenueShareRatio: 0.25,
+    deploymentType: 'cloud',
+    serviceKey: 'svc-test-fields',
+    heartbeatAt: '2026-05-02T12:00:00+08:00',
+    apiTier: 'growth',
+    apiKey: 'api-test-fields',
+    apiCallQuota: 20000,
+    accessibleFarmTenantIds: ['tenant_003', 'tenant_004'],
+    deviceConfigRatio: { gpsRatio: 0.5, capsuleRatio: 0.5 },
+    livestockCount: 300,
+  };
+  const fields = Object.keys(testValues);
+  for (const field of fields) {
+    const { error, tenant } = store.updateTenantField('tenant_001', field, testValues[field]);
+    assert.equal(error, undefined, `${field} should be accepted`);
+    assert.deepEqual(tenant[field], testValues[field], `${field} value should match`);
+  }
+});
+
+test('tenantStore: createTenant accepts Phase 2 fields', () => {
+  store.reset();
+  const result = store.createTenant({
+    name: 'Phase2测试租户',
+    type: 'partner',
+    billingModel: 'revenue_share',
+    entitlementTier: 'premium',
+    ownerId: 'u_001',
+    contractId: 'contract_002',
+    revenueShareRatio: 0.2,
+    deploymentType: 'hybrid',
+    serviceKey: 'test-svc-key',
+    heartbeatAt: '2026-05-02T00:00:00+08:00',
+    apiTier: 'enterprise',
+    apiKey: 'test-api-key',
+    apiCallQuota: 50000,
+    accessibleFarmTenantIds: ['tenant_001', 'tenant_002'],
+    deviceConfigRatio: { gpsRatio: 0.9, capsuleRatio: 0.1 },
+    livestockCount: 500,
+  });
+  assert.equal(result.error, undefined);
+  const created = store.findById(result.tenant.id);
+  assert.equal(created.name, 'Phase2测试租户');
+  assert.equal(created.type, 'partner');
+  assert.equal(created.billingModel, 'revenue_share');
+  assert.equal(created.entitlementTier, 'premium');
+  assert.equal(created.ownerId, 'u_001');
+  assert.equal(created.contractId, 'contract_002');
+  assert.equal(created.revenueShareRatio, 0.2);
+  assert.equal(created.deploymentType, 'hybrid');
+  assert.equal(created.serviceKey, 'test-svc-key');
+  assert.equal(created.heartbeatAt, '2026-05-02T00:00:00+08:00');
+  assert.equal(created.apiTier, 'enterprise');
+  assert.equal(created.apiKey, 'test-api-key');
+  assert.equal(created.apiCallQuota, 50000);
+  assert.deepEqual(created.accessibleFarmTenantIds, ['tenant_001', 'tenant_002']);
+  assert.deepEqual(created.deviceConfigRatio, { gpsRatio: 0.9, capsuleRatio: 0.1 });
+  assert.equal(created.livestockCount, 500);
+});
