@@ -35,7 +35,7 @@ function reset() {
  * @returns {{ authorization: Object }} or {{ error: string }}
  */
 function create(body) {
-  const { apiTenantId, farmTenantId, requestedBy, reason } = body || {};
+  const { apiTenantId, farmTenantId, requestedBy, reason, requestedScopes } = body || {};
 
   if (!apiTenantId || !farmTenantId) {
     return { error: 'validation_error' };
@@ -50,6 +50,7 @@ function create(body) {
     farmTenantId,
     status: 'pending',
     requestedBy: requestedBy || null,
+    requestedScopes: requestedScopes || null,
     reviewedBy: null,
     reviewedAt: null,
     reason: reason || null,

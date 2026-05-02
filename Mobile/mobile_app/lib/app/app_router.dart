@@ -36,6 +36,13 @@ import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_d
 import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_edit_page.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_list_page.dart';
 import 'package:smart_livestock_demo/features/worker_management/presentation/worker_list_page.dart';
+import 'package:smart_livestock_demo/features/admin/presentation/contracts_page.dart';
+import 'package:smart_livestock_demo/features/admin/presentation/revenue_page.dart';
+import 'package:smart_livestock_demo/features/admin/presentation/subscriptions_page.dart';
+import 'package:smart_livestock_demo/features/admin/presentation/api_auth_page.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_revenue_page.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/presentation/worker_management_page.dart';
+import 'package:smart_livestock_demo/features/mine/presentation/api_auth_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final appMode = ref.watch(appModeProvider);
@@ -60,7 +67,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       final role = session.role!;
       if (role == DemoRole.platformAdmin) {
-        return location.startsWith(AppRoute.platformAdmin.path)
+        return location.startsWith(AppRoute.platformAdmin.path) ||
+                location.startsWith('/admin/')
             ? null
             : AppRoute.platformAdmin.path;
       }
@@ -281,7 +289,42 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: AppRoute.b2bAdminContract.routeName,
                 builder: (context, state) => const B2bContractPage(),
               ),
+              GoRoute(
+                path: 'revenue',
+                name: AppRoute.b2bAdminRevenue.routeName,
+                builder: (context, state) => const B2bRevenuePage(),
+              ),
+              GoRoute(
+                path: 'workers',
+                name: AppRoute.b2bWorkerManagement.routeName,
+                builder: (context, state) => const B2bWorkerManagementPage(),
+              ),
             ],
+          ),
+          GoRoute(
+            path: AppRoute.platformContracts.path,
+            name: AppRoute.platformContracts.routeName,
+            builder: (context, state) => const ContractsPage(),
+          ),
+          GoRoute(
+            path: AppRoute.platformRevenue.path,
+            name: AppRoute.platformRevenue.routeName,
+            builder: (context, state) => const RevenuePage(),
+          ),
+          GoRoute(
+            path: AppRoute.platformSubscriptions.path,
+            name: AppRoute.platformSubscriptions.routeName,
+            builder: (context, state) => const SubscriptionsPage(),
+          ),
+          GoRoute(
+            path: AppRoute.platformApiAuth.path,
+            name: AppRoute.platformApiAuth.routeName,
+            builder: (context, state) => const ApiAuthPage(),
+          ),
+          GoRoute(
+            path: AppRoute.mineApiAuth.path,
+            name: AppRoute.mineApiAuth.routeName,
+            builder: (context, state) => const MineApiAuthPage(),
           ),
         ],
       ),

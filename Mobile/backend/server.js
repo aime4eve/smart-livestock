@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const { buildRuntimeConfig } = require('./config/runtimeConfig');
 const { envelopeMiddleware } = require('./middleware/envelope');
@@ -9,28 +10,46 @@ const { farmContextMiddleware } = require('./middleware/farmContext');
 const { shapingMiddleware } = require('./middleware/feature-flag');
 const { registerApiRoutes } = require('./routes/registerApiRoutes');
 const subscriptionStore = require('./data/subscriptions');
+const subscriptionServiceStore = require('./data/subscriptionServiceStore');
+const apiKeyStore = require('./data/apiKeyStore');
 const tenantStore = require('./data/tenantStore');
 
 const app = express();
 const PORT = 3001;
 const runtimeConfig = buildRuntimeConfig();
 
-// Middleware
+// ===== 基础中间件 =====
 app.use(cors());
 app.use(express.json());
 app.use(requestContext(runtimeConfig));
 app.use(envelopeMiddleware);
 
-// Global middleware chain: auth → farmContext → shaping
+// ===== 全局中间件链 =====
+// 顺序约束（不可变）: auth → farmContext → shaping
 app.use(authMiddleware);           // 1. 认证 + 注入 req.user
 app.use(farmContextMiddleware);    // 2. 提取 req.activeFarmTenantId
 app.use(shapingMiddleware);        // 3. 包装 res.ok() 加入 shaping
 
-// Routes
+// ===== App API 路由 (/api/v1/*) =====
 registerApiRoutes(app, '/api');
 registerApiRoutes(app, '/api/v1');
 
-// Seed trial subscriptions for existing farm tenants that don't have one
+// ===== Open API 路由 (/api/open/v1/*) =====
+const openApiRouter = require('./routes/openApiRoutes');
+app.use('/api/open/v1', openApiRouter);
+
+// ===== 开发者门户静态托管 =====
+app.use('/developer', express.static(path.join(__dirname, '../developer-portal/dist')));
+
+// ===== 启动时全量扫描 =====
+subscriptionServiceStore.scan();                        // 订阅服务状态扫描
+apiKeyStore.scanRevokeRotatingKeys();                   // API Key 轮换撤销扫描
+
+// ===== 定时任务 =====
+setInterval(() => subscriptionServiceStore.scan(), 60_000);
+setInterval(() => apiKeyStore.scanRevokeRotatingKeys(), 3_600_000);
+
+// ===== seed trial subscriptions =====
 const allTenants = tenantStore.getAll();
 allTenants.filter(t => t.type === 'farm').forEach(t => {
   if (!subscriptionStore.getByTenantId(t.id)) {
@@ -38,14 +57,15 @@ allTenants.filter(t => t.type === 'farm').forEach(t => {
   }
 });
 
-// 404 fallback
+// ===== 404 fallback =====
 app.use((req, res) => {
   res.fail(404, 'RESOURCE_NOT_FOUND', `路由不存在: ${req.method} ${req.path}`);
 });
 
-// Known routes (printed at startup for convenience)
+// ===== ROUTE_DEFINITIONS =====
 const API_PREFIXES = ['/api', '/api/v1'];
 const ROUTE_DEFINITIONS = [
+  // --- Phase 2a 现有端点 ---
   ['POST',   '/auth/login'],
   ['GET',    '/me'],
   ['GET',    '/dashboard/summary'],
@@ -99,18 +119,59 @@ const ROUTE_DEFINITIONS = [
   ['GET',    '/farms/:farmId/workers'],
   ['POST',   '/farms/:farmId/workers'],
   ['DELETE', '/farms/:farmId/workers/:id'],
+
+  // --- E5 订阅服务管理 ---
+  ['GET',    '/subscription-services'],
+  ['POST',   '/subscription-services'],
+  ['GET',    '/subscription-services/:id'],
+  ['POST',   '/subscription-services/:id/renew'],
+  ['POST',   '/subscription-services/:id/revoke'],
+  ['POST',   '/subscription-services/heartbeat'],
+
+  // --- E6 合同管理 ---
+  ['GET',    '/contracts'],
+  ['POST',   '/contracts'],
+  ['GET',    '/contracts/:id'],
+  ['PUT',    '/contracts/:id'],
+  ['POST',   '/contracts/:id/terminate'],
+  // --- E4 分润对账 ---
+  ['GET',    '/revenue/periods'],
+  ['GET',    '/revenue/periods/:id'],
+  ['POST',   '/revenue/periods/:id/confirm'],
+  ['POST',   '/revenue/calculate'],
 ];
 const ROUTE_TABLE = API_PREFIXES.flatMap((prefix) =>
   ROUTE_DEFINITIONS.map(([method, path]) => [method, `${prefix}${path}`])
 );
 
+// --- G1 Open API (mounted at /api/open/v1/ via openApiRouter, NOT via registerApiRoutes) ---
+const OPEN_API_ROUTES = [
+  ['GET',    '/twin/fever/:id'],
+  ['GET',    '/twin/estrus/:id'],
+  ['GET',    '/twin/digestive/:id'],
+  ['GET',    '/twin/health/:id'],
+  ['GET',    '/twin/fever/list'],
+  ['GET',    '/twin/estrus/list'],
+  ['GET',    '/twin/epidemic/summary'],
+  ['POST',   '/twin/health/batch'],
+  ['GET',    '/cattle/list'],
+  ['GET',    '/fence/list'],
+  ['GET',    '/alert/list'],
+  ['POST',   '/twin/fever/batch'],
+  ['POST',   '/register'],
+];
+
 // Start server
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`\n  Mock API Server running at http://localhost:${PORT}\n`);
-    console.log('  Registered routes:');
+    console.log('  App API routes (/api + /api/v1):');
     ROUTE_TABLE.forEach(([method, path]) =>
       console.log(`  ${method.padEnd(7)} ${path}`)
+    );
+    console.log('\n  Open API routes (/api/open/v1):');
+    OPEN_API_ROUTES.forEach(([method, path]) =>
+      console.log(`  ${method.padEnd(7)} ${'/api/open/v1' + path}`)
     );
     console.log('');
   });

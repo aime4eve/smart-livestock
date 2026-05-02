@@ -12,6 +12,8 @@ function _getTenantStore() {
   return _tenantStore;
 }
 
+const GRACE_PERIOD_DAYS = 15;
+
 const _services = [];
 let _nextId = 1;
 
@@ -90,7 +92,7 @@ function create(body) {
 
 // ---- Heartbeat (P2-11: receives RAW key, hashes internally) ----
 
-function heartbeat(rawServiceKey, _instanceInfo) {
+function heartbeat(rawServiceKey, instanceInfo) {
   const keyHash = _hashKey(rawServiceKey);
   const svc = _findByKeyHash(keyHash);
 
@@ -102,8 +104,13 @@ function heartbeat(rawServiceKey, _instanceInfo) {
   svc.lastHeartbeatAt = now;
   svc.heartbeatCount = (svc.heartbeatCount || 0) + 1;
   svc.updatedAt = now;
+  svc.lastInstanceInfo = instanceInfo || null;
 
-  // Auto-recover from degraded back to active
+  // Auto-recover from grace_period or degraded back to active
+  if (svc.status === 'grace_period') {
+    svc.status = 'active';
+    svc.gracePeriodEnteredAt = null;
+  }
   if (svc.status === 'degraded') {
     svc.status = 'active';
   }
@@ -112,7 +119,12 @@ function heartbeat(rawServiceKey, _instanceInfo) {
   const tenantStore = _getTenantStore();
   tenantStore.updateTenantField(svc.partnerTenantId, 'heartbeatAt', now);
 
-  return { status: svc.status, message: 'ok' };
+  return {
+    status: svc.status,
+    tier: svc.effectiveTier,
+    expiresAt: svc.expiresAt,
+    gracePeriodEnteredAt: svc.gracePeriodEnteredAt || null,
+  };
 }
 
 // ---- Status scanning ----
@@ -133,11 +145,12 @@ function scan() {
     if (svc.status === 'active') {
       if (msSinceHeartbeat > 24 * 60 * 60 * 1000) {
         svc.status = 'grace_period';
+        svc.gracePeriodEnteredAt = _timestamp();
         svc.updatedAt = _timestamp();
         affected.push(svc.id);
       }
     } else if (svc.status === 'grace_period') {
-      if (msSinceHeartbeat > 15 * 24 * 60 * 60 * 1000) {
+      if (msSinceHeartbeat > GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000) {
         svc.status = 'degraded';
         svc.updatedAt = _timestamp();
         affected.push(svc.id);
@@ -211,6 +224,7 @@ function list(query) {
 }
 
 module.exports = {
+  GRACE_PERIOD_DAYS,
   create,
   heartbeat,
   scan,

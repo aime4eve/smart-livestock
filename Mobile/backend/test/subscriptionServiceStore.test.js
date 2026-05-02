@@ -88,7 +88,8 @@ describe('subscriptionServiceStore', () => {
     const result = store.create({ partnerTenantId: 'tenant_p001' });
     const hb = store.heartbeat(result.rawServiceKey);
     assert.equal(hb.status, 'active');
-    assert.equal(hb.message, 'ok');
+    assert.equal(hb.tier, 'standard');
+    assert.equal(hb.gracePeriodEnteredAt, null);
 
     const svc = store.getByPartnerTenantId('tenant_p001');
     assert.ok(svc.lastHeartbeatAt);
@@ -108,19 +109,20 @@ describe('subscriptionServiceStore', () => {
 
     const hb = store.heartbeat(result.rawServiceKey);
     assert.equal(hb.status, 'active');
-    assert.equal(hb.message, 'ok');
     assert.equal(svc.status, 'active');
   });
 
-  test('heartbeat returns actual subscription status, not hardcoded active', () => {
+  test('heartbeat auto-recovers grace_period back to active', () => {
     const result = store.create({ partnerTenantId: 'tenant_p001' });
     const svc = store.getByPartnerTenantId('tenant_p001');
     svc.status = 'grace_period';
+    svc.gracePeriodEnteredAt = hoursAgo(1);
 
     const hb = store.heartbeat(result.rawServiceKey);
-    // Grace period does not auto-recover — response should reflect actual status
-    assert.equal(hb.status, 'grace_period');
-    assert.equal(hb.message, 'ok');
+    // Grace period recovers on successful heartbeat
+    assert.equal(hb.status, 'active');
+    assert.equal(svc.status, 'active');
+    assert.equal(svc.gracePeriodEnteredAt, null);
   });
 
   test('heartbeat syncs tenant.heartbeatAt', () => {
@@ -129,6 +131,26 @@ describe('subscriptionServiceStore', () => {
     const tenantStore = require('../data/tenantStore');
     const tenant = tenantStore.findById('tenant_p002');
     assert.ok(tenant.heartbeatAt);
+  });
+
+  test('heartbeat stores lastInstanceInfo on service record', () => {
+    const result = store.create({ partnerTenantId: 'tenant_p001' });
+    const info = { instanceId: 'i-abc', version: '2.1.0', cattleCount: 120, deviceCount: 8 };
+    store.heartbeat(result.rawServiceKey, info);
+
+    const svc = store.getByPartnerTenantId('tenant_p001');
+    assert.ok(svc.lastInstanceInfo);
+    assert.equal(svc.lastInstanceInfo.instanceId, 'i-abc');
+    assert.equal(svc.lastInstanceInfo.version, '2.1.0');
+    assert.equal(svc.lastInstanceInfo.cattleCount, 120);
+  });
+
+  test('heartbeat with null instanceInfo stores null', () => {
+    const result = store.create({ partnerTenantId: 'tenant_p001' });
+    store.heartbeat(result.rawServiceKey, null);
+
+    const svc = store.getByPartnerTenantId('tenant_p001');
+    assert.equal(svc.lastInstanceInfo, null);
   });
 
   // ---- Status scanning ----
@@ -140,6 +162,7 @@ describe('subscriptionServiceStore', () => {
     const affected = store.scan();
     assert.ok(affected.includes(svc.id));
     assert.equal(svc.status, 'grace_period');
+    assert.ok(svc.gracePeriodEnteredAt);
   });
 
   test('scan transitions grace_period to degraded when beyond 15 days', () => {

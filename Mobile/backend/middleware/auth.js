@@ -36,12 +36,23 @@ function extractBearerToken(req) {
 /**
  * Auth middleware: sets req.userRole and req.user
  */
-// Routes that don't require authentication
-const PUBLIC_PATHS = ['/auth/login', '/auth/refresh', '/auth/logout'];
+// Routes that don't require authentication (endsWith match)
+const PUBLIC_PATHS = [
+  '/auth/login',
+  '/auth/refresh',
+  '/auth/logout',
+  '/subscription-services/heartbeat',
+];
+
+// Route prefixes that don't require authentication (startsWith match)
+const PUBLIC_PREFIXES = [
+  '/api/open/',
+];
 
 function authMiddleware(req, res, next) {
-  // Skip auth for public paths
-  if (PUBLIC_PATHS.some((p) => req.path.endsWith(p))) {
+  // Skip auth for public paths (endsWith) and prefixes (startsWith)
+  if (PUBLIC_PATHS.some((p) => req.path.endsWith(p)) ||
+      PUBLIC_PREFIXES.some((p) => req.path.startsWith(p))) {
     return next();
   }
 
