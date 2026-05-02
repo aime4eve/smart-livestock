@@ -9,6 +9,10 @@ function canManageFarm(req, farmId) {
   if (req.userRole === 'platform_admin') {
     return true;
   }
+  if (req.userRole === 'b2b_admin') {
+    const farm = tenantStore.findById(farmId);
+    return farm?.parentTenantId === req.user.tenantId;
+  }
   if (req.userRole !== 'owner') {
     return false;
   }
