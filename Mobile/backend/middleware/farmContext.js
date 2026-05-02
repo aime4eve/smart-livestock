@@ -2,6 +2,12 @@ const tenantStore = require('../data/tenantStore');
 const workerFarmStore = require('../data/workerFarmStore');
 
 function farmContextMiddleware(req, res, next) {
+  // API consumer requests (authenticated via X-API-Key) have no farm context
+  if (req.apiConsumer) {
+    req.activeFarmTenantId = null;
+    return next();
+  }
+
   const headerFarmId = req.headers?.['x-active-farm'];
 
   if (req.user?.role === 'owner') {
