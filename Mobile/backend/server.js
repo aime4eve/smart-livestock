@@ -35,8 +35,8 @@ registerApiRoutes(app, '/api');
 registerApiRoutes(app, '/api/v1');
 
 // ===== Open API 路由 (/api/open/v1/*) =====
-// G1.2-TODO: const openApiRouter = require('./routes/openApiRoutes');
-// G1.2-TODO: app.use('/api/open/v1', openApiRouter);
+const openApiRouter = require('./routes/openApiRoutes');
+app.use('/api/open/v1', openApiRouter);
 
 // ===== 开发者门户静态托管 =====
 app.use('/developer', express.static(path.join(__dirname, '../developer-portal/dist')));
@@ -139,7 +139,20 @@ const ROUTE_DEFINITIONS = [
   ['GET',    '/revenue/periods/:id'],
   ['POST',   '/revenue/periods/:id/confirm'],
   ['POST',   '/revenue/calculate'],
-  // G1-TODO: open API 端点
+  // --- G1 Open API ---
+  ['GET',    '/open/v1/twin/fever/:id'],
+  ['GET',    '/open/v1/twin/estrus/:id'],
+  ['GET',    '/open/v1/twin/digestive/:id'],
+  ['GET',    '/open/v1/twin/health/:id'],
+  ['GET',    '/open/v1/twin/fever/list'],
+  ['GET',    '/open/v1/twin/estrus/list'],
+  ['GET',    '/open/v1/twin/epidemic/summary'],
+  ['POST',   '/open/v1/twin/health/batch'],
+  ['GET',    '/open/v1/cattle/list'],
+  ['GET',    '/open/v1/fence/list'],
+  ['GET',    '/open/v1/alert/list'],
+  ['POST',   '/open/v1/twin/fever/batch'],
+  ['POST',   '/open/v1/register'],
 ];
 const ROUTE_TABLE = API_PREFIXES.flatMap((prefix) =>
   ROUTE_DEFINITIONS.map(([method, path]) => [method, `${prefix}${path}`])
