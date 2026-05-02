@@ -60,6 +60,23 @@ describe('subscriptionServiceStore', () => {
     assert.match(tenant.serviceKey, /^[0-9a-f]{64}$/);
   });
 
+  test('create accepts and stores effectiveTier and expiresAt', () => {
+    const result = store.create({
+      partnerTenantId: 'tenant_p001',
+      effectiveTier: 'premium',
+      expiresAt: '2027-06-01T00:00:00+08:00',
+    });
+    assert.ok(result.subscription);
+    assert.equal(result.subscription.effectiveTier, 'premium');
+    assert.equal(result.subscription.expiresAt, '2027-06-01T00:00:00+08:00');
+  });
+
+  test('create defaults effectiveTier to standard and expiresAt to null', () => {
+    const result = store.create({ partnerTenantId: 'tenant_p001' });
+    assert.equal(result.subscription.effectiveTier, 'standard');
+    assert.equal(result.subscription.expiresAt, null);
+  });
+
   test('create validates required partnerTenantId', () => {
     const result = store.create({});
     assert.equal(result.error, 'validation_error');
@@ -93,6 +110,17 @@ describe('subscriptionServiceStore', () => {
     assert.equal(hb.status, 'active');
     assert.equal(hb.message, 'ok');
     assert.equal(svc.status, 'active');
+  });
+
+  test('heartbeat returns actual subscription status, not hardcoded active', () => {
+    const result = store.create({ partnerTenantId: 'tenant_p001' });
+    const svc = store.getByPartnerTenantId('tenant_p001');
+    svc.status = 'grace_period';
+
+    const hb = store.heartbeat(result.rawServiceKey);
+    // Grace period does not auto-recover — response should reflect actual status
+    assert.equal(hb.status, 'grace_period');
+    assert.equal(hb.message, 'ok');
   });
 
   test('heartbeat syncs tenant.heartbeatAt', () => {
@@ -156,6 +184,15 @@ describe('subscriptionServiceStore', () => {
     assert.ok(renewResult.subscription.updatedAt);
   });
 
+  test('renew on revoked service restores active status', () => {
+    const result = store.create({ partnerTenantId: 'tenant_p001' });
+    store.revoke(result.subscription.id);
+
+    const renewResult = store.renew(result.subscription.id, '2028-01-01T00:00:00+08:00');
+    assert.equal(renewResult.subscription.status, 'active');
+    assert.equal(renewResult.subscription.expiresAt, '2028-01-01T00:00:00+08:00');
+  });
+
   test('renew returns error for unknown id', () => {
     const result = store.renew('nonexistent', '2028-01-01T00:00:00+08:00');
     assert.equal(result.error, 'not_found');
@@ -167,6 +204,13 @@ describe('subscriptionServiceStore', () => {
     const revokeResult = store.revoke(result.subscription.id);
     assert.ok(revokeResult.subscription);
     assert.equal(revokeResult.subscription.status, 'revoked');
+  });
+
+  test('revoke sets revokedAt timestamp', () => {
+    const result = store.create({ partnerTenantId: 'tenant_p001' });
+    const revokeResult = store.revoke(result.subscription.id);
+    assert.ok(revokeResult.subscription.revokedAt);
+    assert.match(revokeResult.subscription.revokedAt, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+08:00$/);
   });
 
   test('revoke returns error for unknown id', () => {
@@ -182,6 +226,19 @@ describe('subscriptionServiceStore', () => {
     const svc = store.getByPartnerTenantId('tenant_p002');
     assert.ok(svc);
     assert.equal(svc.partnerTenantId, 'tenant_p002');
+  });
+
+  test('getById returns service by id', () => {
+    const result = store.create({ partnerTenantId: 'tenant_p001' });
+    const svc = store.getById(result.subscription.id);
+    assert.ok(svc);
+    assert.equal(svc.id, result.subscription.id);
+    assert.equal(svc.partnerTenantId, 'tenant_p001');
+  });
+
+  test('getById returns null for unknown id', () => {
+    const svc = store.getById('nonexistent');
+    assert.equal(svc, null);
   });
 
   test('getByPartnerTenantId returns null for unknown partner', () => {

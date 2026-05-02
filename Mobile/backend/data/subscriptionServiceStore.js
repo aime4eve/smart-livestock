@@ -45,7 +45,12 @@ function reset() {
 }
 
 function create(body) {
-  const { partnerTenantId, deploymentType } = body || {};
+  const {
+    partnerTenantId,
+    deploymentType,
+    effectiveTier = 'standard',
+    expiresAt = null,
+  } = body || {};
 
   if (!partnerTenantId) {
     return { error: 'validation_error', message: 'partnerTenantId is required' };
@@ -60,11 +65,12 @@ function create(body) {
     id,
     partnerTenantId,
     keyHash,
+    effectiveTier,
     status: 'active',
     deployedAt: now,
     lastHeartbeatAt: null,
     heartbeatCount: 0,
-    expiresAt: null,
+    expiresAt,
     createdAt: now,
     updatedAt: now,
   };
@@ -106,7 +112,7 @@ function heartbeat(rawServiceKey, _instanceInfo) {
   const tenantStore = _getTenantStore();
   tenantStore.updateTenantField(svc.partnerTenantId, 'heartbeatAt', now);
 
-  return { status: 'active', message: 'ok' };
+  return { status: svc.status, message: 'ok' };
 }
 
 // ---- Status scanning ----
@@ -149,6 +155,9 @@ function renew(id, newExpiresAt) {
   if (!svc) return { error: 'not_found' };
 
   svc.expiresAt = newExpiresAt;
+  if (svc.status === 'revoked') {
+    svc.status = 'active';
+  }
   svc.updatedAt = _timestamp();
 
   return { subscription: svc };
@@ -159,12 +168,17 @@ function revoke(id) {
   if (!svc) return { error: 'not_found' };
 
   svc.status = 'revoked';
+  svc.revokedAt = _timestamp();
   svc.updatedAt = _timestamp();
 
   return { subscription: svc };
 }
 
 // ---- Query ----
+
+function getById(id) {
+  return _findById(id);
+}
 
 function getByPartnerTenantId(partnerTenantId) {
   return _services.find((s) => s.partnerTenantId === partnerTenantId) || null;
@@ -202,6 +216,7 @@ module.exports = {
   scan,
   renew,
   revoke,
+  getById,
   getByPartnerTenantId,
   list,
   reset,
