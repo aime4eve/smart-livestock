@@ -15,6 +15,7 @@ const workerRoutes = require('./workerRoutes');
 const subscriptionServiceRoutes = require('./subscriptionServiceRoutes');
 const revenueRoutes = require('./revenueRoutes');
 const contractRoutes = require('./contractRoutes');
+const apiAuthorizationRoutes = require('./apiAuthorizationRoutes');
 
 function registerApiRoutes(app, prefix) {
   app.use(`${prefix}/auth`, authRoutes);
@@ -34,6 +35,7 @@ function registerApiRoutes(app, prefix) {
   app.use(`${prefix}/subscription-services`, subscriptionServiceRoutes);
   app.use(`${prefix}/revenue`, revenueRoutes);
   app.use(`${prefix}/contracts`, contractRoutes);
+  app.use(`${prefix}/api-authorizations`, apiAuthorizationRoutes);
 }
 
 module.exports = { registerApiRoutes };

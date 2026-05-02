@@ -24,6 +24,7 @@ const users = {
       'tenant:delete',
       'profile:view',
       'subscription:manage',
+      'api-authorization:review',
     ],
   },
   worker: {
