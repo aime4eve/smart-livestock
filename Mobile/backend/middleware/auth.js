@@ -47,6 +47,7 @@ const PUBLIC_PATHS = [
 // Route prefixes that don't require authentication (startsWith match)
 const PUBLIC_PREFIXES = [
   '/api/open/',
+  '/developer',
 ];
 
 function authMiddleware(req, res, next) {

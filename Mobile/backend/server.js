@@ -40,6 +40,12 @@ app.use('/api/open/v1', openApiRouter);
 
 // ===== 开发者门户静态托管 =====
 app.use('/developer', express.static(path.join(__dirname, '../developer-portal/dist')));
+// SPA fallback: 非静态文件子路由回退到 index.html
+app.use('/developer', (req, res) => {
+  if (req.method === 'GET') {
+    res.sendFile(path.join(__dirname, '../developer-portal/dist/index.html'));
+  }
+});
 
 // ===== 启动时全量扫描 =====
 subscriptionServiceStore.scan();                        // 订阅服务状态扫描
