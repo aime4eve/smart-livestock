@@ -129,7 +129,11 @@ const ROUTE_DEFINITIONS = [
   ['POST',   '/subscription-services/heartbeat'],
 
   // E6-TODO: contracts 端点
-  // E4-TODO: revenue 端点
+  // --- E4 分润对账 ---
+  ['GET',    '/revenue/periods'],
+  ['GET',    '/revenue/periods/:id'],
+  ['POST',   '/revenue/periods/:id/confirm'],
+  ['POST',   '/revenue/calculate'],
   // G1-TODO: open API 端点
 ];
 const ROUTE_TABLE = API_PREFIXES.flatMap((prefix) =>
