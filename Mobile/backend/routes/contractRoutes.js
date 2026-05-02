@@ -8,12 +8,6 @@ const { requirePermission } = require('../middleware/auth');
 
 const router = Router();
 
-// Helper to find contract by ID from the store's list
-function findById(id) {
-  const { items } = contractStore.list({ pageSize: 9999 });
-  return items.find((c) => c.id === id) ?? null;
-}
-
 // GET /contracts — 分页列表（支持 ?partnerId=&status= 过滤），仅 platform_admin
 router.get('/', requirePermission('contract:manage'), (req, res) => {
   const { partnerId, status, page, pageSize } = req.query;
@@ -33,7 +27,7 @@ router.post('/', requirePermission('contract:manage'), (req, res) => {
   });
 
   if (result.error) {
-    return res.fail(422, 'VALIDATION_ERROR', result.message);
+    return res.fail(422, 'VALIDATION_ERROR', result.message || '创建失败');
   }
 
   res.ok(result.contract, '合同创建成功');
@@ -41,14 +35,12 @@ router.post('/', requirePermission('contract:manage'), (req, res) => {
 
 // GET /contracts/:id — 详情，platform_admin + b2b_admin（仅自己的合同）
 router.get('/:id', (req, res) => {
-  // Allow both contract:manage (platform_admin) and contract:view (b2b_admin)
-  const hasManage = req.user?.permissions?.includes('contract:manage');
-  const hasView = req.user?.permissions?.includes('contract:view');
-  if (!hasManage && !hasView) {
+  // platform_admin or b2b_admin (own contract only)
+  if (req.userRole !== 'platform_admin' && req.userRole !== 'b2b_admin') {
     return res.fail(403, 'AUTH_FORBIDDEN', '无权访问资源');
   }
 
-  const contract = findById(req.params.id);
+  const contract = contractStore.getById(req.params.id);
   if (!contract) {
     return res.fail(404, 'RESOURCE_NOT_FOUND', '合同不存在');
   }
@@ -69,7 +61,7 @@ router.put('/:id', requirePermission('contract:manage'), (req, res) => {
     if (result.error === 'not_found') {
       return res.fail(404, 'RESOURCE_NOT_FOUND', '合同不存在');
     }
-    return res.fail(400, 'BAD_REQUEST', '编辑失败');
+    return res.fail(400, 'BAD_REQUEST', result.message || '编辑失败');
   }
 
   res.ok(result.contract, '合同编辑成功');
@@ -83,7 +75,7 @@ router.post('/:id/terminate', requirePermission('contract:manage'), (req, res) =
     if (result.error === 'not_found') {
       return res.fail(404, 'RESOURCE_NOT_FOUND', '合同不存在');
     }
-    return res.fail(400, 'BAD_REQUEST', '终止失败');
+    return res.fail(400, 'BAD_REQUEST', result.message || '终止失败');
   }
 
   res.ok(result.contract, '合同已终止');

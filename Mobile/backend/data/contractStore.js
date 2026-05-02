@@ -43,6 +43,10 @@ function reset() {
   _nextId = 2;
 }
 
+function getById(id) {
+  return _contracts.find((c) => c.id === id) ?? null;
+}
+
 function getByPartnerTenantId(partnerTenantId) {
   return _contracts.find((c) => c.partnerTenantId === partnerTenantId) ?? null;
 }
@@ -144,4 +148,4 @@ function list(query) {
   return { items, page, pageSize, total };
 }
 
-module.exports = { getByPartnerTenantId, create, update, terminate, list, reset };
+module.exports = { getById, getByPartnerTenantId, create, update, terminate, list, reset };
