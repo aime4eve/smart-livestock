@@ -45,8 +45,20 @@ function filterByFarmAccess(items, accessibleFarmTenantIds) {
   });
 }
 
+/**
+ * Compute a health score (0–100) from fever status.
+ * Used by both GET /twin/health/:id and POST /twin/health/batch.
+ */
+function computeHealthScore(feverItem) {
+  if (feverItem?.status === 'critical') return 45;
+  if (feverItem?.status === 'warning') return 70;
+  return 92; // normal
+}
+
 // ============================================================================
-// Growth Tier — list endpoints MUST come before their :id counterparts
+// Growth Tier — available to growth and scale tiers
+// Gating: effectiveTier === 'free' → 403 (growth+scale pass through)
+// List endpoints MUST come before their :id counterparts (I2)
 // ============================================================================
 
 // 5. GET /open/v1/twin/fever/list — fever list (BEFORE /:id to avoid param capture)
@@ -98,15 +110,11 @@ router.post('/twin/health/batch', (req, res) => {
     }
     const feverItem = feverListItems.find((x) => x.livestockId === animal.livestockId);
     const digestiveItem = digestiveListItems.find((x) => x.livestockId === animal.livestockId);
-    const healthScore =
-      feverItem?.status === 'critical' ? 45
-      : feverItem?.status === 'warning' ? 70
-      : 92;
     return {
       livestockId: lid,
       earTag: animal.earTag,
       breed: animal.breed,
-      healthScore,
+      healthScore: computeHealthScore(feverItem),
       feverStatus: feverItem?.status ?? 'normal',
       digestiveStatus: digestiveItem?.status ?? 'normal',
       farmTenantId: animal.farmTenantId,
@@ -116,7 +124,9 @@ router.post('/twin/health/batch', (req, res) => {
 });
 
 // ============================================================================
-// Scale Tier — list endpoints (no :id conflicts here; different method for batch)
+// Scale Tier — available to scale tier only
+// Gating: req.apiTier !== 'scale' → 403 (strict; free and growth denied)
+// These are list/summary endpoints; no :id conflicts here
 // ============================================================================
 
 // 9. GET /open/v1/cattle/list — cattle list
@@ -225,15 +235,11 @@ router.get('/twin/health/:id', (req, res) => {
   }
   const feverItem = feverListItems.find((x) => x.livestockId === animal.livestockId);
   const digestiveItem = digestiveListItems.find((x) => x.livestockId === animal.livestockId);
-  const healthScore =
-    feverItem?.status === 'critical' ? 45
-    : feverItem?.status === 'warning' ? 70
-    : 92;
   res.ok({
     livestockId: animal.livestockId,
     earTag: animal.earTag,
     breed: animal.breed,
-    healthScore,
+    healthScore: computeHealthScore(feverItem),
     feverStatus: feverItem?.status ?? 'normal',
     digestiveStatus: digestiveItem?.status ?? 'normal',
     farmTenantId: animal.farmTenantId,

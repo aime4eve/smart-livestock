@@ -139,32 +139,39 @@ const ROUTE_DEFINITIONS = [
   ['GET',    '/revenue/periods/:id'],
   ['POST',   '/revenue/periods/:id/confirm'],
   ['POST',   '/revenue/calculate'],
-  // --- G1 Open API ---
-  ['GET',    '/open/v1/twin/fever/:id'],
-  ['GET',    '/open/v1/twin/estrus/:id'],
-  ['GET',    '/open/v1/twin/digestive/:id'],
-  ['GET',    '/open/v1/twin/health/:id'],
-  ['GET',    '/open/v1/twin/fever/list'],
-  ['GET',    '/open/v1/twin/estrus/list'],
-  ['GET',    '/open/v1/twin/epidemic/summary'],
-  ['POST',   '/open/v1/twin/health/batch'],
-  ['GET',    '/open/v1/cattle/list'],
-  ['GET',    '/open/v1/fence/list'],
-  ['GET',    '/open/v1/alert/list'],
-  ['POST',   '/open/v1/twin/fever/batch'],
-  ['POST',   '/open/v1/register'],
 ];
 const ROUTE_TABLE = API_PREFIXES.flatMap((prefix) =>
   ROUTE_DEFINITIONS.map(([method, path]) => [method, `${prefix}${path}`])
 );
 
+// --- G1 Open API (mounted at /api/open/v1/ via openApiRouter, NOT via registerApiRoutes) ---
+const OPEN_API_ROUTES = [
+  ['GET',    '/twin/fever/:id'],
+  ['GET',    '/twin/estrus/:id'],
+  ['GET',    '/twin/digestive/:id'],
+  ['GET',    '/twin/health/:id'],
+  ['GET',    '/twin/fever/list'],
+  ['GET',    '/twin/estrus/list'],
+  ['GET',    '/twin/epidemic/summary'],
+  ['POST',   '/twin/health/batch'],
+  ['GET',    '/cattle/list'],
+  ['GET',    '/fence/list'],
+  ['GET',    '/alert/list'],
+  ['POST',   '/twin/fever/batch'],
+  ['POST',   '/register'],
+];
+
 // Start server
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`\n  Mock API Server running at http://localhost:${PORT}\n`);
-    console.log('  Registered routes:');
+    console.log('  App API routes (/api + /api/v1):');
     ROUTE_TABLE.forEach(([method, path]) =>
       console.log(`  ${method.padEnd(7)} ${path}`)
+    );
+    console.log('\n  Open API routes (/api/open/v1):');
+    OPEN_API_ROUTES.forEach(([method, path]) =>
+      console.log(`  ${method.padEnd(7)} ${'/api/open/v1' + path}`)
     );
     console.log('');
   });
