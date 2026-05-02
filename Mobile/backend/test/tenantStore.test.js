@@ -7,8 +7,8 @@ test('tenantStore: sliceForPage 默认分页返回全部', () => {
   const res = store.sliceForPage({});
   assert.equal(res.page, 1);
   assert.equal(res.pageSize, 20);
-  assert.equal(res.total, 10);
-  assert.equal(res.items.length, 10);
+  assert.equal(res.total, 12);
+  assert.equal(res.items.length, 12);
 });
 
 test('tenantStore: sliceForPage 支持 status 过滤', () => {

@@ -93,6 +93,10 @@ function createTenant(body) {
     billingModel = 'direct',
     entitlementTier = 'basic',
     ownerId = null,
+    contractId = null, revenueShareRatio = null, deploymentType = null,
+    serviceKey = null, heartbeatAt = null, apiTier = null, apiKey = null,
+    apiCallQuota = null, accessibleFarmTenantIds = null,
+    deviceConfigRatio = null, livestockCount = null,
   } = body || {};
   const name = typeof rawName === 'string' ? rawName.trim() : rawName;
   if (!name) return { error: 'name_required' };
@@ -121,6 +125,17 @@ function createTenant(body) {
     createdAt: now,
     updatedAt: now,
     lastUpdatedBy: '平台管理员',
+    contractId,
+    revenueShareRatio,
+    deploymentType,
+    serviceKey,
+    heartbeatAt,
+    apiTier,
+    apiKey,
+    apiCallQuota,
+    accessibleFarmTenantIds,
+    deviceConfigRatio,
+    livestockCount,
   };
   tenants.push(tenant);
   return { tenant };
@@ -175,6 +190,27 @@ function removeTenant(id) {
   return { removed };
 }
 
+function findByServiceKey(keyHash) {
+  return tenants.find((t) => t.serviceKey === keyHash) || null;
+}
+
+function findByApiKey(keyHash) {
+  return tenants.find((t) => t.apiKey === keyHash) || null;
+}
+
+function updateTenantField(id, field, value) {
+  const SYNCABLE_FIELDS = ['contractId', 'revenueShareRatio', 'deploymentType', 'serviceKey',
+    'heartbeatAt', 'apiTier', 'apiKey', 'apiCallQuota', 'accessibleFarmTenantIds',
+    'deviceConfigRatio', 'livestockCount'];
+  const tenant = findById(id);
+  if (!tenant) return { error: 'not_found' };
+  if (!SYNCABLE_FIELDS.includes(field)) return { error: 'field_not_allowed' };
+  tenant[field] = value;
+  const now = new Date().toISOString().replace('Z', '+08:00').replace(/\.\d{3}/, '');
+  tenant.updatedAt = now;
+  return { tenant };
+}
+
 module.exports = {
   getAll,
   findById,
@@ -187,4 +223,7 @@ module.exports = {
   adjustLicense,
   removeTenant,
   reset,
+  findByServiceKey,
+  findByApiKey,
+  updateTenantField,
 };
