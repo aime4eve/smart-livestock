@@ -111,6 +111,12 @@ class ApiCache {
   Map<String, dynamic>? _b2bDashboard;
   Map<String, dynamic>? _b2bContract;
 
+  List<Map<String, dynamic>> _contracts = [];
+  List<Map<String, dynamic>> _revenue = [];
+  List<Map<String, dynamic>> _subscriptionServices = [];
+  List<Map<String, dynamic>> _apiKeys = [];
+  List<Map<String, dynamic>> _apiAuthorizations = [];
+
   List<Map<String, dynamic>> get dashboardMetrics => _dashboardMetrics;
   List<Map<String, dynamic>> get animals => _animals;
   List<Map<String, dynamic>> get mapTrajectoryPoints => _mapTrajectoryPoints;
@@ -144,6 +150,12 @@ class ApiCache {
   String? get workersFarmId => _workersFarmId;
   Map<String, dynamic>? get b2bDashboard => _b2bDashboard;
   Map<String, dynamic>? get b2bContract => _b2bContract;
+
+  List<Map<String, dynamic>> get contracts => _contracts;
+  List<Map<String, dynamic>> get revenue => _revenue;
+  List<Map<String, dynamic>> get subscriptionServices => _subscriptionServices;
+  List<Map<String, dynamic>> get apiKeys => _apiKeys;
+  List<Map<String, dynamic>> get apiAuthorizations => _apiAuthorizations;
 
   /// Updates the cached subscription state (used by LiveSubscriptionRepository after writes).
   void updateSubscriptionCurrent(Map<String, dynamic>? value) {
@@ -1018,6 +1030,11 @@ class ApiCache {
     _workersFarmId = null;
     _b2bDashboard = null;
     _b2bContract = null;
+    _contracts = [];
+    _revenue = [];
+    _subscriptionServices = [];
+    _apiKeys = [];
+    _apiAuthorizations = [];
     _tenantDevicesCache.clear();
     _tenantLogsCache.clear();
     _tenantStatsCache.clear();

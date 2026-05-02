@@ -55,6 +55,18 @@ class MinePage extends ConsumerWidget {
                 onTap: () => context.go(AppRoute.workerManagement.path),
               ),
             ),
+            const SizedBox(height: AppSpacing.md),
+            HighfiCard(
+              child: ListTile(
+                key: const Key('mine-api-auth'),
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.api),
+                title: const Text('API授权管理'),
+                subtitle: const Text('管理 API Key 和第三方访问授权'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.go(AppRoute.mineApiAuth.path),
+              ),
+            ),
           ],
         ],
       ),

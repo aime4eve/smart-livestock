@@ -45,4 +45,22 @@ class RolePermission {
       role == DemoRole.b2bAdmin || role == DemoRole.platformAdmin;
 
   static bool canViewB2bDashboard(DemoRole role) => role == DemoRole.b2bAdmin;
+
+  static bool canManageContracts(DemoRole role) =>
+      role == DemoRole.platformAdmin;
+
+  static bool canViewRevenue(DemoRole role) =>
+      role == DemoRole.platformAdmin || role == DemoRole.b2bAdmin;
+
+  static bool canCalculateRevenue(DemoRole role) =>
+      role == DemoRole.platformAdmin;
+
+  static bool canManageSubscriptionServices(DemoRole role) =>
+      role == DemoRole.platformAdmin;
+
+  static bool canReviewApiAuthorizations(DemoRole role) =>
+      role == DemoRole.platformAdmin || role == DemoRole.owner;
+
+  static bool canManageSubfarmWorkers(DemoRole role) =>
+      role == DemoRole.b2bAdmin;
 }

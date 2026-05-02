@@ -200,6 +200,14 @@ class _B2bAdminShell extends StatelessWidget {
                 icon: Icon(Icons.description),
                 label: Text('合同'),
               ),
+              NavigationRailDestination(
+                icon: Icon(Icons.account_balance_wallet),
+                label: Text('对账'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.groups_2_outlined),
+                label: Text('牧工管理'),
+              ),
             ],
           ),
           const VerticalDivider(thickness: 1, width: 1),
@@ -213,6 +221,8 @@ class _B2bAdminShell extends StatelessWidget {
     final location = GoRouterState.of(context).uri.toString();
     if (location.contains('/farms')) return 1;
     if (location.contains('/contract')) return 2;
+    if (location.contains('/revenue')) return 3;
+    if (location.contains('/workers')) return 4;
     return 0;
   }
 
@@ -224,6 +234,10 @@ class _B2bAdminShell extends StatelessWidget {
         context.go(AppRoute.b2bAdminFarms.path);
       case 2:
         context.go(AppRoute.b2bAdminContract.path);
+      case 3:
+        context.go(AppRoute.b2bAdminRevenue.path);
+      case 4:
+        context.go(AppRoute.b2bWorkerManagement.path);
     }
   }
 }

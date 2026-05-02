@@ -31,7 +31,14 @@ enum AppRoute {
   subscription('/subscription', 'subscription', '订阅管理'),
   checkout('/subscription/checkout', 'checkout', '确认支付'),
   subscriptionPlan('/subscription/plans', 'subscription-plan', '套餐选择'),
-  workerManagement('/mine/workers', 'worker-management', '牧工管理');
+  workerManagement('/mine/workers', 'worker-management', '牧工管理'),
+  platformContracts('/admin/contracts', 'platform-contracts', '合同管理'),
+  platformRevenue('/admin/revenue', 'platform-revenue', '对账看板'),
+  platformSubscriptions('/admin/subscriptions', 'platform-subscriptions', '订阅服务管理'),
+  platformApiAuth('/admin/api-auth', 'platform-api-auth', 'API授权管理'),
+  b2bAdminRevenue('/b2b/admin/revenue', 'b2b-admin-revenue', '对账'),
+  b2bWorkerManagement('/b2b/admin/workers', 'b2b-worker-management', '牧工管理'),
+  mineApiAuth('/mine/api-auth', 'mine-api-auth', 'API授权管理');
 
   const AppRoute(this.path, this.routeName, this.label);
 
