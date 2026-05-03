@@ -137,7 +137,8 @@ describe('apiKeyStore', () => {
 
     // Both keys should be valid during rotation period (old is 'rotating' but not revoked)
     const firstValidation = store.validate(first.rawKey);
-    assert.equal(firstValidation, null); // rotating keys are NOT valid
+    assert.ok(firstValidation); // rotating keys are valid during 24h overlap
+    assert.equal(firstValidation.apiTenantId, 'tenant_a001');
 
     const secondValidation = store.validate(rotateResult.rawKey);
     assert.ok(secondValidation);

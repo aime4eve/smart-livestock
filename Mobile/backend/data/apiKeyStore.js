@@ -88,7 +88,7 @@ function generate(apiTenantId) {
 function validate(rawKey) {
   if (!rawKey) return null;
   const keyHash = _hashKey(rawKey);
-  const key = _keys.find((k) => k.keyHash === keyHash && k.status === 'active');
+  const key = _keys.find((k) => k.keyHash === keyHash && (k.status === 'active' || k.status === 'rotating'));
   if (!key) return null;
 
   // Look up the api tenant's tier info
