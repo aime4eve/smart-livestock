@@ -19,6 +19,7 @@ class B2bWorkerDetailPage extends ConsumerStatefulWidget {
 
 class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
   List<B2bSubFarmWorker> _workers = [];
+  bool _busy = false;
 
   @override
   void initState() {
@@ -42,6 +43,17 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     // Watch the provider so page rebuilds when data changes
     ref.watch(b2bWorkerManagementControllerProvider);
     final data = ref.read(b2bWorkerManagementControllerProvider);
+    // Reload workers from latest controller state on every rebuild
+    final latestWorkers = ref
+        .read(b2bWorkerManagementControllerProvider.notifier)
+        .getSubFarmWorkers(widget.farmId);
+    if (_workers.isNotEmpty && _workers.length != latestWorkers.length) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _workers = latestWorkers);
+      });
+    } else if (_workers.isEmpty && latestWorkers.isNotEmpty) {
+      _workers = latestWorkers;
+    }
 
     // Find farm info
     final farm = data.subFarms.where((f) => f.id == widget.farmId).firstOrNull;
@@ -106,7 +118,8 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
             _FarmInfoBar(
               key: const Key('b2b-worker-detail-info-bar'),
               farm: farm,
-              onAssign: () => _handleAssign(farm),
+              isBusy: _busy,
+              onAssign: _busy ? null : () => _handleAssign(farm),
             ),
             const SizedBox(height: AppSpacing.lg),
 
@@ -128,7 +141,8 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                     key: Key('b2b-worker-${worker.id}'),
                     worker: worker,
                     farmName: farm.name,
-                    onRemove: () => _handleRemove(worker, farm),
+                    isBusy: _busy,
+                    onRemove: _busy ? null : () => _handleRemove(worker, farm),
                   )),
           ],
         ),
@@ -137,6 +151,9 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
   }
 
   Future<void> _handleAssign(B2bSubFarm farm) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+
     final available = ref
         .read(b2bWorkerManagementControllerProvider.notifier)
         .getAvailableWorkers();
@@ -144,6 +161,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     if (!mounted) return;
 
     if (available.isEmpty) {
+      setState(() => _busy = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('所有牧工已分配到各牧场'),
@@ -225,6 +243,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
       ),
     );
 
+    setState(() => _busy = false);
     _loadWorkers();
   }
 
@@ -232,6 +251,9 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     B2bSubFarmWorker worker,
     B2bSubFarm farm,
   ) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+
     final confirmed = await B2bConfirmDialog.show(
       context,
       title: '移除牧工',
@@ -239,7 +261,10 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
       isDestructive: true,
     );
 
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted) {
+      setState(() => _busy = false);
+      return;
+    }
 
     final ok = await ref
         .read(b2bWorkerManagementControllerProvider.notifier)
@@ -254,8 +279,10 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
           backgroundColor: const Color(0xFF2E7D32),
         ),
       );
+      setState(() => _busy = false);
       _loadWorkers();
     } else {
+      setState(() => _busy = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('移除失败，请重试'),
@@ -312,11 +339,13 @@ class _FarmInfoBar extends StatelessWidget {
   const _FarmInfoBar({
     super.key,
     required this.farm,
+    this.isBusy = false,
     required this.onAssign,
   });
 
   final B2bSubFarm farm;
-  final VoidCallback onAssign;
+  final bool isBusy;
+  final VoidCallback? onAssign;
 
   @override
   Widget build(BuildContext context) {
@@ -354,7 +383,7 @@ class _FarmInfoBar extends StatelessWidget {
           // Assign button
           FilledButton(
             key: const Key('b2b-assign-worker-btn'),
-            onPressed: onAssign,
+            onPressed: isBusy ? null : onAssign,
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF546E7A),
               padding: const EdgeInsets.symmetric(
@@ -413,12 +442,14 @@ class _WorkerCard extends StatelessWidget {
     super.key,
     required this.worker,
     required this.farmName,
+    this.isBusy = false,
     required this.onRemove,
   });
 
   final B2bSubFarmWorker worker;
   final String farmName;
-  final VoidCallback onRemove;
+  final bool isBusy;
+  final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -509,7 +540,7 @@ class _WorkerCard extends StatelessWidget {
             // Remove button
             OutlinedButton(
               key: Key('b2b-remove-worker-${worker.id}'),
-              onPressed: onRemove,
+              onPressed: isBusy ? null : onRemove,
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFFC2564B),
                 side: const BorderSide(color: Color(0xFFC2564B)),
