@@ -20,6 +20,7 @@
 
 | 完成日期 | Issue | PR | 备注 |
 |----------|-------|----|------|
+| 2026-04-17 | #24 | #25 | 9 个 Task 全部完成，单一 FlutterMap 架构落地 |
 
 ---
 
@@ -56,7 +57,7 @@
 - Modify: `lib/core/theme/app_colors.dart:1-22`
 - Test: `test/features/fence/fence_hit_detection_test.dart` (later task)
 
-- [ ] **Step 1: Add the token**
+- [x] **Step 1: Add the token**
 
 Open `Mobile/mobile_app/lib/core/theme/app_colors.dart` and add after the `info` line:
 
@@ -95,12 +96,12 @@ class AppColors {
 
 `0xB3` ≈ 70% opacity black, 用于编辑态迷你标题条半透明深色背景。
 
-- [ ] **Step 2: Run analyze to verify**
+- [x] **Step 2: Run analyze to verify**
 
 Run: `cd Mobile/mobile_app && flutter analyze`
 Expected: No new warnings.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd Mobile/mobile_app
@@ -116,7 +117,7 @@ git commit -m "feat(theme): add AppColors.overlayDark for edit mode title bar"
 - Create: `lib/features/fence/presentation/fence_hit_detection.dart`
 - Create: `test/features/fence/fence_hit_detection_test.dart`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `Mobile/mobile_app/test/features/fence/fence_hit_detection_test.dart`:
 
@@ -285,12 +286,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd Mobile/mobile_app && flutter test test/features/fence/fence_hit_detection_test.dart`
 Expected: FAIL — `fence_hit_detection.dart` does not exist yet.
 
-- [ ] **Step 3: Implement the hit detection utility**
+- [x] **Step 3: Implement the hit detection utility**
 
 Create `Mobile/mobile_app/lib/features/fence/presentation/fence_hit_detection.dart`:
 
@@ -392,12 +393,12 @@ List<FenceHitResult> detectFenceHits({
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd Mobile/mobile_app && flutter test test/features/fence/fence_hit_detection_test.dart -v`
 Expected: All tests PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd Mobile/mobile_app
@@ -412,7 +413,7 @@ git commit -m "feat(fence): add screen-space hit detection with 40px boundary to
 **Files:**
 - Create: `lib/features/fence/presentation/widgets/fence_candidate_sheet.dart`
 
-- [ ] **Step 1: Create the widget**
+- [x] **Step 1: Create the widget**
 
 Create `Mobile/mobile_app/lib/features/fence/presentation/widgets/fence_candidate_sheet.dart`:
 
@@ -484,12 +485,12 @@ class _CandidateList extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 2: Run analyze**
+- [x] **Step 2: Run analyze**
 
 Run: `cd Mobile/mobile_app && flutter analyze`
 Expected: No new warnings.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd Mobile/mobile_app
@@ -504,7 +505,7 @@ git commit -m "feat(fence): add overlapping fence candidate BottomSheet widget"
 **Files:**
 - Create: `lib/features/fence/presentation/widgets/fence_mini_title_bar.dart`
 
-- [ ] **Step 1: Create the widget**
+- [x] **Step 1: Create the widget**
 
 Create `Mobile/mobile_app/lib/features/fence/presentation/widgets/fence_mini_title_bar.dart`:
 
@@ -586,12 +587,12 @@ class FenceMiniTitleBar extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 2: Run analyze**
+- [x] **Step 2: Run analyze**
 
 Run: `cd Mobile/mobile_app && flutter analyze`
 Expected: No new warnings.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd Mobile/mobile_app
@@ -608,7 +609,7 @@ git commit -m "feat(fence): add edit mode mini title bar with undo/redo"
 
 > **Note:** This task is part of a coordinated commit with Tasks 6–8. Do NOT commit separately — tests will fail until fence_page.dart is rewritten and test files are updated.
 
-- [ ] **Step 1: Rewrite the toolbar**
+- [x] **Step 1: Rewrite the toolbar**
 
 Replace the full content of `Mobile/mobile_app/lib/features/fence/presentation/widgets/fence_edit_toolbar.dart` with:
 
@@ -767,7 +768,7 @@ Key changes vs. original:
 
 This is the core change. The file is replaced entirely. Below are the key sections with complete code.
 
-- [ ] **Step 1: Replace the full file**
+- [x] **Step 1: Replace the full file**
 
 Replace the entire content of `Mobile/mobile_app/lib/features/pages/fence_page.dart` with:
 
@@ -2161,7 +2162,7 @@ class _MapMarker extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 2: Verify the file compiles (will run after test updates)**
+- [x] **Step 2: Verify the file compiles (will run after test updates)**
 
 ---
 
@@ -2172,7 +2173,7 @@ class _MapMarker extends StatelessWidget {
 
 > **Note:** Part of coordinated commit with Tasks 5, 6, 8.
 
-- [ ] **Step 1: Delete the file**
+- [x] **Step 1: Delete the file**
 
 ```bash
 cd Mobile/mobile_app
@@ -2190,7 +2191,7 @@ rm lib/features/fence/presentation/widgets/fence_edit_overlay.dart
 
 > **Note:** Part of coordinated commit with Tasks 5, 6, 7.
 
-- [ ] **Step 1: Delete old overlay test and create new edit UI test**
+- [x] **Step 1: Delete old overlay test and create new edit UI test**
 
 Delete `Mobile/mobile_app/test/features/fence/fence_edit_overlay_test.dart`.
 
@@ -2280,7 +2281,7 @@ Future<void> _selectFenceA(WidgetTester tester) async {
 }
 ```
 
-- [ ] **Step 2: Update fence_map_tap_highlight_test.dart**
+- [x] **Step 2: Update fence_map_tap_highlight_test.dart**
 
 Replace the full content of `Mobile/mobile_app/test/features/fence/fence_map_tap_highlight_test.dart` with:
 
@@ -2385,7 +2386,7 @@ Key changes:
 - **Breathing animation fix**: `select()` triggers infinite `AnimationController.repeat(reverse: true)`; `pumpAndSettle()` would timeout. All fence-selection tests use `pump(Duration(milliseconds: 750))` to advance animation to midpoint (value ≈ 0.5) then assert. `select(null)` stops the animation so `pump()` suffices.
 - `_openFencePage` keeps `pumpAndSettle()` because no fence is selected during login/navigation (animation not running)
 
-- [ ] **Step 3: Update fence_page_mode_switch_test.dart**
+- [x] **Step 3: Update fence_page_mode_switch_test.dart**
 
 In `Mobile/mobile_app/test/features/fence/fence_page_mode_switch_test.dart`, replace all occurrences of `fence-edit-overlay` key with `fence-edit-mini-title`:
 
@@ -2426,17 +2427,17 @@ Future<void> _insertEdgePoint(WidgetTester tester) async {
 }
 ```
 
-- [ ] **Step 4: Run all tests**
+- [x] **Step 4: Run all tests**
 
 Run: `cd Mobile/mobile_app && flutter test`
 Expected: All tests PASS.
 
-- [ ] **Step 5: Run analyze**
+- [x] **Step 5: Run analyze**
 
 Run: `cd Mobile/mobile_app && flutter analyze`
 Expected: No new warnings.
 
-- [ ] **Step 6: Commit the coordinated change**
+- [x] **Step 6: Commit the coordinated change**
 
 ```bash
 cd Mobile/mobile_app
@@ -2456,17 +2457,17 @@ git commit -m "feat(fence): rewrite fence page to single-map architecture
 
 ## Task 9: Final Verification
 
-- [ ] **Step 1: Run full analysis**
+- [x] **Step 1: Run full analysis**
 
 Run: `cd Mobile/mobile_app && flutter analyze`
 Expected: No warnings.
 
-- [ ] **Step 2: Run full test suite**
+- [x] **Step 2: Run full test suite**
 
 Run: `cd Mobile/mobile_app && flutter test`
 Expected: All tests pass.
 
-- [ ] **Step 3: Verify against acceptance criteria**
+- [x] **Step 3: Verify against acceptance criteria**
 
 | # | Criterion | How to verify |
 |---|-----------|---------------|

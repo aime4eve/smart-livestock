@@ -109,6 +109,7 @@ cd Mobile/backend
 npm install
 node server.js                         # 启动（端口 3001）
 node --watch server.js                 # 开发模式
+node --test test/*.test.js             # 运行全部后端测试
 
 # 一键启动（Mobile 根目录）
 cd Mobile && ./dev.sh start [mock|live]
@@ -119,27 +120,39 @@ cd Mobile && ./dev.sh start [mock|live]
 ### 前端架构（Flutter）
 
 - **状态管理**: flutter_riverpod，严格使用 ConsumerWidget，禁用 setState/ChangeNotifier
-- **路由**: go_router，`AppRoute` 枚举为路径唯一来源，含认证守卫重定向
+- **路由**: go_router，`AppRoute` 枚举为路径唯一来源（34 条路由），含认证守卫重定向
 - **模式切换**: `--dart-define=APP_MODE=mock|live`，mock 用本地假数据，live 通过 ApiCache 调 Mock Server
 - **模块分层**: `features/{module}/domain/`（Repository 接口）→ `data/`（mock + live 实现）→ `presentation/`（Riverpod Notifier Controller）
+- **功能模块**（19 个）: admin、alerts、auth、b2b_admin、dashboard、devices、digestive、epidemic、estrus、farm_switcher、fence、fever_warning、highfi、livestock、mine、stats、subscription、tenant、twin_overview、worker_management
 - **UI 语言**: 中文，变量名英文
 
 ### Mock Server 架构
 
 - **端口**: 3001，纯内存无持久化
-- **认证**: 固定 token `mock-token-{role}`（owner/worker/ops 三角色）
+- **认证**: 固定 token `mock-token-{role}`（5 种角色，见角色表）
 - **响应格式**: 统一 `{ code, message, requestId, data }` 包络，列表接口 `{ items, page, pageSize, total }`
+- **Store 模式**: 数据层使用内存 Store 模块（`backend/data/*Store.js`），每个 Store 暴露 CRUD + 查询方法，模块级变量持有数据数组。新建 Store 需提供 `reset()` 方法（测试隔离）。当前 Stores: seed.js, fenceStore.js, tenantStore.js, contractStore.js, subscriptions.js, workerFarmStore.js, twin_seed.js, feature-flags.js
+- **中间件链**: cors → json → requestContext → envelope → auth（Bearer token）→ farmContext（提取 activeFarmTenantId）→ shaping（tier 功能门控）
 - **告警状态机**: pending → acknowledged → handled → archived，非法跳转返回 409
-- **API 路由**: auth、me、dashboard、map、alerts、fences、tenants、profile、twin（数智孪生）
+- **API 路由**: auth、me、dashboard、map、alerts、fences、devices、tenants、profile、twin（数智孪生）、subscription、b2b、farm、worker。Open API 路由（`/api/open/v1/*`）使用 API Key 认证 + 频率限制。
 - **数据种子**: `backend/data/seed.js` 与 Flutter 端 `demo_seed.dart` 保持对齐
+
+### 订阅与功能门控
+
+- `SubscriptionTier` 枚举: trial、basic、pro、enterprise
+- `middleware/feature-flag.js` 基于 tier 控制功能可见性
+- `ApiCache` 预加载时按 tier 范围过滤数据
+- 锁定功能显示升级提示覆盖层
 
 ### 角色与权限
 
-| 角色 | 可见范围 |
-|------|---------|
-| owner（牧场主） | 全部页面 + 后台管理 |
-| worker（牧工） | 看板/地图/告警/我的/围栏，仅确认告警 |
-| ops（运维） | 仅租户管理后台，无底部导航 |
+| 角色 | DemoRole / Token | 可见范围 |
+|------|------------------|---------|
+| owner（牧场主） | `mock-token-owner` | 全部页面 + 后台管理 + 牧工管理 + 订阅管理 |
+| worker（牧工） | `mock-token-worker` | 看板/地图/告警/我的/围栏，仅确认告警 |
+| platform_admin（平台管理员） | `mock-token-platform-admin` | 租户全量管理 + 合同 CRUD + 分润对账 + 订阅服务管理 + API 授权审批 |
+| b2b_admin（B端客户管理员） | `mock-token-b2b-admin` | 概览/牧场管理/合同信息/对账/旗下牧工管理 |
+| api_consumer（API 开发者） | `mock-token-api-consumer` | 仅 API 访问，无 App 端（开发者门户 Phase 2b 规划中） |
 
 ### 代码风格
 
@@ -154,7 +167,9 @@ cd Mobile && ./dev.sh start [mock|live]
 
 | 阶段 | 核心功能 |
 |------|---------|
-| Demo（当前 Mobile） | 高保真 UI + Mock Server，数智孪生四场景 |
-| MVP V1.0 | GPS 定位 + 电子围栏 + 基础告警 + 租户管理 |
+| Phase 1 (已完成) | 订阅基础设施 + 功能门控 |
+| Phase 2a (已完成) | 多牧场支持 + B端管理后台 + 牧场切换器 + 牧工管理 |
+| Phase 2b (设计中) | 分润对账 + 订阅服务管理 + 合同 CRUD + API 平台 + 开发者门户 |
+| MVP V1.0 | GPS 定位 + 电子围栏 + 基础告警 + 历史轨迹 + 租户管理后台 |
 | V1.5 | 瘤胃温度/蠕动监测 + 健康评分 |
 | V2.0 | 步态分析 + 行为统计 + 发情检测 |

@@ -8,6 +8,12 @@
 
 **Tech Stack:** Flutter, flutter_map, flutter_riverpod, latlong2
 
+## 完成记录
+
+| 完成日期 | 备注 |
+|----------|------|
+| 2026-04-17 | 2 个 Task 全部完成，commits: dde70b4 (test), d851279 (feat) |
+
 ---
 
 ## File Structure
@@ -32,7 +38,7 @@
 - Create: `Mobile/mobile_app/test/features/fence/fence_map_name_labels_test.dart`
 - Modify: (none)
 
-- [ ] **Step 1: 编写失败测试**
+- [x] **Step 1: 编写失败测试**
 
 创建 `Mobile/mobile_app/test/features/fence/fence_map_name_labels_test.dart`：
 
@@ -65,7 +71,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: 运行测试确认失败**
+- [x] **Step 2: 运行测试确认失败**
 
 Run:
 
@@ -75,7 +81,7 @@ cd /Users/hkt/wzy/产品开发/smart-livestock/Mobile/mobile_app && flutter test
 
 Expected: FAIL（`findsOneWidget` 找不到 `fence-map-name-fence_pasture_a` 或 `find.text` 失败）
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd /Users/hkt/wzy/产品开发/smart-livestock && git add Mobile/mobile_app/test/features/fence/fence_map_name_labels_test.dart && git commit -m "test: add fence map name label widget test"
@@ -88,7 +94,7 @@ cd /Users/hkt/wzy/产品开发/smart-livestock && git add Mobile/mobile_app/test
 **Files:**
 - Modify: `Mobile/mobile_app/lib/features/pages/fence_page.dart`（`MarkerLayer` 子节点附近约 262–277 行；文件末尾 `_MapMarker` 之前新增私有 Widget）
 
-- [ ] **Step 1: 实现名称 markers 与 Chip 样式**
+- [x] **Step 1: 实现名称 markers 与 Chip 样式**
 
 在 `Mobile/mobile_app/lib/features/pages/fence_page.dart` 的 `_FencePageState` 内、`MarkerLayer` 的 `markers:` 列表中，在 `if (!isEditing) ..._buildLivestockMarkers(appMode)` 之后追加：
 
@@ -176,7 +182,7 @@ class _FenceMapNameChip extends StatelessWidget {
 
 说明：`IgnorePointer` 保证用户点击标签区域时仍由底层地图触发 `_handleMapTap`；`FittedBox` + `maxWidth` 避免长名称撑破布局。
 
-- [ ] **Step 2: 运行测试**
+- [x] **Step 2: 运行测试**
 
 Run:
 
@@ -186,7 +192,7 @@ cd /Users/hkt/wzy/产品开发/smart-livestock/Mobile/mobile_app && flutter test
 
 Expected: PASS
 
-- [ ] **Step 3: 静态分析**
+- [x] **Step 3: 静态分析**
 
 Run:
 
@@ -196,7 +202,7 @@ cd /Users/hkt/wzy/产品开发/smart-livestock/Mobile/mobile_app && flutter anal
 
 Expected: No issues（或仅项目既有 info，无新增 error）
 
-- [ ] **Step 4: 全量测试回归**
+- [x] **Step 4: 全量测试回归**
 
 Run:
 
@@ -206,7 +212,7 @@ cd /Users/hkt/wzy/产品开发/smart-livestock/Mobile/mobile_app && flutter test
 
 Expected: All tests passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /Users/hkt/wzy/产品开发/smart-livestock && git add Mobile/mobile_app/lib/features/pages/fence_page.dart && git commit -m "feat(fence): show fence name labels on map in browse mode"

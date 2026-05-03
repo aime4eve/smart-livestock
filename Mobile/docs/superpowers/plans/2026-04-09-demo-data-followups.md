@@ -27,19 +27,25 @@
 
 | 优先级 | Issue | 标题 |
 |--------|-------|------|
-| P0 | [#2](https://github.com/aime4eve/smart-livestock/issues/2) | GPS 轨迹缓存键纳入时间区间 |
-| P1 | [#3](https://github.com/aime4eve/smart-livestock/issues/3) | 孪生体温/蠕动图表降采样 |
-| P1 | [#4](https://github.com/aime4eve/smart-livestock/issues/4) | GPS 轨迹行为逼真度（可选） |
-| P2 | [#5](https://github.com/aime4eve/smart-livestock/issues/5) | Live 孪生时序与 Mock 对齐策略 |
-| P2 | [#6](https://github.com/aime4eve/smart-livestock/issues/6) | 后端设备种子与 demo_seed 对齐 |
-| P2 | [#7](https://github.com/aime4eve/smart-livestock/issues/7) | 孪生概览「当前牧区」上下文（UI） |
-| P3 | [#8](https://github.com/aime4eve/smart-livestock/issues/8) | TimeSeriesGenerator 抽象（可选重构） |
+| P0 | [#2](https://github.com/aime4eve/smart-livestock/issues/2) | ✅ GPS 轨迹缓存键纳入时间区间 |
+| P1 | [#3](https://github.com/aime4eve/smart-livestock/issues/3) | ✅ 孪生体温/蠕动图表降采样 |
+| P1 | [#4](https://github.com/aime4eve/smart-livestock/issues/4) | ✅ GPS 轨迹行为逼真度（可选） |
+| P2 | [#5](https://github.com/aime4eve/smart-livestock/issues/5) | ✅ Live 孪生时序与 Mock 对齐策略 |
+| P2 | [#6](https://github.com/aime4eve/smart-livestock/issues/6) | ✅ 后端设备种子与 demo_seed 对齐 |
+| P2 | [#7](https://github.com/aime4eve/smart-livestock/issues/7) | ✅ 孪生概览「当前牧区」上下文（UI） |
+| P3 | [#8](https://github.com/aime4eve/smart-livestock/issues/8) | ✅ TimeSeriesGenerator 抽象（可选重构） |
 
 ### 完成记录
 
 | 完成日期 | Issue | PR | 备注 |
 |----------|-------|-----|------|
 | 2026-04-09 | [#2](https://github.com/aime4eve/smart-livestock/issues/2) | [#9](https://github.com/aime4eve/smart-livestock/pull/9) | 缓存键含 earTag、围栏指纹、start/end；`generator_test` 覆盖 24h vs 7d |
+| 2026-04-13 | [#3](https://github.com/aime4eve/smart-livestock/issues/3) | — | 孪生体温/蠕动图表降采样 |
+| 2026-04-14 | [#4](https://github.com/aime4eve/smart-livestock/issues/4) | — | GPS 轨迹行为逼真度 |
+| 2026-04-13 | [#5](https://github.com/aime4eve/smart-livestock/issues/5) | — | Live 孪生时序与 Mock 对齐策略 |
+| 2026-04-13 | [#6](https://github.com/aime4eve/smart-livestock/issues/6) | — | 后端设备种子与 demo_seed 对齐 |
+| 2026-04-13 | [#7](https://github.com/aime4eve/smart-livestock/issues/7) | — | 孪生概览「当前牧区」上下文（UI） |
+| 2026-04-13 | [#8](https://github.com/aime4eve/smart-livestock/issues/8) | — | TimeSeriesGenerator 抽象（可选重构） |
 
 ---
 
@@ -53,63 +59,63 @@
 
 ---
 
-## #3 — P1：图表降采样
+## #3 — P1：图表降采样 ✅
 
 **目标**: 孪生体温/蠕动图表绑定前对序列降采样或聚合，对齐设计文档性能假设。
 
 **主要涉及**: 孪生场景下图表组件、 fever/digestive 相关 presentation 或数据映射层
 
-**验收**: 见 Issue #3。
+**验收**: Issue #3 已关闭（2026-04-13）。
 
 ---
 
-## #4 — P1（可选）：GPS 行为逼真度
+## #4 — P1（可选）：GPS 行为逼真度 ✅
 
 **目标**: Mock 路径下可选增强锚点、休息区、边界接近等（固定种子可复现）。
 
 **主要涉及**: `gps_trajectory_generator.dart`、`demo_seed.dart` 围栏元数据引用方式
 
-**验收**: 见 Issue #4。
+**验收**: Issue #4 已关闭（2026-04-14）。
 
 ---
 
-## #5 — P2：Live 孪生时序对齐
+## #5 — P2：Live 孪生时序对齐 ✅
 
 **目标**: 产品选定「扩 API」或「简化曲线 + UI 说明」之一并落地。
 
 **主要涉及**: `Mobile/backend/data/twin_seed.js`、twin 路由、`live_*_twin*` 或 ApiCache
 
-**验收**: 见 Issue #5。
+**验收**: Issue #5 已关闭（2026-04-13）。
 
 ---
 
-## #6 — P2：后端设备种子
+## #6 — P2：后端设备种子 ✅
 
 **目标**: Live 模式设备数据与 `demo_seed` 100 台一致（或文档明确排除）。
 
 **主要涉及**: `Mobile/backend/data/seed.js`、设备相关路由（若已有）
 
-**验收**: 见 Issue #6。
+**验收**: Issue #6 已关闭（2026-04-13）。
 
 ---
 
-## #7 — P2：孪生概览 UI
+## #7 — P2：孪生概览 UI ✅
 
 **目标**: 企业级汇总旁增加当前 Demo 牧区（50 头）说明。
 
 **主要涉及**: `twin_overview_page` 或等价 highfi 组件、`AppColors`/`AppSpacing`/`AppTypography`
 
-**验收**: 见 Issue #7；交互控件带 `Key`。
+**验收**: Issue #7 已关闭（2026-04-13）；交互控件带 `Key`。
 
 ---
 
-## #8 — P3：TimeSeriesGenerator 抽象
+## #8 — P3：TimeSeriesGenerator 抽象 ✅
 
 **目标**: 可选统一生成器接口与缓存策略。
 
 **主要涉及**: `lib/core/data/generators/` 下各文件
 
-**验收**: 见 Issue #8；行为与现有测试一致。
+**验收**: Issue #8 已关闭（2026-04-13）；行为与现有测试一致。
 
 ---
 
