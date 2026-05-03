@@ -1,7 +1,7 @@
 # b2b_admin UX 优化设计规格
 
 > **文档编号**: SL-UX-2026-001
-> **版本**: v1.0
+> **版本**: v1.1
 > **编制日期**: 2026-05-03
 > **状态**: 待实施
 > **受众**: 产品经理 + 技术团队
@@ -55,7 +55,7 @@ Phase 2b 已交付 b2b_admin 侧边栏 5 项导航（概览/牧场/合同/对账
 │ ⚠ 7 条告警待处理 · 华东牧场 3 条高温    查看 ›  │
 └──────────────────────────────────────────────┘
 ┌─ 快捷入口（4 列网格） ───────────────────────┐
-│  📊对账  │  📄合同  │  🚜牧场  │  👷牧工        │
+│  bar_chart 对账  │  description 合同  │  agriculture 牧场  │  engineering 牧工│
 └──────────────────────────────────────────────┘
 ┌─ 旗下牧场列表 ──────────────────────────────┐
 │ 华东示范牧场    280头 · 12设备 · 3牧工   正常    │
@@ -76,7 +76,7 @@ Phase 2b 已交付 b2b_admin 侧边栏 5 项导航（概览/牧场/合同/对账
 - 背景: `#fff3e0`
 - 条件: 仅 `pendingAlerts > 0` 时显示
 - 内容: 总告警数 + 最紧急牧场的告警摘要
-- 点击跳转告警页（当前 b2b_admin 无独立告警页，跳转概览页即可）
+- 点击弹出 BottomSheet 显示最近告警摘要列表（复用 alerts 数据，按 farm 过滤），b2b_admin 无独立告警页，BottomSheet 内提供"查看全部"跳转主告警路由
 
 ### 1.4 快捷入口
 
@@ -97,10 +97,11 @@ Phase 2b 已交付 b2b_admin 侧边栏 5 项导航（概览/牧场/合同/对账
 
 | 数据 | 来源 |
 |------|------|
-| 分润收入 | `revenueControllerProvider` 本月周期 |
+| 本月分润收入 | `b2bDashboardControllerProvider.monthlyRevenue`（新增字段，controller 内部从 revenueRepository 获取本月周期数据） |
 | 总牲畜/总设备 | `b2bDashboardControllerProvider` 现有数据 |
+| 设备在线率 | `b2bDashboardControllerProvider.deviceOnlineRate`（新增字段，计算方式：`onlineDevices / totalDevices`，Mock 环境使用随机比例占位） |
 | 待处理告警 | `b2bDashboardControllerProvider.pendingAlerts` |
-| 牧场列表 | `b2bDashboardControllerProvider.farms` |
+| 牧场列表 | `b2bDashboardControllerProvider.farms`（需扩展 `B2bFarmSummary`，新增 `deviceCount`/`workerCount` 字段） |
 
 ---
 
@@ -163,7 +164,7 @@ Phase 2b 已交付 b2b_admin 侧边栏 5 项导航（概览/牧场/合同/对账
 ```
 
 - 周期汇总卡片：复用灰蓝渐变样式，显示总设备费 + 分润金额 + 分润比 + 结算时间
-- 确认状态条：`#fff3e0` 背景，显示双方确认状态 + "确认对账"按钮
+- 确认状态条：`#fff3e0` 背景，显示双方确认状态（`platformConfirmed` / `partnerConfirmed` 布尔字段）+ "确认对账"按钮
 - 牧场明细表：白底圆角表格，每行含牧场名/牲畜数/设备单价/设备费/分润金额
 
 ### 2.4 确认对账操作流程
@@ -182,6 +183,7 @@ Phase 2b 已交付 b2b_admin 侧边栏 5 项导航（概览/牧场/合同/对账
 | 场景 | 处理 |
 |------|------|
 | 无周期 | "暂无对账数据，系统将在每月1日自动生成结算周期" |
+| 加载中 | CircularProgressIndicator（保持现有模式） |
 | 加载失败 | 错误图标 + "加载失败" + 重试按钮 |
 | 确认失败 | SnackBar 错误提示 + 按钮恢复 |
 
@@ -250,7 +252,18 @@ Phase 2b 已交付 b2b_admin 侧边栏 5 项导航（概览/牧场/合同/对账
 
 ### 3.5 订阅服务状态区块
 
-**显示条件**: 仅当 `tenant.billingModel === 'licensed'` 时显示。
+**显示条件**: 仅当 `tenant.billingModel === 'licensed'` 时显示。需要从 `subscriptionServiceStore` 后端获取数据，前端通过新增 `subscriptionServiceControllerProvider`（或扩展现有 b2b controller）加载订阅服务信息。
+
+**数据源映射**:
+
+| UI 字段 | 数据来源 |
+|---------|---------|
+| 运行状态/圆点颜色 | `subscriptionService.status` |
+| Premium tier 标签 | `subscriptionService.effectiveTier` |
+| 部署方式 | `tenant.deploymentType` |
+| 设备配额 | `subscriptionService.deviceQuota` |
+| 最近心跳 | `subscriptionService.lastHeartbeatAt`（相对时间："/5 分钟前"/"/2 小时前"） |
+| 到期日 | `subscriptionService.expiresAt` |
 
 - 外层: 同合同条款区样式
 - 标题行: `vpn_key` icon + "订阅服务状态"
@@ -270,12 +283,20 @@ Phase 2b 已交付 b2b_admin 侧边栏 5 项导航（概览/牧场/合同/对账
 ### 3.6 快捷操作
 
 2 列等宽按钮，白底 `border: 1px solid #e0e0e0`，圆角 12px：
-- 联系平台（`phone` icon）→ 弹出 Dialog 占位提示
-- 下载合同（`download` icon）→ 弹出 Dialog 占位提示
+- 联系平台（`phone` icon）→ 弹出 Dialog 占位提示（"此功能将在 MVP 阶段实现"）
+- 下载合同（`download` icon）→ 弹出 Dialog 占位提示（"此功能将在 MVP 阶段实现"）
+
+> 以上两个操作为本规格范围内的占位实现，真实功能（`url_launcher` 拨号 / PDF 生成下载）留待 MVP 阶段。
 
 ### 3.7 空状态
 
 无合同时显示: "暂无合同，请联系平台管理员"
+
+| 场景 | 处理 |
+|------|------|
+| 无合同 | "暂无合同，请联系平台管理员" |
+| 加载中 | CircularProgressIndicator |
+| 加载失败 | 错误图标 + "加载失败" + 重试按钮 |
 
 ---
 
@@ -382,6 +403,8 @@ Phase 2b 已交付 b2b_admin 侧边栏 5 项导航（概览/牧场/合同/对账
 | 无牧场 | "暂无牧场" |
 | 牧场无牧工 | "暂无牧工，可通过上方按钮分配" |
 | 无可分配工人 | "所有牧工已分配到各牧场" |
+| 加载中 | CircularProgressIndicator |
+| 加载失败 | 错误图标 + "加载失败" + 重试按钮 |
 
 ---
 
@@ -416,6 +439,8 @@ Phase 2b 已交付 b2b_admin 侧边栏 5 项导航（概览/牧场/合同/对账
 | `b2bAdminRevenueDetail` | `/b2b/admin/revenue/:id` | 对账周期详情页 |
 | `b2bWorkerDetail` | `/b2b/admin/workers/:farmId` | 牧场工人详情页 |
 
+**go_router 嵌套**：新路由作为现有 GoRoute 的子路由注册。`b2bAdminRevenueDetail` 为 `b2bAdminRevenue` 的子路由（`path: ':id'`），`b2bWorkerDetail` 为 `b2bWorkerManagement` 的子路由（`path: ':farmId'`）。详情页面包屑返回使用 `context.pop()`。
+
 现有路由不变（重写页面内容）：
 - `b2bAdmin` → 概览页（重写）
 - `b2bAdminRevenue` → 对账列表页（重写）
@@ -434,7 +459,8 @@ Phase 2b 已交付 b2b_admin 侧边栏 5 项导航（概览/牧场/合同/对账
 | `lib/features/b2b_admin/presentation/b2b_revenue_page.dart` | 重写：汇总指标 + 筛选标签 + 周期卡片列表 |
 | `lib/features/b2b_admin/presentation/b2b_contract_page.dart` | 重写：主信息卡片 + 到期提醒 + 条款区 + 订阅服务状态 |
 | `lib/features/b2b_admin/presentation/worker_management_page.dart` | 重写：汇总指标 + 批量入口 + 牧场卡片列表 |
-| `lib/features/b2b_admin/presentation/b2b_controller.dart` | 扩展：新增本月分润收入、设备在线率等字段 |
+| `lib/features/b2b_admin/presentation/b2b_controller.dart` | 扩展：新增 `monthlyRevenue`/`deviceOnlineRate` 字段；`B2bDashboardData` 新增这两个字段 |
+| `lib/features/b2b_admin/data/b2b_repository.dart` | `B2bDashboardData` 新增字段；`B2bFarmSummary` 新增 `deviceCount`/`workerCount`；`B2bContractData` 新增 `billingModel`/`deploymentType`/`effectiveTier`/`serviceStatus`/`lastHeartbeatAt`/`deviceQuota`/`serviceExpiresAt` |
 | `lib/app/app_route.dart` | 新增 `b2bAdminRevenueDetail`、`b2bWorkerDetail` 路由枚举 |
 | `lib/app/app_router.dart` | 注册 2 个新路由 |
 | `lib/core/theme/app_colors.dart` | 新增灰蓝主色常量（可选，也可直接内联） |
@@ -445,16 +471,21 @@ Phase 2b 已交付 b2b_admin 侧边栏 5 项导航（概览/牧场/合同/对账
 |------|------|
 | `lib/features/b2b_admin/presentation/b2b_revenue_detail_page.dart` | 对账周期详情页 |
 | `lib/features/b2b_admin/presentation/b2b_worker_detail_page.dart` | 牧场工人详情页 |
+| `lib/features/b2b_admin/presentation/widgets/confirm_dialog.dart` | 共用二次确认 Dialog 组件 |
+| `lib/features/b2b_admin/presentation/widgets/alert_bottom_sheet.dart` | 概览页告警摘要 BottomSheet |
 
 ### 数据层扩展
 
 | 文件 | 变更 |
 |------|------|
-| `lib/features/revenue/presentation/revenue_controller.dart` | 新增 `getPeriodDetail(id)` 方法 |
-| `lib/features/revenue/data/mock_revenue_repository.dart` | 实现 `getPeriodDetail` |
-| `lib/features/revenue/data/live_revenue_repository.dart` | 实现 `getPeriodDetail` |
-| `lib/features/revenue/domain/revenue_repository.dart` | 新增 `getPeriodDetail` 接口方法 |
-| `lib/features/b2b_admin/presentation/b2b_worker_management_controller.dart` | 新增 `assignWorker`/`removeWorker`/`getAvailableWorkers` |
+| `lib/features/revenue/presentation/revenue_controller.dart` | 扩展 `getPeriodDetail(id)` — 现有方法已存在，需返回结构化数据（新增 `RevenuePeriodDetail` 类型，含 `totalDeviceFee`/`revenueShareRatio`/`platformConfirmed`/`partnerConfirmed`/`calculatedAt` + `List<RevenueFarmDetail>`） |
+| `lib/features/revenue/data/mock_revenue_repository.dart` | 扩展 `getPeriodDetail` 返回结构化 `RevenuePeriodDetail` |
+| `lib/features/revenue/data/live_revenue_repository.dart` | 扩展 `getPeriodDetail` 返回结构化 `RevenuePeriodDetail` |
+| `lib/features/revenue/domain/revenue_repository.dart` | 新增 `RevenuePeriodDetail`/`RevenueFarmDetail` 数据类；`getPeriodDetail` 返回类型更新 |
+| `lib/features/b2b_admin/domain/b2b_worker_management_repository.dart` | 新增 `assignWorker(farmId, workerId)`/`removeWorker(farmId, workerId)`/`getAvailableWorkers()` 接口方法 |
+| `lib/features/b2b_admin/data/mock_b2b_worker_management_repository.dart` | 实现分配/移除/获取可用牧工 |
+| `lib/features/b2b_admin/data/live_b2b_worker_management_repository.dart` | 实现分配/移除/获取可用牧工（调用 `POST /:farmId/workers` / `DELETE /:farmId/workers/:id`） |
+| `lib/features/b2b_admin/presentation/b2b_worker_management_controller.dart` | 新增 `assignWorker`/`removeWorker`/`getAvailableWorkers`/`offlineWorkerCount`（从各 farm workers 统计） |
 
 ### 不修改的文件
 
