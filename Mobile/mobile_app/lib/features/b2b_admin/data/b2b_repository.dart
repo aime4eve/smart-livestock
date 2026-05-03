@@ -10,6 +10,8 @@ class B2bFarmSummary {
     required this.ownerName,
     required this.livestockCount,
     required this.region,
+    this.deviceCount = 0,
+    this.workerCount = 0,
     this.createdAt,
   });
 
@@ -19,6 +21,8 @@ class B2bFarmSummary {
   final String ownerName;
   final int livestockCount;
   final String region;
+  final int deviceCount;
+  final int workerCount;
   final String? createdAt;
 }
 
@@ -29,6 +33,11 @@ class B2bDashboardData {
     this.totalLivestock = 0,
     this.totalDevices = 0,
     this.pendingAlerts = 0,
+    this.monthlyRevenue = 0.0,
+    this.deviceOnlineRate = 0.0,
+    this.partnerName,
+    this.billingModel,
+    this.alertSummary = const [],
     this.farms = const [],
     this.contractStatus,
     this.contractExpiresAt,
@@ -40,6 +49,11 @@ class B2bDashboardData {
   final int totalLivestock;
   final int totalDevices;
   final int pendingAlerts;
+  final double monthlyRevenue;
+  final double deviceOnlineRate;
+  final String? partnerName;
+  final String? billingModel;
+  final List<Map<String, dynamic>> alertSummary;
   final List<B2bFarmSummary> farms;
   final String? contractStatus;
   final String? contractExpiresAt;
@@ -56,6 +70,16 @@ class B2bContractData {
     this.startedAt,
     this.expiresAt,
     this.signedBy,
+    this.partnerName,
+    this.partnerTenantId,
+    this.contractId,
+    this.billingModel,
+    this.deploymentType,
+    this.serviceStatus,
+    this.serviceTier,
+    this.lastHeartbeatAt,
+    this.deviceQuota,
+    this.serviceExpiresAt,
     this.message,
   });
 
@@ -67,6 +91,16 @@ class B2bContractData {
   final String? startedAt;
   final String? expiresAt;
   final String? signedBy;
+  final String? partnerName;
+  final String? partnerTenantId;
+  final String? contractId;
+  final String? billingModel;
+  final String? deploymentType;
+  final String? serviceStatus;
+  final String? serviceTier;
+  final String? lastHeartbeatAt;
+  final int? deviceQuota;
+  final String? serviceExpiresAt;
   final String? message;
 }
 
@@ -88,6 +122,15 @@ class B2bRepository {
       totalLivestock: 120,
       totalDevices: 95,
       pendingAlerts: 5,
+      monthlyRevenue: 819.0,
+      deviceOnlineRate: 0.65,
+      partnerName: '华牧科技有限公司',
+      billingModel: 'revenue_share',
+      alertSummary: [
+        {'type': 'fence', 'level': 'warning', 'count': 3},
+        {'type': 'health', 'level': 'critical', 'count': 1},
+        {'type': 'device', 'level': 'info', 'count': 1},
+      ],
       farms: [
         B2bFarmSummary(
           id: 'tenant_f_p001_001',
@@ -96,6 +139,8 @@ class B2bRepository {
           ownerName: '马七',
           livestockCount: 120,
           region: '华中',
+          deviceCount: 12,
+          workerCount: 3,
         ),
       ],
       contractStatus: 'active',
@@ -121,6 +166,10 @@ class B2bRepository {
       startedAt: '2026-01-01T00:00:00+08:00',
       expiresAt: '2027-01-01T00:00:00+08:00',
       signedBy: '王五',
+      partnerName: '华牧科技有限公司',
+      partnerTenantId: 'tenant_p001',
+      contractId: 'contract_001',
+      billingModel: 'revenue_share',
     );
   }
 
@@ -138,9 +187,17 @@ class B2bRepository {
                     ownerName: f['ownerName'] as String? ?? '',
                     livestockCount: f['livestockCount'] as int? ?? 0,
                     region: f['region'] as String? ?? '',
+                    deviceCount: f['deviceCount'] as int? ?? 0,
+                    workerCount: f['workerCount'] as int? ?? 0,
                   ))
               .toList() ??
           [];
+
+      final alertSummaryRaw = data['alertSummary'] as List?;
+      final alertSummary = alertSummaryRaw
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ??
+          <Map<String, dynamic>>[];
 
       return B2bDashboardData(
         viewState: ViewState.normal,
@@ -148,6 +205,12 @@ class B2bRepository {
         totalLivestock: data['totalLivestock'] as int? ?? 0,
         totalDevices: data['totalDevices'] as int? ?? 0,
         pendingAlerts: data['pendingAlerts'] as int? ?? 0,
+        monthlyRevenue: (data['monthlyRevenue'] as num?)?.toDouble() ?? 0.0,
+        deviceOnlineRate:
+            (data['deviceOnlineRate'] as num?)?.toDouble() ?? 0.0,
+        partnerName: data['partnerName'] as String?,
+        billingModel: data['billingModel'] as String?,
+        alertSummary: alertSummary,
         farms: farms,
         contractStatus: data['contractStatus'] as String?,
         contractExpiresAt: data['contractExpiresAt'] as String?,
@@ -163,6 +226,9 @@ class B2bRepository {
       if (data == null) {
         return const B2bContractData(viewState: ViewState.normal);
       }
+
+      final sub = data['subscriptionService'] as Map?;
+
       return B2bContractData(
         viewState: ViewState.normal,
         id: data['id'] as String?,
@@ -172,6 +238,16 @@ class B2bRepository {
         startedAt: data['startedAt'] as String?,
         expiresAt: data['expiresAt'] as String?,
         signedBy: data['signedBy'] as String?,
+        partnerName: data['partnerName'] as String?,
+        partnerTenantId: data['partnerTenantId'] as String?,
+        contractId: data['contractId'] as String?,
+        billingModel: data['billingModel'] as String?,
+        deploymentType: data['deploymentType'] as String?,
+        serviceStatus: sub?['serviceStatus'] as String?,
+        serviceTier: sub?['serviceTier'] as String?,
+        lastHeartbeatAt: sub?['lastHeartbeatAt'] as String?,
+        deviceQuota: sub?['deviceQuota'] as int?,
+        serviceExpiresAt: sub?['serviceExpiresAt'] as String?,
       );
     } catch (_) {
       return const B2bContractData(viewState: ViewState.normal);
