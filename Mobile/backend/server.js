@@ -63,6 +63,29 @@ allTenants.filter(t => t.type === 'farm').forEach(t => {
   }
 });
 
+// ===== seed revenue periods =====
+const revenueStore = require('./data/revenueStore');
+['2026-01', '2026-02', '2026-03', '2026-04'].forEach((p) => {
+  revenueStore.calculate(p, 'monthly');
+});
+// 2026-01, 2026-02: both sides confirmed → settled
+['2026-01', '2026-02'].forEach((period) => {
+  const periods = revenueStore.getPeriods({}).items;
+  const match = periods.find(p => p.period === period);
+  if (match) {
+    revenueStore.confirm(match.id, 'platform_admin', null);
+    revenueStore.confirm(match.id, 'b2b_admin', 'tenant_p001');
+  }
+});
+// 2026-03: platform pre-confirmed only, so b2b_admin confirm will settle it
+{
+  const periods = revenueStore.getPeriods({}).items;
+  const match = periods.find(p => p.period === '2026-03');
+  if (match) {
+    revenueStore.confirm(match.id, 'platform_admin', null);
+  }
+}
+
 // ===== 404 fallback =====
 app.use((req, res) => {
   res.fail(404, 'RESOURCE_NOT_FOUND', `路由不存在: ${req.method} ${req.path}`);

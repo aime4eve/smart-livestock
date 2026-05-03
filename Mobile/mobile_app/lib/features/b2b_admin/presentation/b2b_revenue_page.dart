@@ -52,7 +52,7 @@ class _B2bRevenuePageState extends ConsumerState<B2bRevenuePage> {
       (sum, p) => sum + p.partnerShare,
     );
     final pendingCount =
-        data.periods.where((p) => p.status != 'confirmed').length;
+        data.periods.where((p) => p.status == 'pending').length;
     final confirmedCount =
         data.periods.where((p) => p.status == 'confirmed').length;
 
@@ -143,9 +143,9 @@ class _B2bRevenuePageState extends ConsumerState<B2bRevenuePage> {
     return switch (_selectedFilter) {
       _FilterOption.all => periods,
       _FilterOption.pending =>
-        periods.where((p) => p.status != 'confirmed').toList(),
+        periods.where((p) => p.status == 'pending').toList(),
       _FilterOption.confirmed =>
-        periods.where((p) => p.status == 'confirmed').toList(),
+        periods.where((p) => p.status != 'pending').toList(),
     };
   }
 }
@@ -208,7 +208,7 @@ class _PeriodCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isConfirmed = period.status == 'confirmed';
+    final tagStyle = _periodTagStyle(period.status);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -224,9 +224,7 @@ class _PeriodCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               border: Border(
                 left: BorderSide(
-                  color: isConfirmed
-                      ? const Color(0xFF2E7D32)
-                      : const Color(0xFFE65100),
+                  color: tagStyle.borderColor,
                   width: 4,
                 ),
               ),
@@ -244,7 +242,7 @@ class _PeriodCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    _StatusTag(isConfirmed: isConfirmed),
+                    _StatusTag(style: tagStyle),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.xs),
@@ -270,10 +268,52 @@ class _PeriodCard extends StatelessWidget {
   }
 }
 
-class _StatusTag extends StatelessWidget {
-  const _StatusTag({required this.isConfirmed});
+class _StatusTagStyle {
+  const _StatusTagStyle({
+    required this.label,
+    required this.icon,
+    required this.bgColor,
+    required this.textColor,
+    this.borderColor = const Color(0xFFE65100),
+  });
 
-  final bool isConfirmed;
+  final String label;
+  final IconData icon;
+  final Color bgColor;
+  final Color textColor;
+  final Color borderColor;
+}
+
+_StatusTagStyle _periodTagStyle(String status) {
+  return switch (status) {
+    'confirmed' => const _StatusTagStyle(
+        label: '已结算',
+        icon: Icons.check_circle_outline,
+        bgColor: Color(0xFFE8F5E9),
+        textColor: Color(0xFF2E7D32),
+        borderColor: Color(0xFF2E7D32),
+      ),
+    'partially_confirmed' => const _StatusTagStyle(
+        label: '已确认',
+        icon: Icons.check_circle_outline,
+        bgColor: Color(0xFFE3F2FD),
+        textColor: Color(0xFF1565C0),
+        borderColor: Color(0xFF1565C0),
+      ),
+    _ => const _StatusTagStyle(
+        label: '待确认',
+        icon: Icons.pending_outlined,
+        bgColor: Color(0xFFFFF3E0),
+        textColor: Color(0xFFE65100),
+        borderColor: Color(0xFFE65100),
+      ),
+  };
+}
+
+class _StatusTag extends StatelessWidget {
+  const _StatusTag({required this.style});
+
+  final _StatusTagStyle style;
 
   @override
   Widget build(BuildContext context) {
@@ -283,32 +323,20 @@ class _StatusTag extends StatelessWidget {
         vertical: AppSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: isConfirmed
-            ? const Color(0xFFE8F5E9)
-            : const Color(0xFFFFF3E0),
+        color: style.bgColor,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            isConfirmed
-                ? Icons.check_circle_outline
-                : Icons.pending_outlined,
-            size: 14,
-            color: isConfirmed
-                ? const Color(0xFF2E7D32)
-                : const Color(0xFFE65100),
-          ),
+          Icon(style.icon, size: 14, color: style.textColor),
           const SizedBox(width: 4),
           Text(
-            isConfirmed ? '已确认' : '待确认',
+            style.label,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: isConfirmed
-                  ? const Color(0xFF2E7D32)
-                  : const Color(0xFFE65100),
+              color: style.textColor,
             ),
           ),
         ],

@@ -20,14 +20,42 @@ class RevenuePeriod {
   final String? confirmedAt;
 
   factory RevenuePeriod.fromJson(Map<String, dynamic> json) {
+    final rawPeriod = json['period'] as String? ?? json['periodLabel'] as String? ?? '';
+    // Format "2026-01" → "2026年1月" if it looks like YYYY-MM
+    final periodLabel = rawPeriod.contains('-') && rawPeriod.length == 7
+        ? '${rawPeriod.substring(0, 4)}年${int.parse(rawPeriod.substring(5))}月'
+        : rawPeriod;
+    final totalRevenue =
+        (json['totalDeviceFee'] as num?)?.toDouble() ??
+        (json['totalRevenue'] as num?)?.toDouble() ??
+        0.0;
+    final partnerShare =
+        (json['revenueShareAmount'] as num?)?.toDouble() ??
+        (json['partnerShare'] as num?)?.toDouble() ??
+        0.0;
+    final platformShare = totalRevenue - partnerShare;
+    final confirmedAt = json['settledAt'] as String? ??
+        json['confirmedAt'] as String? ??
+        json['confirmedByPlatformAt'] as String?;
+    final rawStatus = json['status'] as String? ?? 'pending';
+    final byPlatform = json['confirmedByPlatform'] == true;
+    final byPartner = json['confirmedByPartner'] == true;
+    final String status;
+    if (rawStatus == 'settled' || (byPlatform && byPartner)) {
+      status = 'confirmed';
+    } else if (byPlatform || byPartner) {
+      status = 'partially_confirmed';
+    } else {
+      status = rawStatus;
+    }
     return RevenuePeriod(
       id: json['id'] as String,
-      periodLabel: json['periodLabel'] as String? ?? '',
-      totalRevenue: (json['totalRevenue'] as num?)?.toDouble() ?? 0.0,
-      platformShare: (json['platformShare'] as num?)?.toDouble() ?? 0.0,
-      partnerShare: (json['partnerShare'] as num?)?.toDouble() ?? 0.0,
-      status: json['status'] as String? ?? 'pending',
-      confirmedAt: json['confirmedAt'] as String?,
+      periodLabel: periodLabel,
+      totalRevenue: totalRevenue,
+      platformShare: platformShare,
+      partnerShare: partnerShare,
+      status: status,
+      confirmedAt: confirmedAt,
     );
   }
 }
@@ -65,9 +93,11 @@ class RevenueFarmDetail {
     return RevenueFarmDetail(
       farmName: json['farmName'] as String? ?? '',
       livestockCount: json['livestockCount'] as int? ?? 0,
-      deviceUnitPrice: (json['deviceUnitPrice'] as num?)?.toDouble() ?? 0.0,
+      deviceUnitPrice: (json['deviceUnitPrice'] as num?)?.toDouble() ??
+          (json['deviceFee'] as num?)?.toDouble() ?? 0.0,
       deviceFee: (json['deviceFee'] as num?)?.toDouble() ?? 0.0,
-      shareAmount: (json['shareAmount'] as num?)?.toDouble() ?? 0.0,
+      shareAmount: (json['shareAmount'] as num?)?.toDouble() ??
+          (json['shareAmount'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }

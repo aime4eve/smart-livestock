@@ -44,6 +44,10 @@
 | 2026-05-02 | G1 | feat/ubm-phase2b-modules | Open API 平台：apiKeyAuth + rateLimit 中间件 + 12 个端点 + farmContext/shaping 适配 |
 | 2026-05-02 | G3 | feat/ubm-phase2b-modules | API 授权审批：5 个端点 + Flutter 前端（platform_admin/owner 双视图） |
 | 2026-05-02 | G2 | feat/ubm-phase2b-modules | Vue 3 开发者门户（7 页面 + API client + Pinia stores + vitest）+ server.js 静态托管 |
+| 2026-05-03 | OPT-1 | master | B2B admin 页面 UX 优化：概览/对账/合同/牧工管理 4 页面重写 + 侧边栏升级 |
+| 2026-05-03 | OPT-2 | master | 新建牧场功能：ApiCache.createB2bFarmRemote + B2bRepository.createFarm + 表单对话框 + 验证 |
+| 2026-05-03 | OPT-3 | master | 对账模块数据修复：后端 seed 自动生成 4 个周期 + ApiCache 预加载 + fromJson 字段映射 |
+| 2026-05-03 | OPT-4 | master | 对账三态 UI + 实时确认：三态状态模型（confirmed/partially_confirmed/pending）+ confirm 调用真实 API + 缓存刷新 |
 
 ---
 

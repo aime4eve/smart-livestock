@@ -4,7 +4,7 @@ import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/data/b2b_repository.dart';
 
 final b2bRepositoryProvider =
-    Provider<B2bRepository>((_) => const B2bRepository());
+    Provider<B2bRepository>((_) => B2bRepository());
 
 class B2bDashboardController extends Notifier<B2bDashboardData> {
   @override
@@ -12,6 +12,27 @@ class B2bDashboardController extends Notifier<B2bDashboardData> {
     final appMode = ref.watch(appModeProvider);
     final repo = ref.read(b2bRepositoryProvider);
     return repo.loadDashboard(ViewState.normal, appMode);
+  }
+
+  Future<bool> createFarm(
+    String name, {
+    String? ownerName,
+    String? contactPhone,
+    String? region,
+  }) async {
+    final appMode = ref.read(appModeProvider);
+    final repo = ref.read(b2bRepositoryProvider);
+    final ok = await repo.createFarm(
+      name,
+      ownerName: ownerName,
+      contactPhone: contactPhone,
+      region: region,
+      appMode: appMode,
+    );
+    if (ok) {
+      ref.invalidateSelf();
+    }
+    return ok;
   }
 }
 

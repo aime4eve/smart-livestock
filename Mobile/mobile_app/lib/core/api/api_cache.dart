@@ -646,6 +646,14 @@ class ApiCache {
         if (!_isCurrentGeneration(generation)) return;
         _b2bDashboard = b2bDashboard;
         _b2bContract = b2bContract;
+
+        final revenueData = await initGet('/revenue/periods');
+        if (!_isCurrentGeneration(generation)) return;
+        if (revenueData != null) {
+          _revenue = List<Map<String, dynamic>>.from(
+            revenueData['items'] ?? [],
+          );
+        }
       }
 
       _initialized = true;
@@ -860,6 +868,71 @@ class ApiCache {
       );
     } catch (_) {
       return TenantWriteResult(ok: false, statusCode: response.statusCode);
+    }
+  }
+
+  Future<bool> createB2bFarmRemote(
+    String role,
+    Map<String, dynamic> body, {
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
+    final response = await http
+        .post(
+          Uri.parse('${resolveApiBaseUrl()}/b2b/farms'),
+          headers: _headers(
+            role,
+            tokens: tokens,
+            allowMockTokenFallback: allowMockTokenFallback,
+            roleTokens: _roleTokens,
+          ),
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      if (decoded['code'] == 'OK') {
+        final dashboardData = await _get(
+          '/b2b/dashboard',
+          _headers(
+            role,
+            tokens: tokens,
+            allowMockTokenFallback: allowMockTokenFallback,
+            roleTokens: _roleTokens,
+          ),
+        );
+        if (dashboardData != null) {
+          _b2bDashboard = dashboardData;
+        }
+        return true;
+      }
+      return false;
+    }
+    return false;
+  }
+
+  Future<bool> confirmRevenuePeriodRemote(String role, String periodId) async {
+    final response = await http
+        .post(
+          Uri.parse('${resolveApiBaseUrl()}/revenue/periods/$periodId/confirm'),
+          headers: _headers(role, roleTokens: _roleTokens),
+          body: jsonEncode({}),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      return body['code'] == 'OK';
+    }
+    return false;
+  }
+
+  Future<void> refreshRevenuePeriods(String role) async {
+    final data = await _get(
+      '/revenue/periods',
+      _headers(role, roleTokens: _roleTokens),
+    );
+    if (data != null) {
+      _revenue = List<Map<String, dynamic>>.from(data['items'] ?? []);
     }
   }
 

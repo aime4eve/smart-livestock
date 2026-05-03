@@ -65,6 +65,17 @@ class _MockB2bRepository implements B2bRepository {
       billingModel: 'revenue_share',
     );
   }
+
+  @override
+  Future<bool> createFarm(
+    String name, {
+    String? ownerName,
+    String? contactPhone,
+    String? region,
+    AppMode appMode = AppMode.mock,
+  }) async {
+    return true;
+  }
 }
 
 ProviderScope _b2bTestScope(Widget child) {
@@ -138,8 +149,24 @@ void main() {
 
       expect(find.text('新建牧场'), findsWidgets);
       expect(find.byKey(const Key('b2b-farm-name-input')), findsOneWidget);
+      expect(find.byKey(const Key('b2b-farm-owner-input')), findsOneWidget);
+      expect(find.byKey(const Key('b2b-farm-phone-input')), findsOneWidget);
+      expect(find.byKey(const Key('b2b-farm-region-input')), findsOneWidget);
       expect(find.text('取消'), findsOneWidget);
       expect(find.text('创建'), findsOneWidget);
+    });
+
+    testWidgets('创建表单名称为空时显示验证错误', (tester) async {
+      await tester.pumpWidget(_b2bTestScope(const B2bFarmListPage()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('b2b-create-farm')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('b2b-create-farm-confirm-btn')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('牧场名称不能为空'), findsOneWidget);
     });
 
     testWidgets('空 farm 列表时显示空状态', (tester) async {

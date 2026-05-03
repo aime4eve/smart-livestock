@@ -14,14 +14,17 @@ class LiveRevenueRepository implements RevenueRepository {
     if (!cache.initialized || cache.lastLiveSource != 'api') {
       return _fallback.getPeriods(partnerId: partnerId);
     }
-    var all = cache.revenue
-        .map((e) => RevenuePeriod.fromJson(e))
-        .toList();
+
+    final items = cache.revenue;
+    if (items.isEmpty) {
+      return _fallback.getPeriods(partnerId: partnerId);
+    }
+
+    final all = items.map((e) => RevenuePeriod.fromJson(e)).toList();
     return RevenueListViewData(
-      viewState: all.isEmpty ? ViewState.empty : ViewState.normal,
+      viewState: ViewState.normal,
       periods: all,
       total: all.length,
-      message: all.isEmpty ? '暂无对账周期' : null,
     );
   }
 
@@ -31,53 +34,59 @@ class LiveRevenueRepository implements RevenueRepository {
     if (!cache.initialized || cache.lastLiveSource != 'api') {
       return _fallback.getPeriodDetail(periodId);
     }
-    final period = cache.revenue
-        .map((e) => RevenuePeriod.fromJson(e))
-        .where((p) => p.id == periodId)
+
+    final raw = cache.revenue
+        .whereType<Map<String, dynamic>>()
+        .where((e) => e['id'] == periodId)
         .firstOrNull;
-    if (period == null) {
-      return const RevenueDetailViewData(
-        viewState: ViewState.empty,
-        message: '对账周期不存在',
-      );
+
+    if (raw == null) {
+      return _fallback.getPeriodDetail(periodId);
     }
+
+    final period = RevenuePeriod.fromJson(raw);
+    final ratio =
+        (raw['revenueShareRatio'] as num?)?.toDouble() ?? 0.15;
+    final farmDetails = (raw['farmDetails'] as List?)
+            ?.whereType<Map<String, dynamic>>()
+            .map((f) {
+          final deviceFee =
+              (f['deviceFee'] as num?)?.toDouble() ?? 0.0;
+          final livestock = f['livestockCount'] as int? ?? 0;
+          return RevenueFarmDetail(
+            farmName: f['farmName'] as String? ?? '',
+            livestockCount: livestock,
+            deviceUnitPrice: livestock > 0 ? deviceFee / livestock : 0.0,
+            deviceFee: deviceFee,
+            shareAmount: deviceFee * ratio,
+          );
+        })
+            .toList() ??
+        [];
+
     return RevenueDetailViewData(
       viewState: ViewState.normal,
       period: period,
       totalDeviceFee: period.totalRevenue,
-      revenueShareRatio: 0.15,
-      platformConfirmed: period.status == 'confirmed',
-      partnerConfirmed: period.status == 'confirmed',
-      calculatedAt: '2026-06-01',
-      farmDetails: [
-        const RevenueFarmDetail(
-          farmName: '华东示范牧场',
-          livestockCount: 280,
-          deviceUnitPrice: 19.5,
-          deviceFee: 5460.0,
-          shareAmount: 819.0,
-        ),
-        const RevenueFarmDetail(
-          farmName: '西部高原牧场',
-          livestockCount: 350,
-          deviceUnitPrice: 19.5,
-          deviceFee: 6825.0,
-          shareAmount: 1023.75,
-        ),
-        const RevenueFarmDetail(
-          farmName: '东北黑土地牧场',
-          livestockCount: 190,
-          deviceUnitPrice: 19.5,
-          deviceFee: 3705.0,
-          shareAmount: 555.75,
-        ),
-      ],
+      revenueShareRatio: ratio,
+      platformConfirmed: raw['confirmedByPlatform'] == true,
+      partnerConfirmed: raw['confirmedByPartner'] == true,
+      calculatedAt: raw['createdAt'] as String?,
+      farmDetails: farmDetails,
     );
   }
 
   @override
   Future<bool> confirmPeriod(String periodId) async {
-    return _fallback.confirmPeriod(periodId);
+    final cache = ApiCache.instance;
+    if (!cache.initialized || cache.lastLiveSource != 'api') {
+      return _fallback.confirmPeriod(periodId);
+    }
+    final ok = await cache.confirmRevenuePeriodRemote('b2b_admin', periodId);
+    if (ok) {
+      await cache.refreshRevenuePeriods('b2b_admin');
+    }
+    return ok;
   }
 
   @override

@@ -105,7 +105,9 @@ class B2bContractData {
 }
 
 class B2bRepository {
-  const B2bRepository();
+  B2bRepository();
+
+  final List<B2bFarmSummary> _mockCreatedFarms = [];
 
   B2bDashboardData loadDashboard(ViewState viewState, AppMode appMode) {
     if (viewState != ViewState.normal) {
@@ -116,9 +118,9 @@ class B2bRepository {
       return _loadDashboardFromCache();
     }
 
-    return const B2bDashboardData(
+    return B2bDashboardData(
       viewState: ViewState.normal,
-      totalFarms: 1,
+      totalFarms: 1 + _mockCreatedFarms.length,
       totalLivestock: 120,
       totalDevices: 95,
       pendingAlerts: 5,
@@ -126,13 +128,13 @@ class B2bRepository {
       deviceOnlineRate: 0.65,
       partnerName: '华牧科技有限公司',
       billingModel: 'revenue_share',
-      alertSummary: [
+      alertSummary: const [
         {'type': 'fence', 'level': 'warning', 'count': 3},
         {'type': 'health', 'level': 'critical', 'count': 1},
         {'type': 'device', 'level': 'info', 'count': 1},
       ],
       farms: [
-        B2bFarmSummary(
+        const B2bFarmSummary(
           id: 'tenant_f_p001_001',
           name: '星辰合作牧场A',
           status: 'active',
@@ -142,10 +144,65 @@ class B2bRepository {
           deviceCount: 12,
           workerCount: 3,
         ),
+        ..._mockCreatedFarms,
       ],
       contractStatus: 'active',
       contractExpiresAt: '2027-01-01T00:00:00+08:00',
     );
+  }
+
+  Future<bool> createFarm(
+    String name, {
+    String? ownerName,
+    String? contactPhone,
+    String? region,
+    AppMode appMode = AppMode.mock,
+  }) async {
+    if (appMode.isLive) {
+      return _createFarmLive(
+        name,
+        ownerName: ownerName,
+        contactPhone: contactPhone,
+        region: region,
+      );
+    }
+    return _createFarmMock(
+      name,
+      ownerName: ownerName,
+      contactPhone: contactPhone,
+      region: region,
+    );
+  }
+
+  bool _createFarmMock(
+    String name, {
+    String? ownerName,
+    String? contactPhone,
+    String? region,
+  }) {
+    _mockCreatedFarms.add(B2bFarmSummary(
+      id: 'farm_${DateTime.now().millisecondsSinceEpoch}',
+      name: name,
+      status: 'active',
+      ownerName: ownerName ?? '',
+      livestockCount: 0,
+      region: region ?? '',
+      createdAt: DateTime.now().toIso8601String(),
+    ));
+    return true;
+  }
+
+  Future<bool> _createFarmLive(
+    String name, {
+    String? ownerName,
+    String? contactPhone,
+    String? region,
+  }) async {
+    final body = <String, dynamic>{'name': name};
+    if (ownerName != null) body['ownerName'] = ownerName;
+    if (contactPhone != null) body['contactPhone'] = contactPhone;
+    if (region != null) body['region'] = region;
+    return ApiCache.instance.createB2bFarmRemote('b2b_admin', body);
   }
 
   B2bContractData loadContract(ViewState viewState, AppMode appMode) {
