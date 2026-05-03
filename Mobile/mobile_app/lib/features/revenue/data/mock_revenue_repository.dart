@@ -60,33 +60,37 @@ class MockRevenueRepository implements RevenueRepository {
         message: '对账周期不存在',
       );
     }
-    final details = <Map<String, dynamic>>[
-      {
-        'partnerId': 'partner_001',
-        'partnerName': '华东示范牧场',
-        'revenue': 45000.00,
-        'share': 13500.00,
-        'status': 'confirmed',
-      },
-      {
-        'partnerId': 'partner_002',
-        'partnerName': '西部高原牧场',
-        'revenue': 52000.00,
-        'share': 18200.00,
-        'status': 'confirmed',
-      },
-      {
-        'partnerId': 'partner_003',
-        'partnerName': '东北黑土地牧场',
-        'revenue': 28000.00,
-        'share': 5600.00,
-        'status': 'pending',
-      },
-    ];
     return RevenueDetailViewData(
       viewState: ViewState.normal,
       period: period,
-      details: details,
+      totalDeviceFee: period.totalRevenue,
+      revenueShareRatio: 0.15,
+      platformConfirmed: period.status == 'confirmed',
+      partnerConfirmed: period.status == 'confirmed',
+      calculatedAt: '2026-06-01',
+      farmDetails: [
+        const RevenueFarmDetail(
+          farmName: '华东示范牧场',
+          livestockCount: 280,
+          deviceUnitPrice: 19.5,
+          deviceFee: 5460.0,
+          shareAmount: 819.0,
+        ),
+        const RevenueFarmDetail(
+          farmName: '西部高原牧场',
+          livestockCount: 350,
+          deviceUnitPrice: 19.5,
+          deviceFee: 6825.0,
+          shareAmount: 1023.75,
+        ),
+        const RevenueFarmDetail(
+          farmName: '东北黑土地牧场',
+          livestockCount: 190,
+          deviceUnitPrice: 19.5,
+          deviceFee: 3705.0,
+          shareAmount: 555.75,
+        ),
+      ],
     );
   }
 

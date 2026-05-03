@@ -44,6 +44,34 @@ class LiveRevenueRepository implements RevenueRepository {
     return RevenueDetailViewData(
       viewState: ViewState.normal,
       period: period,
+      totalDeviceFee: period.totalRevenue,
+      revenueShareRatio: 0.15,
+      platformConfirmed: period.status == 'confirmed',
+      partnerConfirmed: period.status == 'confirmed',
+      calculatedAt: '2026-06-01',
+      farmDetails: [
+        const RevenueFarmDetail(
+          farmName: '华东示范牧场',
+          livestockCount: 280,
+          deviceUnitPrice: 19.5,
+          deviceFee: 5460.0,
+          shareAmount: 819.0,
+        ),
+        const RevenueFarmDetail(
+          farmName: '西部高原牧场',
+          livestockCount: 350,
+          deviceUnitPrice: 19.5,
+          deviceFee: 6825.0,
+          shareAmount: 1023.75,
+        ),
+        const RevenueFarmDetail(
+          farmName: '东北黑土地牧场',
+          livestockCount: 190,
+          deviceUnitPrice: 19.5,
+          deviceFee: 3705.0,
+          shareAmount: 555.75,
+        ),
+      ],
     );
   }
 

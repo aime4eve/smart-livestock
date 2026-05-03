@@ -46,17 +46,53 @@ class RevenueListViewData {
   final String? message;
 }
 
+class RevenueFarmDetail {
+  const RevenueFarmDetail({
+    required this.farmName,
+    required this.livestockCount,
+    required this.deviceUnitPrice,
+    required this.deviceFee,
+    required this.shareAmount,
+  });
+
+  final String farmName;
+  final int livestockCount;
+  final double deviceUnitPrice;
+  final double deviceFee;
+  final double shareAmount;
+
+  factory RevenueFarmDetail.fromJson(Map<String, dynamic> json) {
+    return RevenueFarmDetail(
+      farmName: json['farmName'] as String? ?? '',
+      livestockCount: json['livestockCount'] as int? ?? 0,
+      deviceUnitPrice: (json['deviceUnitPrice'] as num?)?.toDouble() ?? 0.0,
+      deviceFee: (json['deviceFee'] as num?)?.toDouble() ?? 0.0,
+      shareAmount: (json['shareAmount'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}
+
 class RevenueDetailViewData {
   const RevenueDetailViewData({
     this.viewState = ViewState.normal,
     this.period,
-    this.details = const [],
+    this.totalDeviceFee = 0.0,
+    this.revenueShareRatio = 0.0,
+    this.platformConfirmed = false,
+    this.partnerConfirmed = false,
+    this.calculatedAt,
+    this.farmDetails = const [],
     this.message,
   });
 
   final ViewState viewState;
   final RevenuePeriod? period;
-  final List<Map<String, dynamic>> details;
+  final double totalDeviceFee;
+  final double revenueShareRatio;
+  final bool platformConfirmed;
+  final bool partnerConfirmed;
+  final String? calculatedAt;
+  final List<RevenueFarmDetail> farmDetails;
   final String? message;
 }
 
