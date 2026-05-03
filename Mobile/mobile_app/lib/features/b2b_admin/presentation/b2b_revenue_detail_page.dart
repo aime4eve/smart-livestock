@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:smart_livestock_demo/core/utils/currency_formatter.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/confirm_dialog.dart';
 import 'package:smart_livestock_demo/features/revenue/domain/revenue_repository.dart';
 import 'package:smart_livestock_demo/features/revenue/presentation/revenue_controller.dart';
@@ -22,6 +23,9 @@ class _B2bRevenueDetailPageState extends ConsumerState<B2bRevenueDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch the list provider so the page rebuilds when confirmPeriod calls refresh()
+    ref.watch(revenueControllerProvider);
+    // Derive the detail data from the current provider state
     final data = ref
         .read(revenueControllerProvider.notifier)
         .getPeriodDetail(widget.periodId);
@@ -54,12 +58,18 @@ class _B2bRevenueDetailPageState extends ConsumerState<B2bRevenueDetailPage> {
             key: Key('b2b-revenue-detail-offline'),
           ),
         ),
-      ViewState.normal => _buildContent(context, data),
+      ViewState.normal => data.period == null
+          ? const Scaffold(
+              body: _DetailEmptyView(
+                key: Key('b2b-revenue-detail-empty'),
+              ),
+            )
+          : _buildContent(context, data),
     };
   }
 
   Widget _buildContent(BuildContext context, RevenueDetailViewData data) {
-    final period = data.period;
+    final period = data.period!;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -72,7 +82,7 @@ class _B2bRevenueDetailPageState extends ConsumerState<B2bRevenueDetailPage> {
             // --- Breadcrumb bar ---
             _BreadcrumbBar(
               key: const Key('b2b-revenue-detail-breadcrumb'),
-              periodLabel: period?.periodLabel ?? '',
+              periodLabel: period.periodLabel,
               onBack: () => context.pop(),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -81,7 +91,7 @@ class _B2bRevenueDetailPageState extends ConsumerState<B2bRevenueDetailPage> {
             _HeroCard(
               key: const Key('b2b-revenue-detail-hero'),
               totalDeviceFee: data.totalDeviceFee,
-              partnerShare: period?.partnerShare ?? 0,
+              partnerShare: period.partnerShare,
               revenueShareRatio: data.revenueShareRatio,
               calculatedAt: data.calculatedAt,
             ),
@@ -232,7 +242,7 @@ class _HeroCard extends StatelessWidget {
         children: [
           // Total device fee
           Text(
-            _formatCurrency(totalDeviceFee),
+            formatCurrency(totalDeviceFee),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 28,
@@ -249,7 +259,7 @@ class _HeroCard extends StatelessWidget {
             children: [
               _HeroStatItem(
                 label: '合作方分润',
-                value: _formatCurrency(partnerShare),
+                value: formatCurrency(partnerShare),
               ),
               const SizedBox(width: AppSpacing.xl),
               _HeroStatItem(
@@ -491,17 +501,17 @@ class _FarmBreakdownTable extends StatelessWidget {
                       alignRight: true,
                     ),
                     _TableCell(
-                      label: _formatCurrency(farm.deviceUnitPrice),
+                      label: formatCurrency(farm.deviceUnitPrice),
                       flex: 3,
                       alignRight: true,
                     ),
                     _TableCell(
-                      label: _formatCurrency(farm.deviceFee),
+                      label: formatCurrency(farm.deviceFee),
                       flex: 3,
                       alignRight: true,
                     ),
                     _TableCell(
-                      label: _formatCurrency(farm.shareAmount),
+                      label: formatCurrency(farm.shareAmount),
                       flex: 3,
                       alignRight: true,
                     ),
@@ -554,7 +564,7 @@ class _TotalRow extends StatelessWidget {
           Expanded(
             flex: 3,
             child: Text(
-              _formatCurrency(totalDeviceFee),
+              formatCurrency(totalDeviceFee),
               textAlign: TextAlign.right,
               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
             ),
@@ -563,7 +573,7 @@ class _TotalRow extends StatelessWidget {
           Expanded(
             flex: 3,
             child: Text(
-              _formatCurrency(totalShareAmount),
+              formatCurrency(totalShareAmount),
               textAlign: TextAlign.right,
               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
             ),
@@ -723,21 +733,3 @@ class _OfflineView extends StatelessWidget {
 // Helpers
 // ---------------------------------------------------------------------------
 
-String _formatCurrency(double value) {
-  final fixed = value.toStringAsFixed(2);
-  final parts = fixed.split('.');
-  final intPart = parts[0];
-  final decPart = parts[1];
-
-  final buffer = StringBuffer();
-  final digits = intPart.split('').reversed.toList();
-  for (var i = 0; i < digits.length; i++) {
-    if (i > 0 && i % 3 == 0) {
-      buffer.write(',');
-    }
-    buffer.write(digits[i]);
-  }
-  final formattedInt = buffer.toString().split('').reversed.join();
-
-  return '¥$formattedInt.$decPart';
-}

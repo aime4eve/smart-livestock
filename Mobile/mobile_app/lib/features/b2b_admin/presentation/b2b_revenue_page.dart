@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:smart_livestock_demo/core/utils/currency_formatter.dart';
 import 'package:smart_livestock_demo/features/revenue/domain/revenue_repository.dart';
 import 'package:smart_livestock_demo/features/revenue/presentation/revenue_controller.dart';
 
@@ -74,7 +75,7 @@ class _B2bRevenuePageState extends ConsumerState<B2bRevenuePage> {
                 child: _MetricCard(
                   key: const Key('b2b-revenue-metric-total'),
                   label: '累计分润',
-                  value: _formatCurrency(totalPartnerShare),
+                  value: formatCurrency(totalPartnerShare),
                   backgroundColor: const Color(0xFFE8F5E9),
                   valueColor: const Color(0xFF2E7D32),
                 ),
@@ -238,7 +239,7 @@ class _PeriodCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      _formatCurrency(period.partnerShare),
+                      formatCurrency(period.partnerShare),
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -422,21 +423,3 @@ enum _FilterOption {
   final String label;
 }
 
-String _formatCurrency(double value) {
-  final fixed = value.toStringAsFixed(2);
-  final parts = fixed.split('.');
-  final intPart = parts[0];
-  final decPart = parts[1];
-
-  final buffer = StringBuffer();
-  final digits = intPart.split('').reversed.toList();
-  for (var i = 0; i < digits.length; i++) {
-    if (i > 0 && i % 3 == 0) {
-      buffer.write(',');
-    }
-    buffer.write(digits[i]);
-  }
-  final formattedInt = buffer.toString().split('').reversed.join();
-
-  return '¥$formattedInt.$decPart';
-}
