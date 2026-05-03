@@ -22,7 +22,10 @@ describe('DashboardView', () => {
     const wrapper = mount(DashboardView, {
       global: {
         plugins: [createPinia(), router],
-        stubs: { AppLayout: { template: '<div><slot /></div>' } },
+        stubs: {
+          AppLayout: { template: '<div><slot /></div>' },
+          UsageChart: { template: '<div class="usage-chart-stub" />' },
+        },
       },
     });
 
@@ -36,11 +39,29 @@ describe('DashboardView', () => {
     const wrapper = mount(DashboardView, {
       global: {
         plugins: [createPinia(), router],
-        stubs: { AppLayout: { template: '<div><slot /></div>' } },
+        stubs: {
+          AppLayout: { template: '<div><slot /></div>' },
+          UsageChart: { template: '<div class="usage-chart-stub" />' },
+        },
       },
     });
 
     expect(wrapper.text()).toContain('最近 API 调用记录');
     expect(wrapper.find('table.data-table').exists()).toBe(true);
+  });
+
+  it('renders the usage chart section', () => {
+    const wrapper = mount(DashboardView, {
+      global: {
+        plugins: [createPinia(), router],
+        stubs: {
+          AppLayout: { template: '<div><slot /></div>' },
+          UsageChart: { template: '<div class="usage-chart-stub" />' },
+        },
+      },
+    });
+
+    expect(wrapper.text()).toContain('API 调用量趋势');
+    expect(wrapper.find('.usage-chart-stub').exists()).toBe(true);
   });
 });

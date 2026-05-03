@@ -1,10 +1,34 @@
 <script setup>
+import { computed } from 'vue';
 import { useDashboardStore } from '../stores/dashboard.js';
 import AppLayout from '../components/AppLayout.vue';
 import MetricCard from '../components/MetricCard.vue';
+import UsageChart from '../components/UsageChart.vue';
 
 const dashboardStore = useDashboardStore();
 const { quota, recentUsage, usagePercentage } = dashboardStore;
+
+const chartLabels = computed(() => {
+  const dates = [...new Set(recentUsage.map((r) => r.date))].sort();
+  return dates;
+});
+
+const chartDatasets = computed(() => {
+  const dailyTotals = chartLabels.value.map((date) => {
+    return recentUsage
+      .filter((r) => r.date === date)
+      .reduce((sum, r) => sum + r.calls, 0);
+  });
+  return [
+    {
+      label: 'API 调用量',
+      data: dailyTotals,
+      borderColor: '#2e7d32',
+      backgroundColor: 'rgba(46, 125, 50, 0.08)',
+      fill: true,
+    },
+  ];
+});
 </script>
 
 <template>
@@ -38,6 +62,11 @@ const { quota, recentUsage, usagePercentage } = dashboardStore;
         subtitle="最后轮换: 2026-04-15"
         color="#6a1b9a"
       />
+    </div>
+
+    <div class="card">
+      <div class="card-title">API 调用量趋势（近 7 天）</div>
+      <UsageChart :labels="chartLabels" :datasets="chartDatasets" />
     </div>
 
     <div class="card">
