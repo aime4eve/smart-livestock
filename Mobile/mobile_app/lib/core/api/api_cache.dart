@@ -74,6 +74,12 @@ class ApiCache {
 
   bool _initialized = false;
   bool get initialized => _initialized;
+
+  bool hasRoleData(String role) {
+    if (!_initialized) return false;
+    if (role == 'b2b_admin') return _b2bDashboard != null;
+    return true;
+  }
   String? _lastLiveSource;
   String? get lastLiveSource => _lastLiveSource;
   ApiHttpClient _httpClient = const DefaultApiHttpClient();

@@ -1,6 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/app/session/app_session.dart';
+import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
 
 class SessionController extends Notifier<AppSession> {
   @override
@@ -8,6 +12,22 @@ class SessionController extends Notifier<AppSession> {
 
   void login(DemoRole role) {
     state = AppSession.authenticated(role);
+    _ensureCacheForRole(role);
+  }
+
+  Future<void> _ensureCacheForRole(DemoRole role) async {
+    final appMode = ref.read(appModeProvider);
+    if (!appMode.isLive) return;
+    final cache = ApiCache.instance;
+    if (!cache.initialized || !cache.hasRoleData(role.wireName)) {
+      try {
+        await cache.initWithRoleAuth(role.wireName);
+        ref.invalidate(b2bDashboardControllerProvider);
+        ref.invalidate(b2bContractControllerProvider);
+      } catch (e) {
+        debugPrint('ApiCache re-init for ${role.wireName} failed: $e');
+      }
+    }
   }
 
   void loginWithTokens({
