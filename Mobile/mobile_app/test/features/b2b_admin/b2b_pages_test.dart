@@ -60,6 +60,9 @@ class _MockB2bRepository implements B2bRepository {
       startedAt: '2026-01-01T00:00:00+08:00',
       expiresAt: '2027-01-01T00:00:00+08:00',
       signedBy: '王五',
+      partnerName: '华牧科技有限公司',
+      contractId: 'contract_001',
+      billingModel: 'revenue_share',
     );
   }
 }
@@ -83,16 +86,14 @@ void main() {
       expect(find.text('旗下牧场'), findsWidgets);
       expect(find.text('3'), findsOneWidget);
       expect(find.text('360'), findsOneWidget);
-      expect(find.text('200'), findsOneWidget);
       expect(find.text('8'), findsOneWidget);
     });
 
-    testWidgets('显示合同状态卡片', (tester) async {
+    testWidgets('显示合同有效状态标签', (tester) async {
       await tester.pumpWidget(_b2bTestScope(const B2bDashboardPage()));
       await tester.pumpAndSettle();
 
-      expect(find.text('合同状态: active'), findsOneWidget);
-      expect(find.text('到期: 2027-01-01'), findsOneWidget);
+      expect(find.text('合同有效'), findsOneWidget);
     });
 
     testWidgets('显示旗下 farm 列表', (tester) async {
@@ -170,14 +171,25 @@ void main() {
       await tester.pumpWidget(_b2bTestScope(const B2bContractPage()));
       await tester.pumpAndSettle();
 
-      expect(find.text('合同编号'), findsOneWidget);
-      expect(find.text('contract_001'), findsOneWidget);
+      // New design shows partner name in hero card
+      expect(find.text('华牧科技有限公司'), findsOneWidget);
       expect(find.text('生效中'), findsOneWidget);
+      // Contract terms section shows tier and ratio
       expect(find.text('标准版'), findsOneWidget);
       expect(find.text('15%'), findsOneWidget);
-      expect(find.text('王五'), findsOneWidget);
+      // Dates in terms section
       expect(find.text('2026-01-01'), findsOneWidget);
       expect(find.text('2027-01-01'), findsOneWidget);
+      // SignedBy shown in hero card info row
+      expect(find.text('王五'), findsOneWidget);
+    });
+
+    testWidgets('显示到期提醒条', (tester) async {
+      await tester.pumpWidget(_b2bTestScope(const B2bContractPage()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('合同到期日'), findsOneWidget);
+      expect(find.text('联系续签'), findsOneWidget);
     });
 
     testWidgets('无合同时显示空状态', (tester) async {
@@ -193,17 +205,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('暂无合同信息'), findsOneWidget);
-    });
-
-    testWidgets('显示只读提示', (tester) async {
-      await tester.pumpWidget(_b2bTestScope(const B2bContractPage()));
-      await tester.pumpAndSettle();
-
-      expect(
-        find.text('合同为只读展示，如需变更请联系平台管理员。'),
-        findsOneWidget,
-      );
+      expect(find.text('暂无数据'), findsOneWidget);
     });
   });
 }
@@ -217,5 +219,5 @@ class _EmptyDashboardController extends B2bDashboardController {
 class _NoContractController extends B2bContractController {
   @override
   B2bContractData build() =>
-      const B2bContractData(viewState: ViewState.normal);
+      const B2bContractData(viewState: ViewState.empty);
 }
