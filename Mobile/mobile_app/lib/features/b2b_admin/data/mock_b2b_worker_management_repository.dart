@@ -286,9 +286,20 @@ class MockB2bWorkerManagementRepository implements B2bWorkerManagementRepository
       if (w != null && w.status == 'inactive') offlineCount++;
     }
 
+    final farmsWithLiveCounts = _subFarms.map((f) {
+      final liveCount = _assignments[f.id]?.length ?? f.workerCount;
+      return B2bSubFarm(
+        id: f.id,
+        name: f.name,
+        workerCount: liveCount,
+        livestockCount: f.livestockCount,
+        deviceCount: f.deviceCount,
+      );
+    }).toList();
+
     return B2bWorkerManagementViewData(
       viewState: _subFarms.isEmpty ? ViewState.empty : ViewState.normal,
-      subFarms: _subFarms,
+      subFarms: farmsWithLiveCounts,
       totalWorkers: totalWorkers,
       offlineWorkerCount: offlineCount,
       message: _subFarms.isEmpty ? '暂无牧场' : null,

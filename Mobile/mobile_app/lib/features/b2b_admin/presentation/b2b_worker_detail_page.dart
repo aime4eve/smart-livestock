@@ -245,6 +245,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
 
     setState(() => _busy = false);
     _loadWorkers();
+    ref.invalidate(b2bWorkerManagementControllerProvider);
   }
 
   Future<void> _handleRemove(
@@ -281,6 +282,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
       );
       setState(() => _busy = false);
       _loadWorkers();
+      ref.invalidate(b2bWorkerManagementControllerProvider);
     } else {
       setState(() => _busy = false);
       ScaffoldMessenger.of(context).showSnackBar(
