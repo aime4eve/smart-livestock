@@ -1,43 +1,27 @@
+<!-- developer-portal/src/views/AuthorizationsView.vue -->
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useAuthorizationsStore } from '../stores/authorizations.js';
+import { useAuthStore } from '../stores/auth.js';
 import AppLayout from '../components/AppLayout.vue';
 
-const authorizations = ref([
-  {
-    id: 'auth_001',
-    farmName: '阳光牧场',
-    scopes: ['cattle:read', 'devices:read', 'alerts:read'],
-    status: 'approved',
-    requestedAt: '2026-04-20',
-    approvedAt: '2026-04-22',
-  },
-  {
-    id: 'auth_002',
-    farmName: '绿地养殖场',
-    scopes: ['cattle:read', 'fences:read'],
-    status: 'pending',
-    requestedAt: '2026-05-01',
-    approvedAt: null,
-  },
-]);
+const authStore = useAuthStore();
+const authorizationsStore = useAuthorizationsStore();
 
 const availableFarms = ['阳光牧场', '绿地养殖场', '黄河牧业', '天山草原'];
 const availableScopes = [
-  'cattle:read',
-  'cattle:write',
-  'devices:read',
-  'devices:write',
-  'alerts:read',
-  'alerts:write',
-  'fences:read',
-  'fences:write',
-  'stats:read',
-  'sensors:read',
+  'cattle:read', 'cattle:write', 'devices:read', 'devices:write',
+  'alerts:read', 'alerts:write', 'fences:read', 'fences:write',
+  'stats:read', 'sensors:read',
 ];
 
 const showForm = ref(false);
 const newFarm = ref('');
 const newScopes = ref([]);
+
+onMounted(() => {
+  authorizationsStore.fetchAuthorizations(authStore.token);
+});
 
 function toggleScope(scope) {
   const idx = newScopes.value.indexOf(scope);
@@ -48,16 +32,16 @@ function toggleScope(scope) {
   }
 }
 
-function submitApplication() {
+async function submitApplication() {
   if (!newFarm.value || newScopes.value.length === 0) return;
-  authorizations.value.push({
-    id: `auth_${Date.now()}`,
-    farmName: newFarm.value,
-    scopes: [...newScopes.value],
-    status: 'pending',
-    requestedAt: new Date().toISOString().split('T')[0],
-    approvedAt: null,
-  });
+  try {
+    await authorizationsStore.submitAuthorization(
+      { farmTenantId: newFarm.value, requestedScopes: [...newScopes.value] },
+      authStore.token,
+    );
+  } catch {
+    // error handled in store
+  }
   newFarm.value = '';
   newScopes.value = [];
   showForm.value = false;
@@ -121,7 +105,7 @@ function statusLabel(status) {
 
     <!-- Authorization List -->
     <div class="card" style="padding: 0;">
-      <table class="data-table" v-if="authorizations.length > 0">
+      <table class="data-table" v-if="authorizationsStore.authorizations.length > 0">
         <thead>
           <tr>
             <th>牧场</th>
@@ -132,11 +116,11 @@ function statusLabel(status) {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="auth in authorizations" :key="auth.id">
-            <td>{{ auth.farmName }}</td>
+          <tr v-for="auth in authorizationsStore.authorizations" :key="auth.id">
+            <td>{{ auth.farmName || auth.farmTenantId }}</td>
             <td>
               <span
-                v-for="scope in auth.scopes"
+                v-for="scope in (auth.requestedScopes || [])"
                 :key="scope"
                 class="badge badge-gray"
                 style="margin-right: 4px; margin-bottom: 2px;"
@@ -149,8 +133,8 @@ function statusLabel(status) {
                 {{ statusLabel(auth.status) }}
               </span>
             </td>
-            <td class="text-muted">{{ auth.requestedAt }}</td>
-            <td class="text-muted">{{ auth.approvedAt || '-' }}</td>
+            <td class="text-muted">{{ auth.createdAt }}</td>
+            <td class="text-muted">{{ auth.reviewedAt || '-' }}</td>
           </tr>
         </tbody>
       </table>
