@@ -25,6 +25,15 @@ function _findById(id) {
 router.get('/', (req, res) => {
   const role = req.userRole;
 
+  // api_consumer: view own authorization applications
+  if (role === 'api_consumer') {
+    const result = apiAuthorizationStore.list({
+      apiTenantId: req.user.tenantId,
+      ...req.query,
+    });
+    return res.ok(result);
+  }
+
   if (role !== 'platform_admin' && role !== 'owner') {
     return res.fail(403, 'AUTH_FORBIDDEN', '无权访问资源');
   }
