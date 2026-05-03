@@ -8,9 +8,9 @@ final b2bWorkerManagementRepositoryProvider =
     Provider<B2bWorkerManagementRepository>((ref) {
   switch (ref.watch(appModeProvider)) {
     case AppMode.mock:
-      return const MockB2bWorkerManagementRepository();
+      return MockB2bWorkerManagementRepository();
     case AppMode.live:
-      return const LiveB2bWorkerManagementRepository();
+      return LiveB2bWorkerManagementRepository();
   }
 });
 
@@ -30,6 +30,18 @@ class B2bWorkerManagementController
 
   List<B2bSubFarmWorker> getSubFarmWorkers(String farmId) {
     return _repo.getSubFarmWorkers(farmId);
+  }
+
+  Future<bool> assignWorker(String farmId, String workerId) {
+    return _repo.assignWorker(farmId, workerId);
+  }
+
+  Future<bool> removeWorker(String farmId, String workerId) {
+    return _repo.removeWorker(farmId, workerId);
+  }
+
+  List<B2bSubFarmWorker> getAvailableWorkers() {
+    return _repo.getAvailableWorkers();
   }
 }
 
