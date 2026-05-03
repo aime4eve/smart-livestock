@@ -4,7 +4,7 @@
 > **版本**: v1.3
 > **编制日期**: 2026-05-02
 > **修订日期**: 2026-05-03
-> **状态**: 已修订（post-Phase-2b UX 优化 + 功能修复）
+> **状态**: 已实现（G2 开发者门户进行中）
 > **受众**: 产品经理 + 技术团队
 > **评审报告**: `docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-review-r2.md`
 > **前置文档**:
@@ -48,10 +48,10 @@ E8 (字段落地)
   │     └── G1 (Open API 端点)
   │           ├── G3 (授权审批)
   │           └── G2 (开发者门户，依赖 G1 端点就绪)
-  └── E7 (b2b worker 管理，仅依赖 E8 字段新增 tenant.workerQuota/workerLimit 等，不依赖 E9，因现有 workerRoutes.js 直接读 tenantStore)
+  └── E7 (b2b worker 管理，仅依赖 E8 中已有的 parentTenantId 字段（Phase 2a 已有），不依赖 E9，因现有 workerRoutes.js 直接读 tenantStore)
 ```
 
-E8 须先行（字段定义是其余模块的基础）。E9 依赖 E8（Store 引用新字段）。E4/E5/E6/G1 可并行。E7 仅依赖 E8 字段新增（`tenant.workerQuota`/`workerLimit`），不依赖 E9（现有 workerRoutes.js 直接读取 tenantStore）。G2 依赖 G1 端点就绪。G3 依赖 G1 数据模型。
+E8 须先行（字段定义是其余模块的基础）。E9 依赖 E8（Store 引用新字段）。E4/E5/E6/G1 可并行。E7 仅依赖 E8 中已有的 `parentTenantId` 字段（Phase 2a 已有），不依赖 E9（现有 workerRoutes.js 直接读取 tenantStore）。G2 依赖 G1 端点就绪。G3 依赖 G1 数据模型。
 
 ---
 
@@ -674,7 +674,7 @@ Phase 3: 自助注册 + 审批流程
 ### 项目结构
 
 ```
-developer-portal/                # 项目根目录（与 Mobile/、PC/ 平级）
+developer-portal/                # 位于 Mobile/developer-portal/（在 Mobile 项目内）
 ├── index.html
 ├── package.json
 ├── vite.config.js
@@ -732,7 +732,7 @@ Mock Server 通过 `express.static` 托管开发者门户构建产物：
 
 ```javascript
 // Mobile/backend/server.js
-app.use('/developer', express.static('../../developer-portal/dist'));
+app.use('/developer', express.static(path.join(__dirname, '../developer-portal/dist')));
 ```
 
 门户页面通过同源 API 请求 `/api/open/v1/*` 和 `/api/v1/*`，无需跨域配置。
@@ -877,7 +877,7 @@ ApiAuthorization（授权记录）:
 
 | 目录 | 职责 |
 |------|------|
-| `developer-portal/`（项目根目录） | 完整 Vue 3 SPA（约 7 个页面 + 组件） |
+| `developer-portal/`（位于 `Mobile/developer-portal/`） | 完整 Vue 3 SPA（约 7 个页面 + 组件） |
 
 ### 测试策略
 
