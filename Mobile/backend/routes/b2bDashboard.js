@@ -3,6 +3,7 @@ const router = Router();
 
 const tenantStore = require('../data/tenantStore');
 const contractStore = require('../data/contractStore');
+const workerFarmStore = require('../data/workerFarmStore');
 const { users } = require('../data/seed');
 const { registerMockUserToken } = require('../middleware/auth');
 
@@ -18,23 +19,55 @@ router.use(requireB2bAdmin);
 // GET /b2b/dashboard — 用量看板
 router.get('/dashboard', (req, res) => {
   const partnerTenantId = req.user.tenantId;
+  const partner = tenantStore.findById(partnerTenantId);
   const farms = tenantStore.findByParentTenantId(partnerTenantId);
 
-  const farmsWithStats = farms.map((f) => ({
-    id: f.id,
-    name: f.name,
-    livestockCount: 120,
-    deviceCount: 95,
-    pendingAlerts: 5,
-  }));
+  const farmsWithStats = farms.map((f) => {
+    const workerCount = workerFarmStore.findByFarmId(f.id).length;
+    // Estimate devices: livestock × gpsRatio (GPS tracker is primary device)
+    const livestock = f.livestockCount ?? 0;
+    const gpsRatio = f.deviceConfigRatio?.gpsRatio ?? 0.8;
+    const deviceCount = Math.round(livestock * gpsRatio);
+    return {
+      id: f.id,
+      name: f.name,
+      status: f.status ?? 'active',
+      ownerName: f.contactName ?? '',
+      livestockCount: livestock,
+      region: f.region ?? '',
+      deviceCount,
+      workerCount,
+    };
+  });
 
   const contract = contractStore.getByPartnerTenantId(partnerTenantId);
 
+  const totalLivestock = farmsWithStats.reduce((sum, f) => sum + f.livestockCount, 0);
+  const totalDevices = farmsWithStats.reduce((sum, f) => sum + f.deviceCount, 0);
+  const totalWorkers = farmsWithStats.reduce((sum, f) => sum + f.workerCount, 0);
+
+  // Revenue calculation: devices × unit price × share ratio
+  const unitPrice = 19.5;
+  const shareRatio = contract?.revenueShareRatio ?? partner?.revenueShareRatio ?? 0.15;
+  const monthlyRevenue = totalDevices * unitPrice * shareRatio;
+
+  const deviceOnlineRate = totalDevices > 0 ? 0.65 : 0;
+
   res.ok({
     totalFarms: farms.length,
-    totalLivestock: farmsWithStats.reduce((sum, f) => sum + f.livestockCount, 0),
-    totalDevices: farmsWithStats.reduce((sum, f) => sum + f.deviceCount, 0),
-    pendingAlerts: farmsWithStats.reduce((sum, f) => sum + f.pendingAlerts, 0),
+    totalLivestock,
+    totalDevices,
+    totalWorkers,
+    pendingAlerts: 5,
+    monthlyRevenue: Math.round(monthlyRevenue * 100) / 100,
+    deviceOnlineRate,
+    partnerName: partner?.name ?? req.user.name ?? '',
+    billingModel: partner?.billingModel ?? 'revenue_share',
+    alertSummary: [
+      { farmName: farmsWithStats[0]?.name ?? '', type: 'fence', message: '围栏越界告警', createdAt: '2026-05-03T08:30:00+08:00' },
+      { farmName: farmsWithStats[0]?.name ?? '', type: 'health', message: '瘤胃温度异常', createdAt: '2026-05-03T07:15:00+08:00' },
+      { farmName: farmsWithStats[0]?.name ?? '', type: 'device', message: 'GPS 设备离线', createdAt: '2026-05-02T22:00:00+08:00' },
+    ],
     farms: farmsWithStats,
     contractStatus: contract?.status ?? null,
     contractExpiresAt: contract?.expiresAt ?? null,
@@ -121,7 +154,21 @@ router.post('/farms', (req, res) => {
 router.get('/contract/current', (req, res) => {
   const partnerTenantId = req.user.tenantId;
   const contract = contractStore.getByPartnerTenantId(partnerTenantId);
-  res.ok(contract);
+  const partner = tenantStore.findById(partnerTenantId);
+
+  if (!contract) {
+    return res.ok(null);
+  }
+
+  res.ok({
+    ...contract,
+    partnerName: partner?.name ?? req.user.name ?? '',
+    partnerTenantId,
+    contractId: contract.id,
+    billingModel: partner?.billingModel ?? 'revenue_share',
+    deploymentType: partner?.deploymentType ?? 'cloud',
+    subscriptionService: null,
+  });
 });
 
 // GET /b2b/contract/usage-summary — 用量汇总
