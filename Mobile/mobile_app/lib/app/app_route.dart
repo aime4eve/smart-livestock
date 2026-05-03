@@ -38,6 +38,8 @@ enum AppRoute {
   platformApiAuth('/admin/api-auth', 'platform-api-auth', 'API授权管理'),
   b2bAdminRevenue('/b2b/admin/revenue', 'b2b-admin-revenue', '对账'),
   b2bWorkerManagement('/b2b/admin/workers', 'b2b-worker-management', '牧工管理'),
+  b2bAdminRevenueDetail('/b2b/admin/revenue/:id', 'b2b-admin-revenue-detail', '对账详情'),
+  b2bWorkerDetail('/b2b/admin/workers/:farmId', 'b2b-worker-detail', '牧工详情'),
   mineApiAuth('/mine/api-auth', 'mine-api-auth', 'API授权管理');
 
   const AppRoute(this.path, this.routeName, this.label);

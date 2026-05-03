@@ -13,6 +13,8 @@ import 'package:smart_livestock_demo/features/pages/admin_page.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_contract_page.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_dashboard_page.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_farm_list_page.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_revenue_detail_page.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_worker_detail_page.dart';
 import 'package:smart_livestock_demo/features/pages/alerts_page.dart';
 import 'package:smart_livestock_demo/features/pages/dashboard_page.dart';
 import 'package:smart_livestock_demo/features/pages/devices_page.dart';
@@ -293,11 +295,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'revenue',
                 name: AppRoute.b2bAdminRevenue.routeName,
                 builder: (context, state) => const B2bRevenuePage(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    name: AppRoute.b2bAdminRevenueDetail.routeName,
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return B2bRevenueDetailPage(periodId: id);
+                    },
+                  ),
+                ],
               ),
               GoRoute(
                 path: 'workers',
                 name: AppRoute.b2bWorkerManagement.routeName,
                 builder: (context, state) => const B2bWorkerManagementPage(),
+                routes: [
+                  GoRoute(
+                    path: ':farmId',
+                    name: AppRoute.b2bWorkerDetail.routeName,
+                    builder: (context, state) {
+                      final farmId = state.pathParameters['farmId']!;
+                      return B2bWorkerDetailPage(farmId: farmId);
+                    },
+                  ),
+                ],
               ),
             ],
           ),
