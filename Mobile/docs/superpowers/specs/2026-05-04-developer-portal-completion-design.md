@@ -50,14 +50,15 @@
 
 实现要点：
 - GET `/`：从 `req.user.tenantId` 获取 api_consumer 的 tenantId，调 `apiKeyStore.listByTenantId(tenantId)`
-- POST `/:id/rotate`：校验 keyId 属于当前 tenant，调 `apiKeyStore.rotate(tenantId)`（rotate 以 tenantId 为粒度，将所有 active key 标记为 rotating 并生成新 key）
-- 注册到 `registerApiRoutes.js`
+- POST `/:id/rotate`：路由参数 `:id` 是 keyId，用于所有权校验（确认该 key 属于当前 tenant）。实际轮换以 tenant 为粒度：调用 `apiKeyStore.rotate(tenantId)` 将该 tenant 所有 active key 标记为 rotating 并生成新 key。返回新 key 信息
+- 注册到 `registerApiRoutes.js`，挂载路径 `/api-keys`
 
 ### 2. 扩展 `apiAuthorizationRoutes.js` GET `/`
 
-在现有 platform_admin 和 owner 分支后，增加 api_consumer 分支：
-- 从 `req.user.tenantId` 查询 `apiAuthorizationStore` 中该 tenant 提交的所有申请
+修改第 25-28 行的角色门控 `if` 块，在拒绝逻辑之前增加 `api_consumer` 分支：
+- 使用 `apiAuthorizationStore.list({ apiTenantId: req.user.tenantId, ...req.query })` 按 apiTenantId 过滤，直接利用 Store 内置的 apiTenantId 过滤能力（而非像 owner 那样手动过滤）
 - 支持分页参数
+- 此分支 return 后，原有 platform_admin 和 owner 逻辑不变
 
 ## 前端变更
 
@@ -67,6 +68,7 @@
 - **Props**: `labels: string[]`（日期标签）、`datasets: object[]`（Chart.js dataset 格式）
 - **实现**:
   - `<script setup>` + Canvas `<canvas ref="chartRef">`
+  - 导入 `Chart` 和相关组件：`import { Chart, LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip } from 'chart.js'`，然后 `Chart.register(...)` 手动注册所需组件（Vite tree-shaking 友好，避免使用 `chart.js/auto` 的全量导入）
   - `onMounted` 初始化 Chart.js 实例
   - `watch` props 变化时 `chart.update()`
   - `onBeforeUnmount` 调 `chart.destroy()`
@@ -79,7 +81,9 @@
 state: { keys: [], loading: false, error: null }
 actions:
   - fetchKeys(token) → apiGet('/api-keys', token)
+    // client.js 的 API_BASE = '/api/v1'，实际请求 /api/v1/api-keys
   - rotateKey(keyId, token) → apiPost(`/api-keys/${keyId}/rotate`, {}, token)
+    // 路由参数 keyId 用于所有权校验，实际轮换以 tenant 粒度执行
 ```
 
 ### 5. 新增 `stores/authorizations.js`
@@ -107,7 +111,7 @@ actions:
 | View | 变更 |
 |------|------|
 | ApiKeysView | 移除硬编码 `keys` ref → `useApiKeysStore().fetchKeys(token)` |
-| AuthorizationsView | 移除硬编码 `authorizations` ref → `useAuthorizationsStore()` |
+| AuthorizationsView | 移除硬编码 `authorizations` ref → `useAuthorizationsStore()`；`availableFarms` 下拉列表保持硬编码（Phase 2b 阶段无后端接口提供可申请牧场列表） |
 | EndpointsView | 移除硬编码 `tiers` → `useEndpointsStore()` |
 | DashboardView | 导入 `UsageChart`，在 MetricCards 和表格之间插入趋势图 |
 
