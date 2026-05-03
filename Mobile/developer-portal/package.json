@@ -8,15 +8,16 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "chart.js": "^4.5.1",
+    "pinia": "^2",
     "vue": "^3.4",
-    "vue-router": "^4",
-    "pinia": "^2"
+    "vue-router": "^4"
   },
   "devDependencies": {
-    "vite": "^5",
     "@vitejs/plugin-vue": "^5",
-    "vitest": "^1",
     "@vue/test-utils": "^2",
-    "jsdom": "^24"
+    "jsdom": "^24",
+    "vite": "^5",
+    "vitest": "^1"
   }
 }
