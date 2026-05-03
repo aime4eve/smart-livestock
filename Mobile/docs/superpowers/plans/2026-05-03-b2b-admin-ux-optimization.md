@@ -172,11 +172,13 @@ class B2bContractData {
 
 - [ ] **Step 4: 更新 mock 数据填充新字段**
 
-在 `B2bRepository.loadDashboard()` 的 mock 分支中填充新字段（deviceCount/workerCount 用合理占位值，monthlyRevenue 用 revenue mock 数据计算，deviceOnlineRate 用 0.65 占位）。在 `_loadDashboardFromCache()` 中解析新字段。
+`loadDashboard()` mock 分支：新增 `partnerName: '华牧科技有限公司'`/`monthlyRevenue: 819.0`/`deviceOnlineRate: 0.65`/`billingModel: 'revenue_share'`。每个 `B2bFarmSummary` 补充 `deviceCount`（占位值如 12/8）和 `workerCount`（如 3/5）。
 
-在 `loadContract()` 的 mock 分支中填充 `partnerName`/`billingModel`/`serviceStatus` 等（mock 环境按 `billingModel = 'revenue_share'` 返回，subscription 相关字段为 null）。
+`_loadDashboardFromCache()`：解析 `data['monthlyRevenue']`/`data['deviceOnlineRate']`/`data['partnerName']`/`data['billingModel']`/`data['deviceCount']`/`data['workerCount']`。
 
-在 `_loadContractFromCache()` 中解析新字段。
+`loadContract()` mock 分支：新增 `partnerName: '华牧科技有限公司'`/`billingModel: 'revenue_share'`/`partnerTenantId: 'tenant_p001'`/`contractId: 'contract_001'`。subscription 字段（`deploymentType`/`serviceStatus`/`lastHeartbeatAt`/`deviceQuota`/`serviceExpiresAt`）为 null（revenue_share 模式无订阅服务）。
+
+`_loadContractFromCache()`：解析上述新字段，subscription 字段从 `data['subscriptionService']` 子对象中提取（如存在）。
 
 - [ ] **Step 5: 运行 flutter analyze 确保无编译错误**
 
@@ -252,9 +254,30 @@ class RevenueDetailViewData {
 
 - [ ] **Step 2: 更新 mock/live repository 实现**
 
-在 `mock_revenue_repository.dart` 的 `getPeriodDetail()` 中返回结构化 `RevenueDetailViewData`（含 `totalDeviceFee`/`revenueShareRatio`/`platformConfirmed`/`partnerConfirmed`/`farmDetails`）。
+在 `mock_revenue_repository.dart` 的 `getPeriodDetail()` 中，将旧 `details: [Map('partnerId':..., 'revenue':..., 'share':...)]` 替换为结构化数据：
 
-在 `live_revenue_repository.dart` 中同步更新。
+```dart
+return RevenueDetailViewData(
+  viewState: ViewState.normal,
+  period: period,
+  totalDeviceFee: period.totalRevenue,
+  revenueShareRatio: 0.15,
+  platformConfirmed: period.status == 'confirmed',
+  partnerConfirmed: period.status == 'confirmed',
+  calculatedAt: '2026-06-01',
+  farmDetails: [
+    RevenueFarmDetail(
+      farmName: '华东示范牧场',
+      livestockCount: 280,
+      deviceUnitPrice: 19.5,
+      deviceFee: 5460.0,
+      shareAmount: 819.0,
+    ),
+  ],
+);
+```
+
+在 `live_revenue_repository.dart` 中同步更新，从 API 响应中解析 `totalDeviceFee`/`revenueShareRatio`/`platformConfirmed`/`partnerConfirmed`/`calculatedAt` + `List<RevenueFarmDetail>`。
 
 - [ ] **Step 3: 运行 flutter analyze**
 
@@ -346,7 +369,9 @@ abstract class B2bWorkerManagementRepository {
 
 - [ ] **Step 3: 在 mock 和 live 实现中实现新方法**
 
-Mock: 内存操作（从固定列表中分配/移除）。Live: HTTP 调用 `POST /api/v1/farms/:farmId/workers` / `DELETE /api/v1/farms/:farmId/workers/:workerId`。
+Mock: 内存操作（从固定列表中分配/移除）。**重要**：更新现有 `B2bSubFarmWorker` const 构造，添加 `id` 字段（如 `id: 'worker_001'`）。同时更新 `B2bSubFarm` 添加 `deviceCount` 字段。`getAvailableWorkers()` 返回全局 worker 列表中未分配到指定 farm 的工人。
+
+Live: HTTP 调用 `POST /api/v1/farms/:farmId/workers` / `DELETE /api/v1/farms/:farmId/workers/:workerId`。
 
 - [ ] **Step 4: 运行 flutter analyze**
 
@@ -415,7 +440,7 @@ class B2bAlertBottomSheet extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 3: 运行 flutter analyze**
+**数据来源**：`B2bDashboardData` 需新增 `alertSummary` 字段（`List<Map<String, dynamic>>`，每条含 `farmName`/`type`/`message`/`createdAt`）。Mock 环境使用硬编码占位数据（最近 3 条），Live 从 ApiCache 告警缓存中过滤。此字段需同步添加到 Task 1 的 `B2bDashboardData` 扩展中。
 
 - [ ] **Step 4: Commit**
 
@@ -441,8 +466,21 @@ b2bWorkerDetail('/b2b/admin/workers/:farmId', 'b2b-worker-detail', '牧工详情
 
 - [ ] **Step 2: 在 app_router.dart 注册子路由**
 
-在 `b2bAdmin` GoRoute 的 `routes` 数组中，为 `revenue` 和 `workers` 子路由各增加一个子路由：
+**替换**现有 `b2bAdmin` GoRoute `routes` 数组中的 flat `revenue` 和 `workers` GoRoute 条目为嵌套版本。其他条目（`farms`/`contract`）保持不变。
 
+在文件顶部新增 import：
+```dart
+import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_revenue_detail_page.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_worker_detail_page.dart';
+```
+
+将现有：
+```dart
+GoRoute(path: 'revenue', name: AppRoute.b2bAdminRevenue.routeName, builder: ... => const B2bRevenuePage()),
+GoRoute(path: 'workers', name: AppRoute.b2bWorkerManagement.routeName, builder: ... => const B2bWorkerManagementPage()),
+```
+
+替换为：
 ```dart
 GoRoute(
   path: 'revenue',
@@ -476,8 +514,6 @@ GoRoute(
 ),
 ```
 
-同时添加新的 import。
-
 - [ ] **Step 3: 运行 flutter analyze**
 
 - [ ] **Step 4: Commit**
@@ -500,6 +536,8 @@ git commit -m "feat(b2b-ux): add revenue detail and worker detail routes"
 在 `build()` 中额外加载 revenue 本月数据，填充 `monthlyRevenue`/`deviceOnlineRate`。
 
 - [ ] **Step 2: 重写 B2bDashboardPage**
+
+**通用约定**：所有页面保持现有 `ViewState` 分支模式（`normal`/`loading`/`empty`/`error`），空状态使用 spec 中定义的文案（如"暂无对账数据，系统将在每月1日自动生成结算周期"）。灰蓝主色值直接内联使用 `Color(0xFF37474F)` 和 `Color(0xFF607D8B)`，不修改 `app_colors.dart`。
 
 页面结构：
 1. 页头："B端控制台" + `partnerName` + 合同状态
@@ -538,13 +576,15 @@ git commit -m "feat(b2b-ux): rewrite B2b dashboard with hero card, alerts, quick
 
 - [ ] **Step 2: 实现 B2bRevenueDetailPage（详情页）**
 
-页面结构：
-1. 面包屑："‹ 返回 对账 > 2026年5月 对账明细"
-2. 周期汇总灰蓝卡片：总设备费 + 分润金额 + 分润比 + 结算时间
-3. 确认状态条（`#fff3e0`）：双方确认状态 + "确认对账"按钮
-4. 牧场明细表：白底圆角表格，每行含 farmName/livestockCount/deviceUnitPrice/deviceFee/shareAmount
+**数据接线**：页面接收 `periodId` 构造参数。在 `build()` 中通过 `ref.read(revenueControllerProvider.notifier).getPeriodDetail(periodId)` 同步获取 `RevenueDetailViewData`。
 
-确认流程：`B2bConfirmDialog.show()` → Loading → `controller.confirmPeriod()` → SnackBar。
+页面结构：
+1. 面包屑："‹ 返回 对账 > 2026年5月 对账明细"（返回使用 `context.pop()`）
+2. 周期汇总灰蓝卡片：`totalDeviceFee` + `partnerShare`(从 period) + `revenueShareRatio` + `calculatedAt`
+3. 确认状态条（`#fff3e0`）：`platformConfirmed`/`partnerConfirmed` 双方确认状态 + "确认对账"按钮
+4. 牧场明细表：白底圆角表格，每行含 `RevenueFarmDetail` 的 farmName/livestockCount/deviceUnitPrice/deviceFee/shareAmount
+
+确认流程：`B2bConfirmDialog.show()` → 按钮进入 Loading → `ref.read(revenueControllerProvider.notifier).confirmPeriod(periodId)` → SnackBar → `context.pop()` 返回列表页。
 
 - [ ] **Step 3: 运行 flutter analyze**
 
@@ -612,13 +652,15 @@ List<B2bSubFarmWorker> getAvailableWorkers();
 
 - [ ] **Step 3: 实现 B2bWorkerDetailPage（工人详情页）**
 
-页面结构：
-1. 面包屑："‹ 牧工管理 > 西南合作牧场"
-2. 牧场信息条：`groups`/`pets`/`sensors` 统计 + "分配牧工"按钮
-3. 工人列表：`person` avatar 圆圈 + 姓名/入职日 + 在岗/离岗标签 + 移除按钮
+**数据接线**：页面接收 `farmId` 构造参数。通过 `ref.read(b2bWorkerManagementControllerProvider.notifier).getSubFarmWorkers(farmId)` 获取工人列表。通过 `ref.read(b2bWorkerManagementControllerProvider)` 获取 `B2bSubFarm` 信息（从 `subFarms` 中按 `farmId` 查找）。
 
-分配流程：点击"分配牧工" → Dialog 多选可用工人 → 确认 → SnackBar。
-移除流程：点击"移除" → `B2bConfirmDialog` → SnackBar。
+页面结构：
+1. 面包屑："‹ 牧工管理 > {farm.name}"（返回使用 `context.pop()`）
+2. 牧场信息条：`groups`/`pets`/`sensors` 统计 + "分配牧工"按钮
+3. 工人列表：`person` avatar 圆圈 + `name`/`assignedAt` + 在岗/离岗标签 + 移除按钮
+
+分配流程：点击"分配牧工" → `getAvailableWorkers()` → Dialog 多选 → `assignWorker(farmId, workerId)` → SnackBar → 刷新列表。
+移除流程：点击"移除" → `B2bConfirmDialog` → `removeWorker(farmId, workerId)` → SnackBar → 刷新列表。
 
 - [ ] **Step 4: 运行 flutter analyze**
 
