@@ -450,7 +450,13 @@ class _ContractContent extends StatelessWidget {
             title: '联系平台',
             subtitle: '咨询续签或变更',
             onTap: () {
-              // Placeholder: no-op for now
+              B2bConfirmDialog.show(
+                context,
+                title: '功能开发中',
+                subtitle: '在线客服功能即将上线',
+                confirmLabel: '知道了',
+                cancelLabel: '关闭',
+              );
             },
           ),
         ),
@@ -610,10 +616,14 @@ class _ExpiryReminderBar extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '$dateStr  ·  剩余 $days 天',
-                  style: const TextStyle(
+                  days > 0
+                      ? '$dateStr  ·  剩余 $days 天'
+                      : '$dateStr  ·  已过期',
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF1565C0),
+                    color: days > 0
+                        ? const Color(0xFF1565C0)
+                        : const Color(0xFFE53935),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
