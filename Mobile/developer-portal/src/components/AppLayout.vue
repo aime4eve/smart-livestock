@@ -46,7 +46,7 @@ function handleLogout() {
         </div>
       </header>
       <main class="page-content">
-        <router-view />
+        <slot />
       </main>
     </div>
   </div>
