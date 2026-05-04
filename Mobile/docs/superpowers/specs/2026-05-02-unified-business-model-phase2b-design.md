@@ -129,10 +129,12 @@ RevenueFarmItem（单 farm 明细）:
 
 ### 4.3.1 revenueStore 完整设计
 
+> **与实现的对应关系**：以下伪代码与 `backend/data/revenueStore.js` 实际实现保持一致。状态机、数据结构和幂等校验反映当前代码行为。
+
 ```
 内存数据结构:
-  _periods: RevenuePeriod[]       // 结算周期数组
-  _farmItems: RevenueFarmItem[]   // farm 明细数组
+  _periods: RevenuePeriod[]       // 结算周期数组，每个 period 内嵌 farmDetails 数组
+                                  // （无独立 _farmItems 数组，明细嵌入 period 对象）
 
 方法:
 
@@ -144,15 +146,15 @@ calculate(period, mode):
         - 取 livestockCount × (deviceConfigRatio.gpsRatio×15 + deviceConfigRatio.capsuleRatio×30)
           计算 deviceFee
         - deviceFee × revenueShareRatio 计算 shareAmount
-        - 创建 RevenueFarmItem 追加到 _farmItems
+        - 创建 RevenueFarmItem 追加到该 period 的 farmDetails 数组
      c. 汇总旗下所有 farm 的 deviceFee → totalDeviceFee
      d. totalDeviceFee × revenueShareRatio → revenueShareAmount
-     e. 创建 RevenuePeriod，status='calculated'
+     e. 创建 RevenuePeriod，status='pending'
   3. 返回新创建的所有 RevenuePeriod
 
 confirm(id, role, tenantId):
   1. 按 id 查找 RevenuePeriod
-  2. 状态校验：status 须为 'calculated' 或 'confirmed'（不允许 pending/settled）
+  2. 状态校验：status 须为 'pending' 或 'confirmed'（不允许 settled）
   3. 幂等校验：
      - role='platform_admin' → 若 confirmedByPlatform=true → 返回 409 REVENUE_ALREADY_CONFIRMED
      - role='b2b_admin' → 若 confirmedByPartner=true → 返回 409 REVENUE_ALREADY_CONFIRMED
@@ -169,6 +171,8 @@ getPeriods(filters):
   3. 按 period 降序排列
   4. 返回 { items, page, pageSize, total }
 ```
+
+**状态机总结**：`calculate()` 产出 `pending` → 单方确认后 `confirmed` → 双方确认后 `settled`。不允许从 `settled` 再次确认。`'calculated'` 状态在数据模型中保留但当前 Mock 实现不使用。
 
 ### 4.3.2 对账确认并发策略
 
@@ -888,20 +892,33 @@ ApiAuthorization（授权记录）:
 
 ### 统一错误码表
 
+> **性质说明**：本表为 **目标规范**（target specification），定义新端点和重构时统一采用的错误码命名。现有代码中部分路由使用了不同的命名（如 `AUTH_UNAUTHORIZED`、`AUTH_FORBIDDEN`、`RESOURCE_NOT_FOUND`），MVP 后端迁移或后续重构时应对齐到本表。新建路由（G1 Open API、E4-E6 Phase 2b 路由）应直接使用本表命名。
+
 **通用错误码**（所有端点共享）：
 
-| HTTP Status | code | message | 触发场景 |
-|---|---|---|---|
-| 400 | BAD_REQUEST | 参数校验失败 | body 缺少必填字段、类型不匹配 |
-| 401 | AUTH_REQUIRED | 缺少认证凭证 | 无 Bearer token / X-API-Key |
-| 401 | AUTH_INVALID | 认证凭证无效 | token/key 校验失败 |
-| 403 | FORBIDDEN | 权限不足 | 角色无权访问该资源/操作 |
-| 404 | NOT_FOUND | 资源不存在 | ID 不匹配 |
-| 409 | CONFLICT | 状态冲突 | 非法状态跳转 |
-| 429 | RATE_LIMITED | 请求频率超限 | 超出 tier 限额 |
-| 500 | INTERNAL | 服务器内部错误 | 未预期异常 |
+| HTTP Status | code | message | 触发场景 | 现有代码对应 |
+|---|---|---|---|---|
+| 400 | BAD_REQUEST | 参数校验失败 | body 缺少必填字段、类型不匹配 | — |
+| 401 | AUTH_REQUIRED | 缺少认证凭证 | 无 Bearer token / X-API-Key | `AUTH_UNAUTHORIZED` |
+| 401 | AUTH_INVALID | 认证凭证无效 | token/key 校验失败 | `AUTH_UNAUTHORIZED` |
+| 403 | FORBIDDEN | 权限不足 | 角色无权访问该资源/操作 | `AUTH_FORBIDDEN` |
+| 404 | NOT_FOUND | 资源不存在 | ID 不匹配 | `RESOURCE_NOT_FOUND` |
+| 409 | CONFLICT | 状态冲突 | 非法状态跳转 | — |
+| 429 | RATE_LIMITED | 请求频率超限 | 超出 tier 限额 | — |
+| 500 | INTERNAL | 服务器内部错误 | 未预期异常 | — |
 
-**领域特定错误码**（按 Epic 分组）：
+**领域特定错误码**（按 Epic 分组）。标注「已实现」表示当前代码已返回该错误码；标注「目标」表示需在后续迭代中补充该校验逻辑。
+
+| Epic | HTTP Status | code | message | 触发场景 | 状态 |
+|---|---|---|---|---|---|
+| E4 分润 | 409 | REVENUE_ALREADY_CONFIRMED | 该方已确认对账 | 重复确认同一角色 | 目标 |
+| E4 分润 | 409 | REVENUE_INVALID_PERIOD | 结算周期无效 | period 格式错误或已结算 | 目标 |
+| E5 订阅 | 401 | SERVICE_KEY_INVALID | serviceKey 无效 | hash 不匹配 | 目标（现用 AUTH_UNAUTHORIZED） |
+| E5 订阅 | 409 | SUBSCRIPTION_REVOKED | 订阅服务已吊销 | 已吊销的实例发心跳 | 目标 |
+| E6 合同 | 409 | CONTRACT_ALREADY_TERMINATED | 合同已终止 | 重复终止 | 目标 |
+| G1 API | 401 | API_KEY_INVALID | API Key 无效 | hash 不匹配或已撤销 | 已实现 |
+| G1 API | 429 | QUOTA_EXCEEDED | 月调用配额已用尽 | 超出 tier 月配额 | 目标 |
+| G3 授权 | 409 | AUTHORIZATION_ALREADY_PROCESSED | 授权申请已处理 | 重复审批已处理记录 | 目标 |
 
 | Epic | HTTP Status | code | message | 触发场景 |
 |---|---|---|---|---|
@@ -918,20 +935,24 @@ ApiAuthorization（授权记录）:
 
 ### Live Repository 方法签名
 
+> **性质说明**：以下签名为 **重构目标**（target interface）。当前实现中部分 Repository 的方法名和返回类型与下表不同（如 `ContractManagementRepository` 用 `getContracts()` 而非 `list()`，`ApiAuthorizationRepository` 用 `approveAuthorization()` / `revokeAuthorization()` 而非 `approve()` / `revoke()`）。后续迭代对齐接口时以下表为准。新建模块应直接使用目标签名。
+
 读方法同步返回缓存数据（`ViewData<T>`），写方法异步调用 API 后刷新缓存（`Future<void>`）。
 
 ```
 LiveRevenueRepository:
   ViewData<List<RevenuePeriod>> getPeriods()
-  ViewData<RevenuePeriodDetail> getPeriodDetail(String id)
+  ViewData<RevenueDetailViewData> getPeriodDetail(String id)
   Future<void> confirmPeriod(String id)
+  // 现有实现对应：getPeriods(), getPeriodDetail(), confirmPeriod() — 命名一致
 
 LiveContractManagementRepository:
-  ViewData<List<Contract>> list()
+  ViewData<ContractListViewData> list({String? partnerId, String? status})
   ViewData<Contract> getById(String id)
   Future<void> create(Map<String, dynamic> data)
   Future<void> update(String id, Map<String, dynamic> data)
   Future<void> terminate(String id)
+  // 现有实现对应：getContracts() → list(), 无 getById → 需新增
 
 LiveSubscriptionServiceRepository:
   ViewData<List<SubscriptionService>> list()
@@ -945,6 +966,8 @@ LiveApiAuthorizationRepository:
   Future<void> approve(String id)
   Future<void> reject(String id)
   Future<void> revoke(String id)
+  // 现有实现对应：getAuthorizations() → list(), approveAuthorization() → approve(),
+  //   revokeAuthorization() → revoke(); 无 reject() → 需新增
 ```
 
 写方法的缓存刷新策略：API 调用成功后，立即调用对应的 `ApiCache.refresh*()` 方法重新 GET 列表接口，确保本地缓存与服务器一致。Controller 通过 `ref.invalidateSelf()` 触发 UI 重建。
