@@ -53,6 +53,7 @@ function create(body) {
     requestedScopes: requestedScopes || null,
     reviewedBy: null,
     reviewedAt: null,
+    expiresAt: null,
     reason: reason || null,
     createdAt: now,
     updatedAt: now,
@@ -79,6 +80,11 @@ function approve(id, reviewedBy) {
   auth.reviewedBy = reviewedBy || null;
   auth.reviewedAt = now;
   auth.updatedAt = now;
+
+  // Set expiry: 12 months from approval
+  const expiryDate = new Date(now.replace('+08:00', '+08:00'));
+  expiryDate.setMonth(expiryDate.getMonth() + 12);
+  auth.expiresAt = expiryDate.toISOString().replace('Z', '+08:00').replace(/\.\d{3}/, '');
 
   // CRITICAL: Append farmTenantId to the api consumer tenant's accessibleFarmTenantIds
   const tenantStore = _getTenantStore();
