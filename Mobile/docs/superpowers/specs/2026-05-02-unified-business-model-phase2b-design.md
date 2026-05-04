@@ -520,7 +520,27 @@ ApiTier:
   updatedAt: '2026-05-01T00:00:00+08:00',
   lastUpdatedBy: '系统初始化',
 }
+
+// 新增 API 开发者（free tier 试用）
+// tenant_a002: type='api', billingModel='api_usage', apiTier='free', apiCallQuota=1000,
+//   accessibleFarmTenantIds=['tenant_001']
+
+// 新增 Enterprise 牧场（已开启 API 访问）
+// tenant_008: type='farm', entitlementTier='enterprise', apiTier='free', apiCallQuota=1000,
+//   accessibleFarmTenantIds=['tenant_008']
 ```
+
+---
+
+### Free Tier 触发路径
+
+free tier 有两条独立的触发路径，代码层面统一处理（apiTierStore 不区分来源）：
+
+**路径 1 — API 开发者试用**：api_consumer 注册后自动获得 free tier。种子数据 `tenant_a002` 演示此路径。现有 `tenant_a001`（growth）演示已升级状态。
+
+**路径 2 — Enterprise 订阅增值权益**：enterprise 牧场主手动开启 API 访问后获得 free tier。系统在 farm tenant 上设置 `apiTier='free'`，生成 API Key，apiTierStore 创建对应记录。种子数据 `tenant_008` 演示此路径。
+
+**降级处理**：enterprise 订阅降为 pro/basic 时，API 访问挂起（403 + 升级提示），API Key 不删除，升级后自动恢复。Demo 阶段简化为降级即挂起。
 
 ---
 
@@ -613,7 +633,7 @@ function apiKeyAuthMiddleware(req, res, next) {
 ### 端点清单
 
 ```
-free tier (捆绑 enterprise 订阅，或 api_consumer 最小起步为 growth):
+free tier — API 试用层（零费用。触发路径：① api_consumer 注册后自动获得；② enterprise 牧场主手动开启 API 访问后获得。详见"Free Tier 触发路径"小节）:
   GET  /api/open/v1/twin/fever/:id        — 单头牛发热状态
   GET  /api/open/v1/twin/estrus/:id       — 单头牛发情评分
   GET  /api/open/v1/twin/digestive/:id    — 单头牛消化状态
