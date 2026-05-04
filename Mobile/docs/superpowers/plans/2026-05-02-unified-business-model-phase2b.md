@@ -48,6 +48,7 @@
 | 2026-05-03 | OPT-2 | master | 新建牧场功能：ApiCache.createB2bFarmRemote + B2bRepository.createFarm + 表单对话框 + 验证 |
 | 2026-05-03 | OPT-3 | master | 对账模块数据修复：后端 seed 自动生成 4 个周期 + ApiCache 预加载 + fromJson 字段映射 |
 | 2026-05-03 | OPT-4 | master | 对账三态 UI + 实时确认：三态状态模型（confirmed/partially_confirmed/pending）+ confirm 调用真实 API + 缓存刷新 |
+| 2026-05-05 | #39 | master (e8eb789, 283c8ee, 000b279) | 规格质量提升 v1.4：统一错误码表、Live Repository 签名、revenueStore 详细设计、并发策略、心跳限流 |
 
 ---
 
