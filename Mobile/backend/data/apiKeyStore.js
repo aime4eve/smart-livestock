@@ -35,6 +35,21 @@ function _hashKey(raw) {
 function reset() {
   _keys = [];
   _nextId = 1;
+
+  // Seed key for tenant_008 (enterprise farm, free tier)
+  const seedRawKey = 'sl_apikey_seed_tenant_008_0000000000000001';
+  const seedKeyHash = _hashKey(seedRawKey);
+  _keys.push({
+    keyId: 'apikey_seed_008',
+    apiTenantId: 'tenant_008',
+    keyHash: seedKeyHash,
+    keyPrefix: seedRawKey.substring(0, 10),
+    keySuffix: seedRawKey.substring(seedRawKey.length - 4),
+    status: 'active',
+    createdAt: '2026-05-04T00:00:00+08:00',
+    rotatedAt: null,
+  });
+  _nextId = 2;
 }
 
 /**

@@ -165,4 +165,18 @@ describe('apiKeyStore', () => {
     const revokeResult = store.revoke('nonexistent_id');
     assert.equal(revokeResult.error, 'not_found');
   });
+
+  test('apiKeyStore: seed key exists for tenant_008 (enterprise farm)', () => {
+    // apiKeyStore.reset() restores initial state including seed key
+    const keys = store.listByTenantId('tenant_008');
+    assert.equal(keys.length, 1, 'tenant_008 should have exactly one seed key');
+    assert.equal(keys[0].status, 'active');
+  });
+
+  test('apiKeyStore: validate seed key for tenant_008 end-to-end', () => {
+    const result = store.validate('sl_apikey_seed_tenant_008_0000000000000001');
+    assert.ok(result, 'seed key should validate');
+    assert.equal(result.apiTenantId, 'tenant_008');
+    assert.equal(result.apiTier, 'free');
+  });
 });

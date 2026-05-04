@@ -457,7 +457,7 @@ const tenants = [
     serviceKey: null,
     heartbeatAt: null,
     apiTier: 'free',
-    apiKey: null,
+    apiKey: 'f0b17a0a4deafe08721017cf6c1800b65136d2a7666f1515931d792e9e3cb7e0',
     apiCallQuota: 1000,
     accessibleFarmTenantIds: ['tenant_008'],
     deviceConfigRatio: null,
