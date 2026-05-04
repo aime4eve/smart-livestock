@@ -63,10 +63,32 @@ describe('apiTierStore', () => {
     assert.equal(quota, null);
   });
 
+  test('getByTenantId returns free tier for tenant_a002 (free trial)', () => {
+    const tier = store.getByTenantId('tenant_a002');
+    assert.ok(tier);
+    assert.equal(tier.apiTenantId, 'tenant_a002');
+    assert.equal(tier.tier, 'free');
+    assert.equal(tier.monthlyQuota, 1000);
+    assert.equal(tier.usedThisMonth, 0);
+    assert.equal(tier.overageUnitPrice, 0);
+    assert.equal(tier.resetAt, null);
+  });
+
+  test('getByTenantId returns free tier for tenant_008 (enterprise farm)', () => {
+    const tier = store.getByTenantId('tenant_008');
+    assert.ok(tier);
+    assert.equal(tier.apiTenantId, 'tenant_008');
+    assert.equal(tier.tier, 'free');
+    assert.equal(tier.monthlyQuota, 1000);
+    assert.equal(tier.usedThisMonth, 0);
+    assert.equal(tier.overageUnitPrice, 0);
+    assert.equal(tier.resetAt, null);
+  });
+
   test('resetMonthlyUsage resets at month boundary', () => {
     store.incrementUsage('tenant_a001', 5000);
     const count = store.resetMonthlyUsage();
-    assert.equal(count, 1); // Only api tenant_a001 has data
+    assert.equal(count, 3); // tenant_a001 + tenant_a002 + tenant_008
 
     const tier = store.getByTenantId('tenant_a001');
     assert.equal(tier.usedThisMonth, 0);

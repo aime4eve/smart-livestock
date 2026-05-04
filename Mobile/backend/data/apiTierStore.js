@@ -10,6 +10,22 @@ const _initialTiers = [
     overageUnitPrice: 0.01,
     resetAt: null,
   },
+  {
+    apiTenantId: 'tenant_a002',
+    tier: 'free',
+    monthlyQuota: 1000,
+    usedThisMonth: 0,
+    overageUnitPrice: 0,
+    resetAt: null,
+  },
+  {
+    apiTenantId: 'tenant_008',
+    tier: 'free',
+    monthlyQuota: 1000,
+    usedThisMonth: 0,
+    overageUnitPrice: 0,
+    resetAt: null,
+  },
 ];
 
 let _tiers = _initialTiers.map((t) => ({ ...t }));
