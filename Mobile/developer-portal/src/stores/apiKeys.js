@@ -25,6 +25,20 @@ export const useApiKeysStore = defineStore('apiKeys', {
       }
     },
 
+    async createKey(token) {
+      this.loading = true;
+      this.error = null;
+      try {
+        await apiPost('/api-keys', {}, token);
+        await this.fetchKeys(token);
+      } catch (e) {
+        this.error = e.message || '创建失败';
+        throw e;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async rotateKey(keyId, token) {
       this.loading = true;
       this.error = null;

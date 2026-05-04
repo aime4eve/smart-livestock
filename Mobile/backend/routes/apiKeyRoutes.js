@@ -13,6 +13,13 @@ router.get('/', (req, res) => {
   res.ok(keys);
 });
 
+// POST / — generate a new key for current api_consumer
+router.post('/', (req, res) => {
+  const tenantId = req.user.tenantId;
+  const result = apiKeyStore.generate(tenantId);
+  res.ok({ apiKey: result.apiKey, rawKey: result.rawKey }, 'API Key 已创建');
+});
+
 // POST /:id/rotate — rotate keys for the tenant that owns :id
 router.post('/:id/rotate', (req, res) => {
   const tenantId = req.user.tenantId;

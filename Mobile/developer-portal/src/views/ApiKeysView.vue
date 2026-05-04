@@ -11,6 +11,7 @@ const authStore = useAuthStore();
 
 const showDialog = ref(false);
 const rotatingKeyId = ref(null);
+const showCreateDialog = ref(false);
 
 onMounted(() => {
   apiKeysStore.fetchKeys(authStore.token);
@@ -35,13 +36,22 @@ function cancelRotate() {
   showDialog.value = false;
   rotatingKeyId.value = null;
 }
+
+async function confirmCreate() {
+  try {
+    await apiKeysStore.createKey(authStore.token);
+  } catch {
+    // error handled in store
+  }
+  showCreateDialog.value = false;
+}
 </script>
 
 <template>
   <AppLayout>
     <div class="page-header">
       <h2>API Key 管理</h2>
-      <button class="btn btn-primary">+ 创建新 Key</button>
+      <button class="btn btn-primary" @click="showCreateDialog = true">+ 创建新 Key</button>
     </div>
 
     <div class="card">
@@ -84,7 +94,7 @@ function cancelRotate() {
       <p v-else style="color: #999;">暂无 API Key</p>
     </div>
 
-    <!-- Confirmation Dialog -->
+    <!-- Rotate Dialog -->
     <div v-if="showDialog" class="dialog-overlay" @click.self="cancelRotate">
       <div class="dialog-box">
         <h3>确认轮换 API Key？</h3>
@@ -92,6 +102,18 @@ function cancelRotate() {
         <div class="dialog-actions">
           <button class="btn btn-secondary" @click="cancelRotate">取消</button>
           <button class="btn btn-danger" @click="confirmRotate">确认轮换</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Dialog -->
+    <div v-if="showCreateDialog" class="dialog-overlay" @click.self="showCreateDialog = false">
+      <div class="dialog-box">
+        <h3>创建新 API Key</h3>
+        <p>新创建的 Key 将立即生效。请妥善保管 Key 值，创建后将无法再次查看完整 Key。</p>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" @click="showCreateDialog = false">取消</button>
+          <button class="btn btn-primary" @click="confirmCreate">确认创建</button>
         </div>
       </div>
     </div>
