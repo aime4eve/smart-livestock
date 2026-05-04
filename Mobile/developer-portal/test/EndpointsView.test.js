@@ -25,12 +25,12 @@ describe('EndpointsView', () => {
         stubs: { AppLayout: { template: '<div><slot /></div>' } },
       },
     });
-    expect(wrapper.text()).toContain('Free 免费版');
-    expect(wrapper.text()).toContain('Growth 成长版');
-    expect(wrapper.text()).toContain('Scale 企业版');
+    expect(wrapper.text()).toContain('Free');
+    expect(wrapper.text()).toContain('Growth');
+    expect(wrapper.text()).toContain('Scale');
   });
 
-  it('renders endpoint table rows', () => {
+  it('renders endpoint paths and methods', () => {
     const wrapper = mount(EndpointsView, {
       global: {
         plugins: [createPinia(), router],
@@ -39,7 +39,19 @@ describe('EndpointsView', () => {
     });
     expect(wrapper.text()).toContain('GET');
     expect(wrapper.text()).toContain('POST');
-    expect(wrapper.text()).toContain('查询牛只列表');
+    expect(wrapper.text()).toContain('/api/open/v1/twin/fever/list');
+  });
+
+  it('displays auth info and rate limit', () => {
+    const wrapper = mount(EndpointsView, {
+      global: {
+        plugins: [createPinia(), router],
+        stubs: { AppLayout: { template: '<div><slot /></div>' } },
+      },
+    });
+    expect(wrapper.text()).toContain('认证方式');
+    expect(wrapper.text()).toContain('频率限制');
+    expect(wrapper.text()).toContain('X-API-Key');
   });
 
   it('displays method badges with correct classes', () => {
