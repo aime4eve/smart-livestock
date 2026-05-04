@@ -920,17 +920,6 @@ ApiAuthorization（授权记录）:
 | G1 API | 429 | QUOTA_EXCEEDED | 月调用配额已用尽 | 超出 tier 月配额 | 目标 |
 | G3 授权 | 409 | AUTHORIZATION_ALREADY_PROCESSED | 授权申请已处理 | 重复审批已处理记录 | 目标 |
 
-| Epic | HTTP Status | code | message | 触发场景 |
-|---|---|---|---|---|
-| E4 分润 | 409 | REVENUE_ALREADY_CONFIRMED | 该方已确认对账 | 重复确认同一角色 |
-| E4 分润 | 409 | REVENUE_INVALID_PERIOD | 结算周期无效 | period 格式错误或已结算 |
-| E5 订阅 | 401 | SERVICE_KEY_INVALID | serviceKey 无效 | hash 不匹配 |
-| E5 订阅 | 409 | SUBSCRIPTION_REVOKED | 订阅服务已吊销 | 已吊销的实例发心跳 |
-| E6 合同 | 409 | CONTRACT_ALREADY_TERMINATED | 合同已终止 | 重复终止 |
-| G1 API | 401 | API_KEY_INVALID | API Key 无效 | hash 不匹配或已撤销 |
-| G1 API | 429 | QUOTA_EXCEEDED | 月调用配额已用尽 | 超出 tier 月配额 |
-| G3 授权 | 409 | AUTHORIZATION_ALREADY_PROCESSED | 授权申请已处理 | 重复审批已处理记录 |
-
 所有错误响应遵循统一包络格式：`{ code, message, requestId, data: null }`。
 
 ### Live Repository 方法签名
