@@ -29,8 +29,10 @@ export const useApiKeysStore = defineStore('apiKeys', {
       this.loading = true;
       this.error = null;
       try {
-        await apiPost('/api-keys', {}, token);
+        const res = await apiPost('/api-keys', {}, token);
+        const data = res.data ?? res;
         await this.fetchKeys(token);
+        return data.rawKey || null;
       } catch (e) {
         this.error = e.message || '创建失败';
         throw e;
@@ -43,8 +45,10 @@ export const useApiKeysStore = defineStore('apiKeys', {
       this.loading = true;
       this.error = null;
       try {
-        await apiPost(`/api-keys/${keyId}/rotate`, {}, token);
+        const res = await apiPost(`/api-keys/${keyId}/rotate`, {}, token);
+        const data = res.data ?? res;
         await this.fetchKeys(token);
+        return data.rawKey || null;
       } catch (e) {
         this.error = e.message || '轮换失败';
         throw e;

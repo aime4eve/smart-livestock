@@ -12,6 +12,9 @@ const authStore = useAuthStore();
 const showDialog = ref(false);
 const rotatingKeyId = ref(null);
 const showCreateDialog = ref(false);
+const showKeyResult = ref(false);
+const revealedKey = ref('');
+const copyFeedback = ref('');
 
 onMounted(() => {
   apiKeysStore.fetchKeys(authStore.token);
@@ -24,12 +27,16 @@ function requestRotate(keyId) {
 
 async function confirmRotate() {
   try {
-    await apiKeysStore.rotateKey(rotatingKeyId.value, authStore.token);
+    const rawKey = await apiKeysStore.rotateKey(rotatingKeyId.value, authStore.token);
+    showDialog.value = false;
+    rotatingKeyId.value = null;
+    if (rawKey) {
+      revealedKey.value = rawKey;
+      showKeyResult.value = true;
+    }
   } catch {
     // error handled in store
   }
-  showDialog.value = false;
-  rotatingKeyId.value = null;
 }
 
 function cancelRotate() {
@@ -39,11 +46,38 @@ function cancelRotate() {
 
 async function confirmCreate() {
   try {
-    await apiKeysStore.createKey(authStore.token);
+    const rawKey = await apiKeysStore.createKey(authStore.token);
+    showCreateDialog.value = false;
+    if (rawKey) {
+      revealedKey.value = rawKey;
+      showKeyResult.value = true;
+    }
   } catch {
     // error handled in store
   }
-  showCreateDialog.value = false;
+}
+
+async function copyKey() {
+  try {
+    await navigator.clipboard.writeText(revealedKey.value);
+    copyFeedback.value = '已复制！';
+    setTimeout(() => { copyFeedback.value = ''; }, 2000);
+  } catch {
+    const textarea = document.createElement('textarea');
+    textarea.value = revealedKey.value;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    copyFeedback.value = '已复制！';
+    setTimeout(() => { copyFeedback.value = ''; }, 2000);
+  }
+}
+
+function closeKeyResult() {
+  showKeyResult.value = false;
+  revealedKey.value = '';
+  copyFeedback.value = '';
 }
 </script>
 
@@ -110,10 +144,29 @@ async function confirmCreate() {
     <div v-if="showCreateDialog" class="dialog-overlay" @click.self="showCreateDialog = false">
       <div class="dialog-box">
         <h3>创建新 API Key</h3>
-        <p>新创建的 Key 将立即生效。请妥善保管 Key 值，创建后将无法再次查看完整 Key。</p>
+        <p>新创建的 Key 将立即生效。请妥善保管 Key 值，关闭后将无法再次查看完整 Key。</p>
         <div class="dialog-actions">
           <button class="btn btn-secondary" @click="showCreateDialog = false">取消</button>
           <button class="btn btn-primary" @click="confirmCreate">确认创建</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Result Dialog -->
+    <div v-if="showKeyResult" class="dialog-overlay">
+      <div class="dialog-box" style="max-width: 560px;">
+        <h3>{{ copyFeedback || '请复制并妥善保管您的 API Key' }}</h3>
+        <p style="color: #c62828; font-size: 13px; margin-bottom: 12px;">
+          关闭此窗口后将无法再次查看完整 Key，请立即复制保存。
+        </p>
+        <div style="background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; display: flex; align-items: center; gap: 8px;">
+          <code style="flex: 1; word-break: break-all; font-size: 13px; user-select: all;">{{ revealedKey }}</code>
+          <button class="btn btn-primary btn-sm" @click="copyKey" style="white-space: nowrap;">
+            {{ copyFeedback ? '✓ 已复制' : '复制' }}
+          </button>
+        </div>
+        <div class="dialog-actions" style="margin-top: 16px;">
+          <button class="btn btn-secondary" @click="closeKeyResult">我已保存，关闭</button>
         </div>
       </div>
     </div>
