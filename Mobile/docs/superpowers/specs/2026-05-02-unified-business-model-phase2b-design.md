@@ -1,9 +1,9 @@
 # 统一商业模型 Phase 2b 设计规格
 
 > **文档编号**: SL-BIZ-2026-003
-> **版本**: v1.3
+> **版本**: v1.4
 > **编制日期**: 2026-05-02
-> **修订日期**: 2026-05-03
+> **修订日期**: 2026-05-05
 > **状态**: 已实现（G2 开发者门户进行中）
 > **受众**: 产品经理 + 技术团队
 > **评审报告**: `docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-review-r2.md`
@@ -12,6 +12,7 @@
 > - `docs/superpowers/specs/2026-04-29-unified-business-model-phase2a-design.md` (v1.3) — Phase 2a 规格
 > **前置计划**: `docs/superpowers/plans/2026-04-29-unified-business-model-phase2a.md`（Phase 2a 已完成）
 > **修订记录**:
+> - v1.4 (2026-05-05): Issue #39 规格质量提升：统一错误码表（通用+领域特定）、4 个 Live Repository 方法签名、revenueStore 完整伪代码与并发策略、心跳端点限流策略
 > - v1.3 (2026-05-03): Post-Phase-2b UX 优化与功能修复：B2B admin 4 页面重写（概览/对账/合同/牧工管理）、新建牧场功能（ApiCache+Repository+Controller+表单对话框）、对账数据修复（后端 seed 自动生成周期 + ApiCache 预加载 + fromJson 字段映射）、对账三态 UI（confirmed/partially_confirmed/pending）+ 实时确认（confirm 调真实 API + 缓存刷新）
 > - v1.2 (2026-05-02): 按 R2 评审报告修复 P1-R2-1~P1-R2-4（auth.js 匹配策略、分润公式设备配置维度、heartbeat 白名单路径、validate() 歧义消除）+ P2-R2-1~P2-R2-5（Mock 登录流程、twin 数据源 farmTenantId、定时器启动恢复、依赖关系图 G2 位置、vitest 配置）
 > - v1.1 (2026-05-02): 按评审报告修复 P0-1~P0-4（设备单价、heartbeat 认证白名单、validate() 跨 Store 查询、中间件架构）+ P1-1~P1-7（同步时机、workerRoutes 文件列表、默认值策略、seed 数据统一、开发者门户目录、多 farm 过滤、删除 LoginPage api_consumer）+ P2-2/P2-5（货币单位、tenant_p002 旗下 farm）
@@ -125,6 +126,55 @@ RevenueFarmItem（单 farm 明细）:
 **对账确认逻辑**：双方各自点击确认后设置对应 `confirmedBy*` 字段。双方都确认后 status → `'settled'`。全透明：双方看到相同的对账数据。
 
 **前端确认链路**（Live 模式）：`RevenueController.confirmPeriod()` → `LiveRevenueRepository.confirmPeriod()` → `ApiCache.confirmRevenuePeriodRemote('b2b_admin', periodId)` (POST API) → `ApiCache.refreshRevenuePeriods('b2b_admin')` (GET 刷新缓存) → Controller 刷新 UI。
+
+### 4.3.1 revenueStore 完整设计
+
+```
+内存数据结构:
+  _periods: RevenuePeriod[]       // 结算周期数组
+  _farmItems: RevenueFarmItem[]   // farm 明细数组
+
+方法:
+
+calculate(period, mode):
+  1. 查 contractStore.list() 获取所有 active 合同
+  2. 对每份合同:
+     a. 找到 partnerTenantId 旗下所有 farm（tenantStore.findByParentTenantId）
+     b. 对每个 farm:
+        - 取 livestockCount × (deviceConfigRatio.gpsRatio×15 + deviceConfigRatio.capsuleRatio×30)
+          计算 deviceFee
+        - deviceFee × revenueShareRatio 计算 shareAmount
+        - 创建 RevenueFarmItem 追加到 _farmItems
+     c. 汇总旗下所有 farm 的 deviceFee → totalDeviceFee
+     d. totalDeviceFee × revenueShareRatio → revenueShareAmount
+     e. 创建 RevenuePeriod，status='calculated'
+  3. 返回新创建的所有 RevenuePeriod
+
+confirm(id, role, tenantId):
+  1. 按 id 查找 RevenuePeriod
+  2. 状态校验：status 须为 'calculated' 或 'confirmed'（不允许 pending/settled）
+  3. 幂等校验：
+     - role='platform_admin' → 若 confirmedByPlatform=true → 返回 409 REVENUE_ALREADY_CONFIRMED
+     - role='b2b_admin' → 若 confirmedByPartner=true → 返回 409 REVENUE_ALREADY_CONFIRMED
+  4. 设置确认标志：
+     - role='platform_admin' → confirmedByPlatform = true
+     - role='b2b_admin' → confirmedByPartner = true
+  5. 若双方都确认 → status = 'settled'，记录 settledAt
+  6. 否则 status = 'confirmed'，记录 confirmedAt
+  7. 返回更新后的 RevenuePeriod
+
+getPeriods(filters):
+  1. 可选过滤：partnerTenantId, status, period 范围
+  2. 支持分页：{ page, pageSize } 默认 { page=1, pageSize=20 }
+  3. 按 period 降序排列
+  4. 返回 { items, page, pageSize, total }
+```
+
+### 4.3.2 对账确认并发策略
+
+**Mock 单线程环境**：`confirm()` 直接修改内存对象，无需并发控制。JavaScript 单线程保证同一时刻只有一个请求在执行。
+
+**MVP 后端（AdonisJS）迁移预留**：RevenuePeriod 模型新增 `version` 字段（乐观锁）。`confirm()` 更新时 `WHERE version = 期望值`，不匹配则返回 409。前端收到 409 后刷新数据并提示"数据已变更，请刷新后重试"。seed 数据中 RevenuePeriod 暂不含 version（Mock 阶段不需要）。
 
 ### 4.4 对账看板 UI
 
@@ -245,6 +295,12 @@ Response: {
 3. 若当前 status = `'degraded'` → 自动恢复为 `'active'`（恢复心跳自动复原），同步 `tenant.entitlementTier` 为原 tier
 4. 检查是否宽限期过期：status = `'grace_period'` 且 `now - lastHeartbeatAt > gracePeriodDays` → status → `'degraded'`，`tenant.entitlementTier` → `'basic'`
 5. 后台定时扫描（Mock: `setInterval` 60s）：所有 status = `'active'` 的记录，若 `now - lastHeartbeatAt > heartbeatIntervalHours` → status → `'grace_period'`，通知 platform_admin。**启动恢复**：server 启动时立即执行一次全量扫描（处理"重启前已超时但因进程终止未触发状态变更"的记录），随后启动 setInterval 定时器。同理 apiKeyStore 的 24h 轮换撤销也在启动时执行一次扫描。
+
+### 5.4.1 心跳端点限流策略
+
+**Phase 2b Mock 环境**：不实现速率限制。心跳由独立部署客户的后台定时任务发送，频率固定（24h/次），不存在用户侧滥用风险。serviceKey hash 认证已提供身份验证，替代限流保护。
+
+**MVP 后端（AdonisJS）迁移预留**：建议实现 IP + serviceKey 双维度限流。推荐阈值：同一 serviceKey 60s 内最多 1 次心跳（正常频率为 24h）。超限返回 429，但不影响订阅服务状态。可通过 `heartbeatIntervalHours` 配置调整。
 
 ### 5.5 前端 UI
 
@@ -825,6 +881,73 @@ ApiAuthorization（授权记录）:
 - 显示自己的授权申请列表及状态
 - 提交新申请：选择 farm tenant + 端点范围
 - 已通过的授权显示到期时间
+
+---
+
+## 错误码与接口契约
+
+### 统一错误码表
+
+**通用错误码**（所有端点共享）：
+
+| HTTP Status | code | message | 触发场景 |
+|---|---|---|---|
+| 400 | BAD_REQUEST | 参数校验失败 | body 缺少必填字段、类型不匹配 |
+| 401 | AUTH_REQUIRED | 缺少认证凭证 | 无 Bearer token / X-API-Key |
+| 401 | AUTH_INVALID | 认证凭证无效 | token/key 校验失败 |
+| 403 | FORBIDDEN | 权限不足 | 角色无权访问该资源/操作 |
+| 404 | NOT_FOUND | 资源不存在 | ID 不匹配 |
+| 409 | CONFLICT | 状态冲突 | 非法状态跳转 |
+| 429 | RATE_LIMITED | 请求频率超限 | 超出 tier 限额 |
+| 500 | INTERNAL | 服务器内部错误 | 未预期异常 |
+
+**领域特定错误码**（按 Epic 分组）：
+
+| Epic | HTTP Status | code | message | 触发场景 |
+|---|---|---|---|---|
+| E4 分润 | 409 | REVENUE_ALREADY_CONFIRMED | 该方已确认对账 | 重复确认同一角色 |
+| E4 分润 | 409 | REVENUE_INVALID_PERIOD | 结算周期无效 | period 格式错误或已结算 |
+| E5 订阅 | 401 | SERVICE_KEY_INVALID | serviceKey 无效 | hash 不匹配 |
+| E5 订阅 | 409 | SUBSCRIPTION_REVOKED | 订阅服务已吊销 | 已吊销的实例发心跳 |
+| E6 合同 | 409 | CONTRACT_ALREADY_TERMINATED | 合同已终止 | 重复终止 |
+| G1 API | 401 | API_KEY_INVALID | API Key 无效 | hash 不匹配或已撤销 |
+| G1 API | 429 | QUOTA_EXCEEDED | 月调用配额已用尽 | 超出 tier 月配额 |
+| G3 授权 | 409 | AUTHORIZATION_ALREADY_PROCESSED | 授权申请已处理 | 重复审批已处理记录 |
+
+所有错误响应遵循统一包络格式：`{ code, message, requestId, data: null }`。
+
+### Live Repository 方法签名
+
+读方法同步返回缓存数据（`ViewData<T>`），写方法异步调用 API 后刷新缓存（`Future<void>`）。
+
+```
+LiveRevenueRepository:
+  ViewData<List<RevenuePeriod>> getPeriods()
+  ViewData<RevenuePeriodDetail> getPeriodDetail(String id)
+  Future<void> confirmPeriod(String id)
+
+LiveContractManagementRepository:
+  ViewData<List<Contract>> list()
+  ViewData<Contract> getById(String id)
+  Future<void> create(Map<String, dynamic> data)
+  Future<void> update(String id, Map<String, dynamic> data)
+  Future<void> terminate(String id)
+
+LiveSubscriptionServiceRepository:
+  ViewData<List<SubscriptionService>> list()
+  Future<void> create(Map<String, dynamic> data)
+  Future<void> renew(String id, DateTime newExpiresAt)
+  Future<void> revoke(String id)
+
+LiveApiAuthorizationRepository:
+  ViewData<List<ApiAuthorization>> list()
+  Future<void> create(Map<String, dynamic> data)
+  Future<void> approve(String id)
+  Future<void> reject(String id)
+  Future<void> revoke(String id)
+```
+
+写方法的缓存刷新策略：API 调用成功后，立即调用对应的 `ApiCache.refresh*()` 方法重新 GET 列表接口，确保本地缓存与服务器一致。Controller 通过 `ref.invalidateSelf()` 触发 UI 重建。
 
 ---
 
