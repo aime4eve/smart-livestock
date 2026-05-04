@@ -7,8 +7,8 @@ test('tenantStore: sliceForPage 默认分页返回全部', () => {
   const res = store.sliceForPage({});
   assert.equal(res.page, 1);
   assert.equal(res.pageSize, 20);
-  assert.equal(res.total, 12);
-  assert.equal(res.items.length, 12);
+  assert.equal(res.total, 14);
+  assert.equal(res.items.length, 14);
 });
 
 test('tenantStore: sliceForPage 支持 status 过滤', () => {
@@ -262,4 +262,25 @@ test('tenantStore: createTenant accepts Phase 2 fields', () => {
   assert.deepEqual(created.accessibleFarmTenantIds, ['tenant_001', 'tenant_002']);
   assert.deepEqual(created.deviceConfigRatio, { gpsRatio: 0.9, capsuleRatio: 0.1 });
   assert.equal(created.livestockCount, 500);
+});
+
+test('tenantStore: seed includes tenant_a002 (api free trial)', () => {
+  store.reset();
+  const t = store.findById('tenant_a002');
+  assert.ok(t, 'tenant_a002 should exist in seed');
+  assert.equal(t.type, 'api');
+  assert.equal(t.apiTier, 'free');
+  assert.equal(t.apiCallQuota, 1000);
+  assert.deepEqual(t.accessibleFarmTenantIds, ['tenant_001']);
+});
+
+test('tenantStore: seed includes tenant_008 (enterprise farm with API)', () => {
+  store.reset();
+  const t = store.findById('tenant_008');
+  assert.ok(t, 'tenant_008 should exist in seed');
+  assert.equal(t.type, 'farm');
+  assert.equal(t.entitlementTier, 'enterprise');
+  assert.equal(t.apiTier, 'free');
+  assert.equal(t.apiCallQuota, 1000);
+  assert.deepEqual(t.accessibleFarmTenantIds, ['tenant_008']);
 });
