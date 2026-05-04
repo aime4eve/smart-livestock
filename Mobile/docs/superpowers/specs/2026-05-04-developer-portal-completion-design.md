@@ -1,6 +1,6 @@
 # 开发者门户补全设计
 
-> **状态**: Draft
+> **状态**: Implemented
 > **Issue**: #37
 > **所属计划**: Phase 2b — G2 开发者门户
 
@@ -8,36 +8,21 @@
 
 开发者门户骨架已搭建（7 个 View、3 个 Component、2 个 Store、3 个测试文件），但 Pinia stores 不完整，视图使用硬编码数据，部分组件和测试缺失。本设计补全 Store 层、新增 UsageChart 组件、创建缺失测试，并扩展后端 API 以支持 Store 调用真实接口。
 
-### 当前状态
-
-**已有**:
-- 7 个 View（LoginView, RegisterView, DashboardView, ApiKeysView, EndpointsView, AuthorizationsView, SettingsView）
-- 3 个 Component（AppLayout, MetricCard, ApiKeyDisplay）
-- 2 个 Store（auth — 调用 `/api/v1/me`，dashboard — 硬编码数据）
-- 1 个 API 模块（client.js — apiGet/apiPost/apiPut/apiDelete）
-- 3 个测试文件（7 tests passing）
-
-**缺失**:
-- `UsageChart.vue` 组件（规格列出，用于 DashboardView 用量趋势图）
-- `stores/apiKeys.js`（API Key 列表/轮换）
-- `stores/authorizations.js`（授权申请列表/状态）
-- `stores/endpoints.js`（端点文档数据）
-- 4 个测试文件（AuthorizationsView, EndpointsView, SettingsView, RegisterView）
-
-### 后端现状
-
-- `apiKeyStore.js` 有完整 CRUD 数据层，但无 HTTP 路由暴露
-- `apiAuthorizationRoutes.js` 的 GET `/` 仅允许 platform_admin 和 owner，api_consumer 无法查看自己的申请
-
 ## 设计决策
 
 | 决策 | 选择 | 理由 |
 |------|------|------|
-| 图表库 | Chart.js | 成熟稳定，支持折线/柱状图，体积适中（~70KB gzip），与 Vue 3 兼容好 |
-| 图表风格 | 折线图（Line Chart） | 最适合展示时间序列趋势，可叠加多端点对比线 |
-| API Key 路由 | 新建后端路由 | apiKeyStore 已有数据层，只需薄路由层，保持三个 Store 模式统一 |
-| 授权列表接口 | 扩展后端 GET `/` | 增加 api_consumer 分支，保持一致性 |
-| Endpoints 数据来源 | 静态 JSON | 端点文档变更频率低，无需后端 API |
+| 图表库 | Chart.js（手动组件注册） | tree-shaking 友好，体积适中 |
+| 图表风格 | 折线图（Line Chart） | 最适合展示时间序列趋势 |
+| API Key 路由 | 新建后端路由 | apiKeyStore 已有数据层，只需薄路由层 |
+| 授权列表接口 | 扩展后端 GET `/` | 增加 api_consumer 分支 |
+| Endpoints 数据 | 真实 OpenAPI 端点数据 | 按实际 `/api/open/v1/*` 路由编写，含参数/响应/错误码 |
+| AppLayout 修复 | `<router-view />` → `<slot />` | 原架构导致无限递归，改为 slot 透传 |
+| Vite proxy | `/api` → `localhost:3001` | 前端 API 请求通过代理转发到后端 |
+| Key 创建/轮换 | 操作后展示 rawKey + 复制按钮 | rawKey 仅创建时可见，关闭后无法再查看 |
+| 授权详情 | 可展开行 + 到期提醒 + 重新申请 | 完整授权生命周期展示 |
+| 授权 expiresAt | approve 时设置 reviewedAt + 12 个月 | 符合 Phase 2b 规格的 12 个月有效期 |
+| 牧场下拉 | 真实 tenantId + 中文名映射 | 后端校验需要真实 tenantId，不能传中文名 |
 
 ## 后端变更
 
@@ -46,113 +31,74 @@
 | 端点 | 方法 | 说明 | 权限 |
 |------|------|------|------|
 | `/api/v1/api-keys` | GET | 列出当前 api_consumer 的所有 Key | api_consumer |
-| `/api/v1/api-keys/:id/rotate` | POST | 轮换指定 Key | api_consumer |
-
-实现要点：
-- GET `/`：从 `req.user.tenantId` 获取 api_consumer 的 tenantId，调 `apiKeyStore.listByTenantId(tenantId)`
-- POST `/:id/rotate`：路由参数 `:id` 是 keyId，用于所有权校验（确认该 key 属于当前 tenant）。实际轮换以 tenant 为粒度：调用 `apiKeyStore.rotate(tenantId)` 将该 tenant 所有 active key 标记为 rotating 并生成新 key。返回新 key 信息
-- 注册到 `registerApiRoutes.js`，挂载路径 `/api-keys`
+| `/api/v1/api-keys` | POST | 生成新 API Key | api_consumer |
+| `/api/v1/api-keys/:id/rotate` | POST | 轮换指定 Key（以 tenant 粒度） | api_consumer |
 
 ### 2. 扩展 `apiAuthorizationRoutes.js` GET `/`
 
-修改第 25-28 行的角色门控 `if` 块，在拒绝逻辑之前增加 `api_consumer` 分支：
-- 使用 `apiAuthorizationStore.list({ apiTenantId: req.user.tenantId, ...req.query })` 按 apiTenantId 过滤，直接利用 Store 内置的 apiTenantId 过滤能力（而非像 owner 那样手动过滤）
-- 支持分页参数
-- 此分支 return 后，原有 platform_admin 和 owner 逻辑不变
+增加 `api_consumer` 分支，使用 `apiAuthorizationStore.list({ apiTenantId: req.user.tenantId, ...req.query })` 过滤。
+
+### 3. 扩展 `apiAuthorizationStore.js` approve()
+
+- 新增 `expiresAt` 字段：审批时间 + 12 个月
+- `create()` 初始化 `expiresAt: null`
 
 ## 前端变更
 
-### 3. 新增 `components/UsageChart.vue`
+### 4. 新增 `components/UsageChart.vue`
 
-- **技术**: Chart.js Line Chart
-- **Props**: `labels: string[]`（日期标签）、`datasets: object[]`（Chart.js dataset 格式）
-- **实现**:
-  - `<script setup>` + Canvas `<canvas ref="chartRef">`
-  - 导入 `Chart` 和相关组件：`import { Chart, LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip } from 'chart.js'`，然后 `Chart.register(...)` 手动注册所需组件（Vite tree-shaking 友好，避免使用 `chart.js/auto` 的全量导入）
-  - `onMounted` 初始化 Chart.js 实例
-  - `watch` props 变化时 `chart.update()`
-  - `onBeforeUnmount` 调 `chart.destroy()`
-- **默认配置**: 绿色主色 `#2e7d32`，平滑曲线 `tension: 0.4`，hover tooltip，无图例
-- **依赖**: `npm install chart.js`
+Chart.js Line Chart，手动注册组件（LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip），绿色主色 `#2e7d32`，`tension: 0.4`。
 
-### 4. 新增 `stores/apiKeys.js`
+### 5. 新增 `stores/apiKeys.js`
 
-```javascript
-state: { keys: [], loading: false, error: null }
-actions:
-  - fetchKeys(token) → apiGet('/api-keys', token)
-    // client.js 的 API_BASE = '/api/v1'，实际请求 /api/v1/api-keys
-  - rotateKey(keyId, token) → apiPost(`/api-keys/${keyId}/rotate`, {}, token)
-    // 路由参数 keyId 用于所有权校验，实际轮换以 tenant 粒度执行
-```
+`fetchKeys`、`createKey`（返回 rawKey）、`rotateKey`（返回 rawKey）。
 
-### 5. 新增 `stores/authorizations.js`
+### 6. 新增 `stores/authorizations.js`
 
-```javascript
-state: { authorizations: [], loading: false, error: null }
-actions:
-  - fetchAuthorizations(token) → apiGet('/api-authorizations', token)
-  - submitAuthorization({ farmTenantId, requestedScopes }, token)
-    → apiPost('/api-authorizations', { farmTenantId, requestedScopes }, token)
-```
+`fetchAuthorizations`、`submitAuthorization`。
 
-### 6. 新增 `stores/endpoints.js`
+### 7. 新增 `stores/endpoints.js`
 
-```javascript
-state: { tiers: [/* 静态数据，从 EndpointsView 迁移 */] }
-actions:
-  - loadEndpoints() — 从本地静态数据填充（不调 API）
-```
+真实 OpenAPI 端点数据：Free（4 个 GET :id 端点）、Growth（3 个 GET list + 1 个 POST batch）、Scale（3 个 GET list + 1 个 POST batch）。每个端点含 params、query、body、response、errors。附带认证方式、频率限制、通用错误码。
 
-将 EndpointsView 中现有的 `tiers` 数组移入此 Store。
-
-### 7. 重构视图
+### 8. 重构视图
 
 | View | 变更 |
 |------|------|
-| ApiKeysView | 移除硬编码 `keys` ref → `useApiKeysStore().fetchKeys(token)` |
-| AuthorizationsView | 移除硬编码 `authorizations` ref → `useAuthorizationsStore()`；`availableFarms` 下拉列表保持硬编码（Phase 2b 阶段无后端接口提供可申请牧场列表） |
-| EndpointsView | 移除硬编码 `tiers` → `useEndpointsStore()` |
-| DashboardView | 导入 `UsageChart`，在 MetricCards 和表格之间插入趋势图 |
+| DashboardView | 导入 UsageChart，MetricCards 和表格之间插入趋势图 |
+| ApiKeysView | 用 Store 替代硬编码；创建/轮换后弹出 rawKey 展示对话框 + 复制按钮 |
+| AuthorizationsView | 用 Store 替代硬编码；可展开详情行（审批时间/到期时间/备注）；到期提醒（30天内红色）；被拒/撤销后"重新申请"；牧场下拉用真实 tenantId |
+| EndpointsView | 用 Store 替代硬编码；展示认证方式/频率限制/错误码；可展开端点详情（参数/响应/错误） |
+| AppLayout | `<router-view />` → `<slot />`（修复无限递归） |
 
-### 8. DashboardView 趋势图数据
+### 9. Vite proxy 配置
 
-从 `dashboardStore.recentUsage`（已有，按日期+端点的调用记录）聚合为每日总调用量，传给 UsageChart：
-- `labels`: 去重日期列表（升序）
-- `datasets[0].data`: 每日调用量总和
+`vite.config.js` 添加 `proxy: { '/api': 'http://localhost:3001' }`，前端 API 请求自动转发到后端。
 
 ## 测试
 
-### 新增测试文件
+7 个测试文件，22 个测试，全部通过：
 
-| 文件 | 覆盖内容 |
-|------|---------|
-| `test/AuthorizationsView.test.js` | 渲染授权列表、新建申请表单展开/收起、状态标签、提交逻辑（mock store） |
-| `test/EndpointsView.test.js` | 渲染 tier 分组标题、端点表格行、方法标签（GET/POST 等）颜色 |
-| `test/SettingsView.test.js` | 渲染账户信息表、API 使用限制文案、未登录时字段降级 |
-| `test/RegisterView.test.js` | 渲染占位文案、联系信息、登录链接导航 |
-
-### 更新现有测试
-
-| 文件 | 变更 |
-|------|------|
-| `test/DashboardView.test.js` | 增加 UsageChart 组件渲染断言（stub Chart canvas） |
-| `test/ApiKeysView.test.js` | 改为通过 mock Pinia store 测试（替代硬编码数据断言） |
-
-### 测试模式
-
-沿用现有模式：`vitest` + `@vue/test-utils` + `createPinia()` + stub `AppLayout`。Store 测试通过 `setActivePinia()` 初始化，mock `apiGet`/`apiPost` 的返回值。
+| 文件 | 测试数 |
+|------|--------|
+| LoginView.test.js | 2 |
+| DashboardView.test.js | 3 |
+| ApiKeysView.test.js | 3 |
+| RegisterView.test.js | 3 |
+| SettingsView.test.js | 3 |
+| EndpointsView.test.js | 4 |
+| AuthorizationsView.test.js | 4 |
 
 ## 验收标准
 
-与 Issue #37 对齐：
+与 Issue #37 对齐，全部达成：
 
-- [ ] 新增 `UsageChart.vue` 组件，在 DashboardView 中展示调用量趋势
-- [ ] 新增 `stores/apiKeys.js` — 调用 `/api/v1/api-keys` 接口（Key 列表、轮换）
-- [ ] 新增 `stores/authorizations.js` — 调用 `/api/v1/api-authorizations` 接口
-- [ ] 新增 `stores/endpoints.js` — 端点文档数据
-- [ ] 补全 4 个缺失的测试文件
-- [ ] `vitest run` 全部通过
+- [x] 新增 `UsageChart.vue` 组件，在 DashboardView 中展示调用量趋势
+- [x] 新增 `stores/apiKeys.js` — 调用 `/api/v1/api-keys` 接口（Key 列表、创建、轮换）
+- [x] 新增 `stores/authorizations.js` — 调用 `/api/v1/api-authorizations` 接口
+- [x] 新增 `stores/endpoints.js` — 真实 OpenAPI 端点文档数据（含参数/响应/错误码）
+- [x] 补全 4 个缺失测试文件
+- [x] `vitest run` 全部通过（22/22）
 
 ## 涉及文件
 
@@ -161,6 +107,7 @@ actions:
 | 新建 | `backend/routes/apiKeyRoutes.js` |
 | 修改 | `backend/routes/registerApiRoutes.js` |
 | 修改 | `backend/routes/apiAuthorizationRoutes.js` |
+| 修改 | `backend/data/apiAuthorizationStore.js` |
 | 新建 | `developer-portal/src/components/UsageChart.vue` |
 | 新建 | `developer-portal/src/stores/apiKeys.js` |
 | 新建 | `developer-portal/src/stores/authorizations.js` |
@@ -169,6 +116,8 @@ actions:
 | 修改 | `developer-portal/src/views/ApiKeysView.vue` |
 | 修改 | `developer-portal/src/views/AuthorizationsView.vue` |
 | 修改 | `developer-portal/src/views/EndpointsView.vue` |
+| 修改 | `developer-portal/src/components/AppLayout.vue` |
+| 修改 | `developer-portal/vite.config.js` |
 | 修改 | `developer-portal/package.json` |
 | 新建 | `developer-portal/test/AuthorizationsView.test.js` |
 | 新建 | `developer-portal/test/EndpointsView.test.js` |
