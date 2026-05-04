@@ -89,7 +89,7 @@ API Key 挂在 farm tenant 上（复用现有 tenant，不创建子 tenant）。
   apiTier: 'free',
   apiCallQuota: 1000,
   accessibleFarmTenantIds: ['tenant_001'],
-  // 其余 Phase 2 字段为 null
+  // 预设 G3 授权（seed 数据跳过授权审批流程，Demo 直接可用）
 }
 ```
 
@@ -114,8 +114,8 @@ API Key 挂在 farm tenant 上（复用现有 tenant，不创建子 tenant）。
   licenseTotal: 500,
   apiTier: 'free',
   apiCallQuota: 1000,
-  accessibleFarmTenantIds: null,
-  // 其余 Phase 2 字段为 null
+  accessibleFarmTenantIds: ['tenant_008'],
+  // enterprise 访问自身牧场数据；其余 Phase 2 字段为 null
 }
 ```
 
@@ -129,6 +129,11 @@ API Key 挂在 farm tenant 上（复用现有 tenant，不创建子 tenant）。
 ### apiKeyStore 新增 seed Key（tenant_008）
 
 为 tenant_008 预置一条 seed API Key，演示 enterprise 已激活 API 的状态。
+
+```javascript
+// seed 初始化时调用 apiKeyStore.generate('tenant_008')
+// 生成完整记录：keyId, keyHash, keyPrefix, keySuffix, status='active', createdAt, rotatedAt=null
+```
 
 ## 规格文档变更
 
