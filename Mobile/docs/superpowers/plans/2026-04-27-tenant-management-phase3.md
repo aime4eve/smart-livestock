@@ -115,7 +115,7 @@
 
 ### 🔧 实施步骤
 
-- [ ] **Step 1: 写趋势端点测试 `tenantTrends.test.js`**
+- [x] **Step 1: 写趋势端点测试 `tenantTrends.test.js`**
 
 ```javascript
 const assert = require('node:assert/strict');
@@ -150,7 +150,7 @@ test('tenantTrends: 不同租户数据有差异', () => {
 });
 ```
 
-- [ ] **Step 2: 运行测试确认失败**
+- [x] **Step 2: 运行测试确认失败**
 
 ```bash
 cd Mobile/backend && node --test test/tenantTrends.test.js
@@ -158,7 +158,7 @@ cd Mobile/backend && node --test test/tenantTrends.test.js
 
 Expected: FAIL（`generateTrends` 未定义）。
 
-- [ ] **Step 3: 在 `backend/routes/tenants.js` 中实现趋势端点**
+- [x] **Step 3: 在 `backend/routes/tenants.js` 中实现趋势端点**
 
 在文件末尾 `module.exports = router;` 之前添加：
 
@@ -203,7 +203,7 @@ router.get(
 );
 ```
 
-- [ ] **Step 4: 暴露生成函数供测试使用**
+- [x] **Step 4: 暴露生成函数供测试使用**
 
 在 `module.exports` 中添加 `generateTrends` 导出。
 
@@ -223,7 +223,7 @@ const { router: tenantsRoutes } = require('./tenants');
 
 确保路由挂载不变。
 
-- [ ] **Step 5: 更新 `backend/server.js` 的 `ROUTE_DEFINITIONS`**
+- [x] **Step 5: 更新 `backend/server.js` 的 `ROUTE_DEFINITIONS`**
 
 在 `ROUTE_DEFINITIONS` 数组中 `['GET', '/tenants/:id/stats']` 之后添加：
 
@@ -231,7 +231,7 @@ const { router: tenantsRoutes } = require('./tenants');
 ['GET',    '/api/tenants/:id/trends'],
 ```
 
-- [ ] **Step 6: 更新测试引用方式**
+- [x] **Step 6: 更新测试引用方式**
 
 修改 `backend/test/tenantTrends.test.js`，使用新的导出路径：
 
@@ -239,7 +239,7 @@ const { router: tenantsRoutes } = require('./tenants');
 const { generateTrends } = require('../routes/tenants');
 ```
 
-- [ ] **Step 7: 运行测试确认通过**
+- [x] **Step 7: 运行测试确认通过**
 
 ```bash
 cd Mobile/backend && node --test test/tenantTrends.test.js
@@ -247,7 +247,7 @@ cd Mobile/backend && node --test test/tenantTrends.test.js
 
 Expected: 3 个 case 全部 PASS。
 
-- [ ] **Step 8: 确认已有后端测试不破坏**
+- [x] **Step 8: 确认已有后端测试不破坏**
 
 ```bash
 cd Mobile/backend && npm test
@@ -255,7 +255,7 @@ cd Mobile/backend && npm test
 
 Expected: 所有已有测试（tenantStore 15 个 + apiVersionRoutes 等）全部通过。
 
-- [ ] **Step 9: curl 烟雾测试**
+- [x] **Step 9: curl 烟雾测试**
 
 ```bash
 cd Mobile/backend && node server.js &
@@ -266,7 +266,7 @@ curl -sS 'http://localhost:3001/api/tenants/tenant_001/trends' \
 kill %1
 ```
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 cd Mobile
@@ -291,7 +291,7 @@ git commit -m "feat(backend): add GET /api/tenants/:id/trends endpoint with 30-d
 
 ### 🔧 实施步骤
 
-- [ ] **Step 1: 在 `tenant_view_data.dart` 中添加趋势模型**
+- [x] **Step 1: 在 `tenant_view_data.dart` 中添加趋势模型**
 
 在文件末尾追加：
 
@@ -323,7 +323,7 @@ class TenantTrendsViewData {
 }
 ```
 
-- [ ] **Step 2: 在 `tenant_repository.dart` 中添加 `loadTrends` 方法**
+- [x] **Step 2: 在 `tenant_repository.dart` 中添加 `loadTrends` 方法**
 
 在抽象方法列表末尾追加：
 
@@ -337,7 +337,7 @@ TenantTrendsViewData loadTrends(String id);
 import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
 ```
 
-- [ ] **Step 3: 在 `mock_tenant_repository.dart` 中实现 `loadTrends`**
+- [x] **Step 3: 在 `mock_tenant_repository.dart` 中实现 `loadTrends`**
 
 ```dart
 @override
@@ -374,7 +374,7 @@ TenantTrendsViewData loadTrends(String id) {
 
 需要添加 `import 'dart:math';`。
 
-- [ ] **Step 4: 在 `live_tenant_repository.dart` 中实现 `loadTrends`**
+- [x] **Step 4: 在 `live_tenant_repository.dart` 中实现 `loadTrends`**
 
 ```dart
 @override
@@ -403,7 +403,7 @@ TenantTrendsViewData loadTrends(String id) {
 }
 ```
 
-- [ ] **Step 5: 在 `api_cache.dart` 中添加趋势缓存**
+- [x] **Step 5: 在 `api_cache.dart` 中添加趋势缓存**
 
 在 `ApiCache` 类中添加字段：
 
@@ -435,7 +435,7 @@ Future<void> refreshTenantTrends(String role, String tenantId) async {
 _tenantTrends = null;
 ```
 
-- [ ] **Step 6: 静态分析**
+- [x] **Step 6: 静态分析**
 
 ```bash
 cd Mobile/mobile_app && flutter analyze
@@ -443,7 +443,7 @@ cd Mobile/mobile_app && flutter analyze
 
 Expected: No issues found.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd Mobile
@@ -469,7 +469,7 @@ git commit -m "feat(tenant): add trend data models, repository methods, and ApiC
 
 ### 🔧 实施步骤
 
-- [ ] **Step 1: 写测试 `tenant_trends_controller_test.dart`**
+- [x] **Step 1: 写测试 `tenant_trends_controller_test.dart`**
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -514,7 +514,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: 运行测试确认失败**
+- [x] **Step 2: 运行测试确认失败**
 
 ```bash
 cd Mobile/mobile_app && flutter test test/features/tenant/tenant_trends_controller_test.dart
@@ -522,7 +522,7 @@ cd Mobile/mobile_app && flutter test test/features/tenant/tenant_trends_controll
 
 Expected: FAIL。
 
-- [ ] **Step 3: 实现 `tenant_trends_controller.dart`**
+- [x] **Step 3: 实现 `tenant_trends_controller.dart`**
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -550,7 +550,7 @@ final tenantTrendsControllerProvider = NotifierProvider.family<
 );
 ```
 
-- [ ] **Step 4: 运行测试确认通过**
+- [x] **Step 4: 运行测试确认通过**
 
 ```bash
 cd Mobile/mobile_app && flutter test test/features/tenant/tenant_trends_controller_test.dart
@@ -558,7 +558,7 @@ cd Mobile/mobile_app && flutter test test/features/tenant/tenant_trends_controll
 
 Expected: 4 个 case PASS。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd Mobile
@@ -580,7 +580,7 @@ git commit -m "feat(tenant): add TenantTrendsController with NotifierProvider.fa
 
 ### 🔧 实施步骤
 
-- [ ] **Step 1: 查看现有降采样工具签名**
+- [x] **Step 1: 查看现有降采样工具签名**
 
 ```bash
 grep -n "class TwinSeriesDownsample" Mobile/mobile_app/lib/core/data/twin_series_downsample.dart
@@ -588,7 +588,7 @@ grep -n "class TwinSeriesDownsample" Mobile/mobile_app/lib/core/data/twin_series
 
 确认：`TwinSeriesDownsample` 是静态工具类，有两个公共方法 `hourlyMeanTemperature` 和 `hourlyMeanMotility`。对于租户趋势，每日数据已经是天粒度的，需写一个通用的 `uniformSample` 辅助方法。
 
-- [ ] **Step 2: 实现 `tenant_trend_chart.dart`**
+- [x] **Step 2: 实现 `tenant_trend_chart.dart`**
 
 ```dart
 import 'dart:math';
@@ -720,7 +720,7 @@ class TenantTrendChart extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 3: 静态分析**
+- [x] **Step 3: 静态分析**
 
 ```bash
 cd Mobile/mobile_app && flutter analyze lib/features/tenant/presentation/widgets/tenant_trend_chart.dart
@@ -728,7 +728,7 @@ cd Mobile/mobile_app && flutter analyze lib/features/tenant/presentation/widgets
 
 Expected: No issues found.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd Mobile
@@ -749,7 +749,7 @@ git commit -m "feat(tenant): add 30-day alert trend chart with downsampling"
 
 ### 🔧 实施步骤
 
-- [ ] **Step 1: 实现 `tenant_skeleton.dart`**
+- [x] **Step 1: 实现 `tenant_skeleton.dart`**
 
 ```dart
 import 'package:flutter/material.dart';
@@ -902,7 +902,7 @@ class TenantEmptyCard extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 2: 静态分析**
+- [x] **Step 2: 静态分析**
 
 ```bash
 cd Mobile/mobile_app && flutter analyze lib/features/tenant/presentation/widgets/tenant_skeleton.dart
@@ -910,7 +910,7 @@ cd Mobile/mobile_app && flutter analyze lib/features/tenant/presentation/widgets
 
 Expected: No issues found.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd Mobile
@@ -935,7 +935,7 @@ git commit -m "feat(tenant): add skeleton loading and per-card empty state widge
 
 ### 🔧 实施步骤
 
-- [ ] **Step 1: 阅读并定位需要修改的代码段**
+- [x] **Step 1: 阅读并定位需要修改的代码段**
 
 关键行号（基于当前文件）：
 - `_buildBody`: 39-65（主切分支）
@@ -943,7 +943,7 @@ git commit -m "feat(tenant): add skeleton loading and per-card empty state widge
 - `_buildDevicesCard`: 258-292（需加空状态分支）
 - `_buildLogsCard`: 351-367（需加空状态分支）
 
-- [ ] **Step 2: 修改 `_buildBody` — 增加 loading 分支**
+- [x] **Step 2: 修改 `_buildBody` — 增加 loading 分支**
 
 将当前代码（第 39-46 行）：
 
@@ -977,7 +977,7 @@ Widget _buildBody(BuildContext context, WidgetRef ref, TenantDetailViewData data
   }
 ```
 
-- [ ] **Step 3: 在主卡片列表中加入趋势图**
+- [x] **Step 3: 在主卡片列表中加入趋势图**
 
 在第 57 行 `_buildStatsCard` 之后插入趋势图卡片：
 
@@ -986,7 +986,7 @@ const SizedBox(height: AppSpacing.md),
 _buildTrendCard(context, ref),
 ```
 
-- [ ] **Step 4: 重构 `_buildStatsCard` — GridView 双列布局**
+- [x] **Step 4: 重构 `_buildStatsCard` — GridView 双列布局**
 
 用以下代码替换当前 `_buildStatsCard` 方法（第 194-239 行）：
 
@@ -1056,7 +1056,7 @@ Widget _statMiniTile(String label, String value, String? caption) {
 
 注意：上述代码**无需** import `HighfiStatTile`，统计项使用内联 `_statMiniTile` 方法避免外层 `HighfiCard` 与 `HighfiStatTile` 内层 `HighfiCard` 双重包裹。
 
-- [ ] **Step 5: 重构 `_buildDevicesCard` — 增加空状态分支**
+- [x] **Step 5: 重构 `_buildDevicesCard` — 增加空状态分支**
 
 在方法开头添加空状态检查：
 
@@ -1076,7 +1076,7 @@ Widget _buildDevicesCard(BuildContext context, WidgetRef ref) {
   // ... 已有代码保持不变
 ```
 
-- [ ] **Step 6: 重构 `_buildLogsCard` — 增加空状态分支**
+- [x] **Step 6: 重构 `_buildLogsCard` — 增加空状态分支**
 
 同样在方法开头添加：
 
@@ -1095,7 +1095,7 @@ Widget _buildLogsCard(BuildContext context, WidgetRef ref) {
   // ... 已有代码保持不变
 ```
 
-- [ ] **Step 7: 新增 `_buildTrendCard` 方法**
+- [x] **Step 7: 新增 `_buildTrendCard` 方法**
 
 在 `_buildLogsCard` 方法之后添加：
 
@@ -1122,7 +1122,7 @@ Widget _buildTrendCard(BuildContext context, WidgetRef ref) {
 }
 ```
 
-- [ ] **Step 8: 添加缺失的 import**
+- [x] **Step 8: 添加缺失的 import**
 
 在文件顶部添加：
 
@@ -1132,7 +1132,7 @@ import 'package:smart_livestock_demo/features/tenant/presentation/widgets/tenant
 import 'package:smart_livestock_demo/features/tenant/presentation/widgets/tenant_trend_chart.dart';
 ```
 
-- [ ] **Step 9: 静态分析 + 运行已有测试**
+- [x] **Step 9: 静态分析 + 运行已有测试**
 
 ```bash
 cd Mobile/mobile_app && flutter analyze && flutter test
@@ -1140,7 +1140,7 @@ cd Mobile/mobile_app && flutter analyze && flutter test
 
 Expected: analyze 无错误；全部已有测试通过。
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 cd Mobile
@@ -1163,7 +1163,7 @@ git commit -m "feat(tenant): refactor detail page with skeleton loading, empty s
 
 ### 🔧 实施步骤
 
-- [ ] **Step 1: 写 `tenant_devices_controller_test.dart`**
+- [x] **Step 1: 写 `tenant_devices_controller_test.dart`**
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1192,7 +1192,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: 写 `tenant_logs_controller_test.dart`**
+- [x] **Step 2: 写 `tenant_logs_controller_test.dart`**
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1223,7 +1223,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 3: 写 `tenant_stats_controller_test.dart`**
+- [x] **Step 3: 写 `tenant_stats_controller_test.dart`**
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1262,7 +1262,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 4: 运行测试**
+- [x] **Step 4: 运行测试**
 
 ```bash
 cd Mobile/mobile_app && flutter test test/features/tenant/tenant_devices_controller_test.dart \
@@ -1272,7 +1272,7 @@ cd Mobile/mobile_app && flutter test test/features/tenant/tenant_devices_control
 
 Expected: 7 个 case 全部 PASS。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd Mobile
@@ -1295,7 +1295,7 @@ git commit -m "test(tenant): add unit tests for Phase 2 devices/logs/stats contr
 
 ### 🔧 实施步骤
 
-- [ ] **Step 1: 写 `tenant_detail_cards_test.dart`**
+- [x] **Step 1: 写 `tenant_detail_cards_test.dart`**
 
 ```dart
 import 'package:flutter/material.dart';
@@ -1376,7 +1376,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: 运行测试**
+- [x] **Step 2: 运行测试**
 
 ```bash
 cd Mobile/mobile_app && flutter test test/features/tenant/tenant_detail_cards_test.dart
@@ -1384,7 +1384,7 @@ cd Mobile/mobile_app && flutter test test/features/tenant/tenant_detail_cards_te
 
 Expected: 5 个 case 全部 PASS。
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd Mobile
@@ -1404,7 +1404,7 @@ git commit -m "test(tenant): add widget tests for detail page cards"
 
 ### 🔧 实施步骤
 
-- [ ] **Step 1: 运行全量 Flutter 测试**
+- [x] **Step 1: 运行全量 Flutter 测试**
 
 ```bash
 cd Mobile/mobile_app && flutter analyze && flutter test
@@ -1412,7 +1412,7 @@ cd Mobile/mobile_app && flutter analyze && flutter test
 
 Expected: analyze 无错误；全部测试通过（已有 190+ 个 + 本次新增约 15 个）。
 
-- [ ] **Step 2: 运行后端全量测试**
+- [x] **Step 2: 运行后端全量测试**
 
 ```bash
 cd Mobile/backend && npm test
@@ -1420,7 +1420,7 @@ cd Mobile/backend && npm test
 
 Expected: 全部测试通过（已有 tenantStore 15 + apiVersionRoutes 等 + 本次新增 tenantTrends 3）。
 
-- [ ] **Step 3: Live 模式手工验证**
+- [x] **Step 3: Live 模式手工验证**
 
 ```bash
 # 终端 1: 启动 Mock Server
@@ -1439,7 +1439,7 @@ cd Mobile/mobile_app && flutter run -d chrome --dart-define=APP_MODE=live --dart
 6. 确认设备列表卡片内容正常
 7. 确认操作日志卡片显示时间线样式
 
-- [ ] **Step 4: Mock 模式手工验证**
+- [x] **Step 4: Mock 模式手工验证**
 
 ```bash
 cd Mobile/mobile_app && flutter run -d chrome
@@ -1447,7 +1447,7 @@ cd Mobile/mobile_app && flutter run -d chrome
 
 重复 Step 3 的验证清单。Mock 模式下数据即时加载，骨架屏可能不可见（预期行为）。
 
-- [ ] **Step 5: 更新完成记录**
+- [x] **Step 5: 更新完成记录**
 
 在 `docs/superpowers/todolist-2026-04-27.md` 的"已完成概览"表中增加一行（若文件不存在则跳过此步骤）：
 
@@ -1455,7 +1455,7 @@ cd Mobile/mobile_app && flutter run -d chrome
 | 18 | 租户管理 Phase 3（可视化与体验） | 2026-04-20-tenant-management-design Phase 3 | 已完成 |
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd Mobile
@@ -1468,34 +1468,34 @@ git commit -m "docs(tenant): record Phase 3 visualization and test completion"
 ## 验收清单（Definition of Done）
 
 **图表与降采样**
-- [ ] 趋势端点 `GET /api/tenants/:id/trends` 返回 30 天每日统计数据
-- [ ] `TenantTrendChart` widget 渲染 fl_chart LineChart，30 天数据降采样到 ≤10 显示点
-- [ ] 趋势图在 Mock 和 Live 模式均可正常渲染
+- [x] 趋势端点 `GET /api/tenants/:id/trends` 返回 30 天每日统计数据
+- [x] `TenantTrendChart` widget 渲染 fl_chart LineChart，30 天数据降采样到 ≤10 显示点
+- [x] 趋势图在 Mock 和 Live 模式均可正常渲染
 
 **骨架屏与空状态**
-- [ ] 详情页 `ViewState.loading` 时显示 `TenantSkeleton` 脉冲动画（不引入新依赖）
-- [ ] Stats 卡片数据为空时显示"暂无统计数据"空状态（不再隐藏）
-- [ ] Devices 卡片数据为空时显示"暂无设备数据"空状态
-- [ ] Logs 卡片数据为空时显示"暂无操作日志"空状态
+- [x] 详情页 `ViewState.loading` 时显示 `TenantSkeleton` 脉冲动画（不引入新依赖）
+- [x] Stats 卡片数据为空时显示"暂无统计数据"空状态（不再隐藏）
+- [x] Devices 卡片数据为空时显示"暂无设备数据"空状态
+- [x] Logs 卡片数据为空时显示"暂无操作日志"空状态
 
 **Stats 布局**
-- [ ] Stats 卡片从 Row 双行布局改为 GridView 2x2 双列布局
-- [ ] 每个指标使用内联 `_statMiniTile` 方法，由外层 `HighfiCard` 统一包裹
+- [x] Stats 卡片从 Row 双行布局改为 GridView 2x2 双列布局
+- [x] 每个指标使用内联 `_statMiniTile` 方法，由外层 `HighfiCard` 统一包裹
 
 **测试覆盖**
-- [ ] `tenantTrends.test.js` 3 个 case 通过
-- [ ] `tenant_devices_controller_test.dart` 2 个 case 通过
-- [ ] `tenant_logs_controller_test.dart` 2 个 case 通过
-- [ ] `tenant_stats_controller_test.dart` 3 个 case 通过
-- [ ] `tenant_trends_controller_test.dart` 4 个 case 通过
-- [ ] `tenant_detail_cards_test.dart` 5 个 case 通过
-- [ ] 全量 `flutter analyze && flutter test` 通过
-- [ ] 全量 `npm test` 后端测试通过
+- [x] `tenantTrends.test.js` 3 个 case 通过
+- [x] `tenant_devices_controller_test.dart` 2 个 case 通过
+- [x] `tenant_logs_controller_test.dart` 2 个 case 通过
+- [x] `tenant_stats_controller_test.dart` 3 个 case 通过
+- [x] `tenant_trends_controller_test.dart` 4 个 case 通过
+- [x] `tenant_detail_cards_test.dart` 5 个 case 通过
+- [x] 全量 `flutter analyze && flutter test` 通过
+- [x] 全量 `npm test` 后端测试通过
 
 **回归**
-- [ ] 详情页基本信息卡片、操作按钮卡片功能不变
-- [ ] Mock 和 Live 双模式均可正常运行
-- [ ] 列表页分页、搜索、筛选功能不变
+- [x] 详情页基本信息卡片、操作按钮卡片功能不变
+- [x] Mock 和 Live 双模式均可正常运行
+- [x] 列表页分页、搜索、筛选功能不变
 
 ---
 

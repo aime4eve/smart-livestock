@@ -147,7 +147,7 @@
 **Files:**
 - Modify: `backend/data/seed.js`
 
-- [ ] **Step 1：扩充 `tenants` 数组为 6 条，用于分页验证**
+- [x] **Step 1：扩充 `tenants` 数组为 6 条，用于分页验证**
 
 替换 `backend/data/seed.js` 中 `const tenants = [...]` 块为：
 
@@ -162,7 +162,7 @@ const tenants = [
 ];
 ```
 
-- [ ] **Step 2：`users.owner.permissions` 与 `users.ops.permissions` 增加新权限**
+- [x] **Step 2：`users.owner.permissions` 与 `users.ops.permissions` 增加新权限**
 
 在 owner 与 ops 的 permissions 数组末尾追加：
 
@@ -171,12 +171,12 @@ const tenants = [
 'tenant:delete',
 ```
 
-- [ ] **Step 3：运行后端已有测试确认不破坏**
+- [x] **Step 3：运行后端已有测试确认不破坏**
 
 Run: `cd Mobile/backend && npm test`
 Expected: 全部已有测试 PASS。
 
-- [ ] **Step 4：Commit**
+- [x] **Step 4：Commit**
 
 ```bash
 cd Mobile
@@ -192,7 +192,7 @@ git commit -m "feat(backend): extend tenant seed and add tenant:edit/delete perm
 - Create: `backend/data/tenantStore.js`
 - Create: `backend/test/tenantStore.test.js`
 
-- [ ] **Step 1：写失败测试 `tenantStore.test.js`**
+- [x] **Step 1：写失败测试 `tenantStore.test.js`**
 
 ```javascript
 const assert = require('node:assert/strict');
@@ -299,12 +299,12 @@ test('tenantStore: removeTenant 成功', () => {
 });
 ```
 
-- [ ] **Step 2：运行测试确认失败**
+- [x] **Step 2：运行测试确认失败**
 
 Run: `cd Mobile/backend && node --test test/tenantStore.test.js`
 Expected: FAIL（模块不存在）。
 
-- [ ] **Step 3：实现 `tenantStore.js`**
+- [x] **Step 3：实现 `tenantStore.js`**
 
 ```javascript
 const { tenants: seedTenants } = require('./seed');
@@ -444,12 +444,12 @@ module.exports = {
 };
 ```
 
-- [ ] **Step 4：运行测试确认通过**
+- [x] **Step 4：运行测试确认通过**
 
 Run: `cd Mobile/backend && node --test test/tenantStore.test.js`
 Expected: 全部 15 个 case PASS。
 
-- [ ] **Step 5：Commit**
+- [x] **Step 5：Commit**
 
 ```bash
 cd Mobile
@@ -465,7 +465,7 @@ git commit -m "feat(backend): extract tenantStore with filter/sort/paging and CR
 - Modify: `backend/routes/tenants.js`
 - Modify: `backend/server.js`
 
-- [ ] **Step 1：替换 `backend/routes/tenants.js` 全部内容**
+- [x] **Step 1：替换 `backend/routes/tenants.js` 全部内容**
 
 ```javascript
 const { Router } = require('express');
@@ -576,7 +576,7 @@ router.post(
 module.exports = router;
 ```
 
-- [ ] **Step 2：更新 `backend/server.js` 的 `ROUTE_TABLE`**
+- [x] **Step 2：更新 `backend/server.js` 的 `ROUTE_TABLE`**
 
 在 `tenants` 相关三行 `['GET',    '/api/tenants']`、`['POST',   '/api/tenants']` 等区域替换为：
 
@@ -590,7 +590,7 @@ module.exports = router;
   ['POST',   '/api/tenants/:id/license'],
 ```
 
-- [ ] **Step 3：curl 烟雾测试**
+- [x] **Step 3：curl 烟雾测试**
 
 ```bash
 cd Mobile/backend && node server.js &
@@ -624,7 +624,7 @@ curl -sS -X DELETE 'http://localhost:3001/api/tenants/tenant_006' \
 kill $SERVER_PID
 ```
 
-- [ ] **Step 4：Commit**
+- [x] **Step 4：Commit**
 
 ```bash
 cd Mobile
@@ -644,7 +644,7 @@ git commit -m "feat(backend): add GET/PUT/DELETE /api/tenants/:id and filter par
 - Create: `lib/features/tenant/data/tenant_dto.dart`
 - Create: `test/features/tenant/tenant_dto_test.dart`
 
-- [ ] **Step 1：创建 `tenant.dart`**
+- [x] **Step 1：创建 `tenant.dart`**
 
 ```dart
 enum TenantStatus {
@@ -697,7 +697,7 @@ class Tenant {
 }
 ```
 
-- [ ] **Step 2：创建 `tenant_query.dart`**
+- [x] **Step 2：创建 `tenant_query.dart`**
 
 ```dart
 import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
@@ -745,7 +745,7 @@ class TenantListQuery {
 }
 ```
 
-- [ ] **Step 3：创建 `tenant_view_data.dart`**
+- [x] **Step 3：创建 `tenant_view_data.dart`**
 
 ```dart
 import 'package:smart_livestock_demo/core/models/view_state.dart';
@@ -784,7 +784,7 @@ class TenantDetailViewData {
 }
 ```
 
-- [ ] **Step 4：创建 `tenant_repository.dart`**
+- [x] **Step 4：创建 `tenant_repository.dart`**
 
 ```dart
 import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
@@ -797,7 +797,7 @@ abstract class TenantRepository {
 }
 ```
 
-- [ ] **Step 5：创建 `tenant_dto.dart`**
+- [x] **Step 5：创建 `tenant_dto.dart`**
 
 ```dart
 import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
@@ -823,7 +823,7 @@ class TenantDto {
 }
 ```
 
-- [ ] **Step 6：写 `tenant_dto_test.dart`**
+- [x] **Step 6：写 `tenant_dto_test.dart`**
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
@@ -858,12 +858,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 7：运行测试**
+- [x] **Step 7：运行测试**
 
 Run: `cd Mobile/mobile_app && flutter test test/features/tenant/tenant_dto_test.dart`
 Expected: 2 个 case PASS。
 
-- [ ] **Step 8：Commit**
+- [x] **Step 8：Commit**
 
 ```bash
 cd Mobile
@@ -879,7 +879,7 @@ git commit -m "feat(tenant): add domain models and DTO for tenant module"
 - Create: `lib/features/tenant/data/mock_tenant_repository.dart`
 - Create: `test/features/tenant/mock_tenant_repository_test.dart`
 
-- [ ] **Step 1：写 `mock_tenant_repository_test.dart` 失败用例**
+- [x] **Step 1：写 `mock_tenant_repository_test.dart` 失败用例**
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
@@ -918,12 +918,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2：运行测试确认失败**
+- [x] **Step 2：运行测试确认失败**
 
 Run: `cd Mobile/mobile_app && flutter test test/features/tenant/mock_tenant_repository_test.dart`
 Expected: FAIL（模块不存在）。
 
-- [ ] **Step 3：实现 `mock_tenant_repository.dart`**
+- [x] **Step 3：实现 `mock_tenant_repository.dart`**
 
 ```dart
 import 'package:smart_livestock_demo/core/models/view_state.dart';
@@ -996,12 +996,12 @@ class MockTenantRepository implements TenantRepository {
 }
 ```
 
-- [ ] **Step 4：运行测试确认通过**
+- [x] **Step 4：运行测试确认通过**
 
 Run: `cd Mobile/mobile_app && flutter test test/features/tenant/mock_tenant_repository_test.dart`
 Expected: 4 个 case PASS。
 
-- [ ] **Step 5：Commit**
+- [x] **Step 5：Commit**
 
 ```bash
 cd Mobile
@@ -1016,7 +1016,7 @@ git commit -m "feat(tenant): implement MockTenantRepository with filter/sort/pag
 **Files:**
 - Modify: `lib/core/api/api_cache.dart`
 
-- [ ] **Step 1：在 `ApiCache` 类中新增 tenants 相关方法**
+- [x] **Step 1：在 `ApiCache` 类中新增 tenants 相关方法**
 
 在 `refreshFencesAndMap` 附近（`Future<bool> deleteFenceRemote(...)` 之前）插入以下方法：
 
@@ -1055,7 +1055,7 @@ class TenantWriteResult {
 
 **注意**：`TenantWriteResult` 应定义在文件顶层（类外），保持与 `FenceSaveResult` 同级。把这段类声明挪到 `FenceSaveResult` 后面。
 
-- [ ] **Step 2：添加写操作封装**
+- [x] **Step 2：添加写操作封装**
 
 继续在 `ApiCache` 类内添加（可以放在 `updateFenceRemote` 之后）：
 
@@ -1151,7 +1151,7 @@ TenantWriteResult _parseTenantWrite(http.Response response) {
 }
 ```
 
-- [ ] **Step 3：添加测试辅助方法**
+- [x] **Step 3：添加测试辅助方法**
 
 在 `ApiCache` 类末尾添加（供 Task 7 的 Live 仓库测试使用）：
 
@@ -1173,12 +1173,12 @@ void debugSetTenants(List<Map<String, dynamic>> value) {
 }
 ```
 
-- [ ] **Step 4：静态分析**
+- [x] **Step 4：静态分析**
 
 Run: `cd Mobile/mobile_app && flutter analyze lib/core/api/api_cache.dart`
 Expected: No issues found.
 
-- [ ] **Step 5：Commit**
+- [x] **Step 5：Commit**
 
 ```bash
 cd Mobile
@@ -1194,7 +1194,7 @@ git commit -m "feat(api-cache): add tenant CRUD and license/status remote helper
 - Create: `lib/features/tenant/data/live_tenant_repository.dart`
 - Create: `test/features/tenant/live_tenant_repository_test.dart`
 
-- [ ] **Step 1：写 `live_tenant_repository_test.dart`**
+- [x] **Step 1：写 `live_tenant_repository_test.dart`**
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
@@ -1229,7 +1229,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 2：实现 `live_tenant_repository.dart`**
+- [x] **Step 2：实现 `live_tenant_repository.dart`**
 
 说明：`debugReset` / `debugSetInitialized` / `debugSetTenants` 三个测试辅助已在 Task 6 中写入 `ApiCache`，此处直接使用。
 
@@ -1318,12 +1318,12 @@ class LiveTenantRepository implements TenantRepository {
 }
 ```
 
-- [ ] **Step 3：运行测试确认通过**
+- [x] **Step 3：运行测试确认通过**
 
 Run: `cd Mobile/mobile_app && flutter test test/features/tenant/live_tenant_repository_test.dart`
 Expected: 2 个 case PASS。
 
-- [ ] **Step 4：Commit**
+- [x] **Step 4：Commit**
 
 ```bash
 cd Mobile
@@ -1340,7 +1340,7 @@ git commit -m "feat(tenant): implement LiveTenantRepository with ApiCache fallba
 - Create: `lib/features/tenant/presentation/tenant_detail_controller.dart`
 - Create: `test/features/tenant/tenant_list_controller_test.dart`
 
-- [ ] **Step 1：写 `tenant_list_controller_test.dart`**
+- [x] **Step 1：写 `tenant_list_controller_test.dart`**
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1390,12 +1390,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2：运行测试确认失败**
+- [x] **Step 2：运行测试确认失败**
 
 Run: `cd Mobile/mobile_app && flutter test test/features/tenant/tenant_list_controller_test.dart`
 Expected: FAIL。
 
-- [ ] **Step 3：实现 `tenant_list_controller.dart`**
+- [x] **Step 3：实现 `tenant_list_controller.dart`**
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1461,7 +1461,7 @@ final tenantListControllerProvider =
 );
 ```
 
-- [ ] **Step 4：实现 `tenant_detail_controller.dart`**
+- [x] **Step 4：实现 `tenant_detail_controller.dart`**
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1486,12 +1486,12 @@ final tenantDetailControllerProvider = NotifierProvider.family<
 );
 ```
 
-- [ ] **Step 5：运行测试确认通过**
+- [x] **Step 5：运行测试确认通过**
 
 Run: `cd Mobile/mobile_app && flutter test test/features/tenant/tenant_list_controller_test.dart`
 Expected: 4 个 case PASS。
 
-- [ ] **Step 6：Commit**
+- [x] **Step 6：Commit**
 
 ```bash
 cd Mobile
@@ -1506,7 +1506,7 @@ git commit -m "feat(tenant): add list/detail controllers with NotifierProvider(.
 **Files:**
 - Modify: `lib/core/permissions/role_permission.dart`
 
-- [ ] **Step 1：新增 tenant 相关静态方法**
+- [x] **Step 1：新增 tenant 相关静态方法**
 
 在 `RolePermission` 类末尾追加：
 
@@ -1525,11 +1525,11 @@ static bool canToggleTenantStatus(DemoRole role) => canManageTenants(role);
 static bool canAdjustLicense(DemoRole role) => canManageTenants(role);
 ```
 
-- [ ] **Step 2：静态分析**
+- [x] **Step 2：静态分析**
 
 Run: `cd Mobile/mobile_app && flutter analyze lib/core/permissions/role_permission.dart`
 
-- [ ] **Step 3：Commit**
+- [x] **Step 3：Commit**
 
 ```bash
 cd Mobile
@@ -1545,7 +1545,7 @@ git commit -m "feat(permissions): add tenant management permission helpers"
 - Create: `lib/widgets/pagination_bar.dart`
 - Create: `test/features/tenant/pagination_bar_test.dart`
 
-- [ ] **Step 1：写 widget 测试**
+- [x] **Step 1：写 widget 测试**
 
 ```dart
 import 'package:flutter/material.dart';
@@ -1597,7 +1597,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 2：实现 `pagination_bar.dart`**
+- [x] **Step 2：实现 `pagination_bar.dart`**
 
 ```dart
 import 'package:flutter/material.dart';
@@ -1644,12 +1644,12 @@ class PaginationBar extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 3：运行测试**
+- [x] **Step 3：运行测试**
 
 Run: `cd Mobile/mobile_app && flutter test test/features/tenant/pagination_bar_test.dart`
 Expected: 3 个 case PASS。
 
-- [ ] **Step 4：Commit**
+- [x] **Step 4：Commit**
 
 ```bash
 cd Mobile
@@ -1666,7 +1666,7 @@ git commit -m "feat(widgets): add generic PaginationBar"
 - Create: `lib/features/tenant/presentation/pages/tenant_list_page.dart`
 - Create: `test/features/tenant/tenant_list_page_test.dart`
 
-- [ ] **Step 1：实现 `tenant_card.dart`**
+- [x] **Step 1：实现 `tenant_card.dart`**
 
 ```dart
 import 'package:flutter/material.dart';
@@ -1740,7 +1740,7 @@ class TenantCard extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 2：实现 `tenant_list_page.dart`**
+- [x] **Step 2：实现 `tenant_list_page.dart`**
 
 ```dart
 import 'dart:async';
@@ -1898,7 +1898,7 @@ class _TenantListPageState extends ConsumerState<TenantListPage> {
 }
 ```
 
-- [ ] **Step 3：写 `tenant_list_page_test.dart`**
+- [x] **Step 3：写 `tenant_list_page_test.dart`**
 
 ```dart
 import 'package:flutter/material.dart';
@@ -1921,11 +1921,11 @@ void main() {
 
 说明：由于此 widget 内含 `context.go(...)`，会要求 GoRouter。此处使用 `MaterialApp` 保持最小化，依赖 `DemoApp` 集成测试覆盖导航行为（在 Task 16 中完成）。因此本测试用 try/catch 包裹 onTap 场景或直接不触发 onTap 即可。若测试抛 Router 异常，改用 `overrides: [tenantListControllerProvider.overrideWith((ref) { ... })]` 的 Container 模式替代 `DemoApp`。
 
-- [ ] **Step 4：运行测试**
+- [x] **Step 4：运行测试**
 
 Run: `cd Mobile/mobile_app && flutter test test/features/tenant/tenant_list_page_test.dart`
 
-- [ ] **Step 5：Commit**
+- [x] **Step 5：Commit**
 
 ```bash
 cd Mobile
@@ -1940,7 +1940,7 @@ git commit -m "feat(tenant): add tenant list page with search/filter/pagination"
 **Files:**
 - Create: `lib/features/tenant/presentation/pages/tenant_create_page.dart`
 
-- [ ] **Step 1：实现创建页**
+- [x] **Step 1：实现创建页**
 
 ```dart
 import 'package:flutter/material.dart';
@@ -2054,11 +2054,11 @@ class _TenantCreatePageState extends ConsumerState<TenantCreatePage> {
 }
 ```
 
-- [ ] **Step 2：静态分析**
+- [x] **Step 2：静态分析**
 
 Run: `cd Mobile/mobile_app && flutter analyze lib/features/tenant/presentation/pages/tenant_create_page.dart`
 
-- [ ] **Step 3：Commit**
+- [x] **Step 3：Commit**
 
 ```bash
 cd Mobile
@@ -2075,7 +2075,7 @@ git commit -m "feat(tenant): add tenant create page"
 - Create: `lib/features/tenant/presentation/widgets/tenant_delete_dialog.dart`
 - Create: `lib/features/tenant/presentation/pages/tenant_detail_page.dart`
 
-- [ ] **Step 1：实现 `license_adjust_dialog.dart`**
+- [x] **Step 1：实现 `license_adjust_dialog.dart`**
 
 ```dart
 import 'package:flutter/material.dart';
@@ -2153,7 +2153,7 @@ class _LicenseAdjustDialogState extends State<LicenseAdjustDialog> {
 }
 ```
 
-- [ ] **Step 2：实现 `tenant_delete_dialog.dart`**
+- [x] **Step 2：实现 `tenant_delete_dialog.dart`**
 
 ```dart
 import 'package:flutter/material.dart';
@@ -2224,7 +2224,7 @@ class _TenantDeleteDialogState extends State<TenantDeleteDialog> {
 }
 ```
 
-- [ ] **Step 3：实现 `tenant_detail_page.dart`**
+- [x] **Step 3：实现 `tenant_detail_page.dart`**
 
 ```dart
 import 'package:flutter/material.dart';
@@ -2422,7 +2422,7 @@ class TenantDetailPage extends ConsumerWidget {
 
 **备注**：删除原因在 Demo 阶段仅用于 UI 反馈，后端接口当前不接受 `reason` 字段。Phase 2 引入操作日志后需扩展。
 
-- [ ] **Step 4：写详情页 widget 测试**
+- [x] **Step 4：写详情页 widget 测试**
 
 `test/features/tenant/tenant_detail_page_test.dart`：
 
@@ -2453,11 +2453,11 @@ void main() {
 }
 ```
 
-- [ ] **Step 5：运行测试**
+- [x] **Step 5：运行测试**
 
 Run: `cd Mobile/mobile_app && flutter test test/features/tenant/tenant_detail_page_test.dart`
 
-- [ ] **Step 6：Commit**
+- [x] **Step 6：Commit**
 
 ```bash
 cd Mobile
@@ -2472,7 +2472,7 @@ git commit -m "feat(tenant): add detail page with status toggle / license adjust
 **Files:**
 - Create: `lib/features/tenant/presentation/pages/tenant_edit_page.dart`
 
-- [ ] **Step 1：实现**
+- [x] **Step 1：实现**
 
 ```dart
 import 'package:flutter/material.dart';
@@ -2579,11 +2579,11 @@ class _TenantEditPageState extends ConsumerState<TenantEditPage> {
 }
 ```
 
-- [ ] **Step 2：静态分析**
+- [x] **Step 2：静态分析**
 
 Run: `cd Mobile/mobile_app && flutter analyze lib/features/tenant/presentation/pages/tenant_edit_page.dart`
 
-- [ ] **Step 3：Commit**
+- [x] **Step 3：Commit**
 
 ```bash
 cd Mobile
@@ -2598,7 +2598,7 @@ git commit -m "feat(tenant): add tenant edit page (rename only in phase 1)"
 **Files:**
 - Modify: `lib/app/app_router.dart`
 
-- [ ] **Step 1：替换 `/ops/admin` 路由**
+- [x] **Step 1：替换 `/ops/admin` 路由**
 
 找到 `app_router.dart` 中：
 
@@ -2645,7 +2645,7 @@ GoRoute(
 ),
 ```
 
-- [ ] **Step 2：在文件顶部追加 import**
+- [x] **Step 2：在文件顶部追加 import**
 
 ```dart
 import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_create_page.dart';
@@ -2654,7 +2654,7 @@ import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_e
 import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_list_page.dart';
 ```
 
-- [ ] **Step 3：更新 redirect 兼容**
+- [x] **Step 3：更新 redirect 兼容**
 
 `app_router.dart` 当前 redirect 里 `location == AppRoute.opsAdmin.path` 会把 non-ops 角色踢走；子路由 `/ops/admin/create` 也要被拦截。将：
 
@@ -2684,7 +2684,7 @@ if (role == DemoRole.ops) {
 }
 ```
 
-- [ ] **Step 4：静态分析 + 现有测试全部跑一遍**
+- [x] **Step 4：静态分析 + 现有测试全部跑一遍**
 
 Run:
 ```bash
@@ -2693,7 +2693,7 @@ cd Mobile/mobile_app && flutter analyze && flutter test
 
 Expected: `flutter analyze` 无错误；已有测试全部通过（可能 `flow_smoke_test.dart` 中 ops 场景需要在下一 Task 调整）。
 
-- [ ] **Step 5：Commit**
+- [x] **Step 5：Commit**
 
 ```bash
 cd Mobile
@@ -2710,7 +2710,7 @@ git commit -m "feat(router): mount tenant module at /ops/admin with child routes
 - Modify: `test/role_visibility_test.dart`（若断言包含 `tenant-license-demo-applied`）
 - Modify: `test/mock_repository_override_test.dart`（可选）
 
-- [ ] **Step 1：更新 `flow_smoke_test.dart` 中 ops 流程**
+- [x] **Step 1：更新 `flow_smoke_test.dart` 中 ops 流程**
 
 找到 `testWidgets('流程1：ops 直达租户后台'...` 测试。原断言期望 `tenant-license-demo-applied` 这类 key。替换为校验 `page-tenant-list` 与 `华东示范牧场` 文本。示例：
 
@@ -2726,11 +2726,11 @@ testWidgets('流程1：ops 直达租户列表', (tester) async {
 });
 ```
 
-- [ ] **Step 2：更新 owner 流程中 `tenant-license-adjust` 断言（若存在）**
+- [x] **Step 2：更新 owner 流程中 `tenant-license-adjust` 断言（若存在）**
 
 owner 流程里如果还期望 `/admin` 老占位页的 `tenant-license-adjust` 按钮，保留断言（owner 的 `/admin` 路由仍指向旧 `AdminPage`）。如果断言是在 `/ops/admin` 下进行，请改为导航到新 tenant list page 并校验列表即可。
 
-- [ ] **Step 3：全量测试**
+- [x] **Step 3：全量测试**
 
 Run:
 ```bash
@@ -2739,7 +2739,7 @@ cd Mobile/mobile_app && flutter analyze && flutter test
 
 Expected: analyze 无错误；所有测试（已有 + 新增）全部通过。
 
-- [ ] **Step 4：Commit**
+- [x] **Step 4：Commit**
 
 ```bash
 cd Mobile
@@ -2753,19 +2753,19 @@ git commit -m "test(tenant): update ops smoke test to target new tenant list pag
 
 **Files:**（无代码改动）
 
-- [ ] **Step 1：启动 Mock Server**
+- [x] **Step 1：启动 Mock Server**
 
 ```bash
 cd Mobile/backend && node server.js
 ```
 
-- [ ] **Step 2：启动 Flutter（Live 模式）**
+- [x] **Step 2：启动 Flutter（Live 模式）**
 
 ```bash
 cd Mobile/mobile_app && flutter run -d chrome --dart-define=APP_MODE=live --dart-define=API_BASE_URL=http://127.0.0.1:3001/api
 ```
 
-- [ ] **Step 3：手工走查清单**
+- [x] **Step 3：手工走查清单**
 
 1. 以 `ops` 登录，验证直达 `/ops/admin` 展示 6 条租户。
 2. 搜索「草原」仅剩 1 条。
@@ -2778,13 +2778,13 @@ cd Mobile/mobile_app && flutter run -d chrome --dart-define=APP_MODE=live --dart
 9. 删除租户 → 弹窗输入「演示清理」→ 成功提示；列表移除。
 10. 以 `worker` 登录 → 被路由重定向到 `/twin`，无法访问 `/ops/admin`。
 
-- [ ] **Step 4：在 plan 末尾「完成记录」表格登记**
+- [x] **Step 4：在 plan 末尾「完成记录」表格登记**
 
 ```markdown
 | 2026-04-XX | #N | #PR | Phase 1 MVP 合并 |
 ```
 
-- [ ] **Step 5：Commit（仅文档）**
+- [x] **Step 5：Commit（仅文档）**
 
 ```bash
 cd Mobile
@@ -2797,28 +2797,28 @@ git commit -m "docs(plan): record tenant management phase 1 completion"
 ## 验收清单（Definition of Done）
 
 **架构**
-- [ ] `features/tenant/` 模块遵循 domain / data / presentation 三层。
-- [ ] Controller 全部为同步方法 + `state = repository.load(...)`。
-- [ ] 列表、详情分别由独立 Provider 管理。
+- [x] `features/tenant/` 模块遵循 domain / data / presentation 三层。
+- [x] Controller 全部为同步方法 + `state = repository.load(...)`。
+- [x] 列表、详情分别由独立 Provider 管理。
 
 **API**
-- [ ] 所有成功响应使用 `{ code, message, requestId, data }` 包络。
-- [ ] 列表分页字段为 `{ items, page, pageSize, total }`。
-- [ ] 参数与字段命名对齐（`licenseTotal` / `status`）。
-- [ ] 名称冲突返回 409，License 低于已用返回 422。
+- [x] 所有成功响应使用 `{ code, message, requestId, data }` 包络。
+- [x] 列表分页字段为 `{ items, page, pageSize, total }`。
+- [x] 参数与字段命名对齐（`licenseTotal` / `status`）。
+- [x] 名称冲突返回 409，License 低于已用返回 422。
 
 **UI**
-- [ ] 详情页使用卡片堆叠；无 Tab 依赖。
-- [ ] 删除交互为单次 AlertDialog + 原因输入。
-- [ ] 通用 `PaginationBar` 上线。
-- [ ] 列表搜索具备 300ms 防抖。
+- [x] 详情页使用卡片堆叠；无 Tab 依赖。
+- [x] 删除交互为单次 AlertDialog + 原因输入。
+- [x] 通用 `PaginationBar` 上线。
+- [x] 列表搜索具备 300ms 防抖。
 
 **行为**
-- [ ] `ops` 登录直达 `/ops/admin` 并看到租户列表。
-- [ ] Mock / Live 双模式 CRUD 均可运行。
-- [ ] `flutter analyze` 无错误。
-- [ ] `flutter test` 全部通过。
-- [ ] `node --test backend/test` 全部通过。
+- [x] `ops` 登录直达 `/ops/admin` 并看到租户列表。
+- [x] Mock / Live 双模式 CRUD 均可运行。
+- [x] `flutter analyze` 无错误。
+- [x] `flutter test` 全部通过。
+- [x] `node --test backend/test` 全部通过。
 
 ---
 

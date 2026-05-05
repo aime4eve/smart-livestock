@@ -52,7 +52,7 @@
 **Files:**
 - Modify: `lib/features/b2b_admin/data/b2b_repository.dart`
 
-- [ ] **Step 1: 扩展 B2bFarmSummary**
+- [x] **Step 1: 扩展 B2bFarmSummary**
 
 在 `B2bFarmSummary` 类中新增 `deviceCount` 和 `workerCount` 字段：
 
@@ -82,7 +82,7 @@ class B2bFarmSummary {
 }
 ```
 
-- [ ] **Step 2: 扩展 B2bDashboardData**
+- [x] **Step 2: 扩展 B2bDashboardData**
 
 新增 `monthlyRevenue`/`deviceOnlineRate`/`partnerName`/`billingModel` 字段：
 
@@ -120,7 +120,7 @@ class B2bDashboardData {
 }
 ```
 
-- [ ] **Step 3: 扩展 B2bContractData**
+- [x] **Step 3: 扩展 B2bContractData**
 
 新增订阅服务和合作方相关字段：
 
@@ -170,7 +170,7 @@ class B2bContractData {
 }
 ```
 
-- [ ] **Step 4: 更新 mock 数据填充新字段**
+- [x] **Step 4: 更新 mock 数据填充新字段**
 
 `loadDashboard()` mock 分支：新增 `partnerName: '华牧科技有限公司'`/`monthlyRevenue: 819.0`/`deviceOnlineRate: 0.65`/`billingModel: 'revenue_share'`。每个 `B2bFarmSummary` 补充 `deviceCount`（占位值如 12/8）和 `workerCount`（如 3/5）。
 
@@ -180,7 +180,7 @@ class B2bContractData {
 
 `_loadContractFromCache()`：解析上述新字段，subscription 字段从 `data['subscriptionService']` 子对象中提取（如存在）。
 
-- [ ] **Step 5: 运行 flutter analyze 确保无编译错误**
+- [x] **Step 5: 运行 flutter analyze 确保无编译错误**
 
 ```bash
 cd Mobile/mobile_app && flutter analyze
@@ -188,7 +188,7 @@ cd Mobile/mobile_app && flutter analyze
 
 Expected: 无新增 error
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add lib/features/b2b_admin/data/b2b_repository.dart
@@ -202,7 +202,7 @@ git commit -m "feat(b2b-ux): expand B2b data models with revenue/subscription/wo
 **Files:**
 - Modify: `lib/features/revenue/domain/revenue_repository.dart`
 
-- [ ] **Step 1: 新增 RevenuePeriodDetail 和 RevenueFarmDetail 类型**
+- [x] **Step 1: 新增 RevenuePeriodDetail 和 RevenueFarmDetail 类型**
 
 在 `revenue_repository.dart` 中新增：
 
@@ -252,7 +252,7 @@ class RevenueDetailViewData {
 }
 ```
 
-- [ ] **Step 2: 更新 mock/live repository 实现**
+- [x] **Step 2: 更新 mock/live repository 实现**
 
 在 `mock_revenue_repository.dart` 的 `getPeriodDetail()` 中，将旧 `details: [Map('partnerId':..., 'revenue':..., 'share':...)]` 替换为结构化数据：
 
@@ -279,13 +279,13 @@ return RevenueDetailViewData(
 
 在 `live_revenue_repository.dart` 中同步更新，从 API 响应中解析 `totalDeviceFee`/`revenueShareRatio`/`platformConfirmed`/`partnerConfirmed`/`calculatedAt` + `List<RevenueFarmDetail>`。
 
-- [ ] **Step 3: 运行 flutter analyze**
+- [x] **Step 3: 运行 flutter analyze**
 
 ```bash
 cd Mobile/mobile_app && flutter analyze
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add lib/features/revenue/domain/revenue_repository.dart \
@@ -303,7 +303,7 @@ git commit -m "feat(b2b-ux): add typed RevenuePeriodDetail/RevenueFarmDetail mod
 - Modify: `lib/features/b2b_admin/data/mock_b2b_worker_management_repository.dart`
 - Modify: `lib/features/b2b_admin/data/live_b2b_worker_management_repository.dart`
 
-- [ ] **Step 1: 扩展 B2bSubFarmWorker / B2bSubFarm / ViewData**
+- [x] **Step 1: 扩展 B2bSubFarmWorker / B2bSubFarm / ViewData**
 
 ```dart
 class B2bSubFarmWorker {
@@ -355,7 +355,7 @@ class B2bWorkerManagementViewData {
 }
 ```
 
-- [ ] **Step 2: 扩展 repository 接口**
+- [x] **Step 2: 扩展 repository 接口**
 
 ```dart
 abstract class B2bWorkerManagementRepository {
@@ -367,19 +367,19 @@ abstract class B2bWorkerManagementRepository {
 }
 ```
 
-- [ ] **Step 3: 在 mock 和 live 实现中实现新方法**
+- [x] **Step 3: 在 mock 和 live 实现中实现新方法**
 
 Mock: 内存操作（从固定列表中分配/移除）。**重要**：更新现有 `B2bSubFarmWorker` const 构造，添加 `id` 字段（如 `id: 'worker_001'`）。同时更新 `B2bSubFarm` 添加 `deviceCount` 字段。`getAvailableWorkers()` 返回全局 worker 列表中未分配到指定 farm 的工人。
 
 Live: HTTP 调用 `POST /api/v1/farms/:farmId/workers` / `DELETE /api/v1/farms/:farmId/workers/:workerId`。
 
-- [ ] **Step 4: 运行 flutter analyze**
+- [x] **Step 4: 运行 flutter analyze**
 
 ```bash
 cd Mobile/mobile_app && flutter analyze
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/features/b2b_admin/domain/b2b_worker_management_repository.dart \
@@ -396,7 +396,7 @@ git commit -m "feat(b2b-ux): expand worker repository with assign/remove and typ
 - Create: `lib/features/b2b_admin/presentation/widgets/confirm_dialog.dart`
 - Create: `lib/features/b2b_admin/presentation/widgets/alert_bottom_sheet.dart`
 
-- [ ] **Step 1: 实现 ConfirmDialog**
+- [x] **Step 1: 实现 ConfirmDialog**
 
 ```dart
 class B2bConfirmDialog extends StatelessWidget {
@@ -422,7 +422,7 @@ class B2bConfirmDialog extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 2: 实现 AlertBottomSheet**
+- [x] **Step 2: 实现 AlertBottomSheet**
 
 ```dart
 class B2bAlertBottomSheet extends StatelessWidget {
@@ -442,7 +442,7 @@ class B2bAlertBottomSheet extends StatelessWidget {
 
 **数据来源**：`B2bDashboardData` 需新增 `alertSummary` 字段（`List<Map<String, dynamic>>`，每条含 `farmName`/`type`/`message`/`createdAt`）。Mock 环境使用硬编码占位数据（最近 3 条），Live 从 ApiCache 告警缓存中过滤。此字段需同步添加到 Task 1 的 `B2bDashboardData` 扩展中。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add lib/features/b2b_admin/presentation/widgets/
@@ -457,14 +457,14 @@ git commit -m "feat(b2b-ux): add shared B2bConfirmDialog and AlertBottomSheet"
 - Modify: `lib/app/app_route.dart`
 - Modify: `lib/app/app_router.dart`
 
-- [ ] **Step 1: 在 AppRoute 枚举新增 2 个路由**
+- [x] **Step 1: 在 AppRoute 枚举新增 2 个路由**
 
 ```dart
 b2bAdminRevenueDetail('/b2b/admin/revenue/:id', 'b2b-admin-revenue-detail', '对账详情'),
 b2bWorkerDetail('/b2b/admin/workers/:farmId', 'b2b-worker-detail', '牧工详情'),
 ```
 
-- [ ] **Step 2: 在 app_router.dart 注册子路由**
+- [x] **Step 2: 在 app_router.dart 注册子路由**
 
 **替换**现有 `b2bAdmin` GoRoute `routes` 数组中的 flat `revenue` 和 `workers` GoRoute 条目为嵌套版本。其他条目（`farms`/`contract`）保持不变。
 
@@ -514,9 +514,9 @@ GoRoute(
 ),
 ```
 
-- [ ] **Step 3: 运行 flutter analyze**
+- [x] **Step 3: 运行 flutter analyze**
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add lib/app/app_route.dart lib/app/app_router.dart
@@ -531,11 +531,11 @@ git commit -m "feat(b2b-ux): add revenue detail and worker detail routes"
 - Modify: `lib/features/b2b_admin/presentation/b2b_controller.dart`
 - Modify: `lib/features/b2b_admin/presentation/b2b_dashboard_page.dart`
 
-- [ ] **Step 1: 扩展 B2bDashboardController**
+- [x] **Step 1: 扩展 B2bDashboardController**
 
 在 `build()` 中额外加载 revenue 本月数据，填充 `monthlyRevenue`/`deviceOnlineRate`。
 
-- [ ] **Step 2: 重写 B2bDashboardPage**
+- [x] **Step 2: 重写 B2bDashboardPage**
 
 **通用约定**：所有页面保持现有 `ViewState` 分支模式（`normal`/`loading`/`empty`/`error`），空状态使用 spec 中定义的文案（如"暂无对账数据，系统将在每月1日自动生成结算周期"）。灰蓝主色值直接内联使用 `Color(0xFF37474F)` 和 `Color(0xFF607D8B)`，不修改 `app_colors.dart`。
 
@@ -546,9 +546,9 @@ git commit -m "feat(b2b-ux): add revenue detail and worker detail routes"
 4. 快捷入口网格（4 列）：对账/合同/牧场/牧工（Material Icons: `bar_chart`/`description`/`agriculture`/`engineering`）
 5. 牧场列表：每张卡片含 `agriculture` icon + 名称 + `groups`/`pets`/`sensors` 统计 + 状态标签
 
-- [ ] **Step 3: 运行 flutter analyze**
+- [x] **Step 3: 运行 flutter analyze**
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add lib/features/b2b_admin/presentation/b2b_controller.dart \
@@ -564,7 +564,7 @@ git commit -m "feat(b2b-ux): rewrite B2b dashboard with hero card, alerts, quick
 - Modify: `lib/features/b2b_admin/presentation/b2b_revenue_page.dart`
 - Create: `lib/features/b2b_admin/presentation/b2b_revenue_detail_page.dart`
 
-- [ ] **Step 1: 重写 B2bRevenuePage（列表页）**
+- [x] **Step 1: 重写 B2bRevenuePage（列表页）**
 
 页面结构：
 1. 页头："对账"
@@ -574,7 +574,7 @@ git commit -m "feat(b2b-ux): rewrite B2b dashboard with hero card, alerts, quick
 
 点击卡片 → `context.go('/b2b/admin/revenue/$periodId')`。
 
-- [ ] **Step 2: 实现 B2bRevenueDetailPage（详情页）**
+- [x] **Step 2: 实现 B2bRevenueDetailPage（详情页）**
 
 **数据接线**：页面接收 `periodId` 构造参数。在 `build()` 中通过 `ref.read(revenueControllerProvider.notifier).getPeriodDetail(periodId)` 同步获取 `RevenueDetailViewData`。
 
@@ -586,9 +586,9 @@ git commit -m "feat(b2b-ux): rewrite B2b dashboard with hero card, alerts, quick
 
 确认流程：`B2bConfirmDialog.show()` → 按钮进入 Loading → `ref.read(revenueControllerProvider.notifier).confirmPeriod(periodId)` → SnackBar → `context.pop()` 返回列表页。
 
-- [ ] **Step 3: 运行 flutter analyze**
+- [x] **Step 3: 运行 flutter analyze**
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add lib/features/b2b_admin/presentation/b2b_revenue_page.dart \
@@ -603,7 +603,7 @@ git commit -m "feat(b2b-ux): rewrite B2b revenue list and add detail page with d
 **Files:**
 - Modify: `lib/features/b2b_admin/presentation/b2b_contract_page.dart`
 
-- [ ] **Step 1: 重写 B2bContractPage**
+- [x] **Step 1: 重写 B2bContractPage**
 
 页面结构：
 1. 页头：返回 + "合同信息"
@@ -613,9 +613,9 @@ git commit -m "feat(b2b-ux): rewrite B2b revenue list and add detail page with d
 5. 订阅服务状态区块：仅 `billingModel === 'licensed'` 时显示。`vpn_key` icon 标题 + 绿/黄/红圆点 + 状态文字 + `cloud`/`devices`/`favorite`/`timer` 4格信息
 6. 快捷操作：`phone` 联系平台 + `download` 下载合同（占位 Dialog）
 
-- [ ] **Step 2: 运行 flutter analyze**
+- [x] **Step 2: 运行 flutter analyze**
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/features/b2b_admin/presentation/b2b_contract_page.dart
@@ -631,7 +631,7 @@ git commit -m "feat(b2b-ux): rewrite B2b contract page with expiry countdown and
 - Modify: `lib/features/b2b_admin/presentation/worker_management_page.dart`
 - Create: `lib/features/b2b_admin/presentation/b2b_worker_detail_page.dart`
 
-- [ ] **Step 1: 扩展 B2bWorkerManagementController**
+- [x] **Step 1: 扩展 B2bWorkerManagementController**
 
 新增方法：
 ```dart
@@ -640,7 +640,7 @@ Future<bool> removeWorker(String farmId, String workerId);
 List<B2bSubFarmWorker> getAvailableWorkers();
 ```
 
-- [ ] **Step 2: 重写 B2bWorkerManagementPage（牧场列表页）**
+- [x] **Step 2: 重写 B2bWorkerManagementPage（牧场列表页）**
 
 页面结构：
 1. 页头："牧工管理"
@@ -650,7 +650,7 @@ List<B2bSubFarmWorker> getAvailableWorkers();
 
 点击卡片 → `context.go('/b2b/admin/workers/$farmId')`。
 
-- [ ] **Step 3: 实现 B2bWorkerDetailPage（工人详情页）**
+- [x] **Step 3: 实现 B2bWorkerDetailPage（工人详情页）**
 
 **数据接线**：页面接收 `farmId` 构造参数。通过 `ref.read(b2bWorkerManagementControllerProvider.notifier).getSubFarmWorkers(farmId)` 获取工人列表。通过 `ref.read(b2bWorkerManagementControllerProvider)` 获取 `B2bSubFarm` 信息（从 `subFarms` 中按 `farmId` 查找）。
 
@@ -662,9 +662,9 @@ List<B2bSubFarmWorker> getAvailableWorkers();
 分配流程：点击"分配牧工" → `getAvailableWorkers()` → Dialog 多选 → `assignWorker(farmId, workerId)` → SnackBar → 刷新列表。
 移除流程：点击"移除" → `B2bConfirmDialog` → `removeWorker(farmId, workerId)` → SnackBar → 刷新列表。
 
-- [ ] **Step 4: 运行 flutter analyze**
+- [x] **Step 4: 运行 flutter analyze**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/features/b2b_admin/presentation/b2b_worker_management_controller.dart \
@@ -677,7 +677,7 @@ git commit -m "feat(b2b-ux): rewrite B2b worker management with farm drill-down 
 
 ### Task 10: 全量测试 + 回归
 
-- [ ] **Step 1: 运行 flutter analyze**
+- [x] **Step 1: 运行 flutter analyze**
 
 ```bash
 cd Mobile/mobile_app && flutter analyze
@@ -685,7 +685,7 @@ cd Mobile/mobile_app && flutter analyze
 
 Expected: 无新增 issue
 
-- [ ] **Step 2: 运行 flutter test**
+- [x] **Step 2: 运行 flutter test**
 
 ```bash
 cd Mobile/mobile_app && flutter test
@@ -693,7 +693,7 @@ cd Mobile/mobile_app && flutter test
 
 Expected: 全部 PASS
 
-- [ ] **Step 3: 手动验证 b2b_admin 登录**
+- [x] **Step 3: 手动验证 b2b_admin 登录**
 
 以 `mock-token-b2b-admin` 登录，验证：
 - 概览页：主卡片数据、告警条、快捷入口可点击、牧场列表带统计
@@ -701,7 +701,7 @@ Expected: 全部 PASS
 - 合同：到期天数、条款区、非 licensed 模式无订阅区块
 - 牧工：汇总、点击进入工人详情、分配/移除 Dialog
 
-- [ ] **Step 4: 最终 Commit**
+- [x] **Step 4: 最终 Commit**
 
 ```bash
 git add -A

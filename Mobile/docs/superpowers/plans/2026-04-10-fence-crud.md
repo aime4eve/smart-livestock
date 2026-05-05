@@ -91,7 +91,7 @@
 **Files:**
 - Create: `lib/features/fence/domain/fence_item.dart`
 
-- [ ] **Step 1: 创建 FenceItem 模型**
+- [x] **Step 1: 创建 FenceItem 模型**
 
 ```dart
 import 'dart:math';
@@ -182,12 +182,12 @@ class FenceItem {
 }
 ```
 
-- [ ] **Step 2: 验证静态分析**
+- [x] **Step 2: 验证静态分析**
 
 Run: `cd Mobile/mobile_app && flutter analyze lib/features/fence/domain/fence_item.dart`
 Expected: No issues found
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/features/fence/domain/fence_item.dart
@@ -201,7 +201,7 @@ git commit -m "feat(fence): add FenceItem model and FenceType enum"
 **Files:**
 - Create: `lib/features/fence/domain/fence_state.dart`
 
-- [ ] **Step 1: 创建 FenceState 模型**
+- [x] **Step 1: 创建 FenceState 模型**
 
 ```dart
 import 'package:smart_livestock_demo/core/models/view_state.dart';
@@ -246,12 +246,12 @@ class FenceState {
 }
 ```
 
-- [ ] **Step 2: 验证静态分析**
+- [x] **Step 2: 验证静态分析**
 
 Run: `cd Mobile/mobile_app && flutter analyze lib/features/fence/domain/fence_state.dart`
 Expected: No issues found
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/features/fence/domain/fence_state.dart
@@ -266,7 +266,7 @@ git commit -m "feat(fence): add FenceState model"
 - Modify: `lib/core/models/demo_models.dart:22-27`
 - Modify: `lib/core/data/demo_seed.dart:15-62`
 
-- [ ] **Step 1: 扩展 FencePolygon 字段**
+- [x] **Step 1: 扩展 FencePolygon 字段**
 
 在 `lib/core/models/demo_models.dart` 中，替换 `FencePolygon` 类：
 
@@ -294,7 +294,7 @@ class FencePolygon {
 }
 ```
 
-- [ ] **Step 2: 更新 DemoSeed.fencePolygons 数据**
+- [x] **Step 2: 更新 DemoSeed.fencePolygons 数据**
 
 在 `lib/core/data/demo_seed.dart` 中，为每个 `FencePolygon` 添加新字段值：
 
@@ -355,12 +355,12 @@ class FencePolygon {
   ];
 ```
 
-- [ ] **Step 3: 验证静态分析**
+- [x] **Step 3: 验证静态分析**
 
 Run: `cd Mobile/mobile_app && flutter analyze lib/core/models/demo_models.dart lib/core/data/demo_seed.dart`
 Expected: No issues found
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add lib/core/models/demo_models.dart lib/core/data/demo_seed.dart
@@ -376,7 +376,7 @@ git commit -m "feat(seed): extend FencePolygon with type, alarm, active, area fi
 - Rewrite: `lib/features/fence/data/mock_fence_repository.dart`
 - Rewrite: `lib/features/fence/data/live_fence_repository.dart`
 
-- [ ] **Step 1: 重写 FenceRepository 接口**
+- [x] **Step 1: 重写 FenceRepository 接口**
 
 替换 `lib/features/fence/domain/fence_repository.dart` 全部内容：
 
@@ -388,7 +388,7 @@ abstract class FenceRepository {
 }
 ```
 
-- [ ] **Step 2: 重写 MockFenceRepository**
+- [x] **Step 2: 重写 MockFenceRepository**
 
 替换 `lib/features/fence/data/mock_fence_repository.dart` 全部内容：
 
@@ -429,7 +429,7 @@ class MockFenceRepository implements FenceRepository {
 }
 ```
 
-- [ ] **Step 3: 重写 LiveFenceRepository**
+- [x] **Step 3: 重写 LiveFenceRepository**
 
 替换 `lib/features/fence/data/live_fence_repository.dart` 全部内容：
 
@@ -450,12 +450,12 @@ class LiveFenceRepository implements FenceRepository {
 }
 ```
 
-- [ ] **Step 4: 验证静态分析**
+- [x] **Step 4: 验证静态分析**
 
 Run: `cd Mobile/mobile_app && flutter analyze lib/features/fence/`
 Expected: No issues found
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/features/fence/domain/fence_repository.dart lib/features/fence/data/mock_fence_repository.dart lib/features/fence/data/live_fence_repository.dart
@@ -469,7 +469,7 @@ git commit -m "feat(fence): rewrite FenceRepository with loadAll() returning Fen
 **Files:**
 - Rewrite: `lib/features/fence/presentation/fence_controller.dart`
 
-- [ ] **Step 1: 重写 FenceController**
+- [x] **Step 1: 重写 FenceController**
 
 替换 `lib/features/fence/presentation/fence_controller.dart` 全部内容：
 
@@ -537,12 +537,12 @@ final fenceControllerProvider =
     NotifierProvider<FenceController, FenceState>(FenceController.new);
 ```
 
-- [ ] **Step 2: 验证静态分析**
+- [x] **Step 2: 验证静态分析**
 
 Run: `cd Mobile/mobile_app && flutter analyze lib/features/fence/presentation/fence_controller.dart`
 Expected: No issues found
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/features/fence/presentation/fence_controller.dart
@@ -557,7 +557,7 @@ git commit -m "feat(fence): rewrite FenceController with CRUD and select operati
 - Modify: `lib/app/app_route.dart`
 - Modify: `lib/app/demo_shell.dart`
 
-- [ ] **Step 1: 更新 AppRoute 枚举**
+- [x] **Step 1: 更新 AppRoute 枚举**
 
 在 `lib/app/app_route.dart` 中：
 - 删除 `map('/map', 'map', '地图'),` 行
@@ -602,7 +602,7 @@ enum AppRoute {
 }
 ```
 
-- [ ] **Step 2: 更新 demo_shell 导航项**
+- [x] **Step 2: 更新 demo_shell 导航项**
 
 在 `lib/app/demo_shell.dart` 的 `_buildBusinessNavItems` 方法中，移除 nav-map 项，将 nav-fence 调至第二位并改用 `Icons.map` 图标。替换整个方法体：
 
@@ -648,12 +648,12 @@ enum AppRoute {
   }
 ```
 
-- [ ] **Step 3: 验证静态分析**
+- [x] **Step 3: 验证静态分析**
 
 Run: `cd Mobile/mobile_app && flutter analyze lib/app/app_route.dart lib/app/demo_shell.dart`
 Expected: No issues found
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add lib/app/app_route.dart lib/app/demo_shell.dart
@@ -667,7 +667,7 @@ git commit -m "feat(nav): remove map nav, move fence to 2nd position with map ic
 **Files:**
 - Rewrite: `lib/features/pages/fence_page.dart`
 
-- [ ] **Step 1: 重写 FencePage**
+- [x] **Step 1: 重写 FencePage**
 
 替换 `lib/features/pages/fence_page.dart` 全部内容：
 
@@ -1110,12 +1110,12 @@ class _MapMarker extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 2: 验证静态分析**
+- [x] **Step 2: 验证静态分析**
 
 Run: `cd Mobile/mobile_app && flutter analyze lib/features/pages/fence_page.dart`
 Expected: No issues found
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/features/pages/fence_page.dart
@@ -1129,7 +1129,7 @@ git commit -m "feat(fence): rewrite FencePage with fullscreen map and draggable 
 **Files:**
 - Create: `lib/features/pages/fence_form_page.dart`
 
-- [ ] **Step 1: 创建 FenceFormPage**
+- [x] **Step 1: 创建 FenceFormPage**
 
 ```dart
 import 'package:flutter/material.dart';
@@ -1372,12 +1372,12 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
 }
 ```
 
-- [ ] **Step 2: 验证静态分析**
+- [x] **Step 2: 验证静态分析**
 
 Run: `cd Mobile/mobile_app && flutter analyze lib/features/pages/fence_form_page.dart`
 Expected: No issues found
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/features/pages/fence_form_page.dart
@@ -1391,7 +1391,7 @@ git commit -m "feat(fence): add FenceFormPage for create and edit"
 **Files:**
 - Modify: `lib/app/app_router.dart`
 
-- [ ] **Step 1: 更新路由配置**
+- [x] **Step 1: 更新路由配置**
 
 在 `lib/app/app_router.dart` 中执行以下变更：
 
@@ -1443,12 +1443,12 @@ git commit -m "feat(fence): add FenceFormPage for create and edit"
           ),
 ```
 
-- [ ] **Step 2: 验证静态分析**
+- [x] **Step 2: 验证静态分析**
 
 Run: `cd Mobile/mobile_app && flutter analyze lib/app/app_router.dart`
 Expected: No issues found
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/app/app_router.dart
@@ -1462,7 +1462,7 @@ git commit -m "feat(router): replace map and fenceCreate routes with fenceForm"
 **Files:**
 - Delete: 10 files across `features/fence_create/`, `features/map/`, `features/pages/`
 
-- [ ] **Step 1: 删除围栏新建模块**
+- [x] **Step 1: 删除围栏新建模块**
 
 ```bash
 cd Mobile/mobile_app
@@ -1473,7 +1473,7 @@ rm lib/features/fence_create/presentation/fence_create_controller.dart
 rm lib/features/pages/fence_create_page.dart
 ```
 
-- [ ] **Step 2: 删除地图模块**
+- [x] **Step 2: 删除地图模块**
 
 ```bash
 rm lib/features/map/domain/map_repository.dart
@@ -1483,19 +1483,19 @@ rm lib/features/map/presentation/map_controller.dart
 rm lib/features/pages/map_page.dart
 ```
 
-- [ ] **Step 3: 删除空目录**
+- [x] **Step 3: 删除空目录**
 
 ```bash
 rmdir lib/features/fence_create/domain lib/features/fence_create/data lib/features/fence_create/presentation lib/features/fence_create
 rmdir lib/features/map/domain lib/features/map/data lib/features/map/presentation lib/features/map
 ```
 
-- [ ] **Step 4: 验证无残留引用**
+- [x] **Step 4: 验证无残留引用**
 
 Run: `cd Mobile/mobile_app && grep -r "map_page\|fence_create_page\|map_repository\|map_controller\|fence_create_repository\|fence_create_controller" lib/`
 Expected: No output (no remaining references)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -1517,13 +1517,13 @@ git commit -m "chore: remove obsolete map and fence_create modules"
 - Delete: `test/highfi/map_fence_highfi_test.dart`
 - Modify: `test/seed_data_test.dart`
 
-- [ ] **Step 1: 删除 map_fence_highfi_test.dart**
+- [x] **Step 1: 删除 map_fence_highfi_test.dart**
 
 ```bash
 cd Mobile/mobile_app && rm test/highfi/map_fence_highfi_test.dart
 ```
 
-- [ ] **Step 2: 重写 widget_smoke_test.dart**
+- [x] **Step 2: 重写 widget_smoke_test.dart**
 
 替换 `test/widget_smoke_test.dart` 全部内容：
 
@@ -1600,7 +1600,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 3: 重写 flow_smoke_test.dart**
+- [x] **Step 3: 重写 flow_smoke_test.dart**
 
 替换 `test/flow_smoke_test.dart` 全部内容：
 
@@ -1741,7 +1741,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 4: 重写 role_visibility_test.dart**
+- [x] **Step 4: 重写 role_visibility_test.dart**
 
 替换 `test/role_visibility_test.dart` 全部内容：
 
@@ -1826,7 +1826,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 5: 重写 mock_repository_override_test.dart**
+- [x] **Step 5: 重写 mock_repository_override_test.dart**
 
 替换 `test/mock_repository_override_test.dart` 全部内容：
 
@@ -1935,7 +1935,7 @@ class _FakeFenceRepository implements FenceRepository {
 }
 ```
 
-- [ ] **Step 6: 重写 mock_repository_state_test.dart**
+- [x] **Step 6: 重写 mock_repository_state_test.dart**
 
 替换 `test/mock_repository_state_test.dart` 全部内容：
 
@@ -2008,7 +2008,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 7: 重写 state_persistence_test.dart**
+- [x] **Step 7: 重写 state_persistence_test.dart**
 
 替换 `test/state_persistence_test.dart` 全部内容：
 
@@ -2048,7 +2048,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 8: 重写 app_mode_switch_test.dart**
+- [x] **Step 8: 重写 app_mode_switch_test.dart**
 
 替换 `test/app_mode_switch_test.dart` 全部内容：
 
@@ -2080,7 +2080,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 9: 更新 seed_data_test.dart**
+- [x] **Step 9: 更新 seed_data_test.dart**
 
 在 `test/seed_data_test.dart` 中，在 `'DemoSeed has 4 fences'` 测试之后添加新测试：
 
@@ -2093,12 +2093,12 @@ void main() {
   });
 ```
 
-- [ ] **Step 10: 运行测试验证**
+- [x] **Step 10: 运行测试验证**
 
 Run: `cd Mobile/mobile_app && flutter test`
 Expected: All tests pass
 
-- [ ] **Step 11: Commit**
+- [x] **Step 11: Commit**
 
 ```bash
 cd Mobile/mobile_app
@@ -2110,22 +2110,22 @@ git commit -m "test: update all tests for fence CRUD refactoring"
 
 ## Task 12: 最终验证
 
-- [ ] **Step 1: 静态分析**
+- [x] **Step 1: 静态分析**
 
 Run: `cd Mobile/mobile_app && flutter analyze`
 Expected: No issues found
 
-- [ ] **Step 2: 全量测试**
+- [x] **Step 2: 全量测试**
 
 Run: `cd Mobile/mobile_app && flutter test`
 Expected: All tests pass
 
-- [ ] **Step 3: 检查无遗留引用**
+- [x] **Step 3: 检查无遗留引用**
 
 Run: `cd Mobile/mobile_app && grep -r "MapPage\|FenceCreatePage\|map_controller\|fence_create_controller\|MapViewData\|FenceViewData\|MapRepository\|FenceCreateRepository\|nav-map\|page-map\|fence-create-" lib/ test/`
 Expected: No output
 
-- [ ] **Step 4: 确认 Key 完整性**
+- [x] **Step 4: 确认 Key 完整性**
 
 关键 Key 对照表：
 
@@ -2152,7 +2152,7 @@ Expected: No output
 | `fence-form-save` | 保存按钮 |
 | `nav-fence` | 导航项（第二位，Icons.map） |
 
-- [ ] **Step 5: 最终 Commit**
+- [x] **Step 5: 最终 Commit**
 
 ```bash
 cd Mobile/mobile_app
