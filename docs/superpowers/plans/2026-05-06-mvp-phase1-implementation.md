@@ -807,6 +807,11 @@ public class Tenant extends AggregateRoot {
         this.phase = TenantPhase.BATCH;
     }
 
+    /** Reconstitute phase from persistence — does NOT fire domain events. */
+    public void reconstitutePhase(TenantPhase phase) {
+        this.phase = phase;
+    }
+
     public String getName() { return name; }
     public String getContactName() { return contactName; }
     public String getContactPhone() { return contactPhone; }
@@ -1360,7 +1365,7 @@ public class Fence extends AggregateRoot {
             boolean cross = ((yi.compareTo(point.latitude()) > 0) != (yj.compareTo(point.latitude()) > 0))
                 && point.longitude().compareTo(
                     xj.subtract(xi).multiply(point.latitude().subtract(yj))
-                        .divide(yi.subtract(yj), 15, BigDecimal.ROUND_HALF_UP)
+                        .divide(yi.subtract(yj), 15, java.math.RoundingMode.HALF_UP)
                         .add(xj)
                 ) < 0;
             if (cross) inside = !inside;
@@ -1842,8 +1847,8 @@ public class TenantMapper {
         domain.setId(jpa.getId());
         domain.setContactName(jpa.getContactName());
         domain.setContactPhone(jpa.getContactPhone());
-        if (jpa.getPhase() != null && jpa.getPhase().equals("BATCH")) {
-            domain.transitionToBatch();
+        if (jpa.getPhase() != null) {
+            domain.reconstitutePhase(TenantPhase.valueOf(jpa.getPhase()));
         }
         return domain;
     }
@@ -2003,6 +2008,90 @@ ThreadLocal 持有当前请求的 tenantId，由 Filter 设置。
 
 ```bash
 git commit -m "feat(security): add JWT auth, BCrypt, SecurityConfig, TenantContext, GlobalExceptionHandler"
+```
+
+---
+
+## Task 9.5: Redis Cache 基础设施
+
+**Files:**
+- Create: `src/main/java/com/smartlivestock/shared/cache/RedisCacheService.java`
+- Create: `src/main/java/com/smartlivestock/shared/cache/CacheKeys.java`
+
+- [ ] **Step 1: 实现 CacheKeys**
+
+`src/main/java/com/smartlivestock/shared/cache/CacheKeys.java`:
+```java
+package com.smartlivestock.shared.cache;
+
+public class CacheKeys {
+    public static String livestockPosition(Long id) { return "livestock:position:" + id; }
+    public static String farmMembers(Long farmId) { return "farm:" + farmId + ":members"; }
+    public static String deviceOnline(Long id) { return "device:online:" + id; }
+    public static String jwtBlacklist(String token) { return "jwt:blacklist:" + token; }
+    public static String rateLimit(Long userId, String endpoint) {
+        return "ratelimit:" + userId + ":" + endpoint;
+    }
+}
+```
+
+- [ ] **Step 2: 实现 RedisCacheService**
+
+`src/main/java/com/smartlivestock/shared/cache/RedisCacheService.java`:
+```java
+package com.smartlivestock.shared.cache;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Service;
+
+import java.time.Duration;
+import java.util.Map;
+import java.util.Set;
+
+@Service
+@RequiredArgsConstructor
+public class RedisCacheService {
+    private final StringRedisTemplate redis;
+
+    public void set(String key, String value, Duration ttl) {
+        redis.opsForValue().set(key, value, ttl);
+    }
+
+    public String get(String key) {
+        return redis.opsForValue().get(key);
+    }
+
+    public void setHash(String key, Map<String, String> fields) {
+        redis.opsForHash().putAll(key, fields);
+    }
+
+    public String getHashField(String key, String field) {
+        return (String) redis.opsForHash().get(key, field);
+    }
+
+    public void addToSet(String key, String... values) {
+        redis.opsForSet().add(key, values);
+    }
+
+    public Set<String> getSet(String key) {
+        return redis.opsForSet().members(key);
+    }
+
+    public void delete(String key) {
+        redis.delete(key);
+    }
+
+    public boolean setIfAbsent(String key, String value, Duration ttl) {
+        return Boolean.TRUE.equals(redis.opsForValue().setIfAbsent(key, value, ttl));
+    }
+}
+```
+
+- [ ] **Step 3: Commit**
+
+```bash
+git commit -m "feat(shared): add Redis cache infrastructure — CacheKeys, RedisCacheService"
 ```
 
 ---
