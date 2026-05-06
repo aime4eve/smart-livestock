@@ -4,6 +4,27 @@
 > 方案: Domain-First + DDD + TDD
 > 状态: Phase 1 设计完成，待实施
 
+## 技术路线变更说明
+
+**决策:** MVP 后端采用 **Spring Boot 3.x + Java 17**，取代之前 CLAUDE.md 中规划的 AdonisJS v6 + TypeScript。
+
+**变更原因:**
+1. PC/ 目录已有 Spring Boot 设计基础（backend-springboot-design.md、init_postgresql.sql 3770 行）
+2. 企业级场景（多租户、订阅计费、IoT）Spring Boot 生态更成熟
+3. Java 强类型在复杂业务域上更不容易出错
+
+**对现有仓库的影响:**
+- Mobile/ 端的 Node.js Express Mock Server 继续保留，作为前端独立开发的后端支撑
+- Spring Boot 后端与 Mock Server 共享相同的 API 契约（统一响应包络、错误码枚举、分页格式）
+- Flutter 前端 Live Repository 层需要适配 Spring Boot API（URL 从 `/api/` 改为 `/api/v1/`，响应格式对齐）
+- CLAUDE.md 中 "MVP 后端（待实现）: AdonisJS v6" 的描述需更新为 Spring Boot
+- PC/ 前端从 Angular 切换为 Vue 3，与 Mobile Flutter 共享同一个 Spring Boot 后端
+
+**迁移策略:**
+- Phase 1: Spring Boot 与 Mock Server 并行存在。Mock Server 继续服务 Flutter 前端开发，Spring Boot 逐步实现 API 端点
+- Flutter 前端通过 `--dart-define=APP_MODE=live` 切换到 Spring Boot 后端（修改 API_BASE_URL）
+- 两个后端保持相同的响应格式和错误码体系，前端切换只需改 URL 前缀
+
 ## 技术选型
 
 | 组件 | 技术栈 | 版本 |
