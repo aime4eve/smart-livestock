@@ -858,6 +858,55 @@ code 字段使用字符串枚举（与现有 API 契约保持一致）：`OK`、
 | 批量 GPS 上报 | POST body 为数组 |
 | 多端统一 | Flutter 和 Vue 3 使用相同 API |
 
+### 4.7 牧场作用域（Farm Scope）硬约束
+
+MVP 必须一次性统一牧场作用域的契约与实现，禁止同一请求同时依赖 path 与 header 的双来源隐式解析。
+
+**作用域解析规则：**
+
+| 操作类型 | 作用域来源 | 禁止行为 |
+|---------|-----------|---------|
+| 写操作（POST/PUT/PATCH/DELETE） | 仅 `/farms/{farmId}` 路径参数 | header `x-active-farm` 不得参与写操作作用域解析 |
+| 读操作（GET） | 优先 `/farms/{farmId}` 路径参数 | 兼容模式下可仅用 header，但不可与 path 同时出现 |
+| 无作用域（跨牧场查询） | 不需要 farmId | platform_admin 的全局查询 |
+
+**硬约束：**
+
+1. **禁止双来源:** 若同一请求同时包含 path farmId 和 header `x-active-farm`，返回 `422 VALIDATION_ERROR`
+2. **写操作强制 path:** Ranch 领域所有写操作必须使用 `/farms/{farmId}/...`，后端只认 path 中的 farmId
+3. **权限显式校验:** 对 owner/worker：校验 farmId ∈ user_farm_assignments；对 platform_admin/b2b_admin：必须走 `/farms/{farmId}`，不能靠 header 推断
+4. **门控不依赖隐式全局:** shaping/feature gating 读取的是 path 解析出的 farmId，不是 header 中的 activeFarmTenantId
+
+**FarmScope 解析模块：**
+
+```
+FarmScopeResolver:
+  - WriteScope: 只接受 path farmId，无 path 则 400
+  - ReadScope: path farmId 或 header（二选一），同时存在则 422
+  - NoScope: 不解析 farmId（全局查询）
+  - 所有路由显式声明所需 scope 类型，handler 内部不允许自由解析
+```
+
+**`x-active-farm` 兼容策略：**
+
+- 仅作为读接口的过渡兼容，仅限 GET 请求
+- 必须写入 API 契约与兼容矩阵
+- **下线版本:** Phase 2 上线时同步移除（Phase 1 结束即为下线日期）
+- Phase 1 期间必须有集成测试保证 path 入口与 header 入口返回一致（直到下线）
+
+**测试覆盖：**
+
+| 测试场景 | 预期结果 |
+|---------|---------|
+| 写操作 + path farmId | 正常执行 |
+| 写操作 + 仅 header | 400 BAD_REQUEST |
+| 写操作 + path + header 同时 | 422 VALIDATION_ERROR |
+| 读操作 + path farmId | 正常执行 |
+| 读操作 + 仅 header（兼容模式） | 正常执行，与 path 入口返回一致 |
+| 读操作 + path + header 同时 | 422 VALIDATION_ERROR |
+| owner/worker 访问非授权 farmId | 403 FORBIDDEN |
+| platform_admin 跨 farm 查询 | 走 /farms/{farmId}，正常执行 |
+
 ---
 
 ## 5. 部署架构
