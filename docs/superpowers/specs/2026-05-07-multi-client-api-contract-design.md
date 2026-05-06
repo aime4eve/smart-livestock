@@ -121,7 +121,14 @@
 | **写操作**（POST/PUT/DELETE） | 仅路径 `farms/{farmId}/` | 写操作只认路径，header 无效 |
 | **读操作**（GET） | 路径 `farms/{farmId}/` 或 header `x-active-farm` | 二选一，同时提供返回 422 |
 
-`x-active-farm` header 在 Phase 2 上线时标记废弃（`Deprecation: true`），3 个月后移除。所有新代码一律使用路径参数。
+Farm Scope 不适用于以下端点（用户/租户级操作，非农场级）：
+- `/auth/*` — 认证端点
+- `/me`、`/me/*` — 当前用户操作
+- `/tenants/me` — 当前租户信息
+- `/farms`（列表/创建） — 尚未进入农场上下文
+- `/admin/*` — 管理端点有独立的跨租户逻辑
+
+`x-active-farm` header 为现有 Mock Server 兼容保留，Spring Boot 实现中所有读操作优先使用路径参数。该 header 在 Phase 2 上线时标记废弃（`Deprecation: true`），3 个月后移除。
 
 ---
 
@@ -140,6 +147,7 @@
 | 方法 | 路径 | 用途 |
 |------|------|------|
 | `GET` | `/tenants/me` | 当前租户信息 |
+| `PUT` | `/tenants/me` | 更新当前租户信息 |
 | `GET` | `/me` | 当前用户信息 |
 | `PUT` | `/me` | 更新当前用户信息 |
 | `PUT` | `/me/password` | 修改密码 |
@@ -161,12 +169,14 @@
 | `GET` | `/farms/{farmId}/livestock/{livestockId}` | 牲畜详情 |
 | `POST` | `/farms/{farmId}/livestock` | 新增牲畜 |
 | `PUT` | `/farms/{farmId}/livestock/{livestockId}` | 更新牲畜信息 |
+| `DELETE` | `/farms/{farmId}/livestock/{livestockId}` | 删除牲畜（软删除，设置 status = removed） |
 
 **围栏：**
 
 | 方法 | 路径 | 用途 |
 |------|------|------|
 | `GET` | `/farms/{farmId}/fences` | 围栏列表 |
+| `GET` | `/farms/{farmId}/fences/{fenceId}` | 围栏详情（含坐标点） |
 | `POST` | `/farms/{farmId}/fences` | 创建围栏 |
 | `PUT` | `/farms/{farmId}/fences/{fenceId}` | 更新围栏 |
 | `DELETE` | `/farms/{farmId}/fences/{fenceId}` | 删除围栏 |
@@ -184,6 +194,8 @@
 
 告警状态机：`pending → acknowledged → handled → archived`，非法跳转返回 409 `STATE_CONFLICT`。
 
+**状态变更 HTTP 方法说明：** 告警操作使用 `POST`（非幂等——记录操作人和时间戳），管理端状态变更使用 `PUT`（幂等——相同请求产生相同结果）。
+
 ### 3.4 物联网（IoT）
 
 **设备：**
@@ -193,13 +205,18 @@
 | `GET` | `/farms/{farmId}/devices` | 设备列表 |
 | `POST` | `/farms/{farmId}/devices` | 注册设备 |
 | `GET` | `/farms/{farmId}/devices/{deviceId}` | 设备详情 |
+| `PUT` | `/farms/{farmId}/devices/{deviceId}` | 更新设备信息 |
+| `PUT` | `/farms/{farmId}/devices/{deviceId}/activate` | 激活设备（INVENTORY → ACTIVE） |
+| `PUT` | `/farms/{farmId}/devices/{deviceId}/decommission` | 退役设备（→ DECOMMISSIONED） |
 
 **设备许可证：**
 
 | 方法 | 路径 | 用途 |
 |------|------|------|
 | `GET` | `/farms/{farmId}/device-licenses` | 许可证列表 |
+| `GET` | `/farms/{farmId}/device-licenses/{licenseId}` | 许可证详情 |
 | `POST` | `/farms/{farmId}/device-licenses` | 申请许可证 |
+| `PUT` | `/farms/{farmId}/device-licenses/{licenseId}/revoke` | 撤销许可证（→ REVOKED） |
 
 **安装记录：**
 
@@ -217,6 +234,8 @@
 | `GET` | `/farms/{farmId}/gps-logs/latest` | 全场最新 GPS 坐标 |
 | `GET` | `/farms/{farmId}/livestock/{livestockId}/gps-logs` | 单牲畜 GPS 历史（支持 `?startTime=&endTime=`） |
 
+**GPS 数据写入：** GPS 坐标通过 MQTT → RocketMQ 管道接入，不经过 REST API。Phase 1 使用模拟数据注入，Phase 3 接入真实 IoT 设备。
+
 ### 3.5 读模型（Read Models）
 
 | 方法 | 路径 | 用途 |
@@ -224,7 +243,7 @@
 | `GET` | `/farms/{farmId}/dashboard/summary` | 看板汇总（牲畜数/在线设备数/活跃告警数/围栏数） |
 | `GET` | `/farms/{farmId}/map/overview` | 地图总览（牲畜位置 + 围栏轮廓 + 告警标记） |
 
-**App API 共计 35 个端点。**
+**App API 共计 49 个端点。**
 
 ---
 
@@ -249,6 +268,7 @@
 | `GET` | `/admin/users` | 跨租户用户列表（`?tenantId=&farmId=&role=&status=&keyword=&page=&pageSize=`） |
 | `POST` | `/admin/users` | 创建用户（指定 tenantId + role） |
 | `GET` | `/admin/users/{userId}` | 用户详情（含关联农场列表） |
+| `PUT` | `/admin/users/{userId}` | 更新用户信息（姓名、手机、角色） |
 | `PUT` | `/admin/users/{userId}/status` | 启用/禁用/锁定（`{ status: "active" \| "disabled" \| "locked" }`） |
 | `POST` | `/admin/users/{userId}/reset-password` | 重置密码 |
 
@@ -289,7 +309,7 @@
 3. **status 动作用 PUT** — 状态变更是幂等操作
 4. **审计日志** — Phase 1 先做查询接口，写入由 Application Service 内部完成
 
-**Admin API 共计 19 个端点。**
+**Admin API 共计 21 个端点。**
 
 ---
 
@@ -333,7 +353,7 @@
 |------|------|------|
 | `POST` | `/open/devices/register` | 设备上报序列号自注册（`{ serialNo, deviceType, firmwareVersion }`） |
 
-该端点使用设备专用 API Key（非开发者 Key），认证后自动绑定到 Key 所属租户。
+该端点使用设备专用 API Key（非开发者 Key），认证后自动绑定到 Key 所属租户。设备创建后进入 INVENTORY 状态（租户级，尚未分配到农场），后续通过 App API `POST /farms/{farmId}/installations` 安装到具体牲畜时关联农场。
 
 ### Open API 专属约定
 
@@ -353,7 +373,7 @@
 3. **Phase 1 范围** — 不含 Health 上下文，Phase 2 按同模式扩展 `/open/farms/{farmId}/twin/...`
 4. **API Key 管理** — 放 Admin API，Phase 1 不做租户自助管理
 
-**Open API 共计 13 个端点。**
+**Open API 共计 11 个端点。**
 
 ---
 
@@ -517,10 +537,10 @@ docs/api-contracts/
 
 | 前缀 | 端点数 |
 |------|--------|
-| App (`/api/v1/`) | 35 |
-| Admin (`/api/v1/admin/`) | 19 |
-| Open (`/api/v1/open/`) | 13 |
-| **合计** | **67** |
+| App (`/api/v1/`) | 49 |
+| Admin (`/api/v1/admin/`) | 21 |
+| Open (`/api/v1/open/`) | 11 |
+| **合计** | **81** |
 
 ---
 
