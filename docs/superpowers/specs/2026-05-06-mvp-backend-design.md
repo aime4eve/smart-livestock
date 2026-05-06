@@ -733,6 +733,8 @@ public class Fence extends AggregateRoot {
 
 ## 4. API 设计
 
+> **状态: 草案。** 需重新设计多端统一 API 契约（App端 + PC端 + 第三方开发者），以 `Mobile/docs/api-contracts/` 为基础升级。本节内容仅作领域模型推导的参考，待独立 API 契约设计完成后替换。
+
 ### 4.1 统一响应格式
 
 ```json
@@ -992,6 +994,7 @@ RED → GREEN → REFACTOR
 
 | # | 事项 | 状态 |
 |---|------|------|
+| 0 | **多端 API 契约重设计**（前置任务）：基于领域上下文设计和 App 端实际代码，统一设计 App端(Flutter) + PC端(Vue 3) + 第三方开发者(Open API) 的 API 契约，完成后更新本规格第 4 节 | 待设计（独立 brainstorming） |
 | 1 | Spring Boot 项目初始化（Gradle + Java 17 + Spring Boot 3.x） | 待实施 |
 | 2 | Flyway 迁移脚本（V1~V3） | 待实施 |
 | 3 | Identity Context 完整实现（domain + application + infrastructure + interfaces） | 待实施 |
