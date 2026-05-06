@@ -339,13 +339,15 @@ UNIQUE(user_id, farm_id)
 |------|------|------|------|
 | id | BIGSERIAL | PK | |
 | device_id | BIGINT | FK → devices.id, NOT NULL | 设备 |
-| livestock_id | BIGINT | FK → livestock.id, NOT NULL | 牲畜（跨上下文引用） |
+| livestock_id | BIGINT | NOT NULL | 牲畜 ID（跨上下文引用，无 FK 约束） |
 | installed_at | TIMESTAMP | NOT NULL | 安装时间 |
 | removed_at | TIMESTAMP | | 拆除时间（NULL = 当前安装中） |
 | operator_id | BIGINT | FK → users.id | 操作人 |
 | created_at | TIMESTAMP | DEFAULT now() | |
 
 约束：同一设备不能有两条 removed_at IS NULL 的记录。
+
+**跨上下文引用说明:** `installations.livestock_id` 不使用 FK 约束，仅作为普通列存储 Ranch 上下文的 livestock ID。这是 Phase 1 的务实折中 — 避免跨上下文的数据库耦合。数据一致性由应用层保证（安装时校验 livestock 是否存在）。
 
 **gps_logs**（Phase 1 用模拟数据填充）
 
@@ -396,7 +398,7 @@ UNIQUE(user_id, farm_id)
 | devices → device_licenses | 1:1 | 设备绑定一个许可证 |
 | devices → installations | 1:N | 设备可多次安装/拆除 |
 | devices → gps_logs | 1:N | 设备产生 GPS 时序数据 |
-| livestock → installations | 1:N | 牲畜可多次安装设备（跨上下文） |
+| livestock → installations | 1:N | 牲畜可多次安装设备（跨上下文，无 FK 约束，应用层保证一致性） |
 
 ### 2.6 Phase 2/3 待新增表
 
@@ -659,6 +661,14 @@ public class Alert extends AggregateRoot {
         this.handledBy = userId;
         registerEvent(new AlertStatusChangedEvent(this.id, status));
     }
+
+    public void archive(Long userId) {
+        if (status != AlertStatus.HANDLED) {
+            throw new DomainException("只有 handled 状态的告警可以归档");
+        }
+        this.status = AlertStatus.ARCHIVED;
+        registerEvent(new AlertStatusChangedEvent(this.id, status));
+    }
 }
 
 // Device.java — 设备状态转换规则内聚
@@ -705,10 +715,19 @@ public class Fence extends AggregateRoot {
 ### 4.1 统一响应格式
 
 ```json
-{ "code": 0, "message": "success", "data": { ... } }
-{ "code": 0, "message": "success", "data": { "items": [...], "page": 1, "pageSize": 20, "total": 100 } }
-{ "code": 40101, "message": "未授权", "data": null }
+// 成功
+{ "code": "OK", "message": "success", "requestId": "uuid", "data": { ... } }
+
+// 列表（分页）
+{ "code": "OK", "message": "success", "requestId": "uuid", "data": {
+    "items": [...], "page": 1, "pageSize": 20, "total": 100
+}}
+
+// 错误（不含 data 字段）
+{ "code": "AUTH_UNAUTHORIZED", "message": "未授权", "requestId": "uuid" }
 ```
+
+code 字段使用字符串枚举（与现有 API 契约保持一致）：`OK`、`AUTH_UNAUTHORIZED`、`FORBIDDEN`、`NOT_FOUND`、`CONFLICT`、`BAD_REQUEST`、`INTERNAL_ERROR`。
 
 ### 4.2 认证
 
@@ -729,7 +748,7 @@ public class Fence extends AggregateRoot {
 | POST | `/api/v1/tenants/{id}/farms` | 创建牧场 | owner |
 | GET | `/api/v1/farms/{farmId}` | 牧场详情 | 成员 |
 | PUT | `/api/v1/farms/{farmId}` | 更新牧场 | owner |
-| DELETE | `/api/v1/farms/{farmId}` | 删除牧场 | owner |
+| DELETE | `/api/v1/farms/{farmId}` | 删除牧场（软删除） | owner |
 | GET | `/api/v1/farms/{farmId}/members` | 牧场成员列表 | owner |
 | POST | `/api/v1/farms/{farmId}/members` | 添加成员 | owner |
 | DELETE | `/api/v1/farms/{farmId}/members/{userId}` | 移除成员 | owner |
@@ -810,7 +829,9 @@ public class Fence extends AggregateRoot {
 |------|------|
 | URL 风格 | `/api/v1/` 前缀，资源嵌套最多 2 层 |
 | farmId 路径参数 | Ranch API 统一以 `/farms/{farmId}/` 为前缀 |
+| IoT 租户隔离 | 设备 API 通过 JWT 中的 `tid`（tenantId）过滤，不嵌入 URL。platform_admin 的 tenant_id 为 NULL 时可查看所有租户设备 |
 | 状态变更 | PATCH + 子路径（/acknowledge, /activate） |
+| 删除策略 | 牧场删除为软删除（设置 status=deleted），不级联删除关联数据。如有依赖数据则拒绝删除 |
 | 批量 GPS 上报 | POST body 为数组 |
 | 多端统一 | Flutter 和 Vue 3 使用相同 API |
 
