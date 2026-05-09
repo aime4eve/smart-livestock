@@ -111,7 +111,7 @@
 | 实体 | GpsLog | GPS 时序数据 |
 | 实体 | TemperatureLog | 温度时序数据 (Phase 2) |
 | 实体 | PeristalticLog | 蠕动时序数据 (Phase 2) |
-| 值对象 | DeviceType | TRACKER / CAPSULE / ACCELEROMETER |
+| 值对象 | DeviceType | EAR_TAG / TRACKER / CAPSULE / ACCELEROMETER |
 | 值对象 | DeviceStatus | INVENTORY / ACTIVE / OFFLINE / DECOMMISSIONED |
 | 值对象 | LicenseStatus | ACTIVE / EXPIRED / REVOKED |
 
@@ -266,17 +266,19 @@ Identity / Ranch / IoT / Health / Commerce ──(只读)──→ Analytics
 |------|------|------|------|
 | id | BIGSERIAL | PK | |
 | farm_id | BIGINT | FK → farms.id, NOT NULL | 所属牧场 |
-| tag_id | VARCHAR(50) | UNIQUE, NOT NULL | 耳标号 |
+| livestock_code | VARCHAR(50) | NOT NULL | 牲畜编号（牧场主自定义或系统生成，终身不变） |
 | breed | VARCHAR(50) | | 品种 |
 | gender | VARCHAR(10) | CHECK IN ('公','母') | |
 | birth_date | DATE | | 出生日期 |
 | weight | DECIMAL(7,2) | | 体重(kg) |
 | health_status | VARCHAR(20) | NOT NULL, DEFAULT 'healthy' | healthy/warning/critical |
-| last_latitude | DECIMAL(10,7) | | 最新纬度（缓存） |
-| last_longitude | DECIMAL(10,7) | | 最新经度（缓存） |
+| last_latitude | DECIMAL(10,7) | | 最新纬度（缓存，由设备 GPS 数据更新） |
+| last_longitude | DECIMAL(10,7) | | 最新经度（缓存，由设备 GPS 数据更新） |
 | last_position_at | TIMESTAMP | | 最后定位时间 |
 | created_at | TIMESTAMP | DEFAULT now() | |
 | updated_at | TIMESTAMP | DEFAULT now() | |
+
+**牲畜标识说明:** `livestock_code` 是牲畜本身的终身编号，与设备无关。设备标识（耳标/追踪器/胶囊的 SN 和 DevEUI）通过 `installations` 表关联 `devices` 获取。同一头牲畜可同时安装多个设备（耳标 + 追踪器 + 胶囊），设备可更换但 `livestock_code` 不变。
 
 **fences**
 
@@ -331,12 +333,12 @@ UNIQUE(user_id, farm_id)
 |------|------|------|------|
 | id | BIGSERIAL | PK | |
 | tenant_id | BIGINT | FK → tenants.id, NOT NULL | 所属租户 |
-| device_code | VARCHAR(50) | UNIQUE, NOT NULL | 设备编码 |
-| device_type | VARCHAR(20) | NOT NULL | TRACKER / CAPSULE / ACCELEROMETER |
+| device_code | VARCHAR(50) | UNIQUE, NOT NULL | 设备 SN（商品编号） |
+| device_type | VARCHAR(20) | NOT NULL | EAR_TAG / TRACKER / CAPSULE / ACCELEROMETER |
+| dev_eui | VARCHAR(16) | | LoRa DevEUI（设备入网号） |
 | status | VARCHAR(20) | NOT NULL, DEFAULT 'INVENTORY' | INVENTORY / ACTIVE / OFFLINE / DECOMMISSIONED |
 | battery_level | INTEGER | | 电量百分比 |
 | firmware_version | VARCHAR(50) | | 固件版本 |
-| dev_eui | VARCHAR(16) | | LoRa DevEUI |
 | last_online_at | TIMESTAMP | | 最后在线时间 |
 | created_at | TIMESTAMP | DEFAULT now() | |
 | updated_at | TIMESTAMP | DEFAULT now() | |
@@ -729,11 +731,19 @@ public class Fence extends AggregateRoot {
 
 **禁止反向依赖:** infrastructure 不能被 domain 层 import；interfaces 不能直接访问 infrastructure。
 
+### 3.5 事务策略
+
+1. **事务边界在 ApplicationService** — 用例方法加 `@Transactional`，Controller 和 Repository 不独立开事务
+2. **领域事件在事务提交后发布** — 使用 `TransactionPhase.AFTER_COMMIT`，避免事务回滚后事件已发出导致下游脏读
+3. **跨上下文用最终一致性** — Phase 1 仅 1 个跨上下文流（GPS → 越界检测 → Alert），通过事件桥接异步处理，不做分布式事务
+
 ---
 
 ## 4. API 设计
 
-> **状态: 草案。** 需重新设计多端统一 API 契约（App端 + PC端 + 第三方开发者），以 `Mobile/docs/api-contracts/` 为基础升级。本节内容仅作领域模型推导的参考，待独立 API 契约设计完成后替换。
+> **状态: 已由多端统一 API 契约取代。** 完整端点定义、响应格式、认证机制、Farm Scope 约束以 [多端统一 API 契约（总览+三端端点）](../../api-contracts/api-overview.md) 为准。本节保留领域模型推导上下文，具体端点以契约文档为真源。
+>
+> 契约文档端点统计：App 49 个 + Admin 21 个 + Open 11 个 = 81 个端点，三端隔离于 `/api/v1/`、`/api/v1/admin/`、`/api/v1/open/` 前缀。完整错误码全集（17 个）见契约总览 §2.5。
 
 ### 4.1 统一响应格式
 
@@ -747,16 +757,26 @@ public class Fence extends AggregateRoot {
 }}
 
 // 错误（不含 data 字段）
-{ "code": "AUTH_UNAUTHORIZED", "message": "未授权", "requestId": "uuid" }
+{ "code": "AUTH_TOKEN_EXPIRED", "message": "Token 已过期", "requestId": "uuid" }
 ```
 
-code 字段使用字符串枚举（与现有 API 契约保持一致）：`OK`、`AUTH_UNAUTHORIZED`、`FORBIDDEN`、`NOT_FOUND`、`CONFLICT`、`BAD_REQUEST`、`INTERNAL_ERROR`。
+code 字段使用字符串枚举（与多端统一 API 契约一致）：`OK`、`VALIDATION_ERROR`、`AUTH_TOKEN_EXPIRED`、`AUTH_INVALID_TOKEN`、`AUTH_API_KEY_INVALID`、`AUTH_API_KEY_EXPIRED`、`AUTH_FORBIDDEN`、`TENANT_DISABLED`、`QUOTA_EXCEEDED`、`LICENSE_EXPIRED`、`RESOURCE_NOT_FOUND`、`STATE_CONFLICT`、`DUPLICATE_RESOURCE`、`DEVICE_NOT_ACTIVE`、`RESOURCE_DELETED`、`FARM_SCOPE_CONFLICT`、`RATE_LIMIT_EXCEEDED`、`INTERNAL_ERROR`。
 
 ### 4.2 认证
 
 - Bearer Token (JWT)
 - JWT payload: `{ "sub": "userId", "tid": "tenantId", "role": "owner", "iat": ..., "exp": ... }`
 - 牧场权限在请求时实时校验 user_farm_assignments 表
+
+#### 4.2.1 安全配置
+
+**JWT 密钥：** 环境变量 `JWT_SECRET` 注入，不低于 256 位（32 字节）。`application.yml` 中不硬编码密钥，无默认值（缺失时启动失败）。accessToken 有效期 1h，refreshToken 有效期 7d（见 Plan `application.yml` 中 `jwt.access-expiration` / `jwt.refresh-expiration`）。密钥轮换和 Vault 集成放 Phase 2。
+
+**密码策略：** BCrypt，cost factor 10（Spring Security 默认值，兼顾安全与性能）。最小长度 8 位，无复杂度要求（牧场主用户群体不强制特殊字符）。`PasswordHasher` 封装 BCrypt 调用，供 `AuthApplicationService` 使用。
+
+**登录锁定：** 5 次连续失败后锁定账户 15 分钟。使用 Redis 计数器（key: `login:fail:{phone}`，TTL 15 分钟），成功登录时清除计数器。锁定期间返回 403 `AUTH_FORBIDDEN`，message 注明"账户已锁定，请稍后重试"。
+
+**API Key 生成与存储：** `java.security.SecureRandom` 生成 32 字节随机数，Base64url 编码为 `sl_live_<base64>` / `sl_test_<base64>`。存储时仅保存 SHA-256 哈希（`keyHash` 列），首次创建时返回明文一次，之后不可恢复。
 
 ### 4.3 Identity Context API
 
@@ -811,40 +831,45 @@ code 字段使用字符串枚举（与现有 API 契约保持一致）：`OK`、
 
 ### 4.5 IoT Context API
 
-**设备**
+> 以下端点路径已与多端统一 API 契约对齐。完整端点清单以契约文档为准。
+
+**设备**（路径统一为 `/farms/{farmId}/devices`）
 
 | 方法 | 路径 | 说明 | 权限 |
 |------|------|------|------|
-| GET | `/api/v1/devices` | 设备列表 | owner/admin |
-| POST | `/api/v1/devices` | 注册设备 | owner |
-| GET | `/api/v1/devices/{id}` | 设备详情 | owner/worker |
-| PUT | `/api/v1/devices/{id}` | 更新设备 | owner |
-| PATCH | `/api/v1/devices/{id}/activate` | 激活设备 | owner |
-| PATCH | `/api/v1/devices/{id}/decommission` | 停用设备 | owner |
+| GET | `/api/v1/farms/{farmId}/devices` | 设备列表 | owner/worker |
+| POST | `/api/v1/farms/{farmId}/devices` | 注册设备 | owner |
+| GET | `/api/v1/farms/{farmId}/devices/{id}` | 设备详情 | owner/worker |
+| PUT | `/api/v1/farms/{farmId}/devices/{id}` | 更新设备 | owner |
+| PUT | `/api/v1/farms/{farmId}/devices/{id}/activate` | 激活设备（INVENTORY → ACTIVE） | owner |
+| PUT | `/api/v1/farms/{farmId}/devices/{id}/decommission` | 退役设备 | owner |
 
 **设备许可证**
 
 | 方法 | 路径 | 说明 | 权限 |
 |------|------|------|------|
-| POST | `/api/v1/devices/{id}/license` | 分配许可证 | owner |
-| GET | `/api/v1/devices/{id}/license` | 查看许可证 | owner |
-| PATCH | `/api/v1/devices/{id}/license/revoke` | 撤销许可证 | owner |
+| GET | `/api/v1/device-licenses` | 许可证列表（当前租户全部） | owner |
+| GET | `/api/v1/device-licenses/{licenseId}` | 许可证详情 | owner |
+| POST | `/api/v1/device-licenses` | 申请许可证 | owner |
+| PUT | `/api/v1/device-licenses/{licenseId}/revoke` | 撤销许可证 | owner |
 
 **安装记录**
 
 | 方法 | 路径 | 说明 | 权限 |
 |------|------|------|------|
-| GET | `/api/v1/devices/{id}/installations` | 安装历史 | owner/worker |
-| POST | `/api/v1/installations` | 安装设备到牲畜 | owner |
-| PATCH | `/api/v1/installations/{id}/remove` | 拆除设备 | owner |
+| GET | `/api/v1/farms/{farmId}/installations` | 安装记录列表 | owner/worker |
+| POST | `/api/v1/farms/{farmId}/installations` | 安装设备到牲畜 | owner |
+| GET | `/api/v1/farms/{farmId}/installations/{installationId}` | 安装记录详情 | owner/worker |
+| PUT | `/api/v1/farms/{farmId}/installations/{installationId}/uninstall` | 拆卸设备 | owner |
 
 **GPS 数据**
 
 | 方法 | 路径 | 说明 | 权限 |
 |------|------|------|------|
-| POST | `/api/v1/devices/{id}/gps-logs` | 上报 GPS（批量） | 系统内部/模拟器 |
-| GET | `/api/v1/devices/{id}/gps-logs` | GPS 历史轨迹 | owner/worker |
-| GET | `/api/v1/farms/{farmId}/livestock/positions` | 牧场牲畜实时位置 | owner/worker |
+| GET | `/api/v1/farms/{farmId}/gps-logs/latest` | 全场最新 GPS 坐标 | owner/worker |
+| GET | `/api/v1/farms/{farmId}/livestock/{livestockId}/gps-logs` | 单牲畜 GPS 历史（`?startTime=&endTime=`） | owner/worker |
+
+**GPS 数据写入通道：** 主路径为 MQTT → RocketMQ 管道。Phase 1 测试期间保留 `POST /farms/{farmId}/devices/{deviceId}/gps-logs` 作为模拟数据注入入口（标注 `@Deprecated`，Phase 3 移除）。
 
 ### 4.6 设计要点
 
@@ -852,11 +877,12 @@ code 字段使用字符串枚举（与现有 API 契约保持一致）：`OK`、
 |------|------|
 | URL 风格 | `/api/v1/` 前缀，资源嵌套最多 2 层 |
 | farmId 路径参数 | Ranch API 统一以 `/farms/{farmId}/` 为前缀 |
-| IoT 租户隔离 | 设备 API 通过 JWT 中的 `tid`（tenantId）过滤，不嵌入 URL。platform_admin 的 tenant_id 为 NULL 时可查看所有租户设备 |
+| IoT 牧场隔离 | 设备 API 统一以 `/farms/{farmId}/` 为前缀，路径即权限。租户隔离通过 farm → tenant 归属关系间接保证 |
 | 状态变更 | PATCH + 子路径（/acknowledge, /activate） |
 | 删除策略 | 牧场删除为软删除（设置 status=deleted），不级联删除关联数据。如有依赖数据则拒绝删除 |
 | 批量 GPS 上报 | POST body 为数组 |
 | 多端统一 | Flutter 和 Vue 3 使用相同 API |
+| 健康检查 | `GET /health` 返回 `{ "status": "UP" }`，用于 Docker Compose / Nginx 存活检测 |
 
 ### 4.7 牧场作用域（Farm Scope）硬约束
 
@@ -951,6 +977,21 @@ FarmScopeResolver:
 | `tenant-phase-changed` | Commerce | Identity | Phase 2 |
 | `alert-status-changed` | Ranch | Analytics | Phase 2 |
 
+**Phase 1 消息 Schema：**
+
+`gps-log-updated`（IoT → Ranch）：
+```json
+{
+  "eventId": "550e8400-e29b-41d4-a716-446655440000",
+  "deviceId": 123,
+  "farmId": 456,
+  "latitude": 28.2458000,
+  "longitude": 112.8519000,
+  "accuracy": 3.50,
+  "recordedAt": "2026-05-09T10:30:00Z"
+}
+```
+
 ### 5.3 Nginx 路由
 
 | 路径 | 目标 | 说明 |
@@ -960,6 +1001,38 @@ FarmScopeResolver:
 | `/developer/` | → app:8080 | 开发者门户 (Phase 2) |
 
 Flutter 移动端直连 `http://172.22.1.123:8080/api/v1/`。
+
+### 5.3.1 基础设施配置清单
+
+**数据库连接池（HikariCP）：**
+
+| 参数 | 值 | 说明 |
+|------|-----|------|
+| `maximumPoolSize` | 10 | Docker 单机部署默认够用 |
+| `leakDetectionThreshold` | 30000 (30s) | 超时打 WARN 日志，定位慢查询和未关闭连接 |
+
+配置在 `application.yml` 的 `spring.datasource.hikari.*` 下。
+
+**健康检查（Spring Boot Actuator）：**
+
+`docker-compose.yml` 中 app 服务配置 `healthcheck: test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]`。依赖 `spring-boot-starter-actuator`，端点暴露 `health` 和 `info`，不暴露 `env`/`beans` 等敏感端点。
+
+**请求追踪（requestId / MDC）：**
+
+使用 Spring `OncePerRequestFilter` 实现（`jakarta.servlet` 命名空间，Spring Boot 3.x 标准方式）：
+
+1. Filter 检查请求头 `X-Request-Id`，不存在则生成 UUID
+2. 写入 SLF4J MDC（`MDC.put("requestId", id)`），日志格式中引用 `%X{requestId}`
+3. 写入响应头 `X-Request-Id`，便于客户端关联
+4. 统一响应包络的 `requestId` 字段从此 MDC 取值
+
+**CORS：**
+
+Phase 1 无浏览器直连 Spring Boot 的场景（Flutter 移动端直连、Vue 3 通过 Nginx 反代）。Spring Security 中 `cors().disable()`，跨域由 Nginx 统一配置。**禁止**在 Spring Boot 层单独配置 CORS，避免双重策略冲突。
+
+**updated_at 自动更新：**
+
+所有含 `updated_at` 列的实体继承 `BaseEntity`，通过 JPA `@PreUpdate` 回调设置 `LocalDateTime.now()`。不使用数据库 trigger，保持应用层统一管理。
 
 ### 5.4 CI/CD
 
@@ -1043,7 +1116,7 @@ RED → GREEN → REFACTOR
 
 | # | 事项 | 状态 |
 |---|------|------|
-| 0 | **多端 API 契约重设计**（前置任务）：基于领域上下文设计和 App 端实际代码，统一设计 App端(Flutter) + PC端(Vue 3) + 第三方开发者(Open API) 的 API 契约，完成后更新本规格第 4 节 | 待设计（独立 brainstorming） |
+| 0 | **多端 API 契约重设计**（前置任务）：已完成，见 `docs/api-contracts/` 目录下 6 份文档（总览 + App/Admin/Open 端点 + 迁移指南 + 变更日志） | 已完成 |
 | 1 | Spring Boot 项目初始化（Gradle + Java 17 + Spring Boot 3.x） | 待实施 |
 | 2 | Flyway 迁移脚本（V1~V3） | 待实施 |
 | 3 | Identity Context 完整实现（domain + application + infrastructure + interfaces） | 待实施 |
