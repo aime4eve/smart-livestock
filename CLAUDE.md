@@ -4,16 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-智慧畜牧系统（Smart Livestock）是面向牧场主的牲畜管理平台，通过 IoT 设备（GPS 追踪器、瘤胃胶囊、加速度计）实现定位、健康预警和行为分析。仓库包含两个独立子项目：
+智慧畜牧系统（Smart Livestock）是面向牧场主的牲畜管理平台，通过 IoT 设备（GPS 追踪器、瘤胃胶囊、加速度计）实现定位、健康预警和行为分析。仓库包含两个子项目：
 
-- **PC/** — Angular 19 前端 + 规划中的 Spring Boot 后端（数据库设计阶段，当前从静态 JSON 加载数据）
-- **Mobile/** — Flutter 移动端 + Node.js Mock API Server
+- **Mobile/** — Flutter 移动端 + Node.js Mock API Server（Demo 阶段已完成：订阅基础设施、多牧场支持、B端管理后台、牧工管理）
+- **smart-livestock-server/** — Spring Boot 后端（MVP 规划中，DDD 洋葱架构，将取代 Mock Server）
 
-两个子项目各自独立开发，不共享代码或依赖。
+Flutter 端已完成的 Demo 功能包括：订阅与功能门控、多牧场切换、B端管理后台、牧工管理。这些功能将在 Spring Boot 后端上线后逐步迁移为真实后端驱动。
 
 ## 当前工作重点
 
-**PC/ 目录暂不维护，所有开发工作集中在 Mobile/ 端。** 读取、搜索、修改代码时仅关注 Mobile/ 目录，不要主动分析或修改 PC/ 下的文件。
+**后端实施集中在 `smart-livestock-server/` 目录（Spring Boot），前端维护集中在 `Mobile/` 目录。** PC/ 目录暂不维护。读取、搜索、修改后端代码时关注 `smart-livestock-server/`，前端代码关注 `Mobile/`。
 
 ---
 
@@ -84,7 +84,45 @@ CattleService ←→ LocationService（GPS 坐标）
 
 ### 数据库设计
 
-已完成的 PostgreSQL 设计（`database/init_postgresql.sql`，约 296KB）：users、devices、cattle、cattle_metadata、sensor_data 表，含空间索引和分区策略。详见 `backend-migration-database-design.md` 和 `backend-springboot-design.md`。
+已完成的 PostgreSQL 设计（`database/init_postgresql.sql`，约 296KB）：users、devices、cattle、cattle_metadata、sensor_data 表，含空间索引和分区策略。详见 `backend-migration-database-design.md` 和 `backend-springboot-design.md`。注意：此为 PC 端早期设计，与 MVP 后端（`smart-livestock-server/`）的设计规格独立。
+
+---
+
+## 后端（smart-livestock-server/）
+
+> 目录尚未创建，当前处于规划阶段。设计文档已完成，见 `docs/superpowers/specs/` 和 `docs/api-contracts/`。
+
+### 设计文档索引
+
+| 文档 | 位置 | 说明 |
+|------|------|------|
+| MVP 后端设计规格 | `docs/superpowers/specs/2026-05-06-mvp-backend-design.md` | DDD 限界上下文、DB Schema、洋葱架构、API 总览 |
+| 实施计划 | `docs/superpowers/plans/2026-05-06-mvp-phase1-implementation.md` | 16 个 Task，TDD 流程 |
+| API 契约总览 | `docs/api-contracts/api-overview.md` | 三端隔离、通用约定、Farm Scope |
+| App API | `docs/api-contracts/app-api.md` | `/api/v1/` 49 端点 |
+| Admin API | `docs/api-contracts/admin-api.md` | `/api/v1/admin/` 21 端点 |
+| Open API | `docs/api-contracts/open-api.md` | `/api/v1/open/` 11 端点（API Key 认证） |
+
+### 技术栈
+
+Spring Boot 3.x + Java 17 + Gradle + PostgreSQL 16 + Redis 7 + RocketMQ 5.1 + Flyway + JPA/Hibernate + Spring Security + JWT + JUnit 5 + Testcontainers
+
+### 限界上下文（Phase 1）
+
+- **Identity**: Tenant、User、Farm、Role（JWT 认证 + 多租户隔离）
+- **Ranch**: Livestock、Fence、Alert（围栏越界检测 → 自动告警）
+- **IoT**: Device、DeviceLicense、Installation、GpsLog（GPS 模拟数据）
+
+### 常用命令（实施后可用）
+
+```bash
+cd smart-livestock-server
+./gradlew compileJava              # 编译
+./gradlew test                     # 全部测试
+./gradlew test --tests "*.domain.model.*"  # 领域模型单元测试
+./gradlew bootRun                  # 启动（需 PostgreSQL + Redis）
+docker-compose up -d               # 全栈启动
+```
 
 ---
 
@@ -137,9 +175,9 @@ cd Mobile && ./dev.sh start [mock|live]
 - **API 路由**: auth、me、dashboard、map、alerts、fences、devices、tenants、profile、twin（数智孪生）、subscription、b2b、farm、worker。Open API 路由（`/api/open/v1/*`）使用 API Key 认证 + 频率限制。
 - **数据种子**: `backend/data/seed.js` 与 Flutter 端 `demo_seed.dart` 保持对齐
 
-### 订阅与功能门控
+### 订阅与功能门控（Flutter Demo 阶段实现）
 
-- `SubscriptionTier` 枚举: trial、basic、pro、enterprise
+- `SubscriptionTier` 枚举: basic、pro、enterprise（后端 MVP Phase 2 对齐，样品单阶段无 tier 限制）
 - `middleware/feature-flag.js` 基于 tier 控制功能可见性
 - `ApiCache` 预加载时按 tier 范围过滤数据
 - 锁定功能显示升级提示覆盖层
@@ -152,7 +190,7 @@ cd Mobile && ./dev.sh start [mock|live]
 | worker（牧工） | `mock-token-worker` | 看板/地图/告警/我的/围栏，仅确认告警 |
 | platform_admin（平台管理员） | `mock-token-platform-admin` | 租户全量管理 + 合同 CRUD + 分润对账 + 订阅服务管理 + API 授权审批 |
 | b2b_admin（B端客户管理员） | `mock-token-b2b-admin` | 概览/牧场管理/合同信息/对账/旗下牧工管理 |
-| api_consumer（API 开发者） | `mock-token-api-consumer` | 仅 API 访问，无 App 端（开发者门户 Phase 2b 规划中） |
+| api_consumer（API 开发者） | `mock-token-api-consumer` | 仅 API 访问，无 App 端（开发者门户 MVP Phase 2 规划中） |
 
 ### 代码风格
 
@@ -165,11 +203,13 @@ cd Mobile && ./dev.sh start [mock|live]
 
 ## 版本路线图
 
-| 阶段 | 核心功能 |
-|------|---------|
-| Phase 1 (已完成) | 订阅基础设施 + 功能门控 |
-| Phase 2a (已完成) | 多牧场支持 + B端管理后台 + 牧场切换器 + 牧工管理 |
-| Phase 2b (设计中) | 分润对账 + 订阅服务管理 + 合同 CRUD + API 平台 + 开发者门户 |
-| MVP V1.0 | GPS 定位 + 电子围栏 + 基础告警 + 历史轨迹 + 租户管理后台 |
-| V1.5 | 瘤胃温度/蠕动监测 + 健康评分 |
-| V2.0 | 步态分析 + 行为统计 + 发情检测 |
+> Flutter Demo 阶段已完成：订阅基础设施 + 功能门控、多牧场支持 + B端管理后台 + 牧场切换器 + 牧工管理。
+> 当前进入 Spring Boot 后端 MVP 实施阶段，以下为后端演进规划。
+
+| 阶段 | 核心功能 | 限界上下文 | 状态 |
+|------|---------|-----------|------|
+| **MVP Phase 1** — 核心底座 | 认证(JWT) + 租户/牧场 + 设备/牲畜 + 围栏/告警 + Dashboard/Map + GPS 模拟 | Identity + Ranch + IoT | 实施中 |
+| **MVP Phase 2** — 商业模型 | 订阅/功能门控 + 合同/分润对账 + B端管理后台 + 牧工管理 + API 授权/开发者门户 + Health(温度/蠕动/发情/疫情) | Commerce + Health + Analytics | 待设计 |
+| **Phase 3** — IoT 真实接入 | 设备 license 入网 + LoRa/NS 平台对接 + 真实传感器数据 + 时序数据分区 | IoT 扩展 | 待设计 |
+
+**MVP Phase 1 做完后，牧场主就能用 App 管理牲畜、看围栏、收告警、查轨迹。**
