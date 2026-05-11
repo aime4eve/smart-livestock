@@ -10,4 +10,5 @@ public interface SpringDataInstallationRepository extends JpaRepository<Installa
     Optional<InstallationJpaEntity> findByDeviceIdAndRemovedAtIsNull(Long deviceId);
     List<InstallationJpaEntity> findByLivestockId(Long livestockId);
     Optional<InstallationJpaEntity> findByLivestockIdAndRemovedAtIsNull(Long livestockId);
+    List<InstallationJpaEntity> findByRemovedAtIsNull();
 }
