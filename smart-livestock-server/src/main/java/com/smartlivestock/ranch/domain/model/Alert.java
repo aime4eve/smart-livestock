@@ -116,4 +116,20 @@ public class Alert extends AggregateRoot {
     public Long getHandledBy() { return handledBy; }
 
     public Instant getHandledAt() { return handledAt; }
+
+    /**
+     * Reconstitute acknowledgement state from persistence.
+     */
+    public void reconstituteAcknowledgement(Long acknowledgedBy, Instant acknowledgedAt) {
+        this.acknowledgedBy = acknowledgedBy;
+        this.acknowledgedAt = acknowledgedAt;
+    }
+
+    /**
+     * Reconstitute handled state from persistence.
+     */
+    public void reconstituteHandled(Long handledBy, Instant handledAt) {
+        this.handledBy = handledBy;
+        this.handledAt = handledAt;
+    }
 }

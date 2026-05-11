@@ -90,5 +90,15 @@ public class User extends AggregateRoot {
 
     public boolean isActive() { return active; }
 
+    /**
+     * Reconstitute the active state from persistence. Bypasses the state machine validation.
+     */
+    public void reconstituteActive(boolean active) { this.active = active; }
+
     public Instant getLastLoginAt() { return lastLoginAt; }
+
+    /**
+     * Reconstitute lastLoginAt from persistence.
+     */
+    public void reconstituteLastLoginAt(Instant lastLoginAt) { this.lastLoginAt = lastLoginAt; }
 }

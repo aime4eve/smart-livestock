@@ -123,4 +123,9 @@ public class Device extends AggregateRoot {
     public void setDevEui(String devEui) { this.devEui = devEui; }
 
     public Instant getLastOnlineAt() { return lastOnlineAt; }
+
+    /**
+     * Reconstitute lastOnlineAt from persistence.
+     */
+    public void reconstituteLastOnlineAt(Instant lastOnlineAt) { this.lastOnlineAt = lastOnlineAt; }
 }

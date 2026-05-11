@@ -82,6 +82,11 @@ public class DeviceLicense extends AggregateRoot {
 
     public Instant getActivatedAt() { return activatedAt; }
 
+    /**
+     * Reconstitute activatedAt from persistence.
+     */
+    public void reconstituteActivatedAt(Instant activatedAt) { this.activatedAt = activatedAt; }
+
     public Instant getExpiresAt() { return expiresAt; }
     public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
 }

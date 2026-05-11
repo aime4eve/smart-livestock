@@ -65,6 +65,16 @@ public class Installation extends Entity {
 
     public Instant getRemovedAt() { return removedAt; }
 
+    /**
+     * Reconstitute installedAt from persistence.
+     */
+    public void reconstituteInstalledAt(Instant installedAt) { this.installedAt = installedAt; }
+
+    /**
+     * Reconstitute removedAt from persistence.
+     */
+    public void reconstituteRemovedAt(Instant removedAt) { this.removedAt = removedAt; }
+
     public Long getOperatorId() { return operatorId; }
     public void setOperatorId(Long operatorId) { this.operatorId = operatorId; }
 }

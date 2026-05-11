@@ -86,4 +86,13 @@ public class Livestock extends AggregateRoot {
     public BigDecimal getLastLongitude() { return lastLongitude; }
 
     public Instant getLastPositionAt() { return lastPositionAt; }
+
+    /**
+     * Reconstitute last known position from persistence.
+     */
+    public void reconstitutePosition(BigDecimal latitude, BigDecimal longitude, Instant positionAt) {
+        this.lastLatitude = latitude;
+        this.lastLongitude = longitude;
+        this.lastPositionAt = positionAt;
+    }
 }

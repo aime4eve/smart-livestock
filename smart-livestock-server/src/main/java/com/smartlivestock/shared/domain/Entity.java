@@ -6,7 +6,7 @@ public abstract class Entity {
     private Long id;
 
     public Long getId() { return id; }
-    void setId(Long id) { this.id = id; }
+    public void setId(Long id) { this.id = id; }
 
     @Override
     public boolean equals(Object o) {
