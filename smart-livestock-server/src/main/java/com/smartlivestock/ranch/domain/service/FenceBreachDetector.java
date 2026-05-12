@@ -6,10 +6,13 @@ import com.smartlivestock.ranch.domain.model.GpsCoordinate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Component;
+
 /**
  * Domain service for detecting fence breaches.
  * Determines whether a GPS position falls outside fence boundaries.
  */
+@Component
 public class FenceBreachDetector {
 
     /**

@@ -1,0 +1,150 @@
+- generic [ref=e132]:
+  - complementary [ref=e133]:
+    - generic [ref=e134]: 智慧畜牧 API 平台
+    - list [ref=e135]:
+      - listitem [ref=e136]:
+        - link "仪表盘" [ref=e137] [cursor=pointer]:
+          - /url: /dashboard
+      - listitem [ref=e138]:
+        - link "API Key 管理" [ref=e139] [cursor=pointer]:
+          - /url: /api-keys
+      - listitem [ref=e140]:
+        - link "接口文档" [ref=e141] [cursor=pointer]:
+          - /url: /endpoints
+      - listitem [ref=e142]:
+        - link "数据授权" [ref=e143] [cursor=pointer]:
+          - /url: /authorizations
+      - listitem [ref=e144]:
+        - link "账户设置" [ref=e145] [cursor=pointer]:
+          - /url: /settings
+  - generic [ref=e146]:
+    - banner [ref=e147]:
+      - generic [ref=e148]: 智慧畜牧 API 平台
+      - generic [ref=e149]:
+        - generic [ref=e150]: 数据科技公司
+        - button "退出登录" [ref=e151] [cursor=pointer]
+    - main [ref=e152]:
+      - heading "接口文档" [level=2] [ref=e154]
+      - generic [ref=e155]:
+        - heading "Free 免费版" [level=3] [ref=e156]
+        - table [ref=e158]:
+          - rowgroup [ref=e159]:
+            - row "方法 接口路径 说明" [ref=e160]:
+              - columnheader "方法" [ref=e161]
+              - columnheader "接口路径" [ref=e162]
+              - columnheader "说明" [ref=e163]
+          - rowgroup [ref=e164]:
+            - row "GET /api/v1/cattle 查询牛只列表" [ref=e165]:
+              - cell "GET" [ref=e166]:
+                - generic [ref=e167]: GET
+              - cell "/api/v1/cattle" [ref=e168]:
+                - code [ref=e169]: /api/v1/cattle
+              - cell "查询牛只列表" [ref=e170]
+            - row "GET /api/v1/cattle/:id 查询牛只详情" [ref=e171]:
+              - cell "GET" [ref=e172]:
+                - generic [ref=e173]: GET
+              - cell "/api/v1/cattle/:id" [ref=e174]:
+                - code [ref=e175]: /api/v1/cattle/:id
+              - cell "查询牛只详情" [ref=e176]
+            - row "GET /api/v1/devices 查询设备列表" [ref=e177]:
+              - cell "GET" [ref=e178]:
+                - generic [ref=e179]: GET
+              - cell "/api/v1/devices" [ref=e180]:
+                - code [ref=e181]: /api/v1/devices
+              - cell "查询设备列表" [ref=e182]
+            - row "GET /api/v1/alerts 查询告警列表" [ref=e183]:
+              - cell "GET" [ref=e184]:
+                - generic [ref=e185]: GET
+              - cell "/api/v1/alerts" [ref=e186]:
+                - code [ref=e187]: /api/v1/alerts
+              - cell "查询告警列表" [ref=e188]
+            - row "GET /api/v1/fences 查询围栏列表" [ref=e189]:
+              - cell "GET" [ref=e190]:
+                - generic [ref=e191]: GET
+              - cell "/api/v1/fences" [ref=e192]:
+                - code [ref=e193]: /api/v1/fences
+              - cell "查询围栏列表" [ref=e194]
+      - generic [ref=e195]:
+        - heading "Growth 成长版" [level=3] [ref=e196]
+        - table [ref=e198]:
+          - rowgroup [ref=e199]:
+            - row "方法 接口路径 说明" [ref=e200]:
+              - columnheader "方法" [ref=e201]
+              - columnheader "接口路径" [ref=e202]
+              - columnheader "说明" [ref=e203]
+          - rowgroup [ref=e204]:
+            - row "GET /api/v1/sensors/:id/temperature 查询瘤胃温度数据" [ref=e205]:
+              - cell "GET" [ref=e206]:
+                - generic [ref=e207]: GET
+              - cell "/api/v1/sensors/:id/temperature" [ref=e208]:
+                - code [ref=e209]: /api/v1/sensors/:id/temperature
+              - cell "查询瘤胃温度数据" [ref=e210]
+            - row "GET /api/v1/sensors/:id/peristalsis 查询瘤胃蠕动数据" [ref=e211]:
+              - cell "GET" [ref=e212]:
+                - generic [ref=e213]: GET
+              - cell "/api/v1/sensors/:id/peristalsis" [ref=e214]:
+                - code [ref=e215]: /api/v1/sensors/:id/peristalsis
+              - cell "查询瘤胃蠕动数据" [ref=e216]
+            - row "GET /api/v1/cattle/:id/history 查询牛只运动轨迹" [ref=e217]:
+              - cell "GET" [ref=e218]:
+                - generic [ref=e219]: GET
+              - cell "/api/v1/cattle/:id/history" [ref=e220]:
+                - code [ref=e221]: /api/v1/cattle/:id/history
+              - cell "查询牛只运动轨迹" [ref=e222]
+            - row "POST /api/v1/fences 创建电子围栏" [ref=e223]:
+              - cell "POST" [ref=e224]:
+                - generic [ref=e225]: POST
+              - cell "/api/v1/fences" [ref=e226]:
+                - code [ref=e227]: /api/v1/fences
+              - cell "创建电子围栏" [ref=e228]
+            - row "PUT /api/v1/fences/:id 更新电子围栏" [ref=e229]:
+              - cell "PUT" [ref=e230]:
+                - generic [ref=e231]: PUT
+              - cell "/api/v1/fences/:id" [ref=e232]:
+                - code [ref=e233]: /api/v1/fences/:id
+              - cell "更新电子围栏" [ref=e234]
+      - generic [ref=e235]:
+        - heading "Scale 企业版" [level=3] [ref=e236]
+        - table [ref=e238]:
+          - rowgroup [ref=e239]:
+            - row "方法 接口路径 说明" [ref=e240]:
+              - columnheader "方法" [ref=e241]
+              - columnheader "接口路径" [ref=e242]
+              - columnheader "说明" [ref=e243]
+          - rowgroup [ref=e244]:
+            - row "POST /api/v1/cattle 录入新牛只" [ref=e245]:
+              - cell "POST" [ref=e246]:
+                - generic [ref=e247]: POST
+              - cell "/api/v1/cattle" [ref=e248]:
+                - code [ref=e249]: /api/v1/cattle
+              - cell "录入新牛只" [ref=e250]
+            - row "PUT /api/v1/cattle/:id 更新牛只信息" [ref=e251]:
+              - cell "PUT" [ref=e252]:
+                - generic [ref=e253]: PUT
+              - cell "/api/v1/cattle/:id" [ref=e254]:
+                - code [ref=e255]: /api/v1/cattle/:id
+              - cell "更新牛只信息" [ref=e256]
+            - row "GET /api/v1/stats/health 牛群健康统计" [ref=e257]:
+              - cell "GET" [ref=e258]:
+                - generic [ref=e259]: GET
+              - cell "/api/v1/stats/health" [ref=e260]:
+                - code [ref=e261]: /api/v1/stats/health
+              - cell "牛群健康统计" [ref=e262]
+            - row "GET /api/v1/stats/behavior 行为分析统计" [ref=e263]:
+              - cell "GET" [ref=e264]:
+                - generic [ref=e265]: GET
+              - cell "/api/v1/stats/behavior" [ref=e266]:
+                - code [ref=e267]: /api/v1/stats/behavior
+              - cell "行为分析统计" [ref=e268]
+            - row "POST /api/v1/alerts/:id/acknowledge 确认告警" [ref=e269]:
+              - cell "POST" [ref=e270]:
+                - generic [ref=e271]: POST
+              - cell "/api/v1/alerts/:id/acknowledge" [ref=e272]:
+                - code [ref=e273]: /api/v1/alerts/:id/acknowledge
+              - cell "确认告警" [ref=e274]
+            - row "DELETE /api/v1/fences/:id 删除电子围栏" [ref=e275]:
+              - cell "DELETE" [ref=e276]:
+                - generic [ref=e277]: DELETE
+              - cell "/api/v1/fences/:id" [ref=e278]:
+                - code [ref=e279]: /api/v1/fences/:id
+              - cell "删除电子围栏" [ref=e280]

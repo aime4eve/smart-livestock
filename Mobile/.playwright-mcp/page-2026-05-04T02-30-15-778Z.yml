@@ -1,0 +1,13 @@
+- generic [ref=e4]:
+  - heading "智慧畜牧 API 平台" [level=1] [ref=e5]
+  - paragraph [ref=e6]: 开发者门户 - 请输入 API Token 登录
+  - generic [ref=e7]:
+    - generic [ref=e8]: API Token
+    - textbox "API Token" [ref=e9]:
+      - /placeholder: 请输入 API Token
+      - text: mock-token-api-consumer
+  - button "登录" [ref=e10] [cursor=pointer]
+  - paragraph [ref=e11]:
+    - text: 还没有账号？
+    - link "申请访问权限" [ref=e12] [cursor=pointer]:
+      - /url: /register

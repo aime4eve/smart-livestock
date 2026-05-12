@@ -1,0 +1,54 @@
+- generic [ref=e307]:
+  - complementary [ref=e308]:
+    - generic [ref=e309]: 智慧畜牧 API 平台
+    - list [ref=e310]:
+      - listitem [ref=e311]:
+        - link "仪表盘" [ref=e312] [cursor=pointer]:
+          - /url: /dashboard
+      - listitem [ref=e313]:
+        - link "API Key 管理" [ref=e314] [cursor=pointer]:
+          - /url: /api-keys
+      - listitem [ref=e315]:
+        - link "接口文档" [ref=e316] [cursor=pointer]:
+          - /url: /endpoints
+      - listitem [ref=e317]:
+        - link "数据授权" [ref=e318] [cursor=pointer]:
+          - /url: /authorizations
+      - listitem [ref=e319]:
+        - link "账户设置" [ref=e320] [cursor=pointer]:
+          - /url: /settings
+  - generic [ref=e321]:
+    - banner [ref=e322]:
+      - generic [ref=e323]: 智慧畜牧 API 平台
+      - generic [ref=e324]:
+        - generic [ref=e325]: 数据科技公司
+        - button "退出登录" [ref=e326] [cursor=pointer]
+    - main [ref=e327]:
+      - heading "账户设置" [level=2] [ref=e329]
+      - generic [ref=e330]:
+        - generic [ref=e331]: 账户信息
+        - table [ref=e332]:
+          - rowgroup [ref=e333]:
+            - row "角色 api_consumer" [ref=e334]:
+              - cell "角色" [ref=e335]
+              - cell "api_consumer" [ref=e336]
+            - row "用户名 数据科技公司" [ref=e337]:
+              - cell "用户名" [ref=e338]
+              - cell "数据科技公司" [ref=e339]
+            - row "邮箱 -" [ref=e340]:
+              - cell "邮箱" [ref=e341]
+              - cell "-" [ref=e342]
+            - row "订阅套餐 Free" [ref=e343]:
+              - cell "订阅套餐" [ref=e344]
+              - cell "Free" [ref=e345]:
+                - generic [ref=e346]: Free
+            - row "Token mock-token-api-consu..." [ref=e347]:
+              - cell "Token" [ref=e348]
+              - cell "mock-token-api-consu..." [ref=e349]:
+                - code [ref=e350]: mock-token-api-consu...
+      - generic [ref=e351]:
+        - generic [ref=e352]: API 使用限制
+        - paragraph [ref=e353]:
+          - text: "每月调用配额: 10,000 次"
+          - text: "速率限制: 100 次/分钟"
+          - text: "数据保留: 30 天历史数据"

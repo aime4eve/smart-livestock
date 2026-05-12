@@ -1,0 +1,94 @@
+- generic [ref=e13]:
+  - complementary [ref=e14]:
+    - generic [ref=e15]: 智慧畜牧 API 平台
+    - list [ref=e16]:
+      - listitem [ref=e17]:
+        - link "仪表盘" [ref=e18] [cursor=pointer]:
+          - /url: /dashboard
+      - listitem [ref=e19]:
+        - link "API Key 管理" [ref=e20] [cursor=pointer]:
+          - /url: /api-keys
+      - listitem [ref=e21]:
+        - link "接口文档" [ref=e22] [cursor=pointer]:
+          - /url: /endpoints
+      - listitem [ref=e23]:
+        - link "数据授权" [ref=e24] [cursor=pointer]:
+          - /url: /authorizations
+      - listitem [ref=e25]:
+        - link "账户设置" [ref=e26] [cursor=pointer]:
+          - /url: /settings
+  - generic [ref=e27]:
+    - banner [ref=e28]:
+      - generic [ref=e29]: 智慧畜牧 API 平台
+      - generic [ref=e30]:
+        - generic [ref=e31]: 数据科技公司
+        - button "退出登录" [ref=e32] [cursor=pointer]
+    - main [ref=e33]:
+      - heading "仪表盘" [level=2] [ref=e35]
+      - generic [ref=e36]:
+        - generic [ref=e37]:
+          - generic [ref=e38]: 本月 API 调用量
+          - generic [ref=e39]: 3,421
+          - generic [ref=e40]: 过去 30 天
+        - generic [ref=e41]:
+          - generic [ref=e42]: 剩余配额
+          - generic [ref=e43]: 6,579
+          - generic [ref=e44]: 总计 10,000 次/月
+        - generic [ref=e45]:
+          - generic [ref=e46]: 使用率
+          - generic [ref=e47]: 34%
+          - generic [ref=e48]: 3421 / 10000
+        - generic [ref=e49]:
+          - generic [ref=e50]: API Key 状态
+          - generic [ref=e51]: 正常
+          - generic [ref=e52]: "最后轮换: 2026-04-15"
+      - generic [ref=e54]: API 调用量趋势（近 7 天）
+      - generic [ref=e57]:
+        - generic [ref=e58]: 最近 API 调用记录
+        - table [ref=e59]:
+          - rowgroup [ref=e60]:
+            - row "日期 接口 调用次数" [ref=e61]:
+              - columnheader "日期" [ref=e62]
+              - columnheader "接口" [ref=e63]
+              - columnheader "调用次数" [ref=e64]
+          - rowgroup [ref=e65]:
+            - row "2026-05-01 GET /cattle 156" [ref=e66]:
+              - cell "2026-05-01" [ref=e67]
+              - cell "GET /cattle" [ref=e68]:
+                - code [ref=e69]: GET /cattle
+              - cell "156" [ref=e70]
+            - row "2026-05-01 GET /devices 89" [ref=e71]:
+              - cell "2026-05-01" [ref=e72]
+              - cell "GET /devices" [ref=e73]:
+                - code [ref=e74]: GET /devices
+              - cell "89" [ref=e75]
+            - row "2026-04-30 GET /fences 203" [ref=e76]:
+              - cell "2026-04-30" [ref=e77]
+              - cell "GET /fences" [ref=e78]:
+                - code [ref=e79]: GET /fences
+              - cell "203" [ref=e80]
+            - row "2026-04-30 GET /alerts 67" [ref=e81]:
+              - cell "2026-04-30" [ref=e82]
+              - cell "GET /alerts" [ref=e83]:
+                - code [ref=e84]: GET /alerts
+              - cell "67" [ref=e85]
+            - row "2026-04-29 GET /cattle 178" [ref=e86]:
+              - cell "2026-04-29" [ref=e87]
+              - cell "GET /cattle" [ref=e88]:
+                - code [ref=e89]: GET /cattle
+              - cell "178" [ref=e90]
+            - row "2026-04-29 GET /sensors 112" [ref=e91]:
+              - cell "2026-04-29" [ref=e92]
+              - cell "GET /sensors" [ref=e93]:
+                - code [ref=e94]: GET /sensors
+              - cell "112" [ref=e95]
+            - row "2026-04-28 GET /farm 45" [ref=e96]:
+              - cell "2026-04-28" [ref=e97]
+              - cell "GET /farm" [ref=e98]:
+                - code [ref=e99]: GET /farm
+              - cell "45" [ref=e100]
+            - row "2026-04-28 GET /devices 234" [ref=e101]:
+              - cell "2026-04-28" [ref=e102]
+              - cell "GET /devices" [ref=e103]:
+                - code [ref=e104]: GET /devices
+              - cell "234" [ref=e105]

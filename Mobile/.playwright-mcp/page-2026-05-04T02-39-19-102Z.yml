@@ -1,0 +1,30 @@
+- generic [ref=e106]:
+  - complementary [ref=e107]:
+    - generic [ref=e108]: 智慧畜牧 API 平台
+    - list [ref=e109]:
+      - listitem [ref=e110]:
+        - link "仪表盘" [ref=e111] [cursor=pointer]:
+          - /url: /dashboard
+      - listitem [ref=e112]:
+        - link "API Key 管理" [ref=e113] [cursor=pointer]:
+          - /url: /api-keys
+      - listitem [ref=e114]:
+        - link "接口文档" [ref=e115] [cursor=pointer]:
+          - /url: /endpoints
+      - listitem [ref=e116]:
+        - link "数据授权" [ref=e117] [cursor=pointer]:
+          - /url: /authorizations
+      - listitem [ref=e118]:
+        - link "账户设置" [ref=e119] [cursor=pointer]:
+          - /url: /settings
+  - generic [ref=e120]:
+    - banner [ref=e121]:
+      - generic [ref=e122]: 智慧畜牧 API 平台
+      - generic [ref=e123]:
+        - generic [ref=e124]: 数据科技公司
+        - button "退出登录" [ref=e125] [cursor=pointer]
+    - main [ref=e126]:
+      - generic [ref=e127]:
+        - heading "API Key 管理" [level=2] [ref=e128]
+        - button "+ 创建新 Key" [ref=e129] [cursor=pointer]
+      - paragraph [ref=e131]: 暂无 API Key

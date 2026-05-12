@@ -4,8 +4,8 @@
   "description": "Mock API server for Smart Livestock App",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
+    "start": "ENABLE_MOCK_TOKEN=true node server.js",
+    "dev": "ENABLE_MOCK_TOKEN=true node --watch server.js",
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
