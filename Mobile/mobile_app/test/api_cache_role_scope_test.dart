@@ -15,14 +15,15 @@ void main() {
   test('owner loads farm data and does not request b2b endpoints', () async {
     final client = _RecordingApiHttpClient();
     ApiCache.instance.debugSetHttpClient(client);
+    ApiCache.instance.activeFarmId = 'tenant_007';
 
     await ApiCache.instance.init(
       DemoRole.owner.wireName,
       allowMockTokenFallback: true,
     );
 
-    expect(client.paths, contains('/farm/my-farms'));
-    expect(client.paths, contains('/farms/tenant_007/workers'));
+    expect(client.paths, contains('/farms'));
+    expect(client.paths, contains('/farms/tenant_007/members'));
     expect(client.paths, isNot(contains('/b2b/dashboard')));
     expect(client.paths, isNot(contains('/b2b/contract/current')));
     expect(ApiCache.instance.myFarms?['activeFarmId'], 'tenant_007');
@@ -32,14 +33,15 @@ void main() {
   test('worker loads farms without workers or b2b endpoints', () async {
     final client = _RecordingApiHttpClient();
     ApiCache.instance.debugSetHttpClient(client);
+    ApiCache.instance.activeFarmId = 'tenant_007';
 
     await ApiCache.instance.init(
       DemoRole.worker.wireName,
       allowMockTokenFallback: true,
     );
 
-    expect(client.paths, contains('/farm/my-farms'));
-    expect(client.paths, isNot(contains('/farms/tenant_007/workers')));
+    expect(client.paths, contains('/farms'));
+    expect(client.paths, isNot(contains('/farms/tenant_007/members')));
     expect(client.paths, isNot(contains('/b2b/dashboard')));
     expect(client.paths, isNot(contains('/b2b/contract/current')));
   });
@@ -47,14 +49,15 @@ void main() {
   test('b2b admin loads b2b data without farm endpoints', () async {
     final client = _RecordingApiHttpClient();
     ApiCache.instance.debugSetHttpClient(client);
+    ApiCache.instance.activeFarmId = null;
 
     await ApiCache.instance.init(
       DemoRole.b2bAdmin.wireName,
       allowMockTokenFallback: true,
     );
 
-    expect(client.paths, isNot(contains('/farm/my-farms')));
-    expect(client.paths, isNot(contains('/farms/tenant_007/workers')));
+    expect(client.paths, isNot(contains('/farms')));
+    expect(client.paths, isNot(contains('/farms/tenant_007/members')));
     expect(client.paths, contains('/b2b/dashboard'));
     expect(client.paths, contains('/b2b/contract/current'));
     expect(ApiCache.instance.b2bDashboard?['activeContracts'], 2);
@@ -137,18 +140,21 @@ class _RecordingApiHttpClient implements ApiHttpClient {
 
   Map<String, dynamic> _data(Uri uri) {
     final path = uri.path.replaceFirst('/api/v1', '');
+    // Farm-scoped endpoints use /farms/{farmId}/... pattern
+    if (path.contains('/farms/') && path.endsWith('/dashboard')) {
+      return {'metrics': []};
+    }
+    if (path.contains('/farms/') && path.endsWith('/map')) {
+      return {'animals': [], 'points': []};
+    }
+    if (path.endsWith('/alerts') ||
+        path.endsWith('/fences') ||
+        path.endsWith('/tenants') ||
+        path.endsWith('/members')) {
+      return {'items': []};
+    }
     return switch (path) {
-      '/dashboard/summary' => {
-          'metrics': [],
-        },
-      '/map/trajectories' => {
-          'animals': [],
-          'points': [],
-        },
-      '/alerts' || '/fences' || '/tenants' => {
-          'items': [],
-        },
-      '/profile' => {
+      '/me' => {
           'name': '测试用户',
         },
       '/twin/overview' ||
@@ -163,16 +169,15 @@ class _RecordingApiHttpClient implements ApiHttpClient {
       '/twin/epidemic/contacts' ||
       '/devices' ||
       '/subscription/plans' ||
-      '/tenants/tenant_001/devices' ||
-      '/tenants/tenant_001/logs' ||
-      '/farms/tenant_007/workers' =>
+      '/admin/tenants/tenant_001/devices' ||
+      '/admin/tenants/tenant_001/logs' =>
         {
           'items': [],
         },
-      '/tenants/tenant_001/stats' => {
+      '/admin/tenants/tenant_001/stats' => {
           'animalTotal': 10,
         },
-      '/farm/my-farms' => {
+      '/farms' => {
           'activeFarmId': 'tenant_007',
           'farms': [
             {'id': 'tenant_001', 'name': '青山牧场', 'status': 'active'},
@@ -228,17 +233,28 @@ class _RacingApiHttpClient implements ApiHttpClient {
 
   Map<String, dynamic> _data(Uri uri) {
     final path = uri.path.replaceFirst('/api/v1', '');
+    // Farm-scoped endpoints use /farms/{farmId}/... pattern
+    if (path.contains('/farms/') && path.endsWith('/dashboard')) {
+      return {'metrics': []};
+    }
+    if (path.contains('/farms/') && path.endsWith('/map')) {
+      return {'animals': [], 'points': []};
+    }
+    if (path.endsWith('/alerts') ||
+        path.endsWith('/fences') ||
+        path.endsWith('/tenants')) {
+      return {'items': []};
+    }
     return switch (path) {
-      '/dashboard/summary' => {
-          'metrics': [],
+      '/me' => {
+          'name': 'B端管理员',
         },
-      '/map/trajectories' => {
-          'animals': [],
-          'points': [],
-        },
-      '/alerts' ||
-      '/fences' ||
-      '/tenants' ||
+      '/twin/overview' ||
+      '/twin/epidemic/summary' ||
+      '/subscription/current' ||
+      '/subscription/features' ||
+      '/subscription/usage' =>
+        {},
       '/twin/fever/list' ||
       '/twin/digestive/list' ||
       '/twin/estrus/list' ||
@@ -248,15 +264,6 @@ class _RacingApiHttpClient implements ApiHttpClient {
         {
           'items': [],
         },
-      '/profile' => {
-          'name': 'B端管理员',
-        },
-      '/twin/overview' ||
-      '/twin/epidemic/summary' ||
-      '/subscription/current' ||
-      '/subscription/features' ||
-      '/subscription/usage' =>
-        {},
       '/b2b/dashboard' => {
           'activeContracts': 2,
         },

@@ -81,6 +81,10 @@ class ApiCache {
   bool _initialized = false;
   bool get initialized => _initialized;
 
+  String? _activeFarmId;
+  String? get activeFarmId => _activeFarmId;
+  set activeFarmId(String? id) => _activeFarmId = id;
+
   bool hasRoleData(String role) {
     if (!_initialized) return false;
     if (role == 'b2b_admin') return _b2bDashboard != null;
@@ -344,7 +348,7 @@ class ApiCache {
       allowMockTokenFallback: allowMockTokenFallback,
       roleTokens: _roleTokens,
     );
-    final data = await _get('/tenants/$tenantId/devices', headers);
+    final data = await _get('/admin/tenants/$tenantId/devices', headers);
     if (data != null && data['items'] is List) {
       _tenantDevicesCache[tenantId] = (data['items'] as List)
           .whereType<Map<String, dynamic>>()
@@ -366,7 +370,7 @@ class ApiCache {
       allowMockTokenFallback: allowMockTokenFallback,
       roleTokens: _roleTokens,
     );
-    final data = await _get('/tenants/$tenantId/logs', headers);
+    final data = await _get('/admin/tenants/$tenantId/logs', headers);
     if (data != null && data['items'] is List) {
       _tenantLogsCache[tenantId] = (data['items'] as List)
           .whereType<Map<String, dynamic>>()
@@ -388,7 +392,7 @@ class ApiCache {
       allowMockTokenFallback: allowMockTokenFallback,
       roleTokens: _roleTokens,
     );
-    final data = await _get('/tenants/$tenantId/stats', headers);
+    final data = await _get('/admin/tenants/$tenantId/stats', headers);
     if (data != null) {
       _tenantStatsCache[tenantId] = data;
     }
@@ -547,13 +551,14 @@ class ApiCache {
         _get(path, headers, markLiveSource: false);
 
     try {
+      final farmId = _activeFarmId ?? '';
       final results = await Future.wait([
-        initGet('/dashboard/summary'),
-        initGet('/map/trajectories?animalId=animal_001&range=24h'),
-        initGet('/alerts?pageSize=100'),
-        initGet('/fences?pageSize=100'),
-        initGet('/tenants?pageSize=100'),
-        initGet('/profile'),
+        initGet('/farms/$farmId/dashboard'),
+        initGet('/farms/$farmId/map'),
+        initGet('/farms/$farmId/alerts?pageSize=100'),
+        initGet('/farms/$farmId/fences?pageSize=100'),
+        initGet('/admin/tenants?pageSize=100'),
+        initGet('/me'),
         initGet('/twin/overview'),
         initGet('/twin/fever/list'),
         initGet('/twin/digestive/list'),
@@ -651,14 +656,14 @@ class ApiCache {
       _subscriptionUsage = results[16];
 
       if (role == DemoRole.owner.wireName || role == DemoRole.worker.wireName) {
-        final myFarms = await initGet('/farm/my-farms');
+        final myFarms = await initGet('/farms');
         if (!_isCurrentGeneration(generation)) return;
         _myFarms = myFarms;
         final activeFarmId = myFarms?['activeFarmId'];
         if (role == DemoRole.owner.wireName &&
             activeFarmId is String &&
             activeFarmId.isNotEmpty) {
-          final workers = await initGet('/farms/$activeFarmId/workers');
+          final workers = await initGet('/farms/$activeFarmId/members');
           if (!_isCurrentGeneration(generation)) return;
           _workers = workers;
           _workersFarmId = workers == null ? null : activeFarmId;
@@ -731,14 +736,14 @@ class ApiCache {
       allowMockTokenFallback: allowMockTokenFallback,
       roleTokens: _roleTokens,
     );
-    final data = await _get('/tenants?pageSize=100', headers);
+    final data = await _get('/admin/tenants?pageSize=100', headers);
     if (data != null) {
       _tenants = List<Map<String, dynamic>>.from(data['items'] ?? []);
     }
   }
 
   Future<void> refreshTenantTrends(String role, String tenantId) async {
-    final data = await _get('/tenants/$tenantId/trends', _headers(role));
+    final data = await _get('/admin/tenants/$tenantId/trends', _headers(role));
     if (data != null) {
       _tenantTrends ??= {};
       _tenantTrends![tenantId] = data;
@@ -752,7 +757,7 @@ class ApiCache {
     bool allowMockTokenFallback = false,
   }) async {
     final response = await http
-        .get(Uri.parse('${resolveApiBaseUrl()}/tenants/$id'),
+        .get(Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id'),
             headers: _headers(
               role,
               tokens: tokens,
@@ -777,7 +782,7 @@ class ApiCache {
   }) async {
     final response = await http
         .post(
-          Uri.parse('${resolveApiBaseUrl()}/tenants'),
+          Uri.parse('${resolveApiBaseUrl()}/admin/tenants'),
           headers: _headers(
             role,
             tokens: tokens,
@@ -799,7 +804,7 @@ class ApiCache {
   }) async {
     final response = await http
         .put(
-          Uri.parse('${resolveApiBaseUrl()}/tenants/$id'),
+          Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id'),
           headers: _headers(
             role,
             tokens: tokens,
@@ -821,7 +826,7 @@ class ApiCache {
   }) async {
     final response = await http
         .post(
-          Uri.parse('${resolveApiBaseUrl()}/tenants/$id/status'),
+          Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id/status'),
           headers: _headers(
             role,
             tokens: tokens,
@@ -843,7 +848,7 @@ class ApiCache {
   }) async {
     final response = await http
         .post(
-          Uri.parse('${resolveApiBaseUrl()}/tenants/$id/license'),
+          Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id/license'),
           headers: _headers(
             role,
             tokens: tokens,
@@ -864,7 +869,7 @@ class ApiCache {
   }) async {
     final response = await http
         .delete(
-          Uri.parse('${resolveApiBaseUrl()}/tenants/$id'),
+          Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id'),
           headers: _headers(
             role,
             tokens: tokens,
@@ -973,12 +978,12 @@ class ApiCache {
       allowMockTokenFallback: allowMockTokenFallback,
       roleTokens: _roleTokens,
     );
-    final fencesData = await _get('/fences?pageSize=100', headers);
+    final fencesData = await _get('/farms/$_activeFarmId/fences?pageSize=100', headers);
     if (fencesData != null) {
       _fences = List<Map<String, dynamic>>.from(fencesData['items'] ?? []);
     }
     final mapData = await _get(
-      '/map/trajectories?animalId=animal_001&range=24h',
+      '/farms/$_activeFarmId/map',
       headers,
     );
     if (mapData != null) {
@@ -996,7 +1001,7 @@ class ApiCache {
   }) async {
     final response = await http
         .delete(
-          Uri.parse('${resolveApiBaseUrl()}/fences/$id'),
+          Uri.parse('${resolveApiBaseUrl()}/farms/$_activeFarmId/fences/$id'),
           headers: _headers(
             role,
             tokens: tokens,
@@ -1025,7 +1030,7 @@ class ApiCache {
     }
     final response = await http
         .post(
-          Uri.parse('${resolveApiBaseUrl()}/fences'),
+          Uri.parse('${resolveApiBaseUrl()}/farms/$_activeFarmId/fences'),
           headers: _headers(
             role,
             tokens: tokens,
@@ -1061,7 +1066,7 @@ class ApiCache {
     }
     final response = await http
         .put(
-          Uri.parse('${resolveApiBaseUrl()}/fences/$id'),
+          Uri.parse('${resolveApiBaseUrl()}/farms/$_activeFarmId/fences/$id'),
           headers: _headers(
             role,
             tokens: tokens,
