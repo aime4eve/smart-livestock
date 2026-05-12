@@ -50,6 +50,7 @@ class FarmSwitcherController extends Notifier<FarmSwitcherState> {
     if (!exists) return;
     state = FarmSwitcherState(farms: state.farms, activeFarmId: farmId);
     ref.read(sessionControllerProvider.notifier).updateActiveFarm(farmId);
+    ApiCache.instance.activeFarmId = farmId;
   }
 
   FarmSwitcherState _mockState(DemoRole? role, String? activeFarmId) {
@@ -70,8 +71,16 @@ class FarmSwitcherController extends Notifier<FarmSwitcherState> {
     final data = ApiCache.instance.myFarms;
     if (data == null) return const FarmSwitcherState.empty();
 
-    final rawFarms = data['farms'];
-    if (rawFarms is! List) return const FarmSwitcherState.empty();
+    // Spring Boot returns { items: [...], total: N }
+    // ApiCache._initForGeneration stores farm endpoint response in _myFarms
+    List<dynamic> rawFarms;
+    if (data['items'] is List) {
+      rawFarms = data['items'] as List;
+    } else if (data['farms'] is List) {
+      rawFarms = data['farms'] as List; // Mock Server compat
+    } else {
+      return const FarmSwitcherState.empty();
+    }
 
     final farms = rawFarms
         .whereType<Map<String, dynamic>>()
@@ -86,16 +95,23 @@ class FarmSwitcherController extends Notifier<FarmSwitcherState> {
       sessionActiveFarmId ??
           (cacheActiveFarmId is String ? cacheActiveFarmId : null),
     );
+
+    // Sync active farm to ApiCache for downstream path injection
+    if (activeFarmId != null) {
+      ApiCache.instance.activeFarmId = activeFarmId;
+    }
+
     return FarmSwitcherState(farms: farms, activeFarmId: activeFarmId);
   }
 
   FarmInfo? _parseFarmInfo(Map<String, dynamic> json) {
-    final id = json['id'];
-    if (id is! String || id.isEmpty) return null;
+    final rawId = json['id'];
+    final id = rawId is int ? rawId.toString() : (rawId is String ? rawId : null);
+    if (id == null || id.isEmpty) return null;
     return FarmInfo(
       id: id,
       name: json['name'] as String? ?? '',
-      status: json['status'] as String? ?? '',
+      status: json['status'] as String? ?? 'active',
     );
   }
 
