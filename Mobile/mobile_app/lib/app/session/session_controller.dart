@@ -105,9 +105,32 @@ class SessionController extends Notifier<AppSession> {
 
     // Preload data; failure does not block login.
     try {
+      final tokens = ApiAuthTokens(accessToken: result.accessToken);
+
+      // For owner/worker: load farms first, set activeFarmId, then init
+      if (role == DemoRole.owner || role == DemoRole.worker) {
+        final farmData = await cache.fetchFarms(
+          role.wireName,
+          tokens: tokens,
+        );
+        if (farmData != null) {
+          final rawItems = farmData['items'];
+          if (rawItems is List && rawItems.isNotEmpty) {
+            final firstFarm = rawItems.first;
+            if (firstFarm is Map<String, dynamic>) {
+              final rawId = firstFarm['id'];
+              final farmId = rawId is int ? rawId.toString() : rawId as String?;
+              if (farmId != null) {
+                cache.activeFarmId = farmId;
+              }
+            }
+          }
+        }
+      }
+
       await cache.init(
         role.wireName,
-        tokens: ApiAuthTokens(accessToken: result.accessToken),
+        tokens: tokens,
         allowMockTokenFallback: false,
       );
       ref.invalidate(b2bDashboardControllerProvider);

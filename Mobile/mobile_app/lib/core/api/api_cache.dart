@@ -85,6 +85,11 @@ class ApiCache {
   String? get activeFarmId => _activeFarmId;
   set activeFarmId(String? id) => _activeFarmId = id;
 
+  Future<Map<String, dynamic>?> fetchFarms(String role, {ApiAuthTokens? tokens}) async {
+    final headers = _headers(role, tokens: tokens, roleTokens: _roleTokens);
+    return await _get('/farms', headers);
+  }
+
   bool hasRoleData(String role) {
     if (!_initialized) return false;
     if (role == 'b2b_admin') return _b2bDashboard != null;
@@ -553,12 +558,22 @@ class ApiCache {
         _get(path, headers, markLiveSource: false);
 
     try {
-      final farmId = _activeFarmId ?? '';
-      final results = await Future.wait([
-        initGet('/farms/$farmId/dashboard'),
-        initGet('/farms/$farmId/map'),
-        initGet('/farms/$farmId/alerts?pageSize=100'),
-        initGet('/farms/$farmId/fences?pageSize=100'),
+      final farmId = _activeFarmId;
+      final hasFarmScope = farmId != null && farmId.isNotEmpty;
+
+      // Phase 1 farm-scoped endpoints (skip if no active farm — e.g. platform_admin)
+      List<Map<String, dynamic>?> farmScopedResults = [];
+      if (hasFarmScope) {
+        farmScopedResults = await Future.wait([
+          initGet('/farms/$farmId/dashboard'),
+          initGet('/farms/$farmId/map'),
+          initGet('/farms/$farmId/alerts?pageSize=100'),
+          initGet('/farms/$farmId/fences?pageSize=100'),
+        ]);
+      }
+
+      // Non-farm-scoped endpoints (always loaded)
+      final globalResults = await Future.wait([
         initGet('/admin/tenants?pageSize=100'),
         initGet('/me'),
         initGet('/twin/overview'),
@@ -576,7 +591,9 @@ class ApiCache {
 
       if (!_isCurrentGeneration(generation)) return;
 
-      if (results.every((data) => data == null)) {
+      // Check if anything loaded at all
+      final allResults = [...farmScopedResults, ...globalResults];
+      if (allResults.every((data) => data == null)) {
         _initialized = false;
         _lastLiveSource = null;
         _tenantTrends = null;
@@ -584,85 +601,88 @@ class ApiCache {
       }
       _lastLiveSource = 'api';
 
-      final dashData = results[0];
-      if (dashData != null) {
-        // Mock Server: { metrics: [{key, title, value}] }
-        // Spring Boot: { livestockCount, onlineDeviceCount, activeAlertCount, fenceCount, healthSummary }
-        final metricsRaw = dashData['metrics'];
-        if (metricsRaw is List) {
-          _dashboardMetrics =
-              List<Map<String, dynamic>>.from(metricsRaw);
-        } else {
-          _dashboardMetrics = _normalizeDashboardMetrics(dashData);
+      // Farm-scoped: [0]=dashboard, [1]=map, [2]=alerts, [3]=fences
+      if (hasFarmScope && farmScopedResults.isNotEmpty) {
+        final dashData = farmScopedResults[0];
+        if (dashData != null) {
+          final metricsRaw = dashData['metrics'];
+          if (metricsRaw is List) {
+            _dashboardMetrics =
+                List<Map<String, dynamic>>.from(metricsRaw);
+          } else {
+            _dashboardMetrics = _normalizeDashboardMetrics(dashData);
+          }
+        }
+
+        final mapData = farmScopedResults[1];
+        if (mapData != null) {
+          final animalsRaw = mapData['animals'];
+          if (animalsRaw is List) {
+            _animals = List<Map<String, dynamic>>.from(animalsRaw);
+            _mapTrajectoryPoints =
+                List<Map<String, dynamic>>.from(mapData['points'] ?? []);
+          } else {
+            _animals = _normalizeMapAnimals(mapData);
+            _mapTrajectoryPoints = <Map<String, dynamic>>[];
+          }
+        }
+
+        final alertsData = farmScopedResults[2];
+        if (alertsData != null) {
+          final items = alertsData['items'] is List
+              ? List<Map<String, dynamic>>.from(alertsData['items'] ?? [])
+              : <Map<String, dynamic>>[];
+          _alerts = items.map(_normalizeAlertItem).toList();
+        }
+
+        final fencesData = farmScopedResults[3];
+        if (fencesData != null) {
+          final items = fencesData['items'] is List
+              ? List<Map<String, dynamic>>.from(fencesData['items'] ?? [])
+              : <Map<String, dynamic>>[];
+          _fences = items.map(_normalizeFenceItem).toList();
         }
       }
 
-      final mapData = results[1];
-      if (mapData != null) {
-        // Mock Server: { animals: [...], points: [...] }
-        // Spring Boot: { livestock: [...], fences: [...], alerts: [...] }
-        final animalsRaw = mapData['animals'];
-        if (animalsRaw is List) {
-          _animals = List<Map<String, dynamic>>.from(animalsRaw);
-          _mapTrajectoryPoints =
-              List<Map<String, dynamic>>.from(mapData['points'] ?? []);
-        } else {
-          _animals = _normalizeMapAnimals(mapData);
-          _mapTrajectoryPoints = <Map<String, dynamic>>[];
-        }
-      }
-
-      final alertsData = results[2];
-      if (alertsData != null) {
-        final items = alertsData['items'] is List
-            ? List<Map<String, dynamic>>.from(alertsData['items'] ?? [])
-            : <Map<String, dynamic>>[];
-        _alerts = items.map(_normalizeAlertItem).toList();
-      }
-
-      final fencesData = results[3];
-      if (fencesData != null) {
-        final items = fencesData['items'] is List
-            ? List<Map<String, dynamic>>.from(fencesData['items'] ?? [])
-            : <Map<String, dynamic>>[];
-        _fences = items.map(_normalizeFenceItem).toList();
-      }
-
-      final tenantsData = results[4];
+      // Global: [0]=tenants, [1]=me, [2]=twin/overview, [3]=fever, [4]=digestive,
+      //         [5]=estrus, [6]=epidemic/summary, [7]=epidemic/contacts,
+      //         [8]=devices, [9]=subscription/current, [10]=subscription/features,
+      //         [11]=subscription/plans, [12]=subscription/usage
+      final tenantsData = globalResults[0];
       if (tenantsData != null) {
         _tenants = List<Map<String, dynamic>>.from(tenantsData['items'] ?? []);
       }
 
-      _profile = _normalizeProfile(results[5]);
+      _profile = _normalizeProfile(globalResults[1]);
 
-      _twinOverview = results[6];
+      _twinOverview = globalResults[2];
 
-      final feverData = results[7];
+      final feverData = globalResults[3];
       if (feverData != null) {
         _feverList = List<Map<String, dynamic>>.from(feverData['items'] ?? []);
       }
 
-      final digestiveData = results[8];
+      final digestiveData = globalResults[4];
       if (digestiveData != null) {
         _digestiveList =
             List<Map<String, dynamic>>.from(digestiveData['items'] ?? []);
       }
 
-      final estrusData = results[9];
+      final estrusData = globalResults[5];
       if (estrusData != null) {
         _estrusList =
             List<Map<String, dynamic>>.from(estrusData['items'] ?? []);
       }
 
-      _epidemicSummary = results[10];
+      _epidemicSummary = globalResults[6];
 
-      final contactsData = results[11];
+      final contactsData = globalResults[7];
       if (contactsData != null) {
         _epidemicContacts =
             List<Map<String, dynamic>>.from(contactsData['items'] ?? []);
       }
 
-      final devicesData = results[12];
+      final devicesData = globalResults[8];
       if (devicesData != null) {
         final items = devicesData['items'] is List
             ? List<Map<String, dynamic>>.from(devicesData['items'] ?? [])
@@ -670,16 +690,16 @@ class ApiCache {
         _devices = items.map(_normalizeDeviceItem).toList();
       }
 
-      _subscriptionCurrent = results[13];
-      _subscriptionFeatures = results[14];
+      _subscriptionCurrent = globalResults[9];
+      _subscriptionFeatures = globalResults[10];
 
-      final plansData = results[15];
+      final plansData = globalResults[11];
       if (plansData != null) {
         _subscriptionPlans =
             List<Map<String, dynamic>>.from(plansData['items'] ?? []);
       }
 
-      _subscriptionUsage = results[16];
+      _subscriptionUsage = globalResults[12];
 
       if (role == DemoRole.owner.wireName || role == DemoRole.worker.wireName) {
         final myFarms = await initGet('/farms');
