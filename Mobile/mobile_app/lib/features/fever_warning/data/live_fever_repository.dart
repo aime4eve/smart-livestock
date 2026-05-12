@@ -48,7 +48,8 @@ class LiveFeverRepository implements FeverRepository {
 
   static TemperatureBaseline? _parseBaseline(Map<String, dynamic> m) {
     try {
-      final id = m['livestockId'] as String;
+      final rawId = m['livestockId'];
+      final id = rawId is int ? rawId.toString() : (rawId as String? ?? '');
       final recent = m['recent72h'] as List<dynamic>? ?? [];
       final records = <TemperatureRecord>[];
       for (final e in recent) {
@@ -56,17 +57,17 @@ class LiveFeverRepository implements FeverRepository {
         records.add(
           TemperatureRecord(
             livestockId: id,
-            temperature: (r['temperature'] as num).toDouble(),
-            timestamp: DateTime.parse(r['timestamp'] as String),
+            temperature: (r['temperature'] as num?)?.toDouble() ?? 0.0,
+            timestamp: DateTime.tryParse(r['timestamp'] as String? ?? '') ?? DateTime.now(),
           ),
         );
       }
       return TemperatureBaseline(
         livestockId: id,
-        baselineTemp: (m['baselineTemp'] as num).toDouble(),
-        threshold: (m['threshold'] as num).toDouble(),
+        baselineTemp: (m['baselineTemp'] as num?)?.toDouble() ?? 0.0,
+        threshold: (m['threshold'] as num?)?.toDouble() ?? 0.0,
         recent72h: TwinSeriesDownsample.hourlyMeanTemperature(records),
-        status: m['status'] as String,
+        status: m['status'] as String? ?? 'unknown',
         conclusion: m['conclusion'] as String?,
       );
     } catch (_) {

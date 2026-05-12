@@ -11,6 +11,8 @@ class LiveDevicesRepository implements DevicesRepository {
 
   static DeviceItem? parseDeviceMap(Map<String, dynamic> m) {
     try {
+      final rawId = m['id'];
+      final id = rawId is int ? rawId.toString() : (rawId as String? ?? '');
       final typeStr = m['type'] as String;
       final type = switch (typeStr) {
         'gps' => DeviceType.gps,
@@ -26,7 +28,7 @@ class LiveDevicesRepository implements DevicesRepository {
         _ => throw const FormatException('status'),
       };
       return DeviceItem(
-        id: m['id'] as String,
+        id: id,
         name: m['name'] as String,
         type: type,
         status: status,

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/app/session/app_session.dart';
+import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
@@ -92,6 +93,7 @@ class SessionController extends Notifier<AppSession> {
     final role = _roleFromWireName(roleStr);
     if (role == null) return false;
 
+    // Set session state first so UI responds immediately.
     state = AppSession.withCredentials(
       role: role,
       accessToken: result.accessToken,
@@ -100,6 +102,20 @@ class SessionController extends Notifier<AppSession> {
       phone: user['phone'] as String?,
       tenantId: user['tenantId'] as int?,
     );
+
+    // Preload data; failure does not block login.
+    try {
+      await cache.init(
+        role.wireName,
+        tokens: ApiAuthTokens(accessToken: result.accessToken),
+        allowMockTokenFallback: false,
+      );
+      ref.invalidate(b2bDashboardControllerProvider);
+      ref.invalidate(b2bContractControllerProvider);
+    } catch (e) {
+      debugPrint('Data preload failed: $e');
+    }
+
     return true;
   }
 

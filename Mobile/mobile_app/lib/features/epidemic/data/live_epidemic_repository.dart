@@ -18,23 +18,29 @@ class LiveEpidemicRepository implements EpidemicRepository {
     }
 
     final metrics = HerdHealthMetrics(
-      avgTemperature: (summary['avgTemperature'] as num).toDouble(),
-      avgActivity: (summary['avgActivity'] as num).toDouble(),
-      abnormalRate: (summary['abnormalRate'] as num).toDouble(),
-      totalLivestock: (summary['totalLivestock'] as num).toInt(),
-      abnormalCount: (summary['abnormalCount'] as num).toInt(),
+      avgTemperature: (summary['avgTemperature'] as num?)?.toDouble() ?? 0.0,
+      avgActivity: (summary['avgActivity'] as num?)?.toDouble() ?? 0.0,
+      abnormalRate: (summary['abnormalRate'] as num?)?.toDouble() ?? 0.0,
+      totalLivestock: (summary['totalLivestock'] as num?)?.toInt() ?? 0,
+      abnormalCount: (summary['abnormalCount'] as num?)?.toInt() ?? 0,
     );
 
     final contacts = <ContactTrace>[];
     for (final c in cache.epidemicContacts) {
-      contacts.add(
-        ContactTrace(
-          fromId: c['fromId'] as String,
-          toId: c['toId'] as String,
-          lastContact: DateTime.parse(c['lastContact'] as String),
-          proximity: (c['proximity'] as num).toDouble(),
-        ),
-      );
+      try {
+        final rawFromId = c['fromId'];
+        final rawToId = c['toId'];
+        contacts.add(
+          ContactTrace(
+            fromId: rawFromId is int ? rawFromId.toString() : (rawFromId as String? ?? ''),
+            toId: rawToId is int ? rawToId.toString() : (rawToId as String? ?? ''),
+            lastContact: DateTime.tryParse(c['lastContact'] as String? ?? '') ?? DateTime.now(),
+            proximity: (c['proximity'] as num?)?.toDouble() ?? 0.0,
+          ),
+        );
+      } catch (_) {
+        // Skip malformed contact records
+      }
     }
 
     return EpidemicViewData(

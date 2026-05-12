@@ -30,7 +30,8 @@ FenceItem fenceItemFromJson(
   int colorIndex,
   int livestockCount,
 ) {
-  final id = raw['id'] as String? ?? '';
+  final rawId = raw['id'];
+  final id = rawId is int ? rawId.toString() : (rawId as String? ?? '');
   final name = raw['name'] as String? ?? '未命名';
   final type = fenceTypeFromApiString(raw['type'] as String?);
   final alarmEnabled = raw['alarmEnabled'] as bool? ?? true;
@@ -62,7 +63,8 @@ List<FenceItem> fenceItemsFromApiMaps(
   final out = <FenceItem>[];
   for (var i = 0; i < rows.length; i++) {
     final r = rows[i];
-    final id = r['id'] as String? ?? '';
+    final rawFid = r['id'];
+    final id = rawFid is int ? rawFid.toString() : (rawFid as String? ?? '');
     final count = livestockByFenceId[id] ?? 0;
     out.add(fenceItemFromJson(r, i, count));
   }
@@ -74,7 +76,9 @@ Map<String, int> livestockCountsByFenceId(
 ) {
   final map = <String, int>{};
   for (final a in animals) {
-    final fid = a['fenceId'] as String?;
+    final rawFid = a['fenceId'];
+    if (rawFid == null) continue;
+    final fid = rawFid is int ? rawFid.toString() : (rawFid as String?);
     if (fid != null) {
       map[fid] = (map[fid] ?? 0) + 1;
     }

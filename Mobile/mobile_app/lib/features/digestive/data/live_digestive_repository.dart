@@ -48,21 +48,22 @@ class LiveDigestiveRepository implements DigestiveRepository {
 
   static DigestiveHealth? _parseHealth(Map<String, dynamic> m) {
     try {
-      final id = m['livestockId'] as String;
+      final rawId = m['livestockId'];
+      final id = rawId is int ? rawId.toString() : (rawId as String? ?? '');
       final recent = m['recent24h'] as List<dynamic>? ?? [];
       final records = recent.map((e) {
         final r = e as Map<String, dynamic>;
         return MotilityRecord(
           livestockId: id,
-          frequency: (r['frequency'] as num).toDouble(),
-          intensity: (r['intensity'] as num).toDouble(),
-          timestamp: DateTime.parse(r['timestamp'] as String),
+          frequency: (r['frequency'] as num?)?.toDouble() ?? 0.0,
+          intensity: (r['intensity'] as num?)?.toDouble() ?? 0.0,
+          timestamp: DateTime.tryParse(r['timestamp'] as String? ?? '') ?? DateTime.now(),
         );
       }).toList();
       return DigestiveHealth(
         livestockId: id,
-        motilityBaseline: (m['motilityBaseline'] as num).toDouble(),
-        status: m['status'] as String,
+        motilityBaseline: (m['motilityBaseline'] as num?)?.toDouble() ?? 0.0,
+        status: m['status'] as String? ?? 'unknown',
         advice: m['advice'] as String?,
         recent24h: TwinSeriesDownsample.hourlyMeanMotility(records),
       );

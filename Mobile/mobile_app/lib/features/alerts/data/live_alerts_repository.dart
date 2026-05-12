@@ -8,8 +8,9 @@ class LiveAlertsRepository implements AlertsRepository {
   const LiveAlertsRepository();
 
   static AlertItem _alertFromMap(Map<String, dynamic> m) {
-    final id = m['id'] as String;
-    final title = m['title'] as String;
+    final rawId = m['id'];
+    final id = rawId is int ? rawId.toString() : (rawId as String? ?? '');
+    final title = m['title'] as String? ?? '';
     final ts = m['occurredAt'] as String? ?? '';
     var subtitle = '';
     if (ts.length >= 16) {
@@ -29,6 +30,7 @@ class LiveAlertsRepository implements AlertsRepository {
     final earTag = earTagFromSl.isNotEmpty
         ? earTagFromSl
         : (RegExp(r'耳标-\d+').firstMatch(title)?.group(0) ?? '-');
+    final livestockCode = m['livestockCode'] as String? ?? earTag;
     return AlertItem(
       id: id,
       title: title,
@@ -36,7 +38,8 @@ class LiveAlertsRepository implements AlertsRepository {
       priority: priority,
       type: type,
       stage: stageStr,
-      earTag: earTag,
+      earTag: livestockCode,
+      livestockId: m['livestockId'] as String?,
     );
   }
 
@@ -65,10 +68,12 @@ class LiveAlertsRepository implements AlertsRepository {
 
     String subtitle = '';
     if (first != null) {
-      final ts = first['occurredAt'] as String;
-      subtitle = ts
-          .replaceFirst(RegExp(r'T'), ' ')
-          .substring(0, 16);
+      final ts = first['occurredAt'] as String? ?? '';
+      if (ts.length >= 16) {
+        subtitle = ts
+            .replaceFirst(RegExp(r'T'), ' ')
+            .substring(0, 16);
+      }
     }
 
     final items = viewState == ViewState.normal

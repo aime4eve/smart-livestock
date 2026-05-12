@@ -400,6 +400,7 @@ class ApiCache {
 
   DeviceItem? _parseDeviceItem(Map<String, dynamic> json) {
     try {
+      final rawId = json['id'];
       final typeStr = json['type'] as String? ?? '';
       final statusStr = json['status'] as String? ?? '';
       final type = switch (typeStr) {
@@ -413,7 +414,7 @@ class ApiCache {
         _ => DeviceStatus.lowBattery,
       };
       return DeviceItem(
-        id: json['id'] as String? ?? '',
+        id: rawId is int ? rawId.toString() : (rawId as String? ?? ''),
         name: json['name'] as String? ?? '',
         type: type,
         status: status,
@@ -429,8 +430,9 @@ class ApiCache {
 
   TenantLogEntry? _parseTenantLogEntry(Map<String, dynamic> json) {
     try {
+      final rawId = json['id'];
       return TenantLogEntry(
-        id: json['id'] as String? ?? '',
+        id: rawId is int ? rawId.toString() : (rawId as String? ?? ''),
         action: json['action'] as String? ?? '',
         detail: json['detail'] as String? ?? '',
         operator: json['operator'] as String? ?? '',
@@ -584,25 +586,46 @@ class ApiCache {
 
       final dashData = results[0];
       if (dashData != null) {
-        _dashboardMetrics =
-            List<Map<String, dynamic>>.from(dashData['metrics'] ?? []);
+        // Mock Server: { metrics: [{key, title, value}] }
+        // Spring Boot: { livestockCount, onlineDeviceCount, activeAlertCount, fenceCount, healthSummary }
+        final metricsRaw = dashData['metrics'];
+        if (metricsRaw is List) {
+          _dashboardMetrics =
+              List<Map<String, dynamic>>.from(metricsRaw);
+        } else {
+          _dashboardMetrics = _normalizeDashboardMetrics(dashData);
+        }
       }
 
       final mapData = results[1];
       if (mapData != null) {
-        _animals = List<Map<String, dynamic>>.from(mapData['animals'] ?? []);
-        _mapTrajectoryPoints =
-            List<Map<String, dynamic>>.from(mapData['points'] ?? []);
+        // Mock Server: { animals: [...], points: [...] }
+        // Spring Boot: { livestock: [...], fences: [...], alerts: [...] }
+        final animalsRaw = mapData['animals'];
+        if (animalsRaw is List) {
+          _animals = List<Map<String, dynamic>>.from(animalsRaw);
+          _mapTrajectoryPoints =
+              List<Map<String, dynamic>>.from(mapData['points'] ?? []);
+        } else {
+          _animals = _normalizeMapAnimals(mapData);
+          _mapTrajectoryPoints = <Map<String, dynamic>>[];
+        }
       }
 
       final alertsData = results[2];
       if (alertsData != null) {
-        _alerts = List<Map<String, dynamic>>.from(alertsData['items'] ?? []);
+        final items = alertsData['items'] is List
+            ? List<Map<String, dynamic>>.from(alertsData['items'] ?? [])
+            : <Map<String, dynamic>>[];
+        _alerts = items.map(_normalizeAlertItem).toList();
       }
 
       final fencesData = results[3];
       if (fencesData != null) {
-        _fences = List<Map<String, dynamic>>.from(fencesData['items'] ?? []);
+        final items = fencesData['items'] is List
+            ? List<Map<String, dynamic>>.from(fencesData['items'] ?? [])
+            : <Map<String, dynamic>>[];
+        _fences = items.map(_normalizeFenceItem).toList();
       }
 
       final tenantsData = results[4];
@@ -610,7 +633,7 @@ class ApiCache {
         _tenants = List<Map<String, dynamic>>.from(tenantsData['items'] ?? []);
       }
 
-      _profile = results[5];
+      _profile = _normalizeProfile(results[5]);
 
       _twinOverview = results[6];
 
@@ -641,7 +664,10 @@ class ApiCache {
 
       final devicesData = results[12];
       if (devicesData != null) {
-        _devices = List<Map<String, dynamic>>.from(devicesData['items'] ?? []);
+        final items = devicesData['items'] is List
+            ? List<Map<String, dynamic>>.from(devicesData['items'] ?? [])
+            : <Map<String, dynamic>>[];
+        _devices = items.map(_normalizeDeviceItem).toList();
       }
 
       _subscriptionCurrent = results[13];
@@ -980,16 +1006,25 @@ class ApiCache {
     );
     final fencesData = await _get('/farms/$_activeFarmId/fences?pageSize=100', headers);
     if (fencesData != null) {
-      _fences = List<Map<String, dynamic>>.from(fencesData['items'] ?? []);
+      final items = fencesData['items'] is List
+          ? List<Map<String, dynamic>>.from(fencesData['items'] ?? [])
+          : <Map<String, dynamic>>[];
+      _fences = items.map(_normalizeFenceItem).toList();
     }
     final mapData = await _get(
       '/farms/$_activeFarmId/map',
       headers,
     );
     if (mapData != null) {
-      _animals = List<Map<String, dynamic>>.from(mapData['animals'] ?? []);
-      _mapTrajectoryPoints =
-          List<Map<String, dynamic>>.from(mapData['points'] ?? []);
+      final animalsRaw = mapData['animals'];
+      if (animalsRaw is List) {
+        _animals = List<Map<String, dynamic>>.from(animalsRaw);
+        _mapTrajectoryPoints =
+            List<Map<String, dynamic>>.from(mapData['points'] ?? []);
+      } else {
+        _animals = _normalizeMapAnimals(mapData);
+        _mapTrajectoryPoints = <Map<String, dynamic>>[];
+      }
     }
   }
 
@@ -1113,6 +1148,229 @@ class ApiCache {
   }
 
   int? lastFenceSaveStatusCode;
+
+  // ---------------------------------------------------------------------------
+  // Normalization helpers: transform Spring Boot responses into the same shape
+  // the Mock Server produces, so live repos work without per-repo changes.
+  // If a field already matches Mock format, it passes through unchanged.
+  // ---------------------------------------------------------------------------
+
+  static String _stringId(dynamic v) {
+    if (v is int) return v.toString();
+    if (v is String) return v;
+    return '';
+  }
+
+  /// Mock Server returns `{ metrics: [{key, title, value}] }`.
+  /// Spring Boot returns flat `{ livestockCount, onlineDeviceCount, ... }`.
+  static List<Map<String, dynamic>> _normalizeDashboardMetrics(
+    Map<String, dynamic> data,
+  ) {
+    final list = <Map<String, dynamic>>[];
+    final entries = <String, String>{
+      'livestockCount': '牲畜总数',
+      'onlineDeviceCount': '在线设备',
+      'activeAlertCount': '活跃告警',
+      'fenceCount': '围栏数',
+    };
+    for (final e in entries.entries) {
+      final raw = data[e.key];
+      if (raw != null) {
+        list.add({
+          'key': e.key,
+          'title': e.value,
+          'value': _stringId(raw),
+        });
+      }
+    }
+    final health = data['healthSummary'] as Map<String, dynamic>?;
+    if (health != null) {
+      final healthy = health['healthy'];
+      final warning = health['warning'];
+      final critical = health['critical'];
+      if (healthy != null) {
+        list.add({
+          'key': 'healthHealthy',
+          'title': '健康',
+          'value': _stringId(healthy),
+        });
+      }
+      if (warning != null) {
+        list.add({
+          'key': 'healthWarning',
+          'title': '关注',
+          'value': _stringId(warning),
+        });
+      }
+      if (critical != null) {
+        list.add({
+          'key': 'healthCritical',
+          'title': '异常',
+          'value': _stringId(critical),
+        });
+      }
+    }
+    return list;
+  }
+
+  /// Mock Server returns `{ animals: [...], points: [...] }`.
+  /// Spring Boot returns `{ livestock: [...], fences: [...], alerts: [...] }`.
+  static List<Map<String, dynamic>> _normalizeMapAnimals(
+    Map<String, dynamic> data,
+  ) {
+    final livestockRaw = data['livestock'] as List<dynamic>? ?? [];
+    return livestockRaw.map((e) {
+      final m = e as Map<String, dynamic>;
+      return <String, dynamic>{
+        'id': _stringId(m['id']),
+        'livestockCode': m['livestockCode'] ?? m['earTag'] ?? '',
+        'lat': m['lat'],
+        'lng': m['lng'],
+        'healthStatus': m['healthStatus'] ?? 'healthy',
+        'alertCount': m['alertCount'] ?? 0,
+        // Keep original fields too for compatibility
+        for (final entry in m.entries)
+          if (!const {'id'}.contains(entry.key)) entry.key: entry.value,
+      };
+    }).toList();
+  }
+
+  /// Normalize a single alert item.
+  /// Mock: { id, title, occurredAt, level, type, stage }
+  /// Spring Boot: { id, type, status, severity, message, createdAt, livestockCode, fenceName, ... }
+  static Map<String, dynamic> _normalizeAlertItem(Map<String, dynamic> m) {
+    return <String, dynamic>{
+      'id': _stringId(m['id']),
+      // title: Mock has it directly; Spring Boot uses 'message'
+      'title': m['title'] ?? m['message'] ?? '',
+      // occurredAt: Mock uses this; Spring Boot uses 'createdAt'
+      'occurredAt': m['occurredAt'] ?? m['createdAt'] ?? '',
+      // level: Mock uses 'level'; Spring Boot uses 'severity'
+      'level': m['level'] ?? m['severity'] ?? 'warning',
+      // stage: Mock uses 'stage'; Spring Boot uses 'status'
+      'stage': m['stage'] ?? m['status'] ?? 'pending',
+      'type': m['type'] ?? 'unknown',
+      // extra Spring Boot fields preserved for downstream use
+      if (m['livestockCode'] != null) 'livestockCode': m['livestockCode'],
+      if (m['fenceName'] != null) 'fenceName': m['fenceName'],
+      for (final entry in m.entries)
+        if (!const {
+          'id',
+          'title',
+          'occurredAt',
+          'level',
+          'stage',
+          'type',
+        }.contains(entry.key))
+          entry.key: entry.value,
+    };
+  }
+
+  /// Normalize a single fence item.
+  /// Mock: { id, name, type, coordinates: [[lng, lat], ...], alarmEnabled, status }
+  /// Spring Boot: { id, name, vertices: [{lng, lat}, ...], color, status }
+  static Map<String, dynamic> _normalizeFenceItem(Map<String, dynamic> m) {
+    // If 'coordinates' already present (Mock format), pass through
+    if (m['coordinates'] != null) {
+      return <String, dynamic>{
+        'id': _stringId(m['id']),
+        for (final entry in m.entries)
+          if (entry.key != 'id') entry.key: entry.value,
+      };
+    }
+    // Convert Spring Boot 'vertices' to Mock 'coordinates'
+    final vertices = m['vertices'] as List<dynamic>?;
+    List<List<double>>? coordinates;
+    if (vertices != null) {
+      coordinates = vertices.map((v) {
+        final vm = v as Map<String, dynamic>;
+        return <double>[
+          (vm['lng'] as num).toDouble(),
+          (vm['lat'] as num).toDouble(),
+        ];
+      }).toList();
+    }
+    return <String, dynamic>{
+      'id': _stringId(m['id']),
+      'name': m['name'] ?? '未命名',
+      'type': m['type'] ?? 'polygon',
+      if (coordinates != null) 'coordinates': coordinates,
+      'alarmEnabled': m['alarmEnabled'] ?? true,
+      'status': m['status'] ?? 'active',
+      for (final entry in m.entries)
+        if (!const {
+          'id',
+          'name',
+          'type',
+          'vertices',
+          'alarmEnabled',
+          'status',
+        }.contains(entry.key))
+          entry.key: entry.value,
+    };
+  }
+
+  /// Normalize a single device item.
+  /// Mock: { id, name, type, status, boundEarTag, batteryPercent, signalStrength, lastSync }
+  /// Spring Boot: { id, deviceCode, deviceType, status, runtimeStatus, batteryLevel, lastOnlineAt, ... }
+  static Map<String, dynamic> _normalizeDeviceItem(Map<String, dynamic> m) {
+    // If 'type' is already present and 'deviceType' is not, assume Mock format
+    if (m['type'] != null && m['deviceType'] == null) {
+      return <String, dynamic>{
+        'id': _stringId(m['id']),
+        for (final entry in m.entries)
+          if (entry.key != 'id') entry.key: entry.value,
+      };
+    }
+    // Map Spring Boot fields to Mock field names
+    final deviceType = m['deviceType'] ?? m['type'] ?? '';
+    final runtimeStatus = m['runtimeStatus'] ?? '';
+    return <String, dynamic>{
+      'id': _stringId(m['id']),
+      'name': m['name'] ?? m['deviceCode'] ?? '',
+      'type': _normalizeDeviceType(deviceType),
+      'status': _normalizeDeviceStatus(runtimeStatus),
+      'boundEarTag': m['boundEarTag'] ?? m['installedLivestockCode'] ?? '',
+      'batteryPercent': m['batteryPercent'] ?? m['batteryLevel'],
+      'signalStrength': m['signalStrength'],
+      'lastSync': m['lastSync'] ?? m['lastOnlineAt'],
+    };
+  }
+
+  /// Map Spring Boot deviceType to Mock type values: gps, rumenCapsule, accelerometer
+  static String _normalizeDeviceType(String deviceType) {
+    return switch (deviceType) {
+      'device_tracker' || 'tracker' || 'gps' => 'gps',
+      'rumen_capsule' || 'rumenCapsule' || 'capsule' => 'rumenCapsule',
+      'accelerometer' => 'accelerometer',
+      _ => 'gps',
+    };
+  }
+
+  /// Map Spring Boot runtimeStatus to Mock status values: online, offline, lowBattery
+  static String _normalizeDeviceStatus(String runtimeStatus) {
+    return switch (runtimeStatus) {
+      'online' => 'online',
+      'offline' => 'offline',
+      'low_battery' || 'lowBattery' => 'lowBattery',
+      _ => 'offline',
+    };
+  }
+
+  /// Normalize profile from /me endpoint.
+  /// Mock: { name, tenantName, role, ... }
+  /// Spring Boot: { id, username, name, phone, role, tenantId }
+  static Map<String, dynamic>? _normalizeProfile(Map<String, dynamic>? raw) {
+    if (raw == null) return null;
+    final normalized = Map<String, dynamic>.from(raw);
+    // Ensure 'name' exists (both formats have it)
+    normalized['name'] ??= normalized['username'] ?? '未知用户';
+    // Ensure 'tenantName' exists for UI
+    normalized['tenantName'] ??= normalized['tenantName'] ?? '未知牧场';
+    // Ensure 'role' exists
+    normalized['role'] ??= '';
+    return normalized;
+  }
 
   void _clearLiveData() {
     _initialized = false;
