@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_playwright_playwright__browser_run_code_unsafe",
+      "mcp__plugin_playwright_playwright__browser_snapshot",
+      "mcp__plugin_playwright_playwright__browser_evaluate",
+      "Bash(npx vitest *)",
+      "Bash(bash /Users/hkt/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/brainstorming/scripts/start-server.sh --project-dir /Users/hkt/wzy/产品开发/smart-livestock)",
+      "Bash(bash /Users/hkt/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/brainstorming/scripts/stop-server.sh /Users/hkt/wzy/产品开发/smart-livestock/.superpowers/brainstorm/98622-1777830775)",
+      "Read(//Users/hkt/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/writing-plans/**)",
+      "Read(//Users/hkt/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/subagent-driven-development/**)",
+      "Bash(xargs kill *)",
+      "Bash(ENABLE_MOCK_TOKEN=true node server.js)",
+      "Bash(curl -s -X POST http://localhost:3001/api/v1/api-keys -H \"Authorization: Bearer mock-token-api-consumer\")",
+      "Bash(git commit *)",
+      "mcp__zread__read_file",
+      "Bash(tee /tmp/test-output.txt)",
+      "Bash(echo \"EXIT_CODE=$?\")"
+    ],
+    "additionalDirectories": [
+      "/Users/hkt/wzy/产品开发/smart-livestock/.superpowers/brainstorm/98622-1777830775"
+    ]
+  }
+}

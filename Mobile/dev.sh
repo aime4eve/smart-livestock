@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # 智慧畜牧 App 开发启动/停止脚本
 # 用法:
-#   ./dev.sh start          # 启动 Mock Server + Flutter App
-#   ./dev.sh start mock     # Mock 模式启动 Flutter（默认）
-#   ./dev.sh start live     # Live 模式启动 Flutter（连接 Mock Server）
+#   ./dev.sh start          # 启动 API（Mock Server :3001）+ Flutter App
+#   ./dev.sh api            # 仅启动 API（Mock Server）
+#   ./dev.sh start mock     # Mock 模式启动 Flutter（默认），API 仍会先启动（供切换 live 时使用）
+#   ./dev.sh start live     # Live 模式启动 Flutter（HTTP 调用 API）
 #   ./dev.sh stop           # 停止所有服务
 #   ./dev.sh restart [mock|live]  # 重启所有服务
 #   ./dev.sh status         # 查看服务状态
@@ -38,12 +39,21 @@ start_backend() {
   fi
 
   info "启动 Mock Server..."
-  (cd "$BACKEND_DIR" && node server.js > "$LOG_DIR/backend.log" 2>&1) &
-  local pid=$!
-  echo "$pid" > "$PID_DIR/backend.pid"
+  (
+    cd "$BACKEND_DIR" || exit 1
+    ENABLE_MOCK_TOKEN=true node server.js > "$LOG_DIR/backend.log" 2>&1 &
+    echo $! > "$PID_DIR/backend.pid"
+    wait $!
+  ) &
+  local retries=50
+  while (( retries-- > 0 )) && [[ ! -s "$PID_DIR/backend.pid" ]]; do
+    sleep 0.05
+  done
+  local pid
+  pid=$(cat "$PID_DIR/backend.pid")
 
   # 等待端口就绪
-  local retries=10
+  retries=10
   while (( retries-- > 0 )); do
     if curl -sf http://localhost:3001/api/auth/login -X POST \
          -H "Content-Type: application/json" -d '{"role":"owner"}' > /dev/null 2>&1; then
@@ -69,12 +79,30 @@ start_flutter() {
 
   info "启动 Flutter App (APP_MODE=$mode, device=$device)..."
   if [[ "$device" == "chrome" ]]; then
-    (cd "$MOBILE_DIR" && flutter run -d "$device" --no-web-resources-cdn --dart-define=APP_MODE="$mode" > "$LOG_DIR/flutter.log" 2>&1) &
+    (
+      cd "$MOBILE_DIR" || exit 1
+      flutter run -d "$device" --no-web-resources-cdn --dart-define=APP_MODE="$mode" > "$LOG_DIR/flutter.log" 2>&1 &
+      echo $! > "$PID_DIR/flutter.pid"
+      wait $!
+    ) &
   else
-    (cd "$MOBILE_DIR" && flutter run -d "$device" --dart-define=APP_MODE="$mode" > "$LOG_DIR/flutter.log" 2>&1) &
+    (
+      cd "$MOBILE_DIR" || exit 1
+      flutter run -d "$device" --dart-define=APP_MODE="$mode" > "$LOG_DIR/flutter.log" 2>&1 &
+      echo $! > "$PID_DIR/flutter.pid"
+      wait $!
+    ) &
   fi
-  local pid=$!
-  echo "$pid" > "$PID_DIR/flutter.pid"
+  local retries=50
+  while (( retries-- > 0 )) && [[ ! -s "$PID_DIR/flutter.pid" ]]; do
+    sleep 0.05
+  done
+  if [[ ! -s "$PID_DIR/flutter.pid" ]]; then
+    error "未能获取 Flutter 进程 PID"
+    return 1
+  fi
+  local pid
+  pid=$(cat "$PID_DIR/flutter.pid")
   info "Flutter App 已启动 (PID $pid, APP_MODE=$mode)"
   info "  日志: tail -f $LOG_DIR/flutter.log"
 }
@@ -137,9 +165,9 @@ is_running() {
 show_status() {
   ensure_dirs
   if is_running backend; then
-    info "Mock Server: 运行中 (PID $(cat "$PID_DIR/backend.pid"))"
+    info "API（Mock Server）: 运行中 (PID $(cat "$PID_DIR/backend.pid")) → http://localhost:3001/api"
   else
-    warn "Mock Server: 未运行"
+    warn "API（Mock Server）: 未运行（可执行: $0 api）"
   fi
   if is_running flutter; then
     info "Flutter App: 运行中 (PID $(cat "$PID_DIR/flutter.pid"))"
@@ -206,11 +234,18 @@ cleanup() {
 
 # ---------- 主入口 ----------
 case "${1:-help}" in
+  api|start-api|backend)
+    ensure_dirs
+    start_backend
+    info "API 基址: http://localhost:3001/api（健康检查可自行 curl /api/auth/login）"
+    ;;
   start_live)
+    ensure_dirs
     start_backend
     start_flutter "live" "chrome"
     ;;
   start_mock)
+    ensure_dirs
     start_backend
     start_flutter "mock" "chrome"
     ;;
@@ -237,7 +272,7 @@ case "${1:-help}" in
     info "  所有服务已启动"
     info "  模式: $mode"
     info "  设备: $device"
-    info "  Mock Server: http://localhost:3001"
+    info "  API（Mock Server）: http://localhost:3001  基址: http://localhost:3001/api"
     info "  日志目录: $LOG_DIR/"
     info "  按 Ctrl+C 停止所有服务"
     info "========================================="
@@ -262,9 +297,9 @@ case "${1:-help}" in
 
   logs)
     case "${2:-}" in
-      backend)  show_logs backend ;;
-      flutter)  show_logs flutter ;;
-      *)        echo "用法: $0 logs [backend|flutter]" ;;
+      backend|api) show_logs backend ;;
+      flutter)     show_logs flutter ;;
+      *)           echo "用法: $0 logs [backend|api|flutter]" ;;
     esac
     ;;
 
@@ -276,11 +311,12 @@ case "${1:-help}" in
     echo "智慧畜牧 App 开发控制脚本"
     echo ""
     echo "用法:"
-    echo "  $0 start [mock|live] [chrome|macos]  启动所有服务（默认 mock + chrome）"
+    echo "  $0 start [mock|live] [chrome|macos]  启动 API（:3001）+ Flutter（默认 mock + chrome）"
+    echo "  $0 api                               仅启动 API（Mock Server，端口 3001）"
     echo "  $0 stop                              停止所有服务"
     echo "  $0 restart [mock|live] [chrome|macos] 重启所有服务"
     echo "  $0 status                            查看服务状态"
-    echo "  $0 logs [backend|flutter]            查看日志（实时跟踪）"
+    echo "  $0 logs [backend|api|flutter]       查看日志（实时跟踪）"
     echo "  $0 diagnose                          诊断：最近 100 行日志 + 关键错误行"
     ;;
 esac

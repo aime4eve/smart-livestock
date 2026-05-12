@@ -17,10 +17,15 @@ export const useAuthStore = defineStore('auth', {
       try {
         const data = await apiGet('/me', token);
         this.user = data.data ?? data;
-      } catch {
+      } catch (e) {
         this.token = '';
         this.user = null;
-        throw new Error('登录失败：无效的 API Token');
+        const detail = e instanceof Error && e.message ? e.message : '';
+        throw new Error(
+          detail && !detail.startsWith('登录失败')
+            ? `登录失败：${detail}`
+            : '登录失败：无效的 API Token',
+        );
       }
     },
 
