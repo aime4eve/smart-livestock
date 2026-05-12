@@ -68,6 +68,12 @@ class TenantWriteResult {
   final String? message;
 }
 
+class AuthResult {
+  const AuthResult({required this.accessToken, required this.user});
+  final String accessToken;
+  final Map<String, dynamic> user;
+}
+
 class ApiCache {
   ApiCache._();
   static final ApiCache instance = ApiCache._();
@@ -429,6 +435,26 @@ class ApiCache {
     } catch (_) {
       return null;
     }
+  }
+
+  Future<AuthResult?> authenticateWithCredentials({
+    required String phone,
+    required String password,
+  }) async {
+    final response = await _httpClient.post(
+      Uri.parse('${resolveApiBaseUrl()}/auth/login'),
+      headers: const {'Content-Type': 'application/json'},
+      body: jsonEncode({'phone': phone, 'password': password}),
+    );
+    if (response.statusCode != 200) return null;
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (body['code'] != 'OK') return null;
+    final data = body['data'] as Map<String, dynamic>?;
+    if (data == null) return null;
+    final token = data['token'] as String?;
+    final user = data['user'] as Map<String, dynamic>?;
+    if (token == null || user == null) return null;
+    return AuthResult(accessToken: token, user: user);
   }
 
   Future<ApiAuthTokens?> authenticateRole(String role) async {

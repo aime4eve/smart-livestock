@@ -75,6 +75,44 @@ class SessionController extends Notifier<AppSession> {
   void logout() {
     state = const AppSession.loggedOut();
   }
+
+  Future<bool> loginWithCredentials({
+    required String phone,
+    required String password,
+  }) async {
+    final cache = ApiCache.instance;
+    final result = await cache.authenticateWithCredentials(
+      phone: phone,
+      password: password,
+    );
+    if (result == null) return false;
+
+    final user = result.user;
+    final roleStr = user['role'] as String? ?? '';
+    final role = _roleFromWireName(roleStr);
+    if (role == null) return false;
+
+    state = AppSession.withCredentials(
+      role: role,
+      accessToken: result.accessToken,
+      userId: user['id'] as int?,
+      userName: user['name'] as String?,
+      phone: user['phone'] as String?,
+      tenantId: user['tenantId'] as int?,
+    );
+    return true;
+  }
+
+  DemoRole? _roleFromWireName(String wireName) {
+    return switch (wireName.toUpperCase()) {
+      'OWNER' => DemoRole.owner,
+      'WORKER' => DemoRole.worker,
+      'PLATFORM_ADMIN' => DemoRole.platformAdmin,
+      'B2B_ADMIN' => DemoRole.b2bAdmin,
+      'API_CONSUMER' => DemoRole.apiConsumer,
+      _ => null,
+    };
+  }
 }
 
 final sessionControllerProvider =

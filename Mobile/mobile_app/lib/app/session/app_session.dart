@@ -7,6 +7,10 @@ class AppSession {
     this.refreshToken,
     this.expiresAt,
     this.activeFarmTenantId,
+    this.userId,
+    this.userName,
+    this.phone,
+    this.tenantId,
   });
 
   const AppSession.loggedOut() : this._();
@@ -27,11 +31,37 @@ class AppSession {
           activeFarmTenantId: activeFarmTenantId,
         );
 
+  const AppSession.withCredentials({
+    required DemoRole role,
+    required String accessToken,
+    String? refreshToken,
+    DateTime? expiresAt,
+    String? activeFarmTenantId,
+    int? userId,
+    String? userName,
+    String? phone,
+    int? tenantId,
+  }) : this._(
+          role: role,
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+          expiresAt: expiresAt,
+          activeFarmTenantId: activeFarmTenantId,
+          userId: userId,
+          userName: userName,
+          phone: phone,
+          tenantId: tenantId,
+        );
+
   final DemoRole? role;
   final String? accessToken;
   final String? refreshToken;
   final DateTime? expiresAt;
   final String? activeFarmTenantId;
+  final int? userId;
+  final String? userName;
+  final String? phone;
+  final int? tenantId;
 
   AppSession copyWith({
     DemoRole? role,
@@ -39,6 +69,10 @@ class AppSession {
     String? refreshToken,
     DateTime? expiresAt,
     String? activeFarmTenantId,
+    int? userId,
+    String? userName,
+    String? phone,
+    int? tenantId,
   }) {
     return AppSession._(
       role: role ?? this.role,
@@ -46,6 +80,10 @@ class AppSession {
       refreshToken: refreshToken ?? this.refreshToken,
       expiresAt: expiresAt ?? this.expiresAt,
       activeFarmTenantId: activeFarmTenantId ?? this.activeFarmTenantId,
+      userId: userId ?? this.userId,
+      userName: userName ?? this.userName,
+      phone: phone ?? this.phone,
+      tenantId: tenantId ?? this.tenantId,
     );
   }
 
