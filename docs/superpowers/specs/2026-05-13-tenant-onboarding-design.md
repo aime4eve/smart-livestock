@@ -98,13 +98,13 @@ App 侧的牧场操作走 JWT 租户上下文，不是 URL 里的 tenantId：
 
 **两条入口区分**：
 - App 侧 `FarmController`（`POST /api/v1/farms`）：传入 JWT userId，仅当该用户为本租户 owner 时写分配
-- Admin 侧 `FarmAdminController`（`POST /api/v1/admin/farms`）：请求者为 platform_admin，无"当前租户 owner"语义。Service 接受可选 `ownerUserId` 参数，为 null 时跳过自动分配，避免误把 platform_admin 写进分配表
+- Admin 侧 `FarmAdminController`（`POST /api/v1/admin/farms`）：请求者为 platform_admin，无"当前租户 owner"语义。Service 接受可选 `ownerUserId` 参数，为 null 时跳过自动分配，避免误把 platform_admin 写进分配表。Phase 1 默认策略：admin 创建牧场时不绑定 owner，由 owner 在 App 向导自行创建
 
 **边界情况**：
-- 非 owner 用户（如 worker）调 `POST /farms` → 由现有权限校验拒绝，不走到自动关联逻辑
+- 非 owner 用户（如 worker）调 `POST /farms` → **需在 FarmController.createFarm 或 Service 内显式校验 role=OWNER**（当前 SecurityConfig 仅要求 authenticated，无角色拦截）；实施时作为明确开发项
 - 重复分配（同一 userId + farmId） → `user_farm_assignments` 表有 UNIQUE(user_id, farm_id) 约束，写入前先查询，已存在则跳过
 
-**已有基础设施**：`user_farm_assignments` 表已在 `V1__create_identity_tables.sql` 中定义；`UserFarmAssignmentJpaEntity` 和 `SpringDataUserFarmAssignmentRepository` 已存在，但缺少 domain 层的 Repository 接口和 Mapper，需补充。
+**已有基础设施**：`user_farm_assignments` 表已在 `V1__create_identity_tables.sql` 中定义；`UserFarmAssignmentJpaEntity` 和 `SpringDataUserFarmAssignmentRepository` 已存在，但缺少 domain 层的 Repository 接口和 Mapper，需补充（与 FarmRepository/UserRepository 同一风格，参见 MVP 后端设计 §3.2）。
 
 **注意**：当前 `FarmScopeInterceptor` 只校验"牧场是否属于 JWT 里的租户"，不查 `user_farm_assignments`。写入分配表是为数据模型一致性和后续 Phase 2"按牧场授权"做准备。
 
@@ -185,7 +185,7 @@ Phase 1 需确保：
   - 底层复用 `fence_edit_session`（撤销/重做栈）
   - 不依赖 FenceItem 的加载逻辑，使用临时草稿状态
 - 绘制完成 → 生成 vertices JSON → `POST /api/v1/farms/{farmId}/fences`（复用 ApiCache.createFenceRemote）
-- 提供"稍后设置"跳过按钮
+- 提供"稍后设置"跳过按钮（可跳过用于降低首登摩擦，默认仍鼓励绘制）
 - **前端工作量说明**：不止"纯复用"，需要组合现有方法 + 新建向导状态机 + 草稿围栏管理层
 
 **Step 3 — 完成**
@@ -262,7 +262,7 @@ Dashboard 正常显示时，统计卡片数据来自 `GET /farms/{farmId}/dashbo
 | 5 | 进入 Step 2 围栏绘制 → 跳过 | 直接到 Step 3 |
 | 6 | Step 3 → 进入牧场 | ApiCache 刷新，Dashboard 正常显示统计卡片（数据为 0） |
 | 7 | 注册设备 + 添加牲畜 + 安装设备到牲畜 | 三个操作均成功，地图上显示设备位置 |
-| 8 | 返回 Dashboard | livestockCount=1, deviceCount≥1 等统计更新 |
+| 8 | 返回 Dashboard | livestockCount=1, onlineDeviceCount≥1 等统计更新 |
 
 ### 边界情况
 
