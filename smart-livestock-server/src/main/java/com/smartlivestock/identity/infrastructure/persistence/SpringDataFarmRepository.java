@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface SpringDataFarmRepository extends JpaRepository<FarmJpaEntity, Long> {
     List<FarmJpaEntity> findByTenantId(Long tenantId);
+
+    boolean existsByIdAndTenantId(Long id, Long tenantId);
 }

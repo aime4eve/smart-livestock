@@ -3,6 +3,8 @@ package com.smartlivestock.shared.common;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.slf4j.MDC;
+
 import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -43,11 +45,16 @@ public class ApiResponse<T> {
         return data;
     }
 
+    private static String currentRequestId() {
+        String id = MDC.get("requestId");
+        return id != null ? id : UUID.randomUUID().toString();
+    }
+
     public static <T> ApiResponse<T> ok(T data) {
         return new ApiResponse<>(
                 ErrorCode.OK.name(),
                 "success",
-                UUID.randomUUID().toString(),
+                currentRequestId(),
                 data
         );
     }
@@ -65,7 +72,7 @@ public class ApiResponse<T> {
         return new ApiResponse<>(
                 code.name(),
                 message,
-                UUID.randomUUID().toString(),
+                currentRequestId(),
                 null
         );
     }

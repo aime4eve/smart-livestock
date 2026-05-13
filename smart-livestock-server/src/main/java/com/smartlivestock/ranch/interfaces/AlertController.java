@@ -1,14 +1,10 @@
 package com.smartlivestock.ranch.interfaces;
 
 import com.smartlivestock.ranch.application.AlertApplicationService;
-import com.smartlivestock.ranch.application.FenceApplicationService;
-import com.smartlivestock.ranch.application.LivestockApplicationService;
 import com.smartlivestock.ranch.application.command.AcknowledgeAlertCommand;
 import com.smartlivestock.ranch.application.command.ArchiveAlertCommand;
 import com.smartlivestock.ranch.application.command.HandleAlertCommand;
 import com.smartlivestock.ranch.application.dto.AlertDto;
-import com.smartlivestock.ranch.application.dto.FenceDto;
-import com.smartlivestock.ranch.application.dto.LivestockDto;
 import com.smartlivestock.ranch.domain.model.AlertStatus;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
@@ -28,8 +24,6 @@ import java.util.Map;
 public class AlertController {
 
     private final AlertApplicationService alertApplicationService;
-    private final LivestockApplicationService livestockApplicationService;
-    private final FenceApplicationService fenceApplicationService;
 
     /**
      * GET /api/v1/farms/{farmId}/alerts
@@ -139,71 +133,6 @@ public class AlertController {
             }
         }
         return ResponseEntity.ok(ApiResponse.ok(Map.of("handledCount", handledCount)));
-    }
-
-    /**
-     * GET /api/v1/farms/{farmId}/dashboard/summary
-     * Dashboard summary for a farm.
-     */
-    @GetMapping("/dashboard/summary")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> dashboardSummary(
-            @PathVariable Long farmId) {
-        List<LivestockDto> livestock = livestockApplicationService.listByFarm(farmId);
-        List<AlertDto> alerts = alertApplicationService.listByFarm(farmId);
-        List<FenceDto> fences = fenceApplicationService.listByFarm(farmId);
-
-        long healthyCount = livestock.stream()
-                .filter(l -> "HEALTHY".equals(l.healthStatus())).count();
-        long warningCount = livestock.stream()
-                .filter(l -> "WARNING".equals(l.healthStatus())).count();
-        long criticalCount = livestock.stream()
-                .filter(l -> "CRITICAL".equals(l.healthStatus())).count();
-        long activeAlertCount = alerts.stream()
-                .filter(a -> "PENDING".equals(a.status()) || "ACKNOWLEDGED".equals(a.status())).count();
-
-        Map<String, Object> data = Map.of(
-                "livestockCount", livestock.size(),
-                "onlineDeviceCount", 0,  // Requires cross-context query, stub for now
-                "activeAlertCount", activeAlertCount,
-                "fenceCount", fences.size(),
-                "healthSummary", Map.of(
-                        "healthy", healthyCount,
-                        "warning", warningCount,
-                        "critical", criticalCount
-                )
-        );
-        return ResponseEntity.ok(ApiResponse.ok(data));
-    }
-
-    /**
-     * GET /api/v1/farms/{farmId}/map/overview
-     * Map overview (livestock positions + fence outlines + alert markers).
-     */
-    @GetMapping("/map/overview")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> mapOverview(
-            @PathVariable Long farmId) {
-        List<LivestockDto> livestock = livestockApplicationService.listByFarm(farmId);
-        List<FenceDto> fences = fenceApplicationService.listByFarm(farmId);
-        List<AlertDto> alerts = alertApplicationService.listByFarm(farmId);
-
-        List<Map<String, Object>> livestockPositions = livestock.stream()
-                .filter(l -> l.lastLatitude() != null && l.lastLongitude() != null)
-                .map(l -> Map.<String, Object>of(
-                        "id", l.id(),
-                        "livestockCode", l.livestockCode() != null ? l.livestockCode() : "",
-                        "lng", l.lastLongitude(),
-                        "lat", l.lastLatitude(),
-                        "healthStatus", l.healthStatus(),
-                        "alertCount", 0
-                ))
-                .toList();
-
-        Map<String, Object> data = Map.of(
-                "livestock", livestockPositions,
-                "fences", fences,
-                "alerts", alerts
-        );
-        return ResponseEntity.ok(ApiResponse.ok(data));
     }
 
     private Long getCurrentUserId() {

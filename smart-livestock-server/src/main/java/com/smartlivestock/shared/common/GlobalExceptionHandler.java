@@ -2,6 +2,7 @@ package com.smartlivestock.shared.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -15,9 +16,14 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    private static String currentRequestId() {
+        String id = MDC.get("requestId");
+        return id != null ? id : UUID.randomUUID().toString();
+    }
+
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiResponse<Void>> handleApiException(ApiException ex) {
-        String requestId = UUID.randomUUID().toString();
+        String requestId = currentRequestId();
         HttpStatus status = mapToHttpStatus(ex.getCode());
         log.warn("[{}] ApiException {}: {}", requestId, ex.getCode(), ex.getMessage());
         return ResponseEntity
@@ -28,7 +34,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidationException(
             MethodArgumentNotValidException ex) {
-        String requestId = UUID.randomUUID().toString();
+        String requestId = currentRequestId();
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .reduce((a, b) -> a + "; " + b)
@@ -41,7 +47,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
-        String requestId = UUID.randomUUID().toString();
+        String requestId = currentRequestId();
         log.error("[{}] Unexpected error", requestId, ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
