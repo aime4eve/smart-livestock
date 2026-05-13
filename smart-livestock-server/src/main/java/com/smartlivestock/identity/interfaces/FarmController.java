@@ -3,11 +3,15 @@ package com.smartlivestock.identity.interfaces;
 import com.smartlivestock.identity.application.FarmApplicationService;
 import com.smartlivestock.identity.application.command.CreateFarmCommand;
 import com.smartlivestock.identity.application.dto.FarmDto;
+import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
+import com.smartlivestock.shared.common.ErrorCode;
 import com.smartlivestock.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -51,7 +55,7 @@ public class FarmController {
                 toBigDecimal(body.get("longitude")),
                 toBigDecimal(body.get("areaHectares"))
         );
-        FarmDto farm = farmApplicationService.createFarm(tenantId, command);
+        FarmDto farm = farmApplicationService.createFarm(tenantId, command, getCurrentUserId());
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(farm));
     }
 
@@ -128,5 +132,13 @@ public class FarmController {
         if (value instanceof BigDecimal bd) return bd;
         if (value instanceof Number n) return BigDecimal.valueOf(n.doubleValue());
         return new BigDecimal(value.toString());
+    }
+
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "未认证");
+        }
+        return (Long) authentication.getPrincipal();
     }
 }

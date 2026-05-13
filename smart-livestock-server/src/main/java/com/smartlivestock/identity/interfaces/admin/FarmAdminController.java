@@ -114,7 +114,7 @@ public class FarmAdminController {
                 toBigDecimal(body.get("longitude")),
                 toBigDecimal(body.get("areaHectares"))
         );
-        var farmDto = farmApplicationService.createFarm(tenantId, command);
+        var farmDto = farmApplicationService.createFarm(tenantId, command, null);
 
         Map<String, Object> data = Map.<String, Object>of(
                 "id", String.valueOf(farmDto.id()),
