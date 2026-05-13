@@ -94,8 +94,14 @@ App 侧的牧场操作走 JWT 租户上下文，不是 URL 里的 tenantId：
 
 **改动点**：
 - `FarmController.createFarm()` 从 SecurityContext 取 userId，传入 Service
-- `FarmApplicationService` 增加 `UserRepository` + `UserFarmAssignmentRepository` 依赖
+- `FarmApplicationService` 增加 `UserRepository` + `UserFarmAssignmentRepository` 依赖（`UserFarmAssignmentJpaEntity` 和 `SpringDataUserFarmAssignmentRepository` 已存在）
 - `createFarm()` 方法内增加：校验 userId 是该 tenant 的 owner → 写 user_farm_assignments（userId, farmId, OWNER, ACTIVE）
+
+**边界情况**：
+- 非 owner 用户（如 worker）调 `POST /farms` → 由现有权限校验拒绝，不走到自动关联逻辑
+- 重复分配（同一 userId + farmId） → `user_farm_assignments` 表有 UNIQUE(user_id, farm_id) 约束，写入前先查询，已存在则跳过
+
+**已有基础设施**：`user_farm_assignments` 表已在 `V1__create_identity_tables.sql` 中定义；`UserFarmAssignmentJpaEntity` 和 `SpringDataUserFarmAssignmentRepository` 已存在，但缺少 domain 层的 Repository 接口和 Mapper，需补充。
 
 **注意**：当前 `FarmScopeInterceptor` 只校验"牧场是否属于 JWT 里的租户"，不查 `user_farm_assignments`。写入分配表是为数据模型一致性和后续 Phase 2"按牧场授权"做准备。
 
@@ -103,16 +109,7 @@ App 侧的牧场操作走 JWT 租户上下文，不是 URL 里的 tenantId：
 
 **当前 App 实际读取路径**：`GET /farms/{farmId}/dashboard` → `LiveDashboardRepository` → `ApiCache.dashboardMetrics`
 
-统计字段必须落在 App 实际读取的端点上。在 `GET /farms/{farmId}/dashboard` 响应中增加：
-
-```json
-{
-  "livestockCount": 45,
-  "fenceCount": 5,
-  "deviceCount": 30,
-  "alertCount": 12
-}
-```
+统计字段必须落在 App 实际读取的端点上。当前 `DashboardController` 已返回 `livestockCount`、`onlineDeviceCount`、`activeAlertCount`、`fenceCount`。确认这些字段与前端 `LiveDashboardRepository` 的解析字段对齐即可，无需新增字段。
 
 避免在 `GET /farms/{id}` 单独返回统计导致前端需增加额外请求。
 
@@ -212,8 +209,8 @@ Dashboard 正常显示时，统计卡片数据来自 `GET /farms/{farmId}/dashbo
 ### Phase 1 实施
 
 **后端（2 项改动）：**
-1. `FarmApplicationService.createFarm()` — 自动写入 `user_farm_assignments`
-2. `GET /farms/{farmId}/dashboard` — 增加统计字段
+1. `FarmApplicationService.createFarm()` — 自动写入 `user_farm_assignments`（需补充 domain 层 Repository 接口和 Mapper，JPA 层已存在）
+2. `GET /farms/{farmId}/dashboard` — 确认统计字段（livestockCount / onlineDeviceCount / activeAlertCount / fenceCount）与前端解析对齐
 
 **前端（5 项改动）：**
 1. DashboardPage 空状态引导卡片
