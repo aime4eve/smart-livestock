@@ -12,12 +12,11 @@
 ### 竞品参考
 
 基于 Cattler、AgriLiv、TraceX、LoRa 畜牧系统方案的竞品分析，本设计纳入了以下洞察：
-- 设备激活是用户旅程中摩擦最大的环节（TraceX）
-- 电子围栏是用户购买的首要动机之一（Navynav）
-- 告警推送而非事后查看才是核心价值（Cattler）
-- 多角色协作是牧场管理的刚需（AgriLiv）
 
-Phase 1 聚焦核心闭环，竞品洞察中的进阶能力（网关激活、通知渠道、扩展角色、自助注册）已记录为 GitHub Issues，按阶段推进。
+- 电子围栏是用户购买的首要动机之一（Navynav） → Phase 1 对应：向导 Step 2 将围栏绘制作为自然步骤而非可选额外操作
+- 设备激活是用户旅程中摩擦最大的环节（TraceX） → 由 #44 Phase 3 接续，Phase 1 用简化的单设备注册
+- 告警推送而非事后查看才是核心价值（Cattler） → 由 #45 Phase 2 接续
+- 多角色协作是牧场管理的刚需（AgriLiv） → 由 #47 Phase 2 接续
 
 ---
 
@@ -34,11 +33,11 @@ Phase 1 聚焦核心闭环，竞品洞察中的进阶能力（网关激活、通
   ⑤ 前端 GET /farms → 空列表
   ⑥ Dashboard 显示空状态引导卡片
   ⑦ owner 点击 → 进入向导式牧场创建：
-     Step 1: 牧场名 / 面积 / 地图选中心点
-     Step 2: 在地图上绘制围栏（可跳过）
+     Step 1: 牧场名 / 面积 / 地图选中心点 → POST /farms（完成 ⑧ 牧场创建与 owner 关联）
+     Step 2: 在地图上绘制围栏（可跳过）→ POST /farms/{id}/fences
      Step 3: 完成
-  ⑧ 后端创建牧场 + 自动写入 user_farm_assignments
-  ⑨ 前端刷新 → 进入正常使用
+  ⑧ Step 1 成功即完成牧场创建 + 自动写入 user_farm_assignments
+  ⑨ 向导结束 → ApiCache 重拉 /farms + 设 activeFarmId + 拉 farm-scoped 数据 → Dashboard 正常渲染
 
 第三幕：设备 + 牲畜（简化版，无网关概念）
   ⑩ owner 注册设备（POST /farms/{id}/devices，单个注册）
@@ -65,7 +64,7 @@ Phase 1 聚焦核心闭环，竞品洞察中的进阶能力（网关激活、通
 | #45 | 告警通知渠道配置 | Phase 2 |
 | #46 | 自助注册 + 试用 | Phase 2 |
 | #47 | 扩展角色体系 manager/vet | Phase 2 |
-| — | 成员邀请（从 stub 改真实实现） | Phase 2（与 #47 同期） |
+| —（待建 Issue） | 成员邀请（从 stub 改真实实现） | Phase 2（与 #47 同期） |
 
 ---
 
@@ -93,9 +92,13 @@ App 侧的牧场操作走 JWT 租户上下文，不是 URL 里的 tenantId：
 **目标行为**：创建牧场时，如果请求者是该租户下的 owner，自动写入一条 `user_farm_assignments` 记录。
 
 **改动点**：
-- `FarmController.createFarm()` 从 SecurityContext 取 userId，传入 Service
+- `FarmController.createFarm()`（App 侧，`POST /api/v1/farms`）从 SecurityContext 取 userId，传入 Service
 - `FarmApplicationService` 增加 `UserRepository` + `UserFarmAssignmentRepository` 依赖（`UserFarmAssignmentJpaEntity` 和 `SpringDataUserFarmAssignmentRepository` 已存在）
 - `createFarm()` 方法内增加：校验 userId 是该 tenant 的 owner → 写 user_farm_assignments（userId, farmId, OWNER, ACTIVE）
+
+**两条入口区分**：
+- App 侧 `FarmController`（`POST /api/v1/farms`）：传入 JWT userId，仅当该用户为本租户 owner 时写分配
+- Admin 侧 `FarmAdminController`（`POST /api/v1/admin/farms`）：请求者为 platform_admin，无"当前租户 owner"语义。Service 接受可选 `ownerUserId` 参数，为 null 时跳过自动分配，避免误把 platform_admin 写进分配表
 
 **边界情况**：
 - 非 owner 用户（如 worker）调 `POST /farms` → 由现有权限校验拒绝，不走到自动关联逻辑
@@ -109,9 +112,22 @@ App 侧的牧场操作走 JWT 租户上下文，不是 URL 里的 tenantId：
 
 **当前 App 实际读取路径**：`GET /farms/{farmId}/dashboard` → `LiveDashboardRepository` → `ApiCache.dashboardMetrics`
 
-统计字段必须落在 App 实际读取的端点上。当前 `DashboardController` 已返回 `livestockCount`、`onlineDeviceCount`、`activeAlertCount`、`fenceCount`。确认这些字段与前端 `LiveDashboardRepository` 的解析字段对齐即可，无需新增字段。
+统计字段必须落在 App 实际读取的端点上。当前 `DashboardController.summary` 已返回以下字段：
 
-避免在 `GET /farms/{id}` 单独返回统计导致前端需增加额外请求。
+```json
+{
+  "livestockCount": 45,
+  "fenceCount": 5,
+  "onlineDeviceCount": 0,
+  "activeAlertCount": 12,
+  "healthSummary": { ... }
+}
+```
+
+Phase 1 需确保：
+- `onlineDeviceCount` 由真实设备服务计算（当前为占位 0），而非硬编码
+- 前端 `ApiCache._normalizeDashboardMetrics` 的字段映射与上述键名一致
+- 避免在 `GET /farms/{id}` 单独返回统计导致前端需增加额外请求
 
 ### 2.4 文档标注：成员管理为 Phase 1 stub
 
@@ -174,7 +190,8 @@ App 侧的牧场操作走 JWT 租户上下文，不是 URL 里的 tenantId：
 
 **Step 3 — 完成**
 - 显示创建成功摘要（牧场名、面积、围栏数）
-- [进入牧场] 按钮 → 跳转主 Dashboard（此时 activeFarmId 已设定，数据可正常加载）
+- [进入牧场] 按钮 → 触发 `ApiCache.init`（重拉 `/farms` + 设 activeFarmId + 拉 farm-scoped 数据），然后跳转主 Dashboard
+- 仅 go 到 Dashboard 可能仍读到旧的空 myFarms/metrics，必须先刷新缓存
 
 ### 3.3 统计卡片数据源
 
@@ -198,7 +215,7 @@ Dashboard 正常显示时，统计卡片数据来自 `GET /farms/{farmId}/dashbo
 | Dashboard 空状态 | 改动 DashboardPage | FarmSwitcherController |
 | 牧场创建向导 | 新建 WizardPage + 草稿围栏组件 | 后端改动 1（自动关联） |
 | 围栏绘制 | 复用底层编辑能力，新建草稿管理层 | 后端无（fences API 已有） |
-| 统计卡片 | 改动 LiveDashboardRepository 解析 | 后端改动 2（/dashboard 增加统计） |
+| 统计卡片 | 改动 LiveDashboardRepository 解析 | 后端改动 2（/dashboard 字段对齐 + onlineDeviceCount 真实计算） |
 | 设备-牲畜绑定 | 新建 installations HTTP + UI 入口 | 后端无（API 已有）；Flutter 需完整新建 |
 | Mock 模式适配 | 改动 FarmSwitcherController | 无 |
 
@@ -210,7 +227,7 @@ Dashboard 正常显示时，统计卡片数据来自 `GET /farms/{farmId}/dashbo
 
 **后端（2 项改动）：**
 1. `FarmApplicationService.createFarm()` — 自动写入 `user_farm_assignments`（需补充 domain 层 Repository 接口和 Mapper，JPA 层已存在）
-2. `GET /farms/{farmId}/dashboard` — 确认统计字段（livestockCount / onlineDeviceCount / activeAlertCount / fenceCount）与前端解析对齐
+2. `GET /farms/{farmId}/dashboard` — 确认统计字段（livestockCount / onlineDeviceCount / activeAlertCount / fenceCount）与前端解析对齐；onlineDeviceCount 改为真实计算（当前占位 0）
 
 **前端（5 项改动）：**
 1. DashboardPage 空状态引导卡片
@@ -229,3 +246,30 @@ Dashboard 正常显示时，统计卡片数据来自 `GET /farms/{farmId}/dashbo
 - GPS 模拟数据
 - Docker Compose 部署
 - CI/CD Pipeline
+
+---
+
+## 5. 验收标准
+
+### E2E 验收：新租户 owner 完整流程
+
+| 步骤 | 操作 | 预期结果 |
+|------|------|---------|
+| 1 | platform_admin 创建租户 + owner 用户 | 租户和用户创建成功 |
+| 2 | owner 登录（手机号+密码） | JWT 返回，token 含 tid 和 role=OWNER |
+| 3 | 登录后加载 Dashboard | farms 为空 → 显示"创建第一个牧场"引导卡片 |
+| 4 | 点击创建 → 填写牧场名+地图选点 → 提交 | POST /farms 成功，返回 farmId；user_farm_assignments 自动写入 |
+| 5 | 进入 Step 2 围栏绘制 → 跳过 | 直接到 Step 3 |
+| 6 | Step 3 → 进入牧场 | ApiCache 刷新，Dashboard 正常显示统计卡片（数据为 0） |
+| 7 | 注册设备 + 添加牲畜 + 安装设备到牲畜 | 三个操作均成功，地图上显示设备位置 |
+| 8 | 返回 Dashboard | livestockCount=1, deviceCount≥1 等统计更新 |
+
+### 边界情况
+
+| 场景 | 预期行为 |
+|------|---------|
+| worker 用户登录（无牧场） | 权限校验拒绝创建牧场操作，不触发自动关联 |
+| Step 1 创建牧场成功，Step 2 围栏 POST 失败 | 牧场已创建且可用，围栏未创建但牧场正常工作 |
+| owner 已有一个牧场，再创建第二个 | 第二个牧场也自动关联 owner（UNIQUE 约束允许同一用户分配到不同牧场） |
+| platform_admin 通过 admin 端点创建牧场 | 不触发自动关联（ownerUserId 为 null 时跳过） |
+| Mock 模式新租户演示 | FarmSwitcherController 返回空牧场列表，触发引导卡片 |
