@@ -17,8 +17,8 @@ String resolveApiBaseUrl() {
     return _apiBaseUrlFromEnv;
   }
   return kIsWeb
-      ? 'http://127.0.0.1:3001/api/v1'
-      : 'http://localhost:3001/api/v1';
+      ? 'http://127.0.0.1:18080/api/v1'
+      : 'http://localhost:18080/api/v1';
 }
 
 Map<String, String> _headers(
@@ -558,10 +558,30 @@ class ApiCache {
         _get(path, headers, markLiveSource: false);
 
     try {
-      final farmId = _activeFarmId;
+      // Step 1: Resolve active farm ID for owner/worker before farm-scoped fetches
+      String? farmId = _activeFarmId;
+      if ((role == DemoRole.owner.wireName || role == DemoRole.worker.wireName) &&
+          (farmId == null || farmId.isEmpty)) {
+        final myFarms = await initGet('/farms');
+        if (!_isCurrentGeneration(generation)) return;
+        _myFarms = myFarms;
+        final rawItems = myFarms?['items'];
+        if (rawItems is List && rawItems.isNotEmpty) {
+          final first = rawItems.first;
+          if (first is Map<String, dynamic>) {
+            final rawId = first['id'];
+            final derived = rawId is int ? rawId.toString() : (rawId as String?);
+            if (derived != null && derived.isNotEmpty) {
+              farmId = derived;
+              _activeFarmId = farmId;
+            }
+          }
+        }
+      }
+
       final hasFarmScope = farmId != null && farmId.isNotEmpty;
 
-      // Phase 1 farm-scoped endpoints (skip if no active farm — e.g. platform_admin)
+      // Step 2: Farm-scoped endpoints (skip if no active farm)
       List<Map<String, dynamic>?> farmScopedResults = [];
       if (hasFarmScope) {
         farmScopedResults = await Future.wait([
@@ -572,7 +592,7 @@ class ApiCache {
         ]);
       }
 
-      // Non-farm-scoped endpoints (always loaded)
+      // Step 3: Non-farm-scoped endpoints (always loaded)
       final globalResults = await Future.wait([
         initGet('/admin/tenants?pageSize=100'),
         initGet('/me'),
@@ -701,18 +721,13 @@ class ApiCache {
 
       _subscriptionUsage = globalResults[12];
 
+      // Workers & owner extras (farm list already fetched in Step 1)
       if (role == DemoRole.owner.wireName || role == DemoRole.worker.wireName) {
-        final myFarms = await initGet('/farms');
-        if (!_isCurrentGeneration(generation)) return;
-        _myFarms = myFarms;
-        final activeFarmId = myFarms?['activeFarmId'];
-        if (role == DemoRole.owner.wireName &&
-            activeFarmId is String &&
-            activeFarmId.isNotEmpty) {
-          final workers = await initGet('/farms/$activeFarmId/members');
+        if (role == DemoRole.owner.wireName && farmId != null) {
+          final workers = await initGet('/farms/$farmId/members');
           if (!_isCurrentGeneration(generation)) return;
           _workers = workers;
-          _workersFarmId = workers == null ? null : activeFarmId;
+          _workersFarmId = workers == null ? null : farmId;
         }
       }
 
