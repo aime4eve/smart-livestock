@@ -4,4 +4,5 @@ import com.smartlivestock.identity.infrastructure.persistence.entity.UserFarmAss
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SpringDataUserFarmAssignmentRepository extends JpaRepository<UserFarmAssignmentJpaEntity, Long> {
+    boolean existsByUserIdAndFarmId(Long userId, Long farmId);
 }
