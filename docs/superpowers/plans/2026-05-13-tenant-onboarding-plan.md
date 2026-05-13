@@ -366,7 +366,34 @@ private Long getCurrentUserId() {
 
 需要 import `org.springframework.security.core.context.SecurityContextHolder`。
 
-Admin 侧 `FarmAdminController`（如有 createFarm）传 null 作为 userId，不触发自动关联。
+**同时添加 Owner 角色校验**（spec §2.2 要求非 owner 应被拒绝）：
+
+```java
+@PostMapping("/farms")
+public ResponseEntity<ApiResponse<FarmDto>> createFarm(@RequestBody Map<String, Object> body) {
+    Long userId = getCurrentUserId();
+
+    // 仅 owner 可创建牧场
+    if (userId != null) {
+        var userOpt = userRepository.findById(userId);
+        if (userOpt.isPresent() && !userOpt.get().isOwner()) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "仅 owner 可创建牧场");
+        }
+    }
+
+    Long tenantId = TenantContext.getCurrentTenant();
+    CreateFarmCommand command = new CreateFarmCommand(
+            (String) body.get("name"),
+            toBigDecimal(body.get("latitude")),
+            toBigDecimal(body.get("longitude")),
+            toBigDecimal(body.get("areaHectares"))
+    );
+    FarmDto farm = farmApplicationService.createFarm(tenantId, command, userId);
+    return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(farm));
+}
+```
+
+FarmController 需注入 `UserRepository`。Admin 侧 `FarmAdminController`（如有 createFarm）传 null 作为 userId，不触发自动关联。
 
 - [ ] **Step 2: 修复其他调用 createFarm 的地方**
 
@@ -614,18 +641,52 @@ git commit -m "feat(flutter): add device-to-livestock installation UI entry poin
 
 - [ ] **Step 1: 后端 API 手动验证**
 
-1. platform_admin 创建新租户 + owner 用户
-2. owner 登录 → GET /farms 返回空列表
-3. owner 创建牧场 → POST /farms 成功 → 验证 user_farm_assignments 已写入
-4. GET /farms/{id}/dashboard 返回统计字段
+```bash
+# 1. platform_admin 创建新租户
+curl -X POST http://localhost:8080/api/v1/admin/tenants \
+  -H "Authorization: Bearer <admin-token>" -H "Content-Type: application/json" \
+  -d '{"name":"测试租户","contactName":"李四","contactPhone":"13900001111"}'
+
+# 2. platform_admin 创建 owner 用户
+curl -X POST http://localhost:8080/api/v1/admin/users \
+  -H "Authorization: Bearer <admin-token>" -H "Content-Type: application/json" \
+  -d '{"name":"李四","phone":"13900001111","role":"OWNER","tenantId":<ID>,"password":"Test@123"}'
+
+# 3. owner 登录
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" -d '{"phone":"13900001111","password":"Test@123"}'
+
+# 4. owner 列举牧场（应为空）
+curl http://localhost:8080/api/v1/farms -H "Authorization: Bearer <owner-token>"
+# Expected: {"code":"OK","data":{"items":[],"total":0}}
+
+# 5. owner 创建牧场
+curl -X POST http://localhost:8080/api/v1/farms \
+  -H "Authorization: Bearer <owner-token>" -H "Content-Type: application/json" \
+  -d '{"name":"测试牧场","latitude":28.2458,"longitude":112.8519,"areaHectares":500}'
+# Expected: 201 Created
+
+# 6. 验证 user_farm_assignments 已写入
+# psql: SELECT * FROM user_farm_assignments WHERE user_id = <ownerUserId>;
+# Expected: 1 row with role=OWNER, status=ACTIVE
+
+# 7. 验证 dashboard 统计
+curl http://localhost:8080/api/v1/farms/<farmId>/dashboard \
+  -H "Authorization: Bearer <owner-token>"
+# Expected: livestockCount=0, fenceCount=0, onlineDeviceCount=0, activeAlertCount=0
+
+# 8. 边界测试：worker 无法创建牧场
+# 先创建 worker 用户（admin 端），再以 worker 登录，POST /farms 应返回 403
+```
 
 - [ ] **Step 2: Flutter 端到端验证**
 
 1. 用新 owner 账号登录
 2. 验证看到空状态引导卡片
-3. 完成三步向导（牧场 → 围栏 → 完成）
-4. 验证 Dashboard 正常显示
-5. 添加设备、牲畜、安装设备
+3. 完成三步向导（牧场 → 围栏绘制/跳过 → 完成）
+4. 验证 Dashboard 正常显示统计卡片
+5. 添加设备、牲畜、安装设备到牲畜
+6. 验证 Dashboard 统计更新
 
 - [ ] **Step 3: 全量测试**
 
