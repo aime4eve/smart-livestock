@@ -3,6 +3,7 @@ package com.smartlivestock.identity.interfaces;
 import com.smartlivestock.identity.application.FarmApplicationService;
 import com.smartlivestock.identity.application.command.CreateFarmCommand;
 import com.smartlivestock.identity.application.dto.FarmDto;
+import com.smartlivestock.identity.domain.repository.UserRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -24,6 +25,7 @@ import java.util.Map;
 public class FarmController {
 
     private final FarmApplicationService farmApplicationService;
+    private final UserRepository userRepository;
 
     /**
      * GET /api/v1/farms
@@ -48,6 +50,17 @@ public class FarmController {
      */
     @PostMapping("/farms")
     public ResponseEntity<ApiResponse<FarmDto>> createFarm(@RequestBody Map<String, Object> body) {
+        Long userId = getCurrentUserId();
+
+        // 仅 owner 可创建牧场
+        var userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "用户不存在");
+        }
+        if (!userOpt.get().isOwner()) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "仅 owner 可创建牧场");
+        }
+
         Long tenantId = TenantContext.getCurrentTenant();
         CreateFarmCommand command = new CreateFarmCommand(
                 (String) body.get("name"),
@@ -55,7 +68,7 @@ public class FarmController {
                 toBigDecimal(body.get("longitude")),
                 toBigDecimal(body.get("areaHectares"))
         );
-        FarmDto farm = farmApplicationService.createFarm(tenantId, command, getCurrentUserId());
+        FarmDto farm = farmApplicationService.createFarm(tenantId, command, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(farm));
     }
 
