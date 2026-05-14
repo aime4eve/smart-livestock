@@ -6,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
@@ -14,6 +15,7 @@ import 'package:smart_livestock_demo/core/api/api_role.dart';
 import 'package:smart_livestock_demo/core/data/demo_seed.dart';
 import 'package:smart_livestock_demo/core/data/generators/gps_trajectory_generator.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
+import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
 import 'package:smart_livestock_demo/core/mock/mock_config.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/permissions/role_permission.dart';
@@ -51,6 +53,9 @@ class _FencePageState extends ConsumerState<FencePage>
   int? _draggingVertexIndex;
   Offset? _lastTranslateOffset;
 
+  MBTilesTileProvider? _mbtilesProvider;
+  bool _mbtilesReady = false;
+
   @override
   void initState() {
     super.initState();
@@ -58,10 +63,19 @@ class _FencePageState extends ConsumerState<FencePage>
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
+    _initMBTiles();
+  }
+
+  Future<void> _initMBTiles() async {
+    _mbtilesProvider = await MBTilesTileProvider.fromAsset();
+    if (_mbtilesProvider != null && mounted) {
+      setState(() => _mbtilesReady = true);
+    }
   }
 
   @override
   void dispose() {
+    _mbtilesProvider?.dispose();
     _breathingController.dispose();
     _mapController.dispose();
     super.dispose();
@@ -202,12 +216,20 @@ class _FencePageState extends ConsumerState<FencePage>
                                   ),
                         ),
                         children: [
-                          TileLayer(
-                            urlTemplate: MapConfig.tileUrlTemplate,
-                            userAgentPackageName:
-                                'com.smartlivestock.demo',
-                            maxZoom: MapConfig.cacheMaxZoom.toDouble(),
-                          ),
+                          if (_mbtilesReady)
+                            TileLayer(
+                              tileProvider: _mbtilesProvider,
+                              maxZoom:
+                                  MapConfig.cacheMaxZoom.toDouble(),
+                            )
+                          else
+                            TileLayer(
+                              urlTemplate: MapConfig.tileUrlTemplate,
+                              userAgentPackageName:
+                                  'com.smartlivestock.demo',
+                              maxZoom:
+                                  MapConfig.cacheMaxZoom.toDouble(),
+                            ),
                           if (!isEditing)
                             AnimatedBuilder(
                               animation: _breathingController,
@@ -1292,11 +1314,13 @@ class _FenceCard extends StatelessWidget {
                       children: [
                         _StatusLabel(active: fence.active),
                         const SizedBox(width: AppSpacing.sm),
-                        Text(
-                          '${fence.livestockCount}头',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall,
+                        Flexible(
+                          child: Text(
+                            '${fence.livestockCount}头',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall,
+                          ),
                         ),
                       ],
                     ),
