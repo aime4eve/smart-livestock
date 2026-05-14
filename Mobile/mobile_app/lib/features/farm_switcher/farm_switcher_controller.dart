@@ -33,10 +33,14 @@ class FarmSwitcherState {
 }
 
 class FarmSwitcherController extends Notifier<FarmSwitcherState> {
+  static const bool _emptyFarmDemo =
+      bool.fromEnvironment('EMPTY_FARM_DEMO', defaultValue: false);
+
   @override
   FarmSwitcherState build() {
     final mode = ref.watch(appModeProvider);
     final session = ref.watch(sessionControllerProvider);
+    ref.watch(farmDataReadyProvider);
     switch (mode) {
       case AppMode.mock:
         return _mockState(session.role, session.activeFarmTenantId);
@@ -54,6 +58,9 @@ class FarmSwitcherController extends Notifier<FarmSwitcherState> {
   }
 
   FarmSwitcherState _mockState(DemoRole? role, String? activeFarmId) {
+    if (_emptyFarmDemo) {
+      return const FarmSwitcherState.empty();
+    }
     if (role != DemoRole.owner && role != DemoRole.worker) {
       return const FarmSwitcherState.empty();
     }
