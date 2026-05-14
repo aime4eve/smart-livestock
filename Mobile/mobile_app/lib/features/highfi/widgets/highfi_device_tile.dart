@@ -9,11 +9,13 @@ class HighfiDeviceTile extends StatelessWidget {
     required this.device,
     this.onUnbind,
     this.onViewLocation,
+    this.onInstall,
   });
 
   final DeviceItem device;
   final VoidCallback? onUnbind;
   final VoidCallback? onViewLocation;
+  final VoidCallback? onInstall;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +58,12 @@ class HighfiDeviceTile extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
+                    if (onInstall != null)
+                      TextButton(
+                        key: Key('device-install-${device.id}'),
+                        onPressed: onInstall,
+                        child: const Text('安装到牲畜'),
+                      ),
                     if (onUnbind != null)
                       TextButton(
                         key: Key('device-unbind-${device.id}'),
