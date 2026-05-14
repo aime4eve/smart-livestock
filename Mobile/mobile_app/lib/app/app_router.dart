@@ -46,6 +46,7 @@ import 'package:smart_livestock_demo/features/admin/presentation/api_auth_page.d
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_revenue_page.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/worker_management_page.dart';
 import 'package:smart_livestock_demo/features/mine/presentation/api_auth_page.dart';
+import 'package:smart_livestock_demo/features/farm_creation/presentation/farm_creation_wizard_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final appMode = ref.watch(appModeProvider);
@@ -376,9 +377,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoute.farmCreation.path,
         name: AppRoute.farmCreation.routeName,
-        builder: (context, state) => const Scaffold(
-          body: Center(child: Text('创建牧场向导 - 待实现')),
-        ),
+        builder: (context, state) => const FarmCreationWizardPage(),
       ),
     ],
   );
