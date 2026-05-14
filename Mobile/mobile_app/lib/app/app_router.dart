@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_mode.dart';
@@ -371,6 +372,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             livestockCount: extra['livestockCount'] as int,
           );
         },
+      ),
+      GoRoute(
+        path: AppRoute.farmCreation.path,
+        name: AppRoute.farmCreation.routeName,
+        builder: (context, state) => const Scaffold(
+          body: Center(child: Text('创建牧场向导 - 待实现')),
+        ),
       ),
     ],
   );
