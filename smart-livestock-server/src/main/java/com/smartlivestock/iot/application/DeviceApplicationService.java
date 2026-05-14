@@ -75,6 +75,7 @@ public class DeviceApplicationService {
     @Transactional(readOnly = true)
     public long countActiveByTenant() {
         Long tenantId = TenantContext.getCurrentTenant();
+        if (tenantId == null) return 0L;
         return deviceRepository.countByTenantIdAndStatus(tenantId, DeviceStatus.ACTIVE.name());
     }
 }
