@@ -87,7 +87,104 @@ class ApiCache {
 
   Future<Map<String, dynamic>?> fetchFarms(String role, {ApiAuthTokens? tokens}) async {
     final headers = _headers(role, tokens: tokens, roleTokens: _roleTokens);
-    return await _get('/farms', headers);
+    final data = await _get('/farms', headers);
+    if (data != null) _myFarms = data;
+    return data;
+  }
+
+  /// POST /farms — create a new farm.
+  /// On success, sets [activeFarmId] and appends the farm to [_myFarms].
+  /// Does NOT call [init] — full init is deferred to wizard Step 3 (Task 7).
+  Future<bool> createFarmRemote(
+    String role, {
+    required String name,
+    required double latitude,
+    required double longitude,
+    required double areaHectares,
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
+    final body = <String, dynamic>{
+      'name': name,
+      'latitude': latitude,
+      'longitude': longitude,
+      'areaHectares': areaHectares,
+    };
+    final response = await http
+        .post(
+          Uri.parse('${resolveApiBaseUrl()}/farms'),
+          headers: _headers(
+            role,
+            tokens: tokens,
+            allowMockTokenFallback: allowMockTokenFallback,
+            roleTokens: _roleTokens,
+          ),
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      if (decoded['code'] == 'OK') {
+        final farmData = decoded['data'];
+        if (farmData is Map<String, dynamic>) {
+          final rawId = farmData['id'];
+          final farmId =
+              rawId is int ? rawId.toString() : (rawId as String? ?? '');
+          if (farmId.isNotEmpty) {
+            _activeFarmId = farmId;
+          }
+          // Append to existing _myFarms cache
+          final existingFarms = _myFarms?['farms'] ?? _myFarms?['items'];
+          if (existingFarms is List) {
+            final updated = List<dynamic>.from(existingFarms)..add(farmData);
+            final updatedMap = Map<String, dynamic>.from(_myFarms ?? {});
+            updatedMap['farms'] = updated;
+            if (_myFarms?['items'] != null) updatedMap['items'] = updated;
+            _myFarms = updatedMap;
+          } else {
+            // No existing cache — create fresh structure
+            _myFarms = {
+              'farms': [farmData],
+              'items': [farmData],
+            };
+          }
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// POST /farms/{farmId}/installations — bind a device to a livestock.
+  Future<bool> createInstallationRemote(
+    String role, {
+    required String farmId,
+    required String deviceId,
+    required String livestockId,
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
+    final body = <String, dynamic>{
+      'deviceId': deviceId,
+      'livestockId': livestockId,
+    };
+    final response = await http
+        .post(
+          Uri.parse('${resolveApiBaseUrl()}/farms/$farmId/installations'),
+          headers: _headers(
+            role,
+            tokens: tokens,
+            allowMockTokenFallback: allowMockTokenFallback,
+            roleTokens: _roleTokens,
+          ),
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      return decoded['code'] == 'OK';
+    }
+    return false;
   }
 
   bool hasRoleData(String role) {
@@ -462,7 +559,7 @@ class ApiCache {
     if (body['code'] != 'OK') return null;
     final data = body['data'] as Map<String, dynamic>?;
     if (data == null) return null;
-    final token = data['token'] as String?;
+    final token = (data['accessToken'] ?? data['token']) as String?;
     final user = data['user'] as Map<String, dynamic>?;
     if (token == null || user == null) return null;
     return AuthResult(accessToken: token, user: user);
@@ -558,22 +655,27 @@ class ApiCache {
         _get(path, headers, markLiveSource: false);
 
     try {
-      // Step 1: Resolve active farm ID for owner/worker before farm-scoped fetches
+      // Step 1: Load farm list for owner/worker (always; shell reads _myFarms).
+      // If we only fetched /farms when activeFarmId was empty, loginWithCredentials
+      // could set activeFarmId from fetchFarms then init() would clear _myFarms and
+      // skip this block — leaving _myFarms null and showing "请创建您的第一个牧场".
       String? farmId = _activeFarmId;
-      if ((role == DemoRole.owner.wireName || role == DemoRole.worker.wireName) &&
-          (farmId == null || farmId.isEmpty)) {
+      if (role == DemoRole.owner.wireName || role == DemoRole.worker.wireName) {
         final myFarms = await initGet('/farms');
         if (!_isCurrentGeneration(generation)) return;
         _myFarms = myFarms;
-        final rawItems = myFarms?['items'];
-        if (rawItems is List && rawItems.isNotEmpty) {
-          final first = rawItems.first;
-          if (first is Map<String, dynamic>) {
-            final rawId = first['id'];
-            final derived = rawId is int ? rawId.toString() : (rawId as String?);
-            if (derived != null && derived.isNotEmpty) {
-              farmId = derived;
-              _activeFarmId = farmId;
+        if (farmId == null || farmId.isEmpty) {
+          final rawItems = myFarms?['items'];
+          if (rawItems is List && rawItems.isNotEmpty) {
+            final first = rawItems.first;
+            if (first is Map<String, dynamic>) {
+              final rawId = first['id'];
+              final derived =
+                  rawId is int ? rawId.toString() : (rawId as String?);
+              if (derived != null && derived.isNotEmpty) {
+                farmId = derived;
+                _activeFarmId = farmId;
+              }
             }
           }
         }
@@ -589,6 +691,7 @@ class ApiCache {
           initGet('/farms/$farmId/map'),
           initGet('/farms/$farmId/alerts?pageSize=100'),
           initGet('/farms/$farmId/fences?pageSize=100'),
+          initGet('/farms/$farmId/devices?pageSize=200'),
         ]);
       }
 
@@ -602,7 +705,6 @@ class ApiCache {
         initGet('/twin/estrus/list'),
         initGet('/twin/epidemic/summary'),
         initGet('/twin/epidemic/contacts'),
-        initGet('/devices?pageSize=200'),
         initGet('/subscription/current'),
         initGet('/subscription/features'),
         initGet('/subscription/plans'),
@@ -621,7 +723,7 @@ class ApiCache {
       }
       _lastLiveSource = 'api';
 
-      // Farm-scoped: [0]=dashboard, [1]=map, [2]=alerts, [3]=fences
+      // Farm-scoped: [0]=dashboard, [1]=map, [2]=alerts, [3]=fences, [4]=devices
       if (hasFarmScope && farmScopedResults.isNotEmpty) {
         final dashData = farmScopedResults[0];
         if (dashData != null) {
@@ -662,12 +764,20 @@ class ApiCache {
               : <Map<String, dynamic>>[];
           _fences = items.map(_normalizeFenceItem).toList();
         }
+
+        final devicesData = farmScopedResults[4];
+        if (devicesData != null) {
+          final items = devicesData['items'] is List
+              ? List<Map<String, dynamic>>.from(devicesData['items'] ?? [])
+              : <Map<String, dynamic>>[];
+          _devices = items.map(_normalizeDeviceItem).toList();
+        }
       }
 
       // Global: [0]=tenants, [1]=me, [2]=twin/overview, [3]=fever, [4]=digestive,
       //         [5]=estrus, [6]=epidemic/summary, [7]=epidemic/contacts,
-      //         [8]=devices, [9]=subscription/current, [10]=subscription/features,
-      //         [11]=subscription/plans, [12]=subscription/usage
+      //         [8]=subscription/current, [9]=subscription/features,
+      //         [10]=subscription/plans, [11]=subscription/usage
       final tenantsData = globalResults[0];
       if (tenantsData != null) {
         _tenants = List<Map<String, dynamic>>.from(tenantsData['items'] ?? []);
@@ -702,24 +812,16 @@ class ApiCache {
             List<Map<String, dynamic>>.from(contactsData['items'] ?? []);
       }
 
-      final devicesData = globalResults[8];
-      if (devicesData != null) {
-        final items = devicesData['items'] is List
-            ? List<Map<String, dynamic>>.from(devicesData['items'] ?? [])
-            : <Map<String, dynamic>>[];
-        _devices = items.map(_normalizeDeviceItem).toList();
-      }
+      _subscriptionCurrent = globalResults[8];
+      _subscriptionFeatures = globalResults[9];
 
-      _subscriptionCurrent = globalResults[9];
-      _subscriptionFeatures = globalResults[10];
-
-      final plansData = globalResults[11];
+      final plansData = globalResults[10];
       if (plansData != null) {
         _subscriptionPlans =
             List<Map<String, dynamic>>.from(plansData['items'] ?? []);
       }
 
-      _subscriptionUsage = globalResults[12];
+      _subscriptionUsage = globalResults[11];
 
       // Workers & owner extras (farm list already fetched in Step 1)
       if (role == DemoRole.owner.wireName || role == DemoRole.worker.wireName) {
@@ -1319,10 +1421,9 @@ class ApiCache {
     if (vertices != null) {
       coordinates = vertices.map((v) {
         final vm = v as Map<String, dynamic>;
-        return <double>[
-          (vm['lng'] as num).toDouble(),
-          (vm['lat'] as num).toDouble(),
-        ];
+        final lng = (vm['lng'] ?? vm['longitude']) as num;
+        final lat = (vm['lat'] ?? vm['latitude']) as num;
+        return <double>[lng.toDouble(), lat.toDouble()];
       }).toList();
     }
     return <String, dynamic>{
