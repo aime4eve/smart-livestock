@@ -67,6 +67,14 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
 
     if (success) {
       final farmId = cache.activeFarmId ?? '';
+      if (farmId.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('创建牧场失败：未获取到牧场ID')),
+          );
+        }
+        return;
+      }
       widget.onComplete(farmId, _nameController.text.trim());
     } else {
       setState(() => _submitting = false);

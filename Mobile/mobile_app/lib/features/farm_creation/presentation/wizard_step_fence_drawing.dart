@@ -29,7 +29,7 @@ class WizardStepFenceDrawing extends ConsumerStatefulWidget {
   });
 
   final String farmId;
-  final VoidCallback onComplete;
+  final void Function(int count) onComplete;
   final VoidCallback onSkip;
 
   @override
@@ -169,7 +169,7 @@ class _WizardStepFenceDrawingState
     if (!mounted) return;
 
     if (ok) {
-      widget.onComplete();
+      widget.onComplete(1);
     } else {
       setState(() => _saving = false);
       final message = fenceSaveErrorMessageForStatusCode(

@@ -22,6 +22,7 @@ class _FarmCreationWizardPageState
   int _step = 1;
   String? _createdFarmId;
   String? _createdFarmName;
+  int _fenceCount = 0;
 
   void _onStep1Complete(String farmId, String farmName) {
     setState(() {
@@ -31,8 +32,11 @@ class _FarmCreationWizardPageState
     });
   }
 
-  void _onStep2Complete() {
-    setState(() => _step = 3);
+  void _onStep2Complete(int count) {
+    setState(() {
+      _fenceCount = count;
+      _step = 3;
+    });
   }
 
   void _onStep2Skip() {
@@ -69,7 +73,7 @@ class _FarmCreationWizardPageState
           ),
         3 => WizardStepComplete(
             farmName: _createdFarmName ?? '',
-            fenceCount: 0,
+            fenceCount: _fenceCount,
             onStart: _startDashboard,
           ),
         _ => const SizedBox.shrink(),
