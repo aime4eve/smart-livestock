@@ -10,6 +10,7 @@ import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/devices/domain/devices_repository.dart';
+import 'package:smart_livestock_demo/features/dashboard/presentation/dashboard_controller.dart';
 import 'package:smart_livestock_demo/features/devices/presentation/devices_controller.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_device_tile.dart';
@@ -124,7 +125,7 @@ class DevicesPage extends ConsumerWidget {
             deviceId: device.id,
             livestockId: livestockId,
           );
-          if (ctx.mounted) {
+          if (context.mounted) {
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
               ..showSnackBar(SnackBar(
@@ -133,6 +134,7 @@ class DevicesPage extends ConsumerWidget {
           }
           if (ok) {
             ref.invalidate(devicesControllerProvider);
+            ref.invalidate(dashboardControllerProvider);
           }
         },
       ),

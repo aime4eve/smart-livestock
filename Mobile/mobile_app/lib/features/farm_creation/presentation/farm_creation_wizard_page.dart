@@ -46,38 +46,71 @@ class _FarmCreationWizardPageState
   Future<void> _startDashboard() async {
     final session = ref.read(sessionControllerProvider);
     final cache = ApiCache.instance;
+    ref.read(farmDataReadyProvider.notifier).reset();
     try {
-      final tokens = ApiAuthTokens(accessToken: session.accessToken!);
-      await cache.init(
-        session.role!.wireName,
-        tokens: tokens,
-        allowMockTokenFallback: false,
-      );
-      ref.read(farmDataReadyProvider.notifier).markReady();
+      if (session.accessToken != null) {
+        final tokens = ApiAuthTokens(accessToken: session.accessToken!);
+        await cache.init(
+          session.role!.wireName,
+          tokens: tokens,
+          allowMockTokenFallback: false,
+        );
+        ref.read(farmDataReadyProvider.notifier).markReady();
+      }
     } catch (_) {
       // Graceful degradation — still navigate to dashboard
     }
     if (mounted) context.go('/twin');
   }
 
+  void _showBackConfirmDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('确认退出'),
+        content: const Text('牧场已创建。退出后将进入主页面，您可以稍后设置围栏。'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('继续设置')),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _startDashboard();
+            },
+            child: const Text('退出'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('创建牧场')),
-      body: switch (_step) {
-        1 => WizardStepBasicInfo(onComplete: _onStep1Complete),
-        2 => WizardStepFenceDrawing(
-            farmId: _createdFarmId!,
-            onComplete: _onStep2Complete,
-            onSkip: _onStep2Skip,
-          ),
-        3 => WizardStepComplete(
-            farmName: _createdFarmName ?? '',
-            fenceCount: _fenceCount,
-            onStart: _startDashboard,
-          ),
-        _ => const SizedBox.shrink(),
+    return PopScope(
+      canPop: _step == 1,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _step > 1) {
+          _showBackConfirmDialog(context);
+        }
       },
+      child: Scaffold(
+        appBar: AppBar(title: const Text('创建牧场')),
+        body: switch (_step) {
+          1 => WizardStepBasicInfo(onComplete: _onStep1Complete),
+          2 => WizardStepFenceDrawing(
+              farmId: _createdFarmId!,
+              onComplete: _onStep2Complete,
+              onSkip: _onStep2Skip,
+            ),
+          3 => WizardStepComplete(
+              farmName: _createdFarmName ?? '',
+              fenceCount: _fenceCount,
+              onStart: _startDashboard,
+            ),
+          _ => const SizedBox.shrink(),
+        },
+      ),
     );
   }
 }
