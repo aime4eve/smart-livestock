@@ -7,6 +7,7 @@ import com.smartlivestock.identity.domain.model.Farm;
 import com.smartlivestock.identity.domain.model.Role;
 import com.smartlivestock.identity.domain.model.User;
 import com.smartlivestock.identity.domain.repository.FarmRepository;
+import com.smartlivestock.identity.domain.repository.TenantRepository;
 import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepository;
 import com.smartlivestock.identity.domain.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.*;
 class FarmApplicationServiceTest {
 
     @Mock private FarmRepository farmRepository;
+    @Mock private TenantRepository tenantRepository;
     @Mock private UserRepository userRepository;
     @Mock private UserFarmAssignmentRepository assignmentRepository;
 
@@ -32,6 +34,7 @@ class FarmApplicationServiceTest {
 
     @Test
     void shouldAutoAssignOwnerWhenCreatingFarm() {
+        when(tenantRepository.existsById(1L)).thenReturn(true);
         User owner = new User("owner", "hash", "牧场主", Role.OWNER, 1L);
         when(userRepository.findById(100L)).thenReturn(Optional.of(owner));
         when(farmRepository.save(any())).thenAnswer(inv -> {
@@ -51,6 +54,7 @@ class FarmApplicationServiceTest {
 
     @Test
     void shouldSkipAssignmentWhenUserIdIsNull() {
+        when(tenantRepository.existsById(1L)).thenReturn(true);
         CreateFarmCommand cmd = new CreateFarmCommand("新牧场", null, null, null);
         when(farmRepository.save(any())).thenAnswer(inv -> {
             Farm f = inv.getArgument(0);
@@ -66,6 +70,7 @@ class FarmApplicationServiceTest {
 
     @Test
     void shouldSkipAssignmentWhenNotOwner() {
+        when(tenantRepository.existsById(1L)).thenReturn(true);
         User worker = new User("worker", "hash", "牧工", Role.WORKER, 1L);
         when(userRepository.findById(200L)).thenReturn(Optional.of(worker));
         when(farmRepository.save(any())).thenAnswer(inv -> {
@@ -84,6 +89,7 @@ class FarmApplicationServiceTest {
 
     @Test
     void shouldSkipAssignmentWhenAlreadyAssigned() {
+        when(tenantRepository.existsById(1L)).thenReturn(true);
         User owner = new User("owner", "hash", "牧场主", Role.OWNER, 1L);
         when(userRepository.findById(100L)).thenReturn(Optional.of(owner));
         when(farmRepository.save(any())).thenAnswer(inv -> {
@@ -96,6 +102,25 @@ class FarmApplicationServiceTest {
         CreateFarmCommand cmd = new CreateFarmCommand("新牧场", null, null, null);
 
         FarmDto result = farmApplicationService.createFarm(1L, cmd, 100L);
+
+        assertThat(result).isNotNull();
+        verify(assignmentRepository, never()).save(anyLong(), anyLong(), anyString(), anyString());
+    }
+
+    @Test
+    void shouldSkipAssignmentWhenTenantMismatch() {
+        when(tenantRepository.existsById(1L)).thenReturn(true);
+        User owner = new User("owner", "hash", "牧场主", Role.OWNER, 999L); // different tenant
+        when(userRepository.findById(100L)).thenReturn(Optional.of(owner));
+        when(farmRepository.save(any())).thenAnswer(inv -> {
+            Farm f = inv.getArgument(0);
+            f.setId(999L);
+            return f;
+        });
+
+        CreateFarmCommand cmd = new CreateFarmCommand("新牧场", null, null, null);
+
+        FarmDto result = farmApplicationService.createFarm(1L, cmd, 100L); // tenantId=1, user.tenantId=999
 
         assertThat(result).isNotNull();
         verify(assignmentRepository, never()).save(anyLong(), anyLong(), anyString(), anyString());

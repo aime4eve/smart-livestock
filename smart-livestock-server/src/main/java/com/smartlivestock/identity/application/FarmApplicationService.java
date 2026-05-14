@@ -4,6 +4,7 @@ import com.smartlivestock.identity.application.command.CreateFarmCommand;
 import com.smartlivestock.identity.application.dto.FarmDto;
 import com.smartlivestock.identity.domain.model.Farm;
 import com.smartlivestock.identity.domain.repository.FarmRepository;
+import com.smartlivestock.identity.domain.repository.TenantRepository;
 import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepository;
 import com.smartlivestock.identity.domain.repository.UserRepository;
 import com.smartlivestock.shared.common.ApiException;
@@ -19,11 +20,15 @@ import java.util.List;
 public class FarmApplicationService {
 
     private final FarmRepository farmRepository;
+    private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
     private final UserFarmAssignmentRepository assignmentRepository;
 
     @Transactional
     public FarmDto createFarm(Long tenantId, CreateFarmCommand command, Long userId) {
+        if (!tenantRepository.existsById(tenantId)) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "租户不存在: " + tenantId);
+        }
         Farm farm = new Farm(tenantId, command.name(), command.latitude(), command.longitude(), command.areaHectares());
         Farm saved = farmRepository.save(farm);
 

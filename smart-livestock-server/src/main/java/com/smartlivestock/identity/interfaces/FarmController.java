@@ -61,9 +61,21 @@ public class FarmController {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "仅 owner 可创建牧场");
         }
 
+        String name = (String) body.get("name");
+        if (name == null || name.isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "牧场名称不能为空");
+        }
+
         Long tenantId = TenantContext.getCurrentTenant();
+        List<FarmDto> existingFarms = farmApplicationService.listFarms(tenantId);
+        boolean duplicate = existingFarms.stream()
+                .anyMatch(f -> name.equals(f.name()));
+        if (duplicate) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "牧场名称已存在");
+        }
+
         CreateFarmCommand command = new CreateFarmCommand(
-                (String) body.get("name"),
+                name,
                 toBigDecimal(body.get("latitude")),
                 toBigDecimal(body.get("longitude")),
                 toBigDecimal(body.get("areaHectares"))
