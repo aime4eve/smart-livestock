@@ -7,37 +7,7 @@ import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/features/farm_creation/presentation/wizard_step_basic_info.dart';
 import 'package:smart_livestock_demo/features/farm_creation/presentation/wizard_step_complete.dart';
-
-/// Placeholder for Task 8 — fence drawing step.
-class WizardStepFenceDrawing extends StatelessWidget {
-  final String farmId;
-  final VoidCallback onComplete;
-  final VoidCallback onSkip;
-
-  const WizardStepFenceDrawing({
-    super.key,
-    required this.farmId,
-    required this.onComplete,
-    required this.onSkip,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text('围栏绘制 - Task 8 待实现'),
-          const SizedBox(height: 16),
-          FilledButton(
-            onPressed: onSkip,
-            child: const Text('跳过，稍后设置围栏'),
-          ),
-        ],
-      ),
-    );
-  }
-}
+import 'package:smart_livestock_demo/features/farm_creation/presentation/wizard_step_fence_drawing.dart';
 
 class FarmCreationWizardPage extends ConsumerStatefulWidget {
   const FarmCreationWizardPage({super.key});
