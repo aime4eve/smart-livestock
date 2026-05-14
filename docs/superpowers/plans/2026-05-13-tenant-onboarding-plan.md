@@ -19,18 +19,19 @@
 | 优先级 | Issue | 标题 |
 |--------|-------|------|
 | P0 | #40 | 构建 MVP（入驻流程子任务） |
+| P0 | #49 | 租户入驻端到端闭环（已关闭） |
 
 ## 完成记录表
 
 | 完成日期 | Issue | PR | 备注 |
 |----------|-------|-----|------|
-| | | | |
+| 2026-05-14 | #49 | `feat/flutter-springboot-adaptation` | 14 commits: 10 实现 + 4 评审修复；后端 5 tests / 前端 300 tests |
 
 ---
 
 ## 文件结构总览
 
-### 后端（新建 2 文件，修改 3 文件）
+### 后端（新建 3 文件，修改 3 文件）
 
 ```
 smart-livestock-server/src/main/java/com/smartlivestock/
@@ -47,10 +48,10 @@ smart-livestock-server/src/main/java/com/smartlivestock/
 │   └── DashboardController.java                 ← 修改（onlineDeviceCount 真实计算）
 └── test/
     └── identity/application/
-        └── FarmApplicationServiceTest.java      ← 修改（加自动关联测试）
+        └── FarmApplicationServiceTest.java      ← 新建（自动关联测试）
 ```
 
-### 前端（新建 5 文件，修改 4 文件）
+### 前端（新建 3 文件，修改 4 文件）
 
 ```
 Mobile/mobile_app/lib/
@@ -62,14 +63,11 @@ Mobile/mobile_app/lib/
 │   ├── farm_switcher/
 │   │   └── farm_switcher_controller.dart        ← 修改（mock 空牧场分支）
 │   └── farm_creation/                           ← 新建目录
-│       ├── presentation/
-│       │   ├── farm_creation_wizard_page.dart   ← 新建（向导容器）
-│       │   ├── wizard_step_basic_info.dart      ← 新建（Step 1）
-│       │   ├── wizard_step_fence_drawing.dart   ← 新建（Step 2）
-│       │   ├── wizard_step_complete.dart        ← 新建（Step 3）
-│       │   └── draft_polygon_editor.dart        ← 新建（草稿围栏编辑器）
-│       └── domain/
-│           └── draft_fence_state.dart           ← 新建（草稿围栏状态模型）
+│       └── presentation/
+│           ├── farm_creation_wizard_page.dart   ← 新建（向导容器）
+│           ├── wizard_step_basic_info.dart      ← 新建（Step 1）
+│           ├── wizard_step_fence_drawing.dart   ← 新建（Step 2）
+│           └── wizard_step_complete.dart        ← 新建（Step 3）
 ```
 
 ---
@@ -86,8 +84,6 @@ Mobile/mobile_app/lib/
 `identity/domain/repository/UserFarmAssignmentRepository.java`:
 ```java
 package com.smartlivestock.identity.domain.repository;
-
-import java.util.Optional;
 
 public interface UserFarmAssignmentRepository {
     boolean existsByUserIdAndFarmId(Long userId, Long farmId);
@@ -166,6 +162,7 @@ package com.smartlivestock.identity.application.service;
 
 import com.smartlivestock.identity.application.FarmApplicationService;
 import com.smartlivestock.identity.application.command.CreateFarmCommand;
+import com.smartlivestock.identity.domain.model.Farm;
 import com.smartlivestock.identity.application.dto.FarmDto;
 import com.smartlivestock.identity.domain.model.Role;
 import com.smartlivestock.identity.domain.model.User;
@@ -197,7 +194,11 @@ class FarmApplicationServiceTest {
     void shouldAutoAssignOwnerWhenCreatingFarm() {
         User owner = new User("owner", "hash", "牧场主", Role.OWNER, 1L);
         when(userRepository.findById(100L)).thenReturn(Optional.of(owner));
-        when(farmRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(farmRepository.save(any())).thenAnswer(inv -> {
+            Farm f = inv.getArgument(0);
+            f.setId(999L);
+            return f;
+        });
         when(assignmentRepository.existsByUserIdAndFarmId(eq(100L), anyLong())).thenReturn(false);
 
         CreateFarmCommand cmd = new CreateFarmCommand("新牧场", new BigDecimal("28.2458"), new BigDecimal("112.8519"), new BigDecimal("500"));
@@ -211,7 +212,11 @@ class FarmApplicationServiceTest {
     @Test
     void shouldSkipAssignmentWhenUserIdIsNull() {
         CreateFarmCommand cmd = new CreateFarmCommand("新牧场", null, null, null);
-        when(farmRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(farmRepository.save(any())).thenAnswer(inv -> {
+            Farm f = inv.getArgument(0);
+            f.setId(999L);
+            return f;
+        });
 
         FarmDto result = farmApplicationService.createFarm(1L, cmd, null);
 
@@ -223,7 +228,11 @@ class FarmApplicationServiceTest {
     void shouldSkipAssignmentWhenNotOwner() {
         User worker = new User("worker", "hash", "牧工", Role.WORKER, 1L);
         when(userRepository.findById(200L)).thenReturn(Optional.of(worker));
-        when(farmRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(farmRepository.save(any())).thenAnswer(inv -> {
+            Farm f = inv.getArgument(0);
+            f.setId(999L);
+            return f;
+        });
 
         CreateFarmCommand cmd = new CreateFarmCommand("新牧场", null, null, null);
 
@@ -237,7 +246,11 @@ class FarmApplicationServiceTest {
     void shouldSkipAssignmentWhenAlreadyAssigned() {
         User owner = new User("owner", "hash", "牧场主", Role.OWNER, 1L);
         when(userRepository.findById(100L)).thenReturn(Optional.of(owner));
-        when(farmRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(farmRepository.save(any())).thenAnswer(inv -> {
+            Farm f = inv.getArgument(0);
+            f.setId(999L);
+            return f;
+        });
         when(assignmentRepository.existsByUserIdAndFarmId(eq(100L), anyLong())).thenReturn(true);
 
         CreateFarmCommand cmd = new CreateFarmCommand("新牧场", null, null, null);
@@ -355,12 +368,9 @@ public ResponseEntity<ApiResponse<FarmDto>> createFarm(@RequestBody Map<String, 
 
 private Long getCurrentUserId() {
     var auth = SecurityContextHolder.getContext().getAuthentication();
-    if (auth == null || auth.getPrincipal() == null) return null;
-    try {
-        return Long.valueOf(auth.getPrincipal().toString());
-    } catch (NumberFormatException e) {
-        return null;
-    }
+    if (auth == null) return null;
+    Object principal = auth.getPrincipal();
+    return (principal instanceof Long l) ? l : null;
 }
 ```
 
@@ -415,10 +425,14 @@ git commit -m "feat(identity): pass userId from JWT to FarmApplicationService fo
 
 ## Task 4: DashboardController onlineDeviceCount 真实计算
 
+> **设计说明**：当前设备表是 tenant-level 的（无 `farm_id` 列），无法按单个牧场过滤设备数量。
+> Phase 1 采用**全租户 ACTIVE 设备数**作为 `onlineDeviceCount` 的值，方法名显式标注为 `countActiveByTenant`。
+> 真正的 farm-level 设备统计需等 Phase 3 通过 `installations` 表 JOIN 实现。
+
 **Files:**
 - Modify: `smart-livestock-server/src/main/java/com/smartlivestock/ranch/interfaces/DashboardController.java`
-- Modify: `smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/DeviceRepository.java`（添加 countActiveByTenant）
-- Modify: `smart-livestock-server/src/main/java/com/smartlivestock/iot/application/service/DeviceApplicationService.java`（添加 countActiveByFarm 方法）
+- Modify: `smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/DeviceRepository.java`（添加 countByTenantIdAndStatus）
+- Modify: `smart-livestock-server/src/main/java/com/smartlivestock/iot/application/DeviceApplicationService.java`（添加 countActiveByTenant 方法）
 
 - [ ] **Step 1: 在 DeviceRepository 添加统计方法**
 
@@ -429,15 +443,18 @@ long countByTenantIdAndStatus(Long tenantId, String status);
 
 在 SpringData 实现中添加对应方法。
 
-- [ ] **Step 2: 在 DeviceApplicationService 添加 countActiveByFarm**
+- [ ] **Step 2: 在 DeviceApplicationService 添加 countActiveByTenant**
 
 ```java
 @Transactional(readOnly = true)
-public long countActiveByFarm(Long farmId) {
+public long countActiveByTenant() {
     Long tenantId = TenantContext.getCurrentTenant();
     return deviceRepository.countByTenantIdAndStatus(tenantId, "ACTIVE");
 }
 ```
+
+> 方法名使用 `countActiveByTenant`（而非 `countActiveByFarm`），因为设备是租户级别资源。
+> Phase 3 实现设备安装到牲畜/牧场后，可通过 `installations` 表 JOIN 做真正的 farm-level 统计。
 
 - [ ] **Step 3: 修改 DashboardController 注入 DeviceApplicationService**
 
@@ -445,7 +462,8 @@ public long countActiveByFarm(Long farmId) {
 private final DeviceApplicationService deviceApplicationService;
 
 // 在 summary 方法中替换 onlineDeviceCount 的硬编码 0：
-long onlineDeviceCount = deviceApplicationService.countActiveByFarm(farmId);
+// Phase 1: 全租户 ACTIVE 设备数（设备无 farm_id，暂无法按牧场过滤）
+long onlineDeviceCount = deviceApplicationService.countActiveByTenant();
 ```
 
 - [ ] **Step 4: 验证编译 + 测试**
@@ -457,7 +475,7 @@ Expected: BUILD SUCCESSFUL / ALL PASS
 
 ```bash
 git add smart-livestock-server/src/main/java/com/smartlivestock/ranch/ smart-livestock-server/src/main/java/com/smartlivestock/iot/
-git commit -m "feat(ranch): compute onlineDeviceCount from real device data in dashboard"
+git commit -m "feat(ranch): compute onlineDeviceCount from real tenant-level device data in dashboard"
 ```
 
 ---
@@ -469,7 +487,11 @@ git commit -m "feat(ranch): compute onlineDeviceCount from real device data in d
 
 - [ ] **Step 1: 添加 createFarmRemote 方法**
 
-在 ApiCache 中添加 createFarmRemote 方法，POST `/farms`，成功后调用 `fetchFarms` 刷新牧场列表。
+在 ApiCache 中添加 createFarmRemote 方法，POST `/farms`，成功后：
+1. 设置 `activeFarmId` 为新创建的 farmId（向导 Step 2 需要用它调 createFenceRemote）
+2. 更新内存中的 `_myFarms` 列表（追加新牧场到现有列表，避免立即做 full init）
+
+注意：这里不调用 `init()` 做全量刷新。全量 init 留到向导 Step 3 完成时（见 Task 7）。
 
 - [ ] **Step 2: 添加 createInstallationRemote 方法**
 
@@ -536,11 +558,18 @@ git commit -m "feat(flutter): add empty farm guide on Dashboard when owner has n
 
 - [ ] **Step 2: 创建 Step 1 基本信息页面**
 
-`wizard_step_basic_info.dart` — 表单（牧场名必填、面积可选）+ flutter_map 点击选中心点。提交时调用 `ApiCache.instance.createFarmRemote(...)`，成功后设 `activeFarmId` 并跳 Step 2。
+`wizard_step_basic_info.dart` — 表单（牧场名必填、面积可选）+ flutter_map 点击选中心点。提交时调用 `ApiCache.instance.createFarmRemote(...)`。
+
+> **刷新策略**：`createFarmRemote` 内部已设置 `activeFarmId` + 更新 `_myFarms`（见 Task 5），
+> Step 1 成功后直接跳 Step 2 即可，无需额外刷新。
 
 - [ ] **Step 3: 创建 Step 3 完成页面**
 
-`wizard_step_complete.dart` — 显示摘要 + [进入牧场] 按钮。点击时触发 ApiCache.init 刷新后跳转 Dashboard。
+`wizard_step_complete.dart` — 显示摘要 + [进入牧场] 按钮。
+
+> **刷新策略**：点击"进入牧场"时触发 `ApiCache.init(role, tokens)` 做全量刷新
+> （重拉 `/farms` + 设 activeFarmId + 拉 farm-scoped 数据），然后 go 到 Dashboard。
+> 这是整个向导中唯一调用 `init()` 的地方，确保 Dashboard 读到完整数据。
 
 - [ ] **Step 4: 验证编译**
 
@@ -556,35 +585,69 @@ git commit -m "feat(flutter): add farm creation wizard — Step 1 basic info + S
 
 ---
 
-## Task 8: 草稿围栏编辑器（向导 Step 2）
+## Task 8: 围栏绘制（向导 Step 2）
+
+> **设计说明**：直接复用 `FenceEditSession` + `FenceEditOperations`，不创建独立的 DraftFenceState。
+> 用占位 `fenceId: "draft"` 初始化一个空 `FenceEditSession`（`points: []`, `originalPoints: []`），
+> 用户交互驱动 `FenceEditOperations` 的方法返回新 session 实例。
+> 围栏绘制是一个"从零添加顶点"的场景，不加载已有围栏——但 FenceEditSession 的所有操作方法都可以处理空 points 列表。
 
 **Files:**
-- Create: `Mobile/mobile_app/lib/features/farm_creation/domain/draft_fence_state.dart`
-- Create: `Mobile/mobile_app/lib/features/farm_creation/presentation/draft_polygon_editor.dart`
 - Create: `Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart`
 
-- [ ] **Step 1: 创建草稿围栏状态模型**
+- [ ] **Step 1: 创建 Step 2 围栏绘制页面**
 
-`draft_fence_state.dart` — 不可变状态，持有 `List<LatLng> points` + undoStack + redoStack。
+`wizard_step_fence_drawing.dart` — 使用 `FenceEditSession` 作为状态：
 
-- [ ] **Step 2: 创建草稿多边形编辑器**
+```dart
+// 初始化草稿 session（无已有围栏数据）
+FenceEditSession _initialSession() {
+  return FenceEditSession(
+    fenceId: 'draft',       // 占位 ID，仅供 FenceEditSession 构造要求
+    originalPoints: const [],
+    points: const [],
+  );
+}
+```
 
-`draft_polygon_editor.dart` — 复用 `FenceEditOperations` 的顶点操作方法，使用 `DraftFenceState` 而非 `FenceEditSession`。flutter_map 上显示 PolygonLayer + 可拖拽顶点。核心交互：点击添加顶点、拖拽移动、长按删除、撤销/重做。
+交互逻辑：
+- **点击地图**：调用自定义的"添加顶点"逻辑（`FenceEditOperations` 没有直接的 addVertex，需在 points 列表末尾追加新点，创建新 session）
+- **拖拽顶点**：调用 `FenceEditOperations.moveVertex(session, index, point)`
+- **删除顶点**：调用 `FenceEditOperations.removeVertex(session, index)`
+- **撤销/重做**：利用 session 的 `undoStack` / `redoStack`（需在每次操作时推栈）
 
-- [ ] **Step 3: 创建 Step 2 围栏绘制页面**
+> **调用顺序约束**：`FenceEditOperations.moveVertex` / `removeVertex` / `insertVertex` 均会对下标做 `RangeError.checkValidIndex`，points 为空时调用必崩。实现时必须遵循：前几个点**仅允许 `_addVertex`**；顶点数 ≥ 1 后才可用 `moveVertex`；删除/插入边需满足现有 FenceEditOperations 的下标前提（removeVertex 需 ≥ 3 点，insertVertex 需 ≥ 1 点）。
 
-`wizard_step_fence_drawing.dart` — 包含 DraftPolygonEditor + "保存围栏"按钮 + "稍后设置"跳过按钮。保存时调用 `ApiCache.instance.createFenceRemote(...)`。
+最终保存：取 `session.points` 生成 vertices JSON → `ApiCache.instance.createFenceRemote(farmId, name, vertices)`
 
-- [ ] **Step 4: 验证编译 + 运行测试**
+flutter_map 上显示 PolygonLayer（用 session.points 构建 Polygon）+ 可拖拽 MarkerLayer（顶点标记）。
+
+提供"稍后设置"跳过按钮。
+
+- [ ] **Step 2: 在 wizard_step_fence_drawing 中补充 addVertex 辅助方法**
+
+```dart
+// FenceEditOperations 没有直接的 addVertex，自行在 points 末尾追加
+FenceEditSession _addVertex(FenceEditSession session, LatLng point) {
+  final newPoints = [...session.points, point];
+  return session.copyWith(
+    points: newPoints,
+    undoStack: [session.points, ...session.undoStack],
+    redoStack: const [],
+  );
+}
+```
+
+- [ ] **Step 3: 验证编译 + 运行测试**
 
 Run: `cd Mobile/mobile_app && flutter analyze && flutter test`
 Expected: No issues / ALL PASS
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add Mobile/mobile_app/lib/features/farm_creation/
-git commit -m "feat(flutter): add draft polygon editor for fence drawing in farm creation wizard"
+git commit -m "feat(flutter): add fence drawing step using FenceEditSession in farm creation wizard"
 ```
 
 ---
