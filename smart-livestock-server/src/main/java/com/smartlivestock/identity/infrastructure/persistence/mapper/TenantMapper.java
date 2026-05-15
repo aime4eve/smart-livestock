@@ -27,4 +27,11 @@ public final class TenantMapper {
         tenant.reconstitutePhase(TenantPhase.valueOf(jpa.getPhase()));
         return tenant;
     }
+
+    public static void applyTo(TenantJpaEntity jpa, Tenant tenant) {
+        jpa.setName(tenant.getName());
+        jpa.setContactName(tenant.getContactName());
+        jpa.setContactPhone(tenant.getContactPhone());
+        jpa.setPhase(tenant.getPhase().name());
+    }
 }
