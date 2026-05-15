@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/app/app_mode.dart';
+import 'package:smart_livestock_demo/app/session/session_controller.dart';
+import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/api/api_role.dart';
 import 'package:smart_livestock_demo/core/data/demo_seed.dart';
@@ -461,11 +463,12 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
 
     if (appMode.isLive) {
       final coords = _getFinalPointsForSave();
+      final vertices = coords
+          .map((c) => <String, double>{'lat': c[1], 'lng': c[0]})
+          .toList();
       final body = <String, dynamic>{
         'name': _nameController.text.trim(),
-        'type': _type.name,
-        'coordinates': coords,
-        'alarmEnabled': _alarmEnabled,
+        'vertices': vertices,
       };
       if (_isEdit) {
         body['status'] = _active ? 'active' : 'inactive';
@@ -475,10 +478,12 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
               apiRoleFromEnvironment,
               widget.fenceId!,
               body,
+              tokens: _sessionTokens(),
             )
           : await ApiCache.instance.createFenceRemote(
               apiRoleFromEnvironment,
               body,
+              tokens: _sessionTokens(),
             );
       if (!ok) {
         if (mounted) {
@@ -492,7 +497,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
         }
         return;
       }
-      await ApiCache.instance.refreshFencesAndMap(apiRoleFromEnvironment);
+      await ApiCache.instance.refreshFencesAndMap(apiRoleFromEnvironment, tokens: _sessionTokens());
       controller.reloadFromRepository();
       if (mounted) {
         setState(() => _saving = false);
@@ -554,6 +559,13 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
         ? _getPreviewPoints()
         : FenceItem.defaultPointsForType(_type, DemoSeed.mapCenter);
     return pts.map((p) => [p.longitude, p.latitude]).toList();
+  }
+
+  ApiAuthTokens? _sessionTokens() {
+    final session = ref.read(sessionControllerProvider);
+    return session.accessToken != null
+        ? ApiAuthTokens(accessToken: session.accessToken!)
+        : null;
   }
 
   @override

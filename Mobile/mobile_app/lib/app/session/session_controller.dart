@@ -57,6 +57,10 @@ class SessionController extends Notifier<AppSession> {
       expiresAt: expiresAt,
       activeFarmTenantId: activeFarmTenantId,
     );
+    ApiCache.instance.setRoleToken(
+      role.wireName,
+      ApiAuthTokens(accessToken: accessToken, refreshToken: refreshToken, expiresAt: expiresAt),
+    );
   }
 
   DemoRole? _roleFromMockToken(String token) {
@@ -78,6 +82,10 @@ class SessionController extends Notifier<AppSession> {
     state = AppSession.withTokens(
       role: role,
       accessToken: trimmed,
+    );
+    ApiCache.instance.setRoleToken(
+      role.wireName,
+      ApiAuthTokens(accessToken: trimmed),
     );
   }
 
@@ -119,6 +127,7 @@ class SessionController extends Notifier<AppSession> {
     // Preload data; failure does not block login.
     try {
       final tokens = ApiAuthTokens(accessToken: result.accessToken);
+      cache.setRoleToken(role.wireName, tokens);
       cache.skipPhase2Endpoints = true;
 
       // For owner/worker: load farms first, set activeFarmId, then init

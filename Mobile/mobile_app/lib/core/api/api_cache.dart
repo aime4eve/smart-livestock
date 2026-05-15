@@ -192,6 +192,7 @@ class ApiCache {
   String? get lastLiveSource => _lastLiveSource;
   ApiHttpClient _httpClient = const DefaultApiHttpClient();
   final Map<String, ApiAuthTokens> _roleTokens = {};
+  void setRoleToken(String role, ApiAuthTokens tokens) => _roleTokens[role] = tokens;
   int _initGeneration = 0;
   bool _skipPhase2Endpoints = false;
   set skipPhase2Endpoints(bool value) => _skipPhase2Endpoints = value;
@@ -1237,7 +1238,7 @@ class ApiCache {
       body: jsonEncode(body),
     );
     lastFenceSaveStatusCode = response.statusCode;
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       final ok = decoded['code'] == 'OK';
       if (ok) {

@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
+import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/api/api_role.dart';
 import 'package:smart_livestock_demo/core/data/demo_seed.dart';
@@ -957,16 +958,26 @@ class _FencePageState extends ConsumerState<FencePage>
     }
     final sessionInstanceId = session.sessionInstanceId;
     final fenceId = session.fenceId;
+    final fenceItem = ref.read(fenceControllerProvider).fences.firstWhere(
+          (f) => f.id == fenceId,
+        );
     controller.markSavingEdit();
+    final sessionState = ref.read(sessionControllerProvider);
+    final tokens = sessionState.accessToken != null
+        ? ApiAuthTokens(accessToken: sessionState.accessToken!)
+        : null;
     final ok = await ApiCache.instance.updateFenceRemote(
       apiRoleFromEnvironment,
       fenceId,
       {
-        'coordinates': [
+        'name': fenceItem.name,
+        'vertices': [
           for (final point in session.points)
-            [point.longitude, point.latitude],
+            {'lat': point.latitude, 'lng': point.longitude},
         ],
+        'color': '#${fenceItem.colorValue.toRadixString(16).substring(2).toUpperCase()}',
       },
+      tokens: tokens,
     );
     if (!ok) {
       final restored =
@@ -990,7 +1001,7 @@ class _FencePageState extends ConsumerState<FencePage>
     );
     if (!saved) return;
     await ApiCache.instance
-        .refreshFencesAndMap(apiRoleFromEnvironment);
+        .refreshFencesAndMap(apiRoleFromEnvironment, tokens: tokens);
     controller.reloadFromRepository();
     if (context.mounted) setState(() => _panelOpen = true);
   }

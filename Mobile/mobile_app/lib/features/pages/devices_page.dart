@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
+import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/data/demo_seed.dart';
 import 'package:smart_livestock_demo/core/models/demo_models.dart';
@@ -124,6 +125,9 @@ class DevicesPage extends ConsumerWidget {
             farmId: farmId,
             deviceId: device.id,
             livestockId: livestockId,
+            tokens: session.accessToken != null
+                ? ApiAuthTokens(accessToken: session.accessToken!)
+                : null,
           );
           if (context.mounted) {
             ScaffoldMessenger.of(context)
