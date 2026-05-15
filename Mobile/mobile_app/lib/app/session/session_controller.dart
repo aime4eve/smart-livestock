@@ -6,6 +6,17 @@ import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
+import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
+
+class FarmDataReadyNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void markReady() => state = true;
+  void reset() => state = false;
+}
+
+final farmDataReadyProvider =
+    NotifierProvider<FarmDataReadyNotifier, bool>(FarmDataReadyNotifier.new);
 
 class SessionController extends Notifier<AppSession> {
   @override
@@ -25,6 +36,7 @@ class SessionController extends Notifier<AppSession> {
         await cache.initWithRoleAuth(role.wireName);
         ref.invalidate(b2bDashboardControllerProvider);
         ref.invalidate(b2bContractControllerProvider);
+        ref.read(farmDataReadyProvider.notifier).markReady();
       } catch (e) {
         debugPrint('ApiCache re-init for ${role.wireName} failed: $e');
       }
@@ -75,6 +87,7 @@ class SessionController extends Notifier<AppSession> {
 
   void logout() {
     state = const AppSession.loggedOut();
+    ApiCache.instance.reset();
   }
 
   Future<bool> loginWithCredentials({
@@ -106,6 +119,7 @@ class SessionController extends Notifier<AppSession> {
     // Preload data; failure does not block login.
     try {
       final tokens = ApiAuthTokens(accessToken: result.accessToken);
+      cache.skipPhase2Endpoints = true;
 
       // For owner/worker: load farms first, set activeFarmId, then init
       if (role == DemoRole.owner || role == DemoRole.worker) {
@@ -120,7 +134,7 @@ class SessionController extends Notifier<AppSession> {
             if (firstFarm is Map<String, dynamic>) {
               final rawId = firstFarm['id'];
               final farmId = rawId is int ? rawId.toString() : rawId as String?;
-              if (farmId != null) {
+              if (farmId != null && (cache.activeFarmId == null || cache.activeFarmId!.isEmpty)) {
                 cache.activeFarmId = farmId;
               }
             }
@@ -135,6 +149,7 @@ class SessionController extends Notifier<AppSession> {
       );
       ref.invalidate(b2bDashboardControllerProvider);
       ref.invalidate(b2bContractControllerProvider);
+      ref.read(farmDataReadyProvider.notifier).markReady();
     } catch (e) {
       debugPrint('Data preload failed: $e');
     }

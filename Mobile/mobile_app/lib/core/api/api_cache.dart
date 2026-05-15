@@ -1563,6 +1563,17 @@ class ApiCache {
     _tenantStatsCache.clear();
   }
 
+  /// Clears all cached data, tokens, and active farm selection.
+  /// Called on logout to prevent data leaking between sessions.
+  void reset() {
+    _clearLiveData();
+    _skipPhase2Endpoints = false;
+    _httpClient = const DefaultApiHttpClient();
+    _roleTokens.clear();
+    _tenantTrends = null;
+    _initGeneration += 1;
+  }
+
   @visibleForTesting
   void debugReset() {
     _clearLiveData();
