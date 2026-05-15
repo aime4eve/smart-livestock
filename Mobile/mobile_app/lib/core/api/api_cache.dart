@@ -180,7 +180,7 @@ class ApiCache {
           body: jsonEncode(body),
         )
         .timeout(const Duration(seconds: 20));
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       return decoded['code'] == 'OK';
     }
@@ -197,6 +197,8 @@ class ApiCache {
   ApiHttpClient _httpClient = const DefaultApiHttpClient();
   final Map<String, ApiAuthTokens> _roleTokens = {};
   int _initGeneration = 0;
+  bool _skipPhase2Endpoints = false;
+  set skipPhase2Endpoints(bool value) => _skipPhase2Endpoints = value;
 
   List<Map<String, dynamic>> _dashboardMetrics = [];
   List<Map<String, dynamic>> _animals = [];
@@ -695,26 +697,52 @@ class ApiCache {
         ]);
       }
 
-      // Step 3: Non-farm-scoped endpoints (always loaded)
-      final globalResults = await Future.wait([
-        initGet('/admin/tenants?pageSize=100'),
-        initGet('/me'),
-        initGet('/twin/overview'),
-        initGet('/twin/fever/list'),
-        initGet('/twin/digestive/list'),
-        initGet('/twin/estrus/list'),
-        initGet('/twin/epidemic/summary'),
-        initGet('/twin/epidemic/contacts'),
-        initGet('/subscription/current'),
-        initGet('/subscription/features'),
-        initGet('/subscription/plans'),
-        initGet('/subscription/usage'),
-      ]);
+      // Step 3: Non-farm-scoped endpoints — role-aware loading.
+      final isAdmin = role == DemoRole.platformAdmin.wireName;
 
+      // Admin-only: tenants (requires platform_admin role on Spring Boot)
+      if (isAdmin) {
+        final tenantsData = await initGet('/admin/tenants?pageSize=100');
+        if (!_isCurrentGeneration(generation)) return;
+        if (tenantsData != null) {
+          _tenants = List<Map<String, dynamic>>.from(tenantsData['items'] ?? []);
+        }
+      }
+
+      // Profile: always loaded
+      _profile = _normalizeProfile(await initGet('/me'));
       if (!_isCurrentGeneration(generation)) return;
 
-      // Check if anything loaded at all
-      final allResults = [...farmScopedResults, ...globalResults];
+      // Twin/health & subscription: Phase 2 features, not in Spring Boot MVP.
+      // Skip entirely when connected to Spring Boot (set via loginWithCredentials).
+      // Mock Server supports these endpoints and will load them.
+      List<Map<String, dynamic>?> twinResults;
+      List<Map<String, dynamic>?> subResults;
+      if (_skipPhase2Endpoints) {
+        twinResults = List.filled(6, null);
+        subResults = List.filled(4, null);
+      } else {
+        twinResults = await Future.wait([
+          initGet('/twin/overview'),
+          initGet('/twin/fever/list'),
+          initGet('/twin/digestive/list'),
+          initGet('/twin/estrus/list'),
+          initGet('/twin/epidemic/summary'),
+          initGet('/twin/epidemic/contacts'),
+        ]);
+        if (!_isCurrentGeneration(generation)) return;
+
+        subResults = await Future.wait([
+          initGet('/subscription/current'),
+          initGet('/subscription/features'),
+          initGet('/subscription/plans'),
+          initGet('/subscription/usage'),
+        ]);
+        if (!_isCurrentGeneration(generation)) return;
+      }
+
+      // Check if anything loaded at all (exclude twin/sub — they may all 404)
+      final allResults = [...farmScopedResults, _profile];
       if (allResults.every((data) => data == null)) {
         _initialized = false;
         _lastLiveSource = null;
@@ -774,54 +802,39 @@ class ApiCache {
         }
       }
 
-      // Global: [0]=tenants, [1]=me, [2]=twin/overview, [3]=fever, [4]=digestive,
-      //         [5]=estrus, [6]=epidemic/summary, [7]=epidemic/contacts,
-      //         [8]=subscription/current, [9]=subscription/features,
-      //         [10]=subscription/plans, [11]=subscription/usage
-      final tenantsData = globalResults[0];
-      if (tenantsData != null) {
-        _tenants = List<Map<String, dynamic>>.from(tenantsData['items'] ?? []);
-      }
-
-      _profile = _normalizeProfile(globalResults[1]);
-
-      _twinOverview = globalResults[2];
-
-      final feverData = globalResults[3];
+      // Twin: [0]=overview, [1]=fever, [2]=digestive, [3]=estrus,
+      //       [4]=epidemic/summary, [5]=epidemic/contacts
+      _twinOverview = twinResults[0];
+      final feverData = twinResults[1];
       if (feverData != null) {
         _feverList = List<Map<String, dynamic>>.from(feverData['items'] ?? []);
       }
-
-      final digestiveData = globalResults[4];
+      final digestiveData = twinResults[2];
       if (digestiveData != null) {
         _digestiveList =
             List<Map<String, dynamic>>.from(digestiveData['items'] ?? []);
       }
-
-      final estrusData = globalResults[5];
+      final estrusData = twinResults[3];
       if (estrusData != null) {
         _estrusList =
             List<Map<String, dynamic>>.from(estrusData['items'] ?? []);
       }
-
-      _epidemicSummary = globalResults[6];
-
-      final contactsData = globalResults[7];
+      _epidemicSummary = twinResults[4];
+      final contactsData = twinResults[5];
       if (contactsData != null) {
         _epidemicContacts =
             List<Map<String, dynamic>>.from(contactsData['items'] ?? []);
       }
 
-      _subscriptionCurrent = globalResults[8];
-      _subscriptionFeatures = globalResults[9];
-
-      final plansData = globalResults[10];
+      // Subscription: [0]=current, [1]=features, [2]=plans, [3]=usage
+      _subscriptionCurrent = subResults[0];
+      _subscriptionFeatures = subResults[1];
+      final plansData = subResults[2];
       if (plansData != null) {
         _subscriptionPlans =
             List<Map<String, dynamic>>.from(plansData['items'] ?? []);
       }
-
-      _subscriptionUsage = globalResults[11];
+      _subscriptionUsage = subResults[3];
 
       // Workers & owner extras (farm list already fetched in Step 1)
       if (role == DemoRole.owner.wireName || role == DemoRole.worker.wireName) {
@@ -1135,6 +1148,7 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
+    if (_activeFarmId == null || _activeFarmId!.isEmpty) return;
     final headers = _headers(
       role,
       tokens: tokens,
@@ -1171,6 +1185,7 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
+    if (_activeFarmId == null || _activeFarmId!.isEmpty) return false;
     final response = await http
         .delete(
           Uri.parse('${resolveApiBaseUrl()}/farms/$_activeFarmId/fences/$id'),
@@ -1200,6 +1215,7 @@ class ApiCache {
       lastFenceSaveStatusCode = result.ok ? null : result.statusCode;
       return result.ok;
     }
+    if (_activeFarmId == null || _activeFarmId!.isEmpty) return false;
     final response = await http
         .post(
           Uri.parse('${resolveApiBaseUrl()}/farms/$_activeFarmId/fences'),
@@ -1236,6 +1252,7 @@ class ApiCache {
       lastFenceSaveStatusCode = result.ok ? null : result.statusCode;
       return result.ok;
     }
+    if (_activeFarmId == null || _activeFarmId!.isEmpty) return false;
     final response = await http
         .put(
           Uri.parse('${resolveApiBaseUrl()}/farms/$_activeFarmId/fences/$id'),
@@ -1502,7 +1519,7 @@ class ApiCache {
     // Ensure 'name' exists (both formats have it)
     normalized['name'] ??= normalized['username'] ?? '未知用户';
     // Ensure 'tenantName' exists for UI
-    normalized['tenantName'] ??= normalized['tenantName'] ?? '未知牧场';
+    normalized['tenantName'] ??= normalized['name'] ?? '未知牧场';
     // Ensure 'role' exists
     normalized['role'] ??= '';
     return normalized;
@@ -1511,6 +1528,8 @@ class ApiCache {
   void _clearLiveData() {
     _initialized = false;
     _lastLiveSource = null;
+    _activeFarmId = null;
+    _skipPhase2Endpoints = false;
     _dashboardMetrics = [];
     _animals = [];
     _mapTrajectoryPoints = [];
@@ -1547,6 +1566,7 @@ class ApiCache {
   @visibleForTesting
   void debugReset() {
     _clearLiveData();
+    _skipPhase2Endpoints = false;
     _httpClient = const DefaultApiHttpClient();
     _roleTokens.clear();
     _tenantTrends = null;
