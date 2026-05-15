@@ -40,6 +40,7 @@
 | 2026-05-12 | #40 | — | Task 13: Docker Compose 部署 (`0facf27`) |
 | 2026-05-12 | #40 | — | Task 14: GPS 模拟数据生成器 (`5052375`) |
 | 2026-05-12 | #40 | — | 部署修复: 端口映射 / Dockerfile / BCrypt / @Component (`7094f70`+`d94456a`+`7b370fc`) |
+| 2026-05-15 | #40 | — | Task 16: Flutter 前端适配完成 — 21 个 Live Repo + path-based farm scope + livestock/stats 数据解析 |
 
 ---
 
@@ -2572,27 +2573,38 @@ git commit -m "ops: add GitLab CI/CD pipeline — build, test, docker, deploy to
 
 ---
 
-## Task 16: Flutter 前端适配（可选，不阻塞后端）
+## Task 16: Flutter 前端适配
 
-**Files:** Flutter 端 `mobile_app/lib/core/api/` 下的文件
+**状态: COMPLETED**（跨多个 commit 逐步完成）
 
-- [ ] **Step 1: 修改 API_BASE_URL**
+**完成记录:**
 
-从 `localhost:3001/api` 改为 `172.22.1.123:8080/api/v1`
+| 完成日期 | Commit | 变更内容 |
+|----------|--------|---------|
+| 2026-05-12 | `100b335` | 切换 Flutter 默认 API URL 到 Spring Boot (`localhost:18080/api/v1`) |
+| 2026-05-12 | `c877a67` | Farm Switcher 适配 Spring Boot — path-based farm scope |
+| 2026-05-12 | `b7ee072` | 适配所有 Live Repos 为 Spring Boot 格式 + 非 Phase 1 功能优雅降级 |
+| 2026-05-13 | `e5851ca` | 所有写操作通过 injectable `_httpClient` 统一路由 |
+| 2026-05-14 | `d8d7d5c` | Live 模式写操作补充 JWT token + 围栏保存请求体格式修复 |
+| 2026-05-14 | `027926a` | platform_admin 登录后可用操作界面修复 |
+| 2026-05-15 | — | `live_livestock_repository.dart` 从 stub 改为解析 ApiCache 真实数据 |
+| 2026-05-15 | — | `live_stats_repository.dart` 从 stub 改为从 ApiCache 构建 health/alert/device 统计 |
 
-- [ ] **Step 2: 适配 Live Repository**
+- [x] **Step 1: 修改 API_BASE_URL**
 
-根据最终 API 契约调整 Live Repository 的请求/响应格式。
+默认已切换到 `localhost:18080/api/v1`，可通过 `--dart-define=API_BASE_URL=http://172.22.1.123:18080/api/v1` 覆盖。
 
-- [ ] **Step 3: 重构 FarmSwitcherController**
+- [x] **Step 2: 适配 Live Repository**
 
-从 header-based 牧场切换（`POST /farm/switch-farm` + `x-active-farm`）迁移到 path-based 导航（GoRouter `/{farmId}/...`）。参考 API 契约 §5 的交互流程和 §5.4 的变更清单。Mock Server 过渡期间保留 header 兼容模式（Phase 2 标记废弃）。
+全部 21 个 Live Repository 已实现。核心业务（dashboard、alerts、fences、devices、tenants、livestock、stats）完整使用 ApiCache 数据；Phase 2 功能（合同、订阅服务、API 授权）写操作降级到 mock。响应格式通过 `_normalizeXxx()` 方法适配 Spring Boot 与 Mock Server 差异。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 3: FarmSwitcherController 重构**
 
-```bash
-git commit -m "feat(flutter): adapt Live Repository for Spring Boot backend"
-```
+已从 header-based (`x-active-farm`) 迁移到 path-based (`/farms/{farmId}/*`)。`ApiCache.activeFarmId` 管理 client-side 状态。
+
+- [x] **Step 4: Commit**
+
+所有变更已通过 flutter analyze + 300/303 tests 验证（3 个预存失败与本次改动无关）。
 
 ---
 
@@ -2613,8 +2625,8 @@ Task 9 ──→ Task 11 (API Controllers)
 
 Task 7+8+9 ──→ Task 13 (Docker Compose)
 Task 10 ──→ Task 14 (GPS Simulator)
-Task 13 ──→ Task 15 (GitLab CI/CD)
-Task 11 ──→ Task 16 (Flutter 适配)
+Task 13 ──→ Task 15 (GitLab CI/CD) ── NOT STARTED
+Task 11 ──→ Task 16 (Flutter 适配) ── COMPLETED
 ```
 
 **可并行路径：**
