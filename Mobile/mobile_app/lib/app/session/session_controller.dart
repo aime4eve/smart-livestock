@@ -7,6 +7,7 @@ import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
 import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
+import 'package:smart_livestock_demo/features/tenant/presentation/tenant_list_controller.dart';
 
 class FarmDataReadyNotifier extends Notifier<bool> {
   @override
@@ -36,6 +37,7 @@ class SessionController extends Notifier<AppSession> {
         await cache.initWithRoleAuth(role.wireName);
         ref.invalidate(b2bDashboardControllerProvider);
         ref.invalidate(b2bContractControllerProvider);
+        ref.invalidate(tenantListControllerProvider);
         ref.read(farmDataReadyProvider.notifier).markReady();
       } catch (e) {
         debugPrint('ApiCache re-init for ${role.wireName} failed: $e');
@@ -158,6 +160,10 @@ class SessionController extends Notifier<AppSession> {
       );
       ref.invalidate(b2bDashboardControllerProvider);
       ref.invalidate(b2bContractControllerProvider);
+      // Invalidate tenant list so platform_admin page picks up loaded data.
+      // Without this, the page renders before cache.init completes and shows
+      // "Live API 未连接" because the controller was built with an empty cache.
+      ref.invalidate(tenantListControllerProvider);
       ref.read(farmDataReadyProvider.notifier).markReady();
     } catch (e) {
       debugPrint('Data preload failed: $e');

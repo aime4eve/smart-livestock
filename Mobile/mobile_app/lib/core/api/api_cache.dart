@@ -1535,7 +1535,9 @@ class ApiCache {
   void _clearLiveData() {
     _initialized = false;
     _lastLiveSource = null;
-    _skipPhase2Endpoints = false;
+    // Preserve _skipPhase2Endpoints — caller (e.g. loginWithCredentials) sets it
+    // before init(), and _initForGeneration calls _clearLiveData at the start,
+    // which would defeat the flag if reset here.
     _dashboardMetrics = [];
     _animals = [];
     _mapTrajectoryPoints = [];
