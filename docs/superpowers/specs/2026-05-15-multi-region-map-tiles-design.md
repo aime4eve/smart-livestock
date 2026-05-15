@@ -54,8 +54,9 @@
 │  国内服务器 (172.22.1.123)                                        │
 │                                                                   │
 │  docker-compose:                                                  │
-│  - tileserver-gl:8081  ← /data/mbtiles/*.mbtiles                │
-│  - nginx:18080 /tiles/ → tileserver-gl:8081                     │
+│  - tileserver-gl (internal :8080, host :8081)                    │
+│    ← /data/mbtiles/*.mbtiles                                     │
+│  - nginx:18080 /tiles/ → tileserver-gl:8080 (内部端口)            │
 │  - app:8080            ← Spring Boot                             │
 │  - postgres + redis                                               │
 │                                                                   │
@@ -70,9 +71,11 @@
 **`tooling/generate_mbtiles.py`**
 
 输入：bbox (经纬度范围) + zoom 范围 (默认 11-15) + 输出路径
-数据源：OSM Planet `.osm.pbf` → `render_list` 渲染为 PNG 瓦片
+数据源：OSM Planet `.osm.pbf` → Mapnik + `openstreetmap-carto` 样式表 → `render_list` 渲染为 PNG 瓦片
 输出：标准 MBTiles v1.3 格式（与现有 MBTilesTileProvider 兼容）
 附带：`metadata.json`（bounds、zoom、tile count、md5、生成时间）
+
+> 注：使用 `openstreetmap-carto` 样式表以保证瓦片风格与 OSM 默认一致。tileserver-gl 也支持矢量瓦片（.pbf + style JSON），存储更小但需要客户端渲染能力，当前方案选择栅格 PNG 以简化实现。
 
 **`tooling/import_mbtiles.sh`**
 
@@ -103,6 +106,20 @@ location /tiles/ {
     add_header Cache-Control "public, max-age=2592000";
 }
 ```
+
+**tileserver-gl `config.json` 最小配置：**
+
+```json
+{
+  "data": {
+    "v3": {
+      "mbtiles": ["changsha.mbtiles"]
+    }
+  }
+}
+```
+
+新增 MBTiles 文件后需同步更新此配置的 `mbtiles` 数组，再通过 `import_mbtiles.sh` 发送 `SIGHUP` 重载。30 天缓存期间如需强制刷新，可递增路径版本段（如 `/tiles/v2/`）。
 
 ---
 
@@ -152,6 +169,22 @@ class SmartTileProvider extends TileProvider {
 | 原生 (国内) | tileserver-gl | MBTiles | 高德 + 坐标转换 |
 | 原生 (海外) | tileserver-gl | MBTiles | OSM CDN |
 
+### 3.3.1 平台条件实例化
+
+Web 平台无 SQLite，`MBTilesTileProvider` 不可用。SmartTileProvider 实例化时按平台决定：
+
+```dart
+// 实例化逻辑（在 SmartTileProvider.factory() 中）
+SmartTileProvider createTileProvider() {
+  return SmartTileProvider(
+    selfHostedTileUrl: MapConfig.selfHostedTileUrl,
+    mbtilesProvider: kIsWeb ? null : MBTilesTileProvider.fromAsset(),
+    fallbackUrl: _resolveFallbackUrl(),
+    isGcj02Fallback: _isChinaRegion(),
+  );
+}
+```
+
 ### 3.4 配置
 
 ```dart
@@ -173,12 +206,22 @@ class MapConfig {
 
 | 文件 | 变更 |
 |------|------|
+| `map_config.dart` | `defaultCenter` 和 `cityPresets` 坐标从"编译期固定 GCJ-02"改为"运行时根据活跃瓦片源决定"；新增 `selfHostedTileUrl`/`chinaFallbackUrl`/`overseasFallbackUrl` 常量 |
 | `fence_page.dart` | TileLayer 从 `urlTemplate` 改为 `tileProvider: SmartTileProvider(...)` |
 | `fence_form_page.dart` | 同上 |
 | `wizard_step_basic_info.dart` | 同上 |
 | `wizard_step_fence_drawing.dart` | 同上 |
-| `fence_page.dart` PolygonLayer | 当 `shouldTransformCoordinates()` 时，顶点经 `CoordTransform` 转换 |
-| 围栏绘制保存 | 高德降级时，采集坐标逆转换为 WGS-84 后存储 |
+| `fence_page.dart` PolygonLayer | 当 `shouldTransformCoordinates()` 时，顶点经 `CoordTransform.wgs84ToGcj02()` 转换后渲染 |
+| 围栏绘制保存 | 高德降级时，采集坐标经 `gcj02ToWgs84()` 逆转换为 WGS-84 后存储 |
+| 所有使用 `MapConfig.defaultCenter` 的页面 | 坐标需通过 `SmartTileProvider.shouldTransformCoordinates()` 动态决定是否转换 |
+
+### 3.5.1 MapConfig 坐标动态化
+
+当前 `defaultCenter` 和 `cityPresets` 在编译期就做了 `wgs84ToGcj02()` 转换。改造后：
+
+- `MapConfig` 存储原始 WGS-84 坐标
+- 提供辅助方法 `MapConfig.resolveCenter(SmartTileProvider provider)` 根据当前瓦片源决定是否转换
+- 或由调用方根据 `SmartTileProvider.shouldTransformCoordinates()` 决定
 
 ---
 
@@ -223,8 +266,19 @@ Flutter:  WGS-84 存储，按地图源决定显示时是否转换
 ### CoordTransform 补充
 
 当前只有 `wgs84ToGcj02()`，需补充：
-- `gcj02ToWgs84()` — 迭代法逆转换（精度 < 1m）
+- `gcj02ToWgs84()` — 迭代法逆转换：初始猜测 = gcj02 点，反复调用 `wgs84ToGcj02(guess)` 计算偏差并修正，迭代 5-7 次收敛至精度 < 1m
 - `gcj02ToWgs84All()` — 批量逆转换
+- **精度验证**：添加 round-trip 测试，`wgs84→gcj02→wgs84` 往返偏差应 < 1m
+
+### 围栏绘制逆转换
+
+围栏绘制保存是安全关键路径。高德降级时用户在 GCJ-02 地图上画围栏，保存前必须：
+
+1. 检测当前瓦片源是否为 GCJ-02（`SmartTileProvider.shouldTransformCoordinates()`）
+2. 若是，对所有绘制顶点调用 `gcj02ToWgs84()` 逆转换
+3. 将 WGS-84 坐标发送到 API
+
+涉及文件：`fence_edit_operations.dart`（绘制采集）、`fence_edit_toolbar.dart`（保存触发）、`live_fence_repository.dart`（提交 API）
 
 ---
 
