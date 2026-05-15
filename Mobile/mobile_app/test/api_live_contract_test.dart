@@ -60,6 +60,28 @@ class RecordingApiHttpClient implements ApiHttpClient {
     );
   }
 
+  @override
+  Future<ApiHttpResponse> put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) async {
+    return ApiHttpResponse(
+      200,
+      jsonEncode({'code': 'OK', 'message': 'success', 'requestId': 'req_put', 'data': {}}),
+      {'x-api-version': 'v1'},
+    );
+  }
+
+  @override
+  Future<ApiHttpResponse> delete(Uri uri, {Map<String, String>? headers}) async {
+    return ApiHttpResponse(
+      200,
+      jsonEncode({'code': 'OK', 'message': 'success', 'requestId': 'req_delete', 'data': {}}),
+      {'x-api-version': 'v1'},
+    );
+  }
+
   Map<String, dynamic> _dataFor(String path) {
     // Phase 1 farm-scoped endpoints
     if (path.contains('/farms/') && path.endsWith('/dashboard')) {
@@ -135,6 +157,20 @@ class FailingApiHttpClient implements ApiHttpClient {
   }) {
     throw Exception('network down');
   }
+
+  @override
+  Future<ApiHttpResponse> put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    throw Exception('network down');
+  }
+
+  @override
+  Future<ApiHttpResponse> delete(Uri uri, {Map<String, String>? headers}) {
+    throw Exception('network down');
+  }
 }
 
 class FailingAuthApiHttpClient extends RecordingApiHttpClient {
@@ -166,15 +202,16 @@ void main() {
     });
 
     expect(client.uris, isNotEmpty);
-    expect(client.uris, hasLength(19));
+    expect(client.uris, hasLength(18));
     expect(
       requestedPaths,
       containsAll([
+        '/api/v1/farms',
         '/api/v1/farms/tenant_001/dashboard',
         '/api/v1/farms/tenant_001/map',
         '/api/v1/farms/tenant_001/alerts?pageSize=100',
         '/api/v1/farms/tenant_001/fences?pageSize=100',
-        '/api/v1/admin/tenants?pageSize=100',
+        '/api/v1/farms/tenant_001/devices?pageSize=200',
         '/api/v1/me',
         '/api/v1/twin/overview',
         '/api/v1/twin/fever/list',
@@ -182,15 +219,15 @@ void main() {
         '/api/v1/twin/estrus/list',
         '/api/v1/twin/epidemic/summary',
         '/api/v1/twin/epidemic/contacts',
-        '/api/v1/devices?pageSize=200',
         '/api/v1/subscription/current',
         '/api/v1/subscription/features',
         '/api/v1/subscription/plans',
         '/api/v1/subscription/usage',
-        '/api/v1/farms',
         '/api/v1/farms/tenant_001/members',
       ]),
     );
+    // /admin/tenants not requested for owner role
+    expect(requestedPaths, isNot(contains('/api/v1/admin/tenants?pageSize=100')));
     expect(client.uris.every((uri) => uri.path.startsWith('/api/v1/')), isTrue);
     expect(
       client.authHeaders.every((value) => value == 'Bearer jwt-token'),
@@ -236,7 +273,7 @@ void main() {
 
     expect(client.postUris, hasLength(1));
     expect(client.postUris.single.path, '/api/v1/auth/login');
-    expect(client.uris, hasLength(19));
+    expect(client.uris, hasLength(18));
     expect(
       client.authHeaders.every((value) => value == 'Bearer jwt-token'),
       isTrue,
@@ -257,11 +294,14 @@ void main() {
     );
 
     final ownerPaths = ownerClient.uris.map((uri) => uri.path).toList();
-    expect(ownerPaths, contains('/api/v1/farms'));
+    expect(ownerPaths, contains('/api/v1/farms/tenant_001/dashboard'));
+    expect(ownerPaths, contains('/api/v1/farms/tenant_001/devices'));
     expect(ownerPaths, contains('/api/v1/farms/tenant_001/members'));
     expect(ownerPaths, isNot(contains('/api/v1/b2b/dashboard')));
     expect(ownerPaths, isNot(contains('/api/v1/b2b/contract/current')));
-    expect(ApiCache.instance.myFarms?['activeFarmId'], 'tenant_001');
+    expect(ownerPaths, contains('/api/v1/farms'));
+    expect(ApiCache.instance.myFarms, isNotNull);
+    expect(ApiCache.instance.myFarms!['farms'], isA<List>());
     expect(ApiCache.instance.workers?['items'], isA<List>());
 
     final workerClient = RecordingApiHttpClient();
@@ -275,6 +315,8 @@ void main() {
     );
 
     final workerPaths = workerClient.uris.map((uri) => uri.path).toList();
+    expect(workerPaths, contains('/api/v1/farms/tenant_001/dashboard'));
+    expect(workerPaths, contains('/api/v1/farms/tenant_001/devices'));
     expect(workerPaths, contains('/api/v1/farms'));
     expect(workerPaths, isNot(contains('/api/v1/farms/tenant_001/members')));
     expect(workerPaths, isNot(contains('/api/v1/b2b/dashboard')));

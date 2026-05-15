@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_http_client.dart';
 import 'package:smart_livestock_demo/core/models/demo_models.dart';
@@ -111,18 +110,16 @@ class ApiCache {
       'longitude': longitude,
       'areaHectares': areaHectares,
     };
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/farms'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/farms'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       if (decoded['code'] == 'OK') {
@@ -169,18 +166,16 @@ class ApiCache {
       'deviceId': deviceId,
       'livestockId': livestockId,
     };
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/farms/$farmId/installations'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/farms/$farmId/installations'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
     if (response.statusCode == 200 || response.statusCode == 201) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       return decoded['code'] == 'OK';
@@ -360,18 +355,16 @@ class ApiCache {
     };
     if (idempotencyKey != null) body['idempotencyKey'] = idempotencyKey;
 
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/subscription/checkout'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/subscription/checkout'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       if (decoded['code'] == 'OK') {
@@ -387,18 +380,16 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/subscription/cancel'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode({}),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/subscription/cancel'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode({}),
+    );
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       if (decoded['code'] == 'OK') {
@@ -419,18 +410,16 @@ class ApiCache {
     final body = <String, dynamic>{'livestockCount': livestockCount};
     if (idempotencyKey != null) body['idempotencyKey'] = idempotencyKey;
 
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/subscription/renew'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/subscription/renew'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       if (decoded['code'] == 'OK') {
@@ -908,6 +897,36 @@ class ApiCache {
     return null;
   }
 
+  Future<ApiHttpResponse> _post(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return _httpClient.post(url, headers: headers, body: body);
+  }
+
+  Future<ApiHttpResponse> _put(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return _httpClient.put(url, headers: headers, body: body);
+  }
+
+  Future<ApiHttpResponse> _delete(
+    Uri url, {
+    Map<String, String>? headers,
+  }) {
+    return _httpClient.delete(url, headers: headers);
+  }
+
+  Future<ApiHttpResponse> _httpGet(
+    Uri url, {
+    Map<String, String>? headers,
+  }) {
+    return _httpClient.get(url, headers: headers);
+  }
+
   Future<void> refreshTenants(
     String role, {
     ApiAuthTokens? tokens,
@@ -939,15 +958,15 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
-    final response = await http
-        .get(Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id'),
-            headers: _headers(
-              role,
-              tokens: tokens,
-              allowMockTokenFallback: allowMockTokenFallback,
-              roleTokens: _roleTokens,
-            ))
-        .timeout(const Duration(seconds: 20));
+    final response = await _httpGet(
+      Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+    );
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       if (body['code'] == 'OK') {
@@ -963,18 +982,16 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/admin/tenants'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/admin/tenants'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
     return _parseTenantWrite(response);
   }
 
@@ -985,18 +1002,16 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
-    final response = await http
-        .put(
-          Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _put(
+      Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
     return _parseTenantWrite(response);
   }
 
@@ -1007,18 +1022,16 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id/status'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode({'status': status}),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id/status'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode({'status': status}),
+    );
     return _parseTenantWrite(response);
   }
 
@@ -1029,18 +1042,16 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id/license'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode({'licenseTotal': licenseTotal}),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id/license'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode({'licenseTotal': licenseTotal}),
+    );
     return _parseTenantWrite(response);
   }
 
@@ -1050,21 +1061,19 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
-    final response = await http
-        .delete(
-          Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _delete(
+      Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+    );
     return _parseTenantWrite(response);
   }
 
-  TenantWriteResult _parseTenantWrite(http.Response response) {
+  TenantWriteResult _parseTenantWrite(ApiHttpResponse response) {
     try {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       if (response.statusCode == 200 && body['code'] == 'OK') {
@@ -1091,18 +1100,16 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/b2b/farms'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/b2b/farms'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       if (decoded['code'] == 'OK') {
@@ -1126,13 +1133,11 @@ class ApiCache {
   }
 
   Future<bool> confirmRevenuePeriodRemote(String role, String periodId) async {
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/revenue/periods/$periodId/confirm'),
-          headers: _headers(role, roleTokens: _roleTokens),
-          body: jsonEncode({}),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/revenue/periods/$periodId/confirm'),
+      headers: _headers(role, roleTokens: _roleTokens),
+      body: jsonEncode({}),
+    );
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       return body['code'] == 'OK';
@@ -1193,17 +1198,15 @@ class ApiCache {
     bool allowMockTokenFallback = false,
   }) async {
     if (_activeFarmId == null || _activeFarmId!.isEmpty) return false;
-    final response = await http
-        .delete(
-          Uri.parse('${resolveApiBaseUrl()}/farms/$_activeFarmId/fences/$id'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _delete(
+      Uri.parse('${resolveApiBaseUrl()}/farms/$_activeFarmId/fences/$id'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+    );
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       return body['code'] == 'OK';
@@ -1223,18 +1226,16 @@ class ApiCache {
       return result.ok;
     }
     if (_activeFarmId == null || _activeFarmId!.isEmpty) return false;
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/farms/$_activeFarmId/fences'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/farms/$_activeFarmId/fences'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
     lastFenceSaveStatusCode = response.statusCode;
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
@@ -1260,18 +1261,16 @@ class ApiCache {
       return result.ok;
     }
     if (_activeFarmId == null || _activeFarmId!.isEmpty) return false;
-    final response = await http
-        .put(
-          Uri.parse('${resolveApiBaseUrl()}/farms/$_activeFarmId/fences/$id'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _put(
+      Uri.parse('${resolveApiBaseUrl()}/farms/$_activeFarmId/fences/$id'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
     lastFenceSaveStatusCode = response.statusCode;
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;

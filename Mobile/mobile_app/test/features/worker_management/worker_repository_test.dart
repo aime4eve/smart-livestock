@@ -62,6 +62,28 @@ class WorkerApiHttpClient implements ApiHttpClient {
     );
   }
 
+  @override
+  Future<ApiHttpResponse> put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) async {
+    return ApiHttpResponse(
+      200,
+      jsonEncode({'code': 'OK', 'message': 'success', 'requestId': 'req_put', 'data': {}}),
+      const {},
+    );
+  }
+
+  @override
+  Future<ApiHttpResponse> delete(Uri uri, {Map<String, String>? headers}) async {
+    return ApiHttpResponse(
+      200,
+      jsonEncode({'code': 'OK', 'message': 'success', 'requestId': 'req_delete', 'data': {}}),
+      const {},
+    );
+  }
+
   Map<String, dynamic> _dataFor(String path) {
     if (path.endsWith('/farms')) {
       return {

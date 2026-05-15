@@ -16,6 +16,14 @@ abstract class ApiHttpClient {
     Map<String, String>? headers,
     Object? body,
   });
+
+  Future<ApiHttpResponse> put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  });
+
+  Future<ApiHttpResponse> delete(Uri uri, {Map<String, String>? headers});
 }
 
 class DefaultApiHttpClient implements ApiHttpClient {
@@ -41,6 +49,37 @@ class DefaultApiHttpClient implements ApiHttpClient {
   }) async {
     final response = await http
         .post(uri, headers: headers, body: body)
+        .timeout(const Duration(seconds: 20));
+    return ApiHttpResponse(
+      response.statusCode,
+      response.body,
+      response.headers,
+    );
+  }
+
+  @override
+  Future<ApiHttpResponse> put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) async {
+    final response = await http
+        .put(uri, headers: headers, body: body)
+        .timeout(const Duration(seconds: 20));
+    return ApiHttpResponse(
+      response.statusCode,
+      response.body,
+      response.headers,
+    );
+  }
+
+  @override
+  Future<ApiHttpResponse> delete(
+    Uri uri, {
+    Map<String, String>? headers,
+  }) async {
+    final response = await http
+        .delete(uri, headers: headers)
         .timeout(const Duration(seconds: 20));
     return ApiHttpResponse(
       response.statusCode,

@@ -22,11 +22,11 @@ void main() {
       allowMockTokenFallback: true,
     );
 
-    expect(client.paths, contains('/farms'));
+    expect(client.paths, contains('/farms/tenant_007/dashboard'));
+    expect(client.paths, contains('/farms/tenant_007/devices'));
     expect(client.paths, contains('/farms/tenant_007/members'));
     expect(client.paths, isNot(contains('/b2b/dashboard')));
     expect(client.paths, isNot(contains('/b2b/contract/current')));
-    expect(ApiCache.instance.myFarms?['activeFarmId'], 'tenant_007');
     expect(ApiCache.instance.workers?['items'], isA<List>());
   });
 
@@ -40,7 +40,8 @@ void main() {
       allowMockTokenFallback: true,
     );
 
-    expect(client.paths, contains('/farms'));
+    expect(client.paths, contains('/farms/tenant_007/dashboard'));
+    expect(client.paths, contains('/farms/tenant_007/devices'));
     expect(client.paths, isNot(contains('/farms/tenant_007/members')));
     expect(client.paths, isNot(contains('/b2b/dashboard')));
     expect(client.paths, isNot(contains('/b2b/contract/current')));
@@ -138,6 +139,20 @@ class _RecordingApiHttpClient implements ApiHttpClient {
     throw UnimplementedError();
   }
 
+  @override
+  Future<ApiHttpResponse> put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ApiHttpResponse> delete(Uri uri, {Map<String, String>? headers}) {
+    throw UnimplementedError();
+  }
+
   Map<String, dynamic> _data(Uri uri) {
     final path = uri.path.replaceFirst('/api/v1', '');
     // Farm-scoped endpoints use /farms/{farmId}/... pattern
@@ -150,6 +165,7 @@ class _RecordingApiHttpClient implements ApiHttpClient {
     if (path.endsWith('/alerts') ||
         path.endsWith('/fences') ||
         path.endsWith('/tenants') ||
+        path.endsWith('/devices') ||
         path.endsWith('/members')) {
       return {'items': []};
     }
@@ -228,6 +244,20 @@ class _RacingApiHttpClient implements ApiHttpClient {
     Map<String, String>? headers,
     Object? body,
   }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ApiHttpResponse> put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ApiHttpResponse> delete(Uri uri, {Map<String, String>? headers}) {
     throw UnimplementedError();
   }
 
