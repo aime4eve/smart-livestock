@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_http_client.dart';
 import 'package:smart_livestock_demo/core/models/demo_models.dart';
+import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
 
@@ -576,6 +577,12 @@ class ApiCache {
   }
 
   Future<ApiAuthTokens?> _authenticateRole(String role) async {
+    if (parseAppMode(
+      const String.fromEnvironment('APP_MODE', defaultValue: 'mock'),
+    ).isLive) {
+      debugPrint('_authenticateRole should not be called in live mode');
+      return null;
+    }
     final response = await _httpClient.post(
       Uri.parse('${resolveApiBaseUrl()}/auth/login'),
       headers: const {'Content-Type': 'application/json'},
