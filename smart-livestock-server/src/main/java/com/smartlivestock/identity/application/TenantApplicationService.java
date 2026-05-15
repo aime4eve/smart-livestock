@@ -31,6 +31,17 @@ public class TenantApplicationService {
     }
 
     @Transactional
+    public TenantDto updateTenant(Long id, String name, String contactName, String contactPhone) {
+        Tenant tenant = tenantRepository.findById(id)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "租户不存在: " + id));
+        if (name != null) tenant.setName(name);
+        if (contactName != null) tenant.setContactName(contactName);
+        if (contactPhone != null) tenant.setContactPhone(contactPhone);
+        Tenant saved = tenantRepository.save(tenant);
+        return TenantDto.from(saved);
+    }
+
+    @Transactional
     public void transitionToBatch(Long id) {
         Tenant tenant = tenantRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "租户不存在: " + id));

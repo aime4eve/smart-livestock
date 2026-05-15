@@ -131,6 +131,61 @@ public class TenantAdminController {
     }
 
     /**
+     * PUT /api/v1/admin/tenants/{tenantId}
+     * Update tenant info (name, contactName, contactPhone).
+     */
+    @PutMapping("/{tenantId}")
+    public ResponseEntity<ApiResponse<TenantDto>> updateTenant(
+            @PathVariable Long tenantId,
+            @RequestBody Map<String, String> body) {
+        requirePlatformAdmin();
+
+        String name = body.get("name");
+        String contactName = body.get("contactName");
+        String contactPhone = body.get("contactPhone");
+
+        TenantDto updated = tenantApplicationService.updateTenant(tenantId, name, contactName, contactPhone);
+        return ResponseEntity.ok(ApiResponse.ok(updated));
+    }
+
+    /**
+     * GET /api/v1/admin/tenants/{tenantId}/farms
+     * List farms belonging to a tenant.
+     */
+    @GetMapping("/{tenantId}/farms")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> listTenantFarms(
+            @PathVariable Long tenantId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int pageSize) {
+        requirePlatformAdmin();
+
+        springDataTenantRepository.findById(tenantId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "租户不存在: " + tenantId));
+
+        var farms = farmRepository.findByTenantId(tenantId);
+        List<Map<String, Object>> items = farms.stream()
+                .map(f -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("id", f.getId() != null ? String.valueOf(f.getId()) : "");
+                    m.put("tenantId", String.valueOf(tenantId));
+                    m.put("name", f.getName() != null ? f.getName() : "");
+                    m.put("latitude", f.getLatitude());
+                    m.put("longitude", f.getLongitude());
+                    m.put("areaHectares", f.getAreaHectares());
+                    return m;
+                })
+                .toList();
+
+        Map<String, Object> data = Map.of(
+                "items", items,
+                "page", page,
+                "pageSize", pageSize,
+                "total", items.size()
+        );
+        return ResponseEntity.ok(ApiResponse.ok(data));
+    }
+
+    /**
      * PUT /api/v1/admin/tenants/{tenantId}/status
      * Enable/disable tenant. Idempotent.
      */
