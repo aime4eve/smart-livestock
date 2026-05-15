@@ -188,6 +188,16 @@ SmartTileProvider createTileProvider() {
 }
 ```
 
+### 3.3.2 离线瓦片存储路径（原生平台）
+
+下载的 MBTiles 文件存储在应用内部目录：
+
+```
+getApplicationSupportDirectory()/mbtiles/{farmId}.mbtiles
+```
+
+选择 `getApplicationSupportDirectory()` 的原因：Android 11+ Scoped Storage 限制外部存储访问，内部存储无需额外权限。Web 平台不支持 MBTiles，仅通过在线瓦片源服务。
+
 ### 3.4 配置
 
 ```dart
