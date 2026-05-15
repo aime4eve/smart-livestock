@@ -1534,7 +1534,6 @@ class ApiCache {
   void _clearLiveData() {
     _initialized = false;
     _lastLiveSource = null;
-    _activeFarmId = null;
     _skipPhase2Endpoints = false;
     _dashboardMetrics = [];
     _animals = [];
@@ -1573,6 +1572,7 @@ class ApiCache {
   /// Called on logout to prevent data leaking between sessions.
   void reset() {
     _clearLiveData();
+    _activeFarmId = null;
     _skipPhase2Endpoints = false;
     _httpClient = const DefaultApiHttpClient();
     _roleTokens.clear();
