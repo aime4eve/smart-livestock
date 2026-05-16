@@ -11,6 +11,8 @@ class MBTilesTileProvider extends TileProvider {
     return MemoryImage(TileProvider.transparentImage);
   }
 
+  bool hasTile(int z, int x, int y) => false;
+
   @override
   void dispose() {}
 }

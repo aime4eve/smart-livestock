@@ -60,6 +60,16 @@ class MBTilesTileProvider extends TileProvider {
     return (min: rows.first['min_z'] as int, max: rows.first['max_z'] as int);
   }
 
+  bool hasTile(int z, int x, int y) {
+    if (_disposed) return false;
+    final tmsY = (1 << z) - 1 - y;
+    final rows = _db.select(
+      'SELECT 1 FROM tiles WHERE zoom_level = ? AND tile_column = ? AND tile_row = ? LIMIT 1',
+      [z, x, tmsY],
+    );
+    return rows.isNotEmpty;
+  }
+
   @override
   void dispose() {
     if (!_disposed) {
