@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +8,8 @@ import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/api/api_role.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
+import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
+import 'package:smart_livestock_demo/core/map/smart_tile_provider.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
@@ -31,13 +34,33 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
   final _mapController = MapController();
   LatLng _selectedCenter = MapConfig.defaultCenter;
   bool _submitting = false;
+  SmartTileProvider? _tileProvider;
+  bool _tileProviderInitialized = false;
 
   @override
   void dispose() {
+    _tileProvider?.dispose();
     _nameController.dispose();
     _areaController.dispose();
     _mapController.dispose();
     super.dispose();
+  }
+
+  Future<void> _initTileProvider() async {
+    MBTilesTileProvider? mbtiles;
+    if (!kIsWeb) {
+      mbtiles = await MBTilesTileProvider.fromAsset();
+    }
+    final region = const String.fromEnvironment('REGION', defaultValue: 'china');
+    final isChina = region == 'china';
+    _tileProvider = await SmartTileProvider.create(
+      selfHostedTileUrl: MapConfig.selfHostedTileUrl,
+      mbtilesProvider: mbtiles,
+      fallbackUrl: isChina ? MapConfig.chinaFallbackUrl : MapConfig.overseasFallbackUrl,
+      isGcj02Fallback: isChina,
+      onSourceChanged: () { if (mounted) setState(() {}); },
+    );
+    if (mounted) setState(() {});
   }
 
   Future<void> _submit() async {
@@ -86,6 +109,10 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_tileProviderInitialized) {
+      _tileProviderInitialized = true;
+      _initTileProvider();
+    }
     return SingleChildScrollView(
       key: const Key('farm-creation-step1'),
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -155,7 +182,8 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
                   ),
                   children: [
                     TileLayer(
-                      urlTemplate: MapConfig.tileUrlTemplate,
+                      urlTemplate: _tileProvider == null ? MapConfig.tileUrlTemplate : null,
+                      tileProvider: _tileProvider,
                       userAgentPackageName: 'com.smartlivestock.demo',
                       maxZoom: MapConfig.cacheMaxZoom.toDouble(),
                     ),

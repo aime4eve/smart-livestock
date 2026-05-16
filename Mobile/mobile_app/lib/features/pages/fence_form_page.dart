@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,7 +12,10 @@ import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/api/api_role.dart';
 import 'package:smart_livestock_demo/core/data/demo_seed.dart';
+import 'package:smart_livestock_demo/core/map/coord_transform.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
+import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
+import 'package:smart_livestock_demo/core/map/smart_tile_provider.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
@@ -31,12 +35,14 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _formMapController = MapController();
+  SmartTileProvider? _tileProvider;
   FenceType _type = FenceType.rectangle;
   FenceTemplate? _selectedTemplate;
   bool _alarmEnabled = true;
   bool _active = true;
   bool _saving = false;
   bool _initialized = false;
+  bool _tileProviderInitialized = false;
   bool _drawMode = false;
   List<LatLng> _drawingPoints = [];
   LatLng? _dragStart;
@@ -50,9 +56,27 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
 
   @override
   void dispose() {
+    _tileProvider?.dispose();
     _nameController.dispose();
     _formMapController.dispose();
     super.dispose();
+  }
+
+  Future<void> _initTileProvider() async {
+    MBTilesTileProvider? mbtiles;
+    if (!kIsWeb) {
+      mbtiles = await MBTilesTileProvider.fromAsset();
+    }
+    final region = const String.fromEnvironment('REGION', defaultValue: 'china');
+    final isChina = region == 'china';
+    _tileProvider = await SmartTileProvider.create(
+      selfHostedTileUrl: MapConfig.selfHostedTileUrl,
+      mbtilesProvider: mbtiles,
+      fallbackUrl: isChina ? MapConfig.chinaFallbackUrl : MapConfig.overseasFallbackUrl,
+      isGcj02Fallback: isChina,
+      onSourceChanged: () { if (mounted) setState(() {}); },
+    );
+    if (mounted) setState(() {});
   }
 
   void _clearTransientGesture() {
@@ -555,9 +579,12 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
   }
 
   List<List<double>> _getFinalPointsForSave() {
-    final pts = _getPreviewPoints().isNotEmpty
+    var pts = _getPreviewPoints().isNotEmpty
         ? _getPreviewPoints()
         : FenceItem.defaultPointsForType(_type, DemoSeed.mapCenter);
+    if (_tileProvider?.shouldTransformCoordinates() ?? false) {
+      pts = CoordTransform.gcj02ToWgs84All(pts);
+    }
     return pts.map((p) => [p.longitude, p.latitude]).toList();
   }
 
@@ -571,6 +598,10 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
   @override
   Widget build(BuildContext context) {
     _initForEdit();
+    if (!_tileProviderInitialized) {
+      _tileProviderInitialized = true;
+      _initTileProvider();
+    }
     final previewPoints = _getPreviewPoints();
     final complete = _isDrawingComplete();
     final area = complete ? _calcAreaHectares() : 1.0;
@@ -591,7 +622,8 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
       ),
       children: [
         TileLayer(
-          urlTemplate: MapConfig.tileUrlTemplate,
+          urlTemplate: _tileProvider == null ? MapConfig.tileUrlTemplate : null,
+          tileProvider: _tileProvider,
           userAgentPackageName: 'com.smartlivestock.demo',
           maxZoom: MapConfig.cacheMaxZoom.toDouble(),
         ),

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,7 +7,10 @@ import 'package:smart_livestock_demo/app/session/session_controller.dart';
 import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/core/map/coord_transform.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
+import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
+import 'package:smart_livestock_demo/core/map/smart_tile_provider.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_edit_operations.dart';
@@ -44,6 +48,8 @@ class _WizardStepFenceDrawingState
   final _formKey = GlobalKey<FormState>();
   late FenceEditSession _session;
   bool _saving = false;
+  SmartTileProvider? _tileProvider;
+  bool _tileProviderInitialized = false;
 
   @override
   void initState() {
@@ -57,9 +63,27 @@ class _WizardStepFenceDrawingState
 
   @override
   void dispose() {
+    _tileProvider?.dispose();
     _nameController.dispose();
     _mapController.dispose();
     super.dispose();
+  }
+
+  Future<void> _initTileProvider() async {
+    MBTilesTileProvider? mbtiles;
+    if (!kIsWeb) {
+      mbtiles = await MBTilesTileProvider.fromAsset();
+    }
+    final region = const String.fromEnvironment('REGION', defaultValue: 'china');
+    final isChina = region == 'china';
+    _tileProvider = await SmartTileProvider.create(
+      selfHostedTileUrl: MapConfig.selfHostedTileUrl,
+      mbtilesProvider: mbtiles,
+      fallbackUrl: isChina ? MapConfig.chinaFallbackUrl : MapConfig.overseasFallbackUrl,
+      isGcj02Fallback: isChina,
+      onSourceChanged: () { if (mounted) setState(() {}); },
+    );
+    if (mounted) setState(() {});
   }
 
   /// Add a vertex to the session. Always safe to call regardless of point count.
@@ -130,6 +154,15 @@ class _WizardStepFenceDrawingState
     });
   }
 
+  /// When the tile source uses GCJ-02, vertices drawn on the map must be
+  /// inverse-transformed to WGS-84 before storage.
+  List<LatLng> _verticesForSave(List<LatLng> drawnVertices) {
+    if (_tileProvider?.shouldTransformCoordinates() ?? false) {
+      return CoordTransform.gcj02ToWgs84All(drawnVertices);
+    }
+    return drawnVertices;
+  }
+
   Future<void> _saveFence() async {
     if (!_formKey.currentState!.validate()) return;
     if (_session.points.length < 3) {
@@ -146,7 +179,7 @@ class _WizardStepFenceDrawingState
         ? ApiAuthTokens(accessToken: session.accessToken!)
         : null;
 
-    final vertices = _session.points
+    final vertices = _verticesForSave(_session.points)
         .map((p) => {'lat': p.latitude, 'lng': p.longitude})
         .toList();
 
@@ -261,6 +294,10 @@ class _WizardStepFenceDrawingState
 
   @override
   Widget build(BuildContext context) {
+    if (!_tileProviderInitialized) {
+      _tileProviderInitialized = true;
+      _initTileProvider();
+    }
     final points = _session.points;
 
     return SingleChildScrollView(
@@ -334,7 +371,8 @@ class _WizardStepFenceDrawingState
                   ),
                   children: [
                     TileLayer(
-                      urlTemplate: MapConfig.tileUrlTemplate,
+                      urlTemplate: _tileProvider == null ? MapConfig.tileUrlTemplate : null,
+                      tileProvider: _tileProvider,
                       userAgentPackageName: 'com.smartlivestock.demo',
                       maxZoom: MapConfig.cacheMaxZoom.toDouble(),
                     ),
