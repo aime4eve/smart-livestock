@@ -1,0 +1,10 @@
+{
+  "data": {
+    "v3": {
+      "mbtiles": ["changsha.mbtiles"]
+    }
+  },
+  "options": {
+    "port": 8080
+  }
+}

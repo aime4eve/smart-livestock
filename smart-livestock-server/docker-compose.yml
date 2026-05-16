@@ -65,6 +65,15 @@ services:
         condition: service_started
     restart: unless-stopped
 
+  tileserver:
+    image: maptiler/tileserver-gl:latest
+    volumes:
+      - ./infrastructure/tileserver/data:/data
+    ports:
+      - "8081:8080"
+    command: --port 8080 /data/config.json
+    restart: unless-stopped
+
   nginx:
     build: ./infrastructure/nginx
     ports:
