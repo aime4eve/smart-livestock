@@ -1,5 +1,4 @@
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/map/coord_transform.dart';
 
 /// 地图默认配置 — 预设城市中心点、缩放级别、瓦片源
 class MapConfig {
@@ -10,12 +9,8 @@ class MapConfig {
   static const String defaultProvince = '湖南';
   static const String defaultCountry = '中国';
 
-  /// 长沙市中心 WGS-84 坐标
-  static const LatLng _wgsCenter = LatLng(28.2282, 112.9388);
-
-  /// 地图中心（已转为 GCJ-02 适配高德瓦片）
-  static final LatLng defaultCenter =
-      CoordTransform.wgs84ToGcj02(_wgsCenter);
+  /// 长沙市中心 WGS-84 坐标（渲染时根据瓦片源决定是否转 GCJ-02）
+  static const LatLng defaultCenter = LatLng(28.2282, 112.9388);
 
   /// 默认缩放级别（13 ≈ 城区街道级别）
   static const double defaultZoom = 13.0;
@@ -27,13 +22,22 @@ class MapConfig {
   static const int cacheMinZoom = 11;
   static const int cacheMaxZoom = 15;
 
-  /// 高德瓦片源（GCJ-02 坐标系，国内可访问）
-  static const String tileUrlTemplate =
+  // ── 瓦片源 URL ──
+
+  /// 自建 tileserver-gl（WGS-84，国内服务器代理）
+  static const String selfHostedTileUrl =
+      'http://172.22.1.123:18080/tiles/{z}/{x}/{y}.png';
+
+  /// 高德瓦片源（GCJ-02 坐标系，国内降级）
+  static const String chinaFallbackUrl =
       'https://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}';
 
-  /// OSM 瓦片源（WGS-84，需外网访问）
-  static const String osmTileUrlTemplate =
+  /// OSM 瓦片源（WGS-84，海外降级）
+  static const String overseasFallbackUrl =
       'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+  /// 向后兼容（指向高德，迁移完成后可删除）
+  static const String tileUrlTemplate = chinaFallbackUrl;
 
   /// MBTiles 离线瓦片配置
   static const String mbtilesAssetPath = 'assets/map/sample.mbtiles';
@@ -45,37 +49,37 @@ class MapConfig {
   /// 瓦片缓存有效期
   static const Duration cacheValidDuration = Duration(days: 30);
 
-  /// 预设城市列表（坐标已转为 GCJ-02）
+  /// 预设城市列表（WGS-84 原始坐标，渲染时根据瓦片源转换）
   static final List<MapPreset> cityPresets = [
     MapPreset(
       name: '长沙',
       province: '湖南',
       country: '中国',
-      center: CoordTransform.wgs84ToGcj02(const LatLng(28.2282, 112.9388)),
+      center: const LatLng(28.2282, 112.9388),
     ),
     MapPreset(
       name: '北京',
       province: '北京',
       country: '中国',
-      center: CoordTransform.wgs84ToGcj02(const LatLng(39.9042, 116.4074)),
+      center: const LatLng(39.9042, 116.4074),
     ),
     MapPreset(
       name: '上海',
       province: '上海',
       country: '中国',
-      center: CoordTransform.wgs84ToGcj02(const LatLng(31.2304, 121.4737)),
+      center: const LatLng(31.2304, 121.4737),
     ),
     MapPreset(
       name: '乌鲁木齐',
       province: '新疆',
       country: '中国',
-      center: CoordTransform.wgs84ToGcj02(const LatLng(43.8256, 87.6168)),
+      center: const LatLng(43.8256, 87.6168),
     ),
     MapPreset(
       name: '呼和浩特',
       province: '内蒙古',
       country: '中国',
-      center: CoordTransform.wgs84ToGcj02(const LatLng(40.8422, 111.7500)),
+      center: const LatLng(40.8422, 111.7500),
     ),
     MapPreset(
       name: '悉尼',
