@@ -30,6 +30,25 @@ class CoordTransform {
     return points.map(wgs84ToGcj02).toList();
   }
 
+  /// GCJ-02 → WGS-84 迭代法逆转换（精度 < 0.1m）
+  static LatLng gcj02ToWgs84(LatLng gcj) {
+    if (_outOfChina(gcj.latitude, gcj.longitude)) return gcj;
+    var guess = gcj;
+    for (int i = 0; i < 10; i++) {
+      final transformed = wgs84ToGcj02(guess);
+      final dLat = gcj.latitude - transformed.latitude;
+      final dLng = gcj.longitude - transformed.longitude;
+      if (dLat.abs() < 1e-8 && dLng.abs() < 1e-8) break;
+      guess = LatLng(guess.latitude + dLat, guess.longitude + dLng);
+    }
+    return guess;
+  }
+
+  /// 批量逆转换
+  static List<LatLng> gcj02ToWgs84All(List<LatLng> points) {
+    return points.map(gcj02ToWgs84).toList();
+  }
+
   static double _transformLat(double x, double y) {
     var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y +
         0.1 * x * y + 0.2 * sqrt(x.abs());
