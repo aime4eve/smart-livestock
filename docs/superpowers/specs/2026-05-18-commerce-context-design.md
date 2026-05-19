@@ -1,9 +1,10 @@
 # Commerce 限界上下文设计规格
 
 **日期**: 2026-05-18
-**状态**: 已评审通过（第三轮修正，基于架构评审与 Plan 修正）
+**状态**: 已评审通过（第四轮修正，基于 v2 架构评审修正）
 **范围**: MVP Phase 2 — Commerce 子系统（订阅、合同、分润、Licensed 服务、配额引擎）
 **前置**: MVP Phase 1 已完成（Identity + Ranch + IoT 限界上下文）
+**架构评审**: `docs/superpowers/reviews/2026-05-18-项目总体技术架构评审.md` (v2)
 
 ---
 
@@ -29,13 +30,15 @@ smart-livestock-server/src/main/java/com/smartlivestock/
 │   │   │   ├── SubscriptionService.java (聚合根, licensed 专用)
 │   │   │   ├── SubscriptionServiceStatus.java
 │   │   │   ├── FeatureGate.java         (值对象)
-│   │   │   └── event/                   (24 个领域事件)
+│   │   │   └── event/                   (15 个内部领域事件)
 │   │   └── repository/
 │   │       ├── SubscriptionRepository.java
 │   │       ├── ContractRepository.java
 │   │       ├── RevenuePeriodRepository.java
 │   │       ├── SubscriptionServiceRepository.java
-│   │       └── FeatureGateRepository.java
+│   │       ├── FeatureGateRepository.java
+│   │       └── port/
+│   │           └── SubscriptionQueryPort.java  (v4 新增：供跨上下文查询订阅状态，由 SubscriptionQueryService 实现)
 │   ├── application/
 │   │   ├── service/
 │   │   │   ├── SubscriptionApplicationService.java
@@ -43,35 +46,59 @@ smart-livestock-server/src/main/java/com/smartlivestock/
 │   │   │   ├── RevenueApplicationService.java
 │   │   │   ├── QuotaApplicationService.java
 │   │   │   └── UsageResolver.java (接口 + 实现)
+│   │   ├── query/                        (v4 新增：读模型)
+│   │   │   ├── SubscriptionQueryService.java
+│   │   │   └── RevenueQueryService.java
+│   │   ├── job/                          (v4 修正：从 scheduler/ 重命名)
+│   │   │   └── CommerceScheduler.java (7 个定时任务)
 │   │   ├── dto/
 │   │   │   ├── QuotaResult.java
 │   │   │   ├── CheckoutRequest.java
 │   │   │   ├── SubscriptionResponse.java
 │   │   │   ├── ContractResponse.java
 │   │   │   └── RevenuePeriodResponse.java
-│   │   ├── scheduler/
-│   │   │   └── CommerceScheduler.java (7 个定时任务)
-│   │   └── listener/
-│   │       └── NotificationEventListener.java
+│   │   └── assembler/                   (v4 新增：DTO 映射)
+│   │       ├── SubscriptionAssembler.java
+│   │       ├── ContractAssembler.java
+│   │       └── RevenuePeriodAssembler.java
 │   ├── infrastructure/
 │   │   └── persistence/
 │   │       ├── entity/    (5 JPA Entity)
 │   │       ├── mapper/    (5 Mapper)
 │   │       └── repository/ (5 Spring Data JPA + 4 Impl + 1 FeatureGate Impl)
 │   └── interfaces/
-│       ├── SubscriptionController.java
-│       ├── CommerceController.java
-│       ├── AdminSubscriptionController.java
-│       ├── AdminContractController.java
-│       ├── AdminRevenueController.java
-│       ├── AdminServiceController.java
-│       ├── AdminFeatureGateController.java
-│       ├── QuotaCheck.java (注解)
-│       └── QuotaInterceptor.java
-├── shared/
-│   ├── common/ErrorCode.java (新增 9 个 Commerce 错误码)
-│   ├── notification/ (notification 表 Repository + Service)
-│   └── domain/ (AggregateRoot + DomainEvent 已有)
+│       ├── app/                          (v4 修正：从平铺改为 app/ 子目录)
+│       │   ├── SubscriptionController.java
+│       │   └── CommerceController.java
+│       └── admin/                        (v4 修正：平铺归入 admin/ 子目录)
+│           ├── AdminSubscriptionController.java
+│           ├── AdminContractController.java
+│           ├── AdminRevenueController.java
+│           ├── AdminServiceController.java
+│           └── AdminFeatureGateController.java
+├── shared-kernel/
+│   └── domain/
+│       ├── ErrorCode.java (v4 修正：Commerce 新增 9 个错误码，保留在 shared-kernel)
+│       ├── DomainException.java  (v4 新增：领域层异常)
+│       └── event/                (v4 新增：9 个跨上下文共享事件)
+│           ├── SubscriptionTierChangedEvent.java
+│           ├── SubscriptionSuspendedEvent.java
+│           ├── SubscriptionReactivatedEvent.java
+│           ├── SubscriptionExpiredEvent.java
+│           ├── SubscriptionCreatedEvent.java
+│           ├── ContractSignedEvent.java
+│           ├── ServiceDegradedEvent.java
+│           ├── ServiceQuotaAdjustedEvent.java
+│           └── ServiceRevokedEvent.java
+└── platform/
+    ├── web/
+    │   ├── ApiException.java  (v4 修正：仅 Web 适配层使用)
+    │   ├── QuotaCheck.java    (v4 修正：配额注解，横切关注点)
+    │   ├── QuotaInterceptor.java (v4 修正：配额拦截器)
+    │   └── QuotaCheckService.java (v4 新增：接口，QuotaApplicationService 实现此接口)
+    └── messaging/
+        ├── NotificationService.java  (v4 修正：通知服务归入 platform)
+        └── NotificationEventListener.java (v4 修正：事件监听归入 platform)
 ```
 
 ### 1.2 与现有 Identity 上下文的关系
@@ -308,7 +335,7 @@ public enum SubscriptionTier {
 
     public int calculateMonthlyFee(int livestockCount) {
         if (this == ENTERPRISE)
-            throw new ApiException(ErrorCode.ENTERPRISE_CUSTOM_PRICING,
+            throw new DomainException(ErrorCode.ENTERPRISE_CUSTOM_PRICING,
                 "Enterprise 需定制计费，不可自动计算");
         int base = monthlyPriceCents;
         int overflow = Math.max(0, livestockCount - includedLivestock);
@@ -364,14 +391,15 @@ public boolean isActiveOrTrial() {
 
 **领域事件：**
 
-| 事件 | 触发点 | 消费方 |
-|------|--------|--------|
-| SubscriptionCreatedEvent | `startTrial()` / `activate()` | Identity: TenantPhase SAMPLE→BATCH |
-| SubscriptionTierChangedEvent | `changeTier()` / `expireTrial()` / `downgradeAfterRenewalFailure()` | Ranch/IoT: 更新配额缓存 |
-| SubscriptionSuspendedEvent | `suspend()` | Ranch/IoT: 限制功能访问 |
-| SubscriptionReactivatedEvent | `reactivate()` / `recoverFromRenewalFailure()` | Ranch/IoT: 恢复功能访问 |
-| SubscriptionCancelledEvent | `cancel()` | 通知: 告知 owner |
-| SubscriptionExpiredEvent | `markExpired()` | Ranch/IoT: 限制功能访问 |
+| 事件 | 触发点 | 消费方 | 归属 |
+|------|--------|--------|------|
+| SubscriptionCreatedEvent | `startTrial()` / `activate()` | Identity: TenantPhase SAMPLE→BATCH | shared |
+| SubscriptionTierChangedEvent | `changeTier()` / `expireTrial()` / `downgradeAfterRenewalFailure()` | Ranch/IoT: 更新配额缓存 | shared |
+| SubscriptionSuspendedEvent | `suspend()` | Ranch/IoT: 限制功能访问 | shared |
+| SubscriptionReactivatedEvent | `reactivate()` / `recoverFromRenewalFailure()` | Ranch/IoT: 恢复功能访问 | shared |
+| SubscriptionCancelledEvent | `cancel()` | 通知: 告知 owner | internal |
+| SubscriptionRenewalFailedEvent | `markRenewalFailed()` | 通知: 续费失败提醒 | internal |
+| SubscriptionExpiredEvent | `markExpired()` | Ranch/IoT: 限制功能访问 | shared |
 
 ### 3.3 Contract（聚合根）
 
@@ -403,13 +431,14 @@ public record RevenueShareResult(int platformShare, int partnerShare) {}
 
 **领域事件：**
 
-| 事件 | 触发点 | 消费方 |
-|------|--------|--------|
-| ContractCreatedEvent | `create()` | 无（内部审计） |
-| ContractSignedEvent | `sign()` | Identity: 创建 Partner 子 Tenant |
-| ContractSuspendedEvent | `suspend()` | 通知: 告知合作方 |
-| ContractTerminatedEvent | `terminate()` | 通知: 告知合作方 |
-| ContractExpiredEvent | `markExpired()` | 通知: 告知合作方 |
+| 事件 | 触发点 | 消费方 | 归属 |
+|------|--------|--------|------|
+| ContractCreatedEvent | `create()` | 无（内部审计） | internal |
+| ContractSignedEvent | `sign()` | Identity: 创建 Partner 子 Tenant | shared |
+| ContractSuspendedEvent | `suspend()` | 通知: 告知合作方 | internal |
+| ContractReactivatedEvent | `reactivate()` | 通知: 告知合作方恢复 | internal |
+| ContractTerminatedEvent | `terminate()` | 通知: 告知合作方 | internal |
+| ContractExpiredEvent | `markExpired()` | 通知: 告知合作方 | internal |
 
 ### 3.4 RevenuePeriod（聚合根）
 
@@ -429,12 +458,12 @@ PENDING → confirmByPlatform() → PLATFORM_CONFIRMED
 
 **领域事件：**
 
-| 事件 | 触发点 | 消费方 |
-|------|--------|--------|
-| RevenuePeriodCreatedEvent | `calculate()` | 通知: 告知合作方有待确认结算 |
-| RevenuePlatformConfirmedEvent | `confirmByPlatform()` | 通知: 告知合作方可确认 |
-| RevenuePartnerConfirmedEvent | `confirmByPartner()` | 通知: 触发结算 |
-| RevenueSettledEvent | `settle()` | 通知: 结算完成通知 |
+| 事件 | 触发点 | 消费方 | 归属 |
+|------|--------|--------|------|
+| RevenuePeriodCreatedEvent | `calculate()` | 通知: 告知合作方有待确认结算 | internal |
+| RevenuePlatformConfirmedEvent | `confirmByPlatform()` | 通知: 告知合作方可确认 | internal |
+| RevenuePartnerConfirmedEvent | `confirmByPartner()` | 通知: 触发结算 | internal |
+| RevenueSettledEvent | `settle()` | 通知: 结算完成通知 | internal |
 
 ### 3.5 SubscriptionService（聚合根，Licensed 模式专用）
 
@@ -465,14 +494,15 @@ provision(tenantId, serviceName, rawServiceKey, tier, deviceQuota) → PROVISION
 
 **领域事件：**
 
-| 事件 | 触发点 | 消费方 |
-|------|--------|--------|
-| ServiceActivatedEvent | `activate()` | 通知: 服务上线 |
-| ServiceHeartbeatLostEvent | `checkHeartbeat()` | 通知: 运维告警 |
-| ServiceHeartbeatRecoveredEvent | GRACE_PERIOD 中 `recordHeartbeat()` | 通知: 关闭告警工单 |
-| ServiceDegradedEvent | `degrade()` | Ranch/IoT: 配额降为 BASIC |
-| ServiceQuotaAdjustedEvent | `adjustQuota()` | Ranch/IoT: 更新配额缓存 |
-| ServiceRevokedEvent | `revoke()` / `expire()` | Ranch/IoT: 停止服务 |
+| 事件 | 触发点 | 消费方 | 归属 |
+|------|--------|--------|------|
+| ServiceProvisionedEvent | `provision()` | 通知: 服务已配置 | internal |
+| ServiceActivatedEvent | `activate()` | 通知: 服务上线 | internal |
+| ServiceHeartbeatLostEvent | `checkHeartbeat()` | 通知: 运维告警 | internal |
+| ServiceHeartbeatRecoveredEvent | GRACE_PERIOD 中 `recordHeartbeat()` | 通知: 关闭告警工单 | internal |
+| ServiceDegradedEvent | `degrade()` | Ranch/IoT: 配额降为 BASIC | shared |
+| ServiceQuotaAdjustedEvent | `adjustQuota()` | Ranch/IoT: 更新配额缓存 | shared |
+| ServiceRevokedEvent | `revoke()` / `expire()` | Ranch/IoT: 停止服务 | shared |
 
 ---
 
@@ -510,7 +540,7 @@ public class QuotaApplicationService {
     public QuotaResult checkQuota(Long tenantId, String featureKey, int currentUsage) {
         // 第一道：订阅状态检查
         Subscription sub = subscriptionRepository.findByTenantId(tenantId)
-            .orElseThrow(() -> new ApiException(ErrorCode.SUBSCRIPTION_NOT_FOUND));
+            .orElseThrow(() -> new DomainException(ErrorCode.SUBSCRIPTION_NOT_FOUND));
         if (!sub.isActiveOrTrial()) {
             return QuotaResult.denied("订阅状态非活跃: " + sub.getStatus());
         }
@@ -686,6 +716,8 @@ ApplicationService.save(aggregate)
     ↓
 Spring ApplicationEventPublisher.publishEvent(domainEvent)
     ↓
+platform/messaging/SpringEventBridge → 转发到 RocketMQ（按 topic）
+    ↓
 NotificationEventListener (同步，同事务内)
     ├─ 写入 notification 表
     └─ 跨上下文 ApplicationListener (Identity/Ranch/IoT)
@@ -693,7 +725,11 @@ NotificationEventListener (同步，同事务内)
 
 ### 5.2 全部 24 个事件
 
-见 Section 3 各聚合根的事件表。
+9 个跨上下文共享事件（`shared-kernel/domain/event/`）+ 15 个内部领域事件（`commerce/domain/model/event/`）= 24 个。见 Section 3 各聚合根的事件表，标注"归属"列。
+
+**9 个跨上下文共享事件：** SubscriptionCreatedEvent、SubscriptionTierChangedEvent、SubscriptionSuspendedEvent、SubscriptionReactivatedEvent、SubscriptionExpiredEvent、ContractSignedEvent、ServiceDegradedEvent、ServiceQuotaAdjustedEvent、ServiceRevokedEvent
+
+**15 个内部事件：** SubscriptionCancelledEvent、SubscriptionRenewalFailedEvent、ContractCreatedEvent、ContractSuspendedEvent、ContractReactivatedEvent、ContractTerminatedEvent、ContractExpiredEvent、RevenuePeriodCreatedEvent、RevenuePlatformConfirmedEvent、RevenuePartnerConfirmedEvent、RevenueSettledEvent、ServiceProvisionedEvent、ServiceActivatedEvent、ServiceHeartbeatLostEvent、ServiceHeartbeatRecoveredEvent
 
 ### 5.3 RocketMQ
 
@@ -714,7 +750,7 @@ MVP 不引入。单体应用内 Spring ApplicationEvent 足够。微服务拆分
 
 ## 7. ErrorCode
 
-Commerce 新增 9 个：
+Commerce 新增 9 个（保留在 `shared-kernel/domain/ErrorCode.java`）：
 
 ```java
 ENTERPRISE_CUSTOM_PRICING,     // Enterprise 不走自动计费
@@ -732,8 +768,8 @@ SETTLEMENT_DUPLICATE_CONFIRM,  // 重复确认结算
 
 ---
 
-*设计规格版本: 2026-05-18 v3（架构评审修正版）*
-*评审记录: `docs/superpowers/reviews/2026-05-18-Commerce-架构评审与Plan修正.md`*
+*设计规格版本: 2026-05-18 v4（v2 架构评审修正版）*
+*评审记录: `docs/superpowers/reviews/2026-05-18-项目总体技术架构评审.md` (v2)*
 *实施计划: `docs/superpowers/plans/2026-05-18-commerce-context-plan.md`*
 
 ---
@@ -751,3 +787,19 @@ SETTLEMENT_DUPLICATE_CONFIRM,  // 重复确认结算
 | Redis 配额缓存 | DB 直查 → Redis 缓存 | 高并发场景 |
 | 分布式锁 | 单实例 → @SchedulerLock | 多实例部署 |
 | RocketMQ 事件总线 | Spring Event → RocketMQ | 微服务拆分 |
+
+---
+
+## 附录 B：v3 → v4 修正记录
+
+| 修正项 | v3 内容 | v4 修正 | 对应评审 |
+|---|---|---|---|
+| interfaces 目录 | Controller 平铺 | 拆为 `interfaces/app/` + `interfaces/admin/` | 评审 T3 |
+| application 目录 | `scheduler/` + `listener/` | `job/`（原 scheduler）+ `query/` + `assembler/`，listener 并入 service | 评审 T4 |
+| ErrorCode 归属 | `shared/common/ErrorCode.java` | `shared-kernel/domain/ErrorCode.java` | 评审 v2 A1 修正 |
+| ApiException 使用 | 领域模型直接用 ApiException | 领域模型改用 DomainException | 评审 v2 A1 修正 |
+| Notification 归属 | `shared/notification/` | `platform/messaging/NotificationService.java` | 评审 v2 A1 |
+| EventPublisher | 未提及归位 | `platform/messaging/SpringEventBridge.java` | 评审 v2 T1.5 |
+| 跨上下文 port | 无 | `domain/repository/port/SubscriptionQueryPort.java` | 评审 v2 T1.5 |
+| query 层 | 无 | `application/query/SubscriptionQueryService.java` + `RevenueQueryService.java` | 评审 T5 |
+| assembler 层 | 无 | `application/assembler/*.java`（3 个 DTO 映射器） | 评审 T4 |

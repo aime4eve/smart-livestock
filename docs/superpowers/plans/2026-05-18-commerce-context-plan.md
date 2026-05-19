@@ -8,9 +8,9 @@
 
 **Tech Stack:** Spring Boot 3.3.0 / Java 17 / JPA + Hibernate / PostgreSQL 16 / Flyway / JUnit 5 + Mockito / Spring ApplicationEvent
 
-**Spec:** `docs/superpowers/specs/2026-05-18-commerce-context-design.md` (v3)
+**Spec:** `docs/superpowers/specs/2026-05-18-commerce-context-design.md` (v4)
 
-**Review:** `docs/superpowers/reviews/2026-05-18-Commerce-架构评审与Plan修正.md`
+**Review:** `docs/superpowers/reviews/2026-05-18-项目总体技术架构评审.md` (v2)
 
 **前置:** MVP Phase 1 已完成，V1-V5 迁移已存在
 
@@ -32,12 +32,13 @@
 | `domain/model/SubscriptionService.java` | Licensed 服务聚合根（License 文件、心跳、deviceQuota） |
 | `domain/model/SubscriptionServiceStatus.java` | 服务状态枚举（6 种，含 PROVISIONED） |
 | `domain/model/FeatureGate.java` | 功能门控值对象（4 种 gateType） |
-| `domain/model/event/*.java` | 24 个领域事件 (record) |
+| `domain/model/event/*.java` | 15 个内部领域事件 (record) |
 | `domain/repository/SubscriptionRepository.java` | 订阅 Repository port |
 | `domain/repository/ContractRepository.java` | 合同 Repository port |
 | `domain/repository/RevenuePeriodRepository.java` | 分润 Repository port |
 | `domain/repository/SubscriptionServiceRepository.java` | 服务 Repository port |
 | `domain/repository/FeatureGateRepository.java` | 功能门控 Repository port |
+| `domain/repository/port/SubscriptionQueryPort.java` | v4 新增：跨上下文查询订阅状态 port |
 | `application/dto/QuotaResult.java` | 配额校验结果（allowed/denied/allowedWithRetention） |
 | `application/dto/CheckoutRequest.java` | 结算请求 DTO |
 | `application/dto/SubscriptionResponse.java` | 订阅响应 DTO |
@@ -46,31 +47,64 @@
 | `application/service/SubscriptionApplicationService.java` | 订阅应用服务 |
 | `application/service/ContractApplicationService.java` | 合同应用服务 |
 | `application/service/RevenueApplicationService.java` | 分润应用服务 |
-| `application/service/QuotaApplicationService.java` | 配额引擎服务（两道防线） |
+| `application/service/QuotaApplicationService.java` | 配额引擎服务（两道防线，实现 QuotaCheckService 接口） |
 | `application/service/UsageResolver.java` | 用量解析接口（纯值签名） |
 | `application/service/FarmLivestockUsageResolver.java` | farm 级牲畜用量 |
 | `application/service/FarmFenceUsageResolver.java` | farm 级围栏用量 |
-| `application/scheduler/CommerceScheduler.java` | 定时任务（7 Job） |
-| `application/listener/NotificationEventListener.java` | 事件监听→写 notification 表 |
+| `application/query/SubscriptionQueryService.java` | v4 新增：订阅读模型 |
+| `application/query/RevenueQueryService.java` | v4 新增：分润读模型 |
+| `application/assembler/SubscriptionAssembler.java` | v4 新增：订阅 DTO 映射 |
+| `application/assembler/ContractAssembler.java` | v4 新增：合同 DTO 映射 |
+| `application/assembler/RevenuePeriodAssembler.java` | v4 新增：分润 DTO 映射 |
+| `application/job/CommerceScheduler.java` | v4 修正：定时任务（7 Job，从 scheduler/ 改为 job/） |
 | `infrastructure/persistence/entity/*.java` | 5 JPA Entity |
 | `infrastructure/persistence/mapper/*.java` | 5 Mapper |
 | `infrastructure/persistence/Jpa*RepositoryImpl.java` | 5 Repository 实现 |
 | `infrastructure/persistence/Spring*JpaRepository.java` | 5 Spring Data JPA |
-| `interfaces/SubscriptionController.java` | App 订阅 API (6 端点) |
-| `interfaces/CommerceController.java` | App 合同/分润 API (3 端点) |
-| `interfaces/AdminSubscriptionController.java` | Admin 订阅管理 (3 端点) |
-| `interfaces/AdminContractController.java` | Admin 合同管理 (6 端点) |
-| `interfaces/AdminRevenueController.java` | Admin 分润管理 (5 端点) |
-| `interfaces/AdminServiceController.java` | Admin 服务管理 (5 端点) |
-| `interfaces/AdminFeatureGateController.java` | Admin 功能门控 (2 端点) |
-| `interfaces/QuotaCheck.java` | 配额注解 |
-| `interfaces/QuotaInterceptor.java` | 配额拦截器 |
+| `interfaces/app/SubscriptionController.java` | v4 修正：App 订阅 API (6 端点)，归入 app/ 子目录 |
+| `interfaces/app/CommerceController.java` | v4 修正：App 合同/分润 API (3 端点)，归入 app/ 子目录 |
+| `interfaces/admin/AdminSubscriptionController.java` | v4 修正：Admin 订阅管理 (3 端点)，归入 admin/ 子目录 |
+| `interfaces/admin/AdminContractController.java` | v4 修正：Admin 合同管理 (6 端点) |
+| `interfaces/admin/AdminRevenueController.java` | v4 修正：Admin 分润管理 (5 端点) |
+| `interfaces/admin/AdminServiceController.java` | v4 修正：Admin 服务管理 (5 端点) |
+| `interfaces/admin/AdminFeatureGateController.java` | v4 修正：Admin 功能门控 (2 端点) |
 
 ### shared/ — Modify
 
 | File | Change |
 |------|--------|
-| `shared/common/ErrorCode.java` | 新增 9 个 Commerce 错误码 |
+| `shared/common/ErrorCode.java` | v4 修正：新增 9 个 Commerce 错误码 |
+| `shared/common/DomainException.java` | v4 新增：领域层异常（替代领域模型对 ApiException 的直接依赖） |
+| `shared/domain/event/*.java` | v4 新增：9 个跨上下文共享事件（供 Ranch/IoT/Identity 消费），详见下方列表 |
+
+**9 个跨上下文共享事件（`shared/domain/event/`）：**
+- SubscriptionCreatedEvent
+- SubscriptionTierChangedEvent
+- SubscriptionSuspendedEvent
+- SubscriptionReactivatedEvent
+- SubscriptionExpiredEvent
+- ContractSignedEvent
+- ServiceDegradedEvent
+- ServiceQuotaAdjustedEvent
+- ServiceRevokedEvent
+
+### platform/ — Create
+
+| File | Responsibility |
+|------|---------------|
+| `platform/messaging/NotificationService.java` | v4 修正：通知写入服务（从 shared/notification 归入 platform/messaging） |
+| `platform/messaging/NotificationEventListener.java` | v4 修正：事件监听→写 notification 表（从 commerce/application/listener 归入 platform） |
+| `platform/messaging/Notification.java` | v4 新增：通知 JPA 实体（对应 notifications 表） |
+| `platform/messaging/NotificationRepository.java` | v4 新增：通知 Spring Data JPA Repository |
+| `platform/web/QuotaCheck.java` | v4 修正：配额注解（横切关注点，从 commerce/interfaces 归入 platform/web） |
+| `platform/web/QuotaInterceptor.java` | v4 修正：配额拦截器（从 commerce/interfaces 归入 platform/web） |
+| `platform/web/QuotaCheckService.java` | v4 新增：配额检查接口（QuotaApplicationService 实现此接口） |
+
+### platform/ — Modify
+
+| File | Change |
+|------|--------|
+| `platform/web/ApiException.java` | v4 修正：仅保留 HTTP 状态码映射功能，领域模型不再直接使用 |
 
 ### identity/ — Modify
 
@@ -82,16 +116,8 @@
 
 | File | Change |
 |------|--------|
-| `ranch/interfaces/FenceController.java` | createFence 加 @QuotaCheck(feature="fence_management") |
-| `ranch/interfaces/LivestockController.java` | registerLivestock 加 @QuotaCheck(feature="livestock_management") |
-
-### shared/notification/ — Create
-
-| File | Responsibility |
-|------|---------------|
-| `Notification.java` | 通知实体 |
-| `NotificationRepository.java` | 通知 Repository |
-| `NotificationService.java` | 通知写入服务 |
+| `ranch/interfaces/FenceController.java` | v4 修正：createFence 加 @QuotaCheck(feature="fence_management") |
+| `ranch/interfaces/LivestockController.java` | v4 修正：registerLivestock 加 @QuotaCheck(feature="livestock_management") |
 
 ### test/ — Create
 
@@ -120,7 +146,7 @@
 ```
 Task 1 (DDL)
     ↓
-Task 2 (Enums + ErrorCode + Events)
+Task 2 (Enums + ErrorCode + DomainException + Events)
     ↓
 Task 3 (Subscription) ──┐
 Task 4 (Contract + RevenuePeriod) ──┤  ← 可并行
@@ -132,13 +158,13 @@ Task 7 (Persistence Layer)
     ↓
 Task 8 (@QuotaCheck + Interceptor + UsageResolver)
     ↓
-Task 9 (Notification + EventListener)
+Task 9 (Notification + EventListener — platform/messaging)
     ↓
-Task 10 (Application Services)
+Task 10 (Application Services + Query Services + Assemblers)
     ↓
-Task 11 (Controllers — App + Admin)
+Task 11 (Controllers — app/ + admin/ 目录)
     ↓
-Task 12 (Scheduler — 7 Jobs)
+Task 12 (Scheduler — 7 Jobs, job/ 目录)
     ↓
 Task 13 (Integration + Tenant Extension)
 ```
@@ -155,191 +181,7 @@ Tasks 3, 4, 5 可并行。Tasks 6-13 严格串行。
 
 - [ ] **Step 1: 创建迁移文件**
 
-按 Spec Section 2 完整 DDL，包含 7 张表/变更：
-
-```sql
--- subscriptions (含 billing_model, cancelled_at)
-CREATE TABLE subscriptions (
-    id              BIGSERIAL PRIMARY KEY,
-    tenant_id       BIGINT NOT NULL REFERENCES tenants(id),
-    tier            VARCHAR(20) NOT NULL DEFAULT 'basic',
-    billing_model   VARCHAR(20) NOT NULL DEFAULT 'direct',
-    status          VARCHAR(30) NOT NULL DEFAULT 'trial',
-    billing_cycle   VARCHAR(20) NOT NULL DEFAULT 'monthly',
-    started_at      TIMESTAMPTZ NOT NULL,
-    expires_at      TIMESTAMPTZ,
-    trial_ends_at   TIMESTAMPTZ,
-    cancelled_at    TIMESTAMPTZ,
-    version         BIGINT NOT NULL DEFAULT 0,
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT uq_subscriptions_tenant UNIQUE (tenant_id)
-);
-CREATE INDEX idx_subscriptions_status ON subscriptions(status);
-CREATE INDEX idx_subscriptions_status_expires ON subscriptions(status, expires_at)
-    WHERE status IN ('active', 'trial', 'renewal_failed') AND expires_at IS NOT NULL;
-
--- contracts (含 effective_tier, signed_by, started_at, DRAFT 默认状态)
-CREATE TABLE contracts (
-    id                  BIGSERIAL PRIMARY KEY,
-    contract_number     VARCHAR(30) NOT NULL,
-    tenant_id           BIGINT NOT NULL REFERENCES tenants(id),
-    billing_model       VARCHAR(20) NOT NULL,
-    effective_tier      VARCHAR(20) NOT NULL,
-    revenue_share_ratio DECIMAL(5,4),
-    status              VARCHAR(20) NOT NULL DEFAULT 'draft',
-    signed_by           BIGINT REFERENCES users(id),
-    signed_at           TIMESTAMPTZ,
-    started_at          TIMESTAMPTZ NOT NULL,
-    expires_at          TIMESTAMPTZ,
-    version             BIGINT NOT NULL DEFAULT 0,
-    created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT uq_contracts_number UNIQUE (contract_number)
-);
-CREATE INDEX idx_contracts_tenant ON contracts(tenant_id);
-CREATE INDEX idx_contracts_status ON contracts(status);
-CREATE INDEX idx_contracts_expires ON contracts(expires_at) WHERE expires_at IS NOT NULL;
-
--- revenue_periods (含 tenant_id, revenue_share_ratio 快照)
-CREATE TABLE revenue_periods (
-    id                  BIGSERIAL PRIMARY KEY,
-    contract_id         BIGINT NOT NULL REFERENCES contracts(id),
-    tenant_id           BIGINT NOT NULL REFERENCES tenants(id),
-    period_start        DATE NOT NULL,
-    period_end          DATE NOT NULL,
-    gross_amount        INTEGER NOT NULL,
-    platform_share      INTEGER NOT NULL,
-    partner_share       INTEGER NOT NULL,
-    revenue_share_ratio DECIMAL(5,4) NOT NULL,
-    status              VARCHAR(20) NOT NULL DEFAULT 'pending',
-    settled_at          TIMESTAMPTZ,
-    version             BIGINT NOT NULL DEFAULT 0,
-    created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT uq_revenue_period UNIQUE (contract_id, period_start)
-);
-CREATE INDEX idx_revenue_periods_tenant ON revenue_periods(tenant_id);
-CREATE INDEX idx_revenue_periods_status ON revenue_periods(status);
-
--- subscription_services (含 effective_tier, device_quota, started_at, 可配置参数)
-CREATE TABLE subscription_services (
-    id                      BIGSERIAL PRIMARY KEY,
-    tenant_id               BIGINT NOT NULL REFERENCES tenants(id),
-    service_name            VARCHAR(100) NOT NULL,
-    service_key_prefix      VARCHAR(8),
-    service_key_hash        VARCHAR(64) NOT NULL,
-    effective_tier          VARCHAR(20) NOT NULL,
-    device_quota            INTEGER,
-    status                  VARCHAR(20) NOT NULL DEFAULT 'provisioned',
-    last_heartbeat_at       TIMESTAMPTZ,
-    grace_ends_at           TIMESTAMPTZ,
-    started_at              TIMESTAMPTZ NOT NULL,
-    expires_at              TIMESTAMPTZ,
-    heartbeat_interval_hrs  INTEGER DEFAULT 24,
-    grace_period_days       INTEGER DEFAULT 7,
-    version                 BIGINT NOT NULL DEFAULT 0,
-    created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT uq_subscription_service_tenant UNIQUE (tenant_id)
-);
-CREATE INDEX idx_sub_services_status ON subscription_services(status);
-
--- feature_gates (含 retention_days, is_enabled, 4 种 gateType)
-CREATE TABLE feature_gates (
-    id              BIGSERIAL PRIMARY KEY,
-    tier            VARCHAR(20) NOT NULL,
-    feature_key     VARCHAR(50) NOT NULL,
-    gate_type       VARCHAR(10) NOT NULL,
-    limit_value     INTEGER,
-    retention_days  INTEGER,
-    is_enabled      BOOLEAN DEFAULT TRUE,
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT uq_feature_gates_tier_feature UNIQUE (tier, feature_key)
-);
-
--- notifications
-CREATE TABLE notifications (
-    id          BIGSERIAL PRIMARY KEY,
-    tenant_id   BIGINT NOT NULL REFERENCES tenants(id),
-    user_id     BIGINT REFERENCES users(id),
-    type        VARCHAR(50) NOT NULL,
-    title       VARCHAR(200) NOT NULL,
-    content     TEXT,
-    is_read     BOOLEAN DEFAULT FALSE,
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-CREATE INDEX idx_notifications_tenant_unread ON notifications(tenant_id, is_read) WHERE is_read = FALSE;
-
--- tenants 扩展字段
-ALTER TABLE tenants ADD COLUMN IF NOT EXISTS type VARCHAR(20);
-ALTER TABLE tenants ADD COLUMN IF NOT EXISTS billing_model VARCHAR(20) DEFAULT 'direct';
-UPDATE tenants SET type = 'rancher', billing_model = 'direct' WHERE type IS NULL;
-
--- 种子数据：feature_gates (44 条)
-
--- none 类型 (16 条)
-INSERT INTO feature_gates (tier, feature_key, gate_type) VALUES
-    ('basic', 'gps_tracking', 'none'), ('standard', 'gps_tracking', 'none'),
-    ('premium', 'gps_tracking', 'none'), ('enterprise', 'gps_tracking', 'none'),
-    ('basic', 'alerts', 'none'), ('standard', 'alerts', 'none'),
-    ('premium', 'alerts', 'none'), ('enterprise', 'alerts', 'none'),
-    ('basic', 'fence_management', 'none'), ('standard', 'fence_management', 'none'),
-    ('premium', 'fence_management', 'none'), ('enterprise', 'fence_management', 'none'),
-    ('basic', 'livestock_management', 'none'), ('standard', 'livestock_management', 'none'),
-    ('premium', 'livestock_management', 'none'), ('enterprise', 'livestock_management', 'none');
--- 注：none 类型需要用完整 INSERT 含 limit_value=NULL
-
--- limit 类型 (16 条)
-INSERT INTO feature_gates (tier, feature_key, gate_type, limit_value) VALUES
-    ('basic', 'fence_management', 'limit', 3),
-    ('basic', 'livestock_management', 'limit', 50),
-    ('basic', 'device_management', 'limit', 10),
-    ('basic', 'api_calls', 'limit', 0),
-    ('standard', 'fence_management', 'limit', 5),
-    ('standard', 'livestock_management', 'limit', 200),
-    ('standard', 'device_management', 'limit', 50),
-    ('standard', 'api_calls', 'limit', 0),
-    ('premium', 'fence_management', 'limit', 10),
-    ('premium', 'livestock_management', 'limit', 1000),
-    ('premium', 'device_management', 'limit', 200),
-    ('premium', 'api_calls', 'limit', 10000),
-    ('enterprise', 'fence_management', 'limit', 999),
-    ('enterprise', 'livestock_management', 'limit', 99999),
-    ('enterprise', 'device_management', 'limit', 9999),
-    ('enterprise', 'api_calls', 'limit', 99999);
-
--- lock 类型 (8 条)
-INSERT INTO feature_gates (tier, feature_key, gate_type, is_enabled) VALUES
-    ('basic', 'health_monitoring', 'lock', FALSE),
-    ('basic', 'breeding_analytics', 'lock', FALSE),
-    ('standard', 'health_monitoring', 'lock', TRUE),
-    ('standard', 'breeding_analytics', 'lock', FALSE),
-    ('premium', 'health_monitoring', 'lock', TRUE),
-    ('premium', 'breeding_analytics', 'lock', TRUE),
-    ('enterprise', 'health_monitoring', 'lock', TRUE),
-    ('enterprise', 'breeding_analytics', 'lock', TRUE);
-
--- filter 类型 (4 条)
-INSERT INTO feature_gates (tier, feature_key, gate_type, retention_days) VALUES
-    ('basic', 'alert_history', 'filter', 7),
-    ('standard', 'alert_history', 'filter', 30),
-    ('premium', 'alert_history', 'filter', 90),
-    ('enterprise', 'alert_history', 'filter', 365);
-
--- none 类型覆盖上面的 limit（同 feature_key 不同 tier 可以同时有 none 和 limit）
--- 注意：上面的 none 和 limit 对 fence_management/livestock_management 有冲突
--- 正确做法：每对 (tier, feature_key) 只有一条，gateType 取最严格的
--- 修正：去掉 none 类型中对 fence_management/livestock_management 的重复
-
--- 示例订阅
-INSERT INTO subscriptions (tenant_id, tier, billing_model, status, billing_cycle, started_at, expires_at, trial_ends_at)
-VALUES (1, 'premium', 'direct', 'trial', 'monthly', now(), now() + interval '14 days', now() + interval '14 days');
-
--- 合同编号序列
-CREATE SEQUENCE IF NOT EXISTS contract_number_seq START 1;
-```
-
-> **注意**: 种子数据中 none 和 limit 对同一 (tier, feature_key) 不可重复。fence_management/livestock_management 在 basic/standard 有 limit，在 premium/enterprise 也是 limit（上限更高）。none 类型仅用于 gps_tracking 和 alerts。实际 SQL 需去重，此处伪代码示意。
+按 Spec Section 2 完整 DDL，包含 7 张表/变更（同 Spec Section 2 完整 SQL，此处不重复）。
 
 - [ ] **Step 2: 验证迁移可执行**
 
@@ -354,18 +196,38 @@ git commit -m "feat(commerce): add V6 migration — 6 tables + notifications + s
 
 ---
 
-## Task 2: Enums + ErrorCode + Events
+## Task 2: Enums + ErrorCode + DomainException + Events
 
 **Files:**
-- Modify: `ErrorCode.java` (新增 9 个)
-- Create: 5 个枚举类 + 24 个领域事件
+- Modify: `ErrorCode.java` (新增 9 个，位于 `shared/common/`)
+- Create: `DomainException.java` (位于 `shared/common/`)
+- Create: 5 个枚举类 + 9 个跨上下文事件 (shared/domain/event/) + 15 个内部事件 (commerce/domain/model/event/)
 - Test: `SubscriptionTierTest.java`
 
-- [ ] **Step 1: 扩展 ErrorCode**
+- [ ] **Step 1: 创建 DomainException**
+
+位于 `shared/common/DomainException.java`：
+
+```java
+package com.smartlivestock.shared.common;
+
+public class DomainException extends RuntimeException {
+    private final ErrorCode code;
+
+    public DomainException(ErrorCode code, String message) {
+        super(message);
+        this.code = code;
+    }
+
+    public ErrorCode getCode() { return code; }
+}
+```
+
+- [ ] **Step 2: 扩展 ErrorCode**（位于 `shared/common/ErrorCode.java`）
 
 新增：ENTERPRISE_CUSTOM_PRICING, INVALID_BILLING_MODEL, INVALID_REVENUE_SHARE_RATIO, SUBSCRIPTION_NOT_FOUND, SUBSCRIPTION_NOT_ACTIVE, CONTRACT_NOT_ACTIVE, SERVICE_KEY_MISMATCH, SERVICE_LICENSE_EXPIRED, SETTLEMENT_DUPLICATE_CONFIRM
 
-- [ ] **Step 2: 创建枚举类**
+- [ ] **Step 3: 创建枚举类**
 
 SubscriptionTier: BASIC(0, 50, 40), STANDARD(1400, 200, 30), PREMIUM(2800, 1000, 15), ENTERPRISE(-1, -1, -1)
 SubscriptionStatus: TRIAL, ACTIVE, FREE, SUSPENDED, RENEWAL_FAILED, CANCELLED, EXPIRED
@@ -373,20 +235,20 @@ ContractStatus: DRAFT, ACTIVE, SUSPENDED, EXPIRED, TERMINATED
 RevenueSettlementStatus: PENDING, PLATFORM_CONFIRMED, PARTNER_CONFIRMED, SETTLED
 SubscriptionServiceStatus: PROVISIONED, ACTIVE, GRACE_PERIOD, DEGRADED, EXPIRED
 
-- [ ] **Step 3: 创建 24 个领域事件**
+- [ ] **Step 4: 创建 24 个领域事件**
 
-全部 record，放在 `domain/model/event/` 下
+全部 record。9 个跨上下文事件放在 `shared/domain/event/`，15 个内部事件放在 `commerce/domain/model/event/`
 
-- [ ] **Step 4: 写 SubscriptionTierTest**
+- [ ] **Step 5: 写 SubscriptionTierTest**
 
-测试 calculateMonthlyFee：含内、超量、Enterprise 抛异常
+测试 calculateMonthlyFee：含内、超量、Enterprise 抛 DomainException
 
-- [ ] **Step 5: 运行测试**
+- [ ] **Step 6: 运行测试**
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git commit -m "feat(commerce): add enums, ErrorCode extensions, 24 domain events"
+git commit -m "feat(commerce): add DomainException, enums, ErrorCode extensions, 24 domain events (9 shared + 15 internal)"
 ```
 
 ---
@@ -399,7 +261,7 @@ git commit -m "feat(commerce): add enums, ErrorCode extensions, 24 domain events
 
 - [ ] **Step 1: 写 SubscriptionTest**
 
-覆盖：startTrial, activate, expireTrial, effectiveTier, changeTier(FREE→ACTIVE), suspend, reactivate, markRenewalFailed, recoverFromRenewalFailure, downgradeAfterRenewalFailure, cancel(cancelledAt), markExpired, requireStatus 非法跳转
+覆盖：startTrial, activate, expireTrial, effectiveTier, changeTier(FREE→ACTIVE), suspend, reactivate, markRenewalFailed, recoverFromRenewalFailure, downgradeAfterRenewalFailure, cancel(cancelledAt), markExpired, requireStatus 非法跳转。**领域模型使用 DomainException 而非 ApiException。**
 
 - [ ] **Step 2: 实现 Subscription**
 
@@ -495,7 +357,7 @@ allowed(), denied(reason), allowedWithRetention(days)
 
 - [ ] **Step 5: 实现 QuotaApplicationService**
 
-依赖：SubscriptionRepository + FeatureGateRepository。checkQuota() 先检查订阅活跃，再检查门控。getRetentionDays() 供查询层调用。
+依赖：SubscriptionRepository + FeatureGateRepository。checkQuota() 先检查订阅活跃，再检查门控。getRetentionDays() 供查询层调用。**实现 QuotaCheckService 接口，使用 DomainException 而非 ApiException。**
 
 - [ ] **Step 6: 运行测试**
 
@@ -526,7 +388,7 @@ Domain ↔ JPA 双向转换，枚举 ↔ String，BigDecimal 映射
 
 - [ ] **Step 4: 创建 5 个 Repository 实现**
 
-注入 Spring Data JPA，使用 Mapper 转换
+注入 Spring Data JPA，使用 Mapper 转换。**同时创建 SubscriptionQueryPort 实现。**
 
 - [ ] **Step 5: 编译验证**
 
@@ -541,48 +403,58 @@ git commit -m "feat(commerce): add persistence layer — JPA entities, mappers, 
 ## Task 8: @QuotaCheck + QuotaInterceptor + UsageResolver 实现
 
 **Files:**
-- Create: `QuotaCheck.java`, `QuotaInterceptor.java`, `FarmLivestockUsageResolver.java`, `FarmFenceUsageResolver.java`
-- Modify: `SecurityConfig.java`
+- Create: `platform/web/QuotaCheck.java`, `platform/web/QuotaInterceptor.java`, `platform/web/QuotaCheckService.java`, `FarmLivestockUsageResolver.java`, `FarmFenceUsageResolver.java`
+- Modify: `SecurityConfig.java` (位于 `platform/security/`)
 
-- [ ] **Step 1: 创建 @QuotaCheck 注解**
+- [ ] **Step 1: 创建 QuotaCheckService 接口**
 
-- [ ] **Step 2: 创建 QuotaInterceptor**
+位于 `platform/web/QuotaCheckService.java`，定义 checkQuota(tenantId, featureKey, usage) 签名
+
+- [ ] **Step 2: 创建 @QuotaCheck 注解**
+
+位于 `platform/web/QuotaCheck.java`
+
+- [ ] **Step 3: 创建 QuotaInterceptor**
+
+位于 `platform/web/QuotaInterceptor.java`
 
 从 request 提取 tenantId/farmId（纯值），调用 QuotaApplicationService
 
-- [ ] **Step 3: 实现 2 个 UsageResolver**
+- [ ] **Step 4: 实现 2 个 UsageResolver**
 
 纯值签名 resolve(tenantId, farmId)，通过 shared 层接口查询
 
-- [ ] **Step 4: 注册 QuotaInterceptor**
+- [ ] **Step 5: 注册 QuotaInterceptor**
 
 位于 Auth + FarmScope 之后
 
-- [ ] **Step 5: 编译验证**
+- [ ] **Step 6: 编译验证**
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git commit -m "feat(commerce): add QuotaCheck annotation, interceptor, and UsageResolver"
+git commit -m "feat(commerce): add QuotaCheckService, QuotaCheck annotation, interceptor, and UsageResolver in platform/web/"
 ```
 
 ---
 
-## Task 9: Notification + EventListener
+## Task 9: Notification + EventListener（platform/messaging/）
 
 **Files:**
-- Create: `shared/notification/Notification.java`, `NotificationRepository.java`, `NotificationService.java`
-- Create: `application/listener/NotificationEventListener.java`
+- Create: `platform/messaging/NotificationService.java`
+- Create: `platform/messaging/NotificationEventListener.java`
 
 - [ ] **Step 1: 创建 Notification 实体 + Repository**
 
+通知数据模型（notification 表的 JPA Entity + Repository）
+
 - [ ] **Step 2: 创建 NotificationService**
 
-按事件类型生成 title/content，写入 notifications 表
+位于 `platform/messaging/`，按事件类型生成 title/content，写入 notifications 表
 
 - [ ] **Step 3: 创建 NotificationEventListener**
 
-Spring ApplicationListener 接收 24 个事件
+位于 `platform/messaging/`，Spring ApplicationListener 接收全部 24 个事件（9 跨上下文 + 15 内部）
 
 - [ ] **Step 4: ApplicationService 中发布事件**
 
@@ -593,75 +465,89 @@ save() 后调用 Spring ApplicationEventPublisher
 - [ ] **Step 6: Commit**
 
 ```bash
-git commit -m "feat(commerce): add notification system with Spring ApplicationEvent"
+git commit -m "feat(commerce): add notification system in platform/messaging with Spring ApplicationEvent"
 ```
 
 ---
 
-## Task 10: Application Services
+## Task 10: Application Services + Query Services + Assemblers
 
 **Files:**
-- Create: 3 个 ApplicationService + DTO classes
+- Create: 3 个 ApplicationService + 3 个 Assembler + 2 个 QueryService + DTO classes
 - Test: `SubscriptionApplicationServiceTest.java`, `ContractApplicationServiceTest.java`
 
 - [ ] **Step 1: 创建 DTO 类**
 
-- [ ] **Step 2: 写测试并实现 SubscriptionApplicationService**
+- [ ] **Step 2: 创建 3 个 Assembler**（位于 `application/assembler/`）
+
+SubscriptionAssembler, ContractAssembler, RevenuePeriodAssembler — DTO 映射集中化
+
+- [ ] **Step 3: 写测试并实现 SubscriptionApplicationService**
 
 getOrCreateSubscription, upgrade, expireTrial, suspend, reactivate, cancel。save() 后发布事件
 
-- [ ] **Step 3: 实现 ContractApplicationService**
+- [ ] **Step 4: 实现 ContractApplicationService**
 
 create(DRAFT), sign, suspend, reactivate, terminate
 
-- [ ] **Step 4: 实现 RevenueApplicationService**
+- [ ] **Step 5: 实现 RevenueApplicationService**
 
 calculatePeriod, confirmByPlatform, confirmByPartner, settle, recalculate。前置校验 contract.isActive()
 
-- [ ] **Step 5: 运行测试**
+- [ ] **Step 6: 创建 2 个 QueryService**（位于 `application/query/`）
 
-- [ ] **Step 6: Commit**
+SubscriptionQueryService — 订阅读模型（状态 + 用量汇总）
+RevenueQueryService — 分润读模型（列表 + 过滤）
+
+- [ ] **Step 7: 运行测试**
+
+- [ ] **Step 8: Commit**
 
 ```bash
-git commit -m "feat(commerce): add application services layer with event publishing"
+git commit -m "feat(commerce): add application services, query services, and assemblers with event publishing"
 ```
 
 ---
 
-## Task 11: Controllers — App + Admin API
+## Task 11: Controllers — app/ + admin/ 目录
 
 **Files:**
-- Create: 7 个 Controller
+- Create: 7 个 Controller（按 app/ + admin/ 子目录组织）
 - Modify: FenceController, LivestockController
 
 - [ ] **Step 1: SubscriptionController (App, 6 端点)**
 
+位于 `interfaces/app/SubscriptionController.java`：
 GET /subscription, GET /subscription/plans, POST /subscription/checkout, PUT /subscription/tier, POST /subscription/cancel, GET /subscription/usage
 
 - [ ] **Step 2: CommerceController (App, 3 端点)**
 
+位于 `interfaces/app/CommerceController.java`：
 GET /contracts/me, GET /revenue/periods, POST /revenue/periods/{id}/confirm
 
 - [ ] **Step 3: 5 个 Admin Controller**
 
+全部位于 `interfaces/admin/`：
 AdminSubscriptionController(3), AdminContractController(6), AdminRevenueController(5), AdminServiceController(5), AdminFeatureGateController(2)
 
 - [ ] **Step 4: Ranch Controller 加 @QuotaCheck**
+
+`ranch/interfaces/FenceController.java` 和 `ranch/interfaces/LivestockController.java`
 
 - [ ] **Step 5: 编译验证**
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git commit -m "feat(commerce): add 30 API endpoints (9 App + 21 Admin) with @QuotaCheck"
+git commit -m "feat(commerce): add 30 API endpoints — interfaces/app/ + interfaces/admin/ with @QuotaCheck"
 ```
 
 ---
 
-## Task 12: CommerceScheduler — 7 个定时任务
+## Task 12: CommerceScheduler — 7 个定时任务（application/job/）
 
 **Files:**
-- Create: `CommerceScheduler.java`
+- Create: `application/job/CommerceScheduler.java`
 
 - [ ] **Step 1: 实现 7 个定时任务**
 
@@ -682,7 +568,7 @@ git commit -m "feat(commerce): add 30 API endpoints (9 App + 21 Admin) with @Quo
 - [ ] **Step 4: Commit**
 
 ```bash
-git commit -m "feat(commerce): add CommerceScheduler with 7 scheduled jobs"
+git commit -m "feat(commerce): add CommerceScheduler with 7 scheduled jobs in application/job/"
 ```
 
 ---
@@ -708,6 +594,30 @@ git commit -m "feat(commerce): complete Commerce bounded context — all modules
 
 ---
 
-*Plan version: 2026-05-18 v3 (based on architecture review corrections)*
+## v3 → v4 修正记录
+
+| 修正项 | v3 Plan | v4 Plan | 对应评审 |
+|---|---|---|---|
+| interfaces 目录 | Controller 平铺 | `interfaces/app/` + `interfaces/admin/` | 评审 T3 |
+| application 目录 | `scheduler/` + `listener/` | `job/` + `query/` + `assembler/` | 评审 T4 |
+| ErrorCode | `shared/common/ErrorCode.java` | `shared/common/ErrorCode.java`（保留原位） | 评审 v2 A1 修正 |
+| 领域异常 | 直接用 ApiException | 新增 DomainException，领域模型不再依赖 ApiException | 评审 v2 A1 修正 |
+| Notification | `shared/notification/` | `platform/messaging/NotificationService.java` | 评审 v2 A1 |
+| EventListener | `commerce/application/listener/` | `platform/messaging/NotificationEventListener.java` | 评审 v2 T1.5 |
+| Query Service | 无 | `application/query/SubscriptionQueryService.java` + `RevenueQueryService.java` | 评审 T5 |
+| Assembler | 无 | `application/assembler/*.java`（3 个 DTO 映射器） | 评审 T4 |
+| 跨上下文 port | 无 | `domain/repository/port/SubscriptionQueryPort.java` | 评审 v2 T1.5 |
+| Scheduler 目录 | `application/scheduler/` | `application/job/` | 评审 T4 |
+| 新增 Task 2 步骤 | 无 | Step 1 新增创建 DomainException | 评审 v2 A1 修正 |
+| Task 10 扩展 | 仅 ApplicationService | 增加 QueryService + Assembler | 评审 T4/T5 |
+| QuotaCheck 位置 | `commerce/interfaces/` | `platform/web/` + QuotaCheckService 接口 | 评审 v2 跨上下文 |
+| 事件拆分 | 24 全在 commerce/ | 9 shared/domain/event/ + 15 commerce/domain/model/event/ | 评审 v2 跨上下文 |
+| Ranch Controller 路径 | `ranch/interfaces/app/` | `ranch/interfaces/`（不改原目录结构） | 评审 v2 T3 |
+| shared 路径 | `shared-kernel/` | `shared/`（实际包名） | 评审 v2 路径 |
+| Notification 实体 | 未显式列出 | `platform/messaging/Notification.java` + `NotificationRepository.java` | 评审 v2 T9 |
+
+---
+
+*Plan version: 2026-05-18 v4 (based on v2 architecture review + v4 spec corrections)*
 *Design spec: `docs/superpowers/specs/2026-05-18-commerce-context-design.md`*
-*Review: `docs/superpowers/reviews/2026-05-18-Commerce-架构评审与Plan修正.md`*
+*Review: `docs/superpowers/reviews/2026-05-18-项目总体技术架构评审.md`*
