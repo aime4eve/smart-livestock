@@ -75,9 +75,10 @@ public class Subscription extends AggregateRoot {
      */
     public void expireTrial() {
         requireStatus(SubscriptionStatus.TRIAL, "expireTrial");
+        SubscriptionTier oldTier = this.tier;
         this.status = SubscriptionStatus.FREE;
         this.tier = SubscriptionTier.BASIC;
-        registerEvent(new SubscriptionTierChangedEvent(tenantId, "TRIAL", "FREE"));
+        registerEvent(new SubscriptionTierChangedEvent(tenantId, oldTier.name(), "FREE"));
     }
 
     /**

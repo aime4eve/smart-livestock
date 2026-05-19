@@ -127,7 +127,7 @@ class SubscriptionTest {
             assertThat(sub.getDomainEvents()).hasSize(1);
             SubscriptionTierChangedEvent event = (SubscriptionTierChangedEvent) sub.getDomainEvents().get(0);
             assertThat(event.getTenantId()).isEqualTo(TENANT_ID);
-            assertThat(event.getOldTier()).isEqualTo("TRIAL");
+            assertThat(event.getOldTier()).isEqualTo("BASIC");
             assertThat(event.getNewTier()).isEqualTo("FREE");
         }
 
@@ -201,6 +201,27 @@ class SubscriptionTest {
             sub.cancel();
             assertThat(sub.isActiveOrTrial()).isFalse();
         }
+
+        @Test
+        void isActiveOrTrial_renewalFailed_false() {
+            Subscription sub = createActiveSubscription();
+            sub.markRenewalFailed();
+            assertThat(sub.isActiveOrTrial()).isFalse();
+        }
+
+        @Test
+        void isActiveOrTrial_expired_false() {
+            Subscription sub = createActiveSubscription();
+            sub.markExpired();
+            assertThat(sub.isActiveOrTrial()).isFalse();
+        }
+
+        @Test
+        void isTrialActive_nullTrialEndsAt_returnsFalse() {
+            Subscription sub = createTrialSubscription();
+            sub.setTrialEndsAt(null);
+            assertThat(sub.isTrialActive()).isFalse();
+        }
     }
 
     // ── changeTier ───────────────────────────────────────────────────
@@ -233,6 +254,22 @@ class SubscriptionTest {
             SubscriptionTierChangedEvent event = (SubscriptionTierChangedEvent) sub.getDomainEvents().get(0);
             assertThat(event.getOldTier()).isEqualTo("STANDARD");
             assertThat(event.getNewTier()).isEqualTo("PREMIUM");
+        }
+
+        @Test
+        void fromTrial_transitionsToActive() {
+            Subscription sub = createTrialSubscription();
+            sub.clearDomainEvents();
+
+            Instant expires = Instant.now().plusSeconds(30 * 86400);
+            sub.changeTier(SubscriptionTier.STANDARD, "monthly", expires);
+
+            assertThat(sub.getTier()).isEqualTo(SubscriptionTier.STANDARD);
+            assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.ACTIVE);
+            assertThat(sub.getDomainEvents()).hasSize(1);
+            SubscriptionTierChangedEvent event = (SubscriptionTierChangedEvent) sub.getDomainEvents().get(0);
+            assertThat(event.getOldTier()).isEqualTo("BASIC");
+            assertThat(event.getNewTier()).isEqualTo("STANDARD");
         }
     }
 
@@ -338,11 +375,14 @@ class SubscriptionTest {
         @Test
         void cancelFromTrial() {
             Subscription sub = createTrialSubscription();
+            sub.clearDomainEvents();
 
             sub.cancel();
 
             assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.CANCELLED);
             assertThat(sub.getCancelledAt()).isNotNull();
+            assertThat(sub.getDomainEvents()).hasSize(1);
+            assertThat(sub.getDomainEvents().get(0)).isInstanceOf(SubscriptionCancelledEvent.class);
         }
     }
 
