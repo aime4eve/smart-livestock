@@ -19,7 +19,11 @@ CREATE TABLE subscriptions (
     version         BIGINT NOT NULL DEFAULT 0,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT uq_subscriptions_tenant UNIQUE (tenant_id)
+    CONSTRAINT uq_subscriptions_tenant UNIQUE (tenant_id),
+    CONSTRAINT chk_subscriptions_status CHECK (status IN ('trial', 'free', 'active', 'suspended', 'renewal_failed', 'cancelled', 'expired')),
+    CONSTRAINT chk_subscriptions_tier CHECK (tier IN ('basic', 'standard', 'premium', 'enterprise')),
+    CONSTRAINT chk_subscriptions_billing_model CHECK (billing_model IN ('direct', 'revenue_share', 'licensed', 'api_usage')),
+    CONSTRAINT chk_subscriptions_billing_cycle CHECK (billing_cycle IN ('monthly', 'yearly'))
 );
 CREATE INDEX idx_subscriptions_status ON subscriptions(status);
 CREATE INDEX idx_subscriptions_status_expires ON subscriptions(status, expires_at)
@@ -43,7 +47,10 @@ CREATE TABLE contracts (
     version             BIGINT NOT NULL DEFAULT 0,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT uq_contracts_number UNIQUE (contract_number)
+    CONSTRAINT uq_contracts_number UNIQUE (contract_number),
+    CONSTRAINT chk_contracts_status CHECK (status IN ('draft', 'active', 'suspended', 'expired', 'terminated')),
+    CONSTRAINT chk_contracts_billing_model CHECK (billing_model IN ('direct', 'revenue_share', 'licensed', 'api_usage')),
+    CONSTRAINT chk_contracts_effective_tier CHECK (effective_tier IN ('basic', 'standard', 'premium', 'enterprise'))
 );
 CREATE INDEX idx_contracts_tenant ON contracts(tenant_id);
 CREATE INDEX idx_contracts_status ON contracts(status);
@@ -64,7 +71,8 @@ CREATE TABLE revenue_periods (
     settled_at          TIMESTAMPTZ,
     version             BIGINT NOT NULL DEFAULT 0,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT uq_revenue_period UNIQUE (contract_id, period_start)
+    CONSTRAINT uq_revenue_period UNIQUE (contract_id, period_start),
+    CONSTRAINT chk_revenue_periods_status CHECK (status IN ('pending', 'platform_confirmed', 'partner_confirmed', 'settled'))
 );
 CREATE INDEX idx_revenue_periods_tenant ON revenue_periods(tenant_id);
 CREATE INDEX idx_revenue_periods_status ON revenue_periods(status);
@@ -88,7 +96,9 @@ CREATE TABLE subscription_services (
     version                 BIGINT NOT NULL DEFAULT 0,
     created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT uq_subscription_service_tenant UNIQUE (tenant_id)
+    CONSTRAINT uq_subscription_service_tenant UNIQUE (tenant_id),
+    CONSTRAINT chk_subscription_services_status CHECK (status IN ('provisioned', 'active', 'grace_period', 'degraded', 'expired')),
+    CONSTRAINT chk_subscription_services_effective_tier CHECK (effective_tier IN ('basic', 'standard', 'premium', 'enterprise'))
 );
 CREATE INDEX idx_sub_services_status ON subscription_services(status);
 
@@ -102,7 +112,9 @@ CREATE TABLE feature_gates (
     retention_days  INTEGER,
     is_enabled      BOOLEAN DEFAULT TRUE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT uq_feature_gates_tier_feature UNIQUE (tier, feature_key)
+    CONSTRAINT uq_feature_gates_tier_feature UNIQUE (tier, feature_key),
+    CONSTRAINT chk_feature_gates_gate_type CHECK (gate_type IN ('none', 'lock', 'limit', 'filter')),
+    CONSTRAINT chk_feature_gates_tier CHECK (tier IN ('basic', 'standard', 'premium', 'enterprise'))
 );
 
 -- 6. notifications (platform infrastructure, not Commerce-private)
@@ -121,6 +133,8 @@ CREATE INDEX idx_notifications_tenant_unread ON notifications(tenant_id, is_read
 -- 7. Tenant table alterations
 ALTER TABLE tenants ADD COLUMN IF NOT EXISTS type VARCHAR(20);
 ALTER TABLE tenants ADD COLUMN IF NOT EXISTS billing_model VARCHAR(20) DEFAULT 'direct';
+ALTER TABLE tenants ADD CONSTRAINT chk_tenants_type CHECK (type IN ('rancher', 'reseller', 'enterprise', 'developer'));
+ALTER TABLE tenants ADD CONSTRAINT chk_tenants_billing_model CHECK (billing_model IN ('direct', 'revenue_share', 'licensed', 'api_usage'));
 UPDATE tenants SET type = 'rancher', billing_model = 'direct' WHERE type IS NULL;
 
 -- ============================================================
