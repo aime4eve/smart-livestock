@@ -33,6 +33,16 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getCode(), ex.getMessage(), requestId));
     }
 
+    @ExceptionHandler(DomainException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDomainException(DomainException ex) {
+        String requestId = currentRequestId();
+        HttpStatus status = mapToHttpStatus(ex.getCode());
+        log.warn("[{}] DomainException {}: {}", requestId, ex.getCode(), ex.getMessage());
+        return ResponseEntity
+                .status(status)
+                .body(ApiResponse.error(ex.getCode(), ex.getMessage(), requestId));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidationException(
             MethodArgumentNotValidException ex) {
