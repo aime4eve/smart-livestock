@@ -97,6 +97,15 @@ public class GlobalExceptionHandler {
             case RESOURCE_DELETED -> HttpStatus.GONE;
             case FARM_SCOPE_CONFLICT -> HttpStatus.CONFLICT;
             case RATE_LIMIT_EXCEEDED -> HttpStatus.TOO_MANY_REQUESTS;
+            case ENTERPRISE_CUSTOM_PRICING -> HttpStatus.BAD_REQUEST;
+            case INVALID_BILLING_MODEL -> HttpStatus.BAD_REQUEST;
+            case INVALID_REVENUE_SHARE_RATIO -> HttpStatus.BAD_REQUEST;
+            case SUBSCRIPTION_NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case SUBSCRIPTION_NOT_ACTIVE -> HttpStatus.CONFLICT;
+            case CONTRACT_NOT_ACTIVE -> HttpStatus.CONFLICT;
+            case SERVICE_KEY_MISMATCH -> HttpStatus.BAD_REQUEST;
+            case SERVICE_LICENSE_EXPIRED -> HttpStatus.FORBIDDEN;
+            case SETTLEMENT_DUPLICATE_CONFIRM -> HttpStatus.CONFLICT;
             case INTERNAL_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }
