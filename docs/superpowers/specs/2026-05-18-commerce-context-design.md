@@ -1,7 +1,7 @@
 # Commerce 限界上下文设计规格
 
 **日期**: 2026-05-18
-**状态**: 已评审通过（第四轮修正，基于 v2 架构评审修正）
+**状态**: 已评审通过（第五轮修正，基于 v3 架构评审修正）
 **范围**: MVP Phase 2 — Commerce 子系统（订阅、合同、分润、Licensed 服务、配额引擎）
 **前置**: MVP Phase 1 已完成（Identity + Ranch + IoT 限界上下文）
 **架构评审**: `docs/superpowers/reviews/2026-05-18-项目总体技术架构评审.md` (v2)
@@ -44,8 +44,10 @@ smart-livestock-server/src/main/java/com/smartlivestock/
 │   │   │   ├── SubscriptionApplicationService.java
 │   │   │   ├── ContractApplicationService.java
 │   │   │   ├── RevenueApplicationService.java
-│   │   │   ├── QuotaApplicationService.java
+│   │   │   ├── QuotaApplicationService.java   (实现 QuotaCheckService 接口)
 │   │   │   └── UsageResolver.java (接口 + 实现)
+│   │   ├── port/
+│   │   │   └── QuotaCheckService.java (v5 新增：配额检查接口，QuotaApplicationService 实现，供 platform/web 依赖)
 │   │   ├── query/                        (v4 新增：读模型)
 │   │   │   ├── SubscriptionQueryService.java
 │   │   │   └── RevenueQueryService.java
@@ -94,11 +96,12 @@ smart-livestock-server/src/main/java/com/smartlivestock/
     ├── web/
     │   ├── ApiException.java  (v4 修正：仅 Web 适配层使用)
     │   ├── QuotaCheck.java    (v4 修正：配额注解，横切关注点)
-    │   ├── QuotaInterceptor.java (v4 修正：配额拦截器)
-    │   └── QuotaCheckService.java (v4 新增：接口，QuotaApplicationService 实现此接口)
+    │   └── QuotaInterceptor.java (v4 修正：配额拦截器，依赖 commerce QuotaCheckService port)
     └── messaging/
-        ├── NotificationService.java  (v4 修正：通知服务归入 platform)
-        └── NotificationEventListener.java (v4 修正：事件监听归入 platform)
+        ├── Notification.java           (v5 新增：通知 JPA 实体，平台级统一通知)
+        ├── NotificationRepository.java (v5 新增：通知 Repository)
+        ├── NotificationService.java    (v5 修正：平台级通知服务，非 Commerce 私有)
+        └── NotificationEventListener.java (v5 修正：事件监听，所有上下文的事件均可触发)
 ```
 
 ### 1.2 与现有 Identity 上下文的关系
@@ -167,6 +170,8 @@ CREATE TABLE subscriptions (
 CREATE INDEX idx_subscriptions_status ON subscriptions(status);
 CREATE INDEX idx_subscriptions_status_expires ON subscriptions(status, expires_at)
     WHERE status IN ('active', 'trial', 'renewal_failed') AND expires_at IS NOT NULL;
+CREATE INDEX idx_subscriptions_trial_expires ON subscriptions(status, trial_ends_at)
+    WHERE status = 'trial' AND trial_ends_at IS NOT NULL;
 ```
 
 ### 2.2 contracts
@@ -259,7 +264,9 @@ CREATE TABLE feature_gates (
 );
 ```
 
-### 2.6 notifications
+### 2.6 notifications（平台基础设施，非 Commerce 私有）
+
+> notifications 是平台级统一通知中心，服务于所有限界上下文（Commerce/Ranch/IoT/Identity）。DDL 包含在 V6 迁移中以便一次性部署，但表归属 platform，不与 Commerce 业务表耦合。后续其他上下文（如 Ranch 围栏告警）可直接写入此表。
 
 ```sql
 CREATE TABLE notifications (
@@ -310,7 +317,7 @@ tenants (ALTER: type, billing_model)
 feature_gates (全局配置，独立于 tenant)
   └── feature_key + tier → 4 种 gateType (none/lock/limit/filter)
 
-notifications (事件驱动通知)
+notifications (平台基础设施，独立于 Commerce，所有上下文可写入)
   └── tenant_id + user_id → 前端拉取
 ```
 
@@ -520,9 +527,9 @@ JwtAuthenticationFilter → 设置 TenantContext
 FarmScopeInterceptor → 验证 farm 归属，设置 farmId
     │
     ▼
-QuotaInterceptor
+QuotaInterceptor (platform/web/)
     │ 1. 从 request 提取 tenantId, farmId (纯值，不出 interfaces 层)
-    │ 2. QuotaApplicationService.checkQuota(tenantId, featureKey, usage)
+    │ 2. 调用 commerce QuotaCheckService port → QuotaApplicationService.checkQuota()
     │    ├─ 第一道：订阅是否活跃？(TRIAL/ACTIVE/FREE → 放行)
     │    └─ 第二道：门控规则是否允许？(feature_gates 校验)
     │ 3. 超出 → 403 QUOTA_EXCEEDED
@@ -530,13 +537,16 @@ QuotaInterceptor
 Controller / Service
 ```
 
+**依赖方向：** `platform/web/QuotaInterceptor` → `commerce/application/port/QuotaCheckService` ← `commerce/application/service/QuotaApplicationService`。平台层依赖业务 port，不定义业务语义。
+
 ### 4.2 QuotaApplicationService
 
 ```java
-public class QuotaApplicationService {
+public class QuotaApplicationService implements QuotaCheckService {
     private final SubscriptionRepository subscriptionRepository;
     private final FeatureGateRepository featureGateRepository;
 
+    @Override
     public QuotaResult checkQuota(Long tenantId, String featureKey, int currentUsage) {
         // 第一道：订阅状态检查
         Subscription sub = subscriptionRepository.findByTenantId(tenantId)
@@ -558,10 +568,6 @@ public class QuotaApplicationService {
             case "filter" -> QuotaResult.allowedWithRetention(gate.getRetentionDays());
         };
     }
-
-    public int getRetentionDays(SubscriptionTier tier, String featureKey) {
-        // filter 类型专用，供查询层裁剪数据范围
-    }
 }
 ```
 
@@ -571,7 +577,7 @@ public class QuotaApplicationService {
 |----------|---------|---------|
 | lock | 请求时 | QuotaInterceptor 拦截 |
 | limit | 请求时 | QuotaInterceptor 拦截 |
-| filter | 查询时 | Application Service 调用 `getRetentionDays()` 裁剪 |
+| filter | 查询时 | QueryService 调用 `getRetentionDays()` 裁剪数据范围 |
 
 ### 4.4 UsageResolver
 
@@ -591,48 +597,48 @@ public interface UsageResolver {
 
 #### App API — `/api/v1/`（9 个端点）
 
-| 方法 | 路径 | 说明 | 权限 |
-|------|------|------|------|
-| GET | `/subscription` | 查看订阅状态 + Tier + 用量 | 认证用户 |
-| GET | `/subscription/plans` | 查看 Tier 定价信息 | 认证用户 |
-| POST | `/subscription/checkout` | 发起订阅（MVP: Mock 支付） | owner |
-| PUT | `/subscription/tier` | 升降级 Tier | owner |
-| POST | `/subscription/cancel` | 取消订阅 | owner |
-| GET | `/subscription/usage` | 用量 vs 配额对比 | 认证用户 |
-| GET | `/contracts/me` | 查看自己的合同 | reseller/enterprise |
-| GET | `/revenue/periods` | 查看分润记录 | reseller |
-| POST | `/revenue/periods/{id}/confirm` | Partner 确认结算 | reseller |
+| 方法 | 路径 | 说明 | 权限 | 归属服务 |
+|------|------|------|------|---------|
+| GET | `/subscription` | 查看订阅状态 + Tier + 用量 | 认证用户 | SubscriptionQueryService |
+| GET | `/subscription/plans` | 查看 Tier 定价信息 | 认证用户 | SubscriptionQueryService |
+| POST | `/subscription/checkout` | 发起订阅（MVP: Mock 支付） | owner | SubscriptionApplicationService |
+| PUT | `/subscription/tier` | 升降级 Tier | owner | SubscriptionApplicationService |
+| POST | `/subscription/cancel` | 取消订阅 | owner | SubscriptionApplicationService |
+| GET | `/subscription/usage` | 用量 vs 配额对比（含 filter 型门控裁剪） | 认证用户 | SubscriptionQueryService |
+| GET | `/contracts/me` | 查看自己的合同 | reseller/enterprise | SubscriptionQueryService |
+| GET | `/revenue/periods` | 查看分润记录（含 filter 型门控裁剪） | reseller | RevenueQueryService |
+| POST | `/revenue/periods/{id}/confirm` | Partner 确认结算 | reseller | RevenueApplicationService |
 
 #### Admin API — `/api/v1/admin/`（21 个端点）
 
 **订阅管理（AdminSubscriptionController，3 个）：**
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/admin/subscriptions` | 列表（支持 status/tier 过滤+分页） |
-| GET | `/admin/subscriptions/{id}` | 详情 |
-| PUT | `/admin/subscriptions/{id}/status` | 变更状态（targetStatus + reason） |
+| 方法 | 路径 | 说明 | 归属服务 |
+|------|------|------|---------|
+| GET | `/admin/subscriptions` | 列表（支持 status/tier 过滤+分页） | SubscriptionQueryService |
+| GET | `/admin/subscriptions/{id}` | 详情 | SubscriptionQueryService |
+| PUT | `/admin/subscriptions/{id}/status` | 变更状态（targetStatus + reason） | SubscriptionApplicationService |
 
 **合同管理（AdminContractController，6 个）：**
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/admin/contracts` | 列表 |
-| POST | `/admin/contracts` | 创建合同草稿 |
-| GET | `/admin/contracts/{id}` | 详情 |
-| PUT | `/admin/contracts/{id}` | 修改草稿 |
-| POST | `/admin/contracts/{id}/sign` | 签署合同 |
-| PUT | `/admin/contracts/{id}/status` | 状态变更 |
+| 方法 | 路径 | 说明 | 归属服务 |
+|------|------|------|---------|
+| GET | `/admin/contracts` | 列表 | RevenueQueryService |
+| POST | `/admin/contracts` | 创建合同草稿 | ContractApplicationService |
+| GET | `/admin/contracts/{id}` | 详情 | RevenueQueryService |
+| PUT | `/admin/contracts/{id}` | 修改草稿 | ContractApplicationService |
+| POST | `/admin/contracts/{id}/sign` | 签署合同 | ContractApplicationService |
+| PUT | `/admin/contracts/{id}/status` | 状态变更 | ContractApplicationService |
 
 **分润结算（AdminRevenueController，5 个）：**
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/admin/revenue/periods` | 列表 |
-| GET | `/admin/revenue/periods/{id}` | 详情 |
-| POST | `/admin/revenue/calculate` | 触发月度分润计算（幂等） |
-| POST | `/admin/revenue/periods/{id}/confirm` | 平台确认结算 |
-| POST | `/admin/revenue/periods/{id}/recalculate` | 重新计算 |
+| 方法 | 路径 | 说明 | 归属服务 |
+|------|------|------|---------|
+| GET | `/admin/revenue/periods` | 列表 | RevenueQueryService |
+| GET | `/admin/revenue/periods/{id}` | 详情 | RevenueQueryService |
+| POST | `/admin/revenue/calculate` | 触发月度分润计算（幂等） | RevenueApplicationService |
+| POST | `/admin/revenue/periods/{id}/confirm` | 平台确认结算 | RevenueApplicationService |
+| POST | `/admin/revenue/periods/{id}/recalculate` | 重新计算 | RevenueApplicationService |
 
 **Licensed 服务管理（AdminServiceController，5 个）：**
 
@@ -695,7 +701,7 @@ public interface UsageResolver {
 
 | Job | 频率 | 逻辑 |
 |------|------|------|
-| TrialExpiryJob | 每小时 | status=TRIAL AND expires_at < now → expireTrial() |
+| TrialExpiryJob | 每小时 | status=TRIAL AND trial_ends_at < now → expireTrial() |
 | SubscriptionExpiryJob | 每小时 | status=ACTIVE AND expires_at < now → markRenewalFailed()（7 天宽限期） |
 | RenewalFailedExpiryJob | 每天 2:00 | status=RENEWAL_FAILED 超过 7d → downgradeAfterRenewalFailure() |
 | HeartbeatCheckJob | 每 6 小时 | ACTIVE 的 SubscriptionService → checkHeartbeat()（MVP 未触发，预留） |
@@ -715,12 +721,9 @@ public interface UsageResolver {
 ApplicationService.save(aggregate)
     ↓
 Spring ApplicationEventPublisher.publishEvent(domainEvent)
-    ↓
-platform/messaging/SpringEventBridge → 转发到 RocketMQ（按 topic）
-    ↓
-NotificationEventListener (同步，同事务内)
-    ├─ 写入 notification 表
-    └─ 跨上下文 ApplicationListener (Identity/Ranch/IoT)
+    ↓ (MVP: 仅 Spring ApplicationEvent，同步，同事务内)
+    ├── NotificationEventListener → 写入 notifications 表
+    └── 跨上下文 ApplicationListener (Identity/Ranch/IoT)
 ```
 
 ### 5.2 全部 24 个事件
@@ -730,10 +733,6 @@ NotificationEventListener (同步，同事务内)
 **9 个跨上下文共享事件：** SubscriptionCreatedEvent、SubscriptionTierChangedEvent、SubscriptionSuspendedEvent、SubscriptionReactivatedEvent、SubscriptionExpiredEvent、ContractSignedEvent、ServiceDegradedEvent、ServiceQuotaAdjustedEvent、ServiceRevokedEvent
 
 **15 个内部事件：** SubscriptionCancelledEvent、SubscriptionRenewalFailedEvent、ContractCreatedEvent、ContractSuspendedEvent、ContractReactivatedEvent、ContractTerminatedEvent、ContractExpiredEvent、RevenuePeriodCreatedEvent、RevenuePlatformConfirmedEvent、RevenuePartnerConfirmedEvent、RevenueSettledEvent、ServiceProvisionedEvent、ServiceActivatedEvent、ServiceHeartbeatLostEvent、ServiceHeartbeatRecoveredEvent
-
-### 5.3 RocketMQ
-
-MVP 不引入。单体应用内 Spring ApplicationEvent 足够。微服务拆分时替换传输层，24 个事件定义不变。
 
 ---
 
@@ -768,7 +767,7 @@ SETTLEMENT_DUPLICATE_CONFIRM,  // 重复确认结算
 
 ---
 
-*设计规格版本: 2026-05-18 v4（v2 架构评审修正版）*
+*设计规格版本: 2026-05-18 v5（v3 架构评审修正版）*
 *评审记录: `docs/superpowers/reviews/2026-05-18-项目总体技术架构评审.md` (v2)*
 *实施计划: `docs/superpowers/plans/2026-05-18-commerce-context-plan.md`*
 
@@ -786,11 +785,13 @@ SETTLEMENT_DUPLICATE_CONFIRM,  // 重复确认结算
 | 定价 API | 硬编码 → 外部定价服务 | 多币种/动态定价需求 |
 | Redis 配额缓存 | DB 直查 → Redis 缓存 | 高并发场景 |
 | 分布式锁 | 单实例 → @SchedulerLock | 多实例部署 |
-| RocketMQ 事件总线 | Spring Event → RocketMQ | 微服务拆分 |
+| RocketMQ 事件总线 | Spring ApplicationEvent → RocketMQ（引入 SpringEventBridge 按 topic 转发） | 微服务拆分 |
 
 ---
 
-## 附录 B：v3 → v4 修正记录
+## 附录 B：修正记录
+
+### v3 → v4 修正
 
 | 修正项 | v3 内容 | v4 修正 | 对应评审 |
 |---|---|---|---|
@@ -803,3 +804,14 @@ SETTLEMENT_DUPLICATE_CONFIRM,  // 重复确认结算
 | 跨上下文 port | 无 | `domain/repository/port/SubscriptionQueryPort.java` | 评审 v2 T1.5 |
 | query 层 | 无 | `application/query/SubscriptionQueryService.java` + `RevenueQueryService.java` | 评审 T5 |
 | assembler 层 | 无 | `application/assembler/*.java`（3 个 DTO 映射器） | 评审 T4 |
+
+### v4 → v5 修正
+
+| 修正项 | v4 内容 | v5 修正 | 原因 |
+|---|---|---|---|
+| notifications 边界 | DDL 在 Commerce Schema，服务在 platform | 表标注为平台基础设施，所有上下文可写入 | 避免 Ranch/IoT 通知依赖 Commerce 迁移 |
+| TrialExpiryJob 字段 | `status=TRIAL AND expires_at < now` | `status=TRIAL AND trial_ends_at < now` | 试用订阅应检查 trial_ends_at，非 expires_at |
+| QuotaCheckService 位置 | `platform/web/QuotaCheckService.java` | `commerce/application/port/QuotaCheckService.java` | 业务契约不应由平台层定义，平台依赖业务 port |
+| 事件发布机制 | 5.1 写 RocketMQ bridge，5.3 写 MVP 不引入 | MVP 仅 Spring ApplicationEvent，RocketMQ 移入延后事项 | 消除矛盾，明确 MVP 路径 |
+| Query 层职责 | GET 端点无归属，getRetentionDays 在 ApplicationService | API 端点表加归属服务列，filter 型门控由 QueryService 执行 | 防止读逻辑回流到写服务 |
+| QuotaApplicationService | 未标注实现接口 | `implements QuotaCheckService` | 依赖方向：QuotaInterceptor → port ← 实现 |
