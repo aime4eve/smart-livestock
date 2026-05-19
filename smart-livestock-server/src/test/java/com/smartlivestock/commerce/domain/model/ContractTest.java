@@ -33,7 +33,7 @@ class ContractTest {
 
     private Contract createSignedContract() {
         Contract contract = createDraftContract();
-        contract.sign(USER_ID);
+        contract.sign(USER_ID, Instant.now());
         contract.clearDomainEvents();
         return contract;
     }
@@ -121,12 +121,13 @@ class ContractTest {
         void transitionsToActive() {
             Contract contract = createDraftContract();
             contract.clearDomainEvents();
+            Instant signedAt = Instant.now();
 
-            contract.sign(USER_ID);
+            contract.sign(USER_ID, signedAt);
 
             assertThat(contract.getStatus()).isEqualTo(ContractStatus.ACTIVE);
             assertThat(contract.getSignedBy()).isEqualTo(USER_ID);
-            assertThat(contract.getSignedAt()).isNotNull();
+            assertThat(contract.getSignedAt()).isEqualTo(signedAt);
         }
 
         @Test
@@ -134,7 +135,7 @@ class ContractTest {
             Contract contract = createDraftContract();
             contract.clearDomainEvents();
 
-            contract.sign(USER_ID);
+            contract.sign(USER_ID, Instant.now());
 
             assertThat(contract.getDomainEvents()).hasSize(1);
             ContractSignedEvent event = (ContractSignedEvent) contract.getDomainEvents().get(0);
@@ -145,7 +146,7 @@ class ContractTest {
         @Test
         void rejectsFromActive() {
             Contract contract = createSignedContract();
-            assertThatThrownBy(() -> contract.sign(USER_ID))
+            assertThatThrownBy(() -> contract.sign(USER_ID, Instant.now()))
                 .isInstanceOf(DomainException.class)
                 .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
         }
@@ -192,6 +193,24 @@ class ContractTest {
         void reactivateRequiresSuspended() {
             Contract contract = createSignedContract();
             assertThatThrownBy(contract::reactivate)
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
+        }
+
+        @Test
+        void terminateRequiresActive_notFromSuspended() {
+            Contract contract = createSignedContract();
+            contract.suspend();
+            assertThatThrownBy(contract::terminate)
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
+        }
+
+        @Test
+        void markExpiredRequiresActive_notFromSuspended() {
+            Contract contract = createSignedContract();
+            contract.suspend();
+            assertThatThrownBy(contract::markExpired)
                 .isInstanceOf(DomainException.class)
                 .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
         }
@@ -274,6 +293,16 @@ class ContractTest {
 
             assertThat(result.platformShare()).isEqualTo(17000);
             assertThat(result.partnerShare()).isEqualTo(3000);
+        }
+
+        @Test
+        void zeroGrossAmount() {
+            Contract contract = createDraftContract();
+
+            Contract.RevenueShareResult result = contract.calculateRevenueShare(0);
+
+            assertThat(result.platformShare()).isEqualTo(0);
+            assertThat(result.partnerShare()).isEqualTo(0);
         }
     }
 }

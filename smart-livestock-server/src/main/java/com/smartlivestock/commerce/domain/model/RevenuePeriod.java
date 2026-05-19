@@ -107,10 +107,10 @@ public class RevenuePeriod extends AggregateRoot {
     /**
      * Settle the period (from PARTNER_CONFIRMED).
      */
-    public void settle() {
+    public void settle(Instant settledAt) {
         requireStatus(RevenueSettlementStatus.PARTNER_CONFIRMED, "settle");
         this.status = RevenueSettlementStatus.SETTLED;
-        this.settledAt = Instant.now();
+        this.settledAt = settledAt;
         registerEvent(new RevenueSettledEvent(getId(), contractId));
     }
 

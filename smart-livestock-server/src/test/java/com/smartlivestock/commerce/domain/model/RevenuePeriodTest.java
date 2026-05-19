@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.*;
@@ -147,6 +148,17 @@ class RevenuePeriodTest {
                 .isInstanceOf(DomainException.class)
                 .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
         }
+
+        @Test
+        void rejectsFromSettled() {
+            RevenuePeriod period = createPartnerConfirmedPeriod();
+            period.settle(Instant.now());
+            period.clearDomainEvents();
+
+            assertThatThrownBy(period::confirmByPlatform)
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
+        }
     }
 
     // ── confirmByPartner ──────────────────────────────────────────────
@@ -192,11 +204,12 @@ class RevenuePeriodTest {
         @Test
         void transitionsToSettled() {
             RevenuePeriod period = createPartnerConfirmedPeriod();
+            Instant settledAt = Instant.now();
 
-            period.settle();
+            period.settle(settledAt);
 
             assertThat(period.getStatus()).isEqualTo(RevenueSettlementStatus.SETTLED);
-            assertThat(period.getSettledAt()).isNotNull();
+            assertThat(period.getSettledAt()).isEqualTo(settledAt);
             assertThat(period.getDomainEvents()).hasSize(1);
             assertThat(period.getDomainEvents().get(0)).isInstanceOf(RevenueSettledEvent.class);
         }
@@ -204,7 +217,7 @@ class RevenuePeriodTest {
         @Test
         void rejectsFromPending() {
             RevenuePeriod period = createPendingPeriod();
-            assertThatThrownBy(period::settle)
+            assertThatThrownBy(() -> period.settle(Instant.now()))
                 .isInstanceOf(DomainException.class)
                 .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
         }
@@ -212,7 +225,7 @@ class RevenuePeriodTest {
         @Test
         void rejectsFromPlatformConfirmed() {
             RevenuePeriod period = createPlatformConfirmedPeriod();
-            assertThatThrownBy(period::settle)
+            assertThatThrownBy(() -> period.settle(Instant.now()))
                 .isInstanceOf(DomainException.class)
                 .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
         }
@@ -220,10 +233,10 @@ class RevenuePeriodTest {
         @Test
         void rejectsFromSettled() {
             RevenuePeriod period = createPartnerConfirmedPeriod();
-            period.settle();
+            period.settle(Instant.now());
             period.clearDomainEvents();
 
-            assertThatThrownBy(period::settle)
+            assertThatThrownBy(() -> period.settle(Instant.now()))
                 .isInstanceOf(DomainException.class)
                 .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
         }

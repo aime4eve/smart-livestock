@@ -85,10 +85,10 @@ public class Contract extends AggregateRoot {
     /**
      * Sign the contract, transitioning from DRAFT to ACTIVE.
      */
-    public void sign(Long userId) {
+    public void sign(Long userId, Instant signedAt) {
         requireStatus(ContractStatus.DRAFT, "sign");
         this.signedBy = userId;
-        this.signedAt = Instant.now();
+        this.signedAt = signedAt;
         this.status = ContractStatus.ACTIVE;
         registerEvent(new ContractSignedEvent(tenantId, contractNumber));
     }
@@ -133,8 +133,11 @@ public class Contract extends AggregateRoot {
 
     /**
      * Calculate revenue share for a given gross amount (in cents).
+     * <p>
+     * Partner share uses BigDecimal.intValue() which truncates toward zero;
+     * platform absorbs any fractional-cent rounding via {@code gross - partner}.
      *
-     * @param grossAmountCents gross revenue in cents
+     * @param grossAmountCents non-negative gross revenue in cents
      * @return RevenueShareResult with platform and partner shares
      */
     public RevenueShareResult calculateRevenueShare(int grossAmountCents) {
