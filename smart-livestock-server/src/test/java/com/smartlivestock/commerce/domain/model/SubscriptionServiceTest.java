@@ -52,7 +52,7 @@ class SubscriptionServiceTest {
             assertThat(svc.getTenantId()).isEqualTo(TENANT_ID);
             assertThat(svc.getServiceName()).isEqualTo(SERVICE_NAME);
             assertThat(svc.getStatus()).isEqualTo(SubscriptionServiceStatus.PROVISIONED);
-            assertThat(svc.getEffectiveTier()).isEqualTo(SubscriptionTier.STANDARD);
+            assertThat(svc.getEffectiveTier()).isEqualTo("STANDARD");
             assertThat(svc.getDeviceQuota()).isEqualTo(200);
             assertThat(svc.getStartedAt()).isNotNull();
             assertThat(svc.getExpiresAt()).isNull();
@@ -68,7 +68,7 @@ class SubscriptionServiceTest {
 
             assertThat(svc.getServiceKeyPrefix()).isNotNull();
             assertThat(svc.getServiceKeyPrefix()).hasSize(8);
-            assertThat(svc.getServiceKeyPrefix()).isEqualTo(RAW_SERVICE_KEY.substring(0, 8));
+            assertThat(svc.getServiceKeyPrefix()).isEqualTo(svc.getServiceKeyHash().substring(0, 8));
             assertThat(svc.getServiceKeyHash()).isNotNull();
             assertThat(svc.getServiceKeyHash()).hasSize(64); // SHA-256 hex
         }

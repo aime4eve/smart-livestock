@@ -33,7 +33,7 @@ public class SubscriptionService extends AggregateRoot {
     private String serviceName;
     private String serviceKeyPrefix;
     private String serviceKeyHash;
-    private SubscriptionTier effectiveTier;
+    private String effectiveTier;
     private Integer deviceQuota;
     private SubscriptionServiceStatus status;
     private Instant lastHeartbeatAt;
@@ -65,9 +65,10 @@ public class SubscriptionService extends AggregateRoot {
         SubscriptionService svc = new SubscriptionService();
         svc.tenantId = tenantId;
         svc.serviceName = serviceName;
-        svc.serviceKeyPrefix = rawServiceKey.substring(0, Math.min(rawServiceKey.length(), 8));
-        svc.serviceKeyHash = sha256Hex(rawServiceKey);
-        svc.effectiveTier = tier;
+        String hash = sha256Hex(rawServiceKey);
+        svc.serviceKeyPrefix = hash.substring(0, 8);
+        svc.serviceKeyHash = hash;
+        svc.effectiveTier = tier.name();
         svc.deviceQuota = deviceQuota;
         svc.status = SubscriptionServiceStatus.PROVISIONED;
         svc.startedAt = Instant.now();
@@ -248,8 +249,8 @@ public class SubscriptionService extends AggregateRoot {
     public String getServiceKeyHash() { return serviceKeyHash; }
     public void setServiceKeyHash(String serviceKeyHash) { this.serviceKeyHash = serviceKeyHash; }
 
-    public SubscriptionTier getEffectiveTier() { return effectiveTier; }
-    public void setEffectiveTier(SubscriptionTier effectiveTier) { this.effectiveTier = effectiveTier; }
+    public String getEffectiveTier() { return effectiveTier; }
+    public void setEffectiveTier(String effectiveTier) { this.effectiveTier = effectiveTier; }
 
     public Integer getDeviceQuota() { return deviceQuota; }
     public void setDeviceQuota(Integer deviceQuota) { this.deviceQuota = deviceQuota; }
