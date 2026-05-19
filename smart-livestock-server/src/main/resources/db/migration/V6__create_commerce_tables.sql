@@ -126,7 +126,8 @@ CREATE TABLE notifications (
     title       VARCHAR(200) NOT NULL,
     content     TEXT,
     is_read     BOOLEAN DEFAULT FALSE,
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_notifications_tenant_unread ON notifications(tenant_id, is_read) WHERE is_read = FALSE;
 

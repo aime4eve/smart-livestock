@@ -277,7 +277,8 @@ CREATE TABLE notifications (
     title       VARCHAR(200) NOT NULL,
     content     TEXT,
     is_read     BOOLEAN DEFAULT FALSE,
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_notifications_tenant_unread ON notifications(tenant_id, is_read) WHERE is_read = FALSE;
 ```
@@ -767,7 +768,7 @@ SETTLEMENT_DUPLICATE_CONFIRM,  // 重复确认结算
 
 ---
 
-*设计规格版本: 2026-05-18 v5（v3 架构评审修正版）*
+*设计规格版本: 2026-05-18 v6（Task 1-2 实施后评审修正）*
 *评审记录: `docs/superpowers/reviews/2026-05-18-项目总体技术架构评审.md` (v2)*
 *实施计划: `docs/superpowers/plans/2026-05-18-commerce-context-plan.md`*
 
@@ -815,3 +816,11 @@ SETTLEMENT_DUPLICATE_CONFIRM,  // 重复确认结算
 | 事件发布机制 | 5.1 写 RocketMQ bridge，5.3 写 MVP 不引入 | MVP 仅 Spring ApplicationEvent，RocketMQ 移入延后事项 | 消除矛盾，明确 MVP 路径 |
 | Query 层职责 | GET 端点无归属，getRetentionDays 在 ApplicationService | API 端点表加归属服务列，filter 型门控由 QueryService 执行 | 防止读逻辑回流到写服务 |
 | QuotaApplicationService | 未标注实现接口 | `implements QuotaCheckService` | 依赖方向：QuotaInterceptor → port ← 实现 |
+
+### v5 → v6 修正
+
+| 修正项 | v5 内容 | v6 修正 | 原因 |
+|---|---|---|---|
+| notifications.updated_at | 无此列 | 新增 `updated_at TIMESTAMPTZ NOT NULL DEFAULT now()` | is_read 标记已读时需追踪更新时间，与 V1-V3 所有可变表保持一致 |
+| 领域事件实现形式 | 未指定（plan 写 "record"） | 明确为 `class extends DomainEvent`（非 record） | Java record 不能继承抽象类，DomainEvent 已有 eventId/occurredAt 状态 |
+| 共享事件字段类型 | 未说明 | shared 事件中枚举值用 String（非 Java enum），内部事件可用 enum | 避免 shared → commerce 循环依赖；共享事件面向跨上下文序列化，String 解耦更安全 |

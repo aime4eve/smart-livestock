@@ -237,7 +237,7 @@ SubscriptionServiceStatus: PROVISIONED, ACTIVE, GRACE_PERIOD, DEGRADED, EXPIRED
 
 - [ ] **Step 4: 创建 24 个领域事件**
 
-全部 record。9 个跨上下文事件放在 `shared/domain/event/`，15 个内部事件放在 `commerce/domain/model/event/`
+9 个跨上下文事件放在 `shared/domain/event/`，15 个内部事件放在 `commerce/domain/model/event/`。所有事件为 `class extends DomainEvent`（非 record，因 Java record 不能继承抽象类）。shared 事件中枚举值用 String（避免 shared → commerce 循环依赖）。
 
 - [ ] **Step 5: 写 SubscriptionTierTest**
 
@@ -619,8 +619,16 @@ git commit -m "feat(commerce): complete Commerce bounded context — all modules
 | Task 8 | QuotaCheckService 在 platform/web | QuotaInterceptor 依赖 commerce port | 平台层不定义业务语义 |
 | Task 9 | notifications 是 Commerce 的 | 标注为平台级统一通知 | 所有上下文可写入 |
 
+### v5 → v6 修正
+
+| 修正项 | v5 Plan | v6 Plan | 原因 |
+|---|---|---|---|
+| notifications.updated_at | 无此列 | DDL 新增 `updated_at` | is_read 标记已读需追踪更新时间，与 V1-V3 惯例一致 |
+| 领域事件实现形式 | "全部 record" | `class extends DomainEvent`（非 record） | Java record 不能继承抽象类（DomainEvent 已有 eventId/occurredAt 状态） |
+| 共享事件字段类型 | 未说明 | shared 事件中枚举值用 String，内部事件可用 enum | 避免 shared → commerce 循环依赖 |
+
 ---
 
-*Plan version: 2026-05-18 v5 (based on v3 architecture review + v5 spec corrections)*
+*Plan version: 2026-05-18 v6 (Task 1-2 实施后评审修正)*
 *Design spec: `docs/superpowers/specs/2026-05-18-commerce-context-design.md`*
 *Review: `docs/superpowers/reviews/2026-05-18-项目总体技术架构评审.md`*
