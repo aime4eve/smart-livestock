@@ -99,6 +99,28 @@ class RevenuePeriodTest {
                 .isInstanceOf(DomainException.class)
                 .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.INVALID_REVENUE_SHARE_RATIO));
         }
+
+        @Test
+        void rejectsSharesNotSummingToGross() {
+            LocalDate start = LocalDate.of(2026, 5, 1);
+            LocalDate end = LocalDate.of(2026, 5, 31);
+
+            assertThatThrownBy(() -> RevenuePeriod.create(CONTRACT_ID, TENANT_ID,
+                start, end, 10000, 8000, 3000, RATIO))
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.VALIDATION_ERROR));
+        }
+
+        @Test
+        void rejectsPeriodEndBeforeStart() {
+            LocalDate start = LocalDate.of(2026, 5, 31);
+            LocalDate end = LocalDate.of(2026, 5, 1);
+
+            assertThatThrownBy(() -> RevenuePeriod.create(CONTRACT_ID, TENANT_ID,
+                start, end, 10000, 7000, 3000, RATIO))
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.VALIDATION_ERROR));
+        }
     }
 
     // ── confirmByPlatform ─────────────────────────────────────────────

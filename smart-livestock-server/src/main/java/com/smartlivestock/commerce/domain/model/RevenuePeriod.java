@@ -61,6 +61,14 @@ public class RevenuePeriod extends AggregateRoot {
             throw new DomainException(ErrorCode.INVALID_REVENUE_SHARE_RATIO,
                 "Revenue share ratio must be > 0 and < 1");
         }
+        if (periodEnd != null && periodStart != null && periodEnd.isBefore(periodStart)) {
+            throw new DomainException(ErrorCode.VALIDATION_ERROR,
+                "Period end must be on or after period start");
+        }
+        if (platformShare + partnerShare != grossAmount) {
+            throw new DomainException(ErrorCode.VALIDATION_ERROR,
+                "Platform share + partner share must equal gross amount");
+        }
 
         RevenuePeriod period = new RevenuePeriod();
         period.contractId = contractId;
