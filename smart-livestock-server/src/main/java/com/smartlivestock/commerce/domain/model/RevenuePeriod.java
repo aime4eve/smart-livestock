@@ -92,7 +92,7 @@ public class RevenuePeriod extends AggregateRoot {
     public void confirmByPlatform() {
         requireStatus(RevenueSettlementStatus.PENDING, "confirmByPlatform");
         this.status = RevenueSettlementStatus.PLATFORM_CONFIRMED;
-        registerEvent(new RevenuePlatformConfirmedEvent(getId(), contractId));
+        registerEvent(new RevenuePlatformConfirmedEvent(contractId, tenantId));
     }
 
     /**
@@ -101,7 +101,7 @@ public class RevenuePeriod extends AggregateRoot {
     public void confirmByPartner() {
         requireStatus(RevenueSettlementStatus.PLATFORM_CONFIRMED, "confirmByPartner");
         this.status = RevenueSettlementStatus.PARTNER_CONFIRMED;
-        registerEvent(new RevenuePartnerConfirmedEvent(getId(), contractId));
+        registerEvent(new RevenuePartnerConfirmedEvent(contractId, tenantId));
     }
 
     /**
@@ -111,7 +111,7 @@ public class RevenuePeriod extends AggregateRoot {
         requireStatus(RevenueSettlementStatus.PARTNER_CONFIRMED, "settle");
         this.status = RevenueSettlementStatus.SETTLED;
         this.settledAt = settledAt;
-        registerEvent(new RevenueSettledEvent(getId(), contractId));
+        registerEvent(new RevenueSettledEvent(contractId, tenantId));
     }
 
     // ── Guards ───────────────────────────────────────────────────────

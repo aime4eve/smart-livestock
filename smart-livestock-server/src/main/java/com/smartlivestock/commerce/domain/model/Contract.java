@@ -141,6 +141,10 @@ public class Contract extends AggregateRoot {
      * @return RevenueShareResult with platform and partner shares
      */
     public RevenueShareResult calculateRevenueShare(int grossAmountCents) {
+        if (grossAmountCents < 0) {
+            throw new DomainException(ErrorCode.VALIDATION_ERROR,
+                "Gross amount must be non-negative");
+        }
         int partnerShare = revenueShareRatio
             .multiply(BigDecimal.valueOf(grossAmountCents)).intValue();
         return new RevenueShareResult(grossAmountCents - partnerShare, partnerShare);

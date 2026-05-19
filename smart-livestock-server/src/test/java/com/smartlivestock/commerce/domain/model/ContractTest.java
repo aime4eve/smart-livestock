@@ -142,14 +142,6 @@ class ContractTest {
             assertThat(event.getTenantId()).isEqualTo(TENANT_ID);
             assertThat(event.getContractNumber()).isEqualTo(CONTRACT_NUMBER);
         }
-
-        @Test
-        void rejectsFromActive() {
-            Contract contract = createSignedContract();
-            assertThatThrownBy(() -> contract.sign(USER_ID, Instant.now()))
-                .isInstanceOf(DomainException.class)
-                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
-        }
     }
 
     // ── suspend / reactivate ─────────────────────────────────────────
@@ -180,40 +172,6 @@ class ContractTest {
             assertThat(contract.getDomainEvents()).hasSize(1);
             assertThat(contract.getDomainEvents().get(0)).isInstanceOf(ContractReactivatedEvent.class);
         }
-
-        @Test
-        void suspendRequiresActive() {
-            Contract contract = createDraftContract();
-            assertThatThrownBy(contract::suspend)
-                .isInstanceOf(DomainException.class)
-                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
-        }
-
-        @Test
-        void reactivateRequiresSuspended() {
-            Contract contract = createSignedContract();
-            assertThatThrownBy(contract::reactivate)
-                .isInstanceOf(DomainException.class)
-                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
-        }
-
-        @Test
-        void terminateRequiresActive_notFromSuspended() {
-            Contract contract = createSignedContract();
-            contract.suspend();
-            assertThatThrownBy(contract::terminate)
-                .isInstanceOf(DomainException.class)
-                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
-        }
-
-        @Test
-        void markExpiredRequiresActive_notFromSuspended() {
-            Contract contract = createSignedContract();
-            contract.suspend();
-            assertThatThrownBy(contract::markExpired)
-                .isInstanceOf(DomainException.class)
-                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
-        }
     }
 
     // ── terminate ────────────────────────────────────────────────────
@@ -231,14 +189,6 @@ class ContractTest {
             assertThat(contract.getDomainEvents()).hasSize(1);
             assertThat(contract.getDomainEvents().get(0)).isInstanceOf(ContractTerminatedEvent.class);
         }
-
-        @Test
-        void rejectsFromDraft() {
-            Contract contract = createDraftContract();
-            assertThatThrownBy(contract::terminate)
-                .isInstanceOf(DomainException.class)
-                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
-        }
     }
 
     // ── markExpired ──────────────────────────────────────────────────
@@ -255,14 +205,6 @@ class ContractTest {
             assertThat(contract.getStatus()).isEqualTo(ContractStatus.EXPIRED);
             assertThat(contract.getDomainEvents()).hasSize(1);
             assertThat(contract.getDomainEvents().get(0)).isInstanceOf(ContractExpiredEvent.class);
-        }
-
-        @Test
-        void rejectsFromDraft() {
-            Contract contract = createDraftContract();
-            assertThatThrownBy(contract::markExpired)
-                .isInstanceOf(DomainException.class)
-                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
         }
     }
 
@@ -303,6 +245,86 @@ class ContractTest {
 
             assertThat(result.platformShare()).isEqualTo(0);
             assertThat(result.partnerShare()).isEqualTo(0);
+        }
+
+        @Test
+        void rejectsNegativeGrossAmount() {
+            Contract contract = createDraftContract();
+
+            assertThatThrownBy(() -> contract.calculateRevenueShare(-1))
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.VALIDATION_ERROR));
+        }
+    }
+
+    // ── Illegal transitions ──────────────────────────────────────────
+
+    @Nested
+    class IllegalTransitions {
+
+        @Test
+        void signFromActive_throwsStateConflict() {
+            Contract contract = createSignedContract();
+
+            assertThatThrownBy(() -> contract.sign(USER_ID, Instant.now()))
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
+        }
+
+        @Test
+        void suspendFromDraft_throwsStateConflict() {
+            Contract contract = createDraftContract();
+
+            assertThatThrownBy(contract::suspend)
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
+        }
+
+        @Test
+        void reactivateFromActive_throwsStateConflict() {
+            Contract contract = createSignedContract();
+
+            assertThatThrownBy(contract::reactivate)
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
+        }
+
+        @Test
+        void terminateFromSuspended_throwsStateConflict() {
+            Contract contract = createSignedContract();
+            contract.suspend();
+
+            assertThatThrownBy(contract::terminate)
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
+        }
+
+        @Test
+        void markExpiredFromSuspended_throwsStateConflict() {
+            Contract contract = createSignedContract();
+            contract.suspend();
+
+            assertThatThrownBy(contract::markExpired)
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
+        }
+
+        @Test
+        void terminateFromDraft_throwsStateConflict() {
+            Contract contract = createDraftContract();
+
+            assertThatThrownBy(contract::terminate)
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
+        }
+
+        @Test
+        void markExpiredFromDraft_throwsStateConflict() {
+            Contract contract = createDraftContract();
+
+            assertThatThrownBy(contract::markExpired)
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
         }
     }
 }

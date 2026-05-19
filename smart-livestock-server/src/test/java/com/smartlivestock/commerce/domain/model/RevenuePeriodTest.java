@@ -138,7 +138,9 @@ class RevenuePeriodTest {
 
             assertThat(period.getStatus()).isEqualTo(RevenueSettlementStatus.PLATFORM_CONFIRMED);
             assertThat(period.getDomainEvents()).hasSize(1);
-            assertThat(period.getDomainEvents().get(0)).isInstanceOf(RevenuePlatformConfirmedEvent.class);
+            RevenuePlatformConfirmedEvent event = (RevenuePlatformConfirmedEvent) period.getDomainEvents().get(0);
+            assertThat(event.getContractId()).isEqualTo(CONTRACT_ID);
+            assertThat(event.getTenantId()).isEqualTo(TENANT_ID);
         }
 
         @Test
@@ -174,7 +176,9 @@ class RevenuePeriodTest {
 
             assertThat(period.getStatus()).isEqualTo(RevenueSettlementStatus.PARTNER_CONFIRMED);
             assertThat(period.getDomainEvents()).hasSize(1);
-            assertThat(period.getDomainEvents().get(0)).isInstanceOf(RevenuePartnerConfirmedEvent.class);
+            RevenuePartnerConfirmedEvent event = (RevenuePartnerConfirmedEvent) period.getDomainEvents().get(0);
+            assertThat(event.getContractId()).isEqualTo(CONTRACT_ID);
+            assertThat(event.getTenantId()).isEqualTo(TENANT_ID);
         }
 
         @Test
@@ -211,7 +215,9 @@ class RevenuePeriodTest {
             assertThat(period.getStatus()).isEqualTo(RevenueSettlementStatus.SETTLED);
             assertThat(period.getSettledAt()).isEqualTo(settledAt);
             assertThat(period.getDomainEvents()).hasSize(1);
-            assertThat(period.getDomainEvents().get(0)).isInstanceOf(RevenueSettledEvent.class);
+            RevenueSettledEvent event = (RevenueSettledEvent) period.getDomainEvents().get(0);
+            assertThat(event.getContractId()).isEqualTo(CONTRACT_ID);
+            assertThat(event.getTenantId()).isEqualTo(TENANT_ID);
         }
 
         @Test
