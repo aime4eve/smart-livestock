@@ -147,12 +147,14 @@ public class Subscription extends AggregateRoot {
 
     /**
      * Cancel the subscription. Allowed from ACTIVE or TRIAL.
+     *
+     * @param cancelledAt the timestamp when cancellation occurs
      */
-    public void cancel() {
+    public void cancel(Instant cancelledAt) {
         requireStatusFor("cancel",
             SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIAL);
         this.status = SubscriptionStatus.CANCELLED;
-        this.cancelledAt = Instant.now();
+        this.cancelledAt = cancelledAt;
         registerEvent(new SubscriptionCancelledEvent(tenantId));
     }
 

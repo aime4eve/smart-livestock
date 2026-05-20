@@ -198,7 +198,7 @@ class SubscriptionTest {
         @Test
         void isActiveOrTrial_cancelled_false() {
             Subscription sub = createActiveSubscription();
-            sub.cancel();
+            sub.cancel(Instant.now());
             assertThat(sub.isActiveOrTrial()).isFalse();
         }
 
@@ -363,11 +363,12 @@ class SubscriptionTest {
         @Test
         void cancelFromActive_setsCancelledAt() {
             Subscription sub = createActiveSubscription();
+            Instant cancelledAt = Instant.now();
 
-            sub.cancel();
+            sub.cancel(cancelledAt);
 
             assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.CANCELLED);
-            assertThat(sub.getCancelledAt()).isNotNull();
+            assertThat(sub.getCancelledAt()).isEqualTo(cancelledAt);
             assertThat(sub.getDomainEvents()).hasSize(1);
             assertThat(sub.getDomainEvents().get(0)).isInstanceOf(SubscriptionCancelledEvent.class);
         }
@@ -377,7 +378,7 @@ class SubscriptionTest {
             Subscription sub = createTrialSubscription();
             sub.clearDomainEvents();
 
-            sub.cancel();
+            sub.cancel(Instant.now());
 
             assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.CANCELLED);
             assertThat(sub.getCancelledAt()).isNotNull();
@@ -430,10 +431,10 @@ class SubscriptionTest {
         @Test
         void cancelFromCancelled_throwsStateConflict() {
             Subscription sub = createActiveSubscription();
-            sub.cancel();
+            sub.cancel(Instant.now());
             sub.clearDomainEvents();
 
-            assertThatThrownBy(sub::cancel)
+            assertThatThrownBy(() -> sub.cancel(Instant.now()))
                 .isInstanceOf(DomainException.class)
                 .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
         }
@@ -477,7 +478,7 @@ class SubscriptionTest {
         @Test
         void markExpiredFromCancelled_throwsStateConflict() {
             Subscription sub = createActiveSubscription();
-            sub.cancel();
+            sub.cancel(Instant.now());
 
             assertThatThrownBy(sub::markExpired)
                 .isInstanceOf(DomainException.class);
