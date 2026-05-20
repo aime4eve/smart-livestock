@@ -76,7 +76,7 @@ class QuotaApplicationServiceTest {
             QuotaResult result = service.checkQuota(1L, "any_feature", 0);
 
             assertThat(result.isAllowed()).isFalse();
-            assertThat(result.getReason()).contains("SUSPENDED");
+            assertThat(result.getReason()).isEqualTo("订阅未激活");
         }
 
         @Test
@@ -126,7 +126,7 @@ class QuotaApplicationServiceTest {
             when(subscriptionRepository.findByTenantId(1L))
                 .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.PREMIUM)));
             when(featureGateRepository.findByTierAndFeatureKey("premium", "api_access"))
-                .thenReturn(Optional.of(new FeatureGate("premium", "api_access", "none", null, null, true)));
+                .thenReturn(Optional.of(new FeatureGate("premium", "api_access", GateType.NONE, null, null, true)));
 
             QuotaApplicationService service = createService();
             QuotaResult result = service.checkQuota(1L, "api_access", 0);
@@ -157,7 +157,7 @@ class QuotaApplicationServiceTest {
             when(subscriptionRepository.findByTenantId(1L))
                 .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.STANDARD)));
             when(featureGateRepository.findByTierAndFeatureKey("standard", "alert_management"))
-                .thenReturn(Optional.of(new FeatureGate("standard", "alert_management", "lock", null, null, true)));
+                .thenReturn(Optional.of(new FeatureGate("standard", "alert_management", GateType.LOCK, null, null, true)));
 
             QuotaApplicationService service = createService();
             QuotaResult result = service.checkQuota(1L, "alert_management", 0);
@@ -170,7 +170,7 @@ class QuotaApplicationServiceTest {
             when(subscriptionRepository.findByTenantId(1L))
                 .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.BASIC)));
             when(featureGateRepository.findByTierAndFeatureKey("basic", "advanced_analytics"))
-                .thenReturn(Optional.of(new FeatureGate("basic", "advanced_analytics", "lock", null, null, false)));
+                .thenReturn(Optional.of(new FeatureGate("basic", "advanced_analytics", GateType.LOCK, null, null, false)));
 
             QuotaApplicationService service = createService();
             QuotaResult result = service.checkQuota(1L, "advanced_analytics", 0);
@@ -188,7 +188,7 @@ class QuotaApplicationServiceTest {
             when(subscriptionRepository.findByTenantId(1L))
                 .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.BASIC)));
             when(featureGateRepository.findByTierAndFeatureKey("basic", "livestock_management"))
-                .thenReturn(Optional.of(new FeatureGate("basic", "livestock_management", "limit", 50, null, true)));
+                .thenReturn(Optional.of(new FeatureGate("basic", "livestock_management", GateType.LIMIT, 50, null, true)));
 
             QuotaApplicationService service = createService();
             QuotaResult result = service.checkQuota(1L, "livestock_management", 49);
@@ -201,7 +201,7 @@ class QuotaApplicationServiceTest {
             when(subscriptionRepository.findByTenantId(1L))
                 .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.BASIC)));
             when(featureGateRepository.findByTierAndFeatureKey("basic", "livestock_management"))
-                .thenReturn(Optional.of(new FeatureGate("basic", "livestock_management", "limit", 50, null, true)));
+                .thenReturn(Optional.of(new FeatureGate("basic", "livestock_management", GateType.LIMIT, 50, null, true)));
 
             QuotaApplicationService service = createService();
             QuotaResult result = service.checkQuota(1L, "livestock_management", 50);
@@ -215,7 +215,7 @@ class QuotaApplicationServiceTest {
             when(subscriptionRepository.findByTenantId(1L))
                 .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.BASIC)));
             when(featureGateRepository.findByTierAndFeatureKey("basic", "fence_management"))
-                .thenReturn(Optional.of(new FeatureGate("basic", "fence_management", "limit", 5, null, true)));
+                .thenReturn(Optional.of(new FeatureGate("basic", "fence_management", GateType.LIMIT, 5, null, true)));
 
             QuotaApplicationService service = createService();
             QuotaResult result = service.checkQuota(1L, "fence_management", 10);
@@ -232,7 +232,7 @@ class QuotaApplicationServiceTest {
             when(subscriptionRepository.findByTenantId(1L))
                 .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.STANDARD)));
             when(featureGateRepository.findByTierAndFeatureKey("standard", "advanced_analytics"))
-                .thenReturn(Optional.of(new FeatureGate("standard", "advanced_analytics", "filter", null, 30, true)));
+                .thenReturn(Optional.of(new FeatureGate("standard", "advanced_analytics", GateType.FILTER, null, 30, true)));
 
             QuotaApplicationService service = createService();
             QuotaResult result = service.checkQuota(1L, "advanced_analytics", 0);
@@ -252,7 +252,7 @@ class QuotaApplicationServiceTest {
             when(subscriptionRepository.findByTenantId(1L))
                 .thenReturn(Optional.of(createTrialSubscription()));
             when(featureGateRepository.findByTierAndFeatureKey("premium", "api_access"))
-                .thenReturn(Optional.of(new FeatureGate("premium", "api_access", "none", null, null, true)));
+                .thenReturn(Optional.of(new FeatureGate("premium", "api_access", GateType.NONE, null, null, true)));
 
             QuotaApplicationService service = createService();
             QuotaResult result = service.checkQuota(1L, "api_access", 0);

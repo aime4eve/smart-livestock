@@ -6,7 +6,7 @@ public class FeatureGate extends Entity {
 
     private String tier;
     private String featureKey;
-    private String gateType;
+    private GateType gateType;
     private Integer limitValue;
     private Integer retentionDays;
     private boolean isEnabled;
@@ -14,7 +14,7 @@ public class FeatureGate extends Entity {
     public FeatureGate() {
     }
 
-    public FeatureGate(String tier, String featureKey, String gateType,
+    public FeatureGate(String tier, String featureKey, GateType gateType,
                        Integer limitValue, Integer retentionDays, boolean isEnabled) {
         this.tier = tier;
         this.featureKey = featureKey;
@@ -24,20 +24,8 @@ public class FeatureGate extends Entity {
         this.isEnabled = isEnabled;
     }
 
-    public boolean allowsUnrestricted() {
-        return "none".equals(gateType);
-    }
-
-    public boolean isLocked() {
-        return "lock".equals(gateType);
-    }
-
-    public boolean isLimited() {
-        return "limit".equals(gateType);
-    }
-
-    public boolean isFiltered() {
-        return "filter".equals(gateType);
+    public static FeatureGate unrestricted() {
+        return new FeatureGate(null, null, GateType.NONE, null, null, true);
     }
 
     public String getTier() { return tier; }
@@ -46,8 +34,8 @@ public class FeatureGate extends Entity {
     public String getFeatureKey() { return featureKey; }
     public void setFeatureKey(String featureKey) { this.featureKey = featureKey; }
 
-    public String getGateType() { return gateType; }
-    public void setGateType(String gateType) { this.gateType = gateType; }
+    public GateType getGateType() { return gateType; }
+    public void setGateType(GateType gateType) { this.gateType = gateType; }
 
     public Integer getLimitValue() { return limitValue; }
     public void setLimitValue(Integer limitValue) { this.limitValue = limitValue; }
