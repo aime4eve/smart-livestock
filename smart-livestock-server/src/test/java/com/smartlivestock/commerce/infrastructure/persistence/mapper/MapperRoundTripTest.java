@@ -190,7 +190,7 @@ class MapperRoundTripTest {
             assertThat(restored.getServiceName()).isEqualTo("gps-tracking");
             assertThat(restored.getServiceKeyPrefix()).isEqualTo(original.getServiceKeyPrefix());
             assertThat(restored.getServiceKeyHash()).isEqualTo(original.getServiceKeyHash());
-            assertThat(restored.getEffectiveTier()).isEqualTo("STANDARD");
+            assertThat(restored.getEffectiveTier()).isEqualTo("standard");
             assertThat(restored.getDeviceQuota()).isEqualTo(200);
             assertThat(restored.getStatus()).isEqualTo(SubscriptionServiceStatus.PROVISIONED);
             assertThat(restored.getHeartbeatIntervalHrs()).isEqualTo(24);

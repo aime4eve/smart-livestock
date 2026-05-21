@@ -94,7 +94,7 @@ public class AdminRevenueController {
         if (periods.isEmpty()) {
             throw new ApiException(ErrorCode.INTERNAL_ERROR, "Revenue period not created");
         }
-        return ResponseEntity.ok(ApiResponse.ok(periods.getLast()));
+        return ResponseEntity.ok(ApiResponse.ok(periods.get(periods.size() - 1)));
     }
 
     /**

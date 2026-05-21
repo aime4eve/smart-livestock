@@ -179,15 +179,15 @@ Tasks 3, 4, 5 可并行。Tasks 6-13 严格串行。
 - Create: `smart-livestock-server/src/main/resources/db/migration/V6__create_commerce_tables.sql`
 - Reference: Spec Section 2
 
-- [ ] **Step 1: 创建迁移文件**
+- [x] **Step 1: 创建迁移文件**
 
 按 Spec Section 2 完整 DDL，包含 6 张 Commerce 业务表 + notifications（平台基础设施，非 Commerce 私有）+ tenant ALTER + 种子数据。
 
-- [ ] **Step 2: 验证迁移可执行**
+- [x] **Step 2: 验证迁移可执行**
 
 Run: `cd smart-livestock-server && ./gradlew flywayMigrate -x test 2>&1 | tail -5`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add smart-livestock-server/src/main/resources/db/migration/V6__create_commerce_tables.sql
@@ -204,7 +204,7 @@ git commit -m "feat(commerce): add V6 migration — 6 commerce tables + notifica
 - Create: 5 个枚举类 + 9 个跨上下文事件 (shared/domain/event/) + 15 个内部事件 (commerce/domain/model/event/)
 - Test: `SubscriptionTierTest.java`
 
-- [ ] **Step 1: 创建 DomainException**
+- [x] **Step 1: 创建 DomainException**
 
 位于 `shared/common/DomainException.java`：
 
@@ -223,11 +223,11 @@ public class DomainException extends RuntimeException {
 }
 ```
 
-- [ ] **Step 2: 扩展 ErrorCode**（位于 `shared/common/ErrorCode.java`）
+- [x] **Step 2: 扩展 ErrorCode**（位于 `shared/common/ErrorCode.java`）
 
 新增：ENTERPRISE_CUSTOM_PRICING, INVALID_BILLING_MODEL, INVALID_REVENUE_SHARE_RATIO, SUBSCRIPTION_NOT_FOUND, SUBSCRIPTION_NOT_ACTIVE, CONTRACT_NOT_ACTIVE, SERVICE_KEY_MISMATCH, SERVICE_LICENSE_EXPIRED, SETTLEMENT_DUPLICATE_CONFIRM
 
-- [ ] **Step 3: 创建枚举类**
+- [x] **Step 3: 创建枚举类**
 
 SubscriptionTier: BASIC(0, 50, 40), STANDARD(1400, 200, 30), PREMIUM(2800, 1000, 15), ENTERPRISE(-1, -1, -1)
 SubscriptionStatus: TRIAL, ACTIVE, FREE, SUSPENDED, RENEWAL_FAILED, CANCELLED, EXPIRED
@@ -235,17 +235,17 @@ ContractStatus: DRAFT, ACTIVE, SUSPENDED, EXPIRED, TERMINATED
 RevenueSettlementStatus: PENDING, PLATFORM_CONFIRMED, PARTNER_CONFIRMED, SETTLED
 SubscriptionServiceStatus: PROVISIONED, ACTIVE, GRACE_PERIOD, DEGRADED, EXPIRED
 
-- [ ] **Step 4: 创建 24 个领域事件**
+- [x] **Step 4: 创建 24 个领域事件**
 
 9 个跨上下文事件放在 `shared/domain/event/`，15 个内部事件放在 `commerce/domain/model/event/`。所有事件为 `class extends DomainEvent`（非 record，因 Java record 不能继承抽象类）。shared 事件中枚举值用 String（避免 shared → commerce 循环依赖）。
 
-- [ ] **Step 5: 写 SubscriptionTierTest**
+- [x] **Step 5: 写 SubscriptionTierTest**
 
 测试 calculateMonthlyFee：含内、超量、Enterprise 抛 DomainException
 
-- [ ] **Step 6: 运行测试**
+- [x] **Step 6: 运行测试**
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git commit -m "feat(commerce): add DomainException, enums, ErrorCode extensions, 24 domain events (9 shared + 15 internal)"
@@ -259,17 +259,17 @@ git commit -m "feat(commerce): add DomainException, enums, ErrorCode extensions,
 - Create: `Subscription.java`
 - Test: `SubscriptionTest.java`
 
-- [ ] **Step 1: 写 SubscriptionTest**
+- [x] **Step 1: 写 SubscriptionTest**
 
 覆盖：startTrial, activate, expireTrial, effectiveTier, changeTier(FREE→ACTIVE), suspend, reactivate, markRenewalFailed, recoverFromRenewalFailure, downgradeAfterRenewalFailure, cancel(cancelledAt), markExpired, requireStatus 非法跳转。**领域模型使用 DomainException 而非 ApiException。**
 
-- [ ] **Step 2: 实现 Subscription**
+- [x] **Step 2: 实现 Subscription**
 
 字段：id, tenantId, tier, billingModel, status, billingCycle, startedAt, expiresAt, trialEndsAt, cancelledAt。状态机按 Spec Section 3.2。所有状态转换产生对应领域事件。
 
-- [ ] **Step 3: 运行测试**
+- [x] **Step 3: 运行测试**
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git commit -m "feat(commerce): add Subscription aggregate root with state machine and events"
@@ -283,25 +283,25 @@ git commit -m "feat(commerce): add Subscription aggregate root with state machin
 - Create: `Contract.java`, `RevenuePeriod.java`
 - Test: `ContractTest.java`, `RevenuePeriodTest.java`
 
-- [ ] **Step 1: 写 ContractTest**
+- [x] **Step 1: 写 ContractTest**
 
 覆盖：create→DRAFT, sign→ACTIVE, 分润比例校验, suspend/reactivate, terminate, markExpired, calculateRevenueShare
 
-- [ ] **Step 2: 写 RevenuePeriodTest**
+- [x] **Step 2: 写 RevenuePeriodTest**
 
 覆盖：create→PENDING, confirmByPlatform, confirmByPartner, settle, 非法跳转
 
-- [ ] **Step 3: 实现 Contract**
+- [x] **Step 3: 实现 Contract**
 
 字段：id, tenantId, contractNumber, billingModel, effectiveTier, revenueShareRatio, signedBy, signedAt, startedAt, expiresAt, status。DRAFT→sign()→ACTIVE。分润返回 RevenueShareResult。
 
-- [ ] **Step 4: 实现 RevenuePeriod**
+- [x] **Step 4: 实现 RevenuePeriod**
 
 字段：id, contractId, tenantId, periodStart, periodEnd, grossAmount, platformShare, partnerShare, revenueShareRatio(快照), status, settledAt
 
-- [ ] **Step 5: 运行测试**
+- [x] **Step 5: 运行测试**
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git commit -m "feat(commerce): add Contract and RevenuePeriod aggregate roots"
@@ -315,17 +315,17 @@ git commit -m "feat(commerce): add Contract and RevenuePeriod aggregate roots"
 - Create: `SubscriptionService.java`
 - Test: `SubscriptionServiceTest.java`
 
-- [ ] **Step 1: 写 SubscriptionServiceTest**
+- [x] **Step 1: 写 SubscriptionServiceTest**
 
 覆盖：provision→PROVISIONED, activate→ACTIVE, recordHeartbeat, checkHeartbeat→GRACE_PERIOD, degrade, revoke, expire, adjustQuota, verifyKey（常量时间比较）
 
-- [ ] **Step 2: 实现 SubscriptionService**
+- [x] **Step 2: 实现 SubscriptionService**
 
 字段：id, tenantId, serviceName, serviceKeyPrefix, serviceKeyHash, effectiveTier, deviceQuota, status, lastHeartbeatAt, graceEndsAt, startedAt, expiresAt, heartbeatIntervalHrs(实例字段,默认24), gracePeriodDays(实例字段,默认7)。provision() 生成 License 文件（JWT + RSA 签名）。activate() 验证签名。
 
-- [ ] **Step 3: 运行测试**
+- [x] **Step 3: 运行测试**
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git commit -m "feat(commerce): add SubscriptionService aggregate root with License file support"
@@ -339,33 +339,33 @@ git commit -m "feat(commerce): add SubscriptionService aggregate root with Licen
 - Create: `FeatureGate.java`, `QuotaResult.java`, `UsageResolver.java`, `FeatureGateRepository.java`, `application/port/QuotaCheckService.java`, `QuotaApplicationService.java`
 - Test: `QuotaApplicationServiceTest.java`, `FeatureGateTest.java`
 
-- [ ] **Step 1: 写测试**
+- [x] **Step 1: 写测试**
 
 两道防线（订阅状态 + 门控规则），4 种 gateType (none/lock/limit/filter)，订阅 SUSPENDED 直接拒绝，filter 返回 retentionDays
 
-- [ ] **Step 2: 实现 FeatureGate**
+- [x] **Step 2: 实现 FeatureGate**
 
 gateType: none/lock/limit/filter。字段：tier, featureKey, gateType, limitValue, retentionDays, isEnabled
 
-- [ ] **Step 3: 实现 QuotaResult**
+- [x] **Step 3: 实现 QuotaResult**
 
 allowed(), denied(reason), allowedWithRetention(days)
 
-- [ ] **Step 4: 实现 UsageResolver**
+- [x] **Step 4: 实现 UsageResolver**
 
 纯值签名：`resolve(Long tenantId, Long farmId)`
 
-- [ ] **Step 5: 创建 QuotaCheckService 接口**
+- [x] **Step 5: 创建 QuotaCheckService 接口**
 
 位于 `commerce/application/port/QuotaCheckService.java`，定义 checkQuota(tenantId, featureKey, usage) 签名。这是 Commerce 的业务契约，不是平台层接口。
 
-- [ ] **Step 6: 实现 QuotaApplicationService**
+- [x] **Step 6: 实现 QuotaApplicationService**
 
 依赖：SubscriptionRepository + FeatureGateRepository。**实现 QuotaCheckService 接口**。checkQuota() 先检查订阅活跃，再检查门控。使用 DomainException 而非 ApiException。
 
-- [ ] **Step 7: 运行测试**
+- [x] **Step 7: 运行测试**
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git commit -m "feat(commerce): add FeatureGate, QuotaCheckService port, QuotaEngine with two-layer defense"
@@ -378,25 +378,25 @@ git commit -m "feat(commerce): add FeatureGate, QuotaCheckService port, QuotaEng
 **Files:**
 - Create: 5 JPA entities, 5 mappers, 5 Spring Data JPA repositories, 5 Repository implementations
 
-- [ ] **Step 1: 创建 5 个 JPA Entity**
+- [x] **Step 1: 创建 5 个 JPA Entity**
 
 与 DDL 完全对齐。@Version 乐观锁，@PreUpdate 更新 updatedAt
 
-- [ ] **Step 2: 创建 5 个 Mapper**
+- [x] **Step 2: 创建 5 个 Mapper**
 
 Domain ↔ JPA 双向转换，枚举 ↔ String，BigDecimal 映射
 
-- [ ] **Step 3: 创建 5 个 Spring Data JPA Repository**
+- [x] **Step 3: 创建 5 个 Spring Data JPA Repository**
 
 含定制查询方法
 
-- [ ] **Step 4: 创建 5 个 Repository 实现**
+- [x] **Step 4: 创建 5 个 Repository 实现**
 
 注入 Spring Data JPA，使用 Mapper 转换。**同时创建 SubscriptionQueryPort 实现。**
 
-- [ ] **Step 5: 编译验证**
+- [x] **Step 5: 编译验证**
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git commit -m "feat(commerce): add persistence layer — JPA entities, mappers, repositories"
@@ -411,25 +411,25 @@ git commit -m "feat(commerce): add persistence layer — JPA entities, mappers, 
 - Modify: `SecurityConfig.java` (位于 `platform/security/`)
 - Dependency: `commerce/application/port/QuotaCheckService.java` (Task 6 已创建)
 
-- [ ] **Step 1: 创建 @QuotaCheck 注解**
+- [x] **Step 1: 创建 @QuotaCheck 注解**
 
 位于 `platform/web/QuotaCheck.java`
 
-- [ ] **Step 2: 创建 QuotaInterceptor**
+- [x] **Step 2: 创建 QuotaInterceptor**
 
 位于 `platform/web/QuotaInterceptor.java`，注入 `QuotaCheckService`（来自 commerce/application/port/）。从 request 提取 tenantId/farmId（纯值），调用 QuotaCheckService.checkQuota()
 
-- [ ] **Step 3: 实现 2 个 UsageResolver**
+- [x] **Step 3: 实现 2 个 UsageResolver**
 
 纯值签名 resolve(tenantId, farmId)，通过 shared 层接口查询
 
-- [ ] **Step 4: 注册 QuotaInterceptor**
+- [x] **Step 4: 注册 QuotaInterceptor**
 
 位于 Auth + FarmScope 之后
 
-- [ ] **Step 5: 编译验证**
+- [x] **Step 5: 编译验证**
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git commit -m "feat(commerce): add QuotaCheck annotation and interceptor in platform/web, depends on commerce QuotaCheckService port"
@@ -447,25 +447,25 @@ git commit -m "feat(commerce): add QuotaCheck annotation and interceptor in plat
 
 notifications 表是平台级统一通知中心（非 Commerce 私有），所有上下文（Commerce/Ranch/IoT/Identity）均可写入。
 
-- [ ] **Step 1: 创建 Notification 实体 + Repository**
+- [x] **Step 1: 创建 Notification 实体 + Repository**
 
 位于 `platform/messaging/`，对应 V6 迁移中的 notifications 表
 
-- [ ] **Step 2: 创建 NotificationService**
+- [x] **Step 2: 创建 NotificationService**
 
 位于 `platform/messaging/`，按事件类型生成 title/content，写入 notifications 表
 
-- [ ] **Step 3: 创建 NotificationEventListener**
+- [x] **Step 3: 创建 NotificationEventListener**
 
 位于 `platform/messaging/`，Spring ApplicationListener 接收全部 24 个事件（9 跨上下文 + 15 内部）
 
-- [ ] **Step 4: ApplicationService 中发布事件**
+- [x] **Step 4: ApplicationService 中发布事件**
 
 save() 后调用 Spring ApplicationEventPublisher（MVP 仅用 Spring ApplicationEvent，无 RocketMQ）
 
-- [ ] **Step 5: 编译验证**
+- [x] **Step 5: 编译验证**
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git commit -m "feat(platform): add unified notification system in platform/messaging with Spring ApplicationEvent"
@@ -481,32 +481,32 @@ git commit -m "feat(platform): add unified notification system in platform/messa
 
 **读写分离原则：** ApplicationService 处理写操作（POST/PUT），QueryService 处理读操作（GET）。filter 型门控的 getRetentionDays() 由 QueryService 执行，不回流到 ApplicationService。
 
-- [ ] **Step 1: 创建 DTO 类**
+- [x] **Step 1: 创建 DTO 类**
 
-- [ ] **Step 2: 创建 3 个 Assembler**（位于 `application/assembler/`）
+- [x] **Step 2: 创建 3 个 Assembler**（位于 `application/assembler/`）
 
 SubscriptionAssembler, ContractAssembler, RevenuePeriodAssembler — DTO 映射集中化
 
-- [ ] **Step 3: 写测试并实现 SubscriptionApplicationService**
+- [x] **Step 3: 写测试并实现 SubscriptionApplicationService**
 
 getOrCreateSubscription, upgrade, expireTrial, suspend, reactivate, cancel。save() 后发布事件
 
-- [ ] **Step 4: 实现 ContractApplicationService**
+- [x] **Step 4: 实现 ContractApplicationService**
 
 create(DRAFT), sign, suspend, reactivate, terminate
 
-- [ ] **Step 5: 实现 RevenueApplicationService**
+- [x] **Step 5: 实现 RevenueApplicationService**
 
 calculatePeriod, confirmByPlatform, confirmByPartner, settle, recalculate。前置校验 contract.isActive()
 
-- [ ] **Step 6: 创建 2 个 QueryService**（位于 `application/query/`）
+- [x] **Step 6: 创建 2 个 QueryService**（位于 `application/query/`）
 
 SubscriptionQueryService — 订阅读模型（状态 + 用量汇总 + filter 型门控裁剪）。负责 GET /subscription, GET /subscription/plans, GET /subscription/usage, GET /contracts/me
 RevenueQueryService — 分润读模型（列表 + 过滤 + filter 型门控裁剪）。负责 GET /revenue/periods
 
-- [ ] **Step 7: 运行测试**
+- [x] **Step 7: 运行测试**
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git commit -m "feat(commerce): add application services, query services, and assemblers with event publishing"
@@ -520,7 +520,7 @@ git commit -m "feat(commerce): add application services, query services, and ass
 - Create: 7 个 Controller（按 app/ + admin/ 子目录组织）
 - Modify: FenceController, LivestockController
 
-- [ ] **Step 1: SubscriptionController (App, 6 端点)**
+- [x] **Step 1: SubscriptionController (App, 6 端点)**
 
 位于 `interfaces/app/SubscriptionController.java`：
 GET /subscription → SubscriptionQueryService
@@ -530,25 +530,25 @@ PUT /subscription/tier → SubscriptionApplicationService
 POST /subscription/cancel → SubscriptionApplicationService
 GET /subscription/usage → SubscriptionQueryService
 
-- [ ] **Step 2: CommerceController (App, 3 端点)**
+- [x] **Step 2: CommerceController (App, 3 端点)**
 
 位于 `interfaces/app/CommerceController.java`：
 GET /contracts/me → SubscriptionQueryService
 GET /revenue/periods → RevenueQueryService
 POST /revenue/periods/{id}/confirm → RevenueApplicationService
 
-- [ ] **Step 3: 5 个 Admin Controller**
+- [x] **Step 3: 5 个 Admin Controller**
 
 全部位于 `interfaces/admin/`：
 AdminSubscriptionController(3), AdminContractController(6), AdminRevenueController(5), AdminServiceController(5), AdminFeatureGateController(2)
 
-- [ ] **Step 4: Ranch Controller 加 @QuotaCheck**
+- [x] **Step 4: Ranch Controller 加 @QuotaCheck**
 
 `ranch/interfaces/FenceController.java` 和 `ranch/interfaces/LivestockController.java`
 
-- [ ] **Step 5: 编译验证**
+- [x] **Step 5: 编译验证**
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git commit -m "feat(commerce): add 30 API endpoints — interfaces/app/ + interfaces/admin/ with @QuotaCheck"
@@ -561,7 +561,7 @@ git commit -m "feat(commerce): add 30 API endpoints — interfaces/app/ + interf
 **Files:**
 - Create: `application/job/CommerceScheduler.java`
 
-- [ ] **Step 1: 实现 7 个定时任务**
+- [x] **Step 1: 实现 7 个定时任务**
 
 | Job | 频率 | 逻辑 |
 |-----|------|------|
@@ -573,11 +573,11 @@ git commit -m "feat(commerce): add 30 API endpoints — interfaces/app/ + interf
 | ContractExpiryJob | 每天 5:00 | ACTIVE AND expires_at < now → markExpired() |
 | RevenueCalculationJob | 每月 1 日 3:00 | ACTIVE 合同 → calculatePeriod() |
 
-- [ ] **Step 2: 确保 @EnableScheduling**
+- [x] **Step 2: 确保 @EnableScheduling**
 
-- [ ] **Step 3: 编译验证**
+- [x] **Step 3: 编译验证**
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git commit -m "feat(commerce): add CommerceScheduler with 7 scheduled jobs in application/job/"
@@ -590,15 +590,15 @@ git commit -m "feat(commerce): add CommerceScheduler with 7 scheduled jobs in ap
 **Files:**
 - Modify: `Tenant.java` (加 type + billingModel)
 
-- [ ] **Step 1: Tenant 扩展字段**
+- [x] **Step 1: Tenant 扩展字段**
 
-- [ ] **Step 2: 全量编译**
+- [x] **Step 2: 全量编译**
 
-- [ ] **Step 3: 全量测试**
+- [x] **Step 3: 全量测试**
 
-- [ ] **Step 4: Flyway 迁移验证**
+- [x] **Step 4: Flyway 迁移验证**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(commerce): complete Commerce bounded context — all modules verified"
@@ -632,3 +632,21 @@ git commit -m "feat(commerce): complete Commerce bounded context — all modules
 *Plan version: 2026-05-18 v6 (Task 1-2 实施后评审修正)*
 *Design spec: `docs/superpowers/specs/2026-05-18-commerce-context-design.md`*
 *Review: `docs/superpowers/reviews/2026-05-18-项目总体技术架构评审.md`*
+
+### v6 → v7 部署验证（2026-05-22）
+
+**质量报告**: `docs/superpowers/reviews/2026-05-22-commerce-deployment-quality-report.md`
+
+**验证结果**: 13 个 Task 全部实施完成。编译 ✅、单元测试 ✅、Docker 部署 ✅、Flyway V6 迁移 ✅、API 端点 24/30 正常。
+
+**遗留问题（5 个）**:
+
+| # | 严重度 | 问题 | 涉及 Task |
+|---|--------|------|-----------|
+| 1 | 🔴 P0 | `List.getLast()` Java 21 API 在 Java 17 运行时 `NoSuchMethodError` | Task 10 (AdminRevenueController), IoT (DeviceLicenseApplicationService) |
+| 2 | 🔴 P0 | SubscriptionService `effectiveTier` 大写映射违反 DB CHECK 约束 | Task 5 |
+| 3 | 🔴 P0 | FeatureGate 更新时 `createdAt` 被设为 null | Task 6 |
+| 4 | 🟡 P1 | `PUT /subscription/tier` 必须传 `billingCycle`（Spec 未要求） | Task 11 |
+| 5 | 🟡 P1 | `PUT /admin/contracts/{id}` 未实现（stub 响应） | Task 11 |
+
+*Plan version: 2026-05-18 v7 (部署验证完成，5 个遗留问题待修)*

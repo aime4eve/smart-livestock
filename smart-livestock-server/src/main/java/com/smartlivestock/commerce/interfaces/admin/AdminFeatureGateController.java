@@ -52,23 +52,22 @@ public class AdminFeatureGateController {
             @RequestBody Map<String, Object> body) {
         requirePlatformAdmin();
 
-        FeatureGate gate = springDataFeatureGateRepository.findById(id)
-                .map(FeatureGateMapper::toDomain)
+        var existing = springDataFeatureGateRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "Feature gate not found: " + id));
 
         if (body.containsKey("limitValue")) {
-            gate.setLimitValue(((Number) body.get("limitValue")).intValue());
+            existing.setLimitValue(((Number) body.get("limitValue")).intValue());
         }
         if (body.containsKey("retentionDays")) {
-            gate.setRetentionDays(((Number) body.get("retentionDays")).intValue());
+            existing.setRetentionDays(((Number) body.get("retentionDays")).intValue());
         }
         if (body.containsKey("isEnabled")) {
-            gate.setEnabled(Boolean.parseBoolean(body.get("isEnabled").toString()));
+            existing.setIsEnabled(Boolean.parseBoolean(body.get("isEnabled").toString()));
         }
 
-        springDataFeatureGateRepository.save(FeatureGateMapper.toJpaEntity(gate));
-        return ResponseEntity.ok(ApiResponse.ok(toGateMap(gate)));
+        springDataFeatureGateRepository.save(existing);
+        return ResponseEntity.ok(ApiResponse.ok(toGateMap(FeatureGateMapper.toDomain(existing))));
     }
 
     // ── Helpers ────────────────────────────────────────────────────

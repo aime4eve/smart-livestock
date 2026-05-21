@@ -52,7 +52,7 @@ class SubscriptionServiceTest {
             assertThat(svc.getTenantId()).isEqualTo(TENANT_ID);
             assertThat(svc.getServiceName()).isEqualTo(SERVICE_NAME);
             assertThat(svc.getStatus()).isEqualTo(SubscriptionServiceStatus.PROVISIONED);
-            assertThat(svc.getEffectiveTier()).isEqualTo("STANDARD");
+            assertThat(svc.getEffectiveTier()).isEqualTo("standard");
             assertThat(svc.getDeviceQuota()).isEqualTo(200);
             assertThat(svc.getStartedAt()).isNotNull();
             assertThat(svc.getExpiresAt()).isNull();

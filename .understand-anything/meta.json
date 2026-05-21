@@ -1,7 +1,6 @@
 {
-  "lastAnalyzedAt": "2026-05-21T09:00:00Z",
-  "gitCommitHash": "aa08e863c04b709f687ee6d7ec0d941dcd669aac",
+  "lastAnalyzedAt": "2026-05-21T17:00:00Z",
+  "gitCommitHash": "dfd95fe0e2be1a6783984b1757334ffb9f34f5e4",
   "version": "1.0.0",
-  "analyzedFiles": 940,
-  "note": "50+ Java files changed since last full analysis (Commerce context). Recommend /understand --full"
+  "analyzedFiles": 1030
 }

@@ -40,6 +40,18 @@ public class ContractApplicationService {
     }
 
     /**
+     * Update a draft contract's fields.
+     */
+    public Contract update(Long contractId, String billingModel, String effectiveTier,
+                           BigDecimal revenueShareRatio) {
+        Contract contract = loadContract(contractId);
+        contract.updateDraft(billingModel, effectiveTier, revenueShareRatio);
+        Contract saved = contractRepository.save(contract);
+        domainEventPublisher.publishDomainEvents(saved);
+        return saved;
+    }
+
+    /**
      * Sign a draft contract (DRAFT → ACTIVE).
      */
     public Contract sign(Long contractId, Long userId) {

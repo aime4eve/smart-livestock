@@ -89,7 +89,7 @@ public class SubscriptionController {
             @RequestBody Map<String, String> body) {
         Long tenantId = requireTenantId();
         String tierStr = requireField(body, "tier");
-        String billingCycle = requireField(body, "billingCycle");
+        String billingCycle = body.get("billingCycle");
 
         SubscriptionTier tier = parseTier(tierStr);
         subscriptionApplicationService.upgrade(tenantId, tier, billingCycle);

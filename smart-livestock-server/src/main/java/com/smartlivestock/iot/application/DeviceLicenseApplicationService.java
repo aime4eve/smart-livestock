@@ -39,7 +39,7 @@ public class DeviceLicenseApplicationService {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "设备无License: " + deviceId);
         }
         // Return the most recently created license
-        return DeviceLicenseDto.from(licenses.getLast());
+        return DeviceLicenseDto.from(licenses.get(licenses.size() - 1));
     }
 
     @Transactional

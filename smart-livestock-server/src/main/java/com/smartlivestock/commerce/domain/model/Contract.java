@@ -150,6 +150,21 @@ public class Contract extends AggregateRoot {
         return new RevenueShareResult(grossAmountCents - partnerShare, partnerShare);
     }
 
+    /**
+     * Update draft fields. Only allowed in DRAFT status.
+     */
+    public void updateDraft(String billingModel, String effectiveTier, BigDecimal revenueShareRatio) {
+        requireStatus(ContractStatus.DRAFT, "updateDraft");
+        if (billingModel != null) this.billingModel = billingModel;
+        if (effectiveTier != null) this.effectiveTier = effectiveTier;
+        if (revenueShareRatio != null) {
+            if ("revenue_share".equals(this.billingModel)) {
+                validateRevenueShareRatio(revenueShareRatio);
+            }
+            this.revenueShareRatio = revenueShareRatio;
+        }
+    }
+
     // ── Guards ───────────────────────────────────────────────────────
 
     private void requireStatus(ContractStatus expected, String action) {

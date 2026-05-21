@@ -86,16 +86,23 @@ public class AdminContractController {
      * Modify a draft contract. Phase 2 feature — returns 501.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> updateContract(
+    public ResponseEntity<ApiResponse<ContractResponse>> updateContract(
             @PathVariable Long id,
             @RequestBody Map<String, Object> body) {
         requirePlatformAdmin();
-        // Phase 2: Contract domain model does not support updateDraft yet.
-        Map<String, Object> data = Map.of(
-                "message", "Contract draft update not yet implemented",
-                "contractId", id
-        );
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(ApiResponse.ok(data));
+
+        String billingModel = (String) body.get("billingModel");
+        String effectiveTier = (String) body.get("effectiveTier");
+        BigDecimal revenueShareRatio = body.containsKey("revenueShareRatio")
+                ? new BigDecimal(body.get("revenueShareRatio").toString())
+                : null;
+
+        contractApplicationService.update(id, billingModel, effectiveTier, revenueShareRatio);
+
+        ContractResponse contract = revenueQueryService.findContractById(id)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "Contract not found after update"));
+        return ResponseEntity.ok(ApiResponse.ok(contract));
     }
 
     /**

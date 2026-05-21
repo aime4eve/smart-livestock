@@ -68,7 +68,7 @@ public class SubscriptionService extends AggregateRoot {
         String hash = sha256Hex(rawServiceKey);
         svc.serviceKeyPrefix = hash.substring(0, 8);
         svc.serviceKeyHash = hash;
-        svc.effectiveTier = tier.name();
+        svc.effectiveTier = tier.name().toLowerCase();
         svc.deviceQuota = deviceQuota;
         svc.status = SubscriptionServiceStatus.PROVISIONED;
         svc.startedAt = Instant.now();

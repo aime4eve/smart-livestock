@@ -47,8 +47,9 @@ public class SubscriptionApplicationService {
      */
     public Subscription upgrade(Long tenantId, SubscriptionTier newTier, String billingCycle) {
         Subscription sub = loadSubscription(tenantId);
-        Instant expiresAt = Instant.now().plusSeconds(cycleSeconds(billingCycle));
-        sub.changeTier(newTier, billingCycle, expiresAt);
+        String resolvedCycle = billingCycle != null ? billingCycle : sub.getBillingCycle();
+        Instant expiresAt = Instant.now().plusSeconds(cycleSeconds(resolvedCycle));
+        sub.changeTier(newTier, resolvedCycle, expiresAt);
         Subscription saved = subscriptionRepository.save(sub);
         domainEventPublisher.publishDomainEvents(saved);
         return saved;
