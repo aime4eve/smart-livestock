@@ -59,7 +59,13 @@ public class CommerceController {
     @PostMapping("/revenue/periods/{id}/confirm")
     public ResponseEntity<ApiResponse<RevenuePeriodResponse>> confirmByPartner(
             @PathVariable Long id) {
-        requireTenantId();
+        Long tenantId = requireTenantId();
+        RevenuePeriodResponse existing = revenueQueryService.findById(id)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "Revenue period not found: " + id));
+        if (!tenantId.equals(existing.getTenantId())) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "无权操作此结算周期");
+        }
         revenueApplicationService.confirmByPartner(id);
         RevenuePeriodResponse period = revenueQueryService.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,

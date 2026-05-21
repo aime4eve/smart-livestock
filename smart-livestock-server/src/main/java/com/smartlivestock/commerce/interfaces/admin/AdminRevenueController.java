@@ -4,6 +4,7 @@ import com.smartlivestock.commerce.application.dto.RevenuePeriodResponse;
 import com.smartlivestock.commerce.application.query.RevenueQueryService;
 import com.smartlivestock.commerce.application.service.RevenueApplicationService;
 import com.smartlivestock.commerce.infrastructure.persistence.SpringDataRevenuePeriodRepository;
+import com.smartlivestock.commerce.application.assembler.RevenuePeriodAssembler;
 import com.smartlivestock.commerce.infrastructure.persistence.mapper.RevenuePeriodMapper;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
@@ -41,24 +42,10 @@ public class AdminRevenueController {
             @RequestParam(defaultValue = "20") int pageSize) {
         requirePlatformAdmin();
 
-        List<RevenuePeriodResponse> all = springDataRevenuePeriodRepository.findAll().stream()
-                .map(RevenuePeriodMapper::toDomain)
-                .map(period -> {
-                    RevenuePeriodResponse dto = new RevenuePeriodResponse();
-                    dto.setId(period.getId());
-                    dto.setContractId(period.getContractId());
-                    dto.setTenantId(period.getTenantId());
-                    dto.setPeriodStart(period.getPeriodStart());
-                    dto.setPeriodEnd(period.getPeriodEnd());
-                    dto.setGrossAmount(period.getGrossAmount());
-                    dto.setPlatformShare(period.getPlatformShare());
-                    dto.setPartnerShare(period.getPartnerShare());
-                    dto.setRevenueShareRatio(period.getRevenueShareRatio());
-                    dto.setStatus(period.getStatus() != null ? period.getStatus().name() : null);
-                    dto.setSettledAt(period.getSettledAt());
-                    return dto;
-                })
-                .toList();
+        List<RevenuePeriodResponse> all = RevenuePeriodAssembler.toResponseList(
+                springDataRevenuePeriodRepository.findAll().stream()
+                        .map(RevenuePeriodMapper::toDomain)
+                        .toList());
 
         Map<String, Object> data = Map.of(
                 "items", all,
