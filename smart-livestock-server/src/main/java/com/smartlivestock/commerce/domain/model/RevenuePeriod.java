@@ -114,6 +114,29 @@ public class RevenuePeriod extends AggregateRoot {
         registerEvent(new RevenueSettledEvent(contractId, tenantId));
     }
 
+    /**
+     * Recalculate amounts for an existing period, resetting to PENDING.
+     * Allowed from any non-SETTLED status.
+     */
+    public void recalculate(int grossAmount, int platformShare, int partnerShare,
+                            BigDecimal revenueShareRatio) {
+        if (this.status == RevenueSettlementStatus.SETTLED) {
+            throw new DomainException(ErrorCode.STATE_CONFLICT,
+                "Cannot recalculate a settled period");
+        }
+        if (platformShare + partnerShare != grossAmount) {
+            throw new DomainException(ErrorCode.VALIDATION_ERROR,
+                "Platform share + partner share must equal gross amount");
+        }
+        this.grossAmount = grossAmount;
+        this.platformShare = platformShare;
+        this.partnerShare = partnerShare;
+        this.revenueShareRatio = revenueShareRatio;
+        this.status = RevenueSettlementStatus.PENDING;
+        this.settledAt = null;
+        registerEvent(new RevenuePeriodCreatedEvent(contractId, tenantId));
+    }
+
     // ── Guards ───────────────────────────────────────────────────────
 
     private void requireStatus(RevenueSettlementStatus expected, String action) {

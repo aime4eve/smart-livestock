@@ -110,6 +110,10 @@ public class SubscriptionApplicationService {
         if ("yearly".equalsIgnoreCase(billingCycle)) {
             return 365L * 86400;
         }
-        return 30L * 86400; // default: monthly
+        if ("monthly".equalsIgnoreCase(billingCycle)) {
+            return 30L * 86400;
+        }
+        throw new DomainException(ErrorCode.INVALID_BILLING_MODEL,
+            "Unsupported billing cycle: " + billingCycle);
     }
 }

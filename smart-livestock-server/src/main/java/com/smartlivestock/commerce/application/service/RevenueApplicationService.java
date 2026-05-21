@@ -94,7 +94,7 @@ public class RevenueApplicationService {
     }
 
     /**
-     * Recalculate a revenue period (re-create with new amounts).
+     * Recalculate a revenue period with new amounts, resetting to PENDING.
      * <p>
      * Validates the contract is ACTIVE before recalculating.
      *
@@ -107,13 +107,10 @@ public class RevenueApplicationService {
         Contract contract = loadAndValidateActiveContract(period.getContractId());
         Contract.RevenueShareResult shares = contract.calculateRevenueShare(grossAmountCents);
 
-        RevenuePeriod replacement = RevenuePeriod.create(
-            period.getContractId(), period.getTenantId(),
-            period.getPeriodStart(), period.getPeriodEnd(),
-            grossAmountCents, shares.platformShare(), shares.partnerShare(),
+        period.recalculate(grossAmountCents, shares.platformShare(), shares.partnerShare(),
             contract.getRevenueShareRatio());
 
-        RevenuePeriod saved = revenuePeriodRepository.save(replacement);
+        RevenuePeriod saved = revenuePeriodRepository.save(period);
         domainEventPublisher.publishDomainEvents(saved);
         return saved;
     }
