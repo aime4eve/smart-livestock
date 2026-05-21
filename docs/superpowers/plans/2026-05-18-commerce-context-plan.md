@@ -637,16 +637,16 @@ git commit -m "feat(commerce): complete Commerce bounded context — all modules
 
 **质量报告**: `docs/superpowers/reviews/2026-05-22-commerce-deployment-quality-report.md`
 
-**验证结果**: 13 个 Task 全部实施完成。编译 ✅、单元测试 ✅、Docker 部署 ✅、Flyway V6 迁移 ✅、API 端点 24/30 正常。
+**验证结果**: 13 个 Task 全部实施完成。编译 ✅、单元测试 ✅、Docker 部署 ✅、Flyway V6 迁移 ✅、API 端点 30/30 全部正常。
 
-**遗留问题（5 个）**:
+**遗留问题（5 个）— 全部已修复**:
 
-| # | 严重度 | 问题 | 涉及 Task |
-|---|--------|------|-----------|
-| 1 | 🔴 P0 | `List.getLast()` Java 21 API 在 Java 17 运行时 `NoSuchMethodError` | Task 10 (AdminRevenueController), IoT (DeviceLicenseApplicationService) |
-| 2 | 🔴 P0 | SubscriptionService `effectiveTier` 大写映射违反 DB CHECK 约束 | Task 5 |
-| 3 | 🔴 P0 | FeatureGate 更新时 `createdAt` 被设为 null | Task 6 |
-| 4 | 🟡 P1 | `PUT /subscription/tier` 必须传 `billingCycle`（Spec 未要求） | Task 11 |
-| 5 | 🟡 P1 | `PUT /admin/contracts/{id}` 未实现（stub 响应） | Task 11 |
+| # | 原严重度 | 问题 | 修复提交 | 验证结果 |
+|---|---------|------|---------|---------|
+| 1 | 🔴 P0 | `List.getLast()` Java 21 API | 0fc4ed7 | ✅ recalculate 正常 |
+| 2 | 🔴 P0 | effectiveTier 大小写映射 | 0fc4ed7 | ✅ 创建返回小写 |
+| 3 | 🔴 P0 | FeatureGate createdAt null | 0fc4ed7 | ✅ 更新成功 |
+| 4 | 🟡 P1 | billingCycle 必传 | 0fc4ed7 | ✅ 可选，继承现有 |
+| 5 | 🟡 P1 | 合同草稿修改 stub | 0fc4ed7 | ✅ 完整实现 |
 
-*Plan version: 2026-05-18 v7 (部署验证完成，5 个遗留问题待修)*
+*Plan version: 2026-05-18 v8 (全部遗留问题已修复，30/30 API 端点验证通过)*
