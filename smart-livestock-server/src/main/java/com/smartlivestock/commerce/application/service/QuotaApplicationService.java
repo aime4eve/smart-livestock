@@ -8,8 +8,10 @@ import com.smartlivestock.commerce.domain.model.SubscriptionTier;
 import com.smartlivestock.commerce.domain.repository.FeatureGateRepository;
 import com.smartlivestock.commerce.domain.repository.SubscriptionRepository;
 import com.smartlivestock.shared.common.DomainException;
+import org.springframework.stereotype.Service;
 import com.smartlivestock.shared.common.ErrorCode;
 
+@Service
 public class QuotaApplicationService implements QuotaCheckService {
 
     private final SubscriptionRepository subscriptionRepository;

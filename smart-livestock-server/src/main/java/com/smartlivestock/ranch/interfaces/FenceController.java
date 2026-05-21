@@ -5,6 +5,7 @@ import com.smartlivestock.ranch.application.command.CreateFenceCommand;
 import com.smartlivestock.ranch.application.command.UpdateFenceCommand;
 import com.smartlivestock.ranch.application.dto.FenceDto;
 import com.smartlivestock.ranch.domain.model.GpsCoordinate;
+import com.smartlivestock.platform.web.QuotaCheck;
 import com.smartlivestock.shared.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -46,6 +47,7 @@ public class FenceController {
      * Create a new fence.
      */
     @PostMapping
+    @QuotaCheck(feature = "fence_management")
     public ResponseEntity<ApiResponse<FenceDto>> createFence(
             @PathVariable Long farmId,
             @RequestBody Map<String, Object> body) {
@@ -107,8 +109,8 @@ public class FenceController {
         List<Map<String, Object>> rawList = (List<Map<String, Object>>) verticesObj;
         return rawList.stream()
                 .map(m -> new GpsCoordinate(
-                        toBigDecimal(m.get("lng")),
-                        toBigDecimal(m.get("lat"))
+                        toBigDecimal(m.get("lat")),
+                        toBigDecimal(m.get("lng"))
                 ))
                 .toList();
     }

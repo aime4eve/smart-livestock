@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface SpringDataFenceRepository extends JpaRepository<FenceJpaEntity, Long> {
     List<FenceJpaEntity> findByFarmId(Long farmId);
+    long countByFarmId(Long farmId);
 }

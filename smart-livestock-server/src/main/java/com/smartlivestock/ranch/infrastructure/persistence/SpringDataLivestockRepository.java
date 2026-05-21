@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface SpringDataLivestockRepository extends JpaRepository<LivestockJpaEntity, Long> {
     List<LivestockJpaEntity> findByFarmId(Long farmId);
     Optional<LivestockJpaEntity> findByLivestockCode(String livestockCode);
+    long countByFarmId(Long farmId);
 }
