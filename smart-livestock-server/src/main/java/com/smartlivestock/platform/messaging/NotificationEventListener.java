@@ -31,8 +31,9 @@ import com.smartlivestock.shared.domain.event.SubscriptionReactivatedEvent;
 import com.smartlivestock.shared.domain.event.SubscriptionSuspendedEvent;
 import com.smartlivestock.shared.domain.event.SubscriptionTierChangedEvent;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * Platform-level notification event listener.
@@ -54,7 +55,7 @@ public class NotificationEventListener {
 
     // ======================== Shared cross-context events (9) ========================
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onSubscriptionCreated(SubscriptionCreatedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "subscription_created",
@@ -62,7 +63,7 @@ public class NotificationEventListener {
                 String.format("租户已创建 %s 级别订阅", event.getTier()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onSubscriptionTierChanged(SubscriptionTierChangedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "subscription_tier_changed",
@@ -70,7 +71,7 @@ public class NotificationEventListener {
                 String.format("订阅等级已从 %s 变更为 %s", event.getOldTier(), event.getNewTier()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onSubscriptionSuspended(SubscriptionSuspendedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "subscription_suspended",
@@ -78,7 +79,7 @@ public class NotificationEventListener {
                 "您的订阅已被暂停，部分功能可能受限");
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onSubscriptionReactivated(SubscriptionReactivatedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "subscription_reactivated",
@@ -86,7 +87,7 @@ public class NotificationEventListener {
                 "您的订阅已恢复，所有功能已重新开放");
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onSubscriptionExpired(SubscriptionExpiredEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "subscription_expired",
@@ -94,7 +95,7 @@ public class NotificationEventListener {
                 "您的订阅已过期，请及时续费以免影响使用");
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onContractSigned(ContractSignedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "contract_signed",
@@ -102,7 +103,7 @@ public class NotificationEventListener {
                 String.format("合同 %s 已成功签署", event.getContractNumber()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onServiceDegraded(ServiceDegradedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "service_degraded",
@@ -110,7 +111,7 @@ public class NotificationEventListener {
                 String.format("服务 %s 已降级，请联系管理员", event.getServiceName()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onServiceQuotaAdjusted(ServiceQuotaAdjustedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "service_quota_adjusted",
@@ -118,7 +119,7 @@ public class NotificationEventListener {
                 String.format("服务 %s 配额已调整为 %d", event.getServiceName(), event.getNewQuota()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onServiceRevoked(ServiceRevokedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "service_revoked",
@@ -128,7 +129,7 @@ public class NotificationEventListener {
 
     // ======================== Internal Commerce events (15) ========================
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onSubscriptionCancelled(SubscriptionCancelledEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "subscription_cancelled",
@@ -136,7 +137,7 @@ public class NotificationEventListener {
                 "您的订阅已被取消");
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onSubscriptionRenewalFailed(SubscriptionRenewalFailedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "subscription_renewal_failed",
@@ -144,7 +145,7 @@ public class NotificationEventListener {
                 "订阅自动续费失败，请检查支付信息或手动续费");
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onContractCreated(ContractCreatedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "contract_created",
@@ -152,7 +153,7 @@ public class NotificationEventListener {
                 String.format("合同 %s 已创建，等待签署", event.getContractNumber()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onContractSuspended(ContractSuspendedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "contract_suspended",
@@ -160,7 +161,7 @@ public class NotificationEventListener {
                 String.format("合同 %s 已暂停", event.getContractNumber()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onContractReactivated(ContractReactivatedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "contract_reactivated",
@@ -168,7 +169,7 @@ public class NotificationEventListener {
                 String.format("合同 %s 已恢复执行", event.getContractNumber()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onContractTerminated(ContractTerminatedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "contract_terminated",
@@ -176,7 +177,7 @@ public class NotificationEventListener {
                 String.format("合同 %s 已终止", event.getContractNumber()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onContractExpired(ContractExpiredEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "contract_expired",
@@ -184,7 +185,7 @@ public class NotificationEventListener {
                 String.format("合同 %s 已到期", event.getContractNumber()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onRevenuePeriodCreated(RevenuePeriodCreatedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "revenue_period_created",
@@ -192,7 +193,7 @@ public class NotificationEventListener {
                 String.format("合同 %d 的新分润账期已创建", event.getContractId()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onRevenuePlatformConfirmed(RevenuePlatformConfirmedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "revenue_platform_confirmed",
@@ -200,7 +201,7 @@ public class NotificationEventListener {
                 String.format("合同 %d 的分润账期已由平台确认", event.getContractId()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onRevenuePartnerConfirmed(RevenuePartnerConfirmedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "revenue_partner_confirmed",
@@ -208,7 +209,7 @@ public class NotificationEventListener {
                 String.format("合同 %d 的分润账期已由合作方确认", event.getContractId()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onRevenueSettled(RevenueSettledEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "revenue_settled",
@@ -216,7 +217,7 @@ public class NotificationEventListener {
                 String.format("合同 %d 的分润已结算完成", event.getContractId()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onServiceProvisioned(ServiceProvisionedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "service_provisioned",
@@ -224,7 +225,7 @@ public class NotificationEventListener {
                 String.format("服务 %s 已开通配置", event.getServiceName()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onServiceActivated(ServiceActivatedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "service_activated",
@@ -232,7 +233,7 @@ public class NotificationEventListener {
                 String.format("服务 %s 已激活可用", event.getServiceName()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onServiceHeartbeatLost(ServiceHeartbeatLostEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "service_heartbeat_lost",
@@ -240,7 +241,7 @@ public class NotificationEventListener {
                 String.format("服务 %s 心跳丢失，请检查设备状态", event.getServiceName()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onServiceHeartbeatRecovered(ServiceHeartbeatRecoveredEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "service_heartbeat_recovered",
@@ -250,7 +251,7 @@ public class NotificationEventListener {
 
     // ======================== Non-Commerce events (6) ========================
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onTenantPhaseChanged(TenantPhaseChangedEvent event) {
         notificationService.createNotification(
                 event.getTenantId(), null, "tenant_phase_changed",
@@ -258,7 +259,7 @@ public class NotificationEventListener {
                 String.format("租户阶段已变更为 %s", event.getNewPhase()));
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onDeviceActivated(DeviceActivatedEvent event) {
         // Device events lack tenantId — defer notification to context layer
         // which can resolve device → installation → tenant
@@ -266,27 +267,27 @@ public class NotificationEventListener {
                 event.getDeviceId());
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onGpsLogUpdated(GpsLogUpdatedEvent event) {
         // GPS log updates are high-frequency — skip notification generation to avoid noise
         log.trace("GpsLogUpdated event received for device [{}] — skipped for notification", event.getDeviceId());
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onLicenseExpired(LicenseExpiredEvent event) {
         // License events lack tenantId — defer to context layer
         log.debug("LicenseExpired event received for license [{}] — tenant-scoped notification deferred to context layer",
                 event.getLicenseId());
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onAlertStatusChanged(AlertStatusChangedEvent event) {
         // Alert events lack tenantId — defer to context layer
         log.debug("AlertStatusChanged event received for alert [{}] to [{}] — notification deferred to context layer",
                 event.getAlertId(), event.getNewStatus());
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onFenceBreachDetected(FenceBreachDetectedEvent event) {
         // Fence breach events lack tenantId — defer to context layer
         log.debug("FenceBreachDetected event received for livestock [{}] at fence [{}] — notification deferred to context layer",

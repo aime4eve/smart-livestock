@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface NotificationRepository extends JpaRepository<NotificationJpaEntity, Long> {
+public interface SpringDataNotificationRepository extends JpaRepository<NotificationJpaEntity, Long> {
 
     List<NotificationJpaEntity> findByTenantIdAndIsReadFalseOrderByCreatedAtDesc(Long tenantId);
 

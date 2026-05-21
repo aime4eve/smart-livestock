@@ -31,7 +31,7 @@ public class NotificationJpaEntity {
     @Column(name = "title", nullable = false, length = 200)
     private String title;
 
-    @Column(name = "content")
+    @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "is_read", nullable = false)
@@ -48,9 +48,6 @@ public class NotificationJpaEntity {
         Instant now = Instant.now();
         this.createdAt = now;
         this.updatedAt = now;
-        if (this.isRead == null) {
-            this.isRead = false;
-        }
     }
 
     @PreUpdate

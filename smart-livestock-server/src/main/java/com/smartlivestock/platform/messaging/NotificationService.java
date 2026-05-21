@@ -8,9 +8,9 @@ import java.util.List;
 @Service
 public class NotificationService {
 
-    private final NotificationRepository notificationRepository;
+    private final SpringDataNotificationRepository notificationRepository;
 
-    public NotificationService(NotificationRepository notificationRepository) {
+    public NotificationService(SpringDataNotificationRepository notificationRepository) {
         this.notificationRepository = notificationRepository;
     }
 
