@@ -1,0 +1,316 @@
+{
+  "nodes": [
+    {
+      "id": "file:Mobile/mobile_app/test/api_cache_role_scope_test.dart",
+      "type": "file",
+      "name": "api_cache_role_scope_test.dart",
+      "filePath": "Mobile/mobile_app/test/api_cache_role_scope_test.dart",
+      "summary": "测试 ApiCache 按角色分区加载端点的行为，验证 owner/worker/b2b_admin 各自请求不同的 API 路径集合，以及并发初始化竞态下旧请求不覆盖新缓存。",
+      "tags": ["test", "api-cache", "角色权限", "并发竞态"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:Mobile/mobile_app/test/api_cache_role_scope_test.dart:_RecordingApiHttpClient._data",
+      "type": "function",
+      "name": "_data",
+      "filePath": "Mobile/mobile_app/test/api_cache_role_scope_test.dart",
+      "lineRange": [156, 211],
+      "summary": "根据请求路径返回模拟 API 响应数据，覆盖农场作用域端点、B2B 控制台端点、租户管理端点等全部路由模式。",
+      "tags": ["test", "mock数据", "api路由"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/mobile_app/test/api_cache_role_scope_test.dart:_RacingApiHttpClient.get",
+      "type": "function",
+      "name": "get",
+      "filePath": "Mobile/mobile_app/test/api_cache_role_scope_test.dart",
+      "lineRange": [227, 238],
+      "summary": "模拟竞态条件：owner token 请求被阻塞直到显式释放后抛异常，其他请求正常返回。",
+      "tags": ["test", "并发测试", "mock客户端"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/api_live_contract_test.dart",
+      "type": "file",
+      "name": "api_live_contract_test.dart",
+      "filePath": "Mobile/mobile_app/test/api_live_contract_test.dart",
+      "summary": "验证 ApiCache live 模式下 v1 端点请求、JWT token 传递、角色认证失败回退、以及核心 Live Repository 在未初始化时不静默回退 mock 数据。",
+      "tags": ["test", "api-cache", "live模式", "认证回退"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/test/api_live_contract_test.dart:RecordingApiHttpClient",
+      "type": "class",
+      "name": "RecordingApiHttpClient",
+      "filePath": "Mobile/mobile_app/test/api_live_contract_test.dart",
+      "lineRange": [16, 144],
+      "summary": "记录所有 GET/POST 请求的 URI 和认证头，按路径模式返回模拟响应数据的 ApiHttpClient 实现。",
+      "tags": ["test", "mock客户端", "api契约"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/test/api_live_contract_test.dart:FailingApiHttpClient",
+      "type": "class",
+      "name": "FailingApiHttpClient",
+      "filePath": "Mobile/mobile_app/test/api_live_contract_test.dart",
+      "lineRange": [146, 174],
+      "summary": "所有 HTTP 方法均抛异常的 ApiHttpClient 实现，用于模拟网络故障场景。",
+      "tags": ["test", "mock客户端", "故障模拟"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/app_architecture_test.dart",
+      "type": "file",
+      "name": "app_architecture_test.dart",
+      "filePath": "Mobile/mobile_app/test/app_architecture_test.dart",
+      "summary": "验证 DemoApp 使用 MaterialApp.router 声明式路由和根节点 ProviderScope 提供统一状态容器。",
+      "tags": ["test", "架构约束", "路由"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/app_mode_switch_test.dart",
+      "type": "file",
+      "name": "app_mode_switch_test.dart",
+      "filePath": "Mobile/mobile_app/test/app_mode_switch_test.dart",
+      "summary": "验证 AppMode.live 下 Dashboard 和 Fence 仓储 provider 自动切换到 Live 实现类。",
+      "tags": ["test", "模式切换", "provider覆盖"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/app_session_test.dart",
+      "type": "file",
+      "name": "app_session_test.dart",
+      "filePath": "Mobile/mobile_app/test/app_session_test.dart",
+      "summary": "测试 AppSession copyWith 更新活跃牧场时保留 token，以及 SessionController 切换牧场时保持登录状态完整。",
+      "tags": ["test", "会话管理", "状态保持"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/core/map/coord_transform_test.dart",
+      "type": "file",
+      "name": "coord_transform_test.dart",
+      "filePath": "Mobile/mobile_app/test/core/map/coord_transform_test.dart",
+      "summary": "测试 WGS-84 到 GCJ-02 坐标转换的往返精度（小于 0.5m）、迭代收敛精度（小于 0.1m）、海外坐标不变性以及批量转换。",
+      "tags": ["test", "坐标转换", "地图"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/mobile_app/test/core/map/coord_transform_test.dart:_haversine",
+      "type": "function",
+      "name": "_haversine",
+      "filePath": "Mobile/mobile_app/test/core/map/coord_transform_test.dart",
+      "lineRange": [56, 65],
+      "summary": "使用 Haversine 公式计算两个 LatLng 坐标之间的球面距离（米），用于验证坐标转换精度。",
+      "tags": ["test", "地理计算", "工具函数"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/core/map/smart_tile_provider_test.dart",
+      "type": "file",
+      "name": "smart_tile_provider_test.dart",
+      "filePath": "Mobile/mobile_app/test/core/map/smart_tile_provider_test.dart",
+      "summary": "测试 SmartTileProvider 的三级降级逻辑：自建瓦片可用时返回 WGS-84、GCJ-02 降级时标记需坐标转换、以及各降级层的 getImage 行为。",
+      "tags": ["test", "瓦片降级", "地图"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/core/subscription_tier_test.dart",
+      "type": "file",
+      "name": "subscription_tier_test.dart",
+      "filePath": "Mobile/mobile_app/test/core/subscription_tier_test.dart",
+      "summary": "全面测试订阅层级系统：4 个 tier 枚举值、每个 tier 的元数据（名称/价格/限额）、20 个 feature flag 的形状和唯一性、以及 checkTierAccess 权限判断逻辑。",
+      "tags": ["test", "订阅层级", "功能门控"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/farm_switcher_controller_test.dart",
+      "type": "file",
+      "name": "farm_switcher_controller_test.dart",
+      "filePath": "Mobile/mobile_app/test/farm_switcher_controller_test.dart",
+      "summary": "测试牧场切换器控制器：mock 模式下切换农场并同步 session、忽略无效农场 ID、live 模式从 ApiCache 读取农场列表。",
+      "tags": ["test", "牧场切换", "session同步"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/b2b_admin/b2b_pages_test.dart",
+      "type": "file",
+      "name": "b2b_pages_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/b2b_admin/b2b_pages_test.dart",
+      "summary": "B端管理后台三个页面的 Widget 测试：控制台概览指标、旗下牧场列表（含新建对话框和空状态）、合同信息详情（含到期提醒和空状态）。",
+      "tags": ["test", "b2b后台", "widget测试"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/farm_switcher/farm_switcher_test.dart",
+      "type": "file",
+      "name": "farm_switcher_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/farm_switcher/farm_switcher_test.dart",
+      "summary": "牧场切换器 Widget 集成测试：验证 owner/worker 登录后显示切换器、非 farm 角色不显示、live 模式空农场引导、以及切换操作触发 controller。",
+      "tags": ["test", "牧场切换", "widget集成测试"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/fence/fence_analytics_event_test.dart",
+      "type": "file",
+      "name": "fence_analytics_event_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/fence/fence_analytics_event_test.dart",
+      "summary": "测试围栏编辑操作的分析事件记录：进入编辑记录 fence_edit_enter、保存记录 fence_edit_save、取消记录 fence_edit_cancel，无编辑会话时不记录事件。",
+      "tags": ["test", "围栏编辑", "埋点事件"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/fence/fence_controller_edit_session_test.dart",
+      "type": "file",
+      "name": "fence_controller_edit_session_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/fence/fence_controller_edit_session_test.dart",
+      "summary": "测试围栏控制器编辑会话全生命周期：startEditing 设置选中状态、moveDraftVertex 不污染原始点、insert/remove/translate 操作、undo/redo 栈、最少 3 点约束、以及删除和重载时清理编辑状态。",
+      "tags": ["test", "围栏编辑", "会话管理", "undo/redo"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/fence/fence_controller_save_guard_test.dart",
+      "type": "file",
+      "name": "fence_controller_save_guard_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/fence/fence_controller_save_guard_test.dart",
+      "summary": "测试围栏保存守卫：validateDraftGeometry 校验最少 3 点、无连续重复点、非零面积、无自交，以及 saveEditingIfCurrent 通过 sessionInstanceId 保证幂等。",
+      "tags": ["test", "围栏保存", "几何校验", "幂等性"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/fence/fence_edit_operations_test.dart",
+      "type": "file",
+      "name": "fence_edit_operations_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/fence/fence_edit_operations_test.dart",
+      "summary": "测试 FenceEditOperations 的纯函数：insertVertex 在指定边后插入点、removeVertex 删除点（最少保留 3 点）、translate 整体平移、以及 FenceEditSession 的不可变性和 hasChanges 判断。",
+      "tags": ["test", "围栏编辑", "纯函数", "几何操作"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/fence/fence_edit_ui_test.dart",
+      "type": "file",
+      "name": "fence_edit_ui_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/fence/fence_edit_ui_test.dart",
+      "summary": "围栏编辑态 UI 测试：进入编辑后显示迷你标题条和四种工具按钮、撤销/重做初始禁用、编辑态地图可见且无遮挡。",
+      "tags": ["test", "围栏编辑", "ui测试"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/fence/fence_hit_detection_test.dart",
+      "type": "file",
+      "name": "fence_hit_detection_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/fence/fence_hit_detection_test.dart",
+      "summary": "测试两级优先级围栏命中检测：distanceToSegment 点到线段距离、nearestDistanceToPolygonBoundary 最近边界距离、detectFenceHits 的 Tier 1（内部命中优先于边界命中）、同级别按面积/距离排序。",
+      "tags": ["test", "命中检测", "几何算法"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/fence/fence_live_conflict_feedback_test.dart",
+      "type": "file",
+      "name": "fence_live_conflict_feedback_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/fence/fence_live_conflict_feedback_test.dart",
+      "summary": "测试 live 模式围栏编辑保存冲突反馈：HTTP 409 时停留在编辑态并显示冲突提示，状态码到错误消息的映射覆盖 409/422/default。",
+      "tags": ["test", "围栏保存", "冲突反馈"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/fence/fence_map_name_labels_test.dart",
+      "type": "file",
+      "name": "fence_map_name_labels_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/fence/fence_map_name_labels_test.dart",
+      "summary": "验证浏览态地图上显示所有围栏名称标签（放牧A区、放牧B区）。",
+      "tags": ["test", "围栏地图", "标签显示"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/fence/fence_map_tap_highlight_test.dart",
+      "type": "file",
+      "name": "fence_map_tap_highlight_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/fence/fence_map_tap_highlight_test.dart",
+      "summary": "测试围栏地图点击高亮：选中围栏有呼吸动画高亮（更高透明度和边框宽度）、切换选中后前一个恢复正常、无选中时统一默认透明度。",
+      "tags": ["test", "围栏地图", "高亮动画"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/fence/fence_page_mode_switch_test.dart",
+      "type": "file",
+      "name": "fence_page_mode_switch_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/fence/fence_page_mode_switch_test.dart",
+      "summary": "围栏页面浏览/编辑模式切换集成测试：未选中时编辑提示、侧栏直接进入编辑、编辑态退出恢复列表、未保存改动三选确认对话框（保存/放弃/继续编辑）、系统返回键拦截、非法几何保存拦截、最少 3 点约束提示。",
+      "tags": ["test", "围栏编辑", "模式切换", "集成测试"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/fence/fence_polygon_contains_test.dart",
+      "type": "file",
+      "name": "fence_polygon_contains_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/fence/fence_polygon_contains_test.dart",
+      "summary": "测试射线法多边形包含检测 fencePolygonContainsLatLng：点在多边形内返回 true、外部返回 false、顶点少于 3 个返回 false。",
+      "tags": ["test", "多边形包含", "几何算法"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/fence/fence_template_picker_test.dart",
+      "type": "file",
+      "name": "fence_template_picker_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/fence/fence_template_picker_test.dart",
+      "summary": "测试围栏模板选择器：三个模板入口（矩形/圆形/轨迹缓冲区）、圆形模板驱动 FenceType.circle 和初始双点几何、轨迹缓冲区生成有效非退化多边形。",
+      "tags": ["test", "围栏模板", "创建围栏"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/subscription/locked_overlay_test.dart",
+      "type": "file",
+      "name": "locked_overlay_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/subscription/locked_overlay_test.dart",
+      "summary": "测试 LockedOverlay 组件：未锁定时显示子组件、锁定时显示升级覆盖层（半透明 0.35）、设备锁定时显示设备图标和自定义消息、企业版标签正确渲染。",
+      "tags": ["test", "功能门控", "锁定覆盖层"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/subscription/subscription_controller_test.dart",
+      "type": "file",
+      "name": "subscription_controller_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/subscription/subscription_controller_test.dart",
+      "summary": "测试订阅控制器：mock 模式默认返回 trial 状态、checkout 切换 tier 和计费、cancel 取消订阅、renew 续期更新牲畜数量和到期日、plans 和 features provider 返回正确数量。",
+      "tags": ["test", "订阅管理", "controller测试"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:Mobile/mobile_app/test/api_cache_role_scope_test.dart",
+      "target": "function:Mobile/mobile_app/test/api_cache_role_scope_test.dart:_RecordingApiHttpClient._data",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/test/api_cache_role_scope_test.dart",
+      "target": "function:Mobile/mobile_app/test/api_cache_role_scope_test.dart:_RacingApiHttpClient.get",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/test/api_live_contract_test.dart",
+      "target": "class:Mobile/mobile_app/test/api_live_contract_test.dart:RecordingApiHttpClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/test/api_live_contract_test.dart",
+      "target": "class:Mobile/mobile_app/test/api_live_contract_test.dart:FailingApiHttpClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/test/core/map/coord_transform_test.dart",
+      "target": "function:Mobile/mobile_app/test/core/map/coord_transform_test.dart:_haversine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    }
+  ]
+}

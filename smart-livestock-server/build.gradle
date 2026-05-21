@@ -5,7 +5,20 @@ plugins {
 }
 
 group = 'com.smartlivestock'
-version = '0.1.0-SNAPSHOT'
+
+def buildNumberFile = file('build.number')
+def buildNumber = buildNumberFile.exists() ? buildNumberFile.text.trim().toInteger() : 1
+version = "0.1.0-b${buildNumber}"
+
+// Auto-increment build number after jar tasks complete
+tasks.named('bootJar') {
+    doLast {
+        buildNumber += 1
+        buildNumberFile.text = "${buildNumber}\n"
+        logger.lifecycle("Build version: 0.1.0-b${buildNumber}")
+    }
+}
+
 sourceCompatibility = '17'
 
 repositories {

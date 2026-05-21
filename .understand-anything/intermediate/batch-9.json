@@ -1,0 +1,352 @@
+{
+  "nodes": [
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-04-20-tenant-management-design.md",
+      "type": "document",
+      "name": "tenant-management-design.md",
+      "filePath": "Mobile/docs/superpowers/specs/2026-04-20-tenant-management-design.md",
+      "summary": "租户管理模块设计规格修订版，涵盖路由设计、状态管理（Riverpod Notifier + ViewData 同步模式）、数据模型分阶段定义（Phase 1 对齐后端字段 / Phase 2 扩展）、API 端点设计（已实现与待补齐）、列表/详情/编辑页面交互、ApiCache 集成及实施优先级。共 34 个章节。",
+      "tags": ["documentation", "租户管理", "设计规格", "riverpod", "api-design"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-04-24-subscription-service-design(B2C).md",
+      "type": "document",
+      "name": "subscription-service-design(B2C).md",
+      "filePath": "Mobile/docs/superpowers/specs/2026-04-24-subscription-service-design(B2C).md",
+      "summary": "SaaS 订阅服务完整设计规格，定义四层订阅（基础/标准/高级/企业）+ 混合计费模型。涵盖 Feature Flag 清单（23 项）、Shaping 中间件四种策略、LockedOverlay 统一组件、两层权限体系（角色 + 订阅 tier）、路由守卫扩展、ApiCache 集成、Mock 支付/续费/升降级/试用/取消流程及前后端测试策略。含 2026-04-28 勘误表，部分条目已被统一商业模型规格覆盖。",
+      "tags": ["documentation", "订阅服务", "saas", "feature-flag", "计费模型"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-04-26-api-version-auth-migration-design.md",
+      "type": "document",
+      "name": "api-version-auth-migration-design.md",
+      "filePath": "Mobile/docs/superpowers/specs/2026-04-26-api-version-auth-migration-design.md",
+      "summary": "API 版本与认证迁移设计，规划从 Mock Server 到 Spring Boot 后端的渐进式迁移路径。定义双前缀路由注册（/api + /api/v1）、JWT 优先 + mock-token 兜底的认证链、功能开关灰度、兼容契约策略（字段演进规则、response_adapter、兼容债台账）、前端协作策略（APP_MODE 切换、禁止硬编码）、四阶段里程碑及可观测指标。",
+      "tags": ["documentation", "api-migration", "jwt", "认证链", "兼容策略"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-04-28-unified-business-model-design.md",
+      "type": "document",
+      "name": "unified-business-model-design.md",
+      "filePath": "Mobile/docs/superpowers/specs/2026-04-28-unified-business-model-design.md",
+      "summary": "统一商业模型设计规格，整合 B2C/B2B2C/B2B2B 三种商业模式。核心定义包括 tenant 三种类型（individual/enterprise/api_consumer）、5 种角色权限矩阵、三层计费结构（设备月费 + 订阅 Tier + API 增值）、双门控机制（Tier + 设备依赖）、开放平台 API 端点清单及三阶段落地路径。",
+      "tags": ["documentation", "商业模型", "计费", "角色权限", "开放平台"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-04-29-unified-business-model-phase2a-design.md",
+      "type": "document",
+      "name": "unified-business-model-phase2a-design.md",
+      "filePath": "Mobile/docs/superpowers/specs/2026-04-29-unified-business-model-phase2a-design.md",
+      "summary": "统一商业模型 Phase 2a 实施规格，聚焦三大交付：技术债清理（ops → platform_admin 改名、applyMockShaping 接通、ownerId 唯一约束）、多 Farm 支持（owner 多牧场切换 + worker 多牧场分配）、B端管理后台（b2b_admin 导航结构、用量看板、旗下 farm 管理、合同信息展示）。含 seed 数据扩展和文件结构预估。",
+      "tags": ["documentation", "phase2a", "多牧场", "b2b管理", "技术债"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-05-02-unified-business-model-phase2b-design.md",
+      "type": "document",
+      "name": "unified-business-model-phase2b-design.md",
+      "filePath": "Mobile/docs/superpowers/specs/2026-05-02-unified-business-model-phase2b-design.md",
+      "summary": "统一商业模型 Phase 2b 详细实施规格，涵盖 7 大模块：分润引擎 + 对账看板（revenueStore、并发确认策略）、订阅服务管理（生命周期、心跳端点限流）、合同 CRUD（ContractStore 扩展）、b2b_admin 旗下 worker 管理、Phase 2 专用字段落地（tenant 模型补全）、Store 真实化（apiKeyStore、apiTierStore 设计）、Open API 端点（Shaping 分叉、API Key 认证、Rate Limit）。附录含开发者门户（Vue 3 SPA）和 API 数据访问授权审批流程设计。共 70 个章节。",
+      "tags": ["documentation", "phase2b", "分润引擎", "open-api", "订阅服务"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-05-03-b2b-admin-ux-optimization-design.md",
+      "type": "document",
+      "name": "b2b-admin-ux-optimization-design.md",
+      "filePath": "Mobile/docs/superpowers/specs/2026-05-03-b2b-admin-ux-optimization-design.md",
+      "summary": "b2b_admin 角色 UX 优化设计规格，详细定义概览页（B2bDashboardPage 主卡片 + 告警提醒 + 快捷入口 + 牧场列表）、对账模块（列表页分页 + 详情页确认流程 + 并发策略）、合同详情页（条款区 + 订阅服务状态区块 + 到期提醒）、牧工管理模块（牧场列表 + 工人详情 + 操作流程）及共用交互规范（二次确认、SnackBar、Loading）。",
+      "tags": ["documentation", "b2b-admin", "ux设计", "对账", "合同"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-05-04-developer-portal-completion-design.md",
+      "type": "document",
+      "name": "developer-portal-completion-design.md",
+      "filePath": "Mobile/docs/superpowers/specs/2026-05-04-developer-portal-completion-design.md",
+      "summary": "开发者门户补全设计，定义后端变更（apiKeyRoutes 新建、apiAuthorizationRoutes 扩展、store approve 方法扩展）和前端变更（UsageChart 组件、apiKeys/authorizations/endpoints stores、视图重构、Vite proxy 配置）。含测试策略和验收标准。",
+      "tags": ["documentation", "开发者门户", "api-key", "vue3", "补全设计"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-05-04-free-tier-clarification-design.md",
+      "type": "document",
+      "name": "free-tier-clarification-design.md",
+      "filePath": "Mobile/docs/superpowers/specs/2026-05-04-free-tier-clarification-design.md",
+      "summary": "Free Tier 定义澄清设计，明确 Free Tier 仅面向 API 开发者（api_consumer），由 apiTierStore 的 tier 字段控制，不新增 subscription 层级。定义两条激活路径：API 开发者试用和 Enterprise 订阅增值权益。含种子数据变更（新增 tenant_a002、tenant_008、apiTierStore 记录、apiKeyStore seed Key）和规格/代码变更清单。",
+      "tags": ["documentation", "free-tier", "api-consumer", "种子数据", "定价策略"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/templates/execute-plan-with-issue.md",
+      "type": "document",
+      "name": "execute-plan-with-issue.md",
+      "filePath": "Mobile/docs/superpowers/templates/execute-plan-with-issue.md",
+      "summary": "执行计划与 GitHub Issue 同步的提示词模板，配合 superpowers:subagent-driven-development skill 使用。定义计划文件路径和 Issue 编号的占位符替换规则，含实际示例、设计说明（相比原始提示词的优化点）以及适用/不适用场景。",
+      "tags": ["documentation", "模板", "issue-sync", "工作流"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/templates/plan-writing-checklist.md",
+      "type": "document",
+      "name": "plan-writing-checklist.md",
+      "filePath": "Mobile/docs/superpowers/templates/plan-writing-checklist.md",
+      "summary": "Plan 文档写作规范，规定从上到下的文档结构（标题→背景→目标→结构→任务→横切关注点→测试→文件清单）、写作检查清单（结构完整性、任务粒度、代码完整性、TDD 模式、Issue 同步、可执行性）和本项目特定约定。含反模式示例。",
+      "tags": ["documentation", "写作规范", "checklist", "plan"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/templates/prompt-templates.md",
+      "type": "document",
+      "name": "prompt-templates.md",
+      "filePath": "Mobile/docs/superpowers/templates/prompt-templates.md",
+      "summary": "项目全生命周期提示词模板集（9 个），覆盖从需求到验收的完整流程：头脑风暴→设计规格→实施计划→创建 Issues→执行计划+Issue 同步→单 Issue 快速处理→系统化调试→完成分支→Code Review→完成前验证。含快速参考（占位符说明、skill 触发条件、Plan 文档必备要素）。",
+      "tags": ["documentation", "提示词模板", "claude-code", "工作流"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/todolist-2026-04-27.md",
+      "type": "document",
+      "name": "todolist-2026-04-27.md",
+      "filePath": "Mobile/docs/superpowers/todolist-2026-04-27.md",
+      "summary": "Mobile 端未完成任务清单（2026-04-27 整理），对照设计文档与实际代码确认完成状态。已完成 17 项（围栏 CRUD/编辑 UX、订阅基础设施、多牧场切换、B端后台等），未完成 1 项（生产环境可观测性待后端迁移），远景功能 3 项（无人机巡检、LoRaWAN 网关、历史轨迹回放）。含推荐执行顺序。",
+      "tags": ["documentation", "任务清单", "进度跟踪", "技术债"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/.metadata",
+      "type": "file",
+      "name": ".metadata",
+      "filePath": "Mobile/mobile_app/.metadata",
+      "summary": "Flutter 项目元数据文件，记录 Flutter SDK 版本（stable channel，revision 2c9eb207）、项目类型（app）及 Android 平台迁移信息。由 Flutter 工具自动维护，不应手动编辑。",
+      "tags": ["flutter", "元数据", "项目配置"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:Mobile/mobile_app/analysis_options.yaml",
+      "type": "config",
+      "name": "analysis_options.yaml",
+      "filePath": "Mobile/mobile_app/analysis_options.yaml",
+      "summary": "Dart 静态分析配置文件，引入 flutter_lints 推荐规则集。lint 规则保持默认（avoid_print 和 prefer_single_quotes 未启用），控制 flutter analyze 的检查行为。",
+      "tags": ["configuration", "dart", "lint", "代码质量"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:Mobile/mobile_app/android/app/build.gradle.kts",
+      "type": "config",
+      "name": "build.gradle.kts (app)",
+      "filePath": "Mobile/mobile_app/android/app/build.gradle.kts",
+      "summary": "Flutter Android 应用模块的 Gradle 构建配置（Kotlin DSL）。配置应用 ID（com.example.smart_livestock_demo）、Java 17 兼容性、Flutter SDK 版本参数（compileSdk/minSdk/targetSdk/versionCode/versionName），release 构建使用 debug 签名。",
+      "tags": ["configuration", "android", "gradle", "构建配置"],
+      "complexity": "simple",
+      "languageNotes": "使用 Kotlin DSL (.kts) 编写 Gradle 脚本，通过 flutter.compileSdkVersion 等扩展属性从 Flutter 工具获取版本参数。"
+    },
+    {
+      "id": "config:Mobile/mobile_app/android/app/src/debug/AndroidManifest.xml",
+      "type": "config",
+      "name": "AndroidManifest.xml (debug)",
+      "filePath": "Mobile/mobile_app/android/app/src/debug/AndroidManifest.xml",
+      "summary": "Debug 构建 Android Manifest，为调试模式配置特定权限和属性覆盖。",
+      "tags": ["configuration", "android", "manifest", "debug"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:Mobile/mobile_app/android/app/src/main/AndroidManifest.xml",
+      "type": "config",
+      "name": "AndroidManifest.xml (main)",
+      "filePath": "Mobile/mobile_app/android/app/src/main/AndroidManifest.xml",
+      "summary": "主 Android Manifest 文件，定义应用入口 Activity（MainActivity），配置 singleTop 启动模式、NormalTheme 主题、硬件加速、PROCESS_TEXT 查询意图和 Flutter embedding v2 元数据。",
+      "tags": ["configuration", "android", "manifest", "应用入口"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/android/app/src/main/kotlin/com/example/smart_livestock_demo/MainActivity.kt",
+      "type": "file",
+      "name": "MainActivity.kt",
+      "filePath": "Mobile/mobile_app/android/app/src/main/kotlin/com/example/smart_livestock_demo/MainActivity.kt",
+      "summary": "Android 端 Flutter 入口 Activity，继承 FlutterActivity，将应用执行委托给 Flutter 引擎。这是 Android 原生层与 Flutter UI 的桥接点。",
+      "tags": ["entry-point", "android", "flutter", "kotlin"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:Mobile/mobile_app/android/app/src/main/res/drawable-v21/launch_background.xml",
+      "type": "config",
+      "name": "launch_background.xml (v21)",
+      "filePath": "Mobile/mobile_app/android/app/src/main/res/drawable-v21/launch_background.xml",
+      "summary": "API 21+ 启动画面背景 Drawable，白色底色，预留居中图片位（已注释）。用于 Android 5.0+ 设备的启动画面。",
+      "tags": ["configuration", "android", "启动画面", "drawable"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:Mobile/mobile_app/android/app/src/main/res/drawable/launch_background.xml",
+      "type": "config",
+      "name": "launch_background.xml",
+      "filePath": "Mobile/mobile_app/android/app/src/main/res/drawable/launch_background.xml",
+      "summary": "默认启动画面背景 Drawable，白色底色，预留居中图片位（已注释）。适用于 API 21 以下设备。",
+      "tags": ["configuration", "android", "启动画面", "drawable"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:Mobile/mobile_app/android/app/src/main/res/values-night/styles.xml",
+      "type": "config",
+      "name": "styles.xml (night)",
+      "filePath": "Mobile/mobile_app/android/app/src/main/res/values-night/styles.xml",
+      "summary": "深色模式下的 Android 窗口主题定义。LaunchTheme 使用 launch_background 作为窗口背景，NormalTheme 使用系统默认背景色。",
+      "tags": ["configuration", "android", "主题", "深色模式"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:Mobile/mobile_app/android/app/src/main/res/values/styles.xml",
+      "type": "config",
+      "name": "styles.xml",
+      "filePath": "Mobile/mobile_app/android/app/src/main/res/values/styles.xml",
+      "summary": "亮色模式下的 Android 窗口主题定义。LaunchTheme 继承 Theme.Light.NoTitleBar 并设置 launch_background 为窗口背景，NormalTheme 使用系统 colorBackground。",
+      "tags": ["configuration", "android", "主题", "亮色模式"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:Mobile/mobile_app/android/app/src/profile/AndroidManifest.xml",
+      "type": "config",
+      "name": "AndroidManifest.xml (profile)",
+      "filePath": "Mobile/mobile_app/android/app/src/profile/AndroidManifest.xml",
+      "summary": "Profile 构建 Android Manifest，为 profile 模式配置特定权限和属性覆盖。",
+      "tags": ["configuration", "android", "manifest", "profile"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:Mobile/mobile_app/android/build.gradle.kts",
+      "type": "config",
+      "name": "build.gradle.kts (root)",
+      "filePath": "Mobile/mobile_app/android/build.gradle.kts",
+      "summary": "Android 项目根级 Gradle 构建配置（Kotlin DSL）。配置全局仓库（google + mavenCentral）、自定义构建输出目录（重定向到 ../../build）、子项目依赖评估顺序及 clean 任务注册。",
+      "tags": ["configuration", "android", "gradle", "构建系统"],
+      "complexity": "simple",
+      "languageNotes": "通过 rootProject.layout.buildDirectory.dir() 将构建输出重定向到项目根目录的 build/ 文件夹，避免在 android/ 目录下生成构建产物。"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-04-20-tenant-management-design.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-04-28-unified-business-model-design.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-04-24-subscription-service-design(B2C).md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-04-28-unified-business-model-design.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-04-26-api-version-auth-migration-design.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-04-24-subscription-service-design(B2C).md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-04-28-unified-business-model-design.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-04-29-unified-business-model-phase2a-design.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-04-29-unified-business-model-phase2a-design.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-05-02-unified-business-model-phase2b-design.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-05-02-unified-business-model-phase2b-design.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-05-03-b2b-admin-ux-optimization-design.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-05-04-free-tier-clarification-design.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-05-02-unified-business-model-phase2b-design.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-05-04-developer-portal-completion-design.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-05-02-unified-business-model-phase2b-design.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/templates/prompt-templates.md",
+      "target": "document:Mobile/docs/superpowers/templates/execute-plan-with-issue.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/templates/prompt-templates.md",
+      "target": "document:Mobile/docs/superpowers/templates/plan-writing-checklist.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/todolist-2026-04-27.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-04-24-subscription-service-design(B2C).md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:Mobile/mobile_app/analysis_options.yaml",
+      "target": "file:Mobile/mobile_app/.metadata",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:Mobile/mobile_app/android/app/build.gradle.kts",
+      "target": "file:Mobile/mobile_app/android/app/src/main/kotlin/com/example/smart_livestock_demo/MainActivity.kt",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:Mobile/mobile_app/android/app/src/main/AndroidManifest.xml",
+      "target": "file:Mobile/mobile_app/android/app/src/main/kotlin/com/example/smart_livestock_demo/MainActivity.kt",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:Mobile/mobile_app/android/app/src/main/res/values/styles.xml",
+      "target": "config:Mobile/mobile_app/android/app/src/main/res/drawable/launch_background.xml",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:Mobile/mobile_app/android/app/src/main/res/values-night/styles.xml",
+      "target": "config:Mobile/mobile_app/android/app/src/main/res/drawable-v21/launch_background.xml",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:Mobile/mobile_app/android/build.gradle.kts",
+      "target": "config:Mobile/mobile_app/android/app/build.gradle.kts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

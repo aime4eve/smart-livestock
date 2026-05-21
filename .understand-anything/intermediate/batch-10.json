@@ -1,0 +1,562 @@
+{
+  "nodes": [
+    {
+      "id": "file:Mobile/mobile_app/android/gradle.properties",
+      "type": "file",
+      "name": "gradle.properties",
+      "filePath": "Mobile/mobile_app/android/gradle.properties",
+      "summary": "Android Gradle 构建配置，设置 JVM 最大堆内存 8G 和元空间 4G，启用 AndroidX 支持。",
+      "tags": ["configuration", "android", "build-system"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/android/gradle/wrapper/gradle-wrapper.properties",
+      "type": "file",
+      "name": "gradle-wrapper.properties",
+      "filePath": "Mobile/mobile_app/android/gradle/wrapper/gradle-wrapper.properties",
+      "summary": "Gradle Wrapper 配置文件，指定 Gradle 8.14 发行版下载地址。",
+      "tags": ["configuration", "build-system", "gradle"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/android/settings.gradle.kts",
+      "type": "file",
+      "name": "settings.gradle.kts",
+      "filePath": "Mobile/mobile_app/android/settings.gradle.kts",
+      "summary": "Android 项目 Gradle 设置脚本，从 local.properties 读取 Flutter SDK 路径，配置插件仓库并声明 Flutter 插件加载器和 Android/Kotlin 插件版本。",
+      "tags": ["configuration", "android", "build-system", "gradle"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/assets/map/sample.mbtiles",
+      "type": "file",
+      "name": "sample.mbtiles",
+      "filePath": "Mobile/mobile_app/assets/map/sample.mbtiles",
+      "summary": "MBTiles 格式的离线地图瓦片数据库，覆盖长沙地区 zoom 12-14 级别，用于原生平台离线瓦片渲染降级。",
+      "tags": ["data", "map", "offline-tiles", "mbtiles"],
+      "complexity": "complex",
+      "languageNotes": "MBTiles 是基于 SQLite 的瓦片存储规范，将栅格瓦片以 BLOB 方式按 zoom/row/column 索引存储。"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/app/app_mode.dart",
+      "type": "file",
+      "name": "app_mode.dart",
+      "filePath": "Mobile/mobile_app/lib/app/app_mode.dart",
+      "summary": "定义 AppMode 枚举（mock/live）并提供解析函数和 Riverpod Provider，通过编译期环境变量 APP_MODE 控制应用运行模式。",
+      "tags": ["entry-point", "configuration", "provider"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/app/app_route.dart",
+      "type": "file",
+      "name": "app_route.dart",
+      "filePath": "Mobile/mobile_app/lib/app/app_route.dart",
+      "summary": "定义 AppRoute 枚举，作为全应用 39 条路由路径、名称、中文标签的唯一来源（Single Source of Truth），覆盖登录、孪生、围栏、告警、后台管理、B端控制台、订阅等全部路由。",
+      "tags": ["entry-point", "routing", "constants"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/app/app_router.dart",
+      "type": "file",
+      "name": "app_router.dart",
+      "filePath": "Mobile/mobile_app/lib/app/app_router.dart",
+      "summary": "GoRouter 配置中心，定义完整的路由树（ShellRoute + 嵌套路由）、认证守卫重定向逻辑（未登录→登录页、角色权限拦截）、以及 appRouterProvider 供全应用消费。",
+      "tags": ["entry-point", "routing", "middleware", "provider"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/app/demo_app.dart",
+      "type": "file",
+      "name": "demo_app.dart",
+      "filePath": "Mobile/mobile_app/lib/app/demo_app.dart",
+      "summary": "应用根 Widget，封装 ProviderScope 和 MaterialApp.router，支持 Provider overrides 和 AppMode 注入便于测试。",
+      "tags": ["entry-point", "component", "provider"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/app/demo_shell.dart",
+      "type": "file",
+      "name": "demo_shell.dart",
+      "filePath": "Mobile/mobile_app/lib/app/demo_shell.dart",
+      "summary": "应用 Shell 组件，根据当前角色动态构建底部导航栏（owner 独有后台入口）、B端客户管理员侧边栏、牧场切换器，以及牧场为空时的引导提示。",
+      "tags": ["component", "navigation", "role-based", "layout"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/app/demo_shell.dart:DemoShell",
+      "type": "class",
+      "name": "DemoShell",
+      "filePath": "Mobile/mobile_app/lib/app/demo_shell.dart",
+      "lineRange": [11, 101],
+      "summary": "主 Shell Widget，监听 session 状态按角色渲染不同的导航结构（owner/worker 底部导航、b2b_admin 侧边栏、platform_admin 无导航），集成牧场切换器和空牧场引导。",
+      "tags": ["component", "navigation", "shell"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/app/demo_shell.dart:_B2bAdminShell",
+      "type": "class",
+      "name": "_B2bAdminShell",
+      "filePath": "Mobile/mobile_app/lib/app/demo_shell.dart",
+      "lineRange": [177, 243],
+      "summary": "B端客户管理员的专用 Shell，使用 NavigationRail 侧边栏布局，包含概览、牧场、合同、对账、牧工管理五个导航项。",
+      "tags": ["component", "navigation", "b2b"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/app/expiry_popup_handler.dart",
+      "type": "file",
+      "name": "expiry_popup_handler.dart",
+      "filePath": "Mobile/mobile_app/lib/app/expiry_popup_handler.dart",
+      "summary": "订阅到期提醒弹窗处理器，在组件初始化时检查订阅状态，若剩余天数在 0-7 天范围内则弹出续费提示对话框，支持跳转订阅页面。",
+      "tags": ["component", "subscription", "event-handler"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/app/session/app_session.dart",
+      "type": "file",
+      "name": "app_session.dart",
+      "filePath": "Mobile/mobile_app/lib/app/session/app_session.dart",
+      "summary": "会话值对象，封装用户登录状态、角色、JWT 令牌、用户信息和活跃牧场 ID 等会话数据，提供 copyWith 和多个命名构造函数支持不同登录场景。",
+      "tags": ["data-model", "session", "authentication"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/app/session/app_session.dart:AppSession",
+      "type": "class",
+      "name": "AppSession",
+      "filePath": "Mobile/mobile_app/lib/app/session/app_session.dart",
+      "lineRange": [2, 99],
+      "summary": "不可变会话值对象，通过私有构造函数和命名构造函数（loggedOut/authenticated/withTokens/withCredentials）创建不同状态的会话实例。",
+      "tags": ["data-model", "session", "immutable"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/app/session/session_controller.dart",
+      "type": "file",
+      "name": "session_controller.dart",
+      "filePath": "Mobile/mobile_app/lib/app/session/session_controller.dart",
+      "summary": "会话状态管理的 Riverpod Notifier，处理角色登录、JWT 令牌登录、手机号密码凭证登录、ApiCache 预加载、牧场数据就绪通知和登出等全部认证流程。",
+      "tags": ["controller", "authentication", "session", "provider"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/app/session/session_controller.dart:SessionController",
+      "type": "class",
+      "name": "SessionController",
+      "filePath": "Mobile/mobile_app/lib/app/session/session_controller.dart",
+      "lineRange": [22, 185],
+      "summary": "核心会话控制器，管理 AppSession 状态机，提供 login/loginWithToken/loginWithTokens/loginWithCredentials/logout 五种认证路径，集成 ApiCache 预加载和牧场初始化。",
+      "tags": ["controller", "authentication", "session"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/app/url_strategy_stub.dart",
+      "type": "file",
+      "name": "url_strategy_stub.dart",
+      "filePath": "Mobile/mobile_app/lib/app/url_strategy_stub.dart",
+      "summary": "URL 策略的非 Web 平台 stub 实现，提供空函数体。",
+      "tags": ["utility", "platform-conditional"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/app/url_strategy_web.dart",
+      "type": "file",
+      "name": "url_strategy_web.dart",
+      "filePath": "Mobile/mobile_app/lib/app/url_strategy_web.dart",
+      "summary": "Web 平台的 URL 策略配置，启用 Path URL 策略（去除 # hash 前缀）。",
+      "tags": ["utility", "platform-conditional"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/app/url_strategy.dart",
+      "type": "file",
+      "name": "url_strategy.dart",
+      "filePath": "Mobile/mobile_app/lib/app/url_strategy.dart",
+      "summary": "URL 策略的条件导出入口，使用 Dart 条件导入在 Web 平台选择 path 策略实现、非 Web 平台选择 stub。",
+      "tags": ["utility", "entry-point", "platform-conditional"],
+      "complexity": "simple",
+      "languageNotes": "Dart 条件导入语法：export 'stub.dart' if (dart.library.html) 'web.dart'，编译期自动选择平台实现。"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/core/api/api_auth.dart",
+      "type": "file",
+      "name": "api_auth.dart",
+      "filePath": "Mobile/mobile_app/lib/core/api/api_auth.dart",
+      "summary": "定义 API 认证令牌模型 ApiAuthTokens 和请求头构建函数 apiHeaders，支持 JWT 令牌和 Mock Token 两种认证方式。",
+      "tags": ["authentication", "api-handler", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/core/api/api_cache.dart",
+      "type": "file",
+      "name": "api_cache.dart",
+      "filePath": "Mobile/mobile_app/lib/core/api/api_cache.dart",
+      "summary": "API 数据缓存单例，负责 Live 模式下从后端预加载全部 API 数据到内存，提供围栏 CRUD、租户管理、设备查询、GPS 数据获取、凭证认证等 HTTP 操作的封装，按角色和牧场过滤缓存数据。",
+      "tags": ["service", "cache", "api-handler", "singleton"],
+      "complexity": "complex",
+      "languageNotes": "单例模式结合 Riverpod 使用，缓存初始化在 main() 启动前完成，Repository 层保持同步接口通过预加载避免 async 改造。"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/core/api/api_cache.dart:ApiCache",
+      "type": "class",
+      "name": "ApiCache",
+      "filePath": "Mobile/mobile_app/lib/core/api/api_cache.dart",
+      "lineRange": [77, 1626],
+      "summary": "核心 API 缓存单例类，管理所有后端 API 数据的获取、缓存和查询，支持按角色/牧场过滤、围栏 CRUD、租户管理、JWT 认证等操作。",
+      "tags": ["singleton", "cache", "api-handler"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/core/api/api_http_client.dart",
+      "type": "file",
+      "name": "api_http_client.dart",
+      "filePath": "Mobile/mobile_app/lib/core/api/api_http_client.dart",
+      "summary": "HTTP 客户端抽象层，定义 ApiHttpClient 接口和基于 http 包的 DefaultApiHttpClient 实现，统一 GET/POST/PUT/DELETE 操作并设置 20 秒超时。",
+      "tags": ["api-handler", "http-client", "utility"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/core/api/api_http_client.dart:ApiHttpClient",
+      "type": "class",
+      "name": "ApiHttpClient",
+      "filePath": "Mobile/mobile_app/lib/core/api/api_http_client.dart",
+      "lineRange": [11, 27],
+      "summary": "HTTP 客户端抽象接口，定义 GET/POST/PUT/DELETE 四个异步方法。",
+      "tags": ["interface", "http-client"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/core/api/api_http_client.dart:DefaultApiHttpClient",
+      "type": "class",
+      "name": "DefaultApiHttpClient",
+      "filePath": "Mobile/mobile_app/lib/core/api/api_http_client.dart",
+      "lineRange": [29, 90],
+      "summary": "基于 Dart http 包的默认 HTTP 客户端实现，所有请求设置 20 秒超时。",
+      "tags": ["http-client", "implementation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/core/api/api_role.dart",
+      "type": "file",
+      "name": "api_role.dart",
+      "filePath": "Mobile/mobile_app/lib/core/api/api_role.dart",
+      "summary": "从编译期环境变量 API_ROLE 读取默认 API 角色常量，默认值为 owner。",
+      "tags": ["configuration", "constants"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/core/data/apply_mock_shaping.dart",
+      "type": "file",
+      "name": "apply_mock_shaping.dart",
+      "filePath": "Mobile/mobile_app/lib/core/data/apply_mock_shaping.dart",
+      "summary": "Mock 数据功能门控（Shaping）引擎，根据订阅 Tier 对列表数据应用 lock（锁定）、limit（数量限制）、filter（时间过滤）三种 shaping 策略，模拟后端 Commerce 配额引擎的前端行为。",
+      "tags": ["middleware", "subscription", "data-shaping"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/mobile_app/lib/core/data/apply_mock_shaping.dart:applyMockShaping",
+      "type": "function",
+      "name": "applyMockShaping",
+      "filePath": "Mobile/mobile_app/lib/core/data/apply_mock_shaping.dart",
+      "lineRange": [62, 107],
+      "summary": "核心 shaping 函数，遍历 feature keys 并按 FeatureShape 类型对数据执行 lock/limit/filter 转换。",
+      "tags": ["utility", "subscription", "data-shaping"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/mobile_app/lib/core/data/apply_mock_shaping.dart:shapeListItems",
+      "type": "function",
+      "name": "shapeListItems",
+      "filePath": "Mobile/mobile_app/lib/core/data/apply_mock_shaping.dart",
+      "lineRange": [123, 151],
+      "summary": "面向调用方的便捷函数，接受原始列表和 Tier 信息，返回包含锁定状态和保留数量的 ShapingResult。",
+      "tags": ["utility", "subscription"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/core/data/demo_seed.dart",
+      "type": "file",
+      "name": "demo_seed.dart",
+      "filePath": "Mobile/mobile_app/lib/core/data/demo_seed.dart",
+      "summary": "Demo 阶段假数据种子，生成 50 头牲畜（三种品种分布于四个围栏）、100 台设备（GPS/胶囊/加速度计）、18 条告警、Dashboard 指标和统计数据，与 Mock Server seed.js 保持对齐。",
+      "tags": ["data-model", "seed-data", "mock"],
+      "complexity": "complex",
+      "languageNotes": "使用固定种子的 Random(42) 保证确定性数据，支持与后端种子数据对齐验证。"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/core/data/demo_seed.dart:DemoSeed",
+      "type": "class",
+      "name": "DemoSeed",
+      "filePath": "Mobile/mobile_app/lib/core/data/demo_seed.dart",
+      "lineRange": [6, 354],
+      "summary": "不可变种子数据类，包含围栏多边形、GPS 锚点、牲畜列表生成器、设备列表生成器、告警列表、Dashboard 指标和统计汇总等全部 Demo 数据。",
+      "tags": ["seed-data", "mock", "data-model"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:Mobile/mobile_app/lib/core/data/demo_seed.dart:_generateLivestock",
+      "type": "function",
+      "name": "_generateLivestock",
+      "filePath": "Mobile/mobile_app/lib/core/data/demo_seed.dart",
+      "lineRange": [232, 295],
+      "summary": "按围栏和健康状态分组生成 50 头牲畜的确定性数据，分配品种和体重范围。",
+      "tags": ["utility", "seed-data"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/mobile_app/lib/core/data/demo_seed.dart:_generateDevices",
+      "type": "function",
+      "name": "_generateDevices",
+      "filePath": "Mobile/mobile_app/lib/core/data/demo_seed.dart",
+      "lineRange": [297, 353],
+      "summary": "批量生成三种类型共 100 台设备（50 GPS + 30 胶囊 + 20 加速度计），分配在线/离线/低电量状态。",
+      "tags": ["utility", "seed-data"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/mobile_app/lib/core/data/demo_seed.dart:getLivestockDetail",
+      "type": "function",
+      "name": "getLivestockDetail",
+      "filePath": "Mobile/mobile_app/lib/core/data/demo_seed.dart",
+      "lineRange": [106, 164],
+      "summary": "根据耳标号查找牲畜详细信息，包括体温、活动量、反刍频率等与健康状态关联的模拟指标。",
+      "tags": ["utility", "data-access"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/core/data/generators/estrus_score_generator.dart",
+      "type": "file",
+      "name": "estrus_score_generator.dart",
+      "filePath": "Mobile/mobile_app/lib/core/data/generators/estrus_score_generator.dart",
+      "summary": "发情评分时序数据生成器，基于 21 天发情周期模型生成每日发情评分曲线，发情期（第 17-20 天）评分显著升高。",
+      "tags": ["data-generator", "health", "time-series"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/core/data/generators/estrus_score_generator.dart:EstrusScoreGenerator",
+      "type": "class",
+      "name": "EstrusScoreGenerator",
+      "filePath": "Mobile/mobile_app/lib/core/data/generators/estrus_score_generator.dart",
+      "lineRange": [4, 59],
+      "summary": "继承 TimeSeriesGenerator 的发情评分生成器，按 21 天周期在不同阶段生成不同范围的评分，带记忆化缓存。",
+      "tags": ["data-generator", "time-series"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/core/data/generators/gps_trajectory_generator.dart",
+      "type": "file",
+      "name": "gps_trajectory_generator.dart",
+      "filePath": "Mobile/mobile_app/lib/core/data/generators/gps_trajectory_generator.dart",
+      "summary": "GPS 轨迹时序数据生成器，支持基础模式（围栏内随机游走）和增强模式（夜间休息区迁移、饲喂锚点吸引、围栏边界游走），按小时采样生成逼真的牲畜运动轨迹。",
+      "tags": ["data-generator", "gps", "time-series", "simulation"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/core/data/generators/gps_trajectory_generator.dart:GpsTrajectoryGenerator",
+      "type": "class",
+      "name": "GpsTrajectoryGenerator",
+      "filePath": "Mobile/mobile_app/lib/core/data/generators/gps_trajectory_generator.dart",
+      "lineRange": [7, 291],
+      "summary": "GPS 轨迹生成器，包含 legacy 和 enhanced 两种生成策略，enhanced 模式支持昼夜围栏切换、锚点吸引和边界游走行为模拟。",
+      "tags": ["data-generator", "gps", "simulation"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:Mobile/mobile_app/lib/core/data/generators/gps_trajectory_generator.dart:_doGenerateEnhanced",
+      "type": "function",
+      "name": "_doGenerateEnhanced",
+      "filePath": "Mobile/mobile_app/lib/core/data/generators/gps_trajectory_generator.dart",
+      "lineRange": [136, 274],
+      "summary": "增强模式轨迹生成核心逻辑，实现昼夜围栏迁移的平滑过渡、饲喂时间的锚点吸引、午间休息减速、以及围栏边界游走模拟。",
+      "tags": ["simulation", "gps", "algorithm"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/core/data/generators/motility_generator.dart",
+      "type": "file",
+      "name": "motility_generator.dart",
+      "filePath": "Mobile/mobile_app/lib/core/data/generators/motility_generator.dart",
+      "summary": "瘤胃蠕动（Motility）时序数据生成器，按 30 分钟间隔生成频率和强度指标，模拟健康/预警/异常三种健康状态下的蠕动模式。",
+      "tags": ["data-generator", "health", "time-series"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/core/data/generators/motility_generator.dart:MotilityGenerator",
+      "type": "class",
+      "name": "MotilityGenerator",
+      "filePath": "Mobile/mobile_app/lib/core/data/generators/motility_generator.dart",
+      "lineRange": [4, 70],
+      "summary": "蠕动频率生成器，按昼夜节律设定基础频率并根据健康等级衰减，critical 状态下有概率产生零蠕动记录。",
+      "tags": ["data-generator", "time-series", "health"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/core/data/generators/temperature_generator.dart",
+      "type": "file",
+      "name": "temperature_generator.dart",
+      "filePath": "Mobile/mobile_app/lib/core/data/generators/temperature_generator.dart",
+      "summary": "体温时序数据生成器，在基础体温上叠加昼夜节律（白天+0.2/夜间-0.1）和随机噪声，支持注入异常体温事件模拟发热曲线。",
+      "tags": ["data-generator", "health", "time-series"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/core/data/generators/temperature_generator.dart:TemperatureGenerator",
+      "type": "class",
+      "name": "TemperatureGenerator",
+      "filePath": "Mobile/mobile_app/lib/core/data/generators/temperature_generator.dart",
+      "lineRange": [16, 73],
+      "summary": "体温数据生成器，支持注入 AbnormalTempEvent 模拟发热过程（先升后降的包络曲线）。",
+      "tags": ["data-generator", "time-series", "health"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:Mobile/mobile_app/lib/app/demo_shell.dart",
+      "target": "class:Mobile/mobile_app/lib/app/demo_shell.dart:DemoShell",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/app/demo_shell.dart",
+      "target": "class:Mobile/mobile_app/lib/app/demo_shell.dart:_B2bAdminShell",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/app/session/app_session.dart",
+      "target": "class:Mobile/mobile_app/lib/app/session/app_session.dart:AppSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/app/session/session_controller.dart",
+      "target": "class:Mobile/mobile_app/lib/app/session/session_controller.dart:SessionController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/core/api/api_cache.dart",
+      "target": "class:Mobile/mobile_app/lib/core/api/api_cache.dart:ApiCache",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/core/api/api_http_client.dart",
+      "target": "class:Mobile/mobile_app/lib/core/api/api_http_client.dart:ApiHttpClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/core/api/api_http_client.dart",
+      "target": "class:Mobile/mobile_app/lib/core/api/api_http_client.dart:DefaultApiHttpClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/core/data/apply_mock_shaping.dart",
+      "target": "function:Mobile/mobile_app/lib/core/data/apply_mock_shaping.dart:applyMockShaping",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/core/data/apply_mock_shaping.dart",
+      "target": "function:Mobile/mobile_app/lib/core/data/apply_mock_shaping.dart:shapeListItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/core/data/demo_seed.dart",
+      "target": "class:Mobile/mobile_app/lib/core/data/demo_seed.dart:DemoSeed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/core/data/demo_seed.dart",
+      "target": "function:Mobile/mobile_app/lib/core/data/demo_seed.dart:_generateLivestock",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/core/data/demo_seed.dart",
+      "target": "function:Mobile/mobile_app/lib/core/data/demo_seed.dart:_generateDevices",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/core/data/demo_seed.dart",
+      "target": "function:Mobile/mobile_app/lib/core/data/demo_seed.dart:getLivestockDetail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/core/data/generators/estrus_score_generator.dart",
+      "target": "class:Mobile/mobile_app/lib/core/data/generators/estrus_score_generator.dart:EstrusScoreGenerator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/core/data/generators/gps_trajectory_generator.dart",
+      "target": "class:Mobile/mobile_app/lib/core/data/generators/gps_trajectory_generator.dart:GpsTrajectoryGenerator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/core/data/generators/gps_trajectory_generator.dart",
+      "target": "function:Mobile/mobile_app/lib/core/data/generators/gps_trajectory_generator.dart:_doGenerateEnhanced",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/core/data/generators/motility_generator.dart",
+      "target": "class:Mobile/mobile_app/lib/core/data/generators/motility_generator.dart:MotilityGenerator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/core/data/generators/temperature_generator.dart",
+      "target": "class:Mobile/mobile_app/lib/core/data/generators/temperature_generator.dart:TemperatureGenerator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/core/api/api_http_client.dart",
+      "target": "class:Mobile/mobile_app/lib/core/api/api_http_client.dart:DefaultApiHttpClient",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/app/url_strategy.dart",
+      "target": "file:Mobile/mobile_app/lib/app/url_strategy_stub.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/app/url_strategy.dart",
+      "target": "file:Mobile/mobile_app/lib/app/url_strategy_web.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

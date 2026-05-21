@@ -1,0 +1,765 @@
+{
+  "nodes": [
+    {
+      "id": "file:Mobile/mobile_app/lib/features/estrus/data/live_estrus_repository.dart",
+      "type": "file",
+      "name": "live_estrus_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/estrus/data/live_estrus_repository.dart",
+      "summary": "发情模块的 Live 模式仓储实现，从 ApiCache 读取后端 API 数据并解析为 EstrusScore 模型，缓存未初始化时回退到 MockEstrusRepository。",
+      "tags": ["data-model", "live-repository", "parsing", "fallback"],
+      "complexity": "moderate",
+      "languageNotes": "Dart 中使用工厂构造函数和命名构造函数实现不可变值对象模式，loadDetail 方法在趋势数据为空时自动降级到 fallback。"
+    },
+    {
+      "id": "function:Mobile/mobile_app/lib/features/estrus/data/live_estrus_repository.dart:_parseScore",
+      "type": "function",
+      "name": "_parseScore",
+      "filePath": "Mobile/mobile_app/lib/features/estrus/data/live_estrus_repository.dart",
+      "lineRange": [48, 73],
+      "summary": "将 ApiCache 中的原始 JSON Map 解析为 EstrusScore 对象，处理类型转换和空值保护，解析失败时返回 null。",
+      "tags": ["parsing", "data-transform", "error-handling"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/estrus/data/mock_estrus_repository.dart",
+      "type": "file",
+      "name": "mock_estrus_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/estrus/data/mock_estrus_repository.dart",
+      "summary": "发情模块的 Mock 仓储实现，从 TwinSeed 种子数据加载发情评分列表，用于 Demo 阶段的本地假数据展示。",
+      "tags": ["mock-repository", "seed-data", "demo"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/estrus/domain/estrus_repository.dart",
+      "type": "file",
+      "name": "estrus_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/estrus/domain/estrus_repository.dart",
+      "summary": "发情模块的仓储接口定义，声明 load（批量加载）和 loadDetail（按牲畜ID查详情）两个同步方法。",
+      "tags": ["repository-interface", "domain-layer", "abstract"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/estrus/presentation/estrus_controller.dart",
+      "type": "file",
+      "name": "estrus_controller.dart",
+      "filePath": "Mobile/mobile_app/lib/features/estrus/presentation/estrus_controller.dart",
+      "summary": "发情模块的 Riverpod Notifier 控制器，根据 AppMode 切换 Mock/Live 仓储，管理页面状态（视图状态 + 筛选条件）。",
+      "tags": ["controller", "riverpod", "state-management", "mode-switch"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/estrus/presentation/estrus_controller.dart:EstrusController",
+      "type": "class",
+      "name": "EstrusController",
+      "filePath": "Mobile/mobile_app/lib/features/estrus/presentation/estrus_controller.dart",
+      "lineRange": [28, 43],
+      "summary": "Riverpod Notifier 控制器，管理发情页面的筛选和视图状态切换，watch estrusRepositoryProvider 自动响应模式变化。",
+      "tags": ["controller", "riverpod-notifier", "state-management"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/estrus/presentation/widgets/estrus_trend_chart.dart",
+      "type": "file",
+      "name": "estrus_trend_chart.dart",
+      "filePath": "Mobile/mobile_app/lib/features/estrus/presentation/widgets/estrus_trend_chart.dart",
+      "summary": "发情评分 7 天趋势折线图组件，使用 fl_chart 绘制带阈值线（70分）的时序曲线，高分时以红色警示渲染。",
+      "tags": ["component", "chart", "visualization", "fl-chart"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/estrus/presentation/widgets/estrus_trend_chart.dart:EstrusTrendChart",
+      "type": "class",
+      "name": "EstrusTrendChart",
+      "filePath": "Mobile/mobile_app/lib/features/estrus/presentation/widgets/estrus_trend_chart.dart",
+      "lineRange": [6, 103],
+      "summary": "无状态 Widget，接收 trend7d 数据点列表，将时间戳和评分映射为 fl_chart 的 FlSpot，绘制带虚线阈值标记的折线图。",
+      "tags": ["component", "chart", "visualization"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/farm_creation/presentation/farm_creation_wizard_page.dart",
+      "type": "file",
+      "name": "farm_creation_wizard_page.dart",
+      "filePath": "Mobile/mobile_app/lib/features/farm_creation/presentation/farm_creation_wizard_page.dart",
+      "summary": "创建牧场三步向导页面容器，按步骤切换基本信息填写、围栏绘制和完成确认三个子组件，管理步骤状态流转和退出确认对话框。",
+      "tags": ["wizard", "page", "component", "farm-management"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/farm_creation/presentation/farm_creation_wizard_page.dart:FarmCreationWizardPage",
+      "type": "class",
+      "name": "FarmCreationWizardPage",
+      "filePath": "Mobile/mobile_app/lib/features/farm_creation/presentation/farm_creation_wizard_page.dart",
+      "lineRange": [12, 116],
+      "summary": "ConsumerStatefulWidget，管理 _step 状态驱动三步向导（基本信息→围栏绘制→完成），完成后重新初始化 ApiCache 并导航到孪生总览。",
+      "tags": ["wizard", "page", "stateful-widget"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_basic_info.dart",
+      "type": "file",
+      "name": "wizard_step_basic_info.dart",
+      "filePath": "Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_basic_info.dart",
+      "summary": "向导第一步：填写牧场名称、面积，并在 flutter_map 上点击选择中心位置，提交后通过 ApiCache 远程创建牧场。",
+      "tags": ["wizard-step", "form", "map-interaction", "farm-creation"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_basic_info.dart:_WizardStepBasicInfoState",
+      "type": "class",
+      "name": "_WizardStepBasicInfoState",
+      "filePath": "Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_basic_info.dart",
+      "lineRange": [30, 238],
+      "summary": "管理表单验证、SmartTileProvider 初始化、地图点击选点、提交创建牧场等交互逻辑的状态类。",
+      "tags": ["wizard-step", "form-validation", "map-interaction"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_complete.dart",
+      "type": "file",
+      "name": "wizard_step_complete.dart",
+      "filePath": "Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_complete.dart",
+      "summary": "向导第三步：创建成功确认页面，展示牧场名称、围栏数量摘要，提供「进入牧场」按钮。",
+      "tags": ["wizard-step", "confirmation", "component"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart",
+      "type": "file",
+      "name": "wizard_step_fence_drawing.dart",
+      "filePath": "Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart",
+      "summary": "向导第二步：在 flutter_map 上交互绘制围栏多边形，支持点击添加顶点、拖拽移动、长按删除、撤销/重做，保存前自动做 GCJ-02→WGS-84 坐标逆转换。",
+      "tags": ["wizard-step", "map-interaction", "polygon-drawing", "fence-editing"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart:_WizardStepFenceDrawingState",
+      "type": "class",
+      "name": "_WizardStepFenceDrawingState",
+      "filePath": "Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart",
+      "lineRange": [44, 443],
+      "summary": "围栏绘制交互核心状态类，管理 FenceEditSession、顶点标记渲染、拖拽事件、撤销/重做栈、坐标逆转换和远程保存。",
+      "tags": ["fence-editing", "map-interaction", "state-management"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart:_buildVertexMarkers",
+      "type": "function",
+      "name": "_buildVertexMarkers",
+      "filePath": "Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart",
+      "lineRange": [217, 251],
+      "summary": "为围栏会话中的每个顶点构建可拖拽 Marker，支持长按删除和拖拽移动，首顶点用不同颜色标识。",
+      "tags": ["map-rendering", "marker", "gesture"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart:_saveFence",
+      "type": "function",
+      "name": "_saveFence",
+      "filePath": "Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart",
+      "lineRange": [166, 215],
+      "summary": "围栏保存流程：验证表单和顶点数量，逆转换坐标（GCJ-02→WGS-84），通过 ApiCache 远程创建围栏。",
+      "tags": ["save", "api-call", "coordinate-transform"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/farm_switcher/farm_switcher_controller.dart",
+      "type": "file",
+      "name": "farm_switcher_controller.dart",
+      "filePath": "Mobile/mobile_app/lib/features/farm_switcher/farm_switcher_controller.dart",
+      "summary": "牧场切换器控制器，管理用户关联的牧场列表和当前活跃牧场 ID，Mock 模式使用硬编码种子数据，Live 模式从 ApiCache 解析后端返回的牧场列表。",
+      "tags": ["controller", "riverpod", "multi-farm", "state-management"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/farm_switcher/farm_switcher_controller.dart:FarmSwitcherController",
+      "type": "class",
+      "name": "FarmSwitcherController",
+      "filePath": "Mobile/mobile_app/lib/features/farm_switcher/farm_switcher_controller.dart",
+      "lineRange": [35, 131],
+      "summary": "Riverpod Notifier 控制器，watch session 和 appMode 变化，自动加载牧场列表。switchFarm 方法更新活跃牧场并同步到 SessionController 和 ApiCache。",
+      "tags": ["controller", "multi-farm", "riverpod-notifier"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/farm_switcher/farm_switcher_widget.dart",
+      "type": "file",
+      "name": "farm_switcher_widget.dart",
+      "filePath": "Mobile/mobile_app/lib/features/farm_switcher/farm_switcher_widget.dart",
+      "summary": "牧场切换下拉选择器 UI 组件，仅在用户关联多个牧场时显示，切换时通过 FarmSwitcherController 更新活跃牧场。",
+      "tags": ["component", "dropdown", "multi-farm"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/fence/data/fence_dto.dart",
+      "type": "file",
+      "name": "fence_dto.dart",
+      "filePath": "Mobile/mobile_app/lib/features/fence/data/fence_dto.dart",
+      "summary": "围栏数据传输对象层，提供 JSON→FenceItem 的解析函数（坐标转换、类型映射、牲畜计数统计），供 Live 仓储和 Mock 仓储共用。",
+      "tags": ["data-model", "dto", "parsing", "serialization"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/mobile_app/lib/features/fence/data/fence_dto.dart:fenceItemFromJson",
+      "type": "function",
+      "name": "fenceItemFromJson",
+      "filePath": "Mobile/mobile_app/lib/features/fence/data/fence_dto.dart",
+      "lineRange": [28, 57],
+      "summary": "将单个 JSON Map 解析为 FenceItem 对象，处理 ID 类型转换、类型映射、坐标解析和不足3点时的默认多边形生成。",
+      "tags": ["parsing", "data-transform", "dto"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/mobile_app/lib/features/fence/data/fence_dto.dart:livestockCountsByFenceId",
+      "type": "function",
+      "name": "livestockCountsByFenceId",
+      "filePath": "Mobile/mobile_app/lib/features/fence/data/fence_dto.dart",
+      "lineRange": [74, 87],
+      "summary": "按围栏 ID 统计牲畜数量，遍历牲畜列表根据 fenceId 字段聚合计数。",
+      "tags": ["aggregation", "utility", "counting"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/fence/data/live_fence_repository.dart",
+      "type": "file",
+      "name": "live_fence_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/fence/data/live_fence_repository.dart",
+      "summary": "围栏模块的 Live 仓储实现，从 ApiCache 读取后端返回的围栏和牲畜数据，使用 fence_dto 解析函数构建 FenceItem 列表。",
+      "tags": ["live-repository", "api-cache", "data-loading"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/fence/data/mock_fence_repository.dart",
+      "type": "file",
+      "name": "mock_fence_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/fence/data/mock_fence_repository.dart",
+      "summary": "围栏模块的 Mock 仓储实现，从 DemoSeed 种子数据的围栏多边形列表构建 FenceItem，统计每个围栏的牲畜数量。",
+      "tags": ["mock-repository", "seed-data", "demo"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/fence/domain/fence_edit_operations.dart",
+      "type": "file",
+      "name": "fence_edit_operations.dart",
+      "filePath": "Mobile/mobile_app/lib/features/fence/domain/fence_edit_operations.dart",
+      "summary": "围栏编辑操作纯函数集，提供顶点移动、插入、删除和整体平移四种操作，每种操作对 FenceEditSession 做不可变变换。",
+      "tags": ["domain-logic", "edit-operations", "immutable", "pure-function"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/fence/domain/fence_edit_operations.dart:FenceEditOperations",
+      "type": "class",
+      "name": "FenceEditOperations",
+      "filePath": "Mobile/mobile_app/lib/features/fence/domain/fence_edit_operations.dart",
+      "lineRange": [4, 57],
+      "summary": "私有构造的工具类，提供 moveVertex、insertVertex、removeVertex、translate 四个静态方法，每次操作返回新的 FenceEditSession。",
+      "tags": ["domain-logic", "edit-operations", "utility"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/fence/domain/fence_edit_session.dart",
+      "type": "file",
+      "name": "fence_edit_session.dart",
+      "filePath": "Mobile/mobile_app/lib/features/fence/domain/fence_edit_session.dart",
+      "summary": "围栏编辑会话值对象，封装当前编辑中的围栏顶点、原始顶点、撤销/重做栈和当前工具状态，使用不可变列表保证状态安全。",
+      "tags": ["data-model", "edit-session", "undo-redo", "immutable"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/fence/domain/fence_edit_session.dart:FenceEditSession",
+      "type": "class",
+      "name": "FenceEditSession",
+      "filePath": "Mobile/mobile_app/lib/features/fence/domain/fence_edit_session.dart",
+      "lineRange": [3, 81],
+      "summary": "编辑会话不可变值对象，包含 fenceId、originalPoints、points、undoStack、redoStack 和当前工具。提供 hasChanges、canUndo、canRedo 计算属性和 copyWith 方法。",
+      "tags": ["data-model", "value-object", "undo-redo"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/fence/domain/fence_item.dart",
+      "type": "file",
+      "name": "fence_item.dart",
+      "filePath": "Mobile/mobile_app/lib/features/fence/domain/fence_item.dart",
+      "summary": "围栏业务对象，定义 FenceType 枚举（polygon/circle/rectangle）和 FenceItem 不可变值对象，含类型默认顶点生成和 copyWith。",
+      "tags": ["data-model", "domain-layer", "value-object"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/fence/domain/fence_item.dart:FenceItem",
+      "type": "class",
+      "name": "FenceItem",
+      "filePath": "Mobile/mobile_app/lib/features/fence/domain/fence_item.dart",
+      "lineRange": [7, 86],
+      "summary": "围栏核心数据模型，包含 ID、名称、类型、告警开关、面积、牲畜数量、颜色和顶点坐标列表。静态方法 defaultPointsForType 按类型生成默认多边形。",
+      "tags": ["data-model", "value-object", "domain"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/fence/domain/fence_polygon_contains.dart",
+      "type": "file",
+      "name": "fence_polygon_contains.dart",
+      "filePath": "Mobile/mobile_app/lib/features/fence/domain/fence_polygon_contains.dart",
+      "summary": "多边形包含检测工具函数，使用射线法（Ray Casting）判断点是否在多边形内部，用于围栏命中检测。",
+      "tags": ["geometry", "point-in-polygon", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/fence/domain/fence_repository.dart",
+      "type": "file",
+      "name": "fence_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/fence/domain/fence_repository.dart",
+      "summary": "围栏模块的仓储接口，声明单个 loadAll 同步方法返回全部围栏列表。",
+      "tags": ["repository-interface", "domain-layer", "abstract"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/fence/domain/fence_state.dart",
+      "type": "file",
+      "name": "fence_state.dart",
+      "filePath": "Mobile/mobile_app/lib/features/fence/domain/fence_state.dart",
+      "summary": "围栏模块的状态模型，包含 FenceEditMode 枚举和 FenceState 不可变值对象，管理围栏列表、选中围栏、编辑会话和视图状态。",
+      "tags": ["data-model", "state-management", "domain-layer"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/fence/domain/fence_state.dart:FenceState",
+      "type": "class",
+      "name": "FenceState",
+      "filePath": "Mobile/mobile_app/lib/features/fence/domain/fence_state.dart",
+      "lineRange": [9, 58],
+      "summary": "围栏状态值对象，包含围栏列表、选中 ID、视图状态、消息、编辑会话和编辑模式。copyWith 支持通过哨兵值清空可选字段。",
+      "tags": ["data-model", "state-management", "value-object"],
+      "complexity": "moderate",
+      "languageNotes": "使用 _unset 哨兵对象模式区分'未传参'和'显式传 null'，这是 Dart 中实现 copyWith 清空可选字段的惯用法。"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/fence/presentation/fence_analytics.dart",
+      "type": "file",
+      "name": "fence_analytics.dart",
+      "filePath": "Mobile/mobile_app/lib/features/fence/presentation/fence_analytics.dart",
+      "summary": "围栏编辑分析事件定义，包含三种事件（进入编辑/保存成功/退出未保存）和 InMemoryFenceAnalyticsSink 内存实现，用于测试和开发阶段。",
+      "tags": ["analytics", "event-tracking", "testing"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart",
+      "type": "file",
+      "name": "fence_controller.dart",
+      "filePath": "Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart",
+      "summary": "围栏模块核心控制器（Riverpod Notifier），管理围栏列表 CRUD、编辑会话生命周期（进入/操作/保存/取消/撤销/重做）、几何验证（最小点数/重复点/面积/自交检测）和订阅 tier 功能门控。",
+      "tags": ["controller", "riverpod", "state-management", "fence-editing"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart:FenceController",
+      "type": "class",
+      "name": "FenceController",
+      "filePath": "Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart",
+      "lineRange": [26, 496],
+      "summary": "围栏主控制器，包含完整的编辑会话管理（move/insert/remove/translate/undo/redo）、几何验证（validateDraftGeometry 含自交检测）、保存状态机和 tier 功能门控。",
+      "tags": ["controller", "riverpod-notifier", "fence-editing"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart:validateDraftGeometry",
+      "type": "function",
+      "name": "validateDraftGeometry",
+      "filePath": "Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart",
+      "lineRange": [341, 358],
+      "summary": "静态验证方法，检查围栏草稿几何：至少3点、无连续重复点、面积大于0、无自交。",
+      "tags": ["validation", "geometry", "domain-logic"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart:_hasSelfIntersection",
+      "type": "function",
+      "name": "_hasSelfIntersection",
+      "filePath": "Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart",
+      "lineRange": [416, 435],
+      "summary": "使用 O(n^2) 边-边相交检测算法判断多边形是否自交，跳过共享顶点的相邻边。",
+      "tags": ["geometry", "algorithm", "validation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/fence/presentation/fence_hit_detection.dart",
+      "type": "file",
+      "name": "fence_hit_detection.dart",
+      "filePath": "Mobile/mobile_app/lib/features/fence/presentation/fence_hit_detection.dart",
+      "summary": "两级优先级围栏命中检测：先判断点是否在多边形内（地理级），再计算屏幕像素距离判断边界接近，结果按内部>边界、面积升序、距离升序排序。",
+      "tags": ["geometry", "hit-detection", "ui-interaction", "algorithm"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:Mobile/mobile_app/lib/features/fence/presentation/fence_hit_detection.dart:detectFenceHits",
+      "type": "function",
+      "name": "detectFenceHits",
+      "filePath": "Mobile/mobile_app/lib/features/fence/presentation/fence_hit_detection.dart",
+      "lineRange": [67, 125],
+      "summary": "核心命中检测函数，对每个围栏先做地理包含判断，再做屏幕投影距离计算，最后按优先级排序返回候选列表。",
+      "tags": ["hit-detection", "geometry", "algorithm"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/mobile_app/lib/features/fence/presentation/fence_hit_detection.dart:nearestDistanceToPolygonBoundary",
+      "type": "function",
+      "name": "nearestDistanceToPolygonBoundary",
+      "filePath": "Mobile/mobile_app/lib/features/fence/presentation/fence_hit_detection.dart",
+      "lineRange": [39, 56],
+      "summary": "计算点到多边形边界的最短屏幕距离，遍历每条边用点到线段距离公式。",
+      "tags": ["geometry", "distance-calculation", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/fence/presentation/widgets/fence_candidate_sheet.dart",
+      "type": "file",
+      "name": "fence_candidate_sheet.dart",
+      "filePath": "Mobile/mobile_app/lib/features/fence/presentation/widgets/fence_candidate_sheet.dart",
+      "summary": "围栏候选列表底部弹出面板，在命中检测命中多个围栏时展示供用户选择，每项显示围栏名称和牲畜数量。",
+      "tags": ["component", "bottom-sheet", "ui-interaction"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/fence/presentation/widgets/fence_edit_toolbar.dart",
+      "type": "file",
+      "name": "fence_edit_toolbar.dart",
+      "filePath": "Mobile/mobile_app/lib/features/fence/presentation/widgets/fence_edit_toolbar.dart",
+      "summary": "围栏编辑底部工具栏，提供拖点/插点/删点/平移四种编辑工具切换按钮，以及退出和保存操作。",
+      "tags": ["component", "toolbar", "ui-interaction", "fence-editing"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/fence/presentation/widgets/fence_edit_toolbar.dart:FenceEditToolbar",
+      "type": "class",
+      "name": "FenceEditToolbar",
+      "filePath": "Mobile/mobile_app/lib/features/fence/presentation/widgets/fence_edit_toolbar.dart",
+      "lineRange": [6, 98],
+      "summary": "无状态 Widget，渲染四种编辑工具按钮（根据 activeTool 高亮当前选中）和保存/退出按钮，通过回调通知父组件。",
+      "tags": ["component", "toolbar", "fence-editing"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:Mobile/mobile_app/lib/features/estrus/data/live_estrus_repository.dart",
+      "target": "function:Mobile/mobile_app/lib/features/estrus/data/live_estrus_repository.dart:_parseScore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/estrus/presentation/estrus_controller.dart",
+      "target": "class:Mobile/mobile_app/lib/features/estrus/presentation/estrus_controller.dart:EstrusController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/estrus/presentation/widgets/estrus_trend_chart.dart",
+      "target": "class:Mobile/mobile_app/lib/features/estrus/presentation/widgets/estrus_trend_chart.dart:EstrusTrendChart",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/farm_creation/presentation/farm_creation_wizard_page.dart",
+      "target": "class:Mobile/mobile_app/lib/features/farm_creation/presentation/farm_creation_wizard_page.dart:FarmCreationWizardPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_basic_info.dart",
+      "target": "class:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_basic_info.dart:_WizardStepBasicInfoState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart",
+      "target": "class:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart:_WizardStepFenceDrawingState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart",
+      "target": "function:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart:_buildVertexMarkers",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart",
+      "target": "function:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart:_saveFence",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/farm_switcher/farm_switcher_controller.dart",
+      "target": "class:Mobile/mobile_app/lib/features/farm_switcher/farm_switcher_controller.dart:FarmSwitcherController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/data/fence_dto.dart",
+      "target": "function:Mobile/mobile_app/lib/features/fence/data/fence_dto.dart:fenceItemFromJson",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/data/fence_dto.dart",
+      "target": "function:Mobile/mobile_app/lib/features/fence/data/fence_dto.dart:livestockCountsByFenceId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/domain/fence_edit_operations.dart",
+      "target": "class:Mobile/mobile_app/lib/features/fence/domain/fence_edit_operations.dart:FenceEditOperations",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/domain/fence_edit_session.dart",
+      "target": "class:Mobile/mobile_app/lib/features/fence/domain/fence_edit_session.dart:FenceEditSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/domain/fence_item.dart",
+      "target": "class:Mobile/mobile_app/lib/features/fence/domain/fence_item.dart:FenceItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/domain/fence_state.dart",
+      "target": "class:Mobile/mobile_app/lib/features/fence/domain/fence_state.dart:FenceState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart",
+      "target": "class:Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart:FenceController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart",
+      "target": "function:Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart:validateDraftGeometry",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart",
+      "target": "function:Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart:_hasSelfIntersection",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/presentation/fence_hit_detection.dart",
+      "target": "function:Mobile/mobile_app/lib/features/fence/presentation/fence_hit_detection.dart:detectFenceHits",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/presentation/fence_hit_detection.dart",
+      "target": "function:Mobile/mobile_app/lib/features/fence/presentation/fence_hit_detection.dart:nearestDistanceToPolygonBoundary",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/presentation/widgets/fence_edit_toolbar.dart",
+      "target": "class:Mobile/mobile_app/lib/features/fence/presentation/widgets/fence_edit_toolbar.dart:FenceEditToolbar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/estrus/data/live_estrus_repository.dart",
+      "target": "file:Mobile/mobile_app/lib/features/estrus/domain/estrus_repository.dart",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/estrus/data/mock_estrus_repository.dart",
+      "target": "file:Mobile/mobile_app/lib/features/estrus/domain/estrus_repository.dart",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/data/live_fence_repository.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/domain/fence_repository.dart",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/data/mock_fence_repository.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/domain/fence_repository.dart",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/estrus/data/live_estrus_repository.dart",
+      "target": "file:Mobile/mobile_app/lib/features/estrus/data/mock_estrus_repository.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/farm_creation/presentation/farm_creation_wizard_page.dart",
+      "target": "file:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_basic_info.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/farm_creation/presentation/farm_creation_wizard_page.dart",
+      "target": "file:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/farm_creation/presentation/farm_creation_wizard_page.dart",
+      "target": "file:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_complete.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/domain/fence_edit_operations.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/farm_creation/presentation/wizard_step_fence_drawing.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/domain/fence_edit_session.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/data/live_fence_repository.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/data/fence_dto.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/data/live_fence_repository.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/data/mock_fence_repository.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/domain/fence_edit_operations.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/domain/fence_edit_session.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/domain/fence_state.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/presentation/fence_controller.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/presentation/fence_analytics.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/presentation/fence_hit_detection.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/domain/fence_polygon_contains.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/farm_switcher/farm_switcher_widget.dart",
+      "target": "file:Mobile/mobile_app/lib/features/farm_switcher/farm_switcher_controller.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/data/fence_dto.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/domain/fence_item.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/domain/fence_edit_operations.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/domain/fence_edit_session.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/domain/fence_state.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/domain/fence_edit_session.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/presentation/fence_hit_detection.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/domain/fence_item.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/presentation/widgets/fence_edit_toolbar.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/domain/fence_edit_session.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/fence/presentation/widgets/fence_candidate_sheet.dart",
+      "target": "file:Mobile/mobile_app/lib/features/fence/domain/fence_item.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

@@ -1,0 +1,721 @@
+{
+  "nodes": [
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/LicenseStatus.java",
+      "type": "file",
+      "name": "LicenseStatus.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/LicenseStatus.java",
+      "summary": "设备许可证状态的枚举定义，用于表示 License 的生命周期状态（如活跃、过期、已撤销等），是 IoT 限界上下文中设备授权的核心值对象。",
+      "tags": ["data-model", "enum", "iot", "license"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/DeviceLicenseRepository.java",
+      "type": "file",
+      "name": "DeviceLicenseRepository.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/DeviceLicenseRepository.java",
+      "summary": "设备许可证聚合的领域仓储接口，定义 save、findByDeviceId、findByLicenseKey 三个持久化契约，属于 DDD 洋葱架构的领域层端口。",
+      "tags": ["data-model", "repository", "ddd-port", "iot"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/DeviceRepository.java",
+      "type": "file",
+      "name": "DeviceRepository.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/DeviceRepository.java",
+      "summary": "设备聚合的领域仓储接口，提供 save、findById、findByDeviceCode、findByTenantId、countByTenantIdAndStatus 五个查询与持久化方法。",
+      "tags": ["data-model", "repository", "ddd-port", "iot"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/GpsLogRepository.java",
+      "type": "file",
+      "name": "GpsLogRepository.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/GpsLogRepository.java",
+      "summary": "GPS 日志聚合的领域仓储接口，定义 save、findByDeviceId、findByDeviceIdAndRecordedAtBetween 方法，支持按设备和时间范围查询定位记录。",
+      "tags": ["data-model", "repository", "ddd-port", "iot"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/InstallationRepository.java",
+      "type": "file",
+      "name": "InstallationRepository.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/InstallationRepository.java",
+      "summary": "设备安装记录聚合的领域仓储接口，支持按设备、牲畜查询安装记录以及查询所有活跃安装（未卸载的记录）。",
+      "tags": ["data-model", "repository", "ddd-port", "iot"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/event/SpringEventPublisher.java",
+      "type": "file",
+      "name": "SpringEventPublisher.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/event/SpringEventPublisher.java",
+      "summary": "Spring 事件监听器桥接组件，监听 IoT 和 Ranch 领域事件（GPS 更新、设备激活、许可证过期、围栏越界、告警状态变更），转发至 RocketMQ 进行异步消息发布。",
+      "tags": ["event-handler", "messaging", "infrastructure", "iot"],
+      "complexity": "moderate",
+      "languageNotes": "使用 @EventListener 注解监听 Spring ApplicationEvent，将进程内事件桥接到 RocketMQ 分布式消息，实现跨限界上下文的异步通信。"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/entity/DeviceJpaEntity.java",
+      "type": "file",
+      "name": "DeviceJpaEntity.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/entity/DeviceJpaEntity.java",
+      "summary": "设备表的 JPA 实体映射，包含 id、tenantId、deviceCode、deviceType、status、batteryLevel、firmwareVersion、devEui 等字段，使用 @PrePersist/@PreUpdate 自动填充审计时间戳。",
+      "tags": ["data-model", "jpa-entity", "persistence", "iot"],
+      "complexity": "moderate",
+      "languageNotes": "典型 JPA 实体模式：Lombok @Getter/@Setter 生成访问器，@PrePersist 设置 createdAt，使用 Instant 类型存储时间戳。"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/entity/DeviceLicenseJpaEntity.java",
+      "type": "file",
+      "name": "DeviceLicenseJpaEntity.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/entity/DeviceLicenseJpaEntity.java",
+      "summary": "设备许可证表的 JPA 实体，映射 device_licenses 表，包含许可证密钥、状态、激活时间、过期时间等字段，通过 @PrePersist 自动设置创建时间。",
+      "tags": ["data-model", "jpa-entity", "persistence", "iot"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/entity/GpsLogJpaEntity.java",
+      "type": "file",
+      "name": "GpsLogJpaEntity.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/entity/GpsLogJpaEntity.java",
+      "summary": "GPS 日志表的 JPA 实体，存储设备的经纬度、精度、记录时间等 GPS 定位数据，使用 @PrePersist 自动设置 createdAt。",
+      "tags": ["data-model", "jpa-entity", "persistence", "iot"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/entity/InstallationJpaEntity.java",
+      "type": "file",
+      "name": "InstallationJpaEntity.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/entity/InstallationJpaEntity.java",
+      "summary": "设备安装记录表的 JPA 实体，记录设备与牲畜的绑定关系，包含 deviceId、livestockId、安装/卸载时间和操作员 ID。",
+      "tags": ["data-model", "jpa-entity", "persistence", "iot"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaDeviceLicenseRepositoryImpl.java",
+      "type": "file",
+      "name": "JpaDeviceLicenseRepositoryImpl.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaDeviceLicenseRepositoryImpl.java",
+      "summary": "DeviceLicenseRepository 的 JPA 实现，通过 Spring Data JPA 代理和 DeviceLicenseMapper 完成 License 领域模型与 JPA 实体的双向转换。",
+      "tags": ["repository", "persistence", "ddd-adapter", "iot"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaDeviceRepositoryImpl.java",
+      "type": "file",
+      "name": "JpaDeviceRepositoryImpl.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaDeviceRepositoryImpl.java",
+      "summary": "DeviceRepository 的 JPA 实现，封装设备的 CRUD 及按租户、设备编码、状态的查询，使用 DeviceMapper 进行领域模型与 JPA 实体转换。",
+      "tags": ["repository", "persistence", "ddd-adapter", "iot"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaGpsLogRepositoryImpl.java",
+      "type": "file",
+      "name": "JpaGpsLogRepositoryImpl.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaGpsLogRepositoryImpl.java",
+      "summary": "GpsLogRepository 的 JPA 实现，支持按设备 ID 查询 GPS 日志以及按设备和时间范围筛选，使用 GpsLogMapper 转换。",
+      "tags": ["repository", "persistence", "ddd-adapter", "iot"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaInstallationRepositoryImpl.java",
+      "type": "file",
+      "name": "JpaInstallationRepositoryImpl.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaInstallationRepositoryImpl.java",
+      "summary": "InstallationRepository 的 JPA 实现，提供安装记录的持久化和多维度查询，包括按设备/牲畜的活跃安装查询（removedAtIsNull），使用 InstallationMapper 转换。",
+      "tags": ["repository", "persistence", "ddd-adapter", "iot"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/DeviceLicenseMapper.java",
+      "type": "file",
+      "name": "DeviceLicenseMapper.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/DeviceLicenseMapper.java",
+      "summary": "DeviceLicense 领域模型与 DeviceLicenseJpaEntity 之间的双向映射器，包含 toJpaEntity 和 toDomain 两个静态方法，处理 LicenseStatus 枚举与字符串的互转。",
+      "tags": ["serialization", "mapper", "persistence", "iot"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/DeviceMapper.java",
+      "type": "file",
+      "name": "DeviceMapper.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/DeviceMapper.java",
+      "summary": "Device 领域模型与 DeviceJpaEntity 之间的双向映射器，处理 DeviceType/DeviceStatus 枚举与字符串的互转，支持 reconstituteLastOnlineAt 的领域重构。",
+      "tags": ["serialization", "mapper", "persistence", "iot"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/GpsLogMapper.java",
+      "type": "file",
+      "name": "GpsLogMapper.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/GpsLogMapper.java",
+      "summary": "GpsLog 领域模型与 GpsLogJpaEntity 之间的双向映射器，处理经纬度、精度和时间戳等 GPS 数据字段的映射。",
+      "tags": ["serialization", "mapper", "persistence", "iot"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/InstallationMapper.java",
+      "type": "file",
+      "name": "InstallationMapper.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/InstallationMapper.java",
+      "summary": "Installation 领域模型与 InstallationJpaEntity 之间的双向映射器，处理设备-牲畜安装绑定关系的字段映射，支持 installedAt/removedAt 的领域重构。",
+      "tags": ["serialization", "mapper", "persistence", "iot"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/SpringDataDeviceLicenseRepository.java",
+      "type": "file",
+      "name": "SpringDataDeviceLicenseRepository.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/SpringDataDeviceLicenseRepository.java",
+      "summary": "Spring Data JPA 的 DeviceLicense 仓储接口，继承 JpaRepository，声明 findByDeviceId 和 findByLicenseKey 派生查询方法。",
+      "tags": ["repository", "spring-data", "persistence", "iot"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/SpringDataDeviceRepository.java",
+      "type": "file",
+      "name": "SpringDataDeviceRepository.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/SpringDataDeviceRepository.java",
+      "summary": "Spring Data JPA 的 Device 仓储接口，继承 JpaRepository，声明按设备编码、租户 ID 查询和按状态统计的派生查询方法。",
+      "tags": ["repository", "spring-data", "persistence", "iot"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/SpringDataGpsLogRepository.java",
+      "type": "file",
+      "name": "SpringDataGpsLogRepository.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/SpringDataGpsLogRepository.java",
+      "summary": "Spring Data JPA 的 GpsLog 仓储接口，继承 JpaRepository，声明按设备 ID 和时间范围查询 GPS 日志的派生方法。",
+      "tags": ["repository", "spring-data", "persistence", "iot"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/SpringDataInstallationRepository.java",
+      "type": "file",
+      "name": "SpringDataInstallationRepository.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/SpringDataInstallationRepository.java",
+      "summary": "Spring Data JPA 的 Installation 仓储接口，继承 JpaRepository，声明按设备、牲畜及活跃状态（removedAtIsNull）查询安装记录的派生方法。",
+      "tags": ["repository", "spring-data", "persistence", "iot"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceController.java",
+      "type": "file",
+      "name": "DeviceController.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceController.java",
+      "summary": "设备管理的 REST 控制器，提供设备的列表查询、注册、详情、更新、激活、退役等 API 端点，使用 Farm Scope 进行租户隔离，支持自定义 DeviceType 参数解析。",
+      "tags": ["api-handler", "controller", "iot", "rest"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceLicenseController.java",
+      "type": "file",
+      "name": "DeviceLicenseController.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceLicenseController.java",
+      "summary": "设备许可证管理的 REST 控制器，提供许可证列表查询、详情、激活和撤销等 API 端点，支持租户上下文自动提取和许可证密钥激活流程。",
+      "tags": ["api-handler", "controller", "iot", "rest"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/GpsLogController.java",
+      "type": "file",
+      "name": "GpsLogController.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/GpsLogController.java",
+      "summary": "GPS 日志查询的 REST 控制器，提供获取最新 GPS 定位和按牲畜 ID 查询 GPS 历史轨迹的 API 端点，支持时间范围和分页参数。",
+      "tags": ["api-handler", "controller", "iot", "rest"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/event/SpringEventPublisher.java:SpringEventPublisher",
+      "type": "class",
+      "name": "SpringEventPublisher",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/event/SpringEventPublisher.java",
+      "lineRange": [24, 64],
+      "summary": "事件桥接组件，监听五个领域事件并转发至 RocketMQ，实现 IoT 和 Ranch 限界上下文之间的异步消息通信。",
+      "tags": ["event-handler", "messaging", "infrastructure"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceController.java:DeviceController",
+      "type": "class",
+      "name": "DeviceController",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceController.java",
+      "lineRange": [17, 129],
+      "summary": "设备管理 REST 控制器，包含 7 个方法处理设备的 CRUD、激活、退役和设备类型解析，使用 Farm Scope 租户隔离。",
+      "tags": ["api-handler", "controller", "rest"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceLicenseController.java:DeviceLicenseController",
+      "type": "class",
+      "name": "DeviceLicenseController",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceLicenseController.java",
+      "lineRange": [18, 90],
+      "summary": "设备许可证管理 REST 控制器，处理许可证的查询、激活和撤销，包含辅助方法 toLong 处理数值类型转换。",
+      "tags": ["api-handler", "controller", "rest"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/GpsLogController.java:GpsLogController",
+      "type": "class",
+      "name": "GpsLogController",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/GpsLogController.java",
+      "lineRange": [17, 64],
+      "summary": "GPS 日志查询 REST 控制器，提供最新定位和轨迹历史查询，注入 GpsLogApplicationService 和 InstallationApplicationService。",
+      "tags": ["api-handler", "controller", "rest"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/DeviceLicenseRepository.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/DeviceLicense.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/DeviceRepository.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/Device.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/GpsLogRepository.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/GpsLog.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/InstallationRepository.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/Installation.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/event/SpringEventPublisher.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/event/DeviceActivatedEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/event/SpringEventPublisher.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/event/GpsLogUpdatedEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/event/SpringEventPublisher.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/event/LicenseExpiredEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/event/SpringEventPublisher.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/ranch/domain/event/AlertStatusChangedEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/event/SpringEventPublisher.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/ranch/domain/event/FenceBreachDetectedEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/event/SpringEventPublisher.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/RocketMQEventPublisher.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/event/SpringEventPublisher.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/Topics.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaDeviceLicenseRepositoryImpl.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/DeviceLicense.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaDeviceLicenseRepositoryImpl.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/DeviceLicenseRepository.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaDeviceLicenseRepositoryImpl.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/DeviceLicenseMapper.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaDeviceRepositoryImpl.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/Device.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaDeviceRepositoryImpl.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/DeviceRepository.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaDeviceRepositoryImpl.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/DeviceMapper.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaGpsLogRepositoryImpl.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/GpsLog.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaGpsLogRepositoryImpl.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/GpsLogRepository.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaGpsLogRepositoryImpl.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/GpsLogMapper.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaInstallationRepositoryImpl.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/Installation.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaInstallationRepositoryImpl.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/InstallationRepository.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaInstallationRepositoryImpl.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/InstallationMapper.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/DeviceLicenseMapper.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/DeviceLicense.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/DeviceLicenseMapper.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/LicenseStatus.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/DeviceLicenseMapper.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/entity/DeviceLicenseJpaEntity.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/DeviceMapper.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/Device.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/DeviceMapper.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/DeviceStatus.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/DeviceMapper.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/DeviceType.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/DeviceMapper.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/entity/DeviceJpaEntity.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/GpsLogMapper.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/GpsLog.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/GpsLogMapper.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/entity/GpsLogJpaEntity.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/InstallationMapper.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/Installation.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/mapper/InstallationMapper.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/entity/InstallationJpaEntity.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/SpringDataDeviceLicenseRepository.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/entity/DeviceLicenseJpaEntity.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/SpringDataDeviceRepository.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/entity/DeviceJpaEntity.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/SpringDataGpsLogRepository.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/entity/GpsLogJpaEntity.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/SpringDataInstallationRepository.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/entity/InstallationJpaEntity.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/application/DeviceApplicationService.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/application/command/RegisterDeviceCommand.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/application/dto/DeviceDto.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model/DeviceType.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ApiResponse.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/tenant/TenantContext.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceLicenseController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/application/DeviceLicenseApplicationService.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceLicenseController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/application/command/ActivateLicenseCommand.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceLicenseController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/application/dto/DeviceLicenseDto.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceLicenseController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ApiException.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceLicenseController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ApiResponse.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceLicenseController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ErrorCode.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceLicenseController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/tenant/TenantContext.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/GpsLogController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/application/GpsLogApplicationService.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/GpsLogController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/application/InstallationApplicationService.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/GpsLogController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/application/dto/GpsLogDto.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/GpsLogController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/application/dto/InstallationDto.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/GpsLogController.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ApiResponse.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/event/SpringEventPublisher.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/event/SpringEventPublisher.java:SpringEventPublisher",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceController.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceController.java:DeviceController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceLicenseController.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceLicenseController.java:DeviceLicenseController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/GpsLogController.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/GpsLogController.java:GpsLogController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaDeviceLicenseRepositoryImpl.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/SpringDataDeviceLicenseRepository.java",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaDeviceRepositoryImpl.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/SpringDataDeviceRepository.java",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaGpsLogRepositoryImpl.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/SpringDataGpsLogRepository.java",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/JpaInstallationRepositoryImpl.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/persistence/SpringDataInstallationRepository.java",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+[
+  {
+    "order": 1,
+    "title": "项目全景与架构总览",
+    "description": "从 CLAUDE.md 开始理解智慧畜牧系统的全貌——这是一个面向牧场主的牲畜管理平台，通过 IoT 设备（GPS 追踪器、瘤胃胶囊）实现定位、健康预警和行为分析。项目包含三大子系统：Spring Boot 后端（DDD 洋葱架构）、Flutter 移动端和 Node.js Mock API Server，采用多租户隔离和 JWT + API Key 双认证机制。本文档是全项目的知识枢纽，涵盖技术栈、部署命令和版本路线图。",
+    "nodeIds": [
+      "document:CLAUDE.md"
+    ]
+  },
+  {
+    "order": 2,
+    "title": "双端应用入口与启动流程",
+    "description": "智慧畜牧有两个独立的应用入口。Spring Boot 后端从 SmartLivestockApplication 启动，通过 @EnableAsync 和 @EnableScheduling 开启异步处理与定时任务。Flutter 移动端从 main.dart 启动，根据编译参数 APP_MODE 切换 mock（本地假数据）和 live（连接后端 API）两种运行模式。理解这两个入口是掌握系统运行方式的关键。",
+    "nodeIds": [
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/SmartLivestockApplication.java",
+      "file:Mobile/mobile_app/lib/main.dart"
+    ],
+    "languageLesson": "Spring Boot 的 @SpringBootApplication 注解组合了 @Configuration + @EnableAutoConfiguration + @ComponentScan，是应用的自动装配入口。Flutter 的 --dart-define 编译参数通过 String.fromEnvironment() 在编译期读取，实现零运行时开销的配置切换。"
+  },
+  {
+    "order": 3,
+    "title": "共享内核与 DDD 基础设施",
+    "description": "Spring Boot 后端采用 DDD（领域驱动设计）洋葱架构，所有限界上下文共享一组内核基础设施。AggregateRoot 是聚合根基类，为所有领域对象提供事件收集能力；DomainEvent 是领域事件基类，自动生成 eventId 和时间戳；ErrorCode 枚举定义了 28 个业务错误码，覆盖认证、资源冲突、订阅等场景。这些组件是理解后端领域模型的前提。",
+    "nodeIds": [
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/AggregateRoot.java",
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ErrorCode.java",
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ApiResponse.java"
+    ],
+    "languageLesson": "DDD 洋葱架构将代码分为四层：domain（领域模型，零外部依赖）→ application（应用服务，编排用例）→ infrastructure（基础设施，技术实现）→ interfaces（接口层，REST Controller）。依赖方向只能从外向内，核心层不依赖任何框架。"
+  },
+  {
+    "order": 4,
+    "title": "安全认证与多租户隔离",
+    "description": "系统的安全体系由 SecurityConfig 统一配置：无状态会话、CORS 白名单、公开端点白名单（登录/Open API/健康检查）。JwtAuthenticationFilter 在每个请求中提取并验证 JWT 令牌，同时设置 TenantContext 实现多租户隔离。JwtTokenProvider 负责令牌的生成与 HMAC-SHA 签名解析，在令牌中嵌入 userId、tenantId、role 三个声明。这种设计确保不同租户的数据完全隔离。",
+    "nodeIds": [
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/security/SecurityConfig.java",
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/security/JwtAuthenticationFilter.java",
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/security/JwtTokenProvider.java"
+    ],
+    "languageLesson": "Spring Security 的过滤器链（FilterChain）按顺序执行，每个请求经过 JwtAuthenticationFilter 时会解析 Bearer Token 并填充 SecurityContext。ThreadLocal 用于在请求线程内传递租户上下文（TenantContext），请求结束后自动清理以避免内存泄漏。"
+  },
+  {
+    "order": 5,
+    "title": "数据库迁移与三限界上下文表结构",
+    "description": "数据库通过 Flyway 版本化迁移管理。V1 创建 Identity 限界上下文的 5 张表（tenants、farms、users、user_farm_assignments、api_keys），构成认证和多租户隔离的数据基础。V2 创建 Ranch 限界上下文的 3 张表（livestock、fences、alerts），支撑牧场管理、电子围栏和告警。V3 创建 IoT 限界上下文的 4 张表（devices、device_licenses、installations、gps_logs），管理设备生命周期和 GPS 追踪。三组迁移对应三个独立的业务领域。",
+    "nodeIds": [
+      "table:smart-livestock-server/src/main/resources/db/migration/V1__create_identity_tables.sql:tenants",
+      "table:smart-livestock-server/src/main/resources/db/migration/V1__create_identity_tables.sql:users",
+      "table:smart-livestock-server/src/main/resources/db/migration/V1__create_identity_tables.sql:farms",
+      "table:smart-livestock-server/src/main/resources/db/migration/V2__create_ranch_tables.sql:livestock",
+      "table:smart-livestock-server/src/main/resources/db/migration/V2__create_ranch_tables.sql:fences"
+    ],
+    "languageLesson": "Flyway 迁移文件按版本号严格排序执行（V1、V2、V3...），每个文件是一次性的数据库变更。farms 表的 tenant_id 外键实现多租户隔离，fences 表的 vertices JSON 列存储 GPS 多边形，alerts 表的状态字段驱动四阶段状态机（pending → acknowledged → handled → archived）。"
+  },
+  {
+    "order": 6,
+    "title": "领域模型与聚合根设计",
+    "description": "后端的三个已完成限界上下文各自拥有核心聚合根。Identity 上下文的 User（用户认证与角色管理）、Tenant（租户与入驻阶段转换）、Farm（牧场与地理坐标）。Ranch 上下文的 Livestock（牲畜属性与 GPS 位置追踪）、Fence（电子围栏边界与射线法坐标检测）、Alert（四阶段状态机告警）。IoT 上下文的 Device（设备生命周期管理）、Installation（设备-牲畜安装绑定）。这些聚合根继承了 Step 3 的 AggregateRoot，内含业务规则校验和领域事件发布。",
+    "nodeIds": [
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/identity/domain/model/User.java",
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/identity/domain/model/Tenant.java",
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/ranch/domain/model/Livestock.java",
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/ranch/domain/model/Fence.java",
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/ranch/domain/model/Alert.java"
+    ],
+    "languageLesson": "聚合根（Aggregate Root）是 DDD 中的核心概念：它是领域对象图的入口点，控制内部所有对象的一致性。例如 Fence 聚合根不仅存储 GPS 多边形数据，还封装了射线法（ray casting）算法来判断坐标是否在围栏内，将业务规则内聚在领域模型中而非分散到 Service 层。"
+  },
+  {
+    "order": 7,
+    "title": "业务事件驱动：GPS 越界告警流",
+    "description": "系统的核心业务流程是 GPS 越界自动告警，由三个组件协作完成。FenceBreachDetector 是领域服务，接收 GPS 坐标后检查是否在围栏内，越界则产生告警。GpsLogEventHandler 是基础设施层事件处理器，监听 GPS 日志事件并触发越界检测。AlertApplicationService 是应用服务，封装告警的完整生命周期管理（创建、确认、处理、归档）。这条从 IoT 数据到 Ranch 告警的链路是理解限界上下文间集成模式的最佳案例。",
+    "nodeIds": [
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/ranch/domain/service/FenceBreachDetector.java",
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/ranch/infrastructure/event/GpsLogEventHandler.java",
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/ranch/application/AlertApplicationService.java"
+    ],
+    "languageLesson": "DDD 限界上下文间的集成通过领域事件（Domain Event）实现松耦合：IoT 上下文发布 GPS 数据到达事件，Ranch 上下文监听该事件并触发越界检测，避免了上下文间的直接依赖。这种事件驱动架构使得每个限界上下文可以独立演进和部署。"
+  },
+  {
+    "order": 8,
+    "title": "REST 接口层与 API 契约",
+    "description": "后端的 27 个 Controller 分为三端隔离架构：App API（64 端点，供移动端使用）、Admin API（30 端点，供平台管理使用）、Open API（17 端点，供第三方通过 API Key 调用）。AuthController 处理登录/令牌刷新/登出，FenceController 提供围栏 CRUD，AlertController 管理告警状态流转。所有接口遵循统一的响应包络格式（code/message/data）和 Farm Scope 硬约束，api-overview.md 文档定义了这些跨端通用约定。",
+    "nodeIds": [
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/identity/interfaces/AuthController.java",
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/ranch/interfaces/FenceController.java",
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/ranch/interfaces/AlertController.java",
+      "document:docs/api-contracts/api-overview.md"
+    ]
+  },
+  {
+    "order": 9,
+    "title": "Flutter 前端架构与路由体系",
+    "description": "Flutter 移动端采用 Riverpod 状态管理和 go_router 路由。app_router.dart 定义完整的路由树（ShellRoute + 嵌套路由）和认证守卫重定向逻辑——未登录用户自动跳转登录页，角色权限不足时拦截访问。app_route.dart 枚举作为 39 条路由路径的唯一来源（Single Source of Truth）。session_controller.dart 是会话管理的核心 Notifier，处理角色登录、JWT 令牌登录、ApiCache 预加载和牧场切换等全部认证流程。",
+    "nodeIds": [
+      "file:Mobile/mobile_app/lib/app/app_router.dart",
+      "file:Mobile/mobile_app/lib/app/app_route.dart",
+      "file:Mobile/mobile_app/lib/app/session/session_controller.dart",
+      "file:Mobile/mobile_app/lib/app/app_mode.dart"
+    ],
+    "languageLesson": "Flutter 的 ConsumerWidget + Riverpod Notifier 模式替代了传统的 StatefulWidget + setState：每个功能模块的 Repository 接口定义在 domain 层，data 层提供 mock 和 live 两种实现，presentation 层通过 Riverpod Provider 注入。这种分层使得同一套 UI 可以在 mock 数据和真实后端之间无缝切换。"
+  },
+  {
+    "order": 10,
+    "title": "地图三级瓦片降级与离线支持",
+    "description": "移动端的地图系统采用三级瓦片降级策略：优先使用自建 tileserver-gl 服务（在线高精度瓦片），不可用时降级到本地 MBTiles 离线瓦片（长沙 zoom 12-14），最后降级到高德/OSM 在线瓦片。SmartTileProvider 内置健康检测和自动恢复机制。coord_transform.dart 处理 WGS-84 与 GCJ-02 坐标系互转，确保 GPS 数据在高德底图上正确显示。这种设计在野外网络不稳定的环境下仍能保证地图可用。",
+    "nodeIds": [
+      "file:Mobile/mobile_app/lib/core/map/smart_tile_provider.dart",
+      "file:Mobile/mobile_app/lib/core/map/coord_transform.dart"
+    ],
+    "languageLesson": "中国地图坐标系有两套：WGS-84（GPS 原始坐标）和 GCJ-02（高德/腾讯使用的偏移坐标，俗称'火星坐标'）。在 WGS-84 底图上使用 GCJ-02 坐标（或反之）会导致位置偏移约 500 米，因此坐标转换是地图正确显示的关键。"
+  },
+  {
+    "order": 11,
+    "title": "Commerce 限界上下文与订阅体系",
+    "description": "Phase 2 正在实施的 Commerce 限界上下文引入四个新聚合根：Subscription（订阅生命周期管理，从试用到过期共七种状态）、Contract（B2B 合同管理，五阶段状态机）、RevenuePeriod（分润对账，四方确认后结算）和 SubscriptionService（Licensed 服务，含 SHA-256 密钥哈希和设备配额管理）。这些聚合根延续了 Step 6 中 AggregateRoot 的领域事件机制，构建了完整的商业计费和合作分润能力。",
+    "nodeIds": [
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Subscription.java",
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/RevenuePeriod.java",
+      "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/SubscriptionService.java"
+    ]
+  },
+  {
+    "order": 12,
+    "title": "容器化部署与全栈编排",
+    "description": "后端通过 Docker Compose 编排全栈服务：PostgreSQL 16（数据持久化）、Redis 7（缓存与会话）、RocketMQ 5.1（消息队列）、Spring Boot 应用（核心服务）、tileserver-gl（地图瓦片）和 Nginx（反向代理）。Dockerfile 基于 eclipse-temurin:17-jre 运行时镜像，将 Gradle 构建产物 jar 包部署到容器中。这套编排支持一键部署到远程服务器（172.22.1.123），覆盖从开发到生产的完整交付链路。",
+    "nodeIds": [
+      "service:smart-livestock-server/docker-compose.yml",
+      "service:smart-livestock-server/Dockerfile",
+      "config:smart-livestock-server/build.gradle"
+    ],
+    "languageLesson": "Docker Compose 的 depends_on 仅保证容器启动顺序，不保证服务就绪。生产环境需要配合 health check（健康检查）确保数据库等依赖服务真正可用后，应用容器才开始连接。Build 构建阶段使用 Gradle 的 bootJar 任务打包可执行 jar，包含所有运行时依赖。"
+  }
+]

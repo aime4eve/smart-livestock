@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.ColumnTransformer;
 
 import java.time.Instant;
 
@@ -26,6 +27,7 @@ public class FenceJpaEntity {
     private String name;
 
     @Column(name = "vertices", nullable = false, columnDefinition = "jsonb")
+    @ColumnTransformer(write = "?::jsonb")
     private String vertices;
 
     @Column(name = "color", length = 7)

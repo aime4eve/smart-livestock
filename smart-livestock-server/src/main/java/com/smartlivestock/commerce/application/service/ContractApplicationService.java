@@ -87,7 +87,7 @@ public class ContractApplicationService {
 
     private Contract loadContract(Long contractId) {
         return contractRepository.findById(contractId)
-            .orElseThrow(() -> new DomainException(ErrorCode.CONTRACT_NOT_ACTIVE,
+            .orElseThrow(() -> new DomainException(ErrorCode.RESOURCE_NOT_FOUND,
                 "Contract not found: " + contractId));
     }
 }

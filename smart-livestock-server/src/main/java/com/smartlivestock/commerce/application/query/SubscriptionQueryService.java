@@ -12,7 +12,6 @@ import com.smartlivestock.commerce.domain.repository.FeatureGateRepository;
 import com.smartlivestock.commerce.domain.repository.SubscriptionRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -73,13 +72,5 @@ public class SubscriptionQueryService {
     public Optional<ContractResponse> findContractById(Long id) {
         return contractRepository.findById(id)
             .map(ContractAssembler::toResponse);
-    }
-
-    /**
-     * List all contracts with a given status (admin view).
-     */
-    public List<ContractResponse> listContractsByStatus(String status) {
-        // Delegate to repository; status parsing handled by caller if needed
-        return List.of(); // placeholder — will be wired when controllers need it
     }
 }

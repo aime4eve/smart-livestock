@@ -1,0 +1,509 @@
+{
+  "nodes": [
+    {
+      "id": "file:PC/backend-express-backup/routes/cattleRoutes.js",
+      "type": "file",
+      "name": "cattleRoutes.js",
+      "filePath": "PC/backend-express-backup/routes/cattleRoutes.js",
+      "summary": "Express 路由模块，提供牛只 CRUD 和传感器数据的 REST API 端点，包含列表查询、详情获取、传感器数据读取与写入四个路由，需认证中间件保护。",
+      "tags": ["api-handler", "路由", "牛只管理", "传感器"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:PC/backend-express-backup/server.js",
+      "type": "file",
+      "name": "server.js",
+      "filePath": "PC/backend-express-backup/server.js",
+      "summary": "Express 应用入口，配置 CORS、JSON 解析、Morgan 日志、MongoDB 连接及路由挂载，包含全局错误处理中间件。",
+      "tags": ["entry-point", "配置", "express"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:PC/backend-migration-database-design.md",
+      "type": "document",
+      "name": "backend-migration-database-design.md",
+      "filePath": "PC/backend-migration-database-design.md",
+      "summary": "PostgreSQL 数据库设计方案文档，详述从 MongoDB 迁移到关系型数据库的表结构设计（users、devices、cattle、cattle_metadata、sensor_data），包含分区策略、数据类型映射、约束完整性及性能优化建议。",
+      "tags": ["documentation", "数据库", "迁移", "postgresql"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:PC/backend-migration-summary.md",
+      "type": "document",
+      "name": "backend-migration-summary.md",
+      "filePath": "PC/backend-migration-summary.md",
+      "summary": "空文件，原计划用于后端迁移总结，尚未编写内容。",
+      "tags": ["documentation", "迁移", "占位"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:PC/backend-springboot-design.md",
+      "type": "document",
+      "name": "backend-springboot-design.md",
+      "filePath": "PC/backend-springboot-design.md",
+      "summary": "Spring Boot 后端设计方案文档，涵盖技术栈选择（Spring Boot 2.7 + Java 11 + PostgreSQL + JPA）、项目分层结构、数据库表与索引设计、RESTful API 设计、安全认证流程及数据迁移策略。",
+      "tags": ["documentation", "springboot", "架构设计", "api"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/controller/UserController.java",
+      "type": "file",
+      "name": "UserController.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/controller/UserController.java",
+      "summary": "空桩文件，仅包含 UserController 类名注释，尚未实现用户管理 API 端点。",
+      "tags": ["api-handler", "占位", "用户管理"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/dto/CattleDto.java",
+      "type": "file",
+      "name": "CattleDto.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/dto/CattleDto.java",
+      "summary": "牛只数据传输对象，包含坐标、健康状态、设备关联、元数据和传感器数据列表等字段，使用 Lombok Builder 模式。",
+      "tags": ["data-model", "dto", "牛只管理"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/dto/CattleMetadataDto.java",
+      "type": "file",
+      "name": "CattleMetadataDto.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/dto/CattleMetadataDto.java",
+      "summary": "牛只元数据传输对象，包含年龄、体重、品种和备注字段，用于牛只详细信息的传递。",
+      "tags": ["data-model", "dto", "元数据"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/dto/DeviceDto.java",
+      "type": "file",
+      "name": "DeviceDto.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/dto/DeviceDto.java",
+      "summary": "IoT 设备数据传输对象，包含设备类型、状态、电量、固件版本等字段。",
+      "tags": ["data-model", "dto", "设备管理"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/dto/SensorDataDto.java",
+      "type": "file",
+      "name": "SensorDataDto.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/dto/SensorDataDto.java",
+      "summary": "传感器数据传输对象，包含瘤胃温度和蠕动次数等字段，用于传感器数据的传输。",
+      "tags": ["data-model", "dto", "传感器"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/dto/UserDto.java",
+      "type": "file",
+      "name": "UserDto.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/dto/UserDto.java",
+      "summary": "用户数据传输对象，包含用户名、密码、姓名、邮箱、角色及登录状态等字段。",
+      "tags": ["data-model", "dto", "用户管理"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:PC/backend/src/main/java/com/smartlivestock/entity/Cattle.java:Cattle",
+      "type": "class",
+      "name": "Cattle",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/entity/Cattle.java",
+      "lineRange": [19, 94],
+      "summary": "牛只 JPA 实体，包含坐标、健康状态、设备关联（ManyToOne）、元数据（OneToOne）和传感器数据列表（OneToMany），提供自动时间戳和关联管理方法。",
+      "tags": ["data-model", "entity", "牛只管理", "jpa"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/entity/CattleMetadata.java",
+      "type": "file",
+      "name": "CattleMetadata.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/entity/CattleMetadata.java",
+      "summary": "牛只元数据 JPA 实体，与 Cattle 为 OneToOne 关系，存储年龄、体重、品种和备注信息。",
+      "tags": ["data-model", "entity", "元数据", "jpa"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/entity/Device.java",
+      "type": "file",
+      "name": "Device.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/entity/Device.java",
+      "summary": "IoT 设备 JPA 实体，包含设备类型、在线状态、电量、固件版本等属性，使用 @PreCreate 自动设置创建时间。",
+      "tags": ["data-model", "entity", "设备管理", "jpa"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/entity/SensorData.java",
+      "type": "file",
+      "name": "SensorData.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/entity/SensorData.java",
+      "summary": "传感器数据 JPA 实体，与 Cattle 为 ManyToOne 关系，记录瘤胃温度和蠕动次数的时序数据。",
+      "tags": ["data-model", "entity", "传感器", "jpa"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/entity/User.java",
+      "type": "file",
+      "name": "User.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/entity/User.java",
+      "summary": "用户 JPA 实体，包含认证信息（用户名/密码）、联系方式、角色和活跃状态，使用 @PreCreate 自动设置时间戳。",
+      "tags": ["data-model", "entity", "用户管理", "jpa"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/exception/ResourceNotFoundException.java",
+      "type": "file",
+      "name": "ResourceNotFoundException.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/exception/ResourceNotFoundException.java",
+      "summary": "资源未找到异常类，提供两种构造函数：简单消息和格式化消息（资源名+字段名+字段值），用于 Service 层抛出 404 错误。",
+      "tags": ["异常处理", "工具", "错误"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/repository/CattleMetadataRepository.java",
+      "type": "file",
+      "name": "CattleMetadataRepository.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/repository/CattleMetadataRepository.java",
+      "summary": "牛只元数据 Spring Data JPA Repository，提供按品种、年龄范围和体重阈值查询的自定义方法。",
+      "tags": ["data-model", "repository", "元数据"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/repository/CattleRepository.java",
+      "type": "file",
+      "name": "CattleRepository.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/repository/CattleRepository.java",
+      "summary": "牛只 Spring Data JPA Repository，包含按牛只ID、健康状态、坐标范围查询及关联加载传感器数据和元数据的自定义查询方法。",
+      "tags": ["data-model", "repository", "牛只管理"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/repository/DeviceRepository.java",
+      "type": "file",
+      "name": "DeviceRepository.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/repository/DeviceRepository.java",
+      "summary": "设备 Spring Data JPA Repository，提供按设备ID、类型、状态和电量阈值查询的方法。",
+      "tags": ["data-model", "repository", "设备管理"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/repository/SensorDataRepository.java",
+      "type": "file",
+      "name": "SensorDataRepository.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/repository/SensorDataRepository.java",
+      "summary": "传感器数据 Spring Data JPA Repository，提供按牛只ID和时间范围查询的方法。",
+      "tags": ["data-model", "repository", "传感器"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/repository/UserRepository.java",
+      "type": "file",
+      "name": "UserRepository.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/repository/UserRepository.java",
+      "summary": "用户 Spring Data JPA Repository，提供按用户名和邮箱查询及存在性检查的方法。",
+      "tags": ["data-model", "repository", "用户管理"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/service/CattleService.java",
+      "type": "file",
+      "name": "CattleService.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/service/CattleService.java",
+      "summary": "空桩文件，牛只服务接口尚未定义。",
+      "tags": ["service", "占位", "牛只管理"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/backend/src/main/java/com/smartlivestock/service/DeviceService.java",
+      "type": "file",
+      "name": "DeviceService.java",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/service/DeviceService.java",
+      "summary": "空桩文件，设备服务接口尚未定义。",
+      "tags": ["service", "占位", "设备管理"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java:CattleServiceImpl",
+      "type": "class",
+      "name": "CattleServiceImpl",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "lineRange": [32, 440],
+      "summary": "牛只服务实现类，提供完整的牛只 CRUD、位置更新、健康状态管理、元数据管理、传感器数据管理及设备绑定/解绑功能，包含 Entity 到 DTO 的手动映射方法。",
+      "tags": ["service", "牛只管理", "crud", "业务逻辑"],
+      "complexity": "complex",
+      "languageNotes": "典型的 Spring Boot 服务层模式：通过 @RequiredArgsConstructor 注入 4 个 Repository，手动实现 Entity-DTO 映射而非使用 MapStruct。"
+    },
+    {
+      "id": "function:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java:createCattle",
+      "type": "function",
+      "name": "createCattle",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "lineRange": [44, 101],
+      "summary": "创建牛只记录，处理设备关联、元数据创建和传感器数据批量添加，包含重复 ID 校验。",
+      "tags": ["service", "创建", "牛只管理"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java:updateCattle",
+      "type": "function",
+      "name": "updateCattle",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "lineRange": [180, 212],
+      "summary": "更新牛只基本信息，支持修改牛只ID（含唯一性校验）、坐标、健康状态和设备关联。",
+      "tags": ["service", "更新", "牛只管理"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java:mapToDto",
+      "type": "function",
+      "name": "mapToDto",
+      "filePath": "PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "lineRange": [369, 392],
+      "summary": "将 Cattle Entity 映射为 CattleDto，处理设备信息和元数据的关联转换。",
+      "tags": ["serialization", "映射", "dto"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:PC/backend-express-backup/routes/cattleRoutes.js",
+      "target": "file:PC/backend-express-backup/models/Cattle.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend-express-backup/routes/cattleRoutes.js",
+      "target": "file:PC/backend-express-backup/middleware/authMiddleware.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend-express-backup/server.js",
+      "target": "file:PC/backend-express-backup/routes/cattleRoutes.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend-express-backup/server.js",
+      "target": "file:PC/backend-express-backup/routes/authRoutes.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/repository/CattleMetadataRepository.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/entity/CattleMetadata.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/repository/CattleRepository.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/entity/Cattle.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/repository/DeviceRepository.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/entity/Device.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/repository/SensorDataRepository.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/entity/SensorData.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/repository/UserRepository.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/entity/User.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/dto/CattleDto.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/dto/CattleMetadataDto.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/dto/SensorDataDto.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/entity/Cattle.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/entity/CattleMetadata.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/entity/Device.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/entity/SensorData.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/exception/ResourceNotFoundException.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/repository/CattleMetadataRepository.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/repository/CattleRepository.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/repository/DeviceRepository.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/repository/SensorDataRepository.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/service/CattleService.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "target": "class:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java:CattleServiceImpl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "target": "function:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java:createCattle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "target": "function:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java:updateCattle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java",
+      "target": "function:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java:mapToDto",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:PC/backend/src/main/java/com/smartlivestock/entity/Cattle.java",
+      "target": "class:PC/backend/src/main/java/com/smartlivestock/entity/Cattle.java:Cattle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "class:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java:CattleServiceImpl",
+      "target": "function:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java:createCattle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "class:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java:CattleServiceImpl",
+      "target": "function:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java:updateCattle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "class:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java:CattleServiceImpl",
+      "target": "function:PC/backend/src/main/java/com/smartlivestock/service/impl/CattleServiceImpl.java:mapToDto",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "document:PC/backend-migration-database-design.md",
+      "target": "document:PC/backend-springboot-design.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:PC/backend-springboot-design.md",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/entity/Cattle.java",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:PC/backend-springboot-design.md",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/entity/User.java",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:PC/backend-springboot-design.md",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/entity/Device.java",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:PC/backend-springboot-design.md",
+      "target": "file:PC/backend/src/main/java/com/smartlivestock/entity/SensorData.java",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

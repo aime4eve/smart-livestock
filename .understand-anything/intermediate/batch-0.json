@@ -1,0 +1,406 @@
+{
+  "nodes": [
+    {
+      "id": "document:AGENTS.md",
+      "type": "document",
+      "name": "AGENTS.md",
+      "filePath": "AGENTS.md",
+      "summary": "Claude Code 代理行为指引文件，定义工作目录定位、验证步骤、关键约束、Web 平台注意事项、Issue 驱动工作流和 Git 操作规范。",
+      "tags": ["documentation", "development", "agent-guidelines", "workflow"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:CLAUDE.md",
+      "type": "document",
+      "name": "CLAUDE.md",
+      "filePath": "CLAUDE.md",
+      "summary": "项目级 Claude Code 行为指南与全局参考文档，涵盖行为准则、项目概述、技术栈（Spring Boot + Flutter）、GitHub 仓库配置、PC/Mobile/后端三大子系统的架构说明、部署命令和版本路线图。",
+      "tags": ["documentation", "project-overview", "architecture", "reference"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/api-contracts/admin-api.md",
+      "type": "document",
+      "name": "admin-api.md",
+      "filePath": "docs/api-contracts/admin-api.md",
+      "summary": "Admin API 端点契约文档（/api/v1/admin/），定义 30 个管理端接口，涵盖租户管理（5 端点）、用户管理（6 端点）、农场管理（4 端点）、跨租户聚合（1 端点）、审计日志（1 端点）和 API Key 管理（4 端点），含完整请求/响应示例。",
+      "tags": ["documentation", "api-contract", "admin-api", "rest-api"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/api-contracts/api-overview.md",
+      "type": "document",
+      "name": "api-overview.md",
+      "filePath": "docs/api-contracts/api-overview.md",
+      "summary": "多端统一 API 契约总览文档，定义三端隔离架构（App/Admin/Open）、通用约定（响应包络、分页、错误码）、Farm Scope 硬约束、JWT + API Key 双认证机制、牧场切换流程和版本演进策略，是所有端点契约的基础规范。",
+      "tags": ["documentation", "api-contract", "architecture", "authentication"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/api-contracts/app-api.md",
+      "type": "document",
+      "name": "app-api.md",
+      "filePath": "docs/api-contracts/app-api.md",
+      "summary": "App API 端点契约文档（/api/v1/），定义 64 个移动端接口，涵盖认证（3）、身份管理（12）、牧场操作——牲畜/围栏/告警（17）、物联网——设备/许可证/安装/GPS（16）和读模型（2），是 Flutter 前端对接后端的核心参考。",
+      "tags": ["documentation", "api-contract", "app-api", "rest-api"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/api-contracts/changelog.md",
+      "type": "document",
+      "name": "changelog.md",
+      "filePath": "docs/api-contracts/changelog.md",
+      "summary": "API 契约变更日志，记录 v1.0 契约重设计的变更内容，包括分页结构统一、认证 header 调整和 Open API 新增设备注册端点。",
+      "tags": ["documentation", "changelog", "api-contract"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/api-contracts/migration-guide.md",
+      "type": "document",
+      "name": "migration-guide.md",
+      "filePath": "docs/api-contracts/migration-guide.md",
+      "summary": "Mock Server 到 Spring Boot 后端的迁移指南，涵盖 Flutter 端迁移清单（认证流程、API 路径变更、结构差异）、PC 端 Vue 3 迁移要点、种子数据对齐、并行运行期策略和 Mock Server 下线检查清单。",
+      "tags": ["documentation", "migration", "api-contract", "flutter"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/api-contracts/open-api.md",
+      "type": "document",
+      "name": "open-api.md",
+      "filePath": "docs/api-contracts/open-api.md",
+      "summary": "Open API 端点契约文档（/api/v1/open/），定义 17 个第三方开放接口，包含只读端点（牲畜/围栏/告警/设备各 2 个）和 IoT 设备自注册写入端点，使用 API Key 认证与频率限制。",
+      "tags": ["documentation", "api-contract", "open-api", "third-party"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-05-06-mvp-phase1-implementation.md",
+      "type": "document",
+      "name": "2026-05-06-mvp-phase1-implementation.md",
+      "filePath": "docs/superpowers/plans/2026-05-06-mvp-phase1-implementation.md",
+      "summary": "MVP Phase 1 实施计划，包含 16 个 TDD Task，从项目初始化、共享内核、Flyway 迁移到 Identity/Ranch/IoT 三个限界上下文的完整实现，附带文件结构总览、依赖关系图和 CI/CD 配置指南，是 Phase 1 后端实施的执行蓝图。",
+      "tags": ["documentation", "implementation-plan", "backend", "tdd"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-05-12-flutter-frontend-adaptation.md",
+      "type": "document",
+      "name": "2026-05-12-flutter-frontend-adaptation.md",
+      "filePath": "docs/superpowers/plans/2026-05-12-flutter-frontend-adaptation.md",
+      "summary": "Flutter 前端适配 Spring Boot 后端的实施计划，包含 8 个 Task：Auth 层重写（phone+password + JWT）、ApiCache 端点映射、登录页改造、Farm Switcher 适配、Live Repository 响应格式适配、非 Phase 1 功能降级和端到端验证。",
+      "tags": ["documentation", "implementation-plan", "flutter", "frontend"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-05-13-tenant-onboarding-plan.md",
+      "type": "document",
+      "name": "2026-05-13-tenant-onboarding-plan.md",
+      "filePath": "docs/superpowers/plans/2026-05-13-tenant-onboarding-plan.md",
+      "summary": "租户入驻流程实施计划（Phase 1），包含 11 个 Task，涵盖后端 UserFarmAssignment 仓库、FarmApplicationService 自动关联 owner、DashboardController 真实计算、前端 ApiCache 适配、牧场创建向导、围栏绘制和集成验证。",
+      "tags": ["documentation", "implementation-plan", "tenant", "onboarding"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-05-15-multi-region-map-tiles-plan.md",
+      "type": "document",
+      "name": "2026-05-15-multi-region-map-tiles-plan.md",
+      "filePath": "docs/superpowers/plans/2026-05-15-multi-region-map-tiles-plan.md",
+      "summary": "多区域地图瓦片统一方案实施计划，包含 8 个 Task：CoordTransform 逆转换、MBTilesTileProvider + SmartTileProvider 三级降级、MapConfig 坐标动态化、围栏页面渲染适配、tileserver-gl Docker 部署、MBTiles 生成工具和瓦片管理 API。",
+      "tags": ["documentation", "implementation-plan", "map-tiles", "flutter"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-05-18-commerce-context-plan.md",
+      "type": "document",
+      "name": "2026-05-18-commerce-context-plan.md",
+      "filePath": "docs/superpowers/plans/2026-05-18-commerce-context-plan.md",
+      "summary": "Commerce 限界上下文实施计划（Phase 2），包含 13 个 Task：Flyway DDL、领域模型（Subscription/Contract/RevenuePeriod/SubscriptionService 聚合根）、配额引擎、AOP 拦截器、事件通知、应用服务、Controller 层和定时任务调度。",
+      "tags": ["documentation", "implementation-plan", "commerce", "subscription"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/superpowers/reports/2026-05-15-phase1-e2e-test-report.md",
+      "type": "document",
+      "name": "2026-05-15-phase1-e2e-test-report.md",
+      "filePath": "docs/superpowers/reports/2026-05-15-phase1-e2e-test-report.md",
+      "summary": "Phase 1 端到端测试报告，记录后端 API（认证、Admin API、App API、CRUD、权限隔离）、后端单元/集成测试和 Flutter 前端测试的通过情况，列出已知低优先级问题和 Phase 1 未完成项。",
+      "tags": ["documentation", "test-report", "e2e", "phase1"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/superpowers/requ/阿根廷.md",
+      "type": "document",
+      "name": "阿根廷.md",
+      "filePath": "docs/superpowers/requ/阿根廷.md",
+      "summary": "阿根廷客户需求文档，概述项目背景（南美牲畜管理）、集成构想（LoRa 设备 + 云平台）、对 HKT 产品的技术规格需求（频段兼容性、LoRa 通信协议）和公司信息。",
+      "tags": ["documentation", "requirements", "international", "client"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/superpowers/reviews/2026-05-07-multi-client-api-contract-review.md",
+      "type": "document",
+      "name": "2026-05-07-multi-client-api-contract-review.md",
+      "filePath": "docs/superpowers/reviews/2026-05-07-multi-client-api-contract-review.md",
+      "summary": "多端统一 API 契约深度评审报告，涵盖 RESTful 设计质量、消费端对齐、认证流程、错误码覆盖、Farm Scope 安全、Open API 设计、版本演进策略等维度，按 P0/P1/P2 优先级汇总问题并提供 Flutter 端对照表。",
+      "tags": ["documentation", "code-review", "api-contract", "quality"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/superpowers/reviews/2026-05-07-mvp-backend-design-deep-review.md",
+      "type": "document",
+      "name": "2026-05-07-mvp-backend-design-deep-review.md",
+      "filePath": "docs/superpowers/reviews/2026-05-07-mvp-backend-design-deep-review.md",
+      "summary": "MVP 后端设计规格深度评审报告，从洋葱架构实施复杂度、基础设施层缺失组件、数据库 Schema（DDL 一致性、索引策略、外键约束）、安全架构（认证链、SQL 注入风险）、事务边界和可测试性等维度进行评审。",
+      "tags": ["documentation", "code-review", "backend", "architecture"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/superpowers/reviews/2026-05-07-mvp-specs-review.md",
+      "type": "document",
+      "name": "2026-05-07-mvp-specs-review.md",
+      "filePath": "docs/superpowers/reviews/2026-05-07-mvp-specs-review.md",
+      "summary": "MVP 规格文档综合评审报告，从 P0 到 P3 四级优先级梳理 20+ 项问题，涵盖响应格式类型冲突、ID 类型冲突、设备路径不一致、GPS 写入通道冲突、洋葱架构复杂度、软删除策略等，附带代码证据和迁移路径建议。",
+      "tags": ["documentation", "code-review", "specification", "quality"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/superpowers/reviews/2026-05-18-Commerce-架构评审与Plan修正.md",
+      "type": "document",
+      "name": "2026-05-18-Commerce-架构评审与Plan修正.md",
+      "filePath": "docs/superpowers/reviews/2026-05-18-Commerce-架构评审与Plan修正.md",
+      "summary": "Commerce 限界上下文架构评审与 Plan 修正记录，逐模块修正 SubscriptionTier 定价、四大聚合根（Subscription/Contract/RevenuePeriod/SubscriptionService）、配额引擎、领域事件、ErrorCode 和 API 端点设计，附带 DDL 最终汇总。",
+      "tags": ["documentation", "code-review", "commerce", "architecture"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-05-06-mvp-backend-design.md",
+      "type": "document",
+      "name": "2026-05-06-mvp-backend-design.md",
+      "filePath": "docs/superpowers/specs/2026-05-06-mvp-backend-design.md",
+      "summary": "MVP 后端设计规格核心文档，定义 DDD 洋葱架构分层、六个限界上下文划分（Identity/Ranch/IoT/Health/Commerce/Analytics）、Phase 1 数据库 Schema（11 张表）、充血模型示例、API 设计规范、Farm Scope 硬约束、部署架构和 TDD 测试策略。",
+      "tags": ["documentation", "design-spec", "backend", "ddd"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-05-07-multi-client-api-contract-design.md",
+      "type": "document",
+      "name": "2026-05-07-multi-client-api-contract-design.md",
+      "filePath": "docs/superpowers/specs/2026-05-07-multi-client-api-contract-design.md",
+      "summary": "多端统一 API 契约设计文档，定义三端隔离架构（App/Admin/Open）、通用约定（响应包络、分页、错误码、数据格式）、Farm Scope 硬约束、三端完整端点列表、JWT + API Key 双认证机制和版本演进策略。",
+      "tags": ["documentation", "design-spec", "api-contract", "architecture"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-05-13-tenant-onboarding-design.md",
+      "type": "document",
+      "name": "2026-05-13-tenant-onboarding-design.md",
+      "filePath": "docs/superpowers/specs/2026-05-13-tenant-onboarding-design.md",
+      "summary": "租户入驻流程设计规格（Phase 1），定义 4 幕客户旅程（注册、创建牧场、邀请牧工、日常使用），包含后端改动（创建牧场自动关联 owner、Dashboard 统计字段）和前端改动（空状态引导、3 步牧场创建向导、设备绑定 UI）。",
+      "tags": ["documentation", "design-spec", "tenant", "onboarding"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-05-15-multi-region-map-tiles-design.md",
+      "type": "document",
+      "name": "2026-05-15-multi-region-map-tiles-design.md",
+      "filePath": "docs/superpowers/specs/2026-05-15-multi-region-map-tiles-design.md",
+      "summary": "多区域地图瓦片统一方案设计规格，定义自建 tileserver-gl + SmartTileProvider 三级降级架构，涵盖瓦片数据管线、海外瓦片生成工具、Docker 部署方案、Flutter 端 SmartTileProvider 接口、WGS-84/GCJ-02 坐标转换规则和平台差异处理。",
+      "tags": ["documentation", "design-spec", "map-tiles", "infrastructure"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-05-18-commerce-context-design.md",
+      "type": "document",
+      "name": "2026-05-18-commerce-context-design.md",
+      "filePath": "docs/superpowers/specs/2026-05-18-commerce-context-design.md",
+      "summary": "Commerce 限界上下文完整设计规格，定义四大聚合根（Subscription/Contract/RevenuePeriod/SubscriptionService）、6 张新增表 DDL、配额引擎架构（FeatureGate + QuotaCheck）、30 个 API 端点、24 个领域事件、定时任务和 Tier 定价策略。",
+      "tags": ["documentation", "design-spec", "commerce", "subscription"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/tileserver-deployment-guide.md",
+      "type": "document",
+      "name": "tileserver-deployment-guide.md",
+      "filePath": "docs/tileserver-deployment-guide.md",
+      "summary": "tileserver-gl 部署操作指导文档，提供从下载离线瓦片（download_mbtiles.py 脚本）、上传到服务器、Docker 部署 tileserver-gl 到更新 Flutter 瓦片源 URL 的完整步骤，包含 nginx 代理配置、验证方法和故障排查指南。",
+      "tags": ["documentation", "deployment", "map-tiles", "operations"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:docs/api-contracts/api-overview.md",
+      "target": "document:docs/api-contracts/app-api.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/api-contracts/api-overview.md",
+      "target": "document:docs/api-contracts/admin-api.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/api-contracts/api-overview.md",
+      "target": "document:docs/api-contracts/open-api.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/api-contracts/api-overview.md",
+      "target": "document:docs/api-contracts/changelog.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/api-contracts/migration-guide.md",
+      "target": "document:docs/api-contracts/api-overview.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/superpowers/specs/2026-05-06-mvp-backend-design.md",
+      "target": "document:docs/superpowers/plans/2026-05-06-mvp-phase1-implementation.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/superpowers/specs/2026-05-07-multi-client-api-contract-design.md",
+      "target": "document:docs/superpowers/specs/2026-05-06-mvp-backend-design.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/superpowers/specs/2026-05-07-multi-client-api-contract-design.md",
+      "target": "document:docs/superpowers/reviews/2026-05-07-multi-client-api-contract-review.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/superpowers/specs/2026-05-13-tenant-onboarding-design.md",
+      "target": "document:docs/superpowers/plans/2026-05-13-tenant-onboarding-plan.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/superpowers/specs/2026-05-15-multi-region-map-tiles-design.md",
+      "target": "document:docs/superpowers/plans/2026-05-15-multi-region-map-tiles-plan.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/superpowers/specs/2026-05-15-multi-region-map-tiles-design.md",
+      "target": "document:docs/tileserver-deployment-guide.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/superpowers/specs/2026-05-18-commerce-context-design.md",
+      "target": "document:docs/superpowers/plans/2026-05-18-commerce-context-plan.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/superpowers/specs/2026-05-18-commerce-context-design.md",
+      "target": "document:docs/superpowers/reviews/2026-05-18-Commerce-架构评审与Plan修正.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/superpowers/plans/2026-05-12-flutter-frontend-adaptation.md",
+      "target": "document:docs/api-contracts/migration-guide.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/superpowers/plans/2026-05-12-flutter-frontend-adaptation.md",
+      "target": "document:docs/superpowers/plans/2026-05-06-mvp-phase1-implementation.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/superpowers/plans/2026-05-15-multi-region-map-tiles-plan.md",
+      "target": "document:docs/tileserver-deployment-guide.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/superpowers/reviews/2026-05-07-mvp-backend-design-deep-review.md",
+      "target": "document:docs/superpowers/specs/2026-05-06-mvp-backend-design.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/superpowers/reviews/2026-05-07-mvp-specs-review.md",
+      "target": "document:docs/superpowers/specs/2026-05-06-mvp-backend-design.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/superpowers/reviews/2026-05-07-mvp-specs-review.md",
+      "target": "document:docs/superpowers/specs/2026-05-07-multi-client-api-contract-design.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/superpowers/reports/2026-05-15-phase1-e2e-test-report.md",
+      "target": "document:docs/superpowers/plans/2026-05-06-mvp-phase1-implementation.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:CLAUDE.md",
+      "target": "document:AGENTS.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:CLAUDE.md",
+      "target": "document:docs/superpowers/specs/2026-05-06-mvp-backend-design.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:CLAUDE.md",
+      "target": "document:docs/api-contracts/api-overview.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:CLAUDE.md",
+      "target": "document:docs/tileserver-deployment-guide.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/superpowers/specs/2026-05-18-commerce-context-design.md",
+      "target": "document:docs/superpowers/specs/2026-05-06-mvp-backend-design.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

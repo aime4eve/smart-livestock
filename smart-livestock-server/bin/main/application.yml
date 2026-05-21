@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:smart_livestock}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+rocketmq:
+  name-server: ${ROCKETMQ_NAME_SERVER:localhost:9876}
+
+jwt:
+  secret: ${JWT_SECRET:default-secret-change-in-production}
+  access-expiration: ${JWT_ACCESS_EXPIRATION:3600000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+gps:
+  simulator:
+    enabled: ${GPS_SIMULATOR_ENABLED:true}
+    interval-ms: ${GPS_SIMULATOR_INTERVAL_MS:30000}
+    center-lat: ${GPS_SIMULATOR_CENTER_LAT:28.2458}
+    center-lng: ${GPS_SIMULATOR_CENTER_LNG:112.8519}
+    offset: ${GPS_SIMULATOR_OFFSET:0.005}

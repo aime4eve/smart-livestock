@@ -17,7 +17,6 @@ import com.smartlivestock.commerce.domain.model.event.SubscriptionCancelledEvent
 import com.smartlivestock.commerce.domain.model.event.SubscriptionRenewalFailedEvent;
 import com.smartlivestock.identity.domain.event.TenantPhaseChangedEvent;
 import com.smartlivestock.iot.domain.event.DeviceActivatedEvent;
-import com.smartlivestock.iot.domain.event.GpsLogUpdatedEvent;
 import com.smartlivestock.iot.domain.event.LicenseExpiredEvent;
 import com.smartlivestock.ranch.domain.event.AlertStatusChangedEvent;
 import com.smartlivestock.ranch.domain.event.FenceBreachDetectedEvent;
@@ -40,8 +39,9 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * Listens to all domain events across all bounded contexts (Commerce, Identity, IoT, Ranch)
  * and creates notification records in the notifications table.
  * <p>
- * Uses Spring's synchronous @EventListener — events are processed in the same transaction
- * as the publisher. For MVP, no async or MQ-based processing is needed.
+ * Uses Spring's {@code @TransactionalEventListener(AFTER_COMMIT)} — notifications are created
+ * after the business transaction commits, preventing notification failures from rolling back
+ * the originating operation. For MVP, no async or MQ-based processing is needed.
  */
 @Slf4j
 @Component
@@ -265,12 +265,6 @@ public class NotificationEventListener {
         // which can resolve device → installation → tenant
         log.debug("DeviceActivated event received for device [{}] — tenant-scoped notification deferred to context layer",
                 event.getDeviceId());
-    }
-
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onGpsLogUpdated(GpsLogUpdatedEvent event) {
-        // GPS log updates are high-frequency — skip notification generation to avoid noise
-        log.trace("GpsLogUpdated event received for device [{}] — skipped for notification", event.getDeviceId());
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

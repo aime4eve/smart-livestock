@@ -1,0 +1,462 @@
+{
+  "nodes": [
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-05-04-free-tier-clarification.md",
+      "type": "document",
+      "name": "Free Tier 澄清实施计划",
+      "filePath": "Mobile/docs/superpowers/plans/2026-05-04-free-tier-clarification.md",
+      "summary": "Free Tier 澄清实施计划，包含 5 个 Task：apiTierStore 新增 free tier 初始记录、seed.js 新增测试租户、apiKeyStore 生成 seed API Key、规格文档修正及全量验证。",
+      "tags": ["documentation", "subscription", "implementation-plan", "free-tier", "mock-data"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/reviews/2026-04-20-tenant-management-design-review.md",
+      "type": "document",
+      "name": "租户管理设计规格评审报告",
+      "filePath": "Mobile/docs/superpowers/reviews/2026-04-20-tenant-management-design-review.md",
+      "summary": "租户管理设计规格的首轮评审报告，结论为有条件通过。涵盖架构层、API 层、UI/UX 层的严重问题汇总，改进建议，以及与现有代码库的一致性检查和修订优先级。",
+      "tags": ["documentation", "design-review", "tenant-management", "architecture", "api-design"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/reviews/2026-04-21-backend-infra-requirements-review.md",
+      "type": "document",
+      "name": "后端基础设施需求评审报告",
+      "filePath": "Mobile/docs/superpowers/reviews/2026-04-21-backend-infra-requirements-review.md",
+      "summary": "后端基础设施需求文档的评审报告，识别技术栈方向矛盾、Sprint 时间线过激、Redis 引入过早等严重问题，补充 API 版本控制、健康检查、幂等性等遗漏项。",
+      "tags": ["documentation", "design-review", "backend-infrastructure", "spring-boot", "requirements"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/reviews/2026-04-23-backend-infra-feasibility-review.md",
+      "type": "document",
+      "name": "后端基础设施可落地性评审",
+      "filePath": "Mobile/docs/superpowers/reviews/2026-04-23-backend-infra-feasibility-review.md",
+      "summary": "后端基础设施需求的技术可落地性评审，从前端联调和 AdonisJS v6 两个维度评估，按链路逐条审查认证、租户权限、围栏写入、告警状态机等核心链路的可行性。",
+      "tags": ["documentation", "design-review", "feasibility", "backend", "api-integration"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/reviews/2026-04-24-subscription-service-review(B2C).md",
+      "type": "document",
+      "name": "SaaS 订阅服务 B2C 评审",
+      "filePath": "Mobile/docs/superpowers/reviews/2026-04-24-subscription-service-review(B2C).md",
+      "summary": "SaaS 订阅服务设计规格的 B2C 方向评审，发现 res.ok() 包装时序问题、缺失端点、Feature Flag 策略未定义等 Critical 问题，以及 LockedOverlay 设计缺陷等 Minor 问题。",
+      "tags": ["documentation", "design-review", "subscription", "b2c", "feature-flag"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/reviews/2026-04-28-subscription-plan-review(B2C).md",
+      "type": "document",
+      "name": "SaaS 订阅服务实施计划 B2C 评审",
+      "filePath": "Mobile/docs/superpowers/reviews/2026-04-28-subscription-plan-review(B2C).md",
+      "summary": "SaaS 订阅服务实施计划的 B2C 评审，发现 Trial 取消未立即降级、MockRepository 传 null、到期自动降级错误周期等缺陷，以及 Usage 端点和 Feature Flag 关联的差距。",
+      "tags": ["documentation", "design-review", "subscription", "implementation-plan", "b2c"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/reviews/2026-04-28-subscription-service-plan-review.md",
+      "type": "document",
+      "name": "B2C + B2B2C 统一商业模式评审",
+      "filePath": "Mobile/docs/superpowers/reviews/2026-04-28-subscription-service-plan-review.md",
+      "summary": "B2C 与 B2B2C 统一商业模型的综合评审，评估现有订阅服务和租户管理模块的差距，提出 billingModel 驱动的三层分离架构方案，规划三阶段落地路径和可复用资产清单。",
+      "tags": ["documentation", "design-review", "business-model", "b2b2c", "subscription"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/reviews/2026-04-28-unified-business-model-review-r2.md",
+      "type": "document",
+      "name": "统一商业模型 R2 评审报告",
+      "filePath": "Mobile/docs/superpowers/reviews/2026-04-28-unified-business-model-review-r2.md",
+      "summary": "统一商业模型设计的第二轮评审，验证 R1 的 15 个问题修复情况，发现 getEffectiveTier() 忽略订阅状态、中间件注册方式矛盾、跨文档一致性等新问题。",
+      "tags": ["documentation", "design-review", "business-model", "iteration-review", "cross-document"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/reviews/2026-04-28-unified-business-model-review-r3.md",
+      "type": "document",
+      "name": "统一商业模型 R3 评审报告",
+      "filePath": "Mobile/docs/superpowers/reviews/2026-04-28-unified-business-model-review-r3.md",
+      "summary": "统一商业模型设计的第三轮评审，验证 R2 的 13 个问题全部修复，发现 getEffectiveTier() 伪代码未定义变量、direct farm 无 subscription 行为未定义等新问题，评估 Phase 1 实施就绪度。",
+      "tags": ["documentation", "design-review", "business-model", "iteration-review", "readiness"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/reviews/2026-04-28-unified-business-model-review.md",
+      "type": "document",
+      "name": "统一商业模型首轮评审",
+      "filePath": "Mobile/docs/superpowers/reviews/2026-04-28-unified-business-model-review.md",
+      "summary": "统一商业模型设计的首轮评审，按 P0-P3 四级严重度列出 15 个问题，涵盖 activeFarmTenantId 实现缺失、Shaping 中间件对接、三层计费模糊、数据隔离风险等。",
+      "tags": ["documentation", "design-review", "business-model", "architecture", "priority-matrix"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/reviews/2026-04-29-unified-business-model-phase1-branch-vs-plan-review.md",
+      "type": "document",
+      "name": "Phase 1 分支与计划对照评审",
+      "filePath": "Mobile/docs/superpowers/reviews/2026-04-29-unified-business-model-phase1-branch-vs-plan-review.md",
+      "summary": "Phase 1 功能分支与实施计划的代码级对照评审，核对 LockedOverlay、SubscriptionRenewalBanner、SubscriptionController、mine_page 等组件的实现状态与计划差距。",
+      "tags": ["documentation", "design-review", "branch-review", "phase1", "implementation-check"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/reviews/2026-04-29-unified-business-model-phase2a-plan-review.md",
+      "type": "document",
+      "name": "Phase 2a 实施计划符合性评审",
+      "filePath": "Mobile/docs/superpowers/reviews/2026-04-29-unified-business-model-phase2a-plan-review.md",
+      "summary": "Phase 2a 实施计划与设计规格的符合性评审，发现 DashboardMetric.id 引用错误、tenantStore 返回值不符、b2b_admin 子 farm 缺少 owner 用户等 P0 问题，列出 8 个 P2 级文档瑕疵。",
+      "tags": ["documentation", "design-review", "phase2a", "compliance-review", "implementation-plan"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-plan-review-r4.md",
+      "type": "document",
+      "name": "Phase 2b 计划 R4 评审",
+      "filePath": "Mobile/docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-plan-review-r4.md",
+      "summary": "Phase 2b 实施计划的第四轮评审，验证 R3 遗留问题处理情况，发现 revenueStore 数据源范围不一致和 seed 数据缺失两个 P1 问题，评估计划结构与质量。",
+      "tags": ["documentation", "design-review", "phase2b", "iteration-review", "data-consistency"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-review-r2.md",
+      "type": "document",
+      "name": "Phase 2b 设计 R2 评审",
+      "filePath": "Mobile/docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-review-r2.md",
+      "summary": "Phase 2b 设计规格的第二轮评审，验证首轮修复，发现中间件架构描述与 auth.js 不一致、分润计算缺设备配置维度、心跳端点白名单未定义等 P1 问题。",
+      "tags": ["documentation", "design-review", "phase2b", "iteration-review", "middleware"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-review-r3.md",
+      "type": "document",
+      "name": "Phase 2b 设计 R3 评审",
+      "filePath": "Mobile/docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-review-r3.md",
+      "summary": "Phase 2b 设计规格的第三轮评审，验证 R2 修复，发现 subscriptionServiceStore 异常处理缺失、分润 seed 缺少 deviceConfigRatio、shapingMiddleware Open API 分叉逻辑需确认等 P2 问题。",
+      "tags": ["documentation", "design-review", "phase2b", "iteration-review", "cross-document"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-review.md",
+      "type": "document",
+      "name": "Phase 2b 设计规格首轮评审",
+      "filePath": "Mobile/docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-review.md",
+      "summary": "Phase 2b 设计规格的首轮评审，发现分润计算缺设备单价、心跳端点认证矛盾、apiKeyStore 返回 apiTier 不一致、Open API 与全局中间件冲突等 P0 问题，以及合同端点一致性、权限扩展等 P1 问题。",
+      "tags": ["documentation", "design-review", "phase2b", "revenue-share", "api-key"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-03-26-smart-livestock-app-design.md",
+      "type": "document",
+      "name": "智慧畜牧 App 设计规格",
+      "filePath": "Mobile/docs/superpowers/specs/2026-03-26-smart-livestock-app-design.md",
+      "summary": "智慧畜牧 App 的完整设计规格文档（1575 行），涵盖项目概述、系统架构（Flutter + Riverpod + Go Router）、角色化权限、GPS 定位与围栏、瘤胃健康监测、步态行为分析等模块设计，数据模型、API 接口列表、前端技术架构、UI/UX 规范及版本规划。",
+      "tags": ["documentation", "app-design", "architecture", "flutter", "specification"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-04-07-digital-twin-mobile-design.md",
+      "type": "document",
+      "name": "数智孪生移动端扩展设计",
+      "filePath": "Mobile/docs/superpowers/specs/2026-04-07-digital-twin-mobile-design.md",
+      "summary": "数智孪生移动端的完整扩展设计（1214 行），定义 Repository 接口（TwinOverview、Fever、Digestive、Estrus、Epidemic）、共享数据模型、场景详情页 UI 规格、图表组件策略和 Mock Server 端点扩展。",
+      "tags": ["documentation", "specification", "digital-twin", "mobile-design", "repository"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-04-09-demo-data-enhancement-design.md",
+      "type": "document",
+      "name": "Demo 数据与场景增强设计",
+      "filePath": "Mobile/docs/superpowers/specs/2026-04-09-demo-data-enhancement-design.md",
+      "summary": "Demo 阶段数据增强设计，定义 ID 体系、数据分层策略（确定性层 + 动态层）、50 头牛只和 4 个围栏的种子数据规格、GPS/温度/蠕动/发情数据生成器，以及 Mock 和 Live Repository 的改动范围。",
+      "tags": ["documentation", "specification", "demo-data", "seed-data", "mock-generator"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-04-09-smart-livestock-prd.md",
+      "type": "document",
+      "name": "智慧畜牧系统 PRD",
+      "filePath": "Mobile/docs/superpowers/specs/2026-04-09-smart-livestock-prd.md",
+      "summary": "智慧畜牧系统的产品需求文档（1253 行），涵盖产品定位与愿景、市场分析、商业模式（四档套餐 + 按头计费阶梯）、IoT 设备架构（追踪器 + 胶囊 + LoRaWAN）、AI 模型三层架构、功能模块设计、非功能需求和版本路线图。",
+      "tags": ["documentation", "prd", "product-design", "business-model", "iot-architecture"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-04-10-fence-crud-design.md",
+      "type": "document",
+      "name": "围栏 CRUD 功能优化设计",
+      "filePath": "Mobile/docs/superpowers/specs/2026-04-10-fence-crud-design.md",
+      "summary": "围栏 CRUD 功能的优化设计，定义围栏页面（地图层 + DraggableScrollableSheet 底部抽屉）、围栏表单页（新建/编辑模式）、删除流程、数据模型（FenceItem + FenceState）和文件变更清单。",
+      "tags": ["documentation", "specification", "fence", "crud", "ux-design"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-04-15-fence-editing-ux-design.md",
+      "type": "document",
+      "name": "围栏边界编辑 UX 设计",
+      "filePath": "Mobile/docs/superpowers/specs/2026-04-15-fence-editing-ux-design.md",
+      "summary": "围栏边界编辑的用户体验设计（混合分层方案），包含双层模式、全屏编辑与回退、手势命中优先级、防误触策略、状态机定义、组件拆分建议和验收标准。",
+      "tags": ["documentation", "specification", "fence", "ux-design", "gesture"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-04-16-fence-map-ux-overhaul-design.md",
+      "type": "document",
+      "name": "围栏地图交互体验重构设计",
+      "filePath": "Mobile/docs/superpowers/specs/2026-04-16-fence-map-ux-overhaul-design.md",
+      "summary": "围栏地图交互体验的重构设计，引入单一地图实例和统一手势路由架构，定义选中体验（命中检测、重叠围栏、视觉反馈）、编辑态视觉上下文和未保存确认流程。",
+      "tags": ["documentation", "specification", "fence", "map-interaction", "ux-overhaul"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-04-16-fence-map-ux-overhaul-review.md",
+      "type": "document",
+      "name": "围栏地图 UX 重构评审意见",
+      "filePath": "Mobile/docs/superpowers/specs/2026-04-16-fence-map-ux-overhaul-review.md",
+      "summary": "围栏地图交互体验重构设计的三轮评审记录，第一轮发现高严重度问题（命中检测逻辑漏洞），经两轮修订后确认问题解决，仅剩轻微问题不阻塞实施。",
+      "tags": ["documentation", "design-review", "fence", "ux", "iteration-review"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/specs/2026-04-17-fence-hit-detection-priority-design.md",
+      "type": "document",
+      "name": "围栏命中检测两级优先设计",
+      "filePath": "Mobile/docs/superpowers/specs/2026-04-17-fence-hit-detection-priority-design.md",
+      "summary": "围栏命中检测的两级优先设计，定义 FenceHitResult 数据模型、检测排序算法（距离 + 面积加权）、选择逻辑（点中优先、近距次之）、边界距离计算方法和场景验证用例。",
+      "tags": ["documentation", "specification", "fence", "hit-detection", "algorithm"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-04-20-tenant-management-design-review.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-03-26-smart-livestock-app-design.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-04-21-backend-infra-requirements-review.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-03-26-smart-livestock-app-design.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-04-23-backend-infra-feasibility-review.md",
+      "target": "document:Mobile/docs/superpowers/reviews/2026-04-21-backend-infra-requirements-review.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-04-24-subscription-service-review(B2C).md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-04-09-smart-livestock-prd.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-04-28-subscription-plan-review(B2C).md",
+      "target": "document:Mobile/docs/superpowers/reviews/2026-04-24-subscription-service-review(B2C).md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-04-28-subscription-service-plan-review.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-04-09-smart-livestock-prd.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-04-28-subscription-service-plan-review.md",
+      "target": "document:Mobile/docs/superpowers/reviews/2026-04-24-subscription-service-review(B2C).md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-04-28-unified-business-model-review-r2.md",
+      "target": "document:Mobile/docs/superpowers/reviews/2026-04-28-unified-business-model-review.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-04-28-unified-business-model-review-r3.md",
+      "target": "document:Mobile/docs/superpowers/reviews/2026-04-28-unified-business-model-review-r2.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-04-28-unified-business-model-review.md",
+      "target": "document:Mobile/docs/superpowers/reviews/2026-04-28-subscription-service-plan-review.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-04-29-unified-business-model-phase1-branch-vs-plan-review.md",
+      "target": "document:Mobile/docs/superpowers/reviews/2026-04-28-unified-business-model-review.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-04-29-unified-business-model-phase2a-plan-review.md",
+      "target": "document:Mobile/docs/superpowers/reviews/2026-04-28-unified-business-model-review-r3.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-plan-review-r4.md",
+      "target": "document:Mobile/docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-review-r3.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-review-r2.md",
+      "target": "document:Mobile/docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-review.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-review-r3.md",
+      "target": "document:Mobile/docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-review-r2.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-review.md",
+      "target": "document:Mobile/docs/superpowers/reviews/2026-04-29-unified-business-model-phase2a-plan-review.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-04-07-digital-twin-mobile-design.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-03-26-smart-livestock-app-design.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-04-09-demo-data-enhancement-design.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-04-07-digital-twin-mobile-design.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-04-09-demo-data-enhancement-design.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-03-26-smart-livestock-app-design.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-04-09-smart-livestock-prd.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-03-26-smart-livestock-app-design.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-04-10-fence-crud-design.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-03-26-smart-livestock-app-design.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-04-15-fence-editing-ux-design.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-04-10-fence-crud-design.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-04-16-fence-map-ux-overhaul-design.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-04-15-fence-editing-ux-design.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-04-16-fence-map-ux-overhaul-review.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-04-16-fence-map-ux-overhaul-design.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-04-17-fence-hit-detection-priority-design.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-04-16-fence-map-ux-overhaul-design.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/plans/2026-05-04-free-tier-clarification.md",
+      "target": "document:Mobile/docs/superpowers/reviews/2026-04-28-unified-business-model-review.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-04-28-unified-business-model-review-r2.md",
+      "target": "document:Mobile/docs/superpowers/reviews/2026-04-28-subscription-plan-review(B2C).md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-04-28-unified-business-model-review-r2.md",
+      "target": "document:Mobile/docs/superpowers/reviews/2026-04-24-subscription-service-review(B2C).md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-04-16-fence-map-ux-overhaul-review.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-04-15-fence-editing-ux-design.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-04-17-fence-hit-detection-priority-design.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-04-15-fence-editing-ux-design.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/specs/2026-04-16-fence-map-ux-overhaul-design.md",
+      "target": "document:Mobile/docs/superpowers/specs/2026-04-10-fence-crud-design.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-plan-review-r4.md",
+      "target": "document:Mobile/docs/superpowers/reviews/2026-05-02-unified-business-model-phase2b-review-r2.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/reviews/2026-04-29-unified-business-model-phase2a-plan-review.md",
+      "target": "document:Mobile/docs/superpowers/reviews/2026-04-29-unified-business-model-phase1-branch-vs-plan-review.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

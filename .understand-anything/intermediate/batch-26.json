@@ -1,0 +1,517 @@
+{
+  "nodes": [
+    {
+      "id": "file:PC/frontend/src/app/components/device-register/device-register.component.scss",
+      "type": "file",
+      "name": "device-register.component.scss",
+      "filePath": "PC/frontend/src/app/components/device-register/device-register.component.scss",
+      "summary": "设备注册组件的样式表，包含表格、表单、分页及状态标签等 UI 元素的布局与样式定义。",
+      "tags": ["component", "styling", "form", "table"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/device-register/device-register.component.ts",
+      "type": "file",
+      "name": "device-register.component.ts",
+      "filePath": "PC/frontend/src/app/components/device-register/device-register.component.ts",
+      "summary": "设备注册组件，提供胶囊设备的列表展示、搜索过滤、分页浏览和新增/编辑表单功能，通过 CapsuleService 管理数据。",
+      "tags": ["component", "device-management", "form", "crud"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:PC/frontend/src/app/components/device-register/device-register.component.ts:DeviceRegisterComponent",
+      "type": "class",
+      "name": "DeviceRegisterComponent",
+      "filePath": "PC/frontend/src/app/components/device-register/device-register.component.ts",
+      "lineRange": [16, 235],
+      "summary": "Angular standalone 组件，管理胶囊设备的 CRUD 操作，包含搜索表单、分页逻辑和新增/编辑表单的状态切换。",
+      "tags": ["component", "device-management", "form", "crud"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/home/home.component.html",
+      "type": "file",
+      "name": "home.component.html",
+      "filePath": "PC/frontend/src/app/components/home/home.component.html",
+      "summary": "首页组件模板，包含主页布局结构和导航链接。",
+      "tags": ["component", "template", "layout"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/home/home.component.scss",
+      "type": "file",
+      "name": "home.component.scss",
+      "filePath": "PC/frontend/src/app/components/home/home.component.scss",
+      "summary": "首页组件样式，定义主页布局和欢迎区域的外观。",
+      "tags": ["component", "styling", "layout"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/home/home.component.ts",
+      "type": "file",
+      "name": "home.component.ts",
+      "filePath": "PC/frontend/src/app/components/home/home.component.ts",
+      "summary": "首页组件，极简实现，仅包含 ngOnInit 生命周期钩子。",
+      "tags": ["component", "entry-point", "layout"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/loading-spinner/loading-spinner.component.html",
+      "type": "file",
+      "name": "loading-spinner.component.html",
+      "filePath": "PC/frontend/src/app/components/loading-spinner/loading-spinner.component.html",
+      "summary": "加载旋转器组件模板，显示加载动画和可选提示消息。",
+      "tags": ["component", "template", "ui-feedback"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/loading-spinner/loading-spinner.component.scss",
+      "type": "file",
+      "name": "loading-spinner.component.scss",
+      "filePath": "PC/frontend/src/app/components/loading-spinner/loading-spinner.component.scss",
+      "summary": "加载旋转器组件样式，包含旋转动画和居中布局。",
+      "tags": ["component", "styling", "animation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/loading-spinner/loading-spinner.component.ts",
+      "type": "file",
+      "name": "loading-spinner.component.ts",
+      "filePath": "PC/frontend/src/app/components/loading-spinner/loading-spinner.component.ts",
+      "summary": "可复用的加载旋转器组件，通过 @Input message 属性显示加载提示文本。",
+      "tags": ["component", "ui-feedback", "reusable"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/nav-menu/nav-menu.component.html",
+      "type": "file",
+      "name": "nav-menu.component.html",
+      "filePath": "PC/frontend/src/app/components/nav-menu/nav-menu.component.html",
+      "summary": "导航菜单组件模板，包含侧边栏菜单项和子菜单展开/收起交互。",
+      "tags": ["component", "template", "navigation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/nav-menu/nav-menu.component.scss",
+      "type": "file",
+      "name": "nav-menu.component.scss",
+      "filePath": "PC/frontend/src/app/components/nav-menu/nav-menu.component.scss",
+      "summary": "导航菜单样式，定义侧边栏布局、菜单项样式和展开/收起动效。",
+      "tags": ["component", "styling", "navigation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/nav-menu/nav-menu.component.ts",
+      "type": "file",
+      "name": "nav-menu.component.ts",
+      "filePath": "PC/frontend/src/app/components/nav-menu/nav-menu.component.ts",
+      "summary": "导航菜单组件，管理侧边栏菜单项配置、子菜单展开/收起切换和路由导航功能。",
+      "tags": ["component", "navigation", "routing"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:PC/frontend/src/app/components/nav-menu/nav-menu.component.ts:NavMenuComponent",
+      "type": "class",
+      "name": "NavMenuComponent",
+      "filePath": "PC/frontend/src/app/components/nav-menu/nav-menu.component.ts",
+      "lineRange": [21, 72],
+      "summary": "Angular standalone 组件，监听路由变化以高亮当前菜单项，支持子菜单展开和路由导航。",
+      "tags": ["component", "navigation", "routing"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/sensor-chart-modal/sensor-chart-modal.component.html",
+      "type": "file",
+      "name": "sensor-chart-modal.component.html",
+      "filePath": "PC/frontend/src/app/components/sensor-chart-modal/sensor-chart-modal.component.html",
+      "summary": "传感器图表弹窗模板，包含温度和蠕动两个 Chart.js 画布容器。",
+      "tags": ["component", "template", "chart"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/sensor-chart-modal/sensor-chart-modal.component.scss",
+      "type": "file",
+      "name": "sensor-chart-modal.component.scss",
+      "filePath": "PC/frontend/src/app/components/sensor-chart-modal/sensor-chart-modal.component.scss",
+      "summary": "传感器图表弹窗样式，定义弹窗层叠布局和图表容器尺寸。",
+      "tags": ["component", "styling", "chart"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/sensor-chart-modal/sensor-chart-modal.component.ts",
+      "type": "file",
+      "name": "sensor-chart-modal.component.ts",
+      "filePath": "PC/frontend/src/app/components/sensor-chart-modal/sensor-chart-modal.component.ts",
+      "summary": "传感器图表弹窗组件，使用 Chart.js 渲染瘤胃温度和蠕动次数的时序曲线，支持数据动态更新。",
+      "tags": ["component", "chart", "visualization", "sensor-data"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:PC/frontend/src/app/components/sensor-chart-modal/sensor-chart-modal.component.ts:SensorChartModalComponent",
+      "type": "class",
+      "name": "SensorChartModalComponent",
+      "filePath": "PC/frontend/src/app/components/sensor-chart-modal/sensor-chart-modal.component.ts",
+      "lineRange": [16, 201],
+      "summary": "Angular standalone 组件，接收 Sensor 数据并通过 Chart.js 分别绘制温度折线图和蠕动次数柱状图，支持 ngOnChanges 动态更新。",
+      "tags": ["component", "chart", "visualization"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/stats-panel/stats-panel.component.html",
+      "type": "file",
+      "name": "stats-panel.component.html",
+      "filePath": "PC/frontend/src/app/components/stats-panel/stats-panel.component.html",
+      "summary": "统计面板模板，展示牛只数量、平均体重等聚合统计数据卡片。",
+      "tags": ["component", "template", "dashboard"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/stats-panel/stats-panel.component.scss",
+      "type": "file",
+      "name": "stats-panel.component.scss",
+      "filePath": "PC/frontend/src/app/components/stats-panel/stats-panel.component.scss",
+      "summary": "统计面板样式，定义统计卡片网格布局和数值展示样式。",
+      "tags": ["component", "styling", "dashboard"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/stats-panel/stats-panel.component.ts",
+      "type": "file",
+      "name": "stats-panel.component.ts",
+      "filePath": "PC/frontend/src/app/components/stats-panel/stats-panel.component.ts",
+      "summary": "统计面板组件，接收牛只数据并通过 getter 方法计算总数、平均体重、品种分布等聚合统计指标。",
+      "tags": ["component", "dashboard", "statistics"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:PC/frontend/src/app/components/stats-panel/stats-panel.component.ts:StatsPanelComponent",
+      "type": "class",
+      "name": "StatsPanelComponent",
+      "filePath": "PC/frontend/src/app/components/stats-panel/stats-panel.component.ts",
+      "lineRange": [18, 40],
+      "summary": "Angular standalone 组件，通过 calculateStats getter 方法对牛只列表进行聚合计算（总数、平均体重、品种数、性别比）。",
+      "tags": ["component", "dashboard", "statistics"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/models/capsule.ts",
+      "type": "file",
+      "name": "capsule.ts",
+      "filePath": "PC/frontend/src/app/models/capsule.ts",
+      "summary": "定义胶囊设备的数据模型接口 Capsule 和查询参数接口 CapsuleQueryParams，包含设备 ID、生产批次、激活/过期日期等字段。",
+      "tags": ["data-model", "type-definition", "device"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/models/cattle.ts",
+      "type": "file",
+      "name": "cattle.ts",
+      "filePath": "PC/frontend/src/app/models/cattle.ts",
+      "summary": "定义牛只核心数据模型，包含地图展示用 Cattle 接口（坐标+健康状态）、数据传输对象 CattleDTO、查询参数 CattleQueryParams 和分页结果 PagedResult 泛型接口。",
+      "tags": ["data-model", "type-definition", "livestock"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/models/sensor.ts",
+      "type": "file",
+      "name": "sensor.ts",
+      "filePath": "PC/frontend/src/app/models/sensor.ts",
+      "summary": "定义传感器数据相关接口：Sensor（时序聚合数据）、TemperatureLog（温度日志）、PeristalticLog（蠕动日志）和 CapsuleInstallation（胶囊安装记录）。",
+      "tags": ["data-model", "type-definition", "sensor"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/services/capsule.service.ts",
+      "type": "file",
+      "name": "capsule.service.ts",
+      "filePath": "PC/frontend/src/app/services/capsule.service.ts",
+      "summary": "胶囊设备服务层，通过 BehaviorSubject 缓存机制管理胶囊数据的加载、查询过滤（ID/批次/状态/日期）、分页和 CRUD 操作。",
+      "tags": ["service", "device-management", "data-cache", "crud"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:PC/frontend/src/app/services/capsule.service.ts:CapsuleService",
+      "type": "class",
+      "name": "CapsuleService",
+      "filePath": "PC/frontend/src/app/services/capsule.service.ts",
+      "lineRange": [11, 266],
+      "summary": "Angular injectable 服务，从 JSON 静态文件加载胶囊数据并通过 BehaviorSubject 实现数据缓存和共享，提供完整的 CRUD 和过滤分页接口。",
+      "tags": ["service", "data-cache", "crud", "device-management"],
+      "complexity": "complex",
+      "languageNotes": "使用 BehaviorSubject + first() 模式实现一次性数据加载和后续缓存复用，避免重复 HTTP 请求。"
+    },
+    {
+      "id": "file:PC/frontend/src/app/services/cattle.service.ts",
+      "type": "file",
+      "name": "cattle.service.ts",
+      "filePath": "PC/frontend/src/app/services/cattle.service.ts",
+      "summary": "牛只核心服务，管理牛只数据和胶囊安装数据的加载、DTO 到地图对象的转换、品种过滤、分页查询和传感器数据获取，是前端数据链路的中枢服务。",
+      "tags": ["service", "livestock", "data-cache", "core"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:PC/frontend/src/app/services/cattle.service.ts:CattleService",
+      "type": "class",
+      "name": "CattleService",
+      "filePath": "PC/frontend/src/app/services/cattle.service.ts",
+      "lineRange": [22, 681],
+      "summary": "Angular injectable 服务，协调牛只数据、胶囊安装数据和 GPS 位置数据的加载与转换，提供地图展示数据和传感器查询接口。包含胶囊安装匹配逻辑和 Mock 传感器数据生成。",
+      "tags": ["service", "data-cache", "livestock", "core"],
+      "complexity": "complex",
+      "languageNotes": "使用双重数据加载（cattle + capsule installation）并通过 Map 关联，体现了 JSON 静态文件驱动的前端数据架构模式。"
+    },
+    {
+      "id": "file:PC/frontend/src/app/services/location.service.ts",
+      "type": "file",
+      "name": "location.service.ts",
+      "filePath": "PC/frontend/src/app/services/location.service.ts",
+      "summary": "GPS 位置服务，从静态 JSON 文件加载位置数据并通过 Map 缓存，支持按 cattle_id 查询位置信息和数据刷新。",
+      "tags": ["service", "gps", "data-cache"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:PC/frontend/src/app/services/location.service.ts:LocationService",
+      "type": "class",
+      "name": "LocationService",
+      "filePath": "PC/frontend/src/app/services/location.service.ts",
+      "lineRange": [18, 158],
+      "summary": "Angular injectable 服务，管理 GPS 位置日志数据的加载和缓存，通过 cattle_id 索引提供按牛只 ID 查询位置的能力。",
+      "tags": ["service", "data-cache", "gps"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:PC/frontend/src/app/services/sensor.service.ts",
+      "type": "file",
+      "name": "sensor.service.ts",
+      "filePath": "PC/frontend/src/app/services/sensor.service.ts",
+      "summary": "传感器数据服务，通过链式查找（安装记录→温度日志→蠕动日志）获取指定牛只的传感器数据，支持 Mock 数据降级。",
+      "tags": ["service", "sensor-data", "data-pipeline"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:PC/frontend/src/app/services/sensor.service.ts:SensorService",
+      "type": "class",
+      "name": "SensorService",
+      "filePath": "PC/frontend/src/app/services/sensor.service.ts",
+      "lineRange": [10, 232],
+      "summary": "Angular injectable 服务，按 cattle_id 链式查找胶囊安装记录、温度日志和蠕动日志，将多源数据聚合为 Sensor 对象返回。查找失败时自动降级为随机 Mock 数据。",
+      "tags": ["service", "sensor-data", "data-pipeline"],
+      "complexity": "complex",
+      "languageNotes": "使用 Observable.create 手动构建异步数据流，链式 HTTP 请求嵌套较深，属于早期架构模式。"
+    },
+    {
+      "id": "file:PC/frontend/src/assets/data/capsule_installation.json",
+      "type": "file",
+      "name": "capsule_installation.json",
+      "filePath": "PC/frontend/src/assets/data/capsule_installation.json",
+      "summary": "胶囊安装记录静态数据文件，包含 10 条安装记录，记录每头牛只安装胶囊的时间、操作员和胶囊 ID。",
+      "tags": ["data", "device", "static-seed"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:PC/frontend/src/app/components/device-register/device-register.component.ts",
+      "target": "file:PC/frontend/src/app/services/capsule.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/device-register/device-register.component.ts",
+      "target": "file:PC/frontend/src/app/models/capsule.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/sensor-chart-modal/sensor-chart-modal.component.ts",
+      "target": "file:PC/frontend/src/app/models/sensor.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/stats-panel/stats-panel.component.ts",
+      "target": "file:PC/frontend/src/app/models/cattle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/services/capsule.service.ts",
+      "target": "file:PC/frontend/src/app/models/capsule.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/services/capsule.service.ts",
+      "target": "file:PC/frontend/src/environments/environment.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/services/cattle.service.ts",
+      "target": "file:PC/frontend/src/app/models/cattle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/services/cattle.service.ts",
+      "target": "file:PC/frontend/src/app/models/sensor.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/services/cattle.service.ts",
+      "target": "file:PC/frontend/src/environments/environment.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/services/cattle.service.ts",
+      "target": "file:PC/frontend/src/app/services/location.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/services/cattle.service.ts",
+      "target": "file:PC/frontend/src/app/services/sensor.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/services/location.service.ts",
+      "target": "file:PC/frontend/src/environments/environment.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/services/sensor.service.ts",
+      "target": "file:PC/frontend/src/app/models/sensor.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/device-register/device-register.component.ts",
+      "target": "class:PC/frontend/src/app/components/device-register/device-register.component.ts:DeviceRegisterComponent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/nav-menu/nav-menu.component.ts",
+      "target": "class:PC/frontend/src/app/components/nav-menu/nav-menu.component.ts:NavMenuComponent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/sensor-chart-modal/sensor-chart-modal.component.ts",
+      "target": "class:PC/frontend/src/app/components/sensor-chart-modal/sensor-chart-modal.component.ts:SensorChartModalComponent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/stats-panel/stats-panel.component.ts",
+      "target": "class:PC/frontend/src/app/components/stats-panel/stats-panel.component.ts:StatsPanelComponent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:PC/frontend/src/app/services/capsule.service.ts",
+      "target": "class:PC/frontend/src/app/services/capsule.service.ts:CapsuleService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:PC/frontend/src/app/services/cattle.service.ts",
+      "target": "class:PC/frontend/src/app/services/cattle.service.ts:CattleService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:PC/frontend/src/app/services/location.service.ts",
+      "target": "class:PC/frontend/src/app/services/location.service.ts:LocationService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:PC/frontend/src/app/services/sensor.service.ts",
+      "target": "class:PC/frontend/src/app/services/sensor.service.ts:SensorService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/device-register/device-register.component.ts",
+      "target": "class:PC/frontend/src/app/components/device-register/device-register.component.ts:DeviceRegisterComponent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/nav-menu/nav-menu.component.ts",
+      "target": "class:PC/frontend/src/app/components/nav-menu/nav-menu.component.ts:NavMenuComponent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/sensor-chart-modal/sensor-chart-modal.component.ts",
+      "target": "class:PC/frontend/src/app/components/sensor-chart-modal/sensor-chart-modal.component.ts:SensorChartModalComponent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/stats-panel/stats-panel.component.ts",
+      "target": "class:PC/frontend/src/app/components/stats-panel/stats-panel.component.ts:StatsPanelComponent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:PC/frontend/src/app/services/capsule.service.ts",
+      "target": "class:PC/frontend/src/app/services/capsule.service.ts:CapsuleService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:PC/frontend/src/app/services/cattle.service.ts",
+      "target": "class:PC/frontend/src/app/services/cattle.service.ts:CattleService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:PC/frontend/src/app/services/location.service.ts",
+      "target": "class:PC/frontend/src/app/services/location.service.ts:LocationService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:PC/frontend/src/app/services/sensor.service.ts",
+      "target": "class:PC/frontend/src/app/services/sensor.service.ts:SensorService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

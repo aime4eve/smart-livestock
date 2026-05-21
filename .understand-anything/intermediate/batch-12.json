@@ -1,0 +1,675 @@
+{
+  "nodes": [
+    {
+      "id": "file:Mobile/mobile_app/lib/features/admin/presentation/admin_controller.dart",
+      "type": "file",
+      "name": "admin_controller.dart",
+      "filePath": "Mobile/mobile_app/lib/features/admin/presentation/admin_controller.dart",
+      "summary": "管理员模块的 Riverpod 控制器，根据 AppMode 切换 Mock/Live 数据源，管理 AdminViewData 状态并提供视图状态和 license 调整操作。",
+      "tags": ["controller", "riverpod", "state-management", "admin"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/admin/presentation/admin_controller.dart:AdminController",
+      "type": "class",
+      "name": "AdminController",
+      "filePath": "Mobile/mobile_app/lib/features/admin/presentation/admin_controller.dart",
+      "lineRange": [17, 39],
+      "summary": "管理员页面的 Riverpod Notifier，通过 adminRepositoryProvider 加载数据，提供 setViewState 和 markLicenseAdjusted 方法控制页面状态。",
+      "tags": ["controller", "notifier", "state-management"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/admin/presentation/api_auth_page.dart",
+      "type": "file",
+      "name": "api_auth_page.dart",
+      "filePath": "Mobile/mobile_app/lib/features/admin/presentation/api_auth_page.dart",
+      "summary": "平台管理员的 API 授权管理页面，支持按状态筛选（全部/待审核/已通过/已撤销），展示授权申请卡片并提供审批和拒绝操作。",
+      "tags": ["component", "admin", "api-authorization", "ui-page"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/admin/presentation/api_auth_page.dart:ApiAuthPage",
+      "type": "class",
+      "name": "ApiAuthPage",
+      "filePath": "Mobile/mobile_app/lib/features/admin/presentation/api_auth_page.dart",
+      "lineRange": [10, 144],
+      "summary": "API 授权管理页面组件，使用 SegmentedButton 按状态过滤授权列表，展示授权卡片并提供审批/拒绝操作按钮。",
+      "tags": ["consumer-widget", "api-authorization", "admin"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/admin/presentation/contracts_page.dart",
+      "type": "file",
+      "name": "contracts_page.dart",
+      "filePath": "Mobile/mobile_app/lib/features/admin/presentation/contracts_page.dart",
+      "summary": "平台管理员的合同管理页面，展示合同列表并支持按状态筛选（全部/生效中/待签署/已终止），提供终止合同操作。",
+      "tags": ["component", "admin", "contract", "ui-page"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/admin/presentation/contracts_page.dart:ContractsPage",
+      "type": "class",
+      "name": "ContractsPage",
+      "filePath": "Mobile/mobile_app/lib/features/admin/presentation/contracts_page.dart",
+      "lineRange": [10, 137],
+      "summary": "合同管理页面组件，使用 SegmentedButton 按状态筛选，展示合同卡片含分润比例、期限信息及终止操作。",
+      "tags": ["consumer-widget", "contract", "admin"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/admin/presentation/revenue_page.dart",
+      "type": "file",
+      "name": "revenue_page.dart",
+      "filePath": "Mobile/mobile_app/lib/features/admin/presentation/revenue_page.dart",
+      "summary": "平台管理员的对账看板页面，展示各结算周期的收入、平台分润、合作方分润数据，支持确认对账操作。",
+      "tags": ["component", "admin", "revenue", "ui-page"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/admin/presentation/revenue_page.dart:RevenuePage",
+      "type": "class",
+      "name": "RevenuePage",
+      "filePath": "Mobile/mobile_app/lib/features/admin/presentation/revenue_page.dart",
+      "lineRange": [8, 95],
+      "summary": "对账看板页面组件，展示分润周期卡片含总收入、平台分润和合作方分润，提供确认对账按钮。",
+      "tags": ["consumer-widget", "revenue", "admin"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/admin/presentation/subscriptions_page.dart",
+      "type": "file",
+      "name": "subscriptions_page.dart",
+      "filePath": "Mobile/mobile_app/lib/features/admin/presentation/subscriptions_page.dart",
+      "summary": "平台管理员的订阅服务管理页面，展示所有租户的订阅服务列表，含套餐等级、服务期限和牲畜数量，支持撤销操作。",
+      "tags": ["component", "admin", "subscription", "ui-page"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/admin/presentation/subscriptions_page.dart:SubscriptionsPage",
+      "type": "class",
+      "name": "SubscriptionsPage",
+      "filePath": "Mobile/mobile_app/lib/features/admin/presentation/subscriptions_page.dart",
+      "lineRange": [10, 109],
+      "summary": "订阅服务管理页面组件，展示租户订阅服务卡片含套餐、期限和牲畜数，对生效中的服务提供撤销按钮。",
+      "tags": ["consumer-widget", "subscription", "admin"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/alerts/data/live_alerts_repository.dart",
+      "type": "file",
+      "name": "live_alerts_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/alerts/data/live_alerts_repository.dart",
+      "summary": "告警模块的 Live 模式数据仓库实现，从 ApiCache 读取后端 API 数据并转换为 AlertItem 视图模型，支持按阶段过滤和多种 ViewState 处理。",
+      "tags": ["repository", "data-layer", "live-mode", "alerts"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/alerts/data/live_alerts_repository.dart:LiveAlertsRepository",
+      "type": "class",
+      "name": "LiveAlertsRepository",
+      "filePath": "Mobile/mobile_app/lib/features/alerts/data/live_alerts_repository.dart",
+      "lineRange": [7, 100],
+      "summary": "Live 模式告警仓库，从 ApiCache 读取后端告警数据，通过 _alertFromMap 解析为 AlertItem，支持按 AlertStage 过滤。",
+      "tags": ["repository", "live-mode", "alerts"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/alerts/data/mock_alerts_repository.dart",
+      "type": "file",
+      "name": "mock_alerts_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/alerts/data/mock_alerts_repository.dart",
+      "summary": "告警模块的 Mock 数据仓库实现，从 DemoSeed 加载静态演示数据，按告警阶段过滤并返回 AlertsViewData。",
+      "tags": ["repository", "data-layer", "mock-mode", "alerts"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/alerts/data/mock_alerts_repository.dart:MockAlertsRepository",
+      "type": "class",
+      "name": "MockAlertsRepository",
+      "filePath": "Mobile/mobile_app/lib/features/alerts/data/mock_alerts_repository.dart",
+      "lineRange": [6, 45],
+      "summary": "Mock 模式告警仓库，从 DemoSeed.alerts 读取种子数据并按阶段过滤，返回 AlertsViewData。",
+      "tags": ["repository", "mock-mode", "alerts"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/alerts/domain/alerts_repository.dart",
+      "type": "file",
+      "name": "alerts_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/alerts/domain/alerts_repository.dart",
+      "summary": "告警模块的领域层接口定义，包含 AlertStage 枚举（四阶段状态机）、AlertsViewData 视图模型和 AlertsRepository 抽象类。",
+      "tags": ["domain", "interface", "data-model", "alerts"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/alerts/domain/alerts_repository.dart:AlertsViewData",
+      "type": "class",
+      "name": "AlertsViewData",
+      "filePath": "Mobile/mobile_app/lib/features/alerts/domain/alerts_repository.dart",
+      "lineRange": [12, 30],
+      "summary": "告警视图数据模型，封装 ViewState、角色、告警阶段、标题/副标题、告警列表和消息文本。",
+      "tags": ["data-model", "view-data", "alerts"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/alerts/presentation/alerts_controller.dart",
+      "type": "file",
+      "name": "alerts_controller.dart",
+      "filePath": "Mobile/mobile_app/lib/features/alerts/presentation/alerts_controller.dart",
+      "summary": "告警模块的 Riverpod 控制器，根据 AppMode 切换数据源，集成订阅功能门控（shapeListItems）限制告警历史查看，驱动 pending/acknowledged/handled/archived 四阶段状态流转。",
+      "tags": ["controller", "riverpod", "state-management", "alerts", "feature-gating"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/alerts/presentation/alerts_controller.dart:AlertsController",
+      "type": "class",
+      "name": "AlertsController",
+      "filePath": "Mobile/mobile_app/lib/features/alerts/presentation/alerts_controller.dart",
+      "lineRange": [21, 133],
+      "summary": "告警页面控制器，持有 DemoRole 参数，通过 _loadShaped 方法加载并应用功能门控，提供 acknowledge/handle/archive 方法驱动状态机流转。",
+      "tags": ["controller", "notifier", "feature-gating"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/api_authorization/data/live_api_authorization_repository.dart",
+      "type": "file",
+      "name": "live_api_authorization_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/api_authorization/data/live_api_authorization_repository.dart",
+      "summary": "API 授权模块的 Live 数据仓库实现，从 ApiCache 读取 API Key 和授权申请数据，对写操作回退到 Mock 实现。",
+      "tags": ["repository", "data-layer", "live-mode", "api-authorization"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/api_authorization/data/live_api_authorization_repository.dart:LiveApiAuthorizationRepository",
+      "type": "class",
+      "name": "LiveApiAuthorizationRepository",
+      "filePath": "Mobile/mobile_app/lib/features/api_authorization/data/live_api_authorization_repository.dart",
+      "lineRange": [6, 68],
+      "summary": "Live 模式 API 授权仓库，从 ApiCache 读取 API Key 和授权数据，写操作（审批/撤销/签发）委托给 MockB2bWorkerManagementRepository 回退实现。",
+      "tags": ["repository", "live-mode", "api-authorization"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/api_authorization/data/mock_api_authorization_repository.dart",
+      "type": "file",
+      "name": "mock_api_authorization_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/api_authorization/data/mock_api_authorization_repository.dart",
+      "summary": "API 授权模块的 Mock 数据仓库实现，维护内存中的 API Key 和授权申请数据，提供完整的 CRUD 操作包括审批、撤销和签发 API Key。",
+      "tags": ["repository", "data-layer", "mock-mode", "api-authorization"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/api_authorization/data/mock_api_authorization_repository.dart:MockApiAuthorizationRepository",
+      "type": "class",
+      "name": "MockApiAuthorizationRepository",
+      "filePath": "Mobile/mobile_app/lib/features/api_authorization/data/mock_api_authorization_repository.dart",
+      "lineRange": [4, 133],
+      "summary": "Mock 模式 API 授权仓库，使用静态列表管理 API Key 和授权申请，实现审批（同步更新 key 状态）、撤销、签发等操作。",
+      "tags": ["repository", "mock-mode", "api-authorization"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/api_authorization/domain/api_authorization_repository.dart",
+      "type": "file",
+      "name": "api_authorization_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/api_authorization/domain/api_authorization_repository.dart",
+      "summary": "API 授权模块的领域层定义，包含 ApiKeyListViewData 和 ApiAuthorizationListViewData 视图模型以及 ApiAuthorizationRepository 抽象接口。",
+      "tags": ["domain", "interface", "data-model", "api-authorization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/api_authorization/domain/api_authorization_repository.dart:ApiAuthorizationRepository",
+      "type": "class",
+      "name": "ApiAuthorizationRepository",
+      "filePath": "Mobile/mobile_app/lib/features/api_authorization/domain/api_authorization_repository.dart",
+      "lineRange": [31, 38],
+      "summary": "API 授权仓库抽象接口，定义 getApiKeys、getAuthorizations、approveAuthorization、revokeAuthorization、issueApiKey、revokeApiKey 六个方法。",
+      "tags": ["domain", "interface", "api-authorization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/api_authorization/presentation/api_authorization_controller.dart",
+      "type": "file",
+      "name": "api_authorization_controller.dart",
+      "filePath": "Mobile/mobile_app/lib/features/api_authorization/presentation/api_authorization_controller.dart",
+      "summary": "API 授权模块的 Riverpod 控制器，包含 ApiAuthorizationController 和 ApiKeyController 两个 Notifier，分别管理授权申请审批和 API Key 生命周期。",
+      "tags": ["controller", "riverpod", "state-management", "api-authorization"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/api_authorization/presentation/api_authorization_controller.dart:ApiAuthorizationController",
+      "type": "class",
+      "name": "ApiAuthorizationController",
+      "filePath": "Mobile/mobile_app/lib/features/api_authorization/presentation/api_authorization_controller.dart",
+      "lineRange": [17, 46],
+      "summary": "授权申请管理 Notifier，提供 filterByStatus、approveAuthorization 和 revokeAuthorization 方法控制授权审批流程。",
+      "tags": ["controller", "notifier", "api-authorization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/api_authorization/presentation/api_authorization_controller.dart:ApiKeyController",
+      "type": "class",
+      "name": "ApiKeyController",
+      "filePath": "Mobile/mobile_app/lib/features/api_authorization/presentation/api_authorization_controller.dart",
+      "lineRange": [53, 77],
+      "summary": "API Key 管理 Notifier，提供 issueApiKey 和 revokeApiKey 方法控制 API Key 的签发和撤销生命周期。",
+      "tags": ["controller", "notifier", "api-key"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/auth/login_page.dart",
+      "type": "file",
+      "name": "login_page.dart",
+      "filePath": "Mobile/mobile_app/lib/features/auth/login_page.dart",
+      "summary": "应用登录页面，支持 Mock 模式（角色选择 + Token 输入）和 Live 模式（手机号 + 密码表单认证），根据 AppMode 自动切换 UI。",
+      "tags": ["component", "auth", "entry-point", "ui-page"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/auth/login_page.dart:LoginPage",
+      "type": "class",
+      "name": "LoginPage",
+      "filePath": "Mobile/mobile_app/lib/features/auth/login_page.dart",
+      "lineRange": [11, 295],
+      "summary": "登录页面 ConsumerStatefulWidget，根据 AppMode 渲染角色选择表单（Mock）或手机号密码表单（Live），Live 模式通过 SessionController 调用 loginWithCredentials。",
+      "tags": ["consumer-widget", "auth", "login"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/b2b_admin/data/b2b_repository.dart",
+      "type": "file",
+      "name": "b2b_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/data/b2b_repository.dart",
+      "summary": "B端管理后台数据仓库，定义 B2bFarmSummary、B2bDashboardData、B2bContractData 三个数据模型类，提供 Dashboard 和合同数据的 Mock/Live 双模式加载逻辑，Live 模式从 ApiCache 解析后端响应。",
+      "tags": ["repository", "data-model", "data-layer", "b2b"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/b2b_admin/data/b2b_repository.dart:B2bRepository",
+      "type": "class",
+      "name": "B2bRepository",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/data/b2b_repository.dart",
+      "lineRange": [107, 313],
+      "summary": "B端数据仓库核心类，提供 loadDashboard/loadContract 数据加载方法（Mock 硬编码 / Live 从 ApiCache 解析），以及 createFarm 的双模式实现。",
+      "tags": ["repository", "b2b", "data-layer"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/b2b_admin/data/live_b2b_worker_management_repository.dart",
+      "type": "file",
+      "name": "live_b2b_worker_management_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/data/live_b2b_worker_management_repository.dart",
+      "summary": "B端牧工管理的 Live 模式仓库实现，当前所有方法均委托给 MockB2bWorkerManagementRepository 作为回退，尚未对接真实 API。",
+      "tags": ["repository", "data-layer", "live-mode", "b2b"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/b2b_admin/data/mock_b2b_worker_management_repository.dart",
+      "type": "file",
+      "name": "mock_b2b_worker_management_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/data/mock_b2b_worker_management_repository.dart",
+      "summary": "B端牧工管理的 Mock 数据仓库实现，维护 3 个分场和 28 名牧工的内存数据，支持牧工分配、移除和可用牧工查询操作。",
+      "tags": ["repository", "data-layer", "mock-mode", "b2b"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/b2b_admin/data/mock_b2b_worker_management_repository.dart:MockB2bWorkerManagementRepository",
+      "type": "class",
+      "name": "MockB2bWorkerManagementRepository",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/data/mock_b2b_worker_management_repository.dart",
+      "lineRange": [4, 339],
+      "summary": "Mock 模式牧工管理仓库，维护分场和牧工的静态数据与可变分配映射表，实现 getSubFarms、getSubFarmWorkers、assignWorker、removeWorker 和 getAvailableWorkers。",
+      "tags": ["repository", "mock-mode", "b2b", "worker-management"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/b2b_admin/domain/b2b_worker_management_repository.dart",
+      "type": "file",
+      "name": "b2b_worker_management_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/domain/b2b_worker_management_repository.dart",
+      "summary": "B端牧工管理模块的领域层定义，包含 B2bSubFarm、B2bSubFarmWorker 数据模型、B2bWorkerManagementViewData 视图模型和仓库抽象接口。",
+      "tags": ["domain", "interface", "data-model", "b2b"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_contract_page.dart",
+      "type": "file",
+      "name": "b2b_contract_page.dart",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_contract_page.dart",
+      "summary": "B端合同信息详情页面，展示合同主体信息（渐变卡片）、到期提醒条、合同条款（2x2 网格）、订阅服务状态（仅授权模式）和快捷操作入口。",
+      "tags": ["component", "b2b", "contract", "ui-page"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_contract_page.dart:B2bContractPage",
+      "type": "class",
+      "name": "B2bContractPage",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_contract_page.dart",
+      "lineRange": [10, 74],
+      "summary": "B端合同详情页面主组件，根据 ViewState 分派渲染结果，正常状态下渲染 _ContractContent 含合同主体卡片、到期提醒和条款网格。",
+      "tags": ["consumer-widget", "b2b", "contract"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_controller.dart",
+      "type": "file",
+      "name": "b2b_controller.dart",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_controller.dart",
+      "summary": "B端管理后台的 Riverpod 控制器定义，包含 B2bDashboardController 和 B2bContractController 两个 Notifier，分别管理 Dashboard 和合同数据状态。",
+      "tags": ["controller", "riverpod", "state-management", "b2b"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_controller.dart:B2bDashboardController",
+      "type": "class",
+      "name": "B2bDashboardController",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_controller.dart",
+      "lineRange": [9, 37],
+      "summary": "B端 Dashboard 控制器，加载 Dashboard 数据并提供 createFarm 方法支持新建牧场（成功后自动刷新状态）。",
+      "tags": ["controller", "notifier", "b2b"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_controller.dart:B2bContractController",
+      "type": "class",
+      "name": "B2bContractController",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_controller.dart",
+      "lineRange": [44, 51],
+      "summary": "B端合同控制器，根据 AppMode 从 B2bRepository 加载合同数据。",
+      "tags": ["controller", "notifier", "b2b"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_dashboard_page.dart",
+      "type": "file",
+      "name": "b2b_dashboard_page.dart",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_dashboard_page.dart",
+      "summary": "B端控制台首页，展示营收金额 Hero 卡片（含牧场数、牲畜数、待处理告警）、设备在线率进度条、告警提醒条、快捷入口网格和旗下牧场列表。",
+      "tags": ["component", "b2b", "dashboard", "ui-page"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_dashboard_page.dart:B2bDashboardPage",
+      "type": "class",
+      "name": "B2bDashboardPage",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_dashboard_page.dart",
+      "lineRange": [11, 77],
+      "summary": "B端 Dashboard 主组件，根据 ViewState 分派渲染，正常状态下渲染含 Hero 卡片、告警条、快捷入口和牧场列表的完整页面。",
+      "tags": ["consumer-widget", "b2b", "dashboard"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_farm_list_page.dart",
+      "type": "file",
+      "name": "b2b_farm_list_page.dart",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_farm_list_page.dart",
+      "summary": "B端旗下牧场列表页面，展示牧场卡片列表并提供新建牧场对话框（含名称、负责人、电话、地区表单字段），通过 B2bDashboardController 提交创建。",
+      "tags": ["component", "b2b", "farm", "ui-page"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_revenue_detail_page.dart",
+      "type": "file",
+      "name": "b2b_revenue_detail_page.dart",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_revenue_detail_page.dart",
+      "summary": "B端对账明细详情页面，展示单个结算周期的设备费用 Hero 卡片、平台/合作方双确认状态条、牧场分润明细表格，支持确认对账操作（二次确认弹窗）。",
+      "tags": ["component", "b2b", "revenue", "ui-page"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_revenue_page.dart",
+      "type": "file",
+      "name": "b2b_revenue_page.dart",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_revenue_page.dart",
+      "summary": "B端对账列表页面，展示累计分润/待确认数/已结算数三项指标卡片，支持按状态筛选（全部/待确认/已结算），点击周期卡片跳转明细页。",
+      "tags": ["component", "b2b", "revenue", "ui-page"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_worker_detail_page.dart",
+      "type": "file",
+      "name": "b2b_worker_detail_page.dart",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_worker_detail_page.dart",
+      "summary": "B端牧工详情页面，展示指定分场的牧工列表，支持通过多选弹窗分配牧工和通过确认弹窗移除牧工，含面包屑导航和牧场统计信息条。",
+      "tags": ["component", "b2b", "worker-management", "ui-page"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_worker_detail_page.dart:B2bWorkerDetailPage",
+      "type": "class",
+      "name": "B2bWorkerDetailPage",
+      "filePath": "Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_worker_detail_page.dart",
+      "lineRange": [10, 296],
+      "summary": "B端牧工详情页 ConsumerStatefulWidget，管理牧工列表的本地状态，通过 b2bWorkerManagementControllerProvider 执行分配/移除操作。",
+      "tags": ["consumer-widget", "b2b", "worker-management"],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:Mobile/mobile_app/lib/features/admin/presentation/admin_controller.dart",
+      "target": "class:Mobile/mobile_app/lib/features/admin/presentation/admin_controller.dart:AdminController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/admin/presentation/api_auth_page.dart",
+      "target": "class:Mobile/mobile_app/lib/features/admin/presentation/api_auth_page.dart:ApiAuthPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/admin/presentation/contracts_page.dart",
+      "target": "class:Mobile/mobile_app/lib/features/admin/presentation/contracts_page.dart:ContractsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/admin/presentation/revenue_page.dart",
+      "target": "class:Mobile/mobile_app/lib/features/admin/presentation/revenue_page.dart:RevenuePage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/admin/presentation/subscriptions_page.dart",
+      "target": "class:Mobile/mobile_app/lib/features/admin/presentation/subscriptions_page.dart:SubscriptionsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/alerts/data/live_alerts_repository.dart",
+      "target": "class:Mobile/mobile_app/lib/features/alerts/data/live_alerts_repository.dart:LiveAlertsRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/alerts/data/mock_alerts_repository.dart",
+      "target": "class:Mobile/mobile_app/lib/features/alerts/data/mock_alerts_repository.dart:MockAlertsRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/alerts/domain/alerts_repository.dart",
+      "target": "class:Mobile/mobile_app/lib/features/alerts/domain/alerts_repository.dart:AlertsViewData",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/alerts/presentation/alerts_controller.dart",
+      "target": "class:Mobile/mobile_app/lib/features/alerts/presentation/alerts_controller.dart:AlertsController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/api_authorization/data/live_api_authorization_repository.dart",
+      "target": "class:Mobile/mobile_app/lib/features/api_authorization/data/live_api_authorization_repository.dart:LiveApiAuthorizationRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/api_authorization/data/mock_api_authorization_repository.dart",
+      "target": "class:Mobile/mobile_app/lib/features/api_authorization/data/mock_api_authorization_repository.dart:MockApiAuthorizationRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/api_authorization/domain/api_authorization_repository.dart",
+      "target": "class:Mobile/mobile_app/lib/features/api_authorization/domain/api_authorization_repository.dart:ApiAuthorizationRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/api_authorization/presentation/api_authorization_controller.dart",
+      "target": "class:Mobile/mobile_app/lib/features/api_authorization/presentation/api_authorization_controller.dart:ApiAuthorizationController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/api_authorization/presentation/api_authorization_controller.dart",
+      "target": "class:Mobile/mobile_app/lib/features/api_authorization/presentation/api_authorization_controller.dart:ApiKeyController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/auth/login_page.dart",
+      "target": "class:Mobile/mobile_app/lib/features/auth/login_page.dart:LoginPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/b2b_admin/data/b2b_repository.dart",
+      "target": "class:Mobile/mobile_app/lib/features/b2b_admin/data/b2b_repository.dart:B2bRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/b2b_admin/data/mock_b2b_worker_management_repository.dart",
+      "target": "class:Mobile/mobile_app/lib/features/b2b_admin/data/mock_b2b_worker_management_repository.dart:MockB2bWorkerManagementRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_contract_page.dart",
+      "target": "class:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_contract_page.dart:B2bContractPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_controller.dart",
+      "target": "class:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_controller.dart:B2bDashboardController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_controller.dart",
+      "target": "class:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_controller.dart:B2bContractController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_dashboard_page.dart",
+      "target": "class:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_dashboard_page.dart:B2bDashboardPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_worker_detail_page.dart",
+      "target": "class:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_worker_detail_page.dart:B2bWorkerDetailPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "class:Mobile/mobile_app/lib/features/alerts/data/live_alerts_repository.dart:LiveAlertsRepository",
+      "target": "file:Mobile/mobile_app/lib/features/alerts/domain/alerts_repository.dart",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:Mobile/mobile_app/lib/features/alerts/data/mock_alerts_repository.dart:MockAlertsRepository",
+      "target": "file:Mobile/mobile_app/lib/features/alerts/domain/alerts_repository.dart",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:Mobile/mobile_app/lib/features/api_authorization/data/live_api_authorization_repository.dart:LiveApiAuthorizationRepository",
+      "target": "file:Mobile/mobile_app/lib/features/api_authorization/domain/api_authorization_repository.dart",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:Mobile/mobile_app/lib/features/api_authorization/data/mock_api_authorization_repository.dart:MockApiAuthorizationRepository",
+      "target": "file:Mobile/mobile_app/lib/features/api_authorization/domain/api_authorization_repository.dart",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/api_authorization/data/live_api_authorization_repository.dart",
+      "target": "file:Mobile/mobile_app/lib/features/api_authorization/data/mock_api_authorization_repository.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/b2b_admin/data/live_b2b_worker_management_repository.dart",
+      "target": "file:Mobile/mobile_app/lib/features/b2b_admin/data/mock_b2b_worker_management_repository.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_dashboard_page.dart",
+      "target": "file:Mobile/mobile_app/lib/features/b2b_admin/data/b2b_repository.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_farm_list_page.dart",
+      "target": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_controller.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_revenue_detail_page.dart",
+      "target": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_revenue_page.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/b2b_admin/presentation/b2b_worker_detail_page.dart",
+      "target": "file:Mobile/mobile_app/lib/features/b2b_admin/domain/b2b_worker_management_repository.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

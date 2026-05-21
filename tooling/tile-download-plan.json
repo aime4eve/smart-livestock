@@ -1,0 +1,171 @@
+{
+  "name": "全球畜牧牧场离线瓦片下载计划",
+  "created": "2026-05-18",
+  "regions": [
+    {
+      "id": "changsha-demo",
+      "name": "长沙 Demo 区域",
+      "bbox": "112.8,28.1,113.1,28.4",
+      "zoom": "11-15",
+      "note": "项目 Demo 主区域",
+      "status": "done",
+      "tile_count": 1237,
+      "file_size_mb": 18.7,
+      "completed_at": "2026-05-18T11:23:55Z"
+    },
+    {
+      "id": "inner-mongolia",
+      "name": "内蒙古牧区",
+      "bbox": "105,38,125,52",
+      "zoom": "7-11",
+      "note": "牛/羊/骆驼",
+      "status": "done",
+      "tile_count": 6010,
+      "file_size_mb": 104.2,
+      "completed_at": "2026-05-19T02:58:16Z"
+    },
+    {
+      "id": "xinjiang",
+      "name": "新疆牧区",
+      "bbox": "73,35,96,50",
+      "zoom": "7-10",
+      "note": "绵羊/山羊/牛",
+      "status": "done",
+      "tile_count": 3499,
+      "file_size_mb": 32.1,
+      "completed_at": "2026-05-19T08:52:00Z"
+    },
+    {
+      "id": "qinghai-tibet",
+      "name": "青藏高原牧区",
+      "bbox": "78,26,103,40",
+      "zoom": "7-10",
+      "note": "牦牛/藏羊",
+      "status": "done",
+      "tile_count": 4770,
+      "file_size_mb": 44.3,
+      "completed_at": "2026-05-19T09:48:25Z"
+    },
+    {
+      "id": "mongolia",
+      "name": "蒙古国牧区",
+      "bbox": "88,42,120,52",
+      "zoom": "7-10",
+      "note": "牛/羊/山羊/骆驼",
+      "status": "done",
+      "tile_count": 5328,
+      "file_size_mb": 27.7,
+      "completed_at": "2026-05-19T10:50:32Z"
+    },
+    {
+      "id": "australia",
+      "name": "澳大利亚内陆牧场",
+      "bbox": "113,-38,153,-12",
+      "zoom": "7-10",
+      "note": "牛/羊，全球最大牧场带",
+      "status": "done",
+      "tile_count": 11123,
+      "file_size_mb": 55.1,
+      "completed_at": "2026-05-19T13:43:36Z"
+    },
+    {
+      "id": "usa-great-plains",
+      "name": "美国大平原牧场",
+      "bbox": "-105,25,-80,49",
+      "zoom": "7-10",
+      "note": "牛，全球第二大牛肉产区",
+      "status": "done",
+      "tile_count": 5066,
+      "file_size_mb": 121.5,
+      "completed_at": "2026-05-19T17:05:18Z"
+    },
+    {
+      "id": "brazil-central",
+      "name": "巴西中南部牧场",
+      "bbox": "-58,-30,-34,0",
+      "zoom": "7-10",
+      "note": "牛，全球第一大牛肉出口国",
+      "status": "done",
+      "tile_count": 8307,
+      "file_size_mb": 71.7,
+      "completed_at": "2026-05-19T18:40:51Z"
+    },
+    {
+      "id": "argentina-pampas",
+      "name": "阿根廷潘帕斯草原",
+      "bbox": "-70,-42,-55,-22",
+      "zoom": "7-10",
+      "note": "牛/羊",
+      "status": "done",
+      "tile_count": 2136,
+      "file_size_mb": 35.4,
+      "completed_at": "2026-05-20T01:38:27Z"
+    },
+    {
+      "id": "new-zealand",
+      "name": "新西兰牧场",
+      "bbox": "165,-47,179,-34",
+      "zoom": "7-11",
+      "note": "羊/牛/鹿",
+      "status": "done",
+      "tile_count": 1701,
+      "file_size_mb": 38.1,
+      "completed_at": "2026-05-20T10:30:55Z"
+    },
+    {
+      "id": "uk-ireland",
+      "name": "英国/爱尔兰牧场",
+      "bbox": "-11,50,2,59",
+      "zoom": "7-10",
+      "note": "牛/羊",
+      "status": "done",
+      "tile_count": 2340,
+      "file_size_mb": 29.4,
+      "completed_at": "2026-05-20T11:01:39Z"
+    },
+    {
+      "id": "scandinavia-reindeer",
+      "name": "北欧驯鹿区",
+      "bbox": "5,55,30,71",
+      "zoom": "7-10",
+      "note": "驯鹿/麋鹿",
+      "status": "done",
+      "tile_count": 9994,
+      "file_size_mb": 144.2,
+      "completed_at": "2026-05-20T12:56:29Z"
+    },
+    {
+      "id": "east-africa",
+      "name": "东非牧区",
+      "bbox": "33,-5,42,12",
+      "zoom": "7-10",
+      "note": "牛/羊/骆驼",
+      "status": "done",
+      "tile_count": 823,
+      "file_size_mb": 18.7,
+      "completed_at": "2026-05-21T02:30:28Z"
+    },
+    {
+      "id": "south-africa",
+      "name": "南非牧场",
+      "bbox": "16,-35,33,-22",
+      "zoom": "7-10",
+      "note": "牛/羊/鸵鸟",
+      "status": "done",
+      "tile_count": 2842,
+      "file_size_mb": 23.0,
+      "completed_at": "2026-05-21T03:55:44Z"
+    },
+    {
+      "id": "india-northwest",
+      "name": "印度西北牧区",
+      "bbox": "68,20,78,30",
+      "zoom": "7-10",
+      "note": "牛/羊/骆驼",
+      "status": "done",
+      "tile_count": 1260,
+      "file_size_mb": 20.1,
+      "completed_at": "2026-05-21T04:33:25Z"
+    }
+  ]
+}

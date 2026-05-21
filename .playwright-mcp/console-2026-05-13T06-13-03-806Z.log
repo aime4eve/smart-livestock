@@ -1,0 +1,2 @@
+[      69ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://localhost:54321/login:0
+[      93ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://localhost:54321/favicon.ico:0

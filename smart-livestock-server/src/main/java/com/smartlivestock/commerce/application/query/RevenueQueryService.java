@@ -54,9 +54,9 @@ public class RevenueQueryService {
     }
 
     /**
-     * List all contracts (admin view, all statuses).
+     * List active contracts (admin view).
      */
-    public List<ContractResponse> listAllContracts() {
+    public List<ContractResponse> listActiveContracts() {
         return ContractAssembler.toResponseList(
             contractRepository.findByStatus(ContractStatus.ACTIVE));
     }

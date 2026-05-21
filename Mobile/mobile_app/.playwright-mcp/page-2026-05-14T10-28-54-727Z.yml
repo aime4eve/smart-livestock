@@ -1,0 +1,36 @@
+- generic [ref=e5]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - group [active]:
+                - generic:
+                  - generic: 阿尔卑斯北麓牧场 晴 18°C · 最近同步 2 分钟前 数智孪生已同步 正常
+                - generic:
+                  - generic: 当前演示牧区 本分区含 50 头演示个体；下方牲畜总数等指标为集团孪生汇总口径。
+                - group "待处理事件":
+                  - button "牛#0048 体温紧急 较基线升高 1.2°C · 建议立即复核" [ref=e14]
+                  - button "牛#0049 蠕动停止 消化系统 · 需现场处置" [ref=e15]
+                  - button "牛#0012 发情高分 评分 92 · 建议6小时内配种" [ref=e16]
+                - generic:
+                  - generic:
+                    - button "牲畜总数 3,847 +12 本周新增 牛 2,156 / 羊 1,691" [ref=e17]
+                    - generic:
+                      - generic:
+                        - generic: 健康率 99.1% +0.3% 健康个体 3,812
+                    - button "预警数量 35 紧急 3 / 一般 32" [ref=e18]
+                    - generic:
+                      - generic:
+                        - generic: 设备在线 97.8% 传感器 1,247 在线
+                - button "发热预警 5 头异常 · 3 紧急" [ref=e19]
+                - button "消化管理 2 头蠕动异常 · 3 关注" [ref=e20]
+                - button "发情识别 2 头高分 · 建议配种" [ref=e21]
+                - button "疫病防控 群体正常 · 异常率 6%" [ref=e22]
+          - group:
+            - button "孪生" [ref=e23]
+            - button "围栏" [ref=e24]
+            - button "告警" [ref=e25]
+            - button "我的" [ref=e26]
+            - button "后台" [ref=e27]

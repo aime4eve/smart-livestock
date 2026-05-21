@@ -29,6 +29,13 @@ public final class FenceMapper {
         return jpa;
     }
 
+    public static void updateEntity(FenceJpaEntity existing, Fence fence) {
+        existing.setName(fence.getName());
+        existing.setVertices(toVerticesJson(fence.getVertices()));
+        existing.setColor(fence.getColor());
+        existing.setStatus(fence.isActive() ? "ACTIVE" : "DISABLED");
+    }
+
     public static Fence toDomain(FenceJpaEntity jpa) {
         Fence fence = new Fence();
         fence.setId(jpa.getId());

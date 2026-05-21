@@ -1,0 +1,575 @@
+{
+  "nodes": [
+    {
+      "id": "file:Mobile/mobile_app/lib/features/subscription_service_management/data/mock_subscription_service_repository.dart",
+      "type": "file",
+      "name": "mock_subscription_service_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/subscription_service_management/data/mock_subscription_service_repository.dart",
+      "summary": "订阅服务管理的 Mock 仓储实现，使用内存列表存储 4 个预置订阅服务数据，支持按租户 ID 和状态过滤、创建、续费和撤销操作。",
+      "tags": ["mock", "repository", "subscription-service", "data-layer"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/subscription_service_management/data/mock_subscription_service_repository.dart:MockSubscriptionServiceRepository",
+      "type": "file",
+      "name": "MockSubscriptionServiceRepository",
+      "filePath": "Mobile/mobile_app/lib/features/subscription_service_management/data/mock_subscription_service_repository.dart",
+      "lineRange": [4, 95],
+      "summary": "SubscriptionServiceRepository 的 Mock 实现，包含 4 个预置订阅服务的内存数据集和完整的 CRUD 方法。",
+      "tags": ["mock", "repository", "service-management"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/subscription_service_management/domain/subscription_service_repository.dart",
+      "type": "file",
+      "name": "subscription_service_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/subscription_service_management/domain/subscription_service_repository.dart",
+      "summary": "订阅服务仓储的抽象接口和列表视图数据模型，定义 getServices/createService/renewService/revokeService 四个方法契约。",
+      "tags": ["repository-interface", "domain-layer", "subscription-service"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/subscription_service_management/domain/subscription_service_repository.dart:SubscriptionServiceListViewData",
+      "type": "file",
+      "name": "SubscriptionServiceListViewData",
+      "filePath": "Mobile/mobile_app/lib/features/subscription_service_management/domain/subscription_service_repository.dart",
+      "lineRange": [3, 15],
+      "summary": "订阅服务列表的视图数据类，封装 viewState、services 列表、总数和提示消息。",
+      "tags": ["view-data", "subscription-service"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/subscription_service_management/presentation/subscription_service_controller.dart",
+      "type": "file",
+      "name": "subscription_service_controller.dart",
+      "filePath": "Mobile/mobile_app/lib/features/subscription_service_management/presentation/subscription_service_controller.dart",
+      "summary": "订阅服务管理的 Riverpod 状态控制器，根据 AppMode 切换 Mock/Live 仓储，提供过滤、刷新、创建、续费和撤销操作。",
+      "tags": ["controller", "riverpod", "subscription-service", "presentation-layer"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/subscription_service_management/presentation/subscription_service_controller.dart:SubscriptionServiceController",
+      "type": "file",
+      "name": "SubscriptionServiceController",
+      "filePath": "Mobile/mobile_app/lib/features/subscription_service_management/presentation/subscription_service_controller.dart",
+      "lineRange": [17, 52],
+      "summary": "继承 Notifier 的状态控制器，管理 SubscriptionServiceListViewData，代理仓储的 filter/refresh/create/renew/revoke 操作。",
+      "tags": ["controller", "riverpod-notifier"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/subscription/data/live_subscription_repository.dart",
+      "type": "file",
+      "name": "live_subscription_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/subscription/data/live_subscription_repository.dart",
+      "summary": "订阅模块的 Live 仓储实现，通过 ApiCache 读取后端 API 数据，缓存未命中时 fallback 到 Mock 仓储，写操作异步同步到远端。",
+      "tags": ["live", "repository", "subscription", "data-layer"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/subscription/data/live_subscription_repository.dart:LiveSubscriptionRepository",
+      "type": "file",
+      "name": "LiveSubscriptionRepository",
+      "filePath": "Mobile/mobile_app/lib/features/subscription/data/live_subscription_repository.dart",
+      "lineRange": [8, 108],
+      "summary": "实现 SubscriptionRepository 接口的 Live 版本，通过 ApiCache 读取远程数据并 fallback 到 Mock。checkout/cancel/renew 操作先异步 POST 再同步更新缓存。",
+      "tags": ["live", "repository", "subscription", "api-cache"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/subscription/data/mock_subscription_repository.dart",
+      "type": "file",
+      "name": "mock_subscription_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/subscription/data/mock_subscription_repository.dart",
+      "summary": "订阅模块的 Mock 仓储实现，初始化一个 premium trial 状态的订阅，提供 checkout/cancel/renew/loadUsage 等本地内存操作。",
+      "tags": ["mock", "repository", "subscription", "data-layer"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/subscription/data/mock_subscription_repository.dart:MockSubscriptionRepository",
+      "type": "file",
+      "name": "MockSubscriptionRepository",
+      "filePath": "Mobile/mobile_app/lib/features/subscription/data/mock_subscription_repository.dart",
+      "lineRange": [4, 104],
+      "summary": "实现 SubscriptionRepository 接口的 Mock 版本，使用内存 SubscriptionStatus 对象模拟订阅生命周期。",
+      "tags": ["mock", "repository", "subscription"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/subscription/domain/subscription_repository.dart",
+      "type": "file",
+      "name": "subscription_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/subscription/domain/subscription_repository.dart",
+      "summary": "订阅仓储的抽象接口，定义 loadCurrent/loadPlans/loadFeatures/checkout/cancel/renew/loadUsage 七个方法契约。",
+      "tags": ["repository-interface", "domain-layer", "subscription"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/subscription/presentation/subscription_checkout_page.dart",
+      "type": "file",
+      "name": "subscription_checkout_page.dart",
+      "filePath": "Mobile/mobile_app/lib/features/subscription/presentation/subscription_checkout_page.dart",
+      "summary": "订阅支付确认页面，展示所选套餐信息、牲畜数量输入、费用明细（套餐费+超出设备费）和确认支付按钮，调用 SubscriptionController 完成订阅。",
+      "tags": ["component", "subscription", "checkout", "ui-page"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/subscription/presentation/subscription_checkout_page.dart:SubscriptionCheckoutPage",
+      "type": "file",
+      "name": "SubscriptionCheckoutPage",
+      "filePath": "Mobile/mobile_app/lib/features/subscription/presentation/subscription_checkout_page.dart",
+      "lineRange": [9, 257],
+      "summary": "ConsumerStatefulWidget 支付确认页，接收 tier 和 livestockCount 参数，实时计算费用明细，提交后更新订阅状态。",
+      "tags": ["component", "consumer-stateful", "checkout"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/subscription/presentation/subscription_controller.dart",
+      "type": "file",
+      "name": "subscription_controller.dart",
+      "filePath": "Mobile/mobile_app/lib/features/subscription/presentation/subscription_controller.dart",
+      "summary": "订阅模块的 Riverpod 状态控制器，根据 AppMode 切换 Mock/Live 仓储，管理 SubscriptionStatus 状态，同时暴露 plans 和 features Provider。",
+      "tags": ["controller", "riverpod", "subscription", "presentation-layer"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/subscription/presentation/subscription_controller.dart:SubscriptionController",
+      "type": "file",
+      "name": "SubscriptionController",
+      "filePath": "Mobile/mobile_app/lib/features/subscription/presentation/subscription_controller.dart",
+      "lineRange": [8, 35],
+      "summary": "Riverpod Notifier，管理订阅状态，代理 checkout/cancel/renew 操作到对应仓储。",
+      "tags": ["controller", "riverpod-notifier"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/subscription/presentation/subscription_plan_page.dart",
+      "type": "file",
+      "name": "subscription_plan_page.dart",
+      "filePath": "Mobile/mobile_app/lib/features/subscription/presentation/subscription_plan_page.dart",
+      "summary": "套餐选择页面，展示 4 个订阅层级（basic/standard/premium/enterprise）的 TierCard 和功能对比表，选中非当前套餐后跳转至结账页。",
+      "tags": ["component", "subscription", "ui-page", "plan-selection"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/subscription/presentation/widgets/feature_comparison_table.dart",
+      "type": "file",
+      "name": "feature_comparison_table.dart",
+      "filePath": "Mobile/mobile_app/lib/features/subscription/presentation/widgets/feature_comparison_table.dart",
+      "summary": "功能对比表组件，以 DataTable 形式展示 20 项功能在 4 个订阅层级下的可用性和配额差异，支持数值型配额的智能格式化显示。",
+      "tags": ["component", "subscription", "comparison", "data-table"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/subscription/presentation/widgets/locked_overlay.dart",
+      "type": "file",
+      "name": "locked_overlay.dart",
+      "filePath": "Mobile/mobile_app/lib/features/subscription/presentation/widgets/locked_overlay.dart",
+      "summary": "功能锁定覆盖层组件，在 locked=true 时以半透明遮罩覆盖子组件，显示升级提示和升级按钮，支持设备锁定和订阅层级锁定两种模式。",
+      "tags": ["component", "subscription", "feature-gating", "overlay"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/subscription/presentation/widgets/subscription_renewal_banner.dart",
+      "type": "file",
+      "name": "subscription_renewal_banner.dart",
+      "filePath": "Mobile/mobile_app/lib/features/subscription/presentation/widgets/subscription_renewal_banner.dart",
+      "summary": "订阅续费提醒横幅组件，在订阅或试用即将到期（7 天内）时显示警告横幅，3 天内升级为紧急红色样式，提供一键续费按钮。",
+      "tags": ["component", "subscription", "renewal", "warning-banner"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/subscription/presentation/widgets/subscription_status_card.dart",
+      "type": "file",
+      "name": "subscription_status_card.dart",
+      "filePath": "Mobile/mobile_app/lib/features/subscription/presentation/widgets/subscription_status_card.dart",
+      "summary": "订阅状态卡片组件，展示当前套餐名称、状态徽章、试用/到期倒计时、牲畜用量进度条、费用明细和操作按钮（升级/续费/取消），是订阅模块的核心展示组件。",
+      "tags": ["component", "subscription", "status-card", "ui-widget"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/subscription/presentation/widgets/tier_card.dart",
+      "type": "file",
+      "name": "tier_card.dart",
+      "filePath": "Mobile/mobile_app/lib/features/subscription/presentation/widgets/tier_card.dart",
+      "summary": "订阅层级卡片组件，展示单个 tier 的名称、月价、牲畜额度、超出单价、功能列表和选择按钮，当前套餐显示为已选状态。",
+      "tags": ["component", "subscription", "tier-card", "ui-widget"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/subscription/presentation/widgets/usage_progress_bar.dart",
+      "type": "file",
+      "name": "usage_progress_bar.dart",
+      "filePath": "Mobile/mobile_app/lib/features/subscription/presentation/widgets/usage_progress_bar.dart",
+      "summary": "用量进度条组件，显示当前用量与额度的比值，根据使用率（70%/90%）变色预警，支持无限额度模式。",
+      "tags": ["component", "progress-bar", "usage", "ui-widget"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/tenant/data/live_tenant_repository.dart",
+      "type": "file",
+      "name": "live_tenant_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/tenant/data/live_tenant_repository.dart",
+      "summary": "租户模块的 Live 仓储实现，通过 ApiCache 读取后端 API 数据，缓存未命中或 API 未连接时 fallback 到 MockTenantRepository，支持列表/详情/设备/日志/统计/趋势六种查询。",
+      "tags": ["live", "repository", "tenant", "data-layer", "api-cache"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/tenant/data/live_tenant_repository.dart:LiveTenantRepository",
+      "type": "file",
+      "name": "LiveTenantRepository",
+      "filePath": "Mobile/mobile_app/lib/features/tenant/data/live_tenant_repository.dart",
+      "lineRange": [10, 173],
+      "summary": "实现 TenantRepository 的 Live 版本，所有方法优先从 ApiCache 读取，失败则 fallback 到 MockTenantRepository。",
+      "tags": ["live", "repository", "tenant", "fallback"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/tenant/data/mock_tenant_repository.dart",
+      "type": "file",
+      "name": "mock_tenant_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/tenant/data/mock_tenant_repository.dart",
+      "summary": "租户模块的 Mock 仓储实现，使用 6 个预置租户种子数据，支持列表（搜索/过滤/排序/分页）、详情、设备、日志、统计和趋势六种查询。",
+      "tags": ["mock", "repository", "tenant", "data-layer", "seed"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/tenant/data/mock_tenant_repository.dart:MockTenantRepository",
+      "type": "file",
+      "name": "MockTenantRepository",
+      "filePath": "Mobile/mobile_app/lib/features/tenant/data/mock_tenant_repository.dart",
+      "lineRange": [10, 168],
+      "summary": "实现 TenantRepository 的 Mock 版本，内置 6 个租户种子，提供完整的列表筛选/排序/分页、详情、设备分配、操作日志、统计和趋势生成。",
+      "tags": ["mock", "repository", "tenant", "seed-data"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/tenant/data/tenant_dto.dart",
+      "type": "file",
+      "name": "tenant_dto.dart",
+      "filePath": "Mobile/mobile_app/lib/features/tenant/data/tenant_dto.dart",
+      "summary": "租户数据传输对象，提供 fromJson 静态方法将 API 返回的 Map 转换为 Tenant 领域对象，包含容错解析（状态枚举校验和异常捕获）。",
+      "tags": ["dto", "serialization", "tenant", "data-layer"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/tenant/data/tenant_dto.dart:TenantDto",
+      "type": "file",
+      "name": "TenantDto",
+      "filePath": "Mobile/mobile_app/lib/features/tenant/data/tenant_dto.dart",
+      "lineRange": [3, 30],
+      "summary": "租户 DTO 工具类，私有构造函数，仅暴露 fromJson 方法将 JSON Map 解析为 Tenant 对象。",
+      "tags": ["dto", "serialization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/tenant/domain/tenant_query.dart",
+      "type": "file",
+      "name": "tenant_query.dart",
+      "filePath": "Mobile/mobile_app/lib/features/tenant/domain/tenant_query.dart",
+      "summary": "租户列表查询参数对象，封装搜索关键词、状态过滤、排序字段（名称/License用量）、排序方向和分页参数，支持 copyWith 和字段清除。",
+      "tags": ["query-object", "domain-layer", "tenant", "pagination"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/tenant/domain/tenant_query.dart:TenantListQuery",
+      "type": "file",
+      "name": "TenantListQuery",
+      "filePath": "Mobile/mobile_app/lib/features/tenant/domain/tenant_query.dart",
+      "lineRange": [7, 43],
+      "summary": "租户列表查询参数封装，包含 search/status/sort/order/page/pageSize 字段及带字段清除功能的 copyWith 方法。",
+      "tags": ["query-object", "value-object"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/tenant/domain/tenant_repository.dart",
+      "type": "file",
+      "name": "tenant_repository.dart",
+      "filePath": "Mobile/mobile_app/lib/features/tenant/domain/tenant_repository.dart",
+      "summary": "租户仓储的抽象接口，定义 loadList/loadDetail/loadDevices/loadLogs/loadStats/loadTrends 六个查询方法。",
+      "tags": ["repository-interface", "domain-layer", "tenant"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/tenant/domain/tenant_view_data.dart",
+      "type": "file",
+      "name": "tenant_view_data.dart",
+      "filePath": "Mobile/mobile_app/lib/features/tenant/domain/tenant_view_data.dart",
+      "summary": "租户模块的视图数据类集合，定义 TenantListViewData、TenantDetailViewData、TenantDevicesViewData、TenantLogsViewData、TenantStatsViewData、TenantTrendsViewData 六种视图模型及辅助类。",
+      "tags": ["view-data", "domain-layer", "tenant", "type-definition"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/tenant/domain/tenant.dart",
+      "type": "file",
+      "name": "tenant.dart",
+      "filePath": "Mobile/mobile_app/lib/features/tenant/domain/tenant.dart",
+      "summary": "租户领域模型，定义 TenantStatus 枚举（active/disabled）和 Tenant 实体类，包含 id/name/status/licenseUsed/licenseTotal 等字段及 licenseUsage 计算属性和 copyWith 方法。",
+      "tags": ["data-model", "domain-layer", "tenant", "entity"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/lib/features/tenant/domain/tenant.dart:Tenant",
+      "type": "file",
+      "name": "Tenant",
+      "filePath": "Mobile/mobile_app/lib/features/tenant/domain/tenant.dart",
+      "lineRange": [16, 82],
+      "summary": "租户实体类，包含 id/name/status/license 配额/联系人/地区/备注等字段，提供 licenseUsage 计算属性和带字段清除功能的 copyWith。",
+      "tags": ["data-model", "entity", "value-object"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/tenant/presentation/pages/tenant_create_page.dart",
+      "type": "file",
+      "name": "tenant_create_page.dart",
+      "filePath": "Mobile/mobile_app/lib/features/tenant/presentation/pages/tenant_create_page.dart",
+      "summary": "租户创建页面，提供租户名称和初始 License 的表单输入，Live 模式下通过 ApiCache 异步创建租户并刷新缓存，成功后返回管理页面。",
+      "tags": ["component", "tenant", "create-form", "ui-page"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/tenant/presentation/pages/tenant_detail_page.dart",
+      "type": "file",
+      "name": "tenant_detail_page.dart",
+      "filePath": "Mobile/mobile_app/lib/features/tenant/presentation/pages/tenant_detail_page.dart",
+      "summary": "租户详情页面，以卡片布局展示租户基本信息、操作按钮组（编辑/启禁/License调整/删除）、统计概览、30天告警趋势图、设备列表和操作日志，是租户模块最复杂的展示组件。",
+      "tags": ["component", "tenant", "detail-page", "ui-page", "complex"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/lib/features/tenant/presentation/pages/tenant_edit_page.dart",
+      "type": "file",
+      "name": "tenant_edit_page.dart",
+      "filePath": "Mobile/mobile_app/lib/features/tenant/presentation/pages/tenant_edit_page.dart",
+      "summary": "租户编辑页面，提供租户名称修改表单，Live 模式下通过 ApiCache 异步更新并刷新缓存，成功后跳转回详情页。",
+      "tags": ["component", "tenant", "edit-form", "ui-page"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:Mobile/mobile_app/lib/features/subscription_service_management/data/mock_subscription_service_repository.dart",
+      "target": "class:Mobile/mobile_app/lib/features/subscription_service_management/data/mock_subscription_service_repository.dart:MockSubscriptionServiceRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/subscription_service_management/domain/subscription_service_repository.dart",
+      "target": "class:Mobile/mobile_app/lib/features/subscription_service_management/domain/subscription_service_repository.dart:SubscriptionServiceListViewData",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/subscription_service_management/presentation/subscription_service_controller.dart",
+      "target": "class:Mobile/mobile_app/lib/features/subscription_service_management/presentation/subscription_service_controller.dart:SubscriptionServiceController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/subscription/data/live_subscription_repository.dart",
+      "target": "class:Mobile/mobile_app/lib/features/subscription/data/live_subscription_repository.dart:LiveSubscriptionRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/subscription/data/mock_subscription_repository.dart",
+      "target": "class:Mobile/mobile_app/lib/features/subscription/data/mock_subscription_repository.dart:MockSubscriptionRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/subscription/presentation/subscription_checkout_page.dart",
+      "target": "class:Mobile/mobile_app/lib/features/subscription/presentation/subscription_checkout_page.dart:SubscriptionCheckoutPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/subscription/presentation/subscription_controller.dart",
+      "target": "class:Mobile/mobile_app/lib/features/subscription/presentation/subscription_controller.dart:SubscriptionController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/tenant/data/live_tenant_repository.dart",
+      "target": "class:Mobile/mobile_app/lib/features/tenant/data/live_tenant_repository.dart:LiveTenantRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/tenant/data/mock_tenant_repository.dart",
+      "target": "class:Mobile/mobile_app/lib/features/tenant/data/mock_tenant_repository.dart:MockTenantRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/tenant/data/tenant_dto.dart",
+      "target": "class:Mobile/mobile_app/lib/features/tenant/data/tenant_dto.dart:TenantDto",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/tenant/domain/tenant_query.dart",
+      "target": "class:Mobile/mobile_app/lib/features/tenant/domain/tenant_query.dart:TenantListQuery",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/tenant/domain/tenant.dart",
+      "target": "class:Mobile/mobile_app/lib/features/tenant/domain/tenant.dart:Tenant",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "class:Mobile/mobile_app/lib/features/subscription_service_management/data/mock_subscription_service_repository.dart:MockSubscriptionServiceRepository",
+      "target": "class:Mobile/mobile_app/lib/features/subscription_service_management/domain/subscription_service_repository.dart:SubscriptionServiceListViewData",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:Mobile/mobile_app/lib/features/subscription/data/live_subscription_repository.dart:LiveSubscriptionRepository",
+      "target": "file:Mobile/mobile_app/lib/features/subscription/domain/subscription_repository.dart",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:Mobile/mobile_app/lib/features/subscription/data/mock_subscription_repository.dart:MockSubscriptionRepository",
+      "target": "file:Mobile/mobile_app/lib/features/subscription/domain/subscription_repository.dart",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:Mobile/mobile_app/lib/features/tenant/data/live_tenant_repository.dart:LiveTenantRepository",
+      "target": "file:Mobile/mobile_app/lib/features/tenant/domain/tenant_repository.dart",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:Mobile/mobile_app/lib/features/tenant/data/mock_tenant_repository.dart:MockTenantRepository",
+      "target": "file:Mobile/mobile_app/lib/features/tenant/domain/tenant_repository.dart",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/subscription/data/live_subscription_repository.dart",
+      "target": "file:Mobile/mobile_app/lib/features/subscription/data/mock_subscription_repository.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/subscription/presentation/subscription_checkout_page.dart",
+      "target": "file:Mobile/mobile_app/lib/features/subscription/presentation/subscription_controller.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/subscription/presentation/subscription_plan_page.dart",
+      "target": "file:Mobile/mobile_app/lib/features/subscription/presentation/subscription_controller.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/subscription/presentation/subscription_plan_page.dart",
+      "target": "file:Mobile/mobile_app/lib/features/subscription/presentation/widgets/feature_comparison_table.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/subscription/presentation/subscription_plan_page.dart",
+      "target": "file:Mobile/mobile_app/lib/features/subscription/presentation/widgets/tier_card.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/subscription/presentation/widgets/subscription_status_card.dart",
+      "target": "file:Mobile/mobile_app/lib/features/subscription/presentation/subscription_controller.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/subscription/presentation/widgets/subscription_status_card.dart",
+      "target": "file:Mobile/mobile_app/lib/features/subscription/presentation/widgets/usage_progress_bar.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/subscription/presentation/widgets/subscription_renewal_banner.dart",
+      "target": "file:Mobile/mobile_app/lib/features/subscription/presentation/subscription_controller.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/tenant/data/live_tenant_repository.dart",
+      "target": "file:Mobile/mobile_app/lib/features/tenant/data/mock_tenant_repository.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/tenant/data/live_tenant_repository.dart",
+      "target": "file:Mobile/mobile_app/lib/features/tenant/data/tenant_dto.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/tenant/data/tenant_dto.dart",
+      "target": "file:Mobile/mobile_app/lib/features/tenant/domain/tenant.dart",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/tenant/presentation/pages/tenant_create_page.dart",
+      "target": "file:Mobile/mobile_app/lib/features/tenant/presentation/pages/tenant_detail_page.dart",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/tenant/presentation/pages/tenant_edit_page.dart",
+      "target": "file:Mobile/mobile_app/lib/features/tenant/presentation/pages/tenant_detail_page.dart",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/subscription_service_management/data/mock_subscription_service_repository.dart",
+      "target": "file:Mobile/mobile_app/lib/features/subscription_service_management/domain/subscription_service_repository.dart",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "file:Mobile/mobile_app/lib/features/subscription/presentation/subscription_checkout_page.dart",
+      "target": "file:Mobile/mobile_app/lib/features/subscription/presentation/widgets/tier_card.dart",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

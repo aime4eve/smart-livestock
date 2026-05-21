@@ -1,0 +1,520 @@
+{
+  "nodes": [
+    {
+      "id": "file:PC/frontend-react-backup/src/components/StatsPanel.tsx",
+      "type": "file",
+      "name": "StatsPanel.tsx",
+      "filePath": "PC/frontend-react-backup/src/components/StatsPanel.tsx",
+      "summary": "React 备份前端的统计面板组件，接收牛只数据并通过 calculateStats 计算总数、健康率、预警率等聚合指标并展示。",
+      "tags": ["component", "统计面板", "react-backup"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:PC/frontend-react-backup/src/components/StatsPanel.tsx:StatsPanel",
+      "type": "function",
+      "name": "StatsPanel",
+      "filePath": "PC/frontend-react-backup/src/components/StatsPanel.tsx",
+      "lineRange": [18, 53],
+      "summary": "React 函数组件，通过 reduce 聚合牛只数据计算健康/预警/危重统计，渲染统计卡片 UI。",
+      "tags": ["component", "react", "aggregation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend-react-backup/src/index.css",
+      "type": "file",
+      "name": "index.css",
+      "filePath": "PC/frontend-react-backup/src/index.css",
+      "summary": "React 备份前端的根样式文件，提供全局 CSS 重置和基础样式定义。",
+      "tags": ["stylesheet", "全局样式", "react-backup"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend-react-backup/src/index.tsx",
+      "type": "file",
+      "name": "index.tsx",
+      "filePath": "PC/frontend-react-backup/src/index.tsx",
+      "summary": "React 备份前端的入口文件，引入根样式、App 组件和 Web Vitals 报告，将应用挂载到 DOM。",
+      "tags": ["entry-point", "react-backup", "bootstrap"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend-react-backup/src/react-app-env.d.ts",
+      "type": "file",
+      "name": "react-app-env.d.ts",
+      "filePath": "PC/frontend-react-backup/src/react-app-env.d.ts",
+      "summary": "Create React App 自动生成的类型声明文件，引用 react-scripts 的类型定义。",
+      "tags": ["type-definition", "auto-generated", "react-backup"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend-react-backup/src/reportWebVitals.ts",
+      "type": "file",
+      "name": "reportWebVitals.ts",
+      "filePath": "PC/frontend-react-backup/src/reportWebVitals.ts",
+      "summary": "Web 性能指标上报工具，动态导入 web-vitals 库并收集 CLS、FID、FCP、LCP、TTFB 五项核心指标。",
+      "tags": ["utility", "performance", "react-backup"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:PC/frontend-react-backup/src/reportWebVitals.ts:reportWebVitals",
+      "type": "function",
+      "name": "reportWebVitals",
+      "filePath": "PC/frontend-react-backup/src/reportWebVitals.ts",
+      "lineRange": [3, 13],
+      "summary": "通过动态 import 异步加载 web-vitals 库，依次调用 getCLS/FID/FCP/LCP/TTFB 采集性能指标并回调上报。",
+      "tags": ["utility", "performance", "metrics"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend-react-backup/src/setupTests.ts",
+      "type": "file",
+      "name": "setupTests.ts",
+      "filePath": "PC/frontend-react-backup/src/setupTests.ts",
+      "summary": "Jest 测试环境初始化文件，为 React 测试引入 @testing-library/jest-dom 的自定义匹配器。",
+      "tags": ["test", "configuration", "react-backup"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend-react-backup/src/types/sensor.ts",
+      "type": "file",
+      "name": "sensor.ts",
+      "filePath": "PC/frontend-react-backup/src/types/sensor.ts",
+      "summary": "定义传感器数据类型接口（Sensor、TemperatureLog、PeristalticLog）和 generateSensorData 模拟数据生成函数。",
+      "tags": ["type-definition", "data-model", "sensor", "react-backup"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:PC/frontend-react-backup/src/types/sensor.ts:generateSensorData",
+      "type": "function",
+      "name": "generateSensorData",
+      "filePath": "PC/frontend-react-backup/src/types/sensor.ts",
+      "lineRange": [17, 36],
+      "summary": "根据牛只 ID 和基准参数生成包含 60 条温度和蠕动频率数据的模拟传感器记录，用于 Demo 展示。",
+      "tags": ["utility", "mock-data", "sensor"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:PC/frontend-react-backup/tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "PC/frontend-react-backup/tsconfig.json",
+      "summary": "React 备份前端的 TypeScript 编译配置，启用严格模式和 JSX 解析，设定编译目标为 ES5。",
+      "tags": ["configuration", "typescript", "react-backup"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:PC/frontend/angular.json",
+      "type": "config",
+      "name": "angular.json",
+      "filePath": "PC/frontend/angular.json",
+      "summary": "Angular CLI 工作区配置，定义 frontend 项目的构建选项（预算限制、样式预处理器、资源输出路径）和开发服务器端口。",
+      "tags": ["configuration", "angular", "build-system"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:PC/frontend/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "PC/frontend/package.json",
+      "summary": "Angular 前端项目的 NPM 配置，声明 Angular 17 核心依赖、Leaflet/Chart.js 地图图表库及开发工具链。",
+      "tags": ["configuration", "dependencies", "angular"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:PC/frontend/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "PC/frontend/README.md",
+      "summary": "智慧畜牧系统 PC 前端（Angular）的说明文档，涵盖技术栈、功能特性、项目结构、开发指南和组件说明。",
+      "tags": ["documentation", "overview", "angular", "entry-point"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:PC/frontend/src/app/app.component.html",
+      "type": "file",
+      "name": "app.component.html",
+      "filePath": "PC/frontend/src/app/app.component.html",
+      "summary": "Angular 根组件模板，包含导航菜单和 router-outlet，作为应用主布局框架。",
+      "tags": ["template", "layout", "angular"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/app.component.scss",
+      "type": "file",
+      "name": "app.component.scss",
+      "filePath": "PC/frontend/src/app/app.component.scss",
+      "summary": "Angular 根组件的样式文件，定义导航栏、主内容区域和整体布局的 CSS 样式。",
+      "tags": ["stylesheet", "layout", "angular"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/app.component.ts",
+      "type": "file",
+      "name": "app.component.ts",
+      "filePath": "PC/frontend/src/app/app.component.ts",
+      "summary": "Angular 根组件，声明应用标题并引入 NavMenuComponent 作为导航栏子组件。",
+      "tags": ["component", "root", "angular"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/app.config.server.ts",
+      "type": "file",
+      "name": "app.config.server.ts",
+      "filePath": "PC/frontend/src/app/app.config.server.ts",
+      "summary": "Angular SSR 服务端渲染配置，合并客户端应用配置和服务器端路由规则。",
+      "tags": ["configuration", "ssr", "angular"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/app.config.ts",
+      "type": "file",
+      "name": "app.config.ts",
+      "filePath": "PC/frontend/src/app/app.config.ts",
+      "summary": "Angular 应用核心配置，注册 provideRouter 路由提供者和 provideClientHydration 客户端水合。",
+      "tags": ["configuration", "routing", "angular"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/app.routes.server.ts",
+      "type": "file",
+      "name": "app.routes.server.ts",
+      "filePath": "PC/frontend/src/app/app.routes.server.ts",
+      "summary": "Angular SSR 服务器端路由配置，定义服务端渲染可用的路由列表。",
+      "tags": ["configuration", "ssr", "routing", "angular"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/app.routes.ts",
+      "type": "file",
+      "name": "app.routes.ts",
+      "filePath": "PC/frontend/src/app/app.routes.ts",
+      "summary": "Angular 客户端路由定义，配置 /home、/map、/cattle-register、/device-register 四个页面路由。",
+      "tags": ["routing", "configuration", "angular"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/cattle-map/cattle-map.component.html",
+      "type": "file",
+      "name": "cattle-map.component.html",
+      "filePath": "PC/frontend/src/app/components/cattle-map/cattle-map.component.html",
+      "summary": "牛只地图组件的 HTML 模板，包含 Leaflet 地图容器、加载状态指示器和传感器图表弹窗。",
+      "tags": ["template", "地图", "angular"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/cattle-map/cattle-map.component.scss",
+      "type": "file",
+      "name": "cattle-map.component.scss",
+      "filePath": "PC/frontend/src/app/components/cattle-map/cattle-map.component.scss",
+      "summary": "牛只地图组件的样式文件，定义地图容器全屏布局、标记点样式和弹窗动画。",
+      "tags": ["stylesheet", "地图", "angular"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/cattle-map/cattle-map.component.ts",
+      "type": "file",
+      "name": "cattle-map.component.ts",
+      "filePath": "PC/frontend/src/app/components/cattle-map/cattle-map.component.ts",
+      "summary": "牛只地图核心组件，动态加载 Leaflet 构建交互式地图，展示牛只标记、健康状态颜色和传感器数据弹窗。",
+      "tags": ["component", "地图", "leaflet", "angular"],
+      "complexity": "complex",
+      "languageNotes": "使用动态 import('leaflet') 实现 SSR 安全加载，避免 Node.js 环境下 window/document 不存在的问题。"
+    },
+    {
+      "id": "class:PC/frontend/src/app/components/cattle-map/cattle-map.component.ts:CattleMapComponent",
+      "type": "file",
+      "name": "CattleMapComponent",
+      "filePath": "PC/frontend/src/app/components/cattle-map/cattle-map.component.ts",
+      "lineRange": [27, 182],
+      "summary": "Angular Standalone 组件，负责 Leaflet 地图初始化、牛只标记渲染、健康状态颜色区分和传感器数据查看。",
+      "tags": ["component", "地图", "leaflet"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/cattle-register/cattle-register.component.html",
+      "type": "file",
+      "name": "cattle-register.component.html",
+      "filePath": "PC/frontend/src/app/components/cattle-register/cattle-register.component.html",
+      "summary": "牛只登记管理组件的 HTML 模板，包含搜索表单、分页表格、新增/编辑表单和胶囊安装选择器。",
+      "tags": ["template", "表单", "angular"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/cattle-register/cattle-register.component.scss",
+      "type": "file",
+      "name": "cattle-register.component.scss",
+      "filePath": "PC/frontend/src/app/components/cattle-register/cattle-register.component.scss",
+      "summary": "牛只登记管理组件的样式文件，定义表格、表单、弹窗、分页和响应式布局等完整 UI 样式。",
+      "tags": ["stylesheet", "表单", "angular"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/cattle-register/cattle-register.component.ts",
+      "type": "file",
+      "name": "cattle-register.component.ts",
+      "filePath": "PC/frontend/src/app/components/cattle-register/cattle-register.component.ts",
+      "summary": "牛只登记管理核心组件，实现牛只 CRUD、搜索过滤、分页浏览、胶囊设备安装绑定和表单验证等完整业务流程。",
+      "tags": ["component", "CRUD", "表单", "angular"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:PC/frontend/src/app/components/cattle-register/cattle-register.component.ts:CattleRegisterComponent",
+      "type": "file",
+      "name": "CattleRegisterComponent",
+      "filePath": "PC/frontend/src/app/components/cattle-register/cattle-register.component.ts",
+      "lineRange": [16, 413],
+      "summary": "Angular Standalone 组件，管理牛只列表的增删改查、分页搜索、胶囊设备关联安装和表单校验。",
+      "tags": ["component", "CRUD", "表单"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:PC/frontend/src/app/components/device-register/device-register.component.html",
+      "type": "file",
+      "name": "device-register.component.html",
+      "filePath": "PC/frontend/src/app/components/device-register/device-register.component.html",
+      "summary": "设备登记管理组件的 HTML 模板，包含设备列表表格、新增/编辑表单和设备状态管理 UI。",
+      "tags": ["template", "设备管理", "angular"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:PC/frontend-react-backup/src/components/StatsPanel.tsx",
+      "target": "function:PC/frontend-react-backup/src/components/StatsPanel.tsx:StatsPanel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:PC/frontend-react-backup/src/components/StatsPanel.tsx",
+      "target": "function:PC/frontend-react-backup/src/components/StatsPanel.tsx:StatsPanel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:PC/frontend-react-backup/src/index.tsx",
+      "target": "file:PC/frontend-react-backup/src/index.css",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend-react-backup/src/index.tsx",
+      "target": "file:PC/frontend-react-backup/src/App.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend-react-backup/src/index.tsx",
+      "target": "file:PC/frontend-react-backup/src/reportWebVitals.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend-react-backup/src/reportWebVitals.ts",
+      "target": "function:PC/frontend-react-backup/src/reportWebVitals.ts:reportWebVitals",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:PC/frontend-react-backup/src/types/sensor.ts",
+      "target": "function:PC/frontend-react-backup/src/types/sensor.ts:generateSensorData",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:PC/frontend-react-backup/src/types/sensor.ts",
+      "target": "function:PC/frontend-react-backup/src/types/sensor.ts:generateSensorData",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "config:PC/frontend-react-backup/tsconfig.json",
+      "target": "file:PC/frontend-react-backup/src/index.tsx",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:PC/frontend/package.json",
+      "target": "config:PC/frontend/angular.json",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:PC/frontend/README.md",
+      "target": "file:PC/frontend/src/app/app.routes.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:PC/frontend/README.md",
+      "target": "file:PC/frontend/src/app/app.component.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:PC/frontend/src/app/app.component.ts",
+      "target": "file:PC/frontend/src/app/components/nav-menu/nav-menu.component.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/app.config.server.ts",
+      "target": "file:PC/frontend/src/app/app.config.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/app.config.server.ts",
+      "target": "file:PC/frontend/src/app/app.routes.server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/app.config.ts",
+      "target": "file:PC/frontend/src/app/app.routes.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/app.routes.ts",
+      "target": "file:PC/frontend/src/app/components/cattle-map/cattle-map.component.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/app.routes.ts",
+      "target": "file:PC/frontend/src/app/components/cattle-register/cattle-register.component.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/app.routes.ts",
+      "target": "file:PC/frontend/src/app/components/device-register/device-register.component.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/app.routes.ts",
+      "target": "file:PC/frontend/src/app/components/home/home.component.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/cattle-map/cattle-map.component.ts",
+      "target": "file:PC/frontend/src/app/services/cattle.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/cattle-map/cattle-map.component.ts",
+      "target": "file:PC/frontend/src/app/models/cattle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/cattle-map/cattle-map.component.ts",
+      "target": "file:PC/frontend/src/app/models/sensor.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/cattle-map/cattle-map.component.ts",
+      "target": "file:PC/frontend/src/app/components/loading-spinner/loading-spinner.component.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/cattle-map/cattle-map.component.ts",
+      "target": "file:PC/frontend/src/app/components/stats-panel/stats-panel.component.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/cattle-map/cattle-map.component.ts",
+      "target": "file:PC/frontend/src/app/components/sensor-chart-modal/sensor-chart-modal.component.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/cattle-map/cattle-map.component.ts",
+      "target": "class:PC/frontend/src/app/components/cattle-map/cattle-map.component.ts:CattleMapComponent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/cattle-map/cattle-map.component.ts",
+      "target": "class:PC/frontend/src/app/components/cattle-map/cattle-map.component.ts:CattleMapComponent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/cattle-register/cattle-register.component.ts",
+      "target": "file:PC/frontend/src/app/services/cattle.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/cattle-register/cattle-register.component.ts",
+      "target": "file:PC/frontend/src/app/services/capsule.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/cattle-register/cattle-register.component.ts",
+      "target": "file:PC/frontend/src/app/models/cattle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/cattle-register/cattle-register.component.ts",
+      "target": "file:PC/frontend/src/app/models/capsule.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/cattle-register/cattle-register.component.ts",
+      "target": "class:PC/frontend/src/app/components/cattle-register/cattle-register.component.ts:CattleRegisterComponent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:PC/frontend/src/app/components/cattle-register/cattle-register.component.ts",
+      "target": "class:PC/frontend/src/app/components/cattle-register/cattle-register.component.ts:CattleRegisterComponent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

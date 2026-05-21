@@ -107,7 +107,7 @@ class ContractApplicationServiceTest {
             ContractApplicationService service = createService();
             assertThatThrownBy(() -> service.sign(999L, 100L))
                 .isInstanceOf(DomainException.class)
-                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.CONTRACT_NOT_ACTIVE));
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.RESOURCE_NOT_FOUND));
         }
     }
 

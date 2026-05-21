@@ -1,0 +1,299 @@
+{
+  "nodes": [
+    {
+      "id": "file:Mobile/mobile_app/test/features/tenant/live_tenant_repository_test.dart",
+      "type": "file",
+      "name": "live_tenant_repository_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/tenant/live_tenant_repository_test.dart",
+      "summary": "测试 LiveTenantRepository 在 ApiCache 未初始化时返回错误态，以及缓存初始化后按 TenantListQuery 正确过滤租户数据。",
+      "tags": ["test", "tenant", "repository", "live-mode"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/tenant/mock_tenant_repository_test.dart",
+      "type": "file",
+      "name": "mock_tenant_repository_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/tenant/mock_tenant_repository_test.dart",
+      "summary": "验证 MockTenantRepository 的列表查询、状态过滤、名称搜索及详情加载（含未命中空态）等核心行为。",
+      "tags": ["test", "tenant", "repository", "mock"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/tenant/pagination_bar_test.dart",
+      "type": "file",
+      "name": "pagination_bar_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/tenant/pagination_bar_test.dart",
+      "summary": "测试通用 PaginationBar 组件的页码显示、翻页回调及首页禁用状态。",
+      "tags": ["test", "pagination", "widget", "ui-component"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/tenant/tenant_detail_cards_test.dart",
+      "type": "file",
+      "name": "tenant_detail_cards_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/tenant/tenant_detail_cards_test.dart",
+      "summary": "验证 TenantDetailPage 中统计、设备、日志、趋势四张卡片在正常和异常租户下的渲染行为。",
+      "tags": ["test", "tenant", "detail-page", "widget"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/tenant/tenant_detail_page_test.dart",
+      "type": "file",
+      "name": "tenant_detail_page_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/tenant/tenant_detail_page_test.dart",
+      "summary": "测试 TenantDetailPage 在已知租户下渲染基本信息卡片，未知租户显示错误态。",
+      "tags": ["test", "tenant", "detail-page"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/tenant/tenant_devices_controller_test.dart",
+      "type": "file",
+      "name": "tenant_devices_controller_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/tenant/tenant_devices_controller_test.dart",
+      "summary": "验证 TenantDevicesController 对已知租户返回 normal 状态及设备数据，刷新后数据保持完整。",
+      "tags": ["test", "tenant", "devices", "controller"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/tenant/tenant_dto_test.dart",
+      "type": "file",
+      "name": "tenant_dto_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/tenant/tenant_dto_test.dart",
+      "summary": "测试 TenantDto.fromJson 的完整 JSON 解析（含 licenseUsage 计算）和非法 status 返回 null 的防御逻辑。",
+      "tags": ["test", "tenant", "dto", "serialization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/tenant/tenant_list_controller_test.dart",
+      "type": "file",
+      "name": "tenant_list_controller_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/tenant/tenant_list_controller_test.dart",
+      "summary": "验证 TenantListController 的默认分页、状态过滤重置 page、翻页及排序字段切换等状态管理逻辑。",
+      "tags": ["test", "tenant", "controller", "pagination"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/tenant/tenant_list_page_test.dart",
+      "type": "file",
+      "name": "tenant_list_page_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/tenant/tenant_list_page_test.dart",
+      "summary": "冒烟测试 TenantListPage 渲染 mock 数据中的租户名称。",
+      "tags": ["test", "tenant", "list-page"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/tenant/tenant_logs_controller_test.dart",
+      "type": "file",
+      "name": "tenant_logs_controller_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/tenant/tenant_logs_controller_test.dart",
+      "summary": "验证 TenantLogsController 对已知租户返回 normal 状态且日志条目字段非空。",
+      "tags": ["test", "tenant", "logs", "controller"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/tenant/tenant_stats_controller_test.dart",
+      "type": "file",
+      "name": "tenant_stats_controller_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/tenant/tenant_stats_controller_test.dart",
+      "summary": "测试 TenantStatsController 的统计数据有效性（在线率、健康率在 0-100 范围内）及刷新持久性。",
+      "tags": ["test", "tenant", "stats", "controller"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/tenant/tenant_trends_controller_test.dart",
+      "type": "file",
+      "name": "tenant_trends_controller_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/tenant/tenant_trends_controller_test.dart",
+      "summary": "验证 TenantTrendsController 返回 30 天统计、日期降序排列、刷新一致性及未知租户空态。",
+      "tags": ["test", "tenant", "trends", "controller"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/worker_management/worker_presentation_test.dart",
+      "type": "file",
+      "name": "worker_presentation_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/worker_management/worker_presentation_test.dart",
+      "summary": "测试牧工管理 UI 层：WorkerController 的加载/删除状态流转、owner 角色下牧工列表页导航、删除交互、牧场切换重新加载。",
+      "tags": ["test", "worker-management", "presentation", "widget"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/features/worker_management/worker_repository_test.dart",
+      "type": "file",
+      "name": "worker_repository_test.dart",
+      "filePath": "Mobile/mobile_app/test/features/worker_management/worker_repository_test.dart",
+      "summary": "牧工仓储集成测试：MockRepository 的牧场隔离、分配/取消、LiveRepository 的缓存 fallback、ApiCache 数据解析、畸形数据容错及写操作边界条件。",
+      "tags": ["test", "worker-management", "repository", "integration"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:Mobile/mobile_app/test/features/worker_management/worker_repository_test.dart:WorkerApiHttpClient",
+      "type": "class",
+      "name": "WorkerApiHttpClient",
+      "filePath": "Mobile/mobile_app/test/features/worker_management/worker_repository_test.dart",
+      "lineRange": [11, 115],
+      "summary": "测试用 ApiHttpClient mock 实现，根据 URI 路径返回预设的牧工、农场、告警等 API 响应数据。",
+      "tags": ["test", "mock", "http-client", "test-double"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/fence_dto_test.dart",
+      "type": "file",
+      "name": "fence_dto_test.dart",
+      "filePath": "Mobile/mobile_app/test/fence_dto_test.dart",
+      "summary": "测试 FenceDto 工具函数：坐标转换、牲畜计数聚合、fenceItemFromJson 完整 JSON 到 FenceItem 的映射。",
+      "tags": ["test", "fence", "dto", "serialization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/flow_smoke_test.dart",
+      "type": "file",
+      "name": "flow_smoke_test.dart",
+      "filePath": "Mobile/mobile_app/test/flow_smoke_test.dart",
+      "summary": "端到端流程冒烟测试：告警状态机（确认到处理到归档）、围栏 CRUD、租户 license 调整、角色分流（worker 无后台、platform_admin 直达租户列表）。",
+      "tags": ["test", "e2e", "smoke-test", "flow"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/generator_test.dart",
+      "type": "file",
+      "name": "generator_test.dart",
+      "filePath": "Mobile/mobile_app/test/generator_test.dart",
+      "summary": "数据生成器测试：GPS 轨迹（点数、围栏边界约束、缓存命中、夜间休息区）、温度（范围约束）、蠕动（健康等级差异）、发情评分（峰值检测）。",
+      "tags": ["test", "data-generator", "gps", "sensor"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/highfi/alerts_highfi_test.dart",
+      "type": "file",
+      "name": "alerts_highfi_test.dart",
+      "filePath": "Mobile/mobile_app/test/highfi/alerts_highfi_test.dart",
+      "summary": "冒烟测试告警页面渲染三种 P0 告警类型（围栏越界、低电量、信号丢失）。",
+      "tags": ["test", "alerts", "highfi", "smoke-test"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/highfi/dashboard_highfi_test.dart",
+      "type": "file",
+      "name": "dashboard_highfi_test.dart",
+      "filePath": "Mobile/mobile_app/test/highfi/dashboard_highfi_test.dart",
+      "summary": "测试 Dashboard 高保真组件：数智孪生看板区块可见性、HighfiCard/StatTile/StatusChip 复用组件渲染及交互。",
+      "tags": ["test", "dashboard", "highfi", "widget"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/live_devices_repository_test.dart",
+      "type": "file",
+      "name": "live_devices_repository_test.dart",
+      "filePath": "Mobile/mobile_app/test/live_devices_repository_test.dart",
+      "summary": "验证 LiveDevicesRepository.parseDeviceMap 将原始 JSON Map 解析为与 DemoSeed 一致的 Device 对象。",
+      "tags": ["test", "devices", "repository", "live-mode"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/main_live_bootstrap_test.dart",
+      "type": "file",
+      "name": "main_live_bootstrap_test.dart",
+      "filePath": "Mobile/mobile_app/test/main_live_bootstrap_test.dart",
+      "summary": "源码断言测试：验证 main() 不直接调用 ApiCache（延迟到登录后），SessionController.loginWithCredentials 在设置会话后触发缓存初始化。",
+      "tags": ["test", "bootstrap", "session", "live-mode"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/mbtiles_tile_provider_test.dart",
+      "type": "file",
+      "name": "mbtiles_tile_provider_test.dart",
+      "filePath": "Mobile/mobile_app/test/mbtiles_tile_provider_test.dart",
+      "summary": "测试 MBTilesTileProvider 的元数据读取、缩放范围、瓦片图像获取（命中返回 MemoryImage、缺失返回透明 PNG）及 TMS Y 轴坐标转换。",
+      "tags": ["test", "map", "mbtiles", "offline"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/mobile_app/test/mbtiles_tile_provider_test.dart:_makeTestPng",
+      "type": "function",
+      "name": "_makeTestPng",
+      "filePath": "Mobile/mobile_app/test/mbtiles_tile_provider_test.dart",
+      "lineRange": [112, 124],
+      "summary": "构造最小有效 1x1 红色 PNG 字节数组，用于测试瓦片读取。",
+      "tags": ["test", "utility", "png", "binary"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/mock_repository_override_test.dart",
+      "type": "file",
+      "name": "mock_repository_override_test.dart",
+      "filePath": "Mobile/mobile_app/test/mock_repository_override_test.dart",
+      "summary": "测试通过 Riverpod Provider override 注入自定义仓储实现：FakeDashboardRepository 注入自定义指标、FakeFenceRepository 注入自定义围栏列表。",
+      "tags": ["test", "repository", "riverpod", "dependency-injection"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:Mobile/mobile_app/test/mock_repository_override_test.dart:_FakeDashboardRepository",
+      "type": "class",
+      "name": "_FakeDashboardRepository",
+      "filePath": "Mobile/mobile_app/test/mock_repository_override_test.dart",
+      "lineRange": [71, 87],
+      "summary": "测试用 DashboardRepository 假实现，返回单个自定义指标。",
+      "tags": ["test", "mock", "dashboard", "test-double"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:Mobile/mobile_app/test/mock_repository_override_test.dart:_FakeFenceRepository",
+      "type": "class",
+      "name": "_FakeFenceRepository",
+      "filePath": "Mobile/mobile_app/test/mock_repository_override_test.dart",
+      "lineRange": [89, 113],
+      "summary": "测试用 FenceRepository 假实现，返回包含单个测试围栏的列表。",
+      "tags": ["test", "mock", "fence", "test-double"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/mock_repository_state_test.dart",
+      "type": "file",
+      "name": "mock_repository_state_test.dart",
+      "filePath": "Mobile/mobile_app/test/mock_repository_state_test.dart",
+      "summary": "验证各 MockRepository（Dashboard、Fence、Alerts、Admin、Mine）对全部 ViewState 枚举值的支持及返回数据一致性。",
+      "tags": ["test", "repository", "mock", "view-state"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/mobile_app/test/mock_shaping_test.dart",
+      "type": "file",
+      "name": "mock_shaping_test.dart",
+      "filePath": "Mobile/mobile_app/test/mock_shaping_test.dart",
+      "summary": "测试 shapeListItems 功能门控：locked 特性对低 tier 返回锁定、non-locked 返回全部、limit 特性对低 tier 截断列表。",
+      "tags": ["test", "shaping", "feature-flags", "subscription"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:Mobile/mobile_app/test/features/worker_management/worker_repository_test.dart",
+      "target": "class:Mobile/mobile_app/test/features/worker_management/worker_repository_test.dart:WorkerApiHttpClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/test/mbtiles_tile_provider_test.dart",
+      "target": "function:Mobile/mobile_app/test/mbtiles_tile_provider_test.dart:_makeTestPng",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/test/mock_repository_override_test.dart",
+      "target": "class:Mobile/mobile_app/test/mock_repository_override_test.dart:_FakeDashboardRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/mobile_app/test/mock_repository_override_test.dart",
+      "target": "class:Mobile/mobile_app/test/mock_repository_override_test.dart:_FakeFenceRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    }
+  ]
+}

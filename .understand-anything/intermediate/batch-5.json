@@ -1,0 +1,413 @@
+{
+  "nodes": [
+    {
+      "id": "document:Mobile/CLAUDE.md",
+      "type": "document",
+      "name": "CLAUDE.md",
+      "filePath": "Mobile/CLAUDE.md",
+      "summary": "Mobile 子项目的 Claude Code 指导文档，涵盖 Flutter 前端架构（Riverpod + go_router）、Mock Server 开发配置、26 个功能模块分层规范、角色权限体系及测试结构说明。",
+      "tags": ["documentation", "architecture", "flutter", "configuration"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/dev.sh",
+      "type": "file",
+      "name": "dev.sh",
+      "filePath": "Mobile/dev.sh",
+      "summary": "Mobile 端开发控制脚本，提供 Mock Server（端口 3001）和 Flutter App 的启动、停止、状态查询、日志查看和问题诊断等一站式命令。支持 mock/live 模式切换及 chrome/macos 设备选择。",
+      "tags": ["entry-point", "build-system", "script", "development"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/dev.sh:start_backend",
+      "type": "function",
+      "name": "start_backend",
+      "filePath": "Mobile/dev.sh",
+      "lineRange": [35, 68],
+      "summary": "启动 Mock Server（Node.js），通过后台进程运行 server.js 并写入 PID 文件，使用 curl 轮询等待端口就绪。",
+      "tags": ["startup", "mock-server", "process-management"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/dev.sh:start_flutter",
+      "type": "function",
+      "name": "start_flutter",
+      "filePath": "Mobile/dev.sh",
+      "lineRange": [71, 108],
+      "summary": "启动 Flutter App，根据设备类型（chrome 或其他）构造 flutter run 命令并注入 APP_MODE 环境变量，后台运行并写入 PID 文件。",
+      "tags": ["startup", "flutter", "process-management"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/dev.sh:stop_service",
+      "type": "function",
+      "name": "stop_service",
+      "filePath": "Mobile/dev.sh",
+      "lineRange": [111, 142],
+      "summary": "停止单个服务进程，先发送 SIGTERM，等待退出后若未终止则发送 SIGKILL 强制终止。",
+      "tags": ["shutdown", "process-management"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:Mobile/dev.sh:stop_all",
+      "type": "function",
+      "name": "stop_all",
+      "filePath": "Mobile/dev.sh",
+      "lineRange": [144, 156],
+      "summary": "停止所有服务（Flutter + Mock Server），并对端口 3001 做兜底清理。",
+      "tags": ["shutdown", "process-management"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:Mobile/dev.sh:show_status",
+      "type": "function",
+      "name": "show_status",
+      "filePath": "Mobile/dev.sh",
+      "lineRange": [165, 177],
+      "summary": "检查并显示 Mock Server 和 Flutter App 的运行状态（PID 和端口信息）。",
+      "tags": ["monitoring", "status"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:Mobile/dev.sh:diagnose",
+      "type": "function",
+      "name": "diagnose",
+      "filePath": "Mobile/dev.sh",
+      "lineRange": [192, 225],
+      "summary": "诊断功能：输出进程状态、最近 100 行日志、以及关键错误行（error/exception/fail/wasm 等），用于排查白屏或 WASM 等问题。",
+      "tags": ["debugging", "logging", "diagnostics"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/developer-portal/index.html",
+      "type": "file",
+      "name": "index.html",
+      "filePath": "Mobile/developer-portal/index.html",
+      "summary": "开发者门户 SPA 入口 HTML 页面，挂载 Vue 应用于 #app 容器，设置中文语言和视口。",
+      "tags": ["entry-point", "markup", "vue"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:Mobile/developer-portal/package-lock.json",
+      "type": "config",
+      "name": "package-lock.json",
+      "filePath": "Mobile/developer-portal/package-lock.json",
+      "summary": "开发者门户依赖锁定文件，固定 Vue 3、Pinia、Vue Router、Chart.js 及 Vite 构建工具的精确版本。",
+      "tags": ["configuration", "dependencies", "lockfile"],
+      "complexity": "complex"
+    },
+    {
+      "id": "config:Mobile/developer-portal/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "Mobile/developer-portal/package.json",
+      "summary": "开发者门户项目配置，使用 Vite + Vue 3 + Pinia + Chart.js 构建技术栈，支持 dev/build/test 三种脚本。",
+      "tags": ["configuration", "build-system", "dependencies"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/api/client.js",
+      "type": "file",
+      "name": "client.js",
+      "filePath": "Mobile/developer-portal/src/api/client.js",
+      "summary": "API 请求客户端封装，基于 fetch 提供统一的 GET/POST/PUT/DELETE 方法，自动注入 Bearer Token 和 JSON Content-Type，处理错误响应并抛出语义化错误信息。",
+      "tags": ["api-handler", "utility", "http-client"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:Mobile/developer-portal/src/api/client.js:request",
+      "type": "function",
+      "name": "request",
+      "filePath": "Mobile/developer-portal/src/api/client.js",
+      "lineRange": [3, 21],
+      "summary": "核心 HTTP 请求函数，拼接 API 基础路径、注入认证 Header、处理非 200 响应的错误解析。",
+      "tags": ["http-client", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/App.vue",
+      "type": "file",
+      "name": "App.vue",
+      "filePath": "Mobile/developer-portal/src/App.vue",
+      "summary": "Vue 根组件，仅包含 router-view 插槽，作为应用布局的顶层容器。",
+      "tags": ["entry-point", "component", "vue"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/assets/styles.css",
+      "type": "file",
+      "name": "styles.css",
+      "filePath": "Mobile/developer-portal/src/assets/styles.css",
+      "summary": "开发者门户全局样式表，定义侧边栏布局、顶部导航栏、卡片组件、数据表格、表单控件、对话框、按钮徽章等全部 UI 样式，采用 BEM 风格命名。",
+      "tags": ["component", "styling", "layout"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/components/ApiKeyDisplay.vue",
+      "type": "file",
+      "name": "ApiKeyDisplay.vue",
+      "filePath": "Mobile/developer-portal/src/components/ApiKeyDisplay.vue",
+      "summary": "API Key 展示组件，接收 keyPrefix 和 keySuffix 属性，以脱敏格式（前缀****后缀）显示密钥值。",
+      "tags": ["component", "display", "security"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/components/AppLayout.vue",
+      "type": "file",
+      "name": "AppLayout.vue",
+      "filePath": "Mobile/developer-portal/src/components/AppLayout.vue",
+      "summary": "应用主布局组件，包含左侧导航栏（仪表盘、API Key、接口文档、数据授权、设置）和顶部用户信息栏，提供退出登录功能。",
+      "tags": ["component", "layout", "navigation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/components/MetricCard.vue",
+      "type": "file",
+      "name": "MetricCard.vue",
+      "filePath": "Mobile/developer-portal/src/components/MetricCard.vue",
+      "summary": "指标卡片组件，展示标题、数值、副标题，左侧带彩色竖条用于 Dashboard 关键指标可视化。",
+      "tags": ["component", "display", "dashboard"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/components/UsageChart.vue",
+      "type": "file",
+      "name": "UsageChart.vue",
+      "filePath": "Mobile/developer-portal/src/components/UsageChart.vue",
+      "summary": "使用量趋势图表组件，基于 Chart.js 绘制平滑折线图，支持数据动态更新和自动销毁重建。",
+      "tags": ["component", "visualization", "chart"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/main.js",
+      "type": "file",
+      "name": "main.js",
+      "filePath": "Mobile/developer-portal/src/main.js",
+      "summary": "开发者门户应用入口，创建 Vue 3 应用实例，挂载 Pinia 状态管理和 Vue Router，导入全局样式后挂载到 DOM。",
+      "tags": ["entry-point", "initialization", "vue"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/router/index.js",
+      "type": "file",
+      "name": "index.js",
+      "filePath": "Mobile/developer-portal/src/router/index.js",
+      "summary": "Vue Router 路由配置，定义 7 条路由（登录、注册、仪表盘、API Key、接口文档、数据授权、设置），通过 beforeEach 守卫实现未认证自动跳转登录页。",
+      "tags": ["routing", "authentication", "vue"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/stores/apiKeys.js",
+      "type": "file",
+      "name": "apiKeys.js",
+      "filePath": "Mobile/developer-portal/src/stores/apiKeys.js",
+      "summary": "API Key 管理 Pinia Store，提供密钥列表加载、创建新密钥、密钥轮换三个异步操作，包含 loading/error 状态管理。",
+      "tags": ["state-management", "api-handler", "crud"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/stores/auth.js",
+      "type": "file",
+      "name": "auth.js",
+      "filePath": "Mobile/developer-portal/src/stores/auth.js",
+      "summary": "认证状态 Pinia Store，管理 token 和 user 信息，提供 login（Token 登录并获取用户信息）、logout（清除状态）、fetchProfile（刷新用户资料）三个操作。",
+      "tags": ["state-management", "authentication", "session"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/stores/authorizations.js",
+      "type": "file",
+      "name": "authorizations.js",
+      "filePath": "Mobile/developer-portal/src/stores/authorizations.js",
+      "summary": "数据授权 Pinia Store，管理 API 授权列表的加载和新授权申请的提交，支持按牧场和权限范围创建授权请求。",
+      "tags": ["state-management", "authorization", "crud"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/stores/dashboard.js",
+      "type": "file",
+      "name": "dashboard.js",
+      "filePath": "Mobile/developer-portal/src/stores/dashboard.js",
+      "summary": "仪表盘 Pinia Store，持有 API 调用配额（月度/已用/剩余）、最近使用记录和用量百分比的 Mock 数据。",
+      "tags": ["state-management", "dashboard", "mock"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/stores/endpoints.js",
+      "type": "file",
+      "name": "endpoints.js",
+      "filePath": "Mobile/developer-portal/src/stores/endpoints.js",
+      "summary": "接口文档 Pinia Store，定义三个订阅层级（Free/Growth/Scale）的 Open API 端点元数据，包括方法、路径、参数、响应格式、错误码、认证方式和频率限制等完整描述。",
+      "tags": ["state-management", "api-documentation", "subscription"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/views/ApiKeysView.vue",
+      "type": "file",
+      "name": "ApiKeysView.vue",
+      "filePath": "Mobile/developer-portal/src/views/ApiKeysView.vue",
+      "summary": "API Key 管理页面，展示密钥列表（含脱敏展示、状态徽章），支持创建新 Key、轮换 Key 和复制密钥值（Clipboard API 降级到 execCommand）。",
+      "tags": ["component", "crud", "security", "view"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/views/AuthorizationsView.vue",
+      "type": "file",
+      "name": "AuthorizationsView.vue",
+      "filePath": "Mobile/developer-portal/src/views/AuthorizationsView.vue",
+      "summary": "数据授权管理页面，展示授权列表（牧场名、权限范围、状态、到期时间），支持新建授权申请（选择牧场+勾选权限范围）和被拒/撤销的重新申请。",
+      "tags": ["component", "authorization", "view"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/views/DashboardView.vue",
+      "type": "file",
+      "name": "DashboardView.vue",
+      "filePath": "Mobile/developer-portal/src/views/DashboardView.vue",
+      "summary": "仪表盘页面，展示 API 调用量、剩余配额、使用率等指标卡片，以及近 7 天调用量趋势折线图和最近 API 调用记录表格。",
+      "tags": ["component", "dashboard", "visualization", "view"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/views/EndpointsView.vue",
+      "type": "file",
+      "name": "EndpointsView.vue",
+      "filePath": "Mobile/developer-portal/src/views/EndpointsView.vue",
+      "summary": "接口文档页面，按订阅层级分组展示 Open API 端点，支持展开查看参数、请求体、响应格式和错误码的完整文档，同时展示认证方式和频率限制信息。",
+      "tags": ["component", "api-documentation", "view"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/views/LoginView.vue",
+      "type": "file",
+      "name": "LoginView.vue",
+      "filePath": "Mobile/developer-portal/src/views/LoginView.vue",
+      "summary": "开发者门户登录页面，使用 API Token 认证，默认预填 mock token，登录成功后跳转仪表盘。",
+      "tags": ["component", "authentication", "view"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/developer-portal/src/views/RegisterView.vue",
+      "type": "file",
+      "name": "RegisterView.vue",
+      "filePath": "Mobile/developer-portal/src/views/RegisterView.vue",
+      "summary": "开发者注册页面，展示联系平台管理员申请 API 访问权限的引导信息（邮箱、电话、工作时间）。",
+      "tags": ["component", "onboarding", "view"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:Mobile/dev.sh",
+      "target": "function:Mobile/dev.sh:start_backend",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/dev.sh",
+      "target": "function:Mobile/dev.sh:start_flutter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/dev.sh",
+      "target": "function:Mobile/dev.sh:stop_service",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/dev.sh",
+      "target": "function:Mobile/dev.sh:stop_all",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/dev.sh",
+      "target": "function:Mobile/dev.sh:show_status",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/dev.sh",
+      "target": "function:Mobile/dev.sh:diagnose",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/developer-portal/src/api/client.js",
+      "target": "function:Mobile/developer-portal/src/api/client.js:request",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/developer-portal/src/main.js",
+      "target": "file:Mobile/developer-portal/src/App.vue",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/developer-portal/src/main.js",
+      "target": "file:Mobile/developer-portal/src/router/index.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/developer-portal/src/main.js",
+      "target": "file:Mobile/developer-portal/src/assets/styles.css",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/developer-portal/src/router/index.js",
+      "target": "file:Mobile/developer-portal/src/stores/auth.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/developer-portal/src/stores/apiKeys.js",
+      "target": "file:Mobile/developer-portal/src/api/client.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/developer-portal/src/stores/auth.js",
+      "target": "file:Mobile/developer-portal/src/api/client.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/developer-portal/src/stores/authorizations.js",
+      "target": "file:Mobile/developer-portal/src/api/client.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "document:Mobile/CLAUDE.md",
+      "target": "file:Mobile/dev.sh",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:Mobile/developer-portal/package.json",
+      "target": "file:Mobile/developer-portal/src/main.js",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

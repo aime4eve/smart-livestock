@@ -1,0 +1,350 @@
+{
+  "nodes": [
+    {
+      "id": "document:Mobile/docs/qa/2026-05-02-工作量统计与绩效考评报告.md",
+      "type": "document",
+      "name": "2026-05-02-工作量统计与绩效考评报告.md",
+      "filePath": "Mobile/docs/qa/2026-05-02-工作量统计与绩效考评报告.md",
+      "summary": "智慧畜牧项目工作量统计报告，按修正方案五维度（架构能力/代码质量/AI协作效能/交付影响/知识贡献）统计4月份绩效数据，包含工作密度分析和日均产出明细。",
+      "tags": ["documentation", "绩效评估", "工作量统计", "qa"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/qa/highfi-ux-acceptance.md",
+      "type": "document",
+      "name": "highfi-ux-acceptance.md",
+      "filePath": "Mobile/docs/qa/highfi-ux-acceptance.md",
+      "summary": "高保真 UX 验收冻结记录，包含自动化验收门禁（Dashboard/Map/Alerts 关键块）、手工演示验收、保留项/修改项/新增项/冻结项清单。",
+      "tags": ["documentation", "ux验收", "高保真", "qa"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:Mobile/docs/qa/绩效评估提示词.md",
+      "type": "document",
+      "name": "绩效评估提示词.md",
+      "filePath": "Mobile/docs/qa/绩效评估提示词.md",
+      "summary": "绩效评估提示词模板文件，用于指导按git记录生成工作量统计及绩效考评报告。",
+      "tags": ["documentation", "绩效评估", "提示词", "qa"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-03-26-lowfi-demo-implementation.md",
+      "type": "document",
+      "name": "2026-03-26-lowfi-demo-implementation.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-03-26-lowfi-demo-implementation.md",
+      "summary": "低保真 Demo 24小时交付计划（5个Task），覆盖Flutter工程骨架初始化、登录角色分流、六大页面路由、四条关键流程串联和客户评审脚本，采用演示壳层+本地假数据+场景切换架构。",
+      "tags": ["documentation", "实施计划", "低保真", "demo", "flutter"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-03-26-smart-livestock-app-implementation.md",
+      "type": "document",
+      "name": "2026-03-26-smart-livestock-app-implementation.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-03-26-smart-livestock-app-implementation.md",
+      "summary": "智慧畜牧 App 全生命周期实施计划（11个Task），从工程初始化、核心数据模型到牲畜轨迹查询、围栏引擎、告警中心、MQTT实时推送，再到V1.5健康监测和V2.0行为分析扩展能力。",
+      "tags": ["documentation", "实施计划", "mvp", "fastapi", "flutter"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-03-27-full-scope-status-audit.md",
+      "type": "document",
+      "name": "2026-03-27-full-scope-status-audit.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-03-27-full-scope-status-audit.md",
+      "summary": "全量状态审计报告，对Plan/Demo/Spec三组文档做一致性检查，识别高保真基线与MVP路线之间的差距，按风险等级列出问题并提出7天执行顺序建议。",
+      "tags": ["documentation", "审计", "状态评估", "路线图"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-03-27-highfi-uiux-mock-first-implementation.md",
+      "type": "document",
+      "name": "2026-03-27-highfi-uiux-mock-first-implementation.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-03-27-highfi-uiux-mock-first-implementation.md",
+      "summary": "高保真 UI/UX + Mock优先实施计划（8个Task），覆盖设计系统建立、基础组件库、Dashboard/Map/Alerts高保真页面、登录权限统一、Mock场景中心化和阶段验收冻结。",
+      "tags": ["documentation", "实施计划", "高保真", "uiux", "设计系统"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-04-07-p0-remaining-tasks.md",
+      "type": "document",
+      "name": "2026-04-07-p0-remaining-tasks.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-04-07-p0-remaining-tasks.md",
+      "summary": "P0剩余待办事项跟踪文档，列出三项挂起任务：鉴权与菜单单一事实来源（绑后端迁移）、DemoShell职责拆分（降级重构）、后端替换（待决策），已标记GoRouter/Riverpod/真地图为已完成。",
+      "tags": ["documentation", "待办事项", "技术债", "p0"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-04-09-demo-data-enhancement.md",
+      "type": "document",
+      "name": "2026-04-09-demo-data-enhancement.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-04-09-demo-data-enhancement.md",
+      "summary": "Demo数据增强实施计划（9个Task），将演示数据从3头牛/2围栏扩展到50头牛/4围栏/100设备/18告警，添加GPS/温度/蠕动/发情时序数据生成器，覆盖前后端模型扩展、Mock Repository更新和测试修复。",
+      "tags": ["documentation", "实施计划", "demo数据", "种子数据", "时序生成器"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-04-09-demo-data-followups.md",
+      "type": "document",
+      "name": "2026-04-09-demo-data-followups.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-04-09-demo-data-followups.md",
+      "summary": "Demo数据增强后续任务跟踪（Issue #2-#8），涵盖GPS轨迹缓存键、图表降采样、行为逼真度、Live孪生时序对齐、后端设备种子、孪生概览UI和TimeSeriesGenerator抽象，所有Issue均已完成。",
+      "tags": ["documentation", "后续任务", "issue跟踪", "demo数据"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-04-10-fence-crud.md",
+      "type": "document",
+      "name": "2026-04-10-fence-crud.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-04-10-fence-crud.md",
+      "summary": "围栏CRUD重构实施计划（12个Task），将地图与围栏合并为统一全屏地图+底部抽屉交互，新建FenceItem/FenceState领域模型，重写FenceRepository和FenceController，实现围栏完整CRUD生命周期。",
+      "tags": ["documentation", "实施计划", "围栏", "crud", "flutter-map"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-04-14-backend-fence-crud-hardening.md",
+      "type": "document",
+      "name": "2026-04-14-backend-fence-crud-hardening.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-04-14-backend-fence-crud-hardening.md",
+      "summary": "Mock Server围栏CRUD补强计划（Issue #17），在不动前端的前提下补齐后端参数校验、GET /api/fences/:id详情查询接口与单元测试，已通过PR #18合并。",
+      "tags": ["documentation", "实施计划", "围栏", "mock-server", "补强"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-04-15-fence-editing-ux-implementation.md",
+      "type": "document",
+      "name": "2026-04-15-fence-editing-ux-implementation.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-04-15-fence-editing-ux-implementation.md",
+      "summary": "围栏编辑UX实施记录（8个Task），覆盖编辑会话模型、几何操作、编辑Overlay与工具栏、浏览/编辑切换、模板创建（矩形/圆形/轨迹缓冲区）、Live保存冲突提示和全量测试验证。",
+      "tags": ["documentation", "实施记录", "围栏编辑", "ux"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-04-16-fence-map-ux-overhaul.md",
+      "type": "document",
+      "name": "2026-04-16-fence-map-ux-overhaul.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-04-16-fence-map-ux-overhaul.md",
+      "summary": "围栏地图交互体验重构计划（9个Task，Issue #24），统一浏览/编辑态为单一FlutterMap，升级命中检测容差至40px边界、呼吸动画、重叠候选列表和迷你标题条，删除独立FenceEditOverlay。",
+      "tags": ["documentation", "实施计划", "围栏", "地图交互", "命中检测"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-04-17-fence-hit-detection-priority.md",
+      "type": "document",
+      "name": "2026-04-17-fence-hit-detection-priority.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-04-17-fence-hit-detection-priority.md",
+      "summary": "围栏命中检测两级优先实施计划（Issue #26），将检测从单一优先级改为内部命中>Tier2边界容差，按距离比值1.5x判定直接选中或弹BottomSheet，减少误弹出。",
+      "tags": ["documentation", "实施计划", "围栏", "命中检测", "地图交互"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-04-17-fence-map-name-labels.md",
+      "type": "document",
+      "name": "2026-04-17-fence-map-name-labels.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-04-17-fence-map-name-labels.md",
+      "summary": "围栏地图名称标注计划，在浏览态FlutterMap上为每个围栏多边形质心叠加名称文字标签，使用IgnorePointer避免拦截地图点击与命中检测。",
+      "tags": ["documentation", "实施计划", "围栏", "地图标注"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-04-20-tenant-management-implementation.md",
+      "type": "document",
+      "name": "2026-04-20-tenant-management-implementation.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-04-20-tenant-management-implementation.md",
+      "summary": "租户管理MVP Phase 1实施计划（17个Task），在/ops/admin上落地租户列表（搜索/筛选/排序/分页）、创建、详情（状态切换/License调整/软删除）和改名编辑，前后端对齐统一包络。",
+      "tags": ["documentation", "实施计划", "租户管理", "admin", "crud"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-04-26-api-version-auth-migration-implementation.md",
+      "type": "document",
+      "name": "2026-04-26-api-version-auth-migration-implementation.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-04-26-api-version-auth-migration-implementation.md",
+      "summary": "API版本与认证迁移计划（14个Task），将前端Live集成默认指向/api/v1，保留/api兼容入口，实现JWT优先认证模型（含mock-token回退），含双路由注册、规范用户投影和Live v1验证脚手架。",
+      "tags": ["documentation", "实施计划", "api迁移", "认证", "jwt"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-04-27-subscription-service-implementation(B2C).md",
+      "type": "document",
+      "name": "2026-04-27-subscription-service-implementation(B2C).md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-04-27-subscription-service-implementation(B2C).md",
+      "summary": "SaaS订阅服务B2C实施计划（18个Task），覆盖四层订阅tier（基础/标准/高级/企业）+Mock支付+试用/续费/取消完整流程，后端shaping中间件实现零侵入功能权限控制。",
+      "tags": ["documentation", "实施计划", "订阅服务", "saas", "功能门控"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-04-27-tenant-management-phase3.md",
+      "type": "document",
+      "name": "2026-04-27-tenant-management-phase3.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-04-27-tenant-management-phase3.md",
+      "summary": "租户管理Phase 3可视化与体验提升计划（9个Task），为租户详情页增加30天趋势图表（复用降采样策略）、骨架屏加载态、细化空状态视觉，并补齐Phase 2未覆盖的Controller和Widget测试。",
+      "tags": ["documentation", "实施计划", "租户管理", "可视化", "趋势图表"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-04-28-unified-business-model-phase1.md",
+      "type": "document",
+      "name": "2026-04-28-unified-business-model-phase1.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-04-28-unified-business-model-phase1.md",
+      "summary": "统一商业模型Phase 1基础设施实施计划（26个Task），落地3种租户类型、升级角色体系（b2b_admin/api_consumer）、建设订阅基础设施（Feature Flag+Shaping中间件+订阅Store/API+双门控机制）和B2C完整订阅链路。",
+      "tags": ["documentation", "实施计划", "商业模型", "订阅", "shaping"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-04-29-unified-business-model-phase2a.md",
+      "type": "document",
+      "name": "2026-04-29-unified-business-model-phase2a.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-04-29-unified-business-model-phase2a.md",
+      "summary": "统一商业模型Phase 2a实施计划（20个Task），清理Phase 1遗留技术债（ops→platform_admin改名+shaping接通），新增多farm切换与B端管理后台（用量看板/旗下farm管理/合同信息）。",
+      "tags": ["documentation", "实施计划", "商业模型", "多farm", "b2b"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-05-02-unified-business-model-phase2b.md",
+      "type": "document",
+      "name": "2026-05-02-unified-business-model-phase2b.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-05-02-unified-business-model-phase2b.md",
+      "summary": "统一商业模型Phase 2b实施计划，完成B2B2C全部核心能力上线：分润引擎、订阅服务管理、合同CRUD、b2b_admin牧工管理、租户字段落地、5个新Store真实化、Open API端点、API授权审批和Vue 3开发者门户。",
+      "tags": ["documentation", "实施计划", "商业模型", "open-api", "开发者门户"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-05-03-b2b-admin-ux-optimization.md",
+      "type": "document",
+      "name": "2026-05-03-b2b-admin-ux-optimization.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-05-03-b2b-admin-ux-optimization.md",
+      "summary": "b2b_admin UX优化实施计划（10个Task），重写4个页面（概览/对账/合同/牧工管理），新增2个详情页路由，提升信息密度、交互深度和视觉一致性，新增ConfirmDialog和AlertBottomSheet共用组件。",
+      "tags": ["documentation", "实施计划", "b2b-admin", "ux优化", "重写"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:Mobile/docs/superpowers/plans/2026-05-04-developer-portal-completion.md",
+      "type": "document",
+      "name": "2026-05-04-developer-portal-completion.md",
+      "filePath": "Mobile/docs/superpowers/plans/2026-05-04-developer-portal-completion.md",
+      "summary": "开发者门户补全计划（10个Task），补全Vue 3门户缺失的Pinia Store、Chart.js UsageChart组件和测试文件，扩展后端API Key路由和授权接口，使门户从硬编码数据切换到真实API调用。",
+      "tags": ["documentation", "实施计划", "开发者门户", "vue3", "api-key"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:Mobile/docs/qa/highfi-ux-acceptance.md",
+      "target": "document:Mobile/docs/superpowers/plans/2026-03-27-highfi-uiux-mock-first-implementation.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/plans/2026-03-27-highfi-uiux-mock-first-implementation.md",
+      "target": "document:Mobile/docs/superpowers/plans/2026-03-26-lowfi-demo-implementation.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/plans/2026-03-27-full-scope-status-audit.md",
+      "target": "document:Mobile/docs/superpowers/plans/2026-03-26-lowfi-demo-implementation.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/plans/2026-03-27-full-scope-status-audit.md",
+      "target": "document:Mobile/docs/superpowers/plans/2026-03-27-highfi-uiux-mock-first-implementation.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/plans/2026-04-09-demo-data-followups.md",
+      "target": "document:Mobile/docs/superpowers/plans/2026-04-09-demo-data-enhancement.md",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/plans/2026-04-14-backend-fence-crud-hardening.md",
+      "target": "document:Mobile/docs/superpowers/plans/2026-04-10-fence-crud.md",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/plans/2026-04-15-fence-editing-ux-implementation.md",
+      "target": "document:Mobile/docs/superpowers/plans/2026-04-10-fence-crud.md",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/plans/2026-04-16-fence-map-ux-overhaul.md",
+      "target": "document:Mobile/docs/superpowers/plans/2026-04-15-fence-editing-ux-implementation.md",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/plans/2026-04-17-fence-hit-detection-priority.md",
+      "target": "document:Mobile/docs/superpowers/plans/2026-04-16-fence-map-ux-overhaul.md",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/plans/2026-04-17-fence-map-name-labels.md",
+      "target": "document:Mobile/docs/superpowers/plans/2026-04-16-fence-map-ux-overhaul.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/plans/2026-04-27-tenant-management-phase3.md",
+      "target": "document:Mobile/docs/superpowers/plans/2026-04-20-tenant-management-implementation.md",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/plans/2026-04-28-unified-business-model-phase1.md",
+      "target": "document:Mobile/docs/superpowers/plans/2026-04-27-subscription-service-implementation(B2C).md",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/plans/2026-04-29-unified-business-model-phase2a.md",
+      "target": "document:Mobile/docs/superpowers/plans/2026-04-28-unified-business-model-phase1.md",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/plans/2026-05-02-unified-business-model-phase2b.md",
+      "target": "document:Mobile/docs/superpowers/plans/2026-04-29-unified-business-model-phase2a.md",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/plans/2026-05-03-b2b-admin-ux-optimization.md",
+      "target": "document:Mobile/docs/superpowers/plans/2026-04-29-unified-business-model-phase2a.md",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:Mobile/docs/superpowers/plans/2026-05-04-developer-portal-completion.md",
+      "target": "document:Mobile/docs/superpowers/plans/2026-05-02-unified-business-model-phase2b.md",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:Mobile/docs/qa/2026-05-02-工作量统计与绩效考评报告.md",
+      "target": "document:Mobile/docs/qa/绩效评估提示词.md",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

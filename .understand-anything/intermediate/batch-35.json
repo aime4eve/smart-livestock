@@ -1,0 +1,586 @@
+{
+  "nodes": [
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/ranch/interfaces/TileController.java",
+      "type": "file",
+      "name": "TileController.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/ranch/interfaces/TileController.java",
+      "summary": "地图瓦片控制器，提供瓦片状态查询和离线 MBTiles 下载两个端点，用于移动端离线地图包管理。",
+      "tags": ["api-handler", "地图瓦片", "offline-download"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:smart-livestock-server/src/main/java/com/smartlivestock/ranch/interfaces/TileController.java:TileController",
+      "type": "class",
+      "name": "TileController",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/ranch/interfaces/TileController.java",
+      "lineRange": [15, 50],
+      "summary": "REST 控制器，负责瓦片状态检查和离线地图文件下载，基于文件系统目录扫描 MBTiles 文件。",
+      "tags": ["api-handler", "controller", "地图瓦片"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/cache/CacheKeys.java",
+      "type": "file",
+      "name": "CacheKeys.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/cache/CacheKeys.java",
+      "summary": "Redis 缓存键生成工具类，提供牲畜位置、牧场成员、设备在线状态、JWT 黑名单和频率限制等场景的标准化 key 生成方法。",
+      "tags": ["utility", "缓存", "键生成"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/cache/RedisCacheService.java",
+      "type": "file",
+      "name": "RedisCacheService.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/cache/RedisCacheService.java",
+      "summary": "Redis 缓存服务封装层，提供 String、Hash、Set 三种数据结构的常用 CRUD 操作及 TTL 支持。",
+      "tags": ["service", "缓存", "redis"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/cache/RedisCacheService.java:RedisCacheService",
+      "type": "class",
+      "name": "RedisCacheService",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/cache/RedisCacheService.java",
+      "lineRange": [11, 47],
+      "summary": "基于 Spring RedisTemplate 的缓存服务，封装 get/set、Hash 操作、Set 操作和分布式锁(setIfAbsent)等 8 个方法。",
+      "tags": ["service", "缓存", "redis"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ApiException.java",
+      "type": "file",
+      "name": "ApiException.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ApiException.java",
+      "summary": "API 层运行时异常，携带 ErrorCode 枚举，用于 Controller/Interceptor 层的业务异常抛出。",
+      "tags": ["data-model", "异常处理", "api"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ApiResponse.java",
+      "type": "file",
+      "name": "ApiResponse.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ApiResponse.java",
+      "summary": "统一 API 响应包装类，包含 code/message/requestId/data 四字段，提供 ok() 和 error() 静态工厂方法自动注入 requestId。",
+      "tags": ["data-model", "响应封装", "api"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ApiResponse.java:ApiResponse",
+      "type": "class",
+      "name": "ApiResponse",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ApiResponse.java",
+      "lineRange": [10, 88],
+      "summary": "泛型响应包装类，通过 MDC 获取 requestId，对外暴露 ok(data) 和 error(code, message) 工厂方法。",
+      "tags": ["data-model", "响应封装", "api"],
+      "complexity": "moderate",
+      "languageNotes": "使用 MDC（Mapped Diagnostic Context）实现跨线程的 requestId 传递，配合 RequestIdFilter 在请求入口处设置。"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/DomainException.java",
+      "type": "file",
+      "name": "DomainException.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/common/DomainException.java",
+      "summary": "领域层运行时异常，携带 ErrorCode 枚举，用于领域模型内部业务规则违规时抛出。",
+      "tags": ["data-model", "异常处理", "领域模型"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ErrorCode.java",
+      "type": "file",
+      "name": "ErrorCode.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ErrorCode.java",
+      "summary": "全局错误码枚举，定义 28 个业务错误码，覆盖认证/鉴权、资源冲突、订阅/合同/服务授权、分润结算等场景。",
+      "tags": ["data-model", "错误码", "枚举"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/GlobalExceptionHandler.java",
+      "type": "file",
+      "name": "GlobalExceptionHandler.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/common/GlobalExceptionHandler.java",
+      "summary": "全局异常处理器，通过 @RestControllerAdvice 统一捕获 ApiException、DomainException、参数校验、404、405 及兜底异常，转换为标准 ApiResponse 格式并映射 HTTP 状态码。",
+      "tags": ["api-handler", "异常处理", "middleware"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/GlobalExceptionHandler.java:GlobalExceptionHandler",
+      "type": "class",
+      "name": "GlobalExceptionHandler",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/common/GlobalExceptionHandler.java",
+      "lineRange": [16, 122],
+      "summary": "Spring 全局异常处理器，将 6 种异常类型映射为带 requestId 的 ApiResponse，包含完整的 ErrorCode→HttpStatus 映射表。",
+      "tags": ["api-handler", "异常处理", "middleware"],
+      "complexity": "complex",
+      "languageNotes": "使用 Java 17 switch 表达式（箭头语法）替代传统 switch-case 实现 ErrorCode 到 HttpStatus 的穷举映射。"
+    },
+    {
+      "id": "function:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/GlobalExceptionHandler.java:mapToHttpStatus",
+      "type": "function",
+      "name": "mapToHttpStatus",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/common/GlobalExceptionHandler.java",
+      "lineRange": [91, 121],
+      "summary": "将 ErrorCode 枚举映射为 Spring HttpStatus，覆盖全部 28 个错误码的 HTTP 状态码转换逻辑。",
+      "tags": ["utility", "异常处理", "http-status"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/HealthController.java",
+      "type": "file",
+      "name": "HealthController.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/common/HealthController.java",
+      "summary": "健康检查端点，返回服务状态和当前时间戳，用于 Docker/K8s 存活探针。",
+      "tags": ["api-handler", "健康检查", "监控"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/RequestIdFilter.java",
+      "type": "file",
+      "name": "RequestIdFilter.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/common/RequestIdFilter.java",
+      "summary": "Servlet 过滤器，从请求头提取或自动生成 requestId 并注入 MDC 和响应头，实现全链路请求追踪。",
+      "tags": ["middleware", "请求追踪", "过滤器"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/RequestIdFilter.java:RequestIdFilter",
+      "type": "class",
+      "name": "RequestIdFilter",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/common/RequestIdFilter.java",
+      "lineRange": [14, 35],
+      "summary": "OncePerRequestFilter 实现，将 x-request-id 头（缺失时自动生成 UUID）写入 MDC，确保请求结束时清理。",
+      "tags": ["middleware", "请求追踪", "过滤器"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/AggregateRoot.java",
+      "type": "file",
+      "name": "AggregateRoot.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/AggregateRoot.java",
+      "summary": "DDD 聚合根基类，维护领域事件列表并提供注册、获取、清除事件的方法，供所有聚合根继承。",
+      "tags": ["data-model", "领域模型", "ddd"],
+      "complexity": "simple",
+      "languageNotes": "经典 DDD AggregateRoot 模式，配合 RocketMQEventPublisher 在持久化后发布领域事件。"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "file",
+      "name": "DomainEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "summary": "领域事件基类，自动生成 eventId (UUID) 和 occurredAt (Instant)，所有具体事件类继承此类。",
+      "tags": ["data-model", "领域事件", "ddd"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/Entity.java",
+      "type": "file",
+      "name": "Entity.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/Entity.java",
+      "summary": "DDD 实体基类，提供 id 字段及基于 id 的 equals/hashCode 实现，所有领域实体继承此类。",
+      "tags": ["data-model", "领域模型", "ddd"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/ContractSignedEvent.java",
+      "type": "file",
+      "name": "ContractSignedEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/ContractSignedEvent.java",
+      "summary": "合同签署事件，携带 tenantId 和 contractNumber，由合同签署流程触发发布。",
+      "tags": ["data-model", "领域事件", "合同"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/ServiceDegradedEvent.java",
+      "type": "file",
+      "name": "ServiceDegradedEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/ServiceDegradedEvent.java",
+      "summary": "服务降级事件，携带 tenantId 和 serviceName，当订阅服务配额耗尽或降级时触发。",
+      "tags": ["data-model", "领域事件", "服务降级"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/ServiceQuotaAdjustedEvent.java",
+      "type": "file",
+      "name": "ServiceQuotaAdjustedEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/ServiceQuotaAdjustedEvent.java",
+      "summary": "服务配额调整事件，携带 tenantId、serviceName 和 newQuota，配额引擎调整后触发。",
+      "tags": ["data-model", "领域事件", "配额"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/ServiceRevokedEvent.java",
+      "type": "file",
+      "name": "ServiceRevokedEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/ServiceRevokedEvent.java",
+      "summary": "服务吊销事件，携带 tenantId 和 serviceName，当服务许可过期或被管理员吊销时触发。",
+      "tags": ["data-model", "领域事件", "服务吊销"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/SubscriptionCreatedEvent.java",
+      "type": "file",
+      "name": "SubscriptionCreatedEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/SubscriptionCreatedEvent.java",
+      "summary": "订阅创建事件，携带 tenantId 和 tier，新订阅创建成功后触发发布。",
+      "tags": ["data-model", "领域事件", "订阅"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/SubscriptionExpiredEvent.java",
+      "type": "file",
+      "name": "SubscriptionExpiredEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/SubscriptionExpiredEvent.java",
+      "summary": "订阅过期事件，携带 tenantId，订阅到期未续费时触发。",
+      "tags": ["data-model", "领域事件", "订阅"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/SubscriptionReactivatedEvent.java",
+      "type": "file",
+      "name": "SubscriptionReactivatedEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/SubscriptionReactivatedEvent.java",
+      "summary": "订阅重新激活事件，携带 tenantId，被暂停的订阅恢复时触发。",
+      "tags": ["data-model", "领域事件", "订阅"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/SubscriptionSuspendedEvent.java",
+      "type": "file",
+      "name": "SubscriptionSuspendedEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/SubscriptionSuspendedEvent.java",
+      "summary": "订阅暂停事件，携带 tenantId，订阅被暂停时触发（如欠费或管理操作）。",
+      "tags": ["data-model", "领域事件", "订阅"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/SubscriptionTierChangedEvent.java",
+      "type": "file",
+      "name": "SubscriptionTierChangedEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/SubscriptionTierChangedEvent.java",
+      "summary": "订阅等级变更事件，携带 tenantId、oldTier 和 newTier，套餐升降级时触发。",
+      "tags": ["data-model", "领域事件", "订阅"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/RocketMQEventPublisher.java",
+      "type": "file",
+      "name": "RocketMQEventPublisher.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/RocketMQEventPublisher.java",
+      "summary": "RocketMQ 领域事件发布器，将 DomainEvent 序列化为 JSON 并发送到指定 Topic，含降级日志和异常处理。",
+      "tags": ["service", "消息发布", "rocketmq"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/RocketMQEventPublisher.java:RocketMQEventPublisher",
+      "type": "class",
+      "name": "RocketMQEventPublisher",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/RocketMQEventPublisher.java",
+      "lineRange": [17, 56],
+      "summary": "事件发布器实现，通过 RocketMQTemplate 发送领域事件，构造时自动检测 RocketMQ 可用性并降级到日志模式。",
+      "tags": ["service", "消息发布", "rocketmq"],
+      "complexity": "moderate",
+      "languageNotes": "使用 Provider 方式注入 RocketMQTemplate，当 RocketMQ 未启动时优雅降级到日志输出，避免强依赖。"
+    },
+    {
+      "id": "function:smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/RocketMQEventPublisher.java:publish",
+      "type": "function",
+      "name": "publish",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/RocketMQEventPublisher.java",
+      "lineRange": [41, 55],
+      "summary": "将 DomainEvent 序列化为 JSON 并通过 RocketMQTemplate 发送到指定 Topic，失败时记录警告日志。",
+      "tags": ["消息发布", "事件驱动", "rocketmq"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/Topics.java",
+      "type": "file",
+      "name": "Topics.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/Topics.java",
+      "summary": "RocketMQ Topic 常量定义类，集中管理 6 个业务 Topic 的名称常量，用于事件发布和消费。",
+      "tags": ["configuration", "消息队列", "常量"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java",
+      "type": "file",
+      "name": "FarmScopeInterceptor.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java",
+      "summary": "牧场作用域拦截器，从 URL 路径和请求头解析 farmId，验证牧场归属关系和操作权限，实现多牧场数据隔离。",
+      "tags": ["middleware", "多租户", "牧场隔离"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java:FarmScopeInterceptor",
+      "type": "class",
+      "name": "FarmScopeInterceptor",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java",
+      "lineRange": [17, 125],
+      "summary": "HandlerInterceptor 实现，负责解析路径/头部的 farmId、校验读写作用域、验证牧场归属租户，并跳过平台管理员和 Open API 的归属校验。",
+      "tags": ["middleware", "多租户", "牧场隔离"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java:preHandle",
+      "type": "function",
+      "name": "preHandle",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java",
+      "lineRange": [30, 60],
+      "summary": "拦截入口方法，从 URI 提取 farmId 并验证路径/头部的双来源一致性，根据 HTTP 方法判断读写作用域并校验牧场归属。",
+      "tags": ["middleware", "牧场隔离", "权限校验"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java:extractFarmIdFromPath",
+      "type": "function",
+      "name": "extractFarmIdFromPath",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java",
+      "lineRange": [62, 76],
+      "summary": "从 URI 路径段中提取 farms 关键字后的 farmId 数值，支持 /farms/{id}/、/open/farms/{id}/、/admin/tenants/{tid}/farms/{id}/ 三种模式。",
+      "tags": ["utility", "路径解析", "牧场隔离"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java:validateFarmBelongsToTenant",
+      "type": "function",
+      "name": "validateFarmBelongsToTenant",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java",
+      "lineRange": [114, 124],
+      "summary": "查询数据库验证指定 farmId 是否属于当前登录用户的租户，不匹配时抛出 AUTH_FORBIDDEN 异常。",
+      "tags": ["validation", "多租户", "权限校验"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/ranch/interfaces/TileController.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/ranch/interfaces/TileController.java:TileController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/cache/CacheKeys.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/cache/CacheKeys.java:CacheKeys",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/cache/RedisCacheService.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/cache/RedisCacheService.java:RedisCacheService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ApiException.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ApiException.java:ApiException",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ApiResponse.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ApiResponse.java:ApiResponse",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/DomainException.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/DomainException.java:DomainException",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/GlobalExceptionHandler.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/GlobalExceptionHandler.java:GlobalExceptionHandler",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/GlobalExceptionHandler.java",
+      "target": "function:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/GlobalExceptionHandler.java:mapToHttpStatus",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/HealthController.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/HealthController.java:HealthController",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/RequestIdFilter.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/RequestIdFilter.java:RequestIdFilter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/AggregateRoot.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/AggregateRoot.java:AggregateRoot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java:DomainEvent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/Entity.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/Entity.java:Entity",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/RocketMQEventPublisher.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/RocketMQEventPublisher.java:RocketMQEventPublisher",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/RocketMQEventPublisher.java",
+      "target": "function:smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/RocketMQEventPublisher.java:publish",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/Topics.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/Topics.java:Topics",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java:FarmScopeInterceptor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java",
+      "target": "function:smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java:preHandle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java",
+      "target": "function:smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java:extractFarmIdFromPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java",
+      "target": "function:smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java:validateFarmBelongsToTenant",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/ContractSignedEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/ServiceDegradedEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/ServiceQuotaAdjustedEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/ServiceRevokedEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/SubscriptionCreatedEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/SubscriptionExpiredEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/SubscriptionReactivatedEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/SubscriptionSuspendedEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/SubscriptionTierChangedEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/identity/infrastructure/persistence/SpringDataFarmRepository.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ApiException.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ErrorCode.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/tenant/TenantContext.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

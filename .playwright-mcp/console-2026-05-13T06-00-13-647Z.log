@@ -1,0 +1,2 @@
+[  178748ms] [ERROR] Access to fetch at 'http://172.22.1.123:18080/api/v1/auth/login' from origin 'http://localhost:54321' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:54321/login:0
+[  178751ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://172.22.1.123:18080/api/v1/auth/login:0

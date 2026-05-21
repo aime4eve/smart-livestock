@@ -125,7 +125,7 @@ App 侧的牧场操作走 JWT 租户上下文，不是 URL 里的 tenantId：
 ```
 
 Phase 1 需确保：
-- `onlineDeviceCount` 由真实设备服务计算（当前为占位 0），而非硬编码
+- `onlineDeviceCount` 由真实设备服务计算（当前为占位 0），而非硬编码。**注意：当前设备表为 tenant-level（无 `farm_id` 列），Phase 1 的 `onlineDeviceCount` 实际为"该租户下所有 ACTIVE 状态设备数"，而非"该牧场内设备数"。真正的 farm-level 统计需等 Phase 3 通过 `installations` 表 JOIN 实现。**
 - 前端 `ApiCache._normalizeDashboardMetrics` 的字段映射与上述键名一致
 - 避免在 `GET /farms/{id}` 单独返回统计导致前端需增加额外请求
 

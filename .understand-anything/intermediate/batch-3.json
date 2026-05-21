@@ -1,0 +1,1025 @@
+{
+  "nodes": [
+    {
+      "id": "file:Mobile/backend/config/runtimeConfig.js",
+      "type": "file",
+      "name": "runtimeConfig.js",
+      "filePath": "Mobile/backend/config/runtimeConfig.js",
+      "summary": "运行时配置构建器，从环境变量读取 Mock Token 开关、生产环境 break-glass 过期时间及调试头开关，支持多环境条件判断。",
+      "tags": ["configuration", "utility", "runtime-config", "mock-auth"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/config/runtimeConfig.js:buildRuntimeConfig",
+      "type": "function",
+      "name": "buildRuntimeConfig",
+      "filePath": "Mobile/backend/config/runtimeConfig.js",
+      "lineRange": [6, 33],
+      "summary": "从环境变量构建运行时配置对象，包含 mock token 开关、允许环境列表及调试头标志；生产环境需未过期的 break-glass 才能启用。",
+      "tags": ["configuration", "utility", "env-parsing"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/backend/data/apiAuthorizationStore.js",
+      "type": "file",
+      "name": "apiAuthorizationStore.js",
+      "filePath": "Mobile/backend/data/apiAuthorizationStore.js",
+      "summary": "API 数据访问授权内存 Store，管理 api_consumer 发起的牧场数据访问申请全生命周期（创建、审批、拒绝、撤销）。",
+      "tags": ["data-store", "api-authorization", "crud", "in-memory"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/data/apiAuthorizationStore.js:create",
+      "type": "function",
+      "name": "create",
+      "filePath": "Mobile/backend/data/apiAuthorizationStore.js",
+      "lineRange": [33, 75],
+      "summary": "创建一条 pending 状态的授权记录，校验 apiTenantId/farmTenantId 必填且去重，关联 tenantStore 验证租户存在性。",
+      "tags": ["crud", "authorization", "validation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/data/apiAuthorizationStore.js:approve",
+      "type": "function",
+      "name": "approve",
+      "filePath": "Mobile/backend/data/apiAuthorizationStore.js",
+      "lineRange": [77, 105],
+      "summary": "将 pending 授权记录审批为 approved 状态，拒绝非 pending 状态的审批请求。",
+      "tags": ["crud", "authorization", "state-transition"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:Mobile/backend/data/apiAuthorizationStore.js:list",
+      "type": "function",
+      "name": "list",
+      "filePath": "Mobile/backend/data/apiAuthorizationStore.js",
+      "lineRange": [145, 199],
+      "summary": "按 apiTenantId、farmTenantId、status 过滤并分页返回授权记录列表。",
+      "tags": ["query", "pagination", "filter"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/backend/data/apiKeyStore.js",
+      "type": "file",
+      "name": "apiKeyStore.js",
+      "filePath": "Mobile/backend/data/apiKeyStore.js",
+      "summary": "Open API Key 内存管理 Store，提供密钥生成（SHA-256 哈希存储）、验证、轮换、自动撤销及租户级列表查询。",
+      "tags": ["data-store", "api-key", "security", "crypto"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:Mobile/backend/data/apiKeyStore.js:generate",
+      "type": "function",
+      "name": "generate",
+      "filePath": "Mobile/backend/data/apiKeyStore.js",
+      "lineRange": [37, 75],
+      "summary": "生成 API Key（sl_apikey_ 前缀），对原始密钥做 SHA-256 哈希存储，关联 apiTierStore 设置默认配额。",
+      "tags": ["crypto", "api-key", "crud"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/data/apiKeyStore.js:validate",
+      "type": "function",
+      "name": "validate",
+      "filePath": "Mobile/backend/data/apiKeyStore.js",
+      "lineRange": [77, 100],
+      "summary": "验证 API Key 有效性，比对 SHA-256 哈希值，更新使用计数并返回关联的 apiTenantId 和 apiTier。",
+      "tags": ["crypto", "validation", "api-key"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/data/apiKeyStore.js:rotate",
+      "type": "function",
+      "name": "rotate",
+      "filePath": "Mobile/backend/data/apiKeyStore.js",
+      "lineRange": [102, 135],
+      "summary": "轮换 API Key，旧 key 进入 rotating 状态，新 key 立即生效；记录轮换时间用于后续自动撤销。",
+      "tags": ["crypto", "rotation", "api-key"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/backend/data/apiTierStore.js",
+      "type": "file",
+      "name": "apiTierStore.js",
+      "filePath": "Mobile/backend/data/apiTierStore.js",
+      "summary": "API 租户层级与月度配额追踪 Store，管理 free/growth/scale 三种 tier 的配额用量和超量计费，支持月度重置。",
+      "tags": ["data-store", "api-tier", "quota", "billing"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/data/apiTierStore.js:incrementUsage",
+      "type": "function",
+      "name": "incrementUsage",
+      "filePath": "Mobile/backend/data/apiTierStore.js",
+      "lineRange": [46, 65],
+      "summary": "递增指定 apiTenantId 的当月 API 调用计数，返回更新后的 tier 信息。",
+      "tags": ["quota", "tracking"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:Mobile/backend/data/apiTierStore.js:checkQuota",
+      "type": "function",
+      "name": "checkQuota",
+      "filePath": "Mobile/backend/data/apiTierStore.js",
+      "lineRange": [67, 87],
+      "summary": "检查指定租户是否超出月度配额，返回布尔结果和当前用量信息。",
+      "tags": ["quota", "validation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/backend/data/contractStore.js",
+      "type": "file",
+      "name": "contractStore.js",
+      "filePath": "Mobile/backend/data/contractStore.js",
+      "summary": "合同内存 Store，管理 B2B 合作合同的完整生命周期（创建、更新、终止、列表查询），使用懒加载避免循环依赖。",
+      "tags": ["data-store", "contract", "crud", "b2b"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/data/contractStore.js:create",
+      "type": "function",
+      "name": "create",
+      "filePath": "Mobile/backend/data/contractStore.js",
+      "lineRange": [55, 95],
+      "summary": "创建新合同记录，校验合作方租户存在性和必要字段，计算生效层级并设置初始状态。",
+      "tags": ["crud", "contract", "validation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/backend/data/feature-flags.js",
+      "type": "file",
+      "name": "feature-flags.js",
+      "filePath": "Mobile/backend/data/feature-flags.js",
+      "summary": "基于订阅层级的 Feature Flag 定义和 shaping 规则引擎，实现 4 种 shaping 策略（none/lock/limit/filter），涵盖定位、健康、分析等 23 个功能开关。",
+      "tags": ["feature-flag", "subscription", "tier-gating", "shaping"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:Mobile/backend/data/feature-flags.js:applyShapingRules",
+      "type": "function",
+      "name": "applyShapingRules",
+      "filePath": "Mobile/backend/data/feature-flags.js",
+      "lineRange": [95, 135],
+      "summary": "根据 tier 和 feature key 对响应数据执行 shaping：lock 策略拦截、limit 策略截断数组、filter 策略按日期过滤。",
+      "tags": ["shaping", "feature-flag", "response-filter"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/backend/data/fenceStore.js",
+      "type": "file",
+      "name": "fenceStore.js",
+      "filePath": "Mobile/backend/data/fenceStore.js",
+      "summary": "围栏内存 Store，管理电子围栏的 CRUD 操作，支持 polygon/circle/rectangle 三种围栏类型，含坐标验证和分页查询。",
+      "tags": ["data-store", "fence", "crud", "geospatial"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/data/fenceStore.js:createFence",
+      "type": "function",
+      "name": "createFence",
+      "filePath": "Mobile/backend/data/fenceStore.js",
+      "lineRange": [40, 75],
+      "summary": "创建新围栏记录，校验名称、类型、坐标有效性和状态合法性。",
+      "tags": ["crud", "fence", "validation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/backend/data/revenueStore.js",
+      "type": "file",
+      "name": "revenueStore.js",
+      "filePath": "Mobile/backend/data/revenueStore.js",
+      "summary": "分润结算引擎 Store，遍历合作方租户计算设备费用（GPS 15元/牛/月、胶囊 30元/牛/月），按合同比例计算分润金额。",
+      "tags": ["data-store", "revenue", "billing", "settlement"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:Mobile/backend/data/revenueStore.js:calculate",
+      "type": "function",
+      "name": "calculate",
+      "filePath": "Mobile/backend/data/revenueStore.js",
+      "lineRange": [32, 95],
+      "summary": "按月计算所有合作方的分润账单，遍历合同获取分成比例，汇总每头牲畜的设备费用。",
+      "tags": ["billing", "settlement", "calculation"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:Mobile/backend/data/seed.js",
+      "type": "file",
+      "name": "seed.js",
+      "filePath": "Mobile/backend/data/seed.js",
+      "summary": "Mock Server 核心种子数据集，定义 5 种角色用户（含权限列表）、Dashboard 指标、50 头牲畜、围栏、告警、租户和 100 台设备（GPS/胶囊/加速度计）。",
+      "tags": ["seed-data", "mock-data", "demo", "test-fixtures"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:Mobile/backend/data/seed.js:generateAnimals",
+      "type": "function",
+      "name": "generateAnimals",
+      "filePath": "Mobile/backend/data/seed.js",
+      "lineRange": [120, 300],
+      "summary": "程序化生成 50 头演示牲畜数据，包含品种、体重、GPS 坐标、设备绑定和健康状态。",
+      "tags": ["seed-data", "generator", "mock-data"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/data/seed.js:generateDevices",
+      "type": "function",
+      "name": "generateDevices",
+      "filePath": "Mobile/backend/data/seed.js",
+      "lineRange": [440, 519],
+      "summary": "批量生成 100 台演示设备（GPS 追踪器 50 台、瘤胃胶囊 30 台、加速度计 20 台），含电量、信号强度和同步时间。",
+      "tags": ["seed-data", "generator", "device"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/backend/data/subscriptions.js",
+      "type": "file",
+      "name": "subscriptions.js",
+      "filePath": "Mobile/backend/data/subscriptions.js",
+      "summary": "订阅管理内存 Store，实现 4 种 tier 的试用创建、结账、取消和续订逻辑，含价格表和设备数超额计费。",
+      "tags": ["data-store", "subscription", "billing", "tier"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/data/subscriptions.js:checkout",
+      "type": "function",
+      "name": "checkout",
+      "filePath": "Mobile/backend/data/subscriptions.js",
+      "lineRange": [70, 115],
+      "summary": "订阅结账流程，计算 tier 费用、设备超额费用和总金额，支持幂等性保护。",
+      "tags": ["billing", "checkout", "subscription"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/backend/data/subscriptionServiceStore.js",
+      "type": "file",
+      "name": "subscriptionServiceStore.js",
+      "filePath": "Mobile/backend/data/subscriptionServiceStore.js",
+      "summary": "License 订阅服务内存 Store，管理 on-premise 合作伙伴的 Licensed 服务密钥（SL-SUB 格式），实现心跳驱动的状态机（active → grace_period → degraded → revoked）。",
+      "tags": ["data-store", "license", "service-key", "state-machine"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:Mobile/backend/data/subscriptionServiceStore.js:create",
+      "type": "function",
+      "name": "create",
+      "filePath": "Mobile/backend/data/subscriptionServiceStore.js",
+      "lineRange": [42, 85],
+      "summary": "创建 Licensed 订阅服务，生成唯一 serviceKey 和 SHA-256 哈希，关联 partnerTenantId。",
+      "tags": ["crud", "license", "crypto"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/data/subscriptionServiceStore.js:heartbeat",
+      "type": "function",
+      "name": "heartbeat",
+      "filePath": "Mobile/backend/data/subscriptionServiceStore.js",
+      "lineRange": [87, 120],
+      "summary": "处理心跳上报，根据最后活跃时间更新服务状态（active/grace_period/degraded/revoked）。",
+      "tags": ["heartbeat", "state-machine", "license"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/data/subscriptionServiceStore.js:scan",
+      "type": "function",
+      "name": "scan",
+      "filePath": "Mobile/backend/data/subscriptionServiceStore.js",
+      "lineRange": [122, 155],
+      "summary": "扫描所有服务的心跳状态，将超时未心跳的服务降级为 grace_period 或 degraded。",
+      "tags": ["scheduler", "state-machine", "monitoring"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/backend/data/tenantStore.js",
+      "type": "file",
+      "name": "tenantStore.js",
+      "filePath": "Mobile/backend/data/tenantStore.js",
+      "summary": "租户内存 Store，作为 Mock Server 数据层核心依赖被其他 Store 广泛引用，提供租户 CRUD、按 owner/parent 查询、名称去重和 license 调整等 15 个操作。",
+      "tags": ["data-store", "tenant", "crud", "core-dependency"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:Mobile/backend/data/tenantStore.js:createTenant",
+      "type": "function",
+      "name": "createTenant",
+      "filePath": "Mobile/backend/data/tenantStore.js",
+      "lineRange": [65, 110],
+      "summary": "创建新租户，支持 owner/parent 租户关联、名称去重校验、状态和 license 数量初始化。",
+      "tags": ["crud", "tenant", "validation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/data/tenantStore.js:updateTenant",
+      "type": "function",
+      "name": "updateTenant",
+      "filePath": "Mobile/backend/data/tenantStore.js",
+      "lineRange": [112, 155],
+      "summary": "更新租户信息（名称、联系人、状态），支持字段级更新和名称去重校验。",
+      "tags": ["crud", "tenant", "validation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/data/tenantStore.js:findByServiceKey",
+      "type": "function",
+      "name": "findByServiceKey",
+      "filePath": "Mobile/backend/data/tenantStore.js",
+      "lineRange": [185, 210],
+      "summary": "通过 serviceKeyHash 查找关联的租户，用于 Licensed 服务认证。",
+      "tags": ["query", "license", "authentication"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/backend/data/twin_seed.js",
+      "type": "file",
+      "name": "twin_seed.js",
+      "filePath": "Mobile/backend/data/twin_seed.js",
+      "summary": "数智孪生模块种子数据，定义牧区概览统计、待办任务、以及发热/消化/发情/疫病四种健康场景的模拟时序数据生成函数。",
+      "tags": ["seed-data", "digital-twin", "health-simulation", "timeseries"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:Mobile/backend/data/twin_seed.js:buildFeverList",
+      "type": "function",
+      "name": "buildFeverList",
+      "filePath": "Mobile/backend/data/twin_seed.js",
+      "lineRange": [130, 200],
+      "summary": "为演示牲畜生成发热异常模拟数据，含基线体温、异常检测和温度时序曲线。",
+      "tags": ["health-simulation", "fever", "timeseries"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/data/twin_seed.js:buildDigestiveList",
+      "type": "function",
+      "name": "buildDigestiveList",
+      "filePath": "Mobile/backend/data/twin_seed.js",
+      "lineRange": [202, 285],
+      "summary": "为演示牲畜生成消化异常模拟数据，含蠕动频次时序和异常判定。",
+      "tags": ["health-simulation", "digestive", "timeseries"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/backend/data/workerFarmStore.js",
+      "type": "file",
+      "name": "workerFarmStore.js",
+      "filePath": "Mobile/backend/data/workerFarmStore.js",
+      "summary": "牧工-牧场分配关系内存 Store，管理牧工与牧场的绑定/解绑操作，支持按用户或牧场查询分配记录。",
+      "tags": ["data-store", "worker", "farm-assignment", "crud"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:Mobile/backend/data/workerFarmStore.js:assign",
+      "type": "function",
+      "name": "assign",
+      "filePath": "Mobile/backend/data/workerFarmStore.js",
+      "lineRange": [25, 45],
+      "summary": "将牧工分配到指定牧场，自动去重并记录分配时间和角色。",
+      "tags": ["crud", "assignment", "worker"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/backend/middleware/apiKeyAuth.js",
+      "type": "file",
+      "name": "apiKeyAuth.js",
+      "filePath": "Mobile/backend/middleware/apiKeyAuth.js",
+      "summary": "Open API 密钥认证中间件，从 X-API-Key 头提取密钥并验证，注入 apiConsumer 和 apiTier 上下文。",
+      "tags": ["middleware", "authentication", "api-key", "security"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:Mobile/backend/middleware/apiKeyAuth.js:apiKeyAuthMiddleware",
+      "type": "function",
+      "name": "apiKeyAuthMiddleware",
+      "filePath": "Mobile/backend/middleware/apiKeyAuth.js",
+      "lineRange": [7, 24],
+      "summary": "验证 X-API-Key 头，调用 apiKeyStore.validate 校验密钥，将 apiConsumer 信息和可访问牧场 ID 注入请求上下文。",
+      "tags": ["middleware", "authentication", "api-key"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/backend/middleware/auth.js",
+      "type": "file",
+      "name": "auth.js",
+      "filePath": "Mobile/backend/middleware/auth.js",
+      "summary": "双模认证中间件，支持 JWT 和 Mock Token 两种认证方式。JWT 优先，回退到 Mock Token（受环境开关控制）；提供 requirePermission 权限检查工厂函数。",
+      "tags": ["middleware", "authentication", "jwt", "mock-auth", "authorization"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:Mobile/backend/middleware/auth.js:authMiddleware",
+      "type": "function",
+      "filePath": "Mobile/backend/middleware/auth.js",
+      "name": "authMiddleware",
+      "lineRange": [58, 100],
+      "summary": "主认证中间件，优先尝试 JWT 验证，失败后回退到 Mock Token 查表；将 userRole、user、authMode 注入请求对象。",
+      "tags": ["middleware", "authentication", "dual-mode"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/middleware/auth.js:requirePermission",
+      "type": "function",
+      "filePath": "Mobile/backend/middleware/auth.js",
+      "name": "requirePermission",
+      "lineRange": [103, 112],
+      "summary": "权限检查中间件工厂，返回一个校验 req.user.permissions 是否包含指定权限的中间件。",
+      "tags": ["middleware", "authorization", "permission-check"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/backend/middleware/envelope.js",
+      "type": "file",
+      "name": "envelope.js",
+      "filePath": "Mobile/backend/middleware/envelope.js",
+      "summary": "响应包络中间件，为 Express response 对象注入统一的 ok/fail 方法，生成标准格式 { code, message, requestId, data } 响应。",
+      "tags": ["middleware", "response-format", "envelope"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:Mobile/backend/middleware/envelope.js:envelopeMiddleware",
+      "type": "function",
+      "name": "envelopeMiddleware",
+      "filePath": "Mobile/backend/middleware/envelope.js",
+      "lineRange": [32, 43],
+      "summary": "Express 中间件，在 res 对象上挂载 ok() 和 fail() 方法，实现统一的 API 响应包络格式。",
+      "tags": ["middleware", "response-format"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/backend/middleware/farmContext.js",
+      "type": "file",
+      "name": "farmContext.js",
+      "filePath": "Mobile/backend/middleware/farmContext.js",
+      "summary": "牧场上下文中间件，根据用户角色（owner/worker/b2b_admin）和 X-Active-Farm 头确定当前活跃牧场 ID，注入 activeFarmTenantId。",
+      "tags": ["middleware", "farm-context", "multi-tenant"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:Mobile/backend/middleware/farmContext.js:farmContextMiddleware",
+      "type": "function",
+      "name": "farmContextMiddleware",
+      "filePath": "Mobile/backend/middleware/farmContext.js",
+      "lineRange": [4, 34],
+      "summary": "根据用户角色解析当前活跃牧场：owner 从拥有的牧场中选择，worker 从分配关系中确定，b2b_admin 从旗下牧场列表查找。",
+      "tags": ["middleware", "farm-context", "role-based"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/backend/middleware/feature-flag.js",
+      "type": "file",
+      "name": "feature-flag.js",
+      "filePath": "Mobile/backend/middleware/feature-flag.js",
+      "summary": "Feature Flag shaping 中间件，拦截 res.ok() 调用，根据租户订阅 tier 和请求级 featureKey 执行响应数据裁剪（锁定、截断、过滤）。",
+      "tags": ["middleware", "feature-flag", "shaping", "tier-gating"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/middleware/feature-flag.js:shapingMiddleware",
+      "type": "function",
+      "name": "shapingMiddleware",
+      "filePath": "Mobile/backend/middleware/feature-flag.js",
+      "lineRange": [20, 45],
+      "summary": "拦截 res.ok() 调用，根据 activeFarmTenantId 获取 tier，对指定 featureKey 执行响应数据 shaping。",
+      "tags": ["middleware", "shaping", "monkey-patch"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/backend/middleware/rateLimit.js",
+      "type": "file",
+      "name": "rateLimit.js",
+      "filePath": "Mobile/backend/middleware/rateLimit.js",
+      "summary": "内存滑动窗口限流中间件，按 API tier（free/growth/scale）设置不同频率限制，设置标准 RateLimit 响应头。",
+      "tags": ["middleware", "rate-limit", "api-tier", "throttling"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/middleware/rateLimit.js:rateLimitMiddleware",
+      "type": "function",
+      "name": "rateLimitMiddleware",
+      "filePath": "Mobile/backend/middleware/rateLimit.js",
+      "lineRange": [14, 50],
+      "summary": "基于租户 ID 和 API tier 的滑动窗口限流，60 秒窗口，超限返回 429 和 Retry-After 信息。",
+      "tags": ["middleware", "rate-limit", "sliding-window"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/backend/middleware/requestContext.js",
+      "type": "file",
+      "name": "requestContext.js",
+      "filePath": "Mobile/backend/middleware/requestContext.js",
+      "summary": "请求上下文中间件，为每个请求生成唯一 requestId（或从 X-Request-Id 头透传），设置 API 版本和调试响应头。",
+      "tags": ["middleware", "request-context", "observability"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:Mobile/backend/middleware/requestContext.js:requestContext",
+      "type": "function",
+      "name": "requestContext",
+      "filePath": "Mobile/backend/middleware/requestContext.js",
+      "lineRange": [8, 19],
+      "summary": "返回 Express 中间件，注入 requestId 和 apiVersion，并设置 X-Request-Id 响应头。",
+      "tags": ["middleware", "request-id"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:Mobile/backend/package-lock.json",
+      "type": "config",
+      "name": "package-lock.json",
+      "filePath": "Mobile/backend/package-lock.json",
+      "summary": "Mock Server npm 依赖锁定文件，锁定 express 和 cors 版本及其子依赖树。",
+      "tags": ["configuration", "npm", "dependency-lock"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:Mobile/backend/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "Mobile/backend/package.json",
+      "summary": "Mock Server 包配置，定义 smart-livestock-mock-server 项目，依赖 express 5.1 和 cors，提供 start/dev/test 三个脚本。",
+      "tags": ["configuration", "npm", "build-system"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:Mobile/backend/routes/alerts.js",
+      "type": "file",
+      "name": "alerts.js",
+      "filePath": "Mobile/backend/routes/alerts.js",
+      "summary": "告警路由模块，实现告警 CRUD 和状态机转换（pending → acknowledged → handled → archived），支持批量操作和分页查询。",
+      "tags": ["route", "api-handler", "alerts", "state-machine"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:Mobile/backend/routes/alerts.js:transitionAlert",
+      "type": "function",
+      "name": "transitionAlert",
+      "filePath": "Mobile/backend/routes/alerts.js",
+      "lineRange": [25, 40],
+      "summary": "执行告警状态转换，校验合法的 stage 跳转路径，非法跳转返回 409 Conflict。",
+      "tags": ["state-machine", "validation", "alerts"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:Mobile/backend/routes/apiAuthorizationRoutes.js",
+      "type": "file",
+      "name": "apiAuthorizationRoutes.js",
+      "filePath": "Mobile/backend/routes/apiAuthorizationRoutes.js",
+      "summary": "API 数据访问授权路由模块，实现授权申请的 CRUD 和审批流程，按角色（api_consumer/owner/platform_admin）隔离数据可见性。",
+      "tags": ["route", "api-handler", "authorization", "role-based"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:Mobile/backend/routes/apiAuthorizationRoutes.js:_findById",
+      "type": "function",
+      "name": "_findById",
+      "filePath": "Mobile/backend/routes/apiAuthorizationRoutes.js",
+      "lineRange": [14, 20],
+      "summary": "从 Store 全量列表中按 ID 查找授权记录的辅助函数。",
+      "tags": ["utility", "query"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:Mobile/backend/routes/apiAuthorizationRoutes.js:_checkReviewPermission",
+      "type": "function",
+      "name": "_checkReviewPermission",
+      "filePath": "Mobile/backend/routes/apiAuthorizationRoutes.js",
+      "lineRange": [22, 50],
+      "summary": "校验当前用户是否有权限审批指定的授权记录（需为 platform_admin 或关联牧场的 owner）。",
+      "tags": ["authorization", "permission-check"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:Mobile/backend/config/runtimeConfig.js",
+      "target": "function:Mobile/backend/config/runtimeConfig.js:buildRuntimeConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/apiAuthorizationStore.js",
+      "target": "file:Mobile/backend/data/tenantStore.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/data/apiAuthorizationStore.js",
+      "target": "function:Mobile/backend/data/apiAuthorizationStore.js:create",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/apiAuthorizationStore.js",
+      "target": "function:Mobile/backend/data/apiAuthorizationStore.js:approve",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/apiAuthorizationStore.js",
+      "target": "function:Mobile/backend/data/apiAuthorizationStore.js:list",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/apiKeyStore.js",
+      "target": "file:Mobile/backend/data/tenantStore.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/data/apiKeyStore.js",
+      "target": "file:Mobile/backend/data/apiTierStore.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/data/apiKeyStore.js",
+      "target": "function:Mobile/backend/data/apiKeyStore.js:generate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/apiKeyStore.js",
+      "target": "function:Mobile/backend/data/apiKeyStore.js:validate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/apiKeyStore.js",
+      "target": "function:Mobile/backend/data/apiKeyStore.js:rotate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/apiTierStore.js",
+      "target": "function:Mobile/backend/data/apiTierStore.js:incrementUsage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/apiTierStore.js",
+      "target": "function:Mobile/backend/data/apiTierStore.js:checkQuota",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/contractStore.js",
+      "target": "file:Mobile/backend/data/tenantStore.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/data/contractStore.js",
+      "target": "function:Mobile/backend/data/contractStore.js:create",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/feature-flags.js",
+      "target": "function:Mobile/backend/data/feature-flags.js:applyShapingRules",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/fenceStore.js",
+      "target": "file:Mobile/backend/data/seed.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/data/fenceStore.js",
+      "target": "function:Mobile/backend/data/fenceStore.js:createFence",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/revenueStore.js",
+      "target": "file:Mobile/backend/data/tenantStore.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/data/revenueStore.js",
+      "target": "file:Mobile/backend/data/contractStore.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/data/revenueStore.js",
+      "target": "function:Mobile/backend/data/revenueStore.js:calculate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/seed.js",
+      "target": "function:Mobile/backend/data/seed.js:generateAnimals",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/seed.js",
+      "target": "function:Mobile/backend/data/seed.js:generateDevices",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/subscriptions.js",
+      "target": "file:Mobile/backend/data/tenantStore.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/data/subscriptions.js",
+      "target": "function:Mobile/backend/data/subscriptions.js:checkout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/subscriptionServiceStore.js",
+      "target": "file:Mobile/backend/data/tenantStore.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/data/subscriptionServiceStore.js",
+      "target": "function:Mobile/backend/data/subscriptionServiceStore.js:create",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/subscriptionServiceStore.js",
+      "target": "function:Mobile/backend/data/subscriptionServiceStore.js:heartbeat",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/subscriptionServiceStore.js",
+      "target": "function:Mobile/backend/data/subscriptionServiceStore.js:scan",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/tenantStore.js",
+      "target": "file:Mobile/backend/data/seed.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/data/tenantStore.js",
+      "target": "function:Mobile/backend/data/tenantStore.js:createTenant",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/tenantStore.js",
+      "target": "function:Mobile/backend/data/tenantStore.js:updateTenant",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/tenantStore.js",
+      "target": "function:Mobile/backend/data/tenantStore.js:findByServiceKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/twin_seed.js",
+      "target": "function:Mobile/backend/data/twin_seed.js:buildFeverList",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/twin_seed.js",
+      "target": "function:Mobile/backend/data/twin_seed.js:buildDigestiveList",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/data/workerFarmStore.js",
+      "target": "function:Mobile/backend/data/workerFarmStore.js:assign",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/middleware/apiKeyAuth.js",
+      "target": "file:Mobile/backend/data/apiKeyStore.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/middleware/apiKeyAuth.js",
+      "target": "file:Mobile/backend/data/tenantStore.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/middleware/apiKeyAuth.js",
+      "target": "function:Mobile/backend/middleware/apiKeyAuth.js:apiKeyAuthMiddleware",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/middleware/auth.js",
+      "target": "file:Mobile/backend/data/seed.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/middleware/auth.js",
+      "target": "file:Mobile/backend/config/runtimeConfig.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/middleware/auth.js",
+      "target": "file:Mobile/backend/services/mockTokenService.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/middleware/auth.js",
+      "target": "function:Mobile/backend/middleware/auth.js:authMiddleware",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/middleware/auth.js",
+      "target": "function:Mobile/backend/middleware/auth.js:requirePermission",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/middleware/envelope.js",
+      "target": "function:Mobile/backend/middleware/envelope.js:envelopeMiddleware",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/middleware/farmContext.js",
+      "target": "file:Mobile/backend/data/tenantStore.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/middleware/farmContext.js",
+      "target": "file:Mobile/backend/data/workerFarmStore.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/middleware/farmContext.js",
+      "target": "function:Mobile/backend/middleware/farmContext.js:farmContextMiddleware",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/middleware/feature-flag.js",
+      "target": "file:Mobile/backend/services/tierService.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/middleware/feature-flag.js",
+      "target": "file:Mobile/backend/data/feature-flags.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/middleware/feature-flag.js",
+      "target": "function:Mobile/backend/middleware/feature-flag.js:shapingMiddleware",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/middleware/rateLimit.js",
+      "target": "function:Mobile/backend/middleware/rateLimit.js:rateLimitMiddleware",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/middleware/requestContext.js",
+      "target": "function:Mobile/backend/middleware/requestContext.js:requestContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/routes/alerts.js",
+      "target": "file:Mobile/backend/middleware/auth.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/routes/alerts.js",
+      "target": "file:Mobile/backend/middleware/feature-flag.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/routes/alerts.js",
+      "target": "file:Mobile/backend/data/seed.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/routes/alerts.js",
+      "target": "function:Mobile/backend/routes/alerts.js:transitionAlert",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/routes/apiAuthorizationRoutes.js",
+      "target": "file:Mobile/backend/data/apiAuthorizationStore.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/routes/apiAuthorizationRoutes.js",
+      "target": "file:Mobile/backend/data/tenantStore.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/routes/apiAuthorizationRoutes.js",
+      "target": "file:Mobile/backend/middleware/auth.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:Mobile/backend/routes/apiAuthorizationRoutes.js",
+      "target": "function:Mobile/backend/routes/apiAuthorizationRoutes.js:_findById",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:Mobile/backend/routes/apiAuthorizationRoutes.js",
+      "target": "function:Mobile/backend/routes/apiAuthorizationRoutes.js:_checkReviewPermission",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "config:Mobile/backend/package.json",
+      "target": "file:Mobile/backend/config/runtimeConfig.js",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

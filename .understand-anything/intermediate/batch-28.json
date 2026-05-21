@@ -1,0 +1,510 @@
+{
+  "nodes": [
+    {
+      "id": "service:smart-livestock-server/docker-compose.yml",
+      "type": "service",
+      "name": "docker-compose.yml",
+      "filePath": "smart-livestock-server/docker-compose.yml",
+      "summary": "全栈 Docker Compose 编排文件，定义了 PostgreSQL 16、Redis 7、RocketMQ 5.1、Spring Boot 应用、tileserver-gl 瓦片服务和 Nginx 反向代理六个服务容器，含健康检查和依赖关系。",
+      "tags": ["orchestration", "infrastructure", "containerization", "deployment"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "service:smart-livestock-server/Dockerfile",
+      "type": "service",
+      "name": "Dockerfile",
+      "filePath": "smart-livestock-server/Dockerfile",
+      "summary": "基于 eclipse-temurin:17-jre 的 Spring Boot 应用容器镜像定义，将 Gradle 构建产物 jar 包拷入并暴露 8080 端口运行。",
+      "tags": ["containerization", "infrastructure", "deployment"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/gradle.properties",
+      "type": "file",
+      "name": "gradle.properties",
+      "filePath": "smart-livestock-server/gradle.properties",
+      "summary": "Gradle 属性配置文件，设置 HTTPS 协议为 TLSv1.2 和 TLSv1.3，用于阿里云仓库等安全连接。",
+      "tags": ["configuration", "build-system"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/gradle/wrapper/gradle-wrapper.properties",
+      "type": "file",
+      "name": "gradle-wrapper.properties",
+      "filePath": "smart-livestock-server/gradle/wrapper/gradle-wrapper.properties",
+      "summary": "Gradle Wrapper 配置，指定 Gradle 8.7 发行版下载地址及本地缓存路径。",
+      "tags": ["configuration", "build-system"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/gradlew",
+      "type": "file",
+      "name": "gradlew",
+      "filePath": "smart-livestock-server/gradlew",
+      "summary": "Gradle Wrapper 的 Unix/Linux/macOS 启动脚本，自动下载并执行指定版本的 Gradle，无需本地安装。",
+      "tags": ["build-system", "entry-point", "tooling"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:smart-livestock-server/gradlew.bat",
+      "type": "file",
+      "name": "gradlew.bat",
+      "filePath": "smart-livestock-server/gradlew.bat",
+      "summary": "Gradle Wrapper 的 Windows 批处理启动脚本，功能与 gradlew 相同，用于 Windows 环境下自动下载和执行 Gradle。",
+      "tags": ["build-system", "tooling"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "service:smart-livestock-server/infrastructure/nginx/Dockerfile",
+      "type": "service",
+      "name": "Dockerfile (nginx)",
+      "filePath": "smart-livestock-server/infrastructure/nginx/Dockerfile",
+      "summary": "基于 nginx:alpine 的轻量级 Nginx 反向代理镜像，将自定义 nginx.conf 拷贝到容器默认配置目录。",
+      "tags": ["containerization", "infrastructure", "reverse-proxy"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/infrastructure/nginx/nginx.conf",
+      "type": "file",
+      "name": "nginx.conf",
+      "filePath": "smart-livestock-server/infrastructure/nginx/nginx.conf",
+      "summary": "Nginx 反向代理配置，将 /tiles/ 路由到 tileserver-gl（带30天缓存）、/api/v1/ 路由到 Spring Boot 应用、/health 做健康检查，其余路径返回 404。",
+      "tags": ["configuration", "reverse-proxy", "routing"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:smart-livestock-server/infrastructure/tileserver/data/config.json",
+      "type": "config",
+      "name": "config.json (tileserver)",
+      "filePath": "smart-livestock-server/infrastructure/tileserver/data/config.json",
+      "summary": "tileserver-gl 的配置文件，指定 changsha.mbtiles 作为矢量瓦片数据源，监听 8080 端口提供地图瓦片服务。",
+      "tags": ["configuration", "infrastructure", "map-tiles"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:smart-livestock-server/settings.gradle",
+      "type": "config",
+      "name": "settings.gradle",
+      "filePath": "smart-livestock-server/settings.gradle",
+      "summary": "Gradle 项目设置文件，配置阿里云镜像仓库和 Gradle Plugin Portal 作为插件来源，项目名称为 smart-livestock-server。",
+      "tags": ["configuration", "build-system"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "type": "file",
+      "name": "Contract.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "summary": "Commerce 限界上下文的核心聚合根，管理 B2B 合作伙伴合同。实现 DRAFT→ACTIVE→SUSPENDED/TERMINATED/EXPIRED 状态机，包含工厂方法创建合同、签署/暂停/恢复/终止/到期等状态转换、以及收入分润计算（BigDecimal 精确运算）。",
+      "tags": ["data-model", "aggregate-root", "domain-event", "state-machine"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java:Contract",
+      "type": "class",
+      "name": "Contract",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "lineRange": [24, 193],
+      "summary": "合同聚合根类，继承 AggregateRoot，管理 B2B 合同全生命周期。包含工厂方法 create()、状态转换方法 sign/suspend/reactivate/terminate/markExpired、收入分润计算 calculateRevenueShare，以及状态守卫 requireStatus。",
+      "tags": ["aggregate-root", "state-machine", "domain-model"],
+      "complexity": "moderate",
+      "languageNotes": "使用 record 类型 RevenueShareResult 封装分润计算结果，BigDecimal.intValue() 截断精度差异由平台方吸收。"
+    },
+    {
+      "id": "function:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java:create",
+      "type": "function",
+      "name": "Contract.create",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "lineRange": [57, 74],
+      "summary": "工厂方法，创建 DRAFT 状态的新合同实例。对 revenue_share 计费模式验证分润比例，并注册 ContractCreatedEvent 领域事件。",
+      "tags": ["factory-method", "domain-event"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java:sign",
+      "type": "function",
+      "name": "Contract.sign",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "lineRange": [88, 94],
+      "summary": "签署合同，将状态从 DRAFT 转换为 ACTIVE，记录签署人和签署时间，触发 ContractSignedEvent。",
+      "tags": ["state-transition", "domain-event"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java:calculateRevenueShare",
+      "type": "function",
+      "name": "Contract.calculateRevenueShare",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "lineRange": [143, 151],
+      "summary": "根据毛收入金额计算平台方和合作伙伴的收入分润，使用 BigDecimal 精确运算，平台方吸收截断精度差异。",
+      "tags": ["business-logic", "revenue"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/ContractStatus.java",
+      "type": "file",
+      "name": "ContractStatus.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/ContractStatus.java",
+      "summary": "合同状态枚举，定义 DRAFT、ACTIVE、SUSPENDED、EXPIRED、TERMINATED 五种状态，驱动 Contract 聚合根的状态机。",
+      "tags": ["data-model", "state-machine", "enum"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractCreatedEvent.java",
+      "type": "file",
+      "name": "ContractCreatedEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractCreatedEvent.java",
+      "summary": "合同创建领域事件，携带 tenantId 和 contractNumber，由 Contract.create() 工厂方法触发。",
+      "tags": ["domain-event", "event-handler"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractExpiredEvent.java",
+      "type": "file",
+      "name": "ContractExpiredEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractExpiredEvent.java",
+      "summary": "合同到期领域事件，携带 tenantId 和 contractNumber，由 Contract.markExpired() 触发。",
+      "tags": ["domain-event", "event-handler"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractReactivatedEvent.java",
+      "type": "file",
+      "name": "ContractReactivatedEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractReactivatedEvent.java",
+      "summary": "合同恢复领域事件，携带 tenantId 和 contractNumber，由 Contract.reactivate() 触发，表示暂停的合同重新激活。",
+      "tags": ["domain-event", "event-handler"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractSuspendedEvent.java",
+      "type": "file",
+      "name": "ContractSuspendedEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractSuspendedEvent.java",
+      "summary": "合同暂停领域事件，携带 tenantId 和 contractNumber，由 Contract.suspend() 触发。",
+      "tags": ["domain-event", "event-handler"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractTerminatedEvent.java",
+      "type": "file",
+      "name": "ContractTerminatedEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractTerminatedEvent.java",
+      "summary": "合同终止领域事件，携带 tenantId 和 contractNumber，由 Contract.terminate() 触发，表示合同被正式终止。",
+      "tags": ["domain-event", "event-handler"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/RevenuePartnerConfirmedEvent.java",
+      "type": "file",
+      "name": "RevenuePartnerConfirmedEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/RevenuePartnerConfirmedEvent.java",
+      "summary": "合作伙伴确认收入分润领域事件，携带 contractId 和 tenantId，表示合作伙伴已确认当期分润金额。",
+      "tags": ["domain-event", "revenue"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/RevenuePeriodCreatedEvent.java",
+      "type": "file",
+      "name": "RevenuePeriodCreatedEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/RevenuePeriodCreatedEvent.java",
+      "summary": "收入周期创建领域事件，携带 contractId 和 tenantId，表示新的分润周期已创建。",
+      "tags": ["domain-event", "revenue"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/RevenuePlatformConfirmedEvent.java",
+      "type": "file",
+      "name": "RevenuePlatformConfirmedEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/RevenuePlatformConfirmedEvent.java",
+      "summary": "平台确认收入分润领域事件，携带 contractId 和 tenantId，表示平台方已确认当期分润金额。",
+      "tags": ["domain-event", "revenue"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/RevenueSettledEvent.java",
+      "type": "file",
+      "name": "RevenueSettledEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/RevenueSettledEvent.java",
+      "summary": "收入结算完成领域事件，携带 contractId 和 tenantId，表示当期分润已完成结算。",
+      "tags": ["domain-event", "revenue"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ServiceActivatedEvent.java",
+      "type": "file",
+      "name": "ServiceActivatedEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ServiceActivatedEvent.java",
+      "summary": "订阅服务激活领域事件，携带 tenantId 和 serviceName，表示租户的某项订阅服务已激活。",
+      "tags": ["domain-event", "subscription"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ServiceHeartbeatLostEvent.java",
+      "type": "file",
+      "name": "ServiceHeartbeatLostEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ServiceHeartbeatLostEvent.java",
+      "summary": "服务心跳丢失领域事件，携带 tenantId 和 serviceName，用于监测订阅服务的健康状态。",
+      "tags": ["domain-event", "monitoring"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ServiceHeartbeatRecoveredEvent.java",
+      "type": "file",
+      "name": "ServiceHeartbeatRecoveredEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ServiceHeartbeatRecoveredEvent.java",
+      "summary": "服务心跳恢复领域事件，携带 tenantId 和 serviceName，表示之前丢失心跳的服务已恢复。",
+      "tags": ["domain-event", "monitoring"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ServiceProvisionedEvent.java",
+      "type": "file",
+      "name": "ServiceProvisionedEvent.java",
+      "filePath": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ServiceProvisionedEvent.java",
+      "summary": "服务开通领域事件，携带 tenantId 和 serviceName，表示新的订阅服务已为租户开通。",
+      "tags": ["domain-event", "subscription"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractCreatedEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractExpiredEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractReactivatedEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractSuspendedEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractTerminatedEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/DomainException.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/common/ErrorCode.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/AggregateRoot.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/event/ContractSignedEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractCreatedEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractExpiredEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractReactivatedEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractSuspendedEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ContractTerminatedEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/RevenuePartnerConfirmedEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/RevenuePeriodCreatedEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/RevenuePlatformConfirmedEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/RevenueSettledEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ServiceActivatedEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ServiceHeartbeatLostEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ServiceHeartbeatRecoveredEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/event/ServiceProvisionedEvent.java",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/shared/domain/DomainEvent.java",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java:Contract",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "target": "function:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java:create",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "target": "function:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java:sign",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "target": "function:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java:calculateRevenueShare",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "target": "class:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java:Contract",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "service:smart-livestock-server/docker-compose.yml",
+      "target": "service:smart-livestock-server/Dockerfile",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "service:smart-livestock-server/docker-compose.yml",
+      "target": "service:smart-livestock-server/infrastructure/nginx/Dockerfile",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "service:smart-livestock-server/docker-compose.yml",
+      "target": "config:smart-livestock-server/infrastructure/tileserver/data/config.json",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "service:smart-livestock-server/Dockerfile",
+      "target": "file:smart-livestock-server/src/main/java/com/smartlivestock/commerce/domain/model/Contract.java",
+      "type": "deploys",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "service:smart-livestock-server/infrastructure/nginx/Dockerfile",
+      "target": "file:smart-livestock-server/infrastructure/nginx/nginx.conf",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:smart-livestock-server/infrastructure/nginx/nginx.conf",
+      "target": "service:smart-livestock-server/docker-compose.yml",
+      "type": "routes",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:smart-livestock-server/settings.gradle",
+      "target": "file:smart-livestock-server/gradle.properties",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

@@ -1,0 +1,394 @@
+{
+  "nodes": [
+    {
+      "id": "config:PC/frontend/src/assets/data/capsule.json",
+      "type": "config",
+      "name": "capsule.json",
+      "filePath": "PC/frontend/src/assets/data/capsule.json",
+      "summary": "瘤胃胶囊设备静态数据种子，包含 15 条胶囊记录（含 capsule_id、生产批次、激活/过期日期、状态：已安装/库存），供 PC 前端 CapsuleService 加载使用。",
+      "tags": ["data-seed", "capsule", "static-data", "pc-frontend"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:PC/frontend/src/assets/data/cattle.json",
+      "type": "config",
+      "name": "cattle.json",
+      "filePath": "PC/frontend/src/assets/data/cattle.json",
+      "summary": "牛只基础信息静态数据种子，包含 10 条牛只记录（含 breed、birth_date、weight、gender），涵盖安格斯、荷斯坦等品种，供 PC 前端 CattleService 加载使用。",
+      "tags": ["data-seed", "cattle", "static-data", "pc-frontend"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:PC/frontend/src/assets/data/location_log.json",
+      "type": "config",
+      "name": "location_log.json",
+      "filePath": "PC/frontend/src/assets/data/location_log.json",
+      "summary": "GPS 定位日志静态数据种子，包含 10 条位置记录（含 latitude、longitude、log_time），坐标集中在长沙附近（约 28.24, 112.85），供 PC 前端地图模块使用。",
+      "tags": ["data-seed", "gps", "static-data", "pc-frontend"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:PC/frontend/src/assets/data/peristalsis_log.json",
+      "type": "config",
+      "name": "peristalsis_log.json",
+      "filePath": "PC/frontend/src/assets/data/peristalsis_log.json",
+      "summary": "瘤胃蠕动次数时序数据种子，包含约 10800 条蠕动日志记录（peristalsis_count + log_time），按胶囊 ID 关联，用于 Chart.js 时序图表展示。",
+      "tags": ["data-seed", "sensor-data", "time-series", "pc-frontend"],
+      "complexity": "complex"
+    },
+    {
+      "id": "config:PC/frontend/src/assets/data/temperature_log.json",
+      "type": "config",
+      "name": "temperature_log.json",
+      "filePath": "PC/frontend/src/assets/data/temperature_log.json",
+      "summary": "瘤胃温度时序数据种子，包含约 10800 条温度日志记录（temperature + log_time），按胶囊 ID 关联，用于 Chart.js 时序图表展示。",
+      "tags": ["data-seed", "sensor-data", "time-series", "pc-frontend"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:PC/frontend/src/assets/knowledge/CHADT.md",
+      "type": "document",
+      "name": "CHADT.md",
+      "filePath": "PC/frontend/src/assets/knowledge/CHADT.md",
+      "summary": "牛健康辅助决策树（Cattle Health ADT），按性别（公牛/母牛）和生理状态（怀孕初期/后期、哺乳期等）分层，根据胃温度、胃蠕动次数/力量/节律指标判定健康或潜在异常。",
+      "tags": ["knowledge-base", "health-analysis", "decision-tree", "veterinary"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:PC/frontend/src/environments/environment.development.ts",
+      "type": "file",
+      "name": "environment.development.ts",
+      "filePath": "PC/frontend/src/environments/environment.development.ts",
+      "summary": "Angular 开发环境配置，导出 environment 对象（production: false, apiUrl: localhost:3000/api），用于本地开发时代理后端 API。",
+      "tags": ["configuration", "environment", "angular"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/environments/environment.ts",
+      "type": "file",
+      "name": "environment.ts",
+      "filePath": "PC/frontend/src/environments/environment.ts",
+      "summary": "Angular 环境配置的类型定义与默认实现，定义 Environment 接口（production + apiUrl），导出非生产环境配置指向 localhost:3000/api。",
+      "tags": ["configuration", "environment", "type-definition", "angular"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/index.html",
+      "type": "file",
+      "name": "index.html",
+      "filePath": "PC/frontend/src/index.html",
+      "summary": "Angular SPA 入口 HTML，设置 base href、视口 meta，挂载 app-root 根组件。",
+      "tags": ["entry-point", "html", "angular"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/main.server.ts",
+      "type": "file",
+      "name": "main.server.ts",
+      "filePath": "PC/frontend/src/main.server.ts",
+      "summary": "Angular SSR 服务器端引导入口，导入 app.config.server 配置和 AppComponent，导出 bootstrap 函数供 Express 服务器调用。",
+      "tags": ["entry-point", "ssr", "angular", "server-side"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/main.ts",
+      "type": "file",
+      "name": "main.ts",
+      "filePath": "PC/frontend/src/main.ts",
+      "summary": "Angular 浏览器端引导入口，导入 appConfig 和 AppComponent，调用 bootstrapApplication 启动独立组件应用。",
+      "tags": ["entry-point", "bootstrap", "angular"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:PC/frontend/src/server.ts",
+      "type": "file",
+      "name": "server.ts",
+      "filePath": "PC/frontend/src/server.ts",
+      "summary": "Angular SSR Express 服务器配置，使用 AngularNodeAppEngine 处理请求，提供静态文件服务和 SSR 渲染，默认监听端口 4000。",
+      "tags": ["entry-point", "ssr", "express", "server"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:PC/frontend/src/styles.scss",
+      "type": "file",
+      "name": "styles.scss",
+      "filePath": "PC/frontend/src/styles.scss",
+      "summary": "全局样式文件，引入 Leaflet 地图 CSS，定义自定义地图标记样式、critical 状态脉冲动画，以及 Leaflet 兼容性修复。",
+      "tags": ["styles", "leaflet", "global-css", "animation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:PC/frontend/tsconfig.app.json",
+      "type": "config",
+      "name": "tsconfig.app.json",
+      "filePath": "PC/frontend/tsconfig.app.json",
+      "summary": "Angular 应用专用 TypeScript 编译配置，继承 tsconfig.json，指定入口文件（main.ts、main.server.ts、server.ts）和输出目录。",
+      "tags": ["configuration", "typescript", "build-system", "angular"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:PC/frontend/tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "PC/frontend/tsconfig.json",
+      "summary": "Angular 前端 TypeScript 编译配置，启用严格模式、ES2022 目标、Angular 严格模板注入和装饰器支持。",
+      "tags": ["configuration", "typescript", "angular", "strict-mode"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:PC/frontend/提示词/增删改查.md",
+      "type": "document",
+      "name": "增删改查.md",
+      "filePath": "PC/frontend/提示词/增删改查.md",
+      "summary": "基于 capsule.json 的设备信息登记功能需求提示词，要求实现分页列表查询、组合条件查询及增删改查功能。",
+      "tags": ["prompt", "requirements", "crud", "capsule"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:PC/migration-summary.md",
+      "type": "document",
+      "name": "migration-summary.md",
+      "filePath": "PC/migration-summary.md",
+      "summary": "PC 端后端从 Node.js/MongoDB 迁移到 Spring Boot/PostgreSQL 的总结报告，涵盖已完成工作（架构设计、数据库设计、实体/DAO/Service 层）和待完成工作（控制器、安全、迁移工具）。",
+      "tags": ["documentation", "migration", "spring-boot", "architecture"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:PC/package-lock.json",
+      "type": "config",
+      "name": "package-lock.json",
+      "filePath": "PC/package-lock.json",
+      "summary": "PC 端 npm 依赖锁定文件，锁定 frontend 和 backend workspace 的所有依赖版本。",
+      "tags": ["configuration", "npm", "dependencies", "lockfile"],
+      "complexity": "complex"
+    },
+    {
+      "id": "config:PC/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "PC/package.json",
+      "summary": "PC 端 npm workspace 根配置，管理 frontend + backend 两个子包，提供 start/build/install:all/test 脚本，使用 concurrently 并行启动前后端。",
+      "tags": ["configuration", "npm-workspace", "build-system", "monorepo"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:PC/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "PC/README.md",
+      "summary": "PC 端项目文档，介绍 Angular 19 + Express/MongoDB 架构的历史前后端分离结构，包含安装运行、技术栈和模块说明。",
+      "tags": ["documentation", "overview", "pc-frontend", "angular"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:PC/tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "PC/tsconfig.json",
+      "summary": "PC 端 TypeScript 项目根配置，启用严格模式，通过 references 引用 frontend 和 backend 子项目的 tsconfig。",
+      "tags": ["configuration", "typescript", "project-references"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:PC/牛健康咨询.yml",
+      "type": "config",
+      "name": "牛健康咨询.yml",
+      "filePath": "PC/牛健康咨询.yml",
+      "summary": "Dify 平台的牛健康咨询工作流应用配置（advanced-chat 模式），定义基于胃温度和蠕动数据判断牛只健康状态的 AI 对话流程，包含知识库检索节点和 LLM 推理节点。",
+      "tags": ["ai-workflow", "dify", "health-analysis", "llm"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "项目根 README，说明智慧畜牧系统的 Mobile/PC 双端架构，重点指向活跃的 Mobile（Flutter）端和已归档的 PC（Angular）端，提供快速开始和文档索引。",
+      "tags": ["documentation", "entry-point", "overview", "project-root"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "pipeline:smart-livestock-server/.gitlab-ci.yml",
+      "type": "pipeline",
+      "name": ".gitlab-ci.yml",
+      "filePath": "smart-livestock-server/.gitlab-ci.yml",
+      "summary": "Spring Boot 后端的 GitLab CI/CD 流水线，定义 build（Gradle 编译）、test（PostgreSQL/Redis 服务容器）、docker-build（构建推送镜像到私有 Registry）和 deploy（手动触发远程部署）四个阶段。",
+      "tags": ["ci-cd", "pipeline", "gitlab", "deployment"],
+      "complexity": "moderate",
+      "languageNotes": "使用 GitLab CI services 嵌入 PostgreSQL 16 和 Redis 7 容器进行集成测试，镜像推送到内网 172.22.1.123:5000 Registry。"
+    },
+    {
+      "id": "config:smart-livestock-server/build.gradle",
+      "type": "config",
+      "name": "build.gradle",
+      "filePath": "smart-livestock-server/build.gradle",
+      "summary": "Spring Boot 3.3 后端 Gradle 构建配置，定义 Java 17 源码兼容、依赖管理（JPA/Redis/Security/JWT/RocketMQ/Flyway/Lombok/Testcontainers），含自动递增 build.number 版本号机制。",
+      "tags": ["configuration", "gradle", "build-system", "spring-boot"],
+      "complexity": "moderate",
+      "languageNotes": "使用 build.number 文件自动递增构建版本号，Maven 仓库配置阿里云镜像加速。"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:PC/frontend/src/main.server.ts",
+      "target": "file:PC/frontend/src/app/app.component.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/main.server.ts",
+      "target": "file:PC/frontend/src/app/app.config.server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/main.ts",
+      "target": "file:PC/frontend/src/app/app.config.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:PC/frontend/src/main.ts",
+      "target": "file:PC/frontend/src/app/app.component.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "config:PC/frontend/tsconfig.json",
+      "target": "file:PC/frontend/src/main.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:PC/frontend/tsconfig.json",
+      "target": "file:PC/frontend/src/server.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:PC/frontend/tsconfig.json",
+      "target": "file:PC/frontend/src/main.server.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:PC/frontend/tsconfig.app.json",
+      "target": "config:PC/frontend/tsconfig.json",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:PC/tsconfig.json",
+      "target": "config:PC/frontend/tsconfig.json",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:PC/package.json",
+      "target": "file:PC/frontend/src/main.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:PC/package.json",
+      "target": "file:PC/frontend/src/server.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:PC/README.md",
+      "target": "config:PC/package.json",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "config:PC/package.json",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:PC/migration-summary.md",
+      "target": "config:smart-livestock-server/build.gradle",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "pipeline:smart-livestock-server/.gitlab-ci.yml",
+      "target": "config:smart-livestock-server/build.gradle",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "pipeline:smart-livestock-server/.gitlab-ci.yml",
+      "target": "file:PC/frontend/src/server.ts",
+      "type": "triggers",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:PC/frontend/提示词/增删改查.md",
+      "target": "config:PC/frontend/src/assets/data/capsule.json",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:PC/frontend/src/assets/knowledge/CHADT.md",
+      "target": "config:PC/frontend/src/assets/data/temperature_log.json",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:PC/frontend/src/assets/knowledge/CHADT.md",
+      "target": "config:PC/frontend/src/assets/data/peristalsis_log.json",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:PC/牛健康咨询.yml",
+      "target": "document:PC/frontend/src/assets/knowledge/CHADT.md",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:PC/frontend/src/styles.scss",
+      "target": "file:PC/frontend/src/index.html",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:PC/frontend/src/environments/environment.ts",
+      "target": "file:PC/frontend/src/environments/environment.development.ts",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:PC/frontend/src/main.server.ts",
+      "target": "file:PC/frontend/src/server.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}
