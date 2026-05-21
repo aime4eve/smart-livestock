@@ -11,4 +11,5 @@ public interface FenceRepository {
     List<Fence> findByFarmId(Long farmId);
     void deleteById(Long id);
     long countByFarmId(Long farmId);
+    long countByFarmIdAndTenantId(Long farmId, Long tenantId);
 }

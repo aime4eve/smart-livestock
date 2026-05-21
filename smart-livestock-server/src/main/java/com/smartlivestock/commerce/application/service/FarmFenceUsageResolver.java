@@ -19,6 +19,6 @@ public class FarmFenceUsageResolver implements UsageResolver {
 
     @Override
     public int resolve(Long tenantId, Long farmId) {
-        return (int) fenceRepository.countByFarmId(farmId);
+        return (int) fenceRepository.countByFarmIdAndTenantId(farmId, tenantId);
     }
 }

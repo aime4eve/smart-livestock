@@ -51,4 +51,9 @@ public class JpaLivestockRepositoryImpl implements LivestockRepository {
     public long countByFarmId(Long farmId) {
         return springDataRepo.countByFarmId(farmId);
     }
+
+    @Override
+    public long countByFarmIdAndTenantId(Long farmId, Long tenantId) {
+        return springDataRepo.countByFarmIdAndTenantId(farmId, tenantId);
+    }
 }

@@ -9,6 +9,8 @@ import com.smartlivestock.shared.tenant.TenantContext;
 import com.smartlivestock.shared.web.FarmIdPathParser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -20,6 +22,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class QuotaInterceptor implements HandlerInterceptor {
+
+    private static final Logger log = LoggerFactory.getLogger(QuotaInterceptor.class);
 
     private final QuotaCheckService quotaCheckService;
     private final Map<String, UsageResolver> resolverMap;
@@ -45,6 +49,8 @@ public class QuotaInterceptor implements HandlerInterceptor {
         String featureKey = annotation.feature();
         Long tenantId = TenantContext.getCurrentTenant();
         if (tenantId == null) {
+            log.warn("@QuotaCheck(feature='{}') hit without tenant context on {} — skipping quota check",
+                    featureKey, request.getRequestURI());
             return true;
         }
 
