@@ -1,11 +1,14 @@
 package com.smartlivestock.commerce.infrastructure.persistence;
 
 import com.smartlivestock.commerce.domain.model.Subscription;
+import com.smartlivestock.commerce.domain.model.SubscriptionStatus;
 import com.smartlivestock.commerce.domain.repository.SubscriptionRepository;
+import com.smartlivestock.commerce.infrastructure.persistence.mapper.EnumConverters;
 import com.smartlivestock.commerce.infrastructure.persistence.mapper.SubscriptionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -18,6 +21,13 @@ public class JpaSubscriptionRepositoryImpl implements SubscriptionRepository {
     public Optional<Subscription> findByTenantId(Long tenantId) {
         return springDataRepo.findByTenantId(tenantId)
                 .map(SubscriptionMapper::toDomain);
+    }
+
+    @Override
+    public List<Subscription> findByStatus(SubscriptionStatus status) {
+        return springDataRepo.findByStatus(EnumConverters.toDb(status)).stream()
+                .map(SubscriptionMapper::toDomain)
+                .toList();
     }
 
     @Override
