@@ -3,6 +3,9 @@ package com.smartlivestock.commerce.application.service;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import org.springframework.stereotype.Component;
 
+/**
+ * Counts livestock per farm for the livestock_management quota gate.
+ */
 @Component
 public class FarmLivestockUsageResolver implements UsageResolver {
 

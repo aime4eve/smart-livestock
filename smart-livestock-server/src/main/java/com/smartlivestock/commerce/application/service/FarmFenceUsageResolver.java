@@ -3,6 +3,9 @@ package com.smartlivestock.commerce.application.service;
 import com.smartlivestock.ranch.domain.repository.FenceRepository;
 import org.springframework.stereotype.Component;
 
+/**
+ * Counts fences per farm for the fence_management quota gate.
+ */
 @Component
 public class FarmFenceUsageResolver implements UsageResolver {
 

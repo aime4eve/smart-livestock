@@ -11,6 +11,9 @@ import com.smartlivestock.shared.common.DomainException;
 import org.springframework.stereotype.Service;
 import com.smartlivestock.shared.common.ErrorCode;
 
+/**
+ * Two-layer quota engine: checks subscription activity first, then feature gate rules.
+ */
 @Service
 public class QuotaApplicationService implements QuotaCheckService {
 

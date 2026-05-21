@@ -1,5 +1,8 @@
 package com.smartlivestock.commerce.application.dto;
 
+/**
+ * Result of a quota check — allowed, denied, or allowed with data retention limit.
+ */
 public class QuotaResult {
 
     private final boolean allowed;
