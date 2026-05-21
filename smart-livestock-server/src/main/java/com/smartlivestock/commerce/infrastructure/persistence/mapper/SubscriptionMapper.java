@@ -5,6 +5,9 @@ import com.smartlivestock.commerce.domain.model.SubscriptionStatus;
 import com.smartlivestock.commerce.domain.model.SubscriptionTier;
 import com.smartlivestock.commerce.infrastructure.persistence.entity.SubscriptionJpaEntity;
 
+import static com.smartlivestock.commerce.infrastructure.persistence.mapper.EnumConverters.fromDb;
+import static com.smartlivestock.commerce.infrastructure.persistence.mapper.EnumConverters.toDb;
+
 public final class SubscriptionMapper {
 
     private SubscriptionMapper() {}
@@ -13,9 +16,9 @@ public final class SubscriptionMapper {
         SubscriptionJpaEntity jpa = new SubscriptionJpaEntity();
         jpa.setId(domain.getId());
         jpa.setTenantId(domain.getTenantId());
-        jpa.setTier(domain.getTier().name().toLowerCase());
+        jpa.setTier(toDb(domain.getTier()));
         jpa.setBillingModel(domain.getBillingModel());
-        jpa.setStatus(domain.getStatus().name().toLowerCase());
+        jpa.setStatus(toDb(domain.getStatus()));
         jpa.setBillingCycle(domain.getBillingCycle());
         jpa.setStartedAt(domain.getStartedAt());
         jpa.setExpiresAt(domain.getExpiresAt());
@@ -25,9 +28,9 @@ public final class SubscriptionMapper {
     }
 
     public static void updateEntity(SubscriptionJpaEntity existing, Subscription domain) {
-        existing.setTier(domain.getTier().name().toLowerCase());
+        existing.setTier(toDb(domain.getTier()));
         existing.setBillingModel(domain.getBillingModel());
-        existing.setStatus(domain.getStatus().name().toLowerCase());
+        existing.setStatus(toDb(domain.getStatus()));
         existing.setBillingCycle(domain.getBillingCycle());
         existing.setStartedAt(domain.getStartedAt());
         existing.setExpiresAt(domain.getExpiresAt());
@@ -39,9 +42,9 @@ public final class SubscriptionMapper {
         Subscription domain = new Subscription();
         domain.setId(jpa.getId());
         domain.setTenantId(jpa.getTenantId());
-        domain.setTier(SubscriptionTier.valueOf(jpa.getTier().toUpperCase()));
+        domain.setTier(fromDb(jpa.getTier(), SubscriptionTier.class));
         domain.setBillingModel(jpa.getBillingModel());
-        domain.setStatus(SubscriptionStatus.valueOf(jpa.getStatus().toUpperCase()));
+        domain.setStatus(fromDb(jpa.getStatus(), SubscriptionStatus.class));
         domain.setBillingCycle(jpa.getBillingCycle());
         domain.setStartedAt(jpa.getStartedAt());
         domain.setExpiresAt(jpa.getExpiresAt());

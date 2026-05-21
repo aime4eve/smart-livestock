@@ -34,13 +34,13 @@ public class RevenuePeriodJpaEntity {
     private LocalDate periodEnd;
 
     @Column(name = "gross_amount", nullable = false)
-    private Integer grossAmount;
+    private int grossAmount;
 
     @Column(name = "platform_share", nullable = false)
-    private Integer platformShare;
+    private int platformShare;
 
     @Column(name = "partner_share", nullable = false)
-    private Integer partnerShare;
+    private int partnerShare;
 
     @Column(name = "revenue_share_ratio", nullable = false, precision = 5, scale = 4)
     private BigDecimal revenueShareRatio;
@@ -80,14 +80,14 @@ public class RevenuePeriodJpaEntity {
     public LocalDate getPeriodEnd() { return periodEnd; }
     public void setPeriodEnd(LocalDate periodEnd) { this.periodEnd = periodEnd; }
 
-    public Integer getGrossAmount() { return grossAmount; }
-    public void setGrossAmount(Integer grossAmount) { this.grossAmount = grossAmount; }
+    public int getGrossAmount() { return grossAmount; }
+    public void setGrossAmount(int grossAmount) { this.grossAmount = grossAmount; }
 
-    public Integer getPlatformShare() { return platformShare; }
-    public void setPlatformShare(Integer platformShare) { this.platformShare = platformShare; }
+    public int getPlatformShare() { return platformShare; }
+    public void setPlatformShare(int platformShare) { this.platformShare = platformShare; }
 
-    public Integer getPartnerShare() { return partnerShare; }
-    public void setPartnerShare(Integer partnerShare) { this.partnerShare = partnerShare; }
+    public int getPartnerShare() { return partnerShare; }
+    public void setPartnerShare(int partnerShare) { this.partnerShare = partnerShare; }
 
     public BigDecimal getRevenueShareRatio() { return revenueShareRatio; }
     public void setRevenueShareRatio(BigDecimal revenueShareRatio) { this.revenueShareRatio = revenueShareRatio; }

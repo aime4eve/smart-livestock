@@ -4,6 +4,9 @@ import com.smartlivestock.commerce.domain.model.FeatureGate;
 import com.smartlivestock.commerce.domain.model.GateType;
 import com.smartlivestock.commerce.infrastructure.persistence.entity.FeatureGateJpaEntity;
 
+import static com.smartlivestock.commerce.infrastructure.persistence.mapper.EnumConverters.fromDb;
+import static com.smartlivestock.commerce.infrastructure.persistence.mapper.EnumConverters.toDb;
+
 public final class FeatureGateMapper {
 
     private FeatureGateMapper() {}
@@ -13,7 +16,7 @@ public final class FeatureGateMapper {
         jpa.setId(domain.getId());
         jpa.setTier(domain.getTier());
         jpa.setFeatureKey(domain.getFeatureKey());
-        jpa.setGateType(domain.getGateType().name().toLowerCase());
+        jpa.setGateType(toDb(domain.getGateType()));
         jpa.setLimitValue(domain.getLimitValue());
         jpa.setRetentionDays(domain.getRetentionDays());
         jpa.setIsEnabled(domain.isEnabled());
@@ -25,7 +28,7 @@ public final class FeatureGateMapper {
         domain.setId(jpa.getId());
         domain.setTier(jpa.getTier());
         domain.setFeatureKey(jpa.getFeatureKey());
-        domain.setGateType(GateType.valueOf(jpa.getGateType().toUpperCase()));
+        domain.setGateType(fromDb(jpa.getGateType(), GateType.class));
         domain.setLimitValue(jpa.getLimitValue());
         domain.setRetentionDays(jpa.getRetentionDays());
         domain.setEnabled(jpa.getIsEnabled() != null ? jpa.getIsEnabled() : true);

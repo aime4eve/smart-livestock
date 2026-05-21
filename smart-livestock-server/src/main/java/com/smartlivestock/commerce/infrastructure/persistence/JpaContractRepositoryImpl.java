@@ -4,6 +4,7 @@ import com.smartlivestock.commerce.domain.model.Contract;
 import com.smartlivestock.commerce.domain.model.ContractStatus;
 import com.smartlivestock.commerce.domain.repository.ContractRepository;
 import com.smartlivestock.commerce.infrastructure.persistence.mapper.ContractMapper;
+import com.smartlivestock.commerce.infrastructure.persistence.mapper.EnumConverters;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -30,7 +31,7 @@ public class JpaContractRepositoryImpl implements ContractRepository {
 
     @Override
     public List<Contract> findByStatus(ContractStatus status) {
-        return springDataRepo.findByStatus(status.name().toLowerCase()).stream()
+        return springDataRepo.findByStatus(EnumConverters.toDb(status)).stream()
                 .map(ContractMapper::toDomain)
                 .toList();
     }

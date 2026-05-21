@@ -4,6 +4,9 @@ import com.smartlivestock.commerce.domain.model.SubscriptionService;
 import com.smartlivestock.commerce.domain.model.SubscriptionServiceStatus;
 import com.smartlivestock.commerce.infrastructure.persistence.entity.SubscriptionServiceJpaEntity;
 
+import static com.smartlivestock.commerce.infrastructure.persistence.mapper.EnumConverters.fromDb;
+import static com.smartlivestock.commerce.infrastructure.persistence.mapper.EnumConverters.toDb;
+
 public final class SubscriptionServiceMapper {
 
     private SubscriptionServiceMapper() {}
@@ -17,7 +20,7 @@ public final class SubscriptionServiceMapper {
         jpa.setServiceKeyHash(domain.getServiceKeyHash());
         jpa.setEffectiveTier(domain.getEffectiveTier());
         jpa.setDeviceQuota(domain.getDeviceQuota());
-        jpa.setStatus(domain.getStatus().name().toLowerCase());
+        jpa.setStatus(toDb(domain.getStatus()));
         jpa.setLastHeartbeatAt(domain.getLastHeartbeatAt());
         jpa.setGraceEndsAt(domain.getGraceEndsAt());
         jpa.setStartedAt(domain.getStartedAt());
@@ -33,7 +36,7 @@ public final class SubscriptionServiceMapper {
         existing.setServiceKeyHash(domain.getServiceKeyHash());
         existing.setEffectiveTier(domain.getEffectiveTier());
         existing.setDeviceQuota(domain.getDeviceQuota());
-        existing.setStatus(domain.getStatus().name().toLowerCase());
+        existing.setStatus(toDb(domain.getStatus()));
         existing.setLastHeartbeatAt(domain.getLastHeartbeatAt());
         existing.setGraceEndsAt(domain.getGraceEndsAt());
         existing.setStartedAt(domain.getStartedAt());
@@ -51,7 +54,7 @@ public final class SubscriptionServiceMapper {
         domain.setServiceKeyHash(jpa.getServiceKeyHash());
         domain.setEffectiveTier(jpa.getEffectiveTier());
         domain.setDeviceQuota(jpa.getDeviceQuota());
-        domain.setStatus(SubscriptionServiceStatus.valueOf(jpa.getStatus().toUpperCase()));
+        domain.setStatus(fromDb(jpa.getStatus(), SubscriptionServiceStatus.class));
         domain.setLastHeartbeatAt(jpa.getLastHeartbeatAt());
         domain.setGraceEndsAt(jpa.getGraceEndsAt());
         domain.setStartedAt(jpa.getStartedAt());

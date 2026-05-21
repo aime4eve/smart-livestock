@@ -4,6 +4,9 @@ import com.smartlivestock.commerce.domain.model.RevenuePeriod;
 import com.smartlivestock.commerce.domain.model.RevenueSettlementStatus;
 import com.smartlivestock.commerce.infrastructure.persistence.entity.RevenuePeriodJpaEntity;
 
+import static com.smartlivestock.commerce.infrastructure.persistence.mapper.EnumConverters.fromDb;
+import static com.smartlivestock.commerce.infrastructure.persistence.mapper.EnumConverters.toDb;
+
 public final class RevenuePeriodMapper {
 
     private RevenuePeriodMapper() {}
@@ -19,7 +22,7 @@ public final class RevenuePeriodMapper {
         jpa.setPlatformShare(domain.getPlatformShare());
         jpa.setPartnerShare(domain.getPartnerShare());
         jpa.setRevenueShareRatio(domain.getRevenueShareRatio());
-        jpa.setStatus(domain.getStatus().name().toLowerCase());
+        jpa.setStatus(toDb(domain.getStatus()));
         jpa.setSettledAt(domain.getSettledAt());
         return jpa;
     }
@@ -31,7 +34,7 @@ public final class RevenuePeriodMapper {
         existing.setPlatformShare(domain.getPlatformShare());
         existing.setPartnerShare(domain.getPartnerShare());
         existing.setRevenueShareRatio(domain.getRevenueShareRatio());
-        existing.setStatus(domain.getStatus().name().toLowerCase());
+        existing.setStatus(toDb(domain.getStatus()));
         existing.setSettledAt(domain.getSettledAt());
     }
 
@@ -46,7 +49,7 @@ public final class RevenuePeriodMapper {
         domain.setPlatformShare(jpa.getPlatformShare());
         domain.setPartnerShare(jpa.getPartnerShare());
         domain.setRevenueShareRatio(jpa.getRevenueShareRatio());
-        domain.setStatus(RevenueSettlementStatus.valueOf(jpa.getStatus().toUpperCase()));
+        domain.setStatus(fromDb(jpa.getStatus(), RevenueSettlementStatus.class));
         domain.setSettledAt(jpa.getSettledAt());
         return domain;
     }

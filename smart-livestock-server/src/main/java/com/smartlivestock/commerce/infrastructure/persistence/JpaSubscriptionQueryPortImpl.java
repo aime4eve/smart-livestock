@@ -14,7 +14,6 @@ public class JpaSubscriptionQueryPortImpl implements SubscriptionQueryPort {
 
     @Override
     public Optional<String> findSubscriptionStatusByTenantId(Long tenantId) {
-        return springDataRepo.findByTenantId(tenantId)
-                .map(entity -> entity.getStatus());
+        return springDataRepo.findStatusByTenantId(tenantId);
     }
 }
