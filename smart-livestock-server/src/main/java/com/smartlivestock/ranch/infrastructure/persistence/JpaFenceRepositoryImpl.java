@@ -23,8 +23,12 @@ public class JpaFenceRepositoryImpl implements FenceRepository {
                         FenceMapper.updateEntity(existing, fence);
                         return FenceMapper.toDomain(springDataRepo.save(existing));
                     })
-                    .orElseGet(() -> FenceMapper.toDomain(springDataRepo.save(FenceMapper.toJpaEntity(fence))));
+                    .orElseGet(() -> saveNew(fence));
         }
+        return saveNew(fence);
+    }
+
+    private Fence saveNew(Fence fence) {
         return FenceMapper.toDomain(springDataRepo.save(FenceMapper.toJpaEntity(fence)));
     }
 
