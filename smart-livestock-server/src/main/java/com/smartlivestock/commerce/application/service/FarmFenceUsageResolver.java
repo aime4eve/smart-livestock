@@ -1,14 +1,14 @@
 package com.smartlivestock.commerce.application.service;
 
-import com.smartlivestock.ranch.infrastructure.persistence.SpringDataFenceRepository;
+import com.smartlivestock.ranch.domain.repository.FenceRepository;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FarmFenceUsageResolver implements UsageResolver {
 
-    private final SpringDataFenceRepository fenceRepository;
+    private final FenceRepository fenceRepository;
 
-    public FarmFenceUsageResolver(SpringDataFenceRepository fenceRepository) {
+    public FarmFenceUsageResolver(FenceRepository fenceRepository) {
         this.fenceRepository = fenceRepository;
     }
 

@@ -17,6 +17,14 @@ public class JpaFenceRepositoryImpl implements FenceRepository {
 
     @Override
     public Fence save(Fence fence) {
+        if (fence.getId() != null) {
+            return springDataRepo.findById(fence.getId())
+                    .map(existing -> {
+                        FenceMapper.updateEntity(existing, fence);
+                        return FenceMapper.toDomain(springDataRepo.save(existing));
+                    })
+                    .orElseGet(() -> FenceMapper.toDomain(springDataRepo.save(FenceMapper.toJpaEntity(fence))));
+        }
         return FenceMapper.toDomain(springDataRepo.save(FenceMapper.toJpaEntity(fence)));
     }
 
@@ -35,5 +43,10 @@ public class JpaFenceRepositoryImpl implements FenceRepository {
     @Override
     public void deleteById(Long id) {
         springDataRepo.deleteById(id);
+    }
+
+    @Override
+    public long countByFarmId(Long farmId) {
+        return springDataRepo.countByFarmId(farmId);
     }
 }

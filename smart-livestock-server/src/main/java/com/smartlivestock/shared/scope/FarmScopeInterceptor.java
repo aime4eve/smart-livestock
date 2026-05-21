@@ -4,6 +4,7 @@ import com.smartlivestock.identity.infrastructure.persistence.SpringDataFarmRepo
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import com.smartlivestock.shared.tenant.TenantContext;
+import com.smartlivestock.shared.web.FarmIdPathParser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -33,7 +34,7 @@ public class FarmScopeInterceptor implements HandlerInterceptor {
         String uri = request.getRequestURI();
 
         // Only intercept paths that contain /farms/{farmId}
-        Long pathFarmId = extractFarmIdFromPath(uri);
+        Long pathFarmId = FarmIdPathParser.extractFarmId(uri);
         if (pathFarmId == null) {
             return true;
         }
@@ -57,22 +58,6 @@ public class FarmScopeInterceptor implements HandlerInterceptor {
         request.setAttribute("resolvedFarmId", pathFarmId);
 
         return true;
-    }
-
-    private Long extractFarmIdFromPath(String uri) {
-        // Match /api/v1/farms/{farmId}/... or /api/v1/open/farms/{farmId}/...
-        // or /api/v1/admin/tenants/{tenantId}/farms/{farmId}/...
-        String[] segments = uri.split("/");
-        for (int i = 0; i < segments.length - 1; i++) {
-            if ("farms".equals(segments[i])) {
-                try {
-                    return Long.valueOf(segments[i + 1]);
-                } catch (NumberFormatException e) {
-                    return null;
-                }
-            }
-        }
-        return null;
     }
 
     private Long readHeaderFarmId(HttpServletRequest request) {

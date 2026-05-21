@@ -1,14 +1,14 @@
 package com.smartlivestock.commerce.application.service;
 
-import com.smartlivestock.ranch.infrastructure.persistence.SpringDataLivestockRepository;
+import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FarmLivestockUsageResolver implements UsageResolver {
 
-    private final SpringDataLivestockRepository livestockRepository;
+    private final LivestockRepository livestockRepository;
 
-    public FarmLivestockUsageResolver(SpringDataLivestockRepository livestockRepository) {
+    public FarmLivestockUsageResolver(LivestockRepository livestockRepository) {
         this.livestockRepository = livestockRepository;
     }
 

@@ -6,6 +6,7 @@ import com.smartlivestock.commerce.application.service.UsageResolver;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import com.smartlivestock.shared.tenant.TenantContext;
+import com.smartlivestock.shared.web.FarmIdPathParser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
@@ -68,20 +69,6 @@ public class QuotaInterceptor implements HandlerInterceptor {
         if (resolved instanceof Long farmId) {
             return farmId;
         }
-        return extractFarmIdFromPath(request.getRequestURI());
-    }
-
-    private Long extractFarmIdFromPath(String uri) {
-        String[] segments = uri.split("/");
-        for (int i = 0; i < segments.length - 1; i++) {
-            if ("farms".equals(segments[i])) {
-                try {
-                    return Long.valueOf(segments[i + 1]);
-                } catch (NumberFormatException e) {
-                    return null;
-                }
-            }
-        }
-        return null;
+        return FarmIdPathParser.extractFarmId(request.getRequestURI());
     }
 }
