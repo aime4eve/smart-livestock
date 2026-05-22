@@ -1,7 +1,7 @@
 # Commerce 限界上下文设计规格
 
 **日期**: 2026-05-18
-**状态**: 已评审通过（第五轮修正，基于 v3 架构评审修正）
+**状态**: 已实施完成（2026-05-22 通过端到端验证，18/18 PASS）
 **范围**: MVP Phase 2 — Commerce 子系统（订阅、合同、分润、Licensed 服务、配额引擎）
 **前置**: MVP Phase 1 已完成（Identity + Ranch + IoT 限界上下文）
 **架构评审**: `docs/superpowers/reviews/2026-05-18-项目总体技术架构评审.md` (v2)
@@ -771,6 +771,8 @@ SETTLEMENT_DUPLICATE_CONFIRM,  // 重复确认结算
 *设计规格版本: 2026-05-18 v6（Task 1-2 实施后评审修正）*
 *评审记录: `docs/superpowers/reviews/2026-05-18-项目总体技术架构评审.md` (v2)*
 *实施计划: `docs/superpowers/plans/2026-05-18-commerce-context-plan.md`*
+*验证报告: `docs/superpowers/testing/2026-05-22-commerce-manual-verification-guide.md`*
+*Postman: `docs/superpowers/testing/commerce-e2e-postman-collection.json`*
 
 ---
 
