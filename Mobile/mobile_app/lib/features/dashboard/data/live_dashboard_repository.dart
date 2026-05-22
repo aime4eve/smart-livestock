@@ -18,11 +18,15 @@ class LiveDashboardRepository implements DashboardRepository {
     }
 
     final metrics = cache.dashboardMetrics
-        .map((m) => DashboardMetric(
-              widgetKey: 'dashboard-metric-${m['key']}',
-              title: m['title'] as String,
-              value: m['value'] as String,
-            ))
+        .map((m) {
+          final key = m['key'];
+          final keyStr = key is int ? key.toString() : (key as String? ?? '');
+          return DashboardMetric(
+            widgetKey: 'dashboard-metric-$keyStr',
+            title: m['title'] as String? ?? '',
+            value: m['value'] as String? ?? '',
+          );
+        })
         .toList();
 
     return DashboardViewData(

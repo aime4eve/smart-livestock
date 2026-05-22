@@ -1,5 +1,7 @@
 package com.smartlivestock.ranch.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.math.BigDecimal;
 import java.util.Objects;
 
@@ -9,7 +11,9 @@ import java.util.Objects;
  * @param latitude  north-south position (-90 to 90)
  * @param longitude east-west position (-180 to 180)
  */
-public record GpsCoordinate(BigDecimal latitude, BigDecimal longitude) {
+public record GpsCoordinate(
+        @JsonProperty("lat") BigDecimal latitude,
+        @JsonProperty("lng") BigDecimal longitude) {
 
     public GpsCoordinate {
         Objects.requireNonNull(latitude, "latitude must not be null");

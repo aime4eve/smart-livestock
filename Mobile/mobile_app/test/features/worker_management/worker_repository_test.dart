@@ -62,8 +62,30 @@ class WorkerApiHttpClient implements ApiHttpClient {
     );
   }
 
+  @override
+  Future<ApiHttpResponse> put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) async {
+    return ApiHttpResponse(
+      200,
+      jsonEncode({'code': 'OK', 'message': 'success', 'requestId': 'req_put', 'data': {}}),
+      const {},
+    );
+  }
+
+  @override
+  Future<ApiHttpResponse> delete(Uri uri, {Map<String, String>? headers}) async {
+    return ApiHttpResponse(
+      200,
+      jsonEncode({'code': 'OK', 'message': 'success', 'requestId': 'req_delete', 'data': {}}),
+      const {},
+    );
+  }
+
   Map<String, dynamic> _dataFor(String path) {
-    if (path.endsWith('/farm/my-farms')) {
+    if (path.endsWith('/farms')) {
       return {
         'activeFarmId': activeFarmId,
         'farms': [
@@ -72,13 +94,13 @@ class WorkerApiHttpClient implements ApiHttpClient {
         ],
       };
     }
-    if (path.endsWith('/workers')) {
+    if (path.endsWith('/members')) {
       return {
         'items': workerItems,
       };
     }
-    if (path.endsWith('/dashboard/summary')) return {'metrics': []};
-    if (path.endsWith('/map/trajectories')) {
+    if (path.endsWith('/dashboard')) return {'metrics': []};
+    if (path.endsWith('/map')) {
       return {'animals': [], 'points': []};
     }
     if (path.endsWith('/alerts') ||
@@ -148,6 +170,7 @@ void main() {
 
   test('LiveRepository 从 ApiCache.workers 解析牧工分配', () async {
     ApiCache.instance.debugSetHttpClient(WorkerApiHttpClient());
+    ApiCache.instance.activeFarmId = 'tenant_001';
     await ApiCache.instance.init(
       'owner',
       tokens: const ApiAuthTokens(accessToken: 'jwt-token'),
@@ -163,6 +186,7 @@ void main() {
 
   test('LiveRepository 请求 farmId 与 workersFarmId 不一致时 fallback', () async {
     ApiCache.instance.debugSetHttpClient(WorkerApiHttpClient(activeFarmId: 'tenant_001'));
+    ApiCache.instance.activeFarmId = 'tenant_001';
     await ApiCache.instance.init(
       'owner',
       tokens: const ApiAuthTokens(accessToken: 'jwt-token'),
@@ -192,6 +216,7 @@ void main() {
         'assignedAt': null,
       },
     ]));
+    ApiCache.instance.activeFarmId = 'tenant_001';
     await ApiCache.instance.init(
       'owner',
       tokens: const ApiAuthTokens(accessToken: 'jwt-token'),
@@ -209,6 +234,7 @@ void main() {
 
   test('LiveRepository assign 和 unassign 更新当前 workers cache', () async {
     ApiCache.instance.debugSetHttpClient(WorkerApiHttpClient());
+    ApiCache.instance.activeFarmId = 'tenant_001';
     await ApiCache.instance.init(
       'owner',
       tokens: const ApiAuthTokens(accessToken: 'jwt-token'),
@@ -237,6 +263,7 @@ void main() {
     expect(repo.unassign('wfa_no_cache'), isFalse);
 
     ApiCache.instance.debugSetHttpClient(WorkerApiHttpClient(activeFarmId: 'tenant_001'));
+    ApiCache.instance.activeFarmId = 'tenant_001';
     await ApiCache.instance.init(
       'owner',
       tokens: const ApiAuthTokens(accessToken: 'jwt-token'),

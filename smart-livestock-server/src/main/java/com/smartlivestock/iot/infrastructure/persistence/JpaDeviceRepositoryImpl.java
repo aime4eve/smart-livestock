@@ -36,4 +36,9 @@ public class JpaDeviceRepositoryImpl implements DeviceRepository {
                 .map(DeviceMapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public long countByTenantIdAndStatus(Long tenantId, String status) {
+        return springDataRepo.countByTenantIdAndStatus(tenantId, status);
+    }
 }

@@ -1,0 +1,17 @@
+- generic [ref=e5]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - group:
+            - generic:
+              - generic: 智慧畜牧 登录您的牧场账户，管理牲畜、围栏与告警。 Live 模式
+            - generic:
+              - generic:
+                - generic:
+                  - generic: 账号登录
+                - textbox "手机号" [active] [ref=e7]:
+                  - /placeholder: 请输入手机号
+                  - text: "1380013"
+                - textbox "密码" [ref=e9]
+                - button "登录" [ref=e10]

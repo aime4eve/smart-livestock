@@ -1,0 +1,652 @@
+# Commerce 限界上下文实施计划
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** 实现 Commerce 限界上下文——订阅管理、合同管理、分润结算、Licensed 服务、配额引擎、领域事件、通知系统，支撑四种计费模型（direct/revenue_share/licensed/api_usage）。
+
+**Architecture:** 独立 Commerce 限界上下文与 Identity/Ranch/IoT 平级，按 DDD 四层洋葱架构（domain → application → infrastructure → interfaces）。聚合根通过状态机管控生命周期，配额通过 @QuotaCheck 注解 + QuotaInterceptor 拦截（两道防线），定时任务处理过期/续费失败/结算，MVP 仅用 Spring ApplicationEvent 驱动通知。
+
+**Tech Stack:** Spring Boot 3.3.0 / Java 17 / JPA + Hibernate / PostgreSQL 16 / Flyway / JUnit 5 + Mockito / Spring ApplicationEvent
+
+**Spec:** `docs/superpowers/specs/2026-05-18-commerce-context-design.md` (v5)
+
+**Review:** `docs/superpowers/reviews/2026-05-18-项目总体技术架构评审.md` (v2)
+
+**前置:** MVP Phase 1 已完成，V1-V5 迁移已存在
+
+---
+
+## File Structure
+
+### commerce/ — Create
+
+| File | Responsibility |
+|------|---------------|
+| `domain/model/Subscription.java` | 订阅聚合根（状态机、effectiveTier、billingModel） |
+| `domain/model/SubscriptionTier.java` | Tier 枚举（USD 美分定价、超量计算） |
+| `domain/model/SubscriptionStatus.java` | 订阅状态枚举（7 种） |
+| `domain/model/Contract.java` | 合同聚合根（DRAFT→ACTIVE、分润计算） |
+| `domain/model/ContractStatus.java` | 合同状态枚举（5 种，含 DRAFT） |
+| `domain/model/RevenuePeriod.java` | 分润结算聚合根（三方确认状态机） |
+| `domain/model/RevenueSettlementStatus.java` | 结算状态枚举 |
+| `domain/model/SubscriptionService.java` | Licensed 服务聚合根（License 文件、心跳、deviceQuota） |
+| `domain/model/SubscriptionServiceStatus.java` | 服务状态枚举（6 种，含 PROVISIONED） |
+| `domain/model/FeatureGate.java` | 功能门控值对象（4 种 gateType） |
+| `domain/model/event/*.java` | 15 个内部领域事件 (record) |
+| `domain/repository/SubscriptionRepository.java` | 订阅 Repository port |
+| `domain/repository/ContractRepository.java` | 合同 Repository port |
+| `domain/repository/RevenuePeriodRepository.java` | 分润 Repository port |
+| `domain/repository/SubscriptionServiceRepository.java` | 服务 Repository port |
+| `domain/repository/FeatureGateRepository.java` | 功能门控 Repository port |
+| `domain/repository/port/SubscriptionQueryPort.java` | v4 新增：跨上下文查询订阅状态 port |
+| `application/port/QuotaCheckService.java` | v5 新增：配额检查接口（QuotaApplicationService 实现，供 platform/web 依赖） |
+| `application/dto/QuotaResult.java` | 配额校验结果（allowed/denied/allowedWithRetention） |
+| `application/dto/CheckoutRequest.java` | 结算请求 DTO |
+| `application/dto/SubscriptionResponse.java` | 订阅响应 DTO |
+| `application/dto/ContractResponse.java` | 合同响应 DTO |
+| `application/dto/RevenuePeriodResponse.java` | 分润响应 DTO |
+| `application/service/SubscriptionApplicationService.java` | 订阅应用服务 |
+| `application/service/ContractApplicationService.java` | 合同应用服务 |
+| `application/service/RevenueApplicationService.java` | 分润应用服务 |
+| `application/service/QuotaApplicationService.java` | 配额引擎服务（两道防线，实现 QuotaCheckService 接口） |
+| `application/service/UsageResolver.java` | 用量解析接口（纯值签名） |
+| `application/service/FarmLivestockUsageResolver.java` | farm 级牲畜用量 |
+| `application/service/FarmFenceUsageResolver.java` | farm 级围栏用量 |
+| `application/query/SubscriptionQueryService.java` | v4 新增：订阅读模型（处理 GET 端点 + filter 型门控裁剪） |
+| `application/query/RevenueQueryService.java` | v4 新增：分润读模型（处理 GET 端点 + filter 型门控裁剪） |
+| `application/assembler/SubscriptionAssembler.java` | v4 新增：订阅 DTO 映射 |
+| `application/assembler/ContractAssembler.java` | v4 新增：合同 DTO 映射 |
+| `application/assembler/RevenuePeriodAssembler.java` | v4 新增：分润 DTO 映射 |
+| `application/job/CommerceScheduler.java` | v4 修正：定时任务（7 Job，从 scheduler/ 改为 job/） |
+| `infrastructure/persistence/entity/*.java` | 5 JPA Entity |
+| `infrastructure/persistence/mapper/*.java` | 5 Mapper |
+| `infrastructure/persistence/Jpa*RepositoryImpl.java` | 5 Repository 实现 |
+| `infrastructure/persistence/Spring*JpaRepository.java` | 5 Spring Data JPA |
+| `interfaces/app/SubscriptionController.java` | v4 修正：App 订阅 API (6 端点)，归入 app/ 子目录 |
+| `interfaces/app/CommerceController.java` | v4 修正：App 合同/分润 API (3 端点)，归入 app/ 子目录 |
+| `interfaces/admin/AdminSubscriptionController.java` | v4 修正：Admin 订阅管理 (3 端点)，归入 admin/ 子目录 |
+| `interfaces/admin/AdminContractController.java` | v4 修正：Admin 合同管理 (6 端点) |
+| `interfaces/admin/AdminRevenueController.java` | v4 修正：Admin 分润管理 (5 端点) |
+| `interfaces/admin/AdminServiceController.java` | v4 修正：Admin 服务管理 (5 端点) |
+| `interfaces/admin/AdminFeatureGateController.java` | v4 修正：Admin 功能门控 (2 端点) |
+
+### shared/ — Modify
+
+| File | Change |
+|------|--------|
+| `shared/common/ErrorCode.java` | v4 修正：新增 9 个 Commerce 错误码 |
+| `shared/common/DomainException.java` | v4 新增：领域层异常（替代领域模型对 ApiException 的直接依赖） |
+| `shared/domain/event/*.java` | v4 新增：9 个跨上下文共享事件（供 Ranch/IoT/Identity 消费），详见下方列表 |
+
+**9 个跨上下文共享事件（`shared/domain/event/`）：**
+- SubscriptionCreatedEvent
+- SubscriptionTierChangedEvent
+- SubscriptionSuspendedEvent
+- SubscriptionReactivatedEvent
+- SubscriptionExpiredEvent
+- ContractSignedEvent
+- ServiceDegradedEvent
+- ServiceQuotaAdjustedEvent
+- ServiceRevokedEvent
+
+### platform/ — Create
+
+| File | Responsibility |
+|------|---------------|
+| `platform/messaging/Notification.java` | v5 新增：通知 JPA 实体（平台级统一通知，非 Commerce 私有） |
+| `platform/messaging/NotificationRepository.java` | v5 新增：通知 Spring Data JPA Repository |
+| `platform/messaging/NotificationService.java` | v5 修正：平台级通知写入服务 |
+| `platform/messaging/NotificationEventListener.java` | v5 修正：事件监听→写 notification 表，所有上下文事件均可触发 |
+| `platform/web/QuotaCheck.java` | v4 修正：配额注解（横切关注点） |
+| `platform/web/QuotaInterceptor.java` | v5 修正：配额拦截器，依赖 commerce QuotaCheckService port |
+
+### platform/ — Modify
+
+| File | Change |
+|------|--------|
+| `platform/web/ApiException.java` | v4 修正：仅保留 HTTP 状态码映射功能，领域模型不再直接使用 |
+
+### identity/ — Modify
+
+| File | Change |
+|------|--------|
+| `identity/domain/model/Tenant.java` | 新增 type + billingModel 字段 |
+
+### ranch/ — Modify
+
+| File | Change |
+|------|--------|
+| `ranch/interfaces/FenceController.java` | v4 修正：createFence 加 @QuotaCheck(feature="fence_management") |
+| `ranch/interfaces/LivestockController.java` | v4 修正：registerLivestock 加 @QuotaCheck(feature="livestock_management") |
+
+### test/ — Create
+
+| File | Test Target |
+|------|------------|
+| `domain/model/SubscriptionTest.java` | 订阅聚合根（含 recoverFromRenewalFailure） |
+| `domain/model/SubscriptionTierTest.java` | Tier 定价与超量（USD 美分） |
+| `domain/model/ContractTest.java` | 合同聚合根（含 DRAFT→sign） |
+| `domain/model/RevenuePeriodTest.java` | 分润聚合根 |
+| `domain/model/SubscriptionServiceTest.java` | Licensed 服务（含 License 验证） |
+| `domain/model/FeatureGateTest.java` | 功能门控值对象 |
+| `application/service/QuotaApplicationServiceTest.java` | 配额引擎（两道防线） |
+| `application/service/SubscriptionApplicationServiceTest.java` | 订阅应用服务 |
+| `application/service/ContractApplicationServiceTest.java` | 合同应用服务 |
+
+### resources/ — Create
+
+| File | Responsibility |
+|------|---------------|
+| `db/migration/V6__create_commerce_tables.sql` | 全部 DDL + 种子数据（6 张 Commerce 表 + 1 张 platform notifications 表 + tenant ALTER） |
+
+---
+
+## Task Dependency Graph
+
+```
+Task 1 (DDL)
+    ↓
+Task 2 (Enums + ErrorCode + DomainException + Events)
+    ↓
+Task 3 (Subscription) ──┐
+Task 4 (Contract + RevenuePeriod) ──┤  ← 可并行
+Task 5 (SubscriptionService) ──┘
+    ↓
+Task 6 (FeatureGate + QuotaCheckService port + QuotaEngine)
+    ↓
+Task 7 (Persistence Layer)
+    ↓
+Task 8 (@QuotaCheck + Interceptor + UsageResolver)
+    ↓
+Task 9 (Notification + EventListener — platform/messaging)
+    ↓
+Task 10 (Application Services + Query Services + Assemblers)
+    ↓
+Task 11 (Controllers — app/ + admin/ 目录)
+    ↓
+Task 12 (Scheduler — 7 Jobs, job/ 目录)
+    ↓
+Task 13 (Integration + Tenant Extension)
+```
+
+Tasks 3, 4, 5 可并行。Tasks 6-13 严格串行。
+
+---
+
+## Task 1: V6 Flyway Migration — Commerce DDL + 种子数据
+
+**Files:**
+- Create: `smart-livestock-server/src/main/resources/db/migration/V6__create_commerce_tables.sql`
+- Reference: Spec Section 2
+
+- [x] **Step 1: 创建迁移文件**
+
+按 Spec Section 2 完整 DDL，包含 6 张 Commerce 业务表 + notifications（平台基础设施，非 Commerce 私有）+ tenant ALTER + 种子数据。
+
+- [x] **Step 2: 验证迁移可执行**
+
+Run: `cd smart-livestock-server && ./gradlew flywayMigrate -x test 2>&1 | tail -5`
+
+- [x] **Step 3: Commit**
+
+```bash
+git add smart-livestock-server/src/main/resources/db/migration/V6__create_commerce_tables.sql
+git commit -m "feat(commerce): add V6 migration — 6 commerce tables + notifications + tenant ALTER + seed data"
+```
+
+---
+
+## Task 2: Enums + ErrorCode + DomainException + Events
+
+**Files:**
+- Modify: `ErrorCode.java` (新增 9 个，位于 `shared/common/`)
+- Create: `DomainException.java` (位于 `shared/common/`)
+- Create: 5 个枚举类 + 9 个跨上下文事件 (shared/domain/event/) + 15 个内部事件 (commerce/domain/model/event/)
+- Test: `SubscriptionTierTest.java`
+
+- [x] **Step 1: 创建 DomainException**
+
+位于 `shared/common/DomainException.java`：
+
+```java
+package com.smartlivestock.shared.common;
+
+public class DomainException extends RuntimeException {
+    private final ErrorCode code;
+
+    public DomainException(ErrorCode code, String message) {
+        super(message);
+        this.code = code;
+    }
+
+    public ErrorCode getCode() { return code; }
+}
+```
+
+- [x] **Step 2: 扩展 ErrorCode**（位于 `shared/common/ErrorCode.java`）
+
+新增：ENTERPRISE_CUSTOM_PRICING, INVALID_BILLING_MODEL, INVALID_REVENUE_SHARE_RATIO, SUBSCRIPTION_NOT_FOUND, SUBSCRIPTION_NOT_ACTIVE, CONTRACT_NOT_ACTIVE, SERVICE_KEY_MISMATCH, SERVICE_LICENSE_EXPIRED, SETTLEMENT_DUPLICATE_CONFIRM
+
+- [x] **Step 3: 创建枚举类**
+
+SubscriptionTier: BASIC(0, 50, 40), STANDARD(1400, 200, 30), PREMIUM(2800, 1000, 15), ENTERPRISE(-1, -1, -1)
+SubscriptionStatus: TRIAL, ACTIVE, FREE, SUSPENDED, RENEWAL_FAILED, CANCELLED, EXPIRED
+ContractStatus: DRAFT, ACTIVE, SUSPENDED, EXPIRED, TERMINATED
+RevenueSettlementStatus: PENDING, PLATFORM_CONFIRMED, PARTNER_CONFIRMED, SETTLED
+SubscriptionServiceStatus: PROVISIONED, ACTIVE, GRACE_PERIOD, DEGRADED, EXPIRED
+
+- [x] **Step 4: 创建 24 个领域事件**
+
+9 个跨上下文事件放在 `shared/domain/event/`，15 个内部事件放在 `commerce/domain/model/event/`。所有事件为 `class extends DomainEvent`（非 record，因 Java record 不能继承抽象类）。shared 事件中枚举值用 String（避免 shared → commerce 循环依赖）。
+
+- [x] **Step 5: 写 SubscriptionTierTest**
+
+测试 calculateMonthlyFee：含内、超量、Enterprise 抛 DomainException
+
+- [x] **Step 6: 运行测试**
+
+- [x] **Step 7: Commit**
+
+```bash
+git commit -m "feat(commerce): add DomainException, enums, ErrorCode extensions, 24 domain events (9 shared + 15 internal)"
+```
+
+---
+
+## Task 3: Subscription 聚合根
+
+**Files:**
+- Create: `Subscription.java`
+- Test: `SubscriptionTest.java`
+
+- [x] **Step 1: 写 SubscriptionTest**
+
+覆盖：startTrial, activate, expireTrial, effectiveTier, changeTier(FREE→ACTIVE), suspend, reactivate, markRenewalFailed, recoverFromRenewalFailure, downgradeAfterRenewalFailure, cancel(cancelledAt), markExpired, requireStatus 非法跳转。**领域模型使用 DomainException 而非 ApiException。**
+
+- [x] **Step 2: 实现 Subscription**
+
+字段：id, tenantId, tier, billingModel, status, billingCycle, startedAt, expiresAt, trialEndsAt, cancelledAt。状态机按 Spec Section 3.2。所有状态转换产生对应领域事件。
+
+- [x] **Step 3: 运行测试**
+
+- [x] **Step 4: Commit**
+
+```bash
+git commit -m "feat(commerce): add Subscription aggregate root with state machine and events"
+```
+
+---
+
+## Task 4: Contract + RevenuePeriod 聚合根
+
+**Files:**
+- Create: `Contract.java`, `RevenuePeriod.java`
+- Test: `ContractTest.java`, `RevenuePeriodTest.java`
+
+- [x] **Step 1: 写 ContractTest**
+
+覆盖：create→DRAFT, sign→ACTIVE, 分润比例校验, suspend/reactivate, terminate, markExpired, calculateRevenueShare
+
+- [x] **Step 2: 写 RevenuePeriodTest**
+
+覆盖：create→PENDING, confirmByPlatform, confirmByPartner, settle, 非法跳转
+
+- [x] **Step 3: 实现 Contract**
+
+字段：id, tenantId, contractNumber, billingModel, effectiveTier, revenueShareRatio, signedBy, signedAt, startedAt, expiresAt, status。DRAFT→sign()→ACTIVE。分润返回 RevenueShareResult。
+
+- [x] **Step 4: 实现 RevenuePeriod**
+
+字段：id, contractId, tenantId, periodStart, periodEnd, grossAmount, platformShare, partnerShare, revenueShareRatio(快照), status, settledAt
+
+- [x] **Step 5: 运行测试**
+
+- [x] **Step 6: Commit**
+
+```bash
+git commit -m "feat(commerce): add Contract and RevenuePeriod aggregate roots"
+```
+
+---
+
+## Task 5: SubscriptionService 聚合根
+
+**Files:**
+- Create: `SubscriptionService.java`
+- Test: `SubscriptionServiceTest.java`
+
+- [x] **Step 1: 写 SubscriptionServiceTest**
+
+覆盖：provision→PROVISIONED, activate→ACTIVE, recordHeartbeat, checkHeartbeat→GRACE_PERIOD, degrade, revoke, expire, adjustQuota, verifyKey（常量时间比较）
+
+- [x] **Step 2: 实现 SubscriptionService**
+
+字段：id, tenantId, serviceName, serviceKeyPrefix, serviceKeyHash, effectiveTier, deviceQuota, status, lastHeartbeatAt, graceEndsAt, startedAt, expiresAt, heartbeatIntervalHrs(实例字段,默认24), gracePeriodDays(实例字段,默认7)。provision() 生成 License 文件（JWT + RSA 签名）。activate() 验证签名。
+
+- [x] **Step 3: 运行测试**
+
+- [x] **Step 4: Commit**
+
+```bash
+git commit -m "feat(commerce): add SubscriptionService aggregate root with License file support"
+```
+
+---
+
+## Task 6: FeatureGate + QuotaCheckService + QuotaApplicationService
+
+**Files:**
+- Create: `FeatureGate.java`, `QuotaResult.java`, `UsageResolver.java`, `FeatureGateRepository.java`, `application/port/QuotaCheckService.java`, `QuotaApplicationService.java`
+- Test: `QuotaApplicationServiceTest.java`, `FeatureGateTest.java`
+
+- [x] **Step 1: 写测试**
+
+两道防线（订阅状态 + 门控规则），4 种 gateType (none/lock/limit/filter)，订阅 SUSPENDED 直接拒绝，filter 返回 retentionDays
+
+- [x] **Step 2: 实现 FeatureGate**
+
+gateType: none/lock/limit/filter。字段：tier, featureKey, gateType, limitValue, retentionDays, isEnabled
+
+- [x] **Step 3: 实现 QuotaResult**
+
+allowed(), denied(reason), allowedWithRetention(days)
+
+- [x] **Step 4: 实现 UsageResolver**
+
+纯值签名：`resolve(Long tenantId, Long farmId)`
+
+- [x] **Step 5: 创建 QuotaCheckService 接口**
+
+位于 `commerce/application/port/QuotaCheckService.java`，定义 checkQuota(tenantId, featureKey, usage) 签名。这是 Commerce 的业务契约，不是平台层接口。
+
+- [x] **Step 6: 实现 QuotaApplicationService**
+
+依赖：SubscriptionRepository + FeatureGateRepository。**实现 QuotaCheckService 接口**。checkQuota() 先检查订阅活跃，再检查门控。使用 DomainException 而非 ApiException。
+
+- [x] **Step 7: 运行测试**
+
+- [x] **Step 8: Commit**
+
+```bash
+git commit -m "feat(commerce): add FeatureGate, QuotaCheckService port, QuotaEngine with two-layer defense"
+```
+
+---
+
+## Task 7: 持久化层 — JPA Entities + Mappers + Repositories
+
+**Files:**
+- Create: 5 JPA entities, 5 mappers, 5 Spring Data JPA repositories, 5 Repository implementations
+
+- [x] **Step 1: 创建 5 个 JPA Entity**
+
+与 DDL 完全对齐。@Version 乐观锁，@PreUpdate 更新 updatedAt
+
+- [x] **Step 2: 创建 5 个 Mapper**
+
+Domain ↔ JPA 双向转换，枚举 ↔ String，BigDecimal 映射
+
+- [x] **Step 3: 创建 5 个 Spring Data JPA Repository**
+
+含定制查询方法
+
+- [x] **Step 4: 创建 5 个 Repository 实现**
+
+注入 Spring Data JPA，使用 Mapper 转换。**同时创建 SubscriptionQueryPort 实现。**
+
+- [x] **Step 5: 编译验证**
+
+- [x] **Step 6: Commit**
+
+```bash
+git commit -m "feat(commerce): add persistence layer — JPA entities, mappers, repositories"
+```
+
+---
+
+## Task 8: @QuotaCheck + QuotaInterceptor + UsageResolver 实现
+
+**Files:**
+- Create: `platform/web/QuotaCheck.java`, `platform/web/QuotaInterceptor.java`, `FarmLivestockUsageResolver.java`, `FarmFenceUsageResolver.java`
+- Modify: `SecurityConfig.java` (位于 `platform/security/`)
+- Dependency: `commerce/application/port/QuotaCheckService.java` (Task 6 已创建)
+
+- [x] **Step 1: 创建 @QuotaCheck 注解**
+
+位于 `platform/web/QuotaCheck.java`
+
+- [x] **Step 2: 创建 QuotaInterceptor**
+
+位于 `platform/web/QuotaInterceptor.java`，注入 `QuotaCheckService`（来自 commerce/application/port/）。从 request 提取 tenantId/farmId（纯值），调用 QuotaCheckService.checkQuota()
+
+- [x] **Step 3: 实现 2 个 UsageResolver**
+
+纯值签名 resolve(tenantId, farmId)，通过 shared 层接口查询
+
+- [x] **Step 4: 注册 QuotaInterceptor**
+
+位于 Auth + FarmScope 之后
+
+- [x] **Step 5: 编译验证**
+
+- [x] **Step 6: Commit**
+
+```bash
+git commit -m "feat(commerce): add QuotaCheck annotation and interceptor in platform/web, depends on commerce QuotaCheckService port"
+```
+
+---
+
+## Task 9: Notification + EventListener（platform/messaging/）
+
+**Files:**
+- Create: `platform/messaging/Notification.java` (JPA Entity)
+- Create: `platform/messaging/NotificationRepository.java` (Spring Data JPA)
+- Create: `platform/messaging/NotificationService.java`
+- Create: `platform/messaging/NotificationEventListener.java`
+
+notifications 表是平台级统一通知中心（非 Commerce 私有），所有上下文（Commerce/Ranch/IoT/Identity）均可写入。
+
+- [x] **Step 1: 创建 Notification 实体 + Repository**
+
+位于 `platform/messaging/`，对应 V6 迁移中的 notifications 表
+
+- [x] **Step 2: 创建 NotificationService**
+
+位于 `platform/messaging/`，按事件类型生成 title/content，写入 notifications 表
+
+- [x] **Step 3: 创建 NotificationEventListener**
+
+位于 `platform/messaging/`，Spring ApplicationListener 接收全部 24 个事件（9 跨上下文 + 15 内部）
+
+- [x] **Step 4: ApplicationService 中发布事件**
+
+save() 后调用 Spring ApplicationEventPublisher（MVP 仅用 Spring ApplicationEvent，无 RocketMQ）
+
+- [x] **Step 5: 编译验证**
+
+- [x] **Step 6: Commit**
+
+```bash
+git commit -m "feat(platform): add unified notification system in platform/messaging with Spring ApplicationEvent"
+```
+
+---
+
+## Task 10: Application Services + Query Services + Assemblers
+
+**Files:**
+- Create: 3 个 ApplicationService + 3 个 Assembler + 2 个 QueryService + DTO classes
+- Test: `SubscriptionApplicationServiceTest.java`, `ContractApplicationServiceTest.java`
+
+**读写分离原则：** ApplicationService 处理写操作（POST/PUT），QueryService 处理读操作（GET）。filter 型门控的 getRetentionDays() 由 QueryService 执行，不回流到 ApplicationService。
+
+- [x] **Step 1: 创建 DTO 类**
+
+- [x] **Step 2: 创建 3 个 Assembler**（位于 `application/assembler/`）
+
+SubscriptionAssembler, ContractAssembler, RevenuePeriodAssembler — DTO 映射集中化
+
+- [x] **Step 3: 写测试并实现 SubscriptionApplicationService**
+
+getOrCreateSubscription, upgrade, expireTrial, suspend, reactivate, cancel。save() 后发布事件
+
+- [x] **Step 4: 实现 ContractApplicationService**
+
+create(DRAFT), sign, suspend, reactivate, terminate
+
+- [x] **Step 5: 实现 RevenueApplicationService**
+
+calculatePeriod, confirmByPlatform, confirmByPartner, settle, recalculate。前置校验 contract.isActive()
+
+- [x] **Step 6: 创建 2 个 QueryService**（位于 `application/query/`）
+
+SubscriptionQueryService — 订阅读模型（状态 + 用量汇总 + filter 型门控裁剪）。负责 GET /subscription, GET /subscription/plans, GET /subscription/usage, GET /contracts/me
+RevenueQueryService — 分润读模型（列表 + 过滤 + filter 型门控裁剪）。负责 GET /revenue/periods
+
+- [x] **Step 7: 运行测试**
+
+- [x] **Step 8: Commit**
+
+```bash
+git commit -m "feat(commerce): add application services, query services, and assemblers with event publishing"
+```
+
+---
+
+## Task 11: Controllers — app/ + admin/ 目录
+
+**Files:**
+- Create: 7 个 Controller（按 app/ + admin/ 子目录组织）
+- Modify: FenceController, LivestockController
+
+- [x] **Step 1: SubscriptionController (App, 6 端点)**
+
+位于 `interfaces/app/SubscriptionController.java`：
+GET /subscription → SubscriptionQueryService
+GET /subscription/plans → SubscriptionQueryService
+POST /subscription/checkout → SubscriptionApplicationService
+PUT /subscription/tier → SubscriptionApplicationService
+POST /subscription/cancel → SubscriptionApplicationService
+GET /subscription/usage → SubscriptionQueryService
+
+- [x] **Step 2: CommerceController (App, 3 端点)**
+
+位于 `interfaces/app/CommerceController.java`：
+GET /contracts/me → SubscriptionQueryService
+GET /revenue/periods → RevenueQueryService
+POST /revenue/periods/{id}/confirm → RevenueApplicationService
+
+- [x] **Step 3: 5 个 Admin Controller**
+
+全部位于 `interfaces/admin/`：
+AdminSubscriptionController(3), AdminContractController(6), AdminRevenueController(5), AdminServiceController(5), AdminFeatureGateController(2)
+
+- [x] **Step 4: Ranch Controller 加 @QuotaCheck**
+
+`ranch/interfaces/FenceController.java` 和 `ranch/interfaces/LivestockController.java`
+
+- [x] **Step 5: 编译验证**
+
+- [x] **Step 6: Commit**
+
+```bash
+git commit -m "feat(commerce): add 30 API endpoints — interfaces/app/ + interfaces/admin/ with @QuotaCheck"
+```
+
+---
+
+## Task 12: CommerceScheduler — 7 个定时任务（application/job/）
+
+**Files:**
+- Create: `application/job/CommerceScheduler.java`
+
+- [x] **Step 1: 实现 7 个定时任务**
+
+| Job | 频率 | 逻辑 |
+|-----|------|------|
+| TrialExpiryJob | 每小时 | TRIAL AND trial_ends_at < now → expireTrial() |
+| SubscriptionExpiryJob | 每小时 | ACTIVE AND expires_at < now → markRenewalFailed() |
+| RenewalFailedExpiryJob | 每天 2:00 | RENEWAL_FAILED 超过 7d → downgrade |
+| HeartbeatCheckJob | 每 6 小时 | 预留，MVP 不触发 |
+| LicenseExpiryJob | 每天 4:00 | License 文件到期 → expire() |
+| ContractExpiryJob | 每天 5:00 | ACTIVE AND expires_at < now → markExpired() |
+| RevenueCalculationJob | 每月 1 日 3:00 | ACTIVE 合同 → calculatePeriod() |
+
+- [x] **Step 2: 确保 @EnableScheduling**
+
+- [x] **Step 3: 编译验证**
+
+- [x] **Step 4: Commit**
+
+```bash
+git commit -m "feat(commerce): add CommerceScheduler with 7 scheduled jobs in application/job/"
+```
+
+---
+
+## Task 13: 集成验证 + Tenant 扩展
+
+**Files:**
+- Modify: `Tenant.java` (加 type + billingModel)
+
+- [x] **Step 1: Tenant 扩展字段**
+
+- [x] **Step 2: 全量编译**
+
+- [x] **Step 3: 全量测试**
+
+- [x] **Step 4: Flyway 迁移验证**
+
+- [x] **Step 5: Commit**
+
+```bash
+git commit -m "feat(commerce): complete Commerce bounded context — all modules verified"
+```
+
+---
+
+## v4 → v5 修正记录
+
+| 修正项 | v4 Plan | v5 Plan | 原因 |
+|---|---|---|---|
+| notifications 归属 | Commerce 私有表 | 平台基础设施，所有上下文可写入 | 避免 Ranch/IoT 通知依赖 Commerce 迁移 |
+| TrialExpiryJob | `TRIAL AND expires_at < now` | `TRIAL AND trial_ends_at < now` | 试用订阅应检查 trial_ends_at |
+| QuotaCheckService 位置 | `platform/web/QuotaCheckService.java` | `commerce/application/port/QuotaCheckService.java` | 业务契约不应由平台层定义 |
+| 事件发布 | 未明确 MVP 路径 | MVP 仅 Spring ApplicationEvent | 消除 RocketMQ 矛盾 |
+| Query 层职责 | GET 端点无归属 | API 端点表加归属服务列 | 防止读逻辑回流到写服务 |
+| Task 6 | 无 QuotaCheckService 步骤 | 新增 Step 5 创建 port 接口 | 依赖方向：platform → commerce port |
+| Task 8 | QuotaCheckService 在 platform/web | QuotaInterceptor 依赖 commerce port | 平台层不定义业务语义 |
+| Task 9 | notifications 是 Commerce 的 | 标注为平台级统一通知 | 所有上下文可写入 |
+
+### v5 → v6 修正
+
+| 修正项 | v5 Plan | v6 Plan | 原因 |
+|---|---|---|---|
+| notifications.updated_at | 无此列 | DDL 新增 `updated_at` | is_read 标记已读需追踪更新时间，与 V1-V3 惯例一致 |
+| 领域事件实现形式 | "全部 record" | `class extends DomainEvent`（非 record） | Java record 不能继承抽象类（DomainEvent 已有 eventId/occurredAt 状态） |
+| 共享事件字段类型 | 未说明 | shared 事件中枚举值用 String，内部事件可用 enum | 避免 shared → commerce 循环依赖 |
+
+---
+
+*Plan version: 2026-05-18 v6 (Task 1-2 实施后评审修正)*
+*Design spec: `docs/superpowers/specs/2026-05-18-commerce-context-design.md`*
+*Review: `docs/superpowers/reviews/2026-05-18-项目总体技术架构评审.md`*
+
+### v6 → v7 部署验证（2026-05-22）
+
+**质量报告**: `docs/superpowers/reviews/2026-05-22-commerce-deployment-quality-report.md`
+
+**验证结果**: 13 个 Task 全部实施完成。编译 ✅、单元测试 ✅、Docker 部署 ✅、Flyway V6 迁移 ✅、API 端点 30/30 全部正常。
+
+**遗留问题（5 个）— 全部已修复**:
+
+| # | 原严重度 | 问题 | 修复提交 | 验证结果 |
+|---|---------|------|---------|---------|
+| 1 | 🔴 P0 | `List.getLast()` Java 21 API | 0fc4ed7 | ✅ recalculate 正常 |
+| 2 | 🔴 P0 | effectiveTier 大小写映射 | 0fc4ed7 | ✅ 创建返回小写 |
+| 3 | 🔴 P0 | FeatureGate createdAt null | 0fc4ed7 | ✅ 更新成功 |
+| 4 | 🟡 P1 | billingCycle 必传 | 0fc4ed7 | ✅ 可选，继承现有 |
+| 5 | 🟡 P1 | 合同草稿修改 stub | 0fc4ed7 | ✅ 完整实现 |
+
+*Plan version: 2026-05-18 v8 (全部遗留问题已修复，30/30 API 端点验证通过)*

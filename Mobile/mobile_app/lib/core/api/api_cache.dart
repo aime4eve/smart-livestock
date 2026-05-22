@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_http_client.dart';
 import 'package:smart_livestock_demo/core/models/demo_models.dart';
+import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
 
@@ -17,8 +17,8 @@ String resolveApiBaseUrl() {
     return _apiBaseUrlFromEnv;
   }
   return kIsWeb
-      ? 'http://127.0.0.1:3001/api/v1'
-      : 'http://localhost:3001/api/v1';
+      ? 'http://127.0.0.1:18080/api/v1'
+      : 'http://localhost:18080/api/v1';
 }
 
 Map<String, String> _headers(
@@ -68,12 +68,120 @@ class TenantWriteResult {
   final String? message;
 }
 
+class AuthResult {
+  const AuthResult({required this.accessToken, required this.user});
+  final String accessToken;
+  final Map<String, dynamic> user;
+}
+
 class ApiCache {
   ApiCache._();
   static final ApiCache instance = ApiCache._();
 
   bool _initialized = false;
   bool get initialized => _initialized;
+
+  String? _activeFarmId;
+  String? get activeFarmId => _activeFarmId;
+  set activeFarmId(String? id) => _activeFarmId = id;
+
+  Future<Map<String, dynamic>?> fetchFarms(String role, {ApiAuthTokens? tokens}) async {
+    final headers = _headers(role, tokens: tokens, roleTokens: _roleTokens);
+    final data = await _get('/farms', headers);
+    if (data != null) _myFarms = data;
+    return data;
+  }
+
+  /// POST /farms — create a new farm.
+  /// On success, sets [activeFarmId] and appends the farm to [_myFarms].
+  /// Does NOT call [init] — full init is deferred to wizard Step 3 (Task 7).
+  Future<bool> createFarmRemote(
+    String role, {
+    required String name,
+    required double latitude,
+    required double longitude,
+    required double areaHectares,
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
+    final body = <String, dynamic>{
+      'name': name,
+      'latitude': latitude,
+      'longitude': longitude,
+      'areaHectares': areaHectares,
+    };
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/farms'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      if (decoded['code'] == 'OK') {
+        final farmData = decoded['data'];
+        if (farmData is Map<String, dynamic>) {
+          final rawId = farmData['id'];
+          final farmId =
+              rawId is int ? rawId.toString() : (rawId as String? ?? '');
+          if (farmId.isNotEmpty) {
+            _activeFarmId = farmId;
+          }
+          // Append to existing _myFarms cache
+          final existingFarms = _myFarms?['farms'] ?? _myFarms?['items'];
+          if (existingFarms is List) {
+            final updated = List<dynamic>.from(existingFarms)..add(farmData);
+            final updatedMap = Map<String, dynamic>.from(_myFarms ?? {});
+            updatedMap['farms'] = updated;
+            if (_myFarms?['items'] != null) updatedMap['items'] = updated;
+            _myFarms = updatedMap;
+          } else {
+            // No existing cache — create fresh structure
+            _myFarms = {
+              'farms': [farmData],
+              'items': [farmData],
+            };
+          }
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// POST /farms/{farmId}/installations — bind a device to a livestock.
+  Future<bool> createInstallationRemote(
+    String role, {
+    required String farmId,
+    required String deviceId,
+    required String livestockId,
+    ApiAuthTokens? tokens,
+    bool allowMockTokenFallback = false,
+  }) async {
+    final body = <String, dynamic>{
+      'deviceId': deviceId,
+      'livestockId': livestockId,
+    };
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/farms/$farmId/installations'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      return decoded['code'] == 'OK';
+    }
+    return false;
+  }
 
   bool hasRoleData(String role) {
     if (!_initialized) return false;
@@ -84,7 +192,10 @@ class ApiCache {
   String? get lastLiveSource => _lastLiveSource;
   ApiHttpClient _httpClient = const DefaultApiHttpClient();
   final Map<String, ApiAuthTokens> _roleTokens = {};
+  void setRoleToken(String role, ApiAuthTokens tokens) => _roleTokens[role] = tokens;
   int _initGeneration = 0;
+  bool _skipPhase2Endpoints = false;
+  set skipPhase2Endpoints(bool value) => _skipPhase2Endpoints = value;
 
   List<Map<String, dynamic>> _dashboardMetrics = [];
   List<Map<String, dynamic>> _animals = [];
@@ -245,18 +356,16 @@ class ApiCache {
     };
     if (idempotencyKey != null) body['idempotencyKey'] = idempotencyKey;
 
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/subscription/checkout'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/subscription/checkout'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       if (decoded['code'] == 'OK') {
@@ -272,18 +381,16 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/subscription/cancel'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode({}),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/subscription/cancel'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode({}),
+    );
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       if (decoded['code'] == 'OK') {
@@ -304,18 +411,16 @@ class ApiCache {
     final body = <String, dynamic>{'livestockCount': livestockCount};
     if (idempotencyKey != null) body['idempotencyKey'] = idempotencyKey;
 
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/subscription/renew'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/subscription/renew'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       if (decoded['code'] == 'OK') {
@@ -338,7 +443,7 @@ class ApiCache {
       allowMockTokenFallback: allowMockTokenFallback,
       roleTokens: _roleTokens,
     );
-    final data = await _get('/tenants/$tenantId/devices', headers);
+    final data = await _get('/admin/tenants/$tenantId/devices', headers);
     if (data != null && data['items'] is List) {
       _tenantDevicesCache[tenantId] = (data['items'] as List)
           .whereType<Map<String, dynamic>>()
@@ -360,7 +465,7 @@ class ApiCache {
       allowMockTokenFallback: allowMockTokenFallback,
       roleTokens: _roleTokens,
     );
-    final data = await _get('/tenants/$tenantId/logs', headers);
+    final data = await _get('/admin/tenants/$tenantId/logs', headers);
     if (data != null && data['items'] is List) {
       _tenantLogsCache[tenantId] = (data['items'] as List)
           .whereType<Map<String, dynamic>>()
@@ -382,7 +487,7 @@ class ApiCache {
       allowMockTokenFallback: allowMockTokenFallback,
       roleTokens: _roleTokens,
     );
-    final data = await _get('/tenants/$tenantId/stats', headers);
+    final data = await _get('/admin/tenants/$tenantId/stats', headers);
     if (data != null) {
       _tenantStatsCache[tenantId] = data;
     }
@@ -390,6 +495,7 @@ class ApiCache {
 
   DeviceItem? _parseDeviceItem(Map<String, dynamic> json) {
     try {
+      final rawId = json['id'];
       final typeStr = json['type'] as String? ?? '';
       final statusStr = json['status'] as String? ?? '';
       final type = switch (typeStr) {
@@ -403,7 +509,7 @@ class ApiCache {
         _ => DeviceStatus.lowBattery,
       };
       return DeviceItem(
-        id: json['id'] as String? ?? '',
+        id: rawId is int ? rawId.toString() : (rawId as String? ?? ''),
         name: json['name'] as String? ?? '',
         type: type,
         status: status,
@@ -419,8 +525,9 @@ class ApiCache {
 
   TenantLogEntry? _parseTenantLogEntry(Map<String, dynamic> json) {
     try {
+      final rawId = json['id'];
       return TenantLogEntry(
-        id: json['id'] as String? ?? '',
+        id: rawId is int ? rawId.toString() : (rawId as String? ?? ''),
         action: json['action'] as String? ?? '',
         detail: json['detail'] as String? ?? '',
         operator: json['operator'] as String? ?? '',
@@ -429,6 +536,26 @@ class ApiCache {
     } catch (_) {
       return null;
     }
+  }
+
+  Future<AuthResult?> authenticateWithCredentials({
+    required String phone,
+    required String password,
+  }) async {
+    final response = await _httpClient.post(
+      Uri.parse('${resolveApiBaseUrl()}/auth/login'),
+      headers: const {'Content-Type': 'application/json'},
+      body: jsonEncode({'phone': phone, 'password': password}),
+    );
+    if (response.statusCode != 200) return null;
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (body['code'] != 'OK') return null;
+    final data = body['data'] as Map<String, dynamic>?;
+    if (data == null) return null;
+    final token = (data['accessToken'] ?? data['token']) as String?;
+    final user = data['user'] as Map<String, dynamic>?;
+    if (token == null || user == null) return null;
+    return AuthResult(accessToken: token, user: user);
   }
 
   Future<ApiAuthTokens?> authenticateRole(String role) async {
@@ -440,6 +567,12 @@ class ApiCache {
   }
 
   Future<ApiAuthTokens?> _authenticateRole(String role) async {
+    if (parseAppMode(
+      const String.fromEnvironment('APP_MODE', defaultValue: 'mock'),
+    ).isLive) {
+      debugPrint('_authenticateRole should not be called in live mode');
+      return null;
+    }
     final response = await _httpClient.post(
       Uri.parse('${resolveApiBaseUrl()}/auth/login'),
       headers: const {'Content-Type': 'application/json'},
@@ -521,29 +654,93 @@ class ApiCache {
         _get(path, headers, markLiveSource: false);
 
     try {
-      final results = await Future.wait([
-        initGet('/dashboard/summary'),
-        initGet('/map/trajectories?animalId=animal_001&range=24h'),
-        initGet('/alerts?pageSize=100'),
-        initGet('/fences?pageSize=100'),
-        initGet('/tenants?pageSize=100'),
-        initGet('/profile'),
-        initGet('/twin/overview'),
-        initGet('/twin/fever/list'),
-        initGet('/twin/digestive/list'),
-        initGet('/twin/estrus/list'),
-        initGet('/twin/epidemic/summary'),
-        initGet('/twin/epidemic/contacts'),
-        initGet('/devices?pageSize=200'),
-        initGet('/subscription/current'),
-        initGet('/subscription/features'),
-        initGet('/subscription/plans'),
-        initGet('/subscription/usage'),
-      ]);
+      // Step 1: Load farm list for owner/worker (always; shell reads _myFarms).
+      // If we only fetched /farms when activeFarmId was empty, loginWithCredentials
+      // could set activeFarmId from fetchFarms then init() would clear _myFarms and
+      // skip this block — leaving _myFarms null and showing "请创建您的第一个牧场".
+      String? farmId = _activeFarmId;
+      if (role == DemoRole.owner.wireName || role == DemoRole.worker.wireName) {
+        final myFarms = await initGet('/farms');
+        if (!_isCurrentGeneration(generation)) return;
+        _myFarms = myFarms;
+        if (farmId == null || farmId.isEmpty) {
+          final rawItems = myFarms?['items'];
+          if (rawItems is List && rawItems.isNotEmpty) {
+            final first = rawItems.first;
+            if (first is Map<String, dynamic>) {
+              final rawId = first['id'];
+              final derived =
+                  rawId is int ? rawId.toString() : (rawId as String?);
+              if (derived != null && derived.isNotEmpty) {
+                farmId = derived;
+                _activeFarmId = farmId;
+              }
+            }
+          }
+        }
+      }
 
+      final hasFarmScope = farmId != null && farmId.isNotEmpty;
+
+      // Step 2: Farm-scoped endpoints (skip if no active farm)
+      List<Map<String, dynamic>?> farmScopedResults = [];
+      if (hasFarmScope) {
+        farmScopedResults = await Future.wait([
+          initGet('/farms/$farmId/dashboard'),
+          initGet('/farms/$farmId/map'),
+          initGet('/farms/$farmId/alerts?pageSize=100'),
+          initGet('/farms/$farmId/fences?pageSize=100'),
+          initGet('/farms/$farmId/devices?pageSize=200'),
+        ]);
+      }
+
+      // Step 3: Non-farm-scoped endpoints — role-aware loading.
+      final isAdmin = role == DemoRole.platformAdmin.wireName;
+
+      // Admin-only: tenants (requires platform_admin role on Spring Boot)
+      if (isAdmin) {
+        final tenantsData = await initGet('/admin/tenants?pageSize=100');
+        if (!_isCurrentGeneration(generation)) return;
+        if (tenantsData != null) {
+          _tenants = List<Map<String, dynamic>>.from(tenantsData['items'] ?? []);
+        }
+      }
+
+      // Profile: always loaded
+      _profile = _normalizeProfile(await initGet('/me'));
       if (!_isCurrentGeneration(generation)) return;
 
-      if (results.every((data) => data == null)) {
+      // Twin/health & subscription: Phase 2 features, not in Spring Boot MVP.
+      // Skip entirely when connected to Spring Boot (set via loginWithCredentials).
+      // Mock Server supports these endpoints and will load them.
+      List<Map<String, dynamic>?> twinResults;
+      List<Map<String, dynamic>?> subResults;
+      if (_skipPhase2Endpoints) {
+        twinResults = List.filled(6, null);
+        subResults = List.filled(4, null);
+      } else {
+        twinResults = await Future.wait([
+          initGet('/twin/overview'),
+          initGet('/twin/fever/list'),
+          initGet('/twin/digestive/list'),
+          initGet('/twin/estrus/list'),
+          initGet('/twin/epidemic/summary'),
+          initGet('/twin/epidemic/contacts'),
+        ]);
+        if (!_isCurrentGeneration(generation)) return;
+
+        subResults = await Future.wait([
+          initGet('/subscription/current'),
+          initGet('/subscription/features'),
+          initGet('/subscription/plans'),
+          initGet('/subscription/usage'),
+        ]);
+        if (!_isCurrentGeneration(generation)) return;
+      }
+
+      // Check if anything loaded at all (exclude twin/sub — they may all 404)
+      final allResults = [...farmScopedResults, _profile];
+      if (allResults.every((data) => data == null)) {
         _initialized = false;
         _lastLiveSource = null;
         _tenantTrends = null;
@@ -551,91 +748,98 @@ class ApiCache {
       }
       _lastLiveSource = 'api';
 
-      final dashData = results[0];
-      if (dashData != null) {
-        _dashboardMetrics =
-            List<Map<String, dynamic>>.from(dashData['metrics'] ?? []);
+      // Farm-scoped: [0]=dashboard, [1]=map, [2]=alerts, [3]=fences, [4]=devices
+      if (hasFarmScope && farmScopedResults.isNotEmpty) {
+        final dashData = farmScopedResults[0];
+        if (dashData != null) {
+          final metricsRaw = dashData['metrics'];
+          if (metricsRaw is List) {
+            _dashboardMetrics =
+                List<Map<String, dynamic>>.from(metricsRaw);
+          } else {
+            _dashboardMetrics = _normalizeDashboardMetrics(dashData);
+          }
+        }
+
+        final mapData = farmScopedResults[1];
+        if (mapData != null) {
+          final animalsRaw = mapData['animals'];
+          if (animalsRaw is List) {
+            _animals = List<Map<String, dynamic>>.from(animalsRaw);
+            _mapTrajectoryPoints =
+                List<Map<String, dynamic>>.from(mapData['points'] ?? []);
+          } else {
+            _animals = _normalizeMapAnimals(mapData);
+            _mapTrajectoryPoints = <Map<String, dynamic>>[];
+          }
+        }
+
+        final alertsData = farmScopedResults[2];
+        if (alertsData != null) {
+          final items = alertsData['items'] is List
+              ? List<Map<String, dynamic>>.from(alertsData['items'] ?? [])
+              : <Map<String, dynamic>>[];
+          _alerts = items.map(_normalizeAlertItem).toList();
+        }
+
+        final fencesData = farmScopedResults[3];
+        if (fencesData != null) {
+          final items = fencesData['items'] is List
+              ? List<Map<String, dynamic>>.from(fencesData['items'] ?? [])
+              : <Map<String, dynamic>>[];
+          _fences = items.map(_normalizeFenceItem).toList();
+        }
+
+        final devicesData = farmScopedResults[4];
+        if (devicesData != null) {
+          final items = devicesData['items'] is List
+              ? List<Map<String, dynamic>>.from(devicesData['items'] ?? [])
+              : <Map<String, dynamic>>[];
+          _devices = items.map(_normalizeDeviceItem).toList();
+        }
       }
 
-      final mapData = results[1];
-      if (mapData != null) {
-        _animals = List<Map<String, dynamic>>.from(mapData['animals'] ?? []);
-        _mapTrajectoryPoints =
-            List<Map<String, dynamic>>.from(mapData['points'] ?? []);
-      }
-
-      final alertsData = results[2];
-      if (alertsData != null) {
-        _alerts = List<Map<String, dynamic>>.from(alertsData['items'] ?? []);
-      }
-
-      final fencesData = results[3];
-      if (fencesData != null) {
-        _fences = List<Map<String, dynamic>>.from(fencesData['items'] ?? []);
-      }
-
-      final tenantsData = results[4];
-      if (tenantsData != null) {
-        _tenants = List<Map<String, dynamic>>.from(tenantsData['items'] ?? []);
-      }
-
-      _profile = results[5];
-
-      _twinOverview = results[6];
-
-      final feverData = results[7];
+      // Twin: [0]=overview, [1]=fever, [2]=digestive, [3]=estrus,
+      //       [4]=epidemic/summary, [5]=epidemic/contacts
+      _twinOverview = twinResults[0];
+      final feverData = twinResults[1];
       if (feverData != null) {
         _feverList = List<Map<String, dynamic>>.from(feverData['items'] ?? []);
       }
-
-      final digestiveData = results[8];
+      final digestiveData = twinResults[2];
       if (digestiveData != null) {
         _digestiveList =
             List<Map<String, dynamic>>.from(digestiveData['items'] ?? []);
       }
-
-      final estrusData = results[9];
+      final estrusData = twinResults[3];
       if (estrusData != null) {
         _estrusList =
             List<Map<String, dynamic>>.from(estrusData['items'] ?? []);
       }
-
-      _epidemicSummary = results[10];
-
-      final contactsData = results[11];
+      _epidemicSummary = twinResults[4];
+      final contactsData = twinResults[5];
       if (contactsData != null) {
         _epidemicContacts =
             List<Map<String, dynamic>>.from(contactsData['items'] ?? []);
       }
 
-      final devicesData = results[12];
-      if (devicesData != null) {
-        _devices = List<Map<String, dynamic>>.from(devicesData['items'] ?? []);
-      }
-
-      _subscriptionCurrent = results[13];
-      _subscriptionFeatures = results[14];
-
-      final plansData = results[15];
+      // Subscription: [0]=current, [1]=features, [2]=plans, [3]=usage
+      _subscriptionCurrent = subResults[0];
+      _subscriptionFeatures = subResults[1];
+      final plansData = subResults[2];
       if (plansData != null) {
         _subscriptionPlans =
             List<Map<String, dynamic>>.from(plansData['items'] ?? []);
       }
+      _subscriptionUsage = subResults[3];
 
-      _subscriptionUsage = results[16];
-
+      // Workers & owner extras (farm list already fetched in Step 1)
       if (role == DemoRole.owner.wireName || role == DemoRole.worker.wireName) {
-        final myFarms = await initGet('/farm/my-farms');
-        if (!_isCurrentGeneration(generation)) return;
-        _myFarms = myFarms;
-        final activeFarmId = myFarms?['activeFarmId'];
-        if (role == DemoRole.owner.wireName &&
-            activeFarmId is String &&
-            activeFarmId.isNotEmpty) {
-          final workers = await initGet('/farms/$activeFarmId/workers');
+        if (role == DemoRole.owner.wireName && farmId != null) {
+          final workers = await initGet('/farms/$farmId/members');
           if (!_isCurrentGeneration(generation)) return;
           _workers = workers;
-          _workersFarmId = workers == null ? null : activeFarmId;
+          _workersFarmId = workers == null ? null : farmId;
         }
       }
 
@@ -694,6 +898,36 @@ class ApiCache {
     return null;
   }
 
+  Future<ApiHttpResponse> _post(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return _httpClient.post(url, headers: headers, body: body);
+  }
+
+  Future<ApiHttpResponse> _put(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return _httpClient.put(url, headers: headers, body: body);
+  }
+
+  Future<ApiHttpResponse> _delete(
+    Uri url, {
+    Map<String, String>? headers,
+  }) {
+    return _httpClient.delete(url, headers: headers);
+  }
+
+  Future<ApiHttpResponse> _httpGet(
+    Uri url, {
+    Map<String, String>? headers,
+  }) {
+    return _httpClient.get(url, headers: headers);
+  }
+
   Future<void> refreshTenants(
     String role, {
     ApiAuthTokens? tokens,
@@ -705,14 +939,14 @@ class ApiCache {
       allowMockTokenFallback: allowMockTokenFallback,
       roleTokens: _roleTokens,
     );
-    final data = await _get('/tenants?pageSize=100', headers);
+    final data = await _get('/admin/tenants?pageSize=100', headers);
     if (data != null) {
       _tenants = List<Map<String, dynamic>>.from(data['items'] ?? []);
     }
   }
 
   Future<void> refreshTenantTrends(String role, String tenantId) async {
-    final data = await _get('/tenants/$tenantId/trends', _headers(role));
+    final data = await _get('/admin/tenants/$tenantId/trends', _headers(role));
     if (data != null) {
       _tenantTrends ??= {};
       _tenantTrends![tenantId] = data;
@@ -725,15 +959,15 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
-    final response = await http
-        .get(Uri.parse('${resolveApiBaseUrl()}/tenants/$id'),
-            headers: _headers(
-              role,
-              tokens: tokens,
-              allowMockTokenFallback: allowMockTokenFallback,
-              roleTokens: _roleTokens,
-            ))
-        .timeout(const Duration(seconds: 20));
+    final response = await _httpGet(
+      Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+    );
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       if (body['code'] == 'OK') {
@@ -749,18 +983,16 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/tenants'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/admin/tenants'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
     return _parseTenantWrite(response);
   }
 
@@ -771,18 +1003,16 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
-    final response = await http
-        .put(
-          Uri.parse('${resolveApiBaseUrl()}/tenants/$id'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _put(
+      Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
     return _parseTenantWrite(response);
   }
 
@@ -793,18 +1023,16 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/tenants/$id/status'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode({'status': status}),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id/status'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode({'status': status}),
+    );
     return _parseTenantWrite(response);
   }
 
@@ -815,18 +1043,16 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/tenants/$id/license'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode({'licenseTotal': licenseTotal}),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id/license'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode({'licenseTotal': licenseTotal}),
+    );
     return _parseTenantWrite(response);
   }
 
@@ -836,21 +1062,19 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
-    final response = await http
-        .delete(
-          Uri.parse('${resolveApiBaseUrl()}/tenants/$id'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _delete(
+      Uri.parse('${resolveApiBaseUrl()}/admin/tenants/$id'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+    );
     return _parseTenantWrite(response);
   }
 
-  TenantWriteResult _parseTenantWrite(http.Response response) {
+  TenantWriteResult _parseTenantWrite(ApiHttpResponse response) {
     try {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       if (response.statusCode == 200 && body['code'] == 'OK') {
@@ -877,18 +1101,16 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/b2b/farms'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/b2b/farms'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       if (decoded['code'] == 'OK') {
@@ -912,13 +1134,11 @@ class ApiCache {
   }
 
   Future<bool> confirmRevenuePeriodRemote(String role, String periodId) async {
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/revenue/periods/$periodId/confirm'),
-          headers: _headers(role, roleTokens: _roleTokens),
-          body: jsonEncode({}),
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/revenue/periods/$periodId/confirm'),
+      headers: _headers(role, roleTokens: _roleTokens),
+      body: jsonEncode({}),
+    );
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       return body['code'] == 'OK';
@@ -941,24 +1161,34 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
+    if (_activeFarmId == null || _activeFarmId!.isEmpty) return;
     final headers = _headers(
       role,
       tokens: tokens,
       allowMockTokenFallback: allowMockTokenFallback,
       roleTokens: _roleTokens,
     );
-    final fencesData = await _get('/fences?pageSize=100', headers);
+    final fencesData = await _get('/farms/$_activeFarmId/fences?pageSize=100', headers);
     if (fencesData != null) {
-      _fences = List<Map<String, dynamic>>.from(fencesData['items'] ?? []);
+      final items = fencesData['items'] is List
+          ? List<Map<String, dynamic>>.from(fencesData['items'] ?? [])
+          : <Map<String, dynamic>>[];
+      _fences = items.map(_normalizeFenceItem).toList();
     }
     final mapData = await _get(
-      '/map/trajectories?animalId=animal_001&range=24h',
+      '/farms/$_activeFarmId/map',
       headers,
     );
     if (mapData != null) {
-      _animals = List<Map<String, dynamic>>.from(mapData['animals'] ?? []);
-      _mapTrajectoryPoints =
-          List<Map<String, dynamic>>.from(mapData['points'] ?? []);
+      final animalsRaw = mapData['animals'];
+      if (animalsRaw is List) {
+        _animals = List<Map<String, dynamic>>.from(animalsRaw);
+        _mapTrajectoryPoints =
+            List<Map<String, dynamic>>.from(mapData['points'] ?? []);
+      } else {
+        _animals = _normalizeMapAnimals(mapData);
+        _mapTrajectoryPoints = <Map<String, dynamic>>[];
+      }
     }
   }
 
@@ -968,17 +1198,16 @@ class ApiCache {
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) async {
-    final response = await http
-        .delete(
-          Uri.parse('${resolveApiBaseUrl()}/fences/$id'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-        )
-        .timeout(const Duration(seconds: 20));
+    if (_activeFarmId == null || _activeFarmId!.isEmpty) return false;
+    final response = await _delete(
+      Uri.parse('${resolveApiBaseUrl()}/farms/$_activeFarmId/fences/$id'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+    );
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       return body['code'] == 'OK';
@@ -997,20 +1226,19 @@ class ApiCache {
       lastFenceSaveStatusCode = result.ok ? null : result.statusCode;
       return result.ok;
     }
-    final response = await http
-        .post(
-          Uri.parse('${resolveApiBaseUrl()}/fences'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 20));
+    if (_activeFarmId == null || _activeFarmId!.isEmpty) return false;
+    final response = await _post(
+      Uri.parse('${resolveApiBaseUrl()}/farms/$_activeFarmId/fences'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
     lastFenceSaveStatusCode = response.statusCode;
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       final ok = decoded['code'] == 'OK';
       if (ok) {
@@ -1033,18 +1261,17 @@ class ApiCache {
       lastFenceSaveStatusCode = result.ok ? null : result.statusCode;
       return result.ok;
     }
-    final response = await http
-        .put(
-          Uri.parse('${resolveApiBaseUrl()}/fences/$id'),
-          headers: _headers(
-            role,
-            tokens: tokens,
-            allowMockTokenFallback: allowMockTokenFallback,
-            roleTokens: _roleTokens,
-          ),
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 20));
+    if (_activeFarmId == null || _activeFarmId!.isEmpty) return false;
+    final response = await _put(
+      Uri.parse('${resolveApiBaseUrl()}/farms/$_activeFarmId/fences/$id'),
+      headers: _headers(
+        role,
+        tokens: tokens,
+        allowMockTokenFallback: allowMockTokenFallback,
+        roleTokens: _roleTokens,
+      ),
+      body: jsonEncode(body),
+    );
     lastFenceSaveStatusCode = response.statusCode;
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
@@ -1083,9 +1310,234 @@ class ApiCache {
 
   int? lastFenceSaveStatusCode;
 
+  // ---------------------------------------------------------------------------
+  // Normalization helpers: transform Spring Boot responses into the same shape
+  // the Mock Server produces, so live repos work without per-repo changes.
+  // If a field already matches Mock format, it passes through unchanged.
+  // ---------------------------------------------------------------------------
+
+  static String _stringId(dynamic v) {
+    if (v is int) return v.toString();
+    if (v is String) return v;
+    return '';
+  }
+
+  /// Mock Server returns `{ metrics: [{key, title, value}] }`.
+  /// Spring Boot returns flat `{ livestockCount, onlineDeviceCount, ... }`.
+  static List<Map<String, dynamic>> _normalizeDashboardMetrics(
+    Map<String, dynamic> data,
+  ) {
+    final list = <Map<String, dynamic>>[];
+    final entries = <String, String>{
+      'livestockCount': '牲畜总数',
+      'onlineDeviceCount': '在线设备',
+      'activeAlertCount': '活跃告警',
+      'fenceCount': '围栏数',
+    };
+    for (final e in entries.entries) {
+      final raw = data[e.key];
+      if (raw != null) {
+        list.add({
+          'key': e.key,
+          'title': e.value,
+          'value': _stringId(raw),
+        });
+      }
+    }
+    final health = data['healthSummary'] as Map<String, dynamic>?;
+    if (health != null) {
+      final healthy = health['healthy'];
+      final warning = health['warning'];
+      final critical = health['critical'];
+      if (healthy != null) {
+        list.add({
+          'key': 'healthHealthy',
+          'title': '健康',
+          'value': _stringId(healthy),
+        });
+      }
+      if (warning != null) {
+        list.add({
+          'key': 'healthWarning',
+          'title': '关注',
+          'value': _stringId(warning),
+        });
+      }
+      if (critical != null) {
+        list.add({
+          'key': 'healthCritical',
+          'title': '异常',
+          'value': _stringId(critical),
+        });
+      }
+    }
+    return list;
+  }
+
+  /// Mock Server returns `{ animals: [...], points: [...] }`.
+  /// Spring Boot returns `{ livestock: [...], fences: [...], alerts: [...] }`.
+  static List<Map<String, dynamic>> _normalizeMapAnimals(
+    Map<String, dynamic> data,
+  ) {
+    final livestockRaw = data['livestock'] as List<dynamic>? ?? [];
+    return livestockRaw.map((e) {
+      final m = e as Map<String, dynamic>;
+      return <String, dynamic>{
+        'id': _stringId(m['id']),
+        'livestockCode': m['livestockCode'] ?? m['earTag'] ?? '',
+        'lat': m['lat'],
+        'lng': m['lng'],
+        'healthStatus': m['healthStatus'] ?? 'healthy',
+        'alertCount': m['alertCount'] ?? 0,
+        // Keep original fields too for compatibility
+        for (final entry in m.entries)
+          if (!const {'id'}.contains(entry.key)) entry.key: entry.value,
+      };
+    }).toList();
+  }
+
+  /// Normalize a single alert item.
+  /// Mock: { id, title, occurredAt, level, type, stage }
+  /// Spring Boot: { id, type, status, severity, message, createdAt, livestockCode, fenceName, ... }
+  static Map<String, dynamic> _normalizeAlertItem(Map<String, dynamic> m) {
+    return <String, dynamic>{
+      'id': _stringId(m['id']),
+      // title: Mock has it directly; Spring Boot uses 'message'
+      'title': m['title'] ?? m['message'] ?? '',
+      // occurredAt: Mock uses this; Spring Boot uses 'createdAt'
+      'occurredAt': m['occurredAt'] ?? m['createdAt'] ?? '',
+      // level: Mock uses 'level'; Spring Boot uses 'severity'
+      'level': m['level'] ?? m['severity'] ?? 'warning',
+      // stage: Mock uses 'stage'; Spring Boot uses 'status'
+      'stage': m['stage'] ?? m['status'] ?? 'pending',
+      'type': m['type'] ?? 'unknown',
+      // extra Spring Boot fields preserved for downstream use
+      if (m['livestockCode'] != null) 'livestockCode': m['livestockCode'],
+      if (m['fenceName'] != null) 'fenceName': m['fenceName'],
+      for (final entry in m.entries)
+        if (!const {
+          'id',
+          'title',
+          'occurredAt',
+          'level',
+          'stage',
+          'type',
+        }.contains(entry.key))
+          entry.key: entry.value,
+    };
+  }
+
+  /// Normalize a single fence item.
+  /// Mock: { id, name, type, coordinates: [[lng, lat], ...], alarmEnabled, status }
+  /// Spring Boot: { id, name, vertices: [{lng, lat}, ...], color, status }
+  static Map<String, dynamic> _normalizeFenceItem(Map<String, dynamic> m) {
+    // If 'coordinates' already present (Mock format), pass through
+    if (m['coordinates'] != null) {
+      return <String, dynamic>{
+        'id': _stringId(m['id']),
+        for (final entry in m.entries)
+          if (entry.key != 'id') entry.key: entry.value,
+      };
+    }
+    // Convert Spring Boot 'vertices' to Mock 'coordinates'
+    final vertices = m['vertices'] as List<dynamic>?;
+    List<List<double>>? coordinates;
+    if (vertices != null) {
+      coordinates = vertices.map((v) {
+        final vm = v as Map<String, dynamic>;
+        final lng = (vm['lng'] ?? vm['longitude']) as num;
+        final lat = (vm['lat'] ?? vm['latitude']) as num;
+        return <double>[lng.toDouble(), lat.toDouble()];
+      }).toList();
+    }
+    return <String, dynamic>{
+      'id': _stringId(m['id']),
+      'name': m['name'] ?? '未命名',
+      'type': m['type'] ?? 'polygon',
+      if (coordinates != null) 'coordinates': coordinates,
+      'alarmEnabled': m['alarmEnabled'] ?? true,
+      'status': m['status'] ?? 'active',
+      for (final entry in m.entries)
+        if (!const {
+          'id',
+          'name',
+          'type',
+          'vertices',
+          'alarmEnabled',
+          'status',
+        }.contains(entry.key))
+          entry.key: entry.value,
+    };
+  }
+
+  /// Normalize a single device item.
+  /// Mock: { id, name, type, status, boundEarTag, batteryPercent, signalStrength, lastSync }
+  /// Spring Boot: { id, deviceCode, deviceType, status, runtimeStatus, batteryLevel, lastOnlineAt, ... }
+  static Map<String, dynamic> _normalizeDeviceItem(Map<String, dynamic> m) {
+    // If 'type' is already present and 'deviceType' is not, assume Mock format
+    if (m['type'] != null && m['deviceType'] == null) {
+      return <String, dynamic>{
+        'id': _stringId(m['id']),
+        for (final entry in m.entries)
+          if (entry.key != 'id') entry.key: entry.value,
+      };
+    }
+    // Map Spring Boot fields to Mock field names
+    final deviceType = m['deviceType'] ?? m['type'] ?? '';
+    final runtimeStatus = m['runtimeStatus'] ?? '';
+    return <String, dynamic>{
+      'id': _stringId(m['id']),
+      'name': m['name'] ?? m['deviceCode'] ?? '',
+      'type': _normalizeDeviceType(deviceType),
+      'status': _normalizeDeviceStatus(runtimeStatus),
+      'boundEarTag': m['boundEarTag'] ?? m['installedLivestockCode'] ?? '',
+      'batteryPercent': m['batteryPercent'] ?? m['batteryLevel'],
+      'signalStrength': m['signalStrength'],
+      'lastSync': m['lastSync'] ?? m['lastOnlineAt'],
+    };
+  }
+
+  /// Map Spring Boot deviceType to Mock type values: gps, rumenCapsule, accelerometer
+  static String _normalizeDeviceType(String deviceType) {
+    return switch (deviceType) {
+      'device_tracker' || 'tracker' || 'gps' => 'gps',
+      'rumen_capsule' || 'rumenCapsule' || 'capsule' => 'rumenCapsule',
+      'accelerometer' => 'accelerometer',
+      _ => 'gps',
+    };
+  }
+
+  /// Map Spring Boot runtimeStatus to Mock status values: online, offline, lowBattery
+  static String _normalizeDeviceStatus(String runtimeStatus) {
+    return switch (runtimeStatus) {
+      'online' => 'online',
+      'offline' => 'offline',
+      'low_battery' || 'lowBattery' => 'lowBattery',
+      _ => 'offline',
+    };
+  }
+
+  /// Normalize profile from /me endpoint.
+  /// Mock: { name, tenantName, role, ... }
+  /// Spring Boot: { id, username, name, phone, role, tenantId }
+  static Map<String, dynamic>? _normalizeProfile(Map<String, dynamic>? raw) {
+    if (raw == null) return null;
+    final normalized = Map<String, dynamic>.from(raw);
+    // Ensure 'name' exists (both formats have it)
+    normalized['name'] ??= normalized['username'] ?? '未知用户';
+    // Ensure 'tenantName' exists for UI
+    normalized['tenantName'] ??= normalized['name'] ?? '未知牧场';
+    // Ensure 'role' exists
+    normalized['role'] ??= '';
+    return normalized;
+  }
+
   void _clearLiveData() {
     _initialized = false;
     _lastLiveSource = null;
+    // Preserve _skipPhase2Endpoints — caller (e.g. loginWithCredentials) sets it
+    // before init(), and _initForGeneration calls _clearLiveData at the start,
+    // which would defeat the flag if reset here.
     _dashboardMetrics = [];
     _animals = [];
     _mapTrajectoryPoints = [];
@@ -1119,9 +1571,22 @@ class ApiCache {
     _tenantStatsCache.clear();
   }
 
+  /// Clears all cached data, tokens, and active farm selection.
+  /// Called on logout to prevent data leaking between sessions.
+  void reset() {
+    _clearLiveData();
+    _activeFarmId = null;
+    _skipPhase2Endpoints = false;
+    _httpClient = const DefaultApiHttpClient();
+    _roleTokens.clear();
+    _tenantTrends = null;
+    _initGeneration += 1;
+  }
+
   @visibleForTesting
   void debugReset() {
     _clearLiveData();
+    _skipPhase2Endpoints = false;
     _httpClient = const DefaultApiHttpClient();
     _roleTokens.clear();
     _tenantTrends = null;

@@ -47,21 +47,23 @@ class LiveEstrusRepository implements EstrusRepository {
 
   static EstrusScore? _parseScore(Map<String, dynamic> m) {
     try {
+      final rawId = m['livestockId'];
+      final id = rawId is int ? rawId.toString() : (rawId as String? ?? '');
       final trendRaw = m['trend7d'] as List<dynamic>? ?? [];
       final trend7d = trendRaw.map((e) {
         final t = e as Map<String, dynamic>;
         return EstrusTrendPoint(
-          score: (t['score'] as num).toDouble(),
-          timestamp: DateTime.parse(t['timestamp'] as String),
+          score: (t['score'] as num?)?.toDouble() ?? 0.0,
+          timestamp: DateTime.tryParse(t['timestamp'] as String? ?? '') ?? DateTime.now(),
         );
       }).toList();
       return EstrusScore(
-        livestockId: m['livestockId'] as String,
-        score: (m['score'] as num).toInt(),
-        stepIncreasePercent: (m['stepIncreasePercent'] as num).toInt(),
-        tempDelta: (m['tempDelta'] as num).toDouble(),
-        distanceDelta: (m['distanceDelta'] as num).toDouble(),
-        timestamp: DateTime.parse(m['timestamp'] as String),
+        livestockId: id,
+        score: (m['score'] as num?)?.toInt() ?? 0,
+        stepIncreasePercent: (m['stepIncreasePercent'] as num?)?.toInt() ?? 0,
+        tempDelta: (m['tempDelta'] as num?)?.toDouble() ?? 0.0,
+        distanceDelta: (m['distanceDelta'] as num?)?.toDouble() ?? 0.0,
+        timestamp: DateTime.tryParse(m['timestamp'] as String? ?? '') ?? DateTime.now(),
         advice: m['advice'] as String?,
         trend7d: trend7d,
       );

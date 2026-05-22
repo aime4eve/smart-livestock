@@ -1,0 +1,18 @@
+- generic [ref=e5] [cursor=pointer]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - heading "阿尔卑斯北麓牧场" [level=2]
+              - button "SL-2024-001 SL-2024-002 SL-2024-003 SL-2024-004 SL-2024-005 SL-2024-006 SL-2024-007 SL-2024-008 SL-2024-009 SL-2024-010 SL-2024-011 SL-2024-012 SL-2024-013 SL-2024-014 SL-2024-015 SL-2024-016 SL-2024-017 SL-2024-018 SL-2024-019 SL-2024-020 SL-2024-021 SL-2024-022 SL-2024-023 SL-2024-024 SL-2024-025 SL-2024-026 SL-2024-027 SL-2024-028 SL-2024-029 SL-2024-030 SL-2024-031 SL-2024-032 SL-2024-033 SL-2024-034 SL-2024-035 SL-2024-036 SL-2024-037 SL-2024-038 SL-2024-039 SL-2024-040 SL-2024-041 SL-2024-042 SL-2024-043 SL-2024-044 SL-2024-045 SL-2024-046 SL-2024-047 SL-2024-048 SL-2024-049 SL-2024-050" [active] [ref=e28]
+              - button "牧场列表" [ref=e29]
+              - button "编辑边界" [ref=e30]
+          - group:
+            - button "孪生" [ref=e23]
+            - button "围栏" [ref=e24]
+            - button "告警" [ref=e25]
+            - button "我的" [ref=e26]
+            - button "后台" [ref=e27]

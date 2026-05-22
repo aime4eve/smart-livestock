@@ -15,6 +15,8 @@ public final class TenantMapper {
         jpa.setContactName(tenant.getContactName());
         jpa.setContactPhone(tenant.getContactPhone());
         jpa.setPhase(tenant.getPhase().name());
+        jpa.setType(tenant.getType());
+        jpa.setBillingModel(tenant.getBillingModel());
         return jpa;
     }
 
@@ -25,6 +27,17 @@ public final class TenantMapper {
         tenant.setContactName(jpa.getContactName());
         tenant.setContactPhone(jpa.getContactPhone());
         tenant.reconstitutePhase(TenantPhase.valueOf(jpa.getPhase()));
+        tenant.setType(jpa.getType());
+        tenant.setBillingModel(jpa.getBillingModel());
         return tenant;
+    }
+
+    public static void applyTo(TenantJpaEntity jpa, Tenant tenant) {
+        jpa.setName(tenant.getName());
+        jpa.setContactName(tenant.getContactName());
+        jpa.setContactPhone(tenant.getContactPhone());
+        jpa.setPhase(tenant.getPhase().name());
+        jpa.setType(tenant.getType());
+        jpa.setBillingModel(tenant.getBillingModel());
     }
 }

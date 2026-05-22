@@ -31,6 +31,12 @@ public class TenantJpaEntity {
     @Column(name = "phase", nullable = false, length = 10)
     private String phase;
 
+    @Column(name = "type", length = 20)
+    private String type;
+
+    @Column(name = "billing_model", length = 20)
+    private String billingModel;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -65,6 +71,12 @@ public class TenantJpaEntity {
 
     public String getPhase() { return phase; }
     public void setPhase(String phase) { this.phase = phase; }
+
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+
+    public String getBillingModel() { return billingModel; }
+    public void setBillingModel(String billingModel) { this.billingModel = billingModel; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

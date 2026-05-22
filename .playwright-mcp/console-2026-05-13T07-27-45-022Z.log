@@ -1,0 +1,510 @@
+[     188ms] [INFO] DDC is about to load 1/2 scripts with pool size = 1000 @ http://localhost:53150/ddc_module_loader.js:1014
+[     357ms] [INFO] DDC is about to load 1007/1007 scripts with pool size = 1000 @ http://localhost:53150/ddc_module_loader.js:1014
+[    1247ms] [LOG] Starting application from main method in: org-dartlang-app:/web_entrypoint.dart. @ http://localhost:53150/ddc_module_loader.js:1585
+[  122817ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ http://172.22.1.123:18080/api/v1/admin/tenants?pageSize=100:0
+[  122818ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/digestive/list:0
+[  122818ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/fever/list:0
+[  122818ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/overview:0
+[  122818ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/estrus/list:0
+[  122818ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/epidemic/summary:0
+[  122831ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/subscription/features:0
+[  122831ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/subscription/current:0
+[  122831ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/subscription/plans:0
+[  122831ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/epidemic/contacts:0
+[  122831ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/subscription/usage:0
+[  622590ms] [INFO] DDC is about to load 1/2 scripts with pool size = 1000 @ http://localhost:53150/ddc_module_loader.js:1014
+[  622747ms] [INFO] DDC is about to load 1007/1007 scripts with pool size = 1000 @ http://localhost:53150/ddc_module_loader.js:1014
+[  623549ms] [LOG] Starting application from main method in: org-dartlang-app:/web_entrypoint.dart. @ http://localhost:53150/ddc_module_loader.js:1585
+[  684615ms] [ERROR] WebSocket connection to 'ws://localhost:53150/$dwdsSseHandler' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:53150/dwds/src/injected/client.js:9831
+[  684821ms] [ERROR] WebSocket connection to 'ws://localhost:53150/$dwdsSseHandler' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:53150/dwds/src/injected/client.js:9831
+[ 2634680ms] [LOG] Unhandled error detected in the injected client.js script.
+
+You can disable this script in webdev by passing --no-injected-client if it
+is preventing your app from loading, but note that this will also prevent
+all debugging and hot reload/restart functionality from working.
+
+The original error is below, please file an issue at
+https://github.com/dart-lang/webdev/issues/new and attach this output:
+
+WebSocketConnectionClosed: Connection Closed
+
+    at Object.throwExpression (http://localhost:53150/dwds/src/injected/client.js:1312:64)
+    at PersistentWebSocket._writeToWebSocket$1 (http://localhost:53150/dwds/src/injected/client.js:24827:13)
+    at tear_off.<anonymous> (http://localhost:53150/dwds/src/injected/client.js:1637:45)
+    at StaticClosure._rootRunUnary (http://localhost:53150/dwds/src/injected/client.js:4317:18)
+    at _CustomZone.runUnary$2$2 (http://localhost:53150/dwds/src/injected/client.js:15140:39)
+    at _CustomZone.runUnaryGuarded$1$2 (http://localhost:53150/dwds/src/injected/client.js:15087:14)
+    at _ControllerSubscription._sendData$1 (http://localhost:53150/dwds/src/injected/client.js:14587:19)
+    at _DelayedData.perform$1 (http://localhost:53150/dwds/src/injected/client.js:14762:59)
+    at _PendingEvents_schedule_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:14821:14)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4298:18)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4302:16)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at Object._microtaskLoop (http://localhost:53150/dwds/src/injected/client.js:4148:24)
+    at StaticClosure._startMicrotaskLoop (http://localhost:53150/dwds/src/injected/client.js:4154:11)
+    at _AsyncRun__initializeScheduleImmediate_internalCallback.call$1 (http://localhost:53150/dwds/src/injected/client.js:13521:9)
+ @ http://localhost:53150/dwds/src/injected/client.js:10478
+[ 2635779ms] [LOG] Unhandled error detected in the injected client.js script.
+
+You can disable this script in webdev by passing --no-injected-client if it
+is preventing your app from loading, but note that this will also prevent
+all debugging and hot reload/restart functionality from working.
+
+The original error is below, please file an issue at
+https://github.com/dart-lang/webdev/issues/new and attach this output:
+
+WebSocketConnectionClosed: Connection Closed
+
+    at Object.throwExpression (http://localhost:53150/dwds/src/injected/client.js:1312:64)
+    at PersistentWebSocket._writeToWebSocket$1 (http://localhost:53150/dwds/src/injected/client.js:24827:13)
+    at tear_off.<anonymous> (http://localhost:53150/dwds/src/injected/client.js:1637:45)
+    at StaticClosure._rootRunUnary (http://localhost:53150/dwds/src/injected/client.js:4317:18)
+    at _CustomZone.runUnary$2$2 (http://localhost:53150/dwds/src/injected/client.js:15140:39)
+    at _CustomZone.runUnaryGuarded$1$2 (http://localhost:53150/dwds/src/injected/client.js:15087:14)
+    at _ControllerSubscription._sendData$1 (http://localhost:53150/dwds/src/injected/client.js:14587:19)
+    at _DelayedData.perform$1 (http://localhost:53150/dwds/src/injected/client.js:14762:59)
+    at _PendingEvents_schedule_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:14821:14)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4298:18)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4302:16)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at Object._microtaskLoop (http://localhost:53150/dwds/src/injected/client.js:4148:24)
+    at StaticClosure._startMicrotaskLoop (http://localhost:53150/dwds/src/injected/client.js:4154:11)
+    at _AsyncRun__initializeScheduleImmediate_internalCallback.call$1 (http://localhost:53150/dwds/src/injected/client.js:13521:9)
+ @ http://localhost:53150/dwds/src/injected/client.js:10478
+[ 2636819ms] [LOG] Unhandled error detected in the injected client.js script.
+
+You can disable this script in webdev by passing --no-injected-client if it
+is preventing your app from loading, but note that this will also prevent
+all debugging and hot reload/restart functionality from working.
+
+The original error is below, please file an issue at
+https://github.com/dart-lang/webdev/issues/new and attach this output:
+
+WebSocketConnectionClosed: Connection Closed
+
+    at Object.throwExpression (http://localhost:53150/dwds/src/injected/client.js:1312:64)
+    at PersistentWebSocket._writeToWebSocket$1 (http://localhost:53150/dwds/src/injected/client.js:24827:13)
+    at tear_off.<anonymous> (http://localhost:53150/dwds/src/injected/client.js:1637:45)
+    at StaticClosure._rootRunUnary (http://localhost:53150/dwds/src/injected/client.js:4317:18)
+    at _CustomZone.runUnary$2$2 (http://localhost:53150/dwds/src/injected/client.js:15140:39)
+    at _CustomZone.runUnaryGuarded$1$2 (http://localhost:53150/dwds/src/injected/client.js:15087:14)
+    at _ControllerSubscription._sendData$1 (http://localhost:53150/dwds/src/injected/client.js:14587:19)
+    at _DelayedData.perform$1 (http://localhost:53150/dwds/src/injected/client.js:14762:59)
+    at _PendingEvents_schedule_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:14821:14)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4298:18)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4302:16)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at Object._microtaskLoop (http://localhost:53150/dwds/src/injected/client.js:4148:24)
+    at StaticClosure._startMicrotaskLoop (http://localhost:53150/dwds/src/injected/client.js:4154:11)
+    at _AsyncRun__initializeScheduleImmediate_internalCallback.call$1 (http://localhost:53150/dwds/src/injected/client.js:13521:9)
+ @ http://localhost:53150/dwds/src/injected/client.js:10478
+[ 2637905ms] [LOG] Unhandled error detected in the injected client.js script.
+
+You can disable this script in webdev by passing --no-injected-client if it
+is preventing your app from loading, but note that this will also prevent
+all debugging and hot reload/restart functionality from working.
+
+The original error is below, please file an issue at
+https://github.com/dart-lang/webdev/issues/new and attach this output:
+
+WebSocketConnectionClosed: Connection Closed
+
+    at Object.throwExpression (http://localhost:53150/dwds/src/injected/client.js:1312:64)
+    at PersistentWebSocket._writeToWebSocket$1 (http://localhost:53150/dwds/src/injected/client.js:24827:13)
+    at tear_off.<anonymous> (http://localhost:53150/dwds/src/injected/client.js:1637:45)
+    at StaticClosure._rootRunUnary (http://localhost:53150/dwds/src/injected/client.js:4317:18)
+    at _CustomZone.runUnary$2$2 (http://localhost:53150/dwds/src/injected/client.js:15140:39)
+    at _CustomZone.runUnaryGuarded$1$2 (http://localhost:53150/dwds/src/injected/client.js:15087:14)
+    at _ControllerSubscription._sendData$1 (http://localhost:53150/dwds/src/injected/client.js:14587:19)
+    at _DelayedData.perform$1 (http://localhost:53150/dwds/src/injected/client.js:14762:59)
+    at _PendingEvents_schedule_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:14821:14)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4298:18)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4302:16)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at Object._microtaskLoop (http://localhost:53150/dwds/src/injected/client.js:4148:24)
+    at StaticClosure._startMicrotaskLoop (http://localhost:53150/dwds/src/injected/client.js:4154:11)
+    at _AsyncRun__initializeScheduleImmediate_internalCallback.call$1 (http://localhost:53150/dwds/src/injected/client.js:13521:9)
+ @ http://localhost:53150/dwds/src/injected/client.js:10478
+[ 2638916ms] [LOG] Unhandled error detected in the injected client.js script.
+
+You can disable this script in webdev by passing --no-injected-client if it
+is preventing your app from loading, but note that this will also prevent
+all debugging and hot reload/restart functionality from working.
+
+The original error is below, please file an issue at
+https://github.com/dart-lang/webdev/issues/new and attach this output:
+
+WebSocketConnectionClosed: Connection Closed
+
+    at Object.throwExpression (http://localhost:53150/dwds/src/injected/client.js:1312:64)
+    at PersistentWebSocket._writeToWebSocket$1 (http://localhost:53150/dwds/src/injected/client.js:24827:13)
+    at tear_off.<anonymous> (http://localhost:53150/dwds/src/injected/client.js:1637:45)
+    at StaticClosure._rootRunUnary (http://localhost:53150/dwds/src/injected/client.js:4317:18)
+    at _CustomZone.runUnary$2$2 (http://localhost:53150/dwds/src/injected/client.js:15140:39)
+    at _CustomZone.runUnaryGuarded$1$2 (http://localhost:53150/dwds/src/injected/client.js:15087:14)
+    at _ControllerSubscription._sendData$1 (http://localhost:53150/dwds/src/injected/client.js:14587:19)
+    at _DelayedData.perform$1 (http://localhost:53150/dwds/src/injected/client.js:14762:59)
+    at _PendingEvents_schedule_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:14821:14)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4298:18)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4302:16)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at Object._microtaskLoop (http://localhost:53150/dwds/src/injected/client.js:4148:24)
+    at StaticClosure._startMicrotaskLoop (http://localhost:53150/dwds/src/injected/client.js:4154:11)
+    at _AsyncRun__initializeScheduleImmediate_internalCallback.call$1 (http://localhost:53150/dwds/src/injected/client.js:13521:9)
+ @ http://localhost:53150/dwds/src/injected/client.js:10478
+[ 2640056ms] [LOG] Unhandled error detected in the injected client.js script.
+
+You can disable this script in webdev by passing --no-injected-client if it
+is preventing your app from loading, but note that this will also prevent
+all debugging and hot reload/restart functionality from working.
+
+The original error is below, please file an issue at
+https://github.com/dart-lang/webdev/issues/new and attach this output:
+
+WebSocketConnectionClosed: Connection Closed
+
+    at Object.throwExpression (http://localhost:53150/dwds/src/injected/client.js:1312:64)
+    at PersistentWebSocket._writeToWebSocket$1 (http://localhost:53150/dwds/src/injected/client.js:24827:13)
+    at tear_off.<anonymous> (http://localhost:53150/dwds/src/injected/client.js:1637:45)
+    at StaticClosure._rootRunUnary (http://localhost:53150/dwds/src/injected/client.js:4317:18)
+    at _CustomZone.runUnary$2$2 (http://localhost:53150/dwds/src/injected/client.js:15140:39)
+    at _CustomZone.runUnaryGuarded$1$2 (http://localhost:53150/dwds/src/injected/client.js:15087:14)
+    at _ControllerSubscription._sendData$1 (http://localhost:53150/dwds/src/injected/client.js:14587:19)
+    at _DelayedData.perform$1 (http://localhost:53150/dwds/src/injected/client.js:14762:59)
+    at _PendingEvents_schedule_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:14821:14)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4298:18)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4302:16)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at Object._microtaskLoop (http://localhost:53150/dwds/src/injected/client.js:4148:24)
+    at StaticClosure._startMicrotaskLoop (http://localhost:53150/dwds/src/injected/client.js:4154:11)
+    at _AsyncRun__initializeScheduleImmediate_internalCallback.call$1 (http://localhost:53150/dwds/src/injected/client.js:13521:9)
+ @ http://localhost:53150/dwds/src/injected/client.js:10478
+[ 2641058ms] [LOG] Unhandled error detected in the injected client.js script.
+
+You can disable this script in webdev by passing --no-injected-client if it
+is preventing your app from loading, but note that this will also prevent
+all debugging and hot reload/restart functionality from working.
+
+The original error is below, please file an issue at
+https://github.com/dart-lang/webdev/issues/new and attach this output:
+
+WebSocketConnectionClosed: Connection Closed
+
+    at Object.throwExpression (http://localhost:53150/dwds/src/injected/client.js:1312:64)
+    at PersistentWebSocket._writeToWebSocket$1 (http://localhost:53150/dwds/src/injected/client.js:24827:13)
+    at tear_off.<anonymous> (http://localhost:53150/dwds/src/injected/client.js:1637:45)
+    at StaticClosure._rootRunUnary (http://localhost:53150/dwds/src/injected/client.js:4317:18)
+    at _CustomZone.runUnary$2$2 (http://localhost:53150/dwds/src/injected/client.js:15140:39)
+    at _CustomZone.runUnaryGuarded$1$2 (http://localhost:53150/dwds/src/injected/client.js:15087:14)
+    at _ControllerSubscription._sendData$1 (http://localhost:53150/dwds/src/injected/client.js:14587:19)
+    at _DelayedData.perform$1 (http://localhost:53150/dwds/src/injected/client.js:14762:59)
+    at _PendingEvents_schedule_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:14821:14)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4298:18)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4302:16)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at Object._microtaskLoop (http://localhost:53150/dwds/src/injected/client.js:4148:24)
+    at StaticClosure._startMicrotaskLoop (http://localhost:53150/dwds/src/injected/client.js:4154:11)
+    at _AsyncRun__initializeScheduleImmediate_internalCallback.call$1 (http://localhost:53150/dwds/src/injected/client.js:13521:9)
+ @ http://localhost:53150/dwds/src/injected/client.js:10478
+[ 2642194ms] [LOG] Unhandled error detected in the injected client.js script.
+
+You can disable this script in webdev by passing --no-injected-client if it
+is preventing your app from loading, but note that this will also prevent
+all debugging and hot reload/restart functionality from working.
+
+The original error is below, please file an issue at
+https://github.com/dart-lang/webdev/issues/new and attach this output:
+
+WebSocketConnectionClosed: Connection Closed
+
+    at Object.throwExpression (http://localhost:53150/dwds/src/injected/client.js:1312:64)
+    at PersistentWebSocket._writeToWebSocket$1 (http://localhost:53150/dwds/src/injected/client.js:24827:13)
+    at tear_off.<anonymous> (http://localhost:53150/dwds/src/injected/client.js:1637:45)
+    at StaticClosure._rootRunUnary (http://localhost:53150/dwds/src/injected/client.js:4317:18)
+    at _CustomZone.runUnary$2$2 (http://localhost:53150/dwds/src/injected/client.js:15140:39)
+    at _CustomZone.runUnaryGuarded$1$2 (http://localhost:53150/dwds/src/injected/client.js:15087:14)
+    at _ControllerSubscription._sendData$1 (http://localhost:53150/dwds/src/injected/client.js:14587:19)
+    at _DelayedData.perform$1 (http://localhost:53150/dwds/src/injected/client.js:14762:59)
+    at _PendingEvents_schedule_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:14821:14)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4298:18)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4302:16)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at Object._microtaskLoop (http://localhost:53150/dwds/src/injected/client.js:4148:24)
+    at StaticClosure._startMicrotaskLoop (http://localhost:53150/dwds/src/injected/client.js:4154:11)
+    at _AsyncRun__initializeScheduleImmediate_internalCallback.call$1 (http://localhost:53150/dwds/src/injected/client.js:13521:9)
+ @ http://localhost:53150/dwds/src/injected/client.js:10478
+[ 2643236ms] [LOG] Unhandled error detected in the injected client.js script.
+
+You can disable this script in webdev by passing --no-injected-client if it
+is preventing your app from loading, but note that this will also prevent
+all debugging and hot reload/restart functionality from working.
+
+The original error is below, please file an issue at
+https://github.com/dart-lang/webdev/issues/new and attach this output:
+
+WebSocketConnectionClosed: Connection Closed
+
+    at Object.throwExpression (http://localhost:53150/dwds/src/injected/client.js:1312:64)
+    at PersistentWebSocket._writeToWebSocket$1 (http://localhost:53150/dwds/src/injected/client.js:24827:13)
+    at tear_off.<anonymous> (http://localhost:53150/dwds/src/injected/client.js:1637:45)
+    at StaticClosure._rootRunUnary (http://localhost:53150/dwds/src/injected/client.js:4317:18)
+    at _CustomZone.runUnary$2$2 (http://localhost:53150/dwds/src/injected/client.js:15140:39)
+    at _CustomZone.runUnaryGuarded$1$2 (http://localhost:53150/dwds/src/injected/client.js:15087:14)
+    at _ControllerSubscription._sendData$1 (http://localhost:53150/dwds/src/injected/client.js:14587:19)
+    at _DelayedData.perform$1 (http://localhost:53150/dwds/src/injected/client.js:14762:59)
+    at _PendingEvents_schedule_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:14821:14)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4298:18)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4302:16)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at Object._microtaskLoop (http://localhost:53150/dwds/src/injected/client.js:4148:24)
+    at StaticClosure._startMicrotaskLoop (http://localhost:53150/dwds/src/injected/client.js:4154:11)
+    at _AsyncRun__initializeScheduleImmediate_internalCallback.call$1 (http://localhost:53150/dwds/src/injected/client.js:13521:9)
+ @ http://localhost:53150/dwds/src/injected/client.js:10478
+[ 2644308ms] [LOG] Unhandled error detected in the injected client.js script.
+
+You can disable this script in webdev by passing --no-injected-client if it
+is preventing your app from loading, but note that this will also prevent
+all debugging and hot reload/restart functionality from working.
+
+The original error is below, please file an issue at
+https://github.com/dart-lang/webdev/issues/new and attach this output:
+
+WebSocketConnectionClosed: Connection Closed
+
+    at Object.throwExpression (http://localhost:53150/dwds/src/injected/client.js:1312:64)
+    at PersistentWebSocket._writeToWebSocket$1 (http://localhost:53150/dwds/src/injected/client.js:24827:13)
+    at tear_off.<anonymous> (http://localhost:53150/dwds/src/injected/client.js:1637:45)
+    at StaticClosure._rootRunUnary (http://localhost:53150/dwds/src/injected/client.js:4317:18)
+    at _CustomZone.runUnary$2$2 (http://localhost:53150/dwds/src/injected/client.js:15140:39)
+    at _CustomZone.runUnaryGuarded$1$2 (http://localhost:53150/dwds/src/injected/client.js:15087:14)
+    at _ControllerSubscription._sendData$1 (http://localhost:53150/dwds/src/injected/client.js:14587:19)
+    at _DelayedData.perform$1 (http://localhost:53150/dwds/src/injected/client.js:14762:59)
+    at _PendingEvents_schedule_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:14821:14)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4298:18)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4302:16)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at Object._microtaskLoop (http://localhost:53150/dwds/src/injected/client.js:4148:24)
+    at StaticClosure._startMicrotaskLoop (http://localhost:53150/dwds/src/injected/client.js:4154:11)
+    at _AsyncRun__initializeScheduleImmediate_internalCallback.call$1 (http://localhost:53150/dwds/src/injected/client.js:13521:9)
+ @ http://localhost:53150/dwds/src/injected/client.js:10478
+[ 2645345ms] [LOG] Unhandled error detected in the injected client.js script.
+
+You can disable this script in webdev by passing --no-injected-client if it
+is preventing your app from loading, but note that this will also prevent
+all debugging and hot reload/restart functionality from working.
+
+The original error is below, please file an issue at
+https://github.com/dart-lang/webdev/issues/new and attach this output:
+
+WebSocketConnectionClosed: Connection Closed
+
+    at Object.throwExpression (http://localhost:53150/dwds/src/injected/client.js:1312:64)
+    at PersistentWebSocket._writeToWebSocket$1 (http://localhost:53150/dwds/src/injected/client.js:24827:13)
+    at tear_off.<anonymous> (http://localhost:53150/dwds/src/injected/client.js:1637:45)
+    at StaticClosure._rootRunUnary (http://localhost:53150/dwds/src/injected/client.js:4317:18)
+    at _CustomZone.runUnary$2$2 (http://localhost:53150/dwds/src/injected/client.js:15140:39)
+    at _CustomZone.runUnaryGuarded$1$2 (http://localhost:53150/dwds/src/injected/client.js:15087:14)
+    at _ControllerSubscription._sendData$1 (http://localhost:53150/dwds/src/injected/client.js:14587:19)
+    at _DelayedData.perform$1 (http://localhost:53150/dwds/src/injected/client.js:14762:59)
+    at _PendingEvents_schedule_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:14821:14)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4298:18)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4302:16)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at Object._microtaskLoop (http://localhost:53150/dwds/src/injected/client.js:4148:24)
+    at StaticClosure._startMicrotaskLoop (http://localhost:53150/dwds/src/injected/client.js:4154:11)
+    at _AsyncRun__initializeScheduleImmediate_internalCallback.call$1 (http://localhost:53150/dwds/src/injected/client.js:13521:9)
+ @ http://localhost:53150/dwds/src/injected/client.js:10478
+[ 2645679ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ http://172.22.1.123:18080/api/v1/admin/tenants?pageSize=100:0
+[ 2645680ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/fever/list:0
+[ 2645680ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/overview:0
+[ 2645681ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/digestive/list:0
+[ 2645681ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/estrus/list:0
+[ 2645681ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/epidemic/summary:0
+[ 2645681ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/subscription/plans:0
+[ 2645681ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/subscription/features:0
+[ 2645681ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/epidemic/contacts:0
+[ 2645681ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/subscription/current:0
+[ 2645695ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/subscription/usage:0
+[ 2646513ms] [LOG] Unhandled error detected in the injected client.js script.
+
+You can disable this script in webdev by passing --no-injected-client if it
+is preventing your app from loading, but note that this will also prevent
+all debugging and hot reload/restart functionality from working.
+
+The original error is below, please file an issue at
+https://github.com/dart-lang/webdev/issues/new and attach this output:
+
+WebSocketConnectionClosed: Connection Closed
+
+    at Object.throwExpression (http://localhost:53150/dwds/src/injected/client.js:1312:64)
+    at PersistentWebSocket._writeToWebSocket$1 (http://localhost:53150/dwds/src/injected/client.js:24827:13)
+    at tear_off.<anonymous> (http://localhost:53150/dwds/src/injected/client.js:1637:45)
+    at StaticClosure._rootRunUnary (http://localhost:53150/dwds/src/injected/client.js:4317:18)
+    at _CustomZone.runUnary$2$2 (http://localhost:53150/dwds/src/injected/client.js:15140:39)
+    at _CustomZone.runUnaryGuarded$1$2 (http://localhost:53150/dwds/src/injected/client.js:15087:14)
+    at _ControllerSubscription._sendData$1 (http://localhost:53150/dwds/src/injected/client.js:14587:19)
+    at _DelayedData.perform$1 (http://localhost:53150/dwds/src/injected/client.js:14762:59)
+    at _PendingEvents_schedule_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:14821:14)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4298:18)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4302:16)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at Object._microtaskLoop (http://localhost:53150/dwds/src/injected/client.js:4148:24)
+    at StaticClosure._startMicrotaskLoop (http://localhost:53150/dwds/src/injected/client.js:4154:11)
+    at _AsyncRun__initializeScheduleImmediate_internalCallback.call$1 (http://localhost:53150/dwds/src/injected/client.js:13521:9)
+ @ http://localhost:53150/dwds/src/injected/client.js:10478
+[ 2649671ms] [LOG] Unhandled error detected in the injected client.js script.
+
+You can disable this script in webdev by passing --no-injected-client if it
+is preventing your app from loading, but note that this will also prevent
+all debugging and hot reload/restart functionality from working.
+
+The original error is below, please file an issue at
+https://github.com/dart-lang/webdev/issues/new and attach this output:
+
+WebSocketConnectionClosed: Connection Closed
+
+    at Object.throwExpression (http://localhost:53150/dwds/src/injected/client.js:1312:64)
+    at PersistentWebSocket._writeToWebSocket$1 (http://localhost:53150/dwds/src/injected/client.js:24827:13)
+    at tear_off.<anonymous> (http://localhost:53150/dwds/src/injected/client.js:1637:45)
+    at StaticClosure._rootRunUnary (http://localhost:53150/dwds/src/injected/client.js:4317:18)
+    at _CustomZone.runUnary$2$2 (http://localhost:53150/dwds/src/injected/client.js:15140:39)
+    at _CustomZone.runUnaryGuarded$1$2 (http://localhost:53150/dwds/src/injected/client.js:15087:14)
+    at _ControllerSubscription._sendData$1 (http://localhost:53150/dwds/src/injected/client.js:14587:19)
+    at _DelayedData.perform$1 (http://localhost:53150/dwds/src/injected/client.js:14762:59)
+    at _PendingEvents_schedule_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:14821:14)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4298:18)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4302:16)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at Object._microtaskLoop (http://localhost:53150/dwds/src/injected/client.js:4148:24)
+    at StaticClosure._startMicrotaskLoop (http://localhost:53150/dwds/src/injected/client.js:4154:11)
+    at _AsyncRun__initializeScheduleImmediate_internalCallback.call$1 (http://localhost:53150/dwds/src/injected/client.js:13521:9)
+ @ http://localhost:53150/dwds/src/injected/client.js:10478
+[ 2650719ms] [LOG] Unhandled error detected in the injected client.js script.
+
+You can disable this script in webdev by passing --no-injected-client if it
+is preventing your app from loading, but note that this will also prevent
+all debugging and hot reload/restart functionality from working.
+
+The original error is below, please file an issue at
+https://github.com/dart-lang/webdev/issues/new and attach this output:
+
+WebSocketConnectionClosed: Connection Closed
+
+    at Object.throwExpression (http://localhost:53150/dwds/src/injected/client.js:1312:64)
+    at PersistentWebSocket._writeToWebSocket$1 (http://localhost:53150/dwds/src/injected/client.js:24827:13)
+    at tear_off.<anonymous> (http://localhost:53150/dwds/src/injected/client.js:1637:45)
+    at StaticClosure._rootRunUnary (http://localhost:53150/dwds/src/injected/client.js:4317:18)
+    at _CustomZone.runUnary$2$2 (http://localhost:53150/dwds/src/injected/client.js:15140:39)
+    at _CustomZone.runUnaryGuarded$1$2 (http://localhost:53150/dwds/src/injected/client.js:15087:14)
+    at _ControllerSubscription._sendData$1 (http://localhost:53150/dwds/src/injected/client.js:14587:19)
+    at _DelayedData.perform$1 (http://localhost:53150/dwds/src/injected/client.js:14762:59)
+    at _PendingEvents_schedule_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:14821:14)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4298:18)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4302:16)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at Object._microtaskLoop (http://localhost:53150/dwds/src/injected/client.js:4148:24)
+    at StaticClosure._startMicrotaskLoop (http://localhost:53150/dwds/src/injected/client.js:4154:11)
+    at _AsyncRun__initializeScheduleImmediate_internalCallback.call$1 (http://localhost:53150/dwds/src/injected/client.js:13521:9)
+ @ http://localhost:53150/dwds/src/injected/client.js:10478
+[ 2651731ms] [LOG] Unhandled error detected in the injected client.js script.
+
+You can disable this script in webdev by passing --no-injected-client if it
+is preventing your app from loading, but note that this will also prevent
+all debugging and hot reload/restart functionality from working.
+
+The original error is below, please file an issue at
+https://github.com/dart-lang/webdev/issues/new and attach this output:
+
+WebSocketConnectionClosed: Connection Closed
+
+    at Object.throwExpression (http://localhost:53150/dwds/src/injected/client.js:1312:64)
+    at PersistentWebSocket._writeToWebSocket$1 (http://localhost:53150/dwds/src/injected/client.js:24827:13)
+    at tear_off.<anonymous> (http://localhost:53150/dwds/src/injected/client.js:1637:45)
+    at StaticClosure._rootRunUnary (http://localhost:53150/dwds/src/injected/client.js:4317:18)
+    at _CustomZone.runUnary$2$2 (http://localhost:53150/dwds/src/injected/client.js:15140:39)
+    at _CustomZone.runUnaryGuarded$1$2 (http://localhost:53150/dwds/src/injected/client.js:15087:14)
+    at _ControllerSubscription._sendData$1 (http://localhost:53150/dwds/src/injected/client.js:14587:19)
+    at _DelayedData.perform$1 (http://localhost:53150/dwds/src/injected/client.js:14762:59)
+    at _PendingEvents_schedule_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:14821:14)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4298:18)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at StaticClosure._rootRun (http://localhost:53150/dwds/src/injected/client.js:4302:16)
+    at _CustomZone.run$1$1 (http://localhost:53150/dwds/src/injected/client.js:15132:39)
+    at _CustomZone.runGuarded$1 (http://localhost:53150/dwds/src/injected/client.js:15075:14)
+    at _CustomZone_bindCallbackGuarded_closure.call$0 (http://localhost:53150/dwds/src/injected/client.js:15264:25)
+    at Object._microtaskLoop (http://localhost:53150/dwds/src/injected/client.js:4148:24)
+    at StaticClosure._startMicrotaskLoop (http://localhost:53150/dwds/src/injected/client.js:4154:11)
+    at _AsyncRun__initializeScheduleImmediate_internalCallback.call$1 (http://localhost:53150/dwds/src/injected/client.js:13521:9)
+ @ http://localhost:53150/dwds/src/injected/client.js:10478

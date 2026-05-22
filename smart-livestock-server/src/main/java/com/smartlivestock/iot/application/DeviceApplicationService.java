@@ -3,9 +3,11 @@ package com.smartlivestock.iot.application;
 import com.smartlivestock.iot.application.command.RegisterDeviceCommand;
 import com.smartlivestock.iot.application.dto.DeviceDto;
 import com.smartlivestock.iot.domain.model.Device;
+import com.smartlivestock.iot.domain.model.DeviceStatus;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
+import com.smartlivestock.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,5 +66,16 @@ public class DeviceApplicationService {
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "设备不存在: " + id));
         device.decommission();
         deviceRepository.save(device);
+    }
+
+    /**
+     * Count ACTIVE devices for the current tenant.
+     * Phase 1: tenant-level count (devices have no farm_id column).
+     */
+    @Transactional(readOnly = true)
+    public long countActiveByTenant() {
+        Long tenantId = TenantContext.getCurrentTenant();
+        if (tenantId == null) return 0L;
+        return deviceRepository.countByTenantIdAndStatus(tenantId, DeviceStatus.ACTIVE.name());
     }
 }

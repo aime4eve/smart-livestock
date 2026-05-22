@@ -84,11 +84,12 @@ class FenceEditToolbar extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
-            FilledButton(
-              key: const Key('fence-edit-save'),
-              onPressed: canSave ? onSave : null,
-              child: const Text('保存'),
+            Flexible(
+              child: FilledButton(
+                key: const Key('fence-edit-save'),
+                onPressed: canSave ? onSave : null,
+                child: const Text('保存'),
+              ),
             ),
           ],
         ),

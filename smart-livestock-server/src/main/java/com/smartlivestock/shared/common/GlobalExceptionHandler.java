@@ -2,8 +2,11 @@ package com.smartlivestock.shared.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -15,11 +18,26 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    private static String currentRequestId() {
+        String id = MDC.get("requestId");
+        return id != null ? id : UUID.randomUUID().toString();
+    }
+
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiResponse<Void>> handleApiException(ApiException ex) {
-        String requestId = UUID.randomUUID().toString();
+        String requestId = currentRequestId();
         HttpStatus status = mapToHttpStatus(ex.getCode());
         log.warn("[{}] ApiException {}: {}", requestId, ex.getCode(), ex.getMessage());
+        return ResponseEntity
+                .status(status)
+                .body(ApiResponse.error(ex.getCode(), ex.getMessage(), requestId));
+    }
+
+    @ExceptionHandler(DomainException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDomainException(DomainException ex) {
+        String requestId = currentRequestId();
+        HttpStatus status = mapToHttpStatus(ex.getCode());
+        log.warn("[{}] DomainException {}: {}", requestId, ex.getCode(), ex.getMessage());
         return ResponseEntity
                 .status(status)
                 .body(ApiResponse.error(ex.getCode(), ex.getMessage(), requestId));
@@ -28,7 +46,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidationException(
             MethodArgumentNotValidException ex) {
-        String requestId = UUID.randomUUID().toString();
+        String requestId = currentRequestId();
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .reduce((a, b) -> a + "; " + b)
@@ -39,9 +57,30 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ErrorCode.VALIDATION_ERROR, message, requestId));
     }
 
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNotFound(NoResourceFoundException ex) {
+        String requestId = currentRequestId();
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ErrorCode.RESOURCE_NOT_FOUND,
+                        ex.getResourcePath() != null ? "Not found: " + ex.getResourcePath() : "Not found",
+                        requestId));
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMethodNotAllowed(
+            HttpRequestMethodNotSupportedException ex) {
+        String requestId = currentRequestId();
+        log.warn("[{}] Method not allowed: {} {}", ex.getMethod(), ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(ApiResponse.error(ErrorCode.BAD_REQUEST,
+                        "Method not allowed: " + ex.getMethod(), requestId));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
-        String requestId = UUID.randomUUID().toString();
+        String requestId = currentRequestId();
         log.error("[{}] Unexpected error", requestId, ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -68,6 +107,15 @@ public class GlobalExceptionHandler {
             case RESOURCE_DELETED -> HttpStatus.GONE;
             case FARM_SCOPE_CONFLICT -> HttpStatus.CONFLICT;
             case RATE_LIMIT_EXCEEDED -> HttpStatus.TOO_MANY_REQUESTS;
+            case ENTERPRISE_CUSTOM_PRICING -> HttpStatus.BAD_REQUEST;
+            case INVALID_BILLING_MODEL -> HttpStatus.BAD_REQUEST;
+            case INVALID_REVENUE_SHARE_RATIO -> HttpStatus.BAD_REQUEST;
+            case SUBSCRIPTION_NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case SUBSCRIPTION_NOT_ACTIVE -> HttpStatus.CONFLICT;
+            case CONTRACT_NOT_ACTIVE -> HttpStatus.CONFLICT;
+            case SERVICE_KEY_MISMATCH -> HttpStatus.BAD_REQUEST;
+            case SERVICE_LICENSE_EXPIRED -> HttpStatus.FORBIDDEN;
+            case SETTLEMENT_DUPLICATE_CONFIRM -> HttpStatus.CONFLICT;
             case INTERNAL_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }

@@ -1,0 +1,12 @@
+[  127945ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ http://172.22.1.123:18080/api/v1/admin/tenants?pageSize=100:0
+[  127973ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/estrus/list:0
+[  127973ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/overview:0
+[  127973ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/epidemic/contacts:0
+[  127973ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/fever/list:0
+[  127974ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/digestive/list:0
+[  127974ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/twin/epidemic/summary:0
+[  127990ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/subscription/features:0
+[  127991ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/subscription/usage:0
+[  127991ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/subscription/current:0
+[  127992ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://172.22.1.123:18080/api/v1/subscription/plans:0
+[  127993ms] [LOG] ApiCache init failed: TypeError: null: type 'minified:AW' is not a subtype of type 'num' @ http://localhost:54321/main.dart.js:34277

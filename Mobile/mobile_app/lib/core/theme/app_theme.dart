@@ -20,7 +20,11 @@ class AppTheme {
       onSurface: AppColors.textPrimary,
     );
 
-    final base = ThemeData(useMaterial3: true, colorScheme: colorScheme);
+    final base = ThemeData(
+      useMaterial3: true,
+      colorScheme: colorScheme,
+      fontFamily: 'NotoSansSC',
+    );
 
     return base.copyWith(
       scaffoldBackgroundColor: AppColors.surface,

@@ -11,4 +11,6 @@ public interface LivestockRepository {
     List<Livestock> findByFarmId(Long farmId);
     Optional<Livestock> findByLivestockCode(String livestockCode);
     void deleteById(Long id);
+    long countByFarmId(Long farmId);
+    long countByFarmIdAndTenantId(Long farmId, Long tenantId);
 }

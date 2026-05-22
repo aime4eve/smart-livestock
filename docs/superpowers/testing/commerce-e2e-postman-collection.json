@@ -1,0 +1,901 @@
+{
+	"info": {
+		"_postman_id": "commerce-e2e-verification",
+		"name": "Commerce E2E Verification",
+		"description": "Commerce 限界上下文端到端验证测试集（18 项 SC）。变量自动提取，按顺序执行即可。\n\n种子账户: owner=13800138000, admin=13800000000, 密码=password123",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{ "key": "base_url", "value": "http://172.22.1.123:18080" },
+		{ "key": "owner_token", "value": "" },
+		{ "key": "admin_token", "value": "" },
+		{ "key": "subscription_id", "value": "1" },
+		{ "key": "contract_id", "value": "" },
+		{ "key": "revenue_period_id", "value": "" },
+		{ "key": "service_id", "value": "" },
+		{ "key": "feature_gate_id", "value": "1" },
+		{ "key": "farm_id", "value": "1" }
+	],
+	"item": [
+		{
+			"name": "0. 准备工作",
+			"item": [
+				{
+					"name": "0.1 登录 Owner",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('登录成功', () => pm.expect(res.code).to.eql('OK'));",
+									"pm.collectionVariables.set('owner_token', res.data.accessToken);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"url": { "raw": "{{base_url}}/api/v1/auth/login", "host": ["{{base_url}}"], "path": ["api", "v1", "auth", "login"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"phone\":\"13800138000\",\"password\":\"password123\"}"
+						}
+					}
+				},
+				{
+					"name": "0.2 登录 Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('登录成功', () => pm.expect(res.code).to.eql('OK'));",
+									"pm.collectionVariables.set('admin_token', res.data.accessToken);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"url": { "raw": "{{base_url}}/api/v1/auth/login", "host": ["{{base_url}}"], "path": ["api", "v1", "auth", "login"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"phone\":\"13800000000\",\"password\":\"password123\"}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "场景1 B2C直订阅",
+			"item": [
+				{
+					"name": "1.1 查看初始订阅",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-1 订阅存在', () => pm.expect(res.code).to.eql('OK'));",
+									"pm.test('SC-2 tier=BASIC, status=TRIAL, effectiveTier=PREMIUM', () => {",
+									"  pm.expect(res.data.tier).to.eql('BASIC');",
+									"  pm.expect(res.data.status).to.eql('TRIAL');",
+									"  pm.expect(res.data.effectiveTier).to.eql('PREMIUM');",
+									"});",
+									"pm.collectionVariables.set('subscription_id', res.data.id);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{owner_token}}" }],
+						"url": { "raw": "{{base_url}}/api/v1/subscription", "host": ["{{base_url}}"], "path": ["api", "v1", "subscription"] }
+					}
+				},
+				{
+					"name": "1.2 查看定价方案",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('返回4个Tier', () => pm.expect(res.data).to.have.lengthOf(4));",
+									"const tiers = res.data.map(t => t.tier);",
+									"pm.test('包含 BASIC/STANDARD/PREMIUM/ENTERPRISE', () => {",
+									"  ['BASIC','STANDARD','PREMIUM','ENTERPRISE'].forEach(t => pm.expect(tiers).to.include(t));",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{owner_token}}" }],
+						"url": { "raw": "{{base_url}}/api/v1/subscription/plans", "host": ["{{base_url}}"], "path": ["api", "v1", "subscription", "plans"] }
+					}
+				},
+				{
+					"name": "1.3 付费订阅 checkout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-3 checkout成功', () => pm.expect(res.code).to.eql('OK'));",
+									"pm.test('status=ACTIVE, tier=STANDARD', () => {",
+									"  pm.expect(res.data.status).to.eql('ACTIVE');",
+									"  pm.expect(res.data.tier).to.eql('STANDARD');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{owner_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": { "raw": "{{base_url}}/api/v1/subscription/checkout", "host": ["{{base_url}}"], "path": ["api", "v1", "subscription", "checkout"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"tier\":\"STANDARD\",\"billingCycle\":\"monthly\"}"
+						}
+					}
+				},
+				{
+					"name": "1.4 升级Tier（不传billingCycle）",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-4 升级成功', () => pm.expect(res.code).to.eql('OK'));",
+									"pm.test('tier=PREMIUM, billingCycle继承=monthly', () => {",
+									"  pm.expect(res.data.tier).to.eql('PREMIUM');",
+									"  pm.expect(res.data.billingCycle).to.eql('monthly');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{owner_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": { "raw": "{{base_url}}/api/v1/subscription/tier", "host": ["{{base_url}}"], "path": ["api", "v1", "subscription", "tier"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"tier\":\"PREMIUM\"}"
+						}
+					}
+				},
+				{
+					"name": "1.5 取消订阅",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-5 取消成功', () => {",
+									"  pm.expect(res.code).to.eql('OK');",
+									"  pm.expect(res.data.status).to.eql('CANCELLED');",
+									"  pm.expect(res.data.cancelledAt).to.not.be.null;",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Authorization", "value": "Bearer {{owner_token}}" }],
+						"url": { "raw": "{{base_url}}/api/v1/subscription/cancel", "host": ["{{base_url}}"], "path": ["api", "v1", "subscription", "cancel"] }
+					}
+				},
+				{
+					"name": "1.6 取消后操作被拒绝",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-5 取消后操作被拒', () => pm.expect(res.code).to.eql('STATE_CONFLICT'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{owner_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": { "raw": "{{base_url}}/api/v1/subscription/tier", "host": ["{{base_url}}"], "path": ["api", "v1", "subscription", "tier"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"tier\":\"BASIC\",\"billingCycle\":\"monthly\"}"
+						}
+					}
+				},
+				{
+					"name": "1.7 查看用量",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('返回用量信息', () => {",
+									"  pm.expect(res.code).to.eql('OK');",
+									"  pm.expect(res.data).to.have.property('includedLivestock');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{owner_token}}" }],
+						"url": { "raw": "{{base_url}}/api/v1/subscription/usage", "host": ["{{base_url}}"], "path": ["api", "v1", "subscription", "usage"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "场景2 B2B分润合同",
+			"item": [
+				{
+					"name": "2.1 创建合同草稿",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-6 创建草稿', () => {",
+									"  pm.expect(res.code).to.eql('OK');",
+									"  pm.expect(res.data.status).to.eql('DRAFT');",
+									"  pm.expect(res.data.revenueShareRatio).to.eql(0.85);",
+									"  pm.expect(res.data.signedBy).to.be.null;",
+									"});",
+									"pm.collectionVariables.set('contract_id', res.data.id);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": { "raw": "{{base_url}}/api/v1/admin/contracts", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "contracts"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"tenantId\":1,\"contractNumber\":\"CT-2026-0001\",\"billingModel\":\"revenue_share\",\"effectiveTier\":\"premium\",\"revenueShareRatio\":0.85}"
+						}
+					}
+				},
+				{
+					"name": "2.2 修改草稿",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-7 草稿修改', () => {",
+									"  pm.expect(res.code).to.eql('OK');",
+									"  pm.expect(res.data.revenueShareRatio).to.eql(0.80);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": { "raw": "{{base_url}}/api/v1/admin/contracts/{{contract_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "contracts", "{{contract_id}}"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"revenueShareRatio\": 0.80}"
+						}
+					}
+				},
+				{
+					"name": "2.3 签署合同",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-6 签署成功', () => {",
+									"  pm.expect(res.code).to.eql('OK');",
+									"  pm.expect(res.data.status).to.eql('ACTIVE');",
+									"  pm.expect(res.data.signedBy).to.not.be.null;",
+									"  pm.expect(res.data.signedAt).to.not.be.null;",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+						"url": { "raw": "{{base_url}}/api/v1/admin/contracts/{{contract_id}}/sign", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "contracts", "{{contract_id}}", "sign"] }
+					}
+				},
+				{
+					"name": "2.4 计算月度分润",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-8 分润计算', () => {",
+									"  pm.expect(res.code).to.eql('OK');",
+									"  pm.expect(res.data.grossAmount).to.eql(500000);",
+									"  pm.expect(res.data.platformShare + res.data.partnerShare).to.eql(500000);",
+									"  pm.expect(res.data.status).to.eql('PENDING');",
+									"});",
+									"pm.collectionVariables.set('revenue_period_id', res.data.id);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": { "raw": "{{base_url}}/api/v1/admin/revenue/calculate", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "revenue", "calculate"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"contractId\":{{contract_id}},\"periodStart\":\"2026-05-01\",\"periodEnd\":\"2026-05-31\",\"grossAmountCents\":500000}"
+						}
+					}
+				},
+				{
+					"name": "2.5 平台确认",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-9 平台确认', () => {",
+									"  pm.expect(res.code).to.eql('OK');",
+									"  pm.expect(res.data.status).to.eql('PLATFORM_CONFIRMED');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+						"url": { "raw": "{{base_url}}/api/v1/admin/revenue/periods/{{revenue_period_id}}/confirm", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "revenue", "periods", "{{revenue_period_id}}", "confirm"] }
+					}
+				},
+				{
+					"name": "2.6 Partner确认",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-9 Partner确认', () => {",
+									"  pm.expect(res.code).to.eql('OK');",
+									"  pm.expect(res.data.status).to.eql('PARTNER_CONFIRMED');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Authorization", "value": "Bearer {{owner_token}}" }],
+						"url": { "raw": "{{base_url}}/api/v1/revenue/periods/{{revenue_period_id}}/confirm", "host": ["{{base_url}}"], "path": ["api", "v1", "revenue", "periods", "{{revenue_period_id}}", "confirm"] }
+					}
+				},
+				{
+					"name": "2.7a 暂停合同",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('暂停成功', () => pm.expect(res.data.status).to.eql('SUSPENDED'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": { "raw": "{{base_url}}/api/v1/admin/contracts/{{contract_id}}/status", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "contracts", "{{contract_id}}", "status"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"targetStatus\":\"SUSPENDED\",\"reason\":\"测试暂停\"}"
+						}
+					}
+				},
+				{
+					"name": "2.7b 恢复合同",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('恢复成功', () => pm.expect(res.data.status).to.eql('ACTIVE'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": { "raw": "{{base_url}}/api/v1/admin/contracts/{{contract_id}}/status", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "contracts", "{{contract_id}}", "status"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"targetStatus\":\"ACTIVE\",\"reason\":\"恢复\"}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "场景3 Licensed服务",
+			"item": [
+				{
+					"name": "3.1 创建Licensed服务",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-10 创建成功', () => {",
+									"  pm.expect(res.code).to.eql('OK');",
+									"  pm.expect(res.data.status).to.eql('PROVISIONED');",
+									"  pm.expect(res.data.effectiveTier).to.eql('premium');",
+									"  pm.expect(res.data.deviceQuota).to.eql(500);",
+									"});",
+									"pm.collectionVariables.set('service_id', res.data.id);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": { "raw": "{{base_url}}/api/v1/admin/subscription-services", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "subscription-services"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"tenantId\":1,\"serviceName\":\"GPS Tracking System\",\"tier\":\"premium\",\"deviceQuota\":500,\"serviceKey\":\"my-license-key-secret\"}"
+						}
+					}
+				},
+				{
+					"name": "3.2 查看服务列表",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('返回服务列表', () => {",
+									"  pm.expect(res.code).to.eql('OK');",
+									"  pm.expect(res.data.items.length).to.be.above(0);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+						"url": { "raw": "{{base_url}}/api/v1/admin/subscription-services", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "subscription-services"] }
+					}
+				},
+				{
+					"name": "3.3 激活服务",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('激活成功', () => pm.expect(res.data.status).to.eql('ACTIVE'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": { "raw": "{{base_url}}/api/v1/admin/subscription-services/{{service_id}}/status", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "subscription-services", "{{service_id}}", "status"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"targetStatus\":\"ACTIVE\",\"reason\":\"激活测试服务\"}"
+						}
+					}
+				},
+				{
+					"name": "3.4 调整配额",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-11 配额调整', () => {",
+									"  pm.expect(res.code).to.eql('OK');",
+									"  pm.expect(res.data.deviceQuota).to.eql(1000);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": { "raw": "{{base_url}}/api/v1/admin/subscription-services/{{service_id}}/quota", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "subscription-services", "{{service_id}}", "quota"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"deviceQuota\": 1000}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "场景4 功能门控",
+			"item": [
+				{
+					"name": "4.1 查看功能门控",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-12 28条种子数据', () => pm.expect(res.data).to.have.lengthOf(28));",
+									"const types = [...new Set(res.data.map(g => g.gateType))];",
+									"pm.test('SC-14 4种gateType', () => {",
+									"  ['NONE','LOCK','LIMIT','FILTER'].forEach(t => pm.expect(types).to.include(t));",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+						"url": { "raw": "{{base_url}}/api/v1/admin/feature-gates", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "feature-gates"] }
+					}
+				},
+				{
+					"name": "4.2 修改门控配置",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-13 limitValue更新', () => {",
+									"  pm.expect(res.code).to.eql('OK');",
+									"  pm.expect(res.data.limitValue).to.eql(100);",
+									"});",
+									"pm.collectionVariables.set('feature_gate_id', res.data.id);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": { "raw": "{{base_url}}/api/v1/admin/feature-gates/{{feature_gate_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "feature-gates", "{{feature_gate_id}}"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"limitValue\": 100}"
+						}
+					}
+				},
+				{
+					"name": "4.3 关闭功能",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('关闭成功', () => {",
+									"  pm.expect(res.code).to.eql('OK');",
+									"  pm.expect(res.data.isEnabled).to.eql(false);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": { "raw": "{{base_url}}/api/v1/admin/feature-gates/{{feature_gate_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "feature-gates", "{{feature_gate_id}}"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"isEnabled\": false}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "场景5 配额引擎",
+			"item": [
+				{
+					"name": "5.0 确保订阅活跃",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('订阅活跃', () => pm.expect(res.data.status).to.be.oneOf(['ACTIVE','TRIAL']));",
+									"pm.collectionVariables.set('subscription_id', res.data.id);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{owner_token}}" }],
+						"url": { "raw": "{{base_url}}/api/v1/subscription", "host": ["{{base_url}}"], "path": ["api", "v1", "subscription"] }
+					}
+				},
+				{
+					"name": "5.1 正常创建围栏",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('创建围栏成功', () => pm.expect(res.code).to.eql('OK'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{owner_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": { "raw": "{{base_url}}/api/v1/farms/{{farm_id}}/fences", "host": ["{{base_url}}"], "path": ["api", "v1", "farms", "{{farm_id}}", "fences"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\":\"测试围栏-配额验证\",\"coordinates\":[{\"lat\":28.245,\"lng\":112.850},{\"lat\":28.246,\"lng\":112.850},{\"lat\":28.246,\"lng\":112.851},{\"lat\":28.245,\"lng\":112.851}]}"
+						}
+					}
+				},
+				{
+					"name": "5.2a 挂起订阅",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('挂起成功', () => pm.expect(res.data.status).to.eql('SUSPENDED'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": { "raw": "{{base_url}}/api/v1/admin/subscriptions/{{subscription_id}}/status", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "subscriptions", "{{subscription_id}}", "status"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"targetStatus\":\"SUSPENDED\",\"reason\":\"测试配额引擎\"}"
+						}
+					}
+				},
+				{
+					"name": "5.2b 挂起后创建围栏（应失败）",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-15 配额引擎拦截', () => pm.expect(res.code).to.eql('QUOTA_EXCEEDED'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{owner_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": { "raw": "{{base_url}}/api/v1/farms/{{farm_id}}/fences", "host": ["{{base_url}}"], "path": ["api", "v1", "farms", "{{farm_id}}", "fences"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\":\"应该失败\",\"coordinates\":[{\"lat\":28.245,\"lng\":112.850}]}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "场景6 边界与异常",
+			"item": [
+				{
+					"name": "6.1 非法状态转换（签署已签署合同）",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-16 STATE_CONFLICT', () => pm.expect(res.code).to.eql('STATE_CONFLICT'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+						"url": { "raw": "{{base_url}}/api/v1/admin/contracts/{{contract_id}}/sign", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "contracts", "{{contract_id}}", "sign"] }
+					}
+				},
+				{
+					"name": "6.2 分润比例越界",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-17 INVALID_REVENUE_SHARE_RATIO', () => pm.expect(res.code).to.eql('INVALID_REVENUE_SHARE_RATIO'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": { "raw": "{{base_url}}/api/v1/admin/contracts", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "contracts"] },
+						"body": {
+							"mode": "raw",
+							"raw": "{\"tenantId\":1,\"contractNumber\":\"CT-TEST-INVALID\",\"billingModel\":\"revenue_share\",\"effectiveTier\":\"premium\",\"revenueShareRatio\":1.5}"
+						}
+					}
+				},
+				{
+					"name": "6.3 重复确认结算",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.test('SC-16 重复确认 STATE_CONFLICT', () => pm.expect(res.code).to.eql('STATE_CONFLICT'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+						"url": { "raw": "{{base_url}}/api/v1/admin/revenue/periods/{{revenue_period_id}}/confirm", "host": ["{{base_url}}"], "path": ["api", "v1", "admin", "revenue", "periods", "{{revenue_period_id}}", "confirm"] }
+					}
+				},
+				{
+					"name": "6.4 未认证访问",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('SC-18 返回401', () => pm.expect(pm.response.code).to.eql(401));",
+									"const res = pm.response.json();",
+									"pm.test('AUTH_INVALID_TOKEN', () => pm.expect(res.code).to.eql('AUTH_INVALID_TOKEN'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": { "raw": "{{base_url}}/api/v1/subscription", "host": ["{{base_url}}"], "path": ["api", "v1", "subscription"] }
+					}
+				}
+			]
+		}
+	]
+}

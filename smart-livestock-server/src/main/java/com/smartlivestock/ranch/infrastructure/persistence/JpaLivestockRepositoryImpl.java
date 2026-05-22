@@ -2,7 +2,6 @@ package com.smartlivestock.ranch.infrastructure.persistence;
 
 import com.smartlivestock.ranch.domain.model.Livestock;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
-import com.smartlivestock.ranch.infrastructure.persistence.entity.LivestockJpaEntity;
 import com.smartlivestock.ranch.infrastructure.persistence.mapper.LivestockMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -46,5 +45,15 @@ public class JpaLivestockRepositoryImpl implements LivestockRepository {
             jpa.setDeletedAt(Instant.now());
             springDataRepo.save(jpa);
         });
+    }
+
+    @Override
+    public long countByFarmId(Long farmId) {
+        return springDataRepo.countByFarmId(farmId);
+    }
+
+    @Override
+    public long countByFarmIdAndTenantId(Long farmId, Long tenantId) {
+        return springDataRepo.countByFarmIdAndTenantId(farmId, tenantId);
     }
 }

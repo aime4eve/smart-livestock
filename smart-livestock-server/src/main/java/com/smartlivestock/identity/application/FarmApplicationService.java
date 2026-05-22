@@ -4,6 +4,9 @@ import com.smartlivestock.identity.application.command.CreateFarmCommand;
 import com.smartlivestock.identity.application.dto.FarmDto;
 import com.smartlivestock.identity.domain.model.Farm;
 import com.smartlivestock.identity.domain.repository.FarmRepository;
+import com.smartlivestock.identity.domain.repository.TenantRepository;
+import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepository;
+import com.smartlivestock.identity.domain.repository.UserRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -17,12 +20,35 @@ import java.util.List;
 public class FarmApplicationService {
 
     private final FarmRepository farmRepository;
+    private final TenantRepository tenantRepository;
+    private final UserRepository userRepository;
+    private final UserFarmAssignmentRepository assignmentRepository;
 
     @Transactional
-    public FarmDto createFarm(Long tenantId, CreateFarmCommand command) {
+    public FarmDto createFarm(Long tenantId, CreateFarmCommand command, Long userId) {
+        if (!tenantRepository.existsById(tenantId)) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "租户不存在: " + tenantId);
+        }
         Farm farm = new Farm(tenantId, command.name(), command.latitude(), command.longitude(), command.areaHectares());
         Farm saved = farmRepository.save(farm);
+
+        if (userId != null) {
+            autoAssignOwner(userId, saved.getId(), tenantId);
+        }
+
         return FarmDto.from(saved);
+    }
+
+    private void autoAssignOwner(Long userId, Long farmId, Long tenantId) {
+        var userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) return;
+
+        var user = userOpt.get();
+        if (!user.isOwner()) return;
+        if (!tenantId.equals(user.getTenantId())) return;
+        if (assignmentRepository.existsByUserIdAndFarmId(userId, farmId)) return;
+
+        assignmentRepository.save(userId, farmId, "OWNER", "ACTIVE");
     }
 
     @Transactional(readOnly = true)

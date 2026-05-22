@@ -60,15 +60,38 @@ class RecordingApiHttpClient implements ApiHttpClient {
     );
   }
 
+  @override
+  Future<ApiHttpResponse> put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) async {
+    return ApiHttpResponse(
+      200,
+      jsonEncode({'code': 'OK', 'message': 'success', 'requestId': 'req_put', 'data': {}}),
+      {'x-api-version': 'v1'},
+    );
+  }
+
+  @override
+  Future<ApiHttpResponse> delete(Uri uri, {Map<String, String>? headers}) async {
+    return ApiHttpResponse(
+      200,
+      jsonEncode({'code': 'OK', 'message': 'success', 'requestId': 'req_delete', 'data': {}}),
+      {'x-api-version': 'v1'},
+    );
+  }
+
   Map<String, dynamic> _dataFor(String path) {
-    if (path.endsWith('/dashboard/summary')) {
+    // Phase 1 farm-scoped endpoints
+    if (path.contains('/farms/') && path.endsWith('/dashboard')) {
       return {
         'metrics': [
           {'id': 'metric_001'},
         ],
       };
     }
-    if (path.endsWith('/map/trajectories')) {
+    if (path.contains('/farms/') && path.endsWith('/map')) {
       return {
         'animals': [
           {'id': 'animal_001'},
@@ -82,7 +105,7 @@ class RecordingApiHttpClient implements ApiHttpClient {
         path.endsWith('/fences') ||
         path.endsWith('/tenants') ||
         path.endsWith('/devices') ||
-        path.endsWith('/workers')) {
+        path.endsWith('/members')) {
       return {
         'items': [
           {'id': 'item_001'},
@@ -92,7 +115,7 @@ class RecordingApiHttpClient implements ApiHttpClient {
         'total': 1,
       };
     }
-    if (path.endsWith('/farm/my-farms')) {
+    if (path.endsWith('/farms')) {
       return {
         'activeFarmId': 'tenant_001',
         'farms': [
@@ -134,6 +157,20 @@ class FailingApiHttpClient implements ApiHttpClient {
   }) {
     throw Exception('network down');
   }
+
+  @override
+  Future<ApiHttpResponse> put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    throw Exception('network down');
+  }
+
+  @override
+  Future<ApiHttpResponse> delete(Uri uri, {Map<String, String>? headers}) {
+    throw Exception('network down');
+  }
 }
 
 class FailingAuthApiHttpClient extends RecordingApiHttpClient {
@@ -152,6 +189,7 @@ void main() {
     final client = RecordingApiHttpClient();
     ApiCache.instance.debugReset();
     ApiCache.instance.debugSetHttpClient(client);
+    ApiCache.instance.activeFarmId = 'tenant_001';
 
     await ApiCache.instance.init(
       'owner',
@@ -164,31 +202,32 @@ void main() {
     });
 
     expect(client.uris, isNotEmpty);
-    expect(client.uris, hasLength(19));
+    expect(client.uris, hasLength(18));
     expect(
       requestedPaths,
       containsAll([
-        '/api/v1/dashboard/summary',
-        '/api/v1/map/trajectories?animalId=animal_001&range=24h',
-        '/api/v1/alerts?pageSize=100',
-        '/api/v1/fences?pageSize=100',
-        '/api/v1/tenants?pageSize=100',
-        '/api/v1/profile',
+        '/api/v1/farms',
+        '/api/v1/farms/tenant_001/dashboard',
+        '/api/v1/farms/tenant_001/map',
+        '/api/v1/farms/tenant_001/alerts?pageSize=100',
+        '/api/v1/farms/tenant_001/fences?pageSize=100',
+        '/api/v1/farms/tenant_001/devices?pageSize=200',
+        '/api/v1/me',
         '/api/v1/twin/overview',
         '/api/v1/twin/fever/list',
         '/api/v1/twin/digestive/list',
         '/api/v1/twin/estrus/list',
         '/api/v1/twin/epidemic/summary',
         '/api/v1/twin/epidemic/contacts',
-        '/api/v1/devices?pageSize=200',
         '/api/v1/subscription/current',
         '/api/v1/subscription/features',
         '/api/v1/subscription/plans',
         '/api/v1/subscription/usage',
-        '/api/v1/farm/my-farms',
-        '/api/v1/farms/tenant_001/workers',
+        '/api/v1/farms/tenant_001/members',
       ]),
     );
+    // /admin/tenants not requested for owner role
+    expect(requestedPaths, isNot(contains('/api/v1/admin/tenants?pageSize=100')));
     expect(client.uris.every((uri) => uri.path.startsWith('/api/v1/')), isTrue);
     expect(
       client.authHeaders.every((value) => value == 'Bearer jwt-token'),
@@ -228,12 +267,13 @@ void main() {
     final client = RecordingApiHttpClient();
     ApiCache.instance.debugReset();
     ApiCache.instance.debugSetHttpClient(client);
+    ApiCache.instance.activeFarmId = 'tenant_001';
 
     await ApiCache.instance.initWithRoleAuth('owner');
 
     expect(client.postUris, hasLength(1));
     expect(client.postUris.single.path, '/api/v1/auth/login');
-    expect(client.uris, hasLength(19));
+    expect(client.uris, hasLength(18));
     expect(
       client.authHeaders.every((value) => value == 'Bearer jwt-token'),
       isTrue,
@@ -246,6 +286,7 @@ void main() {
     final ownerClient = RecordingApiHttpClient();
     ApiCache.instance.debugReset();
     ApiCache.instance.debugSetHttpClient(ownerClient);
+    ApiCache.instance.activeFarmId = 'tenant_001';
 
     await ApiCache.instance.init(
       'owner',
@@ -253,16 +294,20 @@ void main() {
     );
 
     final ownerPaths = ownerClient.uris.map((uri) => uri.path).toList();
-    expect(ownerPaths, contains('/api/v1/farm/my-farms'));
-    expect(ownerPaths, contains('/api/v1/farms/tenant_001/workers'));
+    expect(ownerPaths, contains('/api/v1/farms/tenant_001/dashboard'));
+    expect(ownerPaths, contains('/api/v1/farms/tenant_001/devices'));
+    expect(ownerPaths, contains('/api/v1/farms/tenant_001/members'));
     expect(ownerPaths, isNot(contains('/api/v1/b2b/dashboard')));
     expect(ownerPaths, isNot(contains('/api/v1/b2b/contract/current')));
-    expect(ApiCache.instance.myFarms?['activeFarmId'], 'tenant_001');
+    expect(ownerPaths, contains('/api/v1/farms'));
+    expect(ApiCache.instance.myFarms, isNotNull);
+    expect(ApiCache.instance.myFarms!['farms'], isA<List>());
     expect(ApiCache.instance.workers?['items'], isA<List>());
 
     final workerClient = RecordingApiHttpClient();
     ApiCache.instance.debugReset();
     ApiCache.instance.debugSetHttpClient(workerClient);
+    ApiCache.instance.activeFarmId = 'tenant_001';
 
     await ApiCache.instance.init(
       'worker',
@@ -270,14 +315,17 @@ void main() {
     );
 
     final workerPaths = workerClient.uris.map((uri) => uri.path).toList();
-    expect(workerPaths, contains('/api/v1/farm/my-farms'));
-    expect(workerPaths, isNot(contains('/api/v1/farms/tenant_001/workers')));
+    expect(workerPaths, contains('/api/v1/farms/tenant_001/dashboard'));
+    expect(workerPaths, contains('/api/v1/farms/tenant_001/devices'));
+    expect(workerPaths, contains('/api/v1/farms'));
+    expect(workerPaths, isNot(contains('/api/v1/farms/tenant_001/members')));
     expect(workerPaths, isNot(contains('/api/v1/b2b/dashboard')));
     expect(workerPaths, isNot(contains('/api/v1/b2b/contract/current')));
 
     final b2bClient = RecordingApiHttpClient();
     ApiCache.instance.debugReset();
     ApiCache.instance.debugSetHttpClient(b2bClient);
+    ApiCache.instance.activeFarmId = null;
 
     await ApiCache.instance.init(
       'b2b_admin',
@@ -287,9 +335,9 @@ void main() {
     final b2bPaths = b2bClient.uris.map((uri) => uri.path).toList();
     expect(b2bPaths, contains('/api/v1/b2b/dashboard'));
     expect(b2bPaths, contains('/api/v1/b2b/contract/current'));
-    expect(b2bPaths, isNot(contains('/api/v1/farm/my-farms')));
+    expect(b2bPaths, isNot(contains('/api/v1/farms')));
     expect(
-      b2bPaths.any((path) => path.contains('/farms/') && path.endsWith('/workers')),
+      b2bPaths.any((path) => path.contains('/farms/') && path.endsWith('/members')),
       isFalse,
     );
     expect(ApiCache.instance.b2bDashboard?['contractCount'], 3);

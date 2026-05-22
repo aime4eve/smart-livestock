@@ -53,20 +53,20 @@ class LiveTwinOverviewRepository implements TwinOverviewRepository {
 
     final sceneSummary = TwinSceneSummary(
       fever: SceneSummaryFever(
-        abnormalCount: (fever!['abnormalCount'] as num).toInt(),
-        criticalCount: (fever['criticalCount'] as num).toInt(),
+        abnormalCount: (fever?['abnormalCount'] as num?)?.toInt() ?? 0,
+        criticalCount: (fever?['criticalCount'] as num?)?.toInt() ?? 0,
       ),
       digestive: SceneSummaryDigestive(
-        abnormalCount: (digestive!['abnormalCount'] as num).toInt(),
-        watchCount: (digestive['watchCount'] as num).toInt(),
+        abnormalCount: (digestive?['abnormalCount'] as num?)?.toInt() ?? 0,
+        watchCount: (digestive?['watchCount'] as num?)?.toInt() ?? 0,
       ),
       estrus: SceneSummaryEstrus(
-        highScoreCount: (estrus!['highScoreCount'] as num).toInt(),
-        breedingAdvice: estrus['breedingAdvice'] as bool,
+        highScoreCount: (estrus?['highScoreCount'] as num?)?.toInt() ?? 0,
+        breedingAdvice: estrus?['breedingAdvice'] as bool? ?? false,
       ),
       epidemic: SceneSummaryEpidemic(
-        status: epidemic!['status'] as String,
-        abnormalRate: (epidemic['abnormalRate'] as num).toDouble(),
+        status: epidemic?['status'] as String? ?? 'normal',
+        abnormalRate: (epidemic?['abnormalRate'] as num?)?.toDouble() ?? 0.0,
       ),
     );
 
@@ -75,13 +75,14 @@ class LiveTwinOverviewRepository implements TwinOverviewRepository {
     if (tasksRaw != null) {
       for (final e in tasksRaw) {
         final m = e as Map<String, dynamic>;
+        final rawTaskId = m['id'];
         pendingTasks.add(
           TwinPendingTask(
-            id: m['id'] as String,
-            title: m['title'] as String,
-            subtitle: m['subtitle'] as String,
-            routePath: m['routePath'] as String,
-            severity: m['severity'] as String,
+            id: rawTaskId is int ? rawTaskId.toString() : (rawTaskId as String? ?? ''),
+            title: m['title'] as String? ?? '',
+            subtitle: m['subtitle'] as String? ?? '',
+            routePath: m['routePath'] as String? ?? '',
+            severity: m['severity'] as String? ?? 'info',
           ),
         );
       }

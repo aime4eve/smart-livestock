@@ -2,6 +2,7 @@ package com.smartlivestock.ranch.interfaces;
 
 import com.smartlivestock.ranch.application.LivestockApplicationService;
 import com.smartlivestock.ranch.application.dto.LivestockDto;
+import com.smartlivestock.platform.web.QuotaCheck;
 import com.smartlivestock.shared.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -45,6 +46,7 @@ public class LivestockController {
      * Create a new livestock.
      */
     @PostMapping
+    @QuotaCheck(feature = "livestock_management")
     public ResponseEntity<ApiResponse<LivestockDto>> createLivestock(
             @PathVariable Long farmId,
             @RequestBody Map<String, Object> body) {

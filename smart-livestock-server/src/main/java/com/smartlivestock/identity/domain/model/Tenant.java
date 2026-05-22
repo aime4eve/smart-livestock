@@ -11,6 +11,8 @@ public class Tenant extends AggregateRoot {
     private String contactName;
     private String contactPhone;
     private TenantPhase phase;
+    private String type;
+    private String billingModel;
 
     public Tenant() {
         this.phase = TenantPhase.SAMPLE;
@@ -45,4 +47,10 @@ public class Tenant extends AggregateRoot {
     public void setContactPhone(String contactPhone) { this.contactPhone = contactPhone; }
 
     public TenantPhase getPhase() { return phase; }
+
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+
+    public String getBillingModel() { return billingModel; }
+    public void setBillingModel(String billingModel) { this.billingModel = billingModel; }
 }

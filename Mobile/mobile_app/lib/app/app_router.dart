@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_mode.dart';
@@ -45,6 +46,7 @@ import 'package:smart_livestock_demo/features/admin/presentation/api_auth_page.d
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_revenue_page.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/worker_management_page.dart';
 import 'package:smart_livestock_demo/features/mine/presentation/api_auth_page.dart';
+import 'package:smart_livestock_demo/features/farm_creation/presentation/farm_creation_wizard_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final appMode = ref.watch(appModeProvider);
@@ -371,6 +373,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             livestockCount: extra['livestockCount'] as int,
           );
         },
+      ),
+      GoRoute(
+        path: AppRoute.farmCreation.path,
+        name: AppRoute.farmCreation.routeName,
+        builder: (context, state) => const FarmCreationWizardPage(),
       ),
     ],
   );

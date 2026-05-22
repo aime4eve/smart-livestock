@@ -3,11 +3,16 @@ package com.smartlivestock.identity.interfaces;
 import com.smartlivestock.identity.application.FarmApplicationService;
 import com.smartlivestock.identity.application.command.CreateFarmCommand;
 import com.smartlivestock.identity.application.dto.FarmDto;
+import com.smartlivestock.identity.domain.repository.UserRepository;
+import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
+import com.smartlivestock.shared.common.ErrorCode;
 import com.smartlivestock.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -20,6 +25,7 @@ import java.util.Map;
 public class FarmController {
 
     private final FarmApplicationService farmApplicationService;
+    private final UserRepository userRepository;
 
     /**
      * GET /api/v1/farms
@@ -44,14 +50,37 @@ public class FarmController {
      */
     @PostMapping("/farms")
     public ResponseEntity<ApiResponse<FarmDto>> createFarm(@RequestBody Map<String, Object> body) {
+        Long userId = getCurrentUserId();
+
+        // 仅 owner 可创建牧场
+        var userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "用户不存在");
+        }
+        if (!userOpt.get().isOwner()) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "仅 owner 可创建牧场");
+        }
+
+        String name = (String) body.get("name");
+        if (name == null || name.isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "牧场名称不能为空");
+        }
+
         Long tenantId = TenantContext.getCurrentTenant();
+        List<FarmDto> existingFarms = farmApplicationService.listFarms(tenantId);
+        boolean duplicate = existingFarms.stream()
+                .anyMatch(f -> name.equals(f.name()));
+        if (duplicate) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "牧场名称已存在");
+        }
+
         CreateFarmCommand command = new CreateFarmCommand(
-                (String) body.get("name"),
+                name,
                 toBigDecimal(body.get("latitude")),
                 toBigDecimal(body.get("longitude")),
                 toBigDecimal(body.get("areaHectares"))
         );
-        FarmDto farm = farmApplicationService.createFarm(tenantId, command);
+        FarmDto farm = farmApplicationService.createFarm(tenantId, command, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(farm));
     }
 
@@ -128,5 +157,13 @@ public class FarmController {
         if (value instanceof BigDecimal bd) return bd;
         if (value instanceof Number n) return BigDecimal.valueOf(n.doubleValue());
         return new BigDecimal(value.toString());
+    }
+
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "未认证");
+        }
+        return (Long) authentication.getPrincipal();
     }
 }
