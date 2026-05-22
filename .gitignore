@@ -41,6 +41,7 @@ tmp/
 *.jar
 *.war
 .gradle/
+bin/
 build/
 target/
 !**/src/main/**/build/
@@ -82,5 +83,6 @@ coverage/
 # ============================================
 .dev-pids/
 .dev-logs/
+docs/superpowers/testing/logs_*/
 .worktrees/
 .superpowers/
