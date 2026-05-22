@@ -83,7 +83,8 @@ public class AdminContractController {
 
     /**
      * PUT /api/v1/admin/contracts/{id}
-     * Modify a draft contract. Phase 2 feature — returns 501.
+     * Modify a draft contract's billing model, effective tier, or revenue share ratio.
+     * Only allowed when the contract is in DRAFT status.
      */
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ContractResponse>> updateContract(
