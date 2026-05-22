@@ -1,0 +1,18 @@
+{
+  "connections": [
+    {
+      "id": "smart-livestock-pg",
+      "name": "Smart Livestock PG",
+      "driver": "PostgreSQL",
+      "server": "172.22.1.123",
+      "port": 15432,
+      "database": "smart_livestock",
+      "username": "postgres",
+      "password": "postgres",
+      "askForPassword": false,
+      "pgOptions": {
+        "ssl": false
+      }
+    }
+  ]
+}

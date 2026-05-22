@@ -1,6 +1,7 @@
 services:
   postgres:
-    image: postgres:16
+    build: ./infrastructure/postgres
+    command: ["postgres", "-c", "hba_file=/etc/postgresql/pg_hba.conf"]
     environment:
       POSTGRES_DB: smart_livestock
       POSTGRES_USER: postgres
