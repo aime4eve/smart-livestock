@@ -307,7 +307,7 @@ cd Mobile && ./dev.sh start [mock|live]
 
 ### 订阅与功能门控
 
-- `SubscriptionTier` 枚举: trial、basic、pro、enterprise（后端 Commerce Phase 2 将实现配额引擎）
+- `SubscriptionTier` 枚举: basic、standard、premium、enterprise（后端 Commerce Phase 2 已实现配额引擎）
 - `middleware/feature-flag.js` 基于 tier 控制功能可见性
 - `ApiCache` 预加载时按 tier 范围过滤数据
 - 锁定功能显示升级提示覆盖层
