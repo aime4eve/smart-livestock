@@ -144,7 +144,7 @@ class ApiClient {
     }
 
     if (code != 'OK' && code != 'CREATED') {
-      throw ApiException(message: message, statusCode: response.statusCode, code: code);
+      throw ServerException(message: message, statusCode: response.statusCode, code: code);
     }
 
     final data = body['data'];
