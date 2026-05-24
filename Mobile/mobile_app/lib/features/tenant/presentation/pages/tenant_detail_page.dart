@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/core/models/demo_models.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
@@ -456,7 +454,7 @@ class TenantDetailPage extends ConsumerWidget {
     final next = t.status == TenantStatus.active
         ? TenantStatus.disabled
         : TenantStatus.active;
-    if (ref.read(appModeProvider).isLive) {
+    if (true) {
       final role = ref.read(sessionControllerProvider).role?.wireName ??
           'platform_admin';
       final r = await ApiCache.instance
@@ -483,7 +481,7 @@ class TenantDetailPage extends ConsumerWidget {
       builder: (_) => LicenseAdjustDialog(tenant: t),
     );
     if (next == null) return;
-    if (ref.read(appModeProvider).isLive) {
+    if (true) {
       final role = ref.read(sessionControllerProvider).role?.wireName ??
           'platform_admin';
       final r =
@@ -510,7 +508,7 @@ class TenantDetailPage extends ConsumerWidget {
       builder: (_) => TenantDeleteDialog(tenantName: t.name),
     );
     if (reason == null) return;
-    if (ref.read(appModeProvider).isLive) {
+    if (true) {
       final role = ref.read(sessionControllerProvider).role?.wireName ??
           'platform_admin';
       final r = await ApiCache.instance.deleteTenantRemote(role, t.id);

@@ -1,66 +1,66 @@
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/core/models/user_role.dart';
 
 class RolePermission {
   const RolePermission._();
 
-  static bool canEditFence(DemoRole role) {
-    return role == DemoRole.owner;
+  static bool canEditFence(UserRole role) {
+    return role == UserRole.owner;
   }
 
-  static bool canAddFence(DemoRole role) => canEditFence(role);
+  static bool canAddFence(UserRole role) => canEditFence(role);
 
-  static bool canDeleteFence(DemoRole role) => canEditFence(role);
+  static bool canDeleteFence(UserRole role) => canEditFence(role);
 
-  static bool canAcknowledgeAlert(DemoRole role) {
-    return role == DemoRole.owner || role == DemoRole.worker;
+  static bool canAcknowledgeAlert(UserRole role) {
+    return role == UserRole.owner || role == UserRole.worker;
   }
 
-  static bool canHandleAlert(DemoRole role) => role == DemoRole.owner;
+  static bool canHandleAlert(UserRole role) => role == UserRole.owner;
 
-  static bool canArchiveAlert(DemoRole role) => role == DemoRole.owner;
+  static bool canArchiveAlert(UserRole role) => role == UserRole.owner;
 
-  static bool canBatchAlerts(DemoRole role) => role == DemoRole.owner;
+  static bool canBatchAlerts(UserRole role) => role == UserRole.owner;
 
-  static bool canTwinBreedingAction(DemoRole role) => role == DemoRole.owner;
+  static bool canTwinBreedingAction(UserRole role) => role == UserRole.owner;
 
-  static bool canManageTenants(DemoRole role) =>
-      role == DemoRole.owner || role == DemoRole.platformAdmin;
+  static bool canManageTenants(UserRole role) =>
+      role == UserRole.owner || role == UserRole.platformAdmin;
 
-  static bool canCreateTenant(DemoRole role) => canManageTenants(role);
+  static bool canCreateTenant(UserRole role) => canManageTenants(role);
 
-  static bool canEditTenant(DemoRole role) => canManageTenants(role);
+  static bool canEditTenant(UserRole role) => canManageTenants(role);
 
-  static bool canDeleteTenant(DemoRole role) => canManageTenants(role);
+  static bool canDeleteTenant(UserRole role) => canManageTenants(role);
 
-  static bool canToggleTenantStatus(DemoRole role) => canManageTenants(role);
+  static bool canToggleTenantStatus(UserRole role) => canManageTenants(role);
 
-  static bool canAdjustLicense(DemoRole role) => canManageTenants(role);
+  static bool canAdjustLicense(UserRole role) => canManageTenants(role);
 
-  static bool canManageSubscription(DemoRole role) =>
-      role == DemoRole.owner;
+  static bool canManageSubscription(UserRole role) =>
+      role == UserRole.owner;
 
-  static bool canViewContract(DemoRole role) => role == DemoRole.b2bAdmin;
+  static bool canViewContract(UserRole role) => role == UserRole.b2bAdmin;
 
-  static bool canCreateFarm(DemoRole role) =>
-      role == DemoRole.b2bAdmin || role == DemoRole.platformAdmin;
+  static bool canCreateFarm(UserRole role) =>
+      role == UserRole.b2bAdmin || role == UserRole.platformAdmin;
 
-  static bool canViewB2bDashboard(DemoRole role) => role == DemoRole.b2bAdmin;
+  static bool canViewB2bDashboard(UserRole role) => role == UserRole.b2bAdmin;
 
-  static bool canManageContracts(DemoRole role) =>
-      role == DemoRole.platformAdmin;
+  static bool canManageContracts(UserRole role) =>
+      role == UserRole.platformAdmin;
 
-  static bool canViewRevenue(DemoRole role) =>
-      role == DemoRole.platformAdmin || role == DemoRole.b2bAdmin;
+  static bool canViewRevenue(UserRole role) =>
+      role == UserRole.platformAdmin || role == UserRole.b2bAdmin;
 
-  static bool canCalculateRevenue(DemoRole role) =>
-      role == DemoRole.platformAdmin;
+  static bool canCalculateRevenue(UserRole role) =>
+      role == UserRole.platformAdmin;
 
-  static bool canManageSubscriptionServices(DemoRole role) =>
-      role == DemoRole.platformAdmin;
+  static bool canManageSubscriptionServices(UserRole role) =>
+      role == UserRole.platformAdmin;
 
-  static bool canReviewApiAuthorizations(DemoRole role) =>
-      role == DemoRole.platformAdmin || role == DemoRole.owner;
+  static bool canReviewApiAuthorizations(UserRole role) =>
+      role == UserRole.platformAdmin || role == UserRole.owner;
 
-  static bool canManageSubfarmWorkers(DemoRole role) =>
-      role == DemoRole.b2bAdmin;
+  static bool canManageSubfarmWorkers(UserRole role) =>
+      role == UserRole.b2bAdmin;
 }

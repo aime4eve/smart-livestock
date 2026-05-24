@@ -7,13 +7,9 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/api/api_role.dart';
 import 'package:smart_livestock_demo/core/data/demo_seed.dart';
 import 'package:smart_livestock_demo/core/data/generators/gps_trajectory_generator.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
@@ -134,7 +130,7 @@ class _FencePageState extends ConsumerState<FencePage>
           fenceState,
           ref.read(fenceControllerProvider.notifier),
           canManage,
-          ref.watch(appModeProvider),
+          false,
         ),
       ),
     );
@@ -145,7 +141,7 @@ class _FencePageState extends ConsumerState<FencePage>
     FenceState fenceState,
     FenceController controller,
     bool canManage,
-    AppMode appMode,
+    dynamic appMode,
   ) {
     switch (fenceState.viewState) {
       case ViewState.loading:
@@ -172,7 +168,7 @@ class _FencePageState extends ConsumerState<FencePage>
     FenceState fenceState,
     FenceController controller,
     bool canManage,
-    AppMode appMode,
+    dynamic appMode,
   ) {
     const panelAnimDuration = Duration(milliseconds: 280);
     const panelCurve = Curves.easeOutCubic;
@@ -184,7 +180,7 @@ class _FencePageState extends ConsumerState<FencePage>
     return LayoutBuilder(
       builder: (context, constraints) {
         final panelW = min(300.0, constraints.maxWidth * 0.82);
-        final mockTrajectoryPoints = appMode.isMock
+        final mockTrajectoryPoints = false
             ? _buildMockTrajectoryPoints(fenceState)
             : const <LatLng>[];
 
@@ -255,7 +251,7 @@ class _FencePageState extends ConsumerState<FencePage>
                             ),
                           if (!isEditing &&
                               editSession == null &&
-                              appMode.isMock &&
+                              false &&
                               mockTrajectoryPoints.isNotEmpty)
                             PolylineLayer(
                               polylines: [
@@ -267,7 +263,7 @@ class _FencePageState extends ConsumerState<FencePage>
                               ],
                             ),
                           if (!isEditing &&
-                              appMode.isLive &&
+                              true &&
                               ApiCache.instance.initialized &&
                               ApiCache.instance
                                   .mapTrajectoryPoints.isNotEmpty)
@@ -426,7 +422,7 @@ class _FencePageState extends ConsumerState<FencePage>
                                   onPressed: () => context
                                       .push(AppRoute.fenceForm.path)
                                       .then((_) {
-                                    if (appMode.isLive) {
+                                    if (true) {
                                       ref
                                           .read(fenceControllerProvider
                                               .notifier)
@@ -939,7 +935,7 @@ class _FencePageState extends ConsumerState<FencePage>
     switch (action) {
       case FenceUnsavedAction.save:
         await _handleEditSave(
-          context, controller, ref.read(appModeProvider),
+          context, controller, false,
         );
         return;
       case FenceUnsavedAction.discard:
@@ -954,7 +950,7 @@ class _FencePageState extends ConsumerState<FencePage>
   Future<void> _handleEditSave(
     BuildContext context,
     FenceController controller,
-    AppMode appMode,
+    dynamic appMode,
   ) async {
     final session = ref.read(fenceControllerProvider).editSession;
     if (session == null || !session.hasChanges) return;
@@ -964,7 +960,7 @@ class _FencePageState extends ConsumerState<FencePage>
       _showSnackBar(context, geometryError);
       return;
     }
-    if (appMode.isMock) {
+    if (false) {
       controller.saveEditing();
       if (mounted) setState(() => _panelOpen = true);
       return;
@@ -980,7 +976,7 @@ class _FencePageState extends ConsumerState<FencePage>
         ? ApiAuthTokens(accessToken: sessionState.accessToken!)
         : null;
     final ok = await ApiCache.instance.updateFenceRemote(
-      apiRoleFromEnvironment,
+      'owner',
       fenceId,
       {
         'name': fenceItem.name,
@@ -1014,7 +1010,7 @@ class _FencePageState extends ConsumerState<FencePage>
     );
     if (!saved) return;
     await ApiCache.instance
-        .refreshFencesAndMap(apiRoleFromEnvironment, tokens: tokens);
+        .refreshFencesAndMap('owner', tokens: tokens);
     controller.reloadFromRepository();
     if (context.mounted) setState(() => _panelOpen = true);
   }
@@ -1067,8 +1063,8 @@ class _FencePageState extends ConsumerState<FencePage>
     ];
   }
 
-  List<Marker> _buildLivestockMarkers(AppMode appMode) {
-    if (appMode.isMock) {
+  List<Marker> _buildLivestockMarkers(dynamic appMode) {
+    if (false) {
       return [
         for (int i = 0; i < DemoSeed.livestockLocations.length; i++)
           Marker(
@@ -1155,7 +1151,7 @@ class _FencePageState extends ConsumerState<FencePage>
     BuildContext context,
     FenceItem fence,
     FenceController controller,
-    AppMode appMode,
+    dynamic appMode,
   ) {
     showDialog<void>(
       context: context,
@@ -1172,13 +1168,13 @@ class _FencePageState extends ConsumerState<FencePage>
             key: const Key('fence-delete-confirm'),
             onPressed: () async {
               Navigator.of(ctx).pop();
-              if (appMode.isLive) {
+              if (true) {
                 final ok = await ApiCache.instance.deleteFenceRemote(
-                    apiRoleFromEnvironment, fence.id);
+                    'owner', fence.id);
                 if (!context.mounted) return;
                 if (ok) {
                   await ApiCache.instance
-                      .refreshFencesAndMap(apiRoleFromEnvironment);
+                      .refreshFencesAndMap('owner');
                   if (!context.mounted) return;
                   controller.reloadFromRepository();
                   ScaffoldMessenger.of(context)

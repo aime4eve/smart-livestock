@@ -1,26 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/core/data/apply_mock_shaping.dart';
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/features/fence/data/live_fence_repository.dart';
-import 'package:smart_livestock_demo/features/fence/data/mock_fence_repository.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_edit_operations.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_edit_session.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_repository.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_state.dart';
 import 'package:smart_livestock_demo/features/fence/presentation/fence_analytics.dart';
-import 'package:smart_livestock_demo/features/subscription/presentation/subscription_controller.dart';
 
 final fenceRepositoryProvider = Provider<FenceRepository>((ref) {
-  switch (ref.watch(appModeProvider)) {
-    case AppMode.mock:
-      return const MockFenceRepository();
-    case AppMode.live:
-      return const LiveFenceRepository();
-  }
+  return const LiveFenceRepository();
 });
 
 class FenceController extends Notifier<FenceState> {
@@ -39,24 +29,6 @@ class FenceController extends Notifier<FenceState> {
     var fences = watchRepository
         ? ref.watch(fenceRepositoryProvider).loadAll()
         : ref.read(fenceRepositoryProvider).loadAll();
-    final appMode = ref.watch(appModeProvider);
-    if (appMode.isLive || fences.isEmpty) return fences;
-
-    final tier = ref.watch(subscriptionControllerProvider).tier;
-    final itemMaps = fences
-        .map((f) => <String, dynamic>{
-              'id': f.id,
-              'name': f.name,
-            })
-        .toList();
-    final result = shapeListItems(
-      items: itemMaps,
-      tier: tier,
-      featureKeys: [FeatureFlags.fence],
-    );
-    if (result.retainedCount < fences.length) {
-      fences = fences.take(result.retainedCount).toList();
-    }
     return fences;
   }
 

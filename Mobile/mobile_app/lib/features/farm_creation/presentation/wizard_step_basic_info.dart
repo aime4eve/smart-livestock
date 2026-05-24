@@ -4,13 +4,10 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/api/api_role.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
 import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
 import 'package:smart_livestock_demo/core/map/smart_tile_provider.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 
@@ -78,7 +75,7 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
     final area = areaText.isEmpty ? 0.0 : double.tryParse(areaText) ?? 0.0;
 
     final success = await cache.createFarmRemote(
-      session.role?.wireName ?? apiRoleFromEnvironment,
+      session.role?.wireName ?? 'owner',
       name: _nameController.text.trim(),
       latitude: _selectedCenter.latitude,
       longitude: _selectedCenter.longitude,

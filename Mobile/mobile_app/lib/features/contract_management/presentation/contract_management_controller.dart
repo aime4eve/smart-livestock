@@ -1,17 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/features/contract_management/data/live_contract_management_repository.dart';
-import 'package:smart_livestock_demo/features/contract_management/data/mock_contract_management_repository.dart';
 import 'package:smart_livestock_demo/features/contract_management/domain/contract_management_repository.dart';
 
 final contractManagementRepositoryProvider =
     Provider<ContractManagementRepository>((ref) {
-  switch (ref.watch(appModeProvider)) {
-    case AppMode.mock:
-      return MockContractManagementRepository();
-    case AppMode.live:
-      return LiveContractManagementRepository();
-  }
+  return LiveContractManagementRepository();
 });
 
 class ContractManagementController

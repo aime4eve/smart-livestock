@@ -1,17 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/features/subscription_service_management/data/live_subscription_service_repository.dart';
-import 'package:smart_livestock_demo/features/subscription_service_management/data/mock_subscription_service_repository.dart';
 import 'package:smart_livestock_demo/features/subscription_service_management/domain/subscription_service_repository.dart';
 
 final subscriptionServiceRepositoryProvider =
     Provider<SubscriptionServiceRepository>((ref) {
-  switch (ref.watch(appModeProvider)) {
-    case AppMode.mock:
-      return MockSubscriptionServiceRepository();
-    case AppMode.live:
-      return LiveSubscriptionServiceRepository();
-  }
+  return LiveSubscriptionServiceRepository();
 });
 
 class SubscriptionServiceController

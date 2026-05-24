@@ -4,9 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/core/map/coord_transform.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
 import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
@@ -176,7 +174,7 @@ class _WizardStepFenceDrawingState
     final session = ref.read(sessionControllerProvider);
     final cache = ApiCache.instance;
     final tokens = session.accessToken != null
-        ? ApiAuthTokens(accessToken: session.accessToken!)
+        ? null /* tokens handled by ApiClient */
         : null;
 
     final vertices = _verticesForSave(_session.points)

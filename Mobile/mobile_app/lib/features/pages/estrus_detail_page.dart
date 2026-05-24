@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/core/models/user_role.dart';
 import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/core/permissions/role_permission.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
@@ -21,7 +21,7 @@ class EstrusDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final repo = ref.watch(estrusRepositoryProvider);
     final score = repo.loadDetail(livestockId);
-    final role = ref.watch(sessionControllerProvider).role ?? DemoRole.worker;
+    final role = ref.watch(sessionControllerProvider).role ?? UserRole.worker;
     final subStatus = ref.watch(subscriptionControllerProvider);
 
     return Scaffold(

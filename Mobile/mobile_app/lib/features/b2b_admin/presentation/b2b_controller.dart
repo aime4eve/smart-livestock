@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/data/b2b_repository.dart';
 
@@ -9,9 +8,8 @@ final b2bRepositoryProvider =
 class B2bDashboardController extends Notifier<B2bDashboardData> {
   @override
   B2bDashboardData build() {
-    final appMode = ref.watch(appModeProvider);
     final repo = ref.read(b2bRepositoryProvider);
-    return repo.loadDashboard(ViewState.normal, appMode);
+    return repo.loadDashboard(ViewState.normal);
   }
 
   Future<bool> createFarm(
@@ -20,14 +18,12 @@ class B2bDashboardController extends Notifier<B2bDashboardData> {
     String? contactPhone,
     String? region,
   }) async {
-    final appMode = ref.read(appModeProvider);
     final repo = ref.read(b2bRepositoryProvider);
     final ok = await repo.createFarm(
       name,
       ownerName: ownerName,
       contactPhone: contactPhone,
       region: region,
-      appMode: appMode,
     );
     if (ok) {
       ref.invalidateSelf();
@@ -44,9 +40,8 @@ final b2bDashboardControllerProvider =
 class B2bContractController extends Notifier<B2bContractData> {
   @override
   B2bContractData build() {
-    final appMode = ref.watch(appModeProvider);
     final repo = ref.read(b2bRepositoryProvider);
-    return repo.loadContract(ViewState.normal, appMode);
+    return repo.loadContract(ViewState.normal);
   }
 }
 

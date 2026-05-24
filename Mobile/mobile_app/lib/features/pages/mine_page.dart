@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/core/models/user_role.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
@@ -28,7 +28,7 @@ class MinePage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildStateBody(context, data),
-          if (role == DemoRole.owner) ...[
+          if (role == UserRole.owner) ...[
             const SizedBox(height: AppSpacing.md),
             const SubscriptionStatusCard(),
             const SizedBox(height: AppSpacing.md),

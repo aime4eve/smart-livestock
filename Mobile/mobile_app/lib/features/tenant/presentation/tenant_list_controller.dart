@@ -1,19 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/features/tenant/data/live_tenant_repository.dart';
-import 'package:smart_livestock_demo/features/tenant/data/mock_tenant_repository.dart';
 import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
 import 'package:smart_livestock_demo/features/tenant/domain/tenant_query.dart';
 import 'package:smart_livestock_demo/features/tenant/domain/tenant_repository.dart';
 import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
 
 final tenantRepositoryProvider = Provider<TenantRepository>((ref) {
-  switch (ref.watch(appModeProvider)) {
-    case AppMode.mock:
-      return MockTenantRepository();
-    case AppMode.live:
-      return LiveTenantRepository();
-  }
+  return LiveTenantRepository();
 });
 
 class TenantListController extends Notifier<TenantListViewData> {

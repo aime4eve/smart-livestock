@@ -1,12 +1,16 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_http_client.dart';
 import 'package:smart_livestock_demo/core/models/demo_models.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/core/models/user_role.dart';
 import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
 
+class ApiAuthTokens {
+  const ApiAuthTokens({this.accessToken, this.refreshToken, this.expiresAt});
+  final String? accessToken;
+  final String? refreshToken;
+  final DateTime? expiresAt;
+}
 const String _apiBaseUrlFromEnv = String.fromEnvironment(
   'API_BASE_URL',
   defaultValue: '',
@@ -27,12 +31,14 @@ Map<String, String> _headers(
   bool allowMockTokenFallback = false,
   Map<String, ApiAuthTokens> roleTokens = const {},
 }) {
-  final demoRole = demoRoleFromWireName(role);
-  return apiHeaders(
-    role: demoRole,
-    tokens: tokens ?? roleTokens[role],
-    allowMockTokenFallback: allowMockTokenFallback,
-  );
+  final accessToken = tokens?.accessToken ?? roleTokens[role]?.accessToken;
+  final mockToken = allowMockTokenFallback ? 'mock-token-${role.replaceAll("_", "-")}' : null;
+  final authorizationValue = accessToken ?? mockToken;
+  return {
+    'Content-Type': 'application/json',
+    if (authorizationValue != null)
+      'Authorization': 'Bearer $authorizationValue',
+  };
 }
 
 String fenceSaveErrorMessageForStatusCode(int? statusCode) {
@@ -567,9 +573,8 @@ class ApiCache {
   }
 
   Future<ApiAuthTokens?> _authenticateRole(String role) async {
-    if (parseAppMode(
-      const String.fromEnvironment('APP_MODE', defaultValue: 'mock'),
-    ).isLive) {
+    // In live-only mode, _authenticateRole is never called.
+    if (true) {
       debugPrint('_authenticateRole should not be called in live mode');
       return null;
     }
@@ -659,7 +664,7 @@ class ApiCache {
       // could set activeFarmId from fetchFarms then init() would clear _myFarms and
       // skip this block — leaving _myFarms null and showing "请创建您的第一个牧场".
       String? farmId = _activeFarmId;
-      if (role == DemoRole.owner.wireName || role == DemoRole.worker.wireName) {
+      if (role == UserRole.owner.wireName || role == UserRole.worker.wireName) {
         final myFarms = await initGet('/farms');
         if (!_isCurrentGeneration(generation)) return;
         _myFarms = myFarms;
@@ -695,7 +700,7 @@ class ApiCache {
       }
 
       // Step 3: Non-farm-scoped endpoints — role-aware loading.
-      final isAdmin = role == DemoRole.platformAdmin.wireName;
+      final isAdmin = role == UserRole.platformAdmin.wireName;
 
       // Admin-only: tenants (requires platform_admin role on Spring Boot)
       if (isAdmin) {
@@ -834,8 +839,8 @@ class ApiCache {
       _subscriptionUsage = subResults[3];
 
       // Workers & owner extras (farm list already fetched in Step 1)
-      if (role == DemoRole.owner.wireName || role == DemoRole.worker.wireName) {
-        if (role == DemoRole.owner.wireName && farmId != null) {
+      if (role == UserRole.owner.wireName || role == UserRole.worker.wireName) {
+        if (role == UserRole.owner.wireName && farmId != null) {
           final workers = await initGet('/farms/$farmId/members');
           if (!_isCurrentGeneration(generation)) return;
           _workers = workers;
@@ -843,7 +848,7 @@ class ApiCache {
         }
       }
 
-      if (role == DemoRole.b2bAdmin.wireName) {
+      if (role == UserRole.b2bAdmin.wireName) {
         final b2bDashboard = await initGet('/b2b/dashboard');
         if (!_isCurrentGeneration(generation)) return;
         final b2bContract = await initGet('/b2b/contract/current');
@@ -1297,15 +1302,18 @@ class ApiCache {
 
   @visibleForTesting
   static Map<String, String> headersForTesting({
-    required DemoRole role,
+    required UserRole role,
     ApiAuthTokens? tokens,
     bool allowMockTokenFallback = false,
   }) {
-    return apiHeaders(
-      role: role,
-      tokens: tokens,
-      allowMockTokenFallback: allowMockTokenFallback,
-    );
+    final accessToken = tokens?.accessToken;
+    final mockToken = allowMockTokenFallback ? "mock-token-${role.wireName.replaceAll('_', '-')}" : null;
+    final authorizationValue = accessToken ?? mockToken;
+    return {
+      'Content-Type': 'application/json',
+      if (authorizationValue != null)
+      'Authorization': 'Bearer $authorizationValue',
+    };
   }
 
   int? lastFenceSaveStatusCode;

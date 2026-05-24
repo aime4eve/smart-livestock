@@ -1,24 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/features/subscription/data/live_subscription_repository.dart';
-import 'package:smart_livestock_demo/features/subscription/data/mock_subscription_repository.dart';
 import 'package:smart_livestock_demo/features/subscription/domain/subscription_repository.dart';
 
 class SubscriptionController extends Notifier<SubscriptionStatus> {
   @override
   SubscriptionStatus build() {
-    final appMode = ref.watch(appModeProvider);
-    final repo = appMode.isLive
-        ? const LiveSubscriptionRepository() as SubscriptionRepository
-        : MockSubscriptionRepository();
-    return repo.loadCurrent();
+    return const LiveSubscriptionRepository().loadCurrent();
   }
 
-  SubscriptionRepository _repo() {
-    final appMode = ref.read(appModeProvider);
-    return appMode.isLive ? const LiveSubscriptionRepository() : MockSubscriptionRepository();
-  }
+  SubscriptionRepository _repo() => const LiveSubscriptionRepository();
 
   void checkout(SubscriptionTier tier, int livestockCount,
       {String? idempotencyKey}) {
@@ -39,16 +30,10 @@ final subscriptionControllerProvider =
         SubscriptionController.new);
 
 final subscriptionPlansProvider = Provider<List<SubscriptionTierInfo>>((ref) {
-  final appMode = ref.watch(appModeProvider);
-  final repo =
-      appMode.isLive ? const LiveSubscriptionRepository() : MockSubscriptionRepository();
-  return repo.loadPlans();
+  return const LiveSubscriptionRepository().loadPlans();
 });
 
 final subscriptionFeaturesProvider =
     Provider<Map<String, FeatureDefinition>>((ref) {
-  final appMode = ref.watch(appModeProvider);
-  final repo =
-      appMode.isLive ? const LiveSubscriptionRepository() : MockSubscriptionRepository();
-  return repo.loadFeatures();
+  return const LiveSubscriptionRepository().loadFeatures();
 });

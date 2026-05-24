@@ -1,17 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/features/api_authorization/data/live_api_authorization_repository.dart';
-import 'package:smart_livestock_demo/features/api_authorization/data/mock_api_authorization_repository.dart';
 import 'package:smart_livestock_demo/features/api_authorization/domain/api_authorization_repository.dart';
 
 final apiAuthorizationRepositoryProvider =
     Provider<ApiAuthorizationRepository>((ref) {
-  switch (ref.watch(appModeProvider)) {
-    case AppMode.mock:
-      return MockApiAuthorizationRepository();
-    case AppMode.live:
-      return LiveApiAuthorizationRepository();
-  }
+  return LiveApiAuthorizationRepository();
 });
 
 class ApiAuthorizationController

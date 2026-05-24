@@ -1,4 +1,3 @@
-import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 
@@ -107,92 +106,20 @@ class B2bContractData {
 class B2bRepository {
   B2bRepository();
 
-  final List<B2bFarmSummary> _mockCreatedFarms = [];
+  // _mockCreatedFarms removed
 
-  B2bDashboardData loadDashboard(ViewState viewState, AppMode appMode) {
+  B2bDashboardData loadDashboard(ViewState viewState) {
     if (viewState != ViewState.normal) {
       return B2bDashboardData(viewState: viewState);
     }
 
-    if (appMode.isLive) {
-      return _loadDashboardFromCache();
-    }
-
-    return B2bDashboardData(
-      viewState: ViewState.normal,
-      totalFarms: 1 + _mockCreatedFarms.length,
-      totalLivestock: 120,
-      totalDevices: 95,
-      pendingAlerts: 5,
-      monthlyRevenue: 819.0,
-      deviceOnlineRate: 0.65,
-      partnerName: '华牧科技有限公司',
-      billingModel: 'revenue_share',
-      alertSummary: const [
-        {'type': 'fence', 'level': 'warning', 'count': 3},
-        {'type': 'health', 'level': 'critical', 'count': 1},
-        {'type': 'device', 'level': 'info', 'count': 1},
-      ],
-      farms: [
-        const B2bFarmSummary(
-          id: 'tenant_f_p001_001',
-          name: '星辰合作牧场A',
-          status: 'active',
-          ownerName: '马七',
-          livestockCount: 120,
-          region: '华中',
-          deviceCount: 12,
-          workerCount: 3,
-        ),
-        ..._mockCreatedFarms,
-      ],
-      contractStatus: 'active',
-      contractExpiresAt: '2027-01-01T00:00:00+08:00',
-    );
+    return _loadDashboardFromCache();
   }
+
+
+
 
   Future<bool> createFarm(
-    String name, {
-    String? ownerName,
-    String? contactPhone,
-    String? region,
-    AppMode appMode = AppMode.mock,
-  }) async {
-    if (appMode.isLive) {
-      return _createFarmLive(
-        name,
-        ownerName: ownerName,
-        contactPhone: contactPhone,
-        region: region,
-      );
-    }
-    return _createFarmMock(
-      name,
-      ownerName: ownerName,
-      contactPhone: contactPhone,
-      region: region,
-    );
-  }
-
-  bool _createFarmMock(
-    String name, {
-    String? ownerName,
-    String? contactPhone,
-    String? region,
-  }) {
-    _mockCreatedFarms.add(B2bFarmSummary(
-      id: 'farm_${DateTime.now().millisecondsSinceEpoch}',
-      name: name,
-      status: 'active',
-      ownerName: ownerName ?? '',
-      livestockCount: 0,
-      region: region ?? '',
-      createdAt: DateTime.now().toIso8601String(),
-    ));
-    return true;
-  }
-
-  Future<bool> _createFarmLive(
     String name, {
     String? ownerName,
     String? contactPhone,
@@ -205,29 +132,12 @@ class B2bRepository {
     return ApiCache.instance.createB2bFarmRemote('b2b_admin', body);
   }
 
-  B2bContractData loadContract(ViewState viewState, AppMode appMode) {
+  B2bContractData loadContract(ViewState viewState) {
     if (viewState != ViewState.normal) {
       return B2bContractData(viewState: viewState);
     }
 
-    if (appMode.isLive) {
-      return _loadContractFromCache();
-    }
-
-    return const B2bContractData(
-      viewState: ViewState.normal,
-      id: 'contract_001',
-      status: 'active',
-      effectiveTier: 'standard',
-      revenueShareRatio: 0.15,
-      startedAt: '2026-01-01T00:00:00+08:00',
-      expiresAt: '2027-01-01T00:00:00+08:00',
-      signedBy: '王五',
-      partnerName: '华牧科技有限公司',
-      partnerTenantId: 'tenant_p001',
-      contractId: 'contract_001',
-      billingModel: 'revenue_share',
-    );
+    return _loadContractFromCache();
   }
 
   B2bDashboardData _loadDashboardFromCache() {

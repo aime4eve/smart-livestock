@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_auth.dart';
 import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/data/demo_seed.dart';
 import 'package:smart_livestock_demo/core/models/demo_models.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
@@ -80,11 +76,9 @@ class DevicesPage extends ConsumerWidget {
 
   void _showInstallDialog(
       BuildContext context, WidgetRef ref, DeviceItem device) {
-    final appMode = ref.read(appModeProvider);
-    // Build list of selectable livestock.
-    // Mock mode: use DemoSeed. Live mode: use ApiCache.animals.
+    // Build list of selectable livestock from ApiCache.
     final List<_LivestockOption> options;
-    if (appMode.isLive && ApiCache.instance.initialized) {
+    if (ApiCache.instance.initialized) {
       options = ApiCache.instance.animals.map((a) {
         final rawId = a['id'];
         final id = rawId is int ? rawId.toString() : (rawId as String? ?? '');
@@ -95,13 +89,7 @@ class DevicesPage extends ConsumerWidget {
         );
       }).toList();
     } else {
-      options = DemoSeed.livestock
-          .map((l) => _LivestockOption(
-                id: l.livestockId,
-                label: l.earTag,
-                subtitle: l.breed,
-              ))
-          .toList();
+      options = [];
     }
 
     showDialog<void>(
@@ -125,9 +113,6 @@ class DevicesPage extends ConsumerWidget {
             farmId: farmId,
             deviceId: device.id,
             livestockId: livestockId,
-            tokens: session.accessToken != null
-                ? ApiAuthTokens(accessToken: session.accessToken!)
-                : null,
           );
           if (context.mounted) {
             ScaffoldMessenger.of(context)

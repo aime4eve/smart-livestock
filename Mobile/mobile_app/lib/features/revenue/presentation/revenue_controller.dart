@@ -1,16 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/features/revenue/data/live_revenue_repository.dart';
-import 'package:smart_livestock_demo/features/revenue/data/mock_revenue_repository.dart';
 import 'package:smart_livestock_demo/features/revenue/domain/revenue_repository.dart';
 
 final revenueRepositoryProvider = Provider<RevenueRepository>((ref) {
-  switch (ref.watch(appModeProvider)) {
-    case AppMode.mock:
-      return MockRevenueRepository();
-    case AppMode.live:
-      return LiveRevenueRepository();
-  }
+  return LiveRevenueRepository();
 });
 
 class RevenueController extends Notifier<RevenueListViewData> {

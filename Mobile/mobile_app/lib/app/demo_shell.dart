@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/core/models/user_role.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_widget.dart';
@@ -23,16 +23,16 @@ class DemoShell extends ConsumerWidget {
     final session = ref.watch(sessionControllerProvider);
     final role = session.role;
     if (role == null ||
-        role == DemoRole.platformAdmin) {
+        role == UserRole.platformAdmin) {
       return Scaffold(body: child);
     }
 
-    if (role == DemoRole.b2bAdmin) {
+    if (role == UserRole.b2bAdmin) {
       return _B2bAdminShell(child: child);
     }
 
     final showFarmContext =
-        role == DemoRole.owner || role == DemoRole.worker;
+        role == UserRole.owner || role == UserRole.worker;
     final farmState =
         showFarmContext ? ref.watch(farmSwitcherControllerProvider) : null;
     final body = farmState != null && !farmState.hasFarms
@@ -100,7 +100,7 @@ class DemoShell extends ConsumerWidget {
     );
   }
 
-  List<_NavItem> _buildBusinessNavItems(DemoRole role) {
+  List<_NavItem> _buildBusinessNavItems(UserRole role) {
     final items = <_NavItem>[
       const _NavItem(
         key: Key('nav-twin'),
@@ -127,7 +127,7 @@ class DemoShell extends ConsumerWidget {
         route: AppRoute.mine,
       ),
     ];
-    if (role == DemoRole.owner) {
+    if (role == UserRole.owner) {
       items.add(
         const _NavItem(
           key: Key('nav-admin'),

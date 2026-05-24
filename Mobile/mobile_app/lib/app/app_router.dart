@@ -2,12 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/app/demo_shell.dart';
 import 'package:smart_livestock_demo/app/expiry_popup_handler.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/core/models/user_role.dart';
 import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/features/auth/login_page.dart';
 import 'package:smart_livestock_demo/features/pages/admin_page.dart';
@@ -49,7 +48,6 @@ import 'package:smart_livestock_demo/features/mine/presentation/api_auth_page.da
 import 'package:smart_livestock_demo/features/farm_creation/presentation/farm_creation_wizard_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final appMode = ref.watch(appModeProvider);
   final refreshListenable = ValueNotifier<int>(0);
   ref
     ..onDispose(refreshListenable.dispose)
@@ -60,7 +58,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: AppRoute.login.path,
     refreshListenable: refreshListenable,
-    debugLogDiagnostics: kDebugMode && appMode.isLive,
+    debugLogDiagnostics: kDebugMode,
     redirect: (context, state) {
       final session = ref.read(sessionControllerProvider);
       final location = state.uri.path;
@@ -70,14 +68,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       final role = session.role!;
-      if (role == DemoRole.platformAdmin) {
+      if (role == UserRole.platformAdmin) {
         return location.startsWith(AppRoute.platformAdmin.path) ||
                 location.startsWith('/admin/')
             ? null
             : AppRoute.platformAdmin.path;
       }
 
-      if (role == DemoRole.b2bAdmin) {
+      if (role == UserRole.b2bAdmin) {
         return location.startsWith(AppRoute.b2bAdmin.path)
             ? null
             : AppRoute.b2bAdmin.path;
@@ -88,12 +86,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return AppRoute.twin.path;
       }
 
-      if (location == AppRoute.admin.path && !session.canAccessAdminTab) {
+      if (location == AppRoute.admin.path && session.role != UserRole.owner) {
         return AppRoute.twin.path;
       }
 
       if (location == AppRoute.workerManagement.path &&
-          role != DemoRole.owner) {
+          role != UserRole.owner) {
         return AppRoute.twin.path;
       }
 
@@ -103,22 +101,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoute.login.path,
         name: AppRoute.login.routeName,
-        builder: (context, state) => Consumer(
-          builder: (context, ref, child) {
-            return LoginPage(
-              onSubmit: (selectedRole) {
-                ref
-                    .read(sessionControllerProvider.notifier)
-                    .login(selectedRole);
-              },
-              onTokenSubmit: (token) {
-                ref
-                    .read(sessionControllerProvider.notifier)
-                    .loginWithToken(token);
-              },
-            );
-          },
-        ),
+        builder: (context, state) => const LoginPage(),
       ),
       ShellRoute(
         builder: (context, state, child) {

@@ -1,17 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/features/worker_management/data/live_worker_repository.dart';
-import 'package:smart_livestock_demo/features/worker_management/data/mock_worker_repository.dart';
 import 'package:smart_livestock_demo/features/worker_management/domain/worker_repository.dart';
 
 final workerRepositoryProvider = Provider<WorkerRepository>((ref) {
-  switch (ref.watch(appModeProvider)) {
-    case AppMode.mock:
-      return const MockWorkerRepository();
-    case AppMode.live:
-      return const LiveWorkerRepository();
-  }
+  return const LiveWorkerRepository();
 });
 
 class WorkerController extends Notifier<WorkersViewData> {

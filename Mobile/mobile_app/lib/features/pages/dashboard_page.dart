@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/core/models/user_role.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
@@ -24,7 +24,7 @@ class DashboardPage extends ConsumerWidget {
     final session = ref.watch(sessionControllerProvider);
 
     // Show empty farm guide for owners who have no farms
-    if (farmState.farms.isEmpty && session.role == DemoRole.owner) {
+    if (farmState.farms.isEmpty && session.role == UserRole.owner) {
       return const _EmptyFarmGuide();
     }
 

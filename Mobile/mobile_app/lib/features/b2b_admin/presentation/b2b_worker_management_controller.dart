@@ -1,17 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/data/live_b2b_worker_management_repository.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/data/mock_b2b_worker_management_repository.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_worker_management_repository.dart';
 
 final b2bWorkerManagementRepositoryProvider =
     Provider<B2bWorkerManagementRepository>((ref) {
-  switch (ref.watch(appModeProvider)) {
-    case AppMode.mock:
-      return MockB2bWorkerManagementRepository();
-    case AppMode.live:
-      return LiveB2bWorkerManagementRepository();
-  }
+  return LiveB2bWorkerManagementRepository();
 });
 
 class B2bWorkerManagementController

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/core/mock/mock_config.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/core/models/user_role.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/permissions/role_permission.dart';
 import 'package:smart_livestock_demo/features/alerts/domain/alerts_repository.dart';
@@ -15,7 +15,7 @@ import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.
 class AlertsPage extends ConsumerWidget {
   const AlertsPage({super.key, required this.role});
 
-  final DemoRole role;
+  final UserRole role;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

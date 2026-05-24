@@ -1,18 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/core/models/twin_models.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/features/digestive/data/live_digestive_repository.dart';
-import 'package:smart_livestock_demo/features/digestive/data/mock_digestive_repository.dart';
 import 'package:smart_livestock_demo/features/digestive/domain/digestive_repository.dart';
 
 final digestiveRepositoryProvider = Provider<DigestiveRepository>((ref) {
-  switch (ref.watch(appModeProvider)) {
-    case AppMode.mock:
-      return const MockDigestiveRepository();
-    case AppMode.live:
-      return const LiveDigestiveRepository();
-  }
+  return const LiveDigestiveRepository();
 });
 
 class DigestivePageState {
