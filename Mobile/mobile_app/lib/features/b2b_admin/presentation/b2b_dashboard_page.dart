@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/data/b2b_repository.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_repository.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/alert_bottom_sheet.dart';
 
@@ -13,67 +12,23 @@ class B2bDashboardPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final data = ref.watch(b2bDashboardControllerProvider);
+    final asyncData = ref.watch(b2bDashboardControllerProvider);
     final theme = Theme.of(context);
 
-    return switch (data.viewState) {
-      ViewState.loading => const Center(child: CircularProgressIndicator()),
-      ViewState.error => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.error_outline,
-                  size: 48, color: theme.colorScheme.error),
-              const SizedBox(height: AppSpacing.md),
-              Text('加载失败',
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(color: theme.colorScheme.error)),
-              if (data.message != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.sm),
-                  child: Text(data.message!,
-                      style: theme.textTheme.bodySmall),
-                ),
-            ],
-          ),
+    return asyncData.when(
+      data: (data) => _buildContent(context, data),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
+            const SizedBox(height: AppSpacing.md),
+            Text('加载失败', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.error)),
+          ],
         ),
-      ViewState.empty => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.inbox_outlined,
-                  size: 48, color: theme.disabledColor),
-              const SizedBox(height: AppSpacing.md),
-              Text('暂无数据', style: theme.textTheme.titleMedium),
-            ],
-          ),
-        ),
-      ViewState.forbidden => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.lock_outline,
-                  size: 48, color: theme.disabledColor),
-              const SizedBox(height: AppSpacing.md),
-              Text('无权限访问',
-                  style: theme.textTheme.titleMedium),
-            ],
-          ),
-        ),
-      ViewState.offline => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.cloud_off_outlined,
-                  size: 48, color: theme.disabledColor),
-              const SizedBox(height: AppSpacing.md),
-              Text('网络不可用',
-                  style: theme.textTheme.titleMedium),
-            ],
-          ),
-        ),
-      ViewState.normal => _buildContent(context, data),
-    };
+      ),
+    );
   }
 
   Widget _buildContent(BuildContext context, B2bDashboardData data) {

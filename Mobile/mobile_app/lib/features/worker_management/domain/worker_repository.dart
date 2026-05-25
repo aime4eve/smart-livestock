@@ -1,5 +1,3 @@
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-
 class WorkerAssignment {
   const WorkerAssignment({
     required this.id,
@@ -16,25 +14,8 @@ class WorkerAssignment {
   final String assignedAt;
 }
 
-class WorkersViewData {
-  const WorkersViewData({
-    required this.viewState,
-    this.items = const [],
-    this.message,
-  });
-
-  final ViewState viewState;
-  final List<WorkerAssignment> items;
-  final String? message;
-}
-
 abstract class WorkerRepository {
-  WorkersViewData load({
-    required ViewState viewState,
-    required String farmId,
-  });
-
-  bool assign(String farmId, String userId, {String role = 'worker'});
-
-  bool unassign(String assignmentId);
+  Future<List<WorkerAssignment>> load(String farmId);
+  Future<WorkerAssignment> add(String farmId, Map<String, dynamic> body);
+  Future<void> remove(String farmId, String userId);
 }

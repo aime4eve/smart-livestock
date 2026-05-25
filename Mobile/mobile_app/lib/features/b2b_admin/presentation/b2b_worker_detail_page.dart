@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_worker_management_repository.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_worker_management_controller.dart';
@@ -20,6 +19,7 @@ class B2bWorkerDetailPage extends ConsumerStatefulWidget {
 class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
   List<B2bSubFarmWorker> _workers = [];
   bool _busy = false;
+  bool _loaded = false;
 
   @override
   void initState() {
@@ -27,73 +27,48 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     _loadWorkers();
   }
 
-  void _loadWorkers() {
-    final workers = ref
+  Future<void> _loadWorkers() async {
+    final workers = await ref
         .read(b2bWorkerManagementControllerProvider.notifier)
         .getSubFarmWorkers(widget.farmId);
     if (mounted) {
       setState(() {
         _workers = workers;
+        _loaded = true;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Watch the provider so page rebuilds when data changes
-    ref.watch(b2bWorkerManagementControllerProvider);
-    final data = ref.read(b2bWorkerManagementControllerProvider);
-    // Reload workers from latest controller state on every rebuild
-    final latestWorkers = ref
-        .read(b2bWorkerManagementControllerProvider.notifier)
-        .getSubFarmWorkers(widget.farmId);
-    if (_workers.isNotEmpty && _workers.length != latestWorkers.length) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() => _workers = latestWorkers);
-      });
-    } else if (_workers.isEmpty && latestWorkers.isNotEmpty) {
-      _workers = latestWorkers;
-    }
+    final asyncData = ref.watch(b2bWorkerManagementControllerProvider);
+    final theme = Theme.of(context);
 
-    // Find farm info
-    final farm = data.subFarms.where((f) => f.id == widget.farmId).firstOrNull;
-
-    return switch (data.viewState) {
-      ViewState.loading => const Scaffold(
+    return asyncData.when(
+      data: (data) {
+        final farm = data.subFarms.where((f) => f.id == widget.farmId).firstOrNull;
+        return _buildScaffold(context, farm, theme);
+      },
+      loading: () => const Scaffold(
           body: Center(
             key: Key('b2b-worker-detail-loading'),
             child: CircularProgressIndicator(),
           ),
         ),
-      ViewState.error => Scaffold(
+      error: (e, _) => Scaffold(
           body: _ErrorView(
             key: const Key('b2b-worker-detail-error'),
-            message: data.message ?? '加载失败',
+            message: e.toString(),
           ),
         ),
-      ViewState.empty => const Scaffold(
-          body: _DetailEmptyView(
-            key: Key('b2b-worker-detail-empty'),
-          ),
-        ),
-      ViewState.forbidden => const Scaffold(
-          body: _ForbiddenView(
-            key: Key('b2b-worker-detail-forbidden'),
-          ),
-        ),
-      ViewState.offline => const Scaffold(
-          body: _OfflineView(
-            key: Key('b2b-worker-detail-offline'),
-          ),
-        ),
-      ViewState.normal => farm == null
-          ? const Scaffold(
-              body: _DetailEmptyView(
-                key: Key('b2b-worker-detail-not-found'),
-              ),
-            )
-          : _buildContent(context, farm),
-    };
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context, B2bSubFarm? farm, ThemeData theme) {
+    if (farm == null) {
+      return const Scaffold(body: _DetailEmptyView(key: Key('b2b-worker-detail-not-found')));
+    }
+    return _buildContent(context, farm);
   }
 
   Widget _buildContent(BuildContext context, B2bSubFarm farm) {
@@ -154,7 +129,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     if (_busy) return;
     setState(() => _busy = true);
 
-    final available = ref
+    final available = await ref
         .read(b2bWorkerManagementControllerProvider.notifier)
         .getAvailableWorkers();
 

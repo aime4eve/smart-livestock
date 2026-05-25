@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
@@ -37,7 +36,7 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
     );
 
     final farmState = ref.watch(farmSwitcherControllerProvider);
-    final data = ref.watch(workerControllerProvider);
+    final asyncData = ref.watch(workerControllerProvider);
     return Scaffold(
       key: const Key('page-worker-management'),
       appBar: AppBar(
@@ -56,9 +55,35 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
                 description: '当前账号尚未选择牧场。',
                 icon: Icons.agriculture_outlined,
               )
-            : _WorkerStateBody(
-                data: data,
-                farmId: farmState.activeFarmId!,
+            : asyncData.when(
+                data: (workers) => workers.isEmpty
+                    ? const HighfiEmptyErrorState(
+                        key: Key('worker-empty-state'),
+                        title: '暂无牧工',
+                        description: '当前牧场还没有分配牧工。',
+                        icon: Icons.people_outline,
+                      )
+                    : ListView.separated(
+                        key: const Key('worker-list'),
+                        itemCount: workers.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: AppSpacing.sm),
+                        itemBuilder: (context, index) {
+                          return _WorkerListItem(
+                            assignment: workers[index],
+                            farmId: farmState.activeFarmId!,
+                          );
+                        },
+                      ),
+                loading: () => const Center(
+                    child: CircularProgressIndicator(key: Key('worker-loading-state')),
+                  ),
+                error: (e, _) => HighfiEmptyErrorState(
+                    key: const Key('worker-error-state'),
+                    title: '牧工加载失败',
+                    description: e.toString(),
+                    icon: Icons.error_outline,
+                  ),
               ),
       ),
     );
@@ -69,75 +94,6 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
     final farmId = ref.read(farmSwitcherControllerProvider).activeFarmId;
     if (farmId == null) return;
     ref.read(workerControllerProvider.notifier).loadWorkers(farmId);
-  }
-}
-
-class _WorkerStateBody extends ConsumerWidget {
-  const _WorkerStateBody({
-    required this.data,
-    required this.farmId,
-  });
-
-  final WorkersViewData data;
-  final String farmId;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    switch (data.viewState) {
-      case ViewState.loading:
-        return const Center(
-          child: CircularProgressIndicator(key: Key('worker-loading-state')),
-        );
-      case ViewState.empty:
-        return HighfiEmptyErrorState(
-          key: const Key('worker-empty-state'),
-          title: '暂无牧工',
-          description: data.message ?? '当前牧场还没有分配牧工。',
-          icon: Icons.people_outline,
-        );
-      case ViewState.error:
-        return HighfiEmptyErrorState(
-          key: const Key('worker-error-state'),
-          title: '牧工加载失败',
-          description: data.message ?? '请稍后重试。',
-          icon: Icons.error_outline,
-        );
-      case ViewState.forbidden:
-        return HighfiEmptyErrorState(
-          key: const Key('worker-forbidden-state'),
-          title: '无权限管理牧工',
-          description: data.message ?? '当前账号不能管理牧工。',
-          icon: Icons.lock_outline_rounded,
-        );
-      case ViewState.offline:
-        return HighfiEmptyErrorState(
-          key: const Key('worker-offline-state'),
-          title: '离线牧工快照',
-          description: data.message ?? '当前展示离线缓存数据。',
-          icon: Icons.cloud_off_rounded,
-        );
-      case ViewState.normal:
-        if (data.items.isEmpty) {
-          return const HighfiEmptyErrorState(
-            key: Key('worker-empty-state'),
-            title: '暂无牧工',
-            description: '当前牧场还没有分配牧工。',
-            icon: Icons.people_outline,
-          );
-        }
-        return ListView.separated(
-          key: const Key('worker-list'),
-          itemCount: data.items.length,
-          separatorBuilder: (context, index) =>
-              const SizedBox(height: AppSpacing.sm),
-          itemBuilder: (context, index) {
-            return _WorkerListItem(
-              assignment: data.items[index],
-              farmId: farmId,
-            );
-          },
-        );
-    }
   }
 }
 
@@ -171,7 +127,7 @@ class _WorkerListItem extends ConsumerWidget {
           onPressed: () {
             ref
                 .read(workerControllerProvider.notifier)
-                .removeWorker(assignment.id, farmId);
+                .removeWorker(farmId, assignment.userId);
           },
         ),
       ),

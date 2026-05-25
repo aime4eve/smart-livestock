@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_repository.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
 
 class B2bFarmListPage extends ConsumerStatefulWidget {
@@ -15,7 +16,16 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final data = ref.watch(b2bDashboardControllerProvider);
+    final asyncData = ref.watch(b2bDashboardControllerProvider);
+
+    return asyncData.when(
+      data: (data) => _buildContent(context, data),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('$e')),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, B2bDashboardData data) {
     final theme = Theme.of(context);
 
     return SingleChildScrollView(
@@ -169,15 +179,15 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
 
     final ok = await ref
         .read(b2bDashboardControllerProvider.notifier)
-        .createFarm(
-          nameCtrl.text.trim(),
-          ownerName:
-              ownerCtrl.text.trim().isEmpty ? null : ownerCtrl.text.trim(),
-          contactPhone:
-              phoneCtrl.text.trim().isEmpty ? null : phoneCtrl.text.trim(),
-          region:
-              regionCtrl.text.trim().isEmpty ? null : regionCtrl.text.trim(),
-        );
+        .createFarm({
+          'name': nameCtrl.text.trim(),
+          if (ownerCtrl.text.trim().isNotEmpty)
+            'ownerName': ownerCtrl.text.trim(),
+          if (phoneCtrl.text.trim().isNotEmpty)
+            'contactPhone': phoneCtrl.text.trim(),
+          if (regionCtrl.text.trim().isNotEmpty)
+            'region': regionCtrl.text.trim(),
+        });
 
     if (!mounted) return;
 

@@ -1,45 +1,48 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/data/live_b2b_worker_management_repository.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/data/b2b_worker_api_repository.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_worker_management_repository.dart';
 
 final b2bWorkerManagementRepositoryProvider =
     Provider<B2bWorkerManagementRepository>((ref) {
-  return LiveB2bWorkerManagementRepository();
+  return const B2bWorkerApiRepository();
 });
 
 class B2bWorkerManagementController
-    extends Notifier<B2bWorkerManagementViewData> {
+    extends AsyncNotifier<B2bWorkerManagementViewData> {
   @override
-  B2bWorkerManagementViewData build() {
+  Future<B2bWorkerManagementViewData> build() async {
     return ref.read(b2bWorkerManagementRepositoryProvider).getSubFarms();
   }
 
-  B2bWorkerManagementRepository get _repo =>
-      ref.read(b2bWorkerManagementRepositoryProvider);
-
-  void refresh() {
-    state = _repo.getSubFarms();
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+        () => ref.read(b2bWorkerManagementRepositoryProvider).getSubFarms());
   }
 
-  List<B2bSubFarmWorker> getSubFarmWorkers(String farmId) {
-    return _repo.getSubFarmWorkers(farmId);
+  Future<List<B2bSubFarmWorker>> getSubFarmWorkers(String farmId) {
+    return ref.read(b2bWorkerManagementRepositoryProvider).getSubFarmWorkers(farmId);
   }
 
-  Future<bool> assignWorker(String farmId, String workerId) {
-    return _repo.assignWorker(farmId, workerId);
+  Future<bool> assignWorker(String farmId, String workerId) async {
+    final ok = await ref.read(b2bWorkerManagementRepositoryProvider).assignWorker(farmId, workerId);
+    if (ok) await refresh();
+    return ok;
   }
 
-  Future<bool> removeWorker(String farmId, String workerId) {
-    return _repo.removeWorker(farmId, workerId);
+  Future<bool> removeWorker(String farmId, String workerId) async {
+    final ok = await ref.read(b2bWorkerManagementRepositoryProvider).removeWorker(farmId, workerId);
+    if (ok) await refresh();
+    return ok;
   }
 
-  List<B2bSubFarmWorker> getAvailableWorkers() {
-    return _repo.getAvailableWorkers();
+  Future<List<B2bSubFarmWorker>> getAvailableWorkers() {
+    return ref.read(b2bWorkerManagementRepositoryProvider).getAvailableWorkers();
   }
 }
 
 final b2bWorkerManagementControllerProvider =
-    NotifierProvider<B2bWorkerManagementController,
+    AsyncNotifierProvider<B2bWorkerManagementController,
         B2bWorkerManagementViewData>(
   B2bWorkerManagementController.new,
 );
