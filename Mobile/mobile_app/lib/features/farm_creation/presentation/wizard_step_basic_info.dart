@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
+import 'package:smart_livestock_demo/core/api/api_client.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
 import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
 import 'package:smart_livestock_demo/core/map/smart_tile_provider.dart';
@@ -65,41 +64,39 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
     if (!mounted) return;
     setState(() => _submitting = true);
 
-    final session = ref.read(sessionControllerProvider);
-    final cache = ApiCache.instance;
-    final tokens = session.accessToken != null
-        ? ApiAuthTokens(accessToken: session.accessToken!)
-        : null;
-
     final areaText = _areaController.text.trim();
     final area = areaText.isEmpty ? 0.0 : double.tryParse(areaText) ?? 0.0;
 
-    final success = await cache.createFarmRemote(
-      session.role?.wireName ?? 'owner',
-      name: _nameController.text.trim(),
-      latitude: _selectedCenter.latitude,
-      longitude: _selectedCenter.longitude,
-      areaHectares: area,
-      tokens: tokens,
-    );
+    try {
+      final data = await ApiClient.instance.post(
+        '/farms',
+        body: {
+          'name': _nameController.text.trim(),
+          'latitude': _selectedCenter.latitude,
+          'longitude': _selectedCenter.longitude,
+          'areaHectares': area,
+        },
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    if (success) {
-      final farmId = cache.activeFarmId ?? '';
+      final rawId = data['id'];
+      final farmId = rawId is int ? rawId.toString() : (rawId as String? ?? '');
       if (farmId.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('创建牧场失败：未获取到牧场ID')),
-          );
-        }
+        setState(() => _submitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('创建牧场失败：未获取到牧场ID')),
+        );
         return;
       }
+
+      ApiClient.instance.setActiveFarmId(farmId);
       widget.onComplete(farmId, _nameController.text.trim());
-    } else {
+    } catch (e) {
+      if (!mounted) return;
       setState(() => _submitting = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('创建牧场失败，请重试')),
+        SnackBar(content: Text('创建牧场失败，请重试')),
       );
     }
   }

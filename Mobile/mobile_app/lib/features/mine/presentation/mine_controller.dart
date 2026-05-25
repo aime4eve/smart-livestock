@@ -1,23 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/mine/data/live_mine_repository.dart';
+import 'package:smart_livestock_demo/features/mine/data/mine_api_repository.dart';
 import 'package:smart_livestock_demo/features/mine/domain/mine_repository.dart';
 
 final mineRepositoryProvider = Provider<MineRepository>((ref) {
-  return const LiveMineRepository();
+  return const MineApiRepository();
 });
 
-class MineController extends Notifier<MineViewData> {
+class MineController extends AsyncNotifier<MineViewData> {
   @override
-  MineViewData build() {
-    return ref.watch(mineRepositoryProvider).load(ViewState.normal);
-  }
-
-  void setViewState(ViewState viewState) {
-    state = ref.read(mineRepositoryProvider).load(viewState);
+  Future<MineViewData> build() async {
+    return ref.read(mineRepositoryProvider).load();
   }
 }
 
-final mineControllerProvider = NotifierProvider<MineController, MineViewData>(
+final mineControllerProvider = AsyncNotifierProvider<MineController, MineViewData>(
   MineController.new,
 );
