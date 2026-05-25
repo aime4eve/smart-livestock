@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/app/demo_app.dart';
+import 'package:smart_livestock_demo/core/models/user_role.dart';
+
+import 'helpers/pump_app.dart';
 
 void main() {
   testWidgets('流程3：告警 确认→处理→归档（owner）', (tester) async {
-    await tester.pumpWidget(const DemoApp());
-    await tester.tap(find.byKey(const Key('role-owner')));
-    await tester.tap(find.byKey(const Key('login-submit')));
-    await tester.pumpAndSettle();
+    await pumpAppWithRole(tester, UserRole.owner);
 
     await tester.tap(find.byKey(const Key('nav-alerts')));
     await tester.pumpAndSettle();
@@ -26,10 +25,7 @@ void main() {
   });
 
   testWidgets('流程3b：告警批量处理给出演示反馈（owner）', (tester) async {
-    await tester.pumpWidget(const DemoApp());
-    await tester.tap(find.byKey(const Key('role-owner')));
-    await tester.tap(find.byKey(const Key('login-submit')));
-    await tester.pumpAndSettle();
+    await pumpAppWithRole(tester, UserRole.owner);
 
     await tester.tap(find.byKey(const Key('nav-alerts')));
     await tester.pumpAndSettle();
@@ -41,10 +37,7 @@ void main() {
   });
 
   testWidgets('流程4a：围栏页显示抽屉标题和围栏卡片（owner）', (tester) async {
-    await tester.pumpWidget(const DemoApp());
-    await tester.tap(find.byKey(const Key('role-owner')));
-    await tester.tap(find.byKey(const Key('login-submit')));
-    await tester.pumpAndSettle();
+    await pumpAppWithRole(tester, UserRole.owner);
 
     await tester.tap(find.byKey(const Key('nav-fence')));
     await tester.pumpAndSettle();
@@ -57,10 +50,7 @@ void main() {
   });
 
   testWidgets('流程4b：围栏新增跳转表单页再返回（owner）', (tester) async {
-    await tester.pumpWidget(const DemoApp());
-    await tester.tap(find.byKey(const Key('role-owner')));
-    await tester.tap(find.byKey(const Key('login-submit')));
-    await tester.pumpAndSettle();
+    await pumpAppWithRole(tester, UserRole.owner);
 
     await tester.tap(find.byKey(const Key('nav-fence')));
     await tester.pumpAndSettle();
@@ -78,10 +68,7 @@ void main() {
   });
 
   testWidgets('流程4c：围栏删除弹窗确认后移除（owner）', (tester) async {
-    await tester.pumpWidget(const DemoApp());
-    await tester.tap(find.byKey(const Key('role-owner')));
-    await tester.tap(find.byKey(const Key('login-submit')));
-    await tester.pumpAndSettle();
+    await pumpAppWithRole(tester, UserRole.owner);
 
     await tester.tap(find.byKey(const Key('nav-fence')));
     await tester.pumpAndSettle();
@@ -107,10 +94,7 @@ void main() {
   });
 
   testWidgets('流程4d：租户 license 调整演示反馈（owner）', (tester) async {
-    await tester.pumpWidget(const DemoApp());
-    await tester.tap(find.byKey(const Key('role-owner')));
-    await tester.tap(find.byKey(const Key('login-submit')));
-    await tester.pumpAndSettle();
+    await pumpAppWithRole(tester, UserRole.owner);
 
     await tester.tap(find.byKey(const Key('nav-admin')));
     await tester.pumpAndSettle();
@@ -123,19 +107,13 @@ void main() {
   });
 
   testWidgets('流程1：登录后角色分流（worker 无后台 tab）', (tester) async {
-    await tester.pumpWidget(const DemoApp());
-    await tester.tap(find.byKey(const Key('role-worker')));
-    await tester.tap(find.byKey(const Key('login-submit')));
-    await tester.pumpAndSettle();
+    await pumpAppWithRole(tester, UserRole.worker);
 
     expect(find.byKey(const Key('nav-admin')), findsNothing);
   });
 
   testWidgets('流程1：platform_admin 直达租户列表', (tester) async {
-    await tester.pumpWidget(const DemoApp());
-    await tester.tap(find.byKey(const Key('role-platform-admin')));
-    await tester.tap(find.byKey(const Key('login-submit')));
-    await tester.pumpAndSettle();
+    await pumpAppWithRole(tester, UserRole.platformAdmin);
 
     expect(find.byKey(const Key('page-tenant-list')), findsOneWidget);
     expect(find.text('华东示范牧场'), findsOneWidget);

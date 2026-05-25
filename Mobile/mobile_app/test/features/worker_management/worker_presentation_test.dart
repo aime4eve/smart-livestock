@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/app/demo_app.dart';
+import 'package:smart_livestock_demo/core/models/user_role.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/features/worker_management/data/mock_worker_repository.dart';
 import 'package:smart_livestock_demo/features/worker_management/presentation/worker_controller.dart';
+
+import '../../helpers/pump_app.dart';
 
 void main() {
   setUp(() {
@@ -37,11 +39,8 @@ void main() {
   });
 
   testWidgets('owner 我的页显示牧工管理入口并可进入列表页', (tester) async {
-    await tester.pumpWidget(const DemoApp());
+    await pumpAppWithRole(tester, UserRole.owner);
 
-    await tester.tap(find.byKey(const Key('role-owner')));
-    await tester.tap(find.byKey(const Key('login-submit')));
-    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('nav-mine')));
     await tester.pumpAndSettle();
 
@@ -56,11 +55,8 @@ void main() {
   });
 
   testWidgets('worker 我的页不显示牧工管理入口', (tester) async {
-    await tester.pumpWidget(const DemoApp());
+    await pumpAppWithRole(tester, UserRole.worker);
 
-    await tester.tap(find.byKey(const Key('role-worker')));
-    await tester.tap(find.byKey(const Key('login-submit')));
-    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('nav-mine')));
     await tester.pumpAndSettle();
 
@@ -68,11 +64,8 @@ void main() {
   });
 
   testWidgets('牧工列表删除后重新加载并移除列表项', (tester) async {
-    await tester.pumpWidget(const DemoApp());
+    await pumpAppWithRole(tester, UserRole.owner);
 
-    await tester.tap(find.byKey(const Key('role-owner')));
-    await tester.tap(find.byKey(const Key('login-submit')));
-    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('nav-mine')));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const Key('mine-worker-management')));
@@ -89,17 +82,8 @@ void main() {
   });
 
   testWidgets('牧工列表按当前 farm 切换重新加载', (tester) async {
-    await tester.pumpWidget(
-      DemoApp(
-        overrides: [
-          workerRepositoryProvider.overrideWithValue(const MockWorkerRepository()),
-        ],
-      ),
-    );
+    await pumpAppWithRole(tester, UserRole.owner);
 
-    await tester.tap(find.byKey(const Key('role-owner')));
-    await tester.tap(find.byKey(const Key('login-submit')));
-    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('nav-mine')));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const Key('mine-worker-management')));

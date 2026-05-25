@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/app/demo_app.dart';
+import 'package:smart_livestock_demo/core/models/user_role.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_stat_tile.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
 
+import '../helpers/pump_app.dart';
+
 void main() {
   testWidgets('dashboard highfi blocks are visible', (tester) async {
-    await tester.pumpWidget(const DemoApp());
-    await tester.tap(find.byKey(const Key('role-owner')));
-    await tester.tap(find.byKey(const Key('login-submit')));
-    await tester.pumpAndSettle();
+    await pumpAppWithRole(tester, UserRole.owner);
 
     expect(find.byKey(const Key('twin-farm-header')), findsOneWidget);
     expect(find.byKey(const Key('twin-stat-livestock')), findsOneWidget);
@@ -22,10 +21,7 @@ void main() {
   testWidgets('renders reusable high-fidelity components on dashboard', (
     tester,
   ) async {
-    await tester.pumpWidget(const DemoApp());
-    await tester.tap(find.byKey(const Key('role-owner')));
-    await tester.tap(find.byKey(const Key('login-submit')));
-    await tester.pumpAndSettle();
+    await pumpAppWithRole(tester, UserRole.owner);
 
     expect(find.byType(HighfiCard), findsWidgets);
     expect(find.byType(HighfiStatTile), findsWidgets);

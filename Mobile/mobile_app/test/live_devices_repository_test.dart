@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_livestock_demo/core/data/demo_seed.dart';
-import 'package:smart_livestock_demo/core/models/demo_models.dart';
+import 'package:smart_livestock_demo/core/models/core_models.dart';
 import 'package:smart_livestock_demo/features/devices/data/live_devices_repository.dart';
 
 void main() {

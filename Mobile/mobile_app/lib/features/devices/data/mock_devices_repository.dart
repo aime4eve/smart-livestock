@@ -1,5 +1,5 @@
 import 'package:smart_livestock_demo/core/data/demo_seed.dart';
-import 'package:smart_livestock_demo/core/models/demo_models.dart';
+import 'package:smart_livestock_demo/core/models/core_models.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/features/devices/domain/devices_repository.dart';
 

@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/models/demo_models.dart';
+import 'package:smart_livestock_demo/core/models/core_models.dart';
 
 class DemoSeed {
   const DemoSeed._();

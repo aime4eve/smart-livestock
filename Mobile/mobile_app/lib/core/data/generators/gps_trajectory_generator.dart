@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/core/data/generators/time_series_generator.dart';
-import 'package:smart_livestock_demo/core/models/demo_models.dart';
+import 'package:smart_livestock_demo/core/models/core_models.dart';
 
 class GpsTrajectoryGenerator extends TimeSeriesGenerator<GeoPoint> {
   GpsTrajectoryGenerator({super.seed});

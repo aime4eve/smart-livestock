@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:smart_livestock_demo/core/api/api_http_client.dart';
-import 'package:smart_livestock_demo/core/models/demo_models.dart';
+import 'package:smart_livestock_demo/core/models/core_models.dart';
 import 'package:smart_livestock_demo/core/models/user_role.dart';
 import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
 

@@ -219,10 +219,10 @@ class _B2bAdminShell extends StatelessWidget {
 
   int _calculateIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
-    if (location.contains('/farms')) return 1;
-    if (location.contains('/contract')) return 2;
-    if (location.contains('/revenue')) return 3;
-    if (location.contains('/workers')) return 4;
+    if (location.startsWith('/b2b/admin/farms')) return 1;
+    if (location.startsWith('/b2b/admin/contract')) return 2;
+    if (location.startsWith('/b2b/admin/revenue')) return 3;
+    if (location.startsWith('/b2b/admin/workers')) return 4;
     return 0;
   }
 

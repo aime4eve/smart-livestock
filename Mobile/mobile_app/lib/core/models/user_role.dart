@@ -1,5 +1,7 @@
 // lib/core/models/user_role.dart
 
+import 'package:flutter/foundation.dart';
+
 enum UserRole {
   owner,
   worker,
@@ -14,16 +16,23 @@ enum UserRole {
       'PLATFORM_ADMIN' => UserRole.platformAdmin,
       'B2B_ADMIN' => UserRole.b2bAdmin,
       'API_CONSUMER' => UserRole.apiConsumer,
-      _ => UserRole.worker,
+      _ => _unknown(value),
     };
   }
 
+  static UserRole _unknown(String value) {
+    debugPrint('UserRole: unknown role "$value", falling back to worker');
+    return UserRole.worker;
+  }
+
+  /// Wire-format name used in API calls and mock tokens.
   String get wireName => switch (this) {
-    UserRole.platformAdmin => 'platform_admin',
-    UserRole.b2bAdmin => 'b2b_admin',
-    UserRole.apiConsumer => 'api_consumer',
-    _ => name,
-  };
+        owner => 'owner',
+        worker => 'worker',
+        platformAdmin => 'platform_admin',
+        b2bAdmin => 'b2b_admin',
+        apiConsumer => 'api_consumer',
+      };
 
   bool get canAccessAdminTab => this == UserRole.owner;
   bool get isPlatformAdmin => this == UserRole.platformAdmin;
@@ -31,12 +40,4 @@ enum UserRole {
   bool get isApiConsumer => this == UserRole.apiConsumer;
   bool get isOwner => this == UserRole.owner;
   bool get isWorker => this == UserRole.worker;
-
-  Set<String> get visibleTabs => switch (this) {
-    UserRole.owner => {'dashboard', 'map', 'alerts', 'fences', 'livestock', 'devices', 'stats', 'twin', 'subscription', 'mine', 'admin'},
-    UserRole.worker => {'dashboard', 'map', 'alerts', 'fences', 'mine'},
-    UserRole.platformAdmin => {'admin'},
-    UserRole.b2bAdmin => {'b2b'},
-    UserRole.apiConsumer => {},
-  };
 }

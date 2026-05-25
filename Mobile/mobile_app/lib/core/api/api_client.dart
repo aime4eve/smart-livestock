@@ -6,17 +6,16 @@ import 'package:http/http.dart' as http;
 import 'api_exception.dart';
 import 'jwt_storage.dart';
 
-typedef OnAuthFailure = void Function();
-
 class ApiClient {
   ApiClient._();
   static final ApiClient instance = ApiClient._();
+
+  static const _timeout = Duration(seconds: 15);
 
   String _baseUrl = kIsWeb
       ? 'http://127.0.0.1:18080/api/v1'
       : 'http://localhost:18080/api/v1';
   String? _activeFarmId;
-  OnAuthFailure? onAuthFailure;
 
   String get baseUrl => _baseUrl;
   String? get activeFarmId => _activeFarmId;
@@ -38,7 +37,7 @@ class ApiClient {
     final response = await http.get(
       Uri.parse('$_baseUrl$path'),
       headers: headers,
-    );
+    ).timeout(_timeout);
     return _handleResponse(response);
   }
 
@@ -48,7 +47,7 @@ class ApiClient {
       Uri.parse('$_baseUrl$path'),
       headers: headers,
       body: body != null ? jsonEncode(body) : null,
-    );
+    ).timeout(_timeout);
     return _handleResponse(response);
   }
 
@@ -58,7 +57,7 @@ class ApiClient {
       Uri.parse('$_baseUrl$path'),
       headers: headers,
       body: body != null ? jsonEncode(body) : null,
-    );
+    ).timeout(_timeout);
     return _handleResponse(response);
   }
 
@@ -67,8 +66,8 @@ class ApiClient {
     final response = await http.delete(
       Uri.parse('$_baseUrl$path'),
       headers: headers,
-    );
-    _handleResponse(response);
+    ).timeout(_timeout);
+    await _handleResponse(response);
   }
 
   Future<Map<String, dynamic>> farmGet(String suffix) async {
@@ -91,11 +90,9 @@ class ApiClient {
     return delete('/farms/$_activeFarmId$suffix');
   }
 
-  Map<String, dynamic> _handleResponse(http.Response response) {
-    // 401: clear token + notify auth failure + throw immediately
+  Future<Map<String, dynamic>> _handleResponse(http.Response response) async {
     if (response.statusCode == 401) {
-      JwtStorage.instance.clear();
-      onAuthFailure?.call();
+      await JwtStorage.instance.clear();
       Map<String, dynamic>? body;
       try {
         body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -143,7 +140,7 @@ class ApiClient {
       throw ValidationException(message: message, statusCode: response.statusCode, code: code);
     }
 
-    if (code != 'OK' && code != 'CREATED') {
+    if (code != 'OK') {
       throw ServerException(message: message, statusCode: response.statusCode, code: code);
     }
 
@@ -161,10 +158,11 @@ class ApiClient {
       Uri.parse('$_baseUrl/auth/login'),
       headers: const {'Content-Type': 'application/json'},
       body: jsonEncode({'phone': phone, 'password': password}),
-    );
+    ).timeout(_timeout);
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
 
     if (response.statusCode != 200) {
-      final body = jsonDecode(response.body) as Map<String, dynamic>;
       throw AuthException(
         message: body['message'] as String? ?? '登录失败',
         statusCode: response.statusCode,
@@ -172,7 +170,6 @@ class ApiClient {
       );
     }
 
-    final body = jsonDecode(response.body) as Map<String, dynamic>;
     final data = body['data'] as Map<String, dynamic>;
     final token = data['accessToken'] as String;
     final user = data['user'] as Map<String, dynamic>;

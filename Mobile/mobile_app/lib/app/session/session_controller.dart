@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/core/api/api_client.dart';
 import 'package:smart_livestock_demo/core/api/api_exception.dart';
@@ -32,9 +31,6 @@ class SessionController extends Notifier<AppSession> {
 
       return true;
     } on AuthException {
-      return false;
-    } catch (e) {
-      debugPrint('Login failed: $e');
       return false;
     }
   }
