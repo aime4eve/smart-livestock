@@ -1,39 +1,39 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/revenue/data/live_revenue_repository.dart';
+import 'package:smart_livestock_demo/features/revenue/data/revenue_api_repository.dart';
 import 'package:smart_livestock_demo/features/revenue/domain/revenue_repository.dart';
 
 final revenueRepositoryProvider = Provider<RevenueRepository>((ref) {
-  return LiveRevenueRepository();
+  return const RevenueApiRepository();
 });
 
-class RevenueController extends Notifier<RevenueListViewData> {
+class RevenueController extends AsyncNotifier<RevenueListViewData> {
   @override
-  RevenueListViewData build() {
+  Future<RevenueListViewData> build() async {
     return ref.read(revenueRepositoryProvider).getPeriods();
   }
 
-  RevenueRepository get _repo => ref.read(revenueRepositoryProvider);
-
-  void refresh() {
-    state = _repo.getPeriods();
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+        () => ref.read(revenueRepositoryProvider).getPeriods());
   }
 
-  RevenueDetailViewData getPeriodDetail(String periodId) {
-    return _repo.getPeriodDetail(periodId);
+  Future<RevenueDetailViewData> getPeriodDetail(String periodId) {
+    return ref.read(revenueRepositoryProvider).getPeriodDetail(periodId);
   }
 
   Future<bool> confirmPeriod(String periodId) async {
-    final ok = await _repo.confirmPeriod(periodId);
-    if (ok) refresh();
+    final ok = await ref.read(revenueRepositoryProvider).confirmPeriod(periodId);
+    if (ok) await refresh();
     return ok;
   }
 
   Future<bool> calculateRevenue(String periodId) async {
-    return _repo.calculateRevenue(periodId);
+    return ref.read(revenueRepositoryProvider).calculateRevenue(periodId);
   }
 }
 
 final revenueControllerProvider =
-    NotifierProvider<RevenueController, RevenueListViewData>(
+    AsyncNotifierProvider<RevenueController, RevenueListViewData>(
   RevenueController.new,
 );

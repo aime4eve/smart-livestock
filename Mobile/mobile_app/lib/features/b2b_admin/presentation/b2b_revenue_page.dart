@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/core/utils/currency_formatter.dart';
 import 'package:smart_livestock_demo/features/revenue/domain/revenue_repository.dart';
@@ -19,28 +18,21 @@ class _B2bRevenuePageState extends ConsumerState<B2bRevenuePage> {
 
   @override
   Widget build(BuildContext context) {
-    final data = ref.watch(revenueControllerProvider);
+    final asyncData = ref.watch(revenueControllerProvider);
 
-    return switch (data.viewState) {
-      ViewState.loading => const Center(
+    return asyncData.when(
+      data: (data) => data.isEmpty
+          ? const _EmptyView(key: Key('b2b-revenue-empty'))
+          : _buildContent(context, data),
+      loading: () => const Center(
           key: Key('b2b-revenue-loading'),
           child: CircularProgressIndicator(),
         ),
-      ViewState.error => _ErrorView(
+      error: (e, _) => _ErrorView(
           key: const Key('b2b-revenue-error'),
-          message: data.message ?? '加载失败',
+          message: e.toString(),
         ),
-      ViewState.empty => const _EmptyView(
-          key: Key('b2b-revenue-empty'),
-        ),
-      ViewState.forbidden => const _ForbiddenView(
-          key: Key('b2b-revenue-forbidden'),
-        ),
-      ViewState.offline => const _OfflineView(
-          key: Key('b2b-revenue-offline'),
-        ),
-      ViewState.normal => _buildContent(context, data),
-    };
+    );
   }
 
   Widget _buildContent(BuildContext context, RevenueListViewData data) {

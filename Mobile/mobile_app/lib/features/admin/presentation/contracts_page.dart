@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/features/contract_management/presentation/contract_management_controller.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
@@ -12,54 +11,57 @@ class ContractsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final data = ref.watch(contractManagementControllerProvider);
+    final asyncData = ref.watch(contractManagementControllerProvider);
     final controller =
         ref.read(contractManagementControllerProvider.notifier);
 
-    return SingleChildScrollView(
-      key: const Key('page-contracts'),
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            '合同管理',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            '管理平台与牧场之间的合作协议',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: [
-              Expanded(
-                child: SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(value: '', label: Text('全部')),
-                    ButtonSegment(value: 'active', label: Text('生效中')),
-                    ButtonSegment(value: 'pending', label: Text('待签署')),
-                    ButtonSegment(value: 'terminated', label: Text('已终止')),
-                  ],
-                  selected: const {''},
-                  onSelectionChanged: (selected) {
-                    final s = selected.first;
-                    controller.filter(status: s.isEmpty ? null : s);
-                  },
+    return asyncData.when(
+      data: (data) => SingleChildScrollView(
+        key: const Key('page-contracts'),
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              '合同管理',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              '管理平台与牧场之间的合作协议',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Row(
+              children: [
+                Expanded(
+                  child: SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(value: '', label: Text('全部')),
+                      ButtonSegment(value: 'active', label: Text('生效中')),
+                      ButtonSegment(value: 'pending', label: Text('待签署')),
+                      ButtonSegment(value: 'terminated', label: Text('已终止')),
+                    ],
+                    selected: const {''},
+                    onSelectionChanged: (selected) {
+                      final s = selected.first;
+                      controller.filter(status: s.isEmpty ? null : s);
+                    },
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          if (data.viewState == ViewState.normal)
-            ...data.contracts.map((contract) => _buildContractCard(context, contract, controller)),
-          if (data.viewState == ViewState.empty)
-            _buildEmpty(context),
-          if (data.viewState == ViewState.loading)
-            const Center(child: CircularProgressIndicator()),
-        ],
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            if (data.contracts.isNotEmpty)
+              ...data.contracts.map((contract) =>
+                  _buildContractCard(context, contract, controller)),
+            if (data.isEmpty)
+              _buildEmpty(context),
+          ],
+        ),
       ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('$e')),
     );
   }
 

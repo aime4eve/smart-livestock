@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/core/utils/currency_formatter.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/confirm_dialog.dart';
@@ -23,49 +22,41 @@ class _B2bRevenueDetailPageState extends ConsumerState<B2bRevenueDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Watch the list provider so the page rebuilds when confirmPeriod calls refresh()
     ref.watch(revenueControllerProvider);
-    // Derive the detail data from the current provider state
-    final data = ref
+    final detailFuture = ref
         .read(revenueControllerProvider.notifier)
         .getPeriodDetail(widget.periodId);
 
-    return switch (data.viewState) {
-      ViewState.loading => const Scaffold(
-          body: Center(
-            key: Key('b2b-revenue-detail-loading'),
-            child: CircularProgressIndicator(),
-          ),
-        ),
-      ViewState.error => Scaffold(
-          body: _ErrorView(
-            key: const Key('b2b-revenue-detail-error'),
-            message: data.message ?? '加载失败',
-          ),
-        ),
-      ViewState.empty => const Scaffold(
-          body: _DetailEmptyView(
-            key: Key('b2b-revenue-detail-empty'),
-          ),
-        ),
-      ViewState.forbidden => const Scaffold(
-          body: _ForbiddenView(
-            key: Key('b2b-revenue-detail-forbidden'),
-          ),
-        ),
-      ViewState.offline => const Scaffold(
-          body: _OfflineView(
-            key: Key('b2b-revenue-detail-offline'),
-          ),
-        ),
-      ViewState.normal => data.period == null
-          ? const Scaffold(
-              body: _DetailEmptyView(
-                key: Key('b2b-revenue-detail-empty'),
-              ),
-            )
-          : _buildContent(context, data),
-    };
+    return FutureBuilder<RevenueDetailViewData>(
+      future: detailFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              key: Key('b2b-revenue-detail-loading'),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: _ErrorView(
+              key: const Key('b2b-revenue-detail-error'),
+              message: snapshot.error.toString(),
+            ),
+          );
+        }
+        final data = snapshot.data;
+        if (data == null || data.period == null) {
+          return const Scaffold(
+            body: _DetailEmptyView(
+              key: Key('b2b-revenue-detail-empty'),
+            ),
+          );
+        }
+        return _buildContent(context, data);
+      },
+    );
   }
 
   Widget _buildContent(BuildContext context, RevenueDetailViewData data) {

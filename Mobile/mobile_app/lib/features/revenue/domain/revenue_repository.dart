@@ -1,5 +1,3 @@
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-
 class RevenuePeriod {
   const RevenuePeriod({
     required this.id,
@@ -21,7 +19,6 @@ class RevenuePeriod {
 
   factory RevenuePeriod.fromJson(Map<String, dynamic> json) {
     final rawPeriod = json['period'] as String? ?? json['periodLabel'] as String? ?? '';
-    // Format "2026-01" → "2026年1月" if it looks like YYYY-MM
     final periodLabel = rawPeriod.contains('-') && rawPeriod.length == 7
         ? '${rawPeriod.substring(0, 4)}年${int.parse(rawPeriod.substring(5))}月'
         : rawPeriod;
@@ -60,20 +57,6 @@ class RevenuePeriod {
   }
 }
 
-class RevenueListViewData {
-  const RevenueListViewData({
-    this.viewState = ViewState.normal,
-    this.periods = const [],
-    this.total = 0,
-    this.message,
-  });
-
-  final ViewState viewState;
-  final List<RevenuePeriod> periods;
-  final int total;
-  final String? message;
-}
-
 class RevenueFarmDetail {
   const RevenueFarmDetail({
     required this.farmName,
@@ -96,15 +79,27 @@ class RevenueFarmDetail {
       deviceUnitPrice: (json['deviceUnitPrice'] as num?)?.toDouble() ??
           (json['deviceFee'] as num?)?.toDouble() ?? 0.0,
       deviceFee: (json['deviceFee'] as num?)?.toDouble() ?? 0.0,
-      shareAmount: (json['shareAmount'] as num?)?.toDouble() ??
-          (json['shareAmount'] as num?)?.toDouble() ?? 0.0,
+      shareAmount: (json['shareAmount'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }
 
+class RevenueListViewData {
+  const RevenueListViewData({
+    this.periods = const [],
+    this.total = 0,
+    this.message,
+  });
+
+  final List<RevenuePeriod> periods;
+  final int total;
+  final String? message;
+
+  bool get isEmpty => periods.isEmpty;
+}
+
 class RevenueDetailViewData {
   const RevenueDetailViewData({
-    this.viewState = ViewState.normal,
     this.period,
     this.totalDeviceFee = 0.0,
     this.revenueShareRatio = 0.0,
@@ -115,7 +110,6 @@ class RevenueDetailViewData {
     this.message,
   });
 
-  final ViewState viewState;
   final RevenuePeriod? period;
   final double totalDeviceFee;
   final double revenueShareRatio;
@@ -127,8 +121,8 @@ class RevenueDetailViewData {
 }
 
 abstract class RevenueRepository {
-  RevenueListViewData getPeriods({String? partnerId});
-  RevenueDetailViewData getPeriodDetail(String periodId);
+  Future<RevenueListViewData> getPeriods({String? partnerId});
+  Future<RevenueDetailViewData> getPeriodDetail(String periodId);
   Future<bool> confirmPeriod(String periodId);
   Future<bool> calculateRevenue(String periodId);
 }
