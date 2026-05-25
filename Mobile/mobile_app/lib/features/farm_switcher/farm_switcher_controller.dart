@@ -62,8 +62,9 @@ class FarmSwitcherController extends Notifier<FarmSwitcherState> {
       final session = ref.read(sessionControllerProvider);
       final activeFarmId = session.activeFarmId ?? farms.first.id;
 
-      if (ApiClient.instance.activeFarmId == null) {
-        ApiClient.instance.setActiveFarmId(activeFarmId);
+      ApiClient.instance.setActiveFarmId(activeFarmId);
+      if (session.activeFarmId == null) {
+        ref.read(sessionControllerProvider.notifier).updateActiveFarm(activeFarmId);
       }
 
       state = FarmSwitcherState(farms: farms, activeFarmId: activeFarmId);
