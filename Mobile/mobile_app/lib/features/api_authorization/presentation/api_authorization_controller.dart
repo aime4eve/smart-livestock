@@ -1,75 +1,44 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/api_authorization/data/live_api_authorization_repository.dart';
+import 'package:smart_livestock_demo/features/api_authorization/data/api_authorization_api_repository.dart';
 import 'package:smart_livestock_demo/features/api_authorization/domain/api_authorization_repository.dart';
 
-final apiAuthorizationRepositoryProvider =
-    Provider<ApiAuthorizationRepository>((ref) {
-  return LiveApiAuthorizationRepository();
+final apiAuthorizationRepositoryProvider = Provider<ApiAuthorizationRepository>((ref) {
+  return const ApiAuthorizationApiRepository();
 });
 
-class ApiAuthorizationController
-    extends Notifier<ApiAuthorizationListViewData> {
+class ApiAuthorizationController extends AsyncNotifier<ApiKeyListResult> {
   @override
-  ApiAuthorizationListViewData build() {
-    return ref.read(apiAuthorizationRepositoryProvider).getAuthorizations();
+  Future<ApiKeyListResult> build() async {
+    return ref.read(apiAuthorizationRepositoryProvider).loadApiKeys();
   }
 
-  ApiAuthorizationRepository get _repo =>
-      ref.read(apiAuthorizationRepositoryProvider);
-
-  void filterByStatus(String? status) {
-    state = _repo.getAuthorizations(status: status);
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => ref.read(apiAuthorizationRepositoryProvider).loadApiKeys());
   }
 
-  void refresh() {
-    state = _repo.getAuthorizations();
+  Future<void> updateStatus(String keyId, String status) async {
+    await ref.read(apiAuthorizationRepositoryProvider).updateApiKeyStatus(keyId, status);
+    ref.invalidateSelf();
   }
 
-  Future<bool> approveAuthorization(String id) async {
-    final ok = await _repo.approveAuthorization(id);
-    if (ok) refresh();
-    return ok;
+  Future<void> revoke(String keyId) async {
+    await ref.read(apiAuthorizationRepositoryProvider).revokeApiKey(keyId);
+    ref.invalidateSelf();
   }
 
-  Future<bool> revokeAuthorization(String id) async {
-    final ok = await _repo.revokeAuthorization(id);
-    if (ok) refresh();
-    return ok;
+  Future<ApiKeyCreateResult?> createApiKey(Map<String, dynamic> body) async {
+    try {
+      final result = await ref.read(apiAuthorizationRepositoryProvider).createApiKey(body);
+      ref.invalidateSelf();
+      return result;
+    } catch (_) {
+      return null;
+    }
   }
 }
 
 final apiAuthorizationControllerProvider =
-    NotifierProvider<ApiAuthorizationController, ApiAuthorizationListViewData>(
+    AsyncNotifierProvider<ApiAuthorizationController, ApiKeyListResult>(
   ApiAuthorizationController.new,
-);
-
-class ApiKeyController extends Notifier<ApiKeyListViewData> {
-  @override
-  ApiKeyListViewData build() {
-    return ref.read(apiAuthorizationRepositoryProvider).getApiKeys();
-  }
-
-  ApiAuthorizationRepository get _repo =>
-      ref.read(apiAuthorizationRepositoryProvider);
-
-  void refresh() {
-    state = _repo.getApiKeys();
-  }
-
-  Future<bool> issueApiKey(Map<String, dynamic> data) async {
-    final ok = await _repo.issueApiKey(data);
-    if (ok) refresh();
-    return ok;
-  }
-
-  Future<bool> revokeApiKey(String keyId) async {
-    final ok = await _repo.revokeApiKey(keyId);
-    if (ok) refresh();
-    return ok;
-  }
-}
-
-final apiKeyControllerProvider =
-    NotifierProvider<ApiKeyController, ApiKeyListViewData>(
-  ApiKeyController.new,
 );

@@ -1,38 +1,43 @@
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-
-class ApiKeyListViewData {
-  const ApiKeyListViewData({
-    this.viewState = ViewState.normal,
-    this.apiKeys = const [],
-    this.total = 0,
-    this.message,
+class ApiKeyItem {
+  const ApiKeyItem({
+    required this.id,
+    this.name,
+    this.prefix,
+    this.tenantId,
+    this.status,
+    this.createdAt,
   });
 
-  final ViewState viewState;
-  final List<Map<String, dynamic>> apiKeys;
-  final int total;
-  final String? message;
+  final String id;
+  final String? name;
+  final String? prefix;
+  final String? tenantId;
+  final String? status;
+  final String? createdAt;
 }
 
-class ApiAuthorizationListViewData {
-  const ApiAuthorizationListViewData({
-    this.viewState = ViewState.normal,
-    this.authorizations = const [],
+class ApiKeyListResult {
+  const ApiKeyListResult({
+    required this.items,
     this.total = 0,
-    this.message,
   });
 
-  final ViewState viewState;
-  final List<Map<String, dynamic>> authorizations;
+  final List<ApiKeyItem> items;
   final int total;
-  final String? message;
+
+  bool get isEmpty => items.isEmpty;
+}
+
+class ApiKeyCreateResult {
+  const ApiKeyCreateResult({required this.info, required this.fullKey});
+
+  final ApiKeyItem info;
+  final String fullKey;
 }
 
 abstract class ApiAuthorizationRepository {
-  ApiKeyListViewData getApiKeys({String? ownerId});
-  ApiAuthorizationListViewData getAuthorizations({String? status});
-  Future<bool> approveAuthorization(String id);
-  Future<bool> revokeAuthorization(String id);
-  Future<bool> issueApiKey(Map<String, dynamic> data);
-  Future<bool> revokeApiKey(String keyId);
+  Future<ApiKeyListResult> loadApiKeys();
+  Future<ApiKeyCreateResult> createApiKey(Map<String, dynamic> body);
+  Future<void> updateApiKeyStatus(String keyId, String status);
+  Future<void> revokeApiKey(String keyId);
 }

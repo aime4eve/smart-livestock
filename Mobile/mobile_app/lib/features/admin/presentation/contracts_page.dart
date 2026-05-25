@@ -2,64 +2,76 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:smart_livestock_demo/features/contract_management/domain/contract_management_repository.dart';
 import 'package:smart_livestock_demo/features/contract_management/presentation/contract_management_controller.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
 
-class ContractsPage extends ConsumerWidget {
+class ContractsPage extends ConsumerStatefulWidget {
   const ContractsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ContractsPage> createState() => _ContractsPageState();
+}
+
+class _ContractsPageState extends ConsumerState<ContractsPage> {
+  String _statusFilter = '';
+
+  @override
+  Widget build(BuildContext context) {
     final asyncData = ref.watch(contractManagementControllerProvider);
     final controller =
         ref.read(contractManagementControllerProvider.notifier);
 
     return asyncData.when(
-      data: (data) => SingleChildScrollView(
-        key: const Key('page-contracts'),
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              '合同管理',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              '管理平台与牧场之间的合作协议',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Row(
-              children: [
-                Expanded(
-                  child: SegmentedButton<String>(
-                    segments: const [
-                      ButtonSegment(value: '', label: Text('全部')),
-                      ButtonSegment(value: 'active', label: Text('生效中')),
-                      ButtonSegment(value: 'pending', label: Text('待签署')),
-                      ButtonSegment(value: 'terminated', label: Text('已终止')),
-                    ],
-                    selected: const {''},
-                    onSelectionChanged: (selected) {
-                      final s = selected.first;
-                      controller.filter(status: s.isEmpty ? null : s);
-                    },
+      data: (data) {
+        final filtered = _statusFilter.isEmpty
+            ? data.contracts
+            : data.contracts.where((c) => c.status == _statusFilter).toList();
+
+        return SingleChildScrollView(
+          key: const Key('page-contracts'),
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                '合同管理',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                '管理平台与牧场之间的合作协议',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                children: [
+                  Expanded(
+                    child: SegmentedButton<String>(
+                      segments: const [
+                        ButtonSegment(value: '', label: Text('全部')),
+                        ButtonSegment(value: 'active', label: Text('生效中')),
+                        ButtonSegment(value: 'draft', label: Text('待签署')),
+                        ButtonSegment(value: 'terminated', label: Text('已终止')),
+                      ],
+                      selected: {_statusFilter},
+                      onSelectionChanged: (selected) {
+                        setState(() => _statusFilter = selected.first);
+                      },
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            if (data.contracts.isNotEmpty)
-              ...data.contracts.map((contract) =>
-                  _buildContractCard(context, contract, controller)),
-            if (data.isEmpty)
-              _buildEmpty(context),
-          ],
-        ),
-      ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              if (filtered.isNotEmpty)
+                ...filtered.map((contract) =>
+                    _buildContractCard(context, contract, controller)),
+              if (filtered.isEmpty) _buildEmpty(context),
+            ],
+          ),
+        );
+      },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('$e')),
     );
@@ -67,27 +79,26 @@ class ContractsPage extends ConsumerWidget {
 
   Widget _buildContractCard(
     BuildContext context,
-    Map<String, dynamic> contract,
+    ContractSummary contract,
     ContractManagementController controller,
   ) {
-    final status = contract['status'] as String? ?? '';
-    final statusColor = switch (status) {
+    final statusColor = switch (contract.status) {
       'active' => AppColors.success,
-      'pending' => AppColors.warning,
+      'draft' => AppColors.warning,
       'terminated' => AppColors.danger,
+      'suspended' => AppColors.info,
       _ => AppColors.info,
     };
-    final statusLabel = switch (status) {
-      'active' => '生效中',
-      'pending' => '待签署',
-      'terminated' => '已终止',
-      _ => status,
-    };
+    final statusIcon = contract.isActive
+        ? Icons.check_circle_outline
+        : contract.isDraft
+            ? Icons.pending_outlined
+            : Icons.cancel_outlined;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: HighfiCard(
-        key: Key('contract-${contract['id']}'),
+        key: Key('contract-${contract.id}'),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -95,31 +106,30 @@ class ContractsPage extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  contract['partnerName'] as String? ?? '',
+                  contract.contractNumber ?? contract.id,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 HighfiStatusChip(
-                  label: statusLabel,
+                  label: contract.statusLabel,
                   color: statusColor,
-                  icon: status == 'active'
-                      ? Icons.check_circle_outline
-                      : status == 'pending'
-                          ? Icons.pending_outlined
-                          : Icons.cancel_outlined,
+                  icon: statusIcon,
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.xs),
-            Text('分润比例: ${contract['revenueShare']}%'),
-            if (contract['startDate'] != null)
-              Text('期限: ${contract['startDate']} ~ ${contract['endDate']}'),
-            if (status == 'active')
+            if (contract.revenueShareRatio != null)
+              Text('分润比例: ${(contract.revenueShareRatio! * 100).toInt()}%'),
+            if (contract.startedAt != null)
+              Text('生效: ${contract.startedAt}'),
+            if (contract.expiresAt != null)
+              Text('到期: ${contract.expiresAt}'),
+            if (contract.isActive)
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton.icon(
-                  key: Key('terminate-${contract['id']}'),
-                  onPressed: () =>
-                      controller.terminateContract(contract['id'] as String),
+                  key: Key('terminate-${contract.id}'),
+                  onPressed: () => controller
+                      .updateContractStatus(contract.id, 'TERMINATED'),
                   icon: const Icon(Icons.cancel, size: 16),
                   label: const Text('终止合同'),
                 ),
