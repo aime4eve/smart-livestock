@@ -6,8 +6,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/data/demo_seed.dart';
+import 'package:smart_livestock_demo/core/api/api_client.dart';
+import 'package:smart_livestock_demo/core/map/map_constants.dart';
 import 'package:smart_livestock_demo/core/map/coord_transform.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
 import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
@@ -492,29 +492,21 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
       if (_isEdit) {
         body['status'] = _active ? 'active' : 'inactive';
       }
-      final ok = _isEdit
-          ? await ApiCache.instance.updateFenceRemote(
-              'owner',
-              widget.fenceId!,
-              body,
-            )
-          : await ApiCache.instance.createFenceRemote(
-              'owner',
-              body,
-            );
-      if (!ok) {
+      try {
+        if (_isEdit) {
+          await ApiClient.instance.farmPut('/fences/${widget.fenceId!}', body: body);
+        } else {
+          await ApiClient.instance.farmPost('/fences', body: body);
+        }
+      } catch (e) {
         if (mounted) {
-          final message = fenceSaveErrorMessageForStatusCode(
-            ApiCache.instance.lastFenceSaveStatusCode,
-          );
           setState(() => _saving = false);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message)),
+            SnackBar(content: Text('保存失败: $e')),
           );
         }
         return;
       }
-      await ApiCache.instance.refreshFencesAndMap('owner');
       controller.reloadFromRepository();
       if (mounted) {
         setState(() => _saving = false);
@@ -527,7 +519,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
   List<List<double>> _getFinalPointsForSave() {
     var pts = _getPreviewPoints().isNotEmpty
         ? _getPreviewPoints()
-        : FenceItem.defaultPointsForType(_type, DemoSeed.mapCenter);
+        : FenceItem.defaultPointsForType(_type, MapConstants.mapCenter);
     if (_tileProvider?.shouldTransformCoordinates() ?? false) {
       pts = CoordTransform.gcj02ToWgs84All(pts);
     }
@@ -555,7 +547,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
       options: MapOptions(
         initialCenter: _drawingPoints.isNotEmpty
             ? _drawingPoints.first
-            : DemoSeed.mapCenter,
+            : MapConstants.mapCenter,
         initialZoom: 15.0,
         interactionOptions: InteractionOptions(
           flags: _drawMode ? InteractiveFlag.none : InteractiveFlag.all,

@@ -9,14 +9,12 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/data/demo_seed.dart';
-import 'package:smart_livestock_demo/core/data/generators/gps_trajectory_generator.dart';
+import 'package:smart_livestock_demo/core/api/api_client.dart';
+import 'package:smart_livestock_demo/core/map/map_constants.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
 import 'package:smart_livestock_demo/core/map/smart_tile_provider.dart';
 import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
 import 'package:smart_livestock_demo/core/map/coord_transform.dart';
-import 'package:smart_livestock_demo/core/mock/mock_config.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/permissions/role_permission.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
@@ -42,7 +40,6 @@ class FencePage extends ConsumerStatefulWidget {
 class _FencePageState extends ConsumerState<FencePage>
     with TickerProviderStateMixin {
   final _mapController = MapController();
-  final _trajectoryGenerator = GpsTrajectoryGenerator(seed: 42);
   final _gestureKey = GlobalKey();
   bool _panelOpen = false;
 
@@ -120,7 +117,7 @@ class _FencePageState extends ConsumerState<FencePage>
         appBar: isEditing
             ? null
             : AppBar(
-                title: const Text(MockConfig.ranchName),
+                title: const Text('阿尔卑斯北麓牧场'),
                 actions: const [
                   FarmSwitcher(),
                 ],
@@ -200,8 +197,8 @@ class _FencePageState extends ConsumerState<FencePage>
                         key: const Key('fence-map'),
                         mapController: _mapController,
                         options: MapOptions(
-                          initialCenter: DemoSeed.mapCenter,
-                          initialZoom: DemoSeed.defaultZoom,
+                          initialCenter: MapConstants.mapCenter,
+                          initialZoom: MapConstants.defaultZoom,
                           interactionOptions: InteractionOptions(
                             flags: isEditing &&
                                     editSession.tool ==
@@ -262,22 +259,11 @@ class _FencePageState extends ConsumerState<FencePage>
                                 ),
                               ],
                             ),
-                          if (!isEditing &&
-                              true &&
-                              ApiCache.instance.initialized &&
-                              ApiCache.instance
-                                  .mapTrajectoryPoints.isNotEmpty)
+                          if (!isEditing && false)
                             PolylineLayer(
                               polylines: [
                                 Polyline(
-                                  points: [
-                                    for (final p in ApiCache
-                                        .instance.mapTrajectoryPoints)
-                                      LatLng(
-                                        (p['lat'] as num).toDouble(),
-                                        (p['lng'] as num).toDouble(),
-                                      ),
-                                  ],
+                                  points: const [],
                                   color: AppColors.primary,
                                   strokeWidth: 3,
                                 ),
@@ -971,36 +957,23 @@ class _FencePageState extends ConsumerState<FencePage>
           (f) => f.id == fenceId,
         );
     controller.markSavingEdit();
-    final sessionState = ref.read(sessionControllerProvider);
-    final tokens = sessionState.accessToken != null
-        ? ApiAuthTokens(accessToken: sessionState.accessToken!)
-        : null;
-    final ok = await ApiCache.instance.updateFenceRemote(
-      'owner',
-      fenceId,
-      {
+    try {
+      await ApiClient.instance.farmPut('/fences/$fenceId', body: {
         'name': fenceItem.name,
         'vertices': [
           for (final point in session.points)
             {'lat': point.latitude, 'lng': point.longitude},
         ],
         'color': '#${fenceItem.colorValue.toRadixString(16).substring(2).toUpperCase()}',
-      },
-      tokens: tokens,
-    );
-    if (!ok) {
+      });
+    } catch (e) {
       final restored =
           controller.restoreEditingAfterSaveFailureIfCurrent(
         sessionInstanceId: sessionInstanceId,
         fenceId: fenceId,
       );
       if (restored && context.mounted) {
-        _showSnackBar(
-          context,
-          fenceSaveErrorMessageForStatusCode(
-            ApiCache.instance.lastFenceSaveStatusCode,
-          ),
-        );
+        _showSnackBar(context, '保存失败: $e');
       }
       return;
     }
@@ -1009,8 +982,6 @@ class _FencePageState extends ConsumerState<FencePage>
       fenceId: fenceId,
     );
     if (!saved) return;
-    await ApiCache.instance
-        .refreshFencesAndMap('owner', tokens: tokens);
     controller.reloadFromRepository();
     if (context.mounted) setState(() => _panelOpen = true);
   }
@@ -1064,87 +1035,13 @@ class _FencePageState extends ConsumerState<FencePage>
   }
 
   List<Marker> _buildLivestockMarkers(dynamic appMode) {
-    if (false) {
-      return [
-        for (int i = 0; i < DemoSeed.livestockLocations.length; i++)
-          Marker(
-            key: Key('fence-map-marker-$i'),
-            point: DemoSeed.livestockLocations[i].toLatLng(),
-            width: 56,
-            height: 56,
-            child: _MapMarker(
-              label: DemoSeed
-                  .earTags[i < DemoSeed.earTags.length ? i : 0],
-              isAlert: i == 0,
-            ),
-          ),
-      ];
-    }
-    if (!ApiCache.instance.initialized ||
-        ApiCache.instance.animals.isEmpty) {
-      return [
-        for (int i = 0; i < DemoSeed.livestockLocations.length; i++)
-          Marker(
-            key: Key('fence-map-marker-fallback-$i'),
-            point: DemoSeed.livestockLocations[i].toLatLng(),
-            width: 56,
-            height: 56,
-            child: _MapMarker(
-              label: DemoSeed
-                  .earTags[i < DemoSeed.earTags.length ? i : 0],
-              isAlert: i == 0,
-            ),
-          ),
-      ];
-    }
-    final animals = ApiCache.instance.animals;
-    return [
-      for (var i = 0; i < animals.length; i++)
-        Marker(
-          key: Key('fence-map-marker-$i'),
-          point: LatLng(
-            (animals[i]['lat'] as num).toDouble(),
-            (animals[i]['lng'] as num).toDouble(),
-          ),
-          width: 56,
-          height: 56,
-          child: _MapMarker(
-            label: animals[i]['earTag'] as String? ?? '-',
-            isAlert: animals[i]['boundaryStatus'] == 'outside',
-          ),
-        ),
-    ];
+    // Live mode: livestock markers loaded from API via repository
+    return const [];
   }
 
   List<LatLng> _buildMockTrajectoryPoints(FenceState fenceState) {
-    final selectedFenceId =
-        fenceState.selectedFenceId ?? 'fence_pasture_a';
-    List<LatLng>? boundary;
-    for (final fence in fenceState.fences) {
-      if (fence.id == selectedFenceId) {
-        boundary = fence.points;
-        break;
-      }
-    }
-    if (boundary == null || boundary.length < 2) return const [];
-    String? earTag;
-    for (final livestock in DemoSeed.livestock) {
-      if (livestock.fenceId == selectedFenceId) {
-        earTag = livestock.earTag;
-        break;
-      }
-    }
-    final activeEarTag = earTag ?? DemoSeed.earTags.first;
-    final restFence = DemoSeed.fencePointsById('fence_rest');
-    final points = _trajectoryGenerator.generate(
-      earTag: activeEarTag,
-      fenceBoundary: boundary,
-      restFenceBoundary: restFence.isEmpty ? null : restFence,
-      anchorPoints: DemoSeed.gpsAnchorPoints,
-      start: DateTime.utc(2026, 4, 7, 10),
-      end: DateTime.utc(2026, 4, 8, 10),
-    );
-    return points.map((p) => p.toLatLng()).toList();
+    // Trajectory generation removed — will be reimplemented with real GPS data
+    return const [];
   }
 
   void _showDeleteDialog(
@@ -1168,35 +1065,23 @@ class _FencePageState extends ConsumerState<FencePage>
             key: const Key('fence-delete-confirm'),
             onPressed: () async {
               Navigator.of(ctx).pop();
-              if (true) {
-                final ok = await ApiCache.instance.deleteFenceRemote(
-                    'owner', fence.id);
+              try {
+                await ApiClient.instance.farmDelete('/fences/${fence.id}');
                 if (!context.mounted) return;
-                if (ok) {
-                  await ApiCache.instance
-                      .refreshFencesAndMap('owner');
-                  if (!context.mounted) return;
-                  controller.reloadFromRepository();
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      SnackBar(
-                          content: Text('已删除「${fence.name}」')),
-                    );
-                } else {
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      const SnackBar(
-                          content: Text('删除失败，请稍后重试')),
-                    );
-                }
-              } else {
-                controller.delete(fence.id);
+                controller.reloadFromRepository();
                 ScaffoldMessenger.of(context)
                   ..hideCurrentSnackBar()
                   ..showSnackBar(
-                    SnackBar(content: Text('已删除「${fence.name}」')),
+                    SnackBar(
+                        content: Text('已删除「${fence.name}」')),
+                  );
+              } catch (e) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(
+                        content: Text('删除失败: $e')),
                   );
               }
             },

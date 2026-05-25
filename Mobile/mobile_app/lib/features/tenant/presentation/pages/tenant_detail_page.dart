@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
+import 'package:smart_livestock_demo/core/api/api_client.dart';
 import 'package:smart_livestock_demo/core/models/core_models.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
@@ -454,18 +453,15 @@ class TenantDetailPage extends ConsumerWidget {
     final next = t.status == TenantStatus.active
         ? TenantStatus.disabled
         : TenantStatus.active;
-    if (true) {
-      final role = ref.read(sessionControllerProvider).role?.wireName ??
-          'platform_admin';
-      final r = await ApiCache.instance
-          .toggleTenantStatusRemote(role, t.id, next.wireValue);
+    try {
+      await ApiClient.instance.put('/admin/tenants/${t.id}/status', body: {
+        'status': next.wireValue,
+      });
+    } catch (e) {
       if (!context.mounted) return;
-      if (!r.ok) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(r.message ?? '状态切换失败')));
-        return;
-      }
-      await ApiCache.instance.refreshTenants(role);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('状态切换失败: $e')));
+      return;
     }
     ref.read(tenantListControllerProvider.notifier).refresh();
     ref.read(tenantDetailControllerProvider(t.id).notifier).refresh();
@@ -481,18 +477,15 @@ class TenantDetailPage extends ConsumerWidget {
       builder: (_) => LicenseAdjustDialog(tenant: t),
     );
     if (next == null) return;
-    if (true) {
-      final role = ref.read(sessionControllerProvider).role?.wireName ??
-          'platform_admin';
-      final r =
-          await ApiCache.instance.adjustTenantLicenseRemote(role, t.id, next);
+    try {
+      await ApiClient.instance.put('/admin/tenants/${t.id}/license', body: {
+        'licenseTotal': next,
+      });
+    } catch (e) {
       if (!context.mounted) return;
-      if (!r.ok) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(r.message ?? 'License 调整失败')));
-        return;
-      }
-      await ApiCache.instance.refreshTenants(role);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('License 调整失败: $e')));
+      return;
     }
     ref.read(tenantListControllerProvider.notifier).refresh();
     ref.read(tenantDetailControllerProvider(t.id).notifier).refresh();
@@ -508,17 +501,13 @@ class TenantDetailPage extends ConsumerWidget {
       builder: (_) => TenantDeleteDialog(tenantName: t.name),
     );
     if (reason == null) return;
-    if (true) {
-      final role = ref.read(sessionControllerProvider).role?.wireName ??
-          'platform_admin';
-      final r = await ApiCache.instance.deleteTenantRemote(role, t.id);
+    try {
+      await ApiClient.instance.delete('/admin/tenants/${t.id}');
+    } catch (e) {
       if (!context.mounted) return;
-      if (!r.ok) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(r.message ?? '删除失败')));
-        return;
-      }
-      await ApiCache.instance.refreshTenants(role);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('删除失败: $e')));
+      return;
     }
     ref.read(tenantListControllerProvider.notifier).refresh();
     if (!context.mounted) return;

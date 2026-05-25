@@ -1,6 +1,7 @@
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/data/demo_seed.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
+
+const _fallbackCenter = LatLng(28.2458, 112.8519);
 
 FenceType fenceTypeFromApiString(String? raw) {
   return switch (raw) {
@@ -35,14 +36,13 @@ FenceItem fenceItemFromJson(
   final name = raw['name'] as String? ?? '未命名';
   final type = fenceTypeFromApiString(raw['type'] as String?);
   final alarmEnabled = raw['alarmEnabled'] as bool? ?? true;
-  final status = raw['status'] as String? ?? 'active';
-  final active = status == 'active';
+  final active = raw['active'] as bool? ?? true;
   var points = coordinatesToLatLngPoints(raw['coordinates'] as List<dynamic>?);
   if (points.length < 3) {
-    points = FenceItem.defaultPointsForType(type, DemoSeed.mapCenter);
+    points = FenceItem.defaultPointsForType(type, _fallbackCenter);
   }
-  const colors = FenceItem.defaultColors;
-  final colorValue = colors[colorIndex % colors.length];
+  final colorValue = raw['color'] as int? ??
+      FenceItem.defaultColors[colorIndex % FenceItem.defaultColors.length];
   return FenceItem(
     id: id,
     name: name,

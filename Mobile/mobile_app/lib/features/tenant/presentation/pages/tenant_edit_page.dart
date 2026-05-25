@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
+import 'package:smart_livestock_demo/core/api/api_client.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/tenant_detail_controller.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/tenant_list_controller.dart';
@@ -37,20 +36,16 @@ class _TenantEditPageState extends ConsumerState<TenantEditPage> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _submitting = true);
-    if (true) {
-      final role = ref.read(sessionControllerProvider).role?.wireName ??
-          'platform_admin';
-      final r = await ApiCache.instance.updateTenantRemote(role, widget.id, {
+    try {
+      await ApiClient.instance.put('/admin/tenants/${widget.id}', body: {
         'name': _nameCtrl.text.trim(),
       });
+    } catch (e) {
       if (!mounted) return;
-      if (!r.ok) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(r.message ?? '更新失败')));
-        setState(() => _submitting = false);
-        return;
-      }
-      await ApiCache.instance.refreshTenants(role);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('更新失败: $e')));
+      setState(() => _submitting = false);
+      return;
     }
     ref.read(tenantListControllerProvider.notifier).refresh();
     ref.read(tenantDetailControllerProvider(widget.id).notifier).refresh();

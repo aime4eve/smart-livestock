@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
+import 'package:smart_livestock_demo/core/api/api_client.dart';
 import 'package:smart_livestock_demo/core/models/core_models.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/dashboard/presentation/dashboard_controller.dart';
@@ -97,21 +96,8 @@ class DevicesPage extends ConsumerWidget {
 
   void _showInstallDialog(
       BuildContext context, WidgetRef ref, DeviceItem device) {
-    // Build list of selectable livestock from ApiCache.
-    final List<_LivestockOption> options;
-    if (ApiCache.instance.initialized) {
-      options = ApiCache.instance.animals.map((a) {
-        final rawId = a['id'];
-        final id = rawId is int ? rawId.toString() : (rawId as String? ?? '');
-        return _LivestockOption(
-          id: id,
-          label: (a['livestockCode'] ?? a['earTag'] ?? id) as String,
-          subtitle: (a['breed'] ?? '') as String,
-        );
-      }).toList();
-    } else {
-      options = [];
-    }
+    // Livestock options from API (placeholder until async migration)
+    const options = <_LivestockOption>[];
 
     showDialog<void>(
       context: context,
@@ -120,32 +106,36 @@ class DevicesPage extends ConsumerWidget {
         options: options,
         onConfirm: (livestockId) async {
           Navigator.of(ctx).pop();
-          final session = ref.read(sessionControllerProvider);
-          final role = session.role?.wireName ?? 'owner';
-          final farmId = ApiCache.instance.activeFarmId ?? '';
+          final farmId = ApiClient.instance.activeFarmId ?? '';
           if (farmId.isEmpty) {
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
               ..showSnackBar(const SnackBar(content: Text('请先选择一个牧场')));
             return;
           }
-          final ok = await ApiCache.instance.createInstallationRemote(
-            role,
-            farmId: farmId,
-            deviceId: device.id,
-            livestockId: livestockId,
-          );
-          if (context.mounted) {
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(SnackBar(
-                content: Text(ok ? '安装成功：${device.name}' : '安装失败，请重试'),
-              ));
+          try {
+            await ApiClient.instance.farmPost('/installations', body: {
+              'deviceId': device.id,
+              'livestockId': livestockId,
+            });
+            if (context.mounted) {
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(SnackBar(
+                  content: Text('安装成功：${device.name}'),
+                ));
+            }
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(SnackBar(
+                  content: Text('安装失败: $e'),
+                ));
+            }
           }
-          if (ok) {
-            ref.invalidate(devicesControllerProvider);
-            ref.invalidate(dashboardControllerProvider);
-          }
+          ref.invalidate(devicesControllerProvider);
+          ref.invalidate(dashboardControllerProvider);
         },
       ),
     );

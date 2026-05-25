@@ -70,8 +70,8 @@ class LivestockApiRepository implements LivestockRepository {
       breed: (m['breed'] ?? '未知品种') as String,
       health: health,
       fenceId: (m['fenceId'] ?? '').toString(),
-      lat: (m['lat'] as num?)?.toDouble(),
-      lng: (m['lng'] as num?)?.toDouble(),
+      lat: (m['lastLatitude'] as num?)?.toDouble(),
+      lng: (m['lastLongitude'] as num?)?.toDouble(),
     );
   }
 
@@ -97,7 +97,7 @@ class LivestockApiRepository implements LivestockRepository {
       bodyTemp: _parseDouble(m['bodyTemp']) ?? 38.5,
       activityLevel: (m['activityLevel'] ?? '正常').toString(),
       ruminationFreq: (m['ruminationFreq'] ?? '--').toString(),
-      lastLocation: '${m['lat'] ?? '--'}, ${m['lng'] ?? '--'}',
+      lastLocation: '${m['lastLatitude'] ?? '--'}, ${m['lastLongitude'] ?? '--'}',
     );
   }
 

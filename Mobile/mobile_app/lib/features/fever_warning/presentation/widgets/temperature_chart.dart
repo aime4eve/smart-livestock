@@ -1,6 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/data/twin_series_downsample.dart';
 import 'package:smart_livestock_demo/core/models/twin_models.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 
@@ -21,7 +20,7 @@ class TemperatureChart extends StatelessWidget {
     if (records.isEmpty) {
       return const SizedBox(height: 200);
     }
-    final downsampled = TwinSeriesDownsample.hourlyMeanTemperature(records);
+    final downsampled = records; // Downsampling removed — pass through directly
     final sorted = List<TemperatureRecord>.from(downsampled)
       ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
     final ms0 = sorted.first.timestamp.millisecondsSinceEpoch;

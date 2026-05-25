@@ -4,7 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
+import 'package:smart_livestock_demo/core/api/api_client.dart';
 import 'package:smart_livestock_demo/core/map/coord_transform.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
 import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
@@ -172,10 +172,6 @@ class _WizardStepFenceDrawingState
     setState(() => _saving = true);
 
     final session = ref.read(sessionControllerProvider);
-    final cache = ApiCache.instance;
-    final tokens = session.accessToken != null
-        ? null /* tokens handled by ApiClient */
-        : null;
 
     final vertices = _verticesForSave(_session.points)
         .map((p) => {'lat': p.latitude, 'lng': p.longitude})
@@ -188,26 +184,18 @@ class _WizardStepFenceDrawingState
       'alarmEnabled': true,
     };
 
-    // Ensure the active farm ID is set for the API call path
-    cache.activeFarmId = widget.farmId;
+    // Set active farm ID for the API call path
+    ApiClient.instance.setActiveFarmId(widget.farmId);
 
-    final ok = await cache.createFenceRemote(
-      session.role?.wireName ?? 'owner',
-      body,
-      tokens: tokens,
-    );
-
-    if (!mounted) return;
-
-    if (ok) {
+    try {
+      await ApiClient.instance.farmPost('/fences', body: body);
+      if (!mounted) return;
       widget.onComplete(1);
-    } else {
+    } catch (e) {
+      if (!mounted) return;
       setState(() => _saving = false);
-      final message = fenceSaveErrorMessageForStatusCode(
-        cache.lastFenceSaveStatusCode,
-      );
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
+        SnackBar(content: Text('保存失败: $e')),
       );
     }
   }

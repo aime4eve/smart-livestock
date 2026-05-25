@@ -59,70 +59,44 @@ class AlertsApiRepository implements AlertsRepository {
   static AlertItem _alertItemFromMap(Map<String, dynamic> m) {
     final rawId = m['id'];
     final id = rawId is int ? rawId.toString() : (rawId as String? ?? '');
-    final title = m['title'] as String? ?? '';
-    final ts = m['occurredAt'] as String? ?? '';
-    var subtitle = '';
-    if (ts.length >= 16) {
-      subtitle = ts.replaceFirst(RegExp(r'T'), ' ').substring(0, 16);
-    }
-    final level = m['level'] as String? ?? 'warning';
-    final priority = switch (level) {
-      'critical' => 'P0',
-      'warning' => 'P1',
+    final message = m['message'] as String? ?? '';
+    final severity = (m['severity'] as String? ?? 'WARNING').toUpperCase();
+    final priority = switch (severity) {
+      'CRITICAL' => 'P0',
+      'WARNING' => 'P1',
       _ => 'P2',
     };
     final type = m['type'] as String? ?? 'unknown';
-    final stageStr = m['stage'] as String? ?? 'pending';
-    final earTagFromSl =
-        RegExp(r'SL-2024-\d{3}').firstMatch(title)?.group(0) ?? '';
-    final earTag = earTagFromSl.isNotEmpty
-        ? earTagFromSl
-        : (RegExp(r'耳标-\d+').firstMatch(title)?.group(0) ?? '-');
-    final livestockCode = m['livestockCode'] as String? ?? earTag;
+    final stageStr = (m['status'] as String? ?? 'PENDING').toLowerCase();
+    final rawLivestockId = m['livestockId'];
+    final livestockId = rawLivestockId is int
+        ? rawLivestockId.toString()
+        : (rawLivestockId as String?);
     return AlertItem(
       id: id,
-      title: title,
-      subtitle: subtitle,
+      title: message,
+      subtitle: '',
       priority: priority,
       type: type,
       stage: stageStr,
-      earTag: livestockCode,
-      livestockId: m['livestockId'] as String?,
+      earTag: livestockId ?? '-',
+      livestockId: livestockId,
     );
   }
 
   static AlertDetail _alertDetailFromMap(Map<String, dynamic> m) {
-    final rawId = m['id'];
-    final id = rawId is int ? rawId.toString() : (rawId as String? ?? '');
-    final title = m['title'] as String? ?? '';
-    final ts = m['occurredAt'] as String? ?? '';
-    var subtitle = '';
-    if (ts.length >= 16) {
-      subtitle = ts.replaceFirst(RegExp(r'T'), ' ').substring(0, 16);
-    }
-    final level = m['level'] as String? ?? 'warning';
-    final priority = switch (level) {
-      'critical' => 'P0',
-      'warning' => 'P1',
-      _ => 'P2',
-    };
-    final earTagFromSl =
-        RegExp(r'SL-2024-\d{3}').firstMatch(title)?.group(0) ?? '';
-    final earTag = earTagFromSl.isNotEmpty
-        ? earTagFromSl
-        : (RegExp(r'耳标-\d+').firstMatch(title)?.group(0) ?? '-');
-    final livestockCode = m['livestockCode'] as String? ?? earTag;
+    final item = _alertItemFromMap(m);
     return AlertDetail(
-      id: id,
-      title: title,
-      subtitle: subtitle,
-      priority: priority,
-      type: m['type'] as String? ?? 'unknown',
-      stage: m['stage'] as String? ?? 'pending',
-      earTag: livestockCode,
-      livestockId: m['livestockId'] as String?,
-      occurredAt: ts,
-      description: m['description'] as String?,
+      id: item.id,
+      title: item.title,
+      subtitle: item.subtitle,
+      priority: item.priority,
+      type: item.type,
+      stage: item.stage,
+      earTag: item.earTag,
+      livestockId: item.livestockId,
+      occurredAt: m['handledAt'] as String?,
+      description: m['message'] as String?,
     );
   }
 }

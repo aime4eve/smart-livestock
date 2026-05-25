@@ -1,9 +1,10 @@
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/core/data/demo_seed.dart';
 import 'package:smart_livestock_demo/features/fence/data/fence_dto.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_repository.dart';
+
+const _fallbackCenter = LatLng(28.2458, 112.8519);
 
 class FenceApiRepository implements FenceRepository {
   const FenceApiRepository();
@@ -61,16 +62,15 @@ class FenceApiRepository implements FenceRepository {
     }
     final type = fenceTypeFromApiString(raw['type'] as String?);
     if (points.length < 3) {
-      points = FenceItem.defaultPointsForType(type, DemoSeed.mapCenter);
+      points = FenceItem.defaultPointsForType(type, _fallbackCenter);
     }
     final rawId = raw['id'];
     final id = rawId is int ? rawId.toString() : (rawId as String? ?? '');
     final name = raw['name'] as String? ?? '未命名';
     final alarmEnabled = raw['alarmEnabled'] as bool? ?? true;
-    final status = raw['status'] as String? ?? 'active';
-    final active = status == 'active';
-    const colors = FenceItem.defaultColors;
-    final colorValue = colors[colorIndex % colors.length];
+    final active = raw['active'] as bool? ?? true;
+    final colorValue = raw['color'] as int? ??
+        FenceItem.defaultColors[colorIndex % FenceItem.defaultColors.length];
     return FenceItem(
       id: id,
       name: name,

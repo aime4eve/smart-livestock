@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
 import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:smart_livestock_demo/features/farm_creation/presentation/wizard_step_basic_info.dart';
 import 'package:smart_livestock_demo/features/farm_creation/presentation/wizard_step_complete.dart';
@@ -43,22 +41,8 @@ class _FarmCreationWizardPageState
   }
 
   Future<void> _startDashboard() async {
-    final session = ref.read(sessionControllerProvider);
-    final cache = ApiCache.instance;
     ref.read(farmDataReadyProvider.notifier).reset();
-    try {
-      if (session.accessToken != null) {
-        final tokens = ApiAuthTokens(accessToken: session.accessToken!);
-        await cache.init(
-          session.role!.wireName,
-          tokens: tokens,
-          allowMockTokenFallback: false,
-        );
-        ref.read(farmDataReadyProvider.notifier).markReady();
-      }
-    } catch (_) {
-      // Graceful degradation — still navigate to dashboard
-    }
+    ref.read(farmDataReadyProvider.notifier).markReady();
     if (mounted) context.go('/twin');
   }
 

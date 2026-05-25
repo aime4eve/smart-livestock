@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/mock/mock_config.dart';
 import 'package:smart_livestock_demo/core/models/user_role.dart';
 import 'package:smart_livestock_demo/core/permissions/role_permission.dart';
 import 'package:smart_livestock_demo/features/alerts/domain/alerts_repository.dart';
@@ -226,20 +225,20 @@ class AlertsPage extends ConsumerWidget {
         <({String rowKey, String typeName, String title, String detail})>[
       (
         rowKey: 'alert-row-fence-breach',
-        typeName: MockConfig.p0AlertTypes[0],
-        title: MockConfig.p0AlertTypes[0],
+        typeName: '越界告警',
+        title: '越界告警',
         detail: '耳标-001 · 北区围栏 · 距边界 24m'
       ),
       (
         rowKey: 'alert-row-battery-low',
-        typeName: MockConfig.p0AlertTypes[1],
-        title: MockConfig.p0AlertTypes[1],
+        typeName: '电池低电',
+        title: '电池低电',
         detail: '设备-045 · 电量 12% · 建议今日更换'
       ),
       (
         rowKey: 'alert-row-signal-lost',
-        typeName: MockConfig.p0AlertTypes[2],
-        title: MockConfig.p0AlertTypes[2],
+        typeName: '信号丢失',
+        title: '信号丢失',
         detail: '耳标-023 · 失联 18 分钟 · 最后位置东坡'
       ),
     ];
@@ -260,14 +259,14 @@ class AlertsPage extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  row.typeName == MockConfig.p0AlertTypes[0]
+                  row.typeName == '越界告警'
                       ? Icons.fence
-                      : row.typeName == MockConfig.p0AlertTypes[1]
+                      : row.typeName == '电池低电'
                           ? Icons.battery_alert_outlined
                           : Icons.signal_wifi_connected_no_internet_4_outlined,
-                  color: row.typeName == MockConfig.p0AlertTypes[0]
+                  color: row.typeName == '越界告警'
                       ? AppColors.danger
-                      : row.typeName == MockConfig.p0AlertTypes[1]
+                      : row.typeName == '电池低电'
                           ? AppColors.warning
                           : AppColors.info,
                 ),

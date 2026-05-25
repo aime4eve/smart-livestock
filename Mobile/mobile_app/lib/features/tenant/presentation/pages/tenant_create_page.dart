@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
+import 'package:smart_livestock_demo/core/api/api_client.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/tenant_list_controller.dart';
 
@@ -33,19 +33,19 @@ class _TenantCreatePageState extends ConsumerState<TenantCreatePage> {
     {
       final role = ref.read(sessionControllerProvider).role?.wireName ??
           'platform_admin';
-      final result = await ApiCache.instance.createTenantRemote(role, {
-        'name': _nameCtrl.text.trim(),
-        'licenseTotal': int.parse(_licenseCtrl.text),
-      });
-      if (!mounted) return;
-      if (!result.ok) {
+      try {
+        await ApiClient.instance.post('/admin/tenants', body: {
+          'name': _nameCtrl.text.trim(),
+          'licenseTotal': int.parse(_licenseCtrl.text),
+        });
+      } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(result.message ?? '创建失败'),
+          content: Text('创建失败: $e'),
         ));
         setState(() => _submitting = false);
         return;
       }
-      await ApiCache.instance.refreshTenants(role);
     }
     ref.read(tenantListControllerProvider.notifier).refresh();
     if (!mounted) return;
