@@ -218,7 +218,23 @@ class _MutableFenceRepository implements FenceRepository {
   List<FenceItem> fences;
 
   @override
-  List<FenceItem> loadAll() => fences;
+  Future<List<FenceItem>> loadAll() async => fences;
+
+  @override
+  Future<FenceItem> loadDetail(String fenceId) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<FenceItem> create(Map<String, dynamic> body) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<FenceItem> update(String fenceId, Map<String, dynamic> body) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> delete(String fenceId) async =>
+      throw UnimplementedError();
 }
 
 const _fenceA = FenceItem(

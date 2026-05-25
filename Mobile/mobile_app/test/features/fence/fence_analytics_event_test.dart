@@ -141,7 +141,23 @@ class _SingleFenceRepository implements FenceRepository {
   final FenceItem _fence;
 
   @override
-  List<FenceItem> loadAll() => [_fence];
+  Future<List<FenceItem>> loadAll() async => [_fence];
+
+  @override
+  Future<FenceItem> loadDetail(String fenceId) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<FenceItem> create(Map<String, dynamic> body) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<FenceItem> update(String fenceId, Map<String, dynamic> body) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> delete(String fenceId) async =>
+      throw UnimplementedError();
 }
 
 const _fenceA = FenceItem(
