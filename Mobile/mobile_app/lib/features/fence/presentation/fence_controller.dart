@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/fence/data/live_fence_repository.dart';
+import 'package:smart_livestock_demo/features/fence/data/fence_api_repository.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_edit_operations.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_edit_session.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
@@ -10,7 +10,7 @@ import 'package:smart_livestock_demo/features/fence/domain/fence_state.dart';
 import 'package:smart_livestock_demo/features/fence/presentation/fence_analytics.dart';
 
 final fenceRepositoryProvider = Provider<FenceRepository>((ref) {
-  return const LiveFenceRepository();
+  return const FenceApiRepository();
 });
 
 class FenceController extends Notifier<FenceState> {
@@ -18,18 +18,28 @@ class FenceController extends Notifier<FenceState> {
 
   @override
   FenceState build() {
-    final fences = _loadShapedFences(watchRepository: true);
-    return FenceState(
-      fences: fences,
-      viewState: fences.isEmpty ? ViewState.empty : ViewState.normal,
+    // Kick off async load; initially return loading state
+    _loadFencesAsync();
+    return const FenceState(
+      fences: [],
+      viewState: ViewState.loading,
     );
   }
 
-  List<FenceItem> _loadShapedFences({required bool watchRepository}) {
-    var fences = watchRepository
-        ? ref.watch(fenceRepositoryProvider).loadAll()
-        : ref.read(fenceRepositoryProvider).loadAll();
-    return fences;
+  Future<void> _loadFencesAsync() async {
+    try {
+      final fences = await ref.read(fenceRepositoryProvider).loadAll();
+      state = FenceState(
+        fences: fences,
+        viewState: fences.isEmpty ? ViewState.empty : ViewState.normal,
+      );
+    } catch (_) {
+      state = const FenceState(
+        fences: [],
+        viewState: ViewState.error,
+        message: '围栏加载失败',
+      );
+    }
   }
 
   void select(String? id) {
@@ -66,21 +76,28 @@ class FenceController extends Notifier<FenceState> {
     );
   }
 
-  void reloadFromRepository() {
-    final fences = _loadShapedFences(watchRepository: false);
-    var selected = state.selectedFenceId;
-    if (selected != null && !fences.any((f) => f.id == selected)) {
-      selected = null;
+  Future<void> reloadFromRepository() async {
+    try {
+      final fences = await ref.read(fenceRepositoryProvider).loadAll();
+      var selected = state.selectedFenceId;
+      if (selected != null && !fences.any((f) => f.id == selected)) {
+        selected = null;
+      }
+      final shouldClearEdit = state.editSession != null &&
+          !fences.any((f) => f.id == state.editSession!.fenceId);
+      state = state.copyWith(
+        fences: fences,
+        selectedFenceId: selected,
+        viewState: fences.isEmpty ? ViewState.empty : ViewState.normal,
+        clearEditSession: shouldClearEdit,
+        clearEditMode: shouldClearEdit,
+      );
+    } catch (_) {
+      state = state.copyWith(
+        viewState: ViewState.error,
+        message: '围栏加载失败',
+      );
     }
-    final shouldClearEdit = state.editSession != null &&
-        !fences.any((f) => f.id == state.editSession!.fenceId);
-    state = state.copyWith(
-      fences: fences,
-      selectedFenceId: selected,
-      viewState: fences.isEmpty ? ViewState.empty : ViewState.normal,
-      clearEditSession: shouldClearEdit,
-      clearEditMode: shouldClearEdit,
-    );
   }
 
   void startEditing(String fenceId) {
