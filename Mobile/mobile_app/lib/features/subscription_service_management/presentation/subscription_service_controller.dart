@@ -1,51 +1,55 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/subscription_service_management/data/live_subscription_service_repository.dart';
+import 'package:smart_livestock_demo/features/subscription_service_management/data/subscription_service_api_repository.dart';
 import 'package:smart_livestock_demo/features/subscription_service_management/domain/subscription_service_repository.dart';
 
 final subscriptionServiceRepositoryProvider =
     Provider<SubscriptionServiceRepository>((ref) {
-  return LiveSubscriptionServiceRepository();
+  return const SubscriptionServiceApiRepository();
 });
 
 class SubscriptionServiceController
-    extends Notifier<SubscriptionServiceListViewData> {
+    extends AsyncNotifier<SubscriptionServiceListViewData> {
   @override
-  SubscriptionServiceListViewData build() {
+  Future<SubscriptionServiceListViewData> build() async {
     return ref.read(subscriptionServiceRepositoryProvider).getServices();
   }
 
-  SubscriptionServiceRepository get _repo =>
-      ref.read(subscriptionServiceRepositoryProvider);
-
-  void filter({String? tenantId, String? status}) {
-    state = _repo.getServices(tenantId: tenantId, status: status);
+  Future<void> filter({String? tenantId, String? status}) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() =>
+        ref.read(subscriptionServiceRepositoryProvider).getServices(
+              tenantId: tenantId,
+              status: status,
+            ));
   }
 
-  void refresh() {
-    state = _repo.getServices();
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() =>
+        ref.read(subscriptionServiceRepositoryProvider).getServices());
   }
 
   Future<bool> createService(Map<String, dynamic> data) async {
-    final ok = await _repo.createService(data);
-    if (ok) refresh();
+    final ok = await ref.read(subscriptionServiceRepositoryProvider).createService(data);
+    if (ok) await refresh();
     return ok;
   }
 
   Future<bool> renewService(String serviceId, String endDate) async {
-    final ok = await _repo.renewService(serviceId, endDate);
-    if (ok) refresh();
+    final ok = await ref.read(subscriptionServiceRepositoryProvider).renewService(serviceId, endDate);
+    if (ok) await refresh();
     return ok;
   }
 
   Future<bool> revokeService(String serviceId) async {
-    final ok = await _repo.revokeService(serviceId);
-    if (ok) refresh();
+    final ok = await ref.read(subscriptionServiceRepositoryProvider).revokeService(serviceId);
+    if (ok) await refresh();
     return ok;
   }
 }
 
 final subscriptionServiceControllerProvider =
-    NotifierProvider<SubscriptionServiceController,
+    AsyncNotifierProvider<SubscriptionServiceController,
         SubscriptionServiceListViewData>(
   SubscriptionServiceController.new,
 );
