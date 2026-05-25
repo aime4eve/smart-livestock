@@ -1,6 +1,4 @@
 import 'package:smart_livestock_demo/core/models/core_models.dart';
-import 'package:smart_livestock_demo/core/models/user_role.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
 
 enum AlertStage {
   pending,
@@ -9,30 +7,60 @@ enum AlertStage {
   archived,
 }
 
-class AlertsViewData {
-  const AlertsViewData({
-    required this.viewState,
-    required this.role,
-    required this.stage,
-    required this.title,
-    required this.subtitle,
-    this.items = const [],
-    this.message,
+class AlertsListData {
+  const AlertsListData({
+    required this.items,
+    required this.total,
+    required this.page,
+    required this.pageSize,
   });
 
-  final ViewState viewState;
-  final UserRole role;
-  final AlertStage stage;
+  final List<AlertItem> items;
+  final int total;
+  final int page;
+  final int pageSize;
+}
+
+class AlertDetail {
+  const AlertDetail({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.priority,
+    required this.type,
+    required this.stage,
+    required this.earTag,
+    this.livestockId,
+    this.occurredAt,
+    this.description,
+  });
+
+  final String id;
   final String title;
   final String subtitle;
-  final List<AlertItem> items;
-  final String? message;
+  final String priority;
+  final String type;
+  final String stage;
+  final String earTag;
+  final String? livestockId;
+  final String? occurredAt;
+  final String? description;
 }
 
 abstract class AlertsRepository {
-  AlertsViewData load({
-    required ViewState viewState,
-    required UserRole role,
-    required AlertStage stage,
+  Future<AlertsListData> loadAlerts({
+    int page = 1,
+    int pageSize = 20,
+    String? status,
   });
+
+  Future<AlertDetail> loadDetail(String alertId);
+
+  Future<void> acknowledge(String alertId);
+
+  Future<void> handle(String alertId);
+
+  Future<void> archive(String alertId);
+
+  Future<void> batchHandle(List<String> alertIds);
 }
