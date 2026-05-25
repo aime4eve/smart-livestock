@@ -49,12 +49,12 @@ class DevicesApiRepository implements DevicesRepository {
 
   @override
   Future<void> activate(String id) async {
-    await ApiClient.instance.farmPost('/devices/$id/activate');
+    await ApiClient.instance.farmPut('/devices/$id/activate');
   }
 
   @override
   Future<void> decommission(String id) async {
-    await ApiClient.instance.farmPost('/devices/$id/decommission');
+    await ApiClient.instance.farmPut('/devices/$id/decommission');
   }
 
   @override
@@ -108,29 +108,29 @@ class DevicesApiRepository implements DevicesRepository {
       final rawId = m['id'];
       final id =
           rawId is int ? rawId.toString() : (rawId as String? ?? '');
-      final typeStr = m['type'] as String;
-      final type = switch (typeStr) {
-        'gps' => DeviceType.gps,
-        'rumenCapsule' => DeviceType.rumenCapsule,
-        'accelerometer' => DeviceType.accelerometer,
-        _ => throw const FormatException('type'),
+      final typeStr = (m['deviceType'] ?? m['type']) as String;
+      final type = switch (typeStr.toUpperCase()) {
+        'TRACKER' || 'GPS' => DeviceType.gps,
+        'RUMEN_CAPSULE' => DeviceType.rumenCapsule,
+        'ACCELEROMETER' => DeviceType.accelerometer,
+        _ => throw FormatException('deviceType: $typeStr'),
       };
-      final statusStr = m['status'] as String;
-      final status = switch (statusStr) {
-        'online' => DeviceStatus.online,
-        'offline' => DeviceStatus.offline,
-        'lowBattery' => DeviceStatus.lowBattery,
-        _ => throw const FormatException('status'),
+      final statusStr = (m['runtimeStatus'] ?? m['status']) as String;
+      final status = switch (statusStr.toUpperCase()) {
+        'ONLINE' => DeviceStatus.online,
+        'OFFLINE' => DeviceStatus.offline,
+        'LOW_BATTERY' => DeviceStatus.lowBattery,
+        _ => DeviceStatus.offline,
       };
       return DeviceItem(
         id: id,
-        name: m['name'] as String,
+        name: (m['deviceCode'] ?? m['name'] ?? '') as String,
         type: type,
         status: status,
         boundEarTag: m['boundEarTag'] as String? ?? '',
-        batteryPercent: (m['batteryPercent'] as num?)?.toInt(),
+        batteryPercent: (m['batteryLevel'] ?? m['batteryPercent']) as int?,
         signalStrength: m['signalStrength'] as String?,
-        lastSync: m['lastSync'] as String?,
+        lastSync: (m['lastOnlineAt'] ?? m['lastSync']) as String?,
       );
     } catch (_) {
       return null;

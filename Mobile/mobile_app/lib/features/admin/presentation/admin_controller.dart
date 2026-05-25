@@ -1,36 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/admin/data/live_admin_repository.dart';
+import 'package:smart_livestock_demo/features/admin/data/admin_api_repository.dart';
 import 'package:smart_livestock_demo/features/admin/domain/admin_repository.dart';
 
 final adminRepositoryProvider = Provider<AdminRepository>((ref) {
-  return const LiveAdminRepository();
+  return const AdminApiRepository();
 });
 
-class AdminController extends Notifier<AdminViewData> {
+class AdminController extends AsyncNotifier<AdminViewData> {
   @override
-  AdminViewData build() {
-    return ref.watch(adminRepositoryProvider).load(
-      viewState: ViewState.normal,
-      licenseAdjusted: false,
-    );
-  }
-
-  void setViewState(ViewState viewState) {
-    state = ref.read(adminRepositoryProvider).load(
-      viewState: viewState,
-      licenseAdjusted: state.licenseAdjusted,
-    );
-  }
-
-  void markLicenseAdjusted() {
-    state = ref.read(adminRepositoryProvider).load(
-      viewState: state.viewState,
-      licenseAdjusted: true,
-    );
+  Future<AdminViewData> build() async {
+    return ref.read(adminRepositoryProvider).load();
   }
 }
 
-final adminControllerProvider = NotifierProvider<AdminController, AdminViewData>(
+final adminControllerProvider = AsyncNotifierProvider<AdminController, AdminViewData>(
   AdminController.new,
 );
