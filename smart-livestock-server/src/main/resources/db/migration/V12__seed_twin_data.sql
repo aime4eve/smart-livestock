@@ -1,0 +1,8 @@
+-- ============================================================
+-- V12: Twin overview seed — DEFERRED to Phase 2b
+-- No twin/health analytics tables exist yet in the schema.
+-- This migration is a placeholder to reserve the V12 version slot.
+-- Actual seed data will be added when the Health context is designed
+-- and the corresponding tables (health_summary, scene_config, etc.)
+-- are created in a future schema migration.
+-- ============================================================

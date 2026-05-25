@@ -160,17 +160,20 @@ JOIN livestock ls ON ls.livestock_code = 'SL-2024-' || lpad((nums.idx * 4)::text
 WHERE d.tenant_id = 1
   AND d.device_type = 'CAPSULE';
 
--- 4. GPS Logs — one recent position per installed GPS tracker
+-- 4. GPS Logs — 24 hourly positions per installed GPS tracker (trajectory data)
+-- ~32 active trackers × 24 hours ≈ 768 rows
+-- Each point adds small jitter around the livestock's last known position
 INSERT INTO gps_logs (device_id, latitude, longitude, accuracy, recorded_at)
 SELECT
     d.id,
-    ls.last_latitude,
-    ls.last_longitude,
-    3.5,
-    ls.last_position_at
+    ls.last_latitude + (random() - 0.5) * 0.001,
+    ls.last_longitude + (random() - 0.5) * 0.001,
+    2.0 + random() * 3.0,
+    (ls.last_position_at - (hours.h * INTERVAL '1 hour'))::timestamp
 FROM devices d
 JOIN installations inst ON inst.device_id = d.id AND inst.removed_at IS NULL
 JOIN livestock ls ON ls.id = inst.livestock_id
+CROSS JOIN generate_series(0, 23) AS hours(h)
 WHERE d.tenant_id = 1
   AND d.device_type = 'TRACKER'
   AND d.status = 'ACTIVE';
