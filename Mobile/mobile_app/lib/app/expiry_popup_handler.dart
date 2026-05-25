@@ -24,12 +24,18 @@ class _ExpiryPopupHandlerState extends ConsumerState<ExpiryPopupHandler> {
 
   void _checkExpiry() {
     if (_hasShown || !mounted) return;
-    final status = ref.read(subscriptionControllerProvider);
-    final days = status.daysUntilExpiry;
-    if (days >= 0 && days <= 7) {
-      _hasShown = true;
-      _showDialog(days);
-    }
+    final asyncStatus = ref.read(subscriptionControllerProvider);
+    asyncStatus.when(
+      data: (status) {
+        final days = status.daysUntilExpiry;
+        if (days >= 0 && days <= 7) {
+          _hasShown = true;
+          _showDialog(days);
+        }
+      },
+      loading: () {},
+      error: (_, __) {},
+    );
   }
 
   void _showDialog(int daysLeft) {

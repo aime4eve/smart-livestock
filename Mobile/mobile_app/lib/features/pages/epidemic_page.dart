@@ -18,10 +18,10 @@ class EpidemicPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final data = ref.watch(epidemicControllerProvider);
     final notifier = ref.read(epidemicControllerProvider.notifier);
-    final subStatus = ref.watch(subscriptionControllerProvider);
+    final subStatus = ref.watch(subscriptionControllerProvider).value;
 
     return LockedOverlay(
-      locked: !checkTierAccess(subStatus.tier, FeatureFlags.epidemicAlert),
+      locked: subStatus == null || !checkTierAccess(subStatus.tier, FeatureFlags.epidemicAlert),
       upgradeTier: '高级版',
       child: SingleChildScrollView(
       key: const Key('page-twin-epidemic'),

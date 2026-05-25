@@ -21,7 +21,7 @@ class SubscriptionPlanPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentStatus = ref.watch(subscriptionControllerProvider);
+    final asyncStatus = ref.watch(subscriptionControllerProvider);
 
     return Scaffold(
       key: const Key('subscription-plan-page'),
@@ -30,55 +30,52 @@ class SubscriptionPlanPage extends ConsumerWidget {
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.surfaceAlt,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Page description
-            Text(
-              '选择适合您牧场的套餐方案',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.textSecondary,
+      body: asyncStatus.when(
+        data: (currentStatus) => SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '选择适合您牧场的套餐方案',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.lg),
+              ...List.generate(_tiers.length, (i) {
+                final tier = _tiers[i];
+                final isCurrent = tier == currentStatus.tier;
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: i < _tiers.length - 1 ? AppSpacing.md : 0,
                   ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-
-            // Subscription renewal banner
-            const SizedBox(height: AppSpacing.lg),
-
-            // Tier cards
-            ...List.generate(_tiers.length, (i) {
-              final tier = _tiers[i];
-              final isCurrent = tier == currentStatus.tier;
-              return Padding(
-                padding: EdgeInsets.only(
-                  bottom: i < _tiers.length - 1 ? AppSpacing.md : 0,
-                ),
-                child: TierCard(
-                  tier: tier,
-                  isCurrentPlan: isCurrent,
-                  onSelect: () {
-                    if (!isCurrent) {
-                      context.push(
-                        AppRoute.checkout.path,
-                        extra: {
-                          'tier': tier,
-                          'livestockCount': currentStatus.livestockCount,
-                        },
-                      );
-                    }
-                  },
-                ),
-              );
-            }),
-            const SizedBox(height: AppSpacing.xl),
-
-            // Feature comparison table
-            const FeatureComparisonTable(),
-            const SizedBox(height: AppSpacing.xxl),
-          ],
+                  child: TierCard(
+                    tier: tier,
+                    isCurrentPlan: isCurrent,
+                    onSelect: () {
+                      if (!isCurrent) {
+                        context.push(
+                          AppRoute.checkout.path,
+                          extra: {
+                            'tier': tier,
+                            'livestockCount': currentStatus.livestockCount,
+                          },
+                        );
+                      }
+                    },
+                  ),
+                );
+              }),
+              const SizedBox(height: AppSpacing.xl),
+              const FeatureComparisonTable(),
+              const SizedBox(height: AppSpacing.xxl),
+            ],
+          ),
         ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('$e')),
       ),
     );
   }

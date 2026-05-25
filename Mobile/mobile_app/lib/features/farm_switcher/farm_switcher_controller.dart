@@ -4,10 +4,9 @@ import 'package:smart_livestock_demo/core/api/api_client.dart';
 import 'package:smart_livestock_demo/core/api/api_exception.dart';
 
 class FarmInfo {
-  const FarmInfo({required this.id, required this.name, required this.status});
+  const FarmInfo({required this.id, required this.name});
   final String id;
   final String name;
-  final String status;
 }
 
 class FarmSwitcherState {
@@ -50,7 +49,6 @@ class FarmSwitcherController extends Notifier<FarmSwitcherState> {
         return FarmInfo(
           id: rawId is int ? rawId.toString() : (rawId as String? ?? ''),
           name: json['name'] as String? ?? '',
-          status: json['status'] as String? ?? 'active',
         );
       }).toList();
 

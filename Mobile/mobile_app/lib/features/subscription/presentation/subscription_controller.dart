@@ -1,39 +1,61 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
-import 'package:smart_livestock_demo/features/subscription/data/live_subscription_repository.dart';
+import 'package:smart_livestock_demo/features/subscription/data/subscription_api_repository.dart';
 import 'package:smart_livestock_demo/features/subscription/domain/subscription_repository.dart';
 
-class SubscriptionController extends Notifier<SubscriptionStatus> {
+final subscriptionRepositoryProvider = Provider<SubscriptionRepository>(
+  (_) => const SubscriptionApiRepository(),
+);
+
+class SubscriptionController extends AsyncNotifier<SubscriptionStatus> {
   @override
-  SubscriptionStatus build() {
-    return const LiveSubscriptionRepository().loadCurrent();
+  Future<SubscriptionStatus> build() async {
+    return ref.read(subscriptionRepositoryProvider).loadCurrent();
   }
 
-  SubscriptionRepository _repo() => const LiveSubscriptionRepository();
-
-  void checkout(SubscriptionTier tier, int livestockCount,
-      {String? idempotencyKey}) {
-    state = _repo().checkout(tier, livestockCount, idempotencyKey: idempotencyKey);
+  Future<void> checkout({
+    required String tier,
+    required int livestockCount,
+  }) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() =>
+        ref.read(subscriptionRepositoryProvider).checkout(
+              tier: tier,
+              livestockCount: livestockCount,
+            ));
   }
 
-  void cancel() {
-    state = _repo().cancel();
+  Future<void> changeTier(String tier) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() =>
+        ref.read(subscriptionRepositoryProvider).changeTier(tier));
   }
 
-  void renew(int livestockCount, {String? idempotencyKey}) {
-    state = _repo().renew(livestockCount, idempotencyKey: idempotencyKey);
+  Future<void> cancel() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() =>
+        ref.read(subscriptionRepositoryProvider).cancel().then((_) async {
+          return ref.read(subscriptionRepositoryProvider).loadCurrent();
+        }));
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+        () => ref.read(subscriptionRepositoryProvider).loadCurrent());
   }
 }
 
 final subscriptionControllerProvider =
-    NotifierProvider<SubscriptionController, SubscriptionStatus>(
+    AsyncNotifierProvider<SubscriptionController, SubscriptionStatus>(
         SubscriptionController.new);
 
-final subscriptionPlansProvider = Provider<List<SubscriptionTierInfo>>((ref) {
-  return const LiveSubscriptionRepository().loadPlans();
+final subscriptionPlansProvider =
+    FutureProvider<List<SubscriptionTierInfo>>((ref) async {
+  return ref.read(subscriptionRepositoryProvider).loadPlans();
 });
 
-final subscriptionFeaturesProvider =
-    Provider<Map<String, FeatureDefinition>>((ref) {
-  return const LiveSubscriptionRepository().loadFeatures();
+final subscriptionUsageProvider =
+    FutureProvider<SubscriptionUsage>((ref) async {
+  return ref.read(subscriptionRepositoryProvider).loadUsage();
 });

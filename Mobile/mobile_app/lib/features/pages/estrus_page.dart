@@ -31,10 +31,11 @@ class EstrusPage extends ConsumerWidget {
     final notifier = ref.read(estrusControllerProvider.notifier);
     final data = state.viewData;
     final filtered = _applyFilter(data.items, state.filter);
-    final subStatus = ref.watch(subscriptionControllerProvider);
+    final subStatus = ref.watch(subscriptionControllerProvider).value;
+    final subTier = subStatus?.tier;
 
     return LockedOverlay(
-      locked: !checkTierAccess(subStatus.tier, FeatureFlags.estrusDetect),
+      locked: subTier == null || !checkTierAccess(subTier, FeatureFlags.estrusDetect),
       upgradeTier: '高级版',
       child: SingleChildScrollView(
       key: const Key('page-twin-estrus'),

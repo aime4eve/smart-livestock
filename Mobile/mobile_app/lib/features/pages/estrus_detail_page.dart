@@ -22,14 +22,14 @@ class EstrusDetailPage extends ConsumerWidget {
     final repo = ref.watch(estrusRepositoryProvider);
     final score = repo.loadDetail(livestockId);
     final role = ref.watch(sessionControllerProvider).role ?? UserRole.worker;
-    final subStatus = ref.watch(subscriptionControllerProvider);
+    final subStatus = ref.watch(subscriptionControllerProvider).value;
 
     return Scaffold(
       appBar: AppBar(
         title: Text('牛#$livestockId 发情详情'),
       ),
       body: LockedOverlay(
-        locked: !checkTierAccess(subStatus.tier, FeatureFlags.estrusDetect),
+        locked: subStatus == null || !checkTierAccess(subStatus.tier, FeatureFlags.estrusDetect),
         upgradeTier: '高级版',
         child: score == null
             ? const Center(child: Text('未找到个体数据'))
