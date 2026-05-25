@@ -345,18 +345,18 @@ Request → 提取 Key（Authorization: Bearer <key> 或 X-API-Key: <key>）
 
 ### 5.1 设计原则
 
-从 Mock Server 的 header-based 模式切换到 path-based 模式：
+前端通过 `ApiClient` 单例持有 `activeFarmId`，所有 farm-scoped 请求由 `ApiClient.farmGet/farmPost/farmPut/farmDelete` 自动注入路径前缀。GoRouter 路由不包含 farmId，切换牧场仅更新 `activeFarmId` 状态。
 
-- **旧模式**（Mock Server）: `GET /dashboard` + `x-active-farm: farm_001`
-- **新模式**（Spring Boot）: `GET /api/v1/farms/farm_001/dashboard/summary`
+- **旧模式**（Mock Server）: `GET /dashboard` + `x-active-farm: farm_001` header
+- **新模式**（Spring Boot）: `ApiClient.farmGet('/dashboard/summary')` → `GET /api/v1/farms/{activeFarmId}/dashboard/summary`
 
 ### 5.2 客户端交互流程
 
 1. 用户登录后，Flutter 调用 `GET /api/v1/farms` 获取农场列表
 2. 用户从列表中选择目标农场
-3. Flutter 的 `FarmSwitcherController` 存储选中的 `farmId`（本地状态，不设 header）
-4. GoRouter 导航至 `/{farmId}/dashboard` 等路径
-5. 所有 ranch 资源请求使用路径 `/api/v1/farms/{farmId}/...`
+3. `FarmSwitcherController` 调用 `SessionController.updateActiveFarm(farmId)`，同时设置 `ApiClient.instance.setActiveFarmId(farmId)`
+4. GoRouter 路由保持扁平结构（`/dashboard`、`/alerts`），不含 farmId 前缀
+5. 所有 ranch 资源请求通过 `ApiClient.farmGet('/...')` 自动拼接 `/farms/{activeFarmId}/...`
 
 ### 5.3 `GET /farms` 响应示例
 
@@ -387,13 +387,13 @@ Request → 提取 Key（Authorization: Bearer <key> 或 X-API-Key: <key>）
 
 ### 5.4 Flutter 端变更清单
 
-| 变更项 | 旧模式 | 新模式 |
+| 变更项 | 旧模式（Mock） | 新模式（ApiClient） |
 |--------|--------|--------|
-| 农场列表请求 | `GET /farm/my-farms` | `GET /farms` |
-| 切换农场 | `POST /farm/switch-farm` + header | `GoRouter.go('/{farmId}/dashboard')` |
-| 所有 ranch 请求 | 不带 farm 前缀，靠 header | 路径 `/farms/{farmId}/...` |
-| GoRouter 路由 | `/{page}` | `/{farmId}/{page}` |
-| `FarmSwitcherController` | 调用 switch-farm 端点 | 本地状态管理 + GoRouter 导航 |
+| 农场列表请求 | `GET /farm/my-farms`（Mock Server） | `GET /farms`（Spring Boot） |
+| 切换农场 | `POST /farm/switch-farm` + header | `SessionController.updateActiveFarm()` + `ApiClient.setActiveFarmId()` |
+| 所有 ranch 请求 | 不带 farm 前缀，靠 `x-active-farm` header | `ApiClient.farmGet('/...')` 自动拼接 `/farms/{activeFarmId}/...` |
+| GoRouter 路由 | `/{page}` | `/{page}`（扁平结构，不含 farmId） |
+| `FarmSwitcherController` | 调用 switch-farm 端点 | 本地状态管理 + `ApiClient.activeFarmId` 注入 |
 
 ---
 
