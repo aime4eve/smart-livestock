@@ -65,7 +65,7 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
     setState(() => _submitting = true);
 
     final areaText = _areaController.text.trim();
-    final area = areaText.isEmpty ? 0.0 : double.tryParse(areaText) ?? 0.0;
+    final area = areaText.isEmpty ? null : double.tryParse(areaText);
 
     try {
       final data = await ApiClient.instance.post(
@@ -74,7 +74,7 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
           'name': _nameController.text.trim(),
           'latitude': _selectedCenter.latitude,
           'longitude': _selectedCenter.longitude,
-          'areaHectares': area,
+          if (area != null) 'areaHectares': area,
         },
       );
 

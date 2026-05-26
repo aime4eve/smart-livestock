@@ -92,11 +92,14 @@ class ApiClient {
 
   Future<Map<String, dynamic>> _handleResponse(http.Response response) async {
     if (response.statusCode == 401) {
-      await JwtStorage.instance.clear();
       Map<String, dynamic>? body;
       try {
         body = jsonDecode(response.body) as Map<String, dynamic>;
       } catch (_) {}
+      final code = body?['code'] as String?;
+      if (code == 'AUTH_INVALID_TOKEN') {
+        await JwtStorage.instance.clear();
+      }
       throw AuthException(
         message: body?['message'] as String? ?? '认证失败',
         statusCode: 401,

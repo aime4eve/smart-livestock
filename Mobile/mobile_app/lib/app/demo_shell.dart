@@ -35,7 +35,7 @@ class DemoShell extends ConsumerWidget {
         role == UserRole.owner || role == UserRole.worker;
     final farmState =
         showFarmContext ? ref.watch(farmSwitcherControllerProvider) : null;
-    final body = farmState != null && !farmState.hasFarms
+    final body = farmState != null && !farmState.hasFarms && !farmState.isLoading
         ? const _FarmEmptyGuidance()
         : child;
     final showShellAppBar =
@@ -151,7 +151,7 @@ class _FarmEmptyGuidance extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Text(
-          '请创建您的第一个牧场',
+          '暂无关联牧场，请联系管理员为您分配牧场。',
           style: Theme.of(context).textTheme.titleMedium,
           textAlign: TextAlign.center,
         ),

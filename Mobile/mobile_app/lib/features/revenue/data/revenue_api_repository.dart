@@ -5,9 +5,9 @@ class RevenueApiRepository implements RevenueRepository {
   const RevenueApiRepository();
 
   @override
-  Future<RevenueListViewData> getPeriods({String? partnerId}) async {
+  Future<RevenueListViewData> getPeriods() async {
     final data = await ApiClient.instance.get('/admin/revenue/periods');
-    final items = data['items'] as List? ?? [];
+    final items = data['items'] as List<dynamic>? ?? [];
     final periods = items
         .whereType<Map<String, dynamic>>()
         .map((m) => RevenuePeriod.fromJson(m))
@@ -20,33 +20,59 @@ class RevenueApiRepository implements RevenueRepository {
 
   @override
   Future<RevenueDetailViewData> getPeriodDetail(String periodId) async {
-    final data = await ApiClient.instance.get('/admin/revenue/periods/$periodId');
-    final period = RevenuePeriod.fromJson(data);
-    final farmDetailsRaw = data['farmDetails'] as List? ?? [];
-    final farmDetails = farmDetailsRaw
-        .whereType<Map<String, dynamic>>()
-        .map((m) => RevenueFarmDetail.fromJson(m))
-        .toList();
-    return RevenueDetailViewData(
-      period: period,
-      totalDeviceFee: (data['totalDeviceFee'] as num?)?.toDouble() ?? 0.0,
-      revenueShareRatio: (data['revenueShareRatio'] as num?)?.toDouble() ?? 0.0,
-      platformConfirmed: data['confirmedByPlatform'] as bool? ?? false,
-      partnerConfirmed: data['confirmedByPartner'] as bool? ?? false,
-      calculatedAt: data['calculatedAt'] as String?,
-      farmDetails: farmDetails,
-    );
+    final data =
+        await ApiClient.instance.get('/admin/revenue/periods/$periodId');
+    return RevenueDetailViewData(period: RevenuePeriod.fromJson(data));
   }
 
   @override
   Future<bool> confirmPeriod(String periodId) async {
-    await ApiClient.instance.post('/admin/revenue/periods/$periodId/confirm');
+    await ApiClient.instance
+        .post('/admin/revenue/periods/$periodId/confirm');
     return true;
   }
 
   @override
-  Future<bool> calculateRevenue(String periodId) async {
-    await ApiClient.instance.post('/admin/revenue/periods/$periodId/calculate');
+  Future<bool> calculateRevenue({
+    required String contractId,
+    required String periodStart,
+    required String periodEnd,
+    required int grossAmountCents,
+  }) async {
+    await ApiClient.instance.post('/admin/revenue/calculate', body: {
+      'contractId': contractId,
+      'periodStart': periodStart,
+      'periodEnd': periodEnd,
+      'grossAmountCents': grossAmountCents,
+    });
+    return true;
+  }
+
+  @override
+  Future<bool> recalculatePeriod(String periodId, int grossAmountCents) async {
+    await ApiClient.instance
+        .post('/admin/revenue/periods/$periodId/recalculate', body: {
+      'grossAmountCents': grossAmountCents,
+    });
+    return true;
+  }
+
+  // App-scoped endpoints (CommerceController)
+
+  @override
+  Future<RevenueListViewData> getAppPeriods() async {
+    final data = await ApiClient.instance.get('/revenue/periods');
+    final items = data['items'] as List<dynamic>? ?? [];
+    final periods = items
+        .whereType<Map<String, dynamic>>()
+        .map((m) => RevenuePeriod.fromJson(m))
+        .toList();
+    return RevenueListViewData(periods: periods, total: periods.length);
+  }
+
+  @override
+  Future<bool> confirmAsPartner(String periodId) async {
+    await ApiClient.instance.post('/revenue/periods/$periodId/confirm');
     return true;
   }
 }

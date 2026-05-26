@@ -6,13 +6,37 @@ final mineRepositoryProvider = Provider<MineRepository>((ref) {
   return const MineApiRepository();
 });
 
-class MineController extends AsyncNotifier<MineViewData> {
+class MineController extends AsyncNotifier<UserProfile> {
   @override
-  Future<MineViewData> build() async {
-    return ref.read(mineRepositoryProvider).load();
+  Future<UserProfile> build() async {
+    return ref.read(mineRepositoryProvider).loadProfile();
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => ref.read(mineRepositoryProvider).loadProfile());
+  }
+
+  Future<bool> updateProfile(Map<String, dynamic> body) async {
+    try {
+      final profile = await ref.read(mineRepositoryProvider).updateProfile(body);
+      state = AsyncData(profile);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> changePassword(String oldPassword, String newPassword) async {
+    try {
+      await ref.read(mineRepositoryProvider).changePassword(oldPassword, newPassword);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 }
 
-final mineControllerProvider = AsyncNotifierProvider<MineController, MineViewData>(
+final mineControllerProvider = AsyncNotifierProvider<MineController, UserProfile>(
   MineController.new,
 );

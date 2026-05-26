@@ -14,35 +14,42 @@ class ContractManagementController
     return ref.read(contractManagementRepositoryProvider).getContracts();
   }
 
-  Future<void> filter({String? partnerId, String? status}) async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() =>
-        ref.read(contractManagementRepositoryProvider).getContracts(
-              partnerId: partnerId,
-              status: status,
-            ));
-  }
-
   Future<void> refresh() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() =>
-        ref.read(contractManagementRepositoryProvider).getContracts());
+    state = await AsyncValue.guard(
+        () => ref.read(contractManagementRepositoryProvider).getContracts());
+  }
+
+  Future<ContractSummary> getContractDetail(String id) {
+    return ref.read(contractManagementRepositoryProvider).getContractDetail(id);
   }
 
   Future<bool> createContract(Map<String, dynamic> data) async {
-    final ok = await ref.read(contractManagementRepositoryProvider).createContract(data);
-    if (ok) await refresh();
-    return ok;
+    await ref
+        .read(contractManagementRepositoryProvider)
+        .createContract(data);
+    await refresh();
+    return true;
   }
 
-  Future<bool> updateContract(String id, Map<String, dynamic> data) async {
-    final ok = await ref.read(contractManagementRepositoryProvider).updateContract(id, data);
-    if (ok) await refresh();
-    return ok;
+  Future<bool> updateDraft(String id, Map<String, dynamic> data) async {
+    await ref
+        .read(contractManagementRepositoryProvider)
+        .updateDraft(id, data);
+    await refresh();
+    return true;
   }
 
-  Future<bool> terminateContract(String id) async {
-    final ok = await ref.read(contractManagementRepositoryProvider).terminateContract(id);
+  Future<bool> signContract(String id) async {
+    await ref.read(contractManagementRepositoryProvider).signContract(id);
+    await refresh();
+    return true;
+  }
+
+  Future<bool> updateContractStatus(String id, String targetStatus) async {
+    final ok = await ref
+        .read(contractManagementRepositoryProvider)
+        .updateContractStatus(id, targetStatus);
     if (ok) await refresh();
     return ok;
   }

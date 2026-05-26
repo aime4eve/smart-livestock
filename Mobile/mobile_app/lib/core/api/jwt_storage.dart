@@ -1,6 +1,8 @@
 // lib/core/api/jwt_storage.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class JwtStorage {
   JwtStorage._();
@@ -8,17 +10,32 @@ class JwtStorage {
 
   static const _accessTokenKey = 'access_token';
 
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   Future<void> saveAccessToken(String token) async {
-    await _storage.write(key: _accessTokenKey, value: token);
+    if (kIsWeb) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_accessTokenKey, token);
+    } else {
+      await _secureStorage.write(key: _accessTokenKey, value: token);
+    }
   }
 
   Future<String?> getAccessToken() async {
-    return _storage.read(key: _accessTokenKey);
+    if (kIsWeb) {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(_accessTokenKey);
+    } else {
+      return _secureStorage.read(key: _accessTokenKey);
+    }
   }
 
   Future<void> clear() async {
-    await _storage.delete(key: _accessTokenKey);
+    if (kIsWeb) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_accessTokenKey);
+    } else {
+      await _secureStorage.delete(key: _accessTokenKey);
+    }
   }
 }

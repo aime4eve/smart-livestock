@@ -6,6 +6,7 @@ class RevenuePeriod {
     required this.platformShare,
     required this.partnerShare,
     required this.status,
+    this.revenueShareRatio,
     this.confirmedAt,
   });
 
@@ -14,47 +15,62 @@ class RevenuePeriod {
   final double totalRevenue;
   final double platformShare;
   final double partnerShare;
-  final String status; // pending, confirmed, paid
+  final String status;
+  final double? revenueShareRatio;
   final String? confirmedAt;
 
   factory RevenuePeriod.fromJson(Map<String, dynamic> json) {
-    final rawPeriod = json['period'] as String? ?? json['periodLabel'] as String? ?? '';
-    final periodLabel = rawPeriod.contains('-') && rawPeriod.length == 7
-        ? '${rawPeriod.substring(0, 4)}年${int.parse(rawPeriod.substring(5))}月'
-        : rawPeriod;
+    final rawId = json['id'];
+    final id = rawId is int ? rawId.toString() : (rawId as String? ?? '');
+
+    final periodStart = json['periodStart'] as String? ?? '';
+    final periodLabel = periodStart.length >= 7
+        ? '${periodStart.substring(0, 4)}年${int.parse(periodStart.substring(5, 7))}月'
+        : periodStart;
+
     final totalRevenue =
-        (json['totalDeviceFee'] as num?)?.toDouble() ??
-        (json['totalRevenue'] as num?)?.toDouble() ??
-        0.0;
+        ((json['grossAmount'] as num?)?.toDouble() ?? 0.0) / 100.0;
+    final platformShare =
+        ((json['platformShare'] as num?)?.toDouble() ?? 0.0) / 100.0;
     final partnerShare =
-        (json['revenueShareAmount'] as num?)?.toDouble() ??
-        (json['partnerShare'] as num?)?.toDouble() ??
-        0.0;
-    final platformShare = totalRevenue - partnerShare;
-    final confirmedAt = json['settledAt'] as String? ??
-        json['confirmedAt'] as String? ??
-        json['confirmedByPlatformAt'] as String?;
-    final rawStatus = json['status'] as String? ?? 'pending';
-    final byPlatform = json['confirmedByPlatform'] == true;
-    final byPartner = json['confirmedByPartner'] == true;
-    final String status;
-    if (rawStatus == 'settled' || (byPlatform && byPartner)) {
-      status = 'confirmed';
-    } else if (byPlatform || byPartner) {
-      status = 'partially_confirmed';
-    } else {
-      status = rawStatus;
-    }
+        ((json['partnerShare'] as num?)?.toDouble() ?? 0.0) / 100.0;
+
     return RevenuePeriod(
-      id: json['id'] as String,
+      id: id,
       periodLabel: periodLabel,
       totalRevenue: totalRevenue,
       platformShare: platformShare,
       partnerShare: partnerShare,
-      status: status,
-      confirmedAt: confirmedAt,
+      status: (json['status'] as String? ?? 'PENDING').toLowerCase(),
+      revenueShareRatio: (json['revenueShareRatio'] as num?)?.toDouble(),
+      confirmedAt: json['settledAt'] as String?,
     );
   }
+
+  bool get isPending => status == 'pending';
+  bool get isPlatformConfirmed => status == 'platform_confirmed';
+  bool get isPartnerConfirmed => status == 'partner_confirmed';
+  bool get isSettled => status == 'settled';
+
+  bool get platformConfirmed => !isPending;
+  bool get partnerConfirmed => isPartnerConfirmed || isSettled;
+}
+
+class RevenueListViewData {
+  const RevenueListViewData({
+    this.periods = const [],
+    this.total = 0,
+  });
+
+  final List<RevenuePeriod> periods;
+  final int total;
+
+  bool get isEmpty => periods.isEmpty;
+}
+
+class RevenueDetailViewData {
+  const RevenueDetailViewData({required this.period});
+  final RevenuePeriod period;
 }
 
 class RevenueFarmDetail {
@@ -71,58 +87,22 @@ class RevenueFarmDetail {
   final double deviceUnitPrice;
   final double deviceFee;
   final double shareAmount;
-
-  factory RevenueFarmDetail.fromJson(Map<String, dynamic> json) {
-    return RevenueFarmDetail(
-      farmName: json['farmName'] as String? ?? '',
-      livestockCount: json['livestockCount'] as int? ?? 0,
-      deviceUnitPrice: (json['deviceUnitPrice'] as num?)?.toDouble() ??
-          (json['deviceFee'] as num?)?.toDouble() ?? 0.0,
-      deviceFee: (json['deviceFee'] as num?)?.toDouble() ?? 0.0,
-      shareAmount: (json['shareAmount'] as num?)?.toDouble() ?? 0.0,
-    );
-  }
-}
-
-class RevenueListViewData {
-  const RevenueListViewData({
-    this.periods = const [],
-    this.total = 0,
-    this.message,
-  });
-
-  final List<RevenuePeriod> periods;
-  final int total;
-  final String? message;
-
-  bool get isEmpty => periods.isEmpty;
-}
-
-class RevenueDetailViewData {
-  const RevenueDetailViewData({
-    this.period,
-    this.totalDeviceFee = 0.0,
-    this.revenueShareRatio = 0.0,
-    this.platformConfirmed = false,
-    this.partnerConfirmed = false,
-    this.calculatedAt,
-    this.farmDetails = const [],
-    this.message,
-  });
-
-  final RevenuePeriod? period;
-  final double totalDeviceFee;
-  final double revenueShareRatio;
-  final bool platformConfirmed;
-  final bool partnerConfirmed;
-  final String? calculatedAt;
-  final List<RevenueFarmDetail> farmDetails;
-  final String? message;
 }
 
 abstract class RevenueRepository {
-  Future<RevenueListViewData> getPeriods({String? partnerId});
+  // Admin-scoped (platform_admin)
+  Future<RevenueListViewData> getPeriods();
   Future<RevenueDetailViewData> getPeriodDetail(String periodId);
   Future<bool> confirmPeriod(String periodId);
-  Future<bool> calculateRevenue(String periodId);
+  Future<bool> calculateRevenue({
+    required String contractId,
+    required String periodStart,
+    required String periodEnd,
+    required int grossAmountCents,
+  });
+  Future<bool> recalculatePeriod(String periodId, int grossAmountCents);
+
+  // App-scoped (tenant user, B2B admin)
+  Future<RevenueListViewData> getAppPeriods();
+  Future<bool> confirmAsPartner(String periodId);
 }

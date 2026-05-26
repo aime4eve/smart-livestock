@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:smart_livestock_demo/features/subscription_service_management/domain/subscription_service_repository.dart';
 import 'package:smart_livestock_demo/features/subscription_service_management/presentation/subscription_service_controller.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
@@ -33,64 +34,8 @@ class SubscriptionsPage extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             if (data.services.isNotEmpty)
-              ...data.services.map((service) {
-                final status = service['status'] as String? ?? '';
-                final statusColor = switch (status) {
-                  'active' => AppColors.success,
-                  'expired' => AppColors.danger,
-                  'revoked' => AppColors.danger,
-                  _ => AppColors.info,
-                };
-                final statusLabel = switch (status) {
-                  'active' => '生效中',
-                  'expired' => '已过期',
-                  'revoked' => '已撤销',
-                  _ => status,
-                };
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: HighfiCard(
-                    key: Key('service-${service['id']}'),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              service['tenantName'] as String? ?? '',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            HighfiStatusChip(
-                              label: statusLabel,
-                              color: statusColor,
-                              icon: status == 'active'
-                                  ? Icons.check_circle_outline
-                                  : Icons.cancel_outlined,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        Text('套餐: ${service['tier'] ?? ''}'),
-                        Text('期限: ${service['startDate'] ?? ''} ~ ${service['endDate'] ?? ''}'),
-                        Text('牲畜数量: ${service['livestockCount'] ?? 0}'),
-                        if (status == 'active')
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton.icon(
-                              key: Key('revoke-${service['id']}'),
-                              onPressed: () =>
-                                  controller.revokeService(service['id'] as String),
-                              icon: const Icon(Icons.block, size: 16),
-                              label: const Text('撤销'),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
+              ...data.services.map((service) =>
+                  _buildServiceCard(context, service, controller)),
             if (data.isEmpty)
               const SizedBox(
                 height: 200,
@@ -101,6 +46,71 @@ class SubscriptionsPage extends ConsumerWidget {
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('$e')),
+    );
+  }
+
+  Widget _buildServiceCard(
+    BuildContext context,
+    SubscriptionServiceInfo service,
+    SubscriptionServiceController controller,
+  ) {
+    final statusColor = switch (service.status?.toUpperCase()) {
+      'ACTIVE' => AppColors.success,
+      'EXPIRED' => AppColors.danger,
+      'REVOKED' => AppColors.danger,
+      _ => AppColors.info,
+    };
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: HighfiCard(
+        key: Key('service-${service.id}'),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  service.serviceName ?? '未知服务',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                HighfiStatusChip(
+                  label: service.statusLabel,
+                  color: statusColor,
+                  icon: service.isActive
+                      ? Icons.check_circle_outline
+                      : Icons.cancel_outlined,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text('套餐: ${service.effectiveTier ?? ''}'),
+            if (service.startedAt != null || service.expiresAt != null)
+              Text(
+                  '期限: ${service.startedAt ?? '-'} ~ ${service.expiresAt ?? '-'}'),
+            if (service.deviceQuota != null)
+              Text('设备配额: ${service.deviceQuota}'),
+            Align(
+              alignment: Alignment.centerRight,
+              child: service.isActive
+                  ? TextButton.icon(
+                      key: Key('revoke-${service.id}'),
+                      onPressed: () => controller.revokeService(service.id),
+                      icon: const Icon(Icons.block, size: 16),
+                      label: const Text('撤销'),
+                    )
+                  : TextButton.icon(
+                      key: Key('activate-${service.id}'),
+                      onPressed: () =>
+                          controller.activateService(service.id),
+                      icon: const Icon(Icons.refresh, size: 16),
+                      label: const Text('续期'),
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

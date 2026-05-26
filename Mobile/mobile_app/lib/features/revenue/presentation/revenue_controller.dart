@@ -23,13 +23,33 @@ class RevenueController extends AsyncNotifier<RevenueListViewData> {
   }
 
   Future<bool> confirmPeriod(String periodId) async {
-    final ok = await ref.read(revenueRepositoryProvider).confirmPeriod(periodId);
+    final ok =
+        await ref.read(revenueRepositoryProvider).confirmPeriod(periodId);
     if (ok) await refresh();
     return ok;
   }
 
-  Future<bool> calculateRevenue(String periodId) async {
-    return ref.read(revenueRepositoryProvider).calculateRevenue(periodId);
+  Future<bool> calculateRevenue({
+    required String contractId,
+    required String periodStart,
+    required String periodEnd,
+    required int grossAmountCents,
+  }) async {
+    return ref.read(revenueRepositoryProvider).calculateRevenue(
+      contractId: contractId,
+      periodStart: periodStart,
+      periodEnd: periodEnd,
+      grossAmountCents: grossAmountCents,
+    );
+  }
+
+  Future<bool> recalculatePeriod(
+      String periodId, int grossAmountCents) async {
+    final ok = await ref
+        .read(revenueRepositoryProvider)
+        .recalculatePeriod(periodId, grossAmountCents);
+    if (ok) await refresh();
+    return ok;
   }
 }
 

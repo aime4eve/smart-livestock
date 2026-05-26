@@ -8,48 +8,80 @@ final subscriptionServiceRepositoryProvider =
 });
 
 class SubscriptionServiceController
-    extends AsyncNotifier<SubscriptionServiceListViewData> {
+    extends AsyncNotifier<SubscriptionServiceListData> {
   @override
-  Future<SubscriptionServiceListViewData> build() async {
-    return ref.read(subscriptionServiceRepositoryProvider).getServices();
-  }
-
-  Future<void> filter({String? tenantId, String? status}) async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() =>
-        ref.read(subscriptionServiceRepositoryProvider).getServices(
-              tenantId: tenantId,
-              status: status,
-            ));
+  Future<SubscriptionServiceListData> build() async {
+    return ref.read(subscriptionServiceRepositoryProvider).loadServices();
   }
 
   Future<void> refresh() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() =>
-        ref.read(subscriptionServiceRepositoryProvider).getServices());
+    state = await AsyncValue.guard(
+        () => ref.read(subscriptionServiceRepositoryProvider).loadServices());
   }
 
-  Future<bool> createService(Map<String, dynamic> data) async {
-    final ok = await ref.read(subscriptionServiceRepositoryProvider).createService(data);
-    if (ok) await refresh();
-    return ok;
+  Future<SubscriptionServiceInfo> createService(
+      Map<String, dynamic> body) async {
+    final info = await ref
+        .read(subscriptionServiceRepositoryProvider)
+        .createService(body);
+    await refresh();
+    return info;
   }
 
-  Future<bool> renewService(String serviceId, String endDate) async {
-    final ok = await ref.read(subscriptionServiceRepositoryProvider).renewService(serviceId, endDate);
-    if (ok) await refresh();
-    return ok;
+  Future<void> activateService(String id) async {
+    await ref
+        .read(subscriptionServiceRepositoryProvider)
+        .updateServiceStatus(id, 'ACTIVE');
+    await refresh();
   }
 
-  Future<bool> revokeService(String serviceId) async {
-    final ok = await ref.read(subscriptionServiceRepositoryProvider).revokeService(serviceId);
-    if (ok) await refresh();
-    return ok;
+  Future<void> revokeService(String id) async {
+    await ref
+        .read(subscriptionServiceRepositoryProvider)
+        .updateServiceStatus(id, 'EXPIRED');
+    await refresh();
+  }
+
+  Future<void> updateQuota(String id, int quota) async {
+    await ref
+        .read(subscriptionServiceRepositoryProvider)
+        .updateServiceQuota(id, quota);
+    await refresh();
+  }
+
+  // ── Subscription management ───────────────────────────────────────
+
+  Future<SubscriptionListData> loadSubscriptions({
+    int page = 1,
+    int pageSize = 20,
+    String? status,
+    String? tier,
+  }) async {
+    return ref.read(subscriptionServiceRepositoryProvider).loadSubscriptions(
+          page: page,
+          pageSize: pageSize,
+          status: status,
+          tier: tier,
+        );
+  }
+
+  Future<SubscriptionInfo> loadSubscriptionDetail(String id) async {
+    return ref
+        .read(subscriptionServiceRepositoryProvider)
+        .loadSubscriptionDetail(id);
+  }
+
+  Future<SubscriptionInfo> updateSubscriptionStatus(
+      String id, String targetStatus) async {
+    return ref
+        .read(subscriptionServiceRepositoryProvider)
+        .updateSubscriptionStatus(id, targetStatus);
   }
 }
 
 final subscriptionServiceControllerProvider =
     AsyncNotifierProvider<SubscriptionServiceController,
-        SubscriptionServiceListViewData>(
+        SubscriptionServiceListData>(
   SubscriptionServiceController.new,
 );

@@ -34,9 +34,12 @@ class FarmSwitcherState {
 class FarmSwitcherController extends Notifier<FarmSwitcherState> {
   @override
   FarmSwitcherState build() {
-    final session = ref.watch(sessionControllerProvider);
-    if (!session.isLoggedIn) return const FarmSwitcherState.empty();
-    return const FarmSwitcherState(farms: [], isLoading: true);
+    ref.listen(sessionControllerProvider, (previous, next) {
+      if (!next.isLoggedIn) {
+        state = const FarmSwitcherState.empty();
+      }
+    });
+    return const FarmSwitcherState.empty();
   }
 
   Future<void> loadFarms() async {

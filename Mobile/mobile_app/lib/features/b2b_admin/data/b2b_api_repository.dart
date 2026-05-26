@@ -1,23 +1,36 @@
 import 'package:smart_livestock_demo/core/api/api_client.dart';
+import 'package:smart_livestock_demo/core/api/api_exception.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_repository.dart';
+
+String _parseId(dynamic raw) =>
+    raw is int ? raw.toString() : (raw as String? ?? '');
 
 class B2bApiRepository implements B2bRepository {
   const B2bApiRepository();
 
   @override
   Future<B2bDashboardData> loadDashboard() async {
-    final data = await ApiClient.instance.get('/b2b/dashboard');
+    final Map<String, dynamic> data;
+    try {
+      data = await ApiClient.instance.get('/b2b/dashboard');
+    } on NotFoundException {
+      return const B2bDashboardData();
+    }
     final farms = (data['farms'] as List?)
-            ?.map((f) => B2bFarmSummary(
-                  id: f['id'] as String,
-                  name: f['name'] as String,
-                  status: f['status'] as String? ?? 'active',
-                  ownerName: f['ownerName'] as String? ?? '',
-                  livestockCount: f['livestockCount'] as int? ?? 0,
-                  region: f['region'] as String? ?? '',
-                  deviceCount: f['deviceCount'] as int? ?? 0,
-                  workerCount: f['workerCount'] as int? ?? 0,
-                ))
+            ?.map((f) {
+              final fm = f as Map<String, dynamic>;
+              return B2bFarmSummary(
+                id: _parseId(fm['id']),
+                name: fm['name'] as String,
+                status: fm['status'] as String? ?? 'active',
+                ownerName: fm['ownerName'] as String? ?? '',
+                ownerId: fm['ownerId'] as int?,
+                livestockCount: fm['livestockCount'] as int? ?? 0,
+                region: fm['region'] as String? ?? '',
+                deviceCount: fm['deviceCount'] as int? ?? 0,
+                workerCount: fm['workerCount'] as int? ?? 0,
+              );
+            })
             .toList() ??
         [];
     final alertSummary = (data['alertSummary'] as List?)
@@ -42,7 +55,12 @@ class B2bApiRepository implements B2bRepository {
 
   @override
   Future<B2bContractData> loadContract() async {
-    final data = await ApiClient.instance.get('/b2b/contract');
+    final Map<String, dynamic> data;
+    try {
+      data = await ApiClient.instance.get('/b2b/contract');
+    } on NotFoundException {
+      return const B2bContractData();
+    }
     final sub = data['subscriptionService'] as Map?;
     return B2bContractData(
       id: data['id'] as String?,
@@ -68,6 +86,28 @@ class B2bApiRepository implements B2bRepository {
   @override
   Future<bool> createFarm(Map<String, dynamic> body) async {
     await ApiClient.instance.post('/farms', body: body);
+    return true;
+  }
+
+  @override
+  Future<List<B2bUserSummary>> loadUsers({String? role}) async {
+    final uri = role != null ? '/b2b/users?role=$role' : '/b2b/users';
+    final Map<String, dynamic> data = await ApiClient.instance.get(uri);
+    final items = data['items'] as List? ?? [];
+    return items.map((e) {
+      final m = e as Map<String, dynamic>;
+      return B2bUserSummary(
+        id: m['id'] as int,
+        name: m['name'] as String? ?? '',
+        phone: m['phone'] as String? ?? '',
+        role: m['role'] as String? ?? '',
+      );
+    }).toList();
+  }
+
+  @override
+  Future<bool> changeOwner(String farmId, int ownerId) async {
+    await ApiClient.instance.put('/farms/$farmId/owner', body: {'ownerId': ownerId});
     return true;
   }
 }

@@ -18,12 +18,25 @@ class B2bDashboardController extends AsyncNotifier<B2bDashboardData> {
     }
     return ok;
   }
+
+  Future<bool> changeOwner(String farmId, int ownerId) async {
+    final ok = await ref.read(b2bRepositoryProvider).changeOwner(farmId, ownerId);
+    if (ok) {
+      ref.invalidateSelf();
+    }
+    return ok;
+  }
 }
 
 final b2bDashboardControllerProvider =
     AsyncNotifierProvider<B2bDashboardController, B2bDashboardData>(
   B2bDashboardController.new,
 );
+
+final b2bOwnerUsersProvider =
+    FutureProvider<List<B2bUserSummary>>((ref) async {
+  return ref.read(b2bRepositoryProvider).loadUsers(role: 'OWNER');
+});
 
 class B2bContractController extends AsyncNotifier<B2bContractData> {
   @override

@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/core/utils/currency_formatter.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/async_fallback_views.dart';
 import 'package:smart_livestock_demo/features/revenue/domain/revenue_repository.dart';
-import 'package:smart_livestock_demo/features/revenue/presentation/revenue_controller.dart';
+import 'package:smart_livestock_demo/features/revenue/presentation/b2b_revenue_controller.dart';
 
 class B2bRevenuePage extends ConsumerStatefulWidget {
   const B2bRevenuePage({super.key});
@@ -18,7 +19,7 @@ class _B2bRevenuePageState extends ConsumerState<B2bRevenuePage> {
 
   @override
   Widget build(BuildContext context) {
-    final asyncData = ref.watch(revenueControllerProvider);
+    final asyncData = ref.watch(b2bRevenueControllerProvider);
 
     return asyncData.when(
       data: (data) => data.isEmpty
@@ -28,7 +29,7 @@ class _B2bRevenuePageState extends ConsumerState<B2bRevenuePage> {
           key: Key('b2b-revenue-loading'),
           child: CircularProgressIndicator(),
         ),
-      error: (e, _) => _ErrorView(
+      error: (e, _) => B2bErrorView(
           key: const Key('b2b-revenue-error'),
           message: e.toString(),
         ),
@@ -43,10 +44,8 @@ class _B2bRevenuePageState extends ConsumerState<B2bRevenuePage> {
       0,
       (sum, p) => sum + p.partnerShare,
     );
-    final pendingCount =
-        data.periods.where((p) => p.status == 'pending').length;
-    final confirmedCount =
-        data.periods.where((p) => p.status == 'confirmed').length;
+    final pendingCount = data.periods.where((p) => p.isPending).length;
+    final confirmedCount = data.periods.where((p) => p.isSettled).length;
 
     return SingleChildScrollView(
       key: const Key('page-b2b-revenue'),
@@ -54,13 +53,10 @@ class _B2bRevenuePageState extends ConsumerState<B2bRevenuePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // --- Header ---
           Text('对账', style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
           )),
           const SizedBox(height: AppSpacing.lg),
-
-          // --- Summary metrics (3-column grid) ---
           Row(
             children: [
               Expanded(
@@ -95,8 +91,6 @@ class _B2bRevenuePageState extends ConsumerState<B2bRevenuePage> {
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
-
-          // --- Filter pills ---
           Row(
             children: _FilterOption.values.map((option) {
               final isSelected = option == _selectedFilter;
@@ -114,17 +108,13 @@ class _B2bRevenuePageState extends ConsumerState<B2bRevenuePage> {
             }).toList(),
           ),
           const SizedBox(height: AppSpacing.lg),
-
-          // --- Period cards ---
           if (filteredPeriods.isEmpty)
             const _EmptyView(key: Key('b2b-revenue-filter-empty'))
           else
             ...filteredPeriods.map((period) => _PeriodCard(
                   key: Key('b2b-period-${period.id}'),
                   period: period,
-                  onTap: () => context.go(
-                    '/b2b/admin/revenue/${period.id}',
-                  ),
+                  onTap: () => context.go('/b2b/admin/revenue/${period.id}'),
                 )),
         ],
       ),
@@ -135,16 +125,12 @@ class _B2bRevenuePageState extends ConsumerState<B2bRevenuePage> {
     return switch (_selectedFilter) {
       _FilterOption.all => periods,
       _FilterOption.pending =>
-        periods.where((p) => p.status == 'pending').toList(),
+        periods.where((p) => p.isPending || p.isPlatformConfirmed).toList(),
       _FilterOption.confirmed =>
-        periods.where((p) => p.status != 'pending').toList(),
+        periods.where((p) => p.isSettled || p.isPartnerConfirmed).toList(),
     };
   }
 }
-
-// ---------------------------------------------------------------------------
-// Sub-widgets
-// ---------------------------------------------------------------------------
 
 class _MetricCard extends StatelessWidget {
   const _MetricCard({
@@ -200,7 +186,7 @@ class _PeriodCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final tagStyle = _periodTagStyle(period.status);
+    final tagStyle = _periodTagStyle(period);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -215,10 +201,7 @@ class _PeriodCard extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               border: Border(
-                left: BorderSide(
-                  color: tagStyle.borderColor,
-                  width: 4,
-                ),
+                left: BorderSide(color: tagStyle.borderColor, width: 4),
               ),
             ),
             padding: const EdgeInsets.all(AppSpacing.md),
@@ -276,30 +259,41 @@ class _StatusTagStyle {
   final Color borderColor;
 }
 
-_StatusTagStyle _periodTagStyle(String status) {
-  return switch (status) {
-    'confirmed' => const _StatusTagStyle(
-        label: '已结算',
-        icon: Icons.check_circle_outline,
-        bgColor: Color(0xFFE8F5E9),
-        textColor: Color(0xFF2E7D32),
-        borderColor: Color(0xFF2E7D32),
-      ),
-    'partially_confirmed' => const _StatusTagStyle(
-        label: '已确认',
-        icon: Icons.check_circle_outline,
-        bgColor: Color(0xFFE3F2FD),
-        textColor: Color(0xFF1565C0),
-        borderColor: Color(0xFF1565C0),
-      ),
-    _ => const _StatusTagStyle(
-        label: '待确认',
-        icon: Icons.pending_outlined,
-        bgColor: Color(0xFFFFF3E0),
-        textColor: Color(0xFFE65100),
-        borderColor: Color(0xFFE65100),
-      ),
-  };
+_StatusTagStyle _periodTagStyle(RevenuePeriod period) {
+  if (period.isSettled) {
+    return const _StatusTagStyle(
+      label: '已结算',
+      icon: Icons.check_circle_outline,
+      bgColor: Color(0xFFE8F5E9),
+      textColor: Color(0xFF2E7D32),
+      borderColor: Color(0xFF2E7D32),
+    );
+  }
+  if (period.isPartnerConfirmed) {
+    return const _StatusTagStyle(
+      label: '双方确认',
+      icon: Icons.check_circle_outline,
+      bgColor: Color(0xFFE3F2FD),
+      textColor: Color(0xFF1565C0),
+      borderColor: Color(0xFF1565C0),
+    );
+  }
+  if (period.isPlatformConfirmed) {
+    return const _StatusTagStyle(
+      label: '平台已确认',
+      icon: Icons.check_circle_outline,
+      bgColor: Color(0xFFE3F2FD),
+      textColor: Color(0xFF1565C0),
+      borderColor: Color(0xFF1565C0),
+    );
+  }
+  return const _StatusTagStyle(
+    label: '待确认',
+    icon: Icons.pending_outlined,
+    bgColor: Color(0xFFFFF3E0),
+    textColor: Color(0xFFE65100),
+    borderColor: Color(0xFFE65100),
+  );
 }
 
 class _StatusTag extends StatelessWidget {
@@ -337,37 +331,6 @@ class _StatusTag extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// ViewState fallback views
-// ---------------------------------------------------------------------------
-
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({super.key, required this.message});
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
-          const SizedBox(height: AppSpacing.md),
-          Text('加载失败', style: theme.textTheme.titleMedium?.copyWith(
-            color: theme.colorScheme.error,
-          )),
-          if (message.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.sm),
-              child: Text(message, style: theme.textTheme.bodySmall),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
 class _EmptyView extends StatelessWidget {
   const _EmptyView({super.key});
 
@@ -383,8 +346,7 @@ class _EmptyView extends StatelessWidget {
             Icon(Icons.inbox_outlined, size: 48, color: theme.disabledColor),
             const SizedBox(height: AppSpacing.md),
             Text('暂无对账数据，系统将在每月1日自动生成结算周期',
-                style: theme.textTheme.bodyMedium,
-                textAlign: TextAlign.center),
+                style: theme.textTheme.bodyMedium, textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -392,54 +354,11 @@ class _EmptyView extends StatelessWidget {
   }
 }
 
-class _ForbiddenView extends StatelessWidget {
-  const _ForbiddenView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.lock_outline, size: 48, color: theme.disabledColor),
-          const SizedBox(height: AppSpacing.md),
-          Text('无权限访问', style: theme.textTheme.titleMedium),
-        ],
-      ),
-    );
-  }
-}
-
-class _OfflineView extends StatelessWidget {
-  const _OfflineView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.cloud_off_outlined, size: 48, color: theme.disabledColor),
-          const SizedBox(height: AppSpacing.md),
-          Text('网络不可用', style: theme.textTheme.titleMedium),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 enum _FilterOption {
   all('全部'),
   pending('待确认'),
-  confirmed('已结算');
+  confirmed('已确认');
 
   const _FilterOption(this.label);
   final String label;
 }
-

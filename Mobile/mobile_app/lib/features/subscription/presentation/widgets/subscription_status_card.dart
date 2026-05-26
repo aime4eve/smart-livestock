@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
@@ -271,7 +273,9 @@ class SubscriptionStatusCard extends ConsumerWidget {
     return end.difference(DateTime.now()).inDays.clamp(0, 999);
   }
 
-  void _navigateToPlans(BuildContext context) {}
+  void _navigateToPlans(BuildContext context) {
+    context.push(AppRoute.subscriptionPlan.path);
+  }
 
   void _confirmCancel(BuildContext context, WidgetRef ref) {
     showDialog(

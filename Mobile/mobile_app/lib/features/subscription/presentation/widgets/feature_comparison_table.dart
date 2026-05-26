@@ -37,21 +37,10 @@ class FeatureComparisonTable extends ConsumerWidget {
     SubscriptionTier.enterprise,
   ];
 
-  bool _hasAccess(SubscriptionTier tier, FeatureDefinition def) {
-    final tiersConfig = def.tiers;
-    if (tiersConfig is List) {
-      return tiersConfig.contains(tier.name);
-    }
-    if (tiersConfig is Map) {
-      return tiersConfig.containsKey(tier.name);
-    }
-    return false;
-  }
-
   String _cellLabel(SubscriptionTier tier, String featureKey) {
+    if (!checkTierAccess(tier, featureKey)) return '—';
     final def = FeatureFlags.all[featureKey];
     if (def == null) return '—';
-    if (!_hasAccess(tier, def)) return '—';
 
     final tiersConfig = def.tiers;
 

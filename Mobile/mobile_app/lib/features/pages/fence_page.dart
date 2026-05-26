@@ -177,9 +177,6 @@ class _FencePageState extends ConsumerState<FencePage>
     return LayoutBuilder(
       builder: (context, constraints) {
         final panelW = min(300.0, constraints.maxWidth * 0.82);
-        final mockTrajectoryPoints = false
-            ? _buildMockTrajectoryPoints(fenceState)
-            : const <LatLng>[];
 
         return Stack(
           clipBehavior: Clip.none,
@@ -245,29 +242,6 @@ class _FencePageState extends ConsumerState<FencePage>
                             PolygonLayer(
                               polygons:
                                   _buildEditPolygons(editSession),
-                            ),
-                          if (!isEditing &&
-                              editSession == null &&
-                              false &&
-                              mockTrajectoryPoints.isNotEmpty)
-                            PolylineLayer(
-                              polylines: [
-                                Polyline(
-                                  points: mockTrajectoryPoints,
-                                  color: AppColors.primary,
-                                  strokeWidth: 3,
-                                ),
-                              ],
-                            ),
-                          if (!isEditing && false)
-                            PolylineLayer(
-                              polylines: [
-                                Polyline(
-                                  points: const [],
-                                  color: AppColors.primary,
-                                  strokeWidth: 3,
-                                ),
-                              ],
                             ),
                           if (isEditing &&
                               editSession.points.length >= 2)
@@ -946,11 +920,6 @@ class _FencePageState extends ConsumerState<FencePage>
       _showSnackBar(context, geometryError);
       return;
     }
-    if (false) {
-      controller.saveEditing();
-      if (mounted) setState(() => _panelOpen = true);
-      return;
-    }
     final sessionInstanceId = session.sessionInstanceId;
     final fenceId = session.fenceId;
     final fenceItem = ref.read(fenceControllerProvider).fences.firstWhere(
@@ -1036,11 +1005,6 @@ class _FencePageState extends ConsumerState<FencePage>
 
   List<Marker> _buildLivestockMarkers(dynamic appMode) {
     // Live mode: livestock markers loaded from API via repository
-    return const [];
-  }
-
-  List<LatLng> _buildMockTrajectoryPoints(FenceState fenceState) {
-    // Trajectory generation removed — will be reimplemented with real GPS data
     return const [];
   }
 
@@ -1335,62 +1299,3 @@ class _FenceMapNameChip extends StatelessWidget {
   }
 }
 
-class _MapMarker extends StatelessWidget {
-  const _MapMarker({required this.label, this.isAlert = false});
-
-  final String label;
-  final bool isAlert;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isAlert ? AppColors.danger : AppColors.success;
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: Alignment.topCenter,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.4),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.pets,
-                color: Colors.white, size: 14),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 4, vertical: 1),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(4),
-              boxShadow: const [
-                BoxShadow(color: Colors.black26, blurRadius: 2),
-              ],
-            ),
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style:
-                  Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                      ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smart_livestock_demo/core/api/api_client.dart';
 import 'package:smart_livestock_demo/features/dashboard/data/dashboard_api_repository.dart';
 import 'package:smart_livestock_demo/features/dashboard/domain/dashboard_repository.dart';
 
@@ -9,6 +10,10 @@ final dashboardRepositoryProvider = Provider<DashboardRepository>(
 class DashboardController extends AsyncNotifier<DashboardViewData> {
   @override
   Future<DashboardViewData> build() async {
+    for (var i = 0; i < 20; i++) {
+      if (ApiClient.instance.activeFarmId != null) break;
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
     return ref.read(dashboardRepositoryProvider).load();
   }
 

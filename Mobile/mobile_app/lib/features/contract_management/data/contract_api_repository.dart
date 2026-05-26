@@ -5,20 +5,15 @@ class ContractApiRepository implements ContractManagementRepository {
   const ContractApiRepository();
 
   @override
-  Future<ContractListViewData> getContracts({
-    String? partnerId,
-    String? status,
-  }) async {
-    var path = '/admin/contracts';
-    final query = <String, String>{};
-    if (partnerId != null) query['partnerId'] = partnerId;
-    if (status != null) query['status'] = status;
-    if (query.isNotEmpty) {
-      path += '?${query.entries.map((e) => '${e.key}=${e.value}').join('&')}';
-    }
-    final data = await ApiClient.instance.get(path);
-    final items = data['items'] as List? ?? [];
-    final contracts = items.whereType<Map<String, dynamic>>().toList();
+  Future<ContractListViewData> getContracts() async {
+    final data = await ApiClient.instance.get('/admin/contracts');
+    final items = data['items'] as List<dynamic>? ??
+        data['value'] as List<dynamic>? ??
+        [];
+    final contracts = items
+        .whereType<Map<String, dynamic>>()
+        .map((m) => ContractSummary.fromJson(m))
+        .toList();
     return ContractListViewData(
       contracts: contracts,
       total: data['total'] as int? ?? contracts.length,
@@ -26,20 +21,37 @@ class ContractApiRepository implements ContractManagementRepository {
   }
 
   @override
-  Future<bool> createContract(Map<String, dynamic> data) async {
-    await ApiClient.instance.post('/admin/contracts', body: data);
-    return true;
+  Future<ContractSummary> getContractDetail(String id) async {
+    final data = await ApiClient.instance.get('/admin/contracts/$id');
+    return ContractSummary.fromJson(data);
   }
 
   @override
-  Future<bool> updateContract(String id, Map<String, dynamic> data) async {
-    await ApiClient.instance.put('/admin/contracts/$id', body: data);
-    return true;
+  Future<ContractSummary> createContract(Map<String, dynamic> body) async {
+    final data =
+        await ApiClient.instance.post('/admin/contracts', body: body);
+    return ContractSummary.fromJson(data);
   }
 
   @override
-  Future<bool> terminateContract(String id) async {
-    await ApiClient.instance.put('/admin/contracts/$id', body: {'status': 'terminated'});
+  Future<ContractSummary> updateDraft(
+      String id, Map<String, dynamic> body) async {
+    final data =
+        await ApiClient.instance.put('/admin/contracts/$id', body: body);
+    return ContractSummary.fromJson(data);
+  }
+
+  @override
+  Future<ContractSummary> signContract(String id) async {
+    final data =
+        await ApiClient.instance.post('/admin/contracts/$id/sign');
+    return ContractSummary.fromJson(data);
+  }
+
+  @override
+  Future<bool> updateContractStatus(String id, String targetStatus) async {
+    await ApiClient.instance.put('/admin/contracts/$id/status',
+        body: {'targetStatus': targetStatus.toUpperCase()});
     return true;
   }
 }

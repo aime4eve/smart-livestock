@@ -6,6 +6,7 @@ class B2bFarmSummary {
     required this.ownerName,
     required this.livestockCount,
     required this.region,
+    this.ownerId,
     this.deviceCount = 0,
     this.workerCount = 0,
     this.createdAt,
@@ -15,11 +16,26 @@ class B2bFarmSummary {
   final String name;
   final String status;
   final String ownerName;
+  final int? ownerId;
   final int livestockCount;
   final String region;
   final int deviceCount;
   final int workerCount;
   final String? createdAt;
+}
+
+class B2bUserSummary {
+  const B2bUserSummary({
+    required this.id,
+    required this.name,
+    required this.phone,
+    required this.role,
+  });
+
+  final int id;
+  final String name;
+  final String phone;
+  final String role;
 }
 
 class B2bDashboardData {
@@ -100,4 +116,6 @@ abstract class B2bRepository {
   Future<B2bDashboardData> loadDashboard();
   Future<B2bContractData> loadContract();
   Future<bool> createFarm(Map<String, dynamic> body);
+  Future<List<B2bUserSummary>> loadUsers({String? role});
+  Future<bool> changeOwner(String farmId, int ownerId);
 }

@@ -16,7 +16,7 @@ class MinePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncData = ref.watch(mineControllerProvider);
+    final asyncProfile = ref.watch(mineControllerProvider);
     final role = ref.watch(sessionControllerProvider).role;
     return SingleChildScrollView(
       key: const Key('page-mine'),
@@ -24,8 +24,8 @@ class MinePage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          asyncData.when(
-            data: (data) => Column(
+          asyncProfile.when(
+            data: (profile) => Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 HighfiCard(
@@ -33,16 +33,22 @@ class MinePage extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('我的',
+                      Text(profile.displayName,
                           style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: AppSpacing.sm),
-                      const HighfiStatusChip(
-                        label: '账户正常',
-                        color: AppColors.success,
+                      HighfiStatusChip(
+                        label: profile.active == true ? '账户正常' : '账户已停用',
+                        color: profile.active == true ? AppColors.success : AppColors.danger,
                         icon: Icons.verified_user_outlined,
                       ),
-                      const SizedBox(height: AppSpacing.md),
-                      Text(data.normalText),
+                      if (profile.phone != null) ...[
+                        const SizedBox(height: AppSpacing.md),
+                        Text('手机号：${profile.phone!}'),
+                      ],
+                      if (profile.role != null) ...[
+                        const SizedBox(height: AppSpacing.xs),
+                        Text('角色：${profile.role!}'),
+                      ],
                     ],
                   ),
                 ),
@@ -71,7 +77,7 @@ class MinePage extends ConsumerWidget {
             ),
             loading: () =>
                 const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('$e')),
+            error: (e, _) => Center(child: Text('加载失败: $e')),
           ),
           if (role == UserRole.owner) ...[
             const SizedBox(height: AppSpacing.md),

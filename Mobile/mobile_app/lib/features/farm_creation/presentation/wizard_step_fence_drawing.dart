@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
+
 import 'package:smart_livestock_demo/core/api/api_client.dart';
 import 'package:smart_livestock_demo/core/map/coord_transform.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
@@ -170,8 +170,6 @@ class _WizardStepFenceDrawingState
       return;
     }
     setState(() => _saving = true);
-
-    final session = ref.read(sessionControllerProvider);
 
     final vertices = _verticesForSave(_session.points)
         .map((p) => {'lat': p.latitude, 'lng': p.longitude})

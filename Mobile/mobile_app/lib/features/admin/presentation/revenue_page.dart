@@ -31,7 +31,6 @@ class RevenuePage extends ConsumerWidget {
             const SizedBox(height: AppSpacing.lg),
             if (data.periods.isNotEmpty)
               ...data.periods.map((period) {
-                final isConfirmed = period.status == 'confirmed';
                 return Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: HighfiCard(
@@ -47,10 +46,10 @@ class RevenuePage extends ConsumerWidget {
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             Icon(
-                              isConfirmed
+                              period.platformConfirmed
                                   ? Icons.check_circle
                                   : Icons.pending_outlined,
-                              color: isConfirmed
+                              color: period.platformConfirmed
                                   ? Colors.green
                                   : Colors.orange,
                             ),
@@ -64,8 +63,10 @@ class RevenuePage extends ConsumerWidget {
                         Text(
                           '合作方分润: ${period.partnerShare.toStringAsFixed(2)}',
                         ),
-                        Text('状态: ${isConfirmed ? "已确认" : "待确认"}'),
-                        if (!isConfirmed)
+                        Text(
+                          '状态: ${period.platformConfirmed ? "已确认" : "待确认"}',
+                        ),
+                        if (period.isPending)
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton.icon(

@@ -15,14 +15,21 @@ class SubscriptionApiRepository implements SubscriptionRepository {
   Future<List<SubscriptionTierInfo>> loadPlans() async {
     final data = await ApiClient.instance.get('/subscription/plans');
     final items = data['items'] as List? ?? data['plans'] as List? ?? [];
-    return items
-        .whereType<Map<String, dynamic>>()
-        .map((m) {
-          final tierName = m['tier'] as String;
-          final tier = SubscriptionTier.values.byName(tierName);
-          return SubscriptionTierInfo.all[tier]!;
-        })
-        .toList();
+    if (items.isEmpty) {
+      return SubscriptionTierInfo.all.values.toList();
+    }
+    return items.whereType<Map<String, dynamic>>().map((m) {
+      final tier = parseSubscriptionTier(m['tier'] as String? ?? '');
+      final fallback = SubscriptionTierInfo.all[tier]!;
+      return SubscriptionTierInfo(
+        tier: tier,
+        name: m['name'] as String? ?? fallback.name,
+        monthlyPrice: (m['monthlyPrice'] as num?)?.toDouble() ?? fallback.monthlyPrice,
+        livestockLimit: m['livestockLimit'] as int? ?? fallback.livestockLimit,
+        perUnitPrice: (m['perUnitPrice'] as num?)?.toDouble() ?? fallback.perUnitPrice,
+        features: (m['features'] as List?)?.whereType<String>().toList() ?? fallback.features,
+      );
+    }).toList();
   }
 
   @override

@@ -33,10 +33,10 @@ class SubscriptionController extends AsyncNotifier<SubscriptionStatus> {
 
   Future<void> cancel() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() =>
-        ref.read(subscriptionRepositoryProvider).cancel().then((_) async {
-          return ref.read(subscriptionRepositoryProvider).loadCurrent();
-        }));
+    state = await AsyncValue.guard(() async {
+      await ref.read(subscriptionRepositoryProvider).cancel();
+      return ref.read(subscriptionRepositoryProvider).loadCurrent();
+    });
   }
 
   Future<void> refresh() async {
