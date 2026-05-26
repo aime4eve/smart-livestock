@@ -68,10 +68,10 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 智慧畜牧系统（Smart Livestock）是面向牧场主的牲畜管理平台，通过 IoT 设备（GPS 追踪器、瘤胃胶囊、加速度计）实现定位、健康预警和行为分析。仓库包含两个子项目：
 
-- **Mobile/** — Flutter 移动端 + Node.js Mock API Server（Demo 阶段已完成：订阅基础设施、多牧场支持、B端管理后台、牧工管理）
-- **smart-livestock-server/** — Spring Boot 后端（MVP Phase 1 已完成，DDD 洋葱架构，已取代 Mock Server 作为 Live 后端）
+- **Mobile/** — Flutter 移动端（已移除 Mock 模式，通过 ApiClient 对接 Spring Boot 后端）
+- **smart-livestock-server/** — Spring Boot 后端（MVP Phase 1 + Phase 2a Commerce 已完成，DDD 洋葱架构）
 
-Flutter 端已完成的 Demo 功能包括：订阅与功能门控、多牧场切换、B端管理后台、牧工管理。Spring Boot 后端 Phase 1 已实施完成（Identity + Ranch + IoT），前端可通过 Live 模式对接真实后端。
+Flutter 端已完成：订阅与功能门控、多牧场切换、B端管理后台、牧工管理、租户用户管理。Spring Boot 后端 Phase 1（Identity + Ranch + IoT）和 Phase 2a（Commerce）已实施完成，前端通过 JWT 认证对接真实后端。
 
 ## 当前工作重点
 
@@ -152,7 +152,7 @@ CattleService ←→ LocationService（GPS 坐标）
 
 ## 后端（smart-livestock-server/）
 
-> MVP Phase 1 已完成（Identity + Ranch + IoT 三个限界上下文）。Commerce 限界上下文设计规格已通过评审，实施计划已制定（11 个 Task）。
+> MVP Phase 1（Identity + Ranch + IoT）和 Phase 2a（Commerce）已完成。5 个限界上下文，293 Java 文件，35 Controller，~120 API 端点，18 张表。
 
 ### 后端服务部署方式
 
@@ -164,7 +164,7 @@ CattleService ←→ LocationService（GPS 坐标）
 
 ```bash
 cd smart-livestock-server
-./gradlew bootJar -x test
+./gradlew clean bootJar -x test
 rsync -avz --exclude='.git' --exclude='.gradle' --exclude='node_modules' . agentic@172.22.1.123:~/smart-livestock-server/
 ssh agentic@172.22.1.123 "cd ~/smart-livestock-server && mkdir -p build/libs"
 rsync -avz build/libs/ agentic@172.22.1.123:~/smart-livestock-server/build/libs/
@@ -175,8 +175,29 @@ ssh agentic@172.22.1.123 "cd ~/smart-livestock-server && docker compose build ap
 
 | 角色                    | 手机号         | 密码          | 说明                  |
 | --------------------- | ----------- | ----------- | ------------------- |
-| owner（牧场主）            | 13800138000 | password123 | Demo 租户 owner，关联主牧场 |
-| platform_admin（平台管理员） | 13800000000 | password123 | 平台级管理，无租户归属         |
+| platform_admin（平台管理员） | 13800000000 | 123 | 平台级管理，无租户归属         |
+| b2b_admin（B端管理员）      | 13900139000 | 123 | B端管理员，关联 Demo 租户（V13 seed） |
+| owner（牧场主）            | 13800138000 | 123 | Demo 租户 owner，关联主牧场 |
+
+### 角色旅程链
+
+```
+platform_admin → 创建租户 → 进入租户详情 → 新增用户（b2b_admin / owner / worker）
+b2b_admin → 创建牧场 → 分配给 owner
+owner → 管理牲畜、围栏、告警、牧工
+```
+
+牧场不由 owner 自行创建，由 b2b_admin 或 platform_admin 创建并分配。
+
+### Seed 密码流程
+
+Seed 迁移中的 BCrypt hash 必须严格遵循三步验证，不可跳过：
+
+1. **生成时验证**：生成 hash 后立即用 `bcrypt.compare(plaintext, hash)` 确认匹配
+2. **写入迁移**：确认匹配后写入 SQL 文件，不得跨迁移复制 hash（之前的 hash 可能本身就是错的）
+3. **部署后验证**：部署后用 `curl` 调用 `/auth/login` 确认真实登录成功
+
+历史教训：V4 hash 错误 → V5 "修复" 仍然错误 → V13 复制 V5 hash 延续错误。每一步都跳过了验证。
 
 ### 前端 Live 模式连接后端
 
@@ -214,24 +235,35 @@ Spring Boot 3.3 + Java 17 + Gradle + PostgreSQL 16 + Redis 7 + RocketMQ 5.1 + Fl
 - **IoT**: Device、DeviceLicense、Installation、GpsLog（GPS 模拟数据）
 - **Shared**: SecurityConfig、JwtAuthenticationFilter、TenantScope、AuditLog（stub）
 
-#### Phase 2 — 设计完成 / 实施中
+#### Phase 2a — 已完成
 
-- **Commerce**: Subscription、Contract、RevenuePeriod、SubscriptionService（设计规格已评审，实施计划 11 个 Task）
+- **Commerce**: Subscription、Contract、RevenuePeriod、SubscriptionService、FeatureGate（完整 DDD 洋葱架构，80 Java 文件，11 测试类，7 Controller）
 
-### 数据库表（12 张，Flyway 迁移）
+#### Phase 2b — 待设计
+
+- **Health**: 温度/蠕动/发情/疫情分析引擎 + 时序数据
+
+#### Phase 2c — 待设计
+
+- **Analytics + API Portal**: API Key 生命周期 + 开发者门户 + 频率限制 + 统计聚合 + 趋势分析
+
+### 数据库表（18 张，14 个 Flyway 迁移）
 
 | 迁移 | 表 | 限界上下文 |
 |------|---|--------|
 | V1 | tenants, farms, users, user_farm_assignments, api_keys | Identity |
 | V2 | livestock, fences, alerts | Ranch |
 | V3 | devices, device_licenses, installations, gps_logs | IoT |
+| V6 | subscriptions, contracts, revenue_periods, subscription_services, feature_gates, notifications | Commerce |
 
-### 后端 Controller（27 个）
+V4-V5: seed 数据 + 密码修复；V7-V8: subscription 修复 + hash 前缀修复；V9-V14: ranch/commerce/twin seed 数据 + b2b_admin seed + username 列清理。
+
+### 后端 Controller（35 个）
 
 | 分类 | Controller |
 |------|-----------|
-| App API | AuthController, MeController, TenantController, FarmController, LivestockController, FenceController, AlertController, DashboardController, MapController, DeviceController, DeviceLicenseController, InstallationController, GpsLogController, TileController, HealthController |
-| Admin API | TenantAdminController, FarmAdminController, UserAdminController, DashboardAdminController, AuditLogController, ApiKeyAdminController |
+| App API | AuthController, MeController, TenantController, FarmController, B2bController, LivestockController, FenceController, AlertController, DashboardController, MapController, TileController, DeviceController, DeviceLicenseController, InstallationController, GpsLogController, HealthController, CommerceController, SubscriptionController |
+| Admin API | TenantAdminController, FarmAdminController, UserAdminController, DashboardAdminController, AuditLogController, ApiKeyAdminController, AdminSubscriptionController, AdminContractController, AdminFeatureGateController, AdminRevenueController, AdminServiceController |
 | Open API | OpenLivestockController, OpenFenceController, OpenAlertController, OpenDeviceController, OpenDeviceRegisterController, OpenGpsController |
 
 ### 常用命令
@@ -239,7 +271,7 @@ Spring Boot 3.3 + Java 17 + Gradle + PostgreSQL 16 + Redis 7 + RocketMQ 5.1 + Fl
 ```bash
 cd smart-livestock-server
 ./gradlew compileJava              # 编译
-./gradlew test                     # 全部测试（14 个测试类）
+./gradlew test                     # 全部测试（27 个测试类）
 ./gradlew test --tests "*.domain.model.*"  # 领域模型单元测试
 ./gradlew bootRun                  # 启动（需 PostgreSQL + Redis）
 docker compose up -d               # 全栈启动（PostgreSQL + Redis + RocketMQ + App）
@@ -314,13 +346,17 @@ cd Mobile && ./dev.sh start [mock|live]
 
 ### 角色与权限
 
-| 角色                    | DemoRole / Token            | 可见范围                                        |
-| --------------------- | --------------------------- | ------------------------------------------- |
-| owner（牧场主）            | `mock-token-owner`          | 全部页面 + 后台管理 + 牧工管理 + 订阅管理                   |
-| worker（牧工）            | `mock-token-worker`         | 看板/地图/告警/我的/围栏，仅确认告警                        |
-| platform_admin（平台管理员） | `mock-token-platform-admin` | 租户全量管理 + 合同 CRUD + 分润对账 + 订阅服务管理 + API 授权审批 |
-| b2b_admin（B端客户管理员）    | `mock-token-b2b-admin`      | 概览/牧场管理/合同信息/对账/旗下牧工管理                      |
-| api_consumer（API 开发者） | `mock-token-api-consumer`   | 仅 API 访问，无 App 端（开发者门户 MVP Phase 2 规划中）     |
+前端已移除 Mock 模式，通过 JWT 认证对接 Spring Boot 后端。
+
+| 角色 | 可见范围 | Shell 类型 |
+|------|---------|-----------|
+| owner（牧场主） | 全部页面 + 后台管理 + 牧工管理 + 订阅管理 | 底部导航栏（4-5 Tab） |
+| worker（牧工） | 看板/地图/告警/我的/围栏，仅确认告警 | 底部导航栏（4 Tab） |
+| platform_admin（平台管理员） | 租户全量管理 + 用户管理 + 合同 CRUD + 分润对账 + 订阅服务管理 + API 授权审批 | 无 Shell，纯 Scaffold |
+| b2b_admin（B端客户管理员） | 概览/牧场管理/合同信息/对账/旗下牧工管理 | 左侧 NavigationRail |
+| api_consumer（API 开发者） | 仅 API 访问，无 App 端（开发者门户 MVP Phase 2 规划中） | — |
+
+**旅程链**：platform_admin → 创建 b2b_admin → b2b_admin 创建牧场 → 分配给 owner。牧场不由 owner 自行创建。详见 `docs/customer-journey.md`。
 
 ### 代码风格
 
@@ -334,19 +370,19 @@ cd Mobile && ./dev.sh start [mock|live]
 ## 版本路线图
 
 > Flutter Demo 阶段已完成：订阅基础设施 + 功能门控、多牧场支持 + B端管理后台 + 牧场切换器 + 牧工管理。
-> Spring Boot 后端 MVP Phase 1 已完成（Identity + Ranch + IoT），进入 Phase 2 Commerce 实施。
+> Spring Boot 后端 MVP Phase 1 + Phase 2a Commerce 已完成，4 个限界上下文全部实施。
 
 | 阶段                     | 核心功能                                                                   | 限界上下文                         | 状态  |
 | ---------------------- | ---------------------------------------------------------------------- | ----------------------------- | --- |
-| **MVP Phase 1** — 核心底座 | 认证(JWT) + 租户/牧场 + 设备/牲畜 + 围栏/告警 + Dashboard/Map + GPS 模拟               | Identity + Ranch + IoT        | 已完成 |
-| **MVP Phase 2a** — Commerce | 订阅计费 + 合同管理 + 分润对账 + Tier 配额引擎 + Licensed 服务                        | Commerce                      | 设计完成，实施中 |
-| **MVP Phase 2b** — Health | 温度/蠕动/发情/疫情分析引擎 + 时序数据                                                  | Health                        | 待设计 |
-| **MVP Phase 2c** — 平台扩展 | API Key 生命周期 + 开发者门户 + 频率限制 + 统计聚合 + 趋势分析                              | Analytics + API Portal        | 待设计 |
-| **Phase 3** — IoT 真实接入 | 设备 license 入网 + LoRa/NS 平台对接 + 真实传感器数据 + 时序数据分区                        | IoT 扩展                        | 待设计 |
+| **MVP Phase 1** — 核心底座 | 认证(JWT) + 租户/牧场 + 设备/牲畜 + 围栏/告警 + Dashboard/Map + GPS 模拟               | Identity + Ranch + IoT        | ✅ 已完成 |
+| **MVP Phase 2a** — Commerce | 订阅计费 + 合同管理 + 分润对账 + Tier 配额引擎 + Licensed 服务 + FeatureGate             | Commerce                      | ✅ 已完成 |
+| **MVP Phase 2b** — Health | 温度/蠕动/发情/疫情分析引擎 + 时序数据                                                  | Health                        | ⏳ 待设计 |
+| **MVP Phase 2c** — 平台扩展 | API Key 生命周期 + 开发者门户 + 频率限制 + 统计聚合 + 趋势分析                              | Analytics + API Portal        | ⏳ 待设计 |
+| **Phase 3** — IoT 真实接入 | 设备 license 入网 + LoRa/NS 平台对接 + 真实传感器数据 + 时序数据分区                        | IoT 扩展                        | ⏳ 待设计 |
 
-**后端现状**：3 个限界上下文（Phase 1 已完成）、12 张表、111 个 API 端点（App 64 + Admin 30 + Open 17）、27 个 Controller、166 个 Java 文件。Commerce 设计规格已评审通过。API Key 和审计日志是 stub。
+**后端现状**：5 个限界上下文（Identity + Ranch + IoT + Commerce + Shared）、18 张表、~120 个 API 端点（App 65 + Admin 43 + Open 11）、35 个 Controller、293 个 Java 文件、27 个测试类。API Key 和审计日志是 stub。
 
-**前端现状**：222 个 Dart 文件、26 个功能模块、39 条路由、60 个测试文件。订阅系统（4 个 tier + 23 个 feature flag）、B端后台、租户管理、健康模块（发热/消化/发情/疫病）UI 已用 mock 数据搭好。地图支持三级瓦片降级（tileserver-gl → MBTiles → 高德/OSM）。ApiCache 有数据规范化层对接后端。
+**前端现状**：已移除 Mock 模式，全部通过 ApiClient 异步对接 Spring Boot 后端（JWT 认证）。26 个功能模块、39 条路由。订阅系统（4 个 tier + 23 个 feature flag）、B端后台、租户管理（TenantDetailPage 含用户创建/启停）、健康模块（发热/消化/发情/疫病）UI 框架已搭好。地图支持三级瓦片降级（tileserver-gl → MBTiles → 高德/OSM）。客户旅程文档：`docs/customer-journey.md`。Flutter 测试 107 通过 / 42 失败（围栏编辑和 Live 适配后组件 Key 未同步）。
 
 ---
 
