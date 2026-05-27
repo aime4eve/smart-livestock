@@ -236,11 +236,23 @@ Body: { vertices: [...], version: 3 }
 ### 6.1 generate_mbtiles.py — 新增 --task-id 模式
 
 ```bash
+# 推荐方式：环境变量（不暴露在 ps aux 中）
+export SMART_LIVESTOCK_API_KEY="sk_live_xxxxx"
+python3 tooling/generate_mbtiles.py \
+  --task-id 7 \
+  --api-url http://172.22.1.123:18080/api/v1
+
+# 备选方式：从文件读取（适合 CI/CD）
 python3 tooling/generate_mbtiles.py \
   --task-id 7 \
   --api-url http://172.22.1.123:18080/api/v1 \
-  --api-key sk_live_xxxxx
+  --api-key-file ~/.config/smart-livestock/api-key
 ```
+
+脚本按以下优先级获取 API Key：
+1. 环境变量 `SMART_LIVESTOCK_API_KEY`（推荐）
+2. `--api-key-file` 指定的文件路径
+3. `--api-key` 直接传值（仅限本地开发，**禁止在生产环境使用**，`ps aux` 可见）
 
 流程：
 1. `GET /admin/tiles/tasks/7` → 获取 bbox, zoom, region_name
@@ -249,11 +261,11 @@ python3 tooling/generate_mbtiles.py \
 4. 完成 → `{ "status": "done", "tileCount": N, "fileSizeMb": X }`
 5. 失败 → `{ "status": "failed", "errorMessage": "..." }`
 
-认证通过 `--api-key` 参数传递，脚本用 `X-API-Key` header 调用管理 API。
+认证通过 `X-API-Key` header 调用管理 API。
 
 ### 6.2 import_mbtiles.sh — 导入后同步 DB
 
-导入完成后调用管理 API 更新 tile_regions（file_name, file_size, md5, status=ready），并推进关联的 farm_tile_tasks 到 ready。
+导入完成后调用管理 API 更新 tile_regions（file_name, file_size, md5, status=ready），并推进关联的 farm_tile_tasks 到 ready。认证方式与 generate_mbtiles.py 相同（环境变量优先）。
 
 ---
 
