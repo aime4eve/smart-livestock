@@ -243,12 +243,19 @@ PUT /fences/{id}
 Body: { vertices: [...], expectedVersion: 2 }
 
 → 200: 更新成功（version → 3）
-→ 409 Conflict: { serverVersion: 3, serverVertices: [...] }
+→ 409 Conflict: {
+       serverVersion: 3,
+       serverVertices: [...],
+       lastModifiedBy: "张三 (worker)",
+       lastModifiedAt: "2026-05-27T14:30:00Z"
+     }
 
 PUT /fences/{id}/force
 Body: { vertices: [...], version: 3 }
 → 200: 强制更新成功（version → 4）
 ```
+
+409 响应包含修改者和修改时间，供客户端冲突解决页面展示上下文信息。
 
 ---
 
@@ -457,8 +464,43 @@ CREATE TABLE cached_fences (
 网络恢复 → 查 synced=0 → 逐条处理：
   ├─ 新建围栏 → POST /fences → 更新本地
   ├─ 版本一致 → PUT /fences/{id} → synced=1
-  └─ 版本冲突 → 弹窗：放弃修改 或 覆盖服务端
+  └─ 版本冲突 → 打开冲突解决页面（见下方）
 ```
+
+**冲突解决页面**：提供上下文辅助用户决策，非简单二选一。
+
+409 Conflict API 返回扩展信息：
+```json
+{
+  "serverVersion": 3,
+  "serverVertices": [...],
+  "lastModifiedBy": "张三 (worker)",
+  "lastModifiedAt": "2026-05-27T14:30:00Z"
+}
+```
+
+冲突页面布局：
+```
+┌──────────────────────────────────────┐
+│  围栏冲突："北区分区围栏"              │
+│                                        │
+│  ┌────────────┐  ┌────────────┐       │
+│  │ 服务端版本  │  │ 您的修改    │       │
+│  │ (v3)       │  │ (离线编辑)  │       │
+│  │            │  │            │       │
+│  │  [地图显示  │  │  [地图显示  │       │
+│  │   服务端    │  │   本地      │       │
+│  │   围栏形状] │  │   围栏形状] │       │
+│  └────────────┘  └────────────┘       │
+│                                        │
+│  服务端: 张三 修改于 5/27 14:30        │
+│  本地:   您 修改于 5/27 10:15 (离线)   │
+│                                        │
+│  [放弃我的修改]     [覆盖服务端版本]    │
+└──────────────────────────────────────┘
+```
+
+双栏地图各用独立 `FlutterMap` 实例，同中心点同缩放级别，叠加各自围栏 PolygonLayer，直观对比形状差异。
 
 ### 8.4 Farm 创建集成
 
