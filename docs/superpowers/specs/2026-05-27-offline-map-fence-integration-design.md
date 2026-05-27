@@ -417,11 +417,21 @@ CREATE TABLE cached_fences (
     version     INTEGER NOT NULL DEFAULT 1,
     synced      INTEGER NOT NULL DEFAULT 0,
     updated_at  TEXT NOT NULL,
+    last_local_modified_at TEXT,  -- 本地最后修改时间，用于先推后拉判断
     remote_id   INTEGER
 );
 ```
 
-同步策略：在线时 API 数据覆盖本地（跳过未同步修改），离线时读本地缓存渲染。
+同步策略：**先推后拉**（push-then-pull），避免本地未同步编辑被覆盖。
+
+```
+上线时（或 FencePage 加载检测到在线）：
+  1. 推：查询 synced=0 的记录，逐条上传（见 §8.3 冲突检测）
+  2. 等：所有推送完成（或用户处理完冲突）
+  3. 拉：GET /farms/{farmId}/fences → 对比 version，服务端版本更高则覆盖本地
+```
+
+离线时读本地缓存渲染。
 
 ### 8.2 离线围栏编辑
 
