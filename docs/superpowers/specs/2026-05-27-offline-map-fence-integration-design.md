@@ -354,6 +354,20 @@ getApplicationSupportDirectory()/mbtiles/{regionName}.meta.json
 
 支持断点续传（HTTP Range 请求）。
 
+**下载完整性校验**（原子写入）：
+
+```
+下载流程：
+  1. 下载到临时文件 {regionName}.mbtiles.download
+  2. 下载完成 → 计算 MD5
+  3. 对比 tile_regions.md5（服务端提供）
+     ├─ 匹配 → rename 到 {regionName}.mbtiles（原子操作）
+     └─ 不匹配 → 删除临时文件 → 提示用户重新下载
+  4. 校验通过 → 写 meta.json → 通知 UI 刷新
+```
+
+`GET /farms/{id}/tile-status` 返回中包含 `md5` 字段，供客户端校验。断点续传时，每次追加写入临时文件，全部完成后才做 MD5 校验。
+
 **Pin/Unpin 机制**：
 
 | 自动 pinned | 触发时机 |
