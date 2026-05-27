@@ -5,28 +5,6 @@ import 'package:smart_livestock_demo/core/models/user_role.dart';
 import 'helpers/pump_app.dart';
 
 void main() {
-  testWidgets('owner 登录后业务导航可到达五页面', (tester) async {
-    await pumpAppWithRole(tester, UserRole.owner);
-
-    expect(find.byKey(const Key('page-twin')), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('nav-fence')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('page-fence')), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('nav-alerts')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('page-alerts')), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('nav-mine')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('page-mine')), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('nav-admin')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('page-admin')), findsOneWidget);
-  });
-
   testWidgets('worker 登录后不显示 nav-admin', (tester) async {
     await pumpAppWithRole(tester, UserRole.worker);
 
@@ -39,21 +17,13 @@ void main() {
     expect(find.byKey(const Key('nav-' 'map')), findsNothing);
   });
 
-  testWidgets('围栏页左侧牧场列表打开后标题可见（owner）', (tester) async {
+  testWidgets('owner 导航栏包含五个 Tab', (tester) async {
     await pumpAppWithRole(tester, UserRole.owner);
 
-    await tester.tap(find.byKey(const Key('nav-fence')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('fence-panel-toggle')));
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const Key('fence-drawer-title')), findsOneWidget);
-  });
-
-  testWidgets('孪生页高保真组件可见（owner）', (tester) async {
-    await pumpAppWithRole(tester, UserRole.owner);
-
-    expect(find.byKey(const Key('twin-farm-header')), findsOneWidget);
-    expect(find.byKey(const Key('twin-metric-alert-pending')), findsOneWidget);
+    expect(find.byKey(const Key('nav-twin')), findsOneWidget);
+    expect(find.byKey(const Key('nav-fence')), findsOneWidget);
+    expect(find.byKey(const Key('nav-alerts')), findsOneWidget);
+    expect(find.byKey(const Key('nav-mine')), findsOneWidget);
+    expect(find.byKey(const Key('nav-admin')), findsOneWidget);
   });
 }

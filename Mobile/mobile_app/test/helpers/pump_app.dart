@@ -6,11 +6,12 @@ import 'package:smart_livestock_demo/app/session/app_session.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
 import 'package:smart_livestock_demo/core/models/user_role.dart';
 import 'package:smart_livestock_demo/core/theme/app_theme.dart';
+import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
 
 /// Pumps the app with an authenticated session for the given [role].
 ///
-/// Replaces the old pattern of tapping `Key('role-owner')` which no longer
-/// exists after the DemoRole removal.
+/// Overrides both session and farm switcher so the shell renders
+/// real page content instead of the "no farms" guidance.
 Future<void> pumpAppWithRole(
   WidgetTester tester,
   UserRole role,
@@ -19,6 +20,7 @@ Future<void> pumpAppWithRole(
     ProviderScope(
       overrides: [
         sessionControllerProvider.overrideWith(() => _FakeSessionController(role)),
+        farmSwitcherControllerProvider.overrideWith(() => _FakeFarmSwitcherController()),
       ],
       child: const _TestApp(),
     ),
@@ -53,6 +55,17 @@ class _FakeSessionController extends SessionController {
         phone: '13800138000',
         tenantId: 1,
         username: 'testuser',
-        activeFarmId: 'tenant_001',
+        activeFarmId: '1',
       );
+}
+
+class _FakeFarmSwitcherController extends FarmSwitcherController {
+  @override
+  FarmSwitcherState build() {
+    super.build();
+    return const FarmSwitcherState(
+      farms: [FarmInfo(id: '1', name: 'Demo 牧场')],
+      activeFarmId: '1',
+    );
+  }
 }
