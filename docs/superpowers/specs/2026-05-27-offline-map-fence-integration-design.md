@@ -323,6 +323,32 @@ getApplicationSupportDirectory()/mbtiles/{regionName}.meta.json
 
 本地 `meta.json` 记录 `regionGeneratedAt`，WiFi 下 App 启动时对比服务端 `tile_regions.generated_at`，过期则提示更新。
 
+### 7.5 本地数据库选型
+
+项目中有两类 SQLite 使用场景，采用不同方案：
+
+| 场景 | 方案 | 理由 |
+|------|------|------|
+| MBTiles 瓦片读取 | `sqlite3` + `sqlite3_flutter_libs`（已有） | MBTiles 是外部生成的标准格式，只需只读查询，不需要 migration |
+| 围栏缓存、牲畜位置等结构化业务表 | **drift**（Flutter SQLite ORM） | 需要 migration 管理、类型安全查询、版本化 schema 演进、响应式 watch |
+
+drift 的优势：
+- **Schema 版本管理**：`schemaVersion` + `onUpgrade` 回调，cached_fences 加字段时自动迁移
+- **类型安全**：Dart 代码生成查询，编译期发现 SQL 拼写错误
+- **响应式**：`watch()` 方法监听表变化，UI 自动刷新（适合离线同步状态条）
+- **事务支持**：围栏批量同步时保证原子性
+
+依赖变更：
+```yaml
+# pubspec.yaml 新增
+dependencies:
+  drift: ^2.18
+  sqlite3_flutter_libs: ^0.5.42  # 已有，drift 底层也用此包
+dev_dependencies:
+  drift_dev: ^2.18
+  build_runner: ^2.4
+```
+
 ---
 
 ## 8. Flutter 客户端 — 离线围栏
