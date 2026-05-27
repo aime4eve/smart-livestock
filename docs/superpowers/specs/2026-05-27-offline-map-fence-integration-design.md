@@ -523,7 +523,61 @@ CREATE TABLE cached_livestock_positions (
 
 ---
 
-## 9. 不改动的部分
+## 9. 可观测性
+
+在关键路径埋点上报事件，不依赖复杂埋点框架，用轻量的事件列表 POST 到服务端。
+
+### 9.1 客户端埋点事件
+
+| 事件 | 触发时机 | 采集字段 |
+|------|---------|---------|
+| `tile_download_completed` | MBTiles 下载完成 | farmId, regionName, fileSize, durationSec, networkType |
+| `tile_download_failed` | 下载失败/校验不通过 | farmId, regionName, error, bytesDownloaded |
+| `tile_evicted` | LRU 淘汰 | regionName, fileSize, reason |
+| `tile_cache_hit` | SmartTileProvider 从本地 MBTiles 读到瓦片 | regionName, farmId |
+| `tile_cache_miss` | 本地无瓦片，降级到在线源 | farmId, fallbackSource |
+| `fence_sync_conflict` | 上线同步发现版本冲突 | fenceId, localVersion, serverVersion, resolution |
+| `fence_offline_edit` | 离线编辑围栏 | farmId, fenceId, editType (create/update/delete) |
+| `offline_session` | 离线会话 | farmId, durationSec, fenceEditsCount |
+
+### 9.2 上报机制
+
+```dart
+// 轻量事件收集器，批量上报
+class TileAnalytics {
+  final List<Map<String, dynamic>> _events = [];
+
+  void log(String event, Map<String, dynamic> data) {
+    _events.add({'event': event, 'timestamp': DateTime.now().toIso8601String(), ...data});
+    if (_events.length >= 20) flush();
+  }
+
+  Future<void> flush() async {
+    if (_events.isEmpty) return;
+    await _apiClient.post('/analytics/events', body: _events);
+    _events.clear();
+  }
+}
+```
+
+- 在线时攒够 20 条或 App 进入后台时批量 POST
+- 离线时写入本地 drift 表，上线后补报
+- 服务端新增 `POST /api/v1/analytics/events` 端点，写入 `analytics_events` 表
+
+### 9.3 运维看板指标
+
+| 指标 | 来源 | 意义 |
+|------|------|------|
+| 下载成功率 | `tile_download_completed` / (`completed` + `failed`) | 网络质量、瓦片服务健康 |
+| 平均下载耗时 | `tile_download_completed.durationSec` | 用户体验基线 |
+| 离线使用时长 | `offline_session.durationSec` | 离线功能价值验证 |
+| 冲突频率 | `fence_sync_conflict` 计数 | 多人协作活跃度 |
+| 缓存命中率 | `tile_cache_hit` / (`hit` + `miss`) | 离线瓦片覆盖效果 |
+| 存储淘汰率 | `tile_evicted` 计数 | 存储空间是否充足 |
+
+---
+
+## 10. 不改动的部分
 
 - tileserver-gl 部署（已正常运行）
 - 坐标转换（WGS-84 ↔ GCJ-02）
@@ -535,21 +589,22 @@ CREATE TABLE cached_livestock_positions (
 
 ---
 
-## 10. 实施单元
+## 11. 实施单元
 
 | # | 单元 | 职责 | 依赖 |
 |---|------|------|------|
-| 1 | V15 迁移 + Fence version | 4 张新表 + fences 表扩展 | 无 |
+| 1 | V15 迁移 + Fence version | 4 张新表 + fences 表扩展 + 覆盖率/自定义区域字段 | 无 |
 | 2 | API Key 认证补全 | ApiKeyAuthFilter + 管理控制器 + 管理 UI | 单元 1 |
-| 3 | TileAdminService + 瓦片管理 API | tile_regions/tasks 的 CRUD | 单元 1 |
+| 3 | TileAdminService + 瓦片管理 API | tile_regions/tasks 的 CRUD + 覆盖率计算 | 单元 1 |
 | 4 | Farm 创建集成 | 创建时画边界围栏 + 检测瓦片覆盖 | 单元 1, 3 |
 | 5 | Tooling 集成 | generate_mbtiles.py --task-id + import_mbtiles.sh 同步 DB | 单元 2, 3 |
-| 6 | SmartTileProvider 动态区域 | 切换牧场时动态解析瓦片源 | 单元 3 |
-| 7 | OfflineTileManager + 下载 | 客户端瓦片下载 + 断点续传 + LRU | 单元 6 |
+| 6 | SmartTileProvider 动态区域 | 切换牧场时动态解析瓦片源（支持多区域） | 单元 3 |
+| 7 | OfflineTileManager + 下载 | 前台/后台下载 + 断点续传 + MD5 校验 + LRU + pin | 单元 6 |
 | 8 | 离线瓦片管理 UI | 管理页面 + 存储 + 更新检测 | 单元 7 |
-| 9 | 围栏本地缓存 | SQLite 缓存 + 在线/离线分支 | 单元 1 |
-| 10 | 离线围栏编辑 + 冲突解决 | 本地编辑 + 版本冲突检测 | 单元 9 |
+| 9 | 围栏本地缓存 | drift 缓存 + 先推后拉同步 | 单元 1 |
+| 10 | 离线围栏编辑 + 冲突解决 | 本地编辑 + 版本冲突检测 + 双栏地图对比 | 单元 9 |
 | 11 | 牲畜位置缓存 | GPS 坐标本地存储 + 离线渲染 | 单元 9 |
+| 12 | 可观测性 | 事件埋点 + 批量上报 + 服务端端点 | 单元 7, 9 |
 
 ---
 
