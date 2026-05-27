@@ -296,6 +296,11 @@ class OfflineTileManager {
   Future<List<LocalTileInfo>> getLocalTiles();
   Future<int> getStorageUsed();
   Future<void> evictIfNeeded({int maxBytes = 1024 * 1024 * 1024});
+
+  // Pin/Unpin：保护瓦片不被 LRU 淘汰
+  Future<void> pin(int farmId);
+  Future<void> unpin(int farmId);
+  Future<bool> isPinned(int farmId);
 }
 ```
 
@@ -324,9 +329,18 @@ getApplicationSupportDirectory()/mbtiles/{regionName}.mbtiles
 getApplicationSupportDirectory()/mbtiles/{regionName}.meta.json
 ```
 
-引用计数：meta.json 记录引用该区域的 farmId 列表，删除牧场时仅在该区域无其他牧场引用时才删除瓦片文件。
+引用计数：meta.json 记录引用该区域的 farmId 列表 + pinned 状态，删除牧场时仅在该区域无其他牧场引用时才删除瓦片文件。
 
 支持断点续传（HTTP Range 请求）。
+
+**Pin/Unpin 机制**：
+
+| 自动 pinned | 触发时机 |
+|-------------|---------|
+| 当前选中牧场 | 切换牧场时自动 pin 新牧场 |
+| 用户手动标记 | 离线瓦片管理页长按牧场 → "保留离线地图" |
+
+LRU 淘汰规则：仅淘汰 **unpinned** 且最久未访问的牧场关联区域。如果一个区域被多个牧场引用（包括 pinned 牧场），该区域不会被删除。
 
 ### 7.3 离线瓦片管理页面
 
