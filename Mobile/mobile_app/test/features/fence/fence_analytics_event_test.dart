@@ -7,8 +7,7 @@ import 'package:smart_livestock_demo/features/fence/presentation/fence_analytics
 import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
 
 void main() {
-  test('startEditing 成功时记录 fence_edit_enter 且 payload 正确', () {
-    final sink = InMemoryFenceAnalyticsSink();
+  Future<ProviderContainer> _setup(InMemoryFenceAnalyticsSink sink) async {
     final repo = _SingleFenceRepository(_fenceA);
     final container = ProviderContainer(
       overrides: [
@@ -16,6 +15,14 @@ void main() {
         fenceAnalyticsSinkProvider.overrideWithValue(sink),
       ],
     );
+    container.read(fenceControllerProvider);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    return container;
+  }
+
+  test('startEditing 成功时记录 fence_edit_enter 且 payload 正确', () async {
+    final sink = InMemoryFenceAnalyticsSink();
+    final container = await _setup(sink);
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -29,15 +36,9 @@ void main() {
     );
   });
 
-  test('startEditing 无效 fenceId 时不记录 fence_edit_enter', () {
+  test('startEditing 无效 fenceId 时不记录 fence_edit_enter', () async {
     final sink = InMemoryFenceAnalyticsSink();
-    final repo = _SingleFenceRepository(_fenceA);
-    final container = ProviderContainer(
-      overrides: [
-        fenceRepositoryProvider.overrideWithValue(repo),
-        fenceAnalyticsSinkProvider.overrideWithValue(sink),
-      ],
-    );
+    final container = await _setup(sink);
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -46,15 +47,9 @@ void main() {
     expect(sink.events, isEmpty);
   });
 
-  test('saveEditing 时记录 fence_edit_save', () {
+  test('saveEditing 时记录 fence_edit_save', () async {
     final sink = InMemoryFenceAnalyticsSink();
-    final repo = _SingleFenceRepository(_fenceA);
-    final container = ProviderContainer(
-      overrides: [
-        fenceRepositoryProvider.overrideWithValue(repo),
-        fenceAnalyticsSinkProvider.overrideWithValue(sink),
-      ],
-    );
+    final container = await _setup(sink);
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -73,15 +68,9 @@ void main() {
     );
   });
 
-  test('cancelEditing 时记录 fence_edit_cancel', () {
+  test('cancelEditing 时记录 fence_edit_cancel', () async {
     final sink = InMemoryFenceAnalyticsSink();
-    final repo = _SingleFenceRepository(_fenceA);
-    final container = ProviderContainer(
-      overrides: [
-        fenceRepositoryProvider.overrideWithValue(repo),
-        fenceAnalyticsSinkProvider.overrideWithValue(sink),
-      ],
-    );
+    final container = await _setup(sink);
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -100,15 +89,9 @@ void main() {
     );
   });
 
-  test('saveEditing 无 session 时不记录事件', () {
+  test('saveEditing 无 session 时不记录事件', () async {
     final sink = InMemoryFenceAnalyticsSink();
-    final repo = _SingleFenceRepository(_fenceA);
-    final container = ProviderContainer(
-      overrides: [
-        fenceRepositoryProvider.overrideWithValue(repo),
-        fenceAnalyticsSinkProvider.overrideWithValue(sink),
-      ],
-    );
+    final container = await _setup(sink);
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -117,15 +100,9 @@ void main() {
     expect(sink.events, isEmpty);
   });
 
-  test('cancelEditing 无 session 时不记录事件', () {
+  test('cancelEditing 无 session 时不记录事件', () async {
     final sink = InMemoryFenceAnalyticsSink();
-    final repo = _SingleFenceRepository(_fenceA);
-    final container = ProviderContainer(
-      overrides: [
-        fenceRepositoryProvider.overrideWithValue(repo),
-        fenceAnalyticsSinkProvider.overrideWithValue(sink),
-      ],
-    );
+    final container = await _setup(sink);
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -141,7 +118,23 @@ class _SingleFenceRepository implements FenceRepository {
   final FenceItem _fence;
 
   @override
-  List<FenceItem> loadAll() => [_fence];
+  Future<List<FenceItem>> loadAll() async => [_fence];
+
+  @override
+  Future<FenceItem> loadDetail(String fenceId) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<FenceItem> create(Map<String, dynamic> body) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<FenceItem> update(String fenceId, Map<String, dynamic> body) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> delete(String fenceId) async =>
+      throw UnimplementedError();
 }
 
 const _fenceA = FenceItem(

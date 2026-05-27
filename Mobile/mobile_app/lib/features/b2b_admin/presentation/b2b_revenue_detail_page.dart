@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/core/utils/currency_formatter.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/async_fallback_views.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/confirm_dialog.dart';
 import 'package:smart_livestock_demo/features/revenue/domain/revenue_repository.dart';
-import 'package:smart_livestock_demo/features/revenue/presentation/revenue_controller.dart';
+import 'package:smart_livestock_demo/features/revenue/presentation/b2b_revenue_controller.dart';
 
 class B2bRevenueDetailPage extends ConsumerStatefulWidget {
   const B2bRevenueDetailPage({super.key, required this.periodId});
@@ -23,55 +23,36 @@ class _B2bRevenueDetailPageState extends ConsumerState<B2bRevenueDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Watch the list provider so the page rebuilds when confirmPeriod calls refresh()
-    ref.watch(revenueControllerProvider);
-    // Derive the detail data from the current provider state
-    final data = ref
-        .read(revenueControllerProvider.notifier)
-        .getPeriodDetail(widget.periodId);
+    final asyncData = ref.watch(b2bRevenueControllerProvider);
 
-    return switch (data.viewState) {
-      ViewState.loading => const Scaffold(
-          body: Center(
-            key: Key('b2b-revenue-detail-loading'),
-            child: CircularProgressIndicator(),
-          ),
+    return asyncData.when(
+      data: (data) {
+        final period = ref
+            .read(b2bRevenueControllerProvider.notifier)
+            .findPeriod(widget.periodId);
+        if (period == null) {
+          return const Scaffold(
+            body: B2bEmptyView(key: Key('b2b-revenue-detail-empty')),
+          );
+        }
+        return _buildContent(context, period);
+      },
+      loading: () => const Scaffold(
+        body: Center(
+          key: Key('b2b-revenue-detail-loading'),
+          child: CircularProgressIndicator(),
         ),
-      ViewState.error => Scaffold(
-          body: _ErrorView(
-            key: const Key('b2b-revenue-detail-error'),
-            message: data.message ?? '加载失败',
-          ),
+      ),
+      error: (e, _) => Scaffold(
+        body: B2bErrorView(
+          key: const Key('b2b-revenue-detail-error'),
+          message: e.toString(),
         ),
-      ViewState.empty => const Scaffold(
-          body: _DetailEmptyView(
-            key: Key('b2b-revenue-detail-empty'),
-          ),
-        ),
-      ViewState.forbidden => const Scaffold(
-          body: _ForbiddenView(
-            key: Key('b2b-revenue-detail-forbidden'),
-          ),
-        ),
-      ViewState.offline => const Scaffold(
-          body: _OfflineView(
-            key: Key('b2b-revenue-detail-offline'),
-          ),
-        ),
-      ViewState.normal => data.period == null
-          ? const Scaffold(
-              body: _DetailEmptyView(
-                key: Key('b2b-revenue-detail-empty'),
-              ),
-            )
-          : _buildContent(context, data),
-    };
+      ),
+    );
   }
 
-  Widget _buildContent(BuildContext context, RevenueDetailViewData data) {
-    final period = data.period!;
-    final theme = Theme.of(context);
-
+  Widget _buildContent(BuildContext context, RevenuePeriod period) {
     return Scaffold(
       body: SingleChildScrollView(
         key: const Key('page-b2b-revenue-detail'),
@@ -79,42 +60,25 @@ class _B2bRevenueDetailPageState extends ConsumerState<B2bRevenueDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- Breadcrumb bar ---
             _BreadcrumbBar(
               key: const Key('b2b-revenue-detail-breadcrumb'),
               periodLabel: period.periodLabel,
               onBack: () => context.pop(),
             ),
             const SizedBox(height: AppSpacing.lg),
-
-            // --- Period summary hero card ---
             _HeroCard(
               key: const Key('b2b-revenue-detail-hero'),
-              totalDeviceFee: data.totalDeviceFee,
+              totalRevenue: period.totalRevenue,
               partnerShare: period.partnerShare,
-              revenueShareRatio: data.revenueShareRatio,
-              calculatedAt: data.calculatedAt,
+              revenueShareRatio: period.revenueShareRatio ?? 0.0,
             ),
             const SizedBox(height: AppSpacing.lg),
-
-            // --- Confirmation status bar ---
             _ConfirmationBar(
               key: const Key('b2b-revenue-detail-confirmation'),
-              platformConfirmed: data.platformConfirmed,
-              partnerConfirmed: data.partnerConfirmed,
+              platformConfirmed: period.platformConfirmed,
+              partnerConfirmed: period.partnerConfirmed,
               isConfirming: _confirming,
               onConfirm: () => _handleConfirm(),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-
-            // --- Farm breakdown table ---
-            Text('牧场明细', style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            )),
-            const SizedBox(height: AppSpacing.sm),
-            _FarmBreakdownTable(
-              key: const Key('b2b-revenue-detail-farm-table'),
-              farmDetails: data.farmDetails,
             ),
           ],
         ),
@@ -134,8 +98,8 @@ class _B2bRevenueDetailPageState extends ConsumerState<B2bRevenueDetailPage> {
     setState(() => _confirming = true);
 
     final ok = await ref
-        .read(revenueControllerProvider.notifier)
-        .confirmPeriod(widget.periodId);
+        .read(b2bRevenueControllerProvider.notifier)
+        .confirmAsPartner(widget.periodId);
 
     if (!mounted) return;
 
@@ -160,10 +124,6 @@ class _B2bRevenueDetailPageState extends ConsumerState<B2bRevenueDetailPage> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Sub-widgets
-// ---------------------------------------------------------------------------
-
 class _BreadcrumbBar extends StatelessWidget {
   const _BreadcrumbBar({
     super.key,
@@ -185,19 +145,17 @@ class _BreadcrumbBar extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.arrow_back_ios, size: 14,
-                  color: Theme.of(context).hintColor),
-              Text('对账', style: TextStyle(
-                color: Theme.of(context).hintColor,
-                fontSize: 14,
-              )),
+              Icon(Icons.arrow_back_ios,
+                  size: 14, color: Theme.of(context).hintColor),
+              Text('对账',
+                  style: TextStyle(
+                      color: Theme.of(context).hintColor, fontSize: 14)),
             ],
           ),
         ),
-        Text(' > $periodLabel 对账明细', style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-        )),
+        Text(' > $periodLabel 对账明细',
+            style:
+                const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
       ],
     );
   }
@@ -206,30 +164,28 @@ class _BreadcrumbBar extends StatelessWidget {
 class _HeroCard extends StatelessWidget {
   const _HeroCard({
     super.key,
-    required this.totalDeviceFee,
+    required this.totalRevenue,
     required this.partnerShare,
     required this.revenueShareRatio,
-    this.calculatedAt,
   });
 
-  final double totalDeviceFee;
+  final double totalRevenue;
   final double partnerShare;
   final double revenueShareRatio;
-  final String? calculatedAt;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        gradient: const LinearGradient(
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.all(Radius.circular(16)),
+        gradient: LinearGradient(
           colors: [Color(0xFF37474F), Color(0xFF607D8B)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: Color(0x4037474F),
             blurRadius: 16,
@@ -240,9 +196,8 @@ class _HeroCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Total device fee
           Text(
-            formatCurrency(totalDeviceFee),
+            formatCurrency(totalRevenue),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 28,
@@ -254,7 +209,6 @@ class _HeroCard extends StatelessWidget {
               style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.7), fontSize: 12)),
           const SizedBox(height: AppSpacing.lg),
-          // Stats row
           Row(
             children: [
               _HeroStatItem(
@@ -266,12 +220,6 @@ class _HeroCard extends StatelessWidget {
                 label: '分润比例',
                 value: '${(revenueShareRatio * 100).toInt()}%',
               ),
-              const SizedBox(width: AppSpacing.xl),
-              if (calculatedAt != null)
-                _HeroStatItem(
-                  label: '计算时间',
-                  value: calculatedAt!,
-                ),
             ],
           ),
         ],
@@ -281,10 +229,7 @@ class _HeroCard extends StatelessWidget {
 }
 
 class _HeroStatItem extends StatelessWidget {
-  const _HeroStatItem({
-    required this.label,
-    required this.value,
-  });
+  const _HeroStatItem({required this.label, required this.value});
 
   final String label;
   final String value;
@@ -295,16 +240,18 @@ class _HeroStatItem extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(value, style: const TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        )),
+        Text(value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            )),
         const SizedBox(height: 2),
-        Text(label, style: TextStyle(
-          color: Colors.white.withValues(alpha: 0.7),
-          fontSize: 11,
-        )),
+        Text(label,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 11,
+            )),
       ],
     );
   }
@@ -324,7 +271,7 @@ class _ConfirmationBar extends StatelessWidget {
   final bool isConfirming;
   final VoidCallback onConfirm;
 
-  bool get _allConfirmed => platformConfirmed && partnerConfirmed;
+  bool get _canPartnerConfirm => platformConfirmed && !partnerConfirmed;
 
   @override
   Widget build(BuildContext context) {
@@ -338,9 +285,11 @@ class _ConfirmationBar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('确认状态', style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          )),
+          Text('确认状态',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w600)),
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
@@ -356,7 +305,7 @@ class _ConfirmationBar extends StatelessWidget {
                 confirmed: partnerConfirmed,
               ),
               const Spacer(),
-              if (!_allConfirmed)
+              if (_canPartnerConfirm)
                 FilledButton(
                   key: const Key('b2b-confirm-btn'),
                   onPressed: isConfirming ? null : onConfirm,
@@ -409,327 +358,15 @@ class _ConfirmIndicator extends StatelessWidget {
               : const Color(0xFFE65100),
         ),
         const SizedBox(width: 4),
-        Text(label, style: TextStyle(
-          fontSize: 13,
-          color: confirmed
-              ? const Color(0xFF2E7D32)
-              : const Color(0xFFE65100),
-          fontWeight: FontWeight.w500,
-        )),
+        Text(label,
+            style: TextStyle(
+              fontSize: 13,
+              color: confirmed
+                  ? const Color(0xFF2E7D32)
+                  : const Color(0xFFE65100),
+              fontWeight: FontWeight.w500,
+            )),
       ],
     );
   }
 }
-
-class _FarmBreakdownTable extends StatelessWidget {
-  const _FarmBreakdownTable({
-    super.key,
-    required this.farmDetails,
-  });
-
-  final List<RevenueFarmDetail> farmDetails;
-
-  @override
-  Widget build(BuildContext context) {
-    final totalDeviceFee = farmDetails.fold<double>(
-      0, (sum, f) => sum + f.deviceFee,
-    );
-    final totalShareAmount = farmDetails.fold<double>(
-      0, (sum, f) => sum + f.shareAmount,
-    );
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
-      ),
-      child: Column(
-        children: [
-          // Header row
-          const _TableRow(
-            key: Key('b2b-farm-table-header'),
-            cells: [
-              _TableCell(
-                label: '牧场名称',
-                isHeader: true,
-                flex: 3,
-              ),
-              _TableCell(
-                label: '牲畜数',
-                isHeader: true,
-                flex: 2,
-                alignRight: true,
-              ),
-              _TableCell(
-                label: '设备单价',
-                isHeader: true,
-                flex: 3,
-                alignRight: true,
-              ),
-              _TableCell(
-                label: '设备费用',
-                isHeader: true,
-                flex: 3,
-                alignRight: true,
-              ),
-              _TableCell(
-                label: '分润金额',
-                isHeader: true,
-                flex: 3,
-                alignRight: true,
-              ),
-            ],
-          ),
-          const Divider(height: 1, thickness: 1),
-          // Data rows
-          ...farmDetails.asMap().entries.map((entry) {
-            final index = entry.key;
-            final farm = entry.value;
-            return Column(
-              children: [
-                _TableRow(
-                  key: Key('b2b-farm-row-$index'),
-                  cells: [
-                    _TableCell(
-                      label: farm.farmName,
-                      flex: 3,
-                    ),
-                    _TableCell(
-                      label: '${farm.livestockCount}',
-                      flex: 2,
-                      alignRight: true,
-                    ),
-                    _TableCell(
-                      label: formatCurrency(farm.deviceUnitPrice),
-                      flex: 3,
-                      alignRight: true,
-                    ),
-                    _TableCell(
-                      label: formatCurrency(farm.deviceFee),
-                      flex: 3,
-                      alignRight: true,
-                    ),
-                    _TableCell(
-                      label: formatCurrency(farm.shareAmount),
-                      flex: 3,
-                      alignRight: true,
-                    ),
-                  ],
-                ),
-                if (index < farmDetails.length - 1)
-                  const Divider(height: 1, indent: 12, endIndent: 12),
-              ],
-            );
-          }),
-          // Totals row
-          const Divider(height: 1, thickness: 1),
-          _TotalRow(
-            key: const Key('b2b-farm-table-totals'),
-            totalDeviceFee: totalDeviceFee,
-            totalShareAmount: totalShareAmount,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TotalRow extends StatelessWidget {
-  const _TotalRow({
-    super.key,
-    required this.totalDeviceFee,
-    required this.totalShareAmount,
-  });
-
-  final double totalDeviceFee;
-  final double totalShareAmount;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      child: Row(
-        children: [
-          // Span: 牧场名称 (flex 3) + 牲畜数 (flex 2) + 设备单价 (flex 3) = 8
-          const Expanded(
-            flex: 8,
-            child: Text('合计',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-          ),
-          // 设备费用 (flex 3)
-          Expanded(
-            flex: 3,
-            child: Text(
-              formatCurrency(totalDeviceFee),
-              textAlign: TextAlign.right,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-            ),
-          ),
-          // 分润金额 (flex 3)
-          Expanded(
-            flex: 3,
-            child: Text(
-              formatCurrency(totalShareAmount),
-              textAlign: TextAlign.right,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TableRow extends StatelessWidget {
-  const _TableRow({super.key, required this.cells});
-
-  final List<_TableCell> cells;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      child: Row(
-        children: cells,
-      ),
-    );
-  }
-}
-
-class _TableCell extends StatelessWidget {
-  const _TableCell({
-    required this.label,
-    this.isHeader = false,
-    this.alignRight = false,
-    this.flex = 1,
-  });
-
-  final String label;
-  final bool isHeader;
-  final bool alignRight;
-  final int flex;
-
-  @override
-  Widget build(BuildContext context) {
-    final style = isHeader
-        ? TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).hintColor,
-          )
-        : const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w400,
-          );
-
-    return Expanded(
-      flex: flex,
-      child: Text(
-        label,
-        style: style,
-        textAlign: alignRight ? TextAlign.right : TextAlign.left,
-        overflow: TextOverflow.ellipsis,
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// ViewState fallback views
-// ---------------------------------------------------------------------------
-
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({super.key, required this.message});
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
-          const SizedBox(height: AppSpacing.md),
-          Text('加载失败', style: theme.textTheme.titleMedium?.copyWith(
-            color: theme.colorScheme.error,
-          )),
-          if (message.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.sm),
-              child: Text(message, style: theme.textTheme.bodySmall),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DetailEmptyView extends StatelessWidget {
-  const _DetailEmptyView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.inbox_outlined, size: 48, color: theme.disabledColor),
-          const SizedBox(height: AppSpacing.md),
-          Text('暂无数据', style: theme.textTheme.titleMedium),
-        ],
-      ),
-    );
-  }
-}
-
-class _ForbiddenView extends StatelessWidget {
-  const _ForbiddenView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.lock_outline, size: 48, color: theme.disabledColor),
-          const SizedBox(height: AppSpacing.md),
-          Text('无权限访问', style: theme.textTheme.titleMedium),
-        ],
-      ),
-    );
-  }
-}
-
-class _OfflineView extends StatelessWidget {
-  const _OfflineView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.cloud_off_outlined, size: 48, color: theme.disabledColor),
-          const SizedBox(height: AppSpacing.md),
-          Text('网络不可用', style: theme.textTheme.titleMedium),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-

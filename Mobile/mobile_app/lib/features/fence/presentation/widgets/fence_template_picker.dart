@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/data/demo_seed.dart';
+import 'package:smart_livestock_demo/core/map/map_constants.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
 
@@ -31,16 +31,16 @@ FenceTemplatePreset fenceTemplatePresetFor(FenceTemplate template) {
           LatLng(28.2294, 112.9372),
           LatLng(28.2271, 112.9406),
         ],
-        focusPoint: DemoSeed.mapCenter,
+        focusPoint: MapConstants.mapCenter,
       ),
     FenceTemplate.circle => FenceTemplatePreset(
         template: template,
         type: FenceType.circle,
         drawingPoints: const [
-          DemoSeed.mapCenter,
+          MapConstants.mapCenter,
           LatLng(28.2295, 112.9390),
         ],
-        focusPoint: DemoSeed.mapCenter,
+        focusPoint: MapConstants.mapCenter,
       ),
     FenceTemplate.trajectoryBuffer => FenceTemplatePreset(
         template: template,
@@ -144,9 +144,9 @@ class _FenceTemplateAction extends StatelessWidget {
 }
 
 List<LatLng> _trajectoryBufferPolygon() {
-  const anchors = DemoSeed.gpsAnchorPoints;
+  const anchors = MapConstants.gpsAnchorPoints;
   if (anchors.length < 2) {
-    return FenceItem.defaultPointsForType(FenceType.polygon, DemoSeed.mapCenter);
+    return FenceItem.defaultPointsForType(FenceType.polygon, MapConstants.mapCenter);
   }
 
   const buffer = 0.0007;
@@ -194,9 +194,9 @@ List<LatLng> _trajectoryBufferPolygon() {
 }
 
 LatLng _trajectoryCenter() {
-  const anchors = DemoSeed.gpsAnchorPoints;
+  const anchors = MapConstants.gpsAnchorPoints;
   if (anchors.isEmpty) {
-    return DemoSeed.mapCenter;
+    return MapConstants.mapCenter;
   }
 
   var lat = 0.0;

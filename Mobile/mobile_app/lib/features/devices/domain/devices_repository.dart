@@ -1,23 +1,82 @@
-import 'package:smart_livestock_demo/core/models/demo_models.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
+import 'package:smart_livestock_demo/core/models/core_models.dart';
 
-class DevicesViewData {
-  const DevicesViewData({
-    required this.viewState,
-    required this.devices,
-    required this.filter,
-    this.message,
+class DevicesListData {
+  const DevicesListData({
+    required this.items,
+    required this.total,
+    required this.page,
+    required this.pageSize,
   });
 
-  final ViewState viewState;
-  final List<DeviceItem> devices;
-  final DeviceStatus? filter;
-  final String? message;
+  final List<DeviceItem> items;
+  final int total;
+  final int page;
+  final int pageSize;
+}
+
+class DeviceLicense {
+  const DeviceLicense({
+    required this.id,
+    required this.deviceId,
+    required this.licenseKey,
+    required this.status,
+  });
+
+  final String id;
+  final String deviceId;
+  final String licenseKey;
+  final String status;
+}
+
+class Installation {
+  const Installation({
+    required this.id,
+    required this.deviceId,
+    required this.livestockId,
+    required this.installedAt,
+  });
+
+  final String id;
+  final String deviceId;
+  final String livestockId;
+  final String installedAt;
+}
+
+class GpsPoint {
+  const GpsPoint({
+    required this.lat,
+    required this.lng,
+    required this.timestamp,
+    this.livestockId,
+  });
+
+  final double lat;
+  final double lng;
+  final String timestamp;
+  final String? livestockId;
 }
 
 abstract class DevicesRepository {
-  DevicesViewData load({
-    required ViewState viewState,
-    required DeviceStatus? filter,
+  Future<DevicesListData> loadDevices({
+    int page = 1,
+    int pageSize = 20,
   });
+
+  Future<DeviceItem> loadDetail(String id);
+
+  Future<DeviceItem> create(Map<String, dynamic> body);
+
+  Future<DeviceItem> update(String id, Map<String, dynamic> body);
+
+  Future<void> activate(String id);
+
+  Future<void> decommission(String id);
+
+  Future<List<DeviceLicense>> loadLicenses();
+
+  Future<List<Installation>> loadInstallations();
+
+  Future<List<GpsPoint>> loadLatestGps();
+
+  Future<List<GpsPoint>> loadGpsHistory(String livestockId);
 }

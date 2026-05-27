@@ -1,5 +1,3 @@
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-
 class B2bSubFarm {
   const B2bSubFarm({
     required this.id,
@@ -34,14 +32,12 @@ class B2bSubFarmWorker {
 
 class B2bWorkerManagementViewData {
   const B2bWorkerManagementViewData({
-    this.viewState = ViewState.normal,
     this.subFarms = const [],
     this.totalWorkers = 0,
     this.offlineWorkerCount = 0,
     this.message,
   });
 
-  final ViewState viewState;
   final List<B2bSubFarm> subFarms;
   final int totalWorkers;
   final int offlineWorkerCount;
@@ -49,9 +45,9 @@ class B2bWorkerManagementViewData {
 }
 
 abstract class B2bWorkerManagementRepository {
-  B2bWorkerManagementViewData getSubFarms();
-  List<B2bSubFarmWorker> getSubFarmWorkers(String farmId);
+  Future<B2bWorkerManagementViewData> getSubFarms();
+  Future<List<B2bSubFarmWorker>> getSubFarmWorkers(String farmId);
   Future<bool> assignWorker(String farmId, String workerId);
   Future<bool> removeWorker(String farmId, String workerId);
-  List<B2bSubFarmWorker> getAvailableWorkers();
+  Future<List<B2bSubFarmWorker>> getAvailableWorkers();
 }

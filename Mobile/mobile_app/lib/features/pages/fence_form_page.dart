@@ -6,12 +6,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_auth.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/api/api_role.dart';
-import 'package:smart_livestock_demo/core/data/demo_seed.dart';
+import 'package:smart_livestock_demo/core/api/api_client.dart';
+import 'package:smart_livestock_demo/core/map/map_constants.dart';
 import 'package:smart_livestock_demo/core/map/coord_transform.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
 import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
@@ -482,10 +478,9 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
 
-    final appMode = ref.read(appModeProvider);
     final controller = ref.read(fenceControllerProvider.notifier);
 
-    if (appMode.isLive) {
+    {
       final coords = _getFinalPointsForSave();
       final vertices = coords
           .map((c) => <String, double>{'lat': c[1], 'lng': c[0]})
@@ -497,31 +492,21 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
       if (_isEdit) {
         body['status'] = _active ? 'active' : 'inactive';
       }
-      final ok = _isEdit
-          ? await ApiCache.instance.updateFenceRemote(
-              apiRoleFromEnvironment,
-              widget.fenceId!,
-              body,
-              tokens: _sessionTokens(),
-            )
-          : await ApiCache.instance.createFenceRemote(
-              apiRoleFromEnvironment,
-              body,
-              tokens: _sessionTokens(),
-            );
-      if (!ok) {
+      try {
+        if (_isEdit) {
+          await ApiClient.instance.farmPut('/fences/${widget.fenceId!}', body: body);
+        } else {
+          await ApiClient.instance.farmPost('/fences', body: body);
+        }
+      } catch (e) {
         if (mounted) {
-          final message = fenceSaveErrorMessageForStatusCode(
-            ApiCache.instance.lastFenceSaveStatusCode,
-          );
           setState(() => _saving = false);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message)),
+            SnackBar(content: Text('保存失败: $e')),
           );
         }
         return;
       }
-      await ApiCache.instance.refreshFencesAndMap(apiRoleFromEnvironment, tokens: _sessionTokens());
       controller.reloadFromRepository();
       if (mounted) {
         setState(() => _saving = false);
@@ -529,71 +514,19 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
       }
       return;
     }
-
-    await Future.delayed(const Duration(milliseconds: 300));
-
-    final finalPoints = _getPreviewPoints().isNotEmpty
-        ? _getPreviewPoints()
-        : FenceItem.defaultPointsForType(_type, DemoSeed.mapCenter);
-
-    if (_isEdit) {
-      final fenceState = ref.read(fenceControllerProvider);
-      FenceItem? existing;
-      for (final f in fenceState.fences) {
-        if (f.id == widget.fenceId) {
-          existing = f;
-          break;
-        }
-      }
-      if (existing != null) {
-        controller.update(existing.copyWith(
-          name: _nameController.text.trim(),
-          type: _type,
-          alarmEnabled: _alarmEnabled,
-          active: _active,
-          points: finalPoints,
-          areaHectares: _isDrawingComplete() ? _calcAreaHectares() : existing.areaHectares,
-        ));
-      }
-    } else {
-      final id = 'fence_${DateTime.now().millisecondsSinceEpoch}';
-      final fenceCount = ref.read(fenceControllerProvider).fences.length;
-      controller.add(FenceItem(
-        id: id,
-        name: _nameController.text.trim(),
-        type: _type,
-        alarmEnabled: _alarmEnabled,
-        active: _active,
-        areaHectares: _isDrawingComplete() ? _calcAreaHectares() : 1.0,
-        livestockCount: 0,
-        colorValue:
-            FenceItem.defaultColors[fenceCount % FenceItem.defaultColors.length],
-        points: finalPoints,
-      ));
-    }
-
-    if (mounted) {
-      setState(() => _saving = false);
-      context.pop();
-    }
   }
 
   List<List<double>> _getFinalPointsForSave() {
     var pts = _getPreviewPoints().isNotEmpty
         ? _getPreviewPoints()
-        : FenceItem.defaultPointsForType(_type, DemoSeed.mapCenter);
+        : FenceItem.defaultPointsForType(_type, MapConstants.mapCenter);
     if (_tileProvider?.shouldTransformCoordinates() ?? false) {
       pts = CoordTransform.gcj02ToWgs84All(pts);
     }
     return pts.map((p) => [p.longitude, p.latitude]).toList();
   }
 
-  ApiAuthTokens? _sessionTokens() {
-    final session = ref.read(sessionControllerProvider);
-    return session.accessToken != null
-        ? ApiAuthTokens(accessToken: session.accessToken!)
-        : null;
-  }
+  // _sessionTokens removed — ApiClient handles auth headers internally.
 
   @override
   Widget build(BuildContext context) {
@@ -614,7 +547,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
       options: MapOptions(
         initialCenter: _drawingPoints.isNotEmpty
             ? _drawingPoints.first
-            : DemoSeed.mapCenter,
+            : MapConstants.mapCenter,
         initialZoom: 15.0,
         interactionOptions: InteractionOptions(
           flags: _drawMode ? InteractiveFlag.none : InteractiveFlag.all,

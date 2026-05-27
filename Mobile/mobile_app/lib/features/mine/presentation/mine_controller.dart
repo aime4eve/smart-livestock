@@ -1,30 +1,42 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/mine/data/live_mine_repository.dart';
-import 'package:smart_livestock_demo/features/mine/data/mock_mine_repository.dart';
+import 'package:smart_livestock_demo/features/mine/data/mine_api_repository.dart';
 import 'package:smart_livestock_demo/features/mine/domain/mine_repository.dart';
 
 final mineRepositoryProvider = Provider<MineRepository>((ref) {
-  switch (ref.watch(appModeProvider)) {
-    case AppMode.mock:
-      return const MockMineRepository();
-    case AppMode.live:
-      return const LiveMineRepository();
-  }
+  return const MineApiRepository();
 });
 
-class MineController extends Notifier<MineViewData> {
+class MineController extends AsyncNotifier<UserProfile> {
   @override
-  MineViewData build() {
-    return ref.watch(mineRepositoryProvider).load(ViewState.normal);
+  Future<UserProfile> build() async {
+    return ref.read(mineRepositoryProvider).loadProfile();
   }
 
-  void setViewState(ViewState viewState) {
-    state = ref.read(mineRepositoryProvider).load(viewState);
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => ref.read(mineRepositoryProvider).loadProfile());
+  }
+
+  Future<bool> updateProfile(Map<String, dynamic> body) async {
+    try {
+      final profile = await ref.read(mineRepositoryProvider).updateProfile(body);
+      state = AsyncData(profile);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> changePassword(String oldPassword, String newPassword) async {
+    try {
+      await ref.read(mineRepositoryProvider).changePassword(oldPassword, newPassword);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 }
 
-final mineControllerProvider = NotifierProvider<MineController, MineViewData>(
+final mineControllerProvider = AsyncNotifierProvider<MineController, UserProfile>(
   MineController.new,
 );

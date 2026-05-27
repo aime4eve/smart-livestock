@@ -1,59 +1,61 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/features/contract_management/data/live_contract_management_repository.dart';
-import 'package:smart_livestock_demo/features/contract_management/data/mock_contract_management_repository.dart';
+import 'package:smart_livestock_demo/features/contract_management/data/contract_api_repository.dart';
 import 'package:smart_livestock_demo/features/contract_management/domain/contract_management_repository.dart';
 
 final contractManagementRepositoryProvider =
     Provider<ContractManagementRepository>((ref) {
-  switch (ref.watch(appModeProvider)) {
-    case AppMode.mock:
-      return MockContractManagementRepository();
-    case AppMode.live:
-      return LiveContractManagementRepository();
-  }
+  return const ContractApiRepository();
 });
 
 class ContractManagementController
-    extends Notifier<ContractListViewData> {
+    extends AsyncNotifier<ContractListViewData> {
   @override
-  ContractListViewData build() {
-    return ref
-        .read(contractManagementRepositoryProvider)
-        .getContracts();
+  Future<ContractListViewData> build() async {
+    return ref.read(contractManagementRepositoryProvider).getContracts();
   }
 
-  ContractManagementRepository get _repo =>
-      ref.read(contractManagementRepositoryProvider);
-
-  void filter({String? partnerId, String? status}) {
-    state = _repo.getContracts(partnerId: partnerId, status: status);
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+        () => ref.read(contractManagementRepositoryProvider).getContracts());
   }
 
-  void refresh() {
-    state = _repo.getContracts();
+  Future<ContractSummary> getContractDetail(String id) {
+    return ref.read(contractManagementRepositoryProvider).getContractDetail(id);
   }
 
   Future<bool> createContract(Map<String, dynamic> data) async {
-    final ok = await _repo.createContract(data);
-    if (ok) refresh();
-    return ok;
+    await ref
+        .read(contractManagementRepositoryProvider)
+        .createContract(data);
+    await refresh();
+    return true;
   }
 
-  Future<bool> updateContract(String id, Map<String, dynamic> data) async {
-    final ok = await _repo.updateContract(id, data);
-    if (ok) refresh();
-    return ok;
+  Future<bool> updateDraft(String id, Map<String, dynamic> data) async {
+    await ref
+        .read(contractManagementRepositoryProvider)
+        .updateDraft(id, data);
+    await refresh();
+    return true;
   }
 
-  Future<bool> terminateContract(String id) async {
-    final ok = await _repo.terminateContract(id);
-    if (ok) refresh();
+  Future<bool> signContract(String id) async {
+    await ref.read(contractManagementRepositoryProvider).signContract(id);
+    await refresh();
+    return true;
+  }
+
+  Future<bool> updateContractStatus(String id, String targetStatus) async {
+    final ok = await ref
+        .read(contractManagementRepositoryProvider)
+        .updateContractStatus(id, targetStatus);
+    if (ok) await refresh();
     return ok;
   }
 }
 
 final contractManagementControllerProvider =
-    NotifierProvider<ContractManagementController, ContractListViewData>(
+    AsyncNotifierProvider<ContractManagementController, ContractListViewData>(
   ContractManagementController.new,
 );

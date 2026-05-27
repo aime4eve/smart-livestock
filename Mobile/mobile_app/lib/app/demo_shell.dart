@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:smart_livestock_demo/core/models/user_role.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_widget.dart';
@@ -23,19 +23,19 @@ class DemoShell extends ConsumerWidget {
     final session = ref.watch(sessionControllerProvider);
     final role = session.role;
     if (role == null ||
-        role == DemoRole.platformAdmin) {
+        role == UserRole.platformAdmin) {
       return Scaffold(body: child);
     }
 
-    if (role == DemoRole.b2bAdmin) {
+    if (role == UserRole.b2bAdmin) {
       return _B2bAdminShell(child: child);
     }
 
     final showFarmContext =
-        role == DemoRole.owner || role == DemoRole.worker;
+        role == UserRole.owner || role == UserRole.worker;
     final farmState =
         showFarmContext ? ref.watch(farmSwitcherControllerProvider) : null;
-    final body = farmState != null && !farmState.hasFarms
+    final body = farmState != null && !farmState.hasFarms && !farmState.isLoading
         ? const _FarmEmptyGuidance()
         : child;
     final showShellAppBar =
@@ -100,7 +100,7 @@ class DemoShell extends ConsumerWidget {
     );
   }
 
-  List<_NavItem> _buildBusinessNavItems(DemoRole role) {
+  List<_NavItem> _buildBusinessNavItems(UserRole role) {
     final items = <_NavItem>[
       const _NavItem(
         key: Key('nav-twin'),
@@ -127,7 +127,7 @@ class DemoShell extends ConsumerWidget {
         route: AppRoute.mine,
       ),
     ];
-    if (role == DemoRole.owner) {
+    if (role == UserRole.owner) {
       items.add(
         const _NavItem(
           key: Key('nav-admin'),
@@ -151,7 +151,7 @@ class _FarmEmptyGuidance extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Text(
-          '请创建您的第一个牧场',
+          '暂无关联牧场，请联系管理员为您分配牧场。',
           style: Theme.of(context).textTheme.titleMedium,
           textAlign: TextAlign.center,
         ),
@@ -219,10 +219,10 @@ class _B2bAdminShell extends StatelessWidget {
 
   int _calculateIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
-    if (location.contains('/farms')) return 1;
-    if (location.contains('/contract')) return 2;
-    if (location.contains('/revenue')) return 3;
-    if (location.contains('/workers')) return 4;
+    if (location.startsWith('/b2b/admin/farms')) return 1;
+    if (location.startsWith('/b2b/admin/contract')) return 2;
+    if (location.startsWith('/b2b/admin/revenue')) return 3;
+    if (location.startsWith('/b2b/admin/workers')) return 4;
     return 0;
   }
 

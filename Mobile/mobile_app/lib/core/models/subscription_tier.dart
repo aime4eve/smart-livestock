@@ -1,5 +1,12 @@
 enum SubscriptionTier { basic, standard, premium, enterprise }
 
+SubscriptionTier parseSubscriptionTier(String value) {
+  for (final t in SubscriptionTier.values) {
+    if (t.name == value) return t;
+  }
+  return SubscriptionTier.basic;
+}
+
 enum FeatureShape { none, lock, limit, filter }
 
 class FeatureDefinition {
@@ -136,7 +143,7 @@ class SubscriptionStatus {
     return SubscriptionStatus(
       id: json['id'] as String,
       tenantId: json['tenantId'] as String,
-      tier: SubscriptionTier.values.byName(json['tier'] as String),
+      tier: parseSubscriptionTier(json['tier'] as String? ?? ''),
       status: json['status'] as String,
       trialEndsAt: json['trialEndsAt'] != null
           ? DateTime.parse(json['trialEndsAt'] as String)

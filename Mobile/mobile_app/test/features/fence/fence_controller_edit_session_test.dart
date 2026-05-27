@@ -9,8 +9,19 @@ import 'package:smart_livestock_demo/features/fence/domain/fence_state.dart';
 import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
 
 void main() {
-  test('startEditing 后设置 selectedFenceId 与 editSession 关键字段', () {
-    final container = ProviderContainer();
+  Future<ProviderContainer> _setup({List<FenceItem>? fences}) async {
+    final repo = _MutableFenceRepository(fences: fences ?? [_fenceA, _fenceB]);
+    final container = ProviderContainer(
+      overrides: [fenceRepositoryProvider.overrideWithValue(repo)],
+    );
+    // Let FenceController.build()'s async load complete
+    container.read(fenceControllerProvider);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    return container;
+  }
+
+  test('startEditing 后设置 selectedFenceId 与 editSession 关键字段', () async {
+    final container = await _setup();
     addTearDown(container.dispose);
 
     final before = container.read(fenceControllerProvider);
@@ -26,8 +37,8 @@ void main() {
     expect(state.editMode, FenceEditMode.editIdle);
   });
 
-  test('moveDraftVertex 后进入 editDirty 且不污染 originalPoints', () {
-    final container = ProviderContainer();
+  test('moveDraftVertex 后进入 editDirty 且不污染 originalPoints', () async {
+    final container = await _setup();
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -49,8 +60,8 @@ void main() {
     );
   });
 
-  test('insert/remove/translate 与 undo/redo 会更新真实草稿', () {
-    final container = ProviderContainer();
+  test('insert/remove/translate 与 undo/redo 会更新真实草稿', () async {
+    final container = await _setup();
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -86,8 +97,8 @@ void main() {
     expect(state.editSession!.points.first, isNot(beforeTranslate.first));
   });
 
-  test('removeDraftVertex 至少保留 3 个点', () {
-    final repo = _MutableFenceRepository(fences: [
+  test('removeDraftVertex 至少保留 3 个点', () async {
+    final container = await _setup(fences: [
       const FenceItem(
         id: 'triangle',
         name: '三角区',
@@ -104,9 +115,6 @@ void main() {
         ],
       ),
     ]);
-    final container = ProviderContainer(
-      overrides: [fenceRepositoryProvider.overrideWithValue(repo)],
-    );
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -118,8 +126,8 @@ void main() {
     expect(state.editMode, FenceEditMode.editIdle);
   });
 
-  test('select(null) 可清空 selectedFenceId', () {
-    final container = ProviderContainer();
+  test('select(null) 可清空 selectedFenceId', () async {
+    final container = await _setup();
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -130,8 +138,8 @@ void main() {
     expect(container.read(fenceControllerProvider).selectedFenceId, isNull);
   });
 
-  test('startEditing 无效 fenceId 时保持原状态', () {
-    final container = ProviderContainer();
+  test('startEditing 无效 fenceId 时保持原状态', () async {
+    final container = await _setup();
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -144,8 +152,8 @@ void main() {
     expect(after.editMode, before.editMode);
   });
 
-  test('moveDraftVertex 无 session 时忽略', () {
-    final container = ProviderContainer();
+  test('moveDraftVertex 无 session 时忽略', () async {
+    final container = await _setup();
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -156,8 +164,8 @@ void main() {
     expect(state.editMode, isNull);
   });
 
-  test('moveDraftVertex 索引越界时忽略', () {
-    final container = ProviderContainer();
+  test('moveDraftVertex 索引越界时忽略', () async {
+    final container = await _setup();
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -172,8 +180,8 @@ void main() {
     expect(container.read(fenceControllerProvider).editMode, FenceEditMode.editIdle);
   });
 
-  test('delete 删除编辑中的 fence 时清理 editSession 与 editMode', () {
-    final container = ProviderContainer();
+  test('delete 删除编辑中的 fence 时清理 editSession 与 editMode', () async {
+    final container = await _setup();
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -185,24 +193,21 @@ void main() {
     expect(state.editMode, isNull);
   });
 
-  test('reloadFromRepository 若编辑 fence 消失则清理编辑状态', () {
-    final repo = _MutableFenceRepository(fences: [
-      _fenceA,
-      _fenceB,
-    ]);
+  test('reloadFromRepository 若编辑 fence 消失则清理编辑状态', () async {
+    final repo = _MutableFenceRepository(fences: [_fenceA, _fenceB]);
     final container = ProviderContainer(
-      overrides: [
-        fenceRepositoryProvider.overrideWithValue(repo),
-      ],
+      overrides: [fenceRepositoryProvider.overrideWithValue(repo)],
     );
     addTearDown(container.dispose);
+    container.read(fenceControllerProvider);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
 
     final controller = container.read(fenceControllerProvider.notifier);
     controller.startEditing('fence_pasture_a');
     expect(container.read(fenceControllerProvider).editSession, isNotNull);
 
     repo.fences = [_fenceB];
-    controller.reloadFromRepository();
+    await controller.reloadFromRepository();
     final state = container.read(fenceControllerProvider);
 
     expect(state.viewState, ViewState.normal);
@@ -218,7 +223,23 @@ class _MutableFenceRepository implements FenceRepository {
   List<FenceItem> fences;
 
   @override
-  List<FenceItem> loadAll() => fences;
+  Future<List<FenceItem>> loadAll() async => fences;
+
+  @override
+  Future<FenceItem> loadDetail(String fenceId) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<FenceItem> create(Map<String, dynamic> body) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<FenceItem> update(String fenceId, Map<String, dynamic> body) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> delete(String fenceId) async =>
+      throw UnimplementedError();
 }
 
 const _fenceA = FenceItem(

@@ -1,53 +1,35 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/worker_management/data/live_worker_repository.dart';
-import 'package:smart_livestock_demo/features/worker_management/data/mock_worker_repository.dart';
+import 'package:smart_livestock_demo/features/worker_management/data/worker_api_repository.dart';
 import 'package:smart_livestock_demo/features/worker_management/domain/worker_repository.dart';
 
 final workerRepositoryProvider = Provider<WorkerRepository>((ref) {
-  switch (ref.watch(appModeProvider)) {
-    case AppMode.mock:
-      return const MockWorkerRepository();
-    case AppMode.live:
-      return const LiveWorkerRepository();
-  }
+  return const WorkerApiRepository();
 });
 
-class WorkerController extends Notifier<WorkersViewData> {
+class WorkerController extends AsyncNotifier<List<WorkerAssignment>> {
   @override
-  WorkersViewData build() {
-    return const WorkersViewData(viewState: ViewState.normal);
+  Future<List<WorkerAssignment>> build() async {
+    return [];
   }
 
-  void loadWorkers(String farmId) {
-    state = ref.read(workerRepositoryProvider).load(
-          viewState: ViewState.normal,
-          farmId: farmId,
-        );
+  Future<void> loadWorkers(String farmId) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+        () => ref.read(workerRepositoryProvider).load(farmId));
   }
 
-  bool assignWorker(String farmId, String userId) {
-    final assigned = ref.read(workerRepositoryProvider).assign(farmId, userId);
-    if (assigned) loadWorkers(farmId);
-    return assigned;
+  Future<void> assignWorker(String farmId, Map<String, dynamic> body) async {
+    await ref.read(workerRepositoryProvider).add(farmId, body);
+    await loadWorkers(farmId);
   }
 
-  bool removeWorker(String assignmentId, String farmId) {
-    final removed = ref.read(workerRepositoryProvider).unassign(assignmentId);
-    if (removed) loadWorkers(farmId);
-    return removed;
-  }
-
-  void setViewState(ViewState viewState, String farmId) {
-    state = ref.read(workerRepositoryProvider).load(
-          viewState: viewState,
-          farmId: farmId,
-        );
+  Future<void> removeWorker(String farmId, String userId) async {
+    await ref.read(workerRepositoryProvider).remove(farmId, userId);
+    await loadWorkers(farmId);
   }
 }
 
 final workerControllerProvider =
-    NotifierProvider<WorkerController, WorkersViewData>(
+    AsyncNotifierProvider<WorkerController, List<WorkerAssignment>>(
   WorkerController.new,
 );

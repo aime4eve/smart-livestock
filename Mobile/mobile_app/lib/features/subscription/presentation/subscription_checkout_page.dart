@@ -199,18 +199,23 @@ class _SubscriptionCheckoutPageState
               height: 48,
               child: ElevatedButton(
                 key: const Key('pay-button'),
-                onPressed: () {
-                  ref
+                onPressed: () async {
+                  await ref
                       .read(subscriptionControllerProvider.notifier)
-                      .checkout(widget.tier, _livestockCount);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        '已成功订阅${tierInfo.name}',
+                      .checkout(
+                        tier: widget.tier.name,
+                        livestockCount: _livestockCount,
+                      );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          '已成功订阅${tierInfo.name}',
+                        ),
                       ),
-                    ),
-                  );
-                  context.pop();
+                    );
+                    context.pop();
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,

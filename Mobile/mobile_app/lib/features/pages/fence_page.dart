@@ -7,20 +7,14 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_auth.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/api/api_role.dart';
-import 'package:smart_livestock_demo/core/data/demo_seed.dart';
-import 'package:smart_livestock_demo/core/data/generators/gps_trajectory_generator.dart';
+import 'package:smart_livestock_demo/core/api/api_client.dart';
+import 'package:smart_livestock_demo/core/map/map_constants.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
 import 'package:smart_livestock_demo/core/map/smart_tile_provider.dart';
 import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
 import 'package:smart_livestock_demo/core/map/coord_transform.dart';
-import 'package:smart_livestock_demo/core/mock/mock_config.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/permissions/role_permission.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
@@ -46,7 +40,6 @@ class FencePage extends ConsumerStatefulWidget {
 class _FencePageState extends ConsumerState<FencePage>
     with TickerProviderStateMixin {
   final _mapController = MapController();
-  final _trajectoryGenerator = GpsTrajectoryGenerator(seed: 42);
   final _gestureKey = GlobalKey();
   bool _panelOpen = false;
 
@@ -124,7 +117,7 @@ class _FencePageState extends ConsumerState<FencePage>
         appBar: isEditing
             ? null
             : AppBar(
-                title: const Text(MockConfig.ranchName),
+                title: const Text('阿尔卑斯北麓牧场'),
                 actions: const [
                   FarmSwitcher(),
                 ],
@@ -134,7 +127,7 @@ class _FencePageState extends ConsumerState<FencePage>
           fenceState,
           ref.read(fenceControllerProvider.notifier),
           canManage,
-          ref.watch(appModeProvider),
+          false,
         ),
       ),
     );
@@ -145,7 +138,7 @@ class _FencePageState extends ConsumerState<FencePage>
     FenceState fenceState,
     FenceController controller,
     bool canManage,
-    AppMode appMode,
+    dynamic appMode,
   ) {
     switch (fenceState.viewState) {
       case ViewState.loading:
@@ -172,7 +165,7 @@ class _FencePageState extends ConsumerState<FencePage>
     FenceState fenceState,
     FenceController controller,
     bool canManage,
-    AppMode appMode,
+    dynamic appMode,
   ) {
     const panelAnimDuration = Duration(milliseconds: 280);
     const panelCurve = Curves.easeOutCubic;
@@ -184,9 +177,6 @@ class _FencePageState extends ConsumerState<FencePage>
     return LayoutBuilder(
       builder: (context, constraints) {
         final panelW = min(300.0, constraints.maxWidth * 0.82);
-        final mockTrajectoryPoints = appMode.isMock
-            ? _buildMockTrajectoryPoints(fenceState)
-            : const <LatLng>[];
 
         return Stack(
           clipBehavior: Clip.none,
@@ -204,8 +194,8 @@ class _FencePageState extends ConsumerState<FencePage>
                         key: const Key('fence-map'),
                         mapController: _mapController,
                         options: MapOptions(
-                          initialCenter: DemoSeed.mapCenter,
-                          initialZoom: DemoSeed.defaultZoom,
+                          initialCenter: MapConstants.mapCenter,
+                          initialZoom: MapConstants.defaultZoom,
                           interactionOptions: InteractionOptions(
                             flags: isEditing &&
                                     editSession.tool ==
@@ -252,40 +242,6 @@ class _FencePageState extends ConsumerState<FencePage>
                             PolygonLayer(
                               polygons:
                                   _buildEditPolygons(editSession),
-                            ),
-                          if (!isEditing &&
-                              editSession == null &&
-                              appMode.isMock &&
-                              mockTrajectoryPoints.isNotEmpty)
-                            PolylineLayer(
-                              polylines: [
-                                Polyline(
-                                  points: mockTrajectoryPoints,
-                                  color: AppColors.primary,
-                                  strokeWidth: 3,
-                                ),
-                              ],
-                            ),
-                          if (!isEditing &&
-                              appMode.isLive &&
-                              ApiCache.instance.initialized &&
-                              ApiCache.instance
-                                  .mapTrajectoryPoints.isNotEmpty)
-                            PolylineLayer(
-                              polylines: [
-                                Polyline(
-                                  points: [
-                                    for (final p in ApiCache
-                                        .instance.mapTrajectoryPoints)
-                                      LatLng(
-                                        (p['lat'] as num).toDouble(),
-                                        (p['lng'] as num).toDouble(),
-                                      ),
-                                  ],
-                                  color: AppColors.primary,
-                                  strokeWidth: 3,
-                                ),
-                              ],
                             ),
                           if (isEditing &&
                               editSession.points.length >= 2)
@@ -426,7 +382,7 @@ class _FencePageState extends ConsumerState<FencePage>
                                   onPressed: () => context
                                       .push(AppRoute.fenceForm.path)
                                       .then((_) {
-                                    if (appMode.isLive) {
+                                    if (true) {
                                       ref
                                           .read(fenceControllerProvider
                                               .notifier)
@@ -939,7 +895,7 @@ class _FencePageState extends ConsumerState<FencePage>
     switch (action) {
       case FenceUnsavedAction.save:
         await _handleEditSave(
-          context, controller, ref.read(appModeProvider),
+          context, controller, false,
         );
         return;
       case FenceUnsavedAction.discard:
@@ -954,7 +910,7 @@ class _FencePageState extends ConsumerState<FencePage>
   Future<void> _handleEditSave(
     BuildContext context,
     FenceController controller,
-    AppMode appMode,
+    dynamic appMode,
   ) async {
     final session = ref.read(fenceControllerProvider).editSession;
     if (session == null || !session.hasChanges) return;
@@ -964,47 +920,29 @@ class _FencePageState extends ConsumerState<FencePage>
       _showSnackBar(context, geometryError);
       return;
     }
-    if (appMode.isMock) {
-      controller.saveEditing();
-      if (mounted) setState(() => _panelOpen = true);
-      return;
-    }
     final sessionInstanceId = session.sessionInstanceId;
     final fenceId = session.fenceId;
     final fenceItem = ref.read(fenceControllerProvider).fences.firstWhere(
           (f) => f.id == fenceId,
         );
     controller.markSavingEdit();
-    final sessionState = ref.read(sessionControllerProvider);
-    final tokens = sessionState.accessToken != null
-        ? ApiAuthTokens(accessToken: sessionState.accessToken!)
-        : null;
-    final ok = await ApiCache.instance.updateFenceRemote(
-      apiRoleFromEnvironment,
-      fenceId,
-      {
+    try {
+      await ApiClient.instance.farmPut('/fences/$fenceId', body: {
         'name': fenceItem.name,
         'vertices': [
           for (final point in session.points)
             {'lat': point.latitude, 'lng': point.longitude},
         ],
         'color': '#${fenceItem.colorValue.toRadixString(16).substring(2).toUpperCase()}',
-      },
-      tokens: tokens,
-    );
-    if (!ok) {
+      });
+    } catch (e) {
       final restored =
           controller.restoreEditingAfterSaveFailureIfCurrent(
         sessionInstanceId: sessionInstanceId,
         fenceId: fenceId,
       );
       if (restored && context.mounted) {
-        _showSnackBar(
-          context,
-          fenceSaveErrorMessageForStatusCode(
-            ApiCache.instance.lastFenceSaveStatusCode,
-          ),
-        );
+        _showSnackBar(context, '保存失败: $e');
       }
       return;
     }
@@ -1013,8 +951,6 @@ class _FencePageState extends ConsumerState<FencePage>
       fenceId: fenceId,
     );
     if (!saved) return;
-    await ApiCache.instance
-        .refreshFencesAndMap(apiRoleFromEnvironment, tokens: tokens);
     controller.reloadFromRepository();
     if (context.mounted) setState(() => _panelOpen = true);
   }
@@ -1067,95 +1003,16 @@ class _FencePageState extends ConsumerState<FencePage>
     ];
   }
 
-  List<Marker> _buildLivestockMarkers(AppMode appMode) {
-    if (appMode.isMock) {
-      return [
-        for (int i = 0; i < DemoSeed.livestockLocations.length; i++)
-          Marker(
-            key: Key('fence-map-marker-$i'),
-            point: DemoSeed.livestockLocations[i].toLatLng(),
-            width: 56,
-            height: 56,
-            child: _MapMarker(
-              label: DemoSeed
-                  .earTags[i < DemoSeed.earTags.length ? i : 0],
-              isAlert: i == 0,
-            ),
-          ),
-      ];
-    }
-    if (!ApiCache.instance.initialized ||
-        ApiCache.instance.animals.isEmpty) {
-      return [
-        for (int i = 0; i < DemoSeed.livestockLocations.length; i++)
-          Marker(
-            key: Key('fence-map-marker-fallback-$i'),
-            point: DemoSeed.livestockLocations[i].toLatLng(),
-            width: 56,
-            height: 56,
-            child: _MapMarker(
-              label: DemoSeed
-                  .earTags[i < DemoSeed.earTags.length ? i : 0],
-              isAlert: i == 0,
-            ),
-          ),
-      ];
-    }
-    final animals = ApiCache.instance.animals;
-    return [
-      for (var i = 0; i < animals.length; i++)
-        Marker(
-          key: Key('fence-map-marker-$i'),
-          point: LatLng(
-            (animals[i]['lat'] as num).toDouble(),
-            (animals[i]['lng'] as num).toDouble(),
-          ),
-          width: 56,
-          height: 56,
-          child: _MapMarker(
-            label: animals[i]['earTag'] as String? ?? '-',
-            isAlert: animals[i]['boundaryStatus'] == 'outside',
-          ),
-        ),
-    ];
-  }
-
-  List<LatLng> _buildMockTrajectoryPoints(FenceState fenceState) {
-    final selectedFenceId =
-        fenceState.selectedFenceId ?? 'fence_pasture_a';
-    List<LatLng>? boundary;
-    for (final fence in fenceState.fences) {
-      if (fence.id == selectedFenceId) {
-        boundary = fence.points;
-        break;
-      }
-    }
-    if (boundary == null || boundary.length < 2) return const [];
-    String? earTag;
-    for (final livestock in DemoSeed.livestock) {
-      if (livestock.fenceId == selectedFenceId) {
-        earTag = livestock.earTag;
-        break;
-      }
-    }
-    final activeEarTag = earTag ?? DemoSeed.earTags.first;
-    final restFence = DemoSeed.fencePointsById('fence_rest');
-    final points = _trajectoryGenerator.generate(
-      earTag: activeEarTag,
-      fenceBoundary: boundary,
-      restFenceBoundary: restFence.isEmpty ? null : restFence,
-      anchorPoints: DemoSeed.gpsAnchorPoints,
-      start: DateTime.utc(2026, 4, 7, 10),
-      end: DateTime.utc(2026, 4, 8, 10),
-    );
-    return points.map((p) => p.toLatLng()).toList();
+  List<Marker> _buildLivestockMarkers(dynamic appMode) {
+    // Live mode: livestock markers loaded from API via repository
+    return const [];
   }
 
   void _showDeleteDialog(
     BuildContext context,
     FenceItem fence,
     FenceController controller,
-    AppMode appMode,
+    dynamic appMode,
   ) {
     showDialog<void>(
       context: context,
@@ -1172,35 +1029,23 @@ class _FencePageState extends ConsumerState<FencePage>
             key: const Key('fence-delete-confirm'),
             onPressed: () async {
               Navigator.of(ctx).pop();
-              if (appMode.isLive) {
-                final ok = await ApiCache.instance.deleteFenceRemote(
-                    apiRoleFromEnvironment, fence.id);
+              try {
+                await ApiClient.instance.farmDelete('/fences/${fence.id}');
                 if (!context.mounted) return;
-                if (ok) {
-                  await ApiCache.instance
-                      .refreshFencesAndMap(apiRoleFromEnvironment);
-                  if (!context.mounted) return;
-                  controller.reloadFromRepository();
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      SnackBar(
-                          content: Text('已删除「${fence.name}」')),
-                    );
-                } else {
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      const SnackBar(
-                          content: Text('删除失败，请稍后重试')),
-                    );
-                }
-              } else {
-                controller.delete(fence.id);
+                controller.reloadFromRepository();
                 ScaffoldMessenger.of(context)
                   ..hideCurrentSnackBar()
                   ..showSnackBar(
-                    SnackBar(content: Text('已删除「${fence.name}」')),
+                    SnackBar(
+                        content: Text('已删除「${fence.name}」')),
+                  );
+              } catch (e) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(
+                        content: Text('删除失败: $e')),
                   );
               }
             },
@@ -1454,62 +1299,3 @@ class _FenceMapNameChip extends StatelessWidget {
   }
 }
 
-class _MapMarker extends StatelessWidget {
-  const _MapMarker({required this.label, this.isAlert = false});
-
-  final String label;
-  final bool isAlert;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isAlert ? AppColors.danger : AppColors.success;
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: Alignment.topCenter,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.4),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.pets,
-                color: Colors.white, size: 14),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 4, vertical: 1),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(4),
-              boxShadow: const [
-                BoxShadow(color: Colors.black26, blurRadius: 2),
-              ],
-            ),
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style:
-                  Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                      ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

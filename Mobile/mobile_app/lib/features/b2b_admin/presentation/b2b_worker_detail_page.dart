@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_worker_management_repository.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_worker_management_controller.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/async_fallback_views.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/confirm_dialog.dart';
 
 class B2bWorkerDetailPage extends ConsumerStatefulWidget {
@@ -27,73 +27,46 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     _loadWorkers();
   }
 
-  void _loadWorkers() {
-    final workers = ref
+  Future<void> _loadWorkers() async {
+    final workers = await ref
         .read(b2bWorkerManagementControllerProvider.notifier)
         .getSubFarmWorkers(widget.farmId);
     if (mounted) {
-      setState(() {
-        _workers = workers;
-      });
+      setState(() => _workers = workers);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Watch the provider so page rebuilds when data changes
-    ref.watch(b2bWorkerManagementControllerProvider);
-    final data = ref.read(b2bWorkerManagementControllerProvider);
-    // Reload workers from latest controller state on every rebuild
-    final latestWorkers = ref
-        .read(b2bWorkerManagementControllerProvider.notifier)
-        .getSubFarmWorkers(widget.farmId);
-    if (_workers.isNotEmpty && _workers.length != latestWorkers.length) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() => _workers = latestWorkers);
-      });
-    } else if (_workers.isEmpty && latestWorkers.isNotEmpty) {
-      _workers = latestWorkers;
-    }
+    final asyncData = ref.watch(b2bWorkerManagementControllerProvider);
 
-    // Find farm info
-    final farm = data.subFarms.where((f) => f.id == widget.farmId).firstOrNull;
-
-    return switch (data.viewState) {
-      ViewState.loading => const Scaffold(
+    return asyncData.when(
+      data: (data) {
+        final farm =
+            data.subFarms.where((f) => f.id == widget.farmId).firstOrNull;
+        return _buildScaffold(context, farm);
+      },
+      loading: () => const Scaffold(
           body: Center(
             key: Key('b2b-worker-detail-loading'),
             child: CircularProgressIndicator(),
           ),
         ),
-      ViewState.error => Scaffold(
-          body: _ErrorView(
+      error: (e, _) => Scaffold(
+          body: B2bErrorView(
             key: const Key('b2b-worker-detail-error'),
-            message: data.message ?? '加载失败',
+            message: e.toString(),
           ),
         ),
-      ViewState.empty => const Scaffold(
-          body: _DetailEmptyView(
-            key: Key('b2b-worker-detail-empty'),
-          ),
-        ),
-      ViewState.forbidden => const Scaffold(
-          body: _ForbiddenView(
-            key: Key('b2b-worker-detail-forbidden'),
-          ),
-        ),
-      ViewState.offline => const Scaffold(
-          body: _OfflineView(
-            key: Key('b2b-worker-detail-offline'),
-          ),
-        ),
-      ViewState.normal => farm == null
-          ? const Scaffold(
-              body: _DetailEmptyView(
-                key: Key('b2b-worker-detail-not-found'),
-              ),
-            )
-          : _buildContent(context, farm),
-    };
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context, B2bSubFarm? farm) {
+    if (farm == null) {
+      return const Scaffold(
+          body: B2bEmptyView(key: Key('b2b-worker-detail-not-found')));
+    }
+    return _buildContent(context, farm);
   }
 
   Widget _buildContent(BuildContext context, B2bSubFarm farm) {
@@ -106,15 +79,12 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- Breadcrumb ---
             _BreadcrumbBar(
               key: const Key('b2b-worker-detail-breadcrumb'),
               farmName: farm.name,
               onBack: () => context.pop(),
             ),
             const SizedBox(height: AppSpacing.lg),
-
-            // --- Farm info bar ---
             _FarmInfoBar(
               key: const Key('b2b-worker-detail-info-bar'),
               farm: farm,
@@ -122,16 +92,12 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
               onAssign: _busy ? null : () => _handleAssign(farm),
             ),
             const SizedBox(height: AppSpacing.lg),
-
-            // --- Worker list label ---
             Text(
               '牧工列表',
               style: theme.textTheme.titleMedium
                   ?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: AppSpacing.sm),
-
-            // --- Worker list ---
             if (_workers.isEmpty)
               const _EmptyWorkerState(
                 key: Key('b2b-worker-detail-empty-workers'),
@@ -154,7 +120,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     if (_busy) return;
     setState(() => _busy = true);
 
-    final available = ref
+    final available = await ref
         .read(b2bWorkerManagementControllerProvider.notifier)
         .getAvailableWorkers();
 
@@ -171,7 +137,6 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
       return;
     }
 
-    // Show multi-select dialog
     final selected = <String>{};
     final confirmed = await showDialog<bool>(
       context: context,
@@ -225,7 +190,6 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
 
     if (confirmed != true || !mounted) return;
 
-    // Assign each selected worker
     var successCount = 0;
     for (final workerId in selected) {
       final ok = await ref
@@ -236,16 +200,24 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
 
     if (!mounted) return;
 
+    final workers = await ref
+        .read(b2bWorkerManagementControllerProvider.notifier)
+        .getSubFarmWorkers(widget.farmId);
+
+    if (!mounted) return;
+
+    setState(() {
+      _busy = false;
+      _workers = workers;
+    });
+    ref.invalidate(b2bWorkerManagementControllerProvider);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('已分配 $successCount 名牧工到 ${farm.name}'),
         backgroundColor: const Color(0xFF2E7D32),
       ),
     );
-
-    setState(() => _busy = false);
-    _loadWorkers();
-    ref.invalidate(b2bWorkerManagementControllerProvider);
   }
 
   Future<void> _handleRemove(
@@ -274,15 +246,24 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     if (!mounted) return;
 
     if (ok) {
+      final workers = await ref
+          .read(b2bWorkerManagementControllerProvider.notifier)
+          .getSubFarmWorkers(widget.farmId);
+
+      if (!mounted) return;
+
+      setState(() {
+        _busy = false;
+        _workers = workers;
+      });
+      ref.invalidate(b2bWorkerManagementControllerProvider);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('已将 ${worker.name} 从 ${farm.name} 移除'),
           backgroundColor: const Color(0xFF2E7D32),
         ),
       );
-      setState(() => _busy = false);
-      _loadWorkers();
-      ref.invalidate(b2bWorkerManagementControllerProvider);
     } else {
       setState(() => _busy = false);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -360,7 +341,6 @@ class _FarmInfoBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Stats chips
           Expanded(
             child: Wrap(
               spacing: AppSpacing.sm,
@@ -382,7 +362,6 @@ class _FarmInfoBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
-          // Assign button
           FilledButton(
             key: const Key('b2b-assign-worker-btn'),
             onPressed: isBusy ? null : onAssign,
@@ -468,7 +447,6 @@ class _WorkerCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Avatar
             Container(
               width: 40,
               height: 40,
@@ -483,7 +461,6 @@ class _WorkerCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.md),
-            // Name + subtitle
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -502,7 +479,6 @@ class _WorkerCard extends StatelessWidget {
                 ],
               ),
             ),
-            // Status tag
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.sm,
@@ -539,7 +515,6 @@ class _WorkerCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
-            // Remove button
             OutlinedButton(
               key: Key('b2b-remove-worker-${worker.id}'),
               onPressed: isBusy ? null : onRemove,
@@ -585,94 +560,6 @@ class _EmptyWorkerState extends StatelessWidget {
               color: theme.hintColor,
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// ViewState fallback views
-// ---------------------------------------------------------------------------
-
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({super.key, required this.message});
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
-          const SizedBox(height: AppSpacing.md),
-          Text('加载失败',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(color: theme.colorScheme.error)),
-          if (message.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.sm),
-              child: Text(message, style: theme.textTheme.bodySmall),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DetailEmptyView extends StatelessWidget {
-  const _DetailEmptyView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.inbox_outlined, size: 48, color: theme.disabledColor),
-          const SizedBox(height: AppSpacing.md),
-          Text('暂无数据', style: theme.textTheme.titleMedium),
-        ],
-      ),
-    );
-  }
-}
-
-class _ForbiddenView extends StatelessWidget {
-  const _ForbiddenView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.lock_outline, size: 48, color: theme.disabledColor),
-          const SizedBox(height: AppSpacing.md),
-          Text('无权限访问', style: theme.textTheme.titleMedium),
-        ],
-      ),
-    );
-  }
-}
-
-class _OfflineView extends StatelessWidget {
-  const _OfflineView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.cloud_off_outlined, size: 48, color: theme.disabledColor),
-          const SizedBox(height: AppSpacing.md),
-          Text('网络不可用', style: theme.textTheme.titleMedium),
         ],
       ),
     );

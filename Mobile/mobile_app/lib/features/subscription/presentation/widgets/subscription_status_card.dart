@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
@@ -46,7 +48,28 @@ class SubscriptionStatusCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final status = ref.watch(subscriptionControllerProvider);
+    final asyncStatus = ref.watch(subscriptionControllerProvider);
+
+    return asyncStatus.when(
+      data: (status) => _buildCard(context, ref, status),
+      loading: () => const Card(
+        key: Key('subscription-status-card'),
+        child: Padding(
+          padding: EdgeInsets.all(AppSpacing.lg),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (e, _) => Card(
+        key: const Key('subscription-status-card'),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Text('加载失败: $e'),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCard(BuildContext context, WidgetRef ref, SubscriptionStatus status) {
     final tierInfo = SubscriptionTierInfo.all[status.tier];
     final isEnterprise = status.tier == SubscriptionTier.enterprise;
     final hasTrialEnd = status.trialEndsAt != null;
@@ -66,7 +89,6 @@ class SubscriptionStatusCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: tier name + status badge
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -97,7 +119,6 @@ class SubscriptionStatusCard extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            // Trial countdown or expiry date
             if (hasTrialEnd && status.status == 'trial') ...[
               Row(
                 children: [
@@ -144,7 +165,6 @@ class SubscriptionStatusCard extends ConsumerWidget {
               const SizedBox(height: AppSpacing.sm),
             ],
 
-            // Usage progress
             UsageProgressBar(
               current: status.livestockCount,
               limit: isEnterprise ? -1 : (tierInfo?.livestockLimit ?? 50),
@@ -152,14 +172,9 @@ class SubscriptionStatusCard extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            // Price breakdown
             const Divider(),
             const SizedBox(height: AppSpacing.sm),
-            _priceRow(
-              context,
-              '套餐费',
-              status.calculatedTierFee,
-            ),
+            _priceRow(context, '套餐费', status.calculatedTierFee),
             const SizedBox(height: AppSpacing.xs),
             _priceRow(
               context,
@@ -169,15 +184,9 @@ class SubscriptionStatusCard extends ConsumerWidget {
             const SizedBox(height: AppSpacing.xs),
             const Divider(),
             const SizedBox(height: AppSpacing.xs),
-            _priceRow(
-              context,
-              '合计',
-              status.calculatedTotal,
-              bold: true,
-            ),
+            _priceRow(context, '合计', status.calculatedTotal, bold: true),
             const SizedBox(height: AppSpacing.lg),
 
-            // Action buttons
             Row(
               children: [
                 if (status.tier != SubscriptionTier.enterprise)
@@ -200,7 +209,10 @@ class SubscriptionStatusCard extends ConsumerWidget {
                       onPressed: () {
                         ref
                             .read(subscriptionControllerProvider.notifier)
-                            .renew(status.livestockCount);
+                            .checkout(
+                              tier: status.tier.name,
+                              livestockCount: status.livestockCount,
+                            );
                       },
                       icon: const Icon(Icons.refresh, size: 18),
                       label: const Text('续费'),
@@ -262,7 +274,7 @@ class SubscriptionStatusCard extends ConsumerWidget {
   }
 
   void _navigateToPlans(BuildContext context) {
-    // Navigation will be handled via GoRouter
+    context.push(AppRoute.subscriptionPlan.path);
   }
 
   void _confirmCancel(BuildContext context, WidgetRef ref) {

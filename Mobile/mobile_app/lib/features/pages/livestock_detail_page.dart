@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/core/models/demo_models.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
+import 'package:smart_livestock_demo/core/models/core_models.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_empty_error_state.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
-import 'package:smart_livestock_demo/features/livestock/domain/livestock_repository.dart';
 import 'package:smart_livestock_demo/features/livestock/presentation/livestock_controller.dart';
 
 class LivestockDetailPage extends ConsumerWidget {
@@ -19,7 +16,7 @@ class LivestockDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final data = ref.watch(livestockControllerProvider(earTag));
+    final asyncData = ref.watch(livestockDetailControllerProvider(earTag));
     return Scaffold(
       appBar: AppBar(
         title: const Text('牲畜详情'),
@@ -35,56 +32,41 @@ class LivestockDetailPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildBody(context, data),
+            asyncData.when(
+              data: (detail) => Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _LivestockInfoCard(detail: detail),
+                  const SizedBox(height: AppSpacing.md),
+                  _DeviceListCard(detail: detail),
+                  const SizedBox(height: AppSpacing.md),
+                  _HealthDataCard(detail: detail),
+                  const SizedBox(height: AppSpacing.md),
+                  _LocationCard(detail: detail),
+                ],
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('加载失败: $e'),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => ref
+                          .read(livestockDetailControllerProvider(earTag)
+                              .notifier)
+                          .refresh(),
+                      child: const Text('重试'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
-  }
-
-  Widget _buildBody(BuildContext context, LivestockViewData data) {
-    switch (data.viewState) {
-      case ViewState.loading:
-        return const Center(child: CircularProgressIndicator());
-      case ViewState.empty:
-        return const HighfiEmptyErrorState(
-          title: '未找到该牲畜',
-          description: '该耳标号暂无对应数据。',
-          icon: Icons.search_off,
-        );
-      case ViewState.error:
-        return HighfiEmptyErrorState(
-          title: '加载失败',
-          description: data.message ?? '',
-          icon: Icons.error_outline,
-        );
-      case ViewState.forbidden:
-        return HighfiEmptyErrorState(
-          title: '无查看权限',
-          description: data.message ?? '',
-          icon: Icons.lock_outline_rounded,
-        );
-      case ViewState.offline:
-        return HighfiEmptyErrorState(
-          title: '离线快照',
-          description: data.message ?? '',
-          icon: Icons.cloud_off_rounded,
-        );
-      case ViewState.normal:
-        final d = data.detail!;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _LivestockInfoCard(detail: d),
-            const SizedBox(height: AppSpacing.md),
-            _DeviceListCard(detail: d),
-            const SizedBox(height: AppSpacing.md),
-            _HealthDataCard(detail: d),
-            const SizedBox(height: AppSpacing.md),
-            _LocationCard(detail: d),
-          ],
-        );
-    }
   }
 }
 
