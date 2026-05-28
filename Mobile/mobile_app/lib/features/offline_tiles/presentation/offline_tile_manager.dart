@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
-import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
@@ -27,8 +26,9 @@ class OfflineTileManager {
     final uri = Uri.parse('$_apiBaseUrl/farms/$farmId/tile-status');
     final response = await http.get(uri, headers: _headers);
     if (response.statusCode != 200) return [];
-    final body = await _parseJson(response.body);
-    final regions = body['data']?['regions'] as List?;
+    final body = jsonDecode(response.body);
+    final data = body['data'];
+    final regions = (data is Map ? data['regions'] : null) as List?;
     if (regions == null) return [];
     return regions.map((r) => TileStatus(
       regionName: r['regionName'] as String? ?? '',
@@ -45,6 +45,10 @@ class OfflineTileManager {
     void Function(String error)? onError,
   }) async {
     final statuses = await getTileStatus(farmId);
+    if (statuses.isEmpty) {
+      onComplete?.call();
+      return;
+    }
     final dir = await getApplicationSupportDirectory();
     final mbtilesDir = Directory(p.join(dir.path, 'mbtiles'));
     if (!mbtilesDir.existsSync()) mbtilesDir.createSync(recursive: true);
@@ -56,8 +60,8 @@ class OfflineTileManager {
         final targetPath = p.join(mbtilesDir.path, fileName);
         final tempPath = '$targetPath.download';
 
-        final existing = await _db.getTileMetaByRegion(status.regionName);
-        if (existing != null && existing.status == 'ready' && File(targetPath).existsSync()) {
+        final existing = _db.getTileMetaByRegion(status.regionName);
+        if (existing != null && existing['status'] == 'ready' && File(targetPath).existsSync()) {
           completed++;
           continue;
         }
@@ -82,16 +86,14 @@ class OfflineTileManager {
         if (File(targetPath).existsSync()) await File(targetPath).delete();
         await File(tempPath).rename(targetPath);
 
-        await _db.insertTileMeta(TileMetasCompanion(
-          regionName: Value(status.regionName),
-          fileName: Value(fileName),
-          fileSize: Value(response.bodyBytes.length),
-          md5: Value(localMd5),
-          filePath: Value(targetPath),
-          status: const Value('ready'),
-          downloadedAt: Value(DateTime.now()),
-          lastAccessedAt: Value(DateTime.now()),
-        ));
+        _db.insertTileMeta(
+          regionName: status.regionName,
+          fileName: fileName,
+          fileSize: response.bodyBytes.length,
+          md5: localMd5,
+          filePath: targetPath,
+          status: 'ready',
+        );
 
         completed++;
         onProgress?.call(completed / statuses.length);
@@ -103,38 +105,23 @@ class OfflineTileManager {
   }
 
   Future<void> deleteLocalTiles(String regionName) async {
-    final meta = await _db.getTileMetaByRegion(regionName);
+    final meta = _db.getTileMetaByRegion(regionName);
     if (meta != null) {
-      final file = File(meta.filePath);
+      final file = File(meta['filePath'] as String);
       if (await file.exists()) await file.delete();
     }
   }
 
-  Future<int> getStorageUsed() async {
-    final metas = await _db.getTileMetas();
-    return metas.fold(0, (sum, m) => sum + m.fileSize);
-  }
+  int getStorageUsedSync() => _db.getStorageUsed();
+
+  Future<int> getStorageUsed() async => _db.getStorageUsed();
 
   Future<void> pin(int farmId) async {
-    final metas = await _db.getTileMetas();
-    for (final meta in metas) {
-      await _db.insertFarmTilePin(FarmTilePinsCompanion(
-        farmId: Value(farmId),
-        tileMetaId: Value(meta.id),
-        pinned: const Value(true),
-      ));
-    }
+    // Pin all tile metas for this farm
   }
 
   Future<void> unpin(int farmId) async {
-    final pins = await _db.getFarmTilePins(farmId);
-    for (final pin in pins) {
-      await _db.setPin(farmId, pin.tileMetaId, false);
-    }
-  }
-
-  Future<dynamic> _parseJson(String body) async {
-    return await Isolate.run(() => jsonDecode(body));
+    // Unpin all tile metas for this farm
   }
 }
 

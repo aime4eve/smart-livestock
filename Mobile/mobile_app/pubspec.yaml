@@ -22,7 +22,6 @@ dependencies:
   sqlite3: ^2.4.6
   sqlite3_flutter_libs: ^0.5.42
   shared_preferences: ^2.5.5
-  drift: ^2.18.0
   path: ^1.9.0
   crypto: ^3.0.4
 
@@ -30,8 +29,6 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  drift_dev: ^2.18.0
-  build_runner: ^2.4.0
 
 flutter:
   uses-material-design: true

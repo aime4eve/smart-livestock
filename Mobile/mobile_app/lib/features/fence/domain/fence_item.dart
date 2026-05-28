@@ -15,6 +15,8 @@ class FenceItem {
     required this.livestockCount,
     required this.colorValue,
     required this.points,
+    this.version = 1,
+    this.fenceType = 'sub',
   });
 
   final String id;
@@ -26,6 +28,8 @@ class FenceItem {
   final int livestockCount;
   final int colorValue;
   final List<LatLng> points;
+  final int version;
+  final String fenceType;
 
   static const defaultColors = [
     0xFF4C9A5F,
@@ -70,6 +74,8 @@ class FenceItem {
     int? livestockCount,
     int? colorValue,
     List<LatLng>? points,
+    int? version,
+    String? fenceType,
   }) {
     return FenceItem(
       id: id ?? this.id,
@@ -81,6 +87,8 @@ class FenceItem {
       livestockCount: livestockCount ?? this.livestockCount,
       colorValue: colorValue ?? this.colorValue,
       points: points ?? this.points,
+      version: version ?? this.version,
+      fenceType: fenceType ?? this.fenceType,
     );
   }
 }

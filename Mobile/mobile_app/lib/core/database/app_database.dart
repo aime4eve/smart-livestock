@@ -1,87 +1,219 @@
 import 'dart:io';
-import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
+import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:sqlite3/sqlite3.dart';
 
-part 'app_database.g.dart';
+class AppDatabase {
+  static AppDatabase? _instance;
+  static AppDatabase get instance => _instance ??= AppDatabase._();
 
-class TileMetas extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get regionName => text()();
-  TextColumn get fileName => text()();
-  IntColumn get fileSize => integer()();
-  TextColumn get md5 => text().nullable()();
-  TextColumn get filePath => text()();
-  TextColumn get status => text().withDefault(const Constant('downloading'))();
-  DateTimeColumn get downloadedAt => dateTime().nullable()();
-  DateTimeColumn get lastAccessedAt => dateTime().nullable()();
-  DateTimeColumn get regionGeneratedAt => dateTime().nullable()();
-}
+  late final Database _db;
 
-class FarmTilePins extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  IntColumn get farmId => integer()();
-  IntColumn get tileMetaId => integer().references(TileMetas, #id)();
-  BoolColumn get pinned => boolean().withDefault(const Constant(false))();
-}
-
-@DriftDatabase(tables: [TileMetas, FarmTilePins])
-class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
-
-  @override
-  int get schemaVersion => 1;
-
-  Future<List<TileMeta>> getTileMetas() => select(tileMetas).get();
-
-  Future<TileMeta?> getTileMetaByRegion(String regionName) {
-    return (select(tileMetas)..where((t) => t.regionName.equals(regionName)))
-        .getSingleOrNull();
+  AppDatabase._() {
+    final dir = _ensureDir();
+    _db = sqlite3.open(p.join(dir, 'smart_livestock.db'));
+    _initSchema();
   }
 
-  Future<void> insertTileMeta(TileMetasCompanion entry) {
-    return into(tileMetas).insertOnConflictUpdate(entry);
+  Database get rawDb => _db;
+
+  void _initSchema() {
+    _db.execute('''
+      CREATE TABLE IF NOT EXISTS tile_metas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        region_name TEXT NOT NULL,
+        file_name TEXT NOT NULL,
+        file_size INTEGER NOT NULL,
+        md5 TEXT,
+        file_path TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'downloading',
+        downloaded_at TEXT,
+        last_accessed_at TEXT,
+        region_generated_at TEXT
+      )
+    ''');
+    _db.execute('''
+      CREATE TABLE IF NOT EXISTS farm_tile_pins (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        farm_id INTEGER NOT NULL,
+        tile_meta_id INTEGER NOT NULL REFERENCES tile_metas(id),
+        pinned INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+    _db.execute('''
+      CREATE TABLE IF NOT EXISTS cached_fences (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        remote_id INTEGER,
+        farm_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        fence_type TEXT NOT NULL DEFAULT 'sub',
+        vertices TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'active',
+        version INTEGER NOT NULL DEFAULT 1,
+        synced INTEGER NOT NULL DEFAULT 0,
+        local_delete_flag INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL,
+        last_local_modified_at TEXT
+      )
+    ''');
+    _db.execute('''
+      CREATE TABLE IF NOT EXISTS cached_livestock_positions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        livestock_id INTEGER NOT NULL,
+        name TEXT,
+        latitude REAL NOT NULL,
+        longitude REAL NOT NULL,
+        recorded_at TEXT NOT NULL,
+        fence_id INTEGER
+      )
+    ''');
+    _db.execute('''
+      CREATE TABLE IF NOT EXISTS analytics_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_type TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        reported INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
   }
 
-  Future<void> updateTileMetaStatus(int id, String status) {
-    return (update(tileMetas)..where((t) => t.id.equals(id)))
-        .write(TileMetasCompanion(status: Value(status)));
+  String _ensureDir() {
+    final dir = p.join(
+        _getApplicationSupportDirectorySync(), 'smart_livestock');
+    Directory(dir).createSync(recursive: true);
+    return dir;
   }
 
-  Future<void> updateTileMetaLastAccessed(int id) {
-    return (update(tileMetas)..where((t) => t.id.equals(id)))
-        .write(TileMetasCompanion(lastAccessedAt: Value(DateTime.now())));
+  String _getApplicationSupportDirectorySync() {
+    // Use path_provider at runtime, but for sync init we need a known path
+    // This will be overridden by the async init path
+    return '${Platform.environment['HOME'] ?? '.'}/Library/Application Support';
   }
 
-  Future<List<FarmTilePin>> getFarmTilePins(int farmId) {
-    return (select(farmTilePins)..where((t) => t.farmId.equals(farmId))).get();
+  // CachedFences queries
+  List<Map<String, dynamic>> getCachedFencesByFarm(int farmId) {
+    return _db.select('SELECT * FROM cached_fences WHERE farm_id = ?', [farmId])
+        .map((r) => _rowToMap(r)).toList();
   }
 
-  Future<void> insertFarmTilePin(FarmTilePinsCompanion entry) {
-    return into(farmTilePins).insertOnConflictUpdate(entry);
+  List<Map<String, dynamic>> getUnsyncedFences() {
+    return _db.select('SELECT * FROM cached_fences WHERE synced = 0')
+        .map((r) => _rowToMap(r)).toList();
   }
 
-  Future<void> deleteFarmTilePins(int farmId) {
-    return (delete(farmTilePins)..where((t) => t.farmId.equals(farmId))).go();
+  Map<String, dynamic>? getCachedFenceByRemoteId(int remoteId) {
+    final rows = _db.select('SELECT * FROM cached_fences WHERE remote_id = ?', [remoteId]);
+    return rows.isEmpty ? null : _rowToMap(rows.first);
   }
 
-  Future<void> setPin(int farmId, int tileMetaId, bool pinned) {
-    final existing = await (select(farmTilePins)
-          ..where((t) =>
-              t.farmId.equals(farmId) & t.tileMetaId.equals(tileMetaId)))
-        .getSingleOrNull();
-    if (existing != null) {
-      await (update(farmTilePins)..where((t) => t.id.equals(existing.id)))
-          .write(FarmTilePinsCompanion(pinned: Value(pinned)));
-    }
+  void insertCachedFence({
+    int? remoteId,
+    required int farmId,
+    required String name,
+    String fenceType = 'sub',
+    required String vertices,
+    String status = 'active',
+    int version = 1,
+    bool synced = false,
+    bool localDeleteFlag = false,
+    DateTime? lastLocalModifiedAt,
+  }) {
+    _db.execute('''
+      INSERT OR REPLACE INTO cached_fences 
+      (remote_id, farm_id, name, fence_type, vertices, status, version, synced, local_delete_flag, updated_at, last_local_modified_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', [remoteId, farmId, name, fenceType, vertices, status, version,
+          synced ? 1 : 0, localDeleteFlag ? 1 : 0,
+          DateTime.now().toIso8601String(),
+          lastLocalModifiedAt?.toIso8601String()]);
   }
-}
 
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final dbFolder = await getApplicationSupportDirectory();
-    final file = File(p.join(dbFolder.path, 'smart_livestock.db'));
-    return NativeDatabase.createInBackground(file);
-  });
+  void markFenceSynced(int id) {
+    _db.execute('UPDATE cached_fences SET synced = 1 WHERE id = ?', [id]);
+  }
+
+  void deleteCachedFence(int id) {
+    _db.execute('DELETE FROM cached_fences WHERE id = ?', [id]);
+  }
+
+  void deleteCachedFencesByFarm(int farmId) {
+    _db.execute('DELETE FROM cached_fences WHERE farm_id = ?', [farmId]);
+  }
+
+  // TileMetas queries
+  List<Map<String, dynamic>> getTileMetas() {
+    return _db.select('SELECT * FROM tile_metas').map((r) => _rowToMap(r)).toList();
+  }
+
+  Map<String, dynamic>? getTileMetaByRegion(String regionName) {
+    final rows = _db.select('SELECT * FROM tile_metas WHERE region_name = ?', [regionName]);
+    return rows.isEmpty ? null : _rowToMap(rows.first);
+  }
+
+  void insertTileMeta({
+    required String regionName,
+    required String fileName,
+    required int fileSize,
+    String? md5,
+    required String filePath,
+    String status = 'downloading',
+  }) {
+    _db.execute('''
+      INSERT OR REPLACE INTO tile_metas (region_name, file_name, file_size, md5, file_path, status, downloaded_at, last_accessed_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ''', [regionName, fileName, fileSize, md5, filePath, status,
+          DateTime.now().toIso8601String(), DateTime.now().toIso8601String()]);
+  }
+
+  int getStorageUsed() {
+    final rows = _db.select('SELECT COALESCE(SUM(file_size), 0) as total FROM tile_metas');
+    return rows.first['total'] as int;
+  }
+
+  // Analytics queries
+  void insertAnalyticsEvent(String eventType, String payload) {
+    _db.execute('INSERT INTO analytics_events (event_type, payload) VALUES (?, ?)',
+        [eventType, payload]);
+  }
+
+  List<Map<String, dynamic>> getUnreportedEvents() {
+    return _db.select('SELECT * FROM analytics_events WHERE reported = 0')
+        .map((r) => _rowToMap(r)).toList();
+  }
+
+  void markEventsReported(List<int> ids) {
+    if (ids.isEmpty) return;
+    final placeholders = ids.map((_) => '?').join(',');
+    _db.execute('UPDATE analytics_events SET reported = 1 WHERE id IN ($placeholders)', ids);
+  }
+
+  // Livestock position queries
+  void upsertLivestockPosition({
+    required int livestockId,
+    String? name,
+    required double latitude,
+    required double longitude,
+    required String recordedAt,
+    int? fenceId,
+  }) {
+    _db.execute('''
+      INSERT OR REPLACE INTO cached_livestock_positions (livestock_id, name, latitude, longitude, recorded_at, fence_id)
+      VALUES (?, ?, ?, ?, ?, ?)
+    ''', [livestockId, name, latitude, longitude, recordedAt, fenceId]);
+  }
+
+  List<Map<String, dynamic>> getLivestockPositions() {
+    return _db.select('SELECT * FROM cached_livestock_positions').map((r) => _rowToMap(r)).toList();
+  }
+
+  Map<String, dynamic> _rowToMap(Row row) {
+    return {for (final key in row.keys) key: row[key]};
+  }
+
+  void dispose() {
+    _db.dispose();
+    _instance = null;
+  }
 }

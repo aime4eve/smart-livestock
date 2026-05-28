@@ -12,9 +12,7 @@ FenceType fenceTypeFromApiString(String? raw) {
 }
 
 List<LatLng> coordinatesToLatLngPoints(List<dynamic>? raw) {
-  if (raw == null) {
-    return [];
-  }
+  if (raw == null) return [];
   final out = <LatLng>[];
   for (final c in raw) {
     if (c is List && c.length >= 2) {
@@ -38,11 +36,26 @@ FenceItem fenceItemFromJson(
   final alarmEnabled = raw['alarmEnabled'] as bool? ?? true;
   final active = raw['active'] as bool? ?? true;
   var points = coordinatesToLatLngPoints(raw['coordinates'] as List<dynamic>?);
+  if (points.isEmpty) {
+    final vertices = raw['vertices'] as List<dynamic>?;
+    if (vertices != null) {
+      points = [
+        for (final v in vertices)
+          if (v is Map<String, dynamic>)
+            LatLng(
+              (v['lat'] as num?)?.toDouble() ?? 0,
+              (v['lng'] as num?)?.toDouble() ?? 0,
+            ),
+      ];
+    }
+  }
   if (points.length < 3) {
     points = FenceItem.defaultPointsForType(type, _fallbackCenter);
   }
   final colorValue = raw['color'] as int? ??
       FenceItem.defaultColors[colorIndex % FenceItem.defaultColors.length];
+  final version = raw['version'] as int? ?? 1;
+  final fenceType = raw['fenceType'] as String? ?? 'sub';
   return FenceItem(
     id: id,
     name: name,
@@ -53,6 +66,8 @@ FenceItem fenceItemFromJson(
     livestockCount: livestockCount,
     colorValue: colorValue,
     points: points,
+    version: version,
+    fenceType: fenceType,
   );
 }
 
