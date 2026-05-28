@@ -2,6 +2,7 @@ package com.smartlivestock.shared.security;
 
 import com.smartlivestock.identity.application.ApiKeyApplicationService;
 import com.smartlivestock.identity.domain.model.ApiKey;
+import com.smartlivestock.identity.domain.repository.FarmRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +18,7 @@ public class ApiKeyAuthService {
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final ApiKeyApplicationService apiKeyApplicationService;
+    private final FarmRepository farmRepository;
 
     public String requireApiKey(HttpServletRequest request) {
         String apiKey = extractApiKey(request);
@@ -33,11 +35,19 @@ public class ApiKeyAuthService {
     }
 
     public void validateFarmAccess(String apiKey, Long farmId) {
-        // Future: look up key -> tenantId, then farm -> tenantId, compare
+        ApiKey key = apiKeyApplicationService.validateApiKey(apiKey);
+        var farm = farmRepository.findById(farmId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牧场不存在: " + farmId));
+        if (!farm.getTenantId().equals(key.getTenantId())) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "无权访问该牧场");
+        }
     }
 
     public void requireDeviceRegisterScope(String apiKey) {
-        // Future: check key scopes contain "device:register"
+        ApiKey key = apiKeyApplicationService.validateApiKey(apiKey);
+        if (!"admin".equals(key.getRole()) && !"device_manager".equals(key.getRole())) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "API Key 无设备注册权限");
+        }
     }
 
     private String extractApiKey(HttpServletRequest request) {

@@ -3,11 +3,17 @@ package com.smartlivestock.ranch.interfaces;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartlivestock.identity.domain.model.Farm;
 import com.smartlivestock.identity.domain.repository.FarmRepository;
+import com.smartlivestock.shared.common.ApiException;
+import com.smartlivestock.shared.common.ErrorCode;
+import com.smartlivestock.shared.tenant.TenantContext;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -20,6 +26,7 @@ import java.util.Map;
 @RequestMapping("/api/v1")
 public class TileController {
 
+    private static final Logger log = LoggerFactory.getLogger(TileController.class);
     private static final String TILES_DIR = "/data/mbtiles";
     private static final String REGIONS_FILE = "/data/mbtiles/regions.json";
 
@@ -52,11 +59,18 @@ public class TileController {
     public ResponseEntity<Resource> downloadOfflineMap(@PathVariable Long farmId) {
         Farm farm = farmRepository.findById(farmId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Farm not found"));
+        Long currentTenant = TenantContext.getCurrentTenant();
+        if (currentTenant != null && !farm.getTenantId().equals(currentTenant)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
 
         String matchedFile = findMatchingMbtiles(farm);
         if (matchedFile == null) return ResponseEntity.notFound().build();
 
-        Path mbtiles = Paths.get(TILES_DIR, matchedFile);
+        Path mbtiles = Paths.get(TILES_DIR).resolve(matchedFile).normalize();
+        if (!mbtiles.startsWith(Paths.get(TILES_DIR).normalize())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid path");
+        }
         if (!mbtiles.toFile().exists()) return ResponseEntity.notFound().build();
         Resource resource = new FileSystemResource(mbtiles);
         return ResponseEntity.ok()
@@ -90,7 +104,8 @@ public class TileController {
                     return (String) region.get("file");
                 }
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.warn("Failed to read regions file: {}", e.getMessage());
         }
         return null;
     }

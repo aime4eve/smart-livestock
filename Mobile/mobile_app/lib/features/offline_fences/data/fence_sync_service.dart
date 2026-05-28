@@ -1,24 +1,35 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smart_livestock_demo/core/api/api_client.dart';
+import 'package:smart_livestock_demo/core/api/api_exception.dart';
 import 'package:smart_livestock_demo/core/database/app_database.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:smart_livestock_demo/features/offline_fences/domain/cached_fence.dart';
+
+typedef ConflictCallback = void Function(FenceConflict conflict, int localRowId);
 
 class FenceSyncService {
   final AppDatabase _db;
-  final String _apiBaseUrl;
-  final Map<String, String> _headers;
+  final ApiClient _apiClient;
 
-  FenceSyncService(this._db, this._apiBaseUrl, this._headers);
+  FenceSyncService(this._db, this._apiClient);
 
   Future<void> cacheFencesFromServer(int farmId) async {
-    final uri = Uri.parse('$_apiBaseUrl/farms/$farmId/fences?pageSize=100');
-    final response = await http.get(uri, headers: _headers);
-    if (response.statusCode != 200) return;
+    int page = 1;
+    const pageSize = 100;
+    List<dynamic> allItems = [];
 
-    final body = jsonDecode(response.body);
-    final data = body['data'] ?? body;
-    final items = (data is Map ? data['items'] : null) as List? ?? [];
+    while (true) {
+      final data = await _apiClient.farmGet('/fences?page=$page&pageSize=$pageSize');
+      final items = data['items'] as List? ?? [];
+      allItems.addAll(items);
+      final total = data['total'] as int? ?? 0;
+      if (allItems.length >= total || items.length < pageSize) break;
+      page++;
+    }
 
-    for (final item in items) {
+    for (final item in allItems) {
       final map = item as Map<String, dynamic>;
       final remoteId = map['id'] as int?;
       final version = map['version'] as int? ?? 1;
@@ -54,17 +65,17 @@ class FenceSyncService {
     }
   }
 
-  Future<void> pushUnsyncedFences(int farmId) async {
+  Future<void> pushUnsyncedFences(
+    int farmId, {
+    ConflictCallback? onConflict,
+  }) async {
     final unsynced = _db.getUnsyncedFences();
     for (final fence in unsynced) {
       if ((fence['farm_id'] as int) != farmId) continue;
       try {
         if ((fence['local_delete_flag'] as int) == 1) {
           if (fence['remote_id'] != null) {
-            await http.delete(
-              Uri.parse('$_apiBaseUrl/farms/$farmId/fences/${fence['remote_id']}'),
-              headers: _headers,
-            );
+            await _apiClient.farmDelete('/fences/${fence['remote_id']}');
           }
           _db.deleteCachedFence(fence['id'] as int);
           continue;
@@ -78,35 +89,70 @@ class FenceSyncService {
         };
 
         if (fence['remote_id'] == null) {
-          final response = await http.post(
-            Uri.parse('$_apiBaseUrl/farms/$farmId/fences'),
-            headers: {..._headers, 'Content-Type': 'application/json'},
-            body: jsonEncode(body),
-          );
-          if (response.statusCode == 201) {
-            final created = jsonDecode(response.body)['data'];
+          final created = await _apiClient.farmPost('/fences', body: body);
+          final newRemoteId = created['id'] as int?;
+          if (newRemoteId != null) {
+            _db.rawDb.execute(
+              'UPDATE cached_fences SET remote_id = ?, synced = 1 WHERE id = ?',
+              [newRemoteId, fence['id']],
+            );
+          } else {
             _db.markFenceSynced(fence['id'] as int);
           }
         } else {
           body['expectedVersion'] = fence['version'];
-          final remoteId = fence['remote_id'];
-          final response = await http.put(
-            Uri.parse('$_apiBaseUrl/farms/$farmId/fences/$remoteId'),
-            headers: {..._headers, 'Content-Type': 'application/json'},
-            body: jsonEncode(body),
-          );
-          if (response.statusCode == 200) {
+          final remoteId = fence['remote_id'] as int;
+          try {
+            await _apiClient.farmPut('/fences/$remoteId', body: body);
             _db.markFenceSynced(fence['id'] as int);
+          } on ConflictException catch (e) {
+            final conflictData = e.data ?? {};
+            final serverVersion = conflictData['serverVersion'] as int? ?? (fence['version'] as int);
+            final serverVerticesRaw = conflictData['serverVertices'] as List? ?? [];
+            final serverVertices = serverVerticesRaw
+                .whereType<Map<String, dynamic>>()
+                .map((v) => LatLng(
+                  (v['lat'] as num).toDouble(),
+                  (v['lng'] as num).toDouble(),
+                ))
+                .toList();
+            final localVertices = (jsonDecode(fence['vertices'] as String) as List)
+                .whereType<Map<String, dynamic>>()
+                .map((v) => LatLng(
+                  (v['lat'] as num).toDouble(),
+                  (v['lng'] as num).toDouble(),
+                ))
+                .toList();
+            final localFence = CachedFenceData(
+              id: fence['id'] as int,
+              remoteId: remoteId,
+              farmId: farmId,
+              name: fence['name'] as String,
+              fenceType: fence['fence_type'] as String? ?? 'sub',
+              vertices: localVertices,
+              status: fence['status'] as String? ?? 'active',
+              version: fence['version'] as int? ?? 1,
+              synced: false,
+              updatedAt: DateTime.now(),
+            );
+            final conflict = FenceConflict(
+              localFence: localFence,
+              serverVersion: serverVersion,
+              serverVertices: serverVertices,
+            );
+            if (onConflict != null) {
+              onConflict(conflict, fence['id'] as int);
+            }
           }
         }
-      } catch (_) {
-        // Skip, try next
+      } catch (e) {
+        debugPrint('FenceSyncService: push failed: $e');
       }
     }
   }
 
-  Future<void> sync(int farmId) async {
-    await pushUnsyncedFences(farmId);
+  Future<void> sync(int farmId, {ConflictCallback? onConflict}) async {
+    await pushUnsyncedFences(farmId, onConflict: onConflict);
     await cacheFencesFromServer(farmId);
   }
 
@@ -115,3 +161,7 @@ class FenceSyncService {
     return all.where((f) => (f['farm_id'] as int) == farmId).length;
   }
 }
+
+final fenceSyncServiceProvider = Provider<FenceSyncService>((ref) {
+  return FenceSyncService(AppDatabase.instance, ApiClient.instance);
+});

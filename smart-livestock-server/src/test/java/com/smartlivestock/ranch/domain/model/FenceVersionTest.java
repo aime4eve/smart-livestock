@@ -24,7 +24,7 @@ class FenceVersionTest {
     private FenceRepository fenceRepository;
 
     @Test
-    void updateFence_incrementsVersion() {
+    void updateFence_keepsVersion_whenExpectedMatches() {
         Fence fence = new Fence(1L, "test", List.of(), "#FF0000");
         fence.setVersion(2);
         when(fenceRepository.findById(1L)).thenReturn(Optional.of(fence));
@@ -32,7 +32,7 @@ class FenceVersionTest {
 
         FenceApplicationService svc = new FenceApplicationService(fenceRepository);
         FenceDto result = svc.updateFence(1L, new UpdateFenceCommand("up", List.of(), "#00F", 2));
-        assertEquals(3, result.version());
+        assertEquals(2, result.version());
     }
 
     @Test
@@ -55,6 +55,6 @@ class FenceVersionTest {
 
         FenceApplicationService svc = new FenceApplicationService(fenceRepository);
         FenceDto result = svc.updateFence(1L, new UpdateFenceCommand("up", List.of(), "#00F", null));
-        assertEquals(6, result.version());
+        assertEquals(5, result.version());
     }
 }

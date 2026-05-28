@@ -9,6 +9,7 @@ public interface TileRegionRepository {
     Optional<TileRegion> findById(Long id);
     Optional<TileRegion> findByName(String name);
     List<TileRegion> findAll();
+    List<TileRegion> findAllByIds(List<Long> ids);
     List<TileRegion> findByStatus(String status);
     List<TileRegion> findIntersecting(double minLon, double minLat, double maxLon, double maxLat);
 }

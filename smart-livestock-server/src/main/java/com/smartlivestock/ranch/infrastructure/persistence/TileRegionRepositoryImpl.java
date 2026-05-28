@@ -31,6 +31,10 @@ public class TileRegionRepositoryImpl implements TileRegionRepository {
         return springDataRepo.findAll().stream().map(TileRegionMapper::toDomain).toList();
     }
     @Override
+    public List<TileRegion> findAllByIds(List<Long> ids) {
+        return springDataRepo.findAllById(ids).stream().map(TileRegionMapper::toDomain).toList();
+    }
+    @Override
     public List<TileRegion> findByStatus(String status) {
         return springDataRepo.findByStatus(status).stream().map(TileRegionMapper::toDomain).toList();
     }

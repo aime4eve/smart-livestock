@@ -65,6 +65,18 @@ class MinePage extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
+                HighfiCard(
+                  child: ListTile(
+                    key: const Key('mine-offline-maps'),
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.map_outlined),
+                    title: const Text('离线地图管理'),
+                    subtitle: const Text('下载和管理离线瓦片数据'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.go(AppRoute.offlineTileManagement.path),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
                 const HighfiCard(
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,

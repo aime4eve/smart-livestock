@@ -25,7 +25,8 @@ class NotFoundException extends ApiException {
 }
 
 class ConflictException extends ApiException {
-  const ConflictException({super.message = '数据冲突', super.statusCode, super.code});
+  final Map<String, dynamic>? data;
+  const ConflictException({super.message = '数据冲突', super.statusCode, super.code, this.data});
 }
 
 class ValidationException extends ApiException {

@@ -34,7 +34,7 @@ class CachedFenceData {
 
   static List<LatLng> parseVertices(String json) {
     final list = jsonDecode(json) as List;
-    return list.map((e) => LatLng((e as Map)['lat'] as double, e['lng'] as double)).toList();
+    return list.map((e) => LatLng((e['lat'] as num).toDouble(), (e['lng'] as num).toDouble())).toList();
   }
 }
 

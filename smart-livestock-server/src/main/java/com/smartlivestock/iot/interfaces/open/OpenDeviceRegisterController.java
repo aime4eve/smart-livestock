@@ -96,18 +96,8 @@ public class OpenDeviceRegisterController {
         }
     }
 
-    /**
-     * Phase 1: Extract tenant ID from API Key.
-     * Phase 2 will look up api_keys table to resolve tenantId from key_hash.
-     */
     private Long resolveTenantId(String apiKey) {
-        // Phase 1 stub: return a default tenant ID.
-        // In production, this will look up the api_keys table.
-        // For now, return 1L (demo tenant) to allow basic functionality.
-        if (apiKey != null && apiKey.startsWith("sl_test_")) {
-            return 1L;  // Demo tenant
-        }
-        return 1L;  // Default
+        return apiKeyAuthService.validateRawKey(apiKey).getTenantId();
     }
 
     /**

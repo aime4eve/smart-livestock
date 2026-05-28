@@ -7,6 +7,7 @@ import com.smartlivestock.ranch.application.dto.TileRegionDto;
 import com.smartlivestock.shared.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin/tiles")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 public class TileAdminController {
 
     private final TileAdminService tileAdminService;
@@ -83,10 +85,7 @@ public class TileAdminController {
 
     @GetMapping("/farm-tasks")
     public ResponseEntity<ApiResponse<List<FarmTileStatusDto>>> listFarmTasks() {
-        List<FarmTileStatusDto> allStatuses = tileAdminService.listRegions().stream()
-                .map(r -> tileAdminService.getFarmTileStatus(r.id()))
-                .filter(s -> !s.regions().isEmpty())
-                .toList();
+        List<FarmTileStatusDto> allStatuses = tileAdminService.listFarmTileStatuses();
         return ResponseEntity.ok(ApiResponse.ok(allStatuses));
     }
 }

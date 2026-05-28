@@ -89,7 +89,7 @@ class TileAdminServiceTest {
         TileRegion region = new TileRegion("changsha", 112.8, 28.1, 113.1, 28.4);
         region.setId(10L);
         region.setStatus("ready");
-        when(tileRegionRepository.findById(10L)).thenReturn(Optional.of(region));
+        when(tileRegionRepository.findAllByIds(List.of(10L))).thenReturn(List.of(region));
 
         var svc = createService();
         List<TileSourceDto> sources = svc.getFarmTileSources(1L);

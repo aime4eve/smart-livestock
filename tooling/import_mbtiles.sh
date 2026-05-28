@@ -80,10 +80,16 @@ for f in "$LOCAL_DIR"/*.mbtiles; do
     [ -z "$bounds" ] && continue
     IFS=',' read -r min_lon min_lat max_lon max_lat <<< "$bounds"
 
+    payload=$(python3 -c "import json,sys; print(json.dumps({
+        'name': sys.argv[1], 'minLon': float(sys.argv[2]), 'minLat': float(sys.argv[3]),
+        'maxLon': float(sys.argv[4]), 'maxLat': float(sys.argv[5]),
+        'fileName': sys.argv[1] + '.mbtiles', 'fileSize': int(sys.argv[6]),
+        'md5': sys.argv[7], 'status': 'ready'
+    }))" "$base" "$min_lon" "$min_lat" "$max_lon" "$max_lat" "$size" "$md5hash")
     if curl -sf -X POST "$API_URL/admin/tiles/regions" \
         -H "X-API-Key: $API_KEY" \
         -H "Content-Type: application/json" \
-        -d "{\"name\":\"$base\",\"minLon\":$min_lon,\"minLat\":$min_lat,\"maxLon\":$max_lon,\"maxLat\":$max_lat,\"fileName\":\"$base.mbtiles\",\"fileSize\":$size,\"md5\":\"$md5hash\",\"status\":\"ready\"}"; then
+        -d "$payload"; then
         echo "Synced: $base"
     else
         echo "Failed: $base"

@@ -1,6 +1,5 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smart_livestock_demo/core/api/api_client.dart';
 
 class TileSource {
   final String sourceName;
@@ -16,27 +15,23 @@ class TileSource {
 }
 
 class TileSourceResolver {
-  final String baseUrl;
-  final Map<String, String> headers;
+  final ApiClient _apiClient;
 
-  TileSourceResolver({required this.baseUrl, required this.headers});
+  TileSourceResolver({required ApiClient apiClient}) : _apiClient = apiClient;
 
   Future<List<TileSource>> resolve(int farmId) async {
-    final uri = Uri.parse('$baseUrl/farms/$farmId/tile-source');
-    final response = await http.get(uri, headers: headers);
-    if (response.statusCode != 200) return [];
-    final body = jsonDecode(response.body);
-    final data = body['data'];
-    if (data is List) {
-      return data.map((e) => TileSource.fromJson(e as Map<String, dynamic>)).toList();
+    final data = await _apiClient.farmGet('/tile-source');
+    final rawList = data['data'];
+    if (rawList is List) {
+      return rawList
+          .whereType<Map<String, dynamic>>()
+          .map((e) => TileSource.fromJson(e))
+          .toList();
     }
     return [];
   }
 }
 
 final tileSourceResolverProvider = Provider<TileSourceResolver>((ref) {
-  return TileSourceResolver(
-    baseUrl: 'http://127.0.0.1:18080/api/v1',
-    headers: {},
-  );
+  return TileSourceResolver(apiClient: ApiClient.instance);
 });

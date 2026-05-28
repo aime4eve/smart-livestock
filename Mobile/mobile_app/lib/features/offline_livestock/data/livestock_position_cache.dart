@@ -7,11 +7,16 @@ class LivestockPositionCache {
 
   void refreshFromServer(List<Map<String, dynamic>> positions) {
     for (final pos in positions) {
+      final livestockId = pos['livestockId'];
+      if (livestockId is! int) continue;
+      final lat = pos['latitude'];
+      final lng = pos['longitude'];
+      if (lat is! num || lng is! num) continue;
       _db.upsertLivestockPosition(
-        livestockId: pos['livestockId'] as int,
+        livestockId: livestockId,
         name: pos['name'] as String?,
-        latitude: (pos['latitude'] as num).toDouble(),
-        longitude: (pos['longitude'] as num).toDouble(),
+        latitude: lat.toDouble(),
+        longitude: lng.toDouble(),
         recordedAt: pos['recordedAt'] as String? ?? DateTime.now().toIso8601String(),
         fenceId: pos['fenceId'] as int?,
       );

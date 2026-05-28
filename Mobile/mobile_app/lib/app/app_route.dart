@@ -41,7 +41,9 @@ enum AppRoute {
   b2bAdminRevenueDetail('/b2b/admin/revenue/:id', 'b2b-admin-revenue-detail', '对账详情'),
   b2bWorkerDetail('/b2b/admin/workers/:farmId', 'b2b-worker-detail', '牧工详情'),
   mineApiAuth('/mine/api-auth', 'mine-api-auth', 'API授权管理'),
-  farmCreation('/farm/create', 'farm-creation', '创建牧场');
+  farmCreation('/farm/create', 'farm-creation', '创建牧场'),
+  offlineTileManagement('/offline/tiles', 'offline-tile-management', '离线地图管理'),
+  fenceConflict('/fence/conflict', 'fence-conflict', '围栏冲突');
 
   const AppRoute(this.path, this.routeName, this.label);
 

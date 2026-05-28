@@ -9,4 +9,8 @@ import java.util.Optional;
 public interface SpringDataFarmTileTaskRepository extends JpaRepository<FarmTileTaskJpaEntity, Long> {
     List<FarmTileTaskJpaEntity> findByFarmId(Long farmId);
     Optional<FarmTileTaskJpaEntity> findByFarmIdAndRegionId(Long farmId, Long regionId);
+    List<FarmTileTaskJpaEntity> findByRegionIdAndStatus(Long regionId, String status);
+
+    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT f.farmId FROM FarmTileTaskJpaEntity f")
+    List<Long> findAllDistinctFarmIds();
 }

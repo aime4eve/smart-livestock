@@ -38,7 +38,9 @@ class TileAnalytics {
       if (response.statusCode == 200) {
         _db.markEventsReported(events.map((e) => e['id'] as int).toList());
       }
-    } catch (_) {}
+    } catch (e) {
+      // Keep unreported events for next flush attempt
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:smart_livestock_demo/core/map/smart_tile_provider.dart';
 import 'package:smart_livestock_demo/features/offline_fences/domain/cached_fence.dart';
 
 class FenceConflictPage extends StatelessWidget {
@@ -27,62 +28,26 @@ class FenceConflictPage extends StatelessWidget {
       body: Column(
         children: [
           Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text('服务端版本 (v${conflict.serverVersion})',
-                          style: Theme.of(context).textTheme.titleSmall),
-                      Expanded(
-                        child: FlutterMap(
-                          options: MapOptions(
-                            initialCenter: bounds.center,
-                            initialZoom: 14,
-                          ),
-                          children: [
-                            PolygonLayer(polygons: [
-                              Polygon(
-                                points: conflict.serverVertices,
-                                color: Colors.blue.withOpacity(0.3),
-                                borderColor: Colors.blue,
-                                borderStrokeWidth: 2,
-                              ),
-                            ]),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+            child: LayoutBuilder(builder: (context, constraints) {
+              final useRow = constraints.maxWidth > 500;
+              final mapWidgets = [
+                _buildMapSection(
+                  title: '服务端版本 (v${conflict.serverVersion})',
+                  points: conflict.serverVertices,
+                  color: Colors.blue,
+                  center: bounds.center,
                 ),
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text('您的修改 (离线编辑)',
-                          style: Theme.of(context).textTheme.titleSmall),
-                      Expanded(
-                        child: FlutterMap(
-                          options: MapOptions(
-                            initialCenter: bounds.center,
-                            initialZoom: 14,
-                          ),
-                          children: [
-                            PolygonLayer(polygons: [
-                              Polygon(
-                                points: conflict.localFence.vertices,
-                                color: Colors.orange.withOpacity(0.3),
-                                borderColor: Colors.orange,
-                                borderStrokeWidth: 2,
-                              ),
-                            ]),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                _buildMapSection(
+                  title: '您的修改 (离线编辑)',
+                  points: conflict.localFence.vertices,
+                  color: Colors.orange,
+                  center: bounds.center,
                 ),
-              ],
-            ),
+              ];
+              return useRow
+                  ? Row(children: mapWidgets.map((w) => Expanded(child: w)).toList())
+                  : Column(children: mapWidgets);
+            }),
           ),
           Padding(
             padding: const EdgeInsets.all(16),
@@ -103,6 +68,41 @@ class FenceConflictPage extends StatelessWidget {
                     child: const Text('覆盖服务端版本'),
                   ),
                 ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMapSection({
+    required String title,
+    required List<LatLng> points,
+    required Color color,
+    required LatLng center,
+  }) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(title, style: const TextStyle(fontSize: 13)),
+          Expanded(
+            child: FlutterMap(
+              options: MapOptions(initialCenter: center, initialZoom: 14),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scl=1&style=8&x={x}&y={y}&z={z}',
+                  subdomains: const ['1', '2', '3', '4'],
+                  maxZoom: 18,
+                ),
+                PolygonLayer(polygons: [
+                  Polygon(
+                    points: points,
+                    color: color.withOpacity(0.3),
+                    borderColor: color,
+                    borderStrokeWidth: 2,
+                  ),
+                ]),
               ],
             ),
           ),

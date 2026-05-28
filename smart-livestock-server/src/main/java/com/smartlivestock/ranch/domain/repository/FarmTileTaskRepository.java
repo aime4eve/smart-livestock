@@ -9,5 +9,7 @@ public interface FarmTileTaskRepository {
     Optional<FarmTileTask> findById(Long id);
     List<FarmTileTask> findByFarmId(Long farmId);
     Optional<FarmTileTask> findByFarmIdAndRegionId(Long farmId, Long regionId);
+    List<FarmTileTask> findByRegionIdAndStatus(Long regionId, String status);
     List<FarmTileTask> findAll();
+    List<Long> findAllDistinctFarmIds();
 }

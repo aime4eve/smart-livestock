@@ -71,6 +71,8 @@ class FenceApiRepository implements FenceRepository {
     final active = raw['active'] as bool? ?? true;
     final colorValue = raw['color'] as int? ??
         FenceItem.defaultColors[colorIndex % FenceItem.defaultColors.length];
+    final version = raw['version'] as int? ?? 1;
+    final fenceType = raw['fenceType'] as String? ?? 'sub';
     return FenceItem(
       id: id,
       name: name,
@@ -81,6 +83,8 @@ class FenceApiRepository implements FenceRepository {
       livestockCount: livestockCount,
       colorValue: colorValue,
       points: points,
+      version: version,
+      fenceType: fenceType,
     );
   }
 

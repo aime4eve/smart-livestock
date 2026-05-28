@@ -9,16 +9,45 @@ class AppDatabase {
   static AppDatabase get instance => _instance ??= AppDatabase._();
 
   late final Database _db;
+  late final String _dbPath;
 
   AppDatabase._() {
-    final dir = _ensureDir();
-    _db = sqlite3.open(p.join(dir, 'smart_livestock.db'));
+    _dbPath = _resolveDbPath();
+    _db = sqlite3.open(_dbPath);
+    _initSchema();
+  }
+
+  static Future<AppDatabase> createAsync() async {
+    final dir = await getApplicationSupportDirectory();
+    final dbDir = p.join(dir.path, 'smart_livestock');
+    Directory(dbDir).createSync(recursive: true);
+    final dbPath = p.join(dbDir, 'smart_livestock.db');
+    _instance?.dispose();
+    _instance = AppDatabase._fromPath(dbPath);
+    return _instance!;
+  }
+
+  AppDatabase._fromPath(this._dbPath) {
+    _db = sqlite3.open(_dbPath);
     _initSchema();
   }
 
   Database get rawDb => _db;
 
+  String _resolveDbPath() {
+    final dir = _ensureDir();
+    return p.join(dir, 'smart_livestock.db');
+  }
+
   void _initSchema() {
+    final version = _db.select('PRAGMA user_version').first['user_version'] as int;
+    if (version < 1) {
+      _createSchemaV1();
+      _db.execute('PRAGMA user_version = 1');
+    }
+  }
+
+  void _createSchemaV1() {
     _db.execute('''
       CREATE TABLE IF NOT EXISTS tile_metas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,7 +59,8 @@ class AppDatabase {
         status TEXT NOT NULL DEFAULT 'downloading',
         downloaded_at TEXT,
         last_accessed_at TEXT,
-        region_generated_at TEXT
+        region_generated_at TEXT,
+        UNIQUE(region_name)
       )
     ''');
     _db.execute('''
@@ -54,7 +84,8 @@ class AppDatabase {
         synced INTEGER NOT NULL DEFAULT 0,
         local_delete_flag INTEGER NOT NULL DEFAULT 0,
         updated_at TEXT NOT NULL,
-        last_local_modified_at TEXT
+        last_local_modified_at TEXT,
+        UNIQUE(remote_id)
       )
     ''');
     _db.execute('''
@@ -65,7 +96,8 @@ class AppDatabase {
         latitude REAL NOT NULL,
         longitude REAL NOT NULL,
         recorded_at TEXT NOT NULL,
-        fence_id INTEGER
+        fence_id INTEGER,
+        UNIQUE(livestock_id)
       )
     ''');
     _db.execute('''
@@ -87,8 +119,11 @@ class AppDatabase {
   }
 
   String _getApplicationSupportDirectorySync() {
-    // Use path_provider at runtime, but for sync init we need a known path
-    // This will be overridden by the async init path
+    if (Platform.isAndroid || Platform.isIOS) {
+      final dir = p.join('/data', 'data', 'com.example.smart_livestock_demo', 'databases');
+      Directory(dir).createSync(recursive: true);
+      return dir;
+    }
     return '${Platform.environment['HOME'] ?? '.'}/Library/Application Support';
   }
 
@@ -120,8 +155,21 @@ class AppDatabase {
     bool localDeleteFlag = false,
     DateTime? lastLocalModifiedAt,
   }) {
+    if (remoteId != null) {
+      final existing = getCachedFenceByRemoteId(remoteId);
+      if (existing != null) {
+        _db.execute('''
+          UPDATE cached_fences SET farm_id=?, name=?, fence_type=?, vertices=?, status=?, version=?, synced=?, local_delete_flag=?, updated_at=?, last_local_modified_at=?
+          WHERE remote_id=?
+        ''', [farmId, name, fenceType, vertices, status, version,
+              synced ? 1 : 0, localDeleteFlag ? 1 : 0,
+              DateTime.now().toIso8601String(),
+              lastLocalModifiedAt?.toIso8601String(), remoteId]);
+        return;
+      }
+    }
     _db.execute('''
-      INSERT OR REPLACE INTO cached_fences 
+      INSERT INTO cached_fences 
       (remote_id, farm_id, name, fence_type, vertices, status, version, synced, local_delete_flag, updated_at, last_local_modified_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', [remoteId, farmId, name, fenceType, vertices, status, version,
@@ -160,8 +208,17 @@ class AppDatabase {
     required String filePath,
     String status = 'downloading',
   }) {
+    final existing = getTileMetaByRegion(regionName);
+    if (existing != null) {
+      _db.execute('''
+        UPDATE tile_metas SET file_name=?, file_size=?, md5=?, file_path=?, status=?, downloaded_at=?, last_accessed_at=?
+        WHERE region_name=?
+      ''', [fileName, fileSize, md5, filePath, status,
+            DateTime.now().toIso8601String(), DateTime.now().toIso8601String(), regionName]);
+      return;
+    }
     _db.execute('''
-      INSERT OR REPLACE INTO tile_metas (region_name, file_name, file_size, md5, file_path, status, downloaded_at, last_accessed_at)
+      INSERT INTO tile_metas (region_name, file_name, file_size, md5, file_path, status, downloaded_at, last_accessed_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ''', [regionName, fileName, fileSize, md5, filePath, status,
           DateTime.now().toIso8601String(), DateTime.now().toIso8601String()]);

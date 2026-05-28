@@ -136,7 +136,7 @@ class ApiClient {
       case 404:
         throw NotFoundException(message: message, statusCode: 404, code: code);
       case 409:
-        throw ConflictException(message: message, statusCode: 409, code: code);
+        throw ConflictException(message: message, statusCode: 409, code: code, data: body['data'] as Map<String, dynamic>?);
     }
 
     if (response.statusCode >= 400) {

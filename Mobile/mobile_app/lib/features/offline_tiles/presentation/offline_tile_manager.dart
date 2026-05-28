@@ -66,7 +66,7 @@ class OfflineTileManager {
           continue;
         }
 
-        final downloadUrl = '$_apiBaseUrl/farms/$farmId/offline-map';
+        final downloadUrl = '$_apiBaseUrl/farms/$farmId/offline-map?regionName=${status.regionName}';
         final response = await http.get(Uri.parse(downloadUrl), headers: _headers);
         if (response.statusCode != 200) {
           onError?.call('下载失败: ${response.statusCode}');
@@ -109,19 +109,39 @@ class OfflineTileManager {
     if (meta != null) {
       final file = File(meta['filePath'] as String);
       if (await file.exists()) await file.delete();
+      _db.rawDb.execute('DELETE FROM tile_metas WHERE region_name = ?', [regionName]);
     }
   }
 
   int getStorageUsedSync() => _db.getStorageUsed();
 
+  List<Map<String, dynamic>> getTileMetasSync() => _db.getTileMetas();
+
   Future<int> getStorageUsed() async => _db.getStorageUsed();
 
   Future<void> pin(int farmId) async {
-    // Pin all tile metas for this farm
+    final metas = _db.getTileMetas();
+    for (final meta in metas) {
+      final tileMetaId = meta['id'] as int;
+      final rows = _db.rawDb.select(
+        'SELECT id FROM farm_tile_pins WHERE farm_id = ? AND tile_meta_id = ?',
+        [farmId, tileMetaId]);
+      if (rows.isEmpty) {
+        _db.rawDb.execute(
+          'INSERT INTO farm_tile_pins (farm_id, tile_meta_id, pinned) VALUES (?, ?, 1)',
+          [farmId, tileMetaId]);
+      } else {
+        _db.rawDb.execute(
+          'UPDATE farm_tile_pins SET pinned = 1 WHERE farm_id = ? AND tile_meta_id = ?',
+          [farmId, tileMetaId]);
+      }
+    }
   }
 
   Future<void> unpin(int farmId) async {
-    // Unpin all tile metas for this farm
+    _db.rawDb.execute(
+      'UPDATE farm_tile_pins SET pinned = 0 WHERE farm_id = ?',
+      [farmId]);
   }
 }
 

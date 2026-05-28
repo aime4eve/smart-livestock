@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,10 +32,12 @@ public class TileAdminService {
     @Value("${app.tile-server.base-url:http://172.22.1.123:18080}")
     private String tileServerBaseUrl;
 
+    @Transactional(readOnly = true)
     public List<TileRegionDto> listRegions() {
         return tileRegionRepository.findAll().stream().map(TileRegionDto::from).toList();
     }
 
+    @Transactional(readOnly = true)
     public List<TileGenerationTaskDto> listTasks(String status) {
         List<TileGenerationTask> tasks = status != null
                 ? tileGenerationTaskRepository.findByStatus(status)
@@ -42,6 +45,7 @@ public class TileAdminService {
         return tasks.stream().map(TileGenerationTaskDto::from).toList();
     }
 
+    @Transactional(readOnly = true)
     public TileGenerationTaskDto getTask(Long id) {
         return tileGenerationTaskRepository.findById(id)
                 .map(TileGenerationTaskDto::from)
@@ -100,6 +104,9 @@ public class TileAdminService {
         }
 
         for (TileRegion region : intersecting) {
+            if (farmTileTaskRepository.findByFarmIdAndRegionId(farmId, region.getId()).isPresent()) {
+                continue;
+            }
             FarmTileTask farmTask = new FarmTileTask(farmId, region.getId());
             String taskStatus = "ready".equals(region.getStatus()) ? "ready" : "pending";
             farmTask.setStatus(taskStatus);
@@ -114,11 +121,15 @@ public class TileAdminService {
         return new FarmTileStatusDto(farmId, regionStatuses, coverageRatio, coverageWarning);
     }
 
+    @Transactional(readOnly = true)
     public FarmTileStatusDto getFarmTileStatus(Long farmId) {
         List<FarmTileTask> tasks = farmTileTaskRepository.findByFarmId(farmId);
+        List<Long> regionIds = tasks.stream().map(FarmTileTask::getRegionId).toList();
+        java.util.Map<Long, TileRegion> regionMap = tileRegionRepository.findAllByIds(regionIds).stream()
+                .collect(java.util.stream.Collectors.toMap(TileRegion::getId, r -> r));
         List<FarmTileStatusDto.RegionStatus> regions = tasks.stream()
                 .map(t -> {
-                    TileRegion region = tileRegionRepository.findById(t.getRegionId()).orElse(null);
+                    TileRegion region = regionMap.get(t.getRegionId());
                     return new FarmTileStatusDto.RegionStatus(
                             t.getRegionId(),
                             region != null ? region.getName() : "unknown",
@@ -131,11 +142,25 @@ public class TileAdminService {
         return new FarmTileStatusDto(farmId, regions, 0, false);
     }
 
+    @Transactional(readOnly = true)
+    public List<FarmTileStatusDto> listFarmTileStatuses() {
+        List<Long> farmIds = farmTileTaskRepository.findAllDistinctFarmIds();
+        return farmIds.stream()
+                .map(this::getFarmTileStatus)
+                .filter(s -> !s.regions().isEmpty())
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<TileSourceDto> getFarmTileSources(Long farmId) {
-        List<FarmTileTask> tasks = farmTileTaskRepository.findByFarmId(farmId);
-        return tasks.stream()
+        List<FarmTileTask> tasks = farmTileTaskRepository.findByFarmId(farmId).stream()
                 .filter(t -> "ready".equals(t.getStatus()) || "downloaded".equals(t.getStatus()))
-                .map(t -> tileRegionRepository.findById(t.getRegionId()).orElse(null))
+                .toList();
+        List<Long> regionIds = tasks.stream().map(FarmTileTask::getRegionId).toList();
+        java.util.Map<Long, TileRegion> regionMap = tileRegionRepository.findAllByIds(regionIds).stream()
+                .collect(java.util.stream.Collectors.toMap(TileRegion::getId, r -> r));
+        return tasks.stream()
+                .map(t -> regionMap.get(t.getRegionId()))
                 .filter(java.util.Objects::nonNull)
                 .filter(r -> "ready".equals(r.getStatus()))
                 .map(r -> new TileSourceDto(r.getName(),
@@ -167,9 +192,8 @@ public class TileAdminService {
 
     private void advanceFarmTileTasks(TileGenerationTask task) {
         if (task.getRegionId() != null) {
-            List<FarmTileTask> pending = farmTileTaskRepository.findAll().stream()
-                    .filter(t -> t.getRegionId().equals(task.getRegionId()) && "pending".equals(t.getStatus()))
-                    .toList();
+            List<FarmTileTask> pending = farmTileTaskRepository.findByRegionIdAndStatus(
+                    task.getRegionId(), "pending");
             for (FarmTileTask ft : pending) {
                 ft.setStatus("ready");
                 farmTileTaskRepository.save(ft);

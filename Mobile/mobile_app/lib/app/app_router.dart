@@ -46,6 +46,9 @@ import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_revenue
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/worker_management_page.dart';
 import 'package:smart_livestock_demo/features/mine/presentation/api_auth_page.dart';
 import 'package:smart_livestock_demo/features/farm_creation/presentation/farm_creation_wizard_page.dart';
+import 'package:smart_livestock_demo/features/offline_tiles/presentation/offline_tile_management_page.dart';
+import 'package:smart_livestock_demo/features/offline_fences/presentation/fence_conflict_page.dart';
+import 'package:smart_livestock_demo/features/offline_fences/domain/cached_fence.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final refreshListenable = ValueNotifier<int>(0);
@@ -361,6 +364,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoute.farmCreation.path,
         name: AppRoute.farmCreation.routeName,
         builder: (context, state) => const FarmCreationWizardPage(),
+      ),
+      GoRoute(
+        path: AppRoute.offlineTileManagement.path,
+        name: AppRoute.offlineTileManagement.routeName,
+        builder: (context, state) => const OfflineTileManagementPage(),
+      ),
+      GoRoute(
+        path: AppRoute.fenceConflict.path,
+        name: AppRoute.fenceConflict.routeName,
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          if (extra == null) {
+            return const Scaffold(body: Center(child: Text('缺少冲突数据')));
+          }
+          return FenceConflictPage(
+            conflict: extra['conflict'] as FenceConflict,
+            onKeepLocal: extra['onKeepLocal'] as VoidCallback,
+            onKeepServer: extra['onKeepServer'] as VoidCallback,
+          );
+        },
       ),
     ],
   );

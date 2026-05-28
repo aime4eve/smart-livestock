@@ -9,6 +9,7 @@ import com.smartlivestock.ranch.domain.repository.FenceRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,9 +58,13 @@ public class FenceApplicationService {
         fence.setName(command.name());
         fence.setVertices(command.vertices());
         fence.setColor(command.color());
-        fence.setVersion(fence.getVersion() + 1);
-        Fence saved = fenceRepository.save(fence);
-        return FenceDto.from(saved);
+        try {
+            Fence saved = fenceRepository.save(fence);
+            return FenceDto.from(saved);
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new ApiException(ErrorCode.STATE_CONFLICT,
+                    String.format("版本冲突: 围栏已被其他人修改，请刷新后重试"));
+        }
     }
 
     @Transactional
@@ -70,9 +75,13 @@ public class FenceApplicationService {
         fence.setName(name);
         fence.setVertices(vertices);
         fence.setColor(color);
-        fence.setVersion(version + 1);
-        Fence saved = fenceRepository.save(fence);
-        return FenceDto.from(saved);
+        try {
+            Fence saved = fenceRepository.save(fence);
+            return FenceDto.from(saved);
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new ApiException(ErrorCode.STATE_CONFLICT,
+                    String.format("版本冲突: 围栏已被其他人修改，请刷新后重试"));
+        }
     }
 
     @Transactional

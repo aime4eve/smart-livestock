@@ -3,8 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/core/database/app_database.dart';
 import 'package:smart_livestock_demo/features/offline_fences/data/fence_sync_service.dart';
 
+final _appDatabaseProvider = Provider<AppDatabase>((ref) {
+  return AppDatabase.instance;
+});
+
 final unsyncedCountProvider = FutureProvider.family<int, int>((ref, farmId) async {
-  final db = AppDatabase.instance;
+  final db = ref.watch(_appDatabaseProvider);
   final all = db.getUnsyncedFences();
   return all.where((f) => (f['farm_id'] as int) == farmId).length;
 });

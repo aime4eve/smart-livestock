@@ -31,7 +31,16 @@ public class FarmTileTaskRepositoryImpl implements FarmTileTaskRepository {
         return springDataRepo.findByFarmIdAndRegionId(farmId, regionId).map(FarmTileTaskMapper::toDomain);
     }
     @Override
+    public List<FarmTileTask> findByRegionIdAndStatus(Long regionId, String status) {
+        return springDataRepo.findByRegionIdAndStatus(regionId, status).stream()
+                .map(FarmTileTaskMapper::toDomain).toList();
+    }
+    @Override
     public List<FarmTileTask> findAll() {
         return springDataRepo.findAll().stream().map(FarmTileTaskMapper::toDomain).toList();
+    }
+    @Override
+    public List<Long> findAllDistinctFarmIds() {
+        return springDataRepo.findAllDistinctFarmIds();
     }
 }

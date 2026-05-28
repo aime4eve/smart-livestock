@@ -16,6 +16,7 @@ class _OfflineTileManagementPageState
   bool _loading = true;
   String? _error;
   int _storageUsed = 0;
+  List<Map<String, dynamic>> _regions = [];
 
   @override
   void initState() {
@@ -28,7 +29,9 @@ class _OfflineTileManagementPageState
     try {
       final manager = ref.read(offlineTileManagerProvider);
       final used = await manager.getStorageUsed();
-      if (mounted) setState(() { _storageUsed = used; _loading = false; });
+      final regions = ref.read(offlineTileManagerProvider).getTileMetasSync != null
+          ? ref.read(offlineTileManagerProvider).getTileMetasSync!() : <Map<String, dynamic>>[];
+      if (mounted) setState(() { _storageUsed = used; _regions = regions; _loading = false; });
     } catch (e) {
       if (mounted) setState(() { _error = e.toString(); _loading = false; });
     }
@@ -49,6 +52,17 @@ class _OfflineTileManagementPageState
                       title: const Text('已用存储'),
                       subtitle: Text('${(_storageUsed / 1024 / 1024).toStringAsFixed(1)} MB'),
                     ),
+                    const Divider(),
+                    ..._regions.map((r) => ListTile(
+                      leading: Icon(
+                        r['status'] == 'ready' ? Icons.check_circle : Icons.downloading,
+                        color: r['status'] == 'ready' ? Colors.green : Colors.orange,
+                      ),
+                      title: Text(r['region_name'] as String? ?? ''),
+                      subtitle: Text(
+                        '${((r['file_size'] as int? ?? 0) / 1024 / 1024).toStringAsFixed(1)} MB',
+                      ),
+                    )),
                   ],
                 ),
     );

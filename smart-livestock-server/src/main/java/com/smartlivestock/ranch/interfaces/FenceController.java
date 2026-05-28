@@ -9,9 +9,12 @@ import com.smartlivestock.platform.web.QuotaCheck;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
+import com.smartlivestock.identity.domain.repository.FarmRepository;
+import com.smartlivestock.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -24,12 +27,23 @@ import java.util.Map;
 public class FenceController {
 
     private final FenceApplicationService fenceApplicationService;
+    private final FarmRepository farmRepository;
+
+    private void verifyFarmOwnership(Long farmId) {
+        var farm = farmRepository.findById(farmId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牧场不存在: " + farmId));
+        Long currentTenant = TenantContext.getCurrentTenant();
+        if (currentTenant != null && !farm.getTenantId().equals(currentTenant)) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "无权访问该牧场");
+        }
+    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> listFences(
             @PathVariable Long farmId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int pageSize) {
+        verifyFarmOwnership(farmId);
         List<FenceDto> fences = fenceApplicationService.listByFarm(farmId);
         Map<String, Object> data = Map.of(
                 "items", fences,
@@ -45,6 +59,7 @@ public class FenceController {
     public ResponseEntity<ApiResponse<FenceDto>> createFence(
             @PathVariable Long farmId,
             @RequestBody Map<String, Object> body) {
+        verifyFarmOwnership(farmId);
         CreateFenceCommand command = new CreateFenceCommand(
                 farmId,
                 (String) body.get("name"),
@@ -60,6 +75,7 @@ public class FenceController {
     public ResponseEntity<ApiResponse<FenceDto>> getFence(
             @PathVariable Long farmId,
             @PathVariable Long fenceId) {
+        verifyFarmOwnership(farmId);
         FenceDto fence = fenceApplicationService.getFence(fenceId);
         return ResponseEntity.ok(ApiResponse.ok(fence));
     }
@@ -70,6 +86,7 @@ public class FenceController {
             @PathVariable Long farmId,
             @PathVariable Long fenceId,
             @RequestBody Map<String, Object> body) {
+        verifyFarmOwnership(farmId);
         Integer expectedVersion = body.get("expectedVersion") != null
                 ? ((Number) body.get("expectedVersion")).intValue() : null;
         UpdateFenceCommand command = new UpdateFenceCommand(
@@ -96,10 +113,12 @@ public class FenceController {
     }
 
     @PutMapping("/{fenceId}/force")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<ApiResponse<FenceDto>> forceUpdateFence(
             @PathVariable Long farmId,
             @PathVariable Long fenceId,
             @RequestBody Map<String, Object> body) {
+        verifyFarmOwnership(farmId);
         int version = ((Number) body.get("version")).intValue();
         FenceDto fence = fenceApplicationService.forceUpdateFence(fenceId,
                 parseVertices(body.get("vertices")),
@@ -113,6 +132,7 @@ public class FenceController {
     public ResponseEntity<ApiResponse<Void>> deleteFence(
             @PathVariable Long farmId,
             @PathVariable Long fenceId) {
+        verifyFarmOwnership(farmId);
         fenceApplicationService.deleteFence(fenceId);
         return ResponseEntity.ok(ApiResponse.ok(null));
     }

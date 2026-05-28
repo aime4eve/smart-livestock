@@ -36,6 +36,7 @@ public class FenceJpaEntity {
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
+    @jakarta.persistence.Version
     @Column(name = "version", nullable = false)
     private int version = 1;
 
