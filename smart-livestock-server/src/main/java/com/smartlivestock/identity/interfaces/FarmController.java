@@ -4,6 +4,7 @@ import com.smartlivestock.identity.application.FarmApplicationService;
 import com.smartlivestock.identity.application.command.CreateFarmCommand;
 import com.smartlivestock.identity.application.dto.FarmDto;
 import com.smartlivestock.identity.domain.repository.UserRepository;
+import com.smartlivestock.ranch.domain.model.GpsCoordinate;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -27,10 +28,6 @@ public class FarmController {
     private final FarmApplicationService farmApplicationService;
     private final UserRepository userRepository;
 
-    /**
-     * GET /api/v1/farms
-     * List farms for current tenant.
-     */
     @GetMapping("/farms")
     public ResponseEntity<ApiResponse<Map<String, Object>>> listFarms() {
         Long tenantId = TenantContext.getCurrentTenant();
@@ -44,15 +41,11 @@ public class FarmController {
         return ResponseEntity.ok(ApiResponse.ok(data));
     }
 
-    /**
-     * POST /api/v1/farms
-     * Create a new farm.
-     */
+    @SuppressWarnings("unchecked")
     @PostMapping("/farms")
     public ResponseEntity<ApiResponse<FarmDto>> createFarm(@RequestBody Map<String, Object> body) {
         Long userId = getCurrentUserId();
 
-        // 仅 owner 可创建牧场
         var userOpt = userRepository.findById(userId);
         if (userOpt.isEmpty()) {
             throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "用户不存在");
@@ -74,47 +67,38 @@ public class FarmController {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "牧场名称已存在");
         }
 
+        List<GpsCoordinate> boundaryVertices = null;
+        if (body.get("boundaryVertices") != null) {
+            boundaryVertices = parseVertices(body.get("boundaryVertices"));
+        }
+
         CreateFarmCommand command = new CreateFarmCommand(
                 name,
                 toBigDecimal(body.get("latitude")),
                 toBigDecimal(body.get("longitude")),
-                toBigDecimal(body.get("areaHectares"))
+                toBigDecimal(body.get("areaHectares")),
+                boundaryVertices
         );
         FarmDto farm = farmApplicationService.createFarm(tenantId, command, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(farm));
     }
 
-    /**
-     * GET /api/v1/farms/{farmId}
-     * Get farm detail.
-     */
     @GetMapping("/farms/{farmId}")
     public ResponseEntity<ApiResponse<FarmDto>> getFarm(@PathVariable Long farmId) {
         FarmDto farm = farmApplicationService.getFarm(farmId);
         return ResponseEntity.ok(ApiResponse.ok(farm));
     }
 
-    /**
-     * PUT /api/v1/farms/{farmId}
-     * Update farm info.
-     */
     @PutMapping("/farms/{farmId}")
     public ResponseEntity<ApiResponse<FarmDto>> updateFarm(
             @PathVariable Long farmId,
             @RequestBody Map<String, Object> body) {
-        // Current FarmApplicationService does not have an update method.
-        // Return current farm for now. Full update will be added when needed.
         FarmDto farm = farmApplicationService.getFarm(farmId);
         return ResponseEntity.ok(ApiResponse.ok(farm));
     }
 
-    /**
-     * GET /api/v1/farms/{farmId}/members
-     * List farm members (Phase 1 stub — member management not yet implemented).
-     */
     @GetMapping("/farms/{farmId}/members")
     public ResponseEntity<ApiResponse<Map<String, Object>>> listMembers(@PathVariable Long farmId) {
-        // Phase 1 stub — member management requires UserFarmAssignment infrastructure
         Map<String, Object> data = Map.of(
                 "items", List.of(),
                 "page", 1,
@@ -124,15 +108,10 @@ public class FarmController {
         return ResponseEntity.ok(ApiResponse.ok(data));
     }
 
-    /**
-     * POST /api/v1/farms/{farmId}/members
-     * Add member to farm (Phase 1 stub).
-     */
     @PostMapping("/farms/{farmId}/members")
     public ResponseEntity<ApiResponse<Map<String, Object>>> addMember(
             @PathVariable Long farmId,
             @RequestBody Map<String, String> body) {
-        // Phase 1 stub
         Map<String, Object> data = Map.of(
                 "message", "member management not yet implemented",
                 "phase", "stub"
@@ -140,16 +119,23 @@ public class FarmController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(data));
     }
 
-    /**
-     * DELETE /api/v1/farms/{farmId}/members/{userId}
-     * Remove member from farm (Phase 1 stub).
-     */
     @DeleteMapping("/farms/{farmId}/members/{userId}")
     public ResponseEntity<ApiResponse<Void>> removeMember(
             @PathVariable Long farmId,
             @PathVariable Long userId) {
-        // Phase 1 stub
         return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<GpsCoordinate> parseVertices(Object verticesObj) {
+        if (verticesObj == null) return List.of();
+        List<Map<String, Object>> rawList = (List<Map<String, Object>>) verticesObj;
+        return rawList.stream()
+                .map(m -> new GpsCoordinate(
+                        toBigDecimal(m.get("lat")),
+                        toBigDecimal(m.get("lng"))
+                ))
+                .toList();
     }
 
     private BigDecimal toBigDecimal(Object value) {

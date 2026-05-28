@@ -85,4 +85,13 @@ public class ApiResponse<T> {
                 null
         );
     }
+
+    public static <T> ApiResponse<T> errorWithData(ErrorCode code, String message, T data) {
+        return new ApiResponse<>(
+                code.name(),
+                message,
+                currentRequestId(),
+                data
+        );
+    }
 }

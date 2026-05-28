@@ -4,5 +4,5 @@ import com.smartlivestock.ranch.domain.model.GpsCoordinate;
 
 import java.util.List;
 
-public record CreateFenceCommand(Long farmId, String name, List<GpsCoordinate> vertices, String color) {
+public record CreateFenceCommand(Long farmId, String name, List<GpsCoordinate> vertices, String color, String fenceType) {
 }

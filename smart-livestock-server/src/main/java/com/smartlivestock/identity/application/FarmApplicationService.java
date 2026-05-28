@@ -7,6 +7,12 @@ import com.smartlivestock.identity.domain.repository.FarmRepository;
 import com.smartlivestock.identity.domain.repository.TenantRepository;
 import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepository;
 import com.smartlivestock.identity.domain.repository.UserRepository;
+import com.smartlivestock.ranch.application.TileAdminService;
+import com.smartlivestock.ranch.application.dto.FarmTileStatusDto;
+import com.smartlivestock.ranch.domain.model.Fence;
+import com.smartlivestock.ranch.domain.model.GpsCoordinate;
+import com.smartlivestock.ranch.domain.repository.FenceRepository;
+import com.smartlivestock.ranch.domain.service.TileCoverageCalculator;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +29,9 @@ public class FarmApplicationService {
     private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
     private final UserFarmAssignmentRepository assignmentRepository;
+    private final FenceRepository fenceRepository;
+    private final TileAdminService tileAdminService;
+    private final TileCoverageCalculator coverageCalculator;
 
     @Transactional
     public FarmDto createFarm(Long tenantId, CreateFarmCommand command, Long userId) {
@@ -36,7 +45,21 @@ public class FarmApplicationService {
             autoAssignOwner(userId, saved.getId(), tenantId);
         }
 
+        if (command.boundaryVertices() != null && command.boundaryVertices().size() >= 3) {
+            createBoundaryFenceAndDetectTiles(saved.getId(), command.name(), command.boundaryVertices());
+        }
+
         return FarmDto.from(saved);
+    }
+
+    private void createBoundaryFenceAndDetectTiles(Long farmId, String farmName, List<GpsCoordinate> vertices) {
+        Fence boundaryFence = new Fence(farmId, farmName + " 边界", vertices, "#FF0000");
+        boundaryFence.setFenceType("boundary");
+        fenceRepository.save(boundaryFence);
+
+        double[] bbox = coverageCalculator.calculateBbox(vertices);
+        double ratio = coverageCalculator.coverageRatio(vertices);
+        tileAdminService.handleFarmTileDetection(farmId, bbox, ratio);
     }
 
     private void autoAssignOwner(Long userId, Long farmId, Long tenantId) {

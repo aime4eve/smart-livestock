@@ -4,7 +4,21 @@
 
 **All active development is in `Mobile/`. Do not read, search, or modify `PC/`.**
 
-`PC/` is frozen (Angular 19 + planned Spring Boot). `Mobile/` (Flutter + Node.js mock server) is the only active subproject.
+`PC/` is frozen (Angular 19 + planned Spring Boot). `Mobile/` (Flutter app + Vue 3 developer portal) is the only active subproject.
+
+## Project layout
+
+```
+smart-livestock/
+├── Mobile/                  # ← active development
+│   ├── mobile_app/          # Flutter app (Dart)
+│   ├── developer-portal/    # Vue 3 API consumer portal
+│   └── playwright.config.js # E2E config
+├── smart-livestock-server/  # Spring Boot 3 backend (Java 17)
+├── PC/                      # FROZEN — do not touch
+├── tooling/                 # MBTiles / tileserver scripts
+└── docs/                    # Plans, guides, API contracts
+```
 
 ## Quick verification
 
@@ -14,16 +28,23 @@ cd Mobile/mobile_app
 flutter pub get
 flutter analyze
 flutter test
-flutter test test/role_visibility_test.dart          # single test file
-flutter test --name="owner"                           # by name pattern
+flutter test test/features/fence/fence_hit_detection_test.dart   # single file
+flutter test --name="owner"                                       # by name pattern
 
-# Mock Server — run from Mobile/backend/
-cd Mobile/backend && npm test                         # geo + fenceStore tests
-cd Mobile/backend && node server.js                   # port 3001
+# Developer Portal — run from Mobile/developer-portal/
+cd Mobile/developer-portal
+npm install
+npm run build
+npm test
 
-# One-shot dev environment
-cd Mobile && ./dev.sh start [mock|live]
-cd Mobile && ./dev.sh diagnose                        # logs + error grep for white-screen/WASM issues
+# Spring Boot backend — run from smart-livestock-server/
+cd smart-livestock-server
+./gradlew test
+./gradlew bootRun                # starts on port 8080
+
+# Docker Compose (full stack)
+cd smart-livestock-server
+docker compose up                # nginx :18080 → app :8080
 ```
 
 ## Detailed guidance
@@ -37,14 +58,13 @@ See `Mobile/AGENTS.md` for architecture, coding patterns, testing conventions, a
 - `flutter_riverpod` exclusively — no `setState` or `ChangeNotifier`
 - Every interactive UI element must have a `Key('descriptive-id')` for testing
 - Theme tokens (`AppColors`/`AppSpacing`/`AppTypography`) instead of hardcoded values
-- No real backend calls — all data is local mock or Node.js mock server (port 3001)
 - No secrets or API keys in code
 
 ## Web caveat
 
-Live mode on web targets `http://127.0.0.1:3001/api` (avoids IPv6 localhost). If connection fails:
+Web targets `http://127.0.0.1:18080/api/v1` (avoids IPv6 localhost). If connection fails:
 ```bash
-flutter run -d chrome --dart-define=APP_MODE=live --dart-define=API_BASE_URL=http://127.0.0.1:3001/api
+flutter run -d chrome --dart-define=API_BASE_URL=http://127.0.0.1:18080/api/v1
 ```
 
 ## Issue-driven workflow

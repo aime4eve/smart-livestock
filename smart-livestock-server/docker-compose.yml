@@ -48,6 +48,8 @@ services:
       - "18081:8080"
     env_file:
       - .env
+    volumes:
+      - tileserver-data:/data/mbtiles:ro
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -69,10 +71,10 @@ services:
   tileserver:
     image: maptiler/tileserver-gl:latest
     volumes:
-      - ./infrastructure/tileserver/data:/data
+      - tileserver-data:/data
     ports:
       - "8081:8080"
-    command: --port 8080 /data/config.json
+    command: ["-c", "config.json", "--port", "8080"]
     restart: unless-stopped
 
   nginx:
@@ -84,3 +86,4 @@ services:
 
 volumes:
   pgdata:
+  tileserver-data:

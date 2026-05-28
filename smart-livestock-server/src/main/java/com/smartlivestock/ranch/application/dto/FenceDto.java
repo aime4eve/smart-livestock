@@ -11,7 +11,9 @@ public record FenceDto(
         String name,
         List<GpsCoordinate> vertices,
         String color,
-        boolean active
+        boolean active,
+        int version,
+        String fenceType
 ) {
     public static FenceDto from(Fence fence) {
         return new FenceDto(
@@ -20,7 +22,9 @@ public record FenceDto(
                 fence.getName(),
                 fence.getVertices(),
                 fence.getColor(),
-                fence.isActive()
+                fence.isActive(),
+                fence.getVersion(),
+                fence.getFenceType()
         );
     }
 }

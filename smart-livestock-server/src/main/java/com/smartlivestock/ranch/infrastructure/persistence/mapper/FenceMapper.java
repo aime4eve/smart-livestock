@@ -26,6 +26,8 @@ public final class FenceMapper {
         jpa.setVertices(toVerticesJson(fence.getVertices()));
         jpa.setColor(fence.getColor());
         jpa.setStatus(fence.isActive() ? "ACTIVE" : "DISABLED");
+        jpa.setVersion(fence.getVersion());
+        jpa.setFenceType(fence.getFenceType());
         return jpa;
     }
 
@@ -34,6 +36,8 @@ public final class FenceMapper {
         existing.setVertices(toVerticesJson(fence.getVertices()));
         existing.setColor(fence.getColor());
         existing.setStatus(fence.isActive() ? "ACTIVE" : "DISABLED");
+        existing.setVersion(fence.getVersion());
+        existing.setFenceType(fence.getFenceType());
     }
 
     public static Fence toDomain(FenceJpaEntity jpa) {
@@ -46,6 +50,8 @@ public final class FenceMapper {
         if ("DISABLED".equals(jpa.getStatus())) {
             fence.disable();
         }
+        fence.setVersion(jpa.getVersion());
+        fence.setFenceType(jpa.getFenceType());
         return fence;
     }
 

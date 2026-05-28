@@ -26,7 +26,7 @@ class MapConfig {
 
   /// 自建 tileserver-gl（WGS-84，国内服务器代理）
   static const String selfHostedTileUrl =
-      'http://172.22.1.123:18080/tiles/{z}/{x}/{y}.png';
+      'http://172.22.1.123:18080/tiles/changsha/{z}/{x}/{y}.png';
 
   /// 高德瓦片源（GCJ-02 坐标系，国内降级）
   static const String chinaFallbackUrl =

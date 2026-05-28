@@ -6,7 +6,9 @@ import com.smartlivestock.ranch.application.command.UpdateFenceCommand;
 import com.smartlivestock.ranch.application.dto.FenceDto;
 import com.smartlivestock.ranch.domain.model.GpsCoordinate;
 import com.smartlivestock.platform.web.QuotaCheck;
+import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
+import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,10 +25,6 @@ public class FenceController {
 
     private final FenceApplicationService fenceApplicationService;
 
-    /**
-     * GET /api/v1/farms/{farmId}/fences
-     * List fences for a farm.
-     */
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> listFences(
             @PathVariable Long farmId,
@@ -42,10 +40,6 @@ public class FenceController {
         return ResponseEntity.ok(ApiResponse.ok(data));
     }
 
-    /**
-     * POST /api/v1/farms/{farmId}/fences
-     * Create a new fence.
-     */
     @PostMapping
     @QuotaCheck(feature = "fence_management")
     public ResponseEntity<ApiResponse<FenceDto>> createFence(
@@ -55,16 +49,13 @@ public class FenceController {
                 farmId,
                 (String) body.get("name"),
                 parseVertices(body.get("vertices")),
-                (String) body.get("color")
+                (String) body.get("color"),
+                (String) body.get("fenceType")
         );
         FenceDto fence = fenceApplicationService.createFence(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(fence));
     }
 
-    /**
-     * GET /api/v1/farms/{farmId}/fences/{fenceId}
-     * Get fence detail.
-     */
     @GetMapping("/{fenceId}")
     public ResponseEntity<ApiResponse<FenceDto>> getFence(
             @PathVariable Long farmId,
@@ -73,28 +64,51 @@ public class FenceController {
         return ResponseEntity.ok(ApiResponse.ok(fence));
     }
 
-    /**
-     * PUT /api/v1/farms/{farmId}/fences/{fenceId}
-     * Update fence info.
-     */
+    @SuppressWarnings("unchecked")
     @PutMapping("/{fenceId}")
-    public ResponseEntity<ApiResponse<FenceDto>> updateFence(
+    public ResponseEntity<? extends ApiResponse<?>> updateFence(
             @PathVariable Long farmId,
             @PathVariable Long fenceId,
             @RequestBody Map<String, Object> body) {
+        Integer expectedVersion = body.get("expectedVersion") != null
+                ? ((Number) body.get("expectedVersion")).intValue() : null;
         UpdateFenceCommand command = new UpdateFenceCommand(
                 (String) body.get("name"),
                 parseVertices(body.get("vertices")),
-                (String) body.get("color")
+                (String) body.get("color"),
+                expectedVersion
         );
-        FenceDto fence = fenceApplicationService.updateFence(fenceId, command);
+        try {
+            FenceDto fence = fenceApplicationService.updateFence(fenceId, command);
+            return ResponseEntity.ok(ApiResponse.ok(fence));
+        } catch (ApiException e) {
+            if (e.getCode() == ErrorCode.STATE_CONFLICT) {
+                FenceDto current = fenceApplicationService.getFence(fenceId);
+                Map<String, Object> conflictData = Map.of(
+                        "serverVersion", current.version(),
+                        "serverVertices", current.vertices()
+                );
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(ApiResponse.errorWithData(ErrorCode.STATE_CONFLICT, e.getMessage(), conflictData));
+            }
+            throw e;
+        }
+    }
+
+    @PutMapping("/{fenceId}/force")
+    public ResponseEntity<ApiResponse<FenceDto>> forceUpdateFence(
+            @PathVariable Long farmId,
+            @PathVariable Long fenceId,
+            @RequestBody Map<String, Object> body) {
+        int version = ((Number) body.get("version")).intValue();
+        FenceDto fence = fenceApplicationService.forceUpdateFence(fenceId,
+                parseVertices(body.get("vertices")),
+                (String) body.get("name"),
+                (String) body.get("color"),
+                version);
         return ResponseEntity.ok(ApiResponse.ok(fence));
     }
 
-    /**
-     * DELETE /api/v1/farms/{farmId}/fences/{fenceId}
-     * Delete a fence.
-     */
     @DeleteMapping("/{fenceId}")
     public ResponseEntity<ApiResponse<Void>> deleteFence(
             @PathVariable Long farmId,

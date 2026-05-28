@@ -36,6 +36,12 @@ public class FenceJpaEntity {
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
+    @Column(name = "version", nullable = false)
+    private int version = 1;
+
+    @Column(name = "fence_type", nullable = false, length = 20)
+    private String fenceType = "sub";
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -54,8 +60,6 @@ public class FenceJpaEntity {
         this.updatedAt = Instant.now();
     }
 
-    // --- Getters and Setters ---
-
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -73,6 +77,12 @@ public class FenceJpaEntity {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public int getVersion() { return version; }
+    public void setVersion(int version) { this.version = version; }
+
+    public String getFenceType() { return fenceType; }
+    public void setFenceType(String fenceType) { this.fenceType = fenceType; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

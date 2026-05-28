@@ -4,7 +4,7 @@
 
 **Goal:** Build the server-side foundation for offline map + fence integration: database schema, API Key authentication, tile management APIs, farm-creation tile detection, and tooling integration.
 
-**Architecture:** Flyway V15 adds 4 new tables + fence version/type columns. API Key auth uses SHA-256 hash storage with `X-API-Key` header. TileAdminService orchestrates tile_regions CRUD and coverage-ratio-aware farm-tile matching. Tooling scripts read task records from the API to drive MBTiles generation.
+**Architecture:** Flyway V13 adds 4 new tables + fence version/type columns. API Key auth uses SHA-256 hash storage with `X-API-Key` header. TileAdminService orchestrates tile_regions CRUD and coverage-ratio-aware farm-tile matching. Tooling scripts read task records from the API to drive MBTiles generation.
 
 **Tech Stack:** Spring Boot 3.3 + Java 17 + PostgreSQL 16 + Flyway + JPA + Spring Security + SHA-256
 
@@ -19,7 +19,7 @@
 ```
 smart-livestock-server/src/main/
 ├── resources/db/migration/
-│   └── V15__create_tile_tables_and_fence_version.sql
+│   └── V13__create_tile_tables_and_fence_version.sql
 ├── java/com/smartlivestock/
 │   ├── ranch/
 │   │   ├── domain/model/
@@ -52,8 +52,9 @@ smart-livestock-server/src/main/
 │   │   ├── application/
 │   │   │   └── ApiKeyApplicationService.java         (new service)
 │   │   └── infrastructure/persistence/
-│   │       ├── JpaApiKey.java
-│   │       ├── ApiKeyJpaRepository.java
+│   │       ├── entity/ApiKeyJpaEntity.java
+│   │       ├── SpringDataApiKeyRepository.java
+│   │       ├── mapper/ApiKeyMapper.java
 │   │       └── ApiKeyRepositoryImpl.java
 │   └── shared/
 │       └── security/
@@ -80,7 +81,7 @@ smart-livestock-server/src/main/
 | `FarmController.java` | Return tile status in farm creation response |
 | `CreateFarmCommand.java` | Add `boundaryVertices` field |
 | `TileController.java` | Refactor to use tile_region DB instead of file scanning |
-| `SecurityConfig.java` | Add `ApiKeyAuthFilter` before JWT filter |
+| `SecurityConfig.java` | Add `ApiKeyAuthFilter` **after** JWT filter |
 | `ApiKeyAdminController.java` | Replace stub with real CRUD |
 | `ApiKeyAuthService.java` | Replace stub with real DB lookup |
 
@@ -93,19 +94,19 @@ smart-livestock-server/src/main/
 
 ---
 
-## Task 1: V15 Migration + Fence Entity Extension
+## Task 1: V13 Migration + Fence Entity Extension
 
 **Files:**
-- Create: `src/main/resources/db/migration/V15__create_tile_tables_and_fence_version.sql`
+- Create: `src/main/resources/db/migration/V13__create_tile_tables_and_fence_version.sql`
 - Modify: `src/main/java/com/smartlivestock/ranch/domain/model/Fence.java`
 - Modify: `src/main/java/com/smartlivestock/ranch/application/dto/FenceDto.java`
 - Modify: `src/main/java/com/smartlivestock/ranch/application/command/UpdateFenceCommand.java`
 - Modify: `src/main/java/com/smartlivestock/ranch/application/FenceApplicationService.java`
 - Test: `src/test/java/com/smartlivestock/ranch/domain/model/FenceVersionTest.java`
 
-- [ ] **Step 1: Write V15 migration SQL**
+- [ ] **Step 1: Write V13 migration SQL**
 
-Create `src/main/resources/db/migration/V15__create_tile_tables_and_fence_version.sql`:
+Create `src/main/resources/db/migration/V13__create_tile_tables_and_fence_version.sql`（执行前确认无其他 V13 迁移已存在）:
 
 ```sql
 -- 1. Fence table extensions
@@ -231,6 +232,43 @@ public record UpdateFenceCommand(
 
 - [ ] **Step 5: Implement optimistic locking in FenceApplicationService**
 
+**5a. Extend ApiException to support data field:**
+
+```java
+// In ApiException.java, add constructor and field:
+private Object data;
+
+public ApiException(ErrorCode code, String message, Object data) {
+    super(message);
+    this.code = code;
+    this.data = data;
+}
+
+public Object getData() { return data; }
+```
+
+**5b. Update GlobalExceptionHandler to pass data through:**
+
+In the existing `handleApiException()` method, change the error response to include data when non-null:
+
+```java
+ApiResponse<Object> response = e.getData() != null
+    ? ApiResponse.error(e.getCode(), e.getMessage(), requestId, e.getData())
+    : ApiResponse.error(e.getCode(), e.getMessage(), requestId);
+```
+
+Add `ApiResponse.error(ErrorCode, String, String, Object)` overload (or modify existing error factory method to accept optional data).
+
+**5c. Add `updated_by` column in V13 migration** (add to end of migration file):
+
+```sql
+ALTER TABLE fences ADD COLUMN IF NOT EXISTS updated_by VARCHAR(100);
+```
+
+Add `updatedBy` field to `Fence.java` and `FenceJpaEntity.java`.
+
+**5d. Implement version conflict with data in FenceApplicationService:**
+
 ```java
 @Transactional
 public FenceDto updateFence(Long id, UpdateFenceCommand command) {
@@ -238,8 +276,15 @@ public FenceDto updateFence(Long id, UpdateFenceCommand command) {
             .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "围栏不存在: " + id));
 
     if (command.expectedVersion() != null && fence.getVersion() != command.expectedVersion()) {
-        throw new ApiException(ErrorCode.CONFLICT,
-            String.format("版本冲突: 期望 %d, 实际 %d", command.expectedVersion(), fence.getVersion()));
+        Map<String, Object> conflictData = Map.of(
+            "serverVersion", fence.getVersion(),
+            "serverVertices", fence.getVertices(),
+            "lastModifiedBy", fence.getUpdatedBy() != null ? fence.getUpdatedBy() : "unknown",
+            "lastModifiedAt", fence.getUpdatedAt().toString()
+        );
+        throw new ApiException(ErrorCode.STATE_CONFLICT,
+            String.format("版本冲突: 期望 %d, 实际 %d", command.expectedVersion(), fence.getVersion()),
+            conflictData);
     }
 
     fence.setName(command.name());
@@ -264,7 +309,7 @@ public FenceDto forceUpdateFence(Long id, List<GpsCoordinate> vertices,
 }
 ```
 
-Add `ErrorCode.CONFLICT(409, "CONFLICT", "版本冲突")` to the ErrorCode enum if it doesn't exist.
+Use existing `ErrorCode.STATE_CONFLICT` (already exists in the ErrorCode enum) instead of creating a new one. The project uses a simple enum (no constructor parameters); `ApiException` maps `STATE_CONFLICT` to HTTP 409 via existing logic.
 
 - [ ] **Step 6: Update FenceController — add expectedVersion and forceUpdate**
 
@@ -363,7 +408,7 @@ Expected: 3 tests PASS.
 - [ ] **Step 9: Commit**
 
 ```bash
-git add -A && git commit -m "feat: V15 migration — tile tables + fence version/type + optimistic locking"
+git add -A && git commit -m "feat: V13 migration — tile tables + fence version/type + optimistic locking"
 ```
 
 ---
@@ -373,7 +418,7 @@ git add -A && git commit -m "feat: V15 migration — tile tables + fence version
 **Files:**
 - Create: `ranch/domain/model/TileRegion.java`, `TileGenerationTask.java`, `FarmTileTask.java`, `TileDownloadLog.java`
 - Create: `ranch/domain/repository/` — 4 repository interfaces
-- Create: `ranch/infrastructure/persistence/` — 4 JPA entity + 4 JpaRepository + 4 RepositoryImpl
+- Create: `ranch/infrastructure/persistence/` — 4 组 4 文件 JPA 适配器（entity/ + SpringData repo + mapper/ + RepositoryImpl）
 - Test: `ranch/domain/model/TileRegionTest.java`
 
 - [ ] **Step 1: Create TileRegion domain model**
@@ -449,7 +494,28 @@ public class TileGenerationTask extends AggregateRoot {
         this.minZoom = minZoom; this.maxZoom = maxZoom;
     }
 
-    // Getters/setters for all fields (same pattern as TileRegion)...
+    // Getters/setters for all fields — follow same pattern as TileRegion:
+    // regionId, minLon, minLat, maxLon, maxLat, minZoom, maxZoom,
+    // regionName, status, triggeredBy, errorMessage, tileCount,
+    // fileSizeMb, coverageRatio, customRegion, startedAt, finishedAt
+    // Example:
+    public Long getRegionId() { return regionId; } public void setRegionId(Long v) { regionId = v; }
+    public String getRegionName() { return regionName; } public void setRegionName(String v) { regionName = v; }
+    public String getStatus() { return status; } public void setStatus(String v) { status = v; }
+    public String getTriggeredBy() { return triggeredBy; } public void setTriggeredBy(String v) { triggeredBy = v; }
+    public String getErrorMessage() { return errorMessage; } public void setErrorMessage(String v) { errorMessage = v; }
+    public Integer getTileCount() { return tileCount; } public void setTileCount(Integer v) { tileCount = v; }
+    public Double getFileSizeMb() { return fileSizeMb; } public void setFileSizeMb(Double v) { fileSizeMb = v; }
+    public Double getCoverageRatio() { return coverageRatio; } public void setCoverageRatio(Double v) { coverageRatio = v; }
+    public boolean isCustomRegion() { return customRegion; } public void setCustomRegion(boolean v) { customRegion = v; }
+    public Instant getStartedAt() { return startedAt; } public void setStartedAt(Instant v) { startedAt = v; }
+    public Instant getFinishedAt() { return finishedAt; } public void setFinishedAt(Instant v) { finishedAt = v; }
+    public double getMinLon() { return minLon; } public void setMinLon(double v) { minLon = v; }
+    public double getMinLat() { return minLat; } public void setMinLat(double v) { minLat = v; }
+    public double getMaxLon() { return maxLon; } public void setMaxLon(double v) { maxLon = v; }
+    public double getMaxLat() { return maxLat; } public void setMaxLat(double v) { maxLat = v; }
+    public int getMinZoom() { return minZoom; } public void setMinZoom(int v) { minZoom = v; }
+    public int getMaxZoom() { return maxZoom; } public void setMaxZoom(int v) { maxZoom = v; }
 }
 ```
 
@@ -459,7 +525,7 @@ public class TileGenerationTask extends AggregateRoot {
 
 `TileDownloadLog.java` — fields: `farmTileTaskId`, `userId`, `deviceInfo`, `bytesDownloaded`, `startedAt`, `finishedAt`. Constructor `(Long farmTileTaskId, Long userId)` sets `startedAt = Instant.now()`.
 
-Both extend `EntityBase` (not AggregateRoot — these are not aggregate roots).
+Both extend `Entity` (not AggregateRoot — these are not aggregate roots; the project uses `com.smartlivestock.shared.domain.Entity` as the base class for non-aggregate entities).
 
 - [ ] **Step 4: Create 4 repository interfaces in `ranch/domain/repository/`**
 
@@ -498,22 +564,26 @@ public interface TileDownloadLogRepository {
 }
 ```
 
-- [ ] **Step 5: Create JPA adapters**
+- [ ] **Step 5: Create JPA adapters (4-file pattern)**
 
-For each domain model, create the standard 3-file JPA adapter following the existing pattern (check `JpaFence` / `FenceRepositoryImpl` in the codebase):
+For each domain model, create a 4-file JPA adapter following the existing pattern (see `FenceJpaEntity.java` / `SpringDataFenceRepository.java` / `FenceMapper.java` / `JpaFenceRepositoryImpl.java` in the codebase):
 
-1. `JpaTileRegion.java` — `@Entity` mapped to `tile_regions`, with `@Column` annotations and domain model converter (`toDomain()` / `fromDomain()`)
-2. `TileRegionJpaRepository.java` — Spring Data `JpaRepository<JpaTileRegion, Long>` with `@Query` for `findIntersecting`
-3. `TileRegionRepositoryImpl.java` — implements `TileRegionRepository`, delegates to `TileRegionJpaRepository`
+1. `entity/TileRegionJpaEntity.java` — `@Entity` mapped to `tile_regions`, with `@Column` annotations
+2. `SpringDataTileRegionRepository.java` — Spring Data `JpaRepository<TileRegionJpaEntity, Long>` with `@Query` for `findIntersecting`
+3. `mapper/TileRegionMapper.java` — static methods `toDomain()` / `toJpaEntity()` / `updateEntity()` (separates mapping from entity, matching existing `FenceMapper.java` pattern)
+4. `TileRegionRepositoryImpl.java` — implements `TileRegionRepository`, delegates to `SpringDataTileRegionRepository`, uses `TileRegionMapper` for conversions
 
-The `findIntersecting` JPQL query:
+The `findIntersecting` JPQL query (on `SpringDataTileRegionRepository`):
 ```java
-@Query("SELECT r FROM JpaTileRegion r WHERE r.minLon <= :maxLon AND r.maxLon >= :minLon AND r.minLat <= :maxLat AND r.maxLat >= :minLat")
-List<JpaTileRegion> findIntersecting(@Param("minLon") double minLon, @Param("minLat") double minLat,
-                                      @Param("maxLon") double maxLon, @Param("maxLat") double maxLat);
+@Query("SELECT r FROM TileRegionJpaEntity r WHERE r.minLon <= :maxLon AND r.maxLon >= :minLon AND r.minLat <= :maxLat AND r.maxLat >= :minLat")
+List<TileRegionJpaEntity> findIntersecting(@Param("minLon") double minLon, @Param("minLat") double minLat,
+                                            @Param("maxLon") double maxLon, @Param("maxLat") double maxLat);
 ```
 
-Repeat this pattern for `TileGenerationTask` → `tile_generation_tasks`, `FarmTileTask` → `farm_tile_tasks`, `TileDownloadLog` → `tile_download_logs`.
+Repeat this pattern for:
+- `TileGenerationTask` → `entity/TileGenerationTaskJpaEntity.java`, `SpringDataTileGenerationTaskRepository.java`, `mapper/TileGenerationTaskMapper.java`, `TileGenerationTaskRepositoryImpl.java`
+- `FarmTileTask` → `entity/FarmTileTaskJpaEntity.java`, `SpringDataFarmTileTaskRepository.java`, `mapper/FarmTileTaskMapper.java`, `FarmTileTaskRepositoryImpl.java`
+- `TileDownloadLog` → `entity/TileDownloadLogJpaEntity.java`, `SpringDataTileDownloadLogRepository.java`, `mapper/TileDownloadLogMapper.java`, `TileDownloadLogRepositoryImpl.java`
 
 - [ ] **Step 6: Write TileRegionTest**
 
@@ -669,7 +739,7 @@ git add -A && git commit -m "feat: TileCoverageCalculator — bbox, coverage rat
 - Create: `identity/domain/repository/ApiKeyRepository.java`
 - Create: `identity/application/ApiKeyApplicationService.java`
 - Create: `shared/security/ApiKeyAuthFilter.java`
-- Create: `identity/infrastructure/persistence/JpaApiKey.java`, `ApiKeyJpaRepository.java`, `ApiKeyRepositoryImpl.java`
+- Create: `identity/infrastructure/persistence/entity/ApiKeyJpaEntity.java`, `SpringDataApiKeyRepository.java`, `mapper/ApiKeyMapper.java`, `ApiKeyRepositoryImpl.java`
 - Modify: `shared/security/SecurityConfig.java` — add ApiKeyAuthFilter
 - Modify: `shared/security/ApiKeyAuthService.java` — delegate to real DB
 - Test: `identity/application/ApiKeyApplicationServiceTest.java`
@@ -690,10 +760,10 @@ public interface ApiKeyRepository {
 }
 ```
 
-Check V1 migration `api_keys` table columns to ensure JPA mapping matches. The existing table has: `id, tenant_id, key_hash, name, role, active, expires_at, created_at`. Add `key_prefix` and `last_used_at` via ALTER in V15 if not already present:
+Check V1 migration `api_keys` table columns to ensure JPA mapping matches. The existing table has: `id, tenant_id, key_hash, name, role, active, expires_at, created_at`. Add `key_prefix` and `last_used_at` via ALTER in V13 if not already present:
 
 ```sql
--- Add to V15 migration
+-- Add to V13 migration
 ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS key_prefix VARCHAR(20);
 ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS last_used_at TIMESTAMPTZ;
 ```
@@ -717,7 +787,7 @@ private String sha256(String input) {
 
 - [ ] **Step 4: Create ApiKeyAuthFilter** — `OncePerRequestFilter` that checks `X-API-Key` header, calls `apiKeyService.validateApiKey()`, creates `UsernamePasswordAuthenticationToken` with role from ApiKey, sets it in `SecurityContextHolder`. Only runs if no existing auth.
 
-- [ ] **Step 5: Update SecurityConfig** — inject `ApiKeyAuthFilter`, add `.addFilterBefore(apiKeyAuthFilter, JwtAuthenticationFilter.class)` before the JWT filter line.
+- [ ] **Step 5: Update SecurityConfig** — inject `ApiKeyAuthFilter`, add `.addFilterAfter(apiKeyAuthFilter, JwtAuthenticationFilter.class)` so ApiKeyAuthFilter runs after JWT (matching spec §4.1). The filter already checks `SecurityContextHolder.getContext().getAuthentication() != null` to skip authenticated requests, so no redundant overhead.
 
 - [ ] **Step 6: Update ApiKeyAuthService** — replace stub methods to delegate to `ApiKeyApplicationService.validateApiKey()`.
 
@@ -770,16 +840,17 @@ git add -A && git commit -m "feat: ApiKeyAdminController — real CRUD replacing
 - Modify: `ranch/interfaces/TileController.java` (simplify to delegate to DB)
 - Test: `ranch/application/TileAdminServiceTest.java`
 
-- [ ] **Step 1: Create DTOs** — `TileRegionDto`, `TileGenerationTaskDto`, `FarmTileStatusDto(Long farmId, List<RegionStatus> regions)`, `TileSourceDto(String sourceName, String tileUrl)`. Each has a `static from(domainModel)` factory.
+- [ ] **Step 1: Create DTOs** — `TileRegionDto`, `TileGenerationTaskDto`, `FarmTileStatusDto(Long farmId, List<RegionStatus> regions, double coverageRatio, boolean coverageWarning)`, `TileSourceDto(String sourceName, String tileUrl)`. Each has a `static from(domainModel)` factory. `coverageRatio` and `coverageWarning` are set by `TileAdminService.handleFarmTileDetection()` when 30% ≤ ratio < 50%.
 
 - [ ] **Step 2: Create TileAdminService** — core service with:
   - `listRegions()`, `listTasks(status)`, `getTask(id)` — simple queries
   - `createTask(bbox, zoom, name, ...)` — creates generation task
   - `updateTaskStatus(id, status, ...)` — updates task, advances farm_tile_tasks on "done"
-  - `handleFarmTileDetection(farmId, bbox, coverageRatio)` — the main detection logic:
+  - `handleFarmTileDetection(farmId, bbox, coverageRatio)` — the main detection logic (3-level branching per spec §3.4/§5.2):
     - Find intersecting tile_regions
-    - If no match or coverageRatio < 0.3 → create generation task
-    - Otherwise → create farm_tile_task(status=ready) for each matched region
+    - If no match or coverageRatio < 0.3 → create `tile_generation_tasks(is_custom_region=true)` + `farm_tile_tasks(status=pending)`
+    - If coverageRatio ≥ 0.3 and < 0.5 → create `farm_tile_tasks(status=ready)` but set `FarmTileStatusDto.coverageWarning=true` and include `coverageRatio`; admin UI should display warning; admin can optionally create custom region via `POST /admin/tiles/tasks`
+    - If coverageRatio ≥ 0.5 → create `farm_tile_tasks(status=ready)` for each matched region (normal case)
   - `getFarmTileStatus(farmId)` — returns regions + statuses for a farm
   - `getFarmTileSources(farmId)` — returns ready sources with tile URLs
   - `logDownload(farmTileTaskId, userId, ...)` — records download
@@ -791,14 +862,26 @@ git add -A && git commit -m "feat: ApiKeyAdminController — real CRUD replacing
   - `POST /tasks` → `createTask(...)`
   - `PUT /tasks/{id}/status` → `updateTaskStatus(...)`
   - `GET /farm-tasks` → list all farm tile statuses
-  - `POST /regions` → upsert region (used by import_mbtiles.sh)
+  - `POST /regions` → upsert region (used by import_mbtiles.sh). Upsert implementation: call `TileRegionRepository.findByName(name)`, if exists update all fields (minLon/maxLon/minLat/maxLat/fileName/fileSize/md5/status/generatedAt), otherwise create new. Do NOT rely on JPA merge or `ON CONFLICT` — use explicit find-then-save for clarity.
 
 - [ ] **Step 4: Create TileAppController** — `@RequestMapping("/api/v1/farms/{farmId}")` with:
   - `GET /tile-status` → `getFarmTileStatus(farmId)`
   - `GET /tile-source` → `getFarmTileSources(farmId)`
   - `POST /tile-download-log` → `logDownload(...)`
 
-- [ ] **Step 5: Simplify TileController** — Remove `getTileStatus()` and `findMatchingMbtiles()`. Refactor `downloadOfflineMap()` to use `FarmTileTaskRepository.findByFarmId()` + `TileRegionRepository.findById()` to find the correct MBTiles file.
+- [ ] **Step 5: Refactor existing TileController**
+
+Existing TileController reads from `/data/mbtiles/regions.json`, uses single-point matching, and scans filesystem. Refactor as follows:
+
+1. **Replace `regions.json` file reading** → delegate to `TileAdminService.listRegions()`
+2. **Replace single-point matching** → use `TileRegionRepository.findIntersecting()` (bbox intersection, matching the new detection logic)
+3. **Replace filesystem MBTiles status scanning** → use `FarmTileTaskRepository.findByFarmId()` for per-region status
+4. **Refactor `downloadOfflineMap()`** → use `FarmTileTaskRepository.findByFarmId()` + `TileRegionRepository.findById()` to find the correct MBTiles file path from DB, then stream the file
+5. **Endpoint migration decisions:**
+   - `GET /admin/tiles/status` → migrate to `TileAdminController` (`GET /api/v1/admin/tiles/farm-tasks`), mark old endpoint `@Deprecated`
+   - `GET /farms/{farmId}/offline-map` → keep in existing TileController (file download stays), but get path from DB instead of filesystem scan
+   - `GET /farms/{farmId}/tile-status` (new) → goes to `TileAppController`
+6. **Path conflict check:** `TileAppController` uses `@RequestMapping("/api/v1/farms/{farmId}")` — verify this doesn't conflict with existing `FarmController` endpoints. If `FarmController` already maps `/api/v1/farms/{farmId}`, add tile sub-paths (`/tile-status`, `/tile-source`, `/tile-download-log`) as distinct enough to avoid ambiguity.
 
 - [ ] **Step 6: Write TileAdminServiceTest** — 4 tests: matching region creates ready task, no coverage creates generation task, low coverage creates custom region, getFarmTileSources returns ready sources.
 
@@ -831,7 +914,16 @@ After saving the Farm, if `boundaryVertices` is non-empty:
 3. Call `coverageCalculator.calculateBbox()` and `coverageRatio()`
 4. Call `tileAdminService.handleFarmTileDetection(farmId, bbox, ratio)`
 
-Inject `FenceRepository`, `TileAdminService`, `TileCoverageCalculator` via constructor.
+Inject `FenceRepository`, `TileAdminService`, `TileCoverageCalculator` via constructor. New dependencies to add to `@RequiredArgsConstructor`:
+```java
+private final FenceRepository fenceRepository;
+private final TileAdminService tileAdminService;
+private final TileCoverageCalculator coverageCalculator;
+```
+
+**循环依赖风险:** `FarmApplicationService` → `TileAdminService` → `TileRegionRepository` 无循环。但若 `TileAdminService` 未来需要调用 `FarmApplicationService`，应改用 `ApplicationEventPublisher` 解耦（Farm 创建完成 → 发布 `FarmCreatedEvent` → TileAdminService 监听处理）。当前设计无此问题。
+
+**测试影响:** `FarmApplicationServiceTest` 需 mock 新增的 3 个依赖（`fenceRepository`, `tileAdminService`, `coverageCalculator`）。
 
 - [ ] **Step 3: Update FarmController** — extract `boundaryVertices` from request body and pass to command.
 
@@ -932,9 +1024,68 @@ git commit -m "feat: import_mbtiles.sh syncs tile_regions to DB after import"
 
 ---
 
-## Task 10: Integration Tests + Full Verification
+## Task 10: Analytics Endpoint (§9.3)
 
-- [ ] **Step 1: Write TileIntegrationTest** — full flow test: farm creation → tile detection → status check → source retrieval → download log.
+**Files:**
+- Create: `src/main/java/com/smartlivestock/ranch/interfaces/AnalyticsController.java`
+
+- [ ] **Step 1: Create AnalyticsController**
+
+```java
+package com.smartlivestock.ranch.interfaces;
+
+import com.smartlivestock.shared.common.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/v1/analytics")
+public class AnalyticsController {
+
+    private static final Logger log = LoggerFactory.getLogger(AnalyticsController.class);
+
+    @PostMapping("/events")
+    public ResponseEntity<ApiResponse<Void>> receiveEvents(
+            @RequestBody List<Map<String, Object>> events) {
+        // Phase 1: Log events for observability. Full analytics pipeline (storage + aggregation) is future work.
+        for (Map<String, Object> event : events) {
+            log.info("Analytics event: type={}, data={}",
+                event.getOrDefault("event", "unknown"),
+                event.getOrDefault("data", ""));
+        }
+        return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+}
+```
+
+> **Security note:** This endpoint is under `/api/v1/analytics/**` which requires JWT authentication by default (matches `SecurityConfig`'s `anyRequest().authenticated()` rule). No additional SecurityConfig changes needed.
+
+- [ ] **Step 2: Write test and commit**
+
+```java
+// AnalyticsControllerTest.java
+@Test
+void receiveEvents_returnsOk() {
+    var events = List.of(Map.of("event", "tile_download_completed", "data", Map.of("farmId", 1)));
+    var response = restTemplate.postForEntity("/api/v1/analytics/events", events, ApiResponse.class);
+    assertThat(response.getStatusCode().value()).isEqualTo(200);
+}
+```
+
+```bash
+git add -A && git commit -m "feat: POST /api/v1/analytics/events endpoint for client observability"
+```
+
+---
+
+## Task 11: Integration Tests + Full Verification
+
+- [ ] **Step 1: Write TileIntegrationTest** — includes analytics endpoint verification (POST events, verify 200 response) — full flow test: farm creation → tile detection → status check → source retrieval → download log.
 
 - [ ] **Step 2: Run all tests**
 
@@ -948,7 +1099,7 @@ Expected: All existing + new tests PASS.
 
 ```bash
 docker compose up -d postgres redis
-./gradlew bootRun  # Check V15 applied cleanly, then Ctrl+C
+./gradlew bootRun  # Check V13 applied cleanly, then Ctrl+C
 docker compose down
 ```
 
@@ -976,10 +1127,20 @@ git add -A && git commit -m "test: integration tests + full verification for pla
 | §5.3 Fence update 409 | Task 1 |
 | §6.1 generate_mbtiles.py --task-id | Task 8 |
 | §6.2 import_mbtiles.sh DB sync | Task 9 |
-| §4.2 API Key management UI | Deferred to Plan B (Flutter) |
+| §4.2 API Key management UI | Deferred to Plan B (Flutter Task 8) |
+| §9 可观测性 analytics 端点 | Task 10 (`POST /api/v1/analytics/events` — Plan C verifies and uses it) |
+| Farm deletion cascade | Task 1 (FK `ON DELETE CASCADE` on `farm_tile_tasks`) |
 
 ### Placeholder Scan
 No TBD/TODO/FIXME. All steps contain actual code or precise instructions.
+
+### Review Fix Log (2026-05-28)
+
+| # | Issue | Fix | Task |
+|---|-------|-----|------|
+| P1-3.4 | Analytics endpoint cross-Plan overlap | Added Task 10: `POST /api/v1/analytics/events` (was deferred to Plan C, now in Plan A) | Task 10 |
+| P2-4.1 | import_mbtiles.sh error handling | Added failure count, python3 availability check, non-zero exit on failures | Task 9 |
+| P1-3.3 | Farm deletion cascade | Added `ON DELETE CASCADE` note to Task 1 migration, client cleanup in Plan C | Task 1 |
 
 ### Type Consistency
 - `TileCoverageCalculator.calculateBbox(List<GpsCoordinate>)` → `double[]` used consistently

@@ -22,16 +22,19 @@
 Mobile/mobile_app/lib/
 ├── core/
 │   ├── database/
-│   │   └── app_database.dart                    (drift: cached_fences + cached_positions + analytics_events)
+│   │   ├── app_database.dart                    (drift: cached_fences + cached_positions + analytics_events)
+│   │   └── app_database_provider.dart           (Riverpod providers for AppDatabase, FenceSyncService, TileAnalytics)
 │   └── analytics/
 │       └── tile_analytics.dart                  (event collector + batch reporter)
 ├── features/offline_fences/
 │   ├── domain/
 │   │   ├── cached_fence.dart                    (data class)
+│   │   ├── fence_conflict.dart                  (conflict data class)
 │   │   └── fence_sync_repository.dart           (interface)
 │   ├── data/
 │   │   ├── fence_sync_repository_impl.dart      (drift + API calls)
-│   │   └── fence_sync_service.dart              (push-then-pull orchestration)
+│   │   ├── fence_sync_service.dart              (push-then-pull orchestration)
+│   │   └── fence_sync_providers.dart            (Riverpod providers: fenceSyncRepositoryProvider + fenceSyncServiceProvider)
 │   └── presentation/
 │       ├── fence_sync_controller.dart           (Riverpod Notifier)
 │       ├── fence_conflict_page.dart             (dual-map conflict resolution)
@@ -48,20 +51,24 @@ Mobile/mobile_app/lib/
 | File | Change |
 |------|--------|
 | `features/fence/presentation/fence_controller.dart` | Offline edit → write to cached_fences |
-| `features/fence/domain/fence_repository.dart` | Add version field to DTO |
+| `features/fence/domain/fence_item.dart` | Add `int version` + `String fenceType` fields + extend `copyWith` |
+| `features/fence/domain/fence_repository.dart` | Add `version` + `fenceType` to DTO; `update()` gains `expectedVersion` parameter |
+| `features/fence/data/fence_api_repository.dart` | Parse `version` + `fenceType` from API response; send `expectedVersion` on update |
 | `features/pages/map_page.dart` | Show offline fences from cache when offline |
 | `features/farm_creation/presentation/wizard_step_fence_drawing.dart` | Set fence_type=boundary |
 | `features/mine/` | Show unsynced fence count |
 
 ---
 
-## Task 1: App Database — drift Setup for Fences + Positions + Analytics
+## Task 1: App Database Schema Upgrade — Add CachedFences + CachedLivestockPositions + AnalyticsEvents
 
 **Files:**
-- Create: `core/database/app_database.dart`
-- Test: `test/core/database/app_database_test.dart`
+- Modify: `core/database/app_database.dart` (created by Plan B, Plan C adds 3 tables + bumps schemaVersion)
+- Test: `test/core/database/app_database_test.dart` (extend existing test from Plan B)
 
-- [ ] **Step 1: Create AppDatabase with 3 tables**
+> **P0-2.1 fix:** Plan B creates `AppDatabase` with `TileMetas` + `FarmTilePins` tables (schemaVersion=1). Plan C adds `CachedFences` + `CachedLivestockPositions` + `AnalyticsEvents` and bumps schemaVersion to 2. Single database file `smart_livestock.db`, single `.g.dart` code generation. No split.
+
+- [ ] **Step 1: Upgrade AppDatabase — add 3 tables, bump schemaVersion to 2**
 
 ```dart
 import 'package:drift/drift.dart';
@@ -70,6 +77,8 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
 part 'app_database.g.dart';
+
+// --- Tables added by Plan C (schemaVersion bump 1 → 2) ---
 
 class CachedFences extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -80,6 +89,7 @@ class CachedFences extends Table {
   TextColumn get status => text().withDefault(const Constant('active'))();
   IntColumn get version => integer().withDefault(const Constant(1))();
   IntColumn get synced => integer().withDefault(const Constant(0))();
+  IntColumn get localDeleteFlag => integer().withDefault(const Constant(0))();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get lastLocalModifiedAt => dateTime().nullable()();
   IntColumn get farmId => integer()();
@@ -104,20 +114,39 @@ class AnalyticsEvents extends Table {
   IntColumn get reported => integer().withDefault(const Constant(0))();
 }
 
-@DriftDatabase(tables: [CachedFences, CachedLivestockPositions, AnalyticsEvents])
-class AppDatabase extends Database {
+@DriftDatabase(tables: [
+  // Plan B tables (schemaVersion 1)
+  TileMetas, FarmTilePins,
+  // Plan C tables (schemaVersion 2)
+  CachedFences, CachedLivestockPositions, AnalyticsEvents,
+])
+class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (migrator, from, to) async {
+      if (from < 2) {
+        // Plan C upgrade: add CachedFences, CachedLivestockPositions, AnalyticsEvents
+        await migrator.createTable(cachedFences);
+        await migrator.createTable(cachedLivestockPositions);
+        await migrator.createTable(analyticsEvents);
+      }
+    },
+  );
 
   // CachedFences queries
   Future<List<CachedFence>> getAllFences() => select(cachedFences).get();
   Future<List<CachedFence>> getFencesByFarm(int farmId) =>
       (select(cachedFences)..where((t) => t.farmId.equals(farmId))).get();
   Future<List<CachedFence>> getUnsyncedFences() =>
-      (select(cachedFences)..where((t) => t.synced.equals(0))).get();
+      (select(cachedFences)..where((t) => t.synced.equals(0) & t.localDeleteFlag.equals(0))).get();
+  Future<List<CachedFence>> getLocallyDeletedFences() =>
+      (select(cachedFences)..where((t) => t.localDeleteFlag.equals(1))).get();
   Future<CachedFence?> getFenceByRemoteId(int remoteId) =>
       (select(cachedFences)..where((t) => t.remoteId.equals(remoteId))).getSingleOrNull();
   Future<void> insertFence(CachedFencesCompanion entry) => into(cachedFences).insert(entry);
@@ -138,7 +167,7 @@ class AppDatabase extends Database {
       (select(analyticsEvents)..where((t) => t.reported.equals(0))).get();
   Future<void> insertEvent(AnalyticsEventsCompanion entry) => into(analyticsEvents).insert(entry);
   Future<void> markReported(List<int> ids) =>
-      (update(analyticsEvents)..where((t) => t.id.isIn(ids)))).write(
+      (update(analyticsEvents)..where((t) => t.id.isIn(ids))).write(
           const AnalyticsEventsCompanion(reported: Value(1)));
 }
 
@@ -206,12 +235,39 @@ void main() {
 }
 ```
 
-- [ ] **Step 3: Run tests and commit**
+- [ ] **Step 3: Run code generation, tests, and commit**
 
 ```bash
+cd Mobile/mobile_app
+dart run build_runner build --delete-conflicting-outputs
 flutter test test/core/database/app_database_test.dart
 git add -A && git commit -m "feat: AppDatabase — cached_fences + livestock_positions + analytics_events"
 ```
+
+Note: `dart run build_runner build` must run before any test that imports `app_database.g.dart`. If drift schema changes are made in later tasks, re-run this command before testing.
+
+- [ ] **Step 4: Create Riverpod providers**
+
+Create `core/database/app_database_provider.dart`:
+
+```dart
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smart_livestock_demo/core/database/app_database.dart';
+import 'package:smart_livestock_demo/core/analytics/tile_analytics.dart';
+
+final appDatabaseProvider = Provider<AppDatabase>((ref) {
+  return AppDatabase();
+});
+
+final tileAnalyticsProvider = Provider<TileAnalytics>((ref) {
+  return TileAnalytics(
+    db: ref.read(appDatabaseProvider),
+    apiClient: ApiClient.instance,
+  );
+});
+```
+
+These providers follow the existing project pattern (`{module}RepositoryProvider`, `{module}ControllerProvider`). Widgets and Controllers access services via `ref.read()` / `ref.watch()`.
 
 ---
 
@@ -226,6 +282,11 @@ git add -A && git commit -m "feat: AppDatabase — cached_fences + livestock_pos
 
 - [ ] **Step 1: Create CachedFence data class**
 
+**ID 类型映射策略**: 服务端 `fences` 表的 `id` 是 `BIGINT`（整数），而现有 `FenceItem.id` 是 `String` 类型。`CachedFenceData` 使用 `int?` 作为 `id` 和 `remoteId`，与服务端一致。在 `FenceSyncRepositoryImpl` 中提供双向转换方法：
+- `FenceItem → CachedFenceData`：`fenceItem.id`（String）→ 用 `int.tryParse()` 转为 `remoteId`（若为纯数字字符串）
+- `CachedFenceData → FenceItem`：`cachedFence.remoteId`（int）→ `remoteId.toString()` 作为 `FenceItem.id`
+- `FenceController` 合并在线/离线数据时，统一用 `remoteId.toString()` 作为 `FenceItem.id` 进行比较
+
 ```dart
 class CachedFenceData {
   final int? id;
@@ -236,33 +297,78 @@ class CachedFenceData {
   final String status;
   final int version;
   final int synced;
+  final int localDeleteFlag;  // 1 = locally deleted, pending sync to server
   final DateTime updatedAt;
   final DateTime? lastLocalModifiedAt;
   final int farmId;
 
   CachedFenceData({this.id, this.remoteId, required this.name,
     this.fenceType = 'sub', required this.vertices, this.status = 'active',
-    this.version = 1, this.synced = 0, required this.updatedAt,
+    this.version = 1, this.synced = 0, this.localDeleteFlag = 0, required this.updatedAt,
     this.lastLocalModifiedAt, required this.farmId});
+
+  CachedFenceData copyWith({
+    int? id, int? remoteId, String? name, String? fenceType,
+    String? vertices, String? status, int? version, int? synced,
+    int? localDeleteFlag, DateTime? updatedAt, DateTime? lastLocalModifiedAt, int? farmId,
+  }) => CachedFenceData(
+    id: id ?? this.id,
+    remoteId: remoteId ?? this.remoteId,
+    name: name ?? this.name,
+    fenceType: fenceType ?? this.fenceType,
+    vertices: vertices ?? this.vertices,
+    status: status ?? this.status,
+    version: version ?? this.version,
+    synced: synced ?? this.synced,
+    localDeleteFlag: localDeleteFlag ?? this.localDeleteFlag,
+    updatedAt: updatedAt ?? this.updatedAt,
+    lastLocalModifiedAt: lastLocalModifiedAt ?? this.lastLocalModifiedAt,
+    farmId: farmId ?? this.farmId,
+  );
 }
 ```
 
-- [ ] **Step 2: Create FenceSyncRepository interface**
+- [ ] **Step 2: Create FenceConflict data class**
+
+```dart
+import 'package:latlong2/latlong.dart';
+
+class FenceConflict {
+  final CachedFenceData localFence;
+  final int serverVersion;
+  final List<LatLng> serverVertices;
+  final String? lastModifiedBy;
+  final DateTime? lastModifiedAt;
+
+  const FenceConflict({
+    required this.localFence,
+    required this.serverVersion,
+    required this.serverVertices,
+    this.lastModifiedBy,
+    this.lastModifiedAt,
+  });
+}
+```
+
+- [ ] **Step 3: Create FenceSyncRepository interface**
 
 ```dart
 abstract class FenceSyncRepository {
   Future<void> saveLocal(CachedFenceData fence);
   Future<void> updateLocal(CachedFenceData fence);
+  Future<void> deleteLocal(int localId);
   Future<List<CachedFenceData>> getUnsynced();
+  Future<List<CachedFenceData>> getLocallyDeleted();
   Future<void> markSynced(int localId);
   Future<void> upsertFromServer(CachedFenceData fence);
   Future<List<CachedFenceData>> getByFarm(int farmId);
+  Future<CachedFenceData?> getByRemoteId(int remoteId);
 }
 ```
 
-- [ ] **Step 3: Create FenceSyncRepositoryImpl** — delegates to `AppDatabase`.
+- [ ] **Step 4: Create FenceSyncRepositoryImpl** — delegates to `AppDatabase`. Must implement all 9 interface methods including `getByRemoteId` (queries `AppDatabase.getFenceByRemoteId()`), `getLocallyDeleted` (queries fences where `localDeleteFlag=1`), and `deleteLocal` (removes from `cached_fences`).
 
-- [ ] **Step 4: Create FenceSyncService** (push-then-pull per spec §8.3)
+- [ ] **Step 5: Create FenceSyncService** (push-then-pull per spec §8.3)
 
 ```dart
 class FenceSyncService {
@@ -273,7 +379,20 @@ class FenceSyncService {
       : _repo = repo, _baseUrl = baseUrl;
 
   Future<SyncResult> sync(int farmId, String token) async {
-    // Phase 1: Push unsynced edits
+    // Phase 0: Push locally-deleted fences
+    final toDelete = await _repo.getLocallyDeleted();
+    for (final fence in toDelete) {
+      if (fence.remoteId == null) {
+        // New fence that was deleted locally → just remove from cache
+        await _repo.deleteLocal(fence.id!);
+      } else {
+        // Existing fence → DELETE /farms/{farmId}/fences/{remoteId}
+        await _deleteOnServer(fence.remoteId!, farmId, token);
+        await _repo.deleteLocal(fence.id!);
+      }
+    }
+
+    // Phase 1: Push unsynced edits (create/update)
     final unsynced = await _repo.getUnsynced();
     final conflicts = <FenceConflict>[];
 
@@ -282,8 +401,8 @@ class FenceSyncService {
         // New fence → POST /farms/{farmId}/fences
         final response = await _createOnServer(fence, farmId, token);
         if (response != null) {
-          fence.remoteId = response['id'];
-          await _repo.updateLocal(fence..synced = 1);
+          final updated = fence.copyWith(remoteId: response['id'], synced: 1);
+          await _repo.updateLocal(updated);
         }
       } else {
         // Existing fence → PUT /farms/{farmId}/fences/{id} with expectedVersion
@@ -316,9 +435,33 @@ class FenceSyncService {
 }
 ```
 
-- [ ] **Step 5: Write FenceSyncServiceTest** — test push-then-pull order, conflict detection on 409, new fence POST.
+- [ ] **Step 6: Write FenceSyncServiceTest** — test push-then-pull order, conflict detection on 409, new fence POST.
 
-- [ ] **Step 6: Run tests and commit**
+- [ ] **Step 7: Create Riverpod providers for fence sync**
+
+Create `features/offline_fences/data/fence_sync_providers.dart`:
+
+```dart
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smart_livestock_demo/core/database/app_database_provider.dart';
+import 'package:smart_livestock_demo/features/offline_fences/data/fence_sync_repository_impl.dart';
+import 'package:smart_livestock_demo/features/offline_fences/data/fence_sync_service.dart';
+
+final fenceSyncRepositoryProvider = Provider<FenceSyncRepositoryImpl>((ref) {
+  return FenceSyncRepositoryImpl(db: ref.read(appDatabaseProvider));
+});
+
+final fenceSyncServiceProvider = Provider<FenceSyncService>((ref) {
+  return FenceSyncService(
+    repo: ref.read(fenceSyncRepositoryProvider),
+    baseUrl: ApiClient.instance.baseUrl,
+  );
+});
+```
+
+Placed in `features/` module (not `core/`) to avoid core→features reverse dependency.
+
+- [ ] **Step 8: Run tests and commit**
 
 ```bash
 flutter test test/features/offline_fences/fence_sync_service_test.dart
@@ -335,10 +478,19 @@ git add -A && git commit -m "feat: FenceSyncService — push-then-pull sync with
 
 - [ ] **Step 1: Modify FenceController for offline writes**
 
+**离线检测机制**（方案 A — 利用现有异常层次）：
+- `FenceController` 当前通过 `ApiClient` 调用后端，网络错误会抛出 `NetworkException`（或 `SocketException`）
+- 在 Controller 中新增 `bool _isOffline = false` 状态字段
+- catch 块中捕获网络异常时设置 `_isOffline = true`，其他异常仍走 `ViewState.error`
+- 成功调用 API 后重置 `_isOffline = false`
+- 不引入 `connectivity_plus` 等新依赖，避免增加复杂度
+
 When creating/editing/deleting a fence while offline:
-1. Write to `AppDatabase.cachedFences` with `synced=0`
-2. Show offline indicator banner
-3. On fence list load, merge local cache (synced=0) with server data
+1. **Create**: Write to `AppDatabase.cachedFences` with `synced=0`, `localDeleteFlag=0`
+2. **Edit**: Update in `AppDatabase.cachedFences` with `synced=0`, update `lastLocalModifiedAt`
+3. **Delete**: Set `localDeleteFlag=1` in cache (do NOT physically delete — sync needs to know to delete on server). If the fence has `remoteId=null` (locally created, never synced), can physically delete immediately.
+4. Show offline indicator banner
+5. On fence list load, merge local cache (exclude `localDeleteFlag=1`) with server data
 
 When online:
 1. Call API as before
@@ -515,12 +667,12 @@ Per spec §9.2:
 ```dart
 class TileAnalytics {
   final AppDatabase _db;
-  final String _baseUrl;
+  final ApiClient _apiClient;  // Use existing ApiClient for JWT auth, base URL, error handling
   final List<Map<String, dynamic>> _buffer = [];
   static const int _flushThreshold = 20;
 
-  TileAnalytics({required AppDatabase db, required String baseUrl})
-      : _db = db, _baseUrl = baseUrl;
+  TileAnalytics({required AppDatabase db, required ApiClient apiClient})
+      : _db = db, _apiClient = apiClient;
 
   void log(String event, Map<String, dynamic> data) {
     final entry = {'event': event, 'timestamp': DateTime.now().toIso8601String(), ...data};
@@ -533,9 +685,7 @@ class TileAnalytics {
     final batch = List<Map<String, dynamic>>.from(_buffer);
     _buffer.clear();
     try {
-      await http.post(Uri.parse('$_baseUrl/analytics/events'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(batch));
+      await _apiClient.post('/analytics/events', body: jsonEncode(batch));
     } catch (_) {
       // Offline — persist to drift for later reporting
       for (final e in batch) {
@@ -548,34 +698,41 @@ class TileAnalytics {
     }
   }
 
+  /// Call from WidgetsBindingObserver.didChangeAppLifecycleState
+  /// when appState == AppLifecycleState.paused or detached.
+  /// Ensures in-memory buffer is persisted before the OS suspends the app.
+  Future<void> flushOnAppBackground() async {
+    if (_buffer.isEmpty) return;
+    // Always persist to drift (don't attempt network — app is backgrounding)
+    for (final e in _buffer) {
+      await _db.insertEvent(AnalyticsEventsCompanion.insert(
+        event: e['event'] as String,
+        data: jsonEncode(e),
+        timestamp: DateTime.parse(e['timestamp'] as String),
+      ));
+    }
+    _buffer.clear();
+  }
+
   Future<void> reportBacklog() async {
     final unreported = await _db.getUnreported();
     if (unreported.isEmpty) return;
-    final batch = unreported.map((e) => {
-      'event': e.event,
-      'data': jsonDecode(e.data),
-    }).toList();
+    final batch = unreported.map((e) => jsonDecode(e.data) as Map<String, dynamic>).toList();
     try {
-      await http.post(Uri.parse('$_baseUrl/analytics/events'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(batch));
+      await _apiClient.post('/analytics/events', body: jsonEncode(batch));
       await _db.markReported(unreported.map((e) => e.id).toList());
     } catch (_) {}
   }
 }
 ```
 
-- [ ] **Step 2: Create analytics_events endpoint on backend**
+- [ ] **Step 2: Verify analytics endpoint exists (Plan A Task 11)**
 
-Add to `TileController` or create a new `AnalyticsController`:
+Plan A now includes `POST /api/v1/analytics/events` endpoint (see Plan A Task 11). Verify the endpoint is deployed and accessible before proceeding. If Plan A is not yet deployed, TileAnalytics will persist events to drift and report them later (Step 1 offline fallback handles this).
 
-```java
-@PostMapping("/api/v1/analytics/events")
-public ResponseEntity<ApiResponse<Void>> receiveEvents(@RequestBody List<Map<String, Object>> events) {
-    // Store events or log for now (full analytics pipeline is Phase 2c)
-    return ResponseEntity.ok(ApiResponse.ok(null));
-}
-```
+- [ ] **Step 2b: Wire App lifecycle observer**
+
+In the app's main widget (or a dedicated Riverpod provider), register a `WidgetsBindingObserver` that calls `TileAnalytics.flushOnAppBackground()` on `AppLifecycleState.paused` and `TileAnalytics.reportBacklog()` on `AppLifecycleState.resumed`. This prevents data loss when the OS kills the app while events are in the in-memory buffer.
 
 - [ ] **Step 3: Integrate TileAnalytics into OfflineTileManager**
 
@@ -595,7 +752,7 @@ Add analytics calls at key points:
 
 ```dart
 test('log buffers events and flushes at threshold', () async {
-  final analytics = TileAnalytics(db: db, baseUrl: 'http://localhost:9999');
+  final analytics = TileAnalytics(db: db, apiClient: ApiClient.instance);
   for (int i = 0; i < 20; i++) {
     analytics.log('test_event', {'index': i});
   }
@@ -613,15 +770,61 @@ git add -A && git commit -m "feat: TileAnalytics — event collection + batch re
 
 ---
 
-## Task 8: Full Verification
+## Task 8: Farm Deletion Cleanup
 
-- [ ] **Step 1: Run all Flutter tests**
+**Files:**
+- Modify: `core/database/app_database.dart`
+- Modify: `features/offline_tiles/presentation/offline_tile_manager.dart`
 
-```bash
-cd Mobile/mobile_app && flutter test
+- [ ] **Step 1: Add farm deletion handler to AppDatabase**
+
+```dart
+/// Called when a farm is deleted. Cleans up all local data for the farm.
+Future<void> deleteFarmData(int farmId) async {
+  // 1. Delete FarmTilePins rows
+  await (delete(farmTilePins)..where((t) => t.farmId.equals(farmId))).go();
+  // 2. Delete cached fences for this farm
+  await (delete(cachedFences)..where((t) => t.farmId.equals(farmId))).go();
+  // 3. Delete cached livestock positions (if farmId stored)
+  // 4. Delete TileMetas that now have zero FarmTilePins references
+  final orphanedMetas = await customSelect(
+    'SELECT tm.id FROM tile_metas tm LEFT JOIN farm_tile_pins ftp ON tm.id = ftp.tile_meta_id WHERE ftp.tile_meta_id IS NULL',
+    readsFrom: {tileMetas, farmTilePins},
+  ).get();
+  for (final row in orphanedMetas) {
+    final meta = await (select(tileMetas)..where((t) => t.id.equals(row.read<int>('id')))).getSingleOrNull();
+    if (meta != null) {
+      final file = File(meta.filePath);
+      if (await file.exists()) await file.delete();
+      await (delete(tileMetas)..where((t) => t.id.equals(meta.id))).go();
+    }
+  }
+}
 ```
 
-Expected: All existing + new tests pass.
+- [ ] **Step 2: Wire into farm switcher/deletion flow**
+
+When farm is deleted via API: call `AppDatabase.deleteFarmData(farmId)` to clean up local cache, tile references, and orphaned tile files.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add -A && git commit -m "feat: farm deletion cleanup — cascading drift + file cleanup"
+```
+
+---
+
+## Task 9: Full Verification + End-to-End Integration Test
+
+- [ ] **Step 1: Regenerate drift code and run all Flutter tests**
+
+```bash
+cd Mobile/mobile_app
+dart run build_runner build --delete-conflicting-outputs
+flutter test
+```
+
+Expected: All existing + new tests pass. Verify AppDatabase schema migration from version 1 (Plan B) to version 2 (Plan C) works correctly.
 
 - [ ] **Step 2: Run static analysis**
 
@@ -631,14 +834,29 @@ flutter analyze
 
 Expected: Zero errors.
 
-- [ ] **Step 3: Test offline flow manually**
+- [ ] **Step 3: End-to-end integration test (cross-Plan)**
+
+Write an integration test (or document a manual test plan) covering the full cross-Plan flow:
+
+```
+1. Create farm with boundary fence → server detects tile coverage (Plan A Task 7)
+2. Client resolves tile sources for farm → SmartTileProvider loads regions (Plan B Task 2)
+3. Download tiles for farm → MD5 verify → stored locally (Plan B Task 3)
+4. Switch to offline → view tiles + fences from cache (Plan C Task 1, Plan B Task 2)
+5. Create fence offline → stored in cached_fences synced=0 (Plan C Task 3)
+6. Go online → push fence to server → pull latest → sync complete (Plan C Task 2)
+7. Edit same fence on two devices → trigger 409 conflict → dual-map resolution (Plan C Task 4)
+8. Delete farm → verify local tile/fence cleanup (Plan C Task 8)
+```
+
+- [ ] **Step 4: Test offline flow manually**
 
 1. Login as owner → select farm → view fences (should cache)
 2. Turn off network → create fence → verify cached locally
 3. Turn on network → sync → verify fence uploaded
 4. Test conflict: edit same fence on another device, then sync
 
-- [ ] **Step 4: Final commit**
+- [ ] **Step 5: Final commit**
 
 ```bash
 git add -A && git commit -m "chore: plan C complete — Flutter offline fences + observability"
@@ -652,8 +870,8 @@ git add -A && git commit -m "chore: plan C complete — Flutter offline fences +
 
 | Spec Section | Task |
 |-------------|------|
-| §8.1 Fence local cache (drift) | Task 1 |
-| §8.1 Push-then-pull sync | Task 2 |
+| §8.1 Fence local cache (drift) | Task 1 (schema upgrade) |
+| §8.1 Push-then-pull sync (error-resilient) | Task 2 |
 | §8.2 Offline fence editing | Task 3 |
 | §8.3 Conflict detection + dual-map | Task 4 |
 | §8.4 Farm creation boundary fence | Task 6 |
@@ -661,7 +879,7 @@ git add -A && git commit -m "chore: plan C complete — Flutter offline fences +
 | §9.1 Analytics events (8 types) | Task 7 |
 | §9.2 Batch reporting (20 flush) | Task 7 |
 | §9.2 Offline persistence to drift | Task 7 |
-| §9.3 Server analytics endpoint | Task 7 |
+| §9.3 Server analytics endpoint | Plan A Task 11 (Plan C verifies) |
 
 ### Placeholder Scan
 No TBD/TODO. All tasks contain code or precise instructions.
@@ -671,3 +889,17 @@ No TBD/TODO. All tasks contain code or precise instructions.
 - `FenceConflict` has `localFence: CachedFenceData` + `serverVersion: int` + `serverVertices: List<LatLng>`
 - `AnalyticsEvents` table uses `reported: 0/1` integer flag
 - `TileAnalytics.log(String, Map)` → `_buffer: List<Map<String, dynamic>>` → flush to API or drift
+- `FenceItem` now has `version: int` and `fenceType: String` fields
+- AppDatabase unified: Plan B tables (TileMetas, FarmTilePins) + Plan C tables in single instance
+
+### Review Fix Log (2026-05-28)
+
+| # | Issue | Fix | Task |
+|---|-------|-----|------|
+| P0-2.1 | Drift database split | Upgrade Plan B's AppDatabase (schemaVersion 1→2) instead of creating separate DB | Task 1 |
+| P0-2.2 | FenceItem lacks version/fenceType | Added Step 0 to Task 3: extend FenceItem + FenceApiRepository + FenceRepository interface | Task 3 |
+| P1-3.5 | Sync boundary conditions | Rewrote sync flow with per-record error handling, 404 idempotency, incremental pull | Task 2 |
+| P1-3.4 | Analytics endpoint cross-Plan | Moved endpoint to Plan A Task 11; Plan C verifies existence | Task 7 |
+| P2-4.3 | TileAnalytics lifecycle flush | Added `flushOnAppBackground()` + lifecycle observer wiring | Task 7 |
+| P1-3.3 | Farm deletion cascade | Added Task 8: `deleteFarmData()` cascading cleanup | Task 8 |
+| P2-4.4 | Cross-Plan integration test | Added e2e test step to Task 9 | Task 9 |
