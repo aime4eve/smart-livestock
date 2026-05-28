@@ -74,3 +74,7 @@ CREATE INDEX idx_farm_tile_tasks_farm ON farm_tile_tasks(farm_id);
 CREATE INDEX idx_farm_tile_tasks_status ON farm_tile_tasks(status);
 CREATE INDEX idx_tile_gen_tasks_status ON tile_generation_tasks(status);
 CREATE INDEX idx_tile_download_logs_user ON tile_download_logs(user_id);
+
+-- 7. API Keys table extensions
+ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'admin';
+ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS last_used_at TIMESTAMPTZ;
