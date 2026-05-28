@@ -29,8 +29,6 @@ python3 -c "
 import json, glob, sqlite3, os
 files = sorted(glob.glob('$LOCAL_DIR/*.mbtiles'))
 
-# tileserver-gl v5: each MBTiles is a separate data source with string mbtiles path
-# First file is always named 'v3' for nginx/Flutter backward compatibility
 data_sources = {}
 for i, f in enumerate(files):
     key = 'v3' if i == 0 else os.path.splitext(os.path.basename(f))[0]
@@ -58,3 +56,43 @@ if command -v docker &> /dev/null; then
     docker kill --signal=SIGHUP $(docker ps -q --filter "ancestor=maptiler/tileserver-gl") 2>/dev/null || true
 fi
 echo "Import complete."
+
+# 5. 同步 tile_regions 到数据库
+API_URL="${API_URL:-http://172.22.1.123:18080/api/v1}"
+API_KEY="${SMART_LIVESTOCK_API_KEY:-}"
+if [ -z "$API_KEY" ] && [ -n "${API_KEY_FILE:-}" ]; then
+    API_KEY=$(cat "$API_KEY_FILE" 2>/dev/null || true)
+fi
+
+if [ -z "$API_KEY" ]; then
+    echo "Skipping DB sync: no API key. Set SMART_LIVESTOCK_API_KEY."
+    exit 0
+fi
+
+echo "Syncing tile_regions to DB..."
+fail_count=0
+for f in "$LOCAL_DIR"/*.mbtiles; do
+    base=$(basename "$f" .mbtiles)
+    size=$(stat -f%z "$f" 2>/dev/null || stat -c%s "$f")
+    md5hash=$(md5 -q "$f" 2>/dev/null || md5sum "$f" | cut -d' ' -f1)
+    bounds=$(python3 -c "import sqlite3; c=sqlite3.connect('$f'); r=c.execute(\"SELECT value FROM metadata WHERE name='bounds'\").fetchone(); print(r[0] if r else ''); c.close()")
+
+    [ -z "$bounds" ] && continue
+    IFS=',' read -r min_lon min_lat max_lon max_lat <<< "$bounds"
+
+    if curl -sf -X POST "$API_URL/admin/tiles/regions" \
+        -H "X-API-Key: $API_KEY" \
+        -H "Content-Type: application/json" \
+        -d "{\"name\":\"$base\",\"minLon\":$min_lon,\"minLat\":$min_lat,\"maxLon\":$max_lon,\"maxLat\":$max_lat,\"fileName\":\"$base.mbtiles\",\"fileSize\":$size,\"md5\":\"$md5hash\",\"status\":\"ready\"}"; then
+        echo "Synced: $base"
+    else
+        echo "Failed: $base"
+        fail_count=$((fail_count + 1))
+    fi
+done
+
+if [ "$fail_count" -gt 0 ]; then
+    echo "WARNING: $fail_count region(s) failed to sync."
+    exit 1
+fi
+echo "DB sync complete."

@@ -8,11 +8,9 @@
     # 计划模式：按计划文件批量下载，自动更新完成状态
     python3 tooling/generate_mbtiles.py --plan tooling/tile-download-plan.json --outdir tooling/mbtiles
 
-    # 限制单次运行 120 分钟，到时间后优雅停止
-    python3 tooling/generate_mbtiles.py --plan tooling/tile-download-plan.json --outdir tooling/mbtiles --max-runtime 120
-
-    # 仅预览计划（不下载，显示预估瓦片数）
-    python3 tooling/generate_mbtiles.py --plan tooling/tile-download-plan.json --dry-run
+    # 任务模式：从 API 读取任务参数，生成后回调更新状态
+    export SMART_LIVESTOCK_API_KEY="sk_live_xxxxx"
+    python3 tooling/generate_mbtiles.py --task-id 7
 
 支持断点续传：对已存在的 .mbtiles 文件会跳过已下载的瓦片。
 """
@@ -25,6 +23,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
 
 TILE_SERVERS = {
     "osm": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -136,7 +135,6 @@ def generate_mbtiles(bbox, zoom_range, output, server="osm", rate=1.0, deadline=
                     ).fetchone():
                         skipped += 1
                         zoom_done += 1
-                        done += 1
                         continue
 
                     url = template.replace("{z}", str(z)).replace("{x}", str(x)).replace("{y}", str(y))
@@ -146,37 +144,32 @@ def generate_mbtiles(bbox, zoom_range, output, server="osm", rate=1.0, deadline=
                             "INSERT OR REPLACE INTO tiles VALUES (?, ?, ?, ?)",
                             (z, x, tms_y, data),
                         )
+                        done += 1
                     else:
                         errors += 1
-                    done += 1
+
                     zoom_done += 1
-                    time.sleep(rate)
+                    if zoom_done % 50 == 0 or zoom_done == zoom_total:
+                        pct = zoom_done / zoom_total * 100
+                        print(f"    z{z}: {zoom_done}/{zoom_total} ({pct:.0f}%)", flush=True)
+                    if rate > 0:
+                        time.sleep(rate)
 
-                conn.commit()
-                pct = zoom_done / zoom_total * 100
-                print(f"\r  z{z}: {zoom_done}/{zoom_total} ({pct:.0f}%)", end="", flush=True)
-
-            print()
+            conn.commit()
     except RuntimeTimeout:
         conn.commit()
-        print(f"\n  ⏱ Runtime limit reached, progress saved.")
+        print("  Runtime limit reached, progress saved.")
+    except KeyboardInterrupt:
+        conn.commit()
+        print("\n  Interrupted, progress saved.")
 
-    name = os.path.splitext(os.path.basename(output))[0]
-    metadata = {
-        "name": name,
-        "bounds": f"{min_lon},{min_lat},{max_lon},{max_lat}",
-        "minzoom": str(min_zoom),
-        "maxzoom": str(max_zoom),
-        "description": f"Generated {datetime.now(timezone.utc).strftime('%Y-%m-%d')} from {server}",
-    }
-    for k, v in metadata.items():
-        conn.execute("INSERT OR REPLACE INTO metadata VALUES (?, ?)", (k, v))
-    conn.commit()
+    tile_count = done + existing
+    size_mb = os.path.getsize(output) / (1024 * 1024)
+    print(f"  Result: {done} downloaded, {skipped} skipped, {errors} errors")
+    print(f"  File: {output} ({size_mb:.1f} MB, {tile_count} tiles)")
+
     conn.close()
-
-    size_mb = os.path.getsize(output) / 1024 / 1024
-    print(f"  Downloaded: {done - errors - skipped}  Skipped: {skipped}  Errors: {errors}  Size: {size_mb:.1f} MB")
-    return {"tile_count": done - errors - skipped, "errors": errors, "size_mb": round(size_mb, 1)}
+    return {"tile_count": tile_count, "size_mb": round(size_mb, 2), "errors": errors}
 
 
 def run_plan(plan_path, outdir, server="osm", rate=1.0, dry_run=False, max_runtime=None):
@@ -187,7 +180,6 @@ def run_plan(plan_path, outdir, server="osm", rate=1.0, dry_run=False, max_runti
     print(f"Plan: {plan['name']}")
     print(f"Regions: {len(regions)}")
 
-    # 预览模式
     if dry_run:
         print(f"\n{'ID':<25} {'Name':<20} {'Zoom':<8} {'Est.Tiles':>10} {'Status':<10} {'Note'}")
         print("-" * 95)
@@ -215,7 +207,6 @@ def run_plan(plan_path, outdir, server="osm", rate=1.0, dry_run=False, max_runti
         if r.get("status") == "done":
             print(f"\n[{i+1}/{len(regions)}] SKIP {r['name']} (already done)")
             continue
-
         if timed_out:
             print(f"\n[{i+1}/{len(regions)}] SKIP {r['name']} (runtime limit reached)")
             continue
@@ -226,7 +217,6 @@ def run_plan(plan_path, outdir, server="osm", rate=1.0, dry_run=False, max_runti
 
         try:
             result = generate_mbtiles(r["bbox"], r["zoom"], output, server, rate, deadline)
-            # 如果区域完成时已超时，标记但不标 done
             if deadline and time.time() >= deadline:
                 r["status"] = "partial"
                 r["tile_count"] = result["tile_count"]
@@ -253,7 +243,6 @@ def run_plan(plan_path, outdir, server="osm", rate=1.0, dry_run=False, max_runti
             json.dump(plan, f, indent=2, ensure_ascii=False)
         print(f"  Plan updated: {r['id']} → {r['status']}")
 
-    # 汇总
     done_count = sum(1 for r in regions if r.get("status") == "done")
     partial_count = sum(1 for r in regions if r.get("status") == "partial")
     fail_count = sum(1 for r in regions if r.get("status") == "failed")
@@ -264,22 +253,121 @@ def run_plan(plan_path, outdir, server="osm", rate=1.0, dry_run=False, max_runti
         print(f"Re-run the same command to continue.")
 
 
+# --- Task-driven mode ---
+
+def _resolve_api_key(args):
+    key = os.environ.get("SMART_LIVESTOCK_API_KEY")
+    if key:
+        return key
+    if args.api_key_file:
+        try:
+            with open(args.api_key_file, "r") as f:
+                return f.read().strip()
+        except FileNotFoundError:
+            print(f"API key file not found: {args.api_key_file}", file=sys.stderr)
+            sys.exit(1)
+    if args.api_key:
+        print("WARNING: --api-key exposes key in process list. Use env var or --api-key-file instead.", file=sys.stderr)
+        return args.api_key
+    print("No API key. Set SMART_LIVESTOCK_API_KEY, --api-key-file, or --api-key.", file=sys.stderr)
+    sys.exit(1)
+
+
+def _api_call(url, api_key, method="GET", body=None):
+    data = json.dumps(body).encode("utf-8") if body else None
+    req = Request(url, data=data, method=method)
+    req.add_header("X-API-Key", api_key)
+    req.add_header("Content-Type", "application/json")
+    try:
+        with urlopen(req, timeout=30) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except HTTPError as e:
+        body_text = e.read().decode("utf-8", errors="replace")
+        print(f"API error {e.code}: {body_text}", file=sys.stderr)
+        raise
+    except URLError as e:
+        print(f"API connection error: {e}", file=sys.stderr)
+        raise
+
+
+def run_task_mode(args):
+    api_key = _resolve_api_key(args)
+    api_url = args.api_url.rstrip("/")
+    task_url = f"{api_url}/admin/tiles/tasks/{args.task_id}"
+
+    # 1. Fetch task details
+    print(f"Fetching task {args.task_id}...")
+    resp = _api_call(task_url, api_key)
+    task = resp.get("data", resp)
+
+    region_name = task.get("regionName", f"task-{args.task_id}")
+    min_lon = task.get("minLon")
+    min_lat = task.get("minLat")
+    max_lon = task.get("maxLon")
+    max_lat = task.get("maxLat")
+    min_zoom = task.get("minZoom", 11)
+    max_zoom = task.get("maxZoom", 15)
+
+    if None in (min_lon, min_lat, max_lon, max_lat):
+        print(f"Task {args.task_id} missing bbox coordinates", file=sys.stderr)
+        sys.exit(1)
+
+    bbox = f"{min_lon},{min_lat},{max_lon},{max_lat}"
+    zoom = f"{min_zoom}-{max_zoom}"
+    output = os.path.join(args.outdir, f"{region_name}.mbtiles")
+
+    print(f"Task {args.task_id}: {region_name}")
+    print(f"  bbox={bbox}, zoom={zoom}")
+    print(f"  output={output}")
+
+    # 2. Mark running
+    _api_call(f"{task_url}/status", api_key, method="PUT",
+              body={"status": "running"})
+    print("Status → running")
+
+    # 3. Generate
+    try:
+        os.makedirs(args.outdir, exist_ok=True)
+        result = generate_mbtiles(bbox, zoom, output, args.server, args.rate)
+
+        # 4. Mark done
+        _api_call(f"{task_url}/status", api_key, method="PUT",
+                  body={"status": "done", "tileCount": result["tile_count"],
+                        "fileSizeMb": result["size_mb"]})
+        print(f"Status → done ({result['tile_count']} tiles, {result['size_mb']} MB)")
+
+    except Exception as e:
+        # 5. Mark failed
+        try:
+            _api_call(f"{task_url}/status", api_key, method="PUT",
+                      body={"status": "failed", "errorMessage": str(e)})
+        except Exception:
+            pass
+        print(f"Status → failed: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Download tiles and package as MBTiles")
     p.add_argument("--plan", help="plan JSON file for batch download")
-    p.add_argument("--outdir", default="tooling/mbtiles", help="output directory for plan mode (default: tooling/mbtiles)")
+    p.add_argument("--outdir", default="tooling/mbtiles", help="output directory (default: tooling/mbtiles)")
     p.add_argument("--dry-run", action="store_true", help="preview plan without downloading")
-    p.add_argument("--max-runtime", type=float, default=0, help="max runtime in minutes (0=unlimited, default: 0)")
-    # 单区域模式参数
+    p.add_argument("--max-runtime", type=float, default=0, help="max runtime in minutes (0=unlimited)")
     p.add_argument("--bbox", help="min_lon,min_lat,max_lon,max_lat")
     p.add_argument("--zoom", default="11-15", help="zoom range (default: 11-15)")
     p.add_argument("--output", help="output .mbtiles file (single region mode)")
-    # 通用参数
-    p.add_argument("--server", default="osm", choices=list(TILE_SERVERS.keys()), help="tile server (default: osm)")
-    p.add_argument("--rate", type=float, default=1.0, help="delay between requests in seconds (default: 1.0)")
+    p.add_argument("--server", default="osm", choices=list(TILE_SERVERS.keys()), help="tile server")
+    p.add_argument("--rate", type=float, default=1.0, help="delay between requests in seconds")
+    # Task-driven mode
+    p.add_argument("--task-id", type=int, help="task ID from tile_generation_tasks (API-driven mode)")
+    p.add_argument("--api-url", default="http://172.22.1.123:18080/api/v1", help="backend API base URL")
+    p.add_argument("--api-key-file", help="file path containing API key")
+    p.add_argument("--api-key", help="API key directly (NOT recommended for production)")
     args = p.parse_args()
 
-    if args.plan:
+    if args.task_id:
+        run_task_mode(args)
+    elif args.plan:
         run_plan(args.plan, args.outdir, args.server, args.rate, args.dry_run, args.max_runtime or None)
     elif args.bbox and args.output:
         generate_mbtiles(args.bbox, args.zoom, args.output, args.server, args.rate)
