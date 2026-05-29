@@ -1,7 +1,7 @@
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-COPY build/libs/*.jar app.jar
+COPY build/libs/smart-livestock-server-*.jar ./
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["sh", "-c", "exec java -jar smart-livestock-server-*.jar"]

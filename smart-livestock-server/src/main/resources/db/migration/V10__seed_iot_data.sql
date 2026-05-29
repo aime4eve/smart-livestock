@@ -136,7 +136,7 @@ SELECT
     d.id,
     ls.id,
     '2026-03-01 09:00:00'::timestamp,
-    (SELECT id FROM users WHERE username = 'owner' LIMIT 1)
+    (SELECT id FROM users WHERE phone = '13800138000' AND role = 'OWNER' LIMIT 1)
 FROM devices d
 JOIN livestock ls ON ls.livestock_code = 'SL-2024-' || lpad((d.id)::text, 3, '0')
 WHERE d.tenant_id = 1
@@ -151,7 +151,7 @@ SELECT
     d.id,
     ls.id,
     '2026-03-01 09:00:00'::timestamp,
-    (SELECT id FROM users WHERE username = 'owner' LIMIT 1)
+    (SELECT id FROM users WHERE phone = '13800138000' AND role = 'OWNER' LIMIT 1)
 FROM (
     SELECT generate_series(1, 12) AS idx
 ) nums

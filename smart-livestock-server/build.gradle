@@ -6,20 +6,24 @@ plugins {
 
 group = 'com.smartlivestock'
 
+def majorVersion = project.findProperty('majorVersion') ?: '0.2.1'
 def buildNumberFile = file('build.number')
 def buildNumber = buildNumberFile.exists() ? buildNumberFile.text.trim().toInteger() : 1
-version = "0.1.0-b${buildNumber}"
+version = "${majorVersion}-b${buildNumber}"
 
-// Auto-increment build number after jar tasks complete
 tasks.named('bootJar') {
     doLast {
+        logger.lifecycle("Build version: ${version} → ${archiveFile.get().asFile.name}")
         buildNumber += 1
         buildNumberFile.text = "${buildNumber}\n"
-        logger.lifecycle("Build version: 0.1.0-b${buildNumber}")
     }
 }
 
 sourceCompatibility = '17'
+
+springBoot {
+    mainClass = 'com.smartlivestock.SmartLivestockApplication'
+}
 
 repositories {
     maven { url 'https://maven.aliyun.com/repository/public' }

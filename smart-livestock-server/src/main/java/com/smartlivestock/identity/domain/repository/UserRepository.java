@@ -9,6 +9,5 @@ public interface UserRepository {
     User save(User user);
     Optional<User> findById(Long id);
     Optional<User> findByPhone(String phone);
-    Optional<User> findByUsername(String username);
     List<User> findByTenantId(Long tenantId);
 }

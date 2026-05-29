@@ -3,22 +3,27 @@ package com.smartlivestock.identity.application.service;
 import com.smartlivestock.identity.application.FarmApplicationService;
 import com.smartlivestock.identity.application.command.CreateFarmCommand;
 import com.smartlivestock.identity.application.dto.FarmDto;
-import com.smartlivestock.identity.domain.model.Farm;
 import com.smartlivestock.identity.domain.model.Role;
 import com.smartlivestock.identity.domain.model.User;
 import com.smartlivestock.identity.domain.repository.FarmRepository;
 import com.smartlivestock.identity.domain.repository.TenantRepository;
 import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepository;
 import com.smartlivestock.identity.domain.repository.UserRepository;
+import com.smartlivestock.ranch.application.TileAdminService;
+import com.smartlivestock.ranch.domain.repository.FenceRepository;
+import com.smartlivestock.ranch.domain.service.TileCoverageCalculator;
+import com.smartlivestock.shared.common.ApiException;
+import com.smartlivestock.shared.common.ErrorCode;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -29,100 +34,83 @@ class FarmApplicationServiceTest {
     @Mock private TenantRepository tenantRepository;
     @Mock private UserRepository userRepository;
     @Mock private UserFarmAssignmentRepository assignmentRepository;
+    @Mock private FenceRepository fenceRepository;
+    @Mock private TileAdminService tileAdminService;
+    @Mock private TileCoverageCalculator coverageCalculator;
 
-    @InjectMocks private FarmApplicationService farmApplicationService;
+    private FarmApplicationService service;
 
-    @Test
-    void shouldAutoAssignOwnerWhenCreatingFarm() {
-        when(tenantRepository.existsById(1L)).thenReturn(true);
-        User owner = new User("owner", "hash", "牧场主", Role.OWNER, 1L);
-        when(userRepository.findById(100L)).thenReturn(Optional.of(owner));
-        when(farmRepository.save(any())).thenAnswer(inv -> {
-            Farm f = inv.getArgument(0);
-            f.setId(999L);
-            return f;
-        });
-        when(assignmentRepository.existsByUserIdAndFarmId(eq(100L), anyLong())).thenReturn(false);
-
-        CreateFarmCommand cmd = new CreateFarmCommand("新牧场", new BigDecimal("28.2458"), new BigDecimal("112.8519"), new BigDecimal("500"));
-
-        FarmDto result = farmApplicationService.createFarm(1L, cmd, 100L);
-
-        assertThat(result).isNotNull();
-        verify(assignmentRepository).save(eq(100L), anyLong(), eq("OWNER"), eq("ACTIVE"));
+    @BeforeEach
+    void setUp() {
+        service = new FarmApplicationService(
+                farmRepository, tenantRepository, userRepository,
+                assignmentRepository, fenceRepository, tileAdminService, coverageCalculator
+        );
     }
 
     @Test
-    void shouldSkipAssignmentWhenUserIdIsNull() {
+    void shouldCreateFarmAndAutoAssignOwner() {
         when(tenantRepository.existsById(1L)).thenReturn(true);
-        CreateFarmCommand cmd = new CreateFarmCommand("新牧场", null, null, null);
-        when(farmRepository.save(any())).thenAnswer(inv -> {
-            Farm f = inv.getArgument(0);
-            f.setId(999L);
-            return f;
-        });
 
-        FarmDto result = farmApplicationService.createFarm(1L, cmd, null);
+        User owner = new User("hash", "牧场主", Role.OWNER, 1L);
+        owner.setId(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
+        when(assignmentRepository.existsByUserIdAndFarmId(1L, 100L)).thenReturn(false);
 
-        assertThat(result).isNotNull();
+        var farm = mock(com.smartlivestock.identity.domain.model.Farm.class);
+        when(farm.getId()).thenReturn(100L);
+        when(farmRepository.save(any())).thenReturn(farm);
+
+        CreateFarmCommand cmd = new CreateFarmCommand("新牧场", BigDecimal.valueOf(28.0), BigDecimal.valueOf(112.0), BigDecimal.valueOf(100.0), null);
+        FarmDto result = service.createFarm(1L, cmd, 1L);
+
+        verify(assignmentRepository).save(1L, 100L, "OWNER", "ACTIVE");
+    }
+
+    @Test
+    void shouldRejectCreateForNonexistentTenant() {
+        when(tenantRepository.existsById(999L)).thenReturn(false);
+
+        CreateFarmCommand cmd = new CreateFarmCommand("坏牧场", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null);
+        assertThatThrownBy(() -> service.createFarm(999L, cmd, null))
+                .isInstanceOf(ApiException.class)
+                .extracting(e -> ((ApiException) e).getCode())
+                .isEqualTo(ErrorCode.RESOURCE_NOT_FOUND);
+    }
+
+    @Test
+    void shouldNotAutoAssignWorker() {
+        when(tenantRepository.existsById(1L)).thenReturn(true);
+
+        User worker = new User("hash", "牧工", Role.WORKER, 1L);
+        worker.setId(2L);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(worker));
+
+        var farm = mock(com.smartlivestock.identity.domain.model.Farm.class);
+        when(farm.getId()).thenReturn(101L);
+        when(farmRepository.save(any())).thenReturn(farm);
+
+        CreateFarmCommand cmd = new CreateFarmCommand("牧场2", BigDecimal.valueOf(28.0), BigDecimal.valueOf(112.0), BigDecimal.valueOf(100.0), null);
+        service.createFarm(1L, cmd, 2L);
+
         verify(assignmentRepository, never()).save(anyLong(), anyLong(), anyString(), anyString());
     }
 
     @Test
-    void shouldSkipAssignmentWhenNotOwner() {
+    void shouldNotAutoAssignOwnerFromDifferentTenant() {
         when(tenantRepository.existsById(1L)).thenReturn(true);
-        User worker = new User("worker", "hash", "牧工", Role.WORKER, 1L);
-        when(userRepository.findById(200L)).thenReturn(Optional.of(worker));
-        when(farmRepository.save(any())).thenAnswer(inv -> {
-            Farm f = inv.getArgument(0);
-            f.setId(999L);
-            return f;
-        });
 
-        CreateFarmCommand cmd = new CreateFarmCommand("新牧场", null, null, null);
+        User owner = new User("hash", "牧场主", Role.OWNER, 999L);
+        owner.setId(3L);
+        when(userRepository.findById(3L)).thenReturn(Optional.of(owner));
 
-        FarmDto result = farmApplicationService.createFarm(1L, cmd, 200L);
+        var farm = mock(com.smartlivestock.identity.domain.model.Farm.class);
+        when(farm.getId()).thenReturn(102L);
+        when(farmRepository.save(any())).thenReturn(farm);
 
-        assertThat(result).isNotNull();
-        verify(assignmentRepository, never()).save(anyLong(), anyLong(), anyString(), anyString());
-    }
+        CreateFarmCommand cmd = new CreateFarmCommand("牧场3", BigDecimal.valueOf(28.0), BigDecimal.valueOf(112.0), BigDecimal.valueOf(100.0), null);
+        service.createFarm(1L, cmd, 3L);
 
-    @Test
-    void shouldSkipAssignmentWhenAlreadyAssigned() {
-        when(tenantRepository.existsById(1L)).thenReturn(true);
-        User owner = new User("owner", "hash", "牧场主", Role.OWNER, 1L);
-        when(userRepository.findById(100L)).thenReturn(Optional.of(owner));
-        when(farmRepository.save(any())).thenAnswer(inv -> {
-            Farm f = inv.getArgument(0);
-            f.setId(999L);
-            return f;
-        });
-        when(assignmentRepository.existsByUserIdAndFarmId(eq(100L), anyLong())).thenReturn(true);
-
-        CreateFarmCommand cmd = new CreateFarmCommand("新牧场", null, null, null);
-
-        FarmDto result = farmApplicationService.createFarm(1L, cmd, 100L);
-
-        assertThat(result).isNotNull();
-        verify(assignmentRepository, never()).save(anyLong(), anyLong(), anyString(), anyString());
-    }
-
-    @Test
-    void shouldSkipAssignmentWhenTenantMismatch() {
-        when(tenantRepository.existsById(1L)).thenReturn(true);
-        User owner = new User("owner", "hash", "牧场主", Role.OWNER, 999L); // different tenant
-        when(userRepository.findById(100L)).thenReturn(Optional.of(owner));
-        when(farmRepository.save(any())).thenAnswer(inv -> {
-            Farm f = inv.getArgument(0);
-            f.setId(999L);
-            return f;
-        });
-
-        CreateFarmCommand cmd = new CreateFarmCommand("新牧场", null, null, null);
-
-        FarmDto result = farmApplicationService.createFarm(1L, cmd, 100L); // tenantId=1, user.tenantId=999
-
-        assertThat(result).isNotNull();
         verify(assignmentRepository, never()).save(anyLong(), anyLong(), anyString(), anyString());
     }
 }

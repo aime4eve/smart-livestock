@@ -33,7 +33,6 @@ CREATE UNIQUE INDEX uq_farms_tenant_name_active ON farms(tenant_id, name) WHERE 
 -- users
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
     password_hash VARCHAR(100) NOT NULL,
     name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),

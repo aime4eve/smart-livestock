@@ -10,8 +10,8 @@ class UserTest {
 
     @Test
     void shouldCreateUserWithRequiredFields() {
-        User user = new User("zhangsan", "hashed_password", "张三", Role.OWNER, 1L);
-        assertThat(user.getUsername()).isEqualTo("zhangsan");
+        User user = new User("hashed_password", "张三", Role.OWNER, 1L);
+        user.setPhone("13800000000");
         assertThat(user.getName()).isEqualTo("张三");
         assertThat(user.getRole()).isEqualTo(Role.OWNER);
         assertThat(user.getTenantId()).isEqualTo(1L);
@@ -20,7 +20,7 @@ class UserTest {
 
     @Test
     void shouldNotActivateInactiveUser() {
-        User user = new User("zhangsan", "hashed_password", "张三", Role.OWNER, 1L);
+        User user = new User("hashed_password", "张三", Role.OWNER, 1L);
         user.deactivate();
         assertThatThrownBy(user::activate)
             .isInstanceOf(ApiException.class)
@@ -30,14 +30,14 @@ class UserTest {
 
     @Test
     void shouldDeactivateActiveUser() {
-        User user = new User("zhangsan", "hashed_password", "张三", Role.OWNER, 1L);
+        User user = new User("hashed_password", "张三", Role.OWNER, 1L);
         user.deactivate();
         assertThat(user.isActive()).isFalse();
     }
 
     @Test
     void shouldNotDeactivateInactiveUser() {
-        User user = new User("zhangsan", "hashed_password", "张三", Role.OWNER, 1L);
+        User user = new User("hashed_password", "张三", Role.OWNER, 1L);
         user.deactivate();
         assertThatThrownBy(user::deactivate)
             .isInstanceOf(ApiException.class);
@@ -45,7 +45,7 @@ class UserTest {
 
     @Test
     void shouldRecordLastLogin() {
-        User user = new User("zhangsan", "hashed_password", "张三", Role.OWNER, 1L);
+        User user = new User("hashed_password", "张三", Role.OWNER, 1L);
         assertThat(user.getLastLoginAt()).isNull();
         user.recordLogin();
         assertThat(user.getLastLoginAt()).isNotNull();
@@ -53,8 +53,8 @@ class UserTest {
 
     @Test
     void shouldCheckRole() {
-        User owner = new User("a", "p", "n", Role.OWNER, 1L);
-        User worker = new User("b", "p", "n", Role.WORKER, 1L);
+        User owner = new User("p", "n", Role.OWNER, 1L);
+        User worker = new User("p", "n", Role.WORKER, 1L);
         assertThat(owner.isOwner()).isTrue();
         assertThat(worker.isOwner()).isFalse();
         assertThat(worker.isWorker()).isTrue();
@@ -62,7 +62,7 @@ class UserTest {
 
     @Test
     void shouldHavePlatformAdminWithNullTenant() {
-        User admin = new User("admin", "p", "平台管理员", Role.PLATFORM_ADMIN, null);
+        User admin = new User("p", "平台管理员", Role.PLATFORM_ADMIN, null);
         assertThat(admin.getTenantId()).isNull();
         assertThat(admin.getRole()).isEqualTo(Role.PLATFORM_ADMIN);
     }

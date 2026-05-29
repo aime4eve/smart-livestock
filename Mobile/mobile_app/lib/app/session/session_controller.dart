@@ -3,7 +3,6 @@ import 'package:smart_livestock_demo/core/api/api_client.dart';
 import 'package:smart_livestock_demo/core/api/api_exception.dart';
 import 'package:smart_livestock_demo/app/session/app_session.dart';
 import 'package:smart_livestock_demo/core/models/user_role.dart';
-import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
 
 class SessionController extends Notifier<AppSession> {
   @override
@@ -15,6 +14,9 @@ class SessionController extends Notifier<AppSession> {
       final roleStr = user['role'] as String? ?? '';
       final role = UserRole.fromString(roleStr);
 
+      // Set authenticated state first so GoRouter can redirect immediately.
+      // Load farms in the background — the demo_shell watches farmSwitcherControllerProvider
+      // and will update the UI once farms are loaded.
       state = AppSession.authenticated(
         role: role,
         accessToken: await ApiClient.instance.getStoredToken() ?? '',
@@ -24,10 +26,6 @@ class SessionController extends Notifier<AppSession> {
         tenantId: user['tenantId'] as int?,
         username: user['username'] as String?,
       );
-
-      if (role == UserRole.owner || role == UserRole.worker) {
-        await ref.read(farmSwitcherControllerProvider.notifier).loadFarms();
-      }
 
       return true;
     } on AuthException {

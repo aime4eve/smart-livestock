@@ -8,7 +8,6 @@ import java.time.Instant;
 
 public class User extends AggregateRoot {
 
-    private String username;
     private String passwordHash;
     private String name;
     private String phone;
@@ -21,8 +20,7 @@ public class User extends AggregateRoot {
         this.active = true;
     }
 
-    public User(String username, String passwordHash, String name, Role role, Long tenantId) {
-        this.username = username;
+    public User(String passwordHash, String name, Role role, Long tenantId) {
         this.passwordHash = passwordHash;
         this.name = name;
         this.role = role;
@@ -69,9 +67,6 @@ public class User extends AggregateRoot {
     public boolean isPlatformAdmin() {
         return role == Role.PLATFORM_ADMIN;
     }
-
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
 
     public String getPasswordHash() { return passwordHash; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }

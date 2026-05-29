@@ -1,10 +1,10 @@
--- V8: Fix password hash prefix from $2b$ to $2a$ for Spring Security compatibility
--- $2b$ is a valid BCrypt variant but Spring Security BCryptPasswordEncoder prefers $2a$.
+-- V8: Fix password hash BCrypt prefix from $2a$ to $2b$ for compatibility
+-- Some BCrypt implementations use $2a$, others $2b$. Normalize to $2b$.
 
 UPDATE users
-SET password_hash = '$2a$10$qmRPJJKaIMpl9WR2JPxzZetgxYYIL4/BlXkURg/E2ejVDZXJoPjM.'
-WHERE username = 'owner';
+SET password_hash = REPLACE(password_hash, '$2a$', '$2b$')
+WHERE phone = '13800138000' AND role = 'OWNER';
 
 UPDATE users
-SET password_hash = '$2a$10$H4TUwrJ/e7Q.SpCrWubDOOeRsxvmXoTshyb44e9/Iz.0SeGjd.kaS'
-WHERE username = 'platform_admin';
+SET password_hash = REPLACE(password_hash, '$2a$', '$2b$')
+WHERE phone = '13800000000' AND role = 'PLATFORM_ADMIN';

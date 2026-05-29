@@ -5,9 +5,8 @@
 -- API key stores only SHA-256 hash; the plaintext is shown once at creation.
 
 -- 1. Platform admin user (no tenant affiliation)
-INSERT INTO users (username, password_hash, name, phone, role, tenant_id, is_active)
+INSERT INTO users (password_hash, name, phone, role, tenant_id, is_active)
 VALUES (
-    'platform_admin',
     '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
     '平台管理员',
     '13800000000',
@@ -21,9 +20,8 @@ INSERT INTO tenants (id, name, contact_name, contact_phone, phase)
 VALUES (1, 'Demo牧场', '张牧场', '13800138000', 'SAMPLE');
 
 -- 3. Owner user (belongs to demo tenant)
-INSERT INTO users (username, password_hash, name, phone, role, tenant_id, is_active)
+INSERT INTO users (password_hash, name, phone, role, tenant_id, is_active)
 VALUES (
-    'owner',
     '$2a$10$dXJ3SW6G7P50lGmMQgel6uVktDQd7hF1R3vQAoLQLqQooARqQf9Ia',
     '张牧场',
     '13800138000',
@@ -40,7 +38,7 @@ VALUES (1, 1, '主牧场', 28.2458000, 112.8519000, 500.00);
 INSERT INTO user_farm_assignments (user_id, farm_id, role, status)
 SELECT u.id, f.id, 'OWNER', 'ACTIVE'
 FROM users u, farms f
-WHERE u.username = 'owner' AND f.name = '主牧场';
+WHERE u.phone = '13800138000' AND u.role = 'OWNER' AND f.name = '主牧场';
 
 -- 6. Demo API key (bound to demo tenant)
 -- Plaintext key (for documentation only, not used in production):

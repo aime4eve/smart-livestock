@@ -48,7 +48,7 @@ class AuthApplicationServiceTest {
     private AuthApplicationService service;
 
     private User createActiveUser() {
-        User user = new User("owner1", "hashed_password", "张三", Role.OWNER, 1L);
+        User user = new User("hashed_password", "张三", Role.OWNER, 1L);
         user.setId(1L);
         user.setPhone("13800138000");
         return user;
@@ -66,7 +66,7 @@ class AuthApplicationServiceTest {
         AuthTokenDto result = service.login(new LoginCommand("13800138000", "password123"));
 
         assertThat(result.accessToken()).isEqualTo("jwt-token-owner");
-        assertThat(result.user().username()).isEqualTo("owner1");
+        assertThat(result.user().name()).isEqualTo("owner1");
         assertThat(result.user().role()).isEqualTo("OWNER");
         assertThat(result.user().tenantId()).isEqualTo(1L);
 

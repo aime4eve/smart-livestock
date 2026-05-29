@@ -78,18 +78,32 @@ public final class FenceMapper {
             return new ArrayList<>();
         }
         try {
-            List<Map<String, String>> list = OBJECT_MAPPER.readValue(
+            // Try object format first: [{latitude: "x", longitude: "y"}, ...]
+            List<Map<String, String>> objList = OBJECT_MAPPER.readValue(
                 json, new TypeReference<List<Map<String, String>>>() {});
             List<GpsCoordinate> coordinates = new ArrayList<>();
-            for (Map<String, String> item : list) {
+            for (Map<String, String> item : objList) {
                 coordinates.add(new GpsCoordinate(
                     new BigDecimal(item.get("latitude")),
                     new BigDecimal(item.get("longitude"))
                 ));
             }
             return coordinates;
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException("Failed to deserialize fence vertices", e);
+        } catch (JsonProcessingException objFormatFailed) {
+            // Fallback to array format: [[lng, lat], ...]
+            try {
+                List<List<BigDecimal>> arrayCoords = OBJECT_MAPPER.readValue(
+                    json, new TypeReference<List<List<BigDecimal>>>() {});
+                List<GpsCoordinate> coordinates = new ArrayList<>();
+                for (List<BigDecimal> pair : arrayCoords) {
+                    if (pair.size() >= 2) {
+                        coordinates.add(new GpsCoordinate(pair.get(1), pair.get(0)));
+                    }
+                }
+                return coordinates;
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException("Failed to deserialize fence vertices", e);
+            }
         }
     }
 }

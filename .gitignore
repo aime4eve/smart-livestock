@@ -5,6 +5,7 @@
 Thumbs.db
 ._*
 
+
 # ============================================
 # IDE / Editors
 # ============================================
@@ -87,3 +88,4 @@ coverage/
 docs/superpowers/testing/logs_*/
 .worktrees/
 .superpowers/
+.playwright-mcp/

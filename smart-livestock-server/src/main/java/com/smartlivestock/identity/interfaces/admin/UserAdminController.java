@@ -67,7 +67,6 @@ public class UserAdminController {
                             : 0;
                     return Map.<String, Object>of(
                             "id", String.valueOf(u.getId()),
-                            "username", u.getUsername() != null ? u.getUsername() : "",
                             "name", u.getName() != null ? u.getName() : "",
                             "phone", u.getPhone() != null ? u.getPhone() : "",
                             "role", u.getRole() != null ? u.getRole().toLowerCase() : "",
@@ -134,12 +133,12 @@ public class UserAdminController {
             password = "Default@123";
         }
 
-        User user = new User(phone, passwordHasher.hash(password), name, role, tenantId);
+        User user = new User(passwordHasher.hash(password), name, role, tenantId);
+        user.setPhone(phone);
         User saved = userRepository.save(user);
 
         Map<String, Object> data = Map.<String, Object>of(
                 "id", String.valueOf(saved.getId()),
-                "username", saved.getUsername() != null ? saved.getUsername() : "",
                 "name", saved.getName(),
                 "role", saved.getRole().name().toLowerCase(),
                 "tenantId", saved.getTenantId() != null ? String.valueOf(saved.getTenantId()) : ""
@@ -162,7 +161,6 @@ public class UserAdminController {
 
         Map<String, Object> data = Map.<String, Object>of(
                 "id", String.valueOf(u.getId()),
-                "username", u.getUsername() != null ? u.getUsername() : "",
                 "name", u.getName() != null ? u.getName() : "",
                 "phone", u.getPhone() != null ? u.getPhone() : "",
                 "role", u.getRole() != null ? u.getRole().toLowerCase() : "",
@@ -207,7 +205,6 @@ public class UserAdminController {
 
         Map<String, Object> data = Map.<String, Object>of(
                 "id", String.valueOf(saved.getId()),
-                "username", saved.getUsername() != null ? saved.getUsername() : "",
                 "name", saved.getName() != null ? saved.getName() : "",
                 "phone", saved.getPhone() != null ? saved.getPhone() : "",
                 "role", saved.getRole().name().toLowerCase(),

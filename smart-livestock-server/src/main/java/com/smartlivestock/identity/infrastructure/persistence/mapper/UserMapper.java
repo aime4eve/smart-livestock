@@ -11,7 +11,6 @@ public final class UserMapper {
     public static UserJpaEntity toJpaEntity(User user) {
         UserJpaEntity jpa = new UserJpaEntity();
         jpa.setId(user.getId());
-        jpa.setUsername(user.getUsername());
         jpa.setPasswordHash(user.getPasswordHash());
         jpa.setName(user.getName());
         jpa.setPhone(user.getPhone());
@@ -25,7 +24,6 @@ public final class UserMapper {
     public static User toDomain(UserJpaEntity jpa) {
         User user = new User();
         user.setId(jpa.getId());
-        user.setUsername(jpa.getUsername());
         user.setPasswordHash(jpa.getPasswordHash());
         user.setName(jpa.getName());
         user.setPhone(jpa.getPhone());

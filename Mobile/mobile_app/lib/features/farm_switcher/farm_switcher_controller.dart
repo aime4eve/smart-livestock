@@ -34,11 +34,6 @@ class FarmSwitcherState {
 class FarmSwitcherController extends Notifier<FarmSwitcherState> {
   @override
   FarmSwitcherState build() {
-    ref.listen(sessionControllerProvider, (previous, next) {
-      if (!next.isLoggedIn) {
-        state = const FarmSwitcherState.empty();
-      }
-    });
     return const FarmSwitcherState.empty();
   }
 

@@ -4,7 +4,6 @@ import com.smartlivestock.identity.domain.model.User;
 
 public record UserDto(
         Long id,
-        String username,
         String name,
         String phone,
         String role,
@@ -14,7 +13,6 @@ public record UserDto(
     public static UserDto from(User user) {
         return new UserDto(
                 user.getId(),
-                user.getUsername(),
                 user.getName(),
                 user.getPhone(),
                 user.getRole().name(),

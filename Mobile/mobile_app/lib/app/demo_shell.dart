@@ -35,6 +35,12 @@ class DemoShell extends ConsumerWidget {
         role == UserRole.owner || role == UserRole.worker;
     final farmState =
         showFarmContext ? ref.watch(farmSwitcherControllerProvider) : null;
+    // Trigger farm loading when owner/worker logs in and farms haven't been loaded yet
+    if (showFarmContext && farmState != null && !farmState.hasFarms && !farmState.isLoading) {
+      Future.microtask(() {
+        ref.read(farmSwitcherControllerProvider.notifier).loadFarms();
+      });
+    }
     final body = farmState != null && !farmState.hasFarms && !farmState.isLoading
         ? const _FarmEmptyGuidance()
         : child;
