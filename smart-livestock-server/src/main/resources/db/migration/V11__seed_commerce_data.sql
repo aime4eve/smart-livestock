@@ -33,12 +33,12 @@ SELECT
     amount,
     0,
     0.0000,
-    status
+    months.period_status
 FROM contracts c
 CROSS JOIN (
     VALUES
         ('2026-02-01'::date, 180000, 'settled'),             -- 1800 yuan
         ('2026-03-01'::date, 205000, 'platform_confirmed'),  -- 2050 yuan
         ('2026-04-01'::date, 225000, 'platform_confirmed')   -- 2250 yuan
-) AS months(month_start, amount, status)
+) AS months(month_start, amount, period_status)
 WHERE c.contract_number = 'CTR-2026-DEMO-001';
