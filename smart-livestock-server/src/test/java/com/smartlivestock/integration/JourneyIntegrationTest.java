@@ -1,80 +1,18 @@
 package com.smartlivestock.integration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
-@Testcontainers
-class JourneyIntegrationTest {
-
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
-            .withDatabaseName("smart_livestock_test");
-
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    private String ownerToken;
-    private String b2bAdminToken;
-    private String workerToken;
-    private String platformAdminToken;
-
-    @BeforeEach
-    void setUp() {
-        platformAdminToken = login("13800000000", "123");
-        ownerToken = login("13800138000", "123");
-        b2bAdminToken = login("13900139000", "123");
-        workerToken = login("13800138001", "123");
-    }
-
-    @SuppressWarnings("unchecked")
-    private String login(String phone, String password) {
-        Map<String, String> body = Map.of("phone", phone, "password", password);
-        ResponseEntity<Map> resp = restTemplate.postForEntity("/api/v1/auth/login", body, Map.class);
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Map<String, Object> data = (Map<String, Object>) resp.getBody().get("data");
-        return (String) data.get("accessToken");
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> getApi(String token, String path) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + token);
-        ResponseEntity<Map> resp = restTemplate.exchange(path, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        return (Map<String, Object>) resp.getBody().get("data");
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> postApi(String token, String path) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + token);
-        ResponseEntity<Map> resp = restTemplate.exchange(path, HttpMethod.POST, new HttpEntity<>(headers), Map.class);
-        return (Map<String, Object>) resp.getBody();
-    }
+/**
+ * Legacy journey test — now extends AbstractJourneyTest for shared infrastructure.
+ * Original test preserved for backward compatibility.
+ */
+class JourneyIntegrationTest extends AbstractJourneyTest {
 
     @Test
     @DisplayName("完整客户旅程 — 4 角色登录 + 数据验证 + 权限边界")
@@ -120,12 +58,11 @@ class JourneyIntegrationTest {
                 .orElseThrow(() -> new AssertionError("No PENDING alert found"));
         Long alertId = ((Number) pendingAlert.get("id")).longValue();
 
-        Map<String, Object> ackResult = postApi(workerToken, "/api/v1/farms/1/alerts/" + alertId + "/acknowledge");
-        assertThat(ackResult.get("code")).isEqualTo("OK");
+        Map<String, Object> ackResult = postApi(workerToken, "/api/v1/farms/1/alerts/" + alertId + "/acknowledge", null);
+        assertThat(ackResult).isNotNull();
 
         // --- Step 7: worker 尝试处理告警（无权限应被拒绝） ---
-        Map<String, Object> handleResult = postApi(workerToken, "/api/v1/farms/1/alerts/" + alertId + "/handle");
-        String handleCode = (String) handleResult.get("code");
-        assertThat(handleCode).isNotEqualTo("OK");
+        var handleResp = postRaw(workerToken, "/api/v1/farms/1/alerts/" + alertId + "/handle", null);
+        assertThat(handleResp.getBody().get("code")).isNotEqualTo("OK");
     }
 }
