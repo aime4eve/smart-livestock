@@ -14,6 +14,11 @@ class _NoFarmController extends FarmSwitcherController {
         activeFarmId: null,
         isLoading: false,
       );
+
+  @override
+  Future<void> loadFarms() async {
+    // no-op: keep empty state for test
+  }
 }
 
 class _OwnerSession extends SessionController {
