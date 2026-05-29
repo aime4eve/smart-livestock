@@ -29,8 +29,7 @@ class _OfflineTileManagementPageState
     try {
       final manager = ref.read(offlineTileManagerProvider);
       final used = await manager.getStorageUsed();
-      final regions = ref.read(offlineTileManagerProvider).getTileMetasSync != null
-          ? ref.read(offlineTileManagerProvider).getTileMetasSync!() : <Map<String, dynamic>>[];
+      final regions = ref.read(offlineTileManagerProvider).getTileMetasSync();
       if (mounted) setState(() { _storageUsed = used; _regions = regions; _loading = false; });
     } catch (e) {
       if (mounted) setState(() { _error = e.toString(); _loading = false; });

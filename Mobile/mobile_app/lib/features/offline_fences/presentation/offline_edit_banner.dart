@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/core/database/app_database.dart';
-import 'package:smart_livestock_demo/features/offline_fences/data/fence_sync_service.dart';
 
 final _appDatabaseProvider = Provider<AppDatabase>((ref) {
   return AppDatabase.instance;

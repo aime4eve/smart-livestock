@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/map/smart_tile_provider.dart';
 import 'package:smart_livestock_demo/features/offline_fences/domain/cached_fence.dart';
 
 class FenceConflictPage extends StatelessWidget {
@@ -98,7 +97,7 @@ class FenceConflictPage extends StatelessWidget {
                 PolygonLayer(polygons: [
                   Polygon(
                     points: points,
-                    color: color.withOpacity(0.3),
+                    color: color.withValues(alpha: 0.3),
                     borderColor: color,
                     borderStrokeWidth: 2,
                   ),

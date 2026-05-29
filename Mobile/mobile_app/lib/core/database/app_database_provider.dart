@@ -13,8 +13,7 @@ final appDatabaseProvider = Provider<AppDatabase>((ref) {
 
 final fenceSyncServiceProvider = Provider<FenceSyncService>((ref) {
   final db = ref.watch(appDatabaseProvider);
-  final baseUrl = ApiClient.instance.baseUrl;
-  return FenceSyncService(db, baseUrl, {});
+  return FenceSyncService(db, ApiClient.instance);
 });
 
 final offlineTileManagerProvider = Provider<OfflineTileManager>((ref) {
