@@ -129,6 +129,7 @@ public class FenceController {
     }
 
     @DeleteMapping("/{fenceId}")
+    @PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteFence(
             @PathVariable Long farmId,
             @PathVariable Long fenceId) {
@@ -143,8 +144,8 @@ public class FenceController {
         List<Map<String, Object>> rawList = (List<Map<String, Object>>) verticesObj;
         return rawList.stream()
                 .map(m -> new GpsCoordinate(
-                        toBigDecimal(m.get("lat")),
-                        toBigDecimal(m.get("lng"))
+                        toBigDecimal(m.getOrDefault("lat", m.get("latitude"))),
+                        toBigDecimal(m.getOrDefault("lng", m.get("longitude")))
                 ))
                 .toList();
     }

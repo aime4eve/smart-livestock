@@ -7,6 +7,7 @@ import com.smartlivestock.shared.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,6 +47,7 @@ public class LivestockController {
      * Create a new livestock.
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
     @QuotaCheck(feature = "livestock_management")
     public ResponseEntity<ApiResponse<LivestockDto>> createLivestock(
             @PathVariable Long farmId,
@@ -72,6 +74,7 @@ public class LivestockController {
      * Update livestock info.
      */
     @PutMapping("/{livestockId}")
+    @PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
     public ResponseEntity<ApiResponse<LivestockDto>> updateLivestock(
             @PathVariable Long farmId,
             @PathVariable Long livestockId,
@@ -87,6 +90,7 @@ public class LivestockController {
      * Delete (soft delete) livestock.
      */
     @DeleteMapping("/{livestockId}")
+    @PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteLivestock(
             @PathVariable Long farmId,
             @PathVariable Long livestockId) {

@@ -9,6 +9,7 @@ import com.smartlivestock.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,6 +47,7 @@ public class DeviceController {
      * Register a new device.
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
     public ResponseEntity<ApiResponse<DeviceDto>> registerDevice(
             @PathVariable Long farmId,
             @RequestBody Map<String, Object> body) {
@@ -80,6 +82,7 @@ public class DeviceController {
      * Update device info.
      */
     @PutMapping("/{deviceId}")
+    @PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
     public ResponseEntity<ApiResponse<DeviceDto>> updateDevice(
             @PathVariable Long farmId,
             @PathVariable Long deviceId,
@@ -95,6 +98,7 @@ public class DeviceController {
      * Activate device (inventory -> active).
      */
     @PutMapping("/{deviceId}/activate")
+    @PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
     public ResponseEntity<ApiResponse<DeviceDto>> activateDevice(
             @PathVariable Long farmId,
             @PathVariable Long deviceId) {
@@ -108,6 +112,7 @@ public class DeviceController {
      * Decommission device.
      */
     @PutMapping("/{deviceId}/decommission")
+    @PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
     public ResponseEntity<ApiResponse<DeviceDto>> decommissionDevice(
             @PathVariable Long farmId,
             @PathVariable Long deviceId) {
