@@ -3,6 +3,7 @@ package com.smartlivestock.integration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Map;
@@ -56,7 +57,7 @@ class OwnerLivestockDeviceJourneyTest extends AbstractJourneyTest {
                     "healthStatus", "HEALTHY"
             );
             var resp = postRaw(ownerToken, "/api/v1/farms/1/livestock", body);
-            assertThat(resp.getStatusCode().value()).isIn(200, 201);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.CREATED);
         }
 
         @Test
@@ -72,7 +73,7 @@ class OwnerLivestockDeviceJourneyTest extends AbstractJourneyTest {
                     "healthStatus", "HEALTHY"
             );
             var resp = putRaw(ownerToken, "/api/v1/farms/1/livestock/" + livestockId, body);
-            assertThat(resp.getStatusCode().value()).isIn(200, 204);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.OK);
         }
 
         @Test
@@ -121,7 +122,7 @@ class OwnerLivestockDeviceJourneyTest extends AbstractJourneyTest {
                     "deviceType", "TRACKER"
             );
             var resp = postRaw(ownerToken, "/api/v1/farms/1/devices", body);
-            assertThat(resp.getStatusCode().value()).isIn(200, 201);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.CREATED);
         }
     }
 

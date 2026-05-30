@@ -133,7 +133,7 @@ class CommerceJourneyTest extends AbstractJourneyTest {
                     "effectiveTier", "standard"
             );
             var resp = postRaw(platformAdminToken, "/api/v1/admin/contracts", body);
-            assertThat(resp.getStatusCode().value()).isIn(200, 201);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.CREATED);
         }
 
         @Test
@@ -162,7 +162,7 @@ class CommerceJourneyTest extends AbstractJourneyTest {
             var body = Map.of("targetStatus", "SUSPENDED");
             var resp = putRaw(platformAdminToken,
                     "/api/v1/admin/contracts/" + contractId + "/status", body);
-            assertThat(resp.getStatusCode().value()).isIn(200, 204);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.OK);
         }
     }
 
@@ -208,7 +208,7 @@ class CommerceJourneyTest extends AbstractJourneyTest {
                     "grossAmountCents", 100000
             );
             var resp = postRaw(platformAdminToken, "/api/v1/admin/revenue/calculate", body);
-            assertThat(resp.getStatusCode().value()).isBetween(200, 500);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.OK);
         }
     }
 
@@ -255,21 +255,21 @@ class CommerceJourneyTest extends AbstractJourneyTest {
         @DisplayName("owner 不能访问 Admin 合同端点")
         void owner_cannotAccessAdminContracts() {
             var resp = getRaw(ownerToken, "/api/v1/admin/contracts");
-            assertThat(resp.getStatusCode().value()).isIn(403, 401);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
         @DisplayName("owner 不能访问 Admin 分润端点")
         void owner_cannotAccessAdminRevenue() {
             var resp = getRaw(ownerToken, "/api/v1/admin/revenue/periods");
-            assertThat(resp.getStatusCode().value()).isIn(403, 401);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
         @DisplayName("owner 不能访问 Admin 订阅服务管理")
         void owner_cannotAccessAdminSubscriptionServices() {
             var resp = getRaw(ownerToken, "/api/v1/admin/subscription-services");
-            assertThat(resp.getStatusCode().value()).isIn(403, 401);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test

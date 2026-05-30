@@ -3,6 +3,7 @@ package com.smartlivestock.integration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 
 import java.util.Map;
 
@@ -33,7 +34,7 @@ class DashboardMeJourneyTest extends AbstractJourneyTest {
         void putMe_updatesProfile() {
             var body = Map.of("name", "牧场主更新名");
             var resp = putRaw(ownerToken, "/api/v1/me", body);
-            assertThat(resp.getStatusCode().value()).isIn(200, 204);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.OK);
 
             var data = getApi(ownerToken, "/api/v1/me");
             assertThat(data.get("name")).isEqualTo("牧场主更新名");

@@ -177,7 +177,7 @@ class TenantOnboardingJourneyTest extends AbstractJourneyTest {
             var resp = postRaw(b2bAdminToken,
                     "/api/v1/admin/tenants",
                     Map.of("name", "非法创建", "contactName", "非法", "contactPhone", "13800007777"));
-            assertThat(resp.getStatusCode().value()).isIn(403, 401);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
@@ -186,7 +186,7 @@ class TenantOnboardingJourneyTest extends AbstractJourneyTest {
             var resp = postRaw(ownerToken,
                     "/api/v1/admin/users",
                     Map.of("phone", "13800008888", "name", "非法用户", "role", "OWNER", "tenantId", "1"));
-            assertThat(resp.getStatusCode().value()).isIn(403, 401);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
@@ -195,7 +195,7 @@ class TenantOnboardingJourneyTest extends AbstractJourneyTest {
             var resp = postRaw(workerToken,
                     "/api/v1/admin/users",
                     Map.of("phone", "13800009999", "name", "非法用户", "role", "WORKER", "tenantId", "1"));
-            assertThat(resp.getStatusCode().value()).isIn(403, 401);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
         }
     }
 

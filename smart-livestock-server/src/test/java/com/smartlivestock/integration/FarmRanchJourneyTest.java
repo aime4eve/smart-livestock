@@ -71,7 +71,7 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
                     )
             );
             var resp = postRaw(ownerToken, "/api/v1/farms/1/fences", body);
-            assertThat(resp.getStatusCode().value()).isIn(200, 201);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.CREATED);
         }
 
         @Test
@@ -85,7 +85,7 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
             String fenceId = extractId(items.get(items.size() - 1));
 
             var resp = deleteRaw(ownerToken, "/api/v1/farms/1/fences/" + fenceId);
-            assertThat(resp.getStatusCode().value()).isIn(200, 204);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.OK);
         }
 
         @Test
@@ -139,7 +139,7 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
                     )
             );
             var resp = postRaw(workerToken, "/api/v1/farms/1/fences", body);
-            assertThat(resp.getStatusCode().value()).isIn(403, 409);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
         }
     }
 
@@ -157,7 +157,7 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
                     "areaHectares", 100
             );
             var resp = postRaw(ownerToken, "/api/v1/farms", body);
-            assertThat(resp.getStatusCode().value()).isIn(200, 201);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.CREATED);
         }
 
         @Test

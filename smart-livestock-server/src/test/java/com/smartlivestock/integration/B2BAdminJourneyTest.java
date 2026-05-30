@@ -65,56 +65,17 @@ class B2BAdminJourneyTest extends AbstractJourneyTest {
     class B2bContractRevenue {
 
         @Test
-        @DisplayName("b2b_admin 查看 Admin 合同列表")
-        void b2bAdmin_listContracts() {
+        @DisplayName("b2b_admin 不能访问 Admin 合同列表（返回 403）")
+        void b2bAdmin_listContracts_returns403() {
             var resp = getRaw(b2bAdminToken, "/api/v1/admin/contracts");
-        assertThat(resp.getStatusCode().value()).isIn(200, 403);
-            // b2b_admin may not have admin access
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
-        @DisplayName("b2b_admin 查看 Admin 合同详情")
-        void b2bAdmin_getContractDetail() {
-            var listResp = getRaw(b2bAdminToken, "/api/v1/admin/contracts");
-            if (listResp.getStatusCode().value() != 200) return;
-            @SuppressWarnings("unchecked")
-            var listData = (Map<String, Object>) listResp.getBody().get("data");
-            var items = getItems(listData);
-            assertThat(items).isNotEmpty();
-
-            String contractId = extractId(items.get(0));
-            var detail = getApi(b2bAdminToken, "/api/v1/admin/contracts/" + contractId);
-            assertThat(detail).containsKey("id");
-            assertThat(detail).containsKey("contractNumber");
-        }
-
-        @Test
-        @DisplayName("b2b_admin 查看 Admin 分润期间列表")
-        void b2bAdmin_listRevenuePeriods() {
+        @DisplayName("b2b_admin 不能访问 Admin 分润期间列表（返回 403）")
+        void b2bAdmin_listRevenuePeriods_returns403() {
             var resp = getRaw(b2bAdminToken, "/api/v1/admin/revenue/periods");
-            // b2b_admin may not have admin access — 403 is acceptable
-            assertThat(resp.getStatusCode().value()).isIn(200, 403);
-            if (resp.getStatusCode().value() == 200) {
-                @SuppressWarnings("unchecked")
-                var data = (Map<String, Object>) resp.getBody().get("data");
-                var items = getItems(data);
-                assertThat(items.size()).isGreaterThanOrEqualTo(3);
-            }
-        }
-
-        @Test
-        @DisplayName("b2b_admin 查看 Admin 分润期间详情")
-        void b2bAdmin_getRevenuePeriodDetail() {
-            var listResp2 = getRaw(b2bAdminToken, "/api/v1/admin/revenue/periods");
-            if (listResp2.getStatusCode().value() != 200) return;
-            @SuppressWarnings("unchecked")
-            var listData = (Map<String, Object>) listResp2.getBody().get("data");
-            var items = getItems(listData);
-            assertThat(items).isNotEmpty();
-
-            String periodId = extractId(items.get(0));
-            var detail = getApi(b2bAdminToken, "/api/v1/admin/revenue/periods/" + periodId);
-            assertThat(detail).containsKey("id");
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
@@ -142,21 +103,21 @@ class B2BAdminJourneyTest extends AbstractJourneyTest {
         @DisplayName("b2b_admin 查看 Admin 订阅列表")
         void b2bAdmin_listSubscriptions() {
             var resp = getRaw(b2bAdminToken, "/api/v1/admin/subscriptions");
-            assertThat(resp.getStatusCode().value()).isIn(200, 403);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
         @DisplayName("b2b_admin 查看 Admin 功能门控列表")
         void b2bAdmin_listFeatureGates() {
             var resp = getRaw(b2bAdminToken, "/api/v1/admin/feature-gates");
-            assertThat(resp.getStatusCode().value()).isIn(200, 403);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
         @DisplayName("b2b_admin 查看 Admin 订阅服务列表")
         void b2bAdmin_listSubscriptionServices() {
             var resp = getRaw(b2bAdminToken, "/api/v1/admin/subscription-services");
-            assertThat(resp.getStatusCode().value()).isIn(200, 403);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
         }
     }
 
@@ -177,14 +138,14 @@ class B2BAdminJourneyTest extends AbstractJourneyTest {
             var resp = postRaw(b2bAdminToken,
                     "/api/v1/admin/users",
                     Map.of("phone", "13800008888", "name", "非法用户", "role", "OWNER", "tenantId", otherTenantId));
-            assertThat(resp.getStatusCode().value()).isIn(403, 401);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
         @DisplayName("b2b_admin 不能访问 platform_admin 独占端点")
         void b2bAdmin_cannotAccessPlatformAdminEndpoints() {
             var resp = getRaw(b2bAdminToken, "/api/v1/admin/audit-logs");
-            assertThat(resp.getStatusCode().value()).isIn(403, 401);
+            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
