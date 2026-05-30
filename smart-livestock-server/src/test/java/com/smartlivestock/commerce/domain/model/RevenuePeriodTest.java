@@ -80,14 +80,16 @@ class RevenuePeriodTest {
         }
 
         @Test
-        void rejectsRatioEqualToZero() {
+        void allowsRatioEqualToZero_forDirectModel() {
             LocalDate start = LocalDate.of(2026, 5, 1);
             LocalDate end = LocalDate.of(2026, 5, 31);
 
-            assertThatThrownBy(() -> RevenuePeriod.create(CONTRACT_ID, TENANT_ID,
-                start, end, 10000, 10000, 0, BigDecimal.ZERO))
-                .isInstanceOf(DomainException.class)
-                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.INVALID_REVENUE_SHARE_RATIO));
+            // ZERO is valid for direct billing (no revenue share)
+            RevenuePeriod period = RevenuePeriod.create(CONTRACT_ID, TENANT_ID,
+                start, end, 10000, 10000, 0, BigDecimal.ZERO);
+            assertThat(period.getGrossAmount()).isEqualTo(10000);
+            assertThat(period.getPlatformShare()).isEqualTo(10000);
+            assertThat(period.getPartnerShare()).isEqualTo(0);
         }
 
         @Test
