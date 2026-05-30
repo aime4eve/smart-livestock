@@ -55,6 +55,7 @@ public class FenceController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
     @QuotaCheck(feature = "fence_management")
     public ResponseEntity<ApiResponse<FenceDto>> createFence(
             @PathVariable Long farmId,

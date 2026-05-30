@@ -137,7 +137,7 @@ class WorkerJourneyTest extends AbstractJourneyTest {
                     "breed", "西门塔尔牛"
             );
             var resp = postRaw(workerToken, "/api/v1/farms/1/livestock", body);
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
@@ -153,14 +153,14 @@ class WorkerJourneyTest extends AbstractJourneyTest {
                     )
             );
             var resp = postRaw(workerToken, "/api/v1/farms/1/fences", body);
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
         @DisplayName("worker 不能删除围栏")
         void worker_cannotDeleteFence() {
             var resp = deleteRaw(workerToken, "/api/v1/farms/1/fences/1");
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
@@ -205,7 +205,7 @@ class WorkerJourneyTest extends AbstractJourneyTest {
                     "deviceType", "TRACKER"
             );
             var resp = postRaw(workerToken, "/api/v1/farms/1/devices", body);
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
     }
 
@@ -217,35 +217,35 @@ class WorkerJourneyTest extends AbstractJourneyTest {
         @DisplayName("worker 不能访问 Admin 端点")
         void worker_cannotAccessAdmin() {
             var resp = getRaw(workerToken, "/api/v1/admin/tenants");
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
         @DisplayName("worker 不能管理租户")
         void worker_cannotAccessTenant() {
             var resp = getRaw(workerToken, "/api/v1/admin/tenants/1");
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
         @DisplayName("worker 不能查看 Admin 合同")
         void worker_cannotAccessContracts() {
             var resp = getRaw(workerToken, "/api/v1/admin/contracts");
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
         @DisplayName("worker 不能查看 Admin 分润")
         void worker_cannotAccessRevenue() {
             var resp = getRaw(workerToken, "/api/v1/admin/revenue/periods");
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
         @DisplayName("worker 不能查看 Admin 订阅")
         void worker_cannotAccessSubscriptions() {
             var resp = getRaw(workerToken, "/api/v1/admin/subscriptions");
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
@@ -257,7 +257,7 @@ class WorkerJourneyTest extends AbstractJourneyTest {
                     "longitude", 112.85
             );
             var resp = postRaw(workerToken, "/api/v1/farms", body);
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
     }
 }

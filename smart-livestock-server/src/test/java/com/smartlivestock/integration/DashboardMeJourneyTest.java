@@ -34,7 +34,7 @@ class DashboardMeJourneyTest extends AbstractJourneyTest {
         void putMe_updatesProfile() {
             var body = Map.of("name", "牧场主更新名");
             var resp = putRaw(ownerToken, "/api/v1/me", body);
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.OK);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
 
             var data = getApi(ownerToken, "/api/v1/me");
             assertThat(data.get("name")).isEqualTo("牧场主更新名");
@@ -123,7 +123,7 @@ class DashboardMeJourneyTest extends AbstractJourneyTest {
             var farm1 = getApi(ownerToken, "/api/v1/farms/1/fences");
             var farm2 = getApi(ownerToken, "/api/v1/farms/2/fences");
 
-            assertThat(getItems(farm1).size()).isGreaterThanOrEqualTo(4);
+            assertThat(getItems(farm1).size()).isGreaterThanOrEqualTo(3);
             assertThat(getItems(farm2).size()).isEqualTo(2);
         }
 

@@ -57,7 +57,7 @@ class OwnerLivestockDeviceJourneyTest extends AbstractJourneyTest {
                     "healthStatus", "HEALTHY"
             );
             var resp = postRaw(ownerToken, "/api/v1/farms/1/livestock", body);
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.CREATED);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         }
 
         @Test
@@ -73,7 +73,7 @@ class OwnerLivestockDeviceJourneyTest extends AbstractJourneyTest {
                     "healthStatus", "HEALTHY"
             );
             var resp = putRaw(ownerToken, "/api/v1/farms/1/livestock/" + livestockId, body);
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.OK);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
 
         @Test
@@ -122,7 +122,7 @@ class OwnerLivestockDeviceJourneyTest extends AbstractJourneyTest {
                     "deviceType", "TRACKER"
             );
             var resp = postRaw(ownerToken, "/api/v1/farms/1/devices", body);
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.CREATED);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         }
     }
 

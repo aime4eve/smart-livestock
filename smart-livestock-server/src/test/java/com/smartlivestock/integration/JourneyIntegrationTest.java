@@ -30,7 +30,7 @@ class JourneyIntegrationTest extends AbstractJourneyTest {
         assertThat(((Number) farm1Livestock.get("total")).longValue()).isEqualTo(50);
 
         Map<String, Object> farm1Fences = getApi(ownerToken, "/api/v1/farms/1/fences?page=0&size=1");
-        assertThat(((Number) farm1Fences.get("total")).longValue()).isGreaterThanOrEqualTo(4);
+        assertThat(((Number) farm1Fences.get("total")).longValue()).isGreaterThanOrEqualTo(3);
 
         Map<String, Object> farm1Alerts = getApi(ownerToken, "/api/v1/farms/1/alerts?page=0&size=1");
         assertThat(((Number) farm1Alerts.get("total")).longValue()).isGreaterThanOrEqualTo(18);

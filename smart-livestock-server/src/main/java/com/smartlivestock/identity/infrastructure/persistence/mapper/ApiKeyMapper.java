@@ -17,6 +17,7 @@ public final class ApiKeyMapper {
         jpa.setStatus(k.getStatus());
         jpa.setExpiresAt(k.getExpiresAt());
         jpa.setLastUsedAt(k.getLastUsedAt());
+        jpa.setCreatedAt(k.getCreatedAt());
         return jpa;
     }
 

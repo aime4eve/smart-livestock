@@ -103,21 +103,21 @@ class B2BAdminJourneyTest extends AbstractJourneyTest {
         @DisplayName("b2b_admin 查看 Admin 订阅列表")
         void b2bAdmin_listSubscriptions() {
             var resp = getRaw(b2bAdminToken, "/api/v1/admin/subscriptions");
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
         @DisplayName("b2b_admin 查看 Admin 功能门控列表")
         void b2bAdmin_listFeatureGates() {
             var resp = getRaw(b2bAdminToken, "/api/v1/admin/feature-gates");
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
         @DisplayName("b2b_admin 查看 Admin 订阅服务列表")
         void b2bAdmin_listSubscriptionServices() {
             var resp = getRaw(b2bAdminToken, "/api/v1/admin/subscription-services");
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
     }
 
@@ -138,14 +138,14 @@ class B2BAdminJourneyTest extends AbstractJourneyTest {
             var resp = postRaw(b2bAdminToken,
                     "/api/v1/admin/users",
                     Map.of("phone", "13800008888", "name", "非法用户", "role", "OWNER", "tenantId", otherTenantId));
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
         @DisplayName("b2b_admin 不能访问 platform_admin 独占端点")
         void b2bAdmin_cannotAccessPlatformAdminEndpoints() {
             var resp = getRaw(b2bAdminToken, "/api/v1/admin/audit-logs");
-            assertThat(resp.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test

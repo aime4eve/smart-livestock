@@ -108,11 +108,13 @@ public class Subscription extends AggregateRoot {
     }
 
     /**
-     * Reactivate a suspended subscription.
+     * Reactivate a suspended or cancelled subscription.
      */
     public void reactivate() {
-        requireStatus(SubscriptionStatus.SUSPENDED, "reactivate");
+        requireStatusFor("reactivate",
+            SubscriptionStatus.SUSPENDED, SubscriptionStatus.CANCELLED);
         this.status = SubscriptionStatus.ACTIVE;
+        this.cancelledAt = null;
         registerEvent(new SubscriptionReactivatedEvent(tenantId));
     }
 

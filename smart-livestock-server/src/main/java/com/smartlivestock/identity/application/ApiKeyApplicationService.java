@@ -38,10 +38,12 @@ public class ApiKeyApplicationService {
         apiKey.setKeyHash(keyHash);
         apiKey.setKeyPrefix(keyPrefix);
         apiKey.setRole(role != null ? role : "admin");
-        apiKeyRepository.save(apiKey);
+        apiKey.setCreatedAt(Instant.now());
+        apiKey.setStatus("ACTIVE");
+        ApiKey saved = apiKeyRepository.save(apiKey);
 
         return Map.of(
-                "id", apiKey.getId(),
+                "id", saved.getId(),
                 "keyName", name,
                 "prefix", keyPrefix,
                 "role", apiKey.getRole(),

@@ -18,6 +18,15 @@ public class JpaAlertRepositoryImpl implements AlertRepository {
 
     @Override
     public Alert save(Alert alert) {
+        if (alert.getId() != null) {
+            // Update existing entity — preserve createdAt/updatedAt via @PreUpdate
+            return springDataRepo.findById(alert.getId())
+                    .map(existing -> {
+                        AlertMapper.updateEntity(existing, alert);
+                        return AlertMapper.toDomain(springDataRepo.save(existing));
+                    })
+                    .orElseGet(() -> AlertMapper.toDomain(springDataRepo.save(AlertMapper.toJpaEntity(alert))));
+        }
         return AlertMapper.toDomain(springDataRepo.save(AlertMapper.toJpaEntity(alert)));
     }
 

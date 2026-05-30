@@ -17,6 +17,15 @@ public class JpaUserRepositoryImpl implements UserRepository {
 
     @Override
     public User save(User user) {
+        if (user.getId() != null) {
+            // Update existing entity — preserve createdAt/updatedAt via @PreUpdate
+            return springDataRepo.findById(user.getId())
+                    .map(existing -> {
+                        UserMapper.updateEntity(existing, user);
+                        return UserMapper.toDomain(springDataRepo.save(existing));
+                    })
+                    .orElseGet(() -> UserMapper.toDomain(springDataRepo.save(UserMapper.toJpaEntity(user))));
+        }
         return UserMapper.toDomain(springDataRepo.save(UserMapper.toJpaEntity(user)));
     }
 

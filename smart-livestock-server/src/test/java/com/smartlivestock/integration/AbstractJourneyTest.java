@@ -51,6 +51,35 @@ public abstract class AbstractJourneyTest {
         b2bAdminToken = login("13900139000", "123");
         ownerToken = login("13800138000", "123");
         workerToken = login("13800138001", "123");
+        // 确保 owner 订阅为 PREMIUM（防止其他测试的订阅变更污染配额检查）
+        ensurePremiumSubscription();
+    }
+
+    /**
+     * Best-effort restore subscription to PREMIUM.
+     * Uses admin endpoint to reactivate CANCELLED subscriptions, then ensures PREMIUM tier.
+     */
+    private void ensurePremiumSubscription() {
+        try {
+            // Check current subscription status
+            var subResp = getRaw(ownerToken, "/api/v1/subscription");
+            if (subResp.getStatusCode().is2xxSuccessful() && subResp.getBody() != null) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> subData = (Map<String, Object>) subResp.getBody().get("data");
+                String status = (String) subData.get("status");
+                if ("CANCELLED".equals(status)) {
+                    // Reactivate via admin endpoint
+                    String subId = String.valueOf(subData.get("id"));
+                    putRaw(platformAdminToken, "/api/v1/admin/subscriptions/" + subId + "/status",
+                            Map.of("targetStatus", "ACTIVE"));
+                }
+            }
+            // Ensure tier is PREMIUM
+            putRaw(ownerToken, "/api/v1/subscription/tier", Map.of("tier", "PREMIUM"));
+            postRaw(ownerToken, "/api/v1/subscription/checkout", Map.of("tier", "PREMIUM", "billingCycle", "monthly"));
+        } catch (Exception ignored) {
+            // Best effort — don't fail test setup if restore fails
+        }
     }
 
     // --- Auth helpers ---

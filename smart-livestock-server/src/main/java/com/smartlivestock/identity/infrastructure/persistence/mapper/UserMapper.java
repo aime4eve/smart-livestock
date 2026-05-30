@@ -21,6 +21,20 @@ public final class UserMapper {
         return jpa;
     }
 
+    /**
+     * Update an existing JPA entity from domain model.
+     * Preserves createdAt/updatedAt which are managed by JPA lifecycle callbacks.
+     */
+    public static void updateEntity(UserJpaEntity jpa, User user) {
+        jpa.setPasswordHash(user.getPasswordHash());
+        jpa.setName(user.getName());
+        jpa.setPhone(user.getPhone());
+        jpa.setRole(user.getRole().name());
+        jpa.setTenantId(user.getTenantId());
+        jpa.setIsActive(user.isActive());
+        jpa.setLastLoginAt(user.getLastLoginAt());
+    }
+
     public static User toDomain(UserJpaEntity jpa) {
         User user = new User();
         user.setId(jpa.getId());

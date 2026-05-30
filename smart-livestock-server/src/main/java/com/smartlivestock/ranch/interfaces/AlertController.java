@@ -82,9 +82,10 @@ public class AlertController {
 
     /**
      * POST /api/v1/farms/{farmId}/alerts/{alertId}/handle
-     * Handle alert (acknowledged -> handled).
+     * Handle alert (acknowledged -> handled). Requires OWNER or B2B_ADMIN.
      */
     @PostMapping("/alerts/{alertId}/handle")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
     public ResponseEntity<ApiResponse<AlertDto>> handleAlert(
             @PathVariable Long farmId,
             @PathVariable Long alertId) {
@@ -96,9 +97,10 @@ public class AlertController {
 
     /**
      * POST /api/v1/farms/{farmId}/alerts/{alertId}/archive
-     * Archive alert (handled -> archived).
+     * Archive alert (handled -> archived). Requires OWNER or B2B_ADMIN.
      */
     @PostMapping("/alerts/{alertId}/archive")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
     public ResponseEntity<ApiResponse<AlertDto>> archiveAlert(
             @PathVariable Long farmId,
             @PathVariable Long alertId) {
@@ -110,9 +112,10 @@ public class AlertController {
 
     /**
      * POST /api/v1/farms/{farmId}/alerts/batch-handle
-     * Batch handle alerts.
+     * Batch handle alerts. Requires OWNER or B2B_ADMIN.
      */
     @PostMapping("/alerts/batch-handle")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> batchHandleAlerts(
             @PathVariable Long farmId,
             @RequestBody Map<String, List<String>> body) {

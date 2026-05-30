@@ -27,6 +27,24 @@ public final class AlertMapper {
         return jpa;
     }
 
+    /**
+     * Update an existing JPA entity from domain model.
+     * Preserves createdAt/updatedAt which are managed by JPA lifecycle callbacks.
+     */
+    public static void updateEntity(AlertJpaEntity jpa, Alert alert) {
+        jpa.setFarmId(alert.getFarmId());
+        jpa.setLivestockId(alert.getLivestockId());
+        jpa.setFenceId(alert.getFenceId());
+        jpa.setType(alert.getType().name());
+        jpa.setStatus(alert.getStatus().name());
+        jpa.setSeverity(alert.getSeverity().name());
+        jpa.setMessage(alert.getMessage());
+        jpa.setAcknowledgedBy(alert.getAcknowledgedBy());
+        jpa.setAcknowledgedAt(alert.getAcknowledgedAt());
+        jpa.setHandledBy(alert.getHandledBy());
+        jpa.setHandledAt(alert.getHandledAt());
+    }
+
     public static Alert toDomain(AlertJpaEntity jpa) {
         Alert alert = new Alert();
         alert.setId(jpa.getId());
