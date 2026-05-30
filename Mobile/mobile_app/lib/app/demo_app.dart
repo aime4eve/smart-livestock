@@ -3,17 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/app/app_router.dart';
 import 'package:smart_livestock_demo/core/theme/app_theme.dart';
 
-class DemoApp extends StatelessWidget {
+class DemoApp extends ConsumerWidget {
   const DemoApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const ProviderScope(child: _DemoAppView());
-  }
-}
-
-class _DemoAppView extends ConsumerWidget {
-  const _DemoAppView();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

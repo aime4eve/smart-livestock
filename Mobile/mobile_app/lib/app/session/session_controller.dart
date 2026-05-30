@@ -4,9 +4,12 @@ import 'package:smart_livestock_demo/core/api/api_exception.dart';
 import 'package:smart_livestock_demo/app/session/app_session.dart';
 import 'package:smart_livestock_demo/core/models/user_role.dart';
 
+/// Provider for the initial session state (overridden in main.dart on web).
+final initialSessionProvider = Provider<AppSession>((ref) => AppSession.loggedOut);
+
 class SessionController extends Notifier<AppSession> {
   @override
-  AppSession build() => AppSession.loggedOut;
+  AppSession build() => ref.read(initialSessionProvider);
 
   Future<bool> login({required String phone, required String password}) async {
     try {

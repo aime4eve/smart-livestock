@@ -178,6 +178,7 @@ class ApiClient {
     final user = data['user'] as Map<String, dynamic>;
 
     await JwtStorage.instance.saveAccessToken(token);
+    await JwtStorage.instance.saveUserInfo(user);
     return user;
   }
 
