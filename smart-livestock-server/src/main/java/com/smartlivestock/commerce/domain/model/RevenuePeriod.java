@@ -55,11 +55,15 @@ public class RevenuePeriod extends AggregateRoot {
                                        LocalDate periodStart, LocalDate periodEnd,
                                        int grossAmount, int platformShare, int partnerShare,
                                        BigDecimal revenueShareRatio) {
-        if (revenueShareRatio == null
-            || revenueShareRatio.compareTo(BigDecimal.ZERO) <= 0
-            || revenueShareRatio.compareTo(BigDecimal.ONE) >= 0) {
+        if (revenueShareRatio != null
+            && revenueShareRatio.compareTo(BigDecimal.ZERO) < 0) {
             throw new DomainException(ErrorCode.INVALID_REVENUE_SHARE_RATIO,
-                "Revenue share ratio must be > 0 and < 1");
+                "Revenue share ratio must be >= 0");
+        }
+        if (revenueShareRatio != null
+            && revenueShareRatio.compareTo(BigDecimal.ONE) >= 0) {
+            throw new DomainException(ErrorCode.INVALID_REVENUE_SHARE_RATIO,
+                "Revenue share ratio must be < 1");
         }
         if (periodEnd != null && periodStart != null && periodEnd.isBefore(periodStart)) {
             throw new DomainException(ErrorCode.VALIDATION_ERROR,

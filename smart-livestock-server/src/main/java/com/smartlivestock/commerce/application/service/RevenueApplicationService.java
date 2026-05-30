@@ -10,6 +10,7 @@ import com.smartlivestock.shared.common.ErrorCode;
 import com.smartlivestock.shared.domain.DomainEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -53,7 +54,7 @@ public class RevenueApplicationService {
             contractId, contract.getTenantId(),
             periodStart, periodEnd,
             grossAmountCents, shares.platformShare(), shares.partnerShare(),
-            contract.getRevenueShareRatio());
+            contract.getRevenueShareRatio() != null ? contract.getRevenueShareRatio() : BigDecimal.ZERO);
 
         RevenuePeriod saved = revenuePeriodRepository.save(period);
         domainEventPublisher.publishDomainEvents(saved);

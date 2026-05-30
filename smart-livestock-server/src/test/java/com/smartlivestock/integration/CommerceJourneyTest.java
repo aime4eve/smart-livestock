@@ -208,8 +208,7 @@ class CommerceJourneyTest extends AbstractJourneyTest {
                     "grossAmountCents", 100000
             );
             var resp = postRaw(platformAdminToken, "/api/v1/admin/revenue/calculate", body);
-            // 分润计算可能因业务规则返回 500（如缺少必要字段）
-            assertThat(resp.getStatusCode().value()).isIn(200, 500);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
     }
 

@@ -145,7 +145,8 @@ public class Contract extends AggregateRoot {
             throw new DomainException(ErrorCode.VALIDATION_ERROR,
                 "Gross amount must be non-negative");
         }
-        int partnerShare = revenueShareRatio
+        BigDecimal ratio = revenueShareRatio != null ? revenueShareRatio : BigDecimal.ZERO;
+        int partnerShare = ratio
             .multiply(BigDecimal.valueOf(grossAmountCents)).intValue();
         return new RevenueShareResult(grossAmountCents - partnerShare, partnerShare);
     }
