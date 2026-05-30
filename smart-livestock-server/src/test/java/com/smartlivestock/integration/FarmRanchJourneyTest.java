@@ -1,8 +1,11 @@
 package com.smartlivestock.integration;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
@@ -196,9 +199,11 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
 
     @Nested
     @DisplayName("成员管理")
+    @TestMethodOrder(OrderAnnotation.class)
     class MemberManagement {
 
         @Test
+        @Order(1)
         @DisplayName("owner 查看牧场成员列表（返回空列表）")
         void owner_listFarmMembers_returnsEmptyList() {
             var data = getApi(ownerToken, "/api/v1/farms/1/members");
@@ -208,6 +213,7 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
         }
 
         @Test
+        @Order(2)
         @DisplayName("owner 添加牧场成员成功")
         void owner_addMember_returnsCreated() {
             // b2b_admin (user 3) is not assigned to farm 1 in seed data
@@ -223,6 +229,7 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
         }
 
         @Test
+        @Order(3)
         @DisplayName("owner 重复添加成员返回 409")
         void owner_addMember_duplicate_returns409() {
             var body = Map.of("userId", "3", "role", "WORKER");
@@ -232,6 +239,7 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
         }
 
         @Test
+        @Order(4)
         @DisplayName("owner 移除牧场成员成功")
         void owner_removeMember_returnsOk() {
             var resp = deleteRaw(ownerToken, "/api/v1/farms/1/members/3");
