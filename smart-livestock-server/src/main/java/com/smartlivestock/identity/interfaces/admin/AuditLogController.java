@@ -1,5 +1,7 @@
 package com.smartlivestock.identity.interfaces.admin;
 
+import com.smartlivestock.identity.domain.model.AuditLog;
+import com.smartlivestock.identity.domain.repository.AuditLogRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -13,20 +15,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Admin Audit Log — 1 endpoint.
- * Phase 1 stub: Returns placeholder data. Write side is handled by domain events.
+ * Admin Audit Log — query endpoint.
+ * Write side is handled by AuditLogEventListener which listens to all DomainEvents.
  */
 @RestController
 @RequestMapping("/api/v1/admin/audit-logs")
 @RequiredArgsConstructor
 public class AuditLogController {
 
-    /**
-     * GET /api/v1/admin/audit-logs
-     * Operation audit log with filters.
-     * Phase 1 stub — returns empty list. Write side is handled by
-     * Application Service domain events (AlertStatusChanged, DeviceActivated, etc.).
-     */
+    private final AuditLogRepository auditLogRepository;
+
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> listAuditLogs(
             @RequestParam(defaultValue = "1") int page,
@@ -38,14 +36,26 @@ public class AuditLogController {
             @RequestParam(required = false) String endTime) {
         requirePlatformAdmin();
 
-        // Phase 1 stub: no audit log storage yet
-        List<Map<String, Object>> items = List.of();
+        List<AuditLog> items = auditLogRepository.findAll(page, pageSize, tenantId, userId, action, startTime, endTime);
+        long total = auditLogRepository.count(tenantId, userId, action, startTime, endTime);
+
+        List<Map<String, Object>> rows = items.stream().map(a -> Map.<String, Object>of(
+                "id", a.getId(),
+                "eventId", a.getEventId(),
+                "eventType", a.getEventType(),
+                "tenantId", (Object) (a.getTenantId() != null ? a.getTenantId() : ""),
+                "userId", (Object) (a.getUserId() != null ? a.getUserId() : ""),
+                "action", a.getAction(),
+                "details", a.getDetails() != null ? a.getDetails() : Map.of(),
+                "occurredAt", a.getOccurredAt().toString(),
+                "createdAt", a.getCreatedAt() != null ? a.getCreatedAt().toString() : ""
+        )).toList();
 
         Map<String, Object> data = Map.of(
-                "items", items,
+                "items", rows,
                 "page", page,
                 "pageSize", pageSize,
-                "total", 0
+                "total", total
         );
         return ResponseEntity.ok(ApiResponse.ok(data));
     }
