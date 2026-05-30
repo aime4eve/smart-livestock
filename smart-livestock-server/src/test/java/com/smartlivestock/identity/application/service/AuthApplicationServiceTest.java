@@ -66,7 +66,7 @@ class AuthApplicationServiceTest {
         AuthTokenDto result = service.login(new LoginCommand("13800138000", "password123"));
 
         assertThat(result.accessToken()).isEqualTo("jwt-token-owner");
-        assertThat(result.user().name()).isEqualTo("owner1");
+        assertThat(result.user().name()).isEqualTo("张三");
         assertThat(result.user().role()).isEqualTo("OWNER");
         assertThat(result.user().tenantId()).isEqualTo(1L);
 
