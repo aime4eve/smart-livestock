@@ -223,8 +223,8 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
             assertThat(resp.getBody()).isNotNull();
             @SuppressWarnings("unchecked")
             Map<String, Object> data = (Map<String, Object>) resp.getBody().get("data");
-            assertThat(data).containsEntry("userId", 3L);
-            assertThat(data).containsEntry("farmId", 1L);
+            assertThat(data).containsEntry("userId", 3);
+            assertThat(data).containsEntry("farmId", 1);
             assertThat(data).containsEntry("role", "WORKER");
         }
 
