@@ -36,4 +36,23 @@ public class AuthApplicationService {
         String token = jwtTokenProvider.generateToken(user.getId(), user.getTenantId(), user.getRole().name());
         return new AuthTokenDto(token, UserDto.from(user));
     }
+
+    /**
+     * Refresh: validate current access token (grace period for recently expired),
+     * look up user, and issue a new access token.
+     */
+    @Transactional(readOnly = true)
+    public AuthTokenDto refresh(String currentToken) {
+        String newToken = jwtTokenProvider.refreshToken(currentToken);
+        if (newToken == null) {
+            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "Token 无法刷新，请重新登录");
+        }
+        Long userId = jwtTokenProvider.getUserIdFromToken(newToken);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "用户不存在"));
+        if (!user.isActive()) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "用户已停用");
+        }
+        return new AuthTokenDto(newToken, UserDto.from(user));
+    }
 }

@@ -1,6 +1,7 @@
 package com.smartlivestock.shared.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -16,6 +17,9 @@ public class JwtTokenProvider {
 
     private final SecretKey key;
     private final long accessExpiration;
+
+    /** Grace period for token refresh: allow tokens expired within 30 minutes. */
+    private static final long REFRESH_GRACE_MS = 30 * 60 * 1000L;
 
     public JwtTokenProvider(
             @Value("${jwt.secret}") String secret,
@@ -69,5 +73,30 @@ public class JwtTokenProvider {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    /**
+     * Refresh: accept a valid or recently-expired access token, issue a new one.
+     * Returns null if the token is too old or invalid.
+     */
+    public String refreshToken(String token) {
+        Claims claims;
+        try {
+            claims = parseToken(token);
+        } catch (ExpiredJwtException e) {
+            claims = e.getClaims();
+            long expiredAt = e.getClaims().getExpiration().getTime();
+            long now = System.currentTimeMillis();
+            if (now - expiredAt > REFRESH_GRACE_MS) {
+                return null;
+            }
+        } catch (JwtException | IllegalArgumentException e) {
+            return null;
+        }
+        return generateToken(
+                Long.valueOf(claims.getSubject()),
+                claims.get("tid", Long.class),
+                claims.get("role", String.class)
+        );
     }
 }
