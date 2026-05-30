@@ -57,7 +57,6 @@ class TileJourneyTest extends AbstractJourneyTest {
                     "bytesDownloaded", 1024
             );
             var resp = postRaw(ownerToken, "/api/v1/farms/1/tile-download-log", body);
-            // TileDownloadLogRepository.save() 直接保存，无 FK 约束
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
     }

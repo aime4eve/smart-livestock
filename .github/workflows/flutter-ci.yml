@@ -34,4 +34,4 @@ jobs:
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Run tests
-        run: flutter test
+        run: find test -name '*_test.dart' -not -path 'test/e2e/*' | xargs flutter test

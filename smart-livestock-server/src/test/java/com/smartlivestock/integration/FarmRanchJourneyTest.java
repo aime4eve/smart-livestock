@@ -210,13 +210,14 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
         @Test
         @DisplayName("owner 添加牧场成员成功")
         void owner_addMember_returnsCreated() {
-            var body = Map.of("userId", "2", "role", "WORKER");
+            // b2b_admin (user 3) is not assigned to farm 1 in seed data
+            var body = Map.of("userId", "3", "role", "WORKER");
             var resp = postRaw(ownerToken, "/api/v1/farms/1/members", body);
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(resp.getBody()).isNotNull();
             @SuppressWarnings("unchecked")
             Map<String, Object> data = (Map<String, Object>) resp.getBody().get("data");
-            assertThat(data).containsEntry("userId", 2L);
+            assertThat(data).containsEntry("userId", 3L);
             assertThat(data).containsEntry("farmId", 1L);
             assertThat(data).containsEntry("role", "WORKER");
         }
@@ -224,7 +225,7 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
         @Test
         @DisplayName("owner 重复添加成员返回 409")
         void owner_addMember_duplicate_returns409() {
-            var body = Map.of("userId", "2", "role", "WORKER");
+            var body = Map.of("userId", "3", "role", "WORKER");
             var resp = postRaw(ownerToken, "/api/v1/farms/1/members", body);
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
             assertThat(resp.getBody().get("code")).isEqualTo("DUPLICATE_RESOURCE");
@@ -233,7 +234,7 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
         @Test
         @DisplayName("owner 移除牧场成员成功")
         void owner_removeMember_returnsOk() {
-            var resp = deleteRaw(ownerToken, "/api/v1/farms/1/members/2");
+            var resp = deleteRaw(ownerToken, "/api/v1/farms/1/members/3");
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
     }

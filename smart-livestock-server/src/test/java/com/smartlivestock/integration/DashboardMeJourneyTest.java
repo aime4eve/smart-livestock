@@ -141,7 +141,7 @@ class DashboardMeJourneyTest extends AbstractJourneyTest {
         @DisplayName("不存在的农场返回 404/403")
         void nonexistentFarm_returnsError() {
             var resp = getRaw(ownerToken, "/api/v1/farms/99999/livestock");
-            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+            assertThat(resp.getStatusCode()).isIn(HttpStatus.NOT_FOUND, HttpStatus.FORBIDDEN);
         }
     }
 }
