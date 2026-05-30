@@ -36,12 +36,6 @@ Future<http.Response> _get(String path, String token) =>
       'Authorization': 'Bearer $token',
     });
 
-Future<http.Response> _post(String path, String token, [Object? body]) =>
-    http.post(Uri.parse('$_baseUrl$path'), headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    }, body: body != null ? jsonEncode(body) : null);
-
 // ══════════════════════════════════════════════════════════════════════════════
 
 void main() {

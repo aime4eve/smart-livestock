@@ -39,24 +39,24 @@ Future<void> main() async {
   print('   ✅ 使用 farmId=$farmId');
 
   // 3. 录制各端点
-  await _record('me.json', _get('/me', token));
+  await _record('me.json', await _get('/me', token));
   await _record('farms_list.json', farmsResp);
   await _record('fences_list.json',
-      _get('/farms/$farmId/fences?pageSize=100', token));
+      await _get('/farms/$farmId/fences?pageSize=100', token));
   await _record('livestock_list.json',
-      _get('/farms/$farmId/livestock?pageSize=100', token));
+      await _get('/farms/$farmId/livestock?pageSize=100', token));
   await _record('alerts_list.json',
-      _get('/farms/$farmId/alerts?pageSize=100', token));
+      await _get('/farms/$farmId/alerts?pageSize=100', token));
   await _record('dashboard_summary.json',
-      _get('/farms/$farmId/dashboard/summary', token));
+      await _get('/farms/$farmId/dashboard/summary', token));
   await _record('devices_list.json',
-      _get('/farms/$farmId/devices?pageSize=100', token));
-  await _record('subscription_status.json', _get('/subscription', token));
-  await _record('subscription_plans.json', _get('/subscription/plans', token));
+      await _get('/farms/$farmId/devices?pageSize=100', token));
+  await _record('subscription_status.json', await _get('/subscription', token));
+  await _record('subscription_plans.json', await _get('/subscription/plans', token));
   await _record('gps_logs_latest.json',
-      _get('/farms/$farmId/gps-logs/latest', token));
+      await _get('/farms/$farmId/gps-logs/latest', token));
   await _record('map_overview.json',
-      _get('/farms/$farmId/map/overview', token));
+      await _get('/farms/$farmId/map/overview', token));
 
   // 4. 录制 detail（需要先获取 id）
   final fencesResp = await _get('/farms/$farmId/fences?pageSize=100', token);
@@ -66,7 +66,7 @@ Future<void> main() async {
   if (fenceItems.isNotEmpty) {
     final fenceId = fenceItems.first['id'];
     await _record(
-        'fence_detail.json', _get('/farms/$farmId/fences/$fenceId', token));
+        'fence_detail.json', await _get('/farms/$farmId/fences/$fenceId', token));
   }
 
   print('\n✅ 全部 fixture 录制完成: $_fixtureDir/');

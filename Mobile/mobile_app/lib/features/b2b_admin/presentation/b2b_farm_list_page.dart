@@ -188,6 +188,9 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
 
     setState(() => _creating = true);
 
+    final navigator = Navigator.of(dialogCtx);
+    final messenger = ScaffoldMessenger.of(context);
+
     final body = <String, dynamic>{
       'name': nameCtrl.text.trim(),
       if (selectedOwner != null) 'ownerId': selectedOwner.id,
@@ -199,18 +202,18 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
 
     if (!mounted) return;
 
-    Navigator.pop(dialogCtx);
+    navigator.pop();
     setState(() => _creating = false);
 
     if (ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(
           content: Text('牧场「${nameCtrl.text.trim()}」创建成功'),
           backgroundColor: const Color(0xFF2E7D32),
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(
           content: Text('创建失败，请重试'),
           backgroundColor: Color(0xFFD32F2F),
@@ -292,23 +295,26 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
     B2bFarmSummary farm,
     B2bUserSummary newOwner,
   ) async {
+    final navigator = Navigator.of(dialogCtx);
+    final messenger = ScaffoldMessenger.of(context);
+
     final ok = await ref
         .read(b2bDashboardControllerProvider.notifier)
         .changeOwner(farm.id, newOwner.id);
 
     if (!mounted) return;
 
-    Navigator.pop(dialogCtx);
+    navigator.pop();
 
     if (ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(
           content: Text('「${farm.name}」负责人已变更为 ${newOwner.name}'),
           backgroundColor: const Color(0xFF2E7D32),
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(
           content: Text('变更失败，请重试'),
           backgroundColor: Color(0xFFD32F2F),

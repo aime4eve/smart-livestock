@@ -284,6 +284,9 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
 
     setCreating();
 
+    final navigator = Navigator.of(dialogCtx);
+    final messenger = ScaffoldMessenger.of(context);
+
     try {
       await ref.read(adminRepositoryProvider).createUser({
         'phone': phoneCtrl.text.trim(),
@@ -294,8 +297,8 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
       });
 
       if (!mounted) return;
-      Navigator.pop(dialogCtx);
-      ScaffoldMessenger.of(context).showSnackBar(
+      navigator.pop();
+      messenger.showSnackBar(
         SnackBar(
           content: Text('用户「${nameCtrl.text.trim()}」创建成功'),
           backgroundColor: const Color(0xFF2E7D32),
@@ -304,8 +307,8 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
       _loadData();
     } catch (e) {
       if (!mounted) return;
-      Navigator.pop(dialogCtx);
-      ScaffoldMessenger.of(context).showSnackBar(
+      navigator.pop();
+      messenger.showSnackBar(
         SnackBar(
           content: Text('创建失败: $e'),
           backgroundColor: const Color(0xFFD32F2F),
