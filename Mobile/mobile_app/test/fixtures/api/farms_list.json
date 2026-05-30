@@ -1,0 +1,1 @@
+{"code":"OK","message":"success","requestId":"b3b6021e-58c5-47c2-a896-9bec9a0a50f6","data":{"pageSize":2,"items":[{"id":1,"tenantId":1,"name":"主牧场","latitude":28.2458000,"longitude":112.8519000,"areaHectares":500.00},{"id":2,"tenantId":1,"name":"南山分场","latitude":28.2000000,"longitude":112.9000000,"areaHectares":300.00}],"page":1,"total":2}}

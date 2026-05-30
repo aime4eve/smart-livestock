@@ -382,7 +382,7 @@ cd Mobile && ./dev.sh start [mock|live]
 
 **后端现状**：5 个限界上下文（Identity + Ranch + IoT + Commerce + Shared）、18 张表、~120 个 API 端点（App 65 + Admin 43 + Open 11）、35 个 Controller、293 个 Java 文件、27 个测试类。API Key 和审计日志是 stub。
 
-**前端现状**：已移除 Mock 模式，全部通过 ApiClient 异步对接 Spring Boot 后端（JWT 认证）。26 个功能模块、39 条路由。订阅系统（4 个 tier + 23 个 feature flag）、B端后台、租户管理（TenantDetailPage 含用户创建/启停）、健康模块（发热/消化/发情/疫病）UI 框架已搭好。地图支持三级瓦片降级（tileserver-gl → MBTiles → 高德/OSM）。客户旅程文档：`docs/customer-journey.md`。Flutter 测试 107 通过 / 42 失败（围栏编辑和 Live 适配后组件 Key 未同步）。
+**前端现状**：已移除 Mock 模式，全部通过 ApiClient 异步对接 Spring Boot 后端（JWT 认证）。26 个功能模块、39 条路由。订阅系统（4 个 tier + 23 个 feature flag）、B端后台、租户管理（TenantDetailPage 含用户创建/启停）、健康模块（发热/消化/发情/疫病）UI 框架已搭好。地图支持三级瓦片降级（tileserver-gl → MBTiles → 高德/OSM）。客户旅程文档：`docs/customer-journey.md`。Flutter 测试 240 通过 / 0 失败（2026-05-31 验证）。
 
 ---
 

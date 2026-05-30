@@ -1,0 +1,1 @@
+{"code":"OK","message":"success","requestId":"3d1f915c-fba2-438e-af92-37627318a58e","data":{"id":1,"tenantId":1,"tier":"PREMIUM","billingModel":"direct","status":"ACTIVE","billingCycle":"monthly","startedAt":"2025-12-31T16:00:00Z","expiresAt":"2026-06-29T15:37:04.198760Z","trialEndsAt":null,"cancelledAt":null,"effectiveTier":"PREMIUM"}}

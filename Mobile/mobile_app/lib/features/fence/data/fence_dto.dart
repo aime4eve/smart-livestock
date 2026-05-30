@@ -52,8 +52,13 @@ FenceItem fenceItemFromJson(
   if (points.length < 3) {
     points = FenceItem.defaultPointsForType(type, _fallbackCenter);
   }
-  final colorValue = raw['color'] as int? ??
-      FenceItem.defaultColors[colorIndex % FenceItem.defaultColors.length];
+  final rawColor = raw['color'];
+  final colorValue = rawColor is int
+      ? rawColor
+      : rawColor is String
+          ? (int.tryParse(rawColor.replaceFirst('#', ''), radix: 16) ??
+              FenceItem.defaultColors[colorIndex % FenceItem.defaultColors.length])
+          : FenceItem.defaultColors[colorIndex % FenceItem.defaultColors.length];
   final version = raw['version'] as int? ?? 1;
   final fenceType = raw['fenceType'] as String? ?? 'sub';
   return FenceItem(

@@ -1,8 +1,9 @@
 enum SubscriptionTier { basic, standard, premium, enterprise }
 
 SubscriptionTier parseSubscriptionTier(String value) {
+  final lower = value.toLowerCase();
   for (final t in SubscriptionTier.values) {
-    if (t.name == value) return t;
+    if (t.name == lower) return t;
   }
   return SubscriptionTier.basic;
 }
@@ -140,21 +141,28 @@ class SubscriptionStatus {
   });
 
   factory SubscriptionStatus.fromJson(Map<String, dynamic> json) {
+    // id/tenantId: 后端返回 int，前端统一为 String
+    final rawId = json['id'];
+    final rawTid = json['tenantId'];
     return SubscriptionStatus(
-      id: json['id'] as String,
-      tenantId: json['tenantId'] as String,
+      id: rawId is int ? rawId.toString() : (rawId as String? ?? ''),
+      tenantId: rawTid is int ? rawTid.toString() : (rawTid as String? ?? ''),
       tier: parseSubscriptionTier(json['tier'] as String? ?? ''),
-      status: json['status'] as String,
+      status: json['status'] as String? ?? '',
       trialEndsAt: json['trialEndsAt'] != null
           ? DateTime.parse(json['trialEndsAt'] as String)
           : null,
-      currentPeriodEnd: json['currentPeriodEnd'] != null
-          ? DateTime.parse(json['currentPeriodEnd'] as String)
+      currentPeriodEnd: (json['currentPeriodEnd'] ?? json['expiresAt']) != null
+          ? DateTime.parse(
+              (json['currentPeriodEnd'] ?? json['expiresAt']) as String)
           : null,
-      livestockCount: json['livestockCount'] as int,
-      calculatedDeviceFee: (json['calculatedDeviceFee'] as num).toDouble(),
-      calculatedTierFee: (json['calculatedTierFee'] as num).toDouble(),
-      calculatedTotal: (json['calculatedTotal'] as num).toDouble(),
+      livestockCount: json['livestockCount'] as int? ?? 0,
+      calculatedDeviceFee:
+          (json['calculatedDeviceFee'] as num?)?.toDouble() ?? 0.0,
+      calculatedTierFee:
+          (json['calculatedTierFee'] as num?)?.toDouble() ?? 0.0,
+      calculatedTotal:
+          (json['calculatedTotal'] as num?)?.toDouble() ?? 0.0,
     );
   }
 

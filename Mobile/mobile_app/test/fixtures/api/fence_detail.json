@@ -1,0 +1,1 @@
+{"code":"OK","message":"success","requestId":"c0bc3fa6-a025-499b-83b5-41949702d462","data":{"id":1,"farmId":1,"name":"放牧A区","vertices":[{"lat":28.234,"lng":112.94},{"lat":28.234,"lng":112.944},{"lat":28.2305,"lng":112.944},{"lat":28.2305,"lng":112.94}],"color":null,"active":true,"version":1,"fenceType":"sub"}}
