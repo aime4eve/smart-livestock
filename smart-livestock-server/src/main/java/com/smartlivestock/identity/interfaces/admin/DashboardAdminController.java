@@ -17,7 +17,7 @@ import java.util.Map;
 
 /**
  * Admin Dashboard — 1 endpoint.
- * Platform overview with summary + trends. Phase 1 stub for trends.
+ * Platform overview with summary + trends. Trends return empty array until Phase 2b.
  */
 @RestController
 @RequestMapping("/api/v1/admin/dashboard")
@@ -31,7 +31,7 @@ public class DashboardAdminController {
     /**
      * GET /api/v1/admin/dashboard
      * Platform overview with summary + trends.
-     * Trends are Phase 1 stubs returning empty array.
+     * Trends return empty array until Phase 2b.
      */
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> getDashboard() {
@@ -49,7 +49,7 @@ public class DashboardAdminController {
                 "activeAlertCount", 0
         );
 
-        // Phase 1 stub: trends are placeholder data
+        // Trends: empty until Phase 2b (Health time-series data)
         List<Map<String, Object>> trends = List.of();
 
         Map<String, Object> data = Map.of(

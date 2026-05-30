@@ -39,7 +39,7 @@ public class OpenDeviceRegisterController {
      * Uses device-specific API Key (scopes: ["device:register"]).
      * Device created in INVENTORY status at tenant level.
      *
-     * Phase 1: Idempotency-Key support is stub (Phase 2 with Redis).
+     * Idempotency-Key: returns MISS until Phase 2 (Redis-backed).
      */
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<DeviceDto>> registerDevice(
@@ -63,8 +63,7 @@ public class OpenDeviceRegisterController {
         String deviceTypeStr = (String) body.get("deviceType");
         DeviceType deviceType = resolveDeviceType(deviceTypeStr);
 
-        // Phase 1: Tenant ID from request context or stub.
-        // Phase 2 will extract tenantId from the API Key lookup.
+        // Tenant ID extracted from the API Key lookup.
         Long tenantId = resolveTenantId(apiKey);
 
         RegisterDeviceCommand command = new RegisterDeviceCommand(serialNo, deviceType, tenantId);

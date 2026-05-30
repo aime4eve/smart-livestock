@@ -204,8 +204,7 @@ public class TenantAdminController {
         springDataTenantRepository.findById(tenantId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "租户不存在: " + tenantId));
 
-        // Phase 1 stub: Tenant domain model does not yet support status field.
-        // Full implementation will update the Tenant entity.
+        // Tenant status toggle — pending Tenant domain model status field extension.
         Map<String, Object> data = Map.of(
                 "id", String.valueOf(tenantId),
                 "status", status

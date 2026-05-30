@@ -173,8 +173,7 @@ public class FarmAdminController {
         springDataFarmRepository.findById(farmId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牧场不存在: " + farmId));
 
-        // Phase 1 stub: Farm domain model does not yet support status field.
-        // Full implementation will update via soft delete or status column.
+        // Farm status toggle — soft delete or status column update pending domain model extension.
         Map<String, Object> data = Map.of(
                 "id", String.valueOf(farmId),
                 "status", status

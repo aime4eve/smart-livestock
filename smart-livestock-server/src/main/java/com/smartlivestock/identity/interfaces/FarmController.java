@@ -3,6 +3,7 @@ package com.smartlivestock.identity.interfaces;
 import com.smartlivestock.identity.application.FarmApplicationService;
 import com.smartlivestock.identity.application.command.CreateFarmCommand;
 import com.smartlivestock.identity.application.dto.FarmDto;
+import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepository;
 import com.smartlivestock.identity.domain.repository.UserRepository;
 import com.smartlivestock.ranch.domain.model.GpsCoordinate;
 import com.smartlivestock.shared.common.ApiException;
@@ -27,6 +28,7 @@ public class FarmController {
 
     private final FarmApplicationService farmApplicationService;
     private final UserRepository userRepository;
+    private final UserFarmAssignmentRepository userFarmAssignmentRepository;
 
     @GetMapping("/farms")
     public ResponseEntity<ApiResponse<Map<String, Object>>> listFarms() {
@@ -112,10 +114,15 @@ public class FarmController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> addMember(
             @PathVariable Long farmId,
             @RequestBody Map<String, String> body) {
-        Map<String, Object> data = Map.of(
-                "message", "member management not yet implemented",
-                "phase", "stub"
-        );
+        Long userId = Long.valueOf(body.get("userId"));
+        String role = body.getOrDefault("role", "WORKER");
+
+        if (userFarmAssignmentRepository.existsByUserIdAndFarmId(userId, farmId)) {
+            throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, "用户已在该牧场中");
+        }
+        userFarmAssignmentRepository.save(userId, farmId, role, "ACTIVE");
+
+        Map<String, Object> data = Map.of("userId", userId, "farmId", farmId, "role", role);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(data));
     }
 
@@ -123,6 +130,10 @@ public class FarmController {
     public ResponseEntity<ApiResponse<Void>> removeMember(
             @PathVariable Long farmId,
             @PathVariable Long userId) {
+        if (!userFarmAssignmentRepository.existsByUserIdAndFarmId(userId, farmId)) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "用户不在该牧场中");
+        }
+        userFarmAssignmentRepository.save(userId, farmId, "WORKER", "REMOVED");
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
