@@ -48,7 +48,7 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
         @DisplayName("pending → acknowledged → handled → archived 完整链路")
         void fullStateTransition_pending_to_archived() {
             var pendingAlert = findPendingAlert(1L);
-            Long alertId = ((Number) pendingAlert.get("id")).longValue();
+            String alertId = extractId(pendingAlert);
             assertThat(pendingAlert.get("status")).isEqualTo("PENDING");
 
             // Step 1: acknowledge
@@ -76,7 +76,7 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
         @DisplayName("worker acknowledge → owner handle 成功")
         void workerAcknowledge_ownerHandle_success() {
             var pendingAlert = findPendingAlertByWorker(1L);
-            Long alertId = ((Number) pendingAlert.get("id")).longValue();
+            String alertId = extractId(pendingAlert);
 
             // worker 确认
             var ackResult = postApi(workerToken,
@@ -93,7 +93,7 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
         @DisplayName("worker 可以确认 PENDING 告警")
         void workerCanAcknowledge_pendingAlert() {
             var pendingAlert = findPendingAlertByWorker(1L);
-            Long alertId = ((Number) pendingAlert.get("id")).longValue();
+            String alertId = extractId(pendingAlert);
 
             var ackResult = postApi(workerToken,
                     "/api/v1/farms/1/alerts/" + alertId + "/acknowledge", null);
@@ -104,7 +104,7 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
         @DisplayName("worker 不能 handle 告警")
         void workerCannotHandle_alert() {
             var pendingAlert = findPendingAlertByWorker(1L);
-            Long alertId = ((Number) pendingAlert.get("id")).longValue();
+            String alertId = extractId(pendingAlert);
 
             // 先 acknowledge
             postApi(workerToken,
@@ -125,7 +125,7 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
         @DisplayName("acknowledge 非 PENDING 告警返回 409")
         void acknowledge_nonPendingAlert_returns409() {
             var pendingAlert = findPendingAlert(1L);
-            Long alertId = ((Number) pendingAlert.get("id")).longValue();
+            String alertId = extractId(pendingAlert);
             postApi(ownerToken, "/api/v1/farms/1/alerts/" + alertId + "/acknowledge", null);
 
             var resp = postRaw(ownerToken,
@@ -137,7 +137,7 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
         @DisplayName("handle PENDING 告警（跳过 acknowledge）返回 409")
         void handle_pendingAlert_returns409() {
             var pendingAlert = findPendingAlert(1L);
-            Long alertId = ((Number) pendingAlert.get("id")).longValue();
+            String alertId = extractId(pendingAlert);
 
             var resp = postRaw(ownerToken,
                     "/api/v1/farms/1/alerts/" + alertId + "/handle", null);
@@ -148,7 +148,7 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
         @DisplayName("archive ACKNOWLEDGED 告警（跳过 handle）返回 409")
         void archive_acknowledgedAlert_returns409() {
             var pendingAlert = findPendingAlert(1L);
-            Long alertId = ((Number) pendingAlert.get("id")).longValue();
+            String alertId = extractId(pendingAlert);
 
             postApi(ownerToken, "/api/v1/farms/1/alerts/" + alertId + "/acknowledge", null);
 
@@ -161,7 +161,7 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
         @DisplayName("archive PENDING 告警（跳过两步）返回 409")
         void archive_pendingAlert_returns409() {
             var pendingAlert = findPendingAlert(1L);
-            Long alertId = ((Number) pendingAlert.get("id")).longValue();
+            String alertId = extractId(pendingAlert);
 
             var resp = postRaw(ownerToken,
                     "/api/v1/farms/1/alerts/" + alertId + "/archive", null);

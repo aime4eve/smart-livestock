@@ -60,7 +60,7 @@ class WorkerJourneyTest extends AbstractJourneyTest {
             var listData = getApi(workerToken, "/api/v1/farms/1/alerts?page=0&size=10");
             var items = getItems(listData);
             if (!items.isEmpty()) {
-                String alertId = String.valueOf(((Number) items.get(0).get("id")).longValue());
+                String alertId = extractId(items.get(0));
                 var detail = getApi(workerToken, "/api/v1/farms/1/alerts/" + alertId);
                 assertThat(detail).containsKey("id");
             }
@@ -95,7 +95,7 @@ class WorkerJourneyTest extends AbstractJourneyTest {
                     .filter(a -> "PENDING".equals(a.get("status")))
                     .findFirst();
             if (pending.isPresent()) {
-                Long alertId = ((Number) pending.get().get("id")).longValue();
+                String alertId = extractId(pending.get());
                 var result = postApi(workerToken,
                         "/api/v1/farms/1/alerts/" + alertId + "/acknowledge", null);
                 assertThat(result.get("status")).isEqualTo("ACKNOWLEDGED");
@@ -152,7 +152,7 @@ class WorkerJourneyTest extends AbstractJourneyTest {
                     .findFirst();
 
             if (acknowledged.isPresent()) {
-                Long alertId = ((Number) acknowledged.get().get("id")).longValue();
+                String alertId = extractId(acknowledged.get());
                 var resp = postRaw(workerToken,
                         "/api/v1/farms/1/alerts/" + alertId + "/handle", null);
                 assertThat(resp.getStatusCode().value()).isIn(403, 409);
@@ -170,7 +170,7 @@ class WorkerJourneyTest extends AbstractJourneyTest {
                     .findFirst();
 
             if (handled.isPresent()) {
-                Long alertId = ((Number) handled.get().get("id")).longValue();
+                String alertId = extractId(handled.get());
                 var resp = postRaw(workerToken,
                         "/api/v1/farms/1/alerts/" + alertId + "/archive", null);
                 assertThat(resp.getStatusCode().value()).isIn(403, 409);

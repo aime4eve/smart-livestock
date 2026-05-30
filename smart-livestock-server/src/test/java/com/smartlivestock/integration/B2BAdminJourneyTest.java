@@ -78,7 +78,7 @@ class B2BAdminJourneyTest extends AbstractJourneyTest {
             var items = getItems(listData);
             assertThat(items).isNotEmpty();
 
-            String contractId = String.valueOf(((Number) items.get(0).get("id")).longValue());
+            String contractId = extractId(items.get(0));
             var detail = getApi(b2bAdminToken, "/api/v1/admin/contracts/" + contractId);
             assertThat(detail).containsKey("id");
             assertThat(detail).containsKey("contractNumber");
@@ -100,7 +100,7 @@ class B2BAdminJourneyTest extends AbstractJourneyTest {
             var items = getItems(listData);
             assertThat(items).isNotEmpty();
 
-            String periodId = String.valueOf(((Number) items.get(0).get("id")).longValue());
+            String periodId = extractId(items.get(0));
             var detail = getApi(b2bAdminToken, "/api/v1/admin/revenue/periods/" + periodId);
             assertThat(detail).containsKey("id");
         }
@@ -158,7 +158,7 @@ class B2BAdminJourneyTest extends AbstractJourneyTest {
                     Map.of("name", "其他租户", "contactName", "王五", "contactPhone", "13800007777"));
             assertCreated(createTenantResp);
             @SuppressWarnings("unchecked")
-            String otherTenantId = (String) ((Map<String, Object>) createTenantResp.getBody().get("data")).get("id");
+            String otherTenantId = extractId((Map<String, Object>) createTenantResp.getBody().get("data"));
 
             var resp = postRaw(b2bAdminToken,
                     "/api/v1/admin/users",

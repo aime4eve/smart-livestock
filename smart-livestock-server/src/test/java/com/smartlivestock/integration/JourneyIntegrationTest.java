@@ -56,7 +56,7 @@ class JourneyIntegrationTest extends AbstractJourneyTest {
                 .filter(a -> "PENDING".equals(a.get("status")))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("No PENDING alert found"));
-        Long alertId = ((Number) pendingAlert.get("id")).longValue();
+        String alertId = extractId(pendingAlert);
 
         Map<String, Object> ackResult = postApi(workerToken, "/api/v1/farms/1/alerts/" + alertId + "/acknowledge", null);
         assertThat(ackResult).isNotNull();

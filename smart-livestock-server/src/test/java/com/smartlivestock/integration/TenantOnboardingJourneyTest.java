@@ -30,13 +30,13 @@ class TenantOnboardingJourneyTest extends AbstractJourneyTest {
             assertCreated(createTenantResp);
             @SuppressWarnings("unchecked")
             Map<String, Object> tenantData = (Map<String, Object>) createTenantResp.getBody().get("data");
-            String newTenantId = (String) tenantData.get("id");
+            String newTenantId = extractId(tenantData);
             assertThat(newTenantId).isNotNull();
 
             // Step 2: platform_admin 查询租户列表 → 包含新租户
             var tenantList = getApi(platformAdminToken, "/api/v1/admin/tenants");
             var items = getItems(tenantList);
-            assertThat(items).anyMatch(t -> newTenantId.equals(t.get("id")));
+            assertThat(items).anyMatch(t -> newTenantId.equals(extractId(t)));
 
             // Step 3: platform_admin 创建 b2b_admin 用户并关联新租户
             var createUserResp = postRaw(platformAdminToken,
@@ -45,7 +45,7 @@ class TenantOnboardingJourneyTest extends AbstractJourneyTest {
             assertCreated(createUserResp);
             @SuppressWarnings("unchecked")
             Map<String, Object> userData = (Map<String, Object>) createUserResp.getBody().get("data");
-            String newUserId = (String) userData.get("id");
+            String newUserId = extractId(userData);
             assertThat(newUserId).isNotNull();
 
             // Step 4: 用新 b2b_admin 登录
@@ -54,7 +54,7 @@ class TenantOnboardingJourneyTest extends AbstractJourneyTest {
 
             // Step 5: platform_admin 查询租户详情
             var tenantDetail = getApi(platformAdminToken, "/api/v1/admin/tenants/" + newTenantId);
-            assertThat(tenantDetail.get("id")).isEqualTo(newTenantId);
+            assertThat(extractId(tenantDetail)).isEqualTo(newTenantId);
             assertThat(tenantDetail).containsKey("userCount");
         }
     }
@@ -80,7 +80,7 @@ class TenantOnboardingJourneyTest extends AbstractJourneyTest {
                     Map.of("name", "待更新租户", "contactName", "李四", "contactPhone", "13800003333"));
             assertCreated(createResp);
             @SuppressWarnings("unchecked")
-            String tenantId = (String) ((Map<String, Object>) createResp.getBody().get("data")).get("id");
+            String tenantId = extractId((Map<String, Object>) createResp.getBody().get("data"));
 
             var updateResp = putRaw(platformAdminToken,
                     "/api/v1/admin/tenants/" + tenantId,
@@ -99,7 +99,7 @@ class TenantOnboardingJourneyTest extends AbstractJourneyTest {
                     Map.of("name", "Phase测试租户", "contactName", "王五", "contactPhone", "13800004444"));
             assertCreated(createResp);
             @SuppressWarnings("unchecked")
-            String tenantId = (String) ((Map<String, Object>) createResp.getBody().get("data")).get("id");
+            String tenantId = extractId((Map<String, Object>) createResp.getBody().get("data"));
 
             var updateResp = putRaw(platformAdminToken,
                     "/api/v1/admin/tenants/" + tenantId + "/phase",
@@ -154,7 +154,7 @@ class TenantOnboardingJourneyTest extends AbstractJourneyTest {
                     Map.of("phone", "13800006666", "name", "密码测试用户", "role", "OWNER", "tenantId", "1", "password", "Old@123"));
             assertCreated(createResp);
             @SuppressWarnings("unchecked")
-            String userId = (String) ((Map<String, Object>) createResp.getBody().get("data")).get("id");
+            String userId = extractId((Map<String, Object>) createResp.getBody().get("data"));
 
             var resetResp = postRaw(platformAdminToken,
                     "/api/v1/admin/users/" + userId + "/reset-password",

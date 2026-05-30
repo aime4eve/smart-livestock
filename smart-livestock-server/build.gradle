@@ -58,9 +58,9 @@ dependencies {
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'org.testcontainers:testcontainers:1.19.8'
-    testImplementation 'org.testcontainers:postgresql:1.19.8'
-    testImplementation 'org.testcontainers:junit-jupiter:1.19.8'
+    testImplementation 'org.testcontainers:testcontainers:1.20.6'
+    testImplementation 'org.testcontainers:postgresql:1.20.6'
+    testImplementation 'org.testcontainers:junit-jupiter:1.20.6'
 }
 
 // macOS resource fork files (._*) break classpath scanning and incremental compilation
@@ -77,6 +77,8 @@ tasks.withType(JavaCompile).configureEach {
 tasks.named('test') {
     useJUnitPlatform()
     systemProperty 'spring.classformat.ignore', 'true'
+    // Docker 29+ requires minimum API 1.40; docker-java defaults to 1.32
+    systemProperty 'docker.api.version', '1.40'
     doFirst {
         def buildDir = layout.buildDirectory.get().asFile
         if (buildDir.exists()) {

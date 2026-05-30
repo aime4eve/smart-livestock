@@ -81,7 +81,7 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
             assertThat(items).isNotEmpty();
 
             @SuppressWarnings("unchecked")
-            String fenceId = String.valueOf(((Number) ((Map<String, Object>) items.get(items.size() - 1)).get("id")).longValue());
+            String fenceId = extractId(items.get(items.size() - 1));
 
             var resp = deleteRaw(ownerToken, "/api/v1/farms/1/fences/" + fenceId);
             assertThat(resp.getStatusCode().value()).isIn(200, 204);

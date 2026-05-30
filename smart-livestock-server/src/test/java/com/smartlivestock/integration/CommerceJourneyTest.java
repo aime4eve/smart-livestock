@@ -93,7 +93,7 @@ class CommerceJourneyTest extends AbstractJourneyTest {
             var items = getItems(listData);
             assertThat(items).isNotEmpty();
 
-            String contractId = String.valueOf(((Number) items.get(0).get("id")).longValue());
+            String contractId = extractId(items.get(0));
             var body = Map.of("status", "suspended");
             var resp = putRaw(platformAdminToken,
                     "/api/v1/admin/contracts/" + contractId + "/status", body);
@@ -121,7 +121,7 @@ class CommerceJourneyTest extends AbstractJourneyTest {
             var items = getItems(listData);
             assertThat(items).isNotEmpty();
 
-            String periodId = String.valueOf(((Number) items.get(0).get("id")).longValue());
+            String periodId = extractId(items.get(0));
             var detail = getApi(platformAdminToken, "/api/v1/admin/revenue/periods/" + periodId);
             assertThat(detail).containsKey("id");
         }
@@ -163,7 +163,7 @@ class CommerceJourneyTest extends AbstractJourneyTest {
             var items = getItems(listData);
             assertThat(items).isNotEmpty();
 
-            String subId = String.valueOf(((Number) items.get(0).get("id")).longValue());
+            String subId = extractId(items.get(0));
             var detail = getApi(platformAdminToken, "/api/v1/admin/subscriptions/" + subId);
             assertThat(detail).containsKey("id");
         }

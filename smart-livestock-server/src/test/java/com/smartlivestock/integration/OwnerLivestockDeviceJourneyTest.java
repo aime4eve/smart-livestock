@@ -41,7 +41,7 @@ class OwnerLivestockDeviceJourneyTest extends AbstractJourneyTest {
             var items = getItems(listData);
             assertThat(items).isNotEmpty();
 
-            String livestockId = String.valueOf(((Number) items.get(0).get("id")).longValue());
+            String livestockId = extractId(items.get(0));
             var detail = getApi(ownerToken, "/api/v1/farms/1/livestock/" + livestockId);
             assertThat(detail).containsKey("id");
             assertThat(detail).containsKey("livestockCode");
@@ -66,7 +66,7 @@ class OwnerLivestockDeviceJourneyTest extends AbstractJourneyTest {
             var items = getItems(listData);
             assertThat(items).isNotEmpty();
 
-            String livestockId = String.valueOf(((Number) items.get(0).get("id")).longValue());
+            String livestockId = extractId(items.get(0));
             var body = Map.of(
                     "breed", "安格斯牛",
                     "healthStatus", "HEALTHY"
@@ -115,7 +115,7 @@ class OwnerLivestockDeviceJourneyTest extends AbstractJourneyTest {
             var items = getItems(data);
             assertThat(items).isNotEmpty();
 
-            String deviceId = String.valueOf(((Number) items.get(0).get("id")).longValue());
+            String deviceId = extractId(items.get(0));
             var detail = getApi(ownerToken, "/api/v1/farms/1/devices/" + deviceId);
             assertThat(detail).containsKey("id");
             assertThat(detail).containsKey("deviceCode");
@@ -170,7 +170,7 @@ class OwnerLivestockDeviceJourneyTest extends AbstractJourneyTest {
             var items = getItems(listData);
             assertThat(items).isNotEmpty();
 
-            String livestockId = String.valueOf(((Number) items.get(0).get("id")).longValue());
+            String livestockId = extractId(items.get(0));
             var resp = getRaw(ownerToken, "/api/v1/farms/1/livestock/" + livestockId + "/gps-logs");
             assertThat(resp.getStatusCode().value()).isIn(200, 404);
         }

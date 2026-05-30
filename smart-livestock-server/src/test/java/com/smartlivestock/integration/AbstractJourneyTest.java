@@ -178,4 +178,18 @@ public abstract class AbstractJourneyTest {
     protected List<Map<String, Object>> getItems(Map<String, Object> data) {
         return (List<Map<String, Object>>) data.get("items");
     }
+
+    /**
+     * Extract ID from API response as String.
+     * API may return Integer or String depending on serialization config.
+     */
+    protected String extractId(Map<String, Object> data, String key) {
+        Object id = data.get(key);
+        if (id == null) return null;
+        return String.valueOf(id);
+    }
+
+    protected String extractId(Map<String, Object> data) {
+        return extractId(data, "id");
+    }
 }
