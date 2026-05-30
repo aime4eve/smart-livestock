@@ -50,8 +50,8 @@ class CommerceJourneyTest extends AbstractJourneyTest {
         @DisplayName("owner 查看合同（/contracts/me）")
         void owner_viewMyContracts() {
             var resp = getRaw(ownerToken, "/api/v1/contracts/me");
-            // May return 404 if no contract for tenant
-            assertThat(resp.getStatusCode().value()).isIn(200, 404);
+            // Demo 租户有种子合同，预期 200
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
 
         @Test
@@ -103,7 +103,7 @@ class CommerceJourneyTest extends AbstractJourneyTest {
         void owner_cancelSubscription() {
             try {
                 var resp = postRaw(ownerToken, "/api/v1/subscription/cancel", null);
-                assertThat(resp.getStatusCode().value()).isIn(200, 400);
+                assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
             } finally {
                 // 无论如何恢复订阅
                 postRaw(ownerToken, "/api/v1/subscription/checkout", Map.of("tier", "PREMIUM", "billingCycle", "monthly"));
@@ -273,10 +273,10 @@ class CommerceJourneyTest extends AbstractJourneyTest {
         }
 
         @Test
-        @DisplayName("worker 不能查看订阅信息")
-        void worker_cannotViewSubscription() {
+        @DisplayName("worker 可以查看订阅信息（无角色限制）")
+        void worker_canViewSubscription() {
             var resp = getRaw(workerToken, "/api/v1/subscription");
-            assertThat(resp.getStatusCode().value()).isBetween(200, 403);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
     }
 }

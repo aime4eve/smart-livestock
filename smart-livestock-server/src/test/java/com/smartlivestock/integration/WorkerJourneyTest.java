@@ -95,7 +95,7 @@ class WorkerJourneyTest extends AbstractJourneyTest {
         void worker_updateMe_success() {
             var body = Map.of("name", "测试牧工更新名");
             var resp = putRaw(workerToken, "/api/v1/me", body);
-            assertThat(resp.getStatusCode().value()).isIn(200, 204);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
 
             // 验证更新生效
             var data = getApi(workerToken, "/api/v1/me");

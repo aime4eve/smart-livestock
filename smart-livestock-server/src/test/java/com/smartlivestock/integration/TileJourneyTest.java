@@ -3,6 +3,7 @@ package com.smartlivestock.integration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 
@@ -13,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * 瓦片端点 e2e 测试。
- * 覆盖 TileAppController、TileAdminController、TileController。
+ * 覆盖 TileAppController（3 端点）、TileController（2 端点）、TileAdminController（5 端点）+ 权限边界。
  */
 class TileJourneyTest extends AbstractJourneyTest {
 
@@ -35,17 +36,15 @@ class TileJourneyTest extends AbstractJourneyTest {
             var resp = getRaw(ownerToken, "/api/v1/farms/1/tile-source");
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(resp.getBody()).containsKey("data");
-            Object data = resp.getBody().get("data");
             // TileAppController returns ApiResponse<List<TileSourceDto>>
-            assertThat(data).isInstanceOf(List.class);
+            assertThat(resp.getBody().get("data")).isInstanceOf(List.class);
         }
 
         @Test
-        @DisplayName("owner 查看离线地图（无 mbtiles 返回 404）")
-        void owner_offlineMap() {
+        @DisplayName("owner 查看离线地图（Testcontainers 无 mbtiles 文件，返回 404）")
+        void owner_offlineMap_returns404() {
             var resp = getRaw(ownerToken, "/api/v1/farms/1/offline-map");
-            // No mbtiles file on test server → 404
-            assertThat(resp.getStatusCode().value()).isIn(200, 404);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
 
         @Test
@@ -58,8 +57,8 @@ class TileJourneyTest extends AbstractJourneyTest {
                     "bytesDownloaded", 1024
             );
             var resp = postRaw(ownerToken, "/api/v1/farms/1/tile-download-log", body);
-            // 需要 farmTileTaskId 和 userId，若无对应记录可能返回 500
-            assertThat(resp.getStatusCode().value()).isIn(200, 500);
+            // TileDownloadLogRepository.save() 直接保存，无 FK 约束
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
     }
 
@@ -73,9 +72,8 @@ class TileJourneyTest extends AbstractJourneyTest {
             var headers = authHeaders(platformAdminToken);
             var resp = restTemplate.exchange(
                     "/api/v1/admin/tiles/status", HttpMethod.GET,
-                    new org.springframework.http.HttpEntity<>(headers), List.class);
+                    new HttpEntity<>(headers), List.class);
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-            // TileController.getTileStatus() returns List directly (no ApiResponse wrapper)
             assertThat(resp.getBody()).isNotNull();
         }
 
@@ -86,8 +84,7 @@ class TileJourneyTest extends AbstractJourneyTest {
             var resp = getRaw(platformAdminToken, "/api/v1/admin/tiles/regions");
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(resp.getBody()).containsKey("data");
-            Object data = resp.getBody().get("data");
-            assertThat(data).isInstanceOf(List.class);
+            assertThat(resp.getBody().get("data")).isInstanceOf(List.class);
         }
 
         @Test
@@ -97,8 +94,17 @@ class TileJourneyTest extends AbstractJourneyTest {
             var resp = getRaw(platformAdminToken, "/api/v1/admin/tiles/tasks");
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(resp.getBody()).containsKey("data");
-            Object data = resp.getBody().get("data");
-            assertThat(data).isInstanceOf(List.class);
+            assertThat(resp.getBody().get("data")).isInstanceOf(List.class);
+        }
+
+        @Test
+        @DisplayName("platform_admin 查看牧场瓦片状态汇总（farm-tasks）")
+        @SuppressWarnings("unchecked")
+        void admin_listFarmTasks() {
+            var resp = getRaw(platformAdminToken, "/api/v1/admin/tiles/farm-tasks");
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(resp.getBody()).containsKey("data");
+            assertThat(resp.getBody().get("data")).isInstanceOf(List.class);
         }
 
         @Test
@@ -106,17 +112,32 @@ class TileJourneyTest extends AbstractJourneyTest {
         void admin_createRegion() {
             var body = Map.of(
                     "name", "E2E测试区域",
-                    "minLat", 28.2,
-                    "maxLat", 28.3,
                     "minLon", 112.8,
+                    "minLat", 28.2,
                     "maxLon", 112.9,
+                    "maxLat", 28.3,
                     "minZoom", 10,
                     "maxZoom", 14,
                     "fileName", "e2e_test_region",
                     "status", "ACTIVE"
             );
             var resp = postRaw(platformAdminToken, "/api/v1/admin/tiles/regions", body);
-            // TileAdminController.upsertRegion returns 200 OK
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
+
+        @Test
+        @DisplayName("platform_admin 创建瓦片生成任务")
+        void admin_createTask() {
+            var body = Map.of(
+                    "regionName", "E2E测试任务区域",
+                    "minLon", 112.8,
+                    "minLat", 28.2,
+                    "maxLon", 112.9,
+                    "maxLat", 28.3,
+                    "minZoom", 11,
+                    "maxZoom", 15
+            );
+            var resp = postRaw(platformAdminToken, "/api/v1/admin/tiles/tasks", body);
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
     }
@@ -136,6 +157,13 @@ class TileJourneyTest extends AbstractJourneyTest {
         @DisplayName("owner 不能访问 Admin 瓦片端点")
         void owner_cannotAccessAdminTiles() {
             var resp = getRaw(ownerToken, "/api/v1/admin/tiles/regions");
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        }
+
+        @Test
+        @DisplayName("b2b_admin 不能访问 Admin 瓦片端点")
+        void b2bAdmin_cannotAccessAdminTiles() {
+            var resp = getRaw(b2bAdminToken, "/api/v1/admin/tiles/regions");
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
     }

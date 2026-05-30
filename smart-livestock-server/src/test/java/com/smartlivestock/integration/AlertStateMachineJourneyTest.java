@@ -7,6 +7,7 @@ import com.smartlivestock.ranch.domain.model.Severity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 
 import java.util.Map;
 
@@ -101,7 +102,7 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
             // worker 尝试 handle
             var handleResp = postRaw(workerToken,
                     "/api/v1/farms/1/alerts/" + alertId + "/handle", null);
-            assertThat(handleResp.getStatusCode().value()).isIn(200, 403, 409);
+            assertThat(handleResp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
     }
 

@@ -176,7 +176,7 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
                     "longitude", 112.85
             );
             var resp = postRaw(ownerToken, "/api/v1/farms", body);
-            assertThat(resp.getStatusCode().value()).isIn(400, 409);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -195,11 +195,11 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
     }
 
     @Nested
-    @DisplayName("成员管理（Stub）")
-    class MemberManagementStub {
+    @DisplayName("成员管理")
+    class MemberManagement {
 
         @Test
-        @DisplayName("owner 查看牧场成员列表（stub 返回空列表）")
+        @DisplayName("owner 查看牧场成员列表（返回空列表）")
         void owner_listFarmMembers_returnsEmptyList() {
             var data = getApi(ownerToken, "/api/v1/farms/1/members");
             assertThat(data).containsKey("items");
@@ -208,31 +208,33 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
         }
 
         @Test
-        @DisplayName("owner 添加牧场成员（stub 返回 201）")
-        void owner_addMember_returnsCreatedStub() {
+        @DisplayName("owner 添加牧场成员成功")
+        void owner_addMember_returnsCreated() {
             var body = Map.of("userId", "2", "role", "WORKER");
             var resp = postRaw(ownerToken, "/api/v1/farms/1/members", body);
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(resp.getBody()).isNotNull();
             @SuppressWarnings("unchecked")
             Map<String, Object> data = (Map<String, Object>) resp.getBody().get("data");
-            assertThat(data.get("phase")).isEqualTo("stub");
+            assertThat(data).containsEntry("userId", 2L);
+            assertThat(data).containsEntry("farmId", 1L);
+            assertThat(data).containsEntry("role", "WORKER");
         }
 
         @Test
-        @DisplayName("owner 移除牧场成员（stub 返回 200）")
-        void owner_removeMember_returnsOkStub() {
+        @DisplayName("owner 重复添加成员返回 409")
+        void owner_addMember_duplicate_returns409() {
+            var body = Map.of("userId", "2", "role", "WORKER");
+            var resp = postRaw(ownerToken, "/api/v1/farms/1/members", body);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+            assertThat(resp.getBody().get("code")).isEqualTo("DUPLICATE_RESOURCE");
+        }
+
+        @Test
+        @DisplayName("owner 移除牧场成员成功")
+        void owner_removeMember_returnsOk() {
             var resp = deleteRaw(ownerToken, "/api/v1/farms/1/members/2");
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        }
-
-        @Test
-        @DisplayName("worker 添加成员（stub 无权限检查，返回 201）")
-        void worker_addMember_stubReturnsCreated() {
-            var body = Map.of("userId", "3", "role", "WORKER");
-            var resp = postRaw(workerToken, "/api/v1/farms/1/members", body);
-            // Stub 端点尚未实现权限检查，返回 201
-            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         }
     }
 }
