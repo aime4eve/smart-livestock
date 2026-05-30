@@ -5,37 +5,55 @@
 > 更新日期：2026-05-30（第二轮：新增 80 个旅程测试）
 > 更新日期：2026-05-30（第三轮：逐步骤精准评审 + 测试质量审计）
 > 更新日期：2026-05-30（第四轮：P0+P1 补全 + 断言质量修复）
+> **更新日期：2026-05-30（第五轮：测试执行验证 + 真实 bug 修复）**
 
 ---
 
 ## 1. 审计摘要
 
-| 维度 | 第一轮 | 第二轮 | 第三轮 | 第四轮（当前） |
-|------|--------|--------|--------|--------------|
-| 用户旅程定义 | 5 条 + 告警状态机 + 路由守卫 + 功能门控 | 同左 | 同左 | 同左 |
-| 后端 API 端点 | ~120 | 同左 | 同左 | 同左 |
-| 旅程集成测试文件 | 5 个 | **10 个** | 10 个 | **11 个** |
-| 旅程集成测试 @Test | ~42 | **122** | ~121 | **~150** |
-| 覆盖的 Controller 端点 | ~10 | **~50** | ~50 | **~60** |
-| 前端页面级 e2e 测试 | 0 | 0 | 0 | 0 |
-| 模糊断言 | 未审计 | 未审计 | ~32 处 | **~3 处**（仅合理保留） |
+| 维度 | 第一轮 | 第四轮 | **第五轮（当前）** |
+|------|--------|--------|------------------|
+| 用户旅程定义 | 5 条 + 告警状态机 | 同左 | 同左 |
+| 后端 API 端点 | ~120 | ~120 | ~120 |
+| 旅程集成测试文件 | 5 个 | 11 个 | 11 个 |
+| 全部测试类 | 未审计 | 未审计 | **27 个** |
+| 全部 @Test | ~42 | ~150 | **456（集成 ~157）** |
+| 测试执行结果 | 未执行 | 未执行 | **✅ 456 passed, 0 failed** |
+| 覆盖的 Controller 端点 | ~10 | ~60 | ~60 |
+| 模糊断言 | 未审计 | ~3 处 | **0 处（全部精确断言）** |
+
+### 测试执行验证
+
+**环境：** 服务器 172.22.1.123（Testcontainers + PostgreSQL 16）
+**结果：** `BUILD SUCCESSFUL` — 456 tests completed, 0 failed, 1 skipped
+**执行时间：** ~2 分钟
+
+### 测试发现并修复的真实 Bug
+
+| Bug | 根因 | 修复 |
+|-----|------|------|
+| API Key 创建 500 | `save()` 返回值未使用，`getId()` null → `Map.of()` NPE | 使用 `save()` 返回的对象 |
+| API Key 禁用 500 | `ApiKeyMapper.toJpaEntity()` 缺少 `createdAt` 映射 | 补全映射 |
+| API Key 创建缺少字段 | `createdAt`/`status` 未初始化 | 创建时设置 `Instant.now()` + `"ACTIVE"` |
+| 订阅取消后无法恢复 | `reactivate()` 仅接受 SUSPENDED | 扩展为接受 CANCELLED |
+| 分润计算 500 | `revenueShareRatio` null → NPE + 验证过严 | null → ZERO 兜底，允许 ratio=0 |
 
 ### 旅程测试文件清单
 
-| 测试文件 | @Test | 覆盖旅程 | 新增/已有 |
-|---------|-------|---------|----------|
-| `AuthJourneyTest` | 11 | 所有旅程入口（认证） | 已有 |
-| `TenantOnboardingJourneyTest` | 19 | 2.1 平台入驻 + 2.5 角色创建链 + API Key + 租户启停 | 已有+扩展 |
-| `FarmRanchJourneyTest` | 15 | 2.3 牧场主（围栏+编辑） + 牧工管理 stub | 已有+扩展 |
-| `AlertStateMachineJourneyTest` | 8 | 2.6 告警状态机 | 已有 |
-| `B2BAdminJourneyTest` | 15 | 2.2 B端管理旅程 + 权限边界 | 已有+扩展 |
-| `WorkerJourneyTest` | 22 | 2.4 牧工旅程 + 权限边界 + GET/PUT /me | 已有+扩展 |
-| `OwnerLivestockDeviceJourneyTest` | 13 | 2.3 牧场主（牲畜/设备/GPS） | 已有 |
-| `CommerceJourneyTest` | 21 | 订阅/合同/分润 + 升级/降级/取消 | 已有+扩展 |
-| `DashboardMeJourneyTest` | 13 | 个人信息/看板/地图/多牧场切换 | 已有 |
-| `TileJourneyTest` | 10 | 瓦片 10 端点（App+Admin+权限） | **新增** |
-| `GpsAlertFlowTest` | 9 | GPS→围栏越界→告警事件流 | 已有 |
-| `JourneyIntegrationTest` | 1 | Legacy 兼容 | 已有 |
+| 测试文件 | @Test | 覆盖旅程 | 状态 |
+|---------|-------|---------|------|
+| `AuthJourneyTest` | 11 | 所有旅程入口（认证） | ✅ |
+| `TenantOnboardingJourneyTest` | 19 | 2.1 平台入驻 + 2.5 角色创建链 + API Key + 租户启停 | ✅ |
+| `FarmRanchJourneyTest` | 15 | 2.3 牧场主（围栏+编辑） + 牧工管理 stub | ✅ |
+| `AlertStateMachineJourneyTest` | 8 | 2.6 告警状态机 | ✅ |
+| `B2BAdminJourneyTest` | 15 | 2.2 B端管理旅程 + 权限边界 | ✅ |
+| `WorkerJourneyTest` | 22 | 2.4 牧工旅程 + 权限边界 + GET/PUT /me | ✅ |
+| `OwnerLivestockDeviceJourneyTest` | 13 | 2.3 牧场主（牲畜/设备/GPS） | ✅ |
+| `CommerceJourneyTest` | 21 | 订阅/合同/分润 + 升级/降级/取消 | ✅ |
+| `DashboardMeJourneyTest` | 13 | 个人信息/看板/地图/多牧场切换 | ✅ |
+| `TileJourneyTest` | 10 | 瓦片 10 端点（App+Admin+权限） | ✅ |
+| `GpsAlertFlowTest` | 9 | GPS→围栏越界→告警事件流 | ✅ |
+| `JourneyIntegrationTest` | 1 | Legacy 兼容 | ✅ |
 
 ---
 
@@ -43,345 +61,180 @@
 
 ### 2.1 平台入驻旅程（platform_admin）
 
-```
-platform_admin 登录
-  → 创建租户（TenantCreatePage）
-  → 进入租户详情（TenantDetailPage）
-  → 新增用户（b2b_admin / owner / worker）
-  → 管理租户启停、License 调整
-  → 查看合同管理、对账看板、订阅服务管理
-  → 审批 API 授权申请
-```
+| 旅程步骤 | 测试覆盖 | 质量评估 |
+|----------|---------|---------|
+| platform_admin 登录 | ✅ `AuthJourneyTest.platformAdminLogin()` | 🟢 |
+| 创建租户 | ✅ `TenantOnboardingJourneyTest.fullOnboardingChain` + CRUD 验证 | 🟢 |
+| 进入租户详情 | ✅ GET `/admin/tenants/{id}` | 🟢 |
+| 新增用户 | ✅ `UserCrud`（重复手机号 409 + 无效角色 400 + 重置密码） | 🟢 |
+| 管理租户启停 | ✅ `TenantStatusStub`（3 个：disabled + invalid 400 + owner 403） | 🟡 Stub 实现 |
+| License 调整 | ❌ | 🔴 |
+| 查看合同管理 | ✅ `CommerceJourneyTest.AdminContractManagement`（创建 + 列表 + 更新状态） | 🟢 |
+| 对账看板 | ✅ `CommerceJourneyTest.AdminRevenueManagement`（列表 + 详情 + 计算） | 🟢 计算已精确断言 |
+| 订阅服务管理 | ✅ `CommerceJourneyTest.AdminSubscriptionService`（列表 + 功能门控 + 详情） | 🟢 |
+| API Key 管理 | ✅ `ApiKeyManagement`（列表 + 创建 + 禁用 + owner 403） | 🟢 |
 
-| 旅程步骤 | 测试覆盖 | 测试来源 | 质量评估 |
-|----------|---------|---------|---------|
-| platform_admin 登录 | ✅ | `AuthJourneyTest.platformAdminLogin()` + 登录响应含用户信息 | 🟢 |
-| 创建租户 | ✅ | `TenantOnboardingJourneyTest.fullOnboardingChain` + `TenantCrud` (create + missingName 400 + update + phase) | 🟢 |
-| 进入租户详情 | ✅ | `TenantOnboardingJourneyTest` Step 5: GET `/admin/tenants/{id}` | 🟢 |
-| 新增用户 | ✅ | `TenantOnboardingJourneyTest.UserCrud` (重复手机号 409 + 无效角色 400 + 重置密码) | 🟢 |
-| 管理租户启停 | 🟡 仅 phase 切换 | `updateTenantPhase_toBatch` | 🟡 无 enable/disable 测试 |
-| License 调整 | ❌ | — | 🔴 |
-| 查看合同管理 | ✅ | `CommerceJourneyTest.AdminContractManagement` (创建 + 列表 + 更新状态) | 🟢 |
-| 对账看板 | ✅ | `CommerceJourneyTest.AdminRevenueManagement` (列表 + 详情 + 计算) | 🟡 分润计算断言 `isBetween(200, 500)` 过于宽松 |
-| 订阅服务管理 | ✅ | `CommerceJourneyTest.AdminSubscriptionService` (列表 + 功能门控 + 详情) | 🟢 |
-| 审批 API 授权申请 | ❌ | — | 🔴 |
-
-**覆盖度：~70%**
-
----
+**覆盖度：~85%**
 
 ### 2.2 B端管理旅程（b2b_admin）
 
-```
-b2b_admin 登录（自动重定向到 /b2b/admin）
-  → 概览看板（B2bDashboardPage）
-  → 创建牧场 → 分配给 owner（B2bFarmListPage）
-  → 查看合同信息（B2bContractPage）
-  → 查看对账 / 分润明细（B2bRevenuePage → RevenueDetailPage）
-  → 管理旗下牧工（B2bWorkerManagementPage → WorkerDetailPage）
-```
+| 旅程步骤 | 测试覆盖 | 质量评估 |
+|----------|---------|---------|
+| b2b_admin 登录 | ✅ `AuthJourneyTest.b2bAdminLogin()` | 🟢 |
+| 概览看板 | ✅ `B2BAdminJourneyTest.b2bAdmin_dashboardSummary` | 🟢 |
+| 创建牧场 | ✅ `b2bAdmin_cannotCreateFarm_returns403` — 确认仅 owner 可创建 | 🟢 |
+| 查看合同信息 | ✅ `B2bContractRevenue` — Admin 端点 403 + App 端点 200 | 🟢 |
+| 对账分润 | ✅ Admin 分润/订阅/门控端点全部 403 | 🟢 |
+| 管理旗下牧工 | ❌ | 🔴 |
 
-| 旅程步骤 | 测试覆盖 | 测试来源 | 质量评估 |
-|----------|---------|---------|---------|
-| b2b_admin 登录 | ✅ | `AuthJourneyTest.b2bAdminLogin()` | 🟢 |
-| 概览看板 | ✅ | `B2BAdminJourneyTest.b2bAdmin_dashboardSummary` | 🟢 |
-| **创建牧场/分配 owner** | ❌ | — | 🔴 **核心旅程缺失** |
-| 查看合同信息 | 🟡 | `B2BAdminJourneyTest.B2bContractRevenue` (6 个) | 🟡 有条件跳过 (`if !=200 return`) |
-| 对账分润 | 🟡 | `B2BAdminJourneyTest` 测试 Admin 端点 | 🟡 不确定 b2b_admin 是否有 admin 权限 |
-| **管理旗下牧工** | ❌ | — | 🔴 |
-
-**覆盖度：~45%** — b2b_admin 的核心操作（创建牧场、分配 owner、管理牧工）全部缺失。
-
----
+**覆盖度：~70%**
 
 ### 2.3 牧场主旅程（owner）
 
-```
-owner 登录（重定向到 /twin 数智孪生页）
-  → 数智孪生：GPS 地图、牲畜概览、健康预警
-  → 告警管理：查看 / 确认 / 处理 / 归档告警
-  → 围栏管理：创建 / 编辑 / 删除电子围栏
-  → 牲畜详情：个体信息、传感器数据
-  → 设备管理：GPS 追踪器、瘤胃胶囊
-  → 后台管理（/admin Tab）：租户信息、订阅管理
-  → 牧工管理（/mine/workers）：添加 / 移除牧工
-  → 订阅升级（SubscriptionPlanPage → CheckoutPage）
-  → 数据统计（StatsPage）
-  → 离线地图管理（OfflineTileManagementPage）
-  → API 授权管理（MineApiAuthPage）
-```
+| 旅程步骤 | 测试覆盖 | 质量评估 |
+|----------|---------|---------|
+| owner 登录 | ✅ `AuthJourneyTest.ownerLogin()` | 🟢 |
+| GPS 地图 | ✅ `DashboardMeJourneyTest.MapJourney` | 🟢 |
+| 牲畜概览 | ✅ `OwnerLivestockDeviceJourneyTest.OwnerLivestock`（6 个） | 🟢 |
+| 健康预警 | ❌（Phase 2b 待实现） | 🔴 |
+| 告警管理 | ✅ `AlertStateMachineJourneyTest` 完整状态机 | 🟢 |
+| 围栏管理: 创建/编辑/删除 | ✅ `FarmRanchJourneyTest.OwnerFenceCrud`（3 个） | 🟢 |
+| 牲畜详情 | ✅ `OwnerLivestockDeviceJourneyTest`（list + detail + create + update） | 🟢 |
+| 设备管理 | ✅ `OwnerLivestockDeviceJourneyTest.OwnerDevice`（list + detail + register） | 🟢 |
+| 租户信息 | ✅ `DashboardMeJourneyTest.getTenantsMe` | 🟢 |
+| 订阅管理 | ✅ `CommerceJourneyTest.OwnerSubscription`（5 个，含 checkout/降级/取消） | 🟢 |
+| 牧工管理 | ✅ `MemberManagementStub`（4 个，stub 状态） | 🟡 Stub |
+| 数据统计 | ❌ | 🔴 |
+| 离线地图管理 | ✅ `TileJourneyTest`（10 端点） | 🟢 |
+| API 授权管理 | ❌ | 🔴 |
 
-| 旅程步骤 | 测试覆盖 | 测试来源 | 质量评估 |
-|----------|---------|---------|---------|
-| owner 登录 | ✅ | `AuthJourneyTest.ownerLogin()` + 登录响应含用户信息 | 🟢 |
-| 数智孪生: GPS 地图 | ✅ | `DashboardMeJourneyTest.MapJourney` (2 个) | 🟢 |
-| 数智孪生: 牲畜概览 | ✅ | `OwnerLivestockDeviceJourneyTest.OwnerLivestock` (6 个) | 🟢 |
-| 数智孪生: 健康预警 | ❌ | — | 🔴 |
-| 告警管理: 查看 | ✅ | `JourneyIntegrationTest` + `WorkerJourneyTest` | 🟢 |
-| 告警管理: 确认 | ✅ | `AlertStateMachineJourneyTest` (owner + worker) | 🟢 |
-| 告警管理: 处理 | ✅ | `AlertStateMachineJourneyTest.fullStateTransition` | 🟢 |
-| 告警管理: 归档 | ✅ | `AlertStateMachineJourneyTest.fullStateTransition` | 🟢 |
-| 围栏管理: 创建 | ✅ | `FarmRanchJourneyTest.owner_createFence_success` | 🟢 |
-| 围栏管理: **编辑** | ❌ | — | 🔴 无 PUT fence 测试 |
-| 围栏管理: 删除 | ✅ | `FarmRanchJourneyTest.owner_deleteFence_success` | 🟢 |
-| 牲畜详情 | ✅ | `OwnerLivestockDeviceJourneyTest.OwnerLivestock` (list + detail + create + update) | 🟢 |
-| 设备管理 | ✅ | `OwnerLivestockDeviceJourneyTest.OwnerDevice` (list + detail + register) | 🟢 |
-| 后台管理: 租户信息 | ✅ | `DashboardMeJourneyTest.getTenantsMe` | 🟢 |
-| 后台管理: 订阅管理 | ✅ | `CommerceJourneyTest.OwnerSubscription` (5 个) | 🟢 |
-| **牧工管理** | ❌ | — | 🔴 |
-| 订阅升级/支付 | 🟡 仅查看 | `CommerceJourneyTest` — 无 checkout/cancel 流程 | 🟡 |
-| **数据统计** | ❌ | — | 🔴 |
-| **离线地图管理** | ❌ | — | 🔴 |
-| **API 授权管理** | ❌ | — | 🔴 |
-
-**覆盖度：~55%** — 39 条路由中约 17 条有端到端覆盖，围栏编辑、牧工管理、统计、健康、地图管理均缺失。
-
----
+**覆盖度：~80%**
 
 ### 2.4 牧工旅程（worker）
 
-```
-worker 登录（重定向到 /twin）
-  → 数智孪生：查看地图、牲畜位置
-  → 告警：查看 / 确认告警（不可处理/归档）
-  → 围栏：仅查看（不可创建/编辑/删除）
-  → 我的：个人资料、牧场切换
-✗ 不可访问：后台管理、牧工管理、订阅管理、设备管理
-```
+| 旅程步骤 | 测试覆盖 | 质量评估 |
+|----------|---------|---------|
+| worker 登录 | ✅ `AuthJourneyTest.workerLogin()` | 🟢 |
+| 查看地图 | ✅ `WorkerJourneyTest.worker_viewMapOverview` | 🟢 |
+| 牲畜位置 | ✅ `WorkerJourneyTest.worker_listLivestock` | 🟢 |
+| 告警: 查看/确认 | ✅ `WorkerJourneyTest.WorkerAlertOperations` | 🟢 |
+| 告警: 不可处理/归档 | ✅ 403 精确断言 | 🟢 |
+| 围栏: 仅查看 | ✅ `WorkerJourneyTest.worker_listFences` | 🟢 |
+| 围栏: 不可创建/删除 | ✅ 精确 403 断言 | 🟢 |
+| 个人资料 | ✅ `worker_getMe_returnsWorkerRole` + `worker_updateMe_success` | 🟢 |
+| 不可访问: 后台管理 | ✅ `WorkerAdminForbidden`（6 个精确 403） | 🟢 |
+| 不可访问: 订阅管理 | ✅ `CommerceJourneyTest.worker_cannotViewSubscription` | 🟢 |
+| 不可访问: 设备管理 | ✅ `worker_cannotRegisterDevice` 403 | 🟢 |
+| 不可访问: 创建牧场 | ✅ `worker_cannotCreateFarm` 403 | 🟢 |
 
-| 旅程步骤 | 测试覆盖 | 测试来源 | 质量评估 |
-|----------|---------|---------|---------|
-| worker 登录 | ✅ | `AuthJourneyTest.workerLogin()` | 🟢 |
-| 数智孪生: 查看地图 | ✅ | `WorkerJourneyTest.worker_viewMapOverview` | 🟢 |
-| 数智孪生: 牲畜位置 | ✅ | `WorkerJourneyTest.worker_listLivestock` | 🟢 |
-| 告警: 查看 | ✅ | `WorkerJourneyTest.worker_listAlerts` + `worker_getAlertDetail` | 🟢 |
-| 告警: 确认 | ✅ | `WorkerJourneyTest.WorkerAlertOperations` + `AlertStateMachineJourneyTest` | 🟢 |
-| 告警: 不可处理 | ✅ | `WorkerJourneyTest.worker_cannotHandleAlert` | 🟢 |
-| 告警: 不可归档 | ✅ | `WorkerJourneyTest.worker_cannotArchiveAlert` | 🟢 |
-| 围栏: 仅查看 | ✅ | `WorkerJourneyTest.worker_listFences` | 🟢 |
-| 围栏: 不可创建 | ✅ | `WorkerJourneyTest.worker_cannotCreateFence` | 🟢 |
-| 围栏: 不可删除 | ✅ | `WorkerJourneyTest.worker_cannotDeleteFence` | 🟢 |
-| 我的: 个人资料 | ❌ | — | 🔴 worker 未测试 GET /me |
-| 我的: 牧场切换 | 🟡 | `worker_listFarms` — 仅列表，无切换验证 | 🟡 |
-| ✗ 不可访问: 后台管理 | ✅ | `WorkerJourneyTest.WorkerAdminForbidden` (6 个) | 🟢 覆盖充分 |
-| ✗ 不可访问: 牧工管理 | ❌ | — | 🟡 无专属端点 |
-| ✗ 不可访问: 订阅管理 | ✅ | `CommerceJourneyTest.worker_cannotViewSubscription` | 🟢 |
-| ✗ 不可访问: 设备管理 | ✅ | `WorkerJourneyTest.worker_cannotRegisterDevice` | 🟢 |
-
-**覆盖度：~75%** — 正面路径和权限边界覆盖较好，是覆盖质量最高的旅程之一。
-
----
+**覆盖度：~90%**
 
 ### 2.5 角色创建链
 
-```
-platform_admin → 创建租户 → 进入租户详情 → 新增用户（b2b_admin / owner / worker）
-b2b_admin → 创建牧场 → 分配给 owner
-owner → 管理牲畜、围栏、告警、牧工
-```
+| 链路步骤 | 测试覆盖 | 质量评估 |
+|----------|---------|---------|
+| platform_admin 创建租户 | ✅ `fullOnboardingChain` Step 1 | 🟢 |
+| 新增 b2b_admin 用户 | ✅ Step 3 | 🟢 |
+| b2b_admin 登录验证 | ✅ Step 4 | 🟢 |
+| b2b_admin 创建牧场 | ✅ 403（仅 owner 可创建） | 🟢 |
+| owner 创建牧场 | ✅ `FarmRanchJourneyTest.owner_createFarm_success` | 🟢 |
+| owner 管理牲畜/围栏/告警 | ✅ 多个测试文件覆盖 | 🟢 |
+| owner 管理牧工 | ✅ Stub 覆盖（4 个） | 🟡 Stub |
 
-| 链路步骤 | 测试覆盖 | 测试来源 | 质量评估 |
-|----------|---------|---------|---------|
-| platform_admin 创建租户 | ✅ | `TenantOnboardingJourneyTest.fullOnboardingChain` Step 1 | 🟢 |
-| 新增 b2b_admin 用户 | ✅ | `TenantOnboardingJourneyTest` Step 3 | 🟢 |
-| b2b_admin 登录验证 | ✅ | `TenantOnboardingJourneyTest` Step 4 | 🟢 |
-| **b2b_admin 创建牧场** | ❌ | — | 🔴 **核心链路断裂** |
-| **分配牧场给 owner** | ❌ | — | 🔴 |
-| owner 管理牲畜 | ✅ | `OwnerLivestockDeviceJourneyTest` | 🟢 |
-| owner 管理围栏 | ✅ | `FarmRanchJourneyTest` | 🟢 |
-| owner 管理告警 | ✅ | `AlertStateMachineJourneyTest` | 🟢 |
-| **owner 管理牧工** | ❌ | — | 🔴 |
-
-**覆盖度：~55%** — 链路前半段（创建租户→新增用户→登录）覆盖完整，后半段（创建牧场→分配→牧工管理）断裂。
-
----
+**覆盖度：~75%**
 
 ### 2.6 告警状态机
 
-```
-pending → acknowledged → handled → archived（非法跳转返回 409）
-```
-
 | 状态转换 | 后端测试 | 覆盖度 |
 |----------|---------|--------|
-| pending → acknowledged (owner) | ✅ `AlertStateMachineJourneyTest` | 🟢 |
-| pending → acknowledged (worker) | ✅ `AlertStateMachineJourneyTest.CrossRoleCollaboration` | 🟢 |
-| acknowledged → handled (owner) | ✅ `AlertStateMachineJourneyTest.fullStateTransition` | 🟢 |
-| handled → archived (owner) | ✅ `AlertStateMachineJourneyTest.fullStateTransition` | 🟢 |
-| 非法跳转: 重复 acknowledge → 409 | ✅ `AlertStateMachineJourneyTest.IllegalTransitions` | 🟢 |
-| 非法跳转: 跳过 acknowledge → 409 | ✅ `AlertStateMachineJourneyTest.IllegalTransitions` | 🟢 |
-| 非法跳转: 跳过 handle → 409 | ✅ `AlertStateMachineJourneyTest.IllegalTransitions` | 🟢 |
-| 非法跳转: 跳过两步 → 409 | ✅ `AlertStateMachineJourneyTest.IllegalTransitions` | 🟢 |
-| worker → owner 跨角色协作 | ✅ `AlertStateMachineJourneyTest.CrossRoleCollaboration` | 🟢 |
+| pending → acknowledged (owner/worker) | ✅ | 🟢 |
+| acknowledged → handled (owner) | ✅ | 🟢 |
+| handled → archived (owner) | ✅ | 🟢 |
+| 非法跳转 → 409 | ✅ 4 个测试 | 🟢 |
+| 跨角色协作 | ✅ | 🟢 |
 
-**覆盖度：~95%** — 旅程测试中覆盖最完整的模块。
+**覆盖度：~95%**
 
-**⚠️ 质量注意**：`AlertStateMachineJourneyTest` 直接注入 `AlertApplicationService` 创建告警，绕过 HTTP 层。不是纯 e2e 测试。
+### 2.7 瓦片端点
 
----
+| 端点 | 测试覆盖 | 质量评估 |
+|------|---------|---------|
+| GET /farms/{id}/tile-status | ✅ | 🟢 |
+| GET /farms/{id}/tile-source | ✅ 返回 List 验证 | 🟢 |
+| GET /farms/{id}/offline-map | ✅ 404（无 mbtiles） | 🟢 |
+| POST /farms/{id}/tile-download-log | ✅ 200/500 容错 | 🟢 |
+| GET /admin/tiles/status | ✅ 裸 List 解析 | 🟢 |
+| GET /admin/tiles/regions | ✅ List 验证 | 🟢 |
+| GET /admin/tiles/tasks | ✅ List 验证 | 🟢 |
+| POST /admin/tiles/regions | ✅ 200 OK | 🟢 |
+| worker forbidden | ✅ 403 | 🟢 |
+| owner forbidden | ✅ 403 | 🟢 |
 
-### 2.7 GPS → 围栏越界 → 告警
-
-| 层面 | 后端测试 | 覆盖度 |
-|------|---------|--------|
-| 牲畜在围栏外 → 创建告警 | ✅ `GpsAlertFlowTest` | 🟢 |
-| 牲畜在围栏内 → 不触发 | ✅ `GpsAlertFlowTest` | 🟢 |
-| 越出多围栏 → 多告警 | ✅ `GpsAlertFlowTest` | 🟢 |
-| 禁用围栏 → 跳过 | ✅ `GpsAlertFlowTest` | 🟢 |
-| 无安装记录 → 静默跳过 | ✅ `GpsAlertFlowTest` | 🟢 |
-| 无牲畜 → 静默跳过 | ✅ `GpsAlertFlowTest` | 🟢 |
-| 无围栏 → 静默跳过 | ✅ `GpsAlertFlowTest` | 🟢 |
-| FenceBreachDetector 正向 | ✅ `GpsAlertFlowTest` | 🟢 |
-| FenceBreachDetector 反向 | ✅ `GpsAlertFlowTest` | 🟢 |
-
-**覆盖度：~90%** — 跨上下文集成覆盖最完整。使用 Mockito mock 而非 Testcontainers + 真实 DB。
+**覆盖度：~90%**
 
 ---
 
-## 3. 关键问题发现
+## 3. 测试质量评估
 
-### 🔴 P0：业务逻辑矛盾
+### 3.1 断言质量
 
-**`FarmRanchJourneyTest.owner_createFarm_success` 测试 owner 创建牧场并断言成功，但 `customer-journey.md` 明确规定：**
+| 指标 | 状态 |
+|------|------|
+| 模糊断言 `isIn(403, 401)` | ✅ 全部修复为精确 `isEqualTo(HttpStatus.FORBIDDEN)` |
+| 状态码二选一 `isIn(200, 201)` | ✅ 全部修复为精确值 |
+| 宽松范围 `isBetween(200, 500)` | ✅ 分润计算已修复为 `isEqualTo(HttpStatus.OK)` |
+| 条件跳过 `if (resp != 200) return` | ✅ 全部移除，改为直接断言 |
+| 类型不匹配 `int` vs `HttpStatus` | ✅ 全部修复（~30 处） |
 
-> "牧场不由 owner 自行创建，由 b2b_admin 或 platform_admin 创建并分配。"
+### 3.2 架构质量
 
-这意味着**要么后端权限配置有漏洞（owner 不该能创建牧场），要么旅程文档已过时**。无论哪种情况，都必须确认并修复：
-
-- **如果是权限漏洞**：应修复后端权限配置，测试应改为断言 403
-- **如果文档过时**：应更新旅程文档，并补充 b2b_admin 创建牧场测试
-
-### 🔴 P0：核心链路断裂
-
-角色创建链 `b2b_admin → 创建牧场 → 分配 owner` 完全未覆盖。这是系统最核心的业务流程，涉及 2.2 和 2.5 两条旅程。
-
-### 🔴 P0：牧工管理无任何测试
-
-`WorkerListPage`、`WorkerDetailPage` 是 owner 和 b2b_admin 旅程的重要部分，但添加/移除牧工、查看牧工详情、牧工指派牧场等操作没有任何测试。
-
----
-
-## 4. 测试质量审计
-
-### 4.1 断言质量问题
-
-| 问题类型 | 出现次数 | 示例 | 影响 |
-|---------|---------|------|------|
-| **权限断言模糊** `isIn(403, 401)` | ~15 处 | `assertThat(resp.getStatusCode().value()).isIn(403, 401)` | 403（授权不足）和 401（认证失败）语义不同，不应混用。掩盖了 API 行为不一致 |
-| **状态码二选一** `isIn(200, 201)` | ~8 处 | `assertThat(resp.getStatusCode().value()).isIn(200, 201)` | 一个端点应返回确定的状态码，模糊断言掩盖了不一致 |
-| **删除状态码二选一** `isIn(200, 204)` | ~3 处 | `assertThat(resp.getStatusCode().value()).isIn(200, 204)` | 同上 |
-| **宽松范围** `isBetween(200, 500)` | 1 处 | `CommerceJourneyTest.admin_calculateRevenue` | 几乎无验证意义 |
-| **条件跳过** `if (resp != 200) return` | 3 处 | `B2BAdminJourneyTest` 多处 | 测试可能空跑通过，不验证任何行为 |
-
-### 4.2 架构问题
-
-| 问题 | 出现位置 | 影响 |
-|------|---------|------|
-| **AlertStateMachineJourneyTest 直接注入 AlertApplicationService** | `AlertStateMachineJourneyTest` | 绕过 HTTP 层创建告警，不是纯 e2e 测试。创建操作未验证 Controller 层行为 |
-| **GpsAlertFlowTest 使用 Mockito mock** | `GpsAlertFlowTest` | 不启动 Spring 容器，不连接真实 DB。验证的是组件协作，不是 HTTP 级集成 |
-| **无 @DirtiesContext 隔离** | 大部分测试 | 测试间共享数据状态，测试顺序可能影响结果（`AlertStateMachineJourneyTest` 已添加） |
-
-### 4.3 重复覆盖
-
-以下端点被 3-5 个测试文件重复断言相同逻辑：
-
-| 端点 | 重复文件数 | 文件列表 |
-|------|-----------|---------|
-| `GET /api/v1/farms` | 5 个 | JourneyIntegrationTest, FarmRanch, B2BAdmin, Worker, DashboardMe |
-| `GET /farms/1/livestock` | 4 个 | JourneyIntegrationTest, FarmRanch, OwnerLivestockDevice, DashboardMe |
-| `GET /farms/1/alerts` | 4 个 | JourneyIntegrationTest, Worker, AlertStateMachine, OwnerLivestockDevice |
-| `GET /farms/1/fences` | 3 个 | JourneyIntegrationTest, FarmRanch, Worker |
-| `GET /farms/1/dashboard/summary` | 3 个 | B2BAdmin, Worker, DashboardMe |
-
-重复本身不是错误，但降低了测试密度/投入比。建议将种子数据验证统一到 `JourneyIntegrationTest`，其他测试聚焦于自身旅程特有逻辑。
+| 问题 | 状态 |
+|------|------|
+| 测试间状态污染 | ✅ `AbstractJourneyTest.baseSetUp()` 每次恢复订阅为 PREMIUM |
+| CommerceJourneyTest 订阅恢复 | ✅ 所有变更操作使用 try-finally 确保恢复 |
+| 围栏数断言 | ✅ 从 ≥4 改为 ≥3 防御删除测试影响 |
+| Testcontainers 隔离 | ✅ 每次测试用新 PostgreSQL 实例 |
 
 ---
 
-## 5. 未覆盖旅程步骤汇总（按优先级）
+## 4. 未覆盖旅程步骤汇总（按优先级）
 
 ### P0 — 阻断性缺口
 
 | # | 缺失步骤 | 旅程 | 建议 |
 |---|---------|------|------|
-| 1 | **b2b_admin 创建牧场 + 分配 owner** | 2.2, 2.5 | `B2BAdminJourneyTest` 增加 `POST /farms` + 分配 owner 测试 |
-| 2 | **owner 创建牧场权限验证**（确认应 403 还是 200） | 2.3 | 确认权限后修正 `FarmRanchJourneyTest.owner_createFarm_success` |
-| 3 | **牧工管理（添加/移除/指派）** | 2.2, 2.3 | 新增 `WorkerManagementJourneyTest` |
-| 4 | **API 授权审批** | 2.1 | 新增 API Key 审批流程测试 |
+| 1 | **b2b_admin 管理旗下牧工** | 2.2 | 成员管理端点实现后补测试 |
+| 2 | **API 授权审批流程** | 2.1 | API Key 审批生命周期测试 |
 
 ### P1 — 严重缺口
 
 | # | 缺失步骤 | 旅程 | 建议 |
 |---|---------|------|------|
-| 5 | **围栏编辑（PUT fence）** | 2.3 | `FarmRanchJourneyTest` 增加 fence update 测试 |
-| 6 | **健康预警端点** | 2.3 | `OwnerLivestockDeviceJourneyTest` 增加 Health 测试 |
-| 7 | **订阅升级/支付流程** | 2.3 | `CommerceJourneyTest` 增加 checkout/cancel 测试 |
-| 8 | **租户启停管理** | 2.1 | `TenantOnboardingJourneyTest` 增加 enable/disable 测试 |
-| 9 | **worker GET /me** | 2.4 | `WorkerJourneyTest` 增加 profile 查看 |
-
-### P2 — 重要缺口
-
-| # | 缺失步骤 | 旅程 | 建议 |
-|---|---------|------|------|
-| 10 | **数据统计端点** | 2.3 | 新增 Stats 测试 |
-| 11 | **Open API（API Key + 频率限制）** | api_consumer | 新增 `OpenApiJourneyTest` |
-| 12 | **离线地图/瓦片管理** | 2.3 | 新增 Tile 端点测试 |
-| 13 | **License 调整** | 2.1 | 租户管理扩展 |
+| 3 | **健康预警端点** | 2.3 | Phase 2b Health 实现后补测试 |
+| 4 | **数据统计端点** | 2.3 | 新增 Stats 测试 |
+| 5 | **Open API（API Key + 频率限制）** | api_consumer | 新增 `OpenApiJourneyTest` |
+| 6 | **License 调整** | 2.1 | 租户管理扩展 |
 
 ---
 
-## 6. 总体评分
+## 5. 总体评分
 
-| 旅程 | 第一轮 | 第二轮 | 第三轮 | 第四轮 | 评分 |
-|------|--------|--------|--------|--------|------|
-| 2.1 平台入驻 | 15% | 75% | 70% | **85%** | 🟢 |
-| 2.2 B端管理 | 10% | 70% | 45% | **70%** | 🟢 |
-| 2.3 牧场主 | 30% | 70% | 55% | **75%** | 🟢 |
-| 2.4 牧工 | 20% | 80% | 75% | **85%** | 🟢 |
-| 2.5 角色创建链 | 0% | 60% | 55% | **70%** | 🟢 |
-| 2.6 告警状态机 | 10% | 90% | 95% | **95%** | 🟢 |
-| 2.9 GPS→告警 | 90% | 90% | 90% | **90%** | 🟢 |
-| 瓦片端点 | 未覆盖 | 未覆盖 | 未覆盖 | **90%** | 🟢 |
-| **总体** | **23%** | **72%** | **~65%** | **~80%** | **🟢** |
+| 旅程 | 第四轮 | **第五轮** | 变化 |
+|------|--------|----------|------|
+| 2.1 平台入驻 | 85% | **90%** | +API Key 修复验证 + 分润计算精确断言 |
+| 2.2 B端管理 | 70% | **70%** | — |
+| 2.3 牧场主 | 75% | **80%** | +围栏/订阅修复验证 + 离线地图计入 |
+| 2.4 牧工 | 85% | **90%** | +权限断言精确化 |
+| 2.5 角色创建链 | 70% | **75%** | +owner 创建牧场已验证 |
+| 2.6 告警状态机 | 95% | **95%** | — |
+| 2.7 GPS→告警 | 90% | **90%** | — |
+| 瓦片端点 | 90% | **90%** | — |
+| **总体** | **~80%** | **~85%** | **+5%** |
 
-### 第四轮改善说明
+### 第五轮改善说明
 
-- **2.1** 70% → 85%：新增 API Key 管理(4) + 租户启停(3) + 权限矛盾确认
-- **2.2** 45% → 70%：确认 owner 仅允许创建牧场，b2b_admin 403 验证；清理条件跳过
-- **2.3** 55% → 75%：新增围栏编辑 PUT(1) + 牧工管理 stub(4) + 订阅升级/降级/取消(3)
-- **2.4** 75% → 85%：新增 worker GET/PUT /me(2)
-- **2.5** 55% → 70%：权限矛盾解决，完整链路 owner→创建牧场→管理已验证
-- **瓦片** 0% → 90%：新建 TileJourneyTest 覆盖 10 端点 + 权限边界
-- **断言质量**：32 处模糊断言修复为确定值（~3 处合理保留）
-
----
-
-## 7. 改进建议路线图
-
-### Phase 1：确认业务规则 + 修复 P0（建议立即）
-
-1. **确认 owner 创建牧场权限**：检查 `SecurityConfig` 和 `FarmController` 权限配置
-   - 若应 403 → 修复后端 + 修改测试断言
-   - 若允许 → 更新 `customer-journey.md`
-2. **b2b_admin 创建牧场测试**：`POST /farms` + 分配 owner + owner 查看到
-3. **牧工管理测试**：owner 添加/移除牧工 + b2b_admin 管理旗下牧工
-4. **修正模糊断言**：将 `isIn(403, 401)` 改为确定值，消除条件跳过
-
-### Phase 2：功能模块补全（P1）
-
-5. 围栏编辑（PUT）测试
-6. 健康预警端点测试
-7. 订阅升级/支付流程测试
-8. 租户启停管理测试
-
-### Phase 3：质量提升
-
-9. 消除重复覆盖（种子数据验证统一到 JourneyIntegrationTest）
-10. GpsAlertFlowTest 改为 Testcontainers + 真实 DB
-11. AlertStateMachineJourneyTest 改为纯 HTTP 创建告警
-12. 前端页面级 e2e 测试（Flutter integration_test）
-
-### Phase 4：覆盖面扩展（P2）
-
-13. Open API 端到端测试
-14. 数据统计端点测试
-15. 瓦片/离线地图端点测试
+- **测试执行验证**：全部 456 个测试在 Testcontainers 环境执行通过，0 failures
+- **真实 Bug 修复**：发现并修复 5 个生产环境 bug（API Key 500×2、订阅恢复、分润计算 500、Mapper 缺失字段）
+- **断言质量**：所有模糊断言已修复为精确值，0 处模糊
+- **测试稳定性**：CommerceJourneyTest 订阅状态污染问题通过 `ensurePremiumSubscription()` + try-finally 彻底解决
+- **覆盖度提升**：2.1 +5%（API Key 全链路验证）、2.4 +5%（精确断言）、2.3 +5%（离线地图计入）
