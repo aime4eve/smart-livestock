@@ -48,4 +48,27 @@ public class DeviceLicenseApplicationService {
         // This method can be used by a scheduled job to bulk-update EXPIRED status.
         // For now, the domain model handles validity checks directly.
     }
+
+    @Transactional(readOnly = true)
+    public DeviceLicenseDto findById(Long id) {
+        DeviceLicense license = deviceLicenseRepository.findById(id)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "许可证不存在: " + id));
+        return DeviceLicenseDto.from(license);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DeviceLicenseDto> listByTenant(Long tenantId) {
+        return deviceLicenseRepository.findByTenantId(tenantId).stream()
+                .map(DeviceLicenseDto::from)
+                .toList();
+    }
+
+    @Transactional
+    public DeviceLicenseDto revoke(Long id) {
+        DeviceLicense license = deviceLicenseRepository.findById(id)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "许可证不存在: " + id));
+        license.revoke();
+        DeviceLicense saved = deviceLicenseRepository.save(license);
+        return DeviceLicenseDto.from(saved);
+    }
 }

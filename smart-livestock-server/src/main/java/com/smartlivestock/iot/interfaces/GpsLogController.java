@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/farms/{farmId}")
@@ -29,11 +31,15 @@ public class GpsLogController {
     @GetMapping("/gps-logs/latest")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getLatestGps(
             @PathVariable Long farmId) {
-        // Get all livestock in the farm, find active installations, get GPS logs
-        // Stub for now — requires cross-context query (livestock -> installation -> gps_logs)
-        Map<String, Object> data = Map.of(
-                "items", List.of()
-        );
+        // Cross-context: get active installations → latest GPS per device
+        List<GpsLogDto> latestLogs = installationApplicationService.findAllActive().stream()
+                .map(inst -> gpsLogApplicationService.getByDevice(inst.deviceId()).stream()
+                        .reduce((first, second) -> second) // last = latest
+                        .orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        Map<String, Object> data = Map.of("items", latestLogs);
         return ResponseEntity.ok(ApiResponse.ok(data));
     }
 
@@ -50,15 +56,32 @@ public class GpsLogController {
             @RequestParam(required = false) String endTime,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "100") int pageSize) {
-        // Find active installation for this livestock
-        // The installation service needs a method to find by livestockId.
-        // For now, return empty until InstallationApplicationService is extended.
-        Map<String, Object> data = Map.of(
-                "items", List.of(),
-                "page", page,
-                "pageSize", pageSize,
-                "total", 0
-        );
-        return ResponseEntity.ok(ApiResponse.ok(data));
+        // Cross-context: livestock → active installation → device → GPS logs
+        return installationApplicationService.getActiveInstallationByLivestock(livestockId)
+                .map(inst -> {
+                    List<GpsLogDto> allLogs;
+                    if (startTime != null && endTime != null) {
+                        allLogs = gpsLogApplicationService.getByDeviceAndTimeRange(
+                                inst.deviceId(),
+                                Instant.parse(startTime),
+                                Instant.parse(endTime));
+                    } else {
+                        allLogs = gpsLogApplicationService.getByDevice(inst.deviceId());
+                    }
+                    int total = allLogs.size();
+                    int from = Math.min((page - 1) * pageSize, total);
+                    int to = Math.min(from + pageSize, total);
+
+                    Map<String, Object> data = Map.of(
+                            "items", allLogs.subList(from, to),
+                            "page", page,
+                            "pageSize", pageSize,
+                            "total", total
+                    );
+                    return ResponseEntity.ok(ApiResponse.ok(data));
+                })
+                .orElseGet(() -> ResponseEntity.ok(ApiResponse.ok(Map.of(
+                        "items", List.of(), "page", page, "pageSize", pageSize, "total", 0
+                ))));
     }
 }

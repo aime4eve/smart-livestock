@@ -30,14 +30,17 @@ public class DeviceLicenseController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> listLicenses(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int pageSize) {
-        // Tenant-level: licenses are not filtered by farm
-        // Current service only supports getByDeviceId and activateLicense.
-        // Full list-by-tenant will be added when needed.
+        Long tenantId = TenantContext.getCurrentTenant();
+        List<DeviceLicenseDto> all = deviceLicenseApplicationService.listByTenant(tenantId);
+        int total = all.size();
+        int from = Math.min((page - 1) * pageSize, total);
+        int to = Math.min(from + pageSize, total);
+
         Map<String, Object> data = Map.of(
-                "items", List.of(),
+                "items", all.subList(from, to),
                 "page", page,
                 "pageSize", pageSize,
-                "total", 0
+                "total", total
         );
         return ResponseEntity.ok(ApiResponse.ok(data));
     }
@@ -48,8 +51,8 @@ public class DeviceLicenseController {
      */
     @GetMapping("/{licenseId}")
     public ResponseEntity<ApiResponse<DeviceLicenseDto>> getLicense(@PathVariable Long licenseId) {
-        // Current service does not have findById. Stub for now.
-        throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "许可证不存在: " + licenseId);
+        DeviceLicenseDto license = deviceLicenseApplicationService.findById(licenseId);
+        return ResponseEntity.ok(ApiResponse.ok(license));
     }
 
     /**
@@ -71,14 +74,10 @@ public class DeviceLicenseController {
      * Revoke a license.
      */
     @PutMapping("/{licenseId}/revoke")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> revokeLicense(
+    public ResponseEntity<ApiResponse<DeviceLicenseDto>> revokeLicense(
             @PathVariable Long licenseId) {
-        // Current service does not support revoke. Stub for now.
-        Map<String, Object> data = Map.of(
-                "id", licenseId,
-                "status", "REVOKED"
-        );
-        return ResponseEntity.ok(ApiResponse.ok(data));
+        DeviceLicenseDto revoked = deviceLicenseApplicationService.revoke(licenseId);
+        return ResponseEntity.ok(ApiResponse.ok(revoked));
     }
 
     private Long toLong(Object value) {

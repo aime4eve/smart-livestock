@@ -21,6 +21,11 @@ public class JpaInstallationRepositoryImpl implements InstallationRepository {
     }
 
     @Override
+    public Optional<Installation> findById(Long id) {
+        return springDataRepo.findById(id).map(InstallationMapper::toDomain);
+    }
+
+    @Override
     public Optional<Installation> findActiveByDeviceId(Long deviceId) {
         return springDataRepo.findByDeviceIdAndRemovedAtIsNull(deviceId)
                 .map(InstallationMapper::toDomain);
@@ -42,6 +47,13 @@ public class JpaInstallationRepositoryImpl implements InstallationRepository {
     @Override
     public List<Installation> findAllActive() {
         return springDataRepo.findByRemovedAtIsNull().stream()
+                .map(InstallationMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Installation> findByLivestockIdIn(List<Long> livestockIds) {
+        return springDataRepo.findByLivestockIdIn(livestockIds).stream()
                 .map(InstallationMapper::toDomain)
                 .toList();
     }

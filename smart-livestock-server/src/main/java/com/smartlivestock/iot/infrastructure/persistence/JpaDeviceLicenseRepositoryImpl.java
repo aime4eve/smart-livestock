@@ -31,4 +31,16 @@ public class JpaDeviceLicenseRepositoryImpl implements DeviceLicenseRepository {
     public Optional<DeviceLicense> findByLicenseKey(String licenseKey) {
         return springDataRepo.findByLicenseKey(licenseKey).map(DeviceLicenseMapper::toDomain);
     }
+
+    @Override
+    public Optional<DeviceLicense> findById(Long id) {
+        return springDataRepo.findById(id).map(DeviceLicenseMapper::toDomain);
+    }
+
+    @Override
+    public List<DeviceLicense> findByTenantId(Long tenantId) {
+        return springDataRepo.findByTenantId(tenantId).stream()
+                .map(DeviceLicenseMapper::toDomain)
+                .toList();
+    }
 }

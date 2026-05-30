@@ -7,6 +7,8 @@ import java.util.Optional;
 
 public interface DeviceLicenseRepository {
     DeviceLicense save(DeviceLicense license);
+    Optional<DeviceLicense> findById(Long id);
     List<DeviceLicense> findByDeviceId(Long deviceId);
     Optional<DeviceLicense> findByLicenseKey(String licenseKey);
+    List<DeviceLicense> findByTenantId(Long tenantId);
 }

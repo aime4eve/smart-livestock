@@ -3,6 +3,7 @@ package com.smartlivestock.iot.interfaces;
 import com.smartlivestock.iot.application.InstallationApplicationService;
 import com.smartlivestock.iot.application.command.InstallDeviceCommand;
 import com.smartlivestock.iot.application.dto.InstallationDto;
+import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -22,6 +23,7 @@ import java.util.Map;
 public class InstallationController {
 
     private final InstallationApplicationService installationApplicationService;
+    private final LivestockRepository livestockRepository;
 
     /**
      * GET /api/v1/farms/{farmId}/installations
@@ -32,12 +34,19 @@ public class InstallationController {
             @PathVariable Long farmId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int pageSize) {
-        // Current service does not have listByFarm. Stub for now.
+        List<Long> livestockIds = livestockRepository.findByFarmId(farmId).stream()
+                .map(l -> l.getId()).toList();
+        List<InstallationDto> all = installationApplicationService.findByLivestockIds(livestockIds);
+        int total = all.size();
+        int from = Math.min((page - 1) * pageSize, total);
+        int to = Math.min(from + pageSize, total);
+        List<InstallationDto> items = all.subList(from, to);
+
         Map<String, Object> data = Map.of(
-                "items", List.of(),
+                "items", items,
                 "page", page,
                 "pageSize", pageSize,
-                "total", 0
+                "total", total
         );
         return ResponseEntity.ok(ApiResponse.ok(data));
     }
@@ -63,12 +72,12 @@ public class InstallationController {
      * Get installation detail.
      */
     @GetMapping("/{installationId}")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getInstallation(
+    public ResponseEntity<ApiResponse<InstallationDto>> getInstallation(
             @PathVariable Long farmId,
             @PathVariable Long installationId) {
-        // Current service only has getActiveInstallation(deviceId).
-        // Return stub for now.
-        throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "安装记录不存在: " + installationId);
+        InstallationDto installation = installationApplicationService.findById(installationId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "安装记录不存在: " + installationId));
+        return ResponseEntity.ok(ApiResponse.ok(installation));
     }
 
     /**
@@ -76,17 +85,11 @@ public class InstallationController {
      * Uninstall (remove) a device from a livestock.
      */
     @PutMapping("/{installationId}/uninstall")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> uninstallDevice(
+    public ResponseEntity<ApiResponse<InstallationDto>> uninstallDevice(
             @PathVariable Long farmId,
             @PathVariable Long installationId) {
-        // Current service uses remove(deviceId), not remove(installationId).
-        // This is a gap that needs to be addressed. For now, stub response.
-        Long operatorId = getCurrentUserId();
-        Map<String, Object> data = Map.of(
-                "id", installationId,
-                "message", "uninstall endpoint — service layer needs removeById support"
-        );
-        return ResponseEntity.ok(ApiResponse.ok(data));
+        InstallationDto result = installationApplicationService.removeById(installationId);
+        return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
     private Long getCurrentUserId() {

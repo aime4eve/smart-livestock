@@ -1,6 +1,8 @@
 package com.smartlivestock.iot.interfaces.open;
 
 import com.smartlivestock.iot.application.GpsLogApplicationService;
+import com.smartlivestock.iot.application.InstallationApplicationService;
+import com.smartlivestock.iot.application.dto.GpsLogDto;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.security.ApiKeyAuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Open API — GPS Logs (read-only), 2 endpoints.
@@ -23,13 +27,12 @@ import java.util.Map;
 public class OpenGpsController {
 
     private final GpsLogApplicationService gpsLogApplicationService;
+    private final InstallationApplicationService installationApplicationService;
     private final ApiKeyAuthService apiKeyAuthService;
 
     /**
      * GET /api/v1/open/farms/{farmId}/gps-logs/latest
      * Batch latest GPS coordinates for all tracked livestock in the farm.
-     * Requires cross-context query: livestock -> installation -> device -> gps_logs.
-     * Phase 1: Returns empty list until cross-context query is wired.
      */
     @GetMapping("/gps-logs/latest")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getLatestGps(
@@ -38,10 +41,14 @@ public class OpenGpsController {
         String apiKey = apiKeyAuthService.requireApiKey(request);
         apiKeyAuthService.validateFarmAccess(apiKey, farmId);
 
-        // Phase 1 stub: requires cross-context query (livestock -> installation -> device -> gps_logs)
-        Map<String, Object> data = Map.of(
-                "items", List.of()
-        );
+        List<GpsLogDto> latestLogs = installationApplicationService.findAllActive().stream()
+                .map(inst -> gpsLogApplicationService.getByDevice(inst.deviceId()).stream()
+                        .reduce((first, second) -> second)
+                        .orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        Map<String, Object> data = Map.of("items", latestLogs);
 
         return ResponseEntity.ok()
                 .headers(rateLimitHeaders())
@@ -52,7 +59,6 @@ public class OpenGpsController {
      * GET /api/v1/open/farms/{farmId}/livestock/{livestockId}/gps-logs
      * Single livestock GPS history.
      * Query params: startTime, endTime, page, pageSize (max 100).
-     * Phase 1: Returns empty list until cross-context query is wired.
      */
     @GetMapping("/livestock/{livestockId}/gps-logs")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getLivestockGpsHistory(
@@ -66,20 +72,37 @@ public class OpenGpsController {
         String apiKey = apiKeyAuthService.requireApiKey(request);
         apiKeyAuthService.validateFarmAccess(apiKey, farmId);
 
-        // Open API: pageSize capped at 100
         int effectivePageSize = Math.min(pageSize, 100);
 
-        // Phase 1 stub: requires cross-context query (livestock -> installation -> device -> gps_logs)
-        Map<String, Object> data = Map.of(
-                "items", List.of(),
-                "page", page,
-                "pageSize", effectivePageSize,
-                "total", 0
-        );
+        return installationApplicationService.getActiveInstallationByLivestock(livestockId)
+                .map(inst -> {
+                    List<GpsLogDto> allLogs;
+                    if (startTime != null && endTime != null) {
+                        allLogs = gpsLogApplicationService.getByDeviceAndTimeRange(
+                                inst.deviceId(), Instant.parse(startTime), Instant.parse(endTime));
+                    } else {
+                        allLogs = gpsLogApplicationService.getByDevice(inst.deviceId());
+                    }
+                    int total = allLogs.size();
+                    int from = Math.min((page - 1) * effectivePageSize, total);
+                    int to = Math.min(from + effectivePageSize, total);
 
-        return ResponseEntity.ok()
-                .headers(rateLimitHeaders())
-                .body(ApiResponse.ok(data));
+                    Map<String, Object> data = Map.of(
+                            "items", allLogs.subList(from, to),
+                            "page", page,
+                            "pageSize", effectivePageSize,
+                            "total", total
+                    );
+                    return ResponseEntity.ok()
+                            .headers(rateLimitHeaders())
+                            .body(ApiResponse.ok(data));
+                })
+                .orElseGet(() -> ResponseEntity.ok()
+                        .headers(rateLimitHeaders())
+                        .body(ApiResponse.ok(Map.of(
+                                "items", List.of(), "page", page,
+                                "pageSize", effectivePageSize, "total", 0
+                        ))));
     }
 
     /**

@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface SpringDataDeviceLicenseRepository extends JpaRepository<DeviceLicenseJpaEntity, Long> {
     List<DeviceLicenseJpaEntity> findByDeviceId(Long deviceId);
     Optional<DeviceLicenseJpaEntity> findByLicenseKey(String licenseKey);
+    List<DeviceLicenseJpaEntity> findByTenantId(Long tenantId);
 }

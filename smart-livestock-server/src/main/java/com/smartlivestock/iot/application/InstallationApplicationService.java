@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -43,5 +44,39 @@ public class InstallationApplicationService {
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "设备无活跃安装记录: " + deviceId));
         installation.remove();
         installationRepository.save(installation);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<InstallationDto> findById(Long id) {
+        return installationRepository.findById(id).map(InstallationDto::from);
+    }
+
+    @Transactional(readOnly = true)
+    public List<InstallationDto> findByLivestockIds(List<Long> livestockIds) {
+        return installationRepository.findByLivestockIdIn(livestockIds).stream()
+                .map(InstallationDto::from)
+                .toList();
+    }
+
+    @Transactional
+    public InstallationDto removeById(Long installationId) {
+        Installation installation = installationRepository.findById(installationId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "安装记录不存在: " + installationId));
+        installation.remove();
+        Installation saved = installationRepository.save(installation);
+        return InstallationDto.from(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public List<InstallationDto> findAllActive() {
+        return installationRepository.findAllActive().stream()
+                .map(InstallationDto::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<InstallationDto> getActiveInstallationByLivestock(Long livestockId) {
+        return installationRepository.findActiveByLivestockId(livestockId)
+                .map(InstallationDto::from);
     }
 }
