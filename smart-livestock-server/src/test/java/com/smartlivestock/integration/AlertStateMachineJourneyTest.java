@@ -1,6 +1,7 @@
 package com.smartlivestock.integration;
 
 import org.junit.jupiter.api.DisplayName;
+import org.springframework.test.annotation.DirtiesContext;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -16,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 状态机：pending → acknowledged → handled → archived
  * 非法跳转返回 409 STATE_CONFLICT
  */
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class AlertStateMachineJourneyTest extends AbstractJourneyTest {
 
     @SuppressWarnings("unchecked")
