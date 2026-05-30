@@ -3,6 +3,7 @@ package com.smartlivestock.integration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 
 import java.util.Map;
 
@@ -195,6 +196,106 @@ class TenantOnboardingJourneyTest extends AbstractJourneyTest {
                     "/api/v1/admin/users",
                     Map.of("phone", "13800009999", "name", "非法用户", "role", "WORKER", "tenantId", "1"));
             assertThat(resp.getStatusCode().value()).isIn(403, 401);
+        }
+    }
+
+    @Nested
+    @DisplayName("API Key 管理")
+    class ApiKeyManagement {
+
+        @Test
+        @DisplayName("platform_admin 查看 API Key 列表")
+        void platformAdmin_listApiKeys() {
+            var data = getApi(platformAdminToken, "/api/v1/admin/api-keys");
+            assertThat(data).containsKey("items");
+        }
+
+        @Test
+        @DisplayName("platform_admin 创建 API Key")
+        void platformAdmin_createApiKey() {
+            var body = Map.of(
+                    "name", "E2E测试Key",
+                    "role", "API_CONSUMER",
+                    "tenantId", 1
+            );
+            var resp = postRaw(platformAdminToken, "/api/v1/admin/api-keys", body);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(resp.getBody()).isNotNull();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> data = (Map<String, Object>) resp.getBody().get("data");
+            assertThat(data).containsKey("rawKey");
+            assertThat(data).containsKey("prefix");
+        }
+
+        @Test
+        @DisplayName("platform_admin 更新 API Key 状态（禁用）")
+        void platformAdmin_disableApiKey() {
+            var createResp = postRaw(platformAdminToken, "/api/v1/admin/api-keys",
+                    Map.of("name", "待禁用Key", "role", "API_CONSUMER", "tenantId", 1));
+            assertThat(createResp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            @SuppressWarnings("unchecked")
+            String keyId = extractId((Map<String, Object>) createResp.getBody().get("data"));
+
+            var body = Map.of("status", "disabled");
+            var resp = putRaw(platformAdminToken,
+                    "/api/v1/admin/api-keys/" + keyId + "/status", body);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
+
+        @Test
+        @DisplayName("owner 不能访问 API Key 管理端点")
+        void owner_cannotAccessApiKeyAdmin() {
+            var resp = getRaw(ownerToken, "/api/v1/admin/api-keys");
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        }
+    }
+
+    @Nested
+    @DisplayName("租户启停（Stub）")
+    class TenantStatusStub {
+
+        @Test
+        @DisplayName("platform_admin 更新租户状态（stub: active → disabled）")
+        void updateTenantStatus_disabled() {
+            var createResp = postRaw(platformAdminToken,
+                    "/api/v1/admin/tenants",
+                    Map.of("name", "启停测试租户", "contactName", "赵六", "contactPhone", "13700100000"));
+            assertCreated(createResp);
+            @SuppressWarnings("unchecked")
+            String tenantId = extractId((Map<String, Object>) createResp.getBody().get("data"));
+
+            var resp = putRaw(platformAdminToken,
+                    "/api/v1/admin/tenants/" + tenantId + "/status",
+                    Map.of("status", "disabled"));
+            assertOk(resp);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> data = (Map<String, Object>) resp.getBody().get("data");
+            assertThat(data.get("status")).isEqualTo("disabled");
+        }
+
+        @Test
+        @DisplayName("更新租户状态无效值返回 400")
+        void updateTenantStatus_invalidStatus_returns400() {
+            var createResp = postRaw(platformAdminToken,
+                    "/api/v1/admin/tenants",
+                    Map.of("name", "状态测试租户2", "contactName", "钱七", "contactPhone", "13700100001"));
+            assertCreated(createResp);
+            @SuppressWarnings("unchecked")
+            String tenantId = extractId((Map<String, Object>) createResp.getBody().get("data"));
+
+            var resp = putRaw(platformAdminToken,
+                    "/api/v1/admin/tenants/" + tenantId + "/status",
+                    Map.of("status", "invalid_status"));
+            assertError(resp, HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
+        }
+
+        @Test
+        @DisplayName("owner 不能更新租户状态")
+        void owner_cannotUpdateTenantStatus() {
+            var resp = putRaw(ownerToken,
+                    "/api/v1/admin/tenants/1/status",
+                    Map.of("status", "disabled"));
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
     }
 }

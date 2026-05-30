@@ -79,6 +79,27 @@ class WorkerJourneyTest extends AbstractJourneyTest {
             var data = getApi(workerToken, "/api/v1/farms/1/map/overview");
             assertThat(data).isNotNull();
         }
+
+        @Test
+        @DisplayName("worker GET /me 返回正确角色信息")
+        void worker_getMe_returnsWorkerRole() {
+            var data = getApi(workerToken, "/api/v1/me");
+            assertThat(data).containsKey("id");
+            assertThat(data).containsKey("phone");
+            assertThat(data.get("role")).isEqualTo("WORKER");
+        }
+
+        @Test
+        @DisplayName("worker PUT /me 更新名称成功")
+        void worker_updateMe_success() {
+            var body = Map.of("name", "测试牧工更新名");
+            var resp = putRaw(workerToken, "/api/v1/me", body);
+            assertThat(resp.getStatusCode().value()).isIn(200, 204);
+
+            // 验证更新生效
+            var data = getApi(workerToken, "/api/v1/me");
+            assertThat(data.get("name")).isEqualTo("测试牧工更新名");
+        }
     }
 
     @Nested
@@ -151,12 +172,11 @@ class WorkerJourneyTest extends AbstractJourneyTest {
                     .filter(a -> "ACKNOWLEDGED".equals(a.get("status")))
                     .findFirst();
 
-            if (acknowledged.isPresent()) {
-                String alertId = extractId(acknowledged.get());
-                var resp = postRaw(workerToken,
-                        "/api/v1/farms/1/alerts/" + alertId + "/handle", null);
-                assertThat(resp.getStatusCode().value()).isIn(403, 409);
-            }
+            assertThat(acknowledged).isPresent();
+            String alertId = extractId(acknowledged.get());
+            var resp = postRaw(workerToken,
+                    "/api/v1/farms/1/alerts/" + alertId + "/handle", null);
+            assertThat(resp.getStatusCode().value()).isEqualTo(403);
         }
 
         @Test
@@ -169,12 +189,11 @@ class WorkerJourneyTest extends AbstractJourneyTest {
                     .filter(a -> "HANDLED".equals(a.get("status")))
                     .findFirst();
 
-            if (handled.isPresent()) {
-                String alertId = extractId(handled.get());
-                var resp = postRaw(workerToken,
-                        "/api/v1/farms/1/alerts/" + alertId + "/archive", null);
-                assertThat(resp.getStatusCode().value()).isIn(403, 409);
-            }
+            assertThat(handled).isPresent();
+            String alertId = extractId(handled.get());
+            var resp = postRaw(workerToken,
+                    "/api/v1/farms/1/alerts/" + alertId + "/archive", null);
+            assertThat(resp.getStatusCode().value()).isEqualTo(403);
         }
 
         @Test

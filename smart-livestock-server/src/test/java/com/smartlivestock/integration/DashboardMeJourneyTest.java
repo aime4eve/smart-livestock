@@ -33,13 +33,10 @@ class DashboardMeJourneyTest extends AbstractJourneyTest {
         void putMe_updatesProfile() {
             var body = Map.of("name", "牧场主更新名");
             var resp = putRaw(ownerToken, "/api/v1/me", body);
-            // TODO: PUT /me currently returns 500 — backend bug
-            assertThat(resp.getStatusCode().value()).isIn(200, 204, 500);
+            assertThat(resp.getStatusCode().value()).isIn(200, 204);
 
-            if (resp.getStatusCode().value() == 200 || resp.getStatusCode().value() == 204) {
-                var data = getApi(ownerToken, "/api/v1/me");
-                assertThat(data.get("name")).isEqualTo("牧场主更新名");
-            }
+            var data = getApi(ownerToken, "/api/v1/me");
+            assertThat(data.get("name")).isEqualTo("牧场主更新名");
         }
 
         @Test
@@ -52,11 +49,10 @@ class DashboardMeJourneyTest extends AbstractJourneyTest {
         }
 
         @Test
-        @DisplayName("platform_admin GET /tenants/me 无租户归属")
+        @DisplayName("platform_admin GET /tenants/me 无租户归属返回 404")
         void platformAdmin_tenantsMe_noTenant() {
             var resp = getRaw(platformAdminToken, "/api/v1/tenants/me");
-            // TODO: platform_admin tenants/me returns 500 — backend bug (should be 404)
-            assertThat(resp.getStatusCode().value()).isIn(200, 404, 500);
+            assertThat(resp.getStatusCode().value()).isEqualTo(404);
         }
     }
 

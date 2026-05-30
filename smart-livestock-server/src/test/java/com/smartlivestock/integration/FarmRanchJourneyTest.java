@@ -3,6 +3,7 @@ package com.smartlivestock.integration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Map;
@@ -86,6 +87,39 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
             var resp = deleteRaw(ownerToken, "/api/v1/farms/1/fences/" + fenceId);
             assertThat(resp.getStatusCode().value()).isIn(200, 204);
         }
+
+        @Test
+        @DisplayName("owner 更新围栏名称和颜色")
+        void owner_updateFence_success() {
+            var createBody = Map.of(
+                    "name", "待更新围栏",
+                    "color", "#000000",
+                    "vertices", List.of(
+                            Map.of("latitude", 28.240, "longitude", 112.845),
+                            Map.of("latitude", 28.250, "longitude", 112.845),
+                            Map.of("latitude", 28.250, "longitude", 112.855)
+                    )
+            );
+            var createResp = postRaw(ownerToken, "/api/v1/farms/1/fences", createBody);
+            assertThat(createResp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            @SuppressWarnings("unchecked")
+            String fenceId = extractId((Map<String, Object>) createResp.getBody().get("data"));
+
+            var updateBody = Map.of(
+                    "name", "已更新围栏",
+                    "color", "#00FF00",
+                    "vertices", List.of(
+                            Map.of("lat", 28.241, "lng", 112.846),
+                            Map.of("lat", 28.251, "lng", 112.846),
+                            Map.of("lat", 28.251, "lng", 112.856)
+                    )
+            );
+            var updateResp = putRaw(ownerToken, "/api/v1/farms/1/fences/" + fenceId, updateBody);
+            assertThat(updateResp.getStatusCode()).isEqualTo(HttpStatus.OK);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> updated = (Map<String, Object>) updateResp.getBody().get("data");
+            assertThat(updated.get("name")).isEqualTo("已更新围栏");
+        }
     }
 
     @Nested
@@ -157,6 +191,47 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
             assertThat(data).containsKey("items");
             var items = getItems(data);
             assertThat(items.size()).isGreaterThanOrEqualTo(2);
+        }
+    }
+
+    @Nested
+    @DisplayName("成员管理（Stub）")
+    class MemberManagementStub {
+
+        @Test
+        @DisplayName("owner 查看牧场成员列表（stub 返回空列表）")
+        void owner_listFarmMembers_returnsEmptyList() {
+            var data = getApi(ownerToken, "/api/v1/farms/1/members");
+            assertThat(data).containsKey("items");
+            var items = getItems(data);
+            assertThat(items).isEmpty();
+        }
+
+        @Test
+        @DisplayName("owner 添加牧场成员（stub 返回 201）")
+        void owner_addMember_returnsCreatedStub() {
+            var body = Map.of("userId", "2", "role", "WORKER");
+            var resp = postRaw(ownerToken, "/api/v1/farms/1/members", body);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(resp.getBody()).isNotNull();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> data = (Map<String, Object>) resp.getBody().get("data");
+            assertThat(data.get("phase")).isEqualTo("stub");
+        }
+
+        @Test
+        @DisplayName("owner 移除牧场成员（stub 返回 200）")
+        void owner_removeMember_returnsOkStub() {
+            var resp = deleteRaw(ownerToken, "/api/v1/farms/1/members/2");
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
+
+        @Test
+        @DisplayName("worker 不能添加牧场成员")
+        void worker_cannotAddMember_returnsForbidden() {
+            var body = Map.of("userId", "3", "role", "WORKER");
+            var resp = postRaw(workerToken, "/api/v1/farms/1/members", body);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
     }
 }

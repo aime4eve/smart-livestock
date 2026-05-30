@@ -1,11 +1,13 @@
 package com.smartlivestock.integration;
 
+import com.smartlivestock.ranch.application.AlertApplicationService;
+import com.smartlivestock.ranch.application.dto.AlertDto;
+import com.smartlivestock.ranch.domain.model.AlertType;
+import com.smartlivestock.ranch.domain.model.Severity;
 import org.junit.jupiter.api.DisplayName;
-import org.springframework.test.annotation.DirtiesContext;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,30 +18,19 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * 状态机：pending → acknowledged → handled → archived
  * 非法跳转返回 409 STATE_CONFLICT
+ *
+ * 每个测试通过 AlertApplicationService 创建独立告警，避免 seed 数据污染。
  */
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class AlertStateMachineJourneyTest extends AbstractJourneyTest {
 
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> findPendingAlert(Long farmId) {
-        Map<String, Object> alertsData = getApi(ownerToken,
-                "/api/v1/farms/" + farmId + "/alerts?page=0&size=50");
-        List<Map<String, Object>> items = (List<Map<String, Object>>) alertsData.get("items");
-        return items.stream()
-                .filter(a -> "PENDING".equals(a.get("status")))
-                .findFirst()
-                .orElseThrow(() -> new AssertionError("Farm " + farmId + " 无 PENDING 告警"));
-    }
+    @org.springframework.beans.factory.annotation.Autowired
+    private AlertApplicationService alertApplicationService;
 
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> findPendingAlertByWorker(Long farmId) {
-        Map<String, Object> alertsData = getApi(workerToken,
-                "/api/v1/farms/" + farmId + "/alerts?page=0&size=50");
-        List<Map<String, Object>> items = (List<Map<String, Object>>) alertsData.get("items");
-        return items.stream()
-                .filter(a -> "PENDING".equals(a.get("status")))
-                .findFirst()
-                .orElseThrow(() -> new AssertionError("Farm " + farmId + " 无 PENDING 告警（worker 视角）"));
+    /** Create a fresh PENDING alert for testing. */
+    private String createPendingAlert(Long farmId) {
+        AlertDto alert = alertApplicationService.createAlert(
+                farmId, AlertType.FENCE_BREACH, Severity.WARNING, "测试告警-" + System.nanoTime());
+        return String.valueOf(alert.id());
     }
 
     @Nested
@@ -49,9 +40,7 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
         @Test
         @DisplayName("pending → acknowledged → handled → archived 完整链路")
         void fullStateTransition_pending_to_archived() {
-            var pendingAlert = findPendingAlert(1L);
-            String alertId = extractId(pendingAlert);
-            assertThat(pendingAlert.get("status")).isEqualTo("PENDING");
+            String alertId = createPendingAlert(1L);
 
             // Step 1: acknowledge
             var ackResult = postApi(ownerToken,
@@ -77,8 +66,7 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
         @Test
         @DisplayName("worker acknowledge → owner handle 成功")
         void workerAcknowledge_ownerHandle_success() {
-            var pendingAlert = findPendingAlertByWorker(1L);
-            String alertId = extractId(pendingAlert);
+            String alertId = createPendingAlert(1L);
 
             // worker 确认
             var ackResult = postApi(workerToken,
@@ -94,8 +82,7 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
         @Test
         @DisplayName("worker 可以确认 PENDING 告警")
         void workerCanAcknowledge_pendingAlert() {
-            var pendingAlert = findPendingAlertByWorker(1L);
-            String alertId = extractId(pendingAlert);
+            String alertId = createPendingAlert(1L);
 
             var ackResult = postApi(workerToken,
                     "/api/v1/farms/1/alerts/" + alertId + "/acknowledge", null);
@@ -105,8 +92,7 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
         @Test
         @DisplayName("worker 不能 handle 告警")
         void workerCannotHandle_alert() {
-            var pendingAlert = findPendingAlertByWorker(1L);
-            String alertId = extractId(pendingAlert);
+            String alertId = createPendingAlert(1L);
 
             // 先 acknowledge
             postApi(workerToken,
@@ -126,8 +112,7 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
         @Test
         @DisplayName("acknowledge 非 PENDING 告警返回 409")
         void acknowledge_nonPendingAlert_returns409() {
-            var pendingAlert = findPendingAlert(1L);
-            String alertId = extractId(pendingAlert);
+            String alertId = createPendingAlert(1L);
             postApi(ownerToken, "/api/v1/farms/1/alerts/" + alertId + "/acknowledge", null);
 
             var resp = postRaw(ownerToken,
@@ -138,8 +123,7 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
         @Test
         @DisplayName("handle PENDING 告警（跳过 acknowledge）返回 409")
         void handle_pendingAlert_returns409() {
-            var pendingAlert = findPendingAlert(1L);
-            String alertId = extractId(pendingAlert);
+            String alertId = createPendingAlert(1L);
 
             var resp = postRaw(ownerToken,
                     "/api/v1/farms/1/alerts/" + alertId + "/handle", null);
@@ -149,8 +133,7 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
         @Test
         @DisplayName("archive ACKNOWLEDGED 告警（跳过 handle）返回 409")
         void archive_acknowledgedAlert_returns409() {
-            var pendingAlert = findPendingAlert(1L);
-            String alertId = extractId(pendingAlert);
+            String alertId = createPendingAlert(1L);
 
             postApi(ownerToken, "/api/v1/farms/1/alerts/" + alertId + "/acknowledge", null);
 
@@ -162,8 +145,7 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
         @Test
         @DisplayName("archive PENDING 告警（跳过两步）返回 409")
         void archive_pendingAlert_returns409() {
-            var pendingAlert = findPendingAlert(1L);
-            String alertId = extractId(pendingAlert);
+            String alertId = createPendingAlert(1L);
 
             var resp = postRaw(ownerToken,
                     "/api/v1/farms/1/alerts/" + alertId + "/archive", null);

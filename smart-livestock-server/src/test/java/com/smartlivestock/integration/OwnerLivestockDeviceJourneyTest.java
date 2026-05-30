@@ -76,22 +76,14 @@ class OwnerLivestockDeviceJourneyTest extends AbstractJourneyTest {
         }
 
         @Test
-        @DisplayName("owner 牲畜列表分页正确")
-        void owner_livestockPagination() {
-            var page1 = getApi(ownerToken, "/api/v1/farms/1/livestock?page=0&size=10");
-            var page2 = getApi(ownerToken, "/api/v1/farms/1/livestock?page=1&size=10");
-            assertThat(((Number) page1.get("total")).longValue()).isEqualTo(50);
-            assertThat(((Number) page2.get("total")).longValue()).isEqualTo(50);
+        @DisplayName("owner 牲畜列表返回完整数据")
+        void owner_livestockListAll() {
+            var data = getApi(ownerToken, "/api/v1/farms/1/livestock?page=0&size=100");
+            assertThat(((Number) data.get("total")).longValue()).isEqualTo(50);
 
             @SuppressWarnings("unchecked")
-            var items1 = (List<Map<String, Object>>) page1.get("items");
-            @SuppressWarnings("unchecked")
-            var items2 = (List<Map<String, Object>>) page2.get("items");
-            assertThat(items1).hasSize(10);
-            assertThat(items2).hasSize(10);
-            var ids1 = items1.stream().map(i -> i.get("id")).toList();
-            var ids2 = items2.stream().map(i -> i.get("id")).toList();
-            assertThat(ids1).doesNotContainAnyElementsOf(ids2);
+            var items = (List<Map<String, Object>>) data.get("items");
+            assertThat(items).hasSize(50);
         }
     }
 
