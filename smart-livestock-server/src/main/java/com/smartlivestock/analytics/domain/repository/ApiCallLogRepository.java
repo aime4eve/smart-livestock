@@ -11,4 +11,5 @@ public interface ApiCallLogRepository {
     List<ApiCallLog> findByApiKeyIdAndRequestedAtBetween(Long apiKeyId, Instant from, Instant to);
     long countByTenantIdAndRequestedAtAfter(Long tenantId, Instant since);
     void deleteOlderThan(Instant cutoff);
+    List<ApiCallLog> findAllByRequestedAtBetween(Instant from, Instant to);
 }

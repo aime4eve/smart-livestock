@@ -164,10 +164,10 @@ CattleService ←→ LocationService（GPS 坐标）
 
 ```bash
 cd smart-livestock-server
-./gradlew clean bootJar -x test
-rsync -avz --exclude='.git' --exclude='.gradle' --exclude='node_modules' . agentic@172.22.1.123:~/smart-livestock-server/
-ssh agentic@172.22.1.123 "cd ~/smart-livestock-server && mkdir -p build/libs"
-rsync -avz build/libs/ agentic@172.22.1.123:~/smart-livestock-server/build/libs/
+./gradlew bootJar -x test
+rsync -avz --exclude='.git' --exclude='.gradle' --exclude='node_modules' --exclude='build/tmp' --exclude='build/classes' . agentic@172.22.1.123:~/smart-livestock-server/
+# 清理旧 JAR，只保留最新版本号
+ssh agentic@172.22.1.123 "cd ~/smart-livestock-server/build/libs && ls -t smart-livestock-server-*.jar | tail -n +2 | xargs rm -f"
 ssh agentic@172.22.1.123 "cd ~/smart-livestock-server && docker compose build app && docker compose up -d app"
 ```
 

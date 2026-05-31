@@ -46,4 +46,10 @@ public class ApiCallLogRepositoryImpl implements ApiCallLogRepository {
     public void deleteOlderThan(Instant cutoff) {
         springDataRepo.deleteByRequestedAtBefore(cutoff);
     }
+
+    @Override
+    public List<ApiCallLog> findAllByRequestedAtBetween(Instant from, Instant to) {
+        return springDataRepo.findAllByRequestedAtBetween(from, to)
+                .stream().map(AnalyticsMapper::toDomain).toList();
+    }
 }
