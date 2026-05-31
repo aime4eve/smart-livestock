@@ -242,9 +242,11 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
         @Order(4)
         @DisplayName("owner 移除牧场成员成功")
         void owner_removeMember_returnsOk() {
-            // Ensure member exists first (may have been cleaned by @BeforeEach)
-            postRaw(ownerToken, "/api/v1/farms/1/members", Map.of("userId", "3", "role", "WORKER"));
-            var resp = deleteRaw(ownerToken, "/api/v1/farms/1/members/3");
+            // Use platform_admin (user 1) as a guaranteed-clean member to add then remove
+            var addResp = postRaw(ownerToken, "/api/v1/farms/1/members", Map.of("userId", "1", "role", "WORKER"));
+            // Accept either 201 (new) or 409 (already exists from prior test run)
+            assertThat(addResp.getStatusCode()).isIn(HttpStatus.CREATED, HttpStatus.CONFLICT);
+            var resp = deleteRaw(ownerToken, "/api/v1/farms/1/members/1");
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
     }
