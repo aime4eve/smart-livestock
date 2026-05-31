@@ -4,6 +4,7 @@ import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepositor
 import com.smartlivestock.identity.infrastructure.persistence.entity.UserFarmAssignmentJpaEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @RequiredArgsConstructor
@@ -27,6 +28,7 @@ public class JpaUserFarmAssignmentRepositoryImpl implements UserFarmAssignmentRe
     }
 
     @Override
+    @Transactional
     public void updateStatus(Long userId, Long farmId, String status) {
         springDataRepo.updateStatus(userId, farmId, status);
     }
