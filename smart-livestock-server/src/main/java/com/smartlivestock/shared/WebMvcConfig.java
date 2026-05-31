@@ -1,6 +1,7 @@
 package com.smartlivestock.shared;
 
 import com.smartlivestock.platform.web.QuotaInterceptor;
+import com.smartlivestock.shared.ratelimit.RateLimitInterceptor;
 import com.smartlivestock.shared.scope.FarmScopeInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -11,15 +12,21 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     private final FarmScopeInterceptor farmScopeInterceptor;
     private final QuotaInterceptor quotaInterceptor;
+    private final RateLimitInterceptor rateLimitInterceptor;
 
     public WebMvcConfig(FarmScopeInterceptor farmScopeInterceptor,
-                        QuotaInterceptor quotaInterceptor) {
+                        QuotaInterceptor quotaInterceptor,
+                        RateLimitInterceptor rateLimitInterceptor) {
         this.farmScopeInterceptor = farmScopeInterceptor;
         this.quotaInterceptor = quotaInterceptor;
+        this.rateLimitInterceptor = rateLimitInterceptor;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(rateLimitInterceptor)
+                .addPathPatterns("/api/v1/open/**");
+
         registry.addInterceptor(farmScopeInterceptor)
                 .addPathPatterns("/api/v1/farms/*/**", "/api/v1/open/farms/*/**",
                         "/api/v1/admin/tenants/*/farms/*/**")

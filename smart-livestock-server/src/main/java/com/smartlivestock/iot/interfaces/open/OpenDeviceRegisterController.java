@@ -9,12 +9,10 @@ import com.smartlivestock.shared.common.ErrorCode;
 import com.smartlivestock.shared.security.ApiKeyAuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Instant;
 import java.util.Map;
 
 /**
@@ -56,7 +54,6 @@ public class OpenDeviceRegisterController {
         }
         if (serialNo == null || serialNo.isBlank()) {
             return ResponseEntity.badRequest()
-                    .headers(rateLimitHeaders(100))
                     .body(ApiResponse.error(ErrorCode.VALIDATION_ERROR, "serialNo 不能为空"));
         }
 
@@ -69,14 +66,13 @@ public class OpenDeviceRegisterController {
         RegisterDeviceCommand command = new RegisterDeviceCommand(serialNo, deviceType, tenantId);
         DeviceDto device = deviceApplicationService.registerDevice(command);
 
-        HttpHeaders headers = rateLimitHeaders(100);
         if (idempotencyKey != null) {
-            headers.set("Idempotency-Key", idempotencyKey);
-            headers.set("X-Idempotency-Status", "MISS");  // Phase 1: always MISS
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .header("Idempotency-Key", idempotencyKey)
+                    .header("X-Idempotency-Status", "MISS")  // Phase 1: always MISS
+                    .body(ApiResponse.ok(device));
         }
-
         return ResponseEntity.status(HttpStatus.CREATED)
-                .headers(headers)
                 .body(ApiResponse.ok(device));
     }
 
@@ -99,15 +95,4 @@ public class OpenDeviceRegisterController {
         return apiKeyAuthService.validateRawKey(apiKey).getTenantId();
     }
 
-    /**
-     * Rate limit headers for device registration endpoint.
-     * Device registration has higher limit: 100/min.
-     */
-    private HttpHeaders rateLimitHeaders(int limit) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-RateLimit-Limit", String.valueOf(limit));
-        headers.set("X-RateLimit-Remaining", String.valueOf(limit - 1));
-        headers.set("X-RateLimit-Reset", String.valueOf(Instant.now().plusSeconds(60).getEpochSecond()));
-        return headers;
-    }
 }

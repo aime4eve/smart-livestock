@@ -7,7 +7,6 @@ import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.security.ApiKeyAuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,7 +50,6 @@ public class OpenGpsController {
         Map<String, Object> data = Map.of("items", latestLogs);
 
         return ResponseEntity.ok()
-                .headers(rateLimitHeaders())
                 .body(ApiResponse.ok(data));
     }
 
@@ -94,26 +92,14 @@ public class OpenGpsController {
                             "total", total
                     );
                     return ResponseEntity.ok()
-                            .headers(rateLimitHeaders())
                             .body(ApiResponse.ok(data));
                 })
                 .orElseGet(() -> ResponseEntity.ok()
-                        .headers(rateLimitHeaders())
                         .body(ApiResponse.ok(Map.of(
                                 "items", List.of(), "page", page,
                                 "pageSize", effectivePageSize, "total", 0
                         ))));
     }
 
-    /**
-     * Phase 1: Static rate limit headers.
-     * Phase 2: Dynamic per-key counting via Redis.
-     */
-    private HttpHeaders rateLimitHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-RateLimit-Limit", "60");
-        headers.set("X-RateLimit-Remaining", "59");
-        headers.set("X-RateLimit-Reset", String.valueOf(Instant.now().plusSeconds(60).getEpochSecond()));
-        return headers;
-    }
 }
+
