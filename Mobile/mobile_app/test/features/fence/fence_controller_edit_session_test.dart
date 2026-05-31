@@ -2,6 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
+import 'package:smart_livestock_demo/app/session/app_session.dart';
+import 'package:smart_livestock_demo/app/session/session_controller.dart';
+import 'package:smart_livestock_demo/core/models/user_role.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_edit_session.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_repository.dart';
@@ -12,7 +15,16 @@ void main() {
   Future<ProviderContainer> _setup({List<FenceItem>? fences}) async {
     final repo = _MutableFenceRepository(fences: fences ?? [_fenceA, _fenceB]);
     final container = ProviderContainer(
-      overrides: [fenceRepositoryProvider.overrideWithValue(repo)],
+      overrides: [
+        fenceRepositoryProvider.overrideWithValue(repo),
+        initialSessionProvider.overrideWithValue(
+          AppSession.authenticated(
+            role: UserRole.owner,
+            accessToken: 'test-token',
+            activeFarmId: 'test-farm-1',
+          ),
+        ),
+      ],
     );
     // Let FenceController.build()'s async load complete
     container.read(fenceControllerProvider);
@@ -196,7 +208,16 @@ void main() {
   test('reloadFromRepository 若编辑 fence 消失则清理编辑状态', () async {
     final repo = _MutableFenceRepository(fences: [_fenceA, _fenceB]);
     final container = ProviderContainer(
-      overrides: [fenceRepositoryProvider.overrideWithValue(repo)],
+      overrides: [
+        fenceRepositoryProvider.overrideWithValue(repo),
+        initialSessionProvider.overrideWithValue(
+          AppSession.authenticated(
+            role: UserRole.owner,
+            accessToken: 'test-token',
+            activeFarmId: 'test-farm-1',
+          ),
+        ),
+      ],
     );
     addTearDown(container.dispose);
     container.read(fenceControllerProvider);

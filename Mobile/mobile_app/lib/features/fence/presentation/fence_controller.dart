@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
+import 'package:smart_livestock_demo/core/api/farm_scoped_controller.dart';
 import 'package:smart_livestock_demo/features/fence/data/fence_api_repository.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_edit_operations.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_edit_session.dart';
@@ -13,11 +14,12 @@ final fenceRepositoryProvider = Provider<FenceRepository>((ref) {
   return const FenceApiRepository();
 });
 
-class FenceController extends Notifier<FenceState> {
+class FenceController extends FarmScopedNotifier<FenceState> {
   int _nextSessionInstanceId = 1;
 
   @override
   FenceState build() {
+    watchActiveFarmId();
     // Kick off async load; initially return loading state
     _loadFencesAsync();
     return const FenceState(

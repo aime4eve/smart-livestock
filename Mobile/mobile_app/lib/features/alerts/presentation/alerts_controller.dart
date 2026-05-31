@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smart_livestock_demo/core/api/farm_scoped_controller.dart';
 import 'package:smart_livestock_demo/features/alerts/data/alerts_api_repository.dart';
 import 'package:smart_livestock_demo/features/alerts/domain/alerts_repository.dart';
 
@@ -6,9 +7,10 @@ final alertsRepositoryProvider = Provider<AlertsRepository>(
   (_) => const AlertsApiRepository(),
 );
 
-class AlertsController extends AsyncNotifier<AlertsListData> {
+class AlertsController extends FarmScopedAsyncNotifier<AlertsListData> {
   @override
   Future<AlertsListData> build() async {
+    watchActiveFarmId();
     return ref.read(alertsRepositoryProvider).loadAlerts();
   }
 
