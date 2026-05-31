@@ -247,7 +247,9 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
             // Accept either 201 (new) or 409 (already exists from prior test run)
             assertThat(addResp.getStatusCode()).isIn(HttpStatus.CREATED, HttpStatus.CONFLICT);
             var resp = deleteRaw(ownerToken, "/api/v1/farms/1/members/1");
-            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(resp.getStatusCode())
+                    .withFailMessage("Expected 200 OK but got %s: %s", resp.getStatusCode(), resp.getBody())
+                    .isEqualTo(HttpStatus.OK);
         }
     }
 }
