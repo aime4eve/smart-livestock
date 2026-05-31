@@ -7,11 +7,37 @@ import 'package:smart_livestock_demo/features/api_authorization/presentation/api
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
 
-class ApiAuthPage extends ConsumerWidget {
+class ApiAuthPage extends ConsumerStatefulWidget {
   const ApiAuthPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ApiAuthPage> createState() => _ApiAuthPageState();
+}
+
+class _ApiAuthPageState extends ConsumerState<ApiAuthPage> {
+  UsageOverview? _dashboard;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDashboard();
+  }
+
+  Future<void> _loadDashboard() async {
+    try {
+      final now = DateTime.now();
+      final from = now.subtract(const Duration(days: 30));
+      final overview = await ref
+          .read(apiAuthorizationControllerProvider.notifier)
+          .loadDashboard(_fmt(from), _fmt(now));
+      if (mounted) setState(() => _dashboard = overview);
+    } catch (_) {}
+  }
+
+  String _fmt(DateTime d) => '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  @override
+  Widget build(BuildContext context) {
     final asyncData = ref.watch(apiAuthorizationControllerProvider);
     final controller = ref.read(apiAuthorizationControllerProvider.notifier);
 
@@ -22,31 +48,36 @@ class ApiAuthPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            _buildHeader(context, controller),
+            const SizedBox(height: AppSpacing.md),
+            if (_dashboard != null) _buildDashboard(context),
+            const SizedBox(height: AppSpacing.md),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('API 授权管理', style: Theme.of(context).textTheme.titleLarge),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text('管理 API Key 的创建、启用和撤销', style: Theme.of(context).textTheme.bodySmall),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  key: const Key('apikey-refresh'),
-                  onPressed: () => controller.refresh(),
-                  icon: const Icon(Icons.refresh),
+                ElevatedButton.icon(
+                  key: const Key('apikey-create'),
+                  onPressed: () => _showCreateDialog(context, controller),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('创建 Key'),
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.md),
             if (data.isEmpty)
               const SizedBox(height: 200, child: Center(child: Text('暂无 API Key')))
             else
-              ...data.items.map((key) => _ApiKeyCard(keyItem: key)),
+              ...data.items.map((key) => _ApiKeyCard(
+                    keyItem: key,
+                    onStatusChange: (id, status) async {
+                      await controller.updateStatus(id, status);
+                      _loadDashboard();
+                    },
+                    onRevoke: (id) async {
+                      await controller.revoke(id);
+                      _loadDashboard();
+                    },
+                  )),
           ],
         ),
       ),
@@ -54,18 +85,164 @@ class ApiAuthPage extends ConsumerWidget {
       error: (e, _) => Center(child: Text('加载失败: $e')),
     );
   }
+
+  Widget _buildHeader(BuildContext context, ApiAuthorizationController controller) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('API 授权管理', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: AppSpacing.xs),
+              Text('管理 API Key 的创建、启用和撤销', style: Theme.of(context).textTheme.bodySmall),
+            ],
+          ),
+        ),
+        IconButton(
+          key: const Key('apikey-refresh'),
+          onPressed: () {
+            controller.refresh();
+            _loadDashboard();
+          },
+          icon: const Icon(Icons.refresh),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDashboard(BuildContext context) {
+    final d = _dashboard!;
+    return HighfiCard(
+      key: const Key('usage-dashboard'),
+      child: Row(
+        children: [
+          _statBox(context, '总调用', '${d.totalCalls}', Icons.api),
+          _statBox(context, '成功', '${d.successCalls}', Icons.check_circle, AppColors.success),
+          _statBox(context, '失败', '${d.errorCalls}', Icons.error, AppColors.danger),
+          _statBox(context, '平均响应', '${d.avgResponseMs.toStringAsFixed(0)}ms', Icons.speed),
+        ],
+      ),
+    );
+  }
+
+  Widget _statBox(BuildContext context, String label, String value, IconData icon, [Color? color]) {
+    return Expanded(
+      child: Column(
+        children: [
+          Icon(icon, size: 20, color: color ?? Theme.of(context).colorScheme.primary),
+          const SizedBox(height: 4),
+          Text(value, style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold, color: color)),
+          Text(label, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      ),
+    );
+  }
+
+  void _showCreateDialog(BuildContext context, ApiAuthorizationController controller) {
+    final nameCtl = TextEditingController();
+    final descCtl = TextEditingController();
+    final selectedScopes = <String>{
+      'livestock:read', 'fence:read', 'alert:read', 'device:read', 'gps:read'
+    };
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('创建 API Key'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(controller: nameCtl, decoration: const InputDecoration(labelText: '名称')),
+                const SizedBox(height: 8),
+                TextField(controller: descCtl, decoration: const InputDecoration(labelText: '描述（可选）')),
+                const SizedBox(height: 12),
+                Text('权限范围:', style: Theme.of(ctx).textTheme.titleSmall),
+                const SizedBox(height: 4),
+                ..._allScopes.map((s) => CheckboxListTile(
+                      dense: true,
+                      value: selectedScopes.contains(s),
+                      title: Text(s, style: const TextStyle(fontSize: 13)),
+                      onChanged: (v) => setDialogState(() {
+                        if (v == true) selectedScopes.add(s); else selectedScopes.remove(s);
+                      }),
+                    )),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+            ElevatedButton(
+              onPressed: () async {
+                if (nameCtl.text.trim().isEmpty) return;
+                final result = await controller.createApiKey({
+                  'name': nameCtl.text.trim(),
+                  'description': descCtl.text.trim(),
+                  'scopes': selectedScopes.join(','),
+                });
+                if (ctx.mounted) {
+                  Navigator.pop(ctx);
+                  if (result != null) _showRawKeyDialog(context, result);
+                }
+              },
+              child: const Text('创建'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showRawKeyDialog(BuildContext context, ApiKeyCreateResult result) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('⚠️ Key 已创建'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('请立即保存此 Key，关闭后将无法再次查看。', style: TextStyle(color: AppColors.danger)),
+            const SizedBox(height: 12),
+            SelectableText(result.fullKey, style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
+            const SizedBox(height: 8),
+            Text('前缀: ${result.info.prefix}'),
+          ],
+        ),
+        actions: [
+          ElevatedButton(onPressed: () => Navigator.pop(ctx), child: const Text('已保存')),
+        ],
+      ),
+    );
+  }
+
+  static const _allScopes = [
+    'livestock:read', 'fence:read', 'alert:read', 'device:read',
+    'device:register', 'gps:read', 'health:read',
+  ];
 }
 
 class _ApiKeyCard extends ConsumerWidget {
-  const _ApiKeyCard({required this.keyItem});
+  const _ApiKeyCard({
+    required this.keyItem,
+    required this.onStatusChange,
+    required this.onRevoke,
+  });
 
   final ApiKeyItem keyItem;
+  final Future<void> Function(String id, String status) onStatusChange;
+  final Future<void> Function(String id) onRevoke;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.read(apiAuthorizationControllerProvider.notifier);
-    final statusColor = keyItem.status == 'active' ? AppColors.success : AppColors.danger;
-    final statusLabel = keyItem.status == 'active' ? '启用' : (keyItem.status ?? '未知');
+    final isActive = keyItem.status == 'ACTIVE' || keyItem.status == 'active';
+    final statusColor = isActive ? AppColors.success : AppColors.danger;
+    final statusLabel = isActive ? '启用' : (keyItem.status ?? '未知');
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -86,39 +263,62 @@ class _ApiKeyCard extends ConsumerWidget {
                 HighfiStatusChip(
                   label: statusLabel,
                   color: statusColor,
-                  icon: keyItem.status == 'active'
-                      ? Icons.check_circle_outline
-                      : Icons.cancel_outlined,
+                  icon: isActive ? Icons.check_circle_outline : Icons.cancel_outlined,
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.xs),
             if (keyItem.prefix != null) Text('前缀: ${keyItem.prefix}'),
-            if (keyItem.tenantId != null) Text('租户: ${keyItem.tenantId}'),
-            if (keyItem.createdAt != null) Text('创建时间: ${keyItem.createdAt}'),
+            if (keyItem.description != null && keyItem.description!.isNotEmpty)
+              Text('描述: ${keyItem.description}'),
+            if (keyItem.scopeList.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Wrap(
+                  spacing: 4,
+                  children: keyItem.scopeList.map((s) => Chip(
+                    label: Text(s, style: const TextStyle(fontSize: 11)),
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  )).toList(),
+                ),
+              ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                if (keyItem.requestsPerMinute != null)
+                  Text('RPM: ${keyItem.requestsPerMinute}', style: const TextStyle(fontSize: 12)),
+                const SizedBox(width: 12),
+                if (keyItem.dailyQuota != null)
+                  Text('日配额: ${keyItem.dailyQuota}', style: const TextStyle(fontSize: 12)),
+              ],
+            ),
+            if (keyItem.createdAt != null)
+              Text('创建: ${keyItem.createdAt}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
             const SizedBox(height: AppSpacing.xs),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                if (keyItem.status == 'active') ...[
+                if (isActive) ...[
                   TextButton.icon(
                     key: Key('disable-${keyItem.id}'),
-                    onPressed: () => controller.updateStatus(keyItem.id, 'disabled'),
+                    onPressed: () => onStatusChange(keyItem.id, 'disabled'),
                     icon: const Icon(Icons.block, size: 16),
                     label: const Text('禁用'),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   TextButton.icon(
                     key: Key('revoke-${keyItem.id}'),
-                    onPressed: () => controller.revoke(keyItem.id),
+                    onPressed: () => onRevoke(keyItem.id),
                     icon: const Icon(Icons.delete_outline, size: 16),
-                    label: const Text('撤销'),
+                    label: const Text('删除'),
+                    style: TextButton.styleFrom(foregroundColor: AppColors.danger),
                   ),
                 ],
-                if (keyItem.status != 'active')
+                if (!isActive)
                   TextButton.icon(
                     key: Key('enable-${keyItem.id}'),
-                    onPressed: () => controller.updateStatus(keyItem.id, 'active'),
+                    onPressed: () => onStatusChange(keyItem.id, 'active'),
                     icon: const Icon(Icons.refresh, size: 16),
                     label: const Text('启用'),
                   ),

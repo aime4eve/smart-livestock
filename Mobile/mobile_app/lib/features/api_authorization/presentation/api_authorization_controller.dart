@@ -36,6 +36,10 @@ class ApiAuthorizationController extends AsyncNotifier<ApiKeyListResult> {
       return null;
     }
   }
+
+  Future<UsageOverview> loadDashboard(String from, String to) {
+    return ref.read(apiAuthorizationRepositoryProvider).loadDashboard(from, to);
+  }
 }
 
 final apiAuthorizationControllerProvider =

@@ -43,10 +43,13 @@ class _MineApiKeyCard extends StatelessWidget {
 
   final ApiKeyItem keyItem;
 
+  bool get _isActive =>
+      keyItem.status == 'active' || keyItem.status == 'ACTIVE';
+
   @override
   Widget build(BuildContext context) {
-    final statusColor = keyItem.status == 'active' ? AppColors.success : AppColors.danger;
-    final statusLabel = keyItem.status == 'active' ? '生效中' : (keyItem.status ?? '未知');
+    final statusColor = _isActive ? AppColors.success : AppColors.danger;
+    final statusLabel = _isActive ? '生效中' : (keyItem.status ?? '未知');
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -67,7 +70,7 @@ class _MineApiKeyCard extends StatelessWidget {
                 HighfiStatusChip(
                   label: statusLabel,
                   color: statusColor,
-                  icon: keyItem.status == 'active'
+                  icon: _isActive
                       ? Icons.check_circle_outline
                       : Icons.pending_outlined,
                 ),
@@ -75,7 +78,18 @@ class _MineApiKeyCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.xs),
             if (keyItem.prefix != null) Text('前缀: ${keyItem.prefix}'),
-            if (keyItem.tenantId != null) Text('租户: ${keyItem.tenantId}'),
+            if (keyItem.scopeList.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Wrap(
+                  spacing: 4,
+                  children: keyItem.scopeList.map((s) => Chip(
+                    label: Text(s, style: const TextStyle(fontSize: 11)),
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  )).toList(),
+                ),
+              ),
           ],
         ),
       ),
