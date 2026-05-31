@@ -25,4 +25,9 @@ public class JpaUserFarmAssignmentRepositoryImpl implements UserFarmAssignmentRe
         entity.setStatus(status);
         springDataRepo.save(entity);
     }
+
+    @Override
+    public void updateStatus(Long userId, Long farmId, String status) {
+        springDataRepo.updateStatus(userId, farmId, status);
+    }
 }

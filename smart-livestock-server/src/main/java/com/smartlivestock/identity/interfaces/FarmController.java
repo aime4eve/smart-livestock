@@ -133,7 +133,7 @@ public class FarmController {
         if (!userFarmAssignmentRepository.existsByUserIdAndFarmId(userId, farmId)) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "用户不在该牧场中");
         }
-        userFarmAssignmentRepository.save(userId, farmId, "WORKER", "REMOVED");
+        userFarmAssignmentRepository.updateStatus(userId, farmId, "REMOVED");
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
