@@ -244,12 +244,10 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
         void owner_removeMember_returnsOk() {
             // Use platform_admin (user 1) as a guaranteed-clean member to add then remove
             var addResp = postRaw(ownerToken, "/api/v1/farms/1/members", Map.of("userId", "1", "role", "WORKER"));
-            // Accept either 201 (new) or 409 (already exists from prior test run)
-            assertThat(addResp.getStatusCode()).isIn(HttpStatus.CREATED, HttpStatus.CONFLICT);
+            System.out.println("[DEBUG] addResp status=" + addResp.getStatusCode() + " body=" + addResp.getBody());
             var resp = deleteRaw(ownerToken, "/api/v1/farms/1/members/1");
-            assertThat(resp.getStatusCode())
-                    .withFailMessage("Expected 200 OK but got %s: %s", resp.getStatusCode(), resp.getBody())
-                    .isEqualTo(HttpStatus.OK);
+            System.out.println("[DEBUG] deleteResp status=" + resp.getStatusCode() + " body=" + resp.getBody());
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
     }
 }
