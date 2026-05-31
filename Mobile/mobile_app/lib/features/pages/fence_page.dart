@@ -29,6 +29,7 @@ import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_e
 import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_mini_title_bar.dart';
 import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_unsaved_dialog.dart';
 import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_widget.dart';
+import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
 
 class FencePage extends ConsumerStatefulWidget {
   const FencePage({super.key});
@@ -92,6 +93,7 @@ class _FencePageState extends ConsumerState<FencePage>
   Widget build(BuildContext context) {
     final fenceState = ref.watch(fenceControllerProvider);
     final role = ref.watch(sessionControllerProvider).role!;
+    final farmName = ref.watch(farmSwitcherControllerProvider).activeFarmName;
     final canManage = RolePermission.canEditFence(role);
     final isEditing = fenceState.editSession != null;
 
@@ -117,7 +119,7 @@ class _FencePageState extends ConsumerState<FencePage>
         appBar: isEditing
             ? null
             : AppBar(
-                title: const Text('阿尔卑斯北麓牧场'),
+                title: Text(farmName.isNotEmpty ? farmName : '围栏管理'),
                 actions: const [
                   FarmSwitcher(),
                 ],
@@ -1298,4 +1300,3 @@ class _FenceMapNameChip extends StatelessWidget {
     );
   }
 }
-

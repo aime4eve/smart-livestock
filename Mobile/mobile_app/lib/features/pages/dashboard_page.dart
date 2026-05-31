@@ -107,17 +107,18 @@ class DashboardPage extends ConsumerWidget {
   }
 }
 
-class _DashboardFarmHeader extends StatelessWidget {
+class _DashboardFarmHeader extends ConsumerWidget {
   const _DashboardFarmHeader();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final farmName = ref.watch(farmSwitcherControllerProvider).activeFarmName;
     return HighfiCard(
       key: const Key('dashboard-farm-header'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('阿尔卑斯北麓牧场', style: Theme.of(context).textTheme.titleLarge),
+          Text(farmName.isNotEmpty ? farmName : '牧场概览', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: AppSpacing.sm),
           Text(
             '晴 18°C · 最近同步 2 分钟前',

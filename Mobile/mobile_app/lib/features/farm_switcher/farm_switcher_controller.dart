@@ -29,6 +29,13 @@ class FarmSwitcherState {
 
   bool get hasMultipleFarms => farms.length > 1;
   bool get hasFarms => farms.isNotEmpty;
+  String get activeFarmName {
+    if (activeFarmId == null) return '';
+    for (final farm in farms) {
+      if (farm.id == activeFarmId) return farm.name;
+    }
+    return farms.isNotEmpty ? farms.first.name : '';
+  }
 }
 
 class FarmSwitcherController extends Notifier<FarmSwitcherState> {
