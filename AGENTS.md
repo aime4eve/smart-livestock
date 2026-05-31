@@ -221,6 +221,8 @@ flutter run -d chrome --dart-define=APP_MODE=live --dart-define=API_BASE_URL=htt
 | App API    | `docs/api-contracts/app-api.md`                                  | `/api/v1/` 64 端点                  |
 | Admin API  | `docs/api-contracts/admin-api.md`                                | `/api/v1/admin/` 30 端点            |
 | Open API   | `docs/api-contracts/open-api.md`                                 | `/api/v1/open/` 17 端点              |
+| Health 设计规格 | `docs/superpowers/specs/2026-05-31-health-context-design.md` | 温度/蠕动/发情/疫病分析引擎，已实施完成 |
+| Analytics+Portal 设计规格 | `docs/superpowers/specs/2026-05-31-analytics-portal-context-design.md` | API Key 自管理 + 频率限制 + 统计聚合 + 趋势分析 |
 
 ### 技术栈
 
@@ -239,13 +241,14 @@ Spring Boot 3.3 + Java 17 + Gradle + PostgreSQL 16 + Redis 7 + RocketMQ 5.1 + Fl
 
 - **Commerce**: Subscription、Contract、RevenuePeriod、SubscriptionService、FeatureGate（完整 DDD 洋葱架构，80 Java 文件，11 测试类，7 Controller）
 
-#### Phase 2b — 待设计
+#### Phase 2b — 已完成
 
 - **Health**: 温度/蠕动/发情/疫情分析引擎 + 时序数据
 
-#### Phase 2c — 待设计
+#### Phase 2c — 设计完成
 
 - **Analytics + API Portal**: API Key 生命周期 + 开发者门户 + 频率限制 + 统计聚合 + 趋势分析
+- **设计文档**: 
 
 ### 数据库表（20+ 张，17 个 Flyway 迁移）
 
@@ -378,8 +381,8 @@ cd Mobile && ./dev.sh start [mock|live]
 | ---------------------- | ---------------------------------------------------------------------- | ----------------------------- | --- |
 | **MVP Phase 1** — 核心底座 | 认证(JWT) + 租户/牧场 + 设备/牲畜 + 围栏/告警 + Dashboard/Map + GPS 模拟               | Identity + Ranch + IoT        | ✅ 已完成 |
 | **MVP Phase 2a** — Commerce | 订阅计费 + 合同管理 + 分润对账 + Tier 配额引擎 + Licensed 服务 + FeatureGate             | Commerce                      | ✅ 已完成 |
-| **MVP Phase 2b** — Health | 温度/蠕动/发情/疫情分析引擎 + 时序数据                                                  | Health                        | ⏳ 待设计 |
-| **MVP Phase 2c** — 平台扩展 | API Key 生命周期 + 开发者门户 + 频率限制 + 统计聚合 + 趋势分析                              | Analytics + API Portal        | ⏳ 待设计 |
+| **MVP Phase 2b — Health | 温度/蠕动/发情/疫情分析引擎 + 时序数据 | Health | ✅ 已完成 |
+| **MVP Phase 2c — 平台扩展 | API Key 生命周期 + 开发者门户 + 频率限制 + 统计聚合 + 趋势分析 | Analytics + API Portal | 📐 设计完成 |
 | **Phase 3** — IoT 真实接入 | 设备 license 入网 + LoRa/NS 平台对接 + 真实传感器数据 + 时序数据分区                        | IoT 扩展                        | ⏳ 待设计 |
 
 **后端现状**：5 个限界上下文（Identity + Ranch + IoT + Commerce + Shared）、20+ 张表、~130 个 API 端点、37 个 Controller、312 个 Java 文件、58 个测试类。AuditLog 和 Auth refresh 已完整实现（不再是 stub）。
@@ -401,4 +404,3 @@ cd Mobile && ./dev.sh start [mock|live]
 4. **测试要求**：使用 ProviderContainer 的单元测试必须 override initialSessionProvider 提供有效 activeFarmId。
 
 **违反此规则的典型症状**：牧场切换后页面数据不更新，仍显示旧牧场数据。
-
