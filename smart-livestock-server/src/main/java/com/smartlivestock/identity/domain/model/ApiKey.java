@@ -13,6 +13,10 @@ public class ApiKey extends Entity {
     private Instant expiresAt;
     private Instant lastUsedAt;
     private Instant createdAt;
+    private String scopes;
+    private Integer requestsPerMinute;
+    private Integer dailyQuota;
+    private String description;
 
     public ApiKey() {}
 
@@ -33,4 +37,8 @@ public class ApiKey extends Entity {
     public Instant getExpiresAt() { return expiresAt; } public void setExpiresAt(Instant v) { expiresAt = v; }
     public Instant getLastUsedAt() { return lastUsedAt; } public void setLastUsedAt(Instant v) { lastUsedAt = v; }
     public Instant getCreatedAt() { return createdAt; } public void setCreatedAt(Instant v) { createdAt = v; }
+    public String getScopes() { return scopes; } public void setScopes(String v) { scopes = v; }
+    public Integer getRequestsPerMinute() { return requestsPerMinute; } public void setRequestsPerMinute(Integer v) { requestsPerMinute = v; }
+    public Integer getDailyQuota() { return dailyQuota; } public void setDailyQuota(Integer v) { dailyQuota = v; }
+    public String getDescription() { return description; } public void setDescription(String v) { description = v; }
 }

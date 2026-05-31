@@ -18,6 +18,10 @@ public final class ApiKeyMapper {
         jpa.setExpiresAt(k.getExpiresAt());
         jpa.setLastUsedAt(k.getLastUsedAt());
         jpa.setCreatedAt(k.getCreatedAt());
+        jpa.setScopes(k.getScopes());
+        jpa.setRequestsPerMinute(k.getRequestsPerMinute());
+        jpa.setDailyQuota(k.getDailyQuota());
+        jpa.setDescription(k.getDescription());
         return jpa;
     }
 
@@ -33,6 +37,10 @@ public final class ApiKeyMapper {
         k.setExpiresAt(jpa.getExpiresAt());
         k.setLastUsedAt(jpa.getLastUsedAt());
         k.setCreatedAt(jpa.getCreatedAt());
+        k.setScopes(jpa.getScopes());
+        k.setRequestsPerMinute(jpa.getRequestsPerMinute());
+        k.setDailyQuota(jpa.getDailyQuota());
+        k.setDescription(jpa.getDescription());
         return k;
     }
 }

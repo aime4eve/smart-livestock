@@ -18,6 +18,10 @@ public class ApiKeyJpaEntity {
     @Column(name = "expires_at") private Instant expiresAt;
     @Column(name = "last_used_at") private Instant lastUsedAt;
     @Column(name = "created_at", nullable = false) private Instant createdAt;
+    @Column(name = "scopes", length = 500) private String scopes;
+    @Column(name = "requests_per_minute") private Integer requestsPerMinute;
+    @Column(name = "daily_quota") private Integer dailyQuota;
+    @Column(name = "description", length = 500) private String description;
 
     @PrePersist protected void onCreate() { this.createdAt = Instant.now(); }
 
@@ -31,4 +35,8 @@ public class ApiKeyJpaEntity {
     public Instant getExpiresAt() { return expiresAt; } public void setExpiresAt(Instant v) { expiresAt = v; }
     public Instant getLastUsedAt() { return lastUsedAt; } public void setLastUsedAt(Instant v) { lastUsedAt = v; }
     public Instant getCreatedAt() { return createdAt; } public void setCreatedAt(Instant v) { createdAt = v; }
+    public String getScopes() { return scopes; } public void setScopes(String v) { scopes = v; }
+    public Integer getRequestsPerMinute() { return requestsPerMinute; } public void setRequestsPerMinute(Integer v) { requestsPerMinute = v; }
+    public Integer getDailyQuota() { return dailyQuota; } public void setDailyQuota(Integer v) { dailyQuota = v; }
+    public String getDescription() { return description; } public void setDescription(String v) { description = v; }
 }
