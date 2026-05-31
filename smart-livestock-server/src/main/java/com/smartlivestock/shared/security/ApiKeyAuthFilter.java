@@ -24,6 +24,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(ApiKeyAuthFilter.class);
     private static final String API_KEY_HEADER = "X-API-Key";
+    public static final String ATTR_API_KEY = "com.smartlivestock.apiKey";
     private final ApiKeyAuthService apiKeyAuthService;
 
     @Override
@@ -48,6 +49,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
                     List.of(new SimpleGrantedAuthority(role)));
             SecurityContextHolder.getContext().setAuthentication(auth);
             TenantContext.setCurrentTenant(apiKey.getTenantId());
+            request.setAttribute(ATTR_API_KEY, apiKey);
         } catch (Exception e) {
             log.warn("API Key authentication failed: {}", e.getMessage());
             SecurityContextHolder.clearContext();
