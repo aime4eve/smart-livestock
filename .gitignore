@@ -89,3 +89,5 @@ docs/superpowers/testing/logs_*/
 .worktrees/
 .superpowers/
 .playwright-mcp/
+# Flutter Web build output (deployed via Docker)
+smart-livestock-server/frontend/

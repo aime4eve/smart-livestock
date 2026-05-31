@@ -1,9 +1,67 @@
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/widgets/coming_soon_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:smart_livestock_demo/core/theme/app_colors.dart';
+import 'package:smart_livestock_demo/features/digestive/presentation/digestive_controller.dart';
+import 'package:smart_livestock_demo/core/models/health_models.dart';
 
-class DigestivePage extends StatelessWidget {
+class DigestivePage extends ConsumerWidget {
   const DigestivePage({super.key});
 
   @override
-  Widget build(BuildContext context) => const ComingSoonPage(title: '消化监测');
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncList = ref.watch(digestiveListControllerProvider);
+    return Scaffold(
+      appBar: AppBar(title: const Text('🍽️ 消化管理'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      body: asyncList.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('加载失败: $e')),
+        data: (items) {
+          if (items.isEmpty) {
+            return const Center(child: Text('暂无消化异常数据', style: TextStyle(fontSize: 16)));
+          }
+          return RefreshIndicator(
+            onRefresh: () => ref.read(digestiveListControllerProvider.notifier).refresh(),
+            child: ListView.builder(
+              itemCount: items.length,
+              padding: const EdgeInsets.all(12),
+              itemBuilder: (context, index) => _DigestiveCard(item: items[index]),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _DigestiveCard extends StatelessWidget {
+  const _DigestiveCard({required this.item});
+  final DigestiveListItem item;
+
+  Color _statusColor() {
+    switch (item.status) {
+      case 'ABNORMAL': return AppColors.danger;
+      case 'LOW': return AppColors.warning;
+      default: return AppColors.success;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _statusColor();
+    final dropPercent = item.motilityBaseline > 0
+        ? ((1 - item.currentFrequency / item.motilityBaseline) * 100).round()
+        : 0;
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: color.withOpacity(0.3))),
+      child: ListTile(
+        leading: Icon(item.status == 'ABNORMAL' ? Icons.error : Icons.warning, color: color, size: 28),
+        title: Text(item.livestockCode, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text('${item.breed ?? ""}  蠕动 ${item.currentFrequency.toStringAsFixed(1)}次/分  ↓$dropPercent%'),
+        trailing: Chip(label: Text(item.status, style: const TextStyle(fontSize: 11)), backgroundColor: color.withOpacity(0.15)),
+        onTap: () => context.push('/twin/digestive/${item.livestockId}'),
+      ),
+    );
+  }
 }

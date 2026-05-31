@@ -1,10 +1,82 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/widgets/coming_soon_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smart_livestock_demo/core/theme/app_colors.dart';
+import 'package:smart_livestock_demo/core/models/health_models.dart';
+import 'package:smart_livestock_demo/features/digestive/presentation/digestive_controller.dart';
 
-class DigestiveDetailPage extends StatelessWidget {
+class DigestiveDetailPage extends ConsumerWidget {
   const DigestiveDetailPage({super.key, required this.livestockId});
   final String livestockId;
 
   @override
-  Widget build(BuildContext context) => const ComingSoonPage(title: '消化详情');
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncDetail = ref.watch(digestiveDetailControllerProvider(livestockId));
+    return Scaffold(
+      appBar: AppBar(title: const Text('消化详情'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      body: asyncDetail.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('加载失败: $e')),
+        data: (detail) => RefreshIndicator(
+          onRefresh: () => ref.read(digestiveDetailControllerProvider(livestockId).notifier).refresh(),
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _buildStatusCards(detail),
+              const SizedBox(height: 16),
+              _buildChart(detail),
+              if (detail.advice != null) ...[
+                const SizedBox(height: 16),
+                Card(child: Padding(padding: const EdgeInsets.all(12), child: Text('📋 ${detail.advice}'))),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusCards(DigestiveDetailData detail) {
+    return Row(children: [
+      _statCard('当前频率', '${detail.recent24h.isEmpty ? detail.motilityBaseline.toStringAsFixed(1) : detail.recent24h.last.frequency.toStringAsFixed(1)}次/分', AppColors.danger),
+      const SizedBox(width: 8),
+      _statCard('基线频率', '${detail.motilityBaseline.toStringAsFixed(1)}次/分', AppColors.textSecondary),
+      const SizedBox(width: 8),
+      _statCard('状态', detail.status, detail.status == 'ABNORMAL' ? AppColors.danger : AppColors.warning),
+    ]);
+  }
+
+  Widget _statCard(String label, String value, Color color) {
+    return Expanded(child: Card(child: Padding(padding: const EdgeInsets.all(10), child: Column(children: [
+      Text(label, style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+      const SizedBox(height: 4),
+      Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: color)),
+    ]))));
+  }
+
+  Widget _buildChart(DigestiveDetailData detail) {
+    final readings = detail.recent24h;
+    if (readings.isEmpty) return const SizedBox.shrink();
+    final spots = readings.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value.frequency)).toList();
+
+    return Card(
+      child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('📈 24小时蠕动曲线', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        SizedBox(height: 180, child: LineChart(LineChartData(
+          gridData: FlGridData(show: true, drawVerticalLine: false),
+          titlesData: FlTitlesData(
+            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 35, getTitlesWidget: (v, _) => Text('${v.toStringAsFixed(1)}', style: const TextStyle(fontSize: 10)))),
+            bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          ),
+          lineBarsData: [
+            LineChartBarData(spots: spots, isCurved: true, color: AppColors.warning, barWidth: 2, dotData: FlDotData(show: false)),
+            LineChartBarData(spots: [FlSpot(0, detail.motilityBaseline), FlSpot((readings.length - 1).toDouble(), detail.motilityBaseline)], color: AppColors.textSecondary.withOpacity(0.4), dashArray: [4, 4], barWidth: 1, dotData: FlDotData(show: false)),
+          ],
+        ))),
+      ])),
+    );
+  }
 }
