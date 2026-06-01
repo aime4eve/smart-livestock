@@ -1,0 +1,98 @@
+一级功能,二级功能,三级功能,事项,版本,前端开始时间,前端结束时间,工时(小时),前端完成状态,前端负责人,后端开始时间,后端结束时间,编码工时(小时),各模块联调开始时间,各模块联调结束时间,后端完成状态,后端负责人,交叉测开始时间,交叉测结束时间,交叉测结果,交叉测负责人,整体完成情况,问题,解决办法
+Identity（身份与租户管理）,认证授权,登录（手机号+密码）,手机号+密码登录返回JWT,MVP Phase 1,2026-04-09,2026-04-09,4,已完成,aime4eve,2026-05-17,2026-05-22,8,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Identity（身份与租户管理）,认证授权,Token刷新,JWT过期自动刷新access token,MVP Phase 1,,,,0,未实现,2026-05-17,2026-05-22,,4,4,2026-05-31,已完成,aime4eve,,,,,"后端已实现前端未对接,前端未调用refresh接口",在ApiClient中添加401拦截自动刷新
+Identity（身份与租户管理）,认证授权,登出,客户端丢弃token登出,MVP Phase 1,2026-04-09,2026-04-09,1,已完成,aime4eve,2026-05-17,2026-05-22,2,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Identity（身份与租户管理）,用户管理,获取当前用户信息,GET /me获取当前用户资料,MVP Phase 1,2026-04-09,2026-04-09,2,已完成,aime4eve,2026-05-17,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Identity（身份与租户管理）,用户管理,修改用户资料,PUT /me更新姓名手机号,MVP Phase 1,2026-04-09,2026-04-09,2,已完成,aime4eve,2026-05-17,2026-05-22,3,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Identity（身份与租户管理）,用户管理,修改密码,PUT /me/password验证旧密码,MVP Phase 1,2026-04-09,2026-04-09,2,已完成,aime4eve,2026-05-17,2026-05-22,3,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Identity（身份与租户管理）,租户管理,获取租户信息,GET /tenants/me,MVP Phase 1,2026-04-09,2026-04-09,2,已完成,aime4eve,2026-05-17,2026-05-22,3,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Identity（身份与租户管理）,租户管理,Admin）（管理租户列表,GET /admin/tenants分页查询,MVP Phase 1,2026-04-21,2026-04-21,4,已完成,aime4eve,2026-05-17,2026-05-22,6,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Identity（身份与租户管理）,租户管理,Admin）（创建租户,POST /admin/tenants,MVP Phase 1,2026-04-21,2026-04-21,3,已完成,aime4eve,2026-05-17,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Identity（身份与租户管理）,租户管理,Admin）（启停租户,PUT /admin/tenants/{id}/status,MVP Phase 1,2026-04-21,2026-04-21,2,已完成,aime4eve,2026-05-17,2026-05-22,3,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Identity（身份与租户管理）,用户管理,Admin）（管理用户列表,GET /admin/users分页查询,MVP Phase 1,2026-04-21,2026-04-21,3,已完成,aime4eve,2026-05-17,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Identity（身份与租户管理）,用户管理,Admin）（创建用户,POST /admin/users,MVP Phase 1,2026-04-21,2026-04-21,3,已完成,aime4eve,2026-05-17,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Identity（身份与租户管理）,用户管理,Admin）（启停用户,PUT /admin/users/{id}/status,MVP Phase 1,2026-04-21,2026-04-21,2,已完成,aime4eve,2026-05-17,2026-05-22,3,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Identity（身份与租户管理）,用户管理,Admin）（重置密码,POST /admin/users/{id}/reset-password,MVP Phase 1,2026-04-21,2026-04-21,2,已完成,aime4eve,2026-05-17,2026-05-22,3,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Identity（身份与租户管理）,牧场归属,列出牧场,GET /farms列出当前租户牧场,MVP Phase 1,2026-04-30,2026-04-30,3,已完成,aime4eve,2026-05-17,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Identity（身份与租户管理）,牧场归属,创建牧场向导,POST /farms含围栏创建,MVP Phase 1,2026-04-30,2026-04-30,6,已完成,aime4eve,2026-05-17,2026-05-22,4,2026-05-28,2026-05-28,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Identity（身份与租户管理）,牧场归属,牧场成员管理,GET/POST/DELETE /farms/{id}/members,MVP Phase 1,2026-04-30,2026-04-30,4,已完成,aime4eve,2026-05-17,2026-05-22,6,2026-05-31,2026-05-31,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,后端原返回空列表,已修复：注入UserFarmAssignmentRepository真实查询
+Identity（身份与租户管理）,API Key管理,Admin）（管理API Keys,GET/POST/PUT/DELETE /admin/api-keys,MVP Phase 1,2026-05-02,2026-05-02,4,已完成,aime4eve,,,6,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Identity（身份与租户管理）,平台管理,平台Dashboard,GET /admin/dashboard概览统计,MVP Phase 1,2026-04-21,2026-04-21,3,已完成,aime4eve,2026-05-17,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Identity（身份与租户管理）,审计日志,审计日志查询,GET /admin/audit-logs,MVP Phase 1,,,,0,未实现,2026-05-31,2026-05-31,,8,8,2026-05-31,已完成,aime4eve,,,,,"后端已实现前端缺失,前端无审计日志页面",新增audit_log模块
+Identity（身份与租户管理）,牧场管理,Admin）（管理员管理牧场,GET /admin/farms,MVP Phase 1,2026-04-21,2026-04-21,2,已完成,aime4eve,,,3,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Ranch（牧场管理）,牲畜管理,牲畜列表,GET /farms/{id}/livestock分页过滤,MVP Phase 1,2026-04-09,2026-04-09,4,已完成,aime4eve,2026-05-17,2026-05-22,6,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Ranch（牧场管理）,牲畜管理,添加牲畜,POST /farms/{id}/livestock,MVP Phase 1,2026-04-09,2026-04-09,3,已完成,aime4eve,2026-05-17,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Ranch（牧场管理）,牲畜管理,牲畜详情,GET /farms/{id}/livestock/{id},MVP Phase 1,2026-04-09,2026-04-09,3,已完成,aime4eve,2026-05-17,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Ranch（牧场管理）,牲畜管理,更新牲畜,PUT /farms/{id}/livestock/{id},MVP Phase 1,2026-04-09,2026-04-09,2,已完成,aime4eve,2026-05-17,2026-05-22,3,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Ranch（牧场管理）,牲畜管理,删除牲畜,DELETE /farms/{id}/livestock/{id},MVP Phase 1,2026-04-09,2026-04-09,2,已完成,aime4eve,2026-05-17,2026-05-22,3,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Ranch（牧场管理）,围栏管理,围栏列表,GET /farms/{id}/fences,MVP Phase 1,2026-04-10,2026-04-10,4,已完成,aime4eve,2026-05-17,2026-05-22,6,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Ranch（牧场管理）,围栏管理,创建围栏,POST /farms/{id}/fences,MVP Phase 1,2026-04-10,2026-04-10,4,已完成,aime4eve,2026-05-17,2026-05-22,5,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Ranch（牧场管理）,围栏管理,围栏详情,GET /farms/{id}/fences/{id},MVP Phase 1,2026-04-10,2026-04-10,2,已完成,aime4eve,2026-05-17,2026-05-22,3,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Ranch（牧场管理）,围栏管理,更新围栏,PUT /farms/{id}/fences/{id},MVP Phase 1,2026-04-10,2026-04-10,3,已完成,aime4eve,2026-05-17,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Ranch（牧场管理）,围栏管理,删除围栏,DELETE /farms/{id}/fences/{id},MVP Phase 1,2026-04-10,2026-04-10,2,已完成,aime4eve,2026-05-17,2026-05-22,3,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Ranch（牧场管理）,围栏管理,强制更新围栏,PUT /farms/{id}/fences/{id}/force,MVP Phase 1,,,,0,未实现,2026-05-17,2026-05-22,,3,3,2026-05-27,已完成,aime4eve,,,,,"后端已实现前端未对接,前端未调用force接口",前端围栏编辑调用force端点
+Ranch（牧场管理）,围栏管理,围栏边界编辑UX,拖顶点/模板/冲突处理,MVP Phase 1,2026-04-15,2026-04-17,16,已完成,aime4eve,2026-05-17,2026-05-22,8,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Ranch（牧场管理）,围栏管理,地图点击命中检测,两级优先+距离排序选择,MVP Phase 1,2026-04-16,2026-04-17,8,已完成,aime4eve,2026-05-17,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Ranch（牧场管理）,告警管理,告警列表,GET /farms/{id}/alerts分页过滤,MVP Phase 1,2026-04-09,2026-04-09,4,已完成,aime4eve,2026-05-17,2026-05-22,6,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Ranch（牧场管理）,告警管理,告警状态机,确认/处理/归档/批量处理,MVP Phase 1,2026-04-09,2026-04-09,6,已完成,aime4eve,2026-05-17,2026-05-22,8,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Ranch（牧场管理）,仪表盘,仪表盘概览,GET /farms/{id}/dashboard/summary,MVP Phase 1,2026-04-09,2026-04-09,4,已完成,aime4eve,2026-05-17,2026-05-22,6,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Ranch（牧场管理）,地图,地图概览,GET /farms/{id}/map/overview,MVP Phase 1,2026-04-09,2026-04-09,4,已完成,aime4eve,2026-05-17,2026-05-22,6,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Ranch（牧场管理）,瓦片管理,App）（瓦片状态与下载,GET /farms/{id}/tile-status + tile-source,MVP Phase 1,2026-05-28,2026-05-28,8,已完成,aime4eve,,,10,2026-05-28,2026-05-28,已完成,aime4eve,,,,,已完成,,
+Ranch（牧场管理）,瓦片管理,Admin）（管理瓦片区域/任务,GET/POST /admin/tiles/regions,MVP Phase 1,,,,0,未实现,,,,6,6,2026-05-28,已完成,aime4eve,,,,,"后端已实现前端缺失,前端无瓦片管理页面",新增tile admin模块
+Ranch（牧场管理）,分析事件,分析事件上报,POST /analytics/events,MVP Phase 1,,,,0,未实现,2026-05-31,2026-05-31,,4,4,2026-05-31,已完成,aime4eve,,,,,"后端已实现前端未对接,前端未上报埋点事件",在前端操作后上报事件
+Ranch（牧场管理）,离线功能,离线围栏同步,围栏缓存+同步服务+冲突页,MVP Phase 1,2026-05-28,2026-05-28,8,已完成,aime4eve,2026-05-28,2026-05-28,6,2026-05-28,2026-05-28,已完成,aime4eve,,,,,已完成,,
+Ranch（牧场管理）,离线功能,离线牲畜缓存,纯客户端缓存牲畜位置,MVP Phase 1,2026-05-28,2026-05-28,4,已完成,aime4eve,2026-05-28,2026-05-28,N/A,,,,N/A,,,,,,",,已完成,",
+Ranch（牧场管理）,离线功能,离线瓦片管理,drift DB+TileSourceResolver+管理页,MVP Phase 1,2026-05-28,2026-05-28,10,已完成,aime4eve,2026-05-28,2026-05-28,8,2026-05-28,2026-05-28,已完成,aime4eve,,,,,已完成,,
+IoT（设备管理）,设备管理,设备列表,GET /farms/{id}/devices,MVP Phase 1,2026-04-09,2026-04-09,3,已完成,aime4eve,2026-05-17,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+IoT（设备管理）,设备管理,注册设备,POST /farms/{id}/devices,MVP Phase 1,2026-04-09,2026-04-09,3,已完成,aime4eve,2026-05-17,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+IoT（设备管理）,设备管理,设备详情,GET /farms/{id}/devices/{id},MVP Phase 1,2026-04-09,2026-04-09,2,已完成,aime4eve,2026-05-17,2026-05-22,3,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+IoT（设备管理）,设备管理,更新设备,PUT /farms/{id}/devices/{id},MVP Phase 1,2026-04-09,2026-04-09,2,已完成,aime4eve,2026-05-17,2026-05-22,3,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+IoT（设备管理）,设备管理,激活/退役设备,PUT /devices/{id}/activate | decommission,MVP Phase 1,2026-04-09,2026-04-09,3,已完成,aime4eve,2026-05-17,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+IoT（设备管理）,设备License,License列表,GET /device-licenses,MVP Phase 1,2026-04-09,2026-04-09,2,已完成,aime4eve,2026-05-17,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+IoT（设备管理）,设备License,创建/撤销License,POST /device-licenses + PUT revoke,MVP Phase 1,,,,0,未实现,2026-05-17,2026-05-22,,4,4,2026-05-27,已完成,aime4eve,,,,,"后端已实现前端未对接,前端未调用License接口",前端设备页面集成License管理
+IoT（设备管理）,设备安装,安装记录列表,GET /farms/{id}/installations,MVP Phase 1,2026-04-09,2026-04-09,2,已完成,aime4eve,2026-05-17,2026-05-22,3,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+IoT（设备管理）,设备安装,安装/卸载操作,POST install + PUT uninstall,MVP Phase 1,,,,0,未实现,2026-05-17,2026-05-22,,4,4,2026-05-27,已完成,aime4eve,,,,,"后端已实现前端未对接,前端未调用安装接口",前端设备详情集成安装操作
+IoT（设备管理）,GPS数据,最新GPS位置,GET /farms/{id}/gps-logs/latest,MVP Phase 1,2026-04-09,2026-04-09,3,已完成,aime4eve,2026-05-17,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+IoT（设备管理）,GPS数据,GPS历史轨迹,GET /farms/{id}/livestock/{id}/gps-logs,MVP Phase 1,2026-04-09,2026-04-09,3,已完成,aime4eve,2026-05-17,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+IoT（设备管理）,Open API,设备/GPS开放接口,API Key认证+频率限制,MVP Phase 1,N/A,N/A,0,N/A,,2026-05-28,2026-05-28,8,2026-05-28,2026-05-28,已完成,aime4eve,,,,,已完成,通过API Key+开发者门户访问,
+Commerce（商业计费）,订阅管理,获取当前订阅,GET /subscription,MVP Phase 2a,2026-04-29,2026-04-29,4,已完成,aime4eve,2026-05-19,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Commerce（商业计费）,订阅管理,套餐列表,GET /subscription/plans,MVP Phase 2a,2026-04-29,2026-04-29,3,已完成,aime4eve,2026-05-19,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Commerce（商业计费）,订阅管理,订阅结算,POST /subscription/checkout,MVP Phase 2a,2026-04-29,2026-04-29,4,已完成,aime4eve,2026-05-19,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Commerce（商业计费）,订阅管理,升级/降级,PUT /subscription/tier,MVP Phase 2a,2026-04-29,2026-04-29,3,已完成,aime4eve,2026-05-19,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Commerce（商业计费）,订阅管理,取消订阅,POST /subscription/cancel,MVP Phase 2a,2026-04-29,2026-04-29,2,已完成,aime4eve,2026-05-19,2026-05-22,3,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Commerce（商业计费）,订阅管理,使用量统计,GET /subscription/usage,MVP Phase 2a,2026-04-29,2026-04-29,3,已完成,aime4eve,2026-05-19,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Commerce（商业计费）,合同管理,Admin）（合同列表/创建/签约,GET/POST /admin/contracts,MVP Phase 2a,2026-05-02,2026-05-02,6,已完成,aime4eve,,,8,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Commerce（商业计费）,合同管理,Admin）（合同状态变更,PUT /admin/contracts/{id}/status,MVP Phase 2a,2026-05-02,2026-05-02,3,已完成,aime4eve,,,4,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Commerce（商业计费）,分润对账,Admin）（分润列表/详情,GET /admin/revenue/periods,MVP Phase 2a,2026-05-02,2026-05-02,4,已完成,aime4eve,,,6,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,分润计算500错误,Contract.revenueShareRatio NPE已修复
+Commerce（商业计费）,分润对账,Admin）（触发计算/确认/重算,POST /admin/revenue/*,MVP Phase 2a,2026-05-02,2026-05-02,4,已完成,aime4eve,,,6,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Commerce（商业计费）,订阅服务管理,Admin）（授权服务CRUD,GET/POST /admin/subscription-services,MVP Phase 2a,2026-05-02,2026-05-02,4,已完成,aime4eve,,,4,2026-05-27,2026-05-27,部分完成,aime4eve,,,,,后端返回空列表,后端SubscriptionServiceRepository.findAll()缺失,新增findAll方法替换硬编码空列表
+Commerce（商业计费）,B端合同,B端查看合同,GET /contracts/me,B2B阶段,2026-05-03,2026-05-03,3,已完成,aime4eve,,,,,,,未实现,,,,,后端缺失,后端无B2bController,创建B2bController聚合门面
+Commerce（商业计费）,B端分润,B端查看分润,GET /revenue/periods,B2B阶段,2026-05-03,2026-05-03,3,已完成,aime4eve,,,,,,,未实现,,,,,后端缺失,后端无B2bController,创建B2bController聚合门面
+Commerce（商业计费）,功能门控,Admin）（功能门控管理,GET/PUT /admin/feature-gates,MVP Phase 2a,,,,0,未实现,,,,4,4,2026-05-21,已完成,aime4eve,,,,,"后端已实现前端未对接,前端未调用FeatureGate接口",新增FeatureGate管理页面
+Commerce（商业计费）,订阅基础设施,FeatureGate配额引擎,23个feature flag控制,MVP Phase 2a,2026-04-29,2026-04-29,8,已完成,aime4eve,2026-05-19,2026-05-22,12,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Commerce（商业计费）,订阅基础设施,Tier体系,4个订阅等级(BASIC/STANDARD/PREMIUM/ENTERPRISE),MVP Phase 2a,2026-04-29,2026-04-29,4,已完成,aime4eve,2026-05-19,2026-05-22,6,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,
+Health（健康分析）,健康概览,健康概览数据,GET /farms/{id}/health/overview,MVP Phase 2b,,,,0,未实现,2026-05-31,2026-05-31,,4,4,2026-05-31,已完成,aime4eve,,,,,"后端已实现前端未对接,TwinOverviewPage仅用本地数据",调用后端health overview接口
+Health（健康分析）,发热预警,发热预警列表,GET /farms/{id}/health/fever,MVP Phase 2b,2026-05-31,2026-05-31,4,已完成,aime4eve,2026-05-31,2026-05-31,4,2026-05-31,2026-05-31,已完成,aime4eve,,,,,已完成,,
+Health（健康分析）,发热预警,牲畜发热详情,GET /farms/{id}/health/fever/{livestockId},MVP Phase 2b,2026-05-31,2026-05-31,3,已完成,aime4eve,2026-05-31,2026-05-31,3,2026-05-31,2026-05-31,已完成,aime4eve,,,,,已完成,,
+Health（健康分析）,消化管理,消化管理列表,GET /farms/{id}/health/digestive,MVP Phase 2b,2026-05-31,2026-05-31,4,已完成,aime4eve,2026-05-31,2026-05-31,4,2026-05-31,2026-05-31,已完成,aime4eve,,,,,已完成,,
+Health（健康分析）,消化管理,牲畜消化详情,GET /farms/{id}/health/digestive/{livestockId},MVP Phase 2b,2026-05-31,2026-05-31,3,已完成,aime4eve,2026-05-31,2026-05-31,3,2026-05-31,2026-05-31,已完成,aime4eve,,,,,已完成,,
+Health（健康分析）,发情识别,发情识别列表,GET /farms/{id}/health/estrus,MVP Phase 2b,2026-05-31,2026-05-31,4,已完成,aime4eve,2026-05-31,2026-05-31,4,2026-05-31,2026-05-31,已完成,aime4eve,,,,,已完成,,
+Health（健康分析）,发情识别,牲畜发情详情,GET /farms/{id}/health/estrus/{livestockId},MVP Phase 2b,2026-05-31,2026-05-31,3,已完成,aime4eve,2026-05-31,2026-05-31,3,2026-05-31,2026-05-31,已完成,aime4eve,,,,,已完成,,
+Health（健康分析）,疫病防控,疫病防控列表,GET /farms/{id}/health/epidemic,MVP Phase 2b,2026-05-31,2026-05-31,4,已完成,aime4eve,2026-05-31,2026-05-31,4,2026-05-31,2026-05-31,已完成,aime4eve,,,,,已完成,,
+Analytics+Portal（统计与开发者门户）,API Key自管理,API Key CRUD+Dashboard,GET/POST/PUT/DELETE /portal/keys,MVP Phase 2c,2026-06-01,2026-06-01,6,已完成,aime4eve,2026-05-31,2026-05-31,8,2026-06-01,2026-06-01,已完成,aime4eve,,,,,已完成,,
+Analytics+Portal（统计与开发者门户）,用量分析,用量概览/趋势,GET /analytics/usage/*,MVP Phase 2c,,,,0,未实现,2026-05-31,2026-05-31,,4,4,2026-05-31,已完成,aime4eve,,,,,"后端已实现前端未对接,前端未调用Analytics接口",StatsPage改为调用后端
+Analytics+Portal（统计与开发者门户）,管理员Portal,Portal审批/限流,PUT /admin/portal/keys/*,MVP Phase 2c,,,,0,未实现,2026-05-31,2026-05-31,,4,4,2026-05-31,已完成,aime4eve,,,,,"后端已实现前端未对接,前端无Portal管理页面",新增Portal审批页面
+Analytics+Portal（统计与开发者门户）,管理员分析,租户用量统计,GET /admin/analytics/tenants/*/usage/*,MVP Phase 2c,,,,0,未实现,2026-05-31,2026-05-31,,4,4,2026-05-31,已完成,aime4eve,,,,,"后端已实现前端未对接,前端无Analytics管理页面",新增Analytics管理页面
+Analytics+Portal（统计与开发者门户）,频率限制,频率限制引擎,Redis滑动窗口+拦截器,MVP Phase 2c,N/A,N/A,0,N/A,,2026-05-31,2026-05-31,6,2026-05-31,2026-05-31,已完成,aime4eve,,,,,已完成,,
+Analytics+Portal（统计与开发者门户）,API调用日志,调用日志收集,异步拦截器收集日志,MVP Phase 2c,N/A,N/A,0,N/A,,2026-05-31,2026-05-31,4,2026-05-31,2026-05-31,已完成,aime4eve,,,,,已完成,,
+Analytics+Portal（统计与开发者门户）,统计聚合,统计聚合服务,定时聚合+查询控制器,MVP Phase 2c,N/A,N/A,0,N/A,,2026-05-31,2026-05-31,6,2026-05-31,2026-05-31,已完成,aime4eve,,,,,已完成,,
+Analytics+Portal（统计与开发者门户）,Scope验证,Open API端点scope验证,scope拦截器,MVP Phase 2c,N/A,N/A,0,N/A,,2026-05-31,2026-05-31,4,2026-05-31,2026-05-31,已完成,aime4eve,,,,,已完成,,
+Analytics+Portal（统计与开发者门户）,开发者门户,Vue 3独立应用,7页面的独立开发者门户,MVP Phase 2c,2026-05-02,2026-05-02,12,已完成,aime4eve,,,N/A,,,,N/A,,,,,,",,已完成,",
+B2B管理后台,B2B Dashboard,B端概览,GET /b2b/dashboard,B2B阶段,2026-05-03,2026-05-03,4,已完成,aime4eve,,,,,,,未实现,,,,,后端缺失,后端无B2bController,创建B2bController聚合门面
+B2B管理后台,B2B牧场管理,B端牧场列表,GET /b2b/farms,B2B阶段,2026-05-03,2026-05-03,4,已完成,aime4eve,,,,,,,未实现,,,,,后端缺失,后端无B2bController,创建B2bController聚合门面
+B2B管理后台,B2B牧工管理,B端牧工管理,GET/POST/DELETE /b2b/farms/{id}/workers,B2B阶段,2026-05-03,2026-05-03,6,已完成,aime4eve,,,,,,,未实现,,,,,后端缺失,后端无B2bController,创建B2bController聚合门面
+B2B管理后台,B2B用户管理,B端用户列表,GET /b2b/users,B2B阶段,2026-05-03,2026-05-03,3,已完成,aime4eve,,,,,,,未实现,,,,,后端缺失,后端无B2bController,创建B2bController聚合门面
+B2B管理后台,B2B牧场主变更,变更牧场主,PUT /farms/{id}/owner,B2B阶段,,,,0,未实现,,,,3,3,,未实现,,,,,后端缺失+前端未对接,后端无此端点,新增owner变更端点
+Shared（公共基础设施）,安全认证,JWT认证+多租户隔离,JWT过滤器+TenantContext,MVP Phase 1,2026-04-09,2026-04-09,4,已完成,aime4eve,2026-05-17,2026-05-22,16,2026-05-27,2026-05-27,已完成,aime4eve,2026-05-30,2026-05-30,通过,aime4eve,已完成,,
+Shared（公共基础设施）,审计日志,AuditLog完整实现,DomainEvent监听+审计记录,MVP Phase 1,N/A,N/A,0,N/A,,2026-05-31,2026-05-31,8,2026-05-31,2026-05-31,已完成,aime4eve,,,,,已完成,Phase 1为stub已替换,
+Shared（公共基础设施）,统一响应,统一响应格式,"ApiResponse(code,message,requestId,data)",MVP Phase 1,N/A,N/A,0,N/A,,2026-05-17,2026-05-22,4,2026-05-27,2026-05-27,已完成,aime4eve,,,,,已完成,,

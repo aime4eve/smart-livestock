@@ -8,6 +8,9 @@ import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
 enum _TileSource { selfHosted, mbtiles, fallback }
 
 /// 三级回退 TileProvider：tileserver-gl → MBTiles → 高德/OSM
+///
+/// nginx 已配置将 tileserver 的 404 转为透明 PNG，
+/// 因此客户端不需要做瓦片范围判断。
 class SmartTileProvider extends TileProvider {
   final String? selfHostedTileUrl;
   final MBTilesTileProvider? mbtilesProvider;
@@ -56,7 +59,7 @@ class SmartTileProvider extends TileProvider {
   Future<void> performHealthCheck() async {
     if (selfHostedTileUrl == null) return;
     try {
-      final url = _buildUrl(selfHostedTileUrl!, 0, 0, 0);
+      final url = _buildUrl(selfHostedTileUrl!, 3332, 1712, 12);
       final response = await http
           .get(Uri.parse(url))
           .timeout(const Duration(seconds: 2));
@@ -72,7 +75,7 @@ class SmartTileProvider extends TileProvider {
       if (_activeSource != _TileSource.selfHosted &&
           selfHostedTileUrl != null) {
         try {
-          final url = _buildUrl(selfHostedTileUrl!, 0, 0, 0);
+          final url = _buildUrl(selfHostedTileUrl!, 3332, 1712, 12);
           final response = await http
               .get(Uri.parse(url))
               .timeout(const Duration(seconds: 2));

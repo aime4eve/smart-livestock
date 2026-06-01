@@ -52,6 +52,10 @@ public class FarmApplicationService {
         return FarmDto.from(saved);
     }
 
+    public void triggerTileDetection(Long farmId, String farmName, List<GpsCoordinate> vertices) {
+        createBoundaryFenceAndDetectTiles(farmId, farmName, vertices);
+    }
+
     private void createBoundaryFenceAndDetectTiles(Long farmId, String farmName, List<GpsCoordinate> vertices) {
         Fence boundaryFence = new Fence(farmId, farmName + " 边界", vertices, "#FF0000");
         boundaryFence.setFenceType("boundary");

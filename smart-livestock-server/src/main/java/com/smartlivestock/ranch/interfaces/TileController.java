@@ -56,7 +56,9 @@ public class TileController {
     }
 
     @GetMapping("/farms/{farmId}/offline-map")
-    public ResponseEntity<Resource> downloadOfflineMap(@PathVariable Long farmId) {
+    public ResponseEntity<Resource> downloadOfflineMap(
+            @PathVariable Long farmId,
+            @RequestParam(required = false) String regionName) {
         Farm farm = farmRepository.findById(farmId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Farm not found"));
         Long currentTenant = TenantContext.getCurrentTenant();
@@ -64,7 +66,22 @@ public class TileController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
 
-        String matchedFile = findMatchingMbtiles(farm);
+        String matchedFile;
+        if (regionName != null && !regionName.isBlank()) {
+            // Explicit region name: find by MBTiles file name
+            String targetFile = regionName.endsWith(".mbtiles") ? regionName : regionName + ".mbtiles";
+            Path directPath = Paths.get(TILES_DIR).resolve(targetFile).normalize();
+            if (!directPath.startsWith(Paths.get(TILES_DIR).normalize())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid path");
+            }
+            if (directPath.toFile().exists()) {
+                matchedFile = targetFile;
+            } else {
+                matchedFile = findMatchingMbtilesByRegionName(regionName);
+            }
+        } else {
+            matchedFile = findMatchingMbtiles(farm);
+        }
         if (matchedFile == null) return ResponseEntity.notFound().build();
 
         Path mbtiles = Paths.get(TILES_DIR).resolve(matchedFile).normalize();
@@ -84,6 +101,7 @@ public class TileController {
     private String findMatchingMbtiles(Farm farm) {
         File regionsFile = new File(REGIONS_FILE);
         if (!regionsFile.exists()) return null;
+        if (farm.getLongitude() == null || farm.getLatitude() == null) return null;
 
         try {
             List<Map<String, Object>> regions = objectMapper.readValue(regionsFile, List.class);
@@ -102,6 +120,23 @@ public class TileController {
 
                 if (farmLng >= minLon && farmLat >= minLat && farmLng <= maxLon && farmLat <= maxLat) {
                     return (String) region.get("file");
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to read regions file: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    private String findMatchingMbtilesByRegionName(String regionName) {
+        File regionsFile = new File(REGIONS_FILE);
+        if (!regionsFile.exists()) return null;
+        try {
+            List<Map<String, Object>> regions = objectMapper.readValue(regionsFile, List.class);
+            for (Map<String, Object> region : regions) {
+                String file = (String) region.get("file");
+                if (file != null && file.startsWith(regionName)) {
+                    return file;
                 }
             }
         } catch (Exception e) {

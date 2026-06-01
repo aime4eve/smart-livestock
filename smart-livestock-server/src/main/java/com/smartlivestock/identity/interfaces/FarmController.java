@@ -3,8 +3,10 @@ package com.smartlivestock.identity.interfaces;
 import com.smartlivestock.identity.application.FarmApplicationService;
 import com.smartlivestock.identity.application.command.CreateFarmCommand;
 import com.smartlivestock.identity.application.dto.FarmDto;
+import com.smartlivestock.identity.domain.model.User;
 import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepository;
 import com.smartlivestock.identity.domain.repository.UserRepository;
+import com.smartlivestock.identity.infrastructure.persistence.entity.UserFarmAssignmentJpaEntity;
 import com.smartlivestock.ranch.domain.model.GpsCoordinate;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
@@ -18,8 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -52,8 +53,9 @@ public class FarmController {
         if (userOpt.isEmpty()) {
             throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "用户不存在");
         }
-        if (!userOpt.get().isOwner()) {
-            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "仅 owner 可创建牧场");
+        var user = userOpt.get();
+        if (!user.isOwner() && !user.getRole().name().equals("B2B_ADMIN")) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "仅 owner 或 b2b_admin 可创建牧场");
         }
 
         String name = (String) body.get("name");
@@ -81,7 +83,13 @@ public class FarmController {
                 toBigDecimal(body.get("areaHectares")),
                 boundaryVertices
         );
-        FarmDto farm = farmApplicationService.createFarm(tenantId, command, userId);
+        Long ownerId = null;
+        if (body.get("ownerId") != null) {
+            ownerId = ((Number) body.get("ownerId")).longValue();
+        } else if (user.isOwner()) {
+            ownerId = userId;
+        }
+        FarmDto farm = farmApplicationService.createFarm(tenantId, command, ownerId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(farm));
     }
 
@@ -101,12 +109,28 @@ public class FarmController {
 
     @GetMapping("/farms/{farmId}/members")
     public ResponseEntity<ApiResponse<Map<String, Object>>> listMembers(@PathVariable Long farmId) {
-        Map<String, Object> data = Map.of(
-                "items", List.of(),
-                "page", 1,
-                "pageSize", 0,
-                "total", 0
-        );
+        List<UserFarmAssignmentJpaEntity> assignments =
+                userFarmAssignmentRepository.findByFarmIdAndStatus(farmId, "ACTIVE");
+
+        List<Map<String, Object>> items = assignments.stream().map(a -> {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("userId", a.getUserId());
+            item.put("farmId", a.getFarmId());
+            item.put("role", a.getRole());
+            item.put("status", a.getStatus());
+            item.put("assignedAt", a.getCreatedAt() != null ? a.getCreatedAt().toString() : null);
+            userRepository.findById(a.getUserId()).ifPresent(user -> {
+                item.put("name", user.getName());
+                item.put("phone", user.getPhone());
+            });
+            return item;
+        }).toList();
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("items", items);
+        data.put("page", 1);
+        data.put("pageSize", items.size());
+        data.put("total", items.size());
         return ResponseEntity.ok(ApiResponse.ok(data));
     }
 
@@ -133,8 +157,47 @@ public class FarmController {
         if (!userFarmAssignmentRepository.existsByUserIdAndFarmId(userId, farmId)) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "用户不在该牧场中");
         }
-        userFarmAssignmentRepository.updateStatus(userId, farmId, "REMOVED");
+        userFarmAssignmentRepository.updateStatus(userId, farmId, "DISABLED");
         return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    /**
+     * PUT /api/v1/farms/{farmId}/owner
+     * 变更牧场主（B2B Admin 使用）。
+     */
+    @PutMapping("/farms/{farmId}/owner")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> changeOwner(
+            @PathVariable Long farmId,
+            @RequestBody Map<String, Object> body) {
+        Long tenantId = TenantContext.getCurrentTenant();
+        Object ownerIdObj = body.get("ownerId");
+        if (ownerIdObj == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "ownerId 不能为空");
+        }
+        Long newOwnerId = ((Number) ownerIdObj).longValue();
+
+        // Verify new owner belongs to same tenant
+        User newOwner = userRepository.findById(newOwnerId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "用户不存在: " + newOwnerId));
+        if (!tenantId.equals(newOwner.getTenantId())) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "不能跨租户变更牧场主");
+        }
+
+        // Remove current owner assignment
+        userFarmAssignmentRepository.findByFarmIdAndRoleAndStatus(farmId, "OWNER", "ACTIVE")
+                .ifPresent(current -> userFarmAssignmentRepository.updateStatus(
+                        current.getUserId(), farmId, "DISABLED"));
+
+        // Create or reactivate new owner assignment
+        var existingAssignment = userFarmAssignmentRepository.findByUserIdAndFarmId(newOwnerId, farmId);
+        if (existingAssignment.isPresent()) {
+            userFarmAssignmentRepository.updateRoleAndStatus(newOwnerId, farmId, "OWNER", "ACTIVE");
+        } else {
+            userFarmAssignmentRepository.save(newOwnerId, farmId, "OWNER", "ACTIVE");
+        }
+
+        Map<String, Object> data = Map.of("farmId", farmId, "ownerId", newOwnerId);
+        return ResponseEntity.ok(ApiResponse.ok(data));
     }
 
     @SuppressWarnings("unchecked")
