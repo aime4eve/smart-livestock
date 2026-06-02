@@ -24,6 +24,9 @@ class B2bWorkerApiRepository implements B2bWorkerManagementRepository {
               workerCount: f['workerCount'] as int? ?? 0,
               livestockCount: f['livestockCount'] as int? ?? 0,
               deviceCount: f['deviceCount'] as int? ?? 0,
+              latitude: (f['latitude'] as num?)?.toDouble(),
+              longitude: (f['longitude'] as num?)?.toDouble(),
+              areaHectares: (f['areaHectares'] as num?)?.toDouble(),
             )).toList();
     return B2bWorkerManagementViewData(
       subFarms: farms,

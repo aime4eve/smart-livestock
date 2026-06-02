@@ -131,6 +131,40 @@ class MinePage extends ConsumerWidget {
               ),
             ),
           ],
+          const SizedBox(height: AppSpacing.xl),
+          // --- Logout (all roles) ---
+          HighfiCard(
+            child: ListTile(
+              key: const Key('mine-logout'),
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.logout, color: AppColors.danger),
+              title: const Text('退出登录',
+                  style: TextStyle(color: AppColors.danger)),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('确认退出'),
+                    content: const Text('确定要退出登录吗？'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('取消'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          ref.read(sessionControllerProvider.notifier).logout();
+                        },
+                        child: const Text('退出',
+                            style: TextStyle(color: AppColors.danger)),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );

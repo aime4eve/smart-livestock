@@ -29,6 +29,9 @@ class B2bApiRepository implements B2bRepository {
                 region: fm['region'] as String? ?? '',
                 deviceCount: fm['deviceCount'] as int? ?? 0,
                 workerCount: fm['workerCount'] as int? ?? 0,
+                latitude: (fm['latitude'] as num?)?.toDouble(),
+                longitude: (fm['longitude'] as num?)?.toDouble(),
+                areaHectares: (fm['areaHectares'] as num?)?.toDouble(),
               );
             })
             .toList() ??

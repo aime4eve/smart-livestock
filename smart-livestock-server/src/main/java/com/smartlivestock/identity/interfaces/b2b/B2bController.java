@@ -97,6 +97,9 @@ public class B2bController {
             farmMap.put("workerCount", workerCount);
             farmMap.put("deviceCount", deviceCount);
             farmMap.put("region", "");
+            farmMap.put("latitude", farm.latitude());
+            farmMap.put("longitude", farm.longitude());
+            farmMap.put("areaHectares", farm.areaHectares());
             farmSummaries.add(farmMap);
         }
 
@@ -127,6 +130,8 @@ public class B2bController {
                         item.put("farmName", farm.name());
                         item.put("severity", a.severity());
                         item.put("type", a.type());
+                        item.put("message", a.message());
+                        item.put("livestockId", a.livestockId());
                         alertSummary.add(item);
                     });
         }
@@ -214,6 +219,9 @@ public class B2bController {
             item.put("workerCount", workerCount);
             item.put("livestockCount", livestockCount);
             item.put("deviceCount", deviceCount);
+            item.put("latitude", farm.latitude());
+            item.put("longitude", farm.longitude());
+            item.put("areaHectares", farm.areaHectares());
             items.add(item);
         }
 

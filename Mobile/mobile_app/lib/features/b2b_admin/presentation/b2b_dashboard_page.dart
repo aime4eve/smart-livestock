@@ -2,21 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
+import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_repository.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/alert_bottom_sheet.dart';
 
-class B2bDashboardPage extends ConsumerWidget {
+class B2bDashboardPage extends ConsumerStatefulWidget {
   const B2bDashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<B2bDashboardPage> createState() => _B2bDashboardPageState();
+}
+
+class _B2bDashboardPageState extends ConsumerState<B2bDashboardPage>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final asyncData = ref.watch(b2bDashboardControllerProvider);
     final theme = Theme.of(context);
 
     return asyncData.when(
-      data: (data) => _buildContent(context, data),
+      data: (data) => _buildContent(context, data, theme),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(
         child: Column(
@@ -24,29 +45,28 @@ class B2bDashboardPage extends ConsumerWidget {
           children: [
             Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
             const SizedBox(height: AppSpacing.md),
-            Text('加载失败', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.error)),
+            Text('加载失败',
+                style: theme.textTheme.titleMedium
+                    ?.copyWith(color: theme.colorScheme.error)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, B2bDashboardData data) {
-    final theme = Theme.of(context);
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // --- Header ---
-          Row(
+  Widget _buildContent(BuildContext context, B2bDashboardData data, ThemeData theme) {
+    return Column(
+      children: [
+        // ── Header ──
+        Padding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 0),
+          child: Row(
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('B端控制台',
+                    Text('运营概览',
                         style: theme.textTheme.headlineMedium
                             ?.copyWith(fontWeight: FontWeight.bold)),
                     if (data.partnerName != null)
@@ -60,46 +80,111 @@ class B2bDashboardPage extends ConsumerWidget {
                 ),
               ),
               if (data.contractStatus != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-                  decoration: BoxDecoration(
-                    color: data.contractStatus == 'active'
-                        ? const Color(0xFFE8F5E9)
-                        : const Color(0xFFFFF3E0),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        data.contractStatus == 'active'
-                            ? Icons.verified_outlined
-                            : Icons.warning_amber_outlined,
-                        size: 14,
-                        color: data.contractStatus == 'active'
-                            ? const Color(0xFF2E7D32)
-                            : const Color(0xFFE65100),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        data.contractStatus == 'active' ? '合同有效' : '合同待续',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: data.contractStatus == 'active'
-                              ? const Color(0xFF2E7D32)
-                              : const Color(0xFFE65100),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
+                _ContractBadge(status: data.contractStatus!),
+            ],
+          ),
+        ),
+        // ── Tab bar ──
+        Padding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 0),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: theme.dividerColor)),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: AppColors.primary,
+              unselectedLabelColor: AppColors.textSecondary,
+              indicatorColor: AppColors.primary,
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              unselectedLabelStyle: const TextStyle(fontSize: 14),
+              tabs: const [
+                Tab(text: 'KPI 看板'),
+                Tab(text: '告警动态'),
+              ],
+            ),
+          ),
+        ),
+        // ── Tab content ──
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _KpiTab(data: data),
+              _AlertTab(data: data),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  Tab 1: KPI 看板
+// ═══════════════════════════════════════════════════════════════
+
+class _KpiTab extends StatelessWidget {
+  const _KpiTab({required this.data});
+  final B2bDashboardData data;
+
+  @override
+  Widget build(BuildContext context) {
+    final totalWorkers = data.farms.fold<int>(0, (s, f) => s + f.workerCount);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // KPI grid
+          Row(
+            children: [
+              Expanded(
+                child: _KpiCard(
+                  label: '旗下牧场',
+                  value: '${data.totalFarms}',
+                  icon: Icons.landscape_outlined,
+                  color: const Color(0xFF2E7D32),
+                  bgColor: const Color(0xFFE8F5E9),
                 ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _KpiCard(
+                  label: '牲畜总数',
+                  value: '${data.totalLivestock}',
+                  icon: Icons.pets_outlined,
+                  color: const Color(0xFF1565C0),
+                  bgColor: const Color(0xFFE3F2FD),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _KpiCard(
+                  label: '总牧工',
+                  value: '$totalWorkers',
+                  icon: Icons.groups_outlined,
+                  color: const Color(0xFF6A1B9A),
+                  bgColor: const Color(0xFFF3E5F5),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _KpiCard(
+                  label: '待处理告警',
+                  value: '${data.pendingAlerts}',
+                  icon: Icons.notification_important_outlined,
+                  color: data.pendingAlerts > 0 ? const Color(0xFFC62828) : const Color(0xFF2E7D32),
+                  bgColor: data.pendingAlerts > 0 ? const Color(0xFFFCE4EC) : const Color(0xFFE8F5E9),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
 
-          // --- Hero card ---
+          // Revenue hero card
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(AppSpacing.lg),
@@ -118,186 +203,215 @@ class B2bDashboardPage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '¥${data.monthlyRevenue.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text('本月营收',
-                    style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7), fontSize: 12)),
-                const SizedBox(height: AppSpacing.lg),
+                const Text('本月营收',
+                    style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 12)),
+                const SizedBox(height: 4),
+                Text('\u00a5${data.monthlyRevenue.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                        color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                const SizedBox(height: AppSpacing.md),
                 Row(
                   children: [
-                    _HeroStat(
-                      label: '旗下牧场',
-                      value: '${data.totalFarms}',
-                    ),
+                    _HeroInfoItem(
+                        label: '设备在线率',
+                        value: '${(data.deviceOnlineRate * 100).toStringAsFixed(0)}%'),
                     const SizedBox(width: AppSpacing.xl),
-                    _HeroStat(
-                      label: '总牲畜',
-                      value: '${data.totalLivestock}',
-                    ),
-                    const SizedBox(width: AppSpacing.xl),
-                    _HeroStat(
-                      label: '待处理告警',
-                      value: '${data.pendingAlerts}',
-                      highlight: data.pendingAlerts > 0,
-                    ),
+                    _HeroInfoItem(
+                        label: '设备总数', value: '${data.totalDevices}'),
                   ],
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                // Device online rate progress bar
-                Row(
-                  children: [
-                    Text('设备在线率',
-                        style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.7), fontSize: 12)),
-                    const Spacer(),
-                    Text(
-                      '${(data.deviceOnlineRate * 100).toInt()}%',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: data.deviceOnlineRate.clamp(0.0, 1.0),
-                    backgroundColor: Colors.white.withValues(alpha: 0.2),
-                    valueColor:
-                        const AlwaysStoppedAnimation<Color>(Color(0xFF81C784)),
-                    minHeight: 6,
-                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
 
-          // --- Alert reminder bar ---
-          if (data.pendingAlerts > 0)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-              child: Material(
-                color: const Color(0xFFFFF3E0),
-                borderRadius: BorderRadius.circular(10),
-                child: InkWell(
-                  key: const Key('b2b-alert-bar'),
-                  borderRadius: BorderRadius.circular(10),
-                  onTap: () => B2bAlertBottomSheet.show(
-                      context, data.alertSummary, data.pendingAlerts),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.notifications_active_outlined,
-                            size: 20, color: Color(0xFFE65100)),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: Text(
-                            '${data.pendingAlerts} 条待处理告警',
-                            style: const TextStyle(
-                                color: Color(0xFFE65100),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500),
-                          ),
-                        ),
-                        const Icon(Icons.chevron_right,
-                            size: 18, color: Color(0xFFE65100)),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-          // --- Quick links grid ---
+          // Quick links
           Row(
             children: [
-              _QuickLinkItem(
-                key: const Key('b2b-quick-revenue'),
-                icon: Icons.bar_chart_outlined,
-                label: '对账',
-                onTap: () =>
-                    context.go(AppRoute.b2bAdminRevenue.path),
+              Expanded(
+                child: _QuickLinkItem(
+                  icon: Icons.sensors_outlined,
+                  label: '设备',
+                  onTap: () {},
+                ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              _QuickLinkItem(
-                key: const Key('b2b-quick-contract'),
-                icon: Icons.description_outlined,
-                label: '合同',
-                onTap: () =>
-                    context.go(AppRoute.b2bAdminContract.path),
+              Expanded(
+                child: _QuickLinkItem(
+                  icon: Icons.description_outlined,
+                  label: '合同',
+                  onTap: () => context.go(AppRoute.b2bAdminContract.path),
+                ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              _QuickLinkItem(
-                key: const Key('b2b-quick-farms'),
-                icon: Icons.agriculture_outlined,
-                label: '牧场',
-                onTap: () =>
-                    context.go(AppRoute.b2bAdminFarms.path),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              _QuickLinkItem(
-                key: const Key('b2b-quick-workers'),
-                icon: Icons.engineering_outlined,
-                label: '牧工',
-                onTap: () =>
-                    context.go(AppRoute.b2bWorkerManagement.path),
+              Expanded(
+                child: _QuickLinkItem(
+                  icon: Icons.account_balance_wallet_outlined,
+                  label: '对账',
+                  onTap: () => context.go(AppRoute.b2bAdminRevenue.path),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.xl),
-
-          // --- Farm list ---
-          Text('旗下牧场', style: theme.textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          ...data.farms.map((farm) => _FarmCard(farm: farm)),
         ],
       ),
     );
   }
 }
 
-class _HeroStat extends StatelessWidget {
-  const _HeroStat({
+// ═══════════════════════════════════════════════════════════════
+//  Tab 3: 告警动态
+// ═══════════════════════════════════════════════════════════════
+
+class _AlertTab extends StatelessWidget {
+  const _AlertTab({required this.data});
+  final B2bDashboardData data;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final alerts = data.alertSummary;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text('待处理告警', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+              const SizedBox(width: AppSpacing.sm),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: data.pendingAlerts > 0 ? const Color(0xFFFCE4EC) : const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text('${data.pendingAlerts}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: data.pendingAlerts > 0 ? const Color(0xFFC62828) : const Color(0xFF2E7D32),
+                    )),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
+          if (alerts.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 64),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.check_circle_outline, size: 64, color: AppColors.success),
+                    const SizedBox(height: AppSpacing.lg),
+                    Text('暂无待处理告警', style: theme.textTheme.titleMedium?.copyWith(color: AppColors.textSecondary)),
+                  ],
+                ),
+              ),
+            )
+          else
+            ...alerts.map((alert) => _AlertCard(alert: alert)),
+        ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  Shared widgets
+// ═══════════════════════════════════════════════════════════════
+
+class _ContractBadge extends StatelessWidget {
+  const _ContractBadge({required this.status});
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = status == 'active';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+      decoration: BoxDecoration(
+        color: isActive ? const Color(0xFFE8F5E9) : const Color(0xFFFFF3E0),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isActive ? Icons.verified_outlined : Icons.warning_amber_outlined,
+            size: 14,
+            color: isActive ? const Color(0xFF2E7D32) : const Color(0xFFE65100),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            isActive ? '合同有效' : '合同待续',
+            style: TextStyle(
+              fontSize: 12,
+              color: isActive ? const Color(0xFF2E7D32) : const Color(0xFFE65100),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _KpiCard extends StatelessWidget {
+  const _KpiCard({
     required this.label,
     required this.value,
-    this.highlight = false,
+    required this.icon,
+    required this.color,
+    required this.bgColor,
   });
+
 
   final String label;
   final String value;
-  final bool highlight;
+  final IconData icon;
+  final Color color;
+  final Color bgColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: color),
+          const SizedBox(height: AppSpacing.sm),
+          Text(value,
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: color)),
+          const SizedBox(height: 2),
+          Text(label, style: TextStyle(fontSize: 11, color: color.withValues(alpha: 0.7))),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroInfoItem extends StatelessWidget {
+  const _HeroInfoItem({required this.label, required this.value});
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          value,
-          style: TextStyle(
-            color: highlight ? const Color(0xFFFFCC80) : Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        Text(label, style: const TextStyle(color: Color(0xB3FFFFFF), fontSize: 11)),
         const SizedBox(height: 2),
-        Text(label,
-            style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7), fontSize: 11)),
+        Text(value, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500)),
       ],
     );
   }
@@ -305,11 +419,11 @@ class _HeroStat extends StatelessWidget {
 
 class _QuickLinkItem extends StatelessWidget {
   const _QuickLinkItem({
-    super.key,
     required this.icon,
     required this.label,
     required this.onTap,
   });
+
 
   final IconData icon;
   final String label;
@@ -317,24 +431,21 @@ class _QuickLinkItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Material(
-        color: const Color(0xFFF5F5F5),
+    return Material(
+      color: const Color(0xFFF5F5F5),
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
         borderRadius: BorderRadius.circular(10),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(10),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 24, color: const Color(0xFF607D8B)),
-                const SizedBox(height: AppSpacing.xs),
-                Text(label,
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF455A64))),
-              ],
-            ),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 24, color: const Color(0xFF607D8B)),
+              const SizedBox(height: AppSpacing.xs),
+              Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF455A64))),
+            ],
           ),
         ),
       ),
@@ -342,110 +453,65 @@ class _QuickLinkItem extends StatelessWidget {
   }
 }
 
-class _FarmCard extends StatelessWidget {
-  const _FarmCard({required this.farm});
-
-  final B2bFarmSummary farm;
+class _AlertCard extends StatelessWidget {
+  const _AlertCard({required this.alert});
+  final Map<String, dynamic> alert;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Determine alert count: use region field convention or default to status
-    // The status field encodes 'active' or other; we check if name suggests alerts
-    final bool hasAlerts = farm.status != 'active';
+    final farmName = alert['farmName'] as String? ?? '未知牧场';
+    final type = alert['type'] as String? ?? '告警';
+    final typeLabel = switch (type) {
+      'FENCE_BREACH' => '围栏越界',
+      'HEALTH' => '健康异常',
+      'DEVICE_OFFLINE' => '设备离线',
+      _ => type,
+    };
+    final message = alert['message'] as String? ?? '';
+    final livestockId = alert['livestockId'];
+    final livestockLabel = livestockId != null ? '牲畜 #$livestockId' : '';
+    final severity = alert['severity'] as String? ?? 'warning';
 
-    return Container(
-      key: Key('b2b-farm-${farm.id}'),
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          // Agriculture icon box
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.agriculture_outlined,
-                size: 24, color: Color(0xFF2E7D32)),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          // Farm info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    final severityColor = switch (severity) {
+      'critical' => const Color(0xFFC62828),
+      'warning' => const Color(0xFFE65100),
+      _ => const Color(0xFF1565C0),
+    };
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Container(
+        decoration: BoxDecoration(
+          color: severityColor.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border(left: BorderSide(color: severityColor, width: 4)),
+        ),
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(farm.name,
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    _FarmStatChip(
-                        icon: Icons.groups_outlined, label: '${farm.workerCount}'),
-                    const SizedBox(width: AppSpacing.sm),
-                    _FarmStatChip(
-                        icon: Icons.pets_outlined,
-                        label: '${farm.livestockCount}'),
-                    const SizedBox(width: AppSpacing.sm),
-                    _FarmStatChip(
-                        icon: Icons.sensors_outlined,
-                        label: '${farm.deviceCount}'),
-                  ],
+                Expanded(
+                  child: Text('$farmName \u2014 $typeLabel',
+                      style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
                 ),
+                Icon(Icons.error_outline, size: 18, color: severityColor),
               ],
             ),
-          ),
-          // Status tag
-          Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm, vertical: 4),
-            decoration: BoxDecoration(
-              color: hasAlerts
-                  ? const Color(0xFFFFF3E0)
-                  : const Color(0xFFE8F5E9),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              hasAlerts ? '告警' : '正常',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: hasAlerts
-                    ? const Color(0xFFE65100)
-                    : const Color(0xFF2E7D32),
-              ),
-            ),
-          ),
-        ],
+            if (message.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(message, style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary)),
+            ],
+            if (livestockLabel.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(livestockLabel, style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+            ],
+          ],
+        ),
       ),
-    );
-  }
-}
-
-class _FarmStatChip extends StatelessWidget {
-  const _FarmStatChip({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14, color: Theme.of(context).hintColor),
-        const SizedBox(width: 2),
-        Text(label,
-            style: TextStyle(
-                fontSize: 12, color: Theme.of(context).hintColor)),
-      ],
     );
   }
 }

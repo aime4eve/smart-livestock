@@ -16,7 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin/tiles")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('PLATFORM_ADMIN')")
+@PreAuthorize("hasAnyRole('PLATFORM_ADMIN', 'B2B_ADMIN')")
 public class TileAdminController {
 
     private final TileAdminService tileAdminService;

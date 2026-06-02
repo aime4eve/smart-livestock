@@ -3,6 +3,7 @@ package com.smartlivestock.identity.interfaces;
 import com.smartlivestock.identity.application.FarmApplicationService;
 import com.smartlivestock.identity.application.command.CreateFarmCommand;
 import com.smartlivestock.identity.application.dto.FarmDto;
+import com.smartlivestock.identity.domain.model.Farm;
 import com.smartlivestock.identity.domain.model.User;
 import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepository;
 import com.smartlivestock.identity.domain.repository.UserRepository;
@@ -103,8 +104,22 @@ public class FarmController {
     public ResponseEntity<ApiResponse<FarmDto>> updateFarm(
             @PathVariable Long farmId,
             @RequestBody Map<String, Object> body) {
-        FarmDto farm = farmApplicationService.getFarm(farmId);
-        return ResponseEntity.ok(ApiResponse.ok(farm));
+        Farm farm = farmApplicationService.getFarmEntity(farmId);
+        if (body.get("name") != null) {
+            String name = (String) body.get("name");
+            if (!name.isBlank()) farm.setName(name);
+        }
+        if (body.get("latitude") != null) {
+            farm.setLatitude(toBigDecimal(body.get("latitude")));
+        }
+        if (body.get("longitude") != null) {
+            farm.setLongitude(toBigDecimal(body.get("longitude")));
+        }
+        if (body.get("areaHectares") != null) {
+            farm.setAreaHectares(toBigDecimal(body.get("areaHectares")));
+        }
+        Farm saved = farmApplicationService.saveFarm(farm);
+        return ResponseEntity.ok(ApiResponse.ok(FarmDto.from(saved)));
     }
 
     @GetMapping("/farms/{farmId}/members")

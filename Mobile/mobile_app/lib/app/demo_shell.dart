@@ -24,7 +24,21 @@ class DemoShell extends ConsumerWidget {
     final role = session.role;
     if (role == null ||
         role == UserRole.platformAdmin) {
-      return Scaffold(body: child);
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('平台管理'),
+          actions: [
+            IconButton(
+              key: const Key('platform-admin-logout'),
+              icon: const Icon(Icons.logout),
+              tooltip: '退出登录',
+              onPressed: () => ref.read(sessionControllerProvider.notifier).logout(),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+          ],
+        ),
+        body: child,
+      );
     }
 
     if (role == UserRole.b2bAdmin) {
@@ -180,70 +194,195 @@ class _NavItem {
   final AppRoute route;
 }
 
-class _B2bAdminShell extends StatelessWidget {
+class _B2bAdminShell extends ConsumerWidget {
   const _B2bAdminShell({required this.child});
   final Widget child;
 
+  static const _sidebarWidth = 200.0;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final session = ref.watch(sessionControllerProvider);
+    final theme = Theme.of(context);
+
     return Scaffold(
       body: Row(
         children: [
-          NavigationRail(
-            selectedIndex: _calculateIndex(context),
-            onDestinationSelected: (index) => _navigate(context, index),
-            labelType: NavigationRailLabelType.all,
-            destinations: const [
-              NavigationRailDestination(
-                icon: Icon(Icons.dashboard),
-                label: Text('概览'),
+          // ── Grouped sidebar ──
+          Container(
+            width: _sidebarWidth,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8F9FA),
+              border: Border(
+                right: BorderSide(color: theme.dividerColor, width: 1),
               ),
-              NavigationRailDestination(
-                icon: Icon(Icons.agriculture),
-                label: Text('牧场'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.description),
-                label: Text('合同'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.account_balance_wallet),
-                label: Text('对账'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.groups_2_outlined),
-                label: Text('牧工管理'),
-              ),
-            ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                  child: Text(
+                    'B端控制台',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF37474F),
+                    ),
+                  ),
+                ),
+
+                // ── Section: operations ──
+                const _SidebarGroupLabel(label: '运营管理'),
+                _SidebarItem(
+                  icon: Icons.dashboard_outlined,
+                  label: '概览',
+                  selected: _isSelected(context, 0),
+                  onTap: () => context.go(AppRoute.b2bAdmin.path),
+                ),
+                _SidebarItem(
+                  icon: Icons.agriculture_outlined,
+                  label: '牧场管理',
+                  selected: _isSelected(context, 1),
+                  onTap: () => context.go(AppRoute.b2bAdminFarms.path),
+                ),
+
+                // ── Section: business ──
+                const _SidebarGroupLabel(label: '商务管理'),
+                _SidebarItem(
+                  icon: Icons.description_outlined,
+                  label: '合同信息',
+                  selected: _isSelected(context, 2),
+                  onTap: () => context.go(AppRoute.b2bAdminContract.path),
+                ),
+                _SidebarItem(
+                  icon: Icons.account_balance_wallet_outlined,
+                  label: '对账',
+                  selected: _isSelected(context, 3),
+                  onTap: () => context.go(AppRoute.b2bAdminRevenue.path),
+                ),
+
+                const Spacer(),
+
+                // ── Bottom: user + logout ──
+                const Divider(height: 1),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.person_outline, size: 16, color: Color(0xFF9E9E9E)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          session.userName ?? 'B端管理员',
+                          style: const TextStyle(fontSize: 13, color: Color(0xFF616161)),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                _SidebarItem(
+                  icon: Icons.logout,
+                  label: '退出登录',
+                  selected: false,
+                  textColor: const Color(0xFFC2564B),
+                  onTap: () =>
+                      ref.read(sessionControllerProvider.notifier).logout(),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
-          const VerticalDivider(thickness: 1, width: 1),
+          // ── Content ──
           Expanded(child: child),
         ],
       ),
     );
   }
 
-  int _calculateIndex(BuildContext context) {
-    final location = GoRouterState.of(context).uri.toString();
-    if (location.startsWith('/b2b/admin/farms')) return 1;
-    if (location.startsWith('/b2b/admin/contract')) return 2;
-    if (location.startsWith('/b2b/admin/revenue')) return 3;
-    if (location.startsWith('/b2b/admin/workers')) return 4;
-    return 0;
+  bool _isSelected(BuildContext context, int index) {
+    final uri = GoRouterState.of(context).uri;
+    final location = uri.toString();
+    return switch (index) {
+      // Overview: selected when on /b2b/admin without sub-route
+      0 => location.startsWith('/b2b/admin') &&
+          !location.startsWith('/b2b/admin/farms') &&
+          !location.startsWith('/b2b/admin/contract') &&
+          !location.startsWith('/b2b/admin/revenue'),
+      // Farm management: selected when on /b2b/admin/farms/*
+      1 => location.startsWith('/b2b/admin/farms'),
+      2 => location.startsWith('/b2b/admin/contract'),
+      3 => location.startsWith('/b2b/admin/revenue'),
+      _ => false,
+    };
   }
+}
 
-  void _navigate(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        context.go(AppRoute.b2bAdmin.path);
-      case 1:
-        context.go(AppRoute.b2bAdminFarms.path);
-      case 2:
-        context.go(AppRoute.b2bAdminContract.path);
-      case 3:
-        context.go(AppRoute.b2bAdminRevenue.path);
-      case 4:
-        context.go(AppRoute.b2bWorkerManagement.path);
-    }
+class _SidebarGroupLabel extends StatelessWidget {
+  const _SidebarGroupLabel({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF9E9E9E),
+          letterSpacing: 1,
+        ),
+      ),
+    );
+  }
+}
+
+class _SidebarItem extends StatelessWidget {
+  const _SidebarItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.textColor,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final Color? textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveColor = textColor ??
+        (selected ? const Color(0xFF1565C0) : const Color(0xFF616161));
+    final bgColor = selected ? const Color(0xFFE3F2FD) : Colors.transparent;
+
+    return Material(
+      color: bgColor,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(
+            children: [
+              Icon(icon, size: 18, color: effectiveColor),
+              const SizedBox(width: 10),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                  color: effectiveColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

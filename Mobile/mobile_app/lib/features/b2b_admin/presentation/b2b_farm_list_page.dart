@@ -52,7 +52,7 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
               Text('旗下牧场', style: theme.textTheme.titleLarge),
               FilledButton.icon(
                 key: const Key('b2b-create-farm'),
-                onPressed: _creating ? null : _showCreateDialog,
+                onPressed: () => context.go('${AppRoute.b2bAdminFarms.path}/create'),
                 icon: const Icon(Icons.add, size: 18),
                 label: const Text('新建牧场'),
               ),
@@ -66,12 +66,12 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
 
           // ── Farm list ──
           if (data.farms.isEmpty)
-            _EmptyState(onCreate: _creating ? null : _showCreateDialog)
+            _EmptyState(onCreate: () => context.go('${AppRoute.b2bAdminFarms.path}/create'))
           else
             ...data.farms.map((farm) => _FarmCard(
               farm: farm,
               onTap: () => context.go(
-                '${AppRoute.b2bAdmin.path}/workers/${farm.id}',
+                '${AppRoute.b2bAdminFarms.path}/${farm.id}',
               ),
               onChangeOwner: () => _showChangeOwnerDialog(farm),
               onEditName: () => _showEditNameDialog(farm),

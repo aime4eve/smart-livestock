@@ -5,6 +5,9 @@ class B2bSubFarm {
     required this.workerCount,
     required this.livestockCount,
     this.deviceCount = 0,
+    this.latitude,
+    this.longitude,
+    this.areaHectares,
   });
 
   final String id;
@@ -12,6 +15,9 @@ class B2bSubFarm {
   final int workerCount;
   final int livestockCount;
   final int deviceCount;
+  final double? latitude;
+  final double? longitude;
+  final double? areaHectares;
 }
 
 class B2bSubFarmWorker {

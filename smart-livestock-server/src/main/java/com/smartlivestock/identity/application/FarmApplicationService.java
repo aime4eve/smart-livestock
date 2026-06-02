@@ -99,4 +99,15 @@ public class FarmApplicationService {
         }
         farmRepository.deleteById(id);
     }
+
+    @Transactional(readOnly = true)
+    public Farm getFarmEntity(Long id) {
+        return farmRepository.findById(id)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牧场不存在: " + id));
+    }
+
+    @Transactional
+    public Farm saveFarm(Farm farm) {
+        return farmRepository.save(farm);
+    }
 }

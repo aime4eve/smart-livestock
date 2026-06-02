@@ -10,6 +10,9 @@ class B2bFarmSummary {
     this.deviceCount = 0,
     this.workerCount = 0,
     this.createdAt,
+    this.latitude,
+    this.longitude,
+    this.areaHectares,
   });
 
   final String id;
@@ -22,6 +25,9 @@ class B2bFarmSummary {
   final int deviceCount;
   final int workerCount;
   final String? createdAt;
+  final double? latitude;
+  final double? longitude;
+  final double? areaHectares;
 }
 
 class B2bUserSummary {

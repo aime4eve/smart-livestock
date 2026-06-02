@@ -13,6 +13,7 @@ import 'package:smart_livestock_demo/features/pages/admin_page.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_contract_page.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_dashboard_page.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_farm_list_page.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_farm_creation_page.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_revenue_detail_page.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_worker_detail_page.dart';
 import 'package:smart_livestock_demo/features/pages/alerts_page.dart';
@@ -43,7 +44,6 @@ import 'package:smart_livestock_demo/features/admin/presentation/revenue_page.da
 import 'package:smart_livestock_demo/features/admin/presentation/subscriptions_page.dart';
 import 'package:smart_livestock_demo/features/admin/presentation/api_auth_page.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_revenue_page.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/presentation/worker_management_page.dart';
 import 'package:smart_livestock_demo/features/mine/presentation/api_auth_page.dart';
 import 'package:smart_livestock_demo/features/farm_creation/presentation/farm_creation_wizard_page.dart';
 import 'package:smart_livestock_demo/features/offline_tiles/presentation/offline_tile_management_page.dart';
@@ -273,6 +273,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'farms',
                 name: AppRoute.b2bAdminFarms.routeName,
                 builder: (context, state) => const B2bFarmListPage(),
+                routes: [
+                  GoRoute(
+                    path: 'create',
+                    name: AppRoute.b2bFarmCreation.routeName,
+                    builder: (context, state) => const B2bFarmCreationPage(),
+                  ),
+                  GoRoute(
+                    path: ':farmId',
+                    name: AppRoute.b2bWorkerDetail.routeName,
+                    builder: (context, state) {
+                      final farmId = state.pathParameters['farmId']!;
+                      return B2bWorkerDetailPage(farmId: farmId);
+                    },
+                  ),
+                ],
               ),
               GoRoute(
                 path: 'contract',
@@ -290,21 +305,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return B2bRevenueDetailPage(periodId: id);
-                    },
-                  ),
-                ],
-              ),
-              GoRoute(
-                path: 'workers',
-                name: AppRoute.b2bWorkerManagement.routeName,
-                builder: (context, state) => const B2bWorkerManagementPage(),
-                routes: [
-                  GoRoute(
-                    path: ':farmId',
-                    name: AppRoute.b2bWorkerDetail.routeName,
-                    builder: (context, state) {
-                      final farmId = state.pathParameters['farmId']!;
-                      return B2bWorkerDetailPage(farmId: farmId);
                     },
                   ),
                 ],

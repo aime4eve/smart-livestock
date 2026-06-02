@@ -6,6 +6,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/core/api/api_client.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_repository.dart';
+import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
@@ -47,6 +49,112 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
   void initState() {
     super.initState();
     _loadAll();
+  }
+
+  void _showEditFarmDialog(B2bSubFarm farm) {
+    final nameCtrl = TextEditingController(text: farm.name);
+    final latCtrl = TextEditingController(text: farm.latitude?.toStringAsFixed(6) ?? '');
+    final lngCtrl = TextEditingController(text: farm.longitude?.toStringAsFixed(6) ?? '');
+    final areaCtrl = TextEditingController(text: farm.areaHectares?.toStringAsFixed(1) ?? '');
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('编辑牧场信息'),
+        content: SingleChildScrollView(
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(
+                    labelText: '牧场名称',
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? '名称不能为空' : null,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: latCtrl,
+                        decoration: const InputDecoration(
+                          labelText: '纬度',
+                          isDense: true,
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        controller: lngCtrl,
+                        decoration: const InputDecoration(
+                          labelText: '经度',
+                          isDense: true,
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: areaCtrl,
+                  decoration: const InputDecoration(
+                    labelText: '面积（公顷）',
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              if (!formKey.currentState!.validate()) return;
+              Navigator.pop(ctx);
+              final body = <String, dynamic>{
+                'name': nameCtrl.text.trim(),
+                if (latCtrl.text.isNotEmpty) 'latitude': double.tryParse(latCtrl.text),
+                if (lngCtrl.text.isNotEmpty) 'longitude': double.tryParse(lngCtrl.text),
+                if (areaCtrl.text.isNotEmpty) 'areaHectares': double.tryParse(areaCtrl.text),
+              };
+              try {
+                await ApiClient.instance.put('/farms/\${farm.id}', body: body);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('牧场信息已更新'), backgroundColor: Color(0xFF2E7D32)),
+                  );
+                  ref.invalidate(b2bDashboardControllerProvider);
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('更新失败: \$e')),
+                  );
+                }
+              }
+            },
+            child: const Text('保存'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -213,9 +321,22 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
 
               // ── Tab content ──
               if (_tabIndex == 0) ...[
-                _SectionHeader(
-                  title: '地图与围栏',
-                  trailing: '${_fences.length} 个围栏',
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: _SectionHeader(
+                        title: '地图与围栏',
+                        trailing: '${_fences.length} 个围栏',
+                      ),
+                    ),
+                    IconButton(
+                      key: const Key('edit-farm-info'),
+                      icon: const Icon(Icons.edit_outlined, size: 20),
+                      tooltip: '编辑牧场信息',
+                      onPressed: () => _showEditFarmDialog(farm),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _MapPreview(
