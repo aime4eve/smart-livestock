@@ -11,7 +11,7 @@
 
 1. IoT 上下文新增遥测数据接收能力（`TelemetryIngestionService`），作为真实设备和模拟器的统一内部入口
 2. IoT 发布 `SensorTelemetryReceivedEvent` 领域事件，Health 上下文消费并驱动分析管线
-3. 新增 `CapsuleTelemetrySimulator`，遵循与 `GpsSimulator` 一致的架构模式
+3. 新增 `TelemetrySimulator`（统一处理 CAPSULE + TRACKER 遥测），遵循与 `GpsSimulator` 一致的架构模式
 4. 前端 TwinOverview / Stats 对接 Health API 展示实时数据
 5. 为 Phase 3 IoT 真实接入预留标准接口
 
@@ -27,7 +27,7 @@
 | **调用方** | IoT 设备、模拟器、LoRa/NS 网关 | 第三方开发者、集成商 |
 | **数据方向** | 写入（设备 → 平台） | 以读取为主 |
 | **认证** | 设备身份认证（设备 ID + 安装关系） | API Key 认证 |
-| **路由前缀** | `/api/v1/farms/{farmId}/devices/{deviceId}/telemetry`（App 路径） | `/api/v1/open/` |
+| **路由前缀** | `/api/v1/farms/{farmId}/telemetry`（App 路径） | `/api/v1/open/` |
 | **协议** | MQTT / CoAP / HTTP（Phase 3 由网关决定） | HTTPS REST |
 
 **遥测上报走 IoT 内部链路，不走 Open API。** Open API 的职责是为第三方提供平台数据的只读访问，以及极少量受控写操作（如设备自注册）。
@@ -41,7 +41,7 @@
 ```
 真实设备 (CAPSULE/TRACKER)
   → LoRa 网络 → NS 平台（Network Server）
-  → HTTP 回调 → POST /api/v1/farms/{farmId}/devices/{deviceId}/telemetry (IoT App API)
+  → HTTP 回调 → POST /api/v1/farms/{farmId}/telemetry (IoT App API)
   → TelemetryIngestionService
 ```
 
@@ -102,7 +102,7 @@ Health 上下文有完整的分析管线（FeverAnalysisService、DigestiveAnaly
 │ IoT Bounded Context                                               │
 │                                                                    │
 │  App API:                                                          │
-│    POST /api/v1/farms/{farmId}/devices/{deviceId}/telemetry ─┐    │
+│    POST /api/v1/farms/{farmId}/telemetry ─┐    │
 │                                                                │   │
 │  模拟器:                                                        │   │
 │    TelemetrySimulator ────────────────────────────────────────┤   │
@@ -160,7 +160,9 @@ com.smartlivestock.iot.domain.event.SensorTelemetryReceivedEvent
   - BigDecimal distanceMeters
 
   - Instant recordedAt
-```
+
+  注: farmId 由 TelemetryIngestionService 通过 Installation → Livestock 解析后填入事件，
+  这样 Health 消费端无需再次跨上下文查询即可直接按 farmId 更新 HealthSnapshot。
 
 #### 4.2.2 Application Service: `TelemetryIngestionService`
 
@@ -186,12 +188,12 @@ com.smartlivestock.iot.application.TelemetryIngestionService
 
 #### 4.2.3 App API Controller: `TelemetryController`
 
-IoT 内部的遥测上报端点，走 JWT 认证（App API 路径），不是 Open API。
+IoT 内部的遥测上报端点，走 JWT 认证（App API 路径），不是 Open API。独立 Controller，不嵌套在 DeviceController 下以避免路由冲突。
 
 ```
 com.smartlivestock.iot.interfaces.TelemetryController
 
-POST /api/v1/farms/{farmId}/devices/{deviceId}/telemetry
+POST /api/v1/farms/{farmId}/telemetry
   - JWT 认证（同其他 App API）
   - farmId 用于验证设备归属（通过 Installation → Livestock → farmId）
   - 调用 TelemetryIngestionService.ingest()
@@ -356,12 +358,12 @@ telemetry:
 
 temperature_logs、rumen_motility_logs、activity_logs、health_snapshots、estrus_scores 表结构完全满足需求。
 
-### 5.2 ACCELEROMETER 清理迁移
+### 5.2 ACCELEROMETER 清理迁移（V25）
 
 需要新增迁移清理 ACCELEROMETER 相关数据：
 
 ```sql
--- V24__remove_accelerometer_device_type.sql
+-- V25__remove_accelerometer_device_type.sql
 
 -- 1. 将现有 ACCELEROMETER 设备的状态改为 DECOMMISSIONED（不删除，保留审计）
 UPDATE devices SET status = 'DECOMMISSIONED' WHERE device_type = 'ACCELEROMETER';
@@ -410,7 +412,7 @@ DeviceType 枚举中移除 `ACCELEROMETER`（Java 代码变更）。
 Phase 3 IoT 真实接入时，只需：
 
 1. **关闭模拟器**: `telemetry.simulator.enabled=false`
-2. **对接 LoRa/NS 网关**: 网关回调 `POST /api/v1/farms/{farmId}/devices/{deviceId}/telemetry`
+2. **对接 LoRa/NS 网关**: 网关回调 `POST /api/v1/farms/{farmId}/telemetry`
 3. **认证**: JWT（内部服务）或 API Key（网关专用 Key）
 4. **数据链路不变**: IoT 验证 → 发布事件 → Health 消费 → 分析管线
 
@@ -429,7 +431,7 @@ Phase 3 IoT 真实接入时，只需：
 `DeviceType.ACCELEROMETER` 将加速度计建模为独立设备类型，实际物理设备中加速度计是 CAPSULE 的内部传感器组件。
 
 **修正方案**:
-- V24 迁移将 ACCELEROMETER 设备标记为 DECOMMISSIONED，收窄 CHECK 约束
+- V25 迁移将 ACCELEROMETER 设备标记为 DECOMMISSIONED，收窄 CHECK 约束
 - DeviceType 枚举移除 ACCELEROMETER
 - OpenDeviceRegisterController 注释更新
 
@@ -482,11 +484,13 @@ gps:
 
 这确保 GPS 轨迹在围栏内正常分布，偶尔因偏移越界触发真实告警。
 
+**跨上下文依赖链**: GpsSimulator (IoT) → InstallationRepository (IoT) → LivestockRepository (Ranch) → FenceRepository (Ranch)。`LivestockRepository` 的跨上下文注入已有先例（`InstallationController` 中已直接注入），`FenceRepository` 遵循相同模式。注意 GpsSimulator 需要读写事务（读围栏 + 写 GPS 日志），`@Transactional` 不能标记为 readOnly。
+
 ### 8.6 种子数据时间线过旧
 
 **问题**: 种子数据的时间线停留在 `2026-03-01 ~ 2026-04-08`。距今接近 2 个月。Health 分析查询使用 `Instant.now().minus(72h)` 等相对时间，查不到种子数据。
 
-**修正方案**: 新增迁移 `V25__refresh_seed_timestamps.sql`，将所有时序数据（gps_logs、temperature_logs、rumen_motility_logs、activity_logs）的 `recorded_at` 批量平移到近 7 天。或者依赖模拟器重新生成数据（模拟器启用后会持续写入新数据）。
+**修正方案**: 新增迁移 `V26__refresh_seed_timestamps.sql`（可选），将所有时序数据（gps_logs、temperature_logs、rumen_motility_logs、activity_logs）的 `recorded_at` 批量平移到近 7 天。或者依赖模拟器重新生成数据（模拟器启用后会持续写入新数据）。
 
 **建议策略**: 保留历史种子数据作为基线，模拟器启动后生成近期数据。Health 分析查询基于最新数据即可正常工作。如果需要演示效果，可以先运行模拟器一段时间积累数据。
 
@@ -504,20 +508,19 @@ gps:
 
 | # | 任务 | 上下文 | 预估 |
 |---|------|--------|------|
-| T1 | SensorTelemetryReceivedEvent 领域事件 | IoT | 0.5h |
-| T2 | TelemetryIngestionService (验证+发布事件) | IoT | 1h |
-| T3 | TelemetryController (App API, JWT 认证) | IoT | 1h |
-| T4 | TelemetrySimulator (CAPSULE + TRACKER) | IoT | 2h |
+| T1 | V25 迁移清理 ACCELEROMETER + 修正 Farm 1 坐标 + 枚举移除 | IoT + DB | 1h |
+| T2 | SensorTelemetryReceivedEvent 领域事件 | IoT | 0.5h |
+| T3 | TelemetryIngestionService (验证+发布事件) | IoT | 1h |
+| T4 | TelemetryController (App API, JWT 认证) | IoT | 1h |
 | T5 | Topics 常量 + SpringEventPublisher 桥接 | Shared | 0.5h |
 | T6 | SensorTelemetryEventHandler | Health | 0.5h |
 | T7 | HealthApplicationService.processTelemetry() | Health | 2h |
-| T8 | 修正 GpsLogApplicationService 发布事件 | IoT | 0.5h |
-| T9 | V24 迁移清理 ACCELEROMETER + 枚举移除 | IoT + DB | 0.5h |
-| T10 | V25 修正 Farm 1 坐标 + 围栏坐标统一 | DB | 0.5h |
-| T11 | 修正 GpsSimulator 按围栏区域生成轨迹 | IoT | 1.5h |
-| T12 | 配置参数 application.yml | Config | 0.5h |
-| T13 | 前端 TwinOverview 对接 health/overview | Flutter | 2h |
-| T14 | 前端 StatsPage 实现 | Flutter | 3h |
-| T15 | 端到端验证（GPS轨迹 + 围栏越界 + 地图展示 + 健康分析） | Test | 3h |
+| T8 | TelemetrySimulator (CAPSULE + TRACKER) | IoT | 2h |
+| T9 | 修正 GpsLogApplicationService 发布 GpsLogUpdatedEvent | IoT | 0.5h |
+| T10 | 修正 GpsSimulator 按围栏区域生成轨迹 | IoT | 1.5h |
+| T11 | 配置参数 application.yml | Config | 0.5h |
+| T12 | 前端 TwinOverview 对接 health/overview | Flutter | 2h |
+| T13 | 前端 StatsPage 实现 | Flutter | 3h |
+| T14 | 端到端验证（GPS轨迹 + 围栏越界 + 地图展示 + 健康分析） | Test | 3h |
 
 **总计: ~21.5h**
