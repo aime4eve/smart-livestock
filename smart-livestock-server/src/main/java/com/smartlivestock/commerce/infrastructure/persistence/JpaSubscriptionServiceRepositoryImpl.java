@@ -37,6 +37,13 @@ public class JpaSubscriptionServiceRepositoryImpl implements SubscriptionService
     }
 
     @Override
+    public List<SubscriptionService> findAll() {
+        return springDataRepo.findAll().stream()
+                .map(SubscriptionServiceMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public SubscriptionService save(SubscriptionService subscriptionService) {
         if (subscriptionService.getId() != null) {
             return springDataRepo.findById(subscriptionService.getId())

@@ -28,4 +28,13 @@ class JwtDecoder {
     final expiryMs = (exp is int) ? exp * 1000 : int.tryParse(exp.toString()) ?? 0;
     return DateTime.now().millisecondsSinceEpoch > expiryMs;
   }
+
+  /// Returns seconds until token expiry.
+  /// Negative if already expired; returns 0 if no exp claim.
+  static int expiresInSeconds(Map<String, dynamic> payload) {
+    final exp = payload['exp'];
+    if (exp == null) return 0;
+    final expirySeconds = (exp is int) ? exp : int.tryParse(exp.toString()) ?? 0;
+    return expirySeconds - DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  }
 }

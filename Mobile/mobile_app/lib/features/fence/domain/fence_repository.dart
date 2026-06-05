@@ -6,4 +6,5 @@ abstract class FenceRepository {
   Future<FenceItem> create(Map<String, dynamic> body);
   Future<FenceItem> update(String fenceId, Map<String, dynamic> body);
   Future<void> delete(String fenceId);
+  Future<FenceItem> forceUpdate(String fenceId, Map<String, dynamic> body);
 }

@@ -10,5 +10,6 @@ public interface SubscriptionServiceRepository {
     Optional<SubscriptionService> findByTenantId(Long tenantId);
     Optional<SubscriptionService> findById(Long id);
     List<SubscriptionService> findByStatus(SubscriptionServiceStatus status);
+    List<SubscriptionService> findAll();
     SubscriptionService save(SubscriptionService subscriptionService);
 }

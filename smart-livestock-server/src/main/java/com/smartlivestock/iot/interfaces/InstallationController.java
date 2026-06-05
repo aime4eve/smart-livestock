@@ -3,7 +3,8 @@ package com.smartlivestock.iot.interfaces;
 import com.smartlivestock.iot.application.InstallationApplicationService;
 import com.smartlivestock.iot.application.command.InstallDeviceCommand;
 import com.smartlivestock.iot.application.dto.InstallationDto;
-import com.smartlivestock.ranch.domain.repository.LivestockRepository;
+import com.smartlivestock.iot.domain.port.RanchQueryPort;
+import com.smartlivestock.iot.domain.port.dto.LivestockInfo;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -23,7 +24,7 @@ import java.util.Map;
 public class InstallationController {
 
     private final InstallationApplicationService installationApplicationService;
-    private final LivestockRepository livestockRepository;
+    private final RanchQueryPort ranchQueryPort;
 
     /**
      * GET /api/v1/farms/{farmId}/installations
@@ -34,8 +35,8 @@ public class InstallationController {
             @PathVariable Long farmId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int pageSize) {
-        List<Long> livestockIds = livestockRepository.findByFarmId(farmId).stream()
-                .map(l -> l.getId()).toList();
+        List<Long> livestockIds = ranchQueryPort.findAllByFarmId(farmId).stream()
+                .map(LivestockInfo::id).toList();
         List<InstallationDto> all = installationApplicationService.findByLivestockIds(livestockIds);
         int total = all.size();
         int from = Math.min((page - 1) * pageSize, total);

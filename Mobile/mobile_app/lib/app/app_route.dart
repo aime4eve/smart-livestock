@@ -42,6 +42,10 @@ enum AppRoute {
   b2bWorkerDetail('/b2b/admin/farms/:farmId', 'b2b-worker-detail', '牧工详情'),
   mineApiAuth('/mine/api-auth', 'mine-api-auth', 'API授权管理'),
   farmCreation('/farm/create', 'farm-creation', '创建牧场'),
+  platformAuditLog('/admin/audit-logs', 'platform-audit-log', '审计日志'),
+  platformFeatureGates('/admin/feature-gates', 'platform-feature-gates', '功能门控'),
+  platformAnalytics('/admin/analytics', 'platform-analytics', '用量分析'),
+  platformTileAdmin('/admin/tiles', 'platform-tile-admin', '瓦片管理'),
   offlineTileManagement('/offline/tiles', 'offline-tile-management', '离线地图管理'),
   fenceConflict('/fence/conflict', 'fence-conflict', '围栏冲突');
 

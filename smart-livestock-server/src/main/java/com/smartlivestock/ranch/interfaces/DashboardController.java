@@ -1,6 +1,6 @@
 package com.smartlivestock.ranch.interfaces;
 
-import com.smartlivestock.iot.application.DeviceApplicationService;
+import com.smartlivestock.ranch.domain.port.IoTQueryPort;
 import com.smartlivestock.ranch.application.AlertApplicationService;
 import com.smartlivestock.ranch.application.FenceApplicationService;
 import com.smartlivestock.ranch.application.LivestockApplicationService;
@@ -26,7 +26,7 @@ public class DashboardController {
     private final LivestockApplicationService livestockApplicationService;
     private final AlertApplicationService alertApplicationService;
     private final FenceApplicationService fenceApplicationService;
-    private final DeviceApplicationService deviceApplicationService;
+    private final IoTQueryPort ioTQueryPort;
 
     @GetMapping({"/dashboard", "/dashboard/summary"})
     public ResponseEntity<ApiResponse<Map<String, Object>>> summary(
@@ -45,7 +45,7 @@ public class DashboardController {
                 .filter(a -> "PENDING".equals(a.status()) || "ACKNOWLEDGED".equals(a.status())).count();
 
         // Phase 1: tenant-level ACTIVE device count (devices have no farm_id)
-        long onlineDeviceCount = deviceApplicationService.countActiveByTenant();
+        long onlineDeviceCount = ioTQueryPort.getDeviceStats(null).activeCount();
 
         Map<String, Object> data = Map.of(
                 "livestockCount", livestock.size(),

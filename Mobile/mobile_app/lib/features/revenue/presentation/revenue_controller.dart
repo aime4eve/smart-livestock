@@ -9,13 +9,14 @@ final revenueRepositoryProvider = Provider<RevenueRepository>((ref) {
 class RevenueController extends AsyncNotifier<RevenueListViewData> {
   @override
   Future<RevenueListViewData> build() async {
-    return ref.read(revenueRepositoryProvider).getPeriods();
+    // Use app-scoped endpoint for owners
+    return ref.read(revenueRepositoryProvider).getAppPeriods();
   }
 
   Future<void> refresh() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(
-        () => ref.read(revenueRepositoryProvider).getPeriods());
+        () => ref.read(revenueRepositoryProvider).getAppPeriods());
   }
 
   Future<RevenueDetailViewData> getPeriodDetail(String periodId) {
@@ -23,8 +24,9 @@ class RevenueController extends AsyncNotifier<RevenueListViewData> {
   }
 
   Future<bool> confirmPeriod(String periodId) async {
+    // Use app-scoped endpoint for owners
     final ok =
-        await ref.read(revenueRepositoryProvider).confirmPeriod(periodId);
+        await ref.read(revenueRepositoryProvider).confirmAsPartner(periodId);
     if (ok) await refresh();
     return ok;
   }

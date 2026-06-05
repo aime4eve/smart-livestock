@@ -78,8 +78,8 @@ public class OpenDeviceRegisterController {
 
     /**
      * Resolve device type from API contract string.
-     * API uses lowercase snake_case: "device_tracker", "ear_tag", "capsule", "accelerometer"
-     * Domain enum: TRACKER, EAR_TAG, CAPSULE, ACCELEROMETER
+     * API uses lowercase snake_case: "device_tracker", "ear_tag", "capsule"
+     * Domain enum: TRACKER, EAR_TAG, CAPSULE
      */
     private DeviceType resolveDeviceType(String input) {
         if (input == null) return DeviceType.TRACKER;

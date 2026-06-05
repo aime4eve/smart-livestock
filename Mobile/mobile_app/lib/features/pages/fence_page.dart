@@ -46,6 +46,7 @@ class _FencePageState extends ConsumerState<FencePage>
 
   late final AnimationController _breathingController;
 
+
   int _activePointerCount = 0;
   bool _isMultiTouch = false;
   int? _draggingVertexIndex;
@@ -81,6 +82,7 @@ class _FencePageState extends ConsumerState<FencePage>
     if (mounted) setState(() {});
   }
 
+
   @override
   void dispose() {
     _tileProvider?.dispose();
@@ -94,6 +96,8 @@ class _FencePageState extends ConsumerState<FencePage>
     final fenceState = ref.watch(fenceControllerProvider);
     final role = ref.watch(sessionControllerProvider).role!;
     final farmName = ref.watch(farmSwitcherControllerProvider).activeFarmName;
+
+
     final canManage = RolePermission.canEditFence(role);
     final isEditing = fenceState.editSession != null;
 
@@ -262,7 +266,7 @@ class _FencePageState extends ConsumerState<FencePage>
                           MarkerLayer(
                             markers: [
                               if (!isEditing)
-                                ..._buildLivestockMarkers(appMode),
+                                ..._buildLivestockMarkers(fenceState),
                               if (!isEditing)
                                 ..._buildFenceNameMarkers(fenceState),
                               if (isEditing)
@@ -1005,9 +1009,37 @@ class _FencePageState extends ConsumerState<FencePage>
     ];
   }
 
-  List<Marker> _buildLivestockMarkers(dynamic appMode) {
-    // Live mode: livestock markers loaded from API via repository
-    return const [];
+  List<Marker> _buildLivestockMarkers(FenceState fenceState) {
+    if (fenceState.livestockPositions.isEmpty) return const [];
+    return fenceState.livestockPositions.map((p) {
+      final label = p.earTag ?? p.livestockId ?? '';
+      return Marker(
+        point: p.toLatLng(),
+        width: 32,
+        height: 32,
+        child: Tooltip(
+          message: label,
+          preferBelow: false,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+              boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 3)],
+            ),
+            child: Center(
+              child: Text(
+                label.isNotEmpty ? label.replaceAll('SL-2024-', '') : '?',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }).toList();
   }
 
   void _showDeleteDialog(

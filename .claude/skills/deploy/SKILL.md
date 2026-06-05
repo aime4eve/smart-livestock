@@ -41,44 +41,49 @@ disable-model-invocation: true
    rsync -avz smart-livestock-server/build/libs/ agentic@172.22.1.123:~/smart-livestock-server/build/libs/
    ```
 
-6. **Docker 重建并启动后端**
+6. **清理远程旧 jar**（只保留版本号最大的一个）
+   ```bash
+   ssh agentic@172.22.1.123 "cd ~/smart-livestock-server/build/libs && ls -t smart-livestock-server-*.jar | tail -n +2 | xargs rm -f"
+   ```
+
+7. **Docker 重建并启动后端**
    ```bash
    ssh agentic@172.22.1.123 "cd ~/smart-livestock-server && docker compose build app && docker compose up -d app"
    ```
 
 ### B. 前端部署
 
-7. **Flutter Web 构建**
+8. **Flutter Web 构建**
    ```bash
    cd Mobile/mobile_app && flutter build web --dart-define=APP_MODE=live --dart-define=API_BASE_URL=http://172.22.1.123:18080/api/v1
    ```
 
-8. **将构建产物复制到 nginx 目录**
+9. **将构建产物复制到 nginx 目录**
    ```bash
    rm -rf smart-livestock-server/frontend
    cp -r Mobile/mobile_app/build/web smart-livestock-server/frontend
    ```
 
-9. **Rsync 前端文件到远程**（仅 frontend 目录）
-   ```bash
-   rsync -avz --delete smart-livestock-server/frontend/ agentic@172.22.1.123:~/smart-livestock-server/frontend/
-   ```
+10. **Rsync 前端文件到远程**（仅 frontend 目录）
+    ```bash
+    rsync -avz --delete smart-livestock-server/frontend/ agentic@172.22.1.123:~/smart-livestock-server/frontend/
+    ```
 
-10. **重建并启动 nginx**
+11. **重建并启动 nginx**
     ```bash
     ssh agentic@172.22.1.123 "cd ~/smart-livestock-server && docker compose build nginx && docker compose up -d nginx"
     ```
 
 ### C. 健康检查
 
-11. **验证后端 API**
+12. **验证后端 API**
     ```bash
     curl -sf http://172.22.1.123:18080/api/v1/auth/login \
       -X POST -H 'Content-Type: application/json' \
       -d '{"phone":"13800000000","password":"123"}' | python3 -m json.tool
     ```
 
-12. **验证前端页面**
+13. **验证前端页面**
     ```bash
     curl -sf http://172.22.1.123:18080/ | head -5
     ```
@@ -86,11 +91,11 @@ disable-model-invocation: true
 
 ## 仅后端（backend）
 
-执行步骤 1-6 + 步骤 11。跳过前端构建。
+执行步骤 1-7 + 步骤 12。跳过前端构建。
 
 ## 仅前端（frontend）
 
-执行步骤 7-10 + 步骤 12。跳过后端构建。
+执行步骤 8-11 + 步骤 13。跳过后端构建。
 
 ## 注意
 

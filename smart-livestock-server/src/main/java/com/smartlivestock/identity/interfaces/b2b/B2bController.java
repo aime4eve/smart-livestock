@@ -1,27 +1,22 @@
 package com.smartlivestock.identity.interfaces.b2b;
 
-import com.smartlivestock.commerce.application.dto.ContractResponse;
-import com.smartlivestock.commerce.application.query.SubscriptionQueryService;
 import com.smartlivestock.identity.application.FarmApplicationService;
 import com.smartlivestock.identity.application.dto.FarmDto;
 import com.smartlivestock.identity.application.dto.UserDto;
 import com.smartlivestock.identity.domain.model.Farm;
+import com.smartlivestock.identity.domain.model.Role;
 import com.smartlivestock.identity.domain.model.User;
 import com.smartlivestock.identity.domain.repository.FarmRepository;
+import com.smartlivestock.identity.application.facade.B2bFacade;
 import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepository;
 import com.smartlivestock.identity.domain.repository.UserRepository;
 import com.smartlivestock.identity.infrastructure.persistence.entity.UserFarmAssignmentJpaEntity;
-import com.smartlivestock.iot.application.DeviceApplicationService;
-import com.smartlivestock.iot.application.InstallationApplicationService;
-import com.smartlivestock.iot.application.dto.InstallationDto;
-import com.smartlivestock.ranch.application.dto.LivestockDto;
-import com.smartlivestock.ranch.application.AlertApplicationService;
-import com.smartlivestock.ranch.application.LivestockApplicationService;
-import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
 import com.smartlivestock.shared.tenant.TenantContext;
+import com.smartlivestock.shared.security.PasswordHasher;
+import org.springframework.http.HttpStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -43,12 +38,8 @@ public class B2bController {
     private final FarmApplicationService farmApplicationService;
     private final UserRepository userRepository;
     private final UserFarmAssignmentRepository assignmentRepository;
-    private final LivestockRepository livestockRepository;
-    private final LivestockApplicationService livestockApplicationService;
-    private final AlertApplicationService alertApplicationService;
-    private final DeviceApplicationService deviceApplicationService;
-    private final InstallationApplicationService installationApplicationService;
-    private final SubscriptionQueryService subscriptionQueryService;
+    private final B2bFacade b2bFacade;
+    private final PasswordHasher passwordHasher;
 
     // ── Dashboard ───────────────────────────────────────────────
 
@@ -69,9 +60,9 @@ public class B2bController {
 
         int totalWorkers = 0;
         for (FarmDto farm : farms) {
-            long livestockCount = livestockRepository.countByFarmId(farm.id());
+            long livestockCount = b2bFacade.findLivestockByFarmId(farm.id()).size();
             long workerCount = assignmentRepository.countByFarmIdAndStatus(farm.id(), "ACTIVE");
-            long alertCount = alertApplicationService.listByFarm(farm.id()).stream()
+            long alertCount = b2bFacade.findAlertsByFarmId(farm.id()).stream()
                     .filter(a -> "PENDING".equals(a.status()) || "ACKNOWLEDGED".equals(a.status()))
                     .count();
 
@@ -112,17 +103,18 @@ public class B2bController {
         String contractExpiresAt = null;
         String billingModel = null;
         try {
-            ContractResponse contract = subscriptionQueryService.findContractByTenantId(tenantId).orElse(null);
-            if (contract != null) {
-                contractStatus = contract.getStatus();
-                contractExpiresAt = contract.getExpiresAt() != null ? contract.getExpiresAt().toString() : null;
-                billingModel = contract.getBillingModel();
+            var contractOpt = b2bFacade.findActiveContract(tenantId);
+            if (contractOpt.isPresent()) {
+                var contract = contractOpt.get();
+                contractStatus = contract.status();
+                contractExpiresAt = contract.startDate() != null ? contract.startDate().toString() : null;
+                billingModel = contract.partnerName();
             }
         } catch (Exception ignored) {}
 
         // Alert severity summary
         for (FarmDto farm : farms) {
-            alertApplicationService.listByFarm(farm.id()).stream()
+            b2bFacade.findAlertsByFarmId(farm.id()).stream()
                     .filter(a -> "PENDING".equals(a.status()))
                     .forEach(a -> {
                         Map<String, Object> item = new LinkedHashMap<>();
@@ -165,28 +157,29 @@ public class B2bController {
 
         Map<String, Object> data = new LinkedHashMap<>();
         try {
-            ContractResponse contract = subscriptionQueryService.findContractByTenantId(tenantId).orElse(null);
-            if (contract != null) {
-                data.put("id", String.valueOf(contract.getId()));
-                data.put("status", contract.getStatus());
-                data.put("effectiveTier", contract.getEffectiveTier());
-                data.put("revenueShareRatio", contract.getRevenueShareRatio() != null
-                        ? contract.getRevenueShareRatio().doubleValue() : null);
-                data.put("startedAt", contract.getStartedAt() != null ? contract.getStartedAt().toString() : null);
-                data.put("expiresAt", contract.getExpiresAt() != null ? contract.getExpiresAt().toString() : null);
-                data.put("signedBy", contract.getSignedBy() != null ? String.valueOf(contract.getSignedBy()) : null);
-                data.put("billingModel", contract.getBillingModel());
-                data.put("contractId", contract.getContractNumber());
+            var contractOpt2 = b2bFacade.findActiveContract(tenantId);
+            if (contractOpt2.isPresent()) {
+                var contract = contractOpt2.get();
+                data.put("id", String.valueOf(contract.id()));
+                data.put("status", contract.status());
+                data.put("effectiveTier", contract.status());
+                data.put("revenueShareRatio", contract.revenueSharePercent() != null
+                        ? contract.revenueSharePercent().doubleValue() : null);
+                data.put("startedAt", contract.startDate() != null ? contract.startDate().toString() : null);
+                data.put("expiresAt", contract.endDate() != null ? contract.endDate().toString() : null);
+                data.put("signedBy", null);
+                data.put("billingModel", contract.partnerName());
+                data.put("contractId", contract.partnerName());
             }
         } catch (Exception ignored) {}
 
         // Subscription info
         try {
-            var sub = subscriptionQueryService.findByTenantId(tenantId).orElse(null);
-            if (sub != null) {
-                data.put("serviceTier", sub.getEffectiveTier() != null ? sub.getEffectiveTier() : sub.getTier());
-                data.put("serviceStatus", sub.getStatus());
-                data.put("serviceExpiresAt", sub.getExpiresAt() != null ? sub.getExpiresAt().toString() : null);
+            var contractOpt = b2bFacade.findActiveContract(tenantId);
+            if (contractOpt.isPresent()) {
+                var c = contractOpt.get();
+                data.put("serviceTier", c.status());  // TODO: add tier to ContractDto
+                data.put("serviceStatus", c.status());
             }
         } catch (Exception ignored) {}
 
@@ -208,7 +201,7 @@ public class B2bController {
         int totalWorkers = 0;
 
         for (FarmDto farm : farmDtos) {
-            long livestockCount = livestockRepository.countByFarmId(farm.id());
+            long livestockCount = b2bFacade.findLivestockByFarmId(farm.id()).size();
             long workerCount = assignmentRepository.countByFarmIdAndStatus(farm.id(), "ACTIVE");
             long deviceCount = countDevicesForFarm(farm.id());
             totalWorkers += workerCount;
@@ -254,6 +247,7 @@ public class B2bController {
             item.put("assignedAt", a.getCreatedAt() != null ? a.getCreatedAt().toString() : null);
             userRepository.findById(a.getUserId()).ifPresent(user -> {
                 item.put("name", user.getName());
+                item.put("phone", user.getPhone());
             });
             return item;
         }).toList();
@@ -345,6 +339,7 @@ public class B2bController {
                     item.put("name", w.getName());
                     item.put("role", "worker");
                     item.put("status", "active");
+                    item.put("phone", w.getPhone());
                     return item;
                 }).toList();
 
@@ -385,14 +380,170 @@ public class B2bController {
         return ResponseEntity.ok(ApiResponse.ok(data));
     }
 
+
+    // ── Users (Worker CRUD) ────────────────────────────────────
+
+    /**
+     * POST /api/v1/b2b/users
+     * B2B Admin 创建本租户内的牧工用户（role 限定为 WORKER）。
+     */
+    @PostMapping("/users")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> createUser(@RequestBody Map<String, Object> body) {
+        Long tenantId = requireTenantId();
+
+        String phone = (String) body.get("phone");
+        String name = (String) body.get("name");
+        String password = (String) body.get("password");
+
+        if (phone == null || phone.isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "手机号不能为空");
+        }
+        if (name == null || name.isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "姓名不能为空");
+        }
+        if (password == null || password.isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "密码不能为空");
+        }
+
+        if (userRepository.findByPhone(phone).isPresent()) {
+            throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, "该手机号已注册");
+        }
+
+        User user = new User(passwordHasher.hash(password), name, Role.WORKER, tenantId);
+        user.setPhone(phone);
+        User saved = userRepository.save(user);
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("id", String.valueOf(saved.getId()));
+        data.put("name", saved.getName());
+        data.put("phone", saved.getPhone());
+        data.put("role", "worker");
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(data));
+    }
+
+    /**
+     * PUT /api/v1/b2b/users/{userId}
+     * B2B Admin 更新本租户牧工信息（姓名、手机号）。
+     */
+    @PutMapping("/users/{userId}")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> updateUser(
+            @PathVariable Long userId,
+            @RequestBody Map<String, Object> body) {
+        Long tenantId = requireTenantId();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "用户不存在: " + userId));
+        if (!tenantId.equals(user.getTenantId())) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "无权修改该用户");
+        }
+        if (user.getRole() != Role.WORKER) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "仅可修改牧工角色用户");
+        }
+
+        if (body.containsKey("name")) {
+            String name = (String) body.get("name");
+            if (name == null || name.isBlank()) {
+                throw new ApiException(ErrorCode.VALIDATION_ERROR, "姓名不能为空");
+            }
+            user.setName(name);
+        }
+        if (body.containsKey("phone")) {
+            String phone = (String) body.get("phone");
+            if (phone == null || phone.isBlank()) {
+                throw new ApiException(ErrorCode.VALIDATION_ERROR, "手机号不能为空");
+            }
+            if (!phone.equals(user.getPhone()) && userRepository.findByPhone(phone).isPresent()) {
+                throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, "该手机号已注册");
+            }
+            user.setPhone(phone);
+        }
+
+        User saved = userRepository.save(user);
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("id", String.valueOf(saved.getId()));
+        data.put("name", saved.getName());
+        data.put("phone", saved.getPhone());
+        data.put("role", "worker");
+        return ResponseEntity.ok(ApiResponse.ok(data));
+    }
+
+    /**
+     * PUT /api/v1/b2b/users/{userId}/status
+     * B2B Admin 启停本租户牧工。
+     */
+    @PutMapping("/users/{userId}/status")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> updateUserStatus(
+            @PathVariable Long userId,
+            @RequestBody Map<String, Object> body) {
+        Long tenantId = requireTenantId();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "用户不存在: " + userId));
+        if (!tenantId.equals(user.getTenantId())) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "无权操作该用户");
+        }
+        if (user.getRole() != Role.WORKER) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "仅可操作牧工角色用户");
+        }
+
+        String status = (String) body.get("status");
+        if (status == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "status 不能为空");
+        }
+        if ("disabled".equalsIgnoreCase(status)) {
+            user.deactivate();
+        } else if ("active".equalsIgnoreCase(status)) {
+            user.activate();
+        } else {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "无效的 status: " + status);
+        }
+
+        userRepository.save(user);
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("id", String.valueOf(user.getId()));
+        data.put("status", user.isActive() ? "active" : "disabled");
+        return ResponseEntity.ok(ApiResponse.ok(data));
+    }
+
+    /**
+     * PUT /api/v1/b2b/users/{userId}/reset-password
+     * B2B Admin 重置牧工密码。
+     */
+    @PutMapping("/users/{userId}/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(
+            @PathVariable Long userId,
+            @RequestBody Map<String, Object> body) {
+        Long tenantId = requireTenantId();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "用户不存在: " + userId));
+        if (!tenantId.equals(user.getTenantId())) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "无权操作该用户");
+        }
+        if (user.getRole() != Role.WORKER) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "仅可操作牧工角色用户");
+        }
+
+        String newPassword = (String) body.get("password");
+        if (newPassword == null || newPassword.isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "密码不能为空");
+        }
+        user.setPasswordHash(passwordHasher.hash(newPassword));
+        userRepository.save(user);
+
+        return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
     // ── Device count helper ─────────────────────────────────────
 
     private long countDevicesForFarm(Long farmId) {
-        List<LivestockDto> livestock = livestockApplicationService.listByFarm(farmId);
+        List<com.smartlivestock.identity.domain.port.dto.LivestockDto> livestock = b2bFacade.findLivestockByFarmId(farmId);
         if (livestock.isEmpty()) return 0;
-        List<Long> livestockIds = livestock.stream().map(LivestockDto::id).toList();
-        List<InstallationDto> installations = installationApplicationService.findByLivestockIds(livestockIds);
-        return installations.stream().map(InstallationDto::deviceId).distinct().count();
+        List<Long> livestockIds = livestock.stream().map(com.smartlivestock.identity.domain.port.dto.LivestockDto::id).toList();
+        List<com.smartlivestock.identity.domain.port.dto.InstallationDto> installations = b2bFacade.findInstallationsByFarmId(farmId);
+        return installations.stream().map(com.smartlivestock.identity.domain.port.dto.InstallationDto::deviceId).distinct().count();
     }
 
     // ── Helpers ─────────────────────────────────────────────────
@@ -431,6 +582,9 @@ public class B2bController {
         if (value == null) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, field + " 不能为空");
         }
-        return ((Number) value).longValue();
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        return Long.valueOf(value.toString());
     }
 }

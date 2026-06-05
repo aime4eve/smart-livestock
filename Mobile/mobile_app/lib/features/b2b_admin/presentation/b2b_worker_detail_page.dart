@@ -135,12 +135,14 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                 if (areaCtrl.text.isNotEmpty) 'areaHectares': double.tryParse(areaCtrl.text),
               };
               try {
-                await ApiClient.instance.put('/farms/\${farm.id}', body: body);
+                await ApiClient.instance.put('/farms/${farm.id}', body: body);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('牧场信息已更新'), backgroundColor: Color(0xFF2E7D32)),
                   );
                   ref.invalidate(b2bDashboardControllerProvider);
+                  ref.invalidate(b2bWorkerManagementControllerProvider);
+                  _loadAll();
                 }
               } catch (e) {
                 if (mounted) {
@@ -364,10 +366,21 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                       title: '牧工',
                       trailing: '${_workers.length} 人',
                     ),
-                    TextButton.icon(
-                      onPressed: _busy ? null : () => _handleAssign(farm),
-                      icon: const Icon(Icons.person_add_outlined, size: 18),
-                      label: const Text('分配牧工'),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextButton.icon(
+                          onPressed: _busy ? null : () => _handleCreateWorker(farm),
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text('添加牧工'),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        TextButton.icon(
+                          onPressed: _busy ? null : () => _handleAssign(farm),
+                          icon: const Icon(Icons.person_add_outlined, size: 18),
+                          label: const Text('分配'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -382,6 +395,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                         worker: worker,
                         farmName: farm.name,
                         isBusy: _busy,
+                        onTap: () => _handleEditWorker(worker),
                         onRemove: _busy ? null : () => _handleRemove(worker, farm),
                       )),
               ],
@@ -390,6 +404,288 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
         ),
       ),
     );
+  }
+
+
+  // ── Create Worker ─────────────────────────────────────────
+
+  Future<void> _handleCreateWorker(B2bSubFarm farm) async {
+    if (_busy) return;
+
+    final nameCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+    final passwordCtrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        key: const Key('b2b-create-worker-dialog'),
+        title: const Text('添加牧工'),
+        content: SizedBox(
+          width: 360,
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(
+                    labelText: '姓名',
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? '请输入姓名' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: phoneCtrl,
+                  decoration: const InputDecoration(
+                    labelText: '手机号',
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.phone,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return '请输入手机号';
+                    if (v.trim().length < 11) return '手机号格式不正确';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: passwordCtrl,
+                  decoration: const InputDecoration(
+                    labelText: '密码',
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  obscureText: true,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return '请输入密码';
+                    if (v.trim().length < 3) return '密码至少3位';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '创建后将自动分配到「${farm.name}」',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(ctx, true);
+              }
+            },
+            child: const Text('创建'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      final notifier = ref.read(b2bWorkerManagementControllerProvider.notifier);
+      final worker = await notifier.createWorker(
+        name: nameCtrl.text.trim(),
+        phone: phoneCtrl.text.trim(),
+        password: passwordCtrl.text.trim(),
+      );
+      // Auto-assign to current farm
+      await notifier.assignWorker(farm.id, worker.id);
+      await _loadWorkers();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('牧工「${worker.name}」已创建并分配'), backgroundColor: AppColors.success),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('创建失败: $e'), backgroundColor: AppColors.danger),
+        );
+      }
+    }
+    if (mounted) setState(() => _busy = false);
+  }
+
+  // ── Edit Worker ────────────────────────────────────────────
+
+  Future<void> _handleEditWorker(B2bSubFarmWorker worker) async {
+    final nameCtrl = TextEditingController(text: worker.name);
+    final phoneCtrl = TextEditingController(text: worker.phone ?? '');
+    final formKey = GlobalKey<FormState>();
+
+    final confirmed = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        key: const Key('b2b-edit-worker-dialog'),
+        title: Text(worker.name),
+        content: SizedBox(
+          width: 360,
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(
+                    labelText: '姓名',
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? '请输入姓名' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: phoneCtrl,
+                  decoration: const InputDecoration(
+                    labelText: '手机号',
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.phone,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return '请输入手机号';
+                    if (v.trim().length < 11) return '手机号格式不正确';
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, null),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx, 'reset');
+            },
+            child: const Text('重置密码', style: TextStyle(color: AppColors.warning)),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(ctx, 'save');
+              }
+            },
+            child: const Text('保存'),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (confirmed == 'save') {
+      setState(() => _busy = true);
+      try {
+        await ref.read(b2bWorkerManagementControllerProvider.notifier).updateWorker(
+          worker.id,
+          name: nameCtrl.text.trim(),
+          phone: phoneCtrl.text.trim(),
+        );
+        await _loadWorkers();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('牧工信息已更新'), backgroundColor: AppColors.success),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('更新失败: $e'), backgroundColor: AppColors.danger),
+          );
+        }
+      }
+      if (mounted) setState(() => _busy = false);
+    } else if (confirmed == 'reset') {
+      await _handleResetPassword(worker);
+    }
+  }
+
+  Future<void> _handleResetPassword(B2bSubFarmWorker worker) async {
+    final passwordCtrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('重置「${worker.name}」密码'),
+        content: SizedBox(
+          width: 300,
+          child: Form(
+            key: formKey,
+            child: TextFormField(
+              controller: passwordCtrl,
+              decoration: const InputDecoration(
+                labelText: '新密码',
+                isDense: true,
+                border: OutlineInputBorder(),
+              ),
+              obscureText: true,
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return '请输入新密码';
+                if (v.trim().length < 3) return '密码至少3位';
+                return null;
+              },
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(ctx, true);
+              }
+            },
+            child: const Text('确认重置'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      await ref.read(b2bWorkerManagementControllerProvider.notifier).resetWorkerPassword(
+        worker.id, passwordCtrl.text.trim(),
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('密码已重置'), backgroundColor: AppColors.success),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('重置失败: $e'), backgroundColor: AppColors.danger),
+        );
+      }
+    }
+    if (mounted) setState(() => _busy = false);
   }
 
   // ── Assign / Remove ────────────────────────────────────────
@@ -408,7 +704,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
       setState(() => _busy = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('所有牧工已分配到各牧场'),
+          content: Text('没有可分配的牧工，请先点击「添加牧工」创建'),
           backgroundColor: Color(0xFF607D8B),
         ),
       );
@@ -778,7 +1074,7 @@ class _MapPreviewState extends State<_MapPreview> {
       );
     }
 
-    final center = widget.farmCenter ?? const LatLng(28.2458, 112.8519);
+    final center = widget.farmCenter ?? const LatLng(28.229, 112.938);
     final shouldTransform = widget.tileProvider?.shouldTransformCoordinates() ?? false;
     final polygons = _buildPolygons(shouldTransform);
 
@@ -972,12 +1268,14 @@ class _WorkerCard extends StatelessWidget {
     required this.worker,
     required this.farmName,
     this.isBusy = false,
+    this.onTap,
     required this.onRemove,
   });
 
   final B2bSubFarmWorker worker;
   final String farmName;
   final bool isBusy;
+  final VoidCallback? onTap;
   final VoidCallback? onRemove;
 
   @override
@@ -987,15 +1285,18 @@ class _WorkerCard extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          children: [
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            children: [
             Container(
               width: 40,
               height: 40,
@@ -1016,7 +1317,7 @@ class _WorkerCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${worker.role == "OWNER" ? "负责人" : "牧工"}${worker.assignedAt != null ? " · ${_formatDate(worker.assignedAt!)}" : ""}',
+                    '${worker.role == "OWNER" ? "负责人" : "牧工"}${worker.phone != null ? " · ${worker.phone}" : ""}${worker.assignedAt != null ? " · ${_formatDate(worker.assignedAt!)}" : ""}',
                     style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
                   ),
                 ],
@@ -1051,7 +1352,8 @@ class _WorkerCard extends StatelessWidget {
                 constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               ),
             ],
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1086,7 +1388,7 @@ class _EmptyWorkerState extends StatelessWidget {
           Icon(Icons.group_add_outlined, size: 48, color: Theme.of(context).disabledColor),
           const SizedBox(height: AppSpacing.md),
           Text(
-            '暂无牧工，可通过上方按钮分配',
+            '暂无牧工，点击「添加牧工」创建或「分配」已有牧工',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
           ),
         ],

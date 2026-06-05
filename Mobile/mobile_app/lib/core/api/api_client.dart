@@ -1,5 +1,6 @@
 // lib/core/api/api_client.dart
 
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -11,6 +12,9 @@ class ApiClient {
   static final ApiClient instance = ApiClient._();
 
   static const _timeout = Duration(seconds: 15);
+
+  bool _refreshInProgress = false;
+  Future<String?>? _refreshFuture;
 
   String _baseUrl = kIsWeb
       ? 'http://127.0.0.1:18080/api/v1'
@@ -32,43 +36,19 @@ class ApiClient {
     };
   }
 
-  Future<Map<String, dynamic>> get(String path) async {
-    final headers = await _headers();
-    final response = await http.get(
-      Uri.parse('$_baseUrl$path'),
-      headers: headers,
-    ).timeout(_timeout);
-    return _handleResponse(response);
-  }
+  // ── Public CRUD methods (with auto-refresh retry) ────────────────
 
-  Future<Map<String, dynamic>> post(String path, {Object? body}) async {
-    final headers = await _headers();
-    final response = await http.post(
-      Uri.parse('$_baseUrl$path'),
-      headers: headers,
-      body: body != null ? jsonEncode(body) : null,
-    ).timeout(_timeout);
-    return _handleResponse(response);
-  }
+  Future<Map<String, dynamic>> get(String path) =>
+      _withRefreshRetry(() => _doGet(path));
 
-  Future<Map<String, dynamic>> put(String path, {Object? body}) async {
-    final headers = await _headers();
-    final response = await http.put(
-      Uri.parse('$_baseUrl$path'),
-      headers: headers,
-      body: body != null ? jsonEncode(body) : null,
-    ).timeout(_timeout);
-    return _handleResponse(response);
-  }
+  Future<Map<String, dynamic>> post(String path, {Object? body}) =>
+      _withRefreshRetry(() => _doPost(path, body: body));
 
-  Future<void> delete(String path) async {
-    final headers = await _headers();
-    final response = await http.delete(
-      Uri.parse('$_baseUrl$path'),
-      headers: headers,
-    ).timeout(_timeout);
-    await _handleResponse(response);
-  }
+  Future<Map<String, dynamic>> put(String path, {Object? body}) =>
+      _withRefreshRetry(() => _doPut(path, body: body));
+
+  Future<void> delete(String path) =>
+      _withRefreshRetry(() => _doDelete(path));
 
   Future<Map<String, dynamic>> farmGet(String suffix) async {
     if (_activeFarmId == null) throw StateError('No active farm');
@@ -89,6 +69,125 @@ class ApiClient {
     if (_activeFarmId == null) throw StateError('No active farm');
     return delete('/farms/$_activeFarmId$suffix');
   }
+
+  // ── Raw HTTP methods (no retry) ──────────────────────────────────
+
+  Future<Map<String, dynamic>> _doGet(String path) async {
+    final headers = await _headers();
+    final response = await http.get(
+      Uri.parse('$_baseUrl$path'),
+      headers: headers,
+    ).timeout(_timeout);
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> _doPost(String path, {Object? body}) async {
+    final headers = await _headers();
+    final response = await http.post(
+      Uri.parse('$_baseUrl$path'),
+      headers: headers,
+      body: body != null ? jsonEncode(body) : null,
+    ).timeout(_timeout);
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> _doPut(String path, {Object? body}) async {
+    final headers = await _headers();
+    final response = await http.put(
+      Uri.parse('$_baseUrl$path'),
+      headers: headers,
+      body: body != null ? jsonEncode(body) : null,
+    ).timeout(_timeout);
+    return _handleResponse(response);
+  }
+
+  Future<void> _doDelete(String path) async {
+    final headers = await _headers();
+    final response = await http.delete(
+      Uri.parse('$_baseUrl$path'),
+      headers: headers,
+    ).timeout(_timeout);
+    await _handleResponse(response);
+  }
+
+  // ── Auto-refresh retry wrapper ───────────────────────────────────
+
+  Future<T> _withRefreshRetry<T>(Future<T> Function() request) async {
+    try {
+      return await request();
+    } on AuthException catch (e) {
+      if (e.statusCode == 401 && e.code == 'AUTH_INVALID_TOKEN') {
+        final newToken = await _tryRefresh();
+        if (newToken != null) {
+          return await request();
+        }
+      }
+      rethrow;
+    }
+  }
+
+  // ── Token refresh ────────────────────────────────────────────────
+
+  Future<String?> _tryRefresh() async {
+    // Coalesce concurrent refresh attempts.
+    if (_refreshInProgress) {
+      return _refreshFuture;
+    }
+    _refreshInProgress = true;
+    _refreshFuture = _doRefresh();
+    try {
+      return await _refreshFuture;
+    } finally {
+      _refreshInProgress = false;
+      _refreshFuture = null;
+    }
+  }
+
+  Future<String?> _doRefresh() async {
+    try {
+      final currentToken = await JwtStorage.instance.getAccessToken();
+      if (currentToken == null) return null;
+
+      final response = await http.post(
+        Uri.parse('$_baseUrl/auth/refresh'),
+        headers: const {'Content-Type': 'application/json'},
+        body: jsonEncode({'accessToken': currentToken}),
+      ).timeout(_timeout);
+
+      if (response.statusCode != 200) {
+        await JwtStorage.instance.clear();
+        return null;
+      }
+
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      final data = body['data'] as Map<String, dynamic>?;
+      if (data == null) {
+        await JwtStorage.instance.clear();
+        return null;
+      }
+
+      final newToken = data['accessToken'] as String?;
+      if (newToken == null) {
+        await JwtStorage.instance.clear();
+        return null;
+      }
+
+      await JwtStorage.instance.saveAccessToken(newToken);
+
+      // Also update user info if returned.
+      final user = data['user'] as Map<String, dynamic>?;
+      if (user != null) {
+        await JwtStorage.instance.saveUserInfo(user);
+      }
+
+      return newToken;
+    } catch (_) {
+      await JwtStorage.instance.clear();
+      return null;
+    }
+  }
+
+  // ── Response handling ────────────────────────────────────────────
 
   Future<Map<String, dynamic>> _handleResponse(http.Response response) async {
     if (response.statusCode == 401) {
@@ -152,6 +251,8 @@ class ApiClient {
     if (data == null) return {};
     return {'value': data};
   }
+
+  // ── Login / Logout (no auto-refresh) ─────────────────────────────
 
   Future<Map<String, dynamic>> login({
     required String phone,

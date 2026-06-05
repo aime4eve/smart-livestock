@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 public final class HealthDtos {
 
@@ -169,5 +170,26 @@ public final class HealthDtos {
             HealthOverviewStats stats,
             SceneSummary sceneSummary,
             List<PendingTask> pendingTasks
+    ) {}
+
+// ── Stats / Trends ─────────────────────────────────────────
+
+    public record StatsTrendPoint(String date, double value) {}
+
+    public record StatsSummary(
+            int totalLivestock,
+            double healthyRate,
+            int alertCount,
+            int criticalCount,
+            double avgTemperature,
+            double avgMotility
+    ) {}
+
+    public record StatsResponse(
+            StatsSummary summary,
+            List<StatsTrendPoint> temperatureTrend,
+            List<StatsTrendPoint> healthRateTrend,
+            List<StatsTrendPoint> alertTrend,
+            Map<String, Integer> healthDistribution
     ) {}
 }

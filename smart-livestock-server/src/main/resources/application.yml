@@ -29,8 +29,10 @@ jwt:
 
 gps:
   simulator:
-    enabled: ${GPS_SIMULATOR_ENABLED:true}
+    enabled: ${GPS_SIMULATOR_ENABLED:false}
     interval-ms: ${GPS_SIMULATOR_INTERVAL_MS:30000}
-    center-lat: ${GPS_SIMULATOR_CENTER_LAT:28.2458}
-    center-lng: ${GPS_SIMULATOR_CENTER_LNG:112.8519}
-    offset: ${GPS_SIMULATOR_OFFSET:0.005}
+
+telemetry:
+  simulator:
+    enabled: ${TELEMETRY_SIMULATOR_ENABLED:true}
+    interval-ms: ${TELEMETRY_SIMULATOR_INTERVAL_MS:30000}

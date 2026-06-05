@@ -8,6 +8,8 @@ import 'package:smart_livestock_demo/features/fence/domain/fence_edit_session.da
 import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_repository.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_state.dart';
+import 'package:smart_livestock_demo/core/api/api_client.dart';
+import 'package:smart_livestock_demo/features/livestock/data/map_api_repository.dart';
 import 'package:smart_livestock_demo/features/fence/presentation/fence_analytics.dart';
 
 final fenceRepositoryProvider = Provider<FenceRepository>((ref) {
@@ -31,9 +33,11 @@ class FenceController extends FarmScopedNotifier<FenceState> {
   Future<void> _loadFencesAsync() async {
     try {
       final fences = await ref.read(fenceRepositoryProvider).loadAll();
+      final positions = await _loadLivestockPositions();
       state = FenceState(
         fences: fences,
         viewState: fences.isEmpty ? ViewState.empty : ViewState.normal,
+        livestockPositions: positions,
       );
     } catch (_) {
       state = const FenceState(
@@ -41,6 +45,31 @@ class FenceController extends FarmScopedNotifier<FenceState> {
         viewState: ViewState.error,
         message: '围栏加载失败',
       );
+    }
+  }
+
+  Future<List<GpsPoint>> _loadLivestockPositions() async {
+    try {
+      final data = await ApiClient.instance.farmGet('/livestock?pageSize=200');
+      final items = data['items'];
+      if (items is! List) return const [];
+      final positions = <GpsPoint>[];
+      for (final m in items.whereType<Map<String, dynamic>>()) {
+        final lat = (m['lastLatitude'] as num?)?.toDouble();
+        final lng = (m['lastLongitude'] as num?)?.toDouble();
+        if (lat != null && lng != null) {
+          positions.add(GpsPoint(
+            lat: lat,
+            lng: lng,
+            timestamp: m['lastPositionAt'] as String? ?? '',
+            livestockId: (m['id'] is int ? m['id'].toString() : m['id']) as String?,
+            earTag: m['livestockCode'] as String?,
+          ));
+        }
+      }
+      return positions;
+    } catch (_) {
+      return const [];
     }
   }
 
@@ -81,6 +110,7 @@ class FenceController extends FarmScopedNotifier<FenceState> {
   Future<void> reloadFromRepository() async {
     try {
       final fences = await ref.read(fenceRepositoryProvider).loadAll();
+      final positions = await _loadLivestockPositions();
       var selected = state.selectedFenceId;
       if (selected != null && !fences.any((f) => f.id == selected)) {
         selected = null;
@@ -93,6 +123,7 @@ class FenceController extends FarmScopedNotifier<FenceState> {
         viewState: fences.isEmpty ? ViewState.empty : ViewState.normal,
         clearEditSession: shouldClearEdit,
         clearEditMode: shouldClearEdit,
+        livestockPositions: positions,
       );
     } catch (_) {
       state = state.copyWith(

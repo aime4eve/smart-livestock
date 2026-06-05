@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
-import 'package:smart_livestock_demo/app/demo_shell.dart';
+import 'package:smart_livestock_demo/app/main_shell.dart';
 import 'package:smart_livestock_demo/app/expiry_popup_handler.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
 import 'package:smart_livestock_demo/core/models/user_role.dart';
@@ -43,6 +43,10 @@ import 'package:smart_livestock_demo/features/admin/presentation/contracts_page.
 import 'package:smart_livestock_demo/features/admin/presentation/revenue_page.dart';
 import 'package:smart_livestock_demo/features/admin/presentation/subscriptions_page.dart';
 import 'package:smart_livestock_demo/features/admin/presentation/api_auth_page.dart';
+import 'package:smart_livestock_demo/features/admin/audit_log/presentation/audit_log_page.dart';
+import 'package:smart_livestock_demo/features/admin/feature_gate/presentation/feature_gate_page.dart';
+import 'package:smart_livestock_demo/features/admin/analytics/presentation/analytics_page.dart';
+import 'package:smart_livestock_demo/features/admin/tile_admin/presentation/tile_admin_page.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_revenue_page.dart';
 import 'package:smart_livestock_demo/features/mine/presentation/api_auth_page.dart';
 import 'package:smart_livestock_demo/features/farm_creation/presentation/farm_creation_wizard_page.dart';
@@ -86,16 +90,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       if (location == AppRoute.login.path ||
           location.startsWith(AppRoute.platformAdmin.path)) {
-        return AppRoute.twin.path;
+        return AppRoute.mine.path;
       }
 
-      if (location == AppRoute.admin.path && session.role != UserRole.owner) {
-        return AppRoute.twin.path;
+      if (location == AppRoute.admin.path) {
+        return AppRoute.mine.path;
       }
 
       if (location == AppRoute.workerManagement.path &&
           role != UserRole.owner) {
-        return AppRoute.twin.path;
+        return AppRoute.mine.path;
       }
 
       return null;
@@ -109,7 +113,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) {
           return ExpiryPopupHandler(
-            child: DemoShell(
+            child: MainShell(
               location: state.uri.path,
               child: child,
             ),
@@ -205,11 +209,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               final id = state.uri.queryParameters['id'];
               return FenceFormPage(fenceId: id);
             },
-          ),
-          GoRoute(
-            path: AppRoute.admin.path,
-            name: AppRoute.admin.routeName,
-            builder: (context, state) => const AdminPage(),
           ),
           GoRoute(
             path: AppRoute.platformAdmin.path,
@@ -335,6 +334,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoute.mineApiAuth.path,
             name: AppRoute.mineApiAuth.routeName,
             builder: (context, state) => const MineApiAuthPage(),
+          ),
+          GoRoute(
+            path: AppRoute.platformAuditLog.path,
+            name: AppRoute.platformAuditLog.routeName,
+            builder: (context, state) => const AuditLogPage(),
+          ),
+          GoRoute(
+            path: AppRoute.platformFeatureGates.path,
+            name: AppRoute.platformFeatureGates.routeName,
+            builder: (context, state) => const FeatureGatePage(),
+          ),
+          GoRoute(
+            path: AppRoute.platformAnalytics.path,
+            name: AppRoute.platformAnalytics.routeName,
+            builder: (context, state) => const AnalyticsPage(),
+          ),
+          GoRoute(
+            path: AppRoute.platformTileAdmin.path,
+            name: AppRoute.platformTileAdmin.routeName,
+            builder: (context, state) => const TileAdminPage(),
           ),
         ],
       ),

@@ -1,8 +1,8 @@
 package com.smartlivestock.ranch.interfaces;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.smartlivestock.identity.domain.model.Farm;
-import com.smartlivestock.identity.domain.repository.FarmRepository;
+import com.smartlivestock.ranch.domain.port.IdentityQueryPort;
+import com.smartlivestock.ranch.domain.port.dto.FarmInfo;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import com.smartlivestock.shared.tenant.TenantContext;
@@ -30,11 +30,11 @@ public class TileController {
     private static final String TILES_DIR = "/data/mbtiles";
     private static final String REGIONS_FILE = "/data/mbtiles/regions.json";
 
-    private final FarmRepository farmRepository;
+    private final IdentityQueryPort identityQueryPort;
     private final ObjectMapper objectMapper;
 
-    public TileController(FarmRepository farmRepository, ObjectMapper objectMapper) {
-        this.farmRepository = farmRepository;
+    public TileController(IdentityQueryPort identityQueryPort, ObjectMapper objectMapper) {
+        this.identityQueryPort = identityQueryPort;
         this.objectMapper = objectMapper;
     }
 
@@ -59,10 +59,10 @@ public class TileController {
     public ResponseEntity<Resource> downloadOfflineMap(
             @PathVariable Long farmId,
             @RequestParam(required = false) String regionName) {
-        Farm farm = farmRepository.findById(farmId)
+        FarmInfo farm = identityQueryPort.findFarmById(farmId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Farm not found"));
         Long currentTenant = TenantContext.getCurrentTenant();
-        if (currentTenant != null && !farm.getTenantId().equals(currentTenant)) {
+        if (currentTenant != null && !farm.tenantId().equals(currentTenant)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
 
@@ -98,15 +98,15 @@ public class TileController {
             .body(resource);
     }
 
-    private String findMatchingMbtiles(Farm farm) {
+    private String findMatchingMbtiles(FarmInfo farm) {
         File regionsFile = new File(REGIONS_FILE);
         if (!regionsFile.exists()) return null;
-        if (farm.getLongitude() == null || farm.getLatitude() == null) return null;
+        if (farm.longitude() == null || farm.latitude() == null) return null;
 
         try {
             List<Map<String, Object>> regions = objectMapper.readValue(regionsFile, List.class);
-            double farmLng = farm.getLongitude().doubleValue();
-            double farmLat = farm.getLatitude().doubleValue();
+            double farmLng = farm.longitude().doubleValue();
+            double farmLat = farm.latitude().doubleValue();
 
             for (Map<String, Object> region : regions) {
                 @SuppressWarnings("unchecked")

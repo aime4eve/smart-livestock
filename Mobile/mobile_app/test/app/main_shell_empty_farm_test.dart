@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/app/demo_shell.dart';
+import 'package:smart_livestock_demo/app/main_shell.dart';
 import 'package:smart_livestock_demo/app/session/app_session.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
 import 'package:smart_livestock_demo/core/models/user_role.dart';
@@ -44,7 +44,7 @@ void main() {
             .overrideWith(() => _NoFarmController()),
       ],
       child: const MaterialApp(
-        home: DemoShell(
+        home: MainShell(
           location: '/twin',
           child: SizedBox.shrink(),
         ),

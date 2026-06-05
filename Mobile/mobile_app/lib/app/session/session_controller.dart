@@ -18,7 +18,7 @@ class SessionController extends Notifier<AppSession> {
       final role = UserRole.fromString(roleStr);
 
       // Set authenticated state first so GoRouter can redirect immediately.
-      // Load farms in the background — the demo_shell watches farmSwitcherControllerProvider
+      // Load farms in the background — the main_shell watches farmSwitcherControllerProvider
       // and will update the UI once farms are loaded.
       state = AppSession.authenticated(
         role: role,

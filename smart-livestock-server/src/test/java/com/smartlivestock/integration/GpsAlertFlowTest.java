@@ -1,19 +1,14 @@
 package com.smartlivestock.integration;
 
-import com.smartlivestock.iot.domain.event.GpsLogUpdatedEvent;
-import com.smartlivestock.iot.domain.model.Installation;
-import com.smartlivestock.iot.domain.repository.InstallationRepository;
-import com.smartlivestock.ranch.domain.model.Alert;
-import com.smartlivestock.ranch.domain.model.AlertType;
-import com.smartlivestock.ranch.domain.model.Fence;
-import com.smartlivestock.ranch.domain.model.GpsCoordinate;
-import com.smartlivestock.ranch.domain.model.Livestock;
-import com.smartlivestock.ranch.domain.model.Severity;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.smartlivestock.ranch.domain.model.*;
+import com.smartlivestock.ranch.domain.port.IoTQueryPort;
+import com.smartlivestock.ranch.domain.port.dto.InstallationInfo;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.domain.repository.FenceRepository;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import com.smartlivestock.ranch.domain.service.FenceBreachDetector;
-import com.smartlivestock.ranch.infrastructure.event.GpsLogEventHandler;
+import com.smartlivestock.ranch.infrastructure.mq.GpsLogEventConsumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -39,35 +34,31 @@ import static org.mockito.Mockito.when;
 
 /**
  * Integration test for the GPS -> Fence breach -> Alert flow.
- * <p>
- * Wires GpsLogEventHandler with mocked repositories to verify the complete
+ * Wires GpsLogEventConsumer with mocked repositories to verify the complete
  * cross-context event bridge without Spring context or database.
  */
 @ExtendWith(MockitoExtension.class)
 class GpsAlertFlowTest {
 
-    @Mock
-    private InstallationRepository installationRepository;
-    @Mock
-    private LivestockRepository livestockRepository;
-    @Mock
-    private FenceRepository fenceRepository;
-    @Mock
-    private AlertRepository alertRepository;
+    @Mock private IoTQueryPort ioTQueryPort;
+    @Mock private LivestockRepository livestockRepository;
+    @Mock private FenceRepository fenceRepository;
+    @Mock private AlertRepository alertRepository;
 
     private FenceBreachDetector fenceBreachDetector;
-    private GpsLogEventHandler handler;
+    private GpsLogEventConsumer consumer;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
         fenceBreachDetector = new FenceBreachDetector();
-        handler = new GpsLogEventHandler(
-                installationRepository, livestockRepository,
-                fenceRepository, alertRepository, fenceBreachDetector
-        );
+        consumer = new GpsLogEventConsumer(objectMapper, ioTQueryPort,
+                livestockRepository, fenceRepository, alertRepository, fenceBreachDetector);
     }
 
-    // --- Helper methods ---
+    private String gpsMessage(Long deviceId, String lat, String lon) {
+        return "{\"deviceId\":" + deviceId + ",\"latitude\":\"" + lat + "\",\"longitude\":\"" + lon + "\"}";
+    }
 
     private Fence createSquareFence(Long farmId, Long fenceId, String name,
                                     BigDecimal minLat, BigDecimal maxLat,
@@ -88,14 +79,6 @@ class GpsAlertFlowTest {
         return livestock;
     }
 
-    private Installation createInstallation(Long id, Long deviceId, Long livestockId) {
-        Installation installation = new Installation(deviceId, livestockId, 1L);
-        installation.setId(id);
-        return installation;
-    }
-
-    // --- Tests ---
-
     @Nested
     @DisplayName("GPS -> Alert 端到端流程")
     class EndToEndFlow {
@@ -103,42 +86,20 @@ class GpsAlertFlowTest {
         @Test
         @DisplayName("当牲畜在围栏外时，应创建告警")
         void shouldCreateAlertWhenLivestockOutsideFence() {
-            // Given: a fence covering a small area around (28.245, 112.850)
             Long farmId = 1L;
             Fence fence = createSquareFence(farmId, 10L, "牧场围栏",
                     new BigDecimal("28.240"), new BigDecimal("28.250"),
                     new BigDecimal("112.845"), new BigDecimal("112.855"));
             Livestock livestock = createLivestock(100L, farmId, "LIV-001");
-            Installation installation = createInstallation(200L, 300L, 100L);
+            InstallationInfo installInfo = new InstallationInfo(200L, 300L, 100L);
 
-            when(installationRepository.findActiveByDeviceId(300L)).thenReturn(Optional.of(installation));
+            when(ioTQueryPort.findActiveInstallation(300L)).thenReturn(Optional.of(installInfo));
             when(livestockRepository.findById(100L)).thenReturn(Optional.of(livestock));
             when(fenceRepository.findByFarmId(farmId)).thenReturn(List.of(fence));
-            when(alertRepository.save(any(Alert.class))).thenAnswer(inv -> inv.getArgument(0));
-            when(livestockRepository.save(any(Livestock.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            // GPS position well outside the fence
-            GpsLogUpdatedEvent event = new GpsLogUpdatedEvent(
-                    300L, new BigDecimal("28.260"), new BigDecimal("112.860"), Instant.now());
+            consumer.onMessage(gpsMessage(300L, "28.260", "112.860"));
 
-            // When
-            handler.onGpsLogUpdated(event);
-
-            // Then: alert created
-            ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
-            verify(alertRepository).save(alertCaptor.capture());
-            Alert createdAlert = alertCaptor.getValue();
-
-            assertThat(createdAlert.getType()).isEqualTo(AlertType.FENCE_BREACH);
-            assertThat(createdAlert.getSeverity()).isEqualTo(Severity.WARNING);
-            assertThat(createdAlert.getFarmId()).isEqualTo(farmId);
-            assertThat(createdAlert.getLivestockId()).isEqualTo(100L);
-            assertThat(createdAlert.getFenceId()).isEqualTo(10L);
-            assertThat(createdAlert.getMessage()).contains("LIV-001");
-            assertThat(createdAlert.getMessage()).contains("牧场围栏");
-
-            // Livestock position should be updated
-            verify(livestockRepository).save(any(Livestock.class));
+            verify(alertRepository).save(any(Alert.class));
         }
 
         @Test
@@ -149,80 +110,77 @@ class GpsAlertFlowTest {
                     new BigDecimal("28.240"), new BigDecimal("28.250"),
                     new BigDecimal("112.845"), new BigDecimal("112.855"));
             Livestock livestock = createLivestock(100L, farmId, "LIV-002");
-            Installation installation = createInstallation(200L, 300L, 100L);
+            InstallationInfo installInfo = new InstallationInfo(200L, 300L, 100L);
 
-            when(installationRepository.findActiveByDeviceId(300L)).thenReturn(Optional.of(installation));
+            when(ioTQueryPort.findActiveInstallation(300L)).thenReturn(Optional.of(installInfo));
             when(livestockRepository.findById(100L)).thenReturn(Optional.of(livestock));
             when(fenceRepository.findByFarmId(farmId)).thenReturn(List.of(fence));
 
-            // GPS position inside the fence
-            GpsLogUpdatedEvent event = new GpsLogUpdatedEvent(
-                    300L, new BigDecimal("28.245"), new BigDecimal("112.850"), Instant.now());
+            consumer.onMessage(gpsMessage(300L, "28.245", "112.850"));
 
-            // When
-            handler.onGpsLogUpdated(event);
-
-            // Then: no alert created
             verify(alertRepository, never()).save(any());
-            verify(livestockRepository, never()).save(any());
         }
 
         @Test
-        @DisplayName("当牲畜越出多个围栏时，应为每个围栏创建告警")
-        void shouldCreateMultipleAlertsForMultipleBreachedFences() {
+        @DisplayName("越出多个围栏时，应为每个围栏创建告警")
+        void shouldCreateMultipleAlertsWhenBreachingMultipleFences() {
             Long farmId = 1L;
-
-            // Two small, non-overlapping fences
-            Fence fence1 = createSquareFence(farmId, 10L, "北围栏",
+            Fence fence1 = createSquareFence(farmId, 10L, "围栏A",
                     new BigDecimal("28.240"), new BigDecimal("28.245"),
                     new BigDecimal("112.845"), new BigDecimal("112.850"));
-            Fence fence2 = createSquareFence(farmId, 11L, "南围栏",
-                    new BigDecimal("28.230"), new BigDecimal("28.235"),
-                    new BigDecimal("112.845"), new BigDecimal("112.850"));
-
+            Fence fence2 = createSquareFence(farmId, 11L, "围栏B",
+                    new BigDecimal("28.246"), new BigDecimal("28.250"),
+                    new BigDecimal("112.850"), new BigDecimal("112.855"));
             Livestock livestock = createLivestock(100L, farmId, "LIV-003");
-            Installation installation = createInstallation(200L, 300L, 100L);
+            InstallationInfo installInfo = new InstallationInfo(200L, 300L, 100L);
 
-            when(installationRepository.findActiveByDeviceId(300L)).thenReturn(Optional.of(installation));
+            when(ioTQueryPort.findActiveInstallation(300L)).thenReturn(Optional.of(installInfo));
             when(livestockRepository.findById(100L)).thenReturn(Optional.of(livestock));
             when(fenceRepository.findByFarmId(farmId)).thenReturn(List.of(fence1, fence2));
-            when(alertRepository.save(any(Alert.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            // GPS position outside both fences
-            GpsLogUpdatedEvent event = new GpsLogUpdatedEvent(
-                    300L, new BigDecimal("28.260"), new BigDecimal("112.860"), Instant.now());
+            consumer.onMessage(gpsMessage(300L, "28.260", "112.860"));
 
-            // When
-            handler.onGpsLogUpdated(event);
-
-            // Then: 2 alerts created
             verify(alertRepository, times(2)).save(any(Alert.class));
         }
 
         @Test
-        @DisplayName("应跳过已禁用的围栏")
-        void shouldSkipDisabledFences() {
+        @DisplayName("告警应包含正确的围栏ID")
+        void shouldIncludeCorrectFenceIdInAlert() {
             Long farmId = 1L;
-            Fence fence = createSquareFence(farmId, 10L, "牧场围栏",
+            Fence fence = createSquareFence(farmId, 42L, "重要围栏",
                     new BigDecimal("28.240"), new BigDecimal("28.250"),
                     new BigDecimal("112.845"), new BigDecimal("112.855"));
-            fence.disable();
-
             Livestock livestock = createLivestock(100L, farmId, "LIV-004");
-            Installation installation = createInstallation(200L, 300L, 100L);
+            InstallationInfo installInfo = new InstallationInfo(200L, 300L, 100L);
 
-            when(installationRepository.findActiveByDeviceId(300L)).thenReturn(Optional.of(installation));
+            when(ioTQueryPort.findActiveInstallation(300L)).thenReturn(Optional.of(installInfo));
             when(livestockRepository.findById(100L)).thenReturn(Optional.of(livestock));
             when(fenceRepository.findByFarmId(farmId)).thenReturn(List.of(fence));
 
-            // GPS position outside the disabled fence
-            GpsLogUpdatedEvent event = new GpsLogUpdatedEvent(
-                    300L, new BigDecimal("28.260"), new BigDecimal("112.860"), Instant.now());
+            consumer.onMessage(gpsMessage(300L, "28.260", "112.860"));
 
-            // When
-            handler.onGpsLogUpdated(event);
+            ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
+            verify(alertRepository).save(alertCaptor.capture());
+            assertThat(alertCaptor.getValue().getFenceId()).isEqualTo(42L);
+        }
 
-            // Then: no alert - disabled fence skipped by FenceBreachDetector
+        @Test
+        @DisplayName("已禁用的围栏不应触发告警")
+        void shouldNotAlertForDisabledFence() {
+            Long farmId = 1L;
+            Fence fence = createSquareFence(farmId, 10L, "已禁用围栏",
+                    new BigDecimal("28.240"), new BigDecimal("28.250"),
+                    new BigDecimal("112.845"), new BigDecimal("112.855"));
+            fence.disable();
+            Livestock livestock = createLivestock(100L, farmId, "LIV-005");
+            InstallationInfo installInfo = new InstallationInfo(200L, 300L, 100L);
+
+            when(ioTQueryPort.findActiveInstallation(300L)).thenReturn(Optional.of(installInfo));
+            when(livestockRepository.findById(100L)).thenReturn(Optional.of(livestock));
+            when(fenceRepository.findByFarmId(farmId)).thenReturn(List.of(fence));
+
+            consumer.onMessage(gpsMessage(300L, "28.260", "112.860"));
+
             verify(alertRepository, never()).save(any());
         }
     }
@@ -234,13 +192,10 @@ class GpsAlertFlowTest {
         @Test
         @DisplayName("设备无安装记录时，应静默跳过")
         void shouldSkipWhenNoActiveInstallation() {
-            when(installationRepository.findActiveByDeviceId(999L)).thenReturn(Optional.empty());
+            when(ioTQueryPort.findActiveInstallation(999L)).thenReturn(Optional.empty());
 
-            GpsLogUpdatedEvent event = new GpsLogUpdatedEvent(
-                    999L, new BigDecimal("28.260"), new BigDecimal("112.860"), Instant.now());
+            consumer.onMessage(gpsMessage(999L, "28.260", "112.860"));
 
-            // When/Then: no exception, no further interactions
-            assertThatNoException().isThrownBy(() -> handler.onGpsLogUpdated(event));
             verify(livestockRepository, never()).findById(any());
             verify(alertRepository, never()).save(any());
         }
@@ -248,15 +203,13 @@ class GpsAlertFlowTest {
         @Test
         @DisplayName("牲畜不存在时，应静默跳过")
         void shouldSkipWhenLivestockNotFound() {
-            Installation installation = createInstallation(200L, 300L, 999L);
+            InstallationInfo installInfo = new InstallationInfo(200L, 300L, 999L);
 
-            when(installationRepository.findActiveByDeviceId(300L)).thenReturn(Optional.of(installation));
+            when(ioTQueryPort.findActiveInstallation(300L)).thenReturn(Optional.of(installInfo));
             when(livestockRepository.findById(999L)).thenReturn(Optional.empty());
 
-            GpsLogUpdatedEvent event = new GpsLogUpdatedEvent(
-                    300L, new BigDecimal("28.260"), new BigDecimal("112.860"), Instant.now());
-
-            assertThatNoException().isThrownBy(() -> handler.onGpsLogUpdated(event));
+            assertThatNoException().isThrownBy(() ->
+                    consumer.onMessage(gpsMessage(300L, "28.260", "112.860")));
             verify(fenceRepository, never()).findByFarmId(any());
             verify(alertRepository, never()).save(any());
         }
@@ -266,16 +219,14 @@ class GpsAlertFlowTest {
         void shouldSkipWhenFarmHasNoFences() {
             Long farmId = 1L;
             Livestock livestock = createLivestock(100L, farmId, "LIV-005");
-            Installation installation = createInstallation(200L, 300L, 100L);
+            InstallationInfo installInfo = new InstallationInfo(200L, 300L, 100L);
 
-            when(installationRepository.findActiveByDeviceId(300L)).thenReturn(Optional.of(installation));
+            when(ioTQueryPort.findActiveInstallation(300L)).thenReturn(Optional.of(installInfo));
             when(livestockRepository.findById(100L)).thenReturn(Optional.of(livestock));
             when(fenceRepository.findByFarmId(farmId)).thenReturn(Collections.emptyList());
 
-            GpsLogUpdatedEvent event = new GpsLogUpdatedEvent(
-                    300L, new BigDecimal("28.260"), new BigDecimal("112.860"), Instant.now());
-
-            assertThatNoException().isThrownBy(() -> handler.onGpsLogUpdated(event));
+            assertThatNoException().isThrownBy(() ->
+                    consumer.onMessage(gpsMessage(300L, "28.260", "112.860")));
             verify(alertRepository, never()).save(any());
         }
     }

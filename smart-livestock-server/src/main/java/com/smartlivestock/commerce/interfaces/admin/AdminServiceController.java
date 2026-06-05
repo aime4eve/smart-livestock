@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Admin subscription-service management — 5 endpoints.
@@ -38,16 +39,30 @@ public class AdminServiceController {
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> listServices(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int pageSize) {
+            @RequestParam(defaultValue = "20") int pageSize,
+            @RequestParam(required = false) Long tenantId) {
         requirePlatformAdmin();
 
-        // Domain repository does not expose listAll; returns empty for now.
-        // Will be addressed with a proper listing method in Phase 2.
+        List<SubscriptionService> all = subscriptionServiceRepository.findAll();
+
+        if (tenantId != null) {
+            all = all.stream()
+                    .filter(s -> tenantId.equals(s.getTenantId()))
+                    .toList();
+        }
+
+        int total = all.size();
+        int from = Math.min((page - 1) * pageSize, total);
+        int to = Math.min(from + pageSize, total);
+        List<Map<String, Object>> items = all.subList(from, to).stream()
+                .map(this::toServiceMap)
+                .collect(Collectors.toList());
+
         Map<String, Object> data = Map.of(
-                "items", List.of(),
+                "items", items,
                 "page", page,
                 "pageSize", pageSize,
-                "total", 0
+                "total", total
         );
         return ResponseEntity.ok(ApiResponse.ok(data));
     }

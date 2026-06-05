@@ -1,7 +1,7 @@
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
 
-const _fallbackCenter = LatLng(28.2458, 112.8519);
+const _fallbackCenter = LatLng(28.229, 112.938);
 
 FenceType fenceTypeFromApiString(String? raw) {
   return switch (raw) {

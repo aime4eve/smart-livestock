@@ -23,9 +23,23 @@ class WorkerController extends FarmScopedAsyncNotifier<List<WorkerAssignment>> {
         () => ref.read(workerRepositoryProvider).load(farmId));
   }
 
-  Future<void> assignWorker(String farmId, Map<String, dynamic> body) async {
-    await ref.read(workerRepositoryProvider).add(farmId, body);
+  Future<void> createWorker(String farmId, {required String name, required String phone, required String password}) async {
+    await ref.read(workerRepositoryProvider).create(farmId, name: name, phone: phone, password: password);
     await loadWorkers(farmId);
+  }
+
+  Future<void> updateWorker(String farmId, String userId, {String? name, String? phone}) async {
+    await ref.read(workerRepositoryProvider).update(farmId, userId, name: name, phone: phone);
+    await loadWorkers(farmId);
+  }
+
+  Future<void> toggleStatus(String farmId, String userId, String status) async {
+    await ref.read(workerRepositoryProvider).updateStatus(farmId, userId, status);
+    await loadWorkers(farmId);
+  }
+
+  Future<void> resetPassword(String farmId, String userId, String newPassword) async {
+    await ref.read(workerRepositoryProvider).resetPassword(farmId, userId, newPassword);
   }
 
   Future<void> removeWorker(String farmId, String userId) async {

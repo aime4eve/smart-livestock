@@ -1,13 +1,12 @@
 package com.smartlivestock.health.interfaces.app;
 
+import com.smartlivestock.health.application.dto.HealthDtos;
 import com.smartlivestock.health.application.dto.HealthDtos.*;
 import com.smartlivestock.health.application.service.HealthApplicationService;
 import com.smartlivestock.shared.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/farms/{farmId}/health")
@@ -19,5 +18,10 @@ public class HealthOverviewController {
     @GetMapping("/overview")
     public ResponseEntity<ApiResponse<HealthOverviewResponse>> getOverview(@PathVariable Long farmId) {
         return ResponseEntity.ok(ApiResponse.ok(healthService.getOverview(farmId)));
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<ApiResponse<HealthDtos.StatsResponse>> getStats(@PathVariable Long farmId) {
+        return ResponseEntity.ok(ApiResponse.ok(healthService.getStats(farmId)));
     }
 }

@@ -8,7 +8,7 @@ import com.smartlivestock.ranch.domain.repository.TileDownloadLogRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
-import com.smartlivestock.identity.domain.repository.FarmRepository;
+import com.smartlivestock.ranch.domain.port.IdentityQueryPort;
 import com.smartlivestock.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,13 +24,13 @@ public class TileAppController {
 
     private final TileAdminService tileAdminService;
     private final TileDownloadLogRepository tileDownloadLogRepository;
-    private final FarmRepository farmRepository;
+    private final IdentityQueryPort identityQueryPort;
 
     private void verifyFarmOwnership(Long farmId) {
-        var farm = farmRepository.findById(farmId)
+        var farm = identityQueryPort.findFarmById(farmId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牧场不存在: " + farmId));
         Long currentTenant = TenantContext.getCurrentTenant();
-        if (currentTenant != null && !farm.getTenantId().equals(currentTenant)) {
+        if (currentTenant != null && !farm.tenantId().equals(currentTenant)) {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "无权访问该牧场");
         }
     }

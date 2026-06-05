@@ -261,6 +261,10 @@ class _MutableFenceRepository implements FenceRepository {
   @override
   Future<void> delete(String fenceId) async =>
       throw UnimplementedError();
+
+  @override
+  Future<FenceItem> forceUpdate(String fenceId, Map<String, dynamic> body) async =>
+      throw UnimplementedError();
 }
 
 const _fenceA = FenceItem(

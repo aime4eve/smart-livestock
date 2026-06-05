@@ -8,25 +8,38 @@ class WorkerApiRepository implements WorkerRepository {
   Future<List<WorkerAssignment>> load(String farmId) async {
     final data = await ApiClient.instance.farmGet('/members');
     final items = data['items'] as List? ?? [];
-    return items.whereType<Map<String, dynamic>>().map((m) => WorkerAssignment(
-      id: m['id'] as String? ?? '',
-      userId: m['userId'] as String? ?? '',
-      userName: m['userName'] as String? ?? m['name'] as String? ?? '',
-      role: m['role'] as String? ?? 'worker',
-      assignedAt: m['assignedAt'] as String? ?? '',
-    )).toList();
+    return items.whereType<Map<String, dynamic>>().map(WorkerAssignment.fromJson).toList();
   }
 
   @override
-  Future<WorkerAssignment> add(String farmId, Map<String, dynamic> body) async {
-    final data = await ApiClient.instance.farmPost('/members', body: body);
-    return WorkerAssignment(
-      id: data['id'] as String? ?? '',
-      userId: data['userId'] as String? ?? '',
-      userName: data['userName'] as String? ?? data['name'] as String? ?? '',
-      role: data['role'] as String? ?? 'worker',
-      assignedAt: data['assignedAt'] as String? ?? '',
-    );
+  Future<WorkerAssignment> create(String farmId, {required String name, required String phone, required String password}) async {
+    final data = await ApiClient.instance.farmPost('/workers', body: {
+      'name': name,
+      'phone': phone,
+      'password': password,
+    });
+    return WorkerAssignment.fromJson(data);
+  }
+
+  @override
+  Future<WorkerAssignment> update(String farmId, String userId, {String? name, String? phone}) async {
+    final body = <String, dynamic>{};
+    if (name != null) body['name'] = name;
+    if (phone != null) body['phone'] = phone;
+    final data = await ApiClient.instance.farmPut('/workers/$userId', body: body);
+    return WorkerAssignment.fromJson(data);
+  }
+
+  @override
+  Future<bool> updateStatus(String farmId, String userId, String status) async {
+    await ApiClient.instance.farmPut('/workers/$userId/status', body: {'status': status});
+    return true;
+  }
+
+  @override
+  Future<bool> resetPassword(String farmId, String userId, String newPassword) async {
+    await ApiClient.instance.farmPut('/workers/$userId/reset-password', body: {'password': newPassword});
+    return true;
   }
 
   @override

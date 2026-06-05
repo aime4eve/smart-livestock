@@ -162,7 +162,7 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
                               controller: latCtrl,
                               decoration: const InputDecoration(
                                 labelText: '纬度',
-                                hintText: '例 28.2458',
+                                hintText: '例 28.229',
                                 isDense: true,
                               ),
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -174,7 +174,7 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
                               controller: lngCtrl,
                               decoration: const InputDecoration(
                                 labelText: '经度',
-                                hintText: '例 112.8519',
+                                hintText: '例 112.938',
                                 isDense: true,
                               ),
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),

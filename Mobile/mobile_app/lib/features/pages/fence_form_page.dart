@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/core/api/api_client.dart';
+import 'package:smart_livestock_demo/core/api/api_exception.dart';
 import 'package:smart_livestock_demo/core/map/map_constants.dart';
 import 'package:smart_livestock_demo/core/map/coord_transform.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
@@ -497,6 +498,37 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
           await ApiClient.instance.farmPut('/fences/${widget.fenceId!}', body: body);
         } else {
           await ApiClient.instance.farmPost('/fences', body: body);
+        }
+      } on ConflictException catch (e) {
+        if (mounted) {
+          setState(() => _saving = false);
+          final force = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('版本冲突'),
+              content: const Text('该围栏已被其他操作修改，是否强制覆盖？'),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+                FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('强制更新')),
+              ],
+            ),
+          );
+          if (force == true) {
+            setState(() => _saving = true);
+            try {
+              await ApiClient.instance.farmPut('/fences/${widget.fenceId!}/force', body: body);
+            } catch (e2) {
+              if (mounted) {
+                setState(() => _saving = false);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('强制更新失败: $e2')),
+                );
+              }
+              return;
+            }
+          } else {
+            return;
+          }
         }
       } catch (e) {
         if (mounted) {

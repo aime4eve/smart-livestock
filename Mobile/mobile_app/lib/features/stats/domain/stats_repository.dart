@@ -1,27 +1,43 @@
-import 'package:smart_livestock_demo/core/models/core_models.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 
-class StatsViewData {
-  const StatsViewData({
-    required this.viewState,
-    required this.timeRange,
-    this.healthSummary,
-    this.alertSummary,
-    this.deviceSummary,
-    this.message,
-  });
+class StatsTrendPoint {
+  const StatsTrendPoint({required this.date, required this.value});
+  final String date;
+  final double value;
+}
 
-  final ViewState viewState;
-  final StatsTimeRange timeRange;
-  final StatsHealthSummary? healthSummary;
-  final StatsAlertSummary? alertSummary;
-  final StatsDeviceSummary? deviceSummary;
-  final String? message;
+class StatsSummary {
+  const StatsSummary({
+    required this.totalLivestock,
+    required this.healthyRate,
+    required this.alertCount,
+    required this.criticalCount,
+    required this.avgTemperature,
+    required this.avgMotility,
+  });
+  final int totalLivestock;
+  final double healthyRate;
+  final int alertCount;
+  final int criticalCount;
+  final double avgTemperature;
+  final double avgMotility;
+}
+
+class StatsResponse {
+  const StatsResponse({
+    required this.summary,
+    required this.temperatureTrend,
+    required this.healthRateTrend,
+    required this.alertTrend,
+    required this.healthDistribution,
+  });
+  final StatsSummary summary;
+  final List<StatsTrendPoint> temperatureTrend;
+  final List<StatsTrendPoint> healthRateTrend;
+  final List<StatsTrendPoint> alertTrend;
+  final Map<String, int> healthDistribution;
 }
 
 abstract class StatsRepository {
-  StatsViewData load({
-    required ViewState viewState,
-    required StatsTimeRange timeRange,
-  });
+  Future<StatsResponse> load();
 }

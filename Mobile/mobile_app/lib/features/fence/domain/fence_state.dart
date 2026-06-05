@@ -1,6 +1,7 @@
 import 'package:smart_livestock_demo/features/fence/domain/fence_edit_session.dart';
 import 'package:smart_livestock_demo/core/models/view_state.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
+import 'package:smart_livestock_demo/features/livestock/data/map_api_repository.dart';
 
 enum FenceEditMode { editIdle, editDirty, saving }
 
@@ -14,6 +15,7 @@ class FenceState {
     this.message,
     this.editSession,
     this.editMode,
+    this.livestockPositions = const [],
   });
 
   final List<FenceItem> fences;
@@ -22,6 +24,7 @@ class FenceState {
   final String? message;
   final FenceEditSession? editSession;
   final FenceEditMode? editMode;
+  final List<GpsPoint> livestockPositions;
 
   FenceItem? get selectedFence {
     if (selectedFenceId == null) return null;
@@ -41,6 +44,7 @@ class FenceState {
     bool clearEditSession = false,
     FenceEditMode? editMode,
     bool clearEditMode = false,
+    List<GpsPoint>? livestockPositions,
   }) {
     return FenceState(
       fences: fences ?? this.fences,
@@ -53,6 +57,7 @@ class FenceState {
       message: message ?? this.message,
       editSession: clearEditSession ? null : (editSession ?? this.editSession),
       editMode: clearEditMode ? null : (editMode ?? this.editMode),
+      livestockPositions: livestockPositions ?? this.livestockPositions,
     );
   }
 }

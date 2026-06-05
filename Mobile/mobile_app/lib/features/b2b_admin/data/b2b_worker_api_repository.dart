@@ -51,6 +51,7 @@ class B2bWorkerApiRepository implements B2bWorkerManagementRepository {
           name: w['name'] as String,
           role: w['role'] as String? ?? 'worker',
           status: w['status'] as String? ?? 'active',
+          phone: w['phone'] as String?,
           assignedAt: w['assignedAt'] as String?,
         )).toList();
   }
@@ -83,7 +84,51 @@ class B2bWorkerApiRepository implements B2bWorkerManagementRepository {
           name: w['name'] as String,
           role: w['role'] as String? ?? 'worker',
           status: w['status'] as String? ?? 'active',
+          phone: w['phone'] as String?,
           assignedAt: w['assignedAt'] as String?,
         )).toList();
+  }
+
+  @override
+  Future<B2bSubFarmWorker> createWorker({required String name, required String phone, required String password}) async {
+    final data = await ApiClient.instance.post('/b2b/users', body: {
+      'name': name,
+      'phone': phone,
+      'password': password,
+    });
+    return B2bSubFarmWorker(
+      id: _parseId(data['id']),
+      name: data['name'] as String,
+      role: 'worker',
+      status: 'active',
+      phone: data['phone'] as String?,
+    );
+  }
+
+  @override
+  Future<B2bSubFarmWorker> updateWorker(String userId, {String? name, String? phone}) async {
+    final body = <String, dynamic>{};
+    if (name != null) body['name'] = name;
+    if (phone != null) body['phone'] = phone;
+    final data = await ApiClient.instance.put('/b2b/users/$userId', body: body);
+    return B2bSubFarmWorker(
+      id: _parseId(data['id']),
+      name: data['name'] as String,
+      role: 'worker',
+      status: 'active',
+      phone: data['phone'] as String?,
+    );
+  }
+
+  @override
+  Future<bool> updateWorkerStatus(String userId, String status) async {
+    await ApiClient.instance.put('/b2b/users/$userId/status', body: {'status': status});
+    return true;
+  }
+
+  @override
+  Future<bool> resetWorkerPassword(String userId, String newPassword) async {
+    await ApiClient.instance.put('/b2b/users/$userId/reset-password', body: {'password': newPassword});
+    return true;
   }
 }

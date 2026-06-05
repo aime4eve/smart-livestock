@@ -9,9 +9,7 @@ import com.smartlivestock.identity.domain.repository.FarmRepository;
 import com.smartlivestock.identity.domain.repository.TenantRepository;
 import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepository;
 import com.smartlivestock.identity.domain.repository.UserRepository;
-import com.smartlivestock.ranch.application.TileAdminService;
-import com.smartlivestock.ranch.domain.repository.FenceRepository;
-import com.smartlivestock.ranch.domain.service.TileCoverageCalculator;
+import com.smartlivestock.identity.domain.port.RanchCommandPort;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,20 +29,19 @@ import static org.mockito.Mockito.*;
 class FarmApplicationServiceTest {
 
     @Mock private FarmRepository farmRepository;
+    @Mock private com.smartlivestock.identity.infrastructure.persistence.SpringDataFarmRepository persistenceContext;
     @Mock private TenantRepository tenantRepository;
     @Mock private UserRepository userRepository;
     @Mock private UserFarmAssignmentRepository assignmentRepository;
-    @Mock private FenceRepository fenceRepository;
-    @Mock private TileAdminService tileAdminService;
-    @Mock private TileCoverageCalculator coverageCalculator;
+    @Mock private RanchCommandPort ranchCommandPort;
 
     private FarmApplicationService service;
 
     @BeforeEach
     void setUp() {
         service = new FarmApplicationService(
-                farmRepository, tenantRepository, userRepository,
-                assignmentRepository, fenceRepository, tileAdminService, coverageCalculator
+                farmRepository, persistenceContext, tenantRepository, userRepository,
+                assignmentRepository, ranchCommandPort
         );
     }
 

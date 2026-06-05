@@ -4,15 +4,12 @@ import com.smartlivestock.identity.application.command.CreateFarmCommand;
 import com.smartlivestock.identity.application.dto.FarmDto;
 import com.smartlivestock.identity.domain.model.Farm;
 import com.smartlivestock.identity.domain.repository.FarmRepository;
+import com.smartlivestock.identity.infrastructure.persistence.SpringDataFarmRepository;
+import com.smartlivestock.identity.infrastructure.persistence.mapper.FarmMapper;
 import com.smartlivestock.identity.domain.repository.TenantRepository;
 import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepository;
 import com.smartlivestock.identity.domain.repository.UserRepository;
-import com.smartlivestock.ranch.application.TileAdminService;
-import com.smartlivestock.ranch.application.dto.FarmTileStatusDto;
-import com.smartlivestock.ranch.domain.model.Fence;
-import com.smartlivestock.ranch.domain.model.GpsCoordinate;
-import com.smartlivestock.ranch.domain.repository.FenceRepository;
-import com.smartlivestock.ranch.domain.service.TileCoverageCalculator;
+import com.smartlivestock.identity.domain.port.RanchCommandPort;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -26,12 +23,11 @@ import java.util.List;
 public class FarmApplicationService {
 
     private final FarmRepository farmRepository;
+    private final SpringDataFarmRepository persistenceContext;
     private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
     private final UserFarmAssignmentRepository assignmentRepository;
-    private final FenceRepository fenceRepository;
-    private final TileAdminService tileAdminService;
-    private final TileCoverageCalculator coverageCalculator;
+    private final RanchCommandPort ranchCommandPort;
 
     @Transactional
     public FarmDto createFarm(Long tenantId, CreateFarmCommand command, Long userId) {
@@ -46,25 +42,20 @@ public class FarmApplicationService {
         }
 
         if (command.boundaryVertices() != null && command.boundaryVertices().size() >= 3) {
-            createBoundaryFenceAndDetectTiles(saved.getId(), command.name(), command.boundaryVertices());
+            ranchCommandPort.createBoundaryFenceAndDetectTiles(saved.getId(), command.name(),
+                    command.boundaryVertices().stream().map(v -> v.latitude()).toList(),
+                    command.boundaryVertices().stream().map(v -> v.longitude()).toList());
         }
 
         return FarmDto.from(saved);
     }
 
-    public void triggerTileDetection(Long farmId, String farmName, List<GpsCoordinate> vertices) {
-        createBoundaryFenceAndDetectTiles(farmId, farmName, vertices);
+    public void triggerTileDetection(Long farmId, String farmName,
+                                        List<java.math.BigDecimal> latitudes, List<java.math.BigDecimal> longitudes) {
+        ranchCommandPort.createBoundaryFenceAndDetectTiles(farmId, farmName, latitudes, longitudes);
     }
 
-    private void createBoundaryFenceAndDetectTiles(Long farmId, String farmName, List<GpsCoordinate> vertices) {
-        Fence boundaryFence = new Fence(farmId, farmName + " 边界", vertices, "#FF0000");
-        boundaryFence.setFenceType("boundary");
-        fenceRepository.save(boundaryFence);
 
-        double[] bbox = coverageCalculator.calculateBbox(vertices);
-        double ratio = coverageCalculator.coverageRatio(vertices);
-        tileAdminService.handleFarmTileDetection(farmId, bbox, ratio);
-    }
 
     private void autoAssignOwner(Long userId, Long farmId, Long tenantId) {
         var userOpt = userRepository.findById(userId);
@@ -107,7 +98,19 @@ public class FarmApplicationService {
     }
 
     @Transactional
-    public Farm saveFarm(Farm farm) {
-        return farmRepository.save(farm);
+    public FarmDto updateFarmEntity(Farm farm) {
+        // Fetch existing JPA entity to preserve createdAt/updatedAt
+        var jpaEntities = persistenceContext.findAllById(java.util.List.of(farm.getId()));
+        if (jpaEntities.isEmpty()) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牧场不存在: " + farm.getId());
+        }
+        var existing = jpaEntities.get(0);
+        existing.setName(farm.getName());
+        existing.setLatitude(farm.getLatitude());
+        existing.setLongitude(farm.getLongitude());
+        existing.setAreaHectares(farm.getAreaHectares());
+        existing.setUpdatedAt(java.time.Instant.now());
+        var saved = persistenceContext.save(existing);
+        return FarmDto.from(FarmMapper.toDomain(saved));
     }
 }

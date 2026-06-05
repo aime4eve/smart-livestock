@@ -2,7 +2,7 @@ package com.smartlivestock.analytics.interfaces;
 
 import com.smartlivestock.analytics.application.service.AsyncApiCallLogService;
 import com.smartlivestock.analytics.domain.model.ApiCallLog;
-import com.smartlivestock.identity.domain.model.ApiKey;
+import com.smartlivestock.analytics.domain.port.dto.ApiKeyInfo;
 import com.smartlivestock.shared.security.ApiKeyAuthFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -35,7 +35,7 @@ public class ApiCallLogInterceptor implements HandlerInterceptor {
         Object cached = request.getAttribute(ApiKeyAuthFilter.ATTR_API_KEY);
         log.info("afterCompletion: uri={}, status={}, apiKeyAttr={}",
                 request.getRequestURI(), response.getStatus(), cached != null ? "present" : "null");
-        if (!(cached instanceof ApiKey apiKey)) {
+        if (!(cached instanceof ApiKeyInfo apiKey)) {
             return; // Not an API key request, skip logging
         }
 
@@ -43,8 +43,8 @@ public class ApiCallLogInterceptor implements HandlerInterceptor {
         int responseTimeMs = startTime != null ? (int) (System.currentTimeMillis() - startTime) : 0;
 
         ApiCallLog callLog = new ApiCallLog();
-        callLog.setApiKeyId(apiKey.getId());
-        callLog.setTenantId(apiKey.getTenantId());
+        callLog.setApiKeyId(apiKey.id());
+        callLog.setTenantId(apiKey.tenantId());
         callLog.setEndpoint(extractEndpoint(request));
         callLog.setMethod(request.getMethod());
         callLog.setStatusCode(response.getStatus());

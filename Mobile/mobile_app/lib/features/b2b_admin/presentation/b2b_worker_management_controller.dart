@@ -39,6 +39,32 @@ class B2bWorkerManagementController
   Future<List<B2bSubFarmWorker>> getAvailableWorkers() {
     return ref.read(b2bWorkerManagementRepositoryProvider).getAvailableWorkers();
   }
+
+  Future<B2bSubFarmWorker> createWorker({required String name, required String phone, required String password}) async {
+    final worker = await ref.read(b2bWorkerManagementRepositoryProvider).createWorker(
+      name: name, phone: phone, password: password,
+    );
+    await refresh();
+    return worker;
+  }
+
+  Future<B2bSubFarmWorker> updateWorker(String userId, {String? name, String? phone}) async {
+    final worker = await ref.read(b2bWorkerManagementRepositoryProvider).updateWorker(
+      userId, name: name, phone: phone,
+    );
+    await refresh();
+    return worker;
+  }
+
+  Future<bool> updateWorkerStatus(String userId, String status) async {
+    final ok = await ref.read(b2bWorkerManagementRepositoryProvider).updateWorkerStatus(userId, status);
+    if (ok) await refresh();
+    return ok;
+  }
+
+  Future<bool> resetWorkerPassword(String userId, String newPassword) {
+    return ref.read(b2bWorkerManagementRepositoryProvider).resetWorkerPassword(userId, newPassword);
+  }
 }
 
 final b2bWorkerManagementControllerProvider =

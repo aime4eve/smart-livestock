@@ -4,7 +4,7 @@ import 'package:smart_livestock_demo/features/fence/data/fence_dto.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_repository.dart';
 
-const _fallbackCenter = LatLng(28.2458, 112.8519);
+const _fallbackCenter = LatLng(28.229, 112.938);
 
 class FenceApiRepository implements FenceRepository {
   const FenceApiRepository();
@@ -41,6 +41,13 @@ class FenceApiRepository implements FenceRepository {
   @override
   Future<void> delete(String fenceId) async {
     await ApiClient.instance.farmDelete('/fences/$fenceId');
+  }
+
+  @override
+  Future<FenceItem> forceUpdate(String fenceId, Map<String, dynamic> body) async {
+    final data =
+        await ApiClient.instance.farmPut('/fences/$fenceId/force', body: body);
+    return _fenceItemFromMap(data, 0, 0);
   }
 
   FenceItem _fenceItemFromMap(

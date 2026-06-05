@@ -116,6 +116,10 @@ class _TestRepo implements FenceRepository {
   Future<FenceItem> update(String id, Map<String, dynamic> body) async => throw UnimplementedError();
   @override
   Future<void> delete(String id) async => throw UnimplementedError();
+
+  @override
+  Future<FenceItem> forceUpdate(String fenceId, Map<String, dynamic> body) async =>
+      throw UnimplementedError();
 }
 
 const _fenceA = FenceItem(

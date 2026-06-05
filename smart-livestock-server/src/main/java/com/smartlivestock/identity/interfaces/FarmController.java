@@ -8,7 +8,7 @@ import com.smartlivestock.identity.domain.model.User;
 import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepository;
 import com.smartlivestock.identity.domain.repository.UserRepository;
 import com.smartlivestock.identity.infrastructure.persistence.entity.UserFarmAssignmentJpaEntity;
-import com.smartlivestock.ranch.domain.model.GpsCoordinate;
+import com.smartlivestock.identity.domain.model.Coordinate;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -72,7 +72,7 @@ public class FarmController {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "牧场名称已存在");
         }
 
-        List<GpsCoordinate> boundaryVertices = null;
+        List<Coordinate> boundaryVertices = null;
         if (body.get("boundaryVertices") != null) {
             boundaryVertices = parseVertices(body.get("boundaryVertices"));
         }
@@ -118,8 +118,8 @@ public class FarmController {
         if (body.get("areaHectares") != null) {
             farm.setAreaHectares(toBigDecimal(body.get("areaHectares")));
         }
-        Farm saved = farmApplicationService.saveFarm(farm);
-        return ResponseEntity.ok(ApiResponse.ok(FarmDto.from(saved)));
+        FarmDto saved = farmApplicationService.updateFarmEntity(farm);
+        return ResponseEntity.ok(ApiResponse.ok(saved));
     }
 
     @GetMapping("/farms/{farmId}/members")
@@ -216,11 +216,11 @@ public class FarmController {
     }
 
     @SuppressWarnings("unchecked")
-    private List<GpsCoordinate> parseVertices(Object verticesObj) {
+    private List<Coordinate> parseVertices(Object verticesObj) {
         if (verticesObj == null) return List.of();
         List<Map<String, Object>> rawList = (List<Map<String, Object>>) verticesObj;
         return rawList.stream()
-                .map(m -> new GpsCoordinate(
+                .map(m -> new Coordinate(
                         toBigDecimal(m.get("lat")),
                         toBigDecimal(m.get("lng"))
                 ))

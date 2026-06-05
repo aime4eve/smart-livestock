@@ -1,8 +1,8 @@
 package com.smartlivestock.analytics.interfaces.app;
 
 import com.smartlivestock.analytics.application.service.AnalyticsApplicationService;
-import com.smartlivestock.identity.application.ApiKeyApplicationService;
-import com.smartlivestock.identity.domain.model.ApiKey;
+import com.smartlivestock.analytics.domain.port.IdentityQueryPort;
+import com.smartlivestock.analytics.domain.port.dto.ApiKeyInfo;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -21,7 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PortalAppController {
 
-    private final ApiKeyApplicationService apiKeyService;
+    private final IdentityQueryPort identityQueryPort;
     private final AnalyticsApplicationService analyticsService;
 
     @GetMapping
@@ -29,7 +29,7 @@ public class PortalAppController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int pageSize) {
         Long tenantId = requireTenant();
-        List<ApiKey> keys = apiKeyService.listApiKeysByTenant(tenantId);
+        List<ApiKeyInfo> keys = identityQueryPort.listApiKeysByTenant(tenantId);
 
         List<Map<String, Object>> items = keys.stream()
                 .map(this::toSummary)
@@ -48,24 +48,27 @@ public class PortalAppController {
         int dailyQuota = body.get("dailyQuota") != null ? ((Number) body.get("dailyQuota")).intValue() : 20000;
         String description = (String) body.get("description");
 
-        Map<String, Object> result = apiKeyService.createApiKeyForPortal(tenantId, name, scopes, rpm, dailyQuota, description);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(result));
+        var newKey = identityQueryPort.createApiKey(tenantId, name, scopes, rpm, dailyQuota, description);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(toSummary(newKey)));
     }
 
     @PutMapping("/{keyId}")
     public ResponseEntity<ApiResponse<Map<String, Object>>> updateKey(
             @PathVariable Long keyId, @RequestBody Map<String, Object> body) {
         Long tenantId = requireTenant();
-        ApiKey key = apiKeyService.findById(keyId);
-        ensureOwnership(key, tenantId);
+        ApiKeyInfo key = identityQueryPort.findApiKeyById(keyId).orElse(null);
+        if (key == null) return ResponseEntity.status(404).body(ApiResponse.error(com.smartlivestock.shared.common.ErrorCode.RESOURCE_NOT_FOUND, "API Key not found"));
+        ensureOwnership(key.tenantId(), tenantId, key.id());
 
         String name = (String) body.get("name");
         String description = (String) body.get("description");
-        if (name != null) key.setKeyName(name);
-        if (description != null) key.setDescription(description);
+        String newName = name != null ? name : key.keyName();
+        String newDesc = description != null ? description : key.description();
+        ApiKeyInfo updated = new ApiKeyInfo(key.id(), key.tenantId(), key.keyValue(), newName, key.keyPrefix(),
+                key.status(), key.scopes(), key.requestsPerMinute(), key.dailyQuota(), newDesc, key.createdAt(), key.lastUsedAt());
 
-        apiKeyService.save(key);
-        return ResponseEntity.ok(ApiResponse.ok(toSummary(key)));
+        identityQueryPort.saveApiKey(updated);
+        return ResponseEntity.ok(ApiResponse.ok(toSummary(updated)));
     }
 
     @PutMapping("/{keyId}/status")
@@ -77,14 +80,16 @@ public class PortalAppController {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "status 必须为 active 或 disabled");
         }
 
-        ApiKey key = apiKeyService.findById(keyId);
-        ensureOwnership(key, tenantId);
+        ApiKeyInfo key = identityQueryPort.findApiKeyById(keyId).orElse(null);
+        if (key == null) return ResponseEntity.status(404).body(ApiResponse.error(com.smartlivestock.shared.common.ErrorCode.RESOURCE_NOT_FOUND, "API Key not found"));
+        ensureOwnership(key.tenantId(), tenantId, key.id());
 
         if ("disabled".equals(status)) {
-            apiKeyService.revokeApiKey(keyId);
+            identityQueryPort.revokeApiKey(keyId);
         } else {
-            key.setStatus("ACTIVE");
-            apiKeyService.save(key);
+            ApiKeyInfo updated = new ApiKeyInfo(key.id(), key.tenantId(), key.keyValue(), key.keyName(), key.keyPrefix(),
+                    "ACTIVE", key.scopes(), key.requestsPerMinute(), key.dailyQuota(), key.description(), key.createdAt(), key.lastUsedAt());
+            identityQueryPort.saveApiKey(updated);
         }
 
         return ResponseEntity.ok(ApiResponse.ok(Map.of("id", keyId, "status",
@@ -94,9 +99,10 @@ public class PortalAppController {
     @DeleteMapping("/{keyId}")
     public ResponseEntity<ApiResponse<Void>> deleteKey(@PathVariable Long keyId) {
         Long tenantId = requireTenant();
-        ApiKey key = apiKeyService.findById(keyId);
-        ensureOwnership(key, tenantId);
-        apiKeyService.deleteApiKey(keyId);
+        ApiKeyInfo key = identityQueryPort.findApiKeyById(keyId).orElse(null);
+        if (key == null) return ResponseEntity.status(404).body(ApiResponse.error(com.smartlivestock.shared.common.ErrorCode.RESOURCE_NOT_FOUND, "API Key not found"));
+        ensureOwnership(key.tenantId(), tenantId, key.id());
+        identityQueryPort.deleteApiKey(keyId);
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
@@ -106,8 +112,9 @@ public class PortalAppController {
             @RequestParam LocalDate from,
             @RequestParam LocalDate to) {
         Long tenantId = requireTenant();
-        ApiKey key = apiKeyService.findById(keyId);
-        ensureOwnership(key, tenantId);
+        ApiKeyInfo key = identityQueryPort.findApiKeyById(keyId).orElse(null);
+        if (key == null) return ResponseEntity.status(404).body(ApiResponse.error(com.smartlivestock.shared.common.ErrorCode.RESOURCE_NOT_FOUND, "API Key not found"));
+        ensureOwnership(key.tenantId(), tenantId, key.id());
         return ResponseEntity.ok(ApiResponse.ok(
                 analyticsService.getApiKeyOverview(tenantId, keyId, from, to)));
     }
@@ -127,24 +134,24 @@ public class PortalAppController {
         return tid;
     }
 
-    private void ensureOwnership(ApiKey key, Long tenantId) {
-        if (!tenantId.equals(key.getTenantId())) {
+    private void ensureOwnership(Long keyTenantId, Long sessionTenantId, Long keyId) {
+        if (!keyTenantId.equals(sessionTenantId)) {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "无权操作此 API Key");
         }
     }
 
-    private Map<String, Object> toSummary(ApiKey k) {
+    private Map<String, Object> toSummary(ApiKeyInfo k) {
         return Map.<String, Object>of(
-                "id", k.getId(),
-                "keyName", k.getKeyName() != null ? k.getKeyName() : "",
-                "prefix", k.getKeyPrefix() != null ? k.getKeyPrefix() : "",
-                "status", k.getStatus() != null ? k.getStatus() : "",
-                "scopes", k.getScopes() != null ? k.getScopes() : "",
-                "requestsPerMinute", k.getRequestsPerMinute() != null ? k.getRequestsPerMinute() : 0,
-                "dailyQuota", k.getDailyQuota() != null ? k.getDailyQuota() : 0,
-                "description", k.getDescription() != null ? k.getDescription() : "",
-                "createdAt", k.getCreatedAt() != null ? k.getCreatedAt().toString() : "",
-                "lastUsedAt", k.getLastUsedAt() != null ? k.getLastUsedAt().toString() : ""
+                "id", k.id(),
+                "keyName", k.keyName() != null ? k.keyName() : "",
+                "prefix", k.keyPrefix() != null ? k.keyPrefix() : "",
+                "status", k.status() != null ? k.status() : "",
+                "scopes", k.scopes() != null ? k.scopes() : "",
+                "requestsPerMinute", k.requestsPerMinute() != null ? k.requestsPerMinute() : 0,
+                "dailyQuota", k.dailyQuota() != null ? k.dailyQuota() : 0,
+                "description", k.description() != null ? k.description() : "",
+                "createdAt", k.createdAt() != null ? k.createdAt().toString() : "",
+                "lastUsedAt", k.lastUsedAt() != null ? k.lastUsedAt().toString() : ""
         );
     }
 }

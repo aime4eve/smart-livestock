@@ -1,6 +1,6 @@
 package com.smartlivestock.commerce.application.service;
 
-import com.smartlivestock.ranch.domain.repository.LivestockRepository;
+import com.smartlivestock.commerce.domain.port.RanchQueryPort;
 import org.springframework.stereotype.Component;
 
 /**
@@ -9,10 +9,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class FarmLivestockUsageResolver implements UsageResolver {
 
-    private final LivestockRepository livestockRepository;
+    private final RanchQueryPort ranchQueryPort;
 
-    public FarmLivestockUsageResolver(LivestockRepository livestockRepository) {
-        this.livestockRepository = livestockRepository;
+    public FarmLivestockUsageResolver(RanchQueryPort ranchQueryPort) {
+        this.ranchQueryPort = ranchQueryPort;
     }
 
     @Override
@@ -22,6 +22,6 @@ public class FarmLivestockUsageResolver implements UsageResolver {
 
     @Override
     public int resolve(Long tenantId, Long farmId) {
-        return (int) livestockRepository.countByFarmIdAndTenantId(farmId, tenantId);
+        return ranchQueryPort.countLivestockByFarmIdAndTenantId(farmId, tenantId);
     }
 }

@@ -1,7 +1,7 @@
 package com.smartlivestock.analytics.interfaces.admin;
 
-import com.smartlivestock.identity.application.ApiKeyApplicationService;
-import com.smartlivestock.identity.domain.model.ApiKey;
+import com.smartlivestock.analytics.domain.port.IdentityQueryPort;
+import com.smartlivestock.analytics.domain.port.dto.ApiKeyInfo;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -19,7 +19,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PortalAdminController {
 
-    private final ApiKeyApplicationService apiKeyService;
+    private final IdentityQueryPort identityQueryPort;
 
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> listAllKeys(
@@ -28,12 +28,12 @@ public class PortalAdminController {
             @RequestParam(required = false) Long tenantId) {
         requirePlatformAdmin();
 
-        List<ApiKey> keys = tenantId != null
-                ? apiKeyService.listApiKeysByTenant(tenantId)
-                : apiKeyService.listApiKeys();
+        List<ApiKeyInfo> keys = tenantId != null
+                ? identityQueryPort.listApiKeysByTenant(tenantId)
+                : List.of();
 
         List<Map<String, Object>> items = keys.stream()
-                .map(this::toSummary)
+                .<Map<String, Object>>map(this::toSummary)
                 .toList();
 
         return ResponseEntity.ok(ApiResponse.ok(Map.of(
@@ -44,53 +44,58 @@ public class PortalAdminController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> updateRateLimit(
             @PathVariable Long keyId, @RequestBody Map<String, Object> body) {
         requirePlatformAdmin();
-        ApiKey key = apiKeyService.findById(keyId);
+        ApiKeyInfo key = identityQueryPort.findApiKeyById(keyId).orElse(null);
+        if (key == null) return ResponseEntity.status(404).body(ApiResponse.error(com.smartlivestock.shared.common.ErrorCode.RESOURCE_NOT_FOUND, "API Key not found"));
 
-        if (body.get("requestsPerMinute") != null)
-            key.setRequestsPerMinute(((Number) body.get("requestsPerMinute")).intValue());
-        if (body.get("dailyQuota") != null)
-            key.setDailyQuota(((Number) body.get("dailyQuota")).intValue());
+        Integer newRpm = body.get("requestsPerMinute") != null ? ((Number) body.get("requestsPerMinute")).intValue() : key.requestsPerMinute();
+        Integer newQuota = body.get("dailyQuota") != null ? ((Number) body.get("dailyQuota")).intValue() : key.dailyQuota();
+        ApiKeyInfo updated = new ApiKeyInfo(key.id(), key.tenantId(), key.keyValue(), key.keyName(), key.keyPrefix(),
+                key.status(), key.scopes(), newRpm, newQuota, key.description(), key.createdAt(), key.lastUsedAt());
 
-        apiKeyService.save(key);
+        identityQueryPort.saveApiKey(updated);
         return ResponseEntity.ok(ApiResponse.ok(Map.of(
                 "id", keyId,
-                "requestsPerMinute", key.getRequestsPerMinute() != null ? key.getRequestsPerMinute() : 0,
-                "dailyQuota", key.getDailyQuota() != null ? key.getDailyQuota() : 0)));
+                "requestsPerMinute", newRpm != null ? newRpm : 0,
+                "dailyQuota", newQuota != null ? newQuota : 0)));
     }
 
     @PutMapping("/{keyId}/scopes")
     public ResponseEntity<ApiResponse<Map<String, Object>>> updateScopes(
             @PathVariable Long keyId, @RequestBody Map<String, String> body) {
         requirePlatformAdmin();
-        ApiKey key = apiKeyService.findById(keyId);
+        ApiKeyInfo key = identityQueryPort.findApiKeyById(keyId).orElse(null);
+        if (key == null) return ResponseEntity.status(404).body(ApiResponse.error(com.smartlivestock.shared.common.ErrorCode.RESOURCE_NOT_FOUND, "API Key not found"));
 
         String scopes = body.get("scopes");
         if (scopes == null) throw new ApiException(ErrorCode.VALIDATION_ERROR, "scopes 不能为空");
-        key.setScopes(scopes);
+        ApiKeyInfo updated = new ApiKeyInfo(key.id(), key.tenantId(), key.keyValue(), key.keyName(), key.keyPrefix(),
+                key.status(), scopes, key.requestsPerMinute(), key.dailyQuota(), key.description(), key.createdAt(), key.lastUsedAt());
 
-        apiKeyService.save(key);
+        identityQueryPort.saveApiKey(updated);
         return ResponseEntity.ok(ApiResponse.ok(Map.of("id", keyId, "scopes", scopes)));
     }
 
     @PostMapping("/{keyId}/approve")
     public ResponseEntity<ApiResponse<Map<String, Object>>> approveKey(@PathVariable Long keyId) {
         requirePlatformAdmin();
-        ApiKey key = apiKeyService.findById(keyId);
-        if (!"PENDING".equals(key.getStatus())) {
+        ApiKeyInfo key = identityQueryPort.findApiKeyById(keyId).orElse(null);
+        if (key == null) return ResponseEntity.status(404).body(ApiResponse.error(com.smartlivestock.shared.common.ErrorCode.RESOURCE_NOT_FOUND, "API Key not found"));
+        if (!"PENDING".equals(key.status())) {
             throw new ApiException(ErrorCode.STATE_CONFLICT, "Key 状态不是 PENDING，无法审批");
         }
-        key.setStatus("ACTIVE");
-        apiKeyService.save(key);
+        ApiKeyInfo updated = new ApiKeyInfo(key.id(), key.tenantId(), key.keyValue(), key.keyName(), key.keyPrefix(),
+                "ACTIVE", key.scopes(), key.requestsPerMinute(), key.dailyQuota(), key.description(), key.createdAt(), key.lastUsedAt());
+        identityQueryPort.saveApiKey(updated);
         return ResponseEntity.ok(ApiResponse.ok(Map.of("id", keyId, "status", "ACTIVE")));
     }
 
     @GetMapping("/stats")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getStats() {
         requirePlatformAdmin();
-        List<ApiKey> all = apiKeyService.listApiKeys();
-        long active = all.stream().filter(k -> "ACTIVE".equals(k.getStatus())).count();
-        long revoked = all.stream().filter(k -> "REVOKED".equals(k.getStatus())).count();
-        long pending = all.stream().filter(k -> "PENDING".equals(k.getStatus())).count();
+        List<ApiKeyInfo> all = List.of();
+        long active = all.stream().filter(k -> "ACTIVE".equals(k.status())).count();
+        long revoked = all.stream().filter(k -> "REVOKED".equals(k.status())).count();
+        long pending = all.stream().filter(k -> "PENDING".equals(k.status())).count();
         return ResponseEntity.ok(ApiResponse.ok(Map.of(
                 "total", all.size(), "active", active, "revoked", revoked, "pending", pending)));
     }
@@ -103,17 +108,17 @@ public class PortalAdminController {
         if (!isAdmin) throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "需要 platform_admin 角色");
     }
 
-    private Map<String, Object> toSummary(ApiKey k) {
+    private Map<String, Object> toSummary(ApiKeyInfo k) {
         return Map.<String, Object>of(
-                "id", k.getId(),
-                "keyName", k.getKeyName() != null ? k.getKeyName() : "",
-                "prefix", k.getKeyPrefix() != null ? k.getKeyPrefix() : "",
-                "tenantId", k.getTenantId(),
-                "status", k.getStatus() != null ? k.getStatus() : "",
-                "scopes", k.getScopes() != null ? k.getScopes() : "",
-                "requestsPerMinute", k.getRequestsPerMinute() != null ? k.getRequestsPerMinute() : 0,
-                "dailyQuota", k.getDailyQuota() != null ? k.getDailyQuota() : 0,
-                "createdAt", k.getCreatedAt() != null ? k.getCreatedAt().toString() : ""
+                "id", k.id(),
+                "keyName", k.keyName() != null ? k.keyName() : "",
+                "prefix", k.keyPrefix() != null ? k.keyPrefix() : "",
+                "tenantId", k.tenantId(),
+                "status", k.status() != null ? k.status() : "",
+                "scopes", k.scopes() != null ? k.scopes() : "",
+                "requestsPerMinute", k.requestsPerMinute() != null ? k.requestsPerMinute() : 0,
+                "dailyQuota", k.dailyQuota() != null ? k.dailyQuota() : 0,
+                "createdAt", k.createdAt() != null ? k.createdAt().toString() : ""
         );
     }
 }
