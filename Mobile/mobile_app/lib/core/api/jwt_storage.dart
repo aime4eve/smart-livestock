@@ -11,6 +11,7 @@ class JwtStorage {
 
   static const _accessTokenKey = 'access_token';
   static const _userInfoKey = 'user_info';
+  static const _activeFarmIdKey = 'active_farm_id';
 
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
@@ -63,9 +64,29 @@ class JwtStorage {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_accessTokenKey);
       await prefs.remove(_userInfoKey);
+      await prefs.remove(_activeFarmIdKey);
     } else {
       await _secureStorage.delete(key: _accessTokenKey);
       await _secureStorage.delete(key: _userInfoKey);
+      await _secureStorage.delete(key: _activeFarmIdKey);
+    }
+  }
+
+  Future<void> saveActiveFarmId(String farmId) async {
+    if (kIsWeb) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_activeFarmIdKey, farmId);
+    } else {
+      await _secureStorage.write(key: _activeFarmIdKey, value: farmId);
+    }
+  }
+
+  Future<String?> getActiveFarmId() async {
+    if (kIsWeb) {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(_activeFarmIdKey);
+    } else {
+      return _secureStorage.read(key: _activeFarmIdKey);
     }
   }
 }

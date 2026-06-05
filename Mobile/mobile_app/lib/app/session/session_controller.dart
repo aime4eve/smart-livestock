@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/core/api/api_client.dart';
 import 'package:smart_livestock_demo/core/api/api_exception.dart';
+import 'package:smart_livestock_demo/core/api/jwt_storage.dart';
 import 'package:smart_livestock_demo/app/session/app_session.dart';
 import 'package:smart_livestock_demo/core/models/user_role.dart';
 
@@ -39,6 +40,7 @@ class SessionController extends Notifier<AppSession> {
   void updateActiveFarm(String farmId) {
     state = state.copyWith(activeFarmId: farmId);
     ApiClient.instance.setActiveFarmId(farmId);
+    JwtStorage.instance.saveActiveFarmId(farmId);
   }
 
   Future<void> logout() async {

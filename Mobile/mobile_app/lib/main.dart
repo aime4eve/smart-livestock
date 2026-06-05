@@ -57,6 +57,12 @@ Future<AppSession> _restoreSession() async {
     return AppSession.loggedOut;
   }
 
+  // Restore active farmId so farm-scoped APIs work after page refresh.
+  final activeFarmId = await JwtStorage.instance.getActiveFarmId();
+  if (activeFarmId != null) {
+    ApiClient.instance.setActiveFarmId(activeFarmId);
+  }
+
   return AppSession.authenticated(
     role: UserRole.fromString(payload['role'] as String? ?? ''),
     accessToken: token,
@@ -65,5 +71,6 @@ Future<AppSession> _restoreSession() async {
     phone: userInfo['phone'] as String?,
     tenantId: userInfo['tenantId'] as int?,
     username: userInfo['username'] as String?,
+    activeFarmId: activeFarmId,
   );
 }

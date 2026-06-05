@@ -144,7 +144,3 @@ class OfflineTileManager {
       [farmId]);
   }
 }
-
-final offlineTileManagerProvider = Provider<OfflineTileManager>((ref) {
-  throw UnimplementedError('Override in app with real dependencies');
-});
