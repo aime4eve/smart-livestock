@@ -149,17 +149,16 @@ class B2BAdminJourneyTest extends AbstractJourneyTest {
         }
 
         @Test
-        @DisplayName("b2b_admin 不能创建牧场（仅 owner 可创建）返回 403")
-        void b2bAdmin_cannotCreateFarm_returns403() {
+        @DisplayName("b2b_admin 可以创建牧场（owner 或 b2b_admin 均可）")
+        void b2bAdmin_canCreateFarm() {
             var body = Map.of(
-                    "name", "B2B非法牧场",
+                    "name", "B2B新牧场",
                     "latitude", 28.25,
                     "longitude", 112.85
             );
             var resp = postRaw(b2bAdminToken, "/api/v1/farms", body);
-            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(resp.getBody()).isNotNull();
-            assertThat(resp.getBody().get("code")).isEqualTo("AUTH_FORBIDDEN");
         }
     }
 }

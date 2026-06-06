@@ -160,10 +160,10 @@ class TileJourneyTest extends AbstractJourneyTest {
         }
 
         @Test
-        @DisplayName("b2b_admin 不能访问 Admin 瓦片端点")
-        void b2bAdmin_cannotAccessAdminTiles() {
+        @DisplayName("b2b_admin 可以访问 Admin 瓦片端点（@PreAuthorize 包含 B2B_ADMIN）")
+        void b2bAdmin_canAccessAdminTiles() {
             var resp = getRaw(b2bAdminToken, "/api/v1/admin/tiles/regions");
-            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
     }
 }

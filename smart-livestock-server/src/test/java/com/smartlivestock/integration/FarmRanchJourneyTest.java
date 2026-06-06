@@ -205,12 +205,13 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
 
         @Test
         @Order(1)
-        @DisplayName("owner 查看牧场成员列表（返回空列表）")
-        void owner_listFarmMembers_returnsEmptyList() {
+        @DisplayName("owner 查看牧场成员列表（种子数据已分配 owner + worker）")
+        void owner_listFarmMembers_returnsSeedMembers() {
             var data = getApi(ownerToken, "/api/v1/farms/1/members");
             assertThat(data).containsKey("items");
             var items = getItems(data);
-            assertThat(items).isEmpty();
+            // V4 assigns owner, V16 assigns worker to farm 1
+            assertThat(items.size()).isGreaterThanOrEqualTo(2);
         }
 
         @Test
