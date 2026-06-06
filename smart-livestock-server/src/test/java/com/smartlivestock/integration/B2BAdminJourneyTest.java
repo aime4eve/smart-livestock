@@ -157,7 +157,7 @@ class B2BAdminJourneyTest extends AbstractJourneyTest {
                     "longitude", 112.85
             );
             var resp = postRaw(b2bAdminToken, "/api/v1/farms", body);
-            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(resp.getBody()).isNotNull();
         }
     }
