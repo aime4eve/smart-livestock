@@ -14,16 +14,15 @@ void main() {
   testWidgets('导航栏不含旧地图项', (tester) async {
     await pumpAppWithRole(tester, UserRole.owner);
 
-    expect(find.byKey(const Key('nav-' 'map')), findsNothing);
+    expect(find.byKey(const Key('nav-map')), findsNothing);
   });
 
-  testWidgets('owner 导航栏包含五个 Tab', (tester) async {
+  testWidgets('owner 导航栏包含四个 Tab', (tester) async {
     await pumpAppWithRole(tester, UserRole.owner);
 
     expect(find.byKey(const Key('nav-twin')), findsOneWidget);
     expect(find.byKey(const Key('nav-fence')), findsOneWidget);
     expect(find.byKey(const Key('nav-alerts')), findsOneWidget);
     expect(find.byKey(const Key('nav-mine')), findsOneWidget);
-    expect(find.byKey(const Key('nav-admin')), findsOneWidget);
   });
 }

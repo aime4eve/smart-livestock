@@ -33,8 +33,11 @@ INSERT INTO farm_tile_tasks (farm_id, region_id, status, file_size, requested_at
 VALUES
   (2, 1, 'ready', 19656704, NOW());
 
--- Farm 5: 瓦片测试牧场 (28.2458, 112.8519) → same as farm 1
+-- Farm 5: 瓦片测试牧场 — only insert if the farm exists (conditional to avoid FK violation)
 INSERT INTO farm_tile_tasks (farm_id, region_id, status, file_size, requested_at)
-VALUES
-  (5, 1, 'ready', 19656704, NOW()),
-  (5, 2, 'ready',  2162688, NOW());
+SELECT 5, 1, 'ready', 19656704, NOW()
+WHERE EXISTS (SELECT 1 FROM farms WHERE id = 5);
+
+INSERT INTO farm_tile_tasks (farm_id, region_id, status, file_size, requested_at)
+SELECT 5, 2, 'ready',  2162688, NOW()
+WHERE EXISTS (SELECT 1 FROM farms WHERE id = 5);

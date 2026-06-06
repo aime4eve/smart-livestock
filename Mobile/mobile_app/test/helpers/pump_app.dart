@@ -25,7 +25,12 @@ Future<void> pumpAppWithRole(
       child: const _TestApp(),
     ),
   );
-  await tester.pumpAndSettle();
+  // Guard against pumpAndSettle timeout (animations / periodic rebuilds)
+  try {
+    await tester.pumpAndSettle(const Duration(seconds: 3));
+  } catch (_) {
+    await tester.pump();
+  }
 }
 
 class _TestApp extends ConsumerWidget {

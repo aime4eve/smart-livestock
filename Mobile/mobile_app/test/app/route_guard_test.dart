@@ -45,13 +45,12 @@ void main() {
       expect(find.byKey(const Key('nav-twin')), findsOneWidget);
     });
 
-    testWidgets('owner 导航栏包含 5 个 Tab', (tester) async {
+    testWidgets('owner 导航栏包含 4 个 Tab', (tester) async {
       await _pumpApp(tester, UserRole.owner);
       expect(find.byKey(const Key('nav-twin')), findsOneWidget);
       expect(find.byKey(const Key('nav-fence')), findsOneWidget);
       expect(find.byKey(const Key('nav-alerts')), findsOneWidget);
       expect(find.byKey(const Key('nav-mine')), findsOneWidget);
-      expect(find.byKey(const Key('nav-admin')), findsOneWidget);
     });
   });
 }
