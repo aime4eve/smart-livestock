@@ -20,7 +20,10 @@ void main() async {
     _webSemanticsHandle ??= WidgetsBinding.instance.ensureSemantics();
   }
 
-  final apiBaseUrl = const String.fromEnvironment('API_BASE_URL', defaultValue: '');
+  final apiBaseUrl = const String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: '',
+  );
   if (apiBaseUrl.isNotEmpty) {
     ApiClient.instance.setBaseUrl(apiBaseUrl);
   }
@@ -28,10 +31,12 @@ void main() async {
   // Restore session from stored JWT token (survives page refresh).
   final initialSession = await _restoreSession();
 
-  runApp(ProviderScope(
-    overrides: [initialSessionProvider.overrideWithValue(initialSession)],
-    child: const DemoApp(),
-  ));
+  runApp(
+    ProviderScope(
+      overrides: [initialSessionProvider.overrideWithValue(initialSession)],
+      child: const DemoApp(),
+    ),
+  );
 }
 
 /// Read stored token + user info, decode JWT to check expiry,
