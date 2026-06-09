@@ -1,1 +1,151 @@
-{"code":"OK","message":"success","requestId":"8c9d30c8-9a04-4acf-9b13-7f5f07fe6e89","data":{"pageSize":100,"items":[{"id":1,"farmId":1,"name":"放牧A区","vertices":[{"lat":28.234,"lng":112.94},{"lat":28.234,"lng":112.944},{"lat":28.2305,"lng":112.944},{"lat":28.2305,"lng":112.94}],"color":null,"active":true,"version":1,"fenceType":"sub"},{"id":2,"farmId":1,"name":"放牧B区","vertices":[{"lat":28.2275,"lng":112.932},{"lat":28.2275,"lng":112.936},{"lat":28.224,"lng":112.936},{"lat":28.224,"lng":112.932}],"color":null,"active":true,"version":1,"fenceType":"sub"},{"id":3,"farmId":1,"name":"夜间休息区","vertices":[{"lat":28.2295,"lng":112.938},{"lat":28.2295,"lng":112.94},{"lat":28.228,"lng":112.94},{"lat":28.228,"lng":112.938}],"color":null,"active":true,"version":1,"fenceType":"sub"},{"id":4,"farmId":1,"name":"隔离区","vertices":[{"lat":28.2255,"lng":112.94},{"lat":28.2255,"lng":112.941},{"lat":28.2248,"lng":112.941},{"lat":28.2248,"lng":112.94}],"color":null,"active":true,"version":1,"fenceType":"sub"},{"id":7,"farmId":1,"name":"E2E围栏","vertices":[{"lat":28.24,"lng":112.845},{"lat":28.25,"lng":112.845},{"lat":28.25,"lng":112.855},{"lat":28.24,"lng":112.855}],"color":"#FF5733","active":true,"version":1,"fenceType":"sub"}],"page":1,"total":5}}
+{
+  "code": "OK",
+  "message": "success",
+  "requestId": "f88b1c2c-1678-4286-aad2-ae622a68a269",
+  "data": {
+    "total": 5,
+    "pageSize": 100,
+    "items": [
+      {
+        "id": 1,
+        "farmId": 1,
+        "name": "放牧A区",
+        "vertices": [
+          {
+            "lat": 28.236232297686342,
+            "lng": 112.93558859058707
+          },
+          {
+            "lat": 28.236570961580963,
+            "lng": 112.94491323784051
+          },
+          {
+            "lat": 28.232323470355134,
+            "lng": 112.9480214518454
+          },
+          {
+            "lat": 28.2305,
+            "lng": 112.944
+          },
+          {
+            "lat": 28.23002326219825,
+            "lng": 112.93755926508048
+          }
+        ],
+        "color": "#4C9A5F",
+        "active": true,
+        "version": 2,
+        "fenceType": "sub"
+      },
+      {
+        "id": 2,
+        "farmId": 1,
+        "name": "放牧B区",
+        "vertices": [
+          {
+            "lat": 28.2275,
+            "lng": 112.932
+          },
+          {
+            "lat": 28.2275,
+            "lng": 112.936
+          },
+          {
+            "lat": 28.224,
+            "lng": 112.936
+          },
+          {
+            "lat": 28.224,
+            "lng": 112.932
+          }
+        ],
+        "color": null,
+        "active": true,
+        "version": 1,
+        "fenceType": "sub"
+      },
+      {
+        "id": 3,
+        "farmId": 1,
+        "name": "夜间休息区",
+        "vertices": [
+          {
+            "lat": 28.2295,
+            "lng": 112.938
+          },
+          {
+            "lat": 28.2295,
+            "lng": 112.94
+          },
+          {
+            "lat": 28.228,
+            "lng": 112.94
+          },
+          {
+            "lat": 28.228,
+            "lng": 112.938
+          }
+        ],
+        "color": null,
+        "active": true,
+        "version": 1,
+        "fenceType": "sub"
+      },
+      {
+        "id": 4,
+        "farmId": 1,
+        "name": "隔离区",
+        "vertices": [
+          {
+            "lat": 28.2255,
+            "lng": 112.94
+          },
+          {
+            "lat": 28.2255,
+            "lng": 112.941
+          },
+          {
+            "lat": 28.2248,
+            "lng": 112.941
+          },
+          {
+            "lat": 28.2248,
+            "lng": 112.94
+          }
+        ],
+        "color": null,
+        "active": true,
+        "version": 1,
+        "fenceType": "sub"
+      },
+      {
+        "id": 7,
+        "farmId": 1,
+        "name": "E2E围栏",
+        "vertices": [
+          {
+            "lat": 28.24,
+            "lng": 112.845
+          },
+          {
+            "lat": 28.25,
+            "lng": 112.845
+          },
+          {
+            "lat": 28.25,
+            "lng": 112.855
+          },
+          {
+            "lat": 28.24,
+            "lng": 112.855
+          }
+        ],
+        "color": "#FF5733",
+        "active": true,
+        "version": 1,
+        "fenceType": "sub"
+      }
+    ],
+    "page": 1
+  }
+}

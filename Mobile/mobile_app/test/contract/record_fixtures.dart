@@ -56,7 +56,12 @@ Future<void> main() async {
   await _record('gps_logs_latest.json',
       await _get('/farms/$farmId/gps-logs/latest', token));
   await _record('map_overview.json',
+
       await _get('/farms/$farmId/map/overview', token));
+
+  // 牧场总览（Issue #51 合并孪生+围栏+告警）
+  await _record('ranch_overview.json',
+      await _get('/farms/$farmId/ranch-overview', token));
 
   // 4. 录制 detail（需要先获取 id）
   final fencesResp = await _get('/farms/$farmId/fences?pageSize=100', token);

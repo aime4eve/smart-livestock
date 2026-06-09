@@ -55,16 +55,30 @@ class MainShell extends ConsumerWidget {
         ref.read(farmSwitcherControllerProvider.notifier).loadFarms();
       });
     }
-    final body = farmState != null && !farmState.hasFarms && !farmState.isLoading
-        ? const _FarmEmptyGuidance()
-        : child;
+    // Only render child (e.g. RanchPage) once farms are loaded and activeFarmId is set.
+    // Rendering too early causes farmGet() to throw StateError('No active farm').
+    // If farmState is null (not farm-scoped role) or farms loaded → show child.
+    // If still loading → show spinner. If load finished with no farms → show guidance.
+    final Widget body;
+    if (farmState == null || farmState.hasFarms) {
+      body = child;
+    } else if (farmState.isLoading) {
+      body = const Center(child: CircularProgressIndicator());
+    } else {
+      body = const _FarmEmptyGuidance();
+    }
     final showShellAppBar =
-        showFarmContext && location != AppRoute.fence.path;
+        showFarmContext && location != AppRoute.fence.path && location != AppRoute.ranch.path;
     final navItems = _buildBusinessNavItems(role);
     final currentIndex = navItems.indexWhere((item) {
-      if (item.route == AppRoute.twin) {
-        return location == AppRoute.twin.path ||
-            location.startsWith('${AppRoute.twin.path}/');
+      if (item.route == AppRoute.ranch) {
+        return location == AppRoute.ranch.path ||
+            location.startsWith('${AppRoute.ranch.path}/') ||
+            location == AppRoute.twin.path ||
+            location.startsWith('${AppRoute.twin.path}/') ||
+            location == AppRoute.fence.path ||
+            location.startsWith('${AppRoute.fence.path}/') ||
+            location == AppRoute.alerts.path;
       }
       return location == item.route.path;
     });
@@ -123,22 +137,10 @@ class MainShell extends ConsumerWidget {
   List<_NavItem> _buildBusinessNavItems(UserRole role) {
     final items = <_NavItem>[
       const _NavItem(
-        key: Key('nav-twin'),
-        icon: Icons.account_tree_outlined,
-        label: '孪生',
-        route: AppRoute.twin,
-      ),
-      const _NavItem(
-        key: Key('nav-fence'),
+        key: Key('nav-ranch'),
         icon: Icons.map,
-        label: '围栏',
-        route: AppRoute.fence,
-      ),
-      const _NavItem(
-        key: Key('nav-alerts'),
-        icon: Icons.warning_amber,
-        label: '告警',
-        route: AppRoute.alerts,
+        label: '牧场',
+        route: AppRoute.ranch,
       ),
       const _NavItem(
         key: Key('nav-mine'),

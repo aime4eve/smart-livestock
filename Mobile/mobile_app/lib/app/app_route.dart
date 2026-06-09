@@ -1,5 +1,6 @@
 enum AppRoute {
   login('/login', 'login', '登录'),
+  ranch('/ranch', 'ranch', '牧场'),
   twin('/twin', 'twin', '孪生'),
   alerts('/alerts', 'alerts', '告警'),
   mine('/mine', 'mine', '我的'),

@@ -15,12 +15,13 @@ void main() {
       expect(find.byKey(const Key('nav-admin')), findsNothing);
     });
 
-    testWidgets('worker 导航栏只有 4 个 Tab', (tester) async {
+    testWidgets('worker 导航栏只有 2 个 Tab（牧场 + 我的）', (tester) async {
       await _pumpApp(tester, UserRole.worker);
-      expect(find.byKey(const Key('nav-twin')), findsOneWidget);
-      expect(find.byKey(const Key('nav-fence')), findsOneWidget);
-      expect(find.byKey(const Key('nav-alerts')), findsOneWidget);
+      expect(find.byKey(const Key('nav-ranch')), findsOneWidget);
       expect(find.byKey(const Key('nav-mine')), findsOneWidget);
+      expect(find.byKey(const Key('nav-twin')), findsNothing);
+      expect(find.byKey(const Key('nav-fence')), findsNothing);
+      expect(find.byKey(const Key('nav-alerts')), findsNothing);
       expect(find.byKey(const Key('nav-admin')), findsNothing);
     });
   });
@@ -28,29 +29,30 @@ void main() {
   group('路由守卫 — platform_admin', () {
     testWidgets('platform_admin 无 App 底部导航', (tester) async {
       await _pumpApp(tester, UserRole.platformAdmin);
-      expect(find.byKey(const Key('nav-twin')), findsNothing);
+      expect(find.byKey(const Key('nav-ranch')), findsNothing);
     });
   });
 
   group('路由守卫 — b2b_admin', () {
     testWidgets('b2b_admin 无 App 底部导航', (tester) async {
       await _pumpApp(tester, UserRole.b2bAdmin);
-      expect(find.byKey(const Key('nav-twin')), findsNothing);
+      expect(find.byKey(const Key('nav-ranch')), findsNothing);
     });
   });
 
   group('路由守卫 — owner', () {
-    testWidgets('owner 有数智孪生 Tab', (tester) async {
+    testWidgets('owner 有牧场 Tab', (tester) async {
       await _pumpApp(tester, UserRole.owner);
-      expect(find.byKey(const Key('nav-twin')), findsOneWidget);
+      expect(find.byKey(const Key('nav-ranch')), findsOneWidget);
     });
 
-    testWidgets('owner 导航栏包含 4 个 Tab', (tester) async {
+    testWidgets('owner 导航栏包含 2 个 Tab（牧场 + 我的）', (tester) async {
       await _pumpApp(tester, UserRole.owner);
-      expect(find.byKey(const Key('nav-twin')), findsOneWidget);
-      expect(find.byKey(const Key('nav-fence')), findsOneWidget);
-      expect(find.byKey(const Key('nav-alerts')), findsOneWidget);
+      expect(find.byKey(const Key('nav-ranch')), findsOneWidget);
       expect(find.byKey(const Key('nav-mine')), findsOneWidget);
+      expect(find.byKey(const Key('nav-twin')), findsNothing);
+      expect(find.byKey(const Key('nav-fence')), findsNothing);
+      expect(find.byKey(const Key('nav-alerts')), findsNothing);
     });
   });
 }

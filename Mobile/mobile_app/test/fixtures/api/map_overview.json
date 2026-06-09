@@ -1,1 +1,804 @@
-{"code":"OK","message":"success","requestId":"6e052fd5-358e-441e-9355-619684a542d9","data":{"fences":[{"id":1,"farmId":1,"name":"放牧A区","vertices":[{"lat":28.234,"lng":112.94},{"lat":28.234,"lng":112.944},{"lat":28.2305,"lng":112.944},{"lat":28.2305,"lng":112.94}],"color":null,"active":true,"version":1,"fenceType":"sub"},{"id":2,"farmId":1,"name":"放牧B区","vertices":[{"lat":28.2275,"lng":112.932},{"lat":28.2275,"lng":112.936},{"lat":28.224,"lng":112.936},{"lat":28.224,"lng":112.932}],"color":null,"active":true,"version":1,"fenceType":"sub"},{"id":3,"farmId":1,"name":"夜间休息区","vertices":[{"lat":28.2295,"lng":112.938},{"lat":28.2295,"lng":112.94},{"lat":28.228,"lng":112.94},{"lat":28.228,"lng":112.938}],"color":null,"active":true,"version":1,"fenceType":"sub"},{"id":4,"farmId":1,"name":"隔离区","vertices":[{"lat":28.2255,"lng":112.94},{"lat":28.2255,"lng":112.941},{"lat":28.2248,"lng":112.941},{"lat":28.2248,"lng":112.94}],"color":null,"active":true,"version":1,"fenceType":"sub"},{"id":7,"farmId":1,"name":"E2E围栏","vertices":[{"lat":28.24,"lng":112.845},{"lat":28.25,"lng":112.845},{"lat":28.25,"lng":112.855},{"lat":28.24,"lng":112.855}],"color":"#FF5733","active":true,"version":1,"fenceType":"sub"}],"alerts":[{"id":1,"farmId":1,"livestockId":3,"fenceId":1,"type":"FENCE_BREACH","status":"PENDING","severity":"CRITICAL","message":"越界 · SL-2024-003","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null},{"id":2,"farmId":1,"livestockId":48,"fenceId":null,"type":"TEMPERATURE_ABNORMAL","status":"ACKNOWLEDGED","severity":"CRITICAL","message":"体温异常 · SL-2024-048","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null},{"id":3,"farmId":1,"livestockId":17,"fenceId":1,"type":"FENCE_BREACH","status":"HANDLED","severity":"CRITICAL","message":"越界 · SL-2024-017","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null},{"id":4,"farmId":1,"livestockId":49,"fenceId":null,"type":"TEMPERATURE_ABNORMAL","status":"HANDLED","severity":"CRITICAL","message":"体温异常 · SL-2024-049","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null},{"id":5,"farmId":1,"livestockId":43,"fenceId":null,"type":"BEHAVIOR_ABNORMAL","status":"PENDING","severity":"WARNING","message":"设备离线 · SL-2024-043","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null},{"id":6,"farmId":1,"livestockId":45,"fenceId":null,"type":"BEHAVIOR_ABNORMAL","status":"PENDING","severity":"WARNING","message":"低电量 · SL-2024-045","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null},{"id":7,"farmId":1,"livestockId":44,"fenceId":null,"type":"BEHAVIOR_ABNORMAL","status":"ACKNOWLEDGED","severity":"WARNING","message":"设备离线 · SL-2024-044","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null},{"id":8,"farmId":1,"livestockId":46,"fenceId":null,"type":"BEHAVIOR_ABNORMAL","status":"HANDLED","severity":"WARNING","message":"低电量 · SL-2024-046","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null},{"id":9,"farmId":1,"livestockId":42,"fenceId":null,"type":"BEHAVIOR_ABNORMAL","status":"HANDLED","severity":"WARNING","message":"设备离线 · SL-2024-042","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null},{"id":10,"farmId":1,"livestockId":47,"fenceId":null,"type":"BEHAVIOR_ABNORMAL","status":"PENDING","severity":"INFO","message":"行为异常 · SL-2024-047","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null},{"id":11,"farmId":1,"livestockId":12,"fenceId":1,"type":"FENCE_BREACH","status":"HANDLED","severity":"INFO","message":"围栏接近 · SL-2024-012","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null},{"id":12,"farmId":1,"livestockId":50,"fenceId":null,"type":"BEHAVIOR_ABNORMAL","status":"HANDLED","severity":"INFO","message":"行为异常 · SL-2024-050","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null},{"id":13,"farmId":1,"livestockId":8,"fenceId":1,"type":"FENCE_BREACH","status":"HANDLED","severity":"INFO","message":"围栏接近 · SL-2024-008","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null},{"id":14,"farmId":1,"livestockId":30,"fenceId":null,"type":"BEHAVIOR_ABNORMAL","status":"ARCHIVED","severity":"INFO","message":"行为异常 · SL-2024-030","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null},{"id":15,"farmId":1,"livestockId":5,"fenceId":1,"type":"FENCE_BREACH","status":"ARCHIVED","severity":"CRITICAL","message":"越界 · SL-2024-005","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null},{"id":16,"farmId":1,"livestockId":41,"fenceId":null,"type":"BEHAVIOR_ABNORMAL","status":"ARCHIVED","severity":"WARNING","message":"设备离线 · SL-2024-041","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null},{"id":17,"farmId":1,"livestockId":47,"fenceId":null,"type":"BEHAVIOR_ABNORMAL","status":"ARCHIVED","severity":"WARNING","message":"低电量 · SL-2024-047","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null},{"id":18,"farmId":1,"livestockId":50,"fenceId":null,"type":"TEMPERATURE_ABNORMAL","status":"ARCHIVED","severity":"CRITICAL","message":"体温异常 · SL-2024-050","acknowledgedBy":null,"acknowledgedAt":null,"handledBy":null,"handledAt":null}],"livestock":[{"lat":28.2312000,"livestockCode":"SL-2024-001","healthStatus":"HEALTHY","lng":112.9412000,"alertCount":0,"id":1},{"lat":28.2325000,"livestockCode":"SL-2024-002","healthStatus":"HEALTHY","lng":112.9425000,"alertCount":0,"id":2},{"lat":28.2333000,"livestockCode":"SL-2024-003","healthStatus":"WARNING","lng":112.9433000,"alertCount":0,"id":3},{"lat":28.2318000,"livestockCode":"SL-2024-004","healthStatus":"HEALTHY","lng":112.9418000,"alertCount":0,"id":4},{"lat":28.2337000,"livestockCode":"SL-2024-005","healthStatus":"HEALTHY","lng":112.9403000,"alertCount":0,"id":5},{"lat":28.2321000,"livestockCode":"SL-2024-006","healthStatus":"HEALTHY","lng":112.9437000,"alertCount":0,"id":6},{"lat":28.2308000,"livestockCode":"SL-2024-007","healthStatus":"HEALTHY","lng":112.9415000,"alertCount":0,"id":7},{"lat":28.2332000,"livestockCode":"SL-2024-008","healthStatus":"HEALTHY","lng":112.9421000,"alertCount":0,"id":8},{"lat":28.2316000,"livestockCode":"SL-2024-009","healthStatus":"HEALTHY","lng":112.9406000,"alertCount":0,"id":9},{"lat":28.2328000,"livestockCode":"SL-2024-010","healthStatus":"HEALTHY","lng":112.9431000,"alertCount":0,"id":10},{"lat":28.2314000,"livestockCode":"SL-2024-011","healthStatus":"HEALTHY","lng":112.9428000,"alertCount":0,"id":11},{"lat":28.2335000,"livestockCode":"SL-2024-012","healthStatus":"HEALTHY","lng":112.9410000,"alertCount":0,"id":12},{"lat":28.2307000,"livestockCode":"SL-2024-013","healthStatus":"HEALTHY","lng":112.9435000,"alertCount":0,"id":13},{"lat":28.2323000,"livestockCode":"SL-2024-014","healthStatus":"HEALTHY","lng":112.9408000,"alertCount":0,"id":14},{"lat":28.2338000,"livestockCode":"SL-2024-015","healthStatus":"HEALTHY","lng":112.9422000,"alertCount":0,"id":15},{"lat":28.2311000,"livestockCode":"SL-2024-016","healthStatus":"HEALTHY","lng":112.9413000,"alertCount":0,"id":16},{"lat":28.2327000,"livestockCode":"SL-2024-017","healthStatus":"CRITICAL","lng":112.9430000,"alertCount":0,"id":17},{"lat":28.2330000,"livestockCode":"SL-2024-018","healthStatus":"HEALTHY","lng":112.9405000,"alertCount":0,"id":18},{"lat":28.2319000,"livestockCode":"SL-2024-019","healthStatus":"HEALTHY","lng":112.9420000,"alertCount":0,"id":19},{"lat":28.2322000,"livestockCode":"SL-2024-020","healthStatus":"HEALTHY","lng":112.9417000,"alertCount":0,"id":20},{"lat":28.2336000,"livestockCode":"SL-2024-021","healthStatus":"HEALTHY","lng":112.9423000,"alertCount":0,"id":21},{"lat":28.2309000,"livestockCode":"SL-2024-022","healthStatus":"HEALTHY","lng":112.9411000,"alertCount":0,"id":22},{"lat":28.2324000,"livestockCode":"SL-2024-023","healthStatus":"HEALTHY","lng":112.9432000,"alertCount":0,"id":23},{"lat":28.2315000,"livestockCode":"SL-2024-024","healthStatus":"HEALTHY","lng":112.9409000,"alertCount":0,"id":24},{"lat":28.2331000,"livestockCode":"SL-2024-025","healthStatus":"HEALTHY","lng":112.9416000,"alertCount":0,"id":25},{"lat":28.2261000,"livestockCode":"SL-2024-026","healthStatus":"HEALTHY","lng":112.9331000,"alertCount":0,"id":26},{"lat":28.2248000,"livestockCode":"SL-2024-027","healthStatus":"HEALTHY","lng":112.9345000,"alertCount":0,"id":27},{"lat":28.2259000,"livestockCode":"SL-2024-028","healthStatus":"HEALTHY","lng":112.9352000,"alertCount":0,"id":28},{"lat":28.2268000,"livestockCode":"SL-2024-029","healthStatus":"HEALTHY","lng":112.9328000,"alertCount":0,"id":29},{"lat":28.2253000,"livestockCode":"SL-2024-030","healthStatus":"HEALTHY","lng":112.9337000,"alertCount":0,"id":30},{"lat":28.2245000,"livestockCode":"SL-2024-031","healthStatus":"HEALTHY","lng":112.9355000,"alertCount":0,"id":31},{"lat":28.2271000,"livestockCode":"SL-2024-032","healthStatus":"HEALTHY","lng":112.9341000,"alertCount":0,"id":32},{"lat":28.2256000,"livestockCode":"SL-2024-033","healthStatus":"HEALTHY","lng":112.9325000,"alertCount":0,"id":33},{"lat":28.2265000,"livestockCode":"SL-2024-034","healthStatus":"HEALTHY","lng":112.9358000,"alertCount":0,"id":34},{"lat":28.2243000,"livestockCode":"SL-2024-035","healthStatus":"HEALTHY","lng":112.9334000,"alertCount":0,"id":35},{"lat":28.2262000,"livestockCode":"SL-2024-036","healthStatus":"HEALTHY","lng":112.9348000,"alertCount":0,"id":36},{"lat":28.2251000,"livestockCode":"SL-2024-037","healthStatus":"HEALTHY","lng":112.9327000,"alertCount":0,"id":37},{"lat":28.2270000,"livestockCode":"SL-2024-038","healthStatus":"HEALTHY","lng":112.9350000,"alertCount":0,"id":38},{"lat":28.2249000,"livestockCode":"SL-2024-039","healthStatus":"HEALTHY","lng":112.9339000,"alertCount":0,"id":39},{"lat":28.2264000,"livestockCode":"SL-2024-040","healthStatus":"HEALTHY","lng":112.9323000,"alertCount":0,"id":40},{"lat":28.2257000,"livestockCode":"SL-2024-041","healthStatus":"HEALTHY","lng":112.9356000,"alertCount":0,"id":41},{"lat":28.2267000,"livestockCode":"SL-2024-042","healthStatus":"HEALTHY","lng":112.9335000,"alertCount":0,"id":42},{"lat":28.2247000,"livestockCode":"SL-2024-043","healthStatus":"HEALTHY","lng":112.9343000,"alertCount":0,"id":43},{"lat":28.2288000,"livestockCode":"SL-2024-044","healthStatus":"HEALTHY","lng":112.9391000,"alertCount":0,"id":44},{"lat":28.2291000,"livestockCode":"SL-2024-045","healthStatus":"HEALTHY","lng":112.9385000,"alertCount":0,"id":45},{"lat":28.2283000,"livestockCode":"SL-2024-046","healthStatus":"HEALTHY","lng":112.9395000,"alertCount":0,"id":46},{"lat":28.2293000,"livestockCode":"SL-2024-047","healthStatus":"HEALTHY","lng":112.9388000,"alertCount":0,"id":47},{"lat":28.2253000,"livestockCode":"SL-2024-048","healthStatus":"CRITICAL","lng":112.9406000,"alertCount":0,"id":48},{"lat":28.2250000,"livestockCode":"SL-2024-049","healthStatus":"CRITICAL","lng":112.9403000,"alertCount":0,"id":49},{"lat":28.2251000,"livestockCode":"SL-2024-050","healthStatus":"HEALTHY","lng":112.9408000,"alertCount":0,"id":50}]}}
+{
+  "code": "OK",
+  "message": "success",
+  "requestId": "cbc8a643-264a-457f-9fe4-532d4b9de060",
+  "data": {
+    "fences": [
+      {
+        "id": 1,
+        "farmId": 1,
+        "name": "放牧A区",
+        "vertices": [
+          {
+            "lat": 28.236232297686342,
+            "lng": 112.93558859058707
+          },
+          {
+            "lat": 28.236570961580963,
+            "lng": 112.94491323784051
+          },
+          {
+            "lat": 28.232323470355134,
+            "lng": 112.9480214518454
+          },
+          {
+            "lat": 28.2305,
+            "lng": 112.944
+          },
+          {
+            "lat": 28.23002326219825,
+            "lng": 112.93755926508048
+          }
+        ],
+        "color": "#4C9A5F",
+        "active": true,
+        "version": 2,
+        "fenceType": "sub"
+      },
+      {
+        "id": 2,
+        "farmId": 1,
+        "name": "放牧B区",
+        "vertices": [
+          {
+            "lat": 28.2275,
+            "lng": 112.932
+          },
+          {
+            "lat": 28.2275,
+            "lng": 112.936
+          },
+          {
+            "lat": 28.224,
+            "lng": 112.936
+          },
+          {
+            "lat": 28.224,
+            "lng": 112.932
+          }
+        ],
+        "color": null,
+        "active": true,
+        "version": 1,
+        "fenceType": "sub"
+      },
+      {
+        "id": 3,
+        "farmId": 1,
+        "name": "夜间休息区",
+        "vertices": [
+          {
+            "lat": 28.2295,
+            "lng": 112.938
+          },
+          {
+            "lat": 28.2295,
+            "lng": 112.94
+          },
+          {
+            "lat": 28.228,
+            "lng": 112.94
+          },
+          {
+            "lat": 28.228,
+            "lng": 112.938
+          }
+        ],
+        "color": null,
+        "active": true,
+        "version": 1,
+        "fenceType": "sub"
+      },
+      {
+        "id": 4,
+        "farmId": 1,
+        "name": "隔离区",
+        "vertices": [
+          {
+            "lat": 28.2255,
+            "lng": 112.94
+          },
+          {
+            "lat": 28.2255,
+            "lng": 112.941
+          },
+          {
+            "lat": 28.2248,
+            "lng": 112.941
+          },
+          {
+            "lat": 28.2248,
+            "lng": 112.94
+          }
+        ],
+        "color": null,
+        "active": true,
+        "version": 1,
+        "fenceType": "sub"
+      },
+      {
+        "id": 7,
+        "farmId": 1,
+        "name": "E2E围栏",
+        "vertices": [
+          {
+            "lat": 28.24,
+            "lng": 112.845
+          },
+          {
+            "lat": 28.25,
+            "lng": 112.845
+          },
+          {
+            "lat": 28.25,
+            "lng": 112.855
+          },
+          {
+            "lat": 28.24,
+            "lng": 112.855
+          }
+        ],
+        "color": "#FF5733",
+        "active": true,
+        "version": 1,
+        "fenceType": "sub"
+      }
+    ],
+    "alerts": [
+      {
+        "id": 1,
+        "farmId": 1,
+        "livestockId": 3,
+        "fenceId": 1,
+        "type": "FENCE_BREACH",
+        "status": "PENDING",
+        "severity": "CRITICAL",
+        "message": "越界 · SL-2024-003",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      },
+      {
+        "id": 2,
+        "farmId": 1,
+        "livestockId": 48,
+        "fenceId": null,
+        "type": "TEMPERATURE_ABNORMAL",
+        "status": "ACKNOWLEDGED",
+        "severity": "CRITICAL",
+        "message": "体温异常 · SL-2024-048",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      },
+      {
+        "id": 3,
+        "farmId": 1,
+        "livestockId": 17,
+        "fenceId": 1,
+        "type": "FENCE_BREACH",
+        "status": "HANDLED",
+        "severity": "CRITICAL",
+        "message": "越界 · SL-2024-017",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      },
+      {
+        "id": 4,
+        "farmId": 1,
+        "livestockId": 49,
+        "fenceId": null,
+        "type": "TEMPERATURE_ABNORMAL",
+        "status": "HANDLED",
+        "severity": "CRITICAL",
+        "message": "体温异常 · SL-2024-049",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      },
+      {
+        "id": 5,
+        "farmId": 1,
+        "livestockId": 43,
+        "fenceId": null,
+        "type": "BEHAVIOR_ABNORMAL",
+        "status": "PENDING",
+        "severity": "WARNING",
+        "message": "设备离线 · SL-2024-043",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      },
+      {
+        "id": 6,
+        "farmId": 1,
+        "livestockId": 45,
+        "fenceId": null,
+        "type": "BEHAVIOR_ABNORMAL",
+        "status": "PENDING",
+        "severity": "WARNING",
+        "message": "低电量 · SL-2024-045",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      },
+      {
+        "id": 7,
+        "farmId": 1,
+        "livestockId": 44,
+        "fenceId": null,
+        "type": "BEHAVIOR_ABNORMAL",
+        "status": "ACKNOWLEDGED",
+        "severity": "WARNING",
+        "message": "设备离线 · SL-2024-044",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      },
+      {
+        "id": 8,
+        "farmId": 1,
+        "livestockId": 46,
+        "fenceId": null,
+        "type": "BEHAVIOR_ABNORMAL",
+        "status": "HANDLED",
+        "severity": "WARNING",
+        "message": "低电量 · SL-2024-046",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      },
+      {
+        "id": 9,
+        "farmId": 1,
+        "livestockId": 42,
+        "fenceId": null,
+        "type": "BEHAVIOR_ABNORMAL",
+        "status": "HANDLED",
+        "severity": "WARNING",
+        "message": "设备离线 · SL-2024-042",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      },
+      {
+        "id": 10,
+        "farmId": 1,
+        "livestockId": 47,
+        "fenceId": null,
+        "type": "BEHAVIOR_ABNORMAL",
+        "status": "PENDING",
+        "severity": "INFO",
+        "message": "行为异常 · SL-2024-047",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      },
+      {
+        "id": 11,
+        "farmId": 1,
+        "livestockId": 12,
+        "fenceId": 1,
+        "type": "FENCE_BREACH",
+        "status": "HANDLED",
+        "severity": "INFO",
+        "message": "围栏接近 · SL-2024-012",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      },
+      {
+        "id": 12,
+        "farmId": 1,
+        "livestockId": 50,
+        "fenceId": null,
+        "type": "BEHAVIOR_ABNORMAL",
+        "status": "HANDLED",
+        "severity": "INFO",
+        "message": "行为异常 · SL-2024-050",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      },
+      {
+        "id": 13,
+        "farmId": 1,
+        "livestockId": 8,
+        "fenceId": 1,
+        "type": "FENCE_BREACH",
+        "status": "HANDLED",
+        "severity": "INFO",
+        "message": "围栏接近 · SL-2024-008",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      },
+      {
+        "id": 14,
+        "farmId": 1,
+        "livestockId": 30,
+        "fenceId": null,
+        "type": "BEHAVIOR_ABNORMAL",
+        "status": "ARCHIVED",
+        "severity": "INFO",
+        "message": "行为异常 · SL-2024-030",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      },
+      {
+        "id": 15,
+        "farmId": 1,
+        "livestockId": 5,
+        "fenceId": 1,
+        "type": "FENCE_BREACH",
+        "status": "ARCHIVED",
+        "severity": "CRITICAL",
+        "message": "越界 · SL-2024-005",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      },
+      {
+        "id": 16,
+        "farmId": 1,
+        "livestockId": 41,
+        "fenceId": null,
+        "type": "BEHAVIOR_ABNORMAL",
+        "status": "ARCHIVED",
+        "severity": "WARNING",
+        "message": "设备离线 · SL-2024-041",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      },
+      {
+        "id": 17,
+        "farmId": 1,
+        "livestockId": 47,
+        "fenceId": null,
+        "type": "BEHAVIOR_ABNORMAL",
+        "status": "ARCHIVED",
+        "severity": "WARNING",
+        "message": "低电量 · SL-2024-047",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      },
+      {
+        "id": 18,
+        "farmId": 1,
+        "livestockId": 50,
+        "fenceId": null,
+        "type": "TEMPERATURE_ABNORMAL",
+        "status": "ARCHIVED",
+        "severity": "CRITICAL",
+        "message": "体温异常 · SL-2024-050",
+        "acknowledgedBy": null,
+        "acknowledgedAt": null,
+        "handledBy": null,
+        "handledAt": null
+      }
+    ],
+    "livestock": [
+      {
+        "id": 1,
+        "lat": 28.2312,
+        "livestockCode": "SL-2024-001",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9412,
+        "alertCount": 0
+      },
+      {
+        "id": 2,
+        "lat": 28.2325,
+        "livestockCode": "SL-2024-002",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9425,
+        "alertCount": 0
+      },
+      {
+        "id": 3,
+        "lat": 28.2333,
+        "livestockCode": "SL-2024-003",
+        "healthStatus": "WARNING",
+        "lng": 112.9433,
+        "alertCount": 0
+      },
+      {
+        "id": 4,
+        "lat": 28.2318,
+        "livestockCode": "SL-2024-004",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9418,
+        "alertCount": 0
+      },
+      {
+        "id": 5,
+        "lat": 28.2337,
+        "livestockCode": "SL-2024-005",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9403,
+        "alertCount": 0
+      },
+      {
+        "id": 6,
+        "lat": 28.2321,
+        "livestockCode": "SL-2024-006",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9437,
+        "alertCount": 0
+      },
+      {
+        "id": 7,
+        "lat": 28.2308,
+        "livestockCode": "SL-2024-007",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9415,
+        "alertCount": 0
+      },
+      {
+        "id": 8,
+        "lat": 28.2332,
+        "livestockCode": "SL-2024-008",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9421,
+        "alertCount": 0
+      },
+      {
+        "id": 9,
+        "lat": 28.2316,
+        "livestockCode": "SL-2024-009",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9406,
+        "alertCount": 0
+      },
+      {
+        "id": 10,
+        "lat": 28.2328,
+        "livestockCode": "SL-2024-010",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9431,
+        "alertCount": 0
+      },
+      {
+        "id": 11,
+        "lat": 28.2314,
+        "livestockCode": "SL-2024-011",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9428,
+        "alertCount": 0
+      },
+      {
+        "id": 13,
+        "lat": 28.2307,
+        "livestockCode": "SL-2024-013",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9435,
+        "alertCount": 0
+      },
+      {
+        "id": 14,
+        "lat": 28.2323,
+        "livestockCode": "SL-2024-014",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9408,
+        "alertCount": 0
+      },
+      {
+        "id": 15,
+        "lat": 28.2338,
+        "livestockCode": "SL-2024-015",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9422,
+        "alertCount": 0
+      },
+      {
+        "id": 16,
+        "lat": 28.2311,
+        "livestockCode": "SL-2024-016",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9413,
+        "alertCount": 0
+      },
+      {
+        "id": 17,
+        "lat": 28.2327,
+        "livestockCode": "SL-2024-017",
+        "healthStatus": "CRITICAL",
+        "lng": 112.943,
+        "alertCount": 0
+      },
+      {
+        "id": 18,
+        "lat": 28.233,
+        "livestockCode": "SL-2024-018",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9405,
+        "alertCount": 0
+      },
+      {
+        "id": 19,
+        "lat": 28.2319,
+        "livestockCode": "SL-2024-019",
+        "healthStatus": "HEALTHY",
+        "lng": 112.942,
+        "alertCount": 0
+      },
+      {
+        "id": 20,
+        "lat": 28.2322,
+        "livestockCode": "SL-2024-020",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9417,
+        "alertCount": 0
+      },
+      {
+        "id": 21,
+        "lat": 28.2336,
+        "livestockCode": "SL-2024-021",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9423,
+        "alertCount": 0
+      },
+      {
+        "id": 22,
+        "lat": 28.2309,
+        "livestockCode": "SL-2024-022",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9411,
+        "alertCount": 0
+      },
+      {
+        "id": 23,
+        "lat": 28.2324,
+        "livestockCode": "SL-2024-023",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9432,
+        "alertCount": 0
+      },
+      {
+        "id": 24,
+        "lat": 28.2315,
+        "livestockCode": "SL-2024-024",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9409,
+        "alertCount": 0
+      },
+      {
+        "id": 25,
+        "lat": 28.2331,
+        "livestockCode": "SL-2024-025",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9416,
+        "alertCount": 0
+      },
+      {
+        "id": 26,
+        "lat": 28.2261,
+        "livestockCode": "SL-2024-026",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9331,
+        "alertCount": 0
+      },
+      {
+        "id": 27,
+        "lat": 28.2248,
+        "livestockCode": "SL-2024-027",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9345,
+        "alertCount": 0
+      },
+      {
+        "id": 28,
+        "lat": 28.2259,
+        "livestockCode": "SL-2024-028",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9352,
+        "alertCount": 0
+      },
+      {
+        "id": 29,
+        "lat": 28.2268,
+        "livestockCode": "SL-2024-029",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9328,
+        "alertCount": 0
+      },
+      {
+        "id": 30,
+        "lat": 28.2253,
+        "livestockCode": "SL-2024-030",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9337,
+        "alertCount": 0
+      },
+      {
+        "id": 31,
+        "lat": 28.2245,
+        "livestockCode": "SL-2024-031",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9355,
+        "alertCount": 0
+      },
+      {
+        "id": 32,
+        "lat": 28.2271,
+        "livestockCode": "SL-2024-032",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9341,
+        "alertCount": 0
+      },
+      {
+        "id": 33,
+        "lat": 28.2256,
+        "livestockCode": "SL-2024-033",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9325,
+        "alertCount": 0
+      },
+      {
+        "id": 34,
+        "lat": 28.2265,
+        "livestockCode": "SL-2024-034",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9358,
+        "alertCount": 0
+      },
+      {
+        "id": 35,
+        "lat": 28.2243,
+        "livestockCode": "SL-2024-035",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9334,
+        "alertCount": 0
+      },
+      {
+        "id": 36,
+        "lat": 28.2262,
+        "livestockCode": "SL-2024-036",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9348,
+        "alertCount": 0
+      },
+      {
+        "id": 37,
+        "lat": 28.2251,
+        "livestockCode": "SL-2024-037",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9327,
+        "alertCount": 0
+      },
+      {
+        "id": 38,
+        "lat": 28.227,
+        "livestockCode": "SL-2024-038",
+        "healthStatus": "HEALTHY",
+        "lng": 112.935,
+        "alertCount": 0
+      },
+      {
+        "id": 39,
+        "lat": 28.2249,
+        "livestockCode": "SL-2024-039",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9339,
+        "alertCount": 0
+      },
+      {
+        "id": 40,
+        "lat": 28.2264,
+        "livestockCode": "SL-2024-040",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9323,
+        "alertCount": 0
+      },
+      {
+        "id": 41,
+        "lat": 28.2257,
+        "livestockCode": "SL-2024-041",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9356,
+        "alertCount": 0
+      },
+      {
+        "id": 42,
+        "lat": 28.2267,
+        "livestockCode": "SL-2024-042",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9335,
+        "alertCount": 0
+      },
+      {
+        "id": 43,
+        "lat": 28.2247,
+        "livestockCode": "SL-2024-043",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9343,
+        "alertCount": 0
+      },
+      {
+        "id": 44,
+        "lat": 28.2288,
+        "livestockCode": "SL-2024-044",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9391,
+        "alertCount": 0
+      },
+      {
+        "id": 45,
+        "lat": 28.2291,
+        "livestockCode": "SL-2024-045",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9385,
+        "alertCount": 0
+      },
+      {
+        "id": 46,
+        "lat": 28.2283,
+        "livestockCode": "SL-2024-046",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9395,
+        "alertCount": 0
+      },
+      {
+        "id": 47,
+        "lat": 28.2293,
+        "livestockCode": "SL-2024-047",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9388,
+        "alertCount": 0
+      },
+      {
+        "id": 49,
+        "lat": 28.225,
+        "livestockCode": "SL-2024-049",
+        "healthStatus": "CRITICAL",
+        "lng": 112.9403,
+        "alertCount": 0
+      },
+      {
+        "id": 50,
+        "lat": 28.2251,
+        "livestockCode": "SL-2024-050",
+        "healthStatus": "HEALTHY",
+        "lng": 112.9408,
+        "alertCount": 0
+      },
+      {
+        "id": 12,
+        "lat": 28.2335,
+        "livestockCode": "SL-2024-012",
+        "healthStatus": "WARNING",
+        "lng": 112.941,
+        "alertCount": 0
+      },
+      {
+        "id": 48,
+        "lat": 28.2253,
+        "livestockCode": "SL-2024-048",
+        "healthStatus": "CRITICAL",
+        "lng": 112.9406,
+        "alertCount": 0
+      }
+    ]
+  }
+}

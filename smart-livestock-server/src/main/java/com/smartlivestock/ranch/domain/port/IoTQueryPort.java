@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface IoTQueryPort {
     Optional<InstallationInfo> findActiveInstallation(Long deviceId);
     DeviceStatsInfo getDeviceStats(Long tenantId);
+
+    double getDeviceOnlineRate(Long tenantId);
 }

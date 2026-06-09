@@ -255,6 +255,58 @@ void main() {
     });
   });
 
+
+  // ── 10. \u7267\u573a\u603b\u89c8 (Issue #51) ──────────────────────────────────
+
+  group('e2e \u2014 \u7267\u573a\u603b\u89c8', () {
+    test('GET /farms/{id}/ranch-overview \u8fd4\u56de\u805a\u5408\u6570\u636e', () async {
+      final resp = await _get('/farms/$farmId/ranch-overview', ownerToken);
+      final body = jsonDecode(resp.body) as Map<String, dynamic>;
+      expect(body['code'], 'OK');
+      final data = body['data'] as Map<String, dynamic>;
+      expect(data, contains('overallStats'));
+      final stats = data['overallStats'] as Map<String, dynamic>;
+      expect(stats['totalLivestock'], isA<int>());
+      expect(stats['healthyRate'], isA<double>());
+    });
+
+    test('fences \u5305\u542b\u56f4\u680f\u5750\u6807', () async {
+      final resp = await _get('/farms/$farmId/ranch-overview', ownerToken);
+      final body = jsonDecode(resp.body) as Map<String, dynamic>;
+      final data = body['data'] as Map<String, dynamic>;
+      final fences = data['fences'] as List;
+      expect(fences, isNotEmpty);
+      final first = fences.first as Map<String, dynamic>;
+      final points = first['points'] as List;
+      expect(points.first, contains('lat'));
+      expect(points.first, contains('lng'));
+    });
+
+    test('livestockMarkers \u6709\u5065\u5eb7\u72b6\u6001', () async {
+      final resp = await _get('/farms/$farmId/ranch-overview', ownerToken);
+      final body = jsonDecode(resp.body) as Map<String, dynamic>;
+      final data = body['data'] as Map<String, dynamic>;
+      final markers = data['livestockMarkers'] as List;
+      expect(markers, isNotEmpty);
+      final validStatuses = {'NORMAL', 'WARNING', 'CRITICAL'};
+      for (final m in markers) {
+        final marker = m as Map<String, dynamic>;
+        expect(validStatuses, contains(marker['healthStatus']));
+      }
+    });
+
+    test('alerts \u4e0d\u542b ARCHIVED', () async {
+      final resp = await _get('/farms/$farmId/ranch-overview', ownerToken);
+      final body = jsonDecode(resp.body) as Map<String, dynamic>;
+      final data = body['data'] as Map<String, dynamic>;
+      final alerts = data['alerts'] as List;
+      for (final a in alerts) {
+        final alert = a as Map<String, dynamic>;
+        expect(alert['status'], isNot(equals('ARCHIVED')));
+      }
+    });
+  });
+
   // ── 9. 权限边界 ────────────────────────────────────────────────────────
 
   group('e2e — 权限边界', () {

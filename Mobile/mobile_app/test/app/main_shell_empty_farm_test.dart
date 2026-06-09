@@ -45,7 +45,7 @@ void main() {
       ],
       child: const MaterialApp(
         home: MainShell(
-          location: '/twin',
+          location: '/ranch',
           child: SizedBox.shrink(),
         ),
       ),

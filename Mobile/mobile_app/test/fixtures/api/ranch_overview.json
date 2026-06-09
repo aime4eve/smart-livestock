@@ -1,0 +1,761 @@
+{
+  "code": "OK",
+  "message": "success",
+  "requestId": "33c2e73e-05c4-425c-956a-38ab25b0ba54",
+  "data": {
+    "overallStats": {
+      "totalLivestock": 51,
+      "healthyRate": 0.902,
+      "alertCount": 18,
+      "criticalCount": 1,
+      "deviceOnlineRate": 0.85
+    },
+    "sceneSummary": {
+      "fever": {
+        "abnormalCount": 2,
+        "criticalCount": 1
+      },
+      "digestive": {
+        "abnormalCount": 1,
+        "watchCount": 0
+      },
+      "estrus": {
+        "highScoreCount": 2
+      },
+      "epidemic": {
+        "abnormalRate": 0.098
+      }
+    },
+    "pendingTasks": [
+      {
+        "id": "task-3",
+        "title": "SL-2024-003 异常",
+        "subtitle": "",
+        "routePath": "",
+        "severity": "WARNING"
+      },
+      {
+        "id": "task-16",
+        "title": "SL-2024-016 发情高分",
+        "subtitle": "发情评分 92",
+        "routePath": "/twin/estrus/16",
+        "severity": "WARNING"
+      },
+      {
+        "id": "task-17",
+        "title": "SL-2024-017 异常",
+        "subtitle": "",
+        "routePath": "",
+        "severity": "WARNING"
+      },
+      {
+        "id": "task-24",
+        "title": "SL-2024-024 消化异常",
+        "subtitle": "蠕动异常需观察",
+        "routePath": "/twin/digestive/24",
+        "severity": "WARNING"
+      },
+      {
+        "id": "task-32",
+        "title": "SL-2024-032 发情高分",
+        "subtitle": "发情评分 78",
+        "routePath": "/twin/estrus/32",
+        "severity": "WARNING"
+      },
+      {
+        "id": "task-12",
+        "title": "SL-2024-012 发热预警",
+        "subtitle": "体温异常需关注",
+        "routePath": "/twin/fever/12",
+        "severity": "WARNING"
+      },
+      {
+        "id": "task-48",
+        "title": "SL-2024-048 发热预警",
+        "subtitle": "体温异常需关注",
+        "routePath": "/twin/fever/48",
+        "severity": "CRITICAL"
+      }
+    ],
+    "fences": [
+      {
+        "id": 1,
+        "name": "放牧A区",
+        "active": true,
+        "type": "POLYGON",
+        "color": "#4C9A5F",
+        "points": [
+          {
+            "lat": 28.236232297686342,
+            "lng": 112.93558859058707
+          },
+          {
+            "lat": 28.236570961580963,
+            "lng": 112.94491323784051
+          },
+          {
+            "lat": 28.232323470355134,
+            "lng": 112.9480214518454
+          },
+          {
+            "lat": 28.2305,
+            "lng": 112.944
+          },
+          {
+            "lat": 28.23002326219825,
+            "lng": 112.93755926508048
+          }
+        ],
+        "areaHectares": 0.0,
+        "livestockCount": 0,
+        "version": 2
+      },
+      {
+        "id": 2,
+        "name": "放牧B区",
+        "active": true,
+        "type": "POLYGON",
+        "color": null,
+        "points": [
+          {
+            "lat": 28.2275,
+            "lng": 112.932
+          },
+          {
+            "lat": 28.2275,
+            "lng": 112.936
+          },
+          {
+            "lat": 28.224,
+            "lng": 112.936
+          },
+          {
+            "lat": 28.224,
+            "lng": 112.932
+          }
+        ],
+        "areaHectares": 0.0,
+        "livestockCount": 0,
+        "version": 1
+      },
+      {
+        "id": 3,
+        "name": "夜间休息区",
+        "active": true,
+        "type": "POLYGON",
+        "color": null,
+        "points": [
+          {
+            "lat": 28.2295,
+            "lng": 112.938
+          },
+          {
+            "lat": 28.2295,
+            "lng": 112.94
+          },
+          {
+            "lat": 28.228,
+            "lng": 112.94
+          },
+          {
+            "lat": 28.228,
+            "lng": 112.938
+          }
+        ],
+        "areaHectares": 0.0,
+        "livestockCount": 0,
+        "version": 1
+      },
+      {
+        "id": 4,
+        "name": "隔离区",
+        "active": true,
+        "type": "POLYGON",
+        "color": null,
+        "points": [
+          {
+            "lat": 28.2255,
+            "lng": 112.94
+          },
+          {
+            "lat": 28.2255,
+            "lng": 112.941
+          },
+          {
+            "lat": 28.2248,
+            "lng": 112.941
+          },
+          {
+            "lat": 28.2248,
+            "lng": 112.94
+          }
+        ],
+        "areaHectares": 0.0,
+        "livestockCount": 0,
+        "version": 1
+      },
+      {
+        "id": 7,
+        "name": "E2E围栏",
+        "active": true,
+        "type": "POLYGON",
+        "color": "#FF5733",
+        "points": [
+          {
+            "lat": 28.24,
+            "lng": 112.845
+          },
+          {
+            "lat": 28.25,
+            "lng": 112.845
+          },
+          {
+            "lat": 28.25,
+            "lng": 112.855
+          },
+          {
+            "lat": 28.24,
+            "lng": 112.855
+          }
+        ],
+        "areaHectares": 0.0,
+        "livestockCount": 0,
+        "version": 1
+      }
+    ],
+    "livestockMarkers": [
+      {
+        "livestockId": "1",
+        "livestockCode": "SL-2024-001",
+        "latitude": 28.2312,
+        "longitude": 112.9412,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "2",
+        "livestockCode": "SL-2024-002",
+        "latitude": 28.2325,
+        "longitude": 112.9425,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "3",
+        "livestockCode": "SL-2024-003",
+        "latitude": 28.2333,
+        "longitude": 112.9433,
+        "healthStatus": "WARNING",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "4",
+        "livestockCode": "SL-2024-004",
+        "latitude": 28.2318,
+        "longitude": 112.9418,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "5",
+        "livestockCode": "SL-2024-005",
+        "latitude": 28.2337,
+        "longitude": 112.9403,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "6",
+        "livestockCode": "SL-2024-006",
+        "latitude": 28.2321,
+        "longitude": 112.9437,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "7",
+        "livestockCode": "SL-2024-007",
+        "latitude": 28.2308,
+        "longitude": 112.9415,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "8",
+        "livestockCode": "SL-2024-008",
+        "latitude": 28.2332,
+        "longitude": 112.9421,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "9",
+        "livestockCode": "SL-2024-009",
+        "latitude": 28.2316,
+        "longitude": 112.9406,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "10",
+        "livestockCode": "SL-2024-010",
+        "latitude": 28.2328,
+        "longitude": 112.9431,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "11",
+        "livestockCode": "SL-2024-011",
+        "latitude": 28.2314,
+        "longitude": 112.9428,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "13",
+        "livestockCode": "SL-2024-013",
+        "latitude": 28.2307,
+        "longitude": 112.9435,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "14",
+        "livestockCode": "SL-2024-014",
+        "latitude": 28.2323,
+        "longitude": 112.9408,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "15",
+        "livestockCode": "SL-2024-015",
+        "latitude": 28.2338,
+        "longitude": 112.9422,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "16",
+        "livestockCode": "SL-2024-016",
+        "latitude": 28.2311,
+        "longitude": 112.9413,
+        "healthStatus": "WARNING",
+        "primaryAlert": "ESTRUS"
+      },
+      {
+        "livestockId": "17",
+        "livestockCode": "SL-2024-017",
+        "latitude": 28.2327,
+        "longitude": 112.943,
+        "healthStatus": "WARNING",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "18",
+        "livestockCode": "SL-2024-018",
+        "latitude": 28.233,
+        "longitude": 112.9405,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "19",
+        "livestockCode": "SL-2024-019",
+        "latitude": 28.2319,
+        "longitude": 112.942,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "20",
+        "livestockCode": "SL-2024-020",
+        "latitude": 28.2322,
+        "longitude": 112.9417,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "21",
+        "livestockCode": "SL-2024-021",
+        "latitude": 28.2336,
+        "longitude": 112.9423,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "22",
+        "livestockCode": "SL-2024-022",
+        "latitude": 28.2309,
+        "longitude": 112.9411,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "23",
+        "livestockCode": "SL-2024-023",
+        "latitude": 28.2324,
+        "longitude": 112.9432,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "24",
+        "livestockCode": "SL-2024-024",
+        "latitude": 28.2315,
+        "longitude": 112.9409,
+        "healthStatus": "WARNING",
+        "primaryAlert": "DIGESTIVE"
+      },
+      {
+        "livestockId": "25",
+        "livestockCode": "SL-2024-025",
+        "latitude": 28.2331,
+        "longitude": 112.9416,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "26",
+        "livestockCode": "SL-2024-026",
+        "latitude": 28.2261,
+        "longitude": 112.9331,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "27",
+        "livestockCode": "SL-2024-027",
+        "latitude": 28.2248,
+        "longitude": 112.9345,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "28",
+        "livestockCode": "SL-2024-028",
+        "latitude": 28.2259,
+        "longitude": 112.9352,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "29",
+        "livestockCode": "SL-2024-029",
+        "latitude": 28.2268,
+        "longitude": 112.9328,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "30",
+        "livestockCode": "SL-2024-030",
+        "latitude": 28.2253,
+        "longitude": 112.9337,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "31",
+        "livestockCode": "SL-2024-031",
+        "latitude": 28.2245,
+        "longitude": 112.9355,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "32",
+        "livestockCode": "SL-2024-032",
+        "latitude": 28.2271,
+        "longitude": 112.9341,
+        "healthStatus": "WARNING",
+        "primaryAlert": "ESTRUS"
+      },
+      {
+        "livestockId": "33",
+        "livestockCode": "SL-2024-033",
+        "latitude": 28.2256,
+        "longitude": 112.9325,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "34",
+        "livestockCode": "SL-2024-034",
+        "latitude": 28.2265,
+        "longitude": 112.9358,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "35",
+        "livestockCode": "SL-2024-035",
+        "latitude": 28.2243,
+        "longitude": 112.9334,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "36",
+        "livestockCode": "SL-2024-036",
+        "latitude": 28.2262,
+        "longitude": 112.9348,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "37",
+        "livestockCode": "SL-2024-037",
+        "latitude": 28.2251,
+        "longitude": 112.9327,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "38",
+        "livestockCode": "SL-2024-038",
+        "latitude": 28.227,
+        "longitude": 112.935,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "39",
+        "livestockCode": "SL-2024-039",
+        "latitude": 28.2249,
+        "longitude": 112.9339,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "40",
+        "livestockCode": "SL-2024-040",
+        "latitude": 28.2264,
+        "longitude": 112.9323,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "41",
+        "livestockCode": "SL-2024-041",
+        "latitude": 28.2257,
+        "longitude": 112.9356,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "42",
+        "livestockCode": "SL-2024-042",
+        "latitude": 28.2267,
+        "longitude": 112.9335,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "43",
+        "livestockCode": "SL-2024-043",
+        "latitude": 28.2247,
+        "longitude": 112.9343,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "44",
+        "livestockCode": "SL-2024-044",
+        "latitude": 28.2288,
+        "longitude": 112.9391,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "45",
+        "livestockCode": "SL-2024-045",
+        "latitude": 28.2291,
+        "longitude": 112.9385,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "46",
+        "livestockCode": "SL-2024-046",
+        "latitude": 28.2283,
+        "longitude": 112.9395,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "47",
+        "livestockCode": "SL-2024-047",
+        "latitude": 28.2293,
+        "longitude": 112.9388,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "49",
+        "livestockCode": "SL-2024-049",
+        "latitude": 28.225,
+        "longitude": 112.9403,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "50",
+        "livestockCode": "SL-2024-050",
+        "latitude": 28.2251,
+        "longitude": 112.9408,
+        "healthStatus": "NORMAL",
+        "primaryAlert": ""
+      },
+      {
+        "livestockId": "12",
+        "livestockCode": "SL-2024-012",
+        "latitude": 28.2335,
+        "longitude": 112.941,
+        "healthStatus": "WARNING",
+        "primaryAlert": "FEVER"
+      },
+      {
+        "livestockId": "48",
+        "livestockCode": "SL-2024-048",
+        "latitude": 28.2253,
+        "longitude": 112.9406,
+        "healthStatus": "CRITICAL",
+        "primaryAlert": "FEVER"
+      }
+    ],
+    "alerts": [
+      {
+        "id": 1,
+        "type": "FENCE_BREACH",
+        "severity": "CRITICAL",
+        "status": "PENDING",
+        "message": "越界 · SL-2024-003",
+        "livestockId": 3,
+        "fenceId": 1,
+        "occurredAt": null
+      },
+      {
+        "id": 2,
+        "type": "TEMPERATURE_ABNORMAL",
+        "severity": "CRITICAL",
+        "status": "ACKNOWLEDGED",
+        "message": "体温异常 · SL-2024-048",
+        "livestockId": 48,
+        "fenceId": null,
+        "occurredAt": null
+      },
+      {
+        "id": 3,
+        "type": "FENCE_BREACH",
+        "severity": "CRITICAL",
+        "status": "HANDLED",
+        "message": "越界 · SL-2024-017",
+        "livestockId": 17,
+        "fenceId": 1,
+        "occurredAt": null
+      },
+      {
+        "id": 4,
+        "type": "TEMPERATURE_ABNORMAL",
+        "severity": "CRITICAL",
+        "status": "HANDLED",
+        "message": "体温异常 · SL-2024-049",
+        "livestockId": 49,
+        "fenceId": null,
+        "occurredAt": null
+      },
+      {
+        "id": 5,
+        "type": "BEHAVIOR_ABNORMAL",
+        "severity": "WARNING",
+        "status": "PENDING",
+        "message": "设备离线 · SL-2024-043",
+        "livestockId": 43,
+        "fenceId": null,
+        "occurredAt": null
+      },
+      {
+        "id": 6,
+        "type": "BEHAVIOR_ABNORMAL",
+        "severity": "WARNING",
+        "status": "PENDING",
+        "message": "低电量 · SL-2024-045",
+        "livestockId": 45,
+        "fenceId": null,
+        "occurredAt": null
+      },
+      {
+        "id": 7,
+        "type": "BEHAVIOR_ABNORMAL",
+        "severity": "WARNING",
+        "status": "ACKNOWLEDGED",
+        "message": "设备离线 · SL-2024-044",
+        "livestockId": 44,
+        "fenceId": null,
+        "occurredAt": null
+      },
+      {
+        "id": 8,
+        "type": "BEHAVIOR_ABNORMAL",
+        "severity": "WARNING",
+        "status": "HANDLED",
+        "message": "低电量 · SL-2024-046",
+        "livestockId": 46,
+        "fenceId": null,
+        "occurredAt": null
+      },
+      {
+        "id": 9,
+        "type": "BEHAVIOR_ABNORMAL",
+        "severity": "WARNING",
+        "status": "HANDLED",
+        "message": "设备离线 · SL-2024-042",
+        "livestockId": 42,
+        "fenceId": null,
+        "occurredAt": null
+      },
+      {
+        "id": 10,
+        "type": "BEHAVIOR_ABNORMAL",
+        "severity": "INFO",
+        "status": "PENDING",
+        "message": "行为异常 · SL-2024-047",
+        "livestockId": 47,
+        "fenceId": null,
+        "occurredAt": null
+      },
+      {
+        "id": 11,
+        "type": "FENCE_BREACH",
+        "severity": "INFO",
+        "status": "HANDLED",
+        "message": "围栏接近 · SL-2024-012",
+        "livestockId": 12,
+        "fenceId": 1,
+        "occurredAt": null
+      },
+      {
+        "id": 12,
+        "type": "BEHAVIOR_ABNORMAL",
+        "severity": "INFO",
+        "status": "HANDLED",
+        "message": "行为异常 · SL-2024-050",
+        "livestockId": 50,
+        "fenceId": null,
+        "occurredAt": null
+      },
+      {
+        "id": 13,
+        "type": "FENCE_BREACH",
+        "severity": "INFO",
+        "status": "HANDLED",
+        "message": "围栏接近 · SL-2024-008",
+        "livestockId": 8,
+        "fenceId": 1,
+        "occurredAt": null
+      }
+    ]
+  }
+}

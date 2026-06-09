@@ -32,6 +32,7 @@ import 'package:smart_livestock_demo/features/pages/livestock_detail_page.dart';
 import 'package:smart_livestock_demo/features/pages/mine_page.dart';
 import 'package:smart_livestock_demo/features/pages/stats_page.dart';
 import 'package:smart_livestock_demo/features/pages/twin_overview_page.dart';
+import 'package:smart_livestock_demo/features/pages/ranch_page.dart';
 import 'package:smart_livestock_demo/features/subscription/presentation/subscription_checkout_page.dart';
 import 'package:smart_livestock_demo/features/subscription/presentation/subscription_plan_page.dart';
 import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_create_page.dart';
@@ -90,16 +91,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       if (location == AppRoute.login.path ||
           location.startsWith(AppRoute.platformAdmin.path)) {
-        return AppRoute.mine.path;
+        return AppRoute.ranch.path;
       }
 
       if (location == AppRoute.admin.path) {
-        return AppRoute.mine.path;
+        return AppRoute.ranch.path;
       }
 
       if (location == AppRoute.workerManagement.path &&
           role != UserRole.owner) {
-        return AppRoute.mine.path;
+        return AppRoute.ranch.path;
       }
 
       return null;
@@ -120,6 +121,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           );
         },
         routes: [
+          GoRoute(
+            path: AppRoute.ranch.path,
+            name: AppRoute.ranch.routeName,
+            builder: (context, state) => const RanchPage(),
+          ),
           GoRoute(
             path: AppRoute.twin.path,
             name: AppRoute.twin.routeName,

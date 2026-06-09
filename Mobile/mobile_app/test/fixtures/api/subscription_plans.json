@@ -1,1 +1,31 @@
-{"code":"OK","message":"success","requestId":"363f7699-e796-471f-bb34-c8a9ab72fcbd","data":[{"tier":"BASIC","monthlyPriceCents":0,"includedLivestock":50,"overagePriceCents":40},{"tier":"STANDARD","monthlyPriceCents":1400,"includedLivestock":200,"overagePriceCents":30},{"tier":"PREMIUM","monthlyPriceCents":2800,"includedLivestock":1000,"overagePriceCents":15},{"tier":"ENTERPRISE","monthlyPriceCents":-1,"includedLivestock":-1,"overagePriceCents":-1}]}
+{
+  "code": "OK",
+  "message": "success",
+  "requestId": "3de5e4df-2686-4ed2-8f54-132de7e1eb58",
+  "data": [
+    {
+      "tier": "BASIC",
+      "monthlyPriceCents": 0,
+      "includedLivestock": 50,
+      "overagePriceCents": 40
+    },
+    {
+      "tier": "STANDARD",
+      "monthlyPriceCents": 1400,
+      "includedLivestock": 200,
+      "overagePriceCents": 30
+    },
+    {
+      "tier": "PREMIUM",
+      "monthlyPriceCents": 2800,
+      "includedLivestock": 1000,
+      "overagePriceCents": 15
+    },
+    {
+      "tier": "ENTERPRISE",
+      "monthlyPriceCents": -1,
+      "includedLivestock": -1,
+      "overagePriceCents": -1
+    }
+  ]
+}

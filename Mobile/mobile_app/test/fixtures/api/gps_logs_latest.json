@@ -1,1 +1,361 @@
-{"code":"OK","message":"success","requestId":"57121f08-ad33-45ce-8799-6f14372996ce","data":{"items":[]}}
+{
+  "code": "OK",
+  "message": "success",
+  "requestId": "705d1d85-bc73-414f-9354-45f5f7e9357a",
+  "data": {
+    "items": [
+      {
+        "id": 1092102,
+        "deviceId": 1,
+        "latitude": 28.2301922,
+        "longitude": 112.9362395,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092103,
+        "deviceId": 2,
+        "latitude": 28.2303996,
+        "longitude": 112.9404014,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092104,
+        "deviceId": 3,
+        "latitude": 28.228435,
+        "longitude": 112.9419389,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092105,
+        "deviceId": 4,
+        "latitude": 28.2318016,
+        "longitude": 112.9405539,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092106,
+        "deviceId": 6,
+        "latitude": 28.2294451,
+        "longitude": 112.9394037,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092107,
+        "deviceId": 7,
+        "latitude": 28.2297012,
+        "longitude": 112.9392997,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092108,
+        "deviceId": 8,
+        "latitude": 28.2284259,
+        "longitude": 112.9357569,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092109,
+        "deviceId": 9,
+        "latitude": 28.2302514,
+        "longitude": 112.9397748,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092110,
+        "deviceId": 11,
+        "latitude": 28.2240224,
+        "longitude": 112.933677,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092111,
+        "deviceId": 12,
+        "latitude": 28.2258078,
+        "longitude": 112.9419742,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092112,
+        "deviceId": 13,
+        "latitude": 28.2279277,
+        "longitude": 112.9396149,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092113,
+        "deviceId": 14,
+        "latitude": 28.2248341,
+        "longitude": 112.9374732,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092114,
+        "deviceId": 16,
+        "latitude": 28.232506,
+        "longitude": 112.9398654,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092115,
+        "deviceId": 17,
+        "latitude": 28.2315287,
+        "longitude": 112.9405133,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092116,
+        "deviceId": 18,
+        "latitude": 28.2251187,
+        "longitude": 112.9365713,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092117,
+        "deviceId": 19,
+        "latitude": 28.2243165,
+        "longitude": 112.9373597,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092118,
+        "deviceId": 21,
+        "latitude": 28.2339807,
+        "longitude": 112.936552,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092119,
+        "deviceId": 22,
+        "latitude": 28.2304511,
+        "longitude": 112.9414012,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092120,
+        "deviceId": 23,
+        "latitude": 28.2282661,
+        "longitude": 112.9379641,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092121,
+        "deviceId": 24,
+        "latitude": 28.2259381,
+        "longitude": 112.9353408,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092122,
+        "deviceId": 26,
+        "latitude": 28.2294657,
+        "longitude": 112.9406564,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092123,
+        "deviceId": 27,
+        "latitude": 28.2266389,
+        "longitude": 112.9429661,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092124,
+        "deviceId": 28,
+        "latitude": 28.2261614,
+        "longitude": 112.9420131,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092125,
+        "deviceId": 29,
+        "latitude": 28.2297189,
+        "longitude": 112.9371584,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092126,
+        "deviceId": 31,
+        "latitude": 28.2279504,
+        "longitude": 112.9390001,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092127,
+        "deviceId": 32,
+        "latitude": 28.2313604,
+        "longitude": 112.9416418,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092128,
+        "deviceId": 33,
+        "latitude": 28.2254115,
+        "longitude": 112.9350908,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092129,
+        "deviceId": 34,
+        "latitude": 28.226526,
+        "longitude": 112.9353907,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092130,
+        "deviceId": 36,
+        "latitude": 28.2298911,
+        "longitude": 112.9344688,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092131,
+        "deviceId": 37,
+        "latitude": 28.2325387,
+        "longitude": 112.9353777,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092132,
+        "deviceId": 38,
+        "latitude": 28.2296907,
+        "longitude": 112.9396989,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 1092133,
+        "deviceId": 39,
+        "latitude": 28.2334513,
+        "longitude": 112.9423864,
+        "accuracy": null,
+        "recordedAt": "2026-06-08T11:28:46.526088Z"
+      },
+      {
+        "id": 743829,
+        "deviceId": 51,
+        "latitude": 28.2469456,
+        "longitude": 112.8553047,
+        "accuracy": 3.08,
+        "recordedAt": "2026-06-04T16:08:12.533688Z"
+      },
+      {
+        "id": 743830,
+        "deviceId": 52,
+        "latitude": 28.2440884,
+        "longitude": 112.852513,
+        "accuracy": 11.75,
+        "recordedAt": "2026-06-04T16:08:12.533688Z"
+      },
+      {
+        "id": 743831,
+        "deviceId": 53,
+        "latitude": 28.2483171,
+        "longitude": 112.855337,
+        "accuracy": 16.46,
+        "recordedAt": "2026-06-04T16:08:12.533688Z"
+      },
+      {
+        "id": 743832,
+        "deviceId": 54,
+        "latitude": 28.2438989,
+        "longitude": 112.8499919,
+        "accuracy": 3.86,
+        "recordedAt": "2026-06-04T16:08:12.533688Z"
+      },
+      {
+        "id": 743833,
+        "deviceId": 55,
+        "latitude": 28.2439151,
+        "longitude": 112.8469009,
+        "accuracy": 14.59,
+        "recordedAt": "2026-06-04T16:08:12.533688Z"
+      },
+      {
+        "id": 743834,
+        "deviceId": 56,
+        "latitude": 28.2455797,
+        "longitude": 112.8558262,
+        "accuracy": 1.81,
+        "recordedAt": "2026-06-04T16:08:12.533688Z"
+      },
+      {
+        "id": 743835,
+        "deviceId": 57,
+        "latitude": 28.2434157,
+        "longitude": 112.8487193,
+        "accuracy": 8.11,
+        "recordedAt": "2026-06-04T16:08:12.533688Z"
+      },
+      {
+        "id": 743836,
+        "deviceId": 58,
+        "latitude": 28.2442615,
+        "longitude": 112.8474201,
+        "accuracy": 16.31,
+        "recordedAt": "2026-06-04T16:08:12.533688Z"
+      },
+      {
+        "id": 743837,
+        "deviceId": 59,
+        "latitude": 28.2487103,
+        "longitude": 112.8475317,
+        "accuracy": 15.66,
+        "recordedAt": "2026-06-04T16:08:12.533688Z"
+      },
+      {
+        "id": 743838,
+        "deviceId": 60,
+        "latitude": 28.2476173,
+        "longitude": 112.8548961,
+        "accuracy": 16.08,
+        "recordedAt": "2026-06-04T16:08:12.533688Z"
+      },
+      {
+        "id": 743839,
+        "deviceId": 61,
+        "latitude": 28.2479207,
+        "longitude": 112.8494579,
+        "accuracy": 9.44,
+        "recordedAt": "2026-06-04T16:08:12.533688Z"
+      },
+      {
+        "id": 743840,
+        "deviceId": 62,
+        "latitude": 28.2454023,
+        "longitude": 112.8563527,
+        "accuracy": 9.96,
+        "recordedAt": "2026-06-04T16:08:12.533688Z"
+      }
+    ]
+  }
+}

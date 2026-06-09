@@ -376,6 +376,70 @@ void main() {
     });
   });
 
+
+  // ── Ranch Overview (Issue #51) ────────────────────────────────────────
+
+  group("API \u5408\u7ea6 \u2014 \u7267\u573a\u603b\u89c8", () {
+    late Map<String, dynamic> overviewData;
+
+    setUpAll(() {
+      overviewData = _data('ranch_overview.json') as Map<String, dynamic>;
+    });
+
+    test('ranch-overview envelope \u7ed3\u6784', () {
+      expect(overviewData, contains('overallStats'));
+      expect(overviewData, contains('sceneSummary'));
+      expect(overviewData, contains('pendingTasks'));
+      expect(overviewData, contains('fences'));
+      expect(overviewData, contains('livestockMarkers'));
+      expect(overviewData, contains('alerts'));
+    });
+
+    test('overallStats \u7c7b\u578b\u6b63\u786e', () {
+      final stats = overviewData['overallStats'] as Map<String, dynamic>;
+      expect(stats['totalLivestock'], isA<int>());
+      expect(stats['healthyRate'], isA<double>());
+      expect(stats['alertCount'], isA<int>());
+      expect(stats['criticalCount'], isA<int>());
+      expect(stats['deviceOnlineRate'], isA<double>());
+    });
+
+    test('fences \u683c\u5f0f', () {
+      final fences = overviewData['fences'] as List;
+      expect(fences, isNotEmpty);
+      final fence = fences.first as Map<String, dynamic>;
+      expect(fence, contains('id'));
+      expect(fence, contains('name'));
+      expect(fence, contains('points'));
+      final points = fence['points'] as List;
+      expect(points.first, contains('lat'));
+      expect(points.first, contains('lng'));
+    });
+
+    test('livestockMarkers \u683c\u5f0f', () {
+      final markers = overviewData['livestockMarkers'] as List;
+      expect(markers, isNotEmpty);
+      final m = markers.first as Map<String, dynamic>;
+      expect(m['latitude'], isA<num>());
+      expect(m['longitude'], isA<num>());
+      expect(m['healthStatus'], isA<String>());
+      final validStatuses = {'NORMAL', 'WARNING', 'CRITICAL'};
+      expect(validStatuses, contains(m['healthStatus']));
+    });
+
+    test('alerts \u683c\u5f0f', () {
+      final alerts = overviewData['alerts'] as List;
+      for (final a in alerts) {
+        final alert = a as Map<String, dynamic>;
+        expect(alert, contains('id'));
+        expect(alert, contains('type'));
+        expect(alert, contains('severity'));
+        expect(alert, contains('status'));
+        expect(alert, contains('message'));
+      }
+    });
+  });
+
   // ── Cross-cutting: envelope structure ──────────────────────────────────
 
   group('API 合约 — 通用 envelope', () {
@@ -389,6 +453,7 @@ void main() {
       'subscription_status.json',
       'subscription_plans.json',
       'devices_list.json',
+      'ranch_overview.json',
     ];
 
     test('所有 fixture 包含 {code, message, data}', () {

@@ -1,1 +1,36 @@
-{"code":"OK","message":"success","requestId":"c0bc3fa6-a025-499b-83b5-41949702d462","data":{"id":1,"farmId":1,"name":"放牧A区","vertices":[{"lat":28.234,"lng":112.94},{"lat":28.234,"lng":112.944},{"lat":28.2305,"lng":112.944},{"lat":28.2305,"lng":112.94}],"color":null,"active":true,"version":1,"fenceType":"sub"}}
+{
+  "code": "OK",
+  "message": "success",
+  "requestId": "7c5850be-3e00-4e83-81fa-f36720b8d4d7",
+  "data": {
+    "id": 1,
+    "farmId": 1,
+    "name": "放牧A区",
+    "vertices": [
+      {
+        "lat": 28.236232297686342,
+        "lng": 112.93558859058707
+      },
+      {
+        "lat": 28.236570961580963,
+        "lng": 112.94491323784051
+      },
+      {
+        "lat": 28.232323470355134,
+        "lng": 112.9480214518454
+      },
+      {
+        "lat": 28.2305,
+        "lng": 112.944
+      },
+      {
+        "lat": 28.23002326219825,
+        "lng": 112.93755926508048
+      }
+    ],
+    "color": "#4C9A5F",
+    "active": true,
+    "version": 2,
+    "fenceType": "sub"
+  }
+}

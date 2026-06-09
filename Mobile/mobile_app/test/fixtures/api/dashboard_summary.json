@@ -1,1 +1,16 @@
-{"code":"OK","message":"success","requestId":"cce4d624-0431-4eec-9bd2-9c1cbb474393","data":{"onlineDeviceCount":92,"livestockCount":51,"activeAlertCount":6,"healthSummary":{"critical":3,"warning":1,"healthy":47},"fenceCount":5}}
+{
+  "code": "OK",
+  "message": "success",
+  "requestId": "9c2e9916-8a30-480f-9e90-26904b118f87",
+  "data": {
+    "fenceCount": 5,
+    "onlineDeviceCount": 74,
+    "livestockCount": 51,
+    "activeAlertCount": 6,
+    "healthSummary": {
+      "healthy": 46,
+      "critical": 3,
+      "warning": 2
+    }
+  }
+}

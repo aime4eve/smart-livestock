@@ -1,1 +1,60 @@
-{"code":"OK","message":"success","requestId":"b3b6021e-58c5-47c2-a896-9bec9a0a50f6","data":{"pageSize":2,"items":[{"id":1,"tenantId":1,"name":"主牧场","latitude":28.2458000,"longitude":112.8519000,"areaHectares":500.00},{"id":2,"tenantId":1,"name":"南山分场","latitude":28.2000000,"longitude":112.9000000,"areaHectares":300.00}],"page":1,"total":2}}
+{
+  "code": "OK",
+  "message": "success",
+  "requestId": "5da5cd26-effd-4c0f-8c9b-9ac6f9173c6a",
+  "data": {
+    "total": 6,
+    "pageSize": 6,
+    "items": [
+      {
+        "id": 1,
+        "tenantId": 1,
+        "name": "主牧场",
+        "latitude": 28.229,
+        "longitude": 112.938,
+        "areaHectares": 550.0
+      },
+      {
+        "id": 2,
+        "tenantId": 1,
+        "name": "南山分场",
+        "latitude": 28.2,
+        "longitude": 112.9,
+        "areaHectares": 300.0
+      },
+      {
+        "id": 3,
+        "tenantId": 1,
+        "name": "测试新牧场",
+        "latitude": null,
+        "longitude": null,
+        "areaHectares": null
+      },
+      {
+        "id": 4,
+        "tenantId": 1,
+        "name": "新疆牧场",
+        "latitude": null,
+        "longitude": null,
+        "areaHectares": null
+      },
+      {
+        "id": 5,
+        "tenantId": 1,
+        "name": "瓦片测试牧场",
+        "latitude": 28.2458,
+        "longitude": 112.8519,
+        "areaHectares": 50.0
+      },
+      {
+        "id": 6,
+        "tenantId": 1,
+        "name": "test",
+        "latitude": null,
+        "longitude": null,
+        "areaHectares": null
+      }
+    ],
+    "page": 1
+  }
+}
