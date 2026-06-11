@@ -147,12 +147,12 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
                       const SizedBox(height: 8),
 
                       // ── Optional fields divider ──
-                      const Row(
+                      Row(
                         children: [
                           Expanded(child: Divider()),
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: 8),
-                            child: Text(l10n.b2bFarmListOptional, style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                            child: Text(l10n.b2bFarmListOptional, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                           ),
                           Expanded(child: Divider()),
                         ],
@@ -260,15 +260,15 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
     if (ok) {
       messenger.showSnackBar(
         SnackBar(
-          content: Text(l10n.b2bFarmCreationSuccess(nameCtrl.text.trim())),
+          content: Text(AppLocalizations.of(context)!.b2bFarmCreationSuccess(nameCtrl.text.trim())),
           backgroundColor: const Color(0xFF2E7D32),
         ),
       );
     } else {
       messenger.showSnackBar(
-        const SnackBar(
-          content: Text(l10n.b2bFarmCreationFailed),
-          backgroundColor: Color(0xFFD32F2F),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.b2bFarmCreationFailed),
+          backgroundColor: const Color(0xFFD32F2F),
         ),
       );
     }
@@ -292,7 +292,7 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
             child: TextFormField(
               controller: nameCtrl,
               autofocus: true,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: l10n.farmCreationNameLabel,
               ),
               validator: (v) =>
@@ -413,15 +413,15 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
     if (ok) {
       messenger.showSnackBar(
         SnackBar(
-          content: Text(l10n.b2bFarmChangeSuccess(farm.name, newOwner.name)),
+          content: Text(AppLocalizations.of(context)!.b2bFarmChangeSuccess(farm.name, newOwner.name)),
           backgroundColor: const Color(0xFF2E7D32),
         ),
       );
     } else {
       messenger.showSnackBar(
-        const SnackBar(
-          content: Text(l10n.b2bFarmCreationFailed),
-          backgroundColor: Color(0xFFD32F2F),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.b2bFarmCreationFailed),
+          backgroundColor: const Color(0xFFD32F2F),
         ),
       );
     }
@@ -441,6 +441,7 @@ class _SummaryStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.lg),
       decoration: BoxDecoration(
@@ -453,7 +454,7 @@ class _SummaryStrip extends StatelessWidget {
           _StatChip(label: l10n.statsLivestock, value: '${data.totalLivestock}', icon: Icons.pets_outlined),
           _StatChip(label: l10n.mineWorkerTitle, value: '$totalWorkers', icon: Icons.groups_outlined),
           _StatChip(label: l10n.b2bFarmStatDevice, value: '${data.totalDevices}', icon: Icons.sensors_outlined),
-          _StatChip(label: '告警', value: '${data.pendingAlerts}', icon: Icons.notification_important_outlined, highlight: data.pendingAlerts > 0),
+          _StatChip(label: l10n.statsAlerts, value: '${data.pendingAlerts}', icon: Icons.notification_important_outlined, highlight: data.pendingAlerts > 0),
         ],
       ),
     );
