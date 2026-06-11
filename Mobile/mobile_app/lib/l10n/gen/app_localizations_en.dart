@@ -712,4 +712,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String ranchHealthDetailLink(String type) => '$type Details';
   @override String get ranchLivestockDetailBtn => 'Details';
   @override String get ranchLivestockRelatedAlerts => 'Related Alerts';
+
+  @override String get tenantLicenseInvalidInteger => 'Please enter a non-negative integer';
+  @override String tenantLicenseBelowUsed(String used) => 'New quota cannot be less than currently used ($used)';
+  @override String get tenantDeleteReasonRequired => 'Please enter a deletion reason';
 }

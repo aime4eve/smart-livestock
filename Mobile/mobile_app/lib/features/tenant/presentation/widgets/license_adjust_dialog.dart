@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class LicenseAdjustDialog extends StatefulWidget {
   const LicenseAdjustDialog({super.key, required this.tenant});
@@ -23,13 +24,14 @@ class _LicenseAdjustDialogState extends State<LicenseAdjustDialog> {
   }
 
   void _submit() {
+    final l10n = AppLocalizations.of(context)!;
     final n = int.tryParse(_ctrl.text);
     if (n == null || n < 0) {
-      setState(() => _error = '请输入非负整数');
+      setState(() => _error = l10n.tenantLicenseInvalidInteger);
       return;
     }
     if (n < widget.tenant.licenseUsed) {
-      setState(() => _error = '新配额不能小于当前已使用量（${widget.tenant.licenseUsed}）');
+      setState(() => _error = l10n.tenantLicenseBelowUsed(widget.tenant.licenseUsed.toString()));
       return;
     }
     Navigator.of(context).pop(n);
@@ -37,12 +39,13 @@ class _LicenseAdjustDialogState extends State<LicenseAdjustDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('调整 License 配额'),
+      title: Text(l10n.tenantAdjustLicenseTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('当前已使用：${widget.tenant.licenseUsed}'),
+          Text(l10n.tenantAdjustLicenseUsed(widget.tenant.licenseUsed.toString())),
           const SizedBox(height: 12),
           TextField(
             key: const Key('tenant-license-input'),
@@ -50,7 +53,7 @@ class _LicenseAdjustDialogState extends State<LicenseAdjustDialog> {
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             decoration: InputDecoration(
-              labelText: '新 License 配额',
+              labelText: l10n.tenantAdjustLicenseNew,
               errorText: _error,
               border: const OutlineInputBorder(),
             ),
@@ -60,12 +63,12 @@ class _LicenseAdjustDialogState extends State<LicenseAdjustDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
         FilledButton(
           key: const Key('tenant-license-submit'),
           onPressed: _submit,
-          child: const Text('确认调整'),
+          child: Text(l10n.tenantAdjustLicenseConfirm),
         ),
       ],
     );

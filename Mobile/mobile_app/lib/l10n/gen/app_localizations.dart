@@ -701,6 +701,10 @@ abstract class AppLocalizations {
   String ranchHealthDetailLink(String type);
   String get ranchLivestockDetailBtn;
   String get ranchLivestockRelatedAlerts;
+
+  String get tenantLicenseInvalidInteger;
+  String tenantLicenseBelowUsed(String used);
+  String get tenantDeleteReasonRequired;
 }
 
 class _AppLocalizationsDelegate

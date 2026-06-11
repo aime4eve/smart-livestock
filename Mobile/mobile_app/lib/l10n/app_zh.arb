@@ -582,5 +582,11 @@
   "ranchLivestockDetailBtn": "详情",
   "@ranchLivestockDetailBtn": {},
   "ranchLivestockRelatedAlerts": "相关告警",
-  "@ranchLivestockRelatedAlerts": {}
+  "@ranchLivestockRelatedAlerts": {},
+  "tenantLicenseInvalidInteger": "请输入非负整数",
+  "@tenantLicenseInvalidInteger": {},
+  "tenantLicenseBelowUsed": "新配额不能小于当前已使用量（{used}）",
+  "@tenantLicenseBelowUsed": {"placeholders": {"used": {"type": "String"}}},
+  "tenantDeleteReasonRequired": "请输入删除原因",
+  "@tenantDeleteReasonRequired": {}
 }

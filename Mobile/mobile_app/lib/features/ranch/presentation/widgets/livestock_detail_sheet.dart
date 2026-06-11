@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class LivestockDetailSheet extends StatelessWidget {
   const LivestockDetailSheet({
@@ -16,6 +17,7 @@ class LivestockDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -50,7 +52,7 @@ class LivestockDetailSheet extends StatelessWidget {
                     context.go('/livestock/${marker.livestockId}');
                   },
                   icon: const Icon(Icons.open_in_new, size: 16),
-                  label: const Text('详情'),
+                  label: Text(l10n.ranchLivestockDetailBtn),
                 ),
               ],
             ),
@@ -63,7 +65,7 @@ class LivestockDetailSheet extends StatelessWidget {
                 value: '${marker.latitude.toStringAsFixed(4)}, ${marker.longitude.toStringAsFixed(4)}'),
             if (relatedAlerts.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.md),
-              Text('相关告警', style: Theme.of(context).textTheme.titleSmall),
+              Text(l10n.ranchLivestockRelatedAlerts, style: Theme.of(context).textTheme.titleSmall),
               const SizedBox(height: AppSpacing.sm),
               for (final alert in relatedAlerts)
                 Padding(

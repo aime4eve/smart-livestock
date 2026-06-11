@@ -700,4 +700,8 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String ranchHealthDetailLink(String type) => '$type详情';
   @override String get ranchLivestockDetailBtn => '详情';
   @override String get ranchLivestockRelatedAlerts => '相关告警';
+
+  @override String get tenantLicenseInvalidInteger => '请输入非负整数';
+  @override String tenantLicenseBelowUsed(String used) => '新配额不能小于当前已使用量（$used）';
+  @override String get tenantDeleteReasonRequired => '请输入删除原因';
 }

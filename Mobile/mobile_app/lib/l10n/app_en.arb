@@ -582,5 +582,11 @@
   "ranchLivestockDetailBtn": "Details",
   "@ranchLivestockDetailBtn": {},
   "ranchLivestockRelatedAlerts": "Related Alerts",
-  "@ranchLivestockRelatedAlerts": {}
+  "@ranchLivestockRelatedAlerts": {},
+  "tenantLicenseInvalidInteger": "Please enter a non-negative integer",
+  "@tenantLicenseInvalidInteger": {},
+  "tenantLicenseBelowUsed": "New quota cannot be less than currently used ({used})",
+  "@tenantLicenseBelowUsed": {"placeholders": {"used": {"type": "String"}}},
+  "tenantDeleteReasonRequired": "Please enter a deletion reason",
+  "@tenantDeleteReasonRequired": {}
 }
