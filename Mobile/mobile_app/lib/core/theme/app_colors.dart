@@ -19,6 +19,9 @@ class AppColors {
   static const Color warning = Color(0xFFD28A2D);
   static const Color danger = Color(0xFFC2564B);
   static const Color info = Color(0xFF4A7F9D);
+  static const Color estrus = Color(0xFFC25689);
+  static const Color fenceApproach = Color(0xFF454F45);
+  static const Color fenceBreach = Color(0xFF1A1F1A);
 
   static const Color overlayDark = Color(0xB3000000);
 }
