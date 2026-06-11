@@ -253,4 +253,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String ranchLivestockCountHead(String count) => '$count head';
+
+  @override
+  String get dashboardNoData => 'No Dashboard Data';
+
+  @override
+  String get dashboardTodayOverview => "Today's Ranch Overview";
+
+  @override
+  String get dashboardFarmOverview => 'Ranch Overview';
+
+  @override
+  String get dashboardNoFarm => 'No Ranch Yet';
+
+  @override
+  String get dashboardCreateFirstFarmDesc =>
+      'Create your first ranch to start managing livestock';
+
+  @override
+  String get dashboardCreateFirstFarm => 'Create First Ranch';
 }

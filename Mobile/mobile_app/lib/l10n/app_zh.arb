@@ -166,5 +166,17 @@
   "ranchFenceInactive": "停用",
   "@ranchFenceInactive": {},
   "ranchLivestockCountHead": "{count}头",
-  "@ranchLivestockCountHead": {"placeholders": {"count": {"type": "String"}}}
+  "@ranchLivestockCountHead": {"placeholders": {"count": {"type": "String"}}},
+  "dashboardNoData": "暂无看板数据",
+  "@dashboardNoData": {},
+  "dashboardTodayOverview": "今日牧场概览",
+  "@dashboardTodayOverview": {},
+  "dashboardFarmOverview": "牧场概览",
+  "@dashboardFarmOverview": {},
+  "dashboardNoFarm": "您还没有牧场",
+  "@dashboardNoFarm": {},
+  "dashboardCreateFirstFarmDesc": "创建您的第一个牧场，开始管理牲畜",
+  "@dashboardCreateFirstFarmDesc": {},
+  "dashboardCreateFirstFarm": "创建第一个牧场",
+  "@dashboardCreateFirstFarm": {}
 }

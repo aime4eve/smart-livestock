@@ -249,4 +249,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String ranchLivestockCountHead(String count) => '$count头';
+
+  @override
+  String get dashboardNoData => '暂无看板数据';
+
+  @override
+  String get dashboardTodayOverview => '今日牧场概览';
+
+  @override
+  String get dashboardFarmOverview => '牧场概览';
+
+  @override
+  String get dashboardNoFarm => '您还没有牧场';
+
+  @override
+  String get dashboardCreateFirstFarmDesc => '创建您的第一个牧场，开始管理牲畜';
+
+  @override
+  String get dashboardCreateFirstFarm => '创建第一个牧场';
 }

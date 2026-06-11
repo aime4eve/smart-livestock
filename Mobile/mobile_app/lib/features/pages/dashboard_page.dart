@@ -11,12 +11,14 @@ import 'package:smart_livestock_demo/features/dashboard/presentation/dashboard_c
 import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_stat_tile.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final farmState = ref.watch(farmSwitcherControllerProvider);
     final session = ref.watch(sessionControllerProvider);
 
@@ -45,13 +47,13 @@ class DashboardPage extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('加载失败: $e'),
+                  Text('${l10n.commonLoadFailed}: $e'),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => ref
                         .read(dashboardControllerProvider.notifier)
                         .refresh(),
-                    child: const Text('重试'),
+                    child: Text(l10n.commonRetry),
                   ),
                 ],
               ),
@@ -63,16 +65,17 @@ class DashboardPage extends ConsumerWidget {
   }
 
   Widget _buildContent(BuildContext context, DashboardViewData data) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const _DashboardFarmHeader(),
         const SizedBox(height: AppSpacing.lg),
         if (data.metrics.isEmpty)
-          const Center(
+          Center(
             child: Padding(
-              padding: EdgeInsets.all(32),
-              child: Text('暂无看板数据'),
+              padding: const EdgeInsets.all(32),
+              child: Text(l10n.dashboardNoData),
             ),
           )
         else
@@ -91,7 +94,7 @@ class DashboardPage extends ConsumerWidget {
                       key: Key(m.widgetKey),
                       title: m.title,
                       value: m.value,
-                      caption: '今日牧场概览',
+                      caption: l10n.dashboardTodayOverview,
                       trend: '+1.8%',
                       onTap: () => context.go(
                         AppRoute.livestockDetail.path
@@ -112,13 +115,14 @@ class _DashboardFarmHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final farmName = ref.watch(farmSwitcherControllerProvider).activeFarmName;
     return HighfiCard(
       key: const Key('dashboard-farm-header'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(farmName.isNotEmpty ? farmName : '牧场概览', style: Theme.of(context).textTheme.titleLarge),
+          Text(farmName.isNotEmpty ? farmName : l10n.dashboardFarmOverview, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: AppSpacing.sm),
           Text(
             '晴 18°C · 最近同步 2 分钟前',
@@ -135,6 +139,7 @@ class _EmptyFarmGuide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Card(
         margin: const EdgeInsets.all(AppSpacing.xl),
@@ -150,19 +155,19 @@ class _EmptyFarmGuide extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(
-                '您还没有牧场',
+                l10n.dashboardNoFarm,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
-                '创建您的第一个牧场，开始管理牲畜',
+                l10n.dashboardCreateFirstFarmDesc,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: AppSpacing.xl),
               ElevatedButton(
                 key: const Key('create-first-farm-btn'),
                 onPressed: () => context.go(AppRoute.farmCreation.path),
-                child: const Text('创建第一个牧场'),
+                child: Text(l10n.dashboardCreateFirstFarm),
               ),
             ],
           ),

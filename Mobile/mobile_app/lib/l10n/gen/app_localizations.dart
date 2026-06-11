@@ -469,6 +469,13 @@ abstract class AppLocalizations {
   String get ranchFenceActive;
   String get ranchFenceInactive;
   String ranchLivestockCountHead(String count);
+
+  String get dashboardNoData;
+  String get dashboardTodayOverview;
+  String get dashboardFarmOverview;
+  String get dashboardNoFarm;
+  String get dashboardCreateFirstFarmDesc;
+  String get dashboardCreateFirstFarm;
 }
 
 class _AppLocalizationsDelegate

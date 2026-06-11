@@ -166,5 +166,17 @@
   "ranchFenceInactive": "Inactive",
   "@ranchFenceInactive": {},
   "ranchLivestockCountHead": "{count} head",
-  "@ranchLivestockCountHead": {"placeholders": {"count": {"type": "String"}}}
+  "@ranchLivestockCountHead": {"placeholders": {"count": {"type": "String"}}},
+  "dashboardNoData": "No Dashboard Data",
+  "@dashboardNoData": {},
+  "dashboardTodayOverview": "Today's Ranch Overview",
+  "@dashboardTodayOverview": {},
+  "dashboardFarmOverview": "Ranch Overview",
+  "@dashboardFarmOverview": {},
+  "dashboardNoFarm": "No Ranch Yet",
+  "@dashboardNoFarm": {},
+  "dashboardCreateFirstFarmDesc": "Create your first ranch to start managing livestock",
+  "@dashboardCreateFirstFarmDesc": {},
+  "dashboardCreateFirstFarm": "Create First Ranch",
+  "@dashboardCreateFirstFarm": {}
 }
