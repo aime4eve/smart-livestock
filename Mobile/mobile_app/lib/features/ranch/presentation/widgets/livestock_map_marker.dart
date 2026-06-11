@@ -176,9 +176,8 @@ class _LivestockMarkerPainter extends CustomPainter {
 
   void _drawDashedCircle(Canvas canvas, Offset center, double radius) {
     const dashCount = 16;
-    final sweepAngle = 2 * pi / dashCount;
-    const dashFraction = 0.4;
-    final halfDash = sweepAngle * dashFraction;
+    const sweepAngle = 2 * pi / 16;
+    const halfDash = sweepAngle * 0.4;
 
     final paint = Paint()
       ..color = AppColors.fenceApproach

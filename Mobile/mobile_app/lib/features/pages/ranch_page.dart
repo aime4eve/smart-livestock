@@ -20,8 +20,7 @@ import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_contro
 import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_widget.dart';
 import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/ranch_controller.dart';
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/health_marker.dart';
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/alert_marker.dart';
+import 'package:smart_livestock_demo/features/ranch/presentation/widgets/livestock_map_marker.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/health_bottom_sheet.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/livestock_detail_sheet.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/fence_buffer_layer.dart';
@@ -117,13 +116,6 @@ class _RanchPageState extends ConsumerState<RanchPage>
       }
     }
 
-    final alertLivestockIds = <String>{};
-    for (final alert in overview.alerts) {
-      if (alert.status != 'HANDLED' && alert.status != 'ARCHIVED' && alert.livestockId != null) {
-        alertLivestockIds.add(alert.livestockId!);
-      }
-    }
-
     // Build fence status map per livestock (from active fence alerts)
     final fenceStatusMap = <String, String>{};
     for (final alert in overview.alerts) {
@@ -131,9 +123,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
       final type = alert.type;
       final existing = fenceStatusMap[alert.livestockId!];
       if (type == 'FENCE_BREACH') {
-        fenceStatusMap[alert.livestockId!] = 'BREACHED';
-      } else if ((type == 'FENCE_APPROACH' || type == 'ZONE_APPROACH') && existing != 'BREACHED') {
-        fenceStatusMap[alert.livestockId!] = 'APPROACHING';
+        fenceStatusMap[alert.livestockId!] = 'BREACH';
+      } else if ((type == 'FENCE_APPROACH' || type == 'ZONE_APPROACH') && existing != 'BREACH') {
+        fenceStatusMap[alert.livestockId!] = 'APPROACH';
       }
     }
 
@@ -210,34 +202,21 @@ class _RanchPageState extends ConsumerState<RanchPage>
                         selected: fence.id == _selectedFenceId,
                       ),
                     ),
-                // Livestock markers (non-alert)
+                // Livestock markers (unified)
                 for (final m in overview.livestockMarkers)
-                  if (!alertLivestockIds.contains(m.livestockId))
-                    Marker(
-                      point: m.toLatLng(),
-                      width: 32,
-                      height: 32,
-                      child: HealthMarker(
-                        key: Key('livestock-${m.livestockId}'),
-                        label: m.livestockCode,
-                        healthStatus: m.healthStatus,
-                        onTap: () => _showLivestockDetail(context, m, overview),
-                      ),
+                  Marker(
+                    point: m.toLatLng(),
+                    width: 32,
+                    height: 32,
+                    child: LivestockMapMarker(
+                      key: Key('livestock-${m.livestockId}'),
+                      livestockCode: m.livestockCode,
+                      healthStatus: m.healthStatus,
+                      primaryAlert: m.primaryAlert,
+                      fenceStatus: fenceStatusMap[m.livestockId] ?? m.fenceStatus,
+                      onTap: () => _showLivestockDetail(context, m, overview),
                     ),
-                // Alert markers (with pulsing)
-                for (final m in overview.livestockMarkers)
-                  if (alertLivestockIds.contains(m.livestockId))
-                    Marker(
-                      point: m.toLatLng(),
-                      width: 36,
-                      height: 36,
-                      child: AlertMarker(
-                        key: Key('alert-livestock-${m.livestockId}'),
-                        label: m.livestockCode,
-                        severity: _alertSeverityForLivestock(m.livestockId, overview),
-                        onTap: () => _showLivestockDetail(context, m, overview),
-                      ),
-                    ),
+                  ),
               ],
             ),
           ],
