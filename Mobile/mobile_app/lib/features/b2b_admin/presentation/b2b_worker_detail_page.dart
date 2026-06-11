@@ -53,6 +53,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
   }
 
   void _showEditFarmDialog(B2bSubFarm farm) {
+    final l10n = AppLocalizations.of(context)!;
     final nameCtrl = TextEditingController(text: farm.name);
     final latCtrl = TextEditingController(text: farm.latitude?.toStringAsFixed(6) ?? '');
     final lngCtrl = TextEditingController(text: farm.longitude?.toStringAsFixed(6) ?? '');
@@ -71,7 +72,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
               children: [
                 TextFormField(
                   controller: nameCtrl,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: l10n.farmCreationNameLabel,
                     isDense: true,
                     border: OutlineInputBorder(),
@@ -84,7 +85,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                     Expanded(
                       child: TextFormField(
                         controller: latCtrl,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: l10n.farmCreationLatLabel,
                           isDense: true,
                           border: OutlineInputBorder(),
@@ -96,7 +97,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                     Expanded(
                       child: TextFormField(
                         controller: lngCtrl,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: l10n.farmCreationLngLabel,
                           isDense: true,
                           border: OutlineInputBorder(),
@@ -109,7 +110,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: areaCtrl,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: l10n.farmCreationAreaLabel,
                     isDense: true,
                     border: OutlineInputBorder(),
@@ -295,6 +296,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
   }
 
   Widget _buildContent(BuildContext context, B2bSubFarm farm) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: _loadAll,
@@ -412,6 +414,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
   // ── Create Worker ─────────────────────────────────────────
 
   Future<void> _handleCreateWorker(B2bSubFarm farm) async {
+    final l10n = AppLocalizations.of(context)!;
     if (_busy) return;
 
     final nameCtrl = TextEditingController();
@@ -458,7 +461,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: passwordCtrl,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: l10n.authPasswordLabel,
                     isDense: true,
                     border: OutlineInputBorder(),
@@ -527,6 +530,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
   // ── Edit Worker ────────────────────────────────────────────
 
   Future<void> _handleEditWorker(B2bSubFarmWorker worker) async {
+    final l10n = AppLocalizations.of(context)!;
     final nameCtrl = TextEditingController(text: worker.name);
     final phoneCtrl = TextEditingController(text: worker.phone ?? '');
     final formKey = GlobalKey<FormState>();
@@ -624,6 +628,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
   }
 
   Future<void> _handleResetPassword(B2bSubFarmWorker worker) async {
+    final l10n = AppLocalizations.of(context)!;
     final passwordCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
@@ -637,7 +642,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
             key: formKey,
             child: TextFormField(
               controller: passwordCtrl,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: l10n.b2bWorkerNewPassword,
                 isDense: true,
                 border: OutlineInputBorder(),
@@ -693,6 +698,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
   // ── Assign / Remove ────────────────────────────────────────
 
   Future<void> _handleAssign(B2bSubFarm farm) async {
+    final l10n = AppLocalizations.of(context)!;
     if (_busy) return;
     setState(() => _busy = true);
 
@@ -705,7 +711,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     if (available.isEmpty) {
       setState(() => _busy = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(l10n.b2bWorkerAssignNone),
           backgroundColor: Color(0xFF607D8B),
         ),
@@ -768,7 +774,8 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
   }
 
   Future<void> _handleRemove(
-      B2bSubFarmWorker worker, B2bSubFarm farm) async {
+    B2bSubFarmWorker worker, B2bSubFarm farm) async {
+    final l10n = AppLocalizations.of(context)!;
     if (_busy) return;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -804,6 +811,7 @@ class _BreadcrumbBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
         IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back, size: 20), padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 32, minHeight: 32)),
