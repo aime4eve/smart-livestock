@@ -25,6 +25,7 @@ import 'package:smart_livestock_demo/features/ranch/presentation/widgets/alert_m
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/health_bottom_sheet.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/livestock_detail_sheet.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/fence_buffer_layer.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class RanchPage extends ConsumerStatefulWidget {
   const RanchPage({super.key});
@@ -80,6 +81,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(ranchControllerProvider);
     final farmName = ref.watch(farmSwitcherControllerProvider).activeFarmName;
     final role = ref.watch(sessionControllerProvider).role;
@@ -87,7 +89,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
     return Scaffold(
       key: const Key('page-ranch'),
       appBar: AppBar(
-        title: Text(farmName.isNotEmpty ? farmName : '牧场'),
+        title: Text(farmName.isNotEmpty ? farmName : l10n.navRanch),
         actions: const [
           FarmSwitcher(),
           SizedBox(width: AppSpacing.sm),
@@ -102,6 +104,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
   }
 
   Widget _buildMapWithSheet(BuildContext context, RanchOverview overview, dynamic role) {
+    final l10n = AppLocalizations.of(context)!;
     final canManage = role != null && RolePermission.canEditFence(role);
     final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
 
@@ -271,7 +274,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                           padding: const EdgeInsets.all(AppSpacing.md),
                           child: Row(
                             children: [
-                              Text('围栏列表', style: Theme.of(context).textTheme.titleMedium),
+                              Text(l10n.ranchFenceList, style: Theme.of(context).textTheme.titleMedium),
                               const Spacer(),
                               if (canManage)
                                 IconButton(
@@ -281,7 +284,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                                     });
                                   },
                                   icon: const Icon(Icons.add_circle_outline),
-                                  tooltip: '新建围栏',
+                                  tooltip: l10n.ranchNewFence,
                                 ),
                             ],
                           ),
@@ -296,7 +299,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
                                   child: Center(
                                     child: Text(
-                                      '暂无围栏',
+                                      l10n.ranchNoFence,
                                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                         color: AppColors.textSecondary,
                                       ),
@@ -343,7 +346,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                     key: const Key('ranch-fence-panel-toggle'),
                     heroTag: 'ranch-fence-panel-toggle',
                     onPressed: () => setState(() => _fencePanelOpen = !_fencePanelOpen),
-                    tooltip: _fencePanelOpen ? '收起围栏列表' : '围栏列表',
+                    tooltip: _fencePanelOpen ? l10n.ranchCollapseFenceList : l10n.ranchFenceList,
                     child: Icon(_fencePanelOpen ? Icons.chevron_left : Icons.menu),
                   ),
                 ),
@@ -359,7 +362,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                     heroTag: 'ranch-edit-fence',
                     onPressed: () => context.go(AppRoute.fence.path),
                     icon: const Icon(Icons.edit_location_alt_outlined),
-                    label: const Text('编辑边界'),
+                    label: Text(l10n.ranchEditBoundary),
                   ),
                 ),
 
@@ -427,19 +430,20 @@ class _RanchPageState extends ConsumerState<RanchPage>
   }
 
   Future<void> _showDeleteDialog(BuildContext context, RanchFenceData fence) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('确认删除'),
-        content: Text('确认删除「${fence.name}」？删除后无法恢复。'),
+        title: Text(l10n.commonConfirmDelete),
+        content: Text(l10n.ranchConfirmDeleteFence(fence.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('取消'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('删除', style: TextStyle(color: AppColors.danger)),
+            child: Text(l10n.commonDelete, style: const TextStyle(color: AppColors.danger)),
           ),
         ],
       ),
@@ -451,17 +455,18 @@ class _RanchPageState extends ConsumerState<RanchPage>
         ref.read(ranchControllerProvider.notifier).refresh();
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text('已删除「${fence.name}」')));
+          ..showSnackBar(SnackBar(content: Text(l10n.ranchFenceDeleted(fence.name))));
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text('删除失败: $e')));
+          ..showSnackBar(SnackBar(content: Text(l10n.commonDeleteFailed(e.toString()))));
       }
     }
   }
 
   Widget _buildError(BuildContext context, String error) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Card(
         margin: const EdgeInsets.all(AppSpacing.xl),
@@ -472,11 +477,11 @@ class _RanchPageState extends ConsumerState<RanchPage>
             children: [
               Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
               const SizedBox(height: AppSpacing.md),
-              Text('加载失败', style: Theme.of(context).textTheme.titleMedium),
+              Text(l10n.commonLoadFailed, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: AppSpacing.md),
               FilledButton(
                 onPressed: () => ref.read(ranchControllerProvider.notifier).refresh(),
-                child: const Text('重试'),
+                child: Text(l10n.commonRetry),
               ),
             ],
           ),
@@ -564,6 +569,7 @@ class _RanchFenceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       key: Key('ranch-fence-card-${fence.id}'),
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -606,7 +612,7 @@ class _RanchFenceCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            fence.active ? '启用' : '停用',
+                            fence.active ? l10n.ranchFenceActive : l10n.ranchFenceInactive,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: fence.active ? AppColors.success : AppColors.textSecondary,
                               fontSize: 11,
@@ -614,7 +620,7 @@ class _RanchFenceCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: AppSpacing.sm),
-                        Text('${fence.livestockCount}头',
+                        Text(l10n.ranchLivestockCountHead(fence.livestockCount.toString()),
                           style: Theme.of(context).textTheme.bodySmall),
                       ],
                     ),
@@ -625,12 +631,12 @@ class _RanchFenceCard extends StatelessWidget {
                 IconButton(
                   onPressed: onEdit,
                   icon: const Icon(Icons.edit_outlined, size: 20),
-                  tooltip: '编辑',
+                  tooltip: l10n.commonEdit,
                 ),
                 IconButton(
                   onPressed: onDelete,
                   icon: const Icon(Icons.delete_outline, size: 20),
-                  tooltip: '删除',
+                  tooltip: l10n.commonDelete,
                 ),
               ],
             ],

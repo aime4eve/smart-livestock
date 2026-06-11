@@ -207,4 +207,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get subscriptionTierEnterprise => 'Enterprise';
+
+  @override
+  String get commonLoadFailed => 'Loading Failed';
+
+  @override
+  String commonDeleteFailed(String error) => 'Delete failed: $error';
+
+  @override
+  String get commonConfirmDelete => 'Confirm Delete';
+
+  @override
+  String get commonConfirmLogout => 'Confirm Logout';
+
+  @override
+  String get commonConfirmLogoutMessage => 'Are you sure you want to log out?';
+
+  @override
+  String get ranchFenceList => 'Fence List';
+
+  @override
+  String get ranchNewFence => 'New Fence';
+
+  @override
+  String get ranchNoFence => 'No Fences';
+
+  @override
+  String get ranchCollapseFenceList => 'Collapse Fence List';
+
+  @override
+  String get ranchEditBoundary => 'Edit Boundary';
+
+  @override
+  String ranchFenceDeleted(String name) => 'Deleted "$name"';
+
+  @override
+  String ranchConfirmDeleteFence(String name) =>
+      'Confirm delete "$name"? This cannot be undone.';
+
+  @override
+  String get ranchFenceActive => 'Active';
+
+  @override
+  String get ranchFenceInactive => 'Inactive';
+
+  @override
+  String ranchLivestockCountHead(String count) => '$count head';
 }

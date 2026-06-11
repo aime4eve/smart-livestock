@@ -204,4 +204,49 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get subscriptionTierEnterprise => '企业版';
+
+  @override
+  String get commonLoadFailed => '加载失败';
+
+  @override
+  String commonDeleteFailed(String error) => '删除失败: $error';
+
+  @override
+  String get commonConfirmDelete => '确认删除';
+
+  @override
+  String get commonConfirmLogout => '确认退出';
+
+  @override
+  String get commonConfirmLogoutMessage => '确定要退出登录吗？';
+
+  @override
+  String get ranchFenceList => '围栏列表';
+
+  @override
+  String get ranchNewFence => '新建围栏';
+
+  @override
+  String get ranchNoFence => '暂无围栏';
+
+  @override
+  String get ranchCollapseFenceList => '收起围栏列表';
+
+  @override
+  String get ranchEditBoundary => '编辑边界';
+
+  @override
+  String ranchFenceDeleted(String name) => '已删除「$name」';
+
+  @override
+  String ranchConfirmDeleteFence(String name) => '确认删除「$name」？删除后无法恢复。';
+
+  @override
+  String get ranchFenceActive => '启用';
+
+  @override
+  String get ranchFenceInactive => '停用';
+
+  @override
+  String ranchLivestockCountHead(String count) => '$count头';
 }

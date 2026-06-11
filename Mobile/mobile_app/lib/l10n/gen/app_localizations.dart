@@ -453,6 +453,22 @@ abstract class AppLocalizations {
   String get subscriptionTierStandard;
   String get subscriptionTierPremium;
   String get subscriptionTierEnterprise;
+
+  String get commonLoadFailed;
+  String commonDeleteFailed(String error);
+  String get commonConfirmDelete;
+  String get commonConfirmLogout;
+  String get commonConfirmLogoutMessage;
+  String get ranchFenceList;
+  String get ranchNewFence;
+  String get ranchNoFence;
+  String get ranchCollapseFenceList;
+  String get ranchEditBoundary;
+  String ranchFenceDeleted(String name);
+  String ranchConfirmDeleteFence(String name);
+  String get ranchFenceActive;
+  String get ranchFenceInactive;
+  String ranchLivestockCountHead(String count);
 }
 
 class _AppLocalizationsDelegate
