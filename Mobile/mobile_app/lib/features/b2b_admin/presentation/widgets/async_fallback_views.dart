@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class B2bErrorView extends StatelessWidget {
   const B2bErrorView({super.key, required this.message});
@@ -7,6 +8,7 @@ class B2bErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return Center(
       child: Column(
@@ -14,7 +16,7 @@ class B2bErrorView extends StatelessWidget {
         children: [
           Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
           const SizedBox(height: AppSpacing.md),
-          Text('加载失败',
+          Text(l10n.commonLoadFailed,
               style: theme.textTheme.titleMedium
                   ?.copyWith(color: theme.colorScheme.error)),
           if (message.isNotEmpty)
@@ -33,6 +35,7 @@ class B2bEmptyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return Center(
       child: Column(
@@ -40,7 +43,7 @@ class B2bEmptyView extends StatelessWidget {
         children: [
           Icon(Icons.inbox_outlined, size: 48, color: theme.disabledColor),
           const SizedBox(height: AppSpacing.md),
-          Text('暂无数据', style: theme.textTheme.titleMedium),
+          Text(l10n.commonNoData, style: theme.textTheme.titleMedium),
         ],
       ),
     );

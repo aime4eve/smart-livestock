@@ -6,6 +6,7 @@ import 'package:smart_livestock_demo/features/admin/analytics/domain/analytics_m
 import 'package:smart_livestock_demo/features/admin/analytics/presentation/analytics_controller.dart';
 import 'package:smart_livestock_demo/features/stats/domain/stats_repository.dart';
 import 'package:smart_livestock_demo/features/stats/presentation/widgets/trend_chart.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class AnalyticsPage extends ConsumerStatefulWidget {
   const AnalyticsPage({super.key});
@@ -22,9 +23,10 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(analyticsControllerProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('用量分析')),
+      appBar: AppBar(title: Text(l10n.analyticsTitle)),
       body: asyncData.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
@@ -38,7 +40,7 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
               ElevatedButton.icon(
                 onPressed: () => ref.read(analyticsControllerProvider.notifier).refresh(_from, _to),
                 icon: const Icon(Icons.refresh),
-                label: const Text('重试'),
+                label: Text(l10n.commonRetry),
               ),
             ],
           ),
@@ -72,6 +74,7 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
   }
 
   Widget _buildDateSelector(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -84,7 +87,7 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
             TextButton.icon(
               onPressed: _pickDateRange,
               icon: const Icon(Icons.edit_calendar, size: 18),
-              label: const Text('选择范围'),
+              label: Text(l10n.analyticsSelectRange),
             ),
           ],
         ),

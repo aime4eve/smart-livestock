@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class B2bAlertBottomSheet extends StatelessWidget {
   const B2bAlertBottomSheet({
@@ -27,6 +28,7 @@ class B2bAlertBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
@@ -36,8 +38,8 @@ class B2bAlertBottomSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('告警摘要', style: Theme.of(context).textTheme.titleMedium),
-              Text('共 $totalCount 条', style: Theme.of(context).textTheme.bodySmall),
+              Text(l10n.alertSummaryTitle, style: Theme.of(context).textTheme.titleMedium),
+              Text(l10n.alertSummaryCount(totalCount.toString()), style: Theme.of(context).textTheme.bodySmall),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -58,9 +60,9 @@ class B2bAlertBottomSheet extends StatelessWidget {
             ),
           )),
           if (alerts.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(child: Text('暂无告警')),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: Text(l10n.alertsNoAlerts)),
             ),
         ],
       ),

@@ -8,6 +8,7 @@ import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/subscription/presentation/subscription_controller.dart';
 import 'package:smart_livestock_demo/features/subscription/presentation/widgets/feature_comparison_table.dart';
 import 'package:smart_livestock_demo/features/subscription/presentation/widgets/tier_card.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class SubscriptionPlanPage extends ConsumerWidget {
   const SubscriptionPlanPage({super.key});
@@ -21,12 +22,13 @@ class SubscriptionPlanPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncStatus = ref.watch(subscriptionControllerProvider);
 
     return Scaffold(
       key: const Key('subscription-plan-page'),
       appBar: AppBar(
-        title: const Text('选择套餐'),
+        title: Text(l10n.planTitle),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.surfaceAlt,
       ),

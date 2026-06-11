@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/subscription/presentation/subscription_controller.dart';
 
@@ -59,13 +60,14 @@ class _SubscriptionCheckoutPageState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final tierInfo = SubscriptionTierInfo.all[widget.tier]!;
     final theme = Theme.of(context);
 
     return Scaffold(
       key: const Key('subscription-checkout-page'),
       appBar: AppBar(
-        title: const Text('确认支付'),
+        title: Text(l10n.checkoutTitle),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.surfaceAlt,
       ),
@@ -142,10 +144,10 @@ class _SubscriptionCheckoutPageState
               key: const Key('livestock-count-input'),
               controller: _countController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                suffixText: '头',
-                hintText: '请输入牲畜数量',
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                suffixText: l10n.checkoutHeadUnit,
+                hintText: l10n.checkoutLivestockCount,
               ),
               onChanged: (value) {
                 final parsed = int.tryParse(value);
