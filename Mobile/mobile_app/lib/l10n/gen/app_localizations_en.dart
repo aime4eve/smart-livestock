@@ -272,4 +272,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardCreateFirstFarm => 'Create First Ranch';
+
+  @override
+  String get twinRealtimeOverview => 'Real-time Ranch Overview';
+
+  @override
+  String get twinHealthScenarios => 'Health Scenarios';
+
+  @override
+  String get twinPendingTasks => 'Pending Tasks';
 }

@@ -476,6 +476,10 @@ abstract class AppLocalizations {
   String get dashboardNoFarm;
   String get dashboardCreateFirstFarmDesc;
   String get dashboardCreateFirstFarm;
+
+  String get twinRealtimeOverview;
+  String get twinHealthScenarios;
+  String get twinPendingTasks;
 }
 
 class _AppLocalizationsDelegate

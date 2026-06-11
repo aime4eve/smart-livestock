@@ -178,5 +178,11 @@
   "dashboardCreateFirstFarmDesc": "创建您的第一个牧场，开始管理牲畜",
   "@dashboardCreateFirstFarmDesc": {},
   "dashboardCreateFirstFarm": "创建第一个牧场",
-  "@dashboardCreateFirstFarm": {}
+  "@dashboardCreateFirstFarm": {},
+  "twinRealtimeOverview": "牧场实时概览",
+  "@twinRealtimeOverview": {},
+  "twinHealthScenarios": "健康场景",
+  "@twinHealthScenarios": {},
+  "twinPendingTasks": "待处理任务",
+  "@twinPendingTasks": {}
 }

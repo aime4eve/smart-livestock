@@ -7,12 +7,14 @@ import 'package:smart_livestock_demo/core/models/twin_models.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/twin_overview/presentation/twin_overview_controller.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class TwinOverviewPage extends ConsumerWidget {
   const TwinOverviewPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(twinOverviewControllerProvider);
     final theme = Theme.of(context);
 
@@ -22,9 +24,9 @@ class TwinOverviewPage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('数智孪生', style: theme.textTheme.headlineSmall),
+          Text(l10n.navTwin, style: theme.textTheme.headlineSmall),
           const SizedBox(height: AppSpacing.sm),
-          Text('牧场实时概览', style: theme.textTheme.bodySmall),
+          Text(l10n.twinRealtimeOverview, style: theme.textTheme.bodySmall),
           const SizedBox(height: AppSpacing.lg),
           asyncData.when(
             data: (data) => _buildContent(context, ref, data),
@@ -38,19 +40,20 @@ class TwinOverviewPage extends ConsumerWidget {
 
   Widget _buildContent(
       BuildContext context, WidgetRef ref, HealthOverviewResponse data) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (data.stats != null) _buildStats(context, data.stats!),
         const SizedBox(height: AppSpacing.xl),
         if (data.sceneSummary != null) ...[
-          Text('健康场景', style: Theme.of(context).textTheme.titleMedium),
+          Text(l10n.twinHealthScenarios, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: AppSpacing.md),
           _buildSceneCards(context, data.sceneSummary!),
         ],
         if (data.pendingTasks.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.xl),
-          Text('待处理任务', style: Theme.of(context).textTheme.titleMedium),
+          Text(l10n.twinPendingTasks, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: AppSpacing.md),
           _buildPendingTasks(context, data.pendingTasks),
         ],
@@ -184,6 +187,7 @@ class TwinOverviewPage extends ConsumerWidget {
   }
 
   Widget _buildError(BuildContext context, WidgetRef ref, String error) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -193,12 +197,12 @@ class TwinOverviewPage extends ConsumerWidget {
             Icon(Icons.error_outline,
                 size: 48, color: Theme.of(context).colorScheme.error),
             const SizedBox(height: AppSpacing.md),
-            Text('加载失败', style: Theme.of(context).textTheme.titleMedium),
+            Text(l10n.commonLoadFailed, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: AppSpacing.md),
             FilledButton(
               onPressed: () =>
                   ref.read(twinOverviewControllerProvider.notifier).refresh(),
-              child: const Text('重试'),
+              child: Text(l10n.commonRetry),
             ),
           ],
         ),

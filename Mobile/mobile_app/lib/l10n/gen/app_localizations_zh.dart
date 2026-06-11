@@ -267,4 +267,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dashboardCreateFirstFarm => '创建第一个牧场';
+
+  @override
+  String get twinRealtimeOverview => '牧场实时概览';
+
+  @override
+  String get twinHealthScenarios => '健康场景';
+
+  @override
+  String get twinPendingTasks => '待处理任务';
 }

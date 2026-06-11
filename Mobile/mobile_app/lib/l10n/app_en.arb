@@ -178,5 +178,11 @@
   "dashboardCreateFirstFarmDesc": "Create your first ranch to start managing livestock",
   "@dashboardCreateFirstFarmDesc": {},
   "dashboardCreateFirstFarm": "Create First Ranch",
-  "@dashboardCreateFirstFarm": {}
+  "@dashboardCreateFirstFarm": {},
+  "twinRealtimeOverview": "Real-time Ranch Overview",
+  "@twinRealtimeOverview": {},
+  "twinHealthScenarios": "Health Scenarios",
+  "@twinHealthScenarios": {},
+  "twinPendingTasks": "Pending Tasks",
+  "@twinPendingTasks": {}
 }
