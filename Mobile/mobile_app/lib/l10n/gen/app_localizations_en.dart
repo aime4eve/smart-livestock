@@ -1,0 +1,210 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for English (`en`).
+class AppLocalizationsEn extends AppLocalizations {
+  AppLocalizationsEn([String locale = 'en']) : super(locale);
+
+  @override
+  String get commonConfirm => 'Confirm';
+
+  @override
+  String get commonCancel => 'Cancel';
+
+  @override
+  String get commonSave => 'Save';
+
+  @override
+  String get commonDelete => 'Delete';
+
+  @override
+  String get commonEdit => 'Edit';
+
+  @override
+  String get commonBack => 'Back';
+
+  @override
+  String get commonLoading => 'Loading...';
+
+  @override
+  String get commonRetry => 'Retry';
+
+  @override
+  String get commonError => 'Error';
+
+  @override
+  String get commonSuccess => 'Success';
+
+  @override
+  String get commonSearch => 'Search';
+
+  @override
+  String get commonLogout => 'Log Out';
+
+  @override
+  String get commonSubmit => 'Submit';
+
+  @override
+  String get commonClose => 'Close';
+
+  @override
+  String get commonAll => 'All';
+
+  @override
+  String get commonNone => 'None';
+
+  @override
+  String get commonUnknown => 'Unknown';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get settingsLanguageZh => '中文';
+
+  @override
+  String get settingsLanguageEn => 'English';
+
+  @override
+  String get settingsLanguageSystem => 'System';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get errorAuthFailed => 'Authentication failed';
+
+  @override
+  String get errorServer => 'Server error';
+
+  @override
+  String get errorTenantDisabled => 'Tenant disabled';
+
+  @override
+  String get errorLoginFailed => 'Login failed';
+
+  @override
+  String get errorLoginCheckInput =>
+      'Login failed, please check your phone and password';
+
+  @override
+  String get navLogin => 'Login';
+
+  @override
+  String get navRanch => 'Ranch';
+
+  @override
+  String get navTwin => 'Digital Twin';
+
+  @override
+  String get navAlerts => 'Alerts';
+
+  @override
+  String get navMine => 'Profile';
+
+  @override
+  String get navFence => 'Geofence';
+
+  @override
+  String get navAdmin => 'Admin';
+
+  @override
+  String get navOverview => 'Overview';
+
+  @override
+  String get navFarmManagement => 'Farms';
+
+  @override
+  String get navContractInfo => 'Contracts';
+
+  @override
+  String get navRevenue => 'Revenue';
+
+  @override
+  String get platformAdminTitle => 'Platform Admin';
+
+  @override
+  String get farmEmptyGuidance =>
+      'No farm assigned yet. Please contact your administrator.';
+
+  @override
+  String get authAppTitle => 'Smart Livestock';
+
+  @override
+  String get authSubtitle => 'Intelligent Livestock Management';
+
+  @override
+  String get authPhoneLabel => 'Phone';
+
+  @override
+  String get authPhoneHint => 'Enter phone number';
+
+  @override
+  String get authPasswordLabel => 'Password';
+
+  @override
+  String get authPasswordHint => 'Enter password';
+
+  @override
+  String get authLoginButton => 'Log In';
+
+  @override
+  String authLoginFailed(String error) {
+    return 'Login failed: $error';
+  }
+
+  @override
+  String get deviceStatusOnline => 'Online';
+
+  @override
+  String get deviceStatusOffline => 'Offline';
+
+  @override
+  String get deviceStatusLowBattery => 'Low Battery';
+
+  @override
+  String get livestockHealthHealthy => 'Healthy';
+
+  @override
+  String get livestockHealthWatch => 'Watch';
+
+  @override
+  String get livestockHealthAbnormal => 'Abnormal';
+
+  @override
+  String get authLoginFormTitle => 'Account Login';
+
+  @override
+  String get authOnlineMode => 'Online Mode';
+
+  @override
+  String get authPhoneInvalid => 'Enter a valid 11-digit phone number';
+
+  @override
+  String get authLoginDescription =>
+      'Sign in to manage your livestock, fences, and alerts.';
+
+  @override
+  String get deviceTypeGps => 'GPS Tracker';
+
+  @override
+  String get deviceTypeRumenCapsule => 'Rumen Capsule';
+
+  @override
+  String get deviceTypeAccelerometer => 'Accelerometer';
+
+  @override
+  String get subscriptionTierBasic => 'Basic';
+
+  @override
+  String get subscriptionTierStandard => 'Standard';
+
+  @override
+  String get subscriptionTierPremium => 'Premium';
+
+  @override
+  String get subscriptionTierEnterprise => 'Enterprise';
+}
