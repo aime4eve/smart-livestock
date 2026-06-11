@@ -401,4 +401,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fencePleaseSelectFarm => 'Please select a farm first';
+
+  @override
+  String get alertsNoAlerts => 'No Alerts';
+
+  @override
+  String get alertsNoAlertsDesc => 'No active P0 alerts.';
+
+  @override
+  String get alertsConfirm => 'Acknowledge';
+
+  @override
+  String get alertsHandle => 'Handle';
+
+  @override
+  String get alertsArchive => 'Archive';
+
+  @override
+  String get alertsBatchHandle => 'Batch Handle';
+
+  @override
+  String get alertsBatchDemo => 'Demo: Batch processing coming soon';
 }

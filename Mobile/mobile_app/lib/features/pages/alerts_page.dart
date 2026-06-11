@@ -9,6 +9,7 @@ import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_empty_error_state.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class AlertsPage extends ConsumerWidget {
   const AlertsPage({super.key, required this.role});
@@ -17,6 +18,7 @@ class AlertsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(alertsControllerProvider);
     final controller = ref.read(alertsControllerProvider.notifier);
 
@@ -38,11 +40,11 @@ class AlertsPage extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('加载失败: $e'),
+                  Text('${l10n.commonLoadFailed}: $e'),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => controller.refresh(),
-                    child: const Text('重试'),
+                    child: Text(l10n.commonRetry),
                   ),
                 ],
               ),
@@ -58,10 +60,11 @@ class AlertsPage extends ConsumerWidget {
     AlertsListData data,
     AlertsController controller,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     if (data.items.isEmpty) {
-      return const HighfiEmptyErrorState(
-        title: '暂无告警',
-        description: '当前没有触发中的 P0 告警。',
+      return HighfiEmptyErrorState(
+        title: l10n.alertsNoAlerts,
+        description: l10n.alertsNoAlertsDesc,
         icon: Icons.notifications_off_outlined,
       );
     }
@@ -157,21 +160,21 @@ class AlertsPage extends ConsumerWidget {
                     TextButton(
                       key: const Key('alert-confirm'),
                       onPressed: () => controller.acknowledge(firstItem.id),
-                      child: const Text('确认'),
+                      child: Text(l10n.alertsConfirm),
                     ),
                   if (RolePermission.canHandleAlert(role) &&
                       firstItem.stage == AlertStage.active.name)
                     TextButton(
                       key: const Key('alert-handle'),
                       onPressed: () => controller.handle(firstItem.id),
-                      child: const Text('处理'),
+                      child: Text(l10n.alertsHandle),
                     ),
                   if (RolePermission.canArchiveAlert(role) &&
                       firstItem.stage == AlertStage.dismissed.name)
                     TextButton(
                       key: const Key('alert-archive'),
                       onPressed: () => controller.archive(firstItem.id),
-                      child: const Text('归档'),
+                      child: Text(l10n.alertsArchive),
                     ),
                   if (RolePermission.canBatchAlerts(role) &&
                       firstItem.stage != AlertStage.autoResolved.name)
@@ -182,10 +185,10 @@ class AlertsPage extends ConsumerWidget {
                         messenger
                           ..hideCurrentSnackBar()
                           ..showSnackBar(
-                            const SnackBar(content: Text('演示：批量处理待接入')),
+                            SnackBar(content: Text(l10n.alertsBatchDemo)),
                           );
                       },
-                      child: const Text('批量处理'),
+                      child: Text(l10n.alertsBatchHandle),
                     ),
                 ],
               ),

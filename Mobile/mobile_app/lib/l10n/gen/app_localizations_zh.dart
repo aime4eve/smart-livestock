@@ -390,4 +390,25 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get fencePleaseSelectFarm => '请先选择一个牧场';
+
+  @override
+  String get alertsNoAlerts => '暂无告警';
+
+  @override
+  String get alertsNoAlertsDesc => '当前没有触发中的 P0 告警。';
+
+  @override
+  String get alertsConfirm => '确认';
+
+  @override
+  String get alertsHandle => '处理';
+
+  @override
+  String get alertsArchive => '归档';
+
+  @override
+  String get alertsBatchHandle => '批量处理';
+
+  @override
+  String get alertsBatchDemo => '演示：批量处理待接入';
 }

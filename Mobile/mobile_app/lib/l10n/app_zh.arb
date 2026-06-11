@@ -260,5 +260,19 @@
   "statsHealthDistribution": "健康分布",
   "@statsHealthDistribution": {},
   "fencePleaseSelectFarm": "请先选择一个牧场",
-  "@fencePleaseSelectFarm": {}
+  "@fencePleaseSelectFarm": {},
+  "alertsNoAlerts": "暂无告警",
+  "@alertsNoAlerts": {},
+  "alertsNoAlertsDesc": "当前没有触发中的 P0 告警。",
+  "@alertsNoAlertsDesc": {},
+  "alertsConfirm": "确认",
+  "@alertsConfirm": {},
+  "alertsHandle": "处理",
+  "@alertsHandle": {},
+  "alertsArchive": "归档",
+  "@alertsArchive": {},
+  "alertsBatchHandle": "批量处理",
+  "@alertsBatchHandle": {},
+  "alertsBatchDemo": "演示：批量处理待接入",
+  "@alertsBatchDemo": {}
 }

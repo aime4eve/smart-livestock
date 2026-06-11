@@ -521,6 +521,14 @@ abstract class AppLocalizations {
   String get statsHealthDistribution;
 
   String get fencePleaseSelectFarm;
+
+  String get alertsNoAlerts;
+  String get alertsNoAlertsDesc;
+  String get alertsConfirm;
+  String get alertsHandle;
+  String get alertsArchive;
+  String get alertsBatchHandle;
+  String get alertsBatchDemo;
 }
 
 class _AppLocalizationsDelegate

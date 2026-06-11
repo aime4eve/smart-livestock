@@ -260,5 +260,19 @@
   "statsHealthDistribution": "Health Distribution",
   "@statsHealthDistribution": {},
   "fencePleaseSelectFarm": "Please select a farm first",
-  "@fencePleaseSelectFarm": {}
+  "@fencePleaseSelectFarm": {},
+  "alertsNoAlerts": "No Alerts",
+  "@alertsNoAlerts": {},
+  "alertsNoAlertsDesc": "No active P0 alerts.",
+  "@alertsNoAlertsDesc": {},
+  "alertsConfirm": "Acknowledge",
+  "@alertsConfirm": {},
+  "alertsHandle": "Handle",
+  "@alertsHandle": {},
+  "alertsArchive": "Archive",
+  "@alertsArchive": {},
+  "alertsBatchHandle": "Batch Handle",
+  "@alertsBatchHandle": {},
+  "alertsBatchDemo": "Demo: Batch processing coming soon",
+  "@alertsBatchDemo": {}
 }
