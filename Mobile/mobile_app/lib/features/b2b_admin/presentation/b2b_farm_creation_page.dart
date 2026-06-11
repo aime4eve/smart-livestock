@@ -236,9 +236,9 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
                     Expanded(
                       child: TextFormField(
                         controller: _latCtrl,
-                        decoration: const InputDecoration(
-                          labelText: '纬度 (WGS-84)',
-                          hintText: '选区域后自动填充',
+                        decoration: InputDecoration(
+                          labelText: l10n.farmCreationLatLabel,
+                          hintText: l10n.farmCreationLatHint,
                           isDense: true,
                           border: OutlineInputBorder(),
                           prefixIcon:
@@ -253,9 +253,9 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
                     Expanded(
                       child: TextFormField(
                         controller: _lngCtrl,
-                        decoration: const InputDecoration(
-                          labelText: '经度 (WGS-84)',
-                          hintText: '选区域后自动填充',
+                        decoration: InputDecoration(
+                          labelText: l10n.farmCreationLngLabel,
+                          hintText: l10n.farmCreationLngHint,
                           isDense: true,
                           border: OutlineInputBorder(),
                           prefixIcon:
@@ -275,9 +275,9 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
                 const SizedBox(height: AppSpacing.sm),
                 TextFormField(
                   controller: _nameCtrl,
-                  decoration: const InputDecoration(
-                    labelText: '牧场名称 *',
-                    hintText: '请输入牧场名称',
+                  decoration: InputDecoration(
+                    labelText: l10n.farmCreationNameLabel,
+                    hintText: l10n.farmCreationNameHint,
                     isDense: true,
                     border: OutlineInputBorder(),
                   ),
@@ -286,9 +286,9 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
                 ownerUsers.when(
                   data: (users) =>
                       DropdownButtonFormField<B2bUserSummary?>(
-                    decoration: const InputDecoration(
-                      labelText: '负责人',
-                      hintText: '选择 owner（可选）',
+                    decoration: InputDecoration(
+                      labelText: l10n.farmCreationOwnerLabel,
+                      hintText: l10n.farmCreationOwnerHint,
                       isDense: true,
                       border: OutlineInputBorder(),
                     ),
@@ -312,9 +312,9 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _areaCtrl,
-                  decoration: const InputDecoration(
-                    labelText: '面积（公顷）',
-                    hintText: '选填',
+                  decoration: InputDecoration(
+                    labelText: l10n.farmCreationAreaLabel,
+                    hintText: l10n.farmCreationAreaHint,
                     isDense: true,
                     border: OutlineInputBorder(),
                   ),
@@ -358,11 +358,12 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
   }
 
   Widget _regionDropdown(List<_TileRegion> regions, ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return DropdownButtonFormField<_TileRegion>(
       key: const Key('farm-creation-region-select'),
-      decoration: const InputDecoration(
-        labelText: '瓦片区域',
-        hintText: '选择离线瓦片区域',
+      decoration: InputDecoration(
+        labelText: l10n.farmCreationTileLabel,
+        hintText: l10n.farmCreationTileHint,
         border: OutlineInputBorder(),
         prefixIcon: Icon(Icons.map_outlined, size: 20),
       ),
