@@ -480,6 +480,33 @@ abstract class AppLocalizations {
   String get twinRealtimeOverview;
   String get twinHealthScenarios;
   String get twinPendingTasks;
+
+  String get mineAccountNormal;
+  String get mineAccountDisabled;
+  String mineProfileName(String name);
+  String mineProfilePhone(String phone);
+  String mineProfileRole(String role);
+  String get minePersonalDevices;
+  String get mineDeviceManagementDesc;
+  String get mineOfflineMapDesc;
+  String get mineHelpSupportDesc;
+  String get mineHelpSupportComingSoon;
+  String get mineBusinessManagement;
+  String get mineSubscriptionManagementDesc;
+  String get mineRevenueBoardDesc;
+  String get mineSubscriptionServiceDesc;
+  String get mineAdvancedManagement;
+  String get mineWorkerManagementDesc;
+  String get mineApiAuthManagementDesc;
+  String get mineDevicesTitle;
+  String get mineOfflineMapTitle;
+  String get mineHelpSupportTitle;
+  String get mineSubscriptionTitle;
+  String get mineRevenueBoardTitle;
+  String get mineSubscriptionServiceTitle;
+  String get mineWorkerTitle;
+  String get mineApiAuthTitle;
+  String get commonLogoutButton;
 }
 
 class _AppLocalizationsDelegate

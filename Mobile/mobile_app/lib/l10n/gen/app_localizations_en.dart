@@ -281,4 +281,88 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get twinPendingTasks => 'Pending Tasks';
+
+  @override
+  String get mineAccountNormal => 'Account Normal';
+
+  @override
+  String get mineAccountDisabled => 'Account Disabled';
+
+  @override
+  String mineProfileName(String name) => 'Name: $name';
+
+  @override
+  String mineProfilePhone(String phone) => 'Phone: $phone';
+
+  @override
+  String mineProfileRole(String role) => 'Role: $role';
+
+  @override
+  String get minePersonalDevices => 'Personal Devices & Tools';
+
+  @override
+  String get mineDeviceManagementDesc => 'View and manage bound IoT devices';
+
+  @override
+  String get mineOfflineMapDesc => 'Download and manage offline tile data';
+
+  @override
+  String get mineHelpSupportDesc =>
+      'Device binding guide, help docs, and customer support';
+
+  @override
+  String get mineHelpSupportComingSoon => 'Help & Support page coming soon...';
+
+  @override
+  String get mineBusinessManagement => 'Business Management';
+
+  @override
+  String get mineSubscriptionManagementDesc =>
+      'View and upgrade subscription plans';
+
+  @override
+  String get mineRevenueBoardDesc =>
+      'View revenue sharing statements by period';
+
+  @override
+  String get mineSubscriptionServiceDesc =>
+      'Manage subscription plans and business services';
+
+  @override
+  String get mineAdvancedManagement => 'Advanced Management';
+
+  @override
+  String get mineWorkerManagementDesc =>
+      'View and remove ranchers in current ranch';
+
+  @override
+  String get mineApiAuthManagementDesc =>
+      'Manage API Keys and third-party access authorization';
+
+  @override
+  String get mineDevicesTitle => 'Devices';
+
+  @override
+  String get mineOfflineMapTitle => 'Offline Map Management';
+
+  @override
+  String get mineHelpSupportTitle => 'Help & Support';
+
+  @override
+  String get mineSubscriptionTitle => 'Subscription Management';
+
+  @override
+  String get mineRevenueBoardTitle => 'Revenue Board';
+
+  @override
+  String get mineSubscriptionServiceTitle => 'Subscription Service Management';
+
+  @override
+  String get mineWorkerTitle => 'Worker Management';
+
+  @override
+  String get mineApiAuthTitle => 'API Authorization';
+
+  @override
+  String get commonLogoutButton => 'Exit';
 }

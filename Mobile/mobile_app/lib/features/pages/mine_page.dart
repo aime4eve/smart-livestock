@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:smart_livestock_demo/core/l10n/locale_controller.dart';
 import 'package:smart_livestock_demo/core/models/user_role.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
@@ -16,6 +18,7 @@ class MinePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncProfile = ref.watch(mineControllerProvider);
     final role = ref.watch(sessionControllerProvider).role;
     
@@ -28,7 +31,7 @@ class MinePage extends ConsumerWidget {
           asyncProfile.when(
             data: (profile) => _buildProfileSection(profile, context),
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('加载失败: $e')),
+            error: (e, _) => Center(child: Text('${l10n.commonLoadFailed}: $e')),
           ),
           
           if (role == UserRole.owner) ...[
@@ -46,6 +49,10 @@ class MinePage extends ConsumerWidget {
           
           const SizedBox(height: AppSpacing.xl),
           
+          // 设置
+          _buildSettingsSection(context, ref),
+          const SizedBox(height: AppSpacing.xl),
+          
           // 退出登录
           _buildLogoutSection(context, ref),
         ],
@@ -54,6 +61,7 @@ class MinePage extends ConsumerWidget {
   }
 
   Widget _buildProfileSection(profile, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -64,11 +72,11 @@ class MinePage extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  Text('我的',
+                  Text(l10n.navMine,
                       style: Theme.of(context).textTheme.titleLarge),
                   const Spacer(),
                   HighfiStatusChip(
-                    label: profile.active == true ? '账户正常' : '账户已停用',
+                    label: profile.active == true ? l10n.mineAccountNormal : l10n.mineAccountDisabled,
                     color: profile.active == true ? AppColors.success : AppColors.danger,
                     icon: Icons.verified_user_outlined,
                   ),
@@ -76,16 +84,16 @@ class MinePage extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.md),
               if (profile.displayName != null)
-                Text('姓名：${profile.displayName!}',
+                Text(l10n.mineProfileName(profile.displayName!),
                     style: Theme.of(context).textTheme.bodyMedium),
               if (profile.phone != null) ...[
                 const SizedBox(height: AppSpacing.xs),
-                Text('手机号：${profile.phone!}',
+                Text(l10n.mineProfilePhone(profile.phone!),
                     style: Theme.of(context).textTheme.bodyMedium),
               ],
               if (profile.role != null) ...[
                 const SizedBox(height: AppSpacing.xs),
-                Text('角色：${profile.role!}',
+                Text(l10n.mineProfileRole(profile.role!),
                     style: Theme.of(context).textTheme.bodyMedium),
               ],
             ],
@@ -93,9 +101,9 @@ class MinePage extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.lg),
         
-        // 个人设备和工具
+        // Personal devices & tools
         Text(
-          '个人设备与工具',
+          l10n.minePersonalDevices,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: AppSpacing.md),
@@ -105,38 +113,38 @@ class MinePage extends ConsumerWidget {
             key: const Key('mine-device-mgmt'),
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.devices),
-            title: const Text('设备管理'),
-            subtitle: const Text('查看和管理绑定的 IoT 设备'),
+            title: Text(l10n.mineDevicesTitle),
+            subtitle: Text(l10n.mineDeviceManagementDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRoute.devices.path),
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        
+
         HighfiCard(
           child: ListTile(
             key: const Key('mine-offline-maps'),
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.map_outlined),
-            title: const Text('离线地图管理'),
-            subtitle: const Text('下载和管理离线瓦片数据'),
+            title: Text(l10n.mineOfflineMapTitle),
+            subtitle: Text(l10n.mineOfflineMapDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRoute.offlineTileManagement.path),
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        
+
         HighfiCard(
           child: ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.headset_mic_outlined),
-            title: const Text('帮助与支持'),
-            subtitle: const Text('查看设备绑定、帮助文档与联系客服入口'),
+            title: Text(l10n.mineHelpSupportTitle),
+            subtitle: Text(l10n.mineHelpSupportDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              // TODO: 实现帮助与支持页面
+              // TODO: implement Help & Support page
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('帮助与支持页面开发中...')),
+                SnackBar(content: Text(l10n.mineHelpSupportComingSoon)),
               );
             },
           ),
@@ -146,51 +154,52 @@ class MinePage extends ConsumerWidget {
   }
 
   Widget _buildBusinessManagement(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          '业务管理',
+          l10n.mineBusinessManagement,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: AppSpacing.md),
-        
-        // 订阅管理
+
+        // Subscription Management
         HighfiCard(
           child: ListTile(
             key: const Key('mine-subscription-manage'),
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.workspace_premium),
-            title: const Text('订阅管理'),
-            subtitle: const Text('查看和升级订阅套餐'),
+            title: Text(l10n.mineSubscriptionTitle),
+            subtitle: Text(l10n.mineSubscriptionManagementDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRoute.subscriptionPlan.path),
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        
-        // 对账看板
+
+        // Revenue Board
         HighfiCard(
           child: ListTile(
             key: const Key('mine-revenue'),
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.account_balance_wallet_outlined),
-            title: const Text('对账看板'),
-            subtitle: const Text('查看各周期分润对账数据'),
+            title: Text(l10n.mineRevenueBoardTitle),
+            subtitle: Text(l10n.mineRevenueBoardDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRoute.platformRevenue.path),
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        
-        // 订阅服务管理
+
+        // Subscription Service Management
         HighfiCard(
           child: ListTile(
             key: const Key('mine-subscriptions'),
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.subscriptions_outlined),
-            title: const Text('订阅服务管理'),
-            subtitle: const Text('管理订阅套餐和业务服务'),
+            title: Text(l10n.mineSubscriptionServiceTitle),
+            subtitle: Text(l10n.mineSubscriptionServiceDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRoute.platformSubscriptions.path),
           ),
@@ -200,37 +209,38 @@ class MinePage extends ConsumerWidget {
   }
 
   Widget _buildAdvancedManagement(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          '高级管理',
+          l10n.mineAdvancedManagement,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: AppSpacing.md),
-        
-        // 牧工管理
+
+        // Worker Management
         HighfiCard(
           child: ListTile(
             key: const Key('mine-worker-management'),
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.groups_2_outlined),
-            title: const Text('牧工管理'),
-            subtitle: const Text('查看和移除当前牧场牧工'),
+            title: Text(l10n.mineWorkerTitle),
+            subtitle: Text(l10n.mineWorkerManagementDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRoute.workerManagement.path),
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        
-        // API授权管理
+
+        // API Authorization
         HighfiCard(
           child: ListTile(
             key: const Key('mine-api-auth'),
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.api),
-            title: const Text('API授权管理'),
-            subtitle: const Text('管理 API Key 和第三方访问授权'),
+            title: Text(l10n.mineApiAuthTitle),
+            subtitle: Text(l10n.mineApiAuthManagementDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRoute.mineApiAuth.path),
           ),
@@ -239,32 +249,110 @@ class MinePage extends ConsumerWidget {
     );
   }
 
+
+  Widget _buildSettingsSection(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = ref.watch(localeControllerProvider);
+    String currentLabel;
+    if (locale == null) {
+      currentLabel = l10n.settingsLanguageSystem;
+    } else if (locale.languageCode == 'zh') {
+      currentLabel = l10n.settingsLanguageZh;
+    } else {
+      currentLabel = l10n.settingsLanguageEn;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.settingsTitle,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        HighfiCard(
+          child: ListTile(
+            key: const Key('mine-language-setting'),
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.language),
+            title: Text(l10n.settingsLanguage),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(currentLabel),
+                const SizedBox(width: AppSpacing.xs),
+                const Icon(Icons.chevron_right),
+              ],
+            ),
+            onTap: () => _showLanguagePicker(context, ref, locale),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showLanguagePicker(BuildContext context, WidgetRef ref, Locale? current) {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(l10n.settingsLanguage),
+        children: [
+          RadioListTile<Locale?>(
+            value: const Locale('zh'),
+            groupValue: current,
+            title: Text(l10n.settingsLanguageZh),
+            onChanged: (v) => _applyLocale(ctx, ref, v),
+          ),
+          RadioListTile<Locale?>(
+            value: const Locale('en'),
+            groupValue: current,
+            title: Text(l10n.settingsLanguageEn),
+            onChanged: (v) => _applyLocale(ctx, ref, v),
+          ),
+          RadioListTile<Locale?>(
+            value: null,
+            groupValue: current,
+            title: Text(l10n.settingsLanguageSystem),
+            onChanged: (v) => _applyLocale(ctx, ref, v),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _applyLocale(BuildContext context, WidgetRef ref, Locale? locale) {
+    Navigator.pop(context);
+    ref.read(localeControllerProvider.notifier).setLocale(locale);
+  }
+
   Widget _buildLogoutSection(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return HighfiCard(
       child: ListTile(
         key: const Key('mine-logout'),
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.logout, color: AppColors.danger),
-        title: const Text('退出登录',
-            style: TextStyle(color: AppColors.danger)),
+        title: Text(l10n.commonLogout,
+            style: const TextStyle(color: AppColors.danger)),
         onTap: () {
           showDialog(
             context: context,
             builder: (ctx) => AlertDialog(
-              title: const Text('确认退出'),
-              content: const Text('确定要退出登录吗？'),
+              title: Text(l10n.commonConfirmLogout),
+              content: Text(l10n.commonConfirmLogoutMessage),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('取消'),
+                  child: Text(l10n.commonCancel),
                 ),
                 TextButton(
                   onPressed: () {
                     Navigator.pop(ctx);
                     ref.read(sessionControllerProvider.notifier).logout();
                   },
-                  child: const Text('退出',
-                      style: TextStyle(color: AppColors.danger)),
+                  child: Text(l10n.commonLogoutButton,
+                      style: const TextStyle(color: AppColors.danger)),
                 ),
               ],
             ),

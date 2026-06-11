@@ -276,4 +276,82 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get twinPendingTasks => '待处理任务';
+
+  @override
+  String get mineAccountNormal => '账户正常';
+
+  @override
+  String get mineAccountDisabled => '账户已停用';
+
+  @override
+  String mineProfileName(String name) => '姓名：$name';
+
+  @override
+  String mineProfilePhone(String phone) => '手机号：$phone';
+
+  @override
+  String mineProfileRole(String role) => '角色：$role';
+
+  @override
+  String get minePersonalDevices => '个人设备与工具';
+
+  @override
+  String get mineDeviceManagementDesc => '查看和管理绑定的 IoT 设备';
+
+  @override
+  String get mineOfflineMapDesc => '下载和管理离线瓦片数据';
+
+  @override
+  String get mineHelpSupportDesc => '查看设备绑定、帮助文档与联系客服入口';
+
+  @override
+  String get mineHelpSupportComingSoon => '帮助与支持页面开发中...';
+
+  @override
+  String get mineBusinessManagement => '业务管理';
+
+  @override
+  String get mineSubscriptionManagementDesc => '查看和升级订阅套餐';
+
+  @override
+  String get mineRevenueBoardDesc => '查看各周期分润对账数据';
+
+  @override
+  String get mineSubscriptionServiceDesc => '管理订阅套餐和业务服务';
+
+  @override
+  String get mineAdvancedManagement => '高级管理';
+
+  @override
+  String get mineWorkerManagementDesc => '查看和移除当前牧场牧工';
+
+  @override
+  String get mineApiAuthManagementDesc => '管理 API Key 和第三方访问授权';
+
+  @override
+  String get mineDevicesTitle => '设备管理';
+
+  @override
+  String get mineOfflineMapTitle => '离线地图管理';
+
+  @override
+  String get mineHelpSupportTitle => '帮助与支持';
+
+  @override
+  String get mineSubscriptionTitle => '订阅管理';
+
+  @override
+  String get mineRevenueBoardTitle => '对账看板';
+
+  @override
+  String get mineSubscriptionServiceTitle => '订阅服务管理';
+
+  @override
+  String get mineWorkerTitle => '牧工管理';
+
+  @override
+  String get mineApiAuthTitle => 'API授权管理';
+
+  @override
+  String get commonLogoutButton => '退出';
 }
