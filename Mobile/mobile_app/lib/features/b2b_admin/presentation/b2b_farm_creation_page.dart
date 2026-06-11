@@ -10,6 +10,7 @@ import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_repository.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class _TileRegion {
   final int id;
@@ -119,15 +120,16 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
   }
 
   Future<void> _handleCreate() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_nameCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请输入牧场名称')),
+        SnackBar(content: Text(l10n.b2bFarmCreationEnterName)),
       );
       return;
     }
     if (_pickedPoint == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请在地图上选点或输入经纬度')),
+        SnackBar(content: Text(l10n.b2bFarmCreationSelectPoint)),
       );
       return;
     }
@@ -153,27 +155,28 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
     if (ok) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('牧场「${_nameCtrl.text.trim()}」创建成功'),
+          content: Text(l10n.b2bFarmCreationSuccess(_nameCtrl.text.trim())),
           backgroundColor: const Color(0xFF2E7D32),
         ),
       );
       context.pop();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('创建失败，请重试')),
+        SnackBar(content: Text(l10n.b2bFarmCreationFailed)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final regionsAsync = ref.watch(_tileRegionsProvider);
     final ownerUsers = ref.watch(b2bOwnerUsersProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('新建牧场'),
+        title: Text(l10n.b2bFarmCreationTitle),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.md),
@@ -186,7 +189,7 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: Colors.white),
                     )
-                  : const Text('创建牧场'),
+                  : Text(l10n.b2bFarmCreationButton),
             ),
           ),
         ],
@@ -210,7 +213,7 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
                   },
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Text('加载失败: $e',
+                  error: (e, _) => Text('${l10n.commonLoadFailed}: $e',
                       style: TextStyle(color: theme.colorScheme.error)),
                 ),
                 const SizedBox(height: AppSpacing.xl),
@@ -224,7 +227,7 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
                       fontSize: 12, color: theme.hintColor),
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                _mapSection(theme),
+                _mapSection(theme, l10n),
                 const SizedBox(height: AppSpacing.sm),
 
                 // Coordinate inputs
@@ -290,9 +293,9 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
                       border: OutlineInputBorder(),
                     ),
                     items: [
-                      const DropdownMenuItem<B2bUserSummary?>(
+                      DropdownMenuItem<B2bUserSummary?>(
                         value: null,
-                        child: Text('— 暂不指定 —'),
+                        child: Text(l10n.b2bFarmCreationNotSpecified),
                       ),
                       ...users.map((u) =>
                           DropdownMenuItem<B2bUserSummary?>(
@@ -304,7 +307,7 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
                         setState(() => _selectedOwner = v),
                   ),
                   loading: () => const LinearProgressIndicator(),
-                  error: (_, __) => const Text('加载用户列表失败'),
+                  error: (_, __) => Text(l10n.b2bFarmCreationUserLoadFailed),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -386,7 +389,7 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
     );
   }
 
-  Widget _mapSection(ThemeData theme) {
+  Widget _mapSection(ThemeData theme, AppLocalizations l10n) {
     if (_selectedRegion == null) {
       return Container(
         height: 300,
@@ -402,7 +405,7 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
               const Icon(Icons.map_outlined,
                   size: 48, color: AppColors.border),
               const SizedBox(height: AppSpacing.sm),
-              Text('请先选择瓦片区域',
+              Text(l10n.b2bFarmCreationSelectTile,
                   style: theme.textTheme.bodyMedium
                       ?.copyWith(color: AppColors.textSecondary)),
             ],
