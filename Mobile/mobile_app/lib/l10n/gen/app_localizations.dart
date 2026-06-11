@@ -636,6 +636,23 @@ abstract class AppLocalizations {
   String get wizardCreateFailed;
   String get wizardFenceMinVertices;
   String get wizardSetupLater;
+
+  String get subscriptionUpgradeTier;
+  String get subscriptionRenew;
+  String get subscriptionConfirmCancel;
+  String get subscriptionCancelWarning;
+  String get subscriptionKeepSubscription;
+  String get subscriptionCancelled;
+  String get subscriptionCurrentTier;
+  String get subscriptionSelectTier;
+  String get subscriptionRenewNow;
+  String subscriptionUpgradeTo(String tier);
+  String get subscriptionFeature;
+
+  String get subscriptionStatusTrial;
+  String get subscriptionStatusActive;
+  String get subscriptionStatusCancelled;
+  String get subscriptionStatusExpired;
 }
 
 class _AppLocalizationsDelegate

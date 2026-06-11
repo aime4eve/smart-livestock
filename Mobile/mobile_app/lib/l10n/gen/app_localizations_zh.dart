@@ -637,4 +637,21 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get wizardCreateFailed => '创建牧场失败，请重试';
   @override String get wizardFenceMinVertices => '围栏至少需要 3 个顶点';
   @override String get wizardSetupLater => '稍后设置';
+
+  @override String get subscriptionUpgradeTier => '升级套餐';
+  @override String get subscriptionRenew => '续费';
+  @override String get subscriptionConfirmCancel => '确认取消';
+  @override String get subscriptionCancelWarning => '取消订阅后，当前周期结束后将无法使用付费功能。确定要取消吗？';
+  @override String get subscriptionKeepSubscription => '暂不取消';
+  @override String get subscriptionCancelled => '订阅已取消';
+  @override String get subscriptionCurrentTier => '当前套餐';
+  @override String get subscriptionSelectTier => '选择此套餐';
+  @override String get subscriptionRenewNow => '立即续费';
+  @override String subscriptionUpgradeTo(String tier) => '升级到$tier';
+  @override String get subscriptionFeature => '功能';
+
+  @override String get subscriptionStatusTrial => '试用中';
+  @override String get subscriptionStatusActive => '已订阅';
+  @override String get subscriptionStatusCancelled => '已取消';
+  @override String get subscriptionStatusExpired => '已过期';
 }

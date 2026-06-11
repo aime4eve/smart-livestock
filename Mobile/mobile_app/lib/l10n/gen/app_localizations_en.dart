@@ -649,4 +649,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String get wizardCreateFailed => 'Failed to create ranch, please retry';
   @override String get wizardFenceMinVertices => 'Fence requires at least 3 vertices';
   @override String get wizardSetupLater => 'Set Up Later';
+
+  @override String get subscriptionUpgradeTier => 'Upgrade Plan';
+  @override String get subscriptionRenew => 'Renew';
+  @override String get subscriptionConfirmCancel => 'Confirm Cancel';
+  @override String get subscriptionCancelWarning => 'After cancellation, paid features will be unavailable at the end of the current period. Are you sure?';
+  @override String get subscriptionKeepSubscription => 'Keep Subscription';
+  @override String get subscriptionCancelled => 'Subscription Cancelled';
+  @override String get subscriptionCurrentTier => 'Current Plan';
+  @override String get subscriptionSelectTier => 'Select This Plan';
+  @override String get subscriptionRenewNow => 'Renew Now';
+  @override String subscriptionUpgradeTo(String tier) => 'Upgrade to $tier';
+  @override String get subscriptionFeature => 'Feature';
+
+  @override String get subscriptionStatusTrial => 'Trial';
+  @override String get subscriptionStatusActive => 'Active';
+  @override String get subscriptionStatusCancelled => 'Cancelled';
+  @override String get subscriptionStatusExpired => 'Expired';
 }
