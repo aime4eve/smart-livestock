@@ -6,6 +6,7 @@ import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_repository.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class B2bDashboardPage extends ConsumerStatefulWidget {
   const B2bDashboardPage({super.key});
@@ -33,6 +34,7 @@ class _B2bDashboardPageState extends ConsumerState<B2bDashboardPage>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(b2bDashboardControllerProvider);
     final theme = Theme.of(context);
 
@@ -45,7 +47,7 @@ class _B2bDashboardPageState extends ConsumerState<B2bDashboardPage>
           children: [
             Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
             const SizedBox(height: AppSpacing.md),
-            Text('加载失败',
+            Text(l10n.commonLoadFailed,
                 style: theme.textTheme.titleMedium
                     ?.copyWith(color: theme.colorScheme.error)),
           ],
@@ -55,6 +57,7 @@ class _B2bDashboardPageState extends ConsumerState<B2bDashboardPage>
   }
 
   Widget _buildContent(BuildContext context, B2bDashboardData data, ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         // ── Header ──
@@ -66,7 +69,7 @@ class _B2bDashboardPageState extends ConsumerState<B2bDashboardPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('运营概览',
+                    Text(l10n.b2bDashboardTitle,
                         style: theme.textTheme.headlineMedium
                             ?.copyWith(fontWeight: FontWeight.bold)),
                     if (data.partnerName != null)
@@ -131,6 +134,7 @@ class _KpiTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final totalWorkers = data.farms.fold<int>(0, (s, f) => s + f.workerCount);
 
     return SingleChildScrollView(
@@ -203,7 +207,7 @@ class _KpiTab extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('本月营收',
+                Text(l10n.b2bDashboardMonthlyRevenue,
                     style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 12)),
                 const SizedBox(height: 4),
                 Text('\u00a5${data.monthlyRevenue.toStringAsFixed(0)}',
@@ -269,6 +273,7 @@ class _AlertTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final alerts = data.alertSummary;
 
@@ -279,7 +284,7 @@ class _AlertTab extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('待处理告警', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+              Text(l10n.b2bDashboardPendingAlerts, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
               const SizedBox(width: AppSpacing.sm),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -307,7 +312,7 @@ class _AlertTab extends StatelessWidget {
                   children: [
                     Icon(Icons.check_circle_outline, size: 64, color: AppColors.success),
                     const SizedBox(height: AppSpacing.lg),
-                    Text('暂无待处理告警', style: theme.textTheme.titleMedium?.copyWith(color: AppColors.textSecondary)),
+                    Text(l10n.b2bDashboardNoPendingAlerts, style: theme.textTheme.titleMedium?.copyWith(color: AppColors.textSecondary)),
                   ],
                 ),
               ),

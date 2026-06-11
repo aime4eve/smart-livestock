@@ -7,6 +7,7 @@ import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/asy
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/confirm_dialog.dart';
 import 'package:smart_livestock_demo/features/revenue/domain/revenue_repository.dart';
 import 'package:smart_livestock_demo/features/revenue/presentation/b2b_revenue_controller.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class B2bRevenueDetailPage extends ConsumerStatefulWidget {
   const B2bRevenueDetailPage({super.key, required this.periodId});
@@ -23,6 +24,7 @@ class _B2bRevenueDetailPageState extends ConsumerState<B2bRevenueDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(b2bRevenueControllerProvider);
 
     return asyncData.when(
@@ -53,6 +55,7 @@ class _B2bRevenueDetailPageState extends ConsumerState<B2bRevenueDetailPage> {
   }
 
   Widget _buildContent(BuildContext context, RevenuePeriod period) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: SingleChildScrollView(
         key: const Key('page-b2b-revenue-detail'),
@@ -87,6 +90,7 @@ class _B2bRevenueDetailPageState extends ConsumerState<B2bRevenueDetailPage> {
   }
 
   Future<void> _handleConfirm() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await B2bConfirmDialog.show(
       context,
       title: '确认对账',
@@ -107,16 +111,16 @@ class _B2bRevenueDetailPageState extends ConsumerState<B2bRevenueDetailPage> {
 
     if (ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('对账确认成功'),
+        SnackBar(
+          content: Text(l10n.b2bRevenueDetailConfirmOk),
           backgroundColor: Color(0xFF2E7D32),
         ),
       );
       context.pop();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('确认失败，请重试'),
+        SnackBar(
+          content: Text(l10n.b2bRevenueDetailConfirmFailed),
           backgroundColor: Color(0xFFD32F2F),
         ),
       );
@@ -136,6 +140,7 @@ class _BreadcrumbBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
         InkWell(
@@ -147,13 +152,13 @@ class _BreadcrumbBar extends StatelessWidget {
             children: [
               Icon(Icons.arrow_back_ios,
                   size: 14, color: Theme.of(context).hintColor),
-              Text('对账',
+              Text(l10n.b2bRevenueTitle,
                   style: TextStyle(
                       color: Theme.of(context).hintColor, fontSize: 14)),
             ],
           ),
         ),
-        Text(' > $periodLabel 对账明细',
+        Text(' > $periodLabel ${l10n.b2bRevenueDetailTitle}',
             style:
                 const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
       ],
@@ -175,6 +180,7 @@ class _HeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -205,7 +211,7 @@ class _HeroCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          Text('设备费用合计',
+          Text(l10n.b2bRevenueDetailDeviceFee,
               style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.7), fontSize: 12)),
           const SizedBox(height: AppSpacing.lg),
@@ -275,6 +281,7 @@ class _ConfirmationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -285,7 +292,7 @@ class _ConfirmationBar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('确认状态',
+          Text(l10n.b2bRevenueDetailConfirmStatus,
               style: Theme.of(context)
                   .textTheme
                   .titleSmall
@@ -325,7 +332,7 @@ class _ConfirmationBar extends StatelessWidget {
                             color: Colors.white,
                           ),
                         )
-                      : const Text('确认对账'),
+                      : Text(l10n.b2bRevenueDetailConfirmButton),
                 ),
             ],
           ),
