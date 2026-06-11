@@ -673,6 +673,11 @@ abstract class AppLocalizations {
   String get adminContractTerminated;
   String get adminContractTerminate;
   String get adminContractNoData;
+
+  String get adminSubscriptionsTierLabel;
+  String get adminSubscriptionsQuotaLabel;
+
+  String get adminApiAuthPrefixLabel;
 }
 
 class _AppLocalizationsDelegate

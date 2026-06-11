@@ -6,6 +6,7 @@ import 'package:smart_livestock_demo/features/api_authorization/domain/api_autho
 import 'package:smart_livestock_demo/features/api_authorization/presentation/api_authorization_controller.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class ApiAuthPage extends ConsumerStatefulWidget {
   const ApiAuthPage({super.key});
@@ -38,6 +39,7 @@ class _ApiAuthPageState extends ConsumerState<ApiAuthPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(apiAuthorizationControllerProvider);
     final controller = ref.read(apiAuthorizationControllerProvider.notifier);
 
@@ -59,13 +61,13 @@ class _ApiAuthPageState extends ConsumerState<ApiAuthPage> {
                   key: const Key('apikey-create'),
                   onPressed: () => _showCreateDialog(context, controller),
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('创建 Key'),
+                  label: Text(l10n.adminApiAuthCreateKey),
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.md),
             if (data.isEmpty)
-              const SizedBox(height: 200, child: Center(child: Text('暂无 API Key')))
+              SizedBox(height: 200, child: Center(child: Text(l10n.adminApiAuthNoKeys)))
             else
               ...data.items.map((key) => _ApiKeyCard(
                     keyItem: key,
@@ -82,11 +84,12 @@ class _ApiAuthPageState extends ConsumerState<ApiAuthPage> {
         ),
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('加载失败: $e')),
+      error: (e, _) => Center(child: Text('${l10n.commonLoadFailed}: $e')),
     );
   }
 
   Widget _buildHeader(BuildContext context, ApiAuthorizationController controller) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -94,9 +97,9 @@ class _ApiAuthPageState extends ConsumerState<ApiAuthPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('API 授权管理', style: Theme.of(context).textTheme.titleLarge),
+              Text(l10n.mineApiAuthTitle, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: AppSpacing.xs),
-              Text('管理 API Key 的创建、启用和撤销', style: Theme.of(context).textTheme.bodySmall),
+              Text(l10n.adminApiAuthDescription, style: Theme.of(context).textTheme.bodySmall),
             ],
           ),
         ),
@@ -142,6 +145,7 @@ class _ApiAuthPageState extends ConsumerState<ApiAuthPage> {
   }
 
   void _showCreateDialog(BuildContext context, ApiAuthorizationController controller) {
+    final l10n = AppLocalizations.of(context)!;
     final nameCtl = TextEditingController();
     final descCtl = TextEditingController();
     final selectedScopes = <String>{
@@ -152,17 +156,17 @@ class _ApiAuthPageState extends ConsumerState<ApiAuthPage> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('创建 API Key'),
+          title: Text(l10n.adminApiAuthCreateKey),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextField(controller: nameCtl, decoration: const InputDecoration(labelText: '名称')),
+                TextField(controller: nameCtl, decoration: InputDecoration(labelText: l10n.adminApiAuthName)),
                 const SizedBox(height: 8),
-                TextField(controller: descCtl, decoration: const InputDecoration(labelText: '描述（可选）')),
+                TextField(controller: descCtl, decoration: InputDecoration(labelText: l10n.adminApiAuthDescriptionOptional)),
                 const SizedBox(height: 12),
-                Text('权限范围:', style: Theme.of(ctx).textTheme.titleSmall),
+                Text(l10n.adminApiAuthScopes, style: Theme.of(ctx).textTheme.titleSmall),
                 const SizedBox(height: 4),
                 ..._allScopes.map((s) => CheckboxListTile(
                       dense: true,
@@ -176,7 +180,7 @@ class _ApiAuthPageState extends ConsumerState<ApiAuthPage> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.commonCancel)),
             ElevatedButton(
               onPressed: () async {
                 if (nameCtl.text.trim().isEmpty) return;
@@ -190,7 +194,7 @@ class _ApiAuthPageState extends ConsumerState<ApiAuthPage> {
                   if (result != null) _showRawKeyDialog(context, result);
                 }
               },
-              child: const Text('创建'),
+              child: Text(l10n.adminApiAuthCreate),
             ),
           ],
         ),
@@ -199,23 +203,24 @@ class _ApiAuthPageState extends ConsumerState<ApiAuthPage> {
   }
 
   void _showRawKeyDialog(BuildContext context, ApiKeyCreateResult result) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('⚠️ Key 已创建'),
+        title: Text(l10n.adminApiAuthKeyCreated),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('请立即保存此 Key，关闭后将无法再次查看。', style: TextStyle(color: AppColors.danger)),
+            Text(l10n.adminApiAuthKeyWarning, style: const TextStyle(color: AppColors.danger)),
             const SizedBox(height: 12),
             SelectableText(result.fullKey, style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
             const SizedBox(height: 8),
-            Text('前缀: ${result.info.prefix}'),
+            Text('${l10n.adminApiAuthPrefixLabel}: ${result.info.prefix}'),
           ],
         ),
         actions: [
-          ElevatedButton(onPressed: () => Navigator.pop(ctx), child: const Text('已保存')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.adminApiAuthSaved)),
         ],
       ),
     );

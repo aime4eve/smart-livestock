@@ -6,12 +6,14 @@ import 'package:smart_livestock_demo/features/subscription_service_management/do
 import 'package:smart_livestock_demo/features/subscription_service_management/presentation/subscription_service_controller.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class SubscriptionsPage extends ConsumerWidget {
   const SubscriptionsPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(subscriptionServiceControllerProvider);
     final controller =
         ref.read(subscriptionServiceControllerProvider.notifier);
@@ -37,9 +39,9 @@ class SubscriptionsPage extends ConsumerWidget {
               ...data.services.map((service) =>
                   _buildServiceCard(context, service, controller)),
             if (data.isEmpty)
-              const SizedBox(
+              SizedBox(
                 height: 200,
-                child: Center(child: Text('暂无订阅服务')),
+                child: Center(child: Text(l10n.adminSubscriptionsNoData)),
               ),
           ],
         ),
@@ -54,6 +56,7 @@ class SubscriptionsPage extends ConsumerWidget {
     SubscriptionServiceInfo service,
     SubscriptionServiceController controller,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final statusColor = switch (service.status?.toUpperCase()) {
       'ACTIVE' => AppColors.success,
       'EXPIRED' => AppColors.danger,
@@ -85,12 +88,12 @@ class SubscriptionsPage extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.xs),
-            Text('套餐: ${service.effectiveTier ?? ''}'),
+            Text('${l10n.adminSubscriptionsTierLabel}: ${service.effectiveTier ?? ''}'),
             if (service.startedAt != null || service.expiresAt != null)
               Text(
                   '期限: ${service.startedAt ?? '-'} ~ ${service.expiresAt ?? '-'}'),
             if (service.deviceQuota != null)
-              Text('设备配额: ${service.deviceQuota}'),
+              Text('${l10n.adminSubscriptionsQuotaLabel}: ${service.deviceQuota}'),
             Align(
               alignment: Alignment.centerRight,
               child: service.isActive
@@ -98,14 +101,14 @@ class SubscriptionsPage extends ConsumerWidget {
                       key: Key('revoke-${service.id}'),
                       onPressed: () => controller.revokeService(service.id),
                       icon: const Icon(Icons.block, size: 16),
-                      label: const Text('撤销'),
+                      label: Text(l10n.adminSubscriptionsRevoke),
                     )
                   : TextButton.icon(
                       key: Key('activate-${service.id}'),
                       onPressed: () =>
                           controller.activateService(service.id),
                       icon: const Icon(Icons.refresh, size: 16),
-                      label: const Text('续期'),
+                      label: Text(l10n.adminSubscriptionsRenew),
                     ),
             ),
           ],

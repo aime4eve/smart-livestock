@@ -674,4 +674,7 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get adminContractTerminated => '已终止';
   @override String get adminContractTerminate => '终止合同';
   @override String get adminContractNoData => '暂无合同';
+
+  @override String get adminSubscriptionsTierLabel => '套餐';
+  @override String get adminSubscriptionsQuotaLabel => '设备配额';
 }

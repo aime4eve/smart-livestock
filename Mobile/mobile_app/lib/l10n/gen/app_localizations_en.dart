@@ -686,4 +686,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String get adminContractTerminated => 'Terminated';
   @override String get adminContractTerminate => 'Terminate Contract';
   @override String get adminContractNoData => 'No contracts';
+
+  @override String get adminSubscriptionsTierLabel => 'Plan';
+  @override String get adminSubscriptionsQuotaLabel => 'Device Quota';
 }
