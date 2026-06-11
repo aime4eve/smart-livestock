@@ -678,6 +678,12 @@ abstract class AppLocalizations {
   String get adminSubscriptionsQuotaLabel;
 
   String get adminApiAuthPrefixLabel;
+
+  String get fenceUnsavedTitle;
+  String get fenceUnsavedMessage;
+  String get fenceUnsavedContinue;
+  String get fenceUnsavedDiscard;
+  String get fenceUnsavedSaveExit;
 }
 
 class _AppLocalizationsDelegate

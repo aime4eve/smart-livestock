@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_edit_session.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class FenceEditToolbar extends StatelessWidget {
   const FenceEditToolbar({
@@ -25,6 +26,7 @@ class FenceEditToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       key: const Key('fence-edit-toolbar'),
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -88,7 +90,7 @@ class FenceEditToolbar extends StatelessWidget {
               child: FilledButton(
                 key: const Key('fence-edit-save'),
                 onPressed: canSave ? onSave : null,
-                child: const Text('保存'),
+                child: Text(l10n.commonSave),
               ),
             ),
           ],

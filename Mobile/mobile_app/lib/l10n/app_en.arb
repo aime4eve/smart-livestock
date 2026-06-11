@@ -540,5 +540,15 @@
   "adminSubscriptionsQuotaLabel": "Device Quota",
   "@adminSubscriptionsQuotaLabel": {},
   "adminApiAuthPrefixLabel": "Prefix",
-  "@adminApiAuthPrefixLabel": {}
+  "@adminApiAuthPrefixLabel": {},
+  "fenceUnsavedTitle": "Unsaved Changes",
+  "@fenceUnsavedTitle": {},
+  "fenceUnsavedMessage": "You have unsaved boundary changes. Please choose an option.",
+  "@fenceUnsavedMessage": {},
+  "fenceUnsavedContinue": "Continue Editing",
+  "@fenceUnsavedContinue": {},
+  "fenceUnsavedDiscard": "Discard Changes",
+  "@fenceUnsavedDiscard": {},
+  "fenceUnsavedSaveExit": "Save and Exit",
+  "@fenceUnsavedSaveExit": {}
 }

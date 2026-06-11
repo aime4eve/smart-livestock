@@ -540,5 +540,15 @@
   "adminSubscriptionsQuotaLabel": "设备配额",
   "@adminSubscriptionsQuotaLabel": {},
   "adminApiAuthPrefixLabel": "前缀",
-  "@adminApiAuthPrefixLabel": {}
+  "@adminApiAuthPrefixLabel": {},
+  "fenceUnsavedTitle": "有未保存修改",
+  "@fenceUnsavedTitle": {},
+  "fenceUnsavedMessage": "你有未保存的边界修改。请选择下一步。",
+  "@fenceUnsavedMessage": {},
+  "fenceUnsavedContinue": "继续编辑",
+  "@fenceUnsavedContinue": {},
+  "fenceUnsavedDiscard": "放弃更改",
+  "@fenceUnsavedDiscard": {},
+  "fenceUnsavedSaveExit": "保存并退出",
+  "@fenceUnsavedSaveExit": {}
 }
