@@ -314,5 +314,17 @@
   "epidemicAbnormalRate": "Abnormal Rate",
   "@epidemicAbnormalRate": {},
   "epidemicAbnormalCount": "Abnormal Count",
-  "@epidemicAbnormalCount": {}
+  "@epidemicAbnormalCount": {},
+  "feverDetailTitle": "Temperature Details",
+  "@feverDetailTitle": {},
+  "feverDetailChartTitle": "72-Hour Temperature Trend",
+  "@feverDetailChartTitle": {},
+  "digestiveDetailTitle": "Digestive Details",
+  "@digestiveDetailTitle": {},
+  "digestiveDetailChartTitle": "24-Hour Motility Trend",
+  "@digestiveDetailChartTitle": {},
+  "estrusDetailTitle": "Estrus Details",
+  "@estrusDetailTitle": {},
+  "estrusDetailChartTitle": "7-Day Score Trend",
+  "@estrusDetailChartTitle": {}
 }

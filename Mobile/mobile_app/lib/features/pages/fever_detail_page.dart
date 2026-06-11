@@ -6,6 +6,7 @@ import 'package:smart_livestock_demo/core/models/twin_models.dart';
 import 'package:smart_livestock_demo/core/models/health_models.dart';
 import 'package:smart_livestock_demo/features/fever_warning/presentation/fever_controller.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/device_info_line.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class FeverDetailPage extends ConsumerWidget {
   const FeverDetailPage({super.key, required this.livestockId});
@@ -13,12 +14,13 @@ class FeverDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncDetail = ref.watch(feverDetailControllerProvider(livestockId));
     return Scaffold(
-      appBar: AppBar(title: const Text('体温详情'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: AppBar(title: Text(l10n.feverDetailTitle), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
       body: asyncDetail.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('加载失败: $e')),
+        error: (e, _) => Center(child: Text('${l10n.commonLoadFailed}: $e')),
         data: (detail) => RefreshIndicator(
           onRefresh: () => ref.read(feverDetailControllerProvider(livestockId).notifier).refresh(),
           child: ListView(
@@ -29,7 +31,7 @@ class FeverDetailPage extends ConsumerWidget {
               // Device info (subtle)
               DeviceInfoLine(deviceId: livestockId),
               const SizedBox(height: 8),
-              _buildChart(detail.recent72h, detail.baselineTemp),
+              _buildChart(detail.recent72h, detail.baselineTemp, l10n),
               if (detail.conclusion != null) ...[
                 const SizedBox(height: 16),
                 Card(child: Padding(padding: const EdgeInsets.all(12), child: Text('📋 ${detail.conclusion}'))),
@@ -71,10 +73,11 @@ class FeverDetailPage extends ConsumerWidget {
   }
 
   Widget _buildDismissButton(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return OutlinedButton.icon(
       onPressed: () => Navigator.of(context).pop(),
       icon: Icon(Icons.check_circle_outline, size: 18, color: AppColors.textSecondary),
-      label: Text('返回', style: TextStyle(color: AppColors.textSecondary)),
+      label: Text(l10n.commonBack, style: TextStyle(color: AppColors.textSecondary)),
       style: OutlinedButton.styleFrom(
         side: BorderSide(color: AppColors.border),
       ),
@@ -102,7 +105,7 @@ class FeverDetailPage extends ConsumerWidget {
     ]))));
   }
 
-  Widget _buildChart(List<TemperatureRecord> readings, double baseline) {
+  Widget _buildChart(List<TemperatureRecord> readings, double baseline, AppLocalizations l10n) {
     if (readings.isEmpty) return const SizedBox.shrink();
     final spots = readings.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value.temperature)).toList();
     final minTemp = readings.map((r) => r.temperature).reduce((a, b) => a < b ? a : b) - 0.5;
@@ -110,7 +113,7 @@ class FeverDetailPage extends ConsumerWidget {
 
     return Card(
       child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('📈 72小时温度曲线', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        Text(l10n.feverDetailChartTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         SizedBox(height: 180, child: LineChart(LineChartData(
           minY: minTemp,

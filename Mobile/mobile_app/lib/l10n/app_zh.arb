@@ -314,5 +314,17 @@
   "epidemicAbnormalRate": "异常率",
   "@epidemicAbnormalRate": {},
   "epidemicAbnormalCount": "异常数",
-  "@epidemicAbnormalCount": {}
+  "@epidemicAbnormalCount": {},
+  "feverDetailTitle": "体温详情",
+  "@feverDetailTitle": {},
+  "feverDetailChartTitle": "72小时温度曲线",
+  "@feverDetailChartTitle": {},
+  "digestiveDetailTitle": "消化详情",
+  "@digestiveDetailTitle": {},
+  "digestiveDetailChartTitle": "24小时蠕动曲线",
+  "@digestiveDetailChartTitle": {},
+  "estrusDetailTitle": "发情详情",
+  "@estrusDetailTitle": {},
+  "estrusDetailChartTitle": "7天评分趋势",
+  "@estrusDetailChartTitle": {}
 }

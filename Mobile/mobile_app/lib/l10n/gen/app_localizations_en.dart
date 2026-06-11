@@ -484,4 +484,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get epidemicAbnormalCount => 'Abnormal Count';
+
+  @override
+  String get feverDetailTitle => 'Temperature Details';
+
+  @override
+  String get feverDetailChartTitle => '72-Hour Temperature Trend';
+
+  @override
+  String get digestiveDetailTitle => 'Digestive Details';
+
+  @override
+  String get digestiveDetailChartTitle => '24-Hour Motility Trend';
+
+  @override
+  String get estrusDetailTitle => 'Estrus Details';
+
+  @override
+  String get estrusDetailChartTitle => '7-Day Score Trend';
 }

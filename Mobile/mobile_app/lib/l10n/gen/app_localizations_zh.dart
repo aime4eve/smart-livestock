@@ -473,4 +473,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get epidemicAbnormalCount => '异常数';
+
+  @override
+  String get feverDetailTitle => '体温详情';
+
+  @override
+  String get feverDetailChartTitle => '72小时温度曲线';
+
+  @override
+  String get digestiveDetailTitle => '消化详情';
+
+  @override
+  String get digestiveDetailChartTitle => '24小时蠕动曲线';
+
+  @override
+  String get estrusDetailTitle => '发情详情';
+
+  @override
+  String get estrusDetailChartTitle => '7天评分趋势';
 }

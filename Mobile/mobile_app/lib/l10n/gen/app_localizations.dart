@@ -552,6 +552,13 @@ abstract class AppLocalizations {
   String get epidemicAvgTemperature;
   String get epidemicAbnormalRate;
   String get epidemicAbnormalCount;
+
+  String get feverDetailTitle;
+  String get feverDetailChartTitle;
+  String get digestiveDetailTitle;
+  String get digestiveDetailChartTitle;
+  String get estrusDetailTitle;
+  String get estrusDetailChartTitle;
 }
 
 class _AppLocalizationsDelegate
