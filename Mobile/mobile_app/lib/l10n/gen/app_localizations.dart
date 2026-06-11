@@ -731,6 +731,43 @@ abstract class AppLocalizations {
   String get workerNameRequired;
   String get workerPhoneRequired;
   String get workerPasswordMinLength;
+  String get auditLogTitle;
+  String get auditLogOperationType;
+  String get auditLogQuery;
+  String get auditLogNoData;
+  String auditLogTotalCount(String count);
+  String get tileAdminTitle;
+  String get tileAdminNoRegions;
+  String get tileAdminNoTasks;
+  String get tileAdminNoFarmTiles;
+  String tileAdminStatusInfo(String status, String tiles, String size);
+  String tileAdminRegionInfo(String region, String status);
+  String get featureGateTitle;
+  String get featureGateNoData;
+  String get featureGateLimit;
+  String get featureGateRetentionDays;
+  String featureGateUpdated(String key);
+  String get analyticsTitle;
+  String get analyticsSelectRange;
+  String get checkoutTitle;
+  String get checkoutLivestockCount;
+  String get checkoutHeadUnit;
+  String get planTitle;
+  String get farmCreationLatLabel;
+  String get farmCreationLatHint;
+  String get farmCreationLngLabel;
+  String get farmCreationLngHint;
+  String get farmCreationNameLabel;
+  String get farmCreationNameHint;
+  String get farmCreationOwnerLabel;
+  String get farmCreationOwnerHint;
+  String get farmCreationAreaLabel;
+  String get farmCreationAreaHint;
+  String get farmCreationTileLabel;
+  String get farmCreationTileHint;
+  String get alertSummaryTitle;
+  String alertSummaryCount(String count);
+  String get commonNoData;
 }
 
 class _AppLocalizationsDelegate
