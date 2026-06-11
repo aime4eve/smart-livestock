@@ -6,6 +6,7 @@ import 'package:smart_livestock_demo/core/utils/currency_formatter.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/async_fallback_views.dart';
 import 'package:smart_livestock_demo/features/revenue/domain/revenue_repository.dart';
 import 'package:smart_livestock_demo/features/revenue/presentation/b2b_revenue_controller.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class B2bRevenuePage extends ConsumerStatefulWidget {
   const B2bRevenuePage({super.key});
@@ -19,6 +20,7 @@ class _B2bRevenuePageState extends ConsumerState<B2bRevenuePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(b2bRevenueControllerProvider);
 
     return asyncData.when(
@@ -37,6 +39,7 @@ class _B2bRevenuePageState extends ConsumerState<B2bRevenuePage> {
   }
 
   Widget _buildContent(BuildContext context, RevenueListViewData data) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final filteredPeriods = _applyFilter(data.periods);
 
@@ -53,7 +56,7 @@ class _B2bRevenuePageState extends ConsumerState<B2bRevenuePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('对账', style: theme.textTheme.headlineMedium?.copyWith(
+          Text(l10n.b2bRevenueTitle, style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
           )),
           const SizedBox(height: AppSpacing.lg),
@@ -336,6 +339,7 @@ class _EmptyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return Center(
       child: Padding(
@@ -345,7 +349,7 @@ class _EmptyView extends StatelessWidget {
           children: [
             Icon(Icons.inbox_outlined, size: 48, color: theme.disabledColor),
             const SizedBox(height: AppSpacing.md),
-            Text('暂无对账数据，系统将在每月1日自动生成结算周期',
+            Text(l10n.b2bRevenueNoData,
                 style: theme.textTheme.bodyMedium, textAlign: TextAlign.center),
           ],
         ),

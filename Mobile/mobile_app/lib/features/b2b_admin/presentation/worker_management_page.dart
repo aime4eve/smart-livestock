@@ -6,12 +6,14 @@ import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_worker_management_repository.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_worker_management_controller.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/confirm_dialog.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class B2bWorkerManagementPage extends ConsumerWidget {
   const B2bWorkerManagementPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(b2bWorkerManagementControllerProvider);
     final theme = Theme.of(context);
 
@@ -28,7 +30,7 @@ class B2bWorkerManagementPage extends ConsumerWidget {
             children: [
               Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
               const SizedBox(height: AppSpacing.md),
-              Text('加载失败',
+              Text(l10n.commonLoadFailed,
                   style: theme.textTheme.titleMedium
                       ?.copyWith(color: theme.colorScheme.error)),
             ],

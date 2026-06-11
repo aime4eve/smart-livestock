@@ -602,4 +602,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get fenceFormSaveFence => '保存围栏';
+
+  @override String get b2bRevenueTitle => '对账';
+  @override String get b2bRevenueNoData => '暂无对账数据，系统将在每月1日自动生成结算周期';
+  @override String get b2bContractTitle => '合同信息';
+  @override String get b2bContractTerms => '合同条款';
+  @override String get b2bContractServiceStatus => '订阅服务状态';
+  @override String get b2bContractRenew => '联系续签';
+  @override String get b2bDashboardTitle => '运营概览';
+  @override String get b2bDashboardMonthlyRevenue => '本月营收';
+  @override String get b2bDashboardPendingAlerts => '待处理告警';
+  @override String get b2bDashboardNoPendingAlerts => '暂无待处理告警';
+  @override String get b2bRevenueDetailConfirmOk => '对账确认成功';
+  @override String get b2bRevenueDetailConfirmFailed => '确认失败，请重试';
+  @override String get b2bRevenueDetailTitle => '对账明细';
+  @override String get b2bRevenueDetailDeviceFee => '设备费用合计';
+  @override String get b2bRevenueDetailConfirmStatus => '确认状态';
+  @override String get b2bRevenueDetailConfirmButton => '确认对账';
 }

@@ -601,6 +601,23 @@ abstract class AppLocalizations {
   String get fenceFormEnableAlarm;
   String get fenceFormEnableStatus;
   String get fenceFormSaveFence;
+
+  String get b2bRevenueTitle;
+  String get b2bRevenueNoData;
+  String get b2bContractTitle;
+  String get b2bContractTerms;
+  String get b2bContractServiceStatus;
+  String get b2bContractRenew;
+  String get b2bDashboardTitle;
+  String get b2bDashboardMonthlyRevenue;
+  String get b2bDashboardPendingAlerts;
+  String get b2bDashboardNoPendingAlerts;
+  String get b2bRevenueDetailConfirmOk;
+  String get b2bRevenueDetailConfirmFailed;
+  String get b2bRevenueDetailTitle;
+  String get b2bRevenueDetailDeviceFee;
+  String get b2bRevenueDetailConfirmStatus;
+  String get b2bRevenueDetailConfirmButton;
 }
 
 class _AppLocalizationsDelegate

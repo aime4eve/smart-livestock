@@ -614,4 +614,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fenceFormSaveFence => 'Save Fence';
+
+  @override String get b2bRevenueTitle => 'Revenue';
+  @override String get b2bRevenueNoData => 'No revenue data available. Statements are generated on the 1st of each month.';
+  @override String get b2bContractTitle => 'Contract Info';
+  @override String get b2bContractTerms => 'Contract Terms';
+  @override String get b2bContractServiceStatus => 'Subscription Service Status';
+  @override String get b2bContractRenew => 'Contact to Renew';
+  @override String get b2bDashboardTitle => 'Operations Overview';
+  @override String get b2bDashboardMonthlyRevenue => 'Monthly Revenue';
+  @override String get b2bDashboardPendingAlerts => 'Pending Alerts';
+  @override String get b2bDashboardNoPendingAlerts => 'No pending alerts';
+  @override String get b2bRevenueDetailConfirmOk => 'Revenue confirmed successfully';
+  @override String get b2bRevenueDetailConfirmFailed => 'Confirmation failed, please retry';
+  @override String get b2bRevenueDetailTitle => 'Revenue Details';
+  @override String get b2bRevenueDetailDeviceFee => 'Device Fee Total';
+  @override String get b2bRevenueDetailConfirmStatus => 'Confirmation Status';
+  @override String get b2bRevenueDetailConfirmButton => 'Confirm Revenue';
 }
