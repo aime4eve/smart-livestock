@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec "$(git rev-parse --git-common-dir)/../scripts/clean-dotfiles.sh" 2>/dev/null || true

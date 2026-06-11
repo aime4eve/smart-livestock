@@ -8,3 +8,17 @@ pluginManagement {
 }
 
 rootProject.name = 'smart-livestock-server'
+
+// exFAT workaround: macOS creates ._ AppleDouble companion files for every
+// file written to exFAT volumes, which breaks Gradle's incremental build
+// directory deletion. Redirect build output to the local SSD (APFS).
+gradle.beforeProject {
+    if (it == gradle.rootProject) {
+        try {
+            def store = java.nio.file.Files.getFileStore(it.projectDir.toPath())
+            if ('exfat'.equalsIgnoreCase(store.type())) {
+                it.buildDir = new File(System.getProperty('java.io.tmpdir'), 'smart-livestock-server-build')
+            }
+        } catch (Exception ignored) {}
+    }
+}

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Auto-clean ._ files after checkout/merge to prevent git index noise
+exec "$(git rev-parse --git-common-dir)/../scripts/clean-dotfiles.sh" 2>/dev/null || true
