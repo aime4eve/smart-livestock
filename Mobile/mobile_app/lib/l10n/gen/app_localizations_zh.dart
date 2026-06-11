@@ -411,4 +411,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get alertsBatchDemo => '演示：批量处理待接入';
+
+  @override
+  String get livestockDetailTitle => '牲畜详情';
+
+  @override
+  String get livestockBindDevices => '绑定设备';
+
+  @override
+  String get livestockHealthData => '健康数据';
+
+  @override
+  String get livestockLocation => '位置信息';
+
+  @override
+  String get livestockViewTrajectory => '查看完整轨迹';
 }

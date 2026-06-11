@@ -422,4 +422,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alertsBatchDemo => 'Demo: Batch processing coming soon';
+
+  @override
+  String get livestockDetailTitle => 'Livestock Details';
+
+  @override
+  String get livestockBindDevices => 'Bound Devices';
+
+  @override
+  String get livestockHealthData => 'Health Data';
+
+  @override
+  String get livestockLocation => 'Location';
+
+  @override
+  String get livestockViewTrajectory => 'View Full Trajectory';
 }

@@ -8,6 +8,7 @@ import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
 import 'package:smart_livestock_demo/features/livestock/presentation/livestock_controller.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class LivestockDetailPage extends ConsumerWidget {
   const LivestockDetailPage({super.key, required this.earTag});
@@ -16,10 +17,11 @@ class LivestockDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(livestockDetailControllerProvider(earTag));
     return Scaffold(
       appBar: AppBar(
-        title: const Text('牲畜详情'),
+        title: Text(l10n.livestockDetailTitle),
         leading: IconButton(
           key: const Key('livestock-back'),
           onPressed: () => context.go(AppRoute.twin.path),
@@ -50,14 +52,14 @@ class LivestockDetailPage extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('加载失败: $e'),
+                    Text('${l10n.commonLoadFailed}: $e'),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => ref
                           .read(livestockDetailControllerProvider(earTag)
                               .notifier)
                           .refresh(),
-                      child: const Text('重试'),
+                      child: Text(l10n.commonRetry),
                     ),
                   ],
                 ),
@@ -150,12 +152,13 @@ class _DeviceListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return HighfiCard(
       key: const Key('livestock-device-card'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('绑定设备', style: Theme.of(context).textTheme.titleMedium),
+          Text(l10n.livestockBindDevices, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: AppSpacing.md),
           for (final device in detail.devices)
             Padding(
@@ -218,12 +221,13 @@ class _HealthDataCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return HighfiCard(
       key: const Key('livestock-health-card'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('健康数据', style: Theme.of(context).textTheme.titleMedium),
+          Text(l10n.livestockHealthData, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: AppSpacing.md),
           Wrap(
             spacing: AppSpacing.lg,
@@ -260,12 +264,13 @@ class _LocationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return HighfiCard(
       key: const Key('livestock-location-card'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('位置信息', style: Theme.of(context).textTheme.titleMedium),
+          Text(l10n.livestockLocation, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: AppSpacing.sm),
           Text(
             '最近位置：${detail.lastLocation}',
@@ -276,7 +281,7 @@ class _LocationCard extends StatelessWidget {
             key: const Key('livestock-view-track'),
             onPressed: () => context.go(AppRoute.fence.path),
             icon: const Icon(Icons.map_outlined),
-            label: const Text('查看完整轨迹'),
+            label: Text(l10n.livestockViewTrajectory),
           ),
         ],
       ),

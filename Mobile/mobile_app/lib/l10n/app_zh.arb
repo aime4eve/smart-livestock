@@ -274,5 +274,15 @@
   "alertsBatchHandle": "批量处理",
   "@alertsBatchHandle": {},
   "alertsBatchDemo": "演示：批量处理待接入",
-  "@alertsBatchDemo": {}
+  "@alertsBatchDemo": {},
+  "livestockDetailTitle": "牲畜详情",
+  "@livestockDetailTitle": {},
+  "livestockBindDevices": "绑定设备",
+  "@livestockBindDevices": {},
+  "livestockHealthData": "健康数据",
+  "@livestockHealthData": {},
+  "livestockLocation": "位置信息",
+  "@livestockLocation": {},
+  "livestockViewTrajectory": "查看完整轨迹",
+  "@livestockViewTrajectory": {}
 }

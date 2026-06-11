@@ -529,6 +529,12 @@ abstract class AppLocalizations {
   String get alertsArchive;
   String get alertsBatchHandle;
   String get alertsBatchDemo;
+
+  String get livestockDetailTitle;
+  String get livestockBindDevices;
+  String get livestockHealthData;
+  String get livestockLocation;
+  String get livestockViewTrajectory;
 }
 
 class _AppLocalizationsDelegate

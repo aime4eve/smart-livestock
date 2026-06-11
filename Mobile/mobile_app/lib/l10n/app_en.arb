@@ -274,5 +274,15 @@
   "alertsBatchHandle": "Batch Handle",
   "@alertsBatchHandle": {},
   "alertsBatchDemo": "Demo: Batch processing coming soon",
-  "@alertsBatchDemo": {}
+  "@alertsBatchDemo": {},
+  "livestockDetailTitle": "Livestock Details",
+  "@livestockDetailTitle": {},
+  "livestockBindDevices": "Bound Devices",
+  "@livestockBindDevices": {},
+  "livestockHealthData": "Health Data",
+  "@livestockHealthData": {},
+  "livestockLocation": "Location",
+  "@livestockLocation": {},
+  "livestockViewTrajectory": "View Full Trajectory",
+  "@livestockViewTrajectory": {}
 }
