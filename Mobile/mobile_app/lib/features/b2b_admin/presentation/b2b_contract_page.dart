@@ -5,12 +5,14 @@ import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_repository.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/confirm_dialog.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class B2bContractPage extends ConsumerWidget {
   const B2bContractPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(b2bContractControllerProvider);
     final theme = Theme.of(context);
 
@@ -23,7 +25,7 @@ class B2bContractPage extends ConsumerWidget {
           children: [
             Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
             const SizedBox(height: AppSpacing.md),
-            Text('加载失败', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.error)),
+            Text(l10n.commonLoadFailed, style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.error)),
           ],
         ),
       ),
@@ -84,6 +86,7 @@ class _ContractContent extends StatelessWidget {
 
   // --- Page header ---
   Widget _buildPageHeader(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
         GestureDetector(
@@ -99,7 +102,7 @@ class _ContractContent extends StatelessWidget {
           ),
         ),
         const SizedBox(width: AppSpacing.md),
-        Text('合同信息',
+        Text(l10n.b2bContractTitle,
             style: Theme.of(context)
                 .textTheme
                 .titleLarge
@@ -208,6 +211,7 @@ class _ContractContent extends StatelessWidget {
 
   // --- Contract terms section ---
   Widget _buildContractTermsSection(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Container(
@@ -228,7 +232,7 @@ class _ContractContent extends StatelessWidget {
               const Icon(Icons.description_outlined,
                   size: 18, color: Color(0xFF607D8B)),
               const SizedBox(width: AppSpacing.sm),
-              Text('合同条款',
+              Text(l10n.b2bContractTerms,
                   style: theme.textTheme.titleSmall
                       ?.copyWith(fontWeight: FontWeight.w600)),
             ],
@@ -284,6 +288,7 @@ class _ContractContent extends StatelessWidget {
 
   // --- Subscription service status section ---
   Widget _buildSubscriptionStatusSection(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final dotColor = _serviceStatusColor(data.serviceStatus);
     final statusLabel = _serviceStatusText(data.serviceStatus);
@@ -306,7 +311,7 @@ class _ContractContent extends StatelessWidget {
               const Icon(Icons.vpn_key_outlined,
                   size: 18, color: Color(0xFF607D8B)),
               const SizedBox(width: AppSpacing.sm),
-              Text('订阅服务状态',
+              Text(l10n.b2bContractServiceStatus,
                   style: theme.textTheme.titleSmall
                       ?.copyWith(fontWeight: FontWeight.w600)),
             ],
@@ -402,6 +407,7 @@ class _ContractContent extends StatelessWidget {
 
   // --- Quick actions ---
   Widget _buildQuickActions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
         Expanded(
@@ -529,6 +535,7 @@ class _ExpiryReminderBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final days = _remainingDays;
     final dateStr =
         expiresAt.length >= 10 ? expiresAt.substring(0, 10) : expiresAt;
@@ -605,7 +612,7 @@ class _ExpiryReminderBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text('联系续签',
+              child: Text(l10n.b2bContractRenew,
                   style: TextStyle(fontSize: 13, color: Colors.white)),
             ),
           ),
