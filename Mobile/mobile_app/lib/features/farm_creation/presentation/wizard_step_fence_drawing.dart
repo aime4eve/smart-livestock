@@ -8,6 +8,7 @@ import 'package:smart_livestock_demo/core/api/api_client.dart';
 import 'package:smart_livestock_demo/core/map/coord_transform.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
 import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 import 'package:smart_livestock_demo/core/map/smart_tile_provider.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
@@ -162,10 +163,11 @@ class _WizardStepFenceDrawingState
   }
 
   Future<void> _saveFence() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
     if (_session.points.length < 3) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('围栏至少需要 3 个顶点')),
+        SnackBar(content: Text(l10n.wizardFenceMinVertices)),
       );
       return;
     }
@@ -193,7 +195,7 @@ class _WizardStepFenceDrawingState
       if (!mounted) return;
       setState(() => _saving = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('保存失败: $e')),
+        SnackBar(content: Text(l10n.fenceFormSaveFailed(e.toString()))),
       );
     }
   }
@@ -278,6 +280,7 @@ class _WizardStepFenceDrawingState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (!_tileProviderInitialized) {
       _tileProviderInitialized = true;
       _initTileProvider();
@@ -411,13 +414,13 @@ class _WizardStepFenceDrawingState
                         color: Colors.white,
                       ),
                     )
-                  : const Text('保存围栏'),
+                  : Text(l10n.fenceFormSaveFence),
             ),
             const SizedBox(height: AppSpacing.sm),
             OutlinedButton(
               key: const Key('fence-wizard-skip'),
               onPressed: widget.onSkip,
-              child: const Text('稍后设置'),
+              child: Text(l10n.wizardSetupLater),
             ),
           ],
         ),

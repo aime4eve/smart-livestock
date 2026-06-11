@@ -8,6 +8,7 @@ import 'package:smart_livestock_demo/core/map/map_config.dart';
 import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
 import 'package:smart_livestock_demo/core/map/smart_tile_provider.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 
 class WizardStepBasicInfo extends ConsumerStatefulWidget {
@@ -60,6 +61,7 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
     if (!mounted) return;
     setState(() => _submitting = true);
@@ -85,7 +87,7 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
       if (farmId.isEmpty) {
         setState(() => _submitting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('创建牧场失败：未获取到牧场ID')),
+          SnackBar(content: Text(l10n.wizardCreateFailedNoId)),
         );
         return;
       }
@@ -96,13 +98,14 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
       if (!mounted) return;
       setState(() => _submitting = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('创建牧场失败，请重试')),
+        SnackBar(content: Text(l10n.wizardCreateFailed)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (!_tileProviderInitialized) {
       _tileProviderInitialized = true;
       _initTileProvider();
@@ -222,7 +225,7 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
                         color: Colors.white,
                       ),
                     )
-                  : const Text('下一步'),
+                  : Text(l10n.wizardNextStep),
             ),
           ],
         ),

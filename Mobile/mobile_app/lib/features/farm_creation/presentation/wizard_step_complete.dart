@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class WizardStepComplete extends StatelessWidget {
   const WizardStepComplete({
@@ -16,6 +17,7 @@ class WizardStepComplete extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       key: const Key('farm-creation-step3'),
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -62,7 +64,7 @@ class WizardStepComplete extends StatelessWidget {
           FilledButton(
             key: const Key('farm-creation-enter'),
             onPressed: onStart,
-            child: const Text('进入牧场'),
+            child: Text(l10n.wizardEnterRanch),
           ),
           const SizedBox(height: AppSpacing.lg),
         ],

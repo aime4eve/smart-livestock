@@ -5,6 +5,7 @@ import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_contro
 import 'package:smart_livestock_demo/features/farm_creation/presentation/wizard_step_basic_info.dart';
 import 'package:smart_livestock_demo/features/farm_creation/presentation/wizard_step_complete.dart';
 import 'package:smart_livestock_demo/features/farm_creation/presentation/wizard_step_fence_drawing.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class FarmCreationWizardPage extends ConsumerStatefulWidget {
   const FarmCreationWizardPage({super.key});
@@ -47,21 +48,22 @@ class _FarmCreationWizardPageState
   }
 
   void _showBackConfirmDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('确认退出'),
-        content: const Text('牧场已创建。退出后将进入主页面，您可以稍后设置围栏。'),
+        title: Text(l10n.commonConfirmLogout),
+        content: Text(l10n.wizardExitConfirm),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('继续设置')),
+              child: Text(l10n.wizardContinueSetup)),
           TextButton(
             onPressed: () {
               Navigator.of(ctx).pop();
               _startDashboard();
             },
-            child: const Text('退出'),
+            child: Text(l10n.commonLogoutButton),
           ),
         ],
       ),
@@ -70,6 +72,7 @@ class _FarmCreationWizardPageState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return PopScope(
       canPop: _step == 1,
       onPopInvokedWithResult: (didPop, _) {
@@ -78,7 +81,7 @@ class _FarmCreationWizardPageState
         }
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('创建牧场')),
+        appBar: AppBar(title: Text(l10n.b2bFarmCreationButton)),
         body: switch (_step) {
           1 => WizardStepBasicInfo(onComplete: _onStep1Complete),
           2 => WizardStepFenceDrawing(
