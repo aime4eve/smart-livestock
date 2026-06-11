@@ -437,4 +437,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get livestockViewTrajectory => 'View Full Trajectory';
+
+  @override
+  String get feverWarningTitle => 'Fever Warning';
+
+  @override
+  String get feverNoData => 'No abnormal temperature data';
+
+  @override
+  String get digestiveTitle => 'Digestive Management';
+
+  @override
+  String get digestiveNoData => 'No abnormal digestive data';
+
+  @override
+  String digestiveItemSubtitle(String breed, String frequency, String dropPercent) =>
+      '$breed  Motility $frequency/min  ↓$dropPercent%';
+
+  @override
+  String get estrusTitle => 'Estrus Detection';
+
+  @override
+  String get estrusNoData => 'No estrus data';
+
+  @override
+  String estrusItemSubtitle(String breed, String genderIcon, String stepInfo) =>
+      '$breed $genderIcon $stepInfo';
+
+  @override
+  String get epidemicTitle => 'Epidemic Prevention';
+
+  @override
+  String get epidemicHerdHealth => 'Herd Health Metrics';
+
+  @override
+  String get epidemicContactTracing => 'Contact Tracing';
+
+  @override
+  String epidemicRiskLevel(String level) => 'Risk Level: $level';
+
+  @override
+  String get epidemicAvgTemperature => 'Avg Temperature';
+
+  @override
+  String get epidemicAbnormalRate => 'Abnormal Rate';
+
+  @override
+  String get epidemicAbnormalCount => 'Abnormal Count';
 }

@@ -535,6 +535,23 @@ abstract class AppLocalizations {
   String get livestockHealthData;
   String get livestockLocation;
   String get livestockViewTrajectory;
+
+  String get feverWarningTitle;
+  String get feverNoData;
+  String get digestiveTitle;
+  String get digestiveNoData;
+  String digestiveItemSubtitle(String breed, String frequency, String dropPercent);
+  String get estrusTitle;
+  String get estrusNoData;
+  String estrusItemSubtitle(String breed, String genderIcon, String stepInfo);
+  String get epidemicTitle;
+  String get epidemicHerdHealth;
+  String get epidemicContactTracing;
+  String epidemicRiskLevel(String level);
+
+  String get epidemicAvgTemperature;
+  String get epidemicAbnormalRate;
+  String get epidemicAbnormalCount;
 }
 
 class _AppLocalizationsDelegate

@@ -426,4 +426,51 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get livestockViewTrajectory => '查看完整轨迹';
+
+  @override
+  String get feverWarningTitle => '发热预警';
+
+  @override
+  String get feverNoData => '暂无体温异常数据';
+
+  @override
+  String get digestiveTitle => '消化管理';
+
+  @override
+  String get digestiveNoData => '暂无消化异常数据';
+
+  @override
+  String digestiveItemSubtitle(String breed, String frequency, String dropPercent) =>
+      '$breed  蠕动 $frequency次/分  ↓$dropPercent%';
+
+  @override
+  String get estrusTitle => '发情识别';
+
+  @override
+  String get estrusNoData => '暂无发情数据';
+
+  @override
+  String estrusItemSubtitle(String breed, String genderIcon, String stepInfo) =>
+      '$breed $genderIcon $stepInfo';
+
+  @override
+  String get epidemicTitle => '疫病防控';
+
+  @override
+  String get epidemicHerdHealth => '群体健康指标';
+
+  @override
+  String get epidemicContactTracing => '接触追踪';
+
+  @override
+  String epidemicRiskLevel(String level) => '风险等级: $level';
+
+  @override
+  String get epidemicAvgTemperature => '平均体温';
+
+  @override
+  String get epidemicAbnormalRate => '异常率';
+
+  @override
+  String get epidemicAbnormalCount => '异常数';
 }

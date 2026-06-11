@@ -3,18 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/models/health_models.dart';
 import 'package:smart_livestock_demo/features/epidemic/presentation/epidemic_controller.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class EpidemicPage extends ConsumerWidget {
   const EpidemicPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(epidemicControllerProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('🛡️ 疫病防控'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: AppBar(title: Text(l10n.epidemicTitle), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
       body: asyncData.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('加载失败: $e')),
+        error: (e, _) => Center(child: Text('${l10n.commonLoadFailed}: $e')),
         data: (data) => RefreshIndicator(
           onRefresh: () => ref.read(epidemicControllerProvider.notifier).refresh(),
           child: ListView(
@@ -24,7 +26,7 @@ class EpidemicPage extends ConsumerWidget {
               const SizedBox(height: 16),
               _buildContactsSection(context, data),
               const SizedBox(height: 16),
-              _buildRiskCard(data),
+              _buildRiskCard(context, data),
             ],
           ),
         ),
@@ -33,16 +35,17 @@ class EpidemicPage extends ConsumerWidget {
   }
 
   Widget _buildMetricsSection(BuildContext context, EpidemicData data) {
+    final l10n = AppLocalizations.of(context)!;
     final m = data.metrics;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Text('群体健康指标', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+      Text(l10n.epidemicHerdHealth, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       const SizedBox(height: 8),
       Row(children: [
-        _metricCard('平均体温', '${m.avgTemperature.toStringAsFixed(2)}°C', AppColors.info),
+        _metricCard(l10n.epidemicAvgTemperature, '${m.avgTemperature.toStringAsFixed(2)}°C', AppColors.info),
         const SizedBox(width: 8),
-        _metricCard('异常率', '${(m.abnormalRate * 100).toStringAsFixed(1)}%', m.abnormalRate > 0.15 ? AppColors.danger : m.abnormalRate > 0.05 ? AppColors.warning : AppColors.success),
+        _metricCard(l10n.epidemicAbnormalRate, '${(m.abnormalRate * 100).toStringAsFixed(1)}%', m.abnormalRate > 0.15 ? AppColors.danger : m.abnormalRate > 0.05 ? AppColors.warning : AppColors.success),
         const SizedBox(width: 8),
-        _metricCard('异常数', '${m.abnormalCount}头', AppColors.warning),
+        _metricCard(l10n.epidemicAbnormalCount, '${m.abnormalCount}头', AppColors.warning),
       ]),
     ]);
   }
@@ -56,9 +59,10 @@ class EpidemicPage extends ConsumerWidget {
   }
 
   Widget _buildContactsSection(BuildContext context, EpidemicData data) {
+    final l10n = AppLocalizations.of(context)!;
     if (data.contacts.isEmpty) return const SizedBox.shrink();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Text('📍 接触追踪', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+      Text(l10n.epidemicContactTracing, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       const SizedBox(height: 8),
       ...data.contacts.map((c) => Card(
         margin: const EdgeInsets.only(bottom: 6),
@@ -72,14 +76,15 @@ class EpidemicPage extends ConsumerWidget {
     ]);
   }
 
-  Widget _buildRiskCard(EpidemicData data) {
+  Widget _buildRiskCard(BuildContext context, EpidemicData data) {
+    final l10n = AppLocalizations.of(context)!;
     final color = data.riskLevel == '警戒' ? AppColors.danger : data.riskLevel == '关注' ? AppColors.warning : AppColors.success;
     return Card(
       color: color.withOpacity(0.08),
       child: Padding(padding: const EdgeInsets.all(12), child: Row(children: [
         Icon(Icons.shield, color: color),
         const SizedBox(width: 8),
-        Text('风险等级: ${data.riskLevel}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
+        Text(l10n.epidemicRiskLevel(data.riskLevel), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
       ])),
     );
   }
