@@ -559,6 +559,20 @@ abstract class AppLocalizations {
   String get digestiveDetailChartTitle;
   String get estrusDetailTitle;
   String get estrusDetailChartTitle;
+
+  String get devicesManagement;
+  String get devicesAddDemo;
+  String get devicesNoDevices;
+  String devicesUnbindDemo(String name);
+  String devicesViewLocationDemo(String name);
+  String devicesInstallSuccess(String name);
+  String devicesInstallFailed(String error);
+  String devicesInstallTo(String name);
+  String get devicesNoMatchingLivestock;
+  String get devicesOverview;
+
+  String get devicesStatTotal;
+  String get devicesSearchHint;
 }
 
 class _AppLocalizationsDelegate

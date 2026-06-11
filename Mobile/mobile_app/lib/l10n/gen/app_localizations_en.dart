@@ -502,4 +502,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get estrusDetailChartTitle => '7-Day Score Trend';
+
+  @override
+  String get devicesManagement => 'Device Management';
+
+  @override
+  String get devicesAddDemo => 'Demo: Add new device coming soon';
+
+  @override
+  String get devicesNoDevices => 'No Devices';
+
+  @override
+  String devicesUnbindDemo(String name) => 'Demo: Unbind $name';
+
+  @override
+  String devicesViewLocationDemo(String name) => 'Demo: View $name location';
+
+  @override
+  String devicesInstallSuccess(String name) => 'Installation successful: $name';
+
+  @override
+  String devicesInstallFailed(String error) => 'Installation failed: $error';
+
+  @override
+  String devicesInstallTo(String name) => 'Install to — $name';
+
+  @override
+  String get devicesNoMatchingLivestock => 'No matching livestock';
+
+  @override
+  String get devicesOverview => 'Device Overview';
+
+  @override
+  String get devicesStatTotal => 'Total';
+
+  @override
+  String get devicesSearchHint => 'Search ear tag / breed';
 }

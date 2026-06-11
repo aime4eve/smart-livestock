@@ -491,4 +491,40 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get estrusDetailChartTitle => '7天评分趋势';
+
+  @override
+  String get devicesManagement => '设备管理';
+
+  @override
+  String get devicesAddDemo => '演示：添加新设备待接入';
+
+  @override
+  String get devicesNoDevices => '暂无设备';
+
+  @override
+  String devicesUnbindDemo(String name) => '演示：解绑 $name';
+
+  @override
+  String devicesViewLocationDemo(String name) => '演示：查看 $name 位置';
+
+  @override
+  String devicesInstallSuccess(String name) => '安装成功：$name';
+
+  @override
+  String devicesInstallFailed(String error) => '安装失败: $error';
+
+  @override
+  String devicesInstallTo(String name) => '安装到牲畜 — $name';
+
+  @override
+  String get devicesNoMatchingLivestock => '无匹配牲畜';
+
+  @override
+  String get devicesOverview => '设备概览';
+
+  @override
+  String get devicesStatTotal => '总数';
+
+  @override
+  String get devicesSearchHint => '搜索耳标/品种';
 }

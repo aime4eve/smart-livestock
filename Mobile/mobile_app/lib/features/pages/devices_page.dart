@@ -8,22 +8,24 @@ import 'package:smart_livestock_demo/features/devices/domain/devices_repository.
 import 'package:smart_livestock_demo/features/devices/presentation/devices_controller.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_device_tile.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class DevicesPage extends ConsumerWidget {
   const DevicesPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(devicesControllerProvider);
     final controller = ref.read(devicesControllerProvider.notifier);
     return Scaffold(
-      appBar: AppBar(title: const Text('设备管理')),
+      appBar: AppBar(title: Text(l10n.devicesManagement)),
       floatingActionButton: FloatingActionButton(
         key: const Key('device-add-fab'),
         onPressed: () {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
-            ..showSnackBar(const SnackBar(content: Text('演示：添加新设备待接入')));
+            ..showSnackBar(SnackBar(content: Text(l10n.devicesAddDemo)));
         },
         child: const Icon(Icons.add),
       ),
@@ -36,10 +38,10 @@ class DevicesPage extends ConsumerWidget {
             asyncData.when(
               data: (data) {
                 if (data.items.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Padding(
-                      padding: EdgeInsets.all(32),
-                      child: Text('暂无设备'),
+                      padding: const EdgeInsets.all(32),
+                      child: Text(l10n.devicesNoDevices),
                     ),
                   );
                 }
@@ -59,14 +61,14 @@ class DevicesPage extends ConsumerWidget {
                             ScaffoldMessenger.of(context)
                               ..hideCurrentSnackBar()
                               ..showSnackBar(SnackBar(
-                                  content: Text('演示：解绑 ${device.name}')));
+                                  content: Text(l10n.devicesUnbindDemo(device.name))));
                           },
                           onViewLocation: () {
                             ScaffoldMessenger.of(context)
                               ..hideCurrentSnackBar()
                               ..showSnackBar(SnackBar(
                                   content:
-                                      Text('演示：查看 ${device.name} 位置')));
+                                      Text(l10n.devicesViewLocationDemo(device.name))));
                           },
                         ),
                       ),
@@ -78,11 +80,11 @@ class DevicesPage extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('加载失败: $e'),
+                    Text('${l10n.commonLoadFailed}: $e'),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => controller.refresh(),
-                      child: const Text('重试'),
+                      child: Text(l10n.commonRetry),
                     ),
                   ],
                 ),
@@ -96,6 +98,7 @@ class DevicesPage extends ConsumerWidget {
 
   void _showInstallDialog(
       BuildContext context, WidgetRef ref, DeviceItem device) {
+    final l10n = AppLocalizations.of(context)!;
     // Livestock options from API (placeholder until async migration)
     const options = <_LivestockOption>[];
 
@@ -110,7 +113,7 @@ class DevicesPage extends ConsumerWidget {
           if (farmId.isEmpty) {
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
-              ..showSnackBar(const SnackBar(content: Text('请先选择一个牧场')));
+              ..showSnackBar(SnackBar(content: Text(l10n.fencePleaseSelectFarm)));
             return;
           }
           try {
@@ -122,7 +125,7 @@ class DevicesPage extends ConsumerWidget {
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
                 ..showSnackBar(SnackBar(
-                  content: Text('安装成功：${device.name}'),
+                  content: Text(l10n.devicesInstallSuccess(device.name)),
                 ));
             }
           } catch (e) {
@@ -130,7 +133,7 @@ class DevicesPage extends ConsumerWidget {
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
                 ..showSnackBar(SnackBar(
-                  content: Text('安装失败: $e'),
+                  content: Text(l10n.devicesInstallFailed(e.toString())),
                 ));
             }
           }
@@ -184,10 +187,11 @@ class _InstallDialogState extends State<_InstallDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final items = _filtered;
     return AlertDialog(
       key: const Key('install-device-dialog'),
-      title: Text('安装到牲畜 — ${widget.device.name}'),
+      title: Text(l10n.devicesInstallTo(widget.device.name)),
       content: SizedBox(
         width: double.maxFinite,
         height: 400,
@@ -195,9 +199,9 @@ class _InstallDialogState extends State<_InstallDialog> {
           children: [
             TextField(
               key: const Key('install-livestock-search'),
-              decoration: const InputDecoration(
-                hintText: '搜索耳标/品种',
-                prefixIcon: Icon(Icons.search),
+              decoration: InputDecoration(
+                hintText: l10n.devicesSearchHint,
+                prefixIcon: const Icon(Icons.search),
                 isDense: true,
               ),
               onChanged: (v) => setState(() => _query = v),
@@ -207,8 +211,8 @@ class _InstallDialogState extends State<_InstallDialog> {
               const Expanded(
                   child: Center(child: CircularProgressIndicator()))
             else if (items.isEmpty)
-              const Expanded(
-                child: Center(child: Text('无匹配牲畜')),
+              Expanded(
+                child: Center(child: Text(l10n.devicesNoMatchingLivestock)),
               )
             else
               Expanded(
@@ -231,7 +235,7 @@ class _InstallDialogState extends State<_InstallDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
       ],
     );
@@ -253,6 +257,7 @@ class _DeviceOverviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final online =
         data.items.where((d) => d.status == DeviceStatus.online).length;
     final offline =
@@ -264,16 +269,16 @@ class _DeviceOverviewCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('设备概览', style: Theme.of(context).textTheme.titleLarge),
+          Text(l10n.devicesOverview, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: AppSpacing.md),
           Wrap(
             spacing: AppSpacing.lg,
             runSpacing: AppSpacing.sm,
             children: [
-              _Stat(label: '总数', value: '${data.items.length}'),
-              _Stat(label: '在线', value: '$online'),
-              _Stat(label: '离线', value: '$offline'),
-              _Stat(label: '低电', value: '$lowBat'),
+              _Stat(label: l10n.devicesStatTotal, value: '${data.items.length}'),
+              _Stat(label: l10n.deviceStatusOnline, value: '$online'),
+              _Stat(label: l10n.deviceStatusOffline, value: '$offline'),
+              _Stat(label: l10n.deviceStatusLowBattery, value: '$lowBat'),
             ],
           ),
         ],
