@@ -585,6 +585,22 @@ abstract class AppLocalizations {
 
   String get adminTitle;
   String get adminSubtitle;
+
+  String get fenceFormManualEntry;
+  String get fenceFormApply;
+  String get fenceFormVersionConflict;
+  String get fenceFormVersionConflictDesc;
+  String get fenceFormForceUpdate;
+  String fenceFormForceUpdateFailed(String error);
+  String fenceFormSaveFailed(String error);
+  String get fenceFormRectangle;
+  String get fenceFormCircle;
+  String get fenceFormPolygon;
+  String get fenceFormReset;
+  String get fenceFormManualInput;
+  String get fenceFormEnableAlarm;
+  String get fenceFormEnableStatus;
+  String get fenceFormSaveFence;
 }
 
 class _AppLocalizationsDelegate

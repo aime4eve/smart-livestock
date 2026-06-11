@@ -568,4 +568,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminSubtitle => 'Management Console — Business Data & Subscription Overview';
+
+  @override
+  String get fenceFormManualEntry => 'Manual Coordinate Entry';
+
+  @override
+  String get fenceFormApply => 'Apply';
+
+  @override
+  String get fenceFormVersionConflict => 'Version Conflict';
+
+  @override
+  String get fenceFormVersionConflictDesc =>
+      'This fence has been modified elsewhere. Force overwrite?';
+
+  @override
+  String get fenceFormForceUpdate => 'Force Update';
+
+  @override
+  String fenceFormForceUpdateFailed(String error) => 'Force update failed: $error';
+
+  @override
+  String fenceFormSaveFailed(String error) => 'Save failed: $error';
+
+  @override
+  String get fenceFormRectangle => 'Rectangle';
+
+  @override
+  String get fenceFormCircle => 'Circle';
+
+  @override
+  String get fenceFormPolygon => 'Polygon';
+
+  @override
+  String get fenceFormReset => 'Reset';
+
+  @override
+  String get fenceFormManualInput => 'Manual Entry';
+
+  @override
+  String get fenceFormEnableAlarm => 'Enable Alarm';
+
+  @override
+  String get fenceFormEnableStatus => 'Enable Status';
+
+  @override
+  String get fenceFormSaveFence => 'Save Fence';
 }

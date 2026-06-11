@@ -18,6 +18,7 @@ import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
 import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
 import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_template_picker.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class FenceFormPage extends ConsumerStatefulWidget {
   const FenceFormPage({super.key, this.fenceId});
@@ -374,6 +375,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
   }
 
   Future<void> _showManualEntryDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final inputController = TextEditingController();
     final previewPoints = _getPreviewPoints();
     if (previewPoints.isNotEmpty) {
@@ -389,7 +391,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('手动录入坐标'),
+          title: Text(l10n.fenceFormManualEntry),
           content: SizedBox(
             width: double.maxFinite,
             child: Column(
@@ -422,7 +424,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
             TextButton(
               key: const Key('fence-form-manual-cancel'),
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('取消'),
+              child: Text(l10n.commonCancel),
             ),
             FilledButton(
               key: const Key('fence-form-manual-apply'),
@@ -466,7 +468,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                   _formMapController.move(usedPoints.first, 15.0);
                 }
               },
-              child: const Text('应用'),
+              child: Text(l10n.fenceFormApply),
             ),
           ],
         ),
@@ -476,6 +478,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
   }
 
   Future<void> _save() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
 
@@ -505,11 +508,11 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
           final force = await showDialog<bool>(
             context: context,
             builder: (ctx) => AlertDialog(
-              title: const Text('版本冲突'),
-              content: const Text('该围栏已被其他操作修改，是否强制覆盖？'),
+              title: Text(l10n.fenceFormVersionConflict),
+              content: Text(l10n.fenceFormVersionConflictDesc),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
-                FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('强制更新')),
+                TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.commonCancel)),
+                FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l10n.fenceFormForceUpdate)),
               ],
             ),
           );
@@ -521,7 +524,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
               if (mounted) {
                 setState(() => _saving = false);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('强制更新失败: $e2')),
+                  SnackBar(content: Text(l10n.fenceFormForceUpdateFailed(e2.toString()))),
                 );
               }
               return;
@@ -534,7 +537,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
         if (mounted) {
           setState(() => _saving = false);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('保存失败: $e')),
+            SnackBar(content: Text(l10n.fenceFormSaveFailed(e.toString()))),
           );
         }
         return;
@@ -562,6 +565,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     _initForEdit();
     if (!_tileProviderInitialized) {
       _tileProviderInitialized = true;
@@ -715,18 +719,18 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                     labelText: '围栏类型',
                     border: OutlineInputBorder(),
                   ),
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: FenceType.rectangle,
-                      child: Text('矩形'),
+                      child: Text(l10n.fenceFormRectangle),
                     ),
                     DropdownMenuItem(
                       value: FenceType.circle,
-                      child: Text('圆形'),
+                      child: Text(l10n.fenceFormCircle),
                     ),
                     DropdownMenuItem(
                       value: FenceType.polygon,
-                      child: Text('多边形'),
+                      child: Text(l10n.fenceFormPolygon),
                     ),
                   ],
                   onChanged: (v) {
@@ -873,12 +877,12 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                   TextButton(
                     key: const Key('fence-form-map-reset'),
                     onPressed: _drawingPoints.isEmpty ? null : _resetDrawing,
-                    child: const Text('重置'),
+                    child: Text(l10n.fenceFormReset),
                   ),
                   TextButton(
                     key: const Key('fence-form-map-manual'),
                     onPressed: () => _showManualEntryDialog(context),
-                    child: const Text('手动录入'),
+                    child: Text(l10n.fenceFormManualInput),
                   ),
                 ],
               ),
@@ -886,14 +890,14 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
               SwitchListTile(
                 key: const Key('fence-form-alarm'),
                 contentPadding: EdgeInsets.zero,
-                title: const Text('启用告警'),
+                title: Text(l10n.fenceFormEnableAlarm),
                 value: _alarmEnabled,
                 onChanged: (v) => setState(() => _alarmEnabled = v),
               ),
               SwitchListTile(
                 key: const Key('fence-form-active'),
                 contentPadding: EdgeInsets.zero,
-                title: const Text('启用状态'),
+                title: Text(l10n.fenceFormEnableStatus),
                 value: _active,
                 onChanged: (v) => setState(() => _active = v),
               ),
@@ -904,7 +908,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                     child: OutlinedButton(
                       key: const Key('fence-form-cancel'),
                       onPressed: () => context.pop(),
-                      child: const Text('取消'),
+                      child: Text(l10n.commonCancel),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
@@ -918,7 +922,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                               height: 16,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('保存围栏'),
+                          : Text(l10n.fenceFormSaveFence),
                     ),
                   ),
                 ],

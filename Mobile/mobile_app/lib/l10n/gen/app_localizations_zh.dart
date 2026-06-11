@@ -557,4 +557,49 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get adminSubtitle => '管理控制台 - 业务数据与订阅概览';
+
+  @override
+  String get fenceFormManualEntry => '手动录入坐标';
+
+  @override
+  String get fenceFormApply => '应用';
+
+  @override
+  String get fenceFormVersionConflict => '版本冲突';
+
+  @override
+  String get fenceFormVersionConflictDesc => '该围栏已被其他操作修改，是否强制覆盖？';
+
+  @override
+  String get fenceFormForceUpdate => '强制更新';
+
+  @override
+  String fenceFormForceUpdateFailed(String error) => '强制更新失败: $error';
+
+  @override
+  String fenceFormSaveFailed(String error) => '保存失败: $error';
+
+  @override
+  String get fenceFormRectangle => '矩形';
+
+  @override
+  String get fenceFormCircle => '圆形';
+
+  @override
+  String get fenceFormPolygon => '多边形';
+
+  @override
+  String get fenceFormReset => '重置';
+
+  @override
+  String get fenceFormManualInput => '手动录入';
+
+  @override
+  String get fenceFormEnableAlarm => '启用告警';
+
+  @override
+  String get fenceFormEnableStatus => '启用状态';
+
+  @override
+  String get fenceFormSaveFence => '保存围栏';
 }
