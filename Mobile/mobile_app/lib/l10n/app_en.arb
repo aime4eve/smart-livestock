@@ -258,5 +258,7 @@
   "statsMotility": "Motility",
   "@statsMotility": {},
   "statsHealthDistribution": "Health Distribution",
-  "@statsHealthDistribution": {}
+  "@statsHealthDistribution": {},
+  "fencePleaseSelectFarm": "Please select a farm first",
+  "@fencePleaseSelectFarm": {}
 }

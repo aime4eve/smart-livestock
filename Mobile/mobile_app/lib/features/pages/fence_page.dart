@@ -30,6 +30,7 @@ import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_m
 import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_unsaved_dialog.dart';
 import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_widget.dart';
 import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class FencePage extends ConsumerStatefulWidget {
   const FencePage({super.key});
@@ -182,6 +183,7 @@ class _FencePageState extends ConsumerState<FencePage>
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        final l10n = AppLocalizations.of(context)!;
         final panelW = min(300.0, constraints.maxWidth * 0.82);
 
         return Stack(
@@ -499,8 +501,8 @@ class _FencePageState extends ConsumerState<FencePage>
                       ScaffoldMessenger.of(context)
                         ..hideCurrentSnackBar()
                         ..showSnackBar(
-                          const SnackBar(
-                            content: Text('请先选择一个牧场'),
+                          SnackBar(
+                            content: Text(l10n.fencePleaseSelectFarm),
                           ),
                         );
                       return;
@@ -510,7 +512,7 @@ class _FencePageState extends ConsumerState<FencePage>
                   },
                   icon: const Icon(
                       Icons.edit_location_alt_outlined),
-                  label: const Text('编辑边界'),
+                  label: Text(l10n.ranchEditBoundary),
                 ),
               ),
           ],
@@ -1048,16 +1050,17 @@ class _FencePageState extends ConsumerState<FencePage>
     FenceController controller,
     dynamic appMode,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('确认删除'),
-        content: Text('确认删除「${fence.name}」？删除后无法恢复。'),
+        title: Text(l10n.commonConfirmDelete),
+        content: Text(l10n.ranchConfirmDeleteFence(fence.name)),
         actions: [
           TextButton(
             key: const Key('fence-delete-cancel'),
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('取消'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             key: const Key('fence-delete-confirm'),
@@ -1071,7 +1074,7 @@ class _FencePageState extends ConsumerState<FencePage>
                   ..hideCurrentSnackBar()
                   ..showSnackBar(
                     SnackBar(
-                        content: Text('已删除「${fence.name}」')),
+                        content: Text(l10n.ranchFenceDeleted(fence.name))),
                   );
               } catch (e) {
                 if (!context.mounted) return;
@@ -1079,12 +1082,12 @@ class _FencePageState extends ConsumerState<FencePage>
                   ..hideCurrentSnackBar()
                   ..showSnackBar(
                     SnackBar(
-                        content: Text('删除失败: $e')),
+                        content: Text(l10n.commonDeleteFailed(e.toString()))),
                   );
               }
             },
-            child: const Text('删除',
-                style: TextStyle(color: AppColors.danger)),
+            child: Text(l10n.commonDelete,
+                style: const TextStyle(color: AppColors.danger)),
           ),
         ],
       ),

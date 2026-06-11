@@ -258,5 +258,7 @@
   "statsMotility": "蠕动",
   "@statsMotility": {},
   "statsHealthDistribution": "健康分布",
-  "@statsHealthDistribution": {}
+  "@statsHealthDistribution": {},
+  "fencePleaseSelectFarm": "请先选择一个牧场",
+  "@fencePleaseSelectFarm": {}
 }

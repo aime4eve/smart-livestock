@@ -387,4 +387,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get statsHealthDistribution => '健康分布';
+
+  @override
+  String get fencePleaseSelectFarm => '请先选择一个牧场';
 }

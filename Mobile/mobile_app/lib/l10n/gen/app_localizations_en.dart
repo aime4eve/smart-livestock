@@ -398,4 +398,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsHealthDistribution => 'Health Distribution';
+
+  @override
+  String get fencePleaseSelectFarm => 'Please select a farm first';
 }

@@ -519,6 +519,8 @@ abstract class AppLocalizations {
   String get statsAvgTemp;
   String get statsMotility;
   String get statsHealthDistribution;
+
+  String get fencePleaseSelectFarm;
 }
 
 class _AppLocalizationsDelegate
