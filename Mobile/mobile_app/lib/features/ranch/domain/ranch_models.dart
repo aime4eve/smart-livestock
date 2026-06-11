@@ -9,6 +9,7 @@ class RanchOverviewStats {
     required this.alertCount,
     required this.criticalCount,
     required this.deviceOnlineRate,
+    required this.inFenceRate,
   });
 
   final int totalLivestock;
@@ -16,6 +17,7 @@ class RanchOverviewStats {
   final int alertCount;
   final int criticalCount;
   final double deviceOnlineRate;
+  final double inFenceRate;
 
   factory RanchOverviewStats.fromJson(Map<String, dynamic> m) {
     return RanchOverviewStats(
@@ -24,6 +26,7 @@ class RanchOverviewStats {
       alertCount: m['alertCount'] as int? ?? 0,
       criticalCount: m['criticalCount'] as int? ?? 0,
       deviceOnlineRate: (m['deviceOnlineRate'] as num?)?.toDouble() ?? 0.0,
+      inFenceRate: (m['inFenceRate'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }
@@ -93,10 +96,10 @@ class RanchSceneSummary {
 
   factory RanchSceneSummary.fromJson(Map<String, dynamic>? m) {
     return RanchSceneSummary(
-      fever: RanchSceneSummaryFever.fromJson(m?['fever'] as Map<String, dynamic>?),
-      digestive: RanchSceneSummaryDigestive.fromJson(m?['digestive'] as Map<String, dynamic>?),
-      estrus: RanchSceneSummaryEstrus.fromJson(m?['estrus'] as Map<String, dynamic>?),
-      epidemic: RanchSceneSummaryEpidemic.fromJson(m?['epidemic'] as Map<String, dynamic>?),
+      fever: RanchSceneSummaryFever.fromJson(m?['fever'] != null ? Map<String, dynamic>.from(m?['fever'] as Map) : null),
+      digestive: RanchSceneSummaryDigestive.fromJson(m?['digestive'] != null ? Map<String, dynamic>.from(m?['digestive'] as Map) : null),
+      estrus: RanchSceneSummaryEstrus.fromJson(m?['estrus'] != null ? Map<String, dynamic>.from(m?['estrus'] as Map) : null),
+      epidemic: RanchSceneSummaryEpidemic.fromJson(m?['epidemic'] != null ? Map<String, dynamic>.from(m?['epidemic'] as Map) : null),
     );
   }
 }
@@ -179,6 +182,37 @@ class RanchFenceData {
   }
 }
 
+// ── Fence Zone Data ────────────────────────────────────────
+
+class FenceZoneData {
+  const FenceZoneData({
+    required this.id,
+    required this.fenceId,
+    required this.name,
+    required this.zoneType,
+    required this.alertRadius,
+    required this.severity,
+  });
+
+  final String id;
+  final String fenceId;
+  final String name;
+  final String zoneType;
+  final int alertRadius;
+  final String severity;
+
+  factory FenceZoneData.fromJson(Map<String, dynamic> m) {
+    return FenceZoneData(
+      id: (m['id'] ?? '').toString(),
+      fenceId: (m['fenceId'] ?? '').toString(),
+      name: m['name'] as String? ?? '',
+      zoneType: m['zoneType'] as String? ?? '',
+      alertRadius: m['alertRadius'] as int? ?? 20,
+      severity: m['severity'] as String? ?? 'INFO',
+    );
+  }
+}
+
 // ── Livestock Marker ───────────────────────────────────────
 
 class RanchLivestockMarker {
@@ -195,8 +229,8 @@ class RanchLivestockMarker {
   final String livestockCode;
   final double latitude;
   final double longitude;
-  final String healthStatus; // NORMAL, WARNING, CRITICAL
-  final String primaryAlert; // FEVER, DIGESTIVE, ESTRUS, or empty
+  final String healthStatus;
+  final String primaryAlert;
 
   LatLng toLatLng() => LatLng(latitude, longitude);
 
@@ -224,6 +258,11 @@ class RanchAlertData {
     this.livestockId,
     this.fenceId,
     this.occurredAt,
+    this.read = false,
+    this.distance,
+    this.direction,
+    this.resolvedType,
+    this.resolvedAt,
   });
 
   final String id;
@@ -234,6 +273,11 @@ class RanchAlertData {
   final String? livestockId;
   final String? fenceId;
   final String? occurredAt;
+  final bool read;
+  final double? distance;
+  final String? direction;
+  final String? resolvedType;
+  final String? resolvedAt;
 
   factory RanchAlertData.fromJson(Map<String, dynamic> m) {
     return RanchAlertData(
@@ -245,6 +289,35 @@ class RanchAlertData {
       livestockId: m['livestockId']?.toString(),
       fenceId: m['fenceId']?.toString(),
       occurredAt: m['occurredAt'] as String?,
+      read: m['read'] as bool? ?? false,
+      distance: (m['distance'] as num?)?.toDouble(),
+      direction: m['direction'] as String?,
+      resolvedType: m['resolvedType'] as String?,
+      resolvedAt: m['resolvedAt'] as String?,
+    );
+  }
+
+  RanchAlertData copyWith({
+    bool? read,
+    double? distance,
+    String? direction,
+    String? resolvedType,
+    String? resolvedAt,
+  }) {
+    return RanchAlertData(
+      id: id,
+      type: type,
+      severity: severity,
+      status: status,
+      message: message,
+      livestockId: livestockId,
+      fenceId: fenceId,
+      occurredAt: occurredAt,
+      read: read ?? this.read,
+      distance: distance ?? this.distance,
+      direction: direction ?? this.direction,
+      resolvedType: resolvedType ?? this.resolvedType,
+      resolvedAt: resolvedAt ?? this.resolvedAt,
     );
   }
 }
@@ -259,6 +332,9 @@ class RanchOverview {
     required this.fences,
     required this.livestockMarkers,
     required this.alerts,
+    required this.fenceAlertSummary,
+    required this.healthAlertSummary,
+    required this.fenceZones,
   });
 
   final RanchOverviewStats overallStats;
@@ -267,13 +343,15 @@ class RanchOverview {
   final List<RanchFenceData> fences;
   final List<RanchLivestockMarker> livestockMarkers;
   final List<RanchAlertData> alerts;
+  final Map<String, int> fenceAlertSummary;
+  final Map<String, int> healthAlertSummary;
+  final List<FenceZoneData> fenceZones;
 
   factory RanchOverview.fromJson(Map<String, dynamic> m) {
     return RanchOverview(
       overallStats: RanchOverviewStats.fromJson(
-          m['overallStats'] as Map<String, dynamic>? ?? {}),
-      sceneSummary: RanchSceneSummary.fromJson(
-          m['sceneSummary'] as Map<String, dynamic>?),
+          m['overallStats'] != null ? Map<String, dynamic>.from(m['overallStats']) : <String, dynamic>{}),
+      sceneSummary: RanchSceneSummary.fromJson(m['sceneSummary'] != null ? Map<String, dynamic>.from(m['sceneSummary'] as Map) : null),
       pendingTasks: (m['pendingTasks'] as List?)
               ?.whereType<Map<String, dynamic>>()
               .map(RanchPendingTask.fromJson)
@@ -294,7 +372,45 @@ class RanchOverview {
               .map(RanchAlertData.fromJson)
               .toList() ??
           [],
+      fenceAlertSummary: _parseIntMap(m['fenceAlertSummary']),
+      healthAlertSummary: _parseIntMap(m['healthAlertSummary']),
+      fenceZones: (m['fenceZones'] as List?)
+              ?.whereType<Map<String, dynamic>>()
+              .map(FenceZoneData.fromJson)
+              .toList() ??
+          [],
     );
+  }
+
+  RanchOverview copyWith({
+    RanchOverviewStats? overallStats,
+    RanchSceneSummary? sceneSummary,
+    List<RanchPendingTask>? pendingTasks,
+    List<RanchFenceData>? fences,
+    List<RanchLivestockMarker>? livestockMarkers,
+    List<RanchAlertData>? alerts,
+    Map<String, int>? fenceAlertSummary,
+    Map<String, int>? healthAlertSummary,
+    List<FenceZoneData>? fenceZones,
+  }) {
+    return RanchOverview(
+      overallStats: overallStats ?? this.overallStats,
+      sceneSummary: sceneSummary ?? this.sceneSummary,
+      pendingTasks: pendingTasks ?? this.pendingTasks,
+      fences: fences ?? this.fences,
+      livestockMarkers: livestockMarkers ?? this.livestockMarkers,
+      alerts: alerts ?? this.alerts,
+      fenceAlertSummary: fenceAlertSummary ?? this.fenceAlertSummary,
+      healthAlertSummary: healthAlertSummary ?? this.healthAlertSummary,
+      fenceZones: fenceZones ?? this.fenceZones,
+    );
+  }
+
+  static Map<String, int> _parseIntMap(dynamic m) {
+    if (m is Map<String, dynamic>) {
+      return m.map((k, v) => MapEntry(k, v is int ? v : (v as num).toInt()));
+    }
+    return {};
   }
 }
 

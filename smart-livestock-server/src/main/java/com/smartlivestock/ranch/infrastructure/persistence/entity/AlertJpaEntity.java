@@ -40,6 +40,13 @@ public class AlertJpaEntity {
     @Column(name = "message", columnDefinition = "TEXT")
     private String message;
 
+    @Column(name = "resolved_type", length = 20)
+    private String resolvedType;
+
+    @Column(name = "resolved_at")
+    private Instant resolvedAt;
+
+    // Legacy columns retained for backward compatibility
     @Column(name = "acknowledged_by")
     private Long acknowledgedBy;
 
@@ -95,6 +102,12 @@ public class AlertJpaEntity {
 
     public String getMessage() { return message; }
     public void setMessage(String message) { this.message = message; }
+
+    public String getResolvedType() { return resolvedType; }
+    public void setResolvedType(String resolvedType) { this.resolvedType = resolvedType; }
+
+    public Instant getResolvedAt() { return resolvedAt; }
+    public void setResolvedAt(Instant resolvedAt) { this.resolvedAt = resolvedAt; }
 
     public Long getAcknowledgedBy() { return acknowledgedBy; }
     public void setAcknowledgedBy(Long acknowledgedBy) { this.acknowledgedBy = acknowledgedBy; }

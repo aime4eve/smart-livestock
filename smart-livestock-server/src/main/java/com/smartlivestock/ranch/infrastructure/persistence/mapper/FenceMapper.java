@@ -28,6 +28,8 @@ public final class FenceMapper {
         jpa.setStatus(fence.isActive() ? "ACTIVE" : "DISABLED");
         jpa.setVersion(fence.getVersion());
         jpa.setFenceType(fence.getFenceType());
+        jpa.setBufferDistance(fence.getBufferDistance());
+        jpa.setBufferPolygon(toVerticesJson(fence.getBufferPolygon()));
         return jpa;
     }
 
@@ -38,6 +40,8 @@ public final class FenceMapper {
         existing.setStatus(fence.isActive() ? "ACTIVE" : "DISABLED");
         existing.setVersion(fence.getVersion());
         existing.setFenceType(fence.getFenceType());
+        existing.setBufferDistance(fence.getBufferDistance());
+        existing.setBufferPolygon(toVerticesJson(fence.getBufferPolygon()));
     }
 
     public static Fence toDomain(FenceJpaEntity jpa) {
@@ -52,12 +56,16 @@ public final class FenceMapper {
         }
         fence.setVersion(jpa.getVersion());
         fence.setFenceType(jpa.getFenceType());
+        if (jpa.getBufferDistance() != null) {
+            fence.setBufferDistance(jpa.getBufferDistance());
+        }
+        fence.setBufferPolygon(fromVerticesJson(jpa.getBufferPolygon()));
         return fence;
     }
 
     private static String toVerticesJson(List<GpsCoordinate> vertices) {
         if (vertices == null || vertices.isEmpty()) {
-            return "[]";
+            return null;
         }
         try {
             List<Map<String, String>> list = new ArrayList<>();
@@ -75,10 +83,9 @@ public final class FenceMapper {
 
     private static List<GpsCoordinate> fromVerticesJson(String json) {
         if (json == null || json.isBlank() || "[]".equals(json.trim())) {
-            return new ArrayList<>();
+            return null;
         }
         try {
-            // Try object format first: [{latitude: "x", longitude: "y"}, ...]
             List<Map<String, String>> objList = OBJECT_MAPPER.readValue(
                 json, new TypeReference<List<Map<String, String>>>() {});
             List<GpsCoordinate> coordinates = new ArrayList<>();
@@ -90,7 +97,6 @@ public final class FenceMapper {
             }
             return coordinates;
         } catch (JsonProcessingException objFormatFailed) {
-            // Fallback to array format: [[lng, lat], ...]
             try {
                 List<List<BigDecimal>> arrayCoords = OBJECT_MAPPER.readValue(
                     json, new TypeReference<List<List<BigDecimal>>>() {});

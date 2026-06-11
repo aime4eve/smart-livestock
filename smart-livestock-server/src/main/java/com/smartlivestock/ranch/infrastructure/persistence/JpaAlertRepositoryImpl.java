@@ -2,6 +2,7 @@ package com.smartlivestock.ranch.infrastructure.persistence;
 
 import com.smartlivestock.ranch.domain.model.Alert;
 import com.smartlivestock.ranch.domain.model.AlertStatus;
+import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.infrastructure.persistence.mapper.AlertMapper;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,6 @@ public class JpaAlertRepositoryImpl implements AlertRepository {
     @Override
     public Alert save(Alert alert) {
         if (alert.getId() != null) {
-            // Update existing entity — preserve createdAt/updatedAt via @PreUpdate
             return springDataRepo.findById(alert.getId())
                     .map(existing -> {
                         AlertMapper.updateEntity(existing, alert);
@@ -45,6 +45,13 @@ public class JpaAlertRepositoryImpl implements AlertRepository {
     @Override
     public List<Alert> findByFarmIdAndStatus(Long farmId, AlertStatus status) {
         return springDataRepo.findByFarmIdAndStatus(farmId, status.name()).stream()
+                .map(AlertMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Alert> findByLivestockIdAndTypeAndStatus(Long livestockId, AlertType type, AlertStatus status) {
+        return springDataRepo.findByLivestockIdAndTypeAndStatus(livestockId, type.name(), status.name()).stream()
                 .map(AlertMapper::toDomain)
                 .toList();
     }

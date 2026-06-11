@@ -53,6 +53,9 @@ dependencies {
 
     // Utility
     compileOnly 'org.projectlombok:lombok'
+
+    // Spatial — buffer polygon computation for fence approach detection
+    implementation 'org.locationtech.jts:jts-core:1.19.0'
     annotationProcessor 'org.projectlombok:lombok'
 
     // Test

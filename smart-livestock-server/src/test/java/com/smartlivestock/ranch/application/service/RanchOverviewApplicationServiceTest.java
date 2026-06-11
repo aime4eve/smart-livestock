@@ -11,7 +11,9 @@ import com.smartlivestock.ranch.domain.port.HealthQueryPort.HealthOverview;
 import com.smartlivestock.ranch.domain.port.dto.FarmInfo;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.domain.repository.FenceRepository;
+import com.smartlivestock.ranch.domain.repository.FenceZoneRepository;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
+import com.smartlivestock.ranch.infrastructure.persistence.SpringDataAlertReadStatusRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +38,8 @@ class RanchOverviewApplicationServiceTest {
     @Mock private HealthQueryPort healthQueryPort;
     @Mock private IoTQueryPort ioTQueryPort;
     @Mock private IdentityQueryPort identityQueryPort;
+    @Mock private SpringDataAlertReadStatusRepository readStatusRepository;
+    @Mock private FenceZoneRepository fenceZoneRepository;
 
     @InjectMocks
     private RanchOverviewApplicationService service;
@@ -48,12 +52,13 @@ class RanchOverviewApplicationServiceTest {
 
     private RanchOverviewResponse getOverviewForEmptyFarm() {
         when(fenceRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
+        when(fenceZoneRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(livestockRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(alertRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(Collections.emptyList());
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
                 new HealthOverview(0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0));
-        return service.getOverview(1L);
+        return service.getOverview(1L, 1L);
     }
 
     @Test
@@ -81,13 +86,14 @@ class RanchOverviewApplicationServiceTest {
         fence.setId(10L);
 
         when(fenceRepository.findByFarmId(1L)).thenReturn(List.of(fence));
+        when(fenceZoneRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(livestockRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(alertRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(Collections.emptyList());
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
                 new HealthOverview(0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0));
 
-        RanchOverviewResponse response = service.getOverview(1L);
+        RanchOverviewResponse response = service.getOverview(1L, 1L);
 
         assertThat(response.fences()).hasSize(1);
         assertThat(response.fences().get(0).name()).isEqualTo("东区");
@@ -102,6 +108,7 @@ class RanchOverviewApplicationServiceTest {
         l1.updatePosition(new BigDecimal("28.246"), new BigDecimal("112.852"));
 
         when(fenceRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
+        when(fenceZoneRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(livestockRepository.findByFarmId(1L)).thenReturn(List.of(l1));
         when(alertRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(List.of(
@@ -110,7 +117,7 @@ class RanchOverviewApplicationServiceTest {
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
                 new HealthOverview(1, 0.0, 0, 0, 1, 0, 0, 0, 0, 0.0));
 
-        RanchOverviewResponse response = service.getOverview(1L);
+        RanchOverviewResponse response = service.getOverview(1L, 1L);
 
         assertThat(response.livestockMarkers()).hasSize(1);
         assertThat(response.livestockMarkers().get(0).healthStatus()).isEqualTo("WARNING");
@@ -126,6 +133,7 @@ class RanchOverviewApplicationServiceTest {
         l1.updatePosition(new BigDecimal("28.246"), new BigDecimal("112.852"));
 
         when(fenceRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
+        when(fenceZoneRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(livestockRepository.findByFarmId(1L)).thenReturn(List.of(l1));
         when(alertRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(List.of(
@@ -134,7 +142,7 @@ class RanchOverviewApplicationServiceTest {
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
                 new HealthOverview(1, 0.0, 0, 1, 1, 1, 0, 0, 0, 1.0));
 
-        RanchOverviewResponse response = service.getOverview(1L);
+        RanchOverviewResponse response = service.getOverview(1L, 1L);
 
         assertThat(response.livestockMarkers().get(0).healthStatus()).isEqualTo("CRITICAL");
         assertThat(response.pendingTasks()).hasSize(1);
@@ -150,21 +158,20 @@ class RanchOverviewApplicationServiceTest {
 
         Alert archived = new Alert(1L, null, null, AlertType.FENCE_BREACH, Severity.INFO, "archived alert");
         archived.setId(2L);
-        archived.acknowledge(99L);
-        archived.handle(99L);
-        archived.archive(99L);
+        archived.autoResolve();
 
         when(fenceRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
+        when(fenceZoneRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(livestockRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(alertRepository.findByFarmId(1L)).thenReturn(List.of(pending, archived));
         when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(Collections.emptyList());
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
                 new HealthOverview(0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0));
 
-        RanchOverviewResponse response = service.getOverview(1L);
+        RanchOverviewResponse response = service.getOverview(1L, 1L);
 
         assertThat(response.alerts()).hasSize(1);
-        assertThat(response.alerts().get(0).status()).isEqualTo("PENDING");
+        assertThat(response.alerts().get(0).status()).isEqualTo("ACTIVE");
     }
 
     @Test
@@ -176,6 +183,7 @@ class RanchOverviewApplicationServiceTest {
         // No position set
 
         when(fenceRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
+        when(fenceZoneRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(livestockRepository.findByFarmId(1L)).thenReturn(List.of(l1));
         when(alertRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(List.of(
@@ -184,7 +192,7 @@ class RanchOverviewApplicationServiceTest {
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
                 new HealthOverview(1, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0));
 
-        RanchOverviewResponse response = service.getOverview(1L);
+        RanchOverviewResponse response = service.getOverview(1L, 1L);
 
         assertThat(response.livestockMarkers()).isEmpty();
     }

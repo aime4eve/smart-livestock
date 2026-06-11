@@ -36,24 +36,19 @@ class AlertsApiRepository implements AlertsRepository {
   }
 
   @override
-  Future<void> acknowledge(String alertId) async {
-    await ApiClient.instance.farmPost('/alerts/$alertId/acknowledge');
+  Future<void> markRead(String alertId) async {
+    await ApiClient.instance.farmPost('/alerts/$alertId/read');
   }
 
   @override
-  Future<void> handle(String alertId) async {
-    await ApiClient.instance.farmPost('/alerts/$alertId/handle');
+  Future<void> dismiss(String alertId) async {
+    await ApiClient.instance.farmPost('/alerts/$alertId/dismiss');
   }
 
   @override
-  Future<void> archive(String alertId) async {
-    await ApiClient.instance.farmPost('/alerts/$alertId/archive');
-  }
-
-  @override
-  Future<void> batchHandle(List<String> alertIds) async {
+  Future<void> batchRead(List<String> alertIds) async {
     await ApiClient.instance
-        .farmPost('/alerts/batch-handle', body: {'alertIds': alertIds});
+        .farmPost('/alerts/batch-read', body: {'alertIds': alertIds});
   }
 
   static AlertItem _alertItemFromMap(Map<String, dynamic> m) {
@@ -67,7 +62,18 @@ class AlertsApiRepository implements AlertsRepository {
       _ => 'P2',
     };
     final type = m['type'] as String? ?? 'unknown';
-    final stageStr = (m['status'] as String? ?? 'PENDING').toLowerCase();
+    final stageStr = (m['status'] as String? ?? 'ACTIVE').toLowerCase();
+    final stage = switch (stageStr) {
+      'active' => AlertStage.active,
+      'dismissed' => AlertStage.dismissed,
+      'auto_resolved' => AlertStage.autoResolved,
+      // Legacy compatibility
+      'pending' => AlertStage.active,
+      'acknowledged' => AlertStage.active,
+      'handled' => AlertStage.dismissed,
+      'archived' => AlertStage.autoResolved,
+      _ => AlertStage.active,
+    };
     final rawLivestockId = m['livestockId'];
     final livestockId = rawLivestockId is int
         ? rawLivestockId.toString()
@@ -78,7 +84,7 @@ class AlertsApiRepository implements AlertsRepository {
       subtitle: '',
       priority: priority,
       type: type,
-      stage: stageStr,
+      stage: stage.name,
       earTag: livestockId ?? '-',
       livestockId: livestockId,
     );
@@ -95,7 +101,7 @@ class AlertsApiRepository implements AlertsRepository {
       stage: item.stage,
       earTag: item.earTag,
       livestockId: item.livestockId,
-      occurredAt: m['handledAt'] as String?,
+      occurredAt: m['occurredAt'] as String? ?? m['resolvedAt'] as String?,
       description: m['message'] as String?,
     );
   }

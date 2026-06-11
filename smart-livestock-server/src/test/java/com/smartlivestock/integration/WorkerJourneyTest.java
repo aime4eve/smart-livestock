@@ -108,19 +108,19 @@ class WorkerJourneyTest extends AbstractJourneyTest {
     class WorkerAlertOperations {
 
         @Test
-        @DisplayName("worker 可以确认 PENDING 告警")
+        @DisplayName("worker 可以 markRead ACTIVE 告警")
         void worker_canAcknowledge() {
             var listData = getApi(workerToken, "/api/v1/farms/1/alerts?page=0&size=50");
             var items = getItems(listData);
 
             var pending = items.stream()
-                    .filter(a -> "PENDING".equals(a.get("status")))
+                    .filter(a -> "ACTIVE".equals(a.get("status")))
                     .findFirst();
             if (pending.isPresent()) {
                 String alertId = extractId(pending.get());
                 var result = postApi(workerToken,
-                        "/api/v1/farms/1/alerts/" + alertId + "/acknowledge", null);
-                assertThat(result.get("status")).isEqualTo("ACKNOWLEDGED");
+                        "/api/v1/farms/1/alerts/" + alertId + "/read", null);
+                assertThat(result.get("status")).isEqualTo("ACTIVE");
             }
         }
     }
@@ -170,7 +170,7 @@ class WorkerJourneyTest extends AbstractJourneyTest {
             var items = getItems(listData);
 
             var acknowledged = items.stream()
-                    .filter(a -> "ACKNOWLEDGED".equals(a.get("status")))
+                    .filter(a -> "ACTIVE".equals(a.get("status")))
                     .findFirst();
 
             assertThat(acknowledged).isPresent();
@@ -187,7 +187,7 @@ class WorkerJourneyTest extends AbstractJourneyTest {
             var items = getItems(listData);
 
             var handled = items.stream()
-                    .filter(a -> "HANDLED".equals(a.get("status")))
+                    .filter(a -> "DISMISSED".equals(a.get("status")))
                     .findFirst();
 
             assertThat(handled).isPresent();

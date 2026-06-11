@@ -20,6 +20,9 @@ public final class AlertMapper {
         jpa.setStatus(alert.getStatus().name());
         jpa.setSeverity(alert.getSeverity().name());
         jpa.setMessage(alert.getMessage());
+        jpa.setResolvedType(alert.getResolvedType());
+        jpa.setResolvedAt(alert.getResolvedAt());
+        // Legacy compatibility
         jpa.setAcknowledgedBy(alert.getAcknowledgedBy());
         jpa.setAcknowledgedAt(alert.getAcknowledgedAt());
         jpa.setHandledBy(alert.getHandledBy());
@@ -27,10 +30,6 @@ public final class AlertMapper {
         return jpa;
     }
 
-    /**
-     * Update an existing JPA entity from domain model.
-     * Preserves createdAt/updatedAt which are managed by JPA lifecycle callbacks.
-     */
     public static void updateEntity(AlertJpaEntity jpa, Alert alert) {
         jpa.setFarmId(alert.getFarmId());
         jpa.setLivestockId(alert.getLivestockId());
@@ -39,6 +38,9 @@ public final class AlertMapper {
         jpa.setStatus(alert.getStatus().name());
         jpa.setSeverity(alert.getSeverity().name());
         jpa.setMessage(alert.getMessage());
+        jpa.setResolvedType(alert.getResolvedType());
+        jpa.setResolvedAt(alert.getResolvedAt());
+        // Legacy compatibility
         jpa.setAcknowledgedBy(alert.getAcknowledgedBy());
         jpa.setAcknowledgedAt(alert.getAcknowledgedAt());
         jpa.setHandledBy(alert.getHandledBy());
@@ -55,9 +57,7 @@ public final class AlertMapper {
         alert.setStatus(AlertStatus.valueOf(jpa.getStatus()));
         alert.setSeverity(Severity.valueOf(jpa.getSeverity()));
         alert.setMessage(jpa.getMessage());
-        // Acknowledged/handled fields are set via domain methods,
-        // but for reconstitution we need to set them directly.
-        // Since the domain model has setters for these, we use them.
+        alert.reconstituteResolved(jpa.getResolvedType(), jpa.getResolvedAt());
         alert.reconstituteAcknowledgement(jpa.getAcknowledgedBy(), jpa.getAcknowledgedAt());
         alert.reconstituteHandled(jpa.getHandledBy(), jpa.getHandledAt());
         return alert;

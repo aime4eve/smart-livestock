@@ -153,28 +153,28 @@ class AlertsPage extends ConsumerWidget {
                 runSpacing: 8,
                 children: [
                   if (RolePermission.canAcknowledgeAlert(role) &&
-                      firstItem.stage == AlertStage.pending.name)
+                      firstItem.stage == AlertStage.active.name)
                     TextButton(
                       key: const Key('alert-confirm'),
                       onPressed: () => controller.acknowledge(firstItem.id),
                       child: const Text('确认'),
                     ),
                   if (RolePermission.canHandleAlert(role) &&
-                      firstItem.stage == AlertStage.acknowledged.name)
+                      firstItem.stage == AlertStage.active.name)
                     TextButton(
                       key: const Key('alert-handle'),
                       onPressed: () => controller.handle(firstItem.id),
                       child: const Text('处理'),
                     ),
                   if (RolePermission.canArchiveAlert(role) &&
-                      firstItem.stage == AlertStage.handled.name)
+                      firstItem.stage == AlertStage.dismissed.name)
                     TextButton(
                       key: const Key('alert-archive'),
                       onPressed: () => controller.archive(firstItem.id),
                       child: const Text('归档'),
                     ),
                   if (RolePermission.canBatchAlerts(role) &&
-                      firstItem.stage != AlertStage.archived.name)
+                      firstItem.stage != AlertStage.autoResolved.name)
                     TextButton(
                       key: const Key('alert-batch'),
                       onPressed: () {
@@ -201,10 +201,10 @@ class AlertsPage extends ConsumerWidget {
   String _statusLabel(String stage) {
     final s = AlertStage.values.where((e) => e.name == stage).firstOrNull;
     return switch (s) {
-      AlertStage.pending => '待处理',
-      AlertStage.acknowledged => '已确认',
-      AlertStage.handled => '已处理',
-      AlertStage.archived => '已归档',
+      AlertStage.active => '活跃',
+      AlertStage.dismissed => '已忽略',
+      AlertStage.autoResolved => '已自动解除',
+      
       _ => stage,
     };
   }
@@ -212,10 +212,10 @@ class AlertsPage extends ConsumerWidget {
   Color _statusColor(String stage) {
     final s = AlertStage.values.where((e) => e.name == stage).firstOrNull;
     return switch (s) {
-      AlertStage.pending => AppColors.warning,
-      AlertStage.acknowledged => AppColors.info,
-      AlertStage.handled => AppColors.success,
-      AlertStage.archived => AppColors.textSecondary,
+      AlertStage.active => AppColors.warning,
+      AlertStage.dismissed => AppColors.textSecondary,
+      AlertStage.autoResolved => AppColors.success,
+      
       _ => AppColors.textSecondary,
     };
   }

@@ -4,21 +4,27 @@ import com.smartlivestock.ranch.application.dto.RanchOverviewDto;
 import com.smartlivestock.ranch.application.dto.RanchOverviewDto.*;
 import com.smartlivestock.ranch.domain.model.Alert;
 import com.smartlivestock.ranch.domain.model.AlertStatus;
+import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.model.Fence;
+import com.smartlivestock.ranch.domain.model.GpsCoordinate;
 import com.smartlivestock.ranch.domain.model.Livestock;
 import com.smartlivestock.ranch.domain.port.HealthQueryPort;
-import com.smartlivestock.ranch.domain.port.IdentityQueryPort;
-import com.smartlivestock.ranch.domain.port.IoTQueryPort;
 import com.smartlivestock.ranch.domain.port.HealthQueryPort.LivestockHealthState;
 import com.smartlivestock.ranch.domain.port.HealthQueryPort.HealthOverview;
+import com.smartlivestock.ranch.domain.port.IdentityQueryPort;
+import com.smartlivestock.ranch.domain.port.IoTQueryPort;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.domain.repository.FenceRepository;
+import com.smartlivestock.ranch.domain.repository.FenceZoneRepository;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
+import com.smartlivestock.ranch.infrastructure.persistence.SpringDataAlertReadStatusRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.*;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,9 +37,12 @@ public class RanchOverviewApplicationService {
     private final HealthQueryPort healthQueryPort;
     private final IoTQueryPort ioTQueryPort;
     private final IdentityQueryPort identityQueryPort;
+    private final SpringDataAlertReadStatusRepository readStatusRepository;
+    private final FenceZoneRepository fenceZoneRepository;
+
 
     @Transactional(readOnly = true)
-    public RanchOverviewResponse getOverview(Long farmId) {
+    public RanchOverviewResponse getOverview(Long farmId, Long userId) {
         // 1. Fences
         List<Fence> fences = fenceRepository.findByFarmId(farmId);
         List<FenceData> fenceDataList = fences.stream()
@@ -77,10 +86,16 @@ public class RanchOverviewApplicationService {
                 })
                 .toList();
 
-        // 3. Alerts (non-archived)
+        // 3. Alerts (active only)
         List<Alert> allAlerts = alertRepository.findByFarmId(farmId);
-        List<AlertData> alertDataList = allAlerts.stream()
-                .filter(a -> a.getStatus() != AlertStatus.ARCHIVED)
+        List<Alert> activeAlerts = allAlerts.stream()
+                .filter(a -> a.getStatus() == AlertStatus.ACTIVE)
+                .toList();
+        Set<Long> readAlertIds = userId != null && !activeAlerts.isEmpty()
+                ? readStatusRepository.findReadAlertIdsByUserId(userId,
+                        activeAlerts.stream().map(Alert::getId).toList())
+                : Set.of();
+        List<AlertData> alertDataList = activeAlerts.stream()
                 .map(a -> new AlertData(
                         a.getId(),
                         a.getType().name(),
@@ -89,23 +104,36 @@ public class RanchOverviewApplicationService {
                         a.getMessage(),
                         a.getLivestockId(),
                         a.getFenceId(),
+                        null,
+                        readAlertIds.contains(a.getId()),
+                        a.getResolvedType(),
+                        a.getResolvedAt(),
+                        null,
                         null
                 ))
                 .toList();
 
-        // 4. Health overview stats + scene summary
+        // 4. Alert summaries grouped by type (ACTIVE only)
+        Map<String, Integer> fenceAlertSummary = buildFenceAlertSummary(allAlerts);
+        Map<String, Integer> healthAlertSummary = buildHealthAlertSummary(allAlerts);
+
+        // 5. Health overview stats + scene summary
         HealthOverview healthOverview = healthQueryPort.getHealthOverview(farmId);
 
         double deviceOnlineRate = identityQueryPort.findFarmById(farmId)
                 .map(f -> ioTQueryPort.getDeviceOnlineRate(f.tenantId()))
                 .orElse(0.85);
 
+        // 6. InFenceRate: livestock inside any fence / livestock with GPS
+        double inFenceRate = calculateInFenceRate(livestockList, fences);
+
         OverallStats overallStats = new OverallStats(
                 healthOverview.totalLivestock(),
                 healthOverview.healthyRate(),
                 healthOverview.alertCount(),
                 healthOverview.criticalCount(),
-                deviceOnlineRate
+                deviceOnlineRate,
+                inFenceRate
         );
 
         SceneSummary sceneSummary = new SceneSummary(
@@ -119,7 +147,7 @@ public class RanchOverviewApplicationService {
                 new SceneSummaryEpidemic(healthOverview.epidemicAbnormalRate())
         );
 
-        // 5. Pending tasks derived from critical/warning livestock
+        // 7. Pending tasks derived from critical/warning livestock
         List<PendingTask> pendingTasks = new ArrayList<>();
         for (var l : livestockList) {
             var health = healthMap.get(l.getId());
@@ -143,8 +171,65 @@ public class RanchOverviewApplicationService {
                 pendingTasks,
                 fenceDataList,
                 markers,
-                alertDataList
+                alertDataList,
+                fenceAlertSummary,
+                healthAlertSummary,
+                fenceZoneRepository.findByFarmId(farmId).stream().map(FenceZoneData::from).toList()
         );
+    }
+
+    /**
+     * Calculate inFenceRate: count of livestock inside any active fence / total with GPS.
+     */
+    private double calculateInFenceRate(List<Livestock> livestockList, List<Fence> fences) {
+        List<Fence> activeFences = fences.stream().filter(Fence::isActive).toList();
+        if (activeFences.isEmpty()) return 1.0; // no fences = all "inside"
+
+        long withGps = livestockList.stream()
+                .filter(l -> l.getLastLatitude() != null && l.getLastLongitude() != null)
+                .count();
+        if (withGps == 0) return 1.0;
+
+        long inFence = livestockList.stream()
+                .filter(l -> l.getLastLatitude() != null && l.getLastLongitude() != null)
+                .filter(l -> {
+                    GpsCoordinate pos = new GpsCoordinate(l.getLastLatitude(), l.getLastLongitude());
+                    return activeFences.stream().anyMatch(f -> f.contains(pos));
+                })
+                .count();
+
+        return (double) inFence / withGps;
+    }
+
+    private Map<String, Integer> buildFenceAlertSummary(List<Alert> alerts) {
+        Map<String, Integer> summary = new java.util.LinkedHashMap<>();
+        summary.put("FENCE_BREACH", 0);
+        summary.put("FENCE_APPROACH", 0);
+        summary.put("ZONE_APPROACH", 0);
+        for (Alert alert : alerts) {
+            if (alert.getStatus() != AlertStatus.ACTIVE) continue;
+            String type = alert.getType().name();
+            if (summary.containsKey(type)) {
+                summary.merge(type, 1, Integer::sum);
+            }
+        }
+        return summary;
+    }
+
+    private Map<String, Integer> buildHealthAlertSummary(List<Alert> alerts) {
+        Map<String, Integer> summary = new java.util.LinkedHashMap<>();
+        summary.put("TEMPERATURE_ABNORMAL", 0);
+        summary.put("DIGESTIVE_ABNORMAL", 0);
+        summary.put("ESTRUS", 0);
+        summary.put("EPIDEMIC", 0);
+        for (Alert alert : alerts) {
+            if (alert.getStatus() != AlertStatus.ACTIVE) continue;
+            String type = alert.getType().name();
+            if (summary.containsKey(type)) {
+                summary.merge(type, 1, Integer::sum);
+            }
+        }
+        return summary;
     }
 
     private String deriveHealthStatus(LivestockHealthState health) {

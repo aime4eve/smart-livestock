@@ -10,4 +10,20 @@ class RanchApiRepository implements RanchRepository {
     final data = await ApiClient.instance.farmGet('/ranch-overview');
     return RanchOverview.fromJson(data);
   }
+
+  @override
+  Future<void> markRead(String alertId) async {
+    await ApiClient.instance.farmPost('/alerts/$alertId/read');
+  }
+
+  @override
+  Future<void> dismiss(String alertId) async {
+    await ApiClient.instance.farmPost('/alerts/$alertId/dismiss');
+  }
+
+  @override
+  Future<void> batchRead(List<String> alertIds) async {
+    await ApiClient.instance
+        .farmPost('/alerts/batch-read', body: {'alertIds': alertIds});
+  }
 }

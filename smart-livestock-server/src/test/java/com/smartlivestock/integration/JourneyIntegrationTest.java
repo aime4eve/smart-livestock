@@ -53,12 +53,12 @@ class JourneyIntegrationTest extends AbstractJourneyTest {
         Map<String, Object> workerAlerts = getApi(workerToken, "/api/v1/farms/1/alerts?page=0&size=20");
         List<Map<String, Object>> workerAlertItems = (List<Map<String, Object>>) workerAlerts.get("items");
         Map<String, Object> pendingAlert = workerAlertItems.stream()
-                .filter(a -> "PENDING".equals(a.get("status")))
+                .filter(a -> "ACTIVE".equals(a.get("status")))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("No PENDING alert found"));
         String alertId = extractId(pendingAlert);
 
-        Map<String, Object> ackResult = postApi(workerToken, "/api/v1/farms/1/alerts/" + alertId + "/acknowledge", null);
+        Map<String, Object> ackResult = postApi(workerToken, "/api/v1/farms/1/alerts/" + alertId + "/read", null);
         assertThat(ackResult).isNotNull();
 
         // --- Step 7: worker 尝试处理告警（无权限应被拒绝） ---

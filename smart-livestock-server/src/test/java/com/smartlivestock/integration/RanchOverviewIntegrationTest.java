@@ -80,13 +80,13 @@ class RanchOverviewIntegrationTest extends AbstractJourneyTest {
     }
 
     @Test
-    @DisplayName("alerts 不含 ARCHIVED 状态")
+    @DisplayName("alerts 不含 AUTO_RESOLVED 状态")
     void alertsExcludesArchived() {
         Map<String, Object> data = fetchOverview(ownerToken, 1L);
         List<Map<String, Object>> alerts = (List<Map<String, Object>>) data.get("alerts");
 
         for (Map<String, Object> alert : alerts) {
-            assertThat((String) alert.get("status")).isNotEqualTo("ARCHIVED");
+            assertThat((String) alert.get("status")).isNotEqualTo("AUTO_RESOLVED");
         }
     }
 
@@ -122,5 +122,24 @@ class RanchOverviewIntegrationTest extends AbstractJourneyTest {
         // owner belongs to tenant with farmId=1, try a non-existent or other-tenant farm
         var resp = getRaw(ownerToken, "/api/v1/farms/99999/ranch-overview");
         assertThat(resp.getStatusCode().value()).isIn(403, 404);
+    }
+
+    @Test
+    @DisplayName("ranch-overview 包含 fenceZones 字段")
+    void overviewContainsFenceZones() {
+        Map<String, Object> data = fetchOverview(ownerToken, 1L);
+        assertThat(data).containsKey("fenceZones");
+        assertThat(data.get("fenceZones")).isInstanceOf(List.class);
+    }
+
+    @Test
+    @DisplayName("fenceAlertSummary 和 healthAlertSummary 字段存在")
+    void alertSummariesPresent() {
+        Map<String, Object> data = fetchOverview(ownerToken, 1L);
+        assertThat(data).containsKeys("fenceAlertSummary", "healthAlertSummary");
+        Map<String, Object> fenceSummary = (Map<String, Object>) data.get("fenceAlertSummary");
+        Map<String, Object> healthSummary = (Map<String, Object>) data.get("healthAlertSummary");
+        assertThat(fenceSummary).containsKeys("FENCE_BREACH", "FENCE_APPROACH", "ZONE_APPROACH");
+        assertThat(healthSummary).containsKeys("TEMPERATURE_ABNORMAL", "DIGESTIVE_ABNORMAL", "ESTRUS", "EPIDEMIC");
     }
 }

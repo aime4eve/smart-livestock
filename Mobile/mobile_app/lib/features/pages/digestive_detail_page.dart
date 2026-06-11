@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/models/health_models.dart';
 import 'package:smart_livestock_demo/features/digestive/presentation/digestive_controller.dart';
+import 'package:smart_livestock_demo/features/ranch/presentation/widgets/device_info_line.dart';
 
 class DigestiveDetailPage extends ConsumerWidget {
   const DigestiveDetailPage({super.key, required this.livestockId});
@@ -24,14 +25,56 @@ class DigestiveDetailPage extends ConsumerWidget {
             children: [
               _buildStatusCards(detail),
               const SizedBox(height: 16),
+              // Device info (subtle)
+              DeviceInfoLine(deviceId: livestockId),
+              const SizedBox(height: 8),
               _buildChart(detail),
               if (detail.advice != null) ...[
                 const SizedBox(height: 16),
                 Card(child: Padding(padding: const EdgeInsets.all(12), child: Text('📋 ${detail.advice}'))),
               ],
+              const SizedBox(height: 16),
+              // Capability boundary note
+              _buildCapabilityNote(context),
+              const SizedBox(height: 16),
+              _buildDismissButton(context),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCapabilityNote(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.info.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 16, color: AppColors.info),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '系统能通知你消化异常，需线下排查确认原因',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.info),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDismissButton(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: () => Navigator.of(context).pop(),
+      icon: Icon(Icons.check_circle_outline, size: 18, color: AppColors.textSecondary),
+      label: Text('返回', style: TextStyle(color: AppColors.textSecondary)),
+      style: OutlinedButton.styleFrom(
+        side: BorderSide(color: AppColors.border),
       ),
     );
   }

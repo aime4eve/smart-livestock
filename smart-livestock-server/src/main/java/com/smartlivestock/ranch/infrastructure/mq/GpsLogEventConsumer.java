@@ -20,7 +20,13 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * RocketMQ consumer: listens on "gps-log-updated" topic, performs fence breach detection.
+ * RocketMQ consumer: listens on "gps-log-updated" topic.
+ * Performs fence breach detection, buffer zone approach detection, and auto-resolve.
+ *
+ * Logic:
+ * - Livestock outside all fences + in buffer zone → FENCE_APPROACH (WARNING)
+ * - Livestock outside all fences + outside buffer → FENCE_BREACH (CRITICAL)
+ * - Livestock returned inside fence → auto-resolve existing FENCE_BREACH/FENCE_APPROACH
  */
 @Slf4j
 @Component
@@ -50,18 +56,16 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
 
             log.debug("Processing GPS log for device [{}]", deviceId);
 
-            // Find active installation via ACL port
             InstallationInfo installation = ioTQueryPort.findActiveInstallation(deviceId).orElse(null);
             if (installation == null) {
-                log.debug("No active installation for device [{}] - skipping breach check", deviceId);
+                log.debug("No active installation for device [{}] - skipping", deviceId);
                 return;
             }
 
             Long livestockId = installation.livestockId();
-
             Livestock livestock = livestockRepository.findById(livestockId).orElse(null);
             if (livestock == null) {
-                log.warn("Livestock [{}] not found - skipping breach check", livestockId);
+                log.warn("Livestock [{}] not found - skipping", livestockId);
                 return;
             }
 
@@ -70,23 +74,109 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
             if (fences.isEmpty()) return;
 
             GpsCoordinate position = new GpsCoordinate(latitude, longitude);
-            List<Fence> breachedFences = fenceBreachDetector.findBreachedFences(fences, position);
-            if (breachedFences.isEmpty()) return;
 
+            // Update livestock position
             livestock.updatePosition(latitude, longitude);
             livestockRepository.save(livestock);
 
-            for (Fence breached : breachedFences) {
-                String msg = String.format("牲畜 [%s] 越出围栏 [%s]，位置: (%s, %s)",
-                        livestock.getLivestockCode(), breached.getName(), latitude, longitude);
-                Alert alert = new Alert(farmId, livestockId, breached.getId(),
-                        AlertType.FENCE_BREACH, Severity.WARNING, msg);
-                alertRepository.save(alert);
-                log.info("Created FENCE_BREACH alert for livestock [{}] fence [{}]", livestockId, breached.getId());
+            // Detect fence status
+            List<Fence> breachedFences = fenceBreachDetector.findBreachedFences(fences, position);
+            List<Fence> approachingFences = fenceBreachDetector.findApproachingFences(fences, position);
+
+            if (breachedFences.isEmpty() && approachingFences.isEmpty()) {
+                // Livestock is safe (inside all fences, not in any buffer zone)
+                autoResolveFenceAlerts(livestockId, farmId);
+            } else if (!breachedFences.isEmpty()) {
+                // Livestock is outside fence boundary
+                // Check if it's in buffer zone (approaching) or fully outside (breach)
+                for (Fence fence : breachedFences) {
+                    boolean inBuffer = fenceBreachDetector.isApproaching(fence, position);
+                    if (inBuffer) {
+                        // In buffer zone but outside fence → FENCE_APPROACH
+                        createAlertIfNeeded(livestock, fence, AlertType.FENCE_APPROACH, Severity.WARNING, position);
+                    } else {
+                        // Fully outside fence and buffer → FENCE_BREACH
+                        createAlertIfNeeded(livestock, fence, AlertType.FENCE_BREACH, Severity.CRITICAL, position);
+                    }
+                }
+                // Auto-resolve any opposite type alerts for same fence
+                // (e.g. if now breaching, resolve old approach alert)
+                autoResolveOppositeTypeAlerts(livestockId, breachedFences);
+            } else {
+                // Only approaching (in buffer zone but still "outside" fence in the contains check)
+                // This case shouldn't normally happen since approaching = inBuffer && !inFence,
+                // which means isBreaching would also be true. But handle it defensively.
+                for (Fence fence : approachingFences) {
+                    createAlertIfNeeded(livestock, fence, AlertType.FENCE_APPROACH, Severity.WARNING, position);
+                }
             }
+
         } catch (Exception e) {
             log.error("Failed to process GPS log message: {}", e.getMessage(), e);
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Auto-resolve all active fence alerts (FENCE_BREACH + FENCE_APPROACH) for a livestock.
+     */
+    private void autoResolveFenceAlerts(Long livestockId, Long farmId) {
+        List<Alert> breachAlerts = alertRepository.findByLivestockIdAndTypeAndStatus(
+                livestockId, AlertType.FENCE_BREACH, AlertStatus.ACTIVE);
+        List<Alert> approachAlerts = alertRepository.findByLivestockIdAndTypeAndStatus(
+                livestockId, AlertType.FENCE_APPROACH, AlertStatus.ACTIVE);
+
+        for (Alert alert : breachAlerts) {
+            alert.autoResolve();
+            alertRepository.save(alert);
+            log.info("Auto-resolved FENCE_BREACH alert [{}] for livestock [{}] - returned to safe zone",
+                    alert.getId(), livestockId);
+        }
+        for (Alert alert : approachAlerts) {
+            alert.autoResolve();
+            alertRepository.save(alert);
+            log.info("Auto-resolved FENCE_APPROACH alert [{}] for livestock [{}] - returned to safe zone",
+                    alert.getId(), livestockId);
+        }
+    }
+
+    /**
+     * Create fence alert if there isn't already an active one for this livestock+fence+type.
+     */
+    private void createAlertIfNeeded(Livestock livestock, Fence fence, AlertType type,
+                                      Severity severity, GpsCoordinate position) {
+        // Check for existing active alert of same type for this livestock
+        List<Alert> existing = alertRepository.findByLivestockIdAndTypeAndStatus(
+                livestock.getId(), type, AlertStatus.ACTIVE);
+        // Only create if no existing alert for this specific fence
+        boolean hasExistingForFence = existing.stream()
+                .anyMatch(a -> fence.getId().equals(a.getFenceId()));
+        if (hasExistingForFence) return;
+
+        String typeLabel = type == AlertType.FENCE_BREACH ? "越出" : "接近";
+        String msg = String.format("牲畜 [%s] %s围栏 [%s]，位置: (%s, %s)",
+                livestock.getLivestockCode(), typeLabel, fence.getName(),
+                position.latitude(), position.longitude());
+        Alert alert = new Alert(livestock.getFarmId(), livestock.getId(), fence.getId(),
+                type, severity, msg);
+        alertRepository.save(alert);
+        log.info("Created {} alert for livestock [{}] fence [{}]", type, livestock.getId(), fence.getId());
+    }
+
+    /**
+     * When livestock transitions to FENCE_BREACH, auto-resolve any FENCE_APPROACH for same fence.
+     * Vice versa is not needed since approach is a softer state.
+     */
+    private void autoResolveOppositeTypeAlerts(Long livestockId, List<Fence> fences) {
+        // If livestock is now fully breaching, resolve any approach alerts for same fences
+        List<Alert> approachAlerts = alertRepository.findByLivestockIdAndTypeAndStatus(
+                livestockId, AlertType.FENCE_APPROACH, AlertStatus.ACTIVE);
+        for (Alert alert : approachAlerts) {
+            if (fences.stream().anyMatch(f -> f.getId().equals(alert.getFenceId()))) {
+                alert.autoResolve();
+                alertRepository.save(alert);
+                log.info("Auto-resolved FENCE_APPROACH [{}] - escalated to FENCE_BREACH", alert.getId());
+            }
         }
     }
 }

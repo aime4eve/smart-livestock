@@ -7,4 +7,5 @@ import com.smartlivestock.health.domain.port.dto.AlertInfo;
  */
 public interface RanchCommandPort {
     void createAlert(AlertInfo alertInfo);
+    void resolveAlert(Long livestockId, String alertType);
 }

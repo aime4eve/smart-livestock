@@ -25,10 +25,6 @@ public class AlertController {
 
     private final AlertApplicationService alertApplicationService;
 
-    /**
-     * GET /api/v1/farms/{farmId}/alerts
-     * List alerts for a farm with optional filters.
-     */
     @GetMapping("/alerts")
     public ResponseEntity<ApiResponse<Map<String, Object>>> listAlerts(
             @PathVariable Long farmId,
@@ -38,12 +34,13 @@ public class AlertController {
             @RequestParam(required = false) String severity,
             @RequestParam(required = false) String startTime,
             @RequestParam(required = false) String endTime) {
+        Long userId = getCurrentUserId();
         List<AlertDto> alerts;
         if (status != null) {
             AlertStatus alertStatus = AlertStatus.valueOf(status.toUpperCase());
             alerts = alertApplicationService.listByFarmAndStatus(farmId, alertStatus);
         } else {
-            alerts = alertApplicationService.listByFarm(farmId);
+            alerts = alertApplicationService.listByFarmWithReadStatus(farmId, userId);
         }
         Map<String, Object> data = Map.of(
                 "items", alerts,
@@ -54,52 +51,71 @@ public class AlertController {
         return ResponseEntity.ok(ApiResponse.ok(data));
     }
 
-    /**
-     * GET /api/v1/farms/{farmId}/alerts/{alertId}
-     * Get alert detail.
-     */
     @GetMapping("/alerts/{alertId}")
     public ResponseEntity<ApiResponse<AlertDto>> getAlert(
             @PathVariable Long farmId,
             @PathVariable Long alertId) {
-        AlertDto alert = alertApplicationService.getAlert(alertId);
+        Long userId = getCurrentUserId();
+        AlertDto alert = alertApplicationService.getAlertWithReadStatus(alertId, userId);
         return ResponseEntity.ok(ApiResponse.ok(alert));
     }
 
-    /**
-     * POST /api/v1/farms/{farmId}/alerts/{alertId}/acknowledge
-     * Acknowledge alert (pending -> acknowledged).
-     */
-    @PostMapping("/alerts/{alertId}/acknowledge")
-    public ResponseEntity<ApiResponse<AlertDto>> acknowledgeAlert(
+    // ── Notification-center endpoints ──
+
+    @PostMapping("/alerts/{alertId}/read")
+    public ResponseEntity<ApiResponse<AlertDto>> markRead(
             @PathVariable Long farmId,
             @PathVariable Long alertId) {
         Long userId = getCurrentUserId();
-        AcknowledgeAlertCommand command = new AcknowledgeAlertCommand(alertId, userId);
-        AlertDto alert = alertApplicationService.acknowledge(command);
+        AlertDto alert = alertApplicationService.markRead(alertId, userId);
         return ResponseEntity.ok(ApiResponse.ok(alert));
     }
 
-    /**
-     * POST /api/v1/farms/{farmId}/alerts/{alertId}/handle
-     * Handle alert (acknowledged -> handled). Requires OWNER or B2B_ADMIN.
-     */
+    @PostMapping("/alerts/{alertId}/dismiss")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
+    public ResponseEntity<ApiResponse<AlertDto>> dismissAlert(
+            @PathVariable Long farmId,
+            @PathVariable Long alertId) {
+        Long userId = getCurrentUserId();
+        AlertDto alert = alertApplicationService.dismiss(alertId, userId);
+        return ResponseEntity.ok(ApiResponse.ok(alert));
+    }
+
+    @PostMapping("/alerts/batch-read")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> batchRead(
+            @PathVariable Long farmId,
+            @RequestBody Map<String, List<String>> body) {
+        Long userId = getCurrentUserId();
+        List<String> alertIdStrs = body.get("alertIds");
+        if (alertIdStrs == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "alertIds 不能为空");
+        }
+        List<Long> alertIds = alertIdStrs.stream().map(Long::valueOf).toList();
+        int count = alertApplicationService.batchRead(alertIds, userId);
+        return ResponseEntity.ok(ApiResponse.ok(Map.of("count", count)));
+    }
+
+    // ── Legacy compatibility endpoints ──
+
+    @PostMapping("/alerts/{alertId}/acknowledge")
+    @Deprecated
+    public ResponseEntity<ApiResponse<AlertDto>> acknowledgeAlert(
+            @PathVariable Long farmId,
+            @PathVariable Long alertId) {
+        return markRead(farmId, alertId);
+    }
+
     @PostMapping("/alerts/{alertId}/handle")
+    @Deprecated
     @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
     public ResponseEntity<ApiResponse<AlertDto>> handleAlert(
             @PathVariable Long farmId,
             @PathVariable Long alertId) {
-        Long userId = getCurrentUserId();
-        HandleAlertCommand command = new HandleAlertCommand(alertId, userId);
-        AlertDto alert = alertApplicationService.handle(command);
-        return ResponseEntity.ok(ApiResponse.ok(alert));
+        return dismissAlert(farmId, alertId);
     }
 
-    /**
-     * POST /api/v1/farms/{farmId}/alerts/{alertId}/archive
-     * Archive alert (handled -> archived). Requires OWNER or B2B_ADMIN.
-     */
     @PostMapping("/alerts/{alertId}/archive")
+    @Deprecated
     @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
     public ResponseEntity<ApiResponse<AlertDto>> archiveAlert(
             @PathVariable Long farmId,
@@ -110,11 +126,8 @@ public class AlertController {
         return ResponseEntity.ok(ApiResponse.ok(alert));
     }
 
-    /**
-     * POST /api/v1/farms/{farmId}/alerts/batch-handle
-     * Batch handle alerts. Requires OWNER or B2B_ADMIN.
-     */
     @PostMapping("/alerts/batch-handle")
+    @Deprecated
     @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> batchHandleAlerts(
             @PathVariable Long farmId,

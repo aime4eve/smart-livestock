@@ -43,6 +43,13 @@ public class FenceJpaEntity {
     @Column(name = "fence_type", nullable = false, length = 20)
     private String fenceType = "sub";
 
+    @Column(name = "buffer_distance")
+    private Integer bufferDistance;
+
+    @Column(name = "buffer_polygon", columnDefinition = "jsonb")
+    @ColumnTransformer(write = "?::jsonb")
+    private String bufferPolygon;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -84,6 +91,12 @@ public class FenceJpaEntity {
 
     public String getFenceType() { return fenceType; }
     public void setFenceType(String fenceType) { this.fenceType = fenceType; }
+
+    public Integer getBufferDistance() { return bufferDistance; }
+    public void setBufferDistance(Integer bufferDistance) { this.bufferDistance = bufferDistance; }
+
+    public String getBufferPolygon() { return bufferPolygon; }
+    public void setBufferPolygon(String bufferPolygon) { this.bufferPolygon = bufferPolygon; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

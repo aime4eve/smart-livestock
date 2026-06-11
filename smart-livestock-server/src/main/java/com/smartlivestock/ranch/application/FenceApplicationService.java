@@ -6,6 +6,7 @@ import com.smartlivestock.ranch.application.dto.FenceDto;
 import com.smartlivestock.ranch.domain.model.Fence;
 import com.smartlivestock.ranch.domain.model.GpsCoordinate;
 import com.smartlivestock.ranch.domain.repository.FenceRepository;
+import com.smartlivestock.ranch.domain.service.BufferPolygonCalculator;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -20,6 +22,7 @@ import java.util.List;
 public class FenceApplicationService {
 
     private final FenceRepository fenceRepository;
+    private final BufferPolygonCalculator bufferPolygonCalculator;
 
     @Transactional
     public FenceDto createFence(CreateFenceCommand command) {
@@ -27,6 +30,7 @@ public class FenceApplicationService {
         if (command.fenceType() != null) {
             fence.setFenceType(command.fenceType());
         }
+        computeBufferPolygon(fence);
         Fence saved = fenceRepository.save(fence);
         return FenceDto.from(saved);
     }
@@ -58,6 +62,7 @@ public class FenceApplicationService {
         fence.setName(command.name());
         fence.setVertices(command.vertices());
         fence.setColor(command.color());
+        computeBufferPolygon(fence);
         try {
             Fence saved = fenceRepository.save(fence);
             return FenceDto.from(saved);
@@ -75,6 +80,7 @@ public class FenceApplicationService {
         fence.setName(name);
         fence.setVertices(vertices);
         fence.setColor(color);
+        computeBufferPolygon(fence);
         try {
             Fence saved = fenceRepository.save(fence);
             return FenceDto.from(saved);
@@ -90,5 +96,17 @@ public class FenceApplicationService {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "围栏不存在: " + id);
         }
         fenceRepository.deleteById(id);
+    }
+
+    /**
+     * Pre-compute buffer polygon for the fence using JTS.
+     * Uses the first vertex latitude as reference for metric projection.
+     */
+    private void computeBufferPolygon(Fence fence) {
+        if (fence.getVertices() == null || fence.getVertices().size() < 3) return;
+        BigDecimal refLat = fence.getVertices().get(0).latitude();
+        List<GpsCoordinate> buffer = bufferPolygonCalculator.computeBuffer(
+                fence.getVertices(), fence.getBufferDistance(), refLat);
+        fence.setBufferPolygon(buffer);
     }
 }

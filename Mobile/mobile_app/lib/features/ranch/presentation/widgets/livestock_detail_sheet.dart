@@ -122,6 +122,8 @@ class LivestockDetailSheet extends StatelessWidget {
       'DIGESTIVE' => '消化异常',
       'ESTRUS' => '发情高分',
       'EPIDEMIC' => '疫病风险',
+      'FENCE_APPROACH' => '接近围栏',
+      'ZONE_APPROACH' => '接近区域',
       _ => alert,
     };
   }
@@ -129,8 +131,11 @@ class LivestockDetailSheet extends StatelessWidget {
   IconData _alertIcon(String type) {
     return switch (type) {
       'FENCE_BREACH' => Icons.fence,
+      'FENCE_APPROACH' => Icons.fence,
+      'ZONE_APPROACH' => Icons.fence,
       'TEMPERATURE_ABNORMAL' => Icons.thermostat,
       'BEHAVIOR_ABNORMAL' => Icons.pets,
+      'DIGESTIVE_ABNORMAL' => Icons.pets,
       'ESTRUS' => Icons.favorite,
       'EPIDEMIC' => Icons.shield,
       _ => Icons.warning,
@@ -149,16 +154,24 @@ class LivestockDetailSheet extends StatelessWidget {
 
   String _statusLabel(String status) {
     return switch (status) {
-      'PENDING' => '待处理',
-      'ACKNOWLEDGED' => '已确认',
-      'HANDLED' => '已处理',
-      'ARCHIVED' => '已归档',
+      'ACTIVE' => '活跃',
+      'DISMISSED' => '已忽略',
+      'AUTO_RESOLVED' => '已自动解除',
+      // Legacy compatibility
+      'PENDING' => '活跃',
+      'ACKNOWLEDGED' => '活跃',
+      'HANDLED' => '已忽略',
+      'ARCHIVED' => '已自动解除',
       _ => status,
     };
   }
 
   Color _statusColor(String status) {
     return switch (status) {
+      'ACTIVE' => AppColors.warning,
+      'DISMISSED' => AppColors.textSecondary,
+      'AUTO_RESOLVED' => AppColors.success,
+      // Legacy
       'PENDING' => AppColors.warning,
       'ACKNOWLEDGED' => AppColors.info,
       'HANDLED' => AppColors.success,

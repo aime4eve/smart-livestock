@@ -4,8 +4,10 @@ import com.smartlivestock.ranch.application.RanchOverviewApplicationService;
 import com.smartlivestock.ranch.application.dto.RanchOverviewDto.RanchOverviewResponse;
 import com.smartlivestock.ranch.domain.port.IdentityQueryPort;
 import com.smartlivestock.shared.common.ApiException;
-import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
+import com.smartlivestock.shared.common.ApiResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import com.smartlivestock.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +33,14 @@ public class RanchOverviewController {
     @GetMapping("/ranch-overview")
     public ResponseEntity<ApiResponse<RanchOverviewResponse>> getOverview(@PathVariable Long farmId) {
         verifyFarmOwnership(farmId);
-        return ResponseEntity.ok(ApiResponse.ok(ranchOverviewService.getOverview(farmId)));
+        return ResponseEntity.ok(ApiResponse.ok(ranchOverviewService.getOverview(farmId, getCurrentUserId())));
+    }
+
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "未认证");
+        }
+        return (Long) authentication.getPrincipal();
     }
 }

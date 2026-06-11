@@ -1,10 +1,12 @@
 package com.smartlivestock.ranch.application.dto;
 
+import com.smartlivestock.ranch.domain.model.FenceZone;
 import com.smartlivestock.ranch.domain.model.GpsCoordinate;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Aggregated ranch overview response combining fences, livestock health,
@@ -19,7 +21,8 @@ public final class RanchOverviewDto {
             double healthyRate,
             int alertCount,
             int criticalCount,
-            double deviceOnlineRate
+            double deviceOnlineRate,
+            double inFenceRate
     ) {}
 
     public record SceneSummaryFever(int abnormalCount, int criticalCount) {}
@@ -54,6 +57,30 @@ public final class RanchOverviewDto {
             int version
     ) {}
 
+    public record FenceZoneData(
+            Long id,
+            Long fenceId,
+            String name,
+            String zoneType,
+            List<GpsCoordinate> vertices,
+            int alertRadius,
+            String severity,
+            boolean active
+    ) {
+        public static FenceZoneData from(FenceZone zone) {
+            return new FenceZoneData(
+                    zone.getId(),
+                    zone.getFenceId(),
+                    zone.getName(),
+                    zone.getZoneType(),
+                    zone.getVertices(),
+                    zone.getAlertRadius(),
+                    zone.getSeverity(),
+                    zone.isActive()
+            );
+        }
+    }
+
     public record LivestockMarker(
             String livestockId,
             String livestockCode,
@@ -71,7 +98,12 @@ public final class RanchOverviewDto {
             String message,
             Long livestockId,
             Long fenceId,
-            Instant occurredAt
+            Instant occurredAt,
+            boolean read,
+            String resolvedType,
+            Instant resolvedAt,
+            Double distance,
+            String direction
     ) {}
 
     public record RanchOverviewResponse(
@@ -80,6 +112,9 @@ public final class RanchOverviewDto {
             List<PendingTask> pendingTasks,
             List<FenceData> fences,
             List<LivestockMarker> livestockMarkers,
-            List<AlertData> alerts
+            List<AlertData> alerts,
+            Map<String, Integer> fenceAlertSummary,
+            Map<String, Integer> healthAlertSummary,
+            List<FenceZoneData> fenceZones
     ) {}
 }

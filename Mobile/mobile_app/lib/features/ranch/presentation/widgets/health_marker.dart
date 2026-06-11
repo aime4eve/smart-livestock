@@ -6,18 +6,30 @@ class HealthMarker extends StatelessWidget {
     super.key,
     required this.label,
     required this.healthStatus,
+    this.fenceStatus,
     this.onTap,
   });
 
   final String label;
   final String healthStatus; // NORMAL, WARNING, CRITICAL
+  final String? fenceStatus; // BREACHED, APPROACHING, SAFE (or null)
   final VoidCallback? onTap;
 
-  Color get _color => switch (healthStatus) {
-        'CRITICAL' => AppColors.danger,
-        'WARNING' => AppColors.warning,
-        _ => AppColors.success,
-      };
+  Color get _color {
+    // Fence status takes priority over health status
+    if (fenceStatus != null) {
+      switch (fenceStatus!) {
+        case 'BREACHED': return AppColors.danger;
+        case 'APPROACHING': return AppColors.warning;
+        case 'SAFE': break; // fall through to health logic
+      }
+    }
+    return switch (healthStatus) {
+      'CRITICAL' => AppColors.danger,
+      'WARNING' => AppColors.warning,
+      _ => AppColors.success,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {

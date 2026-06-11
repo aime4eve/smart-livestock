@@ -24,6 +24,7 @@ import 'package:smart_livestock_demo/features/ranch/presentation/widgets/health_
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/alert_marker.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/health_bottom_sheet.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/livestock_detail_sheet.dart';
+import 'package:smart_livestock_demo/features/ranch/presentation/widgets/fence_buffer_layer.dart';
 
 class RanchPage extends ConsumerStatefulWidget {
   const RanchPage({super.key});
@@ -120,6 +121,19 @@ class _RanchPageState extends ConsumerState<RanchPage>
       }
     }
 
+    // Build fence status map per livestock (from active fence alerts)
+    final fenceStatusMap = <String, String>{};
+    for (final alert in overview.alerts) {
+      if (alert.status != 'ACTIVE' || alert.livestockId == null) continue;
+      final type = alert.type;
+      final existing = fenceStatusMap[alert.livestockId!];
+      if (type == 'FENCE_BREACH') {
+        fenceStatusMap[alert.livestockId!] = 'BREACHED';
+      } else if ((type == 'FENCE_APPROACH' || type == 'ZONE_APPROACH') && existing != 'BREACHED') {
+        fenceStatusMap[alert.livestockId!] = 'APPROACHING';
+      }
+    }
+
     const panelAnimDuration = Duration(milliseconds: 280);
     const panelCurve = Curves.easeOutCubic;
 
@@ -175,6 +189,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                   ],
                 ),
               ),
+            FenceBufferLayer(fences: overview.fences, bufferDistance: 50),
             MarkerLayer(
               markers: [
                 // Fence name labels

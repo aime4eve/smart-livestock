@@ -3,13 +3,11 @@ package com.smartlivestock.ranch.domain.model;
 import com.smartlivestock.shared.common.ApiException;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
-
 import static org.assertj.core.api.Assertions.*;
 
 class AlertTest {
 
-    private Alert createPendingAlert() {
+    private Alert createActiveAlert() {
         return new Alert(
             1L, // farmId
             100L, // livestockId
@@ -21,82 +19,70 @@ class AlertTest {
     }
 
     @Test
-    void shouldCreatePendingAlert() {
-        Alert alert = createPendingAlert();
+    void shouldCreateActiveAlert() {
+        Alert alert = createActiveAlert();
 
-        assertThat(alert.getStatus()).isEqualTo(AlertStatus.PENDING);
+        assertThat(alert.getStatus()).isEqualTo(AlertStatus.ACTIVE);
         assertThat(alert.getFarmId()).isEqualTo(1L);
         assertThat(alert.getLivestockId()).isEqualTo(100L);
         assertThat(alert.getFenceId()).isEqualTo(10L);
         assertThat(alert.getType()).isEqualTo(AlertType.FENCE_BREACH);
         assertThat(alert.getSeverity()).isEqualTo(Severity.WARNING);
         assertThat(alert.getMessage()).isEqualTo("Livestock has breached the fence boundary");
-        assertThat(alert.getAcknowledgedBy()).isNull();
-        assertThat(alert.getAcknowledgedAt()).isNull();
-        assertThat(alert.getHandledBy()).isNull();
-        assertThat(alert.getHandledAt()).isNull();
+        assertThat(alert.getResolvedType()).isNull();
+        assertThat(alert.getResolvedAt()).isNull();
     }
 
     @Test
-    void shouldTransitionPendingToAcknowledged() {
-        Alert alert = createPendingAlert();
+    void shouldTransitionActiveToDismissed() {
+        Alert alert = createActiveAlert();
 
-        alert.acknowledge(200L);
+        alert.dismiss(200L);
 
-        assertThat(alert.getStatus()).isEqualTo(AlertStatus.ACKNOWLEDGED);
-        assertThat(alert.getAcknowledgedBy()).isEqualTo(200L);
-        assertThat(alert.getAcknowledgedAt()).isNotNull();
+        assertThat(alert.getStatus()).isEqualTo(AlertStatus.DISMISSED);
+        assertThat(alert.getResolvedType()).isEqualTo("MANUAL_DISMISS");
+        assertThat(alert.getResolvedAt()).isNotNull();
+        assertThat(alert.getHandledBy()).isEqualTo(200L); // legacy compat
     }
 
     @Test
-    void shouldTransitionAcknowledgedToHandled() {
-        Alert alert = createPendingAlert();
-        alert.acknowledge(200L);
+    void shouldTransitionActiveToAutoResolved() {
+        Alert alert = createActiveAlert();
 
-        alert.handle(300L);
+        alert.autoResolve();
 
-        assertThat(alert.getStatus()).isEqualTo(AlertStatus.HANDLED);
-        assertThat(alert.getHandledBy()).isEqualTo(300L);
-        assertThat(alert.getHandledAt()).isNotNull();
+        assertThat(alert.getStatus()).isEqualTo(AlertStatus.AUTO_RESOLVED);
+        assertThat(alert.getResolvedType()).isEqualTo("AUTO");
+        assertThat(alert.getResolvedAt()).isNotNull();
     }
 
     @Test
-    void shouldTransitionHandledToArchived() {
-        Alert alert = createPendingAlert();
-        alert.acknowledge(200L);
-        alert.handle(300L);
+    void shouldAutoResolveBeIdempotent() {
+        Alert alert = createActiveAlert();
+        alert.autoResolve();
 
-        alert.archive(200L);
-
-        assertThat(alert.getStatus()).isEqualTo(AlertStatus.ARCHIVED);
+        // Second call should be no-op
+        assertThatCode(() -> alert.autoResolve()).doesNotThrowAnyException();
+        assertThat(alert.getStatus()).isEqualTo(AlertStatus.AUTO_RESOLVED);
     }
 
     @Test
-    void shouldRejectAcknowledgeTwice() {
-        Alert alert = createPendingAlert();
-        alert.acknowledge(200L);
+    void shouldRejectDismissOnDismissed() {
+        Alert alert = createActiveAlert();
+        alert.dismiss(200L);
 
-        assertThatThrownBy(() -> alert.acknowledge(300L))
+        assertThatThrownBy(() -> alert.dismiss(300L))
             .isInstanceOf(ApiException.class)
-            .hasMessageContaining("pending");
+            .hasMessageContaining("ACTIVE");
     }
 
     @Test
-    void shouldRejectHandleOnPending() {
-        Alert alert = createPendingAlert();
+    void shouldRejectDismissOnAutoResolved() {
+        Alert alert = createActiveAlert();
+        alert.autoResolve();
 
-        assertThatThrownBy(() -> alert.handle(300L))
+        assertThatThrownBy(() -> alert.dismiss(300L))
             .isInstanceOf(ApiException.class)
-            .hasMessageContaining("acknowledged");
-    }
-
-    @Test
-    void shouldRejectArchiveOnNonHandled() {
-        Alert alert = createPendingAlert();
-        alert.acknowledge(200L);
-
-        assertThatThrownBy(() -> alert.archive(200L))
-            .isInstanceOf(ApiException.class)
-            .hasMessageContaining("handled");
+            .hasMessageContaining("ACTIVE");
     }
 }

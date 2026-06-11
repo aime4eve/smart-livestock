@@ -9,7 +9,8 @@ import java.time.Instant;
 /**
  * Alert aggregate root representing a ranch alert (fence breach, temperature abnormal, etc.)
  * <p>
- * Status machine: PENDING → ACKNOWLEDGED → HANDLED → ARCHIVED
+ * Notification center model: ACTIVE → DISMISSED (manual) or AUTO_RESOLVED (automatic).
+ * Read status is tracked per-user via alert_read_status table.
  */
 public class Alert extends AggregateRoot {
 
@@ -20,13 +21,17 @@ public class Alert extends AggregateRoot {
     private AlertStatus status;
     private Severity severity;
     private String message;
+    private String resolvedType;   // "AUTO" / "MANUAL_DISMISS"
+    private Instant resolvedAt;
+
+    // Legacy fields retained for backward compatibility during migration window
     private Long acknowledgedBy;
     private Instant acknowledgedAt;
     private Long handledBy;
     private Instant handledAt;
 
     public Alert() {
-        this.status = AlertStatus.PENDING;
+        this.status = AlertStatus.ACTIVE;
     }
 
     public Alert(Long farmId, Long livestockId, Long fenceId,
@@ -37,53 +42,82 @@ public class Alert extends AggregateRoot {
         this.type = type;
         this.severity = severity;
         this.message = message;
-        this.status = AlertStatus.PENDING;
+        this.status = AlertStatus.ACTIVE;
     }
 
     /**
-     * Acknowledge this alert. Only PENDING alerts can be acknowledged.
+     * Dismiss this alert (manual). Only ACTIVE alerts can be dismissed.
      *
-     * @param userId the user performing the acknowledgment
-     * @throws ApiException (STATE_CONFLICT) if alert is not in PENDING status
+     * @param userId the user performing the dismissal
+     * @throws ApiException (STATE_CONFLICT) if alert is not in ACTIVE status
      */
-    public void acknowledge(Long userId) {
-        if (status != AlertStatus.PENDING) {
+    public void dismiss(Long userId) {
+        if (status != AlertStatus.ACTIVE) {
             throw new ApiException(ErrorCode.STATE_CONFLICT,
-                "Alert must be in pending status to acknowledge, current: " + status);
+                "Alert must be in ACTIVE status to dismiss, current: " + status);
         }
-        this.status = AlertStatus.ACKNOWLEDGED;
-        this.acknowledgedBy = userId;
-        this.acknowledgedAt = Instant.now();
-    }
-
-    /**
-     * Handle this alert. Only ACKNOWLEDGED alerts can be handled.
-     *
-     * @param userId the user performing the handling
-     * @throws ApiException (STATE_CONFLICT) if alert is not in ACKNOWLEDGED status
-     */
-    public void handle(Long userId) {
-        if (status != AlertStatus.ACKNOWLEDGED) {
-            throw new ApiException(ErrorCode.STATE_CONFLICT,
-                "Alert must be in acknowledged status to handle, current: " + status);
-        }
-        this.status = AlertStatus.HANDLED;
+        this.status = AlertStatus.DISMISSED;
+        this.resolvedType = "MANUAL_DISMISS";
+        this.resolvedAt = Instant.now();
+        // Legacy compatibility
         this.handledBy = userId;
-        this.handledAt = Instant.now();
+        this.handledAt = this.resolvedAt;
     }
 
     /**
-     * Archive this alert. Only HANDLED alerts can be archived.
-     *
-     * @param userId the user performing the archival
-     * @throws ApiException (STATE_CONFLICT) if alert is not in HANDLED status
+     * Auto-resolve this alert. Idempotent — no-op if already resolved.
      */
-    public void archive(Long userId) {
-        if (status != AlertStatus.HANDLED) {
-            throw new ApiException(ErrorCode.STATE_CONFLICT,
-                "Alert must be in handled status to archive, current: " + status);
+    public void autoResolve() {
+        if (status != AlertStatus.ACTIVE) {
+            return; // idempotent
         }
-        this.status = AlertStatus.ARCHIVED;
+        this.status = AlertStatus.AUTO_RESOLVED;
+        this.resolvedType = "AUTO";
+        this.resolvedAt = Instant.now();
+    }
+
+    // --- Legacy compatibility methods (redirect to new model) ---
+
+    /**
+     * @deprecated Use dismiss(userId) instead.
+     */
+    @Deprecated
+    public void acknowledge(Long userId) {
+        // Legacy: PENDING → ACKNOWLEDGED mapped to ACTIVE (read status tracked separately)
+        // No-op on the alert itself — read status is in alert_read_status table
+    }
+
+    /**
+     * @deprecated Use dismiss(userId) instead.
+     */
+    @Deprecated
+    public void handle(Long userId) {
+        dismiss(userId);
+    }
+
+    /**
+     * @deprecated Use autoResolve() instead.
+     */
+    @Deprecated
+    public void archive(Long userId) {
+        autoResolve();
+    }
+
+    // --- Reconstitution ---
+
+    public void reconstituteResolved(String resolvedType, Instant resolvedAt) {
+        this.resolvedType = resolvedType;
+        this.resolvedAt = resolvedAt;
+    }
+
+    public void reconstituteAcknowledgement(Long acknowledgedBy, Instant acknowledgedAt) {
+        this.acknowledgedBy = acknowledgedBy;
+        this.acknowledgedAt = acknowledgedAt;
+    }
+
+    public void reconstituteHandled(Long handledBy, Instant handledAt) {
+        this.handledBy = handledBy;
+        this.handledAt = handledAt;
     }
 
     // --- Getters and Setters ---
@@ -109,27 +143,21 @@ public class Alert extends AggregateRoot {
     public String getMessage() { return message; }
     public void setMessage(String message) { this.message = message; }
 
+    public String getResolvedType() { return resolvedType; }
+    public void setResolvedType(String resolvedType) { this.resolvedType = resolvedType; }
+
+    public Instant getResolvedAt() { return resolvedAt; }
+    public void setResolvedAt(Instant resolvedAt) { this.resolvedAt = resolvedAt; }
+
     public Long getAcknowledgedBy() { return acknowledgedBy; }
+    public void setAcknowledgedBy(Long acknowledgedBy) { this.acknowledgedBy = acknowledgedBy; }
 
     public Instant getAcknowledgedAt() { return acknowledgedAt; }
+    public void setAcknowledgedAt(Instant acknowledgedAt) { this.acknowledgedAt = acknowledgedAt; }
 
     public Long getHandledBy() { return handledBy; }
+    public void setHandledBy(Long handledBy) { this.handledBy = handledBy; }
 
     public Instant getHandledAt() { return handledAt; }
-
-    /**
-     * Reconstitute acknowledgement state from persistence.
-     */
-    public void reconstituteAcknowledgement(Long acknowledgedBy, Instant acknowledgedAt) {
-        this.acknowledgedBy = acknowledgedBy;
-        this.acknowledgedAt = acknowledgedAt;
-    }
-
-    /**
-     * Reconstitute handled state from persistence.
-     */
-    public void reconstituteHandled(Long handledBy, Instant handledAt) {
-        this.handledBy = handledBy;
-        this.handledAt = handledAt;
-    }
+    public void setHandledAt(Instant handledAt) { this.handledAt = handledAt; }
 }

@@ -21,24 +21,37 @@ class AlertsController extends FarmScopedAsyncNotifier<AlertsListData> {
     );
   }
 
-  Future<void> acknowledge(String alertId) async {
-    await ref.read(alertsRepositoryProvider).acknowledge(alertId);
+  Future<void> markRead(String alertId) async {
+    await ref.read(alertsRepositoryProvider).markRead(alertId);
     await refresh();
+  }
+
+  Future<void> dismiss(String alertId) async {
+    await ref.read(alertsRepositoryProvider).dismiss(alertId);
+    await refresh();
+  }
+
+  Future<void> batchRead(List<String> alertIds) async {
+    await ref.read(alertsRepositoryProvider).batchRead(alertIds);
+    await refresh();
+  }
+
+  // ── Legacy compatibility (HealthBottomSheet rewrite will remove these) ──
+
+  Future<void> acknowledge(String alertId) async {
+    await markRead(alertId);
   }
 
   Future<void> handle(String alertId) async {
-    await ref.read(alertsRepositoryProvider).handle(alertId);
-    await refresh();
+    await dismiss(alertId);
   }
 
   Future<void> archive(String alertId) async {
-    await ref.read(alertsRepositoryProvider).archive(alertId);
-    await refresh();
+    // No-op: auto-resolve is server-driven
   }
 
   Future<void> batchHandle(List<String> alertIds) async {
-    await ref.read(alertsRepositoryProvider).batchHandle(alertIds);
-    await refresh();
+    await batchRead(alertIds);
   }
 }
 

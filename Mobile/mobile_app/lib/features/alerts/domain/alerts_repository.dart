@@ -1,10 +1,9 @@
 import 'package:smart_livestock_demo/core/models/core_models.dart';
 
 enum AlertStage {
-  pending,
-  acknowledged,
-  handled,
-  archived,
+  active,
+  dismissed,
+  autoResolved,
 }
 
 class AlertsListData {
@@ -56,11 +55,9 @@ abstract class AlertsRepository {
 
   Future<AlertDetail> loadDetail(String alertId);
 
-  Future<void> acknowledge(String alertId);
+  Future<void> markRead(String alertId);
 
-  Future<void> handle(String alertId);
+  Future<void> dismiss(String alertId);
 
-  Future<void> archive(String alertId);
-
-  Future<void> batchHandle(List<String> alertIds);
+  Future<void> batchRead(List<String> alertIds);
 }

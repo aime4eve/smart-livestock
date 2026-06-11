@@ -107,4 +107,48 @@ public class Fence extends AggregateRoot {
 
     public String getFenceType() { return fenceType; }
     public void setFenceType(String fenceType) { this.fenceType = fenceType; }
+
+    // ── Buffer zone fields ──
+
+    private int bufferDistance = 50; // meters
+    private List<GpsCoordinate> bufferPolygon; // pre-computed buffer zone vertices
+
+    public int getBufferDistance() { return bufferDistance; }
+    public void setBufferDistance(int bufferDistance) { this.bufferDistance = bufferDistance; }
+
+    public List<GpsCoordinate> getBufferPolygon() { return bufferPolygon; }
+    public void setBufferPolygon(List<GpsCoordinate> bufferPolygon) { this.bufferPolygon = bufferPolygon; }
+
+    /**
+     * Check if point is inside the buffer zone (approaching fence).
+     * Returns false if buffer polygon is not set.
+     */
+    public boolean containsBuffer(GpsCoordinate point) {
+        if (bufferPolygon == null || bufferPolygon.size() < 3) return false;
+        // Reuse ray-casting algorithm on buffer polygon
+        List<GpsCoordinate> poly = bufferPolygon;
+        java.math.BigDecimal px = point.longitude();
+        java.math.BigDecimal py = point.latitude();
+        int n = poly.size();
+        boolean inside = false;
+        for (int i = 0, j = n - 1; i < n; j = i++) {
+            java.math.BigDecimal xi = poly.get(i).longitude();
+            java.math.BigDecimal yi = poly.get(i).latitude();
+            java.math.BigDecimal xj = poly.get(j).longitude();
+            java.math.BigDecimal yj = poly.get(j).latitude();
+            boolean yiAbovePy = yi.compareTo(py) > 0;
+            boolean yjAbovePy = yj.compareTo(py) > 0;
+            if (yiAbovePy != yjAbovePy) {
+                java.math.BigDecimal dx = xj.subtract(xi);
+                java.math.BigDecimal dy = yj.subtract(yi);
+                java.math.BigDecimal intersectX = xi.add(py.subtract(yi).multiply(dx).divide(dy, 20, java.math.RoundingMode.HALF_UP));
+                if (px.compareTo(intersectX) <= 0) {
+                    if (px.compareTo(intersectX) == 0) return true;
+                    inside = !inside;
+                }
+            }
+        }
+        return inside;
+    }
 }
+

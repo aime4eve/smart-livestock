@@ -37,7 +37,7 @@ public class RanchQueryPortImpl implements RanchQueryPort {
     @Override
     public int countActiveAlertsByFarmId(Long farmId) {
         return (int) alertRepository.findByFarmId(farmId).stream()
-                .filter(a -> !"ARCHIVED".equals(a.getStatus()) && !"HANDLED".equals(a.getStatus()))
+                .filter(a -> "ACTIVE".equals(a.getStatus()))
                 .count();
     }
 
