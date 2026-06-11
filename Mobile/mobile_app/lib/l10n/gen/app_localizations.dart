@@ -653,6 +653,26 @@ abstract class AppLocalizations {
   String get subscriptionStatusActive;
   String get subscriptionStatusCancelled;
   String get subscriptionStatusExpired;
+
+  String get adminSubscriptionsNoData;
+  String get adminSubscriptionsRevoke;
+  String get adminSubscriptionsRenew;
+  String get adminApiAuthCreateKey;
+  String get adminApiAuthNoKeys;
+  String get adminApiAuthDescription;
+  String get adminApiAuthName;
+  String get adminApiAuthDescriptionOptional;
+  String get adminApiAuthScopes;
+  String get adminApiAuthCreate;
+  String get adminApiAuthKeyCreated;
+  String get adminApiAuthKeyWarning;
+  String get adminApiAuthSaved;
+  String get adminRevenueNoData;
+  String get adminContractActive;
+  String get adminContractDraft;
+  String get adminContractTerminated;
+  String get adminContractTerminate;
+  String get adminContractNoData;
 }
 
 class _AppLocalizationsDelegate

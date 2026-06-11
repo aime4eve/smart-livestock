@@ -654,4 +654,24 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get subscriptionStatusActive => '已订阅';
   @override String get subscriptionStatusCancelled => '已取消';
   @override String get subscriptionStatusExpired => '已过期';
+
+  @override String get adminSubscriptionsNoData => '暂无订阅服务';
+  @override String get adminSubscriptionsRevoke => '撤销';
+  @override String get adminSubscriptionsRenew => '续期';
+  @override String get adminApiAuthCreateKey => '创建 Key';
+  @override String get adminApiAuthNoKeys => '暂无 API Key';
+  @override String get adminApiAuthDescription => '管理 API Key 的创建、启用和撤销';
+  @override String get adminApiAuthName => '名称';
+  @override String get adminApiAuthDescriptionOptional => '描述（可选）';
+  @override String get adminApiAuthScopes => '权限范围:';
+  @override String get adminApiAuthCreate => '创建';
+  @override String get adminApiAuthKeyCreated => 'Key 已创建';
+  @override String get adminApiAuthKeyWarning => '请立即保存此 Key，关闭后将无法再次查看。';
+  @override String get adminApiAuthSaved => '已保存';
+  @override String get adminRevenueNoData => '暂无对账周期';
+  @override String get adminContractActive => '生效中';
+  @override String get adminContractDraft => '待签署';
+  @override String get adminContractTerminated => '已终止';
+  @override String get adminContractTerminate => '终止合同';
+  @override String get adminContractNoData => '暂无合同';
 }

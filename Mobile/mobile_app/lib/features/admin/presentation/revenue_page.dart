@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/revenue/presentation/revenue_controller.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class RevenuePage extends ConsumerWidget {
   const RevenuePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(revenueControllerProvider);
     final controller = ref.read(revenueControllerProvider.notifier);
 
@@ -74,7 +76,7 @@ class RevenuePage extends ConsumerWidget {
                               onPressed: () =>
                                   controller.confirmPeriod(period.id),
                               icon: const Icon(Icons.check, size: 16),
-                              label: const Text('确认对账'),
+                              label: Text(l10n.b2bRevenueDetailConfirmButton),
                             ),
                           ),
                       ],
@@ -83,9 +85,9 @@ class RevenuePage extends ConsumerWidget {
                 );
               }),
             if (data.isEmpty)
-              const SizedBox(
+              SizedBox(
                 height: 200,
-                child: Center(child: Text('暂无对账周期')),
+                child: Center(child: Text(l10n.adminRevenueNoData)),
               ),
           ],
         ),

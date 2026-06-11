@@ -666,4 +666,24 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String get subscriptionStatusActive => 'Active';
   @override String get subscriptionStatusCancelled => 'Cancelled';
   @override String get subscriptionStatusExpired => 'Expired';
+
+  @override String get adminSubscriptionsNoData => 'No subscription services';
+  @override String get adminSubscriptionsRevoke => 'Revoke';
+  @override String get adminSubscriptionsRenew => 'Renew';
+  @override String get adminApiAuthCreateKey => 'Create Key';
+  @override String get adminApiAuthNoKeys => 'No API Keys';
+  @override String get adminApiAuthDescription => 'Manage API Key creation, activation, and revocation';
+  @override String get adminApiAuthName => 'Name';
+  @override String get adminApiAuthDescriptionOptional => 'Description (optional)';
+  @override String get adminApiAuthScopes => 'Scopes:';
+  @override String get adminApiAuthCreate => 'Create';
+  @override String get adminApiAuthKeyCreated => 'Key Created';
+  @override String get adminApiAuthKeyWarning => 'Save this key immediately. It will not be shown again once this dialog is closed.';
+  @override String get adminApiAuthSaved => 'Saved';
+  @override String get adminRevenueNoData => 'No revenue periods';
+  @override String get adminContractActive => 'Active';
+  @override String get adminContractDraft => 'Pending';
+  @override String get adminContractTerminated => 'Terminated';
+  @override String get adminContractTerminate => 'Terminate Contract';
+  @override String get adminContractNoData => 'No contracts';
 }

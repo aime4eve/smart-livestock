@@ -6,6 +6,7 @@ import 'package:smart_livestock_demo/features/contract_management/domain/contrac
 import 'package:smart_livestock_demo/features/contract_management/presentation/contract_management_controller.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class ContractsPage extends ConsumerStatefulWidget {
   const ContractsPage({super.key});
@@ -19,6 +20,7 @@ class _ContractsPageState extends ConsumerState<ContractsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(contractManagementControllerProvider);
     final controller =
         ref.read(contractManagementControllerProvider.notifier);
@@ -49,11 +51,11 @@ class _ContractsPageState extends ConsumerState<ContractsPage> {
                 children: [
                   Expanded(
                     child: SegmentedButton<String>(
-                      segments: const [
-                        ButtonSegment(value: '', label: Text('全部')),
-                        ButtonSegment(value: 'active', label: Text('生效中')),
-                        ButtonSegment(value: 'draft', label: Text('待签署')),
-                        ButtonSegment(value: 'terminated', label: Text('已终止')),
+                      segments: [
+                        ButtonSegment(value: '', label: Text(l10n.commonAll)),
+                        ButtonSegment(value: 'active', label: Text(l10n.adminContractActive)),
+                        ButtonSegment(value: 'draft', label: Text(l10n.adminContractDraft)),
+                        ButtonSegment(value: 'terminated', label: Text(l10n.adminContractTerminated)),
                       ],
                       selected: {_statusFilter},
                       onSelectionChanged: (selected) {
@@ -82,6 +84,7 @@ class _ContractsPageState extends ConsumerState<ContractsPage> {
     ContractSummary contract,
     ContractManagementController controller,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final statusColor = switch (contract.status) {
       'active' => AppColors.success,
       'draft' => AppColors.warning,
@@ -131,7 +134,7 @@ class _ContractsPageState extends ConsumerState<ContractsPage> {
                   onPressed: () => controller
                       .updateContractStatus(contract.id, 'TERMINATED'),
                   icon: const Icon(Icons.cancel, size: 16),
-                  label: const Text('终止合同'),
+                  label: Text(l10n.adminContractTerminate),
                 ),
               ),
           ],
@@ -141,9 +144,10 @@ class _ContractsPageState extends ConsumerState<ContractsPage> {
   }
 
   Widget _buildEmpty(BuildContext context) {
-    return const SizedBox(
+    final l10n = AppLocalizations.of(context)!;
+    return SizedBox(
       height: 200,
-      child: Center(child: Text('暂无合同')),
+      child: Center(child: Text(l10n.adminContractNoData)),
     );
   }
 }
