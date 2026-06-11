@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:smart_livestock_demo/features/offline_fences/domain/cached_fence.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class FenceConflictPage extends StatelessWidget {
   final FenceConflict conflict;
@@ -17,13 +18,14 @@ class FenceConflictPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final bounds = _computeBounds([
       ...conflict.localFence.vertices,
       ...conflict.serverVertices,
     ]);
 
     return Scaffold(
-      appBar: AppBar(title: Text('围栏冲突: ${conflict.localFence.name}')),
+      appBar: AppBar(title: Text(l10n.fenceConflictTitle(conflict.localFence.name))),
       body: Column(
         children: [
           Expanded(
@@ -31,13 +33,13 @@ class FenceConflictPage extends StatelessWidget {
               final useRow = constraints.maxWidth > 500;
               final mapWidgets = [
                 _buildMapSection(
-                  title: '服务端版本 (v${conflict.serverVersion})',
+                  title: l10n.fenceConflictServerVersion(conflict.serverVersion.toString()),
                   points: conflict.serverVertices,
                   color: Colors.blue,
                   center: bounds.center,
                 ),
                 _buildMapSection(
-                  title: '您的修改 (离线编辑)',
+                  title: l10n.fenceConflictLocalVersion,
                   points: conflict.localFence.vertices,
                   color: Colors.orange,
                   center: bounds.center,
@@ -56,7 +58,7 @@ class FenceConflictPage extends StatelessWidget {
                   child: OutlinedButton(
                     key: const Key('btn-keep-server'),
                     onPressed: onKeepServer,
-                    child: const Text('放弃我的修改'),
+                    child: Text(l10n.fenceConflictDiscardMine),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -64,7 +66,7 @@ class FenceConflictPage extends StatelessWidget {
                   child: FilledButton(
                     key: const Key('btn-keep-local'),
                     onPressed: onKeepLocal,
-                    child: const Text('覆盖服务端版本'),
+                    child: Text(l10n.fenceConflictOverwrite),
                   ),
                 ),
               ],

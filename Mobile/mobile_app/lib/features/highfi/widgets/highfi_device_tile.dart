@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_livestock_demo/core/models/core_models.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class HighfiDeviceTile extends StatelessWidget {
   const HighfiDeviceTile({
@@ -19,6 +20,7 @@ class HighfiDeviceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       key: Key('device-tile-${device.id}'),
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -62,19 +64,19 @@ class HighfiDeviceTile extends StatelessWidget {
                       TextButton(
                         key: Key('device-install-${device.id}'),
                         onPressed: onInstall,
-                        child: const Text('安装到牲畜'),
+                        child: Text(l10n.deviceInstallTo),
                       ),
                     if (onUnbind != null)
                       TextButton(
                         key: Key('device-unbind-${device.id}'),
                         onPressed: onUnbind,
-                        child: const Text('解绑'),
+                        child: Text(l10n.deviceUnbind),
                       ),
                     if (onViewLocation != null)
                       TextButton(
                         key: Key('device-locate-${device.id}'),
                         onPressed: onViewLocation,
-                        child: const Text('查看位置'),
+                        child: Text(l10n.deviceViewLocation),
                       ),
                   ],
                 ),

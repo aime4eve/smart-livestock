@@ -6,12 +6,14 @@ import 'package:smart_livestock_demo/features/api_authorization/domain/api_autho
 import 'package:smart_livestock_demo/features/api_authorization/presentation/api_authorization_controller.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class MineApiAuthPage extends ConsumerWidget {
   const MineApiAuthPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(apiAuthorizationControllerProvider);
 
     return asyncData.when(
@@ -21,19 +23,19 @@ class MineApiAuthPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('API 授权管理', style: Theme.of(context).textTheme.titleLarge),
+            Text(l10n.mineApiAuthTitle, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: AppSpacing.sm),
-            Text('管理我的 API Key 和授权', style: Theme.of(context).textTheme.bodySmall),
+            Text(l10n.mineApiAuthManagementDesc, style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: AppSpacing.lg),
             if (data.isEmpty)
-              const SizedBox(height: 200, child: Center(child: Text('暂无 API Key')))
+              SizedBox(height: 200, child: Center(child: Text(l10n.adminApiAuthNoKeys)))
             else
               ...data.items.map((key) => _MineApiKeyCard(keyItem: key)),
           ],
         ),
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('加载失败: $e')),
+      error: (e, _) => Center(child: Text('${l10n.commonLoadFailed}: $e')),
     );
   }
 }
@@ -48,8 +50,9 @@ class _MineApiKeyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final statusColor = _isActive ? AppColors.success : AppColors.danger;
-    final statusLabel = _isActive ? '生效中' : (keyItem.status ?? '未知');
+    final statusLabel = _isActive ? l10n.adminContractActive : (keyItem.status ?? '未知');
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -77,7 +80,7 @@ class _MineApiKeyCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.xs),
-            if (keyItem.prefix != null) Text('前缀: ${keyItem.prefix}'),
+            if (keyItem.prefix != null) Text('${l10n.adminApiAuthPrefixLabel}: ${keyItem.prefix}'),
             if (keyItem.scopeList.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 4),

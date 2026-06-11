@@ -705,6 +705,22 @@ abstract class AppLocalizations {
   String get tenantLicenseInvalidInteger;
   String tenantLicenseBelowUsed(String used);
   String get tenantDeleteReasonRequired;
+
+  String get deviceInstallTo;
+  String get deviceUnbind;
+  String get deviceViewLocation;
+  String get offlineTileNoRegions;
+  String offlineTileRegionsAvailable(String count);
+  String get workerNewWorker;
+  String get workerName;
+  String get workerInitPassword;
+  String get workerCreateSuccess;
+  String workerCreateFailed(String error);
+  String fenceConflictTitle(String name);
+  String get fenceConflictDiscardMine;
+  String get fenceConflictOverwrite;
+  String fenceConflictServerVersion(String version);
+  String get fenceConflictLocalVersion;
 }
 
 class _AppLocalizationsDelegate

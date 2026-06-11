@@ -704,4 +704,21 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get tenantLicenseInvalidInteger => '请输入非负整数';
   @override String tenantLicenseBelowUsed(String used) => '新配额不能小于当前已使用量（$used）';
   @override String get tenantDeleteReasonRequired => '请输入删除原因';
+
+  @override String get deviceInstallTo => '安装到牲畜';
+  @override String get deviceUnbind => '解绑';
+  @override String get deviceViewLocation => '查看位置';
+  @override String get offlineTileNoRegions => '暂无可用离线地图';
+  @override String offlineTileRegionsAvailable(String count) => '可用区域（$count）';
+  @override String get workerNewWorker => '新建牧工';
+  @override String get workerName => '姓名';
+  @override String get workerInitPassword => '初始密码';
+  @override String get workerCreateSuccess => '牧工创建成功';
+  @override String workerCreateFailed(String error) => '创建失败: $error';
+  @override String fenceConflictTitle(String name) => '围栏冲突: $name';
+  @override String get fenceConflictDiscardMine => '放弃我的修改';
+  @override String get fenceConflictOverwrite => '覆盖服务端版本';
+
+  @override String fenceConflictServerVersion(String version) => '服务端版本 (v$version)';
+  @override String get fenceConflictLocalVersion => '您的修改 (离线编辑)';
 }

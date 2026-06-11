@@ -716,4 +716,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String get tenantLicenseInvalidInteger => 'Please enter a non-negative integer';
   @override String tenantLicenseBelowUsed(String used) => 'New quota cannot be less than currently used ($used)';
   @override String get tenantDeleteReasonRequired => 'Please enter a deletion reason';
+
+  @override String get deviceInstallTo => 'Install to Livestock';
+  @override String get deviceUnbind => 'Unbind';
+  @override String get deviceViewLocation => 'View Location';
+  @override String get offlineTileNoRegions => 'No offline maps available';
+  @override String offlineTileRegionsAvailable(String count) => 'Available Regions ($count)';
+  @override String get workerNewWorker => 'New Worker';
+  @override String get workerName => 'Name';
+  @override String get workerInitPassword => 'Initial Password';
+  @override String get workerCreateSuccess => 'Worker created successfully';
+  @override String workerCreateFailed(String error) => 'Creation failed: $error';
+  @override String fenceConflictTitle(String name) => 'Fence Conflict: $name';
+  @override String get fenceConflictDiscardMine => 'Discard My Changes';
+  @override String get fenceConflictOverwrite => 'Overwrite Server Version';
+
+  @override String fenceConflictServerVersion(String version) => 'Server Version (v$version)';
+  @override String get fenceConflictLocalVersion => 'Your Changes (Offline Edit)';
 }
