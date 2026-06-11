@@ -8,6 +8,7 @@ import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/ranch_controller.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/alert_card.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/auto_resolved_section.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/device_info_line.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/status_dashboard_card.dart';
@@ -70,6 +71,7 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final stats = widget.overview.overallStats;
     final role = ref.watch(sessionControllerProvider).role;
     final controller = ref.read(ranchControllerProvider.notifier);
@@ -144,6 +146,7 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
 
   // ── Peek bar: "头数 · 归栏率 · 健康率" ────────────────────────
   Widget _buildPeekBar(RanchOverviewStats stats) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -231,7 +234,7 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
 
         // Recent active alerts preview
         if (overview.alerts.where((a) => a.status == 'ACTIVE' || a.status == 'PENDING').isNotEmpty) ...[
-          Text('最新告警', style: Theme.of(context).textTheme.titleSmall),
+          Text(AppLocalizations.of(context)!.ranchHealthLatestAlerts, style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: AppSpacing.sm),
           ...overview.alerts
             .where((a) => a.status == 'ACTIVE' || a.status == 'PENDING')
@@ -321,7 +324,7 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
                   final ids = active.where((a) => !a.read).map((a) => a.id).toList();
                   if (ids.isNotEmpty) controller.batchRead(ids);
                 },
-                child: Text('全部已读 ($unreadActiveCount)', style: const TextStyle(fontSize: 12)),
+                child: Text(AppLocalizations.of(context)!.ranchHealthAllRead(unreadActiveCount.toString()), style: const TextStyle(fontSize: 12)),
               ),
             ),
           ),
@@ -343,7 +346,7 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
               // Dismissed alerts (compact)
               if (dismissed.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.sm),
-                Text('已忽略 (${dismissed.length})',
+                Text(AppLocalizations.of(context)!.ranchHealthDismissed(dismissed.length.toString()),
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 4),
@@ -370,6 +373,7 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
 
   // ── Detail: single alert detail view ───────────────────────────
   Widget _buildDetail(BuildContext context, RanchController controller, dynamic role) {
+    final l10n = AppLocalizations.of(context)!;
     final overview = widget.overview;
     final selectedId = controller.selectedAlertId;
     if (selectedId == null) return const SizedBox.shrink();
@@ -450,7 +454,7 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
                           controller.showDashboard();
                         },
                         icon: const Icon(Icons.close, size: 18),
-                        label: const Text('忽略此告警'),
+                        label: Text(AppLocalizations.of(context)!.ranchHealthIgnoreAlert),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.warning,
                           side: const BorderSide(color: AppColors.warning),
@@ -490,6 +494,7 @@ class _BackBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: onBack,
       child: Container(
@@ -557,13 +562,14 @@ class _FenceDetailContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('围栏信息', style: Theme.of(context).textTheme.titleSmall),
+            Text(l10n.ranchHealthFenceInfo, style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: AppSpacing.sm),
             _InfoRow(label: '类型', value: alert.type),
             if (alert.distance != null)
@@ -586,6 +592,7 @@ class _HealthDetailContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final healthType = alert.type;
     final livestockId = alert.livestockId;
     final canNavigate = livestockId != null;
@@ -596,7 +603,7 @@ class _HealthDetailContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('健康详情', style: Theme.of(context).textTheme.titleSmall),
+            Text(l10n.ranchHealthDetail, style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: AppSpacing.sm),
             _InfoRow(label: '异常类型', value: _healthLabel(healthType)),
             if (alert.occurredAt != null)
@@ -608,7 +615,7 @@ class _HealthDetailContent extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () => _navigateToDetail(context, healthType, livestockId),
                   icon: const Icon(Icons.open_in_new, size: 16),
-                  label: Text('${_healthLabel(healthType)}详情'),
+                  label: Text(l10n.ranchHealthDetailLink(_healthLabel(healthType))),
                 ),
               ),
             ],
