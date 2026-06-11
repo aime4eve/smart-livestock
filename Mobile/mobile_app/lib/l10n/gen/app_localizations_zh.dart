@@ -787,4 +787,21 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String b2bFarmRenameDemo(String name) => '「$name」重命名功能开发中';
   @override String get b2bFarmStatDevice => '设备';
   @override String get b2bFarmStatRanch => '牧场';
+
+  @override String get b2bWorkerEditFarmInfo => '编辑牧场信息';
+  @override String get b2bWorkerFarmUpdated => '牧场信息已更新';
+  @override String get b2bWorkerAssign => '分配';
+  @override String get b2bWorkerAssignTitle => '分配牧工';
+  @override String get b2bWorkerAssignNone => '没有可分配的牧工，请先点击「添加牧工」创建';
+  @override String b2bWorkerAssignConfirm(String count) => '确认分配 ($count)';
+  @override String get b2bWorkerRemoveTitle => '移除牧工';
+  @override String b2bWorkerRemoveConfirm(String name, String farm) => '确定将「$name」从「$farm」移除？';
+  @override String get b2bWorkerConfirm => '确认';
+  @override String b2bWorkerCreated(String name) => '牧工「$name」已创建并分配';
+  @override String get b2bWorkerUpdated => '牧工信息已更新';
+  @override String get b2bWorkerResetPwd => '重置密码';
+  @override String b2bWorkerResetPwdTitle(String name) => '重置「$name」密码';
+  @override String get b2bWorkerNewPassword => '新密码';
+  @override String get b2bWorkerConfirmReset => '确认重置';
+  @override String get b2bWorkerPwdReset => '密码已重置';
 }

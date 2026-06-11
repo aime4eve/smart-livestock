@@ -799,4 +799,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String b2bFarmRenameDemo(String name) => '"$name" rename feature coming soon';
   @override String get b2bFarmStatDevice => 'Devices';
   @override String get b2bFarmStatRanch => 'Ranches';
+
+  @override String get b2bWorkerEditFarmInfo => 'Edit Farm Info';
+  @override String get b2bWorkerFarmUpdated => 'Farm info updated';
+  @override String get b2bWorkerAssign => 'Assign';
+  @override String get b2bWorkerAssignTitle => 'Assign Workers';
+  @override String get b2bWorkerAssignNone => 'No workers available. Create one with "Add Worker" first.';
+  @override String b2bWorkerAssignConfirm(String count) => 'Confirm Assign ($count)';
+  @override String get b2bWorkerRemoveTitle => 'Remove Worker';
+  @override String b2bWorkerRemoveConfirm(String name, String farm) => 'Remove "$name" from "$farm"?';
+  @override String get b2bWorkerConfirm => 'Confirm';
+  @override String b2bWorkerCreated(String name) => 'Worker "$name" created and assigned';
+  @override String get b2bWorkerUpdated => 'Worker info updated';
+  @override String get b2bWorkerResetPwd => 'Reset Password';
+  @override String b2bWorkerResetPwdTitle(String name) => 'Reset "$name" Password';
+  @override String get b2bWorkerNewPassword => 'New Password';
+  @override String get b2bWorkerConfirmReset => 'Confirm Reset';
+  @override String get b2bWorkerPwdReset => 'Password Reset';
 }

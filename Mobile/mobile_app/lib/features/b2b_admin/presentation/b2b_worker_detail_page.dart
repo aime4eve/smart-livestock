@@ -8,6 +8,7 @@ import 'package:smart_livestock_demo/app/app_route.dart';
 import 'package:smart_livestock_demo/core/api/api_client.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_repository.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/core/map/map_config.dart';
@@ -61,7 +62,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('编辑牧场信息'),
+        title: Text(l10n.b2bWorkerEditFarmInfo),
         content: SingleChildScrollView(
           child: Form(
             key: formKey,
@@ -71,7 +72,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                 TextFormField(
                   controller: nameCtrl,
                   decoration: const InputDecoration(
-                    labelText: '牧场名称',
+                    labelText: l10n.farmCreationNameLabel,
                     isDense: true,
                     border: OutlineInputBorder(),
                   ),
@@ -84,7 +85,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                       child: TextFormField(
                         controller: latCtrl,
                         decoration: const InputDecoration(
-                          labelText: '纬度',
+                          labelText: l10n.farmCreationLatLabel,
                           isDense: true,
                           border: OutlineInputBorder(),
                         ),
@@ -96,7 +97,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                       child: TextFormField(
                         controller: lngCtrl,
                         decoration: const InputDecoration(
-                          labelText: '经度',
+                          labelText: l10n.farmCreationLngLabel,
                           isDense: true,
                           border: OutlineInputBorder(),
                         ),
@@ -109,7 +110,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                 TextFormField(
                   controller: areaCtrl,
                   decoration: const InputDecoration(
-                    labelText: '面积（公顷）',
+                    labelText: l10n.farmCreationAreaLabel,
                     isDense: true,
                     border: OutlineInputBorder(),
                   ),
@@ -138,7 +139,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                 await ApiClient.instance.put('/farms/${farm.id}', body: body);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('牧场信息已更新'), backgroundColor: Color(0xFF2E7D32)),
+                    SnackBar(content: Text(l10n.b2bWorkerFarmUpdated), backgroundColor: const Color(0xFF2E7D32)),
                   );
                   ref.invalidate(b2bDashboardControllerProvider);
                   ref.invalidate(b2bWorkerManagementControllerProvider);
@@ -265,6 +266,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(b2bWorkerManagementControllerProvider);
 
     return asyncData.when(
@@ -372,13 +374,13 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                         TextButton.icon(
                           onPressed: _busy ? null : () => _handleCreateWorker(farm),
                           icon: const Icon(Icons.add, size: 18),
-                          label: const Text('添加牧工'),
+                          label: Text(l10n.workerAddWorker),
                         ),
                         const SizedBox(width: AppSpacing.xs),
                         TextButton.icon(
                           onPressed: _busy ? null : () => _handleAssign(farm),
                           icon: const Icon(Icons.person_add_outlined, size: 18),
-                          label: const Text('分配'),
+                          label: Text(l10n.b2bWorkerAssign),
                         ),
                       ],
                     ),
@@ -421,7 +423,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         key: const Key('b2b-create-worker-dialog'),
-        title: const Text('添加牧工'),
+        title: Text(l10n.workerNewWorker),
         content: SizedBox(
           width: 360,
           child: Form(
@@ -457,7 +459,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                 TextFormField(
                   controller: passwordCtrl,
                   decoration: const InputDecoration(
-                    labelText: '密码',
+                    labelText: l10n.authPasswordLabel,
                     isDense: true,
                     border: OutlineInputBorder(),
                   ),
@@ -488,7 +490,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                 Navigator.pop(ctx, true);
               }
             },
-            child: const Text('创建'),
+            child: Text(l10n.adminApiAuthCreate),
           ),
         ],
       ),
@@ -509,13 +511,13 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
       await _loadWorkers();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('牧工「${worker.name}」已创建并分配'), backgroundColor: AppColors.success),
+          SnackBar(content: Text(l10n.b2bWorkerCreated(worker.name)), backgroundColor: AppColors.success),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('创建失败: $e'), backgroundColor: AppColors.danger),
+          SnackBar(content: Text(l10n.workerCreateFailed(e.toString())), backgroundColor: AppColors.danger),
         );
       }
     }
@@ -578,7 +580,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
             onPressed: () async {
               Navigator.pop(ctx, 'reset');
             },
-            child: const Text('重置密码', style: TextStyle(color: AppColors.warning)),
+            child: Text(l10n.b2bWorkerResetPwd, style: TextStyle(color: AppColors.warning)),
           ),
           FilledButton(
             onPressed: () {
@@ -605,7 +607,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
         await _loadWorkers();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('牧工信息已更新'), backgroundColor: AppColors.success),
+            SnackBar(content: Text(l10n.b2bWorkerUpdated), backgroundColor: AppColors.success),
           );
         }
       } catch (e) {
@@ -628,7 +630,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('重置「${worker.name}」密码'),
+        title: Text(l10n.b2bWorkerResetPwdTitle(worker.name)),
         content: SizedBox(
           width: 300,
           child: Form(
@@ -636,7 +638,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
             child: TextFormField(
               controller: passwordCtrl,
               decoration: const InputDecoration(
-                labelText: '新密码',
+                labelText: l10n.b2bWorkerNewPassword,
                 isDense: true,
                 border: OutlineInputBorder(),
               ),
@@ -660,7 +662,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                 Navigator.pop(ctx, true);
               }
             },
-            child: const Text('确认重置'),
+            child: Text(l10n.b2bWorkerConfirmReset),
           ),
         ],
       ),
@@ -675,13 +677,13 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('密码已重置'), backgroundColor: AppColors.success),
+          SnackBar(content: Text(l10n.b2bWorkerPwdReset), backgroundColor: AppColors.success),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('重置失败: $e'), backgroundColor: AppColors.danger),
+          SnackBar(content: Text(l10n.commonDeleteFailed(e.toString())), backgroundColor: AppColors.danger),
         );
       }
     }
@@ -704,7 +706,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
       setState(() => _busy = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('没有可分配的牧工，请先点击「添加牧工」创建'),
+          content: Text(l10n.b2bWorkerAssignNone),
           backgroundColor: Color(0xFF607D8B),
         ),
       );
@@ -717,7 +719,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           key: const Key('b2b-assign-worker-dialog'),
-          title: const Text('分配牧工'),
+          title: Text(l10n.b2bWorkerAssignTitle),
           content: SizedBox(
             width: double.maxFinite,
             child: Column(
@@ -747,7 +749,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                 child: const Text('取消')),
             FilledButton(
               onPressed: selected.isEmpty ? null : () => Navigator.pop(ctx, true),
-              child: Text('确认分配 (${selected.length})'),
+              child: Text(l10n.b2bWorkerAssignConfirm(selected.length.toString())),
             ),
           ],
         ),
@@ -771,11 +773,11 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('移除牧工'),
-        content: Text('确定将「${worker.name}」从「${farm.name}」移除？'),
+        title: Text(l10n.b2bWorkerRemoveTitle),
+        content: Text(l10n.b2bWorkerRemoveConfirm(worker.name, farm.name)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('确认')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.commonCancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l10n.b2bWorkerConfirm)),
         ],
       ),
     );
@@ -808,7 +810,7 @@ class _BreadcrumbBar extends StatelessWidget {
         const SizedBox(width: AppSpacing.sm),
         TextButton(
           onPressed: () => context.go(AppRoute.b2bAdminFarms.path),
-          child: const Text('牧工管理', style: TextStyle(fontSize: 14)),
+          child: Text(l10n.mineWorkerTitle, style: const TextStyle(fontSize: 14)),
         ),
         const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary),
         Text(farmName, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),

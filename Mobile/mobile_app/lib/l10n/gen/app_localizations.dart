@@ -782,6 +782,22 @@ abstract class AppLocalizations {
   String b2bFarmRenameDemo(String name);
   String get b2bFarmStatDevice;
   String get b2bFarmStatRanch;
+  String get b2bWorkerEditFarmInfo;
+  String get b2bWorkerFarmUpdated;
+  String get b2bWorkerAssign;
+  String get b2bWorkerAssignTitle;
+  String get b2bWorkerAssignNone;
+  String b2bWorkerAssignConfirm(String count);
+  String get b2bWorkerRemoveTitle;
+  String b2bWorkerRemoveConfirm(String name, String farm);
+  String get b2bWorkerConfirm;
+  String b2bWorkerCreated(String name);
+  String get b2bWorkerUpdated;
+  String get b2bWorkerResetPwd;
+  String b2bWorkerResetPwdTitle(String name);
+  String get b2bWorkerNewPassword;
+  String get b2bWorkerConfirmReset;
+  String get b2bWorkerPwdReset;
 }
 
 class _AppLocalizationsDelegate
