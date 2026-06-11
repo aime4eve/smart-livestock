@@ -4,6 +4,7 @@ import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/admin/audit_log/domain/audit_log_models.dart';
 import 'package:smart_livestock_demo/features/admin/audit_log/presentation/audit_log_controller.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class AuditLogPage extends ConsumerStatefulWidget {
   const AuditLogPage({super.key});
@@ -34,9 +35,10 @@ class _AuditLogPageState extends ConsumerState<AuditLogPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncLogs = ref.watch(auditLogControllerProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('审计日志')),
+      appBar: AppBar(title: Text(l10n.auditLogTitle)),
       body: Column(
         children: [
           _buildFilterBar(context),
@@ -54,7 +56,7 @@ class _AuditLogPageState extends ConsumerState<AuditLogPage> {
                     ElevatedButton.icon(
                       onPressed: _applyFilter,
                       icon: const Icon(Icons.refresh),
-                      label: const Text('重试'),
+                      label: Text(l10n.commonRetry),
                     ),
                   ],
                 ),
@@ -68,6 +70,7 @@ class _AuditLogPageState extends ConsumerState<AuditLogPage> {
   }
 
   Widget _buildFilterBar(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       margin: const EdgeInsets.all(AppSpacing.md),
       child: Padding(
@@ -78,13 +81,13 @@ class _AuditLogPageState extends ConsumerState<AuditLogPage> {
               child: DropdownButtonFormField<String>(
                 key: const Key('audit-log-filter-action'),
                 value: _selectedAction,
-                decoration: const InputDecoration(
-                  labelText: '操作类型',
+                decoration: InputDecoration(
+                  labelText: l10n.auditLogOperationType,
                   isDense: true,
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('全部')),
+                  DropdownMenuItem(value: null, child: Text(l10n.commonAll)),
                   ..._actionOptions.map((a) => DropdownMenuItem(value: a, child: Text(a))),
                 ],
                 onChanged: (v) => setState(() => _selectedAction = v),
@@ -97,7 +100,7 @@ class _AuditLogPageState extends ConsumerState<AuditLogPage> {
               label: Text(
                 _dateRange != null
                     ? '${_formatDate(_dateRange!.start)} ~ ${_formatDate(_dateRange!.end)}'
-                    : '时间范围',
+                    : l10n.analyticsSelectRange,
                 style: const TextStyle(fontSize: 13),
               ),
             ),
@@ -105,7 +108,7 @@ class _AuditLogPageState extends ConsumerState<AuditLogPage> {
             FilledButton.icon(
               onPressed: _applyFilter,
               icon: const Icon(Icons.search, size: 18),
-              label: const Text('查询'),
+              label: Text(l10n.auditLogQuery),
             ),
           ],
         ),
@@ -114,8 +117,9 @@ class _AuditLogPageState extends ConsumerState<AuditLogPage> {
   }
 
   Widget _buildList(AuditLogListResult result) {
+    final l10n = AppLocalizations.of(context)!;
     if (result.isEmpty) {
-      return const Center(child: Text('暂无审计日志'));
+      return Center(child: Text(l10n.auditLogNoData));
     }
     return Column(
       children: [
@@ -135,6 +139,7 @@ class _AuditLogPageState extends ConsumerState<AuditLogPage> {
   }
 
   Widget _buildPagination(AuditLogListResult result) {
+    final l10n = AppLocalizations.of(context)!;
     final totalPages = (result.total / result.pageSize).ceil();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
@@ -151,7 +156,7 @@ class _AuditLogPageState extends ConsumerState<AuditLogPage> {
             icon: const Icon(Icons.chevron_right),
           ),
           const Spacer(),
-          Text('共 ${result.total} 条', style: Theme.of(context).textTheme.bodySmall),
+          Text(l10n.auditLogTotalCount(result.total.toString()), style: Theme.of(context).textTheme.bodySmall),
         ],
       ),
     );
