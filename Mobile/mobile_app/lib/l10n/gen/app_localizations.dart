@@ -573,6 +573,18 @@ abstract class AppLocalizations {
 
   String get devicesStatTotal;
   String get devicesSearchHint;
+
+  String get adminAnalytics;
+  String get adminAnalyticsDesc;
+  String get adminFeatureGates;
+  String get adminFeatureGatesDesc;
+  String get adminAuditLog;
+  String get adminAuditLogDesc;
+  String get adminTileManagement;
+  String get adminTileManagementDesc;
+
+  String get adminTitle;
+  String get adminSubtitle;
 }
 
 class _AppLocalizationsDelegate

@@ -527,4 +527,34 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get devicesSearchHint => '搜索耳标/品种';
+
+  @override
+  String get adminAnalytics => '用量分析';
+
+  @override
+  String get adminAnalyticsDesc => 'API 调用量统计与趋势分析';
+
+  @override
+  String get adminFeatureGates => '功能门控';
+
+  @override
+  String get adminFeatureGatesDesc => '管理各等级功能配额';
+
+  @override
+  String get adminAuditLog => '审计日志';
+
+  @override
+  String get adminAuditLogDesc => '查看系统操作记录';
+
+  @override
+  String get adminTileManagement => '瓦片管理';
+
+  @override
+  String get adminTileManagementDesc => '管理离线瓦片区域和任务';
+
+  @override
+  String get adminTitle => '后台管理';
+
+  @override
+  String get adminSubtitle => '管理控制台 - 业务数据与订阅概览';
 }

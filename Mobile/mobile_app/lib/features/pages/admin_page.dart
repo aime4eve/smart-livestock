@@ -6,12 +6,14 @@ import 'package:smart_livestock_demo/features/mine/presentation/mine_controller.
 import 'package:smart_livestock_demo/features/subscription/presentation/widgets/subscription_status_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class AdminPage extends ConsumerWidget {
   const AdminPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncProfile = ref.watch(mineControllerProvider);
 
     return Scaffold(
@@ -28,12 +30,12 @@ class AdminPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '后台管理',
+                      l10n.adminTitle,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
-                      '管理控制台 - 业务数据与订阅概览',
+                      l10n.adminSubtitle,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -72,37 +74,38 @@ class AdminPage extends ConsumerWidget {
   }
 
   Widget _buildBusinessManagement(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          '业务管理',
+          l10n.mineBusinessManagement,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: AppSpacing.md),
 
-        // 对账看板
+        // Revenue Board
         HighfiCard(
           child: ListTile(
             key: const Key('admin-revenue'),
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.account_balance_wallet_outlined),
-            title: const Text('对账看板'),
-            subtitle: const Text('查看各周期分润对账数据'),
+            title: Text(l10n.mineRevenueBoardTitle),
+            subtitle: Text(l10n.mineRevenueBoardDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRoute.platformRevenue.path),
           ),
         ),
         const SizedBox(height: AppSpacing.md),
 
-        // 订阅服务管理
+        // Subscription Service Management
         HighfiCard(
           child: ListTile(
             key: const Key('admin-subscriptions'),
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.workspace_premium_outlined),
-            title: const Text('订阅服务管理'),
-            subtitle: const Text('管理订阅套餐和业务服务'),
+            title: Text(l10n.mineSubscriptionServiceTitle),
+            subtitle: Text(l10n.mineSubscriptionServiceDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRoute.platformSubscriptions.path),
           ),
@@ -113,8 +116,8 @@ class AdminPage extends ConsumerWidget {
             key: const Key('admin-analytics'),
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.analytics_outlined),
-            title: const Text('用量分析'),
-            subtitle: const Text('API 调用量统计与趋势分析'),
+            title: Text(l10n.adminAnalytics),
+            subtitle: Text(l10n.adminAnalyticsDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRoute.platformAnalytics.path),
           ),
@@ -124,23 +127,24 @@ class AdminPage extends ConsumerWidget {
   }
 
   Widget _buildAdvancedManagement(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          '高级管理',
+          l10n.mineAdvancedManagement,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: AppSpacing.md),
 
-        // API授权管理
+        // API Authorization
         HighfiCard(
           child: ListTile(
             key: const Key('admin-api-auth'),
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.api_outlined),
-            title: const Text('API授权管理'),
-            subtitle: const Text('管理API Key和第三方访问授权'),
+            title: Text(l10n.mineApiAuthTitle),
+            subtitle: Text(l10n.mineApiAuthManagementDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRoute.platformApiAuth.path),
           ),
@@ -151,8 +155,8 @@ class AdminPage extends ConsumerWidget {
             key: const Key('admin-feature-gates'),
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.tune),
-            title: const Text('功能门控'),
-            subtitle: const Text('管理各等级功能配额'),
+            title: Text(l10n.adminFeatureGates),
+            subtitle: Text(l10n.adminFeatureGatesDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRoute.platformFeatureGates.path),
           ),
@@ -163,8 +167,8 @@ class AdminPage extends ConsumerWidget {
             key: const Key('admin-audit-log'),
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.history),
-            title: const Text('审计日志'),
-            subtitle: const Text('查看系统操作记录'),
+            title: Text(l10n.adminAuditLog),
+            subtitle: Text(l10n.adminAuditLogDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRoute.platformAuditLog.path),
           ),
@@ -175,22 +179,22 @@ class AdminPage extends ConsumerWidget {
             key: const Key('admin-tile-admin'),
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.map_outlined),
-            title: const Text('瓦片管理'),
-            subtitle: const Text('管理离线瓦片区域和任务'),
+            title: Text(l10n.adminTileManagement),
+            subtitle: Text(l10n.adminTileManagementDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRoute.platformTileAdmin.path),
           ),
         ),
         const SizedBox(height: AppSpacing.md),
 
-        // 牧工管理（后台视角）
+        // Worker Management (admin view)
         HighfiCard(
           child: ListTile(
             key: const Key('admin-workers'),
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.groups_2_outlined),
-            title: const Text('牧工管理'),
-            subtitle: const Text('管理牧场牧工和权限分配'),
+            title: Text(l10n.mineWorkerTitle),
+            subtitle: Text(l10n.mineWorkerManagementDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRoute.workerManagement.path),
           ),

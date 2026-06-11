@@ -538,4 +538,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get devicesSearchHint => 'Search ear tag / breed';
+
+  @override
+  String get adminAnalytics => 'Analytics';
+
+  @override
+  String get adminAnalyticsDesc => 'API call statistics and trend analysis';
+
+  @override
+  String get adminFeatureGates => 'Feature Gates';
+
+  @override
+  String get adminFeatureGatesDesc => 'Manage tier quotas';
+
+  @override
+  String get adminAuditLog => 'Audit Log';
+
+  @override
+  String get adminAuditLogDesc => 'View system operation records';
+
+  @override
+  String get adminTileManagement => 'Tile Management';
+
+  @override
+  String get adminTileManagementDesc => 'Manage offline tile regions and tasks';
+
+  @override
+  String get adminTitle => 'Admin Console';
+
+  @override
+  String get adminSubtitle => 'Management Console — Business Data & Subscription Overview';
 }
