@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class TierCard extends ConsumerWidget {
   final SubscriptionTier tier;
@@ -18,6 +19,7 @@ class TierCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final info = SubscriptionTierInfo.all[tier]!;
     final isEnterprise = tier == SubscriptionTier.enterprise;
 
@@ -112,9 +114,9 @@ class TierCard extends ConsumerWidget {
             SizedBox(
               width: double.infinity,
               child: isCurrentPlan
-                  ? const OutlinedButton(
+                  ? OutlinedButton(
                       onPressed: null,
-                      child: Text('当前套餐'),
+                      child: Text(l10n.subscriptionCurrentTier),
                     )
                   : ElevatedButton(
                       key: Key('select-tier-${tier.name}'),
@@ -123,7 +125,7 @@ class TierCard extends ConsumerWidget {
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.surfaceAlt,
                       ),
-                      child: const Text('选择此套餐'),
+                      child: Text(l10n.subscriptionSelectTier),
                     ),
             ),
           ],

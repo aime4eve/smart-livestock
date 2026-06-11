@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/subscription/presentation/subscription_controller.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class SubscriptionRenewalBanner extends ConsumerWidget {
   const SubscriptionRenewalBanner({super.key});
@@ -14,6 +15,7 @@ class SubscriptionRenewalBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncStatus = ref.watch(subscriptionControllerProvider);
 
     return asyncStatus.when(
@@ -88,7 +90,7 @@ class SubscriptionRenewalBanner extends ConsumerWidget {
                   backgroundColor: isUrgent ? AppColors.danger : AppColors.warning,
                   foregroundColor: AppColors.surfaceAlt,
                 ),
-                child: const Text('立即续费'),
+                child: Text(l10n.subscriptionRenewNow),
               ),
             ],
           ),

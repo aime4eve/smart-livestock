@@ -7,20 +7,21 @@ import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/subscription/presentation/subscription_controller.dart';
 import 'package:smart_livestock_demo/features/subscription/presentation/widgets/usage_progress_bar.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class SubscriptionStatusCard extends ConsumerWidget {
   const SubscriptionStatusCard({super.key});
 
-  String _statusLabel(String status) {
+  String _statusLabel(String status, AppLocalizations l10n) {
     switch (status) {
       case 'trial':
-        return '试用中';
+        return l10n.subscriptionStatusTrial;
       case 'active':
-        return '已订阅';
+        return l10n.subscriptionStatusActive;
       case 'cancelled':
-        return '已取消';
+        return l10n.subscriptionStatusCancelled;
       case 'expired':
-        return '已过期';
+        return l10n.subscriptionStatusExpired;
       default:
         return status;
     }
@@ -48,6 +49,7 @@ class SubscriptionStatusCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncStatus = ref.watch(subscriptionControllerProvider);
 
     return asyncStatus.when(
@@ -63,13 +65,14 @@ class SubscriptionStatusCard extends ConsumerWidget {
         key: const Key('subscription-status-card'),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Text('加载失败: $e'),
+          child: Text('${l10n.commonLoadFailed}: $e'),
         ),
       ),
     );
   }
 
   Widget _buildCard(BuildContext context, WidgetRef ref, SubscriptionStatus status) {
+    final l10n = AppLocalizations.of(context)!;
     final tierInfo = SubscriptionTierInfo.all[status.tier];
     final isEnterprise = status.tier == SubscriptionTier.enterprise;
     final hasTrialEnd = status.trialEndsAt != null;
@@ -107,7 +110,7 @@ class SubscriptionStatusCard extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(AppSpacing.xs),
                   ),
                   child: Text(
-                    _statusLabel(status.status),
+                    _statusLabel(status.status, l10n),
                     style: TextStyle(
                       color: _statusColor(status.status),
                       fontWeight: FontWeight.w600,
@@ -197,7 +200,7 @@ class SubscriptionStatusCard extends ConsumerWidget {
                         _navigateToPlans(context);
                       },
                       icon: const Icon(Icons.upgrade, size: 18),
-                      label: const Text('升级套餐'),
+                      label: Text(l10n.subscriptionUpgradeTier),
                     ),
                   ),
                 if (status.tier != SubscriptionTier.enterprise)
@@ -215,7 +218,7 @@ class SubscriptionStatusCard extends ConsumerWidget {
                             );
                       },
                       icon: const Icon(Icons.refresh, size: 18),
-                      label: const Text('续费'),
+                      label: Text(l10n.subscriptionRenew),
                     ),
                   ),
               ],
@@ -278,26 +281,27 @@ class SubscriptionStatusCard extends ConsumerWidget {
   }
 
   void _confirmCancel(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('确认取消'),
-        content: const Text('取消订阅后，当前周期结束后将无法使用付费功能。确定要取消吗？'),
+        title: Text(l10n.subscriptionConfirmCancel),
+        content: Text(l10n.subscriptionCancelWarning),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('暂不取消'),
+            child: Text(l10n.subscriptionKeepSubscription),
           ),
           TextButton(
             onPressed: () {
               ref.read(subscriptionControllerProvider.notifier).cancel();
               Navigator.of(ctx).pop();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('订阅已取消')),
+                SnackBar(content: Text(l10n.subscriptionCancelled)),
               );
             },
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            child: const Text('确认取消'),
+            child: Text(l10n.subscriptionConfirmCancel),
           ),
         ],
       ),

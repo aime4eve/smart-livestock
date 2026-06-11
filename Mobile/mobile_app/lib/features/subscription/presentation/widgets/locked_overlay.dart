@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class LockedOverlay extends StatelessWidget {
   final bool locked;
@@ -35,6 +36,7 @@ class LockedOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (!locked) return child;
 
     final message = deviceLocked
@@ -72,7 +74,7 @@ class LockedOverlay extends StatelessWidget {
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.surfaceAlt,
                       ),
-                      child: Text('升级到$_upgradeTierLabel'),
+                      child: Text(l10n.subscriptionUpgradeTo(_upgradeTierLabel)),
                     ),
                   ],
                 ],

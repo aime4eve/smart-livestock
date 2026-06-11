@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class FeatureComparisonTable extends ConsumerWidget {
   const FeatureComparisonTable({super.key});
@@ -75,6 +76,7 @@ class FeatureComparisonTable extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Card(
@@ -99,7 +101,7 @@ class FeatureComparisonTable extends ConsumerWidget {
               child: DataTable(
                 columnSpacing: AppSpacing.lg,
                 columns: [
-                  const DataColumn(label: Text('功能')),
+                  DataColumn(label: Text(l10n.subscriptionFeature)),
                   ..._tiers.map(
                     (t) {
                       final info = SubscriptionTierInfo.all[t]!;
