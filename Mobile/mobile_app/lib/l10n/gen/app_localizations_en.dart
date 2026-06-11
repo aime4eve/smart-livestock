@@ -733,4 +733,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override String fenceConflictServerVersion(String version) => 'Server Version (v$version)';
   @override String get fenceConflictLocalVersion => 'Your Changes (Offline Edit)';
+
+  @override String get offlineTileTitle => 'Offline Map Management';
+
+  @override String get workerAddWorker => 'Add Worker';
+  @override String get workerNoFarm => 'No ranch to manage';
+  @override String get workerNoFarmDesc => 'No ranch selected for current account.';
+  @override String get workerNoWorkers => 'No Workers';
+  @override String get workerNoWorkersDesc => 'Tap the add button to add a worker';
+  @override String get workerLoadFailed => 'Failed to load workers';
+  @override String get workerNameRequired => 'Name is required';
+  @override String get workerPhoneRequired => 'Phone number is required';
+  @override String get workerPasswordMinLength => 'Password must be at least 3 characters';
 }

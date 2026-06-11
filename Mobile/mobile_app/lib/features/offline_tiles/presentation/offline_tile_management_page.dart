@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:smart_livestock_demo/core/api/api_client.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class OfflineTileManagementPage extends ConsumerStatefulWidget {
   const OfflineTileManagementPage({super.key});
@@ -36,19 +37,20 @@ class _OfflineTileManagementPageState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('离线地图管理')),
+      appBar: AppBar(title: Text(l10n.offlineTileTitle)),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text('加载失败: $_error'))
+              ? Center(child: Text('${l10n.commonLoadFailed}: $_error'))
               : _regions.isEmpty
-                  ? const Center(child: Text('暂无可用离线地图'))
+                  ? Center(child: Text(l10n.offlineTileNoRegions))
                   : ListView(
                       children: [
                         ListTile(
                           leading: const Icon(Icons.map),
-                          title: Text('可用区域（${_regions.length}）'),
+                          title: Text(l10n.offlineTileRegionsAvailable(_regions.length.toString())),
                         ),
                         const Divider(),
                         ..._regions.map((r) => ListTile(

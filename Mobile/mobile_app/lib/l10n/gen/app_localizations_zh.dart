@@ -721,4 +721,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override String fenceConflictServerVersion(String version) => '服务端版本 (v$version)';
   @override String get fenceConflictLocalVersion => '您的修改 (离线编辑)';
+
+  @override String get offlineTileTitle => '离线地图管理';
+
+  @override String get workerAddWorker => '添加牧工';
+  @override String get workerNoFarm => '暂无可管理牧场';
+  @override String get workerNoFarmDesc => '当前账号尚未选择牧场。';
+  @override String get workerNoWorkers => '暂无牧工';
+  @override String get workerNoWorkersDesc => '点击右上角添加牧工';
+  @override String get workerLoadFailed => '牧工加载失败';
+  @override String get workerNameRequired => '姓名不能为空';
+  @override String get workerPhoneRequired => '手机号不能为空';
+  @override String get workerPasswordMinLength => '密码至少3位';
 }

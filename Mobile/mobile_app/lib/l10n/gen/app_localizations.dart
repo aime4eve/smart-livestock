@@ -721,6 +721,16 @@ abstract class AppLocalizations {
   String get fenceConflictOverwrite;
   String fenceConflictServerVersion(String version);
   String get fenceConflictLocalVersion;
+  String get offlineTileTitle;
+  String get workerAddWorker;
+  String get workerNoFarm;
+  String get workerNoFarmDesc;
+  String get workerNoWorkers;
+  String get workerNoWorkersDesc;
+  String get workerLoadFailed;
+  String get workerNameRequired;
+  String get workerPhoneRequired;
+  String get workerPasswordMinLength;
 }
 
 class _AppLocalizationsDelegate

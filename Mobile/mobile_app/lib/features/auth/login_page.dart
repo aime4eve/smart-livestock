@@ -5,6 +5,7 @@ import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -27,6 +28,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _handleCredentialLogin() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSubmitting = true);
@@ -40,8 +42,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
       if (!ok && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('登录失败，请检查手机号和密码'),
+          SnackBar(
+            content: Text(l10n.errorLoginCheckInput),
             backgroundColor: AppColors.danger,
           ),
         );
@@ -50,7 +52,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('登录失败: $e'),
+            content: Text('${l10n.commonLoadFailed}: $e'),
             backgroundColor: AppColors.danger,
           ),
         );
@@ -62,6 +64,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -88,13 +91,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '智慧畜牧',
+                              l10n.authAppTitle,
                               style:
                                   Theme.of(context).textTheme.headlineSmall,
                             ),
                             const SizedBox(height: AppSpacing.sm),
                             Text(
-                              '登录您的牧场账户，管理牲畜、围栏与告警。',
+                              l10n.authLoginDescription,
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                             const SizedBox(height: AppSpacing.md),
@@ -114,7 +117,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '账号登录',
+                                l10n.authLoginFormTitle,
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                               const SizedBox(height: AppSpacing.lg),
@@ -123,17 +126,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 controller: _phoneController,
                                 keyboardType: TextInputType.phone,
                                 autofillHints: const [AutofillHints.telephoneNumber],
-                                decoration: const InputDecoration(
-                                  labelText: '手机号',
-                                  hintText: '请输入手机号',
-                                  prefixIcon: Icon(Icons.phone_android),
+                                decoration: InputDecoration(
+                                  labelText: l10n.authPhoneLabel,
+                                  hintText: l10n.authPhoneHint,
+                                  prefixIcon: const Icon(Icons.phone_android),
                                   isDense: true,
-                                  border: OutlineInputBorder(),
+                                  border: const OutlineInputBorder(),
                                 ),
                                 validator: (v) {
-                                  if (v == null || v.trim().isEmpty) return '请输入手机号';
+                                  if (v == null || v.trim().isEmpty) return l10n.authPhoneHint;
                                   if (!RegExp(r'^1\d{10}$').hasMatch(v.trim())) {
-                                    return '请输入正确的11位手机号';
+                                    return l10n.authPhoneInvalid;
                                   }
                                   return null;
                                 },
@@ -145,15 +148,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 controller: _passwordController,
                                 obscureText: true,
                                 autofillHints: const [AutofillHints.password],
-                                decoration: const InputDecoration(
-                                  labelText: '密码',
-                                  hintText: '请输入密码',
-                                  prefixIcon: Icon(Icons.lock_outline),
+                                decoration: InputDecoration(
+                                  labelText: l10n.authPasswordLabel,
+                                  hintText: l10n.authPasswordHint,
+                                  prefixIcon: const Icon(Icons.lock_outline),
                                   isDense: true,
-                                  border: OutlineInputBorder(),
+                                  border: const OutlineInputBorder(),
                                 ),
                                 validator: (v) {
-                                  if (v == null || v.isEmpty) return '请输入密码';
+                                  if (v == null || v.isEmpty) return l10n.authPasswordHint;
                                   return null;
                                 },
                                 textInputAction: TextInputAction.done,
@@ -174,7 +177,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                             color: Colors.white,
                                           ),
                                         )
-                                      : const Text('登录'),
+                                      : Text(l10n.authLoginButton),
                                 ),
                               ),
                             ],

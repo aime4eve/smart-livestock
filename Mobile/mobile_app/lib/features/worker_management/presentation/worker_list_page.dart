@@ -8,6 +8,7 @@ import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_contro
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
 import 'package:smart_livestock_demo/features/highfi/widgets/highfi_empty_error_state.dart';
 import 'package:smart_livestock_demo/features/worker_management/domain/worker_repository.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 import 'package:smart_livestock_demo/features/worker_management/presentation/worker_controller.dart';
 
 class WorkerListPage extends ConsumerStatefulWidget {
@@ -26,6 +27,7 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     ref.listen<String?>(
       farmSwitcherControllerProvider.select((state) => state.activeFarmId),
       (previous, next) {
@@ -41,7 +43,7 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
     return Scaffold(
       key: const Key('page-worker-management'),
       appBar: AppBar(
-        title: const Text('牧工管理'),
+        title: Text(l10n.mineWorkerTitle),
         leading: BackButton(
           key: const Key('worker-management-back'),
           onPressed: () => context.go(AppRoute.mine.path),
@@ -51,30 +53,29 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
             IconButton(
               key: const Key('worker-add-btn'),
               icon: const Icon(Icons.person_add),
-              tooltip: '添加牧工',
-              onPressed: () => _showCreateDialog(context, farmState.activeFarmId!),
+              tooltip: l10n.workerAddWorker,
+              onPressed: () => _showCreateDialog(context, ref, farmState.activeFarmId!),
             ),
         ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: farmState.activeFarmId == null
-            ? const HighfiEmptyErrorState(
-                key: Key('worker-empty-state'),
-                title: '暂无可管理牧场',
-                description: '当前账号尚未选择牧场。',
+            ? HighfiEmptyErrorState(
+                key: const Key('worker-empty-state'),
+                title: l10n.workerNoFarm,
+                description: l10n.workerNoFarmDesc,
                 icon: Icons.agriculture_outlined,
               )
             : asyncData.when(
                 data: (workers) => workers.isEmpty
                     ? HighfiEmptyErrorState(
                         key: const Key('worker-empty-state'),
-                        title: '暂无牧工',
-                        description: '点击右上角添加牧工',
+                        title: l10n.workerNoWorkers,
+                        description: l10n.workerNoWorkersDesc,
                         icon: Icons.people_outline,
-                        actionLabel: '添加牧工',
-                        onAction: () => _showCreateDialog(context, farmState.activeFarmId!),
-                          
+                        actionLabel: l10n.workerAddWorker,
+                        onAction: () => _showCreateDialog(context, ref, farmState.activeFarmId!),
                       )
                     : RefreshIndicator(
                         onRefresh: () => ref.read(workerControllerProvider.notifier).loadWorkers(farmState.activeFarmId!),
@@ -91,7 +92,7 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, _) => HighfiEmptyErrorState(
                   key: const Key('worker-error-state'),
-                  title: '牧工加载失败',
+                  title: l10n.workerLoadFailed,
                   description: e.toString(),
                   icon: Icons.error_outline,
                 ),
@@ -107,7 +108,8 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
     ref.read(workerControllerProvider.notifier).loadWorkers(farmId);
   }
 
-  void _showCreateDialog(BuildContext context, String farmId) {
+  void _showCreateDialog(BuildContext context, WidgetRef ref, String farmId) {
+    final l10n = AppLocalizations.of(context)!;
     final nameCtrl = TextEditingController();
     final phoneCtrl = TextEditingController();
     final pwdCtrl = TextEditingController();
@@ -116,7 +118,7 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('新建牧工'),
+        title: Text(l10n.workerNewWorker),
         content: SingleChildScrollView(
           child: Form(
             key: formKey,
@@ -125,29 +127,29 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
               children: [
                 TextFormField(
                   controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: '姓名', isDense: true, border: OutlineInputBorder()),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? '姓名不能为空' : null,
+                  decoration: InputDecoration(labelText: l10n.workerName, isDense: true, border: const OutlineInputBorder()),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? l10n.workerNameRequired : null,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: phoneCtrl,
-                  decoration: const InputDecoration(labelText: '手机号', isDense: true, border: OutlineInputBorder()),
+                  decoration: InputDecoration(labelText: l10n.authPhoneLabel, isDense: true, border: const OutlineInputBorder()),
                   keyboardType: TextInputType.phone,
-                  validator: (v) => (v == null || v.trim().isEmpty) ? '手机号不能为空' : null,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? l10n.workerPhoneRequired : null,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: pwdCtrl,
-                  decoration: const InputDecoration(labelText: '初始密码', isDense: true, border: OutlineInputBorder()),
+                  decoration: InputDecoration(labelText: l10n.workerInitPassword, isDense: true, border: const OutlineInputBorder()),
                   obscureText: true,
-                  validator: (v) => (v == null || v.length < 3) ? '密码至少3位' : null,
+                  validator: (v) => (v == null || v.length < 3) ? l10n.workerPasswordMinLength : null,
                 ),
               ],
             ),
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.commonCancel)),
           ElevatedButton(
             key: const Key('worker-create-submit'),
             onPressed: () async {
@@ -160,12 +162,12 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
                   phone: phoneCtrl.text.trim(),
                   password: pwdCtrl.text,
                 );
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('牧工创建成功')));
+                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.workerCreateSuccess)));
               } catch (e) {
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('创建失败: $e')));
+                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.workerCreateFailed(e.toString()))));
               }
             },
-            child: const Text('创建'),
+            child: Text(l10n.adminApiAuthCreate),
           ),
         ],
       ),
