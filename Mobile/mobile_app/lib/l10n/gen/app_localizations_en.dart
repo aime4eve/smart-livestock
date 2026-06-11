@@ -365,4 +365,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commonLogoutButton => 'Exit';
+
+  @override
+  String get statsAnalysis => 'Statistics';
+
+  @override
+  String get statsTemperatureTrend => 'Temperature Trend (7d)';
+
+  @override
+  String get statsHealthRateTrend => 'Health Rate Trend (7d)';
+
+  @override
+  String get statsAlertTrend => 'Alert Trend (7d)';
+
+  @override
+  String get statsLivestock => 'Livestock';
+
+  @override
+  String get statsHealthRate => 'Health Rate';
+
+  @override
+  String get statsAlerts => 'Alerts';
+
+  @override
+  String get statsCritical => 'Critical';
+
+  @override
+  String get statsAvgTemp => 'Avg Temp';
+
+  @override
+  String get statsMotility => 'Motility';
+
+  @override
+  String get statsHealthDistribution => 'Health Distribution';
 }

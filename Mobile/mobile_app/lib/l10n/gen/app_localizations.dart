@@ -507,6 +507,18 @@ abstract class AppLocalizations {
   String get mineWorkerTitle;
   String get mineApiAuthTitle;
   String get commonLogoutButton;
+
+  String get statsAnalysis;
+  String get statsTemperatureTrend;
+  String get statsHealthRateTrend;
+  String get statsAlertTrend;
+  String get statsLivestock;
+  String get statsHealthRate;
+  String get statsAlerts;
+  String get statsCritical;
+  String get statsAvgTemp;
+  String get statsMotility;
+  String get statsHealthDistribution;
 }
 
 class _AppLocalizationsDelegate

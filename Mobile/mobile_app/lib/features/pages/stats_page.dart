@@ -5,15 +5,17 @@ import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/stats/domain/stats_repository.dart';
 import 'package:smart_livestock_demo/features/stats/presentation/stats_controller.dart';
 import 'package:smart_livestock_demo/features/stats/presentation/widgets/trend_chart.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class StatsPage extends ConsumerWidget {
   const StatsPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncStats = ref.watch(statsControllerProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('统计分析')),
+      appBar: AppBar(title: Text(l10n.statsAnalysis)),
       body: asyncStats.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
@@ -24,14 +26,14 @@ class StatsPage extends ConsumerWidget {
               children: [
                 const Icon(Icons.cloud_off, size: 48, color: AppColors.textSecondary),
                 const SizedBox(height: 12),
-                Text('加载失败', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(l10n.commonLoadFailed, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Text('$e', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary), textAlign: TextAlign.center),
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
                   onPressed: () => ref.read(statsControllerProvider.notifier).refresh(),
                   icon: const Icon(Icons.refresh),
-                  label: const Text('重试'),
+                  label: Text(l10n.commonRetry),
                 ),
               ],
             ),
@@ -47,13 +49,13 @@ class StatsPage extends ConsumerWidget {
               _HealthDistribution(distribution: stats.healthDistribution, total: stats.summary.totalLivestock),
               const SizedBox(height: AppSpacing.lg),
               TrendChart(
-                title: '体温趋势 (7日)',
+                title: l10n.statsTemperatureTrend,
                 trend: stats.temperatureTrend,
                 color: Colors.orange,
                 suffix: '°C',
               ),
               TrendChart(
-                title: '健康率趋势 (7日)',
+                title: l10n.statsHealthRateTrend,
                 trend: stats.healthRateTrend,
                 color: AppColors.success,
                 suffix: '%',
@@ -61,7 +63,7 @@ class StatsPage extends ConsumerWidget {
                 maxY: 1.1,
               ),
               TrendChart(
-                title: '告警趋势 (7日)',
+                title: l10n.statsAlertTrend,
                 trend: stats.alertTrend,
                 color: AppColors.danger,
               ),
@@ -79,16 +81,17 @@ class _SummaryCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Wrap(
       spacing: AppSpacing.sm,
       runSpacing: AppSpacing.sm,
       children: [
-        _StatChip(icon: Icons.pets, label: '牲畜', value: '${summary.totalLivestock}', color: AppColors.primary),
-        _StatChip(icon: Icons.favorite, label: '健康率', value: '${(summary.healthyRate * 100).toStringAsFixed(1)}%', color: AppColors.success),
-        _StatChip(icon: Icons.notifications_active, label: '告警', value: '${summary.alertCount}', color: AppColors.warning),
-        _StatChip(icon: Icons.error, label: '严重', value: '${summary.criticalCount}', color: AppColors.danger),
-        _StatChip(icon: Icons.thermostat, label: '均温', value: '${summary.avgTemperature.toStringAsFixed(1)}°C', color: Colors.orange),
-        _StatChip(icon: Icons.speed, label: '蠕动', value: '${summary.avgMotility.toStringAsFixed(1)}', color: Colors.brown),
+        _StatChip(icon: Icons.pets, label: l10n.statsLivestock, value: '${summary.totalLivestock}', color: AppColors.primary),
+        _StatChip(icon: Icons.favorite, label: l10n.statsHealthRate, value: '${(summary.healthyRate * 100).toStringAsFixed(1)}%', color: AppColors.success),
+        _StatChip(icon: Icons.notifications_active, label: l10n.statsAlerts, value: '${summary.alertCount}', color: AppColors.warning),
+        _StatChip(icon: Icons.error, label: l10n.statsCritical, value: '${summary.criticalCount}', color: AppColors.danger),
+        _StatChip(icon: Icons.thermostat, label: l10n.statsAvgTemp, value: '${summary.avgTemperature.toStringAsFixed(1)}°C', color: Colors.orange),
+        _StatChip(icon: Icons.speed, label: l10n.statsMotility, value: '${summary.avgMotility.toStringAsFixed(1)}', color: Colors.brown),
       ],
     );
   }
@@ -125,6 +128,7 @@ class _HealthDistribution extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (total == 0) return const SizedBox.shrink();
     return Card(
       child: Padding(
@@ -132,14 +136,14 @@ class _HealthDistribution extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('健康分布', style: Theme.of(context).textTheme.titleSmall),
+            Text(l10n.statsHealthDistribution, style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: AppSpacing.md),
             Row(children: [
-              _DistBar(label: '健康', count: distribution['healthy'] ?? 0, color: AppColors.success, total: total),
+              _DistBar(label: l10n.livestockHealthHealthy, count: distribution['healthy'] ?? 0, color: AppColors.success, total: total),
               const SizedBox(width: AppSpacing.sm),
-              _DistBar(label: '关注', count: distribution['warning'] ?? 0, color: AppColors.warning, total: total),
+              _DistBar(label: l10n.livestockHealthWatch, count: distribution['warning'] ?? 0, color: AppColors.warning, total: total),
               const SizedBox(width: AppSpacing.sm),
-              _DistBar(label: '严重', count: distribution['critical'] ?? 0, color: AppColors.danger, total: total),
+              _DistBar(label: l10n.statsCritical, count: distribution['critical'] ?? 0, color: AppColors.danger, total: total),
             ]),
           ],
         ),

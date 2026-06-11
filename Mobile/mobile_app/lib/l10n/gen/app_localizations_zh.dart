@@ -354,4 +354,37 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get commonLogoutButton => '退出';
+
+  @override
+  String get statsAnalysis => '统计分析';
+
+  @override
+  String get statsTemperatureTrend => '体温趋势 (7日)';
+
+  @override
+  String get statsHealthRateTrend => '健康率趋势 (7日)';
+
+  @override
+  String get statsAlertTrend => '告警趋势 (7日)';
+
+  @override
+  String get statsLivestock => '牲畜';
+
+  @override
+  String get statsHealthRate => '健康率';
+
+  @override
+  String get statsAlerts => '告警';
+
+  @override
+  String get statsCritical => '严重';
+
+  @override
+  String get statsAvgTemp => '均温';
+
+  @override
+  String get statsMotility => '蠕动';
+
+  @override
+  String get statsHealthDistribution => '健康分布';
 }
