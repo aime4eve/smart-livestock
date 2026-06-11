@@ -4,6 +4,7 @@ import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/admin/feature_gate/domain/feature_gate_models.dart';
 import 'package:smart_livestock_demo/features/admin/feature_gate/presentation/feature_gate_controller.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class FeatureGatePage extends ConsumerWidget {
   const FeatureGatePage({super.key});
@@ -12,9 +13,10 @@ class FeatureGatePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncGates = ref.watch(featureGateControllerProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('功能门控管理')),
+      appBar: AppBar(title: Text(l10n.featureGateTitle)),
       body: asyncGates.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
@@ -28,7 +30,7 @@ class FeatureGatePage extends ConsumerWidget {
               ElevatedButton.icon(
                 onPressed: () => ref.read(featureGateControllerProvider.notifier).refresh(),
                 icon: const Icon(Icons.refresh),
-                label: const Text('重试'),
+                label: Text(l10n.commonRetry),
               ),
             ],
           ),
@@ -50,7 +52,7 @@ class FeatureGatePage extends ConsumerWidget {
                     children: _tiers.map((tier) {
                       final items = grouped[tier] ?? [];
                       if (items.isEmpty) {
-                        return const Center(child: Text('该等级暂无功能门控'));
+                        return Center(child: Text(l10n.featureGateNoData));
                       }
                       return _GateList(items: items);
                     }).toList(),
@@ -117,6 +119,7 @@ class _GateTileState extends ConsumerState<_GateTile> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       child: Row(
@@ -129,7 +132,7 @@ class _GateTileState extends ConsumerState<_GateTile> {
             width: 80,
             child: TextFormField(
               controller: _limitCtrl,
-              decoration: const InputDecoration(labelText: '限额', isDense: true, border: OutlineInputBorder()),
+              decoration: InputDecoration(labelText: l10n.featureGateLimit, isDense: true, border: const OutlineInputBorder()),
               keyboardType: TextInputType.number,
               onChanged: (_) => _markDirty(),
             ),
@@ -139,7 +142,7 @@ class _GateTileState extends ConsumerState<_GateTile> {
             width: 80,
             child: TextFormField(
               controller: _retentionCtrl,
-              decoration: const InputDecoration(labelText: '保留天数', isDense: true, border: OutlineInputBorder()),
+              decoration: InputDecoration(labelText: l10n.featureGateRetentionDays, isDense: true, border: const OutlineInputBorder()),
               keyboardType: TextInputType.number,
               onChanged: (_) => _markDirty(),
             ),
@@ -154,7 +157,7 @@ class _GateTileState extends ConsumerState<_GateTile> {
           const SizedBox(width: AppSpacing.sm),
           FilledButton.tonal(
             onPressed: _dirty ? _save : null,
-            child: const Text('保存'),
+            child: Text(l10n.commonSave),
           ),
         ],
       ),
@@ -162,6 +165,7 @@ class _GateTileState extends ConsumerState<_GateTile> {
   }
 
   Future<void> _save() async {
+    final l10n = AppLocalizations.of(context)!;
     await ref.read(featureGateControllerProvider.notifier).updateGate(
       widget.gate.id,
       limitValue: int.tryParse(_limitCtrl.text),
@@ -171,7 +175,7 @@ class _GateTileState extends ConsumerState<_GateTile> {
     if (mounted) {
       setState(() => _dirty = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${widget.gate.featureKey} 已更新')),
+        SnackBar(content: Text(l10n.featureGateUpdated(widget.gate.featureKey))),
       );
     }
   }

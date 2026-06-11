@@ -4,15 +4,17 @@ import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/admin/tile_admin/domain/tile_admin_models.dart';
 import 'package:smart_livestock_demo/features/admin/tile_admin/presentation/tile_admin_controller.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class TileAdminPage extends ConsumerWidget {
   const TileAdminPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(tileAdminControllerProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('瓦片管理')),
+      appBar: AppBar(title: Text(l10n.tileAdminTitle)),
       body: asyncData.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
@@ -26,7 +28,7 @@ class TileAdminPage extends ConsumerWidget {
               ElevatedButton.icon(
                 onPressed: () => ref.read(tileAdminControllerProvider.notifier).refresh(),
                 icon: const Icon(Icons.refresh),
-                label: const Text('重试'),
+                label: Text(l10n.commonRetry),
               ),
             ],
           ),
@@ -35,11 +37,11 @@ class TileAdminPage extends ConsumerWidget {
           length: 3,
           child: Column(
             children: [
-              const TabBar(
+              TabBar(
                 tabs: [
-                  Tab(text: '区域管理'),
-                  Tab(text: '任务管理'),
-                  Tab(text: '牧场分配'),
+                  Tab(text: l10n.tileAdminRegionsTab),
+                  Tab(text: l10n.tileAdminTasksTab),
+                  Tab(text: l10n.tileAdminFarmTab),
                 ],
               ),
               Expanded(
@@ -65,8 +67,9 @@ class _RegionsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (regions.isEmpty) {
-      return const Center(child: Text('暂无瓦片区域'));
+      return Center(child: Text(l10n.tileAdminNoRegions));
     }
     return ListView.separated(
       itemCount: regions.length,
@@ -91,8 +94,9 @@ class _TasksTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (tasks.isEmpty) {
-      return const Center(child: Text('暂无瓦片任务'));
+      return Center(child: Text(l10n.tileAdminNoTasks));
     }
     return ListView.separated(
       itemCount: tasks.length,
@@ -108,8 +112,8 @@ class _TasksTab extends StatelessWidget {
         return ListTile(
           leading: Icon(Icons.task_outlined, color: statusColor),
           title: Text(t.regionName ?? 'Task #${t.id}'),
-          subtitle: Text('状态: ${t.status ?? "-"} | 瓦片: ${t.tileCount} | ${t.fileSizeMb.toStringAsFixed(1)}MB'
-            '${t.errorMessage != null ? "\n错误: ${t.errorMessage}" : ""}'),
+          subtitle: Text('${l10n.tileAdminStatusInfo(t.status ?? '-', t.tileCount.toString(), t.fileSizeMb.toStringAsFixed(1))}'
+            '${t.errorMessage != null ? "\nError: ${t.errorMessage}" : ""}'),
           trailing: Chip(label: Text(t.status ?? '-', style: TextStyle(color: statusColor, fontSize: 11))),
         );
       },
@@ -123,8 +127,9 @@ class _FarmTasksTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (farmTasks.isEmpty) {
-      return const Center(child: Text('暂无牧场瓦片分配'));
+      return Center(child: Text(l10n.tileAdminNoFarmTiles));
     }
     return ListView.separated(
       itemCount: farmTasks.length,
@@ -134,8 +139,8 @@ class _FarmTasksTab extends StatelessWidget {
         return ListTile(
           leading: const Icon(Icons.agriculture_outlined),
           title: Text(f.farmName),
-          subtitle: Text('区域: ${f.regionName ?? "-"} | 状态: ${f.tileStatus ?? "-"}'
-            '${f.lastDownloadAt != null ? "\n最后下载: ${f.lastDownloadAt}" : ""}'),
+          subtitle: Text('${l10n.tileAdminRegionInfo(f.regionName ?? '-', f.tileStatus ?? '-')}'
+            '${f.lastDownloadAt != null ? "\nLast download: ${f.lastDownloadAt}" : ""}'),
         );
       },
     );

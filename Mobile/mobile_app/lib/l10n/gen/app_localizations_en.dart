@@ -783,4 +783,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String get alertSummaryTitle => 'Alert Summary';
   @override String alertSummaryCount(String count) => '$count total';
   @override String get commonNoData => 'No Data';
+
+  @override String get tileAdminRegionsTab => 'Regions';
+  @override String get tileAdminTasksTab => 'Tasks';
+  @override String get tileAdminFarmTab => 'Farm Assignments';
 }

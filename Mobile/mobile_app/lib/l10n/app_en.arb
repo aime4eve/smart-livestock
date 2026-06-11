@@ -712,5 +712,11 @@
   "alertSummaryCount": "{count} total",
   "@alertSummaryCount": {"placeholders": {"count": {"type": "String"}}},
   "commonNoData": "No Data",
-  "@commonNoData": {}
+  "@commonNoData": {},
+  "tileAdminRegionsTab": "Regions",
+  "@tileAdminRegionsTab": {},
+  "tileAdminTasksTab": "Tasks",
+  "@tileAdminTasksTab": {},
+  "tileAdminFarmTab": "Farm Assignments",
+  "@tileAdminFarmTab": {}
 }

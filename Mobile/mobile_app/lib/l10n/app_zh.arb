@@ -712,5 +712,11 @@
   "alertSummaryCount": "共 {count} 条",
   "@alertSummaryCount": {"placeholders": {"count": {"type": "String"}}},
   "commonNoData": "暂无数据",
-  "@commonNoData": {}
+  "@commonNoData": {},
+  "tileAdminRegionsTab": "区域管理",
+  "@tileAdminRegionsTab": {},
+  "tileAdminTasksTab": "任务管理",
+  "@tileAdminTasksTab": {},
+  "tileAdminFarmTab": "牧场分配",
+  "@tileAdminFarmTab": {}
 }

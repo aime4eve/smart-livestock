@@ -771,4 +771,8 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get alertSummaryTitle => '告警摘要';
   @override String alertSummaryCount(String count) => '共 $count 条';
   @override String get commonNoData => '暂无数据';
+
+  @override String get tileAdminRegionsTab => '区域管理';
+  @override String get tileAdminTasksTab => '任务管理';
+  @override String get tileAdminFarmTab => '牧场分配';
 }

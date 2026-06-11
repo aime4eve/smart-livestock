@@ -768,6 +768,9 @@ abstract class AppLocalizations {
   String get alertSummaryTitle;
   String alertSummaryCount(String count);
   String get commonNoData;
+  String get tileAdminRegionsTab;
+  String get tileAdminTasksTab;
+  String get tileAdminFarmTab;
 }
 
 class _AppLocalizationsDelegate
