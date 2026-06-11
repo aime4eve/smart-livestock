@@ -775,4 +775,16 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get tileAdminRegionsTab => '区域管理';
   @override String get tileAdminTasksTab => '任务管理';
   @override String get tileAdminFarmTab => '牧场分配';
+
+  @override String get b2bFarmListTitle => '旗下牧场';
+  @override String get b2bFarmListOptional => '以下选填';
+  @override String get b2bFarmEditName => '编辑牧场名称';
+  @override String get b2bFarmNotAssigned => '未指定';
+  @override String b2bFarmCurrentOwner(String name) => '当前负责人: $name';
+  @override String get b2bFarmNewOwner => '新负责人';
+  @override String get b2bFarmConfirmChange => '确认变更';
+  @override String b2bFarmChangeSuccess(String farm, String owner) => '「$farm」负责人已变更为 $owner';
+  @override String b2bFarmRenameDemo(String name) => '「$name」重命名功能开发中';
+  @override String get b2bFarmStatDevice => '设备';
+  @override String get b2bFarmStatRanch => '牧场';
 }

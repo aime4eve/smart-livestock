@@ -6,6 +6,7 @@ import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_repository.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class B2bFarmListPage extends ConsumerStatefulWidget {
   const B2bFarmListPage({super.key});
@@ -19,6 +20,7 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(b2bDashboardControllerProvider);
 
     return asyncData.when(
@@ -30,7 +32,7 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
           children: [
             Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
             const SizedBox(height: AppSpacing.md),
-            Text('加载失败', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.error)),
+            Text(l10n.commonLoadFailed, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.error)),
           ],
         ),
       ),
@@ -38,6 +40,7 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
   }
 
   Widget _buildContent(BuildContext context, B2bDashboardData data) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return SingleChildScrollView(
@@ -49,12 +52,12 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('旗下牧场', style: theme.textTheme.titleLarge),
+              Text(l10n.b2bFarmListTitle, style: theme.textTheme.titleLarge),
               FilledButton.icon(
                 key: const Key('b2b-create-farm'),
                 onPressed: () => context.go('${AppRoute.b2bAdminFarms.path}/create'),
                 icon: const Icon(Icons.add, size: 18),
-                label: const Text('新建牧场'),
+                label: Text(l10n.b2bFarmCreationTitle),
               ),
             ],
           ),
@@ -84,6 +87,7 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
   // ── Create dialog (P2: enhanced with optional fields) ───────
 
   void _showCreateDialog() {
+    final l10n = AppLocalizations.of(context)!;
     final formKey = GlobalKey<FormState>();
     final nameCtrl = TextEditingController();
     final latCtrl = TextEditingController();
@@ -148,7 +152,7 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
                           Expanded(child: Divider()),
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: 8),
-                            child: Text('以下选填', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                            child: Text(l10n.b2bFarmListOptional, style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                           ),
                           Expanded(child: Divider()),
                         ],
@@ -210,7 +214,7 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
                           width: 16, height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : const Text('创建'),
+                      : Text(l10n.adminApiAuthCreate),
                 ),
               ],
             );
@@ -256,14 +260,14 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
     if (ok) {
       messenger.showSnackBar(
         SnackBar(
-          content: Text('牧场「${nameCtrl.text.trim()}」创建成功'),
+          content: Text(l10n.b2bFarmCreationSuccess(nameCtrl.text.trim())),
           backgroundColor: const Color(0xFF2E7D32),
         ),
       );
     } else {
       messenger.showSnackBar(
         const SnackBar(
-          content: Text('创建失败，请重试'),
+          content: Text(l10n.b2bFarmCreationFailed),
           backgroundColor: Color(0xFFD32F2F),
         ),
       );
@@ -273,6 +277,7 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
   // ── Edit name dialog ───────────────────────────────────────
 
   void _showEditNameDialog(B2bFarmSummary farm) {
+    final l10n = AppLocalizations.of(context)!;
     final nameCtrl = TextEditingController(text: farm.name);
     final formKey = GlobalKey<FormState>();
 
@@ -281,14 +286,14 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
       builder: (ctx) {
         return AlertDialog(
           key: Key('b2b-edit-name-dialog-${farm.id}'),
-          title: const Text('编辑牧场名称'),
+          title: Text(l10n.b2bFarmEditName),
           content: Form(
             key: formKey,
             child: TextFormField(
               controller: nameCtrl,
               autofocus: true,
               decoration: const InputDecoration(
-                labelText: '牧场名称',
+                labelText: l10n.farmCreationNameLabel,
               ),
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? '名称不能为空' : null,
@@ -306,11 +311,11 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
                 // TODO: call rename API when PUT /farms/{id} is fully implemented
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('「${farm.name}」重命名功能开发中')),
+                    SnackBar(content: Text(l10n.b2bFarmRenameDemo(farm.name))),
                   );
                 }
               },
-              child: const Text('保存'),
+              child: Text(l10n.commonSave),
             ),
           ],
         );
@@ -321,6 +326,7 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
   // ── Change owner dialog ────────────────────────────────────
 
   void _showChangeOwnerDialog(B2bFarmSummary farm) {
+    final l10n = AppLocalizations.of(context)!;
     B2bUserSummary? selectedOwner;
 
     showDialog(
@@ -345,7 +351,7 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
                         ownerUsers.when(
                           data: (users) {
                             if (users.isEmpty) {
-                              return const Text('当前租户无可用 owner 用户');
+                              return Text(l10n.b2bFarmCreationUserLoadFailed);
                             }
                             return DropdownButtonFormField<B2bUserSummary?>(
                               key: Key('b2b-owner-select-${farm.id}'),
@@ -407,14 +413,14 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
     if (ok) {
       messenger.showSnackBar(
         SnackBar(
-          content: Text('「${farm.name}」负责人已变更为 ${newOwner.name}'),
+          content: Text(l10n.b2bFarmChangeSuccess(farm.name, newOwner.name)),
           backgroundColor: const Color(0xFF2E7D32),
         ),
       );
     } else {
       messenger.showSnackBar(
         const SnackBar(
-          content: Text('变更失败，请重试'),
+          content: Text(l10n.b2bFarmCreationFailed),
           backgroundColor: Color(0xFFD32F2F),
         ),
       );
@@ -443,10 +449,10 @@ class _SummaryStrip extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _StatChip(label: '牧场', value: '${data.totalFarms}', icon: Icons.landscape_outlined),
-          _StatChip(label: '牲畜', value: '${data.totalLivestock}', icon: Icons.pets_outlined),
-          _StatChip(label: '牧工', value: '$totalWorkers', icon: Icons.groups_outlined),
-          _StatChip(label: '设备', value: '${data.totalDevices}', icon: Icons.sensors_outlined),
+          _StatChip(label: l10n.b2bFarmStatRanch, value: '${data.totalFarms}', icon: Icons.landscape_outlined),
+          _StatChip(label: l10n.statsLivestock, value: '${data.totalLivestock}', icon: Icons.pets_outlined),
+          _StatChip(label: l10n.mineWorkerTitle, value: '$totalWorkers', icon: Icons.groups_outlined),
+          _StatChip(label: l10n.b2bFarmStatDevice, value: '${data.totalDevices}', icon: Icons.sensors_outlined),
           _StatChip(label: '告警', value: '${data.pendingAlerts}', icon: Icons.notification_important_outlined, highlight: data.pendingAlerts > 0),
         ],
       ),

@@ -771,6 +771,17 @@ abstract class AppLocalizations {
   String get tileAdminRegionsTab;
   String get tileAdminTasksTab;
   String get tileAdminFarmTab;
+  String get b2bFarmListTitle;
+  String get b2bFarmListOptional;
+  String get b2bFarmEditName;
+  String get b2bFarmNotAssigned;
+  String b2bFarmCurrentOwner(String name);
+  String get b2bFarmNewOwner;
+  String get b2bFarmConfirmChange;
+  String b2bFarmChangeSuccess(String farm, String owner);
+  String b2bFarmRenameDemo(String name);
+  String get b2bFarmStatDevice;
+  String get b2bFarmStatRanch;
 }
 
 class _AppLocalizationsDelegate

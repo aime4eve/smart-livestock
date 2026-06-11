@@ -787,4 +787,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String get tileAdminRegionsTab => 'Regions';
   @override String get tileAdminTasksTab => 'Tasks';
   @override String get tileAdminFarmTab => 'Farm Assignments';
+
+  @override String get b2bFarmListTitle => 'Managed Farms';
+  @override String get b2bFarmListOptional => 'Optional';
+  @override String get b2bFarmEditName => 'Edit Farm Name';
+  @override String get b2bFarmNotAssigned => 'Not Assigned';
+  @override String b2bFarmCurrentOwner(String name) => 'Current Owner: $name';
+  @override String get b2bFarmNewOwner => 'New Owner';
+  @override String get b2bFarmConfirmChange => 'Confirm Change';
+  @override String b2bFarmChangeSuccess(String farm, String owner) => '"$farm" owner changed to $owner';
+  @override String b2bFarmRenameDemo(String name) => '"$name" rename feature coming soon';
+  @override String get b2bFarmStatDevice => 'Devices';
+  @override String get b2bFarmStatRanch => 'Ranches';
 }
