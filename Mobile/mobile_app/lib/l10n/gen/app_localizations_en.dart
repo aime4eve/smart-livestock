@@ -689,4 +689,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override String get adminSubscriptionsTierLabel => 'Plan';
   @override String get adminSubscriptionsQuotaLabel => 'Device Quota';
+
+  @override String get adminApiAuthPrefixLabel => 'Prefix';
+  @override String get fenceUnsavedTitle => 'Unsaved Changes';
+  @override String get fenceUnsavedMessage => 'You have unsaved boundary changes. Please choose an option.';
+  @override String get fenceUnsavedContinue => 'Continue Editing';
+  @override String get fenceUnsavedDiscard => 'Discard Changes';
+  @override String get fenceUnsavedSaveExit => 'Save and Exit';
+  @override String get tenantAdjustLicenseTitle => 'Adjust License Quota';
+  @override String tenantAdjustLicenseUsed(String used) => 'Currently used: $used';
+  @override String get tenantAdjustLicenseNew => 'New License Quota';
+  @override String get tenantAdjustLicenseConfirm => 'Confirm Adjustment';
+  @override String get tenantDeleteTitle => 'Delete Tenant';
+  @override String tenantDeleteMessage(String name) => 'About to delete tenant "$name". This action cannot be undone.';
+  @override String get tenantDeleteReason => 'Deletion Reason';
+  @override String get ranchHealthLatestAlerts => 'Latest Alerts';
+  @override String ranchHealthAllRead(String count) => 'Mark All Read ($count)';
+  @override String ranchHealthDismissed(String count) => 'Dismissed ($count)';
+  @override String get ranchHealthIgnoreAlert => 'Ignore This Alert';
+  @override String get ranchHealthFenceInfo => 'Fence Info';
+  @override String get ranchHealthDetail => 'Health Details';
+  @override String ranchHealthDetailLink(String type) => '$type Details';
+  @override String get ranchLivestockDetailBtn => 'Details';
+  @override String get ranchLivestockRelatedAlerts => 'Related Alerts';
 }

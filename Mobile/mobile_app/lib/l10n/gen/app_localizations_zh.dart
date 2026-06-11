@@ -677,4 +677,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override String get adminSubscriptionsTierLabel => '套餐';
   @override String get adminSubscriptionsQuotaLabel => '设备配额';
+
+  @override String get adminApiAuthPrefixLabel => '前缀';
+  @override String get fenceUnsavedTitle => '有未保存修改';
+  @override String get fenceUnsavedMessage => '你有未保存的边界修改。请选择下一步。';
+  @override String get fenceUnsavedContinue => '继续编辑';
+  @override String get fenceUnsavedDiscard => '放弃更改';
+  @override String get fenceUnsavedSaveExit => '保存并退出';
+  @override String get tenantAdjustLicenseTitle => '调整 License 配额';
+  @override String tenantAdjustLicenseUsed(String used) => '当前已使用：$used';
+  @override String get tenantAdjustLicenseNew => '新 License 配额';
+  @override String get tenantAdjustLicenseConfirm => '确认调整';
+  @override String get tenantDeleteTitle => '删除租户';
+  @override String tenantDeleteMessage(String name) => '即将删除租户「$name」。该操作不可撤销。';
+  @override String get tenantDeleteReason => '删除原因';
+  @override String get ranchHealthLatestAlerts => '最新告警';
+  @override String ranchHealthAllRead(String count) => '全部已读 ($count)';
+  @override String ranchHealthDismissed(String count) => '已忽略 ($count)';
+  @override String get ranchHealthIgnoreAlert => '忽略此告警';
+  @override String get ranchHealthFenceInfo => '围栏信息';
+  @override String get ranchHealthDetail => '健康详情';
+  @override String ranchHealthDetailLink(String type) => '$type详情';
+  @override String get ranchLivestockDetailBtn => '详情';
+  @override String get ranchLivestockRelatedAlerts => '相关告警';
 }

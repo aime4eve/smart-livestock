@@ -684,6 +684,23 @@ abstract class AppLocalizations {
   String get fenceUnsavedContinue;
   String get fenceUnsavedDiscard;
   String get fenceUnsavedSaveExit;
+
+  String get tenantAdjustLicenseTitle;
+  String tenantAdjustLicenseUsed(String used);
+  String get tenantAdjustLicenseNew;
+  String get tenantAdjustLicenseConfirm;
+  String get tenantDeleteTitle;
+  String tenantDeleteMessage(String name);
+  String get tenantDeleteReason;
+  String get ranchHealthLatestAlerts;
+  String ranchHealthAllRead(String count);
+  String ranchHealthDismissed(String count);
+  String get ranchHealthIgnoreAlert;
+  String get ranchHealthFenceInfo;
+  String get ranchHealthDetail;
+  String ranchHealthDetailLink(String type);
+  String get ranchLivestockDetailBtn;
+  String get ranchLivestockRelatedAlerts;
 }
 
 class _AppLocalizationsDelegate
