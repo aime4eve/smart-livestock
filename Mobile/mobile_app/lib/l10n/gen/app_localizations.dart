@@ -618,6 +618,24 @@ abstract class AppLocalizations {
   String get b2bRevenueDetailDeviceFee;
   String get b2bRevenueDetailConfirmStatus;
   String get b2bRevenueDetailConfirmButton;
+
+  String get b2bFarmCreationEnterName;
+  String get b2bFarmCreationSelectPoint;
+  String b2bFarmCreationSuccess(String name);
+  String get b2bFarmCreationFailed;
+  String get b2bFarmCreationTitle;
+  String get b2bFarmCreationButton;
+  String get b2bFarmCreationNotSpecified;
+  String get b2bFarmCreationUserLoadFailed;
+  String get b2bFarmCreationSelectTile;
+  String get wizardExitConfirm;
+  String get wizardContinueSetup;
+  String get wizardNextStep;
+  String get wizardEnterRanch;
+  String get wizardCreateFailedNoId;
+  String get wizardCreateFailed;
+  String get wizardFenceMinVertices;
+  String get wizardSetupLater;
 }
 
 class _AppLocalizationsDelegate

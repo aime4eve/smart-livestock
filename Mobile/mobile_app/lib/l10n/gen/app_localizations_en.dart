@@ -631,4 +631,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String get b2bRevenueDetailDeviceFee => 'Device Fee Total';
   @override String get b2bRevenueDetailConfirmStatus => 'Confirmation Status';
   @override String get b2bRevenueDetailConfirmButton => 'Confirm Revenue';
+
+  @override String get b2bFarmCreationEnterName => 'Enter ranch name';
+  @override String get b2bFarmCreationSelectPoint => 'Select a point on the map or enter coordinates';
+  @override String b2bFarmCreationSuccess(String name) => 'Ranch "$name" created successfully';
+  @override String get b2bFarmCreationFailed => 'Creation failed, please retry';
+  @override String get b2bFarmCreationTitle => 'New Ranch';
+  @override String get b2bFarmCreationButton => 'Create Ranch';
+  @override String get b2bFarmCreationNotSpecified => '— Not specified —';
+  @override String get b2bFarmCreationUserLoadFailed => 'Failed to load user list';
+  @override String get b2bFarmCreationSelectTile => 'Please select a tile region first';
+  @override String get wizardExitConfirm => 'Ranch created. You will return to the main page. You can set up fences later.';
+  @override String get wizardContinueSetup => 'Continue Setup';
+  @override String get wizardNextStep => 'Next';
+  @override String get wizardEnterRanch => 'Enter Ranch';
+  @override String get wizardCreateFailedNoId => 'Failed to create ranch: no ranch ID returned';
+  @override String get wizardCreateFailed => 'Failed to create ranch, please retry';
+  @override String get wizardFenceMinVertices => 'Fence requires at least 3 vertices';
+  @override String get wizardSetupLater => 'Set Up Later';
 }

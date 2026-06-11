@@ -619,4 +619,22 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get b2bRevenueDetailDeviceFee => '设备费用合计';
   @override String get b2bRevenueDetailConfirmStatus => '确认状态';
   @override String get b2bRevenueDetailConfirmButton => '确认对账';
+
+  @override String get b2bFarmCreationEnterName => '请输入牧场名称';
+  @override String get b2bFarmCreationSelectPoint => '请在地图上选点或输入经纬度';
+  @override String b2bFarmCreationSuccess(String name) => '牧场「$name」创建成功';
+  @override String get b2bFarmCreationFailed => '创建失败，请重试';
+  @override String get b2bFarmCreationTitle => '新建牧场';
+  @override String get b2bFarmCreationButton => '创建牧场';
+  @override String get b2bFarmCreationNotSpecified => '— 暂不指定 —';
+  @override String get b2bFarmCreationUserLoadFailed => '加载用户列表失败';
+  @override String get b2bFarmCreationSelectTile => '请先选择瓦片区域';
+  @override String get wizardExitConfirm => '牧场已创建。退出后将进入主页面，您可以稍后设置围栏。';
+  @override String get wizardContinueSetup => '继续设置';
+  @override String get wizardNextStep => '下一步';
+  @override String get wizardEnterRanch => '进入牧场';
+  @override String get wizardCreateFailedNoId => '创建牧场失败：未获取到牧场ID';
+  @override String get wizardCreateFailed => '创建牧场失败，请重试';
+  @override String get wizardFenceMinVertices => '围栏至少需要 3 个顶点';
+  @override String get wizardSetupLater => '稍后设置';
 }
