@@ -68,7 +68,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 **编译可以执行，部署必须由用户完成，集成测试仅在部署后执行。**
 
-- **编译**：Agent 可自行执行（如 `./gradlew bootJar`、`flutter build web`），验证代码可构建。
+- **编译**：Agent 可自行执行（如 `./gradlew bootJar`、`flutter build web --no-wasm-dry-run`），验证代码可构建。
 - **部署**：一律由用户执行（`rsync`、`docker compose`、`ssh` 等部署操作，Agent 不碰）。Agent 改动涉及部署时，提供命令供用户执行即可，不要自行调用。
 - **集成测试**：仅在用户确认部署完成后才执行；不得在部署前提前运行（避免对旧版本/无后端状态做无效验证）。
 - **顺序**：编码 → 编译验证 → （用户部署）→ 用户确认 → 集成测试。
@@ -315,7 +315,8 @@ flutter test --name="owner"            # 按名称过滤
 flutter analyze                        # 静态分析
 flutter run                            # Mock 模式（默认）
 flutter run --dart-define=APP_MODE=live  # Live 模式（连接 Mock Server 或 Spring Boot）
-flutter build web
+flutter build web                          # 默认
+./build_web.sh                             # 推荐（抑制 WASM dry-run 误报）
 
 # Mock Server
 cd Mobile/backend
