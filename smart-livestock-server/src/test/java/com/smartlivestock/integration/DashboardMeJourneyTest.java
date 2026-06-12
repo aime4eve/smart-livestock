@@ -46,7 +46,7 @@ class DashboardMeJourneyTest extends AbstractJourneyTest {
             var data = getApi(ownerToken, "/api/v1/tenants/me");
             assertThat(data).containsKey("id");
             assertThat(data).containsKey("name");
-            assertThat(data.get("name")).isEqualTo("Demo牧场");
+            assertThat(data.get("name")).isEqualTo("Demo Ranch");
         }
 
         @Test

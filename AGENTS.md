@@ -64,6 +64,15 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
 
+## 5. Build / Deploy / Test 分工约定
+
+**编译可以执行，部署必须由用户完成，集成测试仅在部署后执行。**
+
+- **编译**：Agent 可自行执行（如 `./gradlew bootJar`、`flutter build web`），验证代码可构建。
+- **部署**：一律由用户执行（`rsync`、`docker compose`、`ssh` 等部署操作，Agent 不碰）。Agent 改动涉及部署时，提供命令供用户执行即可，不要自行调用。
+- **集成测试**：仅在用户确认部署完成后才执行；不得在部署前提前运行（避免对旧版本/无后端状态做无效验证）。
+- **顺序**：编码 → 编译验证 → （用户部署）→ 用户确认 → 集成测试。
+
 ## 项目概述
 
 智慧畜牧系统（Smart Livestock）是面向牧场主的牲畜管理平台，通过 IoT 设备（GPS 追踪器、瘤胃胶囊、加速度计）实现定位、健康预警和行为分析。仓库包含两个子项目：
