@@ -13,6 +13,20 @@ class LocaleController extends Notifier<Locale?> {
   @override
   Locale? build() => ref.read(initialLocaleProvider);
 
+  /// Reads the persisted locale preference and applies it to [L10n] and
+  /// [ApiClient] so the singleton + backend header survive a page refresh.
+  /// Returns the locale to seed [initialLocaleProvider]. Call once before
+  /// runApp (mirrors the session-restore flow).
+  static Future<Locale?> restore() async {
+    final prefs = await SharedPreferences.getInstance();
+    final code = prefs.getString(_prefsKey);
+    if (code == null) return null;
+    final locale = Locale(code);
+    L10n.update(locale);
+    ApiClient.instance.setLocale(localeToHeader(locale));
+    return locale;
+  }
+
   /// Sets the locale, persists it, and bridges to ApiClient.
   Future<void> setLocale(Locale? locale) async {
     L10n.update(locale);

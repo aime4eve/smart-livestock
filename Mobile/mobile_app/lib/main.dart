@@ -7,6 +7,7 @@ import 'package:smart_livestock_demo/app/session/app_session.dart';
 import 'package:smart_livestock_demo/app/session/session_controller.dart';
 import 'package:smart_livestock_demo/app/url_strategy.dart';
 import 'package:smart_livestock_demo/core/api/api_client.dart';
+import 'package:smart_livestock_demo/core/l10n/locale_controller.dart';
 import 'package:smart_livestock_demo/core/api/jwt_decoder.dart';
 import 'package:smart_livestock_demo/core/api/jwt_storage.dart';
 import 'package:smart_livestock_demo/core/models/user_role.dart';
@@ -30,10 +31,15 @@ void main() async {
 
   // Restore session from stored JWT token (survives page refresh).
   final initialSession = await _restoreSession();
+  // Restore persisted locale so the language choice survives a page refresh.
+  final initialLocale = await LocaleController.restore();
 
   runApp(
     ProviderScope(
-      overrides: [initialSessionProvider.overrideWithValue(initialSession)],
+      overrides: [
+        initialSessionProvider.overrideWithValue(initialSession),
+        initialLocaleProvider.overrideWithValue(initialLocale),
+      ],
       child: const DemoApp(),
     ),
   );

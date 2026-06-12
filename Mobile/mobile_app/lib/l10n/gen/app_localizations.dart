@@ -446,357 +446,2246 @@ abstract class AppLocalizations {
   /// **'登录您的牧场账户，管理牲畜、围栏与告警。'**
   String get authLoginDescription;
 
+  /// No description provided for @deviceTypeGps.
+  ///
+  /// In zh, this message translates to:
+  /// **'GPS定位器'**
   String get deviceTypeGps;
+
+  /// No description provided for @deviceTypeRumenCapsule.
+  ///
+  /// In zh, this message translates to:
+  /// **'瘤胃胶囊'**
   String get deviceTypeRumenCapsule;
+
+  /// No description provided for @deviceTypeAccelerometer.
+  ///
+  /// In zh, this message translates to:
+  /// **'加速度计'**
   String get deviceTypeAccelerometer;
+
+  /// No description provided for @subscriptionTierBasic.
+  ///
+  /// In zh, this message translates to:
+  /// **'基础版'**
   String get subscriptionTierBasic;
+
+  /// No description provided for @subscriptionTierStandard.
+  ///
+  /// In zh, this message translates to:
+  /// **'标准版'**
   String get subscriptionTierStandard;
+
+  /// No description provided for @subscriptionTierPremium.
+  ///
+  /// In zh, this message translates to:
+  /// **'高级版'**
   String get subscriptionTierPremium;
+
+  /// No description provided for @subscriptionTierEnterprise.
+  ///
+  /// In zh, this message translates to:
+  /// **'企业版'**
   String get subscriptionTierEnterprise;
 
+  /// No description provided for @commonLoadFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'加载失败'**
   String get commonLoadFailed;
+
+  /// No description provided for @commonDeleteFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除失败: {error}'**
   String commonDeleteFailed(String error);
+
+  /// No description provided for @commonConfirmDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认删除'**
   String get commonConfirmDelete;
+
+  /// No description provided for @commonConfirmLogout.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认退出'**
   String get commonConfirmLogout;
+
+  /// No description provided for @commonConfirmLogoutMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要退出登录吗？'**
   String get commonConfirmLogoutMessage;
+
+  /// No description provided for @ranchFenceList.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏列表'**
   String get ranchFenceList;
+
+  /// No description provided for @ranchNewFence.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建围栏'**
   String get ranchNewFence;
+
+  /// No description provided for @ranchNoFence.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无围栏'**
   String get ranchNoFence;
+
+  /// No description provided for @ranchCollapseFenceList.
+  ///
+  /// In zh, this message translates to:
+  /// **'收起围栏列表'**
   String get ranchCollapseFenceList;
+
+  /// No description provided for @ranchEditBoundary.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑边界'**
   String get ranchEditBoundary;
+
+  /// No description provided for @ranchFenceDeleted.
+  ///
+  /// In zh, this message translates to:
+  /// **'已删除「{name}」'**
   String ranchFenceDeleted(String name);
+
+  /// No description provided for @ranchConfirmDeleteFence.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认删除「{name}」？删除后无法恢复。'**
   String ranchConfirmDeleteFence(String name);
+
+  /// No description provided for @ranchFenceActive.
+  ///
+  /// In zh, this message translates to:
+  /// **'启用'**
   String get ranchFenceActive;
+
+  /// No description provided for @ranchFenceInactive.
+  ///
+  /// In zh, this message translates to:
+  /// **'停用'**
   String get ranchFenceInactive;
+
+  /// No description provided for @ranchLivestockCountHead.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count}头'**
   String ranchLivestockCountHead(String count);
 
+  /// No description provided for @ranchPeekInFence.
+  ///
+  /// In zh, this message translates to:
+  /// **'归栏 {percent}%'**
+  String ranchPeekInFence(String percent);
+
+  /// No description provided for @ranchPeekHealth.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康 {percent}%'**
+  String ranchPeekHealth(String percent);
+
+  /// No description provided for @ranchPeekAlertCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count}条告警'**
+  String ranchPeekAlertCount(String count);
+
+  /// No description provided for @ranchSectionFenceAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏告警'**
+  String get ranchSectionFenceAlerts;
+
+  /// No description provided for @ranchSectionFenceNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏正常'**
+  String get ranchSectionFenceNormal;
+
+  /// No description provided for @ranchSectionHealthAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康告警'**
+  String get ranchSectionHealthAlerts;
+
+  /// No description provided for @ranchSectionLivestockHealthy.
+  ///
+  /// In zh, this message translates to:
+  /// **'牲畜健康'**
+  String get ranchSectionLivestockHealthy;
+
+  /// No description provided for @ranchSectionFenceAlertDetail.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏告警详情'**
+  String get ranchSectionFenceAlertDetail;
+
+  /// No description provided for @ranchSectionHealthAlertDetail.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康告警详情'**
+  String get ranchSectionHealthAlertDetail;
+
+  /// No description provided for @ranchCapabilityFenceNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统能检测围栏越界，定位精度取决于GPS信号'**
+  String get ranchCapabilityFenceNote;
+
+  /// No description provided for @ranchCapabilityHealthNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统能通知你健康异常，需线下排查确认'**
+  String get ranchCapabilityHealthNote;
+
+  /// No description provided for @ranchAlertTypeFenceBreach.
+  ///
+  /// In zh, this message translates to:
+  /// **'越界'**
+  String get ranchAlertTypeFenceBreach;
+
+  /// No description provided for @ranchAlertTypeFenceApproach.
+  ///
+  /// In zh, this message translates to:
+  /// **'接近围栏'**
+  String get ranchAlertTypeFenceApproach;
+
+  /// No description provided for @ranchAlertTypeZoneApproach.
+  ///
+  /// In zh, this message translates to:
+  /// **'接近区域'**
+  String get ranchAlertTypeZoneApproach;
+
+  /// No description provided for @ranchAlertTypeFever.
+  ///
+  /// In zh, this message translates to:
+  /// **'发热'**
+  String get ranchAlertTypeFever;
+
+  /// No description provided for @ranchAlertTypeDigestive.
+  ///
+  /// In zh, this message translates to:
+  /// **'消化异常'**
+  String get ranchAlertTypeDigestive;
+
+  /// No description provided for @ranchAlertTypeEstrus.
+  ///
+  /// In zh, this message translates to:
+  /// **'发情'**
+  String get ranchAlertTypeEstrus;
+
+  /// No description provided for @ranchAlertTypeEpidemic.
+  ///
+  /// In zh, this message translates to:
+  /// **'疫病'**
+  String get ranchAlertTypeEpidemic;
+
+  /// No description provided for @ranchAlertTypeShortApproach.
+  ///
+  /// In zh, this message translates to:
+  /// **'接近'**
+  String get ranchAlertTypeShortApproach;
+
+  /// No description provided for @ranchAlertTypeShortZone.
+  ///
+  /// In zh, this message translates to:
+  /// **'区域'**
+  String get ranchAlertTypeShortZone;
+
+  /// No description provided for @ranchAlertTypeShortDigestive.
+  ///
+  /// In zh, this message translates to:
+  /// **'消化'**
+  String get ranchAlertTypeShortDigestive;
+
+  /// No description provided for @ranchAlertTypeEstrusHighScore.
+  ///
+  /// In zh, this message translates to:
+  /// **'发情高分'**
+  String get ranchAlertTypeEstrusHighScore;
+
+  /// No description provided for @ranchAlertTypeEpidemicRisk.
+  ///
+  /// In zh, this message translates to:
+  /// **'疫病风险'**
+  String get ranchAlertTypeEpidemicRisk;
+
+  /// No description provided for @ranchHealthStatusCritical.
+  ///
+  /// In zh, this message translates to:
+  /// **'严重'**
+  String get ranchHealthStatusCritical;
+
+  /// No description provided for @ranchHealthStatusWarning.
+  ///
+  /// In zh, this message translates to:
+  /// **'预警'**
+  String get ranchHealthStatusWarning;
+
+  /// No description provided for @ranchHealthStatusNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'正常'**
+  String get ranchHealthStatusNormal;
+
+  /// No description provided for @ranchAlertStatusActive.
+  ///
+  /// In zh, this message translates to:
+  /// **'活跃'**
+  String get ranchAlertStatusActive;
+
+  /// No description provided for @ranchAlertStatusDismissed.
+  ///
+  /// In zh, this message translates to:
+  /// **'已忽略'**
+  String get ranchAlertStatusDismissed;
+
+  /// No description provided for @ranchAlertStatusAutoResolved.
+  ///
+  /// In zh, this message translates to:
+  /// **'已自动解除'**
+  String get ranchAlertStatusAutoResolved;
+
+  /// No description provided for @ranchAlertStatusHandled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已处理'**
+  String get ranchAlertStatusHandled;
+
+  /// No description provided for @ranchAlertStatusArchived.
+  ///
+  /// In zh, this message translates to:
+  /// **'已归档'**
+  String get ranchAlertStatusArchived;
+
+  /// No description provided for @ranchTimeMinutesAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'{minutes}分钟前'**
+  String ranchTimeMinutesAgo(int minutes);
+
+  /// No description provided for @ranchTimeHoursAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'{hours}小时前'**
+  String ranchTimeHoursAgo(int hours);
+
+  /// No description provided for @ranchTimeDaysAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'{days}天前'**
+  String ranchTimeDaysAgo(int days);
+
+  /// No description provided for @ranchTimeUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'未知'**
+  String get ranchTimeUnknown;
+
+  /// No description provided for @ranchFieldStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'状态'**
+  String get ranchFieldStatus;
+
+  /// No description provided for @ranchFieldPrimaryAlert.
+  ///
+  /// In zh, this message translates to:
+  /// **'主要异常'**
+  String get ranchFieldPrimaryAlert;
+
+  /// No description provided for @ranchFieldLocation.
+  ///
+  /// In zh, this message translates to:
+  /// **'位置'**
+  String get ranchFieldLocation;
+
+  /// No description provided for @ranchFieldType.
+  ///
+  /// In zh, this message translates to:
+  /// **'类型'**
+  String get ranchFieldType;
+
+  /// No description provided for @ranchFieldDistanceToFence.
+  ///
+  /// In zh, this message translates to:
+  /// **'距围栏'**
+  String get ranchFieldDistanceToFence;
+
+  /// No description provided for @ranchFieldDirection.
+  ///
+  /// In zh, this message translates to:
+  /// **'方向'**
+  String get ranchFieldDirection;
+
+  /// No description provided for @ranchFieldOccurredTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'发生时间'**
+  String get ranchFieldOccurredTime;
+
+  /// No description provided for @ranchFieldTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'时间'**
+  String get ranchFieldTime;
+
+  /// No description provided for @ranchFieldAbnormalType.
+  ///
+  /// In zh, this message translates to:
+  /// **'异常类型'**
+  String get ranchFieldAbnormalType;
+
+  /// No description provided for @ranchActionDismiss.
+  ///
+  /// In zh, this message translates to:
+  /// **'忽略'**
+  String get ranchActionDismiss;
+
+  /// No description provided for @ranchFenceBreachCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'越界 {count}'**
+  String ranchFenceBreachCount(String count);
+
+  /// No description provided for @ranchFenceApproachCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'接近 {count}'**
+  String ranchFenceApproachCount(String count);
+
+  /// No description provided for @ranchAutoResolvedCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'已自动解除 ({count})'**
+  String ranchAutoResolvedCount(String count);
+
+  /// No description provided for @dashboardNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无看板数据'**
   String get dashboardNoData;
+
+  /// No description provided for @dashboardTodayOverview.
+  ///
+  /// In zh, this message translates to:
+  /// **'今日牧场概览'**
   String get dashboardTodayOverview;
+
+  /// No description provided for @dashboardFarmOverview.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧场概览'**
   String get dashboardFarmOverview;
+
+  /// No description provided for @dashboardNoFarm.
+  ///
+  /// In zh, this message translates to:
+  /// **'您还没有牧场'**
   String get dashboardNoFarm;
+
+  /// No description provided for @dashboardCreateFirstFarmDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建您的第一个牧场，开始管理牲畜'**
   String get dashboardCreateFirstFarmDesc;
+
+  /// No description provided for @dashboardCreateFirstFarm.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建第一个牧场'**
   String get dashboardCreateFirstFarm;
 
+  /// No description provided for @twinRealtimeOverview.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧场实时概览'**
   String get twinRealtimeOverview;
+
+  /// No description provided for @twinHealthScenarios.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康场景'**
   String get twinHealthScenarios;
+
+  /// No description provided for @twinPendingTasks.
+  ///
+  /// In zh, this message translates to:
+  /// **'待处理任务'**
   String get twinPendingTasks;
 
+  /// No description provided for @mineAccountNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'账户正常'**
   String get mineAccountNormal;
+
+  /// No description provided for @mineAccountDisabled.
+  ///
+  /// In zh, this message translates to:
+  /// **'账户已停用'**
   String get mineAccountDisabled;
+
+  /// No description provided for @mineProfileName.
+  ///
+  /// In zh, this message translates to:
+  /// **'姓名：{name}'**
   String mineProfileName(String name);
+
+  /// No description provided for @mineProfilePhone.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机号：{phone}'**
   String mineProfilePhone(String phone);
+
+  /// No description provided for @mineProfileRole.
+  ///
+  /// In zh, this message translates to:
+  /// **'角色：{role}'**
   String mineProfileRole(String role);
+
+  /// No description provided for @minePersonalDevices.
+  ///
+  /// In zh, this message translates to:
+  /// **'个人设备与工具'**
   String get minePersonalDevices;
+
+  /// No description provided for @mineDeviceManagementDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看和管理绑定的 IoT 设备'**
   String get mineDeviceManagementDesc;
+
+  /// No description provided for @mineOfflineMapDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载和管理离线瓦片数据'**
   String get mineOfflineMapDesc;
+
+  /// No description provided for @mineHelpSupportDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看设备绑定、帮助文档与联系客服入口'**
   String get mineHelpSupportDesc;
+
+  /// No description provided for @mineHelpSupportComingSoon.
+  ///
+  /// In zh, this message translates to:
+  /// **'帮助与支持页面开发中...'**
   String get mineHelpSupportComingSoon;
+
+  /// No description provided for @mineBusinessManagement.
+  ///
+  /// In zh, this message translates to:
+  /// **'业务管理'**
   String get mineBusinessManagement;
+
+  /// No description provided for @mineSubscriptionManagementDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看和升级订阅套餐'**
   String get mineSubscriptionManagementDesc;
+
+  /// No description provided for @mineRevenueBoardDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看各周期分润对账数据'**
   String get mineRevenueBoardDesc;
+
+  /// No description provided for @mineSubscriptionServiceDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理订阅套餐和业务服务'**
   String get mineSubscriptionServiceDesc;
+
+  /// No description provided for @mineAdvancedManagement.
+  ///
+  /// In zh, this message translates to:
+  /// **'高级管理'**
   String get mineAdvancedManagement;
+
+  /// No description provided for @mineWorkerManagementDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看和移除当前牧场牧工'**
   String get mineWorkerManagementDesc;
+
+  /// No description provided for @mineApiAuthManagementDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理 API Key 和第三方访问授权'**
   String get mineApiAuthManagementDesc;
+
+  /// No description provided for @mineDevicesTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备管理'**
   String get mineDevicesTitle;
+
+  /// No description provided for @mineOfflineMapTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'离线地图管理'**
   String get mineOfflineMapTitle;
+
+  /// No description provided for @mineHelpSupportTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'帮助与支持'**
   String get mineHelpSupportTitle;
+
+  /// No description provided for @mineSubscriptionTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅管理'**
   String get mineSubscriptionTitle;
+
+  /// No description provided for @mineRevenueBoardTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'对账看板'**
   String get mineRevenueBoardTitle;
+
+  /// No description provided for @mineSubscriptionServiceTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅服务管理'**
   String get mineSubscriptionServiceTitle;
+
+  /// No description provided for @mineWorkerTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧工管理'**
   String get mineWorkerTitle;
+
+  /// No description provided for @mineApiAuthTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'API授权管理'**
   String get mineApiAuthTitle;
+
+  /// No description provided for @commonLogoutButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'退出'**
   String get commonLogoutButton;
 
+  /// No description provided for @statsAnalysis.
+  ///
+  /// In zh, this message translates to:
+  /// **'统计分析'**
   String get statsAnalysis;
+
+  /// No description provided for @statsTemperatureTrend.
+  ///
+  /// In zh, this message translates to:
+  /// **'体温趋势 (7日)'**
   String get statsTemperatureTrend;
+
+  /// No description provided for @statsHealthRateTrend.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康率趋势 (7日)'**
   String get statsHealthRateTrend;
+
+  /// No description provided for @statsAlertTrend.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警趋势 (7日)'**
   String get statsAlertTrend;
+
+  /// No description provided for @statsLivestock.
+  ///
+  /// In zh, this message translates to:
+  /// **'牲畜'**
   String get statsLivestock;
+
+  /// No description provided for @statsHealthRate.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康率'**
   String get statsHealthRate;
+
+  /// No description provided for @statsAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警'**
   String get statsAlerts;
+
+  /// No description provided for @statsCritical.
+  ///
+  /// In zh, this message translates to:
+  /// **'严重'**
   String get statsCritical;
+
+  /// No description provided for @statsAvgTemp.
+  ///
+  /// In zh, this message translates to:
+  /// **'均温'**
   String get statsAvgTemp;
+
+  /// No description provided for @statsMotility.
+  ///
+  /// In zh, this message translates to:
+  /// **'蠕动'**
   String get statsMotility;
+
+  /// No description provided for @statsHealthDistribution.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康分布'**
   String get statsHealthDistribution;
 
+  /// No description provided for @fencePleaseSelectFarm.
+  ///
+  /// In zh, this message translates to:
+  /// **'请先选择一个牧场'**
   String get fencePleaseSelectFarm;
 
+  /// No description provided for @alertsNoAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无告警'**
   String get alertsNoAlerts;
+
+  /// No description provided for @alertsNoAlertsDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前没有触发中的 P0 告警。'**
   String get alertsNoAlertsDesc;
+
+  /// No description provided for @alertsConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认'**
   String get alertsConfirm;
+
+  /// No description provided for @alertsHandle.
+  ///
+  /// In zh, this message translates to:
+  /// **'处理'**
   String get alertsHandle;
+
+  /// No description provided for @alertsArchive.
+  ///
+  /// In zh, this message translates to:
+  /// **'归档'**
   String get alertsArchive;
+
+  /// No description provided for @alertsBatchHandle.
+  ///
+  /// In zh, this message translates to:
+  /// **'批量处理'**
   String get alertsBatchHandle;
+
+  /// No description provided for @alertsBatchDemo.
+  ///
+  /// In zh, this message translates to:
+  /// **'演示：批量处理待接入'**
   String get alertsBatchDemo;
 
+  /// No description provided for @livestockDetailTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'牲畜详情'**
   String get livestockDetailTitle;
+
+  /// No description provided for @livestockBindDevices.
+  ///
+  /// In zh, this message translates to:
+  /// **'绑定设备'**
   String get livestockBindDevices;
+
+  /// No description provided for @livestockHealthData.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康数据'**
   String get livestockHealthData;
+
+  /// No description provided for @livestockLocation.
+  ///
+  /// In zh, this message translates to:
+  /// **'位置信息'**
   String get livestockLocation;
+
+  /// No description provided for @livestockViewTrajectory.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看完整轨迹'**
   String get livestockViewTrajectory;
 
+  /// No description provided for @feverWarningTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'发热预警'**
   String get feverWarningTitle;
+
+  /// No description provided for @feverNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无体温异常数据'**
   String get feverNoData;
+
+  /// No description provided for @digestiveTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'消化管理'**
   String get digestiveTitle;
+
+  /// No description provided for @digestiveNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无消化异常数据'**
   String get digestiveNoData;
-  String digestiveItemSubtitle(String breed, String frequency, String dropPercent);
+
+  /// No description provided for @digestiveItemSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'{breed}  蠕动 {frequency}次/分  ↓{dropPercent}%'**
+  String digestiveItemSubtitle(
+    String breed,
+    String frequency,
+    String dropPercent,
+  );
+
+  /// No description provided for @estrusTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'发情识别'**
   String get estrusTitle;
+
+  /// No description provided for @estrusNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无发情数据'**
   String get estrusNoData;
+
+  /// No description provided for @estrusItemSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'{breed} {genderIcon} {stepInfo}'**
   String estrusItemSubtitle(String breed, String genderIcon, String stepInfo);
+
+  /// No description provided for @epidemicTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'疫病防控'**
   String get epidemicTitle;
+
+  /// No description provided for @epidemicHerdHealth.
+  ///
+  /// In zh, this message translates to:
+  /// **'群体健康指标'**
   String get epidemicHerdHealth;
+
+  /// No description provided for @epidemicContactTracing.
+  ///
+  /// In zh, this message translates to:
+  /// **'接触追踪'**
   String get epidemicContactTracing;
+
+  /// No description provided for @epidemicRiskLevel.
+  ///
+  /// In zh, this message translates to:
+  /// **'风险等级: {level}'**
   String epidemicRiskLevel(String level);
 
+  /// No description provided for @epidemicAvgTemperature.
+  ///
+  /// In zh, this message translates to:
+  /// **'平均体温'**
   String get epidemicAvgTemperature;
+
+  /// No description provided for @epidemicAbnormalRate.
+  ///
+  /// In zh, this message translates to:
+  /// **'异常率'**
   String get epidemicAbnormalRate;
+
+  /// No description provided for @epidemicAbnormalCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'异常数'**
   String get epidemicAbnormalCount;
 
+  /// No description provided for @feverDetailTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'体温详情'**
   String get feverDetailTitle;
+
+  /// No description provided for @feverDetailChartTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'72小时温度曲线'**
   String get feverDetailChartTitle;
+
+  /// No description provided for @digestiveDetailTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'消化详情'**
   String get digestiveDetailTitle;
+
+  /// No description provided for @digestiveDetailChartTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'24小时蠕动曲线'**
   String get digestiveDetailChartTitle;
+
+  /// No description provided for @estrusDetailTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'发情详情'**
   String get estrusDetailTitle;
+
+  /// No description provided for @estrusDetailChartTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'7天评分趋势'**
   String get estrusDetailChartTitle;
 
+  /// No description provided for @devicesManagement.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备管理'**
   String get devicesManagement;
+
+  /// No description provided for @devicesAddDemo.
+  ///
+  /// In zh, this message translates to:
+  /// **'演示：添加新设备待接入'**
   String get devicesAddDemo;
+
+  /// No description provided for @devicesNoDevices.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无设备'**
   String get devicesNoDevices;
+
+  /// No description provided for @devicesUnbindDemo.
+  ///
+  /// In zh, this message translates to:
+  /// **'演示：解绑 {name}'**
   String devicesUnbindDemo(String name);
+
+  /// No description provided for @devicesViewLocationDemo.
+  ///
+  /// In zh, this message translates to:
+  /// **'演示：查看 {name} 位置'**
   String devicesViewLocationDemo(String name);
+
+  /// No description provided for @devicesInstallSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'安装成功：{name}'**
   String devicesInstallSuccess(String name);
+
+  /// No description provided for @devicesInstallFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'安装失败: {error}'**
   String devicesInstallFailed(String error);
+
+  /// No description provided for @devicesInstallTo.
+  ///
+  /// In zh, this message translates to:
+  /// **'安装到牲畜 — {name}'**
   String devicesInstallTo(String name);
+
+  /// No description provided for @devicesNoMatchingLivestock.
+  ///
+  /// In zh, this message translates to:
+  /// **'无匹配牲畜'**
   String get devicesNoMatchingLivestock;
+
+  /// No description provided for @devicesOverview.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备概览'**
   String get devicesOverview;
 
+  /// No description provided for @devicesStatTotal.
+  ///
+  /// In zh, this message translates to:
+  /// **'总数'**
   String get devicesStatTotal;
+
+  /// No description provided for @devicesSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索耳标/品种'**
   String get devicesSearchHint;
 
+  /// No description provided for @adminAnalytics.
+  ///
+  /// In zh, this message translates to:
+  /// **'用量分析'**
   String get adminAnalytics;
+
+  /// No description provided for @adminAnalyticsDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'API 调用量统计与趋势分析'**
   String get adminAnalyticsDesc;
+
+  /// No description provided for @adminFeatureGates.
+  ///
+  /// In zh, this message translates to:
+  /// **'功能门控'**
   String get adminFeatureGates;
+
+  /// No description provided for @adminFeatureGatesDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理各等级功能配额'**
   String get adminFeatureGatesDesc;
+
+  /// No description provided for @adminAuditLog.
+  ///
+  /// In zh, this message translates to:
+  /// **'审计日志'**
   String get adminAuditLog;
+
+  /// No description provided for @adminAuditLogDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看系统操作记录'**
   String get adminAuditLogDesc;
+
+  /// No description provided for @adminTileManagement.
+  ///
+  /// In zh, this message translates to:
+  /// **'瓦片管理'**
   String get adminTileManagement;
+
+  /// No description provided for @adminTileManagementDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理离线瓦片区域和任务'**
   String get adminTileManagementDesc;
 
+  /// No description provided for @adminTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'后台管理'**
   String get adminTitle;
+
+  /// No description provided for @adminSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理控制台 - 业务数据与订阅概览'**
   String get adminSubtitle;
 
+  /// No description provided for @fenceFormManualEntry.
+  ///
+  /// In zh, this message translates to:
+  /// **'手动录入坐标'**
   String get fenceFormManualEntry;
+
+  /// No description provided for @fenceFormApply.
+  ///
+  /// In zh, this message translates to:
+  /// **'应用'**
   String get fenceFormApply;
+
+  /// No description provided for @fenceFormVersionConflict.
+  ///
+  /// In zh, this message translates to:
+  /// **'版本冲突'**
   String get fenceFormVersionConflict;
+
+  /// No description provided for @fenceFormVersionConflictDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'该围栏已被其他操作修改，是否强制覆盖？'**
   String get fenceFormVersionConflictDesc;
+
+  /// No description provided for @fenceFormForceUpdate.
+  ///
+  /// In zh, this message translates to:
+  /// **'强制更新'**
   String get fenceFormForceUpdate;
+
+  /// No description provided for @fenceFormForceUpdateFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'强制更新失败: {error}'**
   String fenceFormForceUpdateFailed(String error);
+
+  /// No description provided for @fenceFormSaveFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存失败: {error}'**
   String fenceFormSaveFailed(String error);
+
+  /// No description provided for @fenceFormRectangle.
+  ///
+  /// In zh, this message translates to:
+  /// **'矩形'**
   String get fenceFormRectangle;
+
+  /// No description provided for @fenceFormCircle.
+  ///
+  /// In zh, this message translates to:
+  /// **'圆形'**
   String get fenceFormCircle;
+
+  /// No description provided for @fenceFormPolygon.
+  ///
+  /// In zh, this message translates to:
+  /// **'多边形'**
   String get fenceFormPolygon;
+
+  /// No description provided for @fenceFormReset.
+  ///
+  /// In zh, this message translates to:
+  /// **'重置'**
   String get fenceFormReset;
+
+  /// No description provided for @fenceFormManualInput.
+  ///
+  /// In zh, this message translates to:
+  /// **'手动录入'**
   String get fenceFormManualInput;
+
+  /// No description provided for @fenceFormEnableAlarm.
+  ///
+  /// In zh, this message translates to:
+  /// **'启用告警'**
   String get fenceFormEnableAlarm;
+
+  /// No description provided for @fenceFormEnableStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'启用状态'**
   String get fenceFormEnableStatus;
+
+  /// No description provided for @fenceFormSaveFence.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存围栏'**
   String get fenceFormSaveFence;
 
+  /// No description provided for @b2bRevenueTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'对账'**
   String get b2bRevenueTitle;
+
+  /// No description provided for @b2bRevenueNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无对账数据，系统将在每月1日自动生成结算周期'**
   String get b2bRevenueNoData;
+
+  /// No description provided for @b2bContractTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'合同信息'**
   String get b2bContractTitle;
+
+  /// No description provided for @b2bContractTerms.
+  ///
+  /// In zh, this message translates to:
+  /// **'合同条款'**
   String get b2bContractTerms;
+
+  /// No description provided for @b2bContractServiceStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅服务状态'**
   String get b2bContractServiceStatus;
+
+  /// No description provided for @b2bContractRenew.
+  ///
+  /// In zh, this message translates to:
+  /// **'联系续签'**
   String get b2bContractRenew;
+
+  /// No description provided for @b2bDashboardTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'运营概览'**
   String get b2bDashboardTitle;
+
+  /// No description provided for @b2bDashboardMonthlyRevenue.
+  ///
+  /// In zh, this message translates to:
+  /// **'本月营收'**
   String get b2bDashboardMonthlyRevenue;
+
+  /// No description provided for @b2bDashboardPendingAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'待处理告警'**
   String get b2bDashboardPendingAlerts;
+
+  /// No description provided for @b2bDashboardNoPendingAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无待处理告警'**
   String get b2bDashboardNoPendingAlerts;
+
+  /// No description provided for @b2bRevenueDetailConfirmOk.
+  ///
+  /// In zh, this message translates to:
+  /// **'对账确认成功'**
   String get b2bRevenueDetailConfirmOk;
+
+  /// No description provided for @b2bRevenueDetailConfirmFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认失败，请重试'**
   String get b2bRevenueDetailConfirmFailed;
+
+  /// No description provided for @b2bRevenueDetailTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'对账明细'**
   String get b2bRevenueDetailTitle;
+
+  /// No description provided for @b2bRevenueDetailDeviceFee.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备费用合计'**
   String get b2bRevenueDetailDeviceFee;
+
+  /// No description provided for @b2bRevenueDetailConfirmStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认状态'**
   String get b2bRevenueDetailConfirmStatus;
+
+  /// No description provided for @b2bRevenueDetailConfirmButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认对账'**
   String get b2bRevenueDetailConfirmButton;
 
+  /// No description provided for @b2bFarmCreationEnterName.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入牧场名称'**
   String get b2bFarmCreationEnterName;
+
+  /// No description provided for @b2bFarmCreationSelectPoint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请在地图上选点或输入经纬度'**
   String get b2bFarmCreationSelectPoint;
+
+  /// No description provided for @b2bFarmCreationSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧场「{name}」创建成功'**
   String b2bFarmCreationSuccess(String name);
+
+  /// No description provided for @b2bFarmCreationFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建失败，请重试'**
   String get b2bFarmCreationFailed;
+
+  /// No description provided for @b2bFarmCreationTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建牧场'**
   String get b2bFarmCreationTitle;
+
+  /// No description provided for @b2bFarmCreationButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建牧场'**
   String get b2bFarmCreationButton;
+
+  /// No description provided for @b2bFarmCreationNotSpecified.
+  ///
+  /// In zh, this message translates to:
+  /// **'— 暂不指定 —'**
   String get b2bFarmCreationNotSpecified;
+
+  /// No description provided for @b2bFarmCreationUserLoadFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'加载用户列表失败'**
   String get b2bFarmCreationUserLoadFailed;
+
+  /// No description provided for @b2bFarmCreationSelectTile.
+  ///
+  /// In zh, this message translates to:
+  /// **'请先选择瓦片区域'**
   String get b2bFarmCreationSelectTile;
+
+  /// No description provided for @wizardExitConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧场已创建。退出后将进入主页面，您可以稍后设置围栏。'**
   String get wizardExitConfirm;
+
+  /// No description provided for @wizardContinueSetup.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续设置'**
   String get wizardContinueSetup;
+
+  /// No description provided for @wizardNextStep.
+  ///
+  /// In zh, this message translates to:
+  /// **'下一步'**
   String get wizardNextStep;
+
+  /// No description provided for @wizardEnterRanch.
+  ///
+  /// In zh, this message translates to:
+  /// **'进入牧场'**
   String get wizardEnterRanch;
+
+  /// No description provided for @wizardCreateFailedNoId.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建牧场失败：未获取到牧场ID'**
   String get wizardCreateFailedNoId;
+
+  /// No description provided for @wizardCreateFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建牧场失败，请重试'**
   String get wizardCreateFailed;
+
+  /// No description provided for @wizardFenceMinVertices.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏至少需要 3 个顶点'**
   String get wizardFenceMinVertices;
+
+  /// No description provided for @wizardSetupLater.
+  ///
+  /// In zh, this message translates to:
+  /// **'稍后设置'**
   String get wizardSetupLater;
 
+  /// No description provided for @subscriptionUpgradeTier.
+  ///
+  /// In zh, this message translates to:
+  /// **'升级套餐'**
   String get subscriptionUpgradeTier;
+
+  /// No description provided for @subscriptionRenew.
+  ///
+  /// In zh, this message translates to:
+  /// **'续费'**
   String get subscriptionRenew;
+
+  /// No description provided for @subscriptionConfirmCancel.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认取消'**
   String get subscriptionConfirmCancel;
+
+  /// No description provided for @subscriptionCancelWarning.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消订阅后，当前周期结束后将无法使用付费功能。确定要取消吗？'**
   String get subscriptionCancelWarning;
+
+  /// No description provided for @subscriptionKeepSubscription.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂不取消'**
   String get subscriptionKeepSubscription;
+
+  /// No description provided for @subscriptionCancelled.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅已取消'**
   String get subscriptionCancelled;
+
+  /// No description provided for @subscriptionCurrentTier.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前套餐'**
   String get subscriptionCurrentTier;
+
+  /// No description provided for @subscriptionSelectTier.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择此套餐'**
   String get subscriptionSelectTier;
+
+  /// No description provided for @subscriptionRenewNow.
+  ///
+  /// In zh, this message translates to:
+  /// **'立即续费'**
   String get subscriptionRenewNow;
+
+  /// No description provided for @subscriptionUpgradeTo.
+  ///
+  /// In zh, this message translates to:
+  /// **'升级到{tier}'**
   String subscriptionUpgradeTo(String tier);
+
+  /// No description provided for @subscriptionFeature.
+  ///
+  /// In zh, this message translates to:
+  /// **'功能'**
   String get subscriptionFeature;
 
+  /// No description provided for @subscriptionStatusTrial.
+  ///
+  /// In zh, this message translates to:
+  /// **'试用中'**
   String get subscriptionStatusTrial;
+
+  /// No description provided for @subscriptionStatusActive.
+  ///
+  /// In zh, this message translates to:
+  /// **'已订阅'**
   String get subscriptionStatusActive;
+
+  /// No description provided for @subscriptionStatusCancelled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消'**
   String get subscriptionStatusCancelled;
+
+  /// No description provided for @subscriptionStatusExpired.
+  ///
+  /// In zh, this message translates to:
+  /// **'已过期'**
   String get subscriptionStatusExpired;
 
+  /// No description provided for @adminSubscriptionsNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无订阅服务'**
   String get adminSubscriptionsNoData;
+
+  /// No description provided for @adminSubscriptionsRevoke.
+  ///
+  /// In zh, this message translates to:
+  /// **'撤销'**
   String get adminSubscriptionsRevoke;
+
+  /// No description provided for @adminSubscriptionsRenew.
+  ///
+  /// In zh, this message translates to:
+  /// **'续期'**
   String get adminSubscriptionsRenew;
+
+  /// No description provided for @adminApiAuthCreateKey.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建 Key'**
   String get adminApiAuthCreateKey;
+
+  /// No description provided for @adminApiAuthNoKeys.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无 API Key'**
   String get adminApiAuthNoKeys;
+
+  /// No description provided for @adminApiAuthDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理 API Key 的创建、启用和撤销'**
   String get adminApiAuthDescription;
+
+  /// No description provided for @adminApiAuthName.
+  ///
+  /// In zh, this message translates to:
+  /// **'名称'**
   String get adminApiAuthName;
+
+  /// No description provided for @adminApiAuthDescriptionOptional.
+  ///
+  /// In zh, this message translates to:
+  /// **'描述（可选）'**
   String get adminApiAuthDescriptionOptional;
+
+  /// No description provided for @adminApiAuthScopes.
+  ///
+  /// In zh, this message translates to:
+  /// **'权限范围:'**
   String get adminApiAuthScopes;
+
+  /// No description provided for @adminApiAuthCreate.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建'**
   String get adminApiAuthCreate;
+
+  /// No description provided for @adminApiAuthKeyCreated.
+  ///
+  /// In zh, this message translates to:
+  /// **'Key 已创建'**
   String get adminApiAuthKeyCreated;
+
+  /// No description provided for @adminApiAuthKeyWarning.
+  ///
+  /// In zh, this message translates to:
+  /// **'请立即保存此 Key，关闭后将无法再次查看。'**
   String get adminApiAuthKeyWarning;
+
+  /// No description provided for @adminApiAuthSaved.
+  ///
+  /// In zh, this message translates to:
+  /// **'已保存'**
   String get adminApiAuthSaved;
+
+  /// No description provided for @adminRevenueNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无对账周期'**
   String get adminRevenueNoData;
+
+  /// No description provided for @adminContractActive.
+  ///
+  /// In zh, this message translates to:
+  /// **'生效中'**
   String get adminContractActive;
+
+  /// No description provided for @adminContractDraft.
+  ///
+  /// In zh, this message translates to:
+  /// **'待签署'**
   String get adminContractDraft;
+
+  /// No description provided for @adminContractTerminated.
+  ///
+  /// In zh, this message translates to:
+  /// **'已终止'**
   String get adminContractTerminated;
+
+  /// No description provided for @adminContractTerminate.
+  ///
+  /// In zh, this message translates to:
+  /// **'终止合同'**
   String get adminContractTerminate;
+
+  /// No description provided for @adminContractNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无合同'**
   String get adminContractNoData;
 
+  /// No description provided for @adminSubscriptionsTierLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'套餐'**
   String get adminSubscriptionsTierLabel;
+
+  /// No description provided for @adminSubscriptionsQuotaLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备配额'**
   String get adminSubscriptionsQuotaLabel;
 
+  /// No description provided for @adminApiAuthPrefixLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'前缀'**
   String get adminApiAuthPrefixLabel;
 
+  /// No description provided for @fenceUnsavedTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'有未保存修改'**
   String get fenceUnsavedTitle;
+
+  /// No description provided for @fenceUnsavedMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'你有未保存的边界修改。请选择下一步。'**
   String get fenceUnsavedMessage;
+
+  /// No description provided for @fenceUnsavedContinue.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续编辑'**
   String get fenceUnsavedContinue;
+
+  /// No description provided for @fenceUnsavedDiscard.
+  ///
+  /// In zh, this message translates to:
+  /// **'放弃更改'**
   String get fenceUnsavedDiscard;
+
+  /// No description provided for @fenceUnsavedSaveExit.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存并退出'**
   String get fenceUnsavedSaveExit;
 
+  /// No description provided for @tenantAdjustLicenseTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'调整 License 配额'**
   String get tenantAdjustLicenseTitle;
+
+  /// No description provided for @tenantAdjustLicenseUsed.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前已使用：{used}'**
   String tenantAdjustLicenseUsed(String used);
+
+  /// No description provided for @tenantAdjustLicenseNew.
+  ///
+  /// In zh, this message translates to:
+  /// **'新 License 配额'**
   String get tenantAdjustLicenseNew;
+
+  /// No description provided for @tenantAdjustLicenseConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认调整'**
   String get tenantAdjustLicenseConfirm;
+
+  /// No description provided for @tenantDeleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除租户'**
   String get tenantDeleteTitle;
+
+  /// No description provided for @tenantDeleteMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'即将删除租户「{name}」。该操作不可撤销。'**
   String tenantDeleteMessage(String name);
+
+  /// No description provided for @tenantDeleteReason.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除原因'**
   String get tenantDeleteReason;
+
+  /// No description provided for @ranchHealthLatestAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'最新告警'**
   String get ranchHealthLatestAlerts;
+
+  /// No description provided for @ranchHealthAllRead.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部已读 ({count})'**
   String ranchHealthAllRead(String count);
+
+  /// No description provided for @ranchHealthDismissed.
+  ///
+  /// In zh, this message translates to:
+  /// **'已忽略 ({count})'**
   String ranchHealthDismissed(String count);
+
+  /// No description provided for @ranchHealthIgnoreAlert.
+  ///
+  /// In zh, this message translates to:
+  /// **'忽略此告警'**
   String get ranchHealthIgnoreAlert;
+
+  /// No description provided for @ranchHealthFenceInfo.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏信息'**
   String get ranchHealthFenceInfo;
+
+  /// No description provided for @ranchHealthDetail.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康详情'**
   String get ranchHealthDetail;
+
+  /// No description provided for @ranchHealthDetailLink.
+  ///
+  /// In zh, this message translates to:
+  /// **'{type}详情'**
   String ranchHealthDetailLink(String type);
+
+  /// No description provided for @ranchLivestockDetailBtn.
+  ///
+  /// In zh, this message translates to:
+  /// **'详情'**
   String get ranchLivestockDetailBtn;
+
+  /// No description provided for @ranchLivestockRelatedAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'相关告警'**
   String get ranchLivestockRelatedAlerts;
 
+  /// No description provided for @tenantLicenseInvalidInteger.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入非负整数'**
   String get tenantLicenseInvalidInteger;
+
+  /// No description provided for @tenantLicenseBelowUsed.
+  ///
+  /// In zh, this message translates to:
+  /// **'新配额不能小于当前已使用量（{used}）'**
   String tenantLicenseBelowUsed(String used);
+
+  /// No description provided for @tenantDeleteReasonRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入删除原因'**
   String get tenantDeleteReasonRequired;
 
+  /// No description provided for @deviceInstallTo.
+  ///
+  /// In zh, this message translates to:
+  /// **'安装到牲畜'**
   String get deviceInstallTo;
+
+  /// No description provided for @deviceUnbind.
+  ///
+  /// In zh, this message translates to:
+  /// **'解绑'**
   String get deviceUnbind;
+
+  /// No description provided for @deviceViewLocation.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看位置'**
   String get deviceViewLocation;
+
+  /// No description provided for @offlineTileNoRegions.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无可用离线地图'**
   String get offlineTileNoRegions;
+
+  /// No description provided for @offlineTileRegionsAvailable.
+  ///
+  /// In zh, this message translates to:
+  /// **'可用区域（{count}）'**
   String offlineTileRegionsAvailable(String count);
+
+  /// No description provided for @workerNewWorker.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建牧工'**
   String get workerNewWorker;
+
+  /// No description provided for @workerName.
+  ///
+  /// In zh, this message translates to:
+  /// **'姓名'**
   String get workerName;
+
+  /// No description provided for @workerInitPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'初始密码'**
   String get workerInitPassword;
+
+  /// No description provided for @workerCreateSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧工创建成功'**
   String get workerCreateSuccess;
+
+  /// No description provided for @workerCreateFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建失败: {error}'**
   String workerCreateFailed(String error);
+
+  /// No description provided for @fenceConflictTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏冲突: {name}'**
   String fenceConflictTitle(String name);
+
+  /// No description provided for @fenceConflictDiscardMine.
+  ///
+  /// In zh, this message translates to:
+  /// **'放弃我的修改'**
   String get fenceConflictDiscardMine;
+
+  /// No description provided for @fenceConflictOverwrite.
+  ///
+  /// In zh, this message translates to:
+  /// **'覆盖服务端版本'**
   String get fenceConflictOverwrite;
+
+  /// No description provided for @fenceConflictServerVersion.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务端版本 (v{version})'**
   String fenceConflictServerVersion(String version);
+
+  /// No description provided for @fenceConflictLocalVersion.
+  ///
+  /// In zh, this message translates to:
+  /// **'您的修改 (离线编辑)'**
   String get fenceConflictLocalVersion;
+
+  /// No description provided for @offlineTileTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'离线地图管理'**
   String get offlineTileTitle;
+
+  /// No description provided for @workerAddWorker.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加牧工'**
   String get workerAddWorker;
+
+  /// No description provided for @workerNoFarm.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无可管理牧场'**
   String get workerNoFarm;
+
+  /// No description provided for @workerNoFarmDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前账号尚未选择牧场。'**
   String get workerNoFarmDesc;
+
+  /// No description provided for @workerNoWorkers.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无牧工'**
   String get workerNoWorkers;
+
+  /// No description provided for @workerNoWorkersDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'点击右上角添加牧工'**
   String get workerNoWorkersDesc;
+
+  /// No description provided for @workerLoadFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧工加载失败'**
   String get workerLoadFailed;
+
+  /// No description provided for @workerNameRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'姓名不能为空'**
   String get workerNameRequired;
+
+  /// No description provided for @workerPhoneRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机号不能为空'**
   String get workerPhoneRequired;
+
+  /// No description provided for @workerPasswordMinLength.
+  ///
+  /// In zh, this message translates to:
+  /// **'密码至少3位'**
   String get workerPasswordMinLength;
+
+  /// No description provided for @auditLogTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'审计日志'**
   String get auditLogTitle;
+
+  /// No description provided for @auditLogOperationType.
+  ///
+  /// In zh, this message translates to:
+  /// **'操作类型'**
   String get auditLogOperationType;
+
+  /// No description provided for @auditLogQuery.
+  ///
+  /// In zh, this message translates to:
+  /// **'查询'**
   String get auditLogQuery;
+
+  /// No description provided for @auditLogNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无审计日志'**
   String get auditLogNoData;
+
+  /// No description provided for @auditLogTotalCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'共 {count} 条'**
   String auditLogTotalCount(String count);
+
+  /// No description provided for @tileAdminTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'瓦片管理'**
   String get tileAdminTitle;
+
+  /// No description provided for @tileAdminNoRegions.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无瓦片区域'**
   String get tileAdminNoRegions;
+
+  /// No description provided for @tileAdminNoTasks.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无瓦片任务'**
   String get tileAdminNoTasks;
+
+  /// No description provided for @tileAdminNoFarmTiles.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无牧场瓦片分配'**
   String get tileAdminNoFarmTiles;
+
+  /// No description provided for @tileAdminStatusInfo.
+  ///
+  /// In zh, this message translates to:
+  /// **'状态: {status} | 瓦片: {tiles} | {size}MB'**
   String tileAdminStatusInfo(String status, String tiles, String size);
+
+  /// No description provided for @tileAdminRegionInfo.
+  ///
+  /// In zh, this message translates to:
+  /// **'区域: {region} | 状态: {status}'**
   String tileAdminRegionInfo(String region, String status);
+
+  /// No description provided for @featureGateTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'功能门控管理'**
   String get featureGateTitle;
+
+  /// No description provided for @featureGateNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'该等级暂无功能门控'**
   String get featureGateNoData;
+
+  /// No description provided for @featureGateLimit.
+  ///
+  /// In zh, this message translates to:
+  /// **'限额'**
   String get featureGateLimit;
+
+  /// No description provided for @featureGateRetentionDays.
+  ///
+  /// In zh, this message translates to:
+  /// **'保留天数'**
   String get featureGateRetentionDays;
+
+  /// No description provided for @featureGateUpdated.
+  ///
+  /// In zh, this message translates to:
+  /// **'{key} 已更新'**
   String featureGateUpdated(String key);
+
+  /// No description provided for @analyticsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'用量分析'**
   String get analyticsTitle;
+
+  /// No description provided for @analyticsSelectRange.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择范围'**
   String get analyticsSelectRange;
+
+  /// No description provided for @checkoutTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认支付'**
   String get checkoutTitle;
+
+  /// No description provided for @checkoutLivestockCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入牲畜数量'**
   String get checkoutLivestockCount;
+
+  /// No description provided for @checkoutHeadUnit.
+  ///
+  /// In zh, this message translates to:
+  /// **'头'**
   String get checkoutHeadUnit;
+
+  /// No description provided for @planTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择套餐'**
   String get planTitle;
+
+  /// No description provided for @farmCreationLatLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'纬度 (WGS-84)'**
   String get farmCreationLatLabel;
+
+  /// No description provided for @farmCreationLatHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'选区域后自动填充'**
   String get farmCreationLatHint;
+
+  /// No description provided for @farmCreationLngLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'经度 (WGS-84)'**
   String get farmCreationLngLabel;
+
+  /// No description provided for @farmCreationLngHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'选区域后自动填充'**
   String get farmCreationLngHint;
+
+  /// No description provided for @farmCreationNameLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧场名称 *'**
   String get farmCreationNameLabel;
+
+  /// No description provided for @farmCreationNameHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入牧场名称'**
   String get farmCreationNameHint;
+
+  /// No description provided for @farmCreationOwnerLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'负责人'**
   String get farmCreationOwnerLabel;
+
+  /// No description provided for @farmCreationOwnerHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择 owner（可选）'**
   String get farmCreationOwnerHint;
+
+  /// No description provided for @farmCreationAreaLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'面积（公顷）'**
   String get farmCreationAreaLabel;
+
+  /// No description provided for @farmCreationAreaHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'选填'**
   String get farmCreationAreaHint;
+
+  /// No description provided for @farmCreationTileLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'瓦片区域'**
   String get farmCreationTileLabel;
+
+  /// No description provided for @farmCreationTileHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择离线瓦片区域'**
   String get farmCreationTileHint;
+
+  /// No description provided for @alertSummaryTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警摘要'**
   String get alertSummaryTitle;
+
+  /// No description provided for @alertSummaryCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'共 {count} 条'**
   String alertSummaryCount(String count);
+
+  /// No description provided for @commonNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无数据'**
   String get commonNoData;
+
+  /// No description provided for @tileAdminRegionsTab.
+  ///
+  /// In zh, this message translates to:
+  /// **'区域管理'**
   String get tileAdminRegionsTab;
+
+  /// No description provided for @tileAdminTasksTab.
+  ///
+  /// In zh, this message translates to:
+  /// **'任务管理'**
   String get tileAdminTasksTab;
+
+  /// No description provided for @tileAdminFarmTab.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧场分配'**
   String get tileAdminFarmTab;
+
+  /// No description provided for @b2bFarmListTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'旗下牧场'**
   String get b2bFarmListTitle;
+
+  /// No description provided for @b2bFarmListOptional.
+  ///
+  /// In zh, this message translates to:
+  /// **'以下选填'**
   String get b2bFarmListOptional;
+
+  /// No description provided for @b2bFarmEditName.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑牧场名称'**
   String get b2bFarmEditName;
+
+  /// No description provided for @b2bFarmNotAssigned.
+  ///
+  /// In zh, this message translates to:
+  /// **'未指定'**
   String get b2bFarmNotAssigned;
+
+  /// No description provided for @b2bFarmCurrentOwner.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前负责人: {name}'**
   String b2bFarmCurrentOwner(String name);
+
+  /// No description provided for @b2bFarmNewOwner.
+  ///
+  /// In zh, this message translates to:
+  /// **'新负责人'**
   String get b2bFarmNewOwner;
+
+  /// No description provided for @b2bFarmConfirmChange.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认变更'**
   String get b2bFarmConfirmChange;
+
+  /// No description provided for @b2bFarmChangeSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'「{farm}」负责人已变更为 {owner}'**
   String b2bFarmChangeSuccess(String farm, String owner);
+
+  /// No description provided for @b2bFarmRenameDemo.
+  ///
+  /// In zh, this message translates to:
+  /// **'「{name}」重命名功能开发中'**
   String b2bFarmRenameDemo(String name);
+
+  /// No description provided for @b2bFarmStatDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备'**
   String get b2bFarmStatDevice;
+
+  /// No description provided for @b2bFarmStatRanch.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧场'**
   String get b2bFarmStatRanch;
+
+  /// No description provided for @b2bWorkerEditFarmInfo.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑牧场信息'**
   String get b2bWorkerEditFarmInfo;
+
+  /// No description provided for @b2bWorkerFarmUpdated.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧场信息已更新'**
   String get b2bWorkerFarmUpdated;
+
+  /// No description provided for @b2bWorkerAssign.
+  ///
+  /// In zh, this message translates to:
+  /// **'分配'**
   String get b2bWorkerAssign;
+
+  /// No description provided for @b2bWorkerAssignTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'分配牧工'**
   String get b2bWorkerAssignTitle;
+
+  /// No description provided for @b2bWorkerAssignNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有可分配的牧工，请先点击「添加牧工」创建'**
   String get b2bWorkerAssignNone;
+
+  /// No description provided for @b2bWorkerAssignConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认分配 ({count})'**
   String b2bWorkerAssignConfirm(String count);
+
+  /// No description provided for @b2bWorkerRemoveTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'移除牧工'**
   String get b2bWorkerRemoveTitle;
+
+  /// No description provided for @b2bWorkerRemoveConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定将「{name}」从「{farm}」移除？'**
   String b2bWorkerRemoveConfirm(String name, String farm);
+
+  /// No description provided for @b2bWorkerConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认'**
   String get b2bWorkerConfirm;
+
+  /// No description provided for @b2bWorkerCreated.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧工「{name}」已创建并分配'**
   String b2bWorkerCreated(String name);
+
+  /// No description provided for @b2bWorkerUpdated.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧工信息已更新'**
   String get b2bWorkerUpdated;
+
+  /// No description provided for @b2bWorkerResetPwd.
+  ///
+  /// In zh, this message translates to:
+  /// **'重置密码'**
   String get b2bWorkerResetPwd;
+
+  /// No description provided for @b2bWorkerResetPwdTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'重置「{name}」密码'**
   String b2bWorkerResetPwdTitle(String name);
+
+  /// No description provided for @b2bWorkerNewPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'新密码'**
   String get b2bWorkerNewPassword;
+
+  /// No description provided for @b2bWorkerConfirmReset.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认重置'**
   String get b2bWorkerConfirmReset;
+
+  /// No description provided for @b2bWorkerPwdReset.
+  ///
+  /// In zh, this message translates to:
+  /// **'密码已重置'**
   String get b2bWorkerPwdReset;
 }
 

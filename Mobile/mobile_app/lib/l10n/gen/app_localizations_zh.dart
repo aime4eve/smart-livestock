@@ -209,7 +209,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commonLoadFailed => '加载失败';
 
   @override
-  String commonDeleteFailed(String error) => '删除失败: $error';
+  String commonDeleteFailed(String error) {
+    return '删除失败: $error';
+  }
 
   @override
   String get commonConfirmDelete => '确认删除';
@@ -236,10 +238,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ranchEditBoundary => '编辑边界';
 
   @override
-  String ranchFenceDeleted(String name) => '已删除「$name」';
+  String ranchFenceDeleted(String name) {
+    return '已删除「$name」';
+  }
 
   @override
-  String ranchConfirmDeleteFence(String name) => '确认删除「$name」？删除后无法恢复。';
+  String ranchConfirmDeleteFence(String name) {
+    return '确认删除「$name」？删除后无法恢复。';
+  }
 
   @override
   String get ranchFenceActive => '启用';
@@ -248,7 +254,171 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ranchFenceInactive => '停用';
 
   @override
-  String ranchLivestockCountHead(String count) => '$count头';
+  String ranchLivestockCountHead(String count) {
+    return '$count头';
+  }
+
+  @override
+  String ranchPeekInFence(String percent) {
+    return '归栏 $percent%';
+  }
+
+  @override
+  String ranchPeekHealth(String percent) {
+    return '健康 $percent%';
+  }
+
+  @override
+  String ranchPeekAlertCount(String count) {
+    return '$count条告警';
+  }
+
+  @override
+  String get ranchSectionFenceAlerts => '围栏告警';
+
+  @override
+  String get ranchSectionFenceNormal => '围栏正常';
+
+  @override
+  String get ranchSectionHealthAlerts => '健康告警';
+
+  @override
+  String get ranchSectionLivestockHealthy => '牲畜健康';
+
+  @override
+  String get ranchSectionFenceAlertDetail => '围栏告警详情';
+
+  @override
+  String get ranchSectionHealthAlertDetail => '健康告警详情';
+
+  @override
+  String get ranchCapabilityFenceNote => '系统能检测围栏越界，定位精度取决于GPS信号';
+
+  @override
+  String get ranchCapabilityHealthNote => '系统能通知你健康异常，需线下排查确认';
+
+  @override
+  String get ranchAlertTypeFenceBreach => '越界';
+
+  @override
+  String get ranchAlertTypeFenceApproach => '接近围栏';
+
+  @override
+  String get ranchAlertTypeZoneApproach => '接近区域';
+
+  @override
+  String get ranchAlertTypeFever => '发热';
+
+  @override
+  String get ranchAlertTypeDigestive => '消化异常';
+
+  @override
+  String get ranchAlertTypeEstrus => '发情';
+
+  @override
+  String get ranchAlertTypeEpidemic => '疫病';
+
+  @override
+  String get ranchAlertTypeShortApproach => '接近';
+
+  @override
+  String get ranchAlertTypeShortZone => '区域';
+
+  @override
+  String get ranchAlertTypeShortDigestive => '消化';
+
+  @override
+  String get ranchAlertTypeEstrusHighScore => '发情高分';
+
+  @override
+  String get ranchAlertTypeEpidemicRisk => '疫病风险';
+
+  @override
+  String get ranchHealthStatusCritical => '严重';
+
+  @override
+  String get ranchHealthStatusWarning => '预警';
+
+  @override
+  String get ranchHealthStatusNormal => '正常';
+
+  @override
+  String get ranchAlertStatusActive => '活跃';
+
+  @override
+  String get ranchAlertStatusDismissed => '已忽略';
+
+  @override
+  String get ranchAlertStatusAutoResolved => '已自动解除';
+
+  @override
+  String get ranchAlertStatusHandled => '已处理';
+
+  @override
+  String get ranchAlertStatusArchived => '已归档';
+
+  @override
+  String ranchTimeMinutesAgo(int minutes) {
+    return '$minutes分钟前';
+  }
+
+  @override
+  String ranchTimeHoursAgo(int hours) {
+    return '$hours小时前';
+  }
+
+  @override
+  String ranchTimeDaysAgo(int days) {
+    return '$days天前';
+  }
+
+  @override
+  String get ranchTimeUnknown => '未知';
+
+  @override
+  String get ranchFieldStatus => '状态';
+
+  @override
+  String get ranchFieldPrimaryAlert => '主要异常';
+
+  @override
+  String get ranchFieldLocation => '位置';
+
+  @override
+  String get ranchFieldType => '类型';
+
+  @override
+  String get ranchFieldDistanceToFence => '距围栏';
+
+  @override
+  String get ranchFieldDirection => '方向';
+
+  @override
+  String get ranchFieldOccurredTime => '发生时间';
+
+  @override
+  String get ranchFieldTime => '时间';
+
+  @override
+  String get ranchFieldAbnormalType => '异常类型';
+
+  @override
+  String get ranchActionDismiss => '忽略';
+
+  @override
+  String ranchFenceBreachCount(String count) {
+    return '越界 $count';
+  }
+
+  @override
+  String ranchFenceApproachCount(String count) {
+    return '接近 $count';
+  }
+
+  @override
+  String ranchAutoResolvedCount(String count) {
+    return '已自动解除 ($count)';
+  }
 
   @override
   String get dashboardNoData => '暂无看板数据';
@@ -284,13 +454,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get mineAccountDisabled => '账户已停用';
 
   @override
-  String mineProfileName(String name) => '姓名：$name';
+  String mineProfileName(String name) {
+    return '姓名：$name';
+  }
 
   @override
-  String mineProfilePhone(String phone) => '手机号：$phone';
+  String mineProfilePhone(String phone) {
+    return '手机号：$phone';
+  }
 
   @override
-  String mineProfileRole(String role) => '角色：$role';
+  String mineProfileRole(String role) {
+    return '角色：$role';
+  }
 
   @override
   String get minePersonalDevices => '个人设备与工具';
@@ -440,8 +616,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get digestiveNoData => '暂无消化异常数据';
 
   @override
-  String digestiveItemSubtitle(String breed, String frequency, String dropPercent) =>
-      '$breed  蠕动 $frequency次/分  ↓$dropPercent%';
+  String digestiveItemSubtitle(
+    String breed,
+    String frequency,
+    String dropPercent,
+  ) {
+    return '$breed  蠕动 $frequency次/分  ↓$dropPercent%';
+  }
 
   @override
   String get estrusTitle => '发情识别';
@@ -450,8 +631,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get estrusNoData => '暂无发情数据';
 
   @override
-  String estrusItemSubtitle(String breed, String genderIcon, String stepInfo) =>
-      '$breed $genderIcon $stepInfo';
+  String estrusItemSubtitle(String breed, String genderIcon, String stepInfo) {
+    return '$breed $genderIcon $stepInfo';
+  }
 
   @override
   String get epidemicTitle => '疫病防控';
@@ -463,7 +645,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get epidemicContactTracing => '接触追踪';
 
   @override
-  String epidemicRiskLevel(String level) => '风险等级: $level';
+  String epidemicRiskLevel(String level) {
+    return '风险等级: $level';
+  }
 
   @override
   String get epidemicAvgTemperature => '平均体温';
@@ -502,19 +686,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get devicesNoDevices => '暂无设备';
 
   @override
-  String devicesUnbindDemo(String name) => '演示：解绑 $name';
+  String devicesUnbindDemo(String name) {
+    return '演示：解绑 $name';
+  }
 
   @override
-  String devicesViewLocationDemo(String name) => '演示：查看 $name 位置';
+  String devicesViewLocationDemo(String name) {
+    return '演示：查看 $name 位置';
+  }
 
   @override
-  String devicesInstallSuccess(String name) => '安装成功：$name';
+  String devicesInstallSuccess(String name) {
+    return '安装成功：$name';
+  }
 
   @override
-  String devicesInstallFailed(String error) => '安装失败: $error';
+  String devicesInstallFailed(String error) {
+    return '安装失败: $error';
+  }
 
   @override
-  String devicesInstallTo(String name) => '安装到牲畜 — $name';
+  String devicesInstallTo(String name) {
+    return '安装到牲畜 — $name';
+  }
 
   @override
   String get devicesNoMatchingLivestock => '无匹配牲畜';
@@ -574,10 +768,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get fenceFormForceUpdate => '强制更新';
 
   @override
-  String fenceFormForceUpdateFailed(String error) => '强制更新失败: $error';
+  String fenceFormForceUpdateFailed(String error) {
+    return '强制更新失败: $error';
+  }
 
   @override
-  String fenceFormSaveFailed(String error) => '保存失败: $error';
+  String fenceFormSaveFailed(String error) {
+    return '保存失败: $error';
+  }
 
   @override
   String get fenceFormRectangle => '矩形';
@@ -603,205 +801,609 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get fenceFormSaveFence => '保存围栏';
 
-  @override String get b2bRevenueTitle => '对账';
-  @override String get b2bRevenueNoData => '暂无对账数据，系统将在每月1日自动生成结算周期';
-  @override String get b2bContractTitle => '合同信息';
-  @override String get b2bContractTerms => '合同条款';
-  @override String get b2bContractServiceStatus => '订阅服务状态';
-  @override String get b2bContractRenew => '联系续签';
-  @override String get b2bDashboardTitle => '运营概览';
-  @override String get b2bDashboardMonthlyRevenue => '本月营收';
-  @override String get b2bDashboardPendingAlerts => '待处理告警';
-  @override String get b2bDashboardNoPendingAlerts => '暂无待处理告警';
-  @override String get b2bRevenueDetailConfirmOk => '对账确认成功';
-  @override String get b2bRevenueDetailConfirmFailed => '确认失败，请重试';
-  @override String get b2bRevenueDetailTitle => '对账明细';
-  @override String get b2bRevenueDetailDeviceFee => '设备费用合计';
-  @override String get b2bRevenueDetailConfirmStatus => '确认状态';
-  @override String get b2bRevenueDetailConfirmButton => '确认对账';
+  @override
+  String get b2bRevenueTitle => '对账';
 
-  @override String get b2bFarmCreationEnterName => '请输入牧场名称';
-  @override String get b2bFarmCreationSelectPoint => '请在地图上选点或输入经纬度';
-  @override String b2bFarmCreationSuccess(String name) => '牧场「$name」创建成功';
-  @override String get b2bFarmCreationFailed => '创建失败，请重试';
-  @override String get b2bFarmCreationTitle => '新建牧场';
-  @override String get b2bFarmCreationButton => '创建牧场';
-  @override String get b2bFarmCreationNotSpecified => '— 暂不指定 —';
-  @override String get b2bFarmCreationUserLoadFailed => '加载用户列表失败';
-  @override String get b2bFarmCreationSelectTile => '请先选择瓦片区域';
-  @override String get wizardExitConfirm => '牧场已创建。退出后将进入主页面，您可以稍后设置围栏。';
-  @override String get wizardContinueSetup => '继续设置';
-  @override String get wizardNextStep => '下一步';
-  @override String get wizardEnterRanch => '进入牧场';
-  @override String get wizardCreateFailedNoId => '创建牧场失败：未获取到牧场ID';
-  @override String get wizardCreateFailed => '创建牧场失败，请重试';
-  @override String get wizardFenceMinVertices => '围栏至少需要 3 个顶点';
-  @override String get wizardSetupLater => '稍后设置';
+  @override
+  String get b2bRevenueNoData => '暂无对账数据，系统将在每月1日自动生成结算周期';
 
-  @override String get subscriptionUpgradeTier => '升级套餐';
-  @override String get subscriptionRenew => '续费';
-  @override String get subscriptionConfirmCancel => '确认取消';
-  @override String get subscriptionCancelWarning => '取消订阅后，当前周期结束后将无法使用付费功能。确定要取消吗？';
-  @override String get subscriptionKeepSubscription => '暂不取消';
-  @override String get subscriptionCancelled => '订阅已取消';
-  @override String get subscriptionCurrentTier => '当前套餐';
-  @override String get subscriptionSelectTier => '选择此套餐';
-  @override String get subscriptionRenewNow => '立即续费';
-  @override String subscriptionUpgradeTo(String tier) => '升级到$tier';
-  @override String get subscriptionFeature => '功能';
+  @override
+  String get b2bContractTitle => '合同信息';
 
-  @override String get subscriptionStatusTrial => '试用中';
-  @override String get subscriptionStatusActive => '已订阅';
-  @override String get subscriptionStatusCancelled => '已取消';
-  @override String get subscriptionStatusExpired => '已过期';
+  @override
+  String get b2bContractTerms => '合同条款';
 
-  @override String get adminSubscriptionsNoData => '暂无订阅服务';
-  @override String get adminSubscriptionsRevoke => '撤销';
-  @override String get adminSubscriptionsRenew => '续期';
-  @override String get adminApiAuthCreateKey => '创建 Key';
-  @override String get adminApiAuthNoKeys => '暂无 API Key';
-  @override String get adminApiAuthDescription => '管理 API Key 的创建、启用和撤销';
-  @override String get adminApiAuthName => '名称';
-  @override String get adminApiAuthDescriptionOptional => '描述（可选）';
-  @override String get adminApiAuthScopes => '权限范围:';
-  @override String get adminApiAuthCreate => '创建';
-  @override String get adminApiAuthKeyCreated => 'Key 已创建';
-  @override String get adminApiAuthKeyWarning => '请立即保存此 Key，关闭后将无法再次查看。';
-  @override String get adminApiAuthSaved => '已保存';
-  @override String get adminRevenueNoData => '暂无对账周期';
-  @override String get adminContractActive => '生效中';
-  @override String get adminContractDraft => '待签署';
-  @override String get adminContractTerminated => '已终止';
-  @override String get adminContractTerminate => '终止合同';
-  @override String get adminContractNoData => '暂无合同';
+  @override
+  String get b2bContractServiceStatus => '订阅服务状态';
 
-  @override String get adminSubscriptionsTierLabel => '套餐';
-  @override String get adminSubscriptionsQuotaLabel => '设备配额';
+  @override
+  String get b2bContractRenew => '联系续签';
 
-  @override String get adminApiAuthPrefixLabel => '前缀';
-  @override String get fenceUnsavedTitle => '有未保存修改';
-  @override String get fenceUnsavedMessage => '你有未保存的边界修改。请选择下一步。';
-  @override String get fenceUnsavedContinue => '继续编辑';
-  @override String get fenceUnsavedDiscard => '放弃更改';
-  @override String get fenceUnsavedSaveExit => '保存并退出';
-  @override String get tenantAdjustLicenseTitle => '调整 License 配额';
-  @override String tenantAdjustLicenseUsed(String used) => '当前已使用：$used';
-  @override String get tenantAdjustLicenseNew => '新 License 配额';
-  @override String get tenantAdjustLicenseConfirm => '确认调整';
-  @override String get tenantDeleteTitle => '删除租户';
-  @override String tenantDeleteMessage(String name) => '即将删除租户「$name」。该操作不可撤销。';
-  @override String get tenantDeleteReason => '删除原因';
-  @override String get ranchHealthLatestAlerts => '最新告警';
-  @override String ranchHealthAllRead(String count) => '全部已读 ($count)';
-  @override String ranchHealthDismissed(String count) => '已忽略 ($count)';
-  @override String get ranchHealthIgnoreAlert => '忽略此告警';
-  @override String get ranchHealthFenceInfo => '围栏信息';
-  @override String get ranchHealthDetail => '健康详情';
-  @override String ranchHealthDetailLink(String type) => '$type详情';
-  @override String get ranchLivestockDetailBtn => '详情';
-  @override String get ranchLivestockRelatedAlerts => '相关告警';
+  @override
+  String get b2bDashboardTitle => '运营概览';
 
-  @override String get tenantLicenseInvalidInteger => '请输入非负整数';
-  @override String tenantLicenseBelowUsed(String used) => '新配额不能小于当前已使用量（$used）';
-  @override String get tenantDeleteReasonRequired => '请输入删除原因';
+  @override
+  String get b2bDashboardMonthlyRevenue => '本月营收';
 
-  @override String get deviceInstallTo => '安装到牲畜';
-  @override String get deviceUnbind => '解绑';
-  @override String get deviceViewLocation => '查看位置';
-  @override String get offlineTileNoRegions => '暂无可用离线地图';
-  @override String offlineTileRegionsAvailable(String count) => '可用区域（$count）';
-  @override String get workerNewWorker => '新建牧工';
-  @override String get workerName => '姓名';
-  @override String get workerInitPassword => '初始密码';
-  @override String get workerCreateSuccess => '牧工创建成功';
-  @override String workerCreateFailed(String error) => '创建失败: $error';
-  @override String fenceConflictTitle(String name) => '围栏冲突: $name';
-  @override String get fenceConflictDiscardMine => '放弃我的修改';
-  @override String get fenceConflictOverwrite => '覆盖服务端版本';
+  @override
+  String get b2bDashboardPendingAlerts => '待处理告警';
 
-  @override String fenceConflictServerVersion(String version) => '服务端版本 (v$version)';
-  @override String get fenceConflictLocalVersion => '您的修改 (离线编辑)';
+  @override
+  String get b2bDashboardNoPendingAlerts => '暂无待处理告警';
 
-  @override String get offlineTileTitle => '离线地图管理';
+  @override
+  String get b2bRevenueDetailConfirmOk => '对账确认成功';
 
-  @override String get workerAddWorker => '添加牧工';
-  @override String get workerNoFarm => '暂无可管理牧场';
-  @override String get workerNoFarmDesc => '当前账号尚未选择牧场。';
-  @override String get workerNoWorkers => '暂无牧工';
-  @override String get workerNoWorkersDesc => '点击右上角添加牧工';
-  @override String get workerLoadFailed => '牧工加载失败';
-  @override String get workerNameRequired => '姓名不能为空';
-  @override String get workerPhoneRequired => '手机号不能为空';
-  @override String get workerPasswordMinLength => '密码至少3位';
+  @override
+  String get b2bRevenueDetailConfirmFailed => '确认失败，请重试';
 
-  @override String get auditLogTitle => '审计日志';
-  @override String get auditLogOperationType => '操作类型';
-  @override String get auditLogQuery => '查询';
-  @override String get auditLogNoData => '暂无审计日志';
-  @override String auditLogTotalCount(String count) => '共 $count 条';
-  @override String get tileAdminTitle => '瓦片管理';
-  @override String get tileAdminNoRegions => '暂无瓦片区域';
-  @override String get tileAdminNoTasks => '暂无瓦片任务';
-  @override String get tileAdminNoFarmTiles => '暂无牧场瓦片分配';
-  @override String tileAdminStatusInfo(String status, String tiles, String size) => '状态: $status | 瓦片: $tiles | ${size}MB';
-  @override String tileAdminRegionInfo(String region, String status) => '区域: $region | 状态: $status';
-  @override String get featureGateTitle => '功能门控管理';
-  @override String get featureGateNoData => '该等级暂无功能门控';
-  @override String get featureGateLimit => '限额';
-  @override String get featureGateRetentionDays => '保留天数';
-  @override String featureGateUpdated(String key) => '$key 已更新';
-  @override String get analyticsTitle => '用量分析';
-  @override String get analyticsSelectRange => '选择范围';
-  @override String get checkoutTitle => '确认支付';
-  @override String get checkoutLivestockCount => '请输入牲畜数量';
-  @override String get checkoutHeadUnit => '头';
-  @override String get planTitle => '选择套餐';
-  @override String get farmCreationLatLabel => '纬度 (WGS-84)';
-  @override String get farmCreationLatHint => '选区域后自动填充';
-  @override String get farmCreationLngLabel => '经度 (WGS-84)';
-  @override String get farmCreationLngHint => '选区域后自动填充';
-  @override String get farmCreationNameLabel => '牧场名称 *';
-  @override String get farmCreationNameHint => '请输入牧场名称';
-  @override String get farmCreationOwnerLabel => '负责人';
-  @override String get farmCreationOwnerHint => '选择 owner（可选）';
-  @override String get farmCreationAreaLabel => '面积（公顷）';
-  @override String get farmCreationAreaHint => '选填';
-  @override String get farmCreationTileLabel => '瓦片区域';
-  @override String get farmCreationTileHint => '选择离线瓦片区域';
-  @override String get alertSummaryTitle => '告警摘要';
-  @override String alertSummaryCount(String count) => '共 $count 条';
-  @override String get commonNoData => '暂无数据';
+  @override
+  String get b2bRevenueDetailTitle => '对账明细';
 
-  @override String get tileAdminRegionsTab => '区域管理';
-  @override String get tileAdminTasksTab => '任务管理';
-  @override String get tileAdminFarmTab => '牧场分配';
+  @override
+  String get b2bRevenueDetailDeviceFee => '设备费用合计';
 
-  @override String get b2bFarmListTitle => '旗下牧场';
-  @override String get b2bFarmListOptional => '以下选填';
-  @override String get b2bFarmEditName => '编辑牧场名称';
-  @override String get b2bFarmNotAssigned => '未指定';
-  @override String b2bFarmCurrentOwner(String name) => '当前负责人: $name';
-  @override String get b2bFarmNewOwner => '新负责人';
-  @override String get b2bFarmConfirmChange => '确认变更';
-  @override String b2bFarmChangeSuccess(String farm, String owner) => '「$farm」负责人已变更为 $owner';
-  @override String b2bFarmRenameDemo(String name) => '「$name」重命名功能开发中';
-  @override String get b2bFarmStatDevice => '设备';
-  @override String get b2bFarmStatRanch => '牧场';
+  @override
+  String get b2bRevenueDetailConfirmStatus => '确认状态';
 
-  @override String get b2bWorkerEditFarmInfo => '编辑牧场信息';
-  @override String get b2bWorkerFarmUpdated => '牧场信息已更新';
-  @override String get b2bWorkerAssign => '分配';
-  @override String get b2bWorkerAssignTitle => '分配牧工';
-  @override String get b2bWorkerAssignNone => '没有可分配的牧工，请先点击「添加牧工」创建';
-  @override String b2bWorkerAssignConfirm(String count) => '确认分配 ($count)';
-  @override String get b2bWorkerRemoveTitle => '移除牧工';
-  @override String b2bWorkerRemoveConfirm(String name, String farm) => '确定将「$name」从「$farm」移除？';
-  @override String get b2bWorkerConfirm => '确认';
-  @override String b2bWorkerCreated(String name) => '牧工「$name」已创建并分配';
-  @override String get b2bWorkerUpdated => '牧工信息已更新';
-  @override String get b2bWorkerResetPwd => '重置密码';
-  @override String b2bWorkerResetPwdTitle(String name) => '重置「$name」密码';
-  @override String get b2bWorkerNewPassword => '新密码';
-  @override String get b2bWorkerConfirmReset => '确认重置';
-  @override String get b2bWorkerPwdReset => '密码已重置';
+  @override
+  String get b2bRevenueDetailConfirmButton => '确认对账';
+
+  @override
+  String get b2bFarmCreationEnterName => '请输入牧场名称';
+
+  @override
+  String get b2bFarmCreationSelectPoint => '请在地图上选点或输入经纬度';
+
+  @override
+  String b2bFarmCreationSuccess(String name) {
+    return '牧场「$name」创建成功';
+  }
+
+  @override
+  String get b2bFarmCreationFailed => '创建失败，请重试';
+
+  @override
+  String get b2bFarmCreationTitle => '新建牧场';
+
+  @override
+  String get b2bFarmCreationButton => '创建牧场';
+
+  @override
+  String get b2bFarmCreationNotSpecified => '— 暂不指定 —';
+
+  @override
+  String get b2bFarmCreationUserLoadFailed => '加载用户列表失败';
+
+  @override
+  String get b2bFarmCreationSelectTile => '请先选择瓦片区域';
+
+  @override
+  String get wizardExitConfirm => '牧场已创建。退出后将进入主页面，您可以稍后设置围栏。';
+
+  @override
+  String get wizardContinueSetup => '继续设置';
+
+  @override
+  String get wizardNextStep => '下一步';
+
+  @override
+  String get wizardEnterRanch => '进入牧场';
+
+  @override
+  String get wizardCreateFailedNoId => '创建牧场失败：未获取到牧场ID';
+
+  @override
+  String get wizardCreateFailed => '创建牧场失败，请重试';
+
+  @override
+  String get wizardFenceMinVertices => '围栏至少需要 3 个顶点';
+
+  @override
+  String get wizardSetupLater => '稍后设置';
+
+  @override
+  String get subscriptionUpgradeTier => '升级套餐';
+
+  @override
+  String get subscriptionRenew => '续费';
+
+  @override
+  String get subscriptionConfirmCancel => '确认取消';
+
+  @override
+  String get subscriptionCancelWarning => '取消订阅后，当前周期结束后将无法使用付费功能。确定要取消吗？';
+
+  @override
+  String get subscriptionKeepSubscription => '暂不取消';
+
+  @override
+  String get subscriptionCancelled => '订阅已取消';
+
+  @override
+  String get subscriptionCurrentTier => '当前套餐';
+
+  @override
+  String get subscriptionSelectTier => '选择此套餐';
+
+  @override
+  String get subscriptionRenewNow => '立即续费';
+
+  @override
+  String subscriptionUpgradeTo(String tier) {
+    return '升级到$tier';
+  }
+
+  @override
+  String get subscriptionFeature => '功能';
+
+  @override
+  String get subscriptionStatusTrial => '试用中';
+
+  @override
+  String get subscriptionStatusActive => '已订阅';
+
+  @override
+  String get subscriptionStatusCancelled => '已取消';
+
+  @override
+  String get subscriptionStatusExpired => '已过期';
+
+  @override
+  String get adminSubscriptionsNoData => '暂无订阅服务';
+
+  @override
+  String get adminSubscriptionsRevoke => '撤销';
+
+  @override
+  String get adminSubscriptionsRenew => '续期';
+
+  @override
+  String get adminApiAuthCreateKey => '创建 Key';
+
+  @override
+  String get adminApiAuthNoKeys => '暂无 API Key';
+
+  @override
+  String get adminApiAuthDescription => '管理 API Key 的创建、启用和撤销';
+
+  @override
+  String get adminApiAuthName => '名称';
+
+  @override
+  String get adminApiAuthDescriptionOptional => '描述（可选）';
+
+  @override
+  String get adminApiAuthScopes => '权限范围:';
+
+  @override
+  String get adminApiAuthCreate => '创建';
+
+  @override
+  String get adminApiAuthKeyCreated => 'Key 已创建';
+
+  @override
+  String get adminApiAuthKeyWarning => '请立即保存此 Key，关闭后将无法再次查看。';
+
+  @override
+  String get adminApiAuthSaved => '已保存';
+
+  @override
+  String get adminRevenueNoData => '暂无对账周期';
+
+  @override
+  String get adminContractActive => '生效中';
+
+  @override
+  String get adminContractDraft => '待签署';
+
+  @override
+  String get adminContractTerminated => '已终止';
+
+  @override
+  String get adminContractTerminate => '终止合同';
+
+  @override
+  String get adminContractNoData => '暂无合同';
+
+  @override
+  String get adminSubscriptionsTierLabel => '套餐';
+
+  @override
+  String get adminSubscriptionsQuotaLabel => '设备配额';
+
+  @override
+  String get adminApiAuthPrefixLabel => '前缀';
+
+  @override
+  String get fenceUnsavedTitle => '有未保存修改';
+
+  @override
+  String get fenceUnsavedMessage => '你有未保存的边界修改。请选择下一步。';
+
+  @override
+  String get fenceUnsavedContinue => '继续编辑';
+
+  @override
+  String get fenceUnsavedDiscard => '放弃更改';
+
+  @override
+  String get fenceUnsavedSaveExit => '保存并退出';
+
+  @override
+  String get tenantAdjustLicenseTitle => '调整 License 配额';
+
+  @override
+  String tenantAdjustLicenseUsed(String used) {
+    return '当前已使用：$used';
+  }
+
+  @override
+  String get tenantAdjustLicenseNew => '新 License 配额';
+
+  @override
+  String get tenantAdjustLicenseConfirm => '确认调整';
+
+  @override
+  String get tenantDeleteTitle => '删除租户';
+
+  @override
+  String tenantDeleteMessage(String name) {
+    return '即将删除租户「$name」。该操作不可撤销。';
+  }
+
+  @override
+  String get tenantDeleteReason => '删除原因';
+
+  @override
+  String get ranchHealthLatestAlerts => '最新告警';
+
+  @override
+  String ranchHealthAllRead(String count) {
+    return '全部已读 ($count)';
+  }
+
+  @override
+  String ranchHealthDismissed(String count) {
+    return '已忽略 ($count)';
+  }
+
+  @override
+  String get ranchHealthIgnoreAlert => '忽略此告警';
+
+  @override
+  String get ranchHealthFenceInfo => '围栏信息';
+
+  @override
+  String get ranchHealthDetail => '健康详情';
+
+  @override
+  String ranchHealthDetailLink(String type) {
+    return '$type详情';
+  }
+
+  @override
+  String get ranchLivestockDetailBtn => '详情';
+
+  @override
+  String get ranchLivestockRelatedAlerts => '相关告警';
+
+  @override
+  String get tenantLicenseInvalidInteger => '请输入非负整数';
+
+  @override
+  String tenantLicenseBelowUsed(String used) {
+    return '新配额不能小于当前已使用量（$used）';
+  }
+
+  @override
+  String get tenantDeleteReasonRequired => '请输入删除原因';
+
+  @override
+  String get deviceInstallTo => '安装到牲畜';
+
+  @override
+  String get deviceUnbind => '解绑';
+
+  @override
+  String get deviceViewLocation => '查看位置';
+
+  @override
+  String get offlineTileNoRegions => '暂无可用离线地图';
+
+  @override
+  String offlineTileRegionsAvailable(String count) {
+    return '可用区域（$count）';
+  }
+
+  @override
+  String get workerNewWorker => '新建牧工';
+
+  @override
+  String get workerName => '姓名';
+
+  @override
+  String get workerInitPassword => '初始密码';
+
+  @override
+  String get workerCreateSuccess => '牧工创建成功';
+
+  @override
+  String workerCreateFailed(String error) {
+    return '创建失败: $error';
+  }
+
+  @override
+  String fenceConflictTitle(String name) {
+    return '围栏冲突: $name';
+  }
+
+  @override
+  String get fenceConflictDiscardMine => '放弃我的修改';
+
+  @override
+  String get fenceConflictOverwrite => '覆盖服务端版本';
+
+  @override
+  String fenceConflictServerVersion(String version) {
+    return '服务端版本 (v$version)';
+  }
+
+  @override
+  String get fenceConflictLocalVersion => '您的修改 (离线编辑)';
+
+  @override
+  String get offlineTileTitle => '离线地图管理';
+
+  @override
+  String get workerAddWorker => '添加牧工';
+
+  @override
+  String get workerNoFarm => '暂无可管理牧场';
+
+  @override
+  String get workerNoFarmDesc => '当前账号尚未选择牧场。';
+
+  @override
+  String get workerNoWorkers => '暂无牧工';
+
+  @override
+  String get workerNoWorkersDesc => '点击右上角添加牧工';
+
+  @override
+  String get workerLoadFailed => '牧工加载失败';
+
+  @override
+  String get workerNameRequired => '姓名不能为空';
+
+  @override
+  String get workerPhoneRequired => '手机号不能为空';
+
+  @override
+  String get workerPasswordMinLength => '密码至少3位';
+
+  @override
+  String get auditLogTitle => '审计日志';
+
+  @override
+  String get auditLogOperationType => '操作类型';
+
+  @override
+  String get auditLogQuery => '查询';
+
+  @override
+  String get auditLogNoData => '暂无审计日志';
+
+  @override
+  String auditLogTotalCount(String count) {
+    return '共 $count 条';
+  }
+
+  @override
+  String get tileAdminTitle => '瓦片管理';
+
+  @override
+  String get tileAdminNoRegions => '暂无瓦片区域';
+
+  @override
+  String get tileAdminNoTasks => '暂无瓦片任务';
+
+  @override
+  String get tileAdminNoFarmTiles => '暂无牧场瓦片分配';
+
+  @override
+  String tileAdminStatusInfo(String status, String tiles, String size) {
+    return '状态: $status | 瓦片: $tiles | ${size}MB';
+  }
+
+  @override
+  String tileAdminRegionInfo(String region, String status) {
+    return '区域: $region | 状态: $status';
+  }
+
+  @override
+  String get featureGateTitle => '功能门控管理';
+
+  @override
+  String get featureGateNoData => '该等级暂无功能门控';
+
+  @override
+  String get featureGateLimit => '限额';
+
+  @override
+  String get featureGateRetentionDays => '保留天数';
+
+  @override
+  String featureGateUpdated(String key) {
+    return '$key 已更新';
+  }
+
+  @override
+  String get analyticsTitle => '用量分析';
+
+  @override
+  String get analyticsSelectRange => '选择范围';
+
+  @override
+  String get checkoutTitle => '确认支付';
+
+  @override
+  String get checkoutLivestockCount => '请输入牲畜数量';
+
+  @override
+  String get checkoutHeadUnit => '头';
+
+  @override
+  String get planTitle => '选择套餐';
+
+  @override
+  String get farmCreationLatLabel => '纬度 (WGS-84)';
+
+  @override
+  String get farmCreationLatHint => '选区域后自动填充';
+
+  @override
+  String get farmCreationLngLabel => '经度 (WGS-84)';
+
+  @override
+  String get farmCreationLngHint => '选区域后自动填充';
+
+  @override
+  String get farmCreationNameLabel => '牧场名称 *';
+
+  @override
+  String get farmCreationNameHint => '请输入牧场名称';
+
+  @override
+  String get farmCreationOwnerLabel => '负责人';
+
+  @override
+  String get farmCreationOwnerHint => '选择 owner（可选）';
+
+  @override
+  String get farmCreationAreaLabel => '面积（公顷）';
+
+  @override
+  String get farmCreationAreaHint => '选填';
+
+  @override
+  String get farmCreationTileLabel => '瓦片区域';
+
+  @override
+  String get farmCreationTileHint => '选择离线瓦片区域';
+
+  @override
+  String get alertSummaryTitle => '告警摘要';
+
+  @override
+  String alertSummaryCount(String count) {
+    return '共 $count 条';
+  }
+
+  @override
+  String get commonNoData => '暂无数据';
+
+  @override
+  String get tileAdminRegionsTab => '区域管理';
+
+  @override
+  String get tileAdminTasksTab => '任务管理';
+
+  @override
+  String get tileAdminFarmTab => '牧场分配';
+
+  @override
+  String get b2bFarmListTitle => '旗下牧场';
+
+  @override
+  String get b2bFarmListOptional => '以下选填';
+
+  @override
+  String get b2bFarmEditName => '编辑牧场名称';
+
+  @override
+  String get b2bFarmNotAssigned => '未指定';
+
+  @override
+  String b2bFarmCurrentOwner(String name) {
+    return '当前负责人: $name';
+  }
+
+  @override
+  String get b2bFarmNewOwner => '新负责人';
+
+  @override
+  String get b2bFarmConfirmChange => '确认变更';
+
+  @override
+  String b2bFarmChangeSuccess(String farm, String owner) {
+    return '「$farm」负责人已变更为 $owner';
+  }
+
+  @override
+  String b2bFarmRenameDemo(String name) {
+    return '「$name」重命名功能开发中';
+  }
+
+  @override
+  String get b2bFarmStatDevice => '设备';
+
+  @override
+  String get b2bFarmStatRanch => '牧场';
+
+  @override
+  String get b2bWorkerEditFarmInfo => '编辑牧场信息';
+
+  @override
+  String get b2bWorkerFarmUpdated => '牧场信息已更新';
+
+  @override
+  String get b2bWorkerAssign => '分配';
+
+  @override
+  String get b2bWorkerAssignTitle => '分配牧工';
+
+  @override
+  String get b2bWorkerAssignNone => '没有可分配的牧工，请先点击「添加牧工」创建';
+
+  @override
+  String b2bWorkerAssignConfirm(String count) {
+    return '确认分配 ($count)';
+  }
+
+  @override
+  String get b2bWorkerRemoveTitle => '移除牧工';
+
+  @override
+  String b2bWorkerRemoveConfirm(String name, String farm) {
+    return '确定将「$name」从「$farm」移除？';
+  }
+
+  @override
+  String get b2bWorkerConfirm => '确认';
+
+  @override
+  String b2bWorkerCreated(String name) {
+    return '牧工「$name」已创建并分配';
+  }
+
+  @override
+  String get b2bWorkerUpdated => '牧工信息已更新';
+
+  @override
+  String get b2bWorkerResetPwd => '重置密码';
+
+  @override
+  String b2bWorkerResetPwdTitle(String name) {
+    return '重置「$name」密码';
+  }
+
+  @override
+  String get b2bWorkerNewPassword => '新密码';
+
+  @override
+  String get b2bWorkerConfirmReset => '确认重置';
+
+  @override
+  String get b2bWorkerPwdReset => '密码已重置';
 }

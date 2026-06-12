@@ -8,6 +8,7 @@ import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/ranch_controller.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/alert_card.dart';
+import 'package:smart_livestock_demo/core/l10n/l10n.dart';
 import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/auto_resolved_section.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/device_info_line.dart';
@@ -147,15 +148,17 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
   // ── Peek bar: "头数 · 归栏率 · 健康率" ────────────────────────
   Widget _buildPeekBar(RanchOverviewStats stats) {
     final l10n = AppLocalizations.of(context)!;
+    final inFencePct = (stats.inFenceRate * 100).toStringAsFixed(0);
+    final healthPct = (stats.healthyRate * 100).toStringAsFixed(0);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          '${stats.totalLivestock}头',
+          l10n.ranchLivestockCountHead('${stats.totalLivestock}'),
           style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
         ),
         Text(
-          '归栏 ${(stats.inFenceRate * 100).toStringAsFixed(0)}%',
+          l10n.ranchPeekInFence(inFencePct),
           style: TextStyle(
             fontSize: 13,
             color: stats.inFenceRate >= 0.9 ? AppColors.success : AppColors.warning,
@@ -163,7 +166,7 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
           ),
         ),
         Text(
-          '健康 ${(stats.healthyRate * 100).toStringAsFixed(0)}%',
+          l10n.ranchPeekHealth(healthPct),
           style: TextStyle(
             fontSize: 13,
             color: stats.healthyRate >= 0.9 ? AppColors.success : AppColors.warning,
@@ -178,7 +181,7 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
-              '${stats.alertCount}条告警',
+              l10n.ranchPeekAlertCount('${stats.alertCount}'),
               style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.danger,
@@ -192,6 +195,7 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
 
   // ── Dashboard: fence + health summary cards ────────────────────
   Widget _buildDashboard(BuildContext context, RanchOverview overview, RanchController controller) {
+    final l10n = AppLocalizations.of(context)!;
     final fenceSummary = overview.fenceAlertSummary;
     final healthSummary = overview.healthAlertSummary;
     final fenceTotal = fenceSummary.values.fold(0, (a, b) => a + b);
@@ -208,11 +212,11 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
         if (fenceTotal > 0)
           StatusDashboardCard(
           icon: Icons.fence,
-          title: '围栏告警',
+          title: l10n.ranchSectionFenceAlerts,
           alertCount: fenceTotal,
           subtitle: fenceTotal > 0
               ? fenceSummary.entries.map((e) => '${_fenceTypeLabel(e.key)} ${e.value}').join('  ')
-              : '围栏正常',
+              : l10n.ranchSectionFenceNormal,
           accentColor: AppColors.warning,
           onTap: () => controller.showCategoryList('fence'),
         ),
@@ -222,11 +226,11 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
         if (healthTotal > 0)
         StatusDashboardCard(
           icon: Icons.favorite,
-          title: '健康告警',
+          title: l10n.ranchSectionHealthAlerts,
           alertCount: healthTotal,
           subtitle: healthTotal > 0
               ? healthSummary.entries.map((e) => '${_healthTypeLabel(e.key)} ${e.value}').join('  ')
-              : '牲畜健康',
+              : l10n.ranchSectionLivestockHealthy,
           accentColor: AppColors.danger,
           onTap: () => controller.showCategoryList('health'),
         ),
@@ -253,11 +257,12 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
 
   // ── Scene chips (compact, from sceneSummary) ───────────────────
   Widget _buildSceneChips(BuildContext context, RanchSceneSummary scene) {
+    final l = AppLocalizations.of(context)!;
     final items = [
-      (Icons.thermostat, '发热', scene.fever.abnormalCount, AppColors.danger),
-      (Icons.pets, '消化', scene.digestive.abnormalCount, AppColors.warning),
-      (Icons.favorite, '发情', scene.estrus.highScoreCount, AppColors.accent),
-      (Icons.shield, '疫病', scene.epidemic.abnormalRate > 0.1 ? 1 : 0, AppColors.info),
+      (Icons.thermostat, l.ranchAlertTypeFever, scene.fever.abnormalCount, AppColors.danger),
+      (Icons.pets, l.ranchAlertTypeShortDigestive, scene.digestive.abnormalCount, AppColors.warning),
+      (Icons.favorite, l.ranchAlertTypeEstrus, scene.estrus.highScoreCount, AppColors.accent),
+      (Icons.shield, l.ranchAlertTypeEpidemic, scene.epidemic.abnormalRate > 0.1 ? 1 : 0, AppColors.info),
     ];
 
     return Row(
@@ -286,6 +291,7 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
     String? category,
     dynamic role,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final allAlerts = overview.alerts;
     final fenceTypes = {'FENCE_BREACH', 'FENCE_APPROACH', 'ZONE_APPROACH'};
     final isFence = category == 'fence';
@@ -308,7 +314,7 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
       children: [
         // Back bar
         _BackBar(
-          title: isFence ? '围栏告警' : '健康告警',
+          title: isFence ? l10n.ranchSectionFenceAlerts : l10n.ranchSectionHealthAlerts,
           onBack: controller.showDashboard,
         ),
         if (unreadActiveCount > 0 && canManage)
@@ -390,7 +396,7 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
     return Column(
       children: [
         _BackBar(
-          title: isFence ? '围栏告警详情' : '健康告警详情',
+          title: isFence ? l10n.ranchSectionFenceAlertDetail : l10n.ranchSectionHealthAlertDetail,
           onBack: () => controller.showCategoryList(
             isFence ? 'fence' : 'health',
           ),
@@ -431,8 +437,8 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
                       Expanded(
                         child: Text(
                           isFence
-                            ? '系统能检测围栏越界，定位精度取决于GPS信号'
-                            : '系统能通知你健康异常，需线下排查确认',
+                            ? l10n.ranchCapabilityFenceNote
+                            : l10n.ranchCapabilityHealthNote,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.info,
                           ),
@@ -470,20 +476,26 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
     );
   }
 
-  String _fenceTypeLabel(String type) => switch (type) {
-    'FENCE_BREACH' => '越界',
-    'FENCE_APPROACH' => '接近',
-    'ZONE_APPROACH' => '区域',
-    _ => type,
-  };
+  String _fenceTypeLabel(String type) {
+    final l = L10n.instance;
+    return switch (type) {
+      'FENCE_BREACH' => l.ranchAlertTypeFenceBreach,
+      'FENCE_APPROACH' => l.ranchAlertTypeShortApproach,
+      'ZONE_APPROACH' => l.ranchAlertTypeShortZone,
+      _ => type,
+    };
+  }
 
-  String _healthTypeLabel(String type) => switch (type) {
-    'TEMPERATURE_ABNORMAL' || 'FEVER' => '发热',
-    'DIGESTIVE_ABNORMAL' || 'BEHAVIOR_ABNORMAL' => '消化',
-    'ESTRUS' => '发情',
-    'EPIDEMIC' => '疫病',
-    _ => type,
-  };
+  String _healthTypeLabel(String type) {
+    final l = L10n.instance;
+    return switch (type) {
+      'TEMPERATURE_ABNORMAL' || 'FEVER' => l.ranchAlertTypeFever,
+      'DIGESTIVE_ABNORMAL' || 'BEHAVIOR_ABNORMAL' => l.ranchAlertTypeShortDigestive,
+      'ESTRUS' => l.ranchAlertTypeEstrus,
+      'EPIDEMIC' => l.ranchAlertTypeEpidemic,
+      _ => type,
+    };
+  }
 }
 
 // ── Back navigation bar ──────────────────────────────────────────
@@ -571,13 +583,13 @@ class _FenceDetailContent extends StatelessWidget {
           children: [
             Text(l10n.ranchHealthFenceInfo, style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: AppSpacing.sm),
-            _InfoRow(label: '类型', value: alert.type),
+            _InfoRow(label: L10n.instance.ranchFieldType, value: alert.type),
             if (alert.distance != null)
-              _InfoRow(label: '距围栏', value: '${alert.distance!.toStringAsFixed(0)}m'),
+              _InfoRow(label: L10n.instance.ranchFieldDistanceToFence, value: '${alert.distance!.toStringAsFixed(0)}m'),
             if (alert.direction != null)
-              _InfoRow(label: '方向', value: alert.direction!),
+              _InfoRow(label: L10n.instance.ranchFieldDirection, value: alert.direction!),
             if (alert.occurredAt != null)
-              _InfoRow(label: '发生时间', value: alert.occurredAt!),
+              _InfoRow(label: L10n.instance.ranchFieldOccurredTime, value: alert.occurredAt!),
           ],
         ),
       ),
@@ -605,9 +617,9 @@ class _HealthDetailContent extends StatelessWidget {
           children: [
             Text(l10n.ranchHealthDetail, style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: AppSpacing.sm),
-            _InfoRow(label: '异常类型', value: _healthLabel(healthType)),
+            _InfoRow(label: L10n.instance.ranchFieldAbnormalType, value: _healthLabel(healthType)),
             if (alert.occurredAt != null)
-              _InfoRow(label: '发生时间', value: alert.occurredAt!),
+              _InfoRow(label: L10n.instance.ranchFieldOccurredTime, value: alert.occurredAt!),
             if (canNavigate) ...[
               const SizedBox(height: AppSpacing.sm),
               SizedBox(
@@ -625,13 +637,16 @@ class _HealthDetailContent extends StatelessWidget {
     );
   }
 
-  String _healthLabel(String type) => switch (type) {
-    'TEMPERATURE_ABNORMAL' || 'FEVER' => '发热',
-    'DIGESTIVE_ABNORMAL' || 'BEHAVIOR_ABNORMAL' => '消化异常',
-    'ESTRUS' => '发情',
-    'EPIDEMIC' => '疫病',
-    _ => type,
-  };
+  String _healthLabel(String type) {
+    final l = L10n.instance;
+    return switch (type) {
+      'TEMPERATURE_ABNORMAL' || 'FEVER' => l.ranchAlertTypeFever,
+      'DIGESTIVE_ABNORMAL' || 'BEHAVIOR_ABNORMAL' => l.ranchAlertTypeDigestive,
+      'ESTRUS' => l.ranchAlertTypeEstrus,
+      'EPIDEMIC' => l.ranchAlertTypeEpidemic,
+      _ => type,
+    };
+  }
 
   void _navigateToDetail(BuildContext context, String type, String livestockId) {
     final path = switch (type) {

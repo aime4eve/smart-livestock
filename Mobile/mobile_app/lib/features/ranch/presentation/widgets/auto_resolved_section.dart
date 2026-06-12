@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
+import 'package:smart_livestock_demo/core/l10n/l10n.dart';
 
 /// A collapsible section showing auto-resolved alerts.
 ///
@@ -47,7 +48,7 @@ class _AutoResolvedSectionState extends State<AutoResolvedSection> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '已自动解除 (${widget.alerts.length})',
+                  L10n.instance.ranchAutoResolvedCount(widget.alerts.length.toString()),
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: AppColors.textSecondary,
                     fontWeight: FontWeight.w500,
@@ -116,9 +117,10 @@ class _AutoResolvedItem extends StatelessWidget {
       final dt = DateTime.parse(iso);
       final now = DateTime.now();
       final diff = now.difference(dt);
-      if (diff.inMinutes < 60) return '${diff.inMinutes}分钟前';
-      if (diff.inHours < 24) return '${diff.inHours}小时前';
-      return '${diff.inDays}天前';
+      final l = L10n.instance;
+      if (diff.inMinutes < 60) return l.ranchTimeMinutesAgo(diff.inMinutes);
+      if (diff.inHours < 24) return l.ranchTimeHoursAgo(diff.inHours);
+      return l.ranchTimeDaysAgo(diff.inDays);
     } catch (_) {
       return '';
     }

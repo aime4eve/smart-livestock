@@ -6,6 +6,7 @@ import 'dart:math' show cos, sqrt;
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
 import 'package:smart_livestock_demo/features/ranch/presentation/widgets/device_info_line.dart';
+import 'package:smart_livestock_demo/core/l10n/l10n.dart';
 
 /// Detail sheet for a fence alert — shows a mini map with fence polygon,
 /// livestock position, buffer zone, and distance/direction info.
@@ -99,20 +100,20 @@ class FenceAlertDetailSheet extends StatelessWidget {
         if (alert.distance != null)
           _MetricChip(
             icon: Icons.straighten,
-            label: '距围栏',
+            label: L10n.instance.ranchFieldDistanceToFence,
             value: '${alert.distance!.toStringAsFixed(0)}m',
             color: alert.distance! > 30 ? AppColors.warning : AppColors.danger,
           ),
         if (alert.direction != null)
           _MetricChip(
             icon: Icons.navigation,
-            label: '方向',
+            label: L10n.instance.ranchFieldDirection,
             value: alert.direction!,
             color: AppColors.info,
           ),
         _MetricChip(
           icon: Icons.schedule,
-          label: '时间',
+          label: L10n.instance.ranchFieldTime,
           value: _formatTime(alert.occurredAt),
           color: AppColors.textSecondary,
         ),
@@ -121,7 +122,7 @@ class FenceAlertDetailSheet extends StatelessWidget {
   }
 
   String _formatTime(String? iso) {
-    if (iso == null) return '未知';
+    if (iso == null) return L10n.instance.ranchTimeUnknown;
     try {
       final dt = DateTime.parse(iso);
       return '${dt.month}/${dt.day} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';

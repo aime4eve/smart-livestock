@@ -7,6 +7,7 @@ import 'package:smart_livestock_demo/core/models/user_role.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_widget.dart';
+import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class MainShell extends ConsumerWidget {
   const MainShell({
@@ -69,7 +70,7 @@ class MainShell extends ConsumerWidget {
     }
     final showShellAppBar =
         showFarmContext && location != AppRoute.fence.path && location != AppRoute.ranch.path;
-    final navItems = _buildBusinessNavItems(role);
+    final navItems = _buildBusinessNavItems(role, context);
     final currentIndex = navItems.indexWhere((item) {
       if (item.route == AppRoute.ranch) {
         return location == AppRoute.ranch.path ||
@@ -134,18 +135,19 @@ class MainShell extends ConsumerWidget {
     );
   }
 
-  List<_NavItem> _buildBusinessNavItems(UserRole role) {
+  List<_NavItem> _buildBusinessNavItems(UserRole role, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final items = <_NavItem>[
-      const _NavItem(
-        key: Key('nav-ranch'),
+      _NavItem(
+        key: const Key('nav-ranch'),
         icon: Icons.map,
-        label: '牧场',
+        label: l10n.navRanch,
         route: AppRoute.ranch,
       ),
-      const _NavItem(
-        key: Key('nav-mine'),
+      _NavItem(
+        key: const Key('nav-mine'),
         icon: Icons.person,
-        label: '我的',
+        label: l10n.navMine,
         route: AppRoute.mine,
       ),
     ];

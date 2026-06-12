@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
+import 'package:smart_livestock_demo/core/l10n/l10n.dart';
 import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class LivestockDetailSheet extends StatelessWidget {
@@ -57,11 +58,11 @@ class LivestockDetailSheet extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
-            _InfoRow(label: '状态', value: _healthLabel(marker.healthStatus)),
+            _InfoRow(label: l10n.ranchFieldStatus, value: _healthLabel(marker.healthStatus)),
             if (marker.primaryAlert.isNotEmpty)
-              _InfoRow(label: '主要异常', value: _alertLabel(marker.primaryAlert)),
+              _InfoRow(label: l10n.ranchFieldPrimaryAlert, value: _alertLabel(marker.primaryAlert)),
             _InfoRow(
-                label: '位置',
+                label: l10n.ranchFieldLocation,
                 value: '${marker.latitude.toStringAsFixed(4)}, ${marker.longitude.toStringAsFixed(4)}'),
             if (relatedAlerts.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.md),
@@ -111,21 +112,23 @@ class LivestockDetailSheet extends StatelessWidget {
   }
 
   String _healthLabel(String status) {
+    final l = L10n.instance;
     return switch (status) {
-      'CRITICAL' => '严重',
-      'WARNING' => '预警',
-      _ => '正常',
+      'CRITICAL' => l.ranchHealthStatusCritical,
+      'WARNING' => l.ranchHealthStatusWarning,
+      _ => l.ranchHealthStatusNormal,
     };
   }
 
   String _alertLabel(String alert) {
+    final l = L10n.instance;
     return switch (alert) {
-      'FEVER' => '发热',
-      'DIGESTIVE' => '消化异常',
-      'ESTRUS' => '发情高分',
-      'EPIDEMIC' => '疫病风险',
-      'FENCE_APPROACH' => '接近围栏',
-      'ZONE_APPROACH' => '接近区域',
+      'FEVER' => l.ranchAlertTypeFever,
+      'DIGESTIVE' => l.ranchAlertTypeDigestive,
+      'ESTRUS' => l.ranchAlertTypeEstrusHighScore,
+      'EPIDEMIC' => l.ranchAlertTypeEpidemicRisk,
+      'FENCE_APPROACH' => l.ranchAlertTypeFenceApproach,
+      'ZONE_APPROACH' => l.ranchAlertTypeZoneApproach,
       _ => alert,
     };
   }
@@ -155,15 +158,16 @@ class LivestockDetailSheet extends StatelessWidget {
   }
 
   String _statusLabel(String status) {
+    final l = L10n.instance;
     return switch (status) {
-      'ACTIVE' => '活跃',
-      'DISMISSED' => '已忽略',
-      'AUTO_RESOLVED' => '已自动解除',
+      'ACTIVE' => l.ranchAlertStatusActive,
+      'DISMISSED' => l.ranchAlertStatusDismissed,
+      'AUTO_RESOLVED' => l.ranchAlertStatusAutoResolved,
       // Legacy compatibility
-      'PENDING' => '活跃',
-      'ACKNOWLEDGED' => '活跃',
-      'HANDLED' => '已忽略',
-      'ARCHIVED' => '已自动解除',
+      'PENDING' => l.ranchAlertStatusActive,
+      'ACKNOWLEDGED' => l.ranchAlertStatusActive,
+      'HANDLED' => l.ranchAlertStatusDismissed,
+      'ARCHIVED' => l.ranchAlertStatusAutoResolved,
       _ => status,
     };
   }

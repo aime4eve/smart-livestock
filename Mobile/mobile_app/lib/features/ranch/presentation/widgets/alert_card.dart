@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
+import 'package:smart_livestock_demo/core/l10n/l10n.dart';
 
 /// A single alert item in the drill-down list.
 ///
@@ -139,7 +140,7 @@ class AlertCard extends StatelessWidget {
                 IconButton(
                   onPressed: onDismiss,
                   icon: const Icon(Icons.close, size: 18, color: AppColors.textSecondary),
-                  tooltip: '忽略',
+                  tooltip: L10n.instance.ranchActionDismiss,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
                 )
@@ -167,25 +168,29 @@ class AlertCard extends StatelessWidget {
     _ => Icons.warning,
   };
 
-  String _typeLabel(String type) => switch (type) {
-    'FENCE_BREACH' => '越界',
-    'FENCE_APPROACH' => '接近围栏',
-    'ZONE_APPROACH' => '接近区域',
-    'TEMPERATURE_ABNORMAL' || 'FEVER' => '发热',
-    'DIGESTIVE_ABNORMAL' || 'BEHAVIOR_ABNORMAL' => '消化异常',
-    'ESTRUS' => '发情',
-    'EPIDEMIC' => '疫病',
-    _ => type,
-  };
+  String _typeLabel(String type) {
+    final l = L10n.instance;
+    return switch (type) {
+      'FENCE_BREACH' => l.ranchAlertTypeFenceBreach,
+      'FENCE_APPROACH' => l.ranchAlertTypeFenceApproach,
+      'ZONE_APPROACH' => l.ranchAlertTypeZoneApproach,
+      'TEMPERATURE_ABNORMAL' || 'FEVER' => l.ranchAlertTypeFever,
+      'DIGESTIVE_ABNORMAL' || 'BEHAVIOR_ABNORMAL' => l.ranchAlertTypeDigestive,
+      'ESTRUS' => l.ranchAlertTypeEstrus,
+      'EPIDEMIC' => l.ranchAlertTypeEpidemic,
+      _ => type,
+    };
+  }
 
   String _formatTime(String iso) {
     try {
       final dt = DateTime.parse(iso);
       final now = DateTime.now();
       final diff = now.difference(dt);
-      if (diff.inMinutes < 60) return '${diff.inMinutes}分钟前';
-      if (diff.inHours < 24) return '${diff.inHours}小时前';
-      return '${diff.inDays}天前';
+      final l = L10n.instance;
+      if (diff.inMinutes < 60) return l.ranchTimeMinutesAgo(diff.inMinutes);
+      if (diff.inHours < 24) return l.ranchTimeHoursAgo(diff.inHours);
+      return l.ranchTimeDaysAgo(diff.inDays);
     } catch (_) {
       return '';
     }
@@ -198,11 +203,12 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L10n.instance;
     final (label, color) = switch (status) {
-      'DISMISSED' => ('已忽略', AppColors.textSecondary),
-      'AUTO_RESOLVED' => ('已自动解除', AppColors.success),
-      'HANDLED' => ('已处理', AppColors.success),
-      'ARCHIVED' => ('已归档', AppColors.textSecondary),
+      'DISMISSED' => (l.ranchAlertStatusDismissed, AppColors.textSecondary),
+      'AUTO_RESOLVED' => (l.ranchAlertStatusAutoResolved, AppColors.success),
+      'HANDLED' => (l.ranchAlertStatusHandled, AppColors.success),
+      'ARCHIVED' => (l.ranchAlertStatusArchived, AppColors.textSecondary),
       _ => ('', AppColors.textSecondary),
     };
     if (label.isEmpty) return const SizedBox.shrink();
