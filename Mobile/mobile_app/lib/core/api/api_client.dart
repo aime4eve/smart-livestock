@@ -286,4 +286,6 @@ class ApiClient {
   Future<void> logout() async {
     await JwtStorage.instance.clear();
   }
+  // TODO: implement locale header injection
+  void setLocale(String? localeHeader) {}
 }
