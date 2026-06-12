@@ -2,7 +2,8 @@
 
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'secure_backend_io.dart'
+    if (dart.library.html) 'secure_backend_web.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class JwtStorage {
@@ -13,14 +14,12 @@ class JwtStorage {
   static const _userInfoKey = 'user_info';
   static const _activeFarmIdKey = 'active_farm_id';
 
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
-
   Future<void> saveAccessToken(String token) async {
     if (kIsWeb) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_accessTokenKey, token);
     } else {
-      await _secureStorage.write(key: _accessTokenKey, value: token);
+      await SecureBackend.write(_accessTokenKey, token);
     }
   }
 
@@ -29,7 +28,7 @@ class JwtStorage {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString(_accessTokenKey);
     } else {
-      return _secureStorage.read(key: _accessTokenKey);
+      return SecureBackend.read(_accessTokenKey);
     }
   }
 
@@ -39,7 +38,7 @@ class JwtStorage {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_userInfoKey, jsonEncode(info));
     } else {
-      await _secureStorage.write(key: _userInfoKey, value: jsonEncode(info));
+      await SecureBackend.write(_userInfoKey, jsonEncode(info));
     }
   }
 
@@ -49,7 +48,7 @@ class JwtStorage {
       final prefs = await SharedPreferences.getInstance();
       raw = prefs.getString(_userInfoKey);
     } else {
-      raw = await _secureStorage.read(key: _userInfoKey);
+      raw = await SecureBackend.read(_userInfoKey);
     }
     if (raw == null) return null;
     try {
@@ -66,9 +65,9 @@ class JwtStorage {
       await prefs.remove(_userInfoKey);
       await prefs.remove(_activeFarmIdKey);
     } else {
-      await _secureStorage.delete(key: _accessTokenKey);
-      await _secureStorage.delete(key: _userInfoKey);
-      await _secureStorage.delete(key: _activeFarmIdKey);
+      await SecureBackend.delete(_accessTokenKey);
+      await SecureBackend.delete(_userInfoKey);
+      await SecureBackend.delete(_activeFarmIdKey);
     }
   }
 
@@ -77,7 +76,7 @@ class JwtStorage {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_activeFarmIdKey, farmId);
     } else {
-      await _secureStorage.write(key: _activeFarmIdKey, value: farmId);
+      await SecureBackend.write(_activeFarmIdKey, farmId);
     }
   }
 
@@ -86,7 +85,7 @@ class JwtStorage {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString(_activeFarmIdKey);
     } else {
-      return _secureStorage.read(key: _activeFarmIdKey);
+      return SecureBackend.read(_activeFarmIdKey);
     }
   }
 }
