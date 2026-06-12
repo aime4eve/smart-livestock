@@ -5,6 +5,7 @@ import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_repository.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
 import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/confirm_dialog.dart';
+import 'package:smart_livestock_demo/core/l10n/l10n.dart';
 import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
 
 class B2bContractPage extends ConsumerWidget {
@@ -113,6 +114,7 @@ class _ContractContent extends StatelessWidget {
 
   // --- Main info card (gradient) ---
   Widget _buildMainInfoCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final statusColor = _statusColor(data.status);
     final statusText = _statusText(data.status);
 
@@ -189,17 +191,17 @@ class _ContractContent extends StatelessWidget {
           Row(
             children: [
               _HeroInfoItem(
-                label: '编号',
+                label: l10n.b2bContractNumber,
                 value: data.contractId ?? '-',
               ),
               const SizedBox(width: AppSpacing.xl),
               _HeroInfoItem(
-                label: '签约人',
+                label: l10n.b2bContractSigner,
                 value: data.signedBy ?? '-',
               ),
               const SizedBox(width: AppSpacing.xl),
               _HeroInfoItem(
-                label: '计费模式',
+                label: l10n.b2bContractBillingMode,
                 value: _billingModelText(data.billingModel),
               ),
             ],
@@ -245,7 +247,7 @@ class _ContractContent extends StatelessWidget {
               Expanded(
                 child: _TermCard(
                   icon: Icons.workspace_premium_outlined,
-                  label: '套餐等级',
+                  label: l10n.b2bContractTierLevel,
                   value: _tierText(data.effectiveTier),
                 ),
               ),
@@ -253,7 +255,7 @@ class _ContractContent extends StatelessWidget {
               Expanded(
                 child: _TermCard(
                   icon: Icons.percent,
-                  label: '分润比例',
+                  label: l10n.b2bContractRevenueShare,
                   value: data.revenueShareRatio != null
                       ? '${(data.revenueShareRatio! * 100).toStringAsFixed(0)}%'
                       : '-',
@@ -267,7 +269,7 @@ class _ContractContent extends StatelessWidget {
               Expanded(
                 child: _TermCard(
                   icon: Icons.play_arrow,
-                  label: '生效日期',
+                  label: l10n.b2bContractEffectiveDate,
                   value: _formatDate(data.startedAt),
                 ),
               ),
@@ -275,7 +277,7 @@ class _ContractContent extends StatelessWidget {
               Expanded(
                 child: _TermCard(
                   icon: Icons.schedule,
-                  label: '到期日期',
+                  label: l10n.b2bContractExpiryDate,
                   value: _formatDate(data.expiresAt),
                 ),
               ),
@@ -364,7 +366,7 @@ class _ContractContent extends StatelessWidget {
               Expanded(
                 child: _SubInfoItem(
                   icon: Icons.cloud_outlined,
-                  label: '部署方式',
+                  label: l10n.b2bContractDeployMode,
                   value: _deploymentTypeText(data.deploymentType),
                 ),
               ),
@@ -372,7 +374,7 @@ class _ContractContent extends StatelessWidget {
               Expanded(
                 child: _SubInfoItem(
                   icon: Icons.devices_outlined,
-                  label: '设备配额',
+                  label: l10n.b2bContractDeviceQuota,
                   value: data.deviceQuota != null
                       ? '${data.deviceQuota}'
                       : '-',
@@ -386,7 +388,7 @@ class _ContractContent extends StatelessWidget {
               Expanded(
                 child: _SubInfoItem(
                   icon: Icons.favorite_outline,
-                  label: '心跳',
+                  label: l10n.b2bContractHeartbeat,
                   value: _formatDate(data.lastHeartbeatAt),
                 ),
               ),
@@ -394,7 +396,7 @@ class _ContractContent extends StatelessWidget {
               Expanded(
                 child: _SubInfoItem(
                   icon: Icons.timer_outlined,
-                  label: '到期时间',
+                  label: l10n.b2bContractExpiryTime,
                   value: _formatDate(data.serviceExpiresAt),
                 ),
               ),
@@ -414,15 +416,15 @@ class _ContractContent extends StatelessWidget {
           child: _ActionCard(
             key: const Key('b2b-contract-action-contact'),
             icon: Icons.headset_mic_outlined,
-            title: '联系平台',
-            subtitle: '咨询续签或变更',
+            title: l10n.b2bContractContactPlatform,
+            subtitle: l10n.b2bContractContactPlatformDesc,
             onTap: () {
               B2bConfirmDialog.show(
                 context,
-                title: '功能开发中',
-                subtitle: '在线客服功能即将上线',
-                confirmLabel: '知道了',
-                cancelLabel: '关闭',
+                title: l10n.b2bContractComingSoon,
+                subtitle: l10n.b2bContractChatComingSoon,
+                confirmLabel: l10n.b2bContractGotIt,
+                cancelLabel: l10n.b2bContractClose,
               );
             },
           ),
@@ -432,15 +434,15 @@ class _ContractContent extends StatelessWidget {
           child: _ActionCard(
             key: const Key('b2b-contract-action-download'),
             icon: Icons.download_outlined,
-            title: '下载合同',
-            subtitle: '导出 PDF（占位）',
+            title: l10n.b2bContractDownload,
+            subtitle: l10n.b2bContractDownloadDesc,
             onTap: () {
               B2bConfirmDialog.show(
                 context,
-                title: '功能开发中',
-                subtitle: '合同 PDF 下载功能即将上线',
-                confirmLabel: '知道了',
-                cancelLabel: '关闭',
+                title: l10n.b2bContractComingSoon,
+                subtitle: l10n.b2bContractPdfComingSoon,
+                confirmLabel: l10n.b2bContractGotIt,
+                cancelLabel: l10n.b2bContractClose,
               );
             },
           ),
@@ -451,9 +453,9 @@ class _ContractContent extends StatelessWidget {
 
   // --- Helpers ---
   static String _statusText(String? status) => switch (status) {
-        'active' => '生效中',
-        'suspended' => '已暂停',
-        'expired' => '已过期',
+        'active' => L10n.instance.b2bContractStatusActive,
+        'suspended' => L10n.instance.b2bContractStatusSuspended,
+        'expired' => L10n.instance.b2bContractStatusExpired,
         _ => status ?? '-',
       };
 
@@ -465,15 +467,15 @@ class _ContractContent extends StatelessWidget {
       };
 
   static String _billingModelText(String? model) => switch (model) {
-        'revenue_share' => '分润模式',
-        'licensed' => '授权模式',
+        'revenue_share' => L10n.instance.b2bContractModeRevenueShare,
+        'licensed' => L10n.instance.b2bContractModeLicensed,
         _ => model ?? '-',
       };
 
   static String _tierText(String? tier) => switch (tier) {
-        'standard' => '标准版',
-        'premium' => '高级版',
-        'enterprise' => '企业版',
+        'standard' => L10n.instance.subscriptionTierStandard,
+        'premium' => L10n.instance.subscriptionTierPremium,
+        'enterprise' => L10n.instance.subscriptionTierEnterprise,
         _ => tier ?? '-',
       };
 
@@ -487,8 +489,8 @@ class _ContractContent extends StatelessWidget {
   }
 
   static String _deploymentTypeText(String? type) => switch (type) {
-        'cloud' => '云端',
-        'on_premise' => '本地部署',
+        'cloud' => L10n.instance.b2bContractDeployCloud,
+        'on_premise' => L10n.instance.b2bContractDeployOnPremise,
         _ => type ?? '-',
       };
 
@@ -500,10 +502,10 @@ class _ContractContent extends StatelessWidget {
       };
 
   static String _serviceStatusText(String? status) => switch (status) {
-        'running' => '正常运行',
-        'degraded' => '性能降级',
-        'down' => '服务中断',
-        _ => status ?? '未知',
+        'running' => L10n.instance.b2bContractHealthRunning,
+        'degraded' => L10n.instance.b2bContractHealthDegraded,
+        'down' => L10n.instance.b2bContractHealthDown,
+        _ => status ?? L10n.instance.b2bContractUnknown,
       };
 }
 
@@ -574,8 +576,8 @@ class _ExpiryReminderBar extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  '合同到期日',
+                Text(
+                  l10n.b2bContractExpiryLabel,
                   style: TextStyle(
                     fontSize: 12,
                     color: Color(0xFF455A64),
@@ -585,8 +587,8 @@ class _ExpiryReminderBar extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   days > 0
-                      ? '$dateStr  ·  剩余 $days 天'
-                      : '$dateStr  ·  已过期',
+                      ? l10n.b2bContractDaysLeft(dateStr, '$days')
+                      : l10n.b2bContractExpiredOn(dateStr),
                   style: TextStyle(
                     fontSize: 14,
                     color: days > 0

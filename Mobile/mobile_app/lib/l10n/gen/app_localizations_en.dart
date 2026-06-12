@@ -955,6 +955,315 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get subFeatureGpsLocation => 'GPS Tracking';
+
+  @override
+  String subFeatureFenceCount(String count) {
+    return 'Geofence ($count)';
+  }
+
+  @override
+  String get subFeatureFenceUnlimited => 'Geofence (Unlimited)';
+
+  @override
+  String subFeatureAlertHistoryDays(String count) {
+    return 'Alert History ($count days)';
+  }
+
+  @override
+  String get subFeatureAlertHistory1Year => 'Alert History (1 year)';
+
+  @override
+  String subFeatureDataRetentionDays(String count) {
+    return 'Data Retention ($count days)';
+  }
+
+  @override
+  String get subFeatureDataRetention365 => 'Data Retention (365 days)';
+
+  @override
+  String get subFeatureDataRetention3Year => 'Data Retention (3 years)';
+
+  @override
+  String get subFeatureDashboardBasic => 'Basic Dashboard';
+
+  @override
+  String get subFeatureDashboardAdvanced => 'Advanced Dashboard';
+
+  @override
+  String get subFeatureTrajectory => 'Historical Trajectory';
+
+  @override
+  String get subFeatureDeviceManagement => 'Device Management';
+
+  @override
+  String get subFeatureHealthScore => 'Health Score';
+
+  @override
+  String get subFeatureEstrusDetect => 'Estrus Detection';
+
+  @override
+  String get subFeatureEpidemicAlert => 'Epidemic Alert';
+
+  @override
+  String get subFeatureDedicatedSupport => 'Dedicated Support';
+
+  @override
+  String get subFeatureGaitAnalysis => 'Gait Analysis';
+
+  @override
+  String get subFeatureBehaviorStats => 'Behavior Statistics';
+
+  @override
+  String get subFeatureApiAccess => 'API Access';
+
+  @override
+  String get subCurrentTier => 'Current Plan';
+
+  @override
+  String get subCustomPricing => 'Custom Pricing';
+
+  @override
+  String subPerMonth(String price) {
+    return '¥$price/mo';
+  }
+
+  @override
+  String subLivestockLimit(String count) {
+    return 'Up to $count head';
+  }
+
+  @override
+  String get subLivestockUnlimited => 'Unlimited livestock';
+
+  @override
+  String subExcessFee(String price) {
+    return 'Excess: ¥$price/head/mo';
+  }
+
+  @override
+  String subFeatureCountSuffix(String count) {
+    return '+$count more features';
+  }
+
+  @override
+  String get subSelectedPlan => 'Selected Plan';
+
+  @override
+  String get subLivestockCountLabel => 'Livestock Count';
+
+  @override
+  String get subFeeBreakdown => 'Fee Breakdown';
+
+  @override
+  String subPlanFee(String tier) {
+    return 'Plan Fee ($tier)';
+  }
+
+  @override
+  String subTrialEndsAt(String date, Object days) {
+    return 'Trial ends $date ($days days left)';
+  }
+
+  @override
+  String subValidUntil(String date) {
+    return 'Valid until $date';
+  }
+
+  @override
+  String subExpiresOn(String date) {
+    return 'Subscription expires on $date';
+  }
+
+  @override
+  String get subSubscriptionCancelled => 'Subscription cancelled';
+
+  @override
+  String get subRenewalUrgent => 'Your subscription is expiring soon';
+
+  @override
+  String subTrialRenewHint(String days) {
+    return 'Trial expires in $days days. Renew now to keep all data';
+  }
+
+  @override
+  String subRenewHint(String days) {
+    return 'Subscription expires in $days days';
+  }
+
+  @override
+  String get subSelectPlanHint => 'Choose a plan that fits your ranch';
+
+  @override
+  String subExcessDeviceFee(String count, Object price) {
+    return 'Excess device fee ($count head over x $price/head)';
+  }
+
+  @override
+  String get subLockedNeedDevice =>
+      'This feature requires the corresponding device';
+
+  @override
+  String subLockedUpgradeTier(String tier) {
+    return 'This feature requires upgrading to $tier';
+  }
+
+  @override
+  String get subServiceManagement => 'Subscription Service Management';
+
+  @override
+  String get subServiceManagementDesc =>
+      'Manage subscription services for all tenants';
+
+  @override
+  String get subUnknownService => 'Unknown Service';
+
+  @override
+  String subServicePeriod(String start, String end) {
+    return 'Period: $start ~ $end';
+  }
+
+  @override
+  String get subTotal => 'Total';
+
+  @override
+  String subConfirmPay(String amount) {
+    return 'Confirm Payment ¥$amount';
+  }
+
+  @override
+  String subYuanSuffix(String amount) {
+    return '¥$amount';
+  }
+
+  @override
+  String subSubscribeSuccess(String tier) {
+    return 'Successfully subscribed to $tier';
+  }
+
+  @override
+  String subExcessDeviceFeeWithin(String quota) {
+    return 'Excess device fee (within $quota)';
+  }
+
+  @override
+  String get subCancelSubscription => 'Cancel Subscription';
+
+  @override
+  String get b2bContractNumber => 'Contract No.';
+
+  @override
+  String get b2bContractSigner => 'Signer';
+
+  @override
+  String get b2bContractBillingMode => 'Billing Mode';
+
+  @override
+  String get b2bContractTierLevel => 'Tier Level';
+
+  @override
+  String get b2bContractRevenueShare => 'Revenue Share';
+
+  @override
+  String get b2bContractEffectiveDate => 'Effective Date';
+
+  @override
+  String get b2bContractExpiryDate => 'Expiry Date';
+
+  @override
+  String get b2bContractDeployMode => 'Deployment';
+
+  @override
+  String get b2bContractDeviceQuota => 'Device Quota';
+
+  @override
+  String get b2bContractHeartbeat => 'Heartbeat';
+
+  @override
+  String get b2bContractExpiryTime => 'Expiry Time';
+
+  @override
+  String get b2bContractContactPlatform => 'Contact Platform';
+
+  @override
+  String get b2bContractContactPlatformDesc => 'Consult renewal or changes';
+
+  @override
+  String get b2bContractDownload => 'Download Contract';
+
+  @override
+  String get b2bContractDownloadDesc => 'Export PDF (placeholder)';
+
+  @override
+  String get b2bContractComingSoon => 'Coming Soon';
+
+  @override
+  String get b2bContractChatComingSoon => 'Live chat coming soon';
+
+  @override
+  String get b2bContractPdfComingSoon => 'Contract PDF download coming soon';
+
+  @override
+  String get b2bContractGotIt => 'Got it';
+
+  @override
+  String get b2bContractClose => 'Close';
+
+  @override
+  String get b2bContractStatusActive => 'Active';
+
+  @override
+  String get b2bContractStatusSuspended => 'Suspended';
+
+  @override
+  String get b2bContractStatusExpired => 'Expired';
+
+  @override
+  String get b2bContractModeRevenueShare => 'Revenue Share';
+
+  @override
+  String get b2bContractModeLicensed => 'Licensed';
+
+  @override
+  String get b2bContractDeployCloud => 'Cloud';
+
+  @override
+  String get b2bContractDeployOnPremise => 'On-Premise';
+
+  @override
+  String get b2bContractHealthRunning => 'Running';
+
+  @override
+  String get b2bContractHealthDegraded => 'Degraded';
+
+  @override
+  String get b2bContractHealthDown => 'Down';
+
+  @override
+  String get b2bContractUnknown => 'Unknown';
+
+  @override
+  String get b2bContractExpiryLabel => 'Contract Expiry';
+
+  @override
+  String b2bContractDaysLeft(String date, Object days) {
+    return '$date  ·  $days days left';
+  }
+
+  @override
+  String b2bContractExpiredOn(String date) {
+    return '$date  ·  Expired';
+  }
+
+  @override
+  String get subPlanFeeLabel => 'Plan Fee';
+
+  @override
+  String subDeviceFee(String count, Object price) {
+    return 'Device Fee ($count head × ¥$price/head)';
+  }
+
+  @override
   String get subscriptionFeature => 'Feature';
 
   @override

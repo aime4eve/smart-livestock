@@ -40,7 +40,7 @@ class TierCard extends ConsumerWidget {
             Row(
               children: [
                 Text(
-                  info.name,
+                  localizedTierName(tier),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 if (isCurrentPlan) ...[
@@ -55,8 +55,8 @@ class TierCard extends ConsumerWidget {
                       color: AppColors.primarySoft,
                       borderRadius: BorderRadius.circular(AppSpacing.xs),
                     ),
-                    child: const Text(
-                      '当前套餐',
+                    child: Text(
+                      l10n.subCurrentTier,
                       style: TextStyle(
                         fontSize: 11,
                         color: AppColors.primary,
@@ -69,20 +69,20 @@ class TierCard extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              isEnterprise ? '按需定价' : '¥${info.monthlyPrice.toStringAsFixed(0)}/月',
+              isEnterprise ? l10n.subCustomPricing : l10n.subPerMonth(info.monthlyPrice.toStringAsFixed(0)),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: AppColors.primary,
                   ),
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              isEnterprise ? '不限牲畜数量' : '最多${info.livestockLimit}头牲畜',
+              isEnterprise ? l10n.subLivestockUnlimited : l10n.subLivestockLimit('${info.livestockLimit}'),
               style: Theme.of(context).textTheme.bodySmall,
             ),
             if (info.perUnitPrice > 0) ...[
               const SizedBox(height: AppSpacing.xs),
               Text(
-                '超出部分 ¥${info.perUnitPrice.toStringAsFixed(0)}/头/月',
+                l10n.subExcessFee(info.perUnitPrice.toStringAsFixed(0)),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
@@ -102,7 +102,7 @@ class TierCard extends ConsumerWidget {
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Text(
-                        f,
+                        localizedFeatureLabel(f),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),

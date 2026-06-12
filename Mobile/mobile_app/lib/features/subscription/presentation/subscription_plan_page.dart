@@ -39,7 +39,7 @@ class SubscriptionPlanPage extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '选择适合您牧场的套餐方案',
+                l10n.subSelectPlanHint,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: AppColors.textSecondary,
                     ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
 import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
@@ -21,18 +22,8 @@ class LockedOverlay extends StatelessWidget {
     this.onUpgrade,
   });
 
-  String get _upgradeTierLabel {
-    switch (upgradeTier) {
-      case 'standard':
-        return '标准版';
-      case 'premium':
-        return '高级版';
-      case 'enterprise':
-        return '企业版';
-      default:
-        return upgradeTier ?? '';
-    }
-  }
+  String get _upgradeTierLabel =>
+      localizedTierName(parseSubscriptionTier(upgradeTier ?? ''));
 
   @override
   Widget build(BuildContext context) {
@@ -40,8 +31,8 @@ class LockedOverlay extends StatelessWidget {
     if (!locked) return child;
 
     final message = deviceLocked
-        ? (deviceMessage ?? '该功能需要安装相应设备')
-        : '该功能需要升级到$_upgradeTierLabel';
+        ? (deviceMessage ?? l10n.subLockedNeedDevice)
+        : l10n.subLockedUpgradeTier(_upgradeTierLabel);
 
     return Stack(
       children: [

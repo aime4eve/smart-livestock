@@ -1830,6 +1830,528 @@ abstract class AppLocalizations {
   /// **'升级到{tier}'**
   String subscriptionUpgradeTo(String tier);
 
+  /// No description provided for @subFeatureGpsLocation.
+  ///
+  /// In zh, this message translates to:
+  /// **'GPS定位'**
+  String get subFeatureGpsLocation;
+
+  /// No description provided for @subFeatureFenceCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'电子围栏({count}个)'**
+  String subFeatureFenceCount(String count);
+
+  /// No description provided for @subFeatureFenceUnlimited.
+  ///
+  /// In zh, this message translates to:
+  /// **'电子围栏(不限)'**
+  String get subFeatureFenceUnlimited;
+
+  /// No description provided for @subFeatureAlertHistoryDays.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警历史({count}天)'**
+  String subFeatureAlertHistoryDays(String count);
+
+  /// No description provided for @subFeatureAlertHistory1Year.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警历史(1年)'**
+  String get subFeatureAlertHistory1Year;
+
+  /// No description provided for @subFeatureDataRetentionDays.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据保留({count}天)'**
+  String subFeatureDataRetentionDays(String count);
+
+  /// No description provided for @subFeatureDataRetention365.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据保留(365天)'**
+  String get subFeatureDataRetention365;
+
+  /// No description provided for @subFeatureDataRetention3Year.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据保留(3年)'**
+  String get subFeatureDataRetention3Year;
+
+  /// No description provided for @subFeatureDashboardBasic.
+  ///
+  /// In zh, this message translates to:
+  /// **'基础看板'**
+  String get subFeatureDashboardBasic;
+
+  /// No description provided for @subFeatureDashboardAdvanced.
+  ///
+  /// In zh, this message translates to:
+  /// **'高级看板'**
+  String get subFeatureDashboardAdvanced;
+
+  /// No description provided for @subFeatureTrajectory.
+  ///
+  /// In zh, this message translates to:
+  /// **'历史轨迹'**
+  String get subFeatureTrajectory;
+
+  /// No description provided for @subFeatureDeviceManagement.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备管理'**
+  String get subFeatureDeviceManagement;
+
+  /// No description provided for @subFeatureHealthScore.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康评分'**
+  String get subFeatureHealthScore;
+
+  /// No description provided for @subFeatureEstrusDetect.
+  ///
+  /// In zh, this message translates to:
+  /// **'发情检测'**
+  String get subFeatureEstrusDetect;
+
+  /// No description provided for @subFeatureEpidemicAlert.
+  ///
+  /// In zh, this message translates to:
+  /// **'疫病预警'**
+  String get subFeatureEpidemicAlert;
+
+  /// No description provided for @subFeatureDedicatedSupport.
+  ///
+  /// In zh, this message translates to:
+  /// **'专属客服'**
+  String get subFeatureDedicatedSupport;
+
+  /// No description provided for @subFeatureGaitAnalysis.
+  ///
+  /// In zh, this message translates to:
+  /// **'步态分析'**
+  String get subFeatureGaitAnalysis;
+
+  /// No description provided for @subFeatureBehaviorStats.
+  ///
+  /// In zh, this message translates to:
+  /// **'行为统计'**
+  String get subFeatureBehaviorStats;
+
+  /// No description provided for @subFeatureApiAccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'API访问'**
+  String get subFeatureApiAccess;
+
+  /// No description provided for @subCurrentTier.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前套餐'**
+  String get subCurrentTier;
+
+  /// No description provided for @subCustomPricing.
+  ///
+  /// In zh, this message translates to:
+  /// **'按需定价'**
+  String get subCustomPricing;
+
+  /// No description provided for @subPerMonth.
+  ///
+  /// In zh, this message translates to:
+  /// **'¥{price}/月'**
+  String subPerMonth(String price);
+
+  /// No description provided for @subLivestockLimit.
+  ///
+  /// In zh, this message translates to:
+  /// **'最多{count}头牲畜'**
+  String subLivestockLimit(String count);
+
+  /// No description provided for @subLivestockUnlimited.
+  ///
+  /// In zh, this message translates to:
+  /// **'不限牲畜数量'**
+  String get subLivestockUnlimited;
+
+  /// No description provided for @subExcessFee.
+  ///
+  /// In zh, this message translates to:
+  /// **'超出部分 ¥{price}/头/月'**
+  String subExcessFee(String price);
+
+  /// No description provided for @subFeatureCountSuffix.
+  ///
+  /// In zh, this message translates to:
+  /// **'等{count}项功能'**
+  String subFeatureCountSuffix(String count);
+
+  /// No description provided for @subSelectedPlan.
+  ///
+  /// In zh, this message translates to:
+  /// **'已选择套餐'**
+  String get subSelectedPlan;
+
+  /// No description provided for @subLivestockCountLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'牲畜数量'**
+  String get subLivestockCountLabel;
+
+  /// No description provided for @subFeeBreakdown.
+  ///
+  /// In zh, this message translates to:
+  /// **'费用明细'**
+  String get subFeeBreakdown;
+
+  /// No description provided for @subPlanFee.
+  ///
+  /// In zh, this message translates to:
+  /// **'套餐费（{tier}）'**
+  String subPlanFee(String tier);
+
+  /// No description provided for @subTrialEndsAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'试用期至 {date}（剩余{days}天）'**
+  String subTrialEndsAt(String date, Object days);
+
+  /// No description provided for @subValidUntil.
+  ///
+  /// In zh, this message translates to:
+  /// **'有效期至 {date}'**
+  String subValidUntil(String date);
+
+  /// No description provided for @subExpiresOn.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅将于 {date} 到期'**
+  String subExpiresOn(String date);
+
+  /// No description provided for @subSubscriptionCancelled.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅已取消'**
+  String get subSubscriptionCancelled;
+
+  /// No description provided for @subRenewalUrgent.
+  ///
+  /// In zh, this message translates to:
+  /// **'您的订阅即将到期'**
+  String get subRenewalUrgent;
+
+  /// No description provided for @subTrialRenewHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'试用期还有{days}天到期，立即续费保留所有数据'**
+  String subTrialRenewHint(String days);
+
+  /// No description provided for @subRenewHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅还有{days}天到期'**
+  String subRenewHint(String days);
+
+  /// No description provided for @subSelectPlanHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择适合您牧场的套餐方案'**
+  String get subSelectPlanHint;
+
+  /// No description provided for @subExcessDeviceFee.
+  ///
+  /// In zh, this message translates to:
+  /// **'超出设备费（超出{count}头 × ¥{price}/头）'**
+  String subExcessDeviceFee(String count, Object price);
+
+  /// No description provided for @subLockedNeedDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'该功能需要安装相应设备'**
+  String get subLockedNeedDevice;
+
+  /// No description provided for @subLockedUpgradeTier.
+  ///
+  /// In zh, this message translates to:
+  /// **'该功能需要升级到{tier}'**
+  String subLockedUpgradeTier(String tier);
+
+  /// No description provided for @subServiceManagement.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅服务管理'**
+  String get subServiceManagement;
+
+  /// No description provided for @subServiceManagementDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理所有租户的订阅服务'**
+  String get subServiceManagementDesc;
+
+  /// No description provided for @subUnknownService.
+  ///
+  /// In zh, this message translates to:
+  /// **'未知服务'**
+  String get subUnknownService;
+
+  /// No description provided for @subServicePeriod.
+  ///
+  /// In zh, this message translates to:
+  /// **'期限: {start} ~ {end}'**
+  String subServicePeriod(String start, String end);
+
+  /// No description provided for @subTotal.
+  ///
+  /// In zh, this message translates to:
+  /// **'合计'**
+  String get subTotal;
+
+  /// No description provided for @subConfirmPay.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认支付 ¥{amount}'**
+  String subConfirmPay(String amount);
+
+  /// No description provided for @subYuanSuffix.
+  ///
+  /// In zh, this message translates to:
+  /// **'¥{amount} 元'**
+  String subYuanSuffix(String amount);
+
+  /// No description provided for @subSubscribeSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'已成功订阅{tier}'**
+  String subSubscribeSuccess(String tier);
+
+  /// No description provided for @subExcessDeviceFeeWithin.
+  ///
+  /// In zh, this message translates to:
+  /// **'超出设备费（在{quota}额度内）'**
+  String subExcessDeviceFeeWithin(String quota);
+
+  /// No description provided for @subCancelSubscription.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消订阅'**
+  String get subCancelSubscription;
+
+  /// No description provided for @b2bContractNumber.
+  ///
+  /// In zh, this message translates to:
+  /// **'编号'**
+  String get b2bContractNumber;
+
+  /// No description provided for @b2bContractSigner.
+  ///
+  /// In zh, this message translates to:
+  /// **'签约人'**
+  String get b2bContractSigner;
+
+  /// No description provided for @b2bContractBillingMode.
+  ///
+  /// In zh, this message translates to:
+  /// **'计费模式'**
+  String get b2bContractBillingMode;
+
+  /// No description provided for @b2bContractTierLevel.
+  ///
+  /// In zh, this message translates to:
+  /// **'套餐等级'**
+  String get b2bContractTierLevel;
+
+  /// No description provided for @b2bContractRevenueShare.
+  ///
+  /// In zh, this message translates to:
+  /// **'分润比例'**
+  String get b2bContractRevenueShare;
+
+  /// No description provided for @b2bContractEffectiveDate.
+  ///
+  /// In zh, this message translates to:
+  /// **'生效日期'**
+  String get b2bContractEffectiveDate;
+
+  /// No description provided for @b2bContractExpiryDate.
+  ///
+  /// In zh, this message translates to:
+  /// **'到期日期'**
+  String get b2bContractExpiryDate;
+
+  /// No description provided for @b2bContractDeployMode.
+  ///
+  /// In zh, this message translates to:
+  /// **'部署方式'**
+  String get b2bContractDeployMode;
+
+  /// No description provided for @b2bContractDeviceQuota.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备配额'**
+  String get b2bContractDeviceQuota;
+
+  /// No description provided for @b2bContractHeartbeat.
+  ///
+  /// In zh, this message translates to:
+  /// **'心跳'**
+  String get b2bContractHeartbeat;
+
+  /// No description provided for @b2bContractExpiryTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'到期时间'**
+  String get b2bContractExpiryTime;
+
+  /// No description provided for @b2bContractContactPlatform.
+  ///
+  /// In zh, this message translates to:
+  /// **'联系平台'**
+  String get b2bContractContactPlatform;
+
+  /// No description provided for @b2bContractContactPlatformDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'咨询续签或变更'**
+  String get b2bContractContactPlatformDesc;
+
+  /// No description provided for @b2bContractDownload.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载合同'**
+  String get b2bContractDownload;
+
+  /// No description provided for @b2bContractDownloadDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出 PDF（占位）'**
+  String get b2bContractDownloadDesc;
+
+  /// No description provided for @b2bContractComingSoon.
+  ///
+  /// In zh, this message translates to:
+  /// **'功能开发中'**
+  String get b2bContractComingSoon;
+
+  /// No description provided for @b2bContractChatComingSoon.
+  ///
+  /// In zh, this message translates to:
+  /// **'在线客服功能即将上线'**
+  String get b2bContractChatComingSoon;
+
+  /// No description provided for @b2bContractPdfComingSoon.
+  ///
+  /// In zh, this message translates to:
+  /// **'合同 PDF 下载功能即将上线'**
+  String get b2bContractPdfComingSoon;
+
+  /// No description provided for @b2bContractGotIt.
+  ///
+  /// In zh, this message translates to:
+  /// **'知道了'**
+  String get b2bContractGotIt;
+
+  /// No description provided for @b2bContractClose.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭'**
+  String get b2bContractClose;
+
+  /// No description provided for @b2bContractStatusActive.
+  ///
+  /// In zh, this message translates to:
+  /// **'生效中'**
+  String get b2bContractStatusActive;
+
+  /// No description provided for @b2bContractStatusSuspended.
+  ///
+  /// In zh, this message translates to:
+  /// **'已暂停'**
+  String get b2bContractStatusSuspended;
+
+  /// No description provided for @b2bContractStatusExpired.
+  ///
+  /// In zh, this message translates to:
+  /// **'已过期'**
+  String get b2bContractStatusExpired;
+
+  /// No description provided for @b2bContractModeRevenueShare.
+  ///
+  /// In zh, this message translates to:
+  /// **'分润模式'**
+  String get b2bContractModeRevenueShare;
+
+  /// No description provided for @b2bContractModeLicensed.
+  ///
+  /// In zh, this message translates to:
+  /// **'授权模式'**
+  String get b2bContractModeLicensed;
+
+  /// No description provided for @b2bContractDeployCloud.
+  ///
+  /// In zh, this message translates to:
+  /// **'云端'**
+  String get b2bContractDeployCloud;
+
+  /// No description provided for @b2bContractDeployOnPremise.
+  ///
+  /// In zh, this message translates to:
+  /// **'本地部署'**
+  String get b2bContractDeployOnPremise;
+
+  /// No description provided for @b2bContractHealthRunning.
+  ///
+  /// In zh, this message translates to:
+  /// **'正常运行'**
+  String get b2bContractHealthRunning;
+
+  /// No description provided for @b2bContractHealthDegraded.
+  ///
+  /// In zh, this message translates to:
+  /// **'性能降级'**
+  String get b2bContractHealthDegraded;
+
+  /// No description provided for @b2bContractHealthDown.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务中断'**
+  String get b2bContractHealthDown;
+
+  /// No description provided for @b2bContractUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'未知'**
+  String get b2bContractUnknown;
+
+  /// No description provided for @b2bContractExpiryLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'合同到期日'**
+  String get b2bContractExpiryLabel;
+
+  /// No description provided for @b2bContractDaysLeft.
+  ///
+  /// In zh, this message translates to:
+  /// **'{date}  ·  剩余 {days} 天'**
+  String b2bContractDaysLeft(String date, Object days);
+
+  /// No description provided for @b2bContractExpiredOn.
+  ///
+  /// In zh, this message translates to:
+  /// **'{date}  ·  已过期'**
+  String b2bContractExpiredOn(String date);
+
+  /// No description provided for @subPlanFeeLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'套餐费'**
+  String get subPlanFeeLabel;
+
+  /// No description provided for @subDeviceFee.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备费（{count}头 × ¥{price}/头）'**
+  String subDeviceFee(String count, Object price);
+
   /// No description provided for @subscriptionFeature.
   ///
   /// In zh, this message translates to:

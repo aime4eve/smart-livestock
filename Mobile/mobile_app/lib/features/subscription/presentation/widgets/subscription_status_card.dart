@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_livestock_demo/app/app_route.dart';
+import 'package:smart_livestock_demo/core/l10n/l10n.dart';
 import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
@@ -128,7 +129,7 @@ class SubscriptionStatusCard extends ConsumerWidget {
                   const Icon(Icons.access_time, size: 16, color: AppColors.info),
                   const SizedBox(width: AppSpacing.xs),
                   Text(
-                    '试用期至 ${_formatDate(status.trialEndsAt!)}（剩余${_daysRemaining(status.trialEndsAt!)}天）',
+                    l10n.subTrialEndsAt(_formatDate(status.trialEndsAt!), '${_daysRemaining(status.trialEndsAt!)}'),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.info,
                     ),
@@ -143,7 +144,7 @@ class SubscriptionStatusCard extends ConsumerWidget {
                   const Icon(Icons.calendar_today, size: 16, color: AppColors.success),
                   const SizedBox(width: AppSpacing.xs),
                   Text(
-                    '有效期至 ${_formatDate(status.currentPeriodEnd!)}',
+                    l10n.subValidUntil(_formatDate(status.currentPeriodEnd!)),
                     style: theme.textTheme.bodySmall,
                   ),
                 ],
@@ -157,8 +158,8 @@ class SubscriptionStatusCard extends ConsumerWidget {
                   const SizedBox(width: AppSpacing.xs),
                   Text(
                     hasPeriodEnd
-                        ? '订阅将于 ${_formatDate(status.currentPeriodEnd!)} 到期'
-                        : '订阅已取消',
+                        ? l10n.subExpiresOn(_formatDate(status.currentPeriodEnd!))
+                        : l10n.subSubscriptionCancelled,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -171,23 +172,23 @@ class SubscriptionStatusCard extends ConsumerWidget {
             UsageProgressBar(
               current: status.livestockCount,
               limit: isEnterprise ? -1 : (tierInfo?.livestockLimit ?? 50),
-              label: '牲畜数量',
+              label: l10n.subLivestockCountLabel,
             ),
             const SizedBox(height: AppSpacing.md),
 
             const Divider(),
             const SizedBox(height: AppSpacing.sm),
-            _priceRow(context, '套餐费', status.calculatedTierFee),
+            _priceRow(context, l10n.subPlanFeeLabel, status.calculatedTierFee),
             const SizedBox(height: AppSpacing.xs),
             _priceRow(
               context,
-              '设备费（${status.livestockCount}头 × ¥${tierInfo?.perUnitPrice.toStringAsFixed(0) ?? '0'}/头）',
+              l10n.subDeviceFee('${status.livestockCount}', tierInfo?.perUnitPrice.toStringAsFixed(0) ?? '0'),
               status.calculatedDeviceFee,
             ),
             const SizedBox(height: AppSpacing.xs),
             const Divider(),
             const SizedBox(height: AppSpacing.xs),
-            _priceRow(context, '合计', status.calculatedTotal, bold: true),
+            _priceRow(context, l10n.subTotal, status.calculatedTotal, bold: true),
             const SizedBox(height: AppSpacing.lg),
 
             Row(
@@ -233,8 +234,8 @@ class SubscriptionStatusCard extends ConsumerWidget {
                   size: 18,
                   color: AppColors.danger,
                 ),
-                label: const Text(
-                  '取消订阅',
+                label: Text(
+                  l10n.subCancelSubscription,
                   style: TextStyle(color: AppColors.danger),
                 ),
               ),
@@ -259,7 +260,7 @@ class SubscriptionStatusCard extends ConsumerWidget {
           style: Theme.of(context).textTheme.bodySmall,
         ),
         Text(
-          '¥${amount.toStringAsFixed(2)} 元',
+          L10n.instance.subYuanSuffix(amount.toStringAsFixed(2)),
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
               ),

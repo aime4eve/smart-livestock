@@ -1,3 +1,5 @@
+import 'package:smart_livestock_demo/core/l10n/l10n.dart';
+
 enum SubscriptionTier { basic, standard, premium, enterprise }
 
 SubscriptionTier parseSubscriptionTier(String value) {
@@ -9,6 +11,50 @@ SubscriptionTier parseSubscriptionTier(String value) {
 }
 
 enum FeatureShape { none, lock, limit, filter }
+
+/// Resolve a tier key id to a localized display name.
+String localizedTierName(SubscriptionTier tier) {
+  final l = L10n.instance;
+  return switch (tier) {
+    SubscriptionTier.basic => l.subscriptionTierBasic,
+    SubscriptionTier.standard => l.subscriptionTierStandard,
+    SubscriptionTier.premium => l.subscriptionTierPremium,
+    SubscriptionTier.enterprise => l.subscriptionTierEnterprise,
+  };
+}
+
+/// Resolve a feature key id to a localized display label.
+/// Called at display time (not in the const model) since l10n is runtime.
+String localizedFeatureLabel(String key) {
+  final l = L10n.instance;
+  switch (key) {
+    case 'gps_location': return l.subFeatureGpsLocation;
+    case 'fence_3': return l.subFeatureFenceCount('3');
+    case 'fence_5': return l.subFeatureFenceCount('5');
+    case 'fence_10': return l.subFeatureFenceCount('10');
+    case 'fence_unlimited': return l.subFeatureFenceUnlimited;
+    case 'alert_7': return l.subFeatureAlertHistoryDays('7');
+    case 'alert_30': return l.subFeatureAlertHistoryDays('30');
+    case 'alert_90': return l.subFeatureAlertHistoryDays('90');
+    case 'alert_1y': return l.subFeatureAlertHistory1Year;
+    case 'retention_7': return l.subFeatureDataRetentionDays('7');
+    case 'retention_30': return l.subFeatureDataRetentionDays('30');
+    case 'retention_365': return l.subFeatureDataRetention365;
+    case 'retention_3y': return l.subFeatureDataRetention3Year;
+    case 'dashboard_basic': return l.subFeatureDashboardBasic;
+    case 'dashboard_advanced': return l.subFeatureDashboardAdvanced;
+    case 'trajectory': return l.subFeatureTrajectory;
+    case 'device_management': return l.subFeatureDeviceManagement;
+    case 'health_score': return l.subFeatureHealthScore;
+    case 'estrus_detect': return l.subFeatureEstrusDetect;
+    case 'epidemic_alert': return l.subFeatureEpidemicAlert;
+    case 'dedicated_support': return l.subFeatureDedicatedSupport;
+    case 'gait_analysis': return l.subFeatureGaitAnalysis;
+    case 'behavior_stats': return l.subFeatureBehaviorStats;
+    case 'api_access': return l.subFeatureApiAccess;
+    default: return key;
+  }
+}
 
 class FeatureDefinition {
   final FeatureShape shape;
@@ -44,72 +90,46 @@ class SubscriptionTierInfo {
   static const Map<SubscriptionTier, SubscriptionTierInfo> all = {
     SubscriptionTier.basic: SubscriptionTierInfo(
       tier: SubscriptionTier.basic,
-      name: '基础版',
+      name: 'basic',
       monthlyPrice: 0,
       livestockLimit: 50,
       perUnitPrice: 3,
-      features: ['GPS定位', '电子围栏(3个)', '告警历史(7天)', '数据保留(7天)', '基础看板'],
+      features: ['gps_location', 'fence_3', 'alert_7', 'retention_7', 'dashboard_basic'],
     ),
     SubscriptionTier.standard: SubscriptionTierInfo(
       tier: SubscriptionTier.standard,
-      name: '标准版',
+      name: 'standard',
       monthlyPrice: 299,
       livestockLimit: 200,
       perUnitPrice: 2,
       features: [
-        'GPS定位',
-        '电子围栏(5个)',
-        '告警历史(30天)',
-        '数据保留(30天)',
-        '基础看板',
-        '高级看板',
-        '历史轨迹',
-        '设备管理',
+        'gps_location', 'fence_5', 'alert_30', 'retention_30',
+        'dashboard_basic', 'dashboard_advanced', 'trajectory', 'device_management',
       ],
     ),
     SubscriptionTier.premium: SubscriptionTierInfo(
       tier: SubscriptionTier.premium,
-      name: '高级版',
+      name: 'premium',
       monthlyPrice: 699,
       livestockLimit: 1000,
       perUnitPrice: 1,
       features: [
-        'GPS定位',
-        '电子围栏(10个)',
-        '告警历史(90天)',
-        '数据保留(365天)',
-        '基础看板',
-        '高级看板',
-        '历史轨迹',
-        '设备管理',
-        '健康评分',
-        '发情检测',
-        '疫病预警',
-        '专属客服',
+        'gps_location', 'fence_10', 'alert_90', 'retention_365',
+        'dashboard_basic', 'dashboard_advanced', 'trajectory', 'device_management',
+        'health_score', 'estrus_detect', 'epidemic_alert', 'dedicated_support',
       ],
     ),
     SubscriptionTier.enterprise: SubscriptionTierInfo(
       tier: SubscriptionTier.enterprise,
-      name: '企业版',
+      name: 'enterprise',
       monthlyPrice: -1,
       livestockLimit: -1,
       perUnitPrice: 0,
       features: [
-        'GPS定位',
-        '电子围栏(不限)',
-        '告警历史(1年)',
-        '数据保留(3年)',
-        '基础看板',
-        '高级看板',
-        '历史轨迹',
-        '设备管理',
-        '健康评分',
-        '发情检测',
-        '疫病预警',
-        '专属客服',
-        '步态分析',
-        '行为统计',
-        'API访问',
+        'gps_location', 'fence_unlimited', 'alert_1y', 'retention_3y',
+        'dashboard_basic', 'dashboard_advanced', 'trajectory', 'device_management',
+        'health_score', 'estrus_detect', 'epidemic_alert', 'dedicated_support',
+        'gait_analysis', 'behavior_stats', 'api_access',
       ],
     ),
   };

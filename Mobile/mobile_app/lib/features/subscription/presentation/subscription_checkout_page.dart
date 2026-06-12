@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smart_livestock_demo/core/l10n/l10n.dart';
 import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
 import 'package:smart_livestock_demo/core/theme/app_colors.dart';
 import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
@@ -90,7 +91,7 @@ class _SubscriptionCheckoutPageState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '已选择套餐',
+                      l10n.subSelectedPlan,
                       style: theme.textTheme.bodySmall,
                     ),
                     const SizedBox(height: AppSpacing.xs),
@@ -122,7 +123,7 @@ class _SubscriptionCheckoutPageState
                       Padding(
                         padding: const EdgeInsets.only(top: AppSpacing.xs),
                         child: Text(
-                          '等${tierInfo.features.length}项功能',
+                          l10n.subFeatureCountSuffix('${tierInfo.features.length}'),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: AppColors.textSecondary,
                           ),
@@ -136,7 +137,7 @@ class _SubscriptionCheckoutPageState
 
             // Livestock count input
             Text(
-              '牲畜数量',
+              l10n.subLivestockCountLabel,
               style: theme.textTheme.labelLarge,
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -172,23 +173,23 @@ class _SubscriptionCheckoutPageState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '费用明细',
+                      l10n.subFeeBreakdown,
                       style: theme.textTheme.titleMedium,
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    _priceRow(context, '套餐费（${tierInfo.name}）', _tierFee),
+                    _priceRow(context, l10n.subPlanFee(localizedTierName(tierInfo.tier)), _tierFee),
                     const SizedBox(height: AppSpacing.sm),
                     _priceRow(
                       context,
                       _excessCount > 0
-                          ? '超出设备费（超出$_excessCount头 × ¥${tierInfo.perUnitPrice.toStringAsFixed(0)}/头）'
-                          : '超出设备费（在${tierInfo.livestockLimit < 0 ? "不限" : "${tierInfo.livestockLimit}头"}额度内）',
+                          ? l10n.subExcessDeviceFee('${_excessCount}', tierInfo.perUnitPrice.toStringAsFixed(0))
+                          : l10n.subExcessDeviceFeeWithin(tierInfo.livestockLimit < 0 ? l10n.subLivestockUnlimited : l10n.subLivestockLimit('${tierInfo.livestockLimit}')),
                       _deviceFee,
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     const Divider(),
                     const SizedBox(height: AppSpacing.sm),
-                    _priceRow(context, '合计', _total, bold: true),
+                    _priceRow(context, l10n.subTotal, _total, bold: true),
                   ],
                 ),
               ),
@@ -212,7 +213,7 @@ class _SubscriptionCheckoutPageState
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          '已成功订阅${tierInfo.name}',
+                          l10n.subSubscribeSuccess(localizedTierName(tierInfo.tier)),
                         ),
                       ),
                     );
@@ -227,7 +228,7 @@ class _SubscriptionCheckoutPageState
                   ),
                 ),
                 child: Text(
-                  '确认支付 ¥${_total.toStringAsFixed(2)}',
+                  l10n.subConfirmPay(_total.toStringAsFixed(2)),
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
@@ -253,7 +254,7 @@ class _SubscriptionCheckoutPageState
           style: Theme.of(context).textTheme.bodySmall,
         ),
         Text(
-          '¥${amount.toStringAsFixed(2)} 元',
+          L10n.instance.subYuanSuffix(amount.toStringAsFixed(2)),
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
               ),

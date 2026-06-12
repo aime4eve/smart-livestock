@@ -60,7 +60,7 @@ class SubscriptionRenewalBanner extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '您的订阅即将到期',
+                      l10n.subRenewalUrgent,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
                             color: isUrgent ? AppColors.danger : AppColors.warning,
                           ),
@@ -68,8 +68,8 @@ class SubscriptionRenewalBanner extends ConsumerWidget {
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       status.status == 'trial'
-                          ? '试用期还有$daysLeft天到期，立即续费保留所有数据'
-                          : '订阅还有$daysLeft天到期',
+                          ? l10n.subTrialRenewHint('$daysLeft')
+                          : l10n.subRenewHint('$daysLeft'),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.textSecondary,
                           ),

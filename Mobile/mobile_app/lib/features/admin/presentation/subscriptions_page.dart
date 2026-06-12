@@ -26,12 +26,12 @@ class SubscriptionsPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              '订阅服务管理',
+              l10n.subServiceManagement,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              '管理所有租户的订阅服务',
+              l10n.subServiceManagementDesc,
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -75,7 +75,7 @@ class SubscriptionsPage extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  service.serviceName ?? '未知服务',
+                  service.serviceName ?? l10n.subUnknownService,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 HighfiStatusChip(
@@ -91,7 +91,7 @@ class SubscriptionsPage extends ConsumerWidget {
             Text('${l10n.adminSubscriptionsTierLabel}: ${service.effectiveTier ?? ''}'),
             if (service.startedAt != null || service.expiresAt != null)
               Text(
-                  '期限: ${service.startedAt ?? '-'} ~ ${service.expiresAt ?? '-'}'),
+                  l10n.subServicePeriod(service.startedAt ?? '-', service.expiresAt ?? '-')),
             if (service.deviceQuota != null)
               Text('${l10n.adminSubscriptionsQuotaLabel}: ${service.deviceQuota}'),
             Align(

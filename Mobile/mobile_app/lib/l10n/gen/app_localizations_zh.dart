@@ -935,6 +935,313 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get subFeatureGpsLocation => 'GPS定位';
+
+  @override
+  String subFeatureFenceCount(String count) {
+    return '电子围栏($count个)';
+  }
+
+  @override
+  String get subFeatureFenceUnlimited => '电子围栏(不限)';
+
+  @override
+  String subFeatureAlertHistoryDays(String count) {
+    return '告警历史($count天)';
+  }
+
+  @override
+  String get subFeatureAlertHistory1Year => '告警历史(1年)';
+
+  @override
+  String subFeatureDataRetentionDays(String count) {
+    return '数据保留($count天)';
+  }
+
+  @override
+  String get subFeatureDataRetention365 => '数据保留(365天)';
+
+  @override
+  String get subFeatureDataRetention3Year => '数据保留(3年)';
+
+  @override
+  String get subFeatureDashboardBasic => '基础看板';
+
+  @override
+  String get subFeatureDashboardAdvanced => '高级看板';
+
+  @override
+  String get subFeatureTrajectory => '历史轨迹';
+
+  @override
+  String get subFeatureDeviceManagement => '设备管理';
+
+  @override
+  String get subFeatureHealthScore => '健康评分';
+
+  @override
+  String get subFeatureEstrusDetect => '发情检测';
+
+  @override
+  String get subFeatureEpidemicAlert => '疫病预警';
+
+  @override
+  String get subFeatureDedicatedSupport => '专属客服';
+
+  @override
+  String get subFeatureGaitAnalysis => '步态分析';
+
+  @override
+  String get subFeatureBehaviorStats => '行为统计';
+
+  @override
+  String get subFeatureApiAccess => 'API访问';
+
+  @override
+  String get subCurrentTier => '当前套餐';
+
+  @override
+  String get subCustomPricing => '按需定价';
+
+  @override
+  String subPerMonth(String price) {
+    return '¥$price/月';
+  }
+
+  @override
+  String subLivestockLimit(String count) {
+    return '最多$count头牲畜';
+  }
+
+  @override
+  String get subLivestockUnlimited => '不限牲畜数量';
+
+  @override
+  String subExcessFee(String price) {
+    return '超出部分 ¥$price/头/月';
+  }
+
+  @override
+  String subFeatureCountSuffix(String count) {
+    return '等$count项功能';
+  }
+
+  @override
+  String get subSelectedPlan => '已选择套餐';
+
+  @override
+  String get subLivestockCountLabel => '牲畜数量';
+
+  @override
+  String get subFeeBreakdown => '费用明细';
+
+  @override
+  String subPlanFee(String tier) {
+    return '套餐费（$tier）';
+  }
+
+  @override
+  String subTrialEndsAt(String date, Object days) {
+    return '试用期至 $date（剩余$days天）';
+  }
+
+  @override
+  String subValidUntil(String date) {
+    return '有效期至 $date';
+  }
+
+  @override
+  String subExpiresOn(String date) {
+    return '订阅将于 $date 到期';
+  }
+
+  @override
+  String get subSubscriptionCancelled => '订阅已取消';
+
+  @override
+  String get subRenewalUrgent => '您的订阅即将到期';
+
+  @override
+  String subTrialRenewHint(String days) {
+    return '试用期还有$days天到期，立即续费保留所有数据';
+  }
+
+  @override
+  String subRenewHint(String days) {
+    return '订阅还有$days天到期';
+  }
+
+  @override
+  String get subSelectPlanHint => '选择适合您牧场的套餐方案';
+
+  @override
+  String subExcessDeviceFee(String count, Object price) {
+    return '超出设备费（超出$count头 × ¥$price/头）';
+  }
+
+  @override
+  String get subLockedNeedDevice => '该功能需要安装相应设备';
+
+  @override
+  String subLockedUpgradeTier(String tier) {
+    return '该功能需要升级到$tier';
+  }
+
+  @override
+  String get subServiceManagement => '订阅服务管理';
+
+  @override
+  String get subServiceManagementDesc => '管理所有租户的订阅服务';
+
+  @override
+  String get subUnknownService => '未知服务';
+
+  @override
+  String subServicePeriod(String start, String end) {
+    return '期限: $start ~ $end';
+  }
+
+  @override
+  String get subTotal => '合计';
+
+  @override
+  String subConfirmPay(String amount) {
+    return '确认支付 ¥$amount';
+  }
+
+  @override
+  String subYuanSuffix(String amount) {
+    return '¥$amount 元';
+  }
+
+  @override
+  String subSubscribeSuccess(String tier) {
+    return '已成功订阅$tier';
+  }
+
+  @override
+  String subExcessDeviceFeeWithin(String quota) {
+    return '超出设备费（在$quota额度内）';
+  }
+
+  @override
+  String get subCancelSubscription => '取消订阅';
+
+  @override
+  String get b2bContractNumber => '编号';
+
+  @override
+  String get b2bContractSigner => '签约人';
+
+  @override
+  String get b2bContractBillingMode => '计费模式';
+
+  @override
+  String get b2bContractTierLevel => '套餐等级';
+
+  @override
+  String get b2bContractRevenueShare => '分润比例';
+
+  @override
+  String get b2bContractEffectiveDate => '生效日期';
+
+  @override
+  String get b2bContractExpiryDate => '到期日期';
+
+  @override
+  String get b2bContractDeployMode => '部署方式';
+
+  @override
+  String get b2bContractDeviceQuota => '设备配额';
+
+  @override
+  String get b2bContractHeartbeat => '心跳';
+
+  @override
+  String get b2bContractExpiryTime => '到期时间';
+
+  @override
+  String get b2bContractContactPlatform => '联系平台';
+
+  @override
+  String get b2bContractContactPlatformDesc => '咨询续签或变更';
+
+  @override
+  String get b2bContractDownload => '下载合同';
+
+  @override
+  String get b2bContractDownloadDesc => '导出 PDF（占位）';
+
+  @override
+  String get b2bContractComingSoon => '功能开发中';
+
+  @override
+  String get b2bContractChatComingSoon => '在线客服功能即将上线';
+
+  @override
+  String get b2bContractPdfComingSoon => '合同 PDF 下载功能即将上线';
+
+  @override
+  String get b2bContractGotIt => '知道了';
+
+  @override
+  String get b2bContractClose => '关闭';
+
+  @override
+  String get b2bContractStatusActive => '生效中';
+
+  @override
+  String get b2bContractStatusSuspended => '已暂停';
+
+  @override
+  String get b2bContractStatusExpired => '已过期';
+
+  @override
+  String get b2bContractModeRevenueShare => '分润模式';
+
+  @override
+  String get b2bContractModeLicensed => '授权模式';
+
+  @override
+  String get b2bContractDeployCloud => '云端';
+
+  @override
+  String get b2bContractDeployOnPremise => '本地部署';
+
+  @override
+  String get b2bContractHealthRunning => '正常运行';
+
+  @override
+  String get b2bContractHealthDegraded => '性能降级';
+
+  @override
+  String get b2bContractHealthDown => '服务中断';
+
+  @override
+  String get b2bContractUnknown => '未知';
+
+  @override
+  String get b2bContractExpiryLabel => '合同到期日';
+
+  @override
+  String b2bContractDaysLeft(String date, Object days) {
+    return '$date  ·  剩余 $days 天';
+  }
+
+  @override
+  String b2bContractExpiredOn(String date) {
+    return '$date  ·  已过期';
+  }
+
+  @override
+  String get subPlanFeeLabel => '套餐费';
+
+  @override
+  String subDeviceFee(String count, Object price) {
+    return '设备费（$count头 × ¥$price/头）';
+  }
+
+  @override
   String get subscriptionFeature => '功能';
 
   @override
