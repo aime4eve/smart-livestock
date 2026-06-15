@@ -49,3 +49,8 @@ final estrusDetailControllerProvider = AsyncNotifierProvider.family<
     EstrusDetailController, EstrusDetailData, String>(
   EstrusDetailController.new,
 );
+
+final estrusActivityComparisonProvider =
+    FutureProvider.family<ActivityComparisonData?, String>((ref, livestockId) async {
+  return ref.read(estrusRepositoryProvider).fetchActivityComparison(livestockId);
+});

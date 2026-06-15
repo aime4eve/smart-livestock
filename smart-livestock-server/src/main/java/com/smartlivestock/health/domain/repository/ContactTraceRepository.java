@@ -6,5 +6,6 @@ import java.util.List;
 
 public interface ContactTraceRepository {
     List<ContactTrace> findByFarmIdOrderByLastContactAtDesc(Long farmId);
+    List<ContactTrace> findByFromLivestockIdOrderByLastContactAtDesc(Long fromLivestockId);
     ContactTrace save(ContactTrace trace);
 }

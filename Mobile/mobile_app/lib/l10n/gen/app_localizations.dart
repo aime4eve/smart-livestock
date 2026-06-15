@@ -3785,6 +3785,228 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'系统能通知你体温异常，需线下排查确认原因'**
   String get feverCapabilityNote;
+
+  /// No description provided for @feverDurationChartTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'发热持续时长分析'**
+  String get feverDurationChartTitle;
+
+  /// No description provided for @feverDurationChartSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'每日超阈值(>39.5°C)持续小时数'**
+  String get feverDurationChartSubtitle;
+
+  /// No description provided for @digestiveHeatmapTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'24h 蠕动强度热力图'**
+  String get digestiveHeatmapTitle;
+
+  /// No description provided for @digestiveHeatmapSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'颜色越深 = 强度越低（异常区域高亮红色）'**
+  String get digestiveHeatmapSubtitle;
+
+  /// No description provided for @estrusLockedTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'发情检测详情'**
+  String get estrusLockedTitle;
+
+  /// No description provided for @estrusActivityChartTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'活动量对比'**
+  String get estrusActivityChartTitle;
+
+  /// No description provided for @estrusCapabilityNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统能检测发情高分牲畜，建议人工确认'**
+  String get estrusCapabilityNote;
+
+  /// No description provided for @metricScore.
+  ///
+  /// In zh, this message translates to:
+  /// **'评分'**
+  String get metricScore;
+
+  /// No description provided for @metricStepIncrease.
+  ///
+  /// In zh, this message translates to:
+  /// **'步数增幅'**
+  String get metricStepIncrease;
+
+  /// No description provided for @metricTempDelta.
+  ///
+  /// In zh, this message translates to:
+  /// **'温差'**
+  String get metricTempDelta;
+
+  /// No description provided for @legendBaseline.
+  ///
+  /// In zh, this message translates to:
+  /// **'基线均值'**
+  String get legendBaseline;
+
+  /// No description provided for @legendRecent3d.
+  ///
+  /// In zh, this message translates to:
+  /// **'近3日'**
+  String get legendRecent3d;
+
+  /// No description provided for @epidemicContactTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'疫情接触追踪'**
+  String get epidemicContactTitle;
+
+  /// No description provided for @epidemicContactLockedMsg.
+  ///
+  /// In zh, this message translates to:
+  /// **'疫情接触追踪需要 Premium 及以上订阅'**
+  String get epidemicContactLockedMsg;
+
+  /// No description provided for @epidemicContactUpgrade.
+  ///
+  /// In zh, this message translates to:
+  /// **'升级到 Premium'**
+  String get epidemicContactUpgrade;
+
+  /// No description provided for @epidemicNoContacts.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无接触记录'**
+  String get epidemicNoContacts;
+
+  /// No description provided for @epidemicSourceInfected.
+  ///
+  /// In zh, this message translates to:
+  /// **'已确认染病'**
+  String get epidemicSourceInfected;
+
+  /// No description provided for @epidemicNotMarked.
+  ///
+  /// In zh, this message translates to:
+  /// **'未标记'**
+  String get epidemicNotMarked;
+
+  /// No description provided for @epidemicMarkedAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记时间'**
+  String get epidemicMarkedAt;
+
+  /// No description provided for @epidemicUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'未知'**
+  String get epidemicUnknown;
+
+  /// No description provided for @epidemicRiskFormula.
+  ///
+  /// In zh, this message translates to:
+  /// **'风险评分 = 时间衰减(40%) + 接触距离(35%) + 持续时长(25%)。≥70高风险，40-69中风险，<40低风险。'**
+  String get epidemicRiskFormula;
+
+  /// No description provided for @epidemicNetworkGraph.
+  ///
+  /// In zh, this message translates to:
+  /// **'接触链拓扑图'**
+  String get epidemicNetworkGraph;
+
+  /// No description provided for @riskHigh.
+  ///
+  /// In zh, this message translates to:
+  /// **'高风险'**
+  String get riskHigh;
+
+  /// No description provided for @riskMedium.
+  ///
+  /// In zh, this message translates to:
+  /// **'中风险'**
+  String get riskMedium;
+
+  /// No description provided for @riskLow.
+  ///
+  /// In zh, this message translates to:
+  /// **'低风险'**
+  String get riskLow;
+
+  /// No description provided for @contactWindow24h.
+  ///
+  /// In zh, this message translates to:
+  /// **'24小时内接触'**
+  String get contactWindow24h;
+
+  /// No description provided for @contactWindow48h.
+  ///
+  /// In zh, this message translates to:
+  /// **'48小时内接触'**
+  String get contactWindow48h;
+
+  /// No description provided for @contactWindow72h.
+  ///
+  /// In zh, this message translates to:
+  /// **'72小时内接触'**
+  String get contactWindow72h;
+
+  /// No description provided for @contactCountSuffix.
+  ///
+  /// In zh, this message translates to:
+  /// **'头'**
+  String get contactCountSuffix;
+
+  /// No description provided for @contactScoreLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'评分'**
+  String get contactScoreLabel;
+
+  /// No description provided for @contactDistance.
+  ///
+  /// In zh, this message translates to:
+  /// **'距离'**
+  String get contactDistance;
+
+  /// No description provided for @contactDuration.
+  ///
+  /// In zh, this message translates to:
+  /// **'持续'**
+  String get contactDuration;
+
+  /// No description provided for @contactFactorTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'时间'**
+  String get contactFactorTime;
+
+  /// No description provided for @contactFactorDistance.
+  ///
+  /// In zh, this message translates to:
+  /// **'距离'**
+  String get contactFactorDistance;
+
+  /// No description provided for @contactFactorDuration.
+  ///
+  /// In zh, this message translates to:
+  /// **'时长'**
+  String get contactFactorDuration;
+
+  /// No description provided for @epidemicContactNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'基于GPS轨迹时空交叉分析，自动识别72小时内与染病牲畜密切接触的个体并评估感染风险。'**
+  String get epidemicContactNote;
+
+  /// No description provided for @viewContactTracing.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看接触追踪详情'**
+  String get viewContactTracing;
 }
 
 class _AppLocalizationsDelegate

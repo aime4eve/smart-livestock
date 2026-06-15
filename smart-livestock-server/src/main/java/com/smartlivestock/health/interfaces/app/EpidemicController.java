@@ -18,4 +18,24 @@ public class EpidemicController {
     public ResponseEntity<ApiResponse<EpidemicResponse>> getEpidemicOverview(@PathVariable Long farmId) {
         return ResponseEntity.ok(ApiResponse.ok(healthService.getEpidemicOverview(farmId)));
     }
+
+    @GetMapping("/epidemic/contacts/{livestockId}")
+    public ResponseEntity<ApiResponse<ContactNetworkResponse>> getContactNetwork(
+            @PathVariable Long farmId, @PathVariable Long livestockId) {
+        return ResponseEntity.ok(ApiResponse.ok(healthService.getContactNetwork(farmId, livestockId)));
+    }
+
+    @PostMapping("/epidemic/mark")
+    public ResponseEntity<ApiResponse<Void>> markDiseased(
+            @PathVariable Long farmId, @RequestBody MarkDiseaseRequest request) {
+        healthService.markDiseased(farmId, request.livestockId(), request.diseaseType());
+        return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    @DeleteMapping("/epidemic/mark/{livestockId}")
+    public ResponseEntity<ApiResponse<Void>> unmarkDiseased(
+            @PathVariable Long farmId, @PathVariable Long livestockId) {
+        healthService.unmarkDiseased(farmId, livestockId);
+        return ResponseEntity.ok(ApiResponse.ok(null));
+    }
 }

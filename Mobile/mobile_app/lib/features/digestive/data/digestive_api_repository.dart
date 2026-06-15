@@ -20,4 +20,14 @@ class DigestiveApiRepository implements DigestiveRepository {
     final data = await ApiClient.instance.farmGet('/health/digestive/$livestockId');
     return DigestiveDetailData.fromJson(data);
   }
+
+  @override
+ Future<List<IntensityCell>> fetchIntensityHeatmap(String livestockId) async {
+   final data = await ApiClient.instance.farmGet('/health/digestive/$livestockId/heatmap');
+    final items = (data['value'] ?? data['items']) as List? ?? [];
+   return items
+       .whereType<Map<String, dynamic>>()
+       .map(IntensityCell.fromJson)
+       .toList();
+ }
 }

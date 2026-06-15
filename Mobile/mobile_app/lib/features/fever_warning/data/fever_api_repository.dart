@@ -20,4 +20,14 @@ class FeverApiRepository implements FeverRepository {
     final data = await ApiClient.instance.farmGet('/health/fever/$livestockId');
     return FeverDetailData.fromJson(data);
   }
+
+ @override
+ Future<List<DailyFeverHour>> fetchFeverDuration(String livestockId) async {
+   final data = await ApiClient.instance.farmGet('/health/fever/$livestockId/duration');
+    final items = (data['value'] ?? data['items']) as List? ?? [];
+   return items
+       .whereType<Map<String, dynamic>>()
+       .map(DailyFeverHour.fromJson)
+       .toList();
+ }
 }

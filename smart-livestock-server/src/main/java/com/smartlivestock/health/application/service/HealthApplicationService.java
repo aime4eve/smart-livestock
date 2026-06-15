@@ -2,6 +2,7 @@ package com.smartlivestock.health.application.service;
 
 import com.smartlivestock.health.application.dto.HealthDtos;
 import com.smartlivestock.health.application.dto.HealthDtos.*;
+import com.smartlivestock.health.domain.port.HealthSubscriptionPort;
 import com.smartlivestock.health.domain.port.RanchQueryPort;
 import com.smartlivestock.health.domain.port.RanchCommandPort;
 import com.smartlivestock.health.domain.port.dto.LivestockInfo;
@@ -35,6 +36,7 @@ public class HealthApplicationService {
     private final ContactTraceRepository contactTraceRepo;
     private final RanchQueryPort ranchQueryPort;
     private final RanchCommandPort ranchCommandPort;
+    private final HealthSubscriptionPort subscriptionPort;
 
     private final FeverAnalysisService feverService;
     private final DigestiveAnalysisService digestiveService;
@@ -43,6 +45,7 @@ public class HealthApplicationService {
 
     private static final BigDecimal DEFAULT_BASELINE_TEMP = new BigDecimal("38.5");
     private static final BigDecimal DEFAULT_MOTILITY_BASELINE = new BigDecimal("3.0");
+    private static final java.time.ZoneId DISPLAY_ZONE = java.time.ZoneId.of("Asia/Shanghai");
 
     // ── Telemetry Processing (IoT → Health) ────────────────────
 
@@ -389,8 +392,9 @@ public class HealthApplicationService {
         }
 
         Instant now = Instant.now();
+        int retentionHours = Math.min(subscriptionPort.getRetentionDays("temperature_monitor") * 24, 72);
         List<TemperatureLog> recentLogs = tempLogRepo.findByLivestockIdAndTimeRange(
-                livestockId, now.minus(Duration.ofHours(72)), now);
+                livestockId, now.minus(Duration.ofHours(retentionHours)), now);
 
         String code = ranchQueryPort.findLivestockById(livestockId).map(LivestockInfo::livestockCode).orElse("?");
 
@@ -439,8 +443,9 @@ public class HealthApplicationService {
         }
 
         Instant now = Instant.now();
+        int digRetentionHours = Math.min(subscriptionPort.getRetentionDays("peristaltic_monitor") * 24, 24);
         List<RumenMotilityLog> logs = motilityLogRepo.findByLivestockIdAndTimeRange(
-                livestockId, now.minus(Duration.ofHours(24)), now);
+                livestockId, now.minus(Duration.ofHours(digRetentionHours)), now);
 
         String code = ranchQueryPort.findLivestockById(livestockId).map(LivestockInfo::livestockCode).orElse("?");
 
@@ -509,6 +514,189 @@ public class HealthApplicationService {
                 latest.getTempDelta(), latest.getDistanceDelta(),
                 latest.getScoredAt(), latest.getAdvice(),
                 trend7d);
+    }
+
+    // ── Health Detail Charts (subscription-gated) ───────────────
+
+    /**
+     * Daily fever hours bar chart data (Standard+ tier).
+     * Returns daily hours where temperature exceeded baseline+1.0°C.
+     */
+    public List<HealthDtos.DailyFeverHour> getFeverDurationChart(Long farmId, Long livestockId) {
+        if (!subscriptionPort.hasFeature("health_score")) {
+            return List.of();
+        }
+        int retentionDays = Math.min(subscriptionPort.getRetentionDays("health_score"), 7);
+        Instant now = Instant.now();
+        List<TemperatureLog> logs = tempLogRepo.findByLivestockIdAndTimeRange(
+                livestockId, now.minus(Duration.ofDays(retentionDays)), now);
+
+        Map<String, Double> dailyHours = new LinkedHashMap<>();
+        for (int i = retentionDays - 1; i >= 0; i--) {
+            String dateStr = java.time.LocalDate.now().minusDays(i).toString();
+            dailyHours.put(dateStr, 0.0);
+        }
+
+        BigDecimal threshold = DEFAULT_BASELINE_TEMP.add(new BigDecimal("1.0"));
+        for (TemperatureLog log : logs) {
+            if (log.getTemperature() != null && log.getTemperature().compareTo(threshold) > 0) {
+                String dateStr = log.getRecordedAt().atZone(DISPLAY_ZONE).toLocalDate().toString();
+                dailyHours.merge(dateStr, 0.5, Double::sum);
+            }
+        }
+
+        return dailyHours.entrySet().stream()
+                .map(e -> new HealthDtos.DailyFeverHour(e.getKey(), e.getValue()))
+                .toList();
+    }
+
+    /**
+     * 24h motility intensity heatmap data (Standard+ tier).
+     */
+    public List<HealthDtos.IntensityCell> getIntensityHeatmap(Long farmId, Long livestockId) {
+        if (!subscriptionPort.hasFeature("health_score")) {
+            return List.of();
+        }
+        Instant now = Instant.now();
+        List<RumenMotilityLog> logs = motilityLogRepo.findByLivestockIdAndTimeRange(
+                livestockId, now.minus(Duration.ofHours(24)), now);
+
+        double[] avgIntensity = new double[24];
+        int[] counts = new int[24];
+        for (RumenMotilityLog log : logs) {
+            int hour = log.getRecordedAt().atZone(DISPLAY_ZONE).getHour();
+            if (log.getIntensity() != null) {
+                avgIntensity[hour] += log.getIntensity().doubleValue();
+                counts[hour]++;
+            }
+        }
+
+        List<HealthDtos.IntensityCell> cells = new ArrayList<>();
+        for (int h = 0; h < 24; h++) {
+            double intensity = counts[h] > 0 ? avgIntensity[h] / counts[h] : 0;
+            boolean abnormal = intensity > 0 && intensity < 30.0;
+            cells.add(new HealthDtos.IntensityCell(h, Math.round(intensity * 100.0) / 100.0, abnormal));
+        }
+        return cells;
+    }
+
+    /**
+     * Activity comparison data (Premium+ tier).
+     */
+    public HealthDtos.ActivityComparisonData getActivityComparison(Long farmId, Long livestockId) {
+        if (!subscriptionPort.hasFeature("estrus_detect")) {
+            return null;
+        }
+        Instant now = Instant.now();
+        List<ActivityLog> recent = activityLogRepo.findByLivestockIdAndTimeRange(
+                livestockId, now.minus(Duration.ofHours(24)), now);
+        List<ActivityLog> older = activityLogRepo.findByLivestockIdAndTimeRange(
+                livestockId, now.minus(Duration.ofHours(48)), now.minus(Duration.ofHours(24)));
+
+        int recentSteps = recent.stream().mapToInt(l -> l.getStepCount() != null ? l.getStepCount() : 0).sum();
+        int baselineSteps = older.stream().mapToInt(l -> l.getStepCount() != null ? l.getStepCount() : 0).sum();
+        double recentDist = recent.stream().map(l -> l.getDistanceMeters() != null ? l.getDistanceMeters() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add).doubleValue();
+        double baselineDist = older.stream().map(l -> l.getDistanceMeters() != null ? l.getDistanceMeters() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add).doubleValue();
+        double recentActIdx = recent.stream().map(l -> l.getActivityIndex() != null ? l.getActivityIndex() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add).doubleValue() / Math.max(1, recent.size());
+        double baselineActIdx = older.stream().map(l -> l.getActivityIndex() != null ? l.getActivityIndex() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add).doubleValue() / Math.max(1, older.size());
+
+        return new HealthDtos.ActivityComparisonData(
+                recentSteps, baselineSteps,
+                Math.round(recentDist * 100.0) / 100.0, Math.round(baselineDist * 100.0) / 100.0,
+                Math.round(recentActIdx * 100.0) / 100.0, Math.round(baselineActIdx * 100.0) / 100.0);
+    }
+
+    // ── Epidemic Contact Network ────────────────────────────────
+
+    /**
+     * Get contact network for a diseased livestock (Premium+ tier).
+     * Returns contacts grouped with 3D risk scores.
+     */
+    public HealthDtos.ContactNetworkResponse getContactNetwork(Long farmId, Long livestockId) {
+        String sourceCode = ranchQueryPort.findLivestockById(livestockId)
+                .map(LivestockInfo::livestockCode).orElse("?");
+
+        List<ContactTrace> traces = contactTraceRepo.findByFromLivestockIdOrderByLastContactAtDesc(livestockId);
+        Instant now = Instant.now();
+
+        List<HealthDtos.ContactNode> nodes = traces.stream()
+                .filter(t -> t.getLastContactAt() != null
+                        && t.getLastContactAt().isAfter(now.minus(Duration.ofHours(72))))
+                .map(t -> {
+                    String contactCode = ranchQueryPort.findLivestockById(t.getToLivestockId())
+                            .map(LivestockInfo::livestockCode).orElse("?");
+                    long hoursAgo = Duration.between(t.getLastContactAt(), now).toHours();
+                    int timeScore = calculateTimeScore(hoursAgo);
+                    int distanceScore = calculateDistanceScore(t.getProximityMeters());
+                    int durationScore = calculateDurationScore(t.getContactDurationMinutes());
+                    int totalScore = timeScore + distanceScore + durationScore;
+                    String riskLevel = totalScore >= 70 ? "HIGH" : totalScore >= 40 ? "MEDIUM" : "LOW";
+                    return new HealthDtos.ContactNode(
+                            String.valueOf(t.getToLivestockId()), contactCode,
+                            t.getProximityMeters() != null ? t.getProximityMeters().doubleValue() : 0,
+                            t.getContactDurationMinutes() != null ? t.getContactDurationMinutes() : 0,
+                            t.getLastContactAt(), (int) hoursAgo,
+                            timeScore, distanceScore, durationScore,
+                            totalScore, riskLevel);
+                })
+                .toList();
+
+        ContactTrace sourceTrace = traces.isEmpty() ? null : traces.get(0);
+        return new HealthDtos.ContactNetworkResponse(
+                String.valueOf(livestockId), sourceCode,
+                sourceTrace != null ? sourceTrace.getDiseaseType() : null,
+                sourceTrace != null ? sourceTrace.getMarkedAt() : null,
+                nodes);
+    }
+
+    /**
+     * Mark a livestock as diseased source.
+     */
+    @Transactional
+    public void markDiseased(Long farmId, Long livestockId, String diseaseType) {
+        List<ContactTrace> existing = contactTraceRepo.findByFromLivestockIdOrderByLastContactAtDesc(livestockId);
+        Instant now = Instant.now();
+        for (ContactTrace trace : existing) {
+            trace.setDiseaseType(diseaseType);
+            trace.setMarkedAt(now);
+            contactTraceRepo.save(trace);
+        }
+    }
+
+    /**
+     * Remove disease marking from a livestock.
+     */
+    @Transactional
+    public void unmarkDiseased(Long farmId, Long livestockId) {
+        List<ContactTrace> existing = contactTraceRepo.findByFromLivestockIdOrderByLastContactAtDesc(livestockId);
+        for (ContactTrace trace : existing) {
+            trace.setDiseaseType(null);
+            trace.setMarkedAt(null);
+            contactTraceRepo.save(trace);
+        }
+    }
+
+    private int calculateTimeScore(long hoursAgo) {
+        if (hoursAgo <= 24) return 40;
+        if (hoursAgo <= 48) return 25;
+        return 12;
+    }
+
+    private int calculateDistanceScore(BigDecimal proximityMeters) {
+        if (proximityMeters == null) return 5;
+        double dist = proximityMeters.doubleValue();
+        if (dist < 5) return 35;
+        if (dist < 15) return 25;
+        if (dist < 30) return 15;
+        return 5;
+    }
+
+    private int calculateDurationScore(Integer durationMinutes) {
+        if (durationMinutes == null) return 3;
+        if (durationMinutes > 30) return 25;
+        if (durationMinutes > 15) return 18;
+        if (durationMinutes > 5) return 10;
+        return 3;
     }
 
     // ── Epidemic ────────────────────────────────────────────────

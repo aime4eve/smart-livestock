@@ -49,3 +49,8 @@ final digestiveDetailControllerProvider = AsyncNotifierProvider.family<
     DigestiveDetailController, DigestiveDetailData, String>(
   DigestiveDetailController.new,
 );
+
+final digestiveHeatmapProvider =
+    FutureProvider.family<List<IntensityCell>, String>((ref, livestockId) async {
+  return ref.read(digestiveRepositoryProvider).fetchIntensityHeatmap(livestockId);
+});

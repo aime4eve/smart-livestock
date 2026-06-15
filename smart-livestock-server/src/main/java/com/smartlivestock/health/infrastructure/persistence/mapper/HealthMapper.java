@@ -172,6 +172,27 @@ public final class HealthMapper {
         d.setContactDurationMinutes(e.getContactDurationMinutes());
         d.setLastContactAt(e.getLastContactAt());
         d.setCreatedAt(e.getCreatedAt());
+        d.setDiseaseType(e.getDiseaseType());
+        d.setMarkedAt(e.getMarkedAt());
+        d.setRiskScore(e.getRiskScore());
+        d.setRiskLevel(e.getRiskLevel());
         return d;
+    }
+
+    public static ContactTraceJpaEntity toJpa(ContactTrace d) {
+        ContactTraceJpaEntity e = new ContactTraceJpaEntity();
+        e.setId(d.getId());
+        e.setFarmId(d.getFarmId());
+        e.setFromLivestockId(d.getFromLivestockId());
+        e.setToLivestockId(d.getToLivestockId());
+        e.setProximityMeters(d.getProximityMeters());
+        e.setContactDurationMinutes(d.getContactDurationMinutes());
+        e.setLastContactAt(d.getLastContactAt());
+        e.setCreatedAt(d.getCreatedAt());
+        e.setDiseaseType(d.getDiseaseType());
+        e.setMarkedAt(d.getMarkedAt());
+        e.setRiskScore(d.getRiskScore());
+        e.setRiskLevel(d.getRiskLevel());
+        return e;
     }
 }

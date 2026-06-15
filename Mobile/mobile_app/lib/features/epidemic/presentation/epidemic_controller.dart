@@ -27,3 +27,35 @@ final epidemicControllerProvider =
     AsyncNotifierProvider<EpidemicController, EpidemicData>(
   EpidemicController.new,
 );
+
+class EpidemicContactController extends AsyncNotifier<ContactNetworkResponse> {
+  EpidemicContactController(this.livestockId);
+  final String livestockId;
+
+  @override
+  Future<ContactNetworkResponse> build() async {
+    return ref.read(epidemicRepositoryProvider).fetchContactNetwork(livestockId);
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+      () => ref.read(epidemicRepositoryProvider).fetchContactNetwork(livestockId),
+    );
+  }
+
+  Future<void> markDiseased(String diseaseType) async {
+    await ref.read(epidemicRepositoryProvider).markDiseased(livestockId, diseaseType);
+    await refresh();
+  }
+
+  Future<void> unmarkDiseased() async {
+    await ref.read(epidemicRepositoryProvider).unmarkDiseased(livestockId);
+    await refresh();
+  }
+}
+
+final epidemicContactControllerProvider =
+    AsyncNotifierProvider.family<EpidemicContactController, ContactNetworkResponse, String>(
+  EpidemicContactController.new,
+);

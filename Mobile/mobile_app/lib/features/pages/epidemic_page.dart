@@ -1,5 +1,7 @@
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/models/health_models.dart';
 import 'package:hkt_livestock_agentic/features/epidemic/presentation/epidemic_controller.dart';
@@ -27,6 +29,24 @@ class EpidemicPage extends ConsumerWidget {
               _buildContactsSection(context, data),
               const SizedBox(height: 16),
               _buildRiskCard(context, data),
+              const SizedBox(height: 16),
+              // Navigate to epidemic contact tracing for the infected animal
+              ElevatedButton.icon(
+                onPressed: () {
+                  // SL-2024-048 is the seed infected animal (id varies by DB)
+                  // Use livestockId from first contact trace if available
+                  final firstFrom = data.contacts.isNotEmpty ? data.contacts.first.fromId : '';
+                  if (firstFrom.isNotEmpty) {
+                    context.go('${AppRoute.twinEpidemicContact.path}/$firstFrom');
+                  }
+                },
+                icon: const Icon(Icons.contact_page_outlined),
+                label: Text(l10n.viewContactTracing),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                ),
+              ),
             ],
           ),
         ),

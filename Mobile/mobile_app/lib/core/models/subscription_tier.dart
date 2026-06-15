@@ -245,7 +245,7 @@ class FeatureFlags {
     ),
     FeatureFlags.healthScore: FeatureDefinition(
       shape: FeatureShape.lock,
-      tiers: ['premium', 'enterprise'],
+      tiers: ['standard', 'premium', 'enterprise'],
       requiredDevices: ['gps', 'capsule'],
     ),
     FeatureFlags.estrusDetect: FeatureDefinition(

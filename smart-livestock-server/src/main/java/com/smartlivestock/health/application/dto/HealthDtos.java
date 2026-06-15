@@ -172,6 +172,36 @@ public final class HealthDtos {
             List<PendingTask> pendingTasks
     ) {}
 
+    // ── Health Detail Charts (subscription-gated) ──────────────
+
+    public record DailyFeverHour(String date, double hours) {}
+
+    public record IntensityCell(int hour, double intensity, boolean abnormal) {}
+
+    public record ActivityComparisonData(
+            int recentSteps, int baselineSteps,
+            double recentDistance, double baselineDistance,
+            double recentActivityIndex, double baselineActivityIndex
+    ) {}
+
+    public record ContactNode(
+            String livestockId, String livestockCode,
+            double proximityMeters, int contactDurationMinutes,
+            Instant lastContactAt, int hoursAgo,
+            int timeScore, int distanceScore, int durationScore,
+            int totalRiskScore, String riskLevel
+    ) {}
+
+    public record ContactNetworkResponse(
+            String sourceLivestockId, String sourceLivestockCode,
+            String diseaseType, Instant markedAt,
+            List<ContactNode> contacts
+    ) {}
+
+    public record MarkDiseaseRequest(
+            Long livestockId, String diseaseType
+    ) {}
+
 // ── Stats / Trends ─────────────────────────────────────────
 
     public record StatsTrendPoint(String date, double value) {}

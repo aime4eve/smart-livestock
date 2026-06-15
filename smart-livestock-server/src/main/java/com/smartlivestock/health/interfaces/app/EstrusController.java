@@ -24,4 +24,10 @@ public class EstrusController {
             @PathVariable Long farmId, @PathVariable Long livestockId) {
         return ResponseEntity.ok(ApiResponse.ok(healthService.getEstrusDetail(farmId, livestockId)));
     }
+
+    @GetMapping("/estrus/{livestockId}/activity")
+    public ResponseEntity<ApiResponse<ActivityComparisonData>> getActivityComparison(
+            @PathVariable Long farmId, @PathVariable Long livestockId) {
+        return ResponseEntity.ok(ApiResponse.ok(healthService.getActivityComparison(farmId, livestockId)));
+    }
 }

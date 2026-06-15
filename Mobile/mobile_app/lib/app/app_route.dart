@@ -26,6 +26,7 @@ enum AppRoute {
     '发情详情',
   ),
   twinEpidemic('/twin/epidemic', 'twin-epidemic', '疫病防控'),
+  twinEpidemicContact('/twin/epidemic/contacts', 'twin-epidemic-contact', '疫情接触追踪'),
   b2bAdmin('/b2b/admin', 'b2b-admin', 'B端控制台'),
   b2bAdminFarms('/b2b/admin/farms', 'b2b-admin-farms', '牧场管理'),
   b2bFarmCreation('/b2b/admin/farms/create', 'b2b-farm-creation', '新建牧场'),

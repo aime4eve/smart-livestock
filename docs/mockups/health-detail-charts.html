@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>健康详情页 - 订阅分级图表明细</title>
+<style>
+:root{
+  --primary:#2F6B3B; --primary-dark:#244F2D; --primary-soft:#E3F0E4;
+  --accent:#8BA95A; --surface:#F8F6F0; --surface-alt:#FFFFFF;
+  --border:#D7D2C6; --text-primary:#263126; --text-secondary:#617061;
+  --success:#4C9A5F; --warning:#D28A2D; --danger:#C2564B;
+  --info:#4A7F9D; --estrus:#C25689;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#e8e6e0;color:var(--text-primary);padding:20px}
+h1{font-size:18px;margin-bottom:4px;color:var(--primary-dark)}
+.subtitle{font-size:13px;color:var(--text-secondary);margin-bottom:16px}
+.tier-switcher{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.tier-switcher label{font-size:13px;font-weight:600;color:var(--text-secondary)}
+.tier-btn{padding:6px 16px;border:2px solid var(--border);background:#fff;border-radius:20px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s}
+.tier-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.tier-btn:hover:not(.active){border-color:var(--primary)}
+.phones{display:flex;gap:24px;overflow-x:auto;padding-bottom:16px}
+.phone{width:380px;min-width:380px;background:var(--surface-alt);border-radius:24px;box-shadow:0 4px 20px rgba(0,0,0,.12);overflow:hidden;border:1px solid var(--border)}
+.phone-header{background:var(--primary);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:8px}
+.phone-header .back{font-size:20px;cursor:pointer}
+.phone-header h2{font-size:15px;font-weight:600;flex:1}
+.phone-body{padding:16px;max-height:680px;overflow-y:auto}
+.stat-row{display:flex;gap:8px;margin-bottom:12px}
+.stat-card{flex:1;background:var(--surface-alt);border:1px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center}
+.stat-card .label{font-size:11px;color:var(--text-secondary);margin-bottom:4px}
+.stat-card .value{font-size:16px;font-weight:700}
+.section-title{font-size:14px;font-weight:700;margin:14px 0 8px;color:var(--text-primary)}
+.chart-card{background:var(--surface-alt);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px}
+.chart-card .chart-title{font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.chart-card .badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-unlocked{background:var(--primary-soft);color:var(--primary-dark)}
+.badge-locked{background:#f0e8e6;color:var(--danger)}
+.chart-area{height:140px;position:relative;background:var(--surface);border-radius:8px;padding:8px}
+svg{width:100%;height:100%}
+.device-line{font-size:11px;color:var(--text-secondary);padding:6px 0;border-top:1px solid var(--border);margin-top:8px}
+.note-box{background:rgba(74,127,157,.06);border-radius:8px;padding:10px;display:flex;gap:8px;align-items:flex-start;margin:12px 0}
+.note-box .icon{font-size:14px;color:var(--info);flex-shrink:0}
+.note-box .text{font-size:12px;color:var(--info);line-height:1.5}
+.locked-overlay{position:relative}
+.locked-overlay .dim{opacity:.3;filter:blur(1px)}
+.locked-overlay .lock-msg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.locked-overlay .lock-msg .lock-icon{font-size:36px;color:var(--text-secondary)}
+.locked-overlay .lock-msg .lock-text{font-size:13px;color:var(--text-secondary);text-align:center;padding:0 20px}
+.locked-overlay .lock-msg .upgrade-btn{padding:6px 18px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600}
+.conclusion-card{background:var(--surface);border-radius:10px;padding:12px;font-size:13px;line-height:1.5;margin:12px 0}
+.legend{display:flex;gap:12px;font-size:10px;color:var(--text-secondary);margin-top:6px}
+.legend-item{display:flex;align-items:center;gap:4px}
+.legend-dot{width:10px;height:3px;border-radius:2px}
+.contact-list{list-style:none}
+.contact-item{display:flex;align-items:center;gap:8px;padding:8px;border-bottom:1px solid var(--border);font-size:12px}
+.contact-item:last-child{border-bottom:none}
+.contact-item .risk{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.risk-high{background:#f0d8d5;color:var(--danger)}
+.risk-medium{background:#fbeed7;color:var(--warning)}
+.risk-low{background:var(--primary-soft);color:var(--success)}
+.contact-window-header{padding:10px 12px 6px;font-size:12px;font-weight:700;color:var(--text-primary);background:var(--surface);border-top:1px solid var(--border)}
+.contact-window-header:first-child{border-top:none}
+.contact-count{display:inline-block;margin-left:6px;padding:1px 8px;background:var(--primary-soft);color:var(--primary-dark);border-radius:8px;font-size:10px;font-weight:600}
+.risk-score{display:inline-block;margin-left:4px;padding:1px 6px;background:var(--surface);border:1px solid var(--border);border-radius:4px;font-size:10px;font-weight:700;color:var(--text-primary)}
+.risk-factors{font-size:9px;color:var(--text-secondary);margin-top:2px;opacity:0.8}
+.back-btn{display:block;width:100%;padding:10px;border:1px solid var(--border);background:transparent;border-radius:8px;color:var(--text-secondary);font-size:14px;margin-top:12px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<h1>🐄 牲畜健康详情页 — 订阅分级图表明细原型</h1>
+<div class="subtitle">切换订阅等级查看不同 Tier 下每只牛健康详情页可展示的图表与数据深度。前后端双重门控：后端按 Tier 过滤数据深度，前端按 Tier 解锁/锁定图表类型。</div>
+
+<div class="tier-switcher">
+  <label>当前订阅：</label>
+  <button class="tier-btn" data-tier="basic" onclick="switchTier('basic')">Basic (免费)</button>
+  <button class="tier-btn active" data-tier="standard" onclick="switchTier('standard')">Standard (¥299/月)</button>
+  <button class="tier-btn" data-tier="premium" onclick="switchTier('premium')">Premium (¥699/月)</button>
+  <button class="tier-btn" data-tier="enterprise" onclick="switchTier('enterprise')">Enterprise (定制)</button>
+</div>
+
+<div class="phones">
+
+<!-- ==================== 发热详情 ==================== -->
+<div class="phone">
+  <div class="phone-header">
+    <span class="back">‹</span>
+    <h2>🌡️ 发热监测详情</h2>
+  </div>
+  <div class="phone-body">
+    <div class="stat-row">
+      <div class="stat-card"><div class="label">当前体温</div><div class="value" style="color:var(--danger)">39.8°C</div></div>
+      <div class="stat-card"><div class="label">基线体温</div><div class="value" style="color:var(--text-secondary)">38.5°C</div></div>
+      <div class="stat-card"><div class="label">状态</div><div class="value" style="color:var(--danger)">CRITICAL</div></div>
+    </div>
+    <div class="device-line">📱 设备 ID: CAP-2024-001 · 瘤胃胶囊</div>
+
+    <!-- 图表1: 体温曲线 (所有 Tier 可见，数据深度不同) -->
+    <div class="chart-card" id="fever-chart-1">
+      <div class="chart-title">
+        <span>体温趋势曲线</span>
+        <span class="badge badge-unlocked" id="fever-1-badge">Standard · 72h</span>
+      </div>
+      <div class="chart-area">
+        <svg viewBox="0 0 340 120" preserveAspectRatio="none">
+          <defs><linearGradient id="feverGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C2564B" stop-opacity="0.3"/><stop offset="100%" stop-color="#C2564B" stop-opacity="0"/></linearGradient></defs>
+          <line x1="0" y1="50" x2="340" y2="50" stroke="#617061" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+          <text x="4" y="46" font-size="9" fill="#617061">基线38.5</text>
+          <path id="fever-path-fill" d="M0,80 L30,78 L60,72 L90,68 L120,55 L150,42 L180,30 L210,25 L240,28 L270,35 L300,30 L330,22 L340,20 L340,120 L0,120 Z" fill="url(#feverGrad)"/>
+          <path id="fever-path" d="M0,80 L30,78 L60,72 L90,68 L120,55 L150,42 L180,30 L210,25 L240,28 L270,35 L300,30 L330,22 L340,20" fill="none" stroke="#C2564B" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#C2564B"></div>实测体温</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#617061"></div>基线参考</div>
+      </div>
+    </div>
+
+    <!-- 图表2: 发热持续时长分析 (Standard+) -->
+    <div class="chart-card locked-zone" data-min-tier="standard" data-feature="health_score">
+      <div class="chart-title">
+        <span>📈 发热持续时长分析</span>
+        <span class="badge badge-unlocked">Premium+</span>
+      </div>
+      <div class="locked-content">
+        <div class="chart-area">
+          <svg viewBox="0 0 340 120" preserveAspectRatio="none">
+            <rect x="10" y="60" width="40" height="50" rx="3" fill="#D28A2D" opacity="0.7"/>
+            <rect x="60" y="45" width="40" height="65" rx="3" fill="#D28A2D" opacity="0.7"/>
+            <rect x="110" y="30" width="40" height="80" rx="3" fill="#C2564B" opacity="0.7"/>
+            <rect x="160" y="20" width="40" height="90" rx="3" fill="#C2564B"/>
+            <rect x="210" y="35" width="40" height="75" rx="3" fill="#C2564B" opacity="0.7"/>
+            <rect x="260" y="55" width="40" height="55" rx="3" fill="#D28A2D" opacity="0.7"/>
+            <rect x="310" y="70" width="20" height="40" rx="3" fill="#4C9A5F" opacity="0.7"/>
+            <text x="20" y="115" font-size="8" fill="#617061">周一</text>
+            <text x="70" y="115" font-size="8" fill="#617061">周二</text>
+            <text x="118" y="115" font-size="8" fill="#617061">周三</text>
+            <text x="168" y="115" font-size="8" fill="#617061">周四</text>
+            <text x="218" y="115" font-size="8" fill="#617061">周五</text>
+            <text x="268" y="115" font-size="8" fill="#617061">周六</text>
+          </svg>
+        </div>
+        <div class="legend"><div class="legend-item">每日超阈值持续小时数（小时）</div></div>
+      </div>
+    </div>
+
+    <div class="note-box"><span class="icon">ℹ️</span><span class="text">胶囊传感器每5分钟采集一次体温，基线由7天均值动态计算。</span></div>
+    <button class="back-btn">‹ 返回</button>
+  </div>
+</div>
+
+<!-- ==================== 消化详情 ==================== -->
+<div class="phone">
+  <div class="phone-header">
+    <span class="back">‹</span>
+    <h2>🫃 消化健康详情</h2>
+  </div>
+  <div class="phone-body">
+    <div class="stat-row">
+      <div class="stat-card"><div class="label">当前蠕动</div><div class="value" style="color:var(--danger)">2.1次/分</div></div>
+      <div class="stat-card"><div class="label">基线蠕动</div><div class="value" style="color:var(--text-secondary)">3.5次/分</div></div>
+      <div class="stat-card"><div class="label">状态</div><div class="value" style="color:var(--warning)">ABNORMAL</div></div>
+    </div>
+    <div class="device-line">📱 设备 ID: CAP-2024-001 · 瘤胃胶囊</div>
+
+    <!-- 图表1: 蠕动频率曲线 -->
+    <div class="chart-card">
+      <div class="chart-title">
+        <span>瘤胃蠕动频率</span>
+        <span class="badge badge-unlocked" id="digestive-1-badge">Standard · 24h</span>
+      </div>
+      <div class="chart-area">
+        <svg viewBox="0 0 340 120" preserveAspectRatio="none">
+          <line x1="0" y1="45" x2="340" y2="45" stroke="#617061" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+          <text x="4" y="41" font-size="9" fill="#617061">基线3.5</text>
+          <path d="M0,40 L40,38 L80,42 L120,50 L160,58 L200,65 L240,72 L280,78 L320,75 L340,70" fill="none" stroke="#C2564B" stroke-width="2"/>
+          <path d="M0,40 L40,38 L80,42 L120,50 L160,58 L200,65 L240,72 L280,78 L320,75 L340,70 L340,120 L0,120 Z" fill="#C2564B" opacity="0.1"/>
+        </svg>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#C2564B"></div>蠕动频率</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#617061"></div>基线参考</div>
+      </div>
+    </div>
+
+    <!-- 图表2: 蠕动强度热力图 (Standard+) -->
+    <div class="chart-card locked-zone" data-min-tier="standard" data-feature="health_score">
+      <div class="chart-title">
+        <span>🔥 24h 蠕动强度热力图</span>
+        <span class="badge badge-unlocked">Premium+</span>
+      </div>
+      <div class="locked-content">
+        <div class="chart-area" style="height:100px">
+          <div style="display:grid;grid-template-columns:repeat(24,1fr);gap:1px;height:60px;margin-top:4px" id="heatmap-grid"></div>
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--text-secondary);margin-top:4px">
+            <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span>
+          </div>
+          <div style="font-size:10px;color:var(--text-secondary);margin-top:4px">颜色越深 = 蠕动强度越低（异常区域高亮）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="conclusion-card">📋 蠕动频率持续低于基线，建议检查饲料质量和瘤胃健康。</div>
+    <div class="note-box"><span class="icon">ℹ️</span><span class="text">胶囊传感器可检测瘤胃机械运动，频率低于2.5次/分视为异常。</span></div>
+    <button class="back-btn">‹ 返回</button>
+  </div>
+</div>
+
+<!-- ==================== 发情详情 ==================== -->
+<div class="phone">
+  <div class="phone-header">
+    <span class="back">‹</span>
+    <h2>💕 发情检测详情</h2>
+  </div>
+  <div class="phone-body">
+    <div class="stat-row">
+      <div class="stat-card"><div class="label">发情评分</div><div class="value" style="color:var(--estrus)">85</div></div>
+      <div class="stat-card"><div class="label">步数增幅</div><div class="value" style="color:var(--info)">+120%</div></div>
+      <div class="stat-card"><div class="label">温差</div><div class="value" style="color:var(--text-secondary)">+0.4°C</div></div>
+    </div>
+    <div class="device-line">📱 设备 ID: TRK-2024-003 · GPS追踪器 + 胶囊</div>
+
+    <!-- 图表1: 发情评分趋势 (Premium+) -->
+    <div class="chart-card locked-zone" data-min-tier="premium" data-feature="estrus_detect">
+      <div class="chart-title">
+        <span>7日发情评分趋势</span>
+        <span class="badge badge-unlocked">Premium+</span>
+      </div>
+      <div class="locked-content">
+        <div class="chart-area">
+          <svg viewBox="0 0 340 120" preserveAspectRatio="none">
+            <line x1="0" y1="100" x2="340" y2="100" stroke="#D7D2C6" stroke-width="1"/>
+            <line x1="0" y1="60" x2="340" y2="60" stroke="#D28A2D" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+            <text x="4" y="56" font-size="9" fill="#D28A2D">阈值70</text>
+            <path d="M0,95 L50,90 L100,85 L150,70 L200,40 L250,25 L300,30 L340,35" fill="none" stroke="#C25689" stroke-width="2"/>
+            <circle cx="200" cy="40" r="4" fill="#C25689"/>
+            <circle cx="250" cy="25" r="4" fill="#C25689"/>
+          </svg>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#C25689"></div>发情评分</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#D28A2D"></div>配种建议阈值</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 图表2: 活动量对比 (Premium+) -->
+    <div class="chart-card locked-zone" data-min-tier="premium" data-feature="estrus_detect">
+      <div class="chart-title">
+        <span>📊 活动量对比（近3日 vs 基线）</span>
+        <span class="badge badge-unlocked">Premium+</span>
+      </div>
+      <div class="locked-content">
+        <div class="chart-area">
+          <svg viewBox="0 0 340 120" preserveAspectRatio="none">
+            <g><rect x="30" y="80" width="30" height="30" rx="3" fill="#617061" opacity="0.4"/><rect x="65" y="50" width="30" height="60" rx="3" fill="#C25689"/><text x="45" y="118" font-size="8" fill="#617061">步数</text></g>
+            <g><rect x="130" y="70" width="30" height="40" rx="3" fill="#617061" opacity="0.4"/><rect x="165" y="35" width="30" height="75" rx="3" fill="#C25689"/><text x="145" y="118" font-size="8" fill="#617061">距离</text></g>
+            <g><rect x="230" y="85" width="30" height="25" rx="3" fill="#617061" opacity="0.4"/><rect x="265" y="55" width="30" height="55" rx="3" fill="#C25689"/><text x="245" y="118" font-size="8" fill="#617061">活跃指数</text></g>
+          </svg>
+        </div>
+        <div class="legend"><div class="legend-item"><div class="legend-dot" style="background:#617061;opacity:0.4"></div>基线均值</div><div class="legend-item"><div class="legend-dot" style="background:#C25689"></div>近3日</div></div>
+      </div>
+    </div>
+
+    <div class="conclusion-card" style="background:var(--primary-soft)">💡 评分85分，步数增幅显著，建议24小时内配种。</div>
+    <div class="note-box"><span class="icon">ℹ️</span><span class="text">系统能检测发情高分牲畜，建议人工确认后配种。</span></div>
+    <button class="back-btn">‹ 返回</button>
+  </div>
+</div>
+
+<!-- ==================== 疫情接触追踪 ==================== -->
+<div class="phone">
+  <div class="phone-header">
+    <span class="back">‹</span>
+    <h2>🦠 疫情接触追踪</h2>
+  </div>
+  <div class="phone-body">
+    <div class="section-title">已标记染病牲畜</div>
+    <div style="background:#f0d8d5;border:1px solid var(--danger);border-radius:8px;padding:10px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:24px">🐄</span>
+      <div style="flex:1"><div style="font-weight:700;color:var(--danger)">LIV-1-007 · 已确认染病</div><div style="font-size:11px;color:var(--text-secondary)">口蹄疫疑似 · 标记时间：06/14 10:30</div></div>
+      <button style="font-size:11px;padding:4px 8px;background:var(--danger);color:#fff;border:none;border-radius:4px;cursor:pointer">取消标记</button>
+    </div>
+
+    <div class="locked-zone" data-min-tier="premium" data-feature="epidemic_alert">
+      <div class="locked-content">
+        <div class="section-title">接触风险网络（72h GPS轨迹交叉分析）</div>
+        <div class="chart-card">
+          <div class="chart-title">
+            <span>🔗 接触链拓扑图</span>
+            <span class="badge badge-unlocked">Premium+</span>
+          </div>
+          <div class="chart-area" style="height:160px">
+            <svg viewBox="0 0 340 150">
+              <!-- center infected node -->
+              <circle cx="170" cy="75" r="18" fill="#C2564B"/>
+              <text x="170" y="79" text-anchor="middle" font-size="9" fill="#fff" font-weight="bold">007</text>
+              <text x="170" y="105" text-anchor="middle" font-size="8" fill="#C2564B">染病源</text>
+              <!-- high risk contacts -->
+              <line x1="170" y1="75" x2="70" y2="35" stroke="#C2564B" stroke-width="2"/>
+              <circle cx="70" cy="35" r="12" fill="#C2564B" opacity="0.8"/>
+              <text x="70" y="39" text-anchor="middle" font-size="8" fill="#fff">012</text>
+              <line x1="170" y1="75" x2="80" y2="120" stroke="#C2564B" stroke-width="2"/>
+              <circle cx="80" cy="120" r="12" fill="#C2564B" opacity="0.8"/>
+              <text x="80" y="124" text-anchor="middle" font-size="8" fill="#fff">023</text>
+              <!-- medium risk -->
+              <line x1="170" y1="75" x2="270" y2="40" stroke="#D28A2D" stroke-width="2" stroke-dasharray="3,3"/>
+              <circle cx="270" cy="40" r="12" fill="#D28A2D" opacity="0.7"/>
+              <text x="270" y="44" text-anchor="middle" font-size="8" fill="#fff">045</text>
+              <line x1="170" y1="75" x2="250" y2="120" stroke="#D28A2D" stroke-width="2" stroke-dasharray="3,3"/>
+              <circle cx="250" cy="120" r="12" fill="#D28A2D" opacity="0.7"/>
+              <text x="250" y="124" text-anchor="middle" font-size="8" fill="#fff">067</text>
+              <!-- low risk -->
+              <line x1="170" y1="75" x2="310" y2="80" stroke="#4C9A5F" stroke-width="1" stroke-dasharray="2,4"/>
+              <circle cx="310" cy="80" r="8" fill="#4C9A5F" opacity="0.5"/>
+              <text x="310" y="84" text-anchor="middle" font-size="7" fill="#fff">089</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#C2564B"></div>高风险(&lt;10m)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#D28A2D"></div>中风险(10-30m)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#4C9A5F"></div>低风险(&gt;30m)</div>
+          </div>
+        </div>
+
+        <div class="section-title">密切接触者明细</div>
+        <div class="chart-card" style="padding:0">
+          <ul class="contact-list">
+            <li class="contact-item"><span>🐄</span><div style="flex:1"><div style="font-weight:600">LIV-1-012</div><div style="color:var(--text-secondary);font-size:10px">最近接触 3.2m · 06/14 08:15 · 持续45分钟</div></div><span class="risk risk-high">高风险</span></li>
+            <li class="contact-item"><span>🐄</span><div style="flex:1"><div style="font-weight:600">LIV-1-023</span><div style="color:var(--text-secondary);font-size:10px">最近接触 5.8m · 06/14 09:20 · 持续32分钟</div></div><span class="risk risk-high">高风险</span></li>
+            <li class="contact-item"><span>🐄</span><div style="flex:1"><div style="font-weight:600">LIV-1-045</span><div style="color:var(--text-secondary);font-size:10px">最近接触 15.3m · 06/13 16:40 · 持续18分钟</div></div><span class="risk risk-medium">中风险</span></li>
+            <li class="contact-item"><span>🐄</span><div style="flex:1"><div style="font-weight:600">LIV-1-067</span><div style="color:var(--text-secondary);font-size:10px">最近接触 22.1m · 06/13 14:05 · 持续12分钟</div></div><span class="risk risk-medium">中风险</span></li>
+            <li class="contact-item"><span>🐄</span><div style="flex:1"><div style="font-weight:600">LIV-1-089</span><div style="color:var(--text-secondary);font-size:10px">最近接触 45.0m · 06/13 11:20 · 持续5分钟</div></div><span class="risk risk-low">低风险</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="note-box"><span class="icon">ℹ️</span><span class="text">基于GPS轨迹时空交叉分析，自动识别24/48/72小时内与染病牲畜密切接触的个体并评估感染风险。</span></div>
+    <button class="back-btn">‹ 返回</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+const tierOrder = { basic: 0, standard: 1, premium: 2, enterprise: 3 };
+const tierLabels = { basic: 'Basic', standard: 'Standard', premium: 'Premium', enterprise: 'Enterprise' };
+const retentionLabels = { basic: '24h', standard: '72h', premium: '7d', enterprise: '30d' };
+
+function switchTier(tier) {
+  document.querySelectorAll('.tier-btn').forEach(b => b.classList.toggle('active', b.dataset.tier === tier));
+  const tierLevel = tierOrder[tier];
+
+  // Handle locked zones (feature gating by tier)
+  document.querySelectorAll('.locked-zone').forEach(zone => {
+    const minTier = tierOrder[zone.dataset.minTier];
+    const content = zone.querySelector('.locked-content');
+    const badge = zone.querySelector('.badge');
+
+    // Remove existing overlay
+    const existingOverlay = zone.querySelector('.locked-overlay');
+    if (existingOverlay) existingOverlay.remove();
+
+    if (tierLevel >= minTier) {
+      // Unlocked
+      content.style.display = '';
+      if (badge) { badge.className = 'badge badge-unlocked'; badge.textContent = tierLabels[tier] + '+'; }
+    } else {
+      // Locked - wrap content with overlay
+      content.style.display = '';
+      const minTierLabel = tierLabels[zone.dataset.minTier];
+      const featureLabel = { health_score: '健康深度分析', estrus_detect: '发情检测', epidemic_alert: '疫情追踪' }[zone.dataset.feature] || '此功能';
+      const overlay = document.createElement('div');
+      overlay.className = 'locked-overlay';
+      overlay.innerHTML = '<div class="dim">' + content.outerHTML + '</div><div class="lock-msg"><div class="lock-icon">🔒</div><div class="lock-text">' + featureLabel + '需要 <strong>' + minTierLabel + '</strong> 及以上订阅</div><button class="upgrade-btn" onclick="switchTier(\'' + zone.dataset.minTier + '\')">升级到 ' + minTierLabel + '</button></div>';
+      content.style.display = 'none';
+      content.parentNode.appendChild(overlay);
+      if (badge) { badge.className = 'badge badge-locked'; badge.textContent = '🔒 ' + minTierLabel + '+'; }
+    }
+  });
+
+  // Update data-depth badges (fever/digestive chart 1)
+  const feverBadge = document.getElementById('fever-1-badge');
+  const digestiveBadge = document.getElementById('digestive-1-badge');
+  if (feverBadge) feverBadge.textContent = tierLabels[tier] + ' · ' + retentionLabels[tier];
+  if (digestiveBadge) {
+    const digRetention = { basic: '6h', standard: '24h', premium: '72h', enterprise: '7d' };
+    digestiveBadge.textContent = tierLabels[tier] + ' · ' + digRetention[tier];
+  }
+}
+
+// Generate heatmap
+function genHeatmap() {
+  const grid = document.getElementById('heatmap-grid');
+  if (!grid) return;
+  for (let i = 0; i < 24; i++) {
+    const cell = document.createElement('div');
+    const isAbnormal = i >= 10 && i <= 16; // afternoon abnormal zone
+    const intensity = isAbnormal ? 0.3 + Math.random() * 0.2 : 0.6 + Math.random() * 0.4;
+    cell.style.background = isAbnormal ? `rgba(194,86,75,${intensity})` : `rgba(76,154,95,${intensity})`;
+    cell.style.borderRadius = '2px';
+    grid.appendChild(cell);
+  }
+}
+
+// Init
+genHeatmap();
+switchTier('standard');
+</script>
+</body>
+</html>

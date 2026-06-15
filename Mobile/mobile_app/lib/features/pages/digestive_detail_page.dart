@@ -1,10 +1,15 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/core/models/health_models.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/features/digestive/presentation/digestive_controller.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/device_info_line.dart';
+import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
+import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/locked_overlay.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class DigestiveDetailPage extends ConsumerWidget {
@@ -15,6 +20,9 @@ class DigestiveDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final asyncDetail = ref.watch(digestiveDetailControllerProvider(livestockId));
+    final subAsync = ref.watch(subscriptionControllerProvider);
+    final tier = subAsync.value?.tier ?? SubscriptionTier.basic;
+    final hasHealthScore = checkTierAccess(tier, FeatureFlags.healthScore);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.digestiveDetailTitle), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
       body: asyncDetail.when(
@@ -27,21 +35,129 @@ class DigestiveDetailPage extends ConsumerWidget {
             children: [
               _buildStatusCards(detail, l10n),
               const SizedBox(height: 16),
-              // Device info (subtle)
               DeviceInfoLine(deviceId: livestockId),
               const SizedBox(height: 8),
               _buildChart(detail, l10n),
+              const SizedBox(height: 16),
+              // Subscription-gated: intensity heatmap (Standard+)
+              if (hasHealthScore)
+                _buildHeatmapSection(ref, l10n)
+              else
+                _buildLockedChart(context, l10n, l10n.digestiveHeatmapTitle, 'Standard'),
               if (detail.advice != null) ...[
                 const SizedBox(height: 16),
                 Card(child: Padding(padding: const EdgeInsets.all(12), child: Text('📋 ${detail.advice}'))),
               ],
               const SizedBox(height: 16),
-              // Capability boundary note
               _buildCapabilityNote(context, l10n),
               const SizedBox(height: 16),
               _buildDismissButton(context),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLockedChart(BuildContext context, AppLocalizations l10n, String chartTitle, String minTier) {
+    return Card(
+      child: LockedOverlay(
+        locked: true,
+        upgradeTier: minTier.toLowerCase(),
+        onUpgrade: () => context.go(AppRoute.subscription.path),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(chartTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              SizedBox(height: 120, child: const Center(child: Icon(Icons.grid_on, size: 48, color: AppColors.border))),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeatmapSection(WidgetRef ref, AppLocalizations l10n) {
+    final asyncHeatmap = ref.watch(digestiveHeatmapProvider(livestockId));
+    return asyncHeatmap.when(
+      loading: () => const Card(child: Padding(padding: EdgeInsets.all(12), child: Center(child: CircularProgressIndicator()))),
+      error: (e, _) => const SizedBox.shrink(),
+      data: (cells) {
+        if (cells.isEmpty) return const SizedBox.shrink();
+        return _buildHeatmapChart(cells, l10n);
+      },
+    );
+  }
+
+  Widget _buildHeatmapChart(List<IntensityCell> cells, AppLocalizations l10n) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('🔥 ${l10n.digestiveHeatmapTitle}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(10)),
+                  child: const Text('Standard+', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primaryDark))),
+              ],
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 100,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GridView.builder(
+                      scrollDirection: Axis.horizontal,
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 1,
+                        mainAxisSpacing: 1,
+                        childAspectRatio: 0.3,
+                      ),
+                      itemCount: cells.length,
+                      itemBuilder: (ctx, i) {
+                        final cell = cells[i];
+                        final intensity = cell.intensity;
+                        final isAbnormal = cell.abnormal;
+                        return Tooltip(
+                          message: '${cell.hour}:00 · ${intensity.toStringAsFixed(1)}',
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: isAbnormal
+                                  ? AppColors.danger.withOpacity(0.3 + (intensity / 100).clamp(0, 0.7))
+                                  : AppColors.success.withOpacity(0.3 + (intensity / 100).clamp(0, 0.7)),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('00:00', style: TextStyle(fontSize: 8, color: AppColors.textSecondary)),
+                Text('06:00', style: TextStyle(fontSize: 8, color: AppColors.textSecondary)),
+                Text('12:00', style: TextStyle(fontSize: 8, color: AppColors.textSecondary)),
+                Text('18:00', style: TextStyle(fontSize: 8, color: AppColors.textSecondary)),
+                Text('24:00', style: TextStyle(fontSize: 8, color: AppColors.textSecondary)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(l10n.digestiveHeatmapSubtitle, style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+          ],
         ),
       ),
     );
@@ -113,14 +229,13 @@ class DigestiveDetailPage extends ConsumerWidget {
         SizedBox(height: 180, child: LineChart(LineChartData(
           gridData: FlGridData(show: true, drawVerticalLine: false),
           titlesData: FlTitlesData(
-            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 35, getTitlesWidget: (v, _) => Text('${v.toStringAsFixed(1)}', style: const TextStyle(fontSize: 10)))),
+            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 40, getTitlesWidget: (v, _) => Text('${v.toStringAsFixed(1)}', style: const TextStyle(fontSize: 10)))),
             bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
             topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
             rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
           lineBarsData: [
-            LineChartBarData(spots: spots, isCurved: true, color: AppColors.warning, barWidth: 2, dotData: FlDotData(show: false)),
-            LineChartBarData(spots: [FlSpot(0, detail.motilityBaseline), FlSpot((readings.length - 1).toDouble(), detail.motilityBaseline)], color: AppColors.textSecondary.withOpacity(0.4), dashArray: [4, 4], barWidth: 1, dotData: FlDotData(show: false)),
+            LineChartBarData(spots: spots, isCurved: true, color: AppColors.danger, barWidth: 2, dotData: FlDotData(show: false)),
           ],
         ))),
       ])),

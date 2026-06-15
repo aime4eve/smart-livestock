@@ -1,3 +1,4 @@
+export 'package:hkt_livestock_agentic/core/models/twin_models.dart';
 import 'package:hkt_livestock_agentic/core/models/twin_models.dart';
 
 // Re-export existing twin_models which already define:
@@ -354,6 +355,144 @@ class EpidemicData {
                         ? DateTime.parse(e['lastContact'] as String)
                         : DateTime.now(),
                   ))
+              .toList() ??
+          [],
+    );
+  }
+}
+
+// ── Health Detail Chart Models (subscription-gated) ───────────
+
+class DailyFeverHour {
+  const DailyFeverHour({required this.date, required this.hours});
+  final String date;
+  final double hours;
+
+  factory DailyFeverHour.fromJson(Map<String, dynamic> m) {
+    return DailyFeverHour(
+      date: m['date'] as String? ?? '',
+      hours: (m['hours'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}
+
+class IntensityCell {
+  const IntensityCell({
+    required this.hour,
+    required this.intensity,
+    required this.abnormal,
+  });
+  final int hour;
+  final double intensity;
+  final bool abnormal;
+
+  factory IntensityCell.fromJson(Map<String, dynamic> m) {
+    return IntensityCell(
+      hour: m['hour'] as int? ?? 0,
+      intensity: (m['intensity'] as num?)?.toDouble() ?? 0,
+      abnormal: m['abnormal'] as bool? ?? false,
+    );
+  }
+}
+
+class ActivityComparisonData {
+  const ActivityComparisonData({
+    required this.recentSteps,
+    required this.baselineSteps,
+    required this.recentDistance,
+    required this.baselineDistance,
+    required this.recentActivityIndex,
+    required this.baselineActivityIndex,
+  });
+  final int recentSteps;
+  final int baselineSteps;
+  final double recentDistance;
+  final double baselineDistance;
+  final double recentActivityIndex;
+  final double baselineActivityIndex;
+
+  factory ActivityComparisonData.fromJson(Map<String, dynamic> m) {
+    return ActivityComparisonData(
+      recentSteps: m['recentSteps'] as int? ?? 0,
+      baselineSteps: m['baselineSteps'] as int? ?? 0,
+      recentDistance: (m['recentDistance'] as num?)?.toDouble() ?? 0,
+      baselineDistance: (m['baselineDistance'] as num?)?.toDouble() ?? 0,
+      recentActivityIndex: (m['recentActivityIndex'] as num?)?.toDouble() ?? 0,
+      baselineActivityIndex: (m['baselineActivityIndex'] as num?)?.toDouble() ?? 0,
+    );
+  }
+}
+
+class ContactNode {
+  const ContactNode({
+    required this.livestockId,
+    required this.livestockCode,
+    required this.proximityMeters,
+    required this.contactDurationMinutes,
+    required this.lastContactAt,
+    required this.hoursAgo,
+    required this.timeScore,
+    required this.distanceScore,
+    required this.durationScore,
+    required this.totalRiskScore,
+    required this.riskLevel,
+  });
+  final String livestockId;
+  final String livestockCode;
+  final double proximityMeters;
+  final int contactDurationMinutes;
+  final DateTime lastContactAt;
+  final int hoursAgo;
+  final int timeScore;
+  final int distanceScore;
+  final int durationScore;
+  final int totalRiskScore;
+  final String riskLevel;
+
+  factory ContactNode.fromJson(Map<String, dynamic> m) {
+    return ContactNode(
+      livestockId: (m['livestockId'] ?? '').toString(),
+      livestockCode: m['livestockCode'] as String? ?? '?',
+      proximityMeters: (m['proximityMeters'] as num?)?.toDouble() ?? 0,
+      contactDurationMinutes: m['contactDurationMinutes'] as int? ?? 0,
+      lastContactAt: m['lastContactAt'] != null
+          ? DateTime.parse(m['lastContactAt'] as String)
+          : DateTime.now(),
+      hoursAgo: m['hoursAgo'] as int? ?? 0,
+      timeScore: m['timeScore'] as int? ?? 0,
+      distanceScore: m['distanceScore'] as int? ?? 0,
+      durationScore: m['durationScore'] as int? ?? 0,
+      totalRiskScore: m['totalRiskScore'] as int? ?? 0,
+      riskLevel: m['riskLevel'] as String? ?? 'LOW',
+    );
+  }
+}
+
+class ContactNetworkResponse {
+  const ContactNetworkResponse({
+    required this.sourceLivestockId,
+    required this.sourceLivestockCode,
+    this.diseaseType,
+    this.markedAt,
+    required this.contacts,
+  });
+  final String sourceLivestockId;
+  final String sourceLivestockCode;
+  final String? diseaseType;
+  final DateTime? markedAt;
+  final List<ContactNode> contacts;
+
+  factory ContactNetworkResponse.fromJson(Map<String, dynamic> m) {
+    return ContactNetworkResponse(
+      sourceLivestockId: (m['sourceLivestockId'] ?? '').toString(),
+      sourceLivestockCode: m['sourceLivestockCode'] as String? ?? '?',
+      diseaseType: m['diseaseType'] as String?,
+      markedAt: m['markedAt'] != null
+          ? DateTime.parse(m['markedAt'] as String)
+          : null,
+      contacts: (m['contacts'] as List?)
+              ?.whereType<Map<String, dynamic>>()
+              .map(ContactNode.fromJson)
               .toList() ??
           [],
     );

@@ -13,6 +13,10 @@ public class ContactTrace {
     private Integer contactDurationMinutes;
     private Instant lastContactAt;
     private Instant createdAt;
+    private String diseaseType;
+    private Instant markedAt;
+    private Integer riskScore;
+    private String riskLevel;
 
     public ContactTrace() {}
 
@@ -39,4 +43,16 @@ public class ContactTrace {
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+
+    public String getDiseaseType() { return diseaseType; }
+    public void setDiseaseType(String diseaseType) { this.diseaseType = diseaseType; }
+
+    public Instant getMarkedAt() { return markedAt; }
+    public void setMarkedAt(Instant markedAt) { this.markedAt = markedAt; }
+
+    public Integer getRiskScore() { return riskScore; }
+    public void setRiskScore(Integer riskScore) { this.riskScore = riskScore; }
+
+    public String getRiskLevel() { return riskLevel; }
+    public void setRiskLevel(String riskLevel) { this.riskLevel = riskLevel; }
 }

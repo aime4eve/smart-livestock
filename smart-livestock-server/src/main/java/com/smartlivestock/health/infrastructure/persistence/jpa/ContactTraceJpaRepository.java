@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ContactTraceJpaRepository extends JpaRepository<ContactTraceJpaEntity, Long> {
     List<ContactTraceJpaEntity> findByFarmIdOrderByLastContactAtDesc(Long farmId);
+    List<ContactTraceJpaEntity> findByFromLivestockIdOrderByLastContactAtDesc(Long fromLivestockId);
 }

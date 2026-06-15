@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/farms/{farmId}/health")
 @RequiredArgsConstructor
@@ -23,5 +25,11 @@ public class DigestiveController {
     public ResponseEntity<ApiResponse<DigestiveDetail>> getDigestiveDetail(
             @PathVariable Long farmId, @PathVariable Long livestockId) {
         return ResponseEntity.ok(ApiResponse.ok(healthService.getDigestiveDetail(farmId, livestockId)));
+    }
+
+    @GetMapping("/digestive/{livestockId}/heatmap")
+    public ResponseEntity<ApiResponse<List<IntensityCell>>> getIntensityHeatmap(
+            @PathVariable Long farmId, @PathVariable Long livestockId) {
+        return ResponseEntity.ok(ApiResponse.ok(healthService.getIntensityHeatmap(farmId, livestockId)));
     }
 }

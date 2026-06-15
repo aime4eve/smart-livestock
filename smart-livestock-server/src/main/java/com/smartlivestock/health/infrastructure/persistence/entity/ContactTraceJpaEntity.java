@@ -33,6 +33,18 @@ public class ContactTraceJpaEntity {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    @Column(name = "disease_type")
+    private String diseaseType;
+
+    @Column(name = "marked_at")
+    private Instant markedAt;
+
+    @Column(name = "risk_score")
+    private Integer riskScore;
+
+    @Column(name = "risk_level")
+    private String riskLevel;
+
     @PrePersist
     protected void onCreate() { this.createdAt = Instant.now(); }
 
@@ -52,4 +64,12 @@ public class ContactTraceJpaEntity {
     public void setLastContactAt(Instant lastContactAt) { this.lastContactAt = lastContactAt; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public String getDiseaseType() { return diseaseType; }
+    public void setDiseaseType(String diseaseType) { this.diseaseType = diseaseType; }
+    public Instant getMarkedAt() { return markedAt; }
+    public void setMarkedAt(Instant markedAt) { this.markedAt = markedAt; }
+    public Integer getRiskScore() { return riskScore; }
+    public void setRiskScore(Integer riskScore) { this.riskScore = riskScore; }
+    public String getRiskLevel() { return riskLevel; }
+    public void setRiskLevel(String riskLevel) { this.riskLevel = riskLevel; }
 }

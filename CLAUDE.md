@@ -64,14 +64,19 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
 
+## 5.  全局必须关注
+在实现新功能或做功能修改时，必须同步检查种子数据是否配套，并要严格满足国际化设计和实现规范。
+
+
+
 ## 项目概述
 
 智慧畜牧系统（Smart Livestock）是面向牧场主的牲畜管理平台，通过 IoT 设备（GPS 追踪器、瘤胃胶囊、加速度计）实现定位、健康预警和行为分析。仓库包含两个子项目：
 
 - **Mobile/** — Flutter 移动端（已移除 Mock 模式，通过 ApiClient 对接 Spring Boot 后端）
-- **smart-livestock-server/** — Spring Boot 后端（MVP Phase 1 + Phase 2a Commerce 已完成，DDD 洋葱架构）
+- **smart-livestock-server/** — Spring Boot 后端（MVP Phase 1/2a/2b/2c 全部完成，DDD 洋葱架构）
 
-Flutter 端已完成：订阅与功能门控、多牧场切换、B端管理后台、牧工管理、租户用户管理。Spring Boot 后端 Phase 1（Identity + Ranch + IoT）和 Phase 2a（Commerce）已实施完成，前端通过 JWT 认证对接真实后端。
+Flutter 端已完成：订阅与功能门控、多牧场切换、B端管理后台、牧工管理、租户用户管理、健康模块（发热/消化/发情/疫病）。Spring Boot 后端 Phase 1（Identity + Ranch + IoT）、Phase 2a（Commerce）、Phase 2b（Health）、Phase 2c（Analytics）已实施完成，前端通过 JWT 认证对接真实后端。
 
 ## 当前工作重点
 
@@ -152,7 +157,7 @@ CattleService ←→ LocationService（GPS 坐标）
 
 ## 后端（smart-livestock-server/）
 
-> MVP Phase 1（Identity + Ranch + IoT）和 Phase 2a（Commerce）已完成。5 个限界上下文，312 Java 文件，37 Controller，~130 API 端点，20+ 张表。
+> MVP Phase 1（Identity + Ranch + IoT）+ Phase 2a（Commerce）+ Phase 2b（Health）+ Phase 2c（Analytics）已完成。7 个限界上下文（Identity + Ranch + IoT + Health + Commerce + Analytics + Shared，Platform 为支撑上下文），515 Java 文件，51 Controller，180 API 端点，30+ 张表。架构详见 [`docs/system-architecture.md`](./docs/system-architecture.md)。
 
 ### 后端服务部署方式
 
@@ -239,15 +244,15 @@ Spring Boot 3.3 + Java 17 + Gradle + PostgreSQL 16 + Redis 7 + RocketMQ 5.1 + Fl
 
 - **Commerce**: Subscription、Contract、RevenuePeriod、SubscriptionService、FeatureGate（完整 DDD 洋葱架构，80 Java 文件，11 测试类，7 Controller）
 
-#### Phase 2b — 待设计
+#### Phase 2b — 已完成
 
-- **Health**: 温度/蠕动/发情/疫情分析引擎 + 时序数据
+- **Health**: 体温/蠕动/发情/疫病/活动多维分析引擎 + 时序数据（PostgreSQL 按月 RANGE 分区，`temperature_logs.delta` 为生成列），57 Java 文件，6 Controller（Health/HealthOverview/Fever/Estrus/Digestive/Epidemic）。发热检测基线 38.50°C，四级状态 NORMAL/ELEVATED/FEVER/CRITICAL。
 
-#### Phase 2c — 待设计
+#### Phase 2c — 已完成
 
-- **Analytics + API Portal**: API Key 生命周期 + 开发者门户 + 频率限制 + 统计聚合 + 趋势分析
+- **Analytics**: API 用量统计（`api_call_logs` 逐请求 + `api_usage_daily` 日聚合）+ 开发者门户（Portal，Vue 3），26 Java 文件，4 Controller（AnalyticsApp/AnalyticsAdmin/PortalApp/PortalAdmin）。
 
-### 数据库表（20+ 张，17 个 Flyway 迁移）
+### 数据库表（30+ 张，29 个 Flyway 迁移，版本 V1–V30，无 V14）
 
 | 迁移 | 表 | 限界上下文 |
 |------|---|--------|
@@ -255,25 +260,30 @@ Spring Boot 3.3 + Java 17 + Gradle + PostgreSQL 16 + Redis 7 + RocketMQ 5.1 + Fl
 | V2 | livestock, fences, alerts | Ranch |
 | V3 | devices, device_licenses, installations, gps_logs | IoT |
 | V6 | subscriptions, contracts, revenue_periods, subscription_services, feature_gates, notifications | Commerce |
-| V13 | tile 相关表 + fence version | Ranch |
+| V13 | tile_regions, tile_generation_tasks, farm_tile_tasks, tile_download_logs（+ fences 扩展 version/fence_type） | Ranch |
 | V18 | audit_logs | Shared |
+| V20 | temperature_logs, rumen_motility_logs, activity_logs, estrus_scores, health_snapshots, contact_traces（时序表按月 RANGE 分区，`delta` 为生成列） | Health |
+| V22 | api_call_logs, api_usage_daily（+ api_keys 扩展 scopes/quota） | Analytics |
+| V26 | alert_read_status, fence_zones（+ fences 扩展 buffer，alerts 状态迁移 ACTIVE/DISMISSED/AUTO_RESOLVED） | Ranch |
 
-V4-V5: seed 数据 + 密码修复；V7-V8: subscription 修复 + hash 前缀修复；V9-V12: ranch/commerce/twin seed 数据；V13: tile 表 + fence version；V15: username 列清理；V16-V17: b2b_admin/worker/farm2 seed 数据。
+V4–V5: seed + 密码修复；V7–V8: subscription/hash 前缀修复；V9–V12: ranch/commerce/twin seed；V15: username 清理；V16–V17: b2b_admin/worker/farm2 seed；V19: tile_download_log FK 清理；V21/23/24/27/29: health/portal/tile/motility/i18n seed；V25: 坐标修复 + 去除 accelerometer；V28: 温度快照修复；V30: 告警消息翻译。
 
-### 后端 Controller（37 个）
+### 后端 Controller（51 个）
 
 | 分类 | Controller |
 |------|-----------|
-| App API | AuthController, MeController, TenantController, FarmController, B2bController, LivestockController, FenceController, AlertController, DashboardController, MapController, TileAppController, DeviceController, DeviceLicenseController, InstallationController, GpsLogController, HealthController, CommerceController, SubscriptionController |
-| Admin API | TenantAdminController, FarmAdminController, UserAdminController, DashboardAdminController, AuditLogController, ApiKeyAdminController, TileAdminController, AdminSubscriptionController, AdminContractController, AdminFeatureGateController, AdminRevenueController, AdminServiceController, AnalyticsController |
+| App API | AuthController, MeController, TenantController, FarmController, B2bController, OwnerWorkerController, LivestockController, FenceController, FenceZoneController, AlertController, DashboardController, MapController, RanchOverviewController, TileAppController, TileController, DeviceController, DeviceLicenseController, InstallationController, GpsLogController, TelemetryController, HealthController, HealthOverviewController, FeverController, EstrusController, DigestiveController, EpidemicController, CommerceController, SubscriptionController, AnalyticsController, AnalyticsAppController, PortalAppController |
+| Admin API | TenantAdminController, FarmAdminController, UserAdminController, DashboardAdminController, AuditLogController, ApiKeyAdminController, TileAdminController, AdminSubscriptionController, AdminContractController, AdminFeatureGateController, AdminRevenueController, AdminServiceController, AnalyticsAdminController, PortalAdminController |
 | Open API | OpenLivestockController, OpenFenceController, OpenAlertController, OpenDeviceController, OpenDeviceRegisterController, OpenGpsController |
+
+> Controller 按限界上下文分布（核实）：identity 12、ranch 14、iot 8、health 5、commerce 7、analytics 4、shared 1。
 
 ### 常用命令
 
 ```bash
 cd smart-livestock-server
 ./gradlew compileJava              # 编译
-./gradlew test                     # 全部测试（58 个测试类）
+./gradlew test                     # 全部测试（54 个测试类）
 ./gradlew test --tests "*.domain.model.*"  # 领域模型单元测试
 ./gradlew bootRun                  # 启动（需 PostgreSQL + Redis）
 docker compose up -d               # 全栈启动（PostgreSQL + Redis + RocketMQ + App）
@@ -321,10 +331,10 @@ cd Mobile && ./dev.sh start [mock|live]
 ### 前端架构（Flutter）
 
 - **状态管理**: flutter_riverpod，严格使用 ConsumerWidget，禁用 setState/ChangeNotifier
-- **路由**: go_router，`AppRoute` 枚举为路径唯一来源（42 条路由），含认证守卫重定向
+- **路由**: go_router，`AppRoute` 枚举为路径唯一来源（35 条路由），含认证守卫重定向
 - **模式切换**: `--dart-define=APP_MODE=mock|live`，mock 用本地假数据，live 通过 ApiCache 调后端 API
 - **模块分层**: `features/{module}/domain/`（Repository 接口）→ `data/`（mock + live 实现）→ `presentation/`（Riverpod Notifier Controller）
-- **功能模块**（29 个）: admin、alerts、api_authorization、auth、b2b_admin、contract_management、dashboard、devices、digestive、epidemic、estrus、farm_creation、farm_switcher、fence、fever_warning、highfi、livestock、mine、offline_fences、offline_livestock、offline_tiles、pages、revenue、stats、subscription、subscription_service_management、tenant、twin_overview、worker_management
+- **功能模块**（30 个）: admin、alerts、api_authorization、auth、b2b_admin、contract_management、dashboard、devices、digestive、epidemic、estrus、farm_creation、farm_switcher、fence、fever_warning、highfi、livestock、mine、offline_fences、offline_livestock、offline_tiles、pages、ranch、revenue、stats、subscription、subscription_service_management、tenant、twin_overview、worker_management
 - **地图**: flutter_map + SmartTileProvider（三级降级）+ MBTiles 离线 + WGS-84/GCJ-02 坐标转换
 - **UI 语言**: 中文，变量名英文
 
@@ -356,7 +366,7 @@ cd Mobile && ./dev.sh start [mock|live]
 | worker（牧工） | 看板/地图/告警/我的/围栏，仅确认告警 | 底部导航栏（4 Tab） |
 | platform_admin（平台管理员） | 租户全量管理 + 用户管理 + 合同 CRUD + 分润对账 + 订阅服务管理 + API 授权审批 | 无 Shell，纯 Scaffold |
 | b2b_admin（B端客户管理员） | 概览/牧场管理/合同信息/对账/旗下牧工管理 | 左侧 NavigationRail |
-| api_consumer（API 开发者） | 仅 API 访问，无 App 端（开发者门户 MVP Phase 2 规划中） | — |
+| api_consumer（API 开发者） | 仅 API 访问，无移动 App 端（开发者门户为独立 Vue 3 应用，Phase 2c 已实现） | — |
 
 **旅程链**：platform_admin → 创建 b2b_admin → b2b_admin 创建牧场 → 分配给 owner。牧场不由 owner 自行创建。详见 `docs/customer-journey.md`。
 
@@ -371,21 +381,20 @@ cd Mobile && ./dev.sh start [mock|live]
 
 ## 版本路线图
 
-> Flutter Demo 阶段已完成：订阅基础设施 + 功能门控、多牧场支持 + B端管理后台 + 牧场切换器 + 牧工管理。
-> Spring Boot 后端 MVP Phase 1 + Phase 2a Commerce 已完成，4 个限界上下文全部实施。
+> Flutter 端已完成：订阅基础设施 + 功能门控、多牧场支持 + B端管理后台 + 牧场切换器 + 牧工管理、健康模块对接。
+> Spring Boot 后端 MVP Phase 1/2a/2b/2c 全部完成，7 个限界上下文（+ Shared/Platform）全部实施。
 
 | 阶段                     | 核心功能                                                                   | 限界上下文                         | 状态  |
 | ---------------------- | ---------------------------------------------------------------------- | ----------------------------- | --- |
 | **MVP Phase 1** — 核心底座 | 认证(JWT) + 租户/牧场 + 设备/牲畜 + 围栏/告警 + Dashboard/Map + GPS 模拟               | Identity + Ranch + IoT        | ✅ 已完成 |
 | **MVP Phase 2a** — Commerce | 订阅计费 + 合同管理 + 分润对账 + Tier 配额引擎 + Licensed 服务 + FeatureGate             | Commerce                      | ✅ 已完成 |
-| **MVP Phase 2b** — Health | 温度/蠕动/发情/疫情分析引擎 + 时序数据                                                  | Health                        | ⏳ 待设计 |
-| **MVP Phase 2c** — 平台扩展 | API Key 生命周期 + 开发者门户 + 频率限制 + 统计聚合 + 趋势分析                              | Analytics + API Portal        | ⏳ 待设计 |
+| **MVP Phase 2b** — Health | 体温/蠕动/发情/疫病/活动分析引擎 + 时序数据分区 + 遥测接入                                      | Health                        | ✅ 已完成 |
+| **MVP Phase 2c** — 平台扩展 | API 用量统计 + 调用日志 + 开发者门户（Portal）+ API Key 生命周期 + 频率限制                    | Analytics + Portal            | ✅ 已完成 |
 | **Phase 3** — IoT 真实接入 | 设备 license 入网 + LoRa/NS 平台对接 + 真实传感器数据 + 时序数据分区                        | IoT 扩展                        | ⏳ 待设计 |
 
-**后端现状**：5 个限界上下文（Identity + Ranch + IoT + Commerce + Shared）、20+ 张表、~130 个 API 端点、37 个 Controller、312 个 Java 文件、58 个测试类。AuditLog 和 Auth refresh 已完整实现（不再是 stub）。
+**后端现状**：7 个限界上下文（Identity + Ranch + IoT + Health + Commerce + Analytics + Shared，Platform 为支撑）、30+ 张表、180 个 API 端点、51 个 Controller、515 个 Java 文件、54 个测试类。AuditLog 和 Auth refresh 已完整实现（不再是 stub）。时序数据按月分区（temperature_logs/rumen_motility_logs/activity_logs），围栏检测 + 健康分析通过 RocketMQ 事件驱动（`gps-log-updated`、`telemetry-received` 等 Topic）。
 
-**前端现状**：已移除 Mock 模式，全部通过 ApiClient 异步对接 Spring Boot 后端（JWT 认证）。29 个功能模块、42 条路由。订阅系统（4 个 tier + 23 个 feature flag）、B端后台、租户管理（TenantDetailPage 含用户创建/启停）、健康模块（发热/消化/发情/疫病）UI 框架已搭好、离线模块（离线围栏/离线牲畜/离线瓦片）。地图支持三级瓦片降级（tileserver-gl → MBTiles → 高德/OSM）。客户旅程文档：`docs/customer-journey.md`。
+**前端现状**：已移除 Mock 模式，全部通过 ApiClient 异步对接 Spring Boot 后端（JWT 认证）。30 个功能模块、35 条路由。订阅系统（4 个 tier + 7 个 feature key）、B端后台、租户管理（TenantDetailPage 含用户创建/启停）、健康模块（发热/消化/发情/疫病）、离线模块（离线围栏/离线牲畜/离线瓦片）。地图支持三级瓦片降级（tileserver-gl → MBTiles → 高德/OSM）。客户旅程文档：`docs/customer-journey.md`。
 
 ---
-
 

@@ -22,8 +22,13 @@ public class ContactTraceRepositoryImpl implements ContactTraceRepository {
     }
 
     @Override
+    public List<ContactTrace> findByFromLivestockIdOrderByLastContactAtDesc(Long fromLivestockId) {
+        return jpaRepo.findByFromLivestockIdOrderByLastContactAtDesc(fromLivestockId).stream()
+                .map(HealthMapper::toDomain).toList();
+    }
+
+    @Override
     public ContactTrace save(ContactTrace trace) {
-        // ContactTrace is read-only in MVP, but keep save for future use
-        throw new UnsupportedOperationException("ContactTrace save not yet implemented");
+        return HealthMapper.toDomain(jpaRepo.save(HealthMapper.toJpa(trace)));
     }
 }

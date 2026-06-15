@@ -2019,4 +2019,117 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get feverCapabilityNote => '系统能通知你体温异常，需线下排查确认原因';
+
+  @override
+  String get feverDurationChartTitle => '发热持续时长分析';
+
+  @override
+  String get feverDurationChartSubtitle => '每日超阈值(>39.5°C)持续小时数';
+
+  @override
+  String get digestiveHeatmapTitle => '24h 蠕动强度热力图';
+
+  @override
+  String get digestiveHeatmapSubtitle => '颜色越深 = 强度越低（异常区域高亮红色）';
+
+  @override
+  String get estrusLockedTitle => '发情检测详情';
+
+  @override
+  String get estrusActivityChartTitle => '活动量对比';
+
+  @override
+  String get estrusCapabilityNote => '系统能检测发情高分牲畜，建议人工确认';
+
+  @override
+  String get metricScore => '评分';
+
+  @override
+  String get metricStepIncrease => '步数增幅';
+
+  @override
+  String get metricTempDelta => '温差';
+
+  @override
+  String get legendBaseline => '基线均值';
+
+  @override
+  String get legendRecent3d => '近3日';
+
+  @override
+  String get epidemicContactTitle => '疫情接触追踪';
+
+  @override
+  String get epidemicContactLockedMsg => '疫情接触追踪需要 Premium 及以上订阅';
+
+  @override
+  String get epidemicContactUpgrade => '升级到 Premium';
+
+  @override
+  String get epidemicNoContacts => '暂无接触记录';
+
+  @override
+  String get epidemicSourceInfected => '已确认染病';
+
+  @override
+  String get epidemicNotMarked => '未标记';
+
+  @override
+  String get epidemicMarkedAt => '标记时间';
+
+  @override
+  String get epidemicUnknown => '未知';
+
+  @override
+  String get epidemicRiskFormula =>
+      '风险评分 = 时间衰减(40%) + 接触距离(35%) + 持续时长(25%)。≥70高风险，40-69中风险，<40低风险。';
+
+  @override
+  String get epidemicNetworkGraph => '接触链拓扑图';
+
+  @override
+  String get riskHigh => '高风险';
+
+  @override
+  String get riskMedium => '中风险';
+
+  @override
+  String get riskLow => '低风险';
+
+  @override
+  String get contactWindow24h => '24小时内接触';
+
+  @override
+  String get contactWindow48h => '48小时内接触';
+
+  @override
+  String get contactWindow72h => '72小时内接触';
+
+  @override
+  String get contactCountSuffix => '头';
+
+  @override
+  String get contactScoreLabel => '评分';
+
+  @override
+  String get contactDistance => '距离';
+
+  @override
+  String get contactDuration => '持续';
+
+  @override
+  String get contactFactorTime => '时间';
+
+  @override
+  String get contactFactorDistance => '距离';
+
+  @override
+  String get contactFactorDuration => '时长';
+
+  @override
+  String get epidemicContactNote =>
+      '基于GPS轨迹时空交叉分析，自动识别72小时内与染病牲畜密切接触的个体并评估感染风险。';
+
+  @override
+  String get viewContactTracing => '查看接触追踪详情';
 }

@@ -2063,4 +2063,121 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get feverCapabilityNote =>
       'The system can notify you of temperature abnormalities; cause must be investigated offline.';
+
+  @override
+  String get feverDurationChartTitle => 'Fever Duration Analysis';
+
+  @override
+  String get feverDurationChartSubtitle =>
+      'Daily hours above threshold (>39.5°C)';
+
+  @override
+  String get digestiveHeatmapTitle => '24h Motility Intensity Heatmap';
+
+  @override
+  String get digestiveHeatmapSubtitle =>
+      'Darker = lower intensity (abnormal zones highlighted red)';
+
+  @override
+  String get estrusLockedTitle => 'Estrus Detection Detail';
+
+  @override
+  String get estrusActivityChartTitle => 'Activity Comparison';
+
+  @override
+  String get estrusCapabilityNote =>
+      'The system can detect high-score estrus livestock; manual confirmation recommended.';
+
+  @override
+  String get metricScore => 'Score';
+
+  @override
+  String get metricStepIncrease => 'Step Increase';
+
+  @override
+  String get metricTempDelta => 'Temp Delta';
+
+  @override
+  String get legendBaseline => 'Baseline Avg';
+
+  @override
+  String get legendRecent3d => 'Recent 3d';
+
+  @override
+  String get epidemicContactTitle => 'Epidemic Contact Tracing';
+
+  @override
+  String get epidemicContactLockedMsg =>
+      'Epidemic contact tracing requires Premium or above';
+
+  @override
+  String get epidemicContactUpgrade => 'Upgrade to Premium';
+
+  @override
+  String get epidemicNoContacts => 'No contact records';
+
+  @override
+  String get epidemicSourceInfected => 'Confirmed Infected';
+
+  @override
+  String get epidemicNotMarked => 'Not marked';
+
+  @override
+  String get epidemicMarkedAt => 'Marked at';
+
+  @override
+  String get epidemicUnknown => 'Unknown';
+
+  @override
+  String get epidemicRiskFormula =>
+      'Risk Score = Time decay (40%) + Distance (35%) + Duration (25%). ≥70 High, 40-69 Medium, <40 Low.';
+
+  @override
+  String get epidemicNetworkGraph => 'Contact Network Graph';
+
+  @override
+  String get riskHigh => 'High';
+
+  @override
+  String get riskMedium => 'Medium';
+
+  @override
+  String get riskLow => 'Low';
+
+  @override
+  String get contactWindow24h => 'Within 24h';
+
+  @override
+  String get contactWindow48h => 'Within 48h';
+
+  @override
+  String get contactWindow72h => 'Within 72h';
+
+  @override
+  String get contactCountSuffix => 'head';
+
+  @override
+  String get contactScoreLabel => 'Score';
+
+  @override
+  String get contactDistance => 'Distance';
+
+  @override
+  String get contactDuration => 'Duration';
+
+  @override
+  String get contactFactorTime => 'Time';
+
+  @override
+  String get contactFactorDistance => 'Distance';
+
+  @override
+  String get contactFactorDuration => 'Duration';
+
+  @override
+  String get epidemicContactNote =>
+      'Based on GPS trajectory spatiotemporal cross-analysis, automatically identifies livestock in close contact with the infected animal within 72h and assesses infection risk.';
+
+  @override
+  String get viewContactTracing => 'View Contact Tracing';
 }

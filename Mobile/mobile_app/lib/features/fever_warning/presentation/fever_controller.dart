@@ -49,3 +49,8 @@ final feverDetailControllerProvider = AsyncNotifierProvider.family<
     FeverDetailController, FeverDetailData, String>(
   FeverDetailController.new,
 );
+
+final feverDurationProvider =
+    FutureProvider.family<List<DailyFeverHour>, String>((ref, livestockId) async {
+  return ref.read(feverRepositoryProvider).fetchFeverDuration(livestockId);
+});

@@ -10,4 +10,23 @@ class EpidemicApiRepository implements EpidemicRepository {
     final data = await ApiClient.instance.farmGet('/health/epidemic');
     return EpidemicData.fromJson(data);
   }
+
+  @override
+  Future<ContactNetworkResponse> fetchContactNetwork(String livestockId) async {
+    final data = await ApiClient.instance.farmGet('/health/epidemic/contacts/$livestockId');
+    return ContactNetworkResponse.fromJson(data);
+  }
+
+  @override
+  Future<void> markDiseased(String livestockId, String diseaseType) async {
+    await ApiClient.instance.farmPost(
+      '/health/epidemic/mark',
+      body: {'livestockId': livestockId, 'diseaseType': diseaseType},
+    );
+  }
+
+  @override
+  Future<void> unmarkDiseased(String livestockId) async {
+    await ApiClient.instance.farmDelete('/health/epidemic/mark/$livestockId');
+  }
 }

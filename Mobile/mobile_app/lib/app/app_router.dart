@@ -22,6 +22,7 @@ import 'package:hkt_livestock_agentic/features/pages/devices_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/digestive_detail_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/digestive_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/epidemic_page.dart';
+import 'package:hkt_livestock_agentic/features/pages/epidemic_contact_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/estrus_detail_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/estrus_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/fence_form_page.dart';
@@ -180,6 +181,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'epidemic',
                 name: AppRoute.twinEpidemic.routeName,
                 builder: (context, state) => const EpidemicPage(),
+                routes: [
+                  GoRoute(
+                    path: 'contacts/:livestockId',
+                    name: AppRoute.twinEpidemicContact.routeName,
+                    builder: (context, state) {
+                      final id = state.pathParameters['livestockId']!;
+                      return EpidemicContactPage(livestockId: id);
+                    },
+                  ),
+                ],
               ),
             ],
           ),
