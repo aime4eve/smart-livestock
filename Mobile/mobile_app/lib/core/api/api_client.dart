@@ -16,9 +16,20 @@ class ApiClient {
   bool _refreshInProgress = false;
   Future<String?>? _refreshFuture;
 
-  String _baseUrl = kIsWeb
-      ? 'http://127.0.0.1:18080/api/v1'
-      : 'http://localhost:18080/api/v1';
+  String _baseUrl = _resolveBaseUrl();
+
+  static String _resolveBaseUrl() {
+    const env = String.fromEnvironment('API_BASE_URL');
+    if (kIsWeb) {
+      const defaultValue = '/api/v1';
+      final raw = env.isNotEmpty ? env : defaultValue;
+      // If already absolute (has scheme), use as-is
+      if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+      // Resolve relative path against the page origin
+      return Uri.base.origin + (raw.startsWith('/') ? raw : '/$raw');
+    }
+    return env.isNotEmpty ? env : 'http://localhost:18080/api/v1';
+  }
   String? _activeFarmId;
 
   String get baseUrl => _baseUrl;
