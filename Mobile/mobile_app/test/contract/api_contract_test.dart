@@ -11,8 +11,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
-import 'package:smart_livestock_demo/features/fence/data/fence_dto.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/features/fence/data/fence_dto.dart';
 
 /// Load a fixture file from test/fixtures/api/.
 Map<String, dynamic> _loadFixture(String name) {

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/core/l10n/locale_controller.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
+import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -85,6 +86,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // Language switch
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: _LanguageToggle(ref: ref),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
                       HighfiCard(
                         key: const Key('login-hero-card'),
                         child: Column(
@@ -192,6 +199,25 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _LanguageToggle extends ConsumerWidget {
+  const _LanguageToggle({required this.ref});
+  final WidgetRef ref;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = ref.watch(localeControllerProvider);
+    final label = current?.languageCode == 'en' ? '中文' : 'EN';
+    final target = current?.languageCode == 'en'
+        ? const Locale('zh')
+        : const Locale('en');
+    return TextButton(
+      onPressed: () =>
+          ref.read(localeControllerProvider.notifier).setLocale(target),
+      child: Text(label, style: const TextStyle(fontSize: 13)),
     );
   }
 }

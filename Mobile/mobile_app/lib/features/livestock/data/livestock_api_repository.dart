@@ -1,6 +1,6 @@
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/core/models/core_models.dart';
-import 'package:smart_livestock_demo/features/livestock/domain/livestock_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/models/core_models.dart';
+import 'package:hkt_livestock_agentic/features/livestock/domain/livestock_repository.dart';
 
 class LivestockApiRepository implements LivestockRepository {
   const LivestockApiRepository();

@@ -1,5 +1,5 @@
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/features/admin/feature_gate/domain/feature_gate_models.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/features/admin/feature_gate/domain/feature_gate_models.dart';
 
 class FeatureGateApiRepository {
   const FeatureGateApiRepository();

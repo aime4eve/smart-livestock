@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/core/database/app_database.dart';
-import 'package:smart_livestock_demo/core/analytics/tile_analytics.dart';
-import 'package:smart_livestock_demo/features/offline_tiles/presentation/offline_tile_manager.dart';
-import 'package:smart_livestock_demo/features/offline_fences/data/fence_sync_service.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/database/app_database.dart';
+import 'package:hkt_livestock_agentic/core/analytics/tile_analytics.dart';
+import 'package:hkt_livestock_agentic/features/offline_tiles/presentation/offline_tile_manager.dart';
+import 'package:hkt_livestock_agentic/features/offline_fences/data/fence_sync_service.dart';
 
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
   final db = AppDatabase.instance;

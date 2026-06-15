@@ -1,4 +1,4 @@
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
 
 enum TenantSort { name, licenseUsage }
 

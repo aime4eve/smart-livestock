@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/widgets/pagination_bar.dart';
+import 'package:hkt_livestock_agentic/widgets/pagination_bar.dart';
 
 void main() {
   testWidgets('PaginationBar 显示当前页/总页数', (tester) async {

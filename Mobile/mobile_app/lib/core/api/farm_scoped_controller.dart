@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 
 /// Base class for all farm-scoped [Notifier]s.
 ///

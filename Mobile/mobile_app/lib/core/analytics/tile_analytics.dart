@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:smart_livestock_demo/core/database/app_database.dart';
+import 'package:hkt_livestock_agentic/core/database/app_database.dart';
 
 class TileAnalytics {
   final AppDatabase _db;

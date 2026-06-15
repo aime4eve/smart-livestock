@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/features/admin/domain/admin_repository.dart';
-import 'package:smart_livestock_demo/features/admin/presentation/admin_controller.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_detail_page.dart';
+import 'package:hkt_livestock_agentic/features/admin/domain/admin_repository.dart';
+import 'package:hkt_livestock_agentic/features/admin/presentation/admin_controller.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/pages/tenant_detail_page.dart';
 
 class _FakeAdminRepository implements AdminRepository {
   final TenantDetail? tenantDetail;

@@ -1,5 +1,5 @@
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_query.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_query.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_view_data.dart';
 
 abstract class TenantRepository {
   TenantListViewData loadList(TenantListQuery query);

@@ -1,6 +1,6 @@
 import 'dart:math' show pi;
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 
 /// Maps health status + primary alert type to fill color.
 Color livestockHealthColor(String healthStatus, String primaryAlert) {
@@ -143,13 +143,14 @@ class _LivestockMarkerPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
 
-    // BREACH: outer glow that pulses
+    // BREACH: red pulsing glow ring
     if (fenceStatus == 'BREACH') {
-      final glowAlpha = 0.15 + 0.2 * breachProgress;
+      final glowAlpha = 0.2 + 0.5 * breachProgress;
+      final glowRadius = _baseRadius + 2 + 3 * breachProgress;
       final glowPaint = Paint()
-        ..color = AppColors.fenceBreach.withValues(alpha: glowAlpha)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-      canvas.drawCircle(center, _baseRadius + 3, glowPaint);
+        ..color = AppColors.danger.withValues(alpha: glowAlpha)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+      canvas.drawCircle(center, glowRadius, glowPaint);
     }
 
     // Filled circle (health color)
@@ -165,9 +166,9 @@ class _LivestockMarkerPainter extends CustomPainter {
     if (fenceStatus == 'APPROACH') {
       _drawDashedCircle(canvas, center, _baseRadius + 2);
     } else if (fenceStatus == 'BREACH') {
-      final borderAlpha = 0.6 + 0.4 * breachProgress;
+      final borderAlpha = 0.5 + 0.5 * breachProgress;
       final borderPaint = Paint()
-        ..color = AppColors.fenceBreach.withValues(alpha: borderAlpha)
+        ..color = AppColors.danger.withValues(alpha: borderAlpha)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3;
       canvas.drawCircle(center, _baseRadius + 1.5, borderPaint);

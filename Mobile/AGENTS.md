@@ -140,13 +140,13 @@ mobile_app/lib/
 
 ### Imports
 
-Order: Flutter SDK → third-party (`flutter_riverpod`, `go_router`, `http`) → project (`smart_livestock_demo/`).
+Order: Flutter SDK → third-party (`flutter_riverpod`, `go_router`, `http`) → project (`hkt_livestock_agentic/`).
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/models/user_role.dart';
-import 'package:smart_livestock_demo/features/dashboard/domain/dashboard_repository.dart';
+import 'package:hkt_livestock_agentic/core/models/user_role.dart';
+import 'package:hkt_livestock_agentic/features/dashboard/domain/dashboard_repository.dart';
 ```
 
 ### Naming Conventions

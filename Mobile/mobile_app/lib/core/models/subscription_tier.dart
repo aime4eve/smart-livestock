@@ -1,4 +1,4 @@
-import 'package:smart_livestock_demo/core/l10n/l10n.dart';
+import 'package:hkt_livestock_agentic/core/l10n/l10n.dart';
 
 enum SubscriptionTier { basic, standard, premium, enterprise }
 

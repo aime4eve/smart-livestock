@@ -1,5 +1,5 @@
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/features/api_authorization/domain/api_authorization_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/features/api_authorization/domain/api_authorization_repository.dart';
 
 class ApiAuthorizationApiRepository implements ApiAuthorizationRepository {
   const ApiAuthorizationApiRepository();

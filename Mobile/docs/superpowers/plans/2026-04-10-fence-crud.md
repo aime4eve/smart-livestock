@@ -204,8 +204,8 @@ git commit -m "feat(fence): add FenceItem model and FenceType enum"
 - [x] **Step 1: 创建 FenceState 模型**
 
 ```dart
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
 
 class FenceState {
   const FenceState({
@@ -381,7 +381,7 @@ git commit -m "feat(seed): extend FencePolygon with type, alarm, active, area fi
 替换 `lib/features/fence/domain/fence_repository.dart` 全部内容：
 
 ```dart
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
 
 abstract class FenceRepository {
   List<FenceItem> loadAll();
@@ -393,9 +393,9 @@ abstract class FenceRepository {
 替换 `lib/features/fence/data/mock_fence_repository.dart` 全部内容：
 
 ```dart
-import 'package:smart_livestock_demo/core/data/demo_seed.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_repository.dart';
+import 'package:hkt_livestock_agentic/core/data/demo_seed.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_repository.dart';
 
 class MockFenceRepository implements FenceRepository {
   const MockFenceRepository();
@@ -434,9 +434,9 @@ class MockFenceRepository implements FenceRepository {
 替换 `lib/features/fence/data/live_fence_repository.dart` 全部内容：
 
 ```dart
-import 'package:smart_livestock_demo/features/fence/data/mock_fence_repository.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_repository.dart';
+import 'package:hkt_livestock_agentic/features/fence/data/mock_fence_repository.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_repository.dart';
 
 class LiveFenceRepository implements FenceRepository {
   const LiveFenceRepository();
@@ -475,13 +475,13 @@ git commit -m "feat(fence): rewrite FenceRepository with loadAll() returning Fen
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/fence/data/live_fence_repository.dart';
-import 'package:smart_livestock_demo/features/fence/data/mock_fence_repository.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_repository.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_state.dart';
+import 'package:hkt_livestock_agentic/app/app_mode.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/fence/data/live_fence_repository.dart';
+import 'package:hkt_livestock_agentic/features/fence/data/mock_fence_repository.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_repository.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_state.dart';
 
 final fenceRepositoryProvider = Provider<FenceRepository>((ref) {
   switch (ref.watch(appModeProvider)) {
@@ -677,18 +677,18 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/app/app_route.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/data/demo_seed.dart';
-import 'package:smart_livestock_demo/core/map/map_config.dart';
-import 'package:smart_livestock_demo/core/mock/mock_config.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/core/permissions/role_permission.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_state.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
+import 'package:hkt_livestock_agentic/app/app_route.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/core/data/demo_seed.dart';
+import 'package:hkt_livestock_agentic/core/map/map_config.dart';
+import 'package:hkt_livestock_agentic/core/mock/mock_config.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_state.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
 
 class FencePage extends ConsumerStatefulWidget {
   const FencePage({super.key});
@@ -1135,11 +1135,11 @@ git commit -m "feat(fence): rewrite FencePage with fullscreen map and draggable 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/core/data/demo_seed.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
+import 'package:hkt_livestock_agentic/core/data/demo_seed.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
 
 class FenceFormPage extends ConsumerStatefulWidget {
   const FenceFormPage({super.key, this.fenceId});
@@ -1396,11 +1396,11 @@ git commit -m "feat(fence): add FenceFormPage for create and edit"
 在 `lib/app/app_router.dart` 中执行以下变更：
 
 **删除 import：**
-- `import 'package:smart_livestock_demo/features/pages/fence_create_page.dart';`
-- `import 'package:smart_livestock_demo/features/pages/map_page.dart';`
+- `import 'package:hkt_livestock_agentic/features/pages/fence_create_page.dart';`
+- `import 'package:hkt_livestock_agentic/features/pages/map_page.dart';`
 
 **新增 import：**
-- `import 'package:smart_livestock_demo/features/pages/fence_form_page.dart';`
+- `import 'package:hkt_livestock_agentic/features/pages/fence_form_page.dart';`
 
 **删除路由（在 ShellRoute 的 routes 数组中）：**
 
@@ -1530,7 +1530,7 @@ cd Mobile/mobile_app && rm test/highfi/map_fence_highfi_test.dart
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/app/demo_app.dart';
+import 'package:hkt_livestock_agentic/app/demo_app.dart';
 
 void main() {
   testWidgets('owner 登录后业务导航可到达五页面', (tester) async {
@@ -1607,7 +1607,7 @@ void main() {
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/app/demo_app.dart';
+import 'package:hkt_livestock_agentic/app/demo_app.dart';
 
 void main() {
   testWidgets('流程3：告警 确认→处理→归档（owner）', (tester) async {
@@ -1748,8 +1748,8 @@ void main() {
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/app/demo_app.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:hkt_livestock_agentic/app/demo_app.dart';
+import 'package:hkt_livestock_agentic/core/models/demo_role.dart';
 
 void main() {
   testWidgets('高保真登录与后台/我的页面仍保持正确角色边界', (tester) async {
@@ -1835,14 +1835,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/app/demo_app.dart';
-import 'package:smart_livestock_demo/core/models/demo_models.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/dashboard/domain/dashboard_repository.dart';
-import 'package:smart_livestock_demo/features/dashboard/presentation/dashboard_controller.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_repository.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
+import 'package:hkt_livestock_agentic/app/demo_app.dart';
+import 'package:hkt_livestock_agentic/core/models/demo_models.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/dashboard/domain/dashboard_repository.dart';
+import 'package:hkt_livestock_agentic/features/dashboard/presentation/dashboard_controller.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_repository.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
 import 'package:go_router/go_router.dart';
 
 void main() {
@@ -1941,14 +1941,14 @@ class _FakeFenceRepository implements FenceRepository {
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/admin/data/mock_admin_repository.dart';
-import 'package:smart_livestock_demo/features/alerts/data/mock_alerts_repository.dart';
-import 'package:smart_livestock_demo/features/alerts/domain/alerts_repository.dart';
-import 'package:smart_livestock_demo/features/dashboard/data/mock_dashboard_repository.dart';
-import 'package:smart_livestock_demo/features/fence/data/mock_fence_repository.dart';
-import 'package:smart_livestock_demo/features/mine/data/mock_mine_repository.dart';
+import 'package:hkt_livestock_agentic/core/models/demo_role.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/admin/data/mock_admin_repository.dart';
+import 'package:hkt_livestock_agentic/features/alerts/data/mock_alerts_repository.dart';
+import 'package:hkt_livestock_agentic/features/alerts/domain/alerts_repository.dart';
+import 'package:hkt_livestock_agentic/features/dashboard/data/mock_dashboard_repository.dart';
+import 'package:hkt_livestock_agentic/features/fence/data/mock_fence_repository.dart';
+import 'package:hkt_livestock_agentic/features/mine/data/mock_mine_repository.dart';
 
 void main() {
   test('Dashboard mock repository 支持全部 ViewState', () {
@@ -2016,8 +2016,8 @@ void main() {
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/app/demo_app.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
+import 'package:hkt_livestock_agentic/app/demo_app.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
 
 void main() {
   testWidgets('围栏选中状态在路由切换后保持', (tester) async {
@@ -2055,9 +2055,9 @@ void main() {
 ```dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/features/dashboard/presentation/dashboard_controller.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
+import 'package:hkt_livestock_agentic/app/app_mode.dart';
+import 'package:hkt_livestock_agentic/features/dashboard/presentation/dashboard_controller.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
 
 void main() {
   test('AppMode.live 下仓储 provider 切换到 live 实现', () {

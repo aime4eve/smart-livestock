@@ -1,16 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/core/api/farm_scoped_controller.dart';
-import 'package:smart_livestock_demo/features/fence/data/fence_api_repository.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_edit_operations.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_edit_session.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_repository.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_state.dart';
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/features/livestock/data/map_api_repository.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/fence_analytics.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/core/api/farm_scoped_controller.dart';
+import 'package:hkt_livestock_agentic/features/fence/data/fence_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_edit_operations.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_edit_session.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_repository.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_state.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/features/livestock/data/map_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_analytics.dart';
+import 'package:hkt_livestock_agentic/core/l10n/l10n.dart';
 
 final fenceRepositoryProvider = Provider<FenceRepository>((ref) {
   return const FenceApiRepository();
@@ -40,11 +41,11 @@ class FenceController extends FarmScopedNotifier<FenceState> {
         livestockPositions: positions,
       );
     } catch (_) {
-      state = const FenceState(
-        fences: [],
-        viewState: ViewState.error,
-        message: '围栏加载失败',
-      );
+      state = FenceState(
+       fences: [],
+       viewState: ViewState.error,
+       message: L10n.instance.fenceLoadFailed,
+     );
     }
   }
 
@@ -126,10 +127,10 @@ class FenceController extends FarmScopedNotifier<FenceState> {
         livestockPositions: positions,
       );
     } catch (_) {
-      state = state.copyWith(
-        viewState: ViewState.error,
-        message: '围栏加载失败',
-      );
+     state = state.copyWith(
+       viewState: ViewState.error,
+        message: L10n.instance.fenceLoadFailed,
+     );
     }
   }
 
@@ -360,22 +361,22 @@ class FenceController extends FarmScopedNotifier<FenceState> {
     return validateDraftGeometry(session.points) == null;
   }
 
-  static String? validateDraftGeometry(List<LatLng> points) {
-    if (points.length < 3) {
-      return '边界至少需要 3 个点';
-    }
-    for (var i = 0; i < points.length; i++) {
-      final next = points[(i + 1) % points.length];
-      if (points[i] == next) {
-        return '边界不能有连续重复点';
-      }
-    }
-    if (_polygonArea(points).abs() <= 1e-12) {
-      return '边界面积必须大于 0';
-    }
-    if (_hasSelfIntersection(points)) {
-      return '边界不能自交';
-    }
+ static String? validateDraftGeometry(List<LatLng> points) {
+   if (points.length < 3) {
+      return L10n.instance.fenceBoundaryMinPoints;
+   }
+   for (var i = 0; i < points.length; i++) {
+     final next = points[(i + 1) % points.length];
+     if (points[i] == next) {
+        return L10n.instance.fenceBoundaryNoDuplicates;
+     }
+   }
+   if (_polygonArea(points).abs() <= 1e-12) {
+      return L10n.instance.fenceBoundaryAreaPositive;
+   }
+   if (_hasSelfIntersection(points)) {
+      return L10n.instance.fenceBoundaryNoSelfIntersect;
+   }
     return null;
   }
 

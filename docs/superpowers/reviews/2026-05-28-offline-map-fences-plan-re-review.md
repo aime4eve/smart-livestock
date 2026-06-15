@@ -95,14 +95,14 @@ import 'package:mobile_app/features/offline_fences/data/fence_sync_service.dart'
 import 'package:mobile_app/core/analytics/tile_analytics.dart';
 ```
 
-但代码库实际包名是 `smart_livestock_demo`（所有现有文件均使用 `package:smart_livestock_demo/...`，如 `fence_controller.dart` 第 3-9 行）。这会导致编译失败。
+但代码库实际包名是 `hkt_livestock_agentic`（所有现有文件均使用 `package:hkt_livestock_agentic/...`，如 `fence_controller.dart` 第 3-9 行）。这会导致编译失败。
 
-**建议**: 全部改为 `package:smart_livestock_demo/...`：
+**建议**: 全部改为 `package:hkt_livestock_agentic/...`：
 
 ```dart
-import 'package:smart_livestock_demo/core/database/app_database.dart';
-import 'package:smart_livestock_demo/features/offline_fences/data/fence_sync_service.dart';
-import 'package:smart_livestock_demo/core/analytics/tile_analytics.dart';
+import 'package:hkt_livestock_agentic/core/database/app_database.dart';
+import 'package:hkt_livestock_agentic/features/offline_fences/data/fence_sync_service.dart';
+import 'package:hkt_livestock_agentic/core/analytics/tile_analytics.dart';
 ```
 
 #### 3. `fenceSyncRepositoryProvider` 被引用但从未定义
@@ -152,7 +152,7 @@ final fenceSyncServiceProvider = Provider<FenceSyncService>((ref) {
 | 级别 | 来源 | 编号 | 概要 |
 |------|------|------|------|
 | P0 | 新引入 | 1 | `markReported` 方法多余右括号——语法错误 |
-| P1 | 新引入 | 2 | Provider import 包名 `mobile_app` 应为 `smart_livestock_demo` |
+| P1 | 新引入 | 2 | Provider import 包名 `mobile_app` 应为 `hkt_livestock_agentic` |
 | P1 | 新引入 | 3 | `fenceSyncRepositoryProvider` 被引用但从未定义 |
 | P2 | 遗留 | 11-14 | fence_type 语义、坐标转换、后端代码、Task 3 测试 |
 

@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/core/api/api_exception.dart';
-import 'package:smart_livestock_demo/core/api/jwt_storage.dart';
-import 'package:smart_livestock_demo/app/session/app_session.dart';
-import 'package:smart_livestock_demo/core/models/user_role.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
+import 'package:hkt_livestock_agentic/core/api/jwt_storage.dart';
+import 'package:hkt_livestock_agentic/app/session/app_session.dart';
+import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 
 /// Provider for the initial session state (overridden in main.dart on web).
 final initialSessionProvider = Provider<AppSession>((ref) => AppSession.loggedOut);

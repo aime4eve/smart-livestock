@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
-import 'package:smart_livestock_demo/features/farm_creation/presentation/wizard_step_basic_info.dart';
-import 'package:smart_livestock_demo/features/farm_creation/presentation/wizard_step_complete.dart';
-import 'package:smart_livestock_demo/features/farm_creation/presentation/wizard_step_fence_drawing.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
+import 'package:hkt_livestock_agentic/features/farm_creation/presentation/wizard_step_basic_info.dart';
+import 'package:hkt_livestock_agentic/features/farm_creation/presentation/wizard_step_complete.dart';
+import 'package:hkt_livestock_agentic/features/farm_creation/presentation/wizard_step_fence_drawing.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class FarmCreationWizardPage extends ConsumerStatefulWidget {
   const FarmCreationWizardPage({super.key});

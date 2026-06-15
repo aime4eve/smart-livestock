@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/models/user_role.dart';
-import 'package:smart_livestock_demo/core/permissions/role_permission.dart';
+import 'package:hkt_livestock_agentic/core/models/user_role.dart';
+import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
 
 void main() {
   final allRoles = UserRole.values;

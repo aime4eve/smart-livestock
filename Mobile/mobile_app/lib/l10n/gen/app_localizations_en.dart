@@ -683,6 +683,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get digestiveDetailChartTitle => '24-Hour Motility Trend';
 
   @override
+  String get digestiveCurrentFreq => 'Current Freq';
+
+  @override
+  String get digestiveBaselineFreq => 'Baseline Freq';
+
+  @override
+  String get digestiveStatus => 'Status';
+
+  @override
+  String get digestiveFreqUnit => 'times/min';
+
+  @override
+  String get digestiveCapabilityNote =>
+      'The system can notify you of digestive abnormalities; cause must be investigated offline.';
+
+  @override
   String get estrusDetailTitle => 'Estrus Details';
 
   @override
@@ -1741,4 +1757,310 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get b2bWorkerPwdReset => 'Password Reset';
+
+  @override
+  String get subComparisonTitle => 'Feature Comparison';
+
+  @override
+  String get cmpFeatureFence => 'Geofence';
+
+  @override
+  String get cmpFeatureTempMonitor => 'Rumen Temperature Monitor';
+
+  @override
+  String get cmpFeaturePeristalticMonitor => 'Rumen Peristalsis Monitor';
+
+  @override
+  String get cmpFeatureStats => 'Statistics';
+
+  @override
+  String get cmpFeatureDashboard => 'Dashboard Overview';
+
+  @override
+  String get cmpFeatureDataRetention => 'Data Retention';
+
+  @override
+  String get cmpFeatureAlertHistory => 'Alert History';
+
+  @override
+  String get cmpFeatureLivestockDetail => 'Livestock Details';
+
+  @override
+  String get cmpFeatureProfile => 'Profile';
+
+  @override
+  String get cmpFeatureTenantAdmin => 'Tenant Management';
+
+  @override
+  String cmpCellYears(String count) {
+    return '$count years';
+  }
+
+  @override
+  String cmpCellDays(String count) {
+    return '$count days';
+  }
+
+  @override
+  String get cmpCellLifetime => 'Lifetime';
+
+  @override
+  String cmpCellItems(String count) {
+    return '$count items';
+  }
+
+  @override
+  String get fenceEditExit => 'Exit Edit';
+
+  @override
+  String get fenceEditToolMoveVertex => 'Drag Vertex';
+
+  @override
+  String get fenceEditToolInsertVertex => 'Insert Vertex';
+
+  @override
+  String get fenceEditToolDeleteVertex => 'Delete Vertex';
+
+  @override
+  String get fenceEditToolTranslate => 'Pan';
+
+  @override
+  String fenceEditTitle(String name) {
+    return 'Edit Fence: $name';
+  }
+
+  @override
+  String get fenceEditUndo => 'Undo';
+
+  @override
+  String get fenceEditRedo => 'Redo';
+
+  @override
+  String get fenceFormEditTitle => 'Edit Fence';
+
+  @override
+  String get fenceFormNewTitle => 'New Fence';
+
+  @override
+  String get fenceFormName => 'Fence Name';
+
+  @override
+  String get fenceFormNameRequired => 'Please enter a fence name';
+
+  @override
+  String get fenceFormType => 'Fence Type';
+
+  @override
+  String fenceFormArea(String area) {
+    return 'Area: $area ha';
+  }
+
+  @override
+  String fenceFormFinishDraw(String count) {
+    return 'Finish Drawing ($count vertices)';
+  }
+
+  @override
+  String get fenceFormDrawEnd => 'Finish';
+
+  @override
+  String get fenceFormDrawStart => 'Start Drawing';
+
+  @override
+  String get fenceFormBannerDragHint => 'Release to finish drawing';
+
+  @override
+  String get fenceFormBannerStartHint => 'Drag on the map to draw the area';
+
+  @override
+  String get fenceFormBannerPolyContinue =>
+      'Tap to add more vertices, or use Finish Drawing below';
+
+  @override
+  String get fenceFormBannerPolyStart =>
+      'Tap the map to add vertices (at least 3)';
+
+  @override
+  String get fenceFormFooterHint =>
+      'Tap Start Drawing in the top-right to set the area, or use Manual Entry';
+
+  @override
+  String get fenceFormFooterDrag =>
+      'Draw mode: map locked; drag to draw and release to finish';
+
+  @override
+  String get fenceFormFooterPoly =>
+      'Draw mode: tap to add vertices; move cursor to preview lines';
+
+  @override
+  String get fenceFormManualRectHint => 'Enter 2 diagonal vertices (lat,lng)';
+
+  @override
+  String get fenceFormManualCircleHint =>
+      'Enter center and boundary point (lat,lng), 2 lines';
+
+  @override
+  String get fenceFormManualPolyHint =>
+      'Enter vertices (at least 3), one per line';
+
+  @override
+  String fenceFormManualMinPoints(String count) {
+    return 'At least $count valid coordinate points required';
+  }
+
+  @override
+  String get fenceSelectFence => 'Select Fence';
+
+  @override
+  String fenceHeadCount(String count) {
+    return '$count heads';
+  }
+
+  @override
+  String get fenceTemplateTitle => 'Fence Templates';
+
+  @override
+  String get fenceTemplateDesc =>
+      'Quickly generate common fence shapes, then fine-tune manually';
+
+  @override
+  String get fenceTemplateRectangle => 'Rectangle Area';
+
+  @override
+  String get fenceTemplateCircle => 'Circle Area';
+
+  @override
+  String get fenceTemplateTrajectoryBuffer => 'Trajectory Buffer';
+
+  @override
+  String get fenceLoadFailed => 'Failed to load fences';
+
+  @override
+  String get fenceBoundaryMinPoints => 'Boundary requires at least 3 points';
+
+  @override
+  String get fenceBoundaryNoDuplicates =>
+      'Boundary cannot have consecutive duplicate points';
+
+  @override
+  String get fenceBoundaryAreaPositive =>
+      'Boundary area must be greater than 0';
+
+  @override
+  String get fenceBoundaryNoSelfIntersect => 'Boundary cannot self-intersect';
+
+  @override
+  String get fenceUnnamed => 'Unnamed';
+
+  @override
+  String get alertCenterTitle => 'Alert Center';
+
+  @override
+  String get alertCenterDesc =>
+      'Focus on P0 alerts: fence breach, low battery, signal loss.';
+
+  @override
+  String get alertChipFenceBreach => 'Fence Breach';
+
+  @override
+  String get alertChipBatteryLow => 'Low Battery';
+
+  @override
+  String get alertChipSignalLost => 'Signal Lost';
+
+  @override
+  String get alertStageActive => 'Active';
+
+  @override
+  String get alertStageDismissed => 'Dismissed';
+
+  @override
+  String get alertStageAutoResolved => 'Auto Resolved';
+
+  @override
+  String get alertP0FenceBreachDetail =>
+      'Tag-001 · North Zone · 24m from boundary';
+
+  @override
+  String get alertP0BatteryLowDetail =>
+      'Device-045 · Battery 12% · Replace today';
+
+  @override
+  String get alertP0SignalLostDetail =>
+      'Tag-023 · Offline 18 min · Last seen East Slope';
+
+  @override
+  String get b2bTabKpi => 'KPI Dashboard';
+
+  @override
+  String get b2bTabAlertActivity => 'Alert Activity';
+
+  @override
+  String get b2bStatSubFarms => 'Sub Farms';
+
+  @override
+  String get b2bStatLivestockTotal => 'Livestock Total';
+
+  @override
+  String get b2bStatWorkers => 'Workers';
+
+  @override
+  String get b2bStatDeviceOnlineRate => 'Device Online Rate';
+
+  @override
+  String get b2bStatDeviceTotal => 'Devices';
+
+  @override
+  String get b2bNavLinkDevices => 'Devices';
+
+  @override
+  String get b2bNavLinkContracts => 'Contracts';
+
+  @override
+  String get b2bNavLinkRevenue => 'Revenue';
+
+  @override
+  String get b2bContractActive => 'Contract Active';
+
+  @override
+  String get b2bContractPendingRenew => 'Contract Pending Renewal';
+
+  @override
+  String get b2bUnknownFarm => 'Unknown Farm';
+
+  @override
+  String get b2bAlertTypeDefault => 'Alert';
+
+  @override
+  String get b2bAlertTypeFenceBreach => 'Fence Breach';
+
+  @override
+  String get b2bAlertTypeHealth => 'Health Abnormal';
+
+  @override
+  String get b2bAlertTypeDeviceOffline => 'Device Offline';
+
+  @override
+  String b2bLivestockLabel(String id) {
+    return 'Livestock #$id';
+  }
+
+  @override
+  String get alertFilterPending => 'Pending';
+
+  @override
+  String get alertFilterHandled => 'Handled';
+
+  @override
+  String get feverCurrentTemp => 'Current Temp';
+
+  @override
+  String get feverBaselineTemp => 'Baseline Temp';
+
+  @override
+  String get feverStatus => 'Status';
+
+  @override
+  String get feverCapabilityNote =>
+      'The system can notify you of temperature abnormalities; cause must be investigated offline.';
 }

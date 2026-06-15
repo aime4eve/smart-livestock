@@ -1,4 +1,4 @@
-# smart_livestock_demo（Flutter）
+# hkt_livestock_agentic（Flutter）
 
 智慧畜牧 **Mobile** 端应用。仓库总览与 Mock Server 说明见仓库根目录 [`README.md`](../../README.md)。
 

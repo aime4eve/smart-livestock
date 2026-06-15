@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/core/models/core_models.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/dashboard/presentation/dashboard_controller.dart';
-import 'package:smart_livestock_demo/features/devices/domain/devices_repository.dart';
-import 'package:smart_livestock_demo/features/devices/presentation/devices_controller.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_device_tile.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/models/core_models.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/dashboard/presentation/dashboard_controller.dart';
+import 'package:hkt_livestock_agentic/features/devices/domain/devices_repository.dart';
+import 'package:hkt_livestock_agentic/features/devices/presentation/devices_controller.dart';
+import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
+import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_device_tile.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class DevicesPage extends ConsumerWidget {
   const DevicesPage({super.key});

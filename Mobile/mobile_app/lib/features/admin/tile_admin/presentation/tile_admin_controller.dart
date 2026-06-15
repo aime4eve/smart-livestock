@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/admin/tile_admin/data/tile_admin_api_repository.dart';
-import 'package:smart_livestock_demo/features/admin/tile_admin/domain/tile_admin_models.dart';
+import 'package:hkt_livestock_agentic/features/admin/tile_admin/data/tile_admin_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/admin/tile_admin/domain/tile_admin_models.dart';
 
 final tileAdminRepositoryProvider = Provider<TileAdminApiRepository>(
   (_) => const TileAdminApiRepository(),

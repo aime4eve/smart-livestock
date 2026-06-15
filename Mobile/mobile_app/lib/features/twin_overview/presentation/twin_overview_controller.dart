@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/api/farm_scoped_controller.dart';
-import 'package:smart_livestock_demo/core/models/health_models.dart';
-import 'package:smart_livestock_demo/features/twin_overview/data/twin_overview_api_repository.dart';
-import 'package:smart_livestock_demo/features/twin_overview/domain/twin_overview_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/farm_scoped_controller.dart';
+import 'package:hkt_livestock_agentic/core/models/health_models.dart';
+import 'package:hkt_livestock_agentic/features/twin_overview/data/twin_overview_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/twin_overview/domain/twin_overview_repository.dart';
 
 final twinOverviewRepositoryProvider = Provider<TwinOverviewRepository>(
   (_) => const TwinOverviewApiRepository(),

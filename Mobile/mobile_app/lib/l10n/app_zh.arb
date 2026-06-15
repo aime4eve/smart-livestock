@@ -34,7 +34,6 @@
   "@commonNone": {},
   "commonUnknown": "未知",
   "@commonUnknown": {},
-
   "settingsLanguage": "语言",
   "@settingsLanguage": {},
   "settingsLanguageZh": "中文",
@@ -45,7 +44,6 @@
   "@settingsLanguageSystem": {},
   "settingsTitle": "设置",
   "@settingsTitle": {},
-
   "errorAuthFailed": "认证失败",
   "@errorAuthFailed": {},
   "errorServer": "服务器异常",
@@ -56,7 +54,6 @@
   "@errorLoginFailed": {},
   "errorLoginCheckInput": "登录失败，请检查手机号和密码",
   "@errorLoginCheckInput": {},
-
   "navLogin": "登录",
   "@navLogin": {},
   "navRanch": "牧场",
@@ -83,7 +80,6 @@
   "@platformAdminTitle": {},
   "farmEmptyGuidance": "暂无关联牧场，请联系管理员为您分配牧场。",
   "@farmEmptyGuidance": {},
-
   "authAppTitle": "智慧畜牧",
   "@authAppTitle": {},
   "authSubtitle": "智能畜牧管理平台",
@@ -99,22 +95,25 @@
   "authLoginButton": "登录",
   "@authLoginButton": {},
   "authLoginFailed": "登录失败: {error}",
-  "@authLoginFailed": {"placeholders": {"error": {"type": "String"}}},
-
+  "@authLoginFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "deviceStatusOnline": "在线",
   "@deviceStatusOnline": {},
   "deviceStatusOffline": "离线",
   "@deviceStatusOffline": {},
   "deviceStatusLowBattery": "低电",
   "@deviceStatusLowBattery": {},
-
   "livestockHealthHealthy": "健康",
   "@livestockHealthHealthy": {},
   "livestockHealthWatch": "关注",
   "@livestockHealthWatch": {},
   "livestockHealthAbnormal": "异常",
-  "@livestockHealthAbnormal": {}
-,
+  "@livestockHealthAbnormal": {},
   "authLoginFormTitle": "账号登录",
   "@authLoginFormTitle": {},
   "authOnlineMode": "在线模式",
@@ -140,7 +139,13 @@
   "commonLoadFailed": "加载失败",
   "@commonLoadFailed": {},
   "commonDeleteFailed": "删除失败: {error}",
-  "@commonDeleteFailed": {"placeholders": {"error": {"type": "String"}}},
+  "@commonDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "commonConfirmDelete": "确认删除",
   "@commonConfirmDelete": {},
   "commonConfirmLogout": "确认退出",
@@ -158,21 +163,57 @@
   "ranchEditBoundary": "编辑边界",
   "@ranchEditBoundary": {},
   "ranchFenceDeleted": "已删除「{name}」",
-  "@ranchFenceDeleted": {"placeholders": {"name": {"type": "String"}}},
+  "@ranchFenceDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "ranchConfirmDeleteFence": "确认删除「{name}」？删除后无法恢复。",
-  "@ranchConfirmDeleteFence": {"placeholders": {"name": {"type": "String"}}},
+  "@ranchConfirmDeleteFence": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "ranchFenceActive": "启用",
   "@ranchFenceActive": {},
   "ranchFenceInactive": "停用",
   "@ranchFenceInactive": {},
   "ranchLivestockCountHead": "{count}头",
-  "@ranchLivestockCountHead": {"placeholders": {"count": {"type": "String"}}},
+  "@ranchLivestockCountHead": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "ranchPeekInFence": "归栏 {percent}%",
-  "@ranchPeekInFence": {"placeholders": {"percent": {"type": "String"}}},
+  "@ranchPeekInFence": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
   "ranchPeekHealth": "健康 {percent}%",
-  "@ranchPeekHealth": {"placeholders": {"percent": {"type": "String"}}},
+  "@ranchPeekHealth": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
   "ranchPeekAlertCount": "{count}条告警",
-  "@ranchPeekAlertCount": {"placeholders": {"count": {"type": "String"}}},
+  "@ranchPeekAlertCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "ranchSectionFenceAlerts": "围栏告警",
   "@ranchSectionFenceAlerts": {},
   "ranchSectionFenceNormal": "围栏正常",
@@ -230,11 +271,29 @@
   "ranchAlertStatusArchived": "已归档",
   "@ranchAlertStatusArchived": {},
   "ranchTimeMinutesAgo": "{minutes}分钟前",
-  "@ranchTimeMinutesAgo": {"placeholders": {"minutes": {"type": "int"}}},
+  "@ranchTimeMinutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "ranchTimeHoursAgo": "{hours}小时前",
-  "@ranchTimeHoursAgo": {"placeholders": {"hours": {"type": "int"}}},
+  "@ranchTimeHoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
   "ranchTimeDaysAgo": "{days}天前",
-  "@ranchTimeDaysAgo": {"placeholders": {"days": {"type": "int"}}},
+  "@ranchTimeDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "ranchTimeUnknown": "未知",
   "@ranchTimeUnknown": {},
   "ranchFieldStatus": "状态",
@@ -258,11 +317,29 @@
   "ranchActionDismiss": "忽略",
   "@ranchActionDismiss": {},
   "ranchFenceBreachCount": "越界 {count}",
-  "@ranchFenceBreachCount": {"placeholders": {"count": {"type": "String"}}},
+  "@ranchFenceBreachCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "ranchFenceApproachCount": "接近 {count}",
-  "@ranchFenceApproachCount": {"placeholders": {"count": {"type": "String"}}},
+  "@ranchFenceApproachCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "ranchAutoResolvedCount": "已自动解除 ({count})",
-  "@ranchAutoResolvedCount": {"placeholders": {"count": {"type": "String"}}},
+  "@ranchAutoResolvedCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "dashboardNoData": "暂无看板数据",
   "@dashboardNoData": {},
   "dashboardTodayOverview": "今日牧场概览",
@@ -286,11 +363,29 @@
   "mineAccountDisabled": "账户已停用",
   "@mineAccountDisabled": {},
   "mineProfileName": "姓名：{name}",
-  "@mineProfileName": {"placeholders": {"name": {"type": "String"}}},
+  "@mineProfileName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "mineProfilePhone": "手机号：{phone}",
-  "@mineProfilePhone": {"placeholders": {"phone": {"type": "String"}}},
+  "@mineProfilePhone": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
   "mineProfileRole": "角色：{role}",
-  "@mineProfileRole": {"placeholders": {"role": {"type": "String"}}},
+  "@mineProfileRole": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "minePersonalDevices": "个人设备与工具",
   "@minePersonalDevices": {},
   "mineDeviceManagementDesc": "查看和管理绑定的 IoT 设备",
@@ -390,13 +485,37 @@
   "digestiveNoData": "暂无消化异常数据",
   "@digestiveNoData": {},
   "digestiveItemSubtitle": "{breed}  蠕动 {frequency}次/分  ↓{dropPercent}%",
-  "@digestiveItemSubtitle": {"placeholders": {"breed": {"type": "String"}, "frequency": {"type": "String"}, "dropPercent": {"type": "String"}}},
+  "@digestiveItemSubtitle": {
+    "placeholders": {
+      "breed": {
+        "type": "String"
+      },
+      "frequency": {
+        "type": "String"
+      },
+      "dropPercent": {
+        "type": "String"
+      }
+    }
+  },
   "estrusTitle": "发情识别",
   "@estrusTitle": {},
   "estrusNoData": "暂无发情数据",
   "@estrusNoData": {},
   "estrusItemSubtitle": "{breed} {genderIcon} {stepInfo}",
-  "@estrusItemSubtitle": {"placeholders": {"breed": {"type": "String"}, "genderIcon": {"type": "String"}, "stepInfo": {"type": "String"}}},
+  "@estrusItemSubtitle": {
+    "placeholders": {
+      "breed": {
+        "type": "String"
+      },
+      "genderIcon": {
+        "type": "String"
+      },
+      "stepInfo": {
+        "type": "String"
+      }
+    }
+  },
   "epidemicTitle": "疫病防控",
   "@epidemicTitle": {},
   "epidemicHerdHealth": "群体健康指标",
@@ -404,7 +523,13 @@
   "epidemicContactTracing": "接触追踪",
   "@epidemicContactTracing": {},
   "epidemicRiskLevel": "风险等级: {level}",
-  "@epidemicRiskLevel": {"placeholders": {"level": {"type": "String"}}},
+  "@epidemicRiskLevel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "epidemicAvgTemperature": "平均体温",
   "@epidemicAvgTemperature": {},
   "epidemicAbnormalRate": "异常率",
@@ -419,6 +544,16 @@
   "@digestiveDetailTitle": {},
   "digestiveDetailChartTitle": "24小时蠕动曲线",
   "@digestiveDetailChartTitle": {},
+  "digestiveCurrentFreq": "当前频率",
+  "@digestiveCurrentFreq": {},
+  "digestiveBaselineFreq": "基线频率",
+  "@digestiveBaselineFreq": {},
+  "digestiveStatus": "状态",
+  "@digestiveStatus": {},
+  "digestiveFreqUnit": "次/分",
+  "@digestiveFreqUnit": {},
+  "digestiveCapabilityNote": "系统能通知你消化异常，需线下排查确认原因",
+  "@digestiveCapabilityNote": {},
   "estrusDetailTitle": "发情详情",
   "@estrusDetailTitle": {},
   "estrusDetailChartTitle": "7天评分趋势",
@@ -430,15 +565,45 @@
   "devicesNoDevices": "暂无设备",
   "@devicesNoDevices": {},
   "devicesUnbindDemo": "演示：解绑 {name}",
-  "@devicesUnbindDemo": {"placeholders": {"name": {"type": "String"}}},
+  "@devicesUnbindDemo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "devicesViewLocationDemo": "演示：查看 {name} 位置",
-  "@devicesViewLocationDemo": {"placeholders": {"name": {"type": "String"}}},
+  "@devicesViewLocationDemo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "devicesInstallSuccess": "安装成功：{name}",
-  "@devicesInstallSuccess": {"placeholders": {"name": {"type": "String"}}},
+  "@devicesInstallSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "devicesInstallFailed": "安装失败: {error}",
-  "@devicesInstallFailed": {"placeholders": {"error": {"type": "String"}}},
+  "@devicesInstallFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "devicesInstallTo": "安装到牲畜 — {name}",
-  "@devicesInstallTo": {"placeholders": {"name": {"type": "String"}}},
+  "@devicesInstallTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "devicesNoMatchingLivestock": "无匹配牲畜",
   "@devicesNoMatchingLivestock": {},
   "devicesOverview": "设备概览",
@@ -478,9 +643,21 @@
   "fenceFormForceUpdate": "强制更新",
   "@fenceFormForceUpdate": {},
   "fenceFormForceUpdateFailed": "强制更新失败: {error}",
-  "@fenceFormForceUpdateFailed": {"placeholders": {"error": {"type": "String"}}},
+  "@fenceFormForceUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "fenceFormSaveFailed": "保存失败: {error}",
-  "@fenceFormSaveFailed": {"placeholders": {"error": {"type": "String"}}},
+  "@fenceFormSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "fenceFormRectangle": "矩形",
   "@fenceFormRectangle": {},
   "fenceFormCircle": "圆形",
@@ -534,7 +711,13 @@
   "b2bFarmCreationSelectPoint": "请在地图上选点或输入经纬度",
   "@b2bFarmCreationSelectPoint": {},
   "b2bFarmCreationSuccess": "牧场「{name}」创建成功",
-  "@b2bFarmCreationSuccess": {"placeholders": {"name": {"type": "String"}}},
+  "@b2bFarmCreationSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "b2bFarmCreationFailed": "创建失败，请重试",
   "@b2bFarmCreationFailed": {},
   "b2bFarmCreationTitle": "新建牧场",
@@ -582,19 +765,43 @@
   "subscriptionRenewNow": "立即续费",
   "@subscriptionRenewNow": {},
   "subscriptionUpgradeTo": "升级到{tier}",
-  "@subscriptionUpgradeTo": {"placeholders": {"tier": {"type": "String"}}},
+  "@subscriptionUpgradeTo": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
   "subFeatureGpsLocation": "GPS定位",
   "@subFeatureGpsLocation": {},
   "subFeatureFenceCount": "电子围栏({count}个)",
-  "@subFeatureFenceCount": {"placeholders": {"count": {"type": "String"}}},
+  "@subFeatureFenceCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "subFeatureFenceUnlimited": "电子围栏(不限)",
   "@subFeatureFenceUnlimited": {},
   "subFeatureAlertHistoryDays": "告警历史({count}天)",
-  "@subFeatureAlertHistoryDays": {"placeholders": {"count": {"type": "String"}}},
+  "@subFeatureAlertHistoryDays": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "subFeatureAlertHistory1Year": "告警历史(1年)",
   "@subFeatureAlertHistory1Year": {},
   "subFeatureDataRetentionDays": "数据保留({count}天)",
-  "@subFeatureDataRetentionDays": {"placeholders": {"count": {"type": "String"}}},
+  "@subFeatureDataRetentionDays": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "subFeatureDataRetention365": "数据保留(365天)",
   "@subFeatureDataRetention365": {},
   "subFeatureDataRetention3Year": "数据保留(3年)",
@@ -626,15 +833,39 @@
   "subCustomPricing": "按需定价",
   "@subCustomPricing": {},
   "subPerMonth": "¥{price}/月",
-  "@subPerMonth": {"placeholders": {"price": {"type": "String"}}},
+  "@subPerMonth": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "subLivestockLimit": "最多{count}头牲畜",
-  "@subLivestockLimit": {"placeholders": {"count": {"type": "String"}}},
+  "@subLivestockLimit": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "subLivestockUnlimited": "不限牲畜数量",
   "@subLivestockUnlimited": {},
   "subExcessFee": "超出部分 ¥{price}/头/月",
-  "@subExcessFee": {"placeholders": {"price": {"type": "String"}}},
+  "@subExcessFee": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "subFeatureCountSuffix": "等{count}项功能",
-  "@subFeatureCountSuffix": {"placeholders": {"count": {"type": "String"}}},
+  "@subFeatureCountSuffix": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "subSelectedPlan": "已选择套餐",
   "@subSelectedPlan": {},
   "subLivestockCountLabel": "牲畜数量",
@@ -642,29 +873,77 @@
   "subFeeBreakdown": "费用明细",
   "@subFeeBreakdown": {},
   "subPlanFee": "套餐费（{tier}）",
-  "@subPlanFee": {"placeholders": {"tier": {"type": "String"}}},
+  "@subPlanFee": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
   "subTrialEndsAt": "试用期至 {date}（剩余{days}天）",
-  "@subTrialEndsAt": {"placeholders": {"date": {"type": "String"}}},
+  "@subTrialEndsAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "subValidUntil": "有效期至 {date}",
-  "@subValidUntil": {"placeholders": {"date": {"type": "String"}}},
+  "@subValidUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "subExpiresOn": "订阅将于 {date} 到期",
-  "@subExpiresOn": {"placeholders": {"date": {"type": "String"}}},
+  "@subExpiresOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "subSubscriptionCancelled": "订阅已取消",
   "@subSubscriptionCancelled": {},
   "subRenewalUrgent": "您的订阅即将到期",
   "@subRenewalUrgent": {},
   "subTrialRenewHint": "试用期还有{days}天到期，立即续费保留所有数据",
-  "@subTrialRenewHint": {"placeholders": {"days": {"type": "String"}}},
+  "@subTrialRenewHint": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
   "subRenewHint": "订阅还有{days}天到期",
-  "@subRenewHint": {"placeholders": {"days": {"type": "String"}}},
+  "@subRenewHint": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
   "subSelectPlanHint": "选择适合您牧场的套餐方案",
   "@subSelectPlanHint": {},
   "subExcessDeviceFee": "超出设备费（超出{count}头 × ¥{price}/头）",
-  "@subExcessDeviceFee": {"placeholders": {"count": {"type": "String"}}},
+  "@subExcessDeviceFee": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "subLockedNeedDevice": "该功能需要安装相应设备",
   "@subLockedNeedDevice": {},
   "subLockedUpgradeTier": "该功能需要升级到{tier}",
-  "@subLockedUpgradeTier": {"placeholders": {"tier": {"type": "String"}}},
+  "@subLockedUpgradeTier": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
   "subServiceManagement": "订阅服务管理",
   "@subServiceManagement": {},
   "subServiceManagementDesc": "管理所有租户的订阅服务",
@@ -672,17 +951,50 @@
   "subUnknownService": "未知服务",
   "@subUnknownService": {},
   "subServicePeriod": "期限: {start} ~ {end}",
-  "@subServicePeriod": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "@subServicePeriod": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "subTotal": "合计",
   "@subTotal": {},
   "subConfirmPay": "确认支付 ¥{amount}",
-  "@subConfirmPay": {"placeholders": {"amount": {"type": "String"}}},
+  "@subConfirmPay": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "subYuanSuffix": "¥{amount} 元",
-  "@subYuanSuffix": {"placeholders": {"amount": {"type": "String"}}},
+  "@subYuanSuffix": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "subSubscribeSuccess": "已成功订阅{tier}",
-  "@subSubscribeSuccess": {"placeholders": {"tier": {"type": "String"}}},
+  "@subSubscribeSuccess": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
   "subExcessDeviceFeeWithin": "超出设备费（在{quota}额度内）",
-  "@subExcessDeviceFeeWithin": {"placeholders": {"quota": {"type": "String"}}},
+  "@subExcessDeviceFeeWithin": {
+    "placeholders": {
+      "quota": {
+        "type": "String"
+      }
+    }
+  },
   "subCancelSubscription": "取消订阅",
   "@subCancelSubscription": {},
   "b2bContractNumber": "编号",
@@ -750,13 +1062,31 @@
   "b2bContractExpiryLabel": "合同到期日",
   "@b2bContractExpiryLabel": {},
   "b2bContractDaysLeft": "{date}  ·  剩余 {days} 天",
-  "@b2bContractDaysLeft": {"placeholders": {"date": {"type": "String"}}},
+  "@b2bContractDaysLeft": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "b2bContractExpiredOn": "{date}  ·  已过期",
-  "@b2bContractExpiredOn": {"placeholders": {"date": {"type": "String"}}},
+  "@b2bContractExpiredOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "subPlanFeeLabel": "套餐费",
   "@subPlanFeeLabel": {},
   "subDeviceFee": "设备费（{count}头 × ¥{price}/头）",
-  "@subDeviceFee": {"placeholders": {"count": {"type": "String"}}},
+  "@subDeviceFee": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "subscriptionFeature": "功能",
   "@subscriptionFeature": {},
   "subscriptionStatusTrial": "试用中",
@@ -824,7 +1154,13 @@
   "tenantAdjustLicenseTitle": "调整 License 配额",
   "@tenantAdjustLicenseTitle": {},
   "tenantAdjustLicenseUsed": "当前已使用：{used}",
-  "@tenantAdjustLicenseUsed": {"placeholders": {"used": {"type": "String"}}},
+  "@tenantAdjustLicenseUsed": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      }
+    }
+  },
   "tenantAdjustLicenseNew": "新 License 配额",
   "@tenantAdjustLicenseNew": {},
   "tenantAdjustLicenseConfirm": "确认调整",
@@ -832,15 +1168,33 @@
   "tenantDeleteTitle": "删除租户",
   "@tenantDeleteTitle": {},
   "tenantDeleteMessage": "即将删除租户「{name}」。该操作不可撤销。",
-  "@tenantDeleteMessage": {"placeholders": {"name": {"type": "String"}}},
+  "@tenantDeleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "tenantDeleteReason": "删除原因",
   "@tenantDeleteReason": {},
   "ranchHealthLatestAlerts": "最新告警",
   "@ranchHealthLatestAlerts": {},
   "ranchHealthAllRead": "全部已读 ({count})",
-  "@ranchHealthAllRead": {"placeholders": {"count": {"type": "String"}}},
+  "@ranchHealthAllRead": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "ranchHealthDismissed": "已忽略 ({count})",
-  "@ranchHealthDismissed": {"placeholders": {"count": {"type": "String"}}},
+  "@ranchHealthDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "ranchHealthIgnoreAlert": "忽略此告警",
   "@ranchHealthIgnoreAlert": {},
   "ranchHealthFenceInfo": "围栏信息",
@@ -848,7 +1202,13 @@
   "ranchHealthDetail": "健康详情",
   "@ranchHealthDetail": {},
   "ranchHealthDetailLink": "{type}详情",
-  "@ranchHealthDetailLink": {"placeholders": {"type": {"type": "String"}}},
+  "@ranchHealthDetailLink": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "ranchLivestockDetailBtn": "详情",
   "@ranchLivestockDetailBtn": {},
   "ranchLivestockRelatedAlerts": "相关告警",
@@ -856,7 +1216,13 @@
   "tenantLicenseInvalidInteger": "请输入非负整数",
   "@tenantLicenseInvalidInteger": {},
   "tenantLicenseBelowUsed": "新配额不能小于当前已使用量（{used}）",
-  "@tenantLicenseBelowUsed": {"placeholders": {"used": {"type": "String"}}},
+  "@tenantLicenseBelowUsed": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      }
+    }
+  },
   "tenantDeleteReasonRequired": "请输入删除原因",
   "@tenantDeleteReasonRequired": {},
   "deviceInstallTo": "安装到牲畜",
@@ -868,7 +1234,13 @@
   "offlineTileNoRegions": "暂无可用离线地图",
   "@offlineTileNoRegions": {},
   "offlineTileRegionsAvailable": "可用区域（{count}）",
-  "@offlineTileRegionsAvailable": {"placeholders": {"count": {"type": "String"}}},
+  "@offlineTileRegionsAvailable": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "workerNewWorker": "新建牧工",
   "@workerNewWorker": {},
   "workerName": "姓名",
@@ -878,15 +1250,33 @@
   "workerCreateSuccess": "牧工创建成功",
   "@workerCreateSuccess": {},
   "workerCreateFailed": "创建失败: {error}",
-  "@workerCreateFailed": {"placeholders": {"error": {"type": "String"}}},
+  "@workerCreateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "fenceConflictTitle": "围栏冲突: {name}",
-  "@fenceConflictTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@fenceConflictTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "fenceConflictDiscardMine": "放弃我的修改",
   "@fenceConflictDiscardMine": {},
   "fenceConflictOverwrite": "覆盖服务端版本",
   "@fenceConflictOverwrite": {},
   "fenceConflictServerVersion": "服务端版本 (v{version})",
-  "@fenceConflictServerVersion": {"placeholders": {"version": {"type": "String"}}},
+  "@fenceConflictServerVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "fenceConflictLocalVersion": "您的修改 (离线编辑)",
   "@fenceConflictLocalVersion": {},
   "offlineTileTitle": "离线地图管理",
@@ -918,7 +1308,13 @@
   "auditLogNoData": "暂无审计日志",
   "@auditLogNoData": {},
   "auditLogTotalCount": "共 {count} 条",
-  "@auditLogTotalCount": {"placeholders": {"count": {"type": "String"}}},
+  "@auditLogTotalCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "tileAdminTitle": "瓦片管理",
   "@tileAdminTitle": {},
   "tileAdminNoRegions": "暂无瓦片区域",
@@ -928,9 +1324,30 @@
   "tileAdminNoFarmTiles": "暂无牧场瓦片分配",
   "@tileAdminNoFarmTiles": {},
   "tileAdminStatusInfo": "状态: {status} | 瓦片: {tiles} | {size}MB",
-  "@tileAdminStatusInfo": {"placeholders": {"status": {"type": "String"}, "tiles": {"type": "String"}, "size": {"type": "String"}}},
+  "@tileAdminStatusInfo": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      },
+      "tiles": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "tileAdminRegionInfo": "区域: {region} | 状态: {status}",
-  "@tileAdminRegionInfo": {"placeholders": {"region": {"type": "String"}, "status": {"type": "String"}}},
+  "@tileAdminRegionInfo": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "featureGateTitle": "功能门控管理",
   "@featureGateTitle": {},
   "featureGateNoData": "该等级暂无功能门控",
@@ -940,7 +1357,13 @@
   "featureGateRetentionDays": "保留天数",
   "@featureGateRetentionDays": {},
   "featureGateUpdated": "{key} 已更新",
-  "@featureGateUpdated": {"placeholders": {"key": {"type": "String"}}},
+  "@featureGateUpdated": {
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
   "analyticsTitle": "用量分析",
   "@analyticsTitle": {},
   "analyticsSelectRange": "选择范围",
@@ -980,7 +1403,13 @@
   "alertSummaryTitle": "告警摘要",
   "@alertSummaryTitle": {},
   "alertSummaryCount": "共 {count} 条",
-  "@alertSummaryCount": {"placeholders": {"count": {"type": "String"}}},
+  "@alertSummaryCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "commonNoData": "暂无数据",
   "@commonNoData": {},
   "tileAdminRegionsTab": "区域管理",
@@ -998,15 +1427,36 @@
   "b2bFarmNotAssigned": "未指定",
   "@b2bFarmNotAssigned": {},
   "b2bFarmCurrentOwner": "当前负责人: {name}",
-  "@b2bFarmCurrentOwner": {"placeholders": {"name": {"type": "String"}}},
+  "@b2bFarmCurrentOwner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "b2bFarmNewOwner": "新负责人",
   "@b2bFarmNewOwner": {},
   "b2bFarmConfirmChange": "确认变更",
   "@b2bFarmConfirmChange": {},
   "b2bFarmChangeSuccess": "「{farm}」负责人已变更为 {owner}",
-  "@b2bFarmChangeSuccess": {"placeholders": {"farm": {"type": "String"}, "owner": {"type": "String"}}},
+  "@b2bFarmChangeSuccess": {
+    "placeholders": {
+      "farm": {
+        "type": "String"
+      },
+      "owner": {
+        "type": "String"
+      }
+    }
+  },
   "b2bFarmRenameDemo": "「{name}」重命名功能开发中",
-  "@b2bFarmRenameDemo": {"placeholders": {"name": {"type": "String"}}},
+  "@b2bFarmRenameDemo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "b2bFarmStatDevice": "设备",
   "@b2bFarmStatDevice": {},
   "b2bFarmStatRanch": "牧场",
@@ -1022,25 +1472,288 @@
   "b2bWorkerAssignNone": "没有可分配的牧工，请先点击「添加牧工」创建",
   "@b2bWorkerAssignNone": {},
   "b2bWorkerAssignConfirm": "确认分配 ({count})",
-  "@b2bWorkerAssignConfirm": {"placeholders": {"count": {"type": "String"}}},
+  "@b2bWorkerAssignConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "b2bWorkerRemoveTitle": "移除牧工",
   "@b2bWorkerRemoveTitle": {},
   "b2bWorkerRemoveConfirm": "确定将「{name}」从「{farm}」移除？",
-  "@b2bWorkerRemoveConfirm": {"placeholders": {"name": {"type": "String"}, "farm": {"type": "String"}}},
+  "@b2bWorkerRemoveConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "farm": {
+        "type": "String"
+      }
+    }
+  },
   "b2bWorkerConfirm": "确认",
   "@b2bWorkerConfirm": {},
   "b2bWorkerCreated": "牧工「{name}」已创建并分配",
-  "@b2bWorkerCreated": {"placeholders": {"name": {"type": "String"}}},
+  "@b2bWorkerCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "b2bWorkerUpdated": "牧工信息已更新",
   "@b2bWorkerUpdated": {},
   "b2bWorkerResetPwd": "重置密码",
   "@b2bWorkerResetPwd": {},
   "b2bWorkerResetPwdTitle": "重置「{name}」密码",
-  "@b2bWorkerResetPwdTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@b2bWorkerResetPwdTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "b2bWorkerNewPassword": "新密码",
   "@b2bWorkerNewPassword": {},
   "b2bWorkerConfirmReset": "确认重置",
   "@b2bWorkerConfirmReset": {},
   "b2bWorkerPwdReset": "密码已重置",
-  "@b2bWorkerPwdReset": {}
+  "@b2bWorkerPwdReset": {},
+  "subComparisonTitle": "功能对比",
+  "@subComparisonTitle": {},
+  "cmpFeatureFence": "电子围栏",
+  "@cmpFeatureFence": {},
+  "cmpFeatureTempMonitor": "瘤胃温度监测",
+  "@cmpFeatureTempMonitor": {},
+  "cmpFeaturePeristalticMonitor": "瘤胃蠕动监测",
+  "@cmpFeaturePeristalticMonitor": {},
+  "cmpFeatureStats": "数据统计",
+  "@cmpFeatureStats": {},
+  "cmpFeatureDashboard": "看板概览",
+  "@cmpFeatureDashboard": {},
+  "cmpFeatureDataRetention": "数据保留",
+  "@cmpFeatureDataRetention": {},
+  "cmpFeatureAlertHistory": "告警历史",
+  "@cmpFeatureAlertHistory": {},
+  "cmpFeatureLivestockDetail": "牲畜详情",
+  "@cmpFeatureLivestockDetail": {},
+  "cmpFeatureProfile": "个人中心",
+  "@cmpFeatureProfile": {},
+  "cmpFeatureTenantAdmin": "租户管理",
+  "@cmpFeatureTenantAdmin": {},
+  "cmpCellYears": "{count}年",
+  "@cmpCellYears": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "cmpCellDays": "{count}天",
+  "@cmpCellDays": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "cmpCellLifetime": "永久",
+  "@cmpCellLifetime": {},
+  "cmpCellItems": "{count}项",
+  "@cmpCellItems": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "fenceEditExit": "退出编辑",
+  "@fenceEditExit": {},
+  "fenceEditToolMoveVertex": "拖点",
+  "@fenceEditToolMoveVertex": {},
+  "fenceEditToolInsertVertex": "插点",
+  "@fenceEditToolInsertVertex": {},
+  "fenceEditToolDeleteVertex": "删点",
+  "@fenceEditToolDeleteVertex": {},
+  "fenceEditToolTranslate": "平移",
+  "@fenceEditToolTranslate": {},
+  "fenceEditTitle": "编辑围栏：{name}",
+  "@fenceEditTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "fenceEditUndo": "撤销",
+  "@fenceEditUndo": {},
+  "fenceEditRedo": "重做",
+  "@fenceEditRedo": {},
+  "fenceFormEditTitle": "编辑围栏",
+  "@fenceFormEditTitle": {},
+  "fenceFormNewTitle": "新建围栏",
+  "@fenceFormNewTitle": {},
+  "fenceFormName": "围栏名称",
+  "@fenceFormName": {},
+  "fenceFormNameRequired": "请输入围栏名称",
+  "@fenceFormNameRequired": {},
+  "fenceFormType": "围栏类型",
+  "@fenceFormType": {},
+  "fenceFormArea": "面积：{area} 公顷",
+  "@fenceFormArea": {
+    "placeholders": {
+      "area": {
+        "type": "String"
+      }
+    }
+  },
+  "fenceFormFinishDraw": "完成绘制（{count}个顶点）",
+  "@fenceFormFinishDraw": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "fenceFormDrawEnd": "结束",
+  "@fenceFormDrawEnd": {},
+  "fenceFormDrawStart": "开始绘制",
+  "@fenceFormDrawStart": {},
+  "fenceFormBannerDragHint": "松开鼠标或手指完成绘制",
+  "@fenceFormBannerDragHint": {},
+  "fenceFormBannerStartHint": "在地图上拖拽以画出范围",
+  "@fenceFormBannerStartHint": {},
+  "fenceFormBannerPolyContinue": "可继续点击添加顶点，或点下方「完成绘制」结束",
+  "@fenceFormBannerPolyContinue": {},
+  "fenceFormBannerPolyStart": "点击地图添加顶点（至少3个）",
+  "@fenceFormBannerPolyStart": {},
+  "fenceFormFooterHint": "点击地图右上角「开始绘制」后在地图上设置范围，或用手动录入",
+  "@fenceFormFooterHint": {},
+  "fenceFormFooterDrag": "绘制模式：地图不可拖动；拖拽画出范围后松手完成",
+  "@fenceFormFooterDrag": {},
+  "fenceFormFooterPoly": "绘制模式：点击添加顶点；移动指针可预览连线（多边形）",
+  "@fenceFormFooterPoly": {},
+  "fenceFormManualRectHint": "请输入2个对角顶点（纬度,经度）",
+  "@fenceFormManualRectHint": {},
+  "fenceFormManualCircleHint": "请输入圆心和边界点（纬度,经度），共2行",
+  "@fenceFormManualCircleHint": {},
+  "fenceFormManualPolyHint": "请输入各顶点坐标（至少3个），每行一个",
+  "@fenceFormManualPolyHint": {},
+  "fenceFormManualMinPoints": "至少需要 {count} 个有效坐标点",
+  "@fenceFormManualMinPoints": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "fenceSelectFence": "选择围栏",
+  "@fenceSelectFence": {},
+  "fenceHeadCount": "{count}头",
+  "@fenceHeadCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "fenceTemplateTitle": "围栏模板",
+  "@fenceTemplateTitle": {},
+  "fenceTemplateDesc": "快速生成常用围栏形状，可继续手动调整",
+  "@fenceTemplateDesc": {},
+  "fenceTemplateRectangle": "矩形区域",
+  "@fenceTemplateRectangle": {},
+  "fenceTemplateCircle": "圆形区域",
+  "@fenceTemplateCircle": {},
+  "fenceTemplateTrajectoryBuffer": "轨迹缓冲区",
+  "@fenceTemplateTrajectoryBuffer": {},
+  "fenceLoadFailed": "围栏加载失败",
+  "@fenceLoadFailed": {},
+  "fenceBoundaryMinPoints": "边界至少需要 3 个点",
+  "@fenceBoundaryMinPoints": {},
+  "fenceBoundaryNoDuplicates": "边界不能有连续重复点",
+  "@fenceBoundaryNoDuplicates": {},
+  "fenceBoundaryAreaPositive": "边界面积必须大于 0",
+  "@fenceBoundaryAreaPositive": {},
+  "fenceBoundaryNoSelfIntersect": "边界不能自交",
+  "@fenceBoundaryNoSelfIntersect": {},
+  "fenceUnnamed": "未命名",
+  "@fenceUnnamed": {},
+  "alertCenterTitle": "告警中心",
+  "@alertCenterTitle": {},
+  "alertCenterDesc": "聚焦围栏越界、设备低电、信号丢失三类 P0 告警。",
+  "@alertCenterDesc": {},
+  "alertChipFenceBreach": "越界告警",
+  "@alertChipFenceBreach": {},
+  "alertChipBatteryLow": "电池低电",
+  "@alertChipBatteryLow": {},
+  "alertChipSignalLost": "信号丢失",
+  "@alertChipSignalLost": {},
+  "alertStageActive": "活跃",
+  "@alertStageActive": {},
+  "alertStageDismissed": "已忽略",
+  "@alertStageDismissed": {},
+  "alertStageAutoResolved": "已自动解除",
+  "@alertStageAutoResolved": {},
+  "alertP0FenceBreachDetail": "耳标-001 · 北区围栏 · 距边界 24m",
+  "@alertP0FenceBreachDetail": {},
+  "alertP0BatteryLowDetail": "设备-045 · 电量 12% · 建议今日更换",
+  "@alertP0BatteryLowDetail": {},
+  "alertP0SignalLostDetail": "耳标-023 · 失联 18 分钟 · 最后位置东坡",
+  "@alertP0SignalLostDetail": {},
+  "b2bTabKpi": "KPI 看板",
+  "@b2bTabKpi": {},
+  "b2bTabAlertActivity": "告警动态",
+  "@b2bTabAlertActivity": {},
+  "b2bStatSubFarms": "旗下牧场",
+  "@b2bStatSubFarms": {},
+  "b2bStatLivestockTotal": "牲畜总数",
+  "@b2bStatLivestockTotal": {},
+  "b2bStatWorkers": "总牧工",
+  "@b2bStatWorkers": {},
+  "b2bStatDeviceOnlineRate": "设备在线率",
+  "@b2bStatDeviceOnlineRate": {},
+  "b2bStatDeviceTotal": "设备总数",
+  "@b2bStatDeviceTotal": {},
+  "b2bNavLinkDevices": "设备",
+  "@b2bNavLinkDevices": {},
+  "b2bNavLinkContracts": "合同",
+  "@b2bNavLinkContracts": {},
+  "b2bNavLinkRevenue": "对账",
+  "@b2bNavLinkRevenue": {},
+  "b2bContractActive": "合同有效",
+  "@b2bContractActive": {},
+  "b2bContractPendingRenew": "合同待续",
+  "@b2bContractPendingRenew": {},
+  "b2bUnknownFarm": "未知牧场",
+  "@b2bUnknownFarm": {},
+  "b2bAlertTypeDefault": "告警",
+  "@b2bAlertTypeDefault": {},
+  "b2bAlertTypeFenceBreach": "围栏越界",
+  "@b2bAlertTypeFenceBreach": {},
+  "b2bAlertTypeHealth": "健康异常",
+  "@b2bAlertTypeHealth": {},
+  "b2bAlertTypeDeviceOffline": "设备离线",
+  "@b2bAlertTypeDeviceOffline": {},
+  "b2bLivestockLabel": "牲畜 #{id}",
+  "@b2bLivestockLabel": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "alertFilterPending": "未处理",
+  "@alertFilterPending": {},
+  "alertFilterHandled": "已处理",
+  "@alertFilterHandled": {},
+  "feverCurrentTemp": "当前温度",
+  "@feverCurrentTemp": {},
+  "feverBaselineTemp": "基线温度",
+  "@feverBaselineTemp": {},
+  "feverStatus": "状态",
+  "@feverStatus": {},
+  "feverCapabilityNote": "系统能通知你体温异常，需线下排查确认原因",
+  "@feverCapabilityNote": {}
 }

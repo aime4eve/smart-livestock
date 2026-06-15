@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 Future<String?> showFenceCandidateSheet(
   BuildContext context,
@@ -26,6 +27,7 @@ class _CandidateList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -33,7 +35,7 @@ class _CandidateList extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Text(
-              '选择围栏',
+              l10n.fenceSelectFence,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
@@ -50,7 +52,7 @@ class _CandidateList extends StatelessWidget {
               ),
               title: Text(fence.name),
               trailing: Text(
-                '${fence.livestockCount}头',
+                l10n.fenceHeadCount('${fence.livestockCount}'),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary,
                     ),

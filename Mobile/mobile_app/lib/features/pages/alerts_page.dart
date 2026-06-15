@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/models/user_role.dart';
-import 'package:smart_livestock_demo/core/permissions/role_permission.dart';
-import 'package:smart_livestock_demo/features/alerts/domain/alerts_repository.dart';
-import 'package:smart_livestock_demo/features/alerts/presentation/alerts_controller.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_empty_error_state.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/core/models/user_role.dart';
+import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
+import 'package:hkt_livestock_agentic/features/alerts/domain/alerts_repository.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/alerts_controller.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
+import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_empty_error_state.dart';
+import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
+
+enum _P0AlertType { fenceBreach, batteryLow, signalLost }
 
 class AlertsPage extends ConsumerWidget {
   const AlertsPage({super.key, required this.role});
@@ -78,31 +80,31 @@ class AlertsPage extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '告警中心',
+                l10n.alertCenterTitle,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                '聚焦围栏越界、设备低电、信号丢失三类 P0 告警。',
+                l10n.alertCenterDesc,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: AppSpacing.md),
-              const Wrap(
+              Wrap(
                 spacing: AppSpacing.sm,
                 runSpacing: AppSpacing.sm,
                 children: [
                   HighfiStatusChip(
-                    label: '全部',
+                    label: l10n.commonAll,
                     color: AppColors.primary,
                     icon: Icons.grid_view_rounded,
                   ),
                   HighfiStatusChip(
-                    label: '未处理',
+                    label: l10n.alertFilterPending,
                     color: AppColors.warning,
                     icon: Icons.pending_actions_outlined,
                   ),
                   HighfiStatusChip(
-                    label: '已处理',
+                    label: l10n.alertFilterHandled,
                     color: AppColors.success,
                     icon: Icons.task_alt_outlined,
                   ),
@@ -112,25 +114,25 @@ class AlertsPage extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        const Wrap(
+        Wrap(
           spacing: AppSpacing.sm,
           runSpacing: AppSpacing.sm,
           children: [
             _AlertTypeChip(
-              chipKey: Key('alert-type-fence-breach'),
-              label: '越界告警',
+              chipKey: const Key('alert-type-fence-breach'),
+              label: l10n.alertChipFenceBreach,
               icon: Icons.fence,
               color: AppColors.danger,
             ),
             _AlertTypeChip(
-              chipKey: Key('alert-type-battery-low'),
-              label: '电池低电',
+              chipKey: const Key('alert-type-battery-low'),
+              label: l10n.alertChipBatteryLow,
               icon: Icons.battery_alert_outlined,
               color: AppColors.warning,
             ),
             _AlertTypeChip(
-              chipKey: Key('alert-type-signal-lost'),
-              label: '信号丢失',
+              chipKey: const Key('alert-type-signal-lost'),
+              label: l10n.alertChipSignalLost,
               icon: Icons.signal_wifi_connected_no_internet_4_outlined,
               color: AppColors.info,
             ),
@@ -141,55 +143,55 @@ class AlertsPage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(firstItem.title),
-                subtitle: Text(firstItem.subtitle),
-                trailing: HighfiStatusChip(
-                  label: _statusLabel(firstItem.stage),
-                  color: _statusColor(firstItem.stage),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  if (RolePermission.canAcknowledgeAlert(role) &&
-                      firstItem.stage == AlertStage.active.name)
-                    TextButton(
-                      key: const Key('alert-confirm'),
-                      onPressed: () => controller.acknowledge(firstItem.id),
-                      child: Text(l10n.alertsConfirm),
-                    ),
-                  if (RolePermission.canHandleAlert(role) &&
-                      firstItem.stage == AlertStage.active.name)
-                    TextButton(
-                      key: const Key('alert-handle'),
-                      onPressed: () => controller.handle(firstItem.id),
-                      child: Text(l10n.alertsHandle),
-                    ),
-                  if (RolePermission.canArchiveAlert(role) &&
-                      firstItem.stage == AlertStage.dismissed.name)
-                    TextButton(
-                      key: const Key('alert-archive'),
-                      onPressed: () => controller.archive(firstItem.id),
-                      child: Text(l10n.alertsArchive),
-                    ),
-                  if (RolePermission.canBatchAlerts(role) &&
-                      firstItem.stage != AlertStage.autoResolved.name)
-                    TextButton(
-                      key: const Key('alert-batch'),
-                      onPressed: () {
-                        final messenger = ScaffoldMessenger.of(context);
-                        messenger
-                          ..hideCurrentSnackBar()
-                          ..showSnackBar(
-                            SnackBar(content: Text(l10n.alertsBatchDemo)),
-                          );
-                      },
-                      child: Text(l10n.alertsBatchHandle),
-                    ),
+                  Text(
+                    _statusLabel(l10n, firstItem.stage),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: _statusColor(firstItem.stage),
+                        ),
+                  ),
+                  Wrap(
+                    spacing: AppSpacing.sm,
+                    children: [
+                      if (RolePermission.canAcknowledgeAlert(role) &&
+                          firstItem.stage == AlertStage.active.name)
+                        TextButton(
+                          key: const Key('alert-ack'),
+                          onPressed: () => controller.acknowledge(firstItem.id),
+                          child: Text(l10n.alertsConfirm),
+                        ),
+                      if (RolePermission.canHandleAlert(role) &&
+                          firstItem.stage == AlertStage.active.name)
+                        TextButton(
+                          key: const Key('alert-handle'),
+                          onPressed: () => controller.handle(firstItem.id),
+                          child: Text(l10n.alertsHandle),
+                        ),
+                      if (RolePermission.canArchiveAlert(role) &&
+                          firstItem.stage == AlertStage.dismissed.name)
+                        TextButton(
+                          key: const Key('alert-archive'),
+                          onPressed: () => controller.archive(firstItem.id),
+                          child: Text(l10n.alertsArchive),
+                        ),
+                      if (RolePermission.canBatchAlerts(role) &&
+                          firstItem.stage != AlertStage.autoResolved.name)
+                        TextButton(
+                          key: const Key('alert-batch'),
+                          onPressed: () {
+                            final messenger = ScaffoldMessenger.of(context);
+                            messenger
+                              ..hideCurrentSnackBar()
+                              ..showSnackBar(
+                                SnackBar(content: Text(l10n.alertsBatchDemo)),
+                              );
+                          },
+                          child: Text(l10n.alertsBatchHandle),
+                        ),
+                    ],
+                  ),
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
@@ -201,13 +203,12 @@ class AlertsPage extends ConsumerWidget {
     );
   }
 
-  String _statusLabel(String stage) {
+  String _statusLabel(AppLocalizations l10n, String stage) {
     final s = AlertStage.values.where((e) => e.name == stage).firstOrNull;
     return switch (s) {
-      AlertStage.active => '活跃',
-      AlertStage.dismissed => '已忽略',
-      AlertStage.autoResolved => '已自动解除',
-      
+      AlertStage.active => l10n.alertStageActive,
+      AlertStage.dismissed => l10n.alertStageDismissed,
+      AlertStage.autoResolved => l10n.alertStageAutoResolved,
       _ => stage,
     };
   }
@@ -218,33 +219,42 @@ class AlertsPage extends ConsumerWidget {
       AlertStage.active => AppColors.warning,
       AlertStage.dismissed => AppColors.textSecondary,
       AlertStage.autoResolved => AppColors.success,
-      
       _ => AppColors.textSecondary,
     };
   }
 
   List<Widget> _buildP0AlertRows(BuildContext context) {
-    final rows =
-        <({String rowKey, String typeName, String title, String detail})>[
-      (
-        rowKey: 'alert-row-fence-breach',
-        typeName: '越界告警',
-        title: '越界告警',
-        detail: '耳标-001 · 北区围栏 · 距边界 24m'
-      ),
-      (
-        rowKey: 'alert-row-battery-low',
-        typeName: '电池低电',
-        title: '电池低电',
-        detail: '设备-045 · 电量 12% · 建议今日更换'
-      ),
-      (
-        rowKey: 'alert-row-signal-lost',
-        typeName: '信号丢失',
-        title: '信号丢失',
-        detail: '耳标-023 · 失联 18 分钟 · 最后位置东坡'
-      ),
+    final l10n = AppLocalizations.of(context)!;
+    final rows = <({_P0AlertType type, String rowKey})>[
+      (type: _P0AlertType.fenceBreach, rowKey: 'alert-row-fence-breach'),
+      (type: _P0AlertType.batteryLow, rowKey: 'alert-row-battery-low'),
+      (type: _P0AlertType.signalLost, rowKey: 'alert-row-signal-lost'),
     ];
+
+    String titleFor(_P0AlertType t) => switch (t) {
+          _P0AlertType.fenceBreach => l10n.alertChipFenceBreach,
+          _P0AlertType.batteryLow => l10n.alertChipBatteryLow,
+          _P0AlertType.signalLost => l10n.alertChipSignalLost,
+        };
+
+    String detailFor(_P0AlertType t) => switch (t) {
+          _P0AlertType.fenceBreach => l10n.alertP0FenceBreachDetail,
+          _P0AlertType.batteryLow => l10n.alertP0BatteryLowDetail,
+          _P0AlertType.signalLost => l10n.alertP0SignalLostDetail,
+        };
+
+    IconData iconFor(_P0AlertType t) => switch (t) {
+          _P0AlertType.fenceBreach => Icons.fence,
+          _P0AlertType.batteryLow => Icons.battery_alert_outlined,
+          _P0AlertType.signalLost =>
+            Icons.signal_wifi_connected_no_internet_4_outlined,
+        };
+
+    Color colorFor(_P0AlertType t) => switch (t) {
+          _P0AlertType.fenceBreach => AppColors.danger,
+          _P0AlertType.batteryLow => AppColors.warning,
+          _P0AlertType.signalLost => AppColors.info,
+        };
 
     return [
       for (final row in rows)
@@ -261,30 +271,19 @@ class AlertsPage extends ConsumerWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  row.typeName == '越界告警'
-                      ? Icons.fence
-                      : row.typeName == '电池低电'
-                          ? Icons.battery_alert_outlined
-                          : Icons.signal_wifi_connected_no_internet_4_outlined,
-                  color: row.typeName == '越界告警'
-                      ? AppColors.danger
-                      : row.typeName == '电池低电'
-                          ? AppColors.warning
-                          : AppColors.info,
-                ),
+                Icon(iconFor(row.type), color: colorFor(row.type)),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        row.title,
+                        titleFor(row.type),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
-                        row.detail,
+                        detailFor(row.type),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],

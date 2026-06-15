@@ -1,4 +1,4 @@
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 
 abstract class SubscriptionRepository {
   Future<SubscriptionStatus> loadCurrent();

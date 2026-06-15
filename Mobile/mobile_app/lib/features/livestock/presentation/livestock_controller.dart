@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/api/farm_scoped_controller.dart';
-import 'package:smart_livestock_demo/core/models/core_models.dart';
-import 'package:smart_livestock_demo/features/livestock/data/livestock_api_repository.dart';
-import 'package:smart_livestock_demo/features/livestock/domain/livestock_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/farm_scoped_controller.dart';
+import 'package:hkt_livestock_agentic/core/models/core_models.dart';
+import 'package:hkt_livestock_agentic/features/livestock/data/livestock_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/livestock/domain/livestock_repository.dart';
 
 final livestockRepositoryProvider = Provider<LivestockRepository>((ref) {
   return const LivestockApiRepository();

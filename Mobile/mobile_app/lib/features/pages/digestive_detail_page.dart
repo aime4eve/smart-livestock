@@ -1,11 +1,11 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/models/health_models.dart';
-import 'package:smart_livestock_demo/features/digestive/presentation/digestive_controller.dart';
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/device_info_line.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/models/health_models.dart';
+import 'package:hkt_livestock_agentic/features/digestive/presentation/digestive_controller.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/device_info_line.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class DigestiveDetailPage extends ConsumerWidget {
   const DigestiveDetailPage({super.key, required this.livestockId});
@@ -25,7 +25,7 @@ class DigestiveDetailPage extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _buildStatusCards(detail),
+              _buildStatusCards(detail, l10n),
               const SizedBox(height: 16),
               // Device info (subtle)
               DeviceInfoLine(deviceId: livestockId),
@@ -37,7 +37,7 @@ class DigestiveDetailPage extends ConsumerWidget {
               ],
               const SizedBox(height: 16),
               // Capability boundary note
-              _buildCapabilityNote(context),
+              _buildCapabilityNote(context, l10n),
               const SizedBox(height: 16),
               _buildDismissButton(context),
             ],
@@ -47,7 +47,7 @@ class DigestiveDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildCapabilityNote(BuildContext context) {
+  Widget _buildCapabilityNote(BuildContext context, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -61,7 +61,7 @@ class DigestiveDetailPage extends ConsumerWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              '系统能通知你消化异常，需线下排查确认原因',
+              l10n.digestiveCapabilityNote,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.info),
             ),
           ),
@@ -82,13 +82,14 @@ class DigestiveDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatusCards(DigestiveDetailData detail) {
+  Widget _buildStatusCards(DigestiveDetailData detail, AppLocalizations l10n) {
+    final unit = l10n.digestiveFreqUnit;
     return Row(children: [
-      _statCard('当前频率', '${detail.recent24h.isEmpty ? detail.motilityBaseline.toStringAsFixed(1) : detail.recent24h.last.frequency.toStringAsFixed(1)}次/分', AppColors.danger),
+      _statCard(l10n.digestiveCurrentFreq, '${detail.recent24h.isEmpty ? detail.motilityBaseline.toStringAsFixed(1) : detail.recent24h.last.frequency.toStringAsFixed(1)}$unit', AppColors.danger),
       const SizedBox(width: 8),
-      _statCard('基线频率', '${detail.motilityBaseline.toStringAsFixed(1)}次/分', AppColors.textSecondary),
+      _statCard(l10n.digestiveBaselineFreq, '${detail.motilityBaseline.toStringAsFixed(1)}$unit', AppColors.textSecondary),
       const SizedBox(width: 8),
-      _statCard('状态', detail.status, detail.status == 'ABNORMAL' ? AppColors.danger : AppColors.warning),
+      _statCard(l10n.digestiveStatus, detail.status, detail.status == 'ABNORMAL' ? AppColors.danger : AppColors.warning),
     ]);
   }
 

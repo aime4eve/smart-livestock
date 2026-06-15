@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/app/app_router.dart';
-import 'package:smart_livestock_demo/app/session/app_session.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/models/user_role.dart';
-import 'package:smart_livestock_demo/core/theme/app_theme.dart';
-import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
+import 'package:hkt_livestock_agentic/app/app_router.dart';
+import 'package:hkt_livestock_agentic/app/session/app_session.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/core/models/user_role.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_theme.dart';
+import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 
 /// Pumps the app with an authenticated session for the given [role].
 ///

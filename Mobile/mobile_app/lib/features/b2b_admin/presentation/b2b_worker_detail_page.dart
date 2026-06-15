@@ -4,19 +4,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/app/app_route.dart';
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_repository.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/core/map/map_config.dart';
-import 'package:smart_livestock_demo/core/map/smart_tile_provider.dart';
-import 'package:smart_livestock_demo/core/map/coord_transform.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_worker_management_repository.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_worker_management_controller.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/async_fallback_views.dart';
+import 'package:hkt_livestock_agentic/app/app_route.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/domain/b2b_repository.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_controller.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/map/map_config.dart';
+import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
+import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/domain/b2b_worker_management_repository.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_worker_management_controller.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/widgets/async_fallback_views.dart';
 
 // ═══════════════════════════════════════════════════════════════
 //  B2B Worker Detail Page — map + fences + offline tiles

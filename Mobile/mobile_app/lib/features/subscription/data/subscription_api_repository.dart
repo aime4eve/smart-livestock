@@ -1,6 +1,6 @@
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
-import 'package:smart_livestock_demo/features/subscription/domain/subscription_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/features/subscription/domain/subscription_repository.dart';
 
 class SubscriptionApiRepository implements SubscriptionRepository {
   const SubscriptionApiRepository();

@@ -671,6 +671,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get digestiveDetailChartTitle => '24小时蠕动曲线';
 
   @override
+  String get digestiveCurrentFreq => '当前频率';
+
+  @override
+  String get digestiveBaselineFreq => '基线频率';
+
+  @override
+  String get digestiveStatus => '状态';
+
+  @override
+  String get digestiveFreqUnit => '次/分';
+
+  @override
+  String get digestiveCapabilityNote => '系统能通知你消化异常，需线下排查确认原因';
+
+  @override
   String get estrusDetailTitle => '发情详情';
 
   @override
@@ -1713,4 +1728,295 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get b2bWorkerPwdReset => '密码已重置';
+
+  @override
+  String get subComparisonTitle => '功能对比';
+
+  @override
+  String get cmpFeatureFence => '电子围栏';
+
+  @override
+  String get cmpFeatureTempMonitor => '瘤胃温度监测';
+
+  @override
+  String get cmpFeaturePeristalticMonitor => '瘤胃蠕动监测';
+
+  @override
+  String get cmpFeatureStats => '数据统计';
+
+  @override
+  String get cmpFeatureDashboard => '看板概览';
+
+  @override
+  String get cmpFeatureDataRetention => '数据保留';
+
+  @override
+  String get cmpFeatureAlertHistory => '告警历史';
+
+  @override
+  String get cmpFeatureLivestockDetail => '牲畜详情';
+
+  @override
+  String get cmpFeatureProfile => '个人中心';
+
+  @override
+  String get cmpFeatureTenantAdmin => '租户管理';
+
+  @override
+  String cmpCellYears(String count) {
+    return '$count年';
+  }
+
+  @override
+  String cmpCellDays(String count) {
+    return '$count天';
+  }
+
+  @override
+  String get cmpCellLifetime => '永久';
+
+  @override
+  String cmpCellItems(String count) {
+    return '$count项';
+  }
+
+  @override
+  String get fenceEditExit => '退出编辑';
+
+  @override
+  String get fenceEditToolMoveVertex => '拖点';
+
+  @override
+  String get fenceEditToolInsertVertex => '插点';
+
+  @override
+  String get fenceEditToolDeleteVertex => '删点';
+
+  @override
+  String get fenceEditToolTranslate => '平移';
+
+  @override
+  String fenceEditTitle(String name) {
+    return '编辑围栏：$name';
+  }
+
+  @override
+  String get fenceEditUndo => '撤销';
+
+  @override
+  String get fenceEditRedo => '重做';
+
+  @override
+  String get fenceFormEditTitle => '编辑围栏';
+
+  @override
+  String get fenceFormNewTitle => '新建围栏';
+
+  @override
+  String get fenceFormName => '围栏名称';
+
+  @override
+  String get fenceFormNameRequired => '请输入围栏名称';
+
+  @override
+  String get fenceFormType => '围栏类型';
+
+  @override
+  String fenceFormArea(String area) {
+    return '面积：$area 公顷';
+  }
+
+  @override
+  String fenceFormFinishDraw(String count) {
+    return '完成绘制（$count个顶点）';
+  }
+
+  @override
+  String get fenceFormDrawEnd => '结束';
+
+  @override
+  String get fenceFormDrawStart => '开始绘制';
+
+  @override
+  String get fenceFormBannerDragHint => '松开鼠标或手指完成绘制';
+
+  @override
+  String get fenceFormBannerStartHint => '在地图上拖拽以画出范围';
+
+  @override
+  String get fenceFormBannerPolyContinue => '可继续点击添加顶点，或点下方「完成绘制」结束';
+
+  @override
+  String get fenceFormBannerPolyStart => '点击地图添加顶点（至少3个）';
+
+  @override
+  String get fenceFormFooterHint => '点击地图右上角「开始绘制」后在地图上设置范围，或用手动录入';
+
+  @override
+  String get fenceFormFooterDrag => '绘制模式：地图不可拖动；拖拽画出范围后松手完成';
+
+  @override
+  String get fenceFormFooterPoly => '绘制模式：点击添加顶点；移动指针可预览连线（多边形）';
+
+  @override
+  String get fenceFormManualRectHint => '请输入2个对角顶点（纬度,经度）';
+
+  @override
+  String get fenceFormManualCircleHint => '请输入圆心和边界点（纬度,经度），共2行';
+
+  @override
+  String get fenceFormManualPolyHint => '请输入各顶点坐标（至少3个），每行一个';
+
+  @override
+  String fenceFormManualMinPoints(String count) {
+    return '至少需要 $count 个有效坐标点';
+  }
+
+  @override
+  String get fenceSelectFence => '选择围栏';
+
+  @override
+  String fenceHeadCount(String count) {
+    return '$count头';
+  }
+
+  @override
+  String get fenceTemplateTitle => '围栏模板';
+
+  @override
+  String get fenceTemplateDesc => '快速生成常用围栏形状，可继续手动调整';
+
+  @override
+  String get fenceTemplateRectangle => '矩形区域';
+
+  @override
+  String get fenceTemplateCircle => '圆形区域';
+
+  @override
+  String get fenceTemplateTrajectoryBuffer => '轨迹缓冲区';
+
+  @override
+  String get fenceLoadFailed => '围栏加载失败';
+
+  @override
+  String get fenceBoundaryMinPoints => '边界至少需要 3 个点';
+
+  @override
+  String get fenceBoundaryNoDuplicates => '边界不能有连续重复点';
+
+  @override
+  String get fenceBoundaryAreaPositive => '边界面积必须大于 0';
+
+  @override
+  String get fenceBoundaryNoSelfIntersect => '边界不能自交';
+
+  @override
+  String get fenceUnnamed => '未命名';
+
+  @override
+  String get alertCenterTitle => '告警中心';
+
+  @override
+  String get alertCenterDesc => '聚焦围栏越界、设备低电、信号丢失三类 P0 告警。';
+
+  @override
+  String get alertChipFenceBreach => '越界告警';
+
+  @override
+  String get alertChipBatteryLow => '电池低电';
+
+  @override
+  String get alertChipSignalLost => '信号丢失';
+
+  @override
+  String get alertStageActive => '活跃';
+
+  @override
+  String get alertStageDismissed => '已忽略';
+
+  @override
+  String get alertStageAutoResolved => '已自动解除';
+
+  @override
+  String get alertP0FenceBreachDetail => '耳标-001 · 北区围栏 · 距边界 24m';
+
+  @override
+  String get alertP0BatteryLowDetail => '设备-045 · 电量 12% · 建议今日更换';
+
+  @override
+  String get alertP0SignalLostDetail => '耳标-023 · 失联 18 分钟 · 最后位置东坡';
+
+  @override
+  String get b2bTabKpi => 'KPI 看板';
+
+  @override
+  String get b2bTabAlertActivity => '告警动态';
+
+  @override
+  String get b2bStatSubFarms => '旗下牧场';
+
+  @override
+  String get b2bStatLivestockTotal => '牲畜总数';
+
+  @override
+  String get b2bStatWorkers => '总牧工';
+
+  @override
+  String get b2bStatDeviceOnlineRate => '设备在线率';
+
+  @override
+  String get b2bStatDeviceTotal => '设备总数';
+
+  @override
+  String get b2bNavLinkDevices => '设备';
+
+  @override
+  String get b2bNavLinkContracts => '合同';
+
+  @override
+  String get b2bNavLinkRevenue => '对账';
+
+  @override
+  String get b2bContractActive => '合同有效';
+
+  @override
+  String get b2bContractPendingRenew => '合同待续';
+
+  @override
+  String get b2bUnknownFarm => '未知牧场';
+
+  @override
+  String get b2bAlertTypeDefault => '告警';
+
+  @override
+  String get b2bAlertTypeFenceBreach => '围栏越界';
+
+  @override
+  String get b2bAlertTypeHealth => '健康异常';
+
+  @override
+  String get b2bAlertTypeDeviceOffline => '设备离线';
+
+  @override
+  String b2bLivestockLabel(String id) {
+    return '牲畜 #$id';
+  }
+
+  @override
+  String get alertFilterPending => '未处理';
+
+  @override
+  String get alertFilterHandled => '已处理';
+
+  @override
+  String get feverCurrentTemp => '当前温度';
+
+  @override
+  String get feverBaselineTemp => '基线温度';
+
+  @override
+  String get feverStatus => '状态';
+
+  @override
+  String get feverCapabilityNote => '系统能通知你体温异常，需线下排查确认原因';
 }

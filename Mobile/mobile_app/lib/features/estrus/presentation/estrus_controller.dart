@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/api/farm_scoped_controller.dart';
-import 'package:smart_livestock_demo/core/models/health_models.dart';
-import 'package:smart_livestock_demo/features/estrus/data/estrus_api_repository.dart';
-import 'package:smart_livestock_demo/features/estrus/domain/estrus_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/farm_scoped_controller.dart';
+import 'package:hkt_livestock_agentic/core/models/health_models.dart';
+import 'package:hkt_livestock_agentic/features/estrus/data/estrus_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/estrus/domain/estrus_repository.dart';
 
 final estrusRepositoryProvider = Provider<EstrusRepository>((ref) {
   return const EstrusApiRepository();

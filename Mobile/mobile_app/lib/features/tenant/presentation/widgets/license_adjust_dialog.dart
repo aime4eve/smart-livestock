@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class LicenseAdjustDialog extends StatefulWidget {
   const LicenseAdjustDialog({super.key, required this.tenant});

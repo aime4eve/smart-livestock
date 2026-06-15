@@ -337,20 +337,20 @@ public class HealthApplicationService {
             if (snap.getTempStatus() == TempStatus.CRITICAL) {
                 String code = ranchQueryPort.findLivestockById(snap.getLivestockId())
                         .map(LivestockInfo::livestockCode).orElse("?");
-                tasks.add(new PendingTask(
-                        "fever-" + snap.getLivestockId(),
-                        code + " 体温危急",
-                        "体温持续偏高，建议立即隔离观察",
-                        "fever", "高"));
-            }
-            if (snap.getMotilityStatus() == MotilityStatus.ABNORMAL) {
-                String code = ranchQueryPort.findLivestockById(snap.getLivestockId())
-                        .map(LivestockInfo::livestockCode).orElse("?");
-                tasks.add(new PendingTask(
-                        "digestive-" + snap.getLivestockId(),
-                        code + " 消化异常",
-                        "蠕动频率显著偏低，建议检查饲料质量",
-                        "digestive", "高"));
+               tasks.add(new PendingTask(
+                       "fever-" + snap.getLivestockId(),
+                        code + " Critical Temperature",
+                        "Temperature sustained high. Isolate and monitor immediately.",
+                        "fever", "High"));
+           }
+           if (snap.getMotilityStatus() == MotilityStatus.ABNORMAL) {
+               String code = ranchQueryPort.findLivestockById(snap.getLivestockId())
+                       .map(LivestockInfo::livestockCode).orElse("?");
+               tasks.add(new PendingTask(
+                       "digestive-" + snap.getLivestockId(),
+                        code + " Digestive Abnormal",
+                        "Rumen motility significantly low. Check feed quality.",
+                        "digestive", "High"));
             }
         }
 

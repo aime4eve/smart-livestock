@@ -1,12 +1,12 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/models/twin_models.dart';
-import 'package:smart_livestock_demo/core/models/health_models.dart';
-import 'package:smart_livestock_demo/features/fever_warning/presentation/fever_controller.dart';
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/device_info_line.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/models/twin_models.dart';
+import 'package:hkt_livestock_agentic/core/models/health_models.dart';
+import 'package:hkt_livestock_agentic/features/fever_warning/presentation/fever_controller.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/device_info_line.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class FeverDetailPage extends ConsumerWidget {
   const FeverDetailPage({super.key, required this.livestockId});
@@ -25,20 +25,20 @@ class FeverDetailPage extends ConsumerWidget {
           onRefresh: () => ref.read(feverDetailControllerProvider(livestockId).notifier).refresh(),
           child: ListView(
             padding: const EdgeInsets.all(16),
-            children: [
-              _buildStatusCards(detail),
-              const SizedBox(height: 16),
-              // Device info (subtle)
-              DeviceInfoLine(deviceId: livestockId),
-              const SizedBox(height: 8),
-              _buildChart(detail.recent72h, detail.baselineTemp, l10n),
-              if (detail.conclusion != null) ...[
-                const SizedBox(height: 16),
-                Card(child: Padding(padding: const EdgeInsets.all(12), child: Text('📋 ${detail.conclusion}'))),
-              ],
-              const SizedBox(height: 16),
-              // Capability boundary note
-              _buildCapabilityNote(context),
+           children: [
+              _buildStatusCards(detail, l10n),
+             const SizedBox(height: 16),
+             // Device info (subtle)
+             DeviceInfoLine(deviceId: livestockId),
+             const SizedBox(height: 8),
+             _buildChart(detail.recent72h, detail.baselineTemp, l10n),
+             if (detail.conclusion != null) ...[
+               const SizedBox(height: 16),
+               Card(child: Padding(padding: const EdgeInsets.all(12), child: Text('📋 ${detail.conclusion}'))),
+             ],
+             const SizedBox(height: 16),
+             // Capability boundary note
+              _buildCapabilityNote(context, l10n),
               const SizedBox(height: 16),
               // Dismiss alert button (owner/b2b_admin only — visibility controlled by parent)
               _buildDismissButton(context),
@@ -49,7 +49,7 @@ class FeverDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildCapabilityNote(BuildContext context) {
+  Widget _buildCapabilityNote(BuildContext context, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -63,7 +63,7 @@ class FeverDetailPage extends ConsumerWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              '系统能通知你体温异常，需线下排查确认原因',
+              l10n.feverCapabilityNote,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.info),
             ),
           ),
@@ -84,16 +84,16 @@ class FeverDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatusCards(FeverDetailData detail) {
-    final currentTemp = detail.recent72h.isEmpty
-        ? detail.baselineTemp
-        : detail.recent72h.last.temperature;
-    return Row(children: [
-      _statCard('当前温度', '${currentTemp.toStringAsFixed(1)}°C', AppColors.danger),
-      const SizedBox(width: 8),
-      _statCard('基线温度', '${detail.baselineTemp.toStringAsFixed(1)}°C', AppColors.textSecondary),
-      const SizedBox(width: 8),
-      _statCard('状态', detail.status, detail.status == 'CRITICAL' ? AppColors.danger : AppColors.warning),
+  Widget _buildStatusCards(FeverDetailData detail, AppLocalizations l10n) {
+   final currentTemp = detail.recent72h.isEmpty
+       ? detail.baselineTemp
+       : detail.recent72h.last.temperature;
+   return Row(children: [
+      _statCard(l10n.feverCurrentTemp, '${currentTemp.toStringAsFixed(1)}°C', AppColors.danger),
+     const SizedBox(width: 8),
+      _statCard(l10n.feverBaselineTemp, '${detail.baselineTemp.toStringAsFixed(1)}°C', AppColors.textSecondary),
+     const SizedBox(width: 8),
+      _statCard(l10n.feverStatus, detail.status, detail.status == 'CRITICAL' ? AppColors.danger : AppColors.warning),
     ]);
   }
 

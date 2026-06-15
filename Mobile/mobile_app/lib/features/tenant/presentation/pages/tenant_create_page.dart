@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/widgets/coming_soon_page.dart';
+import 'package:hkt_livestock_agentic/widgets/coming_soon_page.dart';
 
 class TenantCreatePage extends StatelessWidget {
   const TenantCreatePage({super.key});

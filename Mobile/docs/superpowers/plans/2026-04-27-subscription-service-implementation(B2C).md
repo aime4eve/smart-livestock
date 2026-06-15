@@ -1852,7 +1852,7 @@ git commit -m "feat(subscription): auto-create trial on tenant creation and regi
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 
 void main() {
   group('SubscriptionTier', () {
@@ -2111,8 +2111,8 @@ git commit -m "feat(subscription): add SubscriptionTier model with price calcula
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/widgets/locked_overlay.dart';
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/widgets/locked_overlay.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 
 void main() {
   group('LockedOverlay', () {
@@ -2223,9 +2223,9 @@ cd Mobile/mobile_app && flutter test test/widgets/locked_overlay_test.dart
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 
 class LockedOverlay extends StatelessWidget {
   const LockedOverlay({
@@ -2336,8 +2336,8 @@ git commit -m "feat(subscription): add LockedOverlay unified component"
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
-import 'package:smart_livestock_demo/features/subscription/presentation/subscription_controller.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
 
 void main() {
   group('SubscriptionController', () {
@@ -2393,8 +2393,8 @@ void main() {
 - [x] **Step 3: 实现 `subscription_repository.dart`（接口）**
 
 ```dart
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
 
 class SubscriptionViewData {
   const SubscriptionViewData({
@@ -2423,9 +2423,9 @@ abstract class SubscriptionRepository {
 - [x] **Step 4: 实现 `mock_subscription_repository.dart`**
 
 ```dart
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/subscription/domain/subscription_repository.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/subscription/domain/subscription_repository.dart';
 
 class MockSubscriptionRepository implements SubscriptionRepository {
   SubscriptionStatus _status = SubscriptionStatus(
@@ -2513,10 +2513,10 @@ class MockSubscriptionRepository implements SubscriptionRepository {
 - [x] **Step 5: 实现 `live_subscription_repository.dart`**
 
 ```dart
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/subscription/domain/subscription_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/api_cache.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/subscription/domain/subscription_repository.dart';
 
 class LiveSubscriptionRepository implements SubscriptionRepository {
   @override
@@ -2590,12 +2590,12 @@ class LiveSubscriptionRepository implements SubscriptionRepository {
 ```dart
 import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/subscription/data/live_subscription_repository.dart';
-import 'package:smart_livestock_demo/features/subscription/data/mock_subscription_repository.dart';
-import 'package:smart_livestock_demo/features/subscription/domain/subscription_repository.dart';
+import 'package:hkt_livestock_agentic/app/app_mode.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/subscription/data/live_subscription_repository.dart';
+import 'package:hkt_livestock_agentic/features/subscription/data/mock_subscription_repository.dart';
+import 'package:hkt_livestock_agentic/features/subscription/domain/subscription_repository.dart';
 
 final subscriptionRepositoryProvider = Provider<SubscriptionRepository>((ref) {
   final appMode = ref.watch(appModeProvider);
@@ -2721,9 +2721,9 @@ cd Mobile/mobile_app && flutter test test/features/subscription/
 ```dart
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';  // 需 pubspec.yaml 已有
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 
 class TierCard extends StatelessWidget {
   const TierCard({
@@ -3019,9 +3019,9 @@ testWidgets('normal 级别不显示横幅', (tester) async { ... });
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/features/subscription/presentation/subscription_controller.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
 
 class SubscriptionRenewalBanner extends ConsumerWidget {
   const SubscriptionRenewalBanner({super.key});
@@ -3076,7 +3076,7 @@ class SubscriptionRenewalBanner extends ConsumerWidget {
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 
 class SubscriptionExpiryDialog extends StatelessWidget {
   const SubscriptionExpiryDialog({super.key, required this.status});
@@ -3208,7 +3208,7 @@ Mock 模式下通过 `applyMockShaping()` 函数模拟后端 shaping 规则，�
 完整 Dart 实现，与后端 `applyShapingRules` 逻辑等价：
 
 ```dart
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 
 /// Shared mock shaping function — mirrors backend/data/feature-flags.js applyShapingRules
 Map<String, dynamic> applyMockShaping(

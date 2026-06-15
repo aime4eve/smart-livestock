@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/app/app_route.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_repository.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/app/app_route.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/domain/b2b_repository.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_controller.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class B2bDashboardPage extends ConsumerStatefulWidget {
   const B2bDashboardPage({super.key});
@@ -102,9 +102,9 @@ class _B2bDashboardPageState extends ConsumerState<B2bDashboardPage>
               indicatorSize: TabBarIndicatorSize.tab,
               labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               unselectedLabelStyle: const TextStyle(fontSize: 14),
-              tabs: const [
-                Tab(text: 'KPI 看板'),
-                Tab(text: '告警动态'),
+              tabs: [
+                Tab(text: l10n.b2bTabKpi),
+                Tab(text: l10n.b2bTabAlertActivity),
               ],
             ),
           ),
@@ -147,7 +147,7 @@ class _KpiTab extends StatelessWidget {
             children: [
               Expanded(
                 child: _KpiCard(
-                  label: '旗下牧场',
+                  label: l10n.b2bStatSubFarms,
                   value: '${data.totalFarms}',
                   icon: Icons.landscape_outlined,
                   color: const Color(0xFF2E7D32),
@@ -157,7 +157,7 @@ class _KpiTab extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: _KpiCard(
-                  label: '牲畜总数',
+                  label: l10n.b2bStatLivestockTotal,
                   value: '${data.totalLivestock}',
                   icon: Icons.pets_outlined,
                   color: const Color(0xFF1565C0),
@@ -167,7 +167,7 @@ class _KpiTab extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: _KpiCard(
-                  label: '总牧工',
+                  label: l10n.b2bStatWorkers,
                   value: '$totalWorkers',
                   icon: Icons.groups_outlined,
                   color: const Color(0xFF6A1B9A),
@@ -175,10 +175,10 @@ class _KpiTab extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: _KpiCard(
-                  label: '待处理告警',
-                  value: '${data.pendingAlerts}',
+             Expanded(
+               child: _KpiCard(
+                  label: l10n.b2bDashboardPendingAlerts,
+                 value: '${data.pendingAlerts}',
                   icon: Icons.notification_important_outlined,
                   color: data.pendingAlerts > 0 ? const Color(0xFFC62828) : const Color(0xFF2E7D32),
                   bgColor: data.pendingAlerts > 0 ? const Color(0xFFFCE4EC) : const Color(0xFFE8F5E9),
@@ -216,12 +216,12 @@ class _KpiTab extends StatelessWidget {
                 const SizedBox(height: AppSpacing.md),
                 Row(
                   children: [
-                    _HeroInfoItem(
-                        label: '设备在线率',
-                        value: '${(data.deviceOnlineRate * 100).toStringAsFixed(0)}%'),
-                    const SizedBox(width: AppSpacing.xl),
-                    _HeroInfoItem(
-                        label: '设备总数', value: '${data.totalDevices}'),
+                   _HeroInfoItem(
+                        label: l10n.b2bStatDeviceOnlineRate,
+                       value: '${(data.deviceOnlineRate * 100).toStringAsFixed(0)}%'),
+                   const SizedBox(width: AppSpacing.xl),
+                   _HeroInfoItem(
+                        label: l10n.b2bStatDeviceTotal, value: '${data.totalDevices}'),
                   ],
                 ),
               ],
@@ -233,17 +233,17 @@ class _KpiTab extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _QuickLinkItem(
-                  icon: Icons.sensors_outlined,
-                  label: '设备',
-                  onTap: () {},
+               child: _QuickLinkItem(
+                 icon: Icons.sensors_outlined,
+                  label: l10n.b2bNavLinkDevices,
+                 onTap: () {},
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: _QuickLinkItem(
                   icon: Icons.description_outlined,
-                  label: '合同',
+                  label: l10n.b2bNavLinkContracts,
                   onTap: () => context.go(AppRoute.b2bAdminContract.path),
                 ),
               ),
@@ -251,7 +251,7 @@ class _KpiTab extends StatelessWidget {
               Expanded(
                 child: _QuickLinkItem(
                   icon: Icons.account_balance_wallet_outlined,
-                  label: '对账',
+                  label: l10n.b2bNavLinkRevenue,
                   onTap: () => context.go(AppRoute.b2bAdminRevenue.path),
                 ),
               ),
@@ -351,8 +351,8 @@ class _ContractBadge extends StatelessWidget {
             color: isActive ? const Color(0xFF2E7D32) : const Color(0xFFE65100),
           ),
           const SizedBox(width: 4),
-          Text(
-            isActive ? '合同有效' : '合同待续',
+         Text(
+            isActive ? AppLocalizations.of(context)!.b2bContractActive : AppLocalizations.of(context)!.b2bContractPendingRenew,
             style: TextStyle(
               fontSize: 12,
               color: isActive ? const Color(0xFF2E7D32) : const Color(0xFFE65100),
@@ -462,20 +462,21 @@ class _AlertCard extends StatelessWidget {
   const _AlertCard({required this.alert});
   final Map<String, dynamic> alert;
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final farmName = alert['farmName'] as String? ?? '未知牧场';
-    final type = alert['type'] as String? ?? '告警';
-    final typeLabel = switch (type) {
-      'FENCE_BREACH' => '围栏越界',
-      'HEALTH' => '健康异常',
-      'DEVICE_OFFLINE' => '设备离线',
-      _ => type,
-    };
-    final message = alert['message'] as String? ?? '';
-    final livestockId = alert['livestockId'];
-    final livestockLabel = livestockId != null ? '牲畜 #$livestockId' : '';
+@override
+Widget build(BuildContext context) {
+  final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+   final farmName = alert['farmName'] as String? ?? l10n.b2bUnknownFarm;
+    final type = alert['type'] as String? ?? l10n.b2bAlertTypeDefault;
+   final typeLabel = switch (type) {
+      'FENCE_BREACH' => l10n.b2bAlertTypeFenceBreach,
+      'HEALTH' => l10n.b2bAlertTypeHealth,
+      'DEVICE_OFFLINE' => l10n.b2bAlertTypeDeviceOffline,
+     _ => type,
+   };
+   final message = alert['message'] as String? ?? '';
+   final livestockId = alert['livestockId'];
+    final livestockLabel = livestockId != null ? l10n.b2bLivestockLabel('$livestockId') : '';
     final severity = alert['severity'] as String? ?? 'warning';
 
     final severityColor = switch (severity) {

@@ -1,4 +1,4 @@
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
 
 abstract class FenceRepository {
   Future<List<FenceItem>> loadAll();

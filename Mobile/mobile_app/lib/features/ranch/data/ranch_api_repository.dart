@@ -1,6 +1,6 @@
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
-import 'package:smart_livestock_demo/features/ranch/domain/ranch_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
+import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_repository.dart';
 
 class RanchApiRepository implements RanchRepository {
   const RanchApiRepository();

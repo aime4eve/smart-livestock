@@ -82,8 +82,8 @@ git commit -m "feat(colors): add estrus, fenceApproach, fenceBreach color tokens
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/livestock_map_marker.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/livestock_map_marker.dart';
 
 void main() {
   group('livestockHealthColor', () {
@@ -177,7 +177,7 @@ Expected: FAIL — `livestock_map_marker.dart` file not found
 ```dart
 import 'dart:math' show pi;
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 
 /// Maps health status + primary alert type to fill color.
 Color livestockHealthColor(String healthStatus, String primaryAlert) {
@@ -408,14 +408,14 @@ git commit -m "feat(marker): create LivestockMapMarker with health color + fence
 在 `ranch_page.dart` 中，删除第 23-24 行：
 
 ```dart
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/health_marker.dart';
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/alert_marker.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/health_marker.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/alert_marker.dart';
 ```
 
 替换为一行：
 
 ```dart
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/livestock_map_marker.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/livestock_map_marker.dart';
 ```
 
 - [ ] **Step 2: 删除 alertLivestockIds 逻辑**

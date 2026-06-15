@@ -65,7 +65,7 @@
 import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/map/coord_transform.dart';
+import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 
 void main() {
   group('gcj02ToWgs84', () {
@@ -226,7 +226,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:smart_livestock_demo/core/map/smart_tile_provider.dart';
+import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
 
 void main() {
   group('SmartTileProvider', () {
@@ -300,7 +300,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
-import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
+import 'package:hkt_livestock_agentic/core/map/mbtiles_tile_provider.dart';
 
 enum _TileSource { selfHosted, mbtiles, fallback }
 
@@ -564,8 +564,8 @@ Removed compile-time GCJ-02 transform — caller decides at render time."
 
 **a) 添加 import：**
 ```dart
-import 'package:smart_livestock_demo/core/map/smart_tile_provider.dart';
-import 'package:smart_livestock_demo/core/map/coord_transform.dart';
+import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
+import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 ```
 
 **b) 替换 State 字段：**

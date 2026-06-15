@@ -1338,6 +1338,36 @@ abstract class AppLocalizations {
   /// **'24小时蠕动曲线'**
   String get digestiveDetailChartTitle;
 
+  /// No description provided for @digestiveCurrentFreq.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前频率'**
+  String get digestiveCurrentFreq;
+
+  /// No description provided for @digestiveBaselineFreq.
+  ///
+  /// In zh, this message translates to:
+  /// **'基线频率'**
+  String get digestiveBaselineFreq;
+
+  /// No description provided for @digestiveStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'状态'**
+  String get digestiveStatus;
+
+  /// No description provided for @digestiveFreqUnit.
+  ///
+  /// In zh, this message translates to:
+  /// **'次/分'**
+  String get digestiveFreqUnit;
+
+  /// No description provided for @digestiveCapabilityNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统能通知你消化异常，需线下排查确认原因'**
+  String get digestiveCapabilityNote;
+
   /// No description provided for @estrusDetailTitle.
   ///
   /// In zh, this message translates to:
@@ -3209,6 +3239,552 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'密码已重置'**
   String get b2bWorkerPwdReset;
+
+  /// No description provided for @subComparisonTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'功能对比'**
+  String get subComparisonTitle;
+
+  /// No description provided for @cmpFeatureFence.
+  ///
+  /// In zh, this message translates to:
+  /// **'电子围栏'**
+  String get cmpFeatureFence;
+
+  /// No description provided for @cmpFeatureTempMonitor.
+  ///
+  /// In zh, this message translates to:
+  /// **'瘤胃温度监测'**
+  String get cmpFeatureTempMonitor;
+
+  /// No description provided for @cmpFeaturePeristalticMonitor.
+  ///
+  /// In zh, this message translates to:
+  /// **'瘤胃蠕动监测'**
+  String get cmpFeaturePeristalticMonitor;
+
+  /// No description provided for @cmpFeatureStats.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据统计'**
+  String get cmpFeatureStats;
+
+  /// No description provided for @cmpFeatureDashboard.
+  ///
+  /// In zh, this message translates to:
+  /// **'看板概览'**
+  String get cmpFeatureDashboard;
+
+  /// No description provided for @cmpFeatureDataRetention.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据保留'**
+  String get cmpFeatureDataRetention;
+
+  /// No description provided for @cmpFeatureAlertHistory.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警历史'**
+  String get cmpFeatureAlertHistory;
+
+  /// No description provided for @cmpFeatureLivestockDetail.
+  ///
+  /// In zh, this message translates to:
+  /// **'牲畜详情'**
+  String get cmpFeatureLivestockDetail;
+
+  /// No description provided for @cmpFeatureProfile.
+  ///
+  /// In zh, this message translates to:
+  /// **'个人中心'**
+  String get cmpFeatureProfile;
+
+  /// No description provided for @cmpFeatureTenantAdmin.
+  ///
+  /// In zh, this message translates to:
+  /// **'租户管理'**
+  String get cmpFeatureTenantAdmin;
+
+  /// No description provided for @cmpCellYears.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count}年'**
+  String cmpCellYears(String count);
+
+  /// No description provided for @cmpCellDays.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count}天'**
+  String cmpCellDays(String count);
+
+  /// No description provided for @cmpCellLifetime.
+  ///
+  /// In zh, this message translates to:
+  /// **'永久'**
+  String get cmpCellLifetime;
+
+  /// No description provided for @cmpCellItems.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count}项'**
+  String cmpCellItems(String count);
+
+  /// No description provided for @fenceEditExit.
+  ///
+  /// In zh, this message translates to:
+  /// **'退出编辑'**
+  String get fenceEditExit;
+
+  /// No description provided for @fenceEditToolMoveVertex.
+  ///
+  /// In zh, this message translates to:
+  /// **'拖点'**
+  String get fenceEditToolMoveVertex;
+
+  /// No description provided for @fenceEditToolInsertVertex.
+  ///
+  /// In zh, this message translates to:
+  /// **'插点'**
+  String get fenceEditToolInsertVertex;
+
+  /// No description provided for @fenceEditToolDeleteVertex.
+  ///
+  /// In zh, this message translates to:
+  /// **'删点'**
+  String get fenceEditToolDeleteVertex;
+
+  /// No description provided for @fenceEditToolTranslate.
+  ///
+  /// In zh, this message translates to:
+  /// **'平移'**
+  String get fenceEditToolTranslate;
+
+  /// No description provided for @fenceEditTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑围栏：{name}'**
+  String fenceEditTitle(String name);
+
+  /// No description provided for @fenceEditUndo.
+  ///
+  /// In zh, this message translates to:
+  /// **'撤销'**
+  String get fenceEditUndo;
+
+  /// No description provided for @fenceEditRedo.
+  ///
+  /// In zh, this message translates to:
+  /// **'重做'**
+  String get fenceEditRedo;
+
+  /// No description provided for @fenceFormEditTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑围栏'**
+  String get fenceFormEditTitle;
+
+  /// No description provided for @fenceFormNewTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建围栏'**
+  String get fenceFormNewTitle;
+
+  /// No description provided for @fenceFormName.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏名称'**
+  String get fenceFormName;
+
+  /// No description provided for @fenceFormNameRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入围栏名称'**
+  String get fenceFormNameRequired;
+
+  /// No description provided for @fenceFormType.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏类型'**
+  String get fenceFormType;
+
+  /// No description provided for @fenceFormArea.
+  ///
+  /// In zh, this message translates to:
+  /// **'面积：{area} 公顷'**
+  String fenceFormArea(String area);
+
+  /// No description provided for @fenceFormFinishDraw.
+  ///
+  /// In zh, this message translates to:
+  /// **'完成绘制（{count}个顶点）'**
+  String fenceFormFinishDraw(String count);
+
+  /// No description provided for @fenceFormDrawEnd.
+  ///
+  /// In zh, this message translates to:
+  /// **'结束'**
+  String get fenceFormDrawEnd;
+
+  /// No description provided for @fenceFormDrawStart.
+  ///
+  /// In zh, this message translates to:
+  /// **'开始绘制'**
+  String get fenceFormDrawStart;
+
+  /// No description provided for @fenceFormBannerDragHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'松开鼠标或手指完成绘制'**
+  String get fenceFormBannerDragHint;
+
+  /// No description provided for @fenceFormBannerStartHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'在地图上拖拽以画出范围'**
+  String get fenceFormBannerStartHint;
+
+  /// No description provided for @fenceFormBannerPolyContinue.
+  ///
+  /// In zh, this message translates to:
+  /// **'可继续点击添加顶点，或点下方「完成绘制」结束'**
+  String get fenceFormBannerPolyContinue;
+
+  /// No description provided for @fenceFormBannerPolyStart.
+  ///
+  /// In zh, this message translates to:
+  /// **'点击地图添加顶点（至少3个）'**
+  String get fenceFormBannerPolyStart;
+
+  /// No description provided for @fenceFormFooterHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'点击地图右上角「开始绘制」后在地图上设置范围，或用手动录入'**
+  String get fenceFormFooterHint;
+
+  /// No description provided for @fenceFormFooterDrag.
+  ///
+  /// In zh, this message translates to:
+  /// **'绘制模式：地图不可拖动；拖拽画出范围后松手完成'**
+  String get fenceFormFooterDrag;
+
+  /// No description provided for @fenceFormFooterPoly.
+  ///
+  /// In zh, this message translates to:
+  /// **'绘制模式：点击添加顶点；移动指针可预览连线（多边形）'**
+  String get fenceFormFooterPoly;
+
+  /// No description provided for @fenceFormManualRectHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入2个对角顶点（纬度,经度）'**
+  String get fenceFormManualRectHint;
+
+  /// No description provided for @fenceFormManualCircleHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入圆心和边界点（纬度,经度），共2行'**
+  String get fenceFormManualCircleHint;
+
+  /// No description provided for @fenceFormManualPolyHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入各顶点坐标（至少3个），每行一个'**
+  String get fenceFormManualPolyHint;
+
+  /// No description provided for @fenceFormManualMinPoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'至少需要 {count} 个有效坐标点'**
+  String fenceFormManualMinPoints(String count);
+
+  /// No description provided for @fenceSelectFence.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择围栏'**
+  String get fenceSelectFence;
+
+  /// No description provided for @fenceHeadCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count}头'**
+  String fenceHeadCount(String count);
+
+  /// No description provided for @fenceTemplateTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏模板'**
+  String get fenceTemplateTitle;
+
+  /// No description provided for @fenceTemplateDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'快速生成常用围栏形状，可继续手动调整'**
+  String get fenceTemplateDesc;
+
+  /// No description provided for @fenceTemplateRectangle.
+  ///
+  /// In zh, this message translates to:
+  /// **'矩形区域'**
+  String get fenceTemplateRectangle;
+
+  /// No description provided for @fenceTemplateCircle.
+  ///
+  /// In zh, this message translates to:
+  /// **'圆形区域'**
+  String get fenceTemplateCircle;
+
+  /// No description provided for @fenceTemplateTrajectoryBuffer.
+  ///
+  /// In zh, this message translates to:
+  /// **'轨迹缓冲区'**
+  String get fenceTemplateTrajectoryBuffer;
+
+  /// No description provided for @fenceLoadFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏加载失败'**
+  String get fenceLoadFailed;
+
+  /// No description provided for @fenceBoundaryMinPoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'边界至少需要 3 个点'**
+  String get fenceBoundaryMinPoints;
+
+  /// No description provided for @fenceBoundaryNoDuplicates.
+  ///
+  /// In zh, this message translates to:
+  /// **'边界不能有连续重复点'**
+  String get fenceBoundaryNoDuplicates;
+
+  /// No description provided for @fenceBoundaryAreaPositive.
+  ///
+  /// In zh, this message translates to:
+  /// **'边界面积必须大于 0'**
+  String get fenceBoundaryAreaPositive;
+
+  /// No description provided for @fenceBoundaryNoSelfIntersect.
+  ///
+  /// In zh, this message translates to:
+  /// **'边界不能自交'**
+  String get fenceBoundaryNoSelfIntersect;
+
+  /// No description provided for @fenceUnnamed.
+  ///
+  /// In zh, this message translates to:
+  /// **'未命名'**
+  String get fenceUnnamed;
+
+  /// No description provided for @alertCenterTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警中心'**
+  String get alertCenterTitle;
+
+  /// No description provided for @alertCenterDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'聚焦围栏越界、设备低电、信号丢失三类 P0 告警。'**
+  String get alertCenterDesc;
+
+  /// No description provided for @alertChipFenceBreach.
+  ///
+  /// In zh, this message translates to:
+  /// **'越界告警'**
+  String get alertChipFenceBreach;
+
+  /// No description provided for @alertChipBatteryLow.
+  ///
+  /// In zh, this message translates to:
+  /// **'电池低电'**
+  String get alertChipBatteryLow;
+
+  /// No description provided for @alertChipSignalLost.
+  ///
+  /// In zh, this message translates to:
+  /// **'信号丢失'**
+  String get alertChipSignalLost;
+
+  /// No description provided for @alertStageActive.
+  ///
+  /// In zh, this message translates to:
+  /// **'活跃'**
+  String get alertStageActive;
+
+  /// No description provided for @alertStageDismissed.
+  ///
+  /// In zh, this message translates to:
+  /// **'已忽略'**
+  String get alertStageDismissed;
+
+  /// No description provided for @alertStageAutoResolved.
+  ///
+  /// In zh, this message translates to:
+  /// **'已自动解除'**
+  String get alertStageAutoResolved;
+
+  /// No description provided for @alertP0FenceBreachDetail.
+  ///
+  /// In zh, this message translates to:
+  /// **'耳标-001 · 北区围栏 · 距边界 24m'**
+  String get alertP0FenceBreachDetail;
+
+  /// No description provided for @alertP0BatteryLowDetail.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备-045 · 电量 12% · 建议今日更换'**
+  String get alertP0BatteryLowDetail;
+
+  /// No description provided for @alertP0SignalLostDetail.
+  ///
+  /// In zh, this message translates to:
+  /// **'耳标-023 · 失联 18 分钟 · 最后位置东坡'**
+  String get alertP0SignalLostDetail;
+
+  /// No description provided for @b2bTabKpi.
+  ///
+  /// In zh, this message translates to:
+  /// **'KPI 看板'**
+  String get b2bTabKpi;
+
+  /// No description provided for @b2bTabAlertActivity.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警动态'**
+  String get b2bTabAlertActivity;
+
+  /// No description provided for @b2bStatSubFarms.
+  ///
+  /// In zh, this message translates to:
+  /// **'旗下牧场'**
+  String get b2bStatSubFarms;
+
+  /// No description provided for @b2bStatLivestockTotal.
+  ///
+  /// In zh, this message translates to:
+  /// **'牲畜总数'**
+  String get b2bStatLivestockTotal;
+
+  /// No description provided for @b2bStatWorkers.
+  ///
+  /// In zh, this message translates to:
+  /// **'总牧工'**
+  String get b2bStatWorkers;
+
+  /// No description provided for @b2bStatDeviceOnlineRate.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备在线率'**
+  String get b2bStatDeviceOnlineRate;
+
+  /// No description provided for @b2bStatDeviceTotal.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备总数'**
+  String get b2bStatDeviceTotal;
+
+  /// No description provided for @b2bNavLinkDevices.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备'**
+  String get b2bNavLinkDevices;
+
+  /// No description provided for @b2bNavLinkContracts.
+  ///
+  /// In zh, this message translates to:
+  /// **'合同'**
+  String get b2bNavLinkContracts;
+
+  /// No description provided for @b2bNavLinkRevenue.
+  ///
+  /// In zh, this message translates to:
+  /// **'对账'**
+  String get b2bNavLinkRevenue;
+
+  /// No description provided for @b2bContractActive.
+  ///
+  /// In zh, this message translates to:
+  /// **'合同有效'**
+  String get b2bContractActive;
+
+  /// No description provided for @b2bContractPendingRenew.
+  ///
+  /// In zh, this message translates to:
+  /// **'合同待续'**
+  String get b2bContractPendingRenew;
+
+  /// No description provided for @b2bUnknownFarm.
+  ///
+  /// In zh, this message translates to:
+  /// **'未知牧场'**
+  String get b2bUnknownFarm;
+
+  /// No description provided for @b2bAlertTypeDefault.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警'**
+  String get b2bAlertTypeDefault;
+
+  /// No description provided for @b2bAlertTypeFenceBreach.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏越界'**
+  String get b2bAlertTypeFenceBreach;
+
+  /// No description provided for @b2bAlertTypeHealth.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康异常'**
+  String get b2bAlertTypeHealth;
+
+  /// No description provided for @b2bAlertTypeDeviceOffline.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备离线'**
+  String get b2bAlertTypeDeviceOffline;
+
+  /// No description provided for @b2bLivestockLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'牲畜 #{id}'**
+  String b2bLivestockLabel(String id);
+
+  /// No description provided for @alertFilterPending.
+  ///
+  /// In zh, this message translates to:
+  /// **'未处理'**
+  String get alertFilterPending;
+
+  /// No description provided for @alertFilterHandled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已处理'**
+  String get alertFilterHandled;
+
+  /// No description provided for @feverCurrentTemp.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前温度'**
+  String get feverCurrentTemp;
+
+  /// No description provided for @feverBaselineTemp.
+  ///
+  /// In zh, this message translates to:
+  /// **'基线温度'**
+  String get feverBaselineTemp;
+
+  /// No description provided for @feverStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'状态'**
+  String get feverStatus;
+
+  /// No description provided for @feverCapabilityNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统能通知你体温异常，需线下排查确认原因'**
+  String get feverCapabilityNote;
 }
 
 class _AppLocalizationsDelegate

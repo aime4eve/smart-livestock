@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_edit_session.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_edit_session.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class FenceEditToolbar extends StatelessWidget {
   const FenceEditToolbar({
@@ -39,7 +39,7 @@ class FenceEditToolbar extends StatelessWidget {
               key: const Key('fence-edit-exit'),
               onPressed: canExit ? onExit : null,
               icon: const Icon(Icons.close),
-              tooltip: '退出编辑',
+              tooltip: l10n.fenceEditExit,
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -49,7 +49,7 @@ class FenceEditToolbar extends StatelessWidget {
                     _ToolButton(
                       widgetKey: 'fence-edit-tool-move',
                       icon: Icons.open_with,
-                      label: '拖点',
+                      label: l10n.fenceEditToolMoveVertex,
                       active: activeTool == FenceEditTool.moveVertex,
                       onPressed: canSelectTool
                           ? () => onSelectTool(FenceEditTool.moveVertex)
@@ -58,7 +58,7 @@ class FenceEditToolbar extends StatelessWidget {
                     _ToolButton(
                       widgetKey: 'fence-edit-tool-insert',
                       icon: Icons.add_circle_outline,
-                      label: '插点',
+                      label: l10n.fenceEditToolInsertVertex,
                       active: activeTool == FenceEditTool.insertVertex,
                       onPressed: canSelectTool
                           ? () => onSelectTool(FenceEditTool.insertVertex)
@@ -67,7 +67,7 @@ class FenceEditToolbar extends StatelessWidget {
                     _ToolButton(
                       widgetKey: 'fence-edit-tool-delete',
                       icon: Icons.remove_circle_outline,
-                      label: '删点',
+                      label: l10n.fenceEditToolDeleteVertex,
                       active: activeTool == FenceEditTool.deleteVertex,
                       onPressed: canSelectTool
                           ? () => onSelectTool(FenceEditTool.deleteVertex)
@@ -76,7 +76,7 @@ class FenceEditToolbar extends StatelessWidget {
                     _ToolButton(
                       widgetKey: 'fence-edit-tool-translate',
                       icon: Icons.pan_tool_alt_outlined,
-                      label: '平移',
+                      label: l10n.fenceEditToolTranslate,
                       active: activeTool == FenceEditTool.translate,
                       onPressed: canSelectTool
                           ? () => onSelectTool(FenceEditTool.translate)

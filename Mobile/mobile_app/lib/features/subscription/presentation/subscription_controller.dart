@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
-import 'package:smart_livestock_demo/features/subscription/data/subscription_api_repository.dart';
-import 'package:smart_livestock_demo/features/subscription/domain/subscription_repository.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/features/subscription/data/subscription_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/subscription/domain/subscription_repository.dart';
 
 final subscriptionRepositoryProvider = Provider<SubscriptionRepository>(
   (_) => const SubscriptionApiRepository(),

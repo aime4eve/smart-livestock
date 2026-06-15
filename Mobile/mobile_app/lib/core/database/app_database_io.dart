@@ -119,7 +119,7 @@ class AppDatabase {
 
   String _getApplicationSupportDirectorySync() {
     if (Platform.isAndroid || Platform.isIOS) {
-      final dir = p.join('/data', 'data', 'com.example.smart_livestock_demo', 'databases');
+      final dir = p.join('/data', 'data', 'com.example.hkt_livestock_agentic', 'databases');
       Directory(dir).createSync(recursive: true);
       return dir;
     }

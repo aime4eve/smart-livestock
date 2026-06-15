@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 enum FenceUnsavedAction { save, discard, continueEditing }
 

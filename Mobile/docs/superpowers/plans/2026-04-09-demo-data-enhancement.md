@@ -70,7 +70,7 @@ Create `test/seed_data_test.dart`:
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/models/demo_models.dart';
+import 'package:hkt_livestock_agentic/core/models/demo_models.dart';
 
 void main() {
   test('LivestockInfo can be constructed with all fields', () {
@@ -257,7 +257,7 @@ git commit -m "feat: add LivestockInfo, AlertItem models; extend LivestockDetail
 Append to `test/seed_data_test.dart`:
 
 ```dart
-import 'package:smart_livestock_demo/core/data/demo_seed.dart';
+import 'package:hkt_livestock_agentic/core/data/demo_seed.dart';
 
 // ... (add to the existing main() block)
 
@@ -351,7 +351,7 @@ Replace the entire content of `lib/core/data/demo_seed.dart`:
 import 'dart:math';
 
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/models/demo_models.dart';
+import 'package:hkt_livestock_agentic/core/models/demo_models.dart';
 
 class DemoSeed {
   const DemoSeed._();
@@ -708,10 +708,10 @@ git commit -m "feat: expand DemoSeed to 50 cattle, 4 fences, 100 devices, 18 ale
 Append to `test/seed_data_test.dart`:
 
 ```dart
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/alerts/data/mock_alerts_repository.dart';
-import 'package:smart_livestock_demo/features/alerts/domain/alerts_repository.dart';
+import 'package:hkt_livestock_agentic/core/models/demo_role.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/alerts/data/mock_alerts_repository.dart';
+import 'package:hkt_livestock_agentic/features/alerts/domain/alerts_repository.dart';
 
 // ... in main()
 
@@ -749,9 +749,9 @@ Expected: FAIL — `AlertsViewData` has no `items` field.
 In `lib/features/alerts/domain/alerts_repository.dart`, add `items` field:
 
 ```dart
-import 'package:smart_livestock_demo/core/models/demo_models.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/core/models/demo_models.dart';
+import 'package:hkt_livestock_agentic/core/models/demo_role.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
 
 enum AlertStage {
   pending,
@@ -794,10 +794,10 @@ abstract class AlertsRepository {
 Replace `lib/features/alerts/data/mock_alerts_repository.dart`:
 
 ```dart
-import 'package:smart_livestock_demo/core/data/demo_seed.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/alerts/domain/alerts_repository.dart';
+import 'package:hkt_livestock_agentic/core/data/demo_seed.dart';
+import 'package:hkt_livestock_agentic/core/models/demo_role.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/alerts/domain/alerts_repository.dart';
 
 class MockAlertsRepository implements AlertsRepository {
   const MockAlertsRepository();
@@ -871,10 +871,10 @@ Create `test/generator_test.dart`:
 ```dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/data/generators/gps_trajectory_generator.dart';
-import 'package:smart_livestock_demo/core/data/generators/temperature_generator.dart';
-import 'package:smart_livestock_demo/core/data/generators/motility_generator.dart';
-import 'package:smart_livestock_demo/core/data/generators/estrus_score_generator.dart';
+import 'package:hkt_livestock_agentic/core/data/generators/gps_trajectory_generator.dart';
+import 'package:hkt_livestock_agentic/core/data/generators/temperature_generator.dart';
+import 'package:hkt_livestock_agentic/core/data/generators/motility_generator.dart';
+import 'package:hkt_livestock_agentic/core/data/generators/estrus_score_generator.dart';
 
 void main() {
   group('GpsTrajectoryGenerator', () {
@@ -1059,7 +1059,7 @@ Create `lib/core/data/generators/gps_trajectory_generator.dart`:
 import 'dart:math';
 
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/models/demo_models.dart';
+import 'package:hkt_livestock_agentic/core/models/demo_models.dart';
 
 class GpsTrajectoryGenerator {
   GpsTrajectoryGenerator({this.seed = 42});
@@ -1137,7 +1137,7 @@ Create `lib/core/data/generators/temperature_generator.dart`:
 ```dart
 import 'dart:math';
 
-import 'package:smart_livestock_demo/core/models/twin_models.dart';
+import 'package:hkt_livestock_agentic/core/models/twin_models.dart';
 
 class AbnormalTempEvent {
   const AbnormalTempEvent({
@@ -1221,7 +1221,7 @@ Create `lib/core/data/generators/motility_generator.dart`:
 ```dart
 import 'dart:math';
 
-import 'package:smart_livestock_demo/core/models/twin_models.dart';
+import 'package:hkt_livestock_agentic/core/models/twin_models.dart';
 
 class MotilityGenerator {
   MotilityGenerator({this.seed = 42});
@@ -1297,7 +1297,7 @@ Create `lib/core/data/generators/estrus_score_generator.dart`:
 ```dart
 import 'dart:math';
 
-import 'package:smart_livestock_demo/core/models/twin_models.dart';
+import 'package:hkt_livestock_agentic/core/models/twin_models.dart';
 
 class EstrusScoreGenerator {
   EstrusScoreGenerator({this.seed = 42});
@@ -1385,7 +1385,7 @@ git commit -m "feat: add GPS, temperature, motility, estrus generators with fixe
 Append to `test/seed_data_test.dart`:
 
 ```dart
-import 'package:smart_livestock_demo/core/data/twin_seed.dart';
+import 'package:hkt_livestock_agentic/core/data/twin_seed.dart';
 
 // ... in main()
 
@@ -1433,10 +1433,10 @@ Expected: FAIL — current TwinSeed only has 5 fever baselines, 4 digestive item
 Replace the entire content of `lib/core/data/twin_seed.dart`:
 
 ```dart
-import 'package:smart_livestock_demo/core/data/generators/estrus_score_generator.dart';
-import 'package:smart_livestock_demo/core/data/generators/motility_generator.dart';
-import 'package:smart_livestock_demo/core/data/generators/temperature_generator.dart';
-import 'package:smart_livestock_demo/core/models/twin_models.dart';
+import 'package:hkt_livestock_agentic/core/data/generators/estrus_score_generator.dart';
+import 'package:hkt_livestock_agentic/core/data/generators/motility_generator.dart';
+import 'package:hkt_livestock_agentic/core/data/generators/temperature_generator.dart';
+import 'package:hkt_livestock_agentic/core/models/twin_models.dart';
 
 class TwinSeed {
   const TwinSeed._();
@@ -1687,11 +1687,11 @@ git commit -m "feat: expand TwinSeed to 30 cattle with generator-powered time se
 Replace `lib/features/map/data/mock_map_repository.dart`:
 
 ```dart
-import 'package:smart_livestock_demo/core/data/demo_seed.dart';
-import 'package:smart_livestock_demo/core/data/generators/gps_trajectory_generator.dart';
-import 'package:smart_livestock_demo/core/models/demo_models.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/map/domain/map_repository.dart';
+import 'package:hkt_livestock_agentic/core/data/demo_seed.dart';
+import 'package:hkt_livestock_agentic/core/data/generators/gps_trajectory_generator.dart';
+import 'package:hkt_livestock_agentic/core/models/demo_models.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/map/domain/map_repository.dart';
 
 class MockMapRepository implements MapRepository {
   const MockMapRepository();
@@ -1780,9 +1780,9 @@ class MockMapRepository implements MapRepository {
 Replace `lib/features/livestock/data/mock_livestock_repository.dart`:
 
 ```dart
-import 'package:smart_livestock_demo/core/data/demo_seed.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/livestock/domain/livestock_repository.dart';
+import 'package:hkt_livestock_agentic/core/data/demo_seed.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/livestock/domain/livestock_repository.dart';
 
 class MockLivestockRepository implements LivestockRepository {
   const MockLivestockRepository();

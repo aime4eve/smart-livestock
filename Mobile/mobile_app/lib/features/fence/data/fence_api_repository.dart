@@ -1,8 +1,9 @@
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/features/fence/data/fence_dto.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/l10n/l10n.dart';
+import 'package:hkt_livestock_agentic/features/fence/data/fence_dto.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_repository.dart';
 
 const _fallbackCenter = LatLng(28.229, 112.938);
 
@@ -73,7 +74,7 @@ class FenceApiRepository implements FenceRepository {
     }
     final rawId = raw['id'];
     final id = rawId is int ? rawId.toString() : (rawId as String? ?? '');
-    final name = raw['name'] as String? ?? '未命名';
+    final name = raw['name'] as String? ?? L10n.instance.fenceUnnamed;
     final alarmEnabled = raw['alarmEnabled'] as bool? ?? true;
     final active = raw['active'] as bool? ?? true;
     final colorValue = raw['color'] as int? ??

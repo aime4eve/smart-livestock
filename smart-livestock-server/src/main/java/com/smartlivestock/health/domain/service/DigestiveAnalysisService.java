@@ -33,11 +33,11 @@ public class DigestiveAnalysisService {
         return MotilityStatus.NORMAL;
     }
 
-    public String generateAdvice(MotilityStatus status) {
-        return switch (status) {
-            case ABNORMAL -> "蠕动频率显著偏低，建议检查饲料质量和饮水量";
-            case LOW -> "蠕动频率偏低，建议观察进食情况";
-            case NORMAL -> "消化功能正常";
-        };
-    }
+   public String generateAdvice(MotilityStatus status) {
+       return switch (status) {
+            case ABNORMAL -> "Rumen motility significantly low. Check feed quality and water intake.";
+            case LOW -> "Rumen motility below normal. Monitor feeding behavior.";
+            case NORMAL -> "Digestive function normal";
+       };
+   }
 }

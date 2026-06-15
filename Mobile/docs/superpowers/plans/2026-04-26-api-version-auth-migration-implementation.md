@@ -885,8 +885,8 @@ Create `Mobile/mobile_app/test/api_auth_test.dart`:
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/api/api_auth.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:hkt_livestock_agentic/core/api/api_auth.dart';
+import 'package:hkt_livestock_agentic/core/models/demo_role.dart';
 
 void main() {
   test('apiHeaders prefers access token', () {
@@ -923,7 +923,7 @@ Expected: FAIL because `api_auth.dart` does not exist.
 Create `Mobile/mobile_app/lib/core/api/api_auth.dart`:
 
 ```dart
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:hkt_livestock_agentic/core/models/demo_role.dart';
 
 class ApiAuthTokens {
   const ApiAuthTokens({
@@ -992,7 +992,7 @@ Create `Mobile/mobile_app/test/api_base_url_test.dart`:
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
+import 'package:hkt_livestock_agentic/core/api/api_cache.dart';
 
 void main() {
   test('resolveApiBaseUrl defaults to versioned API', () {
@@ -1154,9 +1154,9 @@ Create `Mobile/mobile_app/test/api_live_contract_test.dart`. The test must prove
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/api/api_auth.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/api/api_http_client.dart';
+import 'package:hkt_livestock_agentic/core/api/api_auth.dart';
+import 'package:hkt_livestock_agentic/core/api/api_cache.dart';
+import 'package:hkt_livestock_agentic/core/api/api_http_client.dart';
 
 class RecordingApiHttpClient implements ApiHttpClient {
   final uris = <Uri>[];

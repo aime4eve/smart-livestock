@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/contract_management/domain/contract_management_repository.dart';
-import 'package:smart_livestock_demo/features/contract_management/presentation/contract_management_controller.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/contract_management/domain/contract_management_repository.dart';
+import 'package:hkt_livestock_agentic/features/contract_management/presentation/contract_management_controller.dart';
+import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
+import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class ContractsPage extends ConsumerStatefulWidget {
   const ContractsPage({super.key});

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
-import 'package:smart_livestock_demo/core/l10n/l10n.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
+import 'package:hkt_livestock_agentic/core/l10n/l10n.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class LivestockDetailSheet extends StatelessWidget {
   const LivestockDetailSheet({

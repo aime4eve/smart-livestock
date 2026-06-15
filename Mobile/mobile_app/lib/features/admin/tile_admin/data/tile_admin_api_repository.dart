@@ -1,5 +1,5 @@
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/features/admin/tile_admin/domain/tile_admin_models.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/features/admin/tile_admin/domain/tile_admin_models.dart';
 
 class TileAdminApiRepository {
   const TileAdminApiRepository();

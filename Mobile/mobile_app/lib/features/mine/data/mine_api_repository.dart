@@ -1,5 +1,5 @@
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/features/mine/domain/mine_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/features/mine/domain/mine_repository.dart';
 
 class MineApiRepository implements MineRepository {
   const MineApiRepository();

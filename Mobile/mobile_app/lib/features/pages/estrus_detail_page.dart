@@ -1,11 +1,11 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/models/health_models.dart';
-import 'package:smart_livestock_demo/features/estrus/presentation/estrus_controller.dart';
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/device_info_line.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/models/health_models.dart';
+import 'package:hkt_livestock_agentic/features/estrus/presentation/estrus_controller.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/device_info_line.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class EstrusDetailPage extends ConsumerWidget {
   const EstrusDetailPage({super.key, required this.livestockId});

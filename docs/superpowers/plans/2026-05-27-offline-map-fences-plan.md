@@ -252,8 +252,8 @@ Create `core/database/app_database_provider.dart`:
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/database/app_database.dart';
-import 'package:smart_livestock_demo/core/analytics/tile_analytics.dart';
+import 'package:hkt_livestock_agentic/core/database/app_database.dart';
+import 'package:hkt_livestock_agentic/core/analytics/tile_analytics.dart';
 
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
   return AppDatabase();
@@ -443,9 +443,9 @@ Create `features/offline_fences/data/fence_sync_providers.dart`:
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/database/app_database_provider.dart';
-import 'package:smart_livestock_demo/features/offline_fences/data/fence_sync_repository_impl.dart';
-import 'package:smart_livestock_demo/features/offline_fences/data/fence_sync_service.dart';
+import 'package:hkt_livestock_agentic/core/database/app_database_provider.dart';
+import 'package:hkt_livestock_agentic/features/offline_fences/data/fence_sync_repository_impl.dart';
+import 'package:hkt_livestock_agentic/features/offline_fences/data/fence_sync_service.dart';
 
 final fenceSyncRepositoryProvider = Provider<FenceSyncRepositoryImpl>((ref) {
   return FenceSyncRepositoryImpl(db: ref.read(appDatabaseProvider));

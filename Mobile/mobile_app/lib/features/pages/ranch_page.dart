@@ -5,26 +5,27 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/app/app_route.dart';
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/core/map/map_constants.dart';
-import 'package:smart_livestock_demo/core/map/map_config.dart';
-import 'package:smart_livestock_demo/core/map/smart_tile_provider.dart';
-import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
-import 'package:smart_livestock_demo/core/map/coord_transform.dart';
-import 'package:smart_livestock_demo/core/permissions/role_permission.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
-import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_widget.dart';
-import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
-import 'package:smart_livestock_demo/features/ranch/presentation/ranch_controller.dart';
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/livestock_map_marker.dart';
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/health_bottom_sheet.dart';
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/livestock_detail_sheet.dart';
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/fence_buffer_layer.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/app/app_route.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/map/map_constants.dart';
+import 'package:hkt_livestock_agentic/core/map/map_config.dart';
+import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
+import 'package:hkt_livestock_agentic/core/map/mbtiles_tile_provider.dart';
+import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
+import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_polygon_contains.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
+import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_widget.dart';
+import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/ranch_controller.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/livestock_map_marker.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/health_bottom_sheet.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/livestock_detail_sheet.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/fence_buffer_layer.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class RanchPage extends ConsumerStatefulWidget {
   const RanchPage({super.key});
@@ -129,6 +130,24 @@ class _RanchPageState extends ConsumerState<RanchPage>
       }
     }
 
+    // Supplement fence status from GPS containment check (for livestock without alert-derived status)
+    final fenceRings = overview.fences
+        .where((f) => f.points.length >= 3)
+        .map((f) {
+          final pts = shouldTransform
+              ? CoordTransform.wgs84ToGcj02All(f.points)
+              : f.points;
+          return pts;
+        }).toList();
+    for (final m in overview.livestockMarkers) {
+      if (fenceStatusMap.containsKey(m.livestockId)) continue;
+      final pos = m.toLatLng();
+      final insideAnyFence = fenceRings.any((ring) => fencePolygonContainsLatLng(pos, ring));
+      if (!insideAnyFence && fenceRings.isNotEmpty) {
+        fenceStatusMap[m.livestockId] = 'BREACH';
+      }
+    }
+
     const panelAnimDuration = Duration(milliseconds: 280);
     const panelCurve = Curves.easeOutCubic;
 
@@ -213,7 +232,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                       livestockCode: m.livestockCode,
                       healthStatus: m.healthStatus,
                       primaryAlert: m.primaryAlert,
-                      fenceStatus: fenceStatusMap[m.livestockId] ?? m.fenceStatus,
+                      fenceStatus: fenceStatusMap[m.livestockId] ?? 'SAFE',
                       onTap: () => _showLivestockDetail(context, m, overview),
                     ),
                   ),
@@ -372,17 +391,6 @@ class _RanchPageState extends ConsumerState<RanchPage>
         ),
       ],
     );
-  }
-
-  String _alertSeverityForLivestock(String livestockId, RanchOverview overview) {
-    for (final alert in overview.alerts) {
-      if (alert.livestockId == livestockId &&
-          alert.status != 'HANDLED' &&
-          alert.status != 'ARCHIVED') {
-        return alert.severity;
-      }
-    }
-    return 'LOW';
   }
 
   void _showLivestockDetail(BuildContext context, RanchLivestockMarker marker, RanchOverview overview) {

@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/api_authorization/data/api_authorization_api_repository.dart';
-import 'package:smart_livestock_demo/features/api_authorization/domain/api_authorization_repository.dart';
+import 'package:hkt_livestock_agentic/features/api_authorization/data/api_authorization_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/api_authorization/domain/api_authorization_repository.dart';
 
 final apiAuthorizationRepositoryProvider = Provider<ApiAuthorizationRepository>((ref) {
   return const ApiAuthorizationApiRepository();

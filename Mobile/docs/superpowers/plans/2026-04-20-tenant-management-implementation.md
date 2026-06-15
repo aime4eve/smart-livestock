@@ -700,7 +700,7 @@ class Tenant {
 - [x] **Step 2：创建 `tenant_query.dart`**
 
 ```dart
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
 
 enum TenantSort { name, licenseUsage }
 
@@ -748,9 +748,9 @@ class TenantListQuery {
 - [x] **Step 3：创建 `tenant_view_data.dart`**
 
 ```dart
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_query.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_query.dart';
 
 class TenantListViewData {
   const TenantListViewData({
@@ -787,9 +787,9 @@ class TenantDetailViewData {
 - [x] **Step 4：创建 `tenant_repository.dart`**
 
 ```dart
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_query.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_query.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_view_data.dart';
 
 abstract class TenantRepository {
   TenantListViewData loadList(TenantListQuery query);
@@ -800,7 +800,7 @@ abstract class TenantRepository {
 - [x] **Step 5：创建 `tenant_dto.dart`**
 
 ```dart
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
 
 class TenantDto {
   const TenantDto._();
@@ -827,8 +827,8 @@ class TenantDto {
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/features/tenant/data/tenant_dto.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/features/tenant/data/tenant_dto.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
 
 void main() {
   test('TenantDto 完整 JSON 解析为 Tenant', () {
@@ -883,10 +883,10 @@ git commit -m "feat(tenant): add domain models and DTO for tenant module"
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/tenant/data/mock_tenant_repository.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_query.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/tenant/data/mock_tenant_repository.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_query.dart';
 
 void main() {
   test('Mock 默认列表返回全部且 viewState=normal', () {
@@ -926,11 +926,11 @@ Expected: FAIL（模块不存在）。
 - [x] **Step 3：实现 `mock_tenant_repository.dart`**
 
 ```dart
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_query.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_repository.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_query.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_repository.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_view_data.dart';
 
 class MockTenantRepository implements TenantRepository {
   MockTenantRepository();
@@ -1198,11 +1198,11 @@ git commit -m "feat(api-cache): add tenant CRUD and license/status remote helper
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/tenant/data/live_tenant_repository.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_query.dart';
+import 'package:hkt_livestock_agentic/core/api/api_cache.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/tenant/data/live_tenant_repository.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_query.dart';
 
 void main() {
   tearDown(() {
@@ -1234,14 +1234,14 @@ void main() {
 说明：`debugReset` / `debugSetInitialized` / `debugSetTenants` 三个测试辅助已在 Task 6 中写入 `ApiCache`，此处直接使用。
 
 ```dart
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/tenant/data/mock_tenant_repository.dart';
-import 'package:smart_livestock_demo/features/tenant/data/tenant_dto.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_query.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_repository.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
+import 'package:hkt_livestock_agentic/core/api/api_cache.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/tenant/data/mock_tenant_repository.dart';
+import 'package:hkt_livestock_agentic/features/tenant/data/tenant_dto.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_query.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_repository.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_view_data.dart';
 
 class LiveTenantRepository implements TenantRepository {
   LiveTenantRepository();
@@ -1345,9 +1345,9 @@ git commit -m "feat(tenant): implement LiveTenantRepository with ApiCache fallba
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_query.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_list_controller.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_query.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_list_controller.dart';
 
 void main() {
   test('Controller 初始化使用默认 Query', () {
@@ -1399,13 +1399,13 @@ Expected: FAIL。
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/features/tenant/data/live_tenant_repository.dart';
-import 'package:smart_livestock_demo/features/tenant/data/mock_tenant_repository.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_query.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_repository.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
+import 'package:hkt_livestock_agentic/app/app_mode.dart';
+import 'package:hkt_livestock_agentic/features/tenant/data/live_tenant_repository.dart';
+import 'package:hkt_livestock_agentic/features/tenant/data/mock_tenant_repository.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_query.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_repository.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_view_data.dart';
 
 final tenantRepositoryProvider = Provider<TenantRepository>((ref) {
   switch (ref.watch(appModeProvider)) {
@@ -1465,8 +1465,8 @@ final tenantListControllerProvider =
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_list_controller.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_view_data.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_list_controller.dart';
 
 class TenantDetailController
     extends FamilyNotifier<TenantDetailViewData, String> {
@@ -1550,7 +1550,7 @@ git commit -m "feat(permissions): add tenant management permission helpers"
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/widgets/pagination_bar.dart';
+import 'package:hkt_livestock_agentic/widgets/pagination_bar.dart';
 
 void main() {
   testWidgets('PaginationBar 显示当前页/总页数', (tester) async {
@@ -1601,7 +1601,7 @@ void main() {
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 
 class PaginationBar extends StatelessWidget {
   const PaginationBar({
@@ -1670,11 +1670,11 @@ git commit -m "feat(widgets): add generic PaginationBar"
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
+import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
 
 class TenantCard extends StatelessWidget {
   const TenantCard({
@@ -1748,14 +1748,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_empty_error_state.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_query.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_list_controller.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/widgets/tenant_card.dart';
-import 'package:smart_livestock_demo/widgets/pagination_bar.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_empty_error_state.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_query.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_list_controller.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/widgets/tenant_card.dart';
+import 'package:hkt_livestock_agentic/widgets/pagination_bar.dart';
 
 class TenantListPage extends ConsumerStatefulWidget {
   const TenantListPage({super.key});
@@ -1904,7 +1904,7 @@ class _TenantListPageState extends ConsumerState<TenantListPage> {
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_list_page.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/pages/tenant_list_page.dart';
 
 void main() {
   testWidgets('TenantListPage 列表项渲染 mock 数据', (tester) async {
@@ -1947,11 +1947,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_list_controller.dart';
+import 'package:hkt_livestock_agentic/app/app_mode.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/core/api/api_cache.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_list_controller.dart';
 
 class TenantCreatePage extends ConsumerStatefulWidget {
   const TenantCreatePage({super.key});
@@ -2080,7 +2080,7 @@ git commit -m "feat(tenant): add tenant create page"
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
 
 class LicenseAdjustDialog extends StatefulWidget {
   const LicenseAdjustDialog({super.key, required this.tenant});
@@ -2230,20 +2230,20 @@ class _TenantDeleteDialogState extends State<TenantDeleteDialog> {
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_empty_error_state.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_status_chip.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_detail_controller.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_list_controller.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/widgets/license_adjust_dialog.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/widgets/tenant_delete_dialog.dart';
+import 'package:hkt_livestock_agentic/app/app_mode.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/core/api/api_cache.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
+import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_empty_error_state.dart';
+import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_detail_controller.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_list_controller.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/widgets/license_adjust_dialog.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/widgets/tenant_delete_dialog.dart';
 
 class TenantDetailPage extends ConsumerWidget {
   const TenantDetailPage({super.key, required this.id});
@@ -2430,7 +2430,7 @@ class TenantDetailPage extends ConsumerWidget {
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_detail_page.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/pages/tenant_detail_page.dart';
 
 void main() {
   testWidgets('TenantDetailPage 渲染已 seed 的租户', (tester) async {
@@ -2478,12 +2478,12 @@ git commit -m "feat(tenant): add detail page with status toggle / license adjust
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_detail_controller.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_list_controller.dart';
+import 'package:hkt_livestock_agentic/app/app_mode.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/core/api/api_cache.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_detail_controller.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_list_controller.dart';
 
 class TenantEditPage extends ConsumerStatefulWidget {
   const TenantEditPage({super.key, required this.id});
@@ -2648,10 +2648,10 @@ GoRoute(
 - [x] **Step 2：在文件顶部追加 import**
 
 ```dart
-import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_create_page.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_detail_page.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_edit_page.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_list_page.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/pages/tenant_create_page.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/pages/tenant_detail_page.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/pages/tenant_edit_page.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/pages/tenant_list_page.dart';
 ```
 
 - [x] **Step 3：更新 redirect 兼容**

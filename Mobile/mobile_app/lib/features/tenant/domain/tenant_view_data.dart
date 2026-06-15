@@ -1,7 +1,7 @@
-import 'package:smart_livestock_demo/core/models/core_models.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_query.dart';
+import 'package:hkt_livestock_agentic/core/models/core_models.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_query.dart';
 
 class TenantListViewData {
   const TenantListViewData({

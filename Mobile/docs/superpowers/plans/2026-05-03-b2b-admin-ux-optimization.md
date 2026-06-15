@@ -470,8 +470,8 @@ b2bWorkerDetail('/b2b/admin/workers/:farmId', 'b2b-worker-detail', '牧工详情
 
 在文件顶部新增 import：
 ```dart
-import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_revenue_detail_page.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_worker_detail_page.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_revenue_detail_page.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_worker_detail_page.dart';
 ```
 
 将现有：

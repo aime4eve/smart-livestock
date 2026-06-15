@@ -2,7 +2,7 @@ import 'dart:math' show cos, sqrt;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
+import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
 
 /// Degree offset per meter at given latitude.
 double _degPerMeterLat(int meters) => meters / 111000.0;

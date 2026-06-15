@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 
 class AppTypography {
   const AppTypography._();

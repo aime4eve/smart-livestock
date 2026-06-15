@@ -1,5 +1,5 @@
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/features/admin/analytics/domain/analytics_models.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/features/admin/analytics/domain/analytics_models.dart';
 
 class AnalyticsApiRepository {
   const AnalyticsApiRepository();

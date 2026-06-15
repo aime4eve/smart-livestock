@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/admin/feature_gate/domain/feature_gate_models.dart';
-import 'package:smart_livestock_demo/features/admin/feature_gate/presentation/feature_gate_controller.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/admin/feature_gate/domain/feature_gate_models.dart';
+import 'package:hkt_livestock_agentic/features/admin/feature_gate/presentation/feature_gate_controller.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class FeatureGatePage extends ConsumerWidget {
   const FeatureGatePage({super.key});

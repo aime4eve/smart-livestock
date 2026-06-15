@@ -1,5 +1,5 @@
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/features/admin/audit_log/domain/audit_log_models.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/features/admin/audit_log/domain/audit_log_models.dart';
 
 class AuditLogApiRepository {
   const AuditLogApiRepository();

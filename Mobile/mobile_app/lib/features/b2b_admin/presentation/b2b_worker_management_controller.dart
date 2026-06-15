@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/data/b2b_worker_api_repository.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_worker_management_repository.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/data/b2b_worker_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/domain/b2b_worker_management_repository.dart';
 
 final b2bWorkerManagementRepositoryProvider =
     Provider<B2bWorkerManagementRepository>((ref) {

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/app/app_route.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_repository.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/app/app_route.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/domain/b2b_repository.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_controller.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class B2bFarmListPage extends ConsumerStatefulWidget {
   const B2bFarmListPage({super.key});

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 
 void main() {
   group('SubscriptionTier', () {

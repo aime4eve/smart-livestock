@@ -126,8 +126,8 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/fence_hit_detection.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_hit_detection.dart';
 
 Offset _identityProject(LatLng ll) => Offset(ll.longitude, ll.latitude);
 
@@ -299,8 +299,8 @@ Create `Mobile/mobile_app/lib/features/fence/presentation/fence_hit_detection.da
 import 'dart:ui';
 
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_polygon_contains.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_polygon_contains.dart';
 
 typedef LatLngToOffset = Offset Function(LatLng);
 
@@ -419,9 +419,9 @@ Create `Mobile/mobile_app/lib/features/fence/presentation/widgets/fence_candidat
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
 
 Future<String?> showFenceCandidateSheet(
   BuildContext context,
@@ -511,8 +511,8 @@ Create `Mobile/mobile_app/lib/features/fence/presentation/widgets/fence_mini_tit
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 
 class FenceMiniTitleBar extends StatelessWidget {
   const FenceMiniTitleBar({
@@ -615,9 +615,9 @@ Replace the full content of `Mobile/mobile_app/lib/features/fence/presentation/w
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_edit_session.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_edit_session.dart';
 
 class FenceEditToolbar extends StatelessWidget {
   const FenceEditToolbar({
@@ -781,28 +781,28 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/app/app_route.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/api/api_role.dart';
-import 'package:smart_livestock_demo/core/data/demo_seed.dart';
-import 'package:smart_livestock_demo/core/data/generators/gps_trajectory_generator.dart';
-import 'package:smart_livestock_demo/core/map/map_config.dart';
-import 'package:smart_livestock_demo/core/mock/mock_config.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/core/permissions/role_permission.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_edit_session.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_state.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/fence_hit_detection.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_candidate_sheet.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_edit_toolbar.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_mini_title_bar.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_unsaved_dialog.dart';
+import 'package:hkt_livestock_agentic/app/app_mode.dart';
+import 'package:hkt_livestock_agentic/app/app_route.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/core/api/api_cache.dart';
+import 'package:hkt_livestock_agentic/core/api/api_role.dart';
+import 'package:hkt_livestock_agentic/core/data/demo_seed.dart';
+import 'package:hkt_livestock_agentic/core/data/generators/gps_trajectory_generator.dart';
+import 'package:hkt_livestock_agentic/core/map/map_config.dart';
+import 'package:hkt_livestock_agentic/core/mock/mock_config.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_edit_session.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_state.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_hit_detection.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_candidate_sheet.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_edit_toolbar.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_mini_title_bar.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_unsaved_dialog.dart';
 
 class FencePage extends ConsumerStatefulWidget {
   const FencePage({super.key});
@@ -2201,8 +2201,8 @@ Create `Mobile/mobile_app/test/features/fence/fence_edit_ui_test.dart`:
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/app/demo_app.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
+import 'package:hkt_livestock_agentic/app/demo_app.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
 
 void main() {
   testWidgets('进入编辑态后显示迷你标题条与工具栏', (tester) async {
@@ -2290,8 +2290,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/app/demo_app.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
+import 'package:hkt_livestock_agentic/app/demo_app.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
 
 void main() {
   testWidgets('选中围栏后呼吸动画高亮样式与非选中围栏有明显视觉差异', (tester) async {

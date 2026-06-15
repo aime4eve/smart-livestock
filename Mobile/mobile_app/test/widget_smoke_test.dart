@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/models/user_role.dart';
+import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 
 import 'helpers/pump_app.dart';
 

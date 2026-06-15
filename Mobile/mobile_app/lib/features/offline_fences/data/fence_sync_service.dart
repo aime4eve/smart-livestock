@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/core/api/api_exception.dart';
-import 'package:smart_livestock_demo/core/database/app_database.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
+import 'package:hkt_livestock_agentic/core/database/app_database.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/features/offline_fences/domain/cached_fence.dart';
+import 'package:hkt_livestock_agentic/features/offline_fences/domain/cached_fence.dart';
 
 typedef ConflictCallback = void Function(FenceConflict conflict, int localRowId);
 

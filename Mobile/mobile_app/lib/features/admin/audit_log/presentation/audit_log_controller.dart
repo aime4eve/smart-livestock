@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/admin/audit_log/data/audit_log_api_repository.dart';
-import 'package:smart_livestock_demo/features/admin/audit_log/domain/audit_log_models.dart';
+import 'package:hkt_livestock_agentic/features/admin/audit_log/data/audit_log_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/admin/audit_log/domain/audit_log_models.dart';
 
 final auditLogRepositoryProvider = Provider<AuditLogApiRepository>(
   (_) => const AuditLogApiRepository(),

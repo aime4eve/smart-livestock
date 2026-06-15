@@ -609,8 +609,8 @@ ShapingResult shapeListItems({
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/data/apply_mock_shaping.dart';
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/core/data/apply_mock_shaping.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 
 void main() {
   group('shapeListItems', () {
@@ -792,9 +792,9 @@ if (!appMode.isLive && data.viewState == ViewState.normal) {
 在 `stats_controller.dart` 中添加 imports：
 
 ```dart
-import 'package:smart_livestock_demo/core/data/apply_mock_shaping.dart';
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
-import 'package:smart_livestock_demo/features/subscription/presentation/subscription_controller.dart';
+import 'package:hkt_livestock_agentic/core/data/apply_mock_shaping.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
 ```
 
 在 `build()` 返回前加入：
@@ -1550,11 +1550,11 @@ class AppSession {
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/app/session/app_session.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/models/demo_role.dart';
+import 'package:hkt_livestock_agentic/app/app_mode.dart';
+import 'package:hkt_livestock_agentic/app/session/app_session.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/core/api/api_cache.dart';
+import 'package:hkt_livestock_agentic/core/models/demo_role.dart';
 
 class FarmInfo {
   const FarmInfo({required this.id, required this.name, required this.status});
@@ -1747,8 +1747,8 @@ git commit -m "feat(frontend): add FarmSwitcherController + extend AppSession wi
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 
 class FarmSwitcher extends ConsumerWidget {
   const FarmSwitcher({super.key});
@@ -1849,7 +1849,7 @@ git commit -m "feat(frontend): add FarmSwitcher widget and integrate into DemoSh
 创建 `lib/features/worker_management/domain/worker_repository.dart`：
 
 ```dart
-import 'package:smart_livestock_demo/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
 
 class WorkerAssignment {
   const WorkerAssignment({
@@ -1896,8 +1896,8 @@ abstract class WorkerRepository {
 创建 `lib/features/worker_management/data/mock_worker_repository.dart`：
 
 ```dart
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/worker_management/domain/worker_repository.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/worker_management/domain/worker_repository.dart';
 
 class MockWorkerRepository implements WorkerRepository {
   const MockWorkerRepository();
@@ -1957,10 +1957,10 @@ class MockWorkerRepository implements WorkerRepository {
 创建 `lib/features/worker_management/data/live_worker_repository.dart`：
 
 ```dart
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/worker_management/data/mock_worker_repository.dart';
-import 'package:smart_livestock_demo/features/worker_management/domain/worker_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/api_cache.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/worker_management/data/mock_worker_repository.dart';
+import 'package:hkt_livestock_agentic/features/worker_management/domain/worker_repository.dart';
 
 class LiveWorkerRepository implements WorkerRepository {
   const LiveWorkerRepository();
@@ -2039,11 +2039,11 @@ git commit -m "feat(frontend): add worker management domain + data layer"
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/worker_management/data/live_worker_repository.dart';
-import 'package:smart_livestock_demo/features/worker_management/data/mock_worker_repository.dart';
-import 'package:smart_livestock_demo/features/worker_management/domain/worker_repository.dart';
+import 'package:hkt_livestock_agentic/app/app_mode.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/worker_management/data/live_worker_repository.dart';
+import 'package:hkt_livestock_agentic/features/worker_management/data/mock_worker_repository.dart';
+import 'package:hkt_livestock_agentic/features/worker_management/domain/worker_repository.dart';
 
 final workerRepositoryProvider = Provider<WorkerRepository>((ref) {
   final appMode = ref.watch(appModeProvider);
@@ -2092,10 +2092,10 @@ final workerControllerProvider =
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
-import 'package:smart_livestock_demo/features/worker_management/presentation/worker_controller.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
+import 'package:hkt_livestock_agentic/features/worker_management/presentation/worker_controller.dart';
 
 class WorkerListPage extends ConsumerStatefulWidget {
   const WorkerListPage({super.key});
@@ -2849,9 +2849,9 @@ git commit -m "feat(frontend): B2B admin shell with sidebar navigation and route
 创建 `lib/features/b2b_admin/data/b2b_repository.dart`：
 
 ```dart
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/core/api/api_cache.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/app/app_mode.dart';
+import 'package:hkt_livestock_agentic/core/api/api_cache.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
 
 class B2bFarmSummary {
   const B2bFarmSummary({
@@ -3035,8 +3035,8 @@ class B2bRepository {
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/data/b2b_repository.dart';
+import 'package:hkt_livestock_agentic/app/app_mode.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/data/b2b_repository.dart';
 
 final b2bRepositoryProvider = Provider<B2bRepository>((_) => const B2bRepository());
 
@@ -3069,7 +3069,7 @@ final b2bContractControllerProvider =
 );
 ```
 
-注意：需在文件顶部添加 `import 'package:smart_livestock_demo/core/models/view_state.dart';`。
+注意：需在文件顶部添加 `import 'package:hkt_livestock_agentic/core/models/view_state.dart';`。
 
 - [x] **Step 3: 扩展 ApiCache**
 
@@ -3097,10 +3097,10 @@ git commit -m "feat(frontend): add B2B repository and controllers"
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_controller.dart';
 
 class B2bDashboardPage extends ConsumerWidget {
   const B2bDashboardPage({super.key});
@@ -3227,8 +3227,8 @@ git commit -m "feat(frontend): add B2B dashboard overview page"
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_controller.dart';
 
 class B2bFarmListPage extends ConsumerWidget {
   const B2bFarmListPage({super.key});
@@ -3337,8 +3337,8 @@ git commit -m "feat(frontend): add B2B farm list page with create dialog"
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/presentation/b2b_controller.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_controller.dart';
 
 class B2bContractPage extends ConsumerWidget {
   const B2bContractPage({super.key});

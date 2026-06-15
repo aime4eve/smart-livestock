@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/core/map/map_config.dart';
-import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
-import 'package:smart_livestock_demo/core/map/smart_tile_provider.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/map/map_config.dart';
+import 'package:hkt_livestock_agentic/core/map/mbtiles_tile_provider.dart';
+import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 
 class WizardStepBasicInfo extends ConsumerStatefulWidget {
   const WizardStepBasicInfo({

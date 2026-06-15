@@ -1,5 +1,5 @@
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/features/revenue/domain/revenue_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/features/revenue/domain/revenue_repository.dart';
 
 class RevenueApiRepository implements RevenueRepository {
   const RevenueApiRepository();

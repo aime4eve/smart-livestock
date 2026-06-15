@@ -2,9 +2,10 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/map/map_constants.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/core/map/map_constants.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 enum FenceTemplate { rectangle, circle, trajectoryBuffer }
 
@@ -63,18 +64,19 @@ class FenceTemplatePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          '围栏模板',
+          l10n.fenceTemplateTitle,
           style: theme.textTheme.titleMedium,
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          '快速生成常用围栏形状，可继续手动调整',
+          l10n.fenceTemplateDesc,
           style: theme.textTheme.bodySmall,
         ),
         const SizedBox(height: AppSpacing.md),
@@ -84,21 +86,21 @@ class FenceTemplatePicker extends StatelessWidget {
           children: [
             _FenceTemplateAction(
               key: const Key('fence-template-rectangle'),
-              label: '矩形区域',
+              label: l10n.fenceTemplateRectangle,
               icon: Icons.crop_square,
               selected: selectedTemplate == FenceTemplate.rectangle,
               onTap: () => onSelected(FenceTemplate.rectangle),
             ),
             _FenceTemplateAction(
               key: const Key('fence-template-circle'),
-              label: '圆形区域',
+              label: l10n.fenceTemplateCircle,
               icon: Icons.circle_outlined,
               selected: selectedTemplate == FenceTemplate.circle,
               onTap: () => onSelected(FenceTemplate.circle),
             ),
             _FenceTemplateAction(
               key: const Key('fence-template-trajectory-buffer'),
-              label: '轨迹缓冲区',
+              label: l10n.fenceTemplateTrajectoryBuffer,
               icon: Icons.route,
               selected: selectedTemplate == FenceTemplate.trajectoryBuffer,
               onTap: () => onSelected(FenceTemplate.trajectoryBuffer),

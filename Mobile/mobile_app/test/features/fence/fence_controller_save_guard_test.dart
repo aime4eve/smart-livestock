@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_repository.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_repository.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
 
 void main() {
   test('少于三个点的几何无效', () {

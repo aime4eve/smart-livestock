@@ -334,7 +334,7 @@ TenantTrendsViewData loadTrends(String id);
 同时添加 import：
 
 ```dart
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_view_data.dart';
 ```
 
 - [x] **Step 3: 在 `mock_tenant_repository.dart` 中实现 `loadTrends`**
@@ -474,8 +474,8 @@ git commit -m "feat(tenant): add trend data models, repository methods, and ApiC
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_trends_controller.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_trends_controller.dart';
 
 void main() {
   test('Trends Controller 为已知租户返回 ViewState.normal', () {
@@ -526,8 +526,8 @@ Expected: FAIL。
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_list_controller.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_view_data.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_list_controller.dart';
 
 class TenantTrendsController extends Notifier<TenantTrendsViewData> {
   TenantTrendsController(this.id);
@@ -595,9 +595,9 @@ import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_view_data.dart';
 
 class TenantTrendChart extends StatelessWidget {
   const TenantTrendChart({
@@ -753,9 +753,9 @@ git commit -m "feat(tenant): add 30-day alert trend chart with downsampling"
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 
 class TenantSkeleton extends StatefulWidget {
   const TenantSkeleton({super.key});
@@ -1127,9 +1127,9 @@ Widget _buildTrendCard(BuildContext context, WidgetRef ref) {
 在文件顶部添加：
 
 ```dart
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_trends_controller.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/widgets/tenant_skeleton.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/widgets/tenant_trend_chart.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_trends_controller.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/widgets/tenant_skeleton.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/widgets/tenant_trend_chart.dart';
 ```
 
 - [x] **Step 9: 静态分析 + 运行已有测试**
@@ -1168,8 +1168,8 @@ git commit -m "feat(tenant): refactor detail page with skeleton loading, empty s
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_devices_controller.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_devices_controller.dart';
 
 void main() {
   test('Devices Controller 为已知租户返回 normal 状态', () {
@@ -1197,8 +1197,8 @@ void main() {
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_logs_controller.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_logs_controller.dart';
 
 void main() {
   test('Logs Controller 为已知租户返回 normal 状态', () {
@@ -1228,8 +1228,8 @@ void main() {
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_stats_controller.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_stats_controller.dart';
 
 void main() {
   test('Stats Controller 为已知租户返回 normal 状态', () {
@@ -1301,15 +1301,15 @@ git commit -m "test(tenant): add unit tests for Phase 2 devices/logs/stats contr
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/app/app_mode.dart';
-import 'package:smart_livestock_demo/features/tenant/data/mock_tenant_repository.dart';
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/pages/tenant_detail_page.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_detail_controller.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_devices_controller.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_list_controller.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_logs_controller.dart';
-import 'package:smart_livestock_demo/features/tenant/presentation/tenant_stats_controller.dart';
+import 'package:hkt_livestock_agentic/app/app_mode.dart';
+import 'package:hkt_livestock_agentic/features/tenant/data/mock_tenant_repository.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_view_data.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/pages/tenant_detail_page.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_detail_controller.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_devices_controller.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_list_controller.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_logs_controller.dart';
+import 'package:hkt_livestock_agentic/features/tenant/presentation/tenant_stats_controller.dart';
 
 void main() {
   testWidgets('Stats 卡片显示四个统计指标', (tester) async {

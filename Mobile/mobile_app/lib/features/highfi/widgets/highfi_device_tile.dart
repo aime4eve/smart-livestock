@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/models/core_models.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/core/models/core_models.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class HighfiDeviceTile extends StatelessWidget {
   const HighfiDeviceTile({

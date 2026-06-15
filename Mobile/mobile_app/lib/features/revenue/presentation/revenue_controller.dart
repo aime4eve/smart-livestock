@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/revenue/data/revenue_api_repository.dart';
-import 'package:smart_livestock_demo/features/revenue/domain/revenue_repository.dart';
+import 'package:hkt_livestock_agentic/features/revenue/data/revenue_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/revenue/domain/revenue_repository.dart';
 
 final revenueRepositoryProvider = Provider<RevenueRepository>((ref) {
   return const RevenueApiRepository();

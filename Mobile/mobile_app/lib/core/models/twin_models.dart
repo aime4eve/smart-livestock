@@ -1,4 +1,4 @@
-import 'package:smart_livestock_demo/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
 
 class TwinPendingTask {
   const TwinPendingTask({

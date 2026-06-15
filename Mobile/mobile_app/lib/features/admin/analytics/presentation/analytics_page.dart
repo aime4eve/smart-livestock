@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/admin/analytics/domain/analytics_models.dart';
-import 'package:smart_livestock_demo/features/admin/analytics/presentation/analytics_controller.dart';
-import 'package:smart_livestock_demo/features/stats/domain/stats_repository.dart';
-import 'package:smart_livestock_demo/features/stats/presentation/widgets/trend_chart.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/admin/analytics/domain/analytics_models.dart';
+import 'package:hkt_livestock_agentic/features/admin/analytics/presentation/analytics_controller.dart';
+import 'package:hkt_livestock_agentic/features/stats/domain/stats_repository.dart';
+import 'package:hkt_livestock_agentic/features/stats/presentation/widgets/trend_chart.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class AnalyticsPage extends ConsumerStatefulWidget {
   const AnalyticsPage({super.key});

@@ -64,7 +64,7 @@
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
+import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
 
 void main() {
   group('RanchOverviewStats', () {
@@ -300,10 +300,10 @@ Controller 需要管理钻取状态（当前查看的告警类别）和 markRead
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/api/farm_scoped_controller.dart';
-import 'package:smart_livestock_demo/features/ranch/data/ranch_api_repository.dart';
-import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
-import 'package:smart_livestock_demo/features/ranch/domain/ranch_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/farm_scoped_controller.dart';
+import 'package:hkt_livestock_agentic/features/ranch/data/ranch_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
+import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_repository.dart';
 
 /// 钻取层级
 enum RanchDrillLevel { dashboard, list, detail }
@@ -448,8 +448,8 @@ git commit -m "feat(ranch): add drill-down state and markRead/dismiss to control
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 
 class StatusDashboardCard extends StatelessWidget {
   const StatusDashboardCard({
@@ -508,9 +508,9 @@ class StatusDashboardCard extends StatelessWidget {
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
 
 class AlertCard extends StatelessWidget {
   const AlertCard({
@@ -621,8 +621,8 @@ class AlertCard extends StatelessWidget {
 // test/features/ranch/status_dashboard_card_test.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/status_dashboard_card.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/status_dashboard_card.dart';
 
 void main() {
   testWidgets('shows card when count > 0', (tester) async {
@@ -679,7 +679,7 @@ git commit -m "feat(ranch): add StatusDashboardCard and AlertCard widgets"
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 
 class DeviceInfoLine extends StatelessWidget {
   const DeviceInfoLine({
@@ -730,8 +730,8 @@ class DeviceInfoLine extends StatelessWidget {
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 
 class AutoResolvedSection extends StatefulWidget {
   const AutoResolvedSection({
@@ -975,10 +975,10 @@ git commit -m "feat(ranch): restructure bottom sheet to drill-down alert archite
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/device_info_line.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/device_info_line.dart';
 
 class FenceAlertDetailSheet extends StatelessWidget {
   const FenceAlertDetailSheet({
@@ -1172,7 +1172,7 @@ git commit -m "feat(health): add device info line + capability boundary to healt
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 
 /// Renders fence buffer zones as semi-transparent orange polygons.
 class FenceBufferLayer extends StatelessWidget {

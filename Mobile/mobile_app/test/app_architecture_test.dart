@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/app/demo_app.dart';
-import 'package:smart_livestock_demo/app/session/app_session.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/app/demo_app.dart';
+import 'package:hkt_livestock_agentic/app/session/app_session.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 
 void main() {
   testWidgets('DemoApp 使用 MaterialApp.router 承载声明式路由', (tester) async {

@@ -448,7 +448,7 @@ enum UserRole {
 ```dart
 // lib/app/session/app_session.dart
 
-import 'package:smart_livestock_demo/core/models/user_role.dart';
+import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 
 class AppSession {
   const AppSession._({
@@ -507,10 +507,10 @@ class AppSession {
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/app/session/app_session.dart';
-import 'package:smart_livestock_demo/core/models/user_role.dart';
-import 'package:smart_livestock_demo/features/farm_switcher/farm_switcher_controller.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/app/session/app_session.dart';
+import 'package:hkt_livestock_agentic/core/models/user_role.dart';
+import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 
 class SessionController extends Notifier<AppSession> {
   @override
@@ -589,8 +589,8 @@ final sessionControllerProvider =
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/demo_app.dart';
-import 'package:smart_livestock_demo/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/app/demo_app.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 
 void main() {
   final apiBaseUrl = const String.fromEnvironment('API_BASE_URL', defaultValue: '');
@@ -684,7 +684,7 @@ git mv lib/core/models/demo_models.dart lib/core/models/core_models.dart
 然后全局替换 import：
 
 ```bash
-find lib/ test/ -name "*.dart" -exec sed -i '' "s|smart_livestock_demo/core/models/demo_models|smart_livestock_demo/core/models/core_models|g" {} +
+find lib/ test/ -name "*.dart" -exec sed -i '' "s|hkt_livestock_agentic/core/models/demo_models|hkt_livestock_agentic/core/models/core_models|g" {} +
 ```
 
 - [ ] **Step 2: 验证重命名后编译通过**
@@ -752,9 +752,9 @@ git commit -m "refactor(flutter): rename demo_models → core_models, remove sta
 // lib/features/farm_switcher/farm_switcher_controller.dart
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/core/api/api_exception.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
 
 class FarmInfo {
   const FarmInfo({required this.id, required this.name, required this.status});
@@ -879,7 +879,7 @@ git commit -m "feat(flutter): rewrite farm switcher — async loading, controlle
 ```dart
 // lib/features/dashboard/domain/dashboard_repository.dart
 
-import 'package:smart_livestock_demo/core/models/demo_models.dart';
+import 'package:hkt_livestock_agentic/core/models/demo_models.dart';
 
 class DashboardViewData {
   const DashboardViewData({required this.metrics, this.message});
@@ -900,9 +900,9 @@ abstract class DashboardRepository {
 ```dart
 // lib/features/dashboard/data/dashboard_api_repository.dart
 
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/core/models/demo_models.dart';
-import 'package:smart_livestock_demo/features/dashboard/domain/dashboard_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/models/demo_models.dart';
+import 'package:hkt_livestock_agentic/features/dashboard/domain/dashboard_repository.dart';
 
 class DashboardApiRepository implements DashboardRepository {
   const DashboardApiRepository();
@@ -966,8 +966,8 @@ class DashboardApiRepository implements DashboardRepository {
 // lib/features/dashboard/presentation/dashboard_controller.dart
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/dashboard/data/dashboard_api_repository.dart';
-import 'package:smart_livestock_demo/features/dashboard/domain/dashboard_repository.dart';
+import 'package:hkt_livestock_agentic/features/dashboard/data/dashboard_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/dashboard/domain/dashboard_repository.dart';
 
 final dashboardRepositoryProvider = Provider<DashboardRepository>(
   (_) => const DashboardApiRepository(),
@@ -1077,7 +1077,7 @@ abstract class MapRepository {
 ```dart
 // lib/features/livestock/data/map_api_repository.dart
 
-import 'package:smart_livestock_demo/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 // import map domain types
 
 class MapApiRepository implements MapRepository {
@@ -1746,8 +1746,8 @@ git add -A && git commit -m "chore(flutter): delete all mock infrastructure — 
 // lib/widgets/coming_soon_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 
 class ComingSoonPage extends StatelessWidget {
   const ComingSoonPage({super.key, required this.title});

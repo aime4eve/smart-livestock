@@ -1,4 +1,4 @@
-import 'package:smart_livestock_demo/core/models/core_models.dart';
+import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 
 class LivestockSummary {
   const LivestockSummary({

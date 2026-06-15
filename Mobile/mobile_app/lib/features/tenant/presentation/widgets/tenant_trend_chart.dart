@@ -2,9 +2,9 @@ import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 
-import 'package:smart_livestock_demo/features/tenant/domain/tenant_view_data.dart';
+import 'package:hkt_livestock_agentic/features/tenant/domain/tenant_view_data.dart';
 
 class TenantTrendChart extends StatelessWidget {
   const TenantTrendChart({

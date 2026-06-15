@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/data/b2b_api_repository.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_repository.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/data/b2b_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/domain/b2b_repository.dart';
 
 final b2bRepositoryProvider =
     Provider<B2bRepository>((_) => const B2bApiRepository());

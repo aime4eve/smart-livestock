@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/api/farm_scoped_controller.dart';
-import 'package:smart_livestock_demo/core/models/health_models.dart';
-import 'package:smart_livestock_demo/features/digestive/data/digestive_api_repository.dart';
-import 'package:smart_livestock_demo/features/digestive/domain/digestive_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/farm_scoped_controller.dart';
+import 'package:hkt_livestock_agentic/core/models/health_models.dart';
+import 'package:hkt_livestock_agentic/features/digestive/data/digestive_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/digestive/domain/digestive_repository.dart';
 
 final digestiveRepositoryProvider = Provider<DigestiveRepository>((ref) {
   return const DigestiveApiRepository();

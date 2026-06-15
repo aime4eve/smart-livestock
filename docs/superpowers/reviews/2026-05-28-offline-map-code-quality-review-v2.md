@@ -146,7 +146,7 @@ L1: FenceJpaEntity getter/setter 风格不一致 | L2: TileGenerationTaskDto.rec
 
 #### S1. AppDatabase 默认构造函数同步打开 SQLite，Web 不支持且路径硬编码
 **文件**: `core/database/app_database.dart:7-17,114-128`
-`AppDatabase._()` 在 `instance` getter 中同步打开 sqlite3，Android 路径硬编码 `/data/data/com.example.smart_livestock_demo/databases`。Web 平台不支持同步 SQLite。
+`AppDatabase._()` 在 `instance` getter 中同步打开 sqlite3，Android 路径硬编码 `/data/data/com.example.hkt_livestock_agentic/databases`。Web 平台不支持同步 SQLite。
 **修复**: 移除 `instance` 懒加载，强制使用 `createAsync()`。
 
 #### S2. OfflineTileManager 下载无超时和取消支持

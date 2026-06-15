@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/map/coord_transform.dart';
+import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 
 void main() {
   group('gcj02ToWgs84', () {

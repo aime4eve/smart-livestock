@@ -6,19 +6,19 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/core/api/api_exception.dart';
-import 'package:smart_livestock_demo/core/map/map_constants.dart';
-import 'package:smart_livestock_demo/core/map/coord_transform.dart';
-import 'package:smart_livestock_demo/core/map/map_config.dart';
-import 'package:smart_livestock_demo/core/map/mbtiles_tile_provider.dart';
-import 'package:smart_livestock_demo/core/map/smart_tile_provider.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/widgets/fence_template_picker.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
+import 'package:hkt_livestock_agentic/core/map/map_constants.dart';
+import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
+import 'package:hkt_livestock_agentic/core/map/map_config.dart';
+import 'package:hkt_livestock_agentic/core/map/mbtiles_tile_provider.dart';
+import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_template_picker.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class FenceFormPage extends ConsumerStatefulWidget {
   const FenceFormPage({super.key, this.fenceId});
@@ -186,32 +186,32 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
     };
   }
 
-  String _overlayBannerText() {
-    if (!_drawMode) return '';
-    return switch (_type) {
-      FenceType.rectangle ||
-      FenceType.circle =>
-        _dragStart != null && _dragCurrent != null
-            ? '松开鼠标或手指完成绘制'
-            : '在地图上拖拽以画出范围',
-      FenceType.polygon => _drawingPoints.length >= 3
-          ? '可继续点击添加顶点，或点下方「完成绘制」结束'
-          : '点击地图添加顶点（至少3个）',
-    };
-  }
+  String _overlayBannerText(AppLocalizations l10n) {
+   if (!_drawMode) return '';
+   return switch (_type) {
+     FenceType.rectangle ||
+     FenceType.circle =>
+       _dragStart != null && _dragCurrent != null
+            ? l10n.fenceFormBannerDragHint
+            : l10n.fenceFormBannerStartHint,
+     FenceType.polygon => _drawingPoints.length >= 3
+          ? l10n.fenceFormBannerPolyContinue
+          : l10n.fenceFormBannerPolyStart,
+   };
+ }
 
-  String _footerHintText() {
-    if (!_drawMode) {
-      return '点击地图右上角「开始绘制」后在地图上设置范围，或用手动录入';
-    }
-    return switch (_type) {
-      FenceType.rectangle ||
-      FenceType.circle =>
-        '绘制模式：地图不可拖动；拖拽画出范围后松手完成',
-      FenceType.polygon =>
-        '绘制模式：点击添加顶点；移动指针可预览连线（多边形）',
-    };
-  }
+ String _footerHintText(AppLocalizations l10n) {
+  if (!_drawMode) {
+      return l10n.fenceFormFooterHint;
+   }
+   return switch (_type) {
+     FenceType.rectangle ||
+     FenceType.circle =>
+        l10n.fenceFormFooterDrag,
+     FenceType.polygon =>
+        l10n.fenceFormFooterPoly,
+   };
+ }
 
   LatLng? _latLngFromLocal(Offset local) {
     try {
@@ -399,11 +399,11 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _type == FenceType.rectangle
-                      ? '请输入2个对角顶点（纬度,经度）'
+                 _type == FenceType.rectangle
+                      ? l10n.fenceFormManualRectHint
                       : _type == FenceType.circle
-                          ? '请输入圆心和边界点（纬度,经度），共2行'
-                          : '请输入各顶点坐标（至少3个），每行一个',
+                          ? l10n.fenceFormManualCircleHint
+                          : l10n.fenceFormManualPolyHint,
                   style: Theme.of(ctx).textTheme.bodySmall,
                 ),
                 const SizedBox(height: AppSpacing.sm),
@@ -448,8 +448,8 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                   FenceType.polygon => 3,
                 };
                 if (points.length < minRequired) {
-                  setDialogState(
-                      () => errorText = '至少需要 $minRequired 个有效坐标点');
+                 setDialogState(
+                      () => errorText = l10n.fenceFormManualMinPoints('$minRequired'));
                   return;
                 }
                 final usedPoints = switch (_type) {
@@ -575,8 +575,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
     final complete = _isDrawingComplete();
     final area = complete ? _calcAreaHectares() : 1.0;
     final markerPts = _markerPoints();
-    final banner = _overlayBannerText();
-
+    final banner = _overlayBannerText(l10n);
     final mapCore = FlutterMap(
       key: const ValueKey<String>('fence-form-flutter-map'),
       mapController: _formMapController,
@@ -677,7 +676,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEdit ? '编辑围栏' : '新建围栏'),
+        title: Text(_isEdit ? l10n.fenceFormEditTitle : l10n.fenceFormNewTitle),
         leading: IconButton(
           key: const Key('fence-form-back'),
           onPressed: () => context.pop(),
@@ -699,25 +698,25 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                 ),
                 const SizedBox(height: AppSpacing.lg),
               ],
-              TextFormField(
-                key: const Key('fence-form-name'),
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: '围栏名称',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? '请输入围栏名称' : null,
+             TextFormField(
+               key: const Key('fence-form-name'),
+               controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: l10n.fenceFormName,
+                 border: OutlineInputBorder(),
+               ),
+               validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? l10n.fenceFormNameRequired : null,
               ),
               const SizedBox(height: AppSpacing.lg),
               KeyedSubtree(
                 key: const Key('fence-form-type'),
-                child: DropdownButtonFormField<FenceType>(
-                  key: ValueKey<FenceType>(_type),
-                  initialValue: _type,
-                  decoration: const InputDecoration(
-                    labelText: '围栏类型',
-                    border: OutlineInputBorder(),
+               child: DropdownButtonFormField<FenceType>(
+                 key: ValueKey<FenceType>(_type),
+                 initialValue: _type,
+                  decoration: InputDecoration(
+                    labelText: l10n.fenceFormType,
+                   border: OutlineInputBorder(),
                   ),
                   items: [
                     DropdownMenuItem(
@@ -747,9 +746,9 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              Text(
-                '面积：$area 公顷',
-                key: const Key('fence-form-area'),
+             Text(
+                l10n.fenceFormArea('$area'),
+               key: const Key('fence-form-area'),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: AppSpacing.md),
@@ -803,9 +802,9 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                           child: Center(
                             child: FilledButton.tonal(
                               key: const Key('fence-form-polygon-done'),
-                              onPressed: _finishPolygonDraw,
-                              child: Text(
-                                '完成绘制（${_drawingPoints.length}个顶点）',
+                             onPressed: _finishPolygonDraw,
+                             child: Text(
+                                l10n.fenceFormFinishDraw('${_drawingPoints.length}'),
                               ),
                             ),
                           ),
@@ -839,8 +838,8 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                                         : AppColors.textSecondary,
                                   ),
                                   const SizedBox(width: AppSpacing.xs),
-                                  Text(
-                                    _drawMode ? '结束' : '开始绘制',
+                                 Text(
+                                    _drawMode ? l10n.fenceFormDrawEnd : l10n.fenceFormDrawStart,
                                     style: Theme.of(context)
                                         .textTheme
                                         .labelLarge
@@ -865,7 +864,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      _footerHintText(),
+                      _footerHintText(l10n),
                       key: const Key('fence-form-map-hint'),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: complete

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/admin/domain/admin_repository.dart';
-import 'package:smart_livestock_demo/features/admin/presentation/admin_controller.dart';
-import 'package:smart_livestock_demo/features/highfi/widgets/highfi_card.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/admin/domain/admin_repository.dart';
+import 'package:hkt_livestock_agentic/features/admin/presentation/admin_controller.dart';
+import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 
 class TenantDetailPage extends ConsumerStatefulWidget {
   const TenantDetailPage({super.key, required this.id});

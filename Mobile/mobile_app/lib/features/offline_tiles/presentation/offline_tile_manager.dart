@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:smart_livestock_demo/core/database/app_database.dart';
+import 'package:hkt_livestock_agentic/core/database/app_database.dart';
 
 class TileStatus {
   final String regionName;

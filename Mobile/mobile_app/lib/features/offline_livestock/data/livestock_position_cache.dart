@@ -1,4 +1,4 @@
-import 'package:smart_livestock_demo/core/database/app_database.dart';
+import 'package:hkt_livestock_agentic/core/database/app_database.dart';
 
 class LivestockPositionCache {
   final AppDatabase _db;

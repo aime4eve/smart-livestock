@@ -71,25 +71,18 @@ worker 登录（重定向到 /twin）
   ✗ 不可访问：后台管理、牧工管理、订阅管理、设备管理
 ```
 
-### 2.5 角色创建链
-
-```
-platform_admin → 创建租户 → 进入租户详情 → 新增用户（b2b_admin / owner / worker）
-b2b_admin → 创建牧场 → 分配给 owner
-owner → 管理牲畜、围栏、告警、牧工
-```
-
-**约束：** 牧场由 owner 自行创建（`FarmController` 仅允许 OWNER 角色）。b2b_admin 和 platform_admin 通过管理端查看牧场信息。
-
 ---
 
 ## 3. 种子数据登录凭据
 
+> 所有账号密码均为 `123`（后端 BCrypt 哈希，详见 `smart-livestock-server` 的 Flyway 迁移 V4 / V16）。
+
 | 角色 | 手机号 | 密码 | 关联 |
 |------|--------|------|------|
-| platform_admin | 13800000000 | 123 | 平台级管理，无租户归属 |
-| b2b_admin | 13900139000 | 123 | B端管理员，关联 Demo 租户 |
-| owner | 13800138000 | 123 | Demo 租户 owner，关联主牧场 |
+| platform_admin（平台管理员） | 13800000000 | 123 | 平台级管理，无租户归属 |
+| b2b_admin（B端管理员） | 13900139000 | 123 | Demo 租户 B 端管理员 |
+| owner（牧场主） | 13800138000 | 123 | Demo 租户 owner，主牧场 + 南山分场 |
+| worker（牧工） | 13800138001 | 123 | Demo 租户牧工，主牧场 |
 
 ---
 
@@ -190,50 +183,3 @@ pending → acknowledged → handled → archived
 | 非法跳转 | 返回 409 Conflict |
 
 ---
-
-## 8. 完整路由表
-
-### owner 可见路由（39 条）
-
-| 路径 | 页面 | 说明 |
-|------|------|------|
-| `/twin` | TwinOverviewPage | 数智孪生（默认首页） |
-| `/twin/fever` | FeverWarningPage | 发热预警 |
-| `/twin/fever/:id` | FeverDetailPage | 发热详情 |
-| `/twin/digestive` | DigestivePage | 消化管理 |
-| `/twin/digestive/:id` | DigestiveDetailPage | 消化详情 |
-| `/twin/estrus` | EstrusPage | 发情识别 |
-| `/twin/estrus/:id` | EstrusDetailPage | 发情详情 |
-| `/twin/epidemic` | EpidemicPage | 疫病防控 |
-| `/alerts` | AlertsPage | 告警管理 |
-| `/fence` | FencePage | 围栏列表 |
-| `/fence/form` | FenceFormPage | 围栏表单（新建/编辑） |
-| `/mine` | MinePage | 我的 |
-| `/mine/workers` | WorkerListPage | 牧工管理 |
-| `/admin` | AdminPage | 后台管理 |
-| `/admin/contracts` | ContractsPage | 合同管理 |
-| `/admin/revenue` | RevenuePage | 对账看板 |
-| `/admin/subscriptions` | SubscriptionsPage | 订阅服务管理 |
-| `/admin/api-auth` | ApiAuthPage | API 授权管理 |
-| `/devices` | DevicesPage | 设备管理 |
-| `/livestock/:id` | LivestockDetailPage | 牲畜详情 |
-| `/stats` | StatsPage | 数据统计 |
-| `/subscription/plans` | SubscriptionPlanPage | 套餐选择 |
-| `/subscription/checkout` | SubscriptionCheckoutPage | 确认支付 |
-| `/farm/create` | FarmCreationWizardPage | 创建牧场 |
-| `/offline/tiles` | OfflineTileManagementPage | 离线地图管理 |
-| `/fence/conflict` | FenceConflictPage | 围栏冲突解决 |
-| `/mine/api-auth` | MineApiAuthPage | API 授权（owner 端） |
-| `/dashboard` | DashboardPage | 旧版看板 |
-
-### worker 可见路由
-
-`/twin`（含子路由）、`/alerts`、`/fence`（只读）、`/mine`、`/livestock/:id`
-
-### platform_admin 可见路由
-
-`/ops/admin`（租户列表）、`/ops/admin/create`、`/ops/admin/:id`、`/ops/admin/:id/edit`、`/admin/*`
-
-### b2b_admin 可见路由
-
-`/b2b/admin`（概览）、`/b2b/admin/farms`、`/b2b/admin/contract`、`/b2b/admin/revenue`、`/b2b/admin/revenue/:id`、`/b2b/admin/workers`、`/b2b/admin/workers/:farmId`

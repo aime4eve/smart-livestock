@@ -49,14 +49,14 @@ public class FeverAnalysisService {
         return TempStatus.NORMAL;
     }
 
-    public String generateConclusion(TempStatus status, BigDecimal delta, Duration duration) {
-        return switch (status) {
-            case CRITICAL -> "体温严重偏高" + formatDuration(duration) + "，建议立即隔离并联系兽医";
-            case FEVER -> "体温持续偏高超过" + formatDuration(duration) + "，建议隔离观察";
-            case ELEVATED -> "体温轻微升高，建议持续观察";
-            case NORMAL -> "体温正常";
-        };
-    }
+   public String generateConclusion(TempStatus status, BigDecimal delta, Duration duration) {
+       return switch (status) {
+            case CRITICAL -> "Severely elevated temperature for" + formatDuration(duration) + ". Isolate immediately and contact a veterinarian.";
+            case FEVER -> "Temperature sustained high for" + formatDuration(duration) + ". Isolate and monitor.";
+            case ELEVATED -> "Slightly elevated temperature. Continue monitoring.";
+            case NORMAL -> "Temperature normal";
+       };
+   }
 
     private boolean isSustainedElevation(List<TemperatureLog> logs, BigDecimal threshold) {
         if (logs == null || logs.size() < 2) return false;
@@ -76,10 +76,10 @@ public class FeverAnalysisService {
         return Duration.between(firstElevated, latestTime).compareTo(SUSTAINED_DURATION) >= 0;
     }
 
-    private String formatDuration(Duration duration) {
-        if (duration == null) return "";
-        long hours = duration.toHours();
-        if (hours < 1) return "不到 1 小时";
-        return " " + hours + " 小时";
-    }
+   private String formatDuration(Duration duration) {
+       if (duration == null) return "";
+       long hours = duration.toHours();
+        if (hours < 1) return " less than 1 hour";
+        return " " + hours + " hours";
+   }
 }

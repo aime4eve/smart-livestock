@@ -1,4 +1,4 @@
-import 'package:smart_livestock_demo/core/models/user_role.dart';
+import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 
 class RolePermission {
   const RolePermission._();

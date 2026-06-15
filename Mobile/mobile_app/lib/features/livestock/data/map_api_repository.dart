@@ -1,5 +1,5 @@
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 
 class MapOverviewData {
   const MapOverviewData({

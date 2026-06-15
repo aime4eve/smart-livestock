@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
+import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
 
 void main() {
   group('RanchOverviewStats', () {

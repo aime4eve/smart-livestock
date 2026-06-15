@@ -1,6 +1,6 @@
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/core/api/api_exception.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/domain/b2b_worker_management_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/domain/b2b_worker_management_repository.dart';
 
 String _parseId(dynamic raw) =>
     raw is int ? raw.toString() : (raw as String? ?? '');

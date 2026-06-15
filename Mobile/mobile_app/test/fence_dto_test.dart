@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/features/fence/data/fence_dto.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/data/fence_dto.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
 
 void main() {
   test('coordinatesToLatLngPoints maps lng lat pairs to LatLng', () {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/livestock_map_marker.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/livestock_map_marker.dart';
 
 void main() {
   group('livestockHealthColor', () {

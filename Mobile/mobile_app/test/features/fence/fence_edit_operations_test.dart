@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_edit_operations.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_edit_session.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_edit_operations.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_edit_session.dart';
 
 void main() {
   group('FenceEditOperations', () {

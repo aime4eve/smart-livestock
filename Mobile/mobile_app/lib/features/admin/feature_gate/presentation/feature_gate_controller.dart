@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/admin/feature_gate/data/feature_gate_api_repository.dart';
-import 'package:smart_livestock_demo/features/admin/feature_gate/domain/feature_gate_models.dart';
+import 'package:hkt_livestock_agentic/features/admin/feature_gate/data/feature_gate_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/admin/feature_gate/domain/feature_gate_models.dart';
 
 final featureGateRepositoryProvider = Provider<FeatureGateApiRepository>(
   (_) => const FeatureGateApiRepository(),

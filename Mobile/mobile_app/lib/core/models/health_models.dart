@@ -1,4 +1,4 @@
-import 'package:smart_livestock_demo/core/models/twin_models.dart';
+import 'package:hkt_livestock_agentic/core/models/twin_models.dart';
 
 // Re-export existing twin_models which already define:
 // TemperatureBaseline, TemperatureRecord, DigestiveHealth, MotilityRecord,
@@ -70,10 +70,10 @@ class HealthOverviewResponse {
           : const SceneSummaryEstrus(highScoreCount: 0, breedingAdvice: false),
       epidemic: m['epidemic'] != null
           ? SceneSummaryEpidemic(
-              status: m['epidemic']['status'] as String? ?? '正常',
+              status: m['epidemic']['status'] as String? ?? 'Normal',
               abnormalRate: (m['epidemic']['abnormalRate'] as num?)?.toDouble() ?? 0.0,
             )
-          : const SceneSummaryEpidemic(status: '正常', abnormalRate: 0.0),
+          : const SceneSummaryEpidemic(status: 'Normal', abnormalRate: 0.0),
     );
   }
 
@@ -323,7 +323,7 @@ class EpidemicData {
   const EpidemicData({
     required this.metrics,
     this.contacts = const [],
-    this.riskLevel = '正常',
+    this.riskLevel = 'Normal',
   });
 
   final HerdHealthMetrics metrics;
@@ -332,7 +332,7 @@ class EpidemicData {
 
   factory EpidemicData.fromJson(Map<String, dynamic> m) {
     return EpidemicData(
-      riskLevel: (m['riskLevel'] ?? '正常') as String,
+      riskLevel: (m['riskLevel'] ?? 'Normal') as String,
       metrics: m['metrics'] != null
           ? HerdHealthMetrics(
               avgTemperature: (m['metrics']['avgTemperature'] as num?)?.toDouble() ?? 0.0,

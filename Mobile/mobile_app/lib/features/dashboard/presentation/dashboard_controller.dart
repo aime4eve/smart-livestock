@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/api/farm_scoped_controller.dart';
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/features/dashboard/data/dashboard_api_repository.dart';
-import 'package:smart_livestock_demo/features/dashboard/domain/dashboard_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/farm_scoped_controller.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/features/dashboard/data/dashboard_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/dashboard/domain/dashboard_repository.dart';
 
 final dashboardRepositoryProvider = Provider<DashboardRepository>(
   (_) => const DashboardApiRepository(),

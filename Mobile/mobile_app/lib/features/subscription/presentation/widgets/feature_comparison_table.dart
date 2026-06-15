@@ -1,35 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/models/subscription_tier.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class FeatureComparisonTable extends ConsumerWidget {
   const FeatureComparisonTable({super.key});
 
-  static const Map<String, String> _featureLabels = {
-    FeatureFlags.gpsLocation: 'GPS定位',
-    FeatureFlags.fence: '电子围栏',
-    FeatureFlags.trajectory: '历史轨迹',
-    FeatureFlags.temperatureMonitor: '瘤胃温度监测',
-    FeatureFlags.peristalticMonitor: '瘤胃蠕动监测',
-    FeatureFlags.healthScore: '健康评分',
-    FeatureFlags.estrusDetect: '发情检测',
-    FeatureFlags.epidemicAlert: '疫病预警',
-    FeatureFlags.gaitAnalysis: '步态分析',
-    FeatureFlags.behaviorStats: '行为统计',
-    FeatureFlags.apiAccess: 'API访问',
-    FeatureFlags.stats: '数据统计',
-    FeatureFlags.dashboardSummary: '看板概览',
-    FeatureFlags.dataRetentionDays: '数据保留',
-    FeatureFlags.alertHistory: '告警历史',
-    FeatureFlags.dedicatedSupport: '专属客服',
-    FeatureFlags.deviceManagement: '设备管理',
-    FeatureFlags.livestockDetail: '牲畜详情',
-    FeatureFlags.profile: '个人中心',
-    FeatureFlags.tenantAdmin: '租户管理',
-  };
+  static const List<String> _featureKeys = [
+    FeatureFlags.gpsLocation,
+    FeatureFlags.fence,
+    FeatureFlags.trajectory,
+    FeatureFlags.temperatureMonitor,
+    FeatureFlags.peristalticMonitor,
+    FeatureFlags.healthScore,
+    FeatureFlags.estrusDetect,
+    FeatureFlags.epidemicAlert,
+    FeatureFlags.gaitAnalysis,
+    FeatureFlags.behaviorStats,
+    FeatureFlags.apiAccess,
+    FeatureFlags.stats,
+    FeatureFlags.dashboardSummary,
+    FeatureFlags.dataRetentionDays,
+    FeatureFlags.alertHistory,
+    FeatureFlags.dedicatedSupport,
+    FeatureFlags.deviceManagement,
+    FeatureFlags.livestockDetail,
+    FeatureFlags.profile,
+    FeatureFlags.tenantAdmin,
+  ];
 
   static const List<SubscriptionTier> _tiers = [
     SubscriptionTier.basic,
@@ -38,36 +38,78 @@ class FeatureComparisonTable extends ConsumerWidget {
     SubscriptionTier.enterprise,
   ];
 
-  String _cellLabel(SubscriptionTier tier, String featureKey) {
+  String _featureLabel(AppLocalizations l10n, String featureKey) {
+    switch (featureKey) {
+      case FeatureFlags.gpsLocation:
+        return l10n.subFeatureGpsLocation;
+      case FeatureFlags.fence:
+        return l10n.cmpFeatureFence;
+      case FeatureFlags.trajectory:
+        return l10n.subFeatureTrajectory;
+      case FeatureFlags.temperatureMonitor:
+        return l10n.cmpFeatureTempMonitor;
+      case FeatureFlags.peristalticMonitor:
+        return l10n.cmpFeaturePeristalticMonitor;
+      case FeatureFlags.healthScore:
+        return l10n.subFeatureHealthScore;
+      case FeatureFlags.estrusDetect:
+        return l10n.subFeatureEstrusDetect;
+      case FeatureFlags.epidemicAlert:
+        return l10n.subFeatureEpidemicAlert;
+      case FeatureFlags.gaitAnalysis:
+        return l10n.subFeatureGaitAnalysis;
+      case FeatureFlags.behaviorStats:
+        return l10n.subFeatureBehaviorStats;
+      case FeatureFlags.apiAccess:
+        return l10n.subFeatureApiAccess;
+      case FeatureFlags.stats:
+        return l10n.cmpFeatureStats;
+      case FeatureFlags.dashboardSummary:
+        return l10n.cmpFeatureDashboard;
+      case FeatureFlags.dataRetentionDays:
+        return l10n.cmpFeatureDataRetention;
+      case FeatureFlags.alertHistory:
+        return l10n.cmpFeatureAlertHistory;
+      case FeatureFlags.dedicatedSupport:
+        return l10n.subFeatureDedicatedSupport;
+      case FeatureFlags.deviceManagement:
+        return l10n.subFeatureDeviceManagement;
+      case FeatureFlags.livestockDetail:
+        return l10n.cmpFeatureLivestockDetail;
+      case FeatureFlags.profile:
+        return l10n.cmpFeatureProfile;
+      case FeatureFlags.tenantAdmin:
+        return l10n.cmpFeatureTenantAdmin;
+      default:
+        return featureKey;
+    }
+  }
+
+  String _cellLabel(
+      AppLocalizations l10n, SubscriptionTier tier, String featureKey) {
     if (!checkTierAccess(tier, featureKey)) return '—';
     final def = FeatureFlags.all[featureKey];
     if (def == null) return '—';
 
     final tiersConfig = def.tiers;
 
-    // Tier-based numeric values (Map tiers)
     if (tiersConfig is Map) {
       final v = tiersConfig[tier.name];
       if (v is num) {
-        if (featureKey == FeatureFlags.fence) {
-          return v == -1 ? '不限' : '${v.toInt()}个';
-        }
-        if (featureKey == FeatureFlags.alertHistory) {
-          return v >= 365 ? '1年' : '${v.toInt()}天';
-        }
         if (featureKey == FeatureFlags.dataRetentionDays) {
-          if (v >= 1095) return '${(v.toInt() / 365).round()}年';
-          if (v == double.infinity || v == -1) return '永久';
-          return '${v.toInt()}天';
+          if (v >= 1095) {
+            return l10n.cmpCellYears('${(v.toInt() / 365).round()}');
+          }
+          if (v == double.infinity || v == -1) return l10n.cmpCellLifetime;
+          return l10n.cmpCellDays('${v.toInt()}');
         }
         return '${v.toInt()}';
       }
     }
 
-    // Legacy single-limit features
     if (def.shape == FeatureShape.limit && def.limit != null) {
       if (featureKey == FeatureFlags.dashboardSummary) {
-        return '${def.limit}项';
+        return l10n.cmpCellItems('${def.limit}');
       }
     }
 
@@ -92,7 +134,7 @@ class FeatureComparisonTable extends ConsumerWidget {
                 bottom: AppSpacing.md,
               ),
               child: Text(
-                '功能对比',
+                l10n.subComparisonTitle,
                 style: theme.textTheme.titleMedium,
               ),
             ),
@@ -114,12 +156,12 @@ class FeatureComparisonTable extends ConsumerWidget {
                     },
                   ),
                 ],
-                rows: _featureLabels.entries.map((entry) {
+                rows: _featureKeys.map((key) {
                   return DataRow(
                     cells: [
-                      DataCell(Text(entry.value)),
+                      DataCell(Text(_featureLabel(l10n, key))),
                       ..._tiers.map((t) {
-                        final label = _cellLabel(t, entry.key);
+                        final label = _cellLabel(l10n, t, key);
                         return DataCell(
                           Text(
                             label,

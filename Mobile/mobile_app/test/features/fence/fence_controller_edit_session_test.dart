@@ -1,15 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/app/session/app_session.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/core/models/user_role.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_edit_session.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_repository.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_state.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/fence_controller.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/app/session/app_session.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/core/models/user_role.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_edit_session.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_repository.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_state.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
 
 void main() {
   Future<ProviderContainer> _setup({List<FenceItem>? fences}) async {

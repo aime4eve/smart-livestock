@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/admin/analytics/data/analytics_api_repository.dart';
-import 'package:smart_livestock_demo/features/admin/analytics/domain/analytics_models.dart';
+import 'package:hkt_livestock_agentic/features/admin/analytics/data/analytics_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/admin/analytics/domain/analytics_models.dart';
 
 final analyticsRepositoryProvider = Provider<AnalyticsApiRepository>(
   (_) => const AnalyticsApiRepository(),

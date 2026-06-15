@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/core/utils/currency_formatter.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/async_fallback_views.dart';
-import 'package:smart_livestock_demo/features/b2b_admin/presentation/widgets/confirm_dialog.dart';
-import 'package:smart_livestock_demo/features/revenue/domain/revenue_repository.dart';
-import 'package:smart_livestock_demo/features/revenue/presentation/b2b_revenue_controller.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/utils/currency_formatter.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/widgets/async_fallback_views.dart';
+import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/widgets/confirm_dialog.dart';
+import 'package:hkt_livestock_agentic/features/revenue/domain/revenue_repository.dart';
+import 'package:hkt_livestock_agentic/features/revenue/presentation/b2b_revenue_controller.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class B2bRevenueDetailPage extends ConsumerStatefulWidget {
   const B2bRevenueDetailPage({super.key, required this.periodId});

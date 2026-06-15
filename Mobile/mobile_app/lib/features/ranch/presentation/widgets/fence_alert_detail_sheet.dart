@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'dart:math' show cos, sqrt;
-import 'package:smart_livestock_demo/core/theme/app_spacing.dart';
-import 'package:smart_livestock_demo/features/ranch/domain/ranch_models.dart';
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/device_info_line.dart';
-import 'package:smart_livestock_demo/core/l10n/l10n.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/device_info_line.dart';
+import 'package:hkt_livestock_agentic/core/l10n/l10n.dart';
 
 /// Detail sheet for a fence alert — shows a mini map with fence polygon,
 /// livestock position, buffer zone, and distance/direction info.

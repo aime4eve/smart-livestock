@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_polygon_contains.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_polygon_contains.dart';
 
 void main() {
   test('fencePolygonContainsLatLng inside polygon returns true', () {

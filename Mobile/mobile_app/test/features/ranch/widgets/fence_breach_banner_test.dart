@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/l10n/gen/app_localizations.dart';
-import 'package:smart_livestock_demo/features/ranch/presentation/widgets/fence_breach_banner.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/fence_breach_banner.dart';
 
 void main() {
   group('FenceBreachBanner', () {

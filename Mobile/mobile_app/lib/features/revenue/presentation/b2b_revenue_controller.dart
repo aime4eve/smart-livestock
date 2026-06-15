@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/revenue/domain/revenue_repository.dart';
-import 'package:smart_livestock_demo/features/revenue/presentation/revenue_controller.dart';
+import 'package:hkt_livestock_agentic/features/revenue/domain/revenue_repository.dart';
+import 'package:hkt_livestock_agentic/features/revenue/presentation/revenue_controller.dart';
 
 class B2bRevenueController extends AsyncNotifier<RevenueListViewData> {
   @override

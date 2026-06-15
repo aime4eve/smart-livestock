@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/contract_management/data/contract_api_repository.dart';
-import 'package:smart_livestock_demo/features/contract_management/domain/contract_management_repository.dart';
+import 'package:hkt_livestock_agentic/features/contract_management/data/contract_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/contract_management/domain/contract_management_repository.dart';
 
 final contractManagementRepositoryProvider =
     Provider<ContractManagementRepository>((ref) {

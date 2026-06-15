@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_livestock_demo/features/subscription/presentation/widgets/locked_overlay.dart';
+import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/locked_overlay.dart';
 
 Widget _testChild() => const SizedBox(
       key: Key('test-child'),

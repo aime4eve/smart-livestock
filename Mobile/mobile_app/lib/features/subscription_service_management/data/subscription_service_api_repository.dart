@@ -1,5 +1,5 @@
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/features/subscription_service_management/domain/subscription_service_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/features/subscription_service_management/domain/subscription_service_repository.dart';
 
 class SubscriptionServiceApiRepository
     implements SubscriptionServiceRepository {

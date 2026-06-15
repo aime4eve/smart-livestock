@@ -1,6 +1,6 @@
 {
-    "name": "smart_livestock_demo",
-    "short_name": "smart_livestock_demo",
+    "name": "hkt_livestock_agentic",
+    "short_name": "hkt_livestock_agentic",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

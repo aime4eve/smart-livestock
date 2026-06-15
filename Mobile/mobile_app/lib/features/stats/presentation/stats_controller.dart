@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/api/farm_scoped_controller.dart';
-import 'package:smart_livestock_demo/features/stats/data/stats_api_repository.dart';
-import 'package:smart_livestock_demo/features/stats/domain/stats_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/farm_scoped_controller.dart';
+import 'package:hkt_livestock_agentic/features/stats/data/stats_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/stats/domain/stats_repository.dart';
 
 final statsRepositoryProvider = Provider<StatsRepository>(
   (_) => const StatsApiRepository(),

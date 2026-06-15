@@ -21,14 +21,14 @@ public class EstrusAnalysisService {
         return (int) Math.round(stepScore * 0.4 + tempScore * 0.3 + distScore * 0.3);
     }
 
-    public String generateAdvice(int score) {
-        if (score >= 70) {
-            return "发情评分较高，建议 12 小时内安排配种";
-        } else if (score >= 50) {
-            return "发情评分中等偏高，建议持续观察并准备配种";
-        }
-        return "未发情";
-    }
+   public String generateAdvice(int score) {
+       if (score >= 70) {
+            return "High estrus score. Breeding recommended within 12 hours.";
+       } else if (score >= 50) {
+            return "Moderately high estrus score. Continue monitoring and prepare for breeding.";
+       }
+        return "Not in estrus";
+   }
 
     private double scoreStepIncrease(int increasePercent) {
         if (increasePercent > 300) return 85 + Math.min((increasePercent - 300) / 100.0 * 15, 15);

@@ -1,7 +1,7 @@
-import 'package:smart_livestock_demo/features/fence/domain/fence_edit_session.dart';
-import 'package:smart_livestock_demo/core/models/view_state.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/livestock/data/map_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_edit_session.dart';
+import 'package:hkt_livestock_agentic/core/models/view_state.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/livestock/data/map_api_repository.dart';
 
 enum FenceEditMode { editIdle, editDirty, saving }
 

@@ -2,15 +2,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/app/demo_app.dart';
-import 'package:smart_livestock_demo/app/session/app_session.dart';
-import 'package:smart_livestock_demo/app/session/session_controller.dart';
-import 'package:smart_livestock_demo/app/url_strategy.dart';
-import 'package:smart_livestock_demo/core/api/api_client.dart';
-import 'package:smart_livestock_demo/core/l10n/locale_controller.dart';
-import 'package:smart_livestock_demo/core/api/jwt_decoder.dart';
-import 'package:smart_livestock_demo/core/api/jwt_storage.dart';
-import 'package:smart_livestock_demo/core/models/user_role.dart';
+import 'package:hkt_livestock_agentic/app/demo_app.dart';
+import 'package:hkt_livestock_agentic/app/session/app_session.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/app/url_strategy.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/l10n/locale_controller.dart';
+import 'package:hkt_livestock_agentic/core/api/jwt_decoder.dart';
+import 'package:hkt_livestock_agentic/core/api/jwt_storage.dart';
+import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 
 SemanticsHandle? _webSemanticsHandle;
 

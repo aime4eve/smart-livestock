@@ -1,5 +1,6 @@
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/core/l10n/l10n.dart';
 
 const _fallbackCenter = LatLng(28.229, 112.938);
 
@@ -31,7 +32,7 @@ FenceItem fenceItemFromJson(
 ) {
   final rawId = raw['id'];
   final id = rawId is int ? rawId.toString() : (rawId as String? ?? '');
-  final name = raw['name'] as String? ?? '未命名';
+  final name = raw['name'] as String? ?? L10n.instance.fenceUnnamed;
   final type = fenceTypeFromApiString(raw['type'] as String?);
   final alarmEnabled = raw['alarmEnabled'] as bool? ?? true;
   final active = raw['active'] as bool? ?? true;

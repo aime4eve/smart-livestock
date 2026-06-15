@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/core/api/farm_scoped_controller.dart';
-import 'package:smart_livestock_demo/features/worker_management/data/worker_api_repository.dart';
-import 'package:smart_livestock_demo/features/worker_management/domain/worker_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/farm_scoped_controller.dart';
+import 'package:hkt_livestock_agentic/features/worker_management/data/worker_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/worker_management/domain/worker_repository.dart';
 
 final workerRepositoryProvider = Provider<WorkerRepository>((ref) {
   return const WorkerApiRepository();

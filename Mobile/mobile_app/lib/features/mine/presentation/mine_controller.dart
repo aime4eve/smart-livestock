@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_livestock_demo/features/mine/data/mine_api_repository.dart';
-import 'package:smart_livestock_demo/features/mine/domain/mine_repository.dart';
+import 'package:hkt_livestock_agentic/features/mine/data/mine_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/mine/domain/mine_repository.dart';
 
 final mineRepositoryProvider = Provider<MineRepository>((ref) {
   return const MineApiRepository();

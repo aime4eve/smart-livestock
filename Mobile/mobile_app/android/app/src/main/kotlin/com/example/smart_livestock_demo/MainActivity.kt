@@ -1,4 +1,4 @@
-package com.example.smart_livestock_demo
+package com.example.hkt_livestock_agentic
 
 import io.flutter.embedding.android.FlutterActivity
 

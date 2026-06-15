@@ -49,8 +49,8 @@ Replace the full content of `lib/features/fence/presentation/fence_hit_detection
 import 'dart:ui';
 
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_polygon_contains.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_polygon_contains.dart';
 
 typedef LatLngToOffset = Offset Function(LatLng);
 
@@ -305,8 +305,8 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:smart_livestock_demo/features/fence/domain/fence_item.dart';
-import 'package:smart_livestock_demo/features/fence/presentation/fence_hit_detection.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_hit_detection.dart';
 
 Offset _identityProject(LatLng ll) => Offset(ll.longitude, ll.latitude);
 
