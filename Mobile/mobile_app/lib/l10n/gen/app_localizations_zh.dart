@@ -2036,9 +2036,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get estrusLockedTitle => '发情检测详情';
 
   @override
-  String get estrusActivityChartTitle => '活动量对比';
-
-  @override
   String get estrusCapabilityNote => '系统能检测发情高分牲畜，建议人工确认';
 
   @override
@@ -2049,12 +2046,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get metricTempDelta => '温差';
-
-  @override
-  String get legendBaseline => '基线均值';
-
-  @override
-  String get legendRecent3d => '近3日';
 
   @override
   String get epidemicContactTitle => '疫情接触追踪';
@@ -2132,4 +2123,66 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get viewContactTracing => '查看接触追踪详情';
+
+  @override
+  String get livestockBreed => '品种';
+
+  @override
+  String get livestockAgeMonthsLabel => '月龄';
+
+  @override
+  String livestockAgeMonthsValue(int count) {
+    return '$count 个月';
+  }
+
+  @override
+  String get livestockWeight => '体重';
+
+  @override
+  String deviceBatteryValue(int percent) {
+    return '电量 $percent%';
+  }
+
+  @override
+  String deviceSignalValue(String value) {
+    return '信号 $value';
+  }
+
+  @override
+  String get livestockBodyTemp => '体温';
+
+  @override
+  String get livestockActivity => '活动量';
+
+  @override
+  String get livestockRumination => '反刍频率';
+
+  @override
+  String get feverLoadFailed => '体温数据加载失败';
+
+  @override
+  String get feverNoRecords => '暂无体温记录';
+
+  @override
+  String get feverLegendActual => '实测体温';
+
+  @override
+  String get feverLegendBaseline => '基线参考';
+
+  @override
+  String get estrusLoadFailed => '发情数据加载失败';
+
+  @override
+  String get estrusNoScores => '暂无发情评分';
+
+  @override
+  String get estrusLegendScore => '发情评分';
+
+  @override
+  String get estrusLegendThreshold => '配种阈值';
+
+  @override
+  String livestockLastLocation(String location) {
+    return '最近位置：$location';
+  }
 }

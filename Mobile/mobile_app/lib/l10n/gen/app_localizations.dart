@@ -3816,12 +3816,6 @@ abstract class AppLocalizations {
   /// **'发情检测详情'**
   String get estrusLockedTitle;
 
-  /// No description provided for @estrusActivityChartTitle.
-  ///
-  /// In zh, this message translates to:
-  /// **'活动量对比'**
-  String get estrusActivityChartTitle;
-
   /// No description provided for @estrusCapabilityNote.
   ///
   /// In zh, this message translates to:
@@ -3845,18 +3839,6 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'温差'**
   String get metricTempDelta;
-
-  /// No description provided for @legendBaseline.
-  ///
-  /// In zh, this message translates to:
-  /// **'基线均值'**
-  String get legendBaseline;
-
-  /// No description provided for @legendRecent3d.
-  ///
-  /// In zh, this message translates to:
-  /// **'近3日'**
-  String get legendRecent3d;
 
   /// No description provided for @epidemicContactTitle.
   ///
@@ -4007,6 +3989,114 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'查看接触追踪详情'**
   String get viewContactTracing;
+
+  /// No description provided for @livestockBreed.
+  ///
+  /// In zh, this message translates to:
+  /// **'品种'**
+  String get livestockBreed;
+
+  /// No description provided for @livestockAgeMonthsLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'月龄'**
+  String get livestockAgeMonthsLabel;
+
+  /// No description provided for @livestockAgeMonthsValue.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 个月'**
+  String livestockAgeMonthsValue(int count);
+
+  /// No description provided for @livestockWeight.
+  ///
+  /// In zh, this message translates to:
+  /// **'体重'**
+  String get livestockWeight;
+
+  /// No description provided for @deviceBatteryValue.
+  ///
+  /// In zh, this message translates to:
+  /// **'电量 {percent}%'**
+  String deviceBatteryValue(int percent);
+
+  /// No description provided for @deviceSignalValue.
+  ///
+  /// In zh, this message translates to:
+  /// **'信号 {value}'**
+  String deviceSignalValue(String value);
+
+  /// No description provided for @livestockBodyTemp.
+  ///
+  /// In zh, this message translates to:
+  /// **'体温'**
+  String get livestockBodyTemp;
+
+  /// No description provided for @livestockActivity.
+  ///
+  /// In zh, this message translates to:
+  /// **'活动量'**
+  String get livestockActivity;
+
+  /// No description provided for @livestockRumination.
+  ///
+  /// In zh, this message translates to:
+  /// **'反刍频率'**
+  String get livestockRumination;
+
+  /// No description provided for @feverLoadFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'体温数据加载失败'**
+  String get feverLoadFailed;
+
+  /// No description provided for @feverNoRecords.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无体温记录'**
+  String get feverNoRecords;
+
+  /// No description provided for @feverLegendActual.
+  ///
+  /// In zh, this message translates to:
+  /// **'实测体温'**
+  String get feverLegendActual;
+
+  /// No description provided for @feverLegendBaseline.
+  ///
+  /// In zh, this message translates to:
+  /// **'基线参考'**
+  String get feverLegendBaseline;
+
+  /// No description provided for @estrusLoadFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'发情数据加载失败'**
+  String get estrusLoadFailed;
+
+  /// No description provided for @estrusNoScores.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无发情评分'**
+  String get estrusNoScores;
+
+  /// No description provided for @estrusLegendScore.
+  ///
+  /// In zh, this message translates to:
+  /// **'发情评分'**
+  String get estrusLegendScore;
+
+  /// No description provided for @estrusLegendThreshold.
+  ///
+  /// In zh, this message translates to:
+  /// **'配种阈值'**
+  String get estrusLegendThreshold;
+
+  /// No description provided for @livestockLastLocation.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近位置：{location}'**
+  String livestockLastLocation(String location);
 }
 
 class _AppLocalizationsDelegate

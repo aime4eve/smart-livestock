@@ -20,11 +20,4 @@ class EstrusApiRepository implements EstrusRepository {
     final data = await ApiClient.instance.farmGet('/health/estrus/$livestockId');
     return EstrusDetailData.fromJson(data);
   }
-
-  @override
-  Future<ActivityComparisonData?> fetchActivityComparison(String livestockId) async {
-    final data = await ApiClient.instance.farmGet('/health/estrus/$livestockId/activity');
-    if (data == null || data.isEmpty) return null;
-    return ActivityComparisonData.fromJson(data);
-  }
 }

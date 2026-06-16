@@ -2082,9 +2082,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get estrusLockedTitle => 'Estrus Detection Detail';
 
   @override
-  String get estrusActivityChartTitle => 'Activity Comparison';
-
-  @override
   String get estrusCapabilityNote =>
       'The system can detect high-score estrus livestock; manual confirmation recommended.';
 
@@ -2096,12 +2093,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get metricTempDelta => 'Temp Delta';
-
-  @override
-  String get legendBaseline => 'Baseline Avg';
-
-  @override
-  String get legendRecent3d => 'Recent 3d';
 
   @override
   String get epidemicContactTitle => 'Epidemic Contact Tracing';
@@ -2180,4 +2171,66 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewContactTracing => 'View Contact Tracing';
+
+  @override
+  String get livestockBreed => 'Breed';
+
+  @override
+  String get livestockAgeMonthsLabel => 'Age';
+
+  @override
+  String livestockAgeMonthsValue(int count) {
+    return '$count months';
+  }
+
+  @override
+  String get livestockWeight => 'Weight';
+
+  @override
+  String deviceBatteryValue(int percent) {
+    return 'Battery $percent%';
+  }
+
+  @override
+  String deviceSignalValue(String value) {
+    return 'Signal $value';
+  }
+
+  @override
+  String get livestockBodyTemp => 'Body Temp';
+
+  @override
+  String get livestockActivity => 'Activity';
+
+  @override
+  String get livestockRumination => 'Rumination';
+
+  @override
+  String get feverLoadFailed => 'Failed to load temperature data';
+
+  @override
+  String get feverNoRecords => 'No temperature records';
+
+  @override
+  String get feverLegendActual => 'Actual Temp';
+
+  @override
+  String get feverLegendBaseline => 'Baseline';
+
+  @override
+  String get estrusLoadFailed => 'Failed to load estrus data';
+
+  @override
+  String get estrusNoScores => 'No estrus scores';
+
+  @override
+  String get estrusLegendScore => 'Estrus Score';
+
+  @override
+  String get estrusLegendThreshold => 'Breeding Threshold';
+
+  @override
+  String livestockLastLocation(String location) {
+    return 'Last location: $location';
+  }
 }

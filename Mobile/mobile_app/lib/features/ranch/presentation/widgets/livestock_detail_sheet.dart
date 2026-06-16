@@ -50,7 +50,7 @@ class LivestockDetailSheet extends StatelessWidget {
                 TextButton.icon(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    context.go('/livestock/${marker.livestockId}');
+                    context.push('/livestock/${marker.livestockId}');
                   },
                   icon: const Icon(Icons.open_in_new, size: 16),
                   label: Text(l10n.ranchLivestockDetailBtn),

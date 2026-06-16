@@ -96,7 +96,7 @@ class DashboardPage extends ConsumerWidget {
                       value: m.value,
                       caption: l10n.dashboardTodayOverview,
                       trend: '+1.8%',
-                      onTap: () => context.go(
+                      onTap: () => context.push(
                         AppRoute.livestockDetail.path
                             .replaceFirst(':id', '001'),
                       ),

@@ -395,34 +395,6 @@ class IntensityCell {
   }
 }
 
-class ActivityComparisonData {
-  const ActivityComparisonData({
-    required this.recentSteps,
-    required this.baselineSteps,
-    required this.recentDistance,
-    required this.baselineDistance,
-    required this.recentActivityIndex,
-    required this.baselineActivityIndex,
-  });
-  final int recentSteps;
-  final int baselineSteps;
-  final double recentDistance;
-  final double baselineDistance;
-  final double recentActivityIndex;
-  final double baselineActivityIndex;
-
-  factory ActivityComparisonData.fromJson(Map<String, dynamic> m) {
-    return ActivityComparisonData(
-      recentSteps: m['recentSteps'] as int? ?? 0,
-      baselineSteps: m['baselineSteps'] as int? ?? 0,
-      recentDistance: (m['recentDistance'] as num?)?.toDouble() ?? 0,
-      baselineDistance: (m['baselineDistance'] as num?)?.toDouble() ?? 0,
-      recentActivityIndex: (m['recentActivityIndex'] as num?)?.toDouble() ?? 0,
-      baselineActivityIndex: (m['baselineActivityIndex'] as num?)?.toDouble() ?? 0,
-    );
-  }
-}
-
 class ContactNode {
   const ContactNode({
     required this.livestockId,

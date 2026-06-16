@@ -1755,8 +1755,7 @@
   "feverStatus": "Status",
   "@feverStatus": {},
   "feverCapabilityNote": "The system can notify you of temperature abnormalities; cause must be investigated offline.",
-  "@feverCapabilityNote": {}
-,
+  "@feverCapabilityNote": {},
   "feverDurationChartTitle": "Fever Duration Analysis",
   "@feverDurationChartTitle": {},
   "feverDurationChartSubtitle": "Daily hours above threshold (>39.5°C)",
@@ -1767,8 +1766,6 @@
   "@digestiveHeatmapSubtitle": {},
   "estrusLockedTitle": "Estrus Detection Detail",
   "@estrusLockedTitle": {},
-  "estrusActivityChartTitle": "Activity Comparison",
-  "@estrusActivityChartTitle": {},
   "estrusCapabilityNote": "The system can detect high-score estrus livestock; manual confirmation recommended.",
   "@estrusCapabilityNote": {},
   "metricScore": "Score",
@@ -1777,10 +1774,6 @@
   "@metricStepIncrease": {},
   "metricTempDelta": "Temp Delta",
   "@metricTempDelta": {},
-  "legendBaseline": "Baseline Avg",
-  "@legendBaseline": {},
-  "legendRecent3d": "Recent 3d",
-  "@legendRecent3d": {},
   "epidemicContactTitle": "Epidemic Contact Tracing",
   "@epidemicContactTitle": {},
   "epidemicContactLockedMsg": "Epidemic contact tracing requires Premium or above",
@@ -1830,5 +1823,65 @@
   "epidemicContactNote": "Based on GPS trajectory spatiotemporal cross-analysis, automatically identifies livestock in close contact with the infected animal within 72h and assesses infection risk.",
   "@epidemicContactNote": {},
   "viewContactTracing": "View Contact Tracing",
-  "@viewContactTracing": {}
+  "@viewContactTracing": {},
+  "livestockBreed": "Breed",
+  "@livestockBreed": {},
+  "livestockAgeMonthsLabel": "Age",
+  "@livestockAgeMonthsLabel": {},
+  "livestockAgeMonthsValue": "{count} months",
+  "@livestockAgeMonthsValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "livestockWeight": "Weight",
+  "@livestockWeight": {},
+  "deviceBatteryValue": "Battery {percent}%",
+  "@deviceBatteryValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "deviceSignalValue": "Signal {value}",
+  "@deviceSignalValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "livestockBodyTemp": "Body Temp",
+  "@livestockBodyTemp": {},
+  "livestockActivity": "Activity",
+  "@livestockActivity": {},
+  "livestockRumination": "Rumination",
+  "@livestockRumination": {},
+  "feverLoadFailed": "Failed to load temperature data",
+  "@feverLoadFailed": {},
+  "feverNoRecords": "No temperature records",
+  "@feverNoRecords": {},
+  "feverLegendActual": "Actual Temp",
+  "@feverLegendActual": {},
+  "feverLegendBaseline": "Baseline",
+  "@feverLegendBaseline": {},
+  "estrusLoadFailed": "Failed to load estrus data",
+  "@estrusLoadFailed": {},
+  "estrusNoScores": "No estrus scores",
+  "@estrusNoScores": {},
+  "estrusLegendScore": "Estrus Score",
+  "@estrusLegendScore": {},
+  "estrusLegendThreshold": "Breeding Threshold",
+  "@estrusLegendThreshold": {},
+  "livestockLastLocation": "Last location: {location}",
+  "@livestockLastLocation": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  }
 }
