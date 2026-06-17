@@ -13,6 +13,7 @@ import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/core/map/map_config.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
+import 'package:hkt_livestock_agentic/core/map/tile_auto_trigger.dart';
 import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 import 'package:hkt_livestock_agentic/features/b2b_admin/domain/b2b_worker_management_repository.dart';
 import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_worker_management_controller.dart';
@@ -218,6 +219,15 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
         if (sources != null && sources.isNotEmpty) {
           resolvedUrl = (sources.first as Map<String, dynamic>)['tileUrl'] as String?;
         }
+      }
+
+      // P3 块2：缺自建 region 时自动触发下载任务（fire-and-forget，不阻塞渲染）
+      if (resolvedUrl == null && center != null) {
+        TileAutoTrigger.triggerIfMissing(
+          farmKey: 'farm-${widget.farmId}',
+          centerLon: center.longitude,
+          centerLat: center.latitude,
+        );
       }
 
       // Parse tile status regions
