@@ -21,7 +21,7 @@ class TileSourceResolver {
 
   Future<List<TileSource>> resolve(int farmId) async {
     final data = await _apiClient.farmGet('/tile-source');
-    final rawList = data['data'];
+    final rawList = data['value'];
     if (rawList is List) {
       return rawList
           .whereType<Map<String, dynamic>>()

@@ -51,7 +51,7 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
     final region = const String.fromEnvironment('REGION', defaultValue: 'china');
     final isChina = region == 'china';
     _tileProvider = await SmartTileProvider.create(
-      selfHostedTileUrl: MapConfig.selfHostedTileUrl,
+      selfHostedTileUrl: null, // 新牧场尚无 region 瓦片，直接降级到通用底图
       mbtilesProvider: mbtiles,
       fallbackUrl: isChina ? MapConfig.chinaFallbackUrl : MapConfig.overseasFallbackUrl,
       isGcj02Fallback: isChina,
