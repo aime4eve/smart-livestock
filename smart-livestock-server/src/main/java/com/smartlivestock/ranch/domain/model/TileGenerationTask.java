@@ -11,7 +11,7 @@ public class TileGenerationTask extends AggregateRoot {
     private Integer tileCount;
     private Double fileSizeMb, coverageRatio;
     private boolean customRegion = false;
-    private Instant startedAt, finishedAt;
+    private Instant startedAt, finishedAt, createdAt;
 
     public TileGenerationTask() {}
     public TileGenerationTask(String regionName, double minLon, double minLat,
@@ -38,4 +38,5 @@ public class TileGenerationTask extends AggregateRoot {
     public boolean isCustomRegion() { return customRegion; } public void setCustomRegion(boolean v) { customRegion = v; }
     public Instant getStartedAt() { return startedAt; } public void setStartedAt(Instant v) { startedAt = v; }
     public Instant getFinishedAt() { return finishedAt; } public void setFinishedAt(Instant v) { finishedAt = v; }
+    public Instant getCreatedAt() { return createdAt; } public void setCreatedAt(Instant v) { createdAt = v; }
 }

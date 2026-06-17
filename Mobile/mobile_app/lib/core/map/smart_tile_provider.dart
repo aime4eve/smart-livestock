@@ -7,10 +7,10 @@ import 'package:hkt_livestock_agentic/core/map/mbtiles_tile_provider.dart';
 
 enum _TileSource { selfHosted, mbtiles, fallback }
 
-/// 三级回退 TileProvider：tileserver-gl → MBTiles → 高德/OSM
+/// 三级回退 TileProvider：tileserver-gl → MBTiles → 高德/OSM（原设计 §3.1）
 ///
-/// nginx 已配置将 tileserver 的 404 转为透明 PNG，
-/// 因此客户端不需要做瓦片范围判断。
+/// tileserver 缺瓦片返回 404（nginx 透传），performHealthCheck 检测到
+/// 非 200 即降级到 MBTiles/高德/OSM。
 class SmartTileProvider extends TileProvider {
   final String? selfHostedTileUrl;
   final MBTilesTileProvider? mbtilesProvider;

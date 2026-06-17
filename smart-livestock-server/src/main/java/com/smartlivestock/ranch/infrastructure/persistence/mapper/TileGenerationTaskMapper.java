@@ -19,6 +19,7 @@ public final class TileGenerationTaskMapper {
         jpa.setErrorMessage(t.getErrorMessage());
         jpa.setCoverageRatio(t.getCoverageRatio()); jpa.setCustomRegion(t.isCustomRegion());
         jpa.setStartedAt(t.getStartedAt()); jpa.setFinishedAt(t.getFinishedAt());
+        jpa.setCreatedAt(t.getCreatedAt());
         return jpa;
     }
 
@@ -35,6 +36,7 @@ public final class TileGenerationTaskMapper {
         t.setErrorMessage(jpa.getErrorMessage());
         t.setCoverageRatio(jpa.getCoverageRatio()); t.setCustomRegion(jpa.isCustomRegion());
         t.setStartedAt(jpa.getStartedAt()); t.setFinishedAt(jpa.getFinishedAt());
+        t.setCreatedAt(jpa.getCreatedAt());
         return t;
     }
 }
