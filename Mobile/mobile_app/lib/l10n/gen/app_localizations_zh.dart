@@ -1635,6 +1635,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tileAdminFarmTab => '牧场分配';
 
   @override
+  String get tileAdminCreateTask => '新建瓦片任务';
+
+  @override
+  String get tileAdminReload => '重新加载';
+
+  @override
+  String get tileAdminRegionNameLabel => '区域名称';
+
+  @override
+  String get tileAdminBoundsHint => '范围：最小经度, 最小纬度, 最大经度, 最大纬度';
+
+  @override
+  String get tileAdminMinZoomLabel => '最小层级';
+
+  @override
+  String get tileAdminMaxZoomLabel => '最大层级';
+
+  @override
+  String get tileAdminCreateSuccess => '任务已创建，后台 worker 将自动生成瓦片';
+
+  @override
+  String get tileAdminCreateFailed => '创建失败';
+
+  @override
   String get b2bFarmListTitle => '旗下牧场';
 
   @override

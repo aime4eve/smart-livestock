@@ -3078,6 +3078,54 @@ abstract class AppLocalizations {
   /// **'牧场分配'**
   String get tileAdminFarmTab;
 
+  /// No description provided for @tileAdminCreateTask.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建瓦片任务'**
+  String get tileAdminCreateTask;
+
+  /// No description provided for @tileAdminReload.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新加载'**
+  String get tileAdminReload;
+
+  /// No description provided for @tileAdminRegionNameLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'区域名称'**
+  String get tileAdminRegionNameLabel;
+
+  /// No description provided for @tileAdminBoundsHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'范围：最小经度, 最小纬度, 最大经度, 最大纬度'**
+  String get tileAdminBoundsHint;
+
+  /// No description provided for @tileAdminMinZoomLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'最小层级'**
+  String get tileAdminMinZoomLabel;
+
+  /// No description provided for @tileAdminMaxZoomLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'最大层级'**
+  String get tileAdminMaxZoomLabel;
+
+  /// No description provided for @tileAdminCreateSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'任务已创建，后台 worker 将自动生成瓦片'**
+  String get tileAdminCreateSuccess;
+
+  /// No description provided for @tileAdminCreateFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建失败'**
+  String get tileAdminCreateFailed;
+
   /// No description provided for @b2bFarmListTitle.
   ///
   /// In zh, this message translates to:

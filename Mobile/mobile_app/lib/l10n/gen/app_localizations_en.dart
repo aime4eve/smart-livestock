@@ -1663,6 +1663,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tileAdminFarmTab => 'Farm Assignments';
 
   @override
+  String get tileAdminCreateTask => 'New Tile Task';
+
+  @override
+  String get tileAdminReload => 'Reload';
+
+  @override
+  String get tileAdminRegionNameLabel => 'Region Name';
+
+  @override
+  String get tileAdminBoundsHint => 'Bounds: minLon, minLat, maxLon, maxLat';
+
+  @override
+  String get tileAdminMinZoomLabel => 'Min Zoom';
+
+  @override
+  String get tileAdminMaxZoomLabel => 'Max Zoom';
+
+  @override
+  String get tileAdminCreateSuccess =>
+      'Task created. Background worker will generate tiles.';
+
+  @override
+  String get tileAdminCreateFailed => 'Failed to create task';
+
+  @override
   String get b2bFarmListTitle => 'Managed Farms';
 
   @override
