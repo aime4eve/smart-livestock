@@ -37,6 +37,13 @@ class TileAdminController extends AsyncNotifier<TileAdminData> {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() => build());
   }
+
+  /// 静默刷新（轮询用）：不设 AsyncLoading，避免 widget tree 重建导致
+  /// DefaultTabController 的 tab index 重置回 0。失败时保留旧数据。
+  Future<void> silentRefresh() async {
+    final next = await AsyncValue.guard(() => build());
+    if (next.hasValue) state = next;
+  }
 }
 
 final tileAdminControllerProvider =

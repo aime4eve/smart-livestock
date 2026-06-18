@@ -20,9 +20,9 @@ class _TileAdminPageState extends ConsumerState<TileAdminPage> {
   @override
   void initState() {
     super.initState();
-    // 有 pending/running 任务时轮询刷新，让进展实时可见
+    // 有 pending/running 任务时静默轮询（不设 loading，避免 tab index 重置）
     _pollTimer = Timer.periodic(const Duration(seconds: 10), (_) {
-      if (mounted) ref.read(tileAdminControllerProvider.notifier).refresh();
+      if (mounted) ref.read(tileAdminControllerProvider.notifier).silentRefresh();
     });
   }
 
@@ -86,7 +86,7 @@ class _TileAdminPageState extends ConsumerState<TileAdminPage> {
         onPressed: () => showDialog<void>(
           context: context,
           builder: (_) => _CreateTaskDialog(
-            onCreated: () => ref.read(tileAdminControllerProvider.notifier).refresh(),
+            onCreated: () => ref.read(tileAdminControllerProvider.notifier).silentRefresh(),
           ),
         ),
       ),
