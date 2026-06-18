@@ -71,7 +71,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
     String? regionUrl;
     if (ApiClient.instance.activeFarmId != null) {
       try {
-        final sources = await ref.read(tileSourceResolverProvider).resolve(0);
+        final sources = await ref.read(tileSourceResolverProvider).resolve();
         regionUrl = sources.isEmpty ? null : sources.first.tileUrl;
       } catch (_) {}
     }

@@ -6,7 +6,10 @@ import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 ///
 /// 地图页检测到无自建 region 时，fire-and-forget POST /admin/tiles/tasks，
 /// worker 后台生成 mbtiles → tileserver 加载。session 内每 farm 去重一次。
-/// owner 无 admin 权限会 403，静默忽略（靠 admin 页手动或降级底图）。
+///
+/// 注意：POST /admin/tiles/tasks 需要 platform_admin/b2b_admin 权限。
+/// 仅在 admin 角色页面（如 b2b_worker_detail_page）调用；owner/worker 端
+/// 不要接入，否则每次进地图都会触发无效 403（靠 admin 页手动或降级底图）。
 class TileAutoTrigger {
   TileAutoTrigger._();
 

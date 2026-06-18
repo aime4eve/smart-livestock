@@ -19,7 +19,7 @@ class TileSourceResolver {
 
   TileSourceResolver({required ApiClient apiClient}) : _apiClient = apiClient;
 
-  Future<List<TileSource>> resolve(int farmId) async {
+  Future<List<TileSource>> resolve() async {
     final data = await _apiClient.farmGet('/tile-source');
     final rawList = data['value'];
     if (rawList is List) {
