@@ -17,6 +17,7 @@ extension AppRouteL10n on AppRoute {
       case AppRoute.twinDigestive:
       case AppRoute.twinEstrus:
       case AppRoute.twinEpidemic:
+      case AppRoute.twinEpidemicContact:
       case AppRoute.twinFeverDetail:
       case AppRoute.twinDigestiveDetail:
       case AppRoute.twinEstrusDetail:

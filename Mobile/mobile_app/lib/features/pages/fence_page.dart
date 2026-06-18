@@ -76,7 +76,7 @@ class _FencePageState extends ConsumerState<FencePage>
     String? regionUrl;
     if (ApiClient.instance.activeFarmId != null) {
       try {
-        final sources = await ref.read(tileSourceResolverProvider).resolve(0);
+        final sources = await ref.read(tileSourceResolverProvider).resolve();
         regionUrl = sources.isEmpty ? null : sources.first.tileUrl;
       } catch (_) {}
     }
@@ -1021,10 +1021,11 @@ class _FencePageState extends ConsumerState<FencePage>
 
   List<Marker> _buildLivestockMarkers(FenceState fenceState) {
     if (fenceState.livestockPositions.isEmpty) return const [];
+    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
     return fenceState.livestockPositions.map((p) {
       final label = p.earTag ?? p.livestockId ?? '';
       return Marker(
-        point: p.toLatLng(),
+        point: shouldTransform ? CoordTransform.wgs84ToGcj02(p.toLatLng()) : p.toLatLng(),
         width: 32,
         height: 32,
         child: Tooltip(

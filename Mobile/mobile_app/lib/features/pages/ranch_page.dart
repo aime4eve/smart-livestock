@@ -63,7 +63,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
     String? regionUrl;
     if (ApiClient.instance.activeFarmId != null) {
       try {
-        final sources = await ref.read(tileSourceResolverProvider).resolve(0);
+        final sources = await ref.read(tileSourceResolverProvider).resolve();
         regionUrl = sources.isEmpty ? null : sources.first.tileUrl;
       } catch (_) {}
     }
@@ -149,7 +149,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
         }).toList();
     for (final m in overview.livestockMarkers) {
       if (fenceStatusMap.containsKey(m.livestockId)) continue;
-      final pos = m.toLatLng();
+      final pos = shouldTransform ? CoordTransform.wgs84ToGcj02(m.toLatLng()) : m.toLatLng();
       final insideAnyFence = fenceRings.any((ring) => fencePolygonContainsLatLng(pos, ring));
       if (!insideAnyFence && fenceRings.isNotEmpty) {
         fenceStatusMap[m.livestockId] = 'BREACH';
@@ -232,7 +232,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                 // Livestock markers (unified)
                 for (final m in overview.livestockMarkers)
                   Marker(
-                    point: m.toLatLng(),
+                    point: shouldTransform ? CoordTransform.wgs84ToGcj02(m.toLatLng()) : m.toLatLng(),
                     width: 32,
                     height: 32,
                     child: LivestockMapMarker(
