@@ -264,10 +264,9 @@ class _FencePageState extends ConsumerState<FencePage>
                             PolylineLayer(
                               polylines: [
                                 Polyline(
-                                  points: [
-                                    ...editSession.points,
-                                    editSession.points.first,
-                                  ],
+                                  points: (_tileProvider?.shouldTransformCoordinates() ?? false)
+                                      ? CoordTransform.wgs84ToGcj02All([...editSession.points, editSession.points.first])
+                                      : [...editSession.points, editSession.points.first],
                                   color: AppColors.primary,
                                   strokeWidth: 2.5,
                                 ),
@@ -559,9 +558,11 @@ class _FencePageState extends ConsumerState<FencePage>
 
   List<Polygon> _buildEditPolygons(FenceEditSession editSession) {
     if (editSession.points.length < 3) return const [];
+    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
+    final pts = shouldTransform ? CoordTransform.wgs84ToGcj02All(editSession.points) : editSession.points;
     return [
       Polygon(
-        points: editSession.points,
+        points: pts,
         color: AppColors.primary.withValues(alpha: 0.22),
         borderColor: AppColors.primary,
         borderStrokeWidth: 2.5,
@@ -575,11 +576,12 @@ class _FencePageState extends ConsumerState<FencePage>
     bool isSaving,
   ) {
     final isInteractive = !isSaving;
+    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
     return [
       for (var i = 0; i < editSession.points.length; i++)
         Marker(
           key: Key('fence-edit-vertex-marker-$i'),
-          point: editSession.points[i],
+          point: shouldTransform ? CoordTransform.wgs84ToGcj02(editSession.points[i]) : editSession.points[i],
           width: 88,
           height: 88,
           alignment: Alignment.center,
@@ -640,11 +642,12 @@ class _FencePageState extends ConsumerState<FencePage>
     FenceController controller,
     bool isSaving,
   ) {
+    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
     return [
       for (var i = 0; i < editSession.points.length; i++)
         Marker(
           key: Key('fence-edit-edge-marker-$i'),
-          point: _midPointForEdge(editSession.points, i),
+          point: shouldTransform ? CoordTransform.wgs84ToGcj02(_midPointForEdge(editSession.points, i)) : _midPointForEdge(editSession.points, i),
           width: 28,
           height: 28,
           child: GestureDetector(
@@ -795,8 +798,10 @@ class _FencePageState extends ConsumerState<FencePage>
     final renderBox = context.findRenderObject();
     if (renderBox is! RenderBox) return;
     final local = renderBox.globalToLocal(globalPosition);
-    final nextPoint = _latLngFromLocal(local);
-    if (nextPoint == null) return;
+    final raw = _latLngFromLocal(local);
+    if (raw == null) return;
+    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
+    final nextPoint = shouldTransform ? CoordTransform.gcj02ToWgs84(raw) : raw;
     controller.moveDraftVertex(vertexIndex, nextPoint);
   }
 
