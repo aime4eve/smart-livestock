@@ -49,7 +49,7 @@ services:
     env_file:
       - .env
     volumes:
-      - tileserver-data:/data/mbtiles:ro
+      - tileserver-data:/data:ro
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
