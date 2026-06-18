@@ -176,7 +176,7 @@ class TileIntegrationTest {
         when(farmTileTaskRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         TileGenerationTaskDto dto = tileAdminService.updateTaskStatus(
-            7L, "done", 15000, 128.5, null);
+            7L, "done", 15000, 128.5, null, null);
 
         assertEquals("done", dto.status());
         verify(farmTileTaskRepository).save(argThat(t -> "ready".equals(t.getStatus())));

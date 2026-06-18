@@ -2,6 +2,7 @@ package com.smartlivestock.health.application.service;
 
 import com.smartlivestock.health.domain.model.*;
 import static org.mockito.ArgumentMatchers.any;
+import com.smartlivestock.health.domain.port.HealthSubscriptionPort;
 import com.smartlivestock.health.domain.port.RanchCommandPort;
 import com.smartlivestock.health.domain.port.RanchQueryPort;
 import com.smartlivestock.health.domain.port.dto.AlertInfo;
@@ -39,6 +40,7 @@ class HealthApplicationServiceTelemetryTest {
     @Mock private ContactTraceRepository contactTraceRepo;
     @Mock private RanchQueryPort ranchQueryPort;
     @Mock private RanchCommandPort ranchCommandPort;
+    @Mock private HealthSubscriptionPort subscriptionPort;
     @Mock private FeverAnalysisService feverService;
     @Mock private DigestiveAnalysisService digestiveService;
     @Mock private EstrusAnalysisService estrusAnalysisService;
@@ -52,6 +54,7 @@ class HealthApplicationServiceTelemetryTest {
                 snapshotRepo, tempLogRepo, motilityLogRepo, activityLogRepo,
                 estrusScoreRepo, contactTraceRepo,
                 ranchQueryPort, ranchCommandPort,
+                subscriptionPort,
                 feverService, digestiveService, estrusAnalysisService, epidemicService);
     }
 
