@@ -713,9 +713,12 @@ class _FencePageState extends ConsumerState<FencePage>
     final screenPoint = tapPosition.relative;
     if (screenPoint == null) return;
     final camera = _mapController.camera;
+    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
 
     Offset project(LatLng ll) {
-      final p = camera.latLngToScreenOffset(ll);
+      // fence.points 为 WGS-84，高德降级时先转 GCJ-02 再投影到瓦片屏幕坐标
+      final projected = shouldTransform ? CoordTransform.wgs84ToGcj02(ll) : ll;
+      final p = camera.latLngToScreenOffset(projected);
       return Offset((p.dx as num).toDouble(), (p.dy as num).toDouble());
     }
 
@@ -821,12 +824,16 @@ class _FencePageState extends ConsumerState<FencePage>
       _lastTranslateOffset = current;
       return;
     }
-    final previousLatLng = _latLngFromLocal(previous);
-    final currentLatLng = _latLngFromLocal(current);
-    if (previousLatLng == null || currentLatLng == null) {
+    final prevRaw = _latLngFromLocal(previous);
+    final currRaw = _latLngFromLocal(current);
+    if (prevRaw == null || currRaw == null) {
       _lastTranslateOffset = current;
       return;
     }
+    // 地图屏幕坐标 → GCJ-02（高德降级），转 WGS-84 后算 delta，保证平移量与 WGS-84 存储一致
+    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
+    final previousLatLng = shouldTransform ? CoordTransform.gcj02ToWgs84(prevRaw) : prevRaw;
+    final currentLatLng = shouldTransform ? CoordTransform.gcj02ToWgs84(currRaw) : currRaw;
     ref.read(fenceControllerProvider.notifier).translateDraft(
           currentLatLng.latitude - previousLatLng.latitude,
           currentLatLng.longitude - previousLatLng.longitude,
