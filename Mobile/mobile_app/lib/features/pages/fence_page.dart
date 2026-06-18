@@ -1001,12 +1001,13 @@ class _FencePageState extends ConsumerState<FencePage>
   }
 
   List<Marker> _buildFenceNameMarkers(FenceState fenceState) {
+    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
     return [
       for (final fence in fenceState.fences)
         if (fence.points.isNotEmpty)
           Marker(
             key: Key('fence-map-name-${fence.id}'),
-            point: _fenceCenter(fence.points),
+            point: shouldTransform ? CoordTransform.wgs84ToGcj02(_fenceCenter(fence.points)) : _fenceCenter(fence.points),
             width: 140,
             height: 40,
             alignment: Alignment.center,

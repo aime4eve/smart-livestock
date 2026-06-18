@@ -2,6 +2,7 @@ import 'dart:math' show cos, sqrt;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
 
 /// Degree offset per meter at given latitude.
@@ -20,10 +21,12 @@ class FenceBufferLayer extends StatelessWidget {
     super.key,
     required this.fences,
     this.bufferDistance = 50,
+    this.shouldTransform = false,
   });
 
   final List<RanchFenceData> fences;
   final int bufferDistance;
+  final bool shouldTransform;
 
   @override
   Widget build(BuildContext context) {
@@ -32,8 +35,9 @@ class FenceBufferLayer extends StatelessWidget {
     for (final fence in fences) {
       if (!fence.active || fence.points.isEmpty) continue;
 
-      final bufferPoints = _computeBuffer(fence.points, bufferDistance);
-      if (bufferPoints.isEmpty) continue;
+      final rawBuffer = _computeBuffer(fence.points, bufferDistance);
+      if (rawBuffer.isEmpty) continue;
+      final bufferPoints = shouldTransform ? CoordTransform.wgs84ToGcj02All(rawBuffer) : rawBuffer;
 
       polygons.add(Polygon(
         points: bufferPoints,

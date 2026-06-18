@@ -211,7 +211,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                   ],
                 ),
               ),
-            FenceBufferLayer(fences: overview.fences, bufferDistance: 50),
+            FenceBufferLayer(fences: overview.fences, bufferDistance: 50, shouldTransform: shouldTransform),
             MarkerLayer(
               markers: [
                 // Fence name labels
