@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
@@ -6,11 +7,33 @@ import 'package:hkt_livestock_agentic/features/admin/tile_admin/domain/tile_admi
 import 'package:hkt_livestock_agentic/features/admin/tile_admin/presentation/tile_admin_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
-class TileAdminPage extends ConsumerWidget {
+class TileAdminPage extends ConsumerStatefulWidget {
   const TileAdminPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TileAdminPage> createState() => _TileAdminPageState();
+}
+
+class _TileAdminPageState extends ConsumerState<TileAdminPage> {
+  Timer? _pollTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // 有 pending/running 任务时轮询刷新，让进展实时可见
+    _pollTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (mounted) ref.read(tileAdminControllerProvider.notifier).refresh();
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(tileAdminControllerProvider);
     return Scaffold(
@@ -132,23 +155,96 @@ class _TasksTab extends StatelessWidget {
     return ListView.separated(
       itemCount: tasks.length,
       separatorBuilder: (_, __) => const Divider(height: 1),
-      itemBuilder: (context, index) {
-        final t = tasks[index];
-        final statusColor = switch (t.status) {
-          'COMPLETED' => AppColors.success,
-          'FAILED' => AppColors.danger,
-          'PROCESSING' => AppColors.warning,
-          _ => AppColors.textSecondary,
-        };
-        return ListTile(
-          leading: Icon(Icons.task_outlined, color: statusColor),
-          title: Text(t.regionName ?? 'Task #${t.id}'),
-          subtitle: Text('${l10n.tileAdminStatusInfo(t.status ?? '-', t.tileCount.toString(), t.fileSizeMb.toStringAsFixed(1))}'
-            '${t.errorMessage != null ? "\nError: ${t.errorMessage}" : ""}'),
-          trailing: Chip(label: Text(t.status ?? '-', style: TextStyle(color: statusColor, fontSize: 11))),
-        );
-      },
+      itemBuilder: (context, index) => _TaskCard(task: tasks[index]),
     );
+  }
+}
+
+class _TaskCard extends StatelessWidget {
+  const _TaskCard({required this.task});
+  final TileTask task;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final status = task.status ?? 'pending';
+    final isRunning = status == 'running';
+    final isDone = status == 'done';
+    final isFailed = status == 'failed';
+    final color = isDone
+        ? AppColors.success
+        : isFailed
+            ? AppColors.danger
+            : isRunning
+                ? AppColors.warning
+                : AppColors.textSecondary;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isRunning
+                    ? Icons.sync
+                    : (isDone ? Icons.check_circle : Icons.task_outlined),
+                color: color,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(task.regionName ?? 'Task #${task.id}',
+                    style: theme.textTheme.titleSmall),
+              ),
+              if (isRunning)
+                const Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: SizedBox(
+                      width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+                ),
+              Chip(
+                label: Text(status, style: TextStyle(color: color, fontSize: 11)),
+                padding: EdgeInsets.zero,
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          if (isRunning && task.progress != null) ...[
+            Text(task.progress!, style: theme.textTheme.bodySmall),
+            const SizedBox(height: 4),
+            LinearProgressIndicator(value: task.progressValue, minHeight: 6),
+          ] else if (isDone)
+            Text(
+              '${task.tileCount} ${l10n.tileAdminTilesUnit} · ${task.fileSizeMb.toStringAsFixed(1)} MB',
+              style: theme.textTheme.bodySmall,
+            )
+          else if (isFailed && task.errorMessage != null)
+            Text('${l10n.tileAdminErrorPrefix}${task.errorMessage}',
+                style: theme.textTheme.bodySmall?.copyWith(color: AppColors.danger))
+          else if (status == 'pending')
+            Text(l10n.tileAdminTaskPending, style: theme.textTheme.bodySmall),
+          if (task.startedAt != null) ...[
+            const SizedBox(height: 4),
+            Text(_elapsedLabel(l10n),
+                style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary)),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _elapsedLabel(AppLocalizations l10n) {
+    final start = DateTime.tryParse(task.startedAt ?? '');
+    if (start == null) return '';
+    final end = DateTime.tryParse(task.finishedAt ?? '') ?? DateTime.now().toUtc();
+    final d = end.difference(start);
+    final h = d.inHours;
+    final m = d.inMinutes.remainder(60);
+    final s = d.inSeconds.remainder(60);
+    final dur = h > 0 ? '${h}h${m}m' : (m > 0 ? '${m}m${s}s' : '${s}s');
+    return task.finishedAt != null ? l10n.tileAdminDuration(dur) : l10n.tileAdminRunningFor(dur);
   }
 }
 

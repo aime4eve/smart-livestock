@@ -1688,6 +1688,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tileAdminCreateFailed => 'Failed to create task';
 
   @override
+  String get tileAdminTaskPending => 'Queued for worker';
+
+  @override
+  String get tileAdminTilesUnit => 'tiles';
+
+  @override
+  String get tileAdminErrorPrefix => 'Error: ';
+
+  @override
+  String tileAdminRunningFor(String duration) {
+    return 'Running $duration';
+  }
+
+  @override
+  String tileAdminDuration(String duration) {
+    return 'Duration $duration';
+  }
+
+  @override
   String get b2bFarmListTitle => 'Managed Farms';
 
   @override
@@ -2229,6 +2248,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get livestockRumination => 'Rumination';
+
+  @override
+  String livestockRuminationValue(String value) {
+    return '$value times/min';
+  }
 
   @override
   String get feverLoadFailed => 'Failed to load temperature data';

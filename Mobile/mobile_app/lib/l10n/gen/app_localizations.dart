@@ -3126,6 +3126,36 @@ abstract class AppLocalizations {
   /// **'创建失败'**
   String get tileAdminCreateFailed;
 
+  /// No description provided for @tileAdminTaskPending.
+  ///
+  /// In zh, this message translates to:
+  /// **'等待 worker 处理'**
+  String get tileAdminTaskPending;
+
+  /// No description provided for @tileAdminTilesUnit.
+  ///
+  /// In zh, this message translates to:
+  /// **'瓦片'**
+  String get tileAdminTilesUnit;
+
+  /// No description provided for @tileAdminErrorPrefix.
+  ///
+  /// In zh, this message translates to:
+  /// **'错误：'**
+  String get tileAdminErrorPrefix;
+
+  /// No description provided for @tileAdminRunningFor.
+  ///
+  /// In zh, this message translates to:
+  /// **'已运行 {duration}'**
+  String tileAdminRunningFor(String duration);
+
+  /// No description provided for @tileAdminDuration.
+  ///
+  /// In zh, this message translates to:
+  /// **'用时 {duration}'**
+  String tileAdminDuration(String duration);
+
   /// No description provided for @b2bFarmListTitle.
   ///
   /// In zh, this message translates to:
@@ -4091,6 +4121,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'反刍频率'**
   String get livestockRumination;
+
+  /// No description provided for @livestockRuminationValue.
+  ///
+  /// In zh, this message translates to:
+  /// **'{value} 次/分'**
+  String livestockRuminationValue(String value);
 
   /// No description provided for @feverLoadFailed.
   ///

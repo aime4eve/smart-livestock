@@ -43,6 +43,9 @@ class TileTask {
     this.tileCount = 0,
     this.fileSizeMb = 0.0,
     this.errorMessage,
+    this.progress,
+    this.startedAt,
+    this.finishedAt,
   });
 
   final int id;
@@ -55,6 +58,16 @@ class TileTask {
   final int tileCount;
   final double fileSizeMb;
   final String? errorMessage;
+  final String? progress;
+  final String? startedAt;
+  final String? finishedAt;
+
+  /// 从 progress 文本（如 "z14 4400/5687 (77%)"）解析百分比 0.0-1.0，用于进度条
+  double? get progressValue {
+    final m = RegExp(r'\((\d+)%\)').firstMatch(progress ?? '');
+    if (m == null) return null;
+    return int.parse(m.group(1)!) / 100.0;
+  }
 }
 
 class FarmTileStatus {

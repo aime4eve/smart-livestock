@@ -93,7 +93,7 @@ class RuntimeTimeout(Exception):
     pass
 
 
-def generate_mbtiles(bbox, zoom_range, output, server="osm", rate=1.0, deadline=None):
+def generate_mbtiles(bbox, zoom_range, output, server="osm", rate=1.0, deadline=None, progress_callback=None):
     min_lon, min_lat, max_lon, max_lat = [float(v) for v in bbox.split(",")]
     min_zoom, max_zoom = [int(v) for v in zoom_range.split("-")]
     template = TILE_SERVERS.get(server)
@@ -152,6 +152,8 @@ def generate_mbtiles(bbox, zoom_range, output, server="osm", rate=1.0, deadline=
                     if zoom_done % 50 == 0 or zoom_done == zoom_total:
                         pct = zoom_done / zoom_total * 100
                         print(f"    z{z}: {zoom_done}/{zoom_total} ({pct:.0f}%)", flush=True)
+                        if progress_callback:
+                            progress_callback(f"z{z} {zoom_done}/{zoom_total} ({pct:.0f}%)")
                     if rate > 0:
                         time.sleep(rate)
 
@@ -326,9 +328,17 @@ def run_task_mode(args):
     print("Status → running")
 
     # 3. Generate
+    def _report_progress(text):
+        try:
+            _api_call(f"{task_url}/status", api_key, method="PUT",
+                      body={"status": "running", "progress": text})
+        except Exception:
+            pass
+
     try:
         os.makedirs(args.outdir, exist_ok=True)
-        result = generate_mbtiles(bbox, zoom, output, args.server, args.rate)
+        result = generate_mbtiles(bbox, zoom, output, args.server, args.rate,
+                                  progress_callback=_report_progress)
 
         # 4. Mark done
         _api_call(f"{task_url}/status", api_key, method="PUT",

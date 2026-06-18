@@ -26,7 +26,10 @@ public class HealthQueryPortAdapter implements HealthQueryPort {
                         s.getLivestockId(),
                         statusString(s.getTempStatus()),
                         statusString(s.getMotilityStatus()),
-                        s.getEstrusScore() != null ? s.getEstrusScore() : 0
+                        s.getEstrusScore() != null ? s.getEstrusScore() : 0,
+                        s.getCurrentTemp(),
+                        s.getCurrentMotility(),
+                        s.getActivityStatus() != null ? s.getActivityStatus().name() : "NORMAL"
                 ));
     }
 
@@ -37,7 +40,10 @@ public class HealthQueryPortAdapter implements HealthQueryPort {
                         s.getLivestockId(),
                         statusString(s.getTempStatus()),
                         statusString(s.getMotilityStatus()),
-                        s.getEstrusScore() != null ? s.getEstrusScore() : 0
+                        s.getEstrusScore() != null ? s.getEstrusScore() : 0,
+                        s.getCurrentTemp(),
+                        s.getCurrentMotility(),
+                        s.getActivityStatus() != null ? s.getActivityStatus().name() : "NORMAL"
                 ))
                 .toList();
     }

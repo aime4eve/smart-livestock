@@ -2,6 +2,7 @@ package com.smartlivestock.ranch.application;
 
 import com.smartlivestock.ranch.application.dto.LivestockDto;
 import com.smartlivestock.ranch.domain.model.Livestock;
+import com.smartlivestock.ranch.domain.port.HealthQueryPort;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -17,6 +18,7 @@ import java.util.List;
 public class LivestockApplicationService {
 
     private final LivestockRepository livestockRepository;
+    private final HealthQueryPort healthQueryPort;
 
     @Transactional
     public LivestockDto createLivestock(Long farmId, String livestockCode) {
@@ -31,7 +33,8 @@ public class LivestockApplicationService {
     public LivestockDto getLivestock(Long id) {
         Livestock livestock = livestockRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牲畜不存在: " + id));
-        return LivestockDto.from(livestock);
+        HealthQueryPort.LivestockHealthState health = healthQueryPort.findHealthByLivestockId(id).orElse(null);
+        return LivestockDto.detail(livestock, health);
     }
 
     @Transactional(readOnly = true)

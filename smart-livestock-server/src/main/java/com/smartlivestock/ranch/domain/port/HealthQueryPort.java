@@ -1,5 +1,6 @@
 package com.smartlivestock.ranch.domain.port;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,7 +13,10 @@ public interface HealthQueryPort {
             Long livestockId,
             String tempStatus,
             String motilityStatus,
-            int estrusScore
+            int estrusScore,
+            BigDecimal currentTemp,
+            BigDecimal currentMotility,
+            String activityStatus
     ) {}
 
     record HealthOverview(

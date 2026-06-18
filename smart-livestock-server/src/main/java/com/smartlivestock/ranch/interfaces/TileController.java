@@ -27,8 +27,8 @@ import java.util.Map;
 public class TileController {
 
     private static final Logger log = LoggerFactory.getLogger(TileController.class);
-    private static final String TILES_DIR = "/data/mbtiles";
-    private static final String REGIONS_FILE = "/data/mbtiles/regions.json";
+    private static final String TILES_DIR = "/data";
+    private static final String REGIONS_FILE = "/data/regions.json";
 
     private final IdentityQueryPort identityQueryPort;
     private final ObjectMapper objectMapper;

@@ -1,8 +1,10 @@
 package com.smartlivestock.ranch.application.dto;
 
 import com.smartlivestock.ranch.domain.model.Livestock;
+import com.smartlivestock.ranch.domain.port.HealthQueryPort;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -17,7 +19,10 @@ public record LivestockDto(
         String healthStatus,
         BigDecimal lastLatitude,
         BigDecimal lastLongitude,
-        Instant lastPositionAt
+        Instant lastPositionAt,
+        BigDecimal bodyTemp,
+        String activityLevel,
+        String ruminationFreq
 ) {
     public static LivestockDto from(Livestock livestock) {
         return new LivestockDto(
@@ -31,7 +36,44 @@ public record LivestockDto(
                 livestock.getHealthStatus().name(),
                 livestock.getLastLatitude(),
                 livestock.getLastLongitude(),
-                livestock.getLastPositionAt()
+                livestock.getLastPositionAt(),
+                null, null, null
+        );
+    }
+
+    /**
+     * Build detail DTO enriched with latest health-snapshot data.
+     */
+    public static LivestockDto detail(Livestock livestock, HealthQueryPort.LivestockHealthState health) {
+        BigDecimal bodyTemp = null;
+        String activityLevel = null;
+        String ruminationFreq = null;
+
+        if (health != null) {
+            if (health.currentTemp() != null) {
+                bodyTemp = health.currentTemp().setScale(2, RoundingMode.HALF_UP);
+            }
+            if (health.currentMotility() != null) {
+                ruminationFreq = health.currentMotility().setScale(1, RoundingMode.HALF_UP).toPlainString();
+            }
+            if (health.activityStatus() != null) {
+                activityLevel = health.activityStatus();
+            }
+        }
+
+        return new LivestockDto(
+                livestock.getId(),
+                livestock.getFarmId(),
+                livestock.getLivestockCode(),
+                livestock.getBreed(),
+                livestock.getGender(),
+                livestock.getBirthDate(),
+                livestock.getWeight(),
+                livestock.getHealthStatus().name(),
+                livestock.getLastLatitude(),
+                livestock.getLastLongitude(),
+                livestock.getLastPositionAt(),
+                bodyTemp, activityLevel, ruminationFreq
         );
     }
 }

@@ -1434,6 +1434,20 @@
   "@tileAdminCreateSuccess": {},
   "tileAdminCreateFailed": "创建失败",
   "@tileAdminCreateFailed": {},
+  "tileAdminTaskPending": "等待 worker 处理",
+  "@tileAdminTaskPending": {},
+  "tileAdminTilesUnit": "瓦片",
+  "@tileAdminTilesUnit": {},
+  "tileAdminErrorPrefix": "错误：",
+  "@tileAdminErrorPrefix": {},
+  "tileAdminRunningFor": "已运行 {duration}",
+  "@tileAdminRunningFor": {
+    "placeholders": { "duration": { "type": "String" } }
+  },
+  "tileAdminDuration": "用时 {duration}",
+  "@tileAdminDuration": {
+    "placeholders": { "duration": { "type": "String" } }
+  },
   "b2bFarmListTitle": "旗下牧场",
   "@b2bFarmListTitle": {},
   "b2bFarmListOptional": "以下选填",
@@ -1876,6 +1890,12 @@
   "@livestockActivity": {},
   "livestockRumination": "反刍频率",
   "@livestockRumination": {},
+  "livestockRuminationValue": "{value} 次/分",
+  "@livestockRuminationValue": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
   "feverLoadFailed": "体温数据加载失败",
   "@feverLoadFailed": {},
   "feverNoRecords": "暂无体温记录",

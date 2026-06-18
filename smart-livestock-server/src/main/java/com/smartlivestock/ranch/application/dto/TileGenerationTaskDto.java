@@ -10,7 +10,7 @@ public record TileGenerationTaskDto(
         String status, String triggeredBy,
         Integer tileCount, Double fileSizeMb,
         Double coverageRatio, boolean customRegion,
-        String errorMessage,
+        String errorMessage, String progress,
         Instant startedAt, Instant finishedAt, Instant createdAt
 ) {
     public static TileGenerationTaskDto from(TileGenerationTask t) {
@@ -20,7 +20,7 @@ public record TileGenerationTaskDto(
                 t.getStatus(), t.getTriggeredBy(),
                 t.getTileCount(), t.getFileSizeMb(),
                 t.getCoverageRatio(), t.isCustomRegion(),
-                t.getErrorMessage(),
+                t.getErrorMessage(), t.getProgress(),
                 t.getStartedAt(), t.getFinishedAt(), null);
     }
 }

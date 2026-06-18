@@ -1434,6 +1434,20 @@
   "@tileAdminCreateSuccess": {},
   "tileAdminCreateFailed": "Failed to create task",
   "@tileAdminCreateFailed": {},
+  "tileAdminTaskPending": "Queued for worker",
+  "@tileAdminTaskPending": {},
+  "tileAdminTilesUnit": "tiles",
+  "@tileAdminTilesUnit": {},
+  "tileAdminErrorPrefix": "Error: ",
+  "@tileAdminErrorPrefix": {},
+  "tileAdminRunningFor": "Running {duration}",
+  "@tileAdminRunningFor": {
+    "placeholders": { "duration": { "type": "String" } }
+  },
+  "tileAdminDuration": "Duration {duration}",
+  "@tileAdminDuration": {
+    "placeholders": { "duration": { "type": "String" } }
+  },
   "b2bFarmListTitle": "Managed Farms",
   "@b2bFarmListTitle": {},
   "b2bFarmListOptional": "Optional",
@@ -1876,6 +1890,12 @@
   "@livestockActivity": {},
   "livestockRumination": "Rumination",
   "@livestockRumination": {},
+  "livestockRuminationValue": "{value} times/min",
+  "@livestockRuminationValue": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
   "feverLoadFailed": "Failed to load temperature data",
   "@feverLoadFailed": {},
   "feverNoRecords": "No temperature records",

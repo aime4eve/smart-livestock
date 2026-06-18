@@ -1659,6 +1659,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tileAdminCreateFailed => '创建失败';
 
   @override
+  String get tileAdminTaskPending => '等待 worker 处理';
+
+  @override
+  String get tileAdminTilesUnit => '瓦片';
+
+  @override
+  String get tileAdminErrorPrefix => '错误：';
+
+  @override
+  String tileAdminRunningFor(String duration) {
+    return '已运行 $duration';
+  }
+
+  @override
+  String tileAdminDuration(String duration) {
+    return '用时 $duration';
+  }
+
+  @override
   String get b2bFarmListTitle => '旗下牧场';
 
   @override
@@ -2180,6 +2199,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get livestockRumination => '反刍频率';
+
+  @override
+  String livestockRuminationValue(String value) {
+    return '$value 次/分';
+  }
 
   @override
   String get feverLoadFailed => '体温数据加载失败';

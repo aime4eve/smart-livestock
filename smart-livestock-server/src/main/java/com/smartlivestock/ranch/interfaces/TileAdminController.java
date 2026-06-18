@@ -78,7 +78,8 @@ public class TileAdminController {
                 (String) body.get("status"),
                 body.get("tileCount") != null ? ((Number) body.get("tileCount")).intValue() : null,
                 body.get("fileSizeMb") != null ? ((Number) body.get("fileSizeMb")).doubleValue() : null,
-                (String) body.get("errorMessage")
+                (String) body.get("errorMessage"),
+                (String) body.get("progress")
         );
         return ResponseEntity.ok(ApiResponse.ok(dto));
     }

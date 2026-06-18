@@ -66,6 +66,9 @@ class TileAdminApiRepository {
       tileCount: (m['tileCount'] as num?)?.toInt() ?? 0,
       fileSizeMb: (m['fileSizeMb'] as num?)?.toDouble() ?? 0.0,
       errorMessage: m['errorMessage']?.toString(),
+      progress: m['progress']?.toString(),
+      startedAt: m['startedAt']?.toString(),
+      finishedAt: m['finishedAt']?.toString(),
     );
   }
 

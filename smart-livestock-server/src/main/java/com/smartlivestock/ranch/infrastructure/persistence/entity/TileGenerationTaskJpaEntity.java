@@ -23,6 +23,7 @@ public class TileGenerationTaskJpaEntity {
     @Column(name = "file_size_mb") private Double fileSizeMb;
     @Column(name = "error_message", columnDefinition = "TEXT") private String errorMessage;
     @Column(name = "coverage_ratio") private Double coverageRatio;
+    @Column(name = "progress", length = 100) private String progress;
     @Column(name = "is_custom_region", nullable = false) private boolean customRegion = false;
     @Column(name = "started_at") private Instant startedAt;
     @Column(name = "finished_at") private Instant finishedAt;
@@ -45,6 +46,7 @@ public class TileGenerationTaskJpaEntity {
     public Double getFileSizeMb() { return fileSizeMb; } public void setFileSizeMb(Double v) { fileSizeMb = v; }
     public String getErrorMessage() { return errorMessage; } public void setErrorMessage(String v) { errorMessage = v; }
     public Double getCoverageRatio() { return coverageRatio; } public void setCoverageRatio(Double v) { coverageRatio = v; }
+    public String getProgress() { return progress; } public void setProgress(String v) { progress = v; }
     public boolean isCustomRegion() { return customRegion; } public void setCustomRegion(boolean v) { customRegion = v; }
     public Instant getStartedAt() { return startedAt; } public void setStartedAt(Instant v) { startedAt = v; }
     public Instant getFinishedAt() { return finishedAt; } public void setFinishedAt(Instant v) { finishedAt = v; }

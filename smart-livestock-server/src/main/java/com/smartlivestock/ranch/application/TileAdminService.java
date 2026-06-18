@@ -66,7 +66,7 @@ public class TileAdminService {
 
     @Transactional
     public TileGenerationTaskDto updateTaskStatus(Long id, String status, Integer tileCount,
-                                                    Double fileSizeMb, String errorMessage) {
+                                                    Double fileSizeMb, String errorMessage, String progress) {
         TileGenerationTask task = tileGenerationTaskRepository.findById(id)
                 .orElseThrow(() -> new com.smartlivestock.shared.common.ApiException(
                         com.smartlivestock.shared.common.ErrorCode.RESOURCE_NOT_FOUND, "任务不存在: " + id));
@@ -74,6 +74,7 @@ public class TileAdminService {
         if (tileCount != null) task.setTileCount(tileCount);
         if (fileSizeMb != null) task.setFileSizeMb(fileSizeMb);
         if (errorMessage != null) task.setErrorMessage(errorMessage);
+        if (progress != null) task.setProgress(progress);
         if ("running".equals(status)) task.setStartedAt(Instant.now());
         if ("done".equals(status) || "failed".equals(status)) task.setFinishedAt(Instant.now());
 
