@@ -112,7 +112,7 @@ class RanchOverviewApplicationServiceTest {
         when(livestockRepository.findByFarmId(1L)).thenReturn(List.of(l1));
         when(alertRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(List.of(
-                new LivestockHealthState(1L, "FEVER", "NORMAL", 0)
+                new LivestockHealthState(1L, "FEVER", "NORMAL", 0, null, null, "NORMAL")
         ));
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
                 new HealthOverview(1, 0.0, 0, 0, 1, 0, 0, 0, 0, 0.0));
@@ -137,7 +137,7 @@ class RanchOverviewApplicationServiceTest {
         when(livestockRepository.findByFarmId(1L)).thenReturn(List.of(l1));
         when(alertRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(List.of(
-                new LivestockHealthState(1L, "CRITICAL", "NORMAL", 0)
+                new LivestockHealthState(1L, "CRITICAL", "NORMAL", 0, null, null, "NORMAL")
         ));
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
                 new HealthOverview(1, 0.0, 0, 1, 1, 1, 0, 0, 0, 1.0));
@@ -187,7 +187,7 @@ class RanchOverviewApplicationServiceTest {
         when(livestockRepository.findByFarmId(1L)).thenReturn(List.of(l1));
         when(alertRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(List.of(
-                new LivestockHealthState(1L, "NORMAL", "NORMAL", 0)
+                new LivestockHealthState(1L, "NORMAL", "NORMAL", 0, null, null, "NORMAL")
         ));
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
                 new HealthOverview(1, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0));
