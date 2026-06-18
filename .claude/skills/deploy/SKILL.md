@@ -53,10 +53,12 @@ disable-model-invocation: true
 
 ### B. 前端部署
 
-8. **Flutter Web 构建**
+8. **Flutter Web 构建**（同源 `/api/v1`，不传 API_BASE_URL → ApiClient web 默认走页面 origin）
    ```bash
-   cd Mobile/mobile_app && flutter build web --dart-define=APP_MODE=live --dart-define=API_BASE_URL=http://172.22.1.123:18080/api/v1
+   cd Mobile/mobile_app && ./build_web.sh --dart-define=APP_MODE=live
    ```
+   > Web 用相对路径 `/api/v1`：`api_client.dart` 的 `_resolveBaseUrl()` 在 web 平台默认 `/api/v1`，浏览器自动用页面 host:port（nginx 已反代 `/api/v1/` → app:8080），换部署域名/端口无需重建。开发连特定后端时可显式 `--dart-define=API_BASE_URL=http://...` 覆盖。
+   > 必须用 `build_web.sh`（带 `--no-wasm-dry-run`）而非裸 `flutter build web`——后者会因 flutter_secure_storage 触发 wasm dry-run 误报失败。
 
 9. **将构建产物复制到 nginx 目录**
    ```bash

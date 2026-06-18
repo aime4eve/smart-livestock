@@ -89,10 +89,12 @@ flutter build web                  # 构建 Web 版本
 
 ### Web 端注意事项
 
-Web 端默认请求 `http://127.0.0.1:18080/api/v1`。连接不同后端时可显式指定：
+Web 端默认走**同源相对路径 `/api/v1`**（`api_client.dart` 的 `_resolveBaseUrl()` 在 web 平台默认 `/api/v1`，浏览器自动用页面 host:port；部署侧 nginx 已反代 `/api/v1/` → app:8080）。因此 `build_web.sh` 构建**无需传 `API_BASE_URL`**，换部署域名/端口不必重建。
+
+开发调试连特定后端时再显式覆盖：
 
 ```bash
-# 连接 Spring Boot 后端（远程服务器）
+# 连接远程 Spring Boot 后端
 flutter run -d chrome --dart-define=APP_MODE=live --dart-define=API_BASE_URL=http://172.22.1.123:18080/api/v1
 
 # 连接本地 Mock Server
