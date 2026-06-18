@@ -73,6 +73,27 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - **集成测试**：仅在用户确认部署完成后才执行；不得在部署前提前运行（避免对旧版本/无后端状态做无效验证）。
 - **顺序**：编码 → 编译验证 → （用户部署）→ 用户确认 → 集成测试。
 
+## 6. 代码实现通用规范
+
+**所有新增或修改的代码实现，必须同时满足以下两条强制要求：**
+
+### 6.1 国际化规范（i18n）
+
+- 所有面向用户的文本（UI 标题、按钮、提示、错误信息、空状态文案等）必须通过国际化资源引用，禁止硬编码中文/英文字符串。
+- Flutter 端：使用 `AppLocalizations`（`flutter gen-l10n` 生成的 `app_localizations.dart`），文案写入 `lib/l10n/app_*.arb`（中文 `app_zh.arb`、英文 `app_en.arb`），并通过 `context.l10n.xxx` 访问；新增 key 时中英文 arb 必须同步补齐，不得只写一种语言。
+- 后端端（Spring Boot）：错误码、校验消息、业务提示等对外返回的文案应通过 `MessageSource`（`messages_zh.properties` / `messages_en.properties`）管理，按请求 `Accept-Language` 返回对应语言；新增消息 key 时两份 properties 同步维护。
+- PC 端：遵循现有 i18n 方案（i18n pipe / service），不直接写入字面文案。
+- 校验：新增/修改功能后，运行 `flutter gen-l10n` 确认无缺失 key，`flutter analyze` 不报未定义翻译引用；后端编译通过且 properties 双语对齐。
+- 禁止：仅写中文文案而把英文留空或复制中文占位；禁止在 Dart/Java 源码中直接出现面向用户的字面量字符串。
+
+### 6.2 种子数据规范（Seed Data）
+
+- 当新增功能、表、枚举或业务规则导致现有种子数据不足以验证逻辑时，必须同步生成或修改种子数据，使新功能可直接通过种子账号/数据被验证。
+- 后端：通过新增 Flyway 迁移（`V{n}__*.sql`）写入种子数据，遵循现有 seed 迁移风格（命名、列顺序、BCrypt hash 三步验证流程，见「Seed 密码流程」）；不得在 Java 代码中临时 `INSERT` 或硬编码演示数据。
+- Flutter Mock 端：在 `Mobile/backend/data/*Store.js` 或 `seed.js` 中补齐对齐数据，保持与 `demo_seed.dart` 及后端 seed 一致；新增 Store 需提供 `reset()` 方法。
+- 逻辑合理：种子数据必须符合业务约束（外键引用真实存在、状态机合法、时间字段顺序合理、配额/订阅 tier 与功能门控匹配），不得构造自相矛盾或无法被正常流程读取的数据。
+- 校验：种子数据写入后，至少通过编译 + 单元测试/脚本确认可被正确加载和查询；涉及登录凭据的，部署后用 `curl` 调用 `/auth/login` 验证。
+
 ## 项目概述
 
 智慧畜牧系统（Smart Livestock）是面向牧场主的牲畜管理平台，通过 IoT 设备（GPS 追踪器、瘤胃胶囊、加速度计）实现定位、健康预警和行为分析。仓库包含两个子项目：
@@ -414,3 +435,15 @@ cd Mobile && ./dev.sh start [mock|live]
 4. **测试要求**：使用 ProviderContainer 的单元测试必须 override initialSessionProvider 提供有效 activeFarmId。
 
 **违反此规则的典型症状**：牧场切换后页面数据不更新，仍显示旧牧场数据。
+
+---
+
+## 经验判据速查（每次会话生效）
+
+> 详细五段式（现象/误判/根因/解决/判据）见 `docs/lessons-learned.md`，遇下列症状先套规则再深挖。
+
+1. **Flutter 工具 UTF-8 解码失败**（path 含 `._` 前缀）→ 先删 `._*`（AppleDouble 污染），别怀疑 Flutter 本身。
+2. **沙箱内 Flutter 任何命令崩**（写不了 `~/.dart-tool`）→ 统一加 `HOME=/private/tmp FLUTTER_SUPPRESS_ANALYTICS=true flutter <cmd>`；`analyze` 加 `--no-pub`，`pub get` 需联网或 `--offline`。
+3. **`/Volumes/DEV` 上任何工具读到不该读的文件 / git 报 `non-monotonic index`**→ 先 `find . -name '._*' | head` 扫描 AppleDouble 污染（根因多为 rsync/tar 未去 resource fork 或经 FAT/网络卷中转）。
+4. **接口返回空列表**→ 先核验代码 glob 与挂载路径一致后，进容器 `ls` 数据卷确认数据是否存在，不要在代码里继续改路径（如 tile `/data/*.mbtiles` 空多是卷为空，非路径错位）。
+5. **部署与集成测试边界**：编译 Agent 可做（`./gradlew bootJar`、`flutter build`），部署与部署后 `curl` 验证由用户执行（见 §5）。

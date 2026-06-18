@@ -67,6 +67,20 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ## 5.  全局必须关注
 在实现新功能或做功能修改时，必须同步检查种子数据是否配套，并要严格满足国际化设计和实现规范。
 
+### 国际化规范（i18n）
+
+面向用户文本必须走 i18n 资源，禁硬编码。
+- **Flutter**：用 `AppLocalizations` + `app_zh.arb` / `app_en.arb` 同步维护。
+- **后端**：用 `MessageSource` 双语 properties。
+- **校验**：通过 `flutter gen-l10n` / `flutter analyze` / 后端编译。
+
+### 种子数据规范（Seed Data）
+
+新功能导致种子不足时必须同步生成/修改种子数据。
+- **后端**：走 Flyway 迁移（遵循 BCrypt 三步验证）。
+- **Flutter Mock 端**：对齐 Store / seed。
+- **数据约束**：须符合业务约束，写入后通过编译与查询验证。
+
 
 
 ## 项目概述
