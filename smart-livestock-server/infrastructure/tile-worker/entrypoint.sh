@@ -34,6 +34,22 @@ PY
   done
 }
 
+# Reclaim tasks left in 'running' by a previous worker instance (crash /
+# restart / OOM). The worker main loop only polls 'pending', so without
+# this a running task orphaned by a restart would never be picked up again.
+# generate_mbtiles resumes from the existing .mbtiles file and skips tiles
+# already downloaded, so the reclaim is cheap and idempotent.
+echo "[worker] reclaiming stale running tasks..."
+_reclaim_resp=$(curl -sf -H "X-API-Key: $API_KEY" "$API_URL/admin/tiles/tasks?status=running" 2>/dev/null || echo '')
+for _tid in $(echo "$_reclaim_resp" | jq -r '.data // [] | .[].id' 2>/dev/null); do
+  [ -z "$_tid" ] && continue
+  if curl -sf -X PUT "$API_URL/admin/tiles/tasks/$_tid/status" \
+      -H "X-API-Key: $API_KEY" -H "Content-Type: application/json" \
+      -d '{"status":"pending"}' >/dev/null 2>&1; then
+    echo "[worker] reclaimed task $_tid (running -> pending)"
+  fi
+done
+
 while true; do
   resp=$(curl -sf -H "X-API-Key: $API_KEY" "$API_URL/admin/tiles/tasks?status=pending" 2>/dev/null || echo '')
   task_ids=$(echo "$resp" | jq -r '.data // [] | .[].id' 2>/dev/null || true)
@@ -41,8 +57,14 @@ while true; do
     [ -z "$tid" ] && continue
     echo "[$(date '+%F %T')] === task $tid ==="
     if python3 /tooling/generate_mbtiles.py --task-id "$tid" --outdir "$OUTDIR" --api-url "$API_URL" --server "${TILE_SERVER:-osm_de}"; then
-      python3 -c "import json,glob,os;f=sorted(glob.glob('$OUTDIR/*.mbtiles'));d={os.path.splitext(os.path.basename(x))[0]:{'mbtiles':os.path.basename(x)} for x in f};json.dump({'data':d,'options':{'port':8080}},open('$OUTDIR/config.json','w'),indent=2);print('  config.json sources:',list(d))"
-      cid=$(docker ps -q --filter "name=tileserver" 2>/dev/null | head -1)
+     python3 -c "import json,glob,os;f=sorted(glob.glob('$OUTDIR/*.mbtiles'));d={os.path.splitext(os.path.basename(x))[0]:{'mbtiles':os.path.basename(x)} for x in f};json.dump({'data':d,'options':{'port':8080}},open('$OUTDIR/config.json','w'),indent=2);print('  config.json sources:',list(d))"
+      # Reload tileserver to pick up new config.json. tileserver-gl has no
+      # hot-reload, so a container restart is required. This depends on:
+      #   1. /var/run/docker.sock mounted into the worker (see docker-compose)
+      #   2. docker CLI available in the worker image
+      #   3. container name matching "tileserver" (compose generates
+      #      smart-livestock-server-tileserver-1, filter still matches)
+     cid=$(docker ps -q --filter "name=tileserver" 2>/dev/null | head -1)
       if [ -n "$cid" ]; then docker restart "$cid" >/dev/null 2>&1 && echo "  tileserver restarted ($cid) to load config.json" && sleep 5; fi
       sync_regions
     else
