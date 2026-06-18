@@ -5,3 +5,7 @@
 backend/node_modules/
 .dev-pids/
 .worktrees/
+
+# SQLite runtime files (mbtiles WAL/SHM)
+*.mbtiles-wal
+*.mbtiles-shm
