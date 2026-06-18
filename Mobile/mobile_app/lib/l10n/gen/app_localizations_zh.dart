@@ -1434,6 +1434,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get offlineTileNoRegions => '暂无可用离线地图';
 
   @override
+  String get offlineTileGenerate => '生成离线地图';
+
+  @override
+  String get offlineTileGeneratingHint => '已请求生成，预计数分钟后完成，请稍后重新进入本页查看';
+
+  @override
+  String get offlineTileRecheck => '重新检测';
+
+  @override
   String offlineTileRegionsAvailable(String count) {
     return '可用区域（$count）';
   }

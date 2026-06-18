@@ -122,6 +122,36 @@ public class TileAdminService {
         return new FarmTileStatusDto(farmId, regionStatuses, coverageRatio, coverageWarning);
     }
 
+    /**
+     * Owner/App 端主动请求离线瓦片：先关联已生成的覆盖区域（修复 custom 生成任务不自动关联
+     * 农场的断链——worker 生成完 region 后 farm_tile_task 缺失），无覆盖时去重创建 custom
+     * 生成任务（owner 反复触发不堆积 pending）。
+     */
+    @Transactional
+    public FarmTileStatusDto requestFarmTileGeneration(Long farmId, double[] bbox) {
+        List<TileRegion> intersecting = tileRegionRepository.findIntersecting(
+                bbox[0], bbox[1], bbox[2], bbox[3]);
+        if (!intersecting.isEmpty()) {
+            // 已有覆盖区域：建立/刷新 farm_tile_task 关联（coverageRatio=1.0 走关联分支）
+            return handleFarmTileDetection(farmId, bbox, 1.0);
+        }
+        String regionName = "custom-farm-" + farmId;
+        if (!hasInflightTask(regionName)) {
+            TileGenerationTask task = new TileGenerationTask(
+                    regionName, bbox[0], bbox[1], bbox[2], bbox[3], 11, 15);
+            task.setCustomRegion(true);
+            tileGenerationTaskRepository.save(task);
+        }
+        return getFarmTileStatus(farmId);
+    }
+
+    private boolean hasInflightTask(String regionName) {
+        return tileGenerationTaskRepository.findByStatus("pending").stream()
+                    .anyMatch(t -> regionName.equals(t.getRegionName()))
+                || tileGenerationTaskRepository.findByStatus("running").stream()
+                    .anyMatch(t -> regionName.equals(t.getRegionName()));
+    }
+
     @Transactional(readOnly = true)
     public FarmTileStatusDto getFarmTileStatus(Long farmId) {
         List<FarmTileTask> tasks = farmTileTaskRepository.findByFarmId(farmId);

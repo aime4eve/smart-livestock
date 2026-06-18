@@ -1233,6 +1233,12 @@
   "@deviceViewLocation": {},
   "offlineTileNoRegions": "暂无可用离线地图",
   "@offlineTileNoRegions": {},
+  "offlineTileGenerate": "生成离线地图",
+  "@offlineTileGenerate": {},
+  "offlineTileGeneratingHint": "已请求生成，预计数分钟后完成，请稍后重新进入本页查看",
+  "@offlineTileGeneratingHint": {},
+  "offlineTileRecheck": "重新检测",
+  "@offlineTileRecheck": {},
   "offlineTileRegionsAvailable": "可用区域（{count}）",
   "@offlineTileRegionsAvailable": {
     "placeholders": {

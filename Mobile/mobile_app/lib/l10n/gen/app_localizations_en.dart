@@ -1461,6 +1461,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get offlineTileNoRegions => 'No offline maps available';
 
   @override
+  String get offlineTileGenerate => 'Generate offline map';
+
+  @override
+  String get offlineTileGeneratingHint =>
+      'Generation requested. It takes a few minutes; please re-enter this page later.';
+
+  @override
+  String get offlineTileRecheck => 'Re-check';
+
+  @override
   String offlineTileRegionsAvailable(String count) {
     return 'Available Regions ($count)';
   }

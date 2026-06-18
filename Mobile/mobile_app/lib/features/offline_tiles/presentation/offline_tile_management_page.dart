@@ -15,18 +15,22 @@ class OfflineTileManagementPage extends ConsumerStatefulWidget {
 class _OfflineTileManagementPageState
     extends ConsumerState<OfflineTileManagementPage> {
   bool _loading = true;
+  bool _busy = false; // 正在请求生成/重新检测
   String? _error;
   List<Map<String, dynamic>> _regions = [];
 
   @override
   void initState() {
     super.initState();
-    _loadStatus();
+    _requestAndLoad();
   }
 
-  Future<void> _loadStatus() async {
+  /// 进页/重检：先 POST /tile-tasks（幂等——已生成的 region 立即关联，无则去重触发生成），
+  /// 再拉 tile-status。owner 无需 admin 权限。
+  Future<void> _requestAndLoad() async {
     setState(() { _loading = true; _error = null; });
     try {
+      await ApiClient.instance.farmPost('/tile-tasks');
       final data = await ApiClient.instance.farmGet('/tile-status');
       final regions = (data['regions'] as List?)?.cast<Map<String, dynamic>>() ?? [];
       if (mounted) setState(() { _regions = regions; _loading = false; });
@@ -35,17 +39,64 @@ class _OfflineTileManagementPageState
     }
   }
 
+  Future<void> _recheck() async {
+    setState(() { _busy = true; });
+    try {
+      await ApiClient.instance.farmPost('/tile-tasks');
+      final data = await ApiClient.instance.farmGet('/tile-status');
+      final regions = (data['regions'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+      if (mounted) setState(() { _regions = regions; _busy = false; });
+    } catch (_) {
+      if (mounted) setState(() { _busy = false; });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.offlineTileTitle)),
+      appBar: AppBar(
+        title: Text(l10n.offlineTileTitle),
+        actions: [
+          IconButton(
+            key: const Key('offline-tile-recheck'),
+            onPressed: _busy ? null : _recheck,
+            tooltip: l10n.offlineTileRecheck,
+            icon: _busy
+                ? const SizedBox(
+                    width: 18, height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.refresh),
+          ),
+        ],
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
               ? Center(child: Text('${l10n.commonLoadFailed}: $_error'))
               : _regions.isEmpty
-                  ? Center(child: Text(l10n.offlineTileNoRegions))
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.cloud_download,
+                                size: 48, color: Colors.grey),
+                            const SizedBox(height: 12),
+                            Text(l10n.offlineTileGeneratingHint,
+                                textAlign: TextAlign.center),
+                            const SizedBox(height: 16),
+                            FilledButton.tonalIcon(
+                              key: const Key('offline-tile-generate'),
+                              onPressed: _busy ? null : _recheck,
+                              icon: const Icon(Icons.refresh),
+                              label: Text(l10n.offlineTileRecheck),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
                   : ListView(
                       children: [
                         ListTile(

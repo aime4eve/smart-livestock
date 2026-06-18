@@ -1233,6 +1233,12 @@
   "@deviceViewLocation": {},
   "offlineTileNoRegions": "No offline maps available",
   "@offlineTileNoRegions": {},
+  "offlineTileGenerate": "Generate offline map",
+  "@offlineTileGenerate": {},
+  "offlineTileGeneratingHint": "Generation requested. It takes a few minutes; please re-enter this page later.",
+  "@offlineTileGeneratingHint": {},
+  "offlineTileRecheck": "Re-check",
+  "@offlineTileRecheck": {},
   "offlineTileRegionsAvailable": "Available Regions ({count})",
   "@offlineTileRegionsAvailable": {
     "placeholders": {

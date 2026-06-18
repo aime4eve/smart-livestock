@@ -2712,6 +2712,24 @@ abstract class AppLocalizations {
   /// **'暂无可用离线地图'**
   String get offlineTileNoRegions;
 
+  /// No description provided for @offlineTileGenerate.
+  ///
+  /// In zh, this message translates to:
+  /// **'生成离线地图'**
+  String get offlineTileGenerate;
+
+  /// No description provided for @offlineTileGeneratingHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'已请求生成，预计数分钟后完成，请稍后重新进入本页查看'**
+  String get offlineTileGeneratingHint;
+
+  /// No description provided for @offlineTileRecheck.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新检测'**
+  String get offlineTileRecheck;
+
   /// No description provided for @offlineTileRegionsAvailable.
   ///
   /// In zh, this message translates to:

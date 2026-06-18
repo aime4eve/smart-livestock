@@ -9,6 +9,7 @@ import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
 import com.smartlivestock.ranch.domain.port.IdentityQueryPort;
+import com.smartlivestock.ranch.domain.port.dto.FarmInfo;
 import com.smartlivestock.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,13 +27,31 @@ public class TileAppController {
     private final TileDownloadLogRepository tileDownloadLogRepository;
     private final IdentityQueryPort identityQueryPort;
 
-    private void verifyFarmOwnership(Long farmId) {
-        var farm = identityQueryPort.findFarmById(farmId)
+    private FarmInfo verifyFarmOwnership(Long farmId) {
+        FarmInfo farm = identityQueryPort.findFarmById(farmId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牧场不存在: " + farmId));
         Long currentTenant = TenantContext.getCurrentTenant();
         if (currentTenant != null && !farm.tenantId().equals(currentTenant)) {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "无权访问该牧场");
         }
+        return farm;
+    }
+
+    /** Owner/App 端触发离线瓦片生成：后端按牧场坐标算 bbox，无需 admin 权限、无需 owner 传区域。 */
+    @PostMapping("/tile-tasks")
+    public ResponseEntity<ApiResponse<FarmTileStatusDto>> requestTileTask(@PathVariable Long farmId) {
+        FarmInfo farm = verifyFarmOwnership(farmId);
+        if (farm.latitude() == null || farm.longitude() == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "牧场未设置坐标，无法生成离线地图");
+        }
+        final double buffer = 0.15; // ~16km
+        double[] bbox = {
+            farm.longitude().doubleValue() - buffer,
+            farm.latitude().doubleValue() - buffer,
+            farm.longitude().doubleValue() + buffer,
+            farm.latitude().doubleValue() + buffer,
+        };
+        return ResponseEntity.ok(ApiResponse.ok(tileAdminService.requestFarmTileGeneration(farmId, bbox)));
     }
 
     @GetMapping("/tile-status")
