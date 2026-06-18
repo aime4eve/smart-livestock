@@ -251,7 +251,12 @@ class _HealthDataCard extends ConsumerWidget {
             children: [
               _InfoItem(label: l10n.livestockBodyTemp, value: '${detail.bodyTemp.toStringAsFixed(1)}°C'),
               _InfoItem(label: l10n.livestockActivity, value: detail.activityLevel),
-              _InfoItem(label: l10n.livestockRumination, value: detail.ruminationFreq),
+              _InfoItem(
+                label: l10n.livestockRumination,
+                value: double.tryParse(detail.ruminationFreq) != null
+                    ? l10n.livestockRuminationValue(detail.ruminationFreq)
+                    : detail.ruminationFreq,
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
