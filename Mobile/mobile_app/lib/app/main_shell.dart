@@ -29,6 +29,24 @@ class MainShell extends ConsumerWidget {
         appBar: AppBar(
           title: const Text('平台管理'),
           actions: [
+            PopupMenuButton<AppRoute>(
+              key: const Key('platform-admin-menu'),
+              icon: const Icon(Icons.admin_panel_settings),
+              tooltip: '管理功能',
+              onSelected: (route) => context.go(route.path),
+              itemBuilder: (_) => [
+                AppRoute.platformTileAdmin,
+                AppRoute.platformRevenue,
+                AppRoute.platformContracts,
+                AppRoute.platformSubscriptions,
+                AppRoute.platformApiAuth,
+                AppRoute.platformAnalytics,
+                AppRoute.platformAuditLog,
+                AppRoute.platformFeatureGates,
+              ]
+                  .map((r) => PopupMenuItem(value: r, child: Text(r.label)))
+                  .toList(),
+            ),
             IconButton(
               key: const Key('platform-admin-logout'),
               icon: const Icon(Icons.logout),
@@ -237,6 +255,12 @@ class _B2bAdminShell extends ConsumerWidget {
                   selected: _isSelected(context, 3),
                   onTap: () => context.go(AppRoute.b2bAdminRevenue.path),
                 ),
+                _IconSidebarItem(
+                  icon: Icons.map_outlined,
+                  tooltip: '瓦片管理',
+                  selected: _isSelected(context, 4),
+                  onTap: () => context.go(AppRoute.platformTileAdmin.path),
+                ),
 
                 const Spacer(),
 
@@ -273,6 +297,7 @@ class _B2bAdminShell extends ConsumerWidget {
       1 => location.startsWith('/b2b/admin/farms'),
       2 => location.startsWith('/b2b/admin/contract'),
       3 => location.startsWith('/b2b/admin/revenue'),
+      4 => location.startsWith('/admin/tiles'),
       _ => false,
     };
   }
