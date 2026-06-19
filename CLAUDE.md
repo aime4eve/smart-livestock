@@ -266,7 +266,7 @@ Spring Boot 3.3 + Java 17 + Gradle + PostgreSQL 16 + Redis 7 + RocketMQ 5.1 + Fl
 
 - **Analytics**: API 用量统计（`api_call_logs` 逐请求 + `api_usage_daily` 日聚合）+ 开发者门户（Portal，Vue 3），26 Java 文件，4 Controller（AnalyticsApp/AnalyticsAdmin/PortalApp/PortalAdmin）。
 
-### 数据库表（30+ 张，29 个 Flyway 迁移，版本 V1–V30，无 V14）
+### 数据库表（30+ 张，36 个 Flyway 迁移，版本 V1–V37，无 V14）
 
 | 迁移 | 表 | 限界上下文 |
 |------|---|--------|
@@ -280,7 +280,7 @@ Spring Boot 3.3 + Java 17 + Gradle + PostgreSQL 16 + Redis 7 + RocketMQ 5.1 + Fl
 | V22 | api_call_logs, api_usage_daily（+ api_keys 扩展 scopes/quota） | Analytics |
 | V26 | alert_read_status, fence_zones（+ fences 扩展 buffer，alerts 状态迁移 ACTIVE/DISMISSED/AUTO_RESOLVED） | Ranch |
 
-V4–V5: seed + 密码修复；V7–V8: subscription/hash 前缀修复；V9–V12: ranch/commerce/twin seed；V15: username 清理；V16–V17: b2b_admin/worker/farm2 seed；V19: tile_download_log FK 清理；V21/23/24/27/29: health/portal/tile/motility/i18n seed；V25: 坐标修复 + 去除 accelerometer；V28: 温度快照修复；V30: 告警消息翻译。
+V4–V5: seed + 密码修复；V7–V8: subscription/hash 前缀修复；V9–V12: ranch/commerce/twin seed；V15: username 清理；V16–V17: b2b_admin/worker/farm2 seed；V19: tile_download_log FK 清理；V21/23/24/27/29: health/portal/tile/motility/i18n seed；V25: 坐标修复 + 去除 accelerometer；V28: 温度快照修复；V30: 告警消息翻译；V31: health 详情图表 seed + contact_traces 疫病字段；V32–V35: 发情/蠕动种子数据修复链（SL-024/036/2024-016/032）；V36: tile worker 专用 API Key seed；V37: tile_generation_tasks 加 progress 列。
 
 ### 后端 Controller（51 个）
 
