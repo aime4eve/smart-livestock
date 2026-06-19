@@ -24,6 +24,7 @@ import time
 from datetime import datetime, timezone
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 TILE_SERVERS = {
     "osm": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -69,23 +70,59 @@ def open_mbtiles(path):
     return conn
 
 
+# Ordered list of tile URL templates; download_tile falls back through
+# these when the primary source rate-limits (429/403) or times out.
+TILE_FALLBACK_TEMPLATES = list(TILE_SERVERS.values())
+
+
 def download_tile(url, retries=3):
+    """Fetch a single tile URL with exponential backoff.
+
+    On persistent failure the caller decides whether to retry against an
+    alternate tile source via download_tile_fallback.
+    """
     for attempt in range(retries):
         try:
             req = Request(url, headers={"User-Agent": "SmartLivestock/1.0"})
             with urlopen(req, timeout=30) as resp:
                 if resp.status == 200:
                     return resp.read()
-                if resp.status == 429:
-                    wait = 2 ** (attempt + 1)
-                    print(f"    Rate limited, waiting {wait}s...", flush=True)
+                if resp.status in (429, 403):
+                    # Rate limited / forbidden: back off, then give up so the
+                    # caller can try an alternate source instead of hammering.
+                    wait = min(2 ** (attempt + 1), 30)
+                    if attempt == retries - 1:
+                        return None
                     time.sleep(wait)
                     continue
-        except Exception as e:
+        except (HTTPError, URLError, TimeoutError, OSError) as e:
             if attempt < retries - 1:
-                time.sleep(1)
+                time.sleep(min(2 ** attempt, 10))
             else:
                 print(f"    Failed {url}: {e}", flush=True)
+        except Exception as e:
+            print(f"    Failed {url}: {e}", flush=True)
+            return None
+    return None
+
+
+def download_tile_resilient(z, x, y, primary_template, retries=3):
+    """Try the primary source, then fall back to alternate OSM mirrors.
+
+    Returns the tile bytes, or None if every source failed. This keeps a
+    single bad/rate-limited source from stalling the whole region download.
+    """
+    ordered = [primary_template] + [t for t in TILE_FALLBACK_TEMPLATES
+                                    if t != primary_template]
+    seen = set()
+    for template in ordered:
+        if template in seen:
+            continue
+        seen.add(template)
+        url = template.replace("{z}", str(z)).replace("{x}", str(x)).replace("{y}", str(y))
+        data = download_tile(url, retries=retries)
+        if data:
+            return data
     return None
 
 
@@ -93,7 +130,14 @@ class RuntimeTimeout(Exception):
     pass
 
 
-def generate_mbtiles(bbox, zoom_range, output, server="osm", rate=1.0, deadline=None, progress_callback=None):
+def generate_mbtiles(bbox, zoom_range, output, server="osm", rate=1.0,
+                  deadline=None, progress_callback=None, concurrency=8):
+    """Download tiles concurrently and pack into MBTiles.
+
+    concurrency: number of parallel HTTP downloads. sqlite writes stay on the
+    main thread (sqlite connections aren't shareable across threads), so the
+    workers only do IO. Default 8 balances throughput vs OSM rate-limiting.
+    """
     min_lon, min_lat, max_lon, max_lat = [float(v) for v in bbox.split(",")]
     min_zoom, max_zoom = [int(v) for v in zoom_range.split("-")]
     template = TILE_SERVERS.get(server)
@@ -113,7 +157,15 @@ def generate_mbtiles(bbox, zoom_range, output, server="osm", rate=1.0, deadline=
         total += (x1 - x0 + 1) * (y1 - y0 + 1)
     print(f"  Total: ~{total} tiles across z{min_zoom}-z{max_zoom}")
 
+    # Abort the whole task if too many tiles fail consecutively — a fully
+    # blocked source would otherwise grind through every tile returning None.
+    max_consecutive_errors = 200
+    consecutive_errors = 0
+    # Fail the task if more than this fraction of attempted tiles error out.
+    error_rate_threshold = 0.5
+
     done, errors, skipped = 0, 0, 0
+    global_done = 0  # newly downloaded + skipped(resumed), across all zooms
     try:
         for z in range(min_zoom, max_zoom + 1):
             x0, y0 = lat_lon_to_tile(max_lat, min_lon, z)
@@ -123,11 +175,11 @@ def generate_mbtiles(bbox, zoom_range, output, server="osm", rate=1.0, deadline=
             zoom_done = 0
             print(f"  z{z}: {cols}x{rows} = {zoom_total} tiles", flush=True)
 
+            # Collect the tiles this layer still needs (skip already-present
+            # ones so resume is cheap), then download them concurrently.
+            pending = []
             for x in range(x0, x1 + 1):
                 for y in range(y0, y1 + 1):
-                    if deadline and time.time() >= deadline:
-                        raise RuntimeTimeout()
-
                     tms_y = (1 << z) - 1 - y
                     if conn.execute(
                         "SELECT 1 FROM tiles WHERE zoom_level=? AND tile_column=? AND tile_row=?",
@@ -135,27 +187,61 @@ def generate_mbtiles(bbox, zoom_range, output, server="osm", rate=1.0, deadline=
                     ).fetchone():
                         skipped += 1
                         zoom_done += 1
+                        global_done += 1
                         continue
+                    pending.append((x, y, tms_y))
 
-                    url = template.replace("{z}", str(z)).replace("{x}", str(x)).replace("{y}", str(y))
-                    data = download_tile(url)
+            workers = max(1, int(concurrency))
+            with ThreadPoolExecutor(max_workers=workers) as pool:
+                # as_completed yields results as downloads finish; we write
+                # sqlite on this main thread only.
+                futures = {
+                    pool.submit(download_tile_resilient, z, x, y, template): (x, y, tms_y)
+                    for (x, y, tms_y) in pending
+                }
+                for fut in as_completed(futures):
+                    if deadline and time.time() >= deadline:
+                        for f in futures:
+                            f.cancel()
+                        raise RuntimeTimeout()
+
+                    x, y, tms_y = futures[fut]
+                    try:
+                        data = fut.result()
+                    except Exception as e:
+                        print(f"    worker error z{z} {x},{y}: {e}", flush=True)
+                        data = None
+
                     if data:
                         conn.execute(
                             "INSERT OR REPLACE INTO tiles VALUES (?, ?, ?, ?)",
                             (z, x, tms_y, data),
                         )
                         done += 1
+                        consecutive_errors = 0
                     else:
                         errors += 1
+                        consecutive_errors += 1
+                        if consecutive_errors >= max_consecutive_errors:
+                            raise RuntimeError(
+                                f"{max_consecutive_errors} consecutive tile "
+                                f"download failures at z{z} ({x},{y}); aborting"
+                            )
 
                     zoom_done += 1
-                    if zoom_done % 50 == 0 or zoom_done == zoom_total:
+                    global_done += 1
+                    if zoom_done % 200 == 0 or zoom_done == zoom_total:
                         pct = zoom_done / zoom_total * 100
-                        print(f"    z{z}: {zoom_done}/{zoom_total} ({pct:.0f}%)", flush=True)
+                        gpct = global_done / total * 100
+                        print(
+                            f"    z{z}: {zoom_done}/{zoom_total} ({pct:.0f}%) | "
+                            f"global {global_done}/{total} ({gpct:.0f}%)",
+                            flush=True,
+                        )
                         if progress_callback:
-                            progress_callback(f"z{z} {zoom_done}/{zoom_total} ({pct:.0f}%)")
-                    if rate > 0:
-                        time.sleep(rate)
+                            progress_callback(
+                                f"global {global_done}/{total} ({gpct:.0f}%) | z{z} {zoom_done}/{zoom_total}"
+                            )
 
             conn.commit()
     except RuntimeTimeout:
@@ -164,6 +250,13 @@ def generate_mbtiles(bbox, zoom_range, output, server="osm", rate=1.0, deadline=
     except KeyboardInterrupt:
         conn.commit()
         print("\n  Interrupted, progress saved.")
+
+    attempted = done + errors
+    if attempted > 0 and errors / attempted > error_rate_threshold:
+        raise RuntimeError(
+            f"error rate {errors}/{attempted} ({errors / attempted * 100:.0f}%) "
+            f"exceeds threshold {error_rate_threshold * 100:.0f}%"
+        )
 
     tile_count = done + existing
     size_mb = os.path.getsize(output) / (1024 * 1024)
@@ -218,7 +311,8 @@ def run_plan(plan_path, outdir, server="osm", rate=1.0, dry_run=False, max_runti
         print(f"  Output: {output}")
 
         try:
-            result = generate_mbtiles(r["bbox"], r["zoom"], output, server, rate, deadline)
+            result = generate_mbtiles(r["bbox"], r["zoom"], output, server, rate, deadline,
+                                       concurrency=getattr(args, "concurrency", 8))
             if deadline and time.time() >= deadline:
                 r["status"] = "partial"
                 r["tile_count"] = result["tile_count"]
@@ -338,7 +432,8 @@ def run_task_mode(args):
     try:
         os.makedirs(args.outdir, exist_ok=True)
         result = generate_mbtiles(bbox, zoom, output, args.server, args.rate,
-                                  progress_callback=_report_progress)
+                                  progress_callback=_report_progress,
+                                  concurrency=args.concurrency)
 
         # 4. Mark done
         _api_call(f"{task_url}/status", api_key, method="PUT",
@@ -367,7 +462,10 @@ if __name__ == "__main__":
     p.add_argument("--zoom", default="11-15", help="zoom range (default: 11-15)")
     p.add_argument("--output", help="output .mbtiles file (single region mode)")
     p.add_argument("--server", default="osm", choices=list(TILE_SERVERS.keys()), help="tile server")
-    p.add_argument("--rate", type=float, default=1.0, help="delay between requests in seconds")
+    p.add_argument("--rate", type=float, default=0.0,
+                   help="delay between requests in seconds (per tile; with concurrency, 0 is fine)")
+    p.add_argument("--concurrency", type=int, default=int(os.environ.get("TILE_CONCURRENCY", "8")),
+                   help="parallel download workers (default 8, env TILE_CONCURRENCY)")
     # Task-driven mode
     p.add_argument("--task-id", type=int, help="task ID from tile_generation_tasks (API-driven mode)")
     p.add_argument("--api-url", default="http://172.22.1.123:18080/api/v1", help="backend API base URL")
@@ -380,7 +478,8 @@ if __name__ == "__main__":
     elif args.plan:
         run_plan(args.plan, args.outdir, args.server, args.rate, args.dry_run, args.max_runtime or None)
     elif args.bbox and args.output:
-        generate_mbtiles(args.bbox, args.zoom, args.output, args.server, args.rate)
+        generate_mbtiles(args.bbox, args.zoom, args.output, args.server, args.rate,
+                          concurrency=args.concurrency)
     else:
         p.print_help()
         sys.exit(1)

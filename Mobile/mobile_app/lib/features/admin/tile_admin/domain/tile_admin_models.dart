@@ -62,9 +62,16 @@ class TileTask {
   final String? startedAt;
   final String? finishedAt;
 
-  /// 从 progress 文本（如 "z14 4400/5687 (77%)"）解析百分比 0.0-1.0，用于进度条
+  /// 从 progress 文本解析全局百分比 0.0-1.0，用于进度条。
+  ///
+  /// worker 进度格式（全局累计，跨 zoom 层不回零）：
+  ///   "global 1234/5678 (22%) | z16 100/88908 (0%)"
+  /// 优先取 "global" 段的百分比；回退到文本里第一个 "(N%)"。
   double? get progressValue {
-    final m = RegExp(r'\((\d+)%\)').firstMatch(progress ?? '');
+    final text = progress ?? '';
+    final globalMatch =
+        RegExp(r'global\s+\d+/\d+\s+\((\d+)%\)').firstMatch(text);
+    final m = globalMatch ?? RegExp(r'\((\d+)%\)').firstMatch(text);
     if (m == null) return null;
     return int.parse(m.group(1)!) / 100.0;
   }
