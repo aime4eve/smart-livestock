@@ -14,7 +14,7 @@ def test_engine_routes_to_l1(normal_series):
     assert resp.capability_used == "health_l1"
 
 
-def test_engine_returns_none_when_no_capability(monkeypatch):
+def test_engine_returns_none_when_no_capability():
     reg = CapabilityRegistry()  # 空
     engine = Engine(registry=reg)
     req = PredictRequest(tenant_id=1, farm_id=2, livestock_ids=[10])
