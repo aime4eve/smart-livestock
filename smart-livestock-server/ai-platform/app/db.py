@@ -23,7 +23,6 @@ _QUERIES = {
         "WHERE livestock_id = %s AND recorded_at >= NOW() - make_interval(hours => %s) "
         "ORDER BY recorded_at"),
 }
-_VALUE_COL = {"temperature": "temperature", "motility": "frequency", "activity": "activity_index"}
 
 
 def _connect():
