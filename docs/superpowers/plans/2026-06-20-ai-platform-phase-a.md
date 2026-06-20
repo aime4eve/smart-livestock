@@ -434,7 +434,7 @@ from app.l1.features import resample_to_slots, compute_neff
 
 def test_resample_aligns_to_30min_slots(rng):
     # 原始点：每小时 2 个（非 30min 整齐），应聚合到 30min 槽
-    idx = pd.date_range("2026-06-01", periods=96, freq="15min")
+    idx = pd.date_range("2026-06-01", periods=96, freq="15min", tz="UTC")
     temps = pd.Series(np.full(96, 38.5), index=idx, name="temperature")
     mots = pd.Series(np.full(96, 3.0), index=idx, name="motility")
     acts = pd.Series(np.full(96, 50.0), index=idx, name="activity")
@@ -637,7 +637,7 @@ def test_stl_residual_removes_circadian(normal_series):
 
 
 def test_stl_residual_handles_short_series():
-    short = pd.Series(np.full(20, 38.5), index=pd.date_range("2026-06-01", periods=20, freq="30min"))
+    short = pd.Series(np.full(20, 38.5), index=pd.date_range("2026-06-01", periods=20, freq="30min", tz="UTC"))
     resid = stl_residual(short)
     # 不足一个周期（48），返回去均值序列不报错
     assert len(resid) == 20
@@ -783,21 +783,21 @@ def test_stl_layer_score_anomaly_is_higher(anomaly_series):
 
 
 def test_cusum_flat_series_low():
-    flat = pd.Series(np.zeros(96), index=pd.date_range("2026-06-01", periods=96, freq="30min"))
+    flat = pd.Series(np.zeros(96), index=pd.date_range("2026-06-01", periods=96, freq="30min", tz="UTC"))
     assert cusum_score(flat) == 0.0
 
 
 def test_cusum_detects_step_change():
     # 前 48 点 0，后 48 点 +3（突变）
     vals = np.concatenate([np.zeros(48), np.full(48, 3.0)])
-    s = pd.Series(vals, index=pd.date_range("2026-06-01", periods=96, freq="30min"))
+    s = pd.Series(vals, index=pd.date_range("2026-06-01", periods=96, freq="30min", tz="UTC"))
     score = cusum_score(s)
     assert score > 5.0  # 突变产生高分
 
 
 def test_cusum_output_finite():
     s = pd.Series(np.random.default_rng(1).normal(0, 1, 96),
-                  index=pd.date_range("2026-06-01", periods=96, freq="30min"))
+                  index=pd.date_range("2026-06-01", periods=96, freq="30min", tz="UTC"))
     score = cusum_score(s)
     assert np.isfinite(score)
 ```
@@ -1171,10 +1171,13 @@ def test_neff_hysteresis_avoids_jitter():
 
 
 def test_route_pure_threshold_vs_hysteresis_diverge():
-    # 评审 #9：锁定纯阈值 vs 迟滞的分叉点。
-    # N_eff=180 在迟滞带 [160,200)：纯阈值(无 state)→mahalanobis(<200)；已是 iforest(state)→保持(>=160)
+    # 评审 #9/N3：锁定纯阈值 vs 迟滞的分叉点（iforest 档 + mahalanobis 档各一）。
+    # iforest 迟滞带 [160,200)：N_eff=180 纯阈值→mahalanobis(<200)，已 iforest→保持(>=160)
     assert route_by_neff(180, state=None) == "mahalanobis"
     assert route_by_neff(180, state={"current": "iforest"}) == "iforest"
+    # mahalanobis 迟滞带 [24,30)：N_eff=25 纯阈值→rules(<30)，已 mahalanobis→保持(>=24)
+    assert route_by_neff(25, state=None) == "rules"
+    assert route_by_neff(25, state={"current": "mahalanobis"}) == "mahalanobis"
 ```
 
 - [ ] **Step 2: 跑测试确认失败**
@@ -1418,6 +1421,8 @@ class HealthAnomalyL1(Capability):
 
         # 历史段：排除最近检测窗口（评审 #4 防异常自稀释 + 评审 #7 CUSUM 历史基准）
         win = settings.detection_window_hours * 2
+        # 退化边界（复审 N2）：仅当 slots_df≤win(48) 槽时 history_df 回退为含当前窗口的整段，
+        # 此时若 n_eff≥30 仍走 mahalanobis 档会有自稀释——属已知边缘情况（正常 14 天 672 槽不触发），Phase A 不特殊处理
         history_df = slots_df.iloc[:-win] if len(slots_df) > win else slots_df
 
         # L1b CUSUM（温度残差变点）；history_max 用历史段滚动 CUSUM 最大值，
