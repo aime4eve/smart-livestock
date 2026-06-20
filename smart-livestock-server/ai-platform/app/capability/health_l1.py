@@ -7,8 +7,7 @@ from app.capability.router import route_by_neff
 from app.l1.features import (compute_neff, robust_baseline, cohort_baseline,
                              build_feature_vector, _DIM_NAMES)
 from app.l1.detectors import stl_layer_score, cusum_score, fit_mahalanobis, mahalanobis_distance
-from app.l1.fusion import (normalize_stl, normalize_cusum, normalize_mahalanobis,
-                           fuse, decide_anomaly_type)
+from app.l1.fusion import normalize_stl, fuse, decide_anomaly_type
 from app.schemas import Contributions, PredictRequest, PredictResponse
 
 from app.config import settings
@@ -67,8 +66,6 @@ class HealthAnomalyL1(Capability):
             w = history_df.iloc[s:s + hist_win]["temperature"].to_numpy()
             if len(w) >= hist_win // 2:
                 history_cusums.append(cusum_score(pd.Series(w - np.median(w))))
-        # C2: 仅当历史为空才用 1.0 兜底；去掉错误的外层 max(..., 1.0)（会把正常小分母抬高）。
-        history_max = max(history_cusums) if history_cusums else 1.0
 
         # L1c Mahalanobis（历史矩阵排除当前检测窗口，评审 #4；rules 档或历史不足时跳过，I3 防 self-leak）
         joint_norm = 0.0
@@ -88,10 +85,28 @@ class HealthAnomalyL1(Capability):
                     cur, _ = build_feature_vector(slots_df, baselines)
                     d2 = float(mahalanobis_distance(model, cur.reshape(1, -1))[0])
                     df_keep = int(model["keep_mask"].sum())
-                    joint_norm = normalize_mahalanobis(d2, df=df_keep)
+                    # 经验排名归一化：current d2 在历史 d2 分布中的分位数
+                    # （解决 chi2.cdf 对病态协方差过敏感；典型正常窗口应落在历史分布中部 ~0.5）。
+                    d2_hist = model["d2_hist"]
+                    if len(d2_hist) > 0:
+                        joint_norm = float(
+                            np.searchsorted(np.sort(d2_hist), d2, side="right")
+                            / len(d2_hist)
+                        )
+                    else:
+                        joint_norm = 0.0
 
         stl_norm = normalize_stl(stl_raw)
-        cusum_norm = normalize_cusum(cusum_raw, history_max)
+        # 经验排名归一化（数据驱动）：current CUSUM 在历史 CUSUM 分布中的分位数。
+        # 解决 max-normalization 对典型值不敏感的问题（典型窗口 raw≈history_max→饱和 0.93）。
+        # fusion.normalize_cusum(max-normalization) 保留为通用工具，此处用经验排名更适配时序场景。
+        if history_cusums:
+            cusum_norm = float(
+                np.searchsorted(np.sort(history_cusums), cusum_raw, side="right")
+                / len(history_cusums)
+            )
+        else:
+            cusum_norm = 0.0
         score = fuse(stl_norm, cusum_norm, joint_norm)
         atype = decide_anomaly_type(stl_norm, cusum_norm, joint_norm)
 

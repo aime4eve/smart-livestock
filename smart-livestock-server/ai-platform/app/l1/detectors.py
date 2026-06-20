@@ -84,7 +84,8 @@ def fit_mahalanobis(history_features: np.ndarray):
     if keep.sum() < 2:
         return None
     model = OAS().fit(X[:, keep])
-    return {"model": model, "keep_mask": keep}
+    d2_hist = model.mahalanobis(X[:, keep])   # 历史样本自身的马氏距离（经验排名基准）
+    return {"model": model, "keep_mask": keep, "d2_hist": d2_hist}
 
 
 def mahalanobis_distance(model, points: np.ndarray) -> np.ndarray:
