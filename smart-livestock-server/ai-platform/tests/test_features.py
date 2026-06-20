@@ -70,3 +70,39 @@ def test_cohort_baseline_falls_back_to_group_median():
     median, mad = cohort_baseline(individuals)
     # 三个体中位数 38.5/38.7/38.6 的中位数 = 38.6
     assert median == pytest.approx(38.6)
+
+
+from app.l1.features import stl_residual, build_feature_vector, FEATURE_DIMS
+
+FEATURE_NAMES = 10
+
+
+def test_stl_residual_removes_circadian(normal_series):
+    resid = stl_residual(normal_series["temperature"])
+    # 去除昼夜节律后，残差应远小于原始波动幅度
+    assert resid.std() < normal_series["temperature"].std()
+
+
+def test_stl_residual_handles_short_series():
+    short = pd.Series(np.full(20, 38.5), index=pd.date_range("2026-06-01", periods=20, freq="30min", tz="UTC"))
+    resid = stl_residual(short)
+    # 不足一个周期（48），返回去均值序列不报错
+    assert len(resid) == 20
+
+
+def test_build_feature_vector_shape(normal_series):
+    import numpy as np
+    baseline = {d: (normal_series[d].median(), 0.1) for d in ("temperature", "motility", "activity")}
+    vec, names = build_feature_vector(normal_series, baseline)
+    assert vec.shape == (FEATURE_NAMES,)
+    assert len(names) == FEATURE_NAMES
+    # 正常序列的 z-score 特征应接近 0（相对自身基线）
+    assert vec[0] == pytest.approx(0.0, abs=1.0)
+
+
+def test_feature_vector_anomaly_elevates_z(anomaly_series):
+    baseline = {d: (anomaly_series[d].iloc[:-48].median(), 0.1)
+                for d in ("temperature", "motility", "activity")}
+    vec, _ = build_feature_vector(anomaly_series, baseline)
+    # 第一维 temp_z（最后 24h 注入升温）应显著为正
+    assert vec[0] > 5.0

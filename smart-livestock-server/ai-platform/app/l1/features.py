@@ -49,3 +49,71 @@ def cohort_baseline(individual_baselines: list[tuple[float, float]]) -> tuple[fl
     m = float(np.median(medians))
     mad = float(np.median(np.abs(medians - m)))
     return (m, mad)
+
+
+from statsmodels.tsa.seasonal import STL
+
+# 特征维度常量（design §4.2：3 维 × 3 特征 + CUSUM = 10）
+FEATURE_DIMS = 10
+_PERIOD_SLOTS = 48  # 30min × 48 = 24h
+_DIM_NAMES = ("temperature", "motility", "activity")
+
+
+def stl_residual(series: pd.Series, period: int = _PERIOD_SLOTS) -> pd.Series:
+    """STL 分解取 residual（design §4.2 L1a 节律剥离，周期 24h）。
+
+    序列短于一个周期时，退化为去均值（避免 statsmodels 报错）。
+    """
+    s = series.dropna()
+    if len(s) < period:
+        return series - series.mean()
+    stl = STL(s, period=period, robust=True)
+    resid = stl.fit().resid
+    return resid.reindex(series.index)
+
+
+def _slope(values: np.ndarray) -> float:
+    """简单线性回归斜率（一维）。"""
+    n = len(values)
+    if n < 2:
+        return 0.0
+    x = np.arange(n, dtype=float)
+    y = values - values.mean()
+    denom = ((x - x.mean()) ** 2).sum()
+    if denom == 0:
+        return 0.0
+    return float(np.sum((x - x.mean()) * y) / denom)
+
+
+def build_feature_vector(slots_df: pd.DataFrame,
+                         baselines: dict[str, tuple[float, float]]) -> tuple[np.ndarray, list[str]]:
+    """构建 10 维特征向量（design §4.2）。
+
+    baselines: {dim: (median, mad)}（来自 robust_baseline / cohort_baseline）。
+    返回 (feature_vector[10], feature_names[10])。CUSUM 维（第 10 维）此处占位 0，
+    由 detectors.cusum_score 在 L1 编排时填入。
+    """
+    from app.config import settings
+    detect_n = settings.detection_window_hours * 2  # 24h → 48 槽
+    recent = slots_df.tail(detect_n)
+
+    names: list[str] = []
+    feats: list[float] = []
+    for dim in _DIM_NAMES:
+        median, mad = baselines[dim]
+        eps = max(mad * 1.4826, 1e-6)  # MAD → 近似 std
+        col = recent[dim].dropna()
+        if col.empty or np.isnan(median):
+            feats.extend([0.0, 0.0, 0.0])
+        else:
+            z = float((col.mean() - median) / eps)
+            slope = _slope(col.to_numpy())
+            resid = stl_residual(slots_df[dim]).tail(len(recent))
+            stl_peak = float(np.nanmax(np.abs(resid.to_numpy()))) if resid.notna().any() else 0.0
+            feats.extend([z, slope, stl_peak])
+        names.extend([f"{dim}_z", f"{dim}_slope", f"{dim}_stl_peak"])
+
+    feats.append(0.0)  # cusum 占位
+    names.append("cusum")
+    assert len(feats) == FEATURE_DIMS
+    return np.array(feats, dtype=float), names
