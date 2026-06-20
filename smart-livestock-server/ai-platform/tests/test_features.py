@@ -41,3 +41,32 @@ def make_df_with_missing(rng, missing_dim, n_missing):
     }, index=idx)
     df.loc[df.index[:n_missing], missing_dim] = np.nan
     return df
+
+
+from app.l1.features import robust_baseline, cohort_baseline
+
+
+def test_robust_baseline_median_and_mad():
+    vals = np.array([38.4, 38.5, 38.5, 38.6, 38.5])
+    median, mad = robust_baseline(vals)
+    assert median == pytest.approx(38.5)
+    # MAD = median(|x - median|) = median([0.1,0,0,0.1,0]) = 0.0 → 用 0.0 防除零
+    assert mad >= 0.0
+
+
+def test_robust_baseline_ignores_nan():
+    vals = np.array([38.5, np.nan, 38.6, 38.5, np.nan])
+    median, mad = robust_baseline(vals)
+    assert median == pytest.approx(38.5)
+
+
+def test_robust_baseline_empty_returns_nan():
+    median, mad = robust_baseline(np.array([np.nan, np.nan]))
+    assert np.isnan(median)
+
+
+def test_cohort_baseline_falls_back_to_group_median():
+    individuals = [(38.5, 0.1), (38.7, 0.1), (38.6, 0.1)]
+    median, mad = cohort_baseline(individuals)
+    # 三个体中位数 38.5/38.7/38.6 的中位数 = 38.6
+    assert median == pytest.approx(38.6)
