@@ -68,6 +68,23 @@ services:
         condition: service_started
     restart: unless-stopped
 
+  ai-platform:
+    build:
+      context: ./ai-platform
+    ports:
+      - "18000:8000"
+    environment:
+      AI_DB_HOST: postgres
+      AI_DB_PORT: 5432
+      AI_DB_NAME: smart_livestock
+      # Phase A 临时用 postgres 账号；Plan 2 V38 创建只读账号后切换 AI_DB_USER
+      AI_DB_USER: ${AI_DB_USER:-postgres}
+      AI_DB_PASSWORD: ${AI_DB_PASSWORD:-postgres}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
   tileserver:
     image: maptiler/tileserver-gl:latest
     volumes:

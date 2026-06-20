@@ -21,3 +21,16 @@ uvicorn app.main:app --reload  # 本地起服务（需 PG）
 ## 与 Java 后端的关系
 
 Java 后端（`HealthAnomalyService`）经 HTTP 调本服务的 `/ai/health/analyze`，ai-platform 直连 PG 只读查询时序窗口、返回 `PredictResponse`，由 Java 端写库（见 design §3）。
+
+## Docker 部署（docker-compose）
+
+ai-platform 已加入 `smart-livestock-server/docker-compose.yml`，端口 `18000:8000`，依赖 `postgres` 健康检查。Java 端 `depends_on` 联调留待 Plan 2。
+
+```bash
+# 构建 + 启动（需 Docker）
+cd smart-livestock-server && docker compose build ai-platform && docker compose up -d ai-platform
+# 探活
+curl -s http://localhost:18000/ai/health/live   # 期望 {"status":"ok"}
+```
+
+> Phase A 本地无 Docker（环境限制），由部署阶段（172.22.1.123）验证。
