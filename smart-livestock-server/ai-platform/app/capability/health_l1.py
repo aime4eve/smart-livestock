@@ -57,22 +57,23 @@ class HealthAnomalyL1(Capability):
         # 此时若 n_eff≥30 仍走 mahalanobis 档会有自稀释——属已知边缘情况（正常 14 天 672 槽不触发），Phase A 不特殊处理
         history_df = slots_df.iloc[:-win] if len(slots_df) > win else slots_df
 
-        # L1b CUSUM（温度残差变点）；history_max 用历史段滚动 CUSUM 最大值，
-        # 避免用"当前值×2"导致 CUSUM 维度退化为常数（评审 #7）
-        from app.l1.features import stl_residual
-        cusum_raw = cusum_score(stl_residual(slots_df["temperature"]))
+        # L1b CUSUM（变点检测）；当前检测窗口与历史段同尺度同预处理（评审 #7）。
+        # 去窗口中位数保留 level-shift 信号（STL residual 会吸收阶跃，致信号损失）。
+        current_temp = slots_df["temperature"].tail(win)
+        cusum_raw = cusum_score(pd.Series(current_temp.to_numpy() - np.median(current_temp.to_numpy())))
         hist_win = max(win, 24)
-        history_cusums = [
-            cusum_score(stl_residual(history_df.iloc[s:s + hist_win]["temperature"]))
-            for s in range(0, max(1, len(history_df) - hist_win), 12)
-            if len(history_df.iloc[s:s + hist_win]) >= hist_win // 2
-        ]
-        history_max = max(max(history_cusums) if history_cusums else 1.0, 1.0)
+        history_cusums = []
+        for s in range(0, max(1, len(history_df) - hist_win), 12):
+            w = history_df.iloc[s:s + hist_win]["temperature"].to_numpy()
+            if len(w) >= hist_win // 2:
+                history_cusums.append(cusum_score(pd.Series(w - np.median(w))))
+        # C2: 仅当历史为空才用 1.0 兜底；去掉错误的外层 max(..., 1.0)（会把正常小分母抬高）。
+        history_max = max(history_cusums) if history_cusums else 1.0
 
-        # L1c Mahalanobis（历史矩阵排除当前检测窗口，评审 #4；rules 档跳过）
+        # L1c Mahalanobis（历史矩阵排除当前检测窗口，评审 #4；rules 档或历史不足时跳过，I3 防 self-leak）
         joint_norm = 0.0
         df_keep = 0
-        if algo != "rules":
+        if algo != "rules" and len(slots_df) >= 2 * win:
             feats = []
             for start in range(0, max(1, len(history_df) - win), 12):
                 window = history_df.iloc[start:start + win]

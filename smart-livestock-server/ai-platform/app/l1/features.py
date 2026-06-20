@@ -107,6 +107,7 @@ def build_feature_vector(slots_df: pd.DataFrame,
             feats.extend([0.0, 0.0, 0.0])
         else:
             z = float((col.mean() - median) / eps)
+            z = max(-10.0, min(10.0, z))   # I1: 防 MAD≈0 时 z 爆炸（稳定动物）
             slope = _slope(col.to_numpy())
             resid = stl_residual(slots_df[dim]).tail(len(recent))
             stl_peak = float(np.nanmax(np.abs(resid.to_numpy()))) if resid.notna().any() else 0.0

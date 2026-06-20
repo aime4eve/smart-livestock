@@ -64,7 +64,7 @@ def cusum_score(series: pd.Series) -> float:
     return float(peak)
 
 
-from sklearn.covariance import EmpiricalCovariance
+from sklearn.covariance import OAS
 from app.l1.features import FEATURE_DIMS
 
 
@@ -72,6 +72,8 @@ def fit_mahalanobis(history_features: np.ndarray):
     """用历史特征矩阵拟合协方差，返回模型（design §4.3 L1c）。
 
     样本数 < FEATURE_DIMS+1 时返回 None（协方差不可估，路由器降级到纯规则）。
+    用 OAS shrinkage（评审 #C3）：协方差近奇异时 EmpiricalCovariance 致 d2 爆炸；
+    OAS 同 API（.fit()/.mahalanobis()），稳健。
     """
     X = np.asarray(history_features, dtype=float)
     if X.ndim != 2 or X.shape[0] < FEATURE_DIMS + 1:
@@ -81,7 +83,7 @@ def fit_mahalanobis(history_features: np.ndarray):
     keep = var > 1e-12
     if keep.sum() < 2:
         return None
-    model = EmpiricalCovariance().fit(X[:, keep])
+    model = OAS().fit(X[:, keep])
     return {"model": model, "keep_mask": keep}
 
 

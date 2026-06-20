@@ -30,5 +30,19 @@ class Settings:
     # 告警阈值（融合分数超此值由 Java 端写 alerts）
     alert_threshold: float = float(os.getenv("AI_ALERT_THRESHOLD", "0.7"))
 
+    def __post_init__(self):
+        for fld in ("detection_window_hours", "baseline_window_days", "slot_minutes",
+                    "neff_mahalanobis_min", "neff_iforest_min"):
+            v = getattr(self, fld)
+            if not isinstance(v, int) or v <= 0:
+                raise ValueError(f"{fld} must be a positive integer, got {v!r}")
+        if not (0.0 < self.alert_threshold < 1.0):
+            raise ValueError(f"alert_threshold must be in (0,1), got {self.alert_threshold!r}")
+        wsum = self.w_stl + self.w_cusum + self.w_joint
+        if abs(wsum - 1.0) > 0.01:
+            raise ValueError(f"fusion weights must sum to ~1.0, got {wsum!r}")
+        if not (0.0 <= self.neff_hysteresis < 1.0):
+            raise ValueError(f"neff_hysteresis must be in [0,1), got {self.neff_hysteresis!r}")
+
 
 settings = Settings()
