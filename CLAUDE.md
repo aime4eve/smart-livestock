@@ -171,7 +171,7 @@ CattleService ←→ LocationService（GPS 坐标）
 
 ## 后端（smart-livestock-server/）
 
-> MVP Phase 1（Identity + Ranch + IoT）+ Phase 2a（Commerce）+ Phase 2b（Health）+ Phase 2c（Analytics）已完成。7 个限界上下文（Identity + Ranch + IoT + Health + Commerce + Analytics + Shared，Platform 为支撑上下文），515 Java 文件，51 Controller，180 API 端点，30+ 张表。架构详见 [`docs/system-architecture.md`](./docs/system-architecture.md)。
+> MVP Phase 1（Identity + Ranch + IoT）+ Phase 2a（Commerce）+ Phase 2b（Health）+ Phase 2c（Analytics）已完成。7 个限界上下文（Identity + Ranch + IoT + Health + Commerce + Analytics + Shared，Platform 为支撑上下文），502 Java 文件，51 Controller，187 API 端点，39 张表。架构详见 [`docs/system-architecture.md`](./docs/system-architecture.md)。
 
 ### 后端服务部署方式
 
@@ -297,7 +297,7 @@ V4–V5: seed + 密码修复；V7–V8: subscription/hash 前缀修复；V9–V1
 ```bash
 cd smart-livestock-server
 ./gradlew compileJava              # 编译
-./gradlew test                     # 全部测试（54 个测试类）
+./gradlew test                     # 全部测试（53 个测试类）
 ./gradlew test --tests "*.domain.model.*"  # 领域模型单元测试
 ./gradlew bootRun                  # 启动（需 PostgreSQL + Redis）
 docker compose up -d               # 全栈启动（PostgreSQL + Redis + RocketMQ + App）
@@ -321,7 +321,7 @@ docker compose up -d               # 全栈启动（PostgreSQL + Redis + RocketM
 # Flutter 前端
 cd Mobile/mobile_app
 flutter pub get
-flutter test                           # 运行所有测试（24 个测试文件）
+flutter test                           # 运行所有测试（32 个测试文件）
 flutter test test/widget_smoke_test.dart  # 运行单个测试
 flutter test --name="owner"            # 按名称过滤
 flutter analyze                        # 静态分析
@@ -345,7 +345,7 @@ cd Mobile && ./dev.sh start [mock|live]
 ### 前端架构（Flutter）
 
 - **状态管理**: flutter_riverpod，严格使用 ConsumerWidget，禁用 setState/ChangeNotifier
-- **路由**: go_router，`AppRoute` 枚举为路径唯一来源（35 条路由），含认证守卫重定向
+- **路由**: go_router，`AppRoute` 枚举为路径唯一来源（36 条路由），含认证守卫重定向
 - **模式切换**: `--dart-define=APP_MODE=mock|live`，mock 用本地假数据，live 通过 ApiCache 调后端 API
 - **模块分层**: `features/{module}/domain/`（Repository 接口）→ `data/`（mock + live 实现）→ `presentation/`（Riverpod Notifier Controller）
 - **功能模块**（30 个）: admin、alerts、api_authorization、auth、b2b_admin、contract_management、dashboard、devices、digestive、epidemic、estrus、farm_creation、farm_switcher、fence、fever_warning、highfi、livestock、mine、offline_fences、offline_livestock、offline_tiles、pages、ranch、revenue、stats、subscription、subscription_service_management、tenant、twin_overview、worker_management
@@ -406,9 +406,9 @@ cd Mobile && ./dev.sh start [mock|live]
 | **MVP Phase 2c** — 平台扩展 | API 用量统计 + 调用日志 + 开发者门户（Portal）+ API Key 生命周期 + 频率限制                    | Analytics + Portal            | ✅ 已完成 |
 | **Phase 3** — IoT 真实接入 | 设备 license 入网 + LoRa/NS 平台对接 + 真实传感器数据 + 时序数据分区                        | IoT 扩展                        | ⏳ 待设计 |
 
-**后端现状**：7 个限界上下文（Identity + Ranch + IoT + Health + Commerce + Analytics + Shared，Platform 为支撑）、30+ 张表、180 个 API 端点、51 个 Controller、515 个 Java 文件、54 个测试类。AuditLog 和 Auth refresh 已完整实现（不再是 stub）。时序数据按月分区（temperature_logs/rumen_motility_logs/activity_logs），围栏检测 + 健康分析通过 RocketMQ 事件驱动（`gps-log-updated`、`telemetry-received` 等 Topic）。
+**后端现状**：7 个限界上下文（Identity + Ranch + IoT + Health + Commerce + Analytics + Shared，Platform 为支撑）、39 张表、187 个 API 端点、51 个 Controller、502 个 Java 文件、53 个测试类。AuditLog 和 Auth refresh 已完整实现（不再是 stub）。时序数据按月分区（temperature_logs/rumen_motility_logs/activity_logs），围栏检测 + 健康分析通过 RocketMQ 事件驱动（`gps-log-updated`、`telemetry-received` 等 Topic）。
 
-**前端现状**：已移除 Mock 模式，全部通过 ApiClient 异步对接 Spring Boot 后端（JWT 认证）。30 个功能模块、35 条路由。订阅系统（4 个 tier + 7 个 feature key）、B端后台、租户管理（TenantDetailPage 含用户创建/启停）、健康模块（发热/消化/发情/疫病）、离线模块（离线围栏/离线牲畜/离线瓦片）。地图支持三级瓦片降级（tileserver-gl → MBTiles → 高德/OSM）。客户旅程文档：`docs/customer-journey.md`。
+**前端现状**：已移除 Mock 模式，全部通过 ApiClient 异步对接 Spring Boot 后端（JWT 认证）。30 个功能模块、36 条路由。订阅系统（4 个 tier + 7 个 feature key）、B端后台、租户管理（TenantDetailPage 含用户创建/启停）、健康模块（发热/消化/发情/疫病）、离线模块（离线围栏/离线牲畜/离线瓦片）。地图支持三级瓦片降级（tileserver-gl → MBTiles → 高德/OSM）。客户旅程文档：`docs/customer-journey.md`。
 
 ---
 
