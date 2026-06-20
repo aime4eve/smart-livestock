@@ -13,10 +13,18 @@ class PredictRequest(BaseModel):
     tenant_id: int
     farm_id: int
     # 单头端点 /analyze/{id} 走路径参数，body 可不传 livestock_ids（评审 #1）；
-    # 批量端点在路由内校验非空
-    livestock_ids: list[int] = Field(default_factory=list)
+    # 批量端点在路由内校验非空；max_length=100 防 DoS（评审 #2）
+    livestock_ids: list[int] = Field(default_factory=list, max_length=100)
     window_hours: int = 24
     live_endpoint: bool = False
+
+    @field_validator("window_hours")
+    @classmethod
+    def _clamp_window(cls, v: int) -> int:
+        # 720h = 30d 覆盖 14d 基线 + 余量；防 DoS（评审 #3）
+        if not (1 <= v <= 720):
+            raise ValueError("window_hours must be in [1, 720]")
+        return v
 
 
 class Contributions(BaseModel):

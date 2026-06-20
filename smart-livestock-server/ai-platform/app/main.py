@@ -31,7 +31,7 @@ def _fetch(livestock_id: int, window_hours: int) -> dict[str, pd.Series]:
 
 def _predict_one(req: PredictRequest, livestock_id: int) -> PredictResponse:
     series = _fetch(livestock_id, req.window_hours)
-    # 空数据兜底（design 实现纪律：按真实数据流程，无数据则返回 normal）
+    # 无数据兜底：L1 本可运行但数据层为空，capability_used="health_l1" 表"本应由谁处理"
     if all(s.empty for s in series.values()):
         return PredictResponse(
             livestock_id=livestock_id, anomaly_score=0.0, anomaly_type="normal",
@@ -41,11 +41,14 @@ def _predict_one(req: PredictRequest, livestock_id: int) -> PredictResponse:
     slots_df = resample_to_slots(series["temperature"], series["motility"], series["activity"])
     resp = _engine.predict_series(req, slots_df=slots_df, cohort_baselines=[], n_eff=0)
     if resp is None:
+        # 无可用 capability：registry 无就绪层，capability_used="none" 表"无人处理"
         return PredictResponse(
             livestock_id=livestock_id, anomaly_score=0.0, anomaly_type="normal",
             contributions=Contributions(stl=0.0, cusum=0.0, joint=0.0),
             capability_used="none", n_eff=0, model_meta={"reason": "no_capability"},
         )
+    # 批量时 health_l1 用 req.livestock_ids[0] 会误标，统一用入参 livestock_id 覆盖
+    resp.livestock_id = livestock_id
     return resp
 
 
@@ -65,6 +68,5 @@ def analyze_batch(req: PredictRequest):
 
 @app.post("/ai/health/analyze/{livestock_id}", response_model=AnalyzeResponse)
 def analyze_single(livestock_id: int, req: PredictRequest):
-    req.livestock_ids = [livestock_id]
     results = [_predict_one(req, livestock_id)]
     return AnalyzeResponse(request_id=str(uuid.uuid4()), results=results)

@@ -40,7 +40,17 @@ def test_analyze_batch(client, normal_series, monkeypatch):
     r = client.post("/ai/health/analyze",
                     json={"tenant_id": 1, "farm_id": 2, "livestock_ids": [10, 11], "window_hours": 24})
     assert r.status_code == 200
-    assert len(r.json()["results"]) == 2
+    body = r.json()
+    assert len(body["results"]) == 2
+    # C1 回归：批量时每个 result 的 livestock_id 必须对应该 id，而非首个
+    assert {res["livestock_id"] for res in body["results"]} == {10, 11}
+
+
+def test_analyze_batch_rejects_empty(client):
+    # review #1：批量端点空 livestock_ids → 400
+    r = client.post("/ai/health/analyze",
+                    json={"tenant_id": 1, "farm_id": 2, "livestock_ids": [], "window_hours": 24})
+    assert r.status_code == 400
 
 
 def test_analyze_single_handles_missing_data(client, monkeypatch):
