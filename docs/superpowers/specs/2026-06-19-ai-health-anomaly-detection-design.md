@@ -181,9 +181,12 @@ ALTER TABLE health_snapshots ADD COLUMN ai_assessed_at   TIMESTAMP;
 ALTER TABLE alerts ADD COLUMN source VARCHAR(16) NOT NULL DEFAULT 'RULE';
 ALTER TABLE alerts ADD CONSTRAINT chk_alerts_source CHECK (source IN ('RULE','AI'));
 -- 扩 type 枚举：约束名 chk_alerts_type（V2 建表、V26 已重建过），先 drop 再加 AI_ANOMALY
+-- ⚠️ V26 现有枚举共 7 值：FENCE_BREACH/FENCE_APPROACH/ZONE_APPROACH/TEMPERATURE_ABNORMAL/DIGESTIVE_ABNORMAL/ESTRUS/EPIDEMIC
+--    重建时必须全量保留（含 FENCE_APPROACH/ZONE_APPROACH），只追加 AI_ANOMALY，否则破坏围栏接近告警
 ALTER TABLE alerts DROP CONSTRAINT chk_alerts_type;
 ALTER TABLE alerts ADD CONSTRAINT chk_alerts_type CHECK (type IN (
-    'FENCE_BREACH','TEMPERATURE_ABNORMAL','DIGESTIVE_ABNORMAL','ESTRUS','EPIDEMIC','AI_ANOMALY'));
+    'FENCE_BREACH','FENCE_APPROACH','ZONE_APPROACH','TEMPERATURE_ABNORMAL',
+    'DIGESTIVE_ABNORMAL','ESTRUS','EPIDEMIC','AI_ANOMALY'));
 ```
 - `anomaly_score` 超阈 → 写 `alerts`（`source='AI'`），type 映射：`abrupt_change/circadian_disruption → TEMPERATURE_ABNORMAL`、`multivariate → AI_ANOMALY`（新枚举）。注：原映射 `BEHAVIOR_ABNORMAL` 已被 V26 改名为 `DIGESTIVE_ABNORMAL`，不可再用。
 - 双轨：规则告警（`RULE`，按病种）+ AI 告警（`AI`，按 anomaly_type），前端按 `source` 分组
