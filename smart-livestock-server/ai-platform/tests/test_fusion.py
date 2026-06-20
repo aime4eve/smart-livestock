@@ -4,10 +4,14 @@ from app.l1.fusion import (normalize_stl, normalize_cusum, normalize_mahalanobis
                            fuse, decide_anomaly_type)
 
 
-def test_normalize_stl_clamps_to_unit():
-    assert normalize_stl(0.0) == pytest.approx(0.0, abs=0.01)
-    assert normalize_stl(2.0) == pytest.approx(1.0)  # sigmoid 上界趋 1
-    assert 0.0 <= normalize_stl(0.7) <= 1.0
+def test_normalize_stl_identity_in_range_and_clips_at_bounds():
+    # in-range → identity（区分"什么都不做"的错误实现）
+    assert normalize_stl(0.7) == pytest.approx(0.7)
+    assert normalize_stl(0.0) == pytest.approx(0.0)
+    # 超上界 → clip 1（stl_layer_score sigmoid 理论上不产出，但 clip 契约需锁定）
+    assert normalize_stl(1.5) == pytest.approx(1.0)
+    # 负值（理论上不出现）→ clip 下界 0
+    assert normalize_stl(-0.3) == pytest.approx(0.0)
 
 
 def test_normalize_cusum_uses_history_max():
@@ -40,3 +44,12 @@ def test_decide_anomaly_type_picks_dominant_layer():
     assert decide_anomaly_type(stl=0.1, cusum=0.9, joint=0.2) == "abrupt_change"
     assert decide_anomaly_type(stl=0.1, cusum=0.1, joint=0.9) == "multivariate"
     assert decide_anomaly_type(stl=0.1, cusum=0.1, joint=0.1) == "normal"
+
+
+def test_guards_return_zero_on_degenerate_input():
+    # history_max <= 0（含负值，冷启动/无历史）→ 0.0，避免除零
+    assert normalize_cusum(5.0, history_max=0.0) == 0.0
+    assert normalize_cusum(5.0, history_max=-1.0) == 0.0
+    # df <= 0（协方差奇异/无自由度）→ 0.0
+    assert normalize_mahalanobis(5.0, df=0) == 0.0
+    assert normalize_mahalanobis(5.0, df=-2) == 0.0
