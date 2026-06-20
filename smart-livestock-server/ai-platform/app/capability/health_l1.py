@@ -38,23 +38,26 @@ class HealthAnomalyL1(Capability):
             # Phase A 未实现 iForest（design §4.3 预留 Phase B），数据足够时降级 mahalanobis
             algo = "mahalanobis"
 
-        # 个体基线（每维），冷启动用群体兜底
-        baselines: dict[str, tuple[float, float]] = {}
-        for dim in _DIM_NAMES:
-            med, mad = robust_baseline(slots_df[dim].to_numpy())
-            if np.isnan(med) and cohort_baselines:
-                med, mad = cohort_baseline(cohort_baselines)
-            baselines[dim] = (med, mad)
-
-        # L1a STL（温度维主导节律剥离分数；三维取均值增强信号）
-        stl_scores = [stl_layer_score(slots_df[d]) for d in _DIM_NAMES]
-        stl_raw = float(np.mean(stl_scores))
-
         # 历史段：排除最近检测窗口（评审 #4 防异常自稀释 + 评审 #7 CUSUM 历史基准）
         win = settings.detection_window_hours * 2
         # 退化边界（复审 N2）：仅当 slots_df≤win(48) 槽时 history_df 回退为含当前窗口的整段，
         # 此时若 n_eff≥30 仍走 mahalanobis 档会有自稀释——属已知边缘情况（正常 14 天 672 槽不触发），Phase A 不特殊处理
         history_df = slots_df.iloc[:-win] if len(slots_df) > win else slots_df
+
+        # 个体基线（每维）：从历史段算，排除当前检测窗口防 self-leak（评审 #4 延伸至基线层）。
+        # 退化情况（len≤win）history_df==slots_df，此时整个短序列即历史，无 self-leak。
+        # 冷启动用群体兜底。
+        baselines: dict[str, tuple[float, float]] = {}
+        for dim in _DIM_NAMES:
+            med, mad = robust_baseline(history_df[dim].to_numpy())
+            if np.isnan(med) and cohort_baselines:
+                med, mad = cohort_baseline(cohort_baselines)
+            baselines[dim] = (med, mad)
+
+        # L1a STL（温度维主导节律剥离分数；三维取均值增强信号）
+        # STL 仍用整个 slots_df（节律分解需要完整周期；STL 残差即目标信号，非基线自引用）
+        stl_scores = [stl_layer_score(slots_df[d]) for d in _DIM_NAMES]
+        stl_raw = float(np.mean(stl_scores))
 
         # L1b CUSUM（变点检测）；当前检测窗口与历史段同尺度同预处理（评审 #7）。
         # 去窗口中位数保留 level-shift 信号（STL residual 会吸收阶跃，致信号损失）。
