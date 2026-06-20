@@ -65,3 +65,27 @@ def test_route_pure_threshold_vs_hysteresis_diverge():
     # mahalanobis 迟滞带 [24,30)：N_eff=25 纯阈值→rules(<30)，已 mahalanobis→保持(>=24)
     assert route_by_neff(25, state=None) == "rules"
     assert route_by_neff(25, state={"current": "mahalanobis"}) == "mahalanobis"
+
+
+def test_route_returns_none_when_all_unavailable():
+    # select_available 的 None fallback 分支（全不可用）
+    reg = CapabilityRegistry()
+    reg.register(StubCap(CapabilityLevel.L1, False))
+    reg.register(StubCap(CapabilityLevel.L2, False))
+    assert reg.select_available(CapabilityContext()) is None
+
+
+def test_neff_pure_threshold_boundary_is_strictly_less():
+    # 锁定纯阈值边界（< 上阈，非 <=）：n_eff=30 恰升 maha，n_eff=200 恰升 iforest
+    assert route_by_neff(29) == "rules"
+    assert route_by_neff(30) == "mahalanobis"
+    assert route_by_neff(199) == "mahalanobis"
+    assert route_by_neff(200) == "iforest"
+
+
+def test_neff_unknown_state_falls_back_to_pure_threshold():
+    # state 无 current 键 → 等价纯阈值
+    assert route_by_neff(120, state={}) == "mahalanobis"
+    # state current 为未知算法名 → fallback 纯阈值
+    assert route_by_neff(120, state={"current": "bogus"}) == "mahalanobis"
+    assert route_by_neff(300, state={"current": "bogus"}) == "iforest"
