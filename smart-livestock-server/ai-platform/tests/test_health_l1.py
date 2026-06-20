@@ -39,9 +39,12 @@ def test_l1_predict_anomaly_scores_higher(anomaly_series, normal_series):
 
 
 # 多 seed 绝对阈值（防误报，roadmap #2）；CUSUM/Mahalanobis 用经验排名不饱和。
-# 实测 7 seed：normal_score max=0.666（cusum 已正确去饱和 0.93→0.23-0.77；
-# joint 经验排名仍有正向偏置 0.77-1.0，因当前窗口相对历史 OAS 分布为 out-of-sample，
-# 自然落在尾部——记录为已知现象，阈值选 0.70 = 实测最大 0.666 + 0.04 容差）。
+# Mahalanobis d2_hist 使用 LOOCV（每个历史样本在排除自身的 OAS 模型下计距），消除
+# 原 in-sample 偏差（in-sample joint 1.000 → LOOCV joint 0.75-0.96）。
+# 但当前窗口特征向量为 tail(win) 且 baseline 含当前段，叠加 12 步滑窗 75% 重叠致有效样本数
+# ~12，末尾窗口在 OAS 分布中天然偏尾部——LOOCV 缓解但未完全消除（joint 0.75-0.96，normal 0.41-0.65）。
+# 阈值 0.70 = 实测最大 0.65 + 0.05 容差；进一步压低 normal 需扩大 baseline 排除当前段 / 加大滑窗步长，
+# 属下一轮 baseline-leak 修复范畴，Phase A 不变更。
 @pytest.mark.parametrize("seed", [0, 1, 7, 42, 100, 123, 999])
 def test_l1_normal_score_well_below_alert_threshold_across_seeds(seed):
     rng = np.random.default_rng(seed)

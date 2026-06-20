@@ -83,8 +83,18 @@ def fit_mahalanobis(history_features: np.ndarray):
     keep = var > 1e-12
     if keep.sum() < 2:
         return None
-    model = OAS().fit(X[:, keep])
-    d2_hist = model.mahalanobis(X[:, keep])   # 历史样本自身的马氏距离（经验排名基准）
+    Xk = X[:, keep]
+    model = OAS().fit(Xk)                          # full model（用于 d2_cur）
+    # LOOCV d2_hist：每个样本在排除自身的模型下的距离（out-of-sample，与 d2_cur 可比）。
+    # 原 in-sample d2_hist 系统性偏低，使正常当前窗口落在经验排名尾部（joint 0.77-1.0）；
+    # LOO 让 d2_hist[i] 与 d2_cur 同为 out-of-sample，消除正向偏置。O(n²) n≈48 可忽略。
+    n = Xk.shape[0]
+    d2_hist = np.empty(n, dtype=float)
+    for i in range(n):
+        mask = np.ones(n, dtype=bool)
+        mask[i] = False
+        loo = OAS().fit(Xk[mask])
+        d2_hist[i] = float(loo.mahalanobis(Xk[i:i + 1])[0])
     return {"model": model, "keep_mask": keep, "d2_hist": d2_hist}
 
 
