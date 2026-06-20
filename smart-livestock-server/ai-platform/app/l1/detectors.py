@@ -62,3 +62,32 @@ def cusum_score(series: pd.Series) -> float:
     peak = max(float(pos.max()) if pos.size else 0.0,
                float(neg.max()) if neg.size else 0.0)
     return float(peak)
+
+
+from sklearn.covariance import EmpiricalCovariance
+from app.l1.features import FEATURE_DIMS
+
+
+def fit_mahalanobis(history_features: np.ndarray):
+    """用历史特征矩阵拟合协方差，返回模型（design §4.3 L1c）。
+
+    样本数 < FEATURE_DIMS+1 时返回 None（协方差不可估，路由器降级到纯规则）。
+    """
+    X = np.asarray(history_features, dtype=float)
+    if X.ndim != 2 or X.shape[0] < FEATURE_DIMS + 1:
+        return None
+    # 去常量列（方差 0）避免奇异协方差
+    var = X.var(axis=0)
+    keep = var > 1e-12
+    if keep.sum() < 2:
+        return None
+    model = EmpiricalCovariance().fit(X[:, keep])
+    return {"model": model, "keep_mask": keep}
+
+
+def mahalanobis_distance(model, points: np.ndarray) -> np.ndarray:
+    """返回平方 Mahalanobis 距离（χ² 自由度 = 保留特征数）。"""
+    if model is None:
+        return np.zeros(len(points))
+    P = np.asarray(points, dtype=float)[:, model["keep_mask"]]
+    return model["model"].mahalanobis(P)
