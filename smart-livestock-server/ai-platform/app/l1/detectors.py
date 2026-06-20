@@ -29,7 +29,7 @@ def stl_layer_score(series: pd.Series, period: int = 48) -> float:
     if resid.empty:
         return 0.0
     std = float(resid.std())
-    if std == 0 or not np.isfinite(std):
+    if std < 1e-9 or not np.isfinite(std):
         return 0.0
     center = float(resid.mean())
     detect_n = settings.detection_window_hours * 2  # 24h → 48 槽
@@ -54,7 +54,7 @@ def cusum_score(series: pd.Series) -> float:
         return 0.0
     z = (s - s.mean())
     std = z.std()
-    if std == 0 or not np.isfinite(std):
+    if std < 1e-9 or not np.isfinite(std):
         return 0.0
     z = (z / std).to_numpy()
     pos = np.cumsum(np.clip(z, 0.0, None))

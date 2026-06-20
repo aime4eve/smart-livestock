@@ -34,3 +34,9 @@ def test_cusum_output_finite():
                   index=pd.date_range("2026-06-01", periods=96, freq="30min", tz="UTC"))
     score = cusum_score(s)
     assert np.isfinite(score)
+
+
+def test_stl_layer_score_constant_series_is_zero():
+    # 传感器卡死（常量）：STL residual 浮点噪声 ~1e-14，std epsilon-floor guard 应触发
+    const = pd.Series(np.full(672, 38.5), index=pd.date_range("2026-06-01", periods=672, freq="30min", tz="UTC"))
+    assert stl_layer_score(const) == 0.0
