@@ -30,6 +30,9 @@ class HealthAnomalyL1(Capability):
 
     def predict_series(self, req: PredictRequest, slots_df: pd.DataFrame,
                        cohort_baselines: list[tuple[float, float]]) -> PredictResponse:
+        # req.tenant_id/farm_id 有意不读：ai-platform 是内部服务，租户/牧场 scope 由 Java 边缘
+        # 做（design §3，Plan 2 V38 只读账号 + tenant filter）。cohort_baselines Phase A 传 []，
+        # 群体兜底分支（见下 robust_baseline NaN 回退）当前为死路径，Plan 2 cohort DB 接入后激活。
         livestock_id = req.livestock_ids[0] if req.livestock_ids else 0
         n_eff = compute_neff(slots_df)
         router_state: dict = {}
