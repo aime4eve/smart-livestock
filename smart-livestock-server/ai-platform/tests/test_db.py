@@ -47,6 +47,18 @@ def test_fetch_window_handles_empty():
     assert len(series_map["temperature"]) == 0
 
 
+def test_fetch_window_empty_dim_returns_datetime_index():
+    # 阻断1：部分维缺失（如 activity）时空维须返回 DatetimeIndex，
+    # 否则下游 resample_to_slots 遇 RangeIndex 崩（真实数据三维常不齐）
+    temp_rows = [(10, 38.5, datetime(2026, 6, 1, 0, 0, tzinfo=timezone.utc))]
+    fake = FakeConn([temp_rows, [], []])  # motility + activity 空
+    s = dbmod.fetch_window(fake, livestock_id=10, window_hours=24)
+    assert len(s["temperature"]) == 1
+    for d in ("motility", "activity"):
+        assert len(s[d]) == 0
+        assert isinstance(s[d].index, pd.DatetimeIndex), f"{d} 空维须 DatetimeIndex"
+
+
 def test_connect_closes_connection(monkeypatch):
     # 评审 H1：connect() 上下文退出后连接关闭
     fake = FakeConn([])

@@ -16,6 +16,18 @@ def test_resample_aligns_to_30min_slots(rng):
     assert {"temperature", "motility", "activity"} <= set(df.columns)
 
 
+def test_resample_handles_partially_empty_dims():
+    # 阻断1：部分维缺失（空 DatetimeIndex series）resample 不崩，
+    # 返回 float64 DataFrame，空维对齐为 NaN（供下游 stl/cusum/baseline 兜底）
+    idx = pd.date_range("2026-06-01", periods=48, freq="30min", tz="UTC")
+    temp = pd.Series(np.full(48, 38.5), index=idx, name="temperature")
+    empty = pd.Series([], dtype=float, index=pd.DatetimeIndex([], tz="UTC"))
+    df = resample_to_slots(temp, empty, empty)
+    assert df["temperature"].dtype == np.float64
+    assert df["motility"].isna().all()
+    assert df["activity"].isna().all()
+
+
 def test_neff_counts_full_triplet_slots(normal_series):
     df = resample_to_slots(
         normal_series["temperature"], normal_series["motility"], normal_series["activity"])

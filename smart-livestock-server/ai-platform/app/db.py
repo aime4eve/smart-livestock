@@ -73,5 +73,8 @@ def fetch_window(conn, livestock_id: int, window_hours: int) -> dict[str, pd.Ser
             idx = pd.to_datetime([r[2] for r in rows], utc=True)
             result[dim] = pd.Series(values, index=idx, name=dim)
         else:
-            result[dim] = pd.Series([], dtype=float, name=dim)
+            # 空维也用 DatetimeIndex（tz=UTC），与有数据维保持一致；
+            # 否则下游 resample_to_slots 遇 RangeIndex 崩（阻断1：真实数据三维常不齐）。
+            result[dim] = pd.Series([], dtype=float, name=dim,
+                                    index=pd.DatetimeIndex([], tz="UTC"))
     return result

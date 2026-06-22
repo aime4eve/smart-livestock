@@ -14,11 +14,14 @@ def resample_to_slots(temperature: pd.Series, motility: pd.Series,
     入参为带 DatetimeIndex 的 Series（来自 db.py 的查询）。缺失槽位为 NaN。
     """
     rule = f"{settings.slot_minutes}min"
-    return pd.DataFrame({
+    df = pd.DataFrame({
         "temperature": temperature.resample(rule).mean(),
         "motility": motility.resample(rule).mean(),
         "activity": activity.resample(rule).mean(),
     })
+    # 强制 float64：空维（DatetimeIndex 空 series）resample 会产生 object dtype，
+    # 致下游 np.isfinite / std 崩（阻断1：真实数据三维常不齐，部分维缺失）
+    return df.astype(float)
 
 
 def compute_neff(slots_df: pd.DataFrame) -> int:
