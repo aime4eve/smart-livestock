@@ -17,10 +17,9 @@ class Settings:
     w_cusum: float = float(os.getenv("AI_W_CUSUM", "0.3"))
     w_joint: float = float(os.getenv("AI_W_JOINT", "0.4"))
 
-    # N_eff 分档阈值（design §4.3）
+    # N_eff 分档阈值（design §4.3）；迟滞 Phase A 不实现（见 router.route_by_neff）
     neff_mahalanobis_min: int = int(os.getenv("AI_NEFF_MAH_MIN", "30"))
     neff_iforest_min: int = int(os.getenv("AI_NEFF_IFOREST_MIN", "200"))
-    neff_hysteresis: float = float(os.getenv("AI_NEFF_HYST", "0.2"))  # ±20% 迟滞
 
     # 时序窗口与粒度（design §4.1）
     detection_window_hours: int = int(os.getenv("AI_DETECT_WINDOW_H", "24"))
@@ -41,8 +40,6 @@ class Settings:
         wsum = self.w_stl + self.w_cusum + self.w_joint
         if abs(wsum - 1.0) > 0.01:
             raise ValueError(f"fusion weights must sum to ~1.0, got {wsum!r}")
-        if not (0.0 <= self.neff_hysteresis < 1.0):
-            raise ValueError(f"neff_hysteresis must be in [0,1), got {self.neff_hysteresis!r}")
 
 
 settings = Settings()

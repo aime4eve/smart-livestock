@@ -33,7 +33,8 @@ def test_synthetic_anomaly_scores_higher_than_normal(engine, normal_series, anom
 
 def test_score_distribution_self_consistent(engine, rng):
     """design §8 自洽性：多个正常序列分数应集中且偏低。"""
-    # Phase A 现实（controller 预验证）：range(10) normal 均值 ≈0.491，边缘通过 < 0.5。
+    # Phase A 现实（controller 预验证）：range(10) normal 均值 ≈0.49，容差 0.06 → 断言 < 0.55。
+    # 评审 L3：原 < 0.5 实测 0.491 边缘通过，numpy/scipy 版本微变即破；放宽到 0.55 留余量。
     # 这是 Task 10 temporal-edge 已知限制（normal 0.41–0.65）的直接体现，非 bug；
     # 绝对标定属 Phase B（design §4.4 真实数据标定）。default_rng(seed) 确定，无随机性。
     from tests.conftest import make_triplet_series
@@ -42,5 +43,5 @@ def test_score_distribution_self_consistent(engine, rng):
         r = __import__("numpy").random.default_rng(seed)
         s = make_triplet_series(r, days=14, inject_anomaly=False)
         scores.append(_score(engine, s))
-    # 正常序列分数均值 < 0.5
-    assert sum(scores) / len(scores) < 0.5
+    # 正常序列分数均值 < 0.55（实测 ≈0.49，容差 0.06）
+    assert sum(scores) / len(scores) < 0.55

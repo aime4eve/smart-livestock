@@ -1,4 +1,4 @@
-"""capability 门面 + L1 内部 N_eff 路由（design §3 registry + §4.3 分档/迟滞）。"""
+"""capability 门面 + L1 内部 N_eff 路由（design §3 registry + §4.3 分档）。"""
 from typing import Optional
 
 from app.config import settings
@@ -26,41 +26,22 @@ class CapabilityRegistry:
         return None
 
 
-def route_by_neff(n_eff: int, state: dict | None = None) -> str:
-    """返回算法名：rules / mahalanobis / iforest。
+def route_by_neff(n_eff: int) -> str:
+    """返回算法名：rules / mahalanobis / iforest（design §4.3 N_eff 分档，纯阈值）。
 
-    state: 可变 dict {"current": <algo>}，用于跨次调用保持迟滞。
-        无 state（或 current 为 None）则按纯阈值路由，不应用迟滞。
-    升档需 N_eff ≥ 上阈；降档需 N_eff < 下阈（下阈 = 上阈 × (1 - hyst)）。
+    design §4.3 第 112 行要求的 ±20% hysteresis 需要 per-individual 跨次状态
+    （"同一头牛"持续 N_eff），Phase A 无 DB 写权限、单实例进程内 dict 多实例失效，
+    故不实现。Plan 2 Java 定时批量接入时，按 livestock_id 分键补状态化迟滞
+    （Redis/PG 持久态）。
 
-    注意：本函数不修改 state，只读取 state["current"] 并返回选择结果。
-    调用方负责把返回值回写 state["current"]（测试中显式设置以模拟）。
+    当前纯阈值：N_eff<30→rules、<200→mahalanobis、≥200→iforest。
+    临界抖动后果（无迟滞）：N_eff 在 29↔31 间跳变时 joint 项开关 → 同一头牛
+    相邻检测分数可能波动；Plan 2 若 Java 端有告警去抖/时间窗聚合可吸收。
     """
-    hi_iforest = settings.neff_iforest_min                              # 200
-    lo_iforest = int(hi_iforest * (1 - settings.neff_hysteresis))      # 160
-    hi_maha = settings.neff_mahalanobis_min                             # 30
-    lo_maha = int(hi_maha * (1 - settings.neff_hysteresis))            # 24
-
-    current = (state or {}).get("current")
-
-    # 无迟滞状态：纯阈值
-    if current is None:
-        if n_eff < hi_maha:
-            return "rules"
-        if n_eff < hi_iforest:
-            return "mahalanobis"
-        return "iforest"
-
-    # 有迟滞：仅在跨出迟滞带时切换
-    if current == "rules":
-        return "mahalanobis" if n_eff >= hi_maha else "rules"
-    if current == "mahalanobis":
-        if n_eff >= hi_iforest:
-            return "iforest"
-        if n_eff < lo_maha:
-            return "rules"
+    hi_iforest = settings.neff_iforest_min   # 200
+    hi_maha = settings.neff_mahalanobis_min  # 30
+    if n_eff < hi_maha:
+        return "rules"
+    if n_eff < hi_iforest:
         return "mahalanobis"
-    if current == "iforest":
-        return "mahalanobis" if n_eff < lo_iforest else "iforest"
-    # 未知 current，退回纯阈值
-    return route_by_neff(n_eff, state=None)
+    return "iforest"

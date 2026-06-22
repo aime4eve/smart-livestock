@@ -3,6 +3,7 @@ import numpy as np
 from scipy.stats import chi2
 
 from app.config import settings
+from app.schemas import AnomalyType
 
 
 def normalize_stl(stl_score: float) -> float:
@@ -31,7 +32,7 @@ def fuse(stl: float, cusum: float, joint: float) -> float:
 
 
 def decide_anomaly_type(stl: float, cusum: float, joint: float,
-                        threshold: float = 0.5) -> str:
+                        threshold: float = 0.5) -> AnomalyType:
     """按主导层判定 anomaly_type（design §4.4）。三方都低 → normal。
 
     threshold 作用于**各层归一化分数**（stl/cusum/joint，即 contributions），
@@ -39,8 +40,10 @@ def decide_anomaly_type(stl: float, cusum: float, joint: float,
     与 config.alert_threshold（作用于**融合 score**、由 Java 端触发告警）是**不同对象不同概念**，
     勿把 alert_threshold 传入此处——那会把 0.5–0.7 的异常记录误标 normal、丢失可解释性。
     """
-    layers = {"circadian_disruption": stl, "abrupt_change": cusum, "multivariate": joint}
+    layers = {AnomalyType.CIRCADIAN_DISRUPTION: stl,
+              AnomalyType.ABRUPT_CHANGE: cusum,
+              AnomalyType.MULTIVARIATE: joint}
     dominant = max(layers, key=layers.get)
     if layers[dominant] < threshold:
-        return "normal"
+        return AnomalyType.NORMAL
     return dominant

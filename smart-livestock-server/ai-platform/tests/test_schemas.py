@@ -1,6 +1,6 @@
 import pytest
 from app.schemas import (CapabilityLevel, PredictRequest, PredictResponse,
-                         Contributions, AnalyzeResponse)
+                         Contributions, AnalyzeResponse, AnomalyType, CapabilityUsed)
 
 
 def test_predict_request_defaults():
@@ -36,3 +36,27 @@ def test_capability_level_values():
 def test_analyze_response_envelope():
     r = AnalyzeResponse(request_id="req-1", results=[])
     assert r.results == []
+
+
+def test_anomaly_type_enum_values():
+    # 评审 M6：AnomalyType 枚举覆盖 design §4.4 四类
+    assert AnomalyType.NORMAL == "normal"
+    assert AnomalyType.CIRCADIAN_DISRUPTION == "circadian_disruption"
+    assert AnomalyType.ABRUPT_CHANGE == "abrupt_change"
+    assert AnomalyType.MULTIVARIATE == "multivariate"
+
+
+def test_predict_response_rejects_invalid_anomaly_type():
+    # 评审 M6：枚举约束拦截拼写错误（如 "abrubt_change"）
+    with pytest.raises(Exception):
+        PredictResponse(livestock_id=10, anomaly_score=0.5, anomaly_type="abrubt_change",
+                        contributions=Contributions(), capability_used="health_l1",
+                        n_eff=1, model_meta={})
+
+
+def test_predict_response_rejects_invalid_capability_used():
+    # 评审 M6：capability_used 仅允许 health_l1 / none
+    with pytest.raises(Exception):
+        PredictResponse(livestock_id=10, anomaly_score=0.5, anomaly_type="normal",
+                        contributions=Contributions(), capability_used="l2_placeholder",
+                        n_eff=1, model_meta={})

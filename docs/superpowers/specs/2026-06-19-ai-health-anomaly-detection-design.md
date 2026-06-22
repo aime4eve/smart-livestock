@@ -111,6 +111,8 @@ per-livestock 三维时序窗口：`temperature`（CAPSULE）、`rumen_motility`
 
 **路由切换迟滞（评审补强 #4）**：分档切换带 ±20% hysteresis 防临界抖动——升档需 N_eff 持续 ≥200（非单次碰线），降档需持续 <160。否则同一头牛在临界值会因个别缺失槽位导致算法来回切换。
 
+> **Phase A 落地状态（2026-06-21 评审 H2）**：迟滞**未实现**，`route_by_neff` 为纯阈值。原因：迟滞需 per-individual 跨次状态（"同一头牛持续 N_eff"），Phase A 无 DB 写权限、单实例进程内 dict 多实例失效。Plan 2 Java 定时批量接入时，按 `livestock_id` 分键补状态化迟滞（Redis/PG 持久态）。临界 N_eff 抖动后果：29↔31 间 joint 项开关致分数波动，若 Java 端有告警去抖/时间窗聚合可吸收。
+
 > Mahalanobis vs iForest 不是二选一，是按规模自动选。Phase A 实现 2 档（规则 / Mahalanobis），iForest/监督档预留接口。
 
 ### 4.4 融合与输出

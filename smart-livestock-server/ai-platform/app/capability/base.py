@@ -1,6 +1,6 @@
 """Capability 同构契约（design §5.1）。"""
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from app.schemas import (
     CapabilityLevel,
@@ -11,9 +11,8 @@ from app.schemas import (
 
 @dataclass
 class CapabilityContext:
-    """预测上下文：N_eff、路由状态等。"""
+    """预测上下文。n_eff 预留给 L2/L3 路由；L1 自行重算（见 engine.py 双轨说明）。"""
     n_eff: int = 0
-    router_state: dict = field(default_factory=dict)
 
 
 class Capability(ABC):

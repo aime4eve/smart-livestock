@@ -83,6 +83,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    # 评审 L7：Plan 2 Java 端 depends_on ai-platform 时需 healthcheck（service_started 不够）
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/ai/health/live')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
     restart: unless-stopped
 
   tileserver:

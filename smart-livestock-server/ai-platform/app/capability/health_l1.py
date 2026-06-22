@@ -8,7 +8,7 @@ from app.l1.features import (compute_neff, robust_baseline, cohort_baseline,
                              build_feature_vector, _DIM_NAMES)
 from app.l1.detectors import stl_layer_score, cusum_score, fit_mahalanobis, mahalanobis_distance
 from app.l1.fusion import normalize_stl, fuse, decide_anomaly_type
-from app.schemas import Contributions, PredictRequest, PredictResponse
+from app.schemas import Contributions, PredictRequest, PredictResponse, CapabilityUsed
 
 from app.config import settings
 
@@ -35,8 +35,8 @@ class HealthAnomalyL1(Capability):
         # 群体兜底分支（见下 robust_baseline NaN 回退）当前为死路径，Plan 2 cohort DB 接入后激活。
         livestock_id = req.livestock_ids[0] if req.livestock_ids else 0
         n_eff = compute_neff(slots_df)
-        router_state: dict = {}
-        algo = route_by_neff(n_eff, state=router_state)
+        # 纯阈值路由，无跨次记忆（design §4.3 迟滞 Phase A 不实现，见 router.route_by_neff）
+        algo = route_by_neff(n_eff)
         if algo == "iforest":
             # Phase A 未实现 iForest（design §4.3 预留 Phase B），数据足够时降级 mahalanobis
             algo = "mahalanobis"
@@ -121,7 +121,7 @@ class HealthAnomalyL1(Capability):
             anomaly_score=score,
             anomaly_type=atype,
             contributions=Contributions(stl=stl_norm, cusum=cusum_norm, joint=joint_norm),
-            capability_used="health_l1",
+            capability_used=CapabilityUsed.HEALTH_L1,
             n_eff=n_eff,
             model_meta={"router": algo, "weights": [settings.w_stl, settings.w_cusum, settings.w_joint]},
         )

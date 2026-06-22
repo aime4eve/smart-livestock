@@ -9,12 +9,24 @@ class CapabilityLevel(str, Enum):
     L3 = "L3"
 
 
-class PredictRequest(BaseModel):
+class AnomalyType(str, Enum):
+    """design §4.4 anomaly_type 取值（按主导层判定；三方都低 → normal）。"""
+    NORMAL = "normal"
+    CIRCADIAN_DISRUPTION = "circadian_disruption"
+    ABRUPT_CHANGE = "abrupt_change"
+    MULTIVARIATE = "multivariate"
+
+
+class CapabilityUsed(str, Enum):
+    """PredictResponse.capability_used 取值（评审 M6 枚举约束）。L2/L3 Phase A 占位不产生响应。"""
+    HEALTH_L1 = "health_l1"
+    NONE = "none"
+
+
+class _BasePredict(BaseModel):
+    """Predict 请求公共字段。单头/批量端点共享，livestock 维度各自定义（评审 M3）。"""
     tenant_id: int
     farm_id: int
-    # 单头端点 /analyze/{id} 走路径参数，body 可不传 livestock_ids（评审 #1）；
-    # 批量端点在路由内校验非空；max_length=100 防 DoS（评审 #2）
-    livestock_ids: list[int] = Field(default_factory=list, max_length=100)
     window_hours: int = 24
     live_endpoint: bool = False
 
@@ -25,6 +37,15 @@ class PredictRequest(BaseModel):
         if not (1 <= v <= 720):
             raise ValueError("window_hours must be in [1, 720]")
         return v
+
+
+class PredictRequest(_BasePredict):
+    """批量端点 /analyze body 契约。livestock_ids 非空由路由校验；max_length=100 防 DoS（评审 #2）。"""
+    livestock_ids: list[int] = Field(default_factory=list, max_length=100)
+
+
+class SinglePredictRequest(_BasePredict):
+    """单头端点 /analyze/{id} body 契约（评审 M3）：livestock_id 走 path 参数，body 不含 livestock_ids。"""
 
 
 class Contributions(BaseModel):
@@ -39,9 +60,9 @@ class Contributions(BaseModel):
 class PredictResponse(BaseModel):
     livestock_id: int
     anomaly_score: float = Field(ge=0.0, le=1.0)
-    anomaly_type: str  # circadian_disruption / abrupt_change / multivariate / normal
+    anomaly_type: AnomalyType
     contributions: Contributions
-    capability_used: str
+    capability_used: CapabilityUsed
     n_eff: int
     model_meta: dict = Field(default_factory=dict)
 
