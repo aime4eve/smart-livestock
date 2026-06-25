@@ -1,0 +1,15 @@
+# 评审 L6：减小 build context。Dockerfile 只 COPY requirements.txt + app/，
+# 但 build context 默认上传整个目录到 daemon，这里显式排除非运行时文件。
+tests/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.git/
+.gitignore
+.mypy_cache/
+.ruff_cache/
+*.md
+Dockerfile
+.dockerignore

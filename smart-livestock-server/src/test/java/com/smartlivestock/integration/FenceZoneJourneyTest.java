@@ -55,8 +55,11 @@ class FenceZoneJourneyTest extends AbstractJourneyTest {
                     "alertRadius", 30,
                     "severity", "WARNING"
             );
-            Map<String, Object> result = postApi(ownerToken,
+            var resp = postRaw(ownerToken,
                     "/api/v1/farms/1/fence-zones", body);
+            assertCreated(resp);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> result = (Map<String, Object>) resp.getBody().get("data");
             assertThat(result).containsKeys("id", "fenceId", "name", "zoneType", "farmId");
             assertThat(result.get("name")).isEqualTo("水源区");
             assertThat(result.get("zoneType")).isEqualTo("WATER_SOURCE");

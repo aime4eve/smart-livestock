@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.ColumnTransformer;
 
 import java.time.Instant;
 
@@ -32,6 +33,7 @@ public class FenceZoneJpaEntity {
     private String zoneType;
 
     @Column(name = "vertices", columnDefinition = "JSONB", nullable = false)
+    @ColumnTransformer(write = "?::jsonb")
     private String vertices;
 
     @Column(name = "alert_radius")
