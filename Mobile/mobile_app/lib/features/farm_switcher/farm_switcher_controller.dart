@@ -41,6 +41,11 @@ class FarmSwitcherState {
 class FarmSwitcherController extends Notifier<FarmSwitcherState> {
   @override
   FarmSwitcherState build() {
+    // 登录/退出边界变化时重建：logout 后回到 empty，避免 hasFarms=true 残留
+    // 导致下次登录 MainShell 跳过 loadFarms、activeFarmId 不恢复，进而让
+    // farm-scoped 页面（/fence 等）的 farmGet 抛 StateError 后永久卡 loading/error。
+    // select(isLoggedIn) 只在登录边界触发，切农场（updateActiveFarm）不会重建。
+    ref.watch(sessionControllerProvider.select((s) => s.isLoggedIn));
     return const FarmSwitcherState.empty();
   }
 

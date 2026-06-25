@@ -6,6 +6,7 @@ import 'package:hkt_livestock_agentic/app/session/app_session.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class _NoFarmController extends FarmSwitcherController {
   @override
@@ -23,7 +24,7 @@ class _NoFarmController extends FarmSwitcherController {
 
 class _OwnerSession extends SessionController {
   @override
-  AppSession build() => AppSession.authenticated(
+  AppSession build() => const AppSession.authenticated(
         role: UserRole.owner,
         accessToken: 'test-token',
         userId: 1,
@@ -44,6 +45,8 @@ void main() {
             .overrideWith(() => _NoFarmController()),
       ],
       child: const MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: MainShell(
           location: '/ranch',
           child: SizedBox.shrink(),
