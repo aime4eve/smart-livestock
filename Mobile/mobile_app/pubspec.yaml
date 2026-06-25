@@ -28,7 +28,7 @@ dependencies:
   path: ^1.9.0
   crypto: ^3.0.4
 
-  intl: any
+  intl: ^0.20.2
 dev_dependencies:
   flutter_test:
     sdk: flutter
