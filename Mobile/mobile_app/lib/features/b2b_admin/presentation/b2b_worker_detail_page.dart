@@ -184,17 +184,14 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
 
   Future<void> _loadMapData() async {
     try {
-      final prevFarmId = ApiClient.instance.activeFarmId;
-      ApiClient.instance.setActiveFarmId(widget.farmId);
-
       final results = await Future.wait([
-        ApiClient.instance.farmGet('/map/overview'),
+        ApiClient.instance.farmGet('/map/overview', farmId: widget.farmId),
         ApiClient.instance.get('/farms/${widget.farmId}'),
-        _safeCall(() => ApiClient.instance.farmGet('/tile-source')),
-        _safeCall(() => ApiClient.instance.farmGet('/tile-status')),
+        _safeCall(() =>
+            ApiClient.instance.farmGet('/tile-source', farmId: widget.farmId)),
+        _safeCall(() =>
+            ApiClient.instance.farmGet('/tile-status', farmId: widget.farmId)),
       ]);
-
-      ApiClient.instance.setActiveFarmId(prevFarmId);
 
       final mapData = results[0] as Map<String, dynamic>;
       final farmData = results[1] as Map<String, dynamic>;

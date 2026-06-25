@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/map/map_config.dart';
 import 'package:hkt_livestock_agentic/core/map/mbtiles_tile_provider.dart';
@@ -92,7 +93,7 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
         return;
       }
 
-      ApiClient.instance.setActiveFarmId(farmId);
+      ref.read(sessionControllerProvider.notifier).updateActiveFarm(farmId);
       widget.onComplete(farmId, _nameController.text.trim());
     } catch (e) {
       if (!mounted) return;

@@ -61,24 +61,30 @@ class ApiClient {
   Future<void> delete(String path) =>
       _withRefreshRetry(() => _doDelete(path));
 
-  Future<Map<String, dynamic>> farmGet(String suffix) async {
-    if (_activeFarmId == null) throw StateError('No active farm');
-    return get('/farms/$_activeFarmId$suffix');
+  Future<Map<String, dynamic>> farmGet(String suffix, {String? farmId}) async {
+    final id = farmId ?? _activeFarmId;
+    if (id == null) throw StateError('No active farm');
+    return get('/farms/$id$suffix');
   }
 
-  Future<Map<String, dynamic>> farmPost(String suffix, {Object? body}) async {
-    if (_activeFarmId == null) throw StateError('No active farm');
-    return post('/farms/$_activeFarmId$suffix', body: body);
+  Future<Map<String, dynamic>> farmPost(String suffix,
+      {Object? body, String? farmId}) async {
+    final id = farmId ?? _activeFarmId;
+    if (id == null) throw StateError('No active farm');
+    return post('/farms/$id$suffix', body: body);
   }
 
-  Future<Map<String, dynamic>> farmPut(String suffix, {Object? body}) async {
-    if (_activeFarmId == null) throw StateError('No active farm');
-    return put('/farms/$_activeFarmId$suffix', body: body);
+  Future<Map<String, dynamic>> farmPut(String suffix,
+      {Object? body, String? farmId}) async {
+    final id = farmId ?? _activeFarmId;
+    if (id == null) throw StateError('No active farm');
+    return put('/farms/$id$suffix', body: body);
   }
 
-  Future<void> farmDelete(String suffix) async {
-    if (_activeFarmId == null) throw StateError('No active farm');
-    return delete('/farms/$_activeFarmId$suffix');
+  Future<void> farmDelete(String suffix, {String? farmId}) async {
+    final id = farmId ?? _activeFarmId;
+    if (id == null) throw StateError('No active farm');
+    return delete('/farms/$id$suffix');
   }
 
   // ── Raw HTTP methods (no retry) ──────────────────────────────────

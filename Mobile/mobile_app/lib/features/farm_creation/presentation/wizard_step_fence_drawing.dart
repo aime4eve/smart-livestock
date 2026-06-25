@@ -184,11 +184,8 @@ class _WizardStepFenceDrawingState
       'alarmEnabled': true,
     };
 
-    // Set active farm ID for the API call path
-    ApiClient.instance.setActiveFarmId(widget.farmId);
-
     try {
-      await ApiClient.instance.farmPost('/fences', body: body);
+      await ApiClient.instance.farmPost('/fences', body: body, farmId: widget.farmId);
       if (!mounted) return;
       widget.onComplete(1);
     } catch (e) {

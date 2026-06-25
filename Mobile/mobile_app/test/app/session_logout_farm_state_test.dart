@@ -163,4 +163,17 @@ void main() {
       reason: 'activeFarmId 恢复后 FenceController 必须能重新加载，回到 normal',
     );
   });
+
+  test('farm* 的 farmId 参数不污染全局 activeFarmId（b2b 跨农场防回归）', () async {
+    ApiClient.instance.setActiveFarmId('owner-farm');
+    try {
+      await ApiClient.instance.farmGet('/map/overview', farmId: 'b2b-target-farm');
+    } catch (_) {}
+    expect(
+      ApiClient.instance.activeFarmId,
+      'owner-farm',
+      reason: 'farm* 显式 farmId 必须不污染全局，否则跨农场操作（如 b2b_worker_detail '
+          '查看他人农场）会让后续 farm-scoped 请求打到错误农场',
+    );
+  });
 }
