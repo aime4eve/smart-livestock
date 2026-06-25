@@ -316,7 +316,7 @@
   "@ranchFieldAbnormalType": {},
   "ranchActionDismiss": "忽略",
   "@ranchActionDismiss": {},
-  "ranchFenceBreachCount": "越界 {count}",
+  "ranchFenceBreachCount": "越界 {count} 头",
   "@ranchFenceBreachCount": {
     "placeholders": {
       "count": {
@@ -324,7 +324,7 @@
       }
     }
   },
-  "ranchFenceApproachCount": "接近 {count}",
+  "ranchFenceApproachCount": "接近 {count} 头",
   "@ranchFenceApproachCount": {
     "placeholders": {
       "count": {

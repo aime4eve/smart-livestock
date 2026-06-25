@@ -851,13 +851,13 @@ abstract class AppLocalizations {
   /// No description provided for @ranchFenceBreachCount.
   ///
   /// In zh, this message translates to:
-  /// **'越界 {count}'**
+  /// **'越界 {count} 头'**
   String ranchFenceBreachCount(String count);
 
   /// No description provided for @ranchFenceApproachCount.
   ///
   /// In zh, this message translates to:
-  /// **'接近 {count}'**
+  /// **'接近 {count} 头'**
   String ranchFenceApproachCount(String count);
 
   /// No description provided for @ranchAutoResolvedCount.

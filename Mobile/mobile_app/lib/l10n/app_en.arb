@@ -316,7 +316,7 @@
   "@ranchFieldAbnormalType": {},
   "ranchActionDismiss": "Dismiss",
   "@ranchActionDismiss": {},
-  "ranchFenceBreachCount": "Breach {count}",
+  "ranchFenceBreachCount": "Breach {count} head",
   "@ranchFenceBreachCount": {
     "placeholders": {
       "count": {
@@ -324,7 +324,7 @@
       }
     }
   },
-  "ranchFenceApproachCount": "Approach {count}",
+  "ranchFenceApproachCount": "Approach {count} head",
   "@ranchFenceApproachCount": {
     "placeholders": {
       "count": {

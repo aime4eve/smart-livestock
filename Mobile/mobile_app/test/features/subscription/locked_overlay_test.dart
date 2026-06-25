@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/locked_overlay.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 Widget _testChild() => const SizedBox(
       key: Key('test-child'),
@@ -13,6 +14,9 @@ void main() {
   group('LockedOverlay', () {
     testWidgets('shows child when locked is false', (tester) async {
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('zh'),
         home: Scaffold(
           body: LockedOverlay(
             locked: false,
@@ -27,6 +31,9 @@ void main() {
 
     testWidgets('shows overlay when locked is true', (tester) async {
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('zh'),
         home: Scaffold(
           body: LockedOverlay(
             locked: true,
@@ -44,6 +51,9 @@ void main() {
     testWidgets('shows upgrade button when onUpgrade provided and not device locked',
         (tester) async {
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('zh'),
         home: Scaffold(
           body: LockedOverlay(
             locked: true,
@@ -61,6 +71,9 @@ void main() {
 
     testWidgets('shows device icon when deviceLocked is true', (tester) async {
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('zh'),
         home: Scaffold(
           body: LockedOverlay(
             locked: true,
@@ -78,6 +91,9 @@ void main() {
     testWidgets('device locked shows default message when deviceMessage is null',
         (tester) async {
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('zh'),
         home: Scaffold(
           body: LockedOverlay(
             locked: true,
@@ -92,6 +108,9 @@ void main() {
 
     testWidgets('device locked does NOT show upgrade button', (tester) async {
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('zh'),
         home: Scaffold(
           body: LockedOverlay(
             locked: true,
@@ -111,6 +130,9 @@ void main() {
 
     testWidgets('shows correct label for enterprise upgrade tier', (tester) async {
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('zh'),
         home: Scaffold(
           body: LockedOverlay(
             locked: true,
@@ -126,6 +148,9 @@ void main() {
 
     testWidgets('child is rendered with reduced opacity when locked', (tester) async {
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('zh'),
         home: Scaffold(
           body: LockedOverlay(
             locked: true,

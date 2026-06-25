@@ -412,12 +412,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String ranchFenceBreachCount(String count) {
-    return 'Breach $count';
+    return 'Breach $count head';
   }
 
   @override
   String ranchFenceApproachCount(String count) {
-    return 'Approach $count';
+    return 'Approach $count head';
   }
 
   @override

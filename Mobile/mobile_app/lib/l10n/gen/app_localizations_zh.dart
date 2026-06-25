@@ -407,12 +407,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String ranchFenceBreachCount(String count) {
-    return '越界 $count';
+    return '越界 $count 头';
   }
 
   @override
   String ranchFenceApproachCount(String count) {
-    return '接近 $count';
+    return '接近 $count 头';
   }
 
   @override

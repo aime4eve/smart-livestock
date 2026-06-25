@@ -6,7 +6,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
-import 'package:hkt_livestock_agentic/features/b2b_admin/domain/b2b_repository.dart';
 import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
@@ -274,7 +273,6 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(b2bWorkerManagementControllerProvider);
 
     return asyncData.when(
