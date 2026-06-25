@@ -66,8 +66,8 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
     if (!kIsWeb) {
       mbtiles = await MBTilesTileProvider.fromAsset();
     }
-    final region = const String.fromEnvironment('REGION', defaultValue: 'china');
-    final isChina = region == 'china';
+    const region = String.fromEnvironment('REGION', defaultValue: 'china');
+    const isChina = region == 'china';
     String? regionUrl;
     if (ApiClient.instance.activeFarmId != null) {
       try {
@@ -510,7 +510,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
         } else {
           await ApiClient.instance.farmPost('/fences', body: body);
         }
-      } on ConflictException catch (e) {
+      } on ConflictException {
         if (mounted) {
           setState(() => _saving = false);
           final force = await showDialog<bool>(
@@ -711,7 +711,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                controller: _nameController,
                 decoration: InputDecoration(
                   labelText: l10n.fenceFormName,
-                 border: OutlineInputBorder(),
+                 border: const OutlineInputBorder(),
                ),
                validator: (v) =>
                     (v == null || v.trim().isEmpty) ? l10n.fenceFormNameRequired : null,
@@ -724,7 +724,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                  initialValue: _type,
                   decoration: InputDecoration(
                     labelText: l10n.fenceFormType,
-                   border: OutlineInputBorder(),
+                   border: const OutlineInputBorder(),
                   ),
                   items: [
                     DropdownMenuItem(

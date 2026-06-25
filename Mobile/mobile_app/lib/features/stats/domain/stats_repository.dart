@@ -1,4 +1,3 @@
-import 'package:hkt_livestock_agentic/core/models/view_state.dart';
 
 class StatsTrendPoint {
   const StatsTrendPoint({required this.date, required this.value});

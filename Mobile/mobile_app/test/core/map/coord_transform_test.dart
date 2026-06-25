@@ -7,11 +7,11 @@ void main() {
   group('gcj02ToWgs84', () {
     test('round-trip wgs84→gcj02→wgs84 偏差 < 0.5m', () {
       final points = [
-        LatLng(28.2282, 112.9388),
-        LatLng(39.9042, 116.4074),
-        LatLng(31.2304, 121.4737),
-        LatLng(43.8256, 87.6168),
-        LatLng(40.8422, 111.7500),
+        const LatLng(28.2282, 112.9388),
+        const LatLng(39.9042, 116.4074),
+        const LatLng(31.2304, 121.4737),
+        const LatLng(43.8256, 87.6168),
+        const LatLng(40.8422, 111.7500),
       ];
       for (final wgs in points) {
         final gcj = CoordTransform.wgs84ToGcj02(wgs);
@@ -23,12 +23,12 @@ void main() {
     });
 
     test('海外坐标不变', () {
-      final sydney = LatLng(-33.8688, 151.2093);
+      const sydney = LatLng(-33.8688, 151.2093);
       expect(CoordTransform.gcj02ToWgs84(sydney), equals(sydney));
     });
 
     test('迭代收敛精度 < 0.1m', () {
-      final wgs = LatLng(28.2282, 112.9388);
+      const wgs = LatLng(28.2282, 112.9388);
       final gcj = CoordTransform.wgs84ToGcj02(wgs);
       final inverse = CoordTransform.gcj02ToWgs84(gcj);
       final distance = _haversine(wgs, inverse);
@@ -40,8 +40,8 @@ void main() {
   group('gcj02ToWgs84All', () {
     test('批量逆转换', () {
       final originals = [
-        LatLng(28.2282, 112.9388),
-        LatLng(39.9042, 116.4074),
+        const LatLng(28.2282, 112.9388),
+        const LatLng(39.9042, 116.4074),
       ];
       final gcjPoints = CoordTransform.wgs84ToGcj02All(originals);
       final wgsPoints = CoordTransform.gcj02ToWgs84All(gcjPoints);

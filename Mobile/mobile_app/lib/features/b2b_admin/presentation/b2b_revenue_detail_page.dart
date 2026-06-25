@@ -113,7 +113,7 @@ class _B2bRevenueDetailPageState extends ConsumerState<B2bRevenueDetailPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.b2bRevenueDetailConfirmOk),
-          backgroundColor: Color(0xFF2E7D32),
+          backgroundColor: const Color(0xFF2E7D32),
         ),
       );
       context.pop();
@@ -121,7 +121,7 @@ class _B2bRevenueDetailPageState extends ConsumerState<B2bRevenueDetailPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.b2bRevenueDetailConfirmFailed),
-          backgroundColor: Color(0xFFD32F2F),
+          backgroundColor: const Color(0xFFD32F2F),
         ),
       );
     }

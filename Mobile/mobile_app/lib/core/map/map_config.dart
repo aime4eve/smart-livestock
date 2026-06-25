@@ -51,41 +51,41 @@ class MapConfig {
 
   /// 预设城市列表（WGS-84 原始坐标，渲染时根据瓦片源转换）
   static final List<MapPreset> cityPresets = [
-    MapPreset(
+    const MapPreset(
       name: '长沙',
       province: '湖南',
       country: '中国',
-      center: const LatLng(28.2282, 112.9388),
+      center: LatLng(28.2282, 112.9388),
     ),
-    MapPreset(
+    const MapPreset(
       name: '北京',
       province: '北京',
       country: '中国',
-      center: const LatLng(39.9042, 116.4074),
+      center: LatLng(39.9042, 116.4074),
     ),
-    MapPreset(
+    const MapPreset(
       name: '上海',
       province: '上海',
       country: '中国',
-      center: const LatLng(31.2304, 121.4737),
+      center: LatLng(31.2304, 121.4737),
     ),
-    MapPreset(
+    const MapPreset(
       name: '乌鲁木齐',
       province: '新疆',
       country: '中国',
-      center: const LatLng(43.8256, 87.6168),
+      center: LatLng(43.8256, 87.6168),
     ),
-    MapPreset(
+    const MapPreset(
       name: '呼和浩特',
       province: '内蒙古',
       country: '中国',
-      center: const LatLng(40.8422, 111.7500),
+      center: LatLng(40.8422, 111.7500),
     ),
-    MapPreset(
+    const MapPreset(
       name: '悉尼',
       province: '新南威尔士',
       country: '澳大利亚',
-      center: const LatLng(-33.8688, 151.2093),
+      center: LatLng(-33.8688, 151.2093),
     ),
   ];
 }

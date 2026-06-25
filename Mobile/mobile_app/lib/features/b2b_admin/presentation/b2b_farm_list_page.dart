@@ -149,12 +149,12 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
                       // ── Optional fields divider ──
                       Row(
                         children: [
-                          Expanded(child: Divider()),
+                          const Expanded(child: Divider()),
                           Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: Text(l10n.b2bFarmListOptional, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                           ),
-                          Expanded(child: Divider()),
+                          const Expanded(child: Divider()),
                         ],
                       ),
                       const SizedBox(height: 8),

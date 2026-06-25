@@ -63,23 +63,23 @@ TenantDetail _testTenant() => const TenantDetail(
       deviceCount: 5,
     );
 
-AdminListResult<UserSummary> _testUsers() => AdminListResult(
+AdminListResult<UserSummary> _testUsers() => const AdminListResult(
       items: [
-        const UserSummary(
+        UserSummary(
           id: '10',
           name: '李B2B',
           phone: '13900139000',
           role: 'B2B_ADMIN',
           status: 'active',
         ),
-        const UserSummary(
+        UserSummary(
           id: '11',
           name: '王牧主',
           phone: '13800138000',
           role: 'OWNER',
           status: 'active',
         ),
-        const UserSummary(
+        UserSummary(
           id: '12',
           name: '赵牧工',
           phone: '13700137000',

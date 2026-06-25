@@ -58,8 +58,8 @@ class _RanchPageState extends ConsumerState<RanchPage>
     if (!kIsWeb) {
       mbtiles = await MBTilesTileProvider.fromAsset();
     }
-    final region = const String.fromEnvironment('REGION', defaultValue: 'china');
-    final isChina = region == 'china';
+    const region = String.fromEnvironment('REGION', defaultValue: 'china');
+    const isChina = region == 'china';
     String? regionUrl;
     if (ApiClient.instance.activeFarmId != null) {
       try {

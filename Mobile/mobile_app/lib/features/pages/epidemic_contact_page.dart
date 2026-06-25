@@ -79,9 +79,9 @@ class EpidemicContactPage extends ConsumerWidget {
         const SizedBox(height: 16),
         OutlinedButton.icon(
           onPressed: () => Navigator.of(context).pop(),
-          icon: Icon(Icons.check_circle_outline, size: 18, color: AppColors.textSecondary),
-          label: Text(l10n.commonBack, style: TextStyle(color: AppColors.textSecondary)),
-          style: OutlinedButton.styleFrom(side: BorderSide(color: AppColors.border)),
+          icon: const Icon(Icons.check_circle_outline, size: 18, color: AppColors.textSecondary),
+          label: Text(l10n.commonBack, style: const TextStyle(color: AppColors.textSecondary)),
+          style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.border)),
         ),
       ],
     );
@@ -104,7 +104,7 @@ class EpidemicContactPage extends ConsumerWidget {
                 children: [
                   Text('${network.sourceLivestockCode} · ${l10n.epidemicSourceInfected}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.danger)),
                   Text('$diseaseType · ${l10n.epidemicMarkedAt}：${markedAt != null ? '${markedAt.month}/${markedAt.day} ${markedAt.hour}:${markedAt.minute.toString().padLeft(2, '0')}' : l10n.epidemicUnknown}',
-                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                 ],
               ),
             ),
@@ -127,7 +127,7 @@ class EpidemicContactPage extends ConsumerWidget {
           const Text('🧮', style: TextStyle(fontSize: 14)),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(l10n.epidemicRiskFormula, style: TextStyle(fontSize: 12, color: AppColors.info, height: 1.5)),
+            child: Text(l10n.epidemicRiskFormula, style: const TextStyle(fontSize: 12, color: AppColors.info, height: 1.5)),
           ),
         ],
       ),
@@ -240,7 +240,7 @@ class EpidemicContactPage extends ConsumerWidget {
                     ],
                   ),
                   Text('${l10n.contactDistance} ${node.proximityMeters.toStringAsFixed(1)}m · ${l10n.contactDuration} ${node.contactDurationMinutes}min',
-                      style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                      style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
                   Text('${l10n.contactFactorTime} ${node.timeScore} · ${l10n.contactFactorDistance} ${node.distanceScore} · ${l10n.contactFactorDuration} ${node.durationScore}',
                       style: TextStyle(fontSize: 9, color: AppColors.textSecondary.withOpacity(0.7))),
                 ],
@@ -261,7 +261,7 @@ class EpidemicContactPage extends ConsumerWidget {
     return Row(children: [
       Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
       const SizedBox(width: 4),
-      Text(label, style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+      Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
     ]);
   }
 
@@ -275,10 +275,10 @@ class EpidemicContactPage extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline, size: 16, color: AppColors.info),
+          const Icon(Icons.info_outline, size: 16, color: AppColors.info),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(l10n.epidemicContactNote, style: TextStyle(fontSize: 12, color: AppColors.info, height: 1.5)),
+            child: Text(l10n.epidemicContactNote, style: const TextStyle(fontSize: 12, color: AppColors.info, height: 1.5)),
           ),
         ],
       ),

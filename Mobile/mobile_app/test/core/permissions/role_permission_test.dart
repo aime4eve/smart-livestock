@@ -3,7 +3,7 @@ import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
 
 void main() {
-  final allRoles = UserRole.values;
+  const allRoles = UserRole.values;
 
   group('围栏权限', () {
     for (final role in allRoles) {

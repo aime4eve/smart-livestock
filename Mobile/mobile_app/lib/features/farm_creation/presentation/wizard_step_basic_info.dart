@@ -49,8 +49,8 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
     if (!kIsWeb) {
       mbtiles = await MBTilesTileProvider.fromAsset();
     }
-    final region = const String.fromEnvironment('REGION', defaultValue: 'china');
-    final isChina = region == 'china';
+    const region = String.fromEnvironment('REGION', defaultValue: 'china');
+    const isChina = region == 'china';
     _tileProvider = await SmartTileProvider.create(
       selfHostedTileUrl: null, // 新牧场尚无 region 瓦片，直接降级到通用底图
       mbtilesProvider: mbtiles,

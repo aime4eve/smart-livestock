@@ -70,7 +70,7 @@ class EstrusDetailPage extends ConsumerWidget {
             children: [
               Text('💕 ${l10n.estrusLockedTitle}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              SizedBox(height: 200, child: const Center(child: Icon(Icons.favorite_outline, size: 48, color: AppColors.border))),
+              const SizedBox(height: 200, child: Center(child: Icon(Icons.favorite_outline, size: 48, color: AppColors.border))),
             ],
           ),
         ),
@@ -88,7 +88,7 @@ class EstrusDetailPage extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline, size: 16, color: AppColors.info),
+          const Icon(Icons.info_outline, size: 16, color: AppColors.info),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -105,10 +105,10 @@ class EstrusDetailPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     return OutlinedButton.icon(
       onPressed: () => Navigator.of(context).pop(),
-      icon: Icon(Icons.check_circle_outline, size: 18, color: AppColors.textSecondary),
-      label: Text(l10n.commonBack, style: TextStyle(color: AppColors.textSecondary)),
+      icon: const Icon(Icons.check_circle_outline, size: 18, color: AppColors.textSecondary),
+      label: Text(l10n.commonBack, style: const TextStyle(color: AppColors.textSecondary)),
       style: OutlinedButton.styleFrom(
-        side: BorderSide(color: AppColors.border),
+        side: const BorderSide(color: AppColors.border),
       ),
     );
   }
@@ -125,7 +125,7 @@ class EstrusDetailPage extends ConsumerWidget {
 
   Widget _metricCard(String label, String value, Color color) {
     return Expanded(child: Card(child: Padding(padding: const EdgeInsets.all(10), child: Column(children: [
-      Text(label, style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+      Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
       const SizedBox(height: 4),
       Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: color)),
     ]))));
@@ -142,15 +142,15 @@ class EstrusDetailPage extends ConsumerWidget {
         const SizedBox(height: 8),
         SizedBox(height: 180, child: LineChart(LineChartData(
           minY: 0, maxY: 100,
-          gridData: FlGridData(show: true, drawVerticalLine: false),
+          gridData: const FlGridData(show: true, drawVerticalLine: false),
           titlesData: FlTitlesData(
             leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 30, getTitlesWidget: (v, _) => Text('${v.toInt()}', style: const TextStyle(fontSize: 10)))),
-            bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            bottomTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
           lineBarsData: [
-            LineChartBarData(spots: spots, isCurved: true, color: AppColors.estrus, barWidth: 2, dotData: FlDotData(show: true)),
+            LineChartBarData(spots: spots, isCurved: true, color: AppColors.estrus, barWidth: 2, dotData: const FlDotData(show: true)),
           ],
         ))),
       ])),

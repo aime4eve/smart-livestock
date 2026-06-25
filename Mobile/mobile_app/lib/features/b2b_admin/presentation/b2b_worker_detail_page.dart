@@ -75,7 +75,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                   decoration: InputDecoration(
                     labelText: l10n.farmCreationNameLabel,
                     isDense: true,
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (v) => (v == null || v.trim().isEmpty) ? '名称不能为空' : null,
                 ),
@@ -88,7 +88,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                         decoration: InputDecoration(
                           labelText: l10n.farmCreationLatLabel,
                           isDense: true,
-                          border: OutlineInputBorder(),
+                          border: const OutlineInputBorder(),
                         ),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       ),
@@ -100,7 +100,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                         decoration: InputDecoration(
                           labelText: l10n.farmCreationLngLabel,
                           isDense: true,
-                          border: OutlineInputBorder(),
+                          border: const OutlineInputBorder(),
                         ),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       ),
@@ -113,7 +113,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                   decoration: InputDecoration(
                     labelText: l10n.farmCreationAreaLabel,
                     isDense: true,
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 ),
@@ -149,7 +149,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
               } catch (e) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('更新失败: \$e')),
+                    const SnackBar(content: Text('更新失败: \$e')),
                   );
                 }
               }
@@ -469,7 +469,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                   decoration: InputDecoration(
                     labelText: l10n.authPasswordLabel,
                     isDense: true,
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                   obscureText: true,
                   validator: (v) {
@@ -589,7 +589,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
             onPressed: () async {
               Navigator.pop(ctx, 'reset');
             },
-            child: Text(l10n.b2bWorkerResetPwd, style: TextStyle(color: AppColors.warning)),
+            child: Text(l10n.b2bWorkerResetPwd, style: const TextStyle(color: AppColors.warning)),
           ),
           FilledButton(
             onPressed: () {
@@ -650,7 +650,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
               decoration: InputDecoration(
                 labelText: l10n.b2bWorkerNewPassword,
                 isDense: true,
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
               obscureText: true,
               validator: (v) {
@@ -718,7 +718,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.b2bWorkerAssignNone),
-          backgroundColor: Color(0xFF607D8B),
+          backgroundColor: const Color(0xFF607D8B),
         ),
       );
       return;

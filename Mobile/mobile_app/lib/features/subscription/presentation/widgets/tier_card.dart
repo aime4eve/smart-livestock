@@ -57,7 +57,7 @@ class TierCard extends ConsumerWidget {
                     ),
                     child: Text(
                       l10n.subCurrentTier,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 11,
                         color: AppColors.primary,
                         fontWeight: FontWeight.w600,

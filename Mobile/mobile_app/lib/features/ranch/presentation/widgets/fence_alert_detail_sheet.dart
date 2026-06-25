@@ -226,7 +226,7 @@ class _MiniFenceMap extends StatelessWidget {
               color: Colors.orange.withValues(alpha: 0.08),
               borderColor: Colors.orange.withValues(alpha: 0.5),
               borderStrokeWidth: 1.5,
-              pattern: StrokePattern.dashed(segments: [6, 4]),
+              pattern: StrokePattern.dashed(segments: const [6, 4]),
             ),
           ],
         ),

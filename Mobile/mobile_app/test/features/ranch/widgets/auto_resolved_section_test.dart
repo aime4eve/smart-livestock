@@ -4,7 +4,7 @@ import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/auto_resolved_section.dart';
 
 List<RanchAlertData> _alerts() => [
-      RanchAlertData(
+      const RanchAlertData(
         id: '1',
         type: 'FENCE_BREACH',
         severity: 'CRITICAL',
@@ -12,7 +12,7 @@ List<RanchAlertData> _alerts() => [
         message: 'Auto-resolved alert 1',
         resolvedAt: '2026-06-11T08:30:00Z',
       ),
-      RanchAlertData(
+      const RanchAlertData(
         id: '2',
         type: 'TEMPERATURE_ABNORMAL',
         severity: 'WARNING',

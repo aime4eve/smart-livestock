@@ -240,9 +240,9 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
                           labelText: l10n.farmCreationLatLabel,
                           hintText: l10n.farmCreationLatHint,
                           isDense: true,
-                          border: OutlineInputBorder(),
+                          border: const OutlineInputBorder(),
                           prefixIcon:
-                              Icon(Icons.my_location, size: 18),
+                              const Icon(Icons.my_location, size: 18),
                         ),
                         keyboardType: const TextInputType.numberWithOptions(
                             decimal: true),
@@ -257,9 +257,9 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
                           labelText: l10n.farmCreationLngLabel,
                           hintText: l10n.farmCreationLngHint,
                           isDense: true,
-                          border: OutlineInputBorder(),
+                          border: const OutlineInputBorder(),
                           prefixIcon:
-                              Icon(Icons.explore, size: 18),
+                              const Icon(Icons.explore, size: 18),
                         ),
                         keyboardType: const TextInputType.numberWithOptions(
                             decimal: true),
@@ -279,7 +279,7 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
                     labelText: l10n.farmCreationNameLabel,
                     hintText: l10n.farmCreationNameHint,
                     isDense: true,
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -290,7 +290,7 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
                       labelText: l10n.farmCreationOwnerLabel,
                       hintText: l10n.farmCreationOwnerHint,
                       isDense: true,
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                     items: [
                       DropdownMenuItem<B2bUserSummary?>(
@@ -316,7 +316,7 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
                     labelText: l10n.farmCreationAreaLabel,
                     hintText: l10n.farmCreationAreaHint,
                     isDense: true,
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                       decimal: true),
@@ -364,10 +364,10 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
       decoration: InputDecoration(
         labelText: l10n.farmCreationTileLabel,
         hintText: l10n.farmCreationTileHint,
-        border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.map_outlined, size: 20),
+        border: const OutlineInputBorder(),
+        prefixIcon: const Icon(Icons.map_outlined, size: 20),
       ),
-      value: _selectedRegion,
+      initialValue: _selectedRegion,
       items: regions.map((r) {
         return DropdownMenuItem(
           value: r,

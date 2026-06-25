@@ -208,7 +208,7 @@ class _KpiTab extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(l10n.b2bDashboardMonthlyRevenue,
-                    style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 12)),
+                    style: const TextStyle(color: Color(0xB3FFFFFF), fontSize: 12)),
                 const SizedBox(height: 4),
                 Text('\u00a5${data.monthlyRevenue.toStringAsFixed(0)}',
                     style: const TextStyle(
@@ -310,7 +310,7 @@ class _AlertTab extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.check_circle_outline, size: 64, color: AppColors.success),
+                    const Icon(Icons.check_circle_outline, size: 64, color: AppColors.success),
                     const SizedBox(height: AppSpacing.lg),
                     Text(l10n.b2bDashboardNoPendingAlerts, style: theme.textTheme.titleMedium?.copyWith(color: AppColors.textSecondary)),
                   ],

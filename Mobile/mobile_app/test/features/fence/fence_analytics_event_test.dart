@@ -7,7 +7,7 @@ import 'package:hkt_livestock_agentic/features/fence/presentation/fence_analytic
 import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
 
 void main() {
-  Future<ProviderContainer> _setup(InMemoryFenceAnalyticsSink sink) async {
+  Future<ProviderContainer> setup(InMemoryFenceAnalyticsSink sink) async {
     final repo = _SingleFenceRepository(_fenceA);
     final container = ProviderContainer(
       overrides: [
@@ -22,7 +22,7 @@ void main() {
 
   test('startEditing 成功时记录 fence_edit_enter 且 payload 正确', () async {
     final sink = InMemoryFenceAnalyticsSink();
-    final container = await _setup(sink);
+    final container = await setup(sink);
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -38,7 +38,7 @@ void main() {
 
   test('startEditing 无效 fenceId 时不记录 fence_edit_enter', () async {
     final sink = InMemoryFenceAnalyticsSink();
-    final container = await _setup(sink);
+    final container = await setup(sink);
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -49,7 +49,7 @@ void main() {
 
   test('saveEditing 时记录 fence_edit_save', () async {
     final sink = InMemoryFenceAnalyticsSink();
-    final container = await _setup(sink);
+    final container = await setup(sink);
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -70,7 +70,7 @@ void main() {
 
   test('cancelEditing 时记录 fence_edit_cancel', () async {
     final sink = InMemoryFenceAnalyticsSink();
-    final container = await _setup(sink);
+    final container = await setup(sink);
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -91,7 +91,7 @@ void main() {
 
   test('saveEditing 无 session 时不记录事件', () async {
     final sink = InMemoryFenceAnalyticsSink();
-    final container = await _setup(sink);
+    final container = await setup(sink);
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -102,7 +102,7 @@ void main() {
 
   test('cancelEditing 无 session 时不记录事件', () async {
     final sink = InMemoryFenceAnalyticsSink();
-    final container = await _setup(sink);
+    final container = await setup(sink);
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);

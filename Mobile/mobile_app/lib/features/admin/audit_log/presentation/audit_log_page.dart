@@ -80,7 +80,7 @@ class _AuditLogPageState extends ConsumerState<AuditLogPage> {
             Expanded(
               child: DropdownButtonFormField<String>(
                 key: const Key('audit-log-filter-action'),
-                value: _selectedAction,
+                initialValue: _selectedAction,
                 decoration: InputDecoration(
                   labelText: l10n.auditLogOperationType,
                   isDense: true,

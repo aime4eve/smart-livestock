@@ -236,7 +236,7 @@ class SubscriptionStatusCard extends ConsumerWidget {
                 ),
                 label: Text(
                   l10n.subCancelSubscription,
-                  style: TextStyle(color: AppColors.danger),
+                  style: const TextStyle(color: AppColors.danger),
                 ),
               ),
             ],

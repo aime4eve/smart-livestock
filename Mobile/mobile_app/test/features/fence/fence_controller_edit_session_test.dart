@@ -12,13 +12,13 @@ import 'package:hkt_livestock_agentic/features/fence/domain/fence_state.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
 
 void main() {
-  Future<ProviderContainer> _setup({List<FenceItem>? fences}) async {
+  Future<ProviderContainer> setup({List<FenceItem>? fences}) async {
     final repo = _MutableFenceRepository(fences: fences ?? [_fenceA, _fenceB]);
     final container = ProviderContainer(
       overrides: [
         fenceRepositoryProvider.overrideWithValue(repo),
         initialSessionProvider.overrideWithValue(
-          AppSession.authenticated(
+          const AppSession.authenticated(
             role: UserRole.owner,
             accessToken: 'test-token',
             activeFarmId: 'test-farm-1',
@@ -33,7 +33,7 @@ void main() {
   }
 
   test('startEditing 后设置 selectedFenceId 与 editSession 关键字段', () async {
-    final container = await _setup();
+    final container = await setup();
     addTearDown(container.dispose);
 
     final before = container.read(fenceControllerProvider);
@@ -50,7 +50,7 @@ void main() {
   });
 
   test('moveDraftVertex 后进入 editDirty 且不污染 originalPoints', () async {
-    final container = await _setup();
+    final container = await setup();
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -73,7 +73,7 @@ void main() {
   });
 
   test('insert/remove/translate 与 undo/redo 会更新真实草稿', () async {
-    final container = await _setup();
+    final container = await setup();
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -110,7 +110,7 @@ void main() {
   });
 
   test('removeDraftVertex 至少保留 3 个点', () async {
-    final container = await _setup(fences: [
+    final container = await setup(fences: [
       const FenceItem(
         id: 'triangle',
         name: '三角区',
@@ -139,7 +139,7 @@ void main() {
   });
 
   test('select(null) 可清空 selectedFenceId', () async {
-    final container = await _setup();
+    final container = await setup();
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -151,7 +151,7 @@ void main() {
   });
 
   test('startEditing 无效 fenceId 时保持原状态', () async {
-    final container = await _setup();
+    final container = await setup();
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -165,7 +165,7 @@ void main() {
   });
 
   test('moveDraftVertex 无 session 时忽略', () async {
-    final container = await _setup();
+    final container = await setup();
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -177,7 +177,7 @@ void main() {
   });
 
   test('moveDraftVertex 索引越界时忽略', () async {
-    final container = await _setup();
+    final container = await setup();
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -193,7 +193,7 @@ void main() {
   });
 
   test('delete 删除编辑中的 fence 时清理 editSession 与 editMode', () async {
-    final container = await _setup();
+    final container = await setup();
     addTearDown(container.dispose);
 
     final controller = container.read(fenceControllerProvider.notifier);
@@ -211,7 +211,7 @@ void main() {
       overrides: [
         fenceRepositoryProvider.overrideWithValue(repo),
         initialSessionProvider.overrideWithValue(
-          AppSession.authenticated(
+          const AppSession.authenticated(
             role: UserRole.owner,
             accessToken: 'test-token',
             activeFarmId: 'test-farm-1',

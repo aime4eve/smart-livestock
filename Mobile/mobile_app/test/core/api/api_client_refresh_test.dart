@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:test/test.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
@@ -19,7 +18,7 @@ void main() {
 
     test('AuthException is rethrown when code is not AUTH_INVALID_TOKEN', () {
       // An AuthException with a different code should not trigger refresh.
-      final exception = AuthException(
+      const exception = AuthException(
         message: 'test',
         statusCode: 401,
         code: 'SOME_OTHER_CODE',
@@ -30,7 +29,7 @@ void main() {
     });
 
     test('AuthException carries statusCode and code', () {
-      final exception = AuthException(
+      const exception = AuthException(
         message: 'expired',
         statusCode: 401,
         code: 'AUTH_INVALID_TOKEN',

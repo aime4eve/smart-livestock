@@ -578,7 +578,7 @@ class _ExpiryReminderBar extends StatelessWidget {
               children: [
                 Text(
                   l10n.b2bContractExpiryLabel,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     color: Color(0xFF455A64),
                     fontWeight: FontWeight.w500,
@@ -615,7 +615,7 @@ class _ExpiryReminderBar extends StatelessWidget {
                 ),
               ),
               child: Text(l10n.b2bContractRenew,
-                  style: TextStyle(fontSize: 13, color: Colors.white)),
+                  style: const TextStyle(fontSize: 13, color: Colors.white)),
             ),
           ),
         ],

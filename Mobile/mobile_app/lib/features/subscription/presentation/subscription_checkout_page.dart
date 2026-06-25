@@ -182,7 +182,7 @@ class _SubscriptionCheckoutPageState
                     _priceRow(
                       context,
                       _excessCount > 0
-                          ? l10n.subExcessDeviceFee('${_excessCount}', tierInfo.perUnitPrice.toStringAsFixed(0))
+                          ? l10n.subExcessDeviceFee('$_excessCount', tierInfo.perUnitPrice.toStringAsFixed(0))
                           : l10n.subExcessDeviceFeeWithin(tierInfo.livestockLimit < 0 ? l10n.subLivestockUnlimited : l10n.subLivestockLimit('${tierInfo.livestockLimit}')),
                       _deviceFee,
                     ),

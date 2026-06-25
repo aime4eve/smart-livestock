@@ -41,7 +41,7 @@ void main() {
             'https://webrd02.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}',
         isGcj02Fallback: true,
       );
-      final coords = TileCoordinates(851, 852, 10);
+      const coords = TileCoordinates(851, 852, 10);
       final img = provider.getImage(coords, TileLayer());
       expect(img, isA<NetworkImage>());
     });
@@ -52,7 +52,7 @@ void main() {
         fallbackUrl: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         isGcj02Fallback: false,
       );
-      final coords = TileCoordinates(851, 852, 10);
+      const coords = TileCoordinates(851, 852, 10);
       final img = provider.getImage(coords, TileLayer());
       expect(img, isA<NetworkImage>());
     });

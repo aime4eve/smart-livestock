@@ -91,7 +91,7 @@ class _SummaryCards extends StatelessWidget {
         _StatChip(icon: Icons.notifications_active, label: l10n.statsAlerts, value: '${summary.alertCount}', color: AppColors.warning),
         _StatChip(icon: Icons.error, label: l10n.statsCritical, value: '${summary.criticalCount}', color: AppColors.danger),
         _StatChip(icon: Icons.thermostat, label: l10n.statsAvgTemp, value: '${summary.avgTemperature.toStringAsFixed(1)}°C', color: Colors.orange),
-        _StatChip(icon: Icons.speed, label: l10n.statsMotility, value: '${summary.avgMotility.toStringAsFixed(1)}', color: Colors.brown),
+        _StatChip(icon: Icons.speed, label: l10n.statsMotility, value: summary.avgMotility.toStringAsFixed(1), color: Colors.brown),
       ],
     );
   }

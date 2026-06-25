@@ -173,7 +173,11 @@ class _ApiAuthPageState extends ConsumerState<ApiAuthPage> {
                       value: selectedScopes.contains(s),
                       title: Text(s, style: const TextStyle(fontSize: 13)),
                       onChanged: (v) => setDialogState(() {
-                        if (v == true) selectedScopes.add(s); else selectedScopes.remove(s);
+                        if (v == true) {
+                          selectedScopes.add(s);
+                        } else {
+                          selectedScopes.remove(s);
+                        }
                       }),
                     )),
               ],

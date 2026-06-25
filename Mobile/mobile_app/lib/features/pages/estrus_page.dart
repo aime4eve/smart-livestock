@@ -63,7 +63,7 @@ class _EstrusCard extends StatelessWidget {
         title: Text(item.livestockCode, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(l10n.estrusItemSubtitle(item.breed ?? '', genderIcon, stepInfo)),
         trailing: item.advice != null && item.score >= 50
-            ? Icon(Icons.lightbulb, color: AppColors.warning, size: 20)
+            ? const Icon(Icons.lightbulb, color: AppColors.warning, size: 20)
             : null,
         onTap: () => context.push('/twin/estrus/${item.livestockId}'),
       ),

@@ -44,7 +44,7 @@ class FenceBufferLayer extends StatelessWidget {
         color: Colors.orange.withValues(alpha: 0.1),
         borderColor: Colors.orange.withValues(alpha: 0.5),
         borderStrokeWidth: 1.5,
-        pattern: StrokePattern.dashed(segments: [8, 6]),
+        pattern: StrokePattern.dashed(segments: const [8, 6]),
       ));
     }
 

@@ -21,7 +21,7 @@ void main() async {
     _webSemanticsHandle ??= WidgetsBinding.instance.ensureSemantics();
   }
 
-  final apiBaseUrl = const String.fromEnvironment(
+  const apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: '',
   );

@@ -80,7 +80,7 @@ Future<void> main() async {
 Future<void> _record(String name, Map<String, dynamic> data) async {
   final file = File('$_fixtureDir/$name');
   await file.writeAsString(
-    const JsonEncoder.withIndent('  ').convert(data) + '\n',
+    '${const JsonEncoder.withIndent('  ').convert(data)}\n',
   );
   print('   📝 $name (${data['code']})');
 }

@@ -28,6 +28,7 @@ dependencies:
   path: ^1.9.0
   crypto: ^3.0.4
 
+  intl: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -35,6 +36,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
 
+  test: any
 flutter:
   generate: true
   uses-material-design: true

@@ -72,7 +72,7 @@ class EpidemicPage extends ConsumerWidget {
 
   Widget _metricCard(String label, String value, Color color) {
     return Expanded(child: Card(child: Padding(padding: const EdgeInsets.all(12), child: Column(children: [
-      Text(label, style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+      Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
       const SizedBox(height: 4),
       Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
     ]))));
