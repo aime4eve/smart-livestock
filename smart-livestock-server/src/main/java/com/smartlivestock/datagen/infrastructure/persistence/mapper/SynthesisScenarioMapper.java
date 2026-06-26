@@ -1,8 +1,6 @@
 package com.smartlivestock.datagen.infrastructure.persistence.mapper;
 
-import com.smartlivestock.datagen.domain.model.AnomalyPattern;
-import com.smartlivestock.datagen.domain.model.ScenarioStatus;
-import com.smartlivestock.datagen.domain.model.SynthesisScenario;
+import com.smartlivestock.datagen.domain.model.*;
 import com.smartlivestock.datagen.infrastructure.persistence.entity.SynthesisScenarioJpaEntity;
 
 import java.util.Arrays;
@@ -17,6 +15,7 @@ public class SynthesisScenarioMapper {
         s.setId(e.getId());
         s.setName(e.getName());
         s.setStatus(ScenarioStatus.valueOf(e.getStatus()));
+        s.setScenarioType(e.getScenarioType() != null ? ScenarioType.valueOf(e.getScenarioType()) : ScenarioType.HEALTH);
         s.setPattern(AnomalyPattern.fromDbValue(e.getPattern()));
         s.setPenetrationRate(e.getPenetrationRate() != null ? e.getPenetrationRate() : 1.0);
         s.setWindowStart(e.getWindowStart());
@@ -31,6 +30,7 @@ public class SynthesisScenarioMapper {
         e.setId(s.getId());
         e.setName(s.getName());
         e.setStatus(s.getStatus().name());
+        e.setScenarioType(s.getScenarioType().name());
         e.setPattern(s.getPattern().getDbValue());
         e.setPenetrationRate(s.getPenetrationRate());
         e.setWindowStart(s.getWindowStart());
@@ -43,10 +43,8 @@ public class SynthesisScenarioMapper {
     private static List<Long> parseLongArray(String value) {
         if (value == null || value.isBlank()) return null;
         String cleaned = value.replaceAll("[{}\\[\\]\\s]", "");
-        return Arrays.stream(cleaned.split(","))
-            .filter(s -> !s.isEmpty())
-            .map(Long::parseLong)
-            .collect(Collectors.toList());
+        return Arrays.stream(cleaned.split(",")).filter(s -> !s.isEmpty())
+            .map(Long::parseLong).collect(Collectors.toList());
     }
 
     private static String formatLongArray(List<Long> ids) {

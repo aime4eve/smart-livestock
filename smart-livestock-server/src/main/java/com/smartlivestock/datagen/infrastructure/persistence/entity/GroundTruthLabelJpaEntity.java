@@ -8,37 +8,28 @@ import java.time.Instant;
 @Table(name = "ground_truth_labels")
 public class GroundTruthLabelJpaEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @Column(name = "livestock_id", nullable = false)
     private Long livestockId;
-
     @Column(name = "pattern", nullable = false, length = 40)
     private String pattern;
-
+    @Column(name = "scenario_type", nullable = false, length = 20)
+    private String scenarioType;
     @Column(name = "period_start", nullable = false)
     private Instant periodStart;
-
     @Column(name = "period_end", nullable = false)
     private Instant periodEnd;
-
     @Column(name = "source", nullable = false, length = 10)
     private String source;
-
     @Column(name = "severity", precision = 3, scale = 2)
     private BigDecimal severity;
-
     @Column(name = "labeled_by")
     private Long labeledBy;
-
     @Column(name = "labeled_at")
     private Instant labeledAt;
-
     @Column(name = "note", length = 2000)
     private String note;
-
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -51,6 +42,8 @@ public class GroundTruthLabelJpaEntity {
     public void setLivestockId(Long livestockId) { this.livestockId = livestockId; }
     public String getPattern() { return pattern; }
     public void setPattern(String pattern) { this.pattern = pattern; }
+    public String getScenarioType() { return scenarioType; }
+    public void setScenarioType(String scenarioType) { this.scenarioType = scenarioType; }
     public Instant getPeriodStart() { return periodStart; }
     public void setPeriodStart(Instant periodStart) { this.periodStart = periodStart; }
     public Instant getPeriodEnd() { return periodEnd; }

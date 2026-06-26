@@ -1,8 +1,6 @@
 package com.smartlivestock.datagen.infrastructure.persistence.mapper;
 
-import com.smartlivestock.datagen.domain.model.AnomalyPattern;
-import com.smartlivestock.datagen.domain.model.GroundTruthLabel;
-import com.smartlivestock.datagen.domain.model.LabelSource;
+import com.smartlivestock.datagen.domain.model.*;
 import com.smartlivestock.datagen.infrastructure.persistence.entity.GroundTruthLabelJpaEntity;
 
 import java.math.BigDecimal;
@@ -15,6 +13,7 @@ public class GroundTruthLabelMapper {
         l.setId(e.getId());
         l.setLivestockId(e.getLivestockId());
         l.setPattern(AnomalyPattern.fromDbValue(e.getPattern()));
+        l.setScenarioType(e.getScenarioType() != null ? ScenarioType.valueOf(e.getScenarioType()) : ScenarioType.HEALTH);
         l.setPeriodStart(e.getPeriodStart());
         l.setPeriodEnd(e.getPeriodEnd());
         l.setSource(LabelSource.valueOf(e.getSource()));
@@ -30,6 +29,7 @@ public class GroundTruthLabelMapper {
         e.setId(l.getId());
         e.setLivestockId(l.getLivestockId());
         e.setPattern(l.getPattern().getDbValue());
+        e.setScenarioType(l.getScenarioType().name());
         e.setPeriodStart(l.getPeriodStart());
         e.setPeriodEnd(l.getPeriodEnd());
         e.setSource(l.getSource().name());

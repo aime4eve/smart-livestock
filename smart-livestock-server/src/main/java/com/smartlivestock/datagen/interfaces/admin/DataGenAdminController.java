@@ -38,7 +38,12 @@ public class DataGenAdminController {
     public ResponseEntity<ScenarioDto> createScenario(@RequestBody CreateScenarioRequest req) {
         SynthesisScenario scenario = new SynthesisScenario();
         scenario.setName(req.name());
-        scenario.setPattern(AnomalyPattern.fromDbValue(req.pattern()));
+        scenario.setScenarioType(req.scenarioType() != null
+                ? com.smartlivestock.datagen.domain.model.ScenarioType.valueOf(req.scenarioType())
+                : com.smartlivestock.datagen.domain.model.ScenarioType.HEALTH);
+        scenario.setPattern(req.pattern() != null
+                ? AnomalyPattern.fromDbValue(req.pattern())
+                : AnomalyPattern.NORMAL);
         scenario.setStatus(ScenarioStatus.DRAFT);
         scenario.setPenetrationRate(req.penetrationRate() != null ? req.penetrationRate() : 1.0);
         scenario.setWindowStart(Instant.parse(req.windowStart()));
