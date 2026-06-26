@@ -13,6 +13,7 @@
 - 设计规格：`docs/superpowers/specs/2026-06-26-datagen-context-design.md`
 - 战略路线图：`docs/superpowers/specs/2026-06-19-ai-health-roadmap.md` §4 Phase B
 - 评审：`docs/superpowers/reviews/2026-06-26-datagen-design-and-plan-review.md`
+- **GPS 前置依赖**：`docs/superpowers/specs/2026-06-26-gps-simulator-consolidation-design.md`（随机游走 + 删除 GpsSimulator，必须在 Task 7/12 之前实施）
 
 **评审修复清单（P0/P1 嵌入此版）：**
 - P0 #2 Task 重排 → persistence 提前到 service 之前
@@ -388,6 +389,7 @@ public class SynthesisService {
 - [ ] **Step 3: generateTrackerReadings / generateCapsuleReadings**
 
 迁移自 `TelemetrySimulator` 的基线+噪声逻辑，按 intensity × pattern 调制。**输出格式与原 simulator 完全一致**（key 名、类型），保证 IoT ingest() 无感知。TRACKER readings 照常含 latitude/longitude（与原 TelemetrySimulator 行为一致）。
+> **前置依赖**：GPS 生成逻辑迁移自 GPS 收敛设计（随机游走，非写死长沙坐标）。GPS 收敛必须先实施，见 `2026-06-26-gps-simulator-consolidation-design.md`。SynthesisState 需包含 `currentLat`/`currentLng` 随机游走状态（与 SimulationState 同构）。
 
 - [ ] **Step 4: 编译 + Commit**
 
@@ -506,6 +508,8 @@ public class DataGenAdminController {
 Run: `rg "TelemetrySimulator" smart-livestock-server/src/ 2>/dev/null`
 
 
+> **前置**：GPS 收敛设计已实施（GpsSimulator 已删除，application.yml 中 `gps.simulator` 段已移除）。Task 12 只处理 TelemetrySimulator 的删除 + `telemetry.simulator` 配置段清理。
+
 - [ ] **Step 2: 删除 TelemetrySimulator.java**
 
 - [ ] **Step 3: 编译 + 测试**
@@ -565,6 +569,7 @@ Task 9 (GroundTruthLabelService) → Task 4, 6
 Task 10 (EvaluationService) → Task 5, 9
 Task 11 (Admin API) → Task 7, 9, 10
 Task 12 (Simulator 删除 + GPS) → Task 7, 8
+> **前置依赖**：GPS 收敛设计（`2026-06-26-gps-simulator-consolidation-design.md`）必须在 datagen-v1 之前实施。datagen 迁移的 TelemetrySimulator 已包含随机游走 GPS 逻辑（非原始写死坐标版本）。
 Task 13 (全量验证) → 全部
 ```
 
