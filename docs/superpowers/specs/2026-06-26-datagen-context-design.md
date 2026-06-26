@@ -316,17 +316,9 @@ EvaluationService.evaluate(scenario, evaluationWindow):
 
 - `SimulationState`（进程内随机状态）→ 被 SynthesisScenario + GroundTruthLabel（持久化）替代
 - `@ConditionalOnProperty(name = "telemetry.simulator.enabled")` → 改为 `datagen.enabled`
-- `GpsSimulator`（独立的 GPS 模拟器）→ **不迁移，但必须关闭默认值**（见 §7.3 GPS 三写冲突）
+- `GpsSimulator`（独立的 GPS 模拟器）→ 暂不迁移，Phase B 聚焦健康数据
 
 ---
-
-### 7.3 GPS 三写冲突（评审 P0 #1）
-
-系统中 GPS 数据有两个生成源：
-1. datagen `generateTrackerReadings()` — readings Map 含 latitude/longitude，由 IoT `TelemetryIngestionService.extractAndLogGps()` 写入 gps_logs
-2. `GpsSimulator` — 独立 @Scheduled，围栏感知，直接调 `GpsLogApplicationService.logGps()`
-
-**处置方案 B（采用）**：datagen 生成 GPS（保持与原 TelemetrySimulator 行为一致），同时将 `gps.simulator.enabled` 默认值改为 `false`。两者互斥，同时启用会导致同一设备每周期两条 GPS 记录。
 
 ## 8. 与 Phase B 其余交付物的关系
 

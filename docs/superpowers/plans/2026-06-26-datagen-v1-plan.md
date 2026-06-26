@@ -15,7 +15,6 @@
 - 评审：`docs/superpowers/reviews/2026-06-26-datagen-design-and-plan-review.md`
 
 **评审修复清单（P0/P1 嵌入此版）：**
-- P0 #1 GPS 三写冲突 → Task 12 明确 GpsSimulator 关闭
 - P0 #2 Task 重排 → persistence 提前到 service 之前
 - P1 #3 设计文档 §8 已在 spec 修复
 - P1 #4 domain repository 接口层 → Task 4 新增
@@ -388,7 +387,7 @@ public class SynthesisService {
 
 - [ ] **Step 3: generateTrackerReadings / generateCapsuleReadings**
 
-迁移自 `TelemetrySimulator` 的基线+噪声逻辑，按 intensity × pattern 调制。**输出格式与原 simulator 完全一致**（key 名、类型），保证 IoT ingest() 无感知。TRACKER 仍含 latitude/longitude（评审 P0 #1：datagen 生成 GPS，GpsSimulator 关闭，见 Task 12）。
+迁移自 `TelemetrySimulator` 的基线+噪声逻辑，按 intensity × pattern 调制。**输出格式与原 simulator 完全一致**（key 名、类型），保证 IoT ingest() 无感知。TRACKER readings 照常含 latitude/longitude（与原 TelemetrySimulator 行为一致）。
 
 - [ ] **Step 4: 编译 + Commit**
 
@@ -496,7 +495,7 @@ public class DataGenAdminController {
 
 ---
 
-## Task 12: TelemetrySimulator 迁移 + GPS 冲突解决（评审 P0 #1）
+## Task 12: TelemetrySimulator 迁移 + 清理
 
 **Files:**
 - Delete: `TelemetrySimulator.java`
@@ -506,23 +505,14 @@ public class DataGenAdminController {
 
 Run: `rg "TelemetrySimulator" smart-livestock-server/src/ 2>/dev/null`
 
-- [ ] **Step 2: 关闭 GpsSimulator 默认值（评审 P0 #1）**
 
-```yaml
-gps:
-  simulator:
-    enabled: ${GPS_SIMULATOR_ENABLED:false}  # datagen 生成 GPS（含 TRACKER readings lat/lng），GpsSimulator 互斥关闭
-```
+- [ ] **Step 2: 删除 TelemetrySimulator.java**
 
-> **评审 P0 #1 GPS 三写冲突修复**：datagen 的 `generateTrackerReadings` 生成 latitude/longitude（与原 TelemetrySimulator 一致），由 IoT `extractAndLogGps()` 写 gps_logs。若 GpsSimulator 也 enabled，同一设备每周期产生两条 GPS 记录。方案 B：datagen 生成 GPS，GpsSimulator 默认关闭。
-
-- [ ] **Step 3: 删除 TelemetrySimulator.java**
-
-- [ ] **Step 4: 编译 + 测试**
+- [ ] **Step 3: 编译 + 测试**
 
 Run: `./gradlew compileJava compileTestJava -q 2>&1 | tail -20`
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 4: Commit**
 
 ---
 
@@ -548,7 +538,6 @@ Run: `./gradlew test --tests "*.iot.*" 2>&1 | tail -20`
 
 | 评审问题 | 严重度 | 修复位置 | 状态 |
 |---------|--------|---------|------|
-| #1 GPS 三写冲突 | P0 | Task 12 Step 2（GpsSimulator 关闭） + 设计 §7.3 | ✅ |
 | #2 Task 依赖顺序 | P0 | persistence（Task 6）提前到 service（Task 7）之前 | ✅ |
 | #3 设计文档 §8 与路线图矛盾 | P1 | 设计文档已修复 | ✅ |
 | #4 缺 domain repository 接口层 | P1 | Task 4 新增 domain repository 接口 | ✅ |
