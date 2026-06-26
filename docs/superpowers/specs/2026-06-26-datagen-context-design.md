@@ -316,20 +316,51 @@ EvaluationService.evaluate(scenario, evaluationWindow):
 
 - `SimulationState`（进程内随机状态）→ 被 SynthesisScenario + GroundTruthLabel（持久化）替代
 - `@ConditionalOnProperty(name = "telemetry.simulator.enabled")` → 改为 `datagen.enabled`
-- `GpsSimulator`（独立的 GPS 模拟器）→ 暂不迁移，Phase B 聚焦健康数据
+- `GpsSimulator`（独立的 GPS 模拟器）→ **不迁移，但必须关闭默认值**（见 §7.3 GPS 三写冲突）
 
 ---
+
+### 7.3 GPS 三写冲突（评审 P0 #1）
+
+系统中 GPS 数据有两个生成源：
+1. datagen `generateTrackerReadings()` — readings Map 含 latitude/longitude，由 IoT `TelemetryIngestionService.extractAndLogGps()` 写入 gps_logs
+2. `GpsSimulator` — 独立 @Scheduled，围栏感知，直接调 `GpsLogApplicationService.logGps()`
+
+**处置方案 B（采用）**：datagen 生成 GPS（保持与原 TelemetrySimulator 行为一致），同时将 `gps.simulator.enabled` 默认值改为 `false`。两者互斥，同时启用会导致同一设备每周期两条 GPS 记录。
 
 ## 8. 与 Phase B 其余交付物的关系
 
 | Phase B 交付物 | 依赖 datagen 的点 |
 |---------------|-----------------|
-| 标注基础设施（#56） | GroundTruthLabel 表是标注管道的存储层；SYNTHETIC 标签自动生成，MANUAL 标签人工录入，同入口 |
+| ~~标注基础设施（#56）~~ | ~~Phase B~~ -> Phase C。合成数据自动标注无需标注 UI；#56 移至 Phase C（真实数据到来后才需人工标注）|
 | Java 后端集成（原 Plan 2） | ai-platform 评估时读 ground_truth_labels 对齐预测 |
 | Flutter 双轨前端 | 评估指标可在管理后台展示 |
 | 评估框架 | EvaluationService 直接消费 ground_truth_labels |
 
 ---
+
+## 8A. 运行时约束（评审 P1 #7/#8）
+
+### 内存状态与重启恢复（P1 #7）
+
+SynthesisState（per-livestock 基线偏移 + 活跃异常追踪）是内存态（ConcurrentHashMap）。应用重启后：
+- SynthesisState 丢失（tempBaselineOffset、activePattern、anomalyStart/End）
+- GroundTruthLabel 持久化了，但 SynthesisState 不知道
+
+**处置（已知简化）**：重启后 SynthesisState 从头创建。正在进行的异常注入中断——SynthesisState.activePattern 为 null，GroundTruthLabel.periodEnd 仍指向原定结束时间（成为孤儿标签）。新周期由 selectAnomalyTargets 重新选择目标。
+
+**影响**：开发期间频繁重启会产生少量孤儿标签。EvaluationService 评估时，孤儿标签的时段内有 label 无对应异常数据，计为 FN（假阴性），轻微拉低 recall。
+
+**未来改进（Phase C）**：SynthesisState.createOrRestore() 从 DB 查活跃 SYNTHETIC 标签恢复异常状态。Phase B 不做，记为已知简化。
+
+### 事务边界（P1 #8）
+
+SynthesisService.generate() **不加 @Transactional**。理由：
+- generate() 是批量循环（遍历所有活跃安装），每头牛的 ingest() 已有自己的事务边界（IoT TelemetryIngestionService.ingest @Transactional）
+- 若 generate() 加 @Transactional 且传播 REQUIRED，单头 ingest() 失败会回滚外层事务——包括已成功写入的其他牛的数据
+- GroundTruthLabel 写入用独立方法调用（@Transactional(propagation=REQUIRES_NEW)），避免与 ingest 事务耦合
+
+参考原 TelemetrySimulator：它在 @Transactional 方法内 catch 了所有 ingest 异常不外抛，实际效果是成功部分写入。datagen 明确去掉 @Transactional 更干净。
 
 ## 9. 配置
 
