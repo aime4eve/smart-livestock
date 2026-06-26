@@ -1,37 +1,39 @@
 package com.smartlivestock.datagen.application;
 
 import com.smartlivestock.datagen.domain.model.AnomalyPattern;
-import com.smartlivestock.datagen.domain.model.GroundTruthLabel;
+import com.smartlivestock.datagen.domain.model.ScenarioType;
 import com.smartlivestock.datagen.domain.port.dto.ActiveInstallationInfo;
 
 import java.time.Instant;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Per-livestock synthesis state. Tracks individual baseline offset and active anomaly period.
- * Replaces TelemetrySimulator.SimulationState with Scenario-driven anomaly tracking.
- *
- * GPS random-walk state (currentLat/currentLng) migrated from GPS consolidation design.
+ * Per-livestock synthesis state. Tracks individual baseline offset,
+ * active anomaly period, GPS random-walk position, and active fence scenario.
  *
  * Known limitation (design §8A): in-memory state is lost on restart.
- * Active anomalies are interrupted; orphan GroundTruthLabels may remain.
  */
 class SynthesisState {
 
-    // Individual baselines (replaces SimulationState random fields)
-    double tempBaselineOffset;     // +/-0.3C individual offset
-    long motilityBaseline;         // 250000-350000
-    int batteryLevel;              // 0-100
-    int batteryVoltage;            // 2800-3600 mV
+    // Individual baselines
+    double tempBaselineOffset;
+    long motilityBaseline;
+    int batteryLevel;
+    int batteryVoltage;
 
-    // GPS random-walk state (migrated from GPS consolidation design)
+    // GPS random-walk state
     double currentLat;
     double currentLng;
 
-    // Active anomaly tracking (replaces boolean flags)
-    AnomalyPattern activePattern;  // null = NORMAL
+    // Active HEALTH anomaly tracking
+    AnomalyPattern activePattern;
     Instant anomalyStart;
     Instant anomalyEnd;
+
+    // Active FENCE scenario tracking
+    ScenarioType activeFenceScenario;
+    Instant fenceScenarioStart;
+    Instant fenceScenarioEnd;
 
     private SynthesisState() {}
 
@@ -47,5 +49,9 @@ class SynthesisState {
 
     boolean isInAnomaly(Instant now) {
         return activePattern != null && now.isAfter(anomalyStart) && now.isBefore(anomalyEnd);
+    }
+
+    boolean isInFenceScenario(Instant now) {
+        return activeFenceScenario != null && now.isBefore(fenceScenarioEnd);
     }
 }
