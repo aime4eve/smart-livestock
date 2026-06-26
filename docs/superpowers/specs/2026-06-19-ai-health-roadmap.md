@@ -142,6 +142,7 @@ Phase C ◄───────────────────────
 | [#60](https://github.com/aime4eve/smart-livestock/issues/60) | LLM 牧场助手（对话 + RAG） | backlog（独立方向） | — |
 | [#61](https://github.com/aime4eve/smart-livestock/issues/61) | 行为识别（需先补加速度原始时序采集） | ~~backlog~~ → Phase C（合成训练先行） | low |
 | [#63](https://github.com/aime4eve/smart-livestock/issues/63) | 牲畜行为分析（反刍/进食/睡眠/产犊） | Phase C（与 #61 合并） | low |
+| [#64](https://github.com/aime4eve/smart-livestock/issues/64) | GPS 写入从 ingest 事务中解耦（真实设备接入前处理） | #55 前置 | medium |
 
 ## 6. Phase A 设计待定项 → 已交付 design doc（评审核实）
 
