@@ -722,20 +722,219 @@ Expected: 全部 passed
 
 ## Task 10: 全量验证
 
+> 本 Task 分两阶段。阶段 A（编译+单测）由 Agent 执行；阶段 B（端到端链路验证）由用户部署后执行，curl 验证两条链路的每一跳。
+
+### 阶段 A：编译 + 单元测试（Agent 执行）
+
 - [ ] **Step 1: 全量编译**
 
 Run: `cd smart-livestock-server && ./gradlew compileJava -q 2>&1 | tail -5`
+Expected: 无错误
 
-- [ ] **Step 2: 全量测试不破坏**
+- [ ] **Step 2: 测试编译通过**
 
-Run: `cd smart-livestock-server && ./gradlew compileJava compileTestJava -q 2>&1 | tail -20`
+Run: `cd smart-livestock-server && ./gradlew compileTestJava -q 2>&1 | tail -20`
 Expected: 无错误
 
 - [ ] **Step 3: datagen + health + iot 测试全通**
 
 Run: `cd smart-livestock-server && ./gradlew test --tests "*.datagen.*" --tests "*.health.*" --tests "*.iot.*" 2>&1 | tail -20`
+Expected: 全部 passed
 
-- [ ] **Step 4: 最终 Commit**
+- [ ] **Step 4: Commit 编译验证**
+
+```bash
+git add -A smart-livestock-server/src/
+git commit -m "chore(phase-b): 交付物 2 编译验证通过"
+```
+
+### 阶段 B：端到端链路验证（用户部署后执行）
+
+> **前置**：用户完成 `docker compose up -d` 全栈启动（postgres + redis + rocketmq + ai-platform + app），等待 datagen 生成至少 5 分钟数据。
+
+**准备：获取 Token**
+
+```bash
+# 登录 owner 账号
+TOKEN=$(curl -s http://localhost:18080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"phone":"13800138000","password":"123"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['data']['accessToken'])")
+```
+
+---
+
+**链路 1：datagen → IoT → Health/Fence → 前端可查（动物位置 + 健康明细）**
+
+验证数据从合成引擎流经 IoT 管道，最终在各业务上下文的 API 可查。
+
+```
+datagen SynthesisRunner
+  → IoT: TelemetryIngestionService.ingest()
+    ├── TRACKER readings (含 GPS lat/lng) → extractAndLogGps → gps_logs
+    │     → MQ: gps-log-updated → Ranch: GpsLogEventConsumer → FenceBreachDetector → alerts
+    └── CAPSULE readings (含 temperatures/gastricMotility)
+          → MQ: telemetry-received → Health: TelemetryEventConsumer
+            → HealthApplicationService.processTelemetry()
+              → 写 temperature_logs / rumen_motility_logs / activity_logs
+              → [新增] HealthAnomalyService.assess() → ai-platform
+```
+
+- [ ] **Step 5: 动物位置可查（GPS 数据流入）**
+
+```bash
+# 查 GPS 最新位置（datagen TRACKER 读数经 IoT 写 gps_logs）
+curl -s http://localhost:18080/api/v1/devices/gps-logs/latest \
+  -H "Authorization: Bearer $TOKEN" | python3 -m json.tool | head -20
+```
+Expected: 返回非空 GPS 列表，含 latitude/longitude（来自 datagen 随机游走）
+
+- [ ] **Step 6: 地图 API 可查动物位置**
+
+```bash
+# MapController — 前端地图页消费的接口
+curl -s "http://localhost:18080/api/v1/farms/1/map" \
+  -H "Authorization: Bearer $TOKEN" | python3 -m json.tool | head -30
+```
+Expected: 返回 livestock 列表含坐标（datagen GPS 数据经 IoT → gps_logs → MapController）
+
+- [ ] **Step 7: 健康明细可查（体温/蠕动时序数据流入）**
+
+```bash
+# 发热预警列表（Health 从 temperature_logs 聚合）
+curl -s "http://localhost:18080/api/v1/farms/1/health/fever" \
+  -H "Authorization: Bearer $TOKEN" | python3 -m json.tool | head -20
+
+# 消化管理列表（Health 从 rumen_motility_logs 聚合）
+curl -s "http://localhost:18080/api/v1/farms/1/health/digestive" \
+  -H "Authorization: Bearer $TOKEN" | python3 -m json.tool | head -20
+
+# 健康概览（Health snapshots — 现在应含 AI 列）
+curl -s "http://localhost:18080/api/v1/farms/1/health/overview" \
+  -H "Authorization: Bearer $TOKEN" | python3 -m json.tool | head -30
+```
+Expected: 返回非空数据列表，体温/蠕动数据来自 datagen CAPSULE 读数经 IoT → MQ → Health 入库
+
+- [ ] **Step 8: 围栏告警可查（datagen FENCE_BREACH 场景触发）**
+
+> 需先通过 Admin API 创建 FENCE_BREACH 场景并等待至少 2 分钟（围栏越界 GPS → FenceBreachDetector → alerts）。
+
+```bash
+# 创建围栏越界场景（admin API）
+curl -s -X POST http://localhost:18080/api/v1/admin/datagen/scenarios \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"越界测试","pattern":"FENCE_BREACH","penetrationRate":0.3,"windowStart":"2026-01-01T00:00:00Z","windowEnd":"2027-01-01T00:00:00Z"}' \
+  | python3 -m json.tool
+
+# 等待 2 分钟后查告警
+curl -s "http://localhost:18080/api/v1/farms/1/alerts" \
+  -H "Authorization: Bearer $TOKEN" | python3 -m json.tool | head -30
+```
+Expected: alerts 含 type=FENCE_BREACH（datagen 围栏越界 GPS → IoT → MQ → Ranch FenceBreachDetector → alerts）
+
+---
+
+**链路 2：ai-platform → 前端可查（健康判断 + 围栏预警判断）**
+
+验证 ai-platform 检测结果回到 Java 系统，经 API 可查。
+
+```
+HealthApplicationService.processTelemetry()
+  → [新增] HealthAnomalyService.assess(farmId, livestockId)
+    → Redis 去抖（60min TTL）
+    → AnomalyScoreClient → ai-platform POST /ai/health/analyze
+    → 写 anomaly_scores + health_snapshots.ai_*
+    → 超阈值 → RanchCommandPort.createAlert(source=AI)
+```
+
+- [ ] **Step 9: AI 异常分数可查（anomaly_scores 写入成功）**
+
+> 前置：datagen 已运行 ≥ 5 分钟（ai-platform 需要时序窗口数据）。ai-platform 需有 ≥ 30 个有效数据点（N_eff ≥ 30）才能走 Mahalanobis 档，否则走纯规则档返回低分。
+
+```bash
+# 查 AI 异常分数（Task 7 新增端点）
+curl -s "http://localhost:18080/api/v1/health/anomaly/1" \
+  -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
+```
+Expected: 返回 anomalyScore + anomalyType（来自 ai-platform 检测写入 anomaly_scores）
+
+> 若返回 `{"anomalyScore": 0.0, "anomalyType": "normal"}`：
+> - 检查 datagen 是否在运行（`docker compose logs app 2>&1 | grep "SynthesisService"`）
+> - 检查 ai-platform 是否可达（`curl -s http://localhost:18000/ai/health/live`）
+> - N_eff 可能不足 30（数据积累不够），等待 15 分钟后重试
+> - 查日志确认是否有降级日志（`docker compose logs app 2>&1 | grep "ai-platform analyze failed"`）
+
+- [ ] **Step 10: AI 异常历史可查**
+
+```bash
+curl -s "http://localhost:18080/api/v1/health/anomaly/1/history?limit=10" \
+  -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
+```
+Expected: 返回历史 anomaly_scores 记录列表
+
+- [ ] **Step 11: 健康概览含 AI 列（health_snapshots.ai_*）**
+
+```bash
+curl -s "http://localhost:18080/api/v1/farms/1/health/overview" \
+  -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
+```
+Expected: 返回数据含 `aiAnomalyScore` / `aiAnomalyType` / `aiAssessedAt` 字段（非 null 表示 AI 检测已写入 snapshot）
+
+- [ ] **Step 12: AI 告警可查（超阈值时 alerts source=AI）**
+
+> 需 datagen 注入 HIGH_FEVER 场景并等待 anomaly_score 超 0.7 触发 AI alert。
+
+```bash
+# 创建高热注入场景
+curl -s -X POST http://localhost:18080/api/v1/admin/datagen/scenarios \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"高热注入","pattern":"HIGH_FEVER","penetrationRate":0.5,"windowStart":"2026-01-01T00:00:00Z","windowEnd":"2027-01-01T00:00:00Z"}' \
+  | python3 -m json.tool
+
+# 等待 10 分钟（去抖 60min + ai-platform 检测窗口），查 AI 告警
+curl -s "http://localhost:18080/api/v1/farms/1/alerts" \
+  -H "Authorization: Bearer $TOKEN" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+ai_alerts = [a for a in data.get('data', {}).get('items', data.get('data', [])) if a.get('source') == 'AI']
+print(f'AI alerts: {len(ai_alerts)}')
+for a in ai_alerts: print(json.dumps(a, indent=2, ensure_ascii=False))
+"
+```
+Expected: alerts 含 source=AI 的记录（HealthAnomalyService 超阈值写 AI_ANOMALY 或 TEMPERATURE_ABNORMAL alert）
+
+- [ ] **Step 13: datagen 评估报告可查（ground truth × 预测对比）**
+
+```bash
+# datagen EvaluationService 评估报告
+curl -s "http://localhost:18080/api/v1/admin/datagen/evaluation?from=2026-06-26T00:00:00Z&to=2026-06-27T00:00:00Z" \
+  -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
+```
+Expected: 返回评估报告，含 HEALTH 维度（注入异常 × anomaly_scores 对比）+ FENCE 维度（注入越界 × alerts 对比）
+
+---
+
+**验证总结清单**
+
+| # | 链路 | 验证点 | API | 期望 |
+|---|------|--------|-----|------|
+| 5 | 1 | GPS 数据流入 | GET /devices/gps-logs/latest | 非空坐标列表 |
+| 6 | 1 | 动物位置（地图页） | GET /farms/{id}/map | livestock 含坐标 |
+| 7 | 1 | 健康明细（体温/蠕动） | GET /farms/{id}/health/fever | 非空数据 |
+| 8 | 1 | 围栏告警 | GET /farms/{id}/alerts | type=FENCE_BREACH |
+| 9 | 2 | AI 异常分数 | GET /health/anomaly/{id} | anomalyScore + anomalyType |
+| 10 | 2 | AI 异常历史 | GET /health/anomaly/{id}/history | 历史记录列表 |
+| 11 | 2 | 健康概览含 AI 列 | GET /farms/{id}/health/overview | aiAnomalyScore 非 null |
+| 12 | 2 | AI 告警 | GET /farms/{id}/alerts | source=AI 记录 |
+| 13 | 跨链路 | 评估报告 | GET /admin/datagen/evaluation | HEALTH + FENCE 指标 |
+
+> **失败排查路径**：
+> - GPS 为空 → datagen 未运行 → 查 `docker compose logs app | grep Synthesis`
+> - 健康数据为空 → MQ 消费失败 → 查 `docker compose logs app | grep TelemetryEventConsumer`
+> - AI 分数为空 → ai-platform 不可达 → 查 `curl localhost:18000/ai/health/live` + app 日志降级信息
+> - AI 告警无 → 数据积累不足 → N_eff < 30 或 score 未超 0.7，等待后重试
+> - 评估报告空 → anomaly_scores 表为空 → 回到 Step 9 排查
 
 ---
 
