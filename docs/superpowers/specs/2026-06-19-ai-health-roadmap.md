@@ -18,6 +18,7 @@
 | 8 | Phase A 模式 | **Workflow**（Anthropic 共识），三层为框架目标、最简透传编排 | Phase A 只有 L1 无 LLM/多 agent，用 Workflow 防过度设计 |
 | 9 | Phase A 范围 | **体温+蠕动+活动三维联合 + 与规则引擎并行增强** | 不预设病种（符合无监督本质），与规则引擎零冲突 |
 | 10 | **Phase B/C 数据策略** | **合成数据升为一等公民，Phase B 不阻塞于 #55** | `TelemetrySimulator` 的已知异常注入（`abnormalTemp`/`abnormalMotility`/`inEstrus`）本身就是 ground-truth 标签，使标注/评估/训练全链路在合成数据上闭环。#55 从 Phase B 阻塞项降为 Phase C 增强项（真实数据迁移）。合成数据与真实数据的唯一差距是"模型在真实分布上的效果"——这是模型验证问题，不是管道构建问题。详见 §4 |
+| 11 | **双轨制架构** | **datagen 横向轨道 × Phase 能力里程碑** | datagen 独立为限界上下文后，路线图从线性列表升级为矩阵。datagen 是贯穿全周期的基础设施（v1→v2→v3），Phase A/B/C 是 AI 能力里程碑（每个依赖 datagen 某版本）。阶段边界是"AI 能做什么"，不是"数据从哪来"。详见 §4 |
 
 ## 2. 架构依据（业界调研 2026-06-19）
 
@@ -57,54 +58,76 @@ Java 后端 ──HTTP──→ orchestration 端点（Java 写 anomaly_scores/s
 
 **数据写入路径（评审小问题）**：Java 后端单向调 ai-platform 取 `PredictResponse`，由 **Java 后端**写 `anomaly_scores` / `health_snapshots` / `alerts`（见 design doc §3 数据流）。ai-platform 不回调 Java，无出向依赖。
 
-## 4. A→B→C 演进路线图
+## 4. 演进路线图（双轨制：datagen 横向轨道 × Phase 能力里程碑）
+
+> **架构修订（2026-06-26）**：datagen 独立为限界上下文后，路线图从线性列表升级为**矩阵结构**。datagen 是一条**贯穿所有阶段的横向基础设施轨道**，有自己的版本演进；Phase A/B/C 是 AI 能力里程碑，每个里程碑依赖 datagen 的某个版本。
+
+### datagen 横向轨道（基础设施，贯穿全周期）
+
+| 版本 | 范围 | 服务于 | 设计文档 |
+|------|------|--------|---------|
+| **v1** | 合成数据引擎（Scenario 驱动 + 时序异常曲线）+ ground-truth 标签表 + 评估框架 | Phase B | [`2026-06-26-datagen-context-design.md`](./2026-06-26-datagen-context-design.md) |
+| **v2** | 行为数据生成（反刍/进食/躺卧波形）+ 多分类评估 + 真实数据适配层 | Phase C | 待设计 |
+| **v3** | 数据质量监控 + 数据血缘（真实数据到来后扩张为广义数据治理） | 未来 | — |
+
+> datagen 不是"做完 Phase B 就结束"的子任务。Phase C 需要它生成行为数据、做多分类评估，未来真实数据到来需要它做质量监控。它和 AI 能力轨道**平行演进**。
 
 ### Phase A — 无监督异常检测（Workflow 模式，三层骨架 + L1）
 - ✅ **已交付**（2026-06-26，commit `79c5fd22`）：三层 ai-platform Python 微服务，14 task TDD，67 tests passed
 - **架构**：三层 ai-platform，orchestration/engine 透传，capability 填 L1 + router 双维度路由
 - **数据**：当前时序数据流（`TelemetrySimulator` 产出），按真实数据标准实现检测全流程
 - **算法**：STL（节律剥离）→ CUSUM（突变）→ 联合检测（router 按 N_eff 选 Mahalanobis/iForest）→ 融合
-- **未完成**：Java 后端集成（原 Plan 2）、Flutter 双轨前端（原 Plan 3）移入 Phase B
 - **衔接**：异常分数持久化 → Phase B 标注候选池
 
-### Phase B — 合成数据基座 + 全链路集成（中期）
+### Phase B — L1 端到端集成（AI 能力里程碑）
 
-> **修订（2026-06-26，决策 #10）**：原 Phase B 前置 = #55 真实遥测 + #56 标注基础设施。现 #55 短期不具备条件（无真实硬件数据源），Phase B 重新定位为**在合成数据上构建完整端到端链路**，不再被真实数据阻塞。
+> **目标**：L1 异常检测从孤岛 Python 服务变为**完整端到端可用产品**——合成数据生成 → 入库 → AI 检测 → Java 写库 → 前端展示 → 标注/评估闭环。
 
-**核心认知转变**：`TelemetrySimulator` 从"临时占位"升级为**一等合成数据引擎**。其注入的已知异常标记（`abnormalTemp`/`abnormalMotility`/`inEstrus`）本身就是 ground-truth 标签，使标注和评估流程可以在合成数据上闭环验证。真实数据到达后只需重训练模型，不需改管道。
+**依赖**：datagen-v1（合成引擎 + ground truth + 评估）
 
 **交付物**：
-1. **合成数据引擎增强**：`TelemetrySimulator` 升级为可控标注的数据生成器
-   - 异常从静态 boolean 升级为**时序模式**（渐起→峰值→恢复曲线）
-   - 异常类型扩展（低热/高热/慢性消化/急性消化/跛行），多维度关联（发热+活动降低=病态）
-   - 导出 ground-truth 标签表（每头牛的异常时段、类型、严重度），供评估和标注
-2. **标注基础设施（#56）**：在合成数据上闭环
-   - `anomaly_scores.label` 列已在 Phase A design §6.1 预留
-   - 标注 UI（牧工/兽医标注流程）；合成数据自动标注、真实数据人工标注，管道同构
-3. **Java 后端集成（原 Plan 2）**：打通 ai-platform ↔ Java
-   - V38 迁移（`anomaly_scores` + `health_snapshots` AI 列 + `alerts.source`）
-   - `HealthAnomalyService` + `AnomalyScoreClient`（HTTP + 熔断降级）
-   - `TelemetryEventConsumer` 下游接入（方案 A：复用现有 consumer）
-4. **Flutter 双轨前端（原 Plan 3）**：规则告警 + AI 异常指数并排展示
-5. **评估框架**：利用合成 ground-truth 计算精确率/召回率/F1
-   - 合成数据的评估优势：knows exact ground truth → 可计算硬指标
-   - 限制声明：合成数据上的指标不等于真实数据效果（design §8.1 仍有效），但在管道验证和回归测试层面有确定性价值
 
-**退出条件**：全链路在合成数据上跑通（模拟器→入库→AI 检测→Java 写库→前端展示→标注闭环），且对模拟器注入的已知异常能正确检出。
+| # | 交付物 | 上下文 | 说明 |
+|---|--------|--------|------|
+| 1 | datagen-v1 | **datagen**（新建） | 迁移 `TelemetrySimulator` → Scenario 驱动合成 + GroundTruthLabel + EvaluationService。详见 [datagen 设计](./2026-06-26-datagen-context-design.md) |
+| 2 | Java 后端集成 | **health**（扩展） | V38 迁移（`anomaly_scores` + `health_snapshots` AI 列 + `alerts.source`）+ `HealthAnomalyService` + `AnomalyScoreClient`（HTTP 熔断降级）+ `TelemetryEventConsumer` 下游接入 |
+| 3 | 标注基础设施 | **datagen** + **health** | GroundTruthLabel 表（datagen）+ `anomaly_scores.label` 列（health，Phase A 已预留）+ 标注 UI；SYNTHETIC 自动标注、MANUAL 人工标注，管道同构 |
+| 4 | Flutter 双轨前端 | **Mobile**（扩展） | 规则告警 + AI 异常指数并排展示 |
+| 5 | 评估报告 | **datagen** | EvaluationService 消费 datagen 标签 × health 预测，输出精确率/召回率/F1 |
 
-### Phase C — 监督模型 + 行为识别（合成训练→真实迁移）（远期）
+**退出条件**：全链路在合成数据上闭环（datagen 场景→IoT 入库→ai-platform 检测→Java 写库→前端展示→评估报告），且对注入的已知异常（如 HIGH_FEVER）能正确检出。
 
-> **修订（2026-06-26，决策 #10）**：原 Phase C 前置 = Phase B 真实数据 + 标注攒够。现前置 = Phase B 完成（合成数据基座就绪）。监督模型可在合成标注数据上训练，真实数据到达后做迁移学习/微调。
+**为什么 datagen-v1 不在 Phase B 编号"第一块"**：它是 Phase B 的**前置基础设施**，不是 Phase B 内部的线性第一步。交付物 2-5 依赖它，但它的生命周期超出 Phase B——Phase C 还要扩展为 v2。
 
-1. **监督式健康分类器（#57）**：合成数据提供已知标签，可训练分类而非仅异常检测
-   - 发热 vs 正常、消化异常 vs 正常等分类器；特征从 Phase A 继承
-   - 真实数据到达后重训练/微调
-2. **行为识别（#61 + #63）**：反刍/进食/躺卧/行走/产犊
-   - 协议层（0x40 行为窗口上报）+ 合成行为数据生成
-   - 先规则后 ML；详见 #63 行为分析设计
-3. **发情模式识别（#58）**：从异常检测升级为模式识别
-4. **真实数据迁移（#55 落地后）**：不再是阻塞项，变为增强项——重训练 + 验证合成训练模型在真实分布上的表现
-5. **L2/L3 capability 激活**：orchestration 从 Workflow 升级为 Agent（多 agent 协同）
+### Phase C — 监督模型 + 行为识别（AI 能力里程碑）
+
+> **目标**：AI 从无监督异常检测升级为**监督分类 + 行为识别**，并在真实数据到来时做迁移。
+
+**依赖**：datagen-v2（行为数据生成 + 多分类评估）
+
+**交付物**：
+
+| # | 交付物 | 上下文 | 说明 |
+|---|--------|--------|------|
+| 1 | datagen-v2 | **datagen**（扩展） | 行为波形合成（反刍咀嚼节律/进食 biting/躺卧静态分量）+ 多分类 confusion matrix 评估 + 真实数据适配层（#55 落地后切换数据源） |
+| 2 | 监督式健康分类器（#57） | **ai-platform** L2 | 合成标注数据训练分类（发热/消化/正常），特征从 Phase A 继承；真实数据到达后重训练 |
+| 3 | 行为识别（#61 + #63） | **ai-platform** + **iot** | 反刍/进食/躺卧/行走/产犊；协议层（0x40）+ 合成行为数据（datagen-v2）+ 先规则后 ML；详见 [#63 设计](./2026-06-23-behavior-analysis-design.md) |
+| 4 | 发情模式识别（#58） | **ai-platform** | 从异常检测升级为模式识别 |
+| 5 | 真实数据迁移（#55） | **datagen** + **ai-platform** | #55 从阻塞项变为增强项：datagen 切换数据源 + ai-platform 重训练 + 验证合成训练模型在真实分布上的表现 |
+| 6 | L2/L3 capability 激活 | **ai-platform** | orchestration 从 Workflow 升级为 Agent（多 agent 协同） |
+
+### 阶段依赖总览
+
+```
+datagen 轨道:  v1 ────────────────────── v2 ────────────── v3
+                  │                        │                  │
+Phase A (done)    │                        │                  │
+Phase B ◄─────────┘                        │                  │
+Phase C ◄──────────────────────────────────┘                  │
+未来 ◄────────────────────────────────────────────────────────┘
+```
+
+**关键认知**：阶段边界是**AI 能做什么**，不是**数据从哪来**。datagen 负责数据可用性（合成→真实无缝切换），AI capability 负责检测/分类/预测能力。两者解耦演进。
 ## 5. 遗留事项总账（issue 双向链接）
 
 | Issue | 事项 | 阶段 | 优先级 |
