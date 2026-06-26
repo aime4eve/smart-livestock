@@ -45,6 +45,7 @@ class HealthApplicationServiceTelemetryTest {
     @Mock private DigestiveAnalysisService digestiveService;
     @Mock private EstrusAnalysisService estrusAnalysisService;
     @Mock private EpidemicAnalysisService epidemicService;
+    @Mock private HealthAnomalyService healthAnomalyService;
 
     private HealthApplicationService service;
 
@@ -55,6 +56,7 @@ class HealthApplicationServiceTelemetryTest {
                 estrusScoreRepo, contactTraceRepo,
                 ranchQueryPort, ranchCommandPort,
                 subscriptionPort,
+                healthAnomalyService,
                 feverService, digestiveService, estrusAnalysisService, epidemicService);
     }
 
