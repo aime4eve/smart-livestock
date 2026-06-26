@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' show min;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -42,6 +43,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
   String? _selectedFenceId;
   bool _fencePanelOpen = false;
   late final AnimationController _breathingController;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
@@ -51,6 +53,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
       duration: const Duration(milliseconds: 1500),
     );
     _initTileProvider();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) ref.read(ranchControllerProvider.notifier).silentRefresh();
+    });
   }
 
   Future<void> _initTileProvider() async {
@@ -81,6 +86,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     _tileProvider?.dispose();
     _breathingController.dispose();
     _mapController.dispose();

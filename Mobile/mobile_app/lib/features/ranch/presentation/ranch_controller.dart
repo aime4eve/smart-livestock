@@ -90,6 +90,14 @@ class RanchController extends FarmScopedAsyncNotifier<RanchOverview> {
     _selectedAlertId = null;
   }
 
+  /// Silent refresh for polling: no AsyncLoading spinner, keeps drill-down state.
+  Future<void> silentRefresh() async {
+    final next = await AsyncValue.guard(
+      () => ref.read(ranchRepositoryProvider).loadOverview(),
+    );
+    if (next.hasValue) state = next;
+  }
+
   void _notifyRebuild() {
     final current = state.value;
     if (current != null) {
