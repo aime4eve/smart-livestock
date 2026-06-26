@@ -317,7 +317,7 @@ EvaluationService.evaluate(scenario, evaluationWindow):
 - `SimulationState`（进程内随机状态）→ 被 SynthesisScenario + GroundTruthLabel（持久化）替代
 - `@ConditionalOnProperty(name = "telemetry.simulator.enabled")` → 改为 `datagen.enabled`
 - `GpsSimulator`（独立的 GPS 模拟器）→ 暂不迁移，Phase B 聚焦健康数据
-- GPS 生成逻辑 → **前置依赖**：先实施 [`GPS 模拟数据收敛设计`](./2026-06-26-gps-simulator-consolidation-design.md)（随机游走 + 删除 GpsSimulator），收敛后 GPS 逻辑随 TelemetrySimulator 整体迁移进 `SynthesisService.generateTrackerReadings()`，无需额外工作
+- GPS 生成逻辑 → ✅ **前置依赖已满足**（2026-06-26）：[`GPS 模拟数据收敛设计`](./2026-06-26-gps-simulator-consolidation-design.md) 已实施（随机游走 + 删除 GpsSimulator + LivestockInfo 扩展）。GPS 随机游走逻辑随 TelemetrySimulator 整体迁移进 `SynthesisService.generateTrackerReadings()`，无需额外工作
 
 ---
 
