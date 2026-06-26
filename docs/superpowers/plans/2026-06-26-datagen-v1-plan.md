@@ -587,3 +587,259 @@ Plan v2（评审修订版）完成并保存于 `docs/superpowers/plans/2026-06-2
 
 1. **Subagent-Driven（推荐）** — 每个 Task 派一个新 subagent，任务间评审，快速迭代。
 2. **Inline Execution** — 本会话内用 executing-plans 批量执行，检查点评审。
+
+
+---
+
+## Task 14: V39 迁移 — ScenarioType + GroundTruthLabel 扩展列
+
+> **需求修正（2026-06-26）**：datagen 从纯健康异常注入器升级为统一模拟引擎（健康 + 围栏越界）。新增 scenario_type 列区分场景维度。
+
+**Files:**
+- Create: `smart-livestock-server/src/main/resources/db/migration/V39__extend_datagen_for_fence_scenarios.sql`
+
+- [ ] **Step 1: V39 迁移**
+
+```sql
+ALTER TABLE synthesis_scenarios ADD COLUMN scenario_type VARCHAR(20) NOT NULL DEFAULT 'HEALTH'
+    CHECK (scenario_type IN ('HEALTH','FENCE_BREACH','FENCE_APPROACH'));
+ALTER TABLE ground_truth_labels ADD COLUMN scenario_type VARCHAR(20) NOT NULL DEFAULT 'HEALTH'
+    CHECK (scenario_type IN ('HEALTH','FENCE_BREACH','FENCE_APPROACH'));
+```
+
+- [ ] **Step 2: 编译 + Commit**
+
+---
+
+## Task 15: ScenarioType 枚举 + 域模型扩展
+
+**Files:**
+- Create: `datagen/domain/model/ScenarioType.java`
+- Modify: `SynthesisScenario.java`（加 scenarioType 字段）
+- Modify: `GroundTruthLabel.java`（加 scenarioType 字段）
+- Modify: `SynthesisScenarioJpaEntity.java`（加 scenarioType 列）
+- Modify: `GroundTruthLabelJpaEntity.java`（加 scenarioType 列）
+- Modify: `SynthesisScenarioMapper.java`（映射 scenarioType）
+- Modify: `GroundTruthLabelMapper.java`（映射 scenarioType）
+- Modify: `CreateScenarioRequest.java`（加 scenarioType 字段）
+- Modify: `ScenarioDto.java`（加 scenarioType 字段）
+
+- [ ] **Step 1: ScenarioType 枚举**
+
+```java
+public enum ScenarioType {
+    HEALTH, FENCE_BREACH, FENCE_APPROACH;
+}
+```
+
+- [ ] **Step 2: SynthesisScenario 加 scenarioType 字段**
+- [ ] **Step 3: JPA Entity + Mapper 加列映射**
+- [ ] **Step 4: DTO 加字段**
+- [ ] **Step 5: 编译 + 测试 + Commit**
+
+---
+
+## Task 16: FenceQueryPort — 围栏几何 ACL
+
+**Files:**
+- Create: `datagen/domain/port/FenceQueryPort.java`
+- Create: `datagen/domain/port/dto/FenceInfo.java`
+- Create: `datagen/domain/port/dto/CoordinateInfo.java`
+- Create: `datagen/infrastructure/acl/FenceQueryPortImpl.java`
+
+- [ ] **Step 1: FenceQueryPort 接口**
+
+```java
+/** ACL port: datagen -> Ranch. Queries fence geometry for fence breach scenarios. */
+public interface FenceQueryPort {
+    /** Find active fences for the farm that a livestock belongs to. */
+    List<FenceInfo> findActiveFencesByLivestockId(Long livestockId);
+}
+```
+
+- [ ] **Step 2: FenceInfo DTO**
+
+```java
+public record FenceInfo(
+    Long fenceId, Long farmId, String name,
+    List<CoordinateInfo> vertices,
+    List<CoordinateInfo> bufferPolygon  // nullable
+) {}
+public record CoordinateInfo(double latitude, double longitude) {}
+```
+
+- [ ] **Step 3: FenceQueryPortImpl — 委托 ranch 仓储**
+
+通过 livestockId → LivestockRepository.findFarmId → FenceRepository.findByFarmId 链式解析。
+
+- [ ] **Step 4: 编译 + Commit**
+
+---
+
+## Task 17: activityIndex 多维度调制修复
+
+> **P0 修复**：原 activityIndex 不受异常影响，ai-platform 三维联合检测在活动维度看不到异常。
+
+**Files:**
+- Modify: `SynthesisService.java`（generateTrackerReadings + generateCapsuleReadings）
+
+- [ ] **Step 1: CAPSULE 也生成 activityIndex（原实现缺失）**
+
+原 TelemetrySimulator CAPSULE 分支不生成 activityIndex，但 ai-platform 需要三维度数据。CAPSULE 的活动数据来自 TRACKER 安装——同一头牛如果只有 CAPSULE 没有 TRACKER，活动维度为空。
+
+修正：CAPSULE readings 也生成 activityIndex（用 hourFactor × 随机值），受异常调制。
+
+- [ ] **Step 2: 多维度关联调制函数**
+
+```java
+private double getActivityModulation(AnomalyPattern pattern, double intensity) {
+    return switch (pattern) {
+        case LOW_GRADE_FEVER -> -intensity * 0.4;
+        case HIGH_FEVER -> -intensity * 0.6;
+        case CHRONIC_MOTILITY_DROP -> -intensity * 0.2;
+        case ACUTE_MOTILITY_DROP -> -intensity * 0.3;
+        case ESTRUS -> intensity * 0.8;
+        case LAMENESS -> -intensity * 0.7;
+        case NORMAL -> 0.0;
+    };
+}
+```
+
+- [ ] **Step 3: TRACKER + CAPSULE 的 activityIndex 都用调制值**
+
+```java
+double baseActivity = hourFactor * rng.nextDouble(30, 80);
+double activityMod = getActivityModulation(pattern, intensity);
+readings.put("activityIndex", round(baseActivity * (1.0 + activityMod), 1));
+```
+
+- [ ] **Step 4: 多维度关联调制表实现**
+
+每种 AnomalyPattern 同时调制：temperature + motility + activityIndex + stepCount（见设计 §3.2 表格）。
+
+- [ ] **Step 5: 编译 + Commit**
+
+---
+
+## Task 18: 围栏越界场景实现
+
+> **P0 新增**：ScenarioType.FENCE_BREACH / FENCE_APPROACH 的 GPS 位移。
+
+**Files:**
+- Modify: `SynthesisService.java`（generate 方法增加围栏分支）
+
+- [ ] **Step 1: generate() 分支逻辑**
+
+```java
+public void generate(SynthesisScenario scenario) {
+    ...
+    for (ActiveInstallationInfo inst : installations) {
+        SynthesisState state = states.computeIfAbsent(...);
+
+        // 第 1 层：基线数据
+        Map<String, Object> readings = switch (inst.deviceType()) {
+            case TRACKER -> generateTrackerReadings(state, scenario, intensity, now);
+            ...
+        };
+
+        // 第 2 层：健康场景叠加（HEALTH）
+        // （已在 generateTrackerReadings/generateCapsuleReadings 中处理）
+
+        // 第 3 层：围栏场景叠加（FENCE_BREACH/APPROACH）
+        if (scenario.getScenarioType() == ScenarioType.FENCE_BREACH
+                || scenario.getScenarioType() == ScenarioType.FENCE_APPROACH) {
+            if (inst.deviceType() == DeviceType.TRACKER) {
+                applyFenceDisplacement(state, scenario, inst.livestockId(), now, readings);
+            }
+        }
+
+        ingestionPort.ingest(inst.deviceId(), readings, now);
+    }
+}
+```
+
+- [ ] **Step 2: applyFenceDisplacement 实现**
+
+```java
+private void applyFenceDisplacement(SynthesisState state, SynthesisScenario scenario,
+        Long livestockId, Instant now, Map<String, Object> readings) {
+    // 查围栏几何
+    List<FenceInfo> fences = fenceQueryPort.findActiveFencesByLivestockId(livestockId);
+    if (fences.isEmpty()) return;
+
+    FenceInfo fence = fences.get(ThreadLocalRandom.current().nextInt(fences.size()));
+    List<CoordinateInfo> vertices = fence.vertices();
+
+    // 计算围栏边界框
+    double maxLat = vertices.stream().mapToDouble(CoordinateInfo::latitude).max().getAsDouble();
+    double minLng = vertices.stream().mapToDouble(CoordinateInfo::longitude).min().getAsDouble();
+    double maxLng = vertices.stream().mapToDouble(CoordinateInfo::longitude).max().getAsDouble();
+
+    if (scenario.getScenarioType() == ScenarioType.FENCE_BREACH) {
+        // 移到围栏外 ~50m（北方）
+        state.currentLat = maxLat + 0.0005;
+        state.currentLng = (minLng + maxLng) / 2;
+    } else {
+        // FENCE_APPROACH: 接近边界但在 buffer zone 内
+        state.currentLat = maxLat - 0.0001;
+        state.currentLng = (minLng + maxLng) / 2;
+    }
+
+    // 覆盖 readings GPS
+    readings.put("latitude", state.currentLat);
+    readings.put("longitude", state.currentLng);
+
+    // 写 ground-truth 标签
+    writeFenceLabel(livestockId, scenario.getScenarioType(), now);
+}
+```
+
+- [ ] **Step 3: writeFenceLabel 实现**
+
+写 GroundTruthLabel（scenarioType=FENCE_BREACH/APPROACH，duration=30min/周期）。
+
+- [ ] **Step 4: SynthesisState 增加 activeFenceScenario 追踪**
+
+避免每周期重复写标签。
+
+- [ ] **Step 5: 编译 + Commit**
+
+---
+
+## Task 19: EvaluationService 扩展双维度评估
+
+**Files:**
+- Modify: `EvaluationService.java`
+- Modify: `EvaluationReport.java` / `MetricResult.java`
+
+- [ ] **Step 1: HEALTH 维度评估不变（已有）**
+
+- [ ] **Step 2: FENCE 维度评估**
+
+对比 ground_truth_labels (scenarioType=FENCE_BREACH) × alerts (type=FENCE_BREACH)：
+- 注入了越界的牛是否有对应告警？
+- 输出越界检测召回率
+
+- [ ] **Step 3: 扩展 EvaluationReport 加 fenceMetrics 字段**
+
+- [ ] **Step 4: 编译 + Commit**
+
+---
+
+## Task 20: 全量验证 + 测试
+
+- [ ] **Step 1: 全量编译**
+
+Run: `./gradlew compileJava compileTestJava -q`
+
+- [ ] **Step 2: datagen 全部测试**
+
+- [ ] **Step 3: 创建 SynthesisService 单元测试**
+
+Mock FenceQueryPort + DeviceQueryPort + TelemetryIngestionPort，验证：
+- HEALTH 场景：activityIndex 受异常调制
+- FENCE_BREACH 场景：GPS 坐标移到围栏外
+- FENCE_APPROACH 场景：GPS 坐标接近边界
+- ground-truth 标签正确写入
+
+- [ ] **Step 4: 最终 Commit**

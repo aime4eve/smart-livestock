@@ -36,29 +36,41 @@ datagen 是 Phase B 的**第一块交付物**，也是其余四块（标注、Ja
 datagen/
 ├── domain/
 │   ├── model/
-│   │   ├── AnomalyPattern          — 异常类型枚举（值对象）
-│   │   ├── SynthesisScenario       — 合成场景（聚合根：哪些牛、什么异常、什么时间段）
-│   │   └── GroundTruthLabel        — ground-truth 标签（实体）
+│   │   ├── ScenarioType.java           — 场景类型枚举（HEALTH / FENCE_BREACH / FENCE_APPROACH）
+│   │   ├── AnomalyPattern.java         — 健康异常类型枚举（6 异常 + NORMAL）
+│   │   ├── TemporalShape.java          — 时序形态枚举
+│   │   ├── ScenarioStatus.java         — 场景状态枚举
+│   │   ├── LabelSource.java            — 标签来源枚举
+│   │   ├── SynthesisScenario.java      — 聚合根（支持健康 + 围栏双维度）
+│   │   └── GroundTruthLabel.java       — 实体
+│   ├── repository/
+│   │   ├── SynthesisScenarioRepository.java
+│   │   └── GroundTruthLabelRepository.java
 │   └── port/
-│       ├── TelemetryIngestionPort  — ACL：把读数喂给 IoT 标准管道
-│       ├── DeviceQueryPort         — ACL：查活跃安装列表
-│       └── AnomalyScoreQueryPort   — ACL：查 AI 预测结果（评估用）
+│       ├── TelemetryIngestionPort.java  — ACL: 喂数据给 IoT
+│       ├── DeviceQueryPort.java         — ACL: 查活跃安装
+│       ├── AnomalyScoreQueryPort.java   — ACL: 查 AI 预测结果（评估用）
+│       └── FenceQueryPort.java          — ACL: 查围栏几何（围栏越界场景用）
 ├── application/
-│   ├── SynthesisService            — 按 scenario 生成读数 + 写标签 + 喂管道
-│   ├── SynthesisRunner             — @Scheduled 定时触发，替代 TelemetrySimulator
-│   ├── GroundTruthLabelService     — 标签 CRUD（自动标注 + 手动标注同入口）
-│   └── EvaluationService           — 对比 AI 预测 vs ground truth，输出指标
+│   ├── SynthesisService.java            — 三层合成：基线 → 健康调制 → 围栏位移
+│   ├── SynthesisRunner.java             — @Scheduled 定时触发
+│   ├── GroundTruthLabelService.java     — 标签 CRUD
+│   ├── EvaluationService.java           — 评估框架
+│   └── dto/
+│       ├── EvaluationReport.java
+│       ├── MetricResult.java
+│       ├── ScenarioDto.java
+│       └── CreateScenarioRequest.java
 ├── infrastructure/
-│   ├── persistence/
-│   │   ├── SynthesisScenarioJpaEntity / Repository
-│   │   └── GroundTruthLabelJpaEntity / Repository
+│   ├── persistence/  (entity / Spring Data / impl / mapper)
 │   └── acl/
-│       ├── TelemetryIngestionPortImpl  — 委托 IoT TelemetryIngestionService.ingest()
-│       ├── DeviceQueryPortImpl         — 委托 IoT InstallationRepository
-│       └── AnomalyScoreQueryPortImpl   — 委托 Health anomaly_scores 表只读
+│       ├── TelemetryIngestionPortImpl.java
+│       ├── DeviceQueryPortImpl.java
+│       ├── AnomalyScoreQueryPortImpl.java
+│       └── FenceQueryPortImpl.java       — 委托 ranch FenceRepository + livestock
 └── interfaces/
     └── admin/
-        └── DataGenAdminController   — 触发/停止/配置场景/查看评估指标
+        └── DataGenAdminController.java
 ```
 
 ### 2.2 上下文映射
@@ -70,6 +82,9 @@ datagen/
 [datagen] ──ACL: DeviceQueryPort────────> [IoT]
            （查活跃安装列表：哪些设备该生成数据）
 
+[datagen] ──ACL: FenceQueryPort─────────> [Ranch]
+           （查目标牲畜所属牧场的围栏几何，用于围栏越界场景）
+
 [datagen] ──ACL: AnomalyScoreQueryPort──> [Health]
            （读 anomaly_scores 表，评估时对比 AI 预测 vs ground truth）
 
@@ -77,227 +92,228 @@ datagen/
                      ──reads──> datagen ground_truth_labels（评估对齐）
 ```
 
-**ACL 方向**：datagen 是调用方（Customer-Supplier 中 datagen 是 Customer，IoT/Health 是 Supplier）。datagen 通过 port 接口依赖，不直接 import IoT/Health 的内部类。
-
-**IoT 零改动**：`TelemetryIngestionService.ingest(deviceId, readings, recordedAt)` 接口不变。datagen 调用它就像真实设备调它一样——设备校验、安装查找、写时序表、发 RocketMQ 事件，全链路不变。
+**围栏 ACL 新增**：datagen 通过 `FenceQueryPort` 查询 ranch 的 `FenceRepository`（围栏顶点 + buffer zone），但不依赖围栏检测逻辑——围栏检测由 `GpsLogEventConsumer` → `FenceBreachDetector` 完成，datagen 只负责"把牛移动到围栏外"。
 
 ---
 
 ## 3. 域模型
 
-### 3.1 AnomalyPattern（值对象·枚举）
+### 3.1 ScenarioType（枚举·场景维度）
 
-替代 `TelemetrySimulator` 的 boolean 标记。每种异常有明确的生理参数和时序形态。
+datagen 支持两个维度：健康异常和空间越界。
+
+```java
+public enum ScenarioType {
+    HEALTH,          // 健康异常注入（温度/蠕动/活动调制）
+    FENCE_BREACH,    // 围栏越界（GPS 移到围栏外）
+    FENCE_APPROACH   // 围栏接近（GPS 移到 buffer zone 内）
+}
+```
+
+### 3.2 AnomalyPattern（值对象·枚举）
+
+**修订（2026-06-26）：多维度关联调制**。每种异常不再是单维度调制，而是影响多个读数字段，与 ai-platform 三维联合检测配套。
 
 ```java
 public enum AnomalyPattern {
-    // 发热类
-    LOW_GRADE_FEVER("低热", 38.5, 39.5, Duration.ofHours(6), "gradual_rise"),
-    HIGH_FEVER("高热", 39.5, 41.0, Duration.ofHours(3), "abrupt_spike"),
+    // 发热类：温度升高 + 活动降低（发烧时牛变迟钝）
+    LOW_GRADE_FEVER("low_grade_fever", 38.5, 39.5, Duration.ofHours(6), TemporalShape.GRADUAL_RISE),
+    HIGH_FEVER("high_fever", 39.5, 41.0, Duration.ofHours(3), TemporalShape.ABRUPT_SPIKE),
 
-    // 消化类
-    CHRONIC_MOTILITY_DROP("慢性蠕动下降", null, null, Duration.ofDays(2), "gradual_decline"),
-    ACUTE_MOTILITY_DROP("急性蠕动停滞", null, null, Duration.ofHours(8), "abrupt_drop"),
+    // 消化类：蠕动下降 + 温度可能微升（消化问题常伴低热）
+    CHRONIC_MOTILITY_DROP("chronic_motility_drop", null, null, Duration.ofDays(2), TemporalShape.GRADUAL_DECLINE),
+    ACUTE_MOTILITY_DROP("acute_motility_drop", null, null, Duration.ofHours(8), TemporalShape.ABRUPT_DROP),
 
-    // 行为类（为 Phase C 行为识别预留）
-    ESTRUS("发情", null, null, Duration.ofHours(18), "activity_surge"),
-    LAMENESS("跛行", null, null, Duration.ofDays(1), "activity_drop"),
+    // 行为类：活动骤变 + 蠕动相应变化
+    ESTRUS("estrus", null, null, Duration.ofHours(18), TemporalShape.ACTIVITY_SURGE),
+    LAMENESS("lameness", null, null, Duration.ofDays(1), TemporalShape.ACTIVITY_DROP),
 
-    NORMAL("正常", null, null, null, "baseline");
-    // ...
+    NORMAL("normal", null, null, null, TemporalShape.BASELINE);
 }
 ```
 
-**时序形态**（`temporalShape`）替代 boolean——异常不再是"开关"，而是有渐起、峰值、恢复的曲线：
+**多维度关联调制规则**（替代单维度调制）：
 
-```
-gradual_rise:    基线 → 缓慢上升(2-4h) → 平台期 → 缓慢恢复(2-4h) → 基线
-abrupt_spike:    基线 → 突跳(30min) → 平台期 → 恢复
-gradual_decline: 基线 → 缓慢下降(12-24h) → 低谷 → 恢复
-abrupt_drop:     基线 → 突降(1h) → 低谷 → 恢复
-activity_surge:  基线 → 步数激增(2-3x) 持续 12-24h → 恢复
-activity_drop:   基线 → 步数骤降(0.3x) 持续 → 恢复
-```
+| Pattern | temperature | motility | activityIndex | stepCount |
+|---------|-------------|----------|---------------|-----------|
+| LOW_GRADE_FEVER | +intensity*(tempMax-38.5) | -intensity*20% | **-intensity*40%** | -intensity*30% |
+| HIGH_FEVER | +intensity*(tempMax-38.5) | -intensity*30% | **-intensity*60%** | -intensity*50% |
+| CHRONIC_MOTILITY_DROP | **+intensity*0.5C** | -intensity*60% | -intensity*20% | -intensity*15% |
+| ACUTE_MOTILITY_DROP | 基线 | -intensity*80% | -intensity*30% | -intensity*20% |
+| ESTRUS | 基线+0.3C | 基线 | **+intensity*80%** | **+intensity*150%** |
+| LAMENESS | 基线 | -intensity*10% | **-intensity*70%** | **-intensity*70%** |
 
-### 3.2 SynthesisScenario（聚合根）
+> **activityIndex 调制修复**：原实现 activityIndex 永远是随机值不受异常影响，导致 ai-platform 的三维联合检测在活动维度看不到异常。现在每种异常都调制 activityIndex，确保三维度同步偏离。
 
-一个合成场景 = "给哪些牛、注入什么异常、在什么时间段"。
+### 3.3 SynthesisScenario（聚合根）
+
+**修订**：增加 `scenarioType` 区分健康场景和围栏场景。
 
 ```java
-@Entity
-class SynthesisScenario {
-    Long id;
-    String name;                    // 场景名称（如 "冬季发热潮"）
-    ScenarioStatus status;          // DRAFT / RUNNING / STOPPED
-    AnomalyPattern pattern;         // 异常类型
-    Double penetrationRate;         // 注入比例（如 0.15 = 15% 的牛注入异常）
-    Instant windowStart;            // 异常开始时间
-    Instant windowEnd;              // 异常结束时间
-    Integer intervalSeconds;        // 生成间隔（默认 30s，与原 simulator 一致）
-    List<Long> targetLivestockIds;  // 目标牛列表（空 = 全部活跃安装的牛）
+public class SynthesisScenario extends AggregateRoot {
+    private String name;
+    private ScenarioStatus status;
+    private ScenarioType scenarioType;    // 新增：HEALTH / FENCE_BREACH / FENCE_APPROACH
+    private AnomalyPattern pattern;       // HEALTH 场景用，FENCE 场景为 null
+    private double penetrationRate;
+    private Instant windowStart;
+    private Instant windowEnd;
+    private int intervalSeconds;
+    private List<Long> targetLivestockIds;
 }
 ```
 
-### 3.3 GroundTruthLabel（实体）
-
-**核心资产**——每条标签记录一头牛在一个时段内的真实状态。合成数据自动生成，真实数据人工标注，管道同构。
+### 3.4 GroundTruthLabel（实体）
 
 ```java
-@Entity
-class GroundTruthLabel {
-    Long id;
-    Long livestockId;
-    AnomalyPattern pattern;     // 正常 or 异常类型
-    Instant periodStart;        // 时段开始
-    Instant periodEnd;          // 时段结束
-    LabelSource source;         // SYNTHETIC（自动）/ MANUAL（人工）
-    Double severity;            // 严重度 0-1（合成注入可控，人工标注主观打分）
-    Long labeledBy;             // 人工标注者 ID（合成为 null）
-    Instant labeledAt;
-    String note;                // 备注
+public class GroundTruthLabel extends Entity {
+    private Long livestockId;
+    private AnomalyPattern pattern;     // 健康标签用（含 NORMAL）
+    private ScenarioType scenarioType;  // 新增：标签维度（HEALTH / FENCE_BREACH / FENCE_APPROACH）
+    private Instant periodStart;
+    private Instant periodEnd;
+    private LabelSource source;
+    private double severity;
+    private Long labeledBy;
+    private Instant labeledAt;
+    private String note;
 }
-
-enum LabelSource { SYNTHETIC, MANUAL }
 ```
 
 ---
 
 ## 4. 数据库设计
 
-### 4.1 Flyway 迁移（V38）
+### 4.1 Flyway 迁移修订
 
-> 迁移编号取决于实施顺序。若 AI anomaly_scores 表（Phase A design §6.1）先落地则本迁移顺延。设计层面不绑死编号。
+**V38 已实施**，需追加 V39 扩展列：
 
 ```sql
--- V38__create_datagen_tables.sql
+-- V39__extend_datagen_for_fence_scenarios.sql
 
--- 合成场景
-CREATE TABLE synthesis_scenarios (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT'
-        CHECK (status IN ('DRAFT','RUNNING','STOPPED')),
-    pattern VARCHAR(40) NOT NULL,
-    penetration_rate DECIMAL(3,2) NOT NULL DEFAULT 1.0,
-    window_start TIMESTAMP NOT NULL,
-    window_end TIMESTAMP NOT NULL,
-    interval_seconds INTEGER NOT NULL DEFAULT 30,
-    target_livestock_ids BIGINT[],
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
+-- synthesis_scenarios: 增加 scenario_type 列
+ALTER TABLE synthesis_scenarios ADD COLUMN scenario_type VARCHAR(20) NOT NULL DEFAULT 'HEALTH'
+    CHECK (scenario_type IN ('HEALTH','FENCE_BREACH','FENCE_APPROACH'));
 
--- Ground-truth 标签（核心表）
-CREATE TABLE ground_truth_labels (
-    id BIGSERIAL PRIMARY KEY,
-    livestock_id BIGINT NOT NULL,
-    pattern VARCHAR(40) NOT NULL,
-    period_start TIMESTAMP NOT NULL,
-    period_end TIMESTAMP NOT NULL,
-    source VARCHAR(10) NOT NULL DEFAULT 'SYNTHETIC'
-        CHECK (source IN ('SYNTHETIC','MANUAL')),
-    severity DECIMAL(3,2),
-    labeled_by BIGINT,
-    labeled_at TIMESTAMP,
-    note TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- 查询索引
-CREATE INDEX idx_gtl_livestock_period ON ground_truth_labels (livestock_id, period_start, period_end);
-CREATE INDEX idx_gtl_pattern ON ground_truth_labels (pattern, period_start);
+-- ground_truth_labels: 增加 scenario_type 列
+ALTER TABLE ground_truth_labels ADD COLUMN scenario_type VARCHAR(20) NOT NULL DEFAULT 'HEALTH'
+    CHECK (scenario_type IN ('HEALTH','FENCE_BREACH','FENCE_APPROACH'));
 ```
 
-**种子数据**：建表后插入一个默认合成场景（`"默认持续合成"`，`NORMAL` pattern，100% 渗透率），替代原 `telemetry.simulator.enabled=true` 的行为。
+> V38 种子数据的默认场景需要回填 `scenario_type = 'HEALTH'`（ALTER DEFAULT 已覆盖）。
 
 ---
 
 ## 5. 合成数据生成流程
 
-### 5.1 SynthesisRunner（替代 TelemetrySimulator 的 @Scheduled）
+### 5.1 三层合成模型
+
+```
+SynthesisService.generate(scenario)
+  │
+  ├── 第 1 层：基线数据生成（所有场景都执行）
+  │   generateTrackerReadings / generateCapsuleReadings → 正常昼夜节律 + 噪声
+  │
+  ├── 第 2 层：健康场景叠加（scenarioType = HEALTH 时执行）
+  │   calculateIntensity(state, now) → 按 AnomalyPattern 多维度关联调制
+  │   调制：temperature / motility / activityIndex / stepCount
+  │
+  └── 第 3 层：围栏场景叠加（scenarioType = FENCE_BREACH/APPROACH 时执行）
+      FenceQueryPort.findFencesByFarmId(farmId) → 查围栏几何
+      → calculateFenceTarget(fence, scenarioType) → 计算目标坐标
+      → 覆盖 readings["latitude"] / ["longitude"]
+      → 写 GroundTruthLabel(scenarioType=FENCE_BREACH)
+```
+
+### 5.2 围栏越界 GPS 位移
 
 ```java
-@Component
-@ConditionalOnProperty(name = "datagen.enabled", havingValue = "true", matchIfMissing = true)
-class SynthesisRunner {
-    @Scheduled(fixedRateString = "${datagen.interval-ms:30000}")
-    void run() {
-        List<SynthesisScenario> active = scenarioRepo.findByStatus(RUNNING);
-        for (SynthesisScenario scenario : active) {
-            synthesisService.generate(scenario);
-        }
+/**
+ * FENCE_BREACH: 把 GPS 坐标移到围栏外（距离边界 ~50m 处）
+ * FENCE_APPROACH: 把 GPS 坐标移到 buffer zone 内（围栏外但接近边界）
+ */
+private void applyFenceDisplacement(SynthesisState state, SynthesisScenario scenario,
+        Long livestockId, Instant now) {
+    // 1. 查牲畜所属牧场 + 围栏
+    List<FenceInfo> fences = fenceQueryPort.findFencesByLivestockId(livestockId);
+    if (fences.isEmpty()) return;
+
+    // 2. 选一个活跃围栏
+    FenceInfo fence = pickFence(fences);
+    List<CoordinateInfo> vertices = fence.vertices();
+
+    // 3. 计算围栏边界框
+    double minLat = vertices.stream().mapToDouble(v -> v.latitude().doubleValue()).min().getAsDouble();
+    double maxLat = ...; double minLng = ...; double maxLng = ...;
+
+    // 4. FENCE_BREACH: 移到边界框外 ~50m
+    if (scenario.getScenarioType() == ScenarioType.FENCE_BREACH) {
+        state.currentLat = maxLat + 0.0005;  // ~50m beyond north edge
+        state.currentLng = (minLng + maxLng) / 2;
     }
+    // 5. FENCE_APPROACH: 移到 buffer zone（接近边界但仍在 buffer 内）
+    else if (scenario.getScenarioType() == ScenarioType.FENCE_APPROACH) {
+        state.currentLat = maxLat - 0.0001;  // just inside, near edge
+        state.currentLng = (minLng + maxLng) / 2;
+    }
+
+    // 6. 写 ground-truth 标签
+    GroundTruthLabel label = new GroundTruthLabel();
+    label.setScenarioType(scenario.getScenarioType());
+    label.setLivestockId(livestockId);
+    label.setPeriodStart(now);
+    label.setPeriodEnd(now.plus(Duration.ofMinutes(30)));  // 一个周期越界
+    ...
 }
 ```
 
-### 5.2 SynthesisService.generate() 流程
+> GPS 位移产生坐标后，走标准管道：`ingest()` → `extractAndLogGps()` → `gps_logs` → `GpsLogUpdatedEvent` → `GpsLogEventConsumer` → `FenceBreachDetector` → 告警。围栏检测链路零改动。
 
+### 5.3 健康场景 activityIndex 调制（修复）
+
+```java
+// 原实现（错误）：activityIndex 不受异常影响
+readings.put("activityIndex", round(hourFactor * rng.nextDouble(30, 80), 1));
+
+// 修订：activityIndex 受 AnomalyPattern + intensity 调制
+double baseActivity = hourFactor * rng.nextDouble(30, 80);
+double activityMod = getActivityModulation(pattern, intensity);
+readings.put("activityIndex", round(baseActivity * (1.0 + activityMod), 1));
+
+// 多维度调制函数
+private double getActivityModulation(AnomalyPattern pattern, double intensity) {
+    return switch (pattern) {
+        case LOW_GRADE_FEVER -> -intensity * 0.4;   // 发烧活动减少
+        case HIGH_FEVER -> -intensity * 0.6;
+        case CHRONIC_MOTILITY_DROP -> -intensity * 0.2;
+        case ACUTE_MOTILITY_DROP -> -intensity * 0.3;
+        case ESTRUS -> intensity * 0.8;             // 发情活动增加
+        case LAMENESS -> -intensity * 0.7;          // 跛行活动大减
+        case NORMAL -> 0.0;
+    };
+}
 ```
-SynthesisService.generate(scenario):
-  1. 查活跃安装列表（DeviceQueryPort → IoT InstallationRepository）
-  2. 对每个 livestockId：
-     a. 查该牛的 GroundTruthLabel（当前时段有没有注入中的异常）
-     b. 根据 scenario.pattern + temporalShape 生成读数：
-        - NORMAL：基线 + 昼夜节律 + 噪声（复用现有 SimulatorState 逻辑）
-        - 异常：基线 × temporalShape 曲线（渐起/峰值/恢复）
-     c. 组装 readings Map（与 TelemetrySimulator 输出格式一致）
-     d. 调 TelemetryIngestionPort.ingest(deviceId, readings, now)
-        → IoT 全链路执行（校验/写时序/发事件），零感知
-  3. 若异常时段刚开始 → 写 GroundTruthLabel(source=SYNTHETIC)
-  4. 若异常时段结束 → 更新 label periodEnd
-```
-
-### 5.3 异常注入决策（替代 SimulationState 的随机 boolean）
-
-```
-现有（TelemetrySimulator）:
-  state.abnormalTemp = rng.nextDouble() < 0.05;  // 进程级 boolean，重启重置
-
-datagen:
-  scenario.pattern = HIGH_FEVER, penetrationRate = 0.15
-  → 每个 scenario 周期，从目标牛中按 15% 随机选 N 头注入异常
-  → 注入时写 GroundTruthLabel(start=now, end=now+scenario.duration)
-  → 后续周期查 label 判断"还在异常期" → 继续按 temporalShape 生成
-  → periodEnd 到了 → 回归 NORMAL 基线
-```
-
-**对比优势**：
-
-| 维度 | 原 TelemetrySimulator | datagen |
-|------|----------------------|---------|
-| 异常形态 | boolean 开关 | 时序曲线（渐起/峰值/恢复） |
-| Ground truth | 无 | 持久化标签表 |
-| 可控性 | 进程级随机，重启重置 | 场景配置，可启停、可指定目标 |
-| 多维度关联 | 各维度独立随机 | 发热+活动降低=病态（可组合） |
-| 评估 | 不可能 | 可计算精确率/召回率 |
 
 ---
 
 ## 6. 评估流程
 
-### 6.1 EvaluationService
+### 6.1 EvaluationService（扩展双维度评估）
 
 ```
-EvaluationService.evaluate(scenario, evaluationWindow):
-  1. 查 ground_truth_labels（该窗口内的标签）
-  2. 查 anomaly_scores（AnomalyScoreQueryPort → Health 表，同一窗口）
-  3. 按时间对齐：
-     - label: [start, end] + pattern
-     - score: timestamp + anomaly_score + anomaly_type
-  4. 计算指标（per-pattern + overall）:
-     - TP = AI 高分 ∩ label 异常 且时段重叠
-     - FP = AI 高分 ∩ label 正常
-     - FN = AI 低分 ∩ label 异常
-     - TN = AI 低分 ∩ label 正常
-     → precision = TP / (TP + FP)
-     → recall = TP / (TP + FN)
-     → F1 = 2 × P × R / (P + R)
-  5. 输出评估报告
+EvaluationService.evaluate(from, to, scoreThreshold)
+  ├── HEALTH 维度评估
+  │   ground_truth_labels (scenarioType=HEALTH) × anomaly_scores
+  │   → precision/recall/F1 per AnomalyPattern
+  │
+  └── FENCE 维度评估
+      ground_truth_labels (scenarioType=FENCE_BREACH) × alerts (type=FENCE_BREACH)
+      → 越界检测召回率（注入的越界是否都产生了告警）
 ```
 
 ### 6.2 评估的诚实声明
 
-合成数据上的评估指标**只验证管道正确性和算法自洽性**，不代表真实数据效果（design §8.1 不可外推风险仍有效）。但合成数据的优势是**knows exact ground truth**——可以精确计算硬指标，做回归测试。真实数据到来后需重做评估。
+合成数据上的评估指标只验证管道正确性和算法自洽性，不代表真实数据效果（design §8.1 不可外推风险仍有效）。
 
 ---
 
@@ -305,30 +321,27 @@ EvaluationService.evaluate(scenario, evaluationWindow):
 
 ### 7.1 迁移策略
 
-不是"删除 TelemetrySimulator 再建 datagen"，而是：
+✅ **已完成**（Task 1-13）：TelemetrySimulator 已删除，datagen SynthesisService 接管全部合成数据生成。
 
-1. **新建 datagen 上下文**（SynthesisRunner + SynthesisService + 标签表）
-2. **迁移读数生成逻辑**：`generateTrackerReadings` / `generateCapsuleReadings` 的基线+噪声逻辑搬到 datagen 的 SynthesisService，异常注入逻辑重写为 scenario 驱动
-3. **切换配置开关**：`telemetry.simulator.enabled` → `datagen.enabled`，application.yml 改配置
-4. **删除 TelemetrySimulator.java**：确认 datagen 产出相同格式的 readings Map，IoT 全链路不变后删除
+### 7.2 当前实现缺口（需补充）
 
-### 7.2 不迁移的部分
-
-- `SimulationState`（进程内随机状态）→ 被 SynthesisScenario + GroundTruthLabel（持久化）替代
-- `@ConditionalOnProperty(name = "telemetry.simulator.enabled")` → 改为 `datagen.enabled`
-- `GpsSimulator`（独立的 GPS 模拟器）→ 暂不迁移，Phase B 聚焦健康数据
-- GPS 生成逻辑 → ✅ **前置依赖已满足**（2026-06-26）：[`GPS 模拟数据收敛设计`](./2026-06-26-gps-simulator-consolidation-design.md) 已实施（随机游走 + 删除 GpsSimulator + LivestockInfo 扩展）。GPS 随机游走逻辑随 TelemetrySimulator 整体迁移进 `SynthesisService.generateTrackerReadings()`，无需额外工作
+| 缺口 | 严重度 | 说明 |
+|------|--------|------|
+| 围栏越界场景 | P0 | ScenarioType.FENCE_BREACH/APPROACH + FenceQueryPort + GPS 位移 |
+| activityIndex 调制 | P0 | 原实现不调制活动维度，ai-platform 三维退化为二维 |
+| 多维度关联调制 | P1 | 每种异常只影响单维度，缺少关联（发烧+活动降低=病态） |
+| 首次部署基线积累 | P2 | ai-platform 需 14 天基线数据，首次部署时 N_eff < 30 |
 
 ---
 
 ## 8. 与 Phase B 其余交付物的关系
 
-| Phase B 交付物 | 依赖 datagen 的点 |
-|---------------|-----------------|
-| ~~标注基础设施（#56）~~ | ~~Phase B~~ -> Phase C。合成数据自动标注无需标注 UI；#56 移至 Phase C（真实数据到来后才需人工标注）|
-| Java 后端集成（原 Plan 2） | ai-platform 评估时读 ground_truth_labels 对齐预测 |
-| Flutter 双轨前端 | 评估指标可在管理后台展示 |
-| 评估框架 | EvaluationService 直接消费 ground_truth_labels |
+| 交付物 | 依赖 datagen 的点 |
+|--------|-----------------|
+| ~~标注基础设施(#56)~~ | ~~Phase B~~ -> Phase C |
+| Java 后端集成 | datagen 生成的健康数据经 IoT 入库 → ai-platform 检测 → anomaly_scores |
+| Flutter 双轨前端 | 前端展示健康告警 + 围栏告警 |
+| 评估报告 | HEALTH 维度：datagen 标签 × ai-platform 预测；FENCE 维度：datagen 标签 × ranch 告警 |
 
 ---
 
@@ -336,56 +349,36 @@ EvaluationService.evaluate(scenario, evaluationWindow):
 
 ### 内存状态与重启恢复（P1 #7）
 
-SynthesisState（per-livestock 基线偏移 + 活跃异常追踪）是内存态（ConcurrentHashMap）。应用重启后：
-- SynthesisState 丢失（tempBaselineOffset、activePattern、anomalyStart/End）
-- GroundTruthLabel 持久化了，但 SynthesisState 不知道
+SynthesisState（per-livestock 基线偏移 + 活跃异常/越界追踪 + GPS 位置）是内存态。应用重启后丢失。正在进行的异常注入或围栏越界中断，产生少量孤儿标签。
 
-**处置（已知简化）**：重启后 SynthesisState 从头创建。正在进行的异常注入中断——SynthesisState.activePattern 为 null，GroundTruthLabel.periodEnd 仍指向原定结束时间（成为孤儿标签）。新周期由 selectAnomalyTargets 重新选择目标。
-
-**影响**：开发期间频繁重启会产生少量孤儿标签。EvaluationService 评估时，孤儿标签的时段内有 label 无对应异常数据，计为 FN（假阴性），轻微拉低 recall。
-
-**未来改进（Phase C）**：SynthesisState.createOrRestore() 从 DB 查活跃 SYNTHETIC 标签恢复异常状态。Phase B 不做，记为已知简化。
+**已知简化（Phase B）**：重启后从头创建，孤儿标签影响轻微。
 
 ### 事务边界（P1 #8）
 
-SynthesisService.generate() **不加 @Transactional**。理由：
-- generate() 是批量循环（遍历所有活跃安装），每头牛的 ingest() 已有自己的事务边界（IoT TelemetryIngestionService.ingest @Transactional）
-- 若 generate() 加 @Transactional 且传播 REQUIRED，单头 ingest() 失败会回滚外层事务——包括已成功写入的其他牛的数据
-- GroundTruthLabel 写入用独立方法调用（@Transactional(propagation=REQUIRES_NEW)），避免与 ingest 事务耦合
+SynthesisService.generate() **不加 @Transactional**。每头牛的 ingest() 有自己的事务边界。GroundTruthLabel 写入走独立方法（@Transactional(propagation=REQUIRES_NEW)）。
 
-参考原 TelemetrySimulator：它在 @Transactional 方法内 catch 了所有 ingest 异常不外抛，实际效果是成功部分写入。datagen 明确去掉 @Transactional 更干净。
+---
 
 ## 9. 配置
 
 ```yaml
-# application.yml
 datagen:
   enabled: ${DATAGEN_ENABLED:true}
   interval-ms: ${DATAGEN_INTERVAL_MS:30000}
-  default-scenario:
-    pattern: NORMAL
-    penetration-rate: 1.0
 ```
-
-- `datagen.enabled=true` 替代 `telemetry.simulator.enabled=true`
-- 默认场景 `NORMAL` = 所有活跃安装的牛持续生成正常基线数据（与现有行为等价）
-- 需要注入异常时通过 admin API 创建 scenario（`HIGH_FEVER` + 15% 渗透率等）
 
 ---
 
 ## 10. Admin API
 
 ```
-POST   /api/v1/admin/datagen/scenarios          — 创建合成场景
+POST   /api/v1/admin/datagen/scenarios          — 创建合成场景（含 scenarioType）
 GET    /api/v1/admin/datagen/scenarios          — 列出场景
 POST   /api/v1/admin/datagen/scenarios/{id}/start — 启动
 POST   /api/v1/admin/datagen/scenarios/{id}/stop  — 停止
 GET    /api/v1/admin/datagen/labels             — 查 ground-truth 标签
-POST   /api/v1/admin/datagen/labels             — 手动添加标注（MANUAL）
 GET    /api/v1/admin/datagen/evaluation         — 查评估指标
 ```
-
-> Admin API 路径，仅 platform_admin / b2b_admin 可访问。
 
 ---
 
@@ -393,7 +386,8 @@ GET    /api/v1/admin/datagen/evaluation         — 查评估指标
 
 | 扩展点 | 当前 | 未来 |
 |--------|------|------|
-| AnomalyPattern | 6 种 + NORMAL | Phase C 加行为类（反刍异常/进食异常/产犊前兆） |
+| ScenarioType | HEALTH / FENCE_BREACH / FENCE_APPROACH | Phase C 加 BEHAVIOR（反刍/进食/躺卧） |
+| AnomalyPattern | 6 种 + NORMAL | Phase C 加行为类 |
 | LabelSource | SYNTHETIC / MANUAL | 真实数据到来后 MANUAL 为主 |
-| 评估 | 二分类（异常/正常） | Phase C 多分类 confusion matrix |
-| 数据来源 | 合成 | #55 真实设备到来后，datagen 评估管道不变，只多一个数据来源 |
+| 评估 | 二分类（异常/正常）+ 越界召回 | Phase C 多分类 confusion matrix |
+| 数据来源 | 合成 | #55 真实设备到来后，datagen 评估管道不变 |
