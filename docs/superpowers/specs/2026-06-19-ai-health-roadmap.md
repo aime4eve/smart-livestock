@@ -2,6 +2,7 @@
 
 > 创建于 2026-06-19，brainstorming 产出。本文是**战略总账**：记录 AI 引入的方向决策、A→B→C 演进路线、遗留事项。Phase A 详细设计见单独的 design doc（待写）。
 > 更新于 2026-06-19：① 架构从"sidecar"演进为"**三层 ai-platform 微服务**"（业界调研验证，见 §2）；② 确立"**按真实数据标准实现**"纪律（见决策 #2）。
+> 更新于 2026-06-26：③ Phase A 已交付（Python 微服务，14 task TDD，67 tests passed）；④ **Phase B/C 数据策略修订**（决策 #10）——合成数据升为一等公民，Phase B 不再阻塞于 #55 真实遥测，全链路在合成数据上闭环；#55 从 Phase B 阻塞项降为 Phase C 增强项。
 
 ## 1. 决策链（防遗忘：为什么这么选）
 
@@ -16,6 +17,7 @@
 | 7 | 分层架构 | **三层**（orchestration / engine / capability），interfaces 作为 capability 内部门面（registry+router） | 贴 Google/Bain 主流共识；orchestration 对外、engine 执行/会话、capability 分级降级可插拔 |
 | 8 | Phase A 模式 | **Workflow**（Anthropic 共识），三层为框架目标、最简透传编排 | Phase A 只有 L1 无 LLM/多 agent，用 Workflow 防过度设计 |
 | 9 | Phase A 范围 | **体温+蠕动+活动三维联合 + 与规则引擎并行增强** | 不预设病种（符合无监督本质），与规则引擎零冲突 |
+| 10 | **Phase B/C 数据策略** | **合成数据升为一等公民，Phase B 不阻塞于 #55** | `TelemetrySimulator` 的已知异常注入（`abnormalTemp`/`abnormalMotility`/`inEstrus`）本身就是 ground-truth 标签，使标注/评估/训练全链路在合成数据上闭环。#55 从 Phase B 阻塞项降为 Phase C 增强项（真实数据迁移）。合成数据与真实数据的唯一差距是"模型在真实分布上的效果"——这是模型验证问题，不是管道构建问题。详见 §4 |
 
 ## 2. 架构依据（业界调研 2026-06-19）
 
@@ -58,35 +60,63 @@ Java 后端 ──HTTP──→ orchestration 端点（Java 写 anomaly_scores/s
 ## 4. A→B→C 演进路线图
 
 ### Phase A — 无监督异常检测（Workflow 模式，三层骨架 + L1）
+- ✅ **已交付**（2026-06-26，commit `79c5fd22`）：三层 ai-platform Python 微服务，14 task TDD，67 tests passed
 - **架构**：三层 ai-platform，orchestration/engine 透传，capability 填 L1 + router 双维度路由
 - **数据**：当前时序数据流（`TelemetrySimulator` 产出），按真实数据标准实现检测全流程
 - **算法**：STL（节律剥离）→ CUSUM（突变）→ 联合检测（router 按 N_eff 选 Mahalanobis/iForest）→ 融合
+- **未完成**：Java 后端集成（原 Plan 2）、Flutter 双轨前端（原 Plan 3）移入 Phase B
 - **衔接**：异常分数持久化 → Phase B 标注候选池
 
-### Phase B — 真实数据 + 标注（中期）
-- **前置**：#55 真实遥测、#56 标注基础设施
-- **触发条件**：#55 上线 + 真实遥测持续流入约 1 个月（定性，以数据可用性为准，不写死时间）
-- **主动学习**：用 Phase A 异常指数筛选高分样本优先标注
-- 真实数据涌入后，router 的 iForest 档自然激活
-- **进入 Phase C 的退出条件**：标注样本累计到可训练监督模型的量级（数百条带标签），且 iForest 档在真实数据上验证稳定
+### Phase B — 合成数据基座 + 全链路集成（中期）
 
-### Phase C — 监督预测模型（远期）
-- **前置**：真实数据攒够（数百头牛 × 数月）+ 标注（#55 天然规避循环论证）
-- **触发条件**：标注样本 ≥ 数百条且类别均衡，验证集稳定优于规则引擎基线
-- 监督式分类/预测；深度学习评估；特征从 Phase A 继承
-- **L2/L3 capability 激活，orchestration 从 Workflow 升级为 Agent（多 agent 协同）**
+> **修订（2026-06-26，决策 #10）**：原 Phase B 前置 = #55 真实遥测 + #56 标注基础设施。现 #55 短期不具备条件（无真实硬件数据源），Phase B 重新定位为**在合成数据上构建完整端到端链路**，不再被真实数据阻塞。
 
+**核心认知转变**：`TelemetrySimulator` 从"临时占位"升级为**一等合成数据引擎**。其注入的已知异常标记（`abnormalTemp`/`abnormalMotility`/`inEstrus`）本身就是 ground-truth 标签，使标注和评估流程可以在合成数据上闭环验证。真实数据到达后只需重训练模型，不需改管道。
+
+**交付物**：
+1. **合成数据引擎增强**：`TelemetrySimulator` 升级为可控标注的数据生成器
+   - 异常从静态 boolean 升级为**时序模式**（渐起→峰值→恢复曲线）
+   - 异常类型扩展（低热/高热/慢性消化/急性消化/跛行），多维度关联（发热+活动降低=病态）
+   - 导出 ground-truth 标签表（每头牛的异常时段、类型、严重度），供评估和标注
+2. **标注基础设施（#56）**：在合成数据上闭环
+   - `anomaly_scores.label` 列已在 Phase A design §6.1 预留
+   - 标注 UI（牧工/兽医标注流程）；合成数据自动标注、真实数据人工标注，管道同构
+3. **Java 后端集成（原 Plan 2）**：打通 ai-platform ↔ Java
+   - V38 迁移（`anomaly_scores` + `health_snapshots` AI 列 + `alerts.source`）
+   - `HealthAnomalyService` + `AnomalyScoreClient`（HTTP + 熔断降级）
+   - `TelemetryEventConsumer` 下游接入（方案 A：复用现有 consumer）
+4. **Flutter 双轨前端（原 Plan 3）**：规则告警 + AI 异常指数并排展示
+5. **评估框架**：利用合成 ground-truth 计算精确率/召回率/F1
+   - 合成数据的评估优势：knows exact ground truth → 可计算硬指标
+   - 限制声明：合成数据上的指标不等于真实数据效果（design §8.1 仍有效），但在管道验证和回归测试层面有确定性价值
+
+**退出条件**：全链路在合成数据上跑通（模拟器→入库→AI 检测→Java 写库→前端展示→标注闭环），且对模拟器注入的已知异常能正确检出。
+
+### Phase C — 监督模型 + 行为识别（合成训练→真实迁移）（远期）
+
+> **修订（2026-06-26，决策 #10）**：原 Phase C 前置 = Phase B 真实数据 + 标注攒够。现前置 = Phase B 完成（合成数据基座就绪）。监督模型可在合成标注数据上训练，真实数据到达后做迁移学习/微调。
+
+1. **监督式健康分类器（#57）**：合成数据提供已知标签，可训练分类而非仅异常检测
+   - 发热 vs 正常、消化异常 vs 正常等分类器；特征从 Phase A 继承
+   - 真实数据到达后重训练/微调
+2. **行为识别（#61 + #63）**：反刍/进食/躺卧/行走/产犊
+   - 协议层（0x40 行为窗口上报）+ 合成行为数据生成
+   - 先规则后 ML；详见 #63 行为分析设计
+3. **发情模式识别（#58）**：从异常检测升级为模式识别
+4. **真实数据迁移（#55 落地后）**：不再是阻塞项，变为增强项——重训练 + 验证合成训练模型在真实分布上的表现
+5. **L2/L3 capability 激活**：orchestration 从 Workflow 升级为 Agent（多 agent 协同）
 ## 5. 遗留事项总账（issue 双向链接）
 
 | Issue | 事项 | 阶段 | 优先级 |
 |-------|------|------|--------|
-| [#55](https://github.com/aime4eve/smart-livestock/issues/55) | 真实遥测数据接入 | Phase B 前置阻塞 | high |
-| [#56](https://github.com/aime4eve/smart-livestock/issues/56) | 健康标注数据基础设施 | Phase B 前置阻塞 | medium |
-| [#57](https://github.com/aime4eve/smart-livestock/issues/57) | 监督式健康预测模型 | Phase C | low |
+| [#55](https://github.com/aime4eve/smart-livestock/issues/55) | 真实遥测数据接入 | ~~Phase B 阻塞~~ → Phase C 增强项（真实数据迁移） | ~~high~~ → medium |
+| [#56](https://github.com/aime4eve/smart-livestock/issues/56) | 健康标注数据基础设施 | **Phase B 内**（合成数据上实现） | medium |
+| [#57](https://github.com/aime4eve/smart-livestock/issues/57) | 监督式健康预测模型 | Phase C（合成训练→真实迁移） | low |
 | [#58](https://github.com/aime4eve/smart-livestock/issues/58) | 发情检测（模式识别，非异常检测） | Phase C | low |
 | [#59](https://github.com/aime4eve/smart-livestock/issues/59) | 疫病传播风险预测（contact_traces 图模型） | backlog | — |
 | [#60](https://github.com/aime4eve/smart-livestock/issues/60) | LLM 牧场助手（对话 + RAG） | backlog（独立方向） | — |
-| [#61](https://github.com/aime4eve/smart-livestock/issues/61) | 行为识别（需先补加速度原始时序采集） | backlog | — |
+| [#61](https://github.com/aime4eve/smart-livestock/issues/61) | 行为识别（需先补加速度原始时序采集） | ~~backlog~~ → Phase C（合成训练先行） | low |
+| [#63](https://github.com/aime4eve/smart-livestock/issues/63) | 牲畜行为分析（反刍/进食/睡眠/产犊） | Phase C（与 #61 合并） | low |
 
 ## 6. Phase A 设计待定项 → 已交付 design doc（评审核实）
 
@@ -114,3 +144,4 @@ Java 后端 ──HTTP──→ orchestration 端点（Java 写 anomaly_scores/s
 - **加速度计数据可得**：V25 只移除"独立 `ACCELEROMETER` 设备类型"，tracker/capsule 遥测仍上报 `accelX/Y/Z`。行为识别数据源可得，非"暂缓"。详见 #61。
 - **实现纪律**：按真实数据标准实现，不为数据来源（模拟器/真实）加特殊分支。客观事实可记录为背景，但不渗透为代码逻辑。详见决策 #2。
 - **架构三层非四层**：interfaces 是 capability 内部门面（registry+router），不独立成层 —— 贴 Google/Bain 主流。
+- **合成数据非降级**（2026-06-26 修订）：原路线图将模拟器数据定位为临时占位、必须等真实数据。修订后认识到：合成数据的已知异常标签使它在管道开发、标注、评估方面优于真实数据（真实数据反而需要人工标注才知道 ground truth）。合成数据无法证明的是模型在真实分布上的效果——但这是模型验证问题，不是管道构建问题。两者应分开管理。详见决策 #10。
