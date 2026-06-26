@@ -91,13 +91,14 @@ Java 后端 ──HTTP──→ orchestration 端点（Java 写 anomaly_scores/s
 |---|--------|--------|------|
 | 1 | datagen-v1 | **datagen**（新建） | 迁移 `TelemetrySimulator` → Scenario 驱动合成 + GroundTruthLabel + EvaluationService。详见 [datagen 设计](./2026-06-26-datagen-context-design.md) |
 | 2 | Java 后端集成 | **health**（扩展） | V38 迁移（`anomaly_scores` + `health_snapshots` AI 列 + `alerts.source`）+ `HealthAnomalyService` + `AnomalyScoreClient`（HTTP 熔断降级）+ `TelemetryEventConsumer` 下游接入 |
-| 3 | 标注基础设施 | **datagen** + **health** | GroundTruthLabel 表（datagen）+ `anomaly_scores.label` 列（health，Phase A 已预留）+ 标注 UI；SYNTHETIC 自动标注、MANUAL 人工标注，管道同构 |
-| 4 | Flutter 双轨前端 | **Mobile**（扩展） | 规则告警 + AI 异常指数并排展示 |
-| 5 | 评估报告 | **datagen** | EvaluationService 消费 datagen 标签 × health 预测，输出精确率/召回率/F1 |
+| 3 | Flutter 双轨前端 | **Mobile**（扩展） | 规则告警 + AI 异常指数并排展示 |
+| 4 | 评估报告 | **datagen** | EvaluationService 消费 datagen 标签 × health 预测，输出精确率/召回率/F1 |
 
 **退出条件**：全链路在合成数据上闭环（datagen 场景→IoT 入库→ai-platform 检测→Java 写库→前端展示→评估报告），且对注入的已知异常（如 HIGH_FEVER）能正确检出。
 
-**为什么 datagen-v1 不在 Phase B 编号"第一块"**：它是 Phase B 的**前置基础设施**，不是 Phase B 内部的线性第一步。交付物 2-5 依赖它，但它的生命周期超出 Phase B——Phase C 还要扩展为 v2。
+> **标注基础设施（#56）移至 Phase C**（2026-06-26 修订）：合成数据的 ground truth 在生成时即确定（`source=SYNTHETIC`），Phase B 无需人工标注环节。标注 UI 和 `source=MANUAL` 流程的真正使用场景是真实数据到来——那时兽医/牧工需要确认某头牛是否真的生病。`anomaly_scores.label` 列继续保留（Phase A 已预留 NULL），不投入建设。
+
+**为什么 datagen-v1 不在 Phase B 编号"第一块"**：它是 Phase B 的**前置基础设施**，不是 Phase B 内部的线性第一步。交付物 2-4 依赖它，但它的生命周期超出 Phase B——Phase C 还要扩展为 v2。
 
 ### Phase C — 监督模型 + 行为识别（AI 能力里程碑）
 
@@ -115,6 +116,7 @@ Java 后端 ──HTTP──→ orchestration 端点（Java 写 anomaly_scores/s
 | 4 | 发情模式识别（#58） | **ai-platform** | 从异常检测升级为模式识别 |
 | 5 | 真实数据迁移（#55） | **datagen** + **ai-platform** | #55 从阻塞项变为增强项：datagen 切换数据源 + ai-platform 重训练 + 验证合成训练模型在真实分布上的表现 |
 | 6 | L2/L3 capability 激活 | **ai-platform** | orchestration 从 Workflow 升级为 Agent（多 agent 协同） |
+| 7 | 标注基础设施（#56） | **datagen** + **health** | 真实数据到来后兽医/牧工标注流程：标注 UI + `source=MANUAL` 标签 + 主动学习候选池（`anomaly_scores.label` 高分未标注行优先标注）。合成数据无需此环节，从 Phase B 移入 |
 
 ### 阶段依赖总览
 
@@ -133,7 +135,7 @@ Phase C ◄───────────────────────
 | Issue | 事项 | 阶段 | 优先级 |
 |-------|------|------|--------|
 | [#55](https://github.com/aime4eve/smart-livestock/issues/55) | 真实遥测数据接入 | ~~Phase B 阻塞~~ → Phase C 增强项（真实数据迁移） | ~~high~~ → medium |
-| [#56](https://github.com/aime4eve/smart-livestock/issues/56) | 健康标注数据基础设施 | **Phase B 内**（合成数据上实现） | medium |
+| [#56](https://github.com/aime4eve/smart-livestock/issues/56) | 健康标注数据基础设施 | ~~Phase B~~ → Phase C（真实数据到来后才需人工标注） | medium |
 | [#57](https://github.com/aime4eve/smart-livestock/issues/57) | 监督式健康预测模型 | Phase C（合成训练→真实迁移） | low |
 | [#58](https://github.com/aime4eve/smart-livestock/issues/58) | 发情检测（模式识别，非异常检测） | Phase C | low |
 | [#59](https://github.com/aime4eve/smart-livestock/issues/59) | 疫病传播风险预测（contact_traces 图模型） | backlog | — |
