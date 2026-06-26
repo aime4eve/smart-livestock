@@ -23,6 +23,7 @@ public class Alert extends AggregateRoot {
     private String message;
     private String resolvedType;   // "AUTO" / "MANUAL_DISMISS"
     private Instant resolvedAt;
+    private String source = "RULE"; // RULE / AI
 
     // Legacy fields retained for backward compatibility during migration window
     private Long acknowledgedBy;
@@ -160,4 +161,7 @@ public class Alert extends AggregateRoot {
 
     public Instant getHandledAt() { return handledAt; }
     public void setHandledAt(Instant handledAt) { this.handledAt = handledAt; }
+
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 }

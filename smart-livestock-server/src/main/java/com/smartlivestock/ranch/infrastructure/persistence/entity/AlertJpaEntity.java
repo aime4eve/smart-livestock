@@ -59,6 +59,9 @@ public class AlertJpaEntity {
     @Column(name = "handled_at")
     private Instant handledAt;
 
+    @Column(name = "source", nullable = false)
+    private String source = "RULE";
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -126,4 +129,7 @@ public class AlertJpaEntity {
 
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 }

@@ -26,8 +26,9 @@ public class RanchCommandPortImpl implements RanchCommandPort {
                 null,
                 AlertType.valueOf(info.alertType()),
                 Severity.valueOf(info.severity()),
-                info.message());
-        alertRepository.save(alert);
+               info.message());
+        alert.setSource(info.source());
+       alertRepository.save(alert);
     }
 
     @Override

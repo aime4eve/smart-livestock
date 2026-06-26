@@ -51,6 +51,15 @@ public class HealthSnapshotJpaEntity {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "ai_anomaly_score", precision = 4, scale = 3)
+    private BigDecimal aiAnomalyScore;
+
+    @Column(name = "ai_anomaly_type", length = 32)
+    private String aiAnomalyType;
+
+    @Column(name = "ai_assessed_at")
+    private Instant aiAssessedAt;
+
     @PrePersist
     protected void onCreate() { Instant now = Instant.now(); this.createdAt = now; this.updatedAt = now; }
 
@@ -85,4 +94,11 @@ public class HealthSnapshotJpaEntity {
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+
+    public BigDecimal getAiAnomalyScore() { return aiAnomalyScore; }
+    public void setAiAnomalyScore(BigDecimal aiAnomalyScore) { this.aiAnomalyScore = aiAnomalyScore; }
+    public String getAiAnomalyType() { return aiAnomalyType; }
+    public void setAiAnomalyType(String aiAnomalyType) { this.aiAnomalyType = aiAnomalyType; }
+    public Instant getAiAssessedAt() { return aiAssessedAt; }
+    public void setAiAssessedAt(Instant aiAssessedAt) { this.aiAssessedAt = aiAssessedAt; }
 }

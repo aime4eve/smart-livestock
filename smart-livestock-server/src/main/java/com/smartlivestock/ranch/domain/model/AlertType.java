@@ -7,5 +7,6 @@ public enum AlertType {
     TEMPERATURE_ABNORMAL,
     DIGESTIVE_ABNORMAL,
     ESTRUS,
-    EPIDEMIC
+    EPIDEMIC,
+    AI_ANOMALY
 }

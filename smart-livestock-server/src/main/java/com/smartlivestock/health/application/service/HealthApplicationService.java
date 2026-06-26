@@ -37,6 +37,7 @@ public class HealthApplicationService {
     private final RanchQueryPort ranchQueryPort;
     private final RanchCommandPort ranchCommandPort;
     private final HealthSubscriptionPort subscriptionPort;
+    private final HealthAnomalyService healthAnomalyService;
 
     private final FeverAnalysisService feverService;
     private final DigestiveAnalysisService digestiveService;
@@ -103,6 +104,13 @@ public class HealthApplicationService {
         }
 
         refreshSnapshot(livestockId, farmId, deviceType.name(), temperature, motilityFrequency);
+
+        // AI anomaly detection (Phase A design SS3.1: serial downstream, rule engine runs first)
+        try {
+            healthAnomalyService.assess(1L, farmId, livestockId);
+        } catch (Exception e) {
+            log.warn("AI anomaly assessment failed for livestock [{}]: {}", livestockId, e.getMessage());
+        }
     }
 
     private BigDecimal toBigDecimal(Object value) {

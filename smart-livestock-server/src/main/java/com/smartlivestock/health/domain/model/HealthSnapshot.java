@@ -19,6 +19,9 @@ public class HealthSnapshot {
     private Instant lastAssessedAt;
     private Instant createdAt;
     private Instant updatedAt;
+    private BigDecimal aiAnomalyScore;
+    private String aiAnomalyType;
+    private Instant aiAssessedAt;
 
     public HealthSnapshot() {}
 
@@ -63,4 +66,11 @@ public class HealthSnapshot {
 
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+
+    public BigDecimal getAiAnomalyScore() { return aiAnomalyScore; }
+    public void setAiAnomalyScore(BigDecimal aiAnomalyScore) { this.aiAnomalyScore = aiAnomalyScore; }
+    public String getAiAnomalyType() { return aiAnomalyType; }
+    public void setAiAnomalyType(String aiAnomalyType) { this.aiAnomalyType = aiAnomalyType; }
+    public Instant getAiAssessedAt() { return aiAssessedAt; }
+    public void setAiAssessedAt(Instant aiAssessedAt) { this.aiAssessedAt = aiAssessedAt; }
 }

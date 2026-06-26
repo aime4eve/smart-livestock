@@ -35,3 +35,12 @@ telemetry:
 datagen:
   enabled: ${DATAGEN_ENABLED:true}
   interval-ms: ${DATAGEN_INTERVAL_MS:30000}
+
+ai:
+  platform:
+    url: ${AI_PLATFORM_URL:http://localhost:18000}
+    timeout-ms: ${AI_PLATFORM_TIMEOUT_MS:5000}
+  alert:
+    threshold: ${AI_ALERT_THRESHOLD:0.7}
+  dedup:
+    ttl-minutes: ${AI_DEDUP_TTL_MINUTES:60}

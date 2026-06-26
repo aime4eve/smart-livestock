@@ -27,6 +27,7 @@ public final class AlertMapper {
         jpa.setAcknowledgedAt(alert.getAcknowledgedAt());
         jpa.setHandledBy(alert.getHandledBy());
         jpa.setHandledAt(alert.getHandledAt());
+        jpa.setSource(alert.getSource());
         return jpa;
     }
 
@@ -45,6 +46,7 @@ public final class AlertMapper {
         jpa.setAcknowledgedAt(alert.getAcknowledgedAt());
         jpa.setHandledBy(alert.getHandledBy());
         jpa.setHandledAt(alert.getHandledAt());
+        jpa.setSource(alert.getSource());
     }
 
     public static Alert toDomain(AlertJpaEntity jpa) {
@@ -60,6 +62,7 @@ public final class AlertMapper {
         alert.reconstituteResolved(jpa.getResolvedType(), jpa.getResolvedAt());
         alert.reconstituteAcknowledgement(jpa.getAcknowledgedBy(), jpa.getAcknowledgedAt());
         alert.reconstituteHandled(jpa.getHandledBy(), jpa.getHandledAt());
+        alert.setSource(jpa.getSource());
         return alert;
     }
 }

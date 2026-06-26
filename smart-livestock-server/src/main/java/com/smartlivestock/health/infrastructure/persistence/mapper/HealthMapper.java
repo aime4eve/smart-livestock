@@ -138,6 +138,9 @@ public final class HealthMapper {
         d.setLastAssessedAt(e.getLastAssessedAt());
         d.setCreatedAt(e.getCreatedAt());
         d.setUpdatedAt(e.getUpdatedAt());
+        d.setAiAnomalyScore(e.getAiAnomalyScore());
+        d.setAiAnomalyType(e.getAiAnomalyType());
+        d.setAiAssessedAt(e.getAiAssessedAt());
         return d;
     }
 
@@ -157,6 +160,9 @@ public final class HealthMapper {
         e.setLastAssessedAt(d.getLastAssessedAt());
         e.setCreatedAt(d.getCreatedAt());
         e.setUpdatedAt(d.getUpdatedAt());
+        e.setAiAnomalyScore(d.getAiAnomalyScore());
+        e.setAiAnomalyType(d.getAiAnomalyType());
+        e.setAiAssessedAt(d.getAiAssessedAt());
         return e;
     }
 
