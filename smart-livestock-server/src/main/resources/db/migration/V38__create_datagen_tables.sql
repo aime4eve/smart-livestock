@@ -10,7 +10,7 @@ CREATE TABLE synthesis_scenarios (
     window_start TIMESTAMP NOT NULL,
     window_end TIMESTAMP NOT NULL,
     interval_seconds INTEGER NOT NULL DEFAULT 30,
-    target_livestock_ids BIGINT[],
+    target_livestock_ids TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
