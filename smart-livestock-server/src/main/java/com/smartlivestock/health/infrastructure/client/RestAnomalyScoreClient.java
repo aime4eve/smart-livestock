@@ -1,47 +1,45 @@
 package com.smartlivestock.health.infrastructure.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.smartlivestock.health.application.port.AnomalyScoreClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.annotation.PostConstruct;
+import com.smartlivestock.health.application.port.AnomalyScoreClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * RestClient implementation of AnomalyScoreClient.
- * Calls ai-platform POST /ai/health/analyze. Degrades to empty list on any error.
- */
 @Slf4j
 @Component
 public class RestAnomalyScoreClient implements AnomalyScoreClient {
 
     private final ObjectMapper objectMapper;
+    private final HttpClient httpClient;
 
     @Value("${ai.platform.url:http://localhost:18000}")
     private String baseUrl;
 
-    private RestClient restClient;
+    @Value("${ai.platform.timeout-ms:5000}")
+    private int timeoutMs;
 
     public RestAnomalyScoreClient(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
-    }
-
-    @PostConstruct
-    void init() {
-        this.restClient = RestClient.builder()
-                .baseUrl(baseUrl)
-                .build();
+       this.httpClient = HttpClient.newBuilder()
+               .connectTimeout(Duration.ofSeconds(5))
+                .version(HttpClient.Version.HTTP_1_1)
+               .build();
     }
 
     @Override
     public List<AnomalyPrediction> analyze(Long tenantId, Long farmId, List<Long> livestockIds, int windowHours) {
-        if (livestockIds == null || livestockIds.isEmpty()) {
+        if (livestockIds.isEmpty()) {
             return List.of();
         }
         try {
@@ -51,12 +49,24 @@ public class RestAnomalyScoreClient implements AnomalyScoreClient {
                     "livestock_ids", livestockIds,
                     "window_hours", windowHours);
 
-            JsonNode resp = restClient.post()
-                    .uri("/ai/health/analyze")
-                    .body(body)
-                    .retrieve()
-                    .body(JsonNode.class);
+           String jsonBody = objectMapper.writeValueAsString(body);
+            log.info("ai-platform request: url={}/ai/health/analyze, body={}", baseUrl, jsonBody);
 
+           HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(baseUrl + "/ai/health/analyze"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .timeout(Duration.ofMillis(timeoutMs))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                log.warn("ai-platform returned {}: {}", response.statusCode(), response.body());
+                return List.of();
+            }
+
+            JsonNode resp = objectMapper.readTree(response.body());
             return parseResults(resp);
         } catch (Exception e) {
             log.warn("ai-platform analyze failed (degrading to rule-only): {}", e.getMessage());

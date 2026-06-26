@@ -21,6 +21,8 @@ spring:
 
 rocketmq:
   name-server: ${ROCKETMQ_NAME_SERVER:localhost:9876}
+  producer:
+    group: ${ROCKETMQ_PRODUCER_GROUP:smart-livestock-producer}
 
 jwt:
   secret: ${JWT_SECRET:default-secret-change-in-production}
