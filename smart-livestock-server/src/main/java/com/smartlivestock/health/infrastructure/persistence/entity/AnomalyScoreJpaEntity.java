@@ -3,6 +3,8 @@ package com.smartlivestock.health.infrastructure.persistence.entity;
 import jakarta.persistence.*;
 import java.time.Instant;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "anomaly_scores")
 public class AnomalyScoreJpaEntity {
@@ -27,7 +29,7 @@ public class AnomalyScoreJpaEntity {
     private Instant windowEnd;
 
     @Column(name = "anomaly_score", nullable = false, precision = 4, scale = 3)
-    private Double anomalyScore;
+    private BigDecimal anomalyScore;
 
     @Column(name = "anomaly_type", nullable = false, length = 32)
     private String anomalyType;
@@ -62,8 +64,8 @@ public class AnomalyScoreJpaEntity {
     public void setWindowStart(Instant windowStart) { this.windowStart = windowStart; }
     public Instant getWindowEnd() { return windowEnd; }
     public void setWindowEnd(Instant windowEnd) { this.windowEnd = windowEnd; }
-    public Double getAnomalyScore() { return anomalyScore; }
-    public void setAnomalyScore(Double anomalyScore) { this.anomalyScore = anomalyScore; }
+    public BigDecimal getAnomalyScore() { return anomalyScore; }
+    public void setAnomalyScore(BigDecimal anomalyScore) { this.anomalyScore = anomalyScore; }
     public String getAnomalyType() { return anomalyType; }
     public void setAnomalyType(String anomalyType) { this.anomalyType = anomalyType; }
     public String getContributions() { return contributions; }

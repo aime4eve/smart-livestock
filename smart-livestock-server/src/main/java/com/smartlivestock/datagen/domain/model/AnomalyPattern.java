@@ -38,7 +38,7 @@ public enum AnomalyPattern {
 
     public static AnomalyPattern fromDbValue(String value) {
         for (AnomalyPattern p : values()) {
-            if (p.dbValue.equals(value)) return p;
+            if (p.dbValue.equalsIgnoreCase(value) || p.name().equalsIgnoreCase(value)) return p;
         }
         throw new IllegalArgumentException("Unknown AnomalyPattern: " + value);
     }

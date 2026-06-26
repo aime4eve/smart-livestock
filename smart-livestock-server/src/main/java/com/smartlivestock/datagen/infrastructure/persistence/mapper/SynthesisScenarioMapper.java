@@ -3,6 +3,7 @@ package com.smartlivestock.datagen.infrastructure.persistence.mapper;
 import com.smartlivestock.datagen.domain.model.*;
 import com.smartlivestock.datagen.infrastructure.persistence.entity.SynthesisScenarioJpaEntity;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,7 +18,7 @@ public class SynthesisScenarioMapper {
         s.setStatus(ScenarioStatus.valueOf(e.getStatus()));
         s.setScenarioType(e.getScenarioType() != null ? ScenarioType.valueOf(e.getScenarioType()) : ScenarioType.HEALTH);
         s.setPattern(AnomalyPattern.fromDbValue(e.getPattern()));
-        s.setPenetrationRate(e.getPenetrationRate() != null ? e.getPenetrationRate() : 1.0);
+        s.setPenetrationRate(e.getPenetrationRate() != null ? e.getPenetrationRate().doubleValue() : 1.0);
         s.setWindowStart(e.getWindowStart());
         s.setWindowEnd(e.getWindowEnd());
         s.setIntervalSeconds(e.getIntervalSeconds() != null ? e.getIntervalSeconds() : 30);
@@ -32,7 +33,7 @@ public class SynthesisScenarioMapper {
         e.setStatus(s.getStatus().name());
         e.setScenarioType(s.getScenarioType().name());
         e.setPattern(s.getPattern().getDbValue());
-        e.setPenetrationRate(s.getPenetrationRate());
+        e.setPenetrationRate(BigDecimal.valueOf(s.getPenetrationRate()));
         e.setWindowStart(s.getWindowStart());
         e.setWindowEnd(s.getWindowEnd());
         e.setIntervalSeconds(s.getIntervalSeconds());

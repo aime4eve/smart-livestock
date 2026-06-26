@@ -59,6 +59,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       ROCKETMQ_NAME_SERVER: rocketmq-namesrv:9876
+      AI_PLATFORM_URL: http://ai-platform:8000
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,6 +67,8 @@ services:
         condition: service_healthy
       rocketmq-broker:
         condition: service_started
+      ai-platform:
+        condition: service_healthy
     restart: unless-stopped
 
   ai-platform:

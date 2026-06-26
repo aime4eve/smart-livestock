@@ -57,7 +57,7 @@ public class AnomalyScoreRepositoryImpl implements AnomalyScoreRepository {
         entity.setLivestockId(score.getLivestockId());
         entity.setWindowStart(score.getWindowStart());
         entity.setWindowEnd(score.getWindowEnd());
-        entity.setAnomalyScore(score.getAnomalyScore() != null ? score.getAnomalyScore().doubleValue() : null);
+        entity.setAnomalyScore(score.getAnomalyScore());
         entity.setAnomalyType(score.getAnomalyType());
         entity.setContributions(toJson(score.getContributions()));
         entity.setCapabilityUsed(score.getCapabilityUsed());
@@ -74,7 +74,7 @@ public class AnomalyScoreRepositoryImpl implements AnomalyScoreRepository {
         score.setLivestockId(entity.getLivestockId());
         score.setWindowStart(entity.getWindowStart());
         score.setWindowEnd(entity.getWindowEnd());
-        score.setAnomalyScore(entity.getAnomalyScore() != null ? BigDecimal.valueOf(entity.getAnomalyScore()) : null);
+        score.setAnomalyScore(entity.getAnomalyScore());
         score.setAnomalyType(entity.getAnomalyType());
         score.setContributions(fromJson(entity.getContributions()));
         score.setCapabilityUsed(entity.getCapabilityUsed());

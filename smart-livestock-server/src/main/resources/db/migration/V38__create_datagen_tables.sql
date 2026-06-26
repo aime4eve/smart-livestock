@@ -1,6 +1,6 @@
 -- V38: datagen 限界上下文 — 合成数据场景 + ground-truth 标签表
 -- 合成场景
-CREATE TABLE synthesis_scenarios (
+CREATE TABLE IF NOT EXISTS synthesis_scenarios (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'DRAFT'
@@ -15,7 +15,7 @@ CREATE TABLE synthesis_scenarios (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 -- Ground-truth 标签（核心表）
-CREATE TABLE ground_truth_labels (
+CREATE TABLE IF NOT EXISTS ground_truth_labels (
     id BIGSERIAL PRIMARY KEY,
     livestock_id BIGINT NOT NULL,
     pattern VARCHAR(40) NOT NULL,
@@ -29,9 +29,10 @@ CREATE TABLE ground_truth_labels (
     note TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_gtl_livestock_period ON ground_truth_labels (livestock_id, period_start, period_end);
-CREATE INDEX idx_gtl_pattern ON ground_truth_labels (pattern, period_start);
-CREATE INDEX idx_ss_status ON synthesis_scenarios (status);
+CREATE INDEX IF NOT EXISTS idx_gtl_livestock_period ON ground_truth_labels (livestock_id, period_start, period_end);
+CREATE INDEX IF NOT EXISTS idx_gtl_pattern ON ground_truth_labels (pattern, period_start);
+CREATE INDEX IF NOT EXISTS idx_ss_status ON synthesis_scenarios (status);
 -- 默认场景：替代原 telemetry.simulator.enabled=true 行为
 INSERT INTO synthesis_scenarios (name, status, pattern, penetration_rate, window_start, window_end, interval_seconds)
-VALUES ('默认持续合成', 'RUNNING', 'NORMAL', 1.0, NOW(), NOW() + INTERVAL '365 days', 30);
+SELECT '默认持续合成', 'RUNNING', 'NORMAL', 1.0, NOW(), NOW() + INTERVAL '365 days', 30
+WHERE NOT EXISTS (SELECT 1 FROM synthesis_scenarios WHERE name = '默认持续合成');
