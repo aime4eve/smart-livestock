@@ -71,7 +71,7 @@ class TelemetryIngestionServiceTest {
     void ingest_capsule_publishesGenericTelemetryEvent() {
         Device device = createCapsuleDevice(51L);
         Installation installation = createInstallation(51L, 10L);
-        LivestockInfo livestockInfo = new LivestockInfo(10L, 1L, "C001", "FEMALE");
+        LivestockInfo livestockInfo = new LivestockInfo(10L, 1L, "C001", "FEMALE", new BigDecimal("28.2312"), new BigDecimal("112.9412"));
 
         when(deviceRepository.findById(51L)).thenReturn(Optional.of(device));
         when(installationRepository.findActiveByDeviceId(51L)).thenReturn(Optional.of(installation));
@@ -104,7 +104,7 @@ class TelemetryIngestionServiceTest {
     void ingest_tracker_extractsGpsAndPublishesEvent() {
         Device device = createTrackerDevice(1L);
         Installation installation = createInstallation(1L, 5L);
-        LivestockInfo livestockInfo = new LivestockInfo(5L, 1L, "C002", "MALE");
+        LivestockInfo livestockInfo = new LivestockInfo(5L, 1L, "C002", "MALE", null, null);
 
         when(deviceRepository.findById(1L)).thenReturn(Optional.of(device));
         when(installationRepository.findActiveByDeviceId(1L)).thenReturn(Optional.of(installation));
@@ -138,7 +138,7 @@ class TelemetryIngestionServiceTest {
     void ingest_capsule_doesNotExtractGps() {
         Device device = createCapsuleDevice(51L);
         Installation installation = createInstallation(51L, 10L);
-        LivestockInfo livestockInfo = new LivestockInfo(10L, 1L, "C001", "FEMALE");
+        LivestockInfo livestockInfo = new LivestockInfo(10L, 1L, "C001", "FEMALE", new BigDecimal("28.2312"), new BigDecimal("112.9412"));
 
         when(deviceRepository.findById(51L)).thenReturn(Optional.of(device));
         when(installationRepository.findActiveByDeviceId(51L)).thenReturn(Optional.of(installation));
@@ -185,7 +185,7 @@ class TelemetryIngestionServiceTest {
     void ingest_usesCurrentTimeWhenRecordedAtIsNull() {
         Device device = createCapsuleDevice(51L);
         Installation installation = createInstallation(51L, 10L);
-        LivestockInfo livestockInfo = new LivestockInfo(10L, 1L, "C001", "FEMALE");
+        LivestockInfo livestockInfo = new LivestockInfo(10L, 1L, "C001", "FEMALE", new BigDecimal("28.2312"), new BigDecimal("112.9412"));
 
         when(deviceRepository.findById(51L)).thenReturn(Optional.of(device));
         when(installationRepository.findActiveByDeviceId(51L)).thenReturn(Optional.of(installation));

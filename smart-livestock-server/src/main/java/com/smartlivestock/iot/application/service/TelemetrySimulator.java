@@ -74,7 +74,14 @@ public class TelemetrySimulator {
                 continue;
             }
 
-            SimulationState state = states.computeIfAbsent(livestockId, id -> SimulationState.create(device.getDeviceType(), id));
+            LivestockInfo livestock = ranchQueryPort.findLivestockById(livestockId).orElse(null);
+            if (livestock == null) {
+                log.trace("Livestock [{}] not found via ACL — skipping", livestockId);
+                continue;
+            }
+
+            SimulationState state = states.computeIfAbsent(livestockId,
+                    id -> SimulationState.create(device.getDeviceType(), id, livestock));
 
             Map<String, Object> readings = generateReadings(device.getDeviceType(), state, now);
 
@@ -127,10 +134,13 @@ public class TelemetrySimulator {
         readings.put("accelY", rng.nextInt(-2000, 2001));
         readings.put("accelZ", rng.nextInt(-2000, 2001));
 
-        // GPS: placeholder — actual fence-aware GPS requires FenceInfo from RanchQueryPort
-        // For now, generate a point near the farm center (fence-aware logic in future iteration)
-        readings.put("latitude", 28.229 + rng.nextDouble(-0.005, 0.005));
-        readings.put("longitude", 112.938 + rng.nextDouble(-0.005, 0.005));
+        // GPS: random walk from current position (~20-50m per tick, decoupled from fences)
+        double step = rng.nextDouble(0.0002, 0.0005);
+        double bearing = rng.nextDouble(0, 2 * Math.PI);
+        state.currentLat += step * Math.sin(bearing);
+        state.currentLng += step * Math.cos(bearing);
+        readings.put("latitude", state.currentLat);
+        readings.put("longitude", state.currentLng);
 
         // Battery: slow decay
         state.batteryLevel = Math.max(0, state.batteryLevel - rng.nextInt(0, 2));
@@ -193,10 +203,12 @@ public class TelemetrySimulator {
         boolean inEstrus;                  // 5% for females
         int batteryLevel;                  // 0-100, slow decay
         int batteryVoltage;                // 2800-3600 mV
+        double currentLat;                 // random-walk GPS position
+        double currentLng;
 
         private SimulationState() {}
 
-        static SimulationState create(DeviceType deviceType, Long livestockId) {
+        static SimulationState create(DeviceType deviceType, Long livestockId, LivestockInfo livestock) {
             ThreadLocalRandom rng = ThreadLocalRandom.current();
             SimulationState state = new SimulationState();
             state.tempBaselineOffset = BigDecimal.valueOf(rng.nextDouble(-0.3, 0.3));
@@ -206,6 +218,16 @@ public class TelemetrySimulator {
             state.inEstrus = rng.nextDouble() < 0.05; // simplified: no gender check
             state.batteryLevel = rng.nextInt(70, 101);
             state.batteryVoltage = rng.nextInt(3200, 3601);
+
+            // Initialize GPS position from livestock's last known location
+            if (livestock.lastLatitude() != null && livestock.lastLongitude() != null) {
+                state.currentLat = livestock.lastLatitude().doubleValue();
+                state.currentLng = livestock.lastLongitude().doubleValue();
+            } else {
+                log.warn("Livestock [{}] has no last position — defaulting to center", livestockId);
+                state.currentLat = 28.229;
+                state.currentLng = 112.938;
+            }
             return state;
         }
     }

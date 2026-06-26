@@ -53,7 +53,9 @@ public class RanchQueryPortImpl implements RanchQueryPort {
                 livestock.getId(),
                 livestock.getFarmId(),
                 livestock.getLivestockCode(),
-                livestock.getGender()
+                livestock.getGender(),
+                livestock.getLastLatitude(),
+                livestock.getLastLongitude()
         );
     }
 

@@ -27,12 +27,11 @@ jwt:
   access-expiration: ${JWT_ACCESS_EXPIRATION:3600000}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
 
-gps:
-  simulator:
-    enabled: ${GPS_SIMULATOR_ENABLED:false}
-    interval-ms: ${GPS_SIMULATOR_INTERVAL_MS:30000}
-
 telemetry:
   simulator:
-    enabled: ${TELEMETRY_SIMULATOR_ENABLED:true}
+    enabled: ${TELEMETRY_SIMULATOR_ENABLED:false}
     interval-ms: ${TELEMETRY_SIMULATOR_INTERVAL_MS:30000}
+
+datagen:
+  enabled: ${DATAGEN_ENABLED:true}
+  interval-ms: ${DATAGEN_INTERVAL_MS:30000}
