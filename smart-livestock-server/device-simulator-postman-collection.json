@@ -1,0 +1,681 @@
+{
+  "info": {
+    "name": "Smart Livestock - 手工验证",
+    "description": "设备模拟器微服务全链路验证。先执行「1. 登录获取 Token」自动设置 accessToken 变量，然后依次验证各环节。",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://172.22.1.123:18080"
+    },
+    {
+      "key": "simUrl",
+      "value": "http://172.22.1.123:18002"
+    },
+    {
+      "key": "farmId",
+      "value": "1"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "deviceRegisterKey",
+      "value": "sl_live_device_register_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+    },
+    {
+      "key": "fenceSyncKey",
+      "value": "sl_live_fence_sync_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+    }
+  ],
+  "item": [
+    {
+      "name": "0️⃣ Auth 认证",
+      "item": [
+        {
+          "name": "登录获取 Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData && jsonData.data && jsonData.data.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', jsonData.data.accessToken);",
+                  "  console.log('Token set:', jsonData.data.accessToken.substring(0, 20) + '...');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"13800138000\",\n  \"password\": \"123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "App 健康检查",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "API Key 验证 - 设备注册",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{deviceRegisterKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serialNo\": \"SIM-POSTMAN-001\",\n  \"deviceType\": \"device_tracker\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/open/devices/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "open",
+                "devices",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "API Key 验证 - 围栏同步",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{fenceSyncKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/open/farms/{{farmId}}/fences",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "open",
+                "farms",
+                "{{farmId}}",
+                "fences"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1️⃣ 设备模拟器",
+      "item": [
+        {
+          "name": "模拟器健康",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{simUrl}}/sim/health",
+              "host": [
+                "{{simUrl}}"
+              ],
+              "path": [
+                "sim",
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "模拟器设备列表",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{simUrl}}/sim/devices",
+              "host": [
+                "{{simUrl}}"
+              ],
+              "path": [
+                "sim",
+                "devices"
+              ]
+            }
+          }
+        },
+        {
+          "name": "待采集遥测数据",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{simUrl}}/sim/telemetry/pending?limit=5",
+              "host": [
+                "{{simUrl}}"
+              ],
+              "path": [
+                "sim",
+                "telemetry",
+                "pending"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "手动触发同步",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{simUrl}}/sim/sync",
+              "host": [
+                "{{simUrl}}"
+              ],
+              "path": [
+                "sim",
+                "sync"
+              ]
+            }
+          }
+        },
+        {
+          "name": "场景列表",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{simUrl}}/sim/scenarios",
+              "host": [
+                "{{simUrl}}"
+              ],
+              "path": [
+                "sim",
+                "scenarios"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2️⃣ 设备管理",
+      "item": [
+        {
+          "name": "查看设备 101 (SIM-TRK-001)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farms/{{farmId}}/devices/101",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farms",
+                "{{farmId}}",
+                "devices",
+                "101"
+              ]
+            }
+          }
+        },
+        {
+          "name": "查看设备 102 (SIM-CAP-001)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farms/{{farmId}}/devices/102",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farms",
+                "{{farmId}}",
+                "devices",
+                "102"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3️⃣ 设备绑定 (Installations)",
+      "item": [
+        {
+          "name": "绑定列表 (第1页)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farms/{{farmId}}/installations?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farms",
+                "{{farmId}}",
+                "installations"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "绑定列表 (第3页 - 模拟设备)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farms/{{farmId}}/installations?page=3&pageSize=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farms",
+                "{{farmId}}",
+                "installations"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "3"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "查看绑定详情 (installation_id=45)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farms/{{farmId}}/installations/45",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farms",
+                "{{farmId}}",
+                "installations",
+                "45"
+              ]
+            }
+          }
+        },
+        {
+          "name": "查看绑定详情 (installation_id=46)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farms/{{farmId}}/installations/46",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farms",
+                "{{farmId}}",
+                "installations",
+                "46"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4️⃣ 牲畜数据",
+      "item": [
+        {
+          "name": "牲畜列表 (SL-2024-001 ~ 050)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farms/{{farmId}}/livestock?page=1&pageSize=50",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farms",
+                "{{farmId}}",
+                "livestock"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "牲畜1 GPS轨迹 (最新5条)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farms/{{farmId}}/gps-logs?livestockId=1&pageSize=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farms",
+                "{{farmId}}",
+                "gps-logs"
+              ],
+              "query": [
+                {
+                  "key": "livestockId",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dashboard 概览",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farms/{{farmId}}/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farms",
+                "{{farmId}}",
+                "dashboard"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5️⃣ 告警",
+      "item": [
+        {
+          "name": "牲畜1 活跃告警",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farms/{{farmId}}/alerts?livestockId=1&status=ACTIVE",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farms",
+                "{{farmId}}",
+                "alerts"
+              ],
+              "query": [
+                {
+                  "key": "livestockId",
+                  "value": "1"
+                },
+                {
+                  "key": "status",
+                  "value": "ACTIVE"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "最近10分钟所有告警",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farms/{{farmId}}/alerts?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farms",
+                "{{farmId}}",
+                "alerts"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6️⃣ 健康分析",
+      "item": [
+        {
+          "name": "牲畜1 体温数据",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farms/{{farmId}}/health/temperature?livestockId=1&hours=24",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farms",
+                "{{farmId}}",
+                "health",
+                "temperature"
+              ],
+              "query": [
+                {
+                  "key": "livestockId",
+                  "value": "1"
+                },
+                {
+                  "key": "hours",
+                  "value": "24"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "牲畜1 健康概览",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farms/{{farmId}}/health/overview?livestockId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farms",
+                "{{farmId}}",
+                "health",
+                "overview"
+              ],
+              "query": [
+                {
+                  "key": "livestockId",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -37,4 +37,23 @@ public final class LivestockMapper {
         livestock.reconstitutePosition(jpa.getLastLatitude(), jpa.getLastLongitude(), jpa.getLastPositionAt());
         return livestock;
     }
+
+    /**
+     * Copy domain fields from Livestock onto an existing managed LivestockJpaEntity.
+     * Preserves the entity's original createdAt while allowing @PreUpdate to update updatedAt.
+     */
+    public static void copyToJpaEntity(Livestock livestock, LivestockJpaEntity jpa) {
+        jpa.setFarmId(livestock.getFarmId());
+        jpa.setLivestockCode(livestock.getLivestockCode());
+        jpa.setBreed(livestock.getBreed());
+        jpa.setGender(livestock.getGender());
+        jpa.setBirthDate(livestock.getBirthDate());
+        jpa.setWeight(livestock.getWeight());
+        jpa.setHealthStatus(livestock.getHealthStatus().name());
+        jpa.setLastLatitude(livestock.getLastLatitude());
+        jpa.setLastLongitude(livestock.getLastLongitude());
+        jpa.setLastPositionAt(livestock.getLastPositionAt());
+    }
+
+
 }

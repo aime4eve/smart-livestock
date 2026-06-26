@@ -16,6 +16,18 @@ tasks.named('bootJar') {
         logger.lifecycle("Build version: ${version} → ${archiveFile.get().asFile.name}")
         buildNumber += 1
         buildNumberFile.text = "${buildNumber}\n"
+        // Copy JAR to project build/libs/ for deployment access (exFAT workaround)
+        def jarFile = archiveFile.get().asFile
+        def projectLibsDir = new File(project.projectDir, 'build/libs')
+        projectLibsDir.mkdirs()
+        project.copy {
+            from jarFile
+            into projectLibsDir
+        }
+        // Clean up macOS ._ AppleDouble companion files on exFAT
+        project.delete project.fileTree(dir: project.buildDir.path + '/libs/', include: '._*')
+        project.delete project.fileTree(dir: projectLibsDir, include: '._*')
+
     }
 }
 

@@ -80,13 +80,20 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
             livestockRepository.save(livestock);
 
             // Detect fence status
+            // If point is inside at least one active fence → safe (no alerts)
+            boolean insideAnyFence = fences.stream()
+                    .filter(Fence::isActive)
+                    .anyMatch(fence -> fence.contains(position));
+            if (insideAnyFence) {
+                autoResolveFenceAlerts(livestockId, farmId);
+                return;
+            }
+
+            // Point is outside ALL active fences → detect breach or approach
             List<Fence> breachedFences = fenceBreachDetector.findBreachedFences(fences, position);
             List<Fence> approachingFences = fenceBreachDetector.findApproachingFences(fences, position);
 
-            if (breachedFences.isEmpty() && approachingFences.isEmpty()) {
-                // Livestock is safe (inside all fences, not in any buffer zone)
-                autoResolveFenceAlerts(livestockId, farmId);
-            } else if (!breachedFences.isEmpty()) {
+            if (!breachedFences.isEmpty()) {
                 // Livestock is outside fence boundary
                 // Check if it's in buffer zone (approaching) or fully outside (breach)
                 for (Fence fence : breachedFences) {

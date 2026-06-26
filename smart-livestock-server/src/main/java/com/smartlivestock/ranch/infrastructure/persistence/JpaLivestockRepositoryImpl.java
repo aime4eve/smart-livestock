@@ -18,6 +18,18 @@ public class JpaLivestockRepositoryImpl implements LivestockRepository {
 
     @Override
     public Livestock save(Livestock livestock) {
+
+        Long id = livestock.getId();
+        if (id != null) {
+            // For existing entities, load the managed JPA entity and copy domain fields
+            // to preserve createdAt from the database (avoids Hibernate merge issues).
+            return springDataRepo.findById(id)
+                    .map(existing -> {
+                        LivestockMapper.copyToJpaEntity(livestock, existing);
+                        return LivestockMapper.toDomain(springDataRepo.save(existing));
+                    })
+                    .orElseGet(() -> LivestockMapper.toDomain(springDataRepo.save(LivestockMapper.toJpaEntity(livestock))));
+        }
         return LivestockMapper.toDomain(springDataRepo.save(LivestockMapper.toJpaEntity(livestock)));
     }
 
