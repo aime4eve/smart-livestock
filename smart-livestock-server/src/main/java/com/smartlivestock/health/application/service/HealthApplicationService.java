@@ -330,18 +330,38 @@ public class HealthApplicationService {
                 .filter(e -> e.getScore() >= 70).count();
         boolean breedingAdvice = estrusScores.stream().anyMatch(e -> e.getScore() >= 70);
 
-        EpidemicAnalysisService.HerdMetrics metrics = epidemicService.calculateHerdMetrics(snapshots);
-        String riskLevel = epidemicService.assessRiskLevel(metrics.abnormalRate());
+       EpidemicAnalysisService.HerdMetrics metrics = epidemicService.calculateHerdMetrics(snapshots);
+       String riskLevel = epidemicService.assessRiskLevel(metrics.abnormalRate());
+
+        // AI anomaly stats
+        var aiSnapshots = snapshots.stream()
+                .filter(s -> s.getAiAnomalyScore() != null && s.getAiAnomalyScore().doubleValue() > 0)
+                .toList();
+        int aiAnomalyCount = aiSnapshots.size();
+        int aiHighScoreCount = (int) aiSnapshots.stream()
+                .filter(s -> s.getAiAnomalyScore().doubleValue() >= 0.7).count();
+        double aiAvgScore = aiSnapshots.isEmpty() ? 0.0
+                : aiSnapshots.stream()
+                        .mapToDouble(s -> s.getAiAnomalyScore().doubleValue())
+                        .average().orElse(0.0);
+        double aiAvgAllScore = snapshots.isEmpty() ? 0.0
+                : snapshots.stream()
+                        .filter(s -> s.getAiAnomalyScore() != null)
+                        .mapToDouble(s -> s.getAiAnomalyScore().doubleValue())
+                        .average().orElse(0.0);
 
         HealthOverviewStats stats = new HealthOverviewStats(
                 total, Math.round(healthyRate * 100.0) / 100.0,
-                alertCount, criticalCount, 0.92, "稳定", "↑2");
+                alertCount, criticalCount, 0.92, "稳定", "↑2",
+                aiAnomalyCount, Math.round(aiAvgAllScore * 1000.0) / 1000.0);
 
         SceneSummary sceneSummary = new SceneSummary(
                 new SceneSummaryFever(feverAbnormal, feverCritical),
                 new SceneSummaryDigestive(digestiveAbnormal, digestiveWatch),
                 new SceneSummaryEstrus(estrusHigh, breedingAdvice),
-                new SceneSummaryEpidemic(riskLevel, metrics.abnormalRate().doubleValue()));
+                new SceneSummaryEpidemic(riskLevel, metrics.abnormalRate().doubleValue()),
+                new SceneSummaryAi(aiAnomalyCount, aiHighScoreCount,
+                        Math.round(aiAvgScore * 1000.0) / 1000.0));
 
         List<PendingTask> tasks = new ArrayList<>();
         for (HealthSnapshot snap : snapshots) {

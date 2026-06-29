@@ -2,7 +2,6 @@ package com.smartlivestock.health.interfaces.app;
 
 import com.smartlivestock.health.domain.model.AnomalyScore;
 import com.smartlivestock.health.domain.repository.AnomalyScoreRepository;
-import com.smartlivestock.health.domain.repository.HealthSnapshotRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,17 +14,16 @@ import java.util.Map;
  * Farm-scoped: SecurityConfig FarmScopeResolver resolves activeFarmId.
  */
 @RestController
-@RequestMapping("/api/v1/health/anomaly")
+@RequestMapping("/api/v1/farms/{farmId}/health/anomaly")
 @RequiredArgsConstructor
 public class AnomalyController {
 
     private final AnomalyScoreRepository anomalyScoreRepo;
-    private final HealthSnapshotRepository snapshotRepo;
 
     /** Latest AI anomaly score for a livestock. */
     @GetMapping("/{livestockId}")
-    public ResponseEntity<?> getLatestAnomaly(@PathVariable Long livestockId,
-                                                @RequestParam(defaultValue = "1") Long farmId) {
+    public ResponseEntity<?> getLatestAnomaly(@PathVariable Long farmId,
+                                                @PathVariable Long livestockId) {
         return anomalyScoreRepo.findLatestByFarmIdAndLivestockId(farmId, livestockId)
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
                 .orElse(ResponseEntity.ok(Map.of("anomalyScore", 0.0, "anomalyType", "normal")));
@@ -33,8 +31,8 @@ public class AnomalyController {
 
     /** History of AI anomaly scores for a livestock. */
     @GetMapping("/{livestockId}/history")
-    public ResponseEntity<?> getAnomalyHistory(@PathVariable Long livestockId,
-                                                 @RequestParam(defaultValue = "1") Long farmId,
+    public ResponseEntity<?> getAnomalyHistory(@PathVariable Long farmId,
+                                                 @PathVariable Long livestockId,
                                                  @RequestParam(defaultValue = "20") int limit) {
         return ResponseEntity.ok(anomalyScoreRepo.findByFarmIdAndLivestockId(farmId, livestockId, limit));
     }

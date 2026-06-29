@@ -6,6 +6,10 @@ spring:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:smart_livestock}?stringtype=unspecified
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX:30}
+      minimum-idle: 5
+      connection-timeout: 30000
   jpa:
     hibernate:
       ddl-auto: none
@@ -18,7 +22,6 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
-
 rocketmq:
   name-server: ${ROCKETMQ_NAME_SERVER:localhost:9876}
   producer:

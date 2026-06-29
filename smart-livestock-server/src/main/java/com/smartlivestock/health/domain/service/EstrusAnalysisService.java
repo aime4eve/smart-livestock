@@ -18,7 +18,8 @@ public class EstrusAnalysisService {
         double stepScore = scoreStepIncrease(stepIncreasePercent);
         double tempScore = scoreTempDelta(tempDelta);
         double distScore = scoreDistanceDelta(distanceDelta);
-        return (int) Math.round(stepScore * 0.4 + tempScore * 0.3 + distScore * 0.3);
+       double raw = stepScore * 0.4 + tempScore * 0.3 + distScore * 0.3;
+       return (int) Math.round(Math.max(0, Math.min(100, raw)));
     }
 
    public String generateAdvice(int score) {

@@ -143,19 +143,23 @@ public final class HealthDtos {
             int criticalCount,
             double deviceOnlineRate,
             String healthTrend,
-            String livestockTrend
+            String livestockTrend,
+            int aiAnomalyCount,
+            double avgAiAnomalyScore
     ) {}
 
     public record SceneSummaryFever(int abnormalCount, int criticalCount) {}
     public record SceneSummaryDigestive(int abnormalCount, int watchCount) {}
     public record SceneSummaryEstrus(int highScoreCount, boolean breedingAdvice) {}
     public record SceneSummaryEpidemic(String status, double abnormalRate) {}
+    public record SceneSummaryAi(int anomalyCount, int highScoreCount, double avgScore) {}
 
     public record SceneSummary(
             SceneSummaryFever fever,
             SceneSummaryDigestive digestive,
             SceneSummaryEstrus estrus,
-            SceneSummaryEpidemic epidemic
+            SceneSummaryEpidemic epidemic,
+            SceneSummaryAi ai
     ) {}
 
     public record PendingTask(
