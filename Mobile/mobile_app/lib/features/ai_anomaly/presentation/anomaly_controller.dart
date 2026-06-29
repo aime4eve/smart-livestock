@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/anomaly_api_repository.dart';
-import '../domain/anomaly_models.dart';
+import 'package:hkt_livestock_agentic/core/models/anomaly_models.dart';
 import '../domain/anomaly_repository.dart';
 
 final anomalyRepositoryProvider = Provider<AnomalyRepository>(

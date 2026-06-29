@@ -1,6 +1,10 @@
+/// Pure data models for AI anomaly scores.
+///
+/// Lives in core/models/ so that both health_models.dart (core) and the
+/// ai_anomaly feature can depend on it without a core→feature reverse import.
 class AnomalyScoreData {
   const AnomalyScoreData({
-    required this.livestockId,
+    this.livestockId,
     required this.anomalyScore,
     required this.anomalyType,
     this.assessedAt,
@@ -8,7 +12,7 @@ class AnomalyScoreData {
     this.capabilityUsed,
   });
 
-  final String livestockId;
+  final String? livestockId;
   final double anomalyScore; // 0.0 - 1.0
   final String anomalyType; // normal / circadian_disruption / abrupt_change / multivariate
   final DateTime? assessedAt;
@@ -17,7 +21,7 @@ class AnomalyScoreData {
 
   factory AnomalyScoreData.fromJson(Map<String, dynamic> json) {
     return AnomalyScoreData(
-      livestockId: (json['livestockId'] ?? '').toString(),
+      livestockId: json['livestockId']?.toString(),
       anomalyScore: (json['anomalyScore'] as num?)?.toDouble() ?? 0.0,
       anomalyType: json['anomalyType'] as String? ?? 'normal',
       assessedAt: json['assessedAt'] != null || json['createdAt'] != null

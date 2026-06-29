@@ -422,9 +422,9 @@ public class HealthApplicationService {
     public FeverDetail getFeverDetail(Long farmId, Long livestockId) {
         HealthSnapshot snapshot = snapshotRepo.findByLivestockId(livestockId).orElse(null);
         if (snapshot == null) {
-            return new FeverDetail(String.valueOf(livestockId), "?", null, null,
-                    "NORMAL", "暂无数据", List.of());
-        }
+           return new FeverDetail(String.valueOf(livestockId), "?", null, null,
+                   "NORMAL", "暂无数据", List.of(), null);
+       }
 
         Instant now = Instant.now();
         int retentionHours = Math.min(subscriptionPort.getRetentionDays("temperature_monitor") * 24, 72);
@@ -441,13 +441,14 @@ public class HealthApplicationService {
                 .map(l -> new TemperatureReading(l.getTemperature(), l.getRecordedAt()))
                 .toList();
 
-        return new FeverDetail(
-                String.valueOf(livestockId), code,
-                snapshot.getBaselineTemp(), snapshot.getCurrentTemp(),
-                snapshot.getTempStatus().name(),
-                feverService.generateConclusion(snapshot.getTempStatus(), delta, Duration.ofHours(2)),
-                recent72h);
-    }
+       return new FeverDetail(
+               String.valueOf(livestockId), code,
+               snapshot.getBaselineTemp(), snapshot.getCurrentTemp(),
+               snapshot.getTempStatus().name(),
+               feverService.generateConclusion(snapshot.getTempStatus(), delta, Duration.ofHours(2)),
+               recent72h,
+               healthAnomalyService.getLatestSummary(farmId, livestockId).orElse(null));
+   }
 
     // ── Digestive ───────────────────────────────────────────────
 
@@ -473,9 +474,9 @@ public class HealthApplicationService {
     public DigestiveDetail getDigestiveDetail(Long farmId, Long livestockId) {
         HealthSnapshot snapshot = snapshotRepo.findByLivestockId(livestockId).orElse(null);
         if (snapshot == null) {
-            return new DigestiveDetail(String.valueOf(livestockId), "?", null, "NORMAL",
-                    "暂无数据", List.of());
-        }
+           return new DigestiveDetail(String.valueOf(livestockId), "?", null, "NORMAL",
+                   "暂无数据", List.of(), null);
+       }
 
         Instant now = Instant.now();
         int digRetentionHours = Math.min(subscriptionPort.getRetentionDays("peristaltic_monitor") * 24, 24);
@@ -488,13 +489,14 @@ public class HealthApplicationService {
                 .map(l -> new MotilityReading(l.getFrequency(), l.getIntensity(), l.getRecordedAt()))
                 .toList();
 
-        return new DigestiveDetail(
-                String.valueOf(livestockId), code,
-                snapshot.getMotilityBaseline(),
-                snapshot.getMotilityStatus().name(),
-                digestiveService.generateAdvice(snapshot.getMotilityStatus()),
-                recent24h);
-    }
+       return new DigestiveDetail(
+               String.valueOf(livestockId), code,
+               snapshot.getMotilityBaseline(),
+               snapshot.getMotilityStatus().name(),
+               digestiveService.generateAdvice(snapshot.getMotilityStatus()),
+               recent24h,
+               healthAnomalyService.getLatestSummary(farmId, livestockId).orElse(null));
+   }
 
     // ── Estrus ──────────────────────────────────────────────────
 
@@ -538,18 +540,19 @@ public class HealthApplicationService {
                 .toList();
 
         if (latest == null) {
-            return new EstrusDetail(
-                    String.valueOf(livestockId), code, 0, null, null, null,
-                    null, estrusAnalysisService.generateAdvice(0), trend7d);
-        }
+           return new EstrusDetail(
+                   String.valueOf(livestockId), code, 0, null, null, null,
+                   null, estrusAnalysisService.generateAdvice(0), trend7d, null);
+       }
 
-        return new EstrusDetail(
-                String.valueOf(livestockId), code,
-                latest.getScore(), latest.getStepIncreasePercent(),
-                latest.getTempDelta(), latest.getDistanceDelta(),
-                latest.getScoredAt(), latest.getAdvice(),
-                trend7d);
-    }
+       return new EstrusDetail(
+               String.valueOf(livestockId), code,
+               latest.getScore(), latest.getStepIncreasePercent(),
+               latest.getTempDelta(), latest.getDistanceDelta(),
+               latest.getScoredAt(), latest.getAdvice(),
+               trend7d,
+               healthAnomalyService.getLatestSummary(farmId, livestockId).orElse(null));
+   }
 
     // ── Health Detail Charts (subscription-gated) ───────────────
 

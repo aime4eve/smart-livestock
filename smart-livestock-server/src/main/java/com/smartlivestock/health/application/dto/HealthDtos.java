@@ -28,15 +28,16 @@ public final class HealthDtos {
             String conclusion
     ) {}
 
-    public record FeverDetail(
-            String livestockId,
-            String livestockCode,
-            BigDecimal baselineTemp,
-            BigDecimal threshold,
-            String status,
-            String conclusion,
-            List<TemperatureReading> recent72h
-    ) {}
+   public record FeverDetail(
+           String livestockId,
+           String livestockCode,
+           BigDecimal baselineTemp,
+           BigDecimal threshold,
+           String status,
+           String conclusion,
+           List<TemperatureReading> recent72h,
+           AiAnomalySummary aiAnomaly
+   ) {}
 
     public record FeverListResponse(
             List<FeverListItem> items
@@ -60,14 +61,15 @@ public final class HealthDtos {
             String advice
     ) {}
 
-    public record DigestiveDetail(
-            String livestockId,
-            String livestockCode,
-            BigDecimal motilityBaseline,
-            String status,
-            String advice,
-            List<MotilityReading> recent24h
-    ) {}
+   public record DigestiveDetail(
+           String livestockId,
+           String livestockCode,
+           BigDecimal motilityBaseline,
+           String status,
+           String advice,
+           List<MotilityReading> recent24h,
+           AiAnomalySummary aiAnomaly
+   ) {}
 
     public record DigestiveListResponse(
             List<DigestiveListItem> items
@@ -93,17 +95,18 @@ public final class HealthDtos {
             String advice
     ) {}
 
-    public record EstrusDetail(
-            String livestockId,
-            String livestockCode,
-            int score,
-            Integer stepIncreasePercent,
-            BigDecimal tempDelta,
-            BigDecimal distanceDelta,
-            Instant timestamp,
-            String advice,
-            List<EstrusTrendPoint> trend7d
-    ) {}
+   public record EstrusDetail(
+           String livestockId,
+           String livestockCode,
+           int score,
+           Integer stepIncreasePercent,
+           BigDecimal tempDelta,
+           BigDecimal distanceDelta,
+           Instant timestamp,
+           String advice,
+           List<EstrusTrendPoint> trend7d,
+           AiAnomalySummary aiAnomaly
+   ) {}
 
     public record EstrusListResponse(
             List<EstrusListItem> items
@@ -224,6 +227,14 @@ public final class HealthDtos {
             List<StatsTrendPoint> temperatureTrend,
             List<StatsTrendPoint> healthRateTrend,
             List<StatsTrendPoint> alertTrend,
-            Map<String, Integer> healthDistribution
-    ) {}
+           Map<String, Integer> healthDistribution
+   ) {}
+
+   public record AiAnomalySummary(
+           Double anomalyScore,
+           String anomalyType,
+           Integer nEff,
+           String capabilityUsed,
+           Instant assessedAt
+   ) {}
 }

@@ -43,6 +43,14 @@ class DigestiveDetailController extends AsyncNotifier<DigestiveDetailData> {
       () => ref.read(digestiveRepositoryProvider).fetchDigestiveDetail(livestockId),
     );
   }
+
+  /// Silent refresh for auto-polling: no loading spinner, keeps data on error.
+  Future<void> silentRefresh() async {
+    final next = await AsyncValue.guard(
+      () => ref.read(digestiveRepositoryProvider).fetchDigestiveDetail(livestockId),
+    );
+    if (next.hasValue) state = next;
+  }
 }
 
 final digestiveDetailControllerProvider = AsyncNotifierProvider.family<

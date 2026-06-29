@@ -2,7 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
-import 'package:hkt_livestock_agentic/features/ai_anomaly/domain/anomaly_models.dart';
+import 'package:hkt_livestock_agentic/core/models/anomaly_models.dart';
 import 'package:hkt_livestock_agentic/features/ai_anomaly/presentation/anomaly_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 

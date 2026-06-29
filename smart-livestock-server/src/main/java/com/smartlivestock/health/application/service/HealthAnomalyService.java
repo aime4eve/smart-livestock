@@ -1,6 +1,7 @@
 package com.smartlivestock.health.application.service;
 
 import com.smartlivestock.health.application.port.AnomalyScoreClient;
+import com.smartlivestock.health.application.dto.HealthDtos.AiAnomalySummary;
 import com.smartlivestock.health.application.port.AnomalyScoreClient.AnomalyPrediction;
 import com.smartlivestock.health.domain.model.AnomalyScore;
 import com.smartlivestock.health.domain.port.RanchCommandPort;
@@ -110,6 +111,21 @@ public class HealthAnomalyService {
 
         // 6. Set dedup key
         redis.set(dedupKey, "1", Duration.ofMinutes(dedupTtlMinutes));
+    }
+
+    /**
+     * Read-only query for embedding AI anomaly summary into detail responses.
+     * Pure DB read (anomaly_scores table), does NOT call ai-platform.
+     */
+    public java.util.Optional<AiAnomalySummary> getLatestSummary(Long farmId, Long livestockId) {
+        return anomalyScoreRepo.findLatestByFarmIdAndLivestockId(farmId, livestockId)
+                .map(s -> new AiAnomalySummary(
+                        s.getAnomalyScore().doubleValue(),
+                        s.getAnomalyType(),
+                        s.getNEff(),
+                        s.getCapabilityUsed(),
+                        s.getCreatedAt()
+                ));
     }
 
     private String mapAnomalyTypeToAlertType(String anomalyType) {

@@ -43,6 +43,14 @@ class EstrusDetailController extends AsyncNotifier<EstrusDetailData> {
       () => ref.read(estrusRepositoryProvider).fetchEstrusDetail(livestockId),
     );
   }
+
+  /// Silent refresh for auto-polling: no loading spinner, keeps data on error.
+  Future<void> silentRefresh() async {
+    final next = await AsyncValue.guard(
+      () => ref.read(estrusRepositoryProvider).fetchEstrusDetail(livestockId),
+    );
+    if (next.hasValue) state = next;
+  }
 }
 
 final estrusDetailControllerProvider = AsyncNotifierProvider.family<

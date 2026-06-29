@@ -6,6 +6,7 @@ import 'package:hkt_livestock_agentic/core/models/health_models.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/twin_overview/presentation/twin_overview_controller.dart';
+import 'package:hkt_livestock_agentic/core/widgets/auto_refresh_listener.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class TwinOverviewPage extends ConsumerWidget {
@@ -17,7 +18,10 @@ class TwinOverviewPage extends ConsumerWidget {
     final asyncData = ref.watch(twinOverviewControllerProvider);
     final theme = Theme.of(context);
 
-    return SingleChildScrollView(
+    return AutoRefreshListener(
+      interval: const Duration(seconds: 180),
+      onTick: () => ref.read(twinOverviewControllerProvider.notifier).silentRefresh(),
+      child: SingleChildScrollView(
       key: const Key('page-twin-overview'),
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
@@ -31,13 +35,14 @@ class TwinOverviewPage extends ConsumerWidget {
             data: (data) => _buildContent(context, ref, data),
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => _buildError(context, ref, e.toString()),
-          ),
-        ],
-      ),
-    );
-  }
+         ),
+       ],
+     ),
+   ),
+   );
+ }
 
-  Widget _buildContent(
+ Widget _buildContent(
       BuildContext context, WidgetRef ref, HealthOverviewResponse data) {
     final l10n = AppLocalizations.of(context)!;
     return Column(

@@ -22,6 +22,14 @@ class TwinOverviewController
       () => ref.read(twinOverviewRepositoryProvider).load(),
     );
   }
+
+  /// Silent refresh for auto-polling: no loading spinner, keeps data on error.
+  Future<void> silentRefresh() async {
+    final next = await AsyncValue.guard(
+      () => ref.read(twinOverviewRepositoryProvider).load(),
+    );
+    if (next.hasValue) state = next;
+  }
 }
 
 final twinOverviewControllerProvider = AsyncNotifierProvider<

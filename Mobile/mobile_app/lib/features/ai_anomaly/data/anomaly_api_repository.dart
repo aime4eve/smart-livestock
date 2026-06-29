@@ -1,5 +1,5 @@
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
-import '../domain/anomaly_models.dart';
+import 'package:hkt_livestock_agentic/core/models/anomaly_models.dart';
 import '../domain/anomaly_repository.dart';
 
 class AnomalyApiRepository implements AnomalyRepository {

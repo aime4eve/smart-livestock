@@ -43,6 +43,14 @@ class FeverDetailController extends AsyncNotifier<FeverDetailData> {
       () => ref.read(feverRepositoryProvider).fetchFeverDetail(livestockId),
     );
   }
+
+  /// Silent refresh for auto-polling: no loading spinner, keeps data on error.
+  Future<void> silentRefresh() async {
+    final next = await AsyncValue.guard(
+      () => ref.read(feverRepositoryProvider).fetchFeverDetail(livestockId),
+    );
+    if (next.hasValue) state = next;
+  }
 }
 
 final feverDetailControllerProvider = AsyncNotifierProvider.family<

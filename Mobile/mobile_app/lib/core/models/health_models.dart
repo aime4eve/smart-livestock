@@ -1,5 +1,6 @@
 export 'package:hkt_livestock_agentic/core/models/twin_models.dart';
 import 'package:hkt_livestock_agentic/core/models/twin_models.dart';
+import 'package:hkt_livestock_agentic/core/models/anomaly_models.dart';
 
 // Re-export existing twin_models which already define:
 // TemperatureBaseline, TemperatureRecord, DigestiveHealth, MotilityRecord,
@@ -136,6 +137,7 @@ class FeverDetailData {
     required this.status,
     this.conclusion,
     this.recent72h = const [],
+    this.aiAnomaly,
   });
 
   final String livestockId;
@@ -145,6 +147,7 @@ class FeverDetailData {
   final String status;
   final String? conclusion;
   final List<TemperatureRecord> recent72h;
+  final AnomalyScoreData? aiAnomaly;
 
   factory FeverDetailData.fromJson(Map<String, dynamic> m) {
     return FeverDetailData(
@@ -163,6 +166,9 @@ class FeverDetailData {
                   ))
               .toList() ??
           [],
+      aiAnomaly: m['aiAnomaly'] != null
+          ? AnomalyScoreData.fromJson(m['aiAnomaly'])
+          : null,
     );
   }
 }
@@ -207,6 +213,7 @@ class DigestiveDetailData {
     required this.status,
     this.advice,
     this.recent24h = const [],
+    this.aiAnomaly,
   });
 
   final String livestockId;
@@ -215,6 +222,7 @@ class DigestiveDetailData {
   final String status;
   final String? advice;
   final List<MotilityRecord> recent24h;
+  final AnomalyScoreData? aiAnomaly;
 
   factory DigestiveDetailData.fromJson(Map<String, dynamic> m) {
     return DigestiveDetailData(
@@ -233,6 +241,9 @@ class DigestiveDetailData {
                   ))
               .toList() ??
           [],
+      aiAnomaly: m['aiAnomaly'] != null
+          ? AnomalyScoreData.fromJson(m['aiAnomaly'])
+          : null,
     );
   }
 }
@@ -289,6 +300,7 @@ class EstrusDetailData {
     this.timestamp,
     this.advice,
     this.trend7d = const [],
+    this.aiAnomaly,
   });
 
   final String livestockId;
@@ -300,6 +312,7 @@ class EstrusDetailData {
   final DateTime? timestamp;
   final String? advice;
   final List<EstrusTrendPoint> trend7d;
+  final AnomalyScoreData? aiAnomaly;
 
   factory EstrusDetailData.fromJson(Map<String, dynamic> m) {
     return EstrusDetailData(
@@ -319,6 +332,9 @@ class EstrusDetailData {
                   ))
               .toList() ??
           [],
+      aiAnomaly: m['aiAnomaly'] != null
+          ? AnomalyScoreData.fromJson(m['aiAnomaly'])
+          : null,
     );
   }
 }
