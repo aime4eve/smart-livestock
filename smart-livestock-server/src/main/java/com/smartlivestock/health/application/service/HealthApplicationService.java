@@ -173,20 +173,20 @@ public class HealthApplicationService {
         activityLogRepo.save(log);
     }
 
-    private void refreshSnapshot(Long livestockId, Long farmId, String telemetryType,
-                                  BigDecimal latestTemp, BigDecimal latestMotilityFrequency) {
-        HealthSnapshot snapshot = snapshotRepo.findByLivestockId(livestockId).orElse(null);
+   private void refreshSnapshot(Long livestockId, Long farmId, String telemetryType,
+                                 BigDecimal latestTemp, BigDecimal latestMotilityFrequency) {
+       HealthSnapshot snapshot = snapshotRepo.findByLivestockId(livestockId).orElse(null);
 
-        if (snapshot == null) {
-            snapshot = new HealthSnapshot();
-            snapshot.setLivestockId(livestockId);
-            snapshot.setFarmId(farmId);
-            snapshot.setBaselineTemp(DEFAULT_BASELINE_TEMP);
-            snapshot.setMotilityBaseline(DEFAULT_MOTILITY_BASELINE);
-            snapshot.setTempStatus(TempStatus.NORMAL);
-            snapshot.setMotilityStatus(MotilityStatus.NORMAL);
-            snapshot.setActivityStatus(ActivityStatus.NORMAL);
-        }
+       if (snapshot == null) {
+           snapshot = new HealthSnapshot();
+           snapshot.setLivestockId(livestockId);
+           snapshot.setFarmId(farmId);
+           snapshot.setBaselineTemp(DEFAULT_BASELINE_TEMP);
+           snapshot.setMotilityBaseline(DEFAULT_MOTILITY_BASELINE);
+           snapshot.setTempStatus(TempStatus.NORMAL);
+           snapshot.setMotilityStatus(MotilityStatus.NORMAL);
+           snapshot.setActivityStatus(ActivityStatus.NORMAL);
+       }
 
         // Update temperature status
         if ("CAPSULE".equals(telemetryType) && latestTemp != null) {
@@ -216,10 +216,17 @@ public class HealthApplicationService {
             }
         }
 
-        snapshot.setLastAssessedAt(Instant.now());
-        snapshotRepo.save(snapshot);
+       snapshot.setLastAssessedAt(Instant.now());
+        try {
+            snapshotRepo.save(snapshot);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            // Concurrent MQ consumers may race to create the same snapshot row;
+            // re-fetch and merge onto the winner's version
+            snapshot = snapshotRepo.findByLivestockId(livestockId).orElse(null);
+            if (snapshot != null) snapshotRepo.save(snapshot);
+        }
 
-        // Trigger estrus scoring if we have enough data
+       // Trigger estrus scoring if we have enough data
         triggerEstrusScoring(livestockId, farmId);
     }
 

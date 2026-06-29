@@ -7,8 +7,8 @@ spring:
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:postgres}
     hikari:
-      maximum-pool-size: ${DB_POOL_MAX:30}
-      minimum-idle: 5
+      maximum-pool-size: ${DB_POOL_MAX:50}
+      minimum-idle: 10
       connection-timeout: 30000
   jpa:
     hibernate:
