@@ -262,7 +262,7 @@ public class SynthesisService {
         // Activity index: NOW modulated by anomaly (fix: was random-only before)
         double baseActivity = hourFactor * rng.nextDouble(30, 80);
         double activityMod = getActivityModulation(pattern, intensity);
-        readings.put("activityIndex", round(Math.max(0, baseActivity * (1.0 + activityMod)), 1));
+        readings.put("activityIndex", round(Math.max(25, baseActivity * (1.0 + activityMod)), 1));
 
         return readings;
     }
@@ -303,12 +303,12 @@ public class SynthesisService {
         double hourFactor = (hour >= 6 && hour <= 20) ? 1.0 : 0.2;
         double baseActivity = hourFactor * rng.nextDouble(30, 80);
         double activityMod = getActivityModulation(pattern, intensity);
-        readings.put("activityIndex", round(Math.max(0, baseActivity * (1.0 + activityMod)), 1));
+        readings.put("activityIndex", round(Math.max(25, baseActivity * (1.0 + activityMod)), 1));
 
-        return readings;
-    }
+       return readings;
+   }
 
-    // --- Multi-dimensional modulation functions (design §3.2 table) ---
+   // --- Multi-dimensional modulation functions (design §3.2 table) ---
 
     private double getActivityModulation(AnomalyPattern pattern, double intensity) {
         return switch (pattern) {

@@ -51,7 +51,7 @@ public class HealthAnomalyService {
      * Assess a single livestock health anomaly via ai-platform.
      * Design SS3.1: dedup per livestock (30-60min window).
      */
-    @Transactional
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public void assess(Long tenantId, Long farmId, Long livestockId) {
         // 1. Dedup: skip if assessed recently
         String dedupKey = DEDUP_KEY_PREFIX + livestockId;

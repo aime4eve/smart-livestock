@@ -34,18 +34,16 @@ public class AnomalyScoreJpaEntity {
     @Column(name = "anomaly_type", nullable = false, length = 32)
     private String anomalyType;
 
-    @Column(name = "contributions", columnDefinition = "jsonb")
-    private String contributions;
-
+   @Column(name = "contributions", columnDefinition = "jsonb")
+   private String contributions;
     @Column(name = "capability_used", nullable = false, length = 32)
     private String capabilityUsed;
 
     @Column(name = "n_eff")
     private Integer nEff;
 
-    @Column(name = "model_meta", columnDefinition = "jsonb")
-    private String modelMeta;
-
+   @Column(name = "model_meta", columnDefinition = "jsonb")
+   private String modelMeta;
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 

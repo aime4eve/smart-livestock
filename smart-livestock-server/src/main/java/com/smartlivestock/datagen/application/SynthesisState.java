@@ -44,6 +44,16 @@ class SynthesisState {
         s.motilityBaseline = (long) (rng.nextDouble(2.5, 3.5) * 100000);
         s.batteryLevel = rng.nextInt(70, 101);
         s.batteryVoltage = rng.nextInt(3200, 3601);
+        // Initialize GPS from livestock's real position (farm/ranch coordinates)
+        // Falls back to ranch area if no position recorded yet
+        if (inst.latitude() != null && inst.longitude() != null) {
+            s.currentLat = inst.latitude();
+            s.currentLng = inst.longitude();
+        } else {
+            // Default: near Main Ranch center (28.229, 112.938)
+            s.currentLat = 28.229 + rng.nextDouble(-0.002, 0.002);
+            s.currentLng = 112.938 + rng.nextDouble(-0.002, 0.002);
+        }
         return s;
     }
 
