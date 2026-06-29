@@ -42,6 +42,15 @@ services:
     environment:
       JAVA_OPT: "-Duser.home=/home/rocketmq"
 
+  rocketmq-dashboard:
+    image: apacherocketmq/rocketmq-dashboard:latest
+    ports:
+      - "18082:8082"
+    environment:
+      JAVA_OPTS: "-Drocketmq.namesrv.addr=rocketmq-namesrv:9876"
+    depends_on:
+      - rocketmq-namesrv
+
   app:
     build: .
     ports:
