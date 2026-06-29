@@ -13,14 +13,15 @@ public record AlertDto(
         String status,
         String severity,
         String message,
-        boolean read,
+       boolean read,
         String resolvedType,
         Instant resolvedAt,
         // Legacy fields retained for backward compatibility
         Long acknowledgedBy,
         Instant acknowledgedAt,
         Long handledBy,
-        Instant handledAt
+        Instant handledAt,
+        String source
 ) {
     public static AlertDto from(Alert alert) {
         return new AlertDto(
@@ -38,7 +39,8 @@ public record AlertDto(
                 alert.getAcknowledgedBy(),
                 alert.getAcknowledgedAt(),
                 alert.getHandledBy(),
-                alert.getHandledAt()
+                alert.getHandledAt(),
+                alert.getSource()
         );
     }
 
@@ -46,7 +48,7 @@ public record AlertDto(
         return new AlertDto(
                 id, farmId, livestockId, fenceId, type, status, severity, message,
                 read, resolvedType, resolvedAt,
-                acknowledgedBy, acknowledgedAt, handledBy, handledAt
+                acknowledgedBy, acknowledgedAt, handledBy, handledAt, source
         );
     }
 }
