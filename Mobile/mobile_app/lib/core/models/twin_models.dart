@@ -47,9 +47,11 @@ class TwinOverviewStats {
     required this.alertCaption,
     required this.healthCaption,
     required this.deviceCaption,
-    required this.healthTrend,
-    required this.livestockTrend,
-  });
+   required this.healthTrend,
+   required this.livestockTrend,
+   this.aiAnomalyCount = 0,
+   this.avgAiAnomalyScore = 0.0,
+ });
 
   final int totalLivestock;
   final double healthyRate;
@@ -60,8 +62,10 @@ class TwinOverviewStats {
   final String alertCaption;
   final String healthCaption;
   final String deviceCaption;
-  final String healthTrend;
-  final String livestockTrend;
+ final String healthTrend;
+ final String livestockTrend;
+ final int aiAnomalyCount;
+ final double avgAiAnomalyScore;
 }
 
 class TwinSceneSummary {

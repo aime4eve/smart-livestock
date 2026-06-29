@@ -193,9 +193,10 @@ class AlertItem {
     required this.priority,
     required this.type,
     required this.stage,
-    required this.earTag,
-    this.livestockId,
-  });
+   required this.earTag,
+   this.livestockId,
+   this.source = 'RULE',
+ });
 
   final String id;
   final String title;
@@ -204,5 +205,6 @@ class AlertItem {
   final String type;
   final String stage;
   final String earTag;
-  final String? livestockId;
+ final String? livestockId;
+ final String source; // RULE / AI
 }

@@ -48,15 +48,84 @@ class TwinOverviewPage extends ConsumerWidget {
         if (data.sceneSummary != null) ...[
           Text(l10n.twinHealthScenarios, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: AppSpacing.md),
-          _buildSceneCards(context, data.sceneSummary!),
-        ],
-        if (data.pendingTasks.isNotEmpty) ...[
+         _buildSceneCards(context, data.sceneSummary!),
+       ],
+       if (data.stats != null &&
+           data.stats!.aiAnomalyCount > 0) ...[
+         const SizedBox(height: AppSpacing.xl),
+         _buildAiOverviewCard(context, l10n, data.stats!),
+       ],
+       if (data.pendingTasks.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.xl),
           Text(l10n.twinPendingTasks, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: AppSpacing.md),
           _buildPendingTasks(context, data.pendingTasks),
         ],
       ],
+    );
+  }
+
+  Widget _buildAiOverviewCard(
+    BuildContext context,
+    AppLocalizations l10n,
+    TwinOverviewStats stats,
+  ) {
+    final avgColor = stats.avgAiAnomalyScore >= 0.7
+        ? AppColors.danger
+        : stats.avgAiAnomalyScore > 0.001
+            ? AppColors.warning
+            : AppColors.success;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.psychology, size: 20, color: AppColors.info),
+                const SizedBox(width: AppSpacing.sm),
+                Text(l10n.aiAnomalyOverview,
+                    style: Theme.of(context).textTheme.titleSmall),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(l10n.aiAnomalyAnomalyCount,
+                          style: Theme.of(context).textTheme.bodySmall),
+                      Text('${stats.aiAnomalyCount}',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(color: avgColor)),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(l10n.aiAnomalyAvgScore,
+                          style: Theme.of(context).textTheme.bodySmall),
+                      Text(
+                          '${(stats.avgAiAnomalyScore * 100).toStringAsFixed(1)}%',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(color: avgColor)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 

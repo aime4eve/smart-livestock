@@ -2242,4 +2242,52 @@ class AppLocalizationsZh extends AppLocalizations {
   String livestockLastLocation(String location) {
     return '最近位置：$location';
   }
+
+  @override
+  String get aiAnomalyTitle => 'AI 异常检测';
+
+  @override
+  String get aiAnomalyScoreLabel => '异常指数';
+
+  @override
+  String get aiAnomalyTypeNormal => '正常';
+
+  @override
+  String get aiAnomalyTypeCircadian => '节律紊乱';
+
+  @override
+  String get aiAnomalyTypeAbrupt => '突变';
+
+  @override
+  String get aiAnomalyTypeMultivariate => '多维联合异常';
+
+  @override
+  String get aiAnomalyNoData => '暂无异常数据';
+
+  @override
+  String get aiAnomalyEffSamples => '有效样本';
+
+  @override
+  String get aiAnomalyAssessedAt => '评估方式';
+
+  @override
+  String get aiAnomalyViewHistory => '异常指数趋势';
+
+  @override
+  String get aiAnomalyAlertThreshold => '告警阈值';
+
+  @override
+  String get aiAnomalyRuleAlerts => '规则告警';
+
+  @override
+  String get aiAnomalyAiAlerts => 'AI 异常';
+
+  @override
+  String get aiAnomalyOverview => 'AI 异常概览';
+
+  @override
+  String get aiAnomalyAvgScore => '平均指数';
+
+  @override
+  String get aiAnomalyAnomalyCount => '异常数量';
 }

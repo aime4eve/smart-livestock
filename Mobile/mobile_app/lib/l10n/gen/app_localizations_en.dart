@@ -2292,4 +2292,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String livestockLastLocation(String location) {
     return 'Last location: $location';
   }
+
+  @override
+  String get aiAnomalyTitle => 'AI Anomaly Detection';
+
+  @override
+  String get aiAnomalyScoreLabel => 'Anomaly Score';
+
+  @override
+  String get aiAnomalyTypeNormal => 'Normal';
+
+  @override
+  String get aiAnomalyTypeCircadian => 'Circadian Disruption';
+
+  @override
+  String get aiAnomalyTypeAbrupt => 'Abrupt Change';
+
+  @override
+  String get aiAnomalyTypeMultivariate => 'Multivariate Anomaly';
+
+  @override
+  String get aiAnomalyNoData => 'No anomaly data yet';
+
+  @override
+  String get aiAnomalyEffSamples => 'Effective samples';
+
+  @override
+  String get aiAnomalyAssessedAt => 'Assessed';
+
+  @override
+  String get aiAnomalyViewHistory => 'Anomaly Score Trend';
+
+  @override
+  String get aiAnomalyAlertThreshold => 'Alert threshold';
+
+  @override
+  String get aiAnomalyRuleAlerts => 'Rule Alerts';
+
+  @override
+  String get aiAnomalyAiAlerts => 'AI Anomalies';
+
+  @override
+  String get aiAnomalyOverview => 'AI Anomaly Overview';
+
+  @override
+  String get aiAnomalyAvgScore => 'Average Score';
+
+  @override
+  String get aiAnomalyAnomalyCount => 'Anomaly Count';
 }

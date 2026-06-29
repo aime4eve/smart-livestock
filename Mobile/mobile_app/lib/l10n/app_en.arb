@@ -1918,12 +1918,44 @@
   "@estrusLegendScore": {},
   "estrusLegendThreshold": "Breeding Threshold",
   "@estrusLegendThreshold": {},
-  "livestockLastLocation": "Last location: {location}",
-  "@livestockLastLocation": {
-    "placeholders": {
-      "location": {
-        "type": "String"
-      }
-    }
-  }
+ "livestockLastLocation": "Last location: {location}",
+ "@livestockLastLocation": {
+   "placeholders": {
+     "location": {
+       "type": "String"
+     }
+   }
+ },
+ "aiAnomalyTitle": "AI Anomaly Detection",
+ "@aiAnomalyTitle": {},
+ "aiAnomalyScoreLabel": "Anomaly Score",
+ "@aiAnomalyScoreLabel": {},
+ "aiAnomalyTypeNormal": "Normal",
+ "@aiAnomalyTypeNormal": {},
+ "aiAnomalyTypeCircadian": "Circadian Disruption",
+ "@aiAnomalyTypeCircadian": {},
+ "aiAnomalyTypeAbrupt": "Abrupt Change",
+ "@aiAnomalyTypeAbrupt": {},
+ "aiAnomalyTypeMultivariate": "Multivariate Anomaly",
+ "@aiAnomalyTypeMultivariate": {},
+ "aiAnomalyNoData": "No anomaly data yet",
+ "@aiAnomalyNoData": {},
+ "aiAnomalyEffSamples": "Effective samples",
+ "@aiAnomalyEffSamples": {},
+ "aiAnomalyAssessedAt": "Assessed",
+ "@aiAnomalyAssessedAt": {},
+ "aiAnomalyViewHistory": "Anomaly Score Trend",
+ "@aiAnomalyViewHistory": {},
+ "aiAnomalyAlertThreshold": "Alert threshold",
+ "@aiAnomalyAlertThreshold": {},
+ "aiAnomalyRuleAlerts": "Rule Alerts",
+ "@aiAnomalyRuleAlerts": {},
+ "aiAnomalyAiAlerts": "AI Anomalies",
+ "@aiAnomalyAiAlerts": {},
+ "aiAnomalyOverview": "AI Anomaly Overview",
+ "@aiAnomalyOverview": {},
+ "aiAnomalyAvgScore": "Average Score",
+ "@aiAnomalyAvgScore": {},
+ "aiAnomalyAnomalyCount": "Anomaly Count",
+ "@aiAnomalyAnomalyCount": {}
 }

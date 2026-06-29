@@ -44,9 +44,12 @@ class HealthOverviewResponse {
       alertCaption: m['alertCaption'] as String? ?? '',
       healthCaption: m['healthCaption'] as String? ?? '',
       deviceCaption: m['deviceCaption'] as String? ?? '',
-      healthTrend: m['healthTrend'] as String? ?? '',
-      livestockTrend: m['livestockTrend'] as String? ?? '',
-    );
+     healthTrend: m['healthTrend'] as String? ?? '',
+     livestockTrend: m['livestockTrend'] as String? ?? '',
+     aiAnomalyCount: m['aiAnomalyCount'] as int? ?? 0,
+     avgAiAnomalyScore:
+         (m['avgAiAnomalyScore'] as num?)?.toDouble() ?? 0.0,
+   );
   }
 
   static TwinSceneSummary _parseSceneSummary(Map<String, dynamic> m) {

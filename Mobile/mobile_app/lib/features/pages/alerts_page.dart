@@ -199,7 +199,62 @@ class AlertsPage extends ConsumerWidget {
             ],
           ),
         ),
+        if (_hasAiAlerts(data)) ...[
+          const SizedBox(height: AppSpacing.md),
+          _buildAiAlertSection(context, data),
+        ],
       ],
+    );
+  }
+
+  bool _hasAiAlerts(AlertsListData data) {
+    return data.items.any((a) => a.source == 'AI');
+  }
+
+  Widget _buildAiAlertSection(BuildContext context, AlertsListData data) {
+    final l10n = AppLocalizations.of(context)!;
+    final aiAlerts = data.items.where((a) => a.source == 'AI').toList();
+    return HighfiCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.psychology, size: 18, color: AppColors.info),
+              const SizedBox(width: AppSpacing.sm),
+              Text(l10n.aiAnomalyAiAlerts,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: AppColors.info,
+                      )),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          for (final alert in aiAlerts)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.warning_amber_rounded,
+                      size: 16, color: AppColors.warning),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(alert.title,
+                            style: Theme.of(context).textTheme.bodyMedium),
+                        Text(alert.type,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.textSecondary)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 

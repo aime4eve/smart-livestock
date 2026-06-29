@@ -4199,6 +4199,102 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'最近位置：{location}'**
   String livestockLastLocation(String location);
+
+  /// No description provided for @aiAnomalyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 异常检测'**
+  String get aiAnomalyTitle;
+
+  /// No description provided for @aiAnomalyScoreLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'异常指数'**
+  String get aiAnomalyScoreLabel;
+
+  /// No description provided for @aiAnomalyTypeNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'正常'**
+  String get aiAnomalyTypeNormal;
+
+  /// No description provided for @aiAnomalyTypeCircadian.
+  ///
+  /// In zh, this message translates to:
+  /// **'节律紊乱'**
+  String get aiAnomalyTypeCircadian;
+
+  /// No description provided for @aiAnomalyTypeAbrupt.
+  ///
+  /// In zh, this message translates to:
+  /// **'突变'**
+  String get aiAnomalyTypeAbrupt;
+
+  /// No description provided for @aiAnomalyTypeMultivariate.
+  ///
+  /// In zh, this message translates to:
+  /// **'多维联合异常'**
+  String get aiAnomalyTypeMultivariate;
+
+  /// No description provided for @aiAnomalyNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无异常数据'**
+  String get aiAnomalyNoData;
+
+  /// No description provided for @aiAnomalyEffSamples.
+  ///
+  /// In zh, this message translates to:
+  /// **'有效样本'**
+  String get aiAnomalyEffSamples;
+
+  /// No description provided for @aiAnomalyAssessedAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'评估方式'**
+  String get aiAnomalyAssessedAt;
+
+  /// No description provided for @aiAnomalyViewHistory.
+  ///
+  /// In zh, this message translates to:
+  /// **'异常指数趋势'**
+  String get aiAnomalyViewHistory;
+
+  /// No description provided for @aiAnomalyAlertThreshold.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警阈值'**
+  String get aiAnomalyAlertThreshold;
+
+  /// No description provided for @aiAnomalyRuleAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'规则告警'**
+  String get aiAnomalyRuleAlerts;
+
+  /// No description provided for @aiAnomalyAiAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 异常'**
+  String get aiAnomalyAiAlerts;
+
+  /// No description provided for @aiAnomalyOverview.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 异常概览'**
+  String get aiAnomalyOverview;
+
+  /// No description provided for @aiAnomalyAvgScore.
+  ///
+  /// In zh, this message translates to:
+  /// **'平均指数'**
+  String get aiAnomalyAvgScore;
+
+  /// No description provided for @aiAnomalyAnomalyCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'异常数量'**
+  String get aiAnomalyAnomalyCount;
 }
 
 class _AppLocalizationsDelegate

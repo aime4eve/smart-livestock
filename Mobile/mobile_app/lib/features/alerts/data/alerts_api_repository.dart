@@ -78,16 +78,17 @@ class AlertsApiRepository implements AlertsRepository {
     final livestockId = rawLivestockId is int
         ? rawLivestockId.toString()
         : (rawLivestockId as String?);
-    return AlertItem(
-      id: id,
-      title: message,
-      subtitle: '',
-      priority: priority,
-      type: type,
-      stage: stage.name,
-      earTag: livestockId ?? '-',
-      livestockId: livestockId,
-    );
+   return AlertItem(
+     id: id,
+     title: message,
+     subtitle: '',
+     priority: priority,
+     type: type,
+     stage: stage.name,
+     earTag: livestockId ?? '-',
+     livestockId: livestockId,
+     source: (m['source'] as String?) ?? 'RULE',
+   );
   }
 
   static AlertDetail _alertDetailFromMap(Map<String, dynamic> m) {

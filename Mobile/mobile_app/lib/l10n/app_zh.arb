@@ -1918,12 +1918,44 @@
   "@estrusLegendScore": {},
   "estrusLegendThreshold": "配种阈值",
   "@estrusLegendThreshold": {},
-  "livestockLastLocation": "最近位置：{location}",
-  "@livestockLastLocation": {
-    "placeholders": {
-      "location": {
-        "type": "String"
-      }
-    }
-  }
+ "livestockLastLocation": "最近位置：{location}",
+ "@livestockLastLocation": {
+   "placeholders": {
+     "location": {
+       "type": "String"
+     }
+   }
+ },
+ "aiAnomalyTitle": "AI 异常检测",
+ "@aiAnomalyTitle": {},
+ "aiAnomalyScoreLabel": "异常指数",
+ "@aiAnomalyScoreLabel": {},
+ "aiAnomalyTypeNormal": "正常",
+ "@aiAnomalyTypeNormal": {},
+ "aiAnomalyTypeCircadian": "节律紊乱",
+ "@aiAnomalyTypeCircadian": {},
+ "aiAnomalyTypeAbrupt": "突变",
+ "@aiAnomalyTypeAbrupt": {},
+ "aiAnomalyTypeMultivariate": "多维联合异常",
+ "@aiAnomalyTypeMultivariate": {},
+ "aiAnomalyNoData": "暂无异常数据",
+ "@aiAnomalyNoData": {},
+ "aiAnomalyEffSamples": "有效样本",
+ "@aiAnomalyEffSamples": {},
+ "aiAnomalyAssessedAt": "评估方式",
+ "@aiAnomalyAssessedAt": {},
+ "aiAnomalyViewHistory": "异常指数趋势",
+ "@aiAnomalyViewHistory": {},
+ "aiAnomalyAlertThreshold": "告警阈值",
+ "@aiAnomalyAlertThreshold": {},
+ "aiAnomalyRuleAlerts": "规则告警",
+ "@aiAnomalyRuleAlerts": {},
+ "aiAnomalyAiAlerts": "AI 异常",
+ "@aiAnomalyAiAlerts": {},
+ "aiAnomalyOverview": "AI 异常概览",
+ "@aiAnomalyOverview": {},
+ "aiAnomalyAvgScore": "平均指数",
+ "@aiAnomalyAvgScore": {},
+ "aiAnomalyAnomalyCount": "异常数量",
+ "@aiAnomalyAnomalyCount": {}
 }

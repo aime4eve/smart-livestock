@@ -10,6 +10,7 @@ import 'package:hkt_livestock_agentic/features/estrus/presentation/estrus_contro
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/device_info_line.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/locked_overlay.dart';
+import 'package:hkt_livestock_agentic/features/ai_anomaly/presentation/widgets/anomaly_score_card.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class EstrusDetailPage extends ConsumerWidget {
@@ -22,8 +23,9 @@ class EstrusDetailPage extends ConsumerWidget {
     final asyncDetail = ref.watch(estrusDetailControllerProvider(livestockId));
     final subAsync = ref.watch(subscriptionControllerProvider);
     final tier = subAsync.value?.tier ?? SubscriptionTier.basic;
-    final hasEstrusDetect = checkTierAccess(tier, FeatureFlags.estrusDetect);
-    return Scaffold(
+   final hasEstrusDetect = checkTierAccess(tier, FeatureFlags.estrusDetect);
+   final hasHealthScore = checkTierAccess(tier, FeatureFlags.healthScore);
+   return Scaffold(
       appBar: AppBar(title: Text(l10n.estrusDetailTitle), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
       body: asyncDetail.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -45,6 +47,10 @@ class EstrusDetailPage extends ConsumerWidget {
               if (detail.advice != null) ...[
                 const SizedBox(height: 16),
                 Card(color: AppColors.primarySoft, child: Padding(padding: const EdgeInsets.all(12), child: Text('💡 ${detail.advice}'))),
+              ],
+              if (hasHealthScore) ...[
+                const SizedBox(height: 16),
+                AnomalyScoreCard(livestockId: livestockId),
               ],
               const SizedBox(height: 16),
               _buildCapabilityNote(context, l10n),

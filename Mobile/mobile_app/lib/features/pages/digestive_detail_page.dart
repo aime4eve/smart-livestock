@@ -10,6 +10,7 @@ import 'package:hkt_livestock_agentic/features/digestive/presentation/digestive_
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/device_info_line.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/locked_overlay.dart';
+import 'package:hkt_livestock_agentic/features/ai_anomaly/presentation/widgets/anomaly_score_card.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class DigestiveDetailPage extends ConsumerWidget {
@@ -47,6 +48,10 @@ class DigestiveDetailPage extends ConsumerWidget {
               if (detail.advice != null) ...[
                 const SizedBox(height: 16),
                 Card(child: Padding(padding: const EdgeInsets.all(12), child: Text('📋 ${detail.advice}'))),
+              ],
+              if (hasHealthScore) ...[
+                const SizedBox(height: 16),
+                AnomalyScoreCard(livestockId: livestockId),
               ],
               const SizedBox(height: 16),
               _buildCapabilityNote(context, l10n),
