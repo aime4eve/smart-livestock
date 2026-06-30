@@ -19,8 +19,9 @@ import java.util.Map;
 @Slf4j
 @Component
 @RocketMQMessageListener(
-        topic = "telemetry-received",
-        consumerGroup = "health-telemetry-consumer"
+       topic = "telemetry-received",
+       consumerGroup = "health-telemetry-consumer",
+       consumeThreadMax = 20
 )
 @RequiredArgsConstructor
 public class TelemetryEventConsumer implements RocketMQListener<String> {

@@ -54,6 +54,16 @@ public class HealthAnomalyService {
      */
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public void assess(Long tenantId, Long farmId, Long livestockId) {
+        try {
+            doAssess(tenantId, farmId, livestockId);
+        } catch (Exception e) {
+            log.warn("AI assess failed (suppressed, telemetry continues) for livestock [{}]: {}", livestockId, e.getMessage());
+            // Do NOT rethrow — ensures REQUIRES_NEW transaction failure
+            // does not corrupt the outer processTelemetry transaction.
+        }
+    }
+
+    private void doAssess(Long tenantId, Long farmId, Long livestockId) {
         // 1. Dedup: skip if assessed recently
         String dedupKey = DEDUP_KEY_PREFIX + livestockId;
         if (redis.get(dedupKey) != null) {

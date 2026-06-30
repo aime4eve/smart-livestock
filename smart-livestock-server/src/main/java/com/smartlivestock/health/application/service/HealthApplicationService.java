@@ -105,12 +105,14 @@ public class HealthApplicationService {
 
         refreshSnapshot(livestockId, farmId, deviceType.name(), temperature, motilityFrequency);
 
-        // AI anomaly detection (Phase A design SS3.1: serial downstream, rule engine runs first)
-        try {
-            healthAnomalyService.assess(1L, farmId, livestockId);
-        } catch (Exception e) {
-            log.warn("AI anomaly assessment failed for livestock [{}]: {}", livestockId, e.getMessage());
-        }
+        // AI anomaly detection — temporarily disabled in processTelemetry.
+        // REQUIRES_NEW transaction corruption under backlog caused all telemetry
+        // processing to fail. TODO: move assess() to async scheduler.
+        // try {
+        //     healthAnomalyService.assess(1L, farmId, livestockId);
+        // } catch (Exception e) {
+        //     log.warn("AI anomaly assessment failed for livestock [{}]: {}", livestockId, e.getMessage());
+        // }
     }
 
     private BigDecimal toBigDecimal(Object value) {
