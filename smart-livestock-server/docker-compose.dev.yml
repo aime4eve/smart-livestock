@@ -1,0 +1,141 @@
+services:
+  postgres:
+    build: ./infrastructure/postgres
+    command: ["postgres", "-c", "hba_file=/etc/postgresql/pg_hba.conf"]
+    environment:
+      POSTGRES_DB: smart_livestock
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "16432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "26380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rocketmq-namesrv:
+    image: apache/rocketmq:5.1.0
+    command: sh mqnamesrv
+    ports:
+      - "19877:9876"
+
+  rocketmq-broker:
+    image: apache/rocketmq:5.1.0
+    command: sh mqbroker -n rocketmq-namesrv:9876
+    depends_on:
+      - rocketmq-namesrv
+    ports:
+      - "10912:10911"
+    environment:
+      JAVA_OPT: "-Duser.home=/home/rocketmq"
+
+  rocketmq-dashboard:
+    image: apacherocketmq/rocketmq-dashboard:latest
+    ports:
+      - "19082:8082"
+    environment:
+      JAVA_OPTS: "-Drocketmq.namesrv.addr=rocketmq-namesrv:9876"
+    depends_on:
+      - rocketmq-namesrv
+
+  app:
+    build: .
+    ports:
+      - "19081:8080"
+    env_file:
+      - .env.dev
+    volumes:
+      - tileserver-data:/data:ro
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: smart_livestock
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ROCKETMQ_NAME_SERVER: rocketmq-namesrv:9876
+      AI_PLATFORM_URL: http://ai-platform:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rocketmq-broker:
+        condition: service_started
+      ai-platform:
+        condition: service_healthy
+    restart: unless-stopped
+
+  ai-platform:
+    build:
+      context: ./ai-platform
+    ports:
+      - "19000:8000"
+    environment:
+      AI_DB_HOST: postgres
+      AI_DB_PORT: 5432
+      AI_DB_NAME: smart_livestock
+      AI_DB_USER: ${AI_DB_USER:-postgres}
+      AI_DB_PASSWORD: ${AI_DB_PASSWORD:-postgres}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/ai/health/live')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  tileserver:
+    image: maptiler/tileserver-gl:latest
+    volumes:
+      - tileserver-data:/data
+    ports:
+      - "9081:8080"
+    command: ["-c", "config.json", "--port", "8080"]
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: .
+      dockerfile: infrastructure/nginx/Dockerfile
+    ports:
+      - "19080:80"
+    depends_on:
+      - app
+
+  tile-worker:
+    build:
+      context: .
+      dockerfile: infrastructure/tile-worker/Dockerfile
+    environment:
+      API_URL: http://app:8080/api/v1
+      SMART_LIVESTOCK_API_KEY: "${SMART_LIVESTOCK_TILE_WORKER_KEY:-sl_live_tile_worker_a1b2c3d4e5f6g7h8i9j0k1l2}"
+      OUTDIR: /data
+      POLL_INTERVAL: "60"
+      TILE_CONCURRENCY: "${TILE_CONCURRENCY:-8}"
+    volumes:
+      - tileserver-data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - app
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  tileserver-data:
