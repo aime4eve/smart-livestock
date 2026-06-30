@@ -74,6 +74,7 @@ android/app/release/
 .env
 .env.*
 !.env.example
+!.env.dev.example
 
 # ============================================
 # Test & Coverage
