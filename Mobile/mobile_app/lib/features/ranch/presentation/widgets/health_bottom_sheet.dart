@@ -189,6 +189,13 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
               ),
             ),
           ),
+        Icon(
+          _snap == _SnapLevel.full
+              ? Icons.keyboard_arrow_down
+              : Icons.keyboard_arrow_up,
+          size: 20,
+          color: Colors.grey[600],
+        ),
       ],
     );
   }
