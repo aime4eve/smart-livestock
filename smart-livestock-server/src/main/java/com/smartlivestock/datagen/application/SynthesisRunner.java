@@ -9,14 +9,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Scheduled runner that triggers synthesis for all RUNNING scenarios.
- * Replaces TelemetrySimulator's @Scheduled fixed-rate trigger.
- *
- * matchIfMissing=true: datagen is enabled by default (same as telemetry.simulator.enabled=true before).
- */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -25,19 +22,26 @@ public class SynthesisRunner {
 
     private final SynthesisService synthesisService;
     private final SynthesisScenarioRepository scenarioRepository;
+    private final ConcurrentHashMap<Long, Instant> lastRunTimes = new ConcurrentHashMap<>();
 
-    @Scheduled(fixedRateString = "${datagen.interval-ms:30000}")
+    @Scheduled(fixedRateString = "${datagen.tick-ms:10000}")
     public void run() {
         List<SynthesisScenario> active = scenarioRepository.findByStatus(ScenarioStatus.RUNNING);
         if (active.isEmpty()) {
-            log.debug("No RUNNING synthesis scenarios - skipping");
+            log.debug("No RUNNING scenarios - skipping");
             return;
         }
+        Instant now = Instant.now();
         for (SynthesisScenario scenario : active) {
-            try {
-                synthesisService.generate(scenario);
-            } catch (Exception e) {
-                log.error("Synthesis failed for scenario [{}]: {}", scenario.getName(), e.getMessage(), e);
+            int interval = scenario.effectiveIntervalSeconds();
+            Instant lastRun = lastRunTimes.get(scenario.getId());
+            if (lastRun == null || Duration.between(lastRun, now).getSeconds() >= interval) {
+                try {
+                    synthesisService.generate(scenario);
+                    lastRunTimes.put(scenario.getId(), now);
+                } catch (Exception e) {
+                    log.error("Synthesis failed for [{}]: {}", scenario.getName(), e.getMessage(), e);
+                }
             }
         }
     }

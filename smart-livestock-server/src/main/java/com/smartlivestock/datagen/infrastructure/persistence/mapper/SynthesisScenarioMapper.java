@@ -2,26 +2,22 @@ package com.smartlivestock.datagen.infrastructure.persistence.mapper;
 
 import com.smartlivestock.datagen.domain.model.*;
 import com.smartlivestock.datagen.infrastructure.persistence.entity.SynthesisScenarioJpaEntity;
-
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class SynthesisScenarioMapper {
-
     public static SynthesisScenario toDomain(SynthesisScenarioJpaEntity e) {
         if (e == null) return null;
         SynthesisScenario s = new SynthesisScenario();
         s.setId(e.getId());
         s.setName(e.getName());
         s.setStatus(ScenarioStatus.valueOf(e.getStatus()));
-        s.setScenarioType(e.getScenarioType() != null ? ScenarioType.valueOf(e.getScenarioType()) : ScenarioType.HEALTH);
-        s.setPattern(AnomalyPattern.fromDbValue(e.getPattern()));
-        s.setPenetrationRate(e.getPenetrationRate() != null ? e.getPenetrationRate().doubleValue() : 1.0);
+        s.setType(ScenarioType.fromDbValue(e.getType()));
+        s.setPenetrationRate(e.getPenetrationRate() != null ? e.getPenetrationRate() : 1.0);
         s.setWindowStart(e.getWindowStart());
         s.setWindowEnd(e.getWindowEnd());
-        s.setIntervalSeconds(e.getIntervalSeconds() != null ? e.getIntervalSeconds() : 30);
+        s.setIntervalSeconds(e.getIntervalSeconds());
         s.setTargetLivestockIds(parseLongArray(e.getTargetLivestockIds()));
         return s;
     }
@@ -31,9 +27,8 @@ public class SynthesisScenarioMapper {
         e.setId(s.getId());
         e.setName(s.getName());
         e.setStatus(s.getStatus().name());
-        e.setScenarioType(s.getScenarioType().name());
-        e.setPattern(s.getPattern().getDbValue());
-        e.setPenetrationRate(BigDecimal.valueOf(s.getPenetrationRate()));
+        e.setType(s.getType().getDbValue());
+        e.setPenetrationRate(s.getPenetrationRate());
         e.setWindowStart(s.getWindowStart());
         e.setWindowEnd(s.getWindowEnd());
         e.setIntervalSeconds(s.getIntervalSeconds());

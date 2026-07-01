@@ -39,7 +39,7 @@ telemetry:
 
 datagen:
   enabled: ${DATAGEN_ENABLED:true}
-  interval-ms: ${DATAGEN_INTERVAL_MS:30000}
+  tick-ms: ${DATAGEN_TICK_MS:10000}
   retention-days: ${DATAGEN_RETENTION_DAYS:30}
   retention-cron: ${DATAGEN_RETENTION_CRON:0 0 3 * * *}
 
