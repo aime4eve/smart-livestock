@@ -541,6 +541,164 @@ Run: `./gradlew test --tests "*.iot.*" 2>&1 | tail -20`
 
 ---
 
+
+
+---
+
+# Task 22-25: 系统性重构（2026-07-01）
+
+> 统一 ScenarioType + AnomalyPattern 枚举，频率内聚到类型，调制逻辑用数据结构替代 switch-case。
+> 设计依据：`docs/superpowers/specs/2026-06-26-datagen-context-design.md` §3-§5（重构版）
+
+## Task 22: V40 迁移 + ScenarioType 统一枚举重写
+
+**Files:**
+- Create: `V40__unify_scenario_type.sql`
+- Rewrite: `ScenarioType.java`（合并 AnomalyPattern + DimensionModulation）
+- Create: `DimensionModulation.java`
+- Delete: `AnomalyPattern.java`
+
+- [ ] **Step 1: V40 迁移 — scenario_type + pattern 合并为 type**
+
+```sql
+ALTER TABLE synthesis_scenarios ADD COLUMN type VARCHAR(40);
+UPDATE synthesis_scenarios SET type = CASE WHEN scenario_type = 'HEALTH' THEN pattern ELSE scenario_type END;
+ALTER TABLE synthesis_scenarios ALTER COLUMN type SET NOT NULL;
+ALTER TABLE synthesis_scenarios DROP COLUMN scenario_type;
+ALTER TABLE synthesis_scenarios DROP COLUMN pattern;
+ALTER TABLE ground_truth_labels ADD COLUMN type VARCHAR(40);
+UPDATE ground_truth_labels SET type = CASE WHEN scenario_type = 'HEALTH' THEN pattern ELSE scenario_type END;
+ALTER TABLE ground_truth_labels ALTER COLUMN type SET NOT NULL;
+ALTER TABLE ground_truth_labels DROP COLUMN scenario_type;
+ALTER TABLE ground_truth_labels DROP COLUMN pattern;
+```
+
+- [ ] **Step 2: DimensionModulation record**
+
+```java
+public record DimensionModulation(
+    double tempDelta, double motilityRatio, double activityRatio, double stepRatio) {}
+```
+
+- [ ] **Step 3: ScenarioType 统一枚举重写**
+
+每个值携带：Category（行为分支）、defaultIntervalSeconds（频率）、defaultDuration、temporalShape、modulation。
+删除原有空壳 ScenarioType（3 值）+ AnomalyPattern（7 值），合并为 9 值统一枚举。
+
+- [ ] **Step 4: 删除 AnomalyPattern.java**
+- [ ] **Step 5: 编译 + Commit**
+
+---
+
+## Task 23: 域模型 + JPA + Mapper + DTO 重构
+
+**Files:**
+- Rewrite: `SynthesisScenario.java`（scenarioType + pattern → type）
+- Rewrite: `GroundTruthLabel.java`（scenarioType + pattern → type）
+- Rewrite: `SynthesisScenarioJpaEntity.java`（scenarioType + pattern 列 → type 列）
+- Rewrite: `GroundTruthLabelJpaEntity.java`（同上）
+- Rewrite: `SynthesisScenarioMapper.java`（映射 type 单列）
+- Rewrite: `GroundTruthLabelMapper.java`（同上）
+- Rewrite: `CreateScenarioRequest.java`（scenarioType + pattern → type）
+- Rewrite: `ScenarioDto.java`（同上）
+- Rewrite: `DataGenAdminController.java`（createScenario 用 type）
+
+- [ ] **Step 1-8: 逐文件重构（type 替代 scenarioType + pattern）**
+- [ ] **Step 9: 编译 + Commit**
+
+---
+
+## Task 24: SynthesisService + SynthesisState + SynthesisRunner 重构
+
+> 核心重构：category 策略分发 + DimensionModulation 统一调制公式 + per-scenario 节流。
+
+**Files:**
+- Rewrite: `SynthesisService.java`
+- Rewrite: `SynthesisState.java`
+- Rewrite: `SynthesisRunner.java`
+
+- [ ] **Step 1: SynthesisState 统一事件追踪**
+
+```java
+ScenarioType activeType;  // 替代 activePattern + activeFenceScenario
+Instant eventStart;
+Instant eventEnd;
+double eventProgress(Instant now);
+boolean isInEvent(Instant now);
+```
+
+- [ ] **Step 2: SynthesisService category 策略分发**
+
+```java
+public void generate(SynthesisScenario scenario) {
+    ...
+    for (ActiveInstallationInfo inst : installations) {
+        Map<String, Object> readings = generateBaseline(inst, state, now);
+        switch (scenario.getType().getCategory()) {
+            case HEALTH -> applyHealthModulation(readings, state, scenario, now);
+            case FENCE  -> applyFenceDisplacement(readings, state, scenario, inst, now);
+            case BASELINE -> {}
+        }
+        ingestionPort.ingest(inst.deviceId(), readings, now);
+    }
+}
+```
+
+- [ ] **Step 3: applyHealthModulation 用 DimensionModulation 统一调制**
+
+删除 4 个 switch-case（getActivityModulation / getTempModulation / getMotilityModulation / getStepModulation），
+替换为统一公式：
+```
+temperature = baseTemp + intensity * mod.tempDelta
+motility = baseMotility * (1.0 + intensity * (mod.motilityRatio - 1.0))
+activity = baseActivity * (1.0 + intensity * (mod.activityRatio - 1.0))
+steps = baseSteps * (1.0 + intensity * (mod.stepRatio - 1.0))
+```
+
+- [ ] **Step 4: generateBaseline 提取（所有 category 共用）**
+
+TRACKER + CAPSULE 的基线生成（昼夜节律 + 噪声 + GPS 随机游走 + activityIndex），
+不再带健康调制参数（调制在 applyHealthModulation 中做）。
+
+- [ ] **Step 5: SynthesisRunner 全局 tick + per-scenario 节流**
+
+```java
+@Scheduled(fixedRateString = "${datagen.tick-ms:10000}")
+public void run() {
+    ...
+    int interval = scenario.effectiveIntervalSeconds();
+    Instant lastRun = lastRunTimes.get(scenario.getId());
+    if (lastRun == null || Duration.between(lastRun, now).getSeconds() >= interval) {
+        synthesisService.generate(scenario);
+        lastRunTimes.put(scenario.getId(), now);
+    }
+}
+```
+
+- [ ] **Step 6: application.yml tick-ms 替代 interval-ms**
+
+- [ ] **Step 7: 编译 + 测试 + Commit**
+
+---
+
+## Task 25: 全量验证 + 单元测试补充
+
+- [ ] **Step 1: 全量编译 + 测试**
+
+Run: `./gradlew compileJava compileTestJava -q && ./gradlew test --tests "*.datagen.*" --tests "*.iot.*"`
+
+- [ ] **Step 2: 补充 SynthesisService 单元测试**
+
+Mock 全部 ACL port，验证：
+- NORMAL 场景：generateBaseline 正确生成基线数据（含 activityIndex）
+- HEALTH 场景：DimensionModulation 四维调制正确
+- FENCE_BREACH 场景：GPS 位移到围栏外
+- 多场景并存：state.activeType 共享，先到先得
+
+- [ ] **Step 3: 最终 Commit**
+
+---
+
 ## Self-Review（评审修复验证）
 
 | 评审问题 | 严重度 | 修复位置 | 状态 |
