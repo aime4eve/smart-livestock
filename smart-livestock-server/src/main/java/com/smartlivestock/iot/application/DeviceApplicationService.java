@@ -25,7 +25,7 @@ public class DeviceApplicationService {
     public DeviceDto registerDevice(RegisterDeviceCommand command) {
         if (deviceRepository.findByDeviceCode(command.deviceCode()).isPresent()) {
             throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,
-                    "设备编号已存在: " + command.deviceCode());
+                    "error.deviceCodeDuplicate", new Object[]{command.deviceCode()});
         }
         Device device = new Device();
         device.setTenantId(command.tenantId());
@@ -39,13 +39,14 @@ public class DeviceApplicationService {
     @Transactional
     public DeviceDto updateDevice(Long id, UpdateDeviceCommand command) {
         Device device = deviceRepository.findById(id)
-                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "设备不存在: " + id));
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "error.deviceNotFound", new Object[]{id}));
         if (!command.deviceCode().equals(device.getDeviceCode())) {
             deviceRepository.findByDeviceCode(command.deviceCode())
                     .ifPresent(existing -> {
                         if (!existing.getId().equals(id)) {
                             throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,
-                                    "设备编号已存在: " + command.deviceCode());
+                                    "error.deviceCodeDuplicate", new Object[]{command.deviceCode()});
                         }
                     });
         }
@@ -57,7 +58,8 @@ public class DeviceApplicationService {
     @Transactional(readOnly = true)
     public DeviceDto getDevice(Long id) {
         Device device = deviceRepository.findById(id)
-                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "设备不存在: " + id));
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "error.deviceNotFound", new Object[]{id}));
         return DeviceDto.from(device);
     }
 
@@ -71,7 +73,8 @@ public class DeviceApplicationService {
     @Transactional
     public void activateDevice(Long id) {
         Device device = deviceRepository.findById(id)
-                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "设备不存在: " + id));
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "error.deviceNotFound", new Object[]{id}));
         device.activate();
         deviceRepository.save(device);
     }
@@ -79,7 +82,8 @@ public class DeviceApplicationService {
     @Transactional
     public void markOffline(Long id) {
         Device device = deviceRepository.findById(id)
-                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "设备不存在: " + id));
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "error.deviceNotFound", new Object[]{id}));
         device.markOffline();
         deviceRepository.save(device);
     }
@@ -87,7 +91,8 @@ public class DeviceApplicationService {
     @Transactional
     public void decommissionDevice(Long id) {
         Device device = deviceRepository.findById(id)
-                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "设备不存在: " + id));
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "error.deviceNotFound", new Object[]{id}));
         device.decommission();
         deviceRepository.save(device);
     }

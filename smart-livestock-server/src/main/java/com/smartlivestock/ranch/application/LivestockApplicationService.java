@@ -28,7 +28,7 @@ public class LivestockApplicationService {
     public LivestockDto createLivestock(CreateLivestockCommand command) {
         if (livestockRepository.findByLivestockCode(command.livestockCode()).isPresent()) {
             throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,
-                    "牲畜编号已存在: " + command.livestockCode());
+                    "error.livestockCodeDuplicate", new Object[]{command.livestockCode()});
         }
         Livestock livestock = new Livestock();
         livestock.setFarmId(command.farmId());
@@ -44,7 +44,8 @@ public class LivestockApplicationService {
     @Transactional(readOnly = true)
     public LivestockDto getLivestock(Long id) {
         Livestock livestock = livestockRepository.findById(id)
-                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牲畜不存在: " + id));
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "error.livestockNotFound", new Object[]{id}));
         HealthQueryPort.LivestockHealthState health = healthQueryPort.findHealthByLivestockId(id).orElse(null);
         return LivestockDto.detail(livestock, health);
     }
@@ -59,7 +60,8 @@ public class LivestockApplicationService {
     @Transactional
     public void updatePosition(Long id, BigDecimal lat, BigDecimal lng) {
         Livestock livestock = livestockRepository.findById(id)
-                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牲畜不存在: " + id));
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "error.livestockNotFound", new Object[]{id}));
         livestock.updatePosition(lat, lng);
         livestockRepository.save(livestock);
     }
@@ -67,13 +69,14 @@ public class LivestockApplicationService {
     @Transactional
     public LivestockDto updateLivestock(Long id, UpdateLivestockCommand command) {
         Livestock livestock = livestockRepository.findById(id)
-                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牲畜不存在: " + id));
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "error.livestockNotFound", new Object[]{id}));
         if (!command.livestockCode().equals(livestock.getLivestockCode())) {
             livestockRepository.findByLivestockCode(command.livestockCode())
                     .ifPresent(existing -> {
                         if (!existing.getId().equals(id)) {
                             throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,
-                                    "牲畜编号已存在: " + command.livestockCode());
+                                    "error.livestockCodeDuplicate", new Object[]{command.livestockCode()});
                         }
                     });
         }
@@ -86,10 +89,11 @@ public class LivestockApplicationService {
     @Transactional
     public void deleteLivestock(Long id) {
         Livestock livestock = livestockRepository.findById(id)
-                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牲畜不存在: " + id));
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "error.livestockNotFound", new Object[]{id}));
         if (iotQueryPort.hasActiveInstallationByLivestock(id)) {
             throw new ApiException(ErrorCode.STATE_CONFLICT,
-                    "该牲畜仍有活跃设备安装，请先卸载");
+                    "error.livestockHasActiveInstallation", null);
         }
         livestockRepository.deleteById(id);
     }

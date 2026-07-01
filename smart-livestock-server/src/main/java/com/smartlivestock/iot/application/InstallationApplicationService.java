@@ -26,21 +26,22 @@ public class InstallationApplicationService {
     @Transactional
     public InstallationDto install(InstallDeviceCommand command) {
         Device device = deviceRepository.findById(command.deviceId())
-                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "设备不存在: " + command.deviceId()));
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "error.deviceNotFound", new Object[]{command.deviceId()}));
         if (device.getStatus() != DeviceStatus.ACTIVE) {
             throw new ApiException(ErrorCode.DEVICE_NOT_ACTIVE,
-                    "设备未激活，无法安装: " + command.deviceId());
+                    "error.deviceNotActiveForInstall", new Object[]{command.deviceId()});
         }
         if (installationRepository.findActiveByDeviceId(command.deviceId()).isPresent()) {
             throw new ApiException(ErrorCode.STATE_CONFLICT,
-                    "设备已安装在其他牲畜上: " + command.deviceId());
+                    "error.deviceAlreadyInstalled", new Object[]{command.deviceId()});
         }
         if (installationRepository.findActiveByLivestockIdAndDeviceType(
                 command.livestockId(), device.getDeviceType()).isPresent()) {
             throw new ApiException(ErrorCode.STATE_CONFLICT,
-                    "该牲畜已安装同类型设备: " + device.getDeviceType());
+                    "error.livestockDeviceTypeConflict", new Object[]{device.getDeviceType()});
         }
-        Installation installation = new Installation(command.deviceId(), command.livestockId(), command.operatorId());
+       Installation installation = new Installation(command.deviceId(), command.livestockId(), command.operatorId());
         Installation saved = installationRepository.save(installation);
         return InstallationDto.from(saved);
     }

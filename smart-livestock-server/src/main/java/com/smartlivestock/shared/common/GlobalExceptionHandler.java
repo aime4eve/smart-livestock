@@ -6,18 +6,25 @@ import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.Locale;
 import java.util.UUID;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private final MessageResolver messageResolver;
+
+    public GlobalExceptionHandler(MessageResolver messageResolver) {
+        this.messageResolver = messageResolver;
+    }
 
     private static String currentRequestId() {
         String id = MDC.get("requestId");
@@ -28,10 +35,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleApiException(ApiException ex) {
         String requestId = currentRequestId();
         HttpStatus status = mapToHttpStatus(ex.getCode());
-        log.warn("[{}] ApiException {}: {}", requestId, ex.getCode(), ex.getMessage());
+        String resolvedMessage = resolveMessage(ex);
+        log.warn("[{}] ApiException {}: {}", requestId, ex.getCode(), resolvedMessage);
         return ResponseEntity
                 .status(status)
-                .body(ApiResponse.error(ex.getCode(), ex.getMessage(), requestId));
+                .body(ApiResponse.error(ex.getCode(), resolvedMessage, requestId));
     }
 
     @ExceptionHandler(DomainException.class)
@@ -128,5 +136,10 @@ public class GlobalExceptionHandler {
             case SETTLEMENT_DUPLICATE_CONFIRM -> HttpStatus.CONFLICT;
             case INTERNAL_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
+    }
+
+    private String resolveMessage(ApiException ex) {
+        Locale locale = LocaleContextHolder.getLocale();
+        return messageResolver.resolve(ex.getMessage(), ex.getMessageArgs(), locale);
     }
 }
