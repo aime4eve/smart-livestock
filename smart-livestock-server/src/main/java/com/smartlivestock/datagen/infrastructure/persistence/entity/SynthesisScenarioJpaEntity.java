@@ -14,7 +14,7 @@ public class SynthesisScenarioJpaEntity {
     private String status;
     @Column(name = "type", nullable = false, length = 40)
     private String type;
-    @Column(name = "penetration_rate", precision = 3, scale = 2)
+    @Column(name = "penetration_rate")
     private Double penetrationRate;
     @Column(name = "window_start", nullable = false)
     private Instant windowStart;
