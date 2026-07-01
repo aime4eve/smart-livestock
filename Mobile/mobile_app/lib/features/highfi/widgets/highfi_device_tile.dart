@@ -91,7 +91,7 @@ class HighfiDeviceTile extends StatelessWidget {
   IconData get _typeIcon => switch (device.type) {
         DeviceType.gps => Icons.gps_fixed,
         DeviceType.rumenCapsule => Icons.medication,
-        DeviceType.accelerometer => Icons.speed,
+        DeviceType.earTag => Icons.tag,
       };
 
   Color get _statusColor => switch (device.status) {

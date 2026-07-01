@@ -15,6 +15,10 @@ import 'package:hkt_livestock_agentic/features/livestock/presentation/livestock_
 import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/locked_overlay.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/features/devices/domain/devices_repository.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/l10n/enum_labels.dart';
+import 'package:hkt_livestock_agentic/features/devices/presentation/devices_controller.dart';
 
 class LivestockDetailPage extends ConsumerWidget {
   const LivestockDetailPage({super.key, required this.earTag});
@@ -158,13 +162,13 @@ class _InfoItem extends StatelessWidget {
   }
 }
 
-class _DeviceListCard extends StatelessWidget {
+class _DeviceListCard extends ConsumerWidget {
   const _DeviceListCard({required this.detail});
 
   final LivestockDetail detail;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     return HighfiCard(
       key: const Key('livestock-device-card'),
@@ -221,9 +225,134 @@ class _DeviceListCard extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(height: AppSpacing.md),
+            OutlinedButton.icon(
+              key: const Key('livestock-bind-device'),
+              onPressed: () => _showBindDeviceSheet(context, ref, detail),
+              icon: const Icon(Icons.link),
+              label: Text(l10n.installBindDevice),
+            ),
         ],
       ),
     );
+  }
+}
+
+void _showBindDeviceSheet(BuildContext context, WidgetRef ref, LivestockDetail detail) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (ctx) => _BindDeviceSheet(livestockId: detail.livestockId),
+  ).then((_) => ref.read(livestockDetailControllerProvider(detail.earTag).notifier).refresh());
+}
+
+class _BindDeviceSheet extends ConsumerStatefulWidget {
+  const _BindDeviceSheet({required this.livestockId});
+  final String livestockId;
+
+  @override
+  ConsumerState<_BindDeviceSheet> createState() => _BindDeviceSheetState();
+}
+
+class _BindDeviceSheetState extends ConsumerState<_BindDeviceSheet> {
+  List<DeviceItem> _devices = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDevices();
+  }
+
+  Future<void> _loadDevices() async {
+    try {
+      final data = await ref.read(devicesRepositoryProvider).loadDevices(pageSize: 100);
+      final installed = await ref.read(devicesRepositoryProvider).loadInstallations();
+      final installedDeviceIds = installed
+          .where((i) => i.livestockId == widget.livestockId && i.installedAt.isNotEmpty)
+          .map((i) => i.deviceId)
+          .toSet();
+      if (mounted) {
+        setState(() {
+          _devices = data.items.where((d) => !installedDeviceIds.contains(d.id)).toList();
+          _loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(l10n.installSelectDevice, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: AppSpacing.md),
+            if (_loading)
+              const Center(child: CircularProgressIndicator())
+            else if (_devices.isEmpty)
+              Center(child: Text(l10n.installNoAvailableDevices))
+            else
+              ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.4),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _devices.length,
+                  itemBuilder: (ctx, i) {
+                    final d = _devices[i];
+                    return ListTile(
+                      key: Key('bind-device-${d.id}'),
+                      leading: Icon(switch (d.type) {
+                        DeviceType.gps => Icons.gps_fixed,
+                        DeviceType.rumenCapsule => Icons.medication,
+                        DeviceType.earTag => Icons.tag,
+                      }),
+                      title: Text(d.name),
+                      subtitle: Text(d.type.localizedLabel(l10n)),
+                      onTap: () => _install(d),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _install(DeviceItem device) async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      await ApiClient.instance.farmPost('/installations', body: {
+        'deviceId': device.id,
+        'livestockId': widget.livestockId,
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.installSuccess)));
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      }
+    }
   }
 }
 

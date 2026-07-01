@@ -4,6 +4,8 @@ import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/dashboard/presentation/dashboard_controller.dart';
+import 'package:hkt_livestock_agentic/features/livestock/presentation/livestock_controller.dart';
+import 'package:hkt_livestock_agentic/features/devices/presentation/widgets/device_form_sheet.dart';
 import 'package:hkt_livestock_agentic/features/devices/domain/devices_repository.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/devices_controller.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
@@ -23,9 +25,11 @@ class DevicesPage extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         key: const Key('device-add-fab'),
         onPressed: () {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(SnackBar(content: Text(l10n.devicesAddDemo)));
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (ctx) => DeviceFormSheet(),
+          ).then((_) => controller.refresh());
         },
         child: const Icon(Icons.add),
       ),
@@ -96,11 +100,18 @@ class DevicesPage extends ConsumerWidget {
     );
   }
 
-  void _showInstallDialog(
-      BuildContext context, WidgetRef ref, DeviceItem device) {
+  Future<void> _showInstallDialog(
+      BuildContext context, WidgetRef ref, DeviceItem device) async {
     final l10n = AppLocalizations.of(context)!;
     // Livestock options from API (placeholder until async migration)
-    const options = <_LivestockOption>[];
+    final livestockRepo = ref.read(livestockRepositoryProvider);
+    List<_LivestockOption> options = [];
+    try {
+      final livestockData = await livestockRepo.loadAll();
+      options = livestockData.items
+          .map((l) => _LivestockOption(id: l.id, label: l.earTag, subtitle: l.breed))
+          .toList();
+    } catch (_) {}
 
     showDialog<void>(
       context: context,

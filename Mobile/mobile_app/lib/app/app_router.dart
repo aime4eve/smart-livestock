@@ -29,6 +29,7 @@ import 'package:hkt_livestock_agentic/features/pages/fence_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/fever_detail_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/fever_warning_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/livestock_detail_page.dart';
+import 'package:hkt_livestock_agentic/features/pages/livestock_list_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/mine_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/stats_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/twin_overview_page.dart';
@@ -267,12 +268,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               return LivestockDetailPage(earTag: earTag);
             },
           ),
+         GoRoute(
+           path: AppRoute.devices.path,
+           name: AppRoute.devices.routeName,
+           builder: (context, state) => const DevicesPage(),
+         ),
           GoRoute(
-            path: AppRoute.devices.path,
-            name: AppRoute.devices.routeName,
-            builder: (context, state) => const DevicesPage(),
+            path: AppRoute.livestockList.path,
+            name: AppRoute.livestockList.routeName,
+            builder: (context, state) => const LivestockListPage(),
           ),
-          GoRoute(
+         GoRoute(
             path: AppRoute.stats.path,
             name: AppRoute.stats.routeName,
             builder: (context, state) => const StatsPage(),

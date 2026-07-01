@@ -7,6 +7,7 @@ enum AppRoute {
   fence('/fence', 'fence', '围栏'),
   admin('/admin', 'admin', '后台'),
   platformAdmin('/ops/admin', 'platform-admin', '平台后台'),
+  livestockList('/livestock', 'livestock-list', '牲畜管理'),
   livestockDetail('/livestock/:id', 'livestock-detail', '牲畜详情'),
   devices('/devices', 'devices', '设备管理'),
   fenceForm('/fence/form', 'fence-form', '围栏表单'),

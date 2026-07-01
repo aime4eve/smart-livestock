@@ -32,7 +32,7 @@ extension DeviceTypeL10n on DeviceType {
         return l10n.deviceTypeGps;
       case DeviceType.rumenCapsule:
         return l10n.deviceTypeRumenCapsule;
-      case DeviceType.accelerometer:
+      case DeviceType.earTag:
         return l10n.deviceTypeEarTag;
     }
   }

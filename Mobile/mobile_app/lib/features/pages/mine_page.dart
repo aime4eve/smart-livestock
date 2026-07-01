@@ -108,6 +108,18 @@ class MinePage extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         
+       HighfiCard(
+          child: ListTile(
+            key: const Key('mine-livestock-mgmt'),
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.pets),
+            title: Text(l10n.livestockListTitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go(AppRoute.livestockList.path),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+
         HighfiCard(
           child: ListTile(
             key: const Key('mine-device-mgmt'),
