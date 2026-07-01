@@ -4,6 +4,10 @@ Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-s
 
 **Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
+DO NOT send optional commentary.
+
+用中文输出。
+
 ## 1. Think Before Coding
 
 **Don't assume. Don't hide confusion. Surface tradeoffs.**
@@ -66,12 +70,12 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## 5. Build / Deploy / Test 分工约定
 
-**编译可以执行，部署必须由用户完成，集成测试仅在部署后执行。**
+**编译和部署均可由 Agent 执行，集成测试仅在部署完成后执行。**
 
 - **编译**：Agent 可自行执行（如 `./gradlew bootJar`、`flutter build web --no-wasm-dry-run`），验证代码可构建。
-- **部署**：一律由用户执行（`rsync`、`docker compose`、`ssh` 等部署操作，Agent 不碰）。Agent 改动涉及部署时，提供命令供用户执行即可，不要自行调用。
-- **集成测试**：仅在用户确认部署完成后才执行；不得在部署前提前运行（避免对旧版本/无后端状态做无效验证）。
-- **顺序**：编码 → 编译验证 → （用户部署）→ 用户确认 → 集成测试。
+- **部署**：Agent 可自行执行（`./scripts/deploy.sh dev|test`，包含 rsync、docker compose build/up、镜像清理）。用户也可手动执行。
+- **集成测试**：仅在部署完成后执行；不得在部署前提前运行（避免对旧版本/无后端状态做无效验证）。
+- **顺序**：编码 → 编译验证 → 部署（Agent 或用户）→ 集成测试。
 
 ## 6. 代码实现通用规范
 
@@ -186,20 +190,31 @@ CattleService ←→ LocationService（GPS 坐标）
 
 ### 后端服务部署方式
 
-- ssh agentic@172.22.1.123 远程登录服务器
-- rsync 最新代码到 172.22.1.123
-- docker compose build + up 部署更新
+单台服务器（172.22.1.123，32 核 / 126GB 内存）运行两套完全隔离的 docker-compose stack：
+
+| 环境 | 角色 | 端口段（nginx 入口） | compose 文件 | 项目名 | env 文件 |
+|------|------|---------------------|-------------|--------|---------|
+| **test**（测试环境） | 现有 stack，改名为 test | `18080` | `docker-compose.test.yml` | `smart-livestock-server` | `.env` |
+| **dev**（开发环境） | 新建 stack | `19080` | `docker-compose.dev.yml` | `sl-dev` | `.env.dev` |
+
+两套 stack 共享同一份 Dockerfile 和构建产物，各自独立的 PostgreSQL / Redis / RocketMQ / volume，互不干扰。设计文档：`docs/superpowers/specs/2026-07-01-dev-test-env-isolation-design.md`
 
 ### 一键部署（本地执行）
 
+统一部署脚本 `scripts/deploy.sh`，接受环境参数：
+
 ```bash
 cd smart-livestock-server
-./gradlew bootJar -x test
-rsync -avz --exclude='.git' --exclude='.gradle' --exclude='node_modules' --exclude='build/tmp' --exclude='build/classes' . agentic@172.22.1.123:~/smart-livestock-server/
-# 清理旧 JAR，只保留最新版本号
-ssh agentic@172.22.1.123 "cd ~/smart-livestock-server/build/libs && ls -t smart-livestock-server-*.jar | tail -n +2 | xargs rm -f"
-ssh agentic@172.22.1.123 "cd ~/smart-livestock-server && docker compose build app && docker compose up -d app"
+./scripts/deploy.sh dev    # 部署到 dev 环境（端口 19080）
+./scripts/deploy.sh test   # 部署到 test 环境（端口 18080）
 ```
+
+脚本内部流程：编译 bootJar → rsync 同步代码（排除 .git/.gradle/.env/.env.dev 等）→ 远程清理旧 JAR → docker compose build + up → docker image prune。
+
+注意事项：
+- `.env`（test）和 `.env.dev`（dev）在远程手动维护，不随 rsync 覆盖
+- tile-worker 的 Dockerfile 需要联网下载 docker-ce-cli，若服务器无法访问 download.docker.com，dev stack 可复用 test 已构建的镜像（`docker tag smart-livestock-server-tile-worker:latest sl-dev-tile-worker:latest`）
+- Flutter 连接环境通过运行参数切换，不改代码：`--dart-define=API_BASE_URL=http://172.22.1.123:19080/api/v1`（dev）或 `:18080`（test）
 
 ### 种子数据登录凭据
 
@@ -446,4 +461,4 @@ cd Mobile && ./dev.sh start [mock|live]
 2. **沙箱内 Flutter 任何命令崩**（写不了 `~/.dart-tool`）→ 统一加 `HOME=/private/tmp FLUTTER_SUPPRESS_ANALYTICS=true flutter <cmd>`；`analyze` 加 `--no-pub`，`pub get` 需联网或 `--offline`。
 3. **`/Volumes/DEV` 上任何工具读到不该读的文件 / git 报 `non-monotonic index`**→ 先 `find . -name '._*' | head` 扫描 AppleDouble 污染（根因多为 rsync/tar 未去 resource fork 或经 FAT/网络卷中转）。
 4. **接口返回空列表**→ 先核验代码 glob 与挂载路径一致后，进容器 `ls` 数据卷确认数据是否存在，不要在代码里继续改路径（如 tile `/data/*.mbtiles` 空多是卷为空，非路径错位）。
-5. **部署与集成测试边界**：编译 Agent 可做（`./gradlew bootJar`、`flutter build`），部署与部署后 `curl` 验证由用户执行（见 §5）。
+5. **部署与集成测试边界**：编译和部署 Agent 可做（`./gradlew bootJar`、`./scripts/deploy.sh dev|test`），部署后 `curl` 验证也由 Agent 执行（见 §5）。两套环境分离：test（18080）+ dev（19080），互不干扰。
