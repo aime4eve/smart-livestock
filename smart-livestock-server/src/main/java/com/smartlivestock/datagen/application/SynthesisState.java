@@ -2,10 +2,13 @@ package com.smartlivestock.datagen.application;
 
 import com.smartlivestock.datagen.domain.model.ScenarioType;
 import com.smartlivestock.datagen.domain.port.dto.ActiveInstallationInfo;
+import lombok.extern.slf4j.Slf4j;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.ThreadLocalRandom;
 
+@Slf4j
 class SynthesisState {
     double tempBaselineOffset;
     long motilityBaseline;
@@ -26,6 +29,17 @@ class SynthesisState {
         s.motilityBaseline = (long) (rng.nextDouble(2.5, 3.5) * 100000);
         s.batteryLevel = rng.nextInt(70, 101);
         s.batteryVoltage = rng.nextInt(3200, 3601);
+
+        // Initialize GPS position from livestock's last known location
+        if (inst.latitude() != null && inst.longitude() != null) {
+            s.currentLat = inst.latitude();
+            s.currentLng = inst.longitude();
+        } else {
+            // Fallback: default farm center (长沙附近)
+            log.warn("Livestock [{}] has no last position, defaulting to 28.229, 112.938", livestockId);
+            s.currentLat = 28.229;
+            s.currentLng = 112.938;
+        }
         return s;
     }
 
