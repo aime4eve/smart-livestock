@@ -458,11 +458,11 @@ abstract class AppLocalizations {
   /// **'瘤胃胶囊'**
   String get deviceTypeRumenCapsule;
 
-  /// No description provided for @deviceTypeAccelerometer.
+  /// No description provided for @deviceTypeEarTag.
   ///
   /// In zh, this message translates to:
-  /// **'加速度计'**
-  String get deviceTypeAccelerometer;
+  /// **'耳标'**
+  String get deviceTypeEarTag;
 
   /// No description provided for @subscriptionTierBasic.
   ///
@@ -4295,6 +4295,168 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'异常数量'**
   String get aiAnomalyAnomalyCount;
+
+  /// No description provided for @livestockListTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'牲畜管理'**
+  String get livestockListTitle;
+
+  /// No description provided for @livestockAddNew.
+  ///
+  /// In zh, this message translates to:
+  /// **'新增牲畜'**
+  String get livestockAddNew;
+
+  /// No description provided for @livestockEdit.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑牲畜'**
+  String get livestockEdit;
+
+  /// No description provided for @livestockFormFieldCode.
+  ///
+  /// In zh, this message translates to:
+  /// **'编号'**
+  String get livestockFormFieldCode;
+
+  /// No description provided for @livestockFormFieldBreed.
+  ///
+  /// In zh, this message translates to:
+  /// **'品种'**
+  String get livestockFormFieldBreed;
+
+  /// No description provided for @livestockFormFieldGender.
+  ///
+  /// In zh, this message translates to:
+  /// **'性别'**
+  String get livestockFormFieldGender;
+
+  /// No description provided for @livestockFormFieldBirthDate.
+  ///
+  /// In zh, this message translates to:
+  /// **'出生日期'**
+  String get livestockFormFieldBirthDate;
+
+  /// No description provided for @livestockFormFieldWeight.
+  ///
+  /// In zh, this message translates to:
+  /// **'体重'**
+  String get livestockFormFieldWeight;
+
+  /// No description provided for @livestockCreateSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'牲畜创建成功'**
+  String get livestockCreateSuccess;
+
+  /// No description provided for @livestockUpdateSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'牲畜更新成功'**
+  String get livestockUpdateSuccess;
+
+  /// No description provided for @livestockBreedAngus.
+  ///
+  /// In zh, this message translates to:
+  /// **'安格斯'**
+  String get livestockBreedAngus;
+
+  /// No description provided for @livestockBreedWagyu.
+  ///
+  /// In zh, this message translates to:
+  /// **'和牛'**
+  String get livestockBreedWagyu;
+
+  /// No description provided for @livestockBreedSimmental.
+  ///
+  /// In zh, this message translates to:
+  /// **'西门塔尔'**
+  String get livestockBreedSimmental;
+
+  /// No description provided for @livestockBreedLimousin.
+  ///
+  /// In zh, this message translates to:
+  /// **'利木赞'**
+  String get livestockBreedLimousin;
+
+  /// No description provided for @livestockBreedOther.
+  ///
+  /// In zh, this message translates to:
+  /// **'其他'**
+  String get livestockBreedOther;
+
+  /// No description provided for @livestockGenderMale.
+  ///
+  /// In zh, this message translates to:
+  /// **'公'**
+  String get livestockGenderMale;
+
+  /// No description provided for @livestockGenderFemale.
+  ///
+  /// In zh, this message translates to:
+  /// **'母'**
+  String get livestockGenderFemale;
+
+  /// No description provided for @deviceRegisterTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'注册设备'**
+  String get deviceRegisterTitle;
+
+  /// No description provided for @deviceEditTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑设备'**
+  String get deviceEditTitle;
+
+  /// No description provided for @deviceFormFieldCode.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备编号'**
+  String get deviceFormFieldCode;
+
+  /// No description provided for @deviceFormFieldDevEui.
+  ///
+  /// In zh, this message translates to:
+  /// **'LoRa EUI（选填）'**
+  String get deviceFormFieldDevEui;
+
+  /// No description provided for @deviceRegisterSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备注册成功'**
+  String get deviceRegisterSuccess;
+
+  /// No description provided for @deviceUpdateSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备更新成功'**
+  String get deviceUpdateSuccess;
+
+  /// No description provided for @installBindDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'绑定设备'**
+  String get installBindDevice;
+
+  /// No description provided for @installSelectDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择设备'**
+  String get installSelectDevice;
+
+  /// No description provided for @installNoAvailableDevices.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有可用设备'**
+  String get installNoAvailableDevices;
+
+  /// No description provided for @installSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'安装成功'**
+  String get installSuccess;
 }
 
 class _AppLocalizationsDelegate

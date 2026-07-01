@@ -33,7 +33,7 @@ extension DeviceTypeL10n on DeviceType {
       case DeviceType.rumenCapsule:
         return l10n.deviceTypeRumenCapsule;
       case DeviceType.accelerometer:
-        return l10n.deviceTypeAccelerometer;
+        return l10n.deviceTypeEarTag;
     }
   }
 }

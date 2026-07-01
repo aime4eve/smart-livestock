@@ -191,7 +191,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get deviceTypeRumenCapsule => '瘤胃胶囊';
 
   @override
-  String get deviceTypeAccelerometer => '加速度计';
+  String get deviceTypeEarTag => '耳标';
 
   @override
   String get subscriptionTierBasic => '基础版';
@@ -2290,4 +2290,85 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get aiAnomalyAnomalyCount => '异常数量';
+
+  @override
+  String get livestockListTitle => '牲畜管理';
+
+  @override
+  String get livestockAddNew => '新增牲畜';
+
+  @override
+  String get livestockEdit => '编辑牲畜';
+
+  @override
+  String get livestockFormFieldCode => '编号';
+
+  @override
+  String get livestockFormFieldBreed => '品种';
+
+  @override
+  String get livestockFormFieldGender => '性别';
+
+  @override
+  String get livestockFormFieldBirthDate => '出生日期';
+
+  @override
+  String get livestockFormFieldWeight => '体重';
+
+  @override
+  String get livestockCreateSuccess => '牲畜创建成功';
+
+  @override
+  String get livestockUpdateSuccess => '牲畜更新成功';
+
+  @override
+  String get livestockBreedAngus => '安格斯';
+
+  @override
+  String get livestockBreedWagyu => '和牛';
+
+  @override
+  String get livestockBreedSimmental => '西门塔尔';
+
+  @override
+  String get livestockBreedLimousin => '利木赞';
+
+  @override
+  String get livestockBreedOther => '其他';
+
+  @override
+  String get livestockGenderMale => '公';
+
+  @override
+  String get livestockGenderFemale => '母';
+
+  @override
+  String get deviceRegisterTitle => '注册设备';
+
+  @override
+  String get deviceEditTitle => '编辑设备';
+
+  @override
+  String get deviceFormFieldCode => '设备编号';
+
+  @override
+  String get deviceFormFieldDevEui => 'LoRa EUI（选填）';
+
+  @override
+  String get deviceRegisterSuccess => '设备注册成功';
+
+  @override
+  String get deviceUpdateSuccess => '设备更新成功';
+
+  @override
+  String get installBindDevice => '绑定设备';
+
+  @override
+  String get installSelectDevice => '选择设备';
+
+  @override
+  String get installNoAvailableDevices => '没有可用设备';
+
+  @override
+  String get installSuccess => '安装成功';
 }

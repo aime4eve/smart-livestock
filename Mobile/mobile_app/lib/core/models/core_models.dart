@@ -105,7 +105,7 @@ class LivestockDetail {
   final String lastLocation;
 }
 
-enum DeviceType { gps, rumenCapsule, accelerometer }
+enum DeviceType { gps, rumenCapsule, earTag }
 
 enum DeviceStatus { online, offline, lowBattery }
 

@@ -188,7 +188,7 @@ class _DeviceListCard extends StatelessWidget {
                       switch (device.type) {
                         DeviceType.gps => Icons.gps_fixed,
                         DeviceType.rumenCapsule => Icons.medication,
-                        DeviceType.accelerometer => Icons.speed,
+                        DeviceType.earTag => Icons.tag,
                       },
                       color: switch (device.status) {
                         DeviceStatus.online => AppColors.success,

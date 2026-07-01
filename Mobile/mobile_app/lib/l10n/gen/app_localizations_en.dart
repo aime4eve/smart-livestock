@@ -194,7 +194,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deviceTypeRumenCapsule => 'Rumen Capsule';
 
   @override
-  String get deviceTypeAccelerometer => 'Accelerometer';
+  String get deviceTypeEarTag => 'Ear Tag';
 
   @override
   String get subscriptionTierBasic => 'Basic';
@@ -2340,4 +2340,85 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiAnomalyAnomalyCount => 'Anomaly Count';
+
+  @override
+  String get livestockListTitle => 'Livestock Management';
+
+  @override
+  String get livestockAddNew => 'Add Livestock';
+
+  @override
+  String get livestockEdit => 'Edit Livestock';
+
+  @override
+  String get livestockFormFieldCode => 'Code';
+
+  @override
+  String get livestockFormFieldBreed => 'Breed';
+
+  @override
+  String get livestockFormFieldGender => 'Gender';
+
+  @override
+  String get livestockFormFieldBirthDate => 'Birth Date';
+
+  @override
+  String get livestockFormFieldWeight => 'Weight';
+
+  @override
+  String get livestockCreateSuccess => 'Livestock created successfully';
+
+  @override
+  String get livestockUpdateSuccess => 'Livestock updated successfully';
+
+  @override
+  String get livestockBreedAngus => 'Angus';
+
+  @override
+  String get livestockBreedWagyu => 'Wagyu';
+
+  @override
+  String get livestockBreedSimmental => 'Simmental';
+
+  @override
+  String get livestockBreedLimousin => 'Limousin';
+
+  @override
+  String get livestockBreedOther => 'Other';
+
+  @override
+  String get livestockGenderMale => 'Male';
+
+  @override
+  String get livestockGenderFemale => 'Female';
+
+  @override
+  String get deviceRegisterTitle => 'Register Device';
+
+  @override
+  String get deviceEditTitle => 'Edit Device';
+
+  @override
+  String get deviceFormFieldCode => 'Device Code';
+
+  @override
+  String get deviceFormFieldDevEui => 'LoRa EUI (optional)';
+
+  @override
+  String get deviceRegisterSuccess => 'Device registered successfully';
+
+  @override
+  String get deviceUpdateSuccess => 'Device updated successfully';
+
+  @override
+  String get installBindDevice => 'Bind Device';
+
+  @override
+  String get installSelectDevice => 'Select Device';
+
+  @override
+  String get installNoAvailableDevices => 'No available devices';
+
+  @override
+  String get installSuccess => 'Installed successfully';
 }

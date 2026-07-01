@@ -111,8 +111,8 @@ class DevicesApiRepository implements DevicesRepository {
       final typeStr = (m['deviceType'] ?? m['type']) as String;
       final type = switch (typeStr.toUpperCase()) {
         'TRACKER' || 'GPS' => DeviceType.gps,
-        'RUMEN_CAPSULE' => DeviceType.rumenCapsule,
-        'ACCELEROMETER' => DeviceType.accelerometer,
+        'RUMEN_CAPSULE' || 'CAPSULE' => DeviceType.rumenCapsule,
+        'EAR_TAG' => DeviceType.earTag,
         _ => throw FormatException('deviceType: $typeStr'),
       };
       final statusStr = (m['runtimeStatus'] ?? m['status']) as String;
