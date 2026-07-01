@@ -63,7 +63,7 @@ public class OpenDeviceRegisterController {
         // Tenant ID extracted from the API Key lookup.
         Long tenantId = resolveTenantId(apiKey);
 
-        RegisterDeviceCommand command = new RegisterDeviceCommand(serialNo, deviceType, tenantId);
+        RegisterDeviceCommand command = new RegisterDeviceCommand(serialNo, deviceType, tenantId, (String) body.get("devEui"));
         DeviceDto device = deviceApplicationService.registerDevice(command);
 
         if (idempotencyKey != null) {

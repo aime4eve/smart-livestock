@@ -3,7 +3,10 @@ package com.smartlivestock.ranch.application;
 import com.smartlivestock.ranch.application.dto.LivestockDto;
 import com.smartlivestock.ranch.domain.model.Livestock;
 import com.smartlivestock.ranch.domain.port.HealthQueryPort;
+import com.smartlivestock.ranch.domain.port.IoTQueryPort;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
+import com.smartlivestock.ranch.application.command.CreateLivestockCommand;
+import com.smartlivestock.ranch.application.command.UpdateLivestockCommand;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +22,21 @@ public class LivestockApplicationService {
 
     private final LivestockRepository livestockRepository;
     private final HealthQueryPort healthQueryPort;
+    private final IoTQueryPort iotQueryPort;
 
     @Transactional
-    public LivestockDto createLivestock(Long farmId, String livestockCode) {
+    public LivestockDto createLivestock(CreateLivestockCommand command) {
+        if (livestockRepository.findByLivestockCode(command.livestockCode()).isPresent()) {
+            throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,
+                    "牲畜编号已存在: " + command.livestockCode());
+        }
         Livestock livestock = new Livestock();
-        livestock.setFarmId(farmId);
-        livestock.setLivestockCode(livestockCode);
+        livestock.setFarmId(command.farmId());
+        livestock.setLivestockCode(command.livestockCode());
+        livestock.setBreed(command.breed());
+        livestock.setGender(command.gender());
+        livestock.setBirthDate(command.birthDate());
+        livestock.setWeight(command.weight());
         Livestock saved = livestockRepository.save(livestock);
         return LivestockDto.from(saved);
     }
@@ -53,9 +65,31 @@ public class LivestockApplicationService {
     }
 
     @Transactional
+    public LivestockDto updateLivestock(Long id, UpdateLivestockCommand command) {
+        Livestock livestock = livestockRepository.findById(id)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牲畜不存在: " + id));
+        if (!command.livestockCode().equals(livestock.getLivestockCode())) {
+            livestockRepository.findByLivestockCode(command.livestockCode())
+                    .ifPresent(existing -> {
+                        if (!existing.getId().equals(id)) {
+                            throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,
+                                    "牲畜编号已存在: " + command.livestockCode());
+                        }
+                    });
+        }
+        livestock.updateInfo(command.livestockCode(), command.breed(),
+                command.gender(), command.birthDate(), command.weight());
+        Livestock saved = livestockRepository.save(livestock);
+        return LivestockDto.from(saved);
+    }
+
+    @Transactional
     public void deleteLivestock(Long id) {
-        if (livestockRepository.findById(id).isEmpty()) {
-            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牲畜不存在: " + id);
+        Livestock livestock = livestockRepository.findById(id)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牲畜不存在: " + id));
+        if (iotQueryPort.hasActiveInstallationByLivestock(id)) {
+            throw new ApiException(ErrorCode.STATE_CONFLICT,
+                    "该牲畜仍有活跃设备安装，请先卸载");
         }
         livestockRepository.deleteById(id);
     }

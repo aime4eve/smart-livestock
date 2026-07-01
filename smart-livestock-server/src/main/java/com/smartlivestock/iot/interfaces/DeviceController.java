@@ -2,6 +2,7 @@ package com.smartlivestock.iot.interfaces;
 
 import com.smartlivestock.iot.application.DeviceApplicationService;
 import com.smartlivestock.iot.application.command.RegisterDeviceCommand;
+import com.smartlivestock.iot.application.command.UpdateDeviceCommand;
 import com.smartlivestock.iot.application.dto.DeviceDto;
 import com.smartlivestock.iot.domain.model.DeviceType;
 import com.smartlivestock.shared.common.ApiResponse;
@@ -56,11 +57,12 @@ public class DeviceController {
         // API contract uses lowercase snake_case like "device_tracker"
         // Domain enum uses uppercase like "TRACKER"
         DeviceType deviceType = resolveDeviceType(deviceTypeStr);
-        RegisterDeviceCommand command = new RegisterDeviceCommand(
-                (String) body.get("deviceCode"),
-                deviceType,
-                tenantId
-        );
+       RegisterDeviceCommand command = new RegisterDeviceCommand(
+               (String) body.get("deviceCode"),
+               deviceType,
+                tenantId,
+                (String) body.get("devEui")
+       );
         DeviceDto device = deviceApplicationService.registerDevice(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(device));
     }
@@ -87,10 +89,14 @@ public class DeviceController {
             @PathVariable Long farmId,
             @PathVariable Long deviceId,
             @RequestBody Map<String, Object> body) {
-        // Current service only supports register/get/list/activate/decommission.
-        // Return current device for now. Full update will be added when needed.
-        DeviceDto device = deviceApplicationService.getDevice(deviceId);
-        return ResponseEntity.ok(ApiResponse.ok(device));
+       // Current service only supports register/get/list/activate/decommission.
+       // Return current device for now. Full update will be added when needed.
+        UpdateDeviceCommand command = new UpdateDeviceCommand(
+                (String) body.get("deviceCode"),
+                (String) body.get("devEui")
+        );
+        DeviceDto device = deviceApplicationService.updateDevice(deviceId, command);
+       return ResponseEntity.ok(ApiResponse.ok(device));
     }
 
     /**

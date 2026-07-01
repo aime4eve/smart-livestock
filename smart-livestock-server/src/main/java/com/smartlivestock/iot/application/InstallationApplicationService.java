@@ -2,7 +2,10 @@ package com.smartlivestock.iot.application;
 
 import com.smartlivestock.iot.application.command.InstallDeviceCommand;
 import com.smartlivestock.iot.application.dto.InstallationDto;
+import com.smartlivestock.iot.domain.model.Device;
+import com.smartlivestock.iot.domain.model.DeviceStatus;
 import com.smartlivestock.iot.domain.model.Installation;
+import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.domain.repository.InstallationRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -17,10 +20,26 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class InstallationApplicationService {
 
+    private final DeviceRepository deviceRepository;
     private final InstallationRepository installationRepository;
 
     @Transactional
     public InstallationDto install(InstallDeviceCommand command) {
+        Device device = deviceRepository.findById(command.deviceId())
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "设备不存在: " + command.deviceId()));
+        if (device.getStatus() != DeviceStatus.ACTIVE) {
+            throw new ApiException(ErrorCode.DEVICE_NOT_ACTIVE,
+                    "设备未激活，无法安装: " + command.deviceId());
+        }
+        if (installationRepository.findActiveByDeviceId(command.deviceId()).isPresent()) {
+            throw new ApiException(ErrorCode.STATE_CONFLICT,
+                    "设备已安装在其他牲畜上: " + command.deviceId());
+        }
+        if (installationRepository.findActiveByLivestockIdAndDeviceType(
+                command.livestockId(), device.getDeviceType()).isPresent()) {
+            throw new ApiException(ErrorCode.STATE_CONFLICT,
+                    "该牲畜已安装同类型设备: " + device.getDeviceType());
+        }
         Installation installation = new Installation(command.deviceId(), command.livestockId(), command.operatorId());
         Installation saved = installationRepository.save(installation);
         return InstallationDto.from(saved);

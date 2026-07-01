@@ -1,6 +1,7 @@
 package com.smartlivestock.iot.infrastructure.persistence;
 
 import com.smartlivestock.iot.domain.model.Installation;
+import com.smartlivestock.iot.domain.model.DeviceType;
 import com.smartlivestock.iot.domain.repository.InstallationRepository;
 import com.smartlivestock.iot.infrastructure.persistence.mapper.InstallationMapper;
 import lombok.RequiredArgsConstructor;
@@ -56,5 +57,11 @@ public class JpaInstallationRepositoryImpl implements InstallationRepository {
         return springDataRepo.findByLivestockIdIn(livestockIds).stream()
                 .map(InstallationMapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    public Optional<Installation> findActiveByLivestockIdAndDeviceType(Long livestockId, DeviceType deviceType) {
+        return springDataRepo.findActiveByLivestockIdAndDeviceType(livestockId, deviceType.name())
+                .map(InstallationMapper::toDomain);
     }
 }

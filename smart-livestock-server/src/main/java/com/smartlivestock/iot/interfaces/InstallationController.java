@@ -11,6 +11,7 @@ import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -57,6 +58,7 @@ public class InstallationController {
      * Install a device onto a livestock.
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
     public ResponseEntity<ApiResponse<InstallationDto>> installDevice(
             @PathVariable Long farmId,
             @RequestBody Map<String, Object> body) {
@@ -86,6 +88,7 @@ public class InstallationController {
      * Uninstall (remove) a device from a livestock.
      */
     @PutMapping("/{installationId}/uninstall")
+    @PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
     public ResponseEntity<ApiResponse<InstallationDto>> uninstallDevice(
             @PathVariable Long farmId,
             @PathVariable Long installationId) {

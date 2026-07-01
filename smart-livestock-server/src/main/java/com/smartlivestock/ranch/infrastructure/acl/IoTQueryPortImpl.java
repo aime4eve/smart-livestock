@@ -48,4 +48,10 @@ public class IoTQueryPortImpl implements IoTQueryPort {
                 .count();
         return (double) active / all.size();
     }
+
+    @Override
+    public boolean hasActiveInstallationByLivestock(Long livestockId) {
+        return installationRepository.findByLivestockId(livestockId).stream()
+                .anyMatch(i -> i.getRemovedAt() == null);
+    }
 }

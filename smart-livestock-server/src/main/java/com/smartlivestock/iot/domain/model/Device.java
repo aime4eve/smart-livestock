@@ -93,10 +93,18 @@ public class Device extends AggregateRoot {
         this.runtimeStatus = runtimeStatus;
         this.batteryLevel = batteryLevel;
         this.firmwareVersion = firmwareVersion;
-        this.lastOnlineAt = Instant.now();
+       this.lastOnlineAt = Instant.now();
+   }
+
+    /**
+     * Update editable device info fields.
+     */
+    public void updateInfo(String deviceCode, String devEui) {
+        this.deviceCode = deviceCode;
+        this.devEui = devEui;
     }
 
-    // --- Getters and Setters ---
+   // --- Getters and Setters ---
 
     public Long getTenantId() { return tenantId; }
     public void setTenantId(Long tenantId) { this.tenantId = tenantId; }

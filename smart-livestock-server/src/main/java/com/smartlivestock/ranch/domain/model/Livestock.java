@@ -40,13 +40,25 @@ public class Livestock extends AggregateRoot {
     /**
      * Update the last known GPS position of this livestock.
      */
-    public void updatePosition(BigDecimal latitude, BigDecimal longitude) {
-        this.lastLatitude = latitude;
-        this.lastLongitude = longitude;
-        this.lastPositionAt = Instant.now();
+   public void updatePosition(BigDecimal latitude, BigDecimal longitude) {
+       this.lastLatitude = latitude;
+       this.lastLongitude = longitude;
+       this.lastPositionAt = Instant.now();
+   }
+
+    /**
+     * Update editable livestock info fields.
+     */
+    public void updateInfo(String livestockCode, String breed, String gender,
+                           LocalDate birthDate, BigDecimal weight) {
+        this.livestockCode = livestockCode;
+        this.breed = breed;
+        this.gender = gender;
+        this.birthDate = birthDate;
+        this.weight = weight;
     }
 
-    public void markWarning() {
+   public void markWarning() {
         this.healthStatus = HealthStatus.WARNING;
     }
 

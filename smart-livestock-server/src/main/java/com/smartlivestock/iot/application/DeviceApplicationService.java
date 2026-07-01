@@ -1,6 +1,7 @@
 package com.smartlivestock.iot.application;
 
 import com.smartlivestock.iot.application.command.RegisterDeviceCommand;
+import com.smartlivestock.iot.application.command.UpdateDeviceCommand;
 import com.smartlivestock.iot.application.dto.DeviceDto;
 import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.DeviceStatus;
@@ -22,10 +23,33 @@ public class DeviceApplicationService {
 
     @Transactional
     public DeviceDto registerDevice(RegisterDeviceCommand command) {
+        if (deviceRepository.findByDeviceCode(command.deviceCode()).isPresent()) {
+            throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,
+                    "设备编号已存在: " + command.deviceCode());
+        }
         Device device = new Device();
         device.setTenantId(command.tenantId());
         device.setDeviceCode(command.deviceCode());
         device.setDeviceType(command.deviceType());
+        device.setDevEui(command.devEui());
+        Device saved = deviceRepository.save(device);
+        return DeviceDto.from(saved);
+    }
+
+    @Transactional
+    public DeviceDto updateDevice(Long id, UpdateDeviceCommand command) {
+        Device device = deviceRepository.findById(id)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "设备不存在: " + id));
+        if (!command.deviceCode().equals(device.getDeviceCode())) {
+            deviceRepository.findByDeviceCode(command.deviceCode())
+                    .ifPresent(existing -> {
+                        if (!existing.getId().equals(id)) {
+                            throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,
+                                    "设备编号已存在: " + command.deviceCode());
+                        }
+                    });
+        }
+        device.updateInfo(command.deviceCode(), command.devEui());
         Device saved = deviceRepository.save(device);
         return DeviceDto.from(saved);
     }

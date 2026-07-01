@@ -69,7 +69,7 @@ class DeviceApplicationServiceTest {
         });
 
         DeviceDto result = service.registerDevice(
-                new RegisterDeviceCommand("DEV-001", DeviceType.TRACKER, 1L));
+                new RegisterDeviceCommand("DEV-001", DeviceType.TRACKER, 1L, null));
 
         assertThat(result.deviceCode()).isEqualTo("DEV-001");
         assertThat(result.deviceType()).isEqualTo("TRACKER");
