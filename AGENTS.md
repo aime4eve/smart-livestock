@@ -251,6 +251,14 @@ cd Mobile/mobile_app
 flutter run -d chrome --dart-define=APP_MODE=live --dart-define=API_BASE_URL=http://172.22.1.123:18080/api/v1
 ```
 
+### Flyway 迁移命名规范
+
+**新增 Flyway 迁移使用时间戳版本号**，格式 `V{YYYYMMDDHHmmss}__description.sql`，避免多对话并行创建时版本号冲突。
+
+- V1-V41 已有迁移保持原样（整数版本号），不改名
+- V20260701... 及以后的新迁移用时间戳格式（Flyway 按数字排序，时间戳天然大于 41）
+- 安装 pre-commit hook 防止重复版本号：`cp smart-livestock-server/scripts/check-flyway-duplicates.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit`
+
 ### 设计文档索引
 
 | 文档         | 位置                                                               | 说明                                |
