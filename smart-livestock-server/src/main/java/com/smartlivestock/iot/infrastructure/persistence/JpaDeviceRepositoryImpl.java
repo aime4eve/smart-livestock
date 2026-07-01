@@ -2,6 +2,7 @@ package com.smartlivestock.iot.infrastructure.persistence;
 
 import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
+import com.smartlivestock.iot.infrastructure.persistence.entity.DeviceJpaEntity;
 import com.smartlivestock.iot.infrastructure.persistence.mapper.DeviceMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -15,10 +16,15 @@ public class JpaDeviceRepositoryImpl implements DeviceRepository {
 
     private final SpringDataDeviceRepository springDataRepo;
 
-    @Override
-    public Device save(Device device) {
-        return DeviceMapper.toDomain(springDataRepo.save(DeviceMapper.toJpaEntity(device)));
-    }
+   @Override
+   public Device save(Device device) {
+        DeviceJpaEntity jpaEntity = DeviceMapper.toJpaEntity(device);
+        if (device.getId() != null) {
+            springDataRepo.findById(device.getId())
+                    .ifPresent(existing -> jpaEntity.setCreatedAt(existing.getCreatedAt()));
+        }
+        return DeviceMapper.toDomain(springDataRepo.save(jpaEntity));
+   }
 
     @Override
     public Optional<Device> findById(Long id) {

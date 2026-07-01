@@ -18,9 +18,9 @@ public final class DeviceMapper {
         jpa.setStatus(device.getStatus().name());
         jpa.setBatteryLevel(device.getBatteryLevel());
         jpa.setFirmwareVersion(device.getFirmwareVersion());
-        jpa.setDevEui(device.getDevEui());
-        jpa.setLastOnlineAt(device.getLastOnlineAt());
-        return jpa;
+       jpa.setDevEui(device.getDevEui());
+       jpa.setLastOnlineAt(device.getLastOnlineAt());
+       return jpa;
     }
 
     public static Device toDomain(DeviceJpaEntity jpa) {
