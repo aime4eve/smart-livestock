@@ -39,7 +39,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addPathPatterns("/api/v1/open/**");
 
         registry.addInterceptor(apiCallLogInterceptor)
-                .addPathPatterns("/api/v1/open/**");
+                .addPathPatterns("/api/v1/**");
 
         registry.addInterceptor(farmScopeInterceptor)
                 .addPathPatterns("/api/v1/farms/*/**", "/api/v1/open/farms/*/**",

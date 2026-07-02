@@ -10,7 +10,7 @@ public class ApiCallLogJpaEntity {
     private Long id;
 
     @Column(name = "api_key_id") private Long apiKeyId;
-    @Column(name = "tenant_id", nullable = false) private Long tenantId;
+    @Column(name = "tenant_id") private Long tenantId;
     @Column(name = "endpoint", nullable = false, length = 200) private String endpoint;
     @Column(name = "method", nullable = false, length = 10) private String method;
     @Column(name = "status_code", nullable = false) private int statusCode;
