@@ -4,6 +4,10 @@ Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-s
 
 **Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
+DO NOT send optional commentary.
+
+用中文输出 。
+
 ## 1. Think Before Coding
 
 **Don't assume. Don't hide confusion. Surface tradeoffs.**
@@ -78,6 +82,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 新功能导致种子不足时必须同步生成/修改种子数据。
 - **后端**：走 Flyway 迁移（遵循 BCrypt 三步验证）。
+- **迁移命名**：新迁移统一用 **时间戳版本号** `V{yyyyMMddHHmmss}__{description}.sql`（如 `V20260702180000__add_feature_x.sql`），旧 V1–V42 保持不变。`application.yml` 已启用 `out-of-order: true` 兼容混合版本。
 - **Flutter Mock 端**：对齐 Store / seed。
 - **数据约束**：须符合业务约束，写入后通过编译与查询验证。
 
