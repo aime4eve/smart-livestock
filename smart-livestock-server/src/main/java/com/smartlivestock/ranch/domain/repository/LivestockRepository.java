@@ -13,4 +13,16 @@ public interface LivestockRepository {
     void deleteById(Long id);
     long countByFarmId(Long farmId);
     long countByFarmIdAndTenantId(Long farmId, Long tenantId);
+
+    /** Paginated query without keyword filter. */
+    List<Livestock> findByFarmIdPaged(Long farmId, int offset, int limit);
+
+    /** Paginated query with keyword search on livestockCode and breed. */
+    List<Livestock> findByFarmIdAndKeyword(Long farmId, String keyword, int offset, int limit);
+
+    /** Count non-deleted livestock for a farm. */
+    long countByFarmIdPaged(Long farmId);
+
+    /** Count non-deleted livestock matching keyword for a farm. */
+    long countByFarmIdAndKeyword(Long farmId, String keyword);
 }

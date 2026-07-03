@@ -9,17 +9,51 @@ final livestockRepositoryProvider = Provider<LivestockRepository>((ref) {
 });
 
 class LivestockListController extends FarmScopedAsyncNotifier<LivestockListData> {
+  static const _pageSize = 20;
+  String _keyword = '';
+  int _page = 1;
+  int _totalPages = 1;
+
+  int get totalPages => _totalPages;
+  int get currentPage => _page;
+  int get pageSize => _pageSize;
+
   @override
   Future<LivestockListData> build() async {
     watchActiveFarmId();
-    return ref.read(livestockRepositoryProvider).loadAll();
+    _page = 1;
+    return _fetch();
   }
 
-  Future<void> refresh({String? status}) async {
+  Future<LivestockListData> _fetch() async {
+    final data = await ref.read(livestockRepositoryProvider).loadAll(
+          page: _page,
+          pageSize: _pageSize,
+          keyword: _keyword.isNotEmpty ? _keyword : null,
+        );
+    _totalPages = (data.total / _pageSize).ceil().clamp(1, 9999);
+    return data;
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(_fetch);
+  }
+
+  Future<void> search(String keyword) async {
+    _keyword = keyword;
+    _page = 1;
     state = const AsyncLoading();
     state = await AsyncValue.guard(
-      () => ref.read(livestockRepositoryProvider).loadAll(status: status),
+      _fetch,
     );
+  }
+
+  Future<void> goToPage(int page) async {
+    if (page < 1 || page > _totalPages || page == _page) return;
+    _page = page;
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(_fetch);
   }
 }
 

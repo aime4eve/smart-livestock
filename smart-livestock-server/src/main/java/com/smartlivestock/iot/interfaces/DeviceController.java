@@ -31,14 +31,15 @@ public class DeviceController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> listDevices(
             @PathVariable Long farmId,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int pageSize) {
+            @RequestParam(defaultValue = "20") int pageSize,
+            @RequestParam(required = false) String keyword) {
         Long tenantId = TenantContext.getCurrentTenant();
-        List<DeviceDto> devices = deviceApplicationService.listByTenant(tenantId);
+        var result = deviceApplicationService.listByTenant(tenantId, keyword, page, pageSize);
         Map<String, Object> data = Map.of(
-                "items", devices,
-                "page", page,
-                "pageSize", pageSize,
-                "total", devices.size()
+                "items", result.items(),
+                "page", result.page(),
+                "pageSize", result.pageSize(),
+                "total", result.total()
         );
         return ResponseEntity.ok(ApiResponse.ok(data));
     }

@@ -90,9 +90,13 @@ class ApiClient {
   // ── Raw HTTP methods (no retry) ──────────────────────────────────
 
   Future<Map<String, dynamic>> _doGet(String path) async {
+    // Append cache-buster to prevent browser caching on Flutter Web.
+    final bustPath = path.contains('?')
+        ? '$path&_t=${DateTime.now().millisecondsSinceEpoch}'
+        : '$path?_t=${DateTime.now().millisecondsSinceEpoch}';
     final headers = await _headers();
     final response = await http.get(
-      Uri.parse('$_baseUrl$path'),
+      Uri.parse('$_baseUrl$bustPath'),
       headers: headers,
     ).timeout(_timeout);
     return _handleResponse(response);

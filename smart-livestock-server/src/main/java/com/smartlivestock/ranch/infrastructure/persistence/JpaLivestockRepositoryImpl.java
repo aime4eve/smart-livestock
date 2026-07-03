@@ -4,6 +4,8 @@ import com.smartlivestock.ranch.domain.model.Livestock;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import com.smartlivestock.ranch.infrastructure.persistence.mapper.LivestockMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -18,11 +20,8 @@ public class JpaLivestockRepositoryImpl implements LivestockRepository {
 
     @Override
     public Livestock save(Livestock livestock) {
-
         Long id = livestock.getId();
         if (id != null) {
-            // For existing entities, load the managed JPA entity and copy domain fields
-            // to preserve createdAt from the database (avoids Hibernate merge issues).
             return springDataRepo.findById(id)
                     .map(existing -> {
                         LivestockMapper.copyToJpaEntity(livestock, existing);
@@ -52,7 +51,6 @@ public class JpaLivestockRepositoryImpl implements LivestockRepository {
 
     @Override
     public void deleteById(Long id) {
-        // Soft delete: set deletedAt timestamp
         springDataRepo.findById(id).ifPresent(jpa -> {
             jpa.setDeletedAt(Instant.now());
             springDataRepo.save(jpa);
@@ -67,5 +65,29 @@ public class JpaLivestockRepositoryImpl implements LivestockRepository {
     @Override
     public long countByFarmIdAndTenantId(Long farmId, Long tenantId) {
         return springDataRepo.countByFarmIdAndTenantId(farmId, tenantId);
+    }
+
+    @Override
+    public List<Livestock> findByFarmIdPaged(Long farmId, int offset, int limit) {
+        Pageable pageable = PageRequest.of(offset / limit, limit);
+        return springDataRepo.findByFarmIdPaged(farmId, pageable)
+                .stream().map(LivestockMapper::toDomain).toList();
+    }
+
+    @Override
+    public List<Livestock> findByFarmIdAndKeyword(Long farmId, String keyword, int offset, int limit) {
+        Pageable pageable = PageRequest.of(offset / limit, limit);
+        return springDataRepo.findByFarmIdAndKeyword(farmId, keyword, pageable)
+                .stream().map(LivestockMapper::toDomain).toList();
+    }
+
+    @Override
+    public long countByFarmIdPaged(Long farmId) {
+        return springDataRepo.countByFarmIdActive(farmId);
+    }
+
+    @Override
+    public long countByFarmIdAndKeyword(Long farmId, String keyword) {
+        return springDataRepo.countByFarmIdAndKeyword(farmId, keyword);
     }
 }

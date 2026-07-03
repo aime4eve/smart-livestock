@@ -695,6 +695,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get devicesManagement => '设备管理';
 
   @override
+  String get deviceSearchHint => '搜索设备编号';
+
+  @override
+  String deviceSearchResult(Object total) {
+    return '搜索结果：$total 条';
+  }
+
+  @override
+  String get deviceShowAll => '查看全部';
+
+  @override
+  String devicePaginationInfo(
+    Object currentPage,
+    Object totalPages,
+    Object total,
+  ) {
+    return '第 $currentPage / $totalPages 页，共 $total 条';
+  }
+
+  @override
   String get devicesAddDemo => '演示：添加新设备待接入';
 
   @override
@@ -2293,6 +2313,26 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get livestockListTitle => '牲畜管理';
+
+  @override
+  String livestockSearchResult(Object total) {
+    return '搜索结果：$total 条';
+  }
+
+  @override
+  String get livestockShowAll => '查看全部';
+
+  @override
+  String get livestockSearchHint => '搜索编号或品种';
+
+  @override
+  String livestockPaginationInfo(
+    Object currentPage,
+    Object totalPages,
+    Object total,
+  ) {
+    return '第 $currentPage / $totalPages 页，共 $total 条';
+  }
 
   @override
   String get livestockAddNew => '新增牲畜';

@@ -9,9 +9,13 @@ class DevicesApiRepository implements DevicesRepository {
   Future<DevicesListData> loadDevices({
     int page = 1,
     int pageSize = 20,
+    String? keyword,
   }) async {
-    final data =
-        await ApiClient.instance.farmGet('/devices?page=$page&pageSize=$pageSize');
+    var path = '/devices?page=$page&pageSize=$pageSize';
+    if (keyword != null && keyword.isNotEmpty) {
+      path += '&keyword=${Uri.encodeQueryComponent(keyword)}';
+    }
+    final data = await ApiClient.instance.farmGet(path);
     final itemsRaw = data['items'];
     final items = itemsRaw is List
         ? itemsRaw

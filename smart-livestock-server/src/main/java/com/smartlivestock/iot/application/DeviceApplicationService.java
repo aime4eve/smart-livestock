@@ -70,6 +70,29 @@ public class DeviceApplicationService {
                 .toList();
     }
 
+    /**
+     * Paginated device query with optional keyword search.
+     */
+    @Transactional(readOnly = true)
+    public DevicePage listByTenant(Long tenantId, String keyword, int page, int pageSize) {
+        String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
+        int offset = (page - 1) * pageSize;
+        java.util.List<DeviceDto> items;
+        long total;
+        if (kw != null) {
+            items = deviceRepository.findByTenantIdAndKeyword(tenantId, kw, offset, pageSize)
+                    .stream().map(DeviceDto::from).toList();
+            total = deviceRepository.countByTenantIdAndKeyword(tenantId, kw);
+        } else {
+            items = deviceRepository.findByTenantIdPaged(tenantId, offset, pageSize)
+                    .stream().map(DeviceDto::from).toList();
+            total = deviceRepository.countByTenantIdPaged(tenantId);
+        }
+        return new DevicePage(items, page, pageSize, total);
+    }
+
+    public record DevicePage(java.util.List<DeviceDto> items, int page, int pageSize, long total) {}
+
     @Transactional
     public void activateDevice(Long id) {
         Device device = deviceRepository.findById(id)

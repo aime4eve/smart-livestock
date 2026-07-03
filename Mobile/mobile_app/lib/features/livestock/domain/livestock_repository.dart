@@ -9,15 +9,21 @@ class LivestockSummary {
     required this.fenceId,
     this.lat,
     this.lng,
+    this.gender,
+    this.birthDate,
+    this.weight,
   });
 
   final String id;
   final String earTag;
-  final String breed;
+  final Breed breed;
   final LivestockHealth health;
   final String fenceId;
   final double? lat;
   final double? lng;
+  final String? gender;
+  final DateTime? birthDate;
+  final double? weight;
 }
 
 class LivestockListData {
@@ -39,6 +45,7 @@ abstract class LivestockRepository {
     int page = 1,
     int pageSize = 20,
     String? status,
+    String? keyword,
   });
 
   Future<LivestockDetail> loadDetail(String id);

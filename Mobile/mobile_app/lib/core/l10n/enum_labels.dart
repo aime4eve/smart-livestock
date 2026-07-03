@@ -53,6 +53,25 @@ extension LivestockHealthL10n on LivestockHealth {
   }
 }
 
+// ── Breed ───────────────────────────────────────────────────
+
+extension BreedL10n on Breed {
+  String localizedLabel(AppLocalizations l10n) {
+    switch (this) {
+      case Breed.angus:
+        return l10n.livestockBreedAngus;
+      case Breed.wagyu:
+        return l10n.livestockBreedWagyu;
+      case Breed.simmental:
+        return l10n.livestockBreedSimmental;
+      case Breed.limousin:
+        return l10n.livestockBreedLimousin;
+      case Breed.other:
+        return l10n.livestockBreedOther;
+    }
+  }
+}
+
 // ── SubscriptionTier ────────────────────────────────────────
 
 extension SubscriptionTierL10n on SubscriptionTier {

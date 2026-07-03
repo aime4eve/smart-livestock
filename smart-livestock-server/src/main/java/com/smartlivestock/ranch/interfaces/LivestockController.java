@@ -36,12 +36,12 @@ public class LivestockController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String gender,
             @RequestParam(required = false) String status) {
-        List<LivestockDto> livestock = livestockApplicationService.listByFarm(farmId);
+        var result = livestockApplicationService.listByFarm(farmId, keyword, page, pageSize);
         Map<String, Object> data = Map.of(
-                "items", livestock,
-                "page", page,
-                "pageSize", pageSize,
-                "total", livestock.size()
+                "items", result.items(),
+                "page", result.page(),
+                "pageSize", result.pageSize(),
+                "total", result.total()
         );
         return ResponseEntity.ok(ApiResponse.ok(data));
     }

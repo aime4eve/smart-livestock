@@ -10,9 +10,13 @@ class LivestockApiRepository implements LivestockRepository {
     int page = 1,
     int pageSize = 20,
     String? status,
+    String? keyword,
   }) async {
     var path = '/livestock?page=$page&pageSize=$pageSize';
     if (status != null) path += '&status=$status';
+    if (keyword != null && keyword.isNotEmpty) {
+      path += '&keyword=${Uri.encodeQueryComponent(keyword)}';
+    }
     final data = await ApiClient.instance.farmGet(path);
     final itemsRaw = data['items'];
     final items = itemsRaw is List
@@ -64,14 +68,18 @@ class LivestockApiRepository implements LivestockRepository {
         : healthStr == 'CRITICAL'
             ? LivestockHealth.abnormal
             : LivestockHealth.healthy;
+    final rawBirth = m['birthDate'] as String?;
     return LivestockSummary(
       id: id,
       earTag: (m['livestockCode'] ?? m['earTag'] ?? '') as String,
-      breed: (m['breed'] ?? '未知品种') as String,
+      breed: Breed.fromString(m['breed'] as String?),
       health: health,
       fenceId: (m['fenceId'] ?? '').toString(),
       lat: (m['lastLatitude'] as num?)?.toDouble(),
       lng: (m['lastLongitude'] as num?)?.toDouble(),
+      gender: m['gender'] as String?,
+      birthDate: rawBirth != null ? DateTime.tryParse(rawBirth) : null,
+      weight: (m['weight'] as num?)?.toDouble(),
     );
   }
 
@@ -88,7 +96,7 @@ class LivestockApiRepository implements LivestockRepository {
     return LivestockDetail(
       earTag: (m['livestockCode'] ?? m['earTag'] ?? '') as String,
       livestockId: id,
-      breed: (m['breed'] ?? '未知品种') as String,
+      breed: Breed.fromString(m['breed'] as String?),
       ageMonths: _parseInt(m['ageMonths']) ?? 24,
       weightKg: _parseDouble(m['weightKg'] ?? m['weight']) ?? 0.0,
       health: health,

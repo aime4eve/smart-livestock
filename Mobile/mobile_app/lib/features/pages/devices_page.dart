@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
@@ -12,70 +14,168 @@ import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_device_tile.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
-class DevicesPage extends ConsumerWidget {
+class DevicesPage extends ConsumerStatefulWidget {
   const DevicesPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DevicesPage> createState() => _DevicesPageState();
+}
+
+class _DevicesPageState extends ConsumerState<DevicesPage> {
+  final _searchCtrl = TextEditingController();
+  Timer? _debounce;
+  bool _hasSearch = false;
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() => _hasSearch = value.trim().isNotEmpty);
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      ref.read(devicesControllerProvider.notifier).search(value.trim());
+    });
+  }
+
+  void _clearSearch() {
+    _searchCtrl.clear();
+    setState(() => _hasSearch = false);
+    ref.read(devicesControllerProvider.notifier).search('');
+  }
+
+  void _openForm() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => DeviceFormSheet(),
+    ).then((_) => ref.read(devicesControllerProvider.notifier).refresh());
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(devicesControllerProvider);
     final controller = ref.read(devicesControllerProvider.notifier);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.devicesManagement)),
-      floatingActionButton: FloatingActionButton(
-        key: const Key('device-add-fab'),
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            builder: (ctx) => DeviceFormSheet(),
-          ).then((_) => controller.refresh());
-        },
-        child: const Icon(Icons.add),
+      appBar: AppBar(
+        title: Text(l10n.devicesManagement),
+        actions: [
+          IconButton(
+            key: const Key('device-add-btn'),
+            icon: const Icon(Icons.add),
+            onPressed: _openForm,
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        key: const Key('page-devices'),
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            asyncData.when(
+      body: Column(
+        children: [
+          // Search bar
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.sm),
+            child: TextField(
+              key: const Key('device-search'),
+              controller: _searchCtrl,
+              onChanged: _onSearchChanged,
+              decoration: InputDecoration(
+                hintText: l10n.deviceSearchHint,
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchCtrl.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: _clearSearch,
+                      )
+                    : null,
+                border: const OutlineInputBorder(),
+                isDense: true,
+              ),
+            ),
+          ),
+          // Search result banner
+          if (_hasSearch && asyncData is AsyncData)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: Row(
+                children: [
+                  Icon(Icons.filter_list, size: 16,
+                      color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    l10n.deviceSearchResult(asyncData.value!.total),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    key: const Key('device-show-all'),
+                    onPressed: _clearSearch,
+                    child: Text(l10n.deviceShowAll),
+                  ),
+                ],
+              ),
+            ),
+          // List + pagination
+          Expanded(
+            child: asyncData.when(
               data: (data) {
                 if (data.items.isEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Text(l10n.devicesNoDevices),
-                    ),
-                  );
+                  return Center(child: Text(l10n.devicesNoDevices));
                 }
                 return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _DeviceOverviewCard(data: data),
-                    const SizedBox(height: AppSpacing.md),
-                    for (final device in data.items)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                        child: HighfiDeviceTile(
-                          device: device,
-                          onInstall: () =>
-                              _showInstallDialog(context, ref, device),
-                          onUnbind: () {
-                            ScaffoldMessenger.of(context)
-                              ..hideCurrentSnackBar()
-                              ..showSnackBar(SnackBar(
-                                  content: Text(l10n.devicesUnbindDemo(device.name))));
-                          },
-                          onViewLocation: () {
-                            ScaffoldMessenger.of(context)
-                              ..hideCurrentSnackBar()
-                              ..showSnackBar(SnackBar(
-                                  content:
-                                      Text(l10n.devicesViewLocationDemo(device.name))));
-                          },
+                    Expanded(
+                      child: SingleChildScrollView(
+                        key: const Key('page-devices'),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.lg),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _DeviceOverviewCard(data: data),
+                            const SizedBox(height: AppSpacing.md),
+                            for (final device in data.items)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.only(bottom: AppSpacing.sm),
+                                child: HighfiDeviceTile(
+                                  device: device,
+                                  onInstall: () =>
+                                      _showInstallDialog(context, ref, device),
+                                  onUnbind: () {
+                                    ScaffoldMessenger.of(context)
+                                      ..hideCurrentSnackBar()
+                                      ..showSnackBar(SnackBar(
+                                          content: Text(l10n
+                                              .devicesUnbindDemo(device.name))));
+                                  },
+                                  onViewLocation: () {
+                                    ScaffoldMessenger.of(context)
+                                      ..hideCurrentSnackBar()
+                                      ..showSnackBar(SnackBar(
+                                          content: Text(l10n
+                                              .devicesViewLocationDemo(
+                                                  device.name))));
+                                  },
+                                ),
+                              ),
+                          ],
                         ),
                       ),
+                    ),
+                    _PaginationBar(
+                      currentPage: controller.currentPage,
+                      totalPages: controller.totalPages,
+                      total: data.total,
+                      onPrev: () => controller
+                          .goToPage(controller.currentPage - 1),
+                      onNext: () => controller
+                          .goToPage(controller.currentPage + 1),
+                    ),
                   ],
                 );
               },
@@ -94,8 +194,8 @@ class DevicesPage extends ConsumerWidget {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -103,13 +203,13 @@ class DevicesPage extends ConsumerWidget {
   Future<void> _showInstallDialog(
       BuildContext context, WidgetRef ref, DeviceItem device) async {
     final l10n = AppLocalizations.of(context)!;
-    // Livestock options from API (placeholder until async migration)
     final livestockRepo = ref.read(livestockRepositoryProvider);
     List<_LivestockOption> options = [];
     try {
       final livestockData = await livestockRepo.loadAll();
       options = livestockData.items
-          .map((l) => _LivestockOption(id: l.id, label: l.earTag, subtitle: l.breed))
+          .map((l) =>
+              _LivestockOption(id: l.id, label: l.earTag, subtitle: l.breed.name))
           .toList();
     } catch (_) {}
 
@@ -286,7 +386,7 @@ class _DeviceOverviewCard extends StatelessWidget {
             spacing: AppSpacing.lg,
             runSpacing: AppSpacing.sm,
             children: [
-              _Stat(label: l10n.devicesStatTotal, value: '${data.items.length}'),
+              _Stat(label: l10n.devicesStatTotal, value: '${data.total}'),
               _Stat(label: l10n.deviceStatusOnline, value: '$online'),
               _Stat(label: l10n.deviceStatusOffline, value: '$offline'),
               _Stat(label: l10n.deviceStatusLowBattery, value: '$lowBat'),
@@ -312,6 +412,59 @@ class _Stat extends StatelessWidget {
         Text(label, style: Theme.of(context).textTheme.bodySmall),
         Text(value, style: Theme.of(context).textTheme.headlineSmall),
       ],
+    );
+  }
+}
+
+class _PaginationBar extends StatelessWidget {
+  const _PaginationBar({
+    required this.currentPage,
+    required this.totalPages,
+    required this.total,
+    required this.onPrev,
+    required this.onNext,
+  });
+
+  final int currentPage;
+  final int totalPages;
+  final int total;
+  final VoidCallback onPrev;
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+      decoration: BoxDecoration(
+        border:
+            Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            l10n.devicePaginationInfo(currentPage, totalPages, total),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          Row(
+            children: [
+              IconButton(
+                key: const Key('device-prev-page'),
+                icon: const Icon(Icons.chevron_left),
+                onPressed: currentPage > 1 ? onPrev : null,
+              ),
+              Text('$currentPage / $totalPages'),
+              IconButton(
+                key: const Key('device-next-page'),
+                icon: const Icon(Icons.chevron_right),
+                onPressed: currentPage < totalPages ? onNext : null,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

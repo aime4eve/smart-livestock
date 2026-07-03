@@ -11,4 +11,9 @@ public interface DeviceRepository {
     Optional<Device> findByDeviceCode(String deviceCode);
     List<Device> findByTenantId(Long tenantId);
     long countByTenantIdAndStatus(Long tenantId, String status);
+
+    List<Device> findByTenantIdPaged(Long tenantId, int offset, int limit);
+    List<Device> findByTenantIdAndKeyword(Long tenantId, String keyword, int offset, int limit);
+    long countByTenantIdPaged(Long tenantId);
+    long countByTenantIdAndKeyword(Long tenantId, String keyword);
 }

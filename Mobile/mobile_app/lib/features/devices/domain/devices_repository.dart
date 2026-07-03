@@ -60,6 +60,7 @@ abstract class DevicesRepository {
   Future<DevicesListData> loadDevices({
     int page = 1,
     int pageSize = 20,
+    String? keyword,
   });
 
   Future<DeviceItem> loadDetail(String id);

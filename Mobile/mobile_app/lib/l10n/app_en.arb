@@ -559,6 +559,26 @@
   "estrusDetailChartTitle": "7-Day Score Trend",
   "@estrusDetailChartTitle": {},
   "devicesManagement": "Device Management",
+ "deviceSearchHint": "Search device code",
+ "@deviceSearchHint": {},
+ "deviceSearchResult": "{total} results found",
+ "@deviceSearchResult": {},
+ "@deviceSearchResult": {
+   "placeholders": {
+     "total": {}
+   }
+ },
+ "deviceShowAll": "Show all",
+ "@deviceShowAll": {},
+ "devicePaginationInfo": "Page {currentPage} / {totalPages}, {total} items",
+ "@devicePaginationInfo": {},
+ "@devicePaginationInfo": {
+   "placeholders": {
+     "currentPage": {},
+     "totalPages": {},
+     "total": {}
+   }
+ },
   "@devicesManagement": {},
   "devicesAddDemo": "Demo: Add new device coming soon",
   "@devicesAddDemo": {},
@@ -1960,6 +1980,26 @@
  "@aiAnomalyAnomalyCount": {}
 ,
  "livestockListTitle": "Livestock Management",
+ "livestockSearchResult": "{total} results found",
+ "@livestockSearchResult": {},
+ "@livestockSearchResult": {
+   "placeholders": {
+     "total": {}
+   }
+ },
+ "livestockShowAll": "Show all",
+ "@livestockShowAll": {},
+ "livestockSearchHint": "Search by code or breed",
+ "@livestockSearchHint": {},
+ "livestockPaginationInfo": "Page {currentPage} / {totalPages}, {total} items",
+ "@livestockPaginationInfo": {},
+ "@livestockPaginationInfo": {
+   "placeholders": {
+     "currentPage": {},
+     "totalPages": {},
+     "total": {}
+   }
+ },
  "@livestockListTitle": {},
  "livestockAddNew": "Add Livestock",
  "@livestockAddNew": {},

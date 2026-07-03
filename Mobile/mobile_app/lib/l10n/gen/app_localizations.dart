@@ -1386,6 +1386,34 @@ abstract class AppLocalizations {
   /// **'设备管理'**
   String get devicesManagement;
 
+  /// No description provided for @deviceSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索设备编号'**
+  String get deviceSearchHint;
+
+  /// No description provided for @deviceSearchResult.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索结果：{total} 条'**
+  String deviceSearchResult(Object total);
+
+  /// No description provided for @deviceShowAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看全部'**
+  String get deviceShowAll;
+
+  /// No description provided for @devicePaginationInfo.
+  ///
+  /// In zh, this message translates to:
+  /// **'第 {currentPage} / {totalPages} 页，共 {total} 条'**
+  String devicePaginationInfo(
+    Object currentPage,
+    Object totalPages,
+    Object total,
+  );
+
   /// No description provided for @devicesAddDemo.
   ///
   /// In zh, this message translates to:
@@ -4301,6 +4329,34 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'牲畜管理'**
   String get livestockListTitle;
+
+  /// No description provided for @livestockSearchResult.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索结果：{total} 条'**
+  String livestockSearchResult(Object total);
+
+  /// No description provided for @livestockShowAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看全部'**
+  String get livestockShowAll;
+
+  /// No description provided for @livestockSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索编号或品种'**
+  String get livestockSearchHint;
+
+  /// No description provided for @livestockPaginationInfo.
+  ///
+  /// In zh, this message translates to:
+  /// **'第 {currentPage} / {totalPages} 页，共 {total} 条'**
+  String livestockPaginationInfo(
+    Object currentPage,
+    Object totalPages,
+    Object total,
+  );
 
   /// No description provided for @livestockAddNew.
   ///

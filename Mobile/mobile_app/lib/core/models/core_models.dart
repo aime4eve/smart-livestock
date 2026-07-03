@@ -51,6 +51,27 @@ class DashboardMetric {
 
 enum LivestockHealth { healthy, watch, abnormal }
 
+enum Breed {
+  angus,
+  wagyu,
+  simmental,
+  limousin,
+  other;
+
+  /// Parse from API string code (e.g. 'ANGUS', 'Simmental', '安格斯').
+  static Breed fromString(String? raw) {
+    if (raw == null) return Breed.other;
+    final code = raw.toUpperCase();
+    const map = {
+      'ANGUS': Breed.angus,
+      'WAGYU': Breed.wagyu,
+      'SIMMENTAL': Breed.simmental,
+      'LIMOUSIN': Breed.limousin,
+    };
+    return map[code] ?? Breed.other;
+  }
+}
+
 class LivestockInfo {
   const LivestockInfo({
     required this.earTag,
@@ -66,7 +87,7 @@ class LivestockInfo {
 
   final String earTag;
   final String livestockId;
-  final String breed;
+  final Breed breed;
   final int ageMonths;
   final double weightKg;
   final LivestockHealth health;
@@ -93,7 +114,7 @@ class LivestockDetail {
 
   final String earTag;
   final String livestockId;
-  final String breed;
+  final Breed breed;
   final int ageMonths;
   final double weightKg;
   final LivestockHealth health;

@@ -559,6 +559,26 @@
   "estrusDetailChartTitle": "7天评分趋势",
   "@estrusDetailChartTitle": {},
   "devicesManagement": "设备管理",
+ "deviceSearchHint": "搜索设备编号",
+ "@deviceSearchHint": {},
+ "deviceSearchResult": "搜索结果：{total} 条",
+ "@deviceSearchResult": {},
+ "@deviceSearchResult": {
+   "placeholders": {
+     "total": {}
+   }
+ },
+ "deviceShowAll": "查看全部",
+ "@deviceShowAll": {},
+ "devicePaginationInfo": "第 {currentPage} / {totalPages} 页，共 {total} 条",
+ "@devicePaginationInfo": {},
+ "@devicePaginationInfo": {
+   "placeholders": {
+     "currentPage": {},
+     "totalPages": {},
+     "total": {}
+   }
+ },
   "@devicesManagement": {},
   "devicesAddDemo": "演示：添加新设备待接入",
   "@devicesAddDemo": {},
@@ -1960,6 +1980,26 @@
  "@aiAnomalyAnomalyCount": {}
 ,
  "livestockListTitle": "牲畜管理",
+ "livestockSearchResult": "搜索结果：{total} 条",
+ "@livestockSearchResult": {},
+ "@livestockSearchResult": {
+   "placeholders": {
+     "total": {}
+   }
+ },
+ "livestockShowAll": "查看全部",
+ "@livestockShowAll": {},
+ "livestockSearchHint": "搜索编号或品种",
+ "@livestockSearchHint": {},
+ "livestockPaginationInfo": "第 {currentPage} / {totalPages} 页，共 {total} 条",
+ "@livestockPaginationInfo": {},
+ "@livestockPaginationInfo": {
+   "placeholders": {
+     "currentPage": {},
+     "totalPages": {},
+     "total": {}
+   }
+ },
  "@livestockListTitle": {},
  "livestockAddNew": "新增牲畜",
  "@livestockAddNew": {},

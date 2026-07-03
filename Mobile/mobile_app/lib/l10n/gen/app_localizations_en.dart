@@ -708,6 +708,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get devicesManagement => 'Device Management';
 
   @override
+  String get deviceSearchHint => 'Search device code';
+
+  @override
+  String deviceSearchResult(Object total) {
+    return '$total results found';
+  }
+
+  @override
+  String get deviceShowAll => 'Show all';
+
+  @override
+  String devicePaginationInfo(
+    Object currentPage,
+    Object totalPages,
+    Object total,
+  ) {
+    return 'Page $currentPage / $totalPages, $total items';
+  }
+
+  @override
   String get devicesAddDemo => 'Demo: Add new device coming soon';
 
   @override
@@ -2343,6 +2363,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get livestockListTitle => 'Livestock Management';
+
+  @override
+  String livestockSearchResult(Object total) {
+    return '$total results found';
+  }
+
+  @override
+  String get livestockShowAll => 'Show all';
+
+  @override
+  String get livestockSearchHint => 'Search by code or breed';
+
+  @override
+  String livestockPaginationInfo(
+    Object currentPage,
+    Object totalPages,
+    Object total,
+  ) {
+    return 'Page $currentPage / $totalPages, $total items';
+  }
 
   @override
   String get livestockAddNew => 'Add Livestock';

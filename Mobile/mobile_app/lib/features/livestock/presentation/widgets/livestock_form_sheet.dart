@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/livestock/domain/livestock_repository.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/livestock_controller.dart';
@@ -17,7 +18,7 @@ class LivestockFormSheet extends ConsumerStatefulWidget {
 class _LivestockFormSheetState extends ConsumerState<LivestockFormSheet> {
   late final TextEditingController _codeCtrl;
   late final TextEditingController _weightCtrl;
-  String? _breed;
+  Breed _breed = Breed.other;
   String _gender = 'MALE';
   DateTime? _birthDate;
   bool _loading = false;
@@ -29,6 +30,16 @@ class _LivestockFormSheetState extends ConsumerState<LivestockFormSheet> {
     super.initState();
     _codeCtrl = TextEditingController(text: widget.existing?.earTag ?? '');
     _weightCtrl = TextEditingController();
+    // Pre-fill fields from existing data when editing.
+   final existing = widget.existing;
+   if (existing != null) {
+      _breed = existing.breed;
+      _gender = existing.gender ?? 'MALE';
+      _birthDate = existing.birthDate;
+      if (existing.weight != null) {
+        _weightCtrl.text = existing.weight!.toStringAsFixed(1);
+      }
+    }
   }
 
   @override
@@ -77,21 +88,21 @@ class _LivestockFormSheetState extends ConsumerState<LivestockFormSheet> {
             ),
             const SizedBox(height: AppSpacing.md),
             // Breed
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField<Breed>(
               key: const Key('livestock-form-breed'),
-              value: _breed,
+              initialValue: _breed,
               decoration: InputDecoration(
                 labelText: l10n.livestockFormFieldBreed,
                 border: const OutlineInputBorder(),
               ),
               items: [
-                DropdownMenuItem(value: '安格斯', child: Text(l10n.livestockBreedAngus)),
-                DropdownMenuItem(value: '和牛', child: Text(l10n.livestockBreedWagyu)),
-                DropdownMenuItem(value: '西门塔尔', child: Text(l10n.livestockBreedSimmental)),
-                DropdownMenuItem(value: '利木赞', child: Text(l10n.livestockBreedLimousin)),
-                DropdownMenuItem(value: '其他', child: Text(l10n.livestockBreedOther)),
+                DropdownMenuItem(value: Breed.angus, child: Text(l10n.livestockBreedAngus)),
+                DropdownMenuItem(value: Breed.wagyu, child: Text(l10n.livestockBreedWagyu)),
+                DropdownMenuItem(value: Breed.simmental, child: Text(l10n.livestockBreedSimmental)),
+                DropdownMenuItem(value: Breed.limousin, child: Text(l10n.livestockBreedLimousin)),
+                DropdownMenuItem(value: Breed.other, child: Text(l10n.livestockBreedOther)),
               ],
-              onChanged: (v) => setState(() => _breed = v),
+              onChanged: (v) => setState(() => _breed = v ?? Breed.other),
             ),
             const SizedBox(height: AppSpacing.md),
             // Gender
@@ -172,7 +183,7 @@ class _LivestockFormSheetState extends ConsumerState<LivestockFormSheet> {
     setState(() => _loading = true);
     final body = <String, dynamic>{
       'livestockCode': _codeCtrl.text.trim(),
-      'breed': _breed,
+      'breed': _breed.name.toUpperCase(),
       'gender': _gender,
       'birthDate': _birthDate != null
           ? '${_birthDate!.year}-${_birthDate!.month.toString().padLeft(2, '0')}-${_birthDate!.day.toString().padLeft(2, '0')}'

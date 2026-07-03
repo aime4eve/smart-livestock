@@ -97,4 +97,27 @@ public class LivestockApplicationService {
         }
         livestockRepository.deleteById(id);
     }
+
+    /**
+     * Paginated livestock query with optional keyword search.
+     */
+    @Transactional(readOnly = true)
+    public LivestockPage listByFarm(Long farmId, String keyword, int page, int pageSize) {
+        String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
+        int offset = (page - 1) * pageSize;
+        List<LivestockDto> items;
+        long total;
+        if (kw != null) {
+            items = livestockRepository.findByFarmIdAndKeyword(farmId, kw, offset, pageSize)
+                    .stream().map(LivestockDto::from).toList();
+            total = livestockRepository.countByFarmIdAndKeyword(farmId, kw);
+        } else {
+            items = livestockRepository.findByFarmIdPaged(farmId, offset, pageSize)
+                    .stream().map(LivestockDto::from).toList();
+            total = livestockRepository.countByFarmIdPaged(farmId);
+        }
+        return new LivestockPage(items, page, pageSize, total);
+    }
+
+    public record LivestockPage(List<LivestockDto> items, int page, int pageSize, long total) {}
 }

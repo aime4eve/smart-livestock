@@ -29,22 +29,41 @@ cd "$(dirname "$0")/.."
 echo "==> [1/5] Building JAR (skip tests)..."
 ./gradlew bootJar -x test
 
+# Clean old JARs locally — keep only the latest one.
+# Without this, rsync transfers 8+ GB of accumulated old JARs every deploy.
+echo "==> [1.5] Cleaning old JARs..."
+cd build/libs && ls -t smart-livestock-server-*.jar 2>/dev/null | tail -n +2 | xargs -r rm -f && cd ../..
+
 echo "==> [2/5] Syncing code to remote ($ENV)..."
 rsync -avz \
   --exclude='.git' \
   --exclude='.gradle' \
   --exclude='node_modules' \
-  --exclude='build/tmp' \
-  --exclude='build/classes' \
+  --exclude='build/classes/' \
+  --exclude='build/resources/' \
+  --exclude='build/generated/' \
+  --exclude='build/reports/' \
+  --exclude='build/tmp/' \
+  --exclude='build/test-results/' \
   --exclude='.env' \
   --exclude='.env.dev' \
+  --exclude='._*' \
   . "$REMOTE:$REMOTE_DIR/"
 
 echo "==> [3/5] Cleaning old JARs on remote..."
 ssh "$REMOTE" "cd $REMOTE_DIR/build/libs && ls -t smart-livestock-server-*.jar 2>/dev/null | tail -n +2 | xargs -r rm -f"
 
 echo "==> [4/5] Building and starting $ENV stack..."
-ssh "$REMOTE" "cd $REMOTE_DIR && docker compose -f $COMPOSE_FILE -p $PROJECT build app && docker compose -f $COMPOSE_FILE -p $PROJECT up -d"
+ssh "$REMOTE" "cd $REMOTE_DIR && docker compose -f $COMPOSE_FILE -p $PROJECT build app nginx && docker compose -f $COMPOSE_FILE -p $PROJECT up -d"
+
+echo "==> [4.5/5] Syncing tileserver data to named volume..."
+# Snap Docker cannot bind-mount paths under /data/agentic, so we sync the
+# project's mbtiles + config.json into the named volume after compose up.
+ssh "$REMOTE" "cd $REMOTE_DIR && \
+  TILE_CTR=\$(docker compose -f $COMPOSE_FILE -p $PROJECT ps -q tileserver) && \
+  docker cp infrastructure/tileserver/data/. \$TILE_CTR:/data/ && \
+  docker exec -u root \$TILE_CTR sh -c 'chmod -R a+rX /data && rm -f /data/._*' && \
+  docker restart \$TILE_CTR"
 
 echo "==> [5/5] Pruning dangling images..."
 ssh "$REMOTE" "docker image prune -f"
