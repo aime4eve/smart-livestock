@@ -77,3 +77,7 @@ HTML 交互原型（如健康详情图表）。
 ### `archive/` — 归档
 
 已过时或一次性评估文档，不再活跃维护。
+
+---
+
+> Flutter Demo 阶段（2026-03 至 2026-05）的历史归档文档见 [`Mobile/docs/`](../Mobile/docs/README.md)
