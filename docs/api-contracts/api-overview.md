@@ -9,6 +9,8 @@
 > - [app-api.md](./app-api.md) — App API（`/api/v1/`，49 端点）
 > - [admin-api.md](./admin-api.md) — Admin API（`/api/v1/admin/`，21 端点）
 > - [open-api.md](./open-api.md) — Open API（`/api/v1/open/`，11 端点）
+>
+> ⚠️ **As-Built 校准（2026-06-26）**: 上述端点数为 Phase 1 契约范围（App 49 / Admin 21 / Open 11 = 81）。当前实现实际 **App 117 / Admin 59 / Open 11 = 187 个端点**，Phase 2a/2b/2c 新增端点未收录到 app-api.md / admin-api.md。端点真源为代码，详见 [后端实现现状 §7 API 设计](../superpowers/specs/2026-05-06-mvp-backend-design.md)。
 
 ---
 
@@ -482,9 +484,11 @@ docs/api-contracts/
 
 ## 端点统计
 
-| 前缀 | 端点数 |
-|------|--------|
-| App (`/api/v1/`) | 49 |
-| Admin (`/api/v1/admin/`) | 21 |
-| Open (`/api/v1/open/`) | 11 |
-| **合计** | **81** |
+> 下表对照 Phase 1 契约范围（本文档详列）与 As-Built 实际实现（含 Phase 2a/2b/2c 新增）。
+
+| 前缀 | Phase 1 契约 | As-Built 实际 |
+|------|--------|--------|
+| App (`/api/v1/`) | 49 | 117 |
+| Admin (`/api/v1/admin/`) | 21 | 59 |
+| Open (`/api/v1/open/`) | 11 | 11 |
+| **合计** | **81** | **187** |
