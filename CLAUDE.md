@@ -314,7 +314,7 @@ docker compose up -d               # 全栈启动（PostgreSQL + Redis + RocketM
 - **MBTiles 离线**: 原生平台支持离线瓦片（`sample.mbtiles`，长沙 zoom 12-14）
 - **SmartTileProvider**: 三级降级（tileserver-gl → MBTiles → 高德/OSM），健康检测自动切换
 - **坐标转换**: WGS-84 ↔ GCJ-02（`coord_transform.dart`），高德降级时自动转换
-- **部署指南**: `docs/tileserver-deployment-guide.md`
+- **部署指南**: `docs/guides/tileserver-deployment-guide.md`
 
 ---
 
@@ -387,7 +387,7 @@ cd Mobile && ./dev.sh start [mock|live]
 | b2b_admin（B端客户管理员） | 概览/牧场管理/合同信息/对账/旗下牧工管理 | 左侧 NavigationRail |
 | api_consumer（API 开发者） | 仅 API 访问，无移动 App 端（开发者门户为独立 Vue 3 应用，Phase 2c 已实现） | — |
 
-**旅程链**：platform_admin → 创建 b2b_admin → b2b_admin 创建牧场 → 分配给 owner。牧场不由 owner 自行创建。详见 `docs/customer-journey.md`。
+**旅程链**：platform_admin → 创建 b2b_admin → b2b_admin 创建牧场 → 分配给 owner。牧场不由 owner 自行创建。详见 `docs/product/customer-journey.md`。
 
 ### 代码风格
 
@@ -413,7 +413,7 @@ cd Mobile && ./dev.sh start [mock|live]
 
 **后端现状**：7 个限界上下文（Identity + Ranch + IoT + Health + Commerce + Analytics + Shared，Platform 为支撑）、39 张表、187 个 API 端点、51 个 Controller、502 个 Java 文件、53 个测试类。AuditLog 和 Auth refresh 已完整实现（不再是 stub）。时序数据按月分区（temperature_logs/rumen_motility_logs/activity_logs），围栏检测 + 健康分析通过 RocketMQ 事件驱动（`gps-log-updated`、`telemetry-received` 等 Topic）。
 
-**前端现状**：已移除 Mock 模式，全部通过 ApiClient 异步对接 Spring Boot 后端（JWT 认证）。30 个功能模块、36 条路由。订阅系统（4 个 tier + 7 个 feature key）、B端后台、租户管理（TenantDetailPage 含用户创建/启停）、健康模块（发热/消化/发情/疫病）、离线模块（离线围栏/离线牲畜/离线瓦片）。地图支持三级瓦片降级（tileserver-gl → MBTiles → 高德/OSM）。客户旅程文档：`docs/customer-journey.md`。
+**前端现状**：已移除 Mock 模式，全部通过 ApiClient 异步对接 Spring Boot 后端（JWT 认证）。30 个功能模块、36 条路由。订阅系统（4 个 tier + 7 个 feature key）、B端后台、租户管理（TenantDetailPage 含用户创建/启停）、健康模块（发热/消化/发情/疫病）、离线模块（离线围栏/离线牲畜/离线瓦片）。地图支持三级瓦片降级（tileserver-gl → MBTiles → 高德/OSM）。客户旅程文档：`docs/product/customer-journey.md`。
 
 ---
 

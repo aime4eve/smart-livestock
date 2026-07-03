@@ -341,7 +341,7 @@ docker compose up -d               # 全栈启动（PostgreSQL + Redis + RocketM
 - **MBTiles 离线**: 原生平台支持离线瓦片（`sample.mbtiles`，长沙 zoom 12-14）
 - **SmartTileProvider**: 三级降级（tileserver-gl → MBTiles → 高德/OSM），健康检测自动切换
 - **坐标转换**: WGS-84 ↔ GCJ-02（`coord_transform.dart`），高德降级时自动转换
-- **部署指南**: `docs/tileserver-deployment-guide.md`
+- **部署指南**: `docs/guides/tileserver-deployment-guide.md`
 
 ---
 
@@ -415,7 +415,7 @@ cd Mobile && ./dev.sh start [mock|live]
 | b2b_admin（B端客户管理员） | 概览/牧场管理/合同信息/对账/旗下牧工管理 | 左侧 NavigationRail |
 | api_consumer（API 开发者） | 仅 API 访问，无 App 端（开发者门户 MVP Phase 2 规划中） | — |
 
-**旅程链**：platform_admin → 创建 b2b_admin → b2b_admin 创建牧场 → 分配给 owner。牧场不由 owner 自行创建。详见 `docs/customer-journey.md`。
+**旅程链**：platform_admin → 创建 b2b_admin → b2b_admin 创建牧场 → 分配给 owner。牧场不由 owner 自行创建。详见 `docs/product/customer-journey.md`。
 
 ### 代码风格
 
@@ -441,7 +441,7 @@ cd Mobile && ./dev.sh start [mock|live]
 
 **后端现状**：5 个限界上下文（Identity + Ranch + IoT + Commerce + Shared）、20+ 张表、~130 个 API 端点、37 个 Controller、312 个 Java 文件、58 个测试类。AuditLog 和 Auth refresh 已完整实现（不再是 stub）。
 
-**前端现状**：已移除 Mock 模式，全部通过 ApiClient 异步对接 Spring Boot 后端（JWT 认证）。29 个功能模块、42 条路由。订阅系统（4 个 tier + 23 个 feature flag）、B端后台、租户管理（TenantDetailPage 含用户创建/启停）、健康模块（发热/消化/发情/疫病）UI 框架已搭好、离线模块（离线围栏/离线牲畜/离线瓦片）。地图支持三级瓦片降级（tileserver-gl → MBTiles → 高德/OSM）。客户旅程文档：`docs/customer-journey.md`。
+**前端现状**：已移除 Mock 模式，全部通过 ApiClient 异步对接 Spring Boot 后端（JWT 认证）。29 个功能模块、42 条路由。订阅系统（4 个 tier + 23 个 feature flag）、B端后台、租户管理（TenantDetailPage 含用户创建/启停）、健康模块（发热/消化/发情/疫病）UI 框架已搭好、离线模块（离线围栏/离线牲畜/离线瓦片）。地图支持三级瓦片降级（tileserver-gl → MBTiles → 高德/OSM）。客户旅程文档：`docs/product/customer-journey.md`。
 
 ---
 
@@ -463,7 +463,7 @@ cd Mobile && ./dev.sh start [mock|live]
 
 ## 经验判据速查（每次会话生效）
 
-> 详细五段式（现象/误判/根因/解决/判据）见 `docs/lessons-learned.md`，遇下列症状先套规则再深挖。
+> 详细五段式（现象/误判/根因/解决/判据）见 `docs/reference/lessons-learned.md`，遇下列症状先套规则再深挖。
 
 1. **Flutter 工具 UTF-8 解码失败**（path 含 `._` 前缀）→ 先删 `._*`（AppleDouble 污染），别怀疑 Flutter 本身。
 2. **沙箱内 Flutter 任何命令崩**（写不了 `~/.dart-tool`）→ 统一加 `HOME=/private/tmp FLUTTER_SUPPRESS_ANALYTICS=true flutter <cmd>`；`analyze` 加 `--no-pub`，`pub get` 需联网或 `--offline`。

@@ -100,6 +100,24 @@
 
 ---
 
+## 6. mine 页面入口"缺失":非代码问题,是 nginx 镜像未重建
+
+- **日期**:2026-07-02
+- **现象**:dev 环境(19080)owner 登录后,mine 页面看不到"畜牧管理"入口。后端 `/me` 接口正常返回,代码里 `mine_page.dart` 确实有入口逻辑(`Key('mine-livestock-mgmt')` → `AppRoute.livestockList.path`),i18n 文案 `livestockListTitle`="牲畜管理" 也齐全。
+- **误判**:从代码层面逐项排查——`MineController` 调 `GET /me` 正常、`ApiClient` envelope 解包逻辑正确、路由 `livestockList` 存在、arb 文案有 key、git 历史确认入口在当前 HEAD。代码完全正确,问题不在代码层。差点在 ApiClient 和 controller 层继续深挖。
+- **根因**:`nginx` 的 Dockerfile 用 `COPY frontend /usr/share/nginx/html` 把前端文件烤进镜像,而 `deploy.sh` 只执行 `docker compose build app`,从未 rebuild nginx。前端文件虽然 rsync 到了 host(`~/smart-livestock-server/frontend/main.dart.js` 是最新的),但容器一直用旧镜像里的旧前端。容器内 grep `mine-livestock-mgmt` 返回 0,host 上 grep 返回 1。
+- **解决**:
+  1. `deploy.sh` 第 47 行 `build app` → `build app nginx`,每次部署重建 nginx 镜像。
+  2. `build_web.sh` 构建后自动把产物复制到 `smart-livestock-server/frontend/`(之前本地这份目录停留在 6 月 30 日旧版本,直接 deploy 会把 host 上的好文件反向覆盖)。
+  3. 重新构建前端 → 部署 → 浏览器验证:登录 owner → `/mine` 页面 DOM 确认 `node_id=2` = "牲畜管理" → 点击跳转到 `/livestock` 牲畜列表页。
+- **判据(下次复现即套用)**:
+  - 前端入口/功能"缺失",先 grep **容器内**的 `main.dart.js` 是否包含对应 key,再 grep host 上的。两者不一致 → 是镜像未重建,不是代码问题。
+  - Dockerfile 用 `COPY` 烤入文件的场景,改了源文件后必须 rebuild 对应镜像;`docker compose build` 时要带上该 service 名(这里是 nginx),不能只 build app。
+  - 部署链路多步(构建→复制→rsync→docker build),每一环都要验证产物到了下一环节:`grep -c "key" smart-livestock-server/frontend/main.dart.js`(本地)→ `docker exec <nginx> grep -c "key" /usr/share/nginx/html/main.dart.js`(容器),不要假设中间步骤自动完成。
+  - 一句话:**前端更新后,先确认容器内文件确实是最新的,再查代码。**
+
+---
+
 ## 沉淀规则(给后续维护者)
 
 1. 每解决一个非平凡问题,追加一条到本文件,按"现象 → 误判 → 根因 → 解决 → 判据"五段式。
