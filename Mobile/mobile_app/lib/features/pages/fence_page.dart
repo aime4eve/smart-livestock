@@ -1,7 +1,6 @@
 import 'dart:math' show min;
 import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,8 +13,6 @@ import 'package:hkt_livestock_agentic/core/map/map_constants.dart';
 import 'package:hkt_livestock_agentic/core/map/map_config.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
-import 'package:hkt_livestock_agentic/core/map/tile_source_resolver.dart';
-import 'package:hkt_livestock_agentic/core/map/mbtiles_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 import 'package:hkt_livestock_agentic/core/models/view_state.dart';
 import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
@@ -221,15 +218,13 @@ class _FencePageState extends ConsumerState<FencePage>
                         ),
                         children: [
                           TileLayer(
-                            urlTemplate: _tileProvider == null
-                                ? MapConfig.tileUrlTemplate
-                                : null,
-                            tileProvider: _tileProvider,
-                            userAgentPackageName:
-                                'com.smartlivestock.demo',
-                            maxZoom:
-                                MapConfig.cacheMaxZoom.toDouble(),
-                          ),
+                           urlTemplate: _tileProvider == null
+                               ? MapConfig.tileUrlTemplate
+                               : null,
+                           tileProvider: _tileProvider,
+                           userAgentPackageName:
+                               'com.smartlivestock.demo',
+                         ),
                           if (!isEditing)
                             AnimatedBuilder(
                               animation: _breathingController,
