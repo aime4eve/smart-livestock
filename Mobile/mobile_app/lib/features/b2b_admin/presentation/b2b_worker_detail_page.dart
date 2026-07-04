@@ -12,6 +12,7 @@ import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/core/map/map_config.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
+import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
 import 'package:hkt_livestock_agentic/core/map/tile_auto_trigger.dart';
 import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 import 'package:hkt_livestock_agentic/features/b2b_admin/domain/b2b_worker_management_repository.dart';
@@ -236,14 +237,10 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
       }
 
       // Initialize SmartTileProvider
-      final tileProvider = await SmartTileProvider.create(
-        selfHostedTileUrl: resolvedUrl ?? MapConfig.selfHostedTileUrl,
-        mbtilesProvider: null,
-        fallbackUrl: MapConfig.chinaFallbackUrl,
-        isGcj02Fallback: true,
+      final tileProvider = await loadSmartTileProvider(
+        ref,
         onSourceChanged: () { if (mounted) setState(() {}); },
       );
-      tileProvider.startHealthMonitor();
       // Set tile coverage bounds to suppress 404 for out-of-range tiles
       // changsha-demo covers [112.8, 28.1, 113.1, 28.4]
 

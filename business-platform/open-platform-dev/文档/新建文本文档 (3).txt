@@ -1,0 +1,173 @@
+
+
+## queryControlRecordByIds
+
+
+**接口地址**:`/api/device/feign/v1/device/control/record/queryControlRecordByIds`
+
+
+**请求方式**:`POST`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求示例**:
+
+
+```javascript
+[]
+```
+
+
+**请求参数**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|strings|string|body|true|array||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|RListDeviceControlRecordRespDto|
+|400|Bad Request|R|
+|401|Unauthorized|R|
+|500|Internal Server Error|R|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|code|状态码|integer(int32)|integer(int32)|
+|success|是否成功|boolean||
+|data|承载数据|array|DeviceControlRecordRespDto|
+|&emsp;&emsp;id|记录ID|string||
+|&emsp;&emsp;deviceId|设备ID|string||
+|&emsp;&emsp;triggerSource|控制类型(0-手动，1-规则，2-定时，3-API)|string||
+|&emsp;&emsp;triggerSourceText|控制类型(0-手动，1-规则，2-定时，3-API)|string||
+|&emsp;&emsp;funcName|指令名称|string||
+|&emsp;&emsp;funcParams|指令参数(含单位)|string||
+|&emsp;&emsp;cmdState|下发结果状态码(-1待发送，0下发中，1成功，2失败，3超时，4待重试，5过期)|integer(int32)||
+|&emsp;&emsp;cmdStateText|下发结果状态码(-1待发送，0下发中，1成功，2失败，3超时，4待重试，5过期)|string||
+|&emsp;&emsp;errorMsg|失败原因|string||
+|&emsp;&emsp;createTime|操作时间|string(date-time)||
+|&emsp;&emsp;operatorName|操作人名称|string||
+|msg|返回消息|string||
+
+
+**响应示例**:
+```javascript
+{
+	"code": 0,
+	"success": true,
+	"data": [
+		{
+			"id": "",
+			"deviceId": "",
+			"triggerSource": "",
+			"triggerSourceText": "",
+			"funcName": "",
+			"funcParams": "",
+			"cmdState": 0,
+			"cmdStateText": "",
+			"errorMsg": "",
+			"createTime": "",
+			"operatorName": ""
+		}
+	],
+	"msg": ""
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|code|状态码|integer(int32)|integer(int32)|
+|success|是否成功|boolean||
+|data|承载数据|string||
+|msg|返回消息|string||
+
+
+**响应示例**:
+```javascript
+{
+	"code": 0,
+	"success": true,
+	"data": {},
+	"msg": ""
+}
+```
+
+
+**响应状态码-401**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|code|状态码|integer(int32)|integer(int32)|
+|success|是否成功|boolean||
+|data|承载数据|string||
+|msg|返回消息|string||
+
+
+**响应示例**:
+```javascript
+{
+	"code": 0,
+	"success": true,
+	"data": {},
+	"msg": ""
+}
+```
+
+
+**响应状态码-500**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|code|状态码|integer(int32)|integer(int32)|
+|success|是否成功|boolean||
+|data|承载数据|string||
+|msg|返回消息|string||
+
+
+**响应示例**:
+```javascript
+{
+	"code": 0,
+	"success": true,
+	"data": {},
+	"msg": ""
+}
+```

@@ -1,0 +1,100 @@
+server:
+  # 与网关 8080 错开；部署可用环境变量 SERVER_PORT 覆盖
+  port: ${SERVER_PORT:8777}
+
+spring:
+  application:
+    name: open-api-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER_ADDR:172.22.3.16:8848}
+        namespace: c47123d9-9d2b-4fdf-a61a-8d5daa9c89ac
+        group: DEFAULT_GROUP
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD:16c47768b93458d3!QA}
+      config:
+        server-addr: ${NACOS_SERVER_ADDR:172.22.3.16:8848}
+        namespace: c47123d9-9d2b-4fdf-a61a-8d5daa9c89ac
+        group: DEFAULT_GROUP
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD:16c47768b93458d3!QA}
+        file-extension: yml
+        import-check:
+          enabled: false
+  datasource:
+    url: jdbc:postgresql://172.21.2.41:5432/open_api
+    username: root
+    password: 7qX#yL8vz!
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+  data:
+    redis:
+      host: 172.22.3.13
+      port: 6379
+      password: hkt1234!QAZ
+      database: 0
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+open-api:
+  security:
+    bcrypt-cost: 12
+    api-key-prefix: "ak_live_"
+    api-key-length: 48
+  cache:
+    key-ttl-seconds: 300
+  rate-limit:
+    app-qps: 100
+    key-qps: 50
+  audit:
+    async: true
+  # 中台若不提供固定内部 Bearer，可留空，仅走 oauth2 换票
+  internal-token: ${INTERNAL_SERVICE_TOKEN:}
+  # Feign 调中台：默认 header 名为 token，值为纯 access_token（与中台约定）；若需 Authorization Bearer 再在 Nacos 配 token-prefix 等
+  feign-auth:
+    header-name: token
+  # open-api.oauth2 等与环境的差异请放到 Nacos（见文末 spring.config.import 按 profile 拉取的 Data ID）
+
+logging:
+  level:
+    com.ai.openapi: DEBUG
+    org.springframework.cloud.openfeign: DEBUG
+    com.ai.openapi.space.client: DEBUG
+    com.ai.openapi.device.client: DEBUG
+    com.alibaba.nacos: ERROR
+
+# Nacos 共享配置：测试环境请设置 SPRING_PROFILES_ACTIVE=test（或 --spring.profiles.active=test）
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+    import:
+      - optional:nacos:hkt-open-api-service-test.yml?group=DEFAULT_GROUP&refreshEnabled=true
+---
+spring:
+  config:
+    activate:
+      on-profile: "!test"
+    import:
+      - optional:nacos:hkt-open-api-service.yml?group=DEFAULT_GROUP&refreshEnabled=true

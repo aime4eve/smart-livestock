@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' show min;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,10 +8,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/map/map_constants.dart';
-import 'package:hkt_livestock_agentic/core/map/map_config.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
-import 'package:hkt_livestock_agentic/core/map/tile_source_resolver.dart';
-import 'package:hkt_livestock_agentic/core/map/mbtiles_tile_provider.dart';
+import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
 import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/fence_polygon_contains.dart';
@@ -59,28 +56,10 @@ class _RanchPageState extends ConsumerState<RanchPage>
   }
 
   Future<void> _initTileProvider() async {
-    MBTilesTileProvider? mbtiles;
-    if (!kIsWeb) {
-      mbtiles = await MBTilesTileProvider.fromAsset();
-    }
-    const region = String.fromEnvironment('REGION', defaultValue: 'china');
-    const isChina = region == 'china';
-    String? regionUrl;
-    if (ApiClient.instance.activeFarmId != null) {
-      try {
-        final sources = await ref.read(tileSourceResolverProvider).resolve();
-        regionUrl = sources.isEmpty ? null : sources.first.tileUrl;
-      } catch (_) {}
-    }
-    final tp = await SmartTileProvider.create(
-      selfHostedTileUrl: regionUrl,
-      mbtilesProvider: mbtiles,
-      fallbackUrl: isChina ? MapConfig.chinaFallbackUrl : MapConfig.overseasFallbackUrl,
-      isGcj02Fallback: isChina,
+    _tileProvider = await loadSmartTileProvider(
+      ref,
       onSourceChanged: () { if (mounted) setState(() {}); },
     );
-    _tileProvider = tp;
-    _tileProvider!.startHealthMonitor();
     if (mounted) setState(() {});
   }
 

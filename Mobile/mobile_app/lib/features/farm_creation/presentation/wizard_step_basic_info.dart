@@ -8,6 +8,7 @@ import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/map/map_config.dart';
 import 'package:hkt_livestock_agentic/core/map/mbtiles_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
+import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
@@ -45,17 +46,8 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
   }
 
   Future<void> _initTileProvider() async {
-    MBTilesTileProvider? mbtiles;
-    if (!kIsWeb) {
-      mbtiles = await MBTilesTileProvider.fromAsset();
-    }
-    const region = String.fromEnvironment('REGION', defaultValue: 'china');
-    const isChina = region == 'china';
-    _tileProvider = await SmartTileProvider.create(
-      selfHostedTileUrl: null, // 新牧场尚无 region 瓦片，直接降级到通用底图
-      mbtilesProvider: mbtiles,
-      fallbackUrl: isChina ? MapConfig.chinaFallbackUrl : MapConfig.overseasFallbackUrl,
-      isGcj02Fallback: isChina,
+    _tileProvider = await loadSmartTileProvider(
+      ref,
       onSourceChanged: () { if (mounted) setState(() {}); },
     );
     if (mounted) setState(() {});

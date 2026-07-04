@@ -13,6 +13,7 @@ import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 import 'package:hkt_livestock_agentic/core/map/map_config.dart';
 import 'package:hkt_livestock_agentic/core/map/mbtiles_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
+import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
 import 'package:hkt_livestock_agentic/core/map/tile_source_resolver.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
@@ -62,24 +63,8 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
   }
 
   Future<void> _initTileProvider() async {
-    MBTilesTileProvider? mbtiles;
-    if (!kIsWeb) {
-      mbtiles = await MBTilesTileProvider.fromAsset();
-    }
-    const region = String.fromEnvironment('REGION', defaultValue: 'china');
-    const isChina = region == 'china';
-    String? regionUrl;
-    if (ApiClient.instance.activeFarmId != null) {
-      try {
-        final sources = await ref.read(tileSourceResolverProvider).resolve();
-        regionUrl = sources.isEmpty ? null : sources.first.tileUrl;
-      } catch (_) {}
-    }
-    _tileProvider = await SmartTileProvider.create(
-      selfHostedTileUrl: regionUrl,
-      mbtilesProvider: mbtiles,
-      fallbackUrl: isChina ? MapConfig.chinaFallbackUrl : MapConfig.overseasFallbackUrl,
-      isGcj02Fallback: isChina,
+    _tileProvider = await loadSmartTileProvider(
+      ref,
       onSourceChanged: () { if (mounted) setState(() {}); },
     );
     if (mounted) setState(() {});

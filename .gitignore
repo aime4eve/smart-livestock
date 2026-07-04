@@ -92,3 +92,6 @@ docs/superpowers/testing/logs_*/
 .playwright-mcp/
 # Flutter Web build output (deployed via Docker)
 smart-livestock-server/frontend/
+
+# Offline map tiles (large binary, synced via rsync on deploy)
+smart-livestock-server/infrastructure/tileserver/data/*.mbtiles
