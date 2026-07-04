@@ -44,6 +44,8 @@ class OfflineTileManager {
   final String _apiBaseUrl;
   final Map<String, String> _headers;
 
+  AppDatabase get db => _db;
+
   OfflineTileManager(this._db, this._apiBaseUrl, this._headers);
 
   Future<List<TileStatus>> getTileStatus(int farmId) async {

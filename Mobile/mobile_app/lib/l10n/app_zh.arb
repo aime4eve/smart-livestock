@@ -1307,6 +1307,44 @@
   "@fenceConflictLocalVersion": {},
   "offlineTileTitle": "离线地图管理",
   "@offlineTileTitle": {},
+  "offlineTileDownload": "下载",
+  "@offlineTileDownload": {},
+  "offlineTileDownloading": "正在下载 {region}...",
+  "@offlineTileDownloading": {
+    "placeholders": {
+      "region": { "type": "String" }
+    }
+  },
+  "offlineTileDownloadFailed": "下载失败：{error}",
+  "@offlineTileDownloadFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "offlineTileDownloadSuccess": "下载完成",
+  "@offlineTileDownloadSuccess": {},
+  "offlineTileDelete": "删除",
+  "@offlineTileDelete": {},
+  "offlineTileDeleteConfirm": "确定删除此离线地图？删除后需要重新下载才能离线使用。",
+  "@offlineTileDeleteConfirm": {},
+  "offlineTileStorageUsed": "已用空间：{used}",
+  "@offlineTileStorageUsed": {
+    "placeholders": {
+      "used": { "type": "String" }
+    }
+  },
+  "offlineTileDownloadedRegions": "已下载（{count}）",
+  "@offlineTileDownloadedRegions": {
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "offlineTileCancel": "取消",
+  "@offlineTileCancel": {},
+  "offlineTileRedownload": "更新",
+  "@offlineTileRedownload": {},
+  "offlineTileNoDownloaded": "尚未下载任何离线地图",
+  "@offlineTileNoDownloaded": {},
   "workerAddWorker": "添加牧工",
   "@workerAddWorker": {},
   "workerNoFarm": "暂无可管理牧场",

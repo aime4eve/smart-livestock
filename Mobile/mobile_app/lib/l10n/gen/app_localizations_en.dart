@@ -1535,6 +1535,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String get offlineTileTitle => 'Offline Map Management';
 
   @override
+  String get offlineTileDownload => 'Download';
+
+  @override
+  String offlineTileDownloading(String region) {
+    return 'Downloading $region...';
+  }
+
+  @override
+  String offlineTileDownloadFailed(String error) {
+    return 'Download failed: $error';
+  }
+
+  @override
+  String get offlineTileDownloadSuccess => 'Download complete';
+
+  @override
+  String get offlineTileDelete => 'Delete';
+
+  @override
+  String get offlineTileDeleteConfirm =>
+      'Delete this offline map? You will need to re-download it to use offline.';
+
+  @override
+  String offlineTileStorageUsed(String used) {
+    return 'Storage: $used';
+  }
+
+  @override
+  String offlineTileDownloadedRegions(String count) {
+    return 'Downloaded ($count)';
+  }
+
+  @override
+  String get offlineTileCancel => 'Cancel';
+
+  @override
+  String get offlineTileRedownload => 'Update';
+
+  @override
+  String get offlineTileNoDownloaded => 'No offline maps downloaded yet';
+
+  @override
   String get workerAddWorker => 'Add Worker';
 
   @override

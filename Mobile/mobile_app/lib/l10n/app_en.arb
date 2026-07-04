@@ -1307,6 +1307,44 @@
   "@fenceConflictLocalVersion": {},
   "offlineTileTitle": "Offline Map Management",
   "@offlineTileTitle": {},
+  "offlineTileDownload": "Download",
+  "@offlineTileDownload": {},
+  "offlineTileDownloading": "Downloading {region}...",
+  "@offlineTileDownloading": {
+    "placeholders": {
+      "region": { "type": "String" }
+    }
+  },
+  "offlineTileDownloadFailed": "Download failed: {error}",
+  "@offlineTileDownloadFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "offlineTileDownloadSuccess": "Download complete",
+  "@offlineTileDownloadSuccess": {},
+  "offlineTileDelete": "Delete",
+  "@offlineTileDelete": {},
+  "offlineTileDeleteConfirm": "Delete this offline map? You will need to re-download it to use offline.",
+  "@offlineTileDeleteConfirm": {},
+  "offlineTileStorageUsed": "Storage: {used}",
+  "@offlineTileStorageUsed": {
+    "placeholders": {
+      "used": { "type": "String" }
+    }
+  },
+  "offlineTileDownloadedRegions": "Downloaded ({count})",
+  "@offlineTileDownloadedRegions": {
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "offlineTileCancel": "Cancel",
+  "@offlineTileCancel": {},
+  "offlineTileRedownload": "Update",
+  "@offlineTileRedownload": {},
+  "offlineTileNoDownloaded": "No offline maps downloaded yet",
+  "@offlineTileNoDownloaded": {},
   "workerAddWorker": "Add Worker",
   "@workerAddWorker": {},
   "workerNoFarm": "No ranch to manage",
