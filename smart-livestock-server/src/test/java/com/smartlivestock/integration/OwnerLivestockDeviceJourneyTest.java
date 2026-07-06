@@ -53,7 +53,7 @@ class OwnerLivestockDeviceJourneyTest extends AbstractJourneyTest {
         void owner_createLivestock_success() {
             var body = Map.of(
                     "livestockCode", "SL-E2E-001",
-                    "breed", "西门塔尔牛",
+                    "breed", "SIMMENTAL",
                     "healthStatus", "HEALTHY"
             );
             var resp = postRaw(ownerToken, "/api/v1/farms/1/livestock", body);
@@ -69,7 +69,7 @@ class OwnerLivestockDeviceJourneyTest extends AbstractJourneyTest {
 
             String livestockId = extractId(items.get(0));
             var body = Map.of(
-                    "breed", "安格斯牛",
+                    "breed", "ANGUS",
                     "healthStatus", "HEALTHY"
             );
             var resp = putRaw(ownerToken, "/api/v1/farms/1/livestock/" + livestockId, body);

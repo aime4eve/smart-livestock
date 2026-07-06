@@ -71,7 +71,7 @@ public class LivestockApplicationService {
         Livestock livestock = livestockRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "error.livestockNotFound", new Object[]{id}));
-        if (!command.livestockCode().equals(livestock.getLivestockCode())) {
+        if (command.livestockCode() != null && !command.livestockCode().equals(livestock.getLivestockCode())) {
             livestockRepository.findByLivestockCode(command.livestockCode())
                     .ifPresent(existing -> {
                         if (!existing.getId().equals(id)) {
