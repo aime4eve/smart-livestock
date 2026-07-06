@@ -22,7 +22,7 @@ void main() {
 
     test('basic tier has correct metadata', () {
       final info = SubscriptionTierInfo.all[SubscriptionTier.basic]!;
-      expect(info.name, '基础版');
+      expect(info.name, 'basic');
       expect(info.monthlyPrice, 0);
       expect(info.livestockLimit, 50);
       expect(info.perUnitPrice, 3);
@@ -31,7 +31,7 @@ void main() {
 
     test('standard tier has correct metadata', () {
       final info = SubscriptionTierInfo.all[SubscriptionTier.standard]!;
-      expect(info.name, '标准版');
+      expect(info.name, 'standard');
       expect(info.monthlyPrice, 299);
       expect(info.livestockLimit, 200);
       expect(info.perUnitPrice, 2);
@@ -39,7 +39,7 @@ void main() {
 
     test('premium tier has correct metadata', () {
       final info = SubscriptionTierInfo.all[SubscriptionTier.premium]!;
-      expect(info.name, '高级版');
+      expect(info.name, 'premium');
       expect(info.monthlyPrice, 699);
       expect(info.livestockLimit, 1000);
       expect(info.perUnitPrice, 1);
@@ -47,7 +47,7 @@ void main() {
 
     test('enterprise tier has sentinel values', () {
       final info = SubscriptionTierInfo.all[SubscriptionTier.enterprise]!;
-      expect(info.name, '企业版');
+      expect(info.name, 'enterprise');
       expect(info.monthlyPrice, -1);
       expect(info.livestockLimit, -1);
     });
