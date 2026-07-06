@@ -47,7 +47,7 @@ Future<SmartTileProvider> loadSmartTileProvider(
   }
 
   // 3. Select online source based on REGION dart-define
-  const region = String.fromEnvironment('REGION', defaultValue: 'overseas');
+  const region = String.fromEnvironment('REGION', defaultValue: 'china');
   final isChina = region == 'china';
   final onlineUrl =
       isChina ? MapConfig.chinaFallbackUrl : MapConfig.overseasFallbackUrl;

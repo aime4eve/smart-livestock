@@ -180,19 +180,42 @@ CattleService ←→ LocationService（GPS 坐标）
 
 ### 后端服务部署方式
 
-- ssh agentic@172.22.1.123 远程登录服务器
-- rsync 最新代码到 172.22.1.123
-- docker compose build + up 部署更新
+- `ssh agentic@172.22.1.123` 远程登录服务器
+- 通过 `scripts/deploy.sh <dev|test>` 一键部署
+  - `dev`: `sl-dev` 项目，端口 19xxx（本地开发验证用）
+  - `test`: `smart-livestock-server` 项目，端口 18xxx/1xxxx（当前生产环境）
+- 脚本自动完成：Gradle 构建 → rsync 同步 → docker compose build → up → tileserver 数据同步 → 旧镜像清理
 
 ### 一键部署（本地执行）
 
 ```bash
 cd smart-livestock-server
-./gradlew clean bootJar -x test
-rsync -avz --exclude='.git' --exclude='.gradle' --exclude='node_modules' . agentic@172.22.1.123:~/smart-livestock-server/
-ssh agentic@172.22.1.123 "cd ~/smart-livestock-server && mkdir -p build/libs"
-rsync -avz build/libs/ agentic@172.22.1.123:~/smart-livestock-server/build/libs/
-ssh agentic@172.22.1.123 "cd ~/smart-livestock-server && docker compose build app && docker compose up -d app"
+
+# 部署 test 环境（生产）
+./scripts/deploy.sh test
+
+# 或部署 dev 环境（本地验证）
+./scripts/deploy.sh dev
+```
+
+### 服务器初始配置
+
+新服务器或重装系统后需执行以下一次性配置：
+
+```bash
+# 1. 文件描述符上限（避免 26+ 容器耗尽 ENFILE）
+echo "fs.file-max = 3000000" | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p
+
+# 2. Docker 数据目录迁移到 /data 大分区（snap Docker 需 bind mount）
+sudo snap stop docker
+sudo mkdir -p /data/docker-data
+sudo rsync -a /var/snap/docker/common/var-lib-docker/ /data/docker-data/
+sudo rm -rf /var/snap/docker/common/var-lib-docker
+sudo mkdir -p /var/snap/docker/common/var-lib-docker
+sudo mount --bind /data/docker-data /var/snap/docker/common/var-lib-docker
+echo "/data/docker-data /var/snap/docker/common/var-lib-docker none bind 0 0" | sudo tee -a /etc/fstab
+sudo snap start docker
 ```
 
 ### 种子数据登录凭据

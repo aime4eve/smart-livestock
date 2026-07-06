@@ -6,8 +6,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 flutter build web --no-wasm-dry-run "$@" \
-  --dart-define=API_BASE_URL=/api/v1 \
-  --dart-define=REGION=overseas
+  --dart-define=API_BASE_URL=/api/v1
 
 # Copy build output so deploy.sh rsync + docker build nginx picks it up.
 FRONTEND_DIR="../../smart-livestock-server/frontend"

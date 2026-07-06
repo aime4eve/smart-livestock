@@ -97,8 +97,6 @@ class SmartTileProvider extends TileProvider {
 
   /// Test-only: simulate connectivity failures to trigger offline mode.
   @visibleForTesting
-  /// Test-only: simulate connectivity failures to trigger offline mode.
-  @visibleForTesting
   void simulateOffline() {
     _consecutiveFailures = 3;
     _setOnline(false);
