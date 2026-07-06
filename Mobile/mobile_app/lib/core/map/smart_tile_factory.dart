@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
@@ -9,14 +9,11 @@ import 'package:hkt_livestock_agentic/core/map/mbtiles_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/tile_source_resolver.dart';
 
-/// Creates a fully-configured SmartTileProvider for a map page.
+/// Creates a fully-configured SmartTileProvider for any map page.
 ///
-/// Loads user-downloaded mbtiles + built-in sample.mbtiles as local sources,
-/// fetches the tileserver URL from the API, and selects the online source
-/// (OSM for international, 高德 for China) based on the REGION dart-define.
-///
-/// Call `provider.probeConnectivity()` and `provider.startConnectivityMonitor()`
-/// are already invoked inside this factory.
+/// OSM is always the primary online source (for international markets).
+/// 高德 is always the secondary fallback (for China where OSM is blocked).
+/// The connectivity probe auto-detects which one works and switches accordingly.
 Future<SmartTileProvider> loadSmartTileProvider(
   WidgetRef ref, {
   VoidCallback? onSourceChanged,
@@ -46,22 +43,16 @@ Future<SmartTileProvider> loadSmartTileProvider(
     } catch (_) {}
   }
 
-  // 3. Select online source based on REGION dart-define
-  const region = String.fromEnvironment('REGION', defaultValue: 'china');
-  final isChina = region == 'china';
-  final onlineUrl =
-      isChina ? MapConfig.chinaFallbackUrl : MapConfig.overseasFallbackUrl;
-
-  // 4. Create provider (non-blocking, returns immediately)
+  // 3. Create provider: OSM primary + 高德 secondary + tileserver offline
   final provider = await SmartTileProvider.create(
     mbtilesProviders: mbtilesProviders,
-    onlineUrl: onlineUrl,
+    onlineUrl: MapConfig.overseasFallbackUrl,
+    fallbackOnlineUrl: MapConfig.chinaFallbackUrl,
     serverTileUrl: serverTileUrl,
-    isGcj02Online: isChina,
     onSourceChanged: onSourceChanged,
   );
 
-  // 5. Start background connectivity monitoring
+  // 4. Start background connectivity monitoring
   provider.probeConnectivity();
   provider.startConnectivityMonitor();
 

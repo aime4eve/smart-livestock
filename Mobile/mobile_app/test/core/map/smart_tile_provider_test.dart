@@ -9,57 +9,55 @@ void main() {
       'https://webrd02.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}';
 
   group('SmartTileProvider', () {
-    test('OSM online → shouldTransformCoordinates returns false', () {
+    test('primary (OSM) → shouldTransformCoordinates false', () {
       final provider = SmartTileProvider(
         mbtilesProviders: [],
         onlineUrl: osmUrl,
-        serverTileUrl: null,
-        isGcj02Online: false,
+        fallbackOnlineUrl: amapUrl,
       );
       expect(provider.shouldTransformCoordinates(), isFalse);
     });
 
-    test('GCJ-02 online (高德) + online → shouldTransformCoordinates true', () {
+    test('secondary (高德) → shouldTransformCoordinates true', () {
       final provider = SmartTileProvider(
         mbtilesProviders: [],
-        onlineUrl: amapUrl,
-        serverTileUrl: null,
-        isGcj02Online: true,
+        onlineUrl: osmUrl,
+        fallbackOnlineUrl: amapUrl,
       );
+      provider.simulateSecondary();
       expect(provider.shouldTransformCoordinates(), isTrue);
     });
 
-    test('GCJ-02 online but offline → shouldTransformCoordinates false', () {
+    test('offline → shouldTransformCoordinates false', () {
       final provider = SmartTileProvider(
         mbtilesProviders: [],
-        onlineUrl: amapUrl,
+        onlineUrl: osmUrl,
+        fallbackOnlineUrl: amapUrl,
         serverTileUrl: 'http://example.com/tiles/{z}/{x}/{y}.png',
-        isGcj02Online: true,
       );
       provider.simulateOffline();
       expect(provider.shouldTransformCoordinates(), isFalse);
     });
 
-    test('getImage with no local mbtiles + online → returns NetworkImage', () {
+    test('getImage primary → OSM NetworkImage', () {
       final provider = SmartTileProvider(
         mbtilesProviders: [],
         onlineUrl: osmUrl,
-        serverTileUrl: null,
-        isGcj02Online: false,
+        fallbackOnlineUrl: amapUrl,
       );
       const coords = TileCoordinates(3332, 1712, 12);
       final img = provider.getImage(coords, TileLayer());
       expect(img, isA<NetworkImage>());
     });
 
-    test('getImage offline + no local mbtiles → falls to serverTileUrl', () {
+    test('getImage offline + serverTileUrl → tileserver NetworkImage', () {
       const serverUrl =
           'http://172.22.1.123:18080/tiles/changsha/{z}/{x}/{y}.png';
       final provider = SmartTileProvider(
         mbtilesProviders: [],
         onlineUrl: osmUrl,
+        fallbackOnlineUrl: amapUrl,
         serverTileUrl: serverUrl,
-        isGcj02Online: false,
       );
       provider.simulateOffline();
       const coords = TileCoordinates(3332, 1712, 12);

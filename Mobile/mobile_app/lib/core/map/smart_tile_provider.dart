@@ -4,29 +4,35 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
 import 'package:hkt_livestock_agentic/core/map/mbtiles_tile_provider.dart';
 
-/// Per-tile smart router: local mbtiles → OSM online → tileserver fallback.
+/// Which online source is currently active.
+enum _OnlineSource { primary, secondary, offline }
+
+/// Per-tile smart router with dual online sources + offline fallback.
 ///
-/// Each tile request independently chooses its source:
-/// 1. Local mbtiles (user-downloaded or built-in) — zero latency, zero network
-/// 2. OSM online — full zoom range, global coverage
-/// 3. tileserver — server-side fallback when OSM is unreachable (z12-15)
+/// Priority chain (each tile independently):
+/// 1. Local mbtiles — zero latency, zero network
+/// 2. Primary online (OSM) — full zoom, global, WGS-84
+/// 3. Secondary online (高德) — when OSM unreachable (e.g. China), GCJ-02
+/// 4. Server tileserver — when both online sources fail (z12-15, WGS-84)
 ///
-/// Connectivity is tracked via periodic background probes (non-blocking).
+/// This dual-source design ensures the app works in both international markets
+/// (OSM primary) and China (高德 fallback when OSM is blocked).
+///
 /// See docs/superpowers/specs/2026-07-04-smart-tile-routing-design.md
 class SmartTileProvider extends TileProvider {
-  /// All local mbtiles providers (user-downloaded + built-in sample).
   final List<MBTilesTileProvider> mbtilesProviders;
 
-  /// Primary online tile URL template (OSM or 高德).
+  /// Primary online tile URL template (OSM, WGS-84).
   final String onlineUrl;
 
-  /// Server tileserver-gl URL (offline fallback). Null if no server available.
+  /// Secondary online tile URL template (高德, GCJ-02). Null disables.
+  final String? fallbackOnlineUrl;
+
+  /// Server tileserver-gl URL (last-resort fallback). Null if unavailable.
   final String? serverTileUrl;
 
-  /// Whether the online source uses GCJ-02 (true for 高德, false for OSM).
-  final bool isGcj02Online;
-
-  bool _online = true;
+  _OnlineSource _activeSource = _OnlineSource.primary;
+  bool _initialized = false;
   int _consecutiveFailures = 0;
   Timer? _probeTimer;
   VoidCallback? onSourceChanged;
@@ -34,99 +40,126 @@ class SmartTileProvider extends TileProvider {
   SmartTileProvider({
     required this.mbtilesProviders,
     required this.onlineUrl,
+    this.fallbackOnlineUrl,
     this.serverTileUrl,
-    this.isGcj02Online = false,
     this.onSourceChanged,
   });
 
   static Future<SmartTileProvider> create({
     required List<MBTilesTileProvider> mbtilesProviders,
     required String onlineUrl,
+    String? fallbackOnlineUrl,
     String? serverTileUrl,
-    bool isGcj02Online = false,
     VoidCallback? onSourceChanged,
   }) async {
-    // No blocking health check — return immediately, probe in background.
     return SmartTileProvider(
       mbtilesProviders: mbtilesProviders,
       onlineUrl: onlineUrl,
+      fallbackOnlineUrl: fallbackOnlineUrl,
       serverTileUrl: serverTileUrl,
-      isGcj02Online: isGcj02Online,
       onSourceChanged: onSourceChanged,
     );
   }
 
-  /// Whether we're currently treating the online source as reachable.
-  bool get isOnline => _online;
+  bool get isOnline => _activeSource != _OnlineSource.offline;
 
-  /// Transform fence coordinates to GCJ-02 only when online + using 高德.
-  /// Local mbtiles and tileserver are always WGS-84 (no transform).
-  /// OSM is also WGS-84 (no transform).
-  bool shouldTransformCoordinates() => _online && isGcj02Online;
+  /// GCJ-02 transform needed only when using 高德 (secondary source).
+  bool shouldTransformCoordinates() =>
+      _activeSource == _OnlineSource.secondary;
 
-  /// Fire-and-forget initial connectivity probe.
-  void probeConnectivity() => _probe();
+  void probeConnectivity() {
+    _initialized = true;
+    _probe();
+  }
 
-  /// Background probe every 30s. On 3 consecutive failures → go offline.
-  /// On success → go online.
-  void startConnectivityMonitor({Duration interval = const Duration(seconds: 30)}) {
+  void startConnectivityMonitor({
+    Duration interval = const Duration(seconds: 30),
+  }) {
+    _initialized = true;
     _probeTimer?.cancel();
     _probeTimer = Timer.periodic(interval, (_) => _probe());
   }
 
+  /// Probe primary (OSM) → secondary (高德) → offline.
   void _probe() async {
-    try {
-      final url = _buildUrl(onlineUrl, 0, 0, 0);
-      final response = await http.get(Uri.parse(url))
-          .timeout(const Duration(seconds: 3));
-      if (response.statusCode == 200) {
-        _consecutiveFailures = 0;
-        _setOnline(true);
-      } else {
-        _registerFailure();
-      }
-    } catch (_) {
-      _registerFailure();
+    // 1. Try primary (OSM)
+    if (await _tryUrl(onlineUrl)) {
+      _consecutiveFailures = 0;
+      _switchSource(_OnlineSource.primary);
+      return;
+    }
+
+    // 2. Try secondary (高德)
+    if (fallbackOnlineUrl != null && await _tryUrl(fallbackOnlineUrl!)) {
+      _consecutiveFailures = 0;
+      _switchSource(_OnlineSource.secondary);
+      return;
+    }
+
+    // 3. Both failed
+    _consecutiveFailures++;
+    if (_consecutiveFailures >= 3) {
+      _switchSource(_OnlineSource.offline);
     }
   }
 
-  void _registerFailure() {
-    _consecutiveFailures++;
-    if (_consecutiveFailures >= 3) _setOnline(false);
+  Future<bool> _tryUrl(String url) async {
+    try {
+      final response = await http
+          .get(Uri.parse(_buildUrl(url, 0, 0, 0)))
+          .timeout(const Duration(seconds: 3));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
   }
 
-  /// Test-only: simulate connectivity failures to trigger offline mode.
   @visibleForTesting
   void simulateOffline() {
+    _initialized = true;
     _consecutiveFailures = 3;
-    _setOnline(false);
+    _switchSource(_OnlineSource.offline);
   }
 
-  void _setOnline(bool value) {
-    if (_online == value) return;
-    _online = value;
+  @visibleForTesting
+  void simulateSecondary() {
+    _initialized = true;
+    _switchSource(_OnlineSource.secondary);
+  }
+
+  void _switchSource(_OnlineSource source) {
+    if (_activeSource == source) return;
+    _activeSource = source;
     onSourceChanged?.call();
   }
 
-
   @override
   ImageProvider getImage(TileCoordinates coordinates, TileLayer options) {
-    // 1. Check all local mbtiles (user-downloaded first, then built-in)
+    // 1. Local mbtiles
     for (final p in mbtilesProviders) {
       if (p.meta.containsTile(coordinates.z, coordinates.x, coordinates.y)) {
         return p.getImage(coordinates, options);
       }
     }
 
-    // 2. Online: OSM (primary) or tileserver (offline fallback)
-    if (_online) {
-      return NetworkImage(
-          _buildUrl(onlineUrl, coordinates.x, coordinates.y, coordinates.z));
-    } else if (serverTileUrl != null) {
-      return NetworkImage(
-          _buildUrl(serverTileUrl!, coordinates.x, coordinates.y, coordinates.z));
+    // Before first probe, default to primary so map renders immediately
+    final source = _initialized ? _activeSource : _OnlineSource.primary;
+
+    switch (source) {
+      case _OnlineSource.primary:
+        return NetworkImage(
+            _buildUrl(onlineUrl, coordinates.x, coordinates.y, coordinates.z));
+      case _OnlineSource.secondary:
+        final url = fallbackOnlineUrl ?? onlineUrl;
+        return NetworkImage(
+            _buildUrl(url, coordinates.x, coordinates.y, coordinates.z));
+      case _OnlineSource.offline:
+        if (serverTileUrl != null) {
+          return NetworkImage(_buildUrl(
+              serverTileUrl!, coordinates.x, coordinates.y, coordinates.z));
+        }
+        return MemoryImage(TileProvider.transparentImage);
     }
-    return MemoryImage(TileProvider.transparentImage);
   }
 
   static String _buildUrl(String template, int x, int y, int z) {
