@@ -342,6 +342,7 @@ docker compose up -d               # 全栈启动（PostgreSQL + Redis + RocketM
 - **SmartTileProvider**: 三级降级（tileserver-gl → MBTiles → 高德/OSM），健康检测自动切换
 - **坐标转换**: WGS-84 ↔ GCJ-02（`coord_transform.dart`），高德降级时自动转换
 - **部署指南**: `docs/guides/tileserver-deployment-guide.md`
+- **服务器配置指南**: `docs/guides/server-setup-guide.md`
 
 ---
 
