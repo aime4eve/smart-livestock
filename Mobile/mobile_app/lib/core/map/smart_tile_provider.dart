@@ -177,4 +177,19 @@ class SmartTileProvider extends TileProvider {
     }
     super.dispose();
   }
+
+  /// Current tile source name for watermark display.
+  String get activeSourceName {
+    final s = _initialized ? _activeSource : _OnlineSource.primary;
+    return tileSourceLabel(s);
+  }
+}
+
+/// Human-readable label for tile source watermark.
+String tileSourceLabel(_OnlineSource s) {
+  switch (s) {
+    case _OnlineSource.primary: return 'OSM';
+    case _OnlineSource.secondary: return '高德';
+    case _OnlineSource.offline: return 'Server';
+  }
 }

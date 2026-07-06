@@ -13,6 +13,7 @@ import 'package:hkt_livestock_agentic/core/map/map_constants.dart';
 import 'package:hkt_livestock_agentic/core/map/map_config.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
+import 'package:hkt_livestock_agentic/core/map/tile_source_watermark.dart';
 import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 import 'package:hkt_livestock_agentic/core/models/view_state.dart';
 import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
@@ -500,12 +501,13 @@ class _FencePageState extends ConsumerState<FencePage>
                       Icons.edit_location_alt_outlined),
                   label: Text(l10n.ranchEditBoundary),
                 ),
-              ),
-          ],
-        );
-      },
-    );
-  }
+             ),
+            TileSourceWatermark(provider: _tileProvider),
+         ],
+       );
+     },
+   );
+ }
 
   List<Polygon> _buildBrowsePolygons(FenceState fenceState) {
     final t = _breathingController.value;

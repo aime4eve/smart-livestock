@@ -10,6 +10,7 @@ import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/map/map_constants.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
+import 'package:hkt_livestock_agentic/core/map/tile_source_watermark.dart';
 import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/fence_polygon_contains.dart';
@@ -382,6 +383,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
           bottom: 0,
           child: HealthBottomSheet(overview: overview),
         ),
+        TileSourceWatermark(provider: _tileProvider),
       ],
     );
   }
