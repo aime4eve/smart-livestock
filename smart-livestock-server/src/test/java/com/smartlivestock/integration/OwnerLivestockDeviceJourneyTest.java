@@ -79,7 +79,7 @@ class OwnerLivestockDeviceJourneyTest extends AbstractJourneyTest {
         @Test
         @DisplayName("owner 牲畜列表返回完整数据")
         void owner_livestockListAll() {
-            var data = getApi(ownerToken, "/api/v1/farms/1/livestock?page=0&size=100");
+            var data = getApi(ownerToken, "/api/v1/farms/1/livestock?page=0&pageSize=100");
             assertThat(((Number) data.get("total")).longValue()).isEqualTo(50);
 
             @SuppressWarnings("unchecked")

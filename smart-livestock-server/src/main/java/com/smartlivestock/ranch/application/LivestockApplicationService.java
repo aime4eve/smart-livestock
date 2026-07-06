@@ -80,7 +80,9 @@ public class LivestockApplicationService {
                         }
                     });
         }
-        livestock.updateInfo(command.livestockCode(), command.breed(),
+        livestock.updateInfo(
+                command.livestockCode() != null ? command.livestockCode() : livestock.getLivestockCode(),
+                command.breed() != null ? command.breed() : livestock.getBreed(),
                 command.gender(), command.birthDate(), command.weight());
         Livestock saved = livestockRepository.save(livestock);
         return LivestockDto.from(saved);
