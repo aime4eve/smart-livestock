@@ -104,7 +104,8 @@ public class LivestockApplicationService {
     @Transactional(readOnly = true)
     public LivestockPage listByFarm(Long farmId, String keyword, int page, int pageSize) {
         String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
-        int offset = (page - 1) * pageSize;
+        int safePage = Math.max(1, page);
+        int offset = (safePage - 1) * pageSize;
         List<LivestockDto> items;
         long total;
         if (kw != null) {
