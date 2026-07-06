@@ -30,7 +30,7 @@ class MapConfig {
 
   /// 高德瓦片源（GCJ-02 坐标系，国内降级）
   static const String chinaFallbackUrl =
-      'https://wprd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=6&x={x}&y={y}&z={z}';
+      'https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}';
 
   /// OSM 瓦片源（WGS-84，海外降级）
   static const String overseasFallbackUrl =
