@@ -1507,6 +1507,47 @@ class AppLocalizationsZh extends AppLocalizations {
   String get offlineTileTitle => '离线地图管理';
 
   @override
+  String get offlineTileDownload => '下载';
+
+  @override
+  String offlineTileDownloading(String region) {
+    return '正在下载 $region...';
+  }
+
+  @override
+  String offlineTileDownloadFailed(String error) {
+    return '下载失败：$error';
+  }
+
+  @override
+  String get offlineTileDownloadSuccess => '下载完成';
+
+  @override
+  String get offlineTileDelete => '删除';
+
+  @override
+  String get offlineTileDeleteConfirm => '确定删除此离线地图？删除后需要重新下载才能离线使用。';
+
+  @override
+  String offlineTileStorageUsed(String used) {
+    return '已用空间：$used';
+  }
+
+  @override
+  String offlineTileDownloadedRegions(String count) {
+    return '已下载（$count）';
+  }
+
+  @override
+  String get offlineTileCancel => '取消';
+
+  @override
+  String get offlineTileRedownload => '更新';
+
+  @override
+  String get offlineTileNoDownloaded => '尚未下载任何离线地图';
+
+  @override
   String get workerAddWorker => '添加牧工';
 
   @override

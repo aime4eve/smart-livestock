@@ -1,0 +1,280 @@
+
+
+## businessCmdDown
+
+
+**接口地址**:`/api/device/feign/v1/device/control/businessCmdDown`
+
+
+**请求方式**:`POST`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求示例**:
+
+
+```javascript
+{
+  "user": {
+    "password": "",
+    "username": "",
+    "authorities": [
+      {
+        "authority": ""
+      }
+    ],
+    "accountNonExpired": true,
+    "accountNonLocked": true,
+    "credentialsNonExpired": true,
+    "enabled": true,
+    "clientId": "",
+    "userId": "",
+    "tenantId": "",
+    "userName": "",
+    "userType": "",
+    "account": "",
+    "phone": "",
+    "roleList": [
+      {
+        "roleId": "",
+        "roleName": ""
+      }
+    ],
+    "orgList": [
+      {
+        "orgId": "",
+        "orgName": "",
+        "orgType": "",
+        "viewDataScope": "",
+        "manageDataScope": ""
+      }
+    ],
+    "attributes": {},
+    "desensitizedFields": [],
+    "name": "",
+    "roleIds": [],
+    "orgIds": [],
+    "tenantNum": 0
+  },
+  "requestId": "",
+  "deviceId": "",
+  "subDeviceIds": [],
+  "triggerSource": "",
+  "func": {
+    "method": "",
+    "params": {}
+  },
+  "downConfig": {
+    "responseTimeout": 0,
+    "retryTimes": 0,
+    "retryInterval": 0,
+    "tryAgainImmediately": true
+  }
+}
+```
+
+
+**请求参数**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|businessCmdDownReqDto|指令下发请求DTO（处理设备、子设备）|body|true|BusinessCmdDownReqDto|BusinessCmdDownReqDto|
+|&emsp;&emsp;user|登录用户信息||true|LoginUser|LoginUser|
+|&emsp;&emsp;&emsp;&emsp;password|||false|string||
+|&emsp;&emsp;&emsp;&emsp;username|||false|string||
+|&emsp;&emsp;&emsp;&emsp;authorities|||false|array|GrantedAuthority|
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;authority|||false|string||
+|&emsp;&emsp;&emsp;&emsp;accountNonExpired|||false|boolean||
+|&emsp;&emsp;&emsp;&emsp;accountNonLocked|||false|boolean||
+|&emsp;&emsp;&emsp;&emsp;credentialsNonExpired|||false|boolean||
+|&emsp;&emsp;&emsp;&emsp;enabled|||false|boolean||
+|&emsp;&emsp;&emsp;&emsp;clientId|||false|string||
+|&emsp;&emsp;&emsp;&emsp;userId|||false|string||
+|&emsp;&emsp;&emsp;&emsp;tenantId|||false|string||
+|&emsp;&emsp;&emsp;&emsp;userName|||false|string||
+|&emsp;&emsp;&emsp;&emsp;userType|||false|string||
+|&emsp;&emsp;&emsp;&emsp;account|||false|string||
+|&emsp;&emsp;&emsp;&emsp;phone|||false|string||
+|&emsp;&emsp;&emsp;&emsp;roleList|||false|array|Role|
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;roleId|||false|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;roleName|||false|string||
+|&emsp;&emsp;&emsp;&emsp;orgList|||false|array|Org|
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;orgId|||false|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;orgName|||false|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;orgType|||false|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;viewDataScope|||false|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;manageDataScope|||false|string||
+|&emsp;&emsp;&emsp;&emsp;attributes|||false|object||
+|&emsp;&emsp;&emsp;&emsp;desensitizedFields|||false|array|string|
+|&emsp;&emsp;&emsp;&emsp;name|||false|string||
+|&emsp;&emsp;&emsp;&emsp;roleIds|||false|array|string|
+|&emsp;&emsp;&emsp;&emsp;orgIds|||false|array|string|
+|&emsp;&emsp;&emsp;&emsp;tenantNum|||false|integer(int64)||
+|&emsp;&emsp;requestId|请求ID，用于OpenAPI对接时，标识请求的唯一性||false|string||
+|&emsp;&emsp;deviceId|设备id||true|string||
+|&emsp;&emsp;subDeviceIds|子设备id列表||false|array|string|
+|&emsp;&emsp;triggerSource|触发源||true|string||
+|&emsp;&emsp;func|指令内容||true|DeviceFunctionDto|DeviceFunctionDto|
+|&emsp;&emsp;&emsp;&emsp;method|设备功能名称||true|string||
+|&emsp;&emsp;&emsp;&emsp;params|设备功能参数||false|object||
+|&emsp;&emsp;downConfig|指令下发配置参数||false|CmdDownConfigDto|CmdDownConfigDto|
+|&emsp;&emsp;&emsp;&emsp;responseTimeout|指令回复超时时间(秒)||true|integer(int32)||
+|&emsp;&emsp;&emsp;&emsp;retryTimes|下行指令重试次数||true|integer(int32)||
+|&emsp;&emsp;&emsp;&emsp;retryInterval|下行指令重试间隔时长(秒)||true|integer(int32)||
+|&emsp;&emsp;&emsp;&emsp;tryAgainImmediately|指令是否为同步下发，为同步下发，ns平台或第三方平台响应异常时，立马进行重试，默认为true||true|boolean||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|RBatchCmdDownRespDto|
+|400|Bad Request|R|
+|401|Unauthorized|R|
+|500|Internal Server Error|R|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|code|状态码|integer(int32)|integer(int32)|
+|success|是否成功|boolean||
+|data|承载数据|BatchCmdDownRespDto|BatchCmdDownRespDto|
+|&emsp;&emsp;totalCount|指令总数|integer(int32)||
+|&emsp;&emsp;successCount|成功数|integer(int32)||
+|&emsp;&emsp;failCount|失败数|integer(int32)||
+|&emsp;&emsp;successList|成功的指令结果列表|array|CmdDownRespDto|
+|&emsp;&emsp;&emsp;&emsp;recordId|下发记录id|string||
+|&emsp;&emsp;&emsp;&emsp;cmdDownStatus|指令下发状态,可用值:WAITING,ISSUING,SUCCESS,FAIL,TIMEOUT,RETRY,EXPIRE|string||
+|&emsp;&emsp;&emsp;&emsp;errorMsg|错误信息|string||
+|&emsp;&emsp;failList|失败的指令信息列表|array|CmdDownFailureItem|
+|&emsp;&emsp;&emsp;&emsp;deviceId|设备id|string||
+|&emsp;&emsp;&emsp;&emsp;enqueue|是否入队|boolean||
+|&emsp;&emsp;&emsp;&emsp;waitForResponse|是否等待设备回复|boolean||
+|&emsp;&emsp;&emsp;&emsp;func|指令内容|string||
+|&emsp;&emsp;&emsp;&emsp;errorMsg|错误信息|string||
+|msg|返回消息|string||
+
+
+**响应示例**:
+```javascript
+{
+	"code": 0,
+	"success": true,
+	"data": {
+		"totalCount": 0,
+		"successCount": 0,
+		"failCount": 0,
+		"successList": [
+			{
+				"recordId": "",
+				"cmdDownStatus": "",
+				"errorMsg": ""
+			}
+		],
+		"failList": [
+			{
+				"deviceId": "",
+				"enqueue": true,
+				"waitForResponse": true,
+				"func": "",
+				"errorMsg": ""
+			}
+		]
+	},
+	"msg": ""
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|code|状态码|integer(int32)|integer(int32)|
+|success|是否成功|boolean||
+|data|承载数据|string||
+|msg|返回消息|string||
+
+
+**响应示例**:
+```javascript
+{
+	"code": 0,
+	"success": true,
+	"data": {},
+	"msg": ""
+}
+```
+
+
+**响应状态码-401**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|code|状态码|integer(int32)|integer(int32)|
+|success|是否成功|boolean||
+|data|承载数据|string||
+|msg|返回消息|string||
+
+
+**响应示例**:
+```javascript
+{
+	"code": 0,
+	"success": true,
+	"data": {},
+	"msg": ""
+}
+```
+
+
+**响应状态码-500**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|code|状态码|integer(int32)|integer(int32)|
+|success|是否成功|boolean||
+|data|承载数据|string||
+|msg|返回消息|string||
+
+
+**响应示例**:
+```javascript
+{
+	"code": 0,
+	"success": true,
+	"data": {},
+	"msg": ""
+}
+```

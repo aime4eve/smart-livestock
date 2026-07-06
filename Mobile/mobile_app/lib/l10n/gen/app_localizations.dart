@@ -2830,6 +2830,72 @@ abstract class AppLocalizations {
   /// **'离线地图管理'**
   String get offlineTileTitle;
 
+  /// No description provided for @offlineTileDownload.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载'**
+  String get offlineTileDownload;
+
+  /// No description provided for @offlineTileDownloading.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在下载 {region}...'**
+  String offlineTileDownloading(String region);
+
+  /// No description provided for @offlineTileDownloadFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载失败：{error}'**
+  String offlineTileDownloadFailed(String error);
+
+  /// No description provided for @offlineTileDownloadSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载完成'**
+  String get offlineTileDownloadSuccess;
+
+  /// No description provided for @offlineTileDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除'**
+  String get offlineTileDelete;
+
+  /// No description provided for @offlineTileDeleteConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定删除此离线地图？删除后需要重新下载才能离线使用。'**
+  String get offlineTileDeleteConfirm;
+
+  /// No description provided for @offlineTileStorageUsed.
+  ///
+  /// In zh, this message translates to:
+  /// **'已用空间：{used}'**
+  String offlineTileStorageUsed(String used);
+
+  /// No description provided for @offlineTileDownloadedRegions.
+  ///
+  /// In zh, this message translates to:
+  /// **'已下载（{count}）'**
+  String offlineTileDownloadedRegions(String count);
+
+  /// No description provided for @offlineTileCancel.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消'**
+  String get offlineTileCancel;
+
+  /// No description provided for @offlineTileRedownload.
+  ///
+  /// In zh, this message translates to:
+  /// **'更新'**
+  String get offlineTileRedownload;
+
+  /// No description provided for @offlineTileNoDownloaded.
+  ///
+  /// In zh, this message translates to:
+  /// **'尚未下载任何离线地图'**
+  String get offlineTileNoDownloaded;
+
   /// No description provided for @workerAddWorker.
   ///
   /// In zh, this message translates to:

@@ -1,8 +1,20 @@
 {
   "data": {
-    "v3": {
-      "mbtiles": ["changsha.mbtiles"]
-    }
+    "changsha": { "mbtiles": "changsha.mbtiles" },
+    "changsha-demo": { "mbtiles": "changsha-demo.mbtiles" },
+    "inner-mongolia": { "mbtiles": "inner-mongolia.mbtiles" },
+    "xinjiang": { "mbtiles": "xinjiang.mbtiles" },
+    "qinghai-tibet": { "mbtiles": "qinghai-tibet.mbtiles" },
+    "mongolia": { "mbtiles": "mongolia.mbtiles" },
+    "australia": { "mbtiles": "australia.mbtiles" },
+    "new-zealand": { "mbtiles": "new-zealand.mbtiles" },
+    "scandinavia-reindeer": { "mbtiles": "scandinavia-reindeer.mbtiles" },
+    "uk-ireland": { "mbtiles": "uk-ireland.mbtiles" },
+    "argentina-pampas": { "mbtiles": "argentina-pampas.mbtiles" },
+    "brazil-central": { "mbtiles": "brazil-central.mbtiles" },
+    "east-africa": { "mbtiles": "east-africa.mbtiles" },
+    "india-northwest": { "mbtiles": "india-northwest.mbtiles" },
+    "south-africa": { "mbtiles": "south-africa.mbtiles" }
   },
   "options": {
     "port": 8080

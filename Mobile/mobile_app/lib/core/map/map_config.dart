@@ -36,8 +36,8 @@ class MapConfig {
   static const String overseasFallbackUrl =
       'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
-  /// 向后兼容（指向高德，迁移完成后可删除）
-  static const String tileUrlTemplate = chinaFallbackUrl;
+  /// Default tile URL template (points to OSM for international market).
+  static const String tileUrlTemplate = overseasFallbackUrl;
 
   /// MBTiles 离线瓦片配置
   static const String mbtilesAssetPath = 'assets/map/sample.mbtiles';

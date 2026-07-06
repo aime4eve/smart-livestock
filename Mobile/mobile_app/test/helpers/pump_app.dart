@@ -7,6 +7,7 @@ import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_theme.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 /// Pumps the app with an authenticated session for the given [role].
 ///
@@ -42,6 +43,8 @@ class _TestApp extends ConsumerWidget {
     return MaterialApp.router(
       routerConfig: router,
       theme: AppTheme.light(),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
     );
   }
 }

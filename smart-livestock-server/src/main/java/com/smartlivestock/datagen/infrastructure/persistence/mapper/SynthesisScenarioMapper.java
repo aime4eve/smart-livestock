@@ -2,6 +2,7 @@ package com.smartlivestock.datagen.infrastructure.persistence.mapper;
 
 import com.smartlivestock.datagen.domain.model.*;
 import com.smartlivestock.datagen.infrastructure.persistence.entity.SynthesisScenarioJpaEntity;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,7 +15,7 @@ public class SynthesisScenarioMapper {
         s.setName(e.getName());
         s.setStatus(ScenarioStatus.valueOf(e.getStatus()));
         s.setType(ScenarioType.fromDbValue(e.getType()));
-        s.setPenetrationRate(e.getPenetrationRate() != null ? e.getPenetrationRate() : 1.0);
+        s.setPenetrationRate(e.getPenetrationRate() != null ? e.getPenetrationRate().doubleValue() : 1.0);
         s.setWindowStart(e.getWindowStart());
         s.setWindowEnd(e.getWindowEnd());
         s.setIntervalSeconds(e.getIntervalSeconds());
@@ -28,7 +29,7 @@ public class SynthesisScenarioMapper {
         e.setName(s.getName());
         e.setStatus(s.getStatus().name());
         e.setType(s.getType().getDbValue());
-        e.setPenetrationRate(s.getPenetrationRate());
+        e.setPenetrationRate(BigDecimal.valueOf(s.getPenetrationRate()));
         e.setWindowStart(s.getWindowStart());
         e.setWindowEnd(s.getWindowEnd());
         e.setIntervalSeconds(s.getIntervalSeconds());

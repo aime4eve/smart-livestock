@@ -1,11 +1,11 @@
 # SmartLivestock 智慧畜牧产品规划
 
-> **版本**：v2.1
-> **日期**：2026-07-02
+> **版本**：v2.2
+> **日期**：2026-07-05
 > **状态**：基线
-> **替代**：v2.0（2026-06-18）
+> **替代**：v2.1（2026-07-02）
 > **范围**：全平台系统（Flutter Mobile App + PC 管理端 + Spring Boot 后端服务 + AI Platform 微服务 + IoT 设备层 + 无人机巡检 + 商业模式）
-> **编制**：基于 v2.0 增量更新 — 对齐 2026-06-18 后新增 spec（datagen 限界上下文、AI 健康路线图 Phase A 交付、牲畜/设备管理、dev/test 环境分离、i18n 设计、跨上下文解耦）+ 同步 API 契约 As-Built 端点数据
+> **编制**：基于 v2.1 增量更新 — 地图瓦片架构升级（逐瓦片智能路由替代全局三级降级）、离线瓦片管理完善（流式下载 + 完整管理 UI）、产品定位明确（国际市场优先） — 对齐 2026-06-18 后新增 spec（datagen 限界上下文、AI 健康路线图 Phase A 交付、牲畜/设备管理、dev/test 环境分离、i18n 设计、跨上下文解耦）+ 同步 API 契约 As-Built 端点数据
 
 ---
 
@@ -13,6 +13,7 @@
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
+| v2.2 | 2026-07-05 | 地图瓦片架构升级：(1) SmartTileProvider 从全局三级降级重写为逐瓦片智能路由（本机mbtiles→OSM在线→tileserver兜底）；(2) 离线瓦片管理完善：流式下载（不OOM）+完整管理UI（下载/进度/存储/删除）+取消能力；(3) MBTilesTileProvider 内存元数据缓存（O(1)瓦片命中判断）；(4) 连通性缓存（30s TTL）；(5) 产品定位明确为国际市场优先，OSM成为默认在线源 |
 | v2.1 | 2026-07-02 | 增量更新：(1) API 端点数据按 As-Built 校准（App 117 / Admin 59 / Open 11）；(2) 新增 Datagen + Platform 上下文，限界上下文 7→9；(3) AI 模型章节重写：Phase A 已交付（Python 微服务 67 tests）+ Phase B/C 双轨路线图（datagen × AI 能力）；(4) 新增 §6.13 牲畜/设备/安装管理模块；(5) i18n 扩充为完整实施方案（前端 gen-l10n + 后端 MessageSource + 在线切换）；(6) 补跨上下文解耦原则（RocketMQ pub/sub + ACL 防腐层）；(7) 部署架构补 dev/test 双环境分离；(8) 路线图更新里程碑 |
 | v2.0 | 2026-06-18 | 架构对齐基线：借鉴 SmartPark PRD v3.0.3 结构，全面重写为 DDD 洋葱架构视角；新增限界上下文全景图（7 上下文）、系统架构图、数据架构（ER 图 + 时序分区 + 数据治理）、接口契约规范化（RFC 7807 错误码 + 三端总览）、非功能需求补齐（可靠性/GDPR/颜色规范/可扩展性）、商业模式补单位经济模型 + 三收入线 + 订阅状态机、路线图增准出标准与里程碑；以 smart-livestock-server 实际实现为事实来源（51 Controller、~186 端点、V1–V37 Flyway 迁移） |
 | v1.1 | 2026-04-13 | 整合研发项目立项书：无人机巡检模块、移动 LoRaWAN 网关、技术选型更新（SpringCloud/VUE3）、竞品三层分析增强、知识产权规划、收入预测（已被 v2.0 替代） |
@@ -37,6 +38,8 @@
 
 ### 1.2 目标市场
 
+**产品主要面向国际市场**（欧洲、美洲、大洋洲），同时覆盖中国。目标客户集中在阿根廷（潘帕斯草原）、巴西（中南部）、南非、澳大利亚、新西兰及中国内蒙古/新疆等大范围牧场区域。
+
 | 客户类型 | 规模 | 付费能力 | 核心需求 | 优先级 |
 |----------|------|----------|----------|--------|
 | 小型牧场 | 50–200 头 | 中 | 定位防盗、基础健康 | P1 |
@@ -51,7 +54,7 @@
 | **当前（MVP / Phase 1–2）** | LoRaWAN 低部署成本 | 免授权频段 + 电池供电（≥3 年），无需布线施工，偏远山区覆盖 |
 | **当前（MVP / Phase 1–2）** | 数智孪生 4 场景 | 发热/消化/发情/疫病 AI 分析引擎，竞品无此能力 |
 | **当前（MVP / Phase 1–2）** | AI 无监督异常检测 | Phase A 已交付：STL 节律剥离 + CUSUM 突变检测 + 按个体样本量路由算法，三维联合（体温+蠕动+活动） |
-| **当前（MVP / Phase 1–2）** | 实时地图监控 | flutter_map + SmartTileProvider 三级降级 + MBTiles 离线 + WGS-84/GCJ-02 坐标转换 |
+| **当前（MVP / Phase 1–2）** | 实时地图监控 | flutter_map + SmartTileProvider 逐瓦片智能路由 + 离线瓦片管理 + WGS-84 全球统一坐标系 |
 | **当前（MVP / Phase 1–2）** | 设备防盗 | 瘤胃胶囊–追踪器蓝牙关联告警 |
 | **近期（Phase 2d）** | 合成数据引擎 + AI 评估闭环 | datagen 限界上下文：Scenario 驱动合成 + ground-truth 标签 + 评估框架 |
 | **远期（Phase 3）** | 空地协同巡检 | 无人机 SDK 集成 + 移动 LoRaWAN 网关补盲 + 告警联动追踪 |
@@ -242,7 +245,7 @@ owner 登录（重定向到 /twin 数智孪生首页）
   │    → 牧群/个体实时位置（flutter_map）                 │
   │    → 设备在线状态指示（在线/离线/低电量）               │
   │    → 地图图层切换（卫星图/地形图/牧场边界）             │
-  │    → 三级瓦片降级（tileserver-gl → MBTiles → 高德/OSM）│
+  │    → 逐瓦片智能路由（本机mbtiles → OSM在线 → tileserver兜底）│
   │    → 历史轨迹回放（24h/7d/30d/自定义）                 │
   │    → 轨迹热力图、放牧密度热力图                        │
   │                                                     │
@@ -268,7 +271,7 @@ owner 登录（重定向到 /twin 数智孪生首页）
   │    → 牧工管理：添加/移除牧工                            │
   │    → 租户信息：当前租户基本信息                          │
   │    → 订阅管理：套餐查看/升级/支付确认                    │
-  │    → 离线地图管理：离线瓦片下载/管理                     │
+  │    → 离线地图管理：下载/管理/删除离线瓦片                     │
   │    → API 授权管理：管理自己的 API Key（若授权）          │
   │    → 统计分析：牧场维度数据统计                          │
   │                                                     │
@@ -889,7 +892,7 @@ graph TB
 | **Lombok** | Lombok | — | 样板代码消除 |
 | **测试** | JUnit 5 + Testcontainers | 1.20.6 | 集成测试用真实 PostgreSQL 容器 |
 | **实时通信** | MQTT (EMQX) | 5.x | 告警推送、位置更新、设备遥测 |
-| **地图服务** | flutter_map + tileserver-gl + MBTiles | — | 三级降级 + 离线瓦片 |
+| **地图服务** | flutter_map + tileserver-gl + MBTiles | — | 逐瓦片智能路由 + 离线瓦片管理 |
 | **前端 Mobile** | Flutter + Riverpod + go_router | — | iOS / Android / Web，30 模块 42 路由 |
 | **前端 PC** | VUE3 | — | 维护中（独立模块） |
 | **AI 平台** | Python + FastAPI + scikit-learn | — | ai-platform 微服务，Phase A 已交付（67 tests） |
@@ -1004,7 +1007,7 @@ graph LR
 
 ### 4.12 地图瓦片基础设施
 
-地图是围栏管理和牲畜定位的基础设施。国内网络无法访问 `tile.openstreetmap.org`，系统通过**自建 tileserver-gl + 三级降级 + 离线 MBTiles** 实现全球可用。
+地图是围栏管理和牲畜定位的基础设施。国内网络无法访问 `tile.openstreetmap.org`，系统通过 **逐瓦片智能路由（本机mbtiles → OSM在线 → tileserver兜底）** 实现全球可用。
 
 #### 4.12.1 架构总览
 
@@ -1050,7 +1053,7 @@ graph LR
 | fileSize, md5 | 文件元数据（完整性校验） |
 | status | pending → generated → active |
 
-`TileRegion.containsPoint(lon, lat)` 判断牧场坐标是否落在已生成区域内，决定用自建瓦片还是触发降级。
+`TileRegion.containsPoint(lon, lat)` 判断牧场坐标是否落在已生成区域内，决定用自建瓦片还是走 OSM 在线。
 
 **任务管理**（`tile_generation_tasks` 表 / `TileGenerationTask` 聚合根）：
 
@@ -1109,48 +1112,49 @@ tileserver:
 
 `config.json` 由 `import_mbtiles.sh` 自动扫描 `/data/mbtiles/*.mbtiles` 生成，含瓦片源列表。nginx 反向代理 `/tiles/` → tileserver-gl:8080，附加 30 天 `Cache-Control`。
 
-#### 4.12.3 客户端：三级降级策略
+#### 4.12.3 客户端：逐瓦片智能路由
 
-Flutter 端通过 `SmartTileProvider` 实现**三级瓦片降级**，健康检测自动切换：
+Flutter 端通过 `SmartTileProvider` 实现**逐瓦片智能路由**——每个瓦片请求独立判断来源，无全局模式切换：
 
 ```
-TileRequest
+TileRequest (z, x, y)
   │
-  ├─ 1. tileserver-gl (WGS-84)
-  │     自有瓦片服务，/tiles/{z}/{x}/{y}.png
-  │     └─ 成功(200) → 渲染
-  │     └─ 失败/超时(2s) → degrade
+  ├─ 1. 本机已下载的 mbtiles (WGS-84, 原生平台)
+  │     offline_tile_manager 管理的 .mbtiles 文件
+  │     MbtilesMeta 内存判断 bounds + zoom range → 命中则读取
+  │     └─ 有瓦片 → 本地读取（零延迟、零网络）
+  │     └─ 无瓦片 → 继续 ↓
   │
-  ├─ 2. 本地 MBTiles (WGS-84, 原生平台 iOS/Android)
-  │     offline_tile_manager 下载的 .mbtiles 文件
-  │     └─ 有瓦片 → 渲染
-  │     └─ 无瓦片/Web平台 → degrade
+  ├─ 2. OSM 在线 (WGS-84, 全缩放全球覆盖)
+  │     在线可达 → 渲染
+  │     └─ 连续 3 次失败 → 切 offline 模式
   │
-  └─ 3. 降级源
-        ├─ 国内 → 高德瓦片 (GCJ-02) + 自动坐标转换
-        └─ 海外 → OSM CDN (WGS-84)
+  └─ 3. tileserver-gl 兜底 (WGS-84, 服务器端)
+        无网时通过局域网访问服务器（覆盖 z12-15）
 ```
 
 **核心机制**：
 
-- **启动健康检测**：`SmartTileProvider.create()` 时请求一颗已知瓦片（zoom 12），2 秒超时。非 200 即降级。
-- **运行时恢复监控**：每 60 秒探测一次 tileserver-gl。若从降级状态恢复（200 响应），自动切回主源。
-- **坐标自适应**：`shouldTransformCoordinates()` 返回 true 时，渲染层自动将 WGS-84 坐标转为 GCJ-02。高德降级源标记 `isGcj02Fallback=true`，切换时自动启用转换。
-- **视觉连续性**：降级时 flutter_map 保留已渲染瓦片直到新瓦片就绪，避免空白闪烁。MBTiles 与 tileserver-gl 使用相同的 `openstreetmap-carto` 样式表生成，视觉一致。高德降级源配色不同，属于可接受的降级体验。
+- **零启动阻塞**：`create()` 直接返回，不等待健康检查。OSM 作为默认在线源立即开始渲染。
+- **连通性缓存**：30s TTL。连续 3 次 OSM 请求失败 → 标记离线，跳过后续 OSM 请求直接走 tileserver。后台每 30s 探测恢复。
+- **MBTiles 内存元数据**：`MbtilesMeta` 缓存 zoom range + bounds 到内存，`getImage()` 先做 O(1) 内存判断再查 SQLite，避免逐瓦片数据库查询。
+- **多文件支持**：用户可下载多个区域的 mbtiles，SmartTileProvider 遍历所有文件的 meta 找到匹配的瓦片。
+- **坐标自适应**：国际市场默认用 OSM（WGS-84），无需坐标转换。中国场景可通过 REGION dart-define 切换为高德（GCJ-02），`shouldTransformCoordinates()` 在在线+高德模式时启用转换。
 
 **MBTiles 离线模块**（`offline_tiles` feature）：
 
 | 类 | 职责 |
 |------|------|
-| `OfflineTileManager` | 下载 MBTiles 文件（`GET /farms/{id}/offline-map`）、MD5 校验、存储到本地 |
-| `MBTilesTileProvider` | 从 SQLite 数据库读取瓦片（`tiles` 表：zoom_level, tile_column, tile_row） |
-| `OfflineTileManagementPage` | 离线地图管理页：查看覆盖状态、触发下载、管理已下载文件 |
+| `OfflineTileManager` | 流式下载 MBTiles（`http.Client().send()` 分块写盘，大文件不 OOM）、MD5 校验、多文件管理、取消能力 |
+| `MBTilesTileProvider` | 从 SQLite 读取瓦片 + `MbtilesMeta` 内存边界缓存（O(1) 命中判断） |
+| `OfflineTileManagementPage` | 离线地图管理页：可用区域下载、已下载区域管理、存储用量、进度条、删除 |
 
-`MBTilesTileProvider` 仅在原生平台（iOS/Android）可用——Flutter Web 不支持 `sqlite3` 插件，Web 端跳过 MBTiles 直接降级到高德/OSM。
+`MBTilesTileProvider` 仅在原生平台（iOS/Android）可用——Flutter Web 不支持 `sqlite3` 插件，Web 端跳过 MBTiles 直接用 OSM 在线。
 
 **瓦片源解析**（`TileSourceResolver`）：
 
-地图页 `create` 前调用 `GET /farms/{farmId}/tile-source`，后端根据牧场坐标匹配已生成的 `TileRegion`，返回自建瓦片 URL。若牧场坐标不在任何已生成区域内，返回空 → SmartTileProvider 跳过 tileserver-gl 层，直接走 MBTiles/降级源。
+地图页通过 `loadSmartTileProvider()` 工厂方法统一创建，内部调用 `GET /farms/{farmId}/tile-source` 获取 tileserver URL。6 处地图页（ranch_page / fence_page / fence_form_page / wizard_step_basic_info / wizard_step_fence_drawing / b2b_worker_detail_page）共享此工厂方法。
+
 
 #### 4.12.4 坐标体系
 
@@ -1161,7 +1165,7 @@ TileRequest
 | 坐标系统 | 全称 / EPSG | 使用方 | 相对 WGS-84 偏移 | 系统内用途 |
 |---------|------------|--------|:--:|------|
 | **WGS-84** | World Geodetic System 1984 / EPSG:4326 | GPS 设备、OSM、tileserver-gl、MBTiles | 0（基准） | 数据库存储、API 输入输出、所有瓦片源（除高德）、GPS 数据 |
-| **GCJ-02** | 国测局坐标系（火星坐标系） | 高德地图、腾讯地图 | 50–500m（非线性） | 高德瓦片降级源的渲染对齐 |
+| **GCJ-02** | 国测局坐标系（火星坐标系） | 高德地图、腾讯地图 | 50–500m（非线性） | 高德瓦片（中国场景）的渲染对齐 |
 | **BD-09** | 百度坐标系 | 百度地图 | GCJ-02 + 二次加密 | 系统未使用 |
 
 > GCJ-02 是中国法律要求的坐标加密标准。BD-09 是百度在 GCJ-02 基础上的私有加密，本项目不涉及百度地图，故不实现 BD-09 转换。
@@ -1172,17 +1176,17 @@ TileRequest
 
 ```
 SmartTileProvider.shouldTransformCoordinates()
-  → return _activeSource == _TileSource.fallback && isGcj02Fallback
+  → return _online && isGcj02Online
 ```
 
-| 活跃瓦片源 | `isGcj02Fallback` | 有效坐标系 | 转换行为 |
+
 |-----------|:---:|---------|------|
 | tileserver-gl（主源） | — | WGS-84 | 无需转换 |
 | MBTiles（离线） | — | WGS-84 | 无需转换 |
 | 高德（降级，国内） | `true` | GCJ-02 | WGS-84 → GCJ-02（渲染前） |
 | OSM CDN（降级，海外） | `false` | WGS-84 | 无需转换 |
 
-> 降级源的 `isGcj02Fallback` 由 `map_config.dart` 在创建 `SmartTileProvider` 时根据目标市场硬编码传入（国内 `true`，海外 `false`），而非运行时检测。
+> 在线源通过 `REGION` dart-define 在编译时决定（默认 `overseas` → OSM/WGS-84，设为 `china` → 高德/GCJ-02）。`shouldTransformCoordinates()` 仅在在线且使用高德时返回 true。
 
 **WGS-84 ↔ GCJ-02 转换算法**（`coord_transform.dart`）：
 
@@ -1265,7 +1269,7 @@ GPS 设备 / API 响应
 | AI 异常分数 | PostgreSQL 16 | `anomaly_scores` 表（Health 上下文） |
 | 空间数据（围栏多边形/坐标） | PostgreSQL JSONB + JTS | 顶点存 JSONB，计算用 JTS |
 | 实时状态 / 配额计数 | Redis 7 | 缓存 + 限流（Lua 滑动窗口） |
-| 瓦片地图 | tileserver-gl + MBTiles | 离线 + 在线降级 |
+| 瓦片地图 | tileserver-gl + MBTiles + OSM | 逐瓦片智能路由 + 离线管理 |
 | 通知/消息 | PostgreSQL + RocketMQ | 持久化通知 + 事件分发 |
 
 ### 5.2 实体关系图（按限界上下文）
@@ -1768,7 +1772,7 @@ erDiagram
 | 牧群/个体实时位置 | flutter_map 地图显示所有牲畜位置 |
 | 设备在线状态 | 在线/离线/低电量状态指示 |
 | 地图图层切换 | 卫星图、地形图、牧场边界 |
-| 三级瓦片降级 | tileserver-gl → MBTiles → 高德/OSM |
+| 逐瓦片智能路由 | 本机mbtiles → OSM在线 → tileserver兜底 |
 | GPS 上报频率 | 5–15 分钟/次（可配置） |
 | 位置精度 | 2–5 米 |
 
@@ -2283,7 +2287,7 @@ Response 200:
 |------|------|
 | 设备端 | 缓存数据，网络恢复后补传（≥24h） |
 | App 端 | 显示最近同步数据，标记数据时间 |
-| 瓦片离线 | MBTiles 离线瓦片（长沙 zoom 12–14） |
+| 瓦片离线 | 用户可下载离线瓦片（按牧场区域，zoom 11–15），逐瓦片路由优先本地 |
 | 围栏/牲畜离线 | offline_fences / offline_livestock 模块 |
 | 网络恢复 | 自动同步，增量更新 |
 
@@ -2567,6 +2571,7 @@ Phase C ◄───────────────────────
 | M3 | Phase 2b Health（数智孪生 4 场景） | Phase 2b | ✅ |
 | M4 | Phase 2c Analytics + Portal（API 开放平台 + 开发者门户） | Phase 2c | ✅ |
 | M5 | **AI Phase A**（无监督异常检测 Python 微服务，67 tests） | Phase 2d | ✅ |
+| M5.5 | **智能瓦片路由**（逐瓦片路由 + 离线瓦片管理 + 流式下载） | Phase 2d | ✅ |
 | M6 | **Datagen v1 + 牲畜/设备管理**（合成引擎 + 完整 CRUD + dev/test 环境） | Phase 2d | 🔄 |
 | M7 | **AI Phase B**（端到端集成：datagen → AI → Java → Flutter → 评估报告） | Phase 2d | ⏳ |
 | M8 | Phase 3 IoT 真实接入 + 无人机巡检试点 | Phase 3 | ⏳ |
@@ -2680,7 +2685,8 @@ Phase C ◄───────────────────────
 | MVP 后端设计规格 | `docs/superpowers/specs/2026-05-06-mvp-backend-design.md` | DDD 限界上下文、DB Schema、洋葱架构、API 总览 |
 | Phase 1 实施计划 | `docs/superpowers/plans/2026-05-06-mvp-phase1-implementation.md` | 16 个 Task，TDD 流程 |
 | 租户入驻设计 | `docs/superpowers/specs/2026-05-13-tenant-onboarding-design.md` | TenantPhase + Farm 创建向导 |
-| 多区域地图瓦片设计 | `docs/superpowers/specs/2026-05-15-multi-region-map-tiles-design.md` | tileserver-gl + SmartTileProvider 三级降级 |
+| 多区域地图瓦片设计 | `docs/superpowers/specs/2026-05-15-multi-region-map-tiles-design.md` | tileserver-gl + SmartTileProvider（已被逐瓦片路由替代） |
+| 智能瓦片路由设计 | `docs/superpowers/specs/2026-07-04-smart-tile-routing-design.md` | 逐瓦片智能路由（本机→OSM→tileserver）
 | Commerce 设计规格 | `docs/superpowers/specs/2026-05-18-commerce-context-design.md` | 订阅/合同/分润/配额引擎 |
 | Commerce 实施计划 | `docs/superpowers/plans/2026-05-18-commerce-context-plan.md` | 11 个 Task |
 | 前端适配计划 | `docs/superpowers/plans/2026-05-12-flutter-frontend-adaptation.md` | Flutter 对接 Spring Boot 后端 |

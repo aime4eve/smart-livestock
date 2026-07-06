@@ -47,6 +47,9 @@ class ApiClient {
     };
   }
 
+  /// Public accessor for auth headers (used by OfflineTileManager downloads).
+  Future<Map<String, String>> authHeaders() => _headers();
+
   // ── Public CRUD methods (with auto-refresh retry) ────────────────
 
   Future<Map<String, dynamic>> get(String path) =>

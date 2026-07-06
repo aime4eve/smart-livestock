@@ -1,0 +1,22 @@
+nacos.logging.default.config.enabled: false
+
+spring:
+  application:
+    name: open-api-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 172.22.3.16:8848
+        namespace: 3292a83b-70ef-4f53-b19a-07af273a700a
+        group: DEFAULT_GROUP
+        username: nacos
+        password: 16c47768b93458d3!QA
+      config:
+        server-addr: 172.22.3.16:8848
+        namespace: 3292a83b-70ef-4f53-b19a-07af273a700a
+        group: DEFAULT_GROUP
+        username: nacos
+        password: 16c47768b93458d3!QA
+        file-extension: yml
+        import-check:
+          enabled: false

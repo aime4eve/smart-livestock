@@ -76,7 +76,8 @@ public class DeviceApplicationService {
     @Transactional(readOnly = true)
     public DevicePage listByTenant(Long tenantId, String keyword, int page, int pageSize) {
         String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
-        int offset = (page - 1) * pageSize;
+        int safePage = Math.max(1, page);
+        int offset = (safePage - 1) * pageSize;
         java.util.List<DeviceDto> items;
         long total;
         if (kw != null) {

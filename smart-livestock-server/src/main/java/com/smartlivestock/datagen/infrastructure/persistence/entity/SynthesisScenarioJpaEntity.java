@@ -1,6 +1,7 @@
 package com.smartlivestock.datagen.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
@@ -14,8 +15,8 @@ public class SynthesisScenarioJpaEntity {
     private String status;
     @Column(name = "type", nullable = false, length = 40)
     private String type;
-    @Column(name = "penetration_rate")
-    private Double penetrationRate;
+    @Column(name = "penetration_rate", precision = 3, scale = 2)
+    private BigDecimal penetrationRate;
     @Column(name = "window_start", nullable = false)
     private Instant windowStart;
     @Column(name = "window_end", nullable = false)
@@ -42,8 +43,8 @@ public class SynthesisScenarioJpaEntity {
     public void setStatus(String status) { this.status = status; }
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
-    public Double getPenetrationRate() { return penetrationRate; }
-    public void setPenetrationRate(Double penetrationRate) { this.penetrationRate = penetrationRate; }
+    public BigDecimal getPenetrationRate() { return penetrationRate; }
+    public void setPenetrationRate(BigDecimal penetrationRate) { this.penetrationRate = penetrationRate; }
     public Instant getWindowStart() { return windowStart; }
     public void setWindowStart(Instant windowStart) { this.windowStart = windowStart; }
     public Instant getWindowEnd() { return windowEnd; }

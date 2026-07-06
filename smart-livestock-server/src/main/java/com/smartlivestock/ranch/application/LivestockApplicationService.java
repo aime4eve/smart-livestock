@@ -71,7 +71,7 @@ public class LivestockApplicationService {
         Livestock livestock = livestockRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "error.livestockNotFound", new Object[]{id}));
-        if (!command.livestockCode().equals(livestock.getLivestockCode())) {
+        if (command.livestockCode() != null && !command.livestockCode().equals(livestock.getLivestockCode())) {
             livestockRepository.findByLivestockCode(command.livestockCode())
                     .ifPresent(existing -> {
                         if (!existing.getId().equals(id)) {
@@ -80,7 +80,9 @@ public class LivestockApplicationService {
                         }
                     });
         }
-        livestock.updateInfo(command.livestockCode(), command.breed(),
+        livestock.updateInfo(
+                command.livestockCode() != null ? command.livestockCode() : livestock.getLivestockCode(),
+                command.breed() != null ? command.breed() : livestock.getBreed(),
                 command.gender(), command.birthDate(), command.weight());
         Livestock saved = livestockRepository.save(livestock);
         return LivestockDto.from(saved);
@@ -104,7 +106,8 @@ public class LivestockApplicationService {
     @Transactional(readOnly = true)
     public LivestockPage listByFarm(Long farmId, String keyword, int page, int pageSize) {
         String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
-        int offset = (page - 1) * pageSize;
+        int safePage = Math.max(1, page);
+        int offset = (safePage - 1) * pageSize;
         List<LivestockDto> items;
         long total;
         if (kw != null) {
