@@ -88,11 +88,82 @@
       .section-title { font-size: 1.5rem; }
       .section-subtitle { font-size: 1rem; }
     }
+    /* === Hero === */
+    .hero {
+      background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+      color: var(--color-white); text-align: center;
+      padding: 6rem var(--space-lg) 5rem;
+    }
+    .hero-title {
+      font-size: 3rem; font-weight: 900; line-height: 1.3;
+      margin-bottom: var(--space-md); animation: fadeInUp 0.8s ease;
+    }
+    .hero-subtitle {
+      font-size: 1.25rem; opacity: 0.9; margin-bottom: var(--space-xxl);
+      max-width: 640px; margin-left: auto; margin-right: auto;
+      animation: fadeInUp 0.8s ease 0.15s both;
+    }
+    .hero-stats {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-lg); max-width: 900px;
+      margin: 0 auto var(--space-xxl);
+      animation: fadeInUp 0.8s ease 0.3s both;
+    }
+    .hero-stat {
+      background: rgba(255,255,255,0.12); border-radius: var(--border-radius);
+      padding: var(--space-lg) var(--space-md);
+      backdrop-filter: blur(8px);
+    }
+    .hero-stat-number { font-size: 2rem; font-weight: 900; line-height: 1.2; }
+    .hero-stat-label { font-size: 0.9rem; opacity: 0.85; margin-top: var(--space-xs); }
+    .hero-cta {
+      display: flex; gap: var(--space-md); justify-content: center;
+      flex-wrap: wrap; animation: fadeInUp 0.8s ease 0.45s both;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 768px) {
+      .hero-title { font-size: 2rem; }
+      .hero-stats { grid-template-columns: repeat(2, 1fr); }
+      .hero-stat-number { font-size: 1.5rem; }
+    }
+    @media (max-width: 480px) {
+      .hero-title { font-size: 1.75rem; }
+      .hero-stats { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
   <!-- SECTION: hero -->
+  <section class="hero">
+    <h1 class="hero-title">智慧畜牧，数据驱动的精准养殖</h1>
+    <p class="hero-subtitle">IoT 设备 + AI 数智孪生 + 云平台，从经验养殖迈向数据驱动的精准管理</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-number">4～6 年</div>
+        <div class="hero-stat-label">设备续航，一次安装长期免维护</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-number">72 小时</div>
+        <div class="hero-stat-label">AI 提前预警，早于临床症状</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-number">5–10 公里</div>
+        <div class="hero-stat-label">LoRaWAN 覆盖半径，无需蜂窝基站</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-number">14 天</div>
+        <div class="hero-stat-label">全功能免费试用，零风险上手</div>
+      </div>
+    </div>
+    <div class="hero-cta">
+      <a href="#cta" class="btn btn-primary" style="background:var(--color-white);color:var(--color-primary);">预约演示</a>
+      <a href="#pricing" class="btn btn-outline">免费试用</a>
+    </div>
+  </section>
   <!-- /SECTION: hero -->
 
   <!-- SECTION: pain-points -->
