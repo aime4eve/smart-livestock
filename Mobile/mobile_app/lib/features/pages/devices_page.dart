@@ -28,6 +28,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
  Timer? _debounce;
  bool _hasSearch = false;
  Map<String, String> _deviceIdToLivestockCode = {};
+  Map<String, String> _deviceIdToLivestockId = {};
 
  @override
  void dispose() {
@@ -73,18 +74,26 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
       // Fetch livestock codes for matching
       final livestockData = await ref.read(livestockRepositoryProvider).loadAll(pageSize: 200);
       final Map<String, String> livestockIdToCode = {};
+      final Map<String, String> livestockIdToNumeric = {};
       for (final l in livestockData.items) {
         livestockIdToCode[l.id] = l.earTag;
+        livestockIdToNumeric[l.id] = l.id;
       }
 
+      final Map<String, String> codeMap = {};
+      final Map<String, String> idMap = {};
       for (final inst in items) {
         if (inst['active'] == true) {
           final devId = inst['deviceId']?.toString() ?? '';
           final liveId = inst['livestockId']?.toString() ?? '';
-          map[devId] = livestockIdToCode[liveId] ?? '';
+          codeMap[devId] = livestockIdToCode[liveId] ?? '';
+          idMap[devId] = livestockIdToNumeric[liveId] ?? liveId;
         }
       }
-      if (mounted) setState(() => _deviceIdToLivestockCode = map);
+      if (mounted) setState(() {
+        _deviceIdToLivestockCode = codeMap;
+        _deviceIdToLivestockId = idMap;
+      });
     } catch (_) {}
   }
 
@@ -185,8 +194,8 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
                                        content: Text(l10n
                                            .devicesUnbindDemo(device.name))));
                                },
-                               onViewLocation: _deviceIdToLivestockCode[device.id] != null
-                                   ? () => context.go('/livestock/${_deviceIdToLivestockCode[device.id]}')
+                               onViewLocation: _deviceIdToLivestockId[device.id] != null
+                                   ? () => context.go('/livestock/${_deviceIdToLivestockId[device.id]}')
                                    : () => context.go('/ranch'),
                              ),
                          ],
