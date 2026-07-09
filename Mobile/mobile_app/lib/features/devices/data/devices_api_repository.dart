@@ -119,13 +119,14 @@ class DevicesApiRepository implements DevicesRepository {
         'EAR_TAG' => DeviceType.earTag,
         _ => throw FormatException('deviceType: $typeStr'),
       };
-      final statusStr = (m['runtimeStatus'] ?? m['status']) as String;
-      final status = switch (statusStr.toUpperCase()) {
-        'ONLINE' => DeviceStatus.online,
-        'OFFLINE' => DeviceStatus.offline,
-        'LOW_BATTERY' => DeviceStatus.lowBattery,
-        _ => DeviceStatus.offline,
-      };
+     final statusStr = (m['runtimeStatus'] ?? m['status']) as String;
+     final status = switch (statusStr.toUpperCase()) {
+       'ONLINE' => DeviceStatus.online,
+       'OFFLINE' => DeviceStatus.offline,
+       'LOW_BATTERY' => DeviceStatus.lowBattery,
+       'ACTIVE' => DeviceStatus.online,
+       _ => DeviceStatus.offline,
+     };
      return DeviceItem(
        id: id,
        name: (m['deviceCode'] ?? m['name'] ?? '') as String,
