@@ -22,15 +22,22 @@ class DevicesPage extends ConsumerStatefulWidget {
 }
 
 class _DevicesPageState extends ConsumerState<DevicesPage> {
-  final _searchCtrl = TextEditingController();
-  Timer? _debounce;
-  bool _hasSearch = false;
+ final _searchCtrl = TextEditingController();
+ Timer? _debounce;
+ bool _hasSearch = false;
+ Map<String, String> _deviceIdToLivestockCode = {};
+
+ @override
+ void dispose() {
+   _searchCtrl.dispose();
+   _debounce?.cancel();
+   super.dispose();
+ }
 
   @override
-  void dispose() {
-    _searchCtrl.dispose();
-    _debounce?.cancel();
-    super.dispose();
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadInstallations());
   }
 
   void _onSearchChanged(String value) {
@@ -47,16 +54,40 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
     ref.read(devicesControllerProvider.notifier).search('');
   }
 
-  void _openForm() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) => DeviceFormSheet(),
-    ).then((_) => ref.read(devicesControllerProvider.notifier).refresh());
+ void _openForm() {
+   showModalBottomSheet(
+     context: context,
+     isScrollControlled: true,
+     builder: (ctx) => DeviceFormSheet(),
+   ).then((_) => ref.read(devicesControllerProvider.notifier).refresh());
+ }
+
+  Future<void> _loadInstallations() async {
+    try {
+      final data = await ApiClient.instance.farmGet('/installations');
+      final items = data['items'] as List? ?? [];
+      final Map<String, String> map = {};
+
+      // Fetch livestock codes for matching
+      final livestockData = await ref.read(livestockRepositoryProvider).loadAll();
+      final Map<String, String> livestockIdToCode = {};
+      for (final l in livestockData.items) {
+        livestockIdToCode[l.id] = l.earTag;
+      }
+
+      for (final inst in items) {
+        if (inst['active'] == true) {
+          final devId = inst['deviceId']?.toString() ?? '';
+          final liveId = inst['livestockId']?.toString() ?? '';
+          map[devId] = livestockIdToCode[liveId] ?? '';
+        }
+      }
+      if (mounted) setState(() => _deviceIdToLivestockCode = map);
+    } catch (_) {}
   }
 
-  @override
-  Widget build(BuildContext context) {
+ @override
+ Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(devicesControllerProvider);
     final controller = ref.read(devicesControllerProvider.notifier);
@@ -126,47 +157,45 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
                 if (data.items.isEmpty) {
                   return Center(child: Text(l10n.devicesNoDevices));
                 }
-                return Column(
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        key: const Key('page-devices'),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.lg),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _DeviceOverviewCard(data: data),
-                            const SizedBox(height: AppSpacing.md),
-                            for (final device in data.items)
-                              Padding(
-                                padding:
-                                    const EdgeInsets.only(bottom: AppSpacing.sm),
-                                child: HighfiDeviceTile(
-                                  device: device,
-                                  onInstall: () =>
-                                      _showInstallDialog(context, ref, device),
-                                  onUnbind: () {
-                                    ScaffoldMessenger.of(context)
-                                      ..hideCurrentSnackBar()
-                                      ..showSnackBar(SnackBar(
-                                          content: Text(l10n
-                                              .devicesUnbindDemo(device.name))));
-                                  },
-                                  onViewLocation: () {
-                                    ScaffoldMessenger.of(context)
-                                      ..hideCurrentSnackBar()
-                                      ..showSnackBar(SnackBar(
-                                          content: Text(l10n
-                                              .devicesViewLocationDemo(
-                                                  device.name))));
-                                  },
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
+           return Column(
+                 children: [
+                   Expanded(
+                     child: SingleChildScrollView(
+                       key: const Key('page-devices'),
+                       padding: const EdgeInsets.symmetric(
+                           horizontal: AppSpacing.lg),
+                       child: Column(
+                         crossAxisAlignment: CrossAxisAlignment.stretch,
+                         children: [
+                           _DeviceOverviewCard(data: data),
+                           const SizedBox(height: AppSpacing.md),
+                           for (final device in data.items)
+                             _DeviceWithBinding(
+                               device: device,
+                               boundLivestockCode: _deviceIdToLivestockCode[device.id] ?? '',
+                               onInstall: _deviceIdToLivestockCode.containsKey(device.id)
+                                   ? null
+                                   : () => _showInstallDialog(context, ref, device),
+                               onUnbind: () {
+                                 ScaffoldMessenger.of(context)
+                                   ..hideCurrentSnackBar()
+                                   ..showSnackBar(SnackBar(
+                                       content: Text(l10n
+                                           .devicesUnbindDemo(device.name))));
+                               },
+                               onViewLocation: () {
+                                 ScaffoldMessenger.of(context)
+                                   ..hideCurrentSnackBar()
+                                   ..showSnackBar(SnackBar(
+                                       content: Text(l10n
+                                           .devicesViewLocationDemo(
+                                               device.name))));
+                               },
+                             ),
+                         ],
+                       ),
+                     ),
+                   ),
                     _PaginationBar(
                       currentPage: controller.currentPage,
                       totalPages: controller.totalPages,
@@ -358,6 +387,37 @@ class _InstallDialogState extends State<_InstallDialog> {
     if (mounted) {
       setState(() => _loading = false);
     }
+  }
+}
+
+/// Wraps a device tile with real binding data from installations.
+class _DeviceWithBinding extends StatelessWidget {
+  const _DeviceWithBinding({
+    required this.device,
+    required this.boundLivestockCode,
+    this.onInstall,
+    this.onUnbind,
+    this.onViewLocation,
+  });
+
+  final DeviceItem device;
+  final String boundLivestockCode;
+  final VoidCallback? onInstall;
+  final VoidCallback? onUnbind;
+  final VoidCallback? onViewLocation;
+
+  @override
+  Widget build(BuildContext context) {
+    final effective = device.copyWith(boundEarTag: boundLivestockCode);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: HighfiDeviceTile(
+        device: effective,
+        onInstall: onInstall,
+        onUnbind: onUnbind,
+        onViewLocation: onViewLocation,
+      ),
+    );
   }
 }
 

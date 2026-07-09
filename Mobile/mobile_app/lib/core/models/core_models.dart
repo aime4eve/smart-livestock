@@ -165,6 +165,30 @@ class DeviceItem {
 
   bool get isPlatformRegistered => platformDeviceId != null;
   bool get hasTamperAlert => antiDisassemblyStatus != null && antiDisassemblyStatus != 0;
+
+  DeviceItem copyWith({
+    String? boundEarTag,
+    int? batteryPercent,
+    int? rssi,
+    int? platformDeviceId,
+  }) {
+    return DeviceItem(
+      id: id,
+      name: name,
+      type: type,
+      status: status,
+      boundEarTag: boundEarTag ?? this.boundEarTag,
+      batteryPercent: batteryPercent ?? this.batteryPercent,
+      signalStrength: signalStrength,
+      lastSync: lastSync,
+      platformDeviceId: platformDeviceId ?? this.platformDeviceId,
+      rssi: rssi ?? this.rssi,
+      snr: snr,
+      lastGateway: lastGateway,
+      antiDisassemblyStatus: antiDisassemblyStatus,
+      lastTelemetrySyncedAt: lastTelemetrySyncedAt,
+    );
+  }
 }
 
 class StatsChartData {
