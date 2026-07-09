@@ -218,6 +218,29 @@
     @media (max-width: 640px) {
       .cap-grid { grid-template-columns: 1fr; }
     }
+    /* === Advantages === */
+    .advantages { background: var(--color-white); }
+    .adv-table-wrapper {
+      max-width: var(--max-width); margin: 0 auto; padding: 0 var(--space-lg);
+      overflow-x: auto;
+    }
+    .adv-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    .adv-table th, .adv-table td {
+      padding: var(--space-md); text-align: center; border-bottom: 1px solid var(--color-border);
+    }
+    .adv-table thead th {
+      background: var(--color-surface); font-weight: 700; color: var(--color-text-primary);
+      position: sticky; top: 0;
+    }
+    .adv-table thead th:first-child { text-align: left; border-radius: var(--border-radius) 0 0 0; }
+    .adv-table thead th:last-child { border-radius: 0 var(--border-radius) 0 0; }
+    .adv-table tbody td:first-child { text-align: left; font-weight: 600; color: var(--color-text-primary); }
+    .adv-col-ours { background: var(--color-primary-soft); }
+    .adv-col-ours td { color: var(--color-primary); font-weight: 600; }
+    .adv-check { color: var(--color-success); font-weight: 700; }
+    .adv-cross { color: #ccc; }
+    .adv-partial { color: var(--color-warning); }
+    .adv-note { font-size: 0.85rem; color: var(--color-text-secondary); margin-top: var(--space-md); text-align: center; }
     /* === Architecture === */
     .architecture { background: var(--color-surface); }
     .arch-layout {
@@ -532,6 +555,107 @@
   <!-- /SECTION: architecture -->
 
   <!-- SECTION: advantages -->
+  <section class="section advantages">
+    <h2 class="section-title">为什么选择 SmartLivestock</h2>
+    <p class="section-subtitle">与国际主流竞品全面对比，核心维度均具差异化优势</p>
+    <div class="adv-table-wrapper">
+      <table class="adv-table">
+        <thead>
+          <tr>
+            <th>功能维度</th>
+            <th>Halter</th>
+            <th>Vence</th>
+            <th>Nofence</th>
+            <th>Digitanimal</th>
+            <th class="adv-col-ours">SmartLivestock</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GPS 定位</td>
+            <td class="adv-check">✓</td>
+            <td class="adv-check">✓</td>
+            <td class="adv-check">✓</td>
+            <td class="adv-check">✓</td>
+            <td class="adv-col-ours adv-check">✓</td>
+          </tr>
+          <tr>
+            <td>虚拟围栏</td>
+            <td class="adv-check">✓</td>
+            <td class="adv-check">✓</td>
+            <td class="adv-check">✓</td>
+            <td class="adv-partial">△</td>
+            <td class="adv-col-ours adv-check">✓ 核心</td>
+          </tr>
+          <tr>
+            <td>电池寿命</td>
+            <td>6 个月</td>
+            <td>1 年</td>
+            <td>6 个月</td>
+            <td>2–3 年</td>
+            <td class="adv-col-ours"><strong>4～6 年</strong></td>
+          </tr>
+          <tr>
+            <td>通信方式</td>
+            <td>蜂窝</td>
+            <td>蜂窝</td>
+            <td>4G/LTE</td>
+            <td>LoRaWAN</td>
+            <td class="adv-col-ours"><strong>LoRaWAN</strong></td>
+          </tr>
+          <tr>
+            <td>强制月费</td>
+            <td class="adv-check">✓</td>
+            <td class="adv-check">✓</td>
+            <td class="adv-check">✓</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-col-ours"><strong>可选订阅</strong></td>
+          </tr>
+          <tr>
+            <td>健康监测</td>
+            <td class="adv-check">✓</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-check">✓</td>
+            <td class="adv-col-ours adv-check"><strong>瘤胃胶囊</strong></td>
+          </tr>
+          <tr>
+            <td>AI 异常检测</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-col-ours"><strong>无监督 + 三维联合</strong></td>
+          </tr>
+          <tr>
+            <td>数智孪生</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-col-ours"><strong>4 大场景</strong></td>
+          </tr>
+          <tr>
+            <td>设备防盗</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-col-ours"><strong>蓝牙关联告警</strong></td>
+          </tr>
+          <tr>
+            <td>离线作业</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-cross">✗</td>
+            <td class="adv-col-ours"><strong>无网络全功能</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="adv-note">数据来源：各品牌公开产品文档及独立评测，截止 2026 年 7 月</p>
+  </section>
   <!-- /SECTION: advantages -->
 
   <!-- SECTION: pricing -->
