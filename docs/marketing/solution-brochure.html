@@ -218,6 +218,81 @@
     @media (max-width: 640px) {
       .cap-grid { grid-template-columns: 1fr; }
     }
+    /* === Architecture === */
+    .architecture { background: var(--color-surface); }
+    .arch-layout {
+      display: grid; grid-template-columns: 1fr 320px;
+      gap: var(--space-xxl); max-width: var(--max-width);
+      margin: 0 auto; padding: 0 var(--space-lg); align-items: start;
+    }
+    .arch-diagram {
+      background: var(--color-white); border-radius: var(--border-radius);
+      padding: var(--space-xl); box-shadow: var(--shadow-sm);
+    }
+    .arch-diagram h3 { font-size: 1.15rem; color: var(--color-primary); margin-bottom: var(--space-lg); }
+    .arch-contexts {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-sm); margin-bottom: var(--space-lg);
+    }
+    .arch-ctx {
+      background: var(--color-primary-soft); border-radius: 8px;
+      padding: var(--space-sm) var(--space-md); text-align: center;
+      font-size: 0.85rem; font-weight: 600; color: var(--color-primary);
+    }
+    .arch-layers {
+      display: flex; flex-direction: column; gap: var(--space-xs);
+      font-size: 0.85rem; color: var(--color-text-secondary);
+    }
+    .arch-layers span { padding: var(--space-xs) var(--space-sm); background: #F0F4F8; border-radius: 4px; }
+    .arch-stats {
+      background: var(--color-white); border-radius: var(--border-radius);
+      padding: var(--space-xl); box-shadow: var(--shadow-sm);
+    }
+    .arch-stats h3 { font-size: 1rem; color: var(--color-text-primary); margin-bottom: var(--space-md); }
+    .arch-stat-item {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: var(--space-sm) 0; border-bottom: 1px solid var(--color-border);
+    }
+    .arch-stat-item:last-child { border-bottom: none; }
+    .arch-stat-value { font-size: 1.5rem; font-weight: 900; color: var(--color-primary); }
+    .arch-stat-label { font-size: 0.9rem; color: var(--color-text-secondary); }
+    .arch-tech-tags {
+      margin-top: var(--space-xl); display: flex; flex-wrap: wrap; gap: var(--space-sm);
+    }
+    .arch-tag {
+      background: var(--color-primary-soft); color: var(--color-primary);
+      padding: 0.3rem 0.8rem; border-radius: 20px;
+      font-size: 0.85rem; font-weight: 500;
+    }
+    .arch-expand {
+      text-align: center; margin-top: var(--space-lg);
+    }
+    .arch-expand-btn {
+      background: none; border: 1px solid var(--color-border); border-radius: 8px;
+      padding: 0.6rem 1.5rem; font-size: 0.9rem; color: var(--color-text-secondary);
+      cursor: pointer; font-family: inherit;
+    }
+    .arch-expand-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .arch-detail {
+      display: none; margin-top: var(--space-lg);
+      background: var(--color-white); border-radius: var(--border-radius);
+      padding: var(--space-xl); box-shadow: var(--shadow-sm);
+    }
+    .arch-detail.open { display: block; }
+    .arch-detail table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .arch-detail th, .arch-detail td {
+      text-align: left; padding: var(--space-sm) var(--space-md);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .arch-detail th { color: var(--color-primary); font-weight: 600; }
+
+    @media (max-width: 1024px) {
+      .arch-layout { grid-template-columns: 1fr; }
+      .arch-contexts { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .arch-contexts { grid-template-columns: repeat(2, 1fr); }
+    }
   </style>
 </head>
 <body>
@@ -360,6 +435,100 @@
   <!-- /SECTION: capabilities -->
 
   <!-- SECTION: architecture -->
+  <section class="section architecture">
+    <h2 class="section-title">技术架构一览</h2>
+    <p class="section-subtitle">企业级技术底座，支撑规模化运营</p>
+    <div class="arch-layout">
+      <div class="arch-diagram">
+        <h3>DDD 限界上下文（9 个）</h3>
+        <div class="arch-contexts">
+          <div class="arch-ctx">Identity<br>身份与租户</div>
+          <div class="arch-ctx">Ranch<br>牧场与围栏</div>
+          <div class="arch-ctx">IoT<br>设备与遥测</div>
+          <div class="arch-ctx">Health<br>数智孪生健康</div>
+          <div class="arch-ctx">Commerce<br>商业计费</div>
+          <div class="arch-ctx">Analytics<br>统计与门户</div>
+          <div class="arch-ctx">Datagen<br>数据合成</div>
+          <div class="arch-ctx">Platform<br>调度台</div>
+          <div class="arch-ctx">Shared<br>共享内核</div>
+        </div>
+        <h3 style="margin-top:var(--space-lg);margin-bottom:var(--space-sm);">洋葱架构分层</h3>
+        <div class="arch-layers">
+          <span>Interfaces — REST Controller / DTO / 组装器</span>
+          <span>Application — 用例编排 / 事务边界 / Port 定义</span>
+          <span>Domain — 领域模型 / 领域服务 / 仓储接口</span>
+          <span>Infrastructure — JPA 持久化 / MQ 消费 / ACL 适配</span>
+        </div>
+        <div class="arch-tech-tags">
+          <span class="arch-tag">Spring Boot 3.3</span>
+          <span class="arch-tag">Java 17</span>
+          <span class="arch-tag">PostgreSQL 16</span>
+          <span class="arch-tag">Redis 7</span>
+          <span class="arch-tag">RocketMQ 5.1</span>
+          <span class="arch-tag">Flutter 3.x</span>
+          <span class="arch-tag">Riverpod</span>
+          <span class="arch-tag">Docker Compose</span>
+          <span class="arch-tag">JWT 双 Token</span>
+          <span class="arch-tag">AI Platform</span>
+        </div>
+      </div>
+      <div class="arch-stats">
+        <h3>关键数字</h3>
+        <div class="arch-stat-item">
+          <span class="arch-stat-label">REST Controller</span>
+          <span class="arch-stat-value">51</span>
+        </div>
+        <div class="arch-stat-item">
+          <span class="arch-stat-label">API 端点</span>
+          <span class="arch-stat-value">187</span>
+        </div>
+        <div class="arch-stat-item">
+          <span class="arch-stat-label">数据库表</span>
+          <span class="arch-stat-value">39</span>
+        </div>
+        <div class="arch-stat-item">
+          <span class="arch-stat-label">Java 文件</span>
+          <span class="arch-stat-value">502</span>
+        </div>
+        <div class="arch-stat-item">
+          <span class="arch-stat-label">测试类</span>
+          <span class="arch-stat-value">53</span>
+        </div>
+        <div class="arch-stat-item">
+          <span class="arch-stat-label">前端模块</span>
+          <span class="arch-stat-value">30</span>
+        </div>
+        <div class="arch-stat-item">
+          <span class="arch-stat-label">代码行数</span>
+          <span class="arch-stat-value">~63K</span>
+        </div>
+      </div>
+    </div>
+    <div class="arch-expand" style="max-width:var(--max-width);margin:var(--space-lg) auto 0;padding:0 var(--space-lg);">
+      <button class="arch-expand-btn" onclick="toggleArchDetail()">展开完整技术栈 ▼</button>
+    </div>
+    <div class="arch-detail" id="archDetail" style="max-width:var(--max-width);margin:var(--space-lg) auto 0;padding:0 var(--space-lg);">
+      <div style="background:var(--color-white);border-radius:var(--border-radius);padding:var(--space-xl);box-shadow:var(--shadow-sm);">
+        <table>
+          <thead><tr><th>层次</th><th>技术</th><th>版本</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>后端框架</td><td>Spring Boot</td><td>3.3.x</td><td>Java 17，Gradle 构建</td></tr>
+            <tr><td>持久层</td><td>Spring Data JPA + Hibernate</td><td>—</td><td>Flyway 管理 DDL</td></tr>
+            <tr><td>数据库</td><td>PostgreSQL</td><td>16</td><td>时序数据按月 RANGE 分区</td></tr>
+            <tr><td>缓存</td><td>Redis</td><td>7</td><td>会话 / 限流（Lua 滑动窗口）</td></tr>
+            <tr><td>消息队列</td><td>RocketMQ</td><td>5.1</td><td>跨上下文事件总线</td></tr>
+            <tr><td>认证</td><td>JJWT</td><td>0.12.5</td><td>Access 1h + Refresh 7d</td></tr>
+            <tr><td>安全</td><td>Spring Security</td><td>—</td><td>RBAC + 多租户隔离</td></tr>
+            <tr><td>前端框架</td><td>Flutter</td><td>3.x</td><td>iOS / Android / Web 三端</td></tr>
+            <tr><td>状态管理</td><td>Riverpod</td><td>—</td><td>Compile-safe DI</td></tr>
+            <tr><td>地图</td><td>flutter_map + tileserver-gl</td><td>—</td><td>逐瓦片智能路由 + MBTiles 离线</td></tr>
+            <tr><td>AI 平台</td><td>Python + FastAPI + scikit-learn</td><td>—</td><td>STL + CUSUM + iForest</td></tr>
+            <tr><td>部署</td><td>Docker Compose</td><td>—</td><td>dev / test 双环境隔离</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
   <!-- /SECTION: architecture -->
 
   <!-- SECTION: advantages -->
@@ -377,6 +546,12 @@
 
   <script>
     // Animations will be added later
+    function toggleArchDetail() {
+      const detail = document.getElementById('archDetail');
+      const btn = document.querySelector('.arch-expand-btn');
+      detail.classList.toggle('open');
+      btn.textContent = detail.classList.contains('open') ? '收起技术栈 ▲' : '展开完整技术栈 ▼';
+    }
   </script>
 </body>
 </html>
