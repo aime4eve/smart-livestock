@@ -51,11 +51,12 @@ public class SynthesisService {
             Map<String, Object> readings = generateBaseline(inst, state, now);
 
             // Layer 2: category-specific overlay
-            switch (scenario.getType().getCategory()) {
-                case HEALTH -> applyHealthModulation(readings, state, scenario, targets, inst.livestockId(), now);
-                case FENCE  -> applyFenceDisplacement(readings, state, scenario, targets, inst, now);
-                case BASELINE -> {}
-            }
+           switch (scenario.getType().getCategory()) {
+               case HEALTH -> applyHealthModulation(readings, state, scenario, targets, inst.livestockId(), now);
+               case FENCE  -> applyFenceDisplacement(readings, state, scenario, targets, inst, now);
+               case DEVICE -> applyDeviceFault(readings, state, scenario, targets, inst, now);
+               case BASELINE -> {}
+           }
 
             try {
                 ingestionPort.ingest(inst.deviceId(), readings, now);
@@ -191,7 +192,37 @@ public class SynthesisService {
             state.currentLng = (minLng + maxLng) / 2;
         }
         readings.put("latitude", state.currentLat);
-        readings.put("longitude", state.currentLng);
+       readings.put("longitude", state.currentLng);
+   }
+
+    // --- DEVICE fault modulation (Phase 3) ---
+
+    private void applyDeviceFault(Map<String, Object> readings, SynthesisState state,
+            SynthesisScenario scenario, Set<Long> targets, ActiveInstallationInfo inst, Instant now) {
+        updateEventLifecycle(state, scenario.getType(), inst.livestockId(), targets, now);
+        if (!state.isInEvent(now)) return;
+
+        double progress = state.eventProgress(now);
+        switch (scenario.getType()) {
+            case DEVICE_LOW_BATTERY -> {
+                // Battery linear decline: 100% → 15% over event duration
+                int battery = (int) Math.round(100 - progress * 85);
+                readings.put("battery", battery);
+            }
+            case DEVICE_SIGNAL_DEGRADATION -> {
+                // RSSI: -40dBm → -95dBm; SNR: 14 → 3
+                int rssi = (int) Math.round(-40 - progress * 55);
+                readings.put("rssi", rssi);
+                readings.put("snr", String.valueOf(round(14 - progress * 11, 1)));
+            }
+            case DEVICE_ANTI_DISASSEMBLY -> {
+                // Trigger tamper alert mid-event
+                if (progress > 0.3) {
+                    readings.put("antiDisassemblyStatus", 1);
+                }
+            }
+            default -> {}
+        }
     }
 
     // --- Baseline generation (shared by all categories) ---

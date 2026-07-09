@@ -36,11 +36,16 @@ public enum ScenarioType {
             TemporalShape.ACTIVITY_DROP,
             new DimensionModulation(0.0, 0.9, 0.3, 0.3)),
 
-    // Fence scenarios
-    FENCE_BREACH("fence_breach", Category.FENCE, 10, Duration.ofMinutes(30), null, null),
-    FENCE_APPROACH("fence_approach", Category.FENCE, 10, Duration.ofMinutes(30), null, null);
+   // Fence scenarios
+   FENCE_BREACH("fence_breach", Category.FENCE, 10, Duration.ofMinutes(30), null, null),
+    FENCE_APPROACH("fence_approach", Category.FENCE, 10, Duration.ofMinutes(30), null, null),
 
-    public enum Category { BASELINE, HEALTH, FENCE }
+    // Device failure scenarios (Phase 3)
+    DEVICE_LOW_BATTERY("device_low_battery", Category.DEVICE, 300, Duration.ofHours(6), null, null),
+    DEVICE_SIGNAL_DEGRADATION("device_signal_degradation", Category.DEVICE, 300, Duration.ofHours(3), null, null),
+    DEVICE_ANTI_DISASSEMBLY("device_anti_disassembly", Category.DEVICE, 300, Duration.ofMinutes(5), null, null);
+
+    public enum Category { BASELINE, HEALTH, FENCE, DEVICE }
 
     private final String dbValue;
     private final Category category;

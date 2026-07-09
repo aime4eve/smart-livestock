@@ -94,8 +94,11 @@ public class TelemetryIngestionService {
         updateDeviceRuntimeStatus(device, readings);
         deviceRepository.save(device);
 
-        // 2. Write device operational timeseries
-        logDeviceTelemetry(device, readings, effectiveRecordedAt);
+       // 2. Write device operational timeseries
+       logDeviceTelemetry(device, readings, effectiveRecordedAt);
+
+        // 2a. Compute stepNumber delta (累计值 → 周期增量) and inject into readings
+        computeStepDelta(device, readings);
 
         // 3. Extract GPS for TRACKER devices
         extractAndLogGps(device, readings, effectiveRecordedAt);
@@ -129,7 +132,34 @@ public class TelemetryIngestionService {
         ingest(deviceId, readings, recordedAt, TelemetrySource.HTTP);
     }
 
-    // --- Splitter methods ---
+   // --- Splitter methods ---
+
+    /**
+     * Compute stepNumber delta: platform reports cumulative value, activity_logs needs per-cycle increment.
+     * Injects result as "stepCount" into readings for downstream HealthApplicationService consumption.
+     * Three cases: first report (skip), normal delta (inject), regression/reset (discard).
+     */
+    private void computeStepDelta(Device device, Map<String, Object> readings) {
+        Integer currentStep = getInteger(readings, "stepNumber");
+        if (currentStep == null) return;
+
+        Integer lastStep = deviceTelemetryLogRepository.findLatestByDeviceId(device.getId())
+                .map(DeviceTelemetryLog::getStepNumber)
+                .orElse(null);
+
+        if (lastStep == null) {
+            // First report: baseline only, no delta to inject
+            return;
+        }
+
+        if (currentStep > lastStep) {
+            int delta = currentStep - lastStep;
+            readings.put("stepCount", delta);
+        } else {
+            // Regression or reset: discard this cycle
+            log.warn("stepNumber regression: last={}, current={}, device={}", lastStep, currentStep, device.getId());
+        }
+    }
 
     private void updateDeviceRuntimeStatus(Device device, Map<String, Object> readings) {
         Object battery = readings.get("battery");

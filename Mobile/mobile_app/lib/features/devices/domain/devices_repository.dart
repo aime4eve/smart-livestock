@@ -80,4 +80,6 @@ abstract class DevicesRepository {
   Future<List<GpsPoint>> loadLatestGps();
 
   Future<List<GpsPoint>> loadGpsHistory(String livestockId);
+
+  Future<Map<String, dynamic>> loadDeviceHealth(String deviceId);
 }

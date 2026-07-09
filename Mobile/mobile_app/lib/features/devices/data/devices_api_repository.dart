@@ -126,16 +126,22 @@ class DevicesApiRepository implements DevicesRepository {
         'LOW_BATTERY' => DeviceStatus.lowBattery,
         _ => DeviceStatus.offline,
       };
-      return DeviceItem(
-        id: id,
-        name: (m['deviceCode'] ?? m['name'] ?? '') as String,
-        type: type,
-        status: status,
-        boundEarTag: m['boundEarTag'] as String? ?? '',
-        batteryPercent: (m['batteryLevel'] ?? m['batteryPercent']) as int?,
-        signalStrength: m['signalStrength'] as String?,
-        lastSync: (m['lastOnlineAt'] ?? m['lastSync']) as String?,
-      );
+     return DeviceItem(
+       id: id,
+       name: (m['deviceCode'] ?? m['name'] ?? '') as String,
+       type: type,
+       status: status,
+       boundEarTag: m['boundEarTag'] as String? ?? '',
+       batteryPercent: (m['batteryLevel'] ?? m['batteryPercent']) as int?,
+       signalStrength: m['signalStrength'] as String?,
+       lastSync: (m['lastOnlineAt'] ?? m['lastSync']) as String?,
+       platformDeviceId: _parseNullableInt(m['platformDeviceId']),
+       rssi: _parseNullableInt(m['rssi']),
+       snr: m['snr']?.toString(),
+       lastGateway: m['lastGateway'] as String?,
+       antiDisassemblyStatus: _parseNullableInt(m['antiDisassemblyStatus']),
+       lastTelemetrySyncedAt: m['lastTelemetrySyncedAt'] as String?,
+     );
     } catch (_) {
       return null;
     }
@@ -176,5 +182,17 @@ class DevicesApiRepository implements DevicesRepository {
       timestamp: (m['timestamp'] ?? '') as String,
       livestockId: m['livestockId'] as String?,
     );
+  }
+
+  @override
+  Future<Map<String, dynamic>> loadDeviceHealth(String deviceId) async {
+    return await farmGet('devices/$deviceId/health');
+  }
+
+  static int? _parseNullableInt(dynamic v) {
+    if (v == null) return null;
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    return int.tryParse(v.toString());
   }
 }

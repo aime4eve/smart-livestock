@@ -51,11 +51,40 @@ class HighfiDeviceTile extends StatelessWidget {
                   _subtitle,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
-                if (device.batteryPercent != null) ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  _BatteryBar(percent: device.batteryPercent!),
-                ],
-                const SizedBox(height: AppSpacing.sm),
+               if (device.batteryPercent != null) ...[
+                 const SizedBox(height: AppSpacing.xs),
+                 _BatteryBar(percent: device.batteryPercent!),
+               ],
+               if (device.hasTamperAlert) ...[
+                 const SizedBox(height: AppSpacing.xs),
+                 Row(
+                   children: [
+                     Icon(Icons.warning, size: 14, color: AppColors.danger),
+                     const SizedBox(width: 4),
+                     Text('防拆卸告警',
+                       style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.danger),
+                     ),
+                   ],
+                 ),
+               ],
+               const SizedBox(height: AppSpacing.xs),
+               Row(
+                 children: [
+                   Icon(
+                     device.isPlatformRegistered ? Icons.cloud_done : Icons.cloud_off,
+                     size: 14,
+                     color: device.isPlatformRegistered ? AppColors.success : AppColors.textSecondary,
+                   ),
+                   const SizedBox(width: 4),
+                   Text(
+                     device.isPlatformRegistered ? '已注册平台' : '未注册平台',
+                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                       color: device.isPlatformRegistered ? AppColors.success : AppColors.textSecondary,
+                     ),
+                   ),
+                 ],
+               ),
+               const SizedBox(height: AppSpacing.sm),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -100,19 +129,20 @@ class HighfiDeviceTile extends StatelessWidget {
         DeviceStatus.lowBattery => AppColors.warning,
       };
 
-  String get _subtitle {
-    final parts = <String>[
-      device.boundEarTag,
-      switch (device.status) {
-        DeviceStatus.online => '在线',
-        DeviceStatus.offline => '离线',
-        DeviceStatus.lowBattery => '低电',
-      },
-    ];
-    if (device.signalStrength != null) parts.add('信号${device.signalStrength}');
-    if (device.lastSync != null) parts.add('同步 ${device.lastSync}');
-    return parts.join(' · ');
-  }
+ String get _subtitle {
+   final parts = <String>[
+     device.boundEarTag,
+     switch (device.status) {
+       DeviceStatus.online => '在线',
+       DeviceStatus.offline => '离线',
+       DeviceStatus.lowBattery => '低电',
+     },
+   ];
+   if (device.rssi != null) parts.add('RSSI ${device.rssi}dBm');
+   if (device.signalStrength != null) parts.add('信号${device.signalStrength}');
+   if (device.lastSync != null) parts.add('同步 ${device.lastSync}');
+   return parts.join(' · ');
+ }
 }
 
 class _BatteryBar extends StatelessWidget {

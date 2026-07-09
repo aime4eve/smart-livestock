@@ -140,6 +140,12 @@ class DeviceItem {
     this.batteryPercent,
     this.signalStrength,
     this.lastSync,
+    this.platformDeviceId,
+    this.rssi,
+    this.snr,
+    this.lastGateway,
+    this.antiDisassemblyStatus,
+    this.lastTelemetrySyncedAt,
   });
 
   final String id;
@@ -150,6 +156,15 @@ class DeviceItem {
   final int? batteryPercent;
   final String? signalStrength;
   final String? lastSync;
+  final int? platformDeviceId;
+  final int? rssi;
+  final String? snr;
+  final String? lastGateway;
+  final int? antiDisassemblyStatus;
+  final String? lastTelemetrySyncedAt;
+
+  bool get isPlatformRegistered => platformDeviceId != null;
+  bool get hasTamperAlert => antiDisassemblyStatus != null && antiDisassemblyStatus != 0;
 }
 
 class StatsChartData {
