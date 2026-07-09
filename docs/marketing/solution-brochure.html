@@ -160,6 +160,64 @@
 
     @media (max-width: 1024px) { .pain-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 640px)  { .pain-grid { grid-template-columns: 1fr; } }
+
+    /* === Solution Overview === */
+    .solution { background: var(--color-white); }
+    .solution-flow {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-xl); max-width: var(--max-width);
+      margin: 0 auto; padding: 0 var(--space-lg); position: relative;
+    }
+    .solution-step {
+      text-align: center; padding: var(--space-xl);
+      background: var(--color-surface); border-radius: var(--border-radius);
+      position: relative;
+    }
+    .solution-step:not(:last-child)::after {
+      content: '→'; position: absolute; right: -1.5rem; top: 50%;
+      transform: translateY(-50%); font-size: 1.5rem;
+      color: var(--color-accent); font-weight: 700;
+    }
+    .solution-step-icon {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: var(--color-primary-soft); color: var(--color-primary);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto var(--space-md); font-size: 1.75rem;
+    }
+    .solution-step h3 { font-size: 1.15rem; margin-bottom: var(--space-sm); color: var(--color-primary); }
+    .solution-step ul { list-style: none; text-align: left; }
+    .solution-step li { font-size: 0.95rem; color: var(--color-text-secondary); padding: 0.25rem 0; }
+    .solution-step li::before { content: '✓ '; color: var(--color-success); font-weight: 700; }
+
+    /* === Core Capabilities === */
+    .capabilities { background: var(--color-primary-soft); }
+    .cap-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-lg); max-width: var(--max-width);
+      margin: 0 auto; padding: 0 var(--space-lg);
+    }
+    .cap-card {
+      background: var(--color-white); border-radius: var(--border-radius);
+      padding: var(--space-xl); box-shadow: var(--shadow-sm);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border-top: 4px solid var(--color-primary);
+    }
+    .cap-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+    .cap-card-icon { font-size: 2rem; margin-bottom: var(--space-md); }
+    .cap-card h3 { font-size: 1.15rem; margin-bottom: var(--space-sm); color: var(--color-text-primary); }
+    .cap-card p { font-size: 0.95rem; color: var(--color-text-secondary); line-height: 1.7; }
+
+    @media (max-width: 1024px) {
+      .solution-flow { grid-template-columns: 1fr; gap: var(--space-lg); }
+      .solution-step:not(:last-child)::after {
+        content: '↓'; right: 50%; top: auto; bottom: -2rem;
+        transform: translateX(50%);
+      }
+      .cap-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .cap-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -223,9 +281,82 @@
   <!-- /SECTION: pain-points -->
 
   <!-- SECTION: solution-overview -->
+  <section class="section solution">
+    <h2 class="section-title">SmartLivestock 三位一体解决方案</h2>
+    <p class="section-subtitle">从感知到分析到管理，全链路闭环</p>
+    <div class="solution-flow">
+      <div class="solution-step">
+        <div class="solution-step-icon">&#128225;</div>
+        <h3>IoT 感知层</h3>
+        <ul>
+          <li>GPS 追踪器（项圈式）</li>
+          <li>瘤胃胶囊（吞服式）</li>
+          <li>智能耳标</li>
+          <li>LoRaWAN 网关</li>
+        </ul>
+      </div>
+      <div class="solution-step">
+        <div class="solution-step-icon">&#129504;</div>
+        <h3>AI 分析引擎</h3>
+        <ul>
+          <li>发热早期检测</li>
+          <li>消化功能分析</li>
+          <li>发情智能识别</li>
+          <li>疫病趋势预警</li>
+          <li>无监督异常检测</li>
+        </ul>
+      </div>
+      <div class="solution-step">
+        <div class="solution-step-icon">&#9729;</div>
+        <h3>云平台管理</h3>
+        <ul>
+          <li>多租户 SaaS 架构</li>
+          <li>实时地图监控</li>
+          <li>告警即时推送</li>
+          <li>数据分析报表</li>
+        </ul>
+      </div>
+    </div>
+  </section>
   <!-- /SECTION: solution-overview -->
 
   <!-- SECTION: capabilities -->
+  <section class="section capabilities">
+    <h2 class="section-title">六大核心能力</h2>
+    <p class="section-subtitle">覆盖牲畜管理全场景，从定位到健康一站式解决</p>
+    <div class="cap-grid">
+      <div class="cap-card">
+        <div class="cap-card-icon">&#128506;</div>
+        <h3>实时定位追踪</h3>
+        <p>GPS + LoRaWAN 双模定位，全球覆盖。支持历史轨迹回放与热力图分析，牲畜位置一目了然。</p>
+      </div>
+      <div class="cap-card">
+        <div class="cap-card-icon">&#128737;</div>
+        <h3>电子围栏告警</h3>
+        <p>手绘多边形或模板快速创建虚拟围栏，越界实时推送告警。支持分时段策略与围栏区域细分管理。</p>
+      </div>
+      <div class="cap-card">
+        <div class="cap-card-icon">&#10084;</div>
+        <h3>AI 健康监测</h3>
+        <p>发热、消化、发情、疫病四大分析引擎，覆盖牲畜全生命周期。瘤胃温度基线偏离 72h 趋势预警。</p>
+      </div>
+      <div class="cap-card">
+        <div class="cap-card-icon">&#128202;</div>
+        <h3>无监督异常检测</h3>
+        <p>STL 节律剥离 + CUSUM 突变检测，体温、蠕动、活动三维联合分析。规则引擎与 AI 双轨并行，误报率大幅降低。</p>
+      </div>
+      <div class="cap-card">
+        <div class="cap-card-icon">&#128295;</div>
+        <h3>设备全生命周期管理</h3>
+        <p>追踪器、瘤胃胶囊、耳标统一管理。电量、信号、在线状态实时监控，异常主动告警。支持批量入网与安装记录追溯。</p>
+      </div>
+      <div class="cap-card">
+        <div class="cap-card-icon">&#128190;</div>
+        <h3>离线全功能作业</h3>
+        <p>无网络环境下完整运行：离线地图瓦片、离线围栏数据、离线牲畜缓存。网络恢复后自动同步，牧场深处也不中断。</p>
+      </div>
+    </div>
+  </section>
   <!-- /SECTION: capabilities -->
 
   <!-- SECTION: architecture -->
