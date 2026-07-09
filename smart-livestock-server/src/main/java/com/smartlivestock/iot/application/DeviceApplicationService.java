@@ -3,7 +3,15 @@ package com.smartlivestock.iot.application;
 import com.smartlivestock.iot.application.command.RegisterDeviceCommand;
 import com.smartlivestock.iot.application.command.UpdateDeviceCommand;
 import com.smartlivestock.iot.application.dto.DeviceDto;
+import com.smartlivestock.iot.infrastructure.client.agenticplatform.client.AgenticPlatformDeviceClient;
+import com.smartlivestock.iot.infrastructure.client.agenticplatform.client.AgenticPlatformLicenseClient;
+import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.DeviceRegistrationReq;
+import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.DeviceRegistrationResp;
+import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.InternalResponse;
+import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.LicenseStatusResp;
+import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.LoginUser;
 import com.smartlivestock.iot.domain.model.Device;
+import com.smartlivestock.iot.domain.model.DeviceType;
 import com.smartlivestock.iot.domain.model.DeviceStatus;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.shared.common.ApiException;
@@ -14,12 +22,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class DeviceApplicationService {
 
     private final DeviceRepository deviceRepository;
+    private final AgenticPlatformDeviceClient platformDeviceClient;
+    private final AgenticPlatformLicenseClient platformLicenseClient;
+
+    /** Platform device type code mapping (local DeviceType → platform code). */
+    private static final Map<DeviceType, String> PLATFORM_TYPE_CODES = Map.of(
+            DeviceType.TRACKER, "CATTLE_TRACKER",
+            DeviceType.CAPSULE, "RUMEN_CAPSULE",
+            DeviceType.EAR_TAG, "EAR_TAG"
+    );
 
     @Transactional
     public DeviceDto registerDevice(RegisterDeviceCommand command) {
@@ -33,7 +51,94 @@ public class DeviceApplicationService {
         device.setDeviceType(command.deviceType());
         device.setDevEui(command.devEui());
         Device saved = deviceRepository.save(device);
+
+        // 录入即注册：attempt platform registration immediately after local creation.
+        // Failure is non-fatal — device is saved locally, user can retry via registerWithPlatform().
+        if (command.devEui() != null && !command.devEui().isBlank()) {
+            try {
+                doPlatformRegistration(saved);
+                saved = deviceRepository.save(saved);
+            } catch (Exception e) {
+                // Local device created; platform registration deferred (platformDeviceId = null).
+            }
+        }
         return DeviceDto.from(saved);
+    }
+
+    /**
+     * Phase 3: Retry platform registration for a locally-created device.
+     * Used when "录入即注册" platform step was skipped or failed.
+     *
+     * @param localDeviceId the local device ID (must already exist)
+     */
+    @Transactional
+    public DeviceDto registerWithPlatform(Long localDeviceId) {
+        Device device = deviceRepository.findById(localDeviceId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "error.deviceNotFound", new Object[]{localDeviceId}));
+
+        if (device.getDevEui() == null || device.getDevEui().isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                    "DevEUI is required for platform registration");
+        }
+        if (device.getPlatformDeviceId() != null) {
+            return DeviceDto.from(device);
+        }
+
+        doPlatformRegistration(device);
+        Device saved = deviceRepository.save(device);
+        return DeviceDto.from(saved);
+    }
+
+    // --- Platform registration core logic (shared by registerDevice + registerWithPlatform) ---
+
+    /**
+     * Execute platform registration: license check → register → bind platformDeviceId.
+     * Mutates the Device in-place. Caller is responsible for calling save().
+     */
+    private void doPlatformRegistration(Device device) {
+        String platformTypeCode = PLATFORM_TYPE_CODES.getOrDefault(device.getDeviceType(), "CATTLE_TRACKER");
+
+        // Step 1: Check license on platform (optional — skip if service unavailable)
+        try {
+            InternalResponse<LicenseStatusResp> licenseResp =
+                    platformLicenseClient.getLicenseStatusBySn(device.getDevEui());
+            if (licenseResp != null && licenseResp.isOk()
+                    && licenseResp.getData() != null
+                    && Boolean.FALSE.equals(licenseResp.getData().getIsValid())) {
+                throw new ApiException(ErrorCode.AGENTIC_PLATFORM_LICENSE_INVALID,
+                        "Device license invalid for SN: " + device.getDevEui());
+            }
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            // License service may not be deployed yet — log and continue
+        }
+
+        // Step 2: Register on platform
+        DeviceRegistrationReq req = new DeviceRegistrationReq();
+        req.setDeviceIdentifier(device.getDevEui());
+        req.setDeviceTypeCode(platformTypeCode);
+        String tenantIdStr = device.getTenantId() != null ? device.getTenantId().toString() : "000000";
+        req.setUser(LoginUser.from("smart-livestock-server", tenantIdStr));
+
+        InternalResponse<DeviceRegistrationResp> regResp;
+        try {
+            regResp = platformDeviceClient.registerDevice(req);
+        } catch (Exception e) {
+            throw new ApiException(ErrorCode.AGENTIC_PLATFORM_REGISTRATION_FAILED,
+                    "Platform registration failed: " + e.getMessage());
+        }
+
+        if (regResp == null || !regResp.isOk() || regResp.getData() == null
+                || regResp.getData().getDeviceId() == null) {
+            throw new ApiException(ErrorCode.AGENTIC_PLATFORM_REGISTRATION_FAILED,
+                    "Platform registration returned no deviceId");
+        }
+
+        // Step 3: Bind platformDeviceId locally
+        Long platformDeviceId = Long.parseLong(regResp.getData().getDeviceId());
+        device.bindPlatformDeviceId(platformDeviceId);
     }
 
     @Transactional

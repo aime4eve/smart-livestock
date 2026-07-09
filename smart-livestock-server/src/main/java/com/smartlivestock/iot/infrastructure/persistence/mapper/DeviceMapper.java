@@ -20,6 +20,15 @@ public final class DeviceMapper {
         jpa.setFirmwareVersion(device.getFirmwareVersion());
        jpa.setDevEui(device.getDevEui());
        jpa.setLastOnlineAt(device.getLastOnlineAt());
+       jpa.setPlatformDeviceId(device.getPlatformDeviceId());
+       jpa.setRssi(device.getRssi());
+       jpa.setSnr(device.getSnr());
+       jpa.setLastGateway(device.getLastGateway());
+       jpa.setAntiDisassemblyStatus(device.getAntiDisassemblyStatus());
+       jpa.setSoftwareVersion(device.getSoftwareVersion());
+       jpa.setHardwareVersion(device.getHardwareVersion());
+       jpa.setWorkMode(device.getWorkMode());
+       jpa.setLastTelemetrySyncedAt(device.getLastTelemetrySyncedAt());
        return jpa;
     }
 
@@ -34,6 +43,15 @@ public final class DeviceMapper {
         device.setFirmwareVersion(jpa.getFirmwareVersion());
         device.setDevEui(jpa.getDevEui());
         device.reconstituteLastOnlineAt(jpa.getLastOnlineAt());
+        device.setPlatformDeviceId(jpa.getPlatformDeviceId());
+        device.setRssi(jpa.getRssi());
+        device.setSnr(jpa.getSnr());
+        device.setLastGateway(jpa.getLastGateway());
+        device.setAntiDisassemblyStatus(jpa.getAntiDisassemblyStatus());
+        device.setSoftwareVersion(jpa.getSoftwareVersion());
+        device.setHardwareVersion(jpa.getHardwareVersion());
+        device.setWorkMode(jpa.getWorkMode());
+        device.setLastTelemetrySyncedAt(jpa.getLastTelemetrySyncedAt());
         return device;
     }
 }

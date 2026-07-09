@@ -17,6 +17,7 @@ public class Alert extends AggregateRoot {
     private Long farmId;
     private Long livestockId;
     private Long fenceId;
+    private Long deviceId;
     private AlertType type;
     private AlertStatus status;
     private Severity severity;
@@ -40,6 +41,18 @@ public class Alert extends AggregateRoot {
         this.farmId = farmId;
         this.livestockId = livestockId;
         this.fenceId = fenceId;
+        this.type = type;
+        this.severity = severity;
+        this.message = message;
+        this.status = AlertStatus.ACTIVE;
+    }
+
+    public Alert(Long farmId, Long livestockId, Long fenceId, Long deviceId,
+                 AlertType type, Severity severity, String message) {
+        this.farmId = farmId;
+        this.livestockId = livestockId;
+        this.fenceId = fenceId;
+        this.deviceId = deviceId;
         this.type = type;
         this.severity = severity;
         this.message = message;
@@ -131,6 +144,9 @@ public class Alert extends AggregateRoot {
 
     public Long getFenceId() { return fenceId; }
     public void setFenceId(Long fenceId) { this.fenceId = fenceId; }
+
+    public Long getDeviceId() { return deviceId; }
+    public void setDeviceId(Long deviceId) { this.deviceId = deviceId; }
 
     public AlertType getType() { return type; }
     public void setType(AlertType type) { this.type = type; }

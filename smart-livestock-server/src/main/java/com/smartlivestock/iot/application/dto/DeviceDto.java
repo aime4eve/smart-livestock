@@ -2,6 +2,7 @@ package com.smartlivestock.iot.application.dto;
 
 import com.smartlivestock.iot.domain.model.Device;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 public record DeviceDto(
@@ -14,7 +15,16 @@ public record DeviceDto(
         Integer batteryLevel,
         String firmwareVersion,
         String devEui,
-        Instant lastOnlineAt
+        Instant lastOnlineAt,
+        Long platformDeviceId,
+        Integer rssi,
+        BigDecimal snr,
+        String lastGateway,
+        Integer antiDisassemblyStatus,
+        String softwareVersion,
+        String hardwareVersion,
+        String workMode,
+        Instant lastTelemetrySyncedAt
 ) {
     public static DeviceDto from(Device device) {
         return new DeviceDto(
@@ -27,7 +37,16 @@ public record DeviceDto(
                 device.getBatteryLevel(),
                 device.getFirmwareVersion(),
                 device.getDevEui(),
-                device.getLastOnlineAt()
+                device.getLastOnlineAt(),
+                device.getPlatformDeviceId(),
+                device.getRssi(),
+                device.getSnr(),
+                device.getLastGateway(),
+                device.getAntiDisassemblyStatus(),
+                device.getSoftwareVersion(),
+                device.getHardwareVersion(),
+                device.getWorkMode(),
+                device.getLastTelemetrySyncedAt()
         );
     }
 }

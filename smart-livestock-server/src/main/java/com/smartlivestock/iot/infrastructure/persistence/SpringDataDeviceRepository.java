@@ -30,4 +30,7 @@ public interface SpringDataDeviceRepository extends JpaRepository<DeviceJpaEntit
     @Query("SELECT COUNT(d) FROM DeviceJpaEntity d WHERE d.tenantId = :tenantId " +
            "AND (LOWER(d.deviceCode) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     long countByTenantIdAndKeyword(@Param("tenantId") Long tenantId, @Param("keyword") String keyword);
+
+    @Query("SELECT d.id FROM DeviceJpaEntity d WHERE d.status = 'ACTIVE' AND d.platformDeviceId IS NOT NULL ORDER BY d.id")
+    List<Long> findActivePlatformDeviceIds(Pageable pageable);
 }

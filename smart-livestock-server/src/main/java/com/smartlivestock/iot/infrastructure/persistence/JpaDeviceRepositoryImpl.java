@@ -73,4 +73,11 @@ public class JpaDeviceRepositoryImpl implements DeviceRepository {
     public long countByTenantIdAndKeyword(Long tenantId, String keyword) {
         return springDataRepo.countByTenantIdAndKeyword(tenantId, keyword);
     }
+
+    @Override
+    public List<Long> findActivePlatformDeviceIds(int offset, int limit) {
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(offset / limit, limit);
+        return springDataRepo.findActivePlatformDeviceIds(pageable);
+    }
 }

@@ -16,6 +16,7 @@ public final class AlertMapper {
         jpa.setFarmId(alert.getFarmId());
         jpa.setLivestockId(alert.getLivestockId());
         jpa.setFenceId(alert.getFenceId());
+        jpa.setDeviceId(alert.getDeviceId());
         jpa.setType(alert.getType().name());
         jpa.setStatus(alert.getStatus().name());
         jpa.setSeverity(alert.getSeverity().name());
@@ -35,6 +36,7 @@ public final class AlertMapper {
         jpa.setFarmId(alert.getFarmId());
         jpa.setLivestockId(alert.getLivestockId());
         jpa.setFenceId(alert.getFenceId());
+        jpa.setDeviceId(alert.getDeviceId());
         jpa.setType(alert.getType().name());
         jpa.setStatus(alert.getStatus().name());
         jpa.setSeverity(alert.getSeverity().name());
@@ -55,6 +57,7 @@ public final class AlertMapper {
         alert.setFarmId(jpa.getFarmId());
         alert.setLivestockId(jpa.getLivestockId());
         alert.setFenceId(jpa.getFenceId());
+        alert.setDeviceId(jpa.getDeviceId());
         alert.setType(AlertType.valueOf(jpa.getType()));
         alert.setStatus(AlertStatus.valueOf(jpa.getStatus()));
         alert.setSeverity(Severity.valueOf(jpa.getSeverity()));

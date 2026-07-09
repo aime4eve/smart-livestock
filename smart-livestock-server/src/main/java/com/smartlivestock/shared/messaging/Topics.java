@@ -26,6 +26,9 @@ public final class Topics {
     /** IoT context publishes when telemetry data is received from any device type. */
     public static final String TELEMETRY_RECEIVED = "telemetry-received";
 
+    /** Dispatcher → Worker: device telemetry sync task for agentic-middle-platform polling. */
+    public static final String DEVICE_TELEMETRY_SYNC = "device-telemetry-sync";
+
     // ── Ranch ──────────────────────────────────────────────────
 
     /** Ranch context publishes when a livestock is detected outside a fence boundary. */

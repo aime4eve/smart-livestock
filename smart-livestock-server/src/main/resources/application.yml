@@ -52,3 +52,25 @@ ai:
     threshold: ${AI_ALERT_THRESHOLD:0.7}
   dedup:
     ttl-minutes: ${AI_DEDUP_TTL_MINUTES:60}
+
+# Agentic-middle-platform (blade) integration — OAuth2 + Feign url mode
+agentic-platform:
+  device:
+    base-url: ${AGENTIC_PLATFORM_DEVICE_BASE_URL:http://172.22.4.17:8100}
+  license:
+    base-url: ${AGENTIC_PLATFORM_LICENSE_BASE_URL:http://172.22.4.17:8100}
+  oauth2:
+    enabled: ${AGENTIC_PLATFORM_OAUTH2_ENABLED:false}
+    token-uri: ${AGENTIC_PLATFORM_OAUTH2_TOKEN_URI:http://172.22.4.17:8108/oauth2/token}
+    client-id: ${AGENTIC_PLATFORM_OAUTH2_CLIENT_ID:hkt_openapi}
+    client-secret: ${AGENTIC_PLATFORM_OAUTH2_CLIENT_SECRET:RLuXd5H8RkZZRPA6TKbf72XmjKYNq}
+    service-user-id: ${AGENTIC_PLATFORM_OAUTH2_SERVICE_USER_ID:2074385063398711296}
+    tenant-id: ${AGENTIC_PLATFORM_TENANT_ID:000000}
+  feign-auth:
+    header-name: ${AGENTIC_PLATFORM_FEIGN_HEADER_NAME:token}
+    token-prefix: ${AGENTIC_PLATFORM_FEIGN_TOKEN_PREFIX:}
+  service-account:
+    tenant-id: ${AGENTIC_PLATFORM_SERVICE_TENANT_ID:000000}
+  sync:
+    enabled: ${AGENTIC_PLATFORM_SYNC_ENABLED:false}
+    dispatch-interval-ms: ${AGENTIC_PLATFORM_SYNC_INTERVAL_MS:300000}

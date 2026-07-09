@@ -1,6 +1,7 @@
 package com.smartlivestock.iot.interfaces;
 
 import com.smartlivestock.iot.application.DeviceApplicationService;
+import com.smartlivestock.iot.application.DeviceHealthScoreService;
 import com.smartlivestock.iot.application.command.RegisterDeviceCommand;
 import com.smartlivestock.iot.application.command.UpdateDeviceCommand;
 import com.smartlivestock.iot.application.dto.DeviceDto;
@@ -22,6 +23,7 @@ import java.util.Map;
 public class DeviceController {
 
     private final DeviceApplicationService deviceApplicationService;
+    private final DeviceHealthScoreService deviceHealthScoreService;
 
     /**
      * GET /api/v1/farms/{farmId}/devices
@@ -115,7 +117,31 @@ public class DeviceController {
     }
 
     /**
-     * PUT /api/v1/farms/{farmId}/devices/{deviceId}/decommission
+     * GET /api/v1/farms/{farmId}/devices/{deviceId}/health
+     * Get device health score + dimensional breakdown.
+     */
+    @GetMapping("/{deviceId}/health")
+    public ResponseEntity<ApiResponse<DeviceHealthScoreService.DeviceHealthScore>> getDeviceHealth(
+            @PathVariable Long farmId,
+            @PathVariable Long deviceId) {
+        return ResponseEntity.ok(ApiResponse.ok(deviceHealthScoreService.calculate(deviceId)));
+    }
+
+    /**
+     * POST /api/v1/farms/{farmId}/devices/{deviceId}/register-platform
+     * Phase 3: Register device with agentic-middle-platform.
+     */
+    @PostMapping("/{deviceId}/register-platform")
+    @PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
+    public ResponseEntity<ApiResponse<DeviceDto>> registerWithPlatform(
+            @PathVariable Long farmId,
+            @PathVariable Long deviceId) {
+        DeviceDto device = deviceApplicationService.registerWithPlatform(deviceId);
+        return ResponseEntity.ok(ApiResponse.ok(device));
+    }
+
+    /**
+    * PUT /api/v1/farms/{farmId}/devices/{deviceId}/decommission
      * Decommission device.
      */
     @PutMapping("/{deviceId}/decommission")

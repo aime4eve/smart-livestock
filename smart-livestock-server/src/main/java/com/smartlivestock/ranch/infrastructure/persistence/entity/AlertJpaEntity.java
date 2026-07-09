@@ -28,6 +28,9 @@ public class AlertJpaEntity {
     @Column(name = "fence_id")
     private Long fenceId;
 
+    @Column(name = "device_id")
+    private Long deviceId;
+
     @Column(name = "type", nullable = false, length = 30)
     private String type;
 
@@ -93,6 +96,9 @@ public class AlertJpaEntity {
 
     public Long getFenceId() { return fenceId; }
     public void setFenceId(Long fenceId) { this.fenceId = fenceId; }
+
+    public Long getDeviceId() { return deviceId; }
+    public void setDeviceId(Long deviceId) { this.deviceId = deviceId; }
 
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }

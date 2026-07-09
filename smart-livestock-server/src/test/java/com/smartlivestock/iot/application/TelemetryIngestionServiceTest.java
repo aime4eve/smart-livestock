@@ -8,7 +8,9 @@ import com.smartlivestock.iot.domain.model.Installation;
 import com.smartlivestock.iot.domain.port.RanchQueryPort;
 import com.smartlivestock.iot.domain.port.dto.LivestockInfo;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
+import com.smartlivestock.iot.domain.repository.DeviceTelemetryLogRepository;
 import com.smartlivestock.iot.domain.repository.InstallationRepository;
+import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,9 +33,11 @@ import static org.mockito.Mockito.*;
 class TelemetryIngestionServiceTest {
 
     @Mock private DeviceRepository deviceRepository;
+    @Mock private DeviceTelemetryLogRepository deviceTelemetryLogRepository;
     @Mock private InstallationRepository installationRepository;
     @Mock private RanchQueryPort ranchQueryPort;
     @Mock private GpsLogApplicationService gpsLogApplicationService;
+    @Mock private AlertRepository alertRepository;
     @Mock private ApplicationEventPublisher eventPublisher;
 
     private TelemetryIngestionService service;
@@ -41,8 +45,8 @@ class TelemetryIngestionServiceTest {
     @BeforeEach
     void setUp() {
         service = new TelemetryIngestionService(
-                deviceRepository, installationRepository,
-                ranchQueryPort, gpsLogApplicationService, eventPublisher);
+                deviceRepository, deviceTelemetryLogRepository, installationRepository,
+                ranchQueryPort, gpsLogApplicationService, alertRepository, eventPublisher);
     }
 
     private Device createCapsuleDevice(Long id) {
@@ -171,14 +175,19 @@ class TelemetryIngestionServiceTest {
     }
 
     @Test
-    void ingest_noActiveInstallation_throwsException() {
+    void ingest_noActiveInstallation_succeedsWithoutLivestockId() {
         Device device = createCapsuleDevice(51L);
         when(deviceRepository.findById(51L)).thenReturn(Optional.of(device));
         when(installationRepository.findActiveByDeviceId(51L)).thenReturn(Optional.empty());
 
-        ApiException ex = assertThrows(ApiException.class,
-                () -> service.ingest(51L, Map.of("temperature", 38.5), Instant.now()));
-        assertEquals(ErrorCode.RESOURCE_NOT_FOUND, ex.getCode());
+        // Phase 3: telemetry ingestion without installation should succeed
+        // (device ops data is valuable even before installation)
+        assertDoesNotThrow(() -> service.ingest(51L, Map.of("temperature", 38.5), Instant.now()));
+
+        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        TelemetryReceivedEvent event = (TelemetryReceivedEvent) eventCaptor.getValue();
+        assertNull(event.getLivestockId());
     }
 
     @Test

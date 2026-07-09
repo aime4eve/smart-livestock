@@ -225,7 +225,10 @@ public class SynthesisService {
         readings.put("longitude", state.currentLng);
 
         state.batteryLevel = Math.max(0, state.batteryLevel - rng.nextInt(0, 2));
-        readings.put("batteryLevel", state.batteryLevel);
+        readings.put("battery", state.batteryLevel);
+        readings.put("rssi", rng.nextInt(-70, -41));
+        readings.put("snr", String.valueOf(round(rng.nextDouble(8, 14), 1)));
+        readings.put("gatewayId", "datagen-gw-01");
         readings.put("activityIndex", round(hourFactor * rng.nextDouble(30, 80), 1));
         return readings;
     }
@@ -253,6 +256,10 @@ public class SynthesisService {
 
         state.batteryVoltage = Math.max(2800, state.batteryVoltage - rng.nextInt(0, 5));
         readings.put("batteryVoltage", state.batteryVoltage);
+        readings.put("battery", rng.nextInt(85, 100));
+        readings.put("rssi", rng.nextInt(-70, -41));
+        readings.put("snr", String.valueOf(round(rng.nextDouble(8, 14), 1)));
+        readings.put("gatewayId", "datagen-gw-01");
 
         readings.put("activityIndex", round(hourFactor * rng.nextDouble(30, 80), 1));
         return readings;

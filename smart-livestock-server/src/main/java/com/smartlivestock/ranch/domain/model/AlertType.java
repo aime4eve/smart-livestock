@@ -8,5 +8,7 @@ public enum AlertType {
     DIGESTIVE_ABNORMAL,
     ESTRUS,
     EPIDEMIC,
-    AI_ANOMALY
+    AI_ANOMALY,
+    DEVICE_TAMPER,
+    DEVICE_LOW_BATTERY
 }

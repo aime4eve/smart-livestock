@@ -5,6 +5,7 @@ import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import com.smartlivestock.shared.domain.AggregateRoot;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
@@ -29,6 +30,17 @@ public class Device extends AggregateRoot {
     private String firmwareVersion;
     private String devEui;
     private Instant lastOnlineAt;
+
+    // --- Phase 3: agentic-middle-platform integration ---
+    private Long platformDeviceId;
+    private Integer rssi;
+    private BigDecimal snr;
+    private String lastGateway;
+    private Integer antiDisassemblyStatus;
+    private String softwareVersion;
+    private String hardwareVersion;
+    private String workMode;
+    private Instant lastTelemetrySyncedAt;
 
     public Device() {
         this.status = DeviceStatus.INVENTORY;
@@ -135,5 +147,66 @@ public class Device extends AggregateRoot {
     /**
      * Reconstitute lastOnlineAt from persistence.
      */
-    public void reconstituteLastOnlineAt(Instant lastOnlineAt) { this.lastOnlineAt = lastOnlineAt; }
+   public void reconstituteLastOnlineAt(Instant lastOnlineAt) { this.lastOnlineAt = lastOnlineAt; }
+    public void setLastOnlineAt(Instant lastOnlineAt) { this.lastOnlineAt = lastOnlineAt; }
+
+    /**
+     * Sync device operational status from agentic-middle-platform telemetry.
+     * Called by TelemetryIngestionService after polling report-record/page.
+     */
+    public void syncAgenticPlatformStatus(Integer rssi, BigDecimal snr, String gateway,
+                                Integer battery, Integer antiDisassembly,
+                                String software, String hardware, String workMode,
+                                Instant reportTime, Instant syncedAt) {
+        this.rssi = rssi;
+        this.snr = snr;
+        this.lastGateway = gateway;
+        this.batteryLevel = battery;
+        this.antiDisassemblyStatus = antiDisassembly;
+        this.softwareVersion = software;
+        this.hardwareVersion = hardware;
+        this.workMode = workMode;
+        this.lastOnlineAt = reportTime;
+        this.lastTelemetrySyncedAt = syncedAt;
+    }
+
+    /**
+     * Bind agentic-middle-platform deviceId after platform registration.
+     */
+    public void bindPlatformDeviceId(Long platformDeviceId) {
+        if (this.platformDeviceId != null && !this.platformDeviceId.equals(platformDeviceId)) {
+            throw new ApiException(ErrorCode.STATE_CONFLICT,
+                "Device already bound to different platform deviceId");
+        }
+        this.platformDeviceId = platformDeviceId;
+    }
+
+    // --- Phase 3 Getters and Setters ---
+
+    public Long getPlatformDeviceId() { return platformDeviceId; }
+    public void setPlatformDeviceId(Long platformDeviceId) { this.platformDeviceId = platformDeviceId; }
+
+    public Integer getRssi() { return rssi; }
+    public void setRssi(Integer rssi) { this.rssi = rssi; }
+
+    public BigDecimal getSnr() { return snr; }
+    public void setSnr(BigDecimal snr) { this.snr = snr; }
+
+    public String getLastGateway() { return lastGateway; }
+    public void setLastGateway(String lastGateway) { this.lastGateway = lastGateway; }
+
+    public Integer getAntiDisassemblyStatus() { return antiDisassemblyStatus; }
+    public void setAntiDisassemblyStatus(Integer antiDisassemblyStatus) { this.antiDisassemblyStatus = antiDisassemblyStatus; }
+
+    public String getSoftwareVersion() { return softwareVersion; }
+    public void setSoftwareVersion(String softwareVersion) { this.softwareVersion = softwareVersion; }
+
+    public String getHardwareVersion() { return hardwareVersion; }
+    public void setHardwareVersion(String hardwareVersion) { this.hardwareVersion = hardwareVersion; }
+
+    public String getWorkMode() { return workMode; }
+    public void setWorkMode(String workMode) { this.workMode = workMode; }
+
+    public Instant getLastTelemetrySyncedAt() { return lastTelemetrySyncedAt; }
+    public void setLastTelemetrySyncedAt(Instant lastTelemetrySyncedAt) { this.lastTelemetrySyncedAt = lastTelemetrySyncedAt; }
 }

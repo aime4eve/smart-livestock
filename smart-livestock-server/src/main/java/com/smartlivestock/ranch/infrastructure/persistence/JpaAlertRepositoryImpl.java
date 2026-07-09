@@ -55,4 +55,11 @@ public class JpaAlertRepositoryImpl implements AlertRepository {
                 .map(AlertMapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public List<Alert> findByDeviceIdAndTypeAndStatus(Long deviceId, AlertType type, AlertStatus status) {
+        return springDataRepo.findByDeviceIdAndTypeAndStatus(deviceId, type.name(), status.name()).stream()
+                .map(AlertMapper::toDomain)
+                .toList();
+    }
 }

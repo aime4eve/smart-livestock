@@ -9,6 +9,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
@@ -42,6 +43,34 @@ public class DeviceJpaEntity {
 
     @Column(name = "last_online_at")
     private Instant lastOnlineAt;
+
+    // --- Phase 3: agentic-middle-platform integration ---
+    @Column(name = "platform_device_id")
+    private Long platformDeviceId;
+
+    @Column(name = "rssi")
+    private Integer rssi;
+
+    @Column(name = "snr")
+    private BigDecimal snr;
+
+    @Column(name = "last_gateway", length = 128)
+    private String lastGateway;
+
+    @Column(name = "anti_disassembly_status")
+    private Integer antiDisassemblyStatus;
+
+    @Column(name = "software_version", length = 50)
+    private String softwareVersion;
+
+    @Column(name = "hardware_version", length = 50)
+    private String hardwareVersion;
+
+    @Column(name = "work_mode", length = 20)
+    private String workMode;
+
+    @Column(name = "last_telemetry_synced_at")
+    private Instant lastTelemetrySyncedAt;
 
     @Column(name = "deleted_at")
     private Instant deletedAt;
@@ -92,6 +121,33 @@ public class DeviceJpaEntity {
 
     public Instant getLastOnlineAt() { return lastOnlineAt; }
     public void setLastOnlineAt(Instant lastOnlineAt) { this.lastOnlineAt = lastOnlineAt; }
+
+    public Long getPlatformDeviceId() { return platformDeviceId; }
+    public void setPlatformDeviceId(Long platformDeviceId) { this.platformDeviceId = platformDeviceId; }
+
+    public Integer getRssi() { return rssi; }
+    public void setRssi(Integer rssi) { this.rssi = rssi; }
+
+    public BigDecimal getSnr() { return snr; }
+    public void setSnr(BigDecimal snr) { this.snr = snr; }
+
+    public String getLastGateway() { return lastGateway; }
+    public void setLastGateway(String lastGateway) { this.lastGateway = lastGateway; }
+
+    public Integer getAntiDisassemblyStatus() { return antiDisassemblyStatus; }
+    public void setAntiDisassemblyStatus(Integer antiDisassemblyStatus) { this.antiDisassemblyStatus = antiDisassemblyStatus; }
+
+    public String getSoftwareVersion() { return softwareVersion; }
+    public void setSoftwareVersion(String softwareVersion) { this.softwareVersion = softwareVersion; }
+
+    public String getHardwareVersion() { return hardwareVersion; }
+    public void setHardwareVersion(String hardwareVersion) { this.hardwareVersion = hardwareVersion; }
+
+    public String getWorkMode() { return workMode; }
+    public void setWorkMode(String workMode) { this.workMode = workMode; }
+
+    public Instant getLastTelemetrySyncedAt() { return lastTelemetrySyncedAt; }
+    public void setLastTelemetrySyncedAt(Instant lastTelemetrySyncedAt) { this.lastTelemetrySyncedAt = lastTelemetrySyncedAt; }
 
     public Instant getDeletedAt() { return deletedAt; }
     public void setDeletedAt(Instant deletedAt) { this.deletedAt = deletedAt; }

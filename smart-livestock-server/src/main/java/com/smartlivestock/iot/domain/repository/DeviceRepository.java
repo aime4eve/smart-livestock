@@ -16,4 +16,7 @@ public interface DeviceRepository {
     List<Device> findByTenantIdAndKeyword(Long tenantId, String keyword, int offset, int limit);
     long countByTenantIdPaged(Long tenantId);
     long countByTenantIdAndKeyword(Long tenantId, String keyword);
+
+    /** Find IDs of ACTIVE devices with platform_device_id set, paginated by offset/limit. */
+    List<Long> findActivePlatformDeviceIds(int offset, int limit);
 }
