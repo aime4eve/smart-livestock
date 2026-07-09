@@ -7,6 +7,7 @@ import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/dashboard/presentation/dashboard_controller.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/livestock_controller.dart';
+import 'package:hkt_livestock_agentic/features/livestock/domain/livestock_repository.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/widgets/device_form_sheet.dart';
 import 'package:hkt_livestock_agentic/features/devices/domain/devices_repository.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/devices_controller.dart';
@@ -232,21 +233,12 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
   Future<void> _showInstallDialog(
       BuildContext context, WidgetRef ref, DeviceItem device) async {
     final l10n = AppLocalizations.of(context)!;
-    final livestockRepo = ref.read(livestockRepositoryProvider);
-    List<_LivestockOption> options = [];
-    try {
-      final livestockData = await livestockRepo.loadAll(pageSize: 200);
-      options = livestockData.items
-          .map((l) =>
-              _LivestockOption(id: l.id, label: l.earTag, subtitle: l.breed.name))
-          .toList();
-    } catch (_) {}
 
     showDialog<void>(
       context: context,
       builder: (ctx) => _InstallDialog(
         device: device,
-        options: options,
+        livestockRepo: ref.read(livestockRepositoryProvider),
         onConfirm: (livestockId) async {
           Navigator.of(ctx).pop();
           final farmId = ApiClient.instance.activeFarmId ?? '';
@@ -299,12 +291,12 @@ class _LivestockOption {
 class _InstallDialog extends StatefulWidget {
   const _InstallDialog({
     required this.device,
-    required this.options,
+    required this.livestockRepo,
     required this.onConfirm,
   });
 
   final DeviceItem device;
-  final List<_LivestockOption> options;
+  final LivestockRepository livestockRepo;
   final Future<void> Function(String livestockId) onConfirm;
 
   @override
@@ -312,23 +304,84 @@ class _InstallDialog extends StatefulWidget {
 }
 
 class _InstallDialogState extends State<_InstallDialog> {
-  String _query = '';
-  bool _loading = false;
+  final _searchCtrl = TextEditingController();
+  final _scrollCtrl = ScrollController();
+  Timer? _debounce;
 
-  List<_LivestockOption> get _filtered {
-    if (_query.isEmpty) return widget.options;
-    final q = _query.toLowerCase();
-    return widget.options
-        .where((o) =>
-            o.label.toLowerCase().contains(q) ||
-            o.subtitle.toLowerCase().contains(q))
-        .toList();
+  List<_LivestockOption> _items = [];
+  bool _loading = false;
+  bool _loadingMore = false;
+  bool _hasMore = true;
+  int _page = 1;
+  static const _pageSize = 20;
+  String _keyword = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollCtrl.addListener(_onScroll);
+    _loadFirst();
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    _scrollCtrl.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollCtrl.position.pixels >= _scrollCtrl.position.maxScrollExtent - 200) {
+      _loadMore();
+    }
+  }
+
+  Future<void> _loadFirst() async {
+    setState(() => _loading = true);
+    _page = 1;
+    _hasMore = true;
+    try {
+      final data = await widget.livestockRepo.loadAll(
+        page: 1, pageSize: _pageSize,
+        keyword: _keyword.isNotEmpty ? _keyword : null,
+      );
+      _items = data.items
+          .map((l) => _LivestockOption(id: l.id, label: l.earTag, subtitle: l.breed.name))
+          .toList();
+      _hasMore = data.page * data.pageSize < data.total;
+    } catch (_) {
+      _items = [];
+    }
+    if (mounted) setState(() => _loading = false);
+  }
+
+  Future<void> _loadMore() async {
+    if (_loadingMore || !_hasMore || _loading) return;
+    setState(() => _loadingMore = true);
+    try {
+      final nextPage = _page + 1;
+      final data = await widget.livestockRepo.loadAll(
+        page: nextPage, pageSize: _pageSize,
+        keyword: _keyword.isNotEmpty ? _keyword : null,
+      );
+      _items.addAll(data.items
+          .map((l) => _LivestockOption(id: l.id, label: l.earTag, subtitle: l.breed.name)));
+      _page = nextPage;
+      _hasMore = data.page * data.pageSize < data.total;
+    } catch (_) {}
+    if (mounted) setState(() => _loadingMore = false);
+  }
+
+  void _onSearchChanged(String value) {
+    _keyword = value.trim();
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), _loadFirst);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final items = _filtered;
     return AlertDialog(
       key: const Key('install-device-dialog'),
       title: Text(l10n.devicesInstallTo(widget.device.name)),
@@ -339,36 +392,40 @@ class _InstallDialogState extends State<_InstallDialog> {
           children: [
             TextField(
               key: const Key('install-livestock-search'),
+              controller: _searchCtrl,
               decoration: InputDecoration(
                 hintText: l10n.devicesSearchHint,
                 prefixIcon: const Icon(Icons.search),
                 isDense: true,
               ),
-              onChanged: (v) => setState(() => _query = v),
+              onChanged: _onSearchChanged,
             ),
             const SizedBox(height: AppSpacing.sm),
-            if (_loading)
-              const Expanded(
-                  child: Center(child: CircularProgressIndicator()))
-            else if (items.isEmpty)
-              Expanded(
-                child: Center(child: Text(l10n.devicesNoMatchingLivestock)),
-              )
-            else
-              Expanded(
-                child: ListView.builder(
-                  itemCount: items.length,
-                  itemBuilder: (ctx, i) {
-                    final item = items[i];
-                    return ListTile(
-                      key: Key('install-livestock-${item.id}'),
-                      title: Text(item.label),
-                      subtitle: Text(item.subtitle),
-                      onTap: () => _select(item),
-                    );
-                  },
-                ),
-              ),
+            Expanded(
+              child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _items.isEmpty
+                  ? Center(child: Text(l10n.devicesNoMatchingLivestock))
+                  : ListView.builder(
+                      controller: _scrollCtrl,
+                      itemCount: _items.length + (_hasMore ? 1 : 0),
+                      itemBuilder: (ctx, i) {
+                        if (i >= _items.length) {
+                          return const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                          );
+                        }
+                        final item = _items[i];
+                        return ListTile(
+                          key: Key('install-livestock-${item.id}'),
+                          title: Text(item.label),
+                          subtitle: Text(item.subtitle),
+                          onTap: () => _select(item),
+                        );
+                      },
+                    ),
+            ),
           ],
         ),
       ),
