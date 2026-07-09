@@ -86,7 +86,7 @@ public class HealthApplicationService {
             Object motilityObj = readings.get("gastricMotility");
             if (motilityObj != null) {
                 motilityFrequency = toBigDecimal(motilityObj).divide(new BigDecimal("100000"), 2, java.math.RoundingMode.HALF_UP);
-                ingestMotility(deviceId, livestockId, motilityFrequency, null, recordedAt);
+                ingestMotility(deviceId, livestockId, motilityFrequency, BigDecimal.ZERO, recordedAt);
             }
 
             ingestActivity(deviceId, livestockId,
