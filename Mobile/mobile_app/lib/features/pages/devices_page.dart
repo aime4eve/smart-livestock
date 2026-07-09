@@ -13,6 +13,7 @@ import 'package:hkt_livestock_agentic/features/devices/domain/devices_repository
 import 'package:hkt_livestock_agentic/features/devices/presentation/devices_controller.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_device_tile.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class DevicesPage extends ConsumerStatefulWidget {
@@ -184,14 +185,9 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
                                        content: Text(l10n
                                            .devicesUnbindDemo(device.name))));
                                },
-                               onViewLocation: () {
-                                 ScaffoldMessenger.of(context)
-                                   ..hideCurrentSnackBar()
-                                   ..showSnackBar(SnackBar(
-                                       content: Text(l10n
-                                           .devicesViewLocationDemo(
-                                               device.name))));
-                               },
+                               onViewLocation: _deviceIdToLivestockCode[device.id] != null
+                                   ? () => context.go('/livestock/${_deviceIdToLivestockCode[device.id]}')
+                                   : () => context.go('/ranch'),
                              ),
                          ],
                        ),
