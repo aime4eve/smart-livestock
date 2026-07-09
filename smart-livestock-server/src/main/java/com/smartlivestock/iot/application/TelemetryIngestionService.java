@@ -162,6 +162,9 @@ public class TelemetryIngestionService {
     }
 
     private void updateDeviceRuntimeStatus(Device device, Map<String, Object> readings) {
+        // Set runtime connectivity status (root cause fix: was missing, causing frontend to always show offline)
+        device.setRuntimeStatus(computeRuntimeStatus(device, readings));
+
         Object battery = readings.get("battery");
         if (battery != null) device.setBatteryLevel(toInteger(battery));
 
@@ -178,6 +181,14 @@ public class TelemetryIngestionService {
         if (antiDis != null) device.setAntiDisassemblyStatus(toInteger(antiDis));
 
         device.setLastOnlineAt(Instant.now());
+    }
+
+    private String computeRuntimeStatus(Device device, Map<String, Object> readings) {
+        Object antiDis = readings.get("antiDisassemblyStatus");
+        if (antiDis != null && toInteger(antiDis) != 0) return "offline";
+        Object battery = readings.get("battery");
+        if (battery != null && toInteger(battery) < 10) return "low_battery";
+        return "online";
     }
 
     private void logDeviceTelemetry(Device device, Map<String, Object> readings, Instant recordedAt) {
