@@ -133,6 +133,33 @@
       .hero-title { font-size: 1.75rem; }
       .hero-stats { grid-template-columns: 1fr; }
     }
+    /* === Pain Points === */
+    .pain-points { background: var(--color-surface); }
+    .pain-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-lg); max-width: var(--max-width);
+      margin: 0 auto; padding: 0 var(--space-lg);
+    }
+    .pain-card {
+      background: var(--color-white); border-radius: var(--border-radius);
+      padding: var(--space-xl); text-align: center;
+      box-shadow: var(--shadow-sm); transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .pain-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .pain-icon {
+      width: 56px; height: 56px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto var(--space-md); font-size: 1.5rem;
+    }
+    .pain-icon-1 { background: #FDF2EE; color: var(--color-warning); }
+    .pain-icon-2 { background: #FDECEC; color: var(--color-danger); }
+    .pain-icon-3 { background: #ECF0FD; color: var(--color-info); }
+    .pain-icon-4 { background: #FEF3E4; color: var(--color-warning); }
+    .pain-card h3 { font-size: 1.1rem; margin-bottom: var(--space-sm); color: var(--color-text-primary); }
+    .pain-card p { font-size: 0.95rem; color: var(--color-text-secondary); line-height: 1.7; }
+
+    @media (max-width: 1024px) { .pain-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px)  { .pain-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -167,6 +194,32 @@
   <!-- /SECTION: hero -->
 
   <!-- SECTION: pain-points -->
+  <section class="section pain-points">
+    <h2 class="section-title">传统牧场面临的挑战</h2>
+    <p class="section-subtitle">规模化养殖中，这些痛点每天都在消耗利润</p>
+    <div class="pain-grid">
+      <div class="pain-card">
+        <div class="pain-icon pain-icon-1">&#9200;</div>
+        <h3>人工巡栏效率低</h3>
+        <p>500 头牧场每天巡栏超过 3 小时，人力成本居高不下，且难以做到 24 小时不间断监控。</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon pain-icon-2">&#9764;</div>
+        <h3>疾病发现不及时</h3>
+        <p>依赖牧工经验判断，早期症状极易被忽视。往往发现时已错过最佳治疗窗口，损失惨重。</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon pain-icon-3">&#128270;</div>
+        <h3>牲畜走失盗窃</h3>
+        <p>散养模式下牲畜位置不可见，发生走失或盗窃后追溯困难，每年造成可观经济损失。</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon pain-icon-4">&#128246;</div>
+        <h3>网络覆盖差</h3>
+        <p>偏远牧场蜂窝信号不稳定，传统数字化工具频繁断连，实际使用体验大打折扣。</p>
+      </div>
+    </div>
+  </section>
   <!-- /SECTION: pain-points -->
 
   <!-- SECTION: solution-overview -->
