@@ -396,6 +396,26 @@
       .pricing-card.featured { transform: none; }
       .cta-title { font-size: 1.5rem; }
     }
+
+    /* === Scroll Reveal === */
+    .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+
+    /* === Smooth section transitions === */
+    section { transition: padding 0.3s ease; }
+
+    /* === Mobile nav tweaks === */
+    @media (max-width: 480px) {
+      .hero { padding: 4rem var(--space-md) 3rem; }
+      .hero-cta { flex-direction: column; align-items: center; }
+      .hero-cta .btn { width: 100%; max-width: 280px; text-align: center; }
+      .cta-buttons { flex-direction: column; align-items: center; }
+      .cta-buttons a { width: 100%; max-width: 280px; text-align: center; }
+      .section { padding: var(--space-section) 0; }
+    }
   </style>
 </head>
 <body>
@@ -434,22 +454,22 @@
     <h2 class="section-title">传统牧场面临的挑战</h2>
     <p class="section-subtitle">规模化养殖中，这些痛点每天都在消耗利润</p>
     <div class="pain-grid">
-      <div class="pain-card">
+      <div class="pain-card reveal">
         <div class="pain-icon pain-icon-1">&#9200;</div>
         <h3>人工巡栏效率低</h3>
         <p>500 头牧场每天巡栏超过 3 小时，人力成本居高不下，且难以做到 24 小时不间断监控。</p>
       </div>
-      <div class="pain-card">
+      <div class="pain-card reveal">
         <div class="pain-icon pain-icon-2">&#9764;</div>
         <h3>疾病发现不及时</h3>
         <p>依赖牧工经验判断，早期症状极易被忽视。往往发现时已错过最佳治疗窗口，损失惨重。</p>
       </div>
-      <div class="pain-card">
+      <div class="pain-card reveal">
         <div class="pain-icon pain-icon-3">&#128270;</div>
         <h3>牲畜走失盗窃</h3>
         <p>散养模式下牲畜位置不可见，发生走失或盗窃后追溯困难，每年造成可观经济损失。</p>
       </div>
-      <div class="pain-card">
+      <div class="pain-card reveal">
         <div class="pain-icon pain-icon-4">&#128246;</div>
         <h3>网络覆盖差</h3>
         <p>偏远牧场蜂窝信号不稳定，传统数字化工具频繁断连，实际使用体验大打折扣。</p>
@@ -463,7 +483,7 @@
     <h2 class="section-title">SmartLivestock 三位一体解决方案</h2>
     <p class="section-subtitle">从感知到分析到管理，全链路闭环</p>
     <div class="solution-flow">
-      <div class="solution-step">
+      <div class="solution-step reveal">
         <div class="solution-step-icon">&#128225;</div>
         <h3>IoT 感知层</h3>
         <ul>
@@ -473,7 +493,7 @@
           <li>LoRaWAN 网关</li>
         </ul>
       </div>
-      <div class="solution-step">
+      <div class="solution-step reveal">
         <div class="solution-step-icon">&#129504;</div>
         <h3>AI 分析引擎</h3>
         <ul>
@@ -484,7 +504,7 @@
           <li>无监督异常检测</li>
         </ul>
       </div>
-      <div class="solution-step">
+      <div class="solution-step reveal">
         <div class="solution-step-icon">&#9729;</div>
         <h3>云平台管理</h3>
         <ul>
@@ -503,32 +523,32 @@
     <h2 class="section-title">六大核心能力</h2>
     <p class="section-subtitle">覆盖牲畜管理全场景，从定位到健康一站式解决</p>
     <div class="cap-grid">
-      <div class="cap-card">
+      <div class="cap-card reveal reveal-delay-1">
         <div class="cap-card-icon">&#128506;</div>
         <h3>实时定位追踪</h3>
         <p>GPS + LoRaWAN 双模定位，全球覆盖。支持历史轨迹回放与热力图分析，牲畜位置一目了然。</p>
       </div>
-      <div class="cap-card">
+      <div class="cap-card reveal reveal-delay-2">
         <div class="cap-card-icon">&#128737;</div>
         <h3>电子围栏告警</h3>
         <p>手绘多边形或模板快速创建虚拟围栏，越界实时推送告警。支持分时段策略与围栏区域细分管理。</p>
       </div>
-      <div class="cap-card">
+      <div class="cap-card reveal reveal-delay-3">
         <div class="cap-card-icon">&#10084;</div>
         <h3>AI 健康监测</h3>
         <p>发热、消化、发情、疫病四大分析引擎，覆盖牲畜全生命周期。瘤胃温度基线偏离 72h 趋势预警。</p>
       </div>
-      <div class="cap-card">
+      <div class="cap-card reveal reveal-delay-1">
         <div class="cap-card-icon">&#128202;</div>
         <h3>无监督异常检测</h3>
         <p>STL 节律剥离 + CUSUM 突变检测，体温、蠕动、活动三维联合分析。规则引擎与 AI 双轨并行，误报率大幅降低。</p>
       </div>
-      <div class="cap-card">
+      <div class="cap-card reveal reveal-delay-2">
         <div class="cap-card-icon">&#128295;</div>
         <h3>设备全生命周期管理</h3>
         <p>追踪器、瘤胃胶囊、耳标统一管理。电量、信号、在线状态实时监控，异常主动告警。支持批量入网与安装记录追溯。</p>
       </div>
-      <div class="cap-card">
+      <div class="cap-card reveal reveal-delay-3">
         <div class="cap-card-icon">&#128190;</div>
         <h3>离线全功能作业</h3>
         <p>无网络环境下完整运行：离线地图瓦片、离线围栏数据、离线牲畜缓存。网络恢复后自动同步，牧场深处也不中断。</p>
@@ -542,7 +562,7 @@
     <h2 class="section-title">技术架构一览</h2>
     <p class="section-subtitle">企业级技术底座，支撑规模化运营</p>
     <div class="arch-layout">
-      <div class="arch-diagram">
+      <div class="arch-diagram reveal">
         <h3>DDD 限界上下文（9 个）</h3>
         <div class="arch-contexts">
           <div class="arch-ctx">Identity<br>身份与租户</div>
@@ -575,7 +595,7 @@
           <span class="arch-tag">AI Platform</span>
         </div>
       </div>
-      <div class="arch-stats">
+      <div class="arch-stats reveal">
         <h3>关键数字</h3>
         <div class="arch-stat-item">
           <span class="arch-stat-label">REST Controller</span>
@@ -638,7 +658,7 @@
   <section class="section advantages">
     <h2 class="section-title">为什么选择 SmartLivestock</h2>
     <p class="section-subtitle">与国际主流竞品全面对比，核心维度均具差异化优势</p>
-    <div class="adv-table-wrapper">
+    <div class="adv-table-wrapper reveal">
       <table class="adv-table">
         <thead>
           <tr>
@@ -743,8 +763,7 @@
     <h2 class="section-title">灵活的订阅方案</h2>
     <p class="section-subtitle">从免费版起步，按需升级，无隐性费用</p>
     <div class="pricing-grid">
-      <div class="pricing-card">
-        <div class="pricing-name">BASIC</div>
+      <div class="pricing-card reveal reveal-delay-1">
         <div class="pricing-price">¥0<small>/月</small></div>
         <div class="pricing-heads">含 50 头牲畜</div>
         <ul class="pricing-features">
@@ -759,7 +778,7 @@
         </ul>
         <a href="#cta" class="btn" style="background:var(--color-surface);color:var(--color-text-primary);">免费开始</a>
       </div>
-      <div class="pricing-card">
+      <div class="pricing-card reveal reveal-delay-2">
         <div class="pricing-name">STANDARD</div>
         <div class="pricing-price">¥299<small>/月</small></div>
         <div class="pricing-heads">含 200 头牲畜</div>
@@ -775,7 +794,7 @@
         </ul>
         <a href="#cta" class="btn btn-primary">选择标准版</a>
       </div>
-      <div class="pricing-card featured">
+      <div class="pricing-card featured reveal reveal-delay-3">
         <span class="pricing-badge">推荐</span>
         <div class="pricing-name">PREMIUM</div>
         <div class="pricing-price">¥699<small>/月</small></div>
@@ -792,7 +811,7 @@
         </ul>
         <a href="#cta" class="btn btn-primary">选择专业版</a>
       </div>
-      <div class="pricing-card">
+      <div class="pricing-card reveal reveal-delay-1">
         <div class="pricing-name">ENTERPRISE</div>
         <div class="pricing-price" style="font-size:1.75rem;">定制</div>
         <div class="pricing-heads">不限牲畜数</div>
@@ -832,13 +851,24 @@
   </footer>
 
   <script>
-    // Animations will be added later
     function toggleArchDetail() {
       const detail = document.getElementById('archDetail');
       const btn = document.querySelector('.arch-expand-btn');
       detail.classList.toggle('open');
       btn.textContent = detail.classList.contains('open') ? '收起技术栈 ▲' : '展开完整技术栈 ▼';
     }
+
+    // Scroll reveal animation
+    const observerOptions = { threshold: 0.15, rootMargin: '0px 0px -50px 0px' };
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
   </script>
 </body>
 </html>
