@@ -69,7 +69,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
       final Map<String, String> map = {};
 
       // Fetch livestock codes for matching
-      final livestockData = await ref.read(livestockRepositoryProvider).loadAll();
+      final livestockData = await ref.read(livestockRepositoryProvider).loadAll(pageSize: 200);
       final Map<String, String> livestockIdToCode = {};
       for (final l in livestockData.items) {
         livestockIdToCode[l.id] = l.earTag;
@@ -235,7 +235,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
     final livestockRepo = ref.read(livestockRepositoryProvider);
     List<_LivestockOption> options = [];
     try {
-      final livestockData = await livestockRepo.loadAll();
+      final livestockData = await livestockRepo.loadAll(pageSize: 200);
       options = livestockData.items
           .map((l) =>
               _LivestockOption(id: l.id, label: l.earTag, subtitle: l.breed.name))
