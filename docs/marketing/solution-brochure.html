@@ -316,6 +316,86 @@
     @media (max-width: 640px) {
       .arch-contexts { grid-template-columns: repeat(2, 1fr); }
     }
+    /* === Pricing === */
+    .pricing { background: var(--color-primary-soft); }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-lg); max-width: var(--max-width);
+      margin: 0 auto var(--space-xl); padding: 0 var(--space-lg);
+      align-items: start;
+    }
+    .pricing-card {
+      background: var(--color-white); border-radius: var(--border-radius);
+      padding: var(--space-xl); text-align: center;
+      box-shadow: var(--shadow-sm); transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 2px solid transparent; position: relative;
+    }
+    .pricing-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+    .pricing-card.featured {
+      border-color: var(--color-primary); transform: translateY(-8px);
+      box-shadow: var(--shadow-lg);
+    }
+    .pricing-card.featured:hover { transform: translateY(-12px); }
+    .pricing-badge {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: var(--color-primary); color: var(--color-white);
+      padding: 0.25rem 1rem; border-radius: 20px;
+      font-size: 0.85rem; font-weight: 700;
+    }
+    .pricing-name { font-size: 1.15rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: var(--space-sm); }
+    .pricing-price { font-size: 2.5rem; font-weight: 900; color: var(--color-primary); margin-bottom: var(--space-xs); }
+    .pricing-price small { font-size: 1rem; font-weight: 400; }
+    .pricing-heads { font-size: 0.9rem; color: var(--color-text-secondary); margin-bottom: var(--space-lg); }
+    .pricing-features { list-style: none; text-align: left; margin-bottom: var(--space-lg); }
+    .pricing-features li { padding: 0.4rem 0; font-size: 0.9rem; color: var(--color-text-secondary); border-bottom: 1px solid #f0f0f0; }
+    .pricing-features li::before { content: '✓ '; color: var(--color-success); font-weight: 700; }
+    .pricing-features li.disabled { color: #ccc; }
+    .pricing-features li.disabled::before { content: '— '; color: #ccc; }
+    .pricing-card .btn { width: 100%; }
+    .pricing-trial {
+      text-align: center; font-size: 1rem; color: var(--color-text-primary);
+      max-width: var(--max-width); margin: 0 auto; padding: 0 var(--space-lg);
+    }
+    .pricing-trial strong { color: var(--color-primary); }
+
+    /* === CTA === */
+    .cta-section {
+      background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+      color: var(--color-white); text-align: center; padding: 5rem var(--space-lg);
+    }
+    .cta-title { font-size: 2rem; font-weight: 700; margin-bottom: var(--space-md); }
+    .cta-subtitle { font-size: 1.1rem; opacity: 0.9; margin-bottom: var(--space-xl); }
+    .cta-buttons { display: flex; gap: var(--space-md); justify-content: center; flex-wrap: wrap; }
+    .btn-cta-primary {
+      background: var(--color-white); color: var(--color-primary);
+      padding: 0.85rem 2.5rem; border-radius: 8px;
+      font-size: 1.05rem; font-weight: 700; text-decoration: none;
+      transition: transform 0.2s ease;
+    }
+    .btn-cta-primary:hover { transform: translateY(-2px); }
+    .btn-cta-secondary {
+      background: transparent; color: var(--color-white);
+      padding: 0.85rem 2.5rem; border-radius: 8px;
+      font-size: 1.05rem; font-weight: 600; text-decoration: none;
+      border: 2px solid rgba(255,255,255,0.5);
+      transition: all 0.2s ease;
+    }
+    .btn-cta-secondary:hover { border-color: var(--color-white); background: rgba(255,255,255,0.1); }
+
+    /* === Footer === */
+    .site-footer {
+      background: var(--color-primary-dark); color: rgba(255,255,255,0.7);
+      text-align: center; padding: var(--space-xl); font-size: 0.85rem;
+    }
+
+    @media (max-width: 1024px) {
+      .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .pricing-grid { grid-template-columns: 1fr; }
+      .pricing-card.featured { transform: none; }
+      .cta-title { font-size: 1.5rem; }
+    }
   </style>
 </head>
 <body>
@@ -659,13 +739,96 @@
   <!-- /SECTION: advantages -->
 
   <!-- SECTION: pricing -->
+  <section class="section pricing" id="pricing">
+    <h2 class="section-title">灵活的订阅方案</h2>
+    <p class="section-subtitle">从免费版起步，按需升级，无隐性费用</p>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="pricing-name">BASIC</div>
+        <div class="pricing-price">¥0<small>/月</small></div>
+        <div class="pricing-heads">含 50 头牲畜</div>
+        <ul class="pricing-features">
+          <li>GPS 实时定位</li>
+          <li>电子围栏 ≤3 个</li>
+          <li>基础设备管理</li>
+          <li>7 天数据保留</li>
+          <li class="disabled">健康评分</li>
+          <li class="disabled">发情检测</li>
+          <li class="disabled">AI 异常检测</li>
+          <li class="disabled">API 访问</li>
+        </ul>
+        <a href="#cta" class="btn" style="background:var(--color-surface);color:var(--color-text-primary);">免费开始</a>
+      </div>
+      <div class="pricing-card">
+        <div class="pricing-name">STANDARD</div>
+        <div class="pricing-price">¥299<small>/月</small></div>
+        <div class="pricing-heads">含 200 头牲畜</div>
+        <ul class="pricing-features">
+          <li>GPS 实时定位</li>
+          <li>电子围栏 ≤5 个</li>
+          <li>历史轨迹回放</li>
+          <li>体温监测</li>
+          <li>30 天数据保留</li>
+          <li>8h 工单响应</li>
+          <li class="disabled">AI 异常检测</li>
+          <li class="disabled">API 访问</li>
+        </ul>
+        <a href="#cta" class="btn btn-primary">选择标准版</a>
+      </div>
+      <div class="pricing-card featured">
+        <span class="pricing-badge">推荐</span>
+        <div class="pricing-name">PREMIUM</div>
+        <div class="pricing-price">¥699<small>/月</small></div>
+        <div class="pricing-heads">含 1,000 头牲畜</div>
+        <ul class="pricing-features">
+          <li>STANDARD 全部功能</li>
+          <li>电子围栏 ≤10 个</li>
+          <li>发情检测 + 繁殖管理</li>
+          <li>疫病预警 + 消化分析</li>
+          <li>AI 无监督异常检测</li>
+          <li>90 天数据保留</li>
+          <li>4h 工单响应</li>
+          <li>API 访问</li>
+        </ul>
+        <a href="#cta" class="btn btn-primary">选择专业版</a>
+      </div>
+      <div class="pricing-card">
+        <div class="pricing-name">ENTERPRISE</div>
+        <div class="pricing-price" style="font-size:1.75rem;">定制</div>
+        <div class="pricing-heads">不限牲畜数</div>
+        <ul class="pricing-features">
+          <li>PREMIUM 全部功能</li>
+          <li>集团多牧场联动</li>
+          <li>私有化部署选项</li>
+          <li>定制功能开发</li>
+          <li>3 年数据保留</li>
+          <li>专属客户经理</li>
+          <li>7×24 电话支持</li>
+          <li>SLA 99.99%</li>
+        </ul>
+        <a href="#cta" class="btn" style="background:var(--color-surface);color:var(--color-text-primary);">联系销售</a>
+      </div>
+    </div>
+    <div class="pricing-trial">
+      新用户注册即享 <strong>14 天 PREMIUM 全功能免费试用</strong>，到期后自动降为免费版，数据保留，随时升级
+    </div>
+  </section>
   <!-- /SECTION: pricing -->
 
   <!-- SECTION: cta -->
+  <section class="cta-section" id="cta">
+    <h2 class="cta-title">开启智慧养殖之旅</h2>
+    <p class="cta-subtitle">14 天全功能免费试用，亲眼见证数据驱动的改变</p>
+    <div class="cta-buttons">
+      <a href="#" class="btn-cta-primary">预约演示</a>
+      <a href="#" class="btn-cta-secondary">免费试用</a>
+      <a href="#" class="btn-cta-secondary">联系销售</a>
+    </div>
+  </section>
   <!-- /SECTION: cta -->
 
-  <footer>
-    <!-- placeholder -->
+  <footer class="site-footer">
+    © 2026 SmartLivestock. 智慧畜牧，数据驱动的精准养殖。
   </footer>
 
   <script>
