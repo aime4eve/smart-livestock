@@ -271,10 +271,10 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
           ..showSnackBar(SnackBar(
             content: Text(l10n.deviceUnbindSuccess(device.name)),
           ));
-      }
+     }
+     await _loadInstallations();
      ref.invalidate(devicesControllerProvider);
      ref.invalidate(dashboardControllerProvider);
-      _loadInstallations();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -316,18 +316,18 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
                   content: Text(l10n.devicesInstallSuccess(device.name)),
                 ));
             }
-          } catch (e) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(SnackBar(
-                  content: Text(l10n.devicesInstallFailed(e.toString())),
-                ));
-            }
-          }
+         } catch (e) {
+           if (context.mounted) {
+             ScaffoldMessenger.of(context)
+               ..hideCurrentSnackBar()
+               ..showSnackBar(SnackBar(
+                 content: Text(l10n.devicesInstallFailed(e.toString())),
+               ));
+           }
+         }
+         await _loadInstallations();
          ref.invalidate(devicesControllerProvider);
          ref.invalidate(dashboardControllerProvider);
-         _loadInstallations();
        },
      ),
    );
