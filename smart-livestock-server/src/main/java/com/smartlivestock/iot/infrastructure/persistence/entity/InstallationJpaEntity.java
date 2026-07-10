@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
@@ -39,6 +40,15 @@ public class InstallationJpaEntity {
     @PrePersist
     protected void onCreate() {
         this.createdAt = Instant.now();
+    }
+    
+    // Preserve created_at when merging a detached entity (mapper creates a fresh
+    // JpaEntity without createdAt, which would otherwise overwrite the column to null).
+    @PreUpdate
+    protected void onUpdate() {
+        if (this.createdAt == null) {
+            this.createdAt = Instant.now();
+        }
     }
 
     // --- Getters and Setters ---
