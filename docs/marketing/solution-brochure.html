@@ -264,48 +264,85 @@
     /* Infrastructure Topology */
     .arch-infra-topo {
       flex: 1; display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 0; position: relative; padding-top: 12px;
+      gap: 0; position: relative; padding: 20px 4px 4px;
     }
-    /* Backbone line */
+    /* Backbone — gradient trace line */
     .arch-infra-topo::before {
-      content: ''; position: absolute; top: 28px; left: 8%; right: 8%;
-      height: 2px; background: var(--color-border);
+      content: ''; position: absolute; top: 34px; left: 10%; right: 10%;
+      height: 1.5px;
+      background: linear-gradient(90deg,
+        transparent 0%, var(--color-accent) 20%, var(--color-primary) 50%, var(--color-accent) 80%, transparent 100%);
+      border-radius: 1px;
     }
     .arch-infra-tier { text-align: center; position: relative; }
-    /* Drop line from backbone to hub */
+    /* Drop line */
     .arch-infra-tier::before {
       content: ''; position: absolute; top: 0; left: 50%;
-      width: 2px; height: 28px; background: var(--color-border);
+      width: 1.5px; height: 34px;
+      background: linear-gradient(to bottom, var(--color-primary), var(--color-accent));
+      border-radius: 1px;
+    }
+    .arch-infra-tier::after {
+      content: ''; position: absolute; top: 34px; left: 50%;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--color-primary);
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 0 3px var(--color-primary-soft);
     }
     .arch-infra-hub {
-      display: inline-block; padding: 0.4rem 1.2rem; border-radius: 20px;
+      display: inline-block; padding: 0.45rem 1.4rem; border-radius: 24px;
       font-weight: 700; font-size: 0.8rem; position: relative; z-index: 2;
+      letter-spacing: 0.3px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .arch-infra-hub.hw { background: #E8F0FE; color: #1A56DB; border: 2px solid #90B4F0; }
-    .arch-infra-hub.sw { background: #E6F4EA; color: #137333; border: 2px solid #81C995; }
-    .arch-infra-hub.ai { background: #FCE8E6; color: #C5221F; border: 2px solid #F28B82; }
+    .arch-infra-hub:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .arch-infra-hub.hw {
+      background: var(--color-white); color: var(--color-primary);
+      border: 1.5px solid var(--color-primary);
+      box-shadow: 0 1px 3px rgba(47,107,59,0.12);
+    }
+    .arch-infra-hub.sw {
+      background: var(--color-primary-soft); color: var(--color-primary-dark);
+      border: 1.5px solid var(--color-accent);
+    }
+    .arch-infra-hub.ai {
+      background: var(--color-primary-dark); color: var(--color-white);
+      border: 1.5px solid var(--color-primary-dark);
+      box-shadow: 0 2px 8px rgba(36,79,45,0.25);
+    }
     .arch-infra-nodes {
       display: flex; flex-wrap: wrap; justify-content: center;
-      gap: 6px; margin-top: 10px; position: relative;
+      gap: 8px; margin-top: 14px; position: relative;
     }
     .arch-infra-nodes::before {
-      content: ''; position: absolute; top: -10px; left: 50%;
-      width: 2px; height: 10px; background: var(--color-border);
+      content: ''; position: absolute; top: -14px; left: 50%;
+      width: 1.5px; height: 14px;
+      background: linear-gradient(to bottom, var(--color-accent), var(--color-border));
+      border-radius: 1px;
     }
     .arch-infra-node {
-      background: var(--color-white); border: 1px solid var(--color-border);
-      border-radius: 16px; padding: 0.25rem 0.7rem;
+      background: var(--color-white); border: 1px solid #E0DCD0;
+      border-radius: 10px; padding: 0.35rem 0.85rem;
       font-size: 0.78rem; color: var(--color-text-secondary);
       position: relative; white-space: nowrap;
+      font-weight: 500; letter-spacing: 0.2px;
+      transition: all 0.2s ease;
+    }
+    .arch-infra-node:hover {
+      border-color: var(--color-accent); color: var(--color-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 3px 10px rgba(139,169,90,0.18);
     }
     .arch-infra-node::before {
-      content: ''; position: absolute; top: -7px; left: 50%;
-      width: 5px; height: 5px; border-radius: 50%; background: var(--color-accent);
+      content: ''; position: absolute; top: -8px; left: 50%;
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--color-accent);
+      transform: translateX(-50%);
     }
     @media (max-width: 640px) {
-      .arch-infra-topo { grid-template-columns: 1fr; gap: var(--space-md); }
-      .arch-infra-topo::before { display: none; }
-      .arch-infra-tier::before { display: none; }
+      .arch-infra-topo { grid-template-columns: 1fr; gap: var(--space-lg); }
+      .arch-infra-topo::before, .arch-infra-tier::before, .arch-infra-tier::after,
+      .arch-infra-nodes::before, .arch-infra-node::before { display: none; }
     }
     .arch-layer-items span {
       background: var(--color-primary-soft); color: var(--color-primary);
