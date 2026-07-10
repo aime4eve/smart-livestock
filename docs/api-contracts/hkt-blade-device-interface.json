@@ -1,0 +1,2929 @@
+{
+  "contexts": {
+    "hkt-blade-device-1": {
+      "mappings": {
+        "dispatcherServlets": {
+          "dispatcherServlet": [
+            {
+              "predicate": "{GET [/actuator/integrationgraph], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'integrationgraph'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/integrationgraph"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/beans], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'beans'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/beans"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/bindings], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'bindings'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/bindings"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/conditions], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'conditions'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/conditions"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/actuator/bindings/{name}], consumes [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'bindings-name'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/bindings/{name}"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/actuator/loggers/{name}], consumes [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'loggers-name'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/loggers/{name}"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/channels], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'channels'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/channels"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/bindings/{name}], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'bindings-name'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/bindings/{name}"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/loggers/{name}], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'loggers-name'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/loggers/{name}"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/nacosdiscovery], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'nacosdiscovery'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/nacosdiscovery"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/threaddump], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'threaddump'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/threaddump"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/env/{toMatch}], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'env-toMatch'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/env/{toMatch}"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/actuator/integrationgraph]}",
+              "handler": "Actuator web endpoint 'integrationgraph'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/integrationgraph"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/loggers], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'loggers'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/loggers"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/serviceregistry], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'serviceregistry'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/serviceregistry"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/nacosconfig], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'nacosconfig'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/nacosconfig"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/health], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'health'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/health"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/threaddump], produces [text/plain;charset=UTF-8]}",
+              "handler": "Actuator web endpoint 'threaddump'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/threaddump"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "text/plain;charset=UTF-8",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{DELETE [/actuator/caches/{cache}], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'caches-cache'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "DELETE"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/caches/{cache}"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/features], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'features'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/features"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/sentinel], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'sentinel'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/sentinel"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/configprops], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'configprops'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/configprops"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/caches], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'caches'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/caches"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/mappings], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'mappings'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/mappings"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/configprops/{prefix}], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'configprops-prefix'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/configprops/{prefix}"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/sbom], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'sbom'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/sbom"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/sbom/{id}], produces [application/octet-stream]}",
+              "handler": "Actuator web endpoint 'sbom-id'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/sbom/{id}"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/octet-stream",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/scheduledtasks], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'scheduledtasks'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/scheduledtasks"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/caches/{cache}], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'caches-cache'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/caches/{cache}"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/env], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'env'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/env"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/health/**], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'health-path'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/health/**"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/actuator/refresh], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'refresh'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/refresh"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/metrics], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'metrics'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/metrics"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/functions], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'functions'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/functions"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{DELETE [/actuator/caches]}",
+              "handler": "Actuator web endpoint 'caches'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "DELETE"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/caches"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/metrics/{requiredMetricName}], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'metrics-requiredMetricName'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/metrics/{requiredMetricName}"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator/info], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'info'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/info"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/actuator/serviceregistry], consumes [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator web endpoint 'serviceregistry'",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping.OperationHandler",
+                  "name": "handle",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/util/Map;)Ljava/lang/Object;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator/serviceregistry"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/actuator], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}",
+              "handler": "Actuator root web endpoint",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.actuate.endpoint.web.servlet.WebMvcEndpointHandlerMapping.WebMvcLinksHandler",
+                  "name": "links",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;)Ljava/util/Map;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/actuator"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v3+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/vnd.spring-boot.actuator.v2+json",
+                      "negated": false
+                    },
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/feign/v1/device/thing-model/properties/by-purpose]}",
+              "handler": "com.hkt.device.trigger.rpc.ThingModelFeignClient#getPropertiesByPurpose(String, Integer)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.ThingModelFeignClient",
+                  "name": "getPropertiesByPurpose",
+                  "descriptor": "(Ljava/lang/String;Ljava/lang/Integer;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/thing-model/properties/by-purpose"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/api/v1/device/history-data/query]}",
+              "handler": "com.hkt.device.trigger.http.DeviceHistoryDataController#query(DeviceHistoryDataQueryReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.http.DeviceHistoryDataController",
+                  "name": "query",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceHistoryDataQueryReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/api/v1/device/history-data/query"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/control/cmdEnqueue]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceControlFeignClient#cmdEnqueue(CmdDownReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceControlFeignClient",
+                  "name": "cmdEnqueue",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/CmdDownReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/control/cmdEnqueue"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{ [/error]}",
+              "handler": "org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController#error(HttpServletRequest)",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController",
+                  "name": "error",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;)Lorg/springframework/http/ResponseEntity;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [],
+                  "params": [],
+                  "patterns": [
+                    "/error"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/control/cmdDown]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceControlFeignClient#cmdDown(CmdDownReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceControlFeignClient",
+                  "name": "cmdDown",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/CmdDownReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/control/cmdDown"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/api/v1/device/history-data/legends/{deviceType}]}",
+              "handler": "com.hkt.device.trigger.http.DeviceHistoryDataController#getMetricLegends(String)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.http.DeviceHistoryDataController",
+                  "name": "getMetricLegends",
+                  "descriptor": "(Ljava/lang/String;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/api/v1/device/history-data/legends/{deviceType}"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/api/v1/device/history-data/query-list]}",
+              "handler": "com.hkt.device.trigger.http.DeviceHistoryDataController#queryList(DeviceHistoryDataQueryReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.http.DeviceHistoryDataController",
+                  "name": "queryList",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceHistoryDataQueryReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/api/v1/device/history-data/query-list"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/lifecycle/updateDeviceInfo]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient#updateDeviceInfo(DeviceUpdateReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient",
+                  "name": "updateDeviceInfo",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceUpdateReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/lifecycle/updateDeviceInfo"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/feign/v1/device/thing-model/service/by-identifier]}",
+              "handler": "com.hkt.device.trigger.rpc.ThingModelFeignClient#getServiceByIdentifier(DeviceTmServiceByIdentifierQueryReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.ThingModelFeignClient",
+                  "name": "getServiceByIdentifier",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceTmServiceByIdentifierQueryReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/thing-model/service/by-identifier"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/feign/v1/device/lifecycle/getDeviceDisplayName]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient#getDeviceDisplayName(String)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient",
+                  "name": "getDeviceDisplayName",
+                  "descriptor": "(Ljava/lang/String;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/lifecycle/getDeviceDisplayName"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/history/data/query-list-page/{deviceId}]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceHistoryDataFeignClient#queryDeviceListPage(String, DeviceHistoryDataPageReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceHistoryDataFeignClient",
+                  "name": "queryDeviceListPage",
+                  "descriptor": "(Ljava/lang/String;Lcom/hkt/device/api/dto/req/DeviceHistoryDataPageReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/history/data/query-list-page/{deviceId}"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/lifecycle/registerDevice]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient#registerDevice(DeviceRegistrationReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient",
+                  "name": "registerDevice",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceRegistrationReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/lifecycle/registerDevice"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/feign/v1/device/type/findAll]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceTypeFeignClient#findAll()",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceTypeFeignClient",
+                  "name": "findAll",
+                  "descriptor": "()Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/type/findAll"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/history/data/query-list]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceHistoryDataFeignClient#queryList(DeviceHistoryDataQueryReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceHistoryDataFeignClient",
+                  "name": "queryList",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceHistoryDataQueryReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/history/data/query-list"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/lifecycle/listDevices]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient#listDevices(DeviceListReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient",
+                  "name": "listDevices",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceListReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/lifecycle/listDevices"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/v3/api-docs/swagger-config], produces [application/json]}",
+              "handler": "org.springdoc.webmvc.ui.SwaggerConfigResource#openapiJson(HttpServletRequest)",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springdoc.webmvc.ui.SwaggerConfigResource",
+                  "name": "openapiJson",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;)Ljava/util/Map;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/v3/api-docs/swagger-config"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/v3/api-docs.yaml], produces [application/vnd.oai.openapi]}",
+              "handler": "org.springdoc.webmvc.api.OpenApiWebMvcResource#openapiYaml(HttpServletRequest, String, Locale)",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springdoc.webmvc.api.OpenApiWebMvcResource",
+                  "name": "openapiYaml",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/lang/String;Ljava/util/Locale;)[B"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/v3/api-docs.yaml"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.oai.openapi",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/api/v1/device/control/cmdDown]}",
+              "handler": "com.hkt.device.trigger.http.DeviceControlController#cmdDown(CmdDownReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.http.DeviceControlController",
+                  "name": "cmdDown",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/CmdDownReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/api/v1/device/control/cmdDown"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{ [/error], produces [text/html]}",
+              "handler": "org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController#errorHtml(HttpServletRequest, HttpServletResponse)",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController",
+                  "name": "errorHtml",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;)Lorg/springframework/web/servlet/ModelAndView;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [],
+                  "params": [],
+                  "patterns": [
+                    "/error"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "text/html",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/feign/v1/device/thing-model/services/by-device-type]}",
+              "handler": "com.hkt.device.trigger.rpc.ThingModelFeignClient#getServices(DeviceTmServiceQueryReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.ThingModelFeignClient",
+                  "name": "getServices",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceTmServiceQueryReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/thing-model/services/by-device-type"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/telemetry/history/latest]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceTelemetryHistoryFeignClient#queryLatest(TelemetryHistoryQueryReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceTelemetryHistoryFeignClient",
+                  "name": "queryLatest",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/TelemetryHistoryQueryReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/telemetry/history/latest"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/latest/data/query]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceLatestDataQueryFeignClient#query(DeviceLatestDataQueryReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceLatestDataQueryFeignClient",
+                  "name": "query",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceLatestDataQueryReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/latest/data/query"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/lifecycle/batchRegisterDevices]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient#batchRegisterDevices(BatchDeviceRegistrationReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient",
+                  "name": "batchRegisterDevices",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/BatchDeviceRegistrationReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/lifecycle/batchRegisterDevices"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/feign/v1/device/lifecycle/getDeviceDetailWithTelemetry]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient#getDeviceDetailWithTelemetry(String)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient",
+                  "name": "getDeviceDetailWithTelemetry",
+                  "descriptor": "(Ljava/lang/String;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/lifecycle/getDeviceDetailWithTelemetry"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/lifecycle/removeDevice]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient#removeDevice(DeviceRemoveReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient",
+                  "name": "removeDevice",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceRemoveReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/lifecycle/removeDevice"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/control/cmdDirect]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceControlFeignClient#cmdDirect(CmdDownReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceControlFeignClient",
+                  "name": "cmdDirect",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/CmdDownReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/control/cmdDirect"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/history/data/query-sub-device-list-page/{subDeviceId}]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceHistoryDataFeignClient#querySubDeviceListPage(String, DeviceHistoryDataPageReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceHistoryDataFeignClient",
+                  "name": "querySubDeviceListPage",
+                  "descriptor": "(Ljava/lang/String;Lcom/hkt/device/api/dto/req/DeviceHistoryDataPageReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/history/data/query-sub-device-list-page/{subDeviceId}"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/history/data/query-with-subdevices]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceHistoryDataFeignClient#queryWithSubDevices(DeviceHistoryDataQueryReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceHistoryDataFeignClient",
+                  "name": "queryWithSubDevices",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceHistoryDataQueryReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/history/data/query-with-subdevices"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/lifecycle/getDeviceDetail]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient#getDeviceDetail(DeviceDetailReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient",
+                  "name": "getDeviceDetail",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceDetailReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/lifecycle/getDeviceDetail"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/control/batchCmdDown]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceControlFeignClient#batchCmdDown(BatchCmdDownReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceControlFeignClient",
+                  "name": "batchCmdDown",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/BatchCmdDownReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/control/batchCmdDown"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/lifecycle/batchSyncDevicesToIot]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient#batchSyncDevicesToIot(BatchSyncDeviceToIotReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient",
+                  "name": "batchSyncDevicesToIot",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/BatchSyncDeviceToIotReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/lifecycle/batchSyncDevicesToIot"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/history/data/query]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceHistoryDataFeignClient#query(DeviceHistoryDataQueryReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceHistoryDataFeignClient",
+                  "name": "query",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceHistoryDataQueryReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/history/data/query"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/telemetry/history/aggregation]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceTelemetryHistoryFeignClient#queryAggregation(TelemetryAggregationQueryReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceTelemetryHistoryFeignClient",
+                  "name": "queryAggregation",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/TelemetryAggregationQueryReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/telemetry/history/aggregation"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/v3/api-docs.yaml/{group}], produces [application/vnd.oai.openapi]}",
+              "handler": "org.springdoc.webmvc.api.MultipleOpenApiWebMvcResource#openapiYaml(HttpServletRequest, String, String, Locale)",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springdoc.webmvc.api.MultipleOpenApiWebMvcResource",
+                  "name": "openapiYaml",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/lang/String;Ljava/lang/String;Ljava/util/Locale;)[B"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/v3/api-docs.yaml/{group}"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/vnd.oai.openapi",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/feign/v1/device/type/findByIds]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceTypeFeignClient#findByIds(List)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceTypeFeignClient",
+                  "name": "findByIds",
+                  "descriptor": "(Ljava/util/List;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/type/findByIds"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/api/v1/device/history-data/query-with-subdevices]}",
+              "handler": "com.hkt.device.trigger.http.DeviceHistoryDataController#queryWithSubDevices(DeviceHistoryDataQueryReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.http.DeviceHistoryDataController",
+                  "name": "queryWithSubDevices",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceHistoryDataQueryReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/api/v1/device/history-data/query-with-subdevices"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/feign/v1/device/enum/cmdState]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceEnumFeignClientImpl#getCmdState()",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceEnumFeignClientImpl",
+                  "name": "getCmdState",
+                  "descriptor": "()Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/enum/cmdState"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/swagger-ui.html]}",
+              "handler": "org.springdoc.webmvc.ui.SwaggerWelcomeWebMvc#redirectToUi(HttpServletRequest)",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springdoc.webmvc.ui.SwaggerWelcomeWebMvc",
+                  "name": "redirectToUi",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;)Lorg/springframework/http/ResponseEntity;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/swagger-ui.html"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/lifecycle/batchGetDeviceDetails]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient#batchGetDeviceDetails(BatchDeviceDetailReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient",
+                  "name": "batchGetDeviceDetails",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/BatchDeviceDetailReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/lifecycle/batchGetDeviceDetails"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/control/businessCmdDown]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceControlFeignClient#businessCmdDown(BusinessCmdDownReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceControlFeignClient",
+                  "name": "businessCmdDown",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/BusinessCmdDownReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/control/businessCmdDown"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/lifecycle/pageDevices]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient#pageDevices(DevicePageReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient",
+                  "name": "pageDevices",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DevicePageReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/lifecycle/pageDevices"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/device/report-record/page]}",
+              "handler": "com.hkt.device.trigger.http.DeviceReportRecordController#queryDeviceReportRecordPage(DeviceReportRecordPageReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.http.DeviceReportRecordController",
+                  "name": "queryDeviceReportRecordPage",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceReportRecordPageReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/device/report-record/page"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/feign/v1/device/type/findById]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceTypeFeignClient#findById(String)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceTypeFeignClient",
+                  "name": "findById",
+                  "descriptor": "(Ljava/lang/String;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/type/findById"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/telemetry/history/query]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceTelemetryHistoryFeignClient#queryHistory(TelemetryHistoryQueryReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceTelemetryHistoryFeignClient",
+                  "name": "queryHistory",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/TelemetryHistoryQueryReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/telemetry/history/query"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/v3/api-docs], produces [application/json]}",
+              "handler": "org.springdoc.webmvc.api.OpenApiWebMvcResource#openapiJson(HttpServletRequest, String, Locale)",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springdoc.webmvc.api.OpenApiWebMvcResource",
+                  "name": "openapiJson",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/lang/String;Ljava/util/Locale;)[B"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/v3/api-docs"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/lifecycle/updateSubDeviceInfo]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient#updateSubDeviceInfo(SubDeviceUpdateReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient",
+                  "name": "updateSubDeviceInfo",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/SubDeviceUpdateReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/lifecycle/updateSubDeviceInfo"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/feign/v1/device/lifecycle/getDeviceDetailWithSubDevices]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient#getDeviceDetailWithSubDevices(String)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceLifecycleFeignClient",
+                  "name": "getDeviceDetailWithSubDevices",
+                  "descriptor": "(Ljava/lang/String;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/lifecycle/getDeviceDetailWithSubDevices"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/control/record/queryControlRecordByIds]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceControlRecordFeignClient#queryControlRecordByIds(List)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceControlRecordFeignClient",
+                  "name": "queryControlRecordByIds",
+                  "descriptor": "(Ljava/util/List;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/control/record/queryControlRecordByIds"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/control/record/queryControlRecordPage]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceControlRecordFeignClient#queryControlRecordPage(DeviceControlRecordPageReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceControlRecordFeignClient",
+                  "name": "queryControlRecordPage",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceControlRecordPageReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/control/record/queryControlRecordPage"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/feign/v1/device/enum/deviceOnlineStatus]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceEnumFeignClientImpl#getDeviceOnlineStatus()",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceEnumFeignClientImpl",
+                  "name": "getDeviceOnlineStatus",
+                  "descriptor": "()Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/enum/deviceOnlineStatus"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/v3/api-docs/{group}], produces [application/json]}",
+              "handler": "org.springdoc.webmvc.api.MultipleOpenApiWebMvcResource#openapiJson(HttpServletRequest, String, String, Locale)",
+              "details": {
+                "handlerMethod": {
+                  "className": "org.springdoc.webmvc.api.MultipleOpenApiWebMvcResource",
+                  "name": "openapiJson",
+                  "descriptor": "(Ljakarta/servlet/http/HttpServletRequest;Ljava/lang/String;Ljava/lang/String;Ljava/util/Locale;)[B"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/v3/api-docs/{group}"
+                  ],
+                  "produces": [
+                    {
+                      "mediaType": "application/json",
+                      "negated": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/device/report-record/page]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceReportRecordFeignClient#queryDeviceReportRecordPage(DeviceReportRecordPageReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceReportRecordFeignClient",
+                  "name": "queryDeviceReportRecordPage",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceReportRecordPageReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/device/report-record/page"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/telemetry/conditionFilter]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceTelemetryFeignClient#conditionFilter(TelemetryConditionFilterReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceTelemetryFeignClient",
+                  "name": "conditionFilter",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/TelemetryConditionFilterReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/telemetry/conditionFilter"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/feign/v1/device/control/record/queryControlRecordById]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceControlRecordFeignClient#queryControlRecordById(String)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceControlRecordFeignClient",
+                  "name": "queryControlRecordById",
+                  "descriptor": "(Ljava/lang/String;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/control/record/queryControlRecordById"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{GET [/feign/v1/device/history/data/legends/{deviceType}]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceHistoryDataFeignClient#getMetricLegends(String)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceHistoryDataFeignClient",
+                  "name": "getMetricLegends",
+                  "descriptor": "(Ljava/lang/String;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "GET"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/history/data/legends/{deviceType}"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "{POST [/feign/v1/device/event/queryEventsPage]}",
+              "handler": "com.hkt.device.trigger.rpc.DeviceEventFeignClient#queryEventsPage(DeviceEventsPageReqDto)",
+              "details": {
+                "handlerMethod": {
+                  "className": "com.hkt.device.trigger.rpc.DeviceEventFeignClient",
+                  "name": "queryEventsPage",
+                  "descriptor": "(Lcom/hkt/device/api/dto/req/DeviceEventsPageReqDto;)Lcom/hkt/core/tool/api/R;"
+                },
+                "handlerFunction": null,
+                "requestMappingConditions": {
+                  "consumes": [],
+                  "headers": [],
+                  "methods": [
+                    "POST"
+                  ],
+                  "params": [],
+                  "patterns": [
+                    "/feign/v1/device/event/queryEventsPage"
+                  ],
+                  "produces": []
+                }
+              }
+            },
+            {
+              "predicate": "/webjars/**",
+              "handler": "ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]",
+              "details": null
+            },
+            {
+              "predicate": "/**",
+              "handler": "ResourceHttpRequestHandler [classpath [META-INF/resources/], classpath [resources/], classpath [static/], classpath [public/], ServletContext [/]]",
+              "details": null
+            },
+            {
+              "predicate": "/doc.html",
+              "handler": "ResourceHttpRequestHandler [classpath [META-INF/resources/]]",
+              "details": null
+            },
+            {
+              "predicate": "/swagger-ui*/*swagger-initializer.js",
+              "handler": "ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]",
+              "details": null
+            },
+            {
+              "predicate": "/swagger-ui*/**",
+              "handler": "ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]",
+              "details": null
+            }
+          ]
+        },
+        "servletFilters": [
+          {
+            "servletNameMappings": [],
+            "urlPatternMappings": [
+              "/*",
+              "/*",
+              "/*",
+              "/*",
+              "/*"
+            ],
+            "name": "requestContextFilter",
+            "className": "org.springframework.boot.web.servlet.filter.OrderedRequestContextFilter"
+          },
+          {
+            "servletNameMappings": [],
+            "urlPatternMappings": [
+              "/*",
+              "/*"
+            ],
+            "name": "webMvcObservationFilter",
+            "className": "org.springframework.web.filter.ServerHttpObservationFilter"
+          },
+          {
+            "servletNameMappings": [],
+            "urlPatternMappings": [
+              "/*",
+              "/*",
+              "/*",
+              "/*",
+              "/*"
+            ],
+            "name": "skipAuthenticationFilter",
+            "className": "com.hkt.core.secure.component.SkipAuthenticationFilter"
+          },
+          {
+            "servletNameMappings": [],
+            "urlPatternMappings": [
+              "/*"
+            ],
+            "name": "hkt-bladeRequestFilter",
+            "className": "com.hkt.core.tool.request.BladeRequestFilter"
+          },
+          {
+            "servletNameMappings": [],
+            "urlPatternMappings": [
+              "/*",
+              "/*",
+              "/*",
+              "/*",
+              "/*"
+            ],
+            "name": "characterEncodingFilter",
+            "className": "org.springframework.boot.web.servlet.filter.OrderedCharacterEncodingFilter"
+          },
+          {
+            "servletNameMappings": [],
+            "urlPatternMappings": [
+              "/*",
+              "/*",
+              "/*",
+              "/*",
+              "/*"
+            ],
+            "name": "springSecurityFilterChain",
+            "className": "org.springframework.boot.web.servlet.DelegatingFilterProxyRegistrationBean$1"
+          },
+          {
+            "servletNameMappings": [],
+            "urlPatternMappings": [
+              "/*",
+              "/*",
+              "/*",
+              "/*",
+              "/*"
+            ],
+            "name": "formContentFilter",
+            "className": "org.springframework.boot.web.servlet.filter.OrderedFormContentFilter"
+          },
+          {
+            "servletNameMappings": [],
+            "urlPatternMappings": [],
+            "name": "Undertow Web Socket Filter",
+            "className": "io.undertow.websockets.jsr.JsrWebSocketFilter"
+          }
+        ],
+        "servlets": [
+          {
+            "mappings": [],
+            "name": "default",
+            "className": "io.undertow.servlet.handlers.DefaultServlet"
+          },
+          {
+            "mappings": [
+              "/"
+            ],
+            "name": "dispatcherServlet",
+            "className": "org.springframework.web.servlet.DispatcherServlet"
+          }
+        ]
+      },
+      "parentId": "hkt-blade-device-1"
+    },
+    "bootstrap": {
+      "mappings": {
+        "dispatcherServlets": {},
+        "servletFilters": [],
+        "servlets": []
+      },
+      "parentId": null
+    }
+  }
+}

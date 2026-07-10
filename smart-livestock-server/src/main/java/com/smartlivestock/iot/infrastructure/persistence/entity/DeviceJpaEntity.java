@@ -41,9 +41,6 @@ public class DeviceJpaEntity {
     @Column(name = "dev_eui", length = 16)
     private String devEui;
 
-    @Column(name = "runtime_status", length = 20)
-    private String runtimeStatus;
-
     @Column(name = "last_online_at")
     private Instant lastOnlineAt;
 
@@ -121,9 +118,6 @@ public class DeviceJpaEntity {
 
     public String getDevEui() { return devEui; }
     public void setDevEui(String devEui) { this.devEui = devEui; }
-
-    public String getRuntimeStatus() { return runtimeStatus; }
-    public void setRuntimeStatus(String runtimeStatus) { this.runtimeStatus = runtimeStatus; }
 
     public Instant getLastOnlineAt() { return lastOnlineAt; }
     public void setLastOnlineAt(Instant lastOnlineAt) { this.lastOnlineAt = lastOnlineAt; }

@@ -1,0 +1,52 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.0'
+    id 'io.spring.dependency-management' version '1.1.5'
+}
+
+group = 'com.smartlivestock'
+version = '0.1.0'
+
+java {
+    sourceCompatibility = '17'
+}
+
+repositories {
+    maven { url 'https://maven.aliyun.com/repository/public' }
+    mavenCentral()
+}
+
+ext {
+    // Cloud 2023.0.x matches Boot 3.2/3.3; Cloud 2024.0.x requires Boot 3.4.x.
+    // smart-livestock-server is Boot 3.3.0, so use 2023.0.x here.
+    set('springCloudVersion', '2023.0.4')
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+dependencies {
+    // Spring Boot Web
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // Spring Cloud OpenFeign (url mode, no Nacos)
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    // Circuit breaker: enables FallbackFactory on Feign clients (Cloud 2023.0.x default = off)
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

@@ -4,6 +4,7 @@ import com.smartlivestock.iot.domain.model.Device;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.Duration;
 
 public record DeviceDto(
         Long id,
@@ -27,13 +28,22 @@ public record DeviceDto(
         Instant lastTelemetrySyncedAt
 ) {
     public static DeviceDto from(Device device) {
+        String runtimeStatus = device.getRuntimeStatus();
+        if (runtimeStatus == null) {
+            Instant lastOnlineAt = device.getLastOnlineAt();
+            if (lastOnlineAt != null && Duration.between(lastOnlineAt, Instant.now()).toHours() < 2) {
+                runtimeStatus = "online";
+            } else {
+                runtimeStatus = "offline";
+            }
+        }
         return new DeviceDto(
                 device.getId(),
                 device.getTenantId(),
                 device.getDeviceCode(),
                 device.getDeviceType().name(),
                 device.getStatus().name(),
-                device.getRuntimeStatus(),
+                runtimeStatus,
                 device.getBatteryLevel(),
                 device.getFirmwareVersion(),
                 device.getDevEui(),

@@ -19,7 +19,6 @@ public final class DeviceMapper {
         jpa.setBatteryLevel(device.getBatteryLevel());
         jpa.setFirmwareVersion(device.getFirmwareVersion());
        jpa.setDevEui(device.getDevEui());
-       jpa.setRuntimeStatus(device.getRuntimeStatus());
        jpa.setLastOnlineAt(device.getLastOnlineAt());
        jpa.setPlatformDeviceId(device.getPlatformDeviceId());
        jpa.setRssi(device.getRssi());
@@ -43,7 +42,6 @@ public final class DeviceMapper {
         device.setBatteryLevel(jpa.getBatteryLevel());
         device.setFirmwareVersion(jpa.getFirmwareVersion());
        device.setDevEui(jpa.getDevEui());
-       device.setRuntimeStatus(jpa.getRuntimeStatus());
        device.reconstituteLastOnlineAt(jpa.getLastOnlineAt());
         device.setPlatformDeviceId(jpa.getPlatformDeviceId());
         device.setRssi(jpa.getRssi());

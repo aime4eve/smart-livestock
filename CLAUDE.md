@@ -268,6 +268,8 @@ flutter run -d chrome --dart-define=APP_MODE=live --dart-define=API_BASE_URL=htt
 | App API    | `docs/api-contracts/app-api.md`                                  | `/api/v1/` 64 端点                  |
 | Admin API  | `docs/api-contracts/admin-api.md`                                | `/api/v1/admin/` 30 端点            |
 | Open API   | `docs/api-contracts/open-api.md`                                 | `/api/v1/open/` 17 端点              |
+| **Phase C blade 对接设计** | `docs/superpowers/specs/2026-07-07-phase-c-blade-device-integration.md` | **第三方平台集成设计（PoC 已验证）** |
+| **Phase 3 实施设计** | `docs/superpowers/specs/2026-07-08-phase3-blade-integration-device-health-spec.md` | **设备健康管理 + blade 集成用户旅程 + datagen 适配** |
 
 ### 技术栈
 
@@ -432,7 +434,7 @@ cd Mobile && ./dev.sh start [mock|live]
 | **MVP Phase 2a** — Commerce | 订阅计费 + 合同管理 + 分润对账 + Tier 配额引擎 + Licensed 服务 + FeatureGate             | Commerce                      | ✅ 已完成 |
 | **MVP Phase 2b** — Health | 体温/蠕动/发情/疫病/活动分析引擎 + 时序数据分区 + 遥测接入                                      | Health                        | ✅ 已完成 |
 | **MVP Phase 2c** — 平台扩展 | API 用量统计 + 调用日志 + 开发者门户（Portal）+ API Key 生命周期 + 频率限制                    | Analytics + Portal            | ✅ 已完成 |
-| **Phase 3** — IoT 真实接入 | 设备 license 入网 + LoRa/NS 平台对接 + 真实传感器数据 + 时序数据分区                        | IoT 扩展                        | ⏳ 待设计 |
+| **Phase 3** — IoT 真实接入 | hkt-blade-device 对接（**PoC 已验证**）+ 设备注册 + 遥测采集 + 真实传感器数据 + 时序数据分区     | IoT 扩展                        | 📐 PoC 已验证 |
 
 **后端现状**：7 个限界上下文（Identity + Ranch + IoT + Health + Commerce + Analytics + Shared，Platform 为支撑）、39 张表、187 个 API 端点、51 个 Controller、502 个 Java 文件、53 个测试类。AuditLog 和 Auth refresh 已完整实现（不再是 stub）。时序数据按月分区（temperature_logs/rumen_motility_logs/activity_logs），围栏检测 + 健康分析通过 RocketMQ 事件驱动（`gps-log-updated`、`telemetry-received` 等 Topic）。
 

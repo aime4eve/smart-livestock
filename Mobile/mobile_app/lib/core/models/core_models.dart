@@ -146,6 +146,11 @@ class DeviceItem {
     this.lastGateway,
     this.antiDisassemblyStatus,
     this.lastTelemetrySyncedAt,
+    this.devEui,
+    this.runtimeStatus,
+    this.softwareVersion,
+    this.hardwareVersion,
+    this.deviceTypeName,
   });
 
   final String id;
@@ -162,6 +167,11 @@ class DeviceItem {
   final String? lastGateway;
   final int? antiDisassemblyStatus;
   final String? lastTelemetrySyncedAt;
+  final String? devEui;
+  final String? runtimeStatus;
+  final String? softwareVersion;
+  final String? hardwareVersion;
+  final String? deviceTypeName;
 
   bool get isPlatformRegistered => platformDeviceId != null;
   bool get hasTamperAlert => antiDisassemblyStatus != null && antiDisassemblyStatus != 0;

@@ -1,0 +1,35 @@
+# Phase C PoC - blade device docking (Feign + url mode, no Nacos)
+#
+# Real blade environment (verified 2026-07-07):
+#   hkt-blade-auth:   172.22.4.17:8108  (OAuth2 /oauth2/token)
+#   hkt-blade-device: 172.22.4.17:8100  (all /feign/v1/device/* endpoints)
+#   hkt-blade-system: 172.22.4.17:8106  (user management /feign/v1/system/sdk/*)
+#
+# Set BLADE_OAUTH2_ENABLED=false to run unit tests (MockWebServer overrides these).
+blade:
+  device:
+    base-url: ${BLADE_DEVICE_URL:http://172.22.4.17:8100}
+  license:
+    base-url: ${BLADE_LICENSE_URL:http://172.22.4.17:8100}
+  oauth2:
+    enabled: ${BLADE_OAUTH2_ENABLED:false}
+    token-uri: ${BLADE_OAUTH2_TOKEN_URL:http://172.22.4.17:8108/oauth2/token}
+    client-id: ${BLADE_OAUTH2_CLIENT_ID:hkt_openapi}
+    client-secret: ${BLADE_OAUTH2_CLIENT_SECRET:RLuXd5H8RkZZRPA6TKbf72XmjKYNq}
+    expiry-skew-seconds: 120
+    connect-timeout-ms: 5000
+    read-timeout-ms: 15000
+    # userId created via hkt-blade-system feign endpoint (see scripts/verify-blade-docking.sh)
+    service-user-id: ${BLADE_SERVICE_USER_ID:2074385063398711296}
+    tenant-id: ${BLADE_TENANT_ID:000000}
+  feign-auth:
+    header-name: token
+    token-prefix: ""
+  service-account:
+    user-id: ${BLADE_SERVICE_USER_ID:2074385063398711296}
+    tenant-id: ${BLADE_TENANT_ID:000000}
+
+logging:
+  level:
+    com.smartlivestock.docking: DEBUG
+    org.springframework.cloud.openfeign: DEBUG

@@ -9,6 +9,7 @@ import 'package:hkt_livestock_agentic/features/dashboard/presentation/dashboard_
 import 'package:hkt_livestock_agentic/features/livestock/presentation/livestock_controller.dart';
 import 'package:hkt_livestock_agentic/features/livestock/domain/livestock_repository.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/widgets/device_form_sheet.dart';
+import 'package:hkt_livestock_agentic/features/devices/presentation/widgets/device_health_card.dart';
 import 'package:hkt_livestock_agentic/features/devices/domain/devices_repository.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/devices_controller.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
@@ -470,8 +471,10 @@ class _DeviceWithBinding extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effective = device.copyWith(boundEarTag: boundLivestockCode);
-    return Padding(
+   final effective = device.copyWith(boundEarTag: boundLivestockCode);
+   return GestureDetector(
+     onTap: () => DeviceHealthDialog.show(context, device, boundLivestockCode: boundLivestockCode),
+     child: Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: HighfiDeviceTile(
         device: effective,
@@ -479,6 +482,7 @@ class _DeviceWithBinding extends StatelessWidget {
         onUnbind: onUnbind,
         onViewLocation: onViewLocation,
       ),
+     ),
     );
   }
 }
