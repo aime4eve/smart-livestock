@@ -52,7 +52,10 @@ public class LivestockApplicationService {
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "error.livestockNotFound", new Object[]{id}));
         HealthQueryPort.LivestockHealthState health = healthQueryPort.findHealthByLivestockId(id).orElse(null);
-        return LivestockDto.detail(livestock, health);
+        LivestockDto dto = LivestockDto.detail(livestock, health);
+        List<DeviceBrief> devices = iotQueryPort.findActiveDevicesByLivestockIds(List.of(id))
+                .getOrDefault(id, List.of());
+        return dto.withDevices(devices);
     }
 
     @Transactional(readOnly = true)

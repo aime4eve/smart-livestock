@@ -110,7 +110,7 @@ class LivestockApiRepository implements LivestockRepository {
       weightKg: _parseDouble(m['weightKg'] ?? m['weight']) ?? 0.0,
       health: health,
       fenceId: (m['fenceId'] ?? '').toString(),
-      devices: const [],
+      devices: _parseDevices(m['devices']),
       bodyTemp: _parseDouble(m['bodyTemp']) ?? 38.5,
       activityLevel: (m['activityLevel'] ?? '正常').toString(),
       ruminationFreq: (m['ruminationFreq'] ?? '--').toString(),
@@ -127,6 +127,30 @@ class LivestockApiRepository implements LivestockRepository {
 
   static double? _parseDouble(dynamic v) =>
       v is double ? v : v is num ? v.toDouble() : null;
+
+  static List<DeviceItem> _parseDevices(dynamic raw) {
+    if (raw is! List) return const [];
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map((d) {
+          final typeStr = (d['deviceType'] as String?)?.toUpperCase() ?? '';
+          final type = switch (typeStr) {
+            'TRACKER' || 'GPS' => DeviceType.gps,
+            'CAPSULE' || 'RUMEN_CAPSULE' => DeviceType.rumenCapsule,
+            'EAR_TAG' || 'EARTAG' => DeviceType.earTag,
+            _ => DeviceType.gps,
+          };
+          return DeviceItem(
+            id: (d['deviceId'] ?? d['id'] ?? '').toString(),
+            name: (d['deviceCode'] ?? d['devEui'] ?? '') as String,
+            type: type,
+            status: DeviceStatus.online,
+            boundLivestockCode: '',
+            devEui: d['devEui'] as String?,
+          );
+        })
+        .toList();
+  }
 
   // Test-only accessors for private parsing methods
   static LivestockSummary livestockSummaryFromMapForTest(Map<String, dynamic> m) =>
