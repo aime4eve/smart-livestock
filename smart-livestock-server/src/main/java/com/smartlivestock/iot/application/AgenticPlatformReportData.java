@@ -25,6 +25,7 @@ public class AgenticPlatformReportData {
     private static final DateTimeFormatter[] TIME_FORMATS = {
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+            DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss"),
             DateTimeFormatter.ISO_INSTANT
     };
 
