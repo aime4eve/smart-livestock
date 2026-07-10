@@ -272,8 +272,9 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
             content: Text(l10n.deviceUnbindSuccess(device.name)),
           ));
       }
-      ref.invalidate(devicesControllerProvider);
-      ref.invalidate(dashboardControllerProvider);
+     ref.invalidate(devicesControllerProvider);
+     ref.invalidate(dashboardControllerProvider);
+      _loadInstallations();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -324,11 +325,12 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
                 ));
             }
           }
-          ref.invalidate(devicesControllerProvider);
-          ref.invalidate(dashboardControllerProvider);
-        },
-      ),
-    );
+         ref.invalidate(devicesControllerProvider);
+         ref.invalidate(dashboardControllerProvider);
+         _loadInstallations();
+       },
+     ),
+   );
   }
 }
 
@@ -678,9 +680,9 @@ class _DeviceHealthDialogState extends State<DeviceHealthDialog> {
   }
 
   Future<void> _load() async {
-    try {
-      final health = await ApiClient.instance.farmGet('devices/${widget.device.id}/health');
-      final d = health['data'];
+   try {
+    final health = await ApiClient.instance.farmGet('/devices/${widget.device.id}/health');
+     final d = health['data'];
       if (d is Map) _healthData = d.cast<String, dynamic>();
     } catch (_) {}
     if (mounted) setState(() => _loading = false);

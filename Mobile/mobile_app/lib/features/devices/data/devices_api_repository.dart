@@ -187,7 +187,7 @@ class DevicesApiRepository implements DevicesRepository {
 
  @override
  Future<Map<String, dynamic>> loadDeviceHealth(String deviceId) async {
-   return await ApiClient.instance.farmGet('devices/$deviceId/health');
+  return await ApiClient.instance.farmGet('/devices/$deviceId/health');
  }
 
   static int? _parseNullableInt(dynamic v) {
