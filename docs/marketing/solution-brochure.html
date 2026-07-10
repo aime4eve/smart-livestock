@@ -261,6 +261,17 @@
     .arch-layer-items {
       display: flex; flex-wrap: wrap; gap: var(--space-sm);
     }
+    .arch-infra-rows { flex: 1; display: flex; flex-direction: column; gap: var(--space-sm); }
+    .arch-infra-row {
+      font-size: 0.85rem; color: var(--color-text-secondary);
+      padding: var(--space-xs) 0;
+    }
+    .arch-infra-cat {
+      display: inline-block; font-weight: 700; color: var(--color-primary);
+      background: var(--color-primary-soft); padding: 0.15rem 0.6rem;
+      border-radius: 4px; margin-right: var(--space-sm); font-size: 0.8rem;
+      min-width: 70px; text-align: center;
+    }
     .arch-layer-items span {
       background: var(--color-primary-soft); color: var(--color-primary);
       padding: 0.25rem 0.75rem; border-radius: 6px;
@@ -622,13 +633,19 @@
       <div class="arch-arrow" data-i18n="arch.arrow.infra">▼ 基础设施 + AI 平台 ▼</div>
       <div class="arch-layer arch-layer-infra">
         <span class="arch-layer-label" data-i18n="arch.layer.infra">基础设施</span>
-        <div class="arch-layer-items">
-          <span>PostgreSQL 16</span>
-          <span>Redis 7</span>
-          <span>RocketMQ 5.1</span>
-          <span>Docker Compose</span>
-          <span>AI Platform</span>
-          <span>tileserver-gl</span>
+        <div class="arch-infra-rows">
+          <div class="arch-infra-row">
+            <span class="arch-infra-cat" data-i18n="arch.infra.hw">硬件</span>
+            <span>LoRaWAN 网关</span> · <span>GPS 追踪器</span> · <span>瘤胃胶囊</span> · <span>智能耳标</span>
+          </div>
+          <div class="arch-infra-row">
+            <span class="arch-infra-cat" data-i18n="arch.infra.sw">软件平台</span>
+            <span data-i18n="arch.infra.sw.items">SaaS · 混合云</span>
+          </div>
+          <div class="arch-infra-row">
+            <span class="arch-infra-cat" data-i18n="arch.infra.ai">AI 算力</span>
+            <span data-i18n="arch.infra.ai.items">深度学习 · 边缘计算</span>
+          </div>
         </div>
       </div>
     </div>
@@ -933,6 +950,11 @@
         'arch.layer.api': 'API 层',
         'arch.layer.contexts': '业务领域（9 个）',
         'arch.layer.infra': '基础设施',
+        'arch.infra.hw': '硬件',
+        'arch.infra.sw': '软件平台',
+        'arch.infra.ai': 'AI 算力',
+        'arch.infra.sw.items': 'SaaS · 混合云',
+        'arch.infra.ai.items': '深度学习 · 边缘计算',
         'arch.ctx.id': '身份租户',
         'arch.ctx.ranch': '牧场围栏',
         'arch.ctx.iot': '设备遥测',
@@ -1113,6 +1135,11 @@
         'arch.layer.api': 'API Layer',
         'arch.layer.contexts': 'Business Domains (9)',
         'arch.layer.infra': 'Infrastructure',
+        'arch.infra.hw': 'Hardware',
+        'arch.infra.sw': 'Software',
+        'arch.infra.ai': 'AI Compute',
+        'arch.infra.sw.items': 'SaaS · Hybrid Cloud',
+        'arch.infra.ai.items': 'Deep Learning · Edge Computing',
         'arch.ctx.id': 'Identity',
         'arch.ctx.ranch': 'Ranch & Fence',
         'arch.ctx.iot': 'IoT & Telemetry',
