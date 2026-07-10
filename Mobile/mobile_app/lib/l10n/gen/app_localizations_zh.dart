@@ -1460,6 +1460,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get deviceInstallTo => '安装到牲畜';
 
   @override
+  String get deviceActivate => '激活';
+
+  @override
+  String deviceActivateSuccess(String name) {
+    return '激活成功：$name';
+  }
+
+  @override
+  String deviceActivateFailed(String error) {
+    return '激活失败: $error';
+  }
+
+  @override
   String get deviceUnbind => '解绑';
 
   @override

@@ -6,17 +6,19 @@ import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class HighfiDeviceTile extends StatelessWidget {
   const HighfiDeviceTile({
-    super.key,
-    required this.device,
-    this.onUnbind,
-    this.onViewLocation,
-    this.onInstall,
-  });
+   super.key,
+   required this.device,
+   this.onUnbind,
+   this.onViewLocation,
+   this.onActivate,
+   this.onInstall,
+ });
 
-  final DeviceItem device;
-  final VoidCallback? onUnbind;
-  final VoidCallback? onViewLocation;
-  final VoidCallback? onInstall;
+ final DeviceItem device;
+ final VoidCallback? onUnbind;
+ final VoidCallback? onViewLocation;
+  final VoidCallback? onActivate;
+ final VoidCallback? onInstall;
 
   @override
   Widget build(BuildContext context) {
@@ -88,8 +90,14 @@ class HighfiDeviceTile extends StatelessWidget {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: [
-                    if (onInstall != null)
+                 children: [
+                   if (onActivate != null)
+                     TextButton(
+                       key: Key('device-activate-${device.id}'),
+                       onPressed: onActivate,
+                       child: Text(l10n.deviceActivate),
+                     ),
+                   if (onInstall != null)
                       TextButton(
                         key: Key('device-install-${device.id}'),
                         onPressed: onInstall,

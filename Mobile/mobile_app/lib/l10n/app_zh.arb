@@ -1267,10 +1267,28 @@
   },
   "tenantDeleteReasonRequired": "请输入删除原因",
   "@tenantDeleteReasonRequired": {},
-  "deviceInstallTo": "安装到牲畜",
-  "@deviceInstallTo": {},
-  "deviceUnbind": "解绑",
-  "@deviceUnbind": {},
+ "deviceInstallTo": "安装到牲畜",
+ "@deviceInstallTo": {},
+  "deviceActivate": "激活",
+  "@deviceActivate": {},
+  "deviceActivateSuccess": "激活成功：{name}",
+  "@deviceActivateSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceActivateFailed": "激活失败: {error}",
+  "@deviceActivateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+ "deviceUnbind": "解绑",
+ "@deviceUnbind": {},
   "deviceViewLocation": "查看位置",
   "@deviceViewLocation": {},
   "offlineTileNoRegions": "暂无可用离线地图",

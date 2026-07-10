@@ -1267,10 +1267,28 @@
   },
   "tenantDeleteReasonRequired": "Please enter a deletion reason",
   "@tenantDeleteReasonRequired": {},
-  "deviceInstallTo": "Install to Livestock",
-  "@deviceInstallTo": {},
-  "deviceUnbind": "Unbind",
-  "@deviceUnbind": {},
+ "deviceInstallTo": "Install to Livestock",
+ "@deviceInstallTo": {},
+  "deviceActivate": "Activate",
+  "@deviceActivate": {},
+  "deviceActivateSuccess": "Activated successfully: {name}",
+  "@deviceActivateSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceActivateFailed": "Activation failed: {error}",
+  "@deviceActivateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+ "deviceUnbind": "Unbind",
+ "@deviceUnbind": {},
   "deviceViewLocation": "View Location",
   "@deviceViewLocation": {},
   "offlineTileNoRegions": "No offline maps available",

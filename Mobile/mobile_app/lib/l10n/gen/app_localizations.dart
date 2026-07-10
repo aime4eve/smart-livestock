@@ -2740,6 +2740,24 @@ abstract class AppLocalizations {
   /// **'安装到牲畜'**
   String get deviceInstallTo;
 
+  /// No description provided for @deviceActivate.
+  ///
+  /// In zh, this message translates to:
+  /// **'激活'**
+  String get deviceActivate;
+
+  /// No description provided for @deviceActivateSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'激活成功：{name}'**
+  String deviceActivateSuccess(String name);
+
+  /// No description provided for @deviceActivateFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'激活失败: {error}'**
+  String deviceActivateFailed(String error);
+
   /// No description provided for @deviceUnbind.
   ///
   /// In zh, this message translates to:

@@ -140,9 +140,15 @@ class DevicesApiRepository implements DevicesRepository {
        rssi: _parseNullableInt(m['rssi']),
        snr: m['snr']?.toString(),
        lastGateway: m['lastGateway'] as String?,
-       antiDisassemblyStatus: _parseNullableInt(m['antiDisassemblyStatus']),
-       lastTelemetrySyncedAt: m['lastTelemetrySyncedAt'] as String?,
-     );
+      antiDisassemblyStatus: _parseNullableInt(m['antiDisassemblyStatus']),
+      lastTelemetrySyncedAt: m['lastTelemetrySyncedAt'] as String?,
+      devEui: m['devEui'] as String?,
+      runtimeStatus: m['runtimeStatus'] as String?,
+      softwareVersion: m['softwareVersion'] as String?,
+      hardwareVersion: m['hardwareVersion'] as String?,
+      deviceTypeName: m['deviceTypeName'] as String?,
+      lifecycleStatus: m['status'] as String?,
+    );
     } catch (_) {
       return null;
     }

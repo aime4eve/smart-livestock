@@ -191,9 +191,12 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
                              _DeviceWithBinding(
                                device: device,
                                boundLivestockCode: _deviceIdToLivestockCode[device.id] ?? '',
-                              onInstall: _deviceIdToLivestockCode.containsKey(device.id)
-                                  ? null
-                                  : () => _showInstallDialog(context, ref, device),
+                              onActivate: !device.isActivated
+                                  ? () => _activateDevice(context, ref, device)
+                                  : null,
+                              onInstall: device.isActivated && !_deviceIdToLivestockCode.containsKey(device.id)
+                                  ? () => _showInstallDialog(context, ref, device)
+                                  : null,
                               onUnbind: _deviceIdToInstallationId.containsKey(device.id)
                                   ? () => _showUnbindDialog(context, ref, device)
                                   : null,
@@ -235,7 +238,33 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
           ),
         ],
       ),
-    );
+   );
+ }
+
+  Future<void> _activateDevice(
+      BuildContext context, WidgetRef ref, DeviceItem device) async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      await ApiClient.instance.farmPut('/devices/${device.id}/activate');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(
+            content: Text(l10n.deviceActivateSuccess(device.name)),
+          ));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(
+            content: Text(l10n.deviceActivateFailed(e.toString())),
+          ));
+      }
+    }
+    await _loadInstallations();
+    ref.invalidate(devicesControllerProvider);
+    ref.invalidate(dashboardControllerProvider);
   }
 
   Future<void> _showUnbindDialog(
@@ -307,19 +336,10 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
             return;
           }
           try {
-            try {
-              await ApiClient.instance.farmPost('/installations', body: {
-                'deviceId': device.id,
-                'livestockId': livestockId,
-              });
-            } catch (_) {
-              // Device may be INVENTORY/OFFLINE — auto-activate then retry.
-              await ApiClient.instance.farmPut('/devices/${device.id}/activate');
-              await ApiClient.instance.farmPost('/installations', body: {
-                'deviceId': device.id,
-                'livestockId': livestockId,
-              });
-            }
+            await ApiClient.instance.farmPost('/installations', body: {
+              'deviceId': device.id,
+              'livestockId': livestockId,
+            });
             if (context.mounted) {
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
@@ -520,6 +540,7 @@ class _DeviceWithBinding extends StatelessWidget {
   const _DeviceWithBinding({
     required this.device,
     required this.boundLivestockCode,
+    this.onActivate,
     this.onInstall,
     this.onUnbind,
     this.onViewLocation,
@@ -527,6 +548,7 @@ class _DeviceWithBinding extends StatelessWidget {
 
   final DeviceItem device;
   final String boundLivestockCode;
+  final VoidCallback? onActivate;
   final VoidCallback? onInstall;
   final VoidCallback? onUnbind;
   final VoidCallback? onViewLocation;
@@ -540,6 +562,7 @@ class _DeviceWithBinding extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: HighfiDeviceTile(
         device: effective,
+        onActivate: onActivate,
         onInstall: onInstall,
         onUnbind: onUnbind,
         onViewLocation: onViewLocation,

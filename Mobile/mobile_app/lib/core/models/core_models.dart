@@ -150,12 +150,13 @@ class DeviceItem {
     this.lastGateway,
     this.antiDisassemblyStatus,
     this.lastTelemetrySyncedAt,
-    this.devEui,
-    this.runtimeStatus,
-    this.softwareVersion,
-    this.hardwareVersion,
-    this.deviceTypeName,
-  });
+   this.devEui,
+   this.runtimeStatus,
+   this.softwareVersion,
+   this.hardwareVersion,
+   this.deviceTypeName,
+   this.lifecycleStatus,
+ });
 
   final String id;
   final String name;
@@ -173,14 +174,16 @@ class DeviceItem {
   final String? lastTelemetrySyncedAt;
   final String? devEui;
   final String? runtimeStatus;
-  final String? softwareVersion;
-  final String? hardwareVersion;
-  final String? deviceTypeName;
+ final String? softwareVersion;
+ final String? hardwareVersion;
+ final String? deviceTypeName;
+ final String? lifecycleStatus;
 
-  bool get isPlatformRegistered => platformDeviceId != null;
-  bool get hasTamperAlert => antiDisassemblyStatus != null && antiDisassemblyStatus != 0;
+ bool get isPlatformRegistered => platformDeviceId != null;
+ bool get hasTamperAlert => antiDisassemblyStatus != null && antiDisassemblyStatus != 0;
+ bool get isActivated => lifecycleStatus == null || lifecycleStatus!.toUpperCase() == 'ACTIVE';
 
-  DeviceItem copyWith({
+ DeviceItem copyWith({
     String? boundLivestockCode,
     int? batteryPercent,
     int? rssi,
@@ -201,6 +204,12 @@ class DeviceItem {
       lastGateway: lastGateway,
       antiDisassemblyStatus: antiDisassemblyStatus,
       lastTelemetrySyncedAt: lastTelemetrySyncedAt,
+      devEui: devEui,
+      runtimeStatus: runtimeStatus,
+      softwareVersion: softwareVersion,
+      hardwareVersion: hardwareVersion,
+      deviceTypeName: deviceTypeName,
+      lifecycleStatus: lifecycleStatus,
     );
   }
 }

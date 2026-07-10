@@ -1487,6 +1487,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deviceInstallTo => 'Install to Livestock';
 
   @override
+  String get deviceActivate => 'Activate';
+
+  @override
+  String deviceActivateSuccess(String name) {
+    return 'Activated successfully: $name';
+  }
+
+  @override
+  String deviceActivateFailed(String error) {
+    return 'Activation failed: $error';
+  }
+
+  @override
   String get deviceUnbind => 'Unbind';
 
   @override
