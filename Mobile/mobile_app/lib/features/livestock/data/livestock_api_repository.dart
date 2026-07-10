@@ -78,9 +78,9 @@ class LivestockApiRepository implements LivestockRepository {
             .toList()
         : <String>[];
     return LivestockSummary(
-      id: id,
-    livestockCode: m['livestockCode'] as String? ?? '',
-      breed: Breed.fromString(m['breed'] as String?),
+     id: id,
+    livestockCode: m['livestockCode'] as String? ?? m['earTag'] as String? ?? '',
+     breed: Breed.fromString(m['breed'] as String?),
       health: health,
       fenceId: (m['fenceId'] ?? '').toString(),
       lat: (m['lastLatitude'] as num?)?.toDouble(),
