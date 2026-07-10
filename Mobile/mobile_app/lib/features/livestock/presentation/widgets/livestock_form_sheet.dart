@@ -28,7 +28,7 @@ class _LivestockFormSheetState extends ConsumerState<LivestockFormSheet> {
   @override
   void initState() {
     super.initState();
-    _codeCtrl = TextEditingController(text: widget.existing?.earTag ?? '');
+    _codeCtrl = TextEditingController(text: widget.existing?.livestockCode ?? '');
     _weightCtrl = TextEditingController();
     // Pre-fill fields from existing data when editing.
    final existing = widget.existing;

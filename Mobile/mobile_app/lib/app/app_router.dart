@@ -264,8 +264,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoute.livestockDetail.path,
             name: AppRoute.livestockDetail.routeName,
             builder: (context, state) {
-              final earTag = state.uri.pathSegments.last;
-              return LivestockDetailPage(earTag: earTag);
+              final livestockId = state.uri.pathSegments.last;
+              return LivestockDetailPage(livestockId: livestockId);
             },
           ),
          GoRoute(

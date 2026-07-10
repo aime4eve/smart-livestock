@@ -11,7 +11,9 @@ import java.util.Optional;
 public interface SpringDataInstallationRepository extends JpaRepository<InstallationJpaEntity, Long> {
     Optional<InstallationJpaEntity> findByDeviceIdAndRemovedAtIsNull(Long deviceId);
     List<InstallationJpaEntity> findByLivestockId(Long livestockId);
-    Optional<InstallationJpaEntity> findByLivestockIdAndRemovedAtIsNull(Long livestockId);
+   Optional<InstallationJpaEntity> findByLivestockIdAndRemovedAtIsNull(Long livestockId);
+    @org.springframework.data.jpa.repository.Query("SELECT i FROM InstallationJpaEntity i WHERE i.livestockId = :livestockId AND i.removedAt IS NULL")
+    List<InstallationJpaEntity> findAllActiveByLivestockId(@org.springframework.data.repository.query.Param("livestockId") Long livestockId);
     List<InstallationJpaEntity> findByRemovedAtIsNull();
     List<InstallationJpaEntity> findByLivestockIdIn(List<Long> livestockIds);
 

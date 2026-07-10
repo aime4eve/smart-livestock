@@ -2,11 +2,13 @@ package com.smartlivestock.ranch.application.dto;
 
 import com.smartlivestock.ranch.domain.model.Livestock;
 import com.smartlivestock.ranch.domain.port.HealthQueryPort;
+import com.smartlivestock.ranch.domain.port.dto.DeviceBrief;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
 public record LivestockDto(
         Long id,
@@ -22,8 +24,15 @@ public record LivestockDto(
         Instant lastPositionAt,
         BigDecimal bodyTemp,
         String activityLevel,
-        String ruminationFreq
+        String ruminationFreq,
+        List<DeviceBrief> devices
 ) {
+    public LivestockDto {
+        if (devices == null) {
+            devices = List.of();
+        }
+    }
+
     public static LivestockDto from(Livestock livestock) {
         return new LivestockDto(
                 livestock.getId(),
@@ -37,7 +46,8 @@ public record LivestockDto(
                 livestock.getLastLatitude(),
                 livestock.getLastLongitude(),
                 livestock.getLastPositionAt(),
-                null, null, null
+                null, null, null,
+                List.of()
         );
     }
 
@@ -73,7 +83,20 @@ public record LivestockDto(
                 livestock.getLastLatitude(),
                 livestock.getLastLongitude(),
                 livestock.getLastPositionAt(),
-                bodyTemp, activityLevel, ruminationFreq
+                bodyTemp, activityLevel, ruminationFreq,
+                List.of()
+        );
+    }
+
+    /**
+     * Create a copy of the given DTO with devices populated.
+     */
+    public LivestockDto withDevices(List<DeviceBrief> devices) {
+        return new LivestockDto(
+                id, farmId, livestockCode, breed, gender, birthDate, weight,
+                healthStatus, lastLatitude, lastLongitude, lastPositionAt,
+                bodyTemp, activityLevel, ruminationFreq,
+                devices != null ? devices : List.of()
         );
     }
 }

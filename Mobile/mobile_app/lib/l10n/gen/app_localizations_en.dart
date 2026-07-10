@@ -2503,4 +2503,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get installSuccess => 'Installed successfully';
+
+  @override
+  String get livestockNoDeviceBound => 'No device bound';
+
+  @override
+  String get livestockDeleteConfirmTitle => 'Confirm Delete?';
+
+  @override
+  String get livestockDeleteConfirmMsg => 'This action cannot be undone.';
+
+  @override
+  String livestockDeleteDeviceUnbind(String deviceName) {
+    return 'Device $deviceName will be unbound';
+  }
+
+  @override
+  String get livestockDeleteArchiveNote =>
+      'Health history and trajectory data will be archived';
+
+  @override
+  String get livestockDeleted => 'Deleted, devices unbound';
+
+  @override
+  String get livestockTrajectoryTitle => 'Movement Trajectory';
+
+  @override
+  String get livestockTrajectoryPoints => 'Points';
+
+  @override
+  String get livestockTrajectoryDistance => 'Distance';
+
+  @override
+  String get livestockTrajectoryRange => 'Range';
+
+  @override
+  String get livestockTrajectoryEmpty => 'No trajectory data';
+
+  @override
+  String get livestockTrajectoryNoGps => 'Please bind a GPS device first';
+
+  @override
+  String get livestockRange24h => '24h';
+
+  @override
+  String get livestockRange7d => '7d';
+
+  @override
+  String get livestockRange30d => '30d';
 }

@@ -46,6 +46,13 @@ public class JpaInstallationRepositoryImpl implements InstallationRepository {
     }
 
     @Override
+    public List<Installation> findAllActiveByLivestockId(Long livestockId) {
+        return springDataRepo.findAllActiveByLivestockId(livestockId).stream()
+                .map(InstallationMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public List<Installation> findAllActive() {
         return springDataRepo.findByRemovedAtIsNull().stream()
                 .map(InstallationMapper::toDomain)

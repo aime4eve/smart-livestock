@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.smartlivestock'
 
-def majorVersion = project.findProperty('majorVersion') ?: '0.2.2'
+def majorVersion = project.findProperty('majorVersion') ?: '0.3.1'
 def buildNumberFile = file('build.number')
 def buildNumber = buildNumberFile.exists() ? buildNumberFile.text.trim().toInteger() : 1
 version = "${majorVersion}-b${buildNumber}"

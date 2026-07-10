@@ -40,7 +40,7 @@ class _FakeLivestockRepository implements LivestockRepository {
 
   @override
   Future<LivestockDetail> loadDetail(String id) async => LivestockDetail(
-        earTag: 'SL-$id',
+        livestockCode: 'SL-$id',
         livestockId: id,
         breed: Breed.angus,
         ageMonths: 24,
@@ -68,7 +68,7 @@ class _FakeLivestockRepository implements LivestockRepository {
 
 LivestockSummary _makeSummary(String id) => LivestockSummary(
       id: id,
-      earTag: 'SL-$id',
+      livestockCode: 'SL-$id',
       breed: Breed.angus,
       health: LivestockHealth.healthy,
       fenceId: 'f1',
@@ -200,7 +200,7 @@ void main() {
     final state = container.read(livestockDetailControllerProvider('liv-42'));
     expect(state.value, isNotNull);
     expect(state.value!.livestockId, 'liv-42');
-    expect(state.value!.earTag, 'SL-liv-42');
+    expect(state.value!.livestockCode, 'SL-liv-42');
   });
 
   test('LivestockDetailController refresh reloads detail', () async {

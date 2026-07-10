@@ -146,13 +146,77 @@ class _LivestockListPageState extends ConsumerState<LivestockListPage> {
                                       horizontal: AppSpacing.md,
                                       vertical: AppSpacing.sm,
                                     ),
-                                    title: Text(item.earTag,
+                                    title: Text(item.livestockCode,
                                         style: Theme.of(context)
                                             .textTheme
                                             .titleMedium),
-                                    subtitle:
+                                   subtitle:
+                                        Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
                                         Text(item.breed.localizedLabel(l10n)),
-                                    trailing: Row(
+                                        if (item.deviceCodes.isNotEmpty)
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                top: 4),
+                                            child: Wrap(
+                                              spacing: 4,
+                                              runSpacing: 2,
+                                              children: [
+                                                for (final code
+                                                    in item.deviceCodes)
+                                                  Container(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 6,
+                                                        vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: AppColors
+                                                          .primarySoft,
+                                                      borderRadius:
+                                                          BorderRadius
+                                                              .circular(4),
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        const Icon(Icons
+                                                                .gps_fixed,
+                                                            size: 10),
+                                                        const SizedBox(
+                                                            width: 2),
+                                                        Text(code,
+                                                            style: Theme.of(
+                                                                    context)
+                                                                .textTheme
+                                                                .labelSmall),
+                                                      ],
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          )
+                                        else
+                                          Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 2),
+                                            child: Text(
+                                                l10n.livestockNoDeviceBound,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .labelSmall
+                                                    ?.copyWith(
+                                                        fontStyle:
+                                                            FontStyle.italic,
+                                                        color: AppColors
+                                                            .textSecondary)),
+                                          ),
+                                      ],
+                                    ),
+                                   trailing: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         HighfiStatusChip(

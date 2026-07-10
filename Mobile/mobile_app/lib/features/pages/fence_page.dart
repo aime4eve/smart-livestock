@@ -1017,7 +1017,7 @@ class _FencePageState extends ConsumerState<FencePage>
     if (fenceState.livestockPositions.isEmpty) return const [];
     final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
     return fenceState.livestockPositions.map((p) {
-      final label = p.earTag ?? p.livestockId ?? '';
+      final label = p.livestockCode ?? p.livestockId ?? '';
       return Marker(
         point: shouldTransform ? CoordTransform.wgs84ToGcj02(p.toLatLng()) : p.toLatLng(),
         width: 32,

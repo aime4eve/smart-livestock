@@ -18,7 +18,7 @@ void main() {
       expect(a.stage, 'active');
       expect(a.title, '越界告警');
       expect(a.livestockId, 'liv-1');
-      expect(a.earTag, 'liv-1');
+      expect(a.livestockCode, 'liv-1');
       expect(a.source, 'RULE');
     });
 
@@ -147,7 +147,7 @@ void main() {
         'livestockId': 42,
       });
       expect(a.livestockId, '42');
-      expect(a.earTag, '42');
+      expect(a.livestockCode, '42');
     });
 
     test('null livestockId defaults earTag to dash', () {
@@ -156,7 +156,7 @@ void main() {
         'severity': 'WARNING',
       });
       expect(a.livestockId, isNull);
-      expect(a.earTag, '-');
+      expect(a.livestockCode, '-');
     });
 
     test('custom source overrides default RULE', () {

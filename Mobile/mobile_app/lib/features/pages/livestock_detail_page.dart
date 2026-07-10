@@ -13,6 +13,9 @@ import 'package:hkt_livestock_agentic/features/fever_warning/presentation/fever_
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/livestock_controller.dart';
+import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/livestock_form_sheet.dart';
+import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
+import 'package:hkt_livestock_agentic/features/livestock/domain/livestock_repository.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/locked_overlay.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
@@ -22,14 +25,14 @@ import 'package:hkt_livestock_agentic/core/l10n/enum_labels.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/devices_controller.dart';
 
 class LivestockDetailPage extends ConsumerWidget {
-  const LivestockDetailPage({super.key, required this.earTag});
+  const LivestockDetailPage({super.key, required this.livestockId});
 
-  final String earTag;
+  final String livestockId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final asyncData = ref.watch(livestockDetailControllerProvider(earTag));
+    final asyncData = ref.watch(livestockDetailControllerProvider(livestockId));
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.livestockDetailTitle),
@@ -39,11 +42,28 @@ class LivestockDetailPage extends ConsumerWidget {
           if (context.canPop()) {
             context.pop();
           } else {
-            context.go(AppRoute.twin.path);
+            context.go(AppRoute.livestockList.path);
           }
         },
           icon: const Icon(Icons.arrow_back),
         ),
+        actions: [
+          IconButton(
+            key: const Key('livestock-detail-edit'),
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () => _showEditForm(context, ref),
+          ),
+          IconButton(
+            key: const Key('livestock-detail-delete'),
+            icon: const Icon(Icons.delete_outline, color: AppColors.danger),
+            onPressed: () {
+              final detail = asyncData.value;
+              if (detail != null) {
+                _showDeleteConfirm(context, ref, detail);
+              }
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         key: const Key('page-livestock-detail'),
@@ -73,7 +93,7 @@ class LivestockDetailPage extends ConsumerWidget {
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => ref
-                          .read(livestockDetailControllerProvider(earTag)
+                          .read(livestockDetailControllerProvider(livestockId)
                               .notifier)
                           .refresh(),
                       child: Text(l10n.commonRetry),
@@ -105,7 +125,7 @@ class _LivestockInfoCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                detail.earTag,
+                detail.livestockCode,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -244,7 +264,98 @@ void _showBindDeviceSheet(BuildContext context, WidgetRef ref, LivestockDetail d
     context: context,
     isScrollControlled: true,
     builder: (ctx) => _BindDeviceSheet(livestockId: detail.livestockId),
-  ).then((_) => ref.read(livestockDetailControllerProvider(detail.earTag).notifier).refresh());
+  ).then((_) => ref.read(livestockDetailControllerProvider(detail.livestockId).notifier).refresh());
+}
+
+void _showEditForm(BuildContext context, WidgetRef ref) {
+  final detail = ref.read(livestockDetailControllerProvider(
+          (context.widget as LivestockDetailPage).livestockId).notifier);
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (ctx) => const LivestockFormSheet(),
+  ).then((_) => ref
+      .read(livestockDetailControllerProvider(
+              (context.widget as LivestockDetailPage).livestockId)
+          .notifier)
+      .refresh());
+}
+
+void _showDeleteConfirm(
+    BuildContext context, WidgetRef ref, LivestockDetail detail) {
+  final l10n = AppLocalizations.of(context)!;
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      icon: Icon(Icons.warning_amber_rounded,
+          color: AppColors.warning, size: 48),
+      title: Text(l10n.livestockDeleteConfirmTitle),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.livestockDeleteConfirmMsg),
+          if (detail.devices.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            ...detail.devices.map((d) => Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Row(
+                    children: [
+                      Icon(Icons.link_off, size: 14, color: AppColors.warning),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          l10n.livestockDeleteDeviceUnbind(d.name),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+          ],
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Icon(Icons.archive_outlined, size: 14, color: AppColors.info),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  l10n.livestockDeleteArchiveNote,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: Text(l10n.commonCancel),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+          onPressed: () async {
+            Navigator.of(ctx).pop();
+            try {
+              await ref.read(livestockRepositoryProvider).delete(detail.livestockId);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.livestockDeleted)));
+                context.go(AppRoute.livestockList.path);
+              }
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${l10n.commonLoadFailed}: $e')));
+              }
+            }
+          },
+          child: Text(l10n.commonConfirm),
+        ),
+      ],
+    ),
+  );
 }
 
 class _BindDeviceSheet extends ConsumerStatefulWidget {
@@ -269,13 +380,26 @@ class _BindDeviceSheetState extends ConsumerState<_BindDeviceSheet> {
     try {
       final data = await ref.read(devicesRepositoryProvider).loadDevices(pageSize: 100);
       final installed = await ref.read(devicesRepositoryProvider).loadInstallations();
-      final installedDeviceIds = installed
-          .where((i) => i.livestockId == widget.livestockId && i.installedAt.isNotEmpty)
+      // Filter out ALL devices that are actively installed on ANY livestock
+      final allInstalledDeviceIds = installed
+          .where((i) => i.installedAt.isNotEmpty)
           .map((i) => i.deviceId)
           .toSet();
+      // Also get current livestock's bound device types for conflict check
+      final detailAsync = ref.read(livestockDetailControllerProvider(widget.livestockId));
+      final boundTypes = <DeviceType>{};
+      final detailVal = detailAsync.value;
+      if (detailVal != null) {
+        for (final d in detailVal.devices) {
+          boundTypes.add(d.type);
+        }
+      }
       if (mounted) {
         setState(() {
-          _devices = data.items.where((d) => !installedDeviceIds.contains(d.id)).toList();
+          _devices = data.items
+              .where((d) => !allInstalledDeviceIds.contains(d.id))
+              .where((d) => !boundTypes.contains(d.type))
+              .toList();
           _loading = false;
         });
       }
@@ -560,7 +684,7 @@ class _LocationCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           OutlinedButton.icon(
             key: const Key('livestock-view-track'),
-            onPressed: () => context.go(AppRoute.fence.path),
+            onPressed: () => showTrajectorySheet(context, detail.livestockId),
             icon: const Icon(Icons.map_outlined),
             label: Text(l10n.livestockViewTrajectory),
           ),

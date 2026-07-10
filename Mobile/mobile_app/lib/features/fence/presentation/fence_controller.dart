@@ -64,7 +64,7 @@ class FenceController extends FarmScopedNotifier<FenceState> {
             lng: lng,
             timestamp: m['lastPositionAt'] as String? ?? '',
             livestockId: (m['id'] is int ? m['id'].toString() : m['id']) as String?,
-            earTag: m['livestockCode'] as String?,
+            livestockCode: m['livestockCode'] as String?,
           ));
         }
       }

@@ -132,7 +132,7 @@ class DevicesApiRepository implements DevicesRepository {
        name: (m['deviceCode'] ?? m['name'] ?? '') as String,
        type: type,
        status: status,
-       boundEarTag: m['boundEarTag'] as String? ?? '',
+       boundLivestockCode: m['boundLivestockCode'] as String? ?? '',
        batteryPercent: (m['batteryLevel'] ?? m['batteryPercent']) as int?,
        signalStrength: m['signalStrength'] as String?,
        lastSync: (m['lastOnlineAt'] ?? m['lastSync']) as String?,

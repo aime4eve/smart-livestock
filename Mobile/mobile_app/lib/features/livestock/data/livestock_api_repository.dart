@@ -69,9 +69,17 @@ class LivestockApiRepository implements LivestockRepository {
             ? LivestockHealth.abnormal
             : LivestockHealth.healthy;
     final rawBirth = m['birthDate'] as String?;
+    final devicesRaw = m['devices'];
+    final deviceCodes = devicesRaw is List
+        ? devicesRaw
+            .whereType<Map<String, dynamic>>()
+            .map((d) => (d['deviceCode'] ?? d['devEui'] ?? '') as String)
+            .where((s) => s.isNotEmpty)
+            .toList()
+        : <String>[];
     return LivestockSummary(
       id: id,
-      earTag: (m['livestockCode'] ?? m['earTag'] ?? '') as String,
+    livestockCode: m['livestockCode'] as String? ?? '',
       breed: Breed.fromString(m['breed'] as String?),
       health: health,
       fenceId: (m['fenceId'] ?? '').toString(),
@@ -80,6 +88,7 @@ class LivestockApiRepository implements LivestockRepository {
       gender: m['gender'] as String?,
       birthDate: rawBirth != null ? DateTime.tryParse(rawBirth) : null,
       weight: (m['weight'] as num?)?.toDouble(),
+      deviceCodes: deviceCodes,
     );
   }
 
@@ -94,7 +103,7 @@ class LivestockApiRepository implements LivestockRepository {
             ? LivestockHealth.abnormal
             : LivestockHealth.healthy;
     return LivestockDetail(
-      earTag: (m['livestockCode'] ?? m['earTag'] ?? '') as String,
+      livestockCode: m['livestockCode'] as String? ?? '',
       livestockId: id,
       breed: Breed.fromString(m['breed'] as String?),
       ageMonths: _parseInt(m['ageMonths']) ?? 24,

@@ -131,7 +131,7 @@ class HighfiDeviceTile extends StatelessWidget {
 
  String get _subtitle {
    final parts = <String>[
-     device.boundEarTag,
+     device.boundLivestockCode,
      switch (device.status) {
        DeviceStatus.online => '在线',
        DeviceStatus.offline => '离线',

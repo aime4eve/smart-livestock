@@ -19,14 +19,14 @@ class GpsPoint {
     required this.lng,
     required this.timestamp,
     this.livestockId,
-    this.earTag,
+    this.livestockCode,
   });
 
   final double lat;
   final double lng;
   final String timestamp;
   final String? livestockId;
-  final String? earTag;
+  final String? livestockCode;
 
   LatLng toLatLng() => LatLng(lat, lng);
 }
@@ -69,7 +69,7 @@ class MapApiRepository {
       lng: (rawLng is num ? rawLng.toDouble() : 0.0),
       timestamp: (m['timestamp'] ?? '') as String,
       livestockId: m['livestockId'] as String?,
-      earTag: m['earTag'] as String?,
+      livestockCode: m['livestockCode'] as String?,
     );
   }
 }
