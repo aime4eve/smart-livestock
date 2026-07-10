@@ -106,4 +106,10 @@ class AlertsApiRepository implements AlertsRepository {
       description: m['message'] as String?,
     );
   }
+
+  // Test-only accessors for private parsing methods
+  static AlertItem alertItemFromMapForTest(Map<String, dynamic> m) =>
+      _alertItemFromMap(m);
+  static AlertDetail alertDetailFromMapForTest(Map<String, dynamic> m) =>
+      _alertDetailFromMap(m);
 }

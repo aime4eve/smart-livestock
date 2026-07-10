@@ -196,4 +196,14 @@ class DevicesApiRepository implements DevicesRepository {
     if (v is num) return v.toInt();
     return int.tryParse(v.toString());
   }
+
+  // Test-only accessors for private parsing methods
+  static DeviceItem? parseDeviceItemForTest(Map<String, dynamic> m) =>
+      _parseDeviceItem(m);
+  static DeviceLicense parseLicenseForTest(Map<String, dynamic> m) =>
+      _parseLicense(m);
+  static Installation parseInstallationForTest(Map<String, dynamic> m) =>
+      _parseInstallation(m);
+  static GpsPoint parseGpsPointForTest(Map<String, dynamic> m) =>
+      _parseGpsPoint(m);
 }

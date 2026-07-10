@@ -114,4 +114,10 @@ class LivestockApiRepository implements LivestockRepository {
 
   static double? _parseDouble(dynamic v) =>
       v is double ? v : v is num ? v.toDouble() : null;
+
+  // Test-only accessors for private parsing methods
+  static LivestockSummary livestockSummaryFromMapForTest(Map<String, dynamic> m) =>
+      _livestockSummaryFromMap(m);
+  static LivestockDetail livestockDetailFromMapForTest(Map<String, dynamic> m) =>
+      _livestockDetailFromMap(m);
 }
