@@ -2,9 +2,8 @@
 set -euo pipefail
 
 # Phase C PoC - Real blade integration verification script
-# Full data collection for two target CATTLE_TRACKER devices:
-#   2072879090955759616 (0095690600028ea6)
-#   2072879090955759618 (0095690600028600)
+# Reads device EUI list from scripts/devices.conf, auto-resolves deviceId.
+# To add a device: add one line (EUI) to devices.conf, no code changes needed.
 #
 # Usage:
 #   ./scripts/verify-blade-docking.sh
@@ -21,10 +20,35 @@ TENANT_ID="${TENANT_ID:-000000}"
 SERVICE_USER_ID="${SERVICE_USER_ID:-2074385063398711296}"
 DEVICE_TYPE_CODE="${DEVICE_TYPE_CODE:-CATTLE_TRACKER}"
 
-DEV1="2072879090955759616"
-DEV2="2072879090955759618"
-DEVICE_IDS_JSON='["2072879090955759616","2072879090955759618"]'
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DEVICES_FILE="${DEVICES_FILE:-${SCRIPT_DIR}/devices.conf}"
+
+# ---- Parse EUIs from devices.conf ----
+DEVICE_EUIS=()
+DEVICE_NOTES=()
+if [ ! -f "$DEVICES_FILE" ]; then
+  echo "ERROR: devices file not found: $DEVICES_FILE"
+  exit 1
+fi
+while IFS='|' read -r eui note || [ -n "$eui" ]; do
+  eui="${eui#"${eui%%[![:space:]]*}"}"  # trim leading whitespace
+  eui="${eui%"${eui##*[![:space:]]}"}"  # trim trailing whitespace
+  [[ "$eui" =~ ^[[:space:]]*# ]] && continue
+  [[ -z "$eui" ]] && continue
+  note="${note#"${note%%[![:space:]]*}"}"  # trim leading whitespace
+  note="${note%"${note##*[![:space:]]}"}"  # trim trailing whitespace
+  DEVICE_EUIS+=("$eui")
+  DEVICE_NOTES+=("${note:-}")
+done < "$DEVICES_FILE"
+
+if [ ${#DEVICE_EUIS[@]} -eq 0 ]; then
+  echo "ERROR: no devices in $DEVICES_FILE"
+  exit 1
+fi
+
+# deviceId resolved after token acquisition
+DEVICE_IDS=()
+DEVICE_IDS_JSON=""
 
 PASS=0
 FAIL=0
@@ -69,6 +93,12 @@ for svc in "auth:${AUTH_HOST}:${AUTH_PORT}" "device:${DEVICE_HOST}:${DEVICE_PORT
   [ "$code" = "200" ] && ok "blade-${name} (${host}:${port}) is UP" || fail "blade-${name} (${host}:${port}) is DOWN"
 done
 
+echo ""
+echo "  Devices in ${DEVICES_FILE##*/}: ${#DEVICE_EUIS[@]} total"
+for i in "${!DEVICE_EUIS[@]}"; do
+  echo "    ${DEVICE_EUIS[$i]} — ${DEVICE_NOTES[$i]}"
+done
+
 # ---- Step 1: OAuth2 token exchange ----
 step "Step 1: OAuth2 token exchange (grant_type=openapi)"
 TOKEN_RESP=$(get_token)
@@ -80,25 +110,60 @@ else
   exit 1
 fi
 
+# ---- Step 1.5: Resolve deviceIds from EUIs ----
+step "Step 1.5: Resolve deviceIds from EUIs"
+for i in "${!DEVICE_EUIS[@]}"; do
+  eui="${DEVICE_EUIS[$i]}"
+  RESP=$(blade_post "/feign/v1/device/lifecycle/pageDevices" \
+    "{\"keyword\":\"${eui}\",\"current\":1,\"size\":1}")
+  CODE=$(echo "$RESP" | jq -r '.code // 0')
+  TOTAL=$(echo "$RESP" | jq -r '.data.total // 0')
+  if [ "$CODE" = "200" ] && [ "$TOTAL" -gt 0 ] 2>/dev/null; then
+    DID=$(echo "$RESP" | jq -r '.data.records[0].deviceId')
+    DEVICE_IDS+=("$DID")
+    ok "${eui} -> deviceId=${DID}"
+  else
+    fail "${eui}: device not found on blade (code=${CODE})"
+    DEVICE_IDS+=("")
+  fi
+done
+
+# build JSON array for telemetry batch queries (only valid IDs)
+VALID_IDS=()
+for id in "${DEVICE_IDS[@]}"; do
+  [ -n "$id" ] && VALID_IDS+=("$id")
+done
+if [ ${#VALID_IDS[@]} -gt 0 ]; then
+  DEVICE_IDS_JSON=$(printf '"%s",' "${VALID_IDS[@]}" | sed 's/,$//')
+  DEVICE_IDS_JSON="[${DEVICE_IDS_JSON}]"
+fi
+
 # ---- Step 2: Device detail (ops metadata) ----
 step "Step 2: Device detail - ops metadata"
-for did in "$DEV1" "$DEV2"; do
+for i in "${!DEVICE_EUIS[@]}"; do
+  eui="${DEVICE_EUIS[$i]}"
+  did="${DEVICE_IDS[$i]}"
+  [ -z "$did" ] && continue
   RESP=$(blade_post "/feign/v1/device/lifecycle/getDeviceDetail" "{\"deviceId\":\"${did}\"}")
   CODE=$(echo "$RESP" | jq -r '.code // 0')
   if [ "$CODE" = "200" ]; then
-    ok "${did} ($(echo "$RESP" | jq -r '.data.deviceName')): online=$(echo "$RESP" | jq -r '.data.onlineStatus') RSSI=$(echo "$RESP" | jq -r '.data.rssi')dBm SNR=$(echo "$RESP" | jq -r '.data.snr') gateway=$(echo "$RESP" | jq -r '.data.lastGateway') lastActive=$(echo "$RESP" | jq -r '.data.lastActiveTime')"
+    ok "${did} (${eui}): online=$(echo "$RESP" | jq -r '.data.onlineStatus') RSSI=$(echo "$RESP" | jq -r '.data.rssi')dBm SNR=$(echo "$RESP" | jq -r '.data.snr') gateway=$(echo "$RESP" | jq -r '.data.lastGateway') lastActive=$(echo "$RESP" | jq -r '.data.lastActiveTime')"
   else
-    fail "${did}: $(echo "$RESP" | jq -r '.msg // "error"')"
+    fail "${did} (${eui}): $(echo "$RESP" | jq -r '.msg // "error"')"
   fi
 done
 
 # ---- Step 3: Device + telemetry snapshot ----
 step "Step 3: Device + telemetry snapshot"
-for did in "$DEV1" "$DEV2"; do
+for i in "${!DEVICE_EUIS[@]}"; do
+  eui="${DEVICE_EUIS[$i]}"
+  did="${DEVICE_IDS[$i]}"
+  [ -z "$did" ] && continue
   RESP=$(blade_get "/feign/v1/device/lifecycle/getDeviceDetailWithTelemetry?deviceId=${did}")
+  CODE=$(echo "$RESP" | jq -r '.code // 0')
   PROP_COUNT=$(echo "$RESP" | jq -r '.data.telemetryProperties | length' 2>/dev/null || echo "0")
-  if [ "$PROP_COUNT" -gt 0 ] 2>/dev/null; then
-    ok "${did}: ${PROP_COUNT} telemetry properties"
+  if [ "$CODE" = "200" ] && [ "$PROP_COUNT" -gt 0 ] 2>/dev/null; then
+    ok "${did} (${eui}): ${PROP_COUNT} telemetry properties"
     echo "    --- Ops ---"
     echo "$RESP" | jq -r '.data.telemetryProperties[] | select(.identifier=="battery") | "    battery = \(.value)\(.specs.unit // "")"' 2>/dev/null || true
     echo "    --- Feature ---"
@@ -124,19 +189,22 @@ if props:
     print(f"    X={gx:>8.4f}g  Y={gy:>8.4f}g  Z={gz:>8.4f}g  |mag|={mag:.4f}g ({act})")
     print(f"    roll={roll:>6.1f} deg  pitch={pitch:>6.1f} deg  motion_intensity={mi:.4f}g")
 ' 2>/dev/null || true
+  elif [ "$CODE" = "200" ]; then
+    warn "${did} (${eui}): device registered but no telemetry data yet"
   else
-    fail "${did}: no telemetry properties"
+    fail "${did} (${eui}): telemetry query failed: $(echo "$RESP" | jq -r '.msg // "error"')"
   fi
 done
 
 # ---- Step 4: Latest telemetry ----
 step "Step 4: Latest telemetry"
-LATEST_RESP=$(blade_post "/feign/v1/device/telemetry/history/latest" \
-  "{\"deviceIds\":${DEVICE_IDS_JSON},\"deviceTypeCode\":\"${DEVICE_TYPE_CODE}\"}")
-LATEST_COUNT=$(echo "$LATEST_RESP" | jq -r '.data | length' 2>/dev/null || echo "0")
-if [ "$LATEST_COUNT" -gt 0 ] 2>/dev/null; then
-  ok "Latest telemetry for ${LATEST_COUNT} devices"
-  echo "$LATEST_RESP" | python3 -c '
+if [ -n "$DEVICE_IDS_JSON" ]; then
+  LATEST_RESP=$(blade_post "/feign/v1/device/telemetry/history/latest" \
+    "{\"deviceIds\":${DEVICE_IDS_JSON},\"deviceTypeCode\":\"${DEVICE_TYPE_CODE}\"}")
+  LATEST_COUNT=$(echo "$LATEST_RESP" | jq -r '.data | length' 2>/dev/null || echo "0")
+  if [ "$LATEST_COUNT" -gt 0 ] 2>/dev/null; then
+    ok "Latest telemetry for ${LATEST_COUNT} devices"
+    echo "$LATEST_RESP" | python3 -c '
 import sys, json, math
 d = json.load(sys.stdin)
 def to_g(v):
@@ -155,17 +223,23 @@ for item in d["data"]:
     act = "rest" if mag < 1.15 else "light" if mag < 1.5 else "active" if mag < 2.5 else "intense"
     print(f"    battery={tj.get(\"lastRow(battery)\",\"?\")} lat={tj.get(\"lastRow(latitude)\",\"?\")} lon={tj.get(\"lastRow(longitude)\",\"?\")} steps={tj.get(\"lastRow(stepNumber)\",\"?\")} | X={gx:.3f}g Y={gy:.3f}g Z={gz:.3f}g |mag|={mag:.3f}g ({act}) ts={tj.get(\"lastRow(ts)\",\"?\")}")
 ' 2>/dev/null || true
+  else
+    warn "Latest telemetry returned empty (devices may not have reported yet)"
+  fi
 else
-  warn "Latest telemetry returned empty"
+  warn "No valid deviceIds to query telemetry"
 fi
 
 # ---- Step 5: Device uplink history summary ----
 step "Step 5: Device uplink history (latest 10 records)"
-for did in "$DEV1" "$DEV2"; do
+for i in "${!DEVICE_EUIS[@]}"; do
+  eui="${DEVICE_EUIS[$i]}"
+  did="${DEVICE_IDS[$i]}"
+  [ -z "$did" ] && continue
   RESP=$(blade_get "/device/report-record/page?deviceId=${did}&current=1&size=10")
   TOTAL=$(echo "$RESP" | jq -r '.data.total // 0')
   if [ "$TOTAL" -gt 0 ] 2>/dev/null; then
-    ok "${did}: ${TOTAL} uplink records total"
+    ok "${did} (${eui}): ${TOTAL} uplink records total"
     echo "$RESP" | python3 -c '
 import sys, json, math
 d = json.load(sys.stdin)
@@ -182,32 +256,40 @@ for r in d["data"]["records"]:
     print(f"    {ts}: battery={dd.get(\"battery\",\"?\")} rssi={r[\"rssi\"]} snr={r[\"snr\"]} | lat={dd.get(\"latitude\",\"?\")} lon={dd.get(\"longitude\",\"?\")} steps={dd.get(\"stepNumber\",\"?\")} | X={gx:.3f}g Y={gy:.3f}g Z={gz:.3f}g |mag|={mag:.3f}g ({act})")
 ' 2>/dev/null || true
   else
-    fail "${did}: report-record query failed"
+    warn "${did} (${eui}): no uplink records yet (device may not have reported)"
   fi
 done
 
 # ---- Step 6: GPS + steps + accel time-sorted table ----
 step "Step 6: GPS + steps + accel history (all records, time-sorted, g values)"
-for did in "$DEV1" "$DEV2"; do
+for i in "${!DEVICE_EUIS[@]}"; do
+  eui="${DEVICE_EUIS[$i]}"
+  did="${DEVICE_IDS[$i]}"
+  [ -z "$did" ] && continue
   OUTPUT=$(python3 "${SCRIPT_DIR}/report-history-table.py" \
     "${did}" "${DEVICE_HOST}" "${DEVICE_PORT}" "${TOKEN}" "${TENANT_ID}" 2>&1)
   RECORD_COUNT=$(echo "$OUTPUT" | head -1 | grep -o 'Total records: [0-9]*' | grep -o '[0-9]*' || echo "0")
   if [ "$RECORD_COUNT" -gt 0 ] 2>/dev/null; then
-    ok "${did}: ${RECORD_COUNT} records in table"
+    ok "${did} (${eui}): ${RECORD_COUNT} records in table"
     echo "$OUTPUT"
   else
-    fail "${did}: no records for table"
+    warn "${did} (${eui}): no records for table"
   fi
 done
 
 # ---- Step 7: Thing model ----
 step "Step 7: Thing model (device/type/findById)"
-TYPE_ID=$(blade_post "/feign/v1/device/lifecycle/getDeviceDetail" "{\"deviceId\":\"${DEV1}\"}" | jq -r '.data.deviceTypeId')
-MODEL_RESP=$(blade_get "/feign/v1/device/type/findById?id=${TYPE_ID}")
-MODEL_CODE=$(echo "$MODEL_RESP" | jq -r '.code')
-if [ "$MODEL_CODE" = "200" ]; then
-  ok "Thing model for ${DEVICE_TYPE_CODE} (typeId=${TYPE_ID})"
-  echo "$MODEL_RESP" | python3 -c '
+FIRST_VALID_ID=""
+for id in "${DEVICE_IDS[@]}"; do
+  [ -n "$id" ] && FIRST_VALID_ID="$id" && break
+done
+if [ -n "$FIRST_VALID_ID" ]; then
+  TYPE_ID=$(blade_post "/feign/v1/device/lifecycle/getDeviceDetail" "{\"deviceId\":\"${FIRST_VALID_ID}\"}" | jq -r '.data.deviceTypeId')
+  MODEL_RESP=$(blade_get "/feign/v1/device/type/findById?id=${TYPE_ID}")
+  MODEL_CODE=$(echo "$MODEL_RESP" | jq -r '.code')
+  if [ "$MODEL_CODE" = "200" ]; then
+    ok "Thing model for ${DEVICE_TYPE_CODE} (typeId=${TYPE_ID})"
+    echo "$MODEL_RESP" | python3 -c '
 import sys,json
 d=json.load(sys.stdin)
 props_raw=d["data"]["deviceThingModel"]["properties"]
@@ -218,8 +300,11 @@ for p in props:
     dt=p.get("dataType",{}).get("type","?") if isinstance(p.get("dataType"),dict) else p.get("dataType","?")
     print(f"      {ident:45s} {name:45s} {dt}")
 ' 2>/dev/null || true
+  else
+    warn "Thing model query returned code=${MODEL_CODE}"
+  fi
 else
-  warn "Thing model query returned code=${MODEL_CODE}"
+  warn "No valid deviceId to query thing model"
 fi
 
 # ---- Summary ----
