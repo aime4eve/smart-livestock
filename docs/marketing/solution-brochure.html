@@ -241,106 +241,77 @@
     .adv-cross { color: #ccc; }
     .adv-partial { color: var(--color-warning); }
     .adv-note { font-size: 0.85rem; color: var(--color-text-secondary); margin-top: var(--space-md); text-align: center; }
-    /* === Architecture === */
+    /* === Architecture Diagram === */
     .architecture { background: var(--color-surface); }
-
-    /* Design Principles */
-    .arch-principles {
-      display: grid; grid-template-columns: repeat(2, 1fr);
-      gap: var(--space-lg); max-width: var(--max-width);
-      margin: 0 auto var(--space-xxl); padding: 0 var(--space-lg);
+    .arch-diagram-wrap {
+      max-width: 900px; margin: 0 auto var(--space-xxl);
+      padding: 0 var(--space-lg);
     }
-    .arch-principle {
+    .arch-layer {
       background: var(--color-white); border-radius: var(--border-radius);
       padding: var(--space-lg) var(--space-xl); box-shadow: var(--shadow-sm);
+      display: flex; align-items: flex-start; gap: var(--space-lg);
       border-left: 4px solid var(--color-primary);
     }
-    .arch-principle-num {
+    .arch-layer-label {
       font-size: 0.8rem; font-weight: 700; color: var(--color-accent);
-      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: var(--space-xs);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      white-space: nowrap; min-width: 80px; padding-top: 2px;
     }
-    .arch-principle h4 { font-size: 1.05rem; color: var(--color-text-primary); margin-bottom: var(--space-sm); }
-    .arch-principle p { font-size: 0.9rem; color: var(--color-text-secondary); line-height: 1.7; }
-
-    /* Context Overview Table */
-    .arch-table-wrap {
-      max-width: var(--max-width); margin: 0 auto var(--space-xxl);
-      padding: 0 var(--space-lg); overflow-x: auto;
+    .arch-layer-items {
+      display: flex; flex-wrap: wrap; gap: var(--space-sm);
     }
-    .arch-table {
-      width: 100%; border-collapse: collapse; font-size: 0.9rem;
-      background: var(--color-white); border-radius: var(--border-radius);
-      overflow: hidden; box-shadow: var(--shadow-sm);
-    }
-    .arch-table thead { background: var(--color-primary); color: var(--color-white); }
-    .arch-table thead th {
-      padding: var(--space-md) var(--space-lg); text-align: left; font-weight: 600;
-      font-size: 0.9rem;
-    }
-    .arch-table thead th:first-child { width: 18%; }
-    .arch-table thead th:nth-child(2) { width: 22%; }
-    .arch-table tbody td {
-      padding: var(--space-sm) var(--space-lg); border-bottom: 1px solid var(--color-border);
-      vertical-align: top;
-    }
-    .arch-table tbody tr:hover { background: var(--color-primary-soft); }
-    .arch-table tbody td:first-child { font-weight: 600; color: var(--color-primary); }
-    .arch-table tbody td:nth-child(2) { color: var(--color-text-secondary); font-size: 0.85rem; }
-    .arch-table tbody td:nth-child(3) { color: var(--color-text-secondary); font-size: 0.85rem; line-height: 1.6; }
-
-    /* Stats + Tags Row */
-    .arch-bottom {
-      display: grid; grid-template-columns: 300px 1fr;
-      gap: var(--space-xxl); max-width: var(--max-width);
-      margin: 0 auto; padding: 0 var(--space-lg); align-items: start;
-    }
-    .arch-stats {
-      background: var(--color-white); border-radius: var(--border-radius);
-      padding: var(--space-xl); box-shadow: var(--shadow-sm);
-    }
-    .arch-stats h3 { font-size: 1rem; color: var(--color-text-primary); margin-bottom: var(--space-md); }
-    .arch-stat-item {
-      display: flex; justify-content: space-between; align-items: baseline;
-      padding: var(--space-sm) 0; border-bottom: 1px solid var(--color-border);
-    }
-    .arch-stat-item:last-child { border-bottom: none; }
-    .arch-stat-value { font-size: 1.5rem; font-weight: 900; color: var(--color-primary); }
-    .arch-stat-label { font-size: 0.9rem; color: var(--color-text-secondary); }
-    .arch-tech-block {
-      background: var(--color-white); border-radius: var(--border-radius);
-      padding: var(--space-xl); box-shadow: var(--shadow-sm);
-    }
-    .arch-tech-block h3 { font-size: 1rem; color: var(--color-text-primary); margin-bottom: var(--space-md); }
-    .arch-tech-tags { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-lg); }
-    .arch-tag {
+    .arch-layer-items span {
       background: var(--color-primary-soft); color: var(--color-primary);
-      padding: 0.3rem 0.8rem; border-radius: 20px;
+      padding: 0.25rem 0.75rem; border-radius: 6px;
       font-size: 0.85rem; font-weight: 500;
     }
+    .arch-ctx-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-sm); flex: 1;
+    }
+    .arch-ctx-grid > span {
+      background: var(--color-primary-soft); border-radius: 6px;
+      padding: var(--space-sm); text-align: center;
+      font-size: 0.8rem; font-weight: 600; color: var(--color-primary);
+    }
+    .arch-ctx-grid > span span {
+      display: block; font-size: 0.7rem; font-weight: 400;
+      color: var(--color-text-secondary); margin-top: 2px;
+    }
+    .arch-arrow {
+      text-align: center; padding: var(--space-sm) 0;
+      font-size: 0.8rem; color: var(--color-accent); font-weight: 600;
+      letter-spacing: 1px;
+    }
 
-    /* Expandable Detail */
-    .arch-expand { text-align: right; }
-    .arch-expand-btn {
-      background: none; border: 1px solid var(--color-border); border-radius: 8px;
-      padding: 0.5rem 1.2rem; font-size: 0.85rem; color: var(--color-text-secondary);
-      cursor: pointer; font-family: inherit;
+    /* === Technical Highlights === */
+    .arch-highlights {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-lg); max-width: var(--max-width);
+      margin: 0 auto; padding: 0 var(--space-lg);
     }
-    .arch-expand-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
-    .arch-detail { display: none; margin-top: var(--space-md); }
-    .arch-detail.open { display: block; }
-    .arch-detail table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    .arch-detail th, .arch-detail td {
-      text-align: left; padding: var(--space-sm) var(--space-md);
-      border-bottom: 1px solid var(--color-border);
+    .arch-hl-item {
+      background: var(--color-white); border-radius: var(--border-radius);
+      padding: var(--space-lg); box-shadow: var(--shadow-sm);
+      border-top: 3px solid var(--color-accent);
     }
-    .arch-detail th { color: var(--color-primary); font-weight: 600; background: var(--color-surface); }
+    .arch-hl-item strong {
+      display: block; font-size: 1rem; color: var(--color-text-primary);
+      margin-bottom: var(--space-sm);
+    }
+    .arch-hl-item span {
+      font-size: 0.85rem; color: var(--color-text-secondary); line-height: 1.7;
+    }
 
     @media (max-width: 1024px) {
-      .arch-bottom { grid-template-columns: 1fr; }
-      .arch-principles { grid-template-columns: 1fr; }
+      .arch-highlights { grid-template-columns: repeat(2, 1fr); }
+      .arch-ctx-grid { grid-template-columns: repeat(3, 1fr); }
     }
     @media (max-width: 640px) {
-      .arch-table { font-size: 0.8rem; }
+      .arch-highlights { grid-template-columns: 1fr; }
+      .arch-layer { flex-direction: column; gap: var(--space-sm); }
+      .arch-ctx-grid { grid-template-columns: repeat(2, 1fr); }
     }
     /* === Pricing === */
     .pricing { background: var(--color-primary-soft); }
@@ -586,123 +557,84 @@
   <!-- SECTION: architecture -->
   <section class="section architecture">
     <h2 class="section-title">企业级技术架构</h2>
-    <p class="section-subtitle">DDD 领域驱动 + 事件驱动 + 多租户 SaaS，支撑规模化运营</p>
+    <p class="section-subtitle">DDD 领域驱动 + 事件驱动 + AI 原生，支撑规模化运营</p>
 
-    <!-- ① 架构设计原则 -->
-    <div class="arch-principles">
-      <div class="arch-principle reveal">
-        <div class="arch-principle-num">原则 01</div>
-        <h4>DDD 领域驱动</h4>
-        <p>按业务能力划分 9 个限界上下文，各自独立演进。上下文间通过 ACL 防腐层隔离，零直接代码依赖，未来拆分微服务领域层代码零改动。</p>
+    <!-- Architecture Diagram -->
+    <div class="arch-diagram-wrap reveal">
+      <div class="arch-layer arch-layer-client">
+        <span class="arch-layer-label">接入层</span>
+        <div class="arch-layer-items">
+          <span>Flutter Mobile</span>
+          <span>PC Web</span>
+          <span>Open API</span>
+          <span>开发者门户</span>
+        </div>
       </div>
-      <div class="arch-principle reveal">
-        <div class="arch-principle-num">原则 02</div>
-        <h4>事件驱动解耦</h4>
-        <p>跨上下文通信通过 RocketMQ pub/sub 领域事件完成，16 个 Topic 覆盖设备遥测、围栏越界、订阅变更等全业务场景。RocketMQ 不可用时优雅降级。</p>
+      <div class="arch-arrow">▼ JWT 双 Token + API Key 双轨认证 ▼</div>
+      <div class="arch-layer arch-layer-api">
+        <span class="arch-layer-label">API 层</span>
+        <div class="arch-layer-items">
+          <span>REST Controller × 51</span>
+          <span>API 端点 × 187</span>
+          <span>多租户拦截</span>
+          <span>配额门控</span>
+          <span>限流</span>
+        </div>
       </div>
-      <div class="arch-principle reveal">
-        <div class="arch-principle-num">原则 03</div>
-        <h4>多租户原生隔离</h4>
-        <p>JWT 解析 tenantId → ThreadLocal（TenantContext）→ 数据库层 tenant_id 强制注入。请求级自动过滤，杜绝跨租户数据泄露。支持三级租户类型（partner / farm / api）。</p>
+      <div class="arch-arrow">▼ RocketMQ 事件总线 ▼</div>
+      <div class="arch-layer arch-layer-contexts">
+        <span class="arch-layer-label">限界上下文（9 个）</span>
+        <div class="arch-ctx-grid">
+          <span>Identity<span>身份租户</span></span>
+          <span>Ranch<span>牧场围栏</span></span>
+          <span>IoT<span>设备遥测</span></span>
+          <span>Health<span>AI健康</span></span>
+          <span>Commerce<span>商业计费</span></span>
+          <span>Analytics<span>统计分析</span></span>
+          <span>Datagen<span>数据合成</span></span>
+          <span>Platform<span>调度台</span></span>
+          <span>Shared<span>共享内核</span></span>
+        </div>
       </div>
-      <div class="arch-principle reveal">
-        <div class="arch-principle-num">原则 04</div>
-        <h4>洋葱架构分层</h4>
-        <p>Interfaces → Application → Domain ← Infrastructure，依赖倒置。Domain 层纯 Java 零框架依赖，可独立单测。每层职责清晰，修改下层不影响上层。</p>
+      <div class="arch-arrow">▼ 基础设施 + AI 平台 ▼</div>
+      <div class="arch-layer arch-layer-infra">
+        <span class="arch-layer-label">基础设施</span>
+        <div class="arch-layer-items">
+          <span>PostgreSQL 16</span>
+          <span>Redis 7</span>
+          <span>RocketMQ 5.1</span>
+          <span>Docker Compose</span>
+          <span>AI Platform</span>
+          <span>tileserver-gl</span>
+        </div>
       </div>
     </div>
 
-    <!-- ② 限界上下文总览 -->
-    <div class="arch-table-wrap reveal">
-      <table class="arch-table">
-        <thead>
-          <tr><th>限界上下文</th><th>定位</th><th>核心能力</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Identity</td><td>身份与租户</td><td>多租户隔离、JWT 双 Token（Access 1h + Refresh 7d）、API Key 双轨认证、RBAC 五角色体系、审计日志</td></tr>
-          <tr><td>Ranch</td><td>牧场与围栏</td><td>牲畜档案与群组、电子围栏（手绘 + 模板）、越界检测 → 告警状态机、地图瓦片任务与离线下载</td></tr>
-          <tr><td>IoT</td><td>设备与遥测</td><td>设备全生命周期（追踪器 / 瘤胃胶囊 / 耳标）、License 配额、GPS 时序数据、MQTT 遥测管道、blade 第三方平台集成</td></tr>
-          <tr><td>Health</td><td>数智孪生健康</td><td>四大 AI 分析引擎（发热 / 消化 / 发情 / 疫病）、无监督异常检测（STL + CUSUM 三维联合）、时序数据按月分区</td></tr>
-          <tr><td>Commerce</td><td>商业计费</td><td>4 级订阅 Tier（BASIC → ENTERPRISE）、合同管理、分润对账、FeatureGate 配额引擎（LOCK / LIMIT / FILTER 三种门控）</td></tr>
-          <tr><td>Analytics</td><td>统计与门户</td><td>API 逐请求调用日志、日聚合用量统计、开发者门户、API Key 审批与频率限制</td></tr>
-          <tr><td>Datagen</td><td>数据合成与评估</td><td>Scenario 驱动合成数据（健康异常 + 围栏越界）、GroundTruth 标签管理、AI 评估框架闭环</td></tr>
-          <tr><td>Platform</td><td>调度台</td><td>请求级配额拦截（QuotaInterceptor）、跨域事件消费聚合、平台级统一通知中心</td></tr>
-          <tr><td>Shared</td><td>共享内核</td><td>SecurityConfig、TenantContext、FarmScope、DomainEvent 基类、统一错误码（RFC 7807）、限流（Lua 滑动窗口）</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- ③ 关键数字 + 技术栈 -->
-    <div class="arch-bottom">
-      <div class="arch-stats reveal">
-        <h3>关键数字</h3>
-        <div class="arch-stat-item">
-          <span class="arch-stat-label">REST Controller</span>
-          <span class="arch-stat-value">51</span>
-        </div>
-        <div class="arch-stat-item">
-          <span class="arch-stat-label">API 端点</span>
-          <span class="arch-stat-value">187</span>
-        </div>
-        <div class="arch-stat-item">
-          <span class="arch-stat-label">数据库表</span>
-          <span class="arch-stat-value">39</span>
-        </div>
-        <div class="arch-stat-item">
-          <span class="arch-stat-label">Java 文件</span>
-          <span class="arch-stat-value">502</span>
-        </div>
-        <div class="arch-stat-item">
-          <span class="arch-stat-label">测试类</span>
-          <span class="arch-stat-value">53</span>
-        </div>
-        <div class="arch-stat-item">
-          <span class="arch-stat-label">前端模块</span>
-          <span class="arch-stat-value">30</span>
-        </div>
-        <div class="arch-stat-item">
-          <span class="arch-stat-label">代码行数</span>
-          <span class="arch-stat-value">~63K</span>
-        </div>
+    <!-- 技术先进性 -->
+    <div class="arch-highlights">
+      <div class="arch-hl-item reveal">
+        <strong>DDD 洋葱架构</strong>
+        <span>9 个限界上下文独立演进，ACL 防腐层隔离，单体内完成解耦，未来拆分微服务零代码改动</span>
       </div>
-      <div class="arch-tech-block reveal">
-        <h3>核心技术栈</h3>
-        <div class="arch-tech-tags">
-          <span class="arch-tag">Spring Boot 3.3</span>
-          <span class="arch-tag">Java 17</span>
-          <span class="arch-tag">PostgreSQL 16</span>
-          <span class="arch-tag">Redis 7</span>
-          <span class="arch-tag">RocketMQ 5.1</span>
-          <span class="arch-tag">Flutter 3.x</span>
-          <span class="arch-tag">Riverpod</span>
-          <span class="arch-tag">Docker Compose</span>
-          <span class="arch-tag">JWT 双 Token</span>
-          <span class="arch-tag">Python FastAPI</span>
-          <span class="arch-tag">scikit-learn</span>
-          <span class="arch-tag">tileserver-gl</span>
-        </div>
-        <div class="arch-expand">
-          <button class="arch-expand-btn" onclick="toggleArchDetail()">展开完整技术栈 ▼</button>
-        </div>
-        <div class="arch-detail" id="archDetail">
-          <table>
-            <thead><tr><th>层次</th><th>技术</th><th>版本</th><th>说明</th></tr></thead>
-            <tbody>
-              <tr><td>后端框架</td><td>Spring Boot</td><td>3.3.x</td><td>Java 17，Gradle 构建</td></tr>
-              <tr><td>持久层</td><td>Spring Data JPA + Hibernate</td><td>—</td><td>Flyway 管理 DDL（V1–V40）</td></tr>
-              <tr><td>数据库</td><td>PostgreSQL</td><td>16</td><td>时序数据按月 RANGE 分区</td></tr>
-              <tr><td>缓存</td><td>Redis</td><td>7</td><td>会话 / 限流（Lua 滑动窗口）</td></tr>
-              <tr><td>消息队列</td><td>RocketMQ</td><td>5.1</td><td>跨上下文事件总线，16 个 Topic</td></tr>
-              <tr><td>认证</td><td>JJWT</td><td>0.12.5</td><td>Access 1h + Refresh 7d</td></tr>
-              <tr><td>安全</td><td>Spring Security</td><td>—</td><td>RBAC + 多租户隔离</td></tr>
-              <tr><td>前端框架</td><td>Flutter</td><td>3.x</td><td>iOS / Android / Web 三端</td></tr>
-              <tr><td>状态管理</td><td>Riverpod</td><td>—</td><td>Compile-safe DI</td></tr>
-              <tr><td>地图</td><td>flutter_map + tileserver-gl</td><td>—</td><td>逐瓦片智能路由 + MBTiles 离线</td></tr>
-              <tr><td>AI 平台</td><td>Python + FastAPI + scikit-learn</td><td>—</td><td>STL + CUSUM + iForest 三维联合</td></tr>
-              <tr><td>部署</td><td>Docker Compose</td><td>—</td><td>dev / test 双环境隔离</td></tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="arch-hl-item reveal">
+        <strong>事件驱动</strong>
+        <span>RocketMQ 16 个 Topic 覆盖全业务场景，跨上下文零直接依赖，优雅降级保证可用性</span>
+      </div>
+      <div class="arch-hl-item reveal">
+        <strong>多租户 SaaS 原生</strong>
+        <span>JWT → ThreadLocal → DB 层三级隔离，请求级自动过滤。支持 partner / farm / api 三级租户类型</span>
+      </div>
+      <div class="arch-hl-item reveal">
+        <strong>AI 原生健康引擎</strong>
+        <span>STL + CUSUM + iForest 无监督异常检测，体温/蠕动/活动三维联合，Python 微服务独立部署</span>
+      </div>
+      <div class="arch-hl-item reveal">
+        <strong>离线优先</strong>
+        <span>逐瓦片智能路由 + MBTiles 本地缓存，无网络环境全功能作业，网络恢复自动同步</span>
+      </div>
+      <div class="arch-hl-item reveal">
+        <strong>时序数据原生分区</strong>
+        <span>PostgreSQL 按月 RANGE 分区管理海量传感器数据，无需专用 TSDB，运维栈统一</span>
       </div>
     </div>
   </section>
@@ -906,13 +838,6 @@
   </footer>
 
   <script>
-    function toggleArchDetail() {
-      const detail = document.getElementById('archDetail');
-      const btn = document.querySelector('.arch-expand-btn');
-      detail.classList.toggle('open');
-      btn.textContent = detail.classList.contains('open') ? '收起技术栈 ▲' : '展开完整技术栈 ▼';
-    }
-
     // Scroll reveal animation
     const observerOptions = { threshold: 0.15, rootMargin: '0px 0px -50px 0px' };
     const observer = new IntersectionObserver((entries) => {
