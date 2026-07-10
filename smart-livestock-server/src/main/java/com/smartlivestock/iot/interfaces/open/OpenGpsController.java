@@ -76,8 +76,8 @@ public class OpenGpsController {
                 .map(inst -> {
                     List<GpsLogDto> allLogs;
                     if (startTime != null && endTime != null) {
-                        allLogs = gpsLogApplicationService.getByDeviceAndTimeRange(
-                                inst.deviceId(), Instant.parse(startTime), Instant.parse(endTime));
+                       allLogs = gpsLogApplicationService.getByDeviceAndTimeRange(
+                               inst.deviceId(), parseInstant(startTime), parseInstant(endTime));
                     } else {
                         allLogs = gpsLogApplicationService.getByDevice(inst.deviceId());
                     }
@@ -101,5 +101,11 @@ public class OpenGpsController {
                         ))));
     }
 
-}
 
+
+    private static Instant parseInstant(String value) {
+        String normalized = value.trim().replace(" ", "+");
+        return Instant.parse(normalized);
+    }
+
+}

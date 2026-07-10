@@ -60,11 +60,11 @@ public class GpsLogController {
         return installationApplicationService.getActiveInstallationByLivestock(livestockId)
                 .map(inst -> {
                     List<GpsLogDto> allLogs;
-                    if (startTime != null && endTime != null) {
-                        allLogs = gpsLogApplicationService.getByDeviceAndTimeRange(
-                                inst.deviceId(),
-                                Instant.parse(startTime),
-                                Instant.parse(endTime));
+                   if (startTime != null && endTime != null) {
+                       allLogs = gpsLogApplicationService.getByDeviceAndTimeRange(
+                               inst.deviceId(),
+                                parseInstant(startTime),
+                                parseInstant(endTime));
                     } else {
                         allLogs = gpsLogApplicationService.getByDevice(inst.deviceId());
                     }
@@ -83,5 +83,12 @@ public class GpsLogController {
                 .orElseGet(() -> ResponseEntity.ok(ApiResponse.ok(Map.of(
                         "items", List.of(), "page", page, "pageSize", pageSize, "total", 0
                 ))));
+    }
+
+    // Handle both "Z" suffix and "+00:00" offset formats; URL encoding
+    // may turn "+" into a space, so normalize before parsing.
+    private static Instant parseInstant(String value) {
+        String normalized = value.trim().replace(" ", "+");
+        return Instant.parse(normalized);
     }
 }
