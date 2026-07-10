@@ -261,16 +261,51 @@
     .arch-layer-items {
       display: flex; flex-wrap: wrap; gap: var(--space-sm);
     }
-    .arch-infra-rows { flex: 1; display: flex; flex-direction: column; gap: var(--space-sm); }
-    .arch-infra-row {
-      font-size: 0.85rem; color: var(--color-text-secondary);
-      padding: var(--space-xs) 0;
+    /* Infrastructure Topology */
+    .arch-infra-topo {
+      flex: 1; display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 0; position: relative; padding-top: 12px;
     }
-    .arch-infra-cat {
-      display: inline-block; font-weight: 700; color: var(--color-primary);
-      background: var(--color-primary-soft); padding: 0.15rem 0.6rem;
-      border-radius: 4px; margin-right: var(--space-sm); font-size: 0.8rem;
-      min-width: 70px; text-align: center;
+    /* Backbone line */
+    .arch-infra-topo::before {
+      content: ''; position: absolute; top: 28px; left: 8%; right: 8%;
+      height: 2px; background: var(--color-border);
+    }
+    .arch-infra-tier { text-align: center; position: relative; }
+    /* Drop line from backbone to hub */
+    .arch-infra-tier::before {
+      content: ''; position: absolute; top: 0; left: 50%;
+      width: 2px; height: 28px; background: var(--color-border);
+    }
+    .arch-infra-hub {
+      display: inline-block; padding: 0.4rem 1.2rem; border-radius: 20px;
+      font-weight: 700; font-size: 0.8rem; position: relative; z-index: 2;
+    }
+    .arch-infra-hub.hw { background: #E8F0FE; color: #1A56DB; border: 2px solid #90B4F0; }
+    .arch-infra-hub.sw { background: #E6F4EA; color: #137333; border: 2px solid #81C995; }
+    .arch-infra-hub.ai { background: #FCE8E6; color: #C5221F; border: 2px solid #F28B82; }
+    .arch-infra-nodes {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 6px; margin-top: 10px; position: relative;
+    }
+    .arch-infra-nodes::before {
+      content: ''; position: absolute; top: -10px; left: 50%;
+      width: 2px; height: 10px; background: var(--color-border);
+    }
+    .arch-infra-node {
+      background: var(--color-white); border: 1px solid var(--color-border);
+      border-radius: 16px; padding: 0.25rem 0.7rem;
+      font-size: 0.78rem; color: var(--color-text-secondary);
+      position: relative; white-space: nowrap;
+    }
+    .arch-infra-node::before {
+      content: ''; position: absolute; top: -7px; left: 50%;
+      width: 5px; height: 5px; border-radius: 50%; background: var(--color-accent);
+    }
+    @media (max-width: 640px) {
+      .arch-infra-topo { grid-template-columns: 1fr; gap: var(--space-md); }
+      .arch-infra-topo::before { display: none; }
+      .arch-infra-tier::before { display: none; }
     }
     .arch-layer-items span {
       background: var(--color-primary-soft); color: var(--color-primary);
@@ -633,18 +668,29 @@
       <div class="arch-arrow" data-i18n="arch.arrow.infra">▼ 基础设施 + AI 平台 ▼</div>
       <div class="arch-layer arch-layer-infra">
         <span class="arch-layer-label" data-i18n="arch.layer.infra">基础设施</span>
-        <div class="arch-infra-rows">
-          <div class="arch-infra-row">
-            <span class="arch-infra-cat" data-i18n="arch.infra.hw">硬件</span>
-            <span>LoRaWAN 网关</span> · <span>GPS 追踪器</span> · <span>瘤胃胶囊</span> · <span>智能耳标</span>
+        <div class="arch-infra-topo">
+          <div class="arch-infra-tier">
+            <div class="arch-infra-hub hw" data-i18n="arch.infra.hw">硬件</div>
+            <div class="arch-infra-nodes">
+              <span class="arch-infra-node">LoRaWAN 网关</span>
+              <span class="arch-infra-node">GPS 追踪器</span>
+              <span class="arch-infra-node">瘤胃胶囊</span>
+              <span class="arch-infra-node">智能耳标</span>
+            </div>
           </div>
-          <div class="arch-infra-row">
-            <span class="arch-infra-cat" data-i18n="arch.infra.sw">软件平台</span>
-            <span data-i18n="arch.infra.sw.items">SaaS · 混合云</span>
+          <div class="arch-infra-tier">
+            <div class="arch-infra-hub sw" data-i18n="arch.infra.sw">软件平台</div>
+            <div class="arch-infra-nodes">
+              <span class="arch-infra-node" data-i18n="arch.infra.sw.node1">SaaS</span>
+              <span class="arch-infra-node" data-i18n="arch.infra.sw.node2">混合云</span>
+            </div>
           </div>
-          <div class="arch-infra-row">
-            <span class="arch-infra-cat" data-i18n="arch.infra.ai">AI 算力</span>
-            <span data-i18n="arch.infra.ai.items">深度学习 · 边缘计算</span>
+          <div class="arch-infra-tier">
+            <div class="arch-infra-hub ai" data-i18n="arch.infra.ai">AI 算力</div>
+            <div class="arch-infra-nodes">
+              <span class="arch-infra-node" data-i18n="arch.infra.ai.node1">深度学习</span>
+              <span class="arch-infra-node" data-i18n="arch.infra.ai.node2">边缘计算</span>
+            </div>
           </div>
         </div>
       </div>
@@ -953,8 +999,10 @@
         'arch.infra.hw': '硬件',
         'arch.infra.sw': '软件平台',
         'arch.infra.ai': 'AI 算力',
-        'arch.infra.sw.items': 'SaaS · 混合云',
-        'arch.infra.ai.items': '深度学习 · 边缘计算',
+        'arch.infra.sw.node1': 'SaaS',
+        'arch.infra.sw.node2': '混合云',
+        'arch.infra.ai.node1': '深度学习',
+        'arch.infra.ai.node2': '边缘计算',
         'arch.ctx.id': '身份租户',
         'arch.ctx.ranch': '牧场围栏',
         'arch.ctx.iot': '设备遥测',
@@ -1138,8 +1186,10 @@
         'arch.infra.hw': 'Hardware',
         'arch.infra.sw': 'Software',
         'arch.infra.ai': 'AI Compute',
-        'arch.infra.sw.items': 'SaaS · Hybrid Cloud',
-        'arch.infra.ai.items': 'Deep Learning · Edge Computing',
+        'arch.infra.sw.node1': 'SaaS',
+        'arch.infra.sw.node2': 'Hybrid Cloud',
+        'arch.infra.ai.node1': 'Deep Learning',
+        'arch.infra.ai.node2': 'Edge Computing',
         'arch.ctx.id': 'Identity',
         'arch.ctx.ranch': 'Ranch & Fence',
         'arch.ctx.iot': 'IoT & Telemetry',
