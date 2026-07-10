@@ -1432,6 +1432,24 @@ abstract class AppLocalizations {
   /// **'演示：解绑 {name}'**
   String devicesUnbindDemo(String name);
 
+  /// No description provided for @deviceUnbindConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要解绑设备 {name} 吗？解绑后该设备将不再关联牲畜。'**
+  String deviceUnbindConfirm(String name);
+
+  /// No description provided for @deviceUnbindSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'解绑成功：{name}'**
+  String deviceUnbindSuccess(String name);
+
+  /// No description provided for @deviceUnbindFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'解绑失败: {error}'**
+  String deviceUnbindFailed(String error);
+
   /// No description provided for @devicesViewLocationDemo.
   ///
   /// In zh, this message translates to:

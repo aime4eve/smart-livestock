@@ -582,10 +582,34 @@
   "@devicesAddDemo": {},
   "devicesNoDevices": "暂无设备",
   "@devicesNoDevices": {},
-  "devicesUnbindDemo": "演示：解绑 {name}",
-  "@devicesUnbindDemo": {
+ "devicesUnbindDemo": "演示：解绑 {name}",
+ "@devicesUnbindDemo": {
+   "placeholders": {
+     "name": {
+       "type": "String"
+     }
+   }
+ },
+  "deviceUnbindConfirm": "确定要解绑设备 {name} 吗？解绑后该设备将不再关联牲畜。",
+  "@deviceUnbindConfirm": {
     "placeholders": {
       "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceUnbindSuccess": "解绑成功：{name}",
+  "@deviceUnbindSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceUnbindFailed": "解绑失败: {error}",
+  "@deviceUnbindFailed": {
+    "placeholders": {
+      "error": {
         "type": "String"
       }
     }

@@ -739,6 +739,21 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String deviceUnbindConfirm(String name) {
+    return 'Are you sure you want to unbind device $name? The device will no longer be associated with any livestock.';
+  }
+
+  @override
+  String deviceUnbindSuccess(String name) {
+    return 'Unbound successfully: $name';
+  }
+
+  @override
+  String deviceUnbindFailed(String error) {
+    return 'Unbind failed: $error';
+  }
+
+  @override
   String devicesViewLocationDemo(String name) {
     return 'Demo: View $name location';
   }

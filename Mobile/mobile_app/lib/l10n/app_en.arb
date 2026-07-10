@@ -582,10 +582,34 @@
   "@devicesAddDemo": {},
   "devicesNoDevices": "No Devices",
   "@devicesNoDevices": {},
-  "devicesUnbindDemo": "Demo: Unbind {name}",
-  "@devicesUnbindDemo": {
+ "devicesUnbindDemo": "Demo: Unbind {name}",
+ "@devicesUnbindDemo": {
+   "placeholders": {
+     "name": {
+       "type": "String"
+     }
+   }
+ },
+  "deviceUnbindConfirm": "Are you sure you want to unbind device {name}? The device will no longer be associated with any livestock.",
+  "@deviceUnbindConfirm": {
     "placeholders": {
       "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceUnbindSuccess": "Unbound successfully: {name}",
+  "@deviceUnbindSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceUnbindFailed": "Unbind failed: {error}",
+  "@deviceUnbindFailed": {
+    "placeholders": {
+      "error": {
         "type": "String"
       }
     }

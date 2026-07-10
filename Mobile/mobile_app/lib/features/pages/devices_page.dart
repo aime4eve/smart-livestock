@@ -30,6 +30,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
  bool _hasSearch = false;
  Map<String, String> _deviceIdToLivestockCode = {};
   Map<String, String> _deviceIdToLivestockId = {};
+  Map<String, String> _deviceIdToInstallationId = {};
 
  @override
  void dispose() {
@@ -70,7 +71,6 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
     try {
       final data = await ApiClient.instance.farmGet('/installations');
       final items = data['items'] as List? ?? [];
-      final Map<String, String> map = {};
 
       // Fetch livestock codes for matching
       final livestockData = await ref.read(livestockRepositoryProvider).loadAll(pageSize: 200);
@@ -83,17 +83,21 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
 
       final Map<String, String> codeMap = {};
       final Map<String, String> idMap = {};
+      final Map<String, String> installationMap = {};
       for (final inst in items) {
         if (inst['active'] == true) {
           final devId = inst['deviceId']?.toString() ?? '';
           final liveId = inst['livestockId']?.toString() ?? '';
+          final instId = inst['id']?.toString() ?? '';
           codeMap[devId] = livestockIdToCode[liveId] ?? '';
           idMap[devId] = livestockIdToNumeric[liveId] ?? liveId;
+          if (instId.isNotEmpty) installationMap[devId] = instId;
         }
       }
       if (mounted) setState(() {
         _deviceIdToLivestockCode = codeMap;
         _deviceIdToLivestockId = idMap;
+        _deviceIdToInstallationId = installationMap;
       });
     } catch (_) {}
   }
@@ -185,17 +189,13 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
                              _DeviceWithBinding(
                                device: device,
                                boundLivestockCode: _deviceIdToLivestockCode[device.id] ?? '',
-                               onInstall: _deviceIdToLivestockCode.containsKey(device.id)
-                                   ? null
-                                   : () => _showInstallDialog(context, ref, device),
-                               onUnbind: () {
-                                 ScaffoldMessenger.of(context)
-                                   ..hideCurrentSnackBar()
-                                   ..showSnackBar(SnackBar(
-                                       content: Text(l10n
-                                           .devicesUnbindDemo(device.name))));
-                               },
-                               onViewLocation: _deviceIdToLivestockId[device.id] != null
+                              onInstall: _deviceIdToLivestockCode.containsKey(device.id)
+                                  ? null
+                                  : () => _showInstallDialog(context, ref, device),
+                              onUnbind: _deviceIdToInstallationId.containsKey(device.id)
+                                  ? () => _showUnbindDialog(context, ref, device)
+                                  : null,
+                              onViewLocation: _deviceIdToLivestockId[device.id] != null
                                    ? () => context.go('/livestock/${_deviceIdToLivestockId[device.id]}')
                                    : () => context.go('/ranch'),
                              ),
@@ -234,6 +234,55 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
         ],
       ),
     );
+  }
+
+  Future<void> _showUnbindDialog(
+      BuildContext context, WidgetRef ref, DeviceItem device) async {
+    final l10n = AppLocalizations.of(context)!;
+    final installationId = _deviceIdToInstallationId[device.id];
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.deviceUnbind),
+        content: Text(l10n.deviceUnbindConfirm(device.name)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            key: const Key('device-unbind-confirm'),
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.commonConfirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      await ApiClient.instance
+          .farmPut('/installations/$installationId/uninstall');
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(
+            content: Text(l10n.deviceUnbindSuccess(device.name)),
+          ));
+      }
+      ref.invalidate(devicesControllerProvider);
+      ref.invalidate(dashboardControllerProvider);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(
+            content: Text(l10n.deviceUnbindFailed(e.toString())),
+          ));
+      }
+    }
   }
 
   Future<void> _showInstallDialog(

@@ -726,6 +726,21 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String deviceUnbindConfirm(String name) {
+    return '确定要解绑设备 $name 吗？解绑后该设备将不再关联牲畜。';
+  }
+
+  @override
+  String deviceUnbindSuccess(String name) {
+    return '解绑成功：$name';
+  }
+
+  @override
+  String deviceUnbindFailed(String error) {
+    return '解绑失败: $error';
+  }
+
+  @override
   String devicesViewLocationDemo(String name) {
     return '演示：查看 $name 位置';
   }
