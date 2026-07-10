@@ -235,5 +235,58 @@
 - **解决**:`distance_delta` → `DECIMAL(10,2)`，`temp_delta` → `DECIMAL(8,2)`，JPA `@Column(precision)` 同步更新。
 - **判据**:
   - `numeric field overflow` → 根据错误信息的 `precision/scale` 值定位具体列（precision=5,scale=2 → DECIMAL(5,2)），再找哪张表有该定义。
-  - 涉及差值/累加计算的数值列，按业务上界设精度：距离差（米）至少 DECIMAL(10,2)，温度差至少 DECIMAL(8,2)。
-  - Flyway 迁移定义列精度时，考虑计算结果的最大值，不只是单条记录的值域。
+ - 涉及差值/累加计算的数值列，按业务上界设精度：距离差（米）至少 DECIMAL(10,2)，温度差至少 DECIMAL(8,2)。
+ - Flyway 迁移定义列精度时，考虑计算结果的最大值，不只是单条记录的值域。
+
+---
+
+## 14. GPS 轨迹查询返回空：先排除安装记录状态再查时间
+
+- **日期**:2026-07-10
+- **现象**:前端 24h / 7d / 30d 轨迹全部返回空，但数据库 `gps_logs` 表有 64 万条数据，`recorded_at` 是 `TIMESTAMPTZ`，时间范围正确。
+- **误判**:一开始怀疑又是时区偏移（第 9 条）或 JPQL 参数名冲突（第 8 条），反复查 `recorded_at` 列类型和参数绑定。
+- **根因**:分两层：
+  1. **业务层**：前端 `/livestock/{id}/gps-logs` 通过 livestockId → active installation → deviceId → gps_logs 链式查询。之前测试解绑功能时把 livestock 1/2 的安装记录解绑了，`getActiveInstallationByLivestock` 返回空，整个链路断掉返回空列表。
+  2. **时间格式层**：即使有 active installation，前端 `DateTime.toUtc().toIso8601String()` 输出 `+00:00` 时区偏移（非 `Z` 后缀），URL 编码将 `+` 变成空格（`...637881 00:00`），后端 `Instant.parse()` 抛 `DateTimeParseException` → 500 INTERNAL_ERROR。
+- **解决**:
+  1. 恢复被误解绑的安装记录。
+  2. 新增 `parseInstant()` 工具方法，解析前 `replace(" ", "+")` 还原 URL 编码。
+- **判据**:
+  - `gps_logs` 有数据但 API 返回空 → 先查 `SELECT * FROM installations WHERE livestock_id = ? AND removed_at IS NULL`，确认有 active installation；再查时间格式。
+  - API 返回 500 + `DateTimeParseException` → 检查 query param 中的时间格式是否被 URL 编码破坏（`+00:00` → ` 00:00`）。
+  - `Instant.parse()` 只接受 `Z` 后缀或完整 offset；前端用 `toIso8601String()` 输出的是 `+00:00` 格式，后端必须做兼容处理。
+  - **不要因为"时间相关问题"就只查时间**——业务链路（installation 状态）可能同时断了，分层排查。
+
+---
+
+## 15. 设备解绑功能从前到后的三个连锁 bug
+
+- **日期**:2026-07-10
+- **现象**:点击设备"解绑"只弹出演示 SnackBar，没有真正调用后端。修复后又连续触发三个问题。
+- **误判**:每个 bug 都在解决后才暴露下一个，没有一开始就做端到端验证。
+- **根因**:三个独立 bug 叠加：
+  1. **InstallationJpaEntity 缺 `@PreUpdate`**：mapper `toJpaEntity()` 创建新 JPA entity，`createdAt` 为 null，`merge` 后 UPDATE 写入 null，违反 NOT NULL 约束 → 500。
+  2. **`_loadInstallations()` 未带分页参数**：后端默认 `pageSize=20`，45 条活跃安装只拿到前 20 条，第 21 条以后的设备前端误判为"未绑定"，安装时触发 409 `设备已安装`。
+  3. **设备生命周期状态不感知**：设备状态机 `INVENTORY→ACTIVE→OFFLINE→DECOMMISSIONED`，只有 ACTIVE 可安装。前端缺少 `lifecycleStatus` 字段和激活入口，INVENTORY 设备直接安装触发 409 `DEVICE_NOT_ACTIVE`。
+- **解决**:
+  1. `InstallationJpaEntity` 加 `@PreUpdate` 回填 `createdAt`。
+  2. `_loadInstallations()` 加 `pageSize=500`。
+  3. `DeviceItem` 增加 `lifecycleStatus`，设备列表对非 ACTIVE 设备显示"激活"按钮。
+- **判据**:
+  - `merge` 后 UPDATE 写 audit 列（`created_at`）为 null → JPA entity 缺 `@PreUpdate` 保护审计字段。
+  - 前端"已绑定"判断与后端数据不一致 → 检查前端是否漏了分页参数，只拿了部分数据。
+  - `DEVICE_NOT_ACTIVE` 409 → 前端没感知设备生命周期状态，需要先激活再安装，参考 spec §4.3 状态机。
+  - **修复一个功能后，必须端到端走完整链路**（安装→激活→解绑→刷新），不要只测一步就认为"修好了"。
+
+---
+
+## 16. farmGet 路径缺前导斜杠导致 404
+
+- **日期**:2026-07-10
+- **现象**:设备健康详情 `devices/3/health` 返回 404，实际请求 URL 拼成了 `/farms/1devices/3/health`（farmId 和 devices 之间缺斜杠）。
+- **误判**:以为是后端路由未注册或设备不存在。
+- **根因**:`ApiClient.farmGet(suffix)` 的实现是 `'/farms/$id$suffix'`——直接拼接。suffix 必须以 `/` 开头，否则 `$id + suffix` 之间没有分隔符。`farmGet('devices/3/health')` → `/farms/1devices/3/health`。
+- **解决**:所有 `farmGet`/`farmPost`/`farmPut`/`farmDelete` 的 suffix 参数统一以 `/` 开头。
+- **判据**:
+  - `farmXxx` 调用返回 404 且 URL 中 farmId 和路径段粘连（`1devices` 而非 `1/devices`）→ suffix 缺前导 `/`。
+  - 新增 `farmGet`/`farmPost` 调用时，suffix 一律以 `/` 开头。
