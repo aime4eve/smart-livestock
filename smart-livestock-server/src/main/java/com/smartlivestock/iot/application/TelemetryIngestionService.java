@@ -199,6 +199,8 @@ public class TelemetryIngestionService {
         logEntry.setRssi(device.getRssi());
         logEntry.setSnr(device.getSnr());
         logEntry.setGatewayId(device.getLastGateway());
+        logEntry.setLatitude(getBigDecimal(readings, "latitude"));
+        logEntry.setLongitude(getBigDecimal(readings, "longitude"));
         logEntry.setStepNumber(getInteger(readings, "stepNumber"));
         logEntry.setAccelXRaw(getInteger(readings, "accelXRaw"));
         logEntry.setAccelYRaw(getInteger(readings, "accelYRaw"));
