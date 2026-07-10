@@ -307,10 +307,19 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
             return;
           }
           try {
-            await ApiClient.instance.farmPost('/installations', body: {
-              'deviceId': device.id,
-              'livestockId': livestockId,
-            });
+            try {
+              await ApiClient.instance.farmPost('/installations', body: {
+                'deviceId': device.id,
+                'livestockId': livestockId,
+              });
+            } catch (_) {
+              // Device may be INVENTORY/OFFLINE — auto-activate then retry.
+              await ApiClient.instance.farmPut('/devices/${device.id}/activate');
+              await ApiClient.instance.farmPost('/installations', body: {
+                'deviceId': device.id,
+                'livestockId': livestockId,
+              });
+            }
             if (context.mounted) {
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
@@ -318,15 +327,15 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
                   content: Text(l10n.devicesInstallSuccess(device.name)),
                 ));
             }
-         } catch (e) {
-           if (context.mounted) {
-             ScaffoldMessenger.of(context)
-               ..hideCurrentSnackBar()
-               ..showSnackBar(SnackBar(
-                 content: Text(l10n.devicesInstallFailed(e.toString())),
-               ));
-           }
-         }
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(SnackBar(
+                  content: Text(l10n.devicesInstallFailed(e.toString())),
+                ));
+            }
+          }
          await _loadInstallations();
          ref.invalidate(devicesControllerProvider);
          ref.invalidate(dashboardControllerProvider);
