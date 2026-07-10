@@ -68,9 +68,11 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
  }
 
   Future<void> _loadInstallations() async {
-    try {
-      final data = await ApiClient.instance.farmGet('/installations');
-      final items = data['items'] as List? ?? [];
+   try {
+    // Request a large page size to get all active installations in one call;
+    // default pageSize=20 would miss devices beyond the first page.
+    final data = await ApiClient.instance.farmGet('/installations?pageSize=500');
+     final items = data['items'] as List? ?? [];
 
       // Fetch livestock codes for matching
       final livestockData = await ref.read(livestockRepositoryProvider).loadAll(pageSize: 200);
