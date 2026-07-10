@@ -107,7 +107,7 @@ public class DeviceApplicationService {
                     && licenseResp.getData() != null
                     && Boolean.FALSE.equals(licenseResp.getData().getIsValid())) {
                 throw new ApiException(ErrorCode.AGENTIC_PLATFORM_LICENSE_INVALID,
-                        "Device license invalid for SN: " + device.getDevEui());
+                        "error.agenticPlatformLicenseInvalid", new Object[]{device.getDevEui()});
             }
         } catch (ApiException e) {
             throw e;
@@ -127,13 +127,13 @@ public class DeviceApplicationService {
             regResp = platformDeviceClient.registerDevice(req);
         } catch (Exception e) {
             throw new ApiException(ErrorCode.AGENTIC_PLATFORM_REGISTRATION_FAILED,
-                    "Platform registration failed: " + e.getMessage());
+                    "error.agenticPlatformRegistrationFailed", new Object[]{e.getMessage()});
         }
 
         if (regResp == null || !regResp.isOk() || regResp.getData() == null
                 || regResp.getData().getDeviceId() == null) {
             throw new ApiException(ErrorCode.AGENTIC_PLATFORM_REGISTRATION_FAILED,
-                    "Platform registration returned no deviceId");
+                    "error.agenticPlatformRegistrationFailed", new Object[]{"no deviceId returned"});
         }
 
         // Step 3: Bind platformDeviceId locally
