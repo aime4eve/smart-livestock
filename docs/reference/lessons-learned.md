@@ -124,3 +124,116 @@
 2. 重点写"误判"——把曾经走过的弯路记下来,避免重复踩。
 3. "判据"要写成可立即套用的 if-then 规则,便于下一个 Agent 快速定位。
 4. 涉及部署/数据的验证,遵循 AGENTS.md §5:编译 Agent 可做,部署与集成测试由用户执行。
+
+---
+
+## 7. 前后端联合部署缺一不可：只部署后端不构建前端 = 看不到变化
+
+- **日期**:2026-07-10
+- **现象**:后端 API 改了返回结构（LivestockDto 新增 devices 字段、详情 API 填充设备列表），curl 验证 API 正常返回设备数据，但浏览器里前端始终看不到设备信息/轨迹。
+- **误判**:连续修了三处后端 bug（JPQL 参数名 :from 冲突、GPS 时区偏移、reportTime 格式解析），每次只部署后端就告诉用户"刷新看看"，结果前端始终是旧 bundle。
+- **根因**:nginx 的 Dockerfile 用 `COPY frontend /usr/share/nginx/html` 烤入前端文件。只跑 `deploy.sh dev` 不会重新构建 Flutter web bundle——`build_web.sh` 是独立的构建步骤，需要先执行再部署。后端变了但前端没重新编译，浏览器加载的还是旧版 `main.dart.js`。
+- **解决**:
+  1. 先 `cd Mobile/mobile_app && ./build_web.sh`（构建 Flutter web + 拷贝到 `smart-livestock-server/frontend/`）
+  2. 再 `cd smart-livestock-server && ./scripts/deploy.sh dev`（rsync + docker compose build nginx）
+  3. 两步缺一不可
+- **判据**:
+  - 后端 API curl 验证通过但前端看不到效果 → 99% 是前端没有重新构建部署，不要继续查后端。
+  - 每次前端代码变更后，必须 `build_web.sh` + `deploy.sh` 两步都执行。
+  - 部署后用 `docker exec <nginx> grep -c "newKey" /usr/share/nginx/html/main.dart.js` 确认容器内是最新前端。
+
+---
+
+## 8. JPQL 参数名 :from 与 JPQL 保留字 FROM 冲突
+
+- **日期**:2026-07-10
+- **现象**:GPS 时间范围查询 `findByDeviceIdAndRecordedAtBetween(deviceId, from, to)` 始终返回空列表，但无参数查询 `findByDeviceId(deviceId)` 正常返回数据。数据库直接 SQL 查询也返回正确结果。
+- **误判**:最初以为是 (0,0) 过滤条件误删了数据、或 BETWEEN 语法写错，反复查数据是否存在。
+- **根因**:`@Query` JPQL 中参数名 `:from` 与 JPQL 保留字 `FROM` 冲突。Hibernate 参数绑定在解析 `BETWEEN :from AND :to` 时，将 `:from` 误认为关键字 `FROM`，导致绑定失败，查询静默返回空结果（不报错）。
+- **解决**:参数名从 `:from`/`:to` 改为 `:startTime`/`:endTime`，避免与 JPQL 保留字冲突。
+- **判据**:
+  - `@Query` 中的 `:paramName` 查询返回空但无报错 → 检查参数名是否与 JPQL/HQL 保留字冲突（FROM、SELECT、WHERE、JOIN、ORDER、GROUP 等）。
+  - 命名参数一律用业务语义全称（`startTime`、`endTime`、`deviceId`），不用 SQL/JPQL 保留字的缩写或近义词。
+
+---
+
+## 9. TIMESTAMP WITHOUT TIME ZONE + JPA Instant = 8 小时时区偏移
+
+- **日期**:2026-07-10
+- **现象**:GPS 轨迹 API 按时间范围查询（24h）返回 0 条，但不带时间范围的查询返回 14 条。数据库中数据时间为 `2026-07-10 20:09:13`（北京时间），UTC 当前时间 `12:14Z`，24h 前 `7/9 12:14Z`——数据被当成 UTC `20:09Z`（未来时间），不在查询窗口内。
+- **误判**:先怀疑是 (0,0) 过滤逻辑误杀了数据、再怀疑是 JPQL 参数名问题（确实也是问题之一），最后才发现是时区偏移。
+- **根因**:`gps_logs.recorded_at` 列定义为 `TIMESTAMP WITHOUT TIME ZONE`。数据写入链路：
+  1. `parseReportTime()` 用 `ZoneId.systemDefault()`（服务器 UTC+8）把平台时间 `07/03 13:14:34` 转为 `Instant`（UTC `05:14:34Z`）
+  2. JPA `Instant` 写入 `TIMESTAMP WITHOUT TIME ZONE` 列时，截掉时区，存入 `05:14:34`（裸值）
+  3. 实际平台返回的是本地时间，`parseReportTime` 用 `atZone(systemDefault).toInstant()` 已经把 `13:14:34` 转成了 `05:14:34Z`
+  4. 但写入 TIMESTAMP 列时 Hibernate 又用 session timezone 重新转回本地时间 `13:14:34`（如果 JVM timezone 是 UTC+8）
+  5. 读取时 Hibernate 再把 `13:14:34` 当 UTC，产生 8 小时偏移
+  
+  最终效果：数据被当成 UTC 存储，与前端传的 UTC 时间比较时偏了 8 小时。
+- **解决**:`ALTER TABLE gps_logs ALTER COLUMN recorded_at TYPE TIMESTAMPTZ USING recorded_at AT TIME ZONE 'Asia/Shanghai'`，将裸时间戳按本地时区重新解释为带时区的时间戳。
+- **判据**:
+  - JPA `Instant` 映射到 PostgreSQL `TIMESTAMP WITHOUT TIME ZONE` → 一定会有时区偏移。一律用 `TIMESTAMPTZ`（`TIMESTAMP WITH TIME ZONE`）。
+  - 时间范围查询返回 0 但数据确实存在 → 对比存储值与查询参数的时区解释是否一致。
+  - 新建表的时间列一律 `TIMESTAMPTZ`，不用 `TIMESTAMP`。迁移时用 `AT TIME ZONE 'Asia/Shanghai'` 确保旧数据被正确重新解释。
+
+---
+
+## 10. 平台 reportTime 格式不匹配导致重复同步 + 数据膨胀
+
+- **日期**:2026-07-10
+- **现象**:平台设备 DEV-GPS-001 的遥测日志从预期的 ~360 条膨胀到 79,277 条，且数据间隔为毫秒级（而非平台的 30 分钟级）。`last_telemetry_synced_at` 每次同步都在推进，但数据量持续增长。
+- **误判**:先怀疑 datagen 未真正关闭（检查确认 `DATAGEN_ENABLED=false`），再怀疑是重复同步的 cursor 去重逻辑有 bug。
+- **根因**:blade 平台返回的 `reportTime` 格式为 `MM/dd/yyyy HH:mm:ss`（如 `07/03/2026 13:14:34`），但 `parseReportTime()` 只支持 `yyyy-MM-dd HH:mm:ss`、`yyyy-MM-dd'T'HH:mm:ss` 和 ISO instant 三种格式。全部解析失败后 fallback 到 `Instant.now()`，导致：
+  1. 每条记录的 `report_time` 被写成入库时间（毫秒级间隔）
+  2. cursor 去重失效（所有 `Instant.now()` 都比上次的 cursor 新）
+  3. 每次定时同步都重新摄入全部 360 条
+- **解决**:`TIME_FORMATS` 数组新增 `DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss")`。
+- **判据**:
+  - 日志中出现 `Could not parse reportTime` WARN → 立即检查平台实际返回的时间格式，补到 TIME_FORMATS。
+  - 同步数据量持续增长且不收敛 → 检查 cursor 去重是否依赖时间解析（解析失败 → fallback 到 now → 去重失效 → 无限重播）。
+  - 对接第三方平台时，先用 `curl`/日志确认所有时间字段的确切格式，再写解析器。不要假设格式。
+
+---
+
+## 11. datagen 与真实遥测共用同一张表无来源标记
+
+- **日期**:2026-07-10
+- **现象**:两台平台注册设备的遥测日志混入了大量 datagen 模拟数据（154,884 条），无法按字段区分哪些是平台真实遥测、哪些是 datagen 模拟。删除时只能靠时间窗口（平台同步前 vs 后）近似切割。
+- **误判**:先按精确 (0,0) 删除脏 GPS（遗漏了近零坐标），再按时间窗口删除（datagen 和平台时间重叠期无法精确区分）。
+- **根因**:`device_telemetry_logs` 表没有 `source` 字段记录数据来源。`TelemetryIngestionService.ingest()` 接收 `TelemetrySource` 参数但只用于控制 alert 检测和 cursor 推进，不写入日志表。datagen 和平台数据写入同一张表后完全混在一起。
+- **解决（本次）**:靠时间窗口（平台首次同步时间 `2026-07-09 17:06:24` 作为分界线）删除平台设备上的旧数据，再重置 cursor 全量重新同步。
+- **建议（根治）**:`device_telemetry_logs` 新增 `source VARCHAR(20)` 列，`logDeviceTelemetry()` 写入 `TelemetrySource` 枚举值。后续可按来源精确过滤/删除/统计。
+- **判据**:
+  - 多数据源写入同一张表 → 必须有来源标记字段（source/source_type），否则清理和排查只能靠时间近似。
+  - 设计遥测采集架构时，`source` 字段与 `recorded_at` 同等重要——前者区分数据来源，后者区分时间顺序，缺一不可。
+
+---
+
+## 12. Flyway 迁移文件未提交 git 导致 checksum mismatch
+
+- **日期**:2026-07-10
+- **现象**:新增 Flyway 迁移后部署，应用启动报 `Migration checksum mismatch for migration version 20260709150000`，容器不断重启。
+- **误判**:以为是迁移文件内容有语法错误。
+- **根因**:迁移 `V20260709150000__phase3_add_runtime_status.sql` 在服务器上直接创建并执行了（通过之前的对话），但从未提交到 git。新增迁移 `V20260710140000` 后，rsync 把代码同步到服务器，但 `V20260709150000` 重建后的内容与服务器上已执行的原版不同（checksum 不匹配）。
+- **解决**:
+  1. 在 git 中重建该迁移文件（用 `IF NOT EXISTS` 保证幂等）
+  2. 在数据库中 `UPDATE flyway_schema_history SET checksum = <new_checksum> WHERE version = '20260709150000'`
+  3. 重启应用
+- **判据**:
+  - Flyway checksum mismatch → 先 `SELECT version, script, checksum FROM flyway_schema_history WHERE version = '<version>'` 看服务器记录，再对比 git 中的文件。
+  - 任何在服务器上直接执行的迁移必须同步提交到 git，否则下次 rsync 部署必然 checksum 不匹配。
+  - 迁移文件一律用 `IF NOT EXISTS` / `IF EXISTS` 保证幂等性，因为可能被执行多次（重建后）。
+
+---
+
+## 13. estrus_scores DECIMAL(5,2) 精度不足导致 INSERT 失败
+
+- **日期**:2026-07-10
+- **现象**:平台遥测数据同步后，`estrus_scores` 表 INSERT 报 `numeric field overflow: A field with precision 5, scale 2 must round to an absolute value less than 10^3`。
+- **误判**:最初在 `device_telemetry_logs` 的 numeric 列中寻找溢出字段。
+- **根因**:`distance_delta DECIMAL(5,2)` 最大值 999.99，而 `calculateDistanceDelta()` 计算近期与历史活动距离差值（单位：米），当活动量大时差值轻松超过 1000。
+- **解决**:`distance_delta` → `DECIMAL(10,2)`，`temp_delta` → `DECIMAL(8,2)`，JPA `@Column(precision)` 同步更新。
+- **判据**:
+  - `numeric field overflow` → 根据错误信息的 `precision/scale` 值定位具体列（precision=5,scale=2 → DECIMAL(5,2)），再找哪张表有该定义。
+  - 涉及差值/累加计算的数值列，按业务上界设精度：距离差（米）至少 DECIMAL(10,2)，温度差至少 DECIMAL(8,2)。
+  - Flyway 迁移定义列精度时，考虑计算结果的最大值，不只是单条记录的值域。
