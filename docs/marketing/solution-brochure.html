@@ -404,6 +404,24 @@
     /* === Smooth section transitions === */
     section { transition: padding 0.3s ease; }
 
+    /* === Language Switcher === */
+    .lang-switch {
+      position: fixed; top: 16px; right: 16px; z-index: 1000;
+      display: flex; background: rgba(255,255,255,0.15);
+      border-radius: 8px; overflow: hidden;
+      backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.25);
+    }
+    .lang-switch button {
+      padding: 6px 14px; border: none; background: transparent;
+      color: var(--color-white); font-size: 0.85rem; cursor: pointer;
+      font-family: inherit; font-weight: 500; transition: all 0.2s;
+    }
+    .lang-switch button.active {
+      background: var(--color-white); color: var(--color-primary);
+      font-weight: 700;
+    }
+    .lang-switch button:not(.active):hover { background: rgba(255,255,255,0.15); }
+
     /* === Mobile nav tweaks === */
     @media (max-width: 480px) {
       .hero { padding: 4rem var(--space-md) 3rem; }
@@ -417,59 +435,64 @@
 </head>
 <body>
 
+  <div class="lang-switch">
+    <button onclick="setLocale('zh')" id="langZh">中</button>
+    <button onclick="setLocale('en')" id="langEn">EN</button>
+  </div>
+
   <!-- SECTION: hero -->
   <section class="hero">
-    <h1 class="hero-title">智慧畜牧，数据驱动的精准养殖</h1>
-    <p class="hero-subtitle">IoT 设备 + AI 数智孪生 + 云平台，从经验养殖迈向数据驱动的精准管理</p>
+    <h1 class="hero-title" data-i18n="hero.title">智慧畜牧，数据驱动的精准养殖</h1>
+    <p class="hero-subtitle" data-i18n="hero.subtitle">IoT 设备 + AI 数智孪生 + 云平台，从经验养殖迈向数据驱动的精准管理</p>
     <div class="hero-stats">
       <div class="hero-stat">
         <div class="hero-stat-number">4～6 年</div>
-        <div class="hero-stat-label">设备续航，一次安装长期免维护</div>
+        <div class="hero-stat-label" data-i18n="hero.stat1.label">设备续航，一次安装长期免维护</div>
       </div>
       <div class="hero-stat">
         <div class="hero-stat-number">72 小时</div>
-        <div class="hero-stat-label">AI 提前预警，早于临床症状</div>
+        <div class="hero-stat-label" data-i18n="hero.stat2.label">AI 提前预警，早于临床症状</div>
       </div>
       <div class="hero-stat">
         <div class="hero-stat-number">5–10 公里</div>
-        <div class="hero-stat-label">LoRaWAN 覆盖半径，无需蜂窝基站</div>
+        <div class="hero-stat-label" data-i18n="hero.stat3.label">LoRaWAN 覆盖半径，无需蜂窝基站</div>
       </div>
       <div class="hero-stat">
         <div class="hero-stat-number">14 天</div>
-        <div class="hero-stat-label">全功能免费试用，零风险上手</div>
+        <div class="hero-stat-label" data-i18n="hero.stat4.label">全功能免费试用，零风险上手</div>
       </div>
     </div>
     <div class="hero-cta">
-      <a href="#cta" class="btn btn-primary" style="background:var(--color-white);color:var(--color-primary);">预约演示</a>
-      <a href="#pricing" class="btn btn-outline">免费试用</a>
+      <a href="#cta" class="btn btn-primary" style="background:var(--color-white);color:var(--color-primary);" data-i18n="hero.cta1">预约演示</a>
+      <a href="#pricing" class="btn btn-outline" data-i18n="hero.cta2">免费试用</a>
     </div>
   </section>
   <!-- /SECTION: hero -->
 
   <!-- SECTION: pain-points -->
   <section class="section pain-points">
-    <h2 class="section-title">传统牧场面临的挑战</h2>
-    <p class="section-subtitle">规模化养殖中，这些痛点每天都在消耗利润</p>
+    <h2 class="section-title" data-i18n="pain.title">传统牧场面临的挑战</h2>
+    <p class="section-subtitle" data-i18n="pain.subtitle">规模化养殖中，这些痛点每天都在消耗利润</p>
     <div class="pain-grid">
       <div class="pain-card reveal">
         <div class="pain-icon pain-icon-1">&#9200;</div>
-        <h3>人工巡栏效率低</h3>
-        <p>500 头牧场每天巡栏超过 3 小时，人力成本居高不下，且难以做到 24 小时不间断监控。</p>
+        <h3 data-i18n="pain1.title">人工巡栏效率低</h3>
+        <p data-i18n="pain1.desc">500 头牧场每天巡栏超过 3 小时，人力成本居高不下，且难以做到 24 小时不间断监控。</p>
       </div>
       <div class="pain-card reveal">
         <div class="pain-icon pain-icon-2">&#9764;</div>
-        <h3>疾病发现不及时</h3>
-        <p>依赖牧工经验判断，早期症状极易被忽视。往往发现时已错过最佳治疗窗口，损失惨重。</p>
+        <h3 data-i18n="pain2.title">疾病发现不及时</h3>
+        <p data-i18n="pain2.desc">依赖牧工经验判断，早期症状极易被忽视。往往发现时已错过最佳治疗窗口，损失惨重。</p>
       </div>
       <div class="pain-card reveal">
         <div class="pain-icon pain-icon-3">&#128270;</div>
-        <h3>牲畜走失盗窃</h3>
-        <p>散养模式下牲畜位置不可见，发生走失或盗窃后追溯困难，每年造成可观经济损失。</p>
+        <h3 data-i18n="pain3.title">牲畜走失盗窃</h3>
+        <p data-i18n="pain3.desc">散养模式下牲畜位置不可见，发生走失或盗窃后追溯困难，每年造成可观经济损失。</p>
       </div>
       <div class="pain-card reveal">
         <div class="pain-icon pain-icon-4">&#128246;</div>
-        <h3>网络覆盖差</h3>
-        <p>偏远牧场蜂窝信号不稳定，传统数字化工具频繁断连，实际使用体验大打折扣。</p>
+        <h3 data-i18n="pain4.title">网络覆盖差</h3>
+        <p data-i18n="pain4.desc">偏远牧场蜂窝信号不稳定，传统数字化工具频繁断连，实际使用体验大打折扣。</p>
       </div>
     </div>
   </section>
@@ -477,38 +500,38 @@
 
   <!-- SECTION: solution-overview -->
   <section class="section solution">
-    <h2 class="section-title">SmartLivestock 三位一体解决方案</h2>
-    <p class="section-subtitle">从感知到分析到管理，全链路闭环</p>
+    <h2 class="section-title" data-i18n="sol.title">SmartLivestock 三位一体解决方案</h2>
+    <p class="section-subtitle" data-i18n="sol.subtitle">从感知到分析到管理，全链路闭环</p>
     <div class="solution-flow">
       <div class="solution-step reveal">
         <div class="solution-step-icon">&#128225;</div>
-        <h3>IoT 感知层</h3>
+        <h3 data-i18n="sol.step1">IoT 感知层</h3>
         <ul>
-          <li>GPS 追踪器（项圈式）</li>
-          <li>瘤胃胶囊（吞服式）</li>
-          <li>智能耳标</li>
-          <li>LoRaWAN 网关</li>
+          <li data-i18n="sol.step1.i1">GPS 追踪器（项圈式）</li>
+          <li data-i18n="sol.step1.i2">瘤胃胶囊（吞服式）</li>
+          <li data-i18n="sol.step1.i3">智能耳标</li>
+          <li data-i18n="sol.step1.i4">LoRaWAN 网关</li>
         </ul>
       </div>
       <div class="solution-step reveal">
         <div class="solution-step-icon">&#129504;</div>
-        <h3>AI 分析引擎</h3>
+        <h3 data-i18n="sol.step2">AI 分析引擎</h3>
         <ul>
-          <li>发热早期检测</li>
-          <li>消化功能分析</li>
-          <li>发情智能识别</li>
-          <li>疫病趋势预警</li>
-          <li>无监督异常检测</li>
+          <li data-i18n="sol.step2.i1">发热早期检测</li>
+          <li data-i18n="sol.step2.i2">消化功能分析</li>
+          <li data-i18n="sol.step2.i3">发情智能识别</li>
+          <li data-i18n="sol.step2.i4">疫病趋势预警</li>
+          <li data-i18n="sol.step2.i5">无监督异常检测</li>
         </ul>
       </div>
       <div class="solution-step reveal">
         <div class="solution-step-icon">&#9729;</div>
-        <h3>云平台管理</h3>
+        <h3 data-i18n="sol.step3">云平台管理</h3>
         <ul>
-          <li>多租户 SaaS 架构</li>
-          <li>实时地图监控</li>
-          <li>告警即时推送</li>
-          <li>数据分析报表</li>
+          <li data-i18n="sol.step3.i1">多租户 SaaS 架构</li>
+          <li data-i18n="sol.step3.i2">实时地图监控</li>
+          <li data-i18n="sol.step3.i3">告警即时推送</li>
+          <li data-i18n="sol.step3.i4">数据分析报表</li>
         </ul>
       </div>
     </div>
@@ -517,38 +540,38 @@
 
   <!-- SECTION: capabilities -->
   <section class="section capabilities">
-    <h2 class="section-title">六大核心能力</h2>
-    <p class="section-subtitle">覆盖牲畜管理全场景，从定位到健康一站式解决</p>
+    <h2 class="section-title" data-i18n="cap.title">六大核心能力</h2>
+    <p class="section-subtitle" data-i18n="cap.subtitle">覆盖牲畜管理全场景，从定位到健康一站式解决</p>
     <div class="cap-grid">
       <div class="cap-card reveal reveal-delay-1">
         <div class="cap-card-icon">&#128506;</div>
-        <h3>实时定位追踪</h3>
-        <p>GPS + LoRaWAN 双模定位，全球覆盖。支持历史轨迹回放与热力图分析，牲畜位置一目了然。</p>
+        <h3 data-i18n="cap1.title">实时定位追踪</h3>
+        <p data-i18n="cap1.desc">GPS + LoRaWAN 双模定位，全球覆盖。支持历史轨迹回放与热力图分析，牲畜位置一目了然。</p>
       </div>
       <div class="cap-card reveal reveal-delay-2">
         <div class="cap-card-icon">&#128737;</div>
-        <h3>电子围栏告警</h3>
-        <p>手绘多边形或模板快速创建虚拟围栏，越界实时推送告警。支持分时段策略与围栏区域细分管理。</p>
+        <h3 data-i18n="cap2.title">电子围栏告警</h3>
+        <p data-i18n="cap2.desc">手绘多边形或模板快速创建虚拟围栏，越界实时推送告警。支持分时段策略与围栏区域细分管理。</p>
       </div>
       <div class="cap-card reveal reveal-delay-3">
         <div class="cap-card-icon">&#10084;</div>
-        <h3>AI 健康监测</h3>
-        <p>发热、消化、发情、疫病四大分析引擎，覆盖牲畜全生命周期。瘤胃温度基线偏离 72h 趋势预警。</p>
+        <h3 data-i18n="cap3.title">AI 健康监测</h3>
+        <p data-i18n="cap3.desc">发热、消化、发情、疫病四大分析引擎，覆盖牲畜全生命周期。瘤胃温度基线偏离 72h 趋势预警。</p>
       </div>
       <div class="cap-card reveal reveal-delay-1">
         <div class="cap-card-icon">&#128202;</div>
-        <h3>无监督异常检测</h3>
-        <p>STL 节律剥离 + CUSUM 突变检测，体温、蠕动、活动三维联合分析。规则引擎与 AI 双轨并行，误报率大幅降低。</p>
+        <h3 data-i18n="cap4.title">无监督异常检测</h3>
+        <p data-i18n="cap4.desc">STL 节律剥离 + CUSUM 突变检测，体温、蠕动、活动三维联合分析。规则引擎与 AI 双轨并行，误报率大幅降低。</p>
       </div>
       <div class="cap-card reveal reveal-delay-2">
         <div class="cap-card-icon">&#128295;</div>
-        <h3>设备全生命周期管理</h3>
-        <p>追踪器、瘤胃胶囊、耳标统一管理。电量、信号、在线状态实时监控，异常主动告警。支持批量入网与安装记录追溯。</p>
+        <h3 data-i18n="cap5.title">设备全生命周期管理</h3>
+        <p data-i18n="cap5.desc">追踪器、瘤胃胶囊、耳标统一管理。电量、信号、在线状态实时监控，异常主动告警。支持批量入网与安装记录追溯。</p>
       </div>
       <div class="cap-card reveal reveal-delay-3">
         <div class="cap-card-icon">&#128190;</div>
-        <h3>离线全功能作业</h3>
-        <p>无网络环境下完整运行：离线地图瓦片、离线围栏数据、离线牲畜缓存。网络恢复后自动同步，牧场深处也不中断。</p>
+        <h3 data-i18n="cap6.title">离线全功能作业</h3>
+        <p data-i18n="cap6.desc">无网络环境下完整运行：离线地图瓦片、离线围栏数据、离线牲畜缓存。网络恢复后自动同步，牧场深处也不中断。</p>
       </div>
     </div>
   </section>
@@ -556,49 +579,49 @@
 
   <!-- SECTION: architecture -->
   <section class="section architecture">
-    <h2 class="section-title">企业级技术架构</h2>
-    <p class="section-subtitle">DDD 领域驱动 + 事件驱动 + AI 原生，支撑规模化运营</p>
+    <h2 class="section-title" data-i18n="arch.title">企业级技术架构</h2>
+    <p class="section-subtitle" data-i18n="arch.subtitle">DDD 领域驱动 + 事件驱动 + AI 原生，支撑规模化运营</p>
 
     <!-- Architecture Diagram -->
     <div class="arch-diagram-wrap reveal">
       <div class="arch-layer arch-layer-client">
-        <span class="arch-layer-label">接入层</span>
+        <span class="arch-layer-label" data-i18n="arch.layer.client">接入层</span>
         <div class="arch-layer-items">
           <span>Flutter Mobile</span>
           <span>PC Web</span>
           <span>Open API</span>
-          <span>开发者门户</span>
+          <span data-i18n="arch.client.portal">开发者门户</span>
         </div>
       </div>
-      <div class="arch-arrow">▼ JWT 双 Token + API Key 双轨认证 ▼</div>
+      <div class="arch-arrow" data-i18n="arch.arrow.auth">▼ JWT 双 Token + API Key 双轨认证 ▼</div>
       <div class="arch-layer arch-layer-api">
-        <span class="arch-layer-label">API 层</span>
+        <span class="arch-layer-label" data-i18n="arch.layer.api">API 层</span>
         <div class="arch-layer-items">
-          <span>REST Controller × 51</span>
-          <span>API 端点 × 187</span>
-          <span>多租户拦截</span>
-          <span>配额门控</span>
-          <span>限流</span>
+          <span data-i18n="arch.api.controller">REST Controller × 51</span>
+          <span data-i18n="arch.api.endpoint">API 端点 × 187</span>
+          <span data-i18n="arch.api.tenant">多租户拦截</span>
+          <span data-i18n="arch.api.quota">配额门控</span>
+          <span data-i18n="arch.api.rate">限流</span>
         </div>
       </div>
-      <div class="arch-arrow">▼ RocketMQ 事件总线 ▼</div>
+      <div class="arch-arrow" data-i18n="arch.arrow.mq">▼ RocketMQ 事件总线 ▼</div>
       <div class="arch-layer arch-layer-contexts">
-        <span class="arch-layer-label">限界上下文（9 个）</span>
+        <span class="arch-layer-label" data-i18n="arch.layer.contexts">限界上下文（9 个）</span>
         <div class="arch-ctx-grid">
-          <span>Identity<span>身份租户</span></span>
-          <span>Ranch<span>牧场围栏</span></span>
-          <span>IoT<span>设备遥测</span></span>
-          <span>Health<span>AI健康</span></span>
-          <span>Commerce<span>商业计费</span></span>
-          <span>Analytics<span>统计分析</span></span>
-          <span>Datagen<span>数据合成</span></span>
-          <span>Platform<span>调度台</span></span>
-          <span>Shared<span>共享内核</span></span>
+          <span>Identity<span data-i18n="arch.ctx.id">身份租户</span></span>
+          <span>Ranch<span data-i18n="arch.ctx.ranch">牧场围栏</span></span>
+          <span>IoT<span data-i18n="arch.ctx.iot">设备遥测</span></span>
+          <span>Health<span data-i18n="arch.ctx.health">AI健康</span></span>
+          <span>Commerce<span data-i18n="arch.ctx.commerce">商业计费</span></span>
+          <span>Analytics<span data-i18n="arch.ctx.analytics">统计分析</span></span>
+          <span>Datagen<span data-i18n="arch.ctx.datagen">数据合成</span></span>
+          <span>Platform<span data-i18n="arch.ctx.platform">调度台</span></span>
+          <span>Shared<span data-i18n="arch.ctx.shared">共享内核</span></span>
         </div>
       </div>
-      <div class="arch-arrow">▼ 基础设施 + AI 平台 ▼</div>
+      <div class="arch-arrow" data-i18n="arch.arrow.infra">▼ 基础设施 + AI 平台 ▼</div>
       <div class="arch-layer arch-layer-infra">
-        <span class="arch-layer-label">基础设施</span>
+        <span class="arch-layer-label" data-i18n="arch.layer.infra">基础设施</span>
         <div class="arch-layer-items">
           <span>PostgreSQL 16</span>
           <span>Redis 7</span>
@@ -613,28 +636,28 @@
     <!-- 技术先进性 -->
     <div class="arch-highlights">
       <div class="arch-hl-item reveal">
-        <strong>DDD 洋葱架构</strong>
-        <span>9 个限界上下文独立演进，ACL 防腐层隔离，单体内完成解耦，未来拆分微服务零代码改动</span>
+        <strong data-i18n="arch.hl1.title">DDD 洋葱架构</strong>
+        <span data-i18n="arch.hl1.desc">9 个限界上下文独立演进，ACL 防腐层隔离，单体内完成解耦，未来拆分微服务零代码改动</span>
       </div>
       <div class="arch-hl-item reveal">
-        <strong>事件驱动</strong>
-        <span>RocketMQ 16 个 Topic 覆盖全业务场景，跨上下文零直接依赖，优雅降级保证可用性</span>
+        <strong data-i18n="arch.hl2.title">事件驱动</strong>
+        <span data-i18n="arch.hl2.desc">RocketMQ 16 个 Topic 覆盖全业务场景，跨上下文零直接依赖，优雅降级保证可用性</span>
       </div>
       <div class="arch-hl-item reveal">
-        <strong>多租户 SaaS 原生</strong>
-        <span>JWT → ThreadLocal → DB 层三级隔离，请求级自动过滤。支持 partner / farm / api 三级租户类型</span>
+        <strong data-i18n="arch.hl3.title">多租户 SaaS 原生</strong>
+        <span data-i18n="arch.hl3.desc">JWT → ThreadLocal → DB 层三级隔离，请求级自动过滤。支持 partner / farm / api 三级租户类型</span>
       </div>
       <div class="arch-hl-item reveal">
-        <strong>AI 原生健康引擎</strong>
-        <span>STL + CUSUM + iForest 无监督异常检测，体温/蠕动/活动三维联合，Python 微服务独立部署</span>
+        <strong data-i18n="arch.hl4.title">AI 原生健康引擎</strong>
+        <span data-i18n="arch.hl4.desc">STL + CUSUM + iForest 无监督异常检测，体温/蠕动/活动三维联合，Python 微服务独立部署</span>
       </div>
       <div class="arch-hl-item reveal">
-        <strong>离线优先</strong>
-        <span>逐瓦片智能路由 + MBTiles 本地缓存，无网络环境全功能作业，网络恢复自动同步</span>
+        <strong data-i18n="arch.hl5.title">离线优先</strong>
+        <span data-i18n="arch.hl5.desc">逐瓦片智能路由 + MBTiles 本地缓存，无网络环境全功能作业，网络恢复自动同步</span>
       </div>
       <div class="arch-hl-item reveal">
-        <strong>时序数据原生分区</strong>
-        <span>PostgreSQL 按月 RANGE 分区管理海量传感器数据，无需专用 TSDB，运维栈统一</span>
+        <strong data-i18n="arch.hl6.title">时序数据原生分区</strong>
+        <span data-i18n="arch.hl6.desc">PostgreSQL 按月 RANGE 分区管理海量传感器数据，无需专用 TSDB，运维栈统一</span>
       </div>
     </div>
   </section>
@@ -642,13 +665,13 @@
 
   <!-- SECTION: advantages -->
   <section class="section advantages">
-    <h2 class="section-title">为什么选择 SmartLivestock</h2>
-    <p class="section-subtitle">与国际主流竞品全面对比，核心维度均具差异化优势</p>
+    <h2 class="section-title" data-i18n="adv.title">为什么选择 SmartLivestock</h2>
+    <p class="section-subtitle" data-i18n="adv.subtitle">与国际主流竞品全面对比，核心维度均具差异化优势</p>
     <div class="adv-table-wrapper reveal">
       <table class="adv-table">
         <thead>
           <tr>
-            <th>功能维度</th>
+            <th data-i18n="adv.col.dim">功能维度</th>
             <th>Halter</th>
             <th>Vence</th>
             <th>Nofence</th>
@@ -658,7 +681,7 @@
         </thead>
         <tbody>
           <tr>
-            <td>GPS 定位</td>
+            <td data-i18n="adv.row1">GPS 定位</td>
             <td class="adv-check">✓</td>
             <td class="adv-check">✓</td>
             <td class="adv-check">✓</td>
@@ -666,15 +689,15 @@
             <td class="adv-col-ours adv-check">✓</td>
           </tr>
           <tr>
-            <td>虚拟围栏</td>
+            <td data-i18n="adv.row2">虚拟围栏</td>
             <td class="adv-check">✓</td>
             <td class="adv-check">✓</td>
             <td class="adv-check">✓</td>
             <td class="adv-partial">△</td>
-            <td class="adv-col-ours adv-check">✓ 核心</td>
+            <td class="adv-col-ours adv-check" data-i18n="adv.ours.row2">✓ 核心</td>
           </tr>
           <tr>
-            <td>电池寿命</td>
+            <td data-i18n="adv.row3">电池寿命</td>
             <td>6 个月</td>
             <td>1 年</td>
             <td>6 个月</td>
@@ -682,140 +705,140 @@
             <td class="adv-col-ours"><strong>4～6 年</strong></td>
           </tr>
           <tr>
-            <td>通信方式</td>
-            <td>蜂窝</td>
-            <td>蜂窝</td>
+            <td data-i18n="adv.row4">通信方式</td>
+            <td data-i18n="adv.cell.cellular">蜂窝</td>
+            <td data-i18n="adv.cell.cellular">蜂窝</td>
             <td>4G/LTE</td>
             <td>LoRaWAN</td>
             <td class="adv-col-ours"><strong>LoRaWAN</strong></td>
           </tr>
           <tr>
-            <td>强制月费</td>
+            <td data-i18n="adv.row5">强制月费</td>
             <td class="adv-check">✓</td>
             <td class="adv-check">✓</td>
             <td class="adv-check">✓</td>
             <td class="adv-cross">✗</td>
-            <td class="adv-col-ours"><strong>可选订阅</strong></td>
+            <td class="adv-col-ours"><strong data-i18n="adv.ours.row5">可选订阅</strong></td>
           </tr>
           <tr>
-            <td>健康监测</td>
+            <td data-i18n="adv.row6">健康监测</td>
             <td class="adv-check">✓</td>
             <td class="adv-cross">✗</td>
             <td class="adv-cross">✗</td>
             <td class="adv-check">✓</td>
-            <td class="adv-col-ours adv-check"><strong>瘤胃胶囊</strong></td>
+            <td class="adv-col-ours adv-check"><strong data-i18n="adv.ours.row6">瘤胃胶囊</strong></td>
           </tr>
           <tr>
-            <td>AI 异常检测</td>
+            <td data-i18n="adv.row7">AI 异常检测</td>
             <td class="adv-cross">✗</td>
             <td class="adv-cross">✗</td>
             <td class="adv-cross">✗</td>
             <td class="adv-cross">✗</td>
-            <td class="adv-col-ours"><strong>无监督 + 三维联合</strong></td>
+            <td class="adv-col-ours"><strong data-i18n="adv.ours.row7">无监督 + 三维联合</strong></td>
           </tr>
           <tr>
-            <td>数智孪生</td>
+            <td data-i18n="adv.row8">数智孪生</td>
             <td class="adv-cross">✗</td>
             <td class="adv-cross">✗</td>
             <td class="adv-cross">✗</td>
             <td class="adv-cross">✗</td>
-            <td class="adv-col-ours"><strong>4 大场景</strong></td>
+            <td class="adv-col-ours"><strong data-i18n="adv.ours.row8">4 大场景</strong></td>
           </tr>
           <tr>
-            <td>设备防盗</td>
+            <td data-i18n="adv.row9">设备防盗</td>
             <td class="adv-cross">✗</td>
             <td class="adv-cross">✗</td>
             <td class="adv-cross">✗</td>
             <td class="adv-cross">✗</td>
-            <td class="adv-col-ours"><strong>蓝牙关联告警</strong></td>
+            <td class="adv-col-ours"><strong data-i18n="adv.ours.row9">蓝牙关联告警</strong></td>
           </tr>
           <tr>
-            <td>离线作业</td>
+            <td data-i18n="adv.row10">离线作业</td>
             <td class="adv-cross">✗</td>
             <td class="adv-cross">✗</td>
             <td class="adv-cross">✗</td>
             <td class="adv-cross">✗</td>
-            <td class="adv-col-ours"><strong>无网络全功能</strong></td>
+            <td class="adv-col-ours"><strong data-i18n="adv.ours.row10">无网络全功能</strong></td>
           </tr>
         </tbody>
       </table>
     </div>
-    <p class="adv-note">数据来源：各品牌公开产品文档及独立评测，截止 2026 年 7 月</p>
+    <p class="adv-note" data-i18n="adv.note">数据来源：各品牌公开产品文档及独立评测，截止 2026 年 7 月</p>
   </section>
   <!-- /SECTION: advantages -->
 
   <!-- SECTION: pricing -->
   <section class="section pricing" id="pricing">
-    <h2 class="section-title">灵活的订阅方案</h2>
-    <p class="section-subtitle">从免费版起步，按需升级，无隐性费用</p>
+    <h2 class="section-title" data-i18n="price.title">灵活的订阅方案</h2>
+    <p class="section-subtitle" data-i18n="price.subtitle">从免费版起步，按需升级，无隐性费用</p>
     <div class="pricing-grid">
       <div class="pricing-card reveal reveal-delay-1">
-        <div class="pricing-name">BASIC</div>
-        <div class="pricing-price">¥0<small>/月</small></div>
-        <div class="pricing-heads">含 50 头牲畜</div>
+        <div class="pricing-name" data-i18n="price.basic.name">BASIC</div>
+        <div class="pricing-price" data-i18n-html="price.basic.price">¥0<small>/月</small></div>
+        <div class="pricing-heads" data-i18n="price.basic.heads">含 50 头牲畜</div>
         <ul class="pricing-features">
-          <li>GPS 实时定位</li>
-          <li>电子围栏 ≤3 个</li>
-          <li>基础设备管理</li>
-          <li>7 天数据保留</li>
-          <li class="disabled">健康评分</li>
-          <li class="disabled">发情检测</li>
-          <li class="disabled">AI 异常检测</li>
-          <li class="disabled">API 访问</li>
+          <li data-i18n="price.basic.f1">GPS 实时定位</li>
+          <li data-i18n="price.basic.f2">电子围栏 ≤3 个</li>
+          <li data-i18n="price.basic.f3">基础设备管理</li>
+          <li data-i18n="price.basic.f4">7 天数据保留</li>
+          <li class="disabled" data-i18n="price.basic.f5">健康评分</li>
+          <li class="disabled" data-i18n="price.basic.f6">发情检测</li>
+          <li class="disabled" data-i18n="price.basic.f7">AI 异常检测</li>
+          <li class="disabled" data-i18n="price.basic.f8">API 访问</li>
         </ul>
-        <a href="#cta" class="btn" style="background:var(--color-surface);color:var(--color-text-primary);">免费开始</a>
+        <a href="#cta" class="btn" style="background:var(--color-surface);color:var(--color-text-primary);" data-i18n="price.basic.cta">免费开始</a>
       </div>
       <div class="pricing-card reveal reveal-delay-2">
-        <div class="pricing-name">STANDARD</div>
-        <div class="pricing-price">¥299<small>/月</small></div>
-        <div class="pricing-heads">含 200 头牲畜</div>
+        <div class="pricing-name" data-i18n="price.std.name">STANDARD</div>
+        <div class="pricing-price" data-i18n-html="price.std.price">¥299<small>/月</small></div>
+        <div class="pricing-heads" data-i18n="price.std.heads">含 200 头牲畜</div>
         <ul class="pricing-features">
-          <li>GPS 实时定位</li>
-          <li>电子围栏 ≤5 个</li>
-          <li>历史轨迹回放</li>
-          <li>体温监测</li>
-          <li>30 天数据保留</li>
-          <li>8h 工单响应</li>
-          <li class="disabled">AI 异常检测</li>
-          <li class="disabled">API 访问</li>
+          <li data-i18n="price.std.f1">GPS 实时定位</li>
+          <li data-i18n="price.std.f2">电子围栏 ≤5 个</li>
+          <li data-i18n="price.std.f3">历史轨迹回放</li>
+          <li data-i18n="price.std.f4">体温监测</li>
+          <li data-i18n="price.std.f5">30 天数据保留</li>
+          <li data-i18n="price.std.f6">8h 工单响应</li>
+          <li class="disabled" data-i18n="price.std.f7">AI 异常检测</li>
+          <li class="disabled" data-i18n="price.std.f8">API 访问</li>
         </ul>
-        <a href="#cta" class="btn btn-primary">选择标准版</a>
+        <a href="#cta" class="btn btn-primary" data-i18n="price.std.cta">选择标准版</a>
       </div>
       <div class="pricing-card featured reveal reveal-delay-3">
-        <span class="pricing-badge">推荐</span>
-        <div class="pricing-name">PREMIUM</div>
-        <div class="pricing-price">¥699<small>/月</small></div>
-        <div class="pricing-heads">含 1,000 头牲畜</div>
+        <span class="pricing-badge" data-i18n="price.pre.badge">推荐</span>
+        <div class="pricing-name" data-i18n="price.pre.name">PREMIUM</div>
+        <div class="pricing-price" data-i18n-html="price.pre.price">¥699<small>/月</small></div>
+        <div class="pricing-heads" data-i18n="price.pre.heads">含 1,000 头牲畜</div>
         <ul class="pricing-features">
-          <li>STANDARD 全部功能</li>
-          <li>电子围栏 ≤10 个</li>
-          <li>发情检测 + 繁殖管理</li>
-          <li>疫病预警 + 消化分析</li>
-          <li>AI 无监督异常检测</li>
-          <li>90 天数据保留</li>
-          <li>4h 工单响应</li>
-          <li>API 访问</li>
+          <li data-i18n="price.pre.f1">STANDARD 全部功能</li>
+          <li data-i18n="price.pre.f2">电子围栏 ≤10 个</li>
+          <li data-i18n="price.pre.f3">发情检测 + 繁殖管理</li>
+          <li data-i18n="price.pre.f4">疫病预警 + 消化分析</li>
+          <li data-i18n="price.pre.f5">AI 无监督异常检测</li>
+          <li data-i18n="price.pre.f6">90 天数据保留</li>
+          <li data-i18n="price.pre.f7">4h 工单响应</li>
+          <li data-i18n="price.pre.f8">API 访问</li>
         </ul>
-        <a href="#cta" class="btn btn-primary">选择专业版</a>
+        <a href="#cta" class="btn btn-primary" data-i18n="price.pre.cta">选择专业版</a>
       </div>
       <div class="pricing-card reveal reveal-delay-1">
-        <div class="pricing-name">ENTERPRISE</div>
-        <div class="pricing-price" style="font-size:1.75rem;">定制</div>
-        <div class="pricing-heads">不限牲畜数</div>
+        <div class="pricing-name" data-i18n="price.ent.name">ENTERPRISE</div>
+        <div class="pricing-price" style="font-size:1.75rem;" data-i18n="price.ent.price">定制</div>
+        <div class="pricing-heads" data-i18n="price.ent.heads">不限牲畜数</div>
         <ul class="pricing-features">
-          <li>PREMIUM 全部功能</li>
-          <li>集团多牧场联动</li>
-          <li>私有化部署选项</li>
-          <li>定制功能开发</li>
-          <li>3 年数据保留</li>
-          <li>专属客户经理</li>
-          <li>7×24 电话支持</li>
-          <li>SLA 99.99%</li>
+          <li data-i18n="price.ent.f1">PREMIUM 全部功能</li>
+          <li data-i18n="price.ent.f2">集团多牧场联动</li>
+          <li data-i18n="price.ent.f3">私有化部署选项</li>
+          <li data-i18n="price.ent.f4">定制功能开发</li>
+          <li data-i18n="price.ent.f5">3 年数据保留</li>
+          <li data-i18n="price.ent.f6">专属客户经理</li>
+          <li data-i18n="price.ent.f7">7×24 电话支持</li>
+          <li data-i18n="price.ent.f8">SLA 99.99%</li>
         </ul>
-        <a href="#cta" class="btn" style="background:var(--color-surface);color:var(--color-text-primary);">联系销售</a>
+        <a href="#cta" class="btn" style="background:var(--color-surface);color:var(--color-text-primary);" data-i18n="price.ent.cta">联系销售</a>
       </div>
     </div>
-    <div class="pricing-trial">
+    <div class="pricing-trial" data-i18n-html="price.trial">
       新用户注册即享 <strong>14 天 PREMIUM 全功能免费试用</strong>，到期后自动降为免费版，数据保留，随时升级
     </div>
   </section>
@@ -823,32 +846,419 @@
 
   <!-- SECTION: cta -->
   <section class="cta-section" id="cta">
-    <h2 class="cta-title">开启智慧养殖之旅</h2>
-    <p class="cta-subtitle">14 天全功能免费试用，亲眼见证数据驱动的改变</p>
+    <h2 class="cta-title" data-i18n="cta.title">开启智慧养殖之旅</h2>
+    <p class="cta-subtitle" data-i18n="cta.subtitle">14 天全功能免费试用，亲眼见证数据驱动的改变</p>
     <div class="cta-buttons">
-      <a href="#" class="btn-cta-primary">预约演示</a>
-      <a href="#" class="btn-cta-secondary">免费试用</a>
-      <a href="#" class="btn-cta-secondary">联系销售</a>
+      <a href="#" class="btn-cta-primary" data-i18n="cta.btn1">预约演示</a>
+      <a href="#" class="btn-cta-secondary" data-i18n="cta.btn2">免费试用</a>
+      <a href="#" class="btn-cta-secondary" data-i18n="cta.btn3">联系销售</a>
     </div>
   </section>
   <!-- /SECTION: cta -->
 
   <footer class="site-footer">
-    © 2026 SmartLivestock. 智慧畜牧，数据驱动的精准养殖。
+    <span data-i18n="footer">© 2026 SmartLivestock. 智慧畜牧，数据驱动的精准养殖。</span>
   </footer>
 
   <script>
+    // === i18n System ===
+    const I18N = {
+      zh: {
+        /* Meta */
+        'meta.desc': 'SmartLivestock 智慧畜牧解决方案 — IoT + AI 数智孪生，数据驱动的精准养殖',
+        'page.title': 'SmartLivestock 智慧畜牧解决方案',
+        /* Hero */
+        'hero.title': '智慧畜牧，数据驱动的精准养殖',
+        'hero.subtitle': 'IoT 设备 + AI 数智孪生 + 云平台，从经验养殖迈向数据驱动的精准管理',
+        'hero.stat1.label': '设备续航，一次安装长期免维护',
+        'hero.stat2.label': 'AI 提前预警，早于临床症状',
+        'hero.stat3.label': 'LoRaWAN 覆盖半径，无需蜂窝基站',
+        'hero.stat4.label': '全功能免费试用，零风险上手',
+        'hero.cta1': '预约演示',
+        'hero.cta2': '免费试用',
+        /* Pain Points */
+        'pain.title': '传统牧场面临的挑战',
+        'pain.subtitle': '规模化养殖中，这些痛点每天都在消耗利润',
+        'pain1.title': '人工巡栏效率低',
+        'pain1.desc': '500 头牧场每天巡栏超过 3 小时，人力成本居高不下，且难以做到 24 小时不间断监控。',
+        'pain2.title': '疾病发现不及时',
+        'pain2.desc': '依赖牧工经验判断，早期症状极易被忽视。往往发现时已错过最佳治疗窗口，损失惨重。',
+        'pain3.title': '牲畜走失盗窃',
+        'pain3.desc': '散养模式下牲畜位置不可见，发生走失或盗窃后追溯困难，每年造成可观经济损失。',
+        'pain4.title': '网络覆盖差',
+        'pain4.desc': '偏远牧场蜂窝信号不稳定，传统数字化工具频繁断连，实际使用体验大打折扣。',
+        /* Solution */
+        'sol.title': 'SmartLivestock 三位一体解决方案',
+        'sol.subtitle': '从感知到分析到管理，全链路闭环',
+        'sol.step1': 'IoT 感知层',
+        'sol.step1.i1': 'GPS 追踪器（项圈式）',
+        'sol.step1.i2': '瘤胃胶囊（吞服式）',
+        'sol.step1.i3': '智能耳标',
+        'sol.step1.i4': 'LoRaWAN 网关',
+        'sol.step2': 'AI 分析引擎',
+        'sol.step2.i1': '发热早期检测',
+        'sol.step2.i2': '消化功能分析',
+        'sol.step2.i3': '发情智能识别',
+        'sol.step2.i4': '疫病趋势预警',
+        'sol.step2.i5': '无监督异常检测',
+        'sol.step3': '云平台管理',
+        'sol.step3.i1': '多租户 SaaS 架构',
+        'sol.step3.i2': '实时地图监控',
+        'sol.step3.i3': '告警即时推送',
+        'sol.step3.i4': '数据分析报表',
+        /* Capabilities */
+        'cap.title': '六大核心能力',
+        'cap.subtitle': '覆盖牲畜管理全场景，从定位到健康一站式解决',
+        'cap1.title': '实时定位追踪',
+        'cap1.desc': 'GPS + LoRaWAN 双模定位，全球覆盖。支持历史轨迹回放与热力图分析，牲畜位置一目了然。',
+        'cap2.title': '电子围栏告警',
+        'cap2.desc': '手绘多边形或模板快速创建虚拟围栏，越界实时推送告警。支持分时段策略与围栏区域细分管理。',
+        'cap3.title': 'AI 健康监测',
+        'cap3.desc': '发热、消化、发情、疫病四大分析引擎，覆盖牲畜全生命周期。瘤胃温度基线偏离 72h 趋势预警。',
+        'cap4.title': '无监督异常检测',
+        'cap4.desc': 'STL 节律剥离 + CUSUM 突变检测，体温、蠕动、活动三维联合分析。规则引擎与 AI 双轨并行，误报率大幅降低。',
+        'cap5.title': '设备全生命周期管理',
+        'cap5.desc': '追踪器、瘤胃胶囊、耳标统一管理。电量、信号、在线状态实时监控，异常主动告警。支持批量入网与安装记录追溯。',
+        'cap6.title': '离线全功能作业',
+        'cap6.desc': '无网络环境下完整运行：离线地图瓦片、离线围栏数据、离线牲畜缓存。网络恢复后自动同步，牧场深处也不中断。',
+        /* Architecture */
+        'arch.title': '企业级技术架构',
+        'arch.subtitle': 'DDD 领域驱动 + 事件驱动 + AI 原生，支撑规模化运营',
+        'arch.client.portal': '开发者门户',
+        'arch.layer.client': '接入层',
+        'arch.layer.api': 'API 层',
+        'arch.layer.contexts': '限界上下文（9 个）',
+        'arch.layer.infra': '基础设施',
+        'arch.ctx.id': '身份租户',
+        'arch.ctx.ranch': '牧场围栏',
+        'arch.ctx.iot': '设备遥测',
+        'arch.ctx.health': 'AI健康',
+        'arch.ctx.commerce': '商业计费',
+        'arch.ctx.analytics': '统计分析',
+        'arch.ctx.datagen': '数据合成',
+        'arch.ctx.platform': '调度台',
+        'arch.ctx.shared': '共享内核',
+        'arch.arrow.auth': '▼ JWT 双 Token + API Key 双轨认证 ▼',
+        'arch.arrow.mq': '▼ RocketMQ 事件总线 ▼',
+        'arch.arrow.infra': '▼ 基础设施 + AI 平台 ▼',
+        'arch.hl1.title': 'DDD 洋葱架构',
+        'arch.hl1.desc': '9 个限界上下文独立演进，ACL 防腐层隔离，单体内完成解耦，未来拆分微服务零代码改动',
+        'arch.hl2.title': '事件驱动',
+        'arch.hl2.desc': 'RocketMQ 16 个 Topic 覆盖全业务场景，跨上下文零直接依赖，优雅降级保证可用性',
+        'arch.hl3.title': '多租户 SaaS 原生',
+        'arch.hl3.desc': 'JWT → ThreadLocal → DB 层三级隔离，请求级自动过滤。支持 partner / farm / api 三级租户类型',
+        'arch.hl4.title': 'AI 原生健康引擎',
+        'arch.hl4.desc': 'STL + CUSUM + iForest 无监督异常检测，体温/蠕动/活动三维联合，Python 微服务独立部署',
+        'arch.hl5.title': '离线优先',
+        'arch.hl5.desc': '逐瓦片智能路由 + MBTiles 本地缓存，无网络环境全功能作业，网络恢复自动同步',
+        'arch.hl6.title': '时序数据原生分区',
+        'arch.hl6.desc': 'PostgreSQL 按月 RANGE 分区管理海量传感器数据，无需专用 TSDB，运维栈统一',
+        /* Advantages */
+        'adv.col.dim': '功能维度',
+        'adv.cell.cellular': '蜂窝',
+        'adv.title': '为什么选择 SmartLivestock',
+        'adv.subtitle': '与国际主流竞品全面对比，核心维度均具差异化优势',
+        'adv.row1': 'GPS 定位',
+        'adv.row2': '虚拟围栏',
+        'adv.row3': '电池寿命',
+        'adv.row4': '通信方式',
+        'adv.row5': '强制月费',
+        'adv.row6': '健康监测',
+        'adv.row7': 'AI 异常检测',
+        'adv.row8': '数智孪生',
+        'adv.row9': '设备防盗',
+        'adv.row10': '离线作业',
+        'adv.ours.row2': '✓ 核心',
+        'adv.ours.row5': '可选订阅',
+        'adv.ours.row6': '瘤胃胶囊',
+        'adv.ours.row7': '无监督 + 三维联合',
+        'adv.ours.row8': '4 大场景',
+        'adv.ours.row9': '蓝牙关联告警',
+        'adv.ours.row10': '无网络全功能',
+        'adv.note': '数据来源：各品牌公开产品文档及独立评测，截止 2026 年 7 月',
+        /* Pricing */
+        'price.title': '灵活的订阅方案',
+        'price.subtitle': '从免费版起步，按需升级，无隐性费用',
+        'price.basic.name': 'BASIC',
+        'price.basic.price': '¥0<small>/月</small>',
+        'price.basic.heads': '含 50 头牲畜',
+        'price.basic.f1': 'GPS 实时定位',
+        'price.basic.f2': '电子围栏 ≤3 个',
+        'price.basic.f3': '基础设备管理',
+        'price.basic.f4': '7 天数据保留',
+        'price.basic.f5': '健康评分',
+        'price.basic.f6': '发情检测',
+        'price.basic.f7': 'AI 异常检测',
+        'price.basic.f8': 'API 访问',
+        'price.basic.cta': '免费开始',
+        'price.std.name': 'STANDARD',
+        'price.std.price': '¥299<small>/月</small>',
+        'price.std.heads': '含 200 头牲畜',
+        'price.std.f1': 'GPS 实时定位',
+        'price.std.f2': '电子围栏 ≤5 个',
+        'price.std.f3': '历史轨迹回放',
+        'price.std.f4': '体温监测',
+        'price.std.f5': '30 天数据保留',
+        'price.std.f6': '8h 工单响应',
+        'price.std.f7': 'AI 异常检测',
+        'price.std.f8': 'API 访问',
+        'price.std.cta': '选择标准版',
+        'price.pre.badge': '推荐',
+        'price.pre.name': 'PREMIUM',
+        'price.pre.price': '¥699<small>/月</small>',
+        'price.pre.heads': '含 1,000 头牲畜',
+        'price.pre.f1': 'STANDARD 全部功能',
+        'price.pre.f2': '电子围栏 ≤10 个',
+        'price.pre.f3': '发情检测 + 繁殖管理',
+        'price.pre.f4': '疫病预警 + 消化分析',
+        'price.pre.f5': 'AI 无监督异常检测',
+        'price.pre.f6': '90 天数据保留',
+        'price.pre.f7': '4h 工单响应',
+        'price.pre.f8': 'API 访问',
+        'price.pre.cta': '选择专业版',
+        'price.ent.name': 'ENTERPRISE',
+        'price.ent.price': '定制',
+        'price.ent.heads': '不限牲畜数',
+        'price.ent.f1': 'PREMIUM 全部功能',
+        'price.ent.f2': '集团多牧场联动',
+        'price.ent.f3': '私有化部署选项',
+        'price.ent.f4': '定制功能开发',
+        'price.ent.f5': '3 年数据保留',
+        'price.ent.f6': '专属客户经理',
+        'price.ent.f7': '7×24 电话支持',
+        'price.ent.f8': 'SLA 99.99%',
+        'price.ent.cta': '联系销售',
+        'price.trial': '新用户注册即享 <strong>14 天 PREMIUM 全功能免费试用</strong>，到期后自动降为免费版，数据保留，随时升级',
+        /* CTA */
+        'cta.title': '开启智慧养殖之旅',
+        'cta.subtitle': '14 天全功能免费试用，亲眼见证数据驱动的改变',
+        'cta.btn1': '预约演示',
+        'cta.btn2': '免费试用',
+        'cta.btn3': '联系销售',
+        /* Footer */
+        'footer': '© 2026 SmartLivestock. 智慧畜牧，数据驱动的精准养殖。',
+        /* API layer items (architecture diagram) */
+        'arch.api.controller': 'REST Controller × 51',
+        'arch.api.endpoint': 'API 端点 × 187',
+        'arch.api.tenant': '多租户拦截',
+        'arch.api.quota': '配额门控',
+        'arch.api.rate': '限流',
+      },
+      en: {
+        'meta.desc': 'SmartLivestock — IoT + AI Digital Twin, Data-Driven Precision Livestock Farming',
+        'page.title': 'SmartLivestock — Smart Livestock Solution',
+        'hero.title': 'Smart Livestock, Data-Driven Precision Farming',
+        'hero.subtitle': 'IoT Devices + AI Digital Twin + Cloud Platform — from experience-based to data-driven management',
+        'hero.stat1.label': 'Device battery life, install once for years',
+        'hero.stat2.label': 'AI early warning, ahead of clinical symptoms',
+        'hero.stat3.label': 'LoRaWAN coverage, no cellular tower needed',
+        'hero.stat4.label': 'Full-featured free trial, zero risk',
+        'hero.cta1': 'Request Demo',
+        'hero.cta2': 'Free Trial',
+        'pain.title': 'Challenges Facing Traditional Ranches',
+        'pain.subtitle': 'These pain points drain profits every day in large-scale farming',
+        'pain1.title': 'Inefficient Manual Patrols',
+        'pain1.desc': 'A 500-head ranch requires over 3 hours of daily patrol. Labor costs are high, and 24/7 monitoring is impossible.',
+        'pain2.title': 'Late Disease Detection',
+        'pain2.desc': 'Relying on worker experience, early symptoms are easily missed. By the time illness is detected, treatment windows have closed, causing heavy losses.',
+        'pain3.title': 'Livestock Loss and Theft',
+        'pain3.desc': 'Free-range livestock locations are invisible. Tracing lost or stolen animals is difficult, causing significant annual economic losses.',
+        'pain4.title': 'Poor Network Coverage',
+        'pain4.desc': 'Remote ranches have unreliable cellular signals. Conventional digital tools frequently disconnect, severely degrading the user experience.',
+        'sol.title': 'SmartLivestock Three-in-One Solution',
+        'sol.subtitle': 'From sensing to analysis to management — a complete closed loop',
+        'sol.step1': 'IoT Sensing Layer',
+        'sol.step1.i1': 'GPS Tracker (Collar)',
+        'sol.step1.i2': 'Rumen Capsule (Ingestible)',
+        'sol.step1.i3': 'Smart Ear Tag',
+        'sol.step1.i4': 'LoRaWAN Gateway',
+        'sol.step2': 'AI Analytics Engine',
+        'sol.step2.i1': 'Early Fever Detection',
+        'sol.step2.i2': 'Digestive Function Analysis',
+        'sol.step2.i3': 'Intelligent Estrus Detection',
+        'sol.step2.i4': 'Epidemic Trend Warning',
+        'sol.step2.i5': 'Unsupervised Anomaly Detection',
+        'sol.step3': 'Cloud Platform',
+        'sol.step3.i1': 'Multi-Tenant SaaS Architecture',
+        'sol.step3.i2': 'Real-Time Map Monitoring',
+        'sol.step3.i3': 'Instant Alert Push',
+        'sol.step3.i4': 'Data Analytics & Reports',
+        'cap.title': 'Six Core Capabilities',
+        'cap.subtitle': 'Covering the full spectrum of livestock management, from tracking to health — all in one platform',
+        'cap1.title': 'Real-Time GPS Tracking',
+        'cap1.desc': 'GPS + LoRaWAN dual-mode positioning with global coverage. Historical trajectory playback and heatmap analysis provide complete visibility.',
+        'cap2.title': 'Virtual Fence Alerts',
+        'cap2.desc': 'Create virtual fences via freehand polygons or templates. Real-time breach alerts with time-based policies and zone segmentation.',
+        'cap3.title': 'AI Health Monitoring',
+        'cap3.desc': 'Four analysis engines — fever, digestion, estrus, and epidemic — covering the full livestock lifecycle. 72h rumen temperature baseline deviation alerts.',
+        'cap4.title': 'Unsupervised Anomaly Detection',
+        'cap4.desc': 'STL seasonal decomposition + CUSUM change detection with 3D joint analysis of temperature, motility, and activity. Rule engine and AI run in parallel for low false positives.',
+        'cap5.title': 'Device Lifecycle Management',
+        'cap5.desc': 'Unified management of trackers, rumen capsules, and ear tags. Real-time battery, signal, and online status monitoring with proactive alerts and batch onboarding.',
+        'cap6.title': 'Full Offline Operation',
+        'cap6.desc': 'Complete functionality without network: offline map tiles, offline fence data, offline livestock cache. Automatic sync when connectivity returns — no interruptions in remote pastures.',
+        'arch.title': 'Enterprise-Grade Architecture',
+        'arch.subtitle': 'DDD + Event-Driven + AI-Native, built for scale',
+        'arch.client.portal': 'Developer Portal',
+        'arch.layer.client': 'Access Layer',
+        'arch.layer.api': 'API Layer',
+        'arch.layer.contexts': 'Bounded Contexts (9)',
+        'arch.layer.infra': 'Infrastructure',
+        'arch.ctx.id': 'Identity',
+        'arch.ctx.ranch': 'Ranch & Fence',
+        'arch.ctx.iot': 'IoT & Telemetry',
+        'arch.ctx.health': 'AI Health',
+        'arch.ctx.commerce': 'Commerce',
+        'arch.ctx.analytics': 'Analytics',
+        'arch.ctx.datagen': 'Data Synthesis',
+        'arch.ctx.platform': 'Platform',
+        'arch.ctx.shared': 'Shared Kernel',
+        'arch.arrow.auth': '▼ JWT Dual Token + API Key Authentication ▼',
+        'arch.arrow.mq': '▼ RocketMQ Event Bus ▼',
+        'arch.arrow.infra': '▼ Infrastructure + AI Platform ▼',
+        'arch.api.controller': 'REST Controller × 51',
+        'arch.api.endpoint': 'API Endpoints × 187',
+        'arch.api.tenant': 'Multi-Tenant',
+        'arch.api.quota': 'Quota Gate',
+        'arch.api.rate': 'Rate Limit',
+        'arch.hl1.title': 'DDD Onion Architecture',
+        'arch.hl1.desc': '9 bounded contexts evolve independently with ACL isolation. Decoupled within a monolith — zero code changes when splitting into microservices.',
+        'arch.hl2.title': 'Event-Driven',
+        'arch.hl2.desc': '16 RocketMQ topics cover all business scenarios. Zero direct cross-context dependencies with graceful degradation.',
+        'arch.hl3.title': 'Multi-Tenant SaaS Native',
+        'arch.hl3.desc': 'JWT → ThreadLocal → DB-layer three-tier isolation with request-level automatic filtering. Supports partner / farm / api tenant types.',
+        'arch.hl4.title': 'AI-Native Health Engine',
+        'arch.hl4.desc': 'STL + CUSUM + iForest unsupervised anomaly detection with 3D joint analysis. Python microservice independently deployed.',
+        'arch.hl5.title': 'Offline-First',
+        'arch.hl5.desc': 'Per-tile smart routing + MBTiles local cache. Full functionality without network, automatic sync when connectivity returns.',
+        'arch.hl6.title': 'Native Time-Series Partitioning',
+        'arch.hl6.desc': 'PostgreSQL monthly RANGE partitioning for massive sensor data. No dedicated TSDB needed — unified operations stack.',
+        'adv.col.dim': 'Feature',
+        'adv.cell.cellular': 'Cellular',
+        'adv.title': 'Why Choose SmartLivestock',
+        'adv.subtitle': 'Comprehensive comparison with major international competitors — differentiated advantages across all key dimensions',
+        'adv.row1': 'GPS Tracking',
+        'adv.row2': 'Virtual Fence',
+        'adv.row3': 'Battery Life',
+        'adv.row4': 'Connectivity',
+        'adv.row5': 'Mandatory Monthly Fee',
+        'adv.row6': 'Health Monitoring',
+        'adv.row7': 'AI Anomaly Detection',
+        'adv.row8': 'Digital Twin',
+        'adv.row9': 'Anti-Theft',
+        'adv.row10': 'Offline Operation',
+        'adv.ours.row2': '✓ Core',
+        'adv.ours.row5': 'Optional',
+        'adv.ours.row6': 'Rumen Capsule',
+        'adv.ours.row7': 'Unsupervised + 3D Joint',
+        'adv.ours.row8': '4 Scenarios',
+        'adv.ours.row9': 'Bluetooth Alert',
+        'adv.ours.row10': 'Full Offline',
+        'adv.note': 'Data source: public product documentation and independent reviews, as of July 2026',
+        'price.title': 'Flexible Subscription Plans',
+        'price.subtitle': 'Start free, upgrade as needed, no hidden fees',
+        'price.basic.name': 'BASIC',
+        'price.basic.price': '$0<small>/mo</small>',
+        'price.basic.heads': 'Up to 50 head',
+        'price.basic.f1': 'GPS Tracking',
+        'price.basic.f2': 'Virtual Fences ≤3',
+        'price.basic.f3': 'Basic Device Management',
+        'price.basic.f4': '7-Day Data Retention',
+        'price.basic.f5': 'Health Scoring',
+        'price.basic.f6': 'Estrus Detection',
+        'price.basic.f7': 'AI Anomaly Detection',
+        'price.basic.f8': 'API Access',
+        'price.basic.cta': 'Start Free',
+        'price.std.name': 'STANDARD',
+        'price.std.price': '$14<small>/mo</small>',
+        'price.std.heads': 'Up to 200 head',
+        'price.std.f1': 'GPS Tracking',
+        'price.std.f2': 'Virtual Fences ≤5',
+        'price.std.f3': 'Trajectory Playback',
+        'price.std.f4': 'Temperature Monitoring',
+        'price.std.f5': '30-Day Data Retention',
+        'price.std.f6': '8h Ticket Response',
+        'price.std.f7': 'AI Anomaly Detection',
+        'price.std.f8': 'API Access',
+        'price.std.cta': 'Choose Standard',
+        'price.pre.badge': 'Recommended',
+        'price.pre.name': 'PREMIUM',
+        'price.pre.price': '$28<small>/mo</small>',
+        'price.pre.heads': 'Up to 1,000 head',
+        'price.pre.f1': 'All STANDARD Features',
+        'price.pre.f2': 'Virtual Fences ≤10',
+        'price.pre.f3': 'Estrus Detection + Breeding',
+        'price.pre.f4': 'Epidemic Warning + Digestion',
+        'price.pre.f5': 'AI Unsupervised Anomaly Detection',
+        'price.pre.f6': '90-Day Data Retention',
+        'price.pre.f7': '4h Ticket Response',
+        'price.pre.f8': 'API Access',
+        'price.pre.cta': 'Choose Premium',
+        'price.ent.name': 'ENTERPRISE',
+        'price.ent.price': 'Custom',
+        'price.ent.heads': 'Unlimited',
+        'price.ent.f1': 'All PREMIUM Features',
+        'price.ent.f2': 'Multi-Ranch Management',
+        'price.ent.f3': 'Private Deployment',
+        'price.ent.f4': 'Custom Development',
+        'price.ent.f5': '3-Year Data Retention',
+        'price.ent.f6': 'Dedicated Account Manager',
+        'price.ent.f7': '7×24 Phone Support',
+        'price.ent.f8': 'SLA 99.99%',
+        'price.ent.cta': 'Contact Sales',
+        'price.trial': 'New users enjoy a <strong>14-day PREMIUM full-featured free trial</strong>. Auto-downgrades to free tier after expiry — data retained, upgrade anytime.',
+        'cta.title': 'Start Your Smart Farming Journey',
+        'cta.subtitle': '14-day full-featured free trial — witness the data-driven transformation',
+        'cta.btn1': 'Request Demo',
+        'cta.btn2': 'Free Trial',
+        'cta.btn3': 'Contact Sales',
+        'footer': '© 2026 SmartLivestock. Data-Driven Precision Livestock Farming.',
+      }
+    };
+
+    let currentLocale = localStorage.getItem('sl-locale') || 'zh';
+
+    function setLocale(locale) {
+      currentLocale = locale;
+      localStorage.setItem('sl-locale', locale);
+      document.documentElement.lang = locale === 'zh' ? 'zh-CN' : 'en';
+      document.title = t('page.title');
+      document.querySelector('meta[name="description"]').content = t('meta.desc');
+
+      /* Update lang switch buttons */
+      document.getElementById('langZh').classList.toggle('active', locale === 'zh');
+      document.getElementById('langEn').classList.toggle('active', locale === 'en');
+
+      /* Update data-i18n elements */
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.textContent = t(el.dataset.i18n);
+      });
+
+      /* Update data-i18n-html elements (allow HTML children like <small>) */
+      document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        el.innerHTML = t(el.dataset.i18nHtml);
+      });
+
+      /* Re-attach scroll observer for newly visible elements */
+      document.querySelectorAll('.reveal').forEach(el => {
+        if (!el._observed) { observer.observe(el); el._observed = true; }
+      });
+    }
+
+    function t(key) { return I18N[currentLocale][key] || key; }
+
     // Scroll reveal animation
     const observerOptions = { threshold: 0.15, rootMargin: '0px 0px -50px 0px' };
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
+        if (entry.isIntersecting) entry.target.classList.add('visible');
       });
     }, observerOptions);
 
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    document.addEventListener('DOMContentLoaded', () => {
+      setLocale(currentLocale);
+      document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    });
   </script>
 </body>
 </html>
