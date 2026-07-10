@@ -1,15 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/livestock/domain/livestock_repository.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/livestock_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
+/// Livestock create/edit form.
+/// Pass [existing] from list page, or individual fields from detail page edit.
 class LivestockFormSheet extends ConsumerStatefulWidget {
-  const LivestockFormSheet({super.key, this.existing});
+  const LivestockFormSheet({
+    super.key,
+    this.existing,
+    this.livestockId,
+    this.livestockCode,
+    this.breed,
+    this.gender,
+    this.birthDate,
+    this.weight,
+  });
 
+  /// From list page (LivestockSummary)
   final LivestockSummary? existing;
+
+  /// From detail page edit (individual fields)
+  final String? livestockId;
+  final String? livestockCode;
+  final Breed? breed;
+  final String? gender;
+  final DateTime? birthDate;
+  final double? weight;
 
   @override
   ConsumerState<LivestockFormSheet> createState() => _LivestockFormSheetState();
@@ -22,23 +43,34 @@ class _LivestockFormSheetState extends ConsumerState<LivestockFormSheet> {
   String _gender = 'MALE';
   DateTime? _birthDate;
   bool _loading = false;
+  String? _editId;
 
-  bool get _isEdit => widget.existing != null;
+  bool get _isEdit => _editId != null;
 
   @override
   void initState() {
     super.initState();
-    _codeCtrl = TextEditingController(text: widget.existing?.livestockCode ?? '');
-    _weightCtrl = TextEditingController();
-    // Pre-fill fields from existing data when editing.
-   final existing = widget.existing;
-   if (existing != null) {
-      _breed = existing.breed;
-      _gender = existing.gender ?? 'MALE';
-      _birthDate = existing.birthDate;
-      if (existing.weight != null) {
-        _weightCtrl.text = existing.weight!.toStringAsFixed(1);
-      }
+    // Support both call patterns
+    if (widget.existing != null) {
+      final e = widget.existing!;
+      _editId = e.id;
+      _codeCtrl = TextEditingController(text: e.livestockCode);
+      _breed = e.breed;
+      _gender = e.gender ?? 'MALE';
+      _birthDate = e.birthDate;
+      _weightCtrl = TextEditingController(
+          text: e.weight != null ? e.weight!.toStringAsFixed(1) : '');
+    } else if (widget.livestockId != null) {
+      _editId = widget.livestockId;
+      _codeCtrl = TextEditingController(text: widget.livestockCode ?? '');
+      _breed = widget.breed ?? Breed.other;
+      _gender = widget.gender ?? 'MALE';
+      _birthDate = widget.birthDate;
+      _weightCtrl = TextEditingController(
+          text: widget.weight != null ? widget.weight!.toStringAsFixed(1) : '');
+    } else {
+      _codeCtrl = TextEditingController();
+      _weightCtrl = TextEditingController();
     }
   }
 
@@ -77,13 +109,14 @@ class _LivestockFormSheetState extends ConsumerState<LivestockFormSheet> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: AppSpacing.lg),
-            // Code
+            // Code — required, with validation
             TextField(
               key: const Key('livestock-form-code'),
               controller: _codeCtrl,
               decoration: InputDecoration(
-                labelText: l10n.livestockFormFieldCode,
+                labelText: '${l10n.livestockFormFieldCode} *',
                 border: const OutlineInputBorder(),
+                errorText: _codeCtrl.text.trim().isEmpty ? l10n.livestockFormFieldCodeRequired : null,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -150,6 +183,31 @@ class _LivestockFormSheetState extends ConsumerState<LivestockFormSheet> {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
+            // Sync impact note when editing
+            if (_isEdit)
+              Container(
+                margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline, size: 16, color: AppColors.primary),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        l10n.livestockEditSyncNote,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: AppColors.primary,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             // Actions
             Row(
               children: [
@@ -180,6 +238,12 @@ class _LivestockFormSheetState extends ConsumerState<LivestockFormSheet> {
 
   Future<void> _submit() async {
     final l10n = AppLocalizations.of(context)!;
+    // Validate code is not empty
+    if (_codeCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.livestockFormFieldCodeRequired)));
+      return;
+    }
     setState(() => _loading = true);
     final body = <String, dynamic>{
       'livestockCode': _codeCtrl.text.trim(),
@@ -193,7 +257,7 @@ class _LivestockFormSheetState extends ConsumerState<LivestockFormSheet> {
     try {
       final repo = ref.read(livestockRepositoryProvider);
       if (_isEdit) {
-        await repo.update(widget.existing!.id, body);
+        await repo.update(_editId!, body);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.livestockUpdateSuccess)));
           Navigator.of(context).pop();

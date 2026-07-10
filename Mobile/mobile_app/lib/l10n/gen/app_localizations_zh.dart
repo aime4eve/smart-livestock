@@ -2499,4 +2499,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get livestockRange30d => '30天';
+
+  @override
+  String get livestockFormFieldCodeRequired => '编号不能为空';
+
+  @override
+  String get livestockEditSyncNote => '编号修改后，该牲畜在告警、轨迹、健康报告中的显示将同步更新';
+
+  @override
+  String get livestockGenderValueMale => '雄';
+
+  @override
+  String get livestockGenderValueFemale => '雌';
 }

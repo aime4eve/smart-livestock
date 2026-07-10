@@ -2139,5 +2139,13 @@
   "livestockRange7d": "7d",
   "@livestockRange7d": {},
   "livestockRange30d": "30d",
-  "@livestockRange30d": {}
+  "@livestockRange30d": {},
+  "livestockFormFieldCodeRequired": "Code is required",
+  "@livestockFormFieldCodeRequired": {},
+  "livestockEditSyncNote": "After changing the code, it will be synced across alerts, trajectory, and health reports",
+  "@livestockEditSyncNote": {},
+  "livestockGenderValueMale": "Male",
+  "@livestockGenderValueMale": {},
+  "livestockGenderValueFemale": "Female",
+  "@livestockGenderValueFemale": {}
 }

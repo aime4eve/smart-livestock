@@ -4669,6 +4669,30 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'30天'**
   String get livestockRange30d;
+
+  /// No description provided for @livestockFormFieldCodeRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'编号不能为空'**
+  String get livestockFormFieldCodeRequired;
+
+  /// No description provided for @livestockEditSyncNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'编号修改后，该牲畜在告警、轨迹、健康报告中的显示将同步更新'**
+  String get livestockEditSyncNote;
+
+  /// No description provided for @livestockGenderValueMale.
+  ///
+  /// In zh, this message translates to:
+  /// **'雄'**
+  String get livestockGenderValueMale;
+
+  /// No description provided for @livestockGenderValueFemale.
+  ///
+  /// In zh, this message translates to:
+  /// **'雌'**
+  String get livestockGenderValueFemale;
 }
 
 class _AppLocalizationsDelegate

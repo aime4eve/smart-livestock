@@ -51,7 +51,12 @@ class LivestockDetailPage extends ConsumerWidget {
           IconButton(
             key: const Key('livestock-detail-edit'),
             icon: const Icon(Icons.edit_outlined),
-            onPressed: () => _showEditForm(context, ref),
+            onPressed: () {
+              final detail = asyncData.value;
+              if (detail != null) {
+                _showEditForm(context, ref, detail);
+              }
+            },
           ),
           IconButton(
             key: const Key('livestock-detail-delete'),
@@ -156,6 +161,13 @@ class _LivestockInfoCard extends StatelessWidget {
               _InfoItem(label: l10n.livestockBreed, value: detail.breed.localizedLabel(l10n)),
               _InfoItem(label: l10n.livestockAgeMonthsLabel, value: l10n.livestockAgeMonthsValue(detail.ageMonths)),
               _InfoItem(label: l10n.livestockWeight, value: '${detail.weightKg} kg'),
+              _InfoItem(label: l10n.livestockFormFieldGender, value: _genderLabel(l10n, detail.gender)),
+              _InfoItem(
+                label: l10n.livestockFormFieldBirthDate,
+                value: detail.birthDate != null
+                    ? '${detail.birthDate!.year}-${detail.birthDate!.month.toString().padLeft(2, '0')}-${detail.birthDate!.day.toString().padLeft(2, '0')}'
+                    : '--',
+              ),
             ],
           ),
         ],
@@ -181,6 +193,13 @@ class _InfoItem extends StatelessWidget {
       ],
     );
   }
+}
+
+String _genderLabel(AppLocalizations l10n, String? gender) {
+  if (gender == null) return '--';
+  return gender.toUpperCase() == 'FEMALE'
+      ? l10n.livestockGenderValueFemale
+      : l10n.livestockGenderValueMale;
 }
 
 class _DeviceListCard extends ConsumerWidget {
@@ -226,12 +245,20 @@ class _DeviceListCard extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            device.name,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          Text(
-                            [
+                         Text(
+                           device.name,
+                           style: Theme.of(context).textTheme.bodyMedium,
+                         ),
+                         if (device.devEui != null && device.devEui!.isNotEmpty)
+                           Text(
+                             'DevEUI: ${device.devEui}',
+                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                   fontFamily: 'monospace',
+                                   fontSize: 11,
+                                 ),
+                           ),
+                         Text(
+                           [
                               if (device.batteryPercent != null)
                                 l10n.deviceBatteryValue(device.batteryPercent!),
                               if (device.signalStrength != null)
@@ -267,16 +294,20 @@ void _showBindDeviceSheet(BuildContext context, WidgetRef ref, LivestockDetail d
   ).then((_) => ref.read(livestockDetailControllerProvider(detail.livestockId).notifier).refresh());
 }
 
-void _showEditForm(BuildContext context, WidgetRef ref) {
-  final detail = ref.read(livestockDetailControllerProvider(
-          (context.widget as LivestockDetailPage).livestockId).notifier);
+void _showEditForm(BuildContext context, WidgetRef ref, LivestockDetail detail) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    builder: (ctx) => const LivestockFormSheet(),
+    builder: (ctx) => LivestockFormSheet(
+      livestockId: detail.livestockId,
+      livestockCode: detail.livestockCode,
+      breed: detail.breed,
+      gender: detail.gender,
+      birthDate: detail.birthDate,
+      weight: detail.weightKg,
+    ),
   ).then((_) => ref
-      .read(livestockDetailControllerProvider(
-              (context.widget as LivestockDetailPage).livestockId)
+      .read(livestockDetailControllerProvider(detail.livestockId)
           .notifier)
       .refresh());
 }

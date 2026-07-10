@@ -110,6 +110,8 @@ class LivestockDetail {
     required this.activityLevel,
     required this.ruminationFreq,
     required this.lastLocation,
+    this.gender,
+    this.birthDate,
   });
 
   final String livestockCode;
@@ -124,6 +126,8 @@ class LivestockDetail {
   final String activityLevel;
   final String ruminationFreq;
   final String lastLocation;
+  final String? gender;
+  final DateTime? birthDate;
 }
 
 enum DeviceType { gps, rumenCapsule, earTag }

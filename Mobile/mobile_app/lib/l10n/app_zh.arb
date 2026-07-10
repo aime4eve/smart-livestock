@@ -2139,5 +2139,13 @@
   "livestockRange7d": "7天",
   "@livestockRange7d": {},
   "livestockRange30d": "30天",
-  "@livestockRange30d": {}
+  "@livestockRange30d": {},
+  "livestockFormFieldCodeRequired": "编号不能为空",
+  "@livestockFormFieldCodeRequired": {},
+  "livestockEditSyncNote": "编号修改后，该牲畜在告警、轨迹、健康报告中的显示将同步更新",
+  "@livestockEditSyncNote": {},
+  "livestockGenderValueMale": "雄",
+  "@livestockGenderValueMale": {},
+  "livestockGenderValueFemale": "雌",
+  "@livestockGenderValueFemale": {}
 }

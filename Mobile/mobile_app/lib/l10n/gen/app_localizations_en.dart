@@ -2551,4 +2551,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get livestockRange30d => '30d';
+
+  @override
+  String get livestockFormFieldCodeRequired => 'Code is required';
+
+  @override
+  String get livestockEditSyncNote =>
+      'After changing the code, it will be synced across alerts, trajectory, and health reports';
+
+  @override
+  String get livestockGenderValueMale => 'Male';
+
+  @override
+  String get livestockGenderValueFemale => 'Female';
 }
