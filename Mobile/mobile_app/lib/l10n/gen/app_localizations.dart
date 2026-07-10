@@ -4579,6 +4579,120 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'安装成功'**
   String get installSuccess;
+
+  /// No description provided for @livestockNoDeviceBound.
+  ///
+  /// In zh, this message translates to:
+  /// **'未绑定设备'**
+  String get livestockNoDeviceBound;
+
+  /// No description provided for @livestockDeleteConfirmTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认删除？'**
+  String get livestockDeleteConfirmTitle;
+
+  /// No description provided for @livestockDeleteConfirmMsg.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除后将无法恢复。'**
+  String get livestockDeleteConfirmMsg;
+
+  /// No description provided for @livestockDeleteDeviceUnbind.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备 {deviceName} 将自动解绑'**
+  String livestockDeleteDeviceUnbind(String deviceName);
+
+  /// No description provided for @livestockDeleteArchiveNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'历史健康数据和轨迹将归档保留'**
+  String get livestockDeleteArchiveNote;
+
+  /// No description provided for @livestockDeleted.
+  ///
+  /// In zh, this message translates to:
+  /// **'已删除，设备已自动解绑'**
+  String get livestockDeleted;
+
+  /// No description provided for @livestockTrajectoryTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'移动轨迹'**
+  String get livestockTrajectoryTitle;
+
+  /// No description provided for @livestockTrajectoryPoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'轨迹点数'**
+  String get livestockTrajectoryPoints;
+
+  /// No description provided for @livestockTrajectoryDistance.
+  ///
+  /// In zh, this message translates to:
+  /// **'移动距离'**
+  String get livestockTrajectoryDistance;
+
+  /// No description provided for @livestockTrajectoryRange.
+  ///
+  /// In zh, this message translates to:
+  /// **'活动范围'**
+  String get livestockTrajectoryRange;
+
+  /// No description provided for @livestockTrajectoryEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无轨迹数据'**
+  String get livestockTrajectoryEmpty;
+
+  /// No description provided for @livestockTrajectoryNoGps.
+  ///
+  /// In zh, this message translates to:
+  /// **'请先绑定 GPS 设备'**
+  String get livestockTrajectoryNoGps;
+
+  /// No description provided for @livestockRange24h.
+  ///
+  /// In zh, this message translates to:
+  /// **'24小时'**
+  String get livestockRange24h;
+
+  /// No description provided for @livestockRange7d.
+  ///
+  /// In zh, this message translates to:
+  /// **'7天'**
+  String get livestockRange7d;
+
+  /// No description provided for @livestockRange30d.
+  ///
+  /// In zh, this message translates to:
+  /// **'30天'**
+  String get livestockRange30d;
+
+  /// No description provided for @livestockFormFieldCodeRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'编号不能为空'**
+  String get livestockFormFieldCodeRequired;
+
+  /// No description provided for @livestockEditSyncNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'编号修改后，该牲畜在告警、轨迹、健康报告中的显示将同步更新'**
+  String get livestockEditSyncNote;
+
+  /// No description provided for @livestockGenderValueMale.
+  ///
+  /// In zh, this message translates to:
+  /// **'雄'**
+  String get livestockGenderValueMale;
+
+  /// No description provided for @livestockGenderValueFemale.
+  ///
+  /// In zh, this message translates to:
+  /// **'雌'**
+  String get livestockGenderValueFemale;
 }
 
 class _AppLocalizationsDelegate

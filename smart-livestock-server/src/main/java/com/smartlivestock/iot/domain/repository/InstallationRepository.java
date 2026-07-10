@@ -12,6 +12,7 @@ public interface InstallationRepository {
     Optional<Installation> findActiveByDeviceId(Long deviceId);
     List<Installation> findByLivestockId(Long livestockId);
     Optional<Installation> findActiveByLivestockId(Long livestockId);
+    List<Installation> findAllActiveByLivestockId(Long livestockId);
     Optional<Installation> findActiveByLivestockIdAndDeviceType(Long livestockId, DeviceType deviceType);
     List<Installation> findAllActive();
     List<Installation> findByLivestockIdIn(List<Long> livestockIds);

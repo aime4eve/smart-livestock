@@ -4,6 +4,8 @@ import com.smartlivestock.ranch.application.dto.LivestockDto;
 import com.smartlivestock.ranch.domain.model.Livestock;
 import com.smartlivestock.ranch.domain.port.HealthQueryPort;
 import com.smartlivestock.ranch.domain.port.IoTQueryPort;
+import com.smartlivestock.ranch.domain.port.IoTCommandPort;
+import com.smartlivestock.ranch.domain.port.dto.DeviceBrief;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import com.smartlivestock.ranch.application.command.CreateLivestockCommand;
 import com.smartlivestock.ranch.application.command.UpdateLivestockCommand;
@@ -14,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.Map;
 import java.util.List;
 
 @Service
@@ -23,6 +27,7 @@ public class LivestockApplicationService {
     private final LivestockRepository livestockRepository;
     private final HealthQueryPort healthQueryPort;
     private final IoTQueryPort iotQueryPort;
+    private final IoTCommandPort iotCommandPort;
 
     @Transactional
     public LivestockDto createLivestock(CreateLivestockCommand command) {
@@ -47,7 +52,10 @@ public class LivestockApplicationService {
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "error.livestockNotFound", new Object[]{id}));
         HealthQueryPort.LivestockHealthState health = healthQueryPort.findHealthByLivestockId(id).orElse(null);
-        return LivestockDto.detail(livestock, health);
+        LivestockDto dto = LivestockDto.detail(livestock, health);
+        List<DeviceBrief> devices = iotQueryPort.findActiveDevicesByLivestockIds(List.of(id))
+                .getOrDefault(id, List.of());
+        return dto.withDevices(devices);
     }
 
     @Transactional(readOnly = true)
@@ -93,10 +101,8 @@ public class LivestockApplicationService {
         Livestock livestock = livestockRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "error.livestockNotFound", new Object[]{id}));
-        if (iotQueryPort.hasActiveInstallationByLivestock(id)) {
-            throw new ApiException(ErrorCode.STATE_CONFLICT,
-                    "error.livestockHasActiveInstallation", null);
-        }
+        // Cascade: uninstall all active devices before deleting
+        iotCommandPort.removeAllActiveInstallations(id);
         livestockRepository.deleteById(id);
     }
 
@@ -108,17 +114,23 @@ public class LivestockApplicationService {
         String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
         int safePage = Math.max(1, page);
         int offset = (safePage - 1) * pageSize;
-        List<LivestockDto> items;
+       List<LivestockDto> items;
         long total;
         if (kw != null) {
-            items = livestockRepository.findByFarmIdAndKeyword(farmId, kw, offset, pageSize)
-                    .stream().map(LivestockDto::from).toList();
+           items = livestockRepository.findByFarmIdAndKeyword(farmId, kw, offset, pageSize)
+                   .stream().map(LivestockDto::from).toList();
             total = livestockRepository.countByFarmIdAndKeyword(farmId, kw);
         } else {
-            items = livestockRepository.findByFarmIdPaged(farmId, offset, pageSize)
-                    .stream().map(LivestockDto::from).toList();
+           items = livestockRepository.findByFarmIdPaged(farmId, offset, pageSize)
+                   .stream().map(LivestockDto::from).toList();
             total = livestockRepository.countByFarmIdPaged(farmId);
         }
+        // Enrich with device info
+        List<Long> livestockIds = items.stream().map(LivestockDto::id).toList();
+        Map<Long, List<DeviceBrief>> deviceMap = iotQueryPort.findActiveDevicesByLivestockIds(livestockIds);
+        items = items.stream()
+                .map(dto -> dto.withDevices(deviceMap.getOrDefault(dto.id(), List.of())))
+                .toList();
         return new LivestockPage(items, page, pageSize, total);
     }
 

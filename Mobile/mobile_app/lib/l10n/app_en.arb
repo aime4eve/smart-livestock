@@ -559,26 +559,24 @@
   "estrusDetailChartTitle": "7-Day Score Trend",
   "@estrusDetailChartTitle": {},
   "devicesManagement": "Device Management",
- "deviceSearchHint": "Search device code",
- "@deviceSearchHint": {},
- "deviceSearchResult": "{total} results found",
- "@deviceSearchResult": {},
- "@deviceSearchResult": {
-   "placeholders": {
-     "total": {}
-   }
- },
- "deviceShowAll": "Show all",
- "@deviceShowAll": {},
- "devicePaginationInfo": "Page {currentPage} / {totalPages}, {total} items",
- "@devicePaginationInfo": {},
- "@devicePaginationInfo": {
-   "placeholders": {
-     "currentPage": {},
-     "totalPages": {},
-     "total": {}
-   }
- },
+  "deviceSearchHint": "Search device code",
+  "@deviceSearchHint": {},
+  "deviceSearchResult": "{total} results found",
+  "@deviceSearchResult": {
+    "placeholders": {
+      "total": {}
+    }
+  },
+  "deviceShowAll": "Show all",
+  "@deviceShowAll": {},
+  "devicePaginationInfo": "Page {currentPage} / {totalPages}, {total} items",
+  "@devicePaginationInfo": {
+    "placeholders": {
+      "currentPage": {},
+      "totalPages": {},
+      "total": {}
+    }
+  },
   "@devicesManagement": {},
   "devicesAddDemo": "Demo: Add new device coming soon",
   "@devicesAddDemo": {},
@@ -1312,13 +1310,17 @@
   "offlineTileDownloading": "Downloading {region}...",
   "@offlineTileDownloading": {
     "placeholders": {
-      "region": { "type": "String" }
+      "region": {
+        "type": "String"
+      }
     }
   },
   "offlineTileDownloadFailed": "Download failed: {error}",
   "@offlineTileDownloadFailed": {
     "placeholders": {
-      "error": { "type": "String" }
+      "error": {
+        "type": "String"
+      }
     }
   },
   "offlineTileDownloadSuccess": "Download complete",
@@ -1330,13 +1332,17 @@
   "offlineTileStorageUsed": "Storage: {used}",
   "@offlineTileStorageUsed": {
     "placeholders": {
-      "used": { "type": "String" }
+      "used": {
+        "type": "String"
+      }
     }
   },
   "offlineTileDownloadedRegions": "Downloaded ({count})",
   "@offlineTileDownloadedRegions": {
     "placeholders": {
-      "count": { "type": "String" }
+      "count": {
+        "type": "String"
+      }
     }
   },
   "offlineTileCancel": "Cancel",
@@ -1506,11 +1512,19 @@
   "@tileAdminErrorPrefix": {},
   "tileAdminRunningFor": "Running {duration}",
   "@tileAdminRunningFor": {
-    "placeholders": { "duration": { "type": "String" } }
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
   },
   "tileAdminDuration": "Duration {duration}",
   "@tileAdminDuration": {
-    "placeholders": { "duration": { "type": "String" } }
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
   },
   "b2bFarmListTitle": "Managed Farms",
   "@b2bFarmListTitle": {},
@@ -1957,7 +1971,9 @@
   "livestockRuminationValue": "{value} times/min",
   "@livestockRuminationValue": {
     "placeholders": {
-      "value": {"type": "String"}
+      "value": {
+        "type": "String"
+      }
     }
   },
   "feverLoadFailed": "Failed to load temperature data",
@@ -1976,119 +1992,160 @@
   "@estrusLegendScore": {},
   "estrusLegendThreshold": "Breeding Threshold",
   "@estrusLegendThreshold": {},
- "livestockLastLocation": "Last location: {location}",
- "@livestockLastLocation": {
-   "placeholders": {
-     "location": {
-       "type": "String"
-     }
-   }
- },
- "aiAnomalyTitle": "AI Anomaly Detection",
- "@aiAnomalyTitle": {},
- "aiAnomalyScoreLabel": "Anomaly Score",
- "@aiAnomalyScoreLabel": {},
- "aiAnomalyTypeNormal": "Normal",
- "@aiAnomalyTypeNormal": {},
- "aiAnomalyTypeCircadian": "Circadian Disruption",
- "@aiAnomalyTypeCircadian": {},
- "aiAnomalyTypeAbrupt": "Abrupt Change",
- "@aiAnomalyTypeAbrupt": {},
- "aiAnomalyTypeMultivariate": "Multivariate Anomaly",
- "@aiAnomalyTypeMultivariate": {},
- "aiAnomalyNoData": "No anomaly data yet",
- "@aiAnomalyNoData": {},
- "aiAnomalyEffSamples": "Effective samples",
- "@aiAnomalyEffSamples": {},
- "aiAnomalyAssessedAt": "Assessed",
- "@aiAnomalyAssessedAt": {},
- "aiAnomalyViewHistory": "Anomaly Score Trend",
- "@aiAnomalyViewHistory": {},
- "aiAnomalyAlertThreshold": "Alert threshold",
- "@aiAnomalyAlertThreshold": {},
- "aiAnomalyRuleAlerts": "Rule Alerts",
- "@aiAnomalyRuleAlerts": {},
- "aiAnomalyAiAlerts": "AI Anomalies",
- "@aiAnomalyAiAlerts": {},
- "aiAnomalyOverview": "AI Anomaly Overview",
- "@aiAnomalyOverview": {},
- "aiAnomalyAvgScore": "Average Score",
- "@aiAnomalyAvgScore": {},
- "aiAnomalyAnomalyCount": "Anomaly Count",
- "@aiAnomalyAnomalyCount": {}
-,
- "livestockListTitle": "Livestock Management",
- "livestockSearchResult": "{total} results found",
- "@livestockSearchResult": {},
- "@livestockSearchResult": {
-   "placeholders": {
-     "total": {}
-   }
- },
- "livestockShowAll": "Show all",
- "@livestockShowAll": {},
- "livestockSearchHint": "Search by code or breed",
- "@livestockSearchHint": {},
- "livestockPaginationInfo": "Page {currentPage} / {totalPages}, {total} items",
- "@livestockPaginationInfo": {},
- "@livestockPaginationInfo": {
-   "placeholders": {
-     "currentPage": {},
-     "totalPages": {},
-     "total": {}
-   }
- },
- "@livestockListTitle": {},
- "livestockAddNew": "Add Livestock",
- "@livestockAddNew": {},
- "livestockEdit": "Edit Livestock",
- "@livestockEdit": {},
- "livestockFormFieldCode": "Code",
- "@livestockFormFieldCode": {},
- "livestockFormFieldBreed": "Breed",
- "@livestockFormFieldBreed": {},
- "livestockFormFieldGender": "Gender",
- "@livestockFormFieldGender": {},
- "livestockFormFieldBirthDate": "Birth Date",
- "@livestockFormFieldBirthDate": {},
- "livestockFormFieldWeight": "Weight",
- "@livestockFormFieldWeight": {},
- "livestockCreateSuccess": "Livestock created successfully",
- "@livestockCreateSuccess": {},
- "livestockUpdateSuccess": "Livestock updated successfully",
- "@livestockUpdateSuccess": {},
- "livestockBreedAngus": "Angus",
- "@livestockBreedAngus": {},
- "livestockBreedWagyu": "Wagyu",
- "@livestockBreedWagyu": {},
- "livestockBreedSimmental": "Simmental",
- "@livestockBreedSimmental": {},
- "livestockBreedLimousin": "Limousin",
- "@livestockBreedLimousin": {},
- "livestockBreedOther": "Other",
- "@livestockBreedOther": {},
- "livestockGenderMale": "Male",
- "@livestockGenderMale": {},
- "livestockGenderFemale": "Female",
- "@livestockGenderFemale": {},
- "deviceRegisterTitle": "Register Device",
- "@deviceRegisterTitle": {},
- "deviceEditTitle": "Edit Device",
- "@deviceEditTitle": {},
- "deviceFormFieldCode": "Device Code",
- "@deviceFormFieldCode": {},
- "deviceFormFieldDevEui": "LoRa EUI (optional)",
- "@deviceFormFieldDevEui": {},
- "deviceRegisterSuccess": "Device registered successfully",
- "@deviceRegisterSuccess": {},
- "deviceUpdateSuccess": "Device updated successfully",
- "@deviceUpdateSuccess": {},
- "installBindDevice": "Bind Device",
- "@installBindDevice": {},
- "installSelectDevice": "Select Device",
- "@installSelectDevice": {},
- "installNoAvailableDevices": "No available devices",
- "@installNoAvailableDevices": {},
- "installSuccess": "Installed successfully",
- "@installSuccess": {}
+  "livestockLastLocation": "Last location: {location}",
+  "@livestockLastLocation": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAnomalyTitle": "AI Anomaly Detection",
+  "@aiAnomalyTitle": {},
+  "aiAnomalyScoreLabel": "Anomaly Score",
+  "@aiAnomalyScoreLabel": {},
+  "aiAnomalyTypeNormal": "Normal",
+  "@aiAnomalyTypeNormal": {},
+  "aiAnomalyTypeCircadian": "Circadian Disruption",
+  "@aiAnomalyTypeCircadian": {},
+  "aiAnomalyTypeAbrupt": "Abrupt Change",
+  "@aiAnomalyTypeAbrupt": {},
+  "aiAnomalyTypeMultivariate": "Multivariate Anomaly",
+  "@aiAnomalyTypeMultivariate": {},
+  "aiAnomalyNoData": "No anomaly data yet",
+  "@aiAnomalyNoData": {},
+  "aiAnomalyEffSamples": "Effective samples",
+  "@aiAnomalyEffSamples": {},
+  "aiAnomalyAssessedAt": "Assessed",
+  "@aiAnomalyAssessedAt": {},
+  "aiAnomalyViewHistory": "Anomaly Score Trend",
+  "@aiAnomalyViewHistory": {},
+  "aiAnomalyAlertThreshold": "Alert threshold",
+  "@aiAnomalyAlertThreshold": {},
+  "aiAnomalyRuleAlerts": "Rule Alerts",
+  "@aiAnomalyRuleAlerts": {},
+  "aiAnomalyAiAlerts": "AI Anomalies",
+  "@aiAnomalyAiAlerts": {},
+  "aiAnomalyOverview": "AI Anomaly Overview",
+  "@aiAnomalyOverview": {},
+  "aiAnomalyAvgScore": "Average Score",
+  "@aiAnomalyAvgScore": {},
+  "aiAnomalyAnomalyCount": "Anomaly Count",
+  "@aiAnomalyAnomalyCount": {},
+  "livestockListTitle": "Livestock Management",
+  "livestockSearchResult": "{total} results found",
+  "@livestockSearchResult": {
+    "placeholders": {
+      "total": {}
+    }
+  },
+  "livestockShowAll": "Show all",
+  "@livestockShowAll": {},
+  "livestockSearchHint": "Search by code or breed",
+  "@livestockSearchHint": {},
+  "livestockPaginationInfo": "Page {currentPage} / {totalPages}, {total} items",
+  "@livestockPaginationInfo": {
+    "placeholders": {
+      "currentPage": {},
+      "totalPages": {},
+      "total": {}
+    }
+  },
+  "@livestockListTitle": {},
+  "livestockAddNew": "Add Livestock",
+  "@livestockAddNew": {},
+  "livestockEdit": "Edit Livestock",
+  "@livestockEdit": {},
+  "livestockFormFieldCode": "Code",
+  "@livestockFormFieldCode": {},
+  "livestockFormFieldBreed": "Breed",
+  "@livestockFormFieldBreed": {},
+  "livestockFormFieldGender": "Gender",
+  "@livestockFormFieldGender": {},
+  "livestockFormFieldBirthDate": "Birth Date",
+  "@livestockFormFieldBirthDate": {},
+  "livestockFormFieldWeight": "Weight",
+  "@livestockFormFieldWeight": {},
+  "livestockCreateSuccess": "Livestock created successfully",
+  "@livestockCreateSuccess": {},
+  "livestockUpdateSuccess": "Livestock updated successfully",
+  "@livestockUpdateSuccess": {},
+  "livestockBreedAngus": "Angus",
+  "@livestockBreedAngus": {},
+  "livestockBreedWagyu": "Wagyu",
+  "@livestockBreedWagyu": {},
+  "livestockBreedSimmental": "Simmental",
+  "@livestockBreedSimmental": {},
+  "livestockBreedLimousin": "Limousin",
+  "@livestockBreedLimousin": {},
+  "livestockBreedOther": "Other",
+  "@livestockBreedOther": {},
+  "livestockGenderMale": "Male",
+  "@livestockGenderMale": {},
+  "livestockGenderFemale": "Female",
+  "@livestockGenderFemale": {},
+  "deviceRegisterTitle": "Register Device",
+  "@deviceRegisterTitle": {},
+  "deviceEditTitle": "Edit Device",
+  "@deviceEditTitle": {},
+  "deviceFormFieldCode": "Device Code",
+  "@deviceFormFieldCode": {},
+  "deviceFormFieldDevEui": "LoRa EUI (optional)",
+  "@deviceFormFieldDevEui": {},
+  "deviceRegisterSuccess": "Device registered successfully",
+  "@deviceRegisterSuccess": {},
+  "deviceUpdateSuccess": "Device updated successfully",
+  "@deviceUpdateSuccess": {},
+  "installBindDevice": "Bind Device",
+  "@installBindDevice": {},
+  "installSelectDevice": "Select Device",
+  "@installSelectDevice": {},
+  "installNoAvailableDevices": "No available devices",
+  "@installNoAvailableDevices": {},
+  "installSuccess": "Installed successfully",
+  "@installSuccess": {},
+  "livestockNoDeviceBound": "No device bound",
+  "@livestockNoDeviceBound": {},
+  "livestockDeleteConfirmTitle": "Confirm Delete?",
+  "@livestockDeleteConfirmTitle": {},
+  "livestockDeleteConfirmMsg": "This action cannot be undone.",
+  "@livestockDeleteConfirmMsg": {},
+  "livestockDeleteDeviceUnbind": "Device {deviceName} will be unbound",
+  "@livestockDeleteDeviceUnbind": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
+  "livestockDeleteArchiveNote": "Health history and trajectory data will be archived",
+  "@livestockDeleteArchiveNote": {},
+  "livestockDeleted": "Deleted, devices unbound",
+  "@livestockDeleted": {},
+  "livestockTrajectoryTitle": "Movement Trajectory",
+  "@livestockTrajectoryTitle": {},
+  "livestockTrajectoryPoints": "Points",
+  "@livestockTrajectoryPoints": {},
+  "livestockTrajectoryDistance": "Distance",
+  "@livestockTrajectoryDistance": {},
+  "livestockTrajectoryRange": "Range",
+  "@livestockTrajectoryRange": {},
+  "livestockTrajectoryEmpty": "No trajectory data",
+  "@livestockTrajectoryEmpty": {},
+  "livestockTrajectoryNoGps": "Please bind a GPS device first",
+  "@livestockTrajectoryNoGps": {},
+  "livestockRange24h": "24h",
+  "@livestockRange24h": {},
+  "livestockRange7d": "7d",
+  "@livestockRange7d": {},
+  "livestockRange30d": "30d",
+  "@livestockRange30d": {},
+  "livestockFormFieldCodeRequired": "Code is required",
+  "@livestockFormFieldCodeRequired": {},
+  "livestockEditSyncNote": "After changing the code, it will be synced across alerts, trajectory, and health reports",
+  "@livestockEditSyncNote": {},
+  "livestockGenderValueMale": "Male",
+  "@livestockGenderValueMale": {},
+  "livestockGenderValueFemale": "Female",
+  "@livestockGenderValueFemale": {}
 }

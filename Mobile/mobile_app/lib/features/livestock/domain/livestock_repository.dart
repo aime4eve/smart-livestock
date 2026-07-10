@@ -3,7 +3,7 @@ import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 class LivestockSummary {
   const LivestockSummary({
     required this.id,
-    required this.earTag,
+    required this.livestockCode,
     required this.breed,
     required this.health,
     required this.fenceId,
@@ -12,10 +12,11 @@ class LivestockSummary {
     this.gender,
     this.birthDate,
     this.weight,
+    this.deviceCodes = const [],
   });
 
   final String id;
-  final String earTag;
+  final String livestockCode;
   final Breed breed;
   final LivestockHealth health;
   final String fenceId;
@@ -24,6 +25,7 @@ class LivestockSummary {
   final String? gender;
   final DateTime? birthDate;
   final double? weight;
+  final List<String> deviceCodes;
 }
 
 class LivestockListData {

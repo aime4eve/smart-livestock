@@ -6,6 +6,7 @@ import com.smartlivestock.ranch.domain.model.Livestock;
 import com.smartlivestock.ranch.domain.port.HealthQueryPort;
 import com.smartlivestock.ranch.domain.port.IoTQueryPort;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
+import com.smartlivestock.ranch.domain.port.IoTCommandPort;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class LivestockApplicationServiceTest {
@@ -34,6 +36,9 @@ class LivestockApplicationServiceTest {
 
     @Mock
     private IoTQueryPort iotQueryPort;
+
+    @Mock
+    private IoTCommandPort iotCommandPort;
 
     @InjectMocks
     private LivestockApplicationService service;
@@ -114,18 +119,14 @@ class LivestockApplicationServiceTest {
     }
 
     @Test
-    void shouldRejectDeleteWithActiveInstallation() {
+    void shouldCascadeUninstallDevicesOnDelete() {
         Livestock existing = new Livestock(1L, "COW-001", "安格斯", "MALE",
                 LocalDate.of(2024, 3, 15), new BigDecimal("450"));
         existing.setId(10L);
         when(livestockRepository.findById(10L)).thenReturn(Optional.of(existing));
-        when(iotQueryPort.hasActiveInstallationByLivestock(10L)).thenReturn(true);
-
-        assertThatThrownBy(() -> service.deleteLivestock(10L))
-                .isInstanceOf(ApiException.class)
-                .satisfies(ex -> {
-                    ApiException apiEx = (ApiException) ex;
-                    assertThat(apiEx.getCode()).isEqualTo(ErrorCode.STATE_CONFLICT);
-                });
+        // No exception expected — cascade uninstall should happen silently
+        service.deleteLivestock(10L);
+        verify(iotCommandPort).removeAllActiveInstallations(10L);
+        verify(livestockRepository).deleteById(10L);
     }
 }

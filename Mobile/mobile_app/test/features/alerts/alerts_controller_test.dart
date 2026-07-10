@@ -46,7 +46,7 @@ class _FakeAlertsRepository implements AlertsRepository {
         priority: 'P1',
         type: 'TEST',
         stage: 'active',
-        earTag: '-',
+        livestockCode: '-',
       );
 
   @override
@@ -72,7 +72,7 @@ AlertItem _makeAlert(String id) => AlertItem(
       priority: 'P1',
       type: 'FENCE_BREACH',
       stage: 'active',
-      earTag: '-',
+      livestockCode: '-',
     );
 
 void main() {

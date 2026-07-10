@@ -2452,4 +2452,63 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get installSuccess => '安装成功';
+
+  @override
+  String get livestockNoDeviceBound => '未绑定设备';
+
+  @override
+  String get livestockDeleteConfirmTitle => '确认删除？';
+
+  @override
+  String get livestockDeleteConfirmMsg => '删除后将无法恢复。';
+
+  @override
+  String livestockDeleteDeviceUnbind(String deviceName) {
+    return '设备 $deviceName 将自动解绑';
+  }
+
+  @override
+  String get livestockDeleteArchiveNote => '历史健康数据和轨迹将归档保留';
+
+  @override
+  String get livestockDeleted => '已删除，设备已自动解绑';
+
+  @override
+  String get livestockTrajectoryTitle => '移动轨迹';
+
+  @override
+  String get livestockTrajectoryPoints => '轨迹点数';
+
+  @override
+  String get livestockTrajectoryDistance => '移动距离';
+
+  @override
+  String get livestockTrajectoryRange => '活动范围';
+
+  @override
+  String get livestockTrajectoryEmpty => '暂无轨迹数据';
+
+  @override
+  String get livestockTrajectoryNoGps => '请先绑定 GPS 设备';
+
+  @override
+  String get livestockRange24h => '24小时';
+
+  @override
+  String get livestockRange7d => '7天';
+
+  @override
+  String get livestockRange30d => '30天';
+
+  @override
+  String get livestockFormFieldCodeRequired => '编号不能为空';
+
+  @override
+  String get livestockEditSyncNote => '编号修改后，该牲畜在告警、轨迹、健康报告中的显示将同步更新';
+
+  @override
+  String get livestockGenderValueMale => '雄';
+
+  @override
+  String get livestockGenderValueFemale => '雌';
 }

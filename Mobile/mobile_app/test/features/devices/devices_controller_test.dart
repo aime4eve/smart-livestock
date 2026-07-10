@@ -76,7 +76,7 @@ DeviceItem _makeDevice(String id) => DeviceItem(
       name: 'DEV-$id',
       type: DeviceType.gps,
       status: DeviceStatus.online,
-      boundEarTag: '',
+      boundLivestockCode: '',
     );
 
 void main() {

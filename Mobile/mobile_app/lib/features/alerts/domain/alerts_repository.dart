@@ -28,7 +28,7 @@ class AlertDetail {
     required this.priority,
     required this.type,
     required this.stage,
-    required this.earTag,
+    required this.livestockCode,
     this.livestockId,
     this.occurredAt,
     this.description,
@@ -40,7 +40,7 @@ class AlertDetail {
   final String priority;
   final String type;
   final String stage;
-  final String earTag;
+  final String livestockCode;
   final String? livestockId;
   final String? occurredAt;
   final String? description;

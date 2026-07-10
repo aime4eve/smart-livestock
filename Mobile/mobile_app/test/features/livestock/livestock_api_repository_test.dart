@@ -19,7 +19,7 @@ void main() {
       });
 
       expect(s.id, 'liv-1');
-      expect(s.earTag, 'SL-2024-001');
+      expect(s.livestockCode, 'SL-2024-001');
       expect(s.breed, Breed.angus);
       expect(s.health, LivestockHealth.healthy);
       expect(s.fenceId, 'fence-1');
@@ -67,7 +67,7 @@ void main() {
         'id': '1',
         'earTag': 'EAR-001',
       });
-      expect(s.earTag, 'EAR-001');
+      expect(s.livestockCode, 'EAR-001');
     });
 
     test('unknown breed maps to Breed.other', () {
@@ -129,7 +129,7 @@ void main() {
       });
 
       expect(d.livestockId, 'liv-1');
-      expect(d.earTag, 'SL-2024-001');
+      expect(d.livestockCode, 'SL-2024-001');
       expect(d.breed, Breed.wagyu);
       expect(d.ageMonths, 30);
       expect(d.weightKg, 520.0);

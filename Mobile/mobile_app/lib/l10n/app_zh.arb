@@ -559,26 +559,24 @@
   "estrusDetailChartTitle": "7天评分趋势",
   "@estrusDetailChartTitle": {},
   "devicesManagement": "设备管理",
- "deviceSearchHint": "搜索设备编号",
- "@deviceSearchHint": {},
- "deviceSearchResult": "搜索结果：{total} 条",
- "@deviceSearchResult": {},
- "@deviceSearchResult": {
-   "placeholders": {
-     "total": {}
-   }
- },
- "deviceShowAll": "查看全部",
- "@deviceShowAll": {},
- "devicePaginationInfo": "第 {currentPage} / {totalPages} 页，共 {total} 条",
- "@devicePaginationInfo": {},
- "@devicePaginationInfo": {
-   "placeholders": {
-     "currentPage": {},
-     "totalPages": {},
-     "total": {}
-   }
- },
+  "deviceSearchHint": "搜索设备编号",
+  "@deviceSearchHint": {},
+  "deviceSearchResult": "搜索结果：{total} 条",
+  "@deviceSearchResult": {
+    "placeholders": {
+      "total": {}
+    }
+  },
+  "deviceShowAll": "查看全部",
+  "@deviceShowAll": {},
+  "devicePaginationInfo": "第 {currentPage} / {totalPages} 页，共 {total} 条",
+  "@devicePaginationInfo": {
+    "placeholders": {
+      "currentPage": {},
+      "totalPages": {},
+      "total": {}
+    }
+  },
   "@devicesManagement": {},
   "devicesAddDemo": "演示：添加新设备待接入",
   "@devicesAddDemo": {},
@@ -1312,13 +1310,17 @@
   "offlineTileDownloading": "正在下载 {region}...",
   "@offlineTileDownloading": {
     "placeholders": {
-      "region": { "type": "String" }
+      "region": {
+        "type": "String"
+      }
     }
   },
   "offlineTileDownloadFailed": "下载失败：{error}",
   "@offlineTileDownloadFailed": {
     "placeholders": {
-      "error": { "type": "String" }
+      "error": {
+        "type": "String"
+      }
     }
   },
   "offlineTileDownloadSuccess": "下载完成",
@@ -1330,13 +1332,17 @@
   "offlineTileStorageUsed": "已用空间：{used}",
   "@offlineTileStorageUsed": {
     "placeholders": {
-      "used": { "type": "String" }
+      "used": {
+        "type": "String"
+      }
     }
   },
   "offlineTileDownloadedRegions": "已下载（{count}）",
   "@offlineTileDownloadedRegions": {
     "placeholders": {
-      "count": { "type": "String" }
+      "count": {
+        "type": "String"
+      }
     }
   },
   "offlineTileCancel": "取消",
@@ -1506,11 +1512,19 @@
   "@tileAdminErrorPrefix": {},
   "tileAdminRunningFor": "已运行 {duration}",
   "@tileAdminRunningFor": {
-    "placeholders": { "duration": { "type": "String" } }
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
   },
   "tileAdminDuration": "用时 {duration}",
   "@tileAdminDuration": {
-    "placeholders": { "duration": { "type": "String" } }
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
   },
   "b2bFarmListTitle": "旗下牧场",
   "@b2bFarmListTitle": {},
@@ -1957,7 +1971,9 @@
   "livestockRuminationValue": "{value} 次/分",
   "@livestockRuminationValue": {
     "placeholders": {
-      "value": {"type": "String"}
+      "value": {
+        "type": "String"
+      }
     }
   },
   "feverLoadFailed": "体温数据加载失败",
@@ -1976,119 +1992,160 @@
   "@estrusLegendScore": {},
   "estrusLegendThreshold": "配种阈值",
   "@estrusLegendThreshold": {},
- "livestockLastLocation": "最近位置：{location}",
- "@livestockLastLocation": {
-   "placeholders": {
-     "location": {
-       "type": "String"
-     }
-   }
- },
- "aiAnomalyTitle": "AI 异常检测",
- "@aiAnomalyTitle": {},
- "aiAnomalyScoreLabel": "异常指数",
- "@aiAnomalyScoreLabel": {},
- "aiAnomalyTypeNormal": "正常",
- "@aiAnomalyTypeNormal": {},
- "aiAnomalyTypeCircadian": "节律紊乱",
- "@aiAnomalyTypeCircadian": {},
- "aiAnomalyTypeAbrupt": "突变",
- "@aiAnomalyTypeAbrupt": {},
- "aiAnomalyTypeMultivariate": "多维联合异常",
- "@aiAnomalyTypeMultivariate": {},
- "aiAnomalyNoData": "暂无异常数据",
- "@aiAnomalyNoData": {},
- "aiAnomalyEffSamples": "有效样本",
- "@aiAnomalyEffSamples": {},
- "aiAnomalyAssessedAt": "评估方式",
- "@aiAnomalyAssessedAt": {},
- "aiAnomalyViewHistory": "异常指数趋势",
- "@aiAnomalyViewHistory": {},
- "aiAnomalyAlertThreshold": "告警阈值",
- "@aiAnomalyAlertThreshold": {},
- "aiAnomalyRuleAlerts": "规则告警",
- "@aiAnomalyRuleAlerts": {},
- "aiAnomalyAiAlerts": "AI 异常",
- "@aiAnomalyAiAlerts": {},
- "aiAnomalyOverview": "AI 异常概览",
- "@aiAnomalyOverview": {},
- "aiAnomalyAvgScore": "平均指数",
- "@aiAnomalyAvgScore": {},
- "aiAnomalyAnomalyCount": "异常数量",
- "@aiAnomalyAnomalyCount": {}
-,
- "livestockListTitle": "牲畜管理",
- "livestockSearchResult": "搜索结果：{total} 条",
- "@livestockSearchResult": {},
- "@livestockSearchResult": {
-   "placeholders": {
-     "total": {}
-   }
- },
- "livestockShowAll": "查看全部",
- "@livestockShowAll": {},
- "livestockSearchHint": "搜索编号或品种",
- "@livestockSearchHint": {},
- "livestockPaginationInfo": "第 {currentPage} / {totalPages} 页，共 {total} 条",
- "@livestockPaginationInfo": {},
- "@livestockPaginationInfo": {
-   "placeholders": {
-     "currentPage": {},
-     "totalPages": {},
-     "total": {}
-   }
- },
- "@livestockListTitle": {},
- "livestockAddNew": "新增牲畜",
- "@livestockAddNew": {},
- "livestockEdit": "编辑牲畜",
- "@livestockEdit": {},
- "livestockFormFieldCode": "编号",
- "@livestockFormFieldCode": {},
- "livestockFormFieldBreed": "品种",
- "@livestockFormFieldBreed": {},
- "livestockFormFieldGender": "性别",
- "@livestockFormFieldGender": {},
- "livestockFormFieldBirthDate": "出生日期",
- "@livestockFormFieldBirthDate": {},
- "livestockFormFieldWeight": "体重",
- "@livestockFormFieldWeight": {},
- "livestockCreateSuccess": "牲畜创建成功",
- "@livestockCreateSuccess": {},
- "livestockUpdateSuccess": "牲畜更新成功",
- "@livestockUpdateSuccess": {},
- "livestockBreedAngus": "安格斯",
- "@livestockBreedAngus": {},
- "livestockBreedWagyu": "和牛",
- "@livestockBreedWagyu": {},
- "livestockBreedSimmental": "西门塔尔",
- "@livestockBreedSimmental": {},
- "livestockBreedLimousin": "利木赞",
- "@livestockBreedLimousin": {},
- "livestockBreedOther": "其他",
- "@livestockBreedOther": {},
- "livestockGenderMale": "公",
- "@livestockGenderMale": {},
- "livestockGenderFemale": "母",
- "@livestockGenderFemale": {},
- "deviceRegisterTitle": "注册设备",
- "@deviceRegisterTitle": {},
- "deviceEditTitle": "编辑设备",
- "@deviceEditTitle": {},
- "deviceFormFieldCode": "设备编号",
- "@deviceFormFieldCode": {},
- "deviceFormFieldDevEui": "LoRa EUI（选填）",
- "@deviceFormFieldDevEui": {},
- "deviceRegisterSuccess": "设备注册成功",
- "@deviceRegisterSuccess": {},
- "deviceUpdateSuccess": "设备更新成功",
- "@deviceUpdateSuccess": {},
- "installBindDevice": "绑定设备",
- "@installBindDevice": {},
- "installSelectDevice": "选择设备",
- "@installSelectDevice": {},
- "installNoAvailableDevices": "没有可用设备",
- "@installNoAvailableDevices": {},
- "installSuccess": "安装成功",
- "@installSuccess": {}
+  "livestockLastLocation": "最近位置：{location}",
+  "@livestockLastLocation": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAnomalyTitle": "AI 异常检测",
+  "@aiAnomalyTitle": {},
+  "aiAnomalyScoreLabel": "异常指数",
+  "@aiAnomalyScoreLabel": {},
+  "aiAnomalyTypeNormal": "正常",
+  "@aiAnomalyTypeNormal": {},
+  "aiAnomalyTypeCircadian": "节律紊乱",
+  "@aiAnomalyTypeCircadian": {},
+  "aiAnomalyTypeAbrupt": "突变",
+  "@aiAnomalyTypeAbrupt": {},
+  "aiAnomalyTypeMultivariate": "多维联合异常",
+  "@aiAnomalyTypeMultivariate": {},
+  "aiAnomalyNoData": "暂无异常数据",
+  "@aiAnomalyNoData": {},
+  "aiAnomalyEffSamples": "有效样本",
+  "@aiAnomalyEffSamples": {},
+  "aiAnomalyAssessedAt": "评估方式",
+  "@aiAnomalyAssessedAt": {},
+  "aiAnomalyViewHistory": "异常指数趋势",
+  "@aiAnomalyViewHistory": {},
+  "aiAnomalyAlertThreshold": "告警阈值",
+  "@aiAnomalyAlertThreshold": {},
+  "aiAnomalyRuleAlerts": "规则告警",
+  "@aiAnomalyRuleAlerts": {},
+  "aiAnomalyAiAlerts": "AI 异常",
+  "@aiAnomalyAiAlerts": {},
+  "aiAnomalyOverview": "AI 异常概览",
+  "@aiAnomalyOverview": {},
+  "aiAnomalyAvgScore": "平均指数",
+  "@aiAnomalyAvgScore": {},
+  "aiAnomalyAnomalyCount": "异常数量",
+  "@aiAnomalyAnomalyCount": {},
+  "livestockListTitle": "牲畜管理",
+  "livestockSearchResult": "搜索结果：{total} 条",
+  "@livestockSearchResult": {
+    "placeholders": {
+      "total": {}
+    }
+  },
+  "livestockShowAll": "查看全部",
+  "@livestockShowAll": {},
+  "livestockSearchHint": "搜索编号或品种",
+  "@livestockSearchHint": {},
+  "livestockPaginationInfo": "第 {currentPage} / {totalPages} 页，共 {total} 条",
+  "@livestockPaginationInfo": {
+    "placeholders": {
+      "currentPage": {},
+      "totalPages": {},
+      "total": {}
+    }
+  },
+  "@livestockListTitle": {},
+  "livestockAddNew": "新增牲畜",
+  "@livestockAddNew": {},
+  "livestockEdit": "编辑牲畜",
+  "@livestockEdit": {},
+  "livestockFormFieldCode": "编号",
+  "@livestockFormFieldCode": {},
+  "livestockFormFieldBreed": "品种",
+  "@livestockFormFieldBreed": {},
+  "livestockFormFieldGender": "性别",
+  "@livestockFormFieldGender": {},
+  "livestockFormFieldBirthDate": "出生日期",
+  "@livestockFormFieldBirthDate": {},
+  "livestockFormFieldWeight": "体重",
+  "@livestockFormFieldWeight": {},
+  "livestockCreateSuccess": "牲畜创建成功",
+  "@livestockCreateSuccess": {},
+  "livestockUpdateSuccess": "牲畜更新成功",
+  "@livestockUpdateSuccess": {},
+  "livestockBreedAngus": "安格斯",
+  "@livestockBreedAngus": {},
+  "livestockBreedWagyu": "和牛",
+  "@livestockBreedWagyu": {},
+  "livestockBreedSimmental": "西门塔尔",
+  "@livestockBreedSimmental": {},
+  "livestockBreedLimousin": "利木赞",
+  "@livestockBreedLimousin": {},
+  "livestockBreedOther": "其他",
+  "@livestockBreedOther": {},
+  "livestockGenderMale": "公",
+  "@livestockGenderMale": {},
+  "livestockGenderFemale": "母",
+  "@livestockGenderFemale": {},
+  "deviceRegisterTitle": "注册设备",
+  "@deviceRegisterTitle": {},
+  "deviceEditTitle": "编辑设备",
+  "@deviceEditTitle": {},
+  "deviceFormFieldCode": "设备编号",
+  "@deviceFormFieldCode": {},
+  "deviceFormFieldDevEui": "LoRa EUI（选填）",
+  "@deviceFormFieldDevEui": {},
+  "deviceRegisterSuccess": "设备注册成功",
+  "@deviceRegisterSuccess": {},
+  "deviceUpdateSuccess": "设备更新成功",
+  "@deviceUpdateSuccess": {},
+  "installBindDevice": "绑定设备",
+  "@installBindDevice": {},
+  "installSelectDevice": "选择设备",
+  "@installSelectDevice": {},
+  "installNoAvailableDevices": "没有可用设备",
+  "@installNoAvailableDevices": {},
+  "installSuccess": "安装成功",
+  "@installSuccess": {},
+  "livestockNoDeviceBound": "未绑定设备",
+  "@livestockNoDeviceBound": {},
+  "livestockDeleteConfirmTitle": "确认删除？",
+  "@livestockDeleteConfirmTitle": {},
+  "livestockDeleteConfirmMsg": "删除后将无法恢复。",
+  "@livestockDeleteConfirmMsg": {},
+  "livestockDeleteDeviceUnbind": "设备 {deviceName} 将自动解绑",
+  "@livestockDeleteDeviceUnbind": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
+  "livestockDeleteArchiveNote": "历史健康数据和轨迹将归档保留",
+  "@livestockDeleteArchiveNote": {},
+  "livestockDeleted": "已删除，设备已自动解绑",
+  "@livestockDeleted": {},
+  "livestockTrajectoryTitle": "移动轨迹",
+  "@livestockTrajectoryTitle": {},
+  "livestockTrajectoryPoints": "轨迹点数",
+  "@livestockTrajectoryPoints": {},
+  "livestockTrajectoryDistance": "移动距离",
+  "@livestockTrajectoryDistance": {},
+  "livestockTrajectoryRange": "活动范围",
+  "@livestockTrajectoryRange": {},
+  "livestockTrajectoryEmpty": "暂无轨迹数据",
+  "@livestockTrajectoryEmpty": {},
+  "livestockTrajectoryNoGps": "请先绑定 GPS 设备",
+  "@livestockTrajectoryNoGps": {},
+  "livestockRange24h": "24小时",
+  "@livestockRange24h": {},
+  "livestockRange7d": "7天",
+  "@livestockRange7d": {},
+  "livestockRange30d": "30天",
+  "@livestockRange30d": {},
+  "livestockFormFieldCodeRequired": "编号不能为空",
+  "@livestockFormFieldCodeRequired": {},
+  "livestockEditSyncNote": "编号修改后，该牲畜在告警、轨迹、健康报告中的显示将同步更新",
+  "@livestockEditSyncNote": {},
+  "livestockGenderValueMale": "雄",
+  "@livestockGenderValueMale": {},
+  "livestockGenderValueFemale": "雌",
+  "@livestockGenderValueFemale": {}
 }

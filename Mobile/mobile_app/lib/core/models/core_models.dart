@@ -74,7 +74,7 @@ enum Breed {
 
 class LivestockInfo {
   const LivestockInfo({
-    required this.earTag,
+    required this.livestockCode,
     required this.livestockId,
     required this.breed,
     required this.ageMonths,
@@ -85,7 +85,7 @@ class LivestockInfo {
     required this.lng,
   });
 
-  final String earTag;
+  final String livestockCode;
   final String livestockId;
   final Breed breed;
   final int ageMonths;
@@ -98,7 +98,7 @@ class LivestockInfo {
 
 class LivestockDetail {
   const LivestockDetail({
-    required this.earTag,
+    required this.livestockCode,
     required this.livestockId,
     required this.breed,
     required this.ageMonths,
@@ -110,9 +110,11 @@ class LivestockDetail {
     required this.activityLevel,
     required this.ruminationFreq,
     required this.lastLocation,
+    this.gender,
+    this.birthDate,
   });
 
-  final String earTag;
+  final String livestockCode;
   final String livestockId;
   final Breed breed;
   final int ageMonths;
@@ -124,6 +126,8 @@ class LivestockDetail {
   final String activityLevel;
   final String ruminationFreq;
   final String lastLocation;
+  final String? gender;
+  final DateTime? birthDate;
 }
 
 enum DeviceType { gps, rumenCapsule, earTag }
@@ -136,7 +140,7 @@ class DeviceItem {
     required this.name,
     required this.type,
     required this.status,
-    required this.boundEarTag,
+    required this.boundLivestockCode,
     this.batteryPercent,
     this.signalStrength,
     this.lastSync,
@@ -157,7 +161,7 @@ class DeviceItem {
   final String name;
   final DeviceType type;
   final DeviceStatus status;
-  final String boundEarTag;
+  final String boundLivestockCode;
   final int? batteryPercent;
   final String? signalStrength;
   final String? lastSync;
@@ -177,7 +181,7 @@ class DeviceItem {
   bool get hasTamperAlert => antiDisassemblyStatus != null && antiDisassemblyStatus != 0;
 
   DeviceItem copyWith({
-    String? boundEarTag,
+    String? boundLivestockCode,
     int? batteryPercent,
     int? rssi,
     int? platformDeviceId,
@@ -187,7 +191,7 @@ class DeviceItem {
       name: name,
       type: type,
       status: status,
-      boundEarTag: boundEarTag ?? this.boundEarTag,
+      boundLivestockCode: boundLivestockCode ?? this.boundLivestockCode,
       batteryPercent: batteryPercent ?? this.batteryPercent,
       signalStrength: signalStrength,
       lastSync: lastSync,
@@ -263,18 +267,18 @@ class AlertItem {
     required this.priority,
     required this.type,
     required this.stage,
-   required this.earTag,
+   required this.livestockCode,
    this.livestockId,
    this.source = 'RULE',
  });
 
-  final String id;
+ final String id;
   final String title;
   final String subtitle;
   final String priority;
   final String type;
-  final String stage;
-  final String earTag;
- final String? livestockId;
+ final String stage;
+  final String livestockCode;
+final String? livestockId;
  final String source; // RULE / AI
 }

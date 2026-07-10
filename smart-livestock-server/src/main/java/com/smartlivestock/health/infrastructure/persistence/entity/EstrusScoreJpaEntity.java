@@ -24,10 +24,10 @@ public class EstrusScoreJpaEntity {
     @Column(name = "step_increase_percent")
     private Integer stepIncreasePercent;
 
-    @Column(name = "temp_delta", precision = 5, scale = 2)
+    @Column(name = "temp_delta", precision = 8, scale = 2)
     private BigDecimal tempDelta;
 
-    @Column(name = "distance_delta", precision = 5, scale = 2)
+    @Column(name = "distance_delta", precision = 10, scale = 2)
     private BigDecimal distanceDelta;
 
     @Column(name = "advice", columnDefinition = "TEXT")

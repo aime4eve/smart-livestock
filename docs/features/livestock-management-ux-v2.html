@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>畜牧管理 UX v2</title>
+<style>
+  :root{--primary:#2F6B3B;--primary-soft:#E3F0E4;--surface:#F8F6F0;--surface-alt:#FFFFFF;--border:#D7D2C6;--text-primary:#263126;--text-secondary:#617061;--success:#4C9A5F;--success-soft:#E8F5EC;--warning:#D28A2D;--warning-soft:#FBF0E0;--danger:#C2564B;--danger-soft:#FAE6E4;--info:#4A7F9D;--info-soft:#E4EDF3;--overlay:rgba(0,0,0,0.7);--rc:12px;--rchip:20px;--shadow:0 1px 3px rgba(0,0,0,0.06)}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,"PingFang SC",sans-serif;background:linear-gradient(135deg,#1a2e1e,#0f1a12);min-height:100vh;display:flex;align-items:flex-start;justify-content:center;gap:30px;flex-wrap:wrap;padding:50px 20px 40px}
+  .ptag{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.15);color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;backdrop-filter:blur(10px);z-index:999;white-space:nowrap}
+  .pw{display:flex;flex-direction:column;align-items:center}
+  .pl{color:rgba(255,255,255,0.5);font-size:12px;text-align:center;margin-top:10px;max-width:390px;line-height:1.5}
+  .phone{width:390px;height:844px;background:var(--surface);border-radius:44px;overflow:hidden;position:relative;box-shadow:0 25px 60px rgba(0,0,0,0.5),0 0 0 12px #1c1c1e,0 0 0 13px #2a2a2c;display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:30px;background:#1c1c1e;border-radius:0 0 18px 18px;z-index:100}
+  .sb{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px 0 28px;font-size:14px;font-weight:600;color:var(--text-primary);flex-shrink:0}
+  .ab{height:56px;display:flex;align-items:center;padding:0 4px 0 8px;background:var(--surface);flex-shrink:0}
+  .ab .t{flex:1;font-size:20px;font-weight:600;text-align:center;padding-right:48px}
+  .ab.bk .t{padding-right:0}
+  .ib{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:none;background:none;cursor:pointer;color:var(--primary);border-radius:50%;transition:background .15s;position:relative}
+  .ib:active{background:rgba(0,0,0,0.08)}
+  .ib svg{width:24px;height:24px}
+  .body{flex:1;overflow-y:auto;overflow-x:hidden}
+  .body::-webkit-scrollbar{display:none}
+  .search-bar{padding:4px 16px 8px}
+  .siw{position:relative;display:flex;align-items:center}
+  .siw svg.si{position:absolute;left:14px;width:20px;height:20px;color:var(--text-secondary);pointer-events:none}
+  .sinput{width:100%;height:44px;border:1.5px solid var(--border);border-radius:24px;padding:0 40px 0 42px;font-size:15px;background:var(--surface-alt);color:var(--text-primary);outline:none}
+  .sinput:focus{border-color:var(--primary)}
+  .sclear{position:absolute;right:8px;width:28px;height:28px;border:none;background:#E0DED8;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary)}
+  .sclear svg{width:16px;height:16px}
+  .fb{padding:6px 16px 8px;display:flex;align-items:center;gap:6px}
+  .fb .ct{font-size:13px;color:var(--primary);font-weight:500;display:flex;align-items:center;gap:4px}
+  .fb .ct svg{width:14px;height:14px}
+  .fb .sa{margin-left:auto;background:none;border:none;color:var(--primary);font-size:13px;cursor:pointer;padding:4px 8px}
+  .card{margin:0 16px 8px;background:var(--surface-alt);border-radius:var(--rc);box-shadow:var(--shadow);cursor:pointer;transition:transform .15s;overflow:hidden}
+  .card:active{transform:scale(.98)}
+  .ci{display:flex;align-items:center;padding:14px 16px;gap:12px}
+  .av{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .av.h{background:var(--success-soft)}.av.w{background:var(--warning-soft)}.av.a{background:var(--danger-soft)}
+  .av svg{width:26px;height:26px}
+  .info{flex:1;min-width:0}
+  .code{font-size:16px;font-weight:600;color:var(--text-primary);display:block;margin-bottom:3px}
+  .meta{display:flex;gap:8px;font-size:12.5px;color:var(--text-secondary);flex-wrap:wrap;align-items:center}
+  .meta .tg{display:flex;align-items:center;gap:3px}
+  .meta .tg svg{width:13px;height:13px;opacity:.7}
+  .dev-badge{display:inline-flex;align-items:center;gap:3px;background:var(--info-soft);color:var(--info);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:500;font-family:monospace}
+  .dev-badge svg{width:12px;height:12px}
+  .no-dev{font-size:11px;color:var(--text-secondary);opacity:.5;font-style:italic}
+  .hc{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:var(--rchip);font-size:12px;font-weight:500;flex-shrink:0}
+  .hc svg{width:14px;height:14px}
+  .hc.h{background:var(--success-soft);color:var(--success)}.hc.w{background:var(--warning-soft);color:var(--warning)}.hc.a{background:var(--danger-soft);color:var(--danger)}
+  .pgb{display:flex;align-items:center;justify-content:space-between;padding:8px 16px 12px;border-top:1px solid var(--border);background:var(--surface)}
+  .pgi{font-size:13px;color:var(--text-secondary)}
+  .pgc{display:flex;align-items:center;gap:4px}
+  .pbtn{width:36px;height:36px;border:none;background:var(--surface-alt);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--primary);box-shadow:var(--shadow)}
+  .pbtn:disabled{opacity:.3}
+  .pbtn svg{width:20px;height:20px}
+  .pn{font-size:14px;color:var(--text-primary);min-width:50px;text-align:center}
+  .dbody{padding:16px}
+  .dcard{background:var(--surface-alt);border-radius:var(--rc);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+  .dt{font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+  .dt svg{width:18px;height:18px;color:var(--primary)}
+  .dhr{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .dhr .code{font-size:22px;font-weight:700}
+  .ig{display:flex;flex-wrap:wrap;gap:16px 24px}
+  .ii{display:flex;flex-direction:column;gap:2px}
+  .ii .l{font-size:12px;color:var(--text-secondary)}
+  .ii .v{font-size:16px;font-weight:500;color:var(--text-primary)}
+  .drow{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px}
+  .di{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .di.on{background:var(--success-soft);color:var(--success)}
+  .di svg{width:22px;height:22px}
+  .dn{font-size:14px;color:var(--text-primary)}
+  .ds{font-size:12px;color:var(--text-secondary)}
+  .hm{display:flex;gap:16px 24px;flex-wrap:wrap}
+  .mi{display:flex;flex-direction:column;gap:2px}
+  .mi .ml{font-size:12px;color:var(--text-secondary)}
+  .mi .mv{font-size:18px;font-weight:600;color:var(--text-primary)}
+  .mc{margin-top:12px;height:120px;background:var(--surface);border-radius:8px;padding:8px;position:relative}
+  .bb{margin-top:8px;width:100%;padding:10px;border:1.5px solid var(--primary);background:none;border-radius:8px;color:var(--primary);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+  .bb svg{width:18px;height:18px}
+  .so{position:absolute;inset:0;background:var(--overlay);z-index:50}
+  .sheet{position:absolute;bottom:0;left:0;right:0;background:var(--surface-alt);border-radius:20px 20px 0 0;z-index:51;max-height:85%;overflow-y:auto;animation:su .3s cubic-bezier(.2,.8,.2,1)}
+  @keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .sh{width:40px;height:4px;background:#D0CEC8;border-radius:2px;margin:12px auto 0}
+  .sc{padding:16px 20px 32px}
+  .st{font-size:20px;font-weight:600;color:var(--text-primary);margin-bottom:20px}
+  .ff{margin-bottom:16px}
+  .fl{font-size:13px;color:var(--text-secondary);margin-bottom:6px;display:block}
+  .fl .req{color:var(--danger)}
+  .fi{width:100%;height:48px;border:1.5px solid var(--border);border-radius:10px;padding:0 14px;font-size:15px;background:var(--surface-alt);color:var(--text-primary);outline:none;transition:border-color .2s}
+  .fi:focus{border-color:var(--primary)}
+  .fi.err{border-color:var(--danger)}
+  .fe{font-size:12px;color:var(--danger);margin-top:4px;display:flex;align-items:center;gap:4px}
+  .fe svg{width:14px;height:14px}
+  .fdd{width:100%;height:48px;border:1.5px solid var(--border);border-radius:10px;padding:0 14px;font-size:15px;background:var(--surface-alt);color:var(--text-primary);outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23617061' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:20px}
+  .gseg{display:flex;border:1.5px solid var(--border);border-radius:10px;overflow:hidden}
+  .gseg button{flex:1;padding:12px;border:none;background:none;font-size:14px;cursor:pointer;color:var(--text-secondary);transition:all .15s}
+  .gseg button.active{background:var(--primary-soft);color:var(--primary);font-weight:600}
+  .df{display:flex;align-items:center;justify-content:space-between;height:48px;border:1.5px solid var(--border);border-radius:10px;padding:0 14px;cursor:pointer}
+  .df .dl{font-size:15px;color:var(--text-primary)}
+  .df svg{width:20px;height:20px;color:var(--text-secondary)}
+  .fa{display:flex;gap:12px;margin-top:24px}
+  .bc{flex:1;height:48px;border:none;background:#EDEBE5;border-radius:10px;font-size:15px;color:var(--text-secondary);cursor:pointer}
+  .bs{flex:1;height:48px;border:none;background:var(--primary);border-radius:10px;font-size:15px;color:#fff;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+  .bs:disabled{opacity:.5}
+  .bsp{width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .dlg-o{position:absolute;inset:0;background:var(--overlay);z-index:60;display:flex;align-items:center;justify-content:center;padding:40px}
+  .dlg{background:var(--surface-alt);border-radius:16px;padding:24px;width:100%;max-width:320px}
+  .dlg-ic{width:56px;height:56px;border-radius:28px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+  .dlg-ic.danger{background:var(--danger-soft)}
+  .dlg-ic.warning{background:var(--warning-soft)}
+  .dlg-ic svg{width:28px;height:28px}
+  .dlg-ic.danger svg{color:var(--danger)}
+  .dlg-ic.warning svg{color:var(--warning)}
+  .dlg h3{font-size:17px;font-weight:600;color:var(--text-primary);margin-bottom:8px;text-align:center}
+  .dlg p{font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:12px;text-align:center}
+  .dlg .warn-list{background:var(--warning-soft);border-radius:8px;padding:10px 12px;margin-bottom:16px}
+  .dlg .warn-list .wi{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:var(--warning);margin-bottom:4px}
+  .dlg .warn-list .wi:last-child{margin-bottom:0}
+  .dlg .warn-list .wi svg{width:14px;height:14px;flex-shrink:0;margin-top:1px}
+  .dlg-a{display:flex;gap:12px}
+  .dlg-a button{flex:1;height:44px;border-radius:10px;font-size:15px;cursor:pointer;border:none}
+  .dlg-ca{background:#EDEBE5;color:var(--text-secondary)}
+  .dlg-cf{background:var(--danger);color:#fff;font-weight:600}
+  .sbk{position:absolute;bottom:24px;left:16px;right:16px;background:#323232;color:#fff;padding:14px 16px;border-radius:10px;font-size:14px;z-index:70;display:flex;align-items:center;gap:8px;animation:su .3s ease}
+  .sbk svg{width:20px;height:20px;flex-shrink:0}
+  .sbk.success svg{color:var(--success)}
+  .sbk.error svg{color:var(--danger)}
+  .dev-pick{display:flex;align-items:center;gap:12px;padding:12px;border:1.5px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:border-color .15s}
+  .dev-pick:hover{border-color:var(--primary)}
+  .dev-pick.selected{border-color:var(--primary);background:var(--primary-soft)}
+  .dev-pick .dpi{width:40px;height:40px;border-radius:10px;background:var(--info-soft);color:var(--info);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .dev-pick .dpi svg{width:22px;height:22px}
+  .dev-pick .dpn{font-size:14px;color:var(--text-primary)}
+  .dev-pick .dps{font-size:12px;color:var(--text-secondary);display:flex;gap:8px;align-items:center;margin-top:2px}
+  .dev-pick .status-dot{width:8px;height:8px;border-radius:4px}
+  .dev-pick .status-dot.active{background:var(--success)}
+  .dev-pick .status-dot.inventory{background:var(--text-secondary)}
+  .dev-pick .type-tag{font-size:10px;padding:1px 6px;border-radius:4px;background:var(--info-soft);color:var(--info)}
+  .dev-pick.disabled{opacity:.4;cursor:not-allowed}
+  .traj-map{height:200px;background:#E8EAE5;border-radius:8px;position:relative;overflow:hidden;margin-top:8px}
+  .traj-info{display:flex;gap:12px;margin-top:8px}
+  .traj-stat{flex:1;background:var(--surface);border-radius:8px;padding:8px 10px;text-align:center}
+  .traj-stat .sl{font-size:11px;color:var(--text-secondary)}
+  .traj-stat .sv{font-size:16px;font-weight:600;color:var(--text-primary)}
+</style>
+</head>
+<body>
+<div class="ptag">v2 - 6项改进方案高保真 (左:列表+删除流程 / 中:详情+绑定设备+轨迹 / 右:编辑表单)</div>
+
+<!-- PHONE 1: LIST -->
+<div class="pw"><div class="phone">
+<div class="notch"></div>
+<div class="sb"><span>9:41</span><span style="font-size:12px">5G 100%</span></div>
+<div class="ab"><span class="t">牲畜管理</span><div><button class="ib" onclick="showAdd()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></div></div>
+<div class="body" style="display:flex;flex-direction:column">
+  <div class="search-bar"><div class="siw">
+    <svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input class="sinput" placeholder="搜索编号或品种..." id="s" oninput="onS()">
+    <button class="sclear" id="sc" style="display:none" onclick="clrS()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div></div>
+  <div class="fb" id="bn" style="display:none"><span class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>搜索结果:<span id="cnt">0</span> 条</span><button class="sa" onclick="clrS()">查看全部</button></div>
+  <div style="flex:1;overflow-y:auto" id="ls">
+    <!-- Card 1: has GPS device -->
+    <div class="card" data-s="sl-2024-001 ximen" onclick="showSbk('list','(demo) 跳转详情','success')"><div class="ci">
+      <div class="av h"><svg viewBox="0 0 24 24" fill="none" stroke="#4C9A5F" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg></div>
+      <div class="info"><span class="code">SL-2024-001</span><div class="meta">
+        <span class="tg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>西门塔尔牛</span>
+        <span class="tg">18月</span><span class="tg">雄</span><span class="tg">450kg</span><br>
+        <span class="dev-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3" fill="currentColor"/><circle cx="12" cy="12" r="10"/></svg>SN-TRK-00001</span>
+      </div></div>
+      <div class="hc h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>健康</div>
+    </div></div>
+    <!-- Card 2: has GPS + Capsule -->
+    <div class="card" data-s="sl-2024-002 angus" onclick="showSbk('list','(demo) 跳转详情','success')"><div class="ci">
+      <div class="av w"><svg viewBox="0 0 24 24" fill="none" stroke="#D28A2D" stroke-width="1.5"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg></div>
+      <div class="info"><span class="code">SL-2024-002</span><div class="meta">
+        <span class="tg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>安格斯牛</span>
+        <span class="tg">16月</span><span class="tg">雌</span><span class="tg">380kg</span><br>
+        <span class="dev-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3" fill="currentColor"/><circle cx="12" cy="12" r="10"/></svg>SN-TRK-00002</span>
+        <span class="dev-badge" style="background:#F0EBF5;color:#8B5CA8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.5 13.5H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2"/><path d="M13.5 6h2a2 2 0 0 1 2 2v3.5"/><circle cx="12" cy="12" r="3"/></svg>RC-00231</span>
+      </div></div>
+      <div class="hc w"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>关注</div>
+    </div></div>
+    <!-- Card 3: abnormal, has device -->
+    <div class="card" data-s="sl-2024-003 limu" onclick="showSbk('list','(demo) 跳转详情','success')"><div class="ci">
+      <div class="av a"><svg viewBox="0 0 24 24" fill="none" stroke="#C2564B" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div class="info"><span class="code">SL-2024-003</span><div class="meta">
+        <span class="tg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>利木赞牛</span>
+        <span class="tg">24月</span><span class="tg">雄</span><span class="tg">520kg</span><br>
+        <span class="dev-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3" fill="currentColor"/><circle cx="12" cy="12" r="10"/></svg>SN-TRK-00003</span>
+      </div></div>
+      <div class="hc a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>异常</div>
+    </div></div>
+    <!-- Card 4: no device -->
+    <div class="card" data-s="sl-2024-004 ximen" onclick="showSbk('list','(demo) 跳转详情','success')"><div class="ci">
+      <div class="av h"><svg viewBox="0 0 24 24" fill="none" stroke="#4C9A5F" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg></div>
+      <div class="info"><span class="code">SL-2024-004</span><div class="meta">
+        <span class="tg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>西门塔尔牛</span>
+        <span class="tg">20月</span><span class="tg">雌</span><span class="tg">410kg</span><br>
+        <span class="no-dev">未绑定设备</span>
+      </div></div>
+      <div class="hc h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>健康</div>
+    </div></div>
+  </div>
+  <div class="pgb"><span class="pgi">第 1/3 页 共 50 头</span><div class="pgc">
+    <button class="pbtn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <span class="pn">1 / 3</span>
+    <button class="pbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+  </div></div>
+</div>
+<div class="sbk" id="sbk-list" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span id="sbt-list"></span></div>
+</div><div class="pl">P1 列表页: 卡片底部展示已绑定设备编号 (改进1); 未绑定的显示"未绑定设备"</div></div>
+
+<!-- PHONE 2: DETAIL (with delete dialog shown) -->
+<div class="pw"><div class="phone">
+<div class="notch"></div>
+<div class="sb"><span>9:41</span><span style="font-size:12px">5G 100%</span></div>
+<div class="ab bk">
+  <button class="ib" onclick="showSbk('detail','(改进3) 返回列表页','success')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>
+  <span class="t">牲畜详情</span>
+  <div style="display:flex">
+    <button class="ib" onclick="showEdit()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+    <button class="ib" onclick="showDel()" style="color:var(--danger)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+  </div>
+</div>
+<div class="body dbody" id="dbody">
+  <div class="dcard">
+    <div class="dhr"><span class="code">SL-2024-002</span><div class="hc w"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>关注</div></div>
+    <div class="ig">
+      <div class="ii"><span class="l">品种</span><span class="v">安格斯牛</span></div>
+      <div class="ii"><span class="l">月龄</span><span class="v">16 个月</span></div>
+      <div class="ii"><span class="l">体重</span><span class="v">380 kg</span></div>
+      <div class="ii"><span class="l">性别</span><span class="v">雌</span></div>
+      <div class="ii"><span class="l">出生日期</span><span class="v">2024-03-15</span></div>
+    </div>
+  </div>
+  <div class="dcard">
+    <div class="dt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>绑定设备</div>
+    <div class="drow"><div class="di on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></div><div style="flex:1"><div class="dn">GPS 追踪器 SN-TRK-00002</div><div class="ds">DevEUI: A84041AAC82015 <br>电量 85% 信号强</div></div></div>
+    <div class="drow"><div class="di on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.5 13.5H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2"/><path d="M13.5 6h2a2 2 0 0 1 2 2v3.5"/><circle cx="12" cy="12" r="3"/></svg></div><div style="flex:1"><div class="dn">瘤胃胶囊 RC-00231</div><div class="ds">DevEUI: A84041BBAC82032 <br>电量 92% 信号正常</div></div></div>
+    <button class="bb" onclick="showBind()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>绑定新设备</button>
+  </div>
+  <div class="dcard">
+    <div class="dt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>健康数据</div>
+    <div class="hm">
+      <div class="mi"><span class="ml">体温</span><span class="mv">39.2 C</span></div>
+      <div class="mi"><span class="ml">活动量</span><span class="mv">正常</span></div>
+      <div class="mi"><span class="ml">反刍频率</span><span class="mv">1.2 次/分</span></div>
+    </div>
+    <div class="mc">
+      <svg viewBox="0 0 320 100" style="width:100%;height:100%">
+        <defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C2564B" stop-opacity="0.3"/><stop offset="100%" stop-color="#C2564B" stop-opacity="0"/></linearGradient></defs>
+        <path d="M0,60 Q40,55 60,50 T120,45 T180,52 T240,38 T320,30 L320,100 L0,100 Z" fill="url(#tg)"/>
+        <path d="M0,60 Q40,55 60,50 T120,45 T180,52 T240,38 T320,30" fill="none" stroke="#C2564B" stroke-width="2"/>
+        <line x1="0" y1="70" x2="320" y2="70" stroke="#617061" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+      </svg>
+      <div style="position:absolute;top:8px;left:12px;font-size:11px;color:var(--text-secondary)">体温趋势 72h</div>
+      <div style="position:absolute;bottom:4px;right:8px;display:flex;gap:8px;font-size:10px;color:var(--text-secondary)">
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:3px;background:#C2564B;border-radius:2px"></span>实际</span>
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:3px;background:#617061;opacity:0.4;border-radius:2px"></span>基线</span>
+      </div>
+    </div>
+  </div>
+  <div class="dcard">
+    <div class="dt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>位置与轨迹</div>
+    <div style="font-size:14px;color:var(--text-primary);margin-bottom:4px">最近位置</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;line-height:1.6">28.232500, 112.942500<br><span style="font-size:12px">放牧A区内 2 分钟前更新</span></div>
+    <button class="bb" onclick="showTraj()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>查看完整轨迹</button>
+  </div>
+</div>
+
+<!-- Delete dialog (改进2: 带设备级联提示) -->
+<div class="dlg-o" id="dd" style="display:none"><div class="dlg">
+  <div class="dlg-ic warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+  <h3>确认删除 SL-2024-002?</h3>
+  <p>该牲畜已绑定以下设备, 删除后将自动解除绑定:</p>
+  <div class="warn-list">
+    <div class="wi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>GPS 追踪器 SN-TRK-00002 将解绑 (变为待安装)</div>
+    <div class="wi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.5 13.5H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2"/><path d="M13.5 6h2a2 2 0 0 1 2 2v3.5"/><circle cx="12" cy="12" r="3"/></svg>瘤胃胶囊 RC-00231 将解绑 (变为待安装)</div>
+    <div class="wi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>历史健康数据/告警记录将保留 (只读归档)</div>
+    <div class="wi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>GPS 轨迹历史将保留 (只读归档)</div>
+  </div>
+  <div class="dlg-a"><button class="dlg-ca" onclick="closeDlg()">取消</button><button class="dlg-cf" onclick="confirmDel()">确认删除</button></div>
+</div></div>
+
+<!-- Bind device sheet (改进4) -->
+<div class="so" id="bind-so" style="display:none" onclick="closeBind()"></div>
+<div class="sheet" id="bind-sheet" style="display:none">
+  <div class="sh"></div>
+  <div class="sc">
+    <div class="st">绑定新设备</div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">仅显示当前农场内可用的设备 (已激活/未绑定其他牲畜)</p>
+    <!-- available GPS -->
+    <div class="dev-pick" onclick="pickDev(this)">
+      <div class="dpi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></div>
+      <div style="flex:1"><div class="dpn">SN-TRK-00005</div><div class="dps"><span class="status-dot active"></span>已激活 <span class="type-tag">GPS</span> DevEUI: A84041AAC82018</div></div>
+    </div>
+    <!-- already has same type -->
+    <div class="dev-pick disabled">
+      <div class="dpi" style="opacity:.5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></div>
+      <div style="flex:1"><div class="dpn" style="opacity:.5">SN-TRK-00006</div><div class="dps"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2" style="width:12px;height:12px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>同类型已绑定 (每头仅限1个GPS)</div></div>
+    </div>
+    <!-- available capsule -->
+    <div class="dev-pick" onclick="pickDev(this)">
+      <div class="dpi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.5 13.5H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2"/><path d="M13.5 6h2a2 2 0 0 1 2 2v3.5"/><circle cx="12" cy="12" r="3"/></svg></div>
+      <div style="flex:1"><div class="dpn">RC-00245</div><div class="dps"><span class="status-dot active"></span>已激活 <span class="type-tag">胶囊</span> DevEUI: A84041BBAC82040</div></div>
+    </div>
+    <!-- inventory -->
+    <div class="dev-pick disabled">
+      <div class="dpi" style="opacity:.5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg></div>
+      <div style="flex:1"><div class="dpn" style="opacity:.5">SN-TRK-00007</div><div class="dps"><span class="status-dot inventory"></span>未激活 (需先在设备管理激活)</div></div>
+    </div>
+    <div class="fa"><button class="bc" onclick="closeBind()">取消</button><button class="bs" id="bind-btn" onclick="confirmBind()">确认绑定</button></div>
+  </div>
+</div>
+
+<!-- Trajectory sheet (改进5) -->
+<div class="so" id="traj-so" style="display:none" onclick="closeTraj()"></div>
+<div class="sheet" id="traj-sheet" style="display:none">
+  <div class="sh"></div>
+  <div class="sc">
+    <div class="st">SL-2024-002 移动轨迹</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="fdd" style="flex:1;height:40px;font-size:13px;background:var(--primary-soft);color:var(--primary);font-weight:600;border-color:var(--primary)">24小时</button>
+      <button class="fdd" style="flex:1;height:40px;font-size:13px">7天</button>
+      <button class="fdd" style="flex:1;height:40px;font-size:13px">30天</button>
+    </div>
+    <div class="traj-map">
+      <svg viewBox="0 0 350 200" style="width:100%;height:100%">
+        <rect width="350" height="200" fill="#E0E5DE"/>
+        <!-- fence area -->
+        <polygon points="30,40 280,30 300,160 50,170" fill="#E3F0E4" stroke="#2F6B3B" stroke-width="2" stroke-dasharray="5,5" opacity="0.6"/>
+        <text x="60" y="55" font-size="10" fill="#2F6B3B" opacity="0.6">放牧A区</text>
+        <!-- trajectory path -->
+        <path d="M80,80 Q120,70 140,85 T200,90 Q230,80 250,100 T210,130 Q170,140 140,125 T100,110 Q85,100 80,80" fill="none" stroke="#2F6B3B" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- start point -->
+        <circle cx="80" cy="80" r="6" fill="#8BA95A" stroke="#fff" stroke-width="2"/>
+        <text x="90" y="76" font-size="9" fill="#617061">起点</text>
+        <!-- end point (current) -->
+        <circle cx="100" cy="110" r="8" fill="#2F6B3B" stroke="#fff" stroke-width="2"/>
+        <circle cx="100" cy="110" r="14" fill="#2F6B3B" opacity="0.2"/>
+        <text x="112" y="108" font-size="9" fill="#263126" font-weight="600">当前位置</text>
+        <!-- waypoints -->
+        <circle cx="140" cy="85" r="3" fill="#2F6B3B"/>
+        <circle cx="200" cy="90" r="3" fill="#2F6B3B"/>
+        <circle cx="250" cy="100" r="3" fill="#2F6B3B"/>
+        <circle cx="170" cy="140" r="3" fill="#2F6B3B"/>
+      </svg>
+    </div>
+    <div class="traj-info">
+      <div class="traj-stat"><div class="sl">轨迹点数</div><div class="sv">142</div></div>
+      <div class="traj-stat"><div class="sl">移动距离</div><div class="sv">3.2 km</div></div>
+      <div class="traj-stat"><div class="sl">活动范围</div><div class="sv">0.8 km2</div></div>
+    </div>
+    <div class="fa" style="margin-top:12px"><button class="bc" onclick="closeTraj()">关闭</button></div>
+  </div>
+</div>
+
+<div class="sbk" id="sbk-detail" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span id="sbt-detail"></span></div>
+</div><div class="pl">P2 详情页: 返回列表(改进3); 删除弹窗含设备级联提示(改进2); 绑定设备含类型冲突校验(改进4); 轨迹展示含围栏+路径+统计(改进5)</div></div>
+
+<!-- PHONE 3: EDIT FORM -->
+<div class="pw"><div class="phone">
+<div class="notch"></div>
+<div class="sb"><span>9:41</span><span style="font-size:12px">5G 100%</span></div>
+<div class="ab bk">
+  <button class="ib"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>
+  <span class="t">编辑牲畜</span>
+  <div></div>
+</div>
+<div class="body">
+  <!-- Form sheet (inline for demo) -->
+  <div style="padding:16px 20px 32px">
+    <div style="font-size:20px;font-weight:600;margin-bottom:20px">编辑牲畜</div>
+    <!-- Code field: "编号" not "耳标号" (改进6) -->
+    <div class="ff"><label class="fl">编号 <span class="req">*</span></label>
+      <input class="fi" value="SL-2024-002" placeholder="请输入编号">
+      <div class="fe" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>编号不能为空</span></div>
+    </div>
+    <div class="ff"><label class="fl">品种</label>
+      <select class="fdd"><option>安格斯牛</option><option>和牛</option><option>西门塔尔牛</option><option>利木赞牛</option><option>其他</option></select>
+    </div>
+    <div class="ff"><label class="fl">性别</label>
+      <div class="gseg"><button class="active">雄</button><button>雌</button></div>
+    </div>
+    <div class="ff"><label class="fl">出生日期</label>
+      <div class="df"><span class="dl">2024-03-15</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+    </div>
+    <div class="ff"><label class="fl">体重</label>
+      <div style="position:relative"><input class="fi" value="380" placeholder="请输入体重" style="padding-right:40px"><span style="position:absolute;right:14px;top:14px;font-size:14px;color:var(--text-secondary)">kg</span></div>
+    </div>
+
+    <!-- Sync impact note -->
+    <div style="margin-top:16px;background:var(--info-soft);border-radius:8px;padding:10px 12px;display:flex;align-items:flex-start;gap:8px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="2" style="width:16px;height:16px;flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span style="font-size:12px;color:var(--info);line-height:1.5">编号修改后, 该牲畜在告警、轨迹、健康报告中的编号显示将同步更新</span>
+    </div>
+
+    <div class="fa"><button class="bc">取消</button><button class="bs">保存</button></div>
+  </div>
+</div>
+</div><div class="pl">P3 编辑表单: "耳标号"改为"编号"(改进6); 附带编号同步影响提示</div></div>
+
+<script>
+function showAdd(){showSbk('detail','(demo) 新增表单','success')}
+function showEdit(){showSbk('detail','(demo) 打开编辑表单 -> 见右侧P3','success')}
+function showDel(){document.getElementById('dd').style.display='flex'}
+function closeDlg(){document.getElementById('dd').style.display='none'}
+function confirmDel(){document.getElementById('dd').style.display='none';showSbk('detail','已删除, 设备已自动解绑','success')}
+function showBind(){document.getElementById('bind-so').style.display='block';document.getElementById('bind-sheet').style.display='block'}
+function closeBind(){document.getElementById('bind-so').style.display='none';document.getElementById('bind-sheet').style.display='none'}
+function pickDev(el){if(el.classList.contains('disabled'))return;el.parentElement.querySelectorAll('.dev-pick').forEach(function(e){e.classList.remove('selected')});el.classList.add('selected')}
+function confirmBind(){var sel=document.querySelector('.dev-pick.selected');if(!sel){showSbk('detail','请选择要绑定的设备','error');return}var b=document.getElementById('bind-btn');b.disabled=true;b.innerHTML='<div class="bsp"></div> 绑定中...';setTimeout(function(){b.disabled=false;b.innerHTML='确认绑定';closeBind();showSbk('detail','设备绑定成功','success')},1000)}
+function showTraj(){document.getElementById('traj-so').style.display='block';document.getElementById('traj-sheet').style.display='block'}
+function closeTraj(){document.getElementById('traj-so').style.display='none';document.getElementById('traj-sheet').style.display='none'}
+function showSbk(p,t,ty){var s=document.getElementById('sbk-'+p);document.getElementById('sbt-'+p).textContent=t;s.className='sbk '+ty;s.style.display='flex';setTimeout(function(){s.style.display='none'},2500)}
+function onS(){var v=document.getElementById('s').value.toLowerCase().trim();document.getElementById('sc').style.display=v?'flex':'none';var cs=document.querySelectorAll('#ls [data-s]');var c=0;cs.forEach(function(el){var m=el.getAttribute('data-s').indexOf(v)>=0;el.style.display=m?'':'none';if(m)c++});if(v){document.getElementById('bn').style.display='flex';document.getElementById('cnt').textContent=c}else{document.getElementById('bn').style.display='none'}}
+function clrS(){document.getElementById('s').value='';onS()}
+</script>
+</body>
+</html>

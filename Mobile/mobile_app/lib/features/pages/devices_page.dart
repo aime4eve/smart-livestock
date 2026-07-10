@@ -77,7 +77,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
       final Map<String, String> livestockIdToCode = {};
       final Map<String, String> livestockIdToNumeric = {};
       for (final l in livestockData.items) {
-        livestockIdToCode[l.id] = l.earTag;
+        livestockIdToCode[l.id] = l.livestockCode;
         livestockIdToNumeric[l.id] = l.id;
       }
 
@@ -353,7 +353,7 @@ class _InstallDialogState extends State<_InstallDialog> {
         keyword: _keyword.isNotEmpty ? _keyword : null,
       );
       _items = data.items
-          .map((l) => _LivestockOption(id: l.id, label: l.earTag, subtitle: l.breed.name))
+          .map((l) => _LivestockOption(id: l.id, label: l.livestockCode, subtitle: l.breed.name))
           .toList();
       _hasMore = data.page * data.pageSize < data.total;
     } catch (_) {
@@ -372,7 +372,7 @@ class _InstallDialogState extends State<_InstallDialog> {
         keyword: _keyword.isNotEmpty ? _keyword : null,
       );
       _items.addAll(data.items
-          .map((l) => _LivestockOption(id: l.id, label: l.earTag, subtitle: l.breed.name)));
+          .map((l) => _LivestockOption(id: l.id, label: l.livestockCode, subtitle: l.breed.name)));
       _page = nextPage;
       _hasMore = data.page * data.pageSize < data.total;
     } catch (_) {}
@@ -471,7 +471,7 @@ class _DeviceWithBinding extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-   final effective = device.copyWith(boundEarTag: boundLivestockCode);
+   final effective = device.copyWith(boundLivestockCode: boundLivestockCode);
    return GestureDetector(
      onTap: () => DeviceHealthDialog.show(context, device, boundLivestockCode: boundLivestockCode),
      child: Padding(

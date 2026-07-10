@@ -85,7 +85,7 @@ class AlertsApiRepository implements AlertsRepository {
      priority: priority,
      type: type,
      stage: stage.name,
-     earTag: livestockId ?? '-',
+     livestockCode: livestockId ?? '-',
      livestockId: livestockId,
      source: (m['source'] as String?) ?? 'RULE',
    );
@@ -100,7 +100,7 @@ class AlertsApiRepository implements AlertsRepository {
       priority: item.priority,
       type: item.type,
       stage: item.stage,
-      earTag: item.earTag,
+      livestockCode: item.livestockCode,
       livestockId: item.livestockId,
       occurredAt: m['occurredAt'] as String? ?? m['resolvedAt'] as String?,
       description: m['message'] as String?,
