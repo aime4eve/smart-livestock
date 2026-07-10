@@ -69,6 +69,7 @@ services:
       REDIS_PORT: 6379
       ROCKETMQ_NAME_SERVER: rocketmq-namesrv:9876
       AI_PLATFORM_URL: http://ai-platform:8000
+      DATAGEN_ENABLED: "false"
     depends_on:
       postgres:
         condition: service_healthy

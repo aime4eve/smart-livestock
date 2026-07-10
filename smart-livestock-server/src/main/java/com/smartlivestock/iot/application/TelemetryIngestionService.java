@@ -215,17 +215,24 @@ public class TelemetryIngestionService {
         deviceTelemetryLogRepository.save(logEntry);
     }
 
-    private void extractAndLogGps(Device device, Map<String, Object> readings, Instant recordedAt) {
-        if (device.getDeviceType() != com.smartlivestock.iot.domain.model.DeviceType.TRACKER) return;
+   private void extractAndLogGps(Device device, Map<String, Object> readings, Instant recordedAt) {
+       if (device.getDeviceType() != com.smartlivestock.iot.domain.model.DeviceType.TRACKER) return;
 
-        Object latObj = readings.get("latitude");
-        Object lngObj = readings.get("longitude");
-        if (latObj != null && lngObj != null) {
-            BigDecimal latitude = toBigDecimal(latObj);
-            BigDecimal longitude = toBigDecimal(lngObj);
-            gpsLogApplicationService.logGps(device.getId(), latitude, longitude, null, recordedAt);
-        }
-    }
+       Object latObj = readings.get("latitude");
+       Object lngObj = readings.get("longitude");
+       if (latObj != null && lngObj != null) {
+           BigDecimal latitude = toBigDecimal(latObj);
+           BigDecimal longitude = toBigDecimal(lngObj);
+           // Skip invalid GPS fixes (0,0 means no fix)
+           if (latitude != null && longitude != null
+                   && latitude.compareTo(BigDecimal.ZERO) == 0
+                   && longitude.compareTo(BigDecimal.ZERO) == 0) {
+               log.debug("Skipping invalid GPS (0,0) for device [{}]", device.getId());
+               return;
+           }
+           gpsLogApplicationService.logGps(device.getId(), latitude, longitude, null, recordedAt);
+       }
+   }
 
     private void detectDeviceAlerts(Device device, Long farmId, Map<String, Object> readings) {
         Object antiDis = readings.get("antiDisassemblyStatus");
