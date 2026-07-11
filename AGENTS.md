@@ -417,7 +417,7 @@ flutter build web                          # 默认
 **后端 / 数据库类**
 6. 接口返回空列表 → 先核代码 glob 与挂载路径一致，再进容器 `ls` 数据卷确认数据存在，不要在代码里继续改路径 — #3
 7. `@Query` 查询返回空且无报错 → 检查 JPQL 参数名是否与保留字冲突（FROM/SELECT/WHERE 等）— #8
-8. 时间范围查询返回 0 条但数据确实存在 → 对比存储值与查询参数的时区解释是否一致，`TIMESTAMP WITHOUT TIME ZONE` + JPA `Instant` 一定有偏移 — #9
+8. 第三方平台时间字段不带时区标识 → 直接用原始数值不做换算（`toInstant(ZoneOffset.UTC)`），不要猜对方时区；前端查询也不做 `toUtc()`，保持同一基准 — #17
 9. 同步/采集数据量持续增长不收敛 → 检查时间解析是否 fallback 到 `now()`，导致 cursor 去重失效 — #10
 10. 多数据源写入同一张表无法区分 → 必须有 `source` 来源标记字段 — #11
 11. Flyway checksum mismatch → 先查 `flyway_schema_history` 记录再对比 git 文件，迁移必须提交到 git — #12

@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +31,10 @@ public class AgenticPlatformReportData {
 
     /**
      * Parse reportTime string from platform into Instant.
+     * <p>
+     * The platform reportTime has no timezone designator. We use the raw time
+     * value as-is (format only, no timezone conversion) so the entire system
+     * shares one consistent time basis with the platform.
      */
     public static Instant parseReportTime(String reportTime) {
         if (reportTime == null || reportTime.isBlank()) return Instant.now();
@@ -40,7 +44,7 @@ public class AgenticPlatformReportData {
                     return Instant.parse(reportTime);
                 }
                 LocalDateTime ldt = LocalDateTime.parse(reportTime, fmt);
-                return ldt.atZone(ZoneId.systemDefault()).toInstant();
+                return ldt.toInstant(ZoneOffset.UTC);
             } catch (Exception ignored) {}
         }
         log.warn("Could not parse reportTime: {}", reportTime);

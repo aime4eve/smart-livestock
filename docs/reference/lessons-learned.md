@@ -157,26 +157,6 @@
 
 ---
 
-## 9. TIMESTAMP WITHOUT TIME ZONE + JPA Instant = 8 小时时区偏移
-
-- **日期**:2026-07-10
-- **现象**:GPS 轨迹 API 按时间范围查询（24h）返回 0 条，但不带时间范围的查询返回 14 条。数据库中数据时间为 `2026-07-10 20:09:13`（北京时间），UTC 当前时间 `12:14Z`，24h 前 `7/9 12:14Z`——数据被当成 UTC `20:09Z`（未来时间），不在查询窗口内。
-- **误判**:先怀疑是 (0,0) 过滤逻辑误杀了数据、再怀疑是 JPQL 参数名问题（确实也是问题之一），最后才发现是时区偏移。
-- **根因**:`gps_logs.recorded_at` 列定义为 `TIMESTAMP WITHOUT TIME ZONE`。数据写入链路：
-  1. `parseReportTime()` 用 `ZoneId.systemDefault()`（服务器 UTC+8）把平台时间 `07/03 13:14:34` 转为 `Instant`（UTC `05:14:34Z`）
-  2. JPA `Instant` 写入 `TIMESTAMP WITHOUT TIME ZONE` 列时，截掉时区，存入 `05:14:34`（裸值）
-  3. 实际平台返回的是本地时间，`parseReportTime` 用 `atZone(systemDefault).toInstant()` 已经把 `13:14:34` 转成了 `05:14:34Z`
-  4. 但写入 TIMESTAMP 列时 Hibernate 又用 session timezone 重新转回本地时间 `13:14:34`（如果 JVM timezone 是 UTC+8）
-  5. 读取时 Hibernate 再把 `13:14:34` 当 UTC，产生 8 小时偏移
-  
-  最终效果：数据被当成 UTC 存储，与前端传的 UTC 时间比较时偏了 8 小时。
-- **解决**:`ALTER TABLE gps_logs ALTER COLUMN recorded_at TYPE TIMESTAMPTZ USING recorded_at AT TIME ZONE 'Asia/Shanghai'`，将裸时间戳按本地时区重新解释为带时区的时间戳。
-- **判据**:
-  - JPA `Instant` 映射到 PostgreSQL `TIMESTAMP WITHOUT TIME ZONE` → 一定会有时区偏移。一律用 `TIMESTAMPTZ`（`TIMESTAMP WITH TIME ZONE`）。
-  - 时间范围查询返回 0 但数据确实存在 → 对比存储值与查询参数的时区解释是否一致。
-  - 新建表的时间列一律 `TIMESTAMPTZ`，不用 `TIMESTAMP`。迁移时用 `AT TIME ZONE 'Asia/Shanghai'` 确保旧数据被正确重新解释。
-
----
 
 ## 10. 平台 reportTime 格式不匹配导致重复同步 + 数据膨胀
 
@@ -290,3 +270,22 @@
 - **判据**:
   - `farmXxx` 调用返回 404 且 URL 中 farmId 和路径段粘连（`1devices` 而非 `1/devices`）→ suffix 缺前导 `/`。
   - 新增 `farmGet`/`farmPost` 调用时，suffix 一律以 `/` 开头。
+
+---
+
+## 17. 以 reportTime 原始数值为时间基准，不做时区换算
+
+- **日期**:2026-07-11
+- **现象**:HKT-11-01 牲畜已绑定设备 00956906000285d8（dev_eui），数据库 gps_logs 有 252 条数据，后端 API 不带时间范围正常返回，但前端轨迹面板（24h/7d/30d）全部返回空。
+- **误判**:第一反应是安装记录断裂（#14），排查后 installation 正常。然后怀疑是 ZoneId.systemDefault() 在 Docker（UTC）环境下导致时区偏移，把 systemDefault 改成硬编码 Asia/Shanghai。但这个方案的前提假设——"blade 返回的是北京时间"——只是推测，blade JSON 中 reportTime 没有任何时区标识（createTime/updateTime 均为 null），无法从数据本身确证时区。
+- **根因**:反复出错的根源不是"猜错了时区"，而是**不该猜**。blade 平台 reportTime 字段格式为 MM/dd/yyyy HH:mm:ss，无时区标识。之前每次都试图确定"真实时区"然后做换算（atZone(systemDefault) → 改列类型 → atZone(Asia/Shanghai)），每次换环境就又偏了。正确做法：**直接用 reportTime 的原始时间数值，只做格式转换（MM/dd/yyyy → ISO），不做任何时区加减换算。** 后端 parseReportTime 用 ldt.toInstant(ZoneOffset.UTC)，前端查询也用本地时间数值（不做 toUtc()），全系统共享同一时间基准。
+- **历史教训**:#9（已删除）把根因归到列类型（TIMESTAMP WITHOUT TIME ZONE），修复用 AT TIME ZONE 'Asia/Shanghai' 转换存量数据。列类型改 TIMESTAMPTZ 本身合理，但根因分析错误——真正的问题是 parseReportTime 里 ZoneId.systemDefault() 随部署环境（host UTC+8 → Docker UTC）变化导致行为不一致。#9 没有追到数据源头（parseReportTime），只改了下游（列类型 + 存量数据），所以问题反复出现。每次换部署环境，systemDefault 变了，偏移方向就变了，"修复"就失效。
+- **解决**:
+  1. 后端 AgenticPlatformReportData.parseReportTime()：ldt.toInstant(ZoneOffset.UTC)——格式转 ISO，数值不变，不依赖任何时区假设。
+  2. 前端 trajectory_sheet.dart：去掉 toUtc()，用本地时间数值构造查询参数，与后端同一基准。
+  3. 不需要数据迁移：当前 Docker（systemDefault=UTC）环境下存的数据已经是"原始数值当 UTC"，与 ZoneOffset.UTC 行为一致。
+- **判据**:
+  - 对接第三方平台的时间字段，如对方不带时区标识（无 Z/+08:00 后缀）→ **直接用原始数值不做换算**，只做格式转换。不要猜对方时区。
+  - 后端解析无时区时间字符串一律 LocalDateTime.toInstant(ZoneOffset.UTC)，不用 ZoneId.systemDefault()、不硬编码来源时区。
+  - 前端查询时间参数也不要做 toUtc() 转换，保持和后端存储同一基准。
+  - 时间范围查询返回空但数据存在 → 先确认存储端和查询端是否在同一时间基准上（都做换算 vs 都不做换算），不要只改一端。

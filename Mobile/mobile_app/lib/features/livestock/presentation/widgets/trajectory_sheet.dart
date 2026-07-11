@@ -49,8 +49,14 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
         _TimeRange.d30 => const Duration(days: 30),
       };
       final start = now.subtract(delta);
+      // Use local time values as-is (no UTC conversion) to match the
+      // backend's reportTime-as-UTC storage basis.
+      String ts(DateTime dt) =>
+          DateTime.utc(dt.year, dt.month, dt.day, dt.hour, dt.minute,
+                  dt.second, dt.millisecond)
+              .toIso8601String();
       final data = await ApiClient.instance.farmGet(
-        '/livestock/${widget.livestockId}/gps-logs?startTime=${start.toUtc().toIso8601String()}&endTime=${now.toUtc().toIso8601String()}&pageSize=500',
+        '/livestock/${widget.livestockId}/gps-logs?startTime=${ts(start)}&endTime=${ts(now)}&pageSize=500',
       );
       final items = data['items'];
       if (mounted) {
