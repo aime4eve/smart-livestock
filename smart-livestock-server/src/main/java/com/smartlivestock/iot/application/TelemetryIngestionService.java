@@ -114,9 +114,14 @@ public class TelemetryIngestionService {
                 device.getDeviceType(), readings, effectiveRecordedAt);
         eventPublisher.publishEvent(event);
 
-        // 6. Advance sync cursor (only for AGENTIC_PLATFORM source)
+        // 6. Advance sync cursor to the ingested reportTime (not Instant.now()).
+        // The cursor and reportTime must share the same time basis so the
+        // > cursor filter in syncDevice() correctly skips already-processed
+        // records. Using Instant.now() here created an 8-hour gap when the
+        // platform reportTime is a local (UTC+8) value stored as UTC, causing
+        // every dispatch to re-ingest the same records.
         if (source == TelemetrySource.AGENTIC_PLATFORM) {
-            device.setLastTelemetrySyncedAt(Instant.now());
+            device.setLastTelemetrySyncedAt(effectiveRecordedAt);
             deviceRepository.save(device);
         }
 
