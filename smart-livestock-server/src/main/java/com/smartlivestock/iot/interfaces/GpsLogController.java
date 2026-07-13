@@ -55,12 +55,19 @@ public class GpsLogController {
             @RequestParam(required = false) String startTime,
             @RequestParam(required = false) String endTime,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "100") int pageSize) {
+            @RequestParam(defaultValue = "100") int pageSize,
+            @RequestParam(required = false) Integer sampleSize) {
         // Cross-context: livestock → active installation → device → GPS logs
         return installationApplicationService.getActiveInstallationByLivestock(livestockId)
                 .map(inst -> {
                     List<GpsLogDto> allLogs;
-                   if (startTime != null && endTime != null) {
+                   if (startTime != null && endTime != null && sampleSize != null && sampleSize > 0) {
+                       allLogs = gpsLogApplicationService.sampleByDeviceAndTimeRange(
+                               inst.deviceId(),
+                                parseInstant(startTime),
+                                parseInstant(endTime),
+                                sampleSize);
+                    } else if (startTime != null && endTime != null) {
                        allLogs = gpsLogApplicationService.getByDeviceAndTimeRange(
                                inst.deviceId(),
                                 parseInstant(startTime),
@@ -69,6 +76,14 @@ public class GpsLogController {
                         allLogs = gpsLogApplicationService.getByDevice(inst.deviceId());
                     }
                     int total = allLogs.size();
+                    // When sampling is requested, return all sampled points
+                    // without further pagination — the sample IS the page.
+                    if (sampleSize != null && sampleSize > 0) {
+                        return ResponseEntity.ok(ApiResponse.ok(Map.of(
+                                "items", allLogs,
+                                "total", total
+                        )));
+                    }
                     int from = Math.min((page - 1) * pageSize, total);
                     int to = Math.min(from + pageSize, total);
 

@@ -33,4 +33,20 @@ public class JpaGpsLogRepositoryImpl implements GpsLogRepository {
                 .map(GpsLogMapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public long countByDeviceIdAndRecordedAtBetween(Long deviceId, Instant from, Instant to) {
+        return springDataRepo.countByDeviceIdAndRecordedAtBetween(deviceId, from, to);
+    }
+
+    @Override
+    public List<GpsLog> sampleByDeviceIdAndTimeRange(Long deviceId, Instant from, Instant to, long stride) {
+        List<Long> ids = springDataRepo.sampleIdsByDeviceIdAndTimeRange(deviceId, from, to, stride);
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return springDataRepo.findAllByIdInOrderByRecordedAt(ids).stream()
+                .map(GpsLogMapper::toDomain)
+                .toList();
+    }
 }

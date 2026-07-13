@@ -46,4 +46,18 @@ public class GpsLogApplicationService {
                 .map(GpsLogDto::from)
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public List<GpsLogDto> sampleByDeviceAndTimeRange(Long deviceId, Instant from, Instant to, int sampleSize) {
+        long total = gpsLogRepository.countByDeviceIdAndRecordedAtBetween(deviceId, from, to);
+        if (total <= sampleSize) {
+            return gpsLogRepository.findByDeviceIdAndRecordedAtBetween(deviceId, from, to).stream()
+                    .map(GpsLogDto::from)
+                    .toList();
+        }
+        long stride = total / sampleSize;
+        return gpsLogRepository.sampleByDeviceIdAndTimeRange(deviceId, from, to, stride).stream()
+                .map(GpsLogDto::from)
+                .toList();
+    }
 }
