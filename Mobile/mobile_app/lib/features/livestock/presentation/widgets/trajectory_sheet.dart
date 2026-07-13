@@ -36,6 +36,9 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
   List<Map<String, dynamic>> _points = [];
   bool _loading = true;
   SmartTileProvider? _tileProvider;
+  final _mapController = MapController();
+  bool _lastTransformed = false;
+  LatLngBounds? _lastBounds;
 
   @override
   void initState() {
@@ -57,6 +60,7 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
   @override
   void dispose() {
     _tileProvider?.dispose();
+    _mapController.dispose();
     super.dispose();
   }
 
@@ -188,12 +192,31 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
     final distance = totalPathDistance(sampled);
     final bounds = LatLngBounds.fromPoints(latLngs);
 
+    // initialCameraFit only fires on the first FlutterMap build. When the
+    // tile source switches (OSM → 高德) the coordinate system changes
+    // (WGS-84 → GCJ-02) so we must re-fit the camera to stay centred.
+    if (_lastTransformed != shouldTransform) {
+      _lastTransformed = shouldTransform;
+      _lastBounds = bounds;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _lastBounds != null) {
+          _mapController.fitCamera(
+            CameraFit.bounds(
+              bounds: _lastBounds!,
+              padding: const EdgeInsets.all(40),
+            ),
+          );
+        }
+      });
+    }
+
     return Column(
       children: [
         Expanded(
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: FlutterMap(
+              mapController: _mapController,
               options: MapOptions(
                 initialCameraFit: CameraFit.bounds(
                   bounds: bounds,
