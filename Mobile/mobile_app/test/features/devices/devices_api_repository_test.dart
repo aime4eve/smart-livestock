@@ -29,7 +29,7 @@ void main() {
       expect(device.batteryPercent, 85);
       expect(device.signalStrength, 'strong');
       expect(device.lastSync, '2026-07-01T10:00:00Z');
-      expect(device.platformDeviceId, 42);
+      expect(device.platformDeviceId, '42');
       expect(device.isPlatformRegistered, isTrue);
       expect(device.rssi, -70);
       expect(device.snr, '9.5');
@@ -138,7 +138,7 @@ void main() {
       expect(device!.type, DeviceType.rumenCapsule);
     });
 
-    test('platformDeviceId as string gets parsed to int', () {
+    test('platformDeviceId as string preserves value', () {
       final device = DevicesApiRepository.parseDeviceItemForTest({
         'id': '11',
         'deviceType': 'TRACKER',
@@ -147,7 +147,21 @@ void main() {
         'platformDeviceId': '99',
       });
       expect(device, isNotNull);
-      expect(device!.platformDeviceId, 99);
+      expect(device!.platformDeviceId, '99');
+    });
+
+    test('large platformDeviceId preserves precision as string', () {
+      // blade platform deviceIds exceed JS safe integer range (2^53)
+      final device = DevicesApiRepository.parseDeviceItemForTest({
+        'id': '14',
+        'deviceType': 'TRACKER',
+        'runtimeStatus': 'ONLINE',
+        'deviceCode': 'T-014',
+        'platformDeviceId': '2072879090955759616',
+      });
+      expect(device, isNotNull);
+      expect(device!.platformDeviceId, '2072879090955759616');
+      expect(device.isPlatformRegistered, isTrue);
     });
 
     test('null platformDeviceId means isPlatformRegistered false', () {

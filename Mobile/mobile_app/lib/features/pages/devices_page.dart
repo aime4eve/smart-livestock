@@ -762,7 +762,7 @@ class _DeviceHealthDialogState extends State<DeviceHealthDialog> {
             // Device identity card
             _InfoCard(title: '设备信息', icon: Icons.memory, children: [
               if (d.devEui != null) _InfoRow(label: 'DevEUI', value: d.devEui!, mono: true),
-              if (d.platformDeviceId != null) _InfoRow(label: '平台 ID', value: d.platformDeviceId.toString(), mono: true),
+              if (d.platformDeviceId != null) _InfoRow(label: '平台 ID', value: d.platformDeviceId!, mono: true),
               if (d.softwareVersion != null) _InfoRow(label: '软件版本', value: d.softwareVersion!),
               if (d.hardwareVersion != null) _InfoRow(label: '硬件版本', value: d.hardwareVersion!),
               if (d.lastTelemetrySyncedAt != null) _InfoRow(label: '最后同步', value: _fmtTime(d.lastTelemetrySyncedAt!.toString())),

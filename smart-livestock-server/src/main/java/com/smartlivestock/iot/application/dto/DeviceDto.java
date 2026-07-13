@@ -1,5 +1,7 @@
 package com.smartlivestock.iot.application.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.smartlivestock.iot.domain.model.Device;
 
 import java.math.BigDecimal;
@@ -17,6 +19,7 @@ public record DeviceDto(
         String firmwareVersion,
         String devEui,
         Instant lastOnlineAt,
+        @JsonSerialize(using = ToStringSerializer.class)
         Long platformDeviceId,
         Integer rssi,
         BigDecimal snr,

@@ -136,7 +136,7 @@ class DevicesApiRepository implements DevicesRepository {
        batteryPercent: (m['batteryLevel'] ?? m['batteryPercent']) as int?,
        signalStrength: m['signalStrength'] as String?,
        lastSync: (m['lastOnlineAt'] ?? m['lastSync']) as String?,
-       platformDeviceId: _parseNullableInt(m['platformDeviceId']),
+       platformDeviceId: m['platformDeviceId']?.toString(),
        rssi: _parseNullableInt(m['rssi']),
        snr: m['snr']?.toString(),
        lastGateway: m['lastGateway'] as String?,

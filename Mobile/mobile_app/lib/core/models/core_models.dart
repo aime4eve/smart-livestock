@@ -166,7 +166,7 @@ class DeviceItem {
   final int? batteryPercent;
   final String? signalStrength;
   final String? lastSync;
-  final int? platformDeviceId;
+  final String? platformDeviceId;
   final int? rssi;
   final String? snr;
   final String? lastGateway;
@@ -187,7 +187,7 @@ class DeviceItem {
     String? boundLivestockCode,
     int? batteryPercent,
     int? rssi,
-    int? platformDeviceId,
+    String? platformDeviceId,
   }) {
     return DeviceItem(
       id: id,

@@ -12,6 +12,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,15 +37,20 @@ public class AgenticPlatformTelemetrySyncJob {
 
     /**
      * Sync a single device by its local deviceId.
+     * <p>
+     * Records are collected from all pages, filtered by cursor, then sorted ascending
+     * by reportTime before processing. This ensures the newest record's gateway/rssi/snr
+     * values win when ingested (each ingest() overwrites the device snapshot).
      */
     public void syncDevice(Long deviceId) {
         Device device = deviceRepository.findById(deviceId).orElse(null);
         if (device == null || device.getPlatformDeviceId() == null) return;
 
         Instant cursor = device.getLastTelemetrySyncedAt();
-        int page = 1;
-        int processed = 0;
 
+        // Phase 1: Collect all unprocessed records across pages
+        List<ReportRecordPageResp.ReportRecord> toProcess = new ArrayList<>();
+        int page = 1;
         while (true) {
             InternalResponse<ReportRecordPageResp> resp;
             try {
@@ -60,27 +68,29 @@ public class AgenticPlatformTelemetrySyncJob {
 
             for (ReportRecordPageResp.ReportRecord record : resp.getData().getRecords()) {
                 Instant reportTime = AgenticPlatformReportData.parseReportTime(record.getReportTime());
-
-                // Skip already-synced records (cursor dedup)
                 if (cursor != null && !reportTime.isAfter(cursor)) continue;
-
-                // Parse decodeData + top-level fields → standard readings Map
-                Map<String, Object> readings = AgenticPlatformReportData.toReadings(record);
-
-                // Apply LIS3DH accelerometer conversion (方案 B: data-entry boundary)
-                AgenticPlatformReportData.applyAccelerometerConversion(readings);
-
-                // Ingest via unified entry point
-                telemetryIngestionService.ingest(deviceId, readings, reportTime, TelemetrySource.AGENTIC_PLATFORM);
-                processed++;
+                toProcess.add(record);
             }
 
             if (resp.getData().getRecords().size() < pageSize) break;
             page++;
         }
 
-        if (processed > 0) {
-            log.debug("[PlatformSync] device {} synced {} records", deviceId, processed);
+        if (toProcess.isEmpty()) return;
+
+        // Phase 2: Sort ascending by reportTime (oldest first) so newest record's
+        // snapshot values (gateway, rssi, snr) are the final ones after ingestion
+        toProcess.sort(Comparator.comparing(r ->
+                AgenticPlatformReportData.parseReportTime(r.getReportTime())));
+
+        // Phase 3: Ingest each record in chronological order
+        for (ReportRecordPageResp.ReportRecord record : toProcess) {
+            Instant reportTime = AgenticPlatformReportData.parseReportTime(record.getReportTime());
+            Map<String, Object> readings = AgenticPlatformReportData.toReadings(record);
+            AgenticPlatformReportData.applyAccelerometerConversion(readings);
+            telemetryIngestionService.ingest(deviceId, readings, reportTime, TelemetrySource.AGENTIC_PLATFORM);
         }
+
+        log.debug("[PlatformSync] device {} synced {} records", deviceId, toProcess.size());
     }
 }
