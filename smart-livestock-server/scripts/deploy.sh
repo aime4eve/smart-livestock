@@ -62,7 +62,7 @@ echo "==> [4.5/5] Syncing tileserver data to named volume..."
 ssh "$REMOTE" "cd $REMOTE_DIR && \
   TILE_CTR=\$(docker compose -f $COMPOSE_FILE -p $PROJECT ps -q tileserver) && \
   docker cp infrastructure/tileserver/data/. \$TILE_CTR:/data/ && \
-  docker exec -u root \$TILE_CTR sh -c 'chmod -R a+rX /data && rm -f /data/._*' && \
+  docker exec -u root \$TILE_CTR sh -c 'chmod -R a+rX /data && rm -f /data/._* && rm -f /data/*-shm /data/*-wal' && \
   docker restart \$TILE_CTR"
 
 echo "==> [5/5] Pruning dangling images..."
