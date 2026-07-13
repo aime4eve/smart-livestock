@@ -54,6 +54,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
   }
 
   void _clearSearch() {
+    _debounce?.cancel();
     _searchCtrl.clear();
     setState(() => _hasSearch = false);
     ref.read(devicesControllerProvider.notifier).search('');
@@ -201,7 +202,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
                                   ? () => _showUnbindDialog(context, ref, device)
                                   : null,
                               onViewLocation: _deviceIdToLivestockId[device.id] != null
-                                   ? () => context.go('/livestock/${_deviceIdToLivestockId[device.id]}')
+                                   ? () => context.push('/livestock/${_deviceIdToLivestockId[device.id]}')
                                    : () => context.go('/ranch'),
                              ),
                          ],
