@@ -6,6 +6,9 @@ import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/core/utils/geo_utils.dart';
+import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
+import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
+import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -32,11 +35,29 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
   _TimeRange _range = _TimeRange.h24;
   List<Map<String, dynamic>> _points = [];
   bool _loading = true;
+  SmartTileProvider? _tileProvider;
 
   @override
   void initState() {
     super.initState();
+    _initTileProvider();
     _load();
+  }
+
+  Future<void> _initTileProvider() async {
+    _tileProvider = await loadSmartTileProvider(
+      ref,
+      onSourceChanged: () {
+        if (mounted) setState(() {});
+      },
+    );
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _tileProvider?.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -156,7 +177,14 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
         .where((p) => p.lat != 0.0 || p.lng != 0.0)
         .toList();
     final sampled = downsample(rawPoints, 500);
-    final latLngs = sampled.map((p) => LatLng(p.lat, p.lng)).toList();
+    var latLngs = sampled.map((p) => LatLng(p.lat, p.lng)).toList();
+    // Transform WGS-84 GPS points to GCJ-02 when using 高德 fallback tiles
+    // so the trajectory aligns with the map.
+    final shouldTransform =
+        _tileProvider?.shouldTransformCoordinates() ?? false;
+    if (shouldTransform) {
+      latLngs = CoordTransform.wgs84ToGcj02All(latLngs);
+    }
     final distance = totalPathDistance(sampled);
     final bounds = LatLngBounds.fromPoints(latLngs);
 
@@ -174,8 +202,8 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
               ),
               children: [
                 TileLayer(
-                  urlTemplate:
-                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  tileProvider: _tileProvider,
+                  urlTemplate: '',
                 ),
                 PolylineLayer(
                   polylines: [
