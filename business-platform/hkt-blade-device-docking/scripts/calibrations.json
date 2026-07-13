@@ -1,0 +1,186 @@
+{
+  "calibrated_at": "2026-07-13",
+  "calibration_data_source": "20260713.txt",
+  "devices": {
+    "00956906000285d8": {
+      "eui": "00956906000285d8",
+      "device_id": "2075561438264500224",
+      "point": 11,
+      "location": "一期楼顶 11号位",
+      "rtk": {
+        "lat": 28.246594,
+        "lon": 112.851611
+      },
+      "calibration": {
+        "quality": 1.0,
+        "sample_count": 82,
+        "sample_duration_hours": 41.0
+      },
+      "gps": {
+        "jitter_radius_m": 18.5,
+        "median_error_m": 5.7,
+        "mean_error_m": 8.2,
+        "p90_error_m": 14.5,
+        "max_error_m": 64.2,
+        "outlier_threshold_m": 64.2,
+        "jitter_diameter_m": 80.4
+      },
+      "accelerometer": {
+        "rest_mag_mean_g": 0.968,
+        "rest_max_motion_g": 0.661,
+        "false_active_rate": 0.305,
+        "activity_distribution": {
+          "rest": 0.695,
+          "active": 0.11,
+          "light": 0.171,
+          "intense": 0.024
+        }
+      }
+    },
+    "00956906000285d4": {
+      "eui": "00956906000285d4",
+      "device_id": "2075561685921374208",
+      "point": 16,
+      "location": "一期楼顶 16号位",
+      "rtk": {
+        "lat": 28.246636,
+        "lon": 112.851446
+      },
+      "calibration": {
+        "quality": 0.7,
+        "sample_count": 82,
+        "sample_duration_hours": 41.0
+      },
+      "gps": {
+        "jitter_radius_m": 39.1,
+        "median_error_m": 7.0,
+        "mean_error_m": 12.1,
+        "p90_error_m": 16.8,
+        "max_error_m": 103.5,
+        "outlier_threshold_m": 117.3,
+        "jitter_diameter_m": 201.1
+      },
+      "accelerometer": {
+        "rest_mag_mean_g": 0.998,
+        "rest_max_motion_g": 0.647,
+        "false_active_rate": 0.329,
+        "activity_distribution": {
+          "rest": 0.671,
+          "light": 0.244,
+          "active": 0.085
+        }
+      }
+    },
+    "00956906000289f0": {
+      "eui": "00956906000289f0",
+      "device_id": "2075561842033369088",
+      "point": 20,
+      "location": "一期楼顶 20号位",
+      "rtk": {
+        "lat": 28.246565,
+        "lon": 112.851191
+      },
+      "calibration": {
+        "quality": 1.0,
+        "sample_count": 83,
+        "sample_duration_hours": 41.5
+      },
+      "gps": {
+        "jitter_radius_m": 36.5,
+        "median_error_m": 10.1,
+        "mean_error_m": 14.1,
+        "p90_error_m": 26.2,
+        "max_error_m": 130.3,
+        "outlier_threshold_m": 130.3,
+        "jitter_diameter_m": 172.8
+      },
+      "accelerometer": {
+        "rest_mag_mean_g": 0.922,
+        "rest_max_motion_g": 0.647,
+        "false_active_rate": 0.253,
+        "activity_distribution": {
+          "rest": 0.747,
+          "active": 0.072,
+          "light": 0.157,
+          "intense": 0.024
+        }
+      }
+    },
+    "00956906000285b9": {
+      "eui": "00956906000285b9",
+      "device_id": "2075561968718127104",
+      "point": 21,
+      "location": "一期楼顶 21号位",
+      "rtk": {
+        "lat": 28.24658,
+        "lon": 112.851142
+      },
+      "calibration": {
+        "quality": 1.0,
+        "sample_count": 84,
+        "sample_duration_hours": 42.0
+      },
+      "gps": {
+        "jitter_radius_m": 40.1,
+        "median_error_m": 10.5,
+        "mean_error_m": 13.2,
+        "p90_error_m": 21.9,
+        "max_error_m": 81.2,
+        "outlier_threshold_m": 120.4,
+        "jitter_diameter_m": 121.2
+      },
+      "accelerometer": {
+        "rest_mag_mean_g": 0.965,
+        "rest_max_motion_g": 1.033,
+        "false_active_rate": 0.262,
+        "activity_distribution": {
+          "rest": 0.738,
+          "light": 0.095,
+          "active": 0.155,
+          "intense": 0.012
+        }
+      }
+    },
+    "0095690600028ed2": {
+      "eui": "0095690600028ed2",
+      "device_id": "2075562094404640768",
+      "point": 22,
+      "location": "一期楼顶 22号位",
+      "rtk": {
+        "lat": 28.246589,
+        "lon": 112.851087
+      },
+      "calibration": {
+        "quality": 1.0,
+        "sample_count": 88,
+        "sample_duration_hours": 44.0
+      },
+      "gps": {
+        "jitter_radius_m": 118.3,
+        "median_error_m": 23.8,
+        "mean_error_m": 37.7,
+        "p90_error_m": 86.2,
+        "max_error_m": 263.5,
+        "outlier_threshold_m": 354.9,
+        "jitter_diameter_m": 335.2
+      },
+      "accelerometer": {
+        "rest_mag_mean_g": 1.079,
+        "rest_max_motion_g": 1.116,
+        "false_active_rate": 0.25,
+        "activity_distribution": {
+          "rest": 0.75,
+          "light": 0.08,
+          "active": 0.148,
+          "intense": 0.023
+        }
+      }
+    }
+  },
+  "fallback_defaults": {
+    "gps_jitter_radius_m": 142.0,
+    "gps_outlier_threshold_m": 354.9,
+    "accel_rest_max_motion_g": 1.674,
+    "accel_false_active_rate": 0.329
+  }
+}

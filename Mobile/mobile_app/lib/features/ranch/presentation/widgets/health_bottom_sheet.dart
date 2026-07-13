@@ -32,10 +32,16 @@ class HealthBottomSheet extends ConsumerStatefulWidget {
 
 class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
   _SnapLevel _snap = _SnapLevel.peek;
+  // Traversal direction for tap cycling: true = expanding (peek -> full),
+  // false = collapsing (full -> peek). Reverses at the extremes so taps
+  // bounce through all three states instead of skipping one.
+  bool _expanding = true;
 
   static const _peekHeight = 56.0;
   static const _halfFraction = 0.45;
   static const _fullFraction = 0.92;
+  // Drag displacement (px) below which nothing happens.
+  static const _dragThreshold = 40.0;
 
   double _dragStartY = 0;
 
@@ -45,13 +51,27 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
     _SnapLevel.full => parentHeight * _fullFraction,
   };
 
-  void _snapTo(_SnapLevel target) => setState(() => _snap = target);
+  void _snapTo(_SnapLevel target) => setState(() {
+        _snap = target;
+        if (target == _SnapLevel.full) {
+          _expanding = false; // reached the top -> next tap collapses
+        } else if (target == _SnapLevel.peek) {
+          _expanding = true; // reached the bottom -> next tap expands
+        }
+      });
 
-  void _cycleSnap() => switch (_snap) {
-    _SnapLevel.peek => _snapTo(_SnapLevel.half),
-    _SnapLevel.half => _snapTo(_SnapLevel.full),
-    _SnapLevel.full => _snapTo(_SnapLevel.peek),
-  };
+  /// Tapping the peek handle bounces through the three snap levels:
+  ///   peek -> half -> full -> half -> peek -> ...
+  void _onTap() {
+    switch (_snap) {
+      case _SnapLevel.peek:
+        _snapTo(_SnapLevel.half);
+      case _SnapLevel.half:
+        _snapTo(_expanding ? _SnapLevel.full : _SnapLevel.peek);
+      case _SnapLevel.full:
+        _snapTo(_SnapLevel.half);
+    }
+  }
 
   void _onVerticalDragStart(DragStartDetails d) {
     _dragStartY = d.globalPosition.dy;
@@ -59,14 +79,34 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
 
   void _onVerticalDragEnd(DragEndDetails d) {
     final dy = _dragStartY - d.globalPosition.dy;
-    if (dy > 40 && _snap == _SnapLevel.peek) {
-      _snapTo(_SnapLevel.half);
-    } else if (dy > 40 && _snap == _SnapLevel.half) {
-      _snapTo(_SnapLevel.full);
-    } else if (dy < -40 && _snap == _SnapLevel.full) {
-      _snapTo(_SnapLevel.half);
-    } else if (dy < -40 && _snap == _SnapLevel.half) {
-      _snapTo(_SnapLevel.peek);
+    if (dy > _dragThreshold) {
+      _expandOneStep();
+    } else if (dy < -_dragThreshold) {
+      _collapseOneStep();
+    }
+  }
+
+  void _expandOneStep() {
+    _expanding = true;
+    switch (_snap) {
+      case _SnapLevel.peek:
+        _snapTo(_SnapLevel.half);
+      case _SnapLevel.half:
+        _snapTo(_SnapLevel.full);
+      case _SnapLevel.full:
+        break; // already maximised
+    }
+  }
+
+  void _collapseOneStep() {
+    _expanding = false;
+    switch (_snap) {
+      case _SnapLevel.peek:
+        break; // already minimised
+      case _SnapLevel.half:
+        _snapTo(_SnapLevel.peek);
+      case _SnapLevel.full:
+        _snapTo(_SnapLevel.half);
     }
   }
 
@@ -92,6 +132,7 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
 
     return ClipRect(
       child: AnimatedContainer(
+        key: const ValueKey('health_sheet_panel'),
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
         height: targetH,
@@ -107,7 +148,7 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
               behavior: HitTestBehavior.opaque,
               onVerticalDragStart: _onVerticalDragStart,
               onVerticalDragEnd: _onVerticalDragEnd,
-              onTap: _cycleSnap,
+              onTap: _onTap,
               child: MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: Container(

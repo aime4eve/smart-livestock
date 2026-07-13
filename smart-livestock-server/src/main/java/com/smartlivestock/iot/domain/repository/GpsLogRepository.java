@@ -9,4 +9,7 @@ public interface GpsLogRepository {
     GpsLog save(GpsLog gpsLog);
     List<GpsLog> findByDeviceId(Long deviceId);
     List<GpsLog> findByDeviceIdAndRecordedAtBetween(Long deviceId, Instant from, Instant to);
+    long countByDeviceIdAndRecordedAtBetween(Long deviceId, Instant from, Instant to);
+
+    List<GpsLog> sampleByDeviceIdAndTimeRange(Long deviceId, Instant from, Instant to, long stride);
 }

@@ -81,7 +81,7 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
                   dt.second, dt.millisecond)
               .toIso8601String();
       final data = await ApiClient.instance.farmGet(
-        '/livestock/${widget.livestockId}/gps-logs?startTime=${ts(start)}&endTime=${ts(now)}&pageSize=500',
+        '/livestock/${widget.livestockId}/gps-logs?startTime=${ts(start)}&endTime=${ts(now)}&sampleSize=500',
       );
       final items = data['items'];
       if (mounted) {
