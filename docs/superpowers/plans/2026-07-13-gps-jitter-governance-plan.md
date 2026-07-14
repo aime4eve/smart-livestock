@@ -37,6 +37,10 @@ smart-livestock-server/src/main/java/com/smartlivestock/
   iot/infrastructure/persistence/JpaDeviceCalibrationRepositoryImpl.java CREATE
   iot/infrastructure/persistence/mapper/DeviceCalibrationMapper.java CREATE
 
+  # ── IoT Context (Event 扩展) ──
+  iot/domain/event/GpsLogUpdatedEvent.java       MODIFY  — 捎带加速度计快照
+  iot/application/GpsLogApplicationService.java   MODIFY  — 组装事件时传入加速度计
+
   # ── Ranch Context ──
   ranch/domain/model/AlertSensitivity.java             CREATE  — 三档枚举
   ranch/domain/model/GpsGovernanceState.java           CREATE  — 治理状态值对象
@@ -80,8 +84,8 @@ smart-livestock-server/src/main/java/com/smartlivestock/
 - Create: `smart-livestock-server/src/main/resources/db/migration/V20260713XXXXXX__create_device_calibrations.sql`
 
 **Interfaces:**
-- Produces: `DeviceCalibration` class with fields: `eui`, `deviceId`, `gpsJitterRadius`, `gpsMedianError`, `gpsP90Error`, `gpsOutlierThreshold`, `gpsJitterDiameter`, `accelMagRestMean`, `accelFalseActiveRate`, `calibrationQuality`, `calibratedAt`
-- Produces: `DeviceCalibrationRepository` with `save(DeviceCalibration)`, `findByEui(String)`, `findByDeviceId(Long)`
+- Produces: `DeviceCalibration` class with fields: `devEui`, `deviceId`, `gpsJitterRadius`, `gpsMedianError`, `gpsP90Error`, `gpsOutlierThreshold`, `gpsJitterDiameter`, `accelMagRestMean`, `accelFalseActiveRate`, `calibrationQuality`, `calibratedAt`
+- Produces: `DeviceCalibrationRepository` with `save(DeviceCalibration)`, `findByDevEui(String)`, `findByDeviceId(Long)`
 
 - [ ] **Step 1: 创建 Flyway 迁移**
 
@@ -89,7 +93,7 @@ smart-livestock-server/src/main/java/com/smartlivestock/
 -- V20260713XXXXXX__create_device_calibrations.sql
 CREATE TABLE IF NOT EXISTS device_calibrations (
     id              BIGSERIAL PRIMARY KEY,
-    eui             VARCHAR(32) NOT NULL UNIQUE,
+    dev_eui             VARCHAR(32) NOT NULL UNIQUE,
     device_id       BIGINT,
     gps_jitter_radius        DECIMAL(7,1) NOT NULL DEFAULT 0,
     gps_median_error         DECIMAL(7,1) NOT NULL DEFAULT 0,
@@ -104,7 +108,7 @@ CREATE TABLE IF NOT EXISTS device_calibrations (
     updated_at               TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_device_calibrations_eui ON device_calibrations(eui);
+CREATE INDEX idx_device_calibrations_dev_eui ON device_calibrations(dev_eui);
 CREATE INDEX idx_device_calibrations_device_id ON device_calibrations(device_id);
 ```
 
@@ -118,7 +122,7 @@ import java.time.Instant;
 
 public class DeviceCalibration {
     private Long id;
-    private String eui;
+    private String devEui;
     private Long deviceId;
     private BigDecimal gpsJitterRadius;       // P95 (m)
     private BigDecimal gpsMedianError;         // 中值偏差 (m)
@@ -132,13 +136,13 @@ public class DeviceCalibration {
 
     public DeviceCalibration() {}
 
-    public DeviceCalibration(String eui, Long deviceId,
+    public DeviceCalibration(String devEui, Long deviceId,
             BigDecimal gpsJitterRadius, BigDecimal gpsMedianError,
             BigDecimal gpsP90Error, BigDecimal gpsOutlierThreshold,
             BigDecimal gpsJitterDiameter, BigDecimal accelMagRestMean,
             BigDecimal accelFalseActiveRate, BigDecimal calibrationQuality,
             Instant calibratedAt) {
-        this.eui = eui;
+        this.devEui = devEui;
         this.deviceId = deviceId;
         this.gpsJitterRadius = gpsJitterRadius;
         this.gpsMedianError = gpsMedianError;
@@ -165,8 +169,8 @@ public class DeviceCalibration {
     // getters and setters ...
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public String getEui() { return eui; }
-    public void setEui(String eui) { this.eui = eui; }
+    public String getDevEui() { return devEui; }
+    public void setDevEui(String devEui) { this.devEui = devEui; }
     public Long getDeviceId() { return deviceId; }
     public void setDeviceId(Long deviceId) { this.deviceId = deviceId; }
     public BigDecimal getGpsJitterRadius() { return gpsJitterRadius; }
@@ -192,7 +196,7 @@ import java.util.Optional;
 
 public interface DeviceCalibrationRepository {
     DeviceCalibration save(DeviceCalibration cal);
-    Optional<DeviceCalibration> findByEui(String eui);
+    Optional<DeviceCalibration> findByDevEui(String devEui);
     Optional<DeviceCalibration> findByDeviceId(Long deviceId);
 }
 ```
@@ -211,6 +215,74 @@ git add smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/model
 git add smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/repository/DeviceCalibrationRepository.java
 git commit -m "feat: add DeviceCalibration domain model and DB migration"
 ```
+
+---
+
+### Task 1b: 扩展 GpsLogUpdatedEvent 捎带加速度计快照
+
+**背景**: 当前 `GpsLogUpdatedEvent` 只含 4 个字段（deviceId, latitude, longitude, recordedAt），加速度计数据走独立的 `TelemetryReceivedEvent`。blade 端 GPS 和加速度计来自同一条 uplink 记录（天然对齐），在 `TelemetryIngestionService.ingest()` 中被拆分到两张表。治理管道需要加速度计数据做灰色地带辅助判断，因此需扩展此事件。
+
+**Files:**
+- Modify: `smart-livestock-server/src/main/java/com/smartlivestock/iot/domain/event/GpsLogUpdatedEvent.java`
+- Modify: `smart-livestock-server/src/main/java/com/smartlivestock/iot/application/GpsLogApplicationService.java`
+- Modify: `smart-livestock-server/src/main/java/com/smartlivestock/iot/application/TelemetryIngestionService.java`
+
+**Interfaces:**
+- `GpsLogUpdatedEvent` 新增可选字段：`BigDecimal accelMagnitudeG`, `BigDecimal motionIntensity`, `Integer stepNumber`（均可为 null，向后兼容）
+- `GpsLogApplicationService.logGps()` 新增重载方法，接受加速度计参数
+
+- [ ] **Step 1: 扩展 GpsLogUpdatedEvent**
+
+在现有 4 个字段后新增 3 个可选字段（均可为 null）：
+```java
+private BigDecimal accelMagnitudeG;   // |mag| 合加速度幅值 (g)
+private BigDecimal motionIntensity;   // 运动强度 (||mag| - 1.0|, g)
+private Integer stepNumber;           // 本周期步数
+```
+更新构造器（保留原构造器用于向后兼容，新增带加速度计参数的构造器）。
+
+- [ ] **Step 2: 更新 GpsLogApplicationService.logGps()**
+
+新增重载方法：
+```java
+@Transactional
+public GpsLogDto logGps(Long deviceId, BigDecimal latitude, BigDecimal longitude,
+                        BigDecimal accuracy, Instant recordedAt,
+                        BigDecimal accelMagnitudeG, BigDecimal motionIntensity, Integer stepNumber) {
+    // ... 原有逻辑不变（写 gps_logs）...
+    // 发布事件时捎带加速度计快照
+    eventPublisher.publishEvent(new GpsLogUpdatedEvent(
+            deviceId, latitude, longitude, recordedAt,
+            accelMagnitudeG, motionIntensity, stepNumber));
+}
+```
+保留原有 5 参数 `logGps()` 方法，内部调用新方法传 null。
+
+- [ ] **Step 3: 更新 TelemetryIngestionService.extractAndLogGps()**
+
+在调用 `logGps()` 时，从同一份 `readings` 中提取加速度计字段并传入：
+```java
+private void extractAndLogGps(Long deviceId, Map<String, Object> readings, Instant recordedAt) {
+    // ... 原有提取 lat/lon 逻辑不变 ...
+    BigDecimal accelMag = extractBigDecimal(readings, "accelMagnitudeG");
+    BigDecimal motionIntensity = extractBigDecimal(readings, "motionIntensity");
+    Integer stepNumber = extractInt(readings, "stepNumber");
+    gpsLogApplicationService.logGps(deviceId, lat, lon, accuracy, recordedAt,
+            accelMag, motionIntensity, stepNumber);
+}
+```
+
+- [ ] **Step 4: 更新 GpsLogEventConsumer.onMessage() 解析逻辑**
+
+在解析 JSON 时增加加速度计字段解析：
+```java
+BigDecimal motionIntensity = json.has("motionIntensity") && !json.isNull("motionIntensity")
+        ? json.getBigDecimal("motionIntensity") : null;
+Integer stepNumber = json.has("stepNumber") && !json.isNull("stepNumber")
+        ? json.getInt("stepNumber") : null;
+```
+
+- [ ] **Step 5: 编译验证 + Commit**
 
 ---
 
@@ -307,7 +379,10 @@ git commit -m "feat: add AlertSensitivity enum and fence column"
 package com.smartlivestock.ranch.domain.model;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -359,16 +434,26 @@ public class GpsGovernanceState {
         return latBuffer.size() >= 3;
     }
 
-    /** 缓冲区中值 */
+    /**
+     * 计算纬度缓冲区的中值。
+     * 注意：分别对 lat 和 lon 取一维中值是简化做法——中值坐标点
+     * 可能不在实际数据点中，但对于去除 GPS 抖动足够有效。
+     */
     public BigDecimal getBufferMedianLat() {
-        List<BigDecimal> sorted = new java.util.ArrayList<>(latBuffer);
-        sorted.sort(null);
-        return sorted.get(sorted.size() / 2);
+        return median(latBuffer);
     }
+
     public BigDecimal getBufferMedianLon() {
-        List<BigDecimal> sorted = new java.util.ArrayList<>(lonBuffer);
-        sorted.sort(null);
-        return sorted.get(sorted.size() / 2);
+        return median(lonBuffer);
+    }
+
+    private BigDecimal median(LinkedList<BigDecimal> buffer) {
+        List<BigDecimal> sorted = new ArrayList<>(buffer);
+        Collections.sort(sorted);
+        int mid = sorted.size() / 2;
+        return sorted.size() % 2 == 0
+                ? sorted.get(mid - 1).add(sorted.get(mid)).divide(BigDecimal.valueOf(2), RoundingMode.HALF_UP)
+                : sorted.get(mid);
     }
 }
 ```
@@ -442,7 +527,7 @@ class GpsGovernanceServiceTest {
         cal.setGpsOutlierThreshold(new BigDecimal("64"));
         cal.setGpsP90Error(new BigDecimal("15"));
         cal.setAccelMagRestMean(new BigDecimal("0.97"));
-        cal.setAccelFalseActiveRate(new BigDecimal("0.30"));
+        cal.setAccelFalseActiveRate(new BigDecimal("0.10"));  // < 15% threshold → accel assist enabled
         cal.setCalibrationQuality(BigDecimal.ONE);
         return cal;
     }
@@ -509,9 +594,9 @@ class GpsGovernanceServiceTest {
         GpsGovernanceState state = new GpsGovernanceState(1L);
         state.setConfirmedPosition(new BigDecimal("28.246600"), new BigDecimal("112.851600"));
 
-        // 位移在灰色地带(30m, 介于 P95 和 outlier 之间)，stepNumber > 0 → 倾向移动
+        // 位移约 15m，在灰色地带(P50=6m ~ P95=19m)，stepNumber=5 → 加速度计投票支持移动
         GovernedPosition result = service.evaluate(state,
-                new BigDecimal("28.246850"), new BigDecimal("112.851500"),
+                new BigDecimal("28.246700"), new BigDecimal("112.851700"),
                 new BigDecimal("0.3"), 5,
                 AlertSensitivity.STANDARD, makeCal());
 
@@ -630,13 +715,19 @@ public class GpsGovernanceService {
         boolean isMoving = displacement >= threshold;
 
         // 灰色地带（P50 < displacement < P95）→ 加速度计辅助判断
+        // 仅当设备标定后静止误报率 < 15% 时才启用（需求 §9.2 加速度计可用性门槛）
         if (!isMoving && cal != null) {
             double p50 = cal.getGpsMedianError().doubleValue();
             double p95 = cal.getGpsJitterRadius().doubleValue();
             if (displacement > p50 && displacement < p95) {
+                boolean accelEnabled = cal.getAccelFalseActiveRate() != null
+                        && cal.getAccelFalseActiveRate().doubleValue() < 0.15;
                 boolean accelSuggestsMove = false;
-                if (motionIntensity != null && motionIntensity.doubleValue() > 0.3) accelSuggestsMove = true;
-                if (stepNumber != null && stepNumber > 0) accelSuggestsMove = true;
+                if (accelEnabled && stepNumber != null && stepNumber > 0) accelSuggestsMove = true;
+                if (accelEnabled && motionIntensity != null && cal.getAccelMagRestMean() != null) {
+                    double restBaseline = cal.getAccelMagRestMean().doubleValue();
+                    if (motionIntensity.doubleValue() > restBaseline * 2.0) accelSuggestsMove = true;
+                }
                 if (accelSuggestsMove) {
                     isMoving = true;
                 }
@@ -656,7 +747,7 @@ public class GpsGovernanceService {
     private double getMovementThreshold(AlertSensitivity sensitivity, DeviceCalibration cal) {
         if (cal == null) {
             // 保守默认值（未标定设备）
-            return 142.0;  // fallback_defaults.gps_jitter_radius
+            return 50.0;   // fallback_defaults.gps_jitter_radius (收紧：未标定宁可误报不漏报)
         }
         return cal.getMovementThreshold(sensitivity).doubleValue();
     }
@@ -757,6 +848,16 @@ public class PositionStateCache {
 }
 ```
 
+**并发竞态处理**:
+
+`GpsGovernanceService.evaluate()` 会 mutate `GpsGovernanceState`，在 RocketMQ 并发消费场景下存在竞态风险。处理策略：
+
+1. **消费端顺序消费**：将 RocketMQ 消费者从并发模式改为顺序消费（`MessageModel.CLUSTERING` + `Consume Mode.ORDERLY`），按 `deviceId` 的 hash 队列分配，确保同一设备的消息由同一线程顺序消费。
+2. **Redis CAS 保护**：`PositionStateCache.saveState()` 使用 Redis 的 `WATCH/MULTI/EXEC` 或乐观锁（比较 `updatedAt` 时间戳），检测到版本冲突时重读 state 并重新 evaluate。
+3. **幂等设计**：`GpsGovernanceState.pushToBuffer()` 在保存前检查最新点的 `recordedAt`，重复消息不重复入 buffer。
+
+推荐方案 1（顺序消费），因为它从源头消除了竞态，且对同一设备的 GPS 消息顺序消费是语义正确的。
+
 - [ ] **Step 2: 编译验证**
 
 ```bash
@@ -767,55 +868,59 @@ cd smart-livestock-server && ./gradlew compileJava
 
 ---
 
-### Task 5: 告警冷却期 — AlertRepository 扩展
+### Task 5: AlertRepository 冷却期查询
 
 **Files:**
 - Modify: `smart-livestock-server/src/main/java/com/smartlivestock/ranch/domain/repository/AlertRepository.java`
-- Modify: `smart-livestock-server/src/main/java/com/smartlivestock/ranch/infrastructure/persistence/SpringDataAlertRepository.java`
-- Modify: `smart-livestock-server/src/main/java/com/smartlivestock/ranch/infrastructure/persistence/JpaAlertRepositoryImpl.java`
+- Modify: `smart-livestock-server/src/main/java/com/smartlivestock/ranch/infrastructure/persistence/JpaAlertRepositoryImpl.java`（或对应的 JPA 实现类）
 
-**Interfaces:**
-- Produces: `AlertRepository.findLatestBreachAlert(Long livestockId, Long fenceId)` — 返回最近一条 ACTIVE 或 AUTO_RESOLVED 越界告警
+**背景**: 当前 AlertRepository 的查询全部返回 List，没有按时间排序取 top-1 的方法。冷却期逻辑需要查询"同一 livestock + fence 最近一条已解除的告警"，判断是否在冷却窗口内。
 
-- [ ] **Step 1: 扩展 Repository 接口**
-
-在 `AlertRepository.java` 添加：
+- [ ] **Step 1: AlertRepository 接口新增方法**
 
 ```java
-Optional<Alert> findLatestBreachAlert(Long livestockId, Long fenceId);
+/**
+ * 查询同一 livestock + fence 最近一条已解除（AUTO_RESOLVED）的告警，
+ * 用于冷却期判断。
+ */
+Optional<Alert> findLatestResolved(Long livestockId, Long fenceId);
 ```
 
-- [ ] **Step 2: 扩展 Spring Data Repository**
+- [ ] **Step 2: JPA 实现**
 
-在 `SpringDataAlertRepository.java` 添加：
-
-```java
-@Query("SELECT a FROM AlertJpaEntity a WHERE a.livestockId = :livestockId "
-     + "AND a.fenceId = :fenceId "
-     + "AND a.type IN ('FENCE_BREACH', 'FENCE_APPROACH') "
-     + "ORDER BY a.createdAt DESC LIMIT 1")
-Optional<AlertJpaEntity> findLatestBreachAlert(
-        @Param("livestockId") Long livestockId, @Param("fenceId") Long fenceId);
-```
-
-- [ ] **Step 3: 实现 JpaAlertRepositoryImpl 代理方法**
-
+在 JpaAlertRepositoryImpl 中实现（使用 Spring Data JPA @Query）：
 ```java
 @Override
-public Optional<Alert> findLatestBreachAlert(Long livestockId, Long fenceId) {
-    return springDataAlertRepository.findLatestBreachAlert(livestockId, fenceId)
+public Optional<Alert> findLatestResolved(Long livestockId, Long fenceId) {
+    return alertJpaRepository
+            .findTopByLivestockIdAndFenceIdAndStatusOrderByResolvedAtDesc(
+                    livestockId, fenceId, AlertStatus.AUTO_RESOLVED)
             .map(alertMapper::toDomain);
 }
 ```
 
-- [ ] **Step 4: 定义冷却期常量**（在 GpsGovernanceService 中）
-
+对应的 Spring Data JPA Repository 接口方法：
 ```java
-// 告警冷却期：3 个采样周期（@30min）= 90 分钟
-private static final long BREACH_COOLDOWN_MINUTES = 90;
+Optional<AlertJpaEntity> findTopByLivestockIdAndFenceIdAndStatusOrderByResolvedAtDesc(
+        Long livestockId, Long fenceId, AlertStatus status);
 ```
 
-- [ ] **Step 5: 编译验证 + Commit**
+- [ ] **Step 3: 单元测试**
+
+```java
+@Test
+void findLatestResolvedShouldReturnMostRecent() {
+    // 创建两条已解除告警，resolvedAt 不同
+    // 验证返回 resolvedAt 更大的那条
+}
+
+@Test
+void findLatestResolvedShouldReturnEmptyWhenNone() {
+    // 无已解除告警时返回 empty
+}
+```
+
+- [ ] **Step 4: 编译验证 + 测试通过 + Commit**
 
 ---
 
@@ -825,8 +930,15 @@ private static final long BREACH_COOLDOWN_MINUTES = 90;
 - Modify: `smart-livestock-server/src/main/java/com/smartlivestock/ranch/infrastructure/mq/GpsLogEventConsumer.java`
 
 **Interfaces:**
-- Consumes: `GpsGovernanceService`, `PositionStateCache`, `DeviceCalibrationRepository`, `AlertRepository.findLatestBreachAlert`
+- Consumes: `GpsGovernanceService`, `PositionStateCache`, `DeviceCalibrationRepository`, `AlertRepository.findLatestResolved`
 - Modifies: `onMessage()` — 接入治理管道；`createAlertIfNeeded()` — 增加冷却期检查
+
+**改造原则**:
+- 治理管道是**包裹**现有围栏检测，不是替换——`GpsGovernanceService.evaluate()` 在 `FenceBreachDetector` 之前执行，输出 `GovernedPosition`。只有 `isPositionConfirmed()` 为 true 时才进入围栏检测。
+- 原有的 `FenceBreachDetector` 逻辑保留，但输入从原始 GPS 坐标改为治理后的 `GovernedPosition` 坐标。
+- 原有的 `autoResolveFenceAlerts()` 和 `autoResolveOppositeTypeAlerts()` 保留。
+- `createAlertIfNeeded()` 升级为 `createAlertWithCooldown()`，新增冷却期检查。
+- 构造器注入从 6 个依赖增加到 9 个（新增 `GpsGovernanceService`, `PositionStateCache`, `DeviceCalibrationRepository`）。
 
 - [ ] **Step 1: 重写 GpsLogEventConsumer**
 
@@ -941,11 +1053,11 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
         if (hasExisting) return;
 
         // 冷却期检查：上次同围栏告警解除后 90 分钟内不重建
-        Alert latestBreach = alertRepository.findLatestBreachAlert(
+        Alert latestResolved = alertRepository.findLatestResolved(
                 livestock.getId(), fence.getId()).orElse(null);
-        if (latestBreach != null && latestBreach.getResolvedAt() != null) {
+        if (latestResolved != null && latestResolved.getResolvedAt() != null) {
             long minutesSinceResolved = java.time.Duration.between(
-                    latestBreach.getResolvedAt(), java.time.Instant.now()).toMinutes();
+                    latestResolved.getResolvedAt(), java.time.Instant.now()).toMinutes();
             if (minutesSinceResolved < BREACH_COOLDOWN_MINUTES) {
                 log.debug("Alert cooldown active for livestock [{}] fence [{}]: {}min remaining",
                         livestock.getId(), fence.getId(),
@@ -986,7 +1098,11 @@ cd smart-livestock-server && ./gradlew compileJava
 
 **Files:**
 - Modify: `business-platform/hkt-blade-device-docking/src/main/java/com/smartlivestock/docking/util/AccelerometerConverter.java`
+- Modify: `smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/client/agenticplatform/util/AccelerometerConverter.java`
 - Modify: `business-platform/hkt-blade-device-docking/src/test/java/com/smartlivestock/docking/util/AccelerometerConverterTest.java`
+- Modify: `smart-livestock-server/src/test/java/com/smartlivestock/iot/infrastructure/client/agenticplatform/util/AccelerometerConverterTest.java`
+
+> **注意**: `AccelerometerConverter` 在两个仓库逐字节重复存在（代码核查确认）。两个仓库的 `classifyActivity` 必须同步修改，否则算法分叉。当前是技术债——同一逻辑不应在两处维护，但本 Task 不处理重构（合并为单一数据源），仅确保两处同步修改。
 
 - [ ] **Step 1: 改进 classifyActivity**
 
@@ -1040,6 +1156,7 @@ void classifyActivityShouldUseMotionIntensity() {
 
 ```bash
 cd business-platform/hkt-blade-device-docking && ./gradlew test --tests "*AccelerometerConverterTest*"
+cd smart-livestock-server && ./gradlew test --tests "*AccelerometerConverterTest*"
 ```
 Expected: PASS.
 
@@ -1100,7 +1217,15 @@ import java.math.BigDecimal;
  */
 public final class FallbackCalibration {
 
-    public static final BigDecimal GPS_JITTER_RADIUS     = new BigDecimal("142");
+    /**
+     * 冷启动位移确认阈值。
+     * 原评审建议从 142m 收紧到 50m——在未标定阶段，宁可少量误报也不漏报真实越界。
+     * 142m 太松：牛在围栏边界走动 100m 完全正常，但系统会判为"抖动"而不告警。
+     */
+    public static final BigDecimal GPS_JITTER_RADIUS     = new BigDecimal("50");
+    // gps_median_error / gps_p90_error / gps_outlier_threshold 维持原值：
+    // 这些是野点检测与灰色地带的边界，与 jitter_radius（位移确认门控）语义不同，
+    // 无需随冷启动阈值收紧而同步下调；标定完成后由设备实际参数覆盖。
     public static final BigDecimal GPS_MEDIAN_ERROR      = new BigDecimal("24");
     public static final BigDecimal GPS_P90_ERROR         = new BigDecimal("86");
     public static final BigDecimal GPS_OUTLIER_THRESHOLD = new BigDecimal("355");
@@ -1162,7 +1287,7 @@ cd smart-livestock-server && ./gradlew compileJava
 - Create: `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/DeviceCalibrationServiceTest.java`
 
 **Interfaces:**
-- Produces: `DeviceCalibrationService.saveCalibration(...)` / `getCalibrationByEui(String)` / `getCalibrationByDeviceId(Long)`
+- Produces: `DeviceCalibrationService.saveCalibration(...)` / `getCalibrationByDevEui(String)` / `getCalibrationByDeviceId(Long)`
 
 - [ ] **Step 1: 实现 Service**
 
@@ -1173,12 +1298,12 @@ public class DeviceCalibrationService {
     private final DeviceCalibrationRepository repository;
 
     @Transactional
-    public DeviceCalibration saveCalibration(String eui, Long deviceId,
+    public DeviceCalibration saveCalibration(String devEui, Long deviceId,
             BigDecimal gpsJitterRadius, BigDecimal gpsMedianError,
             BigDecimal gpsP90Error, BigDecimal gpsOutlierThreshold,
             BigDecimal gpsJitterDiameter, BigDecimal accelMagRestMean,
             BigDecimal accelFalseActiveRate, BigDecimal calibrationQuality) {
-        DeviceCalibration cal = new DeviceCalibration(eui, deviceId,
+        DeviceCalibration cal = new DeviceCalibration(devEui, deviceId,
                 gpsJitterRadius, gpsMedianError, gpsP90Error,
                 gpsOutlierThreshold, gpsJitterDiameter,
                 accelMagRestMean, accelFalseActiveRate,
@@ -1187,8 +1312,8 @@ public class DeviceCalibrationService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<DeviceCalibration> getByEui(String eui) {
-        return repository.findByEui(eui);
+    public Optional<DeviceCalibration> getByDevEui(String devEui) {
+        return repository.findByDevEui(devEui);
     }
 
     @Transactional(readOnly = true)
@@ -1202,7 +1327,7 @@ public class DeviceCalibrationService {
 
 ```java
 // DeviceCalibrationServiceTest.java
-// Mock DeviceCalibrationRepository，验证 save / findByEui / findByDeviceId 调用
+// Mock DeviceCalibrationRepository，验证 save / findByDevEui / findByDeviceId 调用
 ```
 
 - [ ] **Step 3: 编译验证 + 测试通过 + Commit**
@@ -1315,6 +1440,7 @@ cd Mobile/mobile_app && flutter analyze
 Task 1 (DeviceCalibration model + DB)
   └→ Task 10 (JPA 基础设施)
        └→ Task 11 (DeviceCalibrationService)
+  └→ Task 1b (GpsLogUpdatedEvent 扩展)
 
 Task 2 (AlertSensitivity + Fence extension + DB)
   └→ Task 8 (Fence CRUD 支持 sensitivity)
@@ -1324,7 +1450,7 @@ Task 3 (GpsGovernanceService 核心) [可独立开始]
   ├→ Task 4 (Redis PositionStateCache)
   ├→ Task 5 (AlertRepository 冷却期查询)
   ├→ Task 9 (FallbackCalibration)
-  └→ Task 6 (GpsLogEventConsumer 改造)   ← 集成点：需要 Task 1,2,3,4,5,9 全部完成
+  └→ Task 6 (GpsLogEventConsumer 改造)   ← 集成点：需要 Task 1, 1b, 2, 3, 4, 5, 9 全部完成
 
 Task 7 (activity_class 改进) [独立]
 
@@ -1343,6 +1469,7 @@ Task 15 (前端轨迹展示) [独立，可并行]
 - §4.5 冷启动策略 → Task 9 (FallbackCalibration)
 - §5.1 围栏预警零误报 → Task 3 (governance), Task 6 (consumer 改造)
 - §5.1 告警不震荡 → Task 5 (冷却期), Task 6 (createAlertWithCooldown)
+- §5.4 算法选型论证 → Task 3 注释说明中值滤波选型理由
 - §5.2 轨迹平滑 → Task 15 (前端过滤)
 - §6.4 向后兼容 → Task 6 (非 blade 来源走原逻辑), Task 9 (未标定设备用保守值)
 - §9.2 activity_class 改进 → Task 7
