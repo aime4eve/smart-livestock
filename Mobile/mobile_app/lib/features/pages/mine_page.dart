@@ -188,34 +188,6 @@ class MinePage extends ConsumerWidget {
             onTap: () => context.go(AppRoute.subscriptionPlan.path),
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
-
-        // Revenue Board
-        HighfiCard(
-          child: ListTile(
-            key: const Key('mine-revenue'),
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.account_balance_wallet_outlined),
-            title: Text(l10n.mineRevenueBoardTitle),
-            subtitle: Text(l10n.mineRevenueBoardDesc),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.go(AppRoute.platformRevenue.path),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-
-        // Subscription Service Management
-        HighfiCard(
-          child: ListTile(
-            key: const Key('mine-subscriptions'),
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.subscriptions_outlined),
-            title: Text(l10n.mineSubscriptionServiceTitle),
-            subtitle: Text(l10n.mineSubscriptionServiceDesc),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.go(AppRoute.platformSubscriptions.path),
-          ),
-        ),
       ],
     );
   }
