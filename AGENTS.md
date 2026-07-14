@@ -77,11 +77,27 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - **集成测试**：仅在部署完成后执行；不得在部署前提前运行（避免对旧版本/无后端状态做无效验证）。
 - **顺序**：编码 → 编译验证 → 部署（Agent 或用户）→ 集成测试。
 
-## 6. 代码实现通用规范
+## 6. 新功能/功能增强实施流程
+
+**实现新功能或做功能增强时，遵循以下分阶段确认工作流（每阶段需用户确认后才进入下一阶段）：**
+
+1. **HTML 高保真原型** → 用户确认 → ✅
+2. **spec 设计文档** → 用户确认 → ✅
+3. **plan 实施计划** → 用户确认 → ✅
+4. **编码实现 + 编译验证**（`flutter build web` / `./gradlew bootJar`）
+5. **部署 dev 环境**（`./scripts/deploy.sh dev`）
+6. **用户集成测试**（用户确认部署完成后执行）
+7. **提交 git + 合并 PR + 关闭工单**
+
+- 产出物归档：高保真原型放 `docs/marketing/`，spec 放 `docs/superpowers/specs/`，plan 放 `docs/superpowers/plans/`
+- 每个阶段的产出物在用户确认前不得跳到下一阶段
+- 参考：NIX-11（移动轨迹滑动条）是首个完整走通该流程的范例
+
+## 7. 代码实现通用规范
 
 **所有新增或修改的代码实现，必须同时满足以下两条强制要求：**
 
-### 6.1 国际化规范（i18n）
+### 7.1 国际化规范（i18n）
 
 - 所有面向用户的文本（UI 标题、按钮、提示、错误信息、空状态文案等）必须通过国际化资源引用，禁止硬编码中文/英文字符串。
 - Flutter 端：使用 `AppLocalizations`（`flutter gen-l10n` 生成的 `app_localizations.dart`），文案写入 `lib/l10n/app_*.arb`（中文 `app_zh.arb`、英文 `app_en.arb`），并通过 `context.l10n.xxx` 访问；新增 key 时中英文 arb 必须同步补齐，不得只写一种语言。
@@ -90,7 +106,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - 校验：新增/修改功能后，运行 `flutter gen-l10n` 确认无缺失 key，`flutter analyze` 不报未定义翻译引用；后端编译通过且 properties 双语对齐。
 - 禁止：仅写中文文案而把英文留空或复制中文占位；禁止在 Dart/Java 源码中直接出现面向用户的字面量字符串。
 
-### 6.2 种子数据规范（Seed Data）
+### 7.2 种子数据规范（Seed Data）
 
 - 当新增功能、表、枚举或业务规则导致现有种子数据不足以验证逻辑时，必须同步生成或修改种子数据，使新功能可直接通过种子账号/数据被验证。
 - 后端：通过新增 Flyway 迁移（`V{n}__*.sql`）写入种子数据，遵循现有 seed 迁移风格（命名、列顺序、BCrypt hash 三步验证流程，见「Seed 密码流程」）；不得在 Java 代码中临时 `INSERT` 或硬编码演示数据。
