@@ -36,14 +36,17 @@ class MinePage extends ConsumerWidget {
           
           if (role == UserRole.owner) ...[
             const SizedBox(height: AppSpacing.lg),
+
+            // 业务管理功能
+            Text(
+              l10n.mineBusinessManagement,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: AppSpacing.md),
             const SubscriptionStatusCard(),
             const SizedBox(height: AppSpacing.xl),
-            
-            // 业务管理功能
-            _buildBusinessManagement(context),
-            const SizedBox(height: AppSpacing.xl),
-            
-            // 高级管理功能  
+
+            // 高级管理功能
             _buildAdvancedManagement(context),
           ],
           
@@ -165,32 +168,6 @@ class MinePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildBusinessManagement(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          l10n.mineBusinessManagement,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: AppSpacing.md),
-
-        // Subscription Management
-        HighfiCard(
-          child: ListTile(
-            key: const Key('mine-subscription-manage'),
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.workspace_premium),
-            title: Text(l10n.mineSubscriptionTitle),
-            subtitle: Text(l10n.mineSubscriptionManagementDesc),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.go(AppRoute.subscriptionPlan.path),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildAdvancedManagement(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
