@@ -10,6 +10,7 @@ import com.smartlivestock.commerce.domain.model.Subscription;
 import com.smartlivestock.commerce.domain.repository.ContractRepository;
 import com.smartlivestock.commerce.domain.repository.FeatureGateRepository;
 import com.smartlivestock.commerce.domain.repository.SubscriptionRepository;
+import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -26,13 +27,16 @@ public class SubscriptionQueryService {
     private final SubscriptionRepository subscriptionRepository;
     private final ContractRepository contractRepository;
     private final FeatureGateRepository featureGateRepository;
+    private final LivestockRepository livestockRepository;
 
     public SubscriptionQueryService(SubscriptionRepository subscriptionRepository,
                                     ContractRepository contractRepository,
-                                    FeatureGateRepository featureGateRepository) {
+                                    FeatureGateRepository featureGateRepository,
+                                    LivestockRepository livestockRepository) {
         this.subscriptionRepository = subscriptionRepository;
         this.contractRepository = contractRepository;
         this.featureGateRepository = featureGateRepository;
+        this.livestockRepository = livestockRepository;
     }
 
     /**
@@ -40,7 +44,10 @@ public class SubscriptionQueryService {
      */
     public Optional<SubscriptionResponse> findByTenantId(Long tenantId) {
         return subscriptionRepository.findByTenantId(tenantId)
-            .map(SubscriptionAssembler::toResponse);
+            .map(sub -> {
+                long livestockCount = livestockRepository.countByTenantId(tenantId);
+                return SubscriptionAssembler.toResponse(sub, livestockCount);
+            });
     }
 
     /**

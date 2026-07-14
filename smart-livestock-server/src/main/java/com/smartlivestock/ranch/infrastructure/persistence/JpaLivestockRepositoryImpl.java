@@ -68,6 +68,11 @@ public class JpaLivestockRepositoryImpl implements LivestockRepository {
     }
 
     @Override
+    public long countByTenantId(Long tenantId) {
+        return springDataRepo.countByTenantId(tenantId);
+    }
+
+    @Override
     public List<Livestock> findByFarmIdPaged(Long farmId, int offset, int limit) {
         Pageable pageable = PageRequest.of(offset / limit, limit);
         return springDataRepo.findByFarmIdPaged(farmId, pageable)

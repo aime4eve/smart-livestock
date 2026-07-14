@@ -36,4 +36,7 @@ public interface SpringDataLivestockRepository extends JpaRepository<LivestockJp
 
     @Query("SELECT COUNT(l) FROM LivestockJpaEntity l WHERE l.farmId = :farmId AND l.deletedAt IS NULL AND l.farmId IN (SELECT fm.id FROM com.smartlivestock.identity.infrastructure.persistence.entity.FarmJpaEntity fm WHERE fm.tenantId = :tenantId)")
     long countByFarmIdAndTenantId(@Param("farmId") Long farmId, @Param("tenantId") Long tenantId);
+
+    @Query("SELECT COUNT(l) FROM LivestockJpaEntity l WHERE l.deletedAt IS NULL AND l.farmId IN (SELECT fm.id FROM com.smartlivestock.identity.infrastructure.persistence.entity.FarmJpaEntity fm WHERE fm.tenantId = :tenantId)")
+    long countByTenantId(@Param("tenantId") Long tenantId);
 }

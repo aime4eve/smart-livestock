@@ -36,14 +36,17 @@ class MinePage extends ConsumerWidget {
           
           if (role == UserRole.owner) ...[
             const SizedBox(height: AppSpacing.lg),
+
+            // 业务管理功能
+            Text(
+              l10n.mineBusinessManagement,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: AppSpacing.md),
             const SubscriptionStatusCard(),
             const SizedBox(height: AppSpacing.xl),
-            
-            // 业务管理功能
-            _buildBusinessManagement(context),
-            const SizedBox(height: AppSpacing.xl),
-            
-            // 高级管理功能  
+
+            // 高级管理功能
             _buildAdvancedManagement(context),
           ],
           
@@ -165,60 +168,6 @@ class MinePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildBusinessManagement(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          l10n.mineBusinessManagement,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: AppSpacing.md),
-
-        // Subscription Management
-        HighfiCard(
-          child: ListTile(
-            key: const Key('mine-subscription-manage'),
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.workspace_premium),
-            title: Text(l10n.mineSubscriptionTitle),
-            subtitle: Text(l10n.mineSubscriptionManagementDesc),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.go(AppRoute.subscriptionPlan.path),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-
-        // Revenue Board
-        HighfiCard(
-          child: ListTile(
-            key: const Key('mine-revenue'),
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.account_balance_wallet_outlined),
-            title: Text(l10n.mineRevenueBoardTitle),
-            subtitle: Text(l10n.mineRevenueBoardDesc),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.go(AppRoute.platformRevenue.path),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-
-        // Subscription Service Management
-        HighfiCard(
-          child: ListTile(
-            key: const Key('mine-subscriptions'),
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.subscriptions_outlined),
-            title: Text(l10n.mineSubscriptionServiceTitle),
-            subtitle: Text(l10n.mineSubscriptionServiceDesc),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.go(AppRoute.platformSubscriptions.path),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildAdvancedManagement(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;

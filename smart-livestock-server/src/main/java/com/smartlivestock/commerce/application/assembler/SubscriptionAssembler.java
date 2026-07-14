@@ -1,6 +1,7 @@
 package com.smartlivestock.commerce.application.assembler;
 
 import com.smartlivestock.commerce.application.dto.SubscriptionResponse;
+import com.smartlivestock.commerce.domain.model.SubscriptionTier;
 import com.smartlivestock.commerce.domain.model.Subscription;
 
 import java.util.List;
@@ -25,6 +26,27 @@ public final class SubscriptionAssembler {
         dto.setTrialEndsAt(domain.getTrialEndsAt());
         dto.setCancelledAt(domain.getCancelledAt());
         dto.setEffectiveTier(domain.effectiveTier() != null ? domain.effectiveTier().name() : null);
+        return dto;
+    }
+
+    /**
+     * Build response enriched with livestock count and calculated fees.
+     * Fees are in yuan (元), derived from SubscriptionTier pricing (stored in cents).
+     * Enterprise tier is custom-priced: fees are left at 0.
+     */
+    public static SubscriptionResponse toResponse(Subscription domain, long livestockCount) {
+        SubscriptionResponse dto = toResponse(domain);
+        dto.setLivestockCount((int) livestockCount);
+
+        SubscriptionTier tier = domain.effectiveTier();
+        if (tier != null && tier != SubscriptionTier.ENTERPRISE) {
+            double tierFee = tier.getMonthlyPriceCents() / 100.0;
+            int overflow = (int) Math.max(0, livestockCount - tier.getIncludedLivestock());
+            double deviceFee = overflow * tier.getOveragePriceCents() / 100.0;
+            dto.setCalculatedTierFee(tierFee);
+            dto.setCalculatedDeviceFee(deviceFee);
+            dto.setCalculatedTotal(tierFee + deviceFee);
+        }
         return dto;
     }
 

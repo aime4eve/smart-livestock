@@ -14,6 +14,9 @@ public interface LivestockRepository {
     long countByFarmId(Long farmId);
     long countByFarmIdAndTenantId(Long farmId, Long tenantId);
 
+    /** Count non-deleted livestock for a tenant (across all its farms). */
+    long countByTenantId(Long tenantId);
+
     /** Paginated query without keyword filter. */
     List<Livestock> findByFarmIdPaged(Long farmId, int offset, int limit);
 
