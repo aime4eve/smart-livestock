@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>移动轨迹 — Bottom Sheet 高保真 NIX-11</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  :root {
+    --primary: #2F6B3B;
+    --primary-dark: #244F2D;
+    --primary-soft: #E3F0E4;
+    --accent: #8BA95A;
+    --surface: #F8F6F0;
+    --surface-alt: #FFFFFF;
+    --border: #D7D2C6;
+    --text-primary: #263126;
+    --text-secondary: #617061;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+    background: #555;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px 0;
+    gap: 12px;
+  }
+  /* Label above phone */
+  .scene-label {
+    color: rgba(255,255,255,0.6);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .phone-wrapper {
+    width: 390px;
+    height: 844px;
+    background: var(--surface);
+    position: relative;
+    overflow: hidden;
+    border-radius: 40px;
+    box-shadow: 0 0 60px rgba(0,0,0,0.4);
+  }
+  /* Dimmed background (livestock detail page behind sheet) */
+  .dimmed-bg {
+    position: absolute;
+    inset: 0;
+    background: var(--surface);
+    opacity: 0.3;
+    z-index: 1;
+    padding: 50px 20px;
+  }
+  .dimmed-bg .fake-card {
+    background: #ccc;
+    border-radius: 8px;
+    height: 60px;
+    margin-bottom: 12px;
+    opacity: 0.4;
+  }
+  /* Bottom sheet — 75% of screen height = 633px */
+  .bottom-sheet {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 633px; /* 844 * 0.75 */
+    background: var(--surface);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  /* === Layout sections (flex-based for space budget) === */
+
+  /* Section 1: Header row — title + range selector + close (compact, single row) */
+  .header-row {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px 6px;
+  }
+  .drag-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .sheet-title { font-size: 15px; font-weight: 600; white-space: nowrap; }
+  .livestock-mini {
+    flex: 1;
+    font-size: 12px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .close-btn {
+    width: 26px; height: 26px;
+    border: none; background: transparent;
+    font-size: 18px; color: var(--text-secondary);
+    cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  /* Range dropdown */
+  .range-selector { position: relative; flex-shrink: 0; }
+  .range-btn {
+    display: flex; align-items: center; gap: 3px;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px; font-weight: 500;
+    color: var(--primary);
+    cursor: pointer; white-space: nowrap;
+  }
+  .range-btn:active { background: var(--primary-soft); }
+  .range-btn .arrow { font-size: 9px; transition: transform 0.2s; }
+  .range-btn.open .arrow { transform: rotate(180deg); }
+  .range-dropdown {
+    position: absolute; top: calc(100% + 4px); right: 0;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    min-width: 130px; z-index: 1000;
+    overflow: hidden; display: none;
+  }
+  .range-dropdown.show { display: block; }
+  .range-option {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 12px; font-size: 13px;
+    cursor: pointer; border-bottom: 1px solid var(--surface);
+  }
+  .range-option:last-child { border-bottom: none; }
+  .range-option:hover { background: var(--primary-soft); }
+  .range-option.active { color: var(--primary); font-weight: 600; }
+  .range-option .check { color: var(--primary); font-size: 14px; visibility: hidden; }
+  .range-option.active .check { visibility: visible; }
+
+  /* Section 2: Map — flex: 1 to take all remaining space */
+  .map-section {
+    flex: 1;
+    margin: 0 16px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    position: relative;
+    min-height: 0; /* critical for flex child scroll */
+  }
+  #map { width: 100%; height: 100%; }
+  .map-overlay {
+    position: absolute; top: 8px; right: 8px; z-index: 500;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .map-btn {
+    width: 30px; height: 30px;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .map-btn:active { background: var(--surface); }
+  .map-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  /* Section 3: Slider + time (compact) */
+  .slider-section {
+    flex-shrink: 0;
+    padding: 8px 24px 4px;
+  }
+  .slider-time-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 2px;
+  }
+  .slider-time-label { font-size: 10px; color: var(--text-secondary); }
+  .slider-time-value { font-size: 14px; font-weight: 600; color: var(--primary); }
+  .slider-track-wrapper {
+    position: relative; height: 28px;
+    display: flex; align-items: center;
+  }
+  input[type=range].time-slider {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 5px; background: transparent;
+    outline: none; position: relative; z-index: 3;
+  }
+  .slider-bg {
+    position: absolute; left: 0; right: 0;
+    height: 5px; background: var(--border);
+    border-radius: 3px; z-index: 1;
+  }
+  .slider-fill {
+    position: absolute; left: 0; height: 5px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 3px; z-index: 2;
+  }
+  .slider-ticks {
+    position: absolute; left: 0; right: 0;
+    height: 5px; z-index: 1; pointer-events: none;
+  }
+  .slider-ticks .tick {
+    position: absolute; width: 2px; height: 8px;
+    background: var(--text-secondary); opacity: 0.2;
+    top: -1px; transform: translateX(-50%);
+  }
+  input[type=range].time-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--surface-alt); border: 3px solid var(--primary);
+    cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.2); z-index: 4;
+  }
+  input[type=range].time-slider::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--surface-alt); border: 3px solid var(--primary);
+    cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .slider-labels {
+    display: flex; justify-content: space-between;
+    font-size: 10px; color: var(--text-secondary); margin-top: 1px;
+  }
+
+  /* Section 4: Playback controls (compact, single row) */
+  .controls-row {
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; padding: 4px 16px 6px;
+  }
+  .ctrl-btn {
+    border: none; background: transparent; cursor: pointer;
+    font-size: 16px; color: var(--text-secondary);
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+  }
+  .ctrl-btn:active { background: var(--primary-soft); }
+  .play-btn {
+    width: 40px; height: 40px;
+    background: var(--primary); color: #fff; font-size: 17px;
+    box-shadow: 0 2px 6px rgba(47,107,59,0.3);
+  }
+  .play-btn:active { background: var(--primary-dark); }
+  .speed-selector { display: flex; gap: 3px; margin-left: 4px; }
+  .speed-btn {
+    border: 1px solid var(--border); background: var(--surface-alt);
+    border-radius: 5px; padding: 3px 7px; font-size: 11px;
+    font-weight: 500; color: var(--text-secondary); cursor: pointer;
+  }
+  .speed-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  /* Section 5: Stats (compact) */
+  .stats-row {
+    flex-shrink: 0;
+    display: flex; gap: 6px; padding: 4px 16px 10px;
+  }
+  .stat-card {
+    flex: 1; background: var(--surface-alt);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 4px; text-align: center;
+  }
+  .stat-card .stat-label { font-size: 10px; color: var(--text-secondary); margin-bottom: 1px; }
+  .stat-card .stat-value { font-size: 14px; font-weight: 700; color: var(--primary); }
+  .stat-card .stat-unit { font-size: 10px; font-weight: 400; color: var(--text-secondary); }
+
+  /* Leaflet */
+  .leaflet-container { background: #e0e0e0; font-family: inherit; }
+  .pulse-marker {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--primary); border: 2px solid #fff;
+    box-shadow: 0 0 0 0 rgba(47,107,59,0.5);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(47,107,59,0.5); }
+    70% { box-shadow: 0 0 0 10px rgba(47,107,59,0); }
+    100% { box-shadow: 0 0 0 0 rgba(47,107,59,0); }
+  }
+  .start-marker {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent); border: 2px solid #fff;
+  }
+  .gps-popup { text-align: center; font-size: 11px; }
+  .gps-popup .popup-time { font-weight: 600; color: var(--primary); }
+  .gps-popup .popup-acc { color: var(--text-secondary); font-size: 10px; }
+  .loading-overlay {
+    position: absolute; inset: 0;
+    background: rgba(248,246,240,0.85);
+    display: none; align-items: center; justify-content: center;
+    z-index: 800; border-radius: 10px;
+    font-size: 12px; color: var(--text-secondary);
+  }
+  .loading-overlay.show { display: flex; }
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Space budget annotation */
+  .budget-note {
+    color: rgba(255,255,255,0.4);
+    font-size: 11px;
+    text-align: center;
+    max-width: 390px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="scene-label">📱 牲畜详情页 → 点击「查看完整轨迹」→ 底部弹出 Sheet（75% 屏高）</div>
+
+<div class="phone-wrapper">
+  <!-- Dimmed background -->
+  <div class="dimmed-bg">
+    <div class="fake-card"></div>
+    <div class="fake-card"></div>
+    <div class="fake-card"></div>
+  </div>
+
+  <!-- Bottom Sheet (75% height = 633px) -->
+  <div class="bottom-sheet">
+    <div class="drag-handle"></div>
+
+    <!-- Header: title + livestock + range + close -->
+    <div class="header-row">
+      <span class="sheet-title">移动轨迹</span>
+      <span class="livestock-mini">#A001 湘西黄牛 · GPS-3201</span>
+      <div class="range-selector">
+        <button class="range-btn" id="rangeBtn" onclick="toggleRangeDropdown(event)">
+          <span id="rangeLabel">最近24小时</span><span class="arrow">▾</span>
+        </button>
+        <div class="range-dropdown" id="rangeDropdown">
+          <div class="range-option active" data-range="24h" onclick="selectRange('24h')">
+            <span>最近24小时</span><span class="check">✓</span>
+          </div>
+          <div class="range-option" data-range="7d" onclick="selectRange('7d')">
+            <span>最近7天</span><span class="check">✓</span>
+          </div>
+          <div class="range-option" data-range="30d" onclick="selectRange('30d')">
+            <span>最近30天</span><span class="check">✓</span>
+          </div>
+          <div class="range-option" data-range="custom" onclick="selectRange('custom')">
+            <span>自定义日期</span><span class="check">✓</span>
+          </div>
+        </div>
+      </div>
+      <button class="close-btn" onclick="window.close()">✕</button>
+    </div>
+
+    <!-- Map (flex: 1 — takes remaining space) -->
+    <div class="map-section">
+      <div id="map"></div>
+      <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div>加载轨迹…</div>
+      <div class="map-overlay">
+        <button class="map-btn active" id="followBtn" onclick="toggleFollow()">🎯</button>
+        <button class="map-btn" onclick="fitAll()">⤢</button>
+      </div>
+    </div>
+
+    <!-- Slider + current time -->
+    <div class="slider-section">
+      <div class="slider-time-row">
+        <span class="slider-time-label">当前</span>
+        <span class="slider-time-value" id="currentTime">--:--:--</span>
+      </div>
+      <div class="slider-track-wrapper">
+        <div class="slider-bg"></div>
+        <div class="slider-ticks" id="sliderTicks"></div>
+        <div class="slider-fill" id="sliderFill" style="width:0%"></div>
+        <input type="range" class="time-slider" id="timeSlider" min="0" max="0" value="0" step="1">
+      </div>
+      <div class="slider-labels">
+        <span id="startTimeLabel">--:--</span>
+        <span id="endTimeLabel">--:--</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-row">
+      <button class="ctrl-btn" onclick="skipStart()">⏮</button>
+      <button class="play-btn ctrl-btn" id="playBtn" onclick="togglePlay()">▶</button>
+      <button class="ctrl-btn" onclick="skipEnd()">⏭</button>
+      <div class="speed-selector">
+        <button class="speed-btn active" onclick="setSpeed(1,this)">1x</button>
+        <button class="speed-btn" onclick="setSpeed(2,this)">2x</button>
+        <button class="speed-btn" onclick="setSpeed(4,this)">4x</button>
+        <button class="speed-btn" onclick="setSpeed(8,this)">8x</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">轨迹点</div>
+        <div class="stat-value"><span id="statPoints">0</span><span class="stat-unit">/<span id="statTotal">0</span></span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">移动距离</div>
+        <div class="stat-value"><span id="statDistance">0.0</span><span class="stat-unit">km</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">活动范围</div>
+        <div class="stat-value"><span id="statRange">0.0</span><span class="stat-unit">km²</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="budget-note">
+  Sheet 高度 633px (75%) ｜ 空间分配：头部 ~44px · 地图 flex 自适应(~290px) · 滑动条 ~72px · 控制 ~52px · 统计 ~52px
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+function generateAllGpsData() {
+  const baseLat = 28.22820, baseLng = 112.93880;
+  const waypoints = [
+    { lat: baseLat, lng: baseLng, dwell: 3 },
+    { lat: baseLat + 0.0012, lng: baseLng + 0.0008, dwell: 8 },
+    { lat: baseLat + 0.0006, lng: baseLng + 0.0020, dwell: 10 },
+    { lat: baseLat - 0.0008, lng: baseLng + 0.0015, dwell: 6 },
+    { lat: baseLat, lng: baseLng, dwell: 3 },
+    { lat: baseLat - 0.0015, lng: baseLng - 0.0008, dwell: 9 },
+    { lat: baseLat + 0.0003, lng: baseLng - 0.0012, dwell: 6 },
+    { lat: baseLat, lng: baseLng, dwell: 2 },
+  ];
+  const allPoints = [];
+  const now = new Date(); now.setMinutes(0,0,0);
+  const intervalMs = 30 * 60 * 1000; // 30 min report interval
+  for (let day = 29; day >= 0; day--) {
+    const dayStart = new Date(now);
+    dayStart.setDate(dayStart.getDate() - day);
+    dayStart.setHours(7,0,0,0);
+    let ms = dayStart.getTime();
+    for (let w = 0; w < waypoints.length; w++) {
+      const wp = waypoints[w];
+      const prev = w > 0 ? waypoints[w-1] : waypoints[0];
+      const steps = Math.max(2, Math.round(Math.random()*2+1));
+      for (let s = 1; s <= steps; s++) {
+        const t = s/steps;
+        allPoints.push({ lat: prev.lat+(wp.lat-prev.lat)*t+(Math.random()-0.5)*0.00012, lng: prev.lng+(wp.lng-prev.lng)*t+(Math.random()-0.5)*0.00012, time: new Date(ms), accuracy: Math.round(3+Math.random()*8) });
+        ms += intervalMs;
+      }
+      for (let d = 0; d < wp.dwell; d++) {
+        allPoints.push({ lat: wp.lat+(Math.random()-0.5)*0.00018, lng: wp.lng+(Math.random()-0.5)*0.00018, time: new Date(ms), accuracy: Math.round(3+Math.random()*8) });
+        ms += intervalMs;
+      }
+    }
+  }
+  return allPoints;
+}
+const ALL_DATA = generateAllGpsData();
+const RANGE_MS = { '24h': 86400000, '7d': 604800000, '30d': 2592000000 };
+const RANGE_LABELS = { '24h': '最近24小时', '7d': '最近7天', '30d': '最近30天', 'custom': '自定义日期' };
+const MAX_SLIDER_POINTS = 500;
+const REPORT_INTERVAL = 30 * 60 * 1000; // 30 min
+
+function filterByRange(range) {
+  const now = new Date();
+  let filtered;
+  if (range === 'custom') {
+    filtered = ALL_DATA.filter(p => (now - p.time) <= 3*86400000);
+  } else {
+    filtered = ALL_DATA.filter(p => p.time.getTime() >= now.getTime() - RANGE_MS[range]);
+  }
+  // Dynamic sampling: only sample if expected points exceed slider comfort limit
+  const rangeDuration = range === 'custom' ? 3*RANGE_MS['24h'] : RANGE_MS[range];
+  const expectedPoints = Math.floor(rangeDuration / REPORT_INTERVAL);
+  if (expectedPoints > MAX_SLIDER_POINTS) {
+    return downsample(filtered, MAX_SLIDER_POINTS);
+  }
+  return filtered;
+}
+function downsample(points, max) {
+  if (points.length <= max) return points;
+  const step = points.length / max; const result = [];
+  for (let i = 0; i < max; i++) result.push(points[Math.floor(i*step)]);
+  result.push(points[points.length-1]); return result;
+}
+
+const map = L.map('map', { zoomControl: false, attributionControl: false, dragging: true, scrollWheelZoom: true }).setView([28.22820,112.93880], 16);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+let trajectoryLine = L.polyline([], { color: '#2F6B3B', weight: 3.5, opacity: 0.7, lineCap: 'round', lineJoin: 'round' }).addTo(map);
+let trailLine = L.polyline([], { color: '#8BA95A', weight: 4.5, opacity: 0.9, lineCap: 'round' }).addTo(map);
+let startMarker = null;
+let currentIcon = L.divIcon({ className: '', html: '<div class="pulse-marker"></div>', iconSize: [18,18], iconAnchor: [9,9] });
+let currentMarker = L.marker([28.22820,112.93880], { icon: currentIcon }).addTo(map);
+currentMarker.bindPopup('', { className: 'gps-popup', closeButton: false, offset: [0,-6] });
+
+let currentRange = '24h', gpsData = [], lastIndex = 0, currentIdx = 0;
+let playing = false, speed = 1, playTimer = null, followMode = true;
+
+function haversine(a,b,c,d){const R=6371000;const e=(c-a)*Math.PI/180,f=(d-b)*Math.PI/180;const g=Math.sin(e/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(f/2)**2;return R*2*Math.atan2(Math.sqrt(g),Math.sqrt(1-g));}
+function calcStats(p){if(!p.length)return{d:0,r:0};let d=0;for(let i=1;i<p.length;i++)d+=haversine(p[i-1].lat,p[i-1].lng,p[i].lat,p[i].lng);const la=p.map(x=>x.lat),lo=p.map(x=>x.lng);const ld=haversine(Math.min(...la),lo[0],Math.max(...la),lo[0]),wd=haversine(la[0],Math.min(...lo),la[0],Math.max(...lo));return{d:d/1000,r:(ld*wd)/1e6};}
+function fmtT(d){return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;}
+function fmtS(d){return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+function fmtD(d){return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${fmtS(d)}`;}
+
+function toggleRangeDropdown(e){if(e)e.stopPropagation();const dd=document.getElementById('rangeDropdown'),btn=document.getElementById('rangeBtn');dd.classList.toggle('show');btn.classList.toggle('open',dd.classList.contains('show'));}
+document.addEventListener('click',()=>{document.getElementById('rangeDropdown').classList.remove('show');document.getElementById('rangeBtn').classList.remove('open');});
+function selectRange(r){event.stopPropagation();currentRange=r;document.getElementById('rangeLabel').textContent=RANGE_LABELS[r];document.querySelectorAll('.range-option').forEach(o=>o.classList.remove('active'));document.querySelector(`.range-option[data-range="${r}"]`).classList.add('active');document.getElementById('rangeDropdown').classList.remove('show');document.getElementById('rangeBtn').classList.remove('open');loadRangeData(r);}
+
+function loadRangeData(r){pause();document.getElementById('loadingOverlay').classList.add('show');setTimeout(()=>{gpsData=filterByRange(r);lastIndex=gpsData.length-1;rebuildSlider();currentIdx=lastIndex;updateDisplay();fitAll();document.getElementById('loadingOverlay').classList.remove('show');},500);}
+
+function rebuildSlider(){const s=document.getElementById('timeSlider');s.max=lastIndex;s.value=lastIndex;const tc=document.getElementById('sliderTicks');tc.innerHTML='';if(lastIndex>0){const step=Math.max(1,Math.floor(lastIndex/20));for(let i=0;i<=lastIndex;i+=step){const t=document.createElement('div');t.className='tick';t.style.left=(i/lastIndex*100)+'%';tc.appendChild(t);}}if(gpsData.length>0){document.getElementById('startTimeLabel').textContent=fmtD(gpsData[0].time);document.getElementById('endTimeLabel').textContent=fmtD(gpsData[lastIndex].time);}document.getElementById('statTotal').textContent=gpsData.length;}
+
+function updateDisplay(){if(!gpsData.length)return;const vis=gpsData.slice(0,currentIdx+1),co=vis.map(p=>[p.lat,p.lng]),cu=gpsData[currentIdx];trajectoryLine.setLatLngs(co);trailLine.setLatLngs(co.slice(Math.max(0,currentIdx-4)));currentMarker.setLatLng([cu.lat,cu.lng]);currentMarker.setPopupContent(`<div class="gps-popup"><div class="popup-time">${fmtT(cu.time)}</div><div class="popup-acc">±${cu.accuracy}m</div></div>`);document.getElementById('timeSlider').value=currentIdx;document.getElementById('sliderFill').style.width=(lastIndex>0?(currentIdx/lastIndex*100):0)+'%';document.getElementById('currentTime').textContent=fmtT(cu.time);if(startMarker)map.removeLayer(startMarker);startMarker=L.marker([gpsData[0].lat,gpsData[0].lng],{icon:L.divIcon({className:'',html:'<div class="start-marker"></div>',iconSize:[14,14],iconAnchor:[7,7]})}).addTo(map);const st=calcStats(vis);document.getElementById('statPoints').textContent=vis.length;document.getElementById('statDistance').textContent=st.d.toFixed(2);document.getElementById('statRange').textContent=st.r.toFixed(2);if(followMode&&vis.length>1)map.panTo([cu.lat,cu.lng],{animate:true,duration:0.3});}
+document.getElementById('timeSlider').addEventListener('input',e=>{if(playing)pause();currentIdx=parseInt(e.target.value);updateDisplay();});
+function play(){playing=true;document.getElementById('playBtn').textContent='⏸';const t=Math.max(50,300/speed);playTimer=setInterval(()=>{if(currentIdx>=lastIndex){pause();return;}currentIdx++;updateDisplay();},t);}
+function pause(){playing=false;document.getElementById('playBtn').textContent='▶';if(playTimer){clearInterval(playTimer);playTimer=null;}}
+function togglePlay(){if(currentIdx>=lastIndex){currentIdx=0;updateDisplay();}if(playing)pause();else play();}
+function setSpeed(s,b){speed=s;document.querySelectorAll('.speed-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');if(playing){pause();play();}}
+function skipStart(){if(playing)pause();currentIdx=0;updateDisplay();}
+function skipEnd(){if(playing)pause();currentIdx=lastIndex;updateDisplay();}
+function toggleFollow(){followMode=!followMode;document.getElementById('followBtn').classList.toggle('active',followMode);if(followMode)updateDisplay();}
+function fitAll(){if(!gpsData.length)return;map.fitBounds(L.latLngBounds(gpsData.map(p=>[p.lat,p.lng])),{padding:[30,30]});}
+loadRangeData('24h');
+</script>
+</body>
+</html>

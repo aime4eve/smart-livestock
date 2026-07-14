@@ -2572,13 +2572,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get livestockTrajectoryNoGps => 'Please bind a GPS device first';
 
   @override
-  String get livestockRange24h => '24h';
+  String get livestockTrajectoryCurrentTime => 'Current';
 
   @override
-  String get livestockRange7d => '7d';
+  String get livestockTrajectoryRange24h => 'Last 24h';
 
   @override
-  String get livestockRange30d => '30d';
+  String get livestockTrajectoryRange7d => 'Last 7d';
+
+  @override
+  String get livestockTrajectoryRange30d => 'Last 30d';
+
+  @override
+  String get livestockTrajectoryRangeCustom => 'Custom Date';
+
+  @override
+  String get livestockTrajectoryFollow => 'Follow';
+
+  @override
+  String get livestockTrajectoryFitAll => 'Fit All';
+
+  @override
+  String get livestockTrajectoryPointUnit => 'pts';
+
+  @override
+  String get livestockTrajectoryAccuracy => 'Accuracy';
+
+  @override
+  String get livestockTrajectoryLoading => 'Loading trajectory…';
+
+  @override
+  String get livestockTrajectoryPlay => 'Play';
+
+  @override
+  String get livestockTrajectoryPause => 'Pause';
 
   @override
   String get livestockFormFieldCodeRequired => 'Code is required';

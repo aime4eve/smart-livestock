@@ -2520,13 +2520,40 @@ class AppLocalizationsZh extends AppLocalizations {
   String get livestockTrajectoryNoGps => '请先绑定 GPS 设备';
 
   @override
-  String get livestockRange24h => '24小时';
+  String get livestockTrajectoryCurrentTime => '当前';
 
   @override
-  String get livestockRange7d => '7天';
+  String get livestockTrajectoryRange24h => '最近24小时';
 
   @override
-  String get livestockRange30d => '30天';
+  String get livestockTrajectoryRange7d => '最近7天';
+
+  @override
+  String get livestockTrajectoryRange30d => '最近30天';
+
+  @override
+  String get livestockTrajectoryRangeCustom => '自定义日期';
+
+  @override
+  String get livestockTrajectoryFollow => '跟随';
+
+  @override
+  String get livestockTrajectoryFitAll => '全览';
+
+  @override
+  String get livestockTrajectoryPointUnit => '点';
+
+  @override
+  String get livestockTrajectoryAccuracy => '精度';
+
+  @override
+  String get livestockTrajectoryLoading => '加载轨迹数据…';
+
+  @override
+  String get livestockTrajectoryPlay => '播放';
+
+  @override
+  String get livestockTrajectoryPause => '暂停';
 
   @override
   String get livestockFormFieldCodeRequired => '编号不能为空';

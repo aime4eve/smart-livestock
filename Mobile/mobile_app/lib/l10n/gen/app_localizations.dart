@@ -4688,23 +4688,77 @@ abstract class AppLocalizations {
   /// **'请先绑定 GPS 设备'**
   String get livestockTrajectoryNoGps;
 
-  /// No description provided for @livestockRange24h.
+  /// No description provided for @livestockTrajectoryCurrentTime.
   ///
   /// In zh, this message translates to:
-  /// **'24小时'**
-  String get livestockRange24h;
+  /// **'当前'**
+  String get livestockTrajectoryCurrentTime;
 
-  /// No description provided for @livestockRange7d.
+  /// No description provided for @livestockTrajectoryRange24h.
   ///
   /// In zh, this message translates to:
-  /// **'7天'**
-  String get livestockRange7d;
+  /// **'最近24小时'**
+  String get livestockTrajectoryRange24h;
 
-  /// No description provided for @livestockRange30d.
+  /// No description provided for @livestockTrajectoryRange7d.
   ///
   /// In zh, this message translates to:
-  /// **'30天'**
-  String get livestockRange30d;
+  /// **'最近7天'**
+  String get livestockTrajectoryRange7d;
+
+  /// No description provided for @livestockTrajectoryRange30d.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近30天'**
+  String get livestockTrajectoryRange30d;
+
+  /// No description provided for @livestockTrajectoryRangeCustom.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义日期'**
+  String get livestockTrajectoryRangeCustom;
+
+  /// No description provided for @livestockTrajectoryFollow.
+  ///
+  /// In zh, this message translates to:
+  /// **'跟随'**
+  String get livestockTrajectoryFollow;
+
+  /// No description provided for @livestockTrajectoryFitAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全览'**
+  String get livestockTrajectoryFitAll;
+
+  /// No description provided for @livestockTrajectoryPointUnit.
+  ///
+  /// In zh, this message translates to:
+  /// **'点'**
+  String get livestockTrajectoryPointUnit;
+
+  /// No description provided for @livestockTrajectoryAccuracy.
+  ///
+  /// In zh, this message translates to:
+  /// **'精度'**
+  String get livestockTrajectoryAccuracy;
+
+  /// No description provided for @livestockTrajectoryLoading.
+  ///
+  /// In zh, this message translates to:
+  /// **'加载轨迹数据…'**
+  String get livestockTrajectoryLoading;
+
+  /// No description provided for @livestockTrajectoryPlay.
+  ///
+  /// In zh, this message translates to:
+  /// **'播放'**
+  String get livestockTrajectoryPlay;
+
+  /// No description provided for @livestockTrajectoryPause.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂停'**
+  String get livestockTrajectoryPause;
 
   /// No description provided for @livestockFormFieldCodeRequired.
   ///
