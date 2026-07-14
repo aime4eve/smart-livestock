@@ -141,7 +141,7 @@ public final class HealthDtos {
 
     public record HealthOverviewStats(
             int totalLivestock,
-            double healthyRate,
+            Double healthyRate,
             int alertCount,
             int criticalCount,
             double deviceOnlineRate,
@@ -215,7 +215,7 @@ public final class HealthDtos {
 
     public record StatsSummary(
             int totalLivestock,
-            double healthyRate,
+            Double healthyRate,
             int alertCount,
             int criticalCount,
             double avgTemperature,

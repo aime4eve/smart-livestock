@@ -21,7 +21,7 @@ public interface HealthQueryPort {
 
     record HealthOverview(
             int totalLivestock,
-            double healthyRate,
+            Double healthyRate,
             int alertCount,
             int criticalCount,
             int feverAbnormalCount,

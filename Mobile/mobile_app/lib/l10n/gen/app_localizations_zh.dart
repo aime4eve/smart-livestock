@@ -259,6 +259,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get commonNotApplicable => '暂无';
+
+  @override
   String ranchPeekInFence(String percent) {
     return '归栏 $percent%';
   }

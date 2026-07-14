@@ -55,7 +55,7 @@ public class DashboardController {
         long onlineDeviceCount = ioTQueryPort.getDeviceStats(null).activeCount();
 
         // InFenceRate: livestock inside any active fence / livestock with GPS
-        double inFenceRate = calculateInFenceRate(farmId);
+        Double inFenceRate = calculateInFenceRate(farmId);
 
         // Alert summaries grouped by type (ACTIVE only)
         Map<String, Integer> fenceAlertSummary = buildFenceAlertSummary(alerts);
@@ -78,18 +78,18 @@ public class DashboardController {
         return ResponseEntity.ok(ApiResponse.ok(data));
     }
 
-    private double calculateInFenceRate(Long farmId) {
+    private Double calculateInFenceRate(Long farmId) {
         List<Livestock> livestockList = livestockRepository.findByFarmId(farmId);
         List<Fence> activeFences = fenceRepository.findByFarmId(farmId).stream()
                 .filter(Fence::isActive).toList();
 
-        if (livestockList.isEmpty()) return 0.0; // no livestock = 0%
+        if (livestockList.isEmpty()) return null; // no livestock = N/A
         if (activeFences.isEmpty()) return 1.0; // no fences = all "inside"
 
         long withGps = livestockList.stream()
                 .filter(l -> l.getLastLatitude() != null && l.getLastLongitude() != null)
                 .count();
-        if (withGps == 0) return 0.0; // no GPS data = cannot determine position
+        if (withGps == 0) return null; // no GPS data = N/A
 
         long inFence = livestockList.stream()
                 .filter(l -> l.getLastLatitude() != null && l.getLastLongitude() != null)

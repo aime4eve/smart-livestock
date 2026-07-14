@@ -15,7 +15,7 @@ class StatsSummary {
     required this.avgMotility,
   });
   final int totalLivestock;
-  final double healthyRate;
+  final double? healthyRate;
   final int alertCount;
   final int criticalCount;
   final double avgTemperature;

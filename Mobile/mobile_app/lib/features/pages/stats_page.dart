@@ -87,7 +87,7 @@ class _SummaryCards extends StatelessWidget {
       runSpacing: AppSpacing.sm,
       children: [
         _StatChip(icon: Icons.pets, label: l10n.statsLivestock, value: '${summary.totalLivestock}', color: AppColors.primary),
-        _StatChip(icon: Icons.favorite, label: l10n.statsHealthRate, value: '${(summary.healthyRate * 100).toStringAsFixed(1)}%', color: AppColors.success),
+        _StatChip(icon: Icons.favorite, label: l10n.statsHealthRate, value: summary.healthyRate == null ? l10n.commonNotApplicable : '${(summary.healthyRate! * 100).toStringAsFixed(1)}%', color: AppColors.success),
         _StatChip(icon: Icons.notifications_active, label: l10n.statsAlerts, value: '${summary.alertCount}', color: AppColors.warning),
         _StatChip(icon: Icons.error, label: l10n.statsCritical, value: '${summary.criticalCount}', color: AppColors.danger),
         _StatChip(icon: Icons.thermostat, label: l10n.statsAvgTemp, value: '${summary.avgTemperature.toStringAsFixed(1)}°C', color: Colors.orange),

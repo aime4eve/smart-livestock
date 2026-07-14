@@ -190,6 +190,8 @@
       }
     }
   },
+  "commonNotApplicable": "N/A",
+  "@commonNotApplicable": {},
   "ranchPeekInFence": "In Fence {percent}%",
   "@ranchPeekInFence": {
     "placeholders": {
