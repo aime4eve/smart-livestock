@@ -576,6 +576,7 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
             ),
             children: [
               TileLayer(
+                key: ValueKey(_tileProvider?.activeSourceName),
                 tileProvider: _tileProvider,
                 urlTemplate: '',
               ),

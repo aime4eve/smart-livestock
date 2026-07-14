@@ -190,6 +190,8 @@
       }
     }
   },
+  "commonNotApplicable": "暂无",
+  "@commonNotApplicable": {},
   "ranchPeekInFence": "归栏 {percent}%",
   "@ranchPeekInFence": {
     "placeholders": {

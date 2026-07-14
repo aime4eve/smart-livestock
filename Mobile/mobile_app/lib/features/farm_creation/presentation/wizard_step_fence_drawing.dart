@@ -345,6 +345,7 @@ class _WizardStepFenceDrawingState
                   ),
                   children: [
                     TileLayer(
+                      key: ValueKey(_tileProvider?.activeSourceName),
                       urlTemplate: _tileProvider == null ? MapConfig.tileUrlTemplate : null,
                       tileProvider: _tileProvider,
                       userAgentPackageName: 'com.smartlivestock.demo',

@@ -189,8 +189,12 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
   // ── Peek bar: "头数 · 归栏率 · 健康率" ────────────────────────
   Widget _buildPeekBar(RanchOverviewStats stats) {
     final l10n = AppLocalizations.of(context)!;
-    final inFencePct = (stats.inFenceRate * 100).toStringAsFixed(0);
-    final healthPct = (stats.healthyRate * 100).toStringAsFixed(0);
+    final inFenceText = stats.inFenceRate == null
+        ? l10n.commonNotApplicable
+        : l10n.ranchPeekInFence((stats.inFenceRate! * 100).toStringAsFixed(0));
+    final healthText = stats.healthyRate == null
+        ? l10n.commonNotApplicable
+        : l10n.ranchPeekHealth((stats.healthyRate! * 100).toStringAsFixed(0));
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -199,18 +203,22 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
           style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
         ),
         Text(
-          l10n.ranchPeekInFence(inFencePct),
+          inFenceText,
           style: TextStyle(
             fontSize: 13,
-            color: stats.inFenceRate >= 0.9 ? AppColors.success : AppColors.warning,
+            color: stats.inFenceRate == null
+                ? AppColors.textSecondary
+                : (stats.inFenceRate! >= 0.9 ? AppColors.success : AppColors.warning),
             fontWeight: FontWeight.w500,
           ),
         ),
         Text(
-          l10n.ranchPeekHealth(healthPct),
+          healthText,
           style: TextStyle(
             fontSize: 13,
-            color: stats.healthyRate >= 0.9 ? AppColors.success : AppColors.warning,
+            color: stats.healthyRate == null
+                ? AppColors.textSecondary
+                : (stats.healthyRate! >= 0.9 ? AppColors.success : AppColors.warning),
             fontWeight: FontWeight.w500,
           ),
         ),

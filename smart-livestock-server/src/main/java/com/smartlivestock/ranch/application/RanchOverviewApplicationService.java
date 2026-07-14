@@ -125,11 +125,11 @@ public class RanchOverviewApplicationService {
                 .orElse(0.85);
 
         // 6. InFenceRate: livestock inside any fence / livestock with GPS
-        double inFenceRate = calculateInFenceRate(livestockList, fences);
+        Double inFenceRate = calculateInFenceRate(livestockList, fences);
 
         OverallStats overallStats = new OverallStats(
                 healthOverview.totalLivestock(),
-                healthOverview.healthyRate(),
+                healthOverview.healthyRate(),  // Double (nullable)
                 healthOverview.alertCount(),
                 healthOverview.criticalCount(),
                 deviceOnlineRate,
@@ -181,14 +181,15 @@ public class RanchOverviewApplicationService {
     /**
      * Calculate inFenceRate: count of livestock inside any active fence / total with GPS.
      */
-    private double calculateInFenceRate(List<Livestock> livestockList, List<Fence> fences) {
+    private Double calculateInFenceRate(List<Livestock> livestockList, List<Fence> fences) {
         List<Fence> activeFences = fences.stream().filter(Fence::isActive).toList();
+        if (livestockList.isEmpty()) return null; // no livestock = N/A
         if (activeFences.isEmpty()) return 1.0; // no fences = all "inside"
 
         long withGps = livestockList.stream()
                 .filter(l -> l.getLastLatitude() != null && l.getLastLongitude() != null)
                 .count();
-        if (withGps == 0) return 1.0;
+        if (withGps == 0) return null; // no GPS data = N/A
 
         long inFence = livestockList.stream()
                 .filter(l -> l.getLastLatitude() != null && l.getLastLongitude() != null)

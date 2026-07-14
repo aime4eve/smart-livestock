@@ -13,20 +13,20 @@ class RanchOverviewStats {
   });
 
   final int totalLivestock;
-  final double healthyRate;
+  final double? healthyRate;
   final int alertCount;
   final int criticalCount;
   final double deviceOnlineRate;
-  final double inFenceRate;
+  final double? inFenceRate;
 
   factory RanchOverviewStats.fromJson(Map<String, dynamic> m) {
     return RanchOverviewStats(
       totalLivestock: m['totalLivestock'] as int? ?? 0,
-      healthyRate: (m['healthyRate'] as num?)?.toDouble() ?? 0.0,
+      healthyRate: (m['healthyRate'] as num?)?.toDouble(),
       alertCount: m['alertCount'] as int? ?? 0,
       criticalCount: m['criticalCount'] as int? ?? 0,
       deviceOnlineRate: (m['deviceOnlineRate'] as num?)?.toDouble() ?? 0.0,
-      inFenceRate: (m['inFenceRate'] as num?)?.toDouble() ?? 0.0,
+      inFenceRate: (m['inFenceRate'] as num?)?.toDouble(),
     );
   }
 }

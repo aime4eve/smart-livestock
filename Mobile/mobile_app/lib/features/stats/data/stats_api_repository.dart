@@ -10,7 +10,7 @@ class StatsApiRepository implements StatsRepository {
     final summaryData = data['summary'] as Map<String, dynamic>;
     final summary = StatsSummary(
       totalLivestock: summaryData['totalLivestock'] as int? ?? 0,
-      healthyRate: (summaryData['healthyRate'] as num?)?.toDouble() ?? 0.0,
+      healthyRate: (summaryData['healthyRate'] as num?)?.toDouble(),
       alertCount: summaryData['alertCount'] as int? ?? 0,
       criticalCount: summaryData['criticalCount'] as int? ?? 0,
       avgTemperature: (summaryData['avgTemperature'] as num?)?.toDouble() ?? 38.5,

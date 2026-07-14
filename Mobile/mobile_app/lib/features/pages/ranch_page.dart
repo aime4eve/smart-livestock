@@ -157,6 +157,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
           ),
           children: [
             TileLayer(
+              key: ValueKey(_tileProvider?.activeSourceName),
               tileProvider: _tileProvider ?? _PlaceholderTileProvider(),
               urlTemplate: '',
             ),

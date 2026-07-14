@@ -1111,6 +1111,7 @@ class _MapPreviewState extends State<_MapPreview> {
         children: [
           if (widget.tileProvider != null)
             TileLayer(
+              key: ValueKey(widget.tileProvider?.activeSourceName),
               tileProvider: widget.tileProvider,
               maxNativeZoom: 15,
               maxZoom: 18,

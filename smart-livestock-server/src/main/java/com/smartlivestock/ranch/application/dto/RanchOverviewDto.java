@@ -18,11 +18,11 @@ public final class RanchOverviewDto {
 
     public record OverallStats(
             int totalLivestock,
-            double healthyRate,
+            Double healthyRate,
             int alertCount,
             int criticalCount,
             double deviceOnlineRate,
-            double inFenceRate
+            Double inFenceRate
     ) {}
 
     public record SceneSummaryFever(int abnormalCount, int criticalCount) {}

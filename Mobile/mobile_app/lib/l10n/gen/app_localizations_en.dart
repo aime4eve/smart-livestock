@@ -262,6 +262,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get commonNotApplicable => 'N/A';
+
+  @override
   String ranchPeekInFence(String percent) {
     return 'In Fence $percent%';
   }

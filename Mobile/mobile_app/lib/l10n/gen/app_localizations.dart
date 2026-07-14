@@ -578,6 +578,12 @@ abstract class AppLocalizations {
   /// **'{count}头'**
   String ranchLivestockCountHead(String count);
 
+  /// No description provided for @commonNotApplicable.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无'**
+  String get commonNotApplicable;
+
   /// No description provided for @ranchPeekInFence.
   ///
   /// In zh, this message translates to:

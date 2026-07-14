@@ -317,7 +317,7 @@ public class HealthApplicationService {
                 .filter(s -> s.getTempStatus() == TempStatus.NORMAL
                         && s.getMotilityStatus() == MotilityStatus.NORMAL)
                 .count();
-        double healthyRate = total > 0 ? (double) healthyCount / total : 1.0;
+        Double healthyRate = total > 0 ? (double) healthyCount / total : null;
 
         int alertCount = ranchQueryPort.countActiveAlertsByFarmId(farmId);
         int criticalCount = (int) snapshots.stream()
@@ -360,7 +360,7 @@ public class HealthApplicationService {
                         .average().orElse(0.0);
 
         HealthOverviewStats stats = new HealthOverviewStats(
-                total, Math.round(healthyRate * 100.0) / 100.0,
+                total, healthyRate != null ? Math.round(healthyRate * 100.0) / 100.0 : null,
                 alertCount, criticalCount, 0.92, "稳定", "↑2",
                 aiAnomalyCount, Math.round(aiAvgAllScore * 1000.0) / 1000.0);
 
@@ -775,7 +775,7 @@ public class HealthApplicationService {
                 .filter(s -> s.getTempStatus() == TempStatus.NORMAL
                         && s.getMotilityStatus() == MotilityStatus.NORMAL)
                 .count();
-        double healthyRate = total > 0 ? (double) healthyCount / total : 1.0;
+        Double healthyRate = total > 0 ? (double) healthyCount / total : null;
 
         int alertCount = ranchQueryPort.countActiveAlertsByFarmId(farmId);
         int criticalCount = (int) snapshots.stream()
@@ -790,7 +790,7 @@ public class HealthApplicationService {
                 .average().orElse(3.0);
 
         var summary = new HealthDtos.StatsSummary(
-                total, Math.round(healthyRate * 100.0) / 100.0,
+                total, healthyRate,
                 alertCount, criticalCount,
                 Math.round(avgTemp * 100.0) / 100.0,
                 Math.round(avgMotility * 100.0) / 100.0);
@@ -814,7 +814,7 @@ public class HealthApplicationService {
             String dateStr = java.time.LocalDate.now().minusDays(i).toString();
             double variation = (Math.random() - 0.5) * 0.3;
             tempTrend.add(new HealthDtos.StatsTrendPoint(dateStr, Math.round((baseTemp + variation) * 100.0) / 100.0));
-            double rateVar = healthyRate + (Math.random() - 0.5) * 0.1;
+            double rateVar = (healthyRate != null ? healthyRate : 0.0) + (Math.random() - 0.5) * 0.1;
             healthTrend.add(new HealthDtos.StatsTrendPoint(dateStr, Math.min(1.0, Math.max(0.0, Math.round(rateVar * 100.0) / 100.0))));
             int dayAlerts = Math.max(0, (int)(Math.random() * 5));
             alertTrend.add(new HealthDtos.StatsTrendPoint(dateStr, dayAlerts));
