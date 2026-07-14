@@ -317,7 +317,7 @@ public class HealthApplicationService {
                 .filter(s -> s.getTempStatus() == TempStatus.NORMAL
                         && s.getMotilityStatus() == MotilityStatus.NORMAL)
                 .count();
-        double healthyRate = total > 0 ? (double) healthyCount / total : 1.0;
+        double healthyRate = total > 0 ? (double) healthyCount / total : 0.0; // no data = 0%
 
         int alertCount = ranchQueryPort.countActiveAlertsByFarmId(farmId);
         int criticalCount = (int) snapshots.stream()
@@ -775,7 +775,7 @@ public class HealthApplicationService {
                 .filter(s -> s.getTempStatus() == TempStatus.NORMAL
                         && s.getMotilityStatus() == MotilityStatus.NORMAL)
                 .count();
-        double healthyRate = total > 0 ? (double) healthyCount / total : 1.0;
+        double healthyRate = total > 0 ? (double) healthyCount / total : 0.0; // no data = 0%
 
         int alertCount = ranchQueryPort.countActiveAlertsByFarmId(farmId);
         int criticalCount = (int) snapshots.stream()

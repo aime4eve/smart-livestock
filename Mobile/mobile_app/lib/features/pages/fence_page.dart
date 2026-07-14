@@ -219,6 +219,7 @@ class _FencePageState extends ConsumerState<FencePage>
                         ),
                         children: [
                           TileLayer(
+                           key: ValueKey(_tileProvider?.activeSourceName),
                            urlTemplate: _tileProvider == null
                                ? MapConfig.tileUrlTemplate
                                : null,

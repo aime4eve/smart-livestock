@@ -58,7 +58,7 @@ public class HealthQueryPortAdapter implements HealthQueryPort {
                 .filter(s -> s.getTempStatus() == TempStatus.NORMAL
                         && s.getMotilityStatus() == MotilityStatus.NORMAL)
                 .count();
-        double healthyRate = total > 0 ? (double) healthyCount / total : 1.0;
+        double healthyRate = total > 0 ? (double) healthyCount / total : 0.0; // no data = 0%
 
         int criticalCount = (int) snapshots.stream()
                 .filter(s -> s.getTempStatus() == TempStatus.CRITICAL)

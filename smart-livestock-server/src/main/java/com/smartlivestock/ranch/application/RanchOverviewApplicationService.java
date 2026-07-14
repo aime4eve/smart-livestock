@@ -183,12 +183,13 @@ public class RanchOverviewApplicationService {
      */
     private double calculateInFenceRate(List<Livestock> livestockList, List<Fence> fences) {
         List<Fence> activeFences = fences.stream().filter(Fence::isActive).toList();
+        if (livestockList.isEmpty()) return 0.0; // no livestock = 0%
         if (activeFences.isEmpty()) return 1.0; // no fences = all "inside"
 
         long withGps = livestockList.stream()
                 .filter(l -> l.getLastLatitude() != null && l.getLastLongitude() != null)
                 .count();
-        if (withGps == 0) return 1.0;
+        if (withGps == 0) return 0.0; // no GPS data = cannot determine position
 
         long inFence = livestockList.stream()
                 .filter(l -> l.getLastLatitude() != null && l.getLastLongitude() != null)
