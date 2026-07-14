@@ -15,11 +15,22 @@ import 'package:latlong2/latlong.dart';
 
 /// Shows a bottom sheet displaying livestock GPS trajectory with a time
 /// slider for dynamic playback.
-void showTrajectorySheet(BuildContext context, String livestockId) {
+void showTrajectorySheet(
+  BuildContext context,
+  String livestockId, {
+  String? livestockCode,
+  String? breedLabel,
+  String? deviceName,
+}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    builder: (ctx) => _TrajectorySheet(livestockId: livestockId),
+    builder: (ctx) => _TrajectorySheet(
+      livestockId: livestockId,
+      livestockCode: livestockCode,
+      breedLabel: breedLabel,
+      deviceName: deviceName,
+    ),
   );
 }
 
@@ -56,8 +67,16 @@ class _GpsPoint {
 }
 
 class _TrajectorySheet extends ConsumerStatefulWidget {
-  const _TrajectorySheet({required this.livestockId});
+  const _TrajectorySheet({
+    required this.livestockId,
+    this.livestockCode,
+    this.breedLabel,
+    this.deviceName,
+  });
   final String livestockId;
+  final String? livestockCode;
+  final String? breedLabel;
+  final String? deviceName;
 
   @override
   ConsumerState<_TrajectorySheet> createState() => _TrajectorySheetState();
@@ -377,6 +396,21 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
 
   // === Header row ===
 
+  /// Combined display: "#A001 湘西黄牛 · GPS-3201"
+  String get _livestockSummary {
+    final parts = <String>[];
+    if (widget.livestockCode != null && widget.livestockCode!.isNotEmpty) {
+      parts.add('#${widget.livestockCode}');
+    }
+    if (widget.breedLabel != null && widget.breedLabel!.isNotEmpty) {
+      parts.add(widget.breedLabel!);
+    }
+    if (widget.deviceName != null && widget.deviceName!.isNotEmpty) {
+      parts.add(widget.deviceName!);
+    }
+    return parts.isEmpty ? '#${widget.livestockId}' : parts.join(' · ');
+  }
+
   Widget _buildHeaderRow(AppLocalizations l10n) {
     final rangeLabel = switch (_range) {
       _TrajectoryRange.h24 => l10n.livestockTrajectoryRange24h,
@@ -394,7 +428,7 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
-              '#${widget.livestockId}',
+              _livestockSummary,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.textSecondary,
                   ),

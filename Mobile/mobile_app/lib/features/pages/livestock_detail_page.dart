@@ -21,7 +21,6 @@ import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:hkt_livestock_agentic/features/devices/domain/devices_repository.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
-import 'package:hkt_livestock_agentic/core/l10n/enum_labels.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/devices_controller.dart';
 
 class LivestockDetailPage extends ConsumerWidget {
@@ -715,7 +714,15 @@ class _LocationCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           OutlinedButton.icon(
             key: const Key('livestock-view-track'),
-            onPressed: () => showTrajectorySheet(context, detail.livestockId),
+            onPressed: () => showTrajectorySheet(
+              context,
+              detail.livestockId,
+              livestockCode: detail.livestockCode,
+              breedLabel: detail.breed.localizedLabel(l10n),
+              deviceName: detail.devices.isNotEmpty
+                  ? detail.devices.first.name
+                  : null,
+            ),
             icon: const Icon(Icons.map_outlined),
             label: Text(l10n.livestockViewTrajectory),
           ),
