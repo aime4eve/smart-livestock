@@ -283,8 +283,10 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
 
   /// Transform a sublist (0..idx) for display.
   List<LatLng> _transformVisible(int idx) {
+    if (_points.isEmpty) return [];
+    final end = (idx + 1).clamp(0, _points.length);
     final raw = _points
-        .sublist(0, idx + 1)
+        .sublist(0, end)
         .map((p) => LatLng(p.lat, p.lng))
         .toList();
     final shouldTransform =
@@ -719,6 +721,7 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
   // === Playback controls ===
 
   Widget _buildControls(AppLocalizations l10n) {
+    if (_points.isEmpty) return const SizedBox.shrink();
     final canPlay = _points.length > 1;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -793,6 +796,7 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
   // === Stats ===
 
   Widget _buildStats(AppLocalizations l10n) {
+    if (_points.isEmpty) return const SizedBox.shrink();
     final visible = _transformVisible(_currentIdx);
     final distance = totalPathDistance(visible
         .map((ll) => (lat: ll.latitude, lng: ll.longitude))
