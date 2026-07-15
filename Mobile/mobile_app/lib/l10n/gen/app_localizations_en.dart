@@ -2622,4 +2622,226 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get livestockGenderValueFemale => 'Female';
+
+  @override
+  String get gpsQualityTitle => 'GPS Quality Check';
+
+  @override
+  String get gpsQualityTabRtkCalibration => 'RTK Calibration';
+
+  @override
+  String get gpsQualityTabQualityReport => 'Quality Report';
+
+  @override
+  String get gpsQualityRtkPointList => 'RTK Reference Points';
+
+  @override
+  String get gpsQualitySessionList => 'Calibration Sessions';
+
+  @override
+  String get gpsQualityAddRtkPoint => 'Add Point';
+
+  @override
+  String get gpsQualityAddSession => 'Create Session';
+
+  @override
+  String get gpsQualityLocationName => 'Location';
+
+  @override
+  String get gpsQualityPointLabel => 'Point Label';
+
+  @override
+  String get gpsQualityLatitude => 'Latitude';
+
+  @override
+  String get gpsQualityLongitude => 'Longitude';
+
+  @override
+  String get gpsQualityDevice => 'Device';
+
+  @override
+  String get gpsQualityStartTime => 'Start Time';
+
+  @override
+  String get gpsQualityEndTime => 'End Time';
+
+  @override
+  String get gpsQualityStatus => 'Status';
+
+  @override
+  String get gpsQualityStatusInProgress => 'In Progress';
+
+  @override
+  String get gpsQualityStatusCompleted => 'Completed';
+
+  @override
+  String get gpsQualityStatusCanceled => 'Canceled';
+
+  @override
+  String get gpsQualityEndSession => 'End';
+
+  @override
+  String get gpsQualityCancelSession => 'Cancel';
+
+  @override
+  String get gpsQualityEndSessionConfirm =>
+      'Confirm end session? Statistics will be calculated automatically.';
+
+  @override
+  String get gpsQualitySelectRtkPoint => 'Select RTK Point';
+
+  @override
+  String get gpsQualitySelectDevice => 'Select Device';
+
+  @override
+  String get gpsQualityReportTitle => 'Quality Report';
+
+  @override
+  String get gpsQualityComparisonTitle => 'Device Comparison';
+
+  @override
+  String get gpsQualityExcludeSuspect => 'Exclude suspected motion';
+
+  @override
+  String get gpsQualityTotalPoints => 'Total Points';
+
+  @override
+  String get gpsQualityEffectivePoints => 'Effective Points';
+
+  @override
+  String get gpsQualitySuspectPoints => 'Suspected Motion';
+
+  @override
+  String get gpsQualityMeanError => 'Mean Error';
+
+  @override
+  String get gpsQualityP50 => 'P50 Median';
+
+  @override
+  String get gpsQualityP95 => 'P95 Jitter Radius';
+
+  @override
+  String get gpsQualityP99 => 'P99';
+
+  @override
+  String get gpsQualityMaxError => 'Max Error';
+
+  @override
+  String get gpsQualityJitterDiameter => 'Jitter Diameter';
+
+  @override
+  String get gpsQualityOutlierCount => 'Outliers';
+
+  @override
+  String get gpsQualityGradeExcellent => 'Excellent';
+
+  @override
+  String get gpsQualityGradeUsable => 'Usable';
+
+  @override
+  String get gpsQualityGradeMarginal => 'Marginal';
+
+  @override
+  String get gpsQualityGradeUnavailable => 'Unavailable';
+
+  @override
+  String get gpsQualityGradeStandard => 'Grade Standard';
+
+  @override
+  String get gpsQualityGradeExcellentDesc => 'P95 ≤ 15m and effective ≥ 20';
+
+  @override
+  String get gpsQualityGradeUsableDesc => 'P95 ≤ 25m and effective ≥ 20';
+
+  @override
+  String get gpsQualityGradeMarginalDesc =>
+      '25m < P95 ≤ 40m and effective ≥ 10';
+
+  @override
+  String get gpsQualityGradeUnavailableDesc => 'P95 > 40m or effective < 10';
+
+  @override
+  String get gpsQualityNoData => 'No data';
+
+  @override
+  String get gpsQualityViewTrajectory => 'View trajectory';
+
+  @override
+  String get gpsQualityScatterChart => 'GPS Scatter Plot';
+
+  @override
+  String get gpsQualityErrorHistogram => 'Error Distribution';
+
+  @override
+  String get gpsQualityCalibrationLocations => 'Calibration Locations';
+
+  @override
+  String get gpsQualityRtkCoordinate => 'RTK Coordinates';
+
+  @override
+  String get gpsQualityTestTime => 'Test Time';
+
+  @override
+  String get gpsQualityActions => 'Actions';
+
+  @override
+  String get gpsQualityPointsUnit => 'points';
+
+  @override
+  String get gpsQualityCalibrated => 'Calibrated';
+
+  @override
+  String get gpsQualityPointUnitShort => 'pts';
+
+  @override
+  String get gpsQualitySessionUnitShort => 'sessions';
+
+  @override
+  String get gpsQualityUncalibratedPointsUnit => 'uncalibrated points';
+
+  @override
+  String get gpsQualityUncalibrated => 'Uncalibrated';
+
+  @override
+  String get gpsQualityCalibrate => 'Calibrate';
+
+  @override
+  String get gpsQualityNoSessionHint =>
+      'No calibration sessions yet. Click \"+ Create Calibration Session\" to start.';
+
+  @override
+  String get gpsQualityDelete => 'Delete';
+
+  @override
+  String get gpsQualityTipP50 =>
+      '50th percentile of errors\n= median, typical accuracy';
+
+  @override
+  String get gpsQualityTipP95 =>
+      '95th percentile of errors\nFence STANDARD threshold basis';
+
+  @override
+  String get gpsQualityTipMeanError =>
+      'Arithmetic mean of\npoint-to-truth distances';
+
+  @override
+  String get gpsQualityTipMaxError => 'Farthest point from RTK truth';
+
+  @override
+  String get gpsQualityTipJitterDiameter =>
+      'Max pairwise haversine\ndistance between points';
+
+  @override
+  String get gpsQualityTipOutlier => 'Points exceeding max(P99, 3×P95, 30m)';
+
+  @override
+  String get gpsQualityTipTotalPoints =>
+      'Total valid GPS points in session window';
+
+  @override
+  String get gpsQualityTipEffectivePoints =>
+      'Points after excluding suspected motion';
+
+  @override
+  String get gpsQualityTipSuspectPoints => 'Points with step_number > 0';
 }

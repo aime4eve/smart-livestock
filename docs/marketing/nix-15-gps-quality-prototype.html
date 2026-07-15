@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIX-15 设备静止 GPS 数据质量检查 — 高保真原型</title>
+<style>
+:root{
+  --primary:#2563EB;--primary-dark:#1D4ED8;--primary-soft:#DBEAFE;
+  --surface:#F8FAFC;--card:#FFFFFF;--border:#E2E8F0;
+  --text:#1E293B;--text-sec:#64748B;--text-hint:#94A3B8;
+  --green:#16A34A;--green-bg:#DCFCE7;
+  --blue:#2563EB;--blue-bg:#DBEAFE;
+  --amber:#F59E0B;--amber-bg:#FEF3C7;
+  --red:#DC2626;--red-bg:#FEE2E2;
+  --radius:12px;--shadow:0 1px 3px rgba(0,0,0,0.08);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;background:#E2E8F0;color:var(--text);font-size:14px;line-height:1.5}
+.app{max-width:1280px;margin:0 auto;background:var(--surface);min-height:100vh;display:flex;flex-direction:column}
+
+/* === Top App Bar === */
+.appbar{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index:100}
+.appbar .crumb{color:var(--text-sec);font-size:13px}
+.appbar .crumb b{color:var(--text);font-weight:600}
+.appbar .spacer{flex:1}
+.appbar .icon-btn{width:36px;height:36px;border:none;background:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text-sec)}
+.appbar .icon-btn:hover{background:var(--surface)}
+
+/* === Tabs === */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--card);padding:0 24px}
+.tab{padding:12px 20px;border:none;background:none;cursor:pointer;font-size:14px;font-weight:500;color:var(--text-sec);border-bottom:2px solid transparent;transition:.2s}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.tab:hover:not(.active){color:var(--text)}
+.tab .badge{display:inline-block;background:var(--border);color:var(--text-sec);font-size:11px;padding:1px 7px;border-radius:10px;margin-left:6px}
+.tab.active .badge{background:var(--primary-soft);color:var(--primary)}
+
+/* === Content === */
+.content{flex:1;padding:24px;overflow-y:auto}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* === Card === */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.card-hdr h3{font-size:15px;font-weight:600}
+.card-body{padding:20px}
+
+/* === Buttons === */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:500;transition:.2s}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+.btn-out{background:var(--card);border:1px solid var(--border);color:var(--text)}.btn-out:hover{background:var(--surface)}
+.btn-sm{padding:4px 12px;font-size:12px}
+
+/* === Layout: RTK Tab === */
+.rtk-layout{display:flex;gap:20px;align-items:flex-start}
+.rtk-sidebar{width:280px;flex-shrink:0}
+.rtk-detail{flex:1;min-width:0}
+
+/* Accordion */
+.accordion-item{border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden;background:var(--card)}
+.accordion-hdr{padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none}
+.accordion-hdr:hover{background:var(--surface)}
+.accordion-hdr .arrow{transition:.2s;font-size:12px;color:var(--text-hint)}
+.accordion-item.open .accordion-hdr .arrow{transform:rotate(90deg)}
+.accordion-hdr .loc-name{font-weight:600;font-size:13px;flex:1}
+.accordion-hdr .loc-count{font-size:12px;color:var(--text-hint)}
+.accordion-hdr .loc-dot{width:8px;height:8px;border-radius:50%;background:var(--primary)}
+.accordion-body{display:none;border-top:1px solid var(--border)}
+.accordion-item.open .accordion-body{display:block}
+.accordion-body .pt-row{padding:8px 16px 8px 32px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-sec);border-bottom:1px solid var(--surface)}
+.accordion-body .pt-row:hover{background:var(--surface)}
+.accordion-body .pt-row.active{background:var(--primary-soft);color:var(--primary);font-weight:500}
+.accordion-body .pt-row .pt-label{flex:1}
+.accordion-body .pt-row .pt-session{font-size:11px;color:var(--green);background:var(--green-bg);padding:1px 6px;border-radius:4px}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 12px;color:var(--text-sec);font-weight:500;border-bottom:2px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+td{padding:12px;border-bottom:1px solid var(--border)}
+tr:hover td{background:var(--surface)}
+.tbl-wrap{overflow-x:auto}
+
+/* Status pills */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:500}
+.pill-green{background:var(--green-bg);color:var(--green)}
+.pill-blue{background:var(--blue-bg);color:var(--blue)}
+.pill-amber{background:var(--amber-bg);color:#B45309}
+.pill-red{background:var(--red-bg);color:var(--red)}
+.pill-gray{background:#F1F5F9;color:var(--text-sec)}
+
+/* === Quality Report === */
+.filter-bar{display:flex;gap:16px;align-items:flex-end;margin-bottom:20px;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:12px;color:var(--text-sec);font-weight:500}
+.field select,.field input{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--card);min-width:160px}
+
+/* Quality verdict banner */
+.verdict{display:flex;align-items:center;gap:16px;padding:20px;border-radius:var(--radius);margin-bottom:16px}
+.verdict.good{background:var(--green-bg);border:1px solid #BBF7D0}
+.verdict.warn{background:var(--amber-bg);border:1px solid #FDE68A}
+.verdict.bad{background:var(--red-bg);border:1px solid #FECACA}
+.verdict .v-icon{font-size:32px}
+.verdict .v-text h3{font-size:18px;font-weight:700}
+.verdict .v-text p{font-size:13px;color:var(--text-sec);margin-top:2px}
+
+/* Stat grid */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px}
+.stat .s-label{font-size:12px;color:var(--text-sec);display:flex;align-items:center;gap:4px}
+.stat .s-val{font-size:22px;font-weight:700;margin-top:4px}
+.stat .s-unit{font-size:13px;font-weight:400;color:var(--text-sec)}
+.stat .s-hint{font-size:11px;color:var(--text-hint);margin-top:2px}
+.stat.primary{border-color:var(--primary);border-width:2px}
+
+/* Tooltip */
+.tip{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:var(--border);color:var(--text-sec);font-size:10px;cursor:help;position:relative}
+.tip:hover .tip-text{display:block}
+.tip-text{display:none;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#1E293B;color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;font-weight:400;white-space:nowrap;z-index:10;margin-bottom:4px;line-height:1.4}
+
+/* Map scatter (SVG container) */
+.map-container{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.map-container h4{font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--text-sec);margin-left:auto;font-weight:400}
+.legend span{display:flex;align-items:center;gap:4px}
+.legend .dot{width:10px;height:10px;border-radius:50%}
+
+/* Histogram */
+.histo-container{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.histo-bars{display:flex;align-items:flex-end;gap:4px;height:120px;margin-top:12px;border-bottom:1px solid var(--border);padding-bottom:0}
+.histo-bar{flex:1;background:var(--primary);border-radius:4px 4px 0 0;position:relative;min-height:2px;transition:.3s}
+.histo-bar:hover{background:var(--primary-dark)}
+.histo-bar .hb-val{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text-sec)}
+.histo-labels{display:flex;gap:4px;margin-top:4px}
+.histo-labels span{flex:1;text-align:center;font-size:10px;color:var(--text-hint)}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border-radius:var(--radius);width:480px;max-width:90vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+.modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-hdr h3{font-size:16px;font-weight:600}
+.modal-body{padding:20px;display:flex;flex-direction:column;gap:16px}
+.modal-ftr{padding:16px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+
+/* Checkbox */
+.chk{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px}
+.chk input{width:16px;height:16px;accent-color:var(--primary)}
+
+/* Device detail panel */
+.device-detail{margin-top:16px}
+
+/* Overview bar */
+.overview-bar{display:flex;gap:24px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:16px;font-size:13px}
+.overview-bar .ob-item{display:flex;align-items:center;gap:6px}
+.overview-bar .ob-label{color:var(--text-sec)}
+.overview-bar .ob-val{font-weight:600}
+
+/* Grade standard expandable */
+.grade-info{background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:16px;overflow:hidden}
+.grade-info-hdr{padding:10px 16px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--primary)}
+.grade-info-body{display:none;padding:0 16px 12px}
+.grade-info.open .grade-info-body{display:block}
+.grade-info-body table{font-size:12px}
+.grade-info-body td{padding:6px 8px}
+
+/* Empty state */
+.empty{text-align:center;padding:40px;color:var(--text-hint)}
+.empty .icon{font-size:40px;margin-bottom:8px}
+
+/* Session row */
+.session-row{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--surface);font-size:13px}
+.session-row:hover{background:var(--surface)}
+.session-row .s-dev{font-weight:600;min-width:80px}
+.session-row .s-time{color:var(--text-sec);font-size:12px;flex:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- App Bar -->
+  <div class="appbar">
+    <span class="crumb">平台管理 · <b>GPS 质量检查</b></span>
+    <div class="spacer"></div>
+    <button class="icon-btn" title="管理功能">⚙</button>
+    <button class="icon-btn" title="退出登录">🚪</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('rtk')">RTK 标定管理</button>
+    <button class="tab" onclick="switchTab('report')">质量报告</button>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ===== Tab 1: RTK 标定管理 ===== -->
+    <div class="tab-panel active" id="tab-rtk">
+      <div class="rtk-layout">
+        <!-- Sidebar: Location accordion -->
+        <div class="rtk-sidebar">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <h3 style="font-size:14px;font-weight:600">标定位置</h3>
+            <button class="btn btn-primary btn-sm" onclick="openModal('newPoint')">+ 新增点位</button>
+          </div>
+          <div id="rtk-accordion"></div>
+        </div>
+
+        <!-- Detail panel: merged points + sessions in one table -->
+        <div class="rtk-detail">
+          <div class="card">
+            <div class="card-hdr">
+              <h3 id="rtk-detail-title">一期楼顶</h3>
+              <span class="pill pill-blue" id="rtk-detail-count">20 个点位</span>
+              <div style="flex:1"></div>
+              <button class="btn btn-primary btn-sm" onclick="openModal('newSession')">+ 创建标定会话</button>
+            </div>
+            <div class="tbl-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>点位</th><th>RTK 坐标</th><th>设备</th>
+                    <th>测试时间</th><th>状态</th><th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="rtk-point-tbody"></tbody>
+              </table>
+            </div>
+            <div id="rtk-empty-points"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Tab 2: 质量报告 ===== -->
+    <div class="tab-panel" id="tab-report">
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <div class="field">
+          <label>标定位置</label>
+          <select id="report-location" onchange="renderReport()">
+            <option value="5">一期楼顶</option>
+            <option value="1">宿舍楼顶</option>
+            <option value="2">西南门</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>时间范围</label>
+          <select id="report-range" onchange="renderReport()">
+            <option value="all">全部已完成会话</option>
+            <option value="7">近 7 天</option>
+            <option value="30">近 30 天</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Comparison table -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-hdr">
+          <h3>设备横向对比</h3>
+          <span class="pill pill-gray" id="cmp-count">0 台设备</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>设备编号</th><th>样本点</th><th>疑似移动</th>
+                <th>P50 偏差 <span class="tip">?<span class="tip-text">偏差排序后第50百分位，即中位数，反映典型精度</span></span></th>
+                <th>P95 抖动半径 <span class="tip">?<span class="tip-text">偏差排序后第95百分位，围栏预警 STANDARD 档基准</span></span></th>
+                <th>抖动直径</th><th>野点</th><th>结论</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="cmp-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Device detail (rendered on click) -->
+      <div id="device-detail-panel"></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<!-- ===== Modal: New Session ===== -->
+<div class="modal-overlay" id="modal-newSession">
+  <div class="modal">
+    <div class="modal-hdr"><h3>创建标定会话</h3><button class="icon-btn" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>RTK 点位</label><select style="min-width:auto"><option>一期楼顶 - 11号点</option><option>一期楼顶 - 12号点</option><option>宿舍楼顶 - 1号点</option></select></div>
+      <div class="field"><label>设备</label><select style="min-width:auto"><option>85d8 (00956906000285d8)</option><option>85d4 (00956906000285d4)</option><option>89f0 (00956906000289f0)</option></select></div>
+      <div style="display:flex;gap:12px">
+        <div class="field" style="flex:1"><label>开始时间</label><input type="datetime-local" value="2026-07-15T08:00"></div>
+        <div class="field" style="flex:1"><label>结束时间（留空=进行中）</label><input type="datetime-local"></div>
+      </div>
+      <div style="font-size:12px;color:var(--text-sec);background:var(--surface);padding:10px 12px;border-radius:8px">
+        💡 创建会话后，系统将自动采集该时间窗口内的 GPS 数据。会话结束后可在「质量报告」中查看统计结果。
+      </div>
+    </div>
+    <div class="modal-ftr"><button class="btn btn-out" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal()">创建会话</button></div>
+  </div>
+</div>
+
+<!-- ===== Modal: New Point ===== -->
+<div class="modal-overlay" id="modal-newPoint">
+  <div class="modal">
+    <div class="modal-hdr"><h3>新增 RTK 点位</h3><button class="icon-btn" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>所属位置</label><select style="min-width:auto"><option>+ 新建位置</option><option>一期楼顶</option><option>宿舍楼顶</option></select></div>
+      <div class="field"><label>点位编号</label><input type="text" placeholder="如：34号点"></div>
+      <div style="display:flex;gap:12px">
+        <div class="field" style="flex:1"><label>RTK 纬度（十进制）</label><input type="text" placeholder="28.246565"></div>
+        <div class="field" style="flex:1"><label>RTK 经度（十进制）</label><input type="text" placeholder="112.851190"></div>
+      </div>
+      <div style="font-size:12px;color:var(--text-sec);background:var(--surface);padding:10px 12px;border-radius:8px">
+        💡 支持 DMS 度分秒格式输入（如 28°14′47.6″N），系统自动转换为十进制。
+      </div>
+    </div>
+    <div class="modal-ftr"><button class="btn btn-out" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal()">保存</button></div>
+  </div>
+</div>
+
+<!-- ===== Modal: End Session ===== -->
+<div class="modal-overlay" id="modal-endSession">
+  <div class="modal">
+    <div class="modal-hdr"><h3>结束标定会话</h3><button class="icon-btn" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="end-session-id">
+      <div style="display:flex;gap:16px;font-size:13px">
+        <div><span style="color:var(--text-sec)">设备</span><br><b id="end-session-dev">—</b></div>
+        <div><span style="color:var(--text-sec)">点位</span><br><b id="end-session-pt">—</b></div>
+        <div><span style="color:var(--text-sec)">开始时间</span><br><b id="end-session-start">—</b></div>
+      </div>
+      <div style="font-size:13px;background:var(--surface);padding:12px 16px;border-radius:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span>结束时间（自动取当前）</span>
+          <b id="end-session-now">—</b>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text-sec);background:var(--primary-soft);padding:10px 12px;border-radius:8px">
+        💡 结束后系统将自动计算该时间窗口内的 GPS 质量统计。请确认设备在此期间确实未被移动。
+      </div>
+    </div>
+    <div class="modal-ftr"><button class="btn btn-out" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="confirmEndSession()">确认结束</button></div>
+  </div>
+</div>
+
+<script>
+// ===== Mock Data =====
+const locations = [
+  {id:1,name:'宿舍楼顶',points:[
+    {id:1,label:'1号点',lat:28.245391,lng:112.850781},{id:2,label:'2号点',lat:28.245534,lng:112.850781},
+    {id:3,label:'3号点',lat:28.245584,lng:112.850558},{id:4,label:'4号点',lat:28.245451,lng:112.850518}]},
+  {id:2,name:'西南门',points:[
+    {id:5,label:'5号点',lat:28.245408,lng:112.850469},{id:6,label:'6号点',lat:28.245397,lng:112.850502}]},
+  {id:3,name:'东南门',points:[
+    {id:7,label:'7号点',lat:28.245189,lng:112.851300},{id:8,label:'8号点',lat:28.245175,lng:112.851366}]},
+  {id:4,name:'北门',points:[
+    {id:9,label:'9号点',lat:28.246800,lng:112.851716},{id:10,label:'10号点',lat:28.246815,lng:112.851627}]},
+  {id:5,name:'一期楼顶',points:[
+    {id:11,label:'11号点',lat:28.246594,lng:112.851610},{id:12,label:'12号点',lat:28.246531,lng:112.851592},
+    {id:13,label:'13号点',lat:28.246542,lng:112.851545},{id:14,label:'14号点',lat:28.246577,lng:112.851555},
+    {id:15,label:'15号点',lat:28.246602,lng:112.851577},{id:16,label:'16号点',lat:28.246636,lng:112.851446},
+    {id:17,label:'17号点',lat:28.246657,lng:112.851355},{id:18,label:'18号点',lat:28.246600,lng:112.851314},
+    {id:19,label:'19号点',lat:28.246558,lng:112.851292},{id:20,label:'20号点',lat:28.246565,lng:112.851191},
+    {id:21,label:'21号点',lat:28.246580,lng:112.851142},{id:22,label:'22号点',lat:28.246589,lng:112.851087},
+    {id:23,label:'23号点',lat:28.246594,lng:112.851326},{id:24,label:'24号点',lat:28.246598,lng:112.851001},
+    {id:25,label:'25号点',lat:28.246604,lng:112.850966},{id:26,label:'26号点',lat:28.246634,lng:112.851054},
+    {id:27,label:'27号点',lat:28.246673,lng:112.851067},{id:28,label:'28号点',lat:28.246622,lng:112.851103},
+    {id:29,label:'29号点',lat:28.246611,lng:112.851154},{id:30,label:'30号点',lat:28.246601,lng:112.851195}]},
+  {id:6,name:'一期电梯楼顶',points:[
+    {id:31,label:'西中',lat:28.246506,lng:112.851571},{id:32,label:'东中',lat:28.246433,lng:112.851571},
+    {id:33,label:'东南',lat:28.246389,lng:112.851581}]},
+];
+const devices=[
+  {id:1,code:'85d8'},{id:2,code:'85d4'},{id:3,code:'89f0'},{id:4,code:'85b9'},{id:5,code:'8ed2'},
+];
+const sessions=[
+  {id:1,ptId:11,devId:1,start:'2026-07-10 08:00',end:'2026-07-11 08:00',status:'COMPLETED'},
+  {id:2,ptId:16,devId:2,start:'2026-07-10 08:00',end:'2026-07-11 08:00',status:'COMPLETED'},
+  {id:3,ptId:20,devId:3,start:'2026-07-10 08:00',end:'2026-07-11 08:00',status:'CANCELED'},
+  {id:4,ptId:21,devId:4,start:'2026-07-10 08:00',end:'2026-07-11 08:00',status:'COMPLETED'},
+  {id:5,ptId:22,devId:5,start:'2026-07-14 08:00',end:null,status:'IN_PROGRESS'},
+];
+// quality stats keyed by sessionId
+const stats={
+  1:{n:48,suspect:3,p50:6.2,p95:19.1,mean:7.8,max:42.3,diam:35.4,out:1},
+  2:{n:47,suspect:5,p50:8.1,p95:22.3,mean:9.5,max:51.2,diam:41.2,out:2},
+  3:{n:45,suspect:8,p50:12.4,p95:38.7,mean:14.2,max:72.1,diam:62.1,out:3},
+  4:{n:50,suspect:2,p50:5.8,p95:17.2,mean:7.1,max:35.6,diam:31.5,out:0},
+};
+// scatter points for device detail (relative offsets from RTK in meters, [dx, dy, suspect])
+function genScatter(seed,p95){
+  const pts=[];let s=seed;
+  for(let i=0;i<48;i++){
+    s=(s*9301+49297)%233280;const r1=s/233280;
+    s=(s*9301+49297)%233280;const r2=s/233280;
+    const ang=r1*Math.PI*2;
+    const dist=Math.pow(r2,0.6)*p95*1.8;
+    const dx=Math.cos(ang)*dist,dy=Math.sin(ang)*dist;
+    const suspect=i<3&&seed>10?1:0;
+    pts.push([dx,dy,suspect]);
+  }
+  return pts;
+}
+// histogram data [bin_start, count]
+function genHisto(p95){
+  const bins=[0,0,0,0,0,0,0,0,0];
+  const scatter=genScatter(Math.floor(p95*10),p95);
+  scatter.forEach(([d])=>{
+    const idx=Math.min(Math.floor(d/5),8);bins[idx]++;
+  });
+  return bins;
+}
+
+// ===== Helpers =====
+function gradeOf(s){
+  if(!s||s.n<10) return{cls:'bad',icon:'❌',label:'数据不足',desc:'静止 GPS 点不足 10 条，无法给出可靠结论'};
+  if(s.p95<=15) return{cls:'good',icon:'✅',label:'优秀',desc:'P95 ≤ 15m，精度优良，超过消费级 GPS 典型水平'};
+  if(s.p95<=25) return{cls:'good',icon:'✅',label:'可用',desc:'P95 ≤ 25m，精度在民用 GPS 正常范围内（CEP 3-10m）'};
+  if(s.p95<=40) return{cls:'warn',icon:'⚠️',label:'勉强可用',desc:'P95 在 25-40m，精度偏差较大，围栏需加大 buffer 或用 LOW 档'};
+  return{cls:'bad',icon:'❌',label:'不可用',desc:'P95 > 40m，精度太差无法支撑围栏预警，排查硬件问题'};
+}
+function devCode(id){return devices.find(d=>d.id===id)?.code||'?';}
+function locById(id){for(const l of locations){const p=l.points.find(p=>p.id===id);if(p)return{loc:l,pt:p};}}
+let activeLoc=5,activeDetailDev=null;
+
+// ===== Tab switching =====
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===(name==='rtk'?0:1)));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='report')renderReport();
+}
+
+// ===== RTK Accordion =====
+function renderAccordion(){
+  const c=document.getElementById('rtk-accordion');let h='';
+  for(const loc of locations){
+    const sessionCount=sessions.filter(s=>loc.points.some(p=>p.id===s.ptId)).length;
+    h+=`<div class="accordion-item ${loc.id===activeLoc?'open':''}" data-loc="${loc.id}">`;
+    h+=`<div class="accordion-hdr" onclick="toggleAccordion(${loc.id})">`;
+    h+=`<span class="arrow">▶</span><span class="loc-dot"></span>`;
+    h+=`<span class="loc-name">${loc.name}</span>`;
+    h+=`<span class="loc-count">${loc.points.length}点${sessionCount?'·'+sessionCount+'会话':''}</span>`;
+    h+=`</div><div class="accordion-body">`;
+    for(const p of loc.points){
+      const hasS=sessions.some(s=>s.ptId===p.id&&s.status!=='CANCELED');
+      h+=`<div class="pt-row" onclick="selectLoc(${loc.id})"><span class="pt-label">${p.label}</span>`;
+      if(hasS)h+=`<span class="pt-session">标定</span>`;
+      h+=`</div>`;
+    }
+    h+=`</div></div>`;
+  }
+  c.innerHTML=h;
+}
+function toggleAccordion(id){
+  const el=document.querySelector(`.accordion-item[data-loc="${id}"]`);
+  el.classList.toggle('open');selectLoc(id);
+}
+function selectLoc(id){activeLoc=id;renderAccordion();renderRtkDetail();}
+
+// ===== RTK Detail Table (merged: points + sessions in one table) =====
+function renderRtkDetail(){
+  const loc=locations.find(l=>l.id===activeLoc);
+  document.getElementById('rtk-detail-title').textContent=loc.name;
+  document.getElementById('rtk-detail-count').textContent=loc.points.length+' 个点位';
+  let h=''; let emptyCount=0;
+  for(const p of loc.points){
+    const ss=sessions.filter(s=>s.ptId===p.id);
+    if(ss.length===0){emptyCount++;continue;}  // defer empty points to collapsed section
+    // If multiple sessions, render one row per session (point label only on first)
+    ss.forEach((s,idx)=>{
+      const rtk = idx===0 ? `${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}` : '';
+      const lbl = idx===0 ? `<b>${p.label}</b>` : '';
+      const time = `${s.start}<br><span style="color:var(--text-hint)">→ ${s.end||'进行中...'}</span>`;
+      let pillCls,pillTxt,rowCls='';
+      if(s.status==='COMPLETED'){pillCls='pill-green';pillTxt='已完成'}
+      else if(s.status==='IN_PROGRESS'){pillCls='pill-amber';pillTxt='进行中'}
+      else{pillCls='pill-red';pillTxt='已取消';rowCls='session-canceled'}
+      let btns='';
+      if(s.status==='IN_PROGRESS'){
+        btns=`<button class="btn btn-primary btn-sm" onclick="openEndSession(${s.id})">结束</button>`;
+        btns+=` <button class="btn btn-out btn-sm" onclick="cancelSession(${s.id})">取消</button>`;
+      } else if(s.status==='COMPLETED'){
+        btns=`<button class="btn btn-out btn-sm" onclick="cancelSession(${s.id})">删除</button>`;
+      } else {
+        btns=`<button class="btn btn-out btn-sm" onclick="deleteSession(${s.id})">删除</button>`;
+      }
+      h+=`<tr class="${rowCls}"><td>${lbl}</td><td style="font-size:12px;color:var(--text-sec)">${rtk}</td>`;
+      h+=`<td><b>${devCode(s.devId)}</b></td><td style="font-size:12px">${time}</td>`;
+      h+=`<td><span class="pill ${pillCls}">${pillTxt}</span></td><td>${btns}</td></tr>`;
+    });
+  }
+  // No sessions at all → show hint
+  if(emptyCount===loc.points.length){
+    h='<tr><td colspan="6"><div class="empty"><div class="icon">📋</div>暂无标定会话，点击「+ 创建标定会话」开始</div></td></tr>';
+  }
+  document.getElementById('rtk-point-tbody').innerHTML=h;
+  // Collapsed section for un-calibrated points
+  let eh='';
+  if(emptyCount>0){
+    eh=`<div style="border-top:1px solid var(--border)">`;
+    eh+=`<div class="accordion-hdr" style="padding:10px 20px" onclick="toggleEmpty()">`;
+    eh+=`<span class="arrow">▶</span><span style="font-size:13px;color:var(--text-sec)">${emptyCount} 个未标定点位</span></div>`;
+    eh+=`<div id="empty-points-body" style="display:none;padding:0 20px 12px"></div></div>`;
+  }
+  document.getElementById('rtk-empty-points').innerHTML=eh;
+}
+function toggleEmpty(){
+  const b=document.getElementById('empty-points-body');
+  const h=document.getElementById('rtk-empty-points').querySelector('.accordion-hdr .arrow');
+  if(b.style.display==='none'){
+    const loc=locations.find(l=>l.id===activeLoc);
+    let rows='';
+    for(const p of loc.points){
+      if(sessions.some(s=>s.ptId===p.id))continue;
+      rows+=`<tr><td>${p.label}</td><td style="font-size:12px;color:var(--text-sec)">${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</td>`;
+      rows+=`<td colspan="3"><span class="pill pill-gray">未标定</span></td>`;
+      rows+=`<td><button class="btn btn-out btn-sm" onclick="openModal('newSession')">标定</button></td></tr>`;
+    }
+    b.innerHTML=`<table><tbody>${rows}</tbody></table>`;
+    b.style.display='block';h.textContent='▼';
+  } else {b.style.display='none';h.textContent='▶';}
+}
+
+// ===== Quality Report =====
+function renderReport(){
+  const locId=parseInt(document.getElementById('report-location').value);
+  const loc=locations.find(l=>l.id===locId);
+  const locS=sessions.filter(s=>loc.points.some(p=>p.id===s.ptId)&&s.status==='COMPLETED');
+  document.getElementById('cmp-count').textContent=locS.length+' 台设备';
+  let h='';
+  if(!locS.length){
+    h='<tr><td colspan="9"><div class="empty"><div class="icon">📊</div>该位置暂无已完成的标定会话</div></td></tr>';
+  }else{
+    for(const s of locS){
+      const st=stats[s.id];const g=gradeOf(st);
+      h+=`<tr style="cursor:pointer" onclick="showDeviceDetail(${s.id})">`;
+      h+=`<td><b>${devCode(s.devId)}</b></td>`;
+      h+=`<td>${st?st.n:'—'}</td><td>${st?st.suspect:'—'}</td>`;
+      h+=`<td>${st?st.p50+'m':'—'}</td><td>${st?st.p95+'m':'—'}</td>`;
+      h+=`<td>${st?st.diam+'m':'—'}</td><td>${st?st.out:'—'}</td>`;
+      h+=`<td><span class="pill pill-${g.cls==='bad'?'red':g.cls==='warn'?'amber':'green'}">${g.icon} ${g.label}</span></td>`;
+      h+=`<td><button class="btn btn-out btn-sm">详情</button></td></tr>`;
+    }
+  }
+  document.getElementById('cmp-tbody').innerHTML=h;
+  if(activeDetailDev)showDeviceDetail(activeDetailDev);
+}
+
+// ===== Device Detail =====
+function showDeviceDetail(sessionId){
+  activeDetailDev=sessionId;
+  const s=sessions.find(x=>x.id===sessionId);if(!s)return;
+  const st=stats[sessionId];if(!st)return;
+  const{pt}=locById(s.ptId);const g=gradeOf(st);
+  const scatter=genScatter(sessionId*7+13,st.p95);
+  const scatterHtml=renderScatterSvg(scatter,st.p95);
+  const histo=genHisto(st.p95);
+  const histoHtml=renderHistoSvg(histo);
+
+  let h=`<div class="card device-detail"><div class="card-hdr"><h3>设备 ${devCode(s.devId)} — 质量详情</h3>`;
+  h+=`<span style="font-size:12px;color:var(--text-sec)">${pt.label}（RTK 真值点）· ${s.start} → ${s.end}</span></div>`;
+  h+=`<div class="card-body">`;
+  // overview
+  h+=`<div class="overview-bar">`;
+  h+=`<div class="ob-item"><span class="ob-label">样本点数:</span><span class="ob-val">${st.n}</span></div>`;
+  h+=`<div class="ob-item"><span class="ob-label">疑似移动:</span><span class="ob-val" style="color:var(--amber)">${st.suspect}</span></div>`;
+  h+=`<label class="chk"><input type="checkbox" checked> 排除疑似移动点（step_number > 0）</label>`;
+  h+=`</div>`;
+  // verdict
+  h+=`<div class="verdict ${g.cls}"><div class="v-icon">${g.icon}</div><div class="v-text"><h3>${g.label}</h3><p>${g.desc}</p></div></div>`;
+  // grade standard
+  h+=renderGradeInfo();
+  // stats grid
+  h+=`<div class="stat-grid">`;
+  h+=statCard('P50 偏差','tip-50','偏差排序后第50百分位<br>= 中位数，反映典型精度',st.p50,'m',true);
+  h+=statCard('P95 抖动半径','tip-95','偏差排序后第95百分位<br>围栏 STANDARD 档基准',st.p95,'m',true);
+  h+=statCard('平均偏差','tip-mean','所有点到真值距离的<br>算术平均',st.mean,'m');
+  h+=statCard('最大偏差','tip-max','离 RTK 真值最远的点',st.max,'m');
+  h+=statCard('抖动直径','tip-diam','所有点两两 haversine 距离<br>的最大值',st.diam,'m');
+  h+=statCard('野点数','tip-out','偏差超过 max(P99, 3×P95, 30m) 的点',st.out,'个');
+  h+=`<div class="stat" style="grid-column:span 2;background:var(--surface);display:flex;align-items:center;justify-content:center">`;
+  h+=`<button class="btn btn-out">📍 查看完整移动轨迹</button></div>`;
+  h+=`</div>`;
+  // scatter map
+  h+=`<div class="map-container"><h4>静止 GPS 散点图 <span style="font-weight:400;color:var(--text-sec);font-size:12px">（以 RTK 真值为中心）</span>`;
+  h+=`<div class="legend"><span><span class="dot" style="background:#2563EB"></span>GPS 点</span><span><span class="dot" style="background:#F59E0B"></span>疑似移动</span><span><span class="dot" style="background:#DC2626"></span>RTK 真值</span><span style="border:1px dashed #2563EB;border-radius:50%;width:14px;height:14px"></span>P95 圆环</div></h4>`;
+  h+=scatterHtml+`</div>`;
+  // histogram
+  h+=`<div class="histo-container"><h4 style="font-size:13px;font-weight:600">偏差分布直方图</h4>`;
+  h+=histoHtml+`</div>`;
+  h+=`</div></div>`;
+  document.getElementById('device-detail-panel').innerHTML=h;
+}
+function statCard(label,id,tip,val,unit,primary){
+  return `<div class="stat ${primary?'primary':''}">
+    <div class="s-label">${label} <span class="tip">?<span class="tip-text">${tip}</span></span></div>
+    <div class="s-val">${val}<span class="s-unit"> ${unit}</span></div></div>`;
+}
+function renderGradeInfo(){
+  return `<div class="grade-info" onclick="this.classList.toggle('open')">
+    <div class="grade-info-hdr"><span>▶</span> 查看质量等级标准说明</div>
+    <div class="grade-info-body"><table>
+    <tr><td><span class="pill pill-green">✅ 优秀</span></td><td>P95 ≤ 15m 且 样本 ≥ 20</td><td>全场景投用，围栏 STANDARD 档</td></tr>
+    <tr><td><span class="pill pill-green">✅ 可用</span></td><td>P95 ≤ 25m 且 样本 ≥ 20</td><td>正常投用</td></tr>
+    <tr><td><span class="pill pill-amber">⚠️ 勉强可用</span></td><td>25m &lt; P95 ≤ 40m 且 样本 ≥ 10</td><td>低风险场景，围栏加大 buffer 或 LOW 档</td></tr>
+    <tr><td><span class="pill pill-red">❌ 不可用</span></td><td>P95 &gt; 40m 或 样本 &lt; 10</td><td>不投用，排查硬件问题</td></tr>
+    </table></div></div>`;
+}
+function renderScatterSvg(scatter,p95){
+  const sz=320,cx=sz/2,cy=sz/2,scale=Math.min(sz/2/(p95*2.2),sz/2/80);
+  let h=`<svg width="${sz}" height="${sz}" style="display:block;margin:0 auto">`;
+  // grid circles
+  for(const r of[p95,p95*2]){
+    const px=r*scale;if(px>sz/2)continue;
+    h+=`<circle cx="${cx}" cy="${cy}" r="${px}" fill="none" stroke="#CBD5E1" stroke-width="0.5" stroke-dasharray="3,3"/>`;
+  }
+  // P95 ring
+  h+=`<circle cx="${cx}" cy="${cy}" r="${p95*scale}" fill="none" stroke="#2563EB" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.5"/>`;
+  // crosshair
+  h+=`<line x1="${cx-6}" y1="${cy}" x2="${cx+6}" y2="${cy}" stroke="#DC2626" stroke-width="2"/>`;
+  h+=`<line x1="${cx}" y1="${cy-6}" x2="${cx}" y2="${cy+6}" stroke="#DC2626" stroke-width="2"/>`;
+  h+=`<circle cx="${cx}" cy="${cy}" r="3" fill="#DC2626"/>`;
+  // points
+  for(const[dx,dy,sus]of scatter){
+    const x=cx+dx*scale,y=cy-dy*scale;
+    const color=sus?'#F59E0B':'#2563EB';
+    h+=`<circle cx="${Math.max(2,Math.min(sz-2,x))}" cy="${Math.max(2,Math.min(sz-2,y))}" r="3" fill="${color}" opacity="0.7"/>`;
+  }
+  h+=`</svg>`;
+  return h;
+}
+function renderHistoSvg(bins){
+  const maxV=Math.max(...bins);const labels=['0-5','5-10','10-15','15-20','20-25','25-30','30-35','35-40','40+'];
+  let h='<div class="histo-bars">';
+  for(const v of bins){
+    const pct=maxV?v/maxV*100:0;
+    h+=`<div class="histo-bar" style="height:${pct}%">${v>0?`<span class="hb-val">${v}</span>`:''}</div>`;
+  }
+  h+='</div><div class="histo-labels">';
+  for(const l of labels)h+=`<span>${l}m</span>`;
+  h+='</div>';return h;
+}
+
+// ===== Session actions =====
+function openEndSession(id){
+  const s=sessions.find(x=>x.id===id);if(!s)return;
+  const{pt}=locById(s.ptId);
+  document.getElementById('end-session-dev').textContent=devCode(s.devId);
+  document.getElementById('end-session-pt').textContent=pt.label;
+  document.getElementById('end-session-start').textContent=s.start;
+  document.getElementById('end-session-now').textContent='2026-07-15 09:30（当前时间）';
+  document.getElementById('end-session-id').value=id;
+  document.getElementById('modal-endSession').classList.add('show');
+}
+function confirmEndSession(){
+  const id=parseInt(document.getElementById('end-session-id').value);
+  const s=sessions.find(x=>x.id===id);if(!s)return;
+  s.status='COMPLETED'; s.end='2026-07-15 09:30';
+  closeModal(); renderRtkDetail();
+}
+function cancelSession(id){
+  const s=sessions.find(x=>x.id===id);if(!s)return;
+  if(confirm('确认取消该标定会话？\n\n取消后会话标记为「已取消」，数据保留但\u4e0d纳入质量统计。\n此操作不可撤销。')){
+    s.status='CANCELED';
+    renderRtkDetail();
+  }
+}
+function deleteSession(id){
+  if(confirm('确认彻底删除该会话记录？\n\n删除后无法恢复。')){
+    const idx=sessions.findIndex(x=>x.id===id);
+    if(idx>=0)sessions.splice(idx,1);
+    renderRtkDetail();
+  }
+}
+
+// ===== Modals =====
+function openModal(name){document.getElementById('modal-'+name).classList.add('show');}
+function closeModal(){document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('show'));}
+
+// ===== Init =====
+renderAccordion();renderRtkDetail();
+</script>
+</body>
+</html>
