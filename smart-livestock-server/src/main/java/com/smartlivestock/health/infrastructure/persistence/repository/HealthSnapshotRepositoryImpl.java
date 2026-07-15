@@ -30,4 +30,9 @@ public class HealthSnapshotRepositoryImpl implements HealthSnapshotRepository {
     public HealthSnapshot save(HealthSnapshot snapshot) {
         return HealthMapper.toDomain(jpaRepo.save(HealthMapper.toJpa(snapshot)));
     }
+
+    @Override
+    public void ensureSnapshotExists(Long livestockId, Long farmId) {
+        jpaRepo.ensureSnapshotExists(livestockId, farmId);
+    }
 }
