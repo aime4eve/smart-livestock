@@ -12,6 +12,7 @@ class GpsScatterChart extends StatelessWidget {
   const GpsScatterChart({
     super.key,
     required this.points,
+    required this.p50,
     required this.p95,
     required this.rtkLatitude,
     required this.rtkLongitude,
@@ -19,6 +20,7 @@ class GpsScatterChart extends StatelessWidget {
   });
 
   final List<ScatterPoint> points;
+  final double p50;
   final double p95;
   final double rtkLatitude;
   final double rtkLongitude;
@@ -32,6 +34,7 @@ class GpsScatterChart extends StatelessWidget {
       child: CustomPaint(
         painter: _ScatterPainter(
           points: points,
+          p50: p50,
           p95: p95,
           rtkLat: rtkLatitude,
           rtkLng: rtkLongitude,
@@ -51,12 +54,14 @@ class _OffsetPoint {
 class _ScatterPainter extends CustomPainter {
   _ScatterPainter({
     required this.points,
+    required this.p50,
     required this.p95,
     required this.rtkLat,
     required this.rtkLng,
   });
 
   final List<ScatterPoint> points;
+  final double p50;
   final double p95;
   final double rtkLat;
   final double rtkLng;
@@ -86,18 +91,13 @@ class _ScatterPainter extends CustomPainter {
       ));
     }
 
-    // Determine scale: fit max(p95*2, maxAbsOffset) into half the canvas.
-    final maxAbsOffset = offsets.fold<double>(
-      p95 * 2.2,
-      (prev, e) => math.max(prev, e.dx.abs()),
-    );
-    final maxAbsOffsetY = offsets.fold<double>(
-      p95 * 2.2,
-      (prev, e) => math.max(prev, e.dy.abs()),
-    );
-    final dataRadius = math.max(maxAbsOffset, maxAbsOffsetY);
-    final usableHalf = math.min(cx, cy) - 8;
-    final scale = dataRadius > 0 ? usableHalf / dataRadius : 1.0;
+    // Determine view radius: show core distribution clearly.
+    // Use max(p50*3, 40m) as the view radius — this focuses on the bulk of
+    // points rather than zooming out to fit extreme outliers.
+    // Cap at 80m so very bad devices still show a meaningful view.
+    final viewRadius = math.min(math.max(p50 * 3, 40.0), 80.0);
+    final usableHalf = math.min(cx, cy) - 12;
+    final scale = usableHalf / viewRadius;
 
     // Background
     canvas.drawRect(
@@ -105,30 +105,57 @@ class _ScatterPainter extends CustomPainter {
       Paint()..color = Colors.white,
     );
 
-    // Grid circles at p95 and p95*2
-    for (final r in [p95, p95 * 2]) {
-      final px = r * scale;
-      if (px <= 0 || px > usableHalf) continue;
+    // Grade threshold reference circles (15m/25m/40m)
+    // These give visual context: points inside 15m are "excellent" quality.
+    const thresholds = [15.0, 25.0, 40.0];
+    const thresholdColors = [
+      Color(0x3066BB6A), // green-ish for 15m
+      Color(0x302563EB), // blue-ish for 25m
+      Color(0x30F59E0B), // amber for 40m
+    ];
+    for (int i = 0; i < thresholds.length; i++) {
+      final r = thresholds[i] * scale;
+      if (r <= 0 || r > usableHalf) continue;
       canvas.drawCircle(
         Offset(cx, cy),
-        px,
+        r,
         Paint()
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.5
-          ..color = const Color(0xFFCBD5E1),
+          ..strokeWidth = 0.8
+          ..color = thresholdColors[i],
       );
     }
 
-    // P95 ring (dashed blue)
-    _drawDashedCircle(canvas, Offset(cx, cy), p95 * scale, const Color(0xFF2563EB));
+    // P95 ring (dashed blue) — only if it fits within the view
+    if (p95 * scale <= usableHalf) {
+      _drawDashedCircle(canvas, Offset(cx, cy), p95 * scale,
+          const Color(0xFF2563EB));
+    }
 
-    // Scatter points
+    // Scatter points — normal (blue), suspect (amber), off-screen (gray edge)
     final normalPaint = Paint()..color = const Color(0x992563EB);
     final suspectPaint = Paint()..color = const Color(0x99F59E0B);
+    final offscreenPaint = Paint()..color = const Color(0x3394A3B8);
+    final viewRadiusSq = viewRadius * viewRadius;
+
     for (final o in offsets) {
-      final px = (cx + o.dx * scale).clamp(2.0, size.width - 2);
-      final py = (cy - o.dy * scale).clamp(2.0, size.height - 2);
-      canvas.drawCircle(Offset(px, py), 3, o.suspect ? suspectPaint : normalPaint);
+      final distSq = o.dx * o.dx + o.dy * o.dy;
+      final isOffscreen = distSq > viewRadiusSq;
+
+      double px, py;
+      if (isOffscreen) {
+        // Project to edge of circle
+        final dist = math.sqrt(distSq);
+        final ratio = (usableHalf - 4) / (dist * scale);
+        px = cx + o.dx * scale * ratio;
+        py = cy - o.dy * scale * ratio;
+        canvas.drawCircle(Offset(px, py), 2, offscreenPaint);
+      } else {
+        px = cx + o.dx * scale;
+        py = cy - o.dy * scale;
+        canvas.drawCircle(Offset(px, py), 3,
+            o.suspect ? suspectPaint : normalPaint);
+      }
     }
 
     // RTK truth crosshair (center)
@@ -169,6 +196,7 @@ class _ScatterPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ScatterPainter oldDelegate) =>
+      oldDelegate.p50 != p50 ||
       oldDelegate.p95 != p95 ||
       oldDelegate.rtkLat != rtkLat ||
       oldDelegate.rtkLng != rtkLng ||

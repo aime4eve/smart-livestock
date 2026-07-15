@@ -373,6 +373,7 @@ class _DetailContent extends StatelessWidget {
               child: GpsScatterChart(
                 key: const Key('scatter-chart'),
                 points: report.scatter,
+                p50: report.stats.p50,
                 p95: report.stats.p95,
                 rtkLatitude: report.rtkPoint.latitude,
                 rtkLongitude: report.rtkPoint.longitude,
