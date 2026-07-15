@@ -585,8 +585,6 @@ class _DeviceOverviewCard extends StatelessWidget {
         data.items.where((d) => d.status == DeviceStatus.online).length;
     final offline =
         data.items.where((d) => d.status == DeviceStatus.offline).length;
-    final lowBat =
-        data.items.where((d) => d.status == DeviceStatus.lowBattery).length;
     return HighfiCard(
       key: const Key('device-overview-card'),
       child: Column(
@@ -601,7 +599,6 @@ class _DeviceOverviewCard extends StatelessWidget {
               _Stat(label: l10n.devicesStatTotal, value: '${data.total}'),
               _Stat(label: l10n.deviceStatusOnline, value: '$online'),
               _Stat(label: l10n.deviceStatusOffline, value: '$offline'),
-              _Stat(label: l10n.deviceStatusLowBattery, value: '$lowBat'),
             ],
           ),
         ],
@@ -806,7 +803,7 @@ class _DeviceHealthDialogState extends State<DeviceHealthDialog> {
   }
 
   Widget _statusBadge(DeviceItem d) {
-    final online = d.runtimeStatus?.toLowerCase() == 'online' || d.status == 'ACTIVE';
+    final online = d.runtimeStatus?.toLowerCase() == 'online' || d.status == DeviceStatus.online;
     return _Badge(color: online ? AppColors.success : AppColors.danger, label: online ? '在线' : '离线');
   }
 
@@ -847,7 +844,7 @@ class _HeaderTile extends StatelessWidget {
     if (t is DeviceType) return switch (t) { DeviceType.gps => Icons.gps_fixed, DeviceType.rumenCapsule => Icons.medication, DeviceType.earTag => Icons.tag };
     return Icons.devices;
   }
-  Color _statusColor(DeviceItem d) => (d.runtimeStatus?.toLowerCase() == 'online' || d.status.name.toLowerCase() == 'active') ? AppColors.success : AppColors.danger;
+  Color _statusColor(DeviceItem d) => (d.runtimeStatus?.toLowerCase() == 'online' || d.status == DeviceStatus.online) ? AppColors.success : AppColors.danger;
 }
 
 class _HealthScoreCard extends StatelessWidget {

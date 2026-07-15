@@ -54,7 +54,7 @@ public class OpenDeviceRegisterController {
         }
         if (serialNo == null || serialNo.isBlank()) {
             return ResponseEntity.badRequest()
-                    .body(ApiResponse.error(ErrorCode.VALIDATION_ERROR, "serialNo 不能为空"));
+                    .body(ApiResponse.error(ErrorCode.VALIDATION_ERROR, "error.deviceSnOrEuiRequired"));
         }
 
         String deviceTypeStr = (String) body.get("deviceType");
@@ -63,7 +63,9 @@ public class OpenDeviceRegisterController {
         // Tenant ID extracted from the API Key lookup.
         Long tenantId = resolveTenantId(apiKey);
 
-        RegisterDeviceCommand command = new RegisterDeviceCommand(serialNo, deviceType, tenantId, (String) body.get("devEui"));
+        // serialNo doubles as the display deviceCode for self-registered devices.
+        RegisterDeviceCommand command = new RegisterDeviceCommand(
+                serialNo, deviceType, tenantId, (String) body.get("devEui"), serialNo);
         DeviceDto device = deviceApplicationService.registerDevice(command);
 
         if (idempotencyKey != null) {

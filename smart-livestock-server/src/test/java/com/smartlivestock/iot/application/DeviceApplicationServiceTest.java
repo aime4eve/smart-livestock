@@ -39,7 +39,7 @@ class DeviceApplicationServiceTest {
             return d;
         });
 
-        var cmd = new RegisterDeviceCommand("DEV-001", DeviceType.TRACKER, 1L, "AABBCCDDEEFF0011");
+        var cmd = new RegisterDeviceCommand("DEV-001", DeviceType.TRACKER, 1L, "AABBCCDDEEFF0011", null);
         var result = service.registerDevice(cmd);
 
         assertThat(result.deviceCode()).isEqualTo("DEV-001");
@@ -52,7 +52,7 @@ class DeviceApplicationServiceTest {
         existing.setId(99L);
         when(deviceRepository.findByDeviceCode("DEV-001")).thenReturn(Optional.of(existing));
 
-        var cmd = new RegisterDeviceCommand("DEV-001", DeviceType.TRACKER, 1L, null);
+        var cmd = new RegisterDeviceCommand("DEV-001", DeviceType.TRACKER, 1L, null, null);
         assertThatThrownBy(() -> service.registerDevice(cmd))
                 .isInstanceOf(ApiException.class)
                 .satisfies(ex -> {

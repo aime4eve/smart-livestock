@@ -14,8 +14,10 @@ public final class DeviceMapper {
         jpa.setId(device.getId());
         jpa.setTenantId(device.getTenantId());
         jpa.setDeviceCode(device.getDeviceCode());
+        jpa.setSerialNo(device.getSerialNo());
         jpa.setDeviceType(device.getDeviceType().name());
         jpa.setStatus(device.getStatus().name());
+        jpa.setRuntimeStatus(device.getRuntimeStatus());
         jpa.setBatteryLevel(device.getBatteryLevel());
         jpa.setFirmwareVersion(device.getFirmwareVersion());
        jpa.setDevEui(device.getDevEui());
@@ -37,8 +39,10 @@ public final class DeviceMapper {
         device.setId(jpa.getId());
         device.setTenantId(jpa.getTenantId());
         device.setDeviceCode(jpa.getDeviceCode());
+        device.setSerialNo(jpa.getSerialNo());
         device.setDeviceType(DeviceType.valueOf(jpa.getDeviceType()));
         device.setStatus(DeviceStatus.valueOf(jpa.getStatus()));
+        device.setRuntimeStatus(jpa.getRuntimeStatus());
         device.setBatteryLevel(jpa.getBatteryLevel());
         device.setFirmwareVersion(jpa.getFirmwareVersion());
        device.setDevEui(jpa.getDevEui());

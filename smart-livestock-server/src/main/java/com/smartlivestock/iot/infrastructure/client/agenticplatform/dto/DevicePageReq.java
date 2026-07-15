@@ -10,4 +10,5 @@ public class DevicePageReq {
     private Integer size = 20;
     private String deviceTypeCode;
     private String deviceName;
+    private String keyword;
 }

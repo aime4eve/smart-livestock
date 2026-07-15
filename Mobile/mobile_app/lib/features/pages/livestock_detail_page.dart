@@ -236,7 +236,6 @@ class _DeviceListCard extends ConsumerWidget {
                       color: switch (device.status) {
                         DeviceStatus.online => AppColors.success,
                         DeviceStatus.offline => AppColors.textSecondary,
-                        DeviceStatus.lowBattery => AppColors.warning,
                       },
                     ),
                     const SizedBox(width: AppSpacing.md),

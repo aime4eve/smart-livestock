@@ -69,6 +69,8 @@ services:
       REDIS_PORT: 6379
       ROCKETMQ_NAME_SERVER: rocketmq-namesrv:9876
       AI_PLATFORM_URL: http://ai-platform:8000
+      AGENTIC_PLATFORM_DEVICE_BASE_URL: ${AGENTIC_PLATFORM_DEVICE_BASE_URL:-http://172.22.4.17:8100}
+      AGENTIC_PLATFORM_LICENSE_BASE_URL: ${AGENTIC_PLATFORM_LICENSE_BASE_URL:-http://172.22.4.17:8100}
     depends_on:
       postgres:
         condition: service_healthy

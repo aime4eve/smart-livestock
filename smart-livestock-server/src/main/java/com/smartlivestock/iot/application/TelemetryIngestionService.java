@@ -167,9 +167,8 @@ public class TelemetryIngestionService {
     }
 
     private void updateDeviceRuntimeStatus(Device device, Map<String, Object> readings) {
-        // Set runtime connectivity status (root cause fix: was missing, causing frontend to always show offline)
-        device.setRuntimeStatus(computeRuntimeStatus(device, readings));
-
+        // runtimeStatus (online/offline) is now sourced from blade platform onlineStatus;
+        // no longer derived locally from telemetry readings.
         Object battery = readings.get("battery");
         if (battery != null) device.setBatteryLevel(toInteger(battery));
 
@@ -188,6 +187,13 @@ public class TelemetryIngestionService {
         device.setLastOnlineAt(Instant.now());
     }
 
+    /**
+     * @deprecated runtimeStatus is now sourced from the agentic-middle-platform
+     * {@code onlineStatus} (1=online, otherwise offline). This local derivation
+     * (including the {@code low_battery} value) is retained for reference only and
+     * is no longer invoked by {@link #ingest}.
+     */
+    @Deprecated
     private String computeRuntimeStatus(Device device, Map<String, Object> readings) {
         Object antiDis = readings.get("antiDisassemblyStatus");
         if (antiDis != null && toInteger(antiDis) != 0) return "offline";

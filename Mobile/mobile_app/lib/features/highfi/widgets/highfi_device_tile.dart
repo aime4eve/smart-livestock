@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/l10n/enum_labels.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class HighfiDeviceTile extends StatelessWidget {
@@ -50,7 +51,7 @@ class HighfiDeviceTile extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  _subtitle,
+                  _subtitle(l10n),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                if (device.batteryPercent != null) ...[
@@ -134,17 +135,12 @@ class HighfiDeviceTile extends StatelessWidget {
   Color get _statusColor => switch (device.status) {
         DeviceStatus.online => AppColors.success,
         DeviceStatus.offline => AppColors.textSecondary,
-        DeviceStatus.lowBattery => AppColors.warning,
       };
 
- String get _subtitle {
+ String _subtitle(AppLocalizations l10n) {
    final parts = <String>[
      device.boundLivestockCode,
-     switch (device.status) {
-       DeviceStatus.online => '在线',
-       DeviceStatus.offline => '离线',
-       DeviceStatus.lowBattery => '低电',
-     },
+     device.status.localizedLabel(l10n),
    ];
    if (device.rssi != null) parts.add('RSSI ${device.rssi}dBm');
    if (device.signalStrength != null) parts.add('信号${device.signalStrength}');

@@ -26,11 +26,17 @@ public class DeviceJpaEntity {
     @Column(name = "device_code", nullable = false, unique = true, length = 50)
     private String deviceCode;
 
+    @Column(name = "serial_no", length = 128)
+    private String serialNo;
+
     @Column(name = "device_type", nullable = false, length = 20)
     private String deviceType;
 
     @Column(name = "status", nullable = false, length = 20)
     private String status;
+
+    @Column(name = "runtime_status", length = 30)
+    private String runtimeStatus;
 
     @Column(name = "battery_level")
     private Integer batteryLevel;
@@ -104,11 +110,17 @@ public class DeviceJpaEntity {
     public String getDeviceCode() { return deviceCode; }
     public void setDeviceCode(String deviceCode) { this.deviceCode = deviceCode; }
 
+    public String getSerialNo() { return serialNo; }
+    public void setSerialNo(String serialNo) { this.serialNo = serialNo; }
+
     public String getDeviceType() { return deviceType; }
     public void setDeviceType(String deviceType) { this.deviceType = deviceType; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public String getRuntimeStatus() { return runtimeStatus; }
+    public void setRuntimeStatus(String runtimeStatus) { this.runtimeStatus = runtimeStatus; }
 
     public Integer getBatteryLevel() { return batteryLevel; }
     public void setBatteryLevel(Integer batteryLevel) { this.batteryLevel = batteryLevel; }

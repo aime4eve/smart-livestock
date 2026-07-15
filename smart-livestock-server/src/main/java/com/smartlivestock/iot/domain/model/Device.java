@@ -11,18 +11,19 @@ import java.time.Instant;
 /**
  * Device aggregate root representing an IoT device in the system.
  * <p>
- * Status machine: INVENTORY → ACTIVE → OFFLINE → DECOMMISSIONED
+ * Lifecycle status machine: INVENTORY → ACTIVE → DECOMMISSIONED
  * <ul>
- *   <li>Only INVENTORY or OFFLINE can activate()</li>
- *   <li>Only ACTIVE can markOffline()</li>
- *   <li>Only ACTIVE or OFFLINE can decommission()</li>
+ *   <li>Only INVENTORY can activate()</li>
+ *   <li>Only ACTIVE can decommission()</li>
  * </ul>
- * Runtime status (online/offline/low_battery) is updated independently via heartbeat.
+ * Runtime online/offline status is an independent dimension expressed by
+ * {@code runtimeStatus} ("online"/"offline"), synced from the agentic-middle-platform.
  */
 public class Device extends AggregateRoot {
 
     private Long tenantId;
     private String deviceCode;
+    private String serialNo;
     private DeviceType deviceType;
     private DeviceStatus status;
     private String runtimeStatus;
@@ -55,41 +56,28 @@ public class Device extends AggregateRoot {
     }
 
     /**
-     * Activate this device. Only INVENTORY or OFFLINE devices can be activated.
+     * Activate this device. Only INVENTORY devices can be activated.
      *
-     * @throws ApiException (STATE_CONFLICT) if device is not in INVENTORY or OFFLINE status
+     * @throws ApiException (STATE_CONFLICT) if device is not in INVENTORY status
      */
     public void activate() {
-        if (status != DeviceStatus.INVENTORY && status != DeviceStatus.OFFLINE) {
+        if (status != DeviceStatus.INVENTORY) {
             throw new ApiException(ErrorCode.STATE_CONFLICT,
-                "Device must be in INVENTORY or OFFLINE status to activate, current: " + status);
+                "Device must be in INVENTORY status to activate, current: " + status);
         }
         this.status = DeviceStatus.ACTIVE;
         registerEvent(new DeviceActivatedEvent(getId(), deviceCode));
     }
 
     /**
-     * Mark this device as offline. Only ACTIVE devices can be marked offline.
+     * Decommission this device. Only ACTIVE devices can be decommissioned.
      *
      * @throws ApiException (STATE_CONFLICT) if device is not in ACTIVE status
      */
-    public void markOffline() {
+    public void decommission() {
         if (status != DeviceStatus.ACTIVE) {
             throw new ApiException(ErrorCode.STATE_CONFLICT,
-                "Device must be in ACTIVE status to mark offline, current: " + status);
-        }
-        this.status = DeviceStatus.OFFLINE;
-    }
-
-    /**
-     * Decommission this device. Only ACTIVE or OFFLINE devices can be decommissioned.
-     *
-     * @throws ApiException (STATE_CONFLICT) if device is not in ACTIVE or OFFLINE status
-     */
-    public void decommission() {
-        if (status != DeviceStatus.ACTIVE && status != DeviceStatus.OFFLINE) {
-            throw new ApiException(ErrorCode.STATE_CONFLICT,
-                "Device must be in ACTIVE or OFFLINE status to decommission, current: " + status);
+                "Device must be in ACTIVE status to decommission, current: " + status);
         }
         this.status = DeviceStatus.DECOMMISSIONED;
     }
@@ -97,7 +85,7 @@ public class Device extends AggregateRoot {
     /**
      * Update runtime status from heartbeat telemetry.
      *
-     * @param runtimeStatus online, offline, low_battery
+     * @param runtimeStatus online, offline
      * @param batteryLevel  battery percentage 0-100
      * @param firmwareVersion current firmware version
      */
@@ -123,6 +111,9 @@ public class Device extends AggregateRoot {
 
     public String getDeviceCode() { return deviceCode; }
     public void setDeviceCode(String deviceCode) { this.deviceCode = deviceCode; }
+
+    public String getSerialNo() { return serialNo; }
+    public void setSerialNo(String serialNo) { this.serialNo = serialNo; }
 
     public DeviceType getDeviceType() { return deviceType; }
     public void setDeviceType(DeviceType deviceType) { this.deviceType = deviceType; }
