@@ -33,4 +33,7 @@ public interface SpringDataDeviceRepository extends JpaRepository<DeviceJpaEntit
 
     @Query("SELECT d.id FROM DeviceJpaEntity d WHERE d.status = 'ACTIVE' AND d.platformDeviceId IS NOT NULL ORDER BY d.id")
     List<Long> findActivePlatformDeviceIds(Pageable pageable);
+
+    List<DeviceJpaEntity> findByDeviceTypeOrderById(@Param("deviceType") String deviceType);
+
 }

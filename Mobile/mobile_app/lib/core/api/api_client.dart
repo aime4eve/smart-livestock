@@ -64,6 +64,9 @@ class ApiClient {
   Future<void> delete(String path) =>
       _withRefreshRetry(() => _doDelete(path));
 
+  Future<Map<String, dynamic>> patch(String path, {Object? body}) =>
+      _withRefreshRetry(() => _doPatch(path, body: body));
+
   Future<Map<String, dynamic>> farmGet(String suffix, {String? farmId}) async {
     final id = farmId ?? _activeFarmId;
     if (id == null) throw StateError('No active farm');
@@ -118,6 +121,16 @@ class ApiClient {
   Future<Map<String, dynamic>> _doPut(String path, {Object? body}) async {
     final headers = await _headers();
     final response = await http.put(
+      Uri.parse('$_baseUrl$path'),
+      headers: headers,
+      body: body != null ? jsonEncode(body) : null,
+    ).timeout(_timeout);
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> _doPatch(String path, {Object? body}) async {
+    final headers = await _headers();
+    final response = await http.patch(
       Uri.parse('$_baseUrl$path'),
       headers: headers,
       body: body != null ? jsonEncode(body) : null,

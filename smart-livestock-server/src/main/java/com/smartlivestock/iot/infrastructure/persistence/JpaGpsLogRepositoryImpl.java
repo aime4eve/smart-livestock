@@ -1,12 +1,16 @@
 package com.smartlivestock.iot.infrastructure.persistence;
 
 import com.smartlivestock.iot.domain.model.GpsLog;
+import com.smartlivestock.iot.domain.port.dto.GpsPointWithTelemetry;
 import com.smartlivestock.iot.domain.repository.GpsLogRepository;
 import com.smartlivestock.iot.infrastructure.persistence.mapper.GpsLogMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -48,5 +52,39 @@ public class JpaGpsLogRepositoryImpl implements GpsLogRepository {
         return springDataRepo.findAllByIdInOrderByRecordedAt(ids).stream()
                 .map(GpsLogMapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    public List<GpsPointWithTelemetry> findByDeviceIdAndTimeRangeWithTelemetry(Long deviceId, Instant from, Instant to) {
+        List<Object[]> rows = springDataRepo.findGpsWithTelemetryByDeviceIdAndTimeRange(deviceId, from, to);
+        List<GpsPointWithTelemetry> result = new ArrayList<>(rows.size());
+        for (Object[] row : rows) {
+            result.add(new GpsPointWithTelemetry(
+                    toBigDecimal(row[0]),
+                    toBigDecimal(row[1]),
+                    toBigDecimal(row[2]),
+                    toInstant(row[3]),
+                    row[4] != null ? ((Number) row[4]).intValue() : null,
+                    toBigDecimal(row[5]),
+                    row[6] != null ? row[6].toString() : null
+            ));
+        }
+        return result;
+    }
+
+    private static BigDecimal toBigDecimal(Object o) {
+        if (o == null) return null;
+        if (o instanceof BigDecimal bd) return bd;
+        if (o instanceof Number n) return BigDecimal.valueOf(n.doubleValue());
+        return new BigDecimal(o.toString());
+    }
+
+    private static Instant toInstant(Object o) {
+        if (o == null) return null;
+        if (o instanceof Instant inst) return inst;
+        if (o instanceof java.sql.Timestamp ts) return ts.toInstant();
+        if (o instanceof Date d) return d.toInstant();
+        if (o instanceof java.time.OffsetDateTime odt) return odt.toInstant();
+        throw new IllegalStateException("Cannot convert to Instant: " + o.getClass());
     }
 }

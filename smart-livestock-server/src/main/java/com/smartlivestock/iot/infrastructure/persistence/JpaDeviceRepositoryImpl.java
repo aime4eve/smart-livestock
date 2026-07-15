@@ -75,6 +75,20 @@ public class JpaDeviceRepositoryImpl implements DeviceRepository {
     }
 
     @Override
+    public List<Device> findAllTrackers() {
+        return springDataRepo.findByDeviceTypeOrderById("TRACKER").stream()
+                .map(DeviceMapper::toDomain).toList();
+    }
+
+    @Override
+    public List<Device> findAllByIdIn(java.util.Collection<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return springDataRepo.findAllById(ids).stream().map(DeviceMapper::toDomain).toList();
+    }
+
+    @Override
     public List<Long> findActivePlatformDeviceIds(int offset, int limit) {
         org.springframework.data.domain.Pageable pageable =
                 org.springframework.data.domain.PageRequest.of(offset / limit, limit);

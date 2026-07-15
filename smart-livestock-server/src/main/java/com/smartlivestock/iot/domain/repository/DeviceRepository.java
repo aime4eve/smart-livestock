@@ -2,6 +2,7 @@ package com.smartlivestock.iot.domain.repository;
 
 import com.smartlivestock.iot.domain.model.Device;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,4 +20,10 @@ public interface DeviceRepository {
 
     /** Find IDs of ACTIVE devices with platform_device_id set, paginated by offset/limit. */
     List<Long> findActivePlatformDeviceIds(int offset, int limit);
+
+    /** All TRACKER devices across tenants (for GPS quality admin). */
+    List<Device> findAllTrackers();
+
+    /** Devices matching the given ids (cross-tenant lookup for device codes). */
+    List<Device> findAllByIdIn(Collection<Long> ids);
 }

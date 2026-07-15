@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/quality_report_tab.dart';
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/rtk_calibration_tab.dart';
+
 /// GPS Quality Check page with two tabs:
 /// Tab 1: RTK calibration management (RTK points + calibration sessions)
 /// Tab 2: Quality reports (device comparison + statistics)
@@ -52,33 +55,8 @@ class _GpsQualityPageState extends ConsumerState<GpsQualityPage>
       body: TabBarView(
         controller: _tabController,
         children: const [
-          _Placeholder(icon: Icons.my_location, labelKey: 'rtk'),
-          _Placeholder(icon: Icons.assessment, labelKey: 'report'),
-        ],
-      ),
-    );
-  }
-}
-
-class _Placeholder extends StatelessWidget {
-  const _Placeholder({required this.icon, required this.labelKey});
-  final IconData icon;
-  final String labelKey;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 48, color: Colors.grey.shade400),
-          const SizedBox(height: 8),
-          Text(
-            '（开发中）',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.grey.shade600,
-                ),
-          ),
+          RtkCalibrationTab(),
+          QualityReportTab(),
         ],
       ),
     );

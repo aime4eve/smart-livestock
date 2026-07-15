@@ -233,6 +233,17 @@ public class GpsQualityCalculator {
     // Haversine distance
     // ------------------------------------------------------------------
 
+    /**
+     * Haversine distance in meters between two coordinates.
+     * Exposed so report builders can compute per-point error for scatter plots.
+     */
+    public double distance(BigDecimal lat1, BigDecimal lng1, BigDecimal lat2, BigDecimal lng2) {
+        return haversine(
+            lat1.doubleValue(), lng1.doubleValue(),
+            lat2.doubleValue(), lng2.doubleValue()
+        );
+    }
+
     private double haversine(double lat1, double lng1, double lat2, double lng2) {
         double dLat = Math.toRadians(lat2 - lat1);
         double dLng = Math.toRadians(lng2 - lng1);
