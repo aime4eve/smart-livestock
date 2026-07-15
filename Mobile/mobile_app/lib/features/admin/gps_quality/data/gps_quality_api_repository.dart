@@ -166,13 +166,15 @@ class GpsQualityApiRepository {
     params.add('size=$size');
     final data = await ApiClient.instance
         .get('$_base/sessions?${params.join('&')}');
-    final items = ((data['value'] ?? data['items']) as List<dynamic>? ?? [])
+    // Sessions endpoint returns Spring Data Page: {content: [...], totalElements: N}
+    final rawItems = (data['content'] ?? data['value'] ?? data['items']) as List<dynamic>? ?? [];
+    final items = rawItems
         .whereType<Map<String, dynamic>>()
         .map(CalibrationSession.fromJson)
         .toList();
     return SessionListResult(
       items: items,
-      total: data['total'] as int? ?? items.length,
+      total: data['totalElements'] as int? ?? data['total'] as int? ?? items.length,
       page: page,
       size: size,
     );
