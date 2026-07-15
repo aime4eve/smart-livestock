@@ -211,9 +211,9 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
                           fontSize: 12, color: AppColors.primary)),
                 ),
                 const Spacer(),
-                ElevatedButton.icon(
+                FilledButton.icon(
                   key: const Key('add-session-btn'),
-                  icon: const Icon(Icons.add, size: 18),
+                  icon: const Icon(Icons.add, size: 16),
                   label: Text(l10n.gpsQualityAddSession),
                   onPressed: () =>
                       _showCreateSessionDialog(l10n, locationPoints.first),
@@ -437,6 +437,7 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
         .read(calibrationSessionsProvider(session.rtkPointId).notifier)
         .endSession(session.id);
     if (!mounted) return;
+    ref.invalidate(calibrationSessionsProvider(session.rtkPointId));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(ok ? '✅' : '❌')),
     );
@@ -448,6 +449,7 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
         .read(calibrationSessionsProvider(session.rtkPointId).notifier)
         .deleteSession(session.id);
     if (!mounted) return;
+    ref.invalidate(calibrationSessionsProvider(session.rtkPointId));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(ok ? '✅' : '❌')),
     );
@@ -469,6 +471,16 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
       builder: (ctx) =>
           _CreateSessionDialog(l10n: l10n, ref: ref, defaultPoint: point),
     );
+    // After dialog closes, invalidate all session providers for points in
+    // the current location so the merged table refreshes.
+    if (mounted) {
+      final points = _groupByLocation(
+          ref.read(rtkPointsProvider).value ?? []);
+      final locPoints = points[_selectedLocation] ?? [];
+      for (final p in locPoints) {
+        ref.invalidate(calibrationSessionsProvider(p.id));
+      }
+    }
   }
 
   // ── Helpers ──────────────────────────────────────────────────────
