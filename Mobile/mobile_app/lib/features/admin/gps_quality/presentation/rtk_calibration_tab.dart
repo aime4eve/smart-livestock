@@ -42,11 +42,20 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
           _expandedLocations.add(_selectedLocation!);
         }
 
+        // Pre-fetch sessions for all points in the selected location
+        // (ref.watch in a loop inside build — must be here, not in helper)
+        final selectedPoints = locations[_selectedLocation] ?? [];
+        final pointSessions = <int, List<CalibrationSession>>{};
+        for (final p in selectedPoints) {
+          final asyncVal = ref.watch(calibrationSessionsProvider(p.id));
+          pointSessions[p.id] = asyncVal.value ?? [];
+        }
+
         return LayoutBuilder(
           builder: (context, constraints) {
             final wide = constraints.maxWidth >= 760;
             final sidebar = _buildSidebar(l10n, locations);
-            final detail = _buildDetail(l10n, locations[_selectedLocation] ?? []);
+            final detail = _buildDetail(l10n, selectedPoints, pointSessions);
             if (wide) {
               return Padding(
                 padding: const EdgeInsets.all(AppSpacing.lg),
@@ -139,7 +148,8 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
 
   // ── Detail (merged location-level table) ────────────────────────
 
-  Widget _buildDetail(AppLocalizations l10n, List<RtkPoint> locationPoints) {
+  Widget _buildDetail(AppLocalizations l10n, List<RtkPoint> locationPoints,
+      Map<int, List<CalibrationSession>> pointSessions) {
     if (locationPoints.isEmpty) {
       return Card(
         child: SizedBox(
@@ -159,8 +169,7 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
     final uncalibratedPoints = <RtkPoint>[];
 
     for (final point in locationPoints) {
-      final sessionsAsync = ref.watch(calibrationSessionsProvider(point.id));
-      final sessions = sessionsAsync.value ?? [];
+      final sessions = pointSessions[point.id] ?? [];
       if (sessions.isEmpty) {
         uncalibratedPoints.add(point);
       } else {
@@ -215,18 +224,18 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
           // Merged sessions table
           if (!hasAnySession)
             Padding(
+              key: const Key('empty-sessions'),
               padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Center(
-                child: Column(
-                  children: [
-                    const Icon(Icons.assignment_outlined,
-                        size: 40, color: AppColors.textSecondary),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(l10n.gpsQualityNoData,
-                        style: const TextStyle(
-                            color: AppColors.textSecondary, fontSize: 13)),
-                  ],
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.assignment_outlined,
+                      size: 40, color: AppColors.textSecondary),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(l10n.gpsQualityNoData,
+                      style: const TextStyle(
+                          color: AppColors.textSecondary, fontSize: 13)),
+                ],
               ),
             )
           else
