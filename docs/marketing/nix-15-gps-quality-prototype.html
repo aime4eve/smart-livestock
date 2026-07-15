@@ -377,7 +377,7 @@ const devices=[
 const sessions=[
   {id:1,ptId:11,devId:1,start:'2026-07-10 08:00',end:'2026-07-11 08:00',status:'COMPLETED'},
   {id:2,ptId:16,devId:2,start:'2026-07-10 08:00',end:'2026-07-11 08:00',status:'COMPLETED'},
-  {id:3,ptId:20,devId:3,start:'2026-07-10 08:00',end:'2026-07-11 08:00',status:'COMPLETED'},
+  {id:3,ptId:20,devId:3,start:'2026-07-10 08:00',end:'2026-07-11 08:00',status:'CANCELED'},
   {id:4,ptId:21,devId:4,start:'2026-07-10 08:00',end:'2026-07-11 08:00',status:'COMPLETED'},
   {id:5,ptId:22,devId:5,start:'2026-07-14 08:00',end:null,status:'IN_PROGRESS'},
 ];
@@ -444,7 +444,7 @@ function renderAccordion(){
     h+=`<span class="loc-count">${loc.points.length}点${sessionCount?'·'+sessionCount+'会话':''}</span>`;
     h+=`</div><div class="accordion-body">`;
     for(const p of loc.points){
-      const hasS=sessions.some(s=>s.ptId===p.id);
+      const hasS=sessions.some(s=>s.ptId===p.id&&s.status!=='CANCELED');
       h+=`<div class="pt-row" onclick="selectLoc(${loc.id})"><span class="pt-label">${p.label}</span>`;
       if(hasS)h+=`<span class="pt-session">标定</span>`;
       h+=`</div>`;
@@ -473,16 +473,20 @@ function renderRtkDetail(){
       const rtk = idx===0 ? `${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}` : '';
       const lbl = idx===0 ? `<b>${p.label}</b>` : '';
       const time = `${s.start}<br><span style="color:var(--text-hint)">→ ${s.end||'进行中...'}</span>`;
-      const pillCls = s.status==='COMPLETED'?'pill-green':'pill-amber';
-      const pillTxt = s.status==='COMPLETED'?'已完成':'进行中';
+      let pillCls,pillTxt,rowCls='';
+      if(s.status==='COMPLETED'){pillCls='pill-green';pillTxt='已完成'}
+      else if(s.status==='IN_PROGRESS'){pillCls='pill-amber';pillTxt='进行中'}
+      else{pillCls='pill-red';pillTxt='已取消';rowCls='session-canceled'}
       let btns='';
       if(s.status==='IN_PROGRESS'){
         btns=`<button class="btn btn-primary btn-sm" onclick="openEndSession(${s.id})">结束</button>`;
         btns+=` <button class="btn btn-out btn-sm" onclick="cancelSession(${s.id})">取消</button>`;
-      } else {
+      } else if(s.status==='COMPLETED'){
         btns=`<button class="btn btn-out btn-sm" onclick="cancelSession(${s.id})">删除</button>`;
+      } else {
+        btns=`<button class="btn btn-out btn-sm" onclick="deleteSession(${s.id})">删除</button>`;
       }
-      h+=`<tr><td>${lbl}</td><td style="font-size:12px;color:var(--text-sec)">${rtk}</td>`;
+      h+=`<tr class="${rowCls}"><td>${lbl}</td><td style="font-size:12px;color:var(--text-sec)">${rtk}</td>`;
       h+=`<td><b>${devCode(s.devId)}</b></td><td style="font-size:12px">${time}</td>`;
       h+=`<td><span class="pill ${pillCls}">${pillTxt}</span></td><td>${btns}</td></tr>`;
     });
@@ -657,7 +661,14 @@ function confirmEndSession(){
   closeModal(); renderRtkDetail();
 }
 function cancelSession(id){
-  if(confirm('确认删除该标定会话？此操作不可撤销。')){
+  const s=sessions.find(x=>x.id===id);if(!s)return;
+  if(confirm('确认取消该标定会话？\n\n取消后会话标记为「已取消」，数据保留但\u4e0d纳入质量统计。\n此操作不可撤销。')){
+    s.status='CANCELED';
+    renderRtkDetail();
+  }
+}
+function deleteSession(id){
+  if(confirm('确认彻底删除该会话记录？\n\n删除后无法恢复。')){
     const idx=sessions.findIndex(x=>x.id===id);
     if(idx>=0)sessions.splice(idx,1);
     renderRtkDetail();
