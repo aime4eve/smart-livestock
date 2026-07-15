@@ -4789,6 +4789,300 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'雌'**
   String get livestockGenderValueFemale;
+
+  /// No description provided for @gpsQualityTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'GPS 质量检查'**
+  String get gpsQualityTitle;
+
+  /// No description provided for @gpsQualityTabRtkCalibration.
+  ///
+  /// In zh, this message translates to:
+  /// **'RTK 标定管理'**
+  String get gpsQualityTabRtkCalibration;
+
+  /// No description provided for @gpsQualityTabQualityReport.
+  ///
+  /// In zh, this message translates to:
+  /// **'质量报告'**
+  String get gpsQualityTabQualityReport;
+
+  /// No description provided for @gpsQualityRtkPointList.
+  ///
+  /// In zh, this message translates to:
+  /// **'RTK 真值点'**
+  String get gpsQualityRtkPointList;
+
+  /// No description provided for @gpsQualitySessionList.
+  ///
+  /// In zh, this message translates to:
+  /// **'标定会话'**
+  String get gpsQualitySessionList;
+
+  /// No description provided for @gpsQualityAddRtkPoint.
+  ///
+  /// In zh, this message translates to:
+  /// **'新增点位'**
+  String get gpsQualityAddRtkPoint;
+
+  /// No description provided for @gpsQualityAddSession.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建标定会话'**
+  String get gpsQualityAddSession;
+
+  /// No description provided for @gpsQualityLocationName.
+  ///
+  /// In zh, this message translates to:
+  /// **'位置'**
+  String get gpsQualityLocationName;
+
+  /// No description provided for @gpsQualityPointLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'点位编号'**
+  String get gpsQualityPointLabel;
+
+  /// No description provided for @gpsQualityLatitude.
+  ///
+  /// In zh, this message translates to:
+  /// **'纬度'**
+  String get gpsQualityLatitude;
+
+  /// No description provided for @gpsQualityLongitude.
+  ///
+  /// In zh, this message translates to:
+  /// **'经度'**
+  String get gpsQualityLongitude;
+
+  /// No description provided for @gpsQualityDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备'**
+  String get gpsQualityDevice;
+
+  /// No description provided for @gpsQualityStartTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'开始时间'**
+  String get gpsQualityStartTime;
+
+  /// No description provided for @gpsQualityEndTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'结束时间'**
+  String get gpsQualityEndTime;
+
+  /// No description provided for @gpsQualityStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'状态'**
+  String get gpsQualityStatus;
+
+  /// No description provided for @gpsQualityStatusInProgress.
+  ///
+  /// In zh, this message translates to:
+  /// **'进行中'**
+  String get gpsQualityStatusInProgress;
+
+  /// No description provided for @gpsQualityStatusCompleted.
+  ///
+  /// In zh, this message translates to:
+  /// **'已完成'**
+  String get gpsQualityStatusCompleted;
+
+  /// No description provided for @gpsQualityStatusCanceled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消'**
+  String get gpsQualityStatusCanceled;
+
+  /// No description provided for @gpsQualityEndSession.
+  ///
+  /// In zh, this message translates to:
+  /// **'结束'**
+  String get gpsQualityEndSession;
+
+  /// No description provided for @gpsQualityCancelSession.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消'**
+  String get gpsQualityCancelSession;
+
+  /// No description provided for @gpsQualityEndSessionConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认结束会话？结束后将自动计算统计结果。'**
+  String get gpsQualityEndSessionConfirm;
+
+  /// No description provided for @gpsQualitySelectRtkPoint.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择 RTK 点位'**
+  String get gpsQualitySelectRtkPoint;
+
+  /// No description provided for @gpsQualitySelectDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择设备'**
+  String get gpsQualitySelectDevice;
+
+  /// No description provided for @gpsQualityReportTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'质量报告'**
+  String get gpsQualityReportTitle;
+
+  /// No description provided for @gpsQualityComparisonTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'多设备对比'**
+  String get gpsQualityComparisonTitle;
+
+  /// No description provided for @gpsQualityExcludeSuspect.
+  ///
+  /// In zh, this message translates to:
+  /// **'排除疑似移动点'**
+  String get gpsQualityExcludeSuspect;
+
+  /// No description provided for @gpsQualityTotalPoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'总点数'**
+  String get gpsQualityTotalPoints;
+
+  /// No description provided for @gpsQualityEffectivePoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'有效点数'**
+  String get gpsQualityEffectivePoints;
+
+  /// No description provided for @gpsQualitySuspectPoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'疑似移动'**
+  String get gpsQualitySuspectPoints;
+
+  /// No description provided for @gpsQualityMeanError.
+  ///
+  /// In zh, this message translates to:
+  /// **'平均偏差'**
+  String get gpsQualityMeanError;
+
+  /// No description provided for @gpsQualityP50.
+  ///
+  /// In zh, this message translates to:
+  /// **'P50 中位偏差'**
+  String get gpsQualityP50;
+
+  /// No description provided for @gpsQualityP95.
+  ///
+  /// In zh, this message translates to:
+  /// **'P95 抖动半径'**
+  String get gpsQualityP95;
+
+  /// No description provided for @gpsQualityP99.
+  ///
+  /// In zh, this message translates to:
+  /// **'P99'**
+  String get gpsQualityP99;
+
+  /// No description provided for @gpsQualityMaxError.
+  ///
+  /// In zh, this message translates to:
+  /// **'最大偏差'**
+  String get gpsQualityMaxError;
+
+  /// No description provided for @gpsQualityJitterDiameter.
+  ///
+  /// In zh, this message translates to:
+  /// **'抖动直径'**
+  String get gpsQualityJitterDiameter;
+
+  /// No description provided for @gpsQualityOutlierCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'野点数'**
+  String get gpsQualityOutlierCount;
+
+  /// No description provided for @gpsQualityGradeExcellent.
+  ///
+  /// In zh, this message translates to:
+  /// **'优秀'**
+  String get gpsQualityGradeExcellent;
+
+  /// No description provided for @gpsQualityGradeUsable.
+  ///
+  /// In zh, this message translates to:
+  /// **'可用'**
+  String get gpsQualityGradeUsable;
+
+  /// No description provided for @gpsQualityGradeMarginal.
+  ///
+  /// In zh, this message translates to:
+  /// **'勉强可用'**
+  String get gpsQualityGradeMarginal;
+
+  /// No description provided for @gpsQualityGradeUnavailable.
+  ///
+  /// In zh, this message translates to:
+  /// **'不可用'**
+  String get gpsQualityGradeUnavailable;
+
+  /// No description provided for @gpsQualityGradeStandard.
+  ///
+  /// In zh, this message translates to:
+  /// **'等级标准'**
+  String get gpsQualityGradeStandard;
+
+  /// No description provided for @gpsQualityGradeExcellentDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'P95 ≤ 15m 且有效点 ≥ 20'**
+  String get gpsQualityGradeExcellentDesc;
+
+  /// No description provided for @gpsQualityGradeUsableDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'P95 ≤ 25m 且有效点 ≥ 20'**
+  String get gpsQualityGradeUsableDesc;
+
+  /// No description provided for @gpsQualityGradeMarginalDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'25m < P95 ≤ 40m 且有效点 ≥ 10'**
+  String get gpsQualityGradeMarginalDesc;
+
+  /// No description provided for @gpsQualityGradeUnavailableDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'P95 > 40m 或有效点 < 10'**
+  String get gpsQualityGradeUnavailableDesc;
+
+  /// No description provided for @gpsQualityNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无数据'**
+  String get gpsQualityNoData;
+
+  /// No description provided for @gpsQualityViewTrajectory.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看完整移动轨迹'**
+  String get gpsQualityViewTrajectory;
+
+  /// No description provided for @gpsQualityScatterChart.
+  ///
+  /// In zh, this message translates to:
+  /// **'静止 GPS 散点图'**
+  String get gpsQualityScatterChart;
+
+  /// No description provided for @gpsQualityErrorHistogram.
+  ///
+  /// In zh, this message translates to:
+  /// **'偏差分布'**
+  String get gpsQualityErrorHistogram;
 }
 
 class _AppLocalizationsDelegate

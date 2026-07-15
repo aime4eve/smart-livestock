@@ -36,6 +36,7 @@ class MainShell extends ConsumerWidget {
               onSelected: (route) => context.go(route.path),
               itemBuilder: (_) => [
                 AppRoute.platformTileAdmin,
+                AppRoute.platformGpsQuality,
                 AppRoute.platformRevenue,
                 AppRoute.platformContracts,
                 AppRoute.platformSubscriptions,

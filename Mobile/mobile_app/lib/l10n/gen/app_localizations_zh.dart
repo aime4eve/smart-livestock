@@ -2569,4 +2569,151 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get livestockGenderValueFemale => '雌';
+
+  @override
+  String get gpsQualityTitle => 'GPS 质量检查';
+
+  @override
+  String get gpsQualityTabRtkCalibration => 'RTK 标定管理';
+
+  @override
+  String get gpsQualityTabQualityReport => '质量报告';
+
+  @override
+  String get gpsQualityRtkPointList => 'RTK 真值点';
+
+  @override
+  String get gpsQualitySessionList => '标定会话';
+
+  @override
+  String get gpsQualityAddRtkPoint => '新增点位';
+
+  @override
+  String get gpsQualityAddSession => '创建标定会话';
+
+  @override
+  String get gpsQualityLocationName => '位置';
+
+  @override
+  String get gpsQualityPointLabel => '点位编号';
+
+  @override
+  String get gpsQualityLatitude => '纬度';
+
+  @override
+  String get gpsQualityLongitude => '经度';
+
+  @override
+  String get gpsQualityDevice => '设备';
+
+  @override
+  String get gpsQualityStartTime => '开始时间';
+
+  @override
+  String get gpsQualityEndTime => '结束时间';
+
+  @override
+  String get gpsQualityStatus => '状态';
+
+  @override
+  String get gpsQualityStatusInProgress => '进行中';
+
+  @override
+  String get gpsQualityStatusCompleted => '已完成';
+
+  @override
+  String get gpsQualityStatusCanceled => '已取消';
+
+  @override
+  String get gpsQualityEndSession => '结束';
+
+  @override
+  String get gpsQualityCancelSession => '取消';
+
+  @override
+  String get gpsQualityEndSessionConfirm => '确认结束会话？结束后将自动计算统计结果。';
+
+  @override
+  String get gpsQualitySelectRtkPoint => '选择 RTK 点位';
+
+  @override
+  String get gpsQualitySelectDevice => '选择设备';
+
+  @override
+  String get gpsQualityReportTitle => '质量报告';
+
+  @override
+  String get gpsQualityComparisonTitle => '多设备对比';
+
+  @override
+  String get gpsQualityExcludeSuspect => '排除疑似移动点';
+
+  @override
+  String get gpsQualityTotalPoints => '总点数';
+
+  @override
+  String get gpsQualityEffectivePoints => '有效点数';
+
+  @override
+  String get gpsQualitySuspectPoints => '疑似移动';
+
+  @override
+  String get gpsQualityMeanError => '平均偏差';
+
+  @override
+  String get gpsQualityP50 => 'P50 中位偏差';
+
+  @override
+  String get gpsQualityP95 => 'P95 抖动半径';
+
+  @override
+  String get gpsQualityP99 => 'P99';
+
+  @override
+  String get gpsQualityMaxError => '最大偏差';
+
+  @override
+  String get gpsQualityJitterDiameter => '抖动直径';
+
+  @override
+  String get gpsQualityOutlierCount => '野点数';
+
+  @override
+  String get gpsQualityGradeExcellent => '优秀';
+
+  @override
+  String get gpsQualityGradeUsable => '可用';
+
+  @override
+  String get gpsQualityGradeMarginal => '勉强可用';
+
+  @override
+  String get gpsQualityGradeUnavailable => '不可用';
+
+  @override
+  String get gpsQualityGradeStandard => '等级标准';
+
+  @override
+  String get gpsQualityGradeExcellentDesc => 'P95 ≤ 15m 且有效点 ≥ 20';
+
+  @override
+  String get gpsQualityGradeUsableDesc => 'P95 ≤ 25m 且有效点 ≥ 20';
+
+  @override
+  String get gpsQualityGradeMarginalDesc => '25m < P95 ≤ 40m 且有效点 ≥ 10';
+
+  @override
+  String get gpsQualityGradeUnavailableDesc => 'P95 > 40m 或有效点 < 10';
+
+  @override
+  String get gpsQualityNoData => '暂无数据';
+
+  @override
+  String get gpsQualityViewTrajectory => '查看完整移动轨迹';
+
+  @override
+  String get gpsQualityScatterChart => '静止 GPS 散点图';
+
+  @override
+  String get gpsQualityErrorHistogram => '偏差分布';
 }
