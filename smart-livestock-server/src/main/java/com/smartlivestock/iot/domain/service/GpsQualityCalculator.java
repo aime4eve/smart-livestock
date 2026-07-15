@@ -45,7 +45,8 @@ public class GpsQualityCalculator {
                 .toList()
             : points;
 
-        int effectivePoints = effective.size();
+        // effectivePoints = non-suspect points (always, regardless of excludeSuspect)
+        int effectivePoints = totalPoints - suspectPoints;
 
         // --- errors (haversine distance to RTK truth) ---
         double[] errors = new double[effectivePoints];

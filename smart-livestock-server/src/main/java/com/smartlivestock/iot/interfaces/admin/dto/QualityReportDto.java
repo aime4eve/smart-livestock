@@ -15,6 +15,8 @@ public class QualityReportDto {
     private Long rtkPointId;
     private String locationName;
     private String label;
+    private java.math.BigDecimal rtkLatitude;
+    private java.math.BigDecimal rtkLongitude;
     private Long deviceId;
     private String deviceCode;
     private boolean excludeSuspect;
@@ -31,6 +33,8 @@ public class QualityReportDto {
         dto.rtkPointId = r.rtk().getId();
         dto.locationName = r.rtk().getLocationName();
         dto.label = r.rtk().getPointLabel();
+        dto.rtkLatitude = r.rtk().getLatitude();
+        dto.rtkLongitude = r.rtk().getLongitude();
         dto.deviceId = r.session().getDeviceId();
         dto.deviceCode = r.deviceCode();
         dto.excludeSuspect = r.excludeSuspect();
@@ -51,6 +55,12 @@ public class QualityReportDto {
 
     public String getLabel() { return label; }
     public void setLabel(String label) { this.label = label; }
+
+    public java.math.BigDecimal getRtkLatitude() { return rtkLatitude; }
+    public void setRtkLatitude(java.math.BigDecimal rtkLatitude) { this.rtkLatitude = rtkLatitude; }
+
+    public java.math.BigDecimal getRtkLongitude() { return rtkLongitude; }
+    public void setRtkLongitude(java.math.BigDecimal rtkLongitude) { this.rtkLongitude = rtkLongitude; }
 
     public Long getDeviceId() { return deviceId; }
     public void setDeviceId(Long deviceId) { this.deviceId = deviceId; }

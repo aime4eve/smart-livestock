@@ -115,8 +115,10 @@ class GpsQualityReport {
           id: json['rtkPointId'] as int? ?? 0,
           locationName: json['locationName'] as String? ?? '',
           pointLabel: json['label'] as String? ?? '',
-          latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
-          longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
+          latitude: (json['rtkLatitude'] as num?)?.toDouble() ??
+              (json['latitude'] as num?)?.toDouble() ?? 0,
+          longitude: (json['rtkLongitude'] as num?)?.toDouble() ??
+              (json['longitude'] as num?)?.toDouble() ?? 0,
         ),
         startedAt: json['startedAt'] != null
             ? DateTime.parse(json['startedAt'] as String)
