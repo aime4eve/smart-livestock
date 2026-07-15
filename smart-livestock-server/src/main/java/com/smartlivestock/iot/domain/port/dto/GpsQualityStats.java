@@ -28,5 +28,8 @@ public record GpsQualityStats(
     double maxError,
     double jitterDiameter,
     int outlierCount,
-    QualityGrade grade
+    QualityGrade grade,
+    double within15m,
+    double within25m,
+    double within40m
 ) {}

@@ -44,6 +44,9 @@ class DeviceComparison {
           maxError: (json['maxError'] as num?)?.toDouble() ?? 0,
           jitterDiameter: (json['jitterDiameter'] as num?)?.toDouble() ?? 0,
           outlierCount: json['outlierCount'] as int? ?? 0,
+          within15m: (json['within15m'] as num?)?.toDouble() ?? 0,
+          within25m: (json['within25m'] as num?)?.toDouble() ?? 0,
+          within40m: (json['within40m'] as num?)?.toDouble() ?? 0,
         ),
         grade: _parseGrade(json['grade'] as String? ?? 'UNAVAILABLE'),
       );

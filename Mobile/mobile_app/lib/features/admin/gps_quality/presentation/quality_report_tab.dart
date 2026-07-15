@@ -383,6 +383,11 @@ class _DetailContent extends StatelessWidget {
             const _ScatterLegend(),
             const SizedBox(height: AppSpacing.lg),
           ],
+          // Deviation distribution bars
+          const _SectionTitle(title: '偏差分布'),
+          const SizedBox(height: AppSpacing.sm),
+          _DeviationDistribution(stats: report.stats),
+          const SizedBox(height: AppSpacing.lg),
           // trajectory button
           Center(
             child: OutlinedButton.icon(
@@ -563,6 +568,66 @@ class _GradeStandardPanelState extends State<_GradeStandardPanel> {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── Deviation distribution ────────────────────────────────────────
+
+class _DeviationDistribution extends StatelessWidget {
+  const _DeviationDistribution({required this.stats});
+  final GpsQualityStats stats;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _bar('≤15m', stats.within15m, const Color(0xFF66BB6A)),
+        const SizedBox(height: AppSpacing.sm),
+        _bar('≤25m', stats.within25m, const Color(0xFF2563EB)),
+        const SizedBox(height: AppSpacing.sm),
+        _bar('≤40m', stats.within40m, const Color(0xFFF59E0B)),
+      ],
+    );
+  }
+
+  Widget _bar(String label, double percent, Color color) {
+    final clamped = percent.clamp(0.0, 100.0);
+    return Row(
+      children: [
+        SizedBox(
+          width: 40,
+          child: Text(label,
+              style: const TextStyle(
+                  fontSize: 12, color: AppColors.textSecondary)),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              key: Key('dist-bar-$label'),
+              value: clamped / 100,
+              minHeight: 12,
+              backgroundColor: const Color(0xFFE2E8F0),
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        SizedBox(
+          width: 48,
+          child: Text(
+            '${clamped.toStringAsFixed(1)}%',
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary),
+          ),
+        ),
+      ],
     );
   }
 }

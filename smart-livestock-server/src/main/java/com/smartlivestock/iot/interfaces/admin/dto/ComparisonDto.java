@@ -30,7 +30,10 @@ public class ComparisonDto {
                         e.stats().grade().name(),
                         e.stats().p95(),
                         e.stats().meanError(),
-                        e.stats().effectivePoints()))
+                        e.stats().effectivePoints(),
+                        e.stats().within15m(),
+                        e.stats().within25m(),
+                        e.stats().within40m()))
                 .toList();
         return dto;
     }
@@ -48,6 +51,7 @@ public class ComparisonDto {
     public void setDevices(List<DeviceSummary> devices) { this.devices = devices; }
 
     public record DeviceSummary(Long sessionId, Long deviceId, String deviceCode,
-                                String grade, double p95, double meanError, int effectivePoints) {
+                                String grade, double p95, double meanError, int effectivePoints,
+                                double within15m, double within25m, double within40m) {
     }
 }

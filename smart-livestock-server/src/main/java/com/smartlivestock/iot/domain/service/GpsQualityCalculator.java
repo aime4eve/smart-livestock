@@ -94,11 +94,46 @@ public class GpsQualityCalculator {
         // --- grade ---
         QualityGrade grade = determineGrade(effectivePoints, p95);
 
+        // --- deviation distribution (percentage within threshold) ---
+        double within15m = effectivePoints > 0
+            ? (double) countLessOrEqual(errors, 15.0) / effectivePoints * 100
+            : 0;
+        double within25m = effectivePoints > 0
+            ? (double) countLessOrEqual(errors, 25.0) / effectivePoints * 100
+            : 0;
+        double within40m = effectivePoints > 0
+            ? (double) countLessOrEqual(errors, 40.0) / effectivePoints * 100
+            : 0;
+
         return new GpsQualityStats(
             totalPoints, suspectPoints, effectivePoints,
             meanError, p50, p95, p99, maxError,
-            jitterDiameter, outlierCount, grade
+            jitterDiameter, outlierCount, grade,
+            within15m, within25m, within40m
         );
+    }
+
+    // ------------------------------------------------------------------
+    // Count-below-threshold (binary search on sorted ascending array)
+    // ------------------------------------------------------------------
+
+    /**
+     * Count elements in a <b>sorted ascending</b> array whose value is
+     * less than or equal to {@code threshold}.
+     *
+     * @param sorted     ascending-sorted array
+     * @param threshold  upper bound (inclusive)
+     * @return count of elements ≤ threshold
+     */
+    private int countLessOrEqual(double[] sorted, double threshold) {
+        // Binary search: find first index where value > threshold
+        int lo = 0, hi = sorted.length;
+        while (lo < hi) {
+            int mid = (lo + hi) >>> 1;
+            if (sorted[mid] <= threshold) lo = mid + 1;
+            else hi = mid;
+        }
+        return lo;
     }
 
     // ------------------------------------------------------------------

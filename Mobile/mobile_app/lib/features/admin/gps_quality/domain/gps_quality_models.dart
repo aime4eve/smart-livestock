@@ -157,6 +157,9 @@ class GpsQualityStats {
     required this.maxError,
     required this.jitterDiameter,
     required this.outlierCount,
+    required this.within15m,
+    required this.within25m,
+    required this.within40m,
   });
 
   final int totalPoints;
@@ -169,6 +172,9 @@ class GpsQualityStats {
   final double maxError;
   final double jitterDiameter;
   final int outlierCount;
+  final double within15m;
+  final double within25m;
+  final double within40m;
 
   factory GpsQualityStats.fromJson(Map<String, dynamic> json) =>
       GpsQualityStats(
@@ -182,6 +188,9 @@ class GpsQualityStats {
         maxError: (json['maxError'] as num?)?.toDouble() ?? 0,
         jitterDiameter: (json['jitterDiameter'] as num?)?.toDouble() ?? 0,
         outlierCount: json['outlierCount'] as int? ?? 0,
+        within15m: (json['within15m'] as num?)?.toDouble() ?? 0,
+        within25m: (json['within25m'] as num?)?.toDouble() ?? 0,
+        within40m: (json['within40m'] as num?)?.toDouble() ?? 0,
       );
 }
 
