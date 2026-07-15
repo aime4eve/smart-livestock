@@ -166,7 +166,7 @@ class GpsQualityApiRepository {
     params.add('size=$size');
     final data = await ApiClient.instance
         .get('$_base/sessions?${params.join('&')}');
-    final items = (data['items'] as List<dynamic>? ?? [])
+    final items = ((data['value'] ?? data['items']) as List<dynamic>? ?? [])
         .whereType<Map<String, dynamic>>()
         .map(CalibrationSession.fromJson)
         .toList();
@@ -216,7 +216,7 @@ class GpsQualityApiRepository {
   Future<List<TrajectoryPoint>> fetchTrajectory(int sessionId) async {
     final data = await ApiClient.instance
         .get('$_base/sessions/$sessionId/trajectory');
-    return (data['points'] as List<dynamic>? ?? [])
+    return ((data['points'] ?? (data['value'] is List ? data['value'] : (data['value'] is Map ? data['value']['points'] : null))) as List<dynamic>? ?? [])
         .whereType<Map<String, dynamic>>()
         .map(TrajectoryPoint.fromJson)
         .toList();
