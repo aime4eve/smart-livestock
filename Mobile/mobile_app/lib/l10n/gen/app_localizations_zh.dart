@@ -2755,4 +2755,31 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpsQualityDelete => '删除';
+
+  @override
+  String get gpsQualityTipP50 => '偏差排序后第50百分位\n= 中位数，反映典型精度';
+
+  @override
+  String get gpsQualityTipP95 => '偏差排序后第95百分位\n围栏 STANDARD 档基准';
+
+  @override
+  String get gpsQualityTipMeanError => '所有点到真值距离的\n算术平均';
+
+  @override
+  String get gpsQualityTipMaxError => '离 RTK 真值最远的点';
+
+  @override
+  String get gpsQualityTipJitterDiameter => '所有点两两 haversine 距离\n的最大值';
+
+  @override
+  String get gpsQualityTipOutlier => '偏差超过 max(P99, 3×P95, 30m) 的点';
+
+  @override
+  String get gpsQualityTipTotalPoints => '会话时间窗口内有效 GPS 点总数';
+
+  @override
+  String get gpsQualityTipEffectivePoints => '排除疑似移动点后的有效点数';
+
+  @override
+  String get gpsQualityTipSuspectPoints => 'step_number > 0 的点数';
 }

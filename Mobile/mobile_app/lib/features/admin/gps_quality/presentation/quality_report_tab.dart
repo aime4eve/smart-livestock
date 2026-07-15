@@ -216,16 +216,17 @@ class _QualityReportTabState extends ConsumerState<QualityReportTab> {
                     DataColumn(
                         label: _labelWithTip(
                             l10n.gpsQualityEffectivePoints, null)),
-                    DataColumn(label: _labelWithTip(l10n.gpsQualityP50, null)),
+                    DataColumn(
+                        label: _labelWithTip(l10n.gpsQualityP50, 'tip-50')),
                     DataColumn(
                         label:
                             _labelWithTip(l10n.gpsQualityP95, 'tip-95')),
                     DataColumn(
                         label: _labelWithTip(
-                            l10n.gpsQualityJitterDiameter, null)),
+                            l10n.gpsQualityJitterDiameter, 'tip-diam')),
                     DataColumn(
                         label:
-                            _labelWithTip(l10n.gpsQualityOutlierCount, null)),
+                            _labelWithTip(l10n.gpsQualityOutlierCount, 'tip-out')),
                     DataColumn(label: Text(l10n.gpsQualityStatus)),
                   ],
                   rows: devices.map((d) {
@@ -259,7 +260,33 @@ class _QualityReportTabState extends ConsumerState<QualityReportTab> {
     );
   }
 
-  Widget _labelWithTip(String label, String? _) => Text(label);
+  Widget _labelWithTip(String label, String? tipKey) {
+    final l10n = AppLocalizations.of(context)!;
+    if (tipKey == null) return Text(label);
+    final tipText = _tipText(l10n, tipKey);
+    if (tipText == null) return Text(label);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label),
+        const SizedBox(width: 2),
+        Tooltip(
+          message: tipText,
+          child: Icon(Icons.help_outline, size: 12, color: AppColors.textSecondary),
+        ),
+      ],
+    );
+  }
+
+  String? _tipText(AppLocalizations l10n, String key) => switch (key) {
+        'tip-50' => l10n.gpsQualityTipP50,
+        'tip-95' => l10n.gpsQualityTipP95,
+        'tip-mean' => l10n.gpsQualityTipMeanError,
+        'tip-max' => l10n.gpsQualityTipMaxError,
+        'tip-diam' => l10n.gpsQualityTipJitterDiameter,
+        'tip-out' => l10n.gpsQualityTipOutlier,
+        _ => null,
+      };
 }
 
 // ── Device detail card ─────────────────────────────────────────────
@@ -385,18 +412,15 @@ class _StatGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final cards = <_StatData>[
-      _StatData(l10n.gpsQualityTotalPoints, '${stats.totalPoints}'),
-      _StatData(l10n.gpsQualityEffectivePoints, '${stats.effectivePoints}'),
-      _StatData(l10n.gpsQualitySuspectPoints, '${stats.suspectPoints}'),
-      _StatData(l10n.gpsQualityMeanError,
-          '${stats.meanError.toStringAsFixed(1)} m'),
-      _StatData(l10n.gpsQualityP50, '${stats.p50.toStringAsFixed(1)} m'),
-      _StatData(l10n.gpsQualityP95, '${stats.p95.toStringAsFixed(1)} m'),
-      _StatData(l10n.gpsQualityMaxError,
-          '${stats.maxError.toStringAsFixed(1)} m'),
-      _StatData(l10n.gpsQualityJitterDiameter,
-          '${stats.jitterDiameter.toStringAsFixed(1)} m'),
-      _StatData(l10n.gpsQualityOutlierCount, '${stats.outlierCount}'),
+      _StatData(l10n.gpsQualityTotalPoints, '${stats.totalPoints}', l10n.gpsQualityTipTotalPoints),
+      _StatData(l10n.gpsQualityEffectivePoints, '${stats.effectivePoints}', l10n.gpsQualityTipEffectivePoints),
+      _StatData(l10n.gpsQualitySuspectPoints, '${stats.suspectPoints}', l10n.gpsQualityTipSuspectPoints),
+      _StatData(l10n.gpsQualityMeanError, '${stats.meanError.toStringAsFixed(1)} m', l10n.gpsQualityTipMeanError),
+      _StatData(l10n.gpsQualityP50, '${stats.p50.toStringAsFixed(1)} m', l10n.gpsQualityTipP50),
+      _StatData(l10n.gpsQualityP95, '${stats.p95.toStringAsFixed(1)} m', l10n.gpsQualityTipP95),
+      _StatData(l10n.gpsQualityMaxError, '${stats.maxError.toStringAsFixed(1)} m', l10n.gpsQualityTipMaxError),
+      _StatData(l10n.gpsQualityJitterDiameter, '${stats.jitterDiameter.toStringAsFixed(1)} m', l10n.gpsQualityTipJitterDiameter),
+      _StatData(l10n.gpsQualityOutlierCount, '${stats.outlierCount}', l10n.gpsQualityTipOutlier),
     ];
     return Wrap(
       spacing: AppSpacing.sm,
@@ -412,9 +436,10 @@ class _StatGrid extends StatelessWidget {
 }
 
 class _StatData {
-  const _StatData(this.label, this.value);
+  const _StatData(this.label, this.value, this.tip);
   final String label;
   final String value;
+  final String? tip;
 }
 
 class _StatCard extends StatelessWidget {
@@ -425,7 +450,7 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       key: Key('stat-${data.label}'),
-      message: data.label,
+      message: data.tip ?? data.label,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(

@@ -2811,4 +2811,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsQualityDelete => 'Delete';
+
+  @override
+  String get gpsQualityTipP50 =>
+      '50th percentile of errors\n= median, typical accuracy';
+
+  @override
+  String get gpsQualityTipP95 =>
+      '95th percentile of errors\nFence STANDARD threshold basis';
+
+  @override
+  String get gpsQualityTipMeanError =>
+      'Arithmetic mean of\npoint-to-truth distances';
+
+  @override
+  String get gpsQualityTipMaxError => 'Farthest point from RTK truth';
+
+  @override
+  String get gpsQualityTipJitterDiameter =>
+      'Max pairwise haversine\ndistance between points';
+
+  @override
+  String get gpsQualityTipOutlier => 'Points exceeding max(P99, 3×P95, 30m)';
+
+  @override
+  String get gpsQualityTipTotalPoints =>
+      'Total valid GPS points in session window';
+
+  @override
+  String get gpsQualityTipEffectivePoints =>
+      'Points after excluding suspected motion';
+
+  @override
+  String get gpsQualityTipSuspectPoints => 'Points with step_number > 0';
 }

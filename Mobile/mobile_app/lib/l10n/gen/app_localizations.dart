@@ -5161,6 +5161,60 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'删除'**
   String get gpsQualityDelete;
+
+  /// No description provided for @gpsQualityTipP50.
+  ///
+  /// In zh, this message translates to:
+  /// **'偏差排序后第50百分位\n= 中位数，反映典型精度'**
+  String get gpsQualityTipP50;
+
+  /// No description provided for @gpsQualityTipP95.
+  ///
+  /// In zh, this message translates to:
+  /// **'偏差排序后第95百分位\n围栏 STANDARD 档基准'**
+  String get gpsQualityTipP95;
+
+  /// No description provided for @gpsQualityTipMeanError.
+  ///
+  /// In zh, this message translates to:
+  /// **'所有点到真值距离的\n算术平均'**
+  String get gpsQualityTipMeanError;
+
+  /// No description provided for @gpsQualityTipMaxError.
+  ///
+  /// In zh, this message translates to:
+  /// **'离 RTK 真值最远的点'**
+  String get gpsQualityTipMaxError;
+
+  /// No description provided for @gpsQualityTipJitterDiameter.
+  ///
+  /// In zh, this message translates to:
+  /// **'所有点两两 haversine 距离\n的最大值'**
+  String get gpsQualityTipJitterDiameter;
+
+  /// No description provided for @gpsQualityTipOutlier.
+  ///
+  /// In zh, this message translates to:
+  /// **'偏差超过 max(P99, 3×P95, 30m) 的点'**
+  String get gpsQualityTipOutlier;
+
+  /// No description provided for @gpsQualityTipTotalPoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'会话时间窗口内有效 GPS 点总数'**
+  String get gpsQualityTipTotalPoints;
+
+  /// No description provided for @gpsQualityTipEffectivePoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'排除疑似移动点后的有效点数'**
+  String get gpsQualityTipEffectivePoints;
+
+  /// No description provided for @gpsQualityTipSuspectPoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'step_number > 0 的点数'**
+  String get gpsQualityTipSuspectPoints;
 }
 
 class _AppLocalizationsDelegate
