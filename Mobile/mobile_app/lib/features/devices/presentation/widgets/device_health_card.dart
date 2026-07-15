@@ -131,7 +131,7 @@ class _DeviceHealthDialogState extends State<DeviceHealthDialog> {
   }
 
   Widget _statusBadge(DeviceItem d) {
-    final online = d.runtimeStatus?.toLowerCase() == 'online' || d.status == 'ACTIVE';
+    final online = d.runtimeStatus?.toLowerCase() == 'online' || d.status == DeviceStatus.online;
     return _Badge(color: online ? AppColors.success : AppColors.danger, label: online ? '在线' : '离线');
   }
 
@@ -172,7 +172,7 @@ class _HeaderTile extends StatelessWidget {
     if (t is DeviceType) return switch (t) { DeviceType.gps => Icons.gps_fixed, DeviceType.rumenCapsule => Icons.medication, DeviceType.earTag => Icons.tag };
     return Icons.devices;
   }
-  Color _statusColor(DeviceItem d) => (d.runtimeStatus?.toLowerCase() == 'online' || d.status.name.toLowerCase() == 'active') ? AppColors.success : AppColors.danger;
+  Color _statusColor(DeviceItem d) => (d.runtimeStatus?.toLowerCase() == 'online' || d.status == DeviceStatus.online) ? AppColors.success : AppColors.danger;
 }
 
 class _HealthScoreCard extends StatelessWidget {

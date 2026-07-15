@@ -6,6 +6,11 @@ sealed class ApiException implements Exception {
   final String? code;
 
   const ApiException({required this.message, this.statusCode, this.code});
+
+  /// Returns [message] so that `e.toString()` in catch blocks displays the
+  /// backend-provided i18n message instead of "Instance of 'ConflictException'".
+  @override
+  String toString() => message;
 }
 
 class AuthException extends ApiException {

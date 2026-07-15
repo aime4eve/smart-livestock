@@ -6,7 +6,9 @@ import com.smartlivestock.iot.application.command.RegisterDeviceCommand;
 import com.smartlivestock.iot.application.command.UpdateDeviceCommand;
 import com.smartlivestock.iot.application.dto.DeviceDto;
 import com.smartlivestock.iot.domain.model.DeviceType;
+import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
+import com.smartlivestock.shared.common.ErrorCode;
 import com.smartlivestock.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -56,16 +58,30 @@ public class DeviceController {
             @PathVariable Long farmId,
             @RequestBody Map<String, Object> body) {
         Long tenantId = TenantContext.getCurrentTenant();
+        String deviceCode = (String) body.get("deviceCode");
+        String serialNo = (String) body.get("serialNo");
+        String devEui = (String) body.get("devEui");
+
+        // i18n validation: deviceCode is required
+        if (deviceCode == null || deviceCode.isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.deviceCodeRequired");
+        }
+        // serialNo and devEui: at least one must be provided
+        if ((serialNo == null || serialNo.isBlank()) && (devEui == null || devEui.isBlank())) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.deviceSnOrEuiRequired");
+        }
+
         String deviceTypeStr = (String) body.get("deviceType");
         // API contract uses lowercase snake_case like "device_tracker"
         // Domain enum uses uppercase like "TRACKER"
         DeviceType deviceType = resolveDeviceType(deviceTypeStr);
-       RegisterDeviceCommand command = new RegisterDeviceCommand(
-               (String) body.get("deviceCode"),
-               deviceType,
+        RegisterDeviceCommand command = new RegisterDeviceCommand(
+                deviceCode,
+                deviceType,
                 tenantId,
-                (String) body.get("devEui")
-       );
+                devEui,
+                serialNo
+        );
         DeviceDto device = deviceApplicationService.registerDevice(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(device));
     }
@@ -111,8 +127,7 @@ public class DeviceController {
     public ResponseEntity<ApiResponse<DeviceDto>> activateDevice(
             @PathVariable Long farmId,
             @PathVariable Long deviceId) {
-        deviceApplicationService.activateDevice(deviceId);
-        DeviceDto device = deviceApplicationService.getDevice(deviceId);
+        DeviceDto device = deviceApplicationService.activateDevice(deviceId);
         return ResponseEntity.ok(ApiResponse.ok(device));
     }
 

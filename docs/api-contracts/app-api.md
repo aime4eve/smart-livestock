@@ -648,8 +648,8 @@ Response 201:
 ### 4.1 设备 — 6 端点
 
 设备有两个维度状态：
-- `status`: 生命周期状态（`inventory` / `active` / `offline` / `decommissioned`）
-- `runtimeStatus`: 运行时状态（`online` / `offline` / `low_battery`），由心跳实时更新
+- `status`: 生命周期状态（`inventory` / `active` / `decommissioned`）
+- `runtimeStatus`: 运行时状态（`online` / `offline`），由 blade 平台 onlineStatus 同步
 
 #### GET /farms/{farmId}/devices
 

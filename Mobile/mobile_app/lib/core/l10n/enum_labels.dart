@@ -17,8 +17,6 @@ extension DeviceStatusL10n on DeviceStatus {
         return l10n.deviceStatusOnline;
       case DeviceStatus.offline:
         return l10n.deviceStatusOffline;
-      case DeviceStatus.lowBattery:
-        return l10n.deviceStatusLowBattery;
     }
   }
 }

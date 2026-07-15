@@ -7,6 +7,11 @@ import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.DeviceStatus;
 import com.smartlivestock.iot.domain.model.DeviceType;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
+import com.smartlivestock.iot.infrastructure.client.agenticplatform.client.AgenticPlatformDeviceClient;
+import com.smartlivestock.iot.infrastructure.client.agenticplatform.client.AgenticPlatformLicenseClient;
+import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.DevicePageResp;
+import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.DeviceRegistrationResp;
+import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.InternalResponse;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +22,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,14 +35,20 @@ import static org.mockito.Mockito.when;
 /**
  * Unit-level integration test for DeviceApplicationService.
  * <p>
- * Tests device lifecycle (INVENTORY -> ACTIVE -> OFFLINE -> DECOMMISSIONED)
- * through the application service layer with mocked repository.
+ * Tests device lifecycle (INVENTORY -> ACTIVE -> DECOMMISSIONED)
+ * through the application service layer with mocked repository + platform clients.
  */
 @ExtendWith(MockitoExtension.class)
 class DeviceApplicationServiceTest {
 
     @Mock
     private DeviceRepository deviceRepository;
+
+    @Mock
+    private AgenticPlatformDeviceClient platformDeviceClient;
+
+    @Mock
+    private AgenticPlatformLicenseClient platformLicenseClient;
 
     @InjectMocks
     private DeviceApplicationService service;
@@ -53,14 +65,35 @@ class DeviceApplicationServiceTest {
         return device;
     }
 
-    private Device createOfflineDevice() {
+    private Device createDecommissionedDevice() {
         Device device = createActiveDevice();
-        device.markOffline();
+        device.decommission();
         return device;
     }
 
+    private InternalResponse<DevicePageResp> emptyPage() {
+        DevicePageResp page = new DevicePageResp();
+        page.setTotal(0L);
+        page.setRecords(Collections.emptyList());
+        InternalResponse<DevicePageResp> resp = new InternalResponse<>();
+        resp.setSuccess(true);
+        resp.setCode(200);
+        resp.setData(page);
+        return resp;
+    }
+
+    private InternalResponse<DeviceRegistrationResp> registered(Long deviceId) {
+        DeviceRegistrationResp data = new DeviceRegistrationResp();
+        data.setDeviceId(String.valueOf(deviceId));
+        InternalResponse<DeviceRegistrationResp> resp = new InternalResponse<>();
+        resp.setSuccess(true);
+        resp.setCode(200);
+        resp.setData(data);
+        return resp;
+    }
+
     @Test
-    @DisplayName("注册新设备")
+    @DisplayName("注册新设备（无 SN/EUI → 平台注册跳过，保持 INVENTORY）")
     void shouldRegisterNewDevice() {
         when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> {
             Device d = inv.getArgument(0);
@@ -68,8 +101,10 @@ class DeviceApplicationServiceTest {
             return d;
         });
 
+        // No serialNo, no devEui → platform registration has no EUI and throws,
+        // caught inside registerDevice → device stays INVENTORY.
         DeviceDto result = service.registerDevice(
-                new RegisterDeviceCommand("DEV-001", DeviceType.TRACKER, 1L, null));
+                new RegisterDeviceCommand("DEV-001", DeviceType.TRACKER, 1L, null, null));
 
         assertThat(result.deviceCode()).isEqualTo("DEV-001");
         assertThat(result.deviceType()).isEqualTo("TRACKER");
@@ -85,70 +120,47 @@ class DeviceApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("激活库存设备")
+    @DisplayName("激活库存设备（平台注册成功 → ACTIVE）")
     void shouldActivateInventoryDevice() {
         Device device = createInventoryDevice();
         when(deviceRepository.findById(1L)).thenReturn(Optional.of(device));
         when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(platformDeviceClient.pageDevices(any())).thenReturn(emptyPage());
+        when(platformDeviceClient.registerDevice(any())).thenReturn(registered(100L));
 
-        service.activateDevice(1L);
-
-        ArgumentCaptor<Device> captor = ArgumentCaptor.forClass(Device.class);
-        verify(deviceRepository).save(captor.capture());
-        assertThat(captor.getValue().getStatus()).isEqualTo(DeviceStatus.ACTIVE);
-    }
-
-    @Test
-    @DisplayName("激活离线设备")
-    void shouldActivateOfflineDevice() {
-        Device device = createOfflineDevice();
-        when(deviceRepository.findById(1L)).thenReturn(Optional.of(device));
-        when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> inv.getArgument(0));
-
-        service.activateDevice(1L);
+        DeviceDto result = service.activateDevice(1L);
 
         ArgumentCaptor<Device> captor = ArgumentCaptor.forClass(Device.class);
         verify(deviceRepository).save(captor.capture());
         assertThat(captor.getValue().getStatus()).isEqualTo(DeviceStatus.ACTIVE);
+        assertThat(captor.getValue().getPlatformDeviceId()).isEqualTo(100L);
+        assertThat(result.status()).isEqualTo("ACTIVE");
+        assertThat(result.platformDeviceId()).isEqualTo(100L);
     }
 
     @Test
-    @DisplayName("拒绝激活非 INVENTORY/OFFLINE 状态的设备")
-    void shouldRejectActivateNonInventoryDevice() {
-        Device device = createActiveDevice(); // already ACTIVE
+    @DisplayName("已激活设备重复激活（幂等，直接返回）")
+    void shouldActivateActiveDeviceIdempotently() {
+        Device device = createActiveDevice();
+        device.setPlatformDeviceId(100L);
         when(deviceRepository.findById(1L)).thenReturn(Optional.of(device));
 
-        assertThatThrownBy(() -> service.activateDevice(1L))
-                .isInstanceOf(ApiException.class)
-                .satisfies(ex -> {
-                    ApiException apiEx = (ApiException) ex;
-                    assertThat(apiEx.getCode()).isEqualTo(ErrorCode.STATE_CONFLICT);
-                });
+        DeviceDto result = service.activateDevice(1L);
 
+        assertThat(result.status()).isEqualTo("ACTIVE");
+        // No platform call, no save for an already-active device
+        verify(platformDeviceClient, never()).pageDevices(any());
+        verify(platformDeviceClient, never()).registerDevice(any());
         verify(deviceRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("将活跃设备标记为离线")
-    void shouldMarkOfflineActiveDevice() {
-        Device device = createActiveDevice();
-        when(deviceRepository.findById(1L)).thenReturn(Optional.of(device));
-        when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> inv.getArgument(0));
-
-        service.markOffline(1L);
-
-        ArgumentCaptor<Device> captor = ArgumentCaptor.forClass(Device.class);
-        verify(deviceRepository).save(captor.capture());
-        assertThat(captor.getValue().getStatus()).isEqualTo(DeviceStatus.OFFLINE);
-    }
-
-    @Test
-    @DisplayName("拒绝标记库存设备为离线")
-    void shouldRejectMarkOfflineInventoryDevice() {
-        Device device = createInventoryDevice();
+    @DisplayName("拒绝激活 DECOMMISSIONED 状态的设备")
+    void shouldRejectActivateDecommissionedDevice() {
+        Device device = createDecommissionedDevice();
         when(deviceRepository.findById(1L)).thenReturn(Optional.of(device));
 
-        assertThatThrownBy(() -> service.markOffline(1L))
+        assertThatThrownBy(() -> service.activateDevice(1L))
                 .isInstanceOf(ApiException.class)
                 .satisfies(ex -> {
                     ApiException apiEx = (ApiException) ex;

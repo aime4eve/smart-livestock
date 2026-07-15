@@ -123,7 +123,6 @@ class DevicesApiRepository implements DevicesRepository {
      final status = switch (statusStr.toUpperCase()) {
        'ONLINE' => DeviceStatus.online,
        'OFFLINE' => DeviceStatus.offline,
-       'LOW_BATTERY' => DeviceStatus.lowBattery,
        'ACTIVE' => DeviceStatus.online,
        _ => DeviceStatus.offline,
      };

@@ -9,4 +9,5 @@ public interface HealthSnapshotRepository {
     List<HealthSnapshot> findByFarmId(Long farmId);
     Optional<HealthSnapshot> findByLivestockId(Long livestockId);
     HealthSnapshot save(HealthSnapshot snapshot);
+    void ensureSnapshotExists(Long livestockId, Long farmId);
 }

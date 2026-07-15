@@ -132,7 +132,7 @@ class LivestockDetail {
 
 enum DeviceType { gps, rumenCapsule, earTag }
 
-enum DeviceStatus { online, offline, lowBattery }
+enum DeviceStatus { online, offline }
 
 class DeviceItem {
   const DeviceItem({
@@ -241,13 +241,11 @@ class StatsHealthSummary {
 class StatsAlertSummary {
   const StatsAlertSummary({
     required this.fenceBreachCount,
-    required this.batteryLowCount,
     required this.signalLostCount,
     required this.dailyTrend,
   });
 
   final int fenceBreachCount;
-  final int batteryLowCount;
   final int signalLostCount;
   final List<StatsChartData> dailyTrend;
 }

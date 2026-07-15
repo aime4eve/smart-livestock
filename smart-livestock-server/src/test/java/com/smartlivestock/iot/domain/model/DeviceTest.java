@@ -43,41 +43,9 @@ class DeviceTest {
     }
 
     @Test
-    void shouldTransitionActiveToOffline() {
-        Device device = createDevice();
-        device.activate();
-
-        device.markOffline();
-
-        assertThat(device.getStatus()).isEqualTo(DeviceStatus.OFFLINE);
-    }
-
-    @Test
-    void shouldTransitionOfflineToActive() {
-        Device device = createDevice();
-        device.activate();
-        device.markOffline();
-
-        device.activate();
-
-        assertThat(device.getStatus()).isEqualTo(DeviceStatus.ACTIVE);
-    }
-
-    @Test
     void shouldTransitionActiveToDecommissioned() {
         Device device = createDevice();
         device.activate();
-
-        device.decommission();
-
-        assertThat(device.getStatus()).isEqualTo(DeviceStatus.DECOMMISSIONED);
-    }
-
-    @Test
-    void shouldTransitionOfflineToDecommissioned() {
-        Device device = createDevice();
-        device.activate();
-        device.markOffline();
 
         device.decommission();
 
@@ -91,7 +59,7 @@ class DeviceTest {
 
         assertThatThrownBy(() -> device.activate())
             .isInstanceOf(ApiException.class)
-            .hasMessageContaining("INVENTORY or OFFLINE");
+            .hasMessageContaining("INVENTORY");
     }
 
     @Test
@@ -102,16 +70,7 @@ class DeviceTest {
 
         assertThatThrownBy(() -> device.activate())
             .isInstanceOf(ApiException.class)
-            .hasMessageContaining("INVENTORY or OFFLINE");
-    }
-
-    @Test
-    void shouldRejectMarkOfflineWhenNotActive() {
-        Device device = createDevice();
-
-        assertThatThrownBy(device::markOffline)
-            .isInstanceOf(ApiException.class)
-            .hasMessageContaining("ACTIVE");
+            .hasMessageContaining("INVENTORY");
     }
 
     @Test
@@ -120,7 +79,7 @@ class DeviceTest {
 
         assertThatThrownBy(device::decommission)
             .isInstanceOf(ApiException.class)
-            .hasMessageContaining("ACTIVE or OFFLINE");
+            .hasMessageContaining("ACTIVE");
     }
 
     @Test
