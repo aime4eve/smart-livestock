@@ -39,14 +39,15 @@ class _QualityReportTabState extends ConsumerState<QualityReportTab> {
       ),
       data: (points) {
         final locations = _distinctLocations(points);
-        if (_selectedLocation == null && locations.isNotEmpty) {
-          _selectedLocation = locations.first;
-        } else if (_selectedLocation != null &&
+        // null = show all locations (default)
+        // If selected location no longer exists, reset to null (all)
+        if (_selectedLocation != null &&
             !locations.contains(_selectedLocation)) {
-          _selectedLocation = locations.isNotEmpty ? locations.first : null;
+          _selectedLocation = null;
         }
-        final locationPoints =
-            points.where((p) => p.locationName == _selectedLocation).toList();
+        final locationPoints = _selectedLocation == null
+            ? points
+            : points.where((p) => p.locationName == _selectedLocation).toList();
 
         return Column(
           children: [
@@ -81,9 +82,11 @@ class _QualityReportTabState extends ConsumerState<QualityReportTab> {
                   InputDecoration(labelText: l10n.gpsQualityLocationName),
               value: _selectedLocation,
               isExpanded: true,
-              items: locations
-                  .map((loc) => DropdownMenuItem(value: loc, child: Text(loc)))
-                  .toList(),
+              items: [
+                  const DropdownMenuItem(value: null, child: Text('全部位置')),
+                  ...locations.map((loc) =>
+                      DropdownMenuItem(value: loc, child: Text(loc))),
+                ],
               onChanged: (v) {
                 setState(() {
                   _selectedLocation = v;
@@ -187,7 +190,7 @@ class _QualityReportTabState extends ConsumerState<QualityReportTab> {
                       color: const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Text('${devices.length}',
+                    child: Text('${devices.length} 台',
                         style: const TextStyle(
                             fontSize: 12, color: AppColors.textSecondary)),
                   ),
@@ -213,6 +216,8 @@ class _QualityReportTabState extends ConsumerState<QualityReportTab> {
                   showCheckboxColumn: false,
                   columns: [
                     DataColumn(label: Text(l10n.gpsQualityDevice)),
+                    if (_selectedLocation == null)
+                      const DataColumn(label: Text('位置')),
                     DataColumn(
                         label: _labelWithTip(
                             l10n.gpsQualityEffectivePoints, null)),
@@ -224,9 +229,6 @@ class _QualityReportTabState extends ConsumerState<QualityReportTab> {
                     DataColumn(
                         label: _labelWithTip(
                             l10n.gpsQualityJitterDiameter, 'tip-diam')),
-                    DataColumn(
-                        label:
-                            _labelWithTip(l10n.gpsQualityOutlierCount, 'tip-out')),
                     DataColumn(label: Text(l10n.gpsQualityStatus)),
                   ],
                   rows: devices.map((d) {
@@ -242,12 +244,16 @@ class _QualityReportTabState extends ConsumerState<QualityReportTab> {
                         DataCell(Text(d.deviceCode,
                             style: const TextStyle(
                                 fontWeight: FontWeight.w600))),
+                        if (_selectedLocation == null)
+                          DataCell(Text(d.locationName,
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary))),
                         DataCell(Text('${d.stats.effectivePoints}')),
                         DataCell(Text('${d.stats.p50.toStringAsFixed(1)} m')),
                         DataCell(Text('${d.stats.p95.toStringAsFixed(1)} m')),
                         DataCell(Text(
                             '${d.stats.jitterDiameter.toStringAsFixed(1)} m')),
-                        DataCell(Text('${d.stats.outlierCount}')),
                         DataCell(QualityGradeBadge(grade: d.grade)),
                       ],
                     );
