@@ -99,7 +99,8 @@ class GpsQualityApiRepository {
         ? '?locationName=${Uri.encodeQueryComponent(locationName)}'
         : '';
     final data = await ApiClient.instance.get('$_base/rtk-points$qs');
-    return (data['items'] as List<dynamic>? ?? [])
+    final items = (data['value'] ?? data['items']) as List<dynamic>? ?? [];
+    return items
         .whereType<Map<String, dynamic>>()
         .map(RtkPoint.fromJson)
         .toList();
@@ -143,7 +144,8 @@ class GpsQualityApiRepository {
 
   Future<List<DeviceBrief>> fetchDevices() async {
     final data = await ApiClient.instance.get('$_base/devices');
-    return (data['items'] as List<dynamic>? ?? [])
+    final items = (data['value'] ?? data['items']) as List<dynamic>? ?? [];
+    return items
         .whereType<Map<String, dynamic>>()
         .map(DeviceBrief.fromJson)
         .toList();
