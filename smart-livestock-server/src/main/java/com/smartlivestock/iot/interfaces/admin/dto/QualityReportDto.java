@@ -1,6 +1,7 @@
 package com.smartlivestock.iot.interfaces.admin.dto;
 
 import com.smartlivestock.iot.application.GpsQualityReportService;
+import com.smartlivestock.iot.domain.model.QualityGrade;
 import com.smartlivestock.iot.domain.port.dto.GpsQualityStats;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public class QualityReportDto {
     private Long deviceId;
     private String deviceCode;
     private boolean excludeSuspect;
+    private QualityGrade grade;
     private GpsQualityStats stats;
     private List<GpsQualityReportService.ScatterPoint> scatter;
 
@@ -32,6 +34,7 @@ public class QualityReportDto {
         dto.deviceId = r.session().getDeviceId();
         dto.deviceCode = r.deviceCode();
         dto.excludeSuspect = r.excludeSuspect();
+        dto.grade = r.stats().grade();
         dto.stats = r.stats();
         dto.scatter = r.scatter();
         return dto;
@@ -57,6 +60,9 @@ public class QualityReportDto {
 
     public boolean isExcludeSuspect() { return excludeSuspect; }
     public void setExcludeSuspect(boolean excludeSuspect) { this.excludeSuspect = excludeSuspect; }
+
+    public QualityGrade getGrade() { return grade; }
+    public void setGrade(QualityGrade grade) { this.grade = grade; }
 
     public GpsQualityStats getStats() { return stats; }
     public void setStats(GpsQualityStats stats) { this.stats = stats; }
