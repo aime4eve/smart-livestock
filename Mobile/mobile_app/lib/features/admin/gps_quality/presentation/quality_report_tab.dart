@@ -574,14 +574,20 @@ class _ScatterLegend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     return Wrap(
       spacing: AppSpacing.lg,
       runSpacing: AppSpacing.xs,
       children: [
-        _legendDot(const Color(0xFF2563EB), l10n.gpsQualityDevice),
-        _legendDot(const Color(0xFFF59E0B), l10n.gpsQualitySuspectPoints),
-        _legendDot(const Color(0xFFDC2626), l10n.gpsQualitySelectRtkPoint),
+        // Dot legends (point types)
+        _legendDot(const Color(0x992563EB), 'GPS'),
+        _legendDot(const Color(0x99F59E0B), 'Suspect'),
+        _legendDot(const Color(0xFFDC2626), 'RTK'),
+        _legendDot(const Color(0x3394A3B8), 'Off-screen'),
+        const SizedBox(width: AppSpacing.sm),
+        // Circle legends (threshold rings)
+        _legendRing(const Color(0xFF66BB6A), '15m'),
+        _legendRing(const Color(0xFF2563EB), '25m'),
+        _legendRing(const Color(0xFFF59E0B), '40m'),
       ],
     );
   }
@@ -598,7 +604,27 @@ class _ScatterLegend extends StatelessWidget {
         const SizedBox(width: 4),
         Text(label,
             style: const TextStyle(
-                fontSize: 12, color: AppColors.textSecondary)),
+                fontSize: 11, color: AppColors.textSecondary)),
+      ],
+    );
+  }
+
+  Widget _legendRing(Color color, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 14,
+          height: 14,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: color, width: 2),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(label,
+            style: const TextStyle(
+                fontSize: 11, color: AppColors.textSecondary)),
       ],
     );
   }

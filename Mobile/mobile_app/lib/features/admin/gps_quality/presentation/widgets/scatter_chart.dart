@@ -109,9 +109,9 @@ class _ScatterPainter extends CustomPainter {
     // These give visual context: points inside 15m are "excellent" quality.
     const thresholds = [15.0, 25.0, 40.0];
     const thresholdColors = [
-      Color(0x3066BB6A), // green-ish for 15m
-      Color(0x302563EB), // blue-ish for 25m
-      Color(0x30F59E0B), // amber for 40m
+      Color(0xFF66BB6A), // green for 15m (excellent)
+      Color(0xFF2563EB), // blue for 25m (usable)
+      Color(0xFFF59E0B), // amber for 40m (marginal)
     ];
     for (int i = 0; i < thresholds.length; i++) {
       final r = thresholds[i] * scale;
@@ -121,8 +121,8 @@ class _ScatterPainter extends CustomPainter {
         r,
         Paint()
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.8
-          ..color = thresholdColors[i],
+          ..strokeWidth = 2.0
+          ..color = thresholdColors[i].withValues(alpha: 0.7),
       );
     }
 
@@ -176,8 +176,8 @@ class _ScatterPainter extends CustomPainter {
     if (radius <= 0) return;
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2
-      ..color = color.withValues(alpha: 0.5);
+      ..strokeWidth = 2.5
+      ..color = color.withValues(alpha: 0.6);
     const dashCount = 48;
     final circumference = 2 * math.pi * radius;
     final dashLen = circumference / dashCount / 2;
