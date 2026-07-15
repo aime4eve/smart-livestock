@@ -156,7 +156,7 @@ class GpsQualityApiRepository {
   Future<SessionListResult> fetchSessions({
     int? rtkPointId,
     CalibrationStatus? status,
-    int page = 1,
+    int page = 0,
     int size = 200,
   }) async {
     final params = <String>[];
