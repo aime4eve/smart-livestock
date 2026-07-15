@@ -269,6 +269,9 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
               idx == 0 || rows[idx - 1].point.id != row.point.id;
           return DataRow(
             key: ValueKey('merged-row-${row.session.id}'),
+            color: row.session.status == CalibrationStatus.canceled
+                ? WidgetStateProperty.all(AppColors.surface)
+                : null,
             cells: [
               DataCell(Text(isFirstForPoint ? row.point.pointLabel : '',
                   style: const TextStyle(fontWeight: FontWeight.w600))),
@@ -279,7 +282,14 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
                   style: const TextStyle(
                       fontSize: 11, color: AppColors.textSecondary))),
               DataCell(Text(row.session.deviceCode,
-                  style: const TextStyle(fontWeight: FontWeight.w600))),
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      decoration: row.session.status == CalibrationStatus.canceled
+                          ? TextDecoration.lineThrough
+                          : TextDecoration.none,
+                      color: row.session.status == CalibrationStatus.canceled
+                          ? AppColors.textSecondary
+                          : AppColors.textPrimary))),
               DataCell(Text(
                   '${fmt.format(row.session.startedAt.toLocal())} → ${row.session.endedAt != null ? fmt.format(row.session.endedAt!.toLocal()) : '...'}',
                   style: const TextStyle(
@@ -343,27 +353,38 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
   }
 
   Widget _buildActions(AppLocalizations l10n, CalibrationSession s) {
-    if (s.status == CalibrationStatus.inProgress) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FilledButton.icon(
-            onPressed: () => _confirmEndSession(l10n, s),
-            icon: const Icon(Icons.stop, size: 14),
-            label: Text(l10n.gpsQualityEndSession, style: const TextStyle(fontSize: 12)),
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          OutlinedButton(
-            onPressed: () => _deleteSession(l10n, s),
-            child: Text(l10n.gpsQualityCancelSession, style: const TextStyle(fontSize: 12)),
-          ),
-        ],
-      );
+    switch (s.status) {
+      case CalibrationStatus.inProgress:
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FilledButton.icon(
+              key: const Key('end-session-btn'),
+              onPressed: () => _confirmEndSession(l10n, s),
+              icon: const Icon(Icons.stop, size: 14),
+              label: Text(l10n.gpsQualityEndSession, style: const TextStyle(fontSize: 12)),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            OutlinedButton(
+              key: const Key('cancel-session-btn'),
+              onPressed: () => _confirmCancelSession(l10n, s),
+              child: Text(l10n.gpsQualityCancelSession, style: const TextStyle(fontSize: 12)),
+            ),
+          ],
+        );
+      case CalibrationStatus.completed:
+        return OutlinedButton(
+          key: const Key('delete-completed-btn'),
+          onPressed: () => _confirmDeleteSession(l10n, s),
+          child: Text(l10n.gpsQualityDelete, style: const TextStyle(fontSize: 12, color: AppColors.danger)),
+        );
+      case CalibrationStatus.canceled:
+        return OutlinedButton(
+          key: const Key('delete-canceled-btn'),
+          onPressed: () => _confirmDeleteSession(l10n, s),
+          child: Text(l10n.gpsQualityDelete, style: const TextStyle(fontSize: 12, color: AppColors.danger)),
+        );
     }
-    return OutlinedButton(
-      onPressed: () => _deleteSession(l10n, s),
-      child: Text(l10n.gpsQualityCancelSession, style: const TextStyle(fontSize: 12)),
-    );
   }
 
   Widget _statusPill(AppLocalizations l10n, CalibrationStatus status) {
@@ -443,8 +464,59 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
     );
   }
 
-  Future<void> _deleteSession(
+  Future<void> _confirmCancelSession(
       AppLocalizations l10n, CalibrationSession session) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        key: const Key('cancel-session-dialog'),
+        title: Text(l10n.gpsQualityCancelSession),
+        content: Text(l10n.gpsQualityEndSessionConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.gpsQualityCancelSession),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.gpsQualityCancelSession),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final ok = await ref
+        .read(calibrationSessionsProvider(session.rtkPointId).notifier)
+        .deleteSession(session.id);
+    if (!mounted) return;
+    ref.invalidate(calibrationSessionsProvider(session.rtkPointId));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ok ? '✅' : '❌')),
+    );
+  }
+
+  Future<void> _confirmDeleteSession(
+      AppLocalizations l10n, CalibrationSession session) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        key: const Key('delete-session-dialog'),
+        title: Text(l10n.gpsQualityDelete),
+        content: Text(l10n.gpsQualityDelete),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.gpsQualityCancelSession),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+            child: Text(l10n.gpsQualityDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
     final ok = await ref
         .read(calibrationSessionsProvider(session.rtkPointId).notifier)
         .deleteSession(session.id);
