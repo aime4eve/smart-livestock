@@ -109,15 +109,24 @@ class GpsQualityReport {
       GpsQualityReport(
         sessionId: json['sessionId'] as int,
         deviceCode: json['deviceCode'] as String? ?? '',
-        rtkPoint: RtkPoint.fromJson(
-            json['rtkPoint'] as Map<String, dynamic>),
-        startedAt: DateTime.parse(json['startedAt'] as String),
+        // Backend QualityReportDto has flat fields: rtkPointId, locationName,
+        // label (no nested rtkPoint object, no lat/lng).
+        rtkPoint: RtkPoint(
+          id: json['rtkPointId'] as int? ?? 0,
+          locationName: json['locationName'] as String? ?? '',
+          pointLabel: json['label'] as String? ?? '',
+          latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
+          longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
+        ),
+        startedAt: json['startedAt'] != null
+            ? DateTime.parse(json['startedAt'] as String)
+            : DateTime.now(),
         endedAt: json['endedAt'] != null
             ? DateTime.parse(json['endedAt'] as String)
             : null,
         stats: GpsQualityStats.fromJson(
-            json['stats'] as Map<String, dynamic>),
-        grade: _parseGrade(json['grade'] as String),
+            json['stats'] as Map<String, dynamic>? ?? const {}),
+        grade: _parseGrade(json['grade'] as String? ?? 'UNAVAILABLE'),
         scatter: (json['scatter'] as List<dynamic>? ?? [])
             .map((e) => ScatterPoint.fromJson(e as Map<String, dynamic>))
             .toList(),
