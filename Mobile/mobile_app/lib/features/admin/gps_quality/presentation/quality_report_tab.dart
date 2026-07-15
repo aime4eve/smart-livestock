@@ -580,14 +580,45 @@ class _DeviationDistribution extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Convert cumulative percentages to independent intervals
+    final w15 = stats.within15m.clamp(0.0, 100.0);
+    final w25 = stats.within25m.clamp(0.0, 100.0);
+    final w40 = stats.within40m.clamp(0.0, 100.0);
+    // Independent intervals (must sum to 100%)
+    final b1 = w15;                      // 0-15m
+    final b2 = (w25 - w15).clamp(0.0, 100.0);   // 15-25m
+    final b3 = (w40 - w25).clamp(0.0, 100.0);   // 25-40m
+    final b4 = (100.0 - w40).clamp(0.0, 100.0);  // >40m
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _bar('≤15m', stats.within15m, const Color(0xFF66BB6A)),
+        _bar('0-15m', b1, const Color(0xFF66BB6A)),
         const SizedBox(height: AppSpacing.sm),
-        _bar('≤25m', stats.within25m, const Color(0xFF2563EB)),
+        _bar('15-25m', b2, const Color(0xFF2563EB)),
         const SizedBox(height: AppSpacing.sm),
-        _bar('≤40m', stats.within40m, const Color(0xFFF59E0B)),
+        _bar('25-40m', b3, const Color(0xFFF59E0B)),
+        const SizedBox(height: AppSpacing.sm),
+        _bar('>40m', b4, const Color(0xFFDC2626)),
+        const SizedBox(height: AppSpacing.xs),
+        const Divider(height: 1),
+        const SizedBox(height: AppSpacing.xs),
+        // Cumulative summary line
+        Row(
+          children: [
+            Text('≤25m 累计: ',
+                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+            Text('${w25.toStringAsFixed(1)}%',
+                style: const TextStyle(
+                    fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary)),
+            const SizedBox(width: AppSpacing.lg),
+            Text('≤40m 累计: ',
+                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+            Text('${w40.toStringAsFixed(1)}%',
+                style: const TextStyle(
+                    fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.warning)),
+          ],
+        ),
       ],
     );
   }
@@ -597,7 +628,7 @@ class _DeviationDistribution extends StatelessWidget {
     return Row(
       children: [
         SizedBox(
-          width: 40,
+          width: 50,
           child: Text(label,
               style: const TextStyle(
                   fontSize: 12, color: AppColors.textSecondary)),
