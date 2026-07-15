@@ -31,8 +31,20 @@ class DeviceComparison {
       DeviceComparison(
         sessionId: json['sessionId'] as int,
         deviceCode: json['deviceCode'] as String? ?? '',
-        stats: GpsQualityStats.fromJson(
-            json['stats'] as Map<String, dynamic>? ?? const {}),
+        // Backend ComparisonDto.DeviceSummary has flat fields (not nested stats)
+        stats: GpsQualityStats(
+          totalPoints: json['totalPoints'] as int? ??
+              json['effectivePoints'] as int? ?? 0,
+          suspectPoints: 0,
+          effectivePoints: json['effectivePoints'] as int? ?? 0,
+          meanError: (json['meanError'] as num?)?.toDouble() ?? 0,
+          p50: (json['p50'] as num?)?.toDouble() ?? 0,
+          p95: (json['p95'] as num?)?.toDouble() ?? 0,
+          p99: (json['p99'] as num?)?.toDouble(),
+          maxError: (json['maxError'] as num?)?.toDouble() ?? 0,
+          jitterDiameter: (json['jitterDiameter'] as num?)?.toDouble() ?? 0,
+          outlierCount: json['outlierCount'] as int? ?? 0,
+        ),
         grade: _parseGrade(json['grade'] as String? ?? 'UNAVAILABLE'),
       );
 
@@ -54,8 +66,14 @@ class ComparisonResult {
 
   factory ComparisonResult.fromJson(Map<String, dynamic> json) =>
       ComparisonResult(
-        rtkPoint:
-            RtkPoint.fromJson(json['rtkPoint'] as Map<String, dynamic>),
+        // Backend ComparisonDto has flat fields: rtkPointId, locationName, label
+        rtkPoint: RtkPoint(
+          id: json['rtkPointId'] as int? ?? 0,
+          locationName: json['locationName'] as String? ?? '',
+          pointLabel: json['label'] as String? ?? '',
+          latitude: 0,
+          longitude: 0,
+        ),
         devices: (json['devices'] as List<dynamic>? ?? [])
             .whereType<Map<String, dynamic>>()
             .map(DeviceComparison.fromJson)
