@@ -7,10 +7,11 @@ import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_qual
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
 
-/// Tab 1: RTK calibration management.
+/// Tab 1: RTK calibration management (location-centric, matching prototype).
 ///
-/// Left sidebar: location-grouped accordion of RTK points.
-/// Right panel: calibration sessions for the selected point.
+/// Left sidebar: location-grouped accordion. Selecting a location (or any
+/// point within it) selects the whole location.
+/// Right panel: merged table of all points + their sessions for that location.
 class RtkCalibrationTab extends ConsumerStatefulWidget {
   const RtkCalibrationTab({super.key});
 
@@ -19,8 +20,9 @@ class RtkCalibrationTab extends ConsumerStatefulWidget {
 }
 
 class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
-  int? _selectedPointId;
+  String? _selectedLocation;
   final Set<String> _expandedLocations = {};
+  bool _showUncalibrated = false;
 
   @override
   Widget build(BuildContext context) {
@@ -35,19 +37,16 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
       ),
       data: (points) {
         final locations = _groupByLocation(points);
-        if (_selectedPointId == null && points.isNotEmpty) {
-          _selectedPointId = points.first.id;
-          _expandedLocations.add(points.first.locationName);
+        if (_selectedLocation == null && locations.isNotEmpty) {
+          _selectedLocation = locations.keys.first;
+          _expandedLocations.add(_selectedLocation!);
         }
-        final selected = _findPoint(points, _selectedPointId);
 
         return LayoutBuilder(
           builder: (context, constraints) {
             final wide = constraints.maxWidth >= 760;
             final sidebar = _buildSidebar(l10n, locations);
-            final detail = selected == null
-                ? _buildEmptyDetail(l10n)
-                : _buildDetail(l10n, selected);
+            final detail = _buildDetail(l10n, locations[_selectedLocation] ?? []);
             if (wide) {
               return Padding(
                 padding: const EdgeInsets.all(AppSpacing.lg),
@@ -91,11 +90,9 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    l10n.gpsQualityRtkPointList,
-                    style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w600),
-                  ),
+                  child: Text(l10n.gpsQualityRtkPointList,
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w600)),
                 ),
                 IconButton(
                   key: const Key('add-rtk-point-btn'),
@@ -114,53 +111,73 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
                     style: const TextStyle(color: AppColors.textSecondary)),
               )
             else
-              ...locations.entries.map((entry) {
-                final expanded = _expandedLocations.contains(entry.key);
-                return _AccordionItem(
-                  locationName: entry.key,
-                  points: entry.value,
-                  expanded: expanded,
-                  selectedPointId: _selectedPointId,
-                  onToggle: () => setState(() {
-                    if (expanded) {
-                      _expandedLocations.remove(entry.key);
-                    } else {
-                      _expandedLocations.add(entry.key);
-                    }
-                  }),
-                  onSelect: (id) => setState(() => _selectedPointId = id),
-                  onDelete: (id) => _deletePoint(l10n, id),
-                );
-              }),
+              ...locations.entries.map((entry) => _AccordionItem(
+                    locationName: entry.key,
+                    points: entry.value,
+                    expanded: _expandedLocations.contains(entry.key),
+                    selected: _selectedLocation == entry.key,
+                    onToggle: () => setState(() {
+                      if (_expandedLocations.contains(entry.key)) {
+                        _expandedLocations.remove(entry.key);
+                      } else {
+                        _expandedLocations.add(entry.key);
+                      }
+                      _selectedLocation = entry.key;
+                    }),
+                    onSelectPoint: (id) => setState(() {
+                      // Clicking a point selects its location
+                      final point = entry.value.firstWhere((p) => p.id == id);
+                      _selectedLocation = point.locationName;
+                    }),
+                    onDelete: (id) => _deletePoint(l10n, id),
+                  )),
           ],
         ),
       ),
     );
   }
 
-  // ── Detail (sessions table) ──────────────────────────────────────
+  // ── Detail (merged location-level table) ────────────────────────
 
-  Widget _buildEmptyDetail(AppLocalizations l10n) {
-    return Card(
-      child: SizedBox(
-        height: 240,
-        child: Center(
-          child: Text(l10n.gpsQualityNoData,
-              style: const TextStyle(color: AppColors.textSecondary)),
+  Widget _buildDetail(AppLocalizations l10n, List<RtkPoint> locationPoints) {
+    if (locationPoints.isEmpty) {
+      return Card(
+        child: SizedBox(
+          height: 240,
+          child: Center(
+            child: Text(l10n.gpsQualityNoData,
+                style: const TextStyle(color: AppColors.textSecondary)),
+          ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
-  Widget _buildDetail(AppLocalizations l10n, RtkPoint point) {
-    final sessionsAsync =
-        ref.watch(calibrationSessionsProvider(point.id));
+    final locName = locationPoints.first.locationName;
+
+    // Collect sessions for all points in this location
+    final sessionRows = <_SessionRow>[];
+    final uncalibratedPoints = <RtkPoint>[];
+
+    for (final point in locationPoints) {
+      final sessionsAsync = ref.watch(calibrationSessionsProvider(point.id));
+      final sessions = sessionsAsync.value ?? [];
+      if (sessions.isEmpty) {
+        uncalibratedPoints.add(point);
+      } else {
+        for (final s in sessions) {
+          sessionRows.add(_SessionRow(point: point, session: s));
+        }
+      }
+    }
+
+    final hasAnySession = sessionRows.isNotEmpty;
+
     return Card(
-      key: const Key('rtk-sessions-card'),
+      key: Key('rtk-detail-$locName'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // header
+          // Header: location name + point count + create button
           Container(
             padding: const EdgeInsets.fromLTRB(
                 AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.md),
@@ -169,63 +186,211 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
             ),
             child: Row(
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(point.pointLabel,
-                          style: const TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${point.locationName} · ${point.latitude.toStringAsFixed(6)}, ${point.longitude.toStringAsFixed(6)}',
-                        style: const TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary),
-                      ),
-                    ],
+                Text(locName,
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w600)),
+                const SizedBox(width: AppSpacing.sm),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySoft,
+                    borderRadius: BorderRadius.circular(10),
                   ),
+                  child: Text('${locationPoints.length} ${l10n.gpsQualityPointLabel.contains("点位") ? "个点位" : "points"}',
+                      style: const TextStyle(
+                          fontSize: 12, color: AppColors.primary)),
                 ),
+                const Spacer(),
                 ElevatedButton.icon(
                   key: const Key('add-session-btn'),
                   icon: const Icon(Icons.add, size: 18),
                   label: Text(l10n.gpsQualityAddSession),
-                  onPressed: () => _showCreateSessionDialog(l10n, point),
+                  onPressed: () =>
+                      _showCreateSessionDialog(l10n, locationPoints.first),
                 ),
               ],
             ),
           ),
-          // table
-          sessionsAsync.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.all(AppSpacing.xl),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            error: (e, _) => _ErrorView(
-              message: '$e',
-              onRetry: () => ref
-                  .invalidate(calibrationSessionsProvider(point.id)),
-            ),
-            data: (sessions) {
-              if (sessions.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.all(AppSpacing.xl),
-                  child: Center(
-                    child: Text(l10n.gpsQualityNoData,
+          // Merged sessions table
+          if (!hasAnySession)
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: Center(
+                child: Column(
+                  children: [
+                    const Icon(Icons.assignment_outlined,
+                        size: 40, color: AppColors.textSecondary),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(l10n.gpsQualityNoData,
                         style: const TextStyle(
-                            color: AppColors.textSecondary)),
-                  ),
-                );
-              }
-              return _SessionsTable(
-                sessions: sessions,
-                onEnd: (s) => _confirmEndSession(l10n, s),
-                onDelete: (s) => _deleteSession(l10n, s),
-              );
-            },
-          ),
+                            color: AppColors.textSecondary, fontSize: 13)),
+                  ],
+                ),
+              ),
+            )
+          else
+            _buildMergedTable(l10n, sessionRows),
+          // Collapsible uncalibrated points
+          if (uncalibratedPoints.isNotEmpty) _buildUncalibratedSection(l10n, uncalibratedPoints),
         ],
       ),
     );
+  }
+
+  Widget _buildMergedTable(AppLocalizations l10n, List<_SessionRow> rows) {
+    final fmt = DateFormat('MM-dd HH:mm');
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        key: const Key('merged-sessions-table'),
+        columnSpacing: 16,
+        columns: [
+          DataColumn(label: Text(l10n.gpsQualityPointLabel)),
+          const DataColumn(label: Text('RTK')),
+          DataColumn(label: Text(l10n.gpsQualityDevice)),
+          DataColumn(label: Text(l10n.gpsQualityStartTime)),
+          DataColumn(label: Text(l10n.gpsQualityStatus)),
+          const DataColumn(label: Text('')),
+        ],
+        rows: rows.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final row = entry.value;
+          final isFirstForPoint =
+              idx == 0 || rows[idx - 1].point.id != row.point.id;
+          return DataRow(
+            key: ValueKey('merged-row-${row.session.id}'),
+            cells: [
+              DataCell(Text(isFirstForPoint ? row.point.pointLabel : '',
+                  style: const TextStyle(fontWeight: FontWeight.w600))),
+              DataCell(Text(
+                  isFirstForPoint
+                      ? '${row.point.latitude.toStringAsFixed(5)}, ${row.point.longitude.toStringAsFixed(5)}'
+                      : '',
+                  style: const TextStyle(
+                      fontSize: 11, color: AppColors.textSecondary))),
+              DataCell(Text(row.session.deviceCode,
+                  style: const TextStyle(fontWeight: FontWeight.w600))),
+              DataCell(Text(
+                  '${fmt.format(row.session.startedAt.toLocal())} → ${row.session.endedAt != null ? fmt.format(row.session.endedAt!.toLocal()) : '...'}',
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary))),
+              DataCell(_statusPill(l10n, row.session.status)),
+              DataCell(_buildActions(l10n, row.session)),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildUncalibratedSection(
+      AppLocalizations l10n, List<RtkPoint> points) {
+    return Container(
+      decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: AppColors.border))),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () => setState(() => _showUncalibrated = !_showUncalibrated),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg, vertical: AppSpacing.sm + 2),
+              child: Row(
+                children: [
+                  Icon(
+                      _showUncalibrated
+                          ? Icons.expand_less
+                          : Icons.expand_more,
+                      size: 16,
+                      color: AppColors.textSecondary),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text('${points.length} uncalibrated',
+                      style: const TextStyle(
+                          fontSize: 13, color: AppColors.textSecondary)),
+                ],
+              ),
+            ),
+          ),
+          if (_showUncalibrated)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.md),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: points
+                    .map((p) => Chip(
+                          label: Text(p.pointLabel,
+                              style: const TextStyle(fontSize: 11)),
+                          visualDensity: VisualDensity.compact,
+                        ))
+                    .toList(),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActions(AppLocalizations l10n, CalibrationSession s) {
+    if (s.status == CalibrationStatus.inProgress) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FilledButton.icon(
+            onPressed: () => _confirmEndSession(l10n, s),
+            icon: const Icon(Icons.stop, size: 14),
+            label: Text(l10n.gpsQualityEndSession, style: const TextStyle(fontSize: 12)),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          OutlinedButton(
+            onPressed: () => _deleteSession(l10n, s),
+            child: Text(l10n.gpsQualityCancelSession, style: const TextStyle(fontSize: 12)),
+          ),
+        ],
+      );
+    }
+    return OutlinedButton(
+      onPressed: () => _deleteSession(l10n, s),
+      child: Text(l10n.gpsQualityCancelSession, style: const TextStyle(fontSize: 12)),
+    );
+  }
+
+  Widget _statusPill(AppLocalizations l10n, CalibrationStatus status) {
+    switch (status) {
+      case CalibrationStatus.inProgress:
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF3E0),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(l10n.gpsQualityStatusInProgress,
+              style: const TextStyle(fontSize: 11, color: AppColors.warning)),
+        );
+      case CalibrationStatus.completed:
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: const Color(0xFFE8F5E9),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(l10n.gpsQualityStatusCompleted,
+              style: const TextStyle(fontSize: 11, color: AppColors.success)),
+        );
+      case CalibrationStatus.canceled:
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: const Color(0xFFECEFF1),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(l10n.gpsQualityStatusCanceled,
+              style: const TextStyle(
+                  fontSize: 11, color: AppColors.textSecondary)),
+        );
+    }
   }
 
   // ── Actions ──────────────────────────────────────────────────────
@@ -236,9 +401,6 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(ok ? '✅' : '❌')),
     );
-    if (ok && _selectedPointId == id) {
-      setState(() => _selectedPointId = null);
-    }
   }
 
   Future<void> _confirmEndSession(
@@ -309,35 +471,27 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
     }
     return map;
   }
-
-  RtkPoint? _findPoint(List<RtkPoint> points, int? id) {
-    if (id == null) return null;
-    for (final p in points) {
-      if (p.id == id) return p;
-    }
-    return null;
-  }
 }
 
-// ── Accordion item ─────────────────────────────────────────────────
+// ── Accordion item (location) ─────────────────────────────────────
 
 class _AccordionItem extends StatelessWidget {
   const _AccordionItem({
     required this.locationName,
     required this.points,
     required this.expanded,
-    required this.selectedPointId,
+    required this.selected,
     required this.onToggle,
-    required this.onSelect,
+    required this.onSelectPoint,
     required this.onDelete,
   });
 
   final String locationName;
   final List<RtkPoint> points;
   final bool expanded;
-  final int? selectedPointId;
+  final bool selected;
   final VoidCallback onToggle;
-  final ValueChanged<int> onSelect;
+  final ValueChanged<int> onSelectPoint;
   final ValueChanged<int> onDelete;
 
   @override
@@ -345,7 +499,7 @@ class _AccordionItem extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.xs),
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: selected ? AppColors.primary : AppColors.border),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -371,8 +525,12 @@ class _AccordionItem extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(locationName,
-                        style: const TextStyle(
-                            fontSize: 13, fontWeight: FontWeight.w600)),
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: selected
+                                ? AppColors.primary
+                                : AppColors.textPrimary)),
                   ),
                   Text('${points.length}',
                       style: const TextStyle(
@@ -384,18 +542,15 @@ class _AccordionItem extends StatelessWidget {
           if (expanded)
             Column(
               children: points.map((p) {
-                final selected = p.id == selectedPointId;
                 return InkWell(
                   key: Key('rtk-point-${p.id}'),
-                  onTap: () => onSelect(p.id),
+                  onTap: () => onSelectPoint(p.id),
                   child: Container(
                     padding: const EdgeInsets.fromLTRB(
                         32, AppSpacing.sm, AppSpacing.md, AppSpacing.sm),
-                    decoration: BoxDecoration(
-                      color: selected ? AppColors.primarySoft : null,
-                      border: const Border(
-                          top: BorderSide(color: AppColors.border)),
-                    ),
+                    decoration: const BoxDecoration(
+                        border:
+                            Border(top: BorderSide(color: AppColors.border))),
                     child: Row(
                       children: [
                         Expanded(
@@ -403,14 +558,9 @@ class _AccordionItem extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(p.pointLabel,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       fontSize: 12,
-                                      fontWeight: selected
-                                          ? FontWeight.w600
-                                          : FontWeight.w400,
-                                      color: selected
-                                          ? AppColors.primary
-                                          : AppColors.textPrimary)),
+                                      color: AppColors.textPrimary)),
                               const SizedBox(height: 1),
                               Text(
                                 '${p.latitude.toStringAsFixed(5)}, ${p.longitude.toStringAsFixed(5)}',
@@ -439,115 +589,12 @@ class _AccordionItem extends StatelessWidget {
   }
 }
 
-// ── Sessions table ─────────────────────────────────────────────────
-
-class _SessionsTable extends StatelessWidget {
-  const _SessionsTable({
-    required this.sessions,
-    required this.onEnd,
-    required this.onDelete,
-  });
-
-  final List<CalibrationSession> sessions;
-  final ValueChanged<CalibrationSession> onEnd;
-  final ValueChanged<CalibrationSession> onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final fmt = DateFormat('MM-dd HH:mm');
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        key: const Key('sessions-table'),
-        columnSpacing: 20,
-        columns: [
-          DataColumn(label: Text(l10n.gpsQualityDevice)),
-          DataColumn(label: Text(l10n.gpsQualityStartTime)),
-          DataColumn(label: Text(l10n.gpsQualityEndTime)),
-          DataColumn(label: Text(l10n.gpsQualityStatus)),
-          const DataColumn(label: Text('')),
-        ],
-        rows: sessions.map((s) {
-          return DataRow(
-            key: ValueKey('session-row-${s.id}'),
-            cells: [
-              DataCell(Text(s.deviceCode,
-                  style: const TextStyle(fontWeight: FontWeight.w600))),
-              DataCell(Text(fmt.format(s.startedAt.toLocal()),
-                  style: const TextStyle(
-                      fontSize: 12, color: AppColors.textSecondary))),
-              DataCell(Text(
-                s.endedAt != null
-                    ? fmt.format(s.endedAt!.toLocal())
-                    : '—',
-                style: const TextStyle(
-                    fontSize: 12, color: AppColors.textSecondary),
-              )),
-              DataCell(_statusPill(l10n, s.status)),
-              DataCell(_buildActions(l10n, s)),
-            ],
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildActions(AppLocalizations l10n, CalibrationSession s) {
-    if (s.status == CalibrationStatus.inProgress) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FilledButton.tonal(
-            key: Key('end-session-${s.id}'),
-            onPressed: () => onEnd(s),
-            child: Text(l10n.gpsQualityEndSession),
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          IconButton(
-            icon: const Icon(Icons.delete_outline, size: 18),
-            tooltip: l10n.gpsQualityCancelSession,
-            onPressed: () => onDelete(s),
-          ),
-        ],
-      );
-    }
-    return IconButton(
-      icon: const Icon(Icons.delete_outline, size: 18),
-      tooltip: l10n.gpsQualityCancelSession,
-      onPressed: () => onDelete(s),
-    );
-  }
+/// A merged row linking a point to one of its sessions.
+class _SessionRow {
+  const _SessionRow({required this.point, required this.session});
+  final RtkPoint point;
+  final CalibrationSession session;
 }
-
-Widget _statusPill(AppLocalizations l10n, CalibrationStatus status) {
-  switch (status) {
-    case CalibrationStatus.inProgress:
-      return _pill(l10n.gpsQualityStatusInProgress, AppColors.info,
-          const Color(0xFFDBEAFE));
-    case CalibrationStatus.completed:
-      return _pill(l10n.gpsQualityStatusCompleted, AppColors.success,
-          const Color(0xFFDCFCE7));
-    case CalibrationStatus.canceled:
-      return _pill(l10n.gpsQualityStatusCanceled, AppColors.textSecondary,
-          const Color(0xFFF1F5F9));
-  }
-}
-
-Widget _pill(String label, Color fg, Color bg) {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-    decoration: BoxDecoration(
-      color: bg,
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Text(label,
-        style: TextStyle(
-            fontSize: 12, fontWeight: FontWeight.w500, color: fg)),
-  );
-}
-
-// ── Error view ─────────────────────────────────────────────────────
 
 class _ErrorView extends StatelessWidget {
   const _ErrorView({required this.message, required this.onRetry});

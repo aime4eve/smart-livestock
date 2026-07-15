@@ -2771,4 +2771,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsQualityErrorHistogram => 'Error Distribution';
+
+  @override
+  String get gpsQualityCalibrationLocations => 'Calibration Locations';
+
+  @override
+  String get gpsQualityRtkCoordinate => 'RTK Coordinates';
+
+  @override
+  String get gpsQualityTestTime => 'Test Time';
+
+  @override
+  String get gpsQualityActions => 'Actions';
+
+  @override
+  String get gpsQualityPointsUnit => 'points';
+
+  @override
+  String get gpsQualityCalibrated => 'Calibrated';
+
+  @override
+  String get gpsQualityPointUnitShort => 'pts';
+
+  @override
+  String get gpsQualitySessionUnitShort => 'sessions';
+
+  @override
+  String get gpsQualityUncalibratedPointsUnit => 'uncalibrated points';
+
+  @override
+  String get gpsQualityUncalibrated => 'Uncalibrated';
+
+  @override
+  String get gpsQualityCalibrate => 'Calibrate';
+
+  @override
+  String get gpsQualityNoSessionHint =>
+      'No calibration sessions yet. Click \"+ Create Calibration Session\" to start.';
+
+  @override
+  String get gpsQualityDelete => 'Delete';
 }

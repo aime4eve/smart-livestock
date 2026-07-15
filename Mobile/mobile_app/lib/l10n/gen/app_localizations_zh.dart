@@ -2716,4 +2716,43 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpsQualityErrorHistogram => '偏差分布';
+
+  @override
+  String get gpsQualityCalibrationLocations => '标定位置';
+
+  @override
+  String get gpsQualityRtkCoordinate => 'RTK 坐标';
+
+  @override
+  String get gpsQualityTestTime => '测试时间';
+
+  @override
+  String get gpsQualityActions => '操作';
+
+  @override
+  String get gpsQualityPointsUnit => '个点位';
+
+  @override
+  String get gpsQualityCalibrated => '标定';
+
+  @override
+  String get gpsQualityPointUnitShort => '点';
+
+  @override
+  String get gpsQualitySessionUnitShort => '会话';
+
+  @override
+  String get gpsQualityUncalibratedPointsUnit => '个未标定点位';
+
+  @override
+  String get gpsQualityUncalibrated => '未标定';
+
+  @override
+  String get gpsQualityCalibrate => '标定';
+
+  @override
+  String get gpsQualityNoSessionHint => '暂无标定会话，点击「+ 创建标定会话」开始';
+
+  @override
+  String get gpsQualityDelete => '删除';
 }

@@ -5083,6 +5083,84 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'偏差分布'**
   String get gpsQualityErrorHistogram;
+
+  /// No description provided for @gpsQualityCalibrationLocations.
+  ///
+  /// In zh, this message translates to:
+  /// **'标定位置'**
+  String get gpsQualityCalibrationLocations;
+
+  /// No description provided for @gpsQualityRtkCoordinate.
+  ///
+  /// In zh, this message translates to:
+  /// **'RTK 坐标'**
+  String get gpsQualityRtkCoordinate;
+
+  /// No description provided for @gpsQualityTestTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'测试时间'**
+  String get gpsQualityTestTime;
+
+  /// No description provided for @gpsQualityActions.
+  ///
+  /// In zh, this message translates to:
+  /// **'操作'**
+  String get gpsQualityActions;
+
+  /// No description provided for @gpsQualityPointsUnit.
+  ///
+  /// In zh, this message translates to:
+  /// **'个点位'**
+  String get gpsQualityPointsUnit;
+
+  /// No description provided for @gpsQualityCalibrated.
+  ///
+  /// In zh, this message translates to:
+  /// **'标定'**
+  String get gpsQualityCalibrated;
+
+  /// No description provided for @gpsQualityPointUnitShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'点'**
+  String get gpsQualityPointUnitShort;
+
+  /// No description provided for @gpsQualitySessionUnitShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'会话'**
+  String get gpsQualitySessionUnitShort;
+
+  /// No description provided for @gpsQualityUncalibratedPointsUnit.
+  ///
+  /// In zh, this message translates to:
+  /// **'个未标定点位'**
+  String get gpsQualityUncalibratedPointsUnit;
+
+  /// No description provided for @gpsQualityUncalibrated.
+  ///
+  /// In zh, this message translates to:
+  /// **'未标定'**
+  String get gpsQualityUncalibrated;
+
+  /// No description provided for @gpsQualityCalibrate.
+  ///
+  /// In zh, this message translates to:
+  /// **'标定'**
+  String get gpsQualityCalibrate;
+
+  /// No description provided for @gpsQualityNoSessionHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无标定会话，点击「+ 创建标定会话」开始'**
+  String get gpsQualityNoSessionHint;
+
+  /// No description provided for @gpsQualityDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除'**
+  String get gpsQualityDelete;
 }
 
 class _AppLocalizationsDelegate
