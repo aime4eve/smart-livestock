@@ -2623,6 +2623,64 @@ class AppLocalizationsZh extends AppLocalizations {
       '留空＝正在进行的实时测试（稍后点「结束」收尾）；填写过去时间＝补录历史会话，创建即出报告';
 
   @override
+  String get gpsQualityBatchCreate => '批量创建标定会话';
+
+  @override
+  String get gpsQualityImportExcel => '导入Excel';
+
+  @override
+  String get gpsQualityDownloadTemplate => '下载模板';
+
+  @override
+  String get gpsQualityAddRow => '添加行';
+
+  @override
+  String get gpsQualityDeleteRow => '删除';
+
+  @override
+  String gpsQualityBatchCreateN(Object n) {
+    return '批量创建($n)';
+  }
+
+  @override
+  String gpsQualityBatchResult(Object m, Object n) {
+    return '成功 $n 条 / 失败 $m 条';
+  }
+
+  @override
+  String gpsQualityDeviceNotFound(Object code) {
+    return '设备不存在: $code';
+  }
+
+  @override
+  String gpsQualityPointNotFound(Object label) {
+    return '点位不存在: $label';
+  }
+
+  @override
+  String gpsQualityImportRows(Object n) {
+    return '已导入 $n 行';
+  }
+
+  @override
+  String get gpsQualitySelectRtkPointShort => '点位';
+
+  @override
+  String get gpsQualitySelectDeviceShort => '设备';
+
+  @override
+  String gpsQualityBatchProgress(Object done, Object total) {
+    return '正在创建 $done/$total...';
+  }
+
+  @override
+  String get gpsQualityTemplateColumns =>
+      '设备编码,RTK点位编号,开始时间(可选),结束时间(可选,留空=实时测试)';
+
+  @override
+  String get gpsQualityBatchEmpty => '请至少添加一行数据';
+
+  @override
   String get gpsQualityStatus => '状态';
 
   @override

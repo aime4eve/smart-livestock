@@ -111,6 +111,18 @@ class CalibrationSessionsController
     ref.invalidate(comparisonProvider(rtkPointId));
   }
 
+  /// Batch-create sessions. Returns per-row success/failure so the
+  /// caller can report which rows failed. Invalidates caches regardless.
+  Future<BatchCreateResult> createSessionsBatch(
+      List<BatchSessionRequest> rows) async {
+    final result = await ref
+        .read(gpsQualityApiRepositoryProvider)
+        .createSessionBatch(rows);
+    ref.invalidateSelf();
+    ref.invalidate(comparisonProvider(rtkPointId));
+    return result;
+  }
+
   Future<bool> endSession(int id) async {
     try {
       await ref.read(gpsQualityApiRepositoryProvider).endSession(id);
