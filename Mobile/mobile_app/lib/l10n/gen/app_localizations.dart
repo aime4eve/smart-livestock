@@ -4874,6 +4874,18 @@ abstract class AppLocalizations {
   /// **'结束时间'**
   String get gpsQualityEndTime;
 
+  /// No description provided for @gpsQualityStartedAtFutureError.
+  ///
+  /// In zh, this message translates to:
+  /// **'开始时间不能在未来'**
+  String get gpsQualityStartedAtFutureError;
+
+  /// No description provided for @gpsQualityEndedAtFutureError.
+  ///
+  /// In zh, this message translates to:
+  /// **'结束时间不能在未来；如需创建进行中的实时测试，请留空结束时间'**
+  String get gpsQualityEndedAtFutureError;
+
   /// No description provided for @gpsQualityStatus.
   ///
   /// In zh, this message translates to:

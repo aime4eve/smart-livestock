@@ -2666,6 +2666,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpsQualityEndTime => 'End Time';
 
   @override
+  String get gpsQualityStartedAtFutureError =>
+      'Start time cannot be in the future';
+
+  @override
+  String get gpsQualityEndedAtFutureError =>
+      'End time cannot be in the future; leave it empty to create an in-progress live session';
+
+  @override
   String get gpsQualityStatus => 'Status';
 
   @override

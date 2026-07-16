@@ -1054,6 +1054,19 @@ class _CreateSessionDialogState extends ConsumerState<_CreateSessionDialog> {
       );
       return;
     }
+    final now = DateTime.now();
+    if (_startedAt!.isAfter(now)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(widget.l10n.gpsQualityStartedAtFutureError)),
+      );
+      return;
+    }
+    if (_endedAt != null && _endedAt!.isAfter(now)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(widget.l10n.gpsQualityEndedAtFutureError)),
+      );
+      return;
+    }
     setState(() => _saving = true);
     try {
       await ref
@@ -1260,13 +1273,7 @@ class _DateTimeField extends StatelessWidget {
       initialTime: TimeOfDay.fromDateTime(value ?? now),
     );
     if (time == null) return;
-    // Clamp to the current moment — the backend rejects future timestamps,
-    // so a "today + future time" pick is normalized to now.
-    var picked =
-        DateTime(date.year, date.month, date.day, time.hour, time.minute);
-    if (picked.isAfter(now)) {
-      picked = now;
-    }
-    onChanged(picked);
+    onChanged(
+        DateTime(date.year, date.month, date.day, time.hour, time.minute));
   }
 }
