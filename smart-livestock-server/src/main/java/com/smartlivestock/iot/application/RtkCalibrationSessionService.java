@@ -3,9 +3,9 @@ package com.smartlivestock.iot.application;
 import com.smartlivestock.iot.domain.model.CalibrationStatus;
 import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.DeviceType;
-import com.smartlivestock.iot.domain.model.RtkCalibrationSession;
+import com.smartlivestock.iot.domain.model.GpsQualityTest;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
-import com.smartlivestock.iot.domain.repository.RtkCalibrationSessionRepository;
+import com.smartlivestock.iot.domain.repository.GpsQualityTestRepository;
 import com.smartlivestock.iot.domain.repository.RtkReferencePointRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -31,15 +31,15 @@ public class RtkCalibrationSessionService {
 
     private static final long MAX_BACKFILL_DAYS = 7;
 
-    private final RtkCalibrationSessionRepository sessionRepository;
+    private final GpsQualityTestRepository sessionRepository;
     private final RtkReferencePointRepository rtkPointRepository;
     private final DeviceRepository deviceRepository;
 
-    public Page<RtkCalibrationSession> findFiltered(Long rtkPointId, Long deviceId, String status, Pageable pageable) {
-        return sessionRepository.findFiltered(rtkPointId, deviceId, status, pageable);
+    public Page<GpsQualityTest> findFiltered(Long rtkPointId, Long deviceId, String status, String testType, Pageable pageable) {
+        return sessionRepository.findFiltered(rtkPointId, deviceId, status, testType, pageable);
     }
 
-    public RtkCalibrationSession findById(Long id) {
+    public GpsQualityTest findById(Long id) {
         return sessionRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "Calibration session not found: " + id));
@@ -66,7 +66,7 @@ public class RtkCalibrationSessionService {
      *
      * @param endedAt null = live session (IN_PROGRESS); non-null = backfill (COMPLETED)
      */
-    public RtkCalibrationSession create(Long rtkPointId, Long deviceId, Instant startedAt, Instant endedAt) {
+    public GpsQualityTest create(Long rtkPointId, Long deviceId, Instant startedAt, Instant endedAt) {
         // --- S5: request validation ---
         if (rtkPointId == null) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "rtkPointId is required");
@@ -108,14 +108,14 @@ public class RtkCalibrationSessionService {
         }
 
         // --- S1: time-window overlap check against all existing device sessions ---
-        for (RtkCalibrationSession existing : sessionRepository.findByDeviceIdOrderByStartedAtDesc(deviceId)) {
+        for (GpsQualityTest existing : sessionRepository.findByDeviceIdOrderByStartedAtDesc(deviceId)) {
             if (overlaps(startedAt, endedAt, existing.getStartedAt(), existing.getEndedAt())) {
                 throw new ApiException(ErrorCode.STATE_CONFLICT,
                         "Time window overlaps existing session #" + existing.getId());
             }
         }
 
-        RtkCalibrationSession session = new RtkCalibrationSession(rtkPointId, deviceId, startedAt);
+        GpsQualityTest session = new GpsQualityTest(rtkPointId, deviceId, startedAt);
         if (backfill) {
             session.setEndedAt(endedAt);
             session.setStatus(CalibrationStatus.COMPLETED);
@@ -123,14 +123,14 @@ public class RtkCalibrationSessionService {
         return sessionRepository.save(session);
     }
 
-    public RtkCalibrationSession end(Long id) {
-        RtkCalibrationSession session = findById(id);
+    public GpsQualityTest end(Long id) {
+        GpsQualityTest session = findById(id);
         session.end();
         return sessionRepository.save(session);
     }
 
-    public RtkCalibrationSession cancel(Long id) {
-        RtkCalibrationSession session = findById(id);
+    public GpsQualityTest cancel(Long id) {
+        GpsQualityTest session = findById(id);
         if (session.getStatus() == CalibrationStatus.IN_PROGRESS) {
             // Live session → soft cancel (preserve audit trail)
             session.cancel();

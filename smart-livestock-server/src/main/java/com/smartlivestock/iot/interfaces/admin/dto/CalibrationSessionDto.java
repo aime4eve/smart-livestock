@@ -1,6 +1,6 @@
 package com.smartlivestock.iot.interfaces.admin.dto;
 
-import com.smartlivestock.iot.domain.model.RtkCalibrationSession;
+import com.smartlivestock.iot.domain.model.GpsQualityTest;
 
 import java.time.Instant;
 
@@ -22,7 +22,7 @@ public class CalibrationSessionDto {
     public CalibrationSessionDto() {
     }
 
-    public static CalibrationSessionDto from(RtkCalibrationSession s, String deviceCode) {
+    public static CalibrationSessionDto from(GpsQualityTest s, String deviceCode) {
         CalibrationSessionDto dto = new CalibrationSessionDto();
         dto.id = s.getId();
         dto.rtkPointId = s.getRtkPointId();

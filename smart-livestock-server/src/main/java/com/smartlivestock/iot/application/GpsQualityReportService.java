@@ -2,13 +2,13 @@ package com.smartlivestock.iot.application;
 
 import com.smartlivestock.iot.domain.model.CalibrationStatus;
 import com.smartlivestock.iot.domain.model.Device;
-import com.smartlivestock.iot.domain.model.RtkCalibrationSession;
+import com.smartlivestock.iot.domain.model.GpsQualityTest;
 import com.smartlivestock.iot.domain.model.RtkReferencePoint;
 import com.smartlivestock.iot.domain.port.dto.GpsPointWithTelemetry;
 import com.smartlivestock.iot.domain.port.dto.GpsQualityStats;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.domain.repository.GpsLogRepository;
-import com.smartlivestock.iot.domain.repository.RtkCalibrationSessionRepository;
+import com.smartlivestock.iot.domain.repository.GpsQualityTestRepository;
 import com.smartlivestock.iot.domain.repository.RtkReferencePointRepository;
 import com.smartlivestock.iot.domain.service.GpsQualityCalculator;
 import com.smartlivestock.shared.common.ApiException;
@@ -29,7 +29,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GpsQualityReportService {
 
-    private final RtkCalibrationSessionRepository sessionRepository;
+    private final GpsQualityTestRepository sessionRepository;
     private final RtkReferencePointRepository rtkPointRepository;
     private final GpsLogRepository gpsLogRepository;
     private final DeviceRepository deviceRepository;
@@ -38,7 +38,7 @@ public class GpsQualityReportService {
     private final GpsQualityCalculator calculator = new GpsQualityCalculator();
 
     public ReportResult generate(Long sessionId, boolean excludeSuspect) {
-        RtkCalibrationSession session = sessionRepository.findById(sessionId)
+        GpsQualityTest session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "Calibration session not found: " + sessionId));
         RtkReferencePoint rtk = rtkPointRepository.findById(session.getRtkPointId())
@@ -71,7 +71,7 @@ public class GpsQualityReportService {
                         "RTK point not found: " + rtkPointId));
 
         List<ComparisonEntry> entries = new ArrayList<>();
-        for (RtkCalibrationSession s : sessionRepository.findByRtkPointIdOrderByStartedAtDesc(rtkPointId)) {
+        for (GpsQualityTest s : sessionRepository.findByRtkPointIdOrderByStartedAtDesc(rtkPointId)) {
             if (s.getStatus() != CalibrationStatus.COMPLETED) {
                 continue;
             }
@@ -91,7 +91,7 @@ public class GpsQualityReportService {
                                Instant recordedAt, boolean suspect) {
     }
 
-    public record ReportResult(RtkCalibrationSession session, RtkReferencePoint rtk, String deviceCode,
+    public record ReportResult(GpsQualityTest session, RtkReferencePoint rtk, String deviceCode,
                                GpsQualityStats stats, boolean excludeSuspect, List<ScatterPoint> scatter) {
     }
 

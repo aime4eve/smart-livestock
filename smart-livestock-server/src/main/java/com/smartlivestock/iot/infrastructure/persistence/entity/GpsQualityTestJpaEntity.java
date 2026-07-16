@@ -12,18 +12,27 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 
 @Entity
-@Table(name = "rtk_calibration_sessions")
-public class RtkCalibrationSessionJpaEntity {
+@Table(name = "gps_quality_tests")
+public class GpsQualityTestJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "rtk_point_id", nullable = false)
-    private Long rtkPointId;
-
     @Column(name = "device_id", nullable = false)
     private Long deviceId;
+
+    // STATIC | DYNAMIC; defaults to STATIC for backward-compatible static tests.
+    @Column(name = "test_type", nullable = false, length = 10)
+    private String testType = "STATIC";
+
+    // STATIC truth point. Nullable now (null for DYNAMIC tests).
+    @Column(name = "rtk_point_id")
+    private Long rtkPointId;
+
+    // DYNAMIC truth route. Nullable (null for STATIC tests).
+    @Column(name = "route_id")
+    private Long routeId;
 
     // started_at / ended_at are TIMESTAMPTZ columns (lesson #17: same time basis as telemetry).
     @Column(name = "started_at", nullable = false)
@@ -50,6 +59,9 @@ public class RtkCalibrationSessionJpaEntity {
         if (this.status == null) {
             this.status = "IN_PROGRESS";
         }
+        if (this.testType == null) {
+            this.testType = "STATIC";
+        }
     }
 
     @PreUpdate
@@ -62,11 +74,17 @@ public class RtkCalibrationSessionJpaEntity {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
+    public Long getDeviceId() { return deviceId; }
+    public void setDeviceId(Long deviceId) { this.deviceId = deviceId; }
+
+    public String getTestType() { return testType; }
+    public void setTestType(String testType) { this.testType = testType; }
+
     public Long getRtkPointId() { return rtkPointId; }
     public void setRtkPointId(Long rtkPointId) { this.rtkPointId = rtkPointId; }
 
-    public Long getDeviceId() { return deviceId; }
-    public void setDeviceId(Long deviceId) { this.deviceId = deviceId; }
+    public Long getRouteId() { return routeId; }
+    public void setRouteId(Long routeId) { this.routeId = routeId; }
 
     public Instant getStartedAt() { return startedAt; }
     public void setStartedAt(Instant startedAt) { this.startedAt = startedAt; }

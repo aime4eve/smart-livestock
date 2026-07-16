@@ -3,7 +3,7 @@ package com.smartlivestock.iot.interfaces.admin;
 import com.smartlivestock.iot.application.GpsQualityReportService;
 import com.smartlivestock.iot.application.RtkCalibrationSessionService;
 import com.smartlivestock.iot.application.RtkReferencePointService;
-import com.smartlivestock.iot.domain.model.RtkCalibrationSession;
+import com.smartlivestock.iot.domain.model.GpsQualityTest;
 import com.smartlivestock.iot.domain.model.RtkReferencePoint;
 import com.smartlivestock.iot.interfaces.admin.dto.CalibrationSessionDto;
 import com.smartlivestock.iot.interfaces.admin.dto.ComparisonDto;
@@ -102,19 +102,20 @@ public class GpsQualityAdminController {
     // Calibration sessions (6-9)
     // ------------------------------------------------------------------
 
-    @GetMapping("/sessions")
-    public ResponseEntity<ApiResponse<Page<CalibrationSessionDto>>> listSessions(
-            @RequestParam(required = false) Long rtkPointId,
-            @RequestParam(required = false) Long deviceId,
-            @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<RtkCalibrationSession> sessions =
-                sessionService.findFiltered(rtkPointId, deviceId, status, pageable);
+   @GetMapping("/sessions")
+   public ResponseEntity<ApiResponse<Page<CalibrationSessionDto>>> listSessions(
+           @RequestParam(required = false) Long rtkPointId,
+           @RequestParam(required = false) Long deviceId,
+           @RequestParam(required = false) String status,
+            @RequestParam(required = false) String testType,
+           @RequestParam(defaultValue = "0") int page,
+           @RequestParam(defaultValue = "20") int size) {
+       Pageable pageable = PageRequest.of(page, size);
+        Page<GpsQualityTest> sessions =
+                sessionService.findFiltered(rtkPointId, deviceId, status, testType, pageable);
 
         Set<Long> deviceIds = sessions.getContent().stream()
-                .map(RtkCalibrationSession::getDeviceId).collect(Collectors.toSet());
+                .map(GpsQualityTest::getDeviceId).collect(Collectors.toSet());
         Map<Long, String> codeMap = sessionService.deviceCodeMap(List.copyOf(deviceIds));
 
         Page<CalibrationSessionDto> dtoPage = sessions.map(
@@ -125,7 +126,7 @@ public class GpsQualityAdminController {
     @PostMapping("/sessions")
     public ResponseEntity<ApiResponse<CalibrationSessionDto>> createSession(
             @RequestBody CalibrationSessionDto body) {
-        RtkCalibrationSession saved = sessionService.create(
+        GpsQualityTest saved = sessionService.create(
                 body.getRtkPointId(), body.getDeviceId(),
                 body.getStartedAt(), body.getEndedAt());
         String code = sessionService.resolveDeviceCode(saved.getDeviceId());
@@ -134,14 +135,14 @@ public class GpsQualityAdminController {
 
     @PatchMapping("/sessions/{id}/end")
     public ResponseEntity<ApiResponse<CalibrationSessionDto>> endSession(@PathVariable Long id) {
-        RtkCalibrationSession saved = sessionService.end(id);
+        GpsQualityTest saved = sessionService.end(id);
         String code = sessionService.resolveDeviceCode(saved.getDeviceId());
         return ResponseEntity.ok(ApiResponse.ok(CalibrationSessionDto.from(saved, code)));
     }
 
     @DeleteMapping("/sessions/{id}")
     public ResponseEntity<ApiResponse<CalibrationSessionDto>> cancelSession(@PathVariable Long id) {
-        RtkCalibrationSession saved = sessionService.cancel(id);
+        GpsQualityTest saved = sessionService.cancel(id);
         String code = sessionService.resolveDeviceCode(saved.getDeviceId());
         return ResponseEntity.ok(ApiResponse.ok(CalibrationSessionDto.from(saved, code)));
     }
