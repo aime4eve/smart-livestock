@@ -80,7 +80,7 @@ class HighfiDeviceTile extends StatelessWidget {
                    ),
                    const SizedBox(width: 4),
                    Text(
-                     device.isPlatformRegistered ? '已注册平台' : '未注册平台',
+                     device.isPlatformRegistered ? '已注册平台 ${device.platformDeviceId}' : '未注册平台',
                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
                        color: device.isPlatformRegistered ? AppColors.success : AppColors.textSecondary,
                      ),
