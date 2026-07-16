@@ -1260,6 +1260,13 @@ class _DateTimeField extends StatelessWidget {
       initialTime: TimeOfDay.fromDateTime(value ?? now),
     );
     if (time == null) return;
-    onChanged(DateTime(date.year, date.month, date.day, time.hour, time.minute));
+    // Clamp to the current moment — the backend rejects future timestamps,
+    // so a "today + future time" pick is normalized to now.
+    var picked =
+        DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    if (picked.isAfter(now)) {
+      picked = now;
+    }
+    onChanged(picked);
   }
 }
