@@ -4,10 +4,12 @@ import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/quality_report_tab.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/rtk_calibration_tab.dart';
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/dynamic_report_tab.dart';
 
-/// GPS Quality Check page with two tabs:
+/// GPS Quality Check page with three tabs:
 /// Tab 1: RTK calibration management (RTK points + calibration sessions)
 /// Tab 2: Quality reports (device comparison + statistics)
+/// Tab 3: Dynamic GPS quality testing (routes + dynamic tests + reports)
 class GpsQualityPage extends ConsumerStatefulWidget {
   const GpsQualityPage({super.key});
 
@@ -22,7 +24,7 @@ class _GpsQualityPageState extends ConsumerState<GpsQualityPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -45,20 +47,25 @@ class _GpsQualityPageState extends ConsumerState<GpsQualityPage>
               key: const Key('rtk-calibration-tab'),
               text: l10n.gpsQualityTabRtkCalibration,
             ),
+           Tab(
+             key: const Key('quality-report-tab'),
+             text: l10n.gpsQualityTabQualityReport,
+           ),
             Tab(
-              key: const Key('quality-report-tab'),
-              text: l10n.gpsQualityTabQualityReport,
+              key: const Key('dynamic-report-tab'),
+              text: l10n.gpsQualityTabDynamicReport,
             ),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: const [
-          RtkCalibrationTab(),
-          QualityReportTab(),
-        ],
-      ),
+         ],
+       ),
+     ),
+     body: TabBarView(
+       controller: _tabController,
+       children: const [
+         RtkCalibrationTab(),
+         QualityReportTab(),
+          DynamicReportTab(),
+       ],
+     ),
     );
   }
 }
