@@ -1,10 +1,10 @@
 import 'package:excel/excel.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/web_file_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
-import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/excel_download.dart';
+
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_api_repository.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_providers.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
@@ -336,14 +336,8 @@ class _BatchCreateSessionDialogState
 
   Future<void> _importExcel() async {
     final l10n = AppLocalizations.of(context)!;
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['xlsx'],
-      withData: true,
-    );
-    if (result == null || result.files.isEmpty) return;
-    final bytes = result.files.first.bytes;
-    if (bytes == null) return;
+    final bytes = await pickFileBytes(['xlsx']);
+    if (bytes == null || bytes.isEmpty) return;
 
     late final Excel xlsx;
     try {
