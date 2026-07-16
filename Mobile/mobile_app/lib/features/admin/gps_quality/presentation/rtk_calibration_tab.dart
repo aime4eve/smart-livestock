@@ -1034,22 +1034,48 @@ class _CreateSessionDialogState extends ConsumerState<_CreateSessionDialog> {
   }
 
   Future<void> _submit() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-    if (_deviceId == null || _startedAt == null) return;
+    // Validate form (device field, etc.)
+    final formValid = _formKey.currentState?.validate() ?? false;
+    if (!formValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请填写完所有必填字段')),
+      );
+      return;
+    }
+    if (_deviceId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请选择设备')),
+      );
+      return;
+    }
+    if (_startedAt == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请选择开始时间')),
+      );
+      return;
+    }
     setState(() => _saving = true);
-    final ok = await ref
-        .read(calibrationSessionsProvider(_rtkPointId).notifier)
-        .createSession(
-          deviceId: _deviceId!,
-          startedAt: _startedAt!,
-          endedAt: _endedAt,
-        );
-    if (!mounted) return;
-    setState(() => _saving = false);
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(ok ? '✅' : '❌')),
-    );
+    try {
+      await ref
+          .read(calibrationSessionsProvider(_rtkPointId).notifier)
+          .createSession(
+            deviceId: _deviceId!,
+            startedAt: _startedAt!,
+            endedAt: _endedAt,
+          );
+      if (!mounted) return;
+      setState(() => _saving = false);
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('✅ 创建成功')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('❌ $e')),
+      );
+    }
   }
 }
 
