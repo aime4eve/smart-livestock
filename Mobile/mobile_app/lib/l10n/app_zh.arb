@@ -2351,5 +2351,9 @@
   "gpsQualityTipEffectivePoints": "排除疑似移动点后的有效点数",
   "@gpsQualityTipEffectivePoints": {},
   "gpsQualityTipSuspectPoints": "step_number > 0 的点数",
+  "tenantListTitle": "租户管理",
+  "@tenantListTitle": {},
+  "tenantDetailTitle": "租户详情",
+  "@tenantDetailTitle": {},
   "@gpsQualityTipSuspectPoints": {}
 }

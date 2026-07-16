@@ -6,6 +6,7 @@ import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/admin/domain/admin_repository.dart';
 import 'package:hkt_livestock_agentic/features/admin/presentation/admin_controller.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class TenantListPage extends ConsumerWidget {
   const TenantListPage({super.key});
@@ -14,7 +15,11 @@ class TenantListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncTenants = ref.watch(tenantListControllerProvider);
 
-    return asyncTenants.when(
+    final l10n = AppLocalizations.of(context)!;
+
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.tenantListTitle)),
+      body: asyncTenants.when(
       data: (data) => _TenantListContent(items: data.items, total: data.total),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(
@@ -29,6 +34,7 @@ class TenantListPage extends ConsumerWidget {
               child: const Text('重试'),
             ),
           ],
+        ),
         ),
       ),
     );

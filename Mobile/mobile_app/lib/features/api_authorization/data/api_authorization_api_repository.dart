@@ -6,7 +6,7 @@ class ApiAuthorizationApiRepository implements ApiAuthorizationRepository {
 
   @override
   Future<ApiKeyListResult> loadApiKeys() async {
-    final data = await ApiClient.instance.get('/portal/keys?page=1&pageSize=100');
+    final data = await ApiClient.instance.get('/admin/api-keys?page=1&pageSize=100');
     final items = (data['items'] as List<dynamic>? ?? [])
         .whereType<Map<String, dynamic>>()
         .map(_parseApiKeyItem)
@@ -16,7 +16,7 @@ class ApiAuthorizationApiRepository implements ApiAuthorizationRepository {
 
   @override
   Future<ApiKeyCreateResult> createApiKey(Map<String, dynamic> body) async {
-    final data = await ApiClient.instance.post('/portal/keys', body: body);
+    final data = await ApiClient.instance.post('/admin/api-keys', body: body);
     return ApiKeyCreateResult(
       info: _parseApiKeyItem(data),
       fullKey: data['rawKey'] as String? ?? '',
@@ -25,12 +25,12 @@ class ApiAuthorizationApiRepository implements ApiAuthorizationRepository {
 
   @override
   Future<void> updateApiKeyStatus(String keyId, String status) async {
-    await ApiClient.instance.put('/portal/keys/$keyId/status', body: {'status': status});
+    await ApiClient.instance.put('/admin/api-keys/$keyId/status', body: {'status': status});
   }
 
   @override
   Future<void> revokeApiKey(String keyId) async {
-    await ApiClient.instance.delete('/portal/keys/$keyId');
+    await ApiClient.instance.delete('/admin/api-keys/$keyId');
   }
 
   @override

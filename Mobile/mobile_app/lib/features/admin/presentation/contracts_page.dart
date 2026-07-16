@@ -6,6 +6,7 @@ import 'package:hkt_livestock_agentic/features/contract_management/domain/contra
 import 'package:hkt_livestock_agentic/features/contract_management/presentation/contract_management_controller.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip.dart';
+import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class ContractsPage extends ConsumerStatefulWidget {
@@ -25,7 +26,9 @@ class _ContractsPageState extends ConsumerState<ContractsPage> {
     final controller =
         ref.read(contractManagementControllerProvider.notifier);
 
-    return asyncData.when(
+    return Scaffold(
+      appBar: AppBar(title: Text(AppRoute.platformContracts.label)),
+      body: asyncData.when(
       data: (data) {
         final filtered = _statusFilter.isEmpty
             ? data.contracts
@@ -76,6 +79,7 @@ class _ContractsPageState extends ConsumerState<ContractsPage> {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('$e')),
+    ),
     );
   }
 

@@ -39,6 +39,22 @@ public class AnalyticsAdminController {
         return ResponseEntity.ok(ApiResponse.ok(trend));
     }
 
+    @GetMapping("/usage/overview")
+    public ResponseEntity<ApiResponse<UsageOverviewDto>> getGlobalOverview(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        UsageOverviewDto overview = analyticsService.getGlobalOverview(from, to);
+        return ResponseEntity.ok(ApiResponse.ok(overview));
+    }
+
+    @GetMapping("/usage/trend")
+    public ResponseEntity<ApiResponse<List<UsageTrendDto>>> getGlobalTrend(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        List<UsageTrendDto> trend = analyticsService.getGlobalTrend(from, to);
+        return ResponseEntity.ok(ApiResponse.ok(trend));
+    }
+
     @PostMapping("/aggregate")
     public ResponseEntity<ApiResponse<String>> triggerAggregation(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {

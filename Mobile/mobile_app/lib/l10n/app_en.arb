@@ -2351,5 +2351,9 @@
   "gpsQualityTipEffectivePoints": "Points after excluding suspected motion",
   "@gpsQualityTipEffectivePoints": {},
   "gpsQualityTipSuspectPoints": "Points with step_number > 0",
+  "tenantListTitle": "Tenant Management",
+  "@tenantListTitle": {},
+  "tenantDetailTitle": "Tenant Detail",
+  "@tenantDetailTitle": {},
   "@gpsQualityTipSuspectPoints": {}
 }

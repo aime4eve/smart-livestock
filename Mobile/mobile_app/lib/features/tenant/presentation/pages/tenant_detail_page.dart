@@ -5,6 +5,7 @@ import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/admin/domain/admin_repository.dart';
 import 'package:hkt_livestock_agentic/features/admin/presentation/admin_controller.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class TenantDetailPage extends ConsumerStatefulWidget {
   const TenantDetailPage({super.key, required this.id});
@@ -53,19 +54,29 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Center(child: CircularProgressIndicator());
+    final l10n = AppLocalizations.of(context)!;
+
+    if (_loading) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.tenantDetailTitle)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
     if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('加载失败: $_error'),
-            const SizedBox(height: AppSpacing.md),
-            ElevatedButton(
-              onPressed: _loadData,
-              child: const Text('重试'),
-            ),
-          ],
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.tenantDetailTitle)),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('加载失败: $_error'),
+              const SizedBox(height: AppSpacing.md),
+              ElevatedButton(
+                onPressed: _loadData,
+                child: const Text('重试'),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -73,7 +84,9 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
     final tenant = _tenant!;
     final theme = Theme.of(context);
 
-    return SingleChildScrollView(
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.tenantDetailTitle)),
+      body: SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -151,6 +164,7 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                   onStatusToggle: () => _toggleUserStatus(user),
                 )),
         ],
+        ),
       ),
     );
   }

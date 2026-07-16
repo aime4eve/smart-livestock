@@ -23,42 +23,12 @@ class MainShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionControllerProvider);
     final role = session.role;
-    if (role == null ||
-        role == UserRole.platformAdmin) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('平台管理'),
-          actions: [
-            PopupMenuButton<AppRoute>(
-              key: const Key('platform-admin-menu'),
-              icon: const Icon(Icons.admin_panel_settings),
-              tooltip: '管理功能',
-              onSelected: (route) => context.go(route.path),
-              itemBuilder: (_) => [
-                AppRoute.platformTileAdmin,
-                AppRoute.platformGpsQuality,
-                AppRoute.platformRevenue,
-                AppRoute.platformContracts,
-                AppRoute.platformSubscriptions,
-                AppRoute.platformApiAuth,
-                AppRoute.platformAnalytics,
-                AppRoute.platformAuditLog,
-                AppRoute.platformFeatureGates,
-              ]
-                  .map((r) => PopupMenuItem(value: r, child: Text(r.label)))
-                  .toList(),
-            ),
-            IconButton(
-              key: const Key('platform-admin-logout'),
-              icon: const Icon(Icons.logout),
-              tooltip: '退出登录',
-              onPressed: () => ref.read(sessionControllerProvider.notifier).logout(),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-          ],
-        ),
-        body: child,
-      );
+    if (role == UserRole.platformAdmin) {
+      return _PlatformAdminShell(child: child);
+    }
+
+    if (role == null) {
+      return Scaffold(body: child);
     }
 
     if (role == UserRole.b2bAdmin) {
@@ -205,6 +175,122 @@ class _NavItem {
   final IconData icon;
   final String label;
   final AppRoute route;
+}
+
+class _PlatformAdminShell extends ConsumerWidget {
+  const _PlatformAdminShell({required this.child});
+  final Widget child;
+
+  static const _sidebarWidth = 56.0;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final location = GoRouterState.of(context).uri.toString();
+
+    return Scaffold(
+      body: Row(
+        children: [
+          // ── Grouped sidebar ──
+          Container(
+            width: _sidebarWidth,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8F9FA),
+              border: Border(
+                right: BorderSide(color: theme.dividerColor, width: 1),
+              ),
+            ),
+            child: Column(children: [
+              const SizedBox(height: 8),
+              _IconSidebarItem(
+                icon: Icons.domain_outlined,
+                tooltip: AppRoute.platformAdmin.label,
+                selected: location.startsWith(AppRoute.platformAdmin.path),
+                onTap: () => context.go(AppRoute.platformAdmin.path),
+              ),
+              const Divider(height: 1, indent: 8, endIndent: 8),
+              _IconSidebarItem(
+                icon: Icons.gps_fixed,
+                tooltip: AppRoute.platformGpsQuality.label,
+                selected:
+                    location.startsWith(AppRoute.platformGpsQuality.path),
+                onTap: () => context.go(AppRoute.platformGpsQuality.path),
+              ),
+              _IconSidebarItem(
+                icon: Icons.account_balance_wallet_outlined,
+                tooltip: AppRoute.platformRevenue.label,
+                selected: location.startsWith(AppRoute.platformRevenue.path),
+                onTap: () => context.go(AppRoute.platformRevenue.path),
+              ),
+              _IconSidebarItem(
+                icon: Icons.description_outlined,
+                tooltip: AppRoute.platformContracts.label,
+                selected:
+                    location.startsWith(AppRoute.platformContracts.path),
+                onTap: () => context.go(AppRoute.platformContracts.path),
+              ),
+              _IconSidebarItem(
+                icon: Icons.workspace_premium_outlined,
+                tooltip: AppRoute.platformSubscriptions.label,
+                selected: location
+                    .startsWith(AppRoute.platformSubscriptions.path),
+                onTap: () => context.go(AppRoute.platformSubscriptions.path),
+              ),
+              const Divider(height: 1, indent: 8, endIndent: 8),
+              _IconSidebarItem(
+                icon: Icons.api_outlined,
+                tooltip: AppRoute.platformApiAuth.label,
+                selected: location.startsWith(AppRoute.platformApiAuth.path),
+                onTap: () => context.go(AppRoute.platformApiAuth.path),
+              ),
+              _IconSidebarItem(
+                icon: Icons.analytics_outlined,
+                tooltip: AppRoute.platformAnalytics.label,
+                selected:
+                    location.startsWith(AppRoute.platformAnalytics.path),
+                onTap: () => context.go(AppRoute.platformAnalytics.path),
+              ),
+              _IconSidebarItem(
+                icon: Icons.history,
+                tooltip: AppRoute.platformAuditLog.label,
+                selected:
+                    location.startsWith(AppRoute.platformAuditLog.path),
+                onTap: () => context.go(AppRoute.platformAuditLog.path),
+              ),
+              _IconSidebarItem(
+                icon: Icons.tune,
+                tooltip: AppRoute.platformFeatureGates.label,
+                selected: location
+                    .startsWith(AppRoute.platformFeatureGates.path),
+                onTap: () => context.go(AppRoute.platformFeatureGates.path),
+              ),
+              _IconSidebarItem(
+                icon: Icons.map_outlined,
+                tooltip: AppRoute.platformTileAdmin.label,
+                selected:
+                    location.startsWith(AppRoute.platformTileAdmin.path),
+                onTap: () => context.go(AppRoute.platformTileAdmin.path),
+              ),
+              const Spacer(),
+              const Divider(height: 1, indent: 8, endIndent: 8),
+              _IconSidebarItem(
+                icon: Icons.logout,
+                tooltip: l10n.commonLogout,
+                selected: false,
+                color: const Color(0xFFC2564B),
+                onTap: () =>
+                    ref.read(sessionControllerProvider.notifier).logout(),
+              ),
+              const SizedBox(height: 8),
+            ]),
+          ),
+          // ── Content ──
+          Expanded(child: child),
+        ],
+      ),
+    );
+  }
 }
 
 class _B2bAdminShell extends ConsumerWidget {

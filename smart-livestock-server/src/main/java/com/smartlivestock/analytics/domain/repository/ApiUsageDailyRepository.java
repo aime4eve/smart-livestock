@@ -8,4 +8,5 @@ public interface ApiUsageDailyRepository {
     ApiUsageDaily save(ApiUsageDaily daily);
     List<ApiUsageDaily> findByTenantIdAndUsageDateBetween(Long tenantId, LocalDate from, LocalDate to);
     List<ApiUsageDaily> findByApiKeyIdAndUsageDateBetween(Long apiKeyId, LocalDate from, LocalDate to);
+    List<ApiUsageDaily> findAllByUsageDateBetween(LocalDate from, LocalDate to);
 }

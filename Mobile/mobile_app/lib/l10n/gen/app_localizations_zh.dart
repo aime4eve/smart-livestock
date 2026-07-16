@@ -2782,4 +2782,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpsQualityTipSuspectPoints => 'step_number > 0 的点数';
+
+  @override
+  String get tenantListTitle => '租户管理';
+
+  @override
+  String get tenantDetailTitle => '租户详情';
 }

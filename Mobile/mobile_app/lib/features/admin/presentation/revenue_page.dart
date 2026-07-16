@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/revenue/presentation/revenue_controller.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
+import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class RevenuePage extends ConsumerWidget {
@@ -14,7 +15,9 @@ class RevenuePage extends ConsumerWidget {
     final asyncData = ref.watch(revenueControllerProvider);
     final controller = ref.read(revenueControllerProvider.notifier);
 
-    return asyncData.when(
+    return Scaffold(
+      appBar: AppBar(title: Text(AppRoute.platformRevenue.label)),
+      body: asyncData.when(
       data: (data) => SingleChildScrollView(
         key: const Key('page-revenue'),
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -94,6 +97,7 @@ class RevenuePage extends ConsumerWidget {
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('$e')),
+    ),
     );
   }
 }

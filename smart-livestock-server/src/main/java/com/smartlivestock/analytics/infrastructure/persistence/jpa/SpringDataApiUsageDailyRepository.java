@@ -8,4 +8,5 @@ import java.util.List;
 public interface SpringDataApiUsageDailyRepository extends JpaRepository<ApiUsageDailyJpaEntity, Long> {
     List<ApiUsageDailyJpaEntity> findByTenantIdAndUsageDateBetween(Long tenantId, LocalDate from, LocalDate to);
     List<ApiUsageDailyJpaEntity> findByApiKeyIdAndUsageDateBetween(Long apiKeyId, LocalDate from, LocalDate to);
+    List<ApiUsageDailyJpaEntity> findAllByUsageDateBetween(LocalDate from, LocalDate to);
 }
