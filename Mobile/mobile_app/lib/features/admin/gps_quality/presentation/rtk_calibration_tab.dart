@@ -986,18 +986,11 @@ class _CreateSessionDialogState extends ConsumerState<_CreateSessionDialog> {
               devicesAsync.when(
                 loading: () => const LinearProgressIndicator(),
                 error: (e, _) => Text('$e'),
-                data: (devices) => DropdownButtonFormField<int>(
-                  key: const Key('session-device-field'),
-                  decoration: InputDecoration(labelText: l10n.gpsQualitySelectDevice),
-                  value: _deviceId,
-                  items: devices
-                      .map((d) => DropdownMenuItem(
-                            value: d.id,
-                            child: Text(d.deviceCode),
-                          ))
-                      .toList(),
-                  onChanged: (v) => setState(() => _deviceId = v),
-                  validator: (v) => v == null ? l10n.gpsQualitySelectDevice : null,
+                data: (devices) => _DeviceSearchField(
+                  devices: devices,
+                  selectedId: _deviceId,
+                  onSelected: (id) => setState(() => _deviceId = id),
+                  hintText: l10n.gpsQualitySelectDevice,
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
@@ -1061,6 +1054,100 @@ class _CreateSessionDialogState extends ConsumerState<_CreateSessionDialog> {
 }
 
 /// Date+time picker field.
+/// Searchable device selection field using Autocomplete.
+class _DeviceSearchField extends StatelessWidget {
+  const _DeviceSearchField({
+    required this.devices,
+    required this.selectedId,
+    required this.onSelected,
+    required this.hintText,
+  });
+
+  final List<DeviceBrief> devices;
+  final int? selectedId;
+  final ValueChanged<int> onSelected;
+  final String hintText;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = devices.where((d) => d.id == selectedId).firstOrNull;
+    return FormField<int>(
+      validator: (_) => selectedId == null ? hintText : null,
+      builder: (state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Autocomplete<DeviceBrief>(
+              key: const Key('session-device-field'),
+              initialValue: selected != null
+                  ? TextEditingValue(text: selected.deviceCode)
+                  : null,
+              displayStringForOption: (d) => d.deviceCode,
+              optionsBuilder: (textEditingValue) {
+                final query = textEditingValue.text.toLowerCase();
+                if (query.isEmpty) return devices.take(20);
+                return devices
+                    .where((d) => d.deviceCode.toLowerCase().contains(query))
+                    .take(20);
+              },
+              onSelected: (device) {
+                onSelected(device.id);
+                state.didChange(device.id);
+              },
+              fieldViewBuilder: (ctx, controller, focusNode, onSubmitted) {
+                return TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  onSubmitted: (_) => onSubmitted(),
+                  decoration: InputDecoration(
+                    labelText: hintText,
+                    suffixIcon: const Icon(Icons.search, size: 18),
+                  ),
+                );
+              },
+              optionsViewBuilder: (ctx, onSelected, options) {
+                return Align(
+                  alignment: Alignment.topLeft,
+                  child: Material(
+                    elevation: 4,
+                    borderRadius: BorderRadius.circular(8),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 250),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: options.length,
+                        itemBuilder: (ctx, index) {
+                          final d = options.elementAt(index);
+                          return ListTile(
+                            dense: true,
+                            title: Text(d.deviceCode),
+                            onTap: () => onSelected(d),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+            if (state.hasError)
+              Padding(
+                padding: const EdgeInsets.only(top: 6, left: 12),
+                child: Text(
+                  state.errorText ?? '',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class _DateTimeField extends StatelessWidget {
   const _DateTimeField({
     super.key,
