@@ -127,13 +127,14 @@ public class RtkCalibrationSessionService {
 
     public RtkCalibrationSession cancel(Long id) {
         RtkCalibrationSession session = findById(id);
-        if (session.getStatus() == CalibrationStatus.CANCELED) {
-            // Already canceled → hard delete (cleanup by admin)
-            sessionRepository.deleteById(id);
-            return session;
+        if (session.getStatus() == CalibrationStatus.IN_PROGRESS) {
+            // Live session → soft cancel (preserve audit trail)
+            session.cancel();
+            return sessionRepository.save(session);
         }
-        session.cancel();
-        return sessionRepository.save(session);
+        // COMPLETED or CANCELED → hard delete (admin cleanup)
+        sessionRepository.deleteById(id);
+        return session;
     }
 
     /**
