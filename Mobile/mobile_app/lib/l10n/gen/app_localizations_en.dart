@@ -2844,4 +2844,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsQualityTipSuspectPoints => 'Points with step_number > 0';
+
+  @override
+  String get tenantListTitle => 'Tenant Management';
+
+  @override
+  String get tenantDetailTitle => 'Tenant Detail';
 }

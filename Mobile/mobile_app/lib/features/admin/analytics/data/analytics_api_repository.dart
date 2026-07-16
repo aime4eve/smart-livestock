@@ -6,7 +6,7 @@ class AnalyticsApiRepository {
 
   Future<UsageOverview> getOverview(DateTime from, DateTime to) async {
     final data = await ApiClient.instance.get(
-      '/analytics/usage/overview?from=${_fmt(from)}&to=${_fmt(to)}',
+      '/admin/analytics/usage/overview?from=${_fmt(from)}&to=${_fmt(to)}',
     );
     return UsageOverview(
       totalCalls: (data['totalCalls'] as num?)?.toInt() ?? 0,
@@ -18,7 +18,7 @@ class AnalyticsApiRepository {
 
   Future<List<UsageTrendPoint>> getTrend(DateTime from, DateTime to) async {
     final data = await ApiClient.instance.get(
-      '/analytics/usage/trend?from=${_fmt(from)}&to=${_fmt(to)}',
+      '/admin/analytics/usage/trend?from=${_fmt(from)}&to=${_fmt(to)}',
     );
     final items = (data["value"] ?? data["items"] ?? []) as List;
     return items.whereType<Map<String, dynamic>>().map((m) => UsageTrendPoint(

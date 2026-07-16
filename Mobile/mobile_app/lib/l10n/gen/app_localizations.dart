@@ -5215,6 +5215,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'step_number > 0 的点数'**
   String get gpsQualityTipSuspectPoints;
+
+  /// No description provided for @tenantListTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'租户管理'**
+  String get tenantListTitle;
+
+  /// No description provided for @tenantDetailTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'租户详情'**
+  String get tenantDetailTitle;
 }
 
 class _AppLocalizationsDelegate

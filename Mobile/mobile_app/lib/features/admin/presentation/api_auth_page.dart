@@ -6,6 +6,7 @@ import 'package:hkt_livestock_agentic/features/api_authorization/domain/api_auth
 import 'package:hkt_livestock_agentic/features/api_authorization/presentation/api_authorization_controller.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip.dart';
+import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class ApiAuthPage extends ConsumerStatefulWidget {
@@ -43,7 +44,9 @@ class _ApiAuthPageState extends ConsumerState<ApiAuthPage> {
     final asyncData = ref.watch(apiAuthorizationControllerProvider);
     final controller = ref.read(apiAuthorizationControllerProvider.notifier);
 
-    return asyncData.when(
+    return Scaffold(
+      appBar: AppBar(title: Text(AppRoute.platformApiAuth.label)),
+      body: asyncData.when(
       data: (data) => SingleChildScrollView(
         key: const Key('page-api-auth'),
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -85,6 +88,7 @@ class _ApiAuthPageState extends ConsumerState<ApiAuthPage> {
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('${l10n.commonLoadFailed}: $e')),
+    ),
     );
   }
 

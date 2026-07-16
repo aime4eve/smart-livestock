@@ -35,6 +35,30 @@ public class AnalyticsApplicationService {
                 .toList();
     }
 
+    public UsageOverviewDto getGlobalOverview(LocalDate from, LocalDate to) {
+        List<ApiUsageDaily> daily = usageDailyRepository.findAllByUsageDateBetween(from, to);
+        return buildOverview(daily, from, to);
+    }
+
+    public List<UsageTrendDto> getGlobalTrend(LocalDate from, LocalDate to) {
+        List<ApiUsageDaily> daily = usageDailyRepository.findAllByUsageDateBetween(from, to);
+        java.util.Map<LocalDate, long[]> agg = new java.util.TreeMap<>();
+        for (ApiUsageDaily d : daily) {
+            long[] v = agg.computeIfAbsent(d.getUsageDate(), k -> new long[4]);
+            v[0] += d.getTotalCalls();
+            v[1] += d.getSuccessCalls();
+            v[2] += d.getErrorCalls();
+            v[3] += 1;
+        }
+        List<UsageTrendDto> result = new java.util.ArrayList<>();
+        for (var entry : agg.entrySet()) {
+            long[] v = entry.getValue();
+            int avgMs = v[3] > 0 ? (int)(v[0] / v[3]) : 0;
+            result.add(new UsageTrendDto(entry.getKey(), (int) v[0], (int) v[1], (int) v[2], avgMs));
+        }
+        return result;
+    }
+
     public List<UsageTrendDto> getApiKeyTrend(Long tenantId, Long apiKeyId, LocalDate from, LocalDate to) {
         return usageDailyRepository.findByApiKeyIdAndUsageDateBetween(apiKeyId, from, to)
                 .stream().filter(d -> d.getTenantId().equals(tenantId))

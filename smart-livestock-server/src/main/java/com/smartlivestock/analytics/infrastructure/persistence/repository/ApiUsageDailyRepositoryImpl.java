@@ -31,4 +31,10 @@ public class ApiUsageDailyRepositoryImpl implements ApiUsageDailyRepository {
         return springDataRepo.findByApiKeyIdAndUsageDateBetween(apiKeyId, from, to)
                 .stream().map(AnalyticsMapper::toDomain).toList();
     }
+
+    @Override
+    public List<ApiUsageDaily> findAllByUsageDateBetween(LocalDate from, LocalDate to) {
+        return springDataRepo.findAllByUsageDateBetween(from, to)
+                .stream().map(AnalyticsMapper::toDomain).toList();
+    }
 }

@@ -6,6 +6,7 @@ import 'package:hkt_livestock_agentic/features/subscription_service_management/d
 import 'package:hkt_livestock_agentic/features/subscription_service_management/presentation/subscription_service_controller.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip.dart';
+import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class SubscriptionsPage extends ConsumerWidget {
@@ -18,7 +19,9 @@ class SubscriptionsPage extends ConsumerWidget {
     final controller =
         ref.read(subscriptionServiceControllerProvider.notifier);
 
-    return asyncData.when(
+    return Scaffold(
+      appBar: AppBar(title: Text(AppRoute.platformSubscriptions.label)),
+      body: asyncData.when(
       data: (data) => SingleChildScrollView(
         key: const Key('page-subscriptions'),
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -48,6 +51,7 @@ class SubscriptionsPage extends ConsumerWidget {
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('$e')),
+    ),
     );
   }
 

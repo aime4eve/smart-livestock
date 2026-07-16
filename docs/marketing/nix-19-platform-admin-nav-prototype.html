@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>NIX-19 平台管理 UI 优化 — 高保真原型</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, "PingFang SC", "Segoe UI", Roboto, sans-serif; }
+  body { background: #f0f2f5; color: #1f1f1f; padding: 24px; }
+  h1 { font-size: 20px; margin-bottom: 4px; }
+  .sub { color: #666; font-size: 13px; margin-bottom: 24px; }
+  .row { display: flex; gap: 32px; flex-wrap: wrap; }
+  .col { flex: 1; min-width: 360px; }
+  .col h2 { font-size: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .badge-old { background: #ffe0e0; color: #c62828; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+  .badge-new { background: #e0f2f1; color: #00695c; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+
+  /* ---- Shell frame ---- */
+  .shell { border: 1px solid #d0d0d0; border-radius: 10px; overflow: hidden; background: #fff; height: 520px; display: flex; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+
+  /* ---- OLD: AppBar + popup ---- */
+  .appbar { height: 56px; background: #1565C0; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; width: 100%; }
+  .appbar .title { font-size: 16px; font-weight: 600; }
+  .appbar .actions { display: flex; gap: 6px; align-items: center; }
+  .icon-btn { width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
+  .icon-btn:hover { background: rgba(255,255,255,.15); }
+  .popup { position: absolute; top: 52px; right: 60px; width: 200px; background: #fff; color: #333; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.18); padding: 6px 0; z-index: 5; }
+  .popup .pi { padding: 10px 16px; font-size: 13px; cursor: pointer; }
+  .popup .pi:hover { background: #e3f2fd; }
+  .popup .arrow { position: absolute; top: -7px; right: 14px; color: #fff; font-size: 14px; }
+  .body-old { flex: 1; padding: 20px; background: #fafafa; color: #999; font-size: 13px; }
+  .note { font-size: 12px; color: #c62828; margin-top: 8px; }
+
+  /* ---- NEW: sidebar ---- */
+  .sidebar { width: 64px; background: #f8f9fa; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; align-items: center; padding: 8px 0; }
+  .nav-item { width: 48px; height: 48px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; margin: 2px 0; color: #616161; position: relative; }
+  .nav-item .ico { font-size: 19px; }
+  .nav-item .lbl { font-size: 9px; margin-top: 1px; line-height: 1.1; text-align: center; }
+  .nav-item:hover { background: #eef2f7; }
+  .nav-item.active { background: #e3f2fd; color: #1565C0; }
+  .nav-item.active::before { content: ""; position: absolute; left: -8px; top: 8px; bottom: 8px; width: 3px; background: #1565C0; border-radius: 0 3px 3px 0; }
+  .sep { width: 32px; height: 1px; background: #e0e0e0; margin: 6px 0; }
+  .spacer { flex: 1; }
+  .content { flex: 1; background: #fafafa; padding: 0; display: flex; flex-direction: column; }
+  .topbar { height: 48px; background: #fff; border-bottom: 1px solid #eee; display: flex; align-items: center; padding: 0 20px; font-size: 15px; font-weight: 600; color: #333; }
+  .page { flex: 1; padding: 20px; overflow: auto; }
+  .card { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 16px; margin-bottom: 12px; font-size: 13px; color: #444; }
+  .tip { font-size: 12px; color: #00695c; margin-top: 8px; }
+
+  /* tooltip */
+  .nav-item:hover .tip-pop { display: block; }
+  .tip-pop { display: none; position: absolute; left: 56px; top: 50%; transform: translateY(-50%); background: #333; color: #fff; font-size: 11px; padding: 4px 8px; border-radius: 4px; white-space: nowrap; z-index: 10; }
+</style>
+</head>
+<body>
+
+<h1>NIX-19 平台管理 UI 优化</h1>
+<div class="sub">platform_admin 导航：PopupMenuButton（点开才见）→ 常驻左侧图标栏（始终可见）</div>
+
+<div class="row">
+
+  <!-- ============ OLD ============ -->
+  <div class="col">
+    <h2>现状 <span class="badge-old">操作不便捷</span></h2>
+    <div class="shell" style="position:relative; flex-direction: column;">
+      <div class="appbar">
+        <div class="title">平台管理</div>
+        <div class="actions">
+          <div class="icon-btn" title="管理功能">⚙️<span style="font-size:11px;margin-left:2px;">▾</span></div>
+          <div class="icon-btn" title="退出登录">⎋</div>
+        </div>
+      </div>
+      <!-- popup shown as if clicked -->
+      <div class="popup">
+        <div class="arrow">▲</div>
+        <div class="pi">🗺️ 瓦片管理</div>
+        <div class="pi">📍 GPS 质量检查</div>
+        <div class="pi">💰 对账看板</div>
+        <div class="pi">📄 合同管理</div>
+        <div class="pi">⭐ 订阅服务管理</div>
+        <div class="pi">🔑 API 授权管理</div>
+        <div class="pi">📊 用量分析</div>
+        <div class="pi">🕘 审计日志</div>
+        <div class="pi">🎛️ 功能门控</div>
+      </div>
+      <div class="body-old">
+        🏢 租户管理列表（首页内容）<br><br>
+        ▢ Demo 租户　▢ 测试租户A　▢ …
+        <div class="note">⚠ 9 个管理功能全部藏在 ⚙️ 按钮里，必须先点击才能看到、才能跳转。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ NEW ============ -->
+  <div class="col">
+    <h2>优化后 <span class="badge-new">常驻可见 · 一点即达</span></h2>
+    <div class="shell">
+      <div class="sidebar">
+        <div class="nav-item active"><div class="ico">🏢</div><div class="lbl">租户</div><span class="tip-pop">租户管理</span></div>
+        <div class="sep"></div>
+        <div class="nav-item"><div class="ico">📍</div><div class="lbl">GPS</div><span class="tip-pop">GPS 质量检查</span></div>
+        <div class="nav-item"><div class="ico">💰</div><div class="lbl">对账</div><span class="tip-pop">对账看板</span></div>
+        <div class="nav-item"><div class="ico">📄</div><div class="lbl">合同</div><span class="tip-pop">合同管理</span></div>
+        <div class="nav-item"><div class="ico">⭐</div><div class="lbl">订阅</div><span class="tip-pop">订阅服务管理</span></div>
+        <div class="sep"></div>
+        <div class="nav-item"><div class="ico">🔑</div><div class="lbl">API</div><span class="tip-pop">API 授权管理</span></div>
+        <div class="nav-item"><div class="ico">📊</div><div class="lbl">分析</div><span class="tip-pop">用量分析</span></div>
+        <div class="nav-item"><div class="ico">🕘</div><div class="lbl">审计</div><span class="tip-pop">审计日志</span></div>
+        <div class="nav-item"><div class="ico">🎛️</div><div class="lbl">门控</div><span class="tip-pop">功能门控</span></div>
+        <div class="nav-item"><div class="ico">🗺️</div><div class="lbl">瓦片</div><span class="tip-pop">瓦片管理</span></div>
+        <div class="spacer"></div>
+        <div class="sep"></div>
+        <div class="nav-item" style="color:#c2564b;"><div class="ico">⎋</div><div class="lbl">退出</div><span class="tip-pop">退出登录</span></div>
+      </div>
+      <div class="content">
+        <div class="topbar">租户管理</div>
+        <div class="page">
+          <div class="card">🏢 Demo 租户　<span style="color:#888">owner: 13800138000</span></div>
+          <div class="card">🏢 测试租户A</div>
+          <div class="card">🏢 测试租户B</div>
+          <div class="tip">✓ 左侧栏始终可见，当前页高亮；悬停显示完整名称；点击即跳转，无需二次展开。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
