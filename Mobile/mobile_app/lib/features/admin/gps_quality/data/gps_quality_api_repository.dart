@@ -16,11 +16,15 @@ class SessionListResult {
 @immutable
 class BatchSessionRequest {
   const BatchSessionRequest({
+    this.testType = TestType.static_,
+    this.routeId,
     required this.rtkPointId,
     required this.deviceId,
     required this.startedAt,
     this.endedAt,
   });
+  final TestType testType;
+  final int? routeId;
   final int rtkPointId;
   final int deviceId;
   final DateTime startedAt;
@@ -114,7 +118,7 @@ class ComparisonResult {
           latitude: 0,
           longitude: 0,
         ),
-        devices: (json['devices'] as List<dynamic>? ?? [])
+        devices: (json['devices'] as List)
             .whereType<Map<String, dynamic>>()
             .map(DeviceComparison.fromJson)
             .toList(),
@@ -157,7 +161,7 @@ class GpsQualityApiRepository {
         ? '?locationName=${Uri.encodeQueryComponent(locationName)}'
         : '';
     final data = await ApiClient.instance.get('$_base/rtk-points$qs');
-    final items = (data['value'] ?? data['items']) as List<dynamic>? ?? [];
+    final items = (data['value'] ?? data['items']) as List;
     return items
         .whereType<Map<String, dynamic>>()
         .map(RtkPoint.fromJson)
@@ -202,7 +206,7 @@ class GpsQualityApiRepository {
 
   Future<List<DeviceBrief>> fetchDevices() async {
     final data = await ApiClient.instance.get('$_base/devices');
-    final items = (data['value'] ?? data['items']) as List<dynamic>? ?? [];
+    final items = (data['value'] ?? data['items']) as List;
     return items
         .whereType<Map<String, dynamic>>()
         .map(DeviceBrief.fromJson)
@@ -225,7 +229,7 @@ class GpsQualityApiRepository {
     final data = await ApiClient.instance
         .get('$_base/sessions?${params.join('&')}');
     // Sessions endpoint returns Spring Data Page: {content: [...], totalElements: N}
-    final rawItems = (data['content'] ?? data['value'] ?? data['items']) as List<dynamic>? ?? [];
+    final rawItems = (data['content'] ?? data['value'] ?? data['items']) as List;
     final items = rawItems
         .whereType<Map<String, dynamic>>()
         .map(CalibrationSession.fromJson)
@@ -300,21 +304,100 @@ class GpsQualityApiRepository {
   Future<List<TrajectoryPoint>> fetchTrajectory(int sessionId) async {
     final data = await ApiClient.instance
         .get('$_base/sessions/$sessionId/trajectory');
-    return ((data['points'] ?? (data['value'] is List ? data['value'] : (data['value'] is Map ? data['value']['points'] : null))) as List<dynamic>? ?? [])
+    return ((data['points'] ?? (data['value'] is List ? data['value'] : (data['value'] is Map ? data['value']['points'] : null))) as List)
         .whereType<Map<String, dynamic>>()
         .map(TrajectoryPoint.fromJson)
         .toList();
   }
 
-  Future<ComparisonResult> fetchComparison({int? rtkPointId}) async {
-    final qs = rtkPointId != null ? '?rtkPointId=$rtkPointId' : '';
-    final data = await ApiClient.instance.get('$_base/comparison$qs');
-    return ComparisonResult.fromJson(data);
+ Future<ComparisonResult> fetchComparison({int? rtkPointId}) async {
+   final qs = rtkPointId != null ? '?rtkPointId=$rtkPointId' : '';
+   final data = await ApiClient.instance.get('$_base/comparison$qs');
+   return ComparisonResult.fromJson(data);
+ }
+
+ String _statusParam(CalibrationStatus s) => switch (s) {
+       CalibrationStatus.inProgress => 'IN_PROGRESS',
+       CalibrationStatus.completed => 'COMPLETED',
+       CalibrationStatus.canceled => 'CANCELED',
+     };
+
+  // ── Dynamic test routes ─────────────────────────────────────────
+
+Future<List<DynamicRoute>> fetchDynamicRoutes() async {
+  final data = await ApiClient.instance.get('$_base/dynamic-routes');
+  final items = (data is List)
+      ? data as List
+      : (data['value'] ?? data['items'] ?? []) as List;
+  return items
+      .whereType<Map<String, dynamic>>()
+      .map(DynamicRoute.fromJson)
+      .toList();
+}
+
+  Future<DynamicRoute> createDynamicRoute({
+    required String name,
+    String? description,
+  }) async {
+    final data = await ApiClient.instance.post('$_base/dynamic-routes', body: {
+      'name': name,
+      if (description != null) 'description': description,
+    });
+    return DynamicRoute.fromJson(data);
   }
 
-  String _statusParam(CalibrationStatus s) => switch (s) {
-        CalibrationStatus.inProgress => 'IN_PROGRESS',
-        CalibrationStatus.completed => 'COMPLETED',
-        CalibrationStatus.canceled => 'CANCELED',
-      };
+  Future<void> deleteDynamicRoute(int id) async {
+    await ApiClient.instance.delete('$_base/dynamic-routes/$id');
+  }
+
+  Future<List<DynamicRoutePoint>> fetchRoutePoints(int routeId) async {
+    final data =
+        await ApiClient.instance.get('$_base/dynamic-routes/$routeId/points');
+    final items = (data is List)
+        ? data as List
+        : (data['value'] ?? data['items'] ?? []) as List;
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map(DynamicRoutePoint.fromJson)
+        .toList();
+  }
+
+  Future<void> replaceRoutePoints(
+    int routeId,
+    List<({int rtkPointId, int sequenceNo})> points,
+  ) async {
+    await ApiClient.instance.put(
+      '$_base/dynamic-routes/$routeId/points',
+      body: points
+          .map((p) => {'rtkPointId': p.rtkPointId, 'sequenceNo': p.sequenceNo})
+          .toList(),
+    );
+  }
+
+  // ── Dynamic test sessions ───────────────────────────────────────
+
+  Future<CalibrationSession> createDynamicSession({
+    required int deviceId,
+    required int routeId,
+    required DateTime startedAt,
+    DateTime? endedAt,
+  }) async {
+    final data =
+        await ApiClient.instance.post('$_base/sessions/dynamic', body: {
+      'deviceId': deviceId,
+      'routeId': routeId,
+      'startedAt': startedAt.toUtc().toIso8601String(),
+      if (endedAt != null) 'endedAt': endedAt.toUtc().toIso8601String(),
+    });
+    return CalibrationSession.fromJson(data);
+  }
+
+  Future<DynamicQualityReport> fetchDynamicReport(
+    int sessionId, {
+    double threshold = 5.0,
+  }) async {
+    final data = await ApiClient.instance
+        .get('$_base/sessions/$sessionId/dynamic-report?threshold=$threshold');
+    return DynamicQualityReport.fromJson(data);
+  }
 }

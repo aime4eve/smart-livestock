@@ -170,3 +170,43 @@ final comparisonProvider = FutureProvider.family<ComparisonResult, int>(
       .read(gpsQualityApiRepositoryProvider)
       .fetchComparison(rtkPointId: rtkPointId),
 );
+
+// ── Dynamic test routes ───────────────────────────────────────────
+
+class DynamicRoutesController extends AsyncNotifier<List<DynamicRoute>> {
+  @override
+  Future<List<DynamicRoute>> build() =>
+      ref.read(gpsQualityApiRepositoryProvider).fetchDynamicRoutes();
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+      () => ref.read(gpsQualityApiRepositoryProvider).fetchDynamicRoutes(),
+    );
+  }
+}
+
+final dynamicRoutesProvider =
+    AsyncNotifierProvider<DynamicRoutesController, List<DynamicRoute>>(
+  DynamicRoutesController.new,
+);
+
+// ── Route points (family by routeId) ──────────────────────────────
+
+final routePointsProvider =
+    FutureProvider.family<List<DynamicRoutePoint>, int>(
+  (ref, routeId) =>
+      ref.read(gpsQualityApiRepositoryProvider).fetchRoutePoints(routeId),
+);
+
+// ── Dynamic quality report (family by sessionId) ──────────────────
+
+/// Query key for fetching a dynamic quality report.
+typedef DynamicReportQuery = ({int sessionId, double threshold});
+
+final dynamicReportProvider =
+    FutureProvider.family<DynamicQualityReport, DynamicReportQuery>(
+  (ref, query) => ref
+      .read(gpsQualityApiRepositoryProvider)
+      .fetchDynamicReport(query.sessionId, threshold: query.threshold),
+);

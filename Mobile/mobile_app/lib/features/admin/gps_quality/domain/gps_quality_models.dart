@@ -45,6 +45,8 @@ class RtkPoint {
 class CalibrationSession {
   const CalibrationSession({
     required this.id,
+    this.testType = TestType.static_,
+    this.routeId,
     required this.rtkPointId,
     required this.deviceId,
     required this.deviceCode,
@@ -53,6 +55,8 @@ class CalibrationSession {
     required this.status,
   });
 
+  final TestType testType;
+  final int? routeId;
   final int id;
   final int rtkPointId;
   final int deviceId;
@@ -64,6 +68,8 @@ class CalibrationSession {
   factory CalibrationSession.fromJson(Map<String, dynamic> json) =>
       CalibrationSession(
         id: json['id'] as int,
+        testType: TestType.fromString(json['testType'] as String? ?? 'STATIC'),
+        routeId: json['routeId'] as int?,
         rtkPointId: json['rtkPointId'] as int,
         deviceId: json['deviceId'] as int,
         deviceCode: json['deviceCode'] as String? ?? '',
@@ -79,6 +85,302 @@ class CalibrationSession {
         'COMPLETED' => CalibrationStatus.completed,
         'CANCELED' => CalibrationStatus.canceled,
         _ => CalibrationStatus.inProgress,
+      };
+}
+
+/// Test type: STATIC (single RTK point) or DYNAMIC (route-driven).
+enum TestType {
+  static_,
+  dynamic_;
+
+  String get label => switch (this) {
+        TestType.static_ => 'STATIC',
+        TestType.dynamic_ => 'DYNAMIC',
+      };
+
+  static TestType fromString(String s) => switch (s.toUpperCase()) {
+        'DYNAMIC' => TestType.dynamic_,
+        _ => TestType.static_,
+      };
+}
+
+/// A reusable dynamic test route definition.
+@immutable
+class DynamicRoute {
+  const DynamicRoute({
+    required this.id,
+    required this.name,
+    this.description,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  final int id;
+  final String name;
+  final String? description;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  factory DynamicRoute.fromJson(Map<String, dynamic> json) => DynamicRoute(
+        id: json['id'] as int,
+        name: json['name'] as String? ?? '',
+        description: json['description'] as String?,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        updatedAt: DateTime.parse(json['updatedAt'] as String),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        if (description != null) 'description': description,
+      };
+}
+
+/// A single ordered point in a dynamic test route.
+@immutable
+class DynamicRoutePoint {
+  const DynamicRoutePoint({
+    required this.id,
+    required this.routeId,
+    required this.rtkPointId,
+    required this.sequenceNo,
+  });
+
+  final int id;
+  final int routeId;
+  final int rtkPointId;
+  final int sequenceNo;
+
+  factory DynamicRoutePoint.fromJson(Map<String, dynamic> json) =>
+      DynamicRoutePoint(
+        id: json['id'] as int? ?? 0,
+        routeId: json['routeId'] as int,
+        rtkPointId: json['rtkPointId'] as int,
+        sequenceNo: json['sequenceNo'] as int,
+      );
+}
+
+/// Dynamic quality report — route-driven matching results.
+@immutable
+class DynamicQualityReport {
+  const DynamicQualityReport({
+    required this.testId,
+    required this.deviceId,
+    required this.deviceCode,
+    required this.routeId,
+    required this.routeName,
+    required this.startedAt,
+    this.endedAt,
+    required this.threshold,
+    required this.grade,
+    required this.stats,
+    required this.perPoint,
+    this.passes = const [],
+    this.staticComparison,
+  });
+
+  final int testId;
+  final int deviceId;
+  final String deviceCode;
+  final int routeId;
+  final String routeName;
+  final DateTime startedAt;
+  final DateTime? endedAt;
+  final double threshold;
+  final QualityGrade grade;
+  final DynamicQualityStats stats;
+  final List<DynamicPointSummary> perPoint;
+  final List<DynamicMatchedPass> passes;
+  final DynamicStaticComparison? staticComparison;
+
+  factory DynamicQualityReport.fromJson(Map<String, dynamic> json) =>
+      DynamicQualityReport(
+        testId: json['testId'] as int? ?? 0,
+        deviceId: json['deviceId'] as int? ?? 0,
+        deviceCode: json['deviceCode'] as String? ?? '',
+        routeId: json['routeId'] as int? ?? 0,
+        routeName: json['routeName'] as String? ?? '',
+        startedAt: json['startedAt'] != null
+            ? DateTime.parse(json['startedAt'] as String)
+            : DateTime.now(),
+        endedAt: json['endedAt'] != null
+            ? DateTime.parse(json['endedAt'] as String)
+            : null,
+        threshold: (json['threshold'] as num?)?.toDouble() ?? 0,
+        grade: _parseGrade(json['grade'] as String? ?? 'UNAVAILABLE'),
+        stats: DynamicQualityStats.fromJson(
+            json['stats'] as Map<String, dynamic>? ?? const {}),
+        perPoint: (json['perPoint'] as List<dynamic>? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .map(DynamicPointSummary.fromJson)
+            .toList(),
+        passes: (json['passes'] as List<dynamic>? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .map(DynamicMatchedPass.fromJson)
+            .toList(),
+        staticComparison: json['staticComparison'] != null
+            ? DynamicStaticComparison.fromJson(
+                json['staticComparison'] as Map<String, dynamic>)
+            : null,
+      );
+
+  static QualityGrade _parseGrade(String s) => switch (s) {
+        'EXCELLENT' => QualityGrade.excellent,
+        'USABLE' => QualityGrade.usable,
+        'MARGINAL' => QualityGrade.marginal,
+        'UNAVAILABLE' => QualityGrade.unavailable,
+        _ => QualityGrade.unavailable,
+      };
+}
+
+/// Dynamic quality statistics (route-driven matching metrics).
+@immutable
+class DynamicQualityStats {
+  const DynamicQualityStats({
+    this.routePointCount = 0,
+    this.matchedCount = 0,
+    this.missedCount = 0,
+    this.ambiguousCount = 0,
+    this.transitCount = 0,
+    this.inOrder = true,
+    this.coverage = 0,
+    this.meanError = 0,
+    this.p50 = 0,
+    this.p95 = 0,
+    this.maxError = 0,
+  });
+
+  final int routePointCount;
+  final int matchedCount;
+  final int missedCount;
+  final int ambiguousCount;
+  final int transitCount;
+  final bool inOrder;
+  final double coverage;
+  final double meanError;
+  final double p50;
+  final double p95;
+  final double maxError;
+
+  factory DynamicQualityStats.fromJson(Map<String, dynamic> json) =>
+      DynamicQualityStats(
+        routePointCount: json['routePointCount'] as int? ?? 0,
+        matchedCount: json['matchedCount'] as int? ?? 0,
+        missedCount: json['missedCount'] as int? ?? 0,
+        ambiguousCount: json['ambiguousCount'] as int? ?? 0,
+        transitCount: json['transitCount'] as int? ?? 0,
+        inOrder: json['inOrder'] as bool? ?? true,
+        coverage: (json['coverage'] as num?)?.toDouble() ?? 0,
+        meanError: (json['meanError'] as num?)?.toDouble() ?? 0,
+        p50: (json['p50'] as num?)?.toDouble() ?? 0,
+        p95: (json['p95'] as num?)?.toDouble() ?? 0,
+        maxError: (json['maxError'] as num?)?.toDouble() ?? 0,
+      );
+}
+
+/// One route point's match outcome in a dynamic test.
+@immutable
+class DynamicPointSummary {
+  const DynamicPointSummary({
+    required this.rtkPointId,
+    required this.locationName,
+    required this.label,
+    required this.sequenceNo,
+    required this.passed,
+    required this.ambiguous,
+    this.error,
+    this.matchedAt,
+  });
+
+  final int rtkPointId;
+  final String locationName;
+  final String label;
+  final int sequenceNo;
+  final bool passed;
+  final bool ambiguous;
+  final double? error;
+  final DateTime? matchedAt;
+
+  factory DynamicPointSummary.fromJson(Map<String, dynamic> json) =>
+      DynamicPointSummary(
+        rtkPointId: json['rtkPointId'] as int? ?? 0,
+        locationName: json['locationName'] as String? ?? '',
+        label: json['label'] as String? ?? '',
+        sequenceNo: json['sequenceNo'] as int? ?? 0,
+        passed: json['passed'] as bool? ?? false,
+        ambiguous: json['ambiguous'] as bool? ?? false,
+        error: (json['error'] as num?)?.toDouble(),
+        matchedAt: json['matchedAt'] != null
+            ? DateTime.parse(json['matchedAt'] as String)
+            : null,
+      );
+}
+
+/// A matched GPS sample in a dynamic test (for map rendering).
+@immutable
+class DynamicMatchedPass {
+  const DynamicMatchedPass({
+    required this.sequenceNo,
+    required this.latitude,
+    required this.longitude,
+    required this.rtkLatitude,
+    required this.rtkLongitude,
+    required this.error,
+    required this.ambiguous,
+    required this.recordedAt,
+  });
+
+  final int sequenceNo;
+  final double latitude;
+  final double longitude;
+  final double rtkLatitude;
+  final double rtkLongitude;
+  final double error;
+  final bool ambiguous;
+  final DateTime recordedAt;
+
+  factory DynamicMatchedPass.fromJson(Map<String, dynamic> json) =>
+      DynamicMatchedPass(
+        sequenceNo: json['sequenceNo'] as int? ?? 0,
+        latitude: (json['latitude'] as num).toDouble(),
+        longitude: (json['longitude'] as num).toDouble(),
+        rtkLatitude: (json['rtkLatitude'] as num?)?.toDouble() ?? 0,
+        rtkLongitude: (json['rtkLongitude'] as num?)?.toDouble() ?? 0,
+        error: (json['error'] as num?)?.toDouble() ?? 0,
+        ambiguous: json['ambiguous'] as bool? ?? false,
+        recordedAt: json['recordedAt'] != null
+            ? DateTime.parse(json['recordedAt'] as String)
+            : DateTime.now(),
+      );
+}
+
+/// Static-vs-dynamic comparison for the same device.
+@immutable
+class DynamicStaticComparison {
+  const DynamicStaticComparison({
+    required this.staticTestId,
+    required this.staticP95,
+    required this.staticGrade,
+    required this.deltaP95,
+  });
+
+  final int staticTestId;
+  final double staticP95;
+  final QualityGrade staticGrade;
+  final double deltaP95;
+
+  factory DynamicStaticComparison.fromJson(Map<String, dynamic> json) =>
+      DynamicStaticComparison(
+        staticTestId: json['staticTestId'] as int? ?? 0,
+        staticP95: (json['staticP95'] as num?)?.toDouble() ?? 0,
+        staticGrade: _parseGradeStatic(json['staticGrade'] as String? ?? 'UNAVAILABLE'),
+        deltaP95: (json['deltaP95'] as num?)?.toDouble() ?? 0,
+      );
+
+  static QualityGrade _parseGradeStatic(String s) => switch (s) {
+        'EXCELLENT' => QualityGrade.excellent,
+        'USABLE' => QualityGrade.usable,
+        'MARGINAL' => QualityGrade.marginal,
+        _ => QualityGrade.unavailable,
       };
 }
 
