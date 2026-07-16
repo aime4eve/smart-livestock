@@ -471,7 +471,36 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
       builder: (ctx) => AlertDialog(
         key: const Key('cancel-session-dialog'),
         title: Text(l10n.gpsQualityCancelSession),
-        content: Text(l10n.gpsQualityEndSessionConfirm),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${l10n.gpsQualityDevice}: ${session.deviceCode}',
+                style: const TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text('${l10n.gpsQualityStartTime}: ${DateFormat("yyyy-MM-dd HH:mm").format(session.startedAt.toLocal())}'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBEB),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, size: 16, color: AppColors.warning),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      '取消后会话标记为「已取消」，数据保留但不纳入质量统计。此操作不可撤销。',
+                      style: TextStyle(fontSize: 12, color: AppColors.warning),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
