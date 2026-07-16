@@ -1054,8 +1054,8 @@ class _CreateSessionDialogState extends ConsumerState<_CreateSessionDialog> {
 }
 
 /// Date+time picker field.
-/// Searchable device selection field using Autocomplete.
-class _DeviceSearchField extends StatelessWidget {
+/// Searchable device selection field with filter + dropdown.
+class _DeviceSearchField extends StatefulWidget {
   const _DeviceSearchField({
     required this.devices,
     required this.selectedId,
@@ -1069,67 +1069,86 @@ class _DeviceSearchField extends StatelessWidget {
   final String hintText;
 
   @override
+  State<_DeviceSearchField> createState() => _DeviceSearchFieldState();
+}
+
+class _DeviceSearchFieldState extends State<_DeviceSearchField> {
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final selected = devices.where((d) => d.id == selectedId).firstOrNull;
+    final query = _searchController.text.toLowerCase();
+    final filtered = query.isEmpty
+        ? widget.devices
+        : widget.devices
+            .where((d) => d.deviceCode.toLowerCase().contains(query))
+            .toList();
+    final selectedDevice = widget.devices
+        .where((d) => d.id == widget.selectedId)
+        .firstOrNull;
+
     return FormField<int>(
-      validator: (_) => selectedId == null ? hintText : null,
+      validator: (_) => widget.selectedId == null ? widget.hintText : null,
       builder: (state) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Autocomplete<DeviceBrief>(
-              key: const Key('session-device-field'),
-              initialValue: selected != null
-                  ? TextEditingValue(text: selected.deviceCode)
-                  : null,
-              displayStringForOption: (d) => d.deviceCode,
-              optionsBuilder: (textEditingValue) {
-                final query = textEditingValue.text.toLowerCase();
-                if (query.isEmpty) return devices.take(20);
-                return devices
-                    .where((d) => d.deviceCode.toLowerCase().contains(query))
-                    .take(20);
-              },
-              onSelected: (device) {
-                onSelected(device.id);
-                state.didChange(device.id);
-              },
-              fieldViewBuilder: (ctx, controller, focusNode, onSubmitted) {
-                return TextField(
-                  controller: controller,
-                  focusNode: focusNode,
-                  onSubmitted: (_) => onSubmitted(),
-                  decoration: InputDecoration(
-                    labelText: hintText,
-                    suffixIcon: const Icon(Icons.search, size: 18),
-                  ),
-                );
-              },
-              optionsViewBuilder: (ctx, onSelected, options) {
-                return Align(
-                  alignment: Alignment.topLeft,
-                  child: Material(
-                    elevation: 4,
-                    borderRadius: BorderRadius.circular(8),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxHeight: 250),
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: options.length,
-                        itemBuilder: (ctx, index) {
-                          final d = options.elementAt(index);
-                          return ListTile(
-                            dense: true,
-                            title: Text(d.deviceCode),
-                            onTap: () => onSelected(d),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                );
-              },
+            TextField(
+              key: const Key('device-search-input'),
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: widget.hintText,
+                suffixIcon: const Icon(Icons.search, size: 18),
+                isDense: true,
+              ),
+              onChanged: (_) => setState(() {}),
             ),
+            if (selectedDevice != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  '\u5df2\u9009: ${selectedDevice.deviceCode}',
+                  style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+            if (filtered.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: DropdownButtonFormField<int>(
+                  key: const Key('session-device-field'),
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                  ),
+                  hint: Text(
+                      '${filtered.length} \u53f0\u8bbe\u5907'),
+                  value: widget.selectedId != null &&
+                          filtered.any((d) => d.id == widget.selectedId)
+                      ? widget.selectedId
+                      : null,
+                  items: filtered
+                      .map((d) => DropdownMenuItem(
+                            value: d.id,
+                            child: Text(d.deviceCode,
+                                style: const TextStyle(fontSize: 13)),
+                          ))
+                      .toList(),
+                  onChanged: (v) {
+                    widget.onSelected(v!);
+                    state.didChange(v);
+                  },
+                ),
+              ),
             if (state.hasError)
               Padding(
                 padding: const EdgeInsets.only(top: 6, left: 12),
