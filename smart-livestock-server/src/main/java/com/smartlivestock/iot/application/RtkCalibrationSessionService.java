@@ -88,6 +88,10 @@ public class RtkCalibrationSessionService {
 
         boolean backfill = endedAt != null;
         if (backfill) {
+            if (endedAt.isAfter(Instant.now())) {
+                throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                        "endedAt cannot be in the future. Use a live session (no endedAt) for ongoing tests.");
+            }
             if (!endedAt.isAfter(startedAt)) {
                 throw new ApiException(ErrorCode.VALIDATION_ERROR, "endedAt must be after startedAt");
             }
