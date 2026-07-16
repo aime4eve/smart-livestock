@@ -95,23 +95,19 @@ class CalibrationSessionsController
     });
   }
 
-  Future<bool> createSession({
+  Future<void> createSession({
     required int deviceId,
     required DateTime startedAt,
     DateTime? endedAt,
   }) async {
-    try {
-      await ref.read(gpsQualityApiRepositoryProvider).createSession(
-            rtkPointId: rtkPointId,
-            deviceId: deviceId,
-            startedAt: startedAt,
-            endedAt: endedAt,
-          );
-      ref.invalidateSelf();
-      return true;
-    } catch (_) {
-      return false;
-    }
+    // Let exceptions propagate — the caller shows the error message
+    await ref.read(gpsQualityApiRepositoryProvider).createSession(
+          rtkPointId: rtkPointId,
+          deviceId: deviceId,
+          startedAt: startedAt,
+          endedAt: endedAt,
+        );
+    ref.invalidateSelf();
   }
 
   Future<bool> endSession(int id) async {

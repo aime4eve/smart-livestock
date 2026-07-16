@@ -33,7 +33,9 @@ public class ComparisonDto {
                         e.stats().effectivePoints(),
                         e.stats().within15m(),
                         e.stats().within25m(),
-                        e.stats().within40m()))
+                        e.stats().within40m(),
+                        r.rtk().getLocationName(),
+                        r.rtk().getPointLabel()))
                 .toList();
         return dto;
     }
@@ -52,6 +54,8 @@ public class ComparisonDto {
 
     public record DeviceSummary(Long sessionId, Long deviceId, String deviceCode,
                                 String grade, double p95, double meanError, int effectivePoints,
-                                double within15m, double within25m, double within40m) {
+                                double within15m, double within25m, double within40m,
+                                String locationName,
+                                String pointLabel) {
     }
 }

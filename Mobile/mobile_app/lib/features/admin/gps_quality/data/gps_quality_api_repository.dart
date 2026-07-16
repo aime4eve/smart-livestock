@@ -21,6 +21,7 @@ class DeviceComparison {
     required this.stats,
     required this.grade,
     this.locationName = '',
+    this.pointLabel = '',
   });
 
   final int sessionId;
@@ -28,12 +29,14 @@ class DeviceComparison {
   final GpsQualityStats stats;
   final QualityGrade grade;
   final String locationName;
+  final String pointLabel;
 
   factory DeviceComparison.fromJson(Map<String, dynamic> json) =>
       DeviceComparison(
         sessionId: json['sessionId'] as int,
         deviceCode: json['deviceCode'] as String? ?? '',
         locationName: json['locationName'] as String? ?? '',
+        pointLabel: json['pointLabel'] as String? ?? '',
         // Backend ComparisonDto.DeviceSummary has flat fields (not nested stats)
         stats: GpsQualityStats(
           totalPoints: json['totalPoints'] as int? ??

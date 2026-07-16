@@ -88,6 +88,10 @@ public class RtkCalibrationSessionService {
 
         boolean backfill = endedAt != null;
         if (backfill) {
+            if (endedAt.isAfter(Instant.now())) {
+                throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                        "endedAt cannot be in the future. Use a live session (no endedAt) for ongoing tests.");
+            }
             if (!endedAt.isAfter(startedAt)) {
                 throw new ApiException(ErrorCode.VALIDATION_ERROR, "endedAt must be after startedAt");
             }
@@ -127,13 +131,14 @@ public class RtkCalibrationSessionService {
 
     public RtkCalibrationSession cancel(Long id) {
         RtkCalibrationSession session = findById(id);
-        if (session.getStatus() == CalibrationStatus.CANCELED) {
-            // Already canceled → hard delete (cleanup by admin)
-            sessionRepository.deleteById(id);
-            return session;
+        if (session.getStatus() == CalibrationStatus.IN_PROGRESS) {
+            // Live session → soft cancel (preserve audit trail)
+            session.cancel();
+            return sessionRepository.save(session);
         }
-        session.cancel();
-        return sessionRepository.save(session);
+        // COMPLETED or CANCELED → hard delete (admin cleanup)
+        sessionRepository.deleteById(id);
+        return session;
     }
 
     /**

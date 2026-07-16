@@ -471,14 +471,44 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
       builder: (ctx) => AlertDialog(
         key: const Key('cancel-session-dialog'),
         title: Text(l10n.gpsQualityCancelSession),
-        content: Text(l10n.gpsQualityEndSessionConfirm),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${l10n.gpsQualityDevice}: ${session.deviceCode}',
+                style: const TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text('${l10n.gpsQualityStartTime}: ${DateFormat("yyyy-MM-dd HH:mm").format(session.startedAt.toLocal())}'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBEB),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, size: 16, color: AppColors.warning),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      '取消后会话标记为「已取消」，数据保留但不纳入质量统计。此操作不可撤销。',
+                      style: TextStyle(fontSize: 12, color: AppColors.warning),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.gpsQualityCancelSession),
+            child: Text(l10n.commonBack),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
             child: Text(l10n.gpsQualityCancelSession),
           ),
         ],
@@ -502,11 +532,46 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
       builder: (ctx) => AlertDialog(
         key: const Key('delete-session-dialog'),
         title: Text(l10n.gpsQualityDelete),
-        content: Text(l10n.gpsQualityDelete),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${l10n.gpsQualityDevice}: ${session.deviceCode}',
+                style: const TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text('${l10n.gpsQualityStartTime}: ${DateFormat("yyyy-MM-dd HH:mm").format(session.startedAt.toLocal())}'),
+            if (session.endedAt != null) ...[
+              const SizedBox(height: 2),
+              Text('${l10n.gpsQualityEndTime}: ${DateFormat("yyyy-MM-dd HH:mm").format(session.endedAt!.toLocal())}'),
+            ],
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, size: 16, color: AppColors.danger),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      session.status == CalibrationStatus.canceled
+                          ? '删除后无法恢复，该会话记录将完全移除。'
+                          : '删除后该会话的统计结果将丢失，无法恢复。',
+                      style: TextStyle(fontSize: 12, color: AppColors.danger),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.gpsQualityCancelSession),
+            child: Text(l10n.commonBack),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -921,18 +986,11 @@ class _CreateSessionDialogState extends ConsumerState<_CreateSessionDialog> {
               devicesAsync.when(
                 loading: () => const LinearProgressIndicator(),
                 error: (e, _) => Text('$e'),
-                data: (devices) => DropdownButtonFormField<int>(
-                  key: const Key('session-device-field'),
-                  decoration: InputDecoration(labelText: l10n.gpsQualitySelectDevice),
-                  value: _deviceId,
-                  items: devices
-                      .map((d) => DropdownMenuItem(
-                            value: d.id,
-                            child: Text(d.deviceCode),
-                          ))
-                      .toList(),
-                  onChanged: (v) => setState(() => _deviceId = v),
-                  validator: (v) => v == null ? l10n.gpsQualitySelectDevice : null,
+                data: (devices) => _DeviceSearchField(
+                  devices: devices,
+                  selectedId: _deviceId,
+                  onSelected: (id) => setState(() => _deviceId = id),
+                  hintText: l10n.gpsQualitySelectDevice,
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
@@ -958,6 +1016,27 @@ class _CreateSessionDialogState extends ConsumerState<_CreateSessionDialog> {
                   ),
                 ],
               ),
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.xs),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.info_outline,
+                        size: 14, color: AppColors.textSecondary),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        l10n.gpsQualityEndTimeHint,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -976,26 +1055,178 @@ class _CreateSessionDialogState extends ConsumerState<_CreateSessionDialog> {
   }
 
   Future<void> _submit() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-    if (_deviceId == null || _startedAt == null) return;
+    // Validate form (device field, etc.)
+    final formValid = _formKey.currentState?.validate() ?? false;
+    if (!formValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请填写完所有必填字段')),
+      );
+      return;
+    }
+    if (_deviceId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请选择设备')),
+      );
+      return;
+    }
+    if (_startedAt == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请选择开始时间')),
+      );
+      return;
+    }
+    final now = DateTime.now();
+    if (_startedAt!.isAfter(now)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(widget.l10n.gpsQualityStartedAtFutureError)),
+      );
+      return;
+    }
+    if (_endedAt != null && _endedAt!.isAfter(now)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(widget.l10n.gpsQualityEndedAtFutureError)),
+      );
+      return;
+    }
     setState(() => _saving = true);
-    final ok = await ref
-        .read(calibrationSessionsProvider(_rtkPointId).notifier)
-        .createSession(
-          deviceId: _deviceId!,
-          startedAt: _startedAt!,
-          endedAt: _endedAt,
-        );
-    if (!mounted) return;
-    setState(() => _saving = false);
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(ok ? '✅' : '❌')),
-    );
+    try {
+      await ref
+          .read(calibrationSessionsProvider(_rtkPointId).notifier)
+          .createSession(
+            deviceId: _deviceId!,
+            startedAt: _startedAt!,
+            endedAt: _endedAt,
+          );
+      if (!mounted) return;
+      setState(() => _saving = false);
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('✅ 创建成功')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('❌ $e')),
+      );
+    }
   }
 }
 
 /// Date+time picker field.
+/// Searchable device selection field with filter + dropdown.
+class _DeviceSearchField extends StatefulWidget {
+  const _DeviceSearchField({
+    required this.devices,
+    required this.selectedId,
+    required this.onSelected,
+    required this.hintText,
+  });
+
+  final List<DeviceBrief> devices;
+  final int? selectedId;
+  final ValueChanged<int> onSelected;
+  final String hintText;
+
+  @override
+  State<_DeviceSearchField> createState() => _DeviceSearchFieldState();
+}
+
+class _DeviceSearchFieldState extends State<_DeviceSearchField> {
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final query = _searchController.text.toLowerCase();
+    final filtered = query.isEmpty
+        ? widget.devices
+        : widget.devices
+            .where((d) => d.deviceCode.toLowerCase().contains(query))
+            .toList();
+    final selectedDevice = widget.devices
+        .where((d) => d.id == widget.selectedId)
+        .firstOrNull;
+
+    return FormField<int>(
+      validator: (_) => widget.selectedId == null ? widget.hintText : null,
+      builder: (state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              key: const Key('device-search-input'),
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: widget.hintText,
+                suffixIcon: const Icon(Icons.search, size: 18),
+                isDense: true,
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+            if (selectedDevice != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  '\u5df2\u9009: ${selectedDevice.deviceCode}',
+                  style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+            if (filtered.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: DropdownButtonFormField<int>(
+                  key: const Key('session-device-field'),
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                  ),
+                  hint: Text(
+                      '${filtered.length} \u53f0\u8bbe\u5907'),
+                  value: widget.selectedId != null &&
+                          filtered.any((d) => d.id == widget.selectedId)
+                      ? widget.selectedId
+                      : null,
+                  items: filtered
+                      .map((d) => DropdownMenuItem(
+                            value: d.id,
+                            child: Text(d.deviceCode,
+                                style: const TextStyle(fontSize: 13)),
+                          ))
+                      .toList(),
+                  onChanged: (v) {
+                    widget.onSelected(v!);
+                    state.didChange(v);
+                  },
+                ),
+              ),
+            if (state.hasError)
+              Padding(
+                padding: const EdgeInsets.only(top: 6, left: 12),
+                child: Text(
+                  state.errorText ?? '',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class _DateTimeField extends StatelessWidget {
   const _DateTimeField({
     super.key,
@@ -1063,6 +1294,7 @@ class _DateTimeField extends StatelessWidget {
       initialTime: TimeOfDay.fromDateTime(value ?? now),
     );
     if (time == null) return;
-    onChanged(DateTime(date.year, date.month, date.day, time.hour, time.minute));
+    onChanged(
+        DateTime(date.year, date.month, date.day, time.hour, time.minute));
   }
 }
