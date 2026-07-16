@@ -4892,6 +4892,96 @@ abstract class AppLocalizations {
   /// **'留空＝正在进行的实时测试（稍后点「结束」收尾）；填写过去时间＝补录历史会话，创建即出报告'**
   String get gpsQualityEndTimeHint;
 
+  /// No description provided for @gpsQualityBatchCreate.
+  ///
+  /// In zh, this message translates to:
+  /// **'批量创建标定会话'**
+  String get gpsQualityBatchCreate;
+
+  /// No description provided for @gpsQualityImportExcel.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入Excel'**
+  String get gpsQualityImportExcel;
+
+  /// No description provided for @gpsQualityDownloadTemplate.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载模板'**
+  String get gpsQualityDownloadTemplate;
+
+  /// No description provided for @gpsQualityAddRow.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加行'**
+  String get gpsQualityAddRow;
+
+  /// No description provided for @gpsQualityDeleteRow.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除'**
+  String get gpsQualityDeleteRow;
+
+  /// No description provided for @gpsQualityBatchCreateN.
+  ///
+  /// In zh, this message translates to:
+  /// **'批量创建({n})'**
+  String gpsQualityBatchCreateN(Object n);
+
+  /// No description provided for @gpsQualityBatchResult.
+  ///
+  /// In zh, this message translates to:
+  /// **'成功 {n} 条 / 失败 {m} 条'**
+  String gpsQualityBatchResult(Object m, Object n);
+
+  /// No description provided for @gpsQualityDeviceNotFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备不存在: {code}'**
+  String gpsQualityDeviceNotFound(Object code);
+
+  /// No description provided for @gpsQualityPointNotFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'点位不存在: {label}'**
+  String gpsQualityPointNotFound(Object label);
+
+  /// No description provided for @gpsQualityImportRows.
+  ///
+  /// In zh, this message translates to:
+  /// **'已导入 {n} 行'**
+  String gpsQualityImportRows(Object n);
+
+  /// No description provided for @gpsQualitySelectRtkPointShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'点位'**
+  String get gpsQualitySelectRtkPointShort;
+
+  /// No description provided for @gpsQualitySelectDeviceShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备'**
+  String get gpsQualitySelectDeviceShort;
+
+  /// No description provided for @gpsQualityBatchProgress.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在创建 {done}/{total}...'**
+  String gpsQualityBatchProgress(Object done, Object total);
+
+  /// No description provided for @gpsQualityTemplateColumns.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备编码,RTK点位编号,开始时间(可选),结束时间(可选,留空=实时测试)'**
+  String get gpsQualityTemplateColumns;
+
+  /// No description provided for @gpsQualityBatchEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'请至少添加一行数据'**
+  String get gpsQualityBatchEmpty;
+
   /// No description provided for @gpsQualityStatus.
   ///
   /// In zh, this message translates to:

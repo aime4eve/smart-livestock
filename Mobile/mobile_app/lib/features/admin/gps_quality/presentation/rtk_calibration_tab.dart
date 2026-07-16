@@ -5,6 +5,7 @@ import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_providers.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/batch_create_session_dialog.dart';
 import 'package:intl/intl.dart';
 
 /// Tab 1: RTK calibration management (location-centric, matching prototype).
@@ -605,8 +606,11 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
       AppLocalizations l10n, RtkPoint point) async {
     await showDialog<void>(
       context: context,
-      builder: (ctx) =>
-          _CreateSessionDialog(l10n: l10n, ref: ref, defaultPoint: point),
+      builder: (ctx) => BatchCreateSessionDialog(
+        defaultPoint: point,
+        points: ref.read(rtkPointsProvider).value ?? [],
+        devices: ref.read(gpsDevicesProvider).value ?? [],
+      ),
     );
     // After dialog closes, invalidate all session providers for points in
     // the current location so the merged table refreshes.

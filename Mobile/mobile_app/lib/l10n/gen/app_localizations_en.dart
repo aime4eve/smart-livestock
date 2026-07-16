@@ -2678,6 +2678,64 @@ class AppLocalizationsEn extends AppLocalizations {
       'Leave empty = in-progress live test (click End later); fill a past time = backfill a historical session that produces a report on creation';
 
   @override
+  String get gpsQualityBatchCreate => 'Batch Create Sessions';
+
+  @override
+  String get gpsQualityImportExcel => 'Import Excel';
+
+  @override
+  String get gpsQualityDownloadTemplate => 'Download Template';
+
+  @override
+  String get gpsQualityAddRow => 'Add Row';
+
+  @override
+  String get gpsQualityDeleteRow => 'Delete';
+
+  @override
+  String gpsQualityBatchCreateN(Object n) {
+    return 'Batch Create ($n)';
+  }
+
+  @override
+  String gpsQualityBatchResult(Object m, Object n) {
+    return 'Success: $n / Failed: $m';
+  }
+
+  @override
+  String gpsQualityDeviceNotFound(Object code) {
+    return 'Device not found: $code';
+  }
+
+  @override
+  String gpsQualityPointNotFound(Object label) {
+    return 'Point not found: $label';
+  }
+
+  @override
+  String gpsQualityImportRows(Object n) {
+    return 'Imported $n rows';
+  }
+
+  @override
+  String get gpsQualitySelectRtkPointShort => 'Point';
+
+  @override
+  String get gpsQualitySelectDeviceShort => 'Device';
+
+  @override
+  String gpsQualityBatchProgress(Object done, Object total) {
+    return 'Creating $done/$total...';
+  }
+
+  @override
+  String get gpsQualityTemplateColumns =>
+      'Device Code,RTK Point Label,Start Time (optional),End Time (optional, empty=live test)';
+
+  @override
+  String get gpsQualityBatchEmpty => 'Please add at least one row';
+
+  @override
   String get gpsQualityStatus => 'Status';
 
   @override

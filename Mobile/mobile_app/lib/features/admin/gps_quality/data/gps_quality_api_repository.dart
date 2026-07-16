@@ -12,6 +12,37 @@ class SessionListResult {
   final int size;
 }
 
+/// A single row in a batch-create request.
+@immutable
+class BatchSessionRequest {
+  const BatchSessionRequest({
+    required this.rtkPointId,
+    required this.deviceId,
+    required this.startedAt,
+    this.endedAt,
+  });
+  final int rtkPointId;
+  final int deviceId;
+  final DateTime startedAt;
+  final DateTime? endedAt;
+}
+
+/// Per-row failure info from a batch create.
+@immutable
+class BatchFailure {
+  const BatchFailure({required this.rowIndex, required this.error});
+  final int rowIndex;
+  final String error;
+}
+
+/// Result of a batch create operation.
+@immutable
+class BatchCreateResult {
+  const BatchCreateResult({required this.succeeded, required this.failed});
+  final List<int> succeeded;
+  final List<BatchFailure> failed;
+}
+
 /// A single device comparison entry (one device tested at one RTK point).
 @immutable
 class DeviceComparison {
@@ -224,6 +255,30 @@ class GpsQualityApiRepository {
 
   Future<void> endSession(int id) async {
     await ApiClient.instance.patch('$_base/sessions/$id/end');
+  }
+
+  /// Batch-create sessions by calling the single-session endpoint
+  /// sequentially. Returns per-row success/failure so the caller can
+  /// highlight which rows failed.
+  Future<BatchCreateResult> createSessionBatch(
+      List<BatchSessionRequest> rows) async {
+    final succeeded = <int>[];
+    final failed = <BatchFailure>[];
+    for (var i = 0; i < rows.length; i++) {
+      final r = rows[i];
+      try {
+        await ApiClient.instance.post('$_base/sessions', body: {
+          'rtkPointId': r.rtkPointId,
+          'deviceId': r.deviceId,
+          'startedAt': r.startedAt.toUtc().toIso8601String(),
+          if (r.endedAt != null) 'endedAt': r.endedAt!.toUtc().toIso8601String(),
+        });
+        succeeded.add(i);
+      } catch (e) {
+        failed.add(BatchFailure(rowIndex: i, error: e.toString()));
+      }
+    }
+    return BatchCreateResult(succeeded: succeeded, failed: failed);
   }
 
   Future<void> deleteSession(int id) async {
