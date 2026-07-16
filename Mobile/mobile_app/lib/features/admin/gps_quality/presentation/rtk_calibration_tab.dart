@@ -282,15 +282,35 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
                       : '',
                   style: const TextStyle(
                       fontSize: 11, color: AppColors.textSecondary))),
-              DataCell(Text(row.session.deviceCode,
-                  style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      decoration: row.session.status == CalibrationStatus.canceled
-                          ? TextDecoration.lineThrough
-                          : TextDecoration.none,
-                      color: row.session.status == CalibrationStatus.canceled
-                          ? AppColors.textSecondary
-                          : AppColors.textPrimary))),
+             DataCell(Row(
+                 mainAxisSize: MainAxisSize.min,
+                 children: [
+                   Tooltip(
+                     message: row.session.testType == TestType.dynamic_
+                         ? l10n.gpsQualityTestTypeDynamic
+                         : l10n.gpsQualityTestTypeStatic,
+                     child: Icon(
+                       row.session.testType == TestType.dynamic_
+                           ? Icons.route
+                           : Icons.location_on,
+                       size: 14,
+                       color: row.session.testType == TestType.dynamic_
+                           ? AppColors.primary
+                           : AppColors.textSecondary,
+                     ),
+                   ),
+                   const SizedBox(width: 6),
+                   Text(row.session.deviceCode,
+                       style: TextStyle(
+                           fontWeight: FontWeight.w600,
+                           decoration: row.session.status == CalibrationStatus.canceled
+                               ? TextDecoration.lineThrough
+                               : TextDecoration.none,
+                           color: row.session.status == CalibrationStatus.canceled
+                               ? AppColors.textSecondary
+                               : AppColors.textPrimary)),
+                 ],
+             )),
               DataCell(Text(
                   '${fmt.format(row.session.startedAt.toLocal())} → ${row.session.endedAt != null ? fmt.format(row.session.endedAt!.toLocal()) : '...'}',
                   style: const TextStyle(
@@ -606,11 +626,12 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
       AppLocalizations l10n, RtkPoint point) async {
     await showDialog<void>(
       context: context,
-      builder: (ctx) => BatchCreateSessionDialog(
-        defaultPoint: point,
-        points: ref.read(rtkPointsProvider).value ?? [],
-        devices: ref.read(gpsDevicesProvider).value ?? [],
-      ),
+     builder: (ctx) => BatchCreateSessionDialog(
+       defaultPoint: point,
+       points: ref.read(rtkPointsProvider).value ?? [],
+       devices: ref.read(gpsDevicesProvider).value ?? [],
+       routes: ref.read(dynamicRoutesProvider).value ?? [],
+     ),
     );
     // After dialog closes, invalidate all session providers for points in
     // the current location so the merged table refreshes.

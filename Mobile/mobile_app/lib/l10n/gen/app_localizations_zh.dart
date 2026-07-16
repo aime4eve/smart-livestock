@@ -2856,4 +2856,91 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tenantDetailTitle => '租户详情';
+
+  @override
+  String get gpsQualityTabDynamicReport => '动态检验';
+
+  @override
+  String get gpsQualityTestTypeStatic => '静态';
+
+  @override
+  String get gpsQualityTestTypeDynamic => '动态';
+
+  @override
+  String get gpsQualityTestType => '检验类型';
+
+  @override
+  String get gpsQualityRouteList => '检验路线';
+
+  @override
+  String get gpsQualityAddRoute => '新增路线';
+
+  @override
+  String get gpsQualityRouteName => '路线名称';
+
+  @override
+  String get gpsQualityRouteDescription => '路线描述';
+
+  @override
+  String get gpsQualityRoutePoints => '路线点位';
+
+  @override
+  String get gpsQualitySelectRoute => '选择路线';
+
+  @override
+  String get gpsQualitySelectRouteShort => '路线';
+
+  @override
+  String get gpsQualityCreateDynamicTest => '创建动态检验';
+
+  @override
+  String get gpsQualityAddRoutePoint => '添加点位';
+
+  @override
+  String get gpsQualityDynamicCoverage => '覆盖率';
+
+  @override
+  String get gpsQualityDynamicMatched => '已匹配';
+
+  @override
+  String get gpsQualityDynamicMissed => '未到达';
+
+  @override
+  String get gpsQualityDynamicAmbiguous => '歧义点';
+
+  @override
+  String get gpsQualityDynamicInOrder => '时序合规';
+
+  @override
+  String get gpsQualityDynamicThreshold => '匹配阈值（米）';
+
+  @override
+  String get gpsQualityDynamicSequenceNo => '序号';
+
+  @override
+  String get gpsQualityDynamicError => '误差（米）';
+
+  @override
+  String get gpsQualityDynamicPassed => '通过';
+
+  @override
+  String get gpsQualityDynamicMissedPoint => '未到达';
+
+  @override
+  String get gpsQualityDynamicNoRoute => '请先创建检验路线';
+
+  @override
+  String get gpsQualityDynamicNoTest => '暂无动态检验记录';
+
+  @override
+  String get gpsQualityStaticComparison => '静态对比';
+
+  @override
+  String get gpsQualityDynamicDeltaP95 => 'P95 差值';
+
+  @override
+  String get gpsQualityRouteNoPoints => '该路线暂无点位，请添加 RTK 真值点';
+
+  @override
+  String get gpsQualityDeleteRoute => '删除路线';
 }

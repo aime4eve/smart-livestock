@@ -13,8 +13,17 @@ import 'package:intl/intl.dart';
 
 /// One editable row in the batch-create table.
 class _BatchRow {
-  _BatchRow({this.rtkPointId, this.deviceId, this.startedAt, this.endedAt});
+  _BatchRow({
+    this.testType = TestType.static_,
+    this.rtkPointId,
+    this.routeId,
+    this.deviceId,
+    this.startedAt,
+    this.endedAt,
+  });
+  TestType testType;
   int? rtkPointId;
+  int? routeId;
   int? deviceId;
   DateTime? startedAt; // null = use common time
   DateTime? endedAt; // null = use common time
@@ -33,11 +42,13 @@ class BatchCreateSessionDialog extends ConsumerStatefulWidget {
     required this.defaultPoint,
     required this.points,
     required this.devices,
+    this.routes = const [],
   });
 
   final RtkPoint defaultPoint;
   final List<RtkPoint> points;
   final List<DeviceBrief> devices;
+  final List<DynamicRoute> routes;
 
   @override
   ConsumerState<BatchCreateSessionDialog> createState() =>
@@ -197,20 +208,22 @@ class _BatchCreateSessionDialogState
 
   // ── Table header ─────────────────────────────────────────────
 
-  Widget _buildTableHeader(AppLocalizations l10n) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        children: [
-          Expanded(flex: 3, child: Text(l10n.gpsQualitySelectRtkPointShort,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
-          Expanded(flex: 3, child: Text(l10n.gpsQualitySelectDeviceShort,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
-          const SizedBox(width: 40), // delete button column
-        ],
-      ),
-    );
-  }
+ Widget _buildTableHeader(AppLocalizations l10n) {
+   return Padding(
+     padding: const EdgeInsets.only(bottom: 4),
+     child: Row(
+       children: [
+         SizedBox(width: 80, child: Text(l10n.gpsQualityTestType,
+             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
+         Expanded(flex: 3, child: Text(l10n.gpsQualitySelectRtkPointShort,
+             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
+         Expanded(flex: 3, child: Text(l10n.gpsQualitySelectDeviceShort,
+             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
+         const SizedBox(width: 40), // delete button column
+       ],
+     ),
+   );
+ }
 
   // ── Table row ────────────────────────────────────────────────
 
@@ -222,36 +235,94 @@ class _BatchCreateSessionDialogState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              // RTK point dropdown
-              Expanded(
-                flex: 3,
-                child: DropdownButtonFormField<int>(
-                  key: Key('row-$index-point'),
-                  value: row.rtkPointId,
-                  isExpanded: true,
-                  decoration: const InputDecoration(
-                    isDense: true,
-                    contentPadding: EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 8),
-                  ),
-                  items: widget.points
-                      .map((p) => DropdownMenuItem(
-                            value: p.id,
-                            child: Text(
-                                '${p.locationName} · ${p.pointLabel}',
-                                style: const TextStyle(fontSize: 13),
-                                overflow: TextOverflow.ellipsis),
-                          ))
-                      .toList(),
-                  onChanged: _saving
-                      ? null
-                      : (v) => setState(() => row.rtkPointId = v),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              // Device dropdown
+         Row(
+           children: [
+             // RTK point dropdown
+             // Test type toggle
+             SizedBox(
+               width: 80,
+               child: SegmentedButton<TestType>(
+                 key: Key('row-$index-type'),
+                 segments: [
+                   ButtonSegment(
+                     value: TestType.static_,
+                     label: Text(l10n.gpsQualityTestTypeStatic, style: const TextStyle(fontSize: 11)),
+                   ),
+                   ButtonSegment(
+                     value: TestType.dynamic_,
+                     label: Text(l10n.gpsQualityTestTypeDynamic, style: const TextStyle(fontSize: 11)),
+                   ),
+                 ],
+                 selected: {row.testType},
+                 onSelectionChanged: _saving
+                     ? null
+                     : (v) => setState(() {
+                           row.testType = v.first;
+                           if (row.testType == TestType.static_) {
+                             row.routeId = null;
+                           } else {
+                             row.rtkPointId = null;
+                           }
+                         }),
+                 showSelectedIcon: false,
+                 style: const ButtonStyle(
+                   visualDensity: VisualDensity(horizontal: -3, vertical: -2),
+                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                 ),
+               ),
+             ),
+            Expanded(
+              flex: 3,
+              child: row.testType == TestType.static_
+                  ? DropdownButtonFormField<int>(
+                      key: Key('row-$index-point'),
+                      value: row.rtkPointId,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                      ),
+                      items: widget.points
+                          .map((p) => DropdownMenuItem(
+                                value: p.id,
+                                child: Text(
+                                    '${p.locationName} · ${p.pointLabel}',
+                                    style: const TextStyle(fontSize: 13),
+                                    overflow: TextOverflow.ellipsis),
+                              ))
+                          .toList(),
+                      onChanged: _saving
+                          ? null
+                          : (v) => setState(() => row.rtkPointId = v),
+                    )
+                  : DropdownButtonFormField<int>(
+                      key: Key('row-$index-route'),
+                      value: row.routeId,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        errorText: widget.routes.isEmpty
+                            ? l10n.gpsQualityDynamicNoRoute
+                            : null,
+                      ),
+                      items: widget.routes
+                          .map((r) => DropdownMenuItem(
+                                value: r.id,
+                                child: Text(r.name,
+                                    style: const TextStyle(fontSize: 13),
+                                    overflow: TextOverflow.ellipsis),
+                              ))
+                          .toList(),
+                      onChanged: _saving
+                          ? null
+                          : (v) => setState(() => row.routeId = v),
+                    ),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+             // Device dropdown
               Expanded(
                 flex: 3,
                 child: DropdownButtonFormField<int>(
@@ -320,11 +391,14 @@ class _BatchCreateSessionDialogState
 
   // ── Row management ───────────────────────────────────────────
 
-  void _addRow() {
-    setState(() {
-      _rows.add(_BatchRow(rtkPointId: widget.defaultPoint.id));
-    });
-  }
+ void _addRow() {
+   setState(() {
+      _rows.add(_BatchRow(
+        testType: TestType.static_,
+        rtkPointId: widget.defaultPoint.id,
+      ));
+   });
+ }
 
   void _removeRow(int index) {
     setState(() {
@@ -480,9 +554,14 @@ class _BatchCreateSessionDialogState
     final validEntries = <MapEntry<int, BatchSessionRequest>>[];
     bool hasError = false;
     for (var i = 0; i < _rows.length; i++) {
-      final row = _rows[i];
-      if (row.rtkPointId == null) {
+     final row = _rows[i];
+      if (row.testType == TestType.static_ && row.rtkPointId == null) {
         row.error = l10n.gpsQualitySelectRtkPointShort;
+        hasError = true;
+        continue;
+      }
+      if (row.testType == TestType.dynamic_ && row.routeId == null) {
+        row.error = l10n.gpsQualitySelectRouteShort;
         hasError = true;
         continue;
       }
@@ -503,14 +582,16 @@ class _BatchCreateSessionDialogState
         hasError = true;
         continue;
       }
-      validEntries.add(MapEntry(
-          i,
-          BatchSessionRequest(
-            rtkPointId: row.rtkPointId!,
-            deviceId: row.deviceId!,
-            startedAt: startedAt,
-            endedAt: endedAt,
-          )));
+     validEntries.add(MapEntry(
+         i,
+        BatchSessionRequest(
+          testType: row.testType,
+          routeId: row.routeId,
+          rtkPointId: row.rtkPointId!,
+          deviceId: row.deviceId!,
+          startedAt: startedAt,
+          endedAt: endedAt,
+        )));
     }
 
     if (hasError) {
@@ -537,15 +618,24 @@ class _BatchCreateSessionDialogState
 
     for (var i = 0; i < validEntries.length; i++) {
       setState(() => _progressDone = i);
-      final entry = validEntries[i];
-      try {
-        await repo.createSession(
-          rtkPointId: entry.value.rtkPointId,
-          deviceId: entry.value.deviceId,
-          startedAt: entry.value.startedAt,
-          endedAt: entry.value.endedAt,
-        );
-        succeeded++;
+     final entry = validEntries[i];
+     try {
+        if (entry.value.testType == TestType.dynamic_) {
+          await repo.createDynamicSession(
+            deviceId: entry.value.deviceId,
+            routeId: entry.value.routeId!,
+            startedAt: entry.value.startedAt,
+            endedAt: entry.value.endedAt,
+          );
+        } else {
+          await repo.createSession(
+            rtkPointId: entry.value.rtkPointId,
+            deviceId: entry.value.deviceId,
+            startedAt: entry.value.startedAt,
+            endedAt: entry.value.endedAt,
+          );
+        }
+       succeeded++;
       } catch (e) {
         _rows[entry.key].error = e.toString();
         failed++;
@@ -553,17 +643,23 @@ class _BatchCreateSessionDialogState
     }
     setState(() => _progressDone = validEntries.length);
 
-    // Invalidate affected providers
-    final affectedPointIds = <int>{};
-    for (final entry in validEntries) {
-      affectedPointIds.add(entry.value.rtkPointId);
-    }
-    for (final pid in affectedPointIds) {
-      ref.invalidate(calibrationSessionsProvider(pid));
-      ref.invalidate(comparisonProvider(pid));
+   // Invalidate affected providers
+   final affectedPointIds = <int>{};
+    final hasDynamic = validEntries.any((e) => e.value.testType == TestType.dynamic_);
+   for (final entry in validEntries) {
+      if (entry.value.testType == TestType.static_) {
+        affectedPointIds.add(entry.value.rtkPointId);
+      }
+   }
+   for (final pid in affectedPointIds) {
+     ref.invalidate(calibrationSessionsProvider(pid));
+     ref.invalidate(comparisonProvider(pid));
+   }
+    if (hasDynamic) {
+      ref.invalidate(dynamicRoutesProvider);
     }
 
-    if (!mounted) return;
+   if (!mounted) return;
 
     if (failed == 0) {
       Navigator.pop(context);
