@@ -218,6 +218,7 @@ class _QualityReportTabState extends ConsumerState<QualityReportTab> {
                     DataColumn(label: Text(l10n.gpsQualityDevice)),
                     if (_selectedLocation == null)
                       const DataColumn(label: Text('位置')),
+                    const DataColumn(label: Text('点位')),
                     DataColumn(
                         label: _labelWithTip(
                             l10n.gpsQualityEffectivePoints, null)),
@@ -249,6 +250,10 @@ class _QualityReportTabState extends ConsumerState<QualityReportTab> {
                               style: const TextStyle(
                                   fontSize: 12,
                                   color: AppColors.textSecondary))),
+                        DataCell(Text(d.pointLabel,
+                            style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary))),
                         DataCell(Text('${d.stats.effectivePoints}')),
                         DataCell(Text('${d.stats.p50.toStringAsFixed(1)} m')),
                         DataCell(Text('${d.stats.p95.toStringAsFixed(1)} m')),
