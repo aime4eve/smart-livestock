@@ -20,7 +20,7 @@ class QualityReportTab extends ConsumerStatefulWidget {
 
 class _QualityReportTabState extends ConsumerState<QualityReportTab> {
   String? _selectedLocation;
-  bool _excludeSuspect = false;
+  bool _excludeSuspect = true;
   int? _expandedSessionId;
 
   @override

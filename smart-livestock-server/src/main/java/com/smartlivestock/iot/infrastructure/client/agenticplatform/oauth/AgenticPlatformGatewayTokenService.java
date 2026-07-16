@@ -68,6 +68,23 @@ public class AgenticPlatformGatewayTokenService {
         return "unknown";
     }
 
+    /**
+     * Evict cached token for a specific userId, forcing next getAccessToken() to re-exchange.
+     */
+    public void evictToken(String userId) {
+        cache.remove(userId);
+        log.info("OAuth2 token cache evicted for userId={}", userId);
+    }
+
+    /**
+     * Evict all cached tokens. Called when the platform returns a token-expired
+     * response and we don't know which userId was used (Feign interceptor path).
+     */
+    public void evictAll() {
+        cache.clear();
+        log.info("OAuth2 token cache fully cleared (will re-exchange on next call)");
+    }
+
     public String getAccessToken(String userId) {
         if (!StringUtils.hasText(userId)) throw new IllegalArgumentException("userId must not be empty");
         CachedToken cached = cache.get(userId);

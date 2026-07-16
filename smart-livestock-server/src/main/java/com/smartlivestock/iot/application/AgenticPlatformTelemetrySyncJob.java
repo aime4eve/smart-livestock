@@ -6,6 +6,8 @@ import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.client.AgenticPlatformHistoryDataClient;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.InternalResponse;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.ReportRecordPageResp;
+import com.smartlivestock.iot.infrastructure.client.agenticplatform.oauth.AgenticPlatformGatewayTokenService;
+import feign.codec.DecodeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +24,10 @@ import java.util.Map;
  * Called by AgenticPlatformSyncWorker (RocketMQ consumer).
  * <p>
  * Flow: read cursor → paginate report-record/page → parse decodeData → apply accel conversion → ingest().
+ * <p>
+ * Includes automatic token cache eviction + single retry when the platform returns
+ * a token-expired response (which manifests as Feign DecodeException because the
+ * platform sends a plain String in the data field instead of a page object).
  */
 @Component
 @RequiredArgsConstructor
@@ -31,16 +37,13 @@ public class AgenticPlatformTelemetrySyncJob {
     private final DeviceRepository deviceRepository;
     private final AgenticPlatformHistoryDataClient historyClient;
     private final TelemetryIngestionService telemetryIngestionService;
+    private final AgenticPlatformGatewayTokenService gatewayTokenService;
 
     @Value("${agentic-platform.sync.page-size:100}")
     private int pageSize;
 
     /**
      * Sync a single device by its local deviceId.
-     * <p>
-     * Records are collected from all pages, filtered by cursor, then sorted ascending
-     * by reportTime before processing. This ensures the newest record's gateway/rssi/snr
-     * values win when ingested (each ingest() overwrites the device snapshot).
      */
     public void syncDevice(Long deviceId) {
         Device device = deviceRepository.findById(deviceId).orElse(null);
@@ -48,13 +51,12 @@ public class AgenticPlatformTelemetrySyncJob {
 
         Instant cursor = device.getLastTelemetrySyncedAt();
 
-        // Phase 1: Collect all unprocessed records across pages
         List<ReportRecordPageResp.ReportRecord> toProcess = new ArrayList<>();
         int page = 1;
         while (true) {
             InternalResponse<ReportRecordPageResp> resp;
             try {
-                resp = historyClient.queryReportRecords(
+                resp = queryReportRecordsWithTokenRetry(
                         String.valueOf(device.getPlatformDeviceId()), page, pageSize);
             } catch (Exception e) {
                 log.error("[PlatformSync] device {} report-record fetch failed: {}", deviceId, e.getMessage());
@@ -78,12 +80,9 @@ public class AgenticPlatformTelemetrySyncJob {
 
         if (toProcess.isEmpty()) return;
 
-        // Phase 2: Sort ascending by reportTime (oldest first) so newest record's
-        // snapshot values (gateway, rssi, snr) are the final ones after ingestion
         toProcess.sort(Comparator.comparing(r ->
                 AgenticPlatformReportData.parseReportTime(r.getReportTime())));
 
-        // Phase 3: Ingest each record in chronological order
         for (ReportRecordPageResp.ReportRecord record : toProcess) {
             Instant reportTime = AgenticPlatformReportData.parseReportTime(record.getReportTime());
             Map<String, Object> readings = AgenticPlatformReportData.toReadings(record);
@@ -92,5 +91,24 @@ public class AgenticPlatformTelemetrySyncJob {
         }
 
         log.debug("[PlatformSync] device {} synced {} records", deviceId, toProcess.size());
+    }
+
+    /**
+     * Wraps report-record query with automatic token cache eviction on token expiry.
+     * <p>
+     * When the platform token expires, blade returns HTTP 200 with code=401 and a plain
+     * String in data (the expired token echo). This causes Feign DecodeException because
+     * it expects a page object. We catch that, evict the cached token (forcing
+     * re-exchange), and retry once with a fresh token.
+     */
+    private InternalResponse<ReportRecordPageResp> queryReportRecordsWithTokenRetry(
+            String platformDeviceId, int page, int pageSize) {
+        try {
+            return historyClient.queryReportRecords(platformDeviceId, page, pageSize);
+        } catch (DecodeException e) {
+            log.warn("[PlatformSync] token likely expired (Feign DecodeException), evicting cache and retrying");
+            gatewayTokenService.evictAll();
+            return historyClient.queryReportRecords(platformDeviceId, page, pageSize);
+        }
     }
 }

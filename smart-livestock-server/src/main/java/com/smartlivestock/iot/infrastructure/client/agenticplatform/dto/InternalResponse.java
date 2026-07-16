@@ -20,4 +20,10 @@ public class InternalResponse<T> {
     public boolean isOk() {
         return success && (code == 200 || code == 0);
     }
+
+    /** True when the platform rejected the token (code 401). */
+    public boolean isTokenExpired() {
+        return code == 401
+                || (msg != null && msg.contains("令牌已过期"));
+    }
 }
