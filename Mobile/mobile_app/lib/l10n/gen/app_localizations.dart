@@ -4886,6 +4886,12 @@ abstract class AppLocalizations {
   /// **'结束时间不能在未来；如需创建进行中的实时测试，请留空结束时间'**
   String get gpsQualityEndedAtFutureError;
 
+  /// No description provided for @gpsQualityEndTimeHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'留空＝正在进行的实时测试（稍后点「结束」收尾）；填写过去时间＝补录历史会话，创建即出报告'**
+  String get gpsQualityEndTimeHint;
+
   /// No description provided for @gpsQualityStatus.
   ///
   /// In zh, this message translates to:

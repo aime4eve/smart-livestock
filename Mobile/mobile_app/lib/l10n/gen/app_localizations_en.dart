@@ -2674,6 +2674,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'End time cannot be in the future; leave it empty to create an in-progress live session';
 
   @override
+  String get gpsQualityEndTimeHint =>
+      'Leave empty = in-progress live test (click End later); fill a past time = backfill a historical session that produces a report on creation';
+
+  @override
   String get gpsQualityStatus => 'Status';
 
   @override

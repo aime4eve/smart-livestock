@@ -2619,6 +2619,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsQualityEndedAtFutureError => '结束时间不能在未来；如需创建进行中的实时测试，请留空结束时间';
 
   @override
+  String get gpsQualityEndTimeHint =>
+      '留空＝正在进行的实时测试（稍后点「结束」收尾）；填写过去时间＝补录历史会话，创建即出报告';
+
+  @override
   String get gpsQualityStatus => '状态';
 
   @override
