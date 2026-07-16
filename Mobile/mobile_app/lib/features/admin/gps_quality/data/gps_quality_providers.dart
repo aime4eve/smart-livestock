@@ -108,12 +108,14 @@ class CalibrationSessionsController
           endedAt: endedAt,
         );
     ref.invalidateSelf();
+    ref.invalidate(comparisonProvider(rtkPointId));
   }
 
   Future<bool> endSession(int id) async {
     try {
       await ref.read(gpsQualityApiRepositoryProvider).endSession(id);
       ref.invalidateSelf();
+      ref.invalidate(comparisonProvider(rtkPointId));
       return true;
     } catch (_) {
       return false;
@@ -124,6 +126,7 @@ class CalibrationSessionsController
     try {
       await ref.read(gpsQualityApiRepositoryProvider).deleteSession(id);
       ref.invalidateSelf();
+      ref.invalidate(comparisonProvider(rtkPointId));
       return true;
     } catch (_) {
       return false;
