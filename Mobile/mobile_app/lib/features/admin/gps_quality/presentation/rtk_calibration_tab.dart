@@ -475,10 +475,11 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.gpsQualityCancelSession),
+            child: Text(l10n.commonBack),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
             child: Text(l10n.gpsQualityCancelSession),
           ),
         ],
@@ -506,7 +507,7 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.gpsQualityCancelSession),
+            child: Text(l10n.commonBack),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
