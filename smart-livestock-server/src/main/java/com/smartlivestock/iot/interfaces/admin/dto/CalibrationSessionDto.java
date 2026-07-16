@@ -12,6 +12,8 @@ public class CalibrationSessionDto {
 
     private Long id;
     private Long rtkPointId;
+    private String testType;
+    private Long routeId;
     private Long deviceId;
     private String deviceCode;
     private Instant startedAt;
@@ -26,6 +28,8 @@ public class CalibrationSessionDto {
         CalibrationSessionDto dto = new CalibrationSessionDto();
         dto.id = s.getId();
         dto.rtkPointId = s.getRtkPointId();
+        dto.testType = s.getTestType() != null ? s.getTestType().name() : "STATIC";
+        dto.routeId = s.getRouteId();
         dto.deviceId = s.getDeviceId();
         dto.deviceCode = deviceCode;
         dto.startedAt = s.getStartedAt();
@@ -40,6 +44,12 @@ public class CalibrationSessionDto {
 
     public Long getRtkPointId() { return rtkPointId; }
     public void setRtkPointId(Long rtkPointId) { this.rtkPointId = rtkPointId; }
+
+    public String getTestType() { return testType; }
+    public void setTestType(String testType) { this.testType = testType; }
+
+    public Long getRouteId() { return routeId; }
+    public void setRouteId(Long routeId) { this.routeId = routeId; }
 
     public Long getDeviceId() { return deviceId; }
     public void setDeviceId(Long deviceId) { this.deviceId = deviceId; }

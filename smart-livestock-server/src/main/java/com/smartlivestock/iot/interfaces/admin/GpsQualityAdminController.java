@@ -1,13 +1,18 @@
 package com.smartlivestock.iot.interfaces.admin;
 
+import com.smartlivestock.iot.application.DynamicQualityReportService;
+import com.smartlivestock.iot.application.DynamicTestRouteService;
 import com.smartlivestock.iot.application.GpsQualityReportService;
 import com.smartlivestock.iot.application.RtkCalibrationSessionService;
 import com.smartlivestock.iot.application.RtkReferencePointService;
+import com.smartlivestock.iot.domain.model.DynamicTestRoute;
+import com.smartlivestock.iot.domain.model.DynamicTestRoutePoint;
 import com.smartlivestock.iot.domain.model.GpsQualityTest;
 import com.smartlivestock.iot.domain.model.RtkReferencePoint;
 import com.smartlivestock.iot.interfaces.admin.dto.CalibrationSessionDto;
 import com.smartlivestock.iot.interfaces.admin.dto.ComparisonDto;
 import com.smartlivestock.iot.interfaces.admin.dto.DeviceBriefDto;
+import com.smartlivestock.iot.interfaces.admin.dto.DynamicQualityReportDto;
 import com.smartlivestock.iot.interfaces.admin.dto.QualityReportDto;
 import com.smartlivestock.iot.interfaces.admin.dto.RtkPointDto;
 import com.smartlivestock.shared.common.ApiResponse;
@@ -48,6 +53,8 @@ public class GpsQualityAdminController {
     private final RtkReferencePointService rtkPointService;
     private final RtkCalibrationSessionService sessionService;
     private final GpsQualityReportService reportService;
+    private final DynamicTestRouteService routeService;
+    private final DynamicQualityReportService dynamicReportService;
 
     // ------------------------------------------------------------------
     // RTK reference points (1-4)
@@ -172,5 +179,78 @@ public class GpsQualityAdminController {
         GpsQualityReportService.ComparisonResult result =
                 reportService.generateComparison(rtkPointId);
         return ResponseEntity.ok(ApiResponse.ok(ComparisonDto.from(result)));
+    }
+
+    // ------------------------------------------------------------------
+    // Dynamic test routes (NIX-20)
+    // ------------------------------------------------------------------
+
+    @GetMapping("/dynamic-routes")
+    public ResponseEntity<ApiResponse<List<DynamicTestRoute>>> listRoutes() {
+        return ResponseEntity.ok(ApiResponse.ok(routeService.findAll()));
+    }
+
+    @PostMapping("/dynamic-routes")
+    public ResponseEntity<ApiResponse<DynamicTestRoute>> createRoute(@RequestBody Map<String, Object> body) {
+        DynamicTestRoute saved = routeService.create(
+                (String) body.get("name"), (String) body.get("description"));
+        return ResponseEntity.ok(ApiResponse.ok(saved));
+    }
+
+    @PutMapping("/dynamic-routes/{id}")
+    public ResponseEntity<ApiResponse<DynamicTestRoute>> updateRoute(
+            @PathVariable Long id, @RequestBody Map<String, Object> body) {
+        DynamicTestRoute saved = routeService.update(id,
+                (String) body.get("name"), (String) body.get("description"));
+        return ResponseEntity.ok(ApiResponse.ok(saved));
+    }
+
+    @DeleteMapping("/dynamic-routes/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteRoute(@PathVariable Long id) {
+        routeService.delete(id);
+        return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    @GetMapping("/dynamic-routes/{id}/points")
+    public ResponseEntity<ApiResponse<List<DynamicTestRoutePoint>>> routePoints(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(routeService.findPoints(id)));
+    }
+
+    @PutMapping("/dynamic-routes/{id}/points")
+    public ResponseEntity<ApiResponse<Void>> replaceRoutePoints(
+            @PathVariable Long id, @RequestBody List<Map<String, Object>> points) {
+        var inputs = points.stream()
+                .map(p -> new DynamicTestRouteService.RoutePointInput(
+                        ((Number) p.get("rtkPointId")).longValue(),
+                        ((Number) p.get("sequenceNo")).intValue()))
+                .toList();
+        routeService.replacePoints(id, inputs);
+        return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    // ------------------------------------------------------------------
+    // Dynamic test sessions (NIX-20)
+    // ------------------------------------------------------------------
+
+    @PostMapping("/sessions/dynamic")
+    public ResponseEntity<ApiResponse<CalibrationSessionDto>> createDynamicSession(
+            @RequestBody CalibrationSessionDto body) {
+        GpsQualityTest saved = sessionService.createDynamic(
+                body.getRouteId(), body.getDeviceId(),
+                body.getStartedAt(), body.getEndedAt());
+        String code = sessionService.resolveDeviceCode(saved.getDeviceId());
+        return ResponseEntity.ok(ApiResponse.ok(CalibrationSessionDto.from(saved, code)));
+    }
+
+    // ------------------------------------------------------------------
+    // Dynamic report (NIX-20)
+    // ------------------------------------------------------------------
+
+    @GetMapping("/sessions/{id}/dynamic-report")
+    public ResponseEntity<ApiResponse<DynamicQualityReportDto>> dynamicReport(
+            @PathVariable Long id,
+            @RequestParam(required = false) Double threshold) {
+        DynamicQualityReportDto dto = dynamicReportService.generate(id, threshold);
+        return ResponseEntity.ok(ApiResponse.ok(dto));
     }
 }

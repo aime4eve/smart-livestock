@@ -4,7 +4,9 @@ import com.smartlivestock.iot.domain.model.CalibrationStatus;
 import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.DeviceType;
 import com.smartlivestock.iot.domain.model.GpsQualityTest;
+import com.smartlivestock.iot.domain.model.TestType;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
+import com.smartlivestock.iot.domain.repository.DynamicTestRouteRepository;
 import com.smartlivestock.iot.domain.repository.GpsQualityTestRepository;
 import com.smartlivestock.iot.domain.repository.RtkReferencePointRepository;
 import com.smartlivestock.shared.common.ApiException;
@@ -25,7 +27,7 @@ import java.util.stream.Collectors;
  * <p>
  * Creation enforces S5 (request validation) and S1 (time-window non-overlap).
  */
-@Service
+@Service("rtkCalibrationSessionService")
 @RequiredArgsConstructor
 public class RtkCalibrationSessionService {
 
@@ -33,6 +35,7 @@ public class RtkCalibrationSessionService {
 
     private final GpsQualityTestRepository sessionRepository;
     private final RtkReferencePointRepository rtkPointRepository;
+    private final DynamicTestRouteRepository routeRepository;
     private final DeviceRepository deviceRepository;
 
     public Page<GpsQualityTest> findFiltered(Long rtkPointId, Long deviceId, String status, String testType, Pageable pageable) {
@@ -62,18 +65,91 @@ public class RtkCalibrationSessionService {
     }
 
     /**
-     * Create a calibration session.
+     * Create a static calibration session (single RTK truth point).
      *
      * @param endedAt null = live session (IN_PROGRESS); non-null = backfill (COMPLETED)
      */
     public GpsQualityTest create(Long rtkPointId, Long deviceId, Instant startedAt, Instant endedAt) {
-        // --- S5: request validation ---
+        // --- S5: static truth reference validation ---
         if (rtkPointId == null) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "rtkPointId is required");
         }
         if (!rtkPointRepository.existsById(rtkPointId)) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "RTK point not found: " + rtkPointId);
         }
+        // shared device-type + backfill/live + overlap validation
+        validateDeviceAndTimeWindow(deviceId, startedAt, endedAt);
+
+        boolean backfill = endedAt != null;
+        GpsQualityTest session = new GpsQualityTest(rtkPointId, deviceId, startedAt);
+        if (backfill) {
+            session.setEndedAt(endedAt);
+            session.setStatus(CalibrationStatus.COMPLETED);
+        }
+        return sessionRepository.save(session);
+    }
+
+    /**
+     * Create a dynamic test session (device traverses an ordered route).
+     *
+     * @param routeId   truth route (must exist)
+     * @param deviceId  device under test (must be TRACKER)
+     * @param startedAt test start
+     * @param endedAt   null = live session (IN_PROGRESS); non-null = backfill (COMPLETED)
+     */
+    public GpsQualityTest createDynamic(Long routeId, Long deviceId, Instant startedAt, Instant endedAt) {
+        // --- S5: dynamic truth reference validation ---
+        if (routeId == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "routeId is required");
+        }
+        if (!routeRepository.existsById(routeId)) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Route not found: " + routeId);
+        }
+        // shared device-type + backfill/live + overlap validation
+        validateDeviceAndTimeWindow(deviceId, startedAt, endedAt);
+
+        boolean backfill = endedAt != null;
+        GpsQualityTest test = new GpsQualityTest(TestType.DYNAMIC, null, routeId, deviceId, startedAt);
+        if (backfill) {
+            test.setEndedAt(endedAt);
+            test.setStatus(CalibrationStatus.COMPLETED);
+        }
+        return sessionRepository.save(test);
+    }
+
+    public GpsQualityTest end(Long id) {
+        GpsQualityTest session = findById(id);
+        session.end();
+        return sessionRepository.save(session);
+    }
+
+    public GpsQualityTest cancel(Long id) {
+        GpsQualityTest session = findById(id);
+        if (session.getStatus() == CalibrationStatus.IN_PROGRESS) {
+            // Live session → soft cancel (preserve audit trail)
+            session.cancel();
+            return sessionRepository.save(session);
+        }
+        // COMPLETED or CANCELED → hard delete (admin cleanup)
+        sessionRepository.deleteById(id);
+        return session;
+    }
+
+    /**
+     * Half-open interval overlap test. A null end means open-ended (treated as +infinity).
+     */
+    private boolean overlaps(Instant newStart, Instant newEnd, Instant existStart, Instant existEnd) {
+        boolean newStartBeforeExistEnd = (existEnd == null) || newStart.isBefore(existEnd);
+        boolean existStartBeforeNewEnd = (newEnd == null) || existStart.isBefore(newEnd);
+        return newStartBeforeExistEnd && existStartBeforeNewEnd;
+    }
+
+    /**
+     * Shared S5 + S1 validation for device type, started_at, backfill/live rules,
+     * and time-window non-overlap. Used by both static ({@code create}) and
+     * dynamic ({@code createDynamic}) test creation.
+     */
+    private void validateDeviceAndTimeWindow(Long deviceId, Instant startedAt, Instant endedAt) {
         if (deviceId == null) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "deviceId is required");
         }
@@ -114,39 +190,5 @@ public class RtkCalibrationSessionService {
                         "Time window overlaps existing session #" + existing.getId());
             }
         }
-
-        GpsQualityTest session = new GpsQualityTest(rtkPointId, deviceId, startedAt);
-        if (backfill) {
-            session.setEndedAt(endedAt);
-            session.setStatus(CalibrationStatus.COMPLETED);
-        }
-        return sessionRepository.save(session);
-    }
-
-    public GpsQualityTest end(Long id) {
-        GpsQualityTest session = findById(id);
-        session.end();
-        return sessionRepository.save(session);
-    }
-
-    public GpsQualityTest cancel(Long id) {
-        GpsQualityTest session = findById(id);
-        if (session.getStatus() == CalibrationStatus.IN_PROGRESS) {
-            // Live session → soft cancel (preserve audit trail)
-            session.cancel();
-            return sessionRepository.save(session);
-        }
-        // COMPLETED or CANCELED → hard delete (admin cleanup)
-        sessionRepository.deleteById(id);
-        return session;
-    }
-
-    /**
-     * Half-open interval overlap test. A null end means open-ended (treated as +infinity).
-     */
-    private boolean overlaps(Instant newStart, Instant newEnd, Instant existStart, Instant existEnd) {
-        boolean newStartBeforeExistEnd = (existEnd == null) || newStart.isBefore(existEnd);
-        boolean existStartBeforeNewEnd = (newEnd == null) || existStart.isBefore(newEnd);
-        return newStartBeforeExistEnd && existStartBeforeNewEnd;
     }
 }
