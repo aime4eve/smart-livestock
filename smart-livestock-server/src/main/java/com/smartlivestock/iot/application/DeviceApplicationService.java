@@ -58,9 +58,10 @@ public class DeviceApplicationService {
         device.setDevEui(command.devEui());
         Device saved = deviceRepository.save(device);
 
-        // 录入即注册：success → ACTIVE, failure → stay INVENTORY
+        // 录入即注册：EUI 反查优先（设备已在 blade 注册则直接绑定），
+        // 未命中走注册（方式一）。success → ACTIVE, failure → stay INVENTORY
         try {
-            doPlatformRegistration(saved);
+            activateOnPlatform(saved);
             saved.activate();
             saved = deviceRepository.save(saved);
         } catch (Exception e) {
