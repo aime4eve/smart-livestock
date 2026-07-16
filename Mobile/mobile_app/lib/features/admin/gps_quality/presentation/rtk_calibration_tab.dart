@@ -503,7 +503,42 @@ class _RtkCalibrationTabState extends ConsumerState<RtkCalibrationTab> {
       builder: (ctx) => AlertDialog(
         key: const Key('delete-session-dialog'),
         title: Text(l10n.gpsQualityDelete),
-        content: Text(l10n.gpsQualityDelete),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${l10n.gpsQualityDevice}: ${session.deviceCode}',
+                style: const TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text('${l10n.gpsQualityStartTime}: ${DateFormat("yyyy-MM-dd HH:mm").format(session.startedAt.toLocal())}'),
+            if (session.endedAt != null) ...[
+              const SizedBox(height: 2),
+              Text('${l10n.gpsQualityEndTime}: ${DateFormat("yyyy-MM-dd HH:mm").format(session.endedAt!.toLocal())}'),
+            ],
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, size: 16, color: AppColors.danger),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      session.status == CalibrationStatus.canceled
+                          ? '删除后无法恢复，该会话记录将完全移除。'
+                          : '删除后该会话的统计结果将丢失，无法恢复。',
+                      style: TextStyle(fontSize: 12, color: AppColors.danger),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
