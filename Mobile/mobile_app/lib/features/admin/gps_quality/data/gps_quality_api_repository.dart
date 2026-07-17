@@ -215,15 +215,17 @@ class GpsQualityApiRepository {
 
   // ── Calibration sessions ────────────────────────────────────────
 
-  Future<SessionListResult> fetchSessions({
-    int? rtkPointId,
-    CalibrationStatus? status,
-    int page = 0,
-    int size = 200,
-  }) async {
-    final params = <String>[];
-    if (rtkPointId != null) params.add('rtkPointId=$rtkPointId');
-    if (status != null) params.add('status=${_statusParam(status)}');
+ Future<SessionListResult> fetchSessions({
+   int? rtkPointId,
+   int? deviceId,
+   CalibrationStatus? status,
+   int page = 0,
+   int size = 200,
+ }) async {
+   final params = <String>[];
+   if (rtkPointId != null) params.add('rtkPointId=$rtkPointId');
+   if (deviceId != null) params.add('deviceId=$deviceId');
+   if (status != null) params.add('status=${_statusParam(status)}');
     params.add('page=$page');
     params.add('size=$size');
     final data = await ApiClient.instance
