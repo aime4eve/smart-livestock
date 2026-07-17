@@ -402,47 +402,119 @@ class _SessionTestTabState extends ConsumerState<SessionTestTab> {
 
   Future<void> _showCreateSessionDialog(AppLocalizations l10n) async {
     final devices = ref.read(gpsDevicesProvider).value ?? [];
-    int? deviceId;
+    final selectedDeviceIds = <int>{};
+    final searchCtrl = TextEditingController();
     DateTime startedAt = DateTime.now();
     DateTime? endedAt;
+    bool saving = false;
 
     await showDialog<void>(
       context: context,
-      builder: (ctx) => StatefulBuilder(builder: (ctx, setS) => AlertDialog(
-        key: const Key('create-session-dialog'),
-        title: Text(l10n.gpsQualityCreateSession),
-        content: SizedBox(width: 400, child: Column(mainAxisSize: MainAxisSize.min, children: [
-          DropdownButtonFormField<int>(
-            decoration: InputDecoration(labelText: l10n.gpsQualityDevice),
-            value: deviceId,
-            items: devices.map((d) => DropdownMenuItem(value: d.id,
-              child: Text(d.deviceCode, style: const TextStyle(fontSize: 13)))).toList(),
-            onChanged: (v) => setS(() => deviceId = v),
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setS) {
+        final query = searchCtrl.text.toLowerCase();
+        final filtered = query.isEmpty
+            ? devices
+            : devices.where((d) => d.deviceCode.toLowerCase().contains(query)).toList();
+        return AlertDialog(
+          key: const Key('create-session-dialog'),
+          title: Text(l10n.gpsQualityCreateSession),
+          content: SizedBox(
+            width: 440,
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              // Device search
+              TextField(
+                key: const Key('device-search-input'),
+                controller: searchCtrl,
+                decoration: InputDecoration(
+                  labelText: l10n.gpsQualityDevice,
+                  suffixIcon: const Icon(Icons.search, size: 18),
+                  isDense: true,
+                ),
+                onChanged: (_) => setS(() {}),
+              ),
+              const SizedBox(height: 4),
+              // Selection summary + toggle all
+              Row(children: [
+                Text('${selectedDeviceIds.length}/${devices.length} 台设备',
+                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                const Spacer(),
+                if (filtered.isNotEmpty)
+                  TextButton(
+                    onPressed: saving ? null : () => setS(() {
+                      final allFiltered = filtered.every((d) => selectedDeviceIds.contains(d.id));
+                      if (allFiltered) {
+                        filtered.forEach((d) => selectedDeviceIds.remove(d.id));
+                      } else {
+                        filtered.forEach((d) => selectedDeviceIds.add(d.id));
+                      }
+                    }),
+                    child: Text(filtered.every((d) => selectedDeviceIds.contains(d.id)) ? '取消全选' : '全选当前',
+                      style: const TextStyle(fontSize: 11)),
+                  ),
+              ]),
+              // Device list with checkboxes
+              SizedBox(
+                height: 180,
+                child: ListView.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (ctx, i) {
+                    final d = filtered[i];
+                    final checked = selectedDeviceIds.contains(d.id);
+                    return CheckboxListTile(
+                      dense: true,
+                      value: checked,
+                      onChanged: saving ? null : (v) => setS(() {
+                        if (v == true) { selectedDeviceIds.add(d.id); }
+                        else { selectedDeviceIds.remove(d.id); }
+                      }),
+                      title: Text(d.deviceCode, style: const TextStyle(fontSize: 13)),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _DateTimeRow(label: l10n.gpsQualityStartTime, value: startedAt,
+                onChanged: (v) => setS(() => startedAt = v)),
+              const SizedBox(height: AppSpacing.sm),
+              _DateTimeRow(label: l10n.gpsQualityEndTime, value: endedAt,
+                onChanged: (v) => setS(() => endedAt = v)),
+            ]),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          _DateTimeRow(label: l10n.gpsQualityStartTime, value: startedAt,
-            onChanged: (v) => setS(() => startedAt = v)),
-          const SizedBox(height: AppSpacing.sm),
-          _DateTimeRow(label: l10n.gpsQualityEndTime, value: endedAt,
-            onChanged: (v) => setS(() => endedAt = v)),
-        ])),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.gpsQualityCancelSession)),
-          FilledButton(
-            onPressed: deviceId == null ? null : () async {
-              Navigator.pop(ctx);
-              try {
-                await ref.read(gpsQualityApiRepositoryProvider).createGpsSession(
-                  deviceId: deviceId!, startedAt: startedAt, endedAt: endedAt);
+          actions: [
+            TextButton(onPressed: saving ? null : () => Navigator.pop(ctx),
+              child: Text(l10n.gpsQualityCancelSession)),
+            FilledButton(
+              onPressed: (selectedDeviceIds.isEmpty || saving) ? null : () async {
+                setS(() => saving = true);
+                final ids = selectedDeviceIds.toList();
+                int ok = 0;
+                String? lastErr;
+                for (final id in ids) {
+                  try {
+                    await ref.read(gpsQualityApiRepositoryProvider).createGpsSession(
+                      deviceId: id, startedAt: startedAt, endedAt: endedAt);
+                    ok++;
+                  } catch (e) { lastErr = '$e'; }
+                }
+                if (ctx.mounted) Navigator.pop(ctx);
                 ref.invalidate(gpsSessionsProvider);
-              } catch (e) {
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
-              }
-            },
-            child: Text(l10n.gpsQualityCreateSession),
-          ),
-        ],
-      )),
+                if (!mounted) return;
+                if (ok == ids.length) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('成功创建 $ok 个会话')));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('成功 $ok/${ids.length}${lastErr != null ? ", 最后错误: $lastErr" : ""}')));
+                }
+              },
+              child: saving
+                ? const SizedBox(width: 16, height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : Text('创建会话（${selectedDeviceIds.length}）'),
+            ),
+          ],
+        );
+      }),
     );
   }
 
