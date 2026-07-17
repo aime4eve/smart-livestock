@@ -263,8 +263,8 @@ class GpsQualityApiRepository {
     final data = await ApiClient.instance.post('$_base/sessions', body: {
       'rtkPointId': rtkPointId,
       'deviceId': deviceId,
-      'startedAt': startedAt.toUtc().toIso8601String(),
-      if (endedAt != null) 'endedAt': endedAt.toUtc().toIso8601String(),
+      'startedAt': startedAt.toIso8601String(),
+      if (endedAt != null) 'endedAt': endedAt.toIso8601String(),
     });
     return CalibrationSession.fromJson(data);
   }
@@ -286,8 +286,8 @@ class GpsQualityApiRepository {
         await ApiClient.instance.post('$_base/sessions', body: {
           'rtkPointId': r.rtkPointId,
           'deviceId': r.deviceId,
-          'startedAt': r.startedAt.toUtc().toIso8601String(),
-          if (r.endedAt != null) 'endedAt': r.endedAt!.toUtc().toIso8601String(),
+          'startedAt': r.startedAt.toIso8601String(),
+          if (r.endedAt != null) 'endedAt': r.endedAt!.toIso8601String(),
         });
         succeeded.add(i);
       } catch (e) {
@@ -368,8 +368,8 @@ class GpsQualityApiRepository {
   }) async {
     final data = await ApiClient.instance.post('$_base/sessions', body: {
       'deviceId': deviceId,
-      'startedAt': startedAt.toUtc().toIso8601String(),
-      if (endedAt != null) 'endedAt': endedAt.toUtc().toIso8601String(),
+      'startedAt': startedAt.toIso8601String(),
+      if (endedAt != null) 'endedAt': endedAt.toIso8601String(),
     });
     return GpsQualitySession.fromJson(data);
   }
@@ -406,8 +406,8 @@ class GpsQualityApiRepository {
       'testType': testType.label,
       if (rtkPointId != null) 'rtkPointId': rtkPointId,
       if (routeId != null) 'routeId': routeId,
-      'testStartedAt': testStartedAt.toUtc().toIso8601String(),
-      if (testEndedAt != null) 'testEndedAt': testEndedAt.toUtc().toIso8601String(),
+      'testStartedAt': testStartedAt.toIso8601String(),
+      if (testEndedAt != null) 'testEndedAt': testEndedAt.toIso8601String(),
     });
     return CalibrationSession.fromJson(data);
   }
@@ -480,8 +480,8 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
         await ApiClient.instance.post('$_base/sessions/dynamic', body: {
       'deviceId': deviceId,
       'routeId': routeId,
-      'startedAt': startedAt.toUtc().toIso8601String(),
-      if (endedAt != null) 'endedAt': endedAt.toUtc().toIso8601String(),
+      'startedAt': startedAt.toIso8601String(),
+      if (endedAt != null) 'endedAt': endedAt.toIso8601String(),
     });
     return CalibrationSession.fromJson(data);
   }

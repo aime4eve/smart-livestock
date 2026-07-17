@@ -389,7 +389,7 @@ class _SessionTestTabState extends ConsumerState<SessionTestTab> {
     }
   }
 
-  String _fmt(DateTime dt) => DateFormat('MM-dd HH:mm').format(dt.toLocal());
+  String _fmt(DateTime dt) => DateFormat('MM-dd HH:mm').format(dt);
 
   Widget _statusTag(SessionStatus s) {
     final (label, color) = switch (s) {
@@ -695,7 +695,7 @@ class _StaticReportCard extends ConsumerWidget {
                 Text('${l10n.gpsQualityTestTypeStatic} · ${report.rtkPoint.pointLabel}',
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                 const Spacer(),
-                Text('${DateFormat('MM-dd HH:mm').format(report.startedAt.toLocal())} → ${report.endedAt != null ? DateFormat('MM-dd HH:mm').format(report.endedAt!.toLocal()) : "..."}',
+                Text('${DateFormat('MM-dd HH:mm').format(report.startedAt)} → ${report.endedAt != null ? DateFormat('MM-dd HH:mm').format(report.endedAt!) : "..."}',
                   style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
               ]),
               const SizedBox(height: AppSpacing.md),
@@ -746,7 +746,7 @@ class _DynamicReportCard extends ConsumerWidget {
                 Text('${l10n.gpsQualityTestTypeDynamic} · ${report.routeName}',
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                 const Spacer(),
-                Text('${DateFormat('MM-dd HH:mm').format(report.startedAt.toLocal())} → ${report.endedAt != null ? DateFormat('MM-dd HH:mm').format(report.endedAt!.toLocal()) : "..."}',
+                Text('${DateFormat('MM-dd HH:mm').format(report.startedAt)} → ${report.endedAt != null ? DateFormat('MM-dd HH:mm').format(report.endedAt!) : "..."}',
                   style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
               ]),
               const SizedBox(height: AppSpacing.md),
@@ -869,7 +869,7 @@ class _DateTimeRowState extends State<_DateTimeRow> {
     super.initState();
     final fmt = DateFormat('yyyy-MM-dd HH:mm');
     _ctrl = TextEditingController(
-      text: widget.value != null ? fmt.format(widget.value!.toLocal()) : '',
+      text: widget.value != null ? fmt.format(widget.value!) : '',
     );
     _focus = FocusNode();
   }
@@ -897,7 +897,9 @@ class _DateTimeRowState extends State<_DateTimeRow> {
       onChanged: (text) {
         for (final f in ['yyyy-MM-dd HH:mm', 'yyyy/MM/dd HH:mm', 'yyyy-MM-dd HH:mm:ss']) {
           try {
-            final dt = DateFormat(f).parse(text);
+            final parsed = DateFormat(f).parse(text);
+            // Treat raw value as UTC (lesson #17: no timezone conversion)
+            final dt = DateTime.utc(parsed.year, parsed.month, parsed.day, parsed.hour, parsed.minute);
             widget.onChanged(dt);
             return;
           } catch (_) {}
