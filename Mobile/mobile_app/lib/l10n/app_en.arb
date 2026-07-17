@@ -2456,5 +2456,17 @@
   "gpsQualityTimeOverlapMsg": "The selected time overlaps with session #{sessionId} of device {device} ({existRange}). Please choose a non-overlapping time.",
   "@gpsQualityTimeOverlapMsg": {},
   "gpsQualitySessionInProgress": "In Progress",
-  "@gpsQualitySessionInProgress": {}
+  "@gpsQualitySessionInProgress": {},
+  "gpsQualitySessionList": "Sessions",
+  "@gpsQualitySessionList": {},
+  "gpsQualityCreateSession": "Create Session",
+  "@gpsQualityCreateSession": {},
+  "gpsQualityTestList": "Tests",
+  "@gpsQualityTestList": {},
+  "gpsQualityCreateTest": "Create Test",
+  "@gpsQualityCreateTest": {},
+  "gpsQualityTabTruthRef": "Reference",
+  "@gpsQualityTabTruthRef": {},
+  "gpsQualityTabComparison": "Comparison",
+  "@gpsQualityTabComparison": {}
 }

@@ -2636,7 +2636,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpsQualityRtkPointList => 'RTK Reference Points';
 
   @override
-  String get gpsQualitySessionList => 'Calibration Sessions';
+  String get gpsQualitySessionList => 'Sessions';
 
   @override
   String get gpsQualityAddRtkPoint => 'Add Point';
@@ -3023,4 +3023,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsQualitySessionInProgress => 'In Progress';
+
+  @override
+  String get gpsQualityCreateSession => 'Create Session';
+
+  @override
+  String get gpsQualityTestList => 'Tests';
+
+  @override
+  String get gpsQualityCreateTest => 'Create Test';
+
+  @override
+  String get gpsQualityTabTruthRef => 'Reference';
+
+  @override
+  String get gpsQualityTabComparison => 'Comparison';
 }

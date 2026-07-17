@@ -2583,7 +2583,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsQualityRtkPointList => 'RTK 真值点';
 
   @override
-  String get gpsQualitySessionList => '标定会话';
+  String get gpsQualitySessionList => '检验会话';
 
   @override
   String get gpsQualityAddRtkPoint => '新增点位';
@@ -2958,4 +2958,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpsQualitySessionInProgress => '进行中';
+
+  @override
+  String get gpsQualityCreateSession => '创建会话';
+
+  @override
+  String get gpsQualityTestList => '检验列表';
+
+  @override
+  String get gpsQualityCreateTest => '创建检验';
+
+  @override
+  String get gpsQualityTabTruthRef => '真值参照';
+
+  @override
+  String get gpsQualityTabComparison => '质量对比';
 }

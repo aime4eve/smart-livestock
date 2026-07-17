@@ -2456,5 +2456,17 @@
   "gpsQualityTimeOverlapMsg": "所选时间段与设备 {device} 已有会话 #{sessionId} 重叠（{existRange}），请选择不重叠的时间段。",
   "@gpsQualityTimeOverlapMsg": {},
   "gpsQualitySessionInProgress": "进行中",
-  "@gpsQualitySessionInProgress": {}
+  "@gpsQualitySessionInProgress": {},
+  "gpsQualitySessionList": "检验会话",
+  "@gpsQualitySessionList": {},
+  "gpsQualityCreateSession": "创建会话",
+  "@gpsQualityCreateSession": {},
+  "gpsQualityTestList": "检验列表",
+  "@gpsQualityTestList": {},
+  "gpsQualityCreateTest": "创建检验",
+  "@gpsQualityCreateTest": {},
+  "gpsQualityTabTruthRef": "真值参照",
+  "@gpsQualityTabTruthRef": {},
+  "gpsQualityTabComparison": "质量对比",
+  "@gpsQualityTabComparison": {}
 }

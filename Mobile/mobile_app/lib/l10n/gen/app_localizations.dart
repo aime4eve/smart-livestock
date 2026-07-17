@@ -4817,7 +4817,7 @@ abstract class AppLocalizations {
   /// No description provided for @gpsQualitySessionList.
   ///
   /// In zh, this message translates to:
-  /// **'标定会话'**
+  /// **'检验会话'**
   String get gpsQualitySessionList;
 
   /// No description provided for @gpsQualityAddRtkPoint.
@@ -5531,6 +5531,36 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'进行中'**
   String get gpsQualitySessionInProgress;
+
+  /// No description provided for @gpsQualityCreateSession.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建会话'**
+  String get gpsQualityCreateSession;
+
+  /// No description provided for @gpsQualityTestList.
+  ///
+  /// In zh, this message translates to:
+  /// **'检验列表'**
+  String get gpsQualityTestList;
+
+  /// No description provided for @gpsQualityCreateTest.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建检验'**
+  String get gpsQualityCreateTest;
+
+  /// No description provided for @gpsQualityTabTruthRef.
+  ///
+  /// In zh, this message translates to:
+  /// **'真值参照'**
+  String get gpsQualityTabTruthRef;
+
+  /// No description provided for @gpsQualityTabComparison.
+  ///
+  /// In zh, this message translates to:
+  /// **'质量对比'**
+  String get gpsQualityTabComparison;
 }
 
 class _AppLocalizationsDelegate

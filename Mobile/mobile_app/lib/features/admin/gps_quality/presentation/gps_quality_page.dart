@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/session_test_tab.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/quality_report_tab.dart';
-import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/rtk_calibration_tab.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/dynamic_report_tab.dart';
 
 /// GPS Quality Check page with three tabs:
-/// Tab 1: RTK calibration management (RTK points + calibration sessions)
-/// Tab 2: Quality reports (device comparison + statistics)
-/// Tab 3: Dynamic GPS quality testing (routes + dynamic tests + reports)
+/// Tab 1: Session-Test workflow (session list + test list + create/delete)
+/// Tab 2: Truth reference management (RTK points + dynamic routes)
+/// Tab 3: Quality comparison (multi-device reports, unchanged)
 class GpsQualityPage extends ConsumerStatefulWidget {
   const GpsQualityPage({super.key});
 
@@ -44,28 +44,28 @@ class _GpsQualityPageState extends ConsumerState<GpsQualityPage>
           controller: _tabController,
           tabs: [
             Tab(
-              key: const Key('rtk-calibration-tab'),
-              text: l10n.gpsQualityTabRtkCalibration,
+              key: const Key('session-test-tab'),
+              text: l10n.gpsQualitySessionList,
             ),
-           Tab(
-             key: const Key('quality-report-tab'),
-             text: l10n.gpsQualityTabQualityReport,
-           ),
             Tab(
-              key: const Key('dynamic-report-tab'),
-              text: l10n.gpsQualityTabDynamicReport,
+              key: const Key('truth-ref-tab'),
+              text: l10n.gpsQualityTabTruthRef,
             ),
-         ],
-       ),
-     ),
-     body: TabBarView(
-       controller: _tabController,
-       children: const [
-         RtkCalibrationTab(),
-         QualityReportTab(),
+            Tab(
+              key: const Key('quality-comparison-tab'),
+              text: l10n.gpsQualityTabComparison,
+            ),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: const [
+          SessionTestTab(),
           DynamicReportTab(),
-       ],
-     ),
+          QualityReportTab(),
+        ],
+      ),
     );
   }
 }
