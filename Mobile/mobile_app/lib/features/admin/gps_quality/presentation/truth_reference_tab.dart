@@ -37,7 +37,7 @@ class _TruthReferenceTabState extends ConsumerState<TruthReferenceTab> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(width: 380, child: left),
+                SizedBox(width: 380, child: SingleChildScrollView(child: left)),
                 const SizedBox(width: AppSpacing.lg),
                 Expanded(child: SingleChildScrollView(child: right)),
               ],

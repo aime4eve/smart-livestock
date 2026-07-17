@@ -51,7 +51,7 @@ class _SessionTestTabState extends ConsumerState<SessionTestTab> {
             return Padding(
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                SizedBox(width: 320, child: left),
+                SizedBox(width: 320, child: SingleChildScrollView(child: left)),
                 const SizedBox(width: AppSpacing.lg),
                 Expanded(child: SingleChildScrollView(child: right)),
               ]),
