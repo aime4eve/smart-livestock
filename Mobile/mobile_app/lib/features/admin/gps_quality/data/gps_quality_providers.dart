@@ -210,3 +210,34 @@ final dynamicReportProvider =
       .read(gpsQualityApiRepositoryProvider)
       .fetchDynamicReport(query.sessionId, threshold: query.threshold),
 );
+
+// ── Sessions (data window) ────────────────────────────────────────
+
+class GpsSessionsController extends AsyncNotifier<List<GpsQualitySession>> {
+  @override
+  Future<List<GpsQualitySession>> build() async {
+    final result = await ref.read(gpsQualityApiRepositoryProvider).fetchGpsSessions();
+    return result.items;
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final r = await ref.read(gpsQualityApiRepositoryProvider).fetchGpsSessions();
+      return r.items;
+    });
+  }
+}
+
+final gpsSessionsProvider =
+    AsyncNotifierProvider<GpsSessionsController, List<GpsQualitySession>>(
+  GpsSessionsController.new,
+);
+
+// ── Tests by session (family) ─────────────────────────────────────
+
+final sessionTestsProvider =
+    FutureProvider.family<List<CalibrationSession>, int>(
+  (ref, sessionId) =>
+      ref.read(gpsQualityApiRepositoryProvider).fetchTestsBySession(sessionId),
+);

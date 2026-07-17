@@ -146,6 +146,16 @@ class TrajectoryPoint {
       );
 }
 
+/// Paginated GPS quality session list result.
+@immutable
+class GpsSessionListResult {
+  const GpsSessionListResult({required this.items, this.total = 0, this.page = 0, this.size = 20});
+  final List<GpsQualitySession> items;
+  final int total;
+  final int page;
+  final int size;
+}
+
 /// Platform-level (non farm-scoped) repository for the GPS quality admin API.
 ///
 /// Base path: /api/v1/admin/gps-quality
@@ -323,6 +333,88 @@ class GpsQualityApiRepository {
        CalibrationStatus.completed => 'COMPLETED',
        CalibrationStatus.canceled => 'CANCELED',
      };
+
+  // ── Sessions (data window) ──────────────────────────────────────
+
+  Future<GpsSessionListResult> fetchGpsSessions({
+    int? deviceId,
+    String? status,
+    int page = 0,
+    int size = 20,
+  }) async {
+    final params = <String>[];
+    if (deviceId != null) params.add('deviceId=$deviceId');
+    if (status != null) params.add('status=$status');
+    params.add('page=$page');
+    params.add('size=$size');
+    final data = await ApiClient.instance.get('$_base/sessions?${params.join("&")}');
+    final rawItems = (data['content'] ?? data['value'] ?? []) as List;
+    final items = rawItems
+        .whereType<Map<String, dynamic>>()
+        .map(GpsQualitySession.fromJson)
+        .toList();
+    return GpsSessionListResult(
+      items: items,
+      total: data['totalElements'] as int? ?? items.length,
+      page: page,
+      size: size,
+    );
+  }
+
+  Future<GpsQualitySession> createGpsSession({
+    required int deviceId,
+    required DateTime startedAt,
+    DateTime? endedAt,
+  }) async {
+    final data = await ApiClient.instance.post('$_base/sessions', body: {
+      'deviceId': deviceId,
+      'startedAt': startedAt.toUtc().toIso8601String(),
+      if (endedAt != null) 'endedAt': endedAt.toUtc().toIso8601String(),
+    });
+    return GpsQualitySession.fromJson(data);
+  }
+
+  Future<GpsQualitySession> endGpsSession(int id) async {
+    final data = await ApiClient.instance.patch('$_base/sessions/$id/end');
+    return GpsQualitySession.fromJson(data);
+  }
+
+  Future<void> deleteGpsSession(int id) async {
+    await ApiClient.instance.delete('$_base/sessions/$id');
+  }
+
+  // ── Tests (sub-resource of session) ─────────────────────────────
+
+  Future<List<CalibrationSession>> fetchTestsBySession(int sessionId) async {
+    final data = await ApiClient.instance.get('$_base/sessions/$sessionId/tests');
+    final items = (data is List) ? data as List : (data['value'] ?? data['items'] ?? []) as List;
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map(CalibrationSession.fromJson)
+        .toList();
+  }
+
+  Future<CalibrationSession> createTest({
+    required int sessionId,
+    required TestType testType,
+    int? rtkPointId,
+    int? routeId,
+    required DateTime testStartedAt,
+    DateTime? testEndedAt,
+  }) async {
+    final data = await ApiClient.instance.post('$_base/sessions/$sessionId/tests', body: {
+      'testType': testType.label,
+      if (rtkPointId != null) 'rtkPointId': rtkPointId,
+      if (routeId != null) 'routeId': routeId,
+      'testStartedAt': testStartedAt.toUtc().toIso8601String(),
+      if (testEndedAt != null) 'testEndedAt': testEndedAt.toUtc().toIso8601String(),
+    });
+    return CalibrationSession.fromJson(data);
+  }
+
+  Future<void> deleteTest(int id) async {
+    await ApiClient.instance.delete('$_base/tests/$id');
+  }
 
   // ── Dynamic test routes ─────────────────────────────────────────
 

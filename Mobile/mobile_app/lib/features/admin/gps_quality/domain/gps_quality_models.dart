@@ -1,6 +1,50 @@
 import 'package:flutter/foundation.dart';
 
-/// Calibration session status.
+/// Calibration session status (for sessions).
+enum SessionStatus { inProgress, completed, canceled }
+
+/// GPS quality session — device + time window = data window.
+@immutable
+class GpsQualitySession {
+  const GpsQualitySession({
+    required this.id,
+    required this.deviceId,
+    this.deviceCode = '',
+    required this.startedAt,
+    this.endedAt,
+    required this.status,
+    this.note,
+  });
+
+  final int id;
+  final int deviceId;
+  final String deviceCode;
+  final DateTime startedAt;
+  final DateTime? endedAt;
+  final SessionStatus status;
+  final String? note;
+
+  factory GpsQualitySession.fromJson(Map<String, dynamic> json) => GpsQualitySession(
+        id: json['id'] as int,
+        deviceId: json['deviceId'] as int,
+        deviceCode: json['deviceCode'] as String? ?? '',
+        startedAt: DateTime.parse(json['startedAt'] as String),
+        endedAt: json['endedAt'] != null
+            ? DateTime.parse(json['endedAt'] as String)
+            : null,
+        status: _parseSessionStatus(json['status'] as String),
+        note: json['note'] as String?,
+      );
+
+  static SessionStatus _parseSessionStatus(String s) => switch (s) {
+        'IN_PROGRESS' => SessionStatus.inProgress,
+        'COMPLETED' => SessionStatus.completed,
+        'CANCELED' => SessionStatus.canceled,
+        _ => SessionStatus.inProgress,
+      };
+}
+
+/// Legacy calibration status (kept for backward compat with old UI).
 enum CalibrationStatus { inProgress, completed, canceled }
 
 /// Quality grade based on P95 and effective points.
@@ -40,44 +84,65 @@ class RtkPoint {
       };
 }
 
-/// Calibration session — a static test window linking a device to an RTK point.
+/// GPS quality test — a truth-reference analysis within a session.
+/// Maps to GpsQualityTestDto from backend (session_id + sub-range + type + truth ref).
 @immutable
 class CalibrationSession {
   const CalibrationSession({
     required this.id,
+    this.sessionId = 0,
     this.testType = TestType.static_,
     this.routeId,
     required this.rtkPointId,
-    required this.deviceId,
-    required this.deviceCode,
+    this.deviceId = 0,
+    this.deviceCode = '',
     required this.startedAt,
     this.endedAt,
-    required this.status,
+    this.status = CalibrationStatus.completed,
+    this.testStartedAt,
+    this.testEndedAt,
   });
 
+  final int id;
+  final int sessionId;
   final TestType testType;
   final int? routeId;
-  final int id;
   final int rtkPointId;
   final int deviceId;
   final String deviceCode;
   final DateTime startedAt;
   final DateTime? endedAt;
   final CalibrationStatus status;
+  // Test sub-range (may differ from session time range)
+  final DateTime? testStartedAt;
+  final DateTime? testEndedAt;
 
   factory CalibrationSession.fromJson(Map<String, dynamic> json) =>
       CalibrationSession(
         id: json['id'] as int,
+        sessionId: json['sessionId'] as int? ?? 0,
         testType: TestType.fromString(json['testType'] as String? ?? 'STATIC'),
         routeId: json['routeId'] as int?,
-        rtkPointId: json['rtkPointId'] as int,
-        deviceId: json['deviceId'] as int,
+        rtkPointId: json['rtkPointId'] as int? ?? 0,
+        deviceId: json['deviceId'] as int? ?? 0,
         deviceCode: json['deviceCode'] as String? ?? '',
-        startedAt: DateTime.parse(json['startedAt'] as String),
-        endedAt: json['endedAt'] != null
-            ? DateTime.parse(json['endedAt'] as String)
+        startedAt: json['testStartedAt'] != null
+            ? DateTime.parse(json['testStartedAt'] as String)
+            : (json['startedAt'] != null
+                ? DateTime.parse(json['startedAt'] as String)
+                : DateTime.now()),
+        endedAt: json['testEndedAt'] != null
+            ? DateTime.parse(json['testEndedAt'] as String)
+            : (json['endedAt'] != null
+                ? DateTime.parse(json['endedAt'] as String)
+                : null),
+        testStartedAt: json['testStartedAt'] != null
+            ? DateTime.parse(json['testStartedAt'] as String)
             : null,
-        status: _parseStatus(json['status'] as String),
+        testEndedAt: json['testEndedAt'] != null
+            ? DateTime.parse(json['testEndedAt'] as String)
+            : null,
+        status: CalibrationStatus.completed,
       );
 
   static CalibrationStatus _parseStatus(String s) => switch (s) {
