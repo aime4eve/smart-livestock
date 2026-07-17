@@ -839,30 +839,29 @@ class _DateTimeRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fmt = DateFormat('yyyy-MM-dd HH:mm');
-    return InputDecorator(
-      decoration: InputDecoration(labelText: label, isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
-      child: InkWell(
-        onTap: () async {
-          final now = DateTime.now();
-          final first = minDate ?? DateTime(now.year - 1);
-          final last = maxDate ?? now;
-          final init = value ?? (now.isAfter(last) ? last : (now.isBefore(first) ? first : now));
-          final date = await showDatePicker(context: context, initialDate: init,
-            firstDate: first, lastDate: last);
-          if (date == null || !context.mounted) return;
-          final time = await showTimePicker(context: context,
-            initialTime: TimeOfDay.fromDateTime(init));
-          if (time == null) return;
-          onChanged(DateTime(date.year, date.month, date.day, time.hour, time.minute));
-        },
-        child: Row(children: [
-          const Icon(Icons.event, size: 16, color: AppColors.primary),
-          const SizedBox(width: 4),
-          Expanded(child: Text(value != null ? fmt.format(value!.toLocal()) : '-',
-            style: TextStyle(fontSize: 13, color: value != null ? AppColors.textPrimary : AppColors.textSecondary))),
-        ]),
+    final ctrl = TextEditingController(
+      text: value != null ? fmt.format(value!.toLocal()) : '',
+    );
+    return TextFormField(
+      key: ValueKey('dt-field-$label'),
+      controller: ctrl,
+      decoration: InputDecoration(
+        labelText: label,
+        isDense: true,
+        hintText: 'yyyy-MM-dd HH:mm',
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       ),
+      style: const TextStyle(fontSize: 13),
+      onChanged: (text) {
+        // Try parse multiple formats
+        for (final f in ['yyyy-MM-dd HH:mm', 'yyyy/MM/dd HH:mm', 'yyyy-MM-dd HH:mm:ss']) {
+          try {
+            final dt = DateFormat(f).parse(text);
+            onChanged(dt);
+            return;
+          } catch (_) {}
+        }
+      },
     );
   }
 }
