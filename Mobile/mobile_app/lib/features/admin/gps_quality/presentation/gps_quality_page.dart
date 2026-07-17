@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/session_test_tab.dart';
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/truth_reference_tab.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/quality_report_tab.dart';
-import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/dynamic_report_tab.dart';
 
 /// GPS Quality Check page with three tabs:
 /// Tab 1: Session-Test workflow (session list + test list + create/delete)
@@ -61,8 +61,8 @@ class _GpsQualityPageState extends ConsumerState<GpsQualityPage>
       body: TabBarView(
         controller: _tabController,
         children: const [
-          SessionTestTab(),
-          DynamicReportTab(),
+         SessionTestTab(),
+          TruthReferenceTab(),
           QualityReportTab(),
         ],
       ),
