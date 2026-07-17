@@ -827,7 +827,7 @@ class _GradeBadge extends StatelessWidget {
   }
 }
 
-class _DateTimeRow extends StatelessWidget {
+class _DateTimeRow extends StatefulWidget {
   const _DateTimeRow({required this.label, required this.value, required this.onChanged,
     this.minDate, this.maxDate});
   final String label;
@@ -837,27 +837,48 @@ class _DateTimeRow extends StatelessWidget {
   final DateTime? maxDate;
 
   @override
-  Widget build(BuildContext context) {
+  State<_DateTimeRow> createState() => _DateTimeRowState();
+}
+
+class _DateTimeRowState extends State<_DateTimeRow> {
+  late final TextEditingController _ctrl;
+  late final FocusNode _focus;
+
+  @override
+  void initState() {
+    super.initState();
     final fmt = DateFormat('yyyy-MM-dd HH:mm');
-    final ctrl = TextEditingController(
-      text: value != null ? fmt.format(value!.toLocal()) : '',
+    _ctrl = TextEditingController(
+      text: widget.value != null ? fmt.format(widget.value!.toLocal()) : '',
     );
+    _focus = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return TextFormField(
-      key: ValueKey('dt-field-$label'),
-      controller: ctrl,
+      key: ValueKey('dt-field-${widget.label}'),
+      controller: _ctrl,
+      focusNode: _focus,
       decoration: InputDecoration(
-        labelText: label,
+        labelText: widget.label,
         isDense: true,
         hintText: 'yyyy-MM-dd HH:mm',
         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       ),
       style: const TextStyle(fontSize: 13),
       onChanged: (text) {
-        // Try parse multiple formats
         for (final f in ['yyyy-MM-dd HH:mm', 'yyyy/MM/dd HH:mm', 'yyyy-MM-dd HH:mm:ss']) {
           try {
             final dt = DateFormat(f).parse(text);
-            onChanged(dt);
+            widget.onChanged(dt);
             return;
           } catch (_) {}
         }
