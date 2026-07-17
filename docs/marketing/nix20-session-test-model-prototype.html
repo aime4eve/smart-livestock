@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIX-20 GPS 会话-检验模型 · 高保真原型</title>
+<style>
+:root{--primary:#2F6B3B;--primary-dark:#244F2D;--primary-soft:#E3F0E4;--accent:#8BA95A;--surface:#F8F6F0;--surface-alt:#FFFFFF;--border:#D7D2C6;--text-primary:#263126;--text-secondary:#617061;--success:#4C9A5F;--warning:#D28A2D;--danger:#C2564B;--info:#4A7F9D;--static-bg:#DBEAFE;--static-fg:#2563EB;--dynamic-bg:#FEF3C7;--dynamic-fg:#B45309;--xs:4px;--sm:8px;--md:12px;--lg:16px;--xl:24px;--xxl:32px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sans-serif;background:var(--surface);color:var(--text-primary)}
+.appbar{background:var(--primary);color:#fff;padding:10px var(--xl);display:flex;align-items:center;gap:var(--md);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.appbar h1{font-size:18px;font-weight:600}
+.appbar .badge{background:rgba(255,255,255,.2);padding:2px 8px;border-radius:8px;font-size:11px;font-weight:500}
+.tabbar{display:flex;background:var(--primary-dark)}
+.tab{flex:1;padding:12px;text-align:center;color:rgba(255,255,255,.7);font-size:14px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s}
+.tab:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.05)}
+.tab.active{color:#fff;border-bottom-color:var(--accent);font-weight:600}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.container{display:flex;gap:var(--lg);padding:var(--lg);min-height:calc(100vh - 100px)}
+.panel-left{width:340px;flex-shrink:0;overflow-y:auto;max-height:calc(100vh - 132px)}
+.panel-right{flex:1;overflow-y:auto;max-height:calc(100vh - 132px)}
+.panel{background:var(--surface-alt);border:1px solid var(--border);border-radius:12px;margin-bottom:var(--lg);overflow:hidden}
+.panel-header{padding:var(--md) var(--lg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface)}
+.panel-header h2{font-size:14px;font-weight:600}
+.panel-body{padding:var(--lg)}
+.btn{padding:7px 14px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-primary)}.btn-outline:hover{background:var(--surface)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-danger{background:transparent;border:1px solid var(--danger);color:var(--danger)}.btn-danger:hover{background:#FEF2F2}
+/* session list item */
+.list-item{padding:var(--md) var(--lg);border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+.list-item:hover{background:var(--surface)}
+.list-item.selected{background:var(--primary-soft);border-left:3px solid var(--primary)}
+.item-title{font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px}
+.item-meta{font-size:12px;color:var(--text-secondary);margin-top:3px}
+.item-tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.tag{display:inline-block;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600}
+.tag-static{background:var(--static-bg);color:var(--static-fg)}
+.tag-dynamic{background:var(--dynamic-bg);color:var(--dynamic-fg)}
+.tag-progress{background:#FEF3C7;color:#D97706}
+.tag-completed{background:#DCFCE7;color:#16A34A}
+/* timeline */
+.timeline-wrap{margin:var(--lg) 0}
+.timeline-label{font-size:12px;color:var(--text-secondary);font-weight:600;margin-bottom:var(--sm);display:flex;justify-content:space-between}
+.timeline-bar{height:40px;border-radius:8px;overflow:hidden;display:flex;border:1px solid var(--border);position:relative}
+.timeline-seg{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;overflow:hidden;cursor:pointer;transition:opacity .2s}
+.timeline-seg:hover{opacity:.85}
+.timeline-seg.static-seg{background:#2563EB}
+.timeline-seg.dynamic-seg{background:#D97706}
+.timeline-scale{display:flex;justify-content:space-between;font-size:10px;color:var(--text-secondary);margin-top:4px}
+.legend{display:flex;gap:var(--lg);font-size:11px;color:var(--text-secondary);margin-top:var(--sm)}
+.legend-dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:middle}
+/* test card */
+.test-card{border:1px solid var(--border);border-radius:10px;padding:var(--md);margin-bottom:var(--sm);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:var(--md)}
+.test-card:hover{border-color:var(--primary);box-shadow:0 2px 8px rgba(47,107,59,.1)}
+.test-card.selected{border-color:var(--primary);background:var(--primary-soft)}
+.test-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.test-icon.static-icon{background:var(--static-bg);color:var(--static-fg)}
+.test-icon.dynamic-icon{background:var(--dynamic-bg);color:var(--dynamic-fg)}
+.test-info{flex:1;min-width:0}
+.test-name{font-weight:600;font-size:13px}
+.test-detail{font-size:11px;color:var(--text-secondary);margin-top:2px}
+/* grade badge */
+.grade-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;border:0.5px solid}
+.grade-excellent{background:#DCFCE7;color:#16A34A;border-color:#BBF7D0}
+.grade-usable{background:#DBEAFE;color:#2563EB;border-color:#BFDBFE}
+.grade-marginal{background:#FEF3C7;color:#B45309;border-color:#FDE68A}
+.grade-unavailable{background:#F3F4F6;color:#6B7280;border-color:#E5E7EB}
+/* stat */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:var(--md)}
+.stat-card{background:var(--surface);border-radius:10px;padding:var(--md);border:1px solid var(--border)}
+.stat-label{font-size:10px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.stat-value{font-size:20px;font-weight:700;margin-top:2px}
+.stat-value.ok{color:var(--success)}.stat-value.warn{color:var(--warning)}.stat-value.err{color:var(--danger)}.stat-value.info{color:var(--info)}
+/* table */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px var(--md);background:var(--surface);font-weight:600;color:var(--text-secondary);font-size:12px;border-bottom:1px solid var(--border)}
+td{padding:8px var(--md);border-bottom:1px solid var(--border)}tr:hover td{background:var(--surface)}
+.section-title{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin:var(--lg) 0 var(--sm)}
+.muted{color:var(--text-secondary);font-size:12px}
+/* forms */
+.form-row{display:flex;gap:var(--sm);margin-bottom:var(--sm);align-items:flex-end}
+.form-field{flex:1}
+.form-field label{display:block;font-size:11px;color:var(--text-secondary);font-weight:600;margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px}
+.form-field input,.form-field select{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface-alt);color:var(--text-primary)}
+.form-field input:focus,.form-field select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px rgba(47,107,59,.1)}
+/* modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal-overlay.show{display:flex}
+.modal{background:var(--surface-alt);border-radius:12px;padding:var(--xl);width:480px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal h3{font-size:16px;font-weight:600;margin-bottom:var(--lg)}
+.modal-hint{background:var(--surface);border-radius:8px;padding:10px;margin-bottom:16px;font-size:12px;color:var(--text-secondary);line-height:1.5}
+.empty{text-align:center;padding:var(--xxl);color:var(--text-secondary)}
+.empty-icon{font-size:40px;margin-bottom:var(--sm)}
+/* RTK point list */
+.point-item{display:flex;align-items:center;gap:8px;padding:8px var(--md);border-bottom:1px solid var(--border);font-size:13px}
+.point-item:hover{background:var(--surface)}
+.point-coord{color:var(--text-secondary);font-size:11px;font-family:monospace}
+/* comparison table */
+.cmp-row:hover{background:var(--surface)}
+</style>
+</head>
+<body>
+<div class="appbar"><span style="font-size:22px">📡</span><h1>GPS 质量检查</h1><span class="badge">会话-检验模型 v2</span></div>
+<div class="tabbar">
+  <div class="tab active" data-tab="sessions" onclick="switchTab('sessions')">检验会话</div>
+  <div class="tab" data-tab="truth" onclick="switchTab('truth')">真值参照</div>
+  <div class="tab" data-tab="compare" onclick="switchTab('compare')">质量对比</div>
+</div>
+
+<!-- ==================== TAB 1: 检验会话 ==================== -->
+<div class="tab-content active" id="tab-sessions">
+  <div class="container">
+    <div class="panel-left">
+      <div class="panel">
+        <div class="panel-header"><h2>检验会话</h2><button class="btn btn-primary btn-sm" onclick="showModal('modal-session')">+ 创建会话</button></div>
+        <div id="session-list"></div>
+      </div>
+    </div>
+    <div class="panel-right" id="session-detail"></div>
+  </div>
+</div>
+
+<!-- ==================== TAB 2: 真值参照 ==================== -->
+<div class="tab-content" id="tab-truth">
+  <div class="container">
+    <div class="panel-left">
+      <div class="panel">
+        <div class="panel-header"><h2>RTK 真值点</h2><button class="btn btn-primary btn-sm" onclick="showModal('modal-point')">+ 新增点位</button></div>
+        <div id="point-list"></div>
+      </div>
+    </div>
+    <div class="panel-right">
+      <div class="panel">
+        <div class="panel-header"><h2>动态检验路线</h2><button class="btn btn-primary btn-sm" onclick="showModal('modal-route')">+ 新建路线</button></div>
+        <div id="route-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TAB 3: 质量对比 ==================== -->
+<div class="tab-content" id="tab-compare">
+  <div class="container" style="flex-direction:column">
+    <div class="panel">
+      <div class="panel-header"><h2>筛选条件</h2></div>
+      <div class="panel-body">
+        <div class="form-row">
+          <div class="form-field"><label>检验类型</label><select id="cmp-type" onchange="renderCompare()"><option value="static">静态检验（按 RTK 点对比）</option><option value="dynamic">动态检验（按路线对比）</option></select></div>
+          <div class="form-field" id="cmp-ref-static"><label>RTK 真值点</label><select id="cmp-point" onchange="renderCompare()"><option value="all">全部点位</option><option>5号 - 西南门</option><option>11号 - 北门</option></select></div>
+          <div class="form-field" id="cmp-ref-dynamic" style="display:none"><label>检验路线</label><select id="cmp-route" onchange="renderCompare()"><option value="all">全部路线</option><option>地面门岗巡回路线</option><option>北门短测线</option></select></div>
+        </div>
+      </div>
+    </div>
+    <div id="compare-body"></div>
+  </div>
+</div>
+
+<!-- ==================== Modals ==================== -->
+<!-- Create session -->
+<div class="modal-overlay" id="modal-session">
+  <div class="modal">
+    <h3>创建检验会话</h3>
+    <div class="modal-hint">会话 = 设备 + 时间范围，定义一段 GPS 数据窗口。<br>后续在此会话内创建检验，选取子时段 + 真值参照进行分析。</div>
+    <div class="form-row"><div class="form-field"><label>设备</label><select><option>DEV-2024-001 (8aa7)</option><option>DEV-2024-003 (285fd)</option><option>DEV-2024-005 (8aa7)</option></select></div></div>
+    <div class="form-row">
+      <div class="form-field"><label>开始时间</label><input type="datetime-local" value="2026-07-16T10:00"></div>
+      <div class="form-field"><label>结束时间</label><input type="datetime-local" value="2026-07-16T19:15"></div>
+    </div>
+    <div class="form-row"><div class="form-field"><label>备注</label><input type="text" placeholder="如：第3批设备验收"></div></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn btn-outline" onclick="hideModal('modal-session')">取消</button><button class="btn btn-primary" onclick="hideModal('modal-session')">创建</button></div>
+  </div>
+</div>
+<!-- Create test -->
+<div class="modal-overlay" id="modal-test">
+  <div class="modal">
+    <h3>在会话内创建检验</h3>
+    <div class="modal-hint">从会话时间轴中切出一段子时段，选择对应的真值基准进行分析。<br>静态段配 RTK 点，动态段配路线。</div>
+    <div class="form-row"><div class="form-field"><label>检验类型</label><select id="t-type" onchange="toggleRef()"><option value="STATIC">静态检验（设备静止在 RTK 点位）</option><option value="DYNAMIC">动态检验（设备沿路线运动）</option></select></div></div>
+    <div class="form-row"><div class="form-field"><label>子时段开始</label><input type="datetime-local" value="2026-07-16T10:00"></div><div class="form-field"><label>子时段结束</label><input type="datetime-local" value="2026-07-16T10:45"></div></div>
+    <div id="ref-static"><div class="form-row"><div class="form-field"><label>RTK 真值点</label><select><option>5号点 - 西南门</option><option>6号点 - 西南门</option><option>11号点 - 北门</option></select></div></div></div>
+    <div id="ref-dynamic" style="display:none"><div class="form-row"><div class="form-field"><label>检验路线</label><select><option>地面门岗巡回路线（6点）</option><option>北门短测线（2点）</option></select></div></div></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn btn-outline" onclick="hideModal('modal-test')">取消</button><button class="btn btn-primary" onclick="hideModal('modal-test')">创建检验</button></div>
+  </div>
+</div>
+<!-- Create point -->
+<div class="modal-overlay" id="modal-point">
+  <div class="modal">
+    <h3>新增 RTK 真值点</h3>
+    <div class="form-row"><div class="form-field"><label>位置名称</label><input type="text" placeholder="如：西南门"></div><div class="form-field"><label>点位编号</label><input type="text" placeholder="如：12号点"></div></div>
+    <div class="form-row"><div class="form-field"><label>纬度</label><input type="text" placeholder="28.24541"></div><div class="form-field"><label>经度</label><input type="text" placeholder="112.85047"></div></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn btn-outline" onclick="hideModal('modal-point')">取消</button><button class="btn btn-primary" onclick="hideModal('modal-point')">新增</button></div>
+  </div>
+</div>
+<!-- Create route -->
+<div class="modal-overlay" id="modal-route">
+  <div class="modal">
+    <h3>新建检验路线</h3>
+    <div class="form-row"><div class="form-field"><label>路线名称</label><input type="text" placeholder="如：东南门短测线"></div></div>
+    <div class="form-row"><div class="form-field"><label>描述</label><input type="text" placeholder="可选"></div></div>
+    <div class="section-title" style="margin-top:16px">经过点序列</div>
+    <div class="modal-hint">从已有 RTK 点中按经过顺序勾选，可拖拽排序。</div>
+    <div style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:8px">
+      <div class="point-item"><input type="checkbox" checked> <span>1. 5号点 - 西南门</span></div>
+      <div class="point-item"><input type="checkbox" checked> <span>2. 6号点 - 西南门</span></div>
+      <div class="point-item"><input type="checkbox" checked> <span>3. 7号点 - 东南门</span></div>
+      <div class="point-item"><input type="checkbox"> <span>4. 8号点 - 东南门</span></div>
+      <div class="point-item"><input type="checkbox"> <span>5. 9号点 - 北门</span></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn btn-outline" onclick="hideModal('modal-route')">取消</button><button class="btn btn-primary" onclick="hideModal('modal-route')">创建</button></div>
+  </div>
+</div>
+
+<script>
+// ====== Mock data ======
+const sessions=[
+  {id:1,device:'DEV-2024-001',code:'8aa7',start:'07-16 10:00',end:'07-16 19:15',status:'COMPLETED',note:'第2批验收：冷启动@A -> 运动@路线X -> 静止@B',
+   phases:[{type:'static',label:'静止@RTK-A',dur:45,pct:8},{type:'dynamic',label:'运动@路线X',dur:90,pct:17},{type:'static',label:'静止@RTK-B',dur:420,pct:75}],
+   tests:[
+     {id:1,type:'STATIC',name:'RTK 5号 - 西南门',range:'10:00 - 10:45 (45min)',grade:'EXCELLENT',eff:42,p95:3.2,p50:2.1,mean:3.5,jitter:8.2,max:4.2},
+     {id:2,type:'DYNAMIC',name:'路线X - 地面门岗巡回',range:'10:45 - 12:15 (90min)',grade:'USABLE',cov:83,p95:7.8,matched:5,missed:1,amb:1},
+     {id:3,type:'STATIC',name:'RTK 11号 - 北门',range:'12:15 - 19:15 (7h)',grade:'EXCELLENT',eff:380,p95:2.1,p50:1.5,mean:1.8,jitter:5.1,max:3.2}
+   ]},
+  {id:2,device:'DEV-2024-003',code:'285fd',start:'07-16 09:00',end:'07-16 16:00',status:'COMPLETED',note:'第2批验收（对照设备）',
+   phases:[{type:'static',label:'静止@RTK-A',dur:30,pct:7},{type:'dynamic',label:'运动@路线X',dur:90,pct:21},{type:'static',label:'静止@RTK-B',dur:300,pct:72}],
+   tests:[
+     {id:4,type:'STATIC',name:'RTK 5号 - 西南门',range:'09:00 - 09:30 (30min)',grade:'USABLE',eff:28,p95:18.6,p50:12.1,mean:14.3,jitter:22.4,max:25.1},
+     {id:5,type:'DYNAMIC',name:'路线X - 地面门岗巡回',range:'09:30 - 11:00 (90min)',grade:'MARGINAL',cov:67,p95:12.4,matched:4,missed:2,amb:0}
+   ]}
+];
+const rtkPoints=[
+  {id:5,label:'5号',loc:'西南门',lat:28.24541,lng:112.85047},
+  {id:6,label:'6号',loc:'西南门',lat:28.24540,lng:112.85050},
+  {id:7,label:'7号',loc:'东南门',lat:28.24519,lng:112.85130},
+  {id:8,label:'8号',loc:'东南门',lat:28.24518,lng:112.85137},
+  {id:9,label:'9号',loc:'北门',lat:28.24680,lng:112.85172},
+  {id:10,label:'10号',loc:'北门',lat:28.24682,lng:112.85163},
+  {id:11,label:'11号',loc:'北门',lat:28.24685,lng:112.85165}
+];
+const routes=[
+  {id:1,name:'地面门岗巡回路线',desc:'5->6->7->8->9->10',count:6,tests:3},
+  {id:2,name:'北门短测线',desc:'9->10',count:2,tests:0}
+];
+let curS=1,curT=1;
+
+// ====== Tab switching ======
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.toggle('active',c.id==='tab-'+name));
+}
+
+// ====== Tab 1: Sessions ======
+function renderSessions(){
+  document.getElementById('session-list').innerHTML=sessions.map(s=>{
+    const tags=s.tests.map(t=>'<span class="tag tag-'+t.type.toLowerCase()+'">'+(t.type==='STATIC'?'静':'动')+'</span>').join('');
+    const st='<span class="tag tag-'+(s.status==='COMPLETED'?'completed':'progress')+'">'+(s.status==='COMPLETED'?'已完成':'进行中')+'</span>';
+    return '<div class="list-item'+(s.id===curS?' selected':'')+'" onclick="selS('+s.id+')">'+
+      '<div class="item-title">'+s.device+' <span style="font-size:11px;color:var(--text-secondary);font-weight:400">('+s.code+')</span> '+st+'</div>'+
+      '<div class="item-meta">'+s.start+' -> '+s.end+' | '+s.tests.length+' 个检验</div>'+
+      '<div class="item-tags">'+tags+'</div>'+
+      (s.note?'<div class="item-meta" style="margin-top:2px">'+s.note+'</div>':'')+
+    '</div>';
+  }).join('');
+}
+function renderSessionDetail(){
+  const s=sessions.find(x=>x.id===curS);if(!s){document.getElementById('session-detail').innerHTML='';return}
+  const totalMin=s.phases.reduce((a,p)=>a+p.dur,0);
+  const tlBar=s.phases.map(p=>'<div class="timeline-seg '+(p.type==='static'?'static-seg':'dynamic-seg')+'" style="flex:'+p.pct+'" title="'+p.label+' ('+p.dur+'min)"><span style="padding:0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.label+'</span></div>').join('');
+  const tcards=s.tests.map(t=>{
+    const gc='grade-'+t.grade.toLowerCase();const ic=t.type==='STATIC'?'static-icon':'dynamic-icon';
+    const emoji=t.type==='STATIC'?'📍':'🚶';
+    return '<div class="test-card'+(t.id===curT?' selected':'')+'" onclick="selT('+t.id+')">'+
+      '<div class="test-icon '+ic+'">'+emoji+'</div>'+
+      '<div class="test-info"><div class="test-name">'+t.name+'</div><div class="test-detail">'+t.range+'</div></div>'+
+      '<div><span class="grade-badge '+gc+'">'+t.grade+'</span></div></div>';
+  }).join('');
+  const rep=curT?renderReport(s):'<div class="empty"><div class="empty-icon">👆</div>选择一个检验查看分析报告</div>';
+  document.getElementById('session-detail').innerHTML=
+    '<div class="panel"><div class="panel-header"><h2>'+s.device+' ('+s.code+') | '+s.start+' -> '+s.end+'</h2><button class="btn btn-primary btn-sm" onclick="showModal(\'modal-test\')">+ 创建检验</button></div>'+
+    '<div class="panel-body">'+(s.note?'<p class="muted" style="margin-bottom:12px">📝 '+s.note+'</p>':'')+
+    '<div class="timeline-wrap"><div class="timeline-label"><span>数据时间轴（设备物理状态）</span><span>共 '+totalMin+' 分钟</span></div>'+
+    '<div class="timeline-bar">'+tlBar+'</div>'+
+    '<div class="timeline-scale"><span>'+s.start.split(' ')[1]+'</span><span>'+s.phases[1].label+'</span><span>'+s.end.split(' ')[1]+'</span></div>'+
+    '<div class="legend"><span><span class="legend-dot" style="background:#2563EB"></span>静止段（静态数据）</span><span><span class="legend-dot" style="background:#D97706"></span>运动段（动态数据）</span></div></div></div></div>'+
+    '<div class="panel"><div class="panel-header"><h2>检验列表（'+s.tests.length+'）</h2></div><div class="panel-body">'+(tcards||'<div class="empty"><div class="empty-icon">📋</div>该会话暂无检验</div>')+'</div></div>'+
+    '<div class="panel"><div class="panel-header"><h2>分析报告</h2></div><div class="panel-body">'+rep+'</div></div>';
+}
+function renderReport(s){
+  const t=s.tests.find(x=>x.id===curT);if(!t)return'';
+  const hdr='<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><span class="grade-badge grade-'+t.grade.toLowerCase()+'">'+t.grade+'</span><span style="font-weight:600;font-size:14px">'+t.name+'</span><span class="muted">'+t.range+'</span></div>';
+  if(t.type==='STATIC'){
+    return hdr+'<div class="stat-grid">'+sc('有效点',t.eff)+sc('P95误差',t.p95+'m','ok')+sc('P50误差',t.p50+'m','info')+sc('平均误差',t.mean+'m')+sc('Jitter直径',t.jitter+'m')+sc('最大误差',t.max+'m','warn')+'</div>';
+  }else{
+    const pp=[{n:1,l:'5号',c:'西南门',s:'passed',e:4.2,t:'10:50'},{n:2,l:'6号',c:'西南门',s:'ambiguous',e:3.8,t:'10:55'},{n:3,l:'7号',c:'东南门',s:'passed',e:6.1,t:'11:10'},{n:4,l:'8号',c:'东南门',s:'passed',e:5.5,t:'11:25'},{n:5,l:'9号',c:'北门',s:'passed',e:9.1,t:'11:40'},{n:6,l:'10号',c:'北门',s:'missed',e:null,t:'—'}];
+    const rows=pp.map(p=>{const cls=p.s==='passed'?'tag-static':p.s==='missed'?'tag-dynamic':'tag-progress';const lb=p.s==='passed'?'经过':p.s==='missed'?'漏过':'歧义';const er=p.e!=null?'<b>'+p.e.toFixed(1)+'m</b>':'<span class="muted">—</span>';return '<tr><td>'+p.n+'</td><td>'+p.l+'号</td><td>'+p.c+'</td><td><span class="tag '+cls+'">'+lb+'</span></td><td>'+er+'</td><td class="muted">'+p.t+'</td></tr>'}).join('');
+    return hdr+'<div class="stat-grid">'+sc('路线点数','6')+sc('已匹配',t.matched,'ok')+sc('漏过',t.missed,'err')+sc('覆盖率',t.cov+'%','ok')+sc('P95误差',t.p95+'m')+sc('歧义点',t.amb,'warn')+'</div><div class="section-title">逐 RTK 点误差明细</div><table><thead><tr><th>序号</th><th>点位</th><th>位置</th><th>状态</th><th>误差</th><th>时间</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  }
+}
+function sc(label,val,cls){return '<div class="stat-card"><div class="stat-label">'+label+'</div><div class="stat-value'+(cls?' '+cls:'')+'">'+val+'</div></div>'}
+function selS(id){curS=id;curT=null;renderSessions();renderSessionDetail()}
+function selT(id){curT=id;renderSessionDetail()}
+
+// ====== Tab 2: Truth references ======
+function renderPoints(){
+  document.getElementById('point-list').innerHTML=rtkPoints.map(p=>
+    '<div class="point-item"><div style="flex:1"><div style="font-weight:600;font-size:13px">'+p.label+' - '+p.loc+'</div><div class="point-coord">'+p.lat.toFixed(5)+', '+p.lng.toFixed(5)+'</div></div>'+
+    '<button class="btn btn-outline btn-sm">编辑</button><button class="btn btn-danger btn-sm">删除</button></div>'
+  ).join('');
+}
+function renderRoutes(){
+  document.getElementById('route-list').innerHTML=routes.map(r=>
+    '<div class="panel" style="margin-bottom:8px"><div class="panel-body" style="padding:12px">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-weight:600;font-size:14px">'+r.name+'</div><div class="muted" style="margin-top:2px">'+r.desc+'</div></div>'+
+    '<div style="display:flex;gap:4px"><span class="tag tag-static">'+r.count+'点</span>'+(r.tests>0?'<span class="tag tag-dynamic">'+r.tests+'场</span>':'')+
+    '<button class="btn btn-outline btn-sm">编辑</button><button class="btn btn-danger btn-sm">删除</button></div></div>'+
+    '<div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap">'+r.desc.split('->').map((seg,i)=>'<span class="tag tag-static" style="font-size:10px">'+(i+1)+'. '+seg+'号</span>').join('')+'</div>'+
+    '</div></div>'
+  ).join('');
+}
+
+// ====== Tab 3: Comparison ======
+function renderCompare(){
+  const type=document.getElementById('cmp-type').value;
+  document.getElementById('cmp-ref-static').style.display=type==='static'?'block':'none';
+  document.getElementById('cmp-ref-dynamic').style.display=type==='dynamic'?'block':'none';
+  if(type==='static'){
+    const allTests=sessions.flatMap(s=>s.tests.filter(t=>t.type==='STATIC').map(t=>({...t,device:s.device,code:s.code})));
+    const grouped={};
+    allTests.forEach(t=>{const k=t.name.split(' - ')[1]||'未知';(grouped[k]=grouped[k]||[]).push(t)});
+    const panels=Object.entries(grouped).map(([loc,tests])=>
+      '<div class="panel"><div class="panel-header"><h2>'+loc+'（'+tests.length+' 台设备）</h2></div><div class="panel-body">'+
+      '<table><thead><tr><th>设备</th><th>检验时段</th><th>等级</th><th>P95</th><th>P50</th><th>有效点</th><th>Jitter</th></tr></thead><tbody>'+
+      tests.sort((a,b)=>a.p95-b.p95).map(t=>'<tr class="cmp-row"><td><b>'+t.device+'</b><br><span class="muted">'+t.code+'</span></td><td class="muted">'+t.range+'</td><td><span class="grade-badge grade-'+t.grade.toLowerCase()+'">'+t.grade+'</span></td><td><b>'+t.p95+'m</b></td><td>'+t.p50+'m</td><td>'+t.eff+'</td><td>'+t.jitter+'m</td></tr>').join('')+
+      '</tbody></table></div></div>'
+    ).join('');
+    document.getElementById('compare-body').innerHTML=panels||'<div class="empty">暂无静态检验数据</div>';
+  }else{
+    const allTests=sessions.flatMap(s=>s.tests.filter(t=>t.type==='DYNAMIC').map(t=>({...t,device:s.device,code:s.code})));
+    const grouped={};
+    allTests.forEach(t=>{const k=t.name.split(' - ')[1]||'未知';(grouped[k]=grouped[k]||[]).push(t)});
+    const panels=Object.entries(grouped).map(([route,tests])=>
+      '<div class="panel"><div class="panel-header"><h2>'+route+'（'+tests.length+' 台设备）</h2></div><div class="panel-body">'+
+      '<table><thead><tr><th>设备</th><th>检验时段</th><th>等级</th><th>P95</th><th>覆盖率</th><th>已匹配</th><th>漏过</th></tr></thead><tbody>'+
+      tests.sort((a,b)=>a.p95-b.p95).map(t=>'<tr class="cmp-row"><td><b>'+t.device+'</b><br><span class="muted">'+t.code+'</span></td><td class="muted">'+t.range+'</td><td><span class="grade-badge grade-'+t.grade.toLowerCase()+'">'+t.grade+'</span></td><td><b>'+t.p95+'m</b></td><td>'+t.cov+'%</td><td>'+t.matched+'/6</td><td>'+t.missed+'</td></tr>').join('')+
+      '</tbody></table></div></div>'
+    ).join('');
+    document.getElementById('compare-body').innerHTML=panels||'<div class="empty">暂无动态检验数据</div>';
+  }
+}
+
+// ====== Modal helpers ======
+function showModal(id){document.getElementById(id).classList.add('show')}
+function hideModal(id){document.getElementById(id).classList.remove('show')}
+function toggleRef(){const v=document.getElementById('t-type').value;document.getElementById('ref-static').style.display=v==='STATIC'?'block':'none';document.getElementById('ref-dynamic').style.display=v==='DYNAMIC'?'block':'none'}
+
+// ====== Init ======
+renderSessions();renderSessionDetail();renderPoints();renderRoutes();renderCompare();
+</script>
+</body>
+</html>
