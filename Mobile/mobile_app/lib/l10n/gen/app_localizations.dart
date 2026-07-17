@@ -5509,6 +5509,28 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'删除路线'**
   String get gpsQualityDeleteRoute;
+
+  /// No description provided for @gpsQualityTimeOverlapTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'时间冲突'**
+  String get gpsQualityTimeOverlapTitle;
+
+  /// No description provided for @gpsQualityTimeOverlapMsg.
+  ///
+  /// In zh, this message translates to:
+  /// **'所选时间段与设备 {device} 已有会话 #{sessionId} 重叠（{existRange}），请选择不重叠的时间段。'**
+  String gpsQualityTimeOverlapMsg(
+    Object device,
+    Object existRange,
+    Object sessionId,
+  );
+
+  /// No description provided for @gpsQualitySessionInProgress.
+  ///
+  /// In zh, this message translates to:
+  /// **'进行中'**
+  String get gpsQualitySessionInProgress;
 }
 
 class _AppLocalizationsDelegate

@@ -2450,5 +2450,11 @@
   "gpsQualityRouteNoPoints": "No points in this route. Please add RTK reference points.",
   "@gpsQualityRouteNoPoints": {},
   "gpsQualityDeleteRoute": "Delete Route",
-  "@gpsQualityDeleteRoute": {}
+  "@gpsQualityDeleteRoute": {},
+  "gpsQualityTimeOverlapTitle": "Time Conflict",
+  "@gpsQualityTimeOverlapTitle": {},
+  "gpsQualityTimeOverlapMsg": "The selected time overlaps with session #{sessionId} of device {device} ({existRange}). Please choose a non-overlapping time.",
+  "@gpsQualityTimeOverlapMsg": {},
+  "gpsQualitySessionInProgress": "In Progress",
+  "@gpsQualitySessionInProgress": {}
 }

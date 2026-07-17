@@ -990,11 +990,14 @@ class _CreateDynamicTestFormState
             newEnd == null || existStart.isBefore(newEnd);
         if (startBeforeExistEnd && existStartBeforeNewEnd) {
           if (!mounted) return;
+          final existRange =
+              '${fmt.format(existStart.toLocal())} -> ${existEnd != null ? fmt.format(existEnd.toLocal()) : l10n.gpsQualitySessionInProgress}';
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
-              '${l10n.gpsQualityDevice}: ${s.deviceCode} | #${s.id}  ${fmt.format(existStart.toLocal())} -> ${existEnd != null ? fmt.format(existEnd.toLocal()) : "..."}',
+              l10n.gpsQualityTimeOverlapMsg(
+                s.deviceCode, s.id, existRange),
             ),
-            duration: const Duration(seconds: 4),
+            duration: const Duration(seconds: 5),
           ));
           return;
         }

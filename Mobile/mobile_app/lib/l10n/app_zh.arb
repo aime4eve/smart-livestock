@@ -2450,5 +2450,11 @@
   "gpsQualityRouteNoPoints": "该路线暂无点位，请添加 RTK 真值点",
   "@gpsQualityRouteNoPoints": {},
   "gpsQualityDeleteRoute": "删除路线",
-  "@gpsQualityDeleteRoute": {}
+  "@gpsQualityDeleteRoute": {},
+  "gpsQualityTimeOverlapTitle": "时间冲突",
+  "@gpsQualityTimeOverlapTitle": {},
+  "gpsQualityTimeOverlapMsg": "所选时间段与设备 {device} 已有会话 #{sessionId} 重叠（{existRange}），请选择不重叠的时间段。",
+  "@gpsQualityTimeOverlapMsg": {},
+  "gpsQualitySessionInProgress": "进行中",
+  "@gpsQualitySessionInProgress": {}
 }

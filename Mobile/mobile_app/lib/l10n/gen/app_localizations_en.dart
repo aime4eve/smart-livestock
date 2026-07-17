@@ -3008,4 +3008,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsQualityDeleteRoute => 'Delete Route';
+
+  @override
+  String get gpsQualityTimeOverlapTitle => 'Time Conflict';
+
+  @override
+  String gpsQualityTimeOverlapMsg(
+    Object device,
+    Object existRange,
+    Object sessionId,
+  ) {
+    return 'The selected time overlaps with session #$sessionId of device $device ($existRange). Please choose a non-overlapping time.';
+  }
+
+  @override
+  String get gpsQualitySessionInProgress => 'In Progress';
 }

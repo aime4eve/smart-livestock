@@ -2943,4 +2943,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpsQualityDeleteRoute => '删除路线';
+
+  @override
+  String get gpsQualityTimeOverlapTitle => '时间冲突';
+
+  @override
+  String gpsQualityTimeOverlapMsg(
+    Object device,
+    Object existRange,
+    Object sessionId,
+  ) {
+    return '所选时间段与设备 $device 已有会话 #$sessionId 重叠（$existRange），请选择不重叠的时间段。';
+  }
+
+  @override
+  String get gpsQualitySessionInProgress => '进行中';
 }
