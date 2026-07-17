@@ -37,16 +37,6 @@ public class GpsQualityTestService {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "testStartedAt is required");
         }
 
-        // Validate sub-range is within session window
-        if (testStartedAt.isBefore(session.getStartedAt())) {
-            throw new ApiException(ErrorCode.VALIDATION_ERROR,
-                    "testStartedAt is before session start: " + session.getStartedAt());
-        }
-        if (session.getEndedAt() != null && testEndedAt != null && testEndedAt.isAfter(session.getEndedAt())) {
-            throw new ApiException(ErrorCode.VALIDATION_ERROR,
-                    "testEndedAt is after session end: " + session.getEndedAt());
-        }
-
         // Validate truth reference
         if (testType == TestType.STATIC) {
             if (rtkPointId == null) {
