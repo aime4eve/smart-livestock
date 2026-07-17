@@ -983,40 +983,6 @@ class _CreateDynamicTestFormState
       return;
     }
 
-    // Pre-check: query device sessions to detect time overlap before submitting
-    try {
-      final result = await ref
-          .read(gpsQualityApiRepositoryProvider)
-          .fetchSessions(deviceId: _deviceId);
-      final fmt = DateFormat('MM-dd HH:mm');
-      for (final s in result.items) {
-        if (s.status == CalibrationStatus.canceled) continue;
-        final existStart = s.startedAt;
-        final existEnd = s.endedAt;
-        final newStart = _startedAt!.toUtc();
-        final newEnd = _endedAt?.toUtc();
-        final startBeforeExistEnd =
-            existEnd == null || newStart.isBefore(existEnd);
-        final existStartBeforeNewEnd =
-            newEnd == null || existStart.isBefore(newEnd);
-        if (startBeforeExistEnd && existStartBeforeNewEnd) {
-          if (!mounted) return;
-          final existRange =
-              '${fmt.format(existStart.toLocal())} -> ${existEnd != null ? fmt.format(existEnd.toLocal()) : l10n.gpsQualitySessionInProgress}';
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(
-              l10n.gpsQualityTimeOverlapMsg(
-                s.deviceCode, s.id, existRange),
-            ),
-            duration: const Duration(seconds: 5),
-          ));
-          return;
-        }
-      }
-    } catch (_) {
-      // If pre-check fails, proceed and let backend validate
-    }
-
     setState(() => _saving = true);
     try {
       final session = await ref

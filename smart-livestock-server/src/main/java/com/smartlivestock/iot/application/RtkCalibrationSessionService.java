@@ -135,17 +135,8 @@ public class RtkCalibrationSessionService {
         return session;
     }
 
-    /**
-     * Half-open interval overlap test. A null end means open-ended (treated as +infinity).
-     */
-    private boolean overlaps(Instant newStart, Instant newEnd, Instant existStart, Instant existEnd) {
-        boolean newStartBeforeExistEnd = (existEnd == null) || newStart.isBefore(existEnd);
-        boolean existStartBeforeNewEnd = (newEnd == null) || existStart.isBefore(newEnd);
-        return newStartBeforeExistEnd && existStartBeforeNewEnd;
-    }
-
-    /**
-     * Shared S5 + S1 validation for device type, started_at, backfill/live rules,
+   /**
+    * Shared S5 + S1 validation for device type, started_at, backfill/live rules,
      * and time-window non-overlap. Used by both static ({@code create}) and
      * dynamic ({@code createDynamic}) test creation.
      */
@@ -175,20 +166,12 @@ public class RtkCalibrationSessionService {
                 throw new ApiException(ErrorCode.VALIDATION_ERROR,
                         "Backfill window must not exceed " + MAX_BACKFILL_DAYS + " days");
             }
-        } else {
-            // live session: device must have no IN_PROGRESS session
-            if (sessionRepository.findActiveByDeviceId(deviceId).isPresent()) {
-                throw new ApiException(ErrorCode.STATE_CONFLICT,
-                        "Device already has an IN_PROGRESS session: " + deviceId);
-            }
-        }
-
-        // --- S1: time-window overlap check against all existing device sessions ---
-        for (GpsQualityTest existing : sessionRepository.findByDeviceIdOrderByStartedAtDesc(deviceId)) {
-            if (overlaps(startedAt, endedAt, existing.getStartedAt(), existing.getEndedAt())) {
-                throw new ApiException(ErrorCode.STATE_CONFLICT,
-                        "Time window overlaps existing session #" + existing.getId());
-            }
-        }
-    }
+       } else {
+           // live session: device must have no IN_PROGRESS session
+           if (sessionRepository.findActiveByDeviceId(deviceId).isPresent()) {
+               throw new ApiException(ErrorCode.STATE_CONFLICT,
+                       "Device already has an IN_PROGRESS session: " + deviceId);
+           }
+       }
+   }
 }
