@@ -40,7 +40,8 @@ class _SessionTestTabState extends ConsumerState<SessionTestTab> {
         // Watch tests for all sessions to build tags
         final testsBySession = <int, List<CalibrationSession>>{};
         for (final s in sessions) {
-          testsBySession[s.id] = ref.watch(sessionTestsProvider(s.id)).value ?? [];
+          final asyncVal = ref.watch(sessionTestsProvider(s.id));
+          testsBySession[s.id] = asyncVal.value ?? [];
         }
 
         return LayoutBuilder(builder: (context, constraints) {
@@ -526,7 +527,9 @@ class _SessionTestTabState extends ConsumerState<SessionTestTab> {
 
   Future<void> _showCreateTestDialog(AppLocalizations l10n) async {
     if (_selectedSessionId == null) return;
-    final points = ref.read(rtkPointsProvider).value ?? [];
+    List<RtkPoint> points;
+    try { points = await ref.read(rtkPointsProvider.future); }
+    catch (_) { points = ref.read(rtkPointsProvider).value ?? []; }
     final routes = ref.read(dynamicRoutesProvider).value ?? [];
     var testType = TestType.static_;
     int? rtkPointId;
