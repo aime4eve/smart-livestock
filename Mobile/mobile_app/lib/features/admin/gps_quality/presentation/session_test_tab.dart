@@ -401,7 +401,13 @@ class _SessionTestTabState extends ConsumerState<SessionTestTab> {
   // -- Dialogs --
 
   Future<void> _showCreateSessionDialog(AppLocalizations l10n) async {
-    final devices = ref.read(gpsDevicesProvider).value ?? [];
+    // Ensure devices are loaded before opening dialog
+    List<DeviceBrief> devices;
+    try {
+      devices = await ref.read(gpsDevicesProvider.future);
+    } catch (_) {
+      devices = ref.read(gpsDevicesProvider).value ?? [];
+    }
     final selectedDeviceIds = <int>{};
     final searchCtrl = TextEditingController();
     DateTime startedAt = DateTime.now();
