@@ -170,3 +170,74 @@ final comparisonProvider = FutureProvider.family<ComparisonResult, int>(
       .read(gpsQualityApiRepositoryProvider)
       .fetchComparison(rtkPointId: rtkPointId),
 );
+
+// ── Dynamic test routes ───────────────────────────────────────────
+
+class DynamicRoutesController extends AsyncNotifier<List<DynamicRoute>> {
+  @override
+  Future<List<DynamicRoute>> build() =>
+      ref.read(gpsQualityApiRepositoryProvider).fetchDynamicRoutes();
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+      () => ref.read(gpsQualityApiRepositoryProvider).fetchDynamicRoutes(),
+    );
+  }
+}
+
+final dynamicRoutesProvider =
+    AsyncNotifierProvider<DynamicRoutesController, List<DynamicRoute>>(
+  DynamicRoutesController.new,
+);
+
+// ── Route points (family by routeId) ──────────────────────────────
+
+final routePointsProvider =
+    FutureProvider.family<List<DynamicRoutePoint>, int>(
+  (ref, routeId) =>
+      ref.read(gpsQualityApiRepositoryProvider).fetchRoutePoints(routeId),
+);
+
+// ── Dynamic quality report (family by sessionId) ──────────────────
+
+/// Query key for fetching a dynamic quality report.
+typedef DynamicReportQuery = ({int sessionId, double threshold});
+
+final dynamicReportProvider =
+    FutureProvider.family<DynamicQualityReport, DynamicReportQuery>(
+  (ref, query) => ref
+      .read(gpsQualityApiRepositoryProvider)
+      .fetchDynamicReport(query.sessionId, threshold: query.threshold),
+);
+
+// ── Sessions (data window) ────────────────────────────────────────
+
+class GpsSessionsController extends AsyncNotifier<List<GpsQualitySession>> {
+  @override
+  Future<List<GpsQualitySession>> build() async {
+    final result = await ref.read(gpsQualityApiRepositoryProvider).fetchGpsSessions();
+    return result.items;
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final r = await ref.read(gpsQualityApiRepositoryProvider).fetchGpsSessions();
+      return r.items;
+    });
+  }
+}
+
+final gpsSessionsProvider =
+    AsyncNotifierProvider<GpsSessionsController, List<GpsQualitySession>>(
+  GpsSessionsController.new,
+);
+
+// ── Tests by session (family) ─────────────────────────────────────
+
+final sessionTestsProvider =
+    FutureProvider.family<List<CalibrationSession>, int>(
+  (ref, sessionId) =>
+      ref.read(gpsQualityApiRepositoryProvider).fetchTestsBySession(sessionId),
+);

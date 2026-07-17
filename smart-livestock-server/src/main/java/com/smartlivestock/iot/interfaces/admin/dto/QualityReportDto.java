@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class QualityReportDto {
 
-    private Long sessionId;
+    private Long testId;
     private Long rtkPointId;
     private String locationName;
     private String label;
@@ -29,7 +29,7 @@ public class QualityReportDto {
 
     public static QualityReportDto from(GpsQualityReportService.ReportResult r) {
         QualityReportDto dto = new QualityReportDto();
-        dto.sessionId = r.session().getId();
+        dto.testId = r.test().getId();
         dto.rtkPointId = r.rtk().getId();
         dto.locationName = r.rtk().getLocationName();
         dto.label = r.rtk().getPointLabel();
@@ -44,8 +44,8 @@ public class QualityReportDto {
         return dto;
     }
 
-    public Long getSessionId() { return sessionId; }
-    public void setSessionId(Long sessionId) { this.sessionId = sessionId; }
+    public Long getTestId() { return testId; }
+    public void setTestId(Long testId) { this.testId = testId; }
 
     public Long getRtkPointId() { return rtkPointId; }
     public void setRtkPointId(Long rtkPointId) { this.rtkPointId = rtkPointId; }

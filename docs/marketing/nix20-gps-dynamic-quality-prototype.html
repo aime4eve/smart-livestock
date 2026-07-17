@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIX-20 GPS 动态检验工具 · 高保真原型</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{--primary:#2F6B3B;--primary-dark:#244F2D;--primary-soft:#E3F0E4;--accent:#8BA95A;--surface:#F8F6F0;--surface-alt:#FFFFFF;--border:#D7D2C6;--text-primary:#263126;--text-secondary:#617061;--success:#4C9A5F;--warning:#D28A2D;--danger:#C2564B;--info:#4A7F9D;--xs:4px;--sm:8px;--md:12px;--lg:16px;--xl:24px;--xxl:32px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sans-serif;background:var(--surface);color:var(--text-primary)}
+.appbar{background:var(--primary);color:#fff;padding:10px var(--xl);display:flex;align-items:center;gap:var(--md);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.appbar h1{font-size:18px;font-weight:600}
+.appbar .badge-proto{background:rgba(255,255,255,.2);padding:2px 8px;border-radius:8px;font-size:11px;font-weight:500}
+.tabbar{display:flex;background:var(--primary-dark)}
+.tab{flex:1;padding:12px;text-align:center;color:rgba(255,255,255,.7);font-size:14px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s}
+.tab:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.05)}
+.tab.active{color:#fff;border-bottom-color:var(--accent);font-weight:600}
+.container{display:flex;gap:var(--lg);padding:var(--lg);height:calc(100vh - 100px)}
+.panel-left{width:340px;flex-shrink:0;overflow-y:auto}
+.panel-right{flex:1;overflow-y:auto}
+.panel{background:var(--surface-alt);border:1px solid var(--border);border-radius:12px;margin-bottom:var(--lg);overflow:hidden}
+.panel-header{padding:var(--md) var(--lg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface)}
+.panel-header h2{font-size:14px;font-weight:600}
+.panel-body{padding:var(--lg)}
+.btn{padding:7px 14px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-primary)}.btn-outline:hover{background:var(--surface)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.route-item{padding:var(--md) var(--lg);border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;display:flex;align-items:center;justify-content:space-between}
+.route-item:hover{background:var(--surface)}
+.route-item.selected{background:var(--primary-soft);border-left:3px solid var(--primary)}
+.route-name{font-weight:600;font-size:13px}.route-meta{font-size:12px;color:var(--text-secondary);margin-top:2px}
+.seq-list{display:flex;flex-direction:column;gap:var(--xs)}
+.seq-item{display:flex;align-items:center;gap:var(--sm);padding:6px var(--sm);border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:13px}
+.seq-no{background:var(--primary);color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.seq-loc{color:var(--text-secondary);font-size:12px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:var(--md)}
+.stat-card{background:var(--surface);border-radius:10px;padding:var(--md);border:1px solid var(--border)}
+.stat-label{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+.stat-value{font-size:22px;font-weight:700;margin-top:2px}
+.stat-value.ok{color:var(--success)}.stat-value.warn{color:var(--warning)}.stat-value.err{color:var(--danger)}.stat-value.info{color:var(--info)}
+.stat-sub{font-size:11px;color:var(--text-secondary);margin-top:1px}
+.grade-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;border:0.5px solid}
+.grade-excellent{background:#DCFCE7;color:#16A34A;border-color:#BBF7D0}
+.grade-usable{background:#DBEAFE;color:#2563EB;border-color:#BFDBFE}
+.grade-marginal{background:#FEF3C7;color:#B45309;border-color:#FDE68A}
+#map{height:360px;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px var(--md);background:var(--surface);font-weight:600;color:var(--text-secondary);font-size:12px;border-bottom:1px solid var(--border)}
+td{padding:8px var(--md);border-bottom:1px solid var(--border)}tr:hover td{background:var(--surface)}
+.tag{display:inline-block;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600}
+.tag-passed{background:#DCFCE7;color:#16A34A}.tag-missed{background:#FEE2E2;color:#DC2626}.tag-ambiguous{background:#FEF3C7;color:#B45309}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--md)}
+.compare-col{padding:var(--md);border-radius:10px;background:var(--surface);border:1px solid var(--border)}
+.compare-col h4{font-size:12px;color:var(--text-secondary);margin-bottom:var(--sm);text-transform:uppercase}
+.scatter-wrap{display:flex;gap:var(--lg);align-items:center;flex-wrap:wrap}
+.scatter-svg{border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+.scatter-legend{font-size:12px;color:var(--text-secondary)}.scatter-legend li{margin:4px 0}
+.section-title{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin:var(--lg) 0 var(--sm)}
+.muted{color:var(--text-secondary);font-size:12px}
+</style>
+</head>
+<body>
+<div class="appbar"><span style="font-size:22px">📡</span><h1>GPS 质量检查</h1><span class="badge-proto">NIX-20 动态检验 · 高保真原型</span></div>
+<div class="tabbar">
+  <div class="tab" onclick="alert('RTK 标定管理（NIX-15，已实现）')">RTK 标定管理</div>
+  <div class="tab" onclick="alert('静态分析报告（NIX-15，已实现）')">静态分析</div>
+  <div class="tab active">动态检验</div>
+</div>
+<div class="container">
+  <div class="panel-left">
+    <div class="panel">
+      <div class="panel-header"><h2>测试路线</h2><button class="btn btn-primary btn-sm" onclick="alert('新建路线：命名 + 从 33 个 RTK 点中有序勾选')">+ 新建路线</button></div>
+      <div id="route-list"></div>
+    </div>
+    <div class="panel" id="route-detail-panel" style="display:none">
+      <div class="panel-header"><h2 id="route-detail-title"></h2></div>
+      <div class="panel-body">
+        <div id="route-map" style="height:200px;border-radius:8px;border:1px solid var(--border);margin-bottom:var(--md)"></div>
+        <div class="section-title">经过点序列（sequence_no）</div>
+        <div class="seq-list" id="seq-list"></div>
+        <div style="margin-top:var(--md);display:flex;gap:var(--sm)">
+          <button class="btn btn-outline btn-sm">↕ 调整顺序</button>
+          <button class="btn btn-outline btn-sm">＋ 添加点</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="panel-right">
+    <div class="panel">
+      <div class="panel-header"><h2>测试会话（静态+动态）</h2><button class="btn btn-primary btn-sm" onclick="alert('创建测试（统一模型）：\n选择 testType (STATIC/DYNAMIC)\nSTATIC: 设备 + RTK点 + 时间窗\nDYNAMIC: 设备 + 路线 + 时间窗\n\n批量创建支持静态/动态混合行，Excel模板新增testType列')">+ 创建测试</button></div>
+      <div id="test-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><h2>动态分析报告 — DEV-2024-001 · 🚶动态 · 地面门岗巡回路线</h2><span class="grade-badge grade-excellent">✅ EXCELLENT</span></div>
+      <div class="panel-body">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-label">路线点数</div><div class="stat-value">6</div></div>
+          <div class="stat-card"><div class="stat-label">已匹配</div><div class="stat-value ok">5</div></div>
+          <div class="stat-card"><div class="stat-label">漏过</div><div class="stat-value err">1</div><div class="stat-sub">10号点</div></div>
+          <div class="stat-card"><div class="stat-label">覆盖率</div><div class="stat-value ok">83.3%</div></div>
+          <div class="stat-card"><div class="stat-label">合规性</div><div class="stat-value ok">按序✓</div><div class="stat-sub">时间戳单调递增</div></div>
+          <div class="stat-card"><div class="stat-label">歧义匹配</div><div class="stat-value warn">2</div><div class="stat-sub">同门点过近(3-9m)</div></div>
+        </div>
+        <div class="section-title">运动轨迹 · 路线匹配</div>
+        <div id="map"></div>
+        <div class="section-title">绝对精度 · 误差散点分布（各经过点到 RTK 真值的水平距离）</div>
+        <div class="scatter-wrap">
+          <svg class="scatter-svg" width="300" height="300">
+            <circle cx="150" cy="150" r="42" fill="none" stroke="#4A7F9D" stroke-width="1.5" stroke-dasharray="5 4"/>
+            <circle cx="150" cy="150" r="22" fill="none" stroke="#8BA95A" stroke-width="1" stroke-dasharray="2 3"/>
+            <line x1="142" y1="150" x2="158" y2="150" stroke="#C2564B" stroke-width="2.5"/>
+            <line x1="150" y1="142" x2="150" y2="158" stroke="#C2564B" stroke-width="2.5"/>
+            <text x="160" y="146" font-size="10" fill="#C2564B" font-weight="600">RTK真值</text>
+            <circle cx="148" cy="139" r="3.5" fill="#2563EB"/><circle cx="155" cy="143" r="3.5" fill="#2563EB"/>
+            <circle cx="143" cy="148" r="3.5" fill="#2563EB"/><circle cx="158" cy="152" r="3.5" fill="#2563EB"/>
+            <circle cx="147" cy="157" r="3.5" fill="#2563EB"/><circle cx="152" cy="160" r="3.5" fill="#2563EB"/>
+            <circle cx="151" cy="145" r="3.5" fill="#B45309"/>
+            <text x="282" y="20" font-size="10" fill="#4A7F9D" font-weight="600">P95</text>
+            <text x="190" y="132" font-size="10" fill="#8BA95A">P50</text>
+          </svg>
+          <div>
+            <div class="stat-grid" style="grid-template-columns:1fr 1fr;max-width:240px">
+              <div class="stat-card"><div class="stat-label">平均误差</div><div class="stat-value" style="font-size:18px">5.7m</div></div>
+              <div class="stat-card"><div class="stat-label">P50</div><div class="stat-value info" style="font-size:18px">4.6m</div></div>
+              <div class="stat-card"><div class="stat-label">P95</div><div class="stat-value ok" style="font-size:18px">7.8m</div></div>
+              <div class="stat-card"><div class="stat-label">最大</div><div class="stat-value warn" style="font-size:18px">9.1m</div></div>
+            </div>
+            <ul class="scatter-legend" style="margin-top:var(--md)">
+              <li>🔴 RTK 真值点（原点）</li><li>🔵 明确经过点（3个）</li><li>🟠 歧义经过点（2个）</li>
+              <li><span style="color:#8BA95A">- -</span> P50 半径 / <span style="color:#4A7F9D">— —</span> P95 半径</li>
+            </ul>
+          </div>
+        </div>
+        <div class="section-title">逐 RTK 点误差明细（按经过顺序）</div>
+        <table><thead><tr><th>序号</th><th>点位</th><th>位置</th><th>状态</th><th>误差(m)</th><th>上报时间</th></tr></thead><tbody id="per-point-body"></tbody></table>
+        <div class="section-title">静态 / 动态对比（同设备）</div>
+        <div class="compare-grid">
+          <div class="compare-col">
+            <h4>静态分析（NIX-15）</h4>
+            <div style="display:flex;align-items:center;gap:var(--md);margin-bottom:var(--sm)"><span class="grade-badge grade-usable">✅ USABLE</span><span class="muted">RTK点 #11 · 50点</span></div>
+            <div class="muted">P95 误差：<b style="color:var(--text-primary)">18.6m</b></div><div class="muted">P50 误差：12.1m</div><div class="muted">jitter 直径：22.4m</div>
+          </div>
+          <div class="compare-col">
+            <h4>动态分析（NIX-20）</h4>
+            <div style="display:flex;align-items:center;gap:var(--md);margin-bottom:var(--sm)"><span class="grade-badge grade-excellent">✅ EXCELLENT</span><span class="muted">地面门岗 · 6点</span></div>
+            <div class="muted">P95 误差：<b style="color:var(--text-primary)">7.8m</b></div><div class="muted">P50 误差：5.2m</div>
+            <div class="muted" style="margin-top:4px"><b style="color:var(--success)">动态 P95 比静态小 10.8m（↓58%）</b></div>
+          </div>
+        </div>
+        <p class="muted" style="margin-top:var(--md);padding:var(--md);background:var(--surface);border-radius:8px">💡 结论：该设备动态 P95（7.8m）显著优于静态 P95（18.6m），验证了多径去相关（decorrelation）理论——运动中反射几何快速变化，系统性多径偏差被平均。注意：此为开阔屋顶场景；在建筑密集区该优势会减弱。</p>
+        <div class="section-title">自报精度可信度</div>
+        <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
+          <div class="stat-card"><div class="stat-label">自报 accuracy P50</div><div class="stat-value" style="font-size:18px">3.5m</div></div>
+          <div class="stat-card"><div class="stat-label">实测误差 P50</div><div class="stat-value info" style="font-size:18px">4.6m</div></div>
+          <div class="stat-card"><div class="stat-label">精度偏差</div><div class="stat-value warn" style="font-size:18px">+1.7m</div><div class="stat-sub">设备略过度自信</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const routes=[{id:1,name:'地面门岗巡回路线',points:6,tests:3,color:'#2F6B3B'},{id:2,name:'北门短测线',points:2,tests:0,color:'#4A7F9D'},{id:3,name:'东南门短测线',points:4,tests:0,color:'#D28A2D'}];
+const route1Seq=[{seq:1,label:'5号点',loc:'西南门',lat:28.2454077,lng:112.8504692},{seq:2,label:'6号点',loc:'西南门',lat:28.2453967,lng:112.8505024},{seq:3,label:'7号点',loc:'东南门',lat:28.2451891,lng:112.8512999},{seq:4,label:'8号点',loc:'东南门',lat:28.2451752,lng:112.8513665},{seq:5,label:'9号点',loc:'北门',lat:28.2467991,lng:112.8517161},{seq:6,label:'10号点',loc:'北门',lat:28.2468189,lng:112.8516268}];
+const tests=[{id:1,device:'DEV-2024-001',type:'DYNAMIC',route:'地面门岗巡回路线',status:'COMPLETED',start:'07-16 09:00',end:'07-16 13:00',grade:'EXCELLENT'},{id:2,device:'DEV-2024-003',type:'DYNAMIC',route:'地面门岗巡回路线',status:'COMPLETED',start:'07-16 14:00',end:'07-16 18:00',grade:'USABLE'},{id:3,device:'DEV-2024-001',type:'STATIC',route:'RTK点 #11',status:'COMPLETED',start:'07-15 08:00',end:'07-15 12:00',grade:'USABLE'},{id:4,device:'DEV-2024-001',type:'DYNAMIC',route:'北门短测线',status:'IN_PROGRESS',start:'07-16 19:00',end:'—',grade:null}];
+const perPoint=[{seq:1,label:'5号点',loc:'西南门',status:'passed',error:4.2,time:'09:30'},{seq:2,label:'6号点',loc:'西南门',status:'ambiguous',error:3.8,time:'09:30'},{seq:3,label:'7号点',loc:'东南门',status:'passed',error:6.1,time:'10:00'},{seq:4,label:'8号点',loc:'东南门',status:'ambiguous',error:5.5,time:'10:00'},{seq:5,label:'9号点',loc:'北门',status:'passed',error:9.1,time:'10:30'},{seq:6,label:'10号点',loc:'北门',status:'missed',error:null,time:'—'}];
+const routeListEl=document.getElementById('route-list');
+routes.forEach(r=>{const el=document.createElement('div');el.className='route-item'+(r.id===1?' selected':'');el.dataset.id=r.id;el.innerHTML='<div><div class="route-name">'+r.name+'</div><div class="route-meta">'+r.points+' 个 RTK 点 · '+r.tests+' 场测试</div></div><span style="font-size:18px;color:var(--text-secondary)">›</span>';el.onclick=()=>showRoute(r);routeListEl.appendChild(el)});
+function showRoute(r){document.querySelectorAll('.route-item').forEach(e=>e.classList.remove('selected'));document.querySelector('.route-item[data-id="'+r.id+'"]').classList.add('selected');const dp=document.getElementById('route-detail-panel');dp.style.display='block';document.getElementById('route-detail-title').textContent=r.name+'（'+r.points+'点）';const sl=document.getElementById('seq-list');sl.innerHTML='';route1Seq.forEach(p=>{sl.innerHTML+='<div class="seq-item"><span class="seq-no">'+p.seq+'</span><span>'+p.label+'</span><span class="seq-loc">'+p.loc+'</span></div>'});setTimeout(()=>{if(window.routeMap)window.routeMap.remove();window.routeMap=L.map('route-map').setView([28.2456,112.8510],18);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:21}).addTo(window.routeMap);const ll=route1Seq.map(p=>[p.lat,p.lng]);L.polyline(ll,{color:r.color,weight:3,opacity:.7}).addTo(window.routeMap);route1Seq.forEach(p=>{L.circleMarker([p.lat,p.lng],{radius:8,color:r.color,fillColor:'#fff',fillOpacity:1,weight:2}).bindTooltip('#'+p.seq+' '+p.label).addTo(window.routeMap)});window.routeMap.fitBounds(ll,{padding:[20,20]})},100)}
+const testListEl=document.getElementById('test-list');
+tests.forEach(t=>{const gm={EXCELLENT:'grade-excellent',USABLE:'grade-usable',MARGINAL:'grade-marginal'};const badge=t.grade?'<span class="grade-badge '+gm[t.grade]+'">✅ '+t.grade+'</span>':'<span class="tag tag-ambiguous">进行中</span>';const icon=t.type==='STATIC'?'📍':'🚶';const typeLabel=t.type==='STATIC'?'静态':'动态';const ref=t.type==='STATIC'?'RTK点':t.route;const el=document.createElement('div');el.className='route-item'+(t.id===1?' selected':'');el.innerHTML='<div><div class="route-name">'+icon+' '+t.device+' <span style="font-size:11px;color:var(--text-secondary);font-weight:400">['+typeLabel+']</span></div><div class="route-meta">'+ref+' · '+t.start+' → '+t.end+'</div></div>'+badge;testListEl.appendChild(el)});
+const ppBody=document.getElementById('per-point-body');
+perPoint.forEach(p=>{const tc=p.status==='passed'?'tag-passed':p.status==='missed'?'tag-missed':'tag-ambiguous';const tl=p.status==='passed'?'已经过':p.status==='missed'?'漏过':'歧义';const err=p.error!==null?p.error.toFixed(1):'—';ppBody.innerHTML+='<tr><td>'+p.seq+'</td><td>'+p.label+'</td><td>'+p.loc+'</td><td><span class="tag '+tc+'">'+tl+'</span></td><td>'+(p.error!==null?'<b>'+err+'</b>':'<span class="muted">—</span>')+'</td><td class="muted">'+p.time+'</td></tr>'});
+function initMainMap(){const map=L.map('map').setView([28.2456,112.8510],18);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:21}).addTo(map);const planned=route1Seq.map(p=>[p.lat,p.lng]);L.polyline(planned,{color:'#2F6B3B',weight:2.5,opacity:.5,dashArray:'6 5'}).addTo(map);const gpsTraj=route1Seq.filter((_,i)=>i!==6).map(p=>{const dLat=(Math.random()-.5)*.00005,dLng=(Math.random()-.5)*.00005;return[p.lat+dLat,p.lng+dLng]});L.polyline(gpsTraj,{color:'#2563EB',weight:2,opacity:.8}).addTo(map);route1Seq.forEach((p,i)=>{const isM=i===6,isA=i===1;const col=isM?'#C2564B':isA?'#D28A2D':'#2F6B3B';L.circleMarker([p.lat,p.lng],{radius:7,color:col,fillColor:'#fff',fillOpacity:1,weight:2.5}).bindTooltip('#'+p.seq+' '+p.label+(isM?' ⚠ 漏过':isA?' ⚠ 歧义':'')).addTo(map)});gpsTraj.slice(0,5).forEach((g,i)=>{L.polyline([[g[0],g[1]],[route1Seq[i].lat,route1Seq[i].lng]],{color:'#8BA95A',weight:1,opacity:.5,dashArray:'3 3'}).addTo(map)});map.fitBounds(planned,{padding:[30,30]});setTimeout(()=>showRoute(routes[0]),200)}
+if(window.L)initMainMap();
+</script>
+</body>
+</html>

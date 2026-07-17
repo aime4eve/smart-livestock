@@ -4817,7 +4817,7 @@ abstract class AppLocalizations {
   /// No description provided for @gpsQualitySessionList.
   ///
   /// In zh, this message translates to:
-  /// **'标定会话'**
+  /// **'检验会话'**
   String get gpsQualitySessionList;
 
   /// No description provided for @gpsQualityAddRtkPoint.
@@ -5335,6 +5335,232 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'租户详情'**
   String get tenantDetailTitle;
+
+  /// No description provided for @gpsQualityTabDynamicReport.
+  ///
+  /// In zh, this message translates to:
+  /// **'动态检验'**
+  String get gpsQualityTabDynamicReport;
+
+  /// No description provided for @gpsQualityTestTypeStatic.
+  ///
+  /// In zh, this message translates to:
+  /// **'静态'**
+  String get gpsQualityTestTypeStatic;
+
+  /// No description provided for @gpsQualityTestTypeDynamic.
+  ///
+  /// In zh, this message translates to:
+  /// **'动态'**
+  String get gpsQualityTestTypeDynamic;
+
+  /// No description provided for @gpsQualityTestType.
+  ///
+  /// In zh, this message translates to:
+  /// **'检验类型'**
+  String get gpsQualityTestType;
+
+  /// No description provided for @gpsQualityRouteList.
+  ///
+  /// In zh, this message translates to:
+  /// **'检验路线'**
+  String get gpsQualityRouteList;
+
+  /// No description provided for @gpsQualityAddRoute.
+  ///
+  /// In zh, this message translates to:
+  /// **'新增路线'**
+  String get gpsQualityAddRoute;
+
+  /// No description provided for @gpsQualityRouteName.
+  ///
+  /// In zh, this message translates to:
+  /// **'路线名称'**
+  String get gpsQualityRouteName;
+
+  /// No description provided for @gpsQualityRouteDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'路线描述'**
+  String get gpsQualityRouteDescription;
+
+  /// No description provided for @gpsQualityRoutePoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'路线点位'**
+  String get gpsQualityRoutePoints;
+
+  /// No description provided for @gpsQualitySelectRoute.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择路线'**
+  String get gpsQualitySelectRoute;
+
+  /// No description provided for @gpsQualitySelectRouteShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'路线'**
+  String get gpsQualitySelectRouteShort;
+
+  /// No description provided for @gpsQualityCreateDynamicTest.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建动态检验'**
+  String get gpsQualityCreateDynamicTest;
+
+  /// No description provided for @gpsQualityAddRoutePoint.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加点位'**
+  String get gpsQualityAddRoutePoint;
+
+  /// No description provided for @gpsQualityDynamicCoverage.
+  ///
+  /// In zh, this message translates to:
+  /// **'覆盖率'**
+  String get gpsQualityDynamicCoverage;
+
+  /// No description provided for @gpsQualityDynamicMatched.
+  ///
+  /// In zh, this message translates to:
+  /// **'已匹配'**
+  String get gpsQualityDynamicMatched;
+
+  /// No description provided for @gpsQualityDynamicMissed.
+  ///
+  /// In zh, this message translates to:
+  /// **'未到达'**
+  String get gpsQualityDynamicMissed;
+
+  /// No description provided for @gpsQualityDynamicAmbiguous.
+  ///
+  /// In zh, this message translates to:
+  /// **'歧义点'**
+  String get gpsQualityDynamicAmbiguous;
+
+  /// No description provided for @gpsQualityDynamicInOrder.
+  ///
+  /// In zh, this message translates to:
+  /// **'时序合规'**
+  String get gpsQualityDynamicInOrder;
+
+  /// No description provided for @gpsQualityDynamicThreshold.
+  ///
+  /// In zh, this message translates to:
+  /// **'匹配阈值（米）'**
+  String get gpsQualityDynamicThreshold;
+
+  /// No description provided for @gpsQualityDynamicSequenceNo.
+  ///
+  /// In zh, this message translates to:
+  /// **'序号'**
+  String get gpsQualityDynamicSequenceNo;
+
+  /// No description provided for @gpsQualityDynamicError.
+  ///
+  /// In zh, this message translates to:
+  /// **'误差（米）'**
+  String get gpsQualityDynamicError;
+
+  /// No description provided for @gpsQualityDynamicPassed.
+  ///
+  /// In zh, this message translates to:
+  /// **'通过'**
+  String get gpsQualityDynamicPassed;
+
+  /// No description provided for @gpsQualityDynamicMissedPoint.
+  ///
+  /// In zh, this message translates to:
+  /// **'未到达'**
+  String get gpsQualityDynamicMissedPoint;
+
+  /// No description provided for @gpsQualityDynamicNoRoute.
+  ///
+  /// In zh, this message translates to:
+  /// **'请先创建检验路线'**
+  String get gpsQualityDynamicNoRoute;
+
+  /// No description provided for @gpsQualityDynamicNoTest.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无动态检验记录'**
+  String get gpsQualityDynamicNoTest;
+
+  /// No description provided for @gpsQualityStaticComparison.
+  ///
+  /// In zh, this message translates to:
+  /// **'静态对比'**
+  String get gpsQualityStaticComparison;
+
+  /// No description provided for @gpsQualityDynamicDeltaP95.
+  ///
+  /// In zh, this message translates to:
+  /// **'P95 差值'**
+  String get gpsQualityDynamicDeltaP95;
+
+  /// No description provided for @gpsQualityRouteNoPoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'该路线暂无点位，请添加 RTK 真值点'**
+  String get gpsQualityRouteNoPoints;
+
+  /// No description provided for @gpsQualityDeleteRoute.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除路线'**
+  String get gpsQualityDeleteRoute;
+
+  /// No description provided for @gpsQualityTimeOverlapTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'时间冲突'**
+  String get gpsQualityTimeOverlapTitle;
+
+  /// No description provided for @gpsQualityTimeOverlapMsg.
+  ///
+  /// In zh, this message translates to:
+  /// **'所选时间段与设备 {device} 已有会话 #{sessionId} 重叠（{existRange}），请选择不重叠的时间段。'**
+  String gpsQualityTimeOverlapMsg(
+    Object device,
+    Object existRange,
+    Object sessionId,
+  );
+
+  /// No description provided for @gpsQualitySessionInProgress.
+  ///
+  /// In zh, this message translates to:
+  /// **'进行中'**
+  String get gpsQualitySessionInProgress;
+
+  /// No description provided for @gpsQualityCreateSession.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建会话'**
+  String get gpsQualityCreateSession;
+
+  /// No description provided for @gpsQualityTestList.
+  ///
+  /// In zh, this message translates to:
+  /// **'检验列表'**
+  String get gpsQualityTestList;
+
+  /// No description provided for @gpsQualityCreateTest.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建检验'**
+  String get gpsQualityCreateTest;
+
+  /// No description provided for @gpsQualityTabTruthRef.
+  ///
+  /// In zh, this message translates to:
+  /// **'真值参照'**
+  String get gpsQualityTabTruthRef;
+
+  /// No description provided for @gpsQualityTabComparison.
+  ///
+  /// In zh, this message translates to:
+  /// **'质量对比'**
+  String get gpsQualityTabComparison;
 }
 
 class _AppLocalizationsDelegate

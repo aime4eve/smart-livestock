@@ -2636,7 +2636,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpsQualityRtkPointList => 'RTK Reference Points';
 
   @override
-  String get gpsQualitySessionList => 'Calibration Sessions';
+  String get gpsQualitySessionList => 'Sessions';
 
   @override
   String get gpsQualityAddRtkPoint => 'Add Point';
@@ -2920,4 +2920,122 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tenantDetailTitle => 'Tenant Detail';
+
+  @override
+  String get gpsQualityTabDynamicReport => 'Dynamic Test';
+
+  @override
+  String get gpsQualityTestTypeStatic => 'Static';
+
+  @override
+  String get gpsQualityTestTypeDynamic => 'Dynamic';
+
+  @override
+  String get gpsQualityTestType => 'Test Type';
+
+  @override
+  String get gpsQualityRouteList => 'Test Routes';
+
+  @override
+  String get gpsQualityAddRoute => 'Add Route';
+
+  @override
+  String get gpsQualityRouteName => 'Route Name';
+
+  @override
+  String get gpsQualityRouteDescription => 'Description';
+
+  @override
+  String get gpsQualityRoutePoints => 'Route Points';
+
+  @override
+  String get gpsQualitySelectRoute => 'Select Route';
+
+  @override
+  String get gpsQualitySelectRouteShort => 'Route';
+
+  @override
+  String get gpsQualityCreateDynamicTest => 'Create Dynamic Test';
+
+  @override
+  String get gpsQualityAddRoutePoint => 'Add Point';
+
+  @override
+  String get gpsQualityDynamicCoverage => 'Coverage';
+
+  @override
+  String get gpsQualityDynamicMatched => 'Matched';
+
+  @override
+  String get gpsQualityDynamicMissed => 'Missed';
+
+  @override
+  String get gpsQualityDynamicAmbiguous => 'Ambiguous';
+
+  @override
+  String get gpsQualityDynamicInOrder => 'In Order';
+
+  @override
+  String get gpsQualityDynamicThreshold => 'Threshold (m)';
+
+  @override
+  String get gpsQualityDynamicSequenceNo => 'Seq';
+
+  @override
+  String get gpsQualityDynamicError => 'Error (m)';
+
+  @override
+  String get gpsQualityDynamicPassed => 'Passed';
+
+  @override
+  String get gpsQualityDynamicMissedPoint => 'Missed';
+
+  @override
+  String get gpsQualityDynamicNoRoute => 'Please create a test route first';
+
+  @override
+  String get gpsQualityDynamicNoTest => 'No dynamic test records';
+
+  @override
+  String get gpsQualityStaticComparison => 'Static Comparison';
+
+  @override
+  String get gpsQualityDynamicDeltaP95 => 'P95 Delta';
+
+  @override
+  String get gpsQualityRouteNoPoints =>
+      'No points in this route. Please add RTK reference points.';
+
+  @override
+  String get gpsQualityDeleteRoute => 'Delete Route';
+
+  @override
+  String get gpsQualityTimeOverlapTitle => 'Time Conflict';
+
+  @override
+  String gpsQualityTimeOverlapMsg(
+    Object device,
+    Object existRange,
+    Object sessionId,
+  ) {
+    return 'The selected time overlaps with session #$sessionId of device $device ($existRange). Please choose a non-overlapping time.';
+  }
+
+  @override
+  String get gpsQualitySessionInProgress => 'In Progress';
+
+  @override
+  String get gpsQualityCreateSession => 'Create Session';
+
+  @override
+  String get gpsQualityTestList => 'Tests';
+
+  @override
+  String get gpsQualityCreateTest => 'Create Test';
+
+  @override
+  String get gpsQualityTabTruthRef => 'Reference';
+
+  @override
+  String get gpsQualityTabComparison => 'Comparison';
 }

@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/session_test_tab.dart';
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/truth_reference_tab.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/quality_report_tab.dart';
-import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/rtk_calibration_tab.dart';
 
-/// GPS Quality Check page with two tabs:
-/// Tab 1: RTK calibration management (RTK points + calibration sessions)
-/// Tab 2: Quality reports (device comparison + statistics)
+/// GPS Quality Check page with three tabs:
+/// Tab 1: Session-Test workflow (session list + test list + create/delete)
+/// Tab 2: Truth reference management (RTK points + dynamic routes)
+/// Tab 3: Quality comparison (multi-device reports, unchanged)
 class GpsQualityPage extends ConsumerStatefulWidget {
   const GpsQualityPage({super.key});
 
@@ -22,7 +24,7 @@ class _GpsQualityPageState extends ConsumerState<GpsQualityPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -42,12 +44,16 @@ class _GpsQualityPageState extends ConsumerState<GpsQualityPage>
           controller: _tabController,
           tabs: [
             Tab(
-              key: const Key('rtk-calibration-tab'),
-              text: l10n.gpsQualityTabRtkCalibration,
+              key: const Key('session-test-tab'),
+              text: l10n.gpsQualitySessionList,
             ),
             Tab(
-              key: const Key('quality-report-tab'),
-              text: l10n.gpsQualityTabQualityReport,
+              key: const Key('truth-ref-tab'),
+              text: l10n.gpsQualityTabTruthRef,
+            ),
+            Tab(
+              key: const Key('quality-comparison-tab'),
+              text: l10n.gpsQualityTabComparison,
             ),
           ],
         ),
@@ -55,7 +61,8 @@ class _GpsQualityPageState extends ConsumerState<GpsQualityPage>
       body: TabBarView(
         controller: _tabController,
         children: const [
-          RtkCalibrationTab(),
+         SessionTestTab(),
+          TruthReferenceTab(),
           QualityReportTab(),
         ],
       ),
