@@ -87,9 +87,20 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
 
   Widget _buildStaticComparison(AppLocalizations l10n, List<RtkPoint> rtkPoints) {
     if (_selectedRtkPointId == null) {
-      // Show all points grouped
-      return Column(
-        children: rtkPoints.map((p) => _buildStaticPanel(l10n, p.id, p)).toList(),
+      return Card(
+        child: SizedBox(
+          height: 200,
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.filter_alt_outlined, size: 40, color: AppColors.textSecondary),
+                const SizedBox(height: AppSpacing.sm),
+                Text('请选择一个 RTK 点位查看对比', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              ],
+            ),
+          ),
+        ),
       );
     }
     final rtk = rtkPoints.where((p) => p.id == _selectedRtkPointId).firstOrNull;
