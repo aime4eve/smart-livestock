@@ -214,7 +214,7 @@ class _SessionTestTabState extends ConsumerState<SessionTestTab> {
             ),
           ]),
           const SizedBox(height: 4),
-          Text('${_fmt(session.startedAt)} → ${session.endedAt != null ? _fmt(session.endedAt!) : "..."}',
+          Text('${_fmt(session.startedAt)} → ${session!.endedAt != null ? _fmt(session!.endedAt!) : "..."}',
             style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
           if (session.note != null)
             Padding(padding: const EdgeInsets.only(top: 4),
@@ -231,7 +231,7 @@ class _SessionTestTabState extends ConsumerState<SessionTestTab> {
 
   Widget _buildTimeline(GpsQualitySession session, List<CalibrationSession> tests, List<RtkPoint> rtkPoints) {
     final sessionStart = session.startedAt.millisecondsSinceEpoch.toDouble();
-    final sessionEnd = (session.endedAt ?? DateTime.now()).millisecondsSinceEpoch.toDouble();
+    final sessionEnd = (session!.endedAt ?? DateTime.now()).millisecondsSinceEpoch.toDouble();
     final totalMs = (sessionEnd - sessionStart).clamp(1.0, double.infinity);
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -554,6 +554,25 @@ class _SessionTestTabState extends ConsumerState<SessionTestTab> {
         key: const Key('create-test-dialog'),
         title: Text(l10n.gpsQualityCreateTest),
         content: SizedBox(width: 400, child: Column(mainAxisSize: MainAxisSize.min, children: [
+          // Session time range hint
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(children: [
+              const Icon(Icons.timer, size: 14, color: AppColors.textSecondary),
+              const SizedBox(width: 6),
+              Expanded(child: Text(
+               '会话范围: ${_fmt(sessionStart)} ~ ${session!.endedAt != null ? _fmt(sessionEnd) : "..."}',
+               // session is non-null here since _selectedSessionId was validated
+                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+              )),
+            ]),
+          ),
+          const SizedBox(height: AppSpacing.sm),
           Row(children: [
             Expanded(child: RadioListTile<TestType>(
               dense: true, value: TestType.static_, groupValue: testType,
@@ -596,6 +615,17 @@ class _SessionTestTabState extends ConsumerState<SessionTestTab> {
           TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.gpsQualityCancelSession)),
           FilledButton(
             onPressed: (rtkPointId == null && routeId == null) ? null : () async {
+              // Validate time range
+              if (testStartedAt.isBefore(sessionStart)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('开始时间不能早于会话开始时间')));
+                return;
+              }
+              if (testEndedAt != null && session!.endedAt != null && testEndedAt!.isAfter(sessionEnd)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('结束时间不能晚于会话结束时间')));
+                return;
+              }
               Navigator.pop(ctx);
               try {
                 await ref.read(gpsQualityApiRepositoryProvider).createTest(
