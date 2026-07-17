@@ -236,27 +236,31 @@ class _SessionTestTabState extends ConsumerState<SessionTestTab> {
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('数据时间轴（检验子时段）', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-      const SizedBox(height: 6),
-      Container(
-        height: 28,
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Stack(children: [
+     const SizedBox(height: 6),
+      LayoutBuilder(builder: (context, constraints) {
+        final barWidth = constraints.maxWidth;
+        return Container(
+          height: 28,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Stack(clipBehavior: Clip.none, children: [
           // Test segments
           ...tests.map((t) {
             final start = t.startedAt.millisecondsSinceEpoch.toDouble();
             final end = (t.endedAt ?? DateTime.now()).millisecondsSinceEpoch.toDouble();
-            final leftPct = ((start - sessionStart) / totalMs * 100).clamp(0.0, 100.0);
-            final widthPct = ((end - start) / totalMs * 100).clamp(1.0, 100.0 - leftPct);
+            final leftFrac = ((start - sessionStart) / totalMs).clamp(0.0, 1.0);
+            final rightFrac = ((end - sessionStart) / totalMs).clamp(0.0, 1.0);
+            final segLeft = leftFrac * barWidth;
+            final segWidth = ((rightFrac - leftFrac) * barWidth).clamp(8.0, barWidth);
             final isStatic = t.testType == TestType.static_;
             final isSelected = _selectedTestId == t.id;
             return Positioned(
-              left: leftPct,
+              left: segLeft,
               top: 2, bottom: 2,
-              width: MediaQuery.of(context).size.width * widthPct / 100 * 0.6, // approximate
+              width: segWidth,
               child: GestureDetector(
                 onTap: () => setState(() => _selectedTestId = t.id),
                 child: Tooltip(
@@ -277,8 +281,9 @@ class _SessionTestTabState extends ConsumerState<SessionTestTab> {
               ),
             );
           }),
-        ]),
-      ),
+          ]),
+        );
+      }),
       const SizedBox(height: 4),
       Row(children: [
         Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFF2563EB), borderRadius: BorderRadius.all(Radius.circular(2)))),
