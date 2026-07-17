@@ -615,24 +615,14 @@ class _SessionTestTabState extends ConsumerState<SessionTestTab> {
           TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.gpsQualityCancelSession)),
           FilledButton(
             onPressed: (rtkPointId == null && routeId == null) ? null : () async {
-              // Validate time range
-              if (testStartedAt.isBefore(sessionStart)) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('开始时间不能早于会话开始时间')));
-                return;
-              }
-              if (testEndedAt != null && session!.endedAt != null && testEndedAt!.isAfter(sessionEnd)) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('结束时间不能晚于会话结束时间')));
-                return;
-              }
               Navigator.pop(ctx);
               try {
                 await ref.read(gpsQualityApiRepositoryProvider).createTest(
                   sessionId: _selectedSessionId!, testType: testType,
                   rtkPointId: testType == TestType.static_ ? rtkPointId : null,
                   routeId: testType == TestType.dynamic_ ? routeId : null,
-                  testStartedAt: testStartedAt, testEndedAt: testEndedAt);
+                  testStartedAt: testStartedAt,
+                  testEndedAt: testEndedAt ?? session!.endedAt);
                 ref.invalidate(sessionTestsProvider(_selectedSessionId!));
               } catch (e) {
                 if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
