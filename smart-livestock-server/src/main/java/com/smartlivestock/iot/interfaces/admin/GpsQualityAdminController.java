@@ -25,6 +25,7 @@ import com.smartlivestock.shared.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -106,7 +107,7 @@ public class GpsQualityAdminController {
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         Page<GpsQualitySession> sessions = sessionService.findFiltered(deviceId, status, pageable);
         Set<Long> deviceIds = sessions.getContent().stream()
                 .map(GpsQualitySession::getDeviceId).collect(Collectors.toSet());
