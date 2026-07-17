@@ -34,11 +34,24 @@ public class TelemetryEventConsumer implements RocketMQListener<String> {
         try {
             JsonNode root = objectMapper.readTree(message);
 
-            Long deviceId = root.path("deviceId").asLong();
-            Long livestockId = root.path("livestockId").asLong();
-            Long farmId = root.path("farmId").asLong();
+            // Jackson's asLong() maps missing/null nodes to 0, turning an
+            // absent farm/livestock context into farm_id=0 and tripping the
+            // health_snapshots FK. Parse to a real null instead.
+            Long deviceId = nullableLong(root.path("deviceId"));
+            Long livestockId = nullableLong(root.path("livestockId"));
+            Long farmId = nullableLong(root.path("farmId"));
             String deviceTypeStr = root.path("deviceType").asText("CAPSULE");
             DeviceType deviceType = DeviceType.valueOf(deviceTypeStr);
+
+            // Telemetry for a device without an active installation carries no
+            // livestock/farm context, so it cannot produce a health snapshot.
+            // ACK and skip it instead of letting the INSERT fail and trigger
+            // broker retries, which exhaust the DB pool and block web requests.
+            if (livestockId == null || livestockId <= 0 || farmId == null || farmId <= 0) {
+                log.warn("Skipping telemetry without valid context: deviceId={}, livestockId={}, farmId={}",
+                        deviceId, livestockId, farmId);
+                return;
+            }
 
             @SuppressWarnings("unchecked")
             Map<String, Object> readings = objectMapper.convertValue(
@@ -55,5 +68,12 @@ public class TelemetryEventConsumer implements RocketMQListener<String> {
             log.error("Failed to process telemetry message: {}", e.getMessage(), e);
             throw new RuntimeException(e);
         }
+    }
+
+    private Long nullableLong(JsonNode node) {
+        if (node == null || node.isMissingNode() || node.isNull()) {
+            return null;
+        }
+        return node.asLong();
     }
 }
