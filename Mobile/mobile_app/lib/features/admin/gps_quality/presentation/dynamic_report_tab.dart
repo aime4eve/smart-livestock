@@ -971,6 +971,17 @@ class _CreateDynamicTestFormState
           const SnackBar(content: Text('select device + start time')));
       return;
     }
+    final now = DateTime.now();
+    if (_startedAt!.isAfter(now)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.gpsQualityStartedAtFutureError)));
+      return;
+    }
+    if (_endedAt != null && _endedAt!.isAfter(now)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.gpsQualityEndedAtFutureError)));
+      return;
+    }
 
     // Pre-check: query device sessions to detect time overlap before submitting
     try {
