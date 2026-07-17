@@ -527,6 +527,11 @@ class _SessionTestTabState extends ConsumerState<SessionTestTab> {
 
   Future<void> _showCreateTestDialog(AppLocalizations l10n) async {
     if (_selectedSessionId == null) return;
+    // Get session for time range constraints
+    final sessions = ref.read(gpsSessionsProvider).value ?? [];
+    final session = sessions.where((s) => s.id == _selectedSessionId).firstOrNull;
+    final sessionStart = session?.startedAt ?? DateTime.now().subtract(const Duration(days: 1));
+    final sessionEnd = session?.endedAt ?? DateTime.now();
     List<RtkPoint> points;
     try { points = await ref.read(rtkPointsProvider.future); }
     catch (_) { points = ref.read(rtkPointsProvider).value ?? []; }
@@ -534,7 +539,8 @@ class _SessionTestTabState extends ConsumerState<SessionTestTab> {
     var testType = TestType.static_;
     int? rtkPointId;
     int? routeId;
-    var testStartedAt = DateTime.now();
+    // Default to session start time (not now(), which may be outside session range)
+    var testStartedAt = sessionStart;
     DateTime? testEndedAt;
 
     await showDialog<void>(
@@ -574,15 +580,17 @@ class _SessionTestTabState extends ConsumerState<SessionTestTab> {
             ),
           const SizedBox(height: AppSpacing.sm),
           _DateTimeRow(label: l10n.gpsQualityStartTime, value: testStartedAt,
+            minDate: sessionStart, maxDate: sessionEnd,
             onChanged: (v) => setS(() => testStartedAt = v)),
           const SizedBox(height: AppSpacing.sm),
           _DateTimeRow(label: l10n.gpsQualityEndTime, value: testEndedAt,
+            minDate: sessionStart, maxDate: sessionEnd,
             onChanged: (v) => setS(() => testEndedAt = v)),
         ])),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.gpsQualityCancelSession)),
           FilledButton(
-            onPressed: () async {
+            onPressed: (rtkPointId == null && routeId == null) ? null : () async {
               Navigator.pop(ctx);
               try {
                 await ref.read(gpsQualityApiRepositoryProvider).createTest(
@@ -815,10 +823,13 @@ class _GradeBadge extends StatelessWidget {
 }
 
 class _DateTimeRow extends StatelessWidget {
-  const _DateTimeRow({required this.label, required this.value, required this.onChanged});
+  const _DateTimeRow({required this.label, required this.value, required this.onChanged,
+    this.minDate, this.maxDate});
   final String label;
   final DateTime? value;
   final ValueChanged<DateTime> onChanged;
+  final DateTime? minDate;
+  final DateTime? maxDate;
 
   @override
   Widget build(BuildContext context) {
@@ -829,11 +840,14 @@ class _DateTimeRow extends StatelessWidget {
       child: InkWell(
         onTap: () async {
           final now = DateTime.now();
-          final date = await showDatePicker(context: context, initialDate: value ?? now,
-            firstDate: DateTime(now.year - 1), lastDate: now);
+          final first = minDate ?? DateTime(now.year - 1);
+          final last = maxDate ?? now;
+          final init = value ?? (now.isAfter(last) ? last : (now.isBefore(first) ? first : now));
+          final date = await showDatePicker(context: context, initialDate: init,
+            firstDate: first, lastDate: last);
           if (date == null || !context.mounted) return;
           final time = await showTimePicker(context: context,
-            initialTime: TimeOfDay.fromDateTime(value ?? now));
+            initialTime: TimeOfDay.fromDateTime(init));
           if (time == null) return;
           onChanged(DateTime(date.year, date.month, date.day, time.hour, time.minute));
         },
