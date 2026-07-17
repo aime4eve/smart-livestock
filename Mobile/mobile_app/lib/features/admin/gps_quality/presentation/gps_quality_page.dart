@@ -5,11 +5,13 @@ import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/session_test_tab.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/truth_reference_tab.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/quality_report_tab.dart';
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/comparison_tab.dart';
 
 /// GPS Quality Check page with three tabs:
 /// Tab 1: Session-Test workflow (session list + test list + create/delete)
 /// Tab 2: Truth reference management (RTK points + dynamic routes)
-/// Tab 3: Quality comparison (multi-device reports, unchanged)
+/// Tab 3: Quality comparison (cross-device comparison tables)
+/// Tab 4: Device detail report (single device report with scatter, distribution)
 class GpsQualityPage extends ConsumerStatefulWidget {
   const GpsQualityPage({super.key});
 
@@ -24,7 +26,7 @@ class _GpsQualityPageState extends ConsumerState<GpsQualityPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -51,20 +53,25 @@ class _GpsQualityPageState extends ConsumerState<GpsQualityPage>
               key: const Key('truth-ref-tab'),
               text: l10n.gpsQualityTabTruthRef,
             ),
+           Tab(
+             key: const Key('quality-comparison-tab'),
+             text: l10n.gpsQualityTabComparison,
+           ),
             Tab(
-              key: const Key('quality-comparison-tab'),
-              text: l10n.gpsQualityTabComparison,
+              key: const Key('device-detail-tab'),
+              text: l10n.gpsQualityTabQualityReport,
             ),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: const [
+         ],
+       ),
+     ),
+     body: TabBarView(
+       controller: _tabController,
+       children: const [
          SessionTestTab(),
-          TruthReferenceTab(),
+         TruthReferenceTab(),
+         ComparisonTab(),
           QualityReportTab(),
-        ],
+       ],
       ),
     );
   }
