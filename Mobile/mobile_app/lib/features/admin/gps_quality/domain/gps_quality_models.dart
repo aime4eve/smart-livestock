@@ -474,7 +474,7 @@ class GpsQualityReport {
 
   factory GpsQualityReport.fromJson(Map<String, dynamic> json) =>
       GpsQualityReport(
-        sessionId: json['sessionId'] as int,
+        sessionId: (json['testId'] ?? json['sessionId']) as int,
         deviceCode: json['deviceCode'] as String? ?? '',
         // Backend QualityReportDto has flat fields: rtkPointId, locationName,
         // label (no nested rtkPoint object, no lat/lng).

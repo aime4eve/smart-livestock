@@ -68,7 +68,7 @@ class DeviceComparison {
 
   factory DeviceComparison.fromJson(Map<String, dynamic> json) =>
       DeviceComparison(
-        sessionId: json['sessionId'] as int,
+        sessionId: (json['testId'] ?? json['sessionId']) as int,
         deviceCode: json['deviceCode'] as String? ?? '',
         locationName: json['locationName'] as String? ?? '',
         pointLabel: json['pointLabel'] as String? ?? '',
@@ -307,15 +307,15 @@ class GpsQualityApiRepository {
     int sessionId, {
     bool excludeSuspect = false,
   }) async {
-    final data = await ApiClient.instance.get(
-      '$_base/sessions/$sessionId/report?excludeSuspect=$excludeSuspect',
-    );
-    return GpsQualityReport.fromJson(data);
-  }
+   final data = await ApiClient.instance.get(
+      '$_base/tests/$sessionId/report?excludeSuspect=$excludeSuspect',
+   );
+   return GpsQualityReport.fromJson(data);
+ }
 
-  Future<List<TrajectoryPoint>> fetchTrajectory(int sessionId) async {
-    final data = await ApiClient.instance
-        .get('$_base/sessions/$sessionId/trajectory');
+ Future<List<TrajectoryPoint>> fetchTrajectory(int sessionId) async {
+   final data = await ApiClient.instance
+        .get('$_base/tests/$sessionId/trajectory');
     return ((data['points'] ?? (data['value'] is List ? data['value'] : (data['value'] is Map ? data['value']['points'] : null))) as List)
         .whereType<Map<String, dynamic>>()
         .map(TrajectoryPoint.fromJson)
@@ -490,8 +490,8 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
     int sessionId, {
     double threshold = 5.0,
   }) async {
-    final data = await ApiClient.instance
-        .get('$_base/sessions/$sessionId/dynamic-report?threshold=$threshold');
+   final data = await ApiClient.instance
+        .get('$_base/tests/$sessionId/dynamic-report?threshold=$threshold');
     return DynamicQualityReport.fromJson(data);
   }
 }
