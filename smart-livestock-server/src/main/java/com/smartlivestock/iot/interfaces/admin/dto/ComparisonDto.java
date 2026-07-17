@@ -24,7 +24,7 @@ public class ComparisonDto {
         dto.label = r.rtk().getPointLabel();
         dto.devices = r.entries().stream()
                 .map(e -> new DeviceSummary(
-                        e.sessionId(),
+                        e.testId(),
                         e.deviceId(),
                         e.deviceCode(),
                         e.stats().grade().name(),
@@ -52,7 +52,7 @@ public class ComparisonDto {
     public List<DeviceSummary> getDevices() { return devices; }
     public void setDevices(List<DeviceSummary> devices) { this.devices = devices; }
 
-    public record DeviceSummary(Long sessionId, Long deviceId, String deviceCode,
+    public record DeviceSummary(Long testId, Long deviceId, String deviceCode,
                                 String grade, double p95, double meanError, int effectivePoints,
                                 double within15m, double within25m, double within40m,
                                 String locationName,

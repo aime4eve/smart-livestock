@@ -4,6 +4,7 @@ import com.smartlivestock.iot.domain.model.CalibrationStatus;
 import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.DynamicTestRoute;
 import com.smartlivestock.iot.domain.model.DynamicTestRoutePoint;
+import com.smartlivestock.iot.domain.model.GpsQualitySession;
 import com.smartlivestock.iot.domain.model.GpsQualityTest;
 import com.smartlivestock.iot.domain.model.QualityGrade;
 import com.smartlivestock.iot.domain.model.RtkReferencePoint;
@@ -12,6 +13,7 @@ import com.smartlivestock.iot.domain.port.dto.DynamicQualityStats;
 import com.smartlivestock.iot.domain.port.dto.GpsPointWithTelemetry;
 import com.smartlivestock.iot.domain.port.dto.RoutePoint;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
+import com.smartlivestock.iot.domain.repository.GpsQualitySessionRepository;
 import com.smartlivestock.iot.domain.repository.DynamicTestRoutePointRepository;
 import com.smartlivestock.iot.domain.repository.DynamicTestRouteRepository;
 import com.smartlivestock.iot.domain.repository.GpsLogRepository;
@@ -49,6 +51,7 @@ public class DynamicQualityReportService {
     private static final double DEFAULT_THRESHOLD = 30.0;
 
     private final GpsQualityTestRepository testRepository;
+    private final GpsQualitySessionRepository sessionRepository;
     private final DynamicTestRouteRepository routeRepository;
     private final DynamicTestRoutePointRepository routePointRepository;
     private final RtkReferencePointRepository rtkPointRepository;
@@ -71,7 +74,11 @@ public class DynamicQualityReportService {
         DynamicTestRoute route = routeRepository.findById(test.getRouteId())
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "Route not found: " + test.getRouteId()));
-        String deviceCode = deviceRepository.findById(test.getDeviceId())
+        GpsQualitySession session = sessionRepository.findById(test.getSessionId())
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "Session not found: " + test.getSessionId()));
+        Long deviceId = session.getDeviceId();
+        String deviceCode = deviceRepository.findById(deviceId)
                 .map(Device::getDeviceCode).orElse(null);
 
         double threshold = thresholdOverride != null ? thresholdOverride : DEFAULT_THRESHOLD;
@@ -93,7 +100,7 @@ public class DynamicQualityReportService {
 
         // --- fetch GPS logs in the test window ---
         List<GpsPointWithTelemetry> gpsPoints = gpsLogRepository.findByDeviceIdAndTimeRangeWithTelemetry(
-                test.getDeviceId(), test.getStartedAt(), test.getEndedAt());
+                deviceId, test.getTestStartedAt(), test.getTestEndedAt());
 
         // --- run matching ---
         DynamicQualityStats stats = dynamicCalculator.calculate(calculatorInput, gpsPoints, threshold);
@@ -133,12 +140,12 @@ public class DynamicQualityReportService {
        // --- assemble DTO ---
        DynamicQualityReportDto dto = new DynamicQualityReportDto();
        dto.setTestId(test.getId());
-       dto.setDeviceId(test.getDeviceId());
+       dto.setDeviceId(deviceId);
        dto.setDeviceCode(deviceCode);
        dto.setRouteId(route.getId());
        dto.setRouteName(route.getName());
-       dto.setStartedAt(test.getStartedAt());
-       dto.setEndedAt(test.getEndedAt());
+       dto.setStartedAt(test.getTestStartedAt());
+       dto.setEndedAt(test.getTestEndedAt());
        dto.setThreshold(threshold);
        dto.setGrade(grade);
        dto.setStats(stats);
@@ -212,11 +219,16 @@ public class DynamicQualityReportService {
 
     private StaticComparison buildStaticComparison(GpsQualityTest dynamicTest, double dynamicP95) {
         try {
-            // Find the most recent STATIC test for the same device.
-            GpsQualityTest staticTest = testRepository
-                    .findByDeviceIdOrderByStartedAtDesc(dynamicTest.getDeviceId()).stream()
-                    .filter(t -> t.getTestType() == TestType.STATIC
-                            && t.getStatus() == CalibrationStatus.COMPLETED)
+            // Find the most recent STATIC test for sessions of the same device.
+            GpsQualitySession dynSession = sessionRepository.findById(dynamicTest.getSessionId())
+                    .orElse(null);
+            if (dynSession == null) return null;
+            GpsQualityTest staticTest = testRepository.findFiltered(null, null, "STATIC",
+                            org.springframework.data.domain.PageRequest.of(0, 100)).stream()
+                    .filter(t -> {
+                        GpsQualitySession s = sessionRepository.findById(t.getSessionId()).orElse(null);
+                        return s != null && s.getDeviceId().equals(dynSession.getDeviceId());
+                    })
                     .findFirst().orElse(null);
             if (staticTest == null) {
                 return null;

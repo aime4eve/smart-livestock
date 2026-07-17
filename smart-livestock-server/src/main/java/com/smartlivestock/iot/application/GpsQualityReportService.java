@@ -1,13 +1,14 @@
 package com.smartlivestock.iot.application;
 
-import com.smartlivestock.iot.domain.model.CalibrationStatus;
 import com.smartlivestock.iot.domain.model.Device;
+import com.smartlivestock.iot.domain.model.GpsQualitySession;
 import com.smartlivestock.iot.domain.model.GpsQualityTest;
 import com.smartlivestock.iot.domain.model.RtkReferencePoint;
 import com.smartlivestock.iot.domain.port.dto.GpsPointWithTelemetry;
 import com.smartlivestock.iot.domain.port.dto.GpsQualityStats;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.domain.repository.GpsLogRepository;
+import com.smartlivestock.iot.domain.repository.GpsQualitySessionRepository;
 import com.smartlivestock.iot.domain.repository.GpsQualityTestRepository;
 import com.smartlivestock.iot.domain.repository.RtkReferencePointRepository;
 import com.smartlivestock.iot.domain.service.GpsQualityCalculator;
@@ -22,33 +23,39 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Assembles GPS quality reports by joining session → RTK truth → GPS points,
+ * Assembles static GPS quality reports by joining test → session → RTK truth → GPS points,
  * then delegating statistics to {@link GpsQualityCalculator}.
+ * <p>
+ * The test provides the truth reference (rtkPointId) and sub-range (testStartedAt/testEndedAt).
+ * The session provides the deviceId for GPS data lookup.
  */
 @Service
 @RequiredArgsConstructor
 public class GpsQualityReportService {
 
-    private final GpsQualityTestRepository sessionRepository;
+    private final GpsQualityTestRepository testRepository;
+    private final GpsQualitySessionRepository sessionRepository;
     private final RtkReferencePointRepository rtkPointRepository;
     private final GpsLogRepository gpsLogRepository;
     private final DeviceRepository deviceRepository;
 
-    // Stateless domain service; safe to instantiate once.
     private final GpsQualityCalculator calculator = new GpsQualityCalculator();
 
-    public ReportResult generate(Long sessionId, boolean excludeSuspect) {
-        GpsQualityTest session = sessionRepository.findById(sessionId)
+    public ReportResult generate(Long testId, boolean excludeSuspect) {
+        GpsQualityTest test = testRepository.findById(testId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
-                        "Calibration session not found: " + sessionId));
-        RtkReferencePoint rtk = rtkPointRepository.findById(session.getRtkPointId())
+                        "Test not found: " + testId));
+        GpsQualitySession session = sessionRepository.findById(test.getSessionId())
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
-                        "RTK point not found: " + session.getRtkPointId()));
+                        "Session not found: " + test.getSessionId()));
+        RtkReferencePoint rtk = rtkPointRepository.findById(test.getRtkPointId())
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "RTK point not found: " + test.getRtkPointId()));
         String deviceCode = deviceRepository.findById(session.getDeviceId())
                 .map(Device::getDeviceCode).orElse(null);
 
         List<GpsPointWithTelemetry> points = gpsLogRepository.findByDeviceIdAndTimeRangeWithTelemetry(
-                session.getDeviceId(), session.getStartedAt(), session.getEndedAt());
+                session.getDeviceId(), test.getTestStartedAt(), test.getTestEndedAt());
 
         GpsQualityStats stats = calculator.calculate(
                 points, rtk.getLatitude(), rtk.getLongitude(), excludeSuspect);
@@ -62,7 +69,7 @@ public class GpsQualityReportService {
                         p.stepNumber() != null && p.stepNumber() > 0))
                 .toList();
 
-        return new ReportResult(session, rtk, deviceCode, stats, excludeSuspect, scatter);
+        return new ReportResult(test, session, rtk, deviceCode, stats, excludeSuspect, scatter);
     }
 
     public ComparisonResult generateComparison(Long rtkPointId) {
@@ -71,33 +78,28 @@ public class GpsQualityReportService {
                         "RTK point not found: " + rtkPointId));
 
         List<ComparisonEntry> entries = new ArrayList<>();
-        for (GpsQualityTest s : sessionRepository.findByRtkPointIdOrderByStartedAtDesc(rtkPointId)) {
-            if (s.getStatus() != CalibrationStatus.COMPLETED) {
-                continue;
-            }
-            String code = deviceRepository.findById(s.getDeviceId())
+        for (GpsQualityTest test : testRepository.findByRtkPointId(rtkPointId)) {
+            GpsQualitySession session = sessionRepository.findById(test.getSessionId()).orElse(null);
+            if (session == null) continue;
+
+            String code = deviceRepository.findById(session.getDeviceId())
                     .map(Device::getDeviceCode).orElse(null);
             List<GpsPointWithTelemetry> points = gpsLogRepository.findByDeviceIdAndTimeRangeWithTelemetry(
-                    s.getDeviceId(), s.getStartedAt(), s.getEndedAt());
-            // Comparison uses excludeSuspect=true for a fair across-device comparison.
+                    session.getDeviceId(), test.getTestStartedAt(), test.getTestEndedAt());
             GpsQualityStats stats = calculator.calculate(points, rtk.getLatitude(), rtk.getLongitude(), true);
-            entries.add(new ComparisonEntry(s.getId(), s.getDeviceId(), code, stats));
+            entries.add(new ComparisonEntry(test.getId(), session.getDeviceId(), code, stats));
         }
         return new ComparisonResult(rtk, entries);
     }
 
-    /** A single scatter/trajectory point with its error vs RTK truth and suspect flag. */
     public record ScatterPoint(BigDecimal latitude, BigDecimal longitude, double error,
-                               Instant recordedAt, boolean suspect) {
-    }
+                               Instant recordedAt, boolean suspect) {}
 
-    public record ReportResult(GpsQualityTest session, RtkReferencePoint rtk, String deviceCode,
-                               GpsQualityStats stats, boolean excludeSuspect, List<ScatterPoint> scatter) {
-    }
+    public record ReportResult(GpsQualityTest test, GpsQualitySession session, RtkReferencePoint rtk,
+                               String deviceCode, GpsQualityStats stats, boolean excludeSuspect,
+                               List<ScatterPoint> scatter) {}
 
-    public record ComparisonEntry(Long sessionId, Long deviceId, String deviceCode, GpsQualityStats stats) {
-    }
+    public record ComparisonEntry(Long testId, Long deviceId, String deviceCode, GpsQualityStats stats) {}
 
-    public record ComparisonResult(RtkReferencePoint rtk, List<ComparisonEntry> entries) {
-    }
+    public record ComparisonResult(RtkReferencePoint rtk, List<ComparisonEntry> entries) {}
 }

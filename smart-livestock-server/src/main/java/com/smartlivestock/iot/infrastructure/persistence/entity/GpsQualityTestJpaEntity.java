@@ -19,32 +19,24 @@ public class GpsQualityTestJpaEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "device_id", nullable = false)
-    private Long deviceId;
+    @Column(name = "session_id", nullable = false)
+    private Long sessionId;
 
-    // STATIC | DYNAMIC; defaults to STATIC for backward-compatible static tests.
     @Column(name = "test_type", nullable = false, length = 10)
     private String testType = "STATIC";
 
-    // STATIC truth point. Nullable now (null for DYNAMIC tests).
     @Column(name = "rtk_point_id")
     private Long rtkPointId;
 
-    // DYNAMIC truth route. Nullable (null for STATIC tests).
     @Column(name = "route_id")
     private Long routeId;
 
-    // started_at / ended_at are TIMESTAMPTZ columns (lesson #17: same time basis as telemetry).
-    @Column(name = "started_at", nullable = false)
-    private Instant startedAt;
+    @Column(name = "test_started_at", nullable = false)
+    private Instant testStartedAt;
 
-    @Column(name = "ended_at")
-    private Instant endedAt;
+    @Column(name = "test_ended_at")
+    private Instant testEndedAt;
 
-    @Column(name = "status", nullable = false, length = 20)
-    private String status = "IN_PROGRESS";
-
-    // created_at / updated_at are TIMESTAMP (project convention).
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -56,48 +48,28 @@ public class GpsQualityTestJpaEntity {
         Instant now = Instant.now();
         this.createdAt = now;
         this.updatedAt = now;
-        if (this.status == null) {
-            this.status = "IN_PROGRESS";
-        }
-        if (this.testType == null) {
-            this.testType = "STATIC";
-        }
+        if (this.testType == null) this.testType = "STATIC";
     }
 
     @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = Instant.now();
-    }
-
-    // --- Getters and Setters ---
+    protected void onUpdate() { this.updatedAt = Instant.now(); }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-
-    public Long getDeviceId() { return deviceId; }
-    public void setDeviceId(Long deviceId) { this.deviceId = deviceId; }
-
+    public Long getSessionId() { return sessionId; }
+    public void setSessionId(Long sessionId) { this.sessionId = sessionId; }
     public String getTestType() { return testType; }
     public void setTestType(String testType) { this.testType = testType; }
-
     public Long getRtkPointId() { return rtkPointId; }
     public void setRtkPointId(Long rtkPointId) { this.rtkPointId = rtkPointId; }
-
     public Long getRouteId() { return routeId; }
     public void setRouteId(Long routeId) { this.routeId = routeId; }
-
-    public Instant getStartedAt() { return startedAt; }
-    public void setStartedAt(Instant startedAt) { this.startedAt = startedAt; }
-
-    public Instant getEndedAt() { return endedAt; }
-    public void setEndedAt(Instant endedAt) { this.endedAt = endedAt; }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-
+    public Instant getTestStartedAt() { return testStartedAt; }
+    public void setTestStartedAt(Instant testStartedAt) { this.testStartedAt = testStartedAt; }
+    public Instant getTestEndedAt() { return testEndedAt; }
+    public void setTestEndedAt(Instant testEndedAt) { this.testEndedAt = testEndedAt; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
-
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
 }

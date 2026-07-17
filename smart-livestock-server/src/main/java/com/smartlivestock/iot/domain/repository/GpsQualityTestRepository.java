@@ -10,16 +10,8 @@ import java.util.Optional;
 public interface GpsQualityTestRepository {
     GpsQualityTest save(GpsQualityTest test);
     Optional<GpsQualityTest> findById(Long id);
-
-    /** Active (IN_PROGRESS) test for a device, if any. */
-    Optional<GpsQualityTest> findActiveByDeviceId(Long deviceId);
-
-    List<GpsQualityTest> findByRtkPointIdOrderByStartedAtDesc(Long rtkPointId);
-    List<GpsQualityTest> findByDeviceIdOrderByStartedAtDesc(Long deviceId);
-
-    /** Tests with optional filters, paged (all params nullable). */
-    Page<GpsQualityTest> findFiltered(Long rtkPointId, Long deviceId, String status, String testType, Pageable pageable);
-
-    List<GpsQualityTest> findAll();
+    List<GpsQualityTest> findBySessionId(Long sessionId);
+    List<GpsQualityTest> findByRtkPointId(Long rtkPointId);
+    Page<GpsQualityTest> findFiltered(Long rtkPointId, Long routeId, String testType, Pageable pageable);
     void deleteById(Long id);
 }
