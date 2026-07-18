@@ -28,15 +28,26 @@ public interface SpringDataGpsLogRepository extends JpaRepository<GpsLogJpaEntit
     List<GpsLogJpaEntity> findAllByIdInOrderByRecordedAt(@Param("ids") List<Long> ids);
 
     @Query(value = """
-            SELECT gl.latitude, gl.longitude, gl.accuracy, gl.recorded_at,
-                   dtl.step_number, dtl.motion_intensity, dtl.activity_class
-            FROM gps_logs gl
-            LEFT JOIN device_telemetry_logs dtl
-              ON dtl.device_id = gl.device_id AND dtl.report_time = gl.recorded_at
-            WHERE gl.device_id = :deviceId
-              AND gl.recorded_at BETWEEN :startTime AND :endTime
-              AND gl.latitude <> 0 AND gl.longitude <> 0
-            ORDER BY gl.recorded_at
+           SELECT gl.latitude, gl.longitude, gl.accuracy, gl.recorded_at,
+                  dtl.step_number, dtl.motion_intensity, dtl.activity_class
+           FROM gps_logs gl
+            LEFT JOIN (
+                -- DISTINCT ON collapses exact-duplicate telemetry rows that would
+                -- otherwise explode this join (a single duplicate report_time can
+                -- multiply gps_logs rows thousands-fold). Same report_time for a
+                -- device always carries identical payload, so this loses nothing.
+                SELECT DISTINCT ON (device_id, report_time)
+                       device_id, report_time, step_number, motion_intensity, activity_class
+                FROM device_telemetry_logs
+                WHERE device_id = :deviceId
+                  AND report_time BETWEEN :startTime AND :endTime
+                ORDER BY device_id, report_time, id
+            ) dtl
+              ON dtl.report_time = gl.recorded_at
+           WHERE gl.device_id = :deviceId
+             AND gl.recorded_at BETWEEN :startTime AND :endTime
+             AND gl.latitude <> 0 AND gl.longitude <> 0
+           ORDER BY gl.recorded_at
             """, nativeQuery = true)
     List<Object[]> findGpsWithTelemetryByDeviceIdAndTimeRange(
             @Param("deviceId") Long deviceId,
