@@ -1,40 +1,39 @@
 package com.smartlivestock.iot.application;
 
-import com.smartlivestock.iot.domain.model.GpsQualitySession;
 import com.smartlivestock.iot.domain.model.GpsQualityTest;
-import com.smartlivestock.iot.domain.model.SessionStatus;
 import com.smartlivestock.iot.domain.model.TestType;
 import com.smartlivestock.iot.domain.repository.DynamicTestRouteRepository;
-import com.smartlivestock.iot.domain.repository.GpsQualitySessionRepository;
 import com.smartlivestock.iot.domain.repository.GpsQualityTestRepository;
+import com.smartlivestock.iot.interfaces.admin.dto.GpsQualityTestDto;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
 
+/**
+ * Manages GpsQualityTest entities directly (no session indirection).
+ */
 @Service("gpsQualityTestService")
 @RequiredArgsConstructor
 public class GpsQualityTestService {
 
     private final GpsQualityTestRepository testRepository;
-    private final GpsQualitySessionRepository sessionRepository;
     private final DynamicTestRouteRepository routeRepository;
 
-    public GpsQualityTest create(Long sessionId, TestType testType, Long rtkPointId, Long routeId,
-                                  Instant testStartedAt, Instant testEndedAt) {
-        GpsQualitySession session = sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Session not found: " + sessionId));
-
+    public GpsQualityTest create(String deviceCode, Long deviceId, TestType testType,
+                                  Long rtkPointId, Long routeId,
+                                  Instant startedAt, Instant endedAt) {
+        if (deviceCode == null || deviceCode.isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "deviceCode is required");
+        }
         if (testType == null) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "testType is required");
         }
-        if (testStartedAt == null) {
-            throw new ApiException(ErrorCode.VALIDATION_ERROR, "testStartedAt is required");
+        if (startedAt == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "startedAt is required");
         }
 
         // Validate truth reference
@@ -51,8 +50,9 @@ public class GpsQualityTestService {
             }
         }
 
-        GpsQualityTest test = new GpsQualityTest(sessionId, testType, rtkPointId, routeId, testStartedAt);
-        test.setTestEndedAt(testEndedAt);
+        GpsQualityTest test = new GpsQualityTest(deviceCode, testType, rtkPointId, routeId, startedAt);
+        test.setDeviceId(deviceId);
+        test.setEndedAt(endedAt);
         return testRepository.save(test);
     }
 
@@ -61,15 +61,28 @@ public class GpsQualityTestService {
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Test not found: " + id));
     }
 
-    public List<GpsQualityTest> findBySessionId(Long sessionId) {
-        return testRepository.findBySessionId(sessionId);
-    }
-
-    public Page<GpsQualityTest> findFiltered(Long rtkPointId, Long routeId, String testType, Pageable pageable) {
-        return testRepository.findFiltered(rtkPointId, routeId, testType, pageable);
+    public List<GpsQualityTest> findByDeviceId(Long deviceId) {
+        return testRepository.findByDeviceIdOrderByStartedAt(deviceId);
     }
 
     public void deleteById(Long id) {
         testRepository.deleteById(id);
     }
+
+    /**
+     * Paginated check list with optional filters.
+     */
+    public GpsQualityTestPage findChecks(String status, String eui, Long deviceId,
+                                          int page, int size) {
+        int safePage = Math.max(0, page);
+        int safeSize = Math.max(1, Math.min(100, size));
+        int offset = safePage * safeSize;
+        List<GpsQualityTest> items = testRepository.findFiltered(status, eui, deviceId, offset, safeSize);
+        long total = testRepository.countFiltered(status, eui, deviceId);
+        return new GpsQualityTestPage(
+                items.stream().map(GpsQualityTestDto::from).toList(),
+                safePage, safeSize, total);
+    }
+
+    public record GpsQualityTestPage(List<GpsQualityTestDto> items, int page, int pageSize, long total) {}
 }

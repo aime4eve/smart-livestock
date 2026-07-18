@@ -35,7 +35,7 @@ public class QualityReportDto {
         dto.label = r.rtk().getPointLabel();
         dto.rtkLatitude = r.rtk().getLatitude();
         dto.rtkLongitude = r.rtk().getLongitude();
-        dto.deviceId = r.session().getDeviceId();
+        dto.deviceId = r.test().getDeviceId();
         dto.deviceCode = r.deviceCode();
         dto.excludeSuspect = r.excludeSuspect();
         dto.grade = r.stats().grade();

@@ -84,6 +84,9 @@ dependencies {
 
     // Spatial — buffer polygon computation for fence approach detection
     implementation 'org.locationtech.jts:jts-core:1.19.0'
+    // Apache POI - Excel batch import for GPS quality checks
+    implementation 'org.apache.poi:poi-ooxml:5.2.5'
+
     annotationProcessor 'org.projectlombok:lombok'
 
     // Test

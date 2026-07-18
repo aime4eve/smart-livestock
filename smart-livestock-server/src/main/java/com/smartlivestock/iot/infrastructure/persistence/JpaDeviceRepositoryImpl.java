@@ -31,17 +31,24 @@ public class JpaDeviceRepositoryImpl implements DeviceRepository {
         return springDataRepo.findById(id).map(DeviceMapper::toDomain);
     }
 
-    @Override
-    public Optional<Device> findByDeviceCode(String deviceCode) {
-        return springDataRepo.findByDeviceCode(deviceCode).map(DeviceMapper::toDomain);
-    }
+   @Override
+   public Optional<Device> findByDeviceCode(String deviceCode) {
+       return springDataRepo.findByDeviceCode(deviceCode).map(DeviceMapper::toDomain);
+   }
 
     @Override
-    public List<Device> findByTenantId(Long tenantId) {
-        return springDataRepo.findByTenantId(tenantId).stream()
+    public List<Device> findAllByDevEuiAndTenantId(String devEui, Long tenantId) {
+        return springDataRepo.findAllByDevEuiAndTenantId(devEui, tenantId).stream()
                 .map(DeviceMapper::toDomain)
                 .toList();
     }
+
+   @Override
+   public List<Device> findByTenantId(Long tenantId) {
+       return springDataRepo.findByTenantId(tenantId).stream()
+               .map(DeviceMapper::toDomain)
+               .toList();
+   }
 
     @Override
     public long countByTenantIdAndStatus(Long tenantId, String status) {

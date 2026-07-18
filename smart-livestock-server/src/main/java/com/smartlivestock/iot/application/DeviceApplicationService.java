@@ -71,6 +71,77 @@ public class DeviceApplicationService {
     }
 
     /**
+    * Find or create a device by devEui within a tenant scope.
+     * Used by GPS quality batch import to resolve or auto-register devices.
+     *
+     * @param eui        device devEui (required, >= 4 chars)
+     * @param deviceCode optional human-friendly code; defaults to "GPS-" + eui
+     * @param tenantId   tenant scope
+     * @return DeviceDto with final status
+     */
+    @Transactional
+    public DeviceDto findOrCreateByEui(String eui, String deviceCode, Long tenantId) {
+        // 1. Validate EUI
+        if (eui == null || eui.isBlank() || eui.length() < 4) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                    "iot.invalidEuiFormat", new Object[]{eui});
+        }
+        if (tenantId == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                    "tenantId is required for device creation");
+        }
+
+        // 2. Lookup by EUI within tenant scope (List to avoid NonUniqueResultException)
+        List<Device> existing = deviceRepository.findAllByDevEuiAndTenantId(eui, tenantId);
+
+        if (!existing.isEmpty()) {
+            Device device = existing.get(0);
+
+            // Already has platformDeviceId → skip registration entirely
+            if (device.getPlatformDeviceId() != null) {
+                log.info("Device EUI {} already registered (platformDeviceId={}), skip registration",
+                        eui, device.getPlatformDeviceId());
+                return DeviceDto.from(device);
+            }
+
+            // Has device but not registered → try registration
+            if (device.getStatus() == DeviceStatus.INVENTORY) {
+                try {
+                    activateOnPlatform(device);
+                    device.activate();
+                    device = deviceRepository.save(device);
+                } catch (Exception ex) {
+                    log.warn("Platform registration retry failed for device {} EUI {}: {}",
+                            device.getId(), eui, ex.getMessage());
+                }
+            }
+            return DeviceDto.from(device);
+        }
+
+        // 3. Create new device
+        String resolvedCode = (deviceCode != null && !deviceCode.isBlank())
+                ? deviceCode : "GPS-" + eui;
+
+        Device device = new Device();
+        device.setDevEui(eui);
+        device.setDeviceCode(resolvedCode);
+        device.setSerialNo(eui);
+        device.setDeviceType(DeviceType.TRACKER);
+        device.setTenantId(tenantId);
+        Device saved = deviceRepository.save(device);
+
+        // 4. Try platform registration (best-effort)
+        try {
+            activateOnPlatform(saved);
+            saved.activate();
+            saved = deviceRepository.save(saved);
+        } catch (Exception ex) {
+            log.warn("Platform registration failed for new device EUI {}: {}", eui, ex.getMessage());
+        }
+        return DeviceDto.from(saved);
+    }
+
+    /**
      * Phase 3: Retry platform registration for a locally-created device.
      * Used when "录入即注册" platform step was skipped or failed.
      *

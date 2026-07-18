@@ -3,13 +3,13 @@ package com.smartlivestock.iot.interfaces.admin;
 import com.smartlivestock.iot.application.DynamicQualityReportService;
 import com.smartlivestock.iot.application.DynamicTestRouteService;
 import com.smartlivestock.iot.application.GpsQualityReportService;
-import com.smartlivestock.iot.application.GpsQualitySessionService;
 import com.smartlivestock.iot.application.GpsQualityTestService;
 import com.smartlivestock.iot.application.RtkReferencePointService;
-import com.smartlivestock.iot.domain.model.Device;
+import com.smartlivestock.iot.application.DeviceApplicationService;
+import com.smartlivestock.iot.application.GpsQualityTestService.GpsQualityTestPage;
+import com.smartlivestock.iot.application.GpsQualityBatchImportService;
 import com.smartlivestock.iot.domain.model.DynamicTestRoute;
 import com.smartlivestock.iot.domain.model.DynamicTestRoutePoint;
-import com.smartlivestock.iot.domain.model.GpsQualitySession;
 import com.smartlivestock.iot.domain.model.GpsQualityTest;
 import com.smartlivestock.iot.domain.model.RtkReferencePoint;
 import com.smartlivestock.iot.domain.model.TestType;
@@ -17,16 +17,17 @@ import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.interfaces.admin.dto.ComparisonDto;
 import com.smartlivestock.iot.interfaces.admin.dto.DeviceBriefDto;
 import com.smartlivestock.iot.interfaces.admin.dto.DynamicQualityReportDto;
-import com.smartlivestock.iot.interfaces.admin.dto.GpsQualitySessionDto;
 import com.smartlivestock.iot.interfaces.admin.dto.GpsQualityTestDto;
+import com.smartlivestock.iot.interfaces.admin.dto.BatchImportResultDto;
 import com.smartlivestock.iot.interfaces.admin.dto.QualityReportDto;
+import com.smartlivestock.shared.tenant.TenantContext;
 import com.smartlivestock.iot.interfaces.admin.dto.RtkPointDto;
 import com.smartlivestock.shared.common.ApiResponse;
+import com.smartlivestock.shared.common.ApiException;
+import com.smartlivestock.shared.common.ErrorCode;
+import org.springframework.http.MediaType;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -34,12 +35,10 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Admin endpoints for GPS quality checks.
- * Session-Test model: Session = device + time window; Test = sub-range + truth reference.
+ * Refactored NIX-21: Test-centric model (no sessions).
  */
 @RestController
 @RequestMapping("/api/v1/admin/gps-quality")
@@ -48,14 +47,24 @@ import java.util.stream.Collectors;
 public class GpsQualityAdminController {
 
     private final RtkReferencePointService rtkPointService;
-    private final GpsQualitySessionService sessionService;
     private final GpsQualityTestService testService;
     private final GpsQualityReportService reportService;
     private final DynamicTestRouteService routeService;
     private final DynamicQualityReportService dynamicReportService;
     private final DeviceRepository deviceRepository;
+    private final GpsQualityBatchImportService batchImportService;
+    private final DeviceApplicationService deviceApplicationService;
 
-    // --- RTK reference points (unchanged) ---
+    // platform_admin has no tenant; GPS quality checks fall back to the demo tenant.
+    // TODO: for production, add explicit tenant selection in the request body.
+    private static final long FALLBACK_TENANT_ID = 1L;
+
+    private Long resolveTenantId() {
+        Long tenantId = TenantContext.getCurrentTenant();
+        return tenantId != null ? tenantId : FALLBACK_TENANT_ID;
+    }
+
+    // --- RTK reference points ---
 
     @GetMapping("/rtk-points")
     public ResponseEntity<ApiResponse<List<RtkPointDto>>> listRtkPoints(
@@ -99,77 +108,45 @@ public class GpsQualityAdminController {
         return ResponseEntity.ok(ApiResponse.ok(list));
     }
 
-    // --- Sessions ---
+    // --- Tests (top-level resource, no session indirection) ---
 
-    @GetMapping("/sessions")
-    public ResponseEntity<ApiResponse<Page<GpsQualitySessionDto>>> listSessions(
-            @RequestParam(required = false) Long deviceId,
-            @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
-        Page<GpsQualitySession> sessions = sessionService.findFiltered(deviceId, status, pageable);
-        Set<Long> deviceIds = sessions.getContent().stream()
-                .map(GpsQualitySession::getDeviceId).collect(Collectors.toSet());
-        Map<Long, String> codeMap = resolveDeviceCodes(deviceIds);
-        Page<GpsQualitySessionDto> dtoPage = sessions.map(
-                s -> GpsQualitySessionDto.from(s, codeMap.get(s.getDeviceId())));
-        return ResponseEntity.ok(ApiResponse.ok(dtoPage));
-    }
-
-    @PostMapping("/sessions")
-    public ResponseEntity<ApiResponse<GpsQualitySessionDto>> createSession(
-            @RequestBody Map<String, Object> body) {
-        GpsQualitySession saved = sessionService.create(
-                ((Number) body.get("deviceId")).longValue(),
-                Instant.parse((String) body.get("startedAt")),
-                body.get("endedAt") != null ? Instant.parse((String) body.get("endedAt")) : null);
-        String code = deviceRepository.findById(saved.getDeviceId())
-                .map(Device::getDeviceCode).orElse(null);
-        return ResponseEntity.ok(ApiResponse.ok(GpsQualitySessionDto.from(saved, code)));
-    }
-
-    @PatchMapping("/sessions/{id}/end")
-    public ResponseEntity<ApiResponse<GpsQualitySessionDto>> endSession(@PathVariable Long id) {
-        GpsQualitySession saved = sessionService.end(id);
-        String code = deviceRepository.findById(saved.getDeviceId())
-                .map(Device::getDeviceCode).orElse(null);
-        return ResponseEntity.ok(ApiResponse.ok(GpsQualitySessionDto.from(saved, code)));
-    }
-
-    @DeleteMapping("/sessions/{id}")
-    public ResponseEntity<ApiResponse<GpsQualitySessionDto>> cancelSession(@PathVariable Long id) {
-        GpsQualitySession saved = sessionService.cancel(id);
-        String code = saved.getDeviceId() != null
-                ? deviceRepository.findById(saved.getDeviceId()).map(Device::getDeviceCode).orElse(null)
-                : null;
-        return ResponseEntity.ok(ApiResponse.ok(GpsQualitySessionDto.from(saved, code)));
-    }
-
-    // --- Tests (sub-resource of session) ---
-
-    @GetMapping("/sessions/{sessionId}/tests")
+    @GetMapping("/tests")
     public ResponseEntity<ApiResponse<List<GpsQualityTestDto>>> listTests(
-            @PathVariable Long sessionId) {
-        List<GpsQualityTestDto> list = testService.findBySessionId(sessionId).stream()
-                .map(GpsQualityTestDto::from).toList();
-        return ResponseEntity.ok(ApiResponse.ok(list));
+            @RequestParam(required = false) Long deviceId) {
+        List<GpsQualityTest> tests = deviceId != null
+                ? testService.findByDeviceId(deviceId)
+                : List.of();
+        return ResponseEntity.ok(ApiResponse.ok(
+                tests.stream().map(GpsQualityTestDto::from).toList()));
     }
 
-    @PostMapping("/sessions/{sessionId}/tests")
+    @PostMapping("/tests")
     public ResponseEntity<ApiResponse<GpsQualityTestDto>> createTest(
-            @PathVariable Long sessionId,
             @RequestBody Map<String, Object> body) {
+        Long tenantId = resolveTenantId();
+        String eui = (String) body.get("eui");
+        String deviceCode = (String) body.get("deviceCode");
+        Long deviceId = body.get("deviceId") != null
+                ? ((Number) body.get("deviceId")).longValue() : null;
+
+        // EUI resolution (primary path for manual creation)
+        if (eui != null && !eui.isBlank()) {
+            var deviceDto = deviceApplicationService.findOrCreateByEui(eui, deviceCode, tenantId);
+            deviceCode = (deviceCode != null && !deviceCode.isBlank())
+                    ? deviceCode : deviceDto.deviceCode();
+            deviceId = deviceDto.id();
+        }
+
         TestType testType = TestType.valueOf((String) body.getOrDefault("testType", "STATIC"));
         Long rtkPointId = body.get("rtkPointId") != null
                 ? ((Number) body.get("rtkPointId")).longValue() : null;
         Long routeId = body.get("routeId") != null
                 ? ((Number) body.get("routeId")).longValue() : null;
-        Instant testStartedAt = Instant.parse((String) body.get("testStartedAt"));
-        Instant testEndedAt = body.get("testEndedAt") != null
-                ? Instant.parse((String) body.get("testEndedAt")) : null;
+        Instant startedAt = Instant.parse((String) body.get("startedAt"));
+        Instant endedAt = body.get("endedAt") != null
+                ? Instant.parse((String) body.get("endedAt")) : null;
         GpsQualityTest saved = testService.create(
-                sessionId, testType, rtkPointId, routeId, testStartedAt, testEndedAt);
+                deviceCode, deviceId, testType, rtkPointId, routeId, startedAt, endedAt);
         return ResponseEntity.ok(ApiResponse.ok(GpsQualityTestDto.from(saved)));
     }
 
@@ -178,6 +155,111 @@ public class GpsQualityAdminController {
         testService.deleteById(id);
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
+
+    // --- Checks (primary resource: flat, paginated) ---
+
+    @GetMapping("/checks")
+    public ResponseEntity<ApiResponse<GpsQualityTestPage>> listChecks(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String eui,
+            @RequestParam(required = false) Long deviceId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        GpsQualityTestPage result = testService.findChecks(status, eui, deviceId, page, size);
+        return ResponseEntity.ok(ApiResponse.ok(result));
+    }
+
+    @PostMapping("/checks")
+    public ResponseEntity<ApiResponse<GpsQualityTestDto>> createCheck(
+            @RequestBody Map<String, Object> body) {
+        Long tenantId = resolveTenantId();
+        String eui = (String) body.get("eui");
+        if (eui == null || eui.isBlank()) {
+            throw new ApiException(
+                    ErrorCode.VALIDATION_ERROR, "eui is required");
+        }
+        String deviceCode = (String) body.get("deviceCode");
+        var deviceDto = deviceApplicationService.findOrCreateByEui(eui, deviceCode, tenantId);
+        if (deviceCode == null || deviceCode.isBlank()) {
+            deviceCode = deviceDto.deviceCode();
+        }
+        TestType testType = TestType.valueOf((String) body.getOrDefault("testType", "STATIC"));
+        Long rtkPointId = body.get("rtkPointId") != null
+                ? ((Number) body.get("rtkPointId")).longValue() : null;
+        Long routeId = body.get("routeId") != null
+                ? ((Number) body.get("routeId")).longValue() : null;
+        Instant startedAt = Instant.parse((String) body.get("startedAt"));
+        Instant endedAt = body.get("endedAt") != null
+                ? Instant.parse((String) body.get("endedAt")) : null;
+        GpsQualityTest saved = testService.create(
+                deviceCode, deviceDto.id(), testType, rtkPointId, routeId, startedAt, endedAt);
+        return ResponseEntity.ok(ApiResponse.ok(GpsQualityTestDto.from(saved)));
+    }
+
+    // --- Batch import ---
+
+    @PostMapping(value = "/batch/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<BatchImportResultDto>> batchImport(
+            @RequestParam("file") MultipartFile file) {
+        Long tenantId = resolveTenantId();
+        BatchImportResultDto result = batchImportService.importFromExcel(file, tenantId);
+        return ResponseEntity.ok(ApiResponse.ok(result));
+    }
+
+    @GetMapping("/batch/template")
+    public ResponseEntity<byte[]> batchTemplate() {
+        byte[] data = batchImportService.generateTemplate();
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=gps-quality-import-template.xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(data);
+    }
+
+    @PostMapping("/batch/retry-registration")
+    public ResponseEntity<ApiResponse<List<BatchImportResultDto.RowResult>>> batchRetryRegistration(
+            @RequestBody(required = false) Map<String, Object> body) {
+        Long tenantId = resolveTenantId();
+        List<Long> checkIds = null;
+        if (body != null && body.get("checkIds") != null) {
+            checkIds = ((List<?>) body.get("checkIds")).stream()
+                    .map(id -> ((Number) id).longValue())
+                    .toList();
+        }
+        var results = batchImportService.retryRegistration(checkIds, tenantId);
+        return ResponseEntity.ok(ApiResponse.ok(results));
+    }
+
+    @PostMapping("/batch/retry-row")
+    public ResponseEntity<ApiResponse<BatchImportResultDto.RowResult>> batchRetryRow(
+            @RequestBody Map<String, Object> body) {
+        Long tenantId = resolveTenantId();
+        String eui = (String) body.get("eui");
+        TestType testType = TestType.valueOf((String) body.getOrDefault("testType", "STATIC"));
+        Instant startedAt = Instant.parse((String) body.get("startedAt"));
+        Instant endedAt = body.get("endedAt") != null
+                ? Instant.parse((String) body.get("endedAt")) : null;
+
+        String deviceCode = (String) body.get("deviceCode");
+        var deviceDto = deviceApplicationService.findOrCreateByEui(eui, deviceCode, tenantId);
+
+        Long rtkPointId = body.get("rtkPointId") != null
+                ? ((Number) body.get("rtkPointId")).longValue() : null;
+        Long routeId = body.get("routeId") != null
+                ? ((Number) body.get("routeId")).longValue() : null;
+
+        GpsQualityTest saved = testService.create(
+                deviceDto.deviceCode(), deviceDto.id(), testType, rtkPointId, routeId, startedAt, endedAt);
+        return ResponseEntity.ok(ApiResponse.ok(
+               new BatchImportResultDto.RowResult(0, "READY", eui, null,
+                        deviceDto.id(), saved.getId(), null)));
+    }
+
+    @DeleteMapping("/batch/{batchId}")
+    public ResponseEntity<ApiResponse<Void>> batchDelete(@PathVariable Long batchId) {
+        batchImportService.deleteBatch(batchId);
+        return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
 
     // --- Reports ---
 
@@ -217,7 +299,7 @@ public class GpsQualityAdminController {
         return ResponseEntity.ok(ApiResponse.ok(ComparisonDto.from(result)));
     }
 
-    // --- Dynamic test routes (unchanged) ---
+    // --- Dynamic test routes ---
 
     @GetMapping("/dynamic-routes")
     public ResponseEntity<ApiResponse<List<DynamicTestRoute>>> listRoutes() {
@@ -260,37 +342,5 @@ public class GpsQualityAdminController {
                 .toList();
         routeService.replacePoints(id, inputs);
         return ResponseEntity.ok(ApiResponse.ok(null));
-    }
-
-    // --- Legacy aliases (backward compat, one iteration) ---
-
-    @GetMapping("/sessions/{id}/report")
-    public ResponseEntity<ApiResponse<QualityReportDto>> legacyReport(
-            @PathVariable Long id,
-            @RequestParam(defaultValue = "false") boolean excludeSuspect) {
-        return report(id, excludeSuspect);
-    }
-
-    @GetMapping("/sessions/{id}/trajectory")
-    public ResponseEntity<ApiResponse<List<GpsQualityReportService.ScatterPoint>>> legacyTrajectory(
-            @PathVariable Long id) {
-        return trajectory(id);
-    }
-
-    @GetMapping("/sessions/{id}/dynamic-report")
-    public ResponseEntity<ApiResponse<DynamicQualityReportDto>> legacyDynamicReport(
-            @PathVariable Long id,
-            @RequestParam(required = false) Double threshold) {
-        return dynamicReport(id, threshold);
-    }
-
-    // --- Helpers ---
-
-    private Map<Long, String> resolveDeviceCodes(Set<Long> deviceIds) {
-        return deviceIds.stream()
-                .collect(Collectors.toMap(
-                        id -> id,
-                        id -> deviceRepository.findById(id)
-                                .map(Device::getDeviceCode).orElse("")));
     }
 }

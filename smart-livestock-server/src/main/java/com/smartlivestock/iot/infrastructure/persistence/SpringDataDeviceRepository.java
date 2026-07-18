@@ -11,8 +11,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SpringDataDeviceRepository extends JpaRepository<DeviceJpaEntity, Long> {
-    Optional<DeviceJpaEntity> findByDeviceCode(String deviceCode);
-    List<DeviceJpaEntity> findByTenantId(Long tenantId);
+   Optional<DeviceJpaEntity> findByDeviceCode(String deviceCode);
+    List<DeviceJpaEntity> findAllByDevEuiAndTenantId(String devEui, Long tenantId);
+   List<DeviceJpaEntity> findByTenantId(Long tenantId);
     long countByTenantIdAndStatus(Long tenantId, String status);
 
     @Query("SELECT d FROM DeviceJpaEntity d WHERE d.tenantId = :tenantId ORDER BY d.id")

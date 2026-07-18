@@ -1,52 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-/// Calibration session status (for sessions).
-enum SessionStatus { inProgress, completed, canceled }
-
-/// GPS quality session — device + time window = data window.
-@immutable
-class GpsQualitySession {
-  const GpsQualitySession({
-    required this.id,
-    required this.deviceId,
-    this.deviceCode = '',
-    required this.startedAt,
-    this.endedAt,
-    required this.status,
-    this.note,
-  });
-
-  final int id;
-  final int deviceId;
-  final String deviceCode;
-  final DateTime startedAt;
-  final DateTime? endedAt;
-  final SessionStatus status;
-  final String? note;
-
-  factory GpsQualitySession.fromJson(Map<String, dynamic> json) => GpsQualitySession(
-        id: json['id'] as int,
-        deviceId: json['deviceId'] as int,
-        deviceCode: json['deviceCode'] as String? ?? '',
-        startedAt: DateTime.parse(json['startedAt'] as String),
-        endedAt: json['endedAt'] != null
-            ? DateTime.parse(json['endedAt'] as String)
-            : null,
-        status: _parseSessionStatus(json['status'] as String),
-        note: json['note'] as String?,
-      );
-
-  static SessionStatus _parseSessionStatus(String s) => switch (s) {
-        'IN_PROGRESS' => SessionStatus.inProgress,
-        'COMPLETED' => SessionStatus.completed,
-        'CANCELED' => SessionStatus.canceled,
-        _ => SessionStatus.inProgress,
-      };
-}
-
-/// Legacy calibration status (kept for backward compat with old UI).
-enum CalibrationStatus { inProgress, completed, canceled }
-
 /// Quality grade based on P95 and effective points.
 enum QualityGrade { excellent, usable, marginal, unavailable }
 
@@ -83,92 +36,6 @@ class RtkPoint {
         'longitude': longitude,
       };
 }
-
-/// GPS quality test — a truth-reference analysis within a session.
-/// Maps to GpsQualityTestDto from backend (session_id + sub-range + type + truth ref).
-@immutable
-class CalibrationSession {
-  const CalibrationSession({
-    required this.id,
-    this.sessionId = 0,
-    this.testType = TestType.static_,
-    this.routeId,
-    required this.rtkPointId,
-    this.deviceId = 0,
-    this.deviceCode = '',
-    required this.startedAt,
-    this.endedAt,
-    this.status = CalibrationStatus.completed,
-    this.testStartedAt,
-    this.testEndedAt,
-  });
-
-  final int id;
-  final int sessionId;
-  final TestType testType;
-  final int? routeId;
-  final int rtkPointId;
-  final int deviceId;
-  final String deviceCode;
-  final DateTime startedAt;
-  final DateTime? endedAt;
-  final CalibrationStatus status;
-  // Test sub-range (may differ from session time range)
-  final DateTime? testStartedAt;
-  final DateTime? testEndedAt;
-
-  factory CalibrationSession.fromJson(Map<String, dynamic> json) =>
-      CalibrationSession(
-        id: json['id'] as int,
-        sessionId: json['sessionId'] as int? ?? 0,
-        testType: TestType.fromString(json['testType'] as String? ?? 'STATIC'),
-        routeId: json['routeId'] as int?,
-        rtkPointId: json['rtkPointId'] as int? ?? 0,
-        deviceId: json['deviceId'] as int? ?? 0,
-        deviceCode: json['deviceCode'] as String? ?? '',
-        startedAt: json['testStartedAt'] != null
-            ? DateTime.parse(json['testStartedAt'] as String)
-            : (json['startedAt'] != null
-                ? DateTime.parse(json['startedAt'] as String)
-                : DateTime.now()),
-        endedAt: json['testEndedAt'] != null
-            ? DateTime.parse(json['testEndedAt'] as String)
-            : (json['endedAt'] != null
-                ? DateTime.parse(json['endedAt'] as String)
-                : null),
-        testStartedAt: json['testStartedAt'] != null
-            ? DateTime.parse(json['testStartedAt'] as String)
-            : null,
-        testEndedAt: json['testEndedAt'] != null
-            ? DateTime.parse(json['testEndedAt'] as String)
-            : null,
-        status: CalibrationStatus.completed,
-      );
-
-  static CalibrationStatus _parseStatus(String s) => switch (s) {
-        'IN_PROGRESS' => CalibrationStatus.inProgress,
-        'COMPLETED' => CalibrationStatus.completed,
-        'CANCELED' => CalibrationStatus.canceled,
-        _ => CalibrationStatus.inProgress,
-      };
-}
-
-/// Test type: STATIC (single RTK point) or DYNAMIC (route-driven).
-enum TestType {
-  static_,
-  dynamic_;
-
-  String get label => switch (this) {
-        TestType.static_ => 'STATIC',
-        TestType.dynamic_ => 'DYNAMIC',
-      };
-
-  static TestType fromString(String s) => switch (s.toUpperCase()) {
-        'DYNAMIC' => TestType.dynamic_,
-        _ => TestType.static_,
-      };
-}
-
 /// A reusable dynamic test route definition.
 @immutable
 class DynamicRoute {
@@ -601,5 +468,156 @@ class DeviceBrief {
   factory DeviceBrief.fromJson(Map<String, dynamic> json) => DeviceBrief(
         id: json['id'] as int,
         deviceCode: json['deviceCode'] as String? ?? '',
+      );
+}
+
+// ── NIX-21: New check-centric models ──────────────────────────────
+
+/// A single GPS quality check (replaces session-based model).
+/// Maps to GpsQualityTestDto from backend.
+@immutable
+class QualityCheck {
+  const QualityCheck({
+    required this.id,
+    required this.deviceCode,
+    this.deviceId,
+    required this.checkType,
+    this.rtkPointId,
+    this.routeId,
+    required this.startedAt,
+    this.endedAt,
+    this.status = 'READY',
+    this.errorMessage,
+    this.batchImportId,
+    this.createdAt,
+  });
+
+  final int id;
+  final String deviceCode;
+  final int? deviceId;
+  final String checkType; // STATIC / DYNAMIC
+  final int? rtkPointId;
+  final int? routeId;
+  final DateTime startedAt;
+  final DateTime? endedAt;
+  final String status; // READY / DEVICE_PENDING / FAILED
+  final String? errorMessage;
+  final int? batchImportId;
+  final DateTime? createdAt;
+
+  factory QualityCheck.fromJson(Map<String, dynamic> json) => QualityCheck(
+        id: json['id'] as int,
+        deviceCode: json['deviceCode'] as String? ?? '',
+        deviceId: json['deviceId'] as int?,
+        checkType: json['testType'] as String? ?? 'STATIC',
+        rtkPointId: json['rtkPointId'] as int?,
+        routeId: json['routeId'] as int?,
+        startedAt: json['startedAt'] != null
+            ? DateTime.parse(json['startedAt'] as String)
+            : DateTime.now(),
+        endedAt: json['endedAt'] != null
+            ? DateTime.parse(json['endedAt'] as String)
+            : null,
+        status: json['status'] as String? ?? 'READY',
+        errorMessage: json['errorMessage'] as String?,
+        batchImportId: json['batchImportId'] as int?,
+        createdAt: json['createdAt'] != null
+            ? DateTime.parse(json['createdAt'] as String)
+            : null,
+      );
+}
+
+/// Paginated quality check list returned by GET /checks.
+@immutable
+class QualityCheckListResult {
+  const QualityCheckListResult({
+    required this.items,
+    this.page = 0,
+    this.pageSize = 20,
+    this.total = 0,
+  });
+
+  final List<QualityCheck> items;
+  final int page;
+  final int pageSize;
+  final int total;
+
+  factory QualityCheckListResult.fromJson(Map<String, dynamic> json) =>
+      QualityCheckListResult(
+        items: (json['items'] as List)
+            .whereType<Map<String, dynamic>>()
+            .map(QualityCheck.fromJson)
+            .toList(),
+        page: json['page'] as int? ?? 0,
+        pageSize: json['pageSize'] as int? ?? 20,
+        total: (json['total'] as num?)?.toInt() ?? 0,
+      );
+}
+
+/// Result of a batch GPS quality check import (Excel upload).
+/// Maps to BatchImportResultDto from backend.
+@immutable
+class BatchImportResult {
+  const BatchImportResult({
+    this.batchId,
+    this.totalRows = 0,
+    this.totalSuccess = 0,
+    this.totalPending = 0,
+    this.totalFailed = 0,
+    this.rows = const [],
+  });
+
+  final int? batchId;
+  final int totalRows;
+  final int totalSuccess;
+  final int totalPending;
+  final int totalFailed;
+  final List<RowResult> rows;
+
+  factory BatchImportResult.fromJson(Map<String, dynamic> json) =>
+      BatchImportResult(
+        batchId: json['batchId'] as int?,
+        totalRows: json['totalRows'] as int? ?? 0,
+        totalSuccess: json['totalSuccess'] as int? ?? 0,
+        totalPending: json['totalPending'] as int? ?? 0,
+        totalFailed: json['totalFailed'] as int? ?? 0,
+        rows: (json['rows'] as List?)
+                ?.whereType<Map<String, dynamic>>()
+                .map(RowResult.fromJson)
+                .toList() ??
+            [],
+      );
+}
+
+/// A single row result within a batch import.
+/// Maps to BatchImportResultDto.RowResult from backend.
+@immutable
+class RowResult {
+  const RowResult({
+    this.rowIndex = 0,
+    this.status = '',
+    this.eui = '',
+    this.deviceCode,
+    this.deviceId,
+    this.checkId,
+    this.message,
+  });
+
+  final int rowIndex;
+  final String status; // READY / DEVICE_PENDING / FAILED / SKIPPED
+  final String eui;
+  final String? deviceCode;
+  final int? deviceId;
+  final int? checkId;
+  final String? message;
+
+  factory RowResult.fromJson(Map<String, dynamic> json) => RowResult(
+        rowIndex: json['rowIndex'] as int? ?? 0,
+        status: json['status'] as String? ?? '',
+        eui: json['eui'] as String? ?? '',
+        deviceCode: json['deviceCode'] as String?,
+        deviceId: json['deviceId'] as int?,
+        checkId: json['checkId'] as int?,
+        message: json['message'] as String?,
       );
 }

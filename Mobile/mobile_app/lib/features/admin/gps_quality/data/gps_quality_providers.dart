@@ -69,89 +69,7 @@ final gpsDevicesProvider =
   GpsDevicesController.new,
 );
 
-// ── Calibration sessions (family by rtkPointId) ───────────────────
-
-class CalibrationSessionsController
-    extends AsyncNotifier<List<CalibrationSession>> {
-  CalibrationSessionsController(this.rtkPointId);
-
-  final int rtkPointId;
-
-  @override
-  Future<List<CalibrationSession>> build() async {
-    final result = await ref
-        .read(gpsQualityApiRepositoryProvider)
-        .fetchSessions(rtkPointId: rtkPointId);
-    return result.items;
-  }
-
-  Future<void> refresh() async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
-      final r = await ref
-          .read(gpsQualityApiRepositoryProvider)
-          .fetchSessions(rtkPointId: rtkPointId);
-      return r.items;
-    });
-  }
-
-  Future<void> createSession({
-    required int deviceId,
-    required DateTime startedAt,
-    DateTime? endedAt,
-  }) async {
-    // Let exceptions propagate — the caller shows the error message
-    await ref.read(gpsQualityApiRepositoryProvider).createSession(
-          rtkPointId: rtkPointId,
-          deviceId: deviceId,
-          startedAt: startedAt,
-          endedAt: endedAt,
-        );
-    ref.invalidateSelf();
-    ref.invalidate(comparisonProvider(rtkPointId));
-  }
-
-  /// Batch-create sessions. Returns per-row success/failure so the
-  /// caller can report which rows failed. Invalidates caches regardless.
-  Future<BatchCreateResult> createSessionsBatch(
-      List<BatchSessionRequest> rows) async {
-    final result = await ref
-        .read(gpsQualityApiRepositoryProvider)
-        .createSessionBatch(rows);
-    ref.invalidateSelf();
-    ref.invalidate(comparisonProvider(rtkPointId));
-    return result;
-  }
-
-  Future<bool> endSession(int id) async {
-    try {
-      await ref.read(gpsQualityApiRepositoryProvider).endSession(id);
-      ref.invalidateSelf();
-      ref.invalidate(comparisonProvider(rtkPointId));
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  Future<bool> deleteSession(int id) async {
-    try {
-      await ref.read(gpsQualityApiRepositoryProvider).deleteSession(id);
-      ref.invalidateSelf();
-      ref.invalidate(comparisonProvider(rtkPointId));
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-}
-
-final calibrationSessionsProvider = AsyncNotifierProvider.family<
-    CalibrationSessionsController, List<CalibrationSession>, int>(
-  CalibrationSessionsController.new,
-);
-
-// ── Quality report (family by session + excludeSuspect) ───────────
+// ── Quality report (family by test + excludeSuspect) ─────────────
 
 /// Query key for fetching a quality report.
 typedef GpsReportQuery = ({int sessionId, bool excludeSuspect});
@@ -212,32 +130,45 @@ final dynamicReportProvider =
 );
 
 // ── Sessions (data window) ────────────────────────────────────────
+// ── NIX-21: Checks (top-level, replaces session-based provider) ──
+// ── NIX-21: Checks (top-level, check-centric) ────────────────────
 
-class GpsSessionsController extends AsyncNotifier<List<GpsQualitySession>> {
+class ChecksController extends AsyncNotifier<QualityCheckListResult> {
   @override
-  Future<List<GpsQualitySession>> build() async {
-    final result = await ref.read(gpsQualityApiRepositoryProvider).fetchGpsSessions();
-    return result.items;
+  Future<QualityCheckListResult> build() async {
+    return ref
+        .read(gpsQualityApiRepositoryProvider)
+        .fetchChecks();
   }
 
   Future<void> refresh() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
-      final r = await ref.read(gpsQualityApiRepositoryProvider).fetchGpsSessions();
-      return r.items;
-    });
+    state = await AsyncValue.guard(
+      () => ref.read(gpsQualityApiRepositoryProvider).fetchChecks(),
+    );
+  }
+
+  Future<void> fetchFiltered({
+    String? status,
+    String? eui,
+    int? deviceId,
+    int page = 0,
+    int size = 20,
+  }) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+      () => ref.read(gpsQualityApiRepositoryProvider).fetchChecks(
+        status: status,
+        eui: eui,
+        deviceId: deviceId,
+        page: page,
+        size: size,
+      ),
+    );
   }
 }
 
-final gpsSessionsProvider =
-    AsyncNotifierProvider<GpsSessionsController, List<GpsQualitySession>>(
-  GpsSessionsController.new,
-);
-
-// ── Tests by session (family) ─────────────────────────────────────
-
-final sessionTestsProvider =
-    FutureProvider.family<List<CalibrationSession>, int>(
-  (ref, sessionId) =>
-      ref.read(gpsQualityApiRepositoryProvider).fetchTestsBySession(sessionId),
+final checksProvider =
+    AsyncNotifierProvider<ChecksController, QualityCheckListResult>(
+  ChecksController.new,
 );

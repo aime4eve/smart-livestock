@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIX-21 GPS 质量检验 · 高保真原型</title>
+<style>
+:root{--primary:#2F6B3B;--primary-dark:#244F2D;--primary-soft:#E3F0E4;--accent:#8BA95A;--surface:#F8F6F0;--surface-alt:#FFFFFF;--border:#D7D2C6;--text-primary:#263126;--text-secondary:#617061;--success:#4C9A5F;--warning:#D28A2D;--danger:#C2564B;--info:#4A7F9D;--xs:4px;--sm:8px;--md:12px;--lg:16px;--xl:24px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sans-serif;background:var(--surface);color:var(--text-primary);min-height:100vh}
+.appbar{background:var(--primary);color:#fff;padding:10px var(--xl);display:flex;align-items:center;gap:var(--md);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.appbar h1{font-size:18px;font-weight:600}
+.badge-proto{background:rgba(255,255,255,.2);padding:2px 8px;border-radius:8px;font-size:11px}
+.tabbar{display:flex;background:var(--primary-dark)}
+.tab{flex:1;padding:12px;text-align:center;color:rgba(255,255,255,.7);font-size:14px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent}
+.tab.active{color:#fff;border-bottom-color:var(--accent);font-weight:600}
+.page{display:flex;gap:var(--lg);padding:var(--lg);height:calc(100vh - 100px)}
+.panel{background:var(--surface-alt);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.panel-hd{padding:var(--md) var(--lg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface)}
+.panel-hd h2{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px}
+.panel-bd{padding:var(--lg)}
+.btn{padding:7px 14px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-primary)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.t-s{background:#DBEAFE;color:#2563EB}
+.t-d{background:#FEF3C7;color:#B45309}
+.t-ok{background:#DCFCE7;color:#16A34A}
+.t-wn{background:#FFF7ED;color:#C2410C}
+.t-er{background:#FEE2E2;color:#DC2626}
+.grade{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;border:0.5px solid}
+.grade-ex{background:#DCFCE7;color:#16A34A;border-color:#BBF7D0}
+.grade-us{background:#DBEAFE;color:#2563EB;border-color:#BFDBFE}
+.grade-na{background:#F3F4F6;color:#6B7280;border-color:#E5E7EB}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal-overlay.show{display:flex}
+.modal{background:var(--surface-alt);border-radius:12px;max-width:94vw;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-hd{padding:var(--lg) var(--xl);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:var(--sm);flex-wrap:wrap}
+.modal-hd h3{font-size:16px;font-weight:600;flex:1}
+.modal-bd{padding:var(--md) var(--xl);overflow-y:auto;flex:1}
+.modal-ft{padding:var(--lg) var(--xl);border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:var(--sm)}
+.search-bar{display:flex;gap:var(--sm);padding:var(--sm) var(--lg);border-bottom:1px solid var(--border);background:var(--surface)}
+.search-bar input{flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:var(--surface-alt);font-family:monospace}
+.search-bar select{padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:var(--surface-alt)}
+.muted{color:var(--text-secondary);font-size:12px}
+.steps{display:flex;gap:var(--sm);justify-content:center}
+.step{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary)}
+.step-num{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:var(--border);color:#fff}
+.step.active .step-num{background:var(--primary)}.step.done .step-num{background:var(--success)}
+.step-arrow{color:var(--border);font-size:14px}
+.summary{background:var(--surface);border-radius:10px;padding:var(--md);margin-bottom:var(--md);display:flex;gap:var(--xl);align-items:center;flex-wrap:wrap}
+.summary .stat{text-align:center}
+.summary .stat-val{font-size:22px;font-weight:700}
+.summary .stat-label{font-size:11px;color:var(--text-secondary)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px var(--md);background:var(--surface);font-weight:600;color:var(--text-secondary);font-size:12px;border-bottom:1px solid var(--border)}
+td{padding:8px var(--md);border-bottom:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:#FAF9F5}
+.upload-zone{border:2px dashed var(--border);border-radius:10px;padding:var(--xl);text-align:center;cursor:pointer}
+.upload-zone:hover{border-color:var(--primary);background:var(--primary-soft)}
+.upload-zone .icon{font-size:36px;margin-bottom:var(--sm)}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:var(--md)}
+.stat-card{background:var(--surface);border-radius:10px;padding:var(--md);border:1px solid var(--border)}
+.stat-card .lbl{font-size:10px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.stat-card .val{font-size:18px;font-weight:700;margin-top:2px}.stat-card .val.ok{color:var(--success)}.stat-card .val.warn{color:var(--warning)}
+</style>
+</head>
+<body>
+<div class="appbar"><span style="font-size:22px">📡</span><h1>GPS 质量检查</h1><span class="badge-proto">NIX-21 时间轴 + 批量导入</span></div>
+<div class="tabbar"><div class="tab active">质量检验</div><div class="tab">真值参照</div><div class="tab">质量对比</div></div>
+<div class="page">
+  <!-- LEFT: Device list -->
+  <div style="width:320px;flex-shrink:0;display:flex;flex-direction:column;gap:var(--lg);overflow-y:auto">
+    <div class="panel">
+      <div class="panel-hd"><h2>📋 设备 <span class="tag t-ok" id="hd-c">0</span></h2>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-primary btn-sm" onclick="openBatch()" style="padding:4px 10px">📥 批量导入</button>
+          <button class="btn btn-outline btn-sm" onclick="openCreate()">+ 创建</button>
+        </div>
+      </div>
+      <div style="padding:8px var(--lg);background:#FFFBEB;border-bottom:1px solid #FDE68A;font-size:12px;color:#92400E">💡 左侧按设备分组，点击查看时间轴</div>
+      <div class="search-bar">
+        <input type="text" placeholder="搜索 EUI 或设备编号…" id="sq" oninput="rd()">
+        <select id="sf" onchange="rd()"><option value="">全部状态</option><option value="READY">READY</option><option value="DEVICE_PENDING">待注册</option><option value="FAILED">失败</option></select>
+      </div>
+      <div id="cl"></div>
+    </div>
+  </div>
+  <!-- RIGHT: Device detail + timeline + report -->
+  <div style="flex:1;overflow-y:auto">
+    <div class="panel">
+      <div class="panel-hd"><h2 id="dt">检验详情</h2>
+        <button class="btn btn-primary btn-sm" id="btn-br-bar" onclick="br()" style="display:none;background:var(--info);color:#fff;padding:4px 10px">📡 批量注册</button>
+      </div>
+      <div class="panel-bd" id="db">
+        <div id="de" style="text-align:center;padding:40px 0;color:var(--text-secondary)">
+          <div style="font-size:32px;margin-bottom:var(--sm)">📋</div>
+          <div>选择左侧一台设备查看全部检验</div>
+        </div>
+        <div id="dr" style="display:none">
+          <div id="tl" style="display:none"><div id="tlc"></div></div>
+          <hr style="margin:var(--md) 0;border:none;border-top:1px solid var(--border);display:none" id="tl-hr">
+          <div id="dr-report" style="display:none">
+            <div style="display:flex;gap:var(--lg);align-items:center;flex-wrap:wrap;margin-bottom:var(--md)">
+              <div><span class="muted">当前检验</span><br><strong id="d1"></strong><br><span class="muted" style="font-family:monospace;font-size:11px" id="d2"></span></div>
+              <div><span class="muted">类型</span><br><span id="d3"></span></div>
+              <div><span class="muted">真值基准</span><br><strong id="d4"></strong></div>
+              <div><span class="muted">时间</span><br><strong id="d5"></strong></div>
+              <div style="flex:1;text-align:right"><span id="d6" class="grade"></span></div>
+            </div>
+            <div class="stats-grid" id="ds"></div>
+            <div style="margin-top:var(--md)"><div class="stat-card" style="padding:20px;text-align:center;color:var(--text-secondary)" id="dsc">[散点图]</div></div>
+          </div>
+        </div>
+        <div id="dpw" style="display:none;text-align:center;padding:30px 0">
+          <div style="font-size:48px;margin-bottom:var(--md)">⚠️</div>
+          <div style="font-size:16px;font-weight:600;margin-bottom:var(--sm)">设备 blade 注册未完成</div>
+          <div class="muted" style="margin-bottom:var(--lg)">该设备 blade 注册失败，检验暂时无法出报告</div>
+          <button class="btn btn-primary" onclick="">手动注册 blade</button>
+          <button class="btn btn-danger" style="margin-left:8px">删除设备</button>
+        </div>
+        <div id="df" style="display:none;text-align:center;padding:30px 0">
+          <div style="font-size:48px;margin-bottom:var(--md)">❌</div>
+          <div style="font-size:16px;font-weight:600;margin-bottom:var(--sm)">设备创建失败</div>
+          <div class="muted" style="margin-bottom:var(--lg)" id="dfm"></div>
+          <button class="btn btn-danger">删除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// ═══ DATA ═══
+var checks = [
+  {id:1,e:'847A...F03',c:'DEV-GPS-001',t:'静态',r:'11号点·北门',tm:'09:00-10:00',st:'READY',g:'优秀',gc:'grade-ex',p:'3.2m',n:42},
+  {id:2,e:'A2B4...C19',c:'GPS-A2B4...',t:'动态',r:'北门短测线',tm:'14:00-15:30',st:'READY',g:'可用',gc:'grade-us',v:'83%',n:'5/6'},
+  {id:3,e:'F1C2...D88',c:'DEV-GPS-004',t:'静态',r:'3号·猪舍A区',tm:'08:00-09:30',st:'DEVICE_PENDING',er:'blade注册失败'},
+  {id:4,e:'EFFF...0000',c:'',t:'静态',r:'5号点',tm:'09:00-10:00',st:'FAILED',er:'EUI格式无效'},
+  {id:5,e:'847A...F03',c:'DEV-GPS-001',t:'动态',r:'北门短测线',tm:'10:45-12:15',st:'READY',g:'可用',gc:'grade-us',v:'83%',n:'5/6'},
+  {id:6,e:'847A...F03',c:'DEV-GPS-001',t:'静态',r:'5号·西南门',tm:'12:15-19:15',st:'READY',g:'优秀',gc:'grade-ex',p:'2.1m',n:380},
+];
+var si=null,se=null;
+
+// ═══ RENDER ═══
+function rd(){
+  var q=document.getElementById('sq').value.toLowerCase(),f=document.getElementById('sf').value;
+  var items=checks.filter(function(c){return(!f||c.st===f)&&(!q||c.e.toLowerCase().indexOf(q)>=0||c.c.toLowerCase().indexOf(q)>=0);});
+  document.getElementById('hd-c').textContent=checks.length;
+  // Group by EUI
+  var dm={};
+  items.forEach(function(c){var k=c.e;if(!dm[k])dm[k]={eui:k,code:c.c,list:[],ok:0,pend:0,fail:0};dm[k].list.push(c);if(c.st==='READY')dm[k].ok++;else if(c.st==='DEVICE_PENDING')dm[k].pend++;else dm[k].fail++;});
+  var devs=Object.values(dm);devs.sort(function(a,b){return a.eui.localeCompare(b.eui);});
+  var hasP=checks.some(function(c){return c.st==='DEVICE_PENDING';});
+  var brBtn=document.getElementById('btn-br-bar');if(brBtn)brBtn.style.display=hasP?'':'none';
+  var el=document.getElementById('cl');el.innerHTML='';
+  devs.forEach(function(d){
+    var st=d.fail>0?'<span class="tag t-er">✗失败'+d.fail+'</span>':d.pend>0?'<span class="tag t-wn">⚠待注册'+d.pend+'</span>':'<span class="tag t-ok">●就绪</span>';
+    var scnt=d.list.filter(function(x){return x.t==='静态'}).length,dcnt=d.list.filter(function(x){return x.t==='动态'}).length;
+    var tt='';if(scnt>0)tt+='<span class="tag t-s" style="font-size:10px">静态×'+scnt+'</span> ';if(dcnt>0)tt+='<span class="tag t-d" style="font-size:10px">动态×'+dcnt+'</span>';
+    var sel=d.eui===se?'background:var(--primary-soft);border-left:3px solid var(--primary)':'border-left:3px solid transparent';
+    el.innerHTML+='<div class="di" data-eui="'+d.eui+'" style="padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;'+sel+'" onclick="sd(this.dataset.eui)">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center"><div><span style="font-weight:600;font-family:monospace;font-size:12px">'+d.eui+'</span><span class="muted" style="margin-left:6px">'+d.code+'</span></div>'+st+'</div>'+
+      '<div style="margin-top:3px;display:flex;gap:6px;align-items:center"><span style="font-size:12px;color:var(--text-secondary);font-weight:600">'+d.list.length+'</span><span class="muted" style="font-size:11px">条检验</span>'+tt+'</div></div>';
+  });
+  if(devs.length===0)el.innerHTML='<div style="text-align:center;padding:32px;color:var(--text-secondary)">无匹配设备</div>';
+  if(se){var exist=dm[se];if(!exist)sd(null);else if(si){var still=exist.list.find(function(x){return x.id===si;});if(!still)sc(exist.list[0].id);}}
+}
+
+// ═══ SELECTION ═══
+function sd(eui){
+  se=eui;
+  document.getElementById('de').style.display='none';document.getElementById('dr').style.display='none';document.getElementById('dpw').style.display='none';document.getElementById('df').style.display='none';
+  if(!eui){document.getElementById('de').style.display='';document.getElementById('dt').textContent='检验详情';rd();return;}
+  var dc=checks.filter(function(c){return c.e===eui;}).sort(function(a,b){return a.id-b.id;});
+  if(dc.length>0)sc(dc[0].id);rd();
+}
+
+function sc(id){
+  si=id;var cx=checks.find(function(x){return x.id===id;});if(cx)se=cx.e;
+  document.querySelectorAll('.di').forEach(function(el){el.style.background='';el.style.borderLeft='3px solid transparent';});
+  if(se){var p=document.querySelector('.di[data-eui="'+se+'"]');if(p){p.style.background='var(--primary-soft)';p.style.borderLeft='3px solid var(--primary)';}}
+  document.getElementById('de').style.display='none';document.getElementById('dr').style.display='none';document.getElementById('dpw').style.display='none';document.getElementById('df').style.display='none';
+  if(!id){document.getElementById('de').style.display='';document.getElementById('dt').textContent='检验详情';return;}
+  var c=checks.find(function(x){return x.id===id;});if(!c)return;
+  document.getElementById('dt').textContent=c.e+' · '+c.c;
+  if(c.st==='READY'){
+    document.getElementById('dr').style.display='';document.getElementById('dr-report').style.display='';
+    document.getElementById('d1').textContent=c.c;document.getElementById('d2').textContent=c.e;
+    document.getElementById('d3').innerHTML='<span class="tag '+(c.t==='静态'?'t-s':'t-d')+'">'+c.t+'</span>';
+    document.getElementById('d4').textContent=c.r;document.getElementById('d5').textContent='2026-07-18 '+c.tm;
+    document.getElementById('d6').className='grade '+c.gc;
+    if(c.t==='静态'){
+      document.getElementById('d6').textContent='P95 '+c.p+' · '+c.g;
+      document.getElementById('ds').innerHTML='<div class="stat-card"><div class="lbl">有效点数</div><div class="val ok">42</div></div><div class="stat-card"><div class="lbl">P95</div><div class="val ok">3.2m</div></div><div class="stat-card"><div class="lbl">P50</div><div class="val ok">2.1m</div></div><div class="stat-card"><div class="lbl">平均误差</div><div class="val ok">1.8m</div></div><div class="stat-card"><div class="lbl">抖动直径</div><div class="val ok">5.1m</div></div><div class="stat-card"><div class="lbl">15m内</div><div class="val ok">98.3%</div></div>';
+      document.getElementById('dsc').textContent='[ 散点图：GPS点分布，圆心=RTK真值 ]';
+    }else{
+      document.getElementById('d6').textContent='覆盖率 '+c.v+' · '+c.g;
+      document.getElementById('ds').innerHTML='<div class="stat-card"><div class="lbl">路线覆盖</div><div class="val ok">'+c.v+'</div></div><div class="stat-card"><div class="lbl">匹配/总点</div><div class="val ok">5/6</div></div><div class="stat-card"><div class="lbl">遗漏点</div><div class="val warn">1</div></div><div class="stat-card"><div class="lbl">歧义点</div><div class="val ok">0</div></div><div class="stat-card"><div class="lbl">顺序正确</div><div class="val ok">✅</div></div><div class="stat-card"><div class="lbl">平均误差</div><div class="val warn">7.8m</div></div>';
+      document.getElementById('dsc').textContent='[ 路线匹配图：北门短测线 经过点序列 9→10 ]';
+    }
+    // ═══ TIMELINE BAR ═══
+    var related=checks.filter(function(x){return x.e===c.e;}).sort(function(a,b){return a.id-b.id;});
+    var tlDiv=document.getElementById('tl'),tlcDiv=document.getElementById('tlc'),hr=document.getElementById('tl-hr');
+    if(related.length>1){
+      tlDiv.style.display='';hr.style.display='';
+      var pM=function(s){var p=s.split(':');return parseInt(p[0])*60+parseInt(p[1]);};
+      var first=related[0],last=related[related.length-1];
+      var tStart=pM(first.tm.split('-')[0]),tEnd=pM(last.tm.split('-')[1]),totalDur=Math.max(tEnd-tStart,1);
+      var totalN=related.length,excN=related.filter(function(x){return x.g==='优秀'}).length;
+      var html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--md)">'+
+        '<div><div style="font-size:15px;font-weight:700"><span style="font-family:monospace">'+c.e+'</span> <span class="muted" style="font-weight:400;font-size:13px">'+c.c+'</span></div>'+
+        '<div style="margin-top:2px;font-size:12px;color:var(--text-secondary)">'+totalN+'条检验 · '+first.tm.split('-')[0]+'−'+last.tm.split('-')[1]+'</div></div>'+
+        '<div style="text-align:right"><div style="font-size:11px;color:var(--text-secondary)">整体质量</div>'+
+        '<div><span class="grade grade-ex" style="font-size:11px">优秀'+excN+'</span>'+(totalN-excN>0?' <span class="grade grade-us" style="font-size:11px">其他'+(totalN-excN)+'</span>':'')+'</div></div></div>';
+      html+='<div style="font-size:12px;color:var(--text-secondary);font-weight:600;margin-bottom:var(--sm)">⏱ 时间轴（点击切换检验）</div>';
+      html+='<div style="display:flex;height:72px;gap:3px;align-items:stretch">';
+      related.forEach(function(x,i){
+        var rng=x.tm.split('-'),start=pM(rng[0]),end=pM(rng[1]),w=((end-start)/totalDur*100).toFixed(1)+'%';
+        var sel=x.id===si?'2px solid var(--primary);opacity:1':'1px solid transparent;opacity:0.85';
+        var bg=x.t==='静态'?'#DBEAFE':'#FEF3C7',tc=x.t==='静态'?'#2563EB':'#B45309';
+        var gl=x.t==='静态'?('P95 '+x.p):('覆盖率 '+x.v);
+        html+='<div onclick="sc('+x.id+')" style="flex:0 0 '+w+';background:'+bg+';border-radius:8px;padding:8px;cursor:pointer;border:'+sel+';display:flex;flex-direction:column;justify-content:space-between;color:'+tc+';min-width:0">'+
+          '<div style="display:flex;justify-content:space-between"><span style="font-size:10px;font-weight:700">'+x.t+'</span><span style="font-size:9px;opacity:.7">'+rng[0]+'</span></div>'+
+          '<div><div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+x.r+'</div>'+
+          '<div style="margin-top:2px"><span class="grade '+x.gc+'" style="font-size:9px;padding:1px 5px">'+gl+'</span></div></div></div>';
+      });
+      html+='</div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-secondary);margin-top:4px">'+
+        '<span>'+first.tm.split('-')[0]+'</span><span>'+last.tm.split('-')[1]+'</span></div>';
+      tlcDiv.innerHTML=html;
+    }else{tlDiv.style.display='none';hr.style.display='none';}
+  }else if(c.st==='DEVICE_PENDING'){document.getElementById('dpw').style.display='';}
+  else{document.getElementById('df').style.display='';document.getElementById('dfm').textContent=c.er;}
+}
+
+// ═══ MODALS ═══
+function openBatch(){document.getElementById('mb').classList.add('show');}
+function openCreate(){document.getElementById('mc').classList.add('show');}
+function closeModal(n){document.getElementById(n).classList.remove('show');}
+
+// ═══ INIT ═══
+rd();
+
+
+// ═══ BATCH IMPORT ═══
+var importNew = [], importFailed = [], importPending = [];
+
+function goImport() {
+  document.getElementById('st0').style.display='none'; document.getElementById('st1').style.display=''; document.getElementById('st2').style.display='none';
+  document.getElementById('s1').className='step done'; document.getElementById('s2').className='step active'; document.getElementById('s3').className='step';
+  var data=[
+    {e:'847A...F03',c:'DEV-GPS-001',t:'静态',r:'11号点·北门',tm:'09:00-10:00',ds:'ok'},
+    {e:'847A...F03',c:'DEV-GPS-001',t:'静态',r:'5号·西南门',tm:'10:30-12:00',ds:'ok'},
+    {e:'A2B4...C19',c:'',t:'动态',r:'地面门岗巡回路线',tm:'14:00-15:30',ds:'ok'},
+    {e:'F1C2...D88',c:'DEV-GPS-004',t:'静态',r:'3号·猪舍A区',tm:'08:00-09:30',ds:'wn'},
+    {e:'9A33...0BEE',c:'',t:'动态',r:'北门短测线',tm:'16:00-17:00',ds:'wn'},
+    {e:'D4E5...0A71',c:'DEV-GPS-006',t:'静态',r:'11号点·北门',tm:'11:00-12:30',ds:'ok'},
+    {e:'B6C7...0F92',c:'',t:'动态',r:'地面门岗巡回路线',tm:'15:00-16:30',ds:'ok'},
+    {e:'EFFF...0000',c:'',t:'静态',r:'5号点',tm:'09:00-10:00',ds:'er'},
+  ];
+  importNew=data;
+  var n=data.length,k=data.filter(function(x){return x.ds==='ok'}).length,w=data.filter(function(x){return x.ds==='wn'}).length,e=data.filter(function(x){return x.ds==='er'}).length;
+  document.getElementById('pv-n').textContent=n;document.getElementById('pv-k').textContent=k;document.getElementById('pv-w').textContent=w;document.getElementById('pv-e').textContent=e;
+  document.getElementById('bs').style.display='inline-flex';document.getElementById('bn').textContent=n;
+  var tb=document.getElementById('pt');tb.innerHTML='';
+  data.forEach(function(x,i){
+    var tg=x.ds==='ok'?'<span class="tag t-ok">●</span>':x.ds==='wn'?'<span class="tag t-wn">●</span>':'<span class="tag t-er">✗</span>';
+    tb.innerHTML+='<tr><td>'+(i+1)+'</td><td style="font-family:monospace;font-size:12px">'+x.e+'</td><td>'+(x.c||'<span class="muted">自动</span>')+'</td><td><span class="tag '+(x.t==='静态'?'t-s':'t-d')+'">'+x.t+'</span></td><td>'+x.r+'</td><td>'+x.tm+'</td><td>'+tg+'</td><td><span onclick="this.closest(\'tr\').remove();var r=document.getElementById(\'pt\').children.length;document.getElementById(\'bn\').textContent=r" style="cursor:pointer;color:var(--danger)">✕</span></td></tr>';
+  });
+}
+
+function doSubmitImport() {
+  document.getElementById('st0').style.display='none';document.getElementById('st1').style.display='none';document.getElementById('st2').style.display='';
+  document.getElementById('s1').className='step done';document.getElementById('s2').className='step done';document.getElementById('s3').className='step active';
+  document.getElementById('bs').style.display='none';document.getElementById('ft1').style.display='';document.getElementById('ft2').style.display='';
+  
+  var res=[
+    {s:'k',e:'847A...F03',c:'DEV-GPS-001',t:'静态',r:'11号点·北门',m:'设备已存在(ACTIVE)，检验已创建',ad:true},
+    {s:'k',e:'847A...F03',c:'DEV-GPS-001',t:'静态',r:'5号·西南门',m:'设备已存在(ACTIVE)，检验已创建',ad:true},
+    {s:'k',e:'A2B4...C19',c:'GPS-A2B4...',t:'动态',r:'地面门岗巡回路线',m:'新设备+blade注册成功',ad:true},
+    {s:'w',e:'F1C2...D88',c:'DEV-GPS-004',t:'静态',r:'3号·猪舍A区',m:'设备已创建，blade注册失败(平台不可达)',ad:true},
+    {s:'w',e:'9A33...0BEE',c:'GPS-9A33...',t:'动态',r:'北门短测线',m:'新设备已创建，注册失败(平台拒绝)',ad:true},
+    {s:'k',e:'D4E5...0A71',c:'DEV-GPS-006',t:'静态',r:'11号点·北门',m:'设备已存在(ACTIVE)，检验已创建',ad:true},
+    {s:'k',e:'B6C7...0F92',c:'GPS-B6C7...',t:'动态',r:'地面门岗巡回路线',m:'新设备+blade注册成功',ad:true},
+    {s:'e',e:'EFFF...0000',c:'',t:'静态',r:'5号点',m:'EUI格式无效(长度不足)，创建失败',ad:false},
+  ];
+  var k=res.filter(function(x){return x.s==='k'}).length,w=res.filter(function(x){return x.s==='w'}).length,e=res.filter(function(x){return x.s==='e'}).length;
+  document.getElementById('rs-k').textContent=k;document.getElementById('rs-w').textContent=w;document.getElementById('rs-e').textContent=e;
+  
+  var tb=document.getElementById('rt');tb.innerHTML='';
+  importPending=[];importFailed=[];
+  
+  res.forEach(function(x,i){
+    var ic=x.s==='k'?'<span class="tag t-ok">✓</span>':x.s==='w'?'<span class="tag t-wn">⚠️</span>':'<span class="tag t-er">✗</span>';
+    var tr=document.createElement('tr');tr.className=x.s==='e'?'r-er':x.s==='w'?'r-wn':'r-ok';
+    tr.innerHTML='<td>'+(i+1)+'</td><td>'+ic+'</td><td style="font-family:monospace;font-size:12px">'+x.e+'</td><td>'+(x.c||'-')+'</td><td><span class="tag '+(x.t==='静态'?'t-s':'t-d')+'">'+x.t+'</span></td><td>'+x.r+'</td><td style="font-size:12px;color:'+(x.s==='k'?'var(--success)':x.s==='w'?'var(--warning)':'var(--danger)')+'">'+x.m+'</td>';
+    tb.appendChild(tr);
+    if(x.s==='w')importPending.push(x);
+    if(x.s==='e')importFailed.push(x);
+    
+    // Add checks to main list for demo
+    if(x.ad){
+      var nid=checks.length+1;
+      checks.push({id:nid,e:x.e,c:x.c||('GPS-'+x.e.slice(0,4)+'...'),t:x.t,r:x.r,tm:'见详情',st:x.s==='k'?'READY':x.s==='w'?'DEVICE_PENDING':'FAILED',g:'待计算',gc:'grade-na',p:'—',n:'新建',v:'—',er:x.s==='w'?x.m:x.s==='e'?x.m:''});
+    }
+  });
+  
+  document.getElementById('pa').style.display='none';document.getElementById('fa').style.display='none';
+  if(importPending.length>0){
+    document.getElementById('pa').style.display='';
+    document.getElementById('pc').textContent=importPending.length;
+    document.getElementById('pl').innerHTML=importPending.map(function(x,i){
+      return '<div style="display:flex;align-items:center;gap:var(--sm);padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-family:monospace;font-size:12px;width:120px">'+x.e+'</span><span style="flex:1;font-size:12px">'+x.m+'</span><button class="btn btn-outline btn-sm" onclick="alert(\'手动注册 blade（模拟）\')">手动注册</button><button class="btn btn-danger btn-sm">删除</button></div>';
+    }).join('');
+  }
+  if(importFailed.length>0){
+    document.getElementById('fa').style.display='';
+    document.getElementById('fc').textContent=importFailed.length;
+    document.getElementById('fl').innerHTML=importFailed.map(function(x,i){
+      return '<div style="display:flex;align-items:center;gap:var(--sm);padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-family:monospace;font-size:12px;width:120px">'+x.e+'</span><span style="flex:1;font-size:12px;color:var(--danger)">'+x.m+'</span><button class="btn btn-outline btn-sm" onclick="alert(\'编辑并重试（模拟）\')">编辑并重试</button><button class="btn btn-danger btn-sm">删除</button></div>';
+    }).join('');
+  }
+  rd();
+}
+
+function batchRegImport() {
+  var btn=document.getElementById('breg');
+  btn.textContent='⏳ 注册中…';btn.disabled=true;
+  setTimeout(function(){
+    btn.textContent='✅ 全部完成';btn.style.background='var(--success)';
+    document.getElementById('pc').textContent='0';
+    document.querySelector('#pa .muted').textContent='所有设备注册成功！';
+    document.querySelectorAll('#pl .btn-outline').forEach(function(b){b.textContent='✅ 已注册';b.style.background='var(--success)';b.style.color='#fff';b.style.borderColor='var(--success)';b.disabled=true;});
+  },1200);
+}
+
+</script>
+
+<!-- ═══ MODAL: 手工创建 ═══ -->
+<div class="modal-overlay" id="mc"><div class="modal" style="width:520px">
+<div class="modal-hd"><h3>📝 手工创建质量检验</h3></div>
+<div class="modal-bd">
+<div style="display:flex;gap:var(--sm);margin-bottom:var(--sm);align-items:flex-end"><div style="flex:1"><label style="display:block;font-size:11px;color:var(--text-secondary);font-weight:600;margin-bottom:3px">设备EUI <span style="color:var(--danger)">*</span></label><input type="text" placeholder="847A000000000F03" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:monospace"></div><div style="flex:1"><label style="display:block;font-size:11px;color:var(--text-secondary);font-weight:600;margin-bottom:3px">设备编号 <span class="muted">选填</span></label><input type="text" placeholder="不填则自动" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px"></div></div>
+<div style="margin-bottom:var(--sm)"><label style="display:block;font-size:11px;color:var(--text-secondary);font-weight:600;margin-bottom:3px">检验类型</label><div style="display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;width:fit-content;font-size:11px"><span class="si" style="padding:3px 10px;cursor:pointer;background:#2563EB;color:#fff;border-right:1px solid var(--border);font-weight:500">静态</span><span class="si" style="padding:3px 10px;cursor:pointer;font-weight:500">动态</span></div></div>
+<div style="margin-bottom:var(--sm)"><label style="display:block;font-size:11px;color:var(--text-secondary);font-weight:600;margin-bottom:3px">RTK 真值点</label><select style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px"><option>11号点 - 北门</option><option>5号-西南门</option></select></div>
+<div style="display:flex;gap:var(--sm);align-items:flex-end"><div style="flex:1"><label style="display:block;font-size:11px;color:var(--text-secondary);font-weight:600;margin-bottom:3px">开始时间 <span style="color:var(--danger)">*</span></label><input type="datetime-local" value="2026-07-18T09:00" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px"></div><div style="flex:1"><label style="display:block;font-size:11px;color:var(--text-secondary);font-weight:600;margin-bottom:3px">结束时间</label><input type="datetime-local" value="2026-07-18T10:00" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px"></div></div>
+</div>
+<div class="modal-ft"><button class="btn btn-outline" onclick="closeModal('mc')">取消</button><button class="btn btn-primary" onclick="closeModal('mc');alert('检验已创建（模拟）')">🚀 创建</button></div></div></div>
+<!-- ═══ MODAL: 批量导入 ═══ -->
+<div class="modal-overlay" id="mb"><div class="modal" style="width:900px;max-height:88vh">
+<div class="modal-hd">
+<h3>📥 批量导入 — GPS 质量检验</h3>
+<div class="steps" style="margin-right:var(--lg);margin-bottom:0">
+<div class="step active" id="s1"><span class="step-num">1</span>上传</div><span class="step-arrow">›</span>
+<div class="step" id="s2"><span class="step-num">2</span>预览</div><span class="step-arrow">›</span>
+<div class="step" id="s3"><span class="step-num">3</span>结果</div></div>
+<button class="btn btn-outline btn-sm" onclick="alert('后端 Apache POI生成 .xlsx')" style="font-size:12px;padding:4px 8px">📄 下载模板</button>
+</div>
+<div class="modal-bd">
+<div style="background:var(--primary-soft);border-radius:8px;padding:10px 14px;margin-bottom:var(--md);font-size:12px;line-height:1.6"><strong>每行 = 一条质量检验。</strong> ① 按EUI查找/创建设备→②自动blade注册→③创建检验。完成后左侧列表自动更新。</div>
+<div id="st0">
+<div class="upload-zone" onclick="goImport()"><div class="icon">📂</div><div><strong>点击选择 Excel 文件</strong></div><div class="hint">.xlsx 格式</div></div>
+<div style="margin-top:var(--md);font-size:13px;font-weight:600">📐 模板格式</div>
+<table style="margin-top:var(--sm)"><thead><tr><th>设备EUI <span style="color:var(--danger)">*</span></th><th>设备编号 <span class="muted">选填</span></th><th>检验类型 <span style="color:var(--danger)">*</span></th><th>真值点/路径 <span style="color:var(--danger)">*</span></th><th>开始时间 <span style="color:var(--danger)">*</span></th><th>结束时间</th></tr></thead><tbody><tr><td style="font-family:monospace">847A000000000F03</td><td>DEV-GPS-001</td><td><span class="tag t-s">静态</span></td><td>11号点</td><td>2026-07-18 09:00</td><td>2026-07-18 10:00</td></tr></tbody></table>
+</div>
+<div id="st1" style="display:none">
+<div class="summary"><div class="stat"><div class="stat-val" id="pv-n">0</div><div class="stat-label">总行数</div></div><div class="stat"><div class="stat-val" style="color:var(--success)" id="pv-k">0</div><div class="stat-label">可出报告</div></div><div class="stat"><div class="stat-val" style="color:var(--warning)" id="pv-w">0</div><div class="stat-label">待注册</div></div><div class="stat"><div class="stat-val" style="color:var(--danger)" id="pv-e">0</div><div class="stat-label">失败</div></div><div style="flex:1;text-align:right"><span class="tag t-ok">后端解析完成</span></div></div>
+<div class="muted" style="margin-bottom:var(--sm)">可删除部分行后提交</div>
+<table><thead><tr><th style="width:50px">#</th><th>EUI</th><th>设备编号</th><th style="width:55px">类型</th><th>真值点/路径</th><th>时段</th><th>状态</th><th style="width:30px"></th></tr></thead><tbody id="pt"></tbody></table>
+</div>
+<div id="st2" style="display:none">
+<div class="summary"><div class="stat"><div class="stat-val" style="color:var(--success)" id="rs-k">0</div><div class="stat-label">已创建 ✅</div></div><div class="stat"><div class="stat-val" style="color:var(--warning)" id="rs-w">0</div><div class="stat-label">待注册 ⚠️</div></div><div class="stat"><div class="stat-val" style="color:var(--danger)" id="rs-e">0</div><div class="stat-label">失败 ❌</div></div><div style="flex:1;text-align:right"><span class="tag t-ok">批量处理完成</span></div></div>
+<table><thead><tr><th style="width:50px">#</th><th style="width:40px">结果</th><th>EUI</th><th>设备编号</th><th style="width:55px">类型</th><th>真值点/路径</th><th>说明</th></tr></thead><tbody id="rt"></tbody></table>
+<div id="pa" style="margin-top:var(--md);padding:var(--md);background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;display:none">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sm)">
+<div><span style="font-size:13px;font-weight:600">⚠️ 需手动处理的设备</span> <span class="tag t-wn" id="pc">0</span></div>
+<button class="btn btn-primary btn-sm" id="breg" onclick="batchRegImport()" style="background:var(--info);padding:4px 12px">📡 批量注册 blade</button></div>
+<div class="muted" style="margin-bottom:var(--sm)">设备已创建但 blade 注册失败：</div><div id="pl"></div></div>
+<div id="fa" style="margin-top:var(--md);padding:var(--md);background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;display:none">
+<div><span style="font-size:13px;font-weight:600">❌ 导入失败的数据</span> <span class="tag t-er" id="fc">0</span></div>
+<div class="muted" style="margin-bottom:var(--sm)">以下数据创建失败：</div><div id="fl"></div></div>
+</div></div>
+<div class="modal-ft">
+<button class="btn btn-outline" onclick="closeModal('mb')">取消</button>
+<div id="ft1"><button class="btn btn-primary" id="bs" onclick="doSubmitImport()" style="display:none">🚀 批量创建 <span id="bn">0</span> 条</button></div>
+<div id="ft2" style="display:none"><button class="btn btn-primary" onclick="closeModal('mb');rd()">✅ 完成，返回列表</button></div>
+</div></div></div>
+
+
+</body>
+</html>

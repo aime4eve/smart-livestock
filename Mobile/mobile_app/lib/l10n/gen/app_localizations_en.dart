@@ -2843,6 +2843,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpsQualityErrorHistogram => 'Error Distribution';
 
   @override
+  String get gpsQualityDistanceRange0to15 => '0-15m';
+
+  @override
+  String get gpsQualityDistanceRange15to25 => '15-25m';
+
+  @override
+  String get gpsQualityDistanceRange25to40 => '25-40m';
+
+  @override
+  String get gpsQualityDistanceRangeOver40 => '>40m';
+
+  @override
+  String get gpsQualityCumulativeWithin25m => '≤25m cumulative';
+
+  @override
+  String get gpsQualityCumulativeWithin40m => '≤40m cumulative';
+
+  @override
   String get gpsQualityCalibrationLocations => 'Calibration Locations';
 
   @override
@@ -3038,4 +3056,115 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsQualityTabComparison => 'Comparison';
+
+  @override
+  String get gpsQualityDateFormatError =>
+      'Invalid format, use yyyy-MM-dd HH:mm';
+
+  @override
+  String get gpsQualityRequiredField => 'This field is required';
+
+  @override
+  String get gpsQualityTabChecks => 'Quality Checks';
+
+  @override
+  String get gpsQualityCreateCheck => 'Create Check';
+
+  @override
+  String get gpsQualityBatchImport => 'Batch Import';
+
+  @override
+  String get gpsQualityDeviceEui => 'Device EUI';
+
+  @override
+  String get gpsQualityDeviceGroup => 'Device Group';
+
+  @override
+  String get gpsQualityTimeline => 'Timeline';
+
+  @override
+  String gpsQualityChecksCount(Object n) {
+    return '$n checks';
+  }
+
+  @override
+  String get gpsQualityDevicePending => 'Pending';
+
+  @override
+  String get gpsQualityImportFailed => 'Import Failed';
+
+  @override
+  String get gpsQualityUploadExcel => 'Upload Excel File';
+
+  @override
+  String get gpsQualityManualRegister => 'Manual Register';
+
+  @override
+  String get gpsQualityImportStepUpload => 'Upload';
+
+  @override
+  String get gpsQualityImportStepPreview => 'Preview';
+
+  @override
+  String get gpsQualityImportResult => 'Import Result';
+
+  @override
+  String get gpsQualityDeleteCheck => 'Delete Check';
+
+  @override
+  String get gpsQualityBatchConfirmDelete => 'Confirm delete this batch?';
+
+  @override
+  String get gpsQualityRetrying => 'Retrying...';
+
+  @override
+  String get gpsQualityEditRetry => 'Edit & Retry';
+
+  @override
+  String get gpsQualityBatchRegister => 'Batch Register';
+
+  @override
+  String get gpsQualityEditAndRetry => 'Edit & Retry';
+
+  @override
+  String get gpsQualityCheckStatusReady => 'Ready';
+
+  @override
+  String get gpsQualityCheckStatusPending => 'Pending';
+
+  @override
+  String get gpsQualityCheckStatusFailed => 'Failed';
+
+  @override
+  String get gpsQualityDeviceDetail => 'Device Details';
+
+  @override
+  String get gpsQualityStaticChecks => 'Static checks';
+
+  @override
+  String get gpsQualityDynamicChecks => 'Dynamic checks';
+
+  @override
+  String get gpsQualityRegisterSuccess => 'Registration succeeded';
+
+  @override
+  String get gpsQualityNoChecks => 'No checks';
+
+  @override
+  String get commonOptional => 'Optional';
+
+  @override
+  String get commonMessage => 'Message';
+
+  @override
+  String get commonAction => 'Action';
+
+  @override
+  String get gpsQualityImportStepResult => 'Result';
+
+  @override
+  String get gpsQualityRowIndex => 'Row';
+
+  @override
+  String get gpsQualityRegisterAll => 'Register all';
 }

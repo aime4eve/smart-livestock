@@ -2786,6 +2786,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsQualityErrorHistogram => '偏差分布';
 
   @override
+  String get gpsQualityDistanceRange0to15 => '0-15m';
+
+  @override
+  String get gpsQualityDistanceRange15to25 => '15-25m';
+
+  @override
+  String get gpsQualityDistanceRange25to40 => '25-40m';
+
+  @override
+  String get gpsQualityDistanceRangeOver40 => '>40m';
+
+  @override
+  String get gpsQualityCumulativeWithin25m => '≤25m 累计';
+
+  @override
+  String get gpsQualityCumulativeWithin40m => '≤40m 累计';
+
+  @override
   String get gpsQualityCalibrationLocations => '标定位置';
 
   @override
@@ -2973,4 +2991,114 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpsQualityTabComparison => '质量对比';
+
+  @override
+  String get gpsQualityDateFormatError => '格式错误，请使用 yyyy-MM-dd HH:mm';
+
+  @override
+  String get gpsQualityRequiredField => '此字段为必填项';
+
+  @override
+  String get gpsQualityTabChecks => '质量检验';
+
+  @override
+  String get gpsQualityCreateCheck => '创建检验';
+
+  @override
+  String get gpsQualityBatchImport => '批量导入';
+
+  @override
+  String get gpsQualityDeviceEui => '设备 EUI';
+
+  @override
+  String get gpsQualityDeviceGroup => '设备分组';
+
+  @override
+  String get gpsQualityTimeline => '时间轴';
+
+  @override
+  String gpsQualityChecksCount(Object n) {
+    return '$n 次检验';
+  }
+
+  @override
+  String get gpsQualityDevicePending => '待注册';
+
+  @override
+  String get gpsQualityImportFailed => '导入失败';
+
+  @override
+  String get gpsQualityUploadExcel => '上传 Excel 文件';
+
+  @override
+  String get gpsQualityManualRegister => '手工注册';
+
+  @override
+  String get gpsQualityImportStepUpload => '上传';
+
+  @override
+  String get gpsQualityImportStepPreview => '预览';
+
+  @override
+  String get gpsQualityImportResult => '导入结果';
+
+  @override
+  String get gpsQualityDeleteCheck => '删除检验';
+
+  @override
+  String get gpsQualityBatchConfirmDelete => '确认删除该批次？';
+
+  @override
+  String get gpsQualityRetrying => '重试中...';
+
+  @override
+  String get gpsQualityEditRetry => '编辑重试';
+
+  @override
+  String get gpsQualityBatchRegister => '批量注册';
+
+  @override
+  String get gpsQualityEditAndRetry => '编辑并重试';
+
+  @override
+  String get gpsQualityCheckStatusReady => '就绪';
+
+  @override
+  String get gpsQualityCheckStatusPending => '待注册';
+
+  @override
+  String get gpsQualityCheckStatusFailed => '失败';
+
+  @override
+  String get gpsQualityDeviceDetail => '设备详情';
+
+  @override
+  String get gpsQualityStaticChecks => '静态检验';
+
+  @override
+  String get gpsQualityDynamicChecks => '动态检验';
+
+  @override
+  String get gpsQualityRegisterSuccess => '注册成功';
+
+  @override
+  String get gpsQualityNoChecks => '暂无检验';
+
+  @override
+  String get commonOptional => '选填';
+
+  @override
+  String get commonMessage => '消息';
+
+  @override
+  String get commonAction => '操作';
+
+  @override
+  String get gpsQualityImportStepResult => '结果';
+
+  @override
+  String get gpsQualityRowIndex => '行号';
+
+  @override
+  String get gpsQualityRegisterAll => '全部注册';
 }
