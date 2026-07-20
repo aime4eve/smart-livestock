@@ -64,6 +64,10 @@ class ApiClient {
   Future<void> delete(String path) =>
       _withRefreshRetry(() => _doDelete(path));
 
+  /// DELETE that returns the parsed JSON response body.
+  Future<Map<String, dynamic>> deleteJson(String path) =>
+      _withRefreshRetry(() => _doDeleteJson(path));
+
   Future<Map<String, dynamic>> patch(String path, {Object? body}) =>
       _withRefreshRetry(() => _doPatch(path, body: body));
 
@@ -145,6 +149,15 @@ class ApiClient {
       headers: headers,
     ).timeout(_timeout);
     await _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> _doDeleteJson(String path) async {
+    final headers = await _headers();
+    final response = await http.delete(
+      Uri.parse('$_baseUrl$path'),
+      headers: headers,
+    ).timeout(_timeout);
+    return _handleResponse(response);
   }
 
   // ── Auto-refresh retry wrapper ───────────────────────────────────
@@ -323,6 +336,44 @@ class ApiClient {
   Future<void> logout() async {
     await JwtStorage.instance.clear();
   }
-  // TODO: implement locale header injection
-  void setLocale(String? localeHeader) {}
+ // TODO: implement locale header injection
+
+  /// Upload a file via multipart/form-data POST.
+  /// The response is parsed through the standard JSON handler.
+  /// Optional [fields] are added as extra multipart form fields.
+  Future<Map<String, dynamic>> uploadFile(
+      String path, List<int> bytes, String fileName,
+      {Map<String, String>? fields}) async {
+    final uri = Uri.parse('$_baseUrl$path');
+    final authHeaders = await _headers();
+    final request = http.MultipartRequest('POST', uri);
+    // Include auth headers; remove Content-Type so multipart boundary is auto-set.
+    request.headers.addAll(authHeaders);
+    request.headers.remove('Content-Type');
+    if (fields != null) request.fields.addAll(fields);
+    request.files
+        .add(http.MultipartFile.fromBytes('file', bytes, filename: fileName));
+    final streamedResponse =
+        await request.send().timeout(const Duration(seconds: 30));
+    final response = await http.Response.fromStream(streamedResponse);
+    return _handleResponse(response);
+  }
+
+  /// Download raw bytes from a GET endpoint (e.g. binary template download).
+  /// Does NOT go through the JSON _handleResponse pipeline.
+  Future<List<int>> getBytes(String path) async {
+    final headers = await _headers();
+    final uri = Uri.parse('$_baseUrl$path');
+    final response =
+        await http.get(uri, headers: headers).timeout(const Duration(seconds: 15));
+    if (response.statusCode != 200) {
+      throw ServerException(
+        message: 'Download failed: HTTP ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    }
+    return response.bodyBytes;
+  }
+
+ void setLocale(String? localeHeader) {}
 }

@@ -19,8 +19,11 @@ public class GpsQualityTestJpaEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "session_id", nullable = false)
-    private Long sessionId;
+    @Column(name = "device_code", nullable = false)
+    private String deviceCode;
+
+    @Column(name = "device_id")
+    private Long deviceId;
 
     @Column(name = "test_type", nullable = false, length = 10)
     private String testType = "STATIC";
@@ -31,11 +34,20 @@ public class GpsQualityTestJpaEntity {
     @Column(name = "route_id")
     private Long routeId;
 
-    @Column(name = "test_started_at", nullable = false)
-    private Instant testStartedAt;
+    @Column(name = "started_at", nullable = false)
+    private Instant startedAt;
 
-    @Column(name = "test_ended_at")
-    private Instant testEndedAt;
+    @Column(name = "ended_at")
+    private Instant endedAt;
+
+    @Column(name = "status", nullable = false, length = 20)
+    private String status = "READY";
+
+    @Column(name = "error_message")
+    private String errorMessage;
+
+    @Column(name = "batch_import_id")
+    private Long batchImportId;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -49,6 +61,7 @@ public class GpsQualityTestJpaEntity {
         this.createdAt = now;
         this.updatedAt = now;
         if (this.testType == null) this.testType = "STATIC";
+        if (this.status == null) this.status = "READY";
     }
 
     @PreUpdate
@@ -56,18 +69,26 @@ public class GpsQualityTestJpaEntity {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public Long getSessionId() { return sessionId; }
-    public void setSessionId(Long sessionId) { this.sessionId = sessionId; }
+    public String getDeviceCode() { return deviceCode; }
+    public void setDeviceCode(String deviceCode) { this.deviceCode = deviceCode; }
+    public Long getDeviceId() { return deviceId; }
+    public void setDeviceId(Long deviceId) { this.deviceId = deviceId; }
     public String getTestType() { return testType; }
     public void setTestType(String testType) { this.testType = testType; }
     public Long getRtkPointId() { return rtkPointId; }
     public void setRtkPointId(Long rtkPointId) { this.rtkPointId = rtkPointId; }
     public Long getRouteId() { return routeId; }
     public void setRouteId(Long routeId) { this.routeId = routeId; }
-    public Instant getTestStartedAt() { return testStartedAt; }
-    public void setTestStartedAt(Instant testStartedAt) { this.testStartedAt = testStartedAt; }
-    public Instant getTestEndedAt() { return testEndedAt; }
-    public void setTestEndedAt(Instant testEndedAt) { this.testEndedAt = testEndedAt; }
+    public Instant getStartedAt() { return startedAt; }
+    public void setStartedAt(Instant startedAt) { this.startedAt = startedAt; }
+    public Instant getEndedAt() { return endedAt; }
+    public void setEndedAt(Instant endedAt) { this.endedAt = endedAt; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public String getErrorMessage() { return errorMessage; }
+    public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
+    public Long getBatchImportId() { return batchImportId; }
+    public void setBatchImportId(Long batchImportId) { this.batchImportId = batchImportId; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }

@@ -1,51 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
-
-/// Paginated calibration session list result.
-@immutable
-class SessionListResult {
-  const SessionListResult({required this.items, this.total = 0, this.page = 1, this.size = 200});
-  final List<CalibrationSession> items;
-  final int total;
-  final int page;
-  final int size;
-}
-
-/// A single row in a batch-create request.
-@immutable
-class BatchSessionRequest {
-  const BatchSessionRequest({
-    this.testType = TestType.static_,
-    this.routeId,
-    required this.rtkPointId,
-    required this.deviceId,
-    required this.startedAt,
-    this.endedAt,
-  });
-  final TestType testType;
-  final int? routeId;
-  final int rtkPointId;
-  final int deviceId;
-  final DateTime startedAt;
-  final DateTime? endedAt;
-}
-
-/// Per-row failure info from a batch create.
-@immutable
-class BatchFailure {
-  const BatchFailure({required this.rowIndex, required this.error});
-  final int rowIndex;
-  final String error;
-}
-
-/// Result of a batch create operation.
-@immutable
-class BatchCreateResult {
-  const BatchCreateResult({required this.succeeded, required this.failed});
-  final List<int> succeeded;
-  final List<BatchFailure> failed;
-}
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/web_file_utils.dart';
 
 /// A single device comparison entry (one device tested at one RTK point).
 @immutable
@@ -125,36 +81,6 @@ class ComparisonResult {
       );
 }
 
-/// A single GPS trajectory point.
-@immutable
-class TrajectoryPoint {
-  const TrajectoryPoint({
-    required this.latitude,
-    required this.longitude,
-    required this.recordedAt,
-  });
-
-  final double latitude;
-  final double longitude;
-  final DateTime recordedAt;
-
-  factory TrajectoryPoint.fromJson(Map<String, dynamic> json) =>
-      TrajectoryPoint(
-        latitude: (json['latitude'] as num).toDouble(),
-        longitude: (json['longitude'] as num).toDouble(),
-        recordedAt: DateTime.parse(json['recordedAt'] as String),
-      );
-}
-
-/// Paginated GPS quality session list result.
-@immutable
-class GpsSessionListResult {
-  const GpsSessionListResult({required this.items, this.total = 0, this.page = 0, this.size = 20});
-  final List<GpsQualitySession> items;
-  final int total;
-  final int page;
-  final int size;
-}
 
 /// Platform-level (non farm-scoped) repository for the GPS quality admin API.
 ///
@@ -223,84 +149,6 @@ class GpsQualityApiRepository {
         .toList();
   }
 
-  // ── Calibration sessions ────────────────────────────────────────
-
- Future<SessionListResult> fetchSessions({
-   int? rtkPointId,
-   int? deviceId,
-   CalibrationStatus? status,
-   int page = 0,
-   int size = 200,
- }) async {
-   final params = <String>[];
-   if (rtkPointId != null) params.add('rtkPointId=$rtkPointId');
-   if (deviceId != null) params.add('deviceId=$deviceId');
-   if (status != null) params.add('status=${_statusParam(status)}');
-    params.add('page=$page');
-    params.add('size=$size');
-    final data = await ApiClient.instance
-        .get('$_base/sessions?${params.join('&')}');
-    // Sessions endpoint returns Spring Data Page: {content: [...], totalElements: N}
-    final rawItems = (data['content'] ?? data['value'] ?? data['items']) as List;
-    final items = rawItems
-        .whereType<Map<String, dynamic>>()
-        .map(CalibrationSession.fromJson)
-        .toList();
-    return SessionListResult(
-      items: items,
-      total: data['totalElements'] as int? ?? data['total'] as int? ?? items.length,
-      page: page,
-      size: size,
-    );
-  }
-
-  Future<CalibrationSession> createSession({
-    required int rtkPointId,
-    required int deviceId,
-    required DateTime startedAt,
-    DateTime? endedAt,
-  }) async {
-    final data = await ApiClient.instance.post('$_base/sessions', body: {
-      'rtkPointId': rtkPointId,
-      'deviceId': deviceId,
-      'startedAt': startedAt.toIso8601String(),
-      if (endedAt != null) 'endedAt': endedAt.toIso8601String(),
-    });
-    return CalibrationSession.fromJson(data);
-  }
-
-  Future<void> endSession(int id) async {
-    await ApiClient.instance.patch('$_base/sessions/$id/end');
-  }
-
-  /// Batch-create sessions by calling the single-session endpoint
-  /// sequentially. Returns per-row success/failure so the caller can
-  /// highlight which rows failed.
-  Future<BatchCreateResult> createSessionBatch(
-      List<BatchSessionRequest> rows) async {
-    final succeeded = <int>[];
-    final failed = <BatchFailure>[];
-    for (var i = 0; i < rows.length; i++) {
-      final r = rows[i];
-      try {
-        await ApiClient.instance.post('$_base/sessions', body: {
-          'rtkPointId': r.rtkPointId,
-          'deviceId': r.deviceId,
-          'startedAt': r.startedAt.toIso8601String(),
-          if (r.endedAt != null) 'endedAt': r.endedAt!.toIso8601String(),
-        });
-        succeeded.add(i);
-      } catch (e) {
-        failed.add(BatchFailure(rowIndex: i, error: e.toString()));
-      }
-    }
-    return BatchCreateResult(succeeded: succeeded, failed: failed);
-  }
-
-  Future<void> deleteSession(int id) async {
-    await ApiClient.instance.delete('$_base/sessions/$id');
-  }
-
   // ── Reports & analysis ──────────────────────────────────────────
 
   Future<GpsQualityReport> fetchReport(
@@ -313,108 +161,11 @@ class GpsQualityApiRepository {
    return GpsQualityReport.fromJson(data);
  }
 
- Future<List<TrajectoryPoint>> fetchTrajectory(int sessionId) async {
-   final data = await ApiClient.instance
-        .get('$_base/tests/$sessionId/trajectory');
-    return ((data['points'] ?? (data['value'] is List ? data['value'] : (data['value'] is Map ? data['value']['points'] : null))) as List)
-        .whereType<Map<String, dynamic>>()
-        .map(TrajectoryPoint.fromJson)
-        .toList();
-  }
-
  Future<ComparisonResult> fetchComparison({int? rtkPointId}) async {
    final qs = rtkPointId != null ? '?rtkPointId=$rtkPointId' : '';
    final data = await ApiClient.instance.get('$_base/comparison$qs');
    return ComparisonResult.fromJson(data);
  }
-
- String _statusParam(CalibrationStatus s) => switch (s) {
-       CalibrationStatus.inProgress => 'IN_PROGRESS',
-       CalibrationStatus.completed => 'COMPLETED',
-       CalibrationStatus.canceled => 'CANCELED',
-     };
-
-  // ── Sessions (data window) ──────────────────────────────────────
-
-  Future<GpsSessionListResult> fetchGpsSessions({
-    int? deviceId,
-    String? status,
-    int page = 0,
-    int size = 20,
-  }) async {
-    final params = <String>[];
-    if (deviceId != null) params.add('deviceId=$deviceId');
-    if (status != null) params.add('status=$status');
-    params.add('page=$page');
-    params.add('size=$size');
-    final data = await ApiClient.instance.get('$_base/sessions?${params.join("&")}');
-    final rawItems = (data['content'] ?? data['value'] ?? []) as List;
-    final items = rawItems
-        .whereType<Map<String, dynamic>>()
-        .map(GpsQualitySession.fromJson)
-        .toList();
-    return GpsSessionListResult(
-      items: items,
-      total: data['totalElements'] as int? ?? items.length,
-      page: page,
-      size: size,
-    );
-  }
-
-  Future<GpsQualitySession> createGpsSession({
-    required int deviceId,
-    required DateTime startedAt,
-    DateTime? endedAt,
-  }) async {
-    final data = await ApiClient.instance.post('$_base/sessions', body: {
-      'deviceId': deviceId,
-      'startedAt': startedAt.toIso8601String(),
-      if (endedAt != null) 'endedAt': endedAt.toIso8601String(),
-    });
-    return GpsQualitySession.fromJson(data);
-  }
-
-  Future<GpsQualitySession> endGpsSession(int id) async {
-    final data = await ApiClient.instance.patch('$_base/sessions/$id/end');
-    return GpsQualitySession.fromJson(data);
-  }
-
-  Future<void> deleteGpsSession(int id) async {
-    await ApiClient.instance.delete('$_base/sessions/$id');
-  }
-
-  // ── Tests (sub-resource of session) ─────────────────────────────
-
-  Future<List<CalibrationSession>> fetchTestsBySession(int sessionId) async {
-    final data = await ApiClient.instance.get('$_base/sessions/$sessionId/tests');
-    final items = (data is List) ? data as List : (data['value'] ?? data['items'] ?? []) as List;
-    return items
-        .whereType<Map<String, dynamic>>()
-        .map(CalibrationSession.fromJson)
-        .toList();
-  }
-
-  Future<CalibrationSession> createTest({
-    required int sessionId,
-    required TestType testType,
-    int? rtkPointId,
-    int? routeId,
-    required DateTime testStartedAt,
-    DateTime? testEndedAt,
-  }) async {
-    final data = await ApiClient.instance.post('$_base/sessions/$sessionId/tests', body: {
-      'testType': testType.label,
-      if (rtkPointId != null) 'rtkPointId': rtkPointId,
-      if (routeId != null) 'routeId': routeId,
-      'testStartedAt': testStartedAt.toIso8601String(),
-      if (testEndedAt != null) 'testEndedAt': testEndedAt.toIso8601String(),
-    });
-    return CalibrationSession.fromJson(data);
-  }
-
-  Future<void> deleteTest(int id) async {
-    await ApiClient.instance.delete('$_base/tests/$id');
-  }
 
   // ── Dynamic test routes ─────────────────────────────────────────
 
@@ -468,24 +219,6 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
     );
   }
 
-  // ── Dynamic test sessions ───────────────────────────────────────
-
-  Future<CalibrationSession> createDynamicSession({
-    required int deviceId,
-    required int routeId,
-    required DateTime startedAt,
-    DateTime? endedAt,
-  }) async {
-    final data =
-        await ApiClient.instance.post('$_base/sessions/dynamic', body: {
-      'deviceId': deviceId,
-      'routeId': routeId,
-      'startedAt': startedAt.toIso8601String(),
-      if (endedAt != null) 'endedAt': endedAt.toIso8601String(),
-    });
-    return CalibrationSession.fromJson(data);
-  }
-
   Future<DynamicQualityReport> fetchDynamicReport(
     int sessionId, {
     double threshold = 5.0,
@@ -494,4 +227,130 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
         .get('$_base/tests/$sessionId/dynamic-report?threshold=$threshold');
     return DynamicQualityReport.fromJson(data);
   }
+
+  // ── NIX-21: Batch import ──────────────────────────────────────────
+
+  /// Parse an Excel file for batch import preview (parse-only, no persistence).
+  Future<BatchParseResult> parseBatch(
+      List<int> fileBytes, String fileName) async {
+    final data = await ApiClient.instance
+        .uploadFile('$_base/batch/parse', fileBytes, fileName);
+    return BatchParseResult.fromJson(data);
+  }
+
+  /// Upload an Excel file for batch GPS quality check import.
+  /// [excludeRows] skips the given parse row indexes (1-based rowIndex).
+  Future<BatchImportResult> batchImport(
+      List<int> fileBytes, String fileName,
+      {List<int>? excludeRows}) async {
+    final data = await ApiClient.instance.uploadFile(
+      '$_base/batch/import',
+      fileBytes,
+      fileName,
+      fields: (excludeRows != null && excludeRows.isNotEmpty)
+          ? {'excludeRows': excludeRows.join(',')}
+          : null,
+    );
+    return BatchImportResult.fromJson(data);
+  }
+
+  /// Download the batch import Excel template.
+  /// Uses getBytes for binary download, then triggers browser download on web.
+  Future<void> downloadBatchTemplate() async {
+    final bytes = await ApiClient.instance.getBytes('$_base/batch/template');
+    await downloadBytes('gps-quality-import-template.xlsx', bytes);
+  }
+
+  /// Retry device registration for all pending checks (or specific ones).
+  Future<List<RowResult>> retryRegistration({List<int>? checkIds}) async {
+    final data = await ApiClient.instance.post(
+      '$_base/batch/retry-registration',
+      body: checkIds != null ? {'checkIds': checkIds} : null,
+    );
+    final rawItems = (data['value'] ?? data['items'] ?? data) as List;
+    return rawItems
+        .whereType<Map<String, dynamic>>()
+        .map(RowResult.fromJson)
+        .toList();
+  }
+
+  /// Retry a single failed batch import row.
+  Future<RowResult> retryRow({
+    required String eui,
+    required String checkType,
+    required DateTime startedAt,
+    DateTime? endedAt,
+  }) async {
+    final data = await ApiClient.instance.post('$_base/batch/retry-row', body: {
+      'eui': eui,
+      'testType': checkType,
+      'startedAt': startedAt.toIso8601String(),
+      if (endedAt != null) 'endedAt': endedAt.toIso8601String(),
+    });
+    return RowResult.fromJson(data);
+  }
+
+  /// Delete all tests belonging to a batch import.
+  Future<void> deleteBatch(int batchId) async {
+    await ApiClient.instance.delete('$_base/batch/$batchId');
+  }
+
+  // ── NIX-21: Check-centric API (replaces session-based) ─────────────
+
+  /// Create a single quality check (EUI-driven).
+  Future<QualityCheck> createCheck({
+    required String eui,
+    String? deviceCode,
+    required String checkType,
+    int? rtkPointId,
+    int? routeId,
+    required DateTime startedAt,
+    DateTime? endedAt,
+  }) async {
+    final data = await ApiClient.instance.post('$_base/checks', body: {
+      'eui': eui,
+      if (deviceCode != null) 'deviceCode': deviceCode,
+      'testType': checkType,
+      if (rtkPointId != null) 'rtkPointId': rtkPointId,
+      if (routeId != null) 'routeId': routeId,
+      'startedAt': startedAt.toIso8601String(),
+      if (endedAt != null) 'endedAt': endedAt.toIso8601String(),
+    });
+    return QualityCheck.fromJson(data);
+  }
+
+  /// Fetch paginated quality checks.
+  Future<QualityCheckListResult> fetchChecks({
+    String? status,
+    String? eui,
+    int? deviceId,
+    int page = 0,
+    int size = 200,
+  }) async {
+    final params = <String>[];
+    if (status != null) params.add('status=$status');
+    if (eui != null) params.add('eui=${Uri.encodeQueryComponent(eui)}');
+    if (deviceId != null) params.add('deviceId=$deviceId');
+    params.add('page=$page');
+    params.add('size=$size');
+    final data =
+        await ApiClient.instance.get('$_base/checks?${params.join('&')}');
+    return QualityCheckListResult.fromJson(data);
+  }
+
+  /// Delete all quality checks of a device (the device itself is kept).
+  /// Returns the number of deleted check records.
+  Future<int> deleteChecksByDevice(int deviceId) async {
+    final data =
+        await ApiClient.instance.deleteJson('$_base/checks/by-device/$deviceId');
+    return (data['deleted'] as num?)?.toInt() ?? 0;
+  }
+
+  /// Fetch the dynamic quality comparison across devices for a route.
+  Future<DynamicComparisonResult> fetchDynamicComparison(int routeId) async {
+    final data = await ApiClient.instance
+        .get('$_base/comparison/dynamic?routeId=$routeId');
+    return DynamicComparisonResult.fromJson(data);
+  }
 }
+

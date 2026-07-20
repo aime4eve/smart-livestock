@@ -8,9 +8,10 @@ import java.util.Optional;
 
 public interface DeviceRepository {
     Device save(Device device);
-    Optional<Device> findById(Long id);
-    Optional<Device> findByDeviceCode(String deviceCode);
-    List<Device> findByTenantId(Long tenantId);
+   Optional<Device> findById(Long id);
+   Optional<Device> findByDeviceCode(String deviceCode);
+    List<Device> findAllByDevEuiAndTenantId(String devEui, Long tenantId);
+   List<Device> findByTenantId(Long tenantId);
     long countByTenantIdAndStatus(Long tenantId, String status);
 
     List<Device> findByTenantIdPaged(Long tenantId, int offset, int limit);

@@ -4,7 +4,6 @@ import com.smartlivestock.iot.domain.model.CalibrationStatus;
 import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.DynamicTestRoute;
 import com.smartlivestock.iot.domain.model.DynamicTestRoutePoint;
-import com.smartlivestock.iot.domain.model.GpsQualitySession;
 import com.smartlivestock.iot.domain.model.GpsQualityTest;
 import com.smartlivestock.iot.domain.model.QualityGrade;
 import com.smartlivestock.iot.domain.model.RtkReferencePoint;
@@ -13,7 +12,6 @@ import com.smartlivestock.iot.domain.port.dto.DynamicQualityStats;
 import com.smartlivestock.iot.domain.port.dto.GpsPointWithTelemetry;
 import com.smartlivestock.iot.domain.port.dto.RoutePoint;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
-import com.smartlivestock.iot.domain.repository.GpsQualitySessionRepository;
 import com.smartlivestock.iot.domain.repository.DynamicTestRoutePointRepository;
 import com.smartlivestock.iot.domain.repository.DynamicTestRouteRepository;
 import com.smartlivestock.iot.domain.repository.GpsLogRepository;
@@ -21,6 +19,7 @@ import com.smartlivestock.iot.domain.repository.GpsQualityTestRepository;
 import com.smartlivestock.iot.domain.repository.RtkReferencePointRepository;
 import com.smartlivestock.iot.domain.service.DynamicQualityCalculator;
 import com.smartlivestock.iot.domain.service.GpsQualityCalculator;
+import com.smartlivestock.iot.interfaces.admin.dto.DynamicComparisonDto;
 import com.smartlivestock.iot.interfaces.admin.dto.DynamicQualityReportDto;
 import com.smartlivestock.iot.interfaces.admin.dto.DynamicQualityReportDto.MatchedPass;
 import com.smartlivestock.iot.interfaces.admin.dto.DynamicQualityReportDto.PerRtkPointSummary;
@@ -31,10 +30,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Assembles dynamic GPS quality reports by joining test → route → route points →
@@ -51,7 +54,6 @@ public class DynamicQualityReportService {
     private static final double DEFAULT_THRESHOLD = 30.0;
 
     private final GpsQualityTestRepository testRepository;
-    private final GpsQualitySessionRepository sessionRepository;
     private final DynamicTestRouteRepository routeRepository;
     private final DynamicTestRoutePointRepository routePointRepository;
     private final RtkReferencePointRepository rtkPointRepository;
@@ -66,6 +68,11 @@ public class DynamicQualityReportService {
         GpsQualityTest test = testRepository.findById(testId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "GPS quality test not found: " + testId));
+        if (!"READY".equals(test.getStatus())) {
+            throw new ApiException(ErrorCode.STATE_CONFLICT,
+                    "Cannot generate dynamic report for test " + testId
+                    + ": status is " + test.getStatus());
+        }
         if (test.getTestType() != TestType.DYNAMIC) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR,
                     "Test " + testId + " is not a DYNAMIC test (got " + test.getTestType() + ")");
@@ -74,12 +81,13 @@ public class DynamicQualityReportService {
         DynamicTestRoute route = routeRepository.findById(test.getRouteId())
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "Route not found: " + test.getRouteId()));
-        GpsQualitySession session = sessionRepository.findById(test.getSessionId())
-                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
-                        "Session not found: " + test.getSessionId()));
-        Long deviceId = session.getDeviceId();
-        String deviceCode = deviceRepository.findById(deviceId)
-                .map(Device::getDeviceCode).orElse(null);
+
+        Long deviceId = test.getDeviceId();
+        String deviceCode = test.getDeviceCode();
+        if (deviceCode == null && deviceId != null) {
+            deviceCode = deviceRepository.findById(deviceId)
+                    .map(Device::getDeviceCode).orElse(null);
+        }
 
         double threshold = thresholdOverride != null ? thresholdOverride : DEFAULT_THRESHOLD;
 
@@ -100,7 +108,7 @@ public class DynamicQualityReportService {
 
         // --- fetch GPS logs in the test window ---
         List<GpsPointWithTelemetry> gpsPoints = gpsLogRepository.findByDeviceIdAndTimeRangeWithTelemetry(
-                deviceId, test.getTestStartedAt(), test.getTestEndedAt());
+                deviceId, test.getStartedAt(), test.getEndedAt() != null ? test.getEndedAt() : Instant.now());
 
         // --- run matching ---
         DynamicQualityStats stats = dynamicCalculator.calculate(calculatorInput, gpsPoints, threshold);
@@ -108,9 +116,7 @@ public class DynamicQualityReportService {
         // --- grade (dynamic thresholds, tighter than static) ---
         QualityGrade grade = determineDynamicGrade(stats);
 
-        // --- per-point breakdown (needs the matched-pair detail) ---
-        // The calculator returns aggregate stats; we reconstruct per-point outcomes by
-        // re-walking the route against the same nearest-point logic used internally.
+        // --- per-point breakdown ---
         List<PerPointMatch> matches = computePerPointMatches(calculatorInput, gpsPoints, threshold);
         List<PerRtkPointSummary> perPoint = new ArrayList<>(matches.size());
         List<MatchedPass> passes = new ArrayList<>();
@@ -144,8 +150,8 @@ public class DynamicQualityReportService {
        dto.setDeviceCode(deviceCode);
        dto.setRouteId(route.getId());
        dto.setRouteName(route.getName());
-       dto.setStartedAt(test.getTestStartedAt());
-       dto.setEndedAt(test.getTestEndedAt());
+       dto.setStartedAt(test.getStartedAt());
+       dto.setEndedAt(test.getEndedAt());
        dto.setThreshold(threshold);
        dto.setGrade(grade);
        dto.setStats(stats);
@@ -154,6 +160,51 @@ public class DynamicQualityReportService {
        dto.setStaticComparison(comparison);
        return dto;
    }
+
+    // ------------------------------------------------------------------
+    // Route-level dynamic comparison (latest READY test per device)
+    // ------------------------------------------------------------------
+
+    /**
+     * Compare all devices' dynamic quality on one route: takes the latest READY
+     * dynamic test per device and reuses {@link #generate(Long, Double)} for the
+     * per-device summary.
+     */
+    public DynamicComparisonDto generateRouteComparison(Long routeId) {
+        DynamicTestRoute route = routeRepository.findById(routeId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "Route not found: " + routeId));
+
+        // Latest READY dynamic test per device (by startedAt, then id)
+        Map<Long, GpsQualityTest> latestByDevice = new LinkedHashMap<>();
+        for (GpsQualityTest t : testRepository.findByRouteIdAndStatus(routeId, "READY")) {
+            if (t.getTestType() != TestType.DYNAMIC || t.getDeviceId() == null) continue;
+            latestByDevice.merge(t.getDeviceId(), t, (a, b) -> {
+                int cmp = a.getStartedAt().compareTo(b.getStartedAt());
+                if (cmp != 0) return cmp > 0 ? a : b;
+                return a.getId() >= b.getId() ? a : b;
+            });
+        }
+
+        List<DynamicComparisonDto.DeviceSummary> devices = latestByDevice.values().stream()
+                .sorted(Comparator.comparing(t -> t.getDeviceCode() != null ? t.getDeviceCode() : ""))
+                .map(t -> {
+                    DynamicQualityReportDto report = generate(t.getId(), null);
+                    DynamicQualityStats s = report.getStats();
+                    return new DynamicComparisonDto.DeviceSummary(
+                            t.getDeviceId(), report.getDeviceCode(), t.getId(),
+                            s.coverage(), s.matchedCount(), s.missedCount(), s.ambiguousCount(),
+                            s.inOrder(), s.meanError(), s.p50(), s.p95(),
+                            t.getStartedAt(), t.getEndedAt());
+                })
+                .toList();
+
+        DynamicComparisonDto dto = new DynamicComparisonDto();
+        dto.setRouteId(route.getId());
+        dto.setRouteName(route.getName());
+        dto.setDevices(devices);
+        return dto;
+    }
 
     // ------------------------------------------------------------------
     // Dynamic grade (spec §4.4 — tighter than static thresholds)
@@ -180,8 +231,7 @@ public class DynamicQualityReportService {
     }
 
     /**
-     * Recompute per-point nearest-match outcomes. Mirrors the calculator's internal
-     * nearest-point logic so the report can show per-RTK-point detail.
+     * Recompute per-point nearest-match outcomes.
      */
     private List<PerPointMatch> computePerPointMatches(
             List<RoutePoint> route, List<GpsPointWithTelemetry> gpsPoints, double threshold) {
@@ -219,16 +269,12 @@ public class DynamicQualityReportService {
 
     private StaticComparison buildStaticComparison(GpsQualityTest dynamicTest, double dynamicP95) {
         try {
-            // Find the most recent STATIC test for sessions of the same device.
-            GpsQualitySession dynSession = sessionRepository.findById(dynamicTest.getSessionId())
-                    .orElse(null);
-            if (dynSession == null) return null;
-            GpsQualityTest staticTest = testRepository.findFiltered(null, null, "STATIC",
-                            org.springframework.data.domain.PageRequest.of(0, 100)).stream()
-                    .filter(t -> {
-                        GpsQualitySession s = sessionRepository.findById(t.getSessionId()).orElse(null);
-                        return s != null && s.getDeviceId().equals(dynSession.getDeviceId());
-                    })
+            Long deviceId = dynamicTest.getDeviceId();
+            if (deviceId == null) return null;
+
+            // Find the most recent STATIC test for the same device
+            GpsQualityTest staticTest = testRepository.findByDeviceIdOrderByStartedAt(deviceId).stream()
+                    .filter(t -> t.getTestType() == TestType.STATIC)
                     .findFirst().orElse(null);
             if (staticTest == null) {
                 return null;
@@ -236,11 +282,11 @@ public class DynamicQualityReportService {
             GpsQualityReportService.ReportResult staticResult =
                     staticReportService.generate(staticTest.getId(), true);
             double staticP95 = staticResult.stats().p95();
-            double delta = dynamicP95 - staticP95; // negative = dynamic better
-return new StaticComparison(staticTest.getId(), staticP95,
+            double delta = dynamicP95 - staticP95;
+            return new StaticComparison(staticTest.getId(), staticP95,
                     staticResult.stats().grade(), delta);
         } catch (Exception ignored) {
-            return null; // best-effort
+            return null;
         }
     }
 }

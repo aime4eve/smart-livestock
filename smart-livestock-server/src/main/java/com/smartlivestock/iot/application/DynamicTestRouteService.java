@@ -9,6 +9,7 @@ import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -90,6 +91,7 @@ public class DynamicTestRouteService {
      * @param routeId target route
      * @param points  new ordered waypoint list (may be empty to clear the route)
      */
+    @Transactional
     public void replacePoints(Long routeId, List<RoutePointInput> points) {
         if (!routeRepository.existsById(routeId)) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Route not found: " + routeId);

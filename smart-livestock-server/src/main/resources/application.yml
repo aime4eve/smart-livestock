@@ -23,6 +23,10 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 rocketmq:
   name-server: ${ROCKETMQ_NAME_SERVER:localhost:9876}
   producer:
