@@ -33,6 +33,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -62,6 +65,20 @@ public class GpsQualityAdminController {
     private Long resolveTenantId() {
         Long tenantId = TenantContext.getCurrentTenant();
         return tenantId != null ? tenantId : FALLBACK_TENANT_ID;
+    }
+
+    /**
+     * Parse an ISO-8601 timestamp sent by clients. Accepts both offset-aware
+     * ("2026-07-16T16:00:00Z") and naive local ("2026-07-16T16:00:00.000") forms;
+     * naive values are taken at face value on the UTC baseline (lesson #17:
+     * never guess the counterpart's timezone, keep one consistent baseline).
+     */
+    private static Instant parseInstant(String value) {
+        try {
+            return Instant.parse(value);
+        } catch (DateTimeParseException ex) {
+            return LocalDateTime.parse(value).toInstant(ZoneOffset.UTC);
+        }
     }
 
     // --- RTK reference points ---
@@ -142,9 +159,9 @@ public class GpsQualityAdminController {
                 ? ((Number) body.get("rtkPointId")).longValue() : null;
         Long routeId = body.get("routeId") != null
                 ? ((Number) body.get("routeId")).longValue() : null;
-        Instant startedAt = Instant.parse((String) body.get("startedAt"));
+        Instant startedAt = parseInstant((String) body.get("startedAt"));
         Instant endedAt = body.get("endedAt") != null
-                ? Instant.parse((String) body.get("endedAt")) : null;
+                ? parseInstant((String) body.get("endedAt")) : null;
         GpsQualityTest saved = testService.create(
                 deviceCode, deviceId, testType, rtkPointId, routeId, startedAt, endedAt);
         return ResponseEntity.ok(ApiResponse.ok(GpsQualityTestDto.from(saved)));
@@ -188,9 +205,9 @@ public class GpsQualityAdminController {
                 ? ((Number) body.get("rtkPointId")).longValue() : null;
         Long routeId = body.get("routeId") != null
                 ? ((Number) body.get("routeId")).longValue() : null;
-        Instant startedAt = Instant.parse((String) body.get("startedAt"));
+        Instant startedAt = parseInstant((String) body.get("startedAt"));
         Instant endedAt = body.get("endedAt") != null
-                ? Instant.parse((String) body.get("endedAt")) : null;
+                ? parseInstant((String) body.get("endedAt")) : null;
         GpsQualityTest saved = testService.create(
                 deviceCode, deviceDto.id(), testType, rtkPointId, routeId, startedAt, endedAt);
         return ResponseEntity.ok(ApiResponse.ok(GpsQualityTestDto.from(saved)));
@@ -235,9 +252,9 @@ public class GpsQualityAdminController {
         Long tenantId = resolveTenantId();
         String eui = (String) body.get("eui");
         TestType testType = TestType.valueOf((String) body.getOrDefault("testType", "STATIC"));
-        Instant startedAt = Instant.parse((String) body.get("startedAt"));
+        Instant startedAt = parseInstant((String) body.get("startedAt"));
         Instant endedAt = body.get("endedAt") != null
-                ? Instant.parse((String) body.get("endedAt")) : null;
+                ? parseInstant((String) body.get("endedAt")) : null;
 
         String deviceCode = (String) body.get("deviceCode");
         var deviceDto = deviceApplicationService.findOrCreateByEui(eui, deviceCode, tenantId);

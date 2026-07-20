@@ -107,6 +107,12 @@ public class DataRetentionService {
     }
 
     private void deleteOldResolvedAlerts(LocalDate cutoff) {
+        // Child rows first: alert_read_status.alert_id has FK to alerts(id)
+        entityManager.createNativeQuery(
+            "DELETE FROM alert_read_status WHERE alert_id IN (" +
+            "  SELECT id FROM alerts WHERE status IN ('DISMISSED','AUTO_RESOLVED') AND created_at < :cutoff)")
+            .setParameter("cutoff", cutoff.atStartOfDay())
+            .executeUpdate();
         int deleted = entityManager.createNativeQuery(
             "DELETE FROM alerts WHERE status IN ('DISMISSED','AUTO_RESOLVED') AND created_at < :cutoff")
             .setParameter("cutoff", cutoff.atStartOfDay())
