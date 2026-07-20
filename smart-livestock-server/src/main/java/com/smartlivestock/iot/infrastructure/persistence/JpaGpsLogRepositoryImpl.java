@@ -3,6 +3,7 @@ package com.smartlivestock.iot.infrastructure.persistence;
 import com.smartlivestock.iot.domain.model.GpsLog;
 import com.smartlivestock.iot.domain.port.dto.GpsPointWithTelemetry;
 import com.smartlivestock.iot.domain.repository.GpsLogRepository;
+import com.smartlivestock.iot.infrastructure.persistence.entity.GpsLogJpaEntity;
 import com.smartlivestock.iot.infrastructure.persistence.mapper.GpsLogMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -21,7 +22,19 @@ public class JpaGpsLogRepositoryImpl implements GpsLogRepository {
 
     @Override
     public GpsLog save(GpsLog gpsLog) {
-        return GpsLogMapper.toDomain(springDataRepo.save(GpsLogMapper.toJpaEntity(gpsLog)));
+        // Idempotent upsert on (device_id, recorded_at): re-syncs from the
+        // agentic-platform no longer stack duplicate rows. Then re-read the
+        // canonical row so callers keep getting back the persisted entity.
+        springDataRepo.upsertByDeviceAndRecordedAt(
+                gpsLog.getDeviceId(),
+                gpsLog.getLatitude(),
+                gpsLog.getLongitude(),
+                gpsLog.getAccuracy(),
+                gpsLog.getRecordedAt());
+        springDataRepo.flush();
+        List<GpsLogJpaEntity> rows = springDataRepo.findByDeviceIdAndRecordedAtBetween(
+                gpsLog.getDeviceId(), gpsLog.getRecordedAt(), gpsLog.getRecordedAt());
+        return rows.isEmpty() ? gpsLog : GpsLogMapper.toDomain(rows.get(0));
     }
 
     @Override
