@@ -15,9 +15,13 @@ public interface GpsQualityTestRepository {
 
     List<GpsQualityTest> findByBatchImportId(Long batchImportId);
     List<GpsQualityTest> findByStatus(String status);
+    List<GpsQualityTest> findByRouteIdAndStatus(Long routeId, String status);
 
     List<GpsQualityTest> findFiltered(String status, String eui, Long deviceId, int offset, int limit);
     long countFiltered(String status, String eui, Long deviceId);
 
     void deleteById(Long id);
+
+    /** Delete all tests of one device; returns the number of rows deleted. */
+    int deleteByDeviceId(Long deviceId);
 }

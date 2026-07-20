@@ -8,6 +8,7 @@ import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_qual
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/create_check_dialog.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/batch_import_dialog.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/scatter_chart.dart';
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/route_match_chart.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/edit_retry_dialog.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
@@ -28,6 +29,13 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
   int? _selectedCheckId;
   String? _statusFilter;
   String? _euiFilter;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,9 +57,23 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
           );
         }
 
+        // Front-end filter: status + EUI/device code substring (case-insensitive)
+        final query = (_euiFilter ?? '').trim().toLowerCase();
+        final filtered = result.items.where((c) {
+          if (_statusFilter != null && c.status != _statusFilter) return false;
+          if (query.isNotEmpty &&
+              !c.deviceCode.toLowerCase().contains(query)) {
+            return false;
+          }
+          return true;
+        }).toList();
+
+        final hasAnyPending =
+            result.items.any((c) => c.status == 'DEVICE_PENDING');
+
         // Group checks by device code (EUI)
         final grouped = <String, List<QualityCheck>>{};
-        for (final c in result.items) {
+        for (final c in filtered) {
           final key = c.deviceCode.isEmpty ? '(no eui)' : c.deviceCode;
           grouped.putIfAbsent(key, () => []).add(c);
         }
@@ -66,14 +88,22 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
             return bLatest.compareTo(aLatest);
           });
 
-        // Select first if none selected
-        _selectedDeviceCode ??= sortedGroups.first.key;
+        // Select first if none selected, or reset when the selected device
+        // is filtered out
+        if (sortedGroups.isNotEmpty &&
+            (_selectedDeviceCode == null ||
+                !grouped.containsKey(_selectedDeviceCode))) {
+          _selectedDeviceCode = sortedGroups.first.key;
+          final firstChecks = List<QualityCheck>.from(sortedGroups.first.value)
+            ..sort((a, b) => a.startedAt.compareTo(b.startedAt));
+          _selectedCheckId = firstChecks.first.id;
+        }
 
         return LayoutBuilder(
           builder: (context, constraints) {
             final wide = constraints.maxWidth >= 900;
             final left = _buildDeviceGroupList(l10n, sortedGroups);
-            final right = _buildDeviceDetail(l10n, grouped);
+            final right = _buildDeviceDetail(l10n, grouped, hasAnyPending);
             if (wide) {
               return Padding(
                 padding: const EdgeInsets.all(AppSpacing.lg),
@@ -133,10 +163,78 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                   onPressed: () => _showBatchImportDialog(l10n),
                 ),
               ]),
+              const SizedBox(height: AppSpacing.sm),
+              // Search (EUI / device code substring) + status filter
+              Row(children: [
+                Expanded(
+                  child: TextField(
+                    key: const Key('device-search-field'),
+                    controller: _searchController,
+                    style: const TextStyle(fontSize: 12),
+                    decoration: InputDecoration(
+                      hintText: l10n.gpsQualitySearchDeviceHint,
+                      hintStyle: const TextStyle(fontSize: 12),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 8),
+                      prefixIcon: const Icon(Icons.search, size: 16),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onChanged: (v) => setState(() => _euiFilter = v),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                SizedBox(
+                  width: 110,
+                  child: DropdownButtonFormField<String>(
+                    key: const Key('status-filter-dropdown'),
+                    value: _statusFilter,
+                    isDense: true,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 8),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textPrimary),
+                    items: [
+                      DropdownMenuItem(
+                          value: null,
+                          child: Text(l10n.gpsQualityFilterAllStatus,
+                              style: const TextStyle(fontSize: 12))),
+                      DropdownMenuItem(
+                          value: 'READY',
+                          child: Text(l10n.gpsQualityCheckStatusReady,
+                              style: const TextStyle(fontSize: 12))),
+                      DropdownMenuItem(
+                          value: 'DEVICE_PENDING',
+                          child: Text(l10n.gpsQualityCheckStatusPending,
+                              style: const TextStyle(fontSize: 12))),
+                      DropdownMenuItem(
+                          value: 'FAILED',
+                          child: Text(l10n.gpsQualityCheckStatusFailed,
+                              style: const TextStyle(fontSize: 12))),
+                    ],
+                    onChanged: (v) => setState(() => _statusFilter = v),
+                  ),
+                ),
+              ]),
             ],
           ),
         ),
         // Device group items
+        if (groups.isEmpty)
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Center(
+              child: Text(l10n.gpsQualityNoMatchDevice,
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary)),
+            ),
+          ),
         ...groups.map((entry) {
           final deviceCode = entry.key;
           final checks = entry.value;
@@ -232,7 +330,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
 
   // ── Right panel: device detail ──────────────────────────────────
 
-  Widget _buildDeviceDetail(AppLocalizations l10n, Map<String, List<QualityCheck>> grouped) {
+  Widget _buildDeviceDetail(AppLocalizations l10n, Map<String, List<QualityCheck>> grouped, bool hasAnyPending) {
     if (_selectedDeviceCode == null) return const SizedBox();
     final checks = grouped[_selectedDeviceCode];
     if (checks == null || checks.isEmpty) return const SizedBox();
@@ -245,7 +343,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       // Device overview card
-      _buildOverview(l10n, _selectedDeviceCode!, checks),
+      _buildOverview(l10n, _selectedDeviceCode!, checks, hasAnyPending),
       const SizedBox(height: AppSpacing.lg),
       // Timeline
       if (checks.length > 1)
@@ -271,7 +369,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
     ]);
   }
 
-  Widget _buildOverview(AppLocalizations l10n, String deviceCode, List<QualityCheck> checks) {
+  Widget _buildOverview(AppLocalizations l10n, String deviceCode, List<QualityCheck> checks, bool hasAnyPending) {
     final hasPending = checks.any((c) => c.status == 'DEVICE_PENDING');
     final hasFailed = checks.any((c) => c.status == 'FAILED');
     final first = checks.first;
@@ -296,13 +394,27 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
             ),
             const Spacer(),
             // Actions for pending/failed devices
-            if (hasPending)
+            if (hasAnyPending) ...[
+              FilledButton.icon(
+                key: const Key('batch-register-btn'),
+                style: FilledButton.styleFrom(backgroundColor: AppColors.info),
+                icon: const Icon(Icons.wifi_tethering, size: 14),
+                label: Text(l10n.gpsQualityBatchRegister, style: const TextStyle(fontSize: 11)),
+                onPressed: _registerAllPending,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+            ],
+            if (hasPending) ...[
               OutlinedButton.icon(
                 key: const Key('pending-register-btn'),
                 icon: const Icon(Icons.wifi_tethering, size: 14),
                 label: Text(l10n.gpsQualityManualRegister, style: const TextStyle(fontSize: 11)),
                 onPressed: () => _registerPending(deviceCode),
               ),
+              const SizedBox(width: AppSpacing.sm),
+              _deleteDeviceButton(l10n, checks,
+                  key: const Key('delete-device-btn')),
+            ],
           ]),
           const SizedBox(height: 4),
           Text(
@@ -457,6 +569,9 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
   }
 
   Widget _buildFailedReport(AppLocalizations l10n, QualityCheck check) {
+    final allChecks = ref.watch(checksProvider).value?.items ?? [];
+    final deviceChecks =
+        allChecks.where((c) => c.deviceCode == check.deviceCode).toList();
     return Card(
       key: const Key('failed-check-card'),
       child: Padding(
@@ -470,12 +585,17 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
             Text(check.errorMessage!, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
               textAlign: TextAlign.center),
           const SizedBox(height: AppSpacing.lg),
-          FilledButton.icon(
-            key: const Key('edit-retry-from-check'),
-            icon: const Icon(Icons.edit, size: 16),
-            label: Text(l10n.gpsQualityEditAndRetry),
-            onPressed: () => _editRetryCheck(check),
-          ),
+          Row(mainAxisSize: MainAxisSize.min, children: [
+            FilledButton.icon(
+              key: const Key('edit-retry-from-check'),
+              icon: const Icon(Icons.edit, size: 16),
+              label: Text(l10n.gpsQualityEditAndRetry),
+              onPressed: () => _editRetryCheck(check),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            _deleteDeviceButton(l10n, deviceChecks,
+                key: const Key('failed-delete-device-btn')),
+          ]),
         ]),
       ),
     );
@@ -504,27 +624,108 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
     });
   }
 
+  /// Manual register: retry blade registration for this device's pending checks.
   Future<void> _registerPending(String deviceCode) async {
-    final checks = ref.watch(checksProvider).value?.items ?? [];
-    final pending = checks.where((c) =>
-      c.deviceCode == deviceCode && c.status == 'DEVICE_PENDING').toList();
+    final checks = ref.read(checksProvider).value?.items ?? [];
+    final pendingIds = checks
+        .where((c) =>
+            c.deviceCode == deviceCode && c.status == 'DEVICE_PENDING')
+        .map((c) => c.id)
+        .toList();
     final l10n = AppLocalizations.of(context)!;
+    if (pendingIds.isEmpty) return;
 
-    for (final check in pending) {
-      try {
-        await ref.read(gpsQualityApiRepositoryProvider).retryRow(
-          eui: check.deviceCode,
-          checkType: check.checkType,
-          startedAt: check.startedAt,
-          endedAt: check.endedAt,
-        );
-      } catch (_) {}
-    }
+    try {
+      await ref
+          .read(gpsQualityApiRepositoryProvider)
+          .retryRegistration(checkIds: pendingIds);
+    } catch (_) {}
     ref.invalidate(checksProvider);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.gpsQualityRegisterSuccess)),
       );
+    }
+  }
+
+  /// Batch register: retry blade registration for ALL pending checks.
+  Future<void> _registerAllPending() async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      await ref.read(gpsQualityApiRepositoryProvider).retryRegistration();
+    } catch (_) {}
+    ref.invalidate(checksProvider);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.gpsQualityRegisterSuccess)),
+      );
+    }
+  }
+
+  Widget _deleteDeviceButton(
+    AppLocalizations l10n,
+    List<QualityCheck> checks, {
+    Key? key,
+  }) {
+    if (!checks.any((c) => c.deviceId != null)) return const SizedBox();
+    return OutlinedButton.icon(
+      key: key,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.danger,
+        side: const BorderSide(color: AppColors.danger),
+      ),
+      icon: const Icon(Icons.delete_outline, size: 14),
+      label: Text(l10n.gpsQualityDeleteDevice,
+          style: const TextStyle(fontSize: 11)),
+      onPressed: () => _deleteDeviceChecks(l10n, checks),
+    );
+  }
+
+  /// Delete all quality checks of a device (the device itself is kept).
+  Future<void> _deleteDeviceChecks(
+      AppLocalizations l10n, List<QualityCheck> checks) async {
+    final deviceId =
+        checks.map((c) => c.deviceId).whereType<int>().firstOrNull;
+    if (deviceId == null) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        key: const Key('delete-device-confirm-dialog'),
+        title: Text(l10n.gpsQualityDeleteDevice),
+        content: Text(l10n.gpsQualityDeleteDeviceConfirm(checks.length)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            key: const Key('delete-device-confirm-btn'),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.commonDelete),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      final deleted = await ref
+          .read(gpsQualityApiRepositoryProvider)
+          .deleteChecksByDevice(deviceId);
+      if (!mounted) return;
+      setState(() {
+        _selectedDeviceCode = null;
+        _selectedCheckId = null;
+      });
+      ref.invalidate(checksProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.gpsQualityDeleteDeviceSuccess(deleted))),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
+      }
     }
   }
 }
@@ -621,6 +822,30 @@ class _DynamicReportCard extends ConsumerWidget {
           error: (e, _) => Text('$e', style: const TextStyle(color: AppColors.danger)),
           data: (report) {
             final s = report.stats;
+            // Assemble route RTK points (with coordinates & match outcome)
+            // for the route match chart.
+            final routePoints =
+                ref.watch(routePointsProvider(report.routeId)).value ?? [];
+            final rtkPoints = ref.watch(rtkPointsProvider).value ?? [];
+            final matchPoints = routePoints.map((rp) {
+              final rtk =
+                  rtkPoints.where((p) => p.id == rp.rtkPointId).firstOrNull;
+              if (rtk == null) return null;
+              final summary = report.perPoint
+                  .where((p) => p.rtkPointId == rp.rtkPointId)
+                  .firstOrNull;
+              final status = summary == null || !summary.passed
+                  ? RouteMatchStatus.missed
+                  : summary.ambiguous
+                      ? RouteMatchStatus.ambiguous
+                      : RouteMatchStatus.matched;
+              return RouteMatchPoint(
+                sequenceNo: rp.sequenceNo,
+                latitude: rtk.latitude,
+                longitude: rtk.longitude,
+                status: status,
+              );
+            }).whereType<RouteMatchPoint>().toList();
             return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
                 _GradeBadge(grade: report.grade),
@@ -637,9 +862,25 @@ class _DynamicReportCard extends ConsumerWidget {
                 _StatCard(label: l10n.gpsQualityDynamicMatched, value: '${s.matchedCount}', color: AppColors.success),
                 _StatCard(label: l10n.gpsQualityDynamicMissed, value: '${s.missedCount}', color: AppColors.danger),
                 _StatCard(label: l10n.gpsQualityDynamicCoverage, value: '${s.coverage.toStringAsFixed(1)}%', color: AppColors.success),
-                _StatCard(label: 'P95', value: '${s.p95.toStringAsFixed(1)}m'),
                 _StatCard(label: l10n.gpsQualityDynamicAmbiguous, value: '${s.ambiguousCount}', color: AppColors.warning),
+                _StatCard(label: l10n.gpsQualityDynamicOrderOk, value: s.inOrder ? '✅' : '❌'),
+                _StatCard(label: l10n.gpsQualityTipMeanError, value: '${s.meanError.toStringAsFixed(1)}m'),
+                _StatCard(label: 'P50', value: '${s.p50.toStringAsFixed(1)}m', color: AppColors.info),
+                _StatCard(label: 'P95', value: '${s.p95.toStringAsFixed(1)}m'),
               ]),
+              // Route match chart
+              if (matchPoints.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.md),
+                Text(l10n.gpsQualityRouteMatchChart, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                const SizedBox(height: AppSpacing.sm),
+                Center(
+                  child: RouteMatchChart(
+                    key: const Key('route-match-chart'),
+                    points: matchPoints,
+                    passes: report.passes,
+                  ),
+                ),
+              ],
               if (report.perPoint.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.lg),
                 Text(l10n.gpsQualityDynamicThreshold, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),

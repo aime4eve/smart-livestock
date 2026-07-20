@@ -3167,4 +3167,63 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsQualityRegisterAll => 'Register all';
+
+  @override
+  String get gpsQualitySearchDeviceHint => 'Search EUI or device code…';
+
+  @override
+  String get gpsQualityFilterAllStatus => 'All statuses';
+
+  @override
+  String get gpsQualityNoMatchDevice => 'No matching devices';
+
+  @override
+  String get gpsQualityDeleteDevice => 'Delete device';
+
+  @override
+  String gpsQualityDeleteDeviceConfirm(Object n) {
+    return 'This will delete all $n quality check records under this device (the device itself is kept). This action cannot be undone.';
+  }
+
+  @override
+  String gpsQualityDeleteDeviceSuccess(Object n) {
+    return 'Deleted $n check records';
+  }
+
+  @override
+  String get gpsQualityImportTotalRows => 'Total rows';
+
+  @override
+  String get gpsQualityImportOkRows => 'Report ready';
+
+  @override
+  String get gpsQualityDeleteRowsHint =>
+      'You can delete rows before submitting';
+
+  @override
+  String get gpsQualityRowExcluded => 'Excluded';
+
+  @override
+  String get gpsQualityDeviceCode => 'Device code';
+
+  @override
+  String get gpsQualityTruthRef => 'Truth point/route';
+
+  @override
+  String get gpsQualityTimeRange => 'Time range';
+
+  @override
+  String get gpsQualityDynamicOrderOk => 'In order';
+
+  @override
+  String get gpsQualityRouteMatchChart => 'Route match chart';
+
+  @override
+  String get gpsQualitySelectRoutePrompt =>
+      'Select a route to view the dynamic comparison';
+
+  @override
+  String gpsQualityDeviceCount(Object n) {
+    return '$n devices';
+  }
 }

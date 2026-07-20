@@ -230,11 +230,27 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
 
   // ── NIX-21: Batch import ──────────────────────────────────────────
 
-  /// Upload an Excel file for batch GPS quality check import.
-  Future<BatchImportResult> batchImport(
+  /// Parse an Excel file for batch import preview (parse-only, no persistence).
+  Future<BatchParseResult> parseBatch(
       List<int> fileBytes, String fileName) async {
     final data = await ApiClient.instance
-        .uploadFile('$_base/batch/import', fileBytes, fileName);
+        .uploadFile('$_base/batch/parse', fileBytes, fileName);
+    return BatchParseResult.fromJson(data);
+  }
+
+  /// Upload an Excel file for batch GPS quality check import.
+  /// [excludeRows] skips the given parse row indexes (1-based rowIndex).
+  Future<BatchImportResult> batchImport(
+      List<int> fileBytes, String fileName,
+      {List<int>? excludeRows}) async {
+    final data = await ApiClient.instance.uploadFile(
+      '$_base/batch/import',
+      fileBytes,
+      fileName,
+      fields: (excludeRows != null && excludeRows.isNotEmpty)
+          ? {'excludeRows': excludeRows.join(',')}
+          : null,
+    );
     return BatchImportResult.fromJson(data);
   }
 
@@ -320,6 +336,21 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
     final data =
         await ApiClient.instance.get('$_base/checks?${params.join('&')}');
     return QualityCheckListResult.fromJson(data);
+  }
+
+  /// Delete all quality checks of a device (the device itself is kept).
+  /// Returns the number of deleted check records.
+  Future<int> deleteChecksByDevice(int deviceId) async {
+    final data =
+        await ApiClient.instance.deleteJson('$_base/checks/by-device/$deviceId');
+    return (data['deleted'] as num?)?.toInt() ?? 0;
+  }
+
+  /// Fetch the dynamic quality comparison across devices for a route.
+  Future<DynamicComparisonResult> fetchDynamicComparison(int routeId) async {
+    final data = await ApiClient.instance
+        .get('$_base/comparison/dynamic?routeId=$routeId');
+    return DynamicComparisonResult.fromJson(data);
   }
 }
 

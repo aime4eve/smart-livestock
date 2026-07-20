@@ -19,6 +19,8 @@ import com.smartlivestock.iot.interfaces.admin.dto.DeviceBriefDto;
 import com.smartlivestock.iot.interfaces.admin.dto.DynamicQualityReportDto;
 import com.smartlivestock.iot.interfaces.admin.dto.GpsQualityTestDto;
 import com.smartlivestock.iot.interfaces.admin.dto.BatchImportResultDto;
+import com.smartlivestock.iot.interfaces.admin.dto.BatchParseResultDto;
+import com.smartlivestock.iot.interfaces.admin.dto.DynamicComparisonDto;
 import com.smartlivestock.iot.interfaces.admin.dto.QualityReportDto;
 import com.smartlivestock.shared.tenant.TenantContext;
 import com.smartlivestock.iot.interfaces.admin.dto.RtkPointDto;
@@ -36,8 +38,10 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Admin endpoints for GPS quality checks.
@@ -213,13 +217,47 @@ public class GpsQualityAdminController {
         return ResponseEntity.ok(ApiResponse.ok(GpsQualityTestDto.from(saved)));
     }
 
+    @DeleteMapping("/checks/by-device/{deviceId}")
+    public ResponseEntity<ApiResponse<Map<String, Integer>>> deleteChecksByDevice(
+            @PathVariable Long deviceId) {
+        int deleted = testService.deleteByDeviceId(deviceId);
+        return ResponseEntity.ok(ApiResponse.ok(Map.of("deleted", deleted)));
+    }
+
     // --- Batch import ---
+
+    /**
+     * Parse-only precheck of a batch import file: validates every row and
+     * reports per-row preStatus (OK/WARN/ERROR) without persisting anything.
+     */
+    @PostMapping(value = "/batch/parse", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<BatchParseResultDto>> batchParse(
+            @RequestParam("file") MultipartFile file) {
+        Long tenantId = resolveTenantId();
+        BatchParseResultDto result = batchImportService.parseExcel(file, tenantId);
+        return ResponseEntity.ok(ApiResponse.ok(result));
+    }
 
     @PostMapping(value = "/batch/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<BatchImportResultDto>> batchImport(
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "excludeRows", required = false) String excludeRows) {
         Long tenantId = resolveTenantId();
-        BatchImportResultDto result = batchImportService.importFromExcel(file, tenantId);
+        Set<Integer> excluded = null;
+        if (excludeRows != null && !excludeRows.isBlank()) {
+            excluded = new HashSet<>();
+            for (String token : excludeRows.split(",")) {
+                String t = token.trim();
+                if (t.isEmpty()) continue;
+                try {
+                    excluded.add(Integer.parseInt(t));
+                } catch (NumberFormatException e) {
+                    throw new ApiException(
+                            ErrorCode.VALIDATION_ERROR, "Invalid excludeRows value: '" + t + "'");
+                }
+            }
+        }
+        BatchImportResultDto result = batchImportService.importFromExcel(file, tenantId, excluded);
         return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
@@ -314,6 +352,15 @@ public class GpsQualityAdminController {
         GpsQualityReportService.ComparisonResult result =
                 reportService.generateComparison(rtkPointId);
         return ResponseEntity.ok(ApiResponse.ok(ComparisonDto.from(result)));
+    }
+
+    /**
+     * Dynamic comparison: latest READY dynamic test per device on one route.
+     */
+    @GetMapping("/comparison/dynamic")
+    public ResponseEntity<ApiResponse<DynamicComparisonDto>> dynamicComparison(
+            @RequestParam Long routeId) {
+        return ResponseEntity.ok(ApiResponse.ok(dynamicReportService.generateRouteComparison(routeId)));
     }
 
     // --- Dynamic test routes ---

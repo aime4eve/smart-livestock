@@ -89,6 +89,15 @@ final comparisonProvider = FutureProvider.family<ComparisonResult, int>(
       .fetchComparison(rtkPointId: rtkPointId),
 );
 
+// ── Dynamic comparison (family by routeId) ────────────────────────
+
+final dynamicComparisonProvider =
+    FutureProvider.family<DynamicComparisonResult, int>(
+  (ref, routeId) => ref
+      .read(gpsQualityApiRepositoryProvider)
+      .fetchDynamicComparison(routeId),
+);
+
 // ── Dynamic test routes ───────────────────────────────────────────
 
 class DynamicRoutesController extends AsyncNotifier<List<DynamicRoute>> {

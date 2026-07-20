@@ -64,6 +64,10 @@ class ApiClient {
   Future<void> delete(String path) =>
       _withRefreshRetry(() => _doDelete(path));
 
+  /// DELETE that returns the parsed JSON response body.
+  Future<Map<String, dynamic>> deleteJson(String path) =>
+      _withRefreshRetry(() => _doDeleteJson(path));
+
   Future<Map<String, dynamic>> patch(String path, {Object? body}) =>
       _withRefreshRetry(() => _doPatch(path, body: body));
 
@@ -145,6 +149,15 @@ class ApiClient {
       headers: headers,
     ).timeout(_timeout);
     await _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> _doDeleteJson(String path) async {
+    final headers = await _headers();
+    final response = await http.delete(
+      Uri.parse('$_baseUrl$path'),
+      headers: headers,
+    ).timeout(_timeout);
+    return _handleResponse(response);
   }
 
   // ── Auto-refresh retry wrapper ───────────────────────────────────
@@ -327,14 +340,17 @@ class ApiClient {
 
   /// Upload a file via multipart/form-data POST.
   /// The response is parsed through the standard JSON handler.
+  /// Optional [fields] are added as extra multipart form fields.
   Future<Map<String, dynamic>> uploadFile(
-      String path, List<int> bytes, String fileName) async {
+      String path, List<int> bytes, String fileName,
+      {Map<String, String>? fields}) async {
     final uri = Uri.parse('$_baseUrl$path');
     final authHeaders = await _headers();
     final request = http.MultipartRequest('POST', uri);
     // Include auth headers; remove Content-Type so multipart boundary is auto-set.
     request.headers.addAll(authHeaders);
     request.headers.remove('Content-Type');
+    if (fields != null) request.fields.addAll(fields);
     request.files
         .add(http.MultipartFile.fromBytes('file', bytes, filename: fileName));
     final streamedResponse =

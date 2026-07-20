@@ -19,6 +19,7 @@ import com.smartlivestock.iot.domain.repository.GpsQualityTestRepository;
 import com.smartlivestock.iot.domain.repository.RtkReferencePointRepository;
 import com.smartlivestock.iot.domain.service.DynamicQualityCalculator;
 import com.smartlivestock.iot.domain.service.GpsQualityCalculator;
+import com.smartlivestock.iot.interfaces.admin.dto.DynamicComparisonDto;
 import com.smartlivestock.iot.interfaces.admin.dto.DynamicQualityReportDto;
 import com.smartlivestock.iot.interfaces.admin.dto.DynamicQualityReportDto.MatchedPass;
 import com.smartlivestock.iot.interfaces.admin.dto.DynamicQualityReportDto.PerRtkPointSummary;
@@ -31,7 +32,9 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -157,6 +160,51 @@ public class DynamicQualityReportService {
        dto.setStaticComparison(comparison);
        return dto;
    }
+
+    // ------------------------------------------------------------------
+    // Route-level dynamic comparison (latest READY test per device)
+    // ------------------------------------------------------------------
+
+    /**
+     * Compare all devices' dynamic quality on one route: takes the latest READY
+     * dynamic test per device and reuses {@link #generate(Long, Double)} for the
+     * per-device summary.
+     */
+    public DynamicComparisonDto generateRouteComparison(Long routeId) {
+        DynamicTestRoute route = routeRepository.findById(routeId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "Route not found: " + routeId));
+
+        // Latest READY dynamic test per device (by startedAt, then id)
+        Map<Long, GpsQualityTest> latestByDevice = new LinkedHashMap<>();
+        for (GpsQualityTest t : testRepository.findByRouteIdAndStatus(routeId, "READY")) {
+            if (t.getTestType() != TestType.DYNAMIC || t.getDeviceId() == null) continue;
+            latestByDevice.merge(t.getDeviceId(), t, (a, b) -> {
+                int cmp = a.getStartedAt().compareTo(b.getStartedAt());
+                if (cmp != 0) return cmp > 0 ? a : b;
+                return a.getId() >= b.getId() ? a : b;
+            });
+        }
+
+        List<DynamicComparisonDto.DeviceSummary> devices = latestByDevice.values().stream()
+                .sorted(Comparator.comparing(t -> t.getDeviceCode() != null ? t.getDeviceCode() : ""))
+                .map(t -> {
+                    DynamicQualityReportDto report = generate(t.getId(), null);
+                    DynamicQualityStats s = report.getStats();
+                    return new DynamicComparisonDto.DeviceSummary(
+                            t.getDeviceId(), report.getDeviceCode(), t.getId(),
+                            s.coverage(), s.matchedCount(), s.missedCount(), s.ambiguousCount(),
+                            s.inOrder(), s.meanError(), s.p50(), s.p95(),
+                            t.getStartedAt(), t.getEndedAt());
+                })
+                .toList();
+
+        DynamicComparisonDto dto = new DynamicComparisonDto();
+        dto.setRouteId(route.getId());
+        dto.setRouteName(route.getName());
+        dto.setDevices(devices);
+        return dto;
+    }
 
     // ------------------------------------------------------------------
     // Dynamic grade (spec §4.4 — tighter than static thresholds)

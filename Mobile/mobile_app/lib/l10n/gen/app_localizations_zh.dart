@@ -3101,4 +3101,61 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpsQualityRegisterAll => '全部注册';
+
+  @override
+  String get gpsQualitySearchDeviceHint => '搜索 EUI 或设备编号…';
+
+  @override
+  String get gpsQualityFilterAllStatus => '全部状态';
+
+  @override
+  String get gpsQualityNoMatchDevice => '无匹配设备';
+
+  @override
+  String get gpsQualityDeleteDevice => '删除设备';
+
+  @override
+  String gpsQualityDeleteDeviceConfirm(Object n) {
+    return '将删除该设备名下的全部 $n 条质量检验记录（设备本身保留），此操作不可恢复。';
+  }
+
+  @override
+  String gpsQualityDeleteDeviceSuccess(Object n) {
+    return '已删除 $n 条检验记录';
+  }
+
+  @override
+  String get gpsQualityImportTotalRows => '总行数';
+
+  @override
+  String get gpsQualityImportOkRows => '可出报告';
+
+  @override
+  String get gpsQualityDeleteRowsHint => '可删除部分行后提交';
+
+  @override
+  String get gpsQualityRowExcluded => '已排除';
+
+  @override
+  String get gpsQualityDeviceCode => '设备编号';
+
+  @override
+  String get gpsQualityTruthRef => '真值点/路径';
+
+  @override
+  String get gpsQualityTimeRange => '时段';
+
+  @override
+  String get gpsQualityDynamicOrderOk => '顺序正确';
+
+  @override
+  String get gpsQualityRouteMatchChart => '路线匹配图';
+
+  @override
+  String get gpsQualitySelectRoutePrompt => '请选择一条路线查看动态对比';
+
+  @override
+  String gpsQualityDeviceCount(Object n) {
+    return '$n 台设备';
+  }
 }

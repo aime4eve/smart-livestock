@@ -621,3 +621,167 @@ class RowResult {
         message: json['message'] as String?,
       );
 }
+
+/// Result of parsing a batch import Excel file (parse-only, nothing persisted).
+/// Maps to the response of POST /batch/parse.
+@immutable
+class BatchParseResult {
+  const BatchParseResult({
+    this.totalRows = 0,
+    this.okCount = 0,
+    this.warnCount = 0,
+    this.errorCount = 0,
+    this.rows = const [],
+  });
+
+  final int totalRows;
+  final int okCount;
+  final int warnCount;
+  final int errorCount;
+  final List<BatchParseRow> rows;
+
+  factory BatchParseResult.fromJson(Map<String, dynamic> json) =>
+      BatchParseResult(
+        totalRows: json['totalRows'] as int? ?? 0,
+        okCount: json['okCount'] as int? ?? 0,
+        warnCount: json['warnCount'] as int? ?? 0,
+        errorCount: json['errorCount'] as int? ?? 0,
+        rows: (json['rows'] as List?)
+                ?.whereType<Map<String, dynamic>>()
+                .map(BatchParseRow.fromJson)
+                .toList() ??
+            [],
+      );
+}
+
+/// A single parsed row within a batch import preview.
+@immutable
+class BatchParseRow {
+  const BatchParseRow({
+    this.rowIndex = 0,
+    this.eui = '',
+    this.deviceCode,
+    this.testType = 'STATIC',
+    this.refName = '',
+    this.rtkPointId,
+    this.routeId,
+    this.startedAt,
+    this.endedAt,
+    this.preStatus = '',
+    this.message,
+  });
+
+  final int rowIndex;
+  final String eui;
+  final String? deviceCode;
+  final String testType; // STATIC / DYNAMIC
+  final String refName;
+  final int? rtkPointId;
+  final int? routeId;
+  final DateTime? startedAt;
+  final DateTime? endedAt;
+  final String preStatus; // OK / WARN / ERROR
+  final String? message;
+
+  factory BatchParseRow.fromJson(Map<String, dynamic> json) => BatchParseRow(
+        rowIndex: json['rowIndex'] as int? ?? 0,
+        eui: json['eui'] as String? ?? '',
+        deviceCode: json['deviceCode'] as String?,
+        testType: json['testType'] as String? ?? 'STATIC',
+        refName: json['refName'] as String? ?? '',
+        rtkPointId: json['rtkPointId'] as int?,
+        routeId: json['routeId'] as int?,
+        startedAt: json['startedAt'] != null
+            ? DateTime.parse(json['startedAt'] as String)
+            : null,
+        endedAt: json['endedAt'] != null
+            ? DateTime.parse(json['endedAt'] as String)
+            : null,
+        preStatus: json['preStatus'] as String? ?? '',
+        message: json['message'] as String?,
+      );
+}
+
+/// Multi-device dynamic comparison result for a single route.
+/// Maps to the response of GET /comparison/dynamic.
+@immutable
+class DynamicComparisonResult {
+  const DynamicComparisonResult({
+    this.routeId = 0,
+    this.routeName = '',
+    this.devices = const [],
+  });
+
+  final int routeId;
+  final String routeName;
+  final List<DynamicComparisonRow> devices;
+
+  factory DynamicComparisonResult.fromJson(Map<String, dynamic> json) =>
+      DynamicComparisonResult(
+        routeId: json['routeId'] as int? ?? 0,
+        routeName: json['routeName'] as String? ?? '',
+        devices: (json['devices'] as List?)
+                ?.whereType<Map<String, dynamic>>()
+                .map(DynamicComparisonRow.fromJson)
+                .toList() ??
+            [],
+      );
+}
+
+/// A single device's dynamic comparison summary within a route.
+@immutable
+class DynamicComparisonRow {
+  const DynamicComparisonRow({
+    this.deviceId = 0,
+    this.deviceCode = '',
+    this.eui = '',
+    this.checkId = 0,
+    this.coverage = 0,
+    this.matchedCount = 0,
+    this.missedCount = 0,
+    this.ambiguousCount = 0,
+    this.inOrder = true,
+    this.meanError = 0,
+    this.p50 = 0,
+    this.p95 = 0,
+    this.startedAt,
+    this.endedAt,
+  });
+
+  final int deviceId;
+  final String deviceCode;
+  final String eui;
+  final int checkId;
+  final double coverage;
+  final int matchedCount;
+  final int missedCount;
+  final int ambiguousCount;
+  final bool inOrder;
+  final double meanError;
+  final double p50;
+  final double p95;
+  final DateTime? startedAt;
+  final DateTime? endedAt;
+
+  factory DynamicComparisonRow.fromJson(Map<String, dynamic> json) =>
+      DynamicComparisonRow(
+        deviceId: json['deviceId'] as int? ?? 0,
+        deviceCode: json['deviceCode'] as String? ?? '',
+        eui: json['eui'] as String? ?? '',
+        checkId: json['checkId'] as int? ?? 0,
+        coverage: (json['coverage'] as num?)?.toDouble() ?? 0,
+        matchedCount: json['matchedCount'] as int? ?? 0,
+        missedCount: json['missedCount'] as int? ?? 0,
+        ambiguousCount: json['ambiguousCount'] as int? ?? 0,
+        inOrder: json['inOrder'] as bool? ?? true,
+        meanError: (json['meanError'] as num?)?.toDouble() ?? 0,
+        p50: (json['p50'] as num?)?.toDouble() ?? 0,
+        p95: (json['p95'] as num?)?.toDouble() ?? 0,
+        startedAt: json['startedAt'] != null
+            ? DateTime.parse(json['startedAt'] as String)
+            : null,
+        endedAt: json['endedAt'] != null
+            ? DateTime.parse(json['endedAt'] as String)
+            : null,
+      );
+}

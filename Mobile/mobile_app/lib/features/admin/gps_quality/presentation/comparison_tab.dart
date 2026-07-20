@@ -20,11 +20,13 @@ class ComparisonTab extends ConsumerStatefulWidget {
 class _ComparisonTabState extends ConsumerState<ComparisonTab> {
   bool _isStatic = true;
   int? _selectedRtkPointId;
+  int? _selectedRouteId;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final rtkPoints = ref.watch(rtkPointsProvider).value ?? [];
+    final routes = ref.watch(dynamicRoutesProvider).value ?? [];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -48,6 +50,7 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
                 onSelectionChanged: (v) => setState(() {
                   _isStatic = v.first;
                   _selectedRtkPointId = null;
+                  _selectedRouteId = null;
                 }),
               ),
               const SizedBox(width: AppSpacing.lg),
@@ -68,8 +71,21 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
                   onChanged: (v) => setState(() => _selectedRtkPointId = v),
                 ))
               else
-                Expanded(child: Text(l10n.gpsQualityRouteList,
-                  style: const TextStyle(fontSize: 13, color: AppColors.textSecondary))),
+                Expanded(child: DropdownButtonFormField<int>(
+                  key: const Key('dynamic-route-dropdown'),
+                  decoration: InputDecoration(
+                    labelText: l10n.gpsQualitySelectRoute,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  ),
+                  value: _selectedRouteId,
+                  items: [
+                    DropdownMenuItem(value: null, child: Text(l10n.gpsQualityRouteList, style: const TextStyle(fontSize: 13))),
+                    ...routes.map((r) => DropdownMenuItem(value: r.id,
+                      child: Text(r.name, style: const TextStyle(fontSize: 13)))),
+                  ],
+                  onChanged: (v) => setState(() => _selectedRouteId = v),
+                )),
             ]),
           ),
         ),
@@ -173,47 +189,108 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
   // ── Dynamic comparison ───────────────────────────────────────────
 
   Widget _buildDynamicComparison(AppLocalizations l10n) {
-    final routesAsync = ref.watch(dynamicRoutesProvider);
-    return routesAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Text('$e', style: const TextStyle(color: AppColors.danger)),
-      data: (routes) {
-        if (routes.isEmpty) {
-          return Card(child: SizedBox(height: 200, child: Center(child: Column(
-            mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.route, size: 40, color: AppColors.textSecondary),
+    if (_selectedRouteId == null) {
+      return Card(
+        child: SizedBox(
+          height: 200,
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.route, size: 40, color: AppColors.textSecondary),
+                const SizedBox(height: AppSpacing.sm),
+                Text(l10n.gpsQualitySelectRoutePrompt,
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    final comparisonAsync =
+        ref.watch(dynamicComparisonProvider(_selectedRouteId!));
+
+    return Card(
+      key: const Key('dynamic-comparison-card'),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: comparisonAsync.when(
+          loading: () => const SizedBox(height: 60, child: Center(child: CircularProgressIndicator())),
+          error: (e, _) => Text('$e', style: const TextStyle(color: AppColors.danger, fontSize: 12)),
+          data: (result) {
+            final devices = result.devices;
+            if (devices.isEmpty) {
+              return Text(l10n.gpsQualityNoData,
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12));
+            }
+            // Best rows: highest coverage, lowest error metrics
+            final bestCoverage = devices.map((d) => d.coverage).reduce((a, b) => a > b ? a : b);
+            final bestMeanError = devices.map((d) => d.meanError).reduce((a, b) => a < b ? a : b);
+            final bestP50 = devices.map((d) => d.p50).reduce((a, b) => a < b ? a : b);
+            final bestP95 = devices.map((d) => d.p95).reduce((a, b) => a < b ? a : b);
+            return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Text(result.routeName,
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                const SizedBox(width: 8),
+                Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(10)),
+                  child: Text(l10n.gpsQualityDeviceCount(devices.length),
+                    style: const TextStyle(fontSize: 11, color: AppColors.primary))),
+              ]),
               const SizedBox(height: AppSpacing.sm),
-              Text(l10n.gpsQualityNoData, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-            ]))));
-        }
-        return Column(
-          children: routes.map((r) => _buildDynamicPanel(l10n, r)).toList(),
-        );
-      },
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  key: const Key('dynamic-comparison-table'),
+                  columnSpacing: 16,
+                  columns: [
+                    DataColumn(label: Text(l10n.gpsQualityDeviceCode, style: const TextStyle(fontSize: 12))),
+                    DataColumn(label: Text(l10n.gpsQualityDeviceEui, style: const TextStyle(fontSize: 12))),
+                    DataColumn(label: Text(l10n.gpsQualityDynamicCoverage, style: const TextStyle(fontSize: 12))),
+                    DataColumn(label: Text(l10n.gpsQualityDynamicMatched, style: const TextStyle(fontSize: 12))),
+                    DataColumn(label: Text(l10n.gpsQualityDynamicMissed, style: const TextStyle(fontSize: 12))),
+                    DataColumn(label: Text(l10n.gpsQualityDynamicAmbiguous, style: const TextStyle(fontSize: 12))),
+                    DataColumn(label: Text(l10n.gpsQualityDynamicOrderOk, style: const TextStyle(fontSize: 12))),
+                    DataColumn(label: Text(l10n.gpsQualityTipMeanError, style: const TextStyle(fontSize: 12))),
+                    DataColumn(label: Text('P50', style: const TextStyle(fontSize: 12))),
+                    DataColumn(label: Text('P95', style: const TextStyle(fontSize: 12))),
+                    DataColumn(label: Text(l10n.gpsQualityTimeRange, style: const TextStyle(fontSize: 12))),
+                  ],
+                  rows: devices.map((d) {
+                    final timeRange = d.startedAt != null
+                      ? '${DateFormat('MM-dd HH:mm').format(d.startedAt!)} → ${d.endedAt != null ? DateFormat('MM-dd HH:mm').format(d.endedAt!) : "..."}'
+                      : '-';
+                    return DataRow(cells: [
+                      DataCell(Text(d.deviceCode, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
+                      DataCell(Text(d.eui.isEmpty ? '-' : d.eui, style: const TextStyle(fontSize: 12))),
+                      DataCell(_metricCell('${d.coverage.toStringAsFixed(1)}%', d.coverage == bestCoverage)),
+                      DataCell(Text('${d.matchedCount}', style: const TextStyle(fontSize: 12, color: AppColors.success))),
+                      DataCell(Text('${d.missedCount}', style: TextStyle(fontSize: 12, color: d.missedCount > 0 ? AppColors.danger : AppColors.textPrimary))),
+                      DataCell(Text('${d.ambiguousCount}', style: TextStyle(fontSize: 12, color: d.ambiguousCount > 0 ? AppColors.warning : AppColors.textPrimary))),
+                      DataCell(Text(d.inOrder ? '✅' : '❌', style: const TextStyle(fontSize: 12))),
+                      DataCell(_metricCell('${d.meanError.toStringAsFixed(1)}m', d.meanError == bestMeanError)),
+                      DataCell(_metricCell('${d.p50.toStringAsFixed(1)}m', d.p50 == bestP50)),
+                      DataCell(_metricCell('${d.p95.toStringAsFixed(1)}m', d.p95 == bestP95)),
+                      DataCell(Text(timeRange, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
+                    ]);
+                  }).toList(),
+                ),
+              ),
+            ]);
+          },
+        ),
+      ),
     );
   }
 
-  Widget _buildDynamicPanel(AppLocalizations l10n, DynamicRoute route) {
-    // Dynamic comparison needs a different API — for now show route info
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            Text(route.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-            const SizedBox(width: 8),
-            Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(10)),
-              child: const Text('路线', style: TextStyle(fontSize: 11, color: AppColors.primary))),
-          ]),
-          if (route.description != null)
-            Padding(padding: const EdgeInsets.only(top: 4),
-              child: Text(route.description!, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-          const SizedBox(height: AppSpacing.sm),
-          Text(l10n.gpsQualityDynamicNoTest, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-        ]),
-      ),
-    );
+  /// Metric cell — best value highlighted in bold success green.
+  Widget _metricCell(String text, bool isBest) {
+    return Text(text, style: TextStyle(
+      fontSize: 12,
+      fontWeight: isBest ? FontWeight.w700 : FontWeight.w400,
+      color: isBest ? AppColors.success : AppColors.textPrimary,
+    ));
   }
 }
 

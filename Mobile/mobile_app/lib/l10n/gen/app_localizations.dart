@@ -5813,6 +5813,108 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'全部注册'**
   String get gpsQualityRegisterAll;
+
+  /// No description provided for @gpsQualitySearchDeviceHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索 EUI 或设备编号…'**
+  String get gpsQualitySearchDeviceHint;
+
+  /// No description provided for @gpsQualityFilterAllStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部状态'**
+  String get gpsQualityFilterAllStatus;
+
+  /// No description provided for @gpsQualityNoMatchDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'无匹配设备'**
+  String get gpsQualityNoMatchDevice;
+
+  /// No description provided for @gpsQualityDeleteDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除设备'**
+  String get gpsQualityDeleteDevice;
+
+  /// No description provided for @gpsQualityDeleteDeviceConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'将删除该设备名下的全部 {n} 条质量检验记录（设备本身保留），此操作不可恢复。'**
+  String gpsQualityDeleteDeviceConfirm(Object n);
+
+  /// No description provided for @gpsQualityDeleteDeviceSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'已删除 {n} 条检验记录'**
+  String gpsQualityDeleteDeviceSuccess(Object n);
+
+  /// No description provided for @gpsQualityImportTotalRows.
+  ///
+  /// In zh, this message translates to:
+  /// **'总行数'**
+  String get gpsQualityImportTotalRows;
+
+  /// No description provided for @gpsQualityImportOkRows.
+  ///
+  /// In zh, this message translates to:
+  /// **'可出报告'**
+  String get gpsQualityImportOkRows;
+
+  /// No description provided for @gpsQualityDeleteRowsHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'可删除部分行后提交'**
+  String get gpsQualityDeleteRowsHint;
+
+  /// No description provided for @gpsQualityRowExcluded.
+  ///
+  /// In zh, this message translates to:
+  /// **'已排除'**
+  String get gpsQualityRowExcluded;
+
+  /// No description provided for @gpsQualityDeviceCode.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备编号'**
+  String get gpsQualityDeviceCode;
+
+  /// No description provided for @gpsQualityTruthRef.
+  ///
+  /// In zh, this message translates to:
+  /// **'真值点/路径'**
+  String get gpsQualityTruthRef;
+
+  /// No description provided for @gpsQualityTimeRange.
+  ///
+  /// In zh, this message translates to:
+  /// **'时段'**
+  String get gpsQualityTimeRange;
+
+  /// No description provided for @gpsQualityDynamicOrderOk.
+  ///
+  /// In zh, this message translates to:
+  /// **'顺序正确'**
+  String get gpsQualityDynamicOrderOk;
+
+  /// No description provided for @gpsQualityRouteMatchChart.
+  ///
+  /// In zh, this message translates to:
+  /// **'路线匹配图'**
+  String get gpsQualityRouteMatchChart;
+
+  /// No description provided for @gpsQualitySelectRoutePrompt.
+  ///
+  /// In zh, this message translates to:
+  /// **'请选择一条路线查看动态对比'**
+  String get gpsQualitySelectRoutePrompt;
+
+  /// No description provided for @gpsQualityDeviceCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 台设备'**
+  String gpsQualityDeviceCount(Object n);
 }
 
 class _AppLocalizationsDelegate

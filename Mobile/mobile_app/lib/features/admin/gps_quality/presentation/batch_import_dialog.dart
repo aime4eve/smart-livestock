@@ -9,13 +9,19 @@ import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_qual
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/web_file_utils.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/edit_retry_dialog.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
+import 'package:intl/intl.dart';
 
 /// 3-step batch GPS quality check import wizard.
 /// Step 1: Upload .xlsx file
 /// Step 2: Preview parsed rows
 /// Step 3: Results with actions for pending/failed items
 class BatchImportDialog extends ConsumerStatefulWidget {
-  const BatchImportDialog({super.key});
+  const BatchImportDialog({super.key, @visibleForTesting this.debugFileBytes});
+
+  /// Test-only hook: pre-set the uploaded file bytes so the preview step can
+  /// be driven without the platform file picker.
+  @visibleForTesting
+  final Uint8List? debugFileBytes;
 
   @override
   ConsumerState<BatchImportDialog> createState() => _BatchImportDialogState();
@@ -27,11 +33,21 @@ class _BatchImportDialogState extends ConsumerState<BatchImportDialog> {
   String? _fileName;
   Uint8List? _fileBytes;
 
-  // Preview data (parsed from Excel before submit)
-  List<_PreviewRow> _previewRows = [];
+  // Preview data (parsed server-side via POST /batch/parse)
+  BatchParseResult? _parseResult;
+  final Set<int> _excludedRows = {};
 
   // Result data (after submit)
   BatchImportResult? _result;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.debugFileBytes != null) {
+      _fileBytes = widget.debugFileBytes;
+      _fileName = 'test-import.xlsx';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -178,66 +194,116 @@ class _BatchImportDialogState extends ConsumerState<BatchImportDialog> {
   // ── Step 1: Preview ──────────────────────────────────────────────
 
   Widget _buildPreviewStep(AppLocalizations l10n) {
-    if (_previewRows.isEmpty) {
-      return const Center(child: Text('No data to preview'));
+    final result = _parseResult;
+    if (result == null) {
+      return Center(child: Text(l10n.gpsQualityNoData));
     }
-    final totalImportable = _previewRows.where((r) => r.error == null).length;
-    final totalError = _previewRows.where((r) => r.error != null).length;
+    // ERROR rows are auto-excluded and cannot be restored; manually excluded
+    // rows are removed from the table entirely.
+    final visibleRows = result.rows
+        .where((r) =>
+            r.preStatus == 'ERROR' || !_excludedRows.contains(r.rowIndex))
+        .toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Summary
+        // Summary cards
         Row(children: [
-          Text('共 ${_previewRows.length} 行',
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          _summaryCard(l10n.gpsQualityImportTotalRows, '${result.totalRows}', AppColors.info),
           const SizedBox(width: AppSpacing.sm),
-          if (totalImportable > 0)
-            Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
-              child: Text('$totalImportable 可导入', style: const TextStyle(fontSize: 11, color: AppColors.success))),
-          if (totalError > 0)
-            Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(color: AppColors.danger.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
-              child: Text('$totalError 错误', style: const TextStyle(fontSize: 11, color: AppColors.danger))),
+          _summaryCard(l10n.gpsQualityImportOkRows, '${result.okCount}', AppColors.success),
+          const SizedBox(width: AppSpacing.sm),
+          _summaryCard(l10n.gpsQualityDevicePending, '${result.warnCount}', AppColors.warning),
+          const SizedBox(width: AppSpacing.sm),
+          _summaryCard(l10n.gpsQualityImportFailed, '${result.errorCount}', AppColors.danger),
         ]),
+        const SizedBox(height: AppSpacing.sm),
+        Text(l10n.gpsQualityDeleteRowsHint,
+          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
         const SizedBox(height: AppSpacing.sm),
         // Table
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: DataTable(
+            key: const Key('preview-table'),
             columnSpacing: 12,
             columns: [
+              DataColumn(label: Text(l10n.gpsQualityRowIndex, style: const TextStyle(fontSize: 11))),
               DataColumn(label: Text(l10n.gpsQualityDeviceEui, style: const TextStyle(fontSize: 11))),
-              DataColumn(label: Text(l10n.gpsQualityDevice, style: const TextStyle(fontSize: 11))),
-              DataColumn(label: Text(l10n.gpsQualityTestTime, style: const TextStyle(fontSize: 11))),
+              DataColumn(label: Text(l10n.gpsQualityDeviceCode, style: const TextStyle(fontSize: 11))),
+              DataColumn(label: Text(l10n.gpsQualityTestType, style: const TextStyle(fontSize: 11))),
+              DataColumn(label: Text(l10n.gpsQualityTruthRef, style: const TextStyle(fontSize: 11))),
+              DataColumn(label: Text(l10n.gpsQualityTimeRange, style: const TextStyle(fontSize: 11))),
+              DataColumn(label: Text(l10n.gpsQualityStatus, style: const TextStyle(fontSize: 11))),
               DataColumn(label: Text('', style: const TextStyle(fontSize: 11))),
             ],
-            rows: List.generate(_previewRows.length, (i) {
-              final r = _previewRows[i];
-              final hasError = r.error != null;
+            rows: visibleRows.map((r) {
+              final isError = r.preStatus == 'ERROR';
+              final timeRange = r.startedAt != null
+                  ? '${DateFormat('MM-dd HH:mm').format(r.startedAt!)} → ${r.endedAt != null ? DateFormat('MM-dd HH:mm').format(r.endedAt!) : '...'}'
+                  : '-';
               return DataRow(
-                color: hasError ? WidgetStateProperty.all(AppColors.danger.withValues(alpha: 0.04)) : null,
+                color: isError ? WidgetStateProperty.all(AppColors.danger.withValues(alpha: 0.04)) : null,
                 cells: [
+                  DataCell(Text('${r.rowIndex}', style: const TextStyle(fontSize: 12))),
                   DataCell(Text(r.eui, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-                    color: hasError ? AppColors.danger : AppColors.textPrimary))),
+                    color: isError ? AppColors.danger : AppColors.textPrimary))),
                   DataCell(Text(r.deviceCode ?? '-', style: const TextStyle(fontSize: 12))),
-                  DataCell(Text(r.timeRange, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                  DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
-                    if (hasError)
-                      Tooltip(message: r.error!, child: const Icon(Icons.error_outline, size: 16, color: AppColors.danger)),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.danger),
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () => setState(() => _previewRows.removeAt(i)),
-                    ),
-                  ])),
+                  DataCell(_typeTag(r.testType, l10n)),
+                  DataCell(Text(r.refName.isEmpty ? '-' : r.refName, style: const TextStyle(fontSize: 12))),
+                  DataCell(Text(timeRange, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
+                  DataCell(_preStatusTag(r, l10n)),
+                  DataCell(isError
+                    ? Text(l10n.gpsQualityRowExcluded,
+                        key: Key('preview-excluded-${r.rowIndex}'),
+                        style: const TextStyle(fontSize: 10, color: AppColors.danger))
+                    : IconButton(
+                        key: Key('preview-remove-row-${r.rowIndex}'),
+                        icon: const Icon(Icons.close, size: 16, color: AppColors.danger),
+                        visualDensity: VisualDensity.compact,
+                        tooltip: l10n.commonDelete,
+                        onPressed: () => setState(() => _excludedRows.add(r.rowIndex)),
+                      )),
                 ],
               );
-            }),
+            }).toList(),
           ),
         ),
       ],
     );
+  }
+
+  Widget _typeTag(String testType, AppLocalizations l10n) {
+    final isStatic = testType == 'STATIC';
+    final color = isStatic ? const Color(0xFF2563EB) : const Color(0xFFB45309);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Text(
+        isStatic ? l10n.gpsQualityTestTypeStatic : l10n.gpsQualityTestTypeDynamic,
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: color),
+      ),
+    );
+  }
+
+  Widget _preStatusTag(BatchParseRow row, AppLocalizations l10n) {
+    final (label, color) = switch (row.preStatus) {
+      'OK' => (l10n.gpsQualityImportOkRows, AppColors.success),
+      'WARN' => (l10n.gpsQualityDevicePending, AppColors.warning),
+      _ => (l10n.gpsQualityImportFailed, AppColors.danger),
+    };
+    final tag = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4)),
+      child: Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
+    );
+    if (row.message != null && row.message!.isNotEmpty) {
+      return Tooltip(message: row.message!, child: tag);
+    }
+    return tag;
   }
 
   // ── Step 2: Results ──────────────────────────────────────────────
@@ -284,12 +350,14 @@ class _BatchImportDialogState extends ConsumerState<BatchImportDialog> {
                   DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
                     if (isPending)
                       TextButton.icon(
+                        key: Key('batch-row-register-${row.rowIndex}'),
                         icon: const Icon(Icons.wifi_tethering, size: 14),
                         label: Text(l10n.gpsQualityManualRegister, style: const TextStyle(fontSize: 11)),
                         onPressed: () => _retrySingle(row),
                       ),
                     if (isFailed)
                       TextButton.icon(
+                        key: Key('batch-row-edit-retry-${row.rowIndex}'),
                         icon: const Icon(Icons.edit, size: 14),
                         label: Text(l10n.gpsQualityEditAndRetry, style: const TextStyle(fontSize: 11)),
                         onPressed: () => _editRetry(row),
@@ -393,18 +461,29 @@ class _BatchImportDialogState extends ConsumerState<BatchImportDialog> {
 
   // ── Business logic ───────────────────────────────────────────────
 
-  /// Parse uploaded file into preview rows (simulated client-side parsing).
+  /// Parse the uploaded file server-side (parse-only) into preview rows.
   Future<void> _parsePreview() async {
     if (_fileBytes == null) return;
     setState(() => _loading = true);
     try {
-      // For now, just create a basic preview from the file name
+      final result = await ref.read(gpsQualityApiRepositoryProvider).parseBatch(
+        _fileBytes!.toList(),
+        _fileName ?? 'import.xlsx',
+      );
+      if (!mounted) return;
       setState(() {
-        _previewRows = [
-          _PreviewRow(eui: 'parsing...', timeRange: 'Server will parse'),
-        ];
+        _parseResult = result;
+        // ERROR rows are auto-excluded and cannot be restored
+        _excludedRows
+          ..clear()
+          ..addAll(result.rows
+              .where((r) => r.preStatus == 'ERROR')
+              .map((r) => r.rowIndex));
         _step = 1;
       });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
     } finally {
       setState(() => _loading = false);
     }
@@ -414,9 +493,11 @@ class _BatchImportDialogState extends ConsumerState<BatchImportDialog> {
     if (_fileBytes == null) return;
     setState(() => _loading = true);
     try {
+      final excludeRows = _excludedRows.toList()..sort();
       final result = await ref.read(gpsQualityApiRepositoryProvider).batchImport(
         _fileBytes!.toList(),
         _fileName ?? 'import.xlsx',
+        excludeRows: excludeRows,
       );
       if (!mounted) return;
       setState(() {
@@ -431,19 +512,11 @@ class _BatchImportDialogState extends ConsumerState<BatchImportDialog> {
     }
   }
 
+  /// Batch register blade for ALL pending checks.
   Future<void> _retryAllPending(BatchImportResult r) async {
     setState(() => _loading = true);
     try {
-      final pendingRows = r.rows.where((row) => row.status == 'DEVICE_PENDING').toList();
-      for (final row in pendingRows) {
-        try {
-          await ref.read(gpsQualityApiRepositoryProvider).retryRow(
-            eui: row.eui,
-            checkType: 'STATIC',
-            startedAt: DateTime.now(),
-          );
-        } catch (_) {}
-      }
+      await ref.read(gpsQualityApiRepositoryProvider).retryRegistration();
       if (!mounted) return;
       ref.invalidate(checksProvider);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -459,13 +532,12 @@ class _BatchImportDialogState extends ConsumerState<BatchImportDialog> {
 
   AppLocalizations l10n() => AppLocalizations.of(context)!;
 
+  /// Manual register blade for a single pending row's check.
   Future<void> _retrySingle(RowResult row) async {
     setState(() => _loading = true);
     try {
-      await ref.read(gpsQualityApiRepositoryProvider).retryRow(
-        eui: row.eui,
-        checkType: 'STATIC',
-        startedAt: DateTime.now(),
+      await ref.read(gpsQualityApiRepositoryProvider).retryRegistration(
+        checkIds: row.checkId != null ? [row.checkId!] : null,
       );
       if (!mounted) return;
       ref.invalidate(checksProvider);
@@ -512,18 +584,4 @@ class _BatchImportDialogState extends ConsumerState<BatchImportDialog> {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
     }
   }
-}
-
-/// Preview row data parsed from Excel (client-side).
-class _PreviewRow {
-  _PreviewRow({
-    required this.eui,
-    this.deviceCode,
-    this.error,
-    this.timeRange = '',
-  });
-  final String eui;
-  final String? deviceCode;
-  final String? error;
-  final String timeRange;
 }

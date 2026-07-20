@@ -9,6 +9,7 @@ import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -67,6 +68,16 @@ public class GpsQualityTestService {
 
     public void deleteById(Long id) {
         testRepository.deleteById(id);
+    }
+
+    /**
+     * Delete all quality tests of one device (any status). The device record
+     * itself is kept; reports are computed on the fly from gps_logs, so no
+     * child-table references need cleanup.
+     */
+    @Transactional
+    public int deleteByDeviceId(Long deviceId) {
+        return testRepository.deleteByDeviceId(deviceId);
     }
 
     /**

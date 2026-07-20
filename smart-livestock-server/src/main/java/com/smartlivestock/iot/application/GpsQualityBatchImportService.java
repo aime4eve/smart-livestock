@@ -12,6 +12,7 @@ import com.smartlivestock.iot.domain.repository.RtkReferencePointRepository;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.interfaces.admin.dto.BatchImportResultDto;
 import com.smartlivestock.iot.interfaces.admin.dto.BatchImportResultDto.RowResult;
+import com.smartlivestock.iot.interfaces.admin.dto.BatchParseResultDto;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +63,17 @@ public class GpsQualityBatchImportService {
     private final Map<String, List<RtkReferencePoint>> rtkCache = new ConcurrentHashMap<>();
     private final Map<String, List<DynamicTestRoute>> routeCache = new ConcurrentHashMap<>();
 
+    // Raw cell values of one Excel row (rowIndex = sheet row index, header = 0)
+    private record RawRow(
+        int rowIndex,
+        String eui,
+        String deviceCode,
+        String checkTypeStr,
+        String truthRef,
+        String startedAtStr,
+        String endedAtStr
+    ) {}
+
     // Row parsing result
     private record ImportRow(
         int rowIndex,
@@ -84,10 +96,16 @@ public class GpsQualityBatchImportService {
      * Session rollback-only after the first row failure, breaking all subsequent
      * rows with "null id" errors.
      */
-    public BatchImportResultDto importFromExcel(MultipartFile file, Long tenantId) {
+    public BatchImportResultDto importFromExcel(MultipartFile file, Long tenantId,
+                                                @Nullable Set<Integer> excludeRows) {
         List<ImportRow> rows;
         try (Workbook wb = new XSSFWorkbook(file.getInputStream())) {
-            rows = parseSheet(wb.getSheetAt(0));
+            List<RawRow> rawRows = readRawRows(wb.getSheetAt(0));
+            rows = new ArrayList<>(rawRows.size());
+            for (RawRow raw : rawRows) {
+                if (excludeRows != null && excludeRows.contains(raw.rowIndex())) continue;
+                rows.add(toImportRow(raw));
+            }
         } catch (IOException e) {
             throw new ApiException(ErrorCode.INTERNAL_ERROR, "Failed to parse Excel: " + e.getMessage());
         }
@@ -288,10 +306,125 @@ public class GpsQualityBatchImportService {
         return count;
     }
 
+    /**
+     * Parse-only precheck of an uploaded Excel file: resolves and validates every
+     * row WITHOUT creating devices, registering on blade, or persisting anything.
+     * <p>
+     * Row preStatus: OK (device exists and is registered) / WARN (EUI valid but
+     * device missing or not yet registered) / ERROR (row cannot be imported).
+     */
+    public BatchParseResultDto parseExcel(MultipartFile file, Long tenantId) {
+        List<RawRow> rawRows;
+        try (Workbook wb = new XSSFWorkbook(file.getInputStream())) {
+            rawRows = readRawRows(wb.getSheetAt(0));
+        } catch (IOException e) {
+            throw new ApiException(ErrorCode.INTERNAL_ERROR, "Failed to parse Excel: " + e.getMessage());
+        }
+
+        // Preload truth reference caches
+        rtkCache.put("all", rtkPointRepository.findAll());
+        routeCache.put("all", routeRepository.findAll());
+
+        List<BatchParseResultDto.ParseRow> rows = new ArrayList<>(rawRows.size());
+        int ok = 0, warn = 0, error = 0;
+        for (RawRow raw : rawRows) {
+            BatchParseResultDto.ParseRow row = precheckRow(raw, tenantId);
+            rows.add(row);
+            switch (row.preStatus()) {
+                case "OK" -> ok++;
+                case "WARN" -> warn++;
+                default -> error++;
+            }
+        }
+
+        BatchParseResultDto result = new BatchParseResultDto();
+        result.setTotalRows(rows.size());
+        result.setOkCount(ok);
+        result.setWarnCount(warn);
+        result.setErrorCount(error);
+        result.setRows(rows);
+        return result;
+    }
+
     // --- Private helpers ---
 
-    private List<ImportRow> parseSheet(Sheet sheet) {
-        List<ImportRow> rows = new ArrayList<>();
+    private BatchParseResultDto.ParseRow precheckRow(RawRow raw, Long tenantId) {
+        String eui = raw.eui().trim();
+        String deviceCode = raw.deviceCode();
+        String truthRef = raw.truthRef() != null ? raw.truthRef().trim() : null;
+
+        if (eui.length() < 4) {
+            return new BatchParseResultDto.ParseRow(raw.rowIndex(), eui, deviceCode, null,
+                    truthRef, null, null, null, null,
+                    "ERROR", "EUI must be at least 4 characters");
+        }
+
+        TestType checkType = parseCheckType(raw.checkTypeStr());
+        if (checkType == null) {
+            return new BatchParseResultDto.ParseRow(raw.rowIndex(), eui, deviceCode, null,
+                    truthRef, null, null, null, null,
+                    "ERROR", "Invalid checkType '" + raw.checkTypeStr()
+                    + "' (expected 静态/动态 or STATIC/DYNAMIC)");
+        }
+
+        if (truthRef == null || truthRef.isBlank()) {
+            return new BatchParseResultDto.ParseRow(raw.rowIndex(), eui, deviceCode, checkType.name(),
+                    null, null, null, null, null,
+                    "ERROR", "truthRef is required");
+        }
+
+        Instant startedAt;
+        Instant endedAt;
+        try {
+            if (raw.startedAtStr() == null || raw.startedAtStr().isBlank()) {
+                throw new ApiException(ErrorCode.VALIDATION_ERROR, "startedAt is required");
+            }
+            startedAt = parseDateTime(raw.startedAtStr());
+            endedAt = (raw.endedAtStr() != null && !raw.endedAtStr().isBlank())
+                    ? parseDateTime(raw.endedAtStr()) : null;
+        } catch (ApiException e) {
+            return new BatchParseResultDto.ParseRow(raw.rowIndex(), eui, deviceCode, checkType.name(),
+                    truthRef, null, null, null, null,
+                    "ERROR", e.getMessage());
+        }
+
+        Long rtkPointId = null;
+        Long routeId = null;
+        try {
+            if (checkType == TestType.STATIC) {
+                rtkPointId = resolveRtkPointId(truthRef, raw.rowIndex());
+            } else {
+                routeId = resolveRouteId(truthRef, raw.rowIndex());
+            }
+        } catch (ApiException e) {
+            return new BatchParseResultDto.ParseRow(raw.rowIndex(), eui, deviceCode, checkType.name(),
+                    truthRef, null, null, startedAt, endedAt,
+                    "ERROR", e.getMessage());
+        }
+
+        // Device precheck: lookup only, never create or register
+        List<Device> devices = deviceRepository.findAllByDevEuiAndTenantId(eui, tenantId);
+        if (devices.isEmpty()) {
+            return new BatchParseResultDto.ParseRow(raw.rowIndex(), eui, deviceCode, checkType.name(),
+                    truthRef, rtkPointId, routeId, startedAt, endedAt,
+                    "WARN", "Device not found; will be created and registered on import");
+        }
+        Device device = devices.get(0);
+        if (deviceCode == null || deviceCode.isBlank()) {
+            deviceCode = device.getDeviceCode();
+        }
+        if (device.getPlatformDeviceId() == null) {
+            return new BatchParseResultDto.ParseRow(raw.rowIndex(), eui, deviceCode, checkType.name(),
+                    truthRef, rtkPointId, routeId, startedAt, endedAt,
+                    "WARN", "Device exists but is not registered on blade platform");
+        }
+        return new BatchParseResultDto.ParseRow(raw.rowIndex(), eui, deviceCode, checkType.name(),
+                truthRef, rtkPointId, routeId, startedAt, endedAt,
+                "OK", null);
+    }
+
+    private List<RawRow> readRawRows(Sheet sheet) {
+        List<RawRow> rows = new ArrayList<>();
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
             Row r = sheet.getRow(i);
             if (r == null) continue;
@@ -299,45 +432,56 @@ public class GpsQualityBatchImportService {
             String eui = getCellString(r, 0);
             if (eui == null || eui.isBlank()) continue; // skip empty rows
 
-            String deviceCode = getCellString(r, 1);
-            String checkTypeStr = getCellString(r, 2);
-            String truthRef = getCellString(r, 3);
-            String startedAtStr = getCellString(r, 4);
-            String endedAtStr = getCellString(r, 5);
-
-            // Validate
-            if (eui.length() < 4) {
-                throw new ApiException(ErrorCode.VALIDATION_ERROR,
-                    "Row " + (i + 1) + ": EUI must be at least 4 characters");
-            }
-
-            TestType checkType;
-            if ("静态".equals(checkTypeStr) || "STATIC".equalsIgnoreCase(checkTypeStr)) {
-                checkType = TestType.STATIC;
-            } else if ("动态".equals(checkTypeStr) || "DYNAMIC".equalsIgnoreCase(checkTypeStr)) {
-                checkType = TestType.DYNAMIC;
-            } else {
-                throw new ApiException(ErrorCode.VALIDATION_ERROR,
-                    "Row " + (i + 1) + ": Invalid checkType '" + checkTypeStr + "' (expected 静态/动态 or STATIC/DYNAMIC)");
-            }
-
-            if (truthRef == null || truthRef.isBlank()) {
-                throw new ApiException(ErrorCode.VALIDATION_ERROR,
-                    "Row " + (i + 1) + ": truthRef is required");
-            }
-
-            if (startedAtStr == null || startedAtStr.isBlank()) {
-                throw new ApiException(ErrorCode.VALIDATION_ERROR,
-                    "Row " + (i + 1) + ": startedAt is required");
-            }
-
-            Instant startedAt = parseDateTime(startedAtStr);
-            Instant endedAt = (endedAtStr != null && !endedAtStr.isBlank())
-                ? parseDateTime(endedAtStr) : null;
-
-            rows.add(new ImportRow(i, eui.trim(), deviceCode, checkType, truthRef.trim(), startedAt, endedAt));
+            rows.add(new RawRow(i, eui, getCellString(r, 1), getCellString(r, 2),
+                    getCellString(r, 3), getCellString(r, 4), getCellString(r, 5)));
         }
         return rows;
+    }
+
+    /**
+     * Strictly convert a raw row into an import row, throwing on the first
+     * invalid value (same validation as before the parse-only endpoint existed).
+     */
+    private ImportRow toImportRow(RawRow raw) {
+        String eui = raw.eui().trim();
+        if (eui.length() < 4) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                "Row " + (raw.rowIndex() + 1) + ": EUI must be at least 4 characters");
+        }
+
+        TestType checkType = parseCheckType(raw.checkTypeStr());
+        if (checkType == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                "Row " + (raw.rowIndex() + 1) + ": Invalid checkType '" + raw.checkTypeStr()
+                + "' (expected 静态/动态 or STATIC/DYNAMIC)");
+        }
+
+        if (raw.truthRef() == null || raw.truthRef().isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                "Row " + (raw.rowIndex() + 1) + ": truthRef is required");
+        }
+
+        if (raw.startedAtStr() == null || raw.startedAtStr().isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                "Row " + (raw.rowIndex() + 1) + ": startedAt is required");
+        }
+
+        Instant startedAt = parseDateTime(raw.startedAtStr());
+        Instant endedAt = (raw.endedAtStr() != null && !raw.endedAtStr().isBlank())
+            ? parseDateTime(raw.endedAtStr()) : null;
+
+        return new ImportRow(raw.rowIndex(), eui, raw.deviceCode(), checkType,
+                raw.truthRef().trim(), startedAt, endedAt);
+    }
+
+    private TestType parseCheckType(String checkTypeStr) {
+        if ("静态".equals(checkTypeStr) || "STATIC".equalsIgnoreCase(checkTypeStr)) {
+            return TestType.STATIC;
+        }
+        if ("动态".equals(checkTypeStr) || "DYNAMIC".equalsIgnoreCase(checkTypeStr)) {
+            return TestType.DYNAMIC;
+        }
+        return null;
     }
 
     private String getCellString(Row r, int cellIdx) {

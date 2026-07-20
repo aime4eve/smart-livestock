@@ -64,7 +64,16 @@ public class JpaGpsQualityTestRepositoryImpl implements GpsQualityTestRepository
     }
 
     @Override
+    public List<GpsQualityTest> findByRouteIdAndStatus(Long routeId, String status) {
+        return springDataRepo.findByRouteIdAndStatus(routeId, status).stream()
+                .map(this::toDomain).toList();
+    }
+
+    @Override
     public void deleteById(Long id) { springDataRepo.deleteById(id); }
+
+    @Override
+    public int deleteByDeviceId(Long deviceId) { return springDataRepo.deleteByDeviceId(deviceId); }
 
     @Override
     public List<GpsQualityTest> findFiltered(String status, String eui, Long deviceId, int offset, int limit) {

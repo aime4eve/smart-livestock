@@ -4,6 +4,7 @@ import com.smartlivestock.iot.infrastructure.persistence.entity.GpsQualityTestJp
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -25,6 +26,12 @@ public interface SpringDataGpsQualityTestRepository extends JpaRepository<GpsQua
 
     List<GpsQualityTestJpaEntity> findByBatchImportId(Long batchImportId);
     List<GpsQualityTestJpaEntity> findByStatus(String status);
+    List<GpsQualityTestJpaEntity> findByRouteIdAndStatus(Long routeId, String status);
+
+    /** Bulk delete of all quality tests of one device (device record itself is kept). */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("DELETE FROM GpsQualityTestJpaEntity t WHERE t.deviceId = :deviceId")
+    int deleteByDeviceId(@Param("deviceId") Long deviceId);
 
     @Query("SELECT t FROM GpsQualityTestJpaEntity t " +
            "LEFT JOIN DeviceJpaEntity d ON d.id = t.deviceId " +
