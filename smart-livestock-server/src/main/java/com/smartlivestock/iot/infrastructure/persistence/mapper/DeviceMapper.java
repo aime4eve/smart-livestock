@@ -31,6 +31,7 @@ public final class DeviceMapper {
        jpa.setHardwareVersion(device.getHardwareVersion());
        jpa.setWorkMode(device.getWorkMode());
        jpa.setLastTelemetrySyncedAt(device.getLastTelemetrySyncedAt());
+       jpa.setDeletedAt(device.getDeletedAt());
        return jpa;
     }
 
@@ -56,6 +57,7 @@ public final class DeviceMapper {
         device.setHardwareVersion(jpa.getHardwareVersion());
         device.setWorkMode(jpa.getWorkMode());
         device.setLastTelemetrySyncedAt(jpa.getLastTelemetrySyncedAt());
+        device.setDeletedAt(jpa.getDeletedAt());
         return device;
     }
 }

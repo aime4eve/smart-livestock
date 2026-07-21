@@ -2770,6 +2770,30 @@ abstract class AppLocalizations {
   /// **'解绑'**
   String get deviceUnbind;
 
+  /// No description provided for @deviceDeleteConfirmTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除设备'**
+  String get deviceDeleteConfirmTitle;
+
+  /// No description provided for @deviceDeleteConfirmContent.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要删除该设备吗？删除后设备将从列表移除，历史数据保留；重新添加同 EUI 的设备时会自动恢复原记录。'**
+  String get deviceDeleteConfirmContent;
+
+  /// No description provided for @deviceDeleteSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备已删除'**
+  String get deviceDeleteSuccess;
+
+  /// No description provided for @deviceDeleteFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除设备失败: {error}'**
+  String deviceDeleteFailed(String error);
+
   /// No description provided for @deviceViewLocation.
   ///
   /// In zh, this message translates to:

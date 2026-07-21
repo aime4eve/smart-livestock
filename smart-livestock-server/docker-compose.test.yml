@@ -69,8 +69,10 @@ services:
       REDIS_PORT: 6379
       ROCKETMQ_NAME_SERVER: rocketmq-namesrv:9876
       AI_PLATFORM_URL: http://ai-platform:8000
+      # blade 平台 test 环境（172.22.4.17）；dev 环境为 172.21.2.41，见 docker-compose.dev.yml
       AGENTIC_PLATFORM_DEVICE_BASE_URL: ${AGENTIC_PLATFORM_DEVICE_BASE_URL:-http://172.22.4.17:8100}
       AGENTIC_PLATFORM_LICENSE_BASE_URL: ${AGENTIC_PLATFORM_LICENSE_BASE_URL:-http://172.22.4.17:8100}
+      AGENTIC_PLATFORM_OAUTH2_TOKEN_URI: ${AGENTIC_PLATFORM_OAUTH2_TOKEN_URI:-http://172.22.4.17:8108/oauth2/token}
     depends_on:
       postgres:
         condition: service_healthy

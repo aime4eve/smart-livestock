@@ -1506,6 +1506,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deviceUnbind => 'Unbind';
 
   @override
+  String get deviceDeleteConfirmTitle => 'Delete Device';
+
+  @override
+  String get deviceDeleteConfirmContent =>
+      'Delete this device? It will be removed from the list and its history is preserved. Re-adding a device with the same EUI will restore the original record.';
+
+  @override
+  String get deviceDeleteSuccess => 'Device deleted';
+
+  @override
+  String deviceDeleteFailed(String error) {
+    return 'Failed to delete device: $error';
+  }
+
+  @override
   String get deviceViewLocation => 'View Location';
 
   @override

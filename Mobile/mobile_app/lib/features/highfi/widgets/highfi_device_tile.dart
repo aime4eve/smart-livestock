@@ -13,6 +13,7 @@ class HighfiDeviceTile extends StatelessWidget {
    this.onViewLocation,
    this.onActivate,
    this.onInstall,
+   this.onDelete,
  });
 
  final DeviceItem device;
@@ -20,6 +21,7 @@ class HighfiDeviceTile extends StatelessWidget {
  final VoidCallback? onViewLocation;
   final VoidCallback? onActivate;
  final VoidCallback? onInstall;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +117,13 @@ class HighfiDeviceTile extends StatelessWidget {
                         key: Key('device-locate-${device.id}'),
                         onPressed: onViewLocation,
                         child: Text(l10n.deviceViewLocation),
+                      ),
+                    if (onDelete != null)
+                      TextButton(
+                        key: Key('device-delete-${device.id}'),
+                        style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+                        onPressed: onDelete,
+                        child: Text(l10n.commonDelete),
                       ),
                   ],
                 ),

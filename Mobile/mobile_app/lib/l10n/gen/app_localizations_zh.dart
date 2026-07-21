@@ -1479,6 +1479,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get deviceUnbind => '解绑';
 
   @override
+  String get deviceDeleteConfirmTitle => '删除设备';
+
+  @override
+  String get deviceDeleteConfirmContent =>
+      '确定要删除该设备吗？删除后设备将从列表移除，历史数据保留；重新添加同 EUI 的设备时会自动恢复原记录。';
+
+  @override
+  String get deviceDeleteSuccess => '设备已删除';
+
+  @override
+  String deviceDeleteFailed(String error) {
+    return '删除设备失败: $error';
+  }
+
+  @override
   String get deviceViewLocation => '查看位置';
 
   @override

@@ -103,4 +103,16 @@ class DeviceTest {
         assertThat(device.getFirmwareVersion()).isEqualTo("1.2.3");
         assertThat(device.getLastOnlineAt()).isNotNull();
     }
+
+    @Test
+    void shouldRestoreSoftDeletedDeviceToInventory() {
+        Device device = createDevice();
+        device.activate();
+        device.setDeletedAt(java.time.Instant.now());
+
+        device.restore();
+
+        assertThat(device.getDeletedAt()).isNull();
+        assertThat(device.getStatus()).isEqualTo(DeviceStatus.INVENTORY);
+    }
 }
