@@ -56,6 +56,9 @@ class _FakeDevicesRepository implements DevicesRepository {
   Future<void> decommission(String id) async {}
 
   @override
+  Future<void> delete(String id) async {}
+
+  @override
   Future<List<DeviceLicense>> loadLicenses() async => [];
 
   @override

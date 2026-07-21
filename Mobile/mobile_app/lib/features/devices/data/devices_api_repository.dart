@@ -62,6 +62,11 @@ class DevicesApiRepository implements DevicesRepository {
   }
 
   @override
+  Future<void> delete(String id) async {
+    await ApiClient.instance.farmDelete('/devices/$id');
+  }
+
+  @override
   Future<List<DeviceLicense>> loadLicenses() async {
     // Tenant-level, no farm scope
     final data = await ApiClient.instance.get('/device-licenses');

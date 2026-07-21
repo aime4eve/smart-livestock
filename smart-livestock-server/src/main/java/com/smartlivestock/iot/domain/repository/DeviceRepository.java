@@ -10,7 +10,6 @@ public interface DeviceRepository {
     Device save(Device device);
    Optional<Device> findById(Long id);
    Optional<Device> findByDeviceCode(String deviceCode);
-    List<Device> findAllByDevEuiAndTenantId(String devEui, Long tenantId);
    List<Device> findByTenantId(Long tenantId);
     long countByTenantIdAndStatus(Long tenantId, String status);
 
@@ -27,4 +26,14 @@ public interface DeviceRepository {
 
     /** Devices matching the given ids (cross-tenant lookup for device codes). */
     List<Device> findAllByIdIn(Collection<Long> ids);
+
+    /** Lookup by devEui including soft-deleted rows (revive detection on re-add paths). */
+    List<Device> findAllByDevEuiAndTenantIdIncludeDeleted(String devEui, Long tenantId);
+
+    /**
+     * Revive persistence: native UPDATE clearing deleted_at, resetting status to INVENTORY
+     * and writing the final deviceCode (must already be checked against the active set).
+     * Must run before save() on a soft-deleted row (see Device.restore()).
+     */
+    void restoreById(Long id, String deviceCode);
 }

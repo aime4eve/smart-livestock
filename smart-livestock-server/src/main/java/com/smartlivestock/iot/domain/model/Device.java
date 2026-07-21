@@ -42,6 +42,7 @@ public class Device extends AggregateRoot {
     private String hardwareVersion;
     private String workMode;
     private Instant lastTelemetrySyncedAt;
+    private Instant deletedAt;
 
     public Device() {
         this.status = DeviceStatus.INVENTORY;
@@ -80,6 +81,17 @@ public class Device extends AggregateRoot {
                 "Device must be in ACTIVE status to decommission, current: " + status);
         }
         this.status = DeviceStatus.DECOMMISSIONED;
+    }
+
+    /**
+     * Restore a soft-deleted device: clear deletedAt and reset status to INVENTORY.
+     * Semantics must stay consistent with the native UPDATE in
+     * {@code SpringDataDeviceRepository.restoreById} (both reset to INVENTORY);
+     * keep the two in sync when changing either one.
+     */
+    public void restore() {
+        this.deletedAt = null;
+        this.status = DeviceStatus.INVENTORY;
     }
 
     /**
@@ -200,4 +212,7 @@ public class Device extends AggregateRoot {
 
     public Instant getLastTelemetrySyncedAt() { return lastTelemetrySyncedAt; }
     public void setLastTelemetrySyncedAt(Instant lastTelemetrySyncedAt) { this.lastTelemetrySyncedAt = lastTelemetrySyncedAt; }
+
+    public Instant getDeletedAt() { return deletedAt; }
+    public void setDeletedAt(Instant deletedAt) { this.deletedAt = deletedAt; }
 }

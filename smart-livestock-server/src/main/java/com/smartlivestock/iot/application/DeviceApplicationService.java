@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +37,7 @@ public class DeviceApplicationService {
     private final DeviceRepository deviceRepository;
     private final AgenticPlatformDeviceClient platformDeviceClient;
     private final AgenticPlatformLicenseClient platformLicenseClient;
+    private final InstallationApplicationService installationApplicationService;
 
     /** Platform device type code mapping (local DeviceType → platform code). */
     private static final Map<DeviceType, String> PLATFORM_TYPE_CODES = Map.of(
@@ -46,6 +48,50 @@ public class DeviceApplicationService {
 
     @Transactional
     public DeviceDto registerDevice(RegisterDeviceCommand command) {
+        // EUI branch: same devEui = same physical device → revive soft-deleted record;
+        // an active record with the same EUI is a business error (not a new device).
+        if (command.devEui() != null && !command.devEui().isBlank()) {
+            List<Device> euiMatches = deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted(
+                    command.devEui(), command.tenantId());
+            if (!euiMatches.isEmpty()) {
+                Device match = euiMatches.get(0);
+                if (match.getDeletedAt() == null) {
+                    throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,
+                            "error.deviceEuiDuplicate", new Object[]{command.devEui()});
+                }
+                // Revive: check deviceCode against the active set first (avoids partial-index 500)
+                deviceRepository.findByDeviceCode(command.deviceCode())
+                        .ifPresent(active -> {
+                            throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,
+                                    "error.deviceCodeDuplicate", new Object[]{command.deviceCode()});
+                        });
+                match.restore();
+                match.setDeviceCode(command.deviceCode());
+                // serialNo: only overwrite when a non-blank value is passed — the controller
+                // allows devEui-only registration, and null would erase the preserved SN
+                // (same protection as the deviceCode guard in findOrCreateByEui's revive branch)
+                if (command.serialNo() != null && !command.serialNo().isBlank()) {
+                    match.setSerialNo(command.serialNo());
+                }
+                match.setDeviceType(command.deviceType());
+                // native UPDATE must run before save() so merge's internal SELECT can load the row;
+                // pass the FINAL deviceCode (match already holds command's value) — clearing
+                // deleted_at with the row's old code could violate uq_devices_code_active
+                deviceRepository.restoreById(match.getId(), match.getDeviceCode());
+                Device restored = deviceRepository.save(match);
+
+                // Same "register on platform" flow as a new device
+                try {
+                    activateOnPlatform(restored);
+                    restored.activate();
+                    restored = deviceRepository.save(restored);
+                } catch (Exception e) {
+                    log.warn("Platform registration failed for device {}: {}", restored.getId(), e.getMessage());
+                }
+                return DeviceDto.from(restored);
+            }
+        }
+
         if (deviceRepository.findByDeviceCode(command.deviceCode()).isPresent()) {
             throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,
                     "error.deviceCodeDuplicate", new Object[]{command.deviceCode()});
@@ -91,11 +137,30 @@ public class DeviceApplicationService {
                     "tenantId is required for device creation");
         }
 
-        // 2. Lookup by EUI within tenant scope (List to avoid NonUniqueResultException)
-        List<Device> existing = deviceRepository.findAllByDevEuiAndTenantId(eui, tenantId);
+        // 2. Lookup by EUI within tenant scope, including soft-deleted rows (revive detection)
+        List<Device> existing = deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted(eui, tenantId);
 
         if (!existing.isEmpty()) {
             Device device = existing.get(0);
+
+            // Soft-deleted record → revive (same devEui = same physical device)
+            if (device.getDeletedAt() != null) {
+                // deviceCode: only update when a different non-blank value is passed;
+                // check against the active set first (avoids partial-index 500)
+                if (deviceCode != null && !deviceCode.isBlank() && !deviceCode.equals(device.getDeviceCode())) {
+                    deviceRepository.findByDeviceCode(deviceCode)
+                            .ifPresent(active -> {
+                                throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,
+                                        "error.deviceCodeDuplicate", new Object[]{deviceCode});
+                            });
+                    device.setDeviceCode(deviceCode);
+                }
+                device.restore();
+                // native UPDATE must run before save() so merge's internal SELECT can load the row;
+                // pass the FINAL deviceCode (device already holds the post-guard value)
+                deviceRepository.restoreById(device.getId(), device.getDeviceCode());
+                device = deviceRepository.save(device);
+            }
 
             // Already has platformDeviceId → skip registration entirely
             if (device.getPlatformDeviceId() != null) {
@@ -104,11 +169,16 @@ public class DeviceApplicationService {
                 return DeviceDto.from(device);
             }
 
-            // Has device but not registered → try registration
-            if (device.getStatus() == DeviceStatus.INVENTORY) {
+            // Binding gate: try platform binding for ANY status when not yet bound (v3.2).
+            // Two independent conditions: activateOnPlatform only binds (status-machine
+            // independent); activate() only runs for INVENTORY. The binding result is
+            // persisted for any status so ACTIVE/DECOMMISSIONED devices don't stay unbound.
+            if (device.getPlatformDeviceId() == null) {
                 try {
                     activateOnPlatform(device);
-                    device.activate();
+                    if (device.getStatus() == DeviceStatus.INVENTORY) {
+                        device.activate();
+                    }
                     device = deviceRepository.save(device);
                 } catch (Exception ex) {
                     log.warn("Platform registration retry failed for device {} EUI {}: {}",
@@ -373,6 +443,33 @@ public class DeviceApplicationService {
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "error.deviceNotFound", new Object[]{id}));
         device.decommission();
+        deviceRepository.save(device);
+    }
+
+    /**
+     * Soft-delete a device in a single transaction:
+     * <ol>
+     *   <li>Validate existence + tenant scope (cross-tenant lookup reports NOT_FOUND,
+     *       existence is not exposed);</li>
+     *   <li>Unbind the active installation if present (primary mechanism to stop datagen);</li>
+     *   <li>Mark deleted_at — the global @SQLRestriction filter stops blade sync for
+     *       platform-bound devices. Lifecycle status is NOT changed;
+     *       deviceCode/serialNo/devEui/platformDeviceId are preserved for audit + revive.</li>
+     * </ol>
+     */
+    @Transactional
+    public void deleteDevice(Long id, Long operatorId) {
+        Device device = deviceRepository.findById(id)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "error.deviceNotFound", new Object[]{id}));
+        if (!device.getTenantId().equals(TenantContext.getCurrentTenant())) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                    "error.deviceNotFound", new Object[]{id});
+        }
+        if (installationApplicationService.getActiveInstallation(id).isPresent()) {
+            installationApplicationService.remove(id, operatorId);
+        }
+        device.setDeletedAt(Instant.now());
         deviceRepository.save(device);
     }
 

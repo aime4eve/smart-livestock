@@ -1291,6 +1291,20 @@
   },
   "deviceUnbind": "解绑",
   "@deviceUnbind": {},
+  "deviceDeleteConfirmTitle": "删除设备",
+  "@deviceDeleteConfirmTitle": {},
+  "deviceDeleteConfirmContent": "确定要删除该设备吗？删除后设备将从列表移除，历史数据保留；重新添加同 EUI 的设备时会自动恢复原记录。",
+  "@deviceDeleteConfirmContent": {},
+  "deviceDeleteSuccess": "设备已删除",
+  "@deviceDeleteSuccess": {},
+  "deviceDeleteFailed": "删除设备失败: {error}",
+  "@deviceDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "deviceViewLocation": "查看位置",
   "@deviceViewLocation": {},
   "offlineTileNoRegions": "暂无可用离线地图",

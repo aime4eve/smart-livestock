@@ -1291,6 +1291,20 @@
   },
   "deviceUnbind": "Unbind",
   "@deviceUnbind": {},
+  "deviceDeleteConfirmTitle": "Delete Device",
+  "@deviceDeleteConfirmTitle": {},
+  "deviceDeleteConfirmContent": "Delete this device? It will be removed from the list and its history is preserved. Re-adding a device with the same EUI will restore the original record.",
+  "@deviceDeleteConfirmContent": {},
+  "deviceDeleteSuccess": "Device deleted",
+  "@deviceDeleteSuccess": {},
+  "deviceDeleteFailed": "Failed to delete device: {error}",
+  "@deviceDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "deviceViewLocation": "View Location",
   "@deviceViewLocation": {},
   "offlineTileNoRegions": "No offline maps available",

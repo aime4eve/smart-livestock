@@ -73,6 +73,8 @@ abstract class DevicesRepository {
 
   Future<void> decommission(String id);
 
+  Future<void> delete(String id);
+
   Future<List<DeviceLicense>> loadLicenses();
 
   Future<List<Installation>> loadInstallations();

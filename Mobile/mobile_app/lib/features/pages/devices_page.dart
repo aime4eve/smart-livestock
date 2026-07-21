@@ -201,6 +201,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
                               onUnbind: _deviceIdToInstallationId.containsKey(device.id)
                                   ? () => _showUnbindDialog(context, ref, device)
                                   : null,
+                              onDelete: () => _showDeleteDialog(context, ref, device),
                               onViewLocation: _deviceIdToLivestockId[device.id] != null
                                    ? () => context.push('/livestock/${_deviceIdToLivestockId[device.id]}')
                                    : () => context.go('/ranch'),
@@ -313,6 +314,53 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
           ..hideCurrentSnackBar()
           ..showSnackBar(SnackBar(
             content: Text(l10n.deviceUnbindFailed(e.toString())),
+          ));
+      }
+    }
+  }
+
+  Future<void> _showDeleteDialog(
+      BuildContext context, WidgetRef ref, DeviceItem device) async {
+    final l10n = AppLocalizations.of(context)!;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.deviceDeleteConfirmTitle),
+        content: Text(l10n.deviceDeleteConfirmContent),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            key: const Key('device-delete-confirm'),
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.commonDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      await ref.read(devicesRepositoryProvider).delete(device.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(
+            content: Text(l10n.deviceDeleteSuccess),
+          ));
+      }
+      await _loadInstallations();
+      ref.invalidate(devicesControllerProvider);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(
+            content: Text(l10n.deviceDeleteFailed(e.toString())),
           ));
       }
     }
@@ -544,6 +592,7 @@ class _DeviceWithBinding extends StatelessWidget {
     this.onActivate,
     this.onInstall,
     this.onUnbind,
+    this.onDelete,
     this.onViewLocation,
   });
 
@@ -552,6 +601,7 @@ class _DeviceWithBinding extends StatelessWidget {
   final VoidCallback? onActivate;
   final VoidCallback? onInstall;
   final VoidCallback? onUnbind;
+  final VoidCallback? onDelete;
   final VoidCallback? onViewLocation;
 
   @override
@@ -566,6 +616,7 @@ class _DeviceWithBinding extends StatelessWidget {
         onActivate: onActivate,
         onInstall: onInstall,
         onUnbind: onUnbind,
+        onDelete: onDelete,
         onViewLocation: onViewLocation,
       ),
      ),
@@ -969,3 +1020,4 @@ class _Badge extends StatelessWidget {
     child: Text(label, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
   );
 }
+

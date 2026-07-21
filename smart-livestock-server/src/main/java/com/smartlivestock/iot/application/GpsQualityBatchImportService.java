@@ -142,7 +142,12 @@ public class GpsQualityBatchImportService {
                     continue;
                 }
 
-                // Step 2: Historical dedup
+                // Step 2: Resolve device (revive must run BEFORE historical dedup:
+                // existsByEuiAndTimeRange INNER JOINs devices, and a still-soft-deleted
+                // device is filtered out by the global restriction → dedup would miss)
+                DeviceDto deviceDto = deviceApplicationService.findOrCreateByEui(row.eui(), row.deviceCode(), tenantId);
+
+                // Step 3: Historical dedup
                 if (testRepository.existsByEuiAndTimeRange(
                         row.eui(), row.startedAt(), row.checkType().name())) {
                     results.add(new RowResult(row.rowIndex(), "SKIPPED",
@@ -150,9 +155,6 @@ public class GpsQualityBatchImportService {
                         "Duplicate check: same EUI + time range + type already exists"));
                     continue;
                 }
-
-                // Step 3: Resolve device
-                DeviceDto deviceDto = deviceApplicationService.findOrCreateByEui(row.eui(), row.deviceCode(), tenantId);
 
                 // Step 4: Resolve truth reference
                 Long rtkPointId = null;
@@ -402,8 +404,10 @@ public class GpsQualityBatchImportService {
                     "ERROR", e.getMessage());
         }
 
-        // Device precheck: lookup only, never create or register
-        List<Device> devices = deviceRepository.findAllByDevEuiAndTenantId(eui, tenantId);
+        // Device precheck: lookup only, never create or register.
+        // Include soft-deleted rows so a deleted device gets an accurate WARN instead
+        // of the misleading "Device not found" (best-effort; may differ from actual import).
+        List<Device> devices = deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted(eui, tenantId);
         if (devices.isEmpty()) {
             return new BatchParseResultDto.ParseRow(raw.rowIndex(), eui, deviceCode, checkType.name(),
                     truthRef, rtkPointId, routeId, startedAt, endedAt,
@@ -412,6 +416,11 @@ public class GpsQualityBatchImportService {
         Device device = devices.get(0);
         if (deviceCode == null || deviceCode.isBlank()) {
             deviceCode = device.getDeviceCode();
+        }
+        if (device.getDeletedAt() != null) {
+            return new BatchParseResultDto.ParseRow(raw.rowIndex(), eui, deviceCode, checkType.name(),
+                    truthRef, rtkPointId, routeId, startedAt, endedAt,
+                    "WARN", "Device was deleted; it will be restored on import");
         }
         if (device.getPlatformDeviceId() == null) {
             return new BatchParseResultDto.ParseRow(raw.rowIndex(), eui, deviceCode, checkType.name(),

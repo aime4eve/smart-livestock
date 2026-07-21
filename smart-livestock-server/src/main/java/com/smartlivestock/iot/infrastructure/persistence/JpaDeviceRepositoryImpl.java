@@ -36,13 +36,6 @@ public class JpaDeviceRepositoryImpl implements DeviceRepository {
        return springDataRepo.findByDeviceCode(deviceCode).map(DeviceMapper::toDomain);
    }
 
-    @Override
-    public List<Device> findAllByDevEuiAndTenantId(String devEui, Long tenantId) {
-        return springDataRepo.findAllByDevEuiAndTenantId(devEui, tenantId).stream()
-                .map(DeviceMapper::toDomain)
-                .toList();
-    }
-
    @Override
    public List<Device> findByTenantId(Long tenantId) {
        return springDataRepo.findByTenantId(tenantId).stream()
@@ -100,5 +93,17 @@ public class JpaDeviceRepositoryImpl implements DeviceRepository {
         org.springframework.data.domain.Pageable pageable =
                 org.springframework.data.domain.PageRequest.of(offset / limit, limit);
         return springDataRepo.findActivePlatformDeviceIds(pageable);
+    }
+
+    @Override
+    public List<Device> findAllByDevEuiAndTenantIdIncludeDeleted(String devEui, Long tenantId) {
+        return springDataRepo.findAllByDevEuiAndTenantIdIncludeDeleted(devEui, tenantId).stream()
+                .map(DeviceMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public void restoreById(Long id, String deviceCode) {
+        springDataRepo.restoreById(id, deviceCode);
     }
 }

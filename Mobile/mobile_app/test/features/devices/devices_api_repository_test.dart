@@ -62,7 +62,9 @@ void main() {
 
       expect(device, isNotNull);
       expect(device!.type, DeviceType.earTag);
-      expect(device.status, DeviceStatus.lowBattery);
+      // LOW_BATTERY runtime status was removed (V20260715122000); unknown
+      // runtime statuses now degrade to offline per the parser's `_` branch.
+      expect(device.status, DeviceStatus.offline);
     });
 
     test('unknown deviceType returns null (graceful skip)', () {
