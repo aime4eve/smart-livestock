@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -106,9 +107,11 @@ public class DynamicQualityReportService {
                     rtk.getLatitude(), rtk.getLongitude()));
         }
 
-        // --- fetch GPS logs in the test window ---
-        List<GpsPointWithTelemetry> gpsPoints = gpsLogRepository.findByDeviceIdAndTimeRangeWithTelemetry(
-                deviceId, test.getStartedAt(), test.getEndedAt() != null ? test.getEndedAt() : Instant.now());
+       // --- fetch GPS logs in the test window ---
+       List<GpsPointWithTelemetry> gpsPoints = gpsLogRepository.findByDeviceIdAndTimeRangeWithTelemetry(
+                deviceId, test.getStartedAt(), test.getEndedAt() != null
+                        ? test.getEndedAt()
+                        : Instant.now().plus(8, ChronoUnit.HOURS));
 
         // --- run matching ---
         DynamicQualityStats stats = dynamicCalculator.calculate(calculatorInput, gpsPoints, threshold);
