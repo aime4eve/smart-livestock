@@ -18,6 +18,9 @@ import com.smartlivestock.ranch.domain.repository.FenceRepository;
 import com.smartlivestock.ranch.domain.repository.FenceZoneRepository;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import com.smartlivestock.ranch.infrastructure.persistence.SpringDataAlertReadStatusRepository;
+import com.smartlivestock.shared.cache.RedisCacheService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,10 +42,23 @@ public class RanchOverviewApplicationService {
     private final IdentityQueryPort identityQueryPort;
     private final SpringDataAlertReadStatusRepository readStatusRepository;
     private final FenceZoneRepository fenceZoneRepository;
+    private final RedisCacheService redisCacheService;
+    private final ObjectMapper objectMapper;
 
 
     @Transactional(readOnly = true)
-    public RanchOverviewResponse getOverview(Long farmId, Long userId) {
+    public RanchOverviewResponse getOverview(Long farmId, Long userId, Long tenantId) {
+        // 0. Short-TTL Redis cache to absorb polling bursts (30s timer) and concurrent viewers.
+        String cacheKey = "ranch:overview:" + farmId + ":" + userId;
+        try {
+            String cached = redisCacheService.get(cacheKey);
+            if (cached != null) {
+                return objectMapper.readValue(cached, RanchOverviewResponse.class);
+            }
+        } catch (Exception ignored) {
+            // Cache miss or deserialization error — fall through to DB query
+        }
+
         // 1. Fences
         List<Fence> fences = fenceRepository.findByFarmId(farmId);
         List<FenceData> fenceDataList = fences.stream()
@@ -120,10 +136,9 @@ public class RanchOverviewApplicationService {
         // Reuse the already-loaded livestock/health/alerts data instead of re-querying
         // (getHealthOverview would re-fetch snapshots, livestock, and alerts a second time).
         HealthOverview healthOverview = buildHealthOverview(livestockList, healthStates, activeAlerts);
-
-        double deviceOnlineRate = identityQueryPort.findFarmById(farmId)
-                .map(f -> ioTQueryPort.getDeviceOnlineRate(f.tenantId()))
-                .orElse(0.85);
+        double deviceOnlineRate = tenantId != null
+                ? ioTQueryPort.getDeviceOnlineRate(tenantId)
+                : 0.85;
 
         // 6. InFenceRate: livestock inside any fence / livestock with GPS
         Double inFenceRate = calculateInFenceRate(livestockList, fences);
@@ -166,7 +181,7 @@ public class RanchOverviewApplicationService {
             }
         }
 
-        return new RanchOverviewResponse(
+        RanchOverviewResponse response = new RanchOverviewResponse(
                 overallStats,
                 sceneSummary,
                 pendingTasks,
@@ -177,6 +192,15 @@ public class RanchOverviewApplicationService {
                 healthAlertSummary,
                 fenceZoneRepository.findByFarmId(farmId).stream().map(FenceZoneData::from).toList()
         );
+
+        try {
+            redisCacheService.set(cacheKey, objectMapper.writeValueAsString(response),
+                    Duration.ofSeconds(10));
+        } catch (Exception ignored) {
+            // Cache write failure is non-critical
+        }
+
+        return response;
     }
 
     /**

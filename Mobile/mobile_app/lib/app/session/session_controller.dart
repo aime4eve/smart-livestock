@@ -4,6 +4,7 @@ import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
 import 'package:hkt_livestock_agentic/core/api/jwt_storage.dart';
 import 'package:hkt_livestock_agentic/app/session/app_session.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
+import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 
 /// Provider for the initial session state (overridden in main.dart on web).
 final initialSessionProvider = Provider<AppSession>((ref) => AppSession.loggedOut);
@@ -30,6 +31,12 @@ class SessionController extends Notifier<AppSession> {
         tenantId: user['tenantId'] as int?,
         username: user['username'] as String?,
       );
+
+      // Prefetch farm list for farm-scoped roles so the ranch page doesn't
+      // wait for a serial round-trip through MainShell's microtask.
+      if (role == UserRole.owner || role == UserRole.worker) {
+        ref.read(farmSwitcherControllerProvider.notifier).loadFarms();
+      }
 
       return true;
     } on AuthException {
