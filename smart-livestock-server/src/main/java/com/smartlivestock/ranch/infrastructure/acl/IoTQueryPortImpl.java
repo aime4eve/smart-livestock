@@ -45,14 +45,13 @@ public class IoTQueryPortImpl implements IoTQueryPort {
         return new DeviceStatsInfo(active);
     }
 
+    // Count-based: avoids loading the entire tenant device list into memory.
     @Override
     public double getDeviceOnlineRate(Long tenantId) {
-        var all = deviceRepository.findByTenantId(tenantId);
-        if (all.isEmpty()) return 1.0;
-        long active = all.stream()
-                .filter(d -> d.getStatus() == DeviceStatus.ACTIVE)
-                .count();
-        return (double) active / all.size();
+        long active = deviceRepository.countByTenantIdAndStatus(tenantId, DeviceStatus.ACTIVE.name());
+        long total = deviceRepository.countByTenantIdPaged(tenantId);
+        if (total == 0) return 1.0;
+        return (double) active / total;
     }
 
     @Override
