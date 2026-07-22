@@ -31,9 +31,10 @@ class SmartTileProvider extends TileProvider {
   /// Server tileserver-gl URL (last-resort fallback). Null if unavailable.
   final String? serverTileUrl;
 
-  _OnlineSource _activeSource = _OnlineSource.primary;
-  bool _initialized = false;
-  int _consecutiveFailures = 0;
+ _OnlineSource _activeSource = _OnlineSource.primary;
+ bool _initialized = false;
+ bool _probing = false;
+ int _consecutiveFailures = 0;
   Timer? _probeTimer;
   VoidCallback? onSourceChanged;
 
@@ -67,47 +68,57 @@ class SmartTileProvider extends TileProvider {
   bool shouldTransformCoordinates() =>
       _activeSource == _OnlineSource.secondary;
 
-  void probeConnectivity() {
-    _initialized = true;
-    _probe();
-  }
+ void probeConnectivity() {
+    _probing = true;
+   _probe();
+ }
 
-  void startConnectivityMonitor({
-    Duration interval = const Duration(seconds: 30),
-  }) {
-    _initialized = true;
-    _probeTimer?.cancel();
-    _probeTimer = Timer.periodic(interval, (_) => _probe());
-  }
+ void startConnectivityMonitor({
+   Duration interval = const Duration(seconds: 30),
+ }) {
+   _initialized = true;
+   _probeTimer?.cancel();
+   _probeTimer = Timer.periodic(interval, (_) => _probe());
+ }
 
-  /// Probe primary (OSM) → secondary (高德) → offline.
-  void _probe() async {
-    // 1. Try primary (OSM)
-    if (await _tryUrl(onlineUrl)) {
-      _consecutiveFailures = 0;
-      _switchSource(_OnlineSource.primary);
-      return;
-    }
-
-   // 2. Try secondary (高德)
-   if (fallbackOnlineUrl != null && await _tryUrl(fallbackOnlineUrl!)) {
+ /// Probe primary (OSM) → secondary (高德) → offline.
+ void _probe() async {
+    final isFirstProbe = !_initialized;
+   // 1. Try primary (OSM)
+   if (await _tryUrl(onlineUrl)) {
      _consecutiveFailures = 0;
-     _switchSource(_OnlineSource.secondary);
-      // OSM is unreachable (e.g. blocked in China). Stop probing to avoid
-      // flooding the console with ERR_CONNECTION_RESET on every cycle.
-      // Stay on 高德 for the rest of this session.
-      _probeTimer?.cancel();
-      _probeTimer = null;
+     _switchSource(_OnlineSource.primary);
+      _finishFirstProbe(isFirstProbe);
      return;
    }
 
-    // 3. Both failed
-    _consecutiveFailures++;
-    if (_consecutiveFailures >= 3) {
-      _switchSource(_OnlineSource.offline);
-    }
+  // 2. Try secondary (高德)
+  if (fallbackOnlineUrl != null && await _tryUrl(fallbackOnlineUrl!)) {
+    _consecutiveFailures = 0;
+    _switchSource(_OnlineSource.secondary);
+     // OSM is unreachable (e.g. blocked in China). Stop probing to avoid
+     // flooding the console with ERR_CONNECTION_RESET on every cycle.
+     // Stay on 高德 for the rest of this session.
+     _probeTimer?.cancel();
+     _probeTimer = null;
+     _finishFirstProbe(isFirstProbe);
+    return;
   }
 
+   // 3. Both failed
+   _consecutiveFailures++;
+   if (_consecutiveFailures >= 3) {
+     _switchSource(_OnlineSource.offline);
+     _finishFirstProbe(isFirstProbe);
+   }
+ }
+
+ void _finishFirstProbe(bool isFirstProbe) {
+   _probing = false;
+   if (isFirstProbe) {
+     _initialized = true;
+   }
+ }
   Future<bool> _tryUrl(String url) async {
     try {
       final response = await http
@@ -148,8 +159,11 @@ class SmartTileProvider extends TileProvider {
     }
 
     // Before first probe, default to primary so map renders immediately
-    final source = _initialized ? _activeSource : _OnlineSource.primary;
+    final source = (_initialized && !_probing) ? _activeSource : null;
 
+    if (source == null) {
+      return MemoryImage(TileProvider.transparentImage);
+    }
     switch (source) {
       case _OnlineSource.primary:
         return NetworkImage(
