@@ -50,6 +50,12 @@ public class JpaGpsQualityTestRepositoryImpl implements GpsQualityTestRepository
         return springDataRepo.existsByEuiAndTimeRange(eui, startedAt, testType);
     }
 
+    @Override
+    public boolean existsTrajectoryWindow(String deviceCode, Instant startedAt, Instant endedAt) {
+        return springDataRepo.existsByDeviceCodeAndTestTypeAndStartedAtAndEndedAt(
+                deviceCode, "TRAJECTORY", startedAt, endedAt);
+    }
+
 
     @Override
     public List<GpsQualityTest> findByBatchImportId(Long batchImportId) {
@@ -105,6 +111,7 @@ public class JpaGpsQualityTestRepositoryImpl implements GpsQualityTestRepository
         jpa.setEndedAt(t.getEndedAt());
         jpa.setStatus(t.getStatus());
         jpa.setErrorMessage(t.getErrorMessage());
+        jpa.setNote(t.getNote());
         jpa.setBatchImportId(t.getBatchImportId());
         return jpa;
     }
@@ -121,6 +128,7 @@ public class JpaGpsQualityTestRepositoryImpl implements GpsQualityTestRepository
         t.setEndedAt(jpa.getEndedAt());
         t.setStatus(jpa.getStatus());
         t.setErrorMessage(jpa.getErrorMessage());
+        t.setNote(jpa.getNote());
         t.setBatchImportId(jpa.getBatchImportId());
         t.setCreatedAt(jpa.getCreatedAt());
         t.setUpdatedAt(jpa.getUpdatedAt());

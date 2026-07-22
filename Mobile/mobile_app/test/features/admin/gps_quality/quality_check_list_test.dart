@@ -11,6 +11,7 @@ class _FakeRepo extends GpsQualityApiRepository {
   List<int>? lastCheckIds;
   bool retryAll = false;
   int? deletedDeviceId;
+  int? deletedCheckId;
 
   @override
   Future<List<RowResult>> retryRegistration({List<int>? checkIds}) async {
@@ -26,6 +27,11 @@ class _FakeRepo extends GpsQualityApiRepository {
   Future<int> deleteChecksByDevice(int deviceId) async {
     deletedDeviceId = deviceId;
     return 2;
+  }
+
+  @override
+  Future<void> deleteCheck(int id) async {
+    deletedCheckId = id;
   }
 
   @override
@@ -213,5 +219,35 @@ void main() {
     await tester.tap(find.byKey(const Key('delete-device-confirm-btn')));
     await tester.pumpAndSettle();
     expect(repo.deletedDeviceId, 12);
+  });
+
+  testWidgets('READY 状态设备也显示删除设备按钮', (tester) async {
+    await _pumpList(tester);
+    await tester
+        .tap(find.byKey(const ValueKey('device-group-847A000000000F03')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('delete-device-btn')), findsOneWidget);
+  });
+
+  testWidgets('时间线段删除图标弹确认框，确认后调 deleteCheck(该检验id)',
+      (tester) async {
+    final repo = await _pumpList(tester);
+    await tester
+        .tap(find.byKey(const ValueKey('device-group-847A000000000F03')));
+    await tester.pumpAndSettle();
+    // 时间线上该设备的每次检验各有一个删除图标
+    expect(find.byKey(const ValueKey('delete-check-1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('delete-check-2')), findsOneWidget);
+
+    await tester.ensureVisible(find.byKey(const ValueKey('delete-check-2')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('delete-check-2')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('delete-check-confirm-dialog')),
+        findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('delete-check-confirm-btn')));
+    await tester.pumpAndSettle();
+    expect(repo.deletedCheckId, 2);
   });
 }

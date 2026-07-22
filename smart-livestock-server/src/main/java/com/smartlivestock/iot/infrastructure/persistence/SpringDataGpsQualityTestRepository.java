@@ -24,6 +24,9 @@ public interface SpringDataGpsQualityTestRepository extends JpaRepository<GpsQua
                                     @Param("startedAt") Instant startedAt,
                                     @Param("testType") String testType);
 
+    boolean existsByDeviceCodeAndTestTypeAndStartedAtAndEndedAt(
+            String deviceCode, String testType, Instant startedAt, Instant endedAt);
+
     List<GpsQualityTestJpaEntity> findByBatchImportId(Long batchImportId);
     List<GpsQualityTestJpaEntity> findByStatus(String status);
     List<GpsQualityTestJpaEntity> findByRouteIdAndStatus(Long routeId, String status);

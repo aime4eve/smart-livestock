@@ -7,6 +7,8 @@ import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_qualit
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/create_check_dialog.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/batch_import_dialog.dart';
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/trajectory_import_dialog.dart';
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/trajectory_report_panel.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/scatter_chart.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/route_match_chart.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/edit_retry_dialog.dart';
@@ -99,6 +101,16 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
           _selectedCheckId = firstChecks.first.id;
         }
 
+        // Reselect the device's first check when the selected check was deleted
+        if (_selectedDeviceCode != null &&
+            _selectedCheckId != null &&
+            result.items.every((c) => c.id != _selectedCheckId)) {
+          final deviceChecks = grouped[_selectedDeviceCode] ?? [];
+          final remaining = List<QualityCheck>.from(deviceChecks)
+            ..sort((a, b) => a.startedAt.compareTo(b.startedAt));
+          _selectedCheckId = remaining.isNotEmpty ? remaining.first.id : null;
+        }
+
         return LayoutBuilder(
           builder: (context, constraints) {
             final wide = constraints.maxWidth >= 900;
@@ -161,6 +173,12 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                   icon: const Icon(Icons.upload_file, color: AppColors.primary, size: 20),
                   tooltip: l10n.gpsQualityBatchImport,
                   onPressed: () => _showBatchImportDialog(l10n),
+                ),
+                IconButton(
+                  key: const Key('trajectory-import-btn'),
+                  icon: const Icon(Icons.satellite_alt, color: AppColors.primary, size: 20),
+                  tooltip: l10n.gpsQualityTrajectoryImport,
+                  onPressed: () => _showTrajectoryImportDialog(l10n),
                 ),
               ]),
               const SizedBox(height: AppSpacing.sm),
@@ -243,6 +261,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
           final hasFailed = checks.any((c) => c.status == 'FAILED');
           final staticCount = checks.where((c) => c.checkType == 'STATIC').length;
           final dynamicCount = checks.where((c) => c.checkType == 'DYNAMIC').length;
+          final trajectoryCount = checks.where((c) => c.checkType == 'TRAJECTORY').length;
 
           return InkWell(
             key: ValueKey('device-group-$deviceCode'),
@@ -286,6 +305,10 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                       const SizedBox(width: 4),
                       _typeTag(l10n.gpsQualityDynamicChecks, const Color(0xFFB45309)),
                     ],
+                    if (trajectoryCount > 0) ...[
+                      const SizedBox(width: 4),
+                      _typeTag(l10n.gpsQualityTrajectoryChecks, const Color(0xFF7C3AED)),
+                    ],
                   ]),
                   // Latest check time
                   Text(
@@ -312,6 +335,21 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
       child: Text(label, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: color)),
     );
   }
+
+  /// Timeline segment color + single-char label per check type.
+  /// 静=blue STATIC, 动=amber DYNAMIC, 轨=purple TRAJECTORY.
+  (Color, String) _timelineStyle(String checkType) => switch (checkType) {
+        'STATIC' => (const Color(0xFF2563EB), '静'),
+        'TRAJECTORY' => (const Color(0xFF7C3AED), '轨'),
+        _ => (const Color(0xFFD97706), '动'),
+      };
+
+  String _typeLabel(AppLocalizations l10n, String checkType) =>
+      switch (checkType) {
+        'STATIC' => l10n.gpsQualityTestTypeStatic,
+        'TRAJECTORY' => l10n.gpsQualityTrajectoryChecks,
+        _ => l10n.gpsQualityTestTypeDynamic,
+      };
 
   Widget _typeTag(String label, Color color) {
     return Container(
@@ -412,9 +450,9 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                 onPressed: () => _registerPending(deviceCode),
               ),
               const SizedBox(width: AppSpacing.sm),
-              _deleteDeviceButton(l10n, checks,
-                  key: const Key('delete-device-btn')),
             ],
+            _deleteDeviceButton(l10n, checks,
+                key: const Key('delete-device-btn')),
           ]),
           const SizedBox(height: 4),
           Text(
@@ -453,6 +491,19 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
 
   // ── Timeline ────────────────────────────────────────────────────
 
+  /// Geometry of one check's timeline segment (shared by segment & badge).
+  ({double left, double width}) _segmentGeometry(QualityCheck c,
+      double barWidth, double overallStart, double totalMs) {
+    final start = c.startedAt.millisecondsSinceEpoch.toDouble();
+    final end =
+        (c.endedAt ?? DateTime.now()).millisecondsSinceEpoch.toDouble();
+    final leftFrac = ((start - overallStart) / totalMs).clamp(0.0, 1.0);
+    final rightFrac = ((end - overallStart) / totalMs).clamp(0.0, 1.0);
+    final left = leftFrac * barWidth;
+    final width = ((rightFrac - leftFrac) * barWidth).clamp(8.0, barWidth);
+    return (left: left, width: width);
+  }
+
   Widget _buildTimeline(AppLocalizations l10n, List<QualityCheck> sortedChecks, List<RtkPoint> rtkPoints) {
     if (sortedChecks.isEmpty) return const SizedBox();
     final overallStart = sortedChecks.first.startedAt.millisecondsSinceEpoch.toDouble();
@@ -477,38 +528,71 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
               ),
               child: Stack(clipBehavior: Clip.none, children: [
                 ...sortedChecks.map((c) {
-                  final start = c.startedAt.millisecondsSinceEpoch.toDouble();
-                  final end = (c.endedAt ?? DateTime.now()).millisecondsSinceEpoch.toDouble();
-                  final leftFrac = ((start - overallStart) / totalMs).clamp(0.0, 1.0);
-                  final rightFrac = ((end - overallStart) / totalMs).clamp(0.0, 1.0);
-                  final segLeft = leftFrac * barWidth;
-                  final segWidth = ((rightFrac - leftFrac) * barWidth).clamp(8.0, barWidth);
-                  final isStatic = c.checkType == 'STATIC';
+                  final seg = _segmentGeometry(c, barWidth, overallStart, totalMs);
+                  final (segColor, segLabel) = _timelineStyle(c.checkType);
+                  final typeName = _typeLabel(l10n, c.checkType);
                   final isSelected = _selectedCheckId == c.id;
                   final isFailed = c.status == 'FAILED';
                   return Positioned(
-                    left: segLeft,
+                    left: seg.left,
                     top: 3, bottom: 3,
-                    width: segWidth,
+                    width: seg.width,
                     child: GestureDetector(
                       onTap: () => setState(() => _selectedCheckId = c.id),
                       child: Tooltip(
-                        message: '${isStatic ? "静态" : "动态"} · ${isFailed ? "失败" : "${c.status}"}\n${DateFormat('MM-dd HH:mm').format(c.startedAt)} → ${c.endedAt != null ? DateFormat('MM-dd HH:mm').format(c.endedAt!) : "..."}',
+                        message: '$typeName · ${isFailed ? "失败" : "${c.status}"}\n${DateFormat('MM-dd HH:mm').format(c.startedAt)} → ${c.endedAt != null ? DateFormat('MM-dd HH:mm').format(c.endedAt!) : "..."}',
                         child: Container(
                           margin: const EdgeInsets.symmetric(horizontal: 1),
                           decoration: BoxDecoration(
                             color: isFailed
                                 ? AppColors.danger
-                                : (isStatic ? const Color(0xFF2563EB) : const Color(0xFFD97706)),
+                                : segColor,
                             borderRadius: BorderRadius.circular(4),
                             border: isSelected
                                 ? Border.all(color: AppColors.primary, width: 2)
                                 : null,
                           ),
                           child: Center(child: Text(
-                            isStatic ? '静' : '动',
+                            segLabel,
                             style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
                           )),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+                // Per-check delete badges, as siblings of the segments so taps
+                // on the overflowing badge area hit the badge (not the segment).
+                ...sortedChecks.map((c) {
+                  final seg = _segmentGeometry(c, barWidth, overallStart, totalMs);
+                  return Positioned(
+                    left: seg.left + seg.width - 10,
+                    top: -4,
+                    child: Tooltip(
+                      message: l10n.gpsQualityDeleteCheckTip(
+                        c.endedAt != null
+                            ? DateFormat('MM-dd HH:mm').format(c.endedAt!)
+                            : '...',
+                        DateFormat('MM-dd HH:mm').format(c.startedAt),
+                        c.checkType == 'STATIC'
+                            ? l10n.gpsQualityTestTypeStatic
+                            : c.checkType == 'TRAJECTORY'
+                                ? l10n.gpsQualityTrajectoryChecks
+                                : l10n.gpsQualityTestTypeDynamic,
+                      ),
+                      child: GestureDetector(
+                        key: ValueKey('delete-check-${c.id}'),
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => _deleteCheck(l10n, c),
+                        child: Container(
+                          width: 14,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.danger, width: 1),
+                          ),
+                          child: const Icon(Icons.close, size: 9, color: AppColors.danger),
                         ),
                       ),
                     ),
@@ -563,6 +647,8 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
 
     if (check.checkType == 'STATIC') {
       return _StaticReportCard(testId: checkId);
+    } else if (check.checkType == 'TRAJECTORY') {
+      return TrajectoryReportPanel(testId: checkId);
     } else {
       return _DynamicReportCard(testId: checkId);
     }
@@ -611,6 +697,12 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
 
   void _showBatchImportDialog(AppLocalizations l10n) {
     showDialog(context: context, builder: (_) => const BatchImportDialog()).then((_) {
+      ref.invalidate(checksProvider);
+    });
+  }
+
+  void _showTrajectoryImportDialog(AppLocalizations l10n) {
+    showDialog(context: context, builder: (_) => const TrajectoryImportDialog()).then((_) {
       ref.invalidate(checksProvider);
     });
   }
@@ -679,6 +771,47 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
           style: const TextStyle(fontSize: 11)),
       onPressed: () => _deleteDeviceChecks(l10n, checks),
     );
+  }
+
+  /// Delete a single quality check (from its timeline segment).
+  Future<void> _deleteCheck(AppLocalizations l10n, QualityCheck check) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        key: const Key('delete-check-confirm-dialog'),
+        title: Text(l10n.gpsQualityDeleteCheck),
+        content: Text(l10n.gpsQualityDeleteCheckConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            key: const Key('delete-check-confirm-btn'),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.commonDelete),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ref.read(gpsQualityApiRepositoryProvider).deleteCheck(check.id);
+      if (!mounted) return;
+      if (_selectedCheckId == check.id) {
+        setState(() => _selectedCheckId = null);
+      }
+      ref.invalidate(checksProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.gpsQualityDeleteCheckSuccess)),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
+      }
+    }
   }
 
   /// Delete all quality checks of a device (the device itself is kept).

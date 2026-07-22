@@ -55,3 +55,42 @@ Future<List<int>?> pickFileBytes(List<String> extensions) async {
   html.document.body?.children.remove(input);
   return result;
 }
+
+/// Picked file with its original name (used for format detection server-side).
+typedef PickedFile = ({String name, List<int> bytes});
+
+/// Same as [pickFileBytes] but also returns the original file name.
+Future<PickedFile?> pickFileBytesWithName(List<String> extensions) async {
+  final input = html.InputElement(type: 'file')
+    ..accept = '.${extensions.join(',.')}'
+    ..style.display = 'none';
+  html.document.body?.children.add(input);
+
+  final completer = Completer<PickedFile?>();
+
+  input.onChange.listen((_) async {
+    final files = input.files;
+    if (files == null || files.isEmpty) {
+      completer.complete(null);
+      return;
+    }
+    final file = files[0];
+    final reader = html.FileReader();
+    reader.onLoadEnd.listen((_) {
+      final result = reader.result;
+      if (result is Uint8List) {
+        completer.complete((name: file.name, bytes: result.toList()));
+      } else {
+        completer.complete(null);
+      }
+    });
+    reader.onError.listen((_) => completer.complete(null));
+    reader.readAsArrayBuffer(file);
+  });
+
+  input.click();
+
+  final result = await completer.future;
+  html.document.body?.children.remove(input);
+  return result;
+}

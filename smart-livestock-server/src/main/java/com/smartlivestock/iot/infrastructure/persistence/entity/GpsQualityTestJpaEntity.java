@@ -46,6 +46,9 @@ public class GpsQualityTestJpaEntity {
     @Column(name = "error_message")
     private String errorMessage;
 
+    @Column(name = "note")
+    private String note;
+
     @Column(name = "batch_import_id")
     private Long batchImportId;
 
@@ -87,6 +90,8 @@ public class GpsQualityTestJpaEntity {
     public void setStatus(String status) { this.status = status; }
     public String getErrorMessage() { return errorMessage; }
     public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
     public Long getBatchImportId() { return batchImportId; }
     public void setBatchImportId(Long batchImportId) { this.batchImportId = batchImportId; }
     public Instant getCreatedAt() { return createdAt; }

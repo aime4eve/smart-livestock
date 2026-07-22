@@ -8,6 +8,8 @@ import com.smartlivestock.iot.application.RtkReferencePointService;
 import com.smartlivestock.iot.application.DeviceApplicationService;
 import com.smartlivestock.iot.application.GpsQualityTestService.GpsQualityTestPage;
 import com.smartlivestock.iot.application.GpsQualityBatchImportService;
+import com.smartlivestock.iot.application.TrajectoryImportService;
+import com.smartlivestock.iot.application.TrajectoryReportService;
 import com.smartlivestock.iot.domain.model.DynamicTestRoute;
 import com.smartlivestock.iot.domain.model.DynamicTestRoutePoint;
 import com.smartlivestock.iot.domain.model.GpsQualityTest;
@@ -24,6 +26,10 @@ import com.smartlivestock.iot.interfaces.admin.dto.DynamicComparisonDto;
 import com.smartlivestock.iot.interfaces.admin.dto.QualityReportDto;
 import com.smartlivestock.shared.tenant.TenantContext;
 import com.smartlivestock.iot.interfaces.admin.dto.RtkPointDto;
+import com.smartlivestock.iot.interfaces.admin.dto.TrajectoryComparisonDto;
+import com.smartlivestock.iot.interfaces.admin.dto.TrajectoryImportResultDto;
+import com.smartlivestock.iot.interfaces.admin.dto.TrajectoryParseResultDto;
+import com.smartlivestock.iot.interfaces.admin.dto.TrajectoryQualityReportDto;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -61,6 +67,8 @@ public class GpsQualityAdminController {
     private final DeviceRepository deviceRepository;
     private final GpsQualityBatchImportService batchImportService;
     private final DeviceApplicationService deviceApplicationService;
+    private final TrajectoryImportService trajectoryImportService;
+    private final TrajectoryReportService trajectoryReportService;
 
     // platform_admin has no tenant; GPS quality checks fall back to the demo tenant.
     // TODO: for production, add explicit tenant selection in the request body.
@@ -332,6 +340,68 @@ public class GpsQualityAdminController {
             @RequestParam(required = false) Double threshold) {
         DynamicQualityReportDto dto = dynamicReportService.generate(id, threshold);
         return ResponseEntity.ok(ApiResponse.ok(dto));
+    }
+
+    // --- RTK trajectory import (NIX-22) ---
+
+    /** Max pairing tolerance: 1 hour. */
+    private static final int MAX_TOLERANCE_SEC = 3600;
+
+    private static int validateTolerance(int toleranceSec) {
+        if (toleranceSec < 1 || toleranceSec > MAX_TOLERANCE_SEC) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                    "toleranceSec must be within 1.." + MAX_TOLERANCE_SEC + ": " + toleranceSec);
+        }
+        return toleranceSec;
+    }
+
+    @GetMapping("/trajectory/template")
+    public ResponseEntity<byte[]> trajectoryTemplate() {
+        byte[] data = trajectoryImportService.generateTemplate();
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=trajectory-import-template.csv")
+                .contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
+                .body(data);
+    }
+
+    /**
+     * Parse + pairing preview of a trajectory file. Nothing is persisted.
+     */
+    @PostMapping(value = "/trajectory/parse", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<TrajectoryParseResultDto>> trajectoryParse(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(defaultValue = "60") int toleranceSec) {
+        Long tenantId = resolveTenantId();
+        TrajectoryParseResultDto result =
+                trajectoryImportService.parse(file, validateTolerance(toleranceSec), tenantId);
+        return ResponseEntity.ok(ApiResponse.ok(result));
+    }
+
+    /**
+     * Import a trajectory file: one TRAJECTORY test per device + pairing snapshot.
+     */
+    @PostMapping(value = "/trajectory/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<TrajectoryImportResultDto>> trajectoryImport(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(defaultValue = "60") int toleranceSec) {
+        Long tenantId = resolveTenantId();
+        TrajectoryImportResultDto result =
+                trajectoryImportService.importFile(file, validateTolerance(toleranceSec), tenantId);
+        return ResponseEntity.ok(ApiResponse.ok(result));
+    }
+
+    @GetMapping("/tests/{id}/trajectory-report")
+    public ResponseEntity<ApiResponse<TrajectoryQualityReportDto>> trajectoryReport(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(trajectoryReportService.generate(id)));
+    }
+
+    /**
+     * Trajectory comparison: latest READY TRAJECTORY test per device.
+     */
+    @GetMapping("/comparison/trajectory")
+    public ResponseEntity<ApiResponse<TrajectoryComparisonDto>> trajectoryComparison() {
+        return ResponseEntity.ok(ApiResponse.ok(trajectoryReportService.generateComparison()));
     }
 
     @GetMapping("/tests/{id}/trajectory")

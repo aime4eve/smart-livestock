@@ -495,7 +495,7 @@ class QualityCheck {
   final int id;
   final String deviceCode;
   final int? deviceId;
-  final String checkType; // STATIC / DYNAMIC
+  final String checkType; // STATIC / DYNAMIC / TRAJECTORY
   final int? rtkPointId;
   final int? routeId;
   final DateTime startedAt;
@@ -777,6 +777,348 @@ class DynamicComparisonRow {
         meanError: (json['meanError'] as num?)?.toDouble() ?? 0,
         p50: (json['p50'] as num?)?.toDouble() ?? 0,
         p95: (json['p95'] as num?)?.toDouble() ?? 0,
+        startedAt: json['startedAt'] != null
+            ? DateTime.parse(json['startedAt'] as String)
+            : null,
+        endedAt: json['endedAt'] != null
+            ? DateTime.parse(json['endedAt'] as String)
+            : null,
+      );
+}
+
+// ── NIX-22: RTK trajectory import (TRAJECTORY checks) ─────────────
+
+QualityGrade trajectoryGradeFrom(String? s) => switch (s) {
+      'EXCELLENT' => QualityGrade.excellent,
+      'USABLE' => QualityGrade.usable,
+      'MARGINAL' => QualityGrade.marginal,
+      _ => QualityGrade.unavailable,
+    };
+
+/// One parsed file row of a trajectory import preview.
+@immutable
+class TrajectoryParseRow {
+  const TrajectoryParseRow({
+    required this.rowNo,
+    required this.deviceEui,
+    this.collectedAt,
+    this.rtkLatitude,
+    this.rtkLongitude,
+    this.deviceLatitude,
+    this.deviceLongitude,
+    required this.matchMode, // FILE / GPS_LOG / UNPAIRED / INVALID
+    this.error,
+    this.matchedRecordedAt,
+    this.timeDiffSec,
+  });
+
+  final int rowNo;
+  final String deviceEui;
+  final DateTime? collectedAt;
+  final double? rtkLatitude;
+  final double? rtkLongitude;
+  final double? deviceLatitude;
+  final double? deviceLongitude;
+  final String matchMode;
+  final String? error;
+  final DateTime? matchedRecordedAt;
+  final int? timeDiffSec;
+
+  factory TrajectoryParseRow.fromJson(Map<String, dynamic> json) =>
+      TrajectoryParseRow(
+        rowNo: json['rowNo'] as int? ?? 0,
+        deviceEui: json['deviceEui'] as String? ?? '',
+        collectedAt: json['collectedAt'] != null
+            ? DateTime.parse(json['collectedAt'] as String)
+            : null,
+        rtkLatitude: (json['rtkLatitude'] as num?)?.toDouble(),
+        rtkLongitude: (json['rtkLongitude'] as num?)?.toDouble(),
+        deviceLatitude: (json['deviceLatitude'] as num?)?.toDouble(),
+        deviceLongitude: (json['deviceLongitude'] as num?)?.toDouble(),
+        matchMode: json['matchMode'] as String? ?? 'INVALID',
+        error: json['error'] as String?,
+        matchedRecordedAt: json['matchedRecordedAt'] != null
+            ? DateTime.parse(json['matchedRecordedAt'] as String)
+            : null,
+        timeDiffSec: json['timeDiffSec'] as int?,
+      );
+}
+
+/// Server-side parse + pairing preview of a trajectory file.
+@immutable
+class TrajectoryParseResult {
+  const TrajectoryParseResult({
+    required this.totalRows,
+    required this.validRows,
+    required this.invalidRows,
+    required this.deviceCount,
+    required this.filePaired,
+    required this.logPaired,
+    required this.unpaired,
+    required this.rows,
+  });
+
+  final int totalRows;
+  final int validRows;
+  final int invalidRows;
+  final int deviceCount;
+  final int filePaired;
+  final int logPaired;
+  final int unpaired;
+  final List<TrajectoryParseRow> rows;
+
+  factory TrajectoryParseResult.fromJson(Map<String, dynamic> json) =>
+      TrajectoryParseResult(
+        totalRows: json['totalRows'] as int? ?? 0,
+        validRows: json['validRows'] as int? ?? 0,
+        invalidRows: json['invalidRows'] as int? ?? 0,
+        deviceCount: json['deviceCount'] as int? ?? 0,
+        filePaired: json['filePaired'] as int? ?? 0,
+        logPaired: json['logPaired'] as int? ?? 0,
+        unpaired: json['unpaired'] as int? ?? 0,
+        rows: (json['rows'] as List? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .map(TrajectoryParseRow.fromJson)
+            .toList(),
+      );
+}
+
+/// Per-device outcome of a trajectory import.
+@immutable
+class TrajectoryDeviceResult {
+  const TrajectoryDeviceResult({
+    required this.deviceEui,
+    this.testId,
+    required this.status, // CREATED / SKIPPED_DUPLICATE
+    required this.totalPoints,
+    required this.filePaired,
+    required this.logPaired,
+    required this.unpaired,
+  });
+
+  final String deviceEui;
+  final int? testId;
+  final String status;
+  final int totalPoints;
+  final int filePaired;
+  final int logPaired;
+  final int unpaired;
+
+  factory TrajectoryDeviceResult.fromJson(Map<String, dynamic> json) =>
+      TrajectoryDeviceResult(
+        deviceEui: json['deviceEui'] as String? ?? '',
+        testId: json['testId'] as int?,
+        status: json['status'] as String? ?? '',
+        totalPoints: json['totalPoints'] as int? ?? 0,
+        filePaired: json['filePaired'] as int? ?? 0,
+        logPaired: json['logPaired'] as int? ?? 0,
+        unpaired: json['unpaired'] as int? ?? 0,
+      );
+}
+
+/// Result of a trajectory import (one TRAJECTORY check per device).
+@immutable
+class TrajectoryImportResult {
+  const TrajectoryImportResult({
+    required this.createdCount,
+    required this.skippedCount,
+    required this.devices,
+  });
+
+  final int createdCount;
+  final int skippedCount;
+  final List<TrajectoryDeviceResult> devices;
+
+  factory TrajectoryImportResult.fromJson(Map<String, dynamic> json) =>
+      TrajectoryImportResult(
+        createdCount: json['createdCount'] as int? ?? 0,
+        skippedCount: json['skippedCount'] as int? ?? 0,
+        devices: (json['devices'] as List? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .map(TrajectoryDeviceResult.fromJson)
+            .toList(),
+      );
+}
+
+/// One paired track point of a trajectory report.
+@immutable
+class TrajectoryTrackPoint {
+  const TrajectoryTrackPoint({
+    required this.sequenceNo,
+    required this.collectedAt,
+    required this.rtkLatitude,
+    required this.rtkLongitude,
+    this.deviceLatitude,
+    this.deviceLongitude,
+    this.error,
+    required this.matchSource, // FILE / GPS_LOG / UNPAIRED
+    this.timeDiffSec,
+  });
+
+  final int sequenceNo;
+  final DateTime collectedAt;
+  final double rtkLatitude;
+  final double rtkLongitude;
+  final double? deviceLatitude;
+  final double? deviceLongitude;
+  final double? error;
+  final String matchSource;
+  final int? timeDiffSec;
+
+  bool get paired => matchSource != 'UNPAIRED';
+
+  factory TrajectoryTrackPoint.fromJson(Map<String, dynamic> json) =>
+      TrajectoryTrackPoint(
+        sequenceNo: json['sequenceNo'] as int? ?? 0,
+        collectedAt: DateTime.parse(json['collectedAt'] as String),
+        rtkLatitude: (json['rtkLatitude'] as num).toDouble(),
+        rtkLongitude: (json['rtkLongitude'] as num).toDouble(),
+        deviceLatitude: (json['deviceLatitude'] as num?)?.toDouble(),
+        deviceLongitude: (json['deviceLongitude'] as num?)?.toDouble(),
+        error: (json['error'] as num?)?.toDouble(),
+        matchSource: json['matchSource'] as String? ?? 'UNPAIRED',
+        timeDiffSec: json['timeDiffSec'] as int?,
+      );
+}
+
+/// Same-device static-vs-trajectory comparison.
+@immutable
+class TrajectoryStaticComparison {
+  const TrajectoryStaticComparison({
+    this.staticTestId,
+    required this.staticP95,
+    required this.staticGrade,
+    required this.deltaP95,
+  });
+
+  final int? staticTestId;
+  final double staticP95;
+  final QualityGrade staticGrade;
+  final double deltaP95;
+
+  factory TrajectoryStaticComparison.fromJson(Map<String, dynamic> json) =>
+      TrajectoryStaticComparison(
+        staticTestId: json['staticTestId'] as int?,
+        staticP95: (json['staticP95'] as num?)?.toDouble() ?? 0,
+        staticGrade: trajectoryGradeFrom(json['staticGrade'] as String?),
+        deltaP95: (json['deltaP95'] as num?)?.toDouble() ?? 0,
+      );
+}
+
+/// TRAJECTORY quality report assembled from the pairing snapshot.
+@immutable
+class TrajectoryQualityReport {
+  const TrajectoryQualityReport({
+    required this.testId,
+    required this.deviceCode,
+    required this.startedAt,
+    this.endedAt,
+    required this.toleranceSec,
+    required this.grade,
+    required this.totalPoints,
+    required this.filePaired,
+    required this.logPaired,
+    required this.unpaired,
+    required this.pairRate,
+    required this.meanError,
+    required this.p50,
+    required this.p95,
+    required this.maxError,
+    required this.points,
+    this.staticComparison,
+  });
+
+  final int testId;
+  final String deviceCode;
+  final DateTime startedAt;
+  final DateTime? endedAt;
+  final int toleranceSec;
+  final QualityGrade grade;
+  final int totalPoints;
+  final int filePaired;
+  final int logPaired;
+  final int unpaired;
+  final double pairRate;
+  final double meanError;
+  final double p50;
+  final double p95;
+  final double maxError;
+  final List<TrajectoryTrackPoint> points;
+  final TrajectoryStaticComparison? staticComparison;
+
+  factory TrajectoryQualityReport.fromJson(Map<String, dynamic> json) =>
+      TrajectoryQualityReport(
+        testId: json['testId'] as int? ?? 0,
+        deviceCode: json['deviceCode'] as String? ?? '',
+        startedAt: DateTime.parse(json['startedAt'] as String),
+        endedAt: json['endedAt'] != null
+            ? DateTime.parse(json['endedAt'] as String)
+            : null,
+        toleranceSec: json['toleranceSec'] as int? ?? 60,
+        grade: trajectoryGradeFrom(json['grade'] as String?),
+        totalPoints: json['totalPoints'] as int? ?? 0,
+        filePaired: json['filePaired'] as int? ?? 0,
+        logPaired: json['logPaired'] as int? ?? 0,
+        unpaired: json['unpaired'] as int? ?? 0,
+        pairRate: (json['pairRate'] as num?)?.toDouble() ?? 0,
+        meanError: (json['meanError'] as num?)?.toDouble() ?? 0,
+        p50: (json['p50'] as num?)?.toDouble() ?? 0,
+        p95: (json['p95'] as num?)?.toDouble() ?? 0,
+        maxError: (json['maxError'] as num?)?.toDouble() ?? 0,
+        points: (json['points'] as List? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .map(TrajectoryTrackPoint.fromJson)
+            .toList(),
+        staticComparison: json['staticComparison'] != null
+            ? TrajectoryStaticComparison.fromJson(
+                json['staticComparison'] as Map<String, dynamic>)
+            : null,
+      );
+}
+
+/// One device row of the cross-device trajectory comparison.
+@immutable
+class TrajectoryComparisonRow {
+  const TrajectoryComparisonRow({
+    required this.testId,
+    required this.deviceId,
+    required this.deviceCode,
+    required this.totalPoints,
+    required this.paired,
+    required this.pairRate,
+    required this.meanError,
+    required this.p50,
+    required this.p95,
+    required this.grade,
+    this.startedAt,
+    this.endedAt,
+  });
+
+  final int testId;
+  final int deviceId;
+  final String deviceCode;
+  final int totalPoints;
+  final int paired;
+  final double pairRate;
+  final double meanError;
+  final double p50;
+  final double p95;
+  final QualityGrade grade;
+  final DateTime? startedAt;
+  final DateTime? endedAt;
+
+  factory TrajectoryComparisonRow.fromJson(Map<String, dynamic> json) =>
+      TrajectoryComparisonRow(
+        testId: json['testId'] as int? ?? 0,
+        deviceId: json['deviceId'] as int? ?? 0,
+        deviceCode: json['deviceCode'] as String? ?? '',
+        totalPoints: json['totalPoints'] as int? ?? 0,
+        paired: json['paired'] as int? ?? 0,
+        pairRate: (json['pairRate'] as num?)?.toDouble() ?? 0,
+        meanError: (json['meanError'] as num?)?.toDouble() ?? 0,
+        p50: (json['p50'] as num?)?.toDouble() ?? 0,
+        p95: (json['p95'] as num?)?.toDouble() ?? 0,
+        grade: trajectoryGradeFrom(json['grade'] as String?),
         startedAt: json['startedAt'] != null
             ? DateTime.parse(json['startedAt'] as String)
             : null,

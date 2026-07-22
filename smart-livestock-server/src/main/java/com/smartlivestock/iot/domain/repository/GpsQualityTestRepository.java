@@ -13,6 +13,9 @@ public interface GpsQualityTestRepository {
     List<GpsQualityTest> findByRtkPointId(Long rtkPointId);
     boolean existsByEuiAndTimeRange(String eui, Instant startedAt, String testType);
 
+    /** NIX-22 D7 dedup: an identical TRAJECTORY window already imported for this device. */
+    boolean existsTrajectoryWindow(String deviceCode, Instant startedAt, Instant endedAt);
+
     List<GpsQualityTest> findByBatchImportId(Long batchImportId);
     List<GpsQualityTest> findByStatus(String status);
     List<GpsQualityTest> findByRouteIdAndStatus(Long routeId, String status);

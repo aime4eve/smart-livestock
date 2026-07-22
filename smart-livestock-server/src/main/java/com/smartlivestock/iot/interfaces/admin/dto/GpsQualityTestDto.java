@@ -16,6 +16,7 @@ public class GpsQualityTestDto {
     private Instant endedAt;
     private String status;
     private String errorMessage;
+    private String note;
     private Long batchImportId;
     private Instant createdAt;
 
@@ -33,6 +34,7 @@ public class GpsQualityTestDto {
         dto.endedAt = t.getEndedAt();
         dto.status = t.getStatus();
         dto.errorMessage = t.getErrorMessage();
+        dto.note = t.getNote();
         dto.batchImportId = t.getBatchImportId();
         dto.createdAt = t.getCreatedAt();
         return dto;
@@ -58,6 +60,8 @@ public class GpsQualityTestDto {
     public void setStatus(String status) { this.status = status; }
     public String getErrorMessage() { return errorMessage; }
     public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
     public Long getBatchImportId() { return batchImportId; }
     public void setBatchImportId(Long batchImportId) { this.batchImportId = batchImportId; }
     public Instant getCreatedAt() { return createdAt; }

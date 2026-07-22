@@ -31,6 +31,7 @@ public class GpsQualityTest extends AggregateRoot {
     private Instant endedAt;
     private String status;
     private String errorMessage;
+    private String note;
     private Long batchImportId;
     private Instant createdAt;
     private Instant updatedAt;
@@ -95,6 +96,9 @@ public class GpsQualityTest extends AggregateRoot {
 
     public String getErrorMessage() { return errorMessage; }
     public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
+
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
 
     public Long getBatchImportId() { return batchImportId; }
     public void setBatchImportId(Long batchImportId) { this.batchImportId = batchImportId; }

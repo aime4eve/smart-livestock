@@ -3061,6 +3061,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsQualityDeleteCheck => '删除检验';
 
   @override
+  String get gpsQualityDeleteCheckConfirm => '将删除该条质量检验记录，此操作不可恢复。';
+
+  @override
+  String get gpsQualityDeleteCheckSuccess => '检验记录已删除';
+
+  @override
+  String gpsQualityDeleteCheckTip(Object end, Object start, Object type) {
+    return '删除$type，$start → $end';
+  }
+
+  @override
   String get gpsQualityBatchConfirmDelete => '确认删除该批次？';
 
   @override
@@ -3173,4 +3184,200 @@ class AppLocalizationsZh extends AppLocalizations {
   String gpsQualityDeviceCount(Object n) {
     return '$n 台设备';
   }
+
+  @override
+  String get commonNext => '下一步';
+
+  @override
+  String get commonDone => '完成';
+
+  @override
+  String get gpsQualityTrajectoryImport => '导入 RTK 轨迹数据';
+
+  @override
+  String get gpsQualityTrajectoryChecks => '轨迹';
+
+  @override
+  String get gpsQualityTrajectoryReport => '轨迹动态检验报告';
+
+  @override
+  String get gpsQualityTrajectoryUploadTitle => '上传 RTK 轨迹文件';
+
+  @override
+  String get gpsQualityTrajectoryUploadHint => '支持 .csv / .xlsx，单次最多 5000 行';
+
+  @override
+  String get gpsQualityTrajectoryClockNote =>
+      '时钟基准：采集时间须与设备上报时间戳使用同一基准（服务器落库时间，UTC+8）。配对窗口默认 ±60 秒，可在下一步调整。';
+
+  @override
+  String get gpsQualityTrajectoryFormatTitle => '文件格式（列顺序固定，表头可省略）';
+
+  @override
+  String get gpsQualityTrajectoryRequired => '必填';
+
+  @override
+  String get gpsQualityTrajectoryOptional => '可选';
+
+  @override
+  String get gpsQualityTrajectoryColEui => '设备 EUI';
+
+  @override
+  String get gpsQualityTrajectoryColTime => '采集时间';
+
+  @override
+  String get gpsQualityTrajectoryColRtkLat => 'RTK 纬度';
+
+  @override
+  String get gpsQualityTrajectoryColRtkLng => 'RTK 经度';
+
+  @override
+  String get gpsQualityTrajectoryColDevLat => '设备纬度';
+
+  @override
+  String get gpsQualityTrajectoryColDevLng => '设备经度';
+
+  @override
+  String get gpsQualityTrajectoryColEuiNote => '被检验追踪器设备 EUI，须已注册';
+
+  @override
+  String get gpsQualityTrajectoryColTimeNote => '设备上报时刻，与设备上报时间戳同一时钟基准';
+
+  @override
+  String get gpsQualityTrajectoryColDevNote => '留空则系统按 EUI+时间从 gps_logs 自动配对';
+
+  @override
+  String get gpsQualityTrajectoryStatRows => '总行数';
+
+  @override
+  String get gpsQualityTrajectoryStatValid => '校验通过';
+
+  @override
+  String get gpsQualityTrajectoryStatInvalid => '校验失败';
+
+  @override
+  String get gpsQualityTrajectoryStatDevices => '涉及设备';
+
+  @override
+  String get gpsQualityFilePaired => '文件配对';
+
+  @override
+  String get gpsQualityLogPaired => '库内配对';
+
+  @override
+  String get gpsQualityUnpaired => '未配对';
+
+  @override
+  String get gpsQualityPairTolerance => '配对设置';
+
+  @override
+  String get gpsQualityPairToleranceSec => '秒';
+
+  @override
+  String get gpsQualityPairToleranceNote =>
+      '取该 EUI 在 gps_logs 中距采集时间最近的一条上报，超出容差记为「未配对」';
+
+  @override
+  String get gpsQualityTrajectoryMatchMode => '配对方式';
+
+  @override
+  String get gpsQualityTrajectoryCheck => '校验';
+
+  @override
+  String get gpsQualityTrajectoryMatchFile => '文件';
+
+  @override
+  String get gpsQualityTrajectoryMatchLog => '库内';
+
+  @override
+  String get gpsQualityTrajectoryMatchUnpaired => '未配对';
+
+  @override
+  String gpsQualityTrajectoryImportDone(int created, int skipped) {
+    return '导入完成：新建 $created 条轨迹检验会话，跳过 $skipped 条（重复）';
+  }
+
+  @override
+  String gpsQualityTrajectoryDevicePoints(int n) {
+    return '$n 点';
+  }
+
+  @override
+  String get gpsQualityTrajectoryCreated => '会话已创建';
+
+  @override
+  String get gpsQualityTrajectorySkippedDuplicate => '已存在，跳过';
+
+  @override
+  String get gpsQualityTrajectoryUnpairedNote =>
+      '未配对样本（时间窗内 gps_logs 无上报）保留在会话中并在报告内单独列出，不参与误差统计。';
+
+  @override
+  String get gpsQualityTrajectoryImportAction => '导入';
+
+  @override
+  String get gpsQualityTrajectoryPoints => '轨迹样本点';
+
+  @override
+  String get gpsQualityPairRate => '配对率';
+
+  @override
+  String get gpsQualityTrajectoryMeanError => '平均误差';
+
+  @override
+  String get gpsQualityTrajectoryMaxError => '最大误差';
+
+  @override
+  String get gpsQualityTrajectoryLegendRtk => 'RTK 真值轨迹';
+
+  @override
+  String get gpsQualityTrajectoryLegendDevice => '设备上报轨迹';
+
+  @override
+  String get gpsQualityTrajectoryLegendLink => '配对连线（误差）';
+
+  @override
+  String get gpsQualityTrajectoryLegendUnpaired => '未配对点';
+
+  @override
+  String get gpsQualityTrajectoryErrorDist => '误差分布';
+
+  @override
+  String get gpsQualityTrajectoryError => '误差';
+
+  @override
+  String get gpsQualityTrajectorySource => '数据来源';
+
+  @override
+  String gpsQualityTrajectoryUnpairedDetail(int n, int tolerance) {
+    return '$n 条未配对样本：采集时间 ±${tolerance}s 内在 gps_logs 中找不到该设备上报（可能漏报/延迟入库），不参与误差统计。';
+  }
+
+  @override
+  String get gpsQualityTrajectoryNoStatic => '该设备暂无静态检验数据，无法进行静动态对比。';
+
+  @override
+  String gpsQualityTrajectoryStaticDelta(
+    String staticP95,
+    String dynamicP95,
+    String delta,
+    String direction,
+  ) {
+    return '静态 vs 动态：静态 P95 = ${staticP95}m，本次轨迹动态 P95 = ${dynamicP95}m，动态偏差$direction ${delta}m';
+  }
+
+  @override
+  String get gpsQualityTrajectorySmaller => '小';
+
+  @override
+  String get gpsQualityTrajectoryLarger => '大';
+
+  @override
+  String get gpsQualityTrajectoryComparison => '轨迹动态对比';
+
+  @override
+  String get gpsQualityTrajectoryEmpty => '暂无轨迹检验数据，请先在检验列表导入 RTK 轨迹';
+
+  @override
+  String get gpsQualityPaired => '已配对';
 }

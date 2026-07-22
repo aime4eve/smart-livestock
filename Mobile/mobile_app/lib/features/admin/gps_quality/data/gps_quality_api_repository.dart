@@ -346,11 +346,65 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
     return (data['deleted'] as num?)?.toInt() ?? 0;
   }
 
+  /// Delete a single quality check by id.
+  Future<void> deleteCheck(int id) async {
+    await ApiClient.instance.delete('$_base/tests/$id');
+  }
+
   /// Fetch the dynamic quality comparison across devices for a route.
   Future<DynamicComparisonResult> fetchDynamicComparison(int routeId) async {
     final data = await ApiClient.instance
         .get('$_base/comparison/dynamic?routeId=$routeId');
     return DynamicComparisonResult.fromJson(data);
   }
-}
 
+  // ── NIX-22: RTK trajectory import ──────────────────────────────
+
+  /// Parse + pairing preview of a trajectory file (no persistence).
+  Future<TrajectoryParseResult> parseTrajectory(
+      List<int> fileBytes, String fileName, int toleranceSec) async {
+    final data = await ApiClient.instance.uploadFile(
+      '$_base/trajectory/parse',
+      fileBytes,
+      fileName,
+      fields: {'toleranceSec': '$toleranceSec'},
+    );
+    return TrajectoryParseResult.fromJson(data);
+  }
+
+  /// Import a trajectory file: one TRAJECTORY check per device.
+  Future<TrajectoryImportResult> importTrajectory(
+      List<int> fileBytes, String fileName, int toleranceSec) async {
+    final data = await ApiClient.instance.uploadFile(
+      '$_base/trajectory/import',
+      fileBytes,
+      fileName,
+      fields: {'toleranceSec': '$toleranceSec'},
+    );
+    return TrajectoryImportResult.fromJson(data);
+  }
+
+  /// Download the trajectory import CSV template.
+  Future<void> downloadTrajectoryTemplate() async {
+    final bytes =
+        await ApiClient.instance.getBytes('$_base/trajectory/template');
+    await downloadBytes('trajectory-import-template.csv', bytes);
+  }
+
+  /// Fetch the TRAJECTORY quality report of one check.
+  Future<TrajectoryQualityReport> fetchTrajectoryReport(int testId) async {
+    final data =
+        await ApiClient.instance.get('$_base/tests/$testId/trajectory-report');
+    return TrajectoryQualityReport.fromJson(data);
+  }
+
+  /// Fetch the cross-device trajectory comparison.
+  Future<List<TrajectoryComparisonRow>> fetchTrajectoryComparison() async {
+    final data = await ApiClient.instance.get('$_base/comparison/trajectory');
+    final items = (data['devices'] as List? ?? []);
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map(TrajectoryComparisonRow.fromJson)
+        .toList();
+  }
+}
