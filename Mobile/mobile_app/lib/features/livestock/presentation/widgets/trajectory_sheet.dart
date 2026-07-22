@@ -313,27 +313,12 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
     return shouldTransform ? CoordTransform.wgs84ToGcj02All(raw) : raw;
   }
 
-  String _fmtTime(DateTime dt) {
-    String two(int v) => v.toString().padLeft(2, '0');
-    return '${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
-  }
-
-  String _fmtShort(DateTime dt) {
-    String two(int v) => v.toString().padLeft(2, '0');
-    return '${two(dt.hour)}:${two(dt.minute)}';
-  }
-
-  String _fmtLabel(DateTime dt) {
-    String two(int v) => v.toString().padLeft(2, '0');
-    // Multi-day range shows date prefix; single-day shows time only
-    if (_range == _TrajectoryRange.d7 ||
-        _range == _TrajectoryRange.d30 ||
-        (_range == _TrajectoryRange.custom &&
-            _rangeDuration.inHours > 24)) {
-      return '${two(dt.month)}/${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}';
-    }
-    return _fmtShort(dt);
-  }
+ String _fmtTime(DateTime dt) {
+   String two(int v) => v.toString().padLeft(2, '0');
+    // Always include date: 月-日 时:分:秒
+    return '${two(dt.month)}-${two(dt.day)} '
+        '${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
+ }
 
   double _calcArea(List<LatLng> points) {
     if (points.length < 3) return 0;
@@ -722,30 +707,30 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
                 setState(() => _currentIdx = v.round());
               },
             )
-          else
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-              child: Text(_fmtShort(cur.recordedAt),
-                  style: Theme.of(context).textTheme.labelSmall),
-            ),
+         else
+           Padding(
+             padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+              child: Text(_fmtTime(cur.recordedAt),
+                 style: Theme.of(context).textTheme.labelSmall),
+           ),
           // Start / end labels
           if (_points.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(_fmtLabel(_points.first.recordedAt),
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppColors.textSecondary,
-                            fontSize: 10,
-                          )),
-                  Text(_fmtLabel(_points.last.recordedAt),
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppColors.textSecondary,
-                            fontSize: 10,
-                          )),
-                ],
+               children: [
+                  Text(_fmtTime(_points.first.recordedAt),
+                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                           color: AppColors.textSecondary,
+                           fontSize: 10,
+                         )),
+                  Text(_fmtTime(_points.last.recordedAt),
+                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                           color: AppColors.textSecondary,
+                           fontSize: 10,
+                         )),
+               ],
               ),
             ),
         ],

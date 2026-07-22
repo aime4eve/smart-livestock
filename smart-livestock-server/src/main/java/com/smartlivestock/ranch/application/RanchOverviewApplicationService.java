@@ -18,6 +18,9 @@ import com.smartlivestock.ranch.domain.repository.FenceRepository;
 import com.smartlivestock.ranch.domain.repository.FenceZoneRepository;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import com.smartlivestock.ranch.infrastructure.persistence.SpringDataAlertReadStatusRepository;
+import com.smartlivestock.shared.cache.RedisCacheService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,10 +42,23 @@ public class RanchOverviewApplicationService {
     private final IdentityQueryPort identityQueryPort;
     private final SpringDataAlertReadStatusRepository readStatusRepository;
     private final FenceZoneRepository fenceZoneRepository;
+    private final RedisCacheService redisCacheService;
+    private final ObjectMapper objectMapper;
 
 
     @Transactional(readOnly = true)
-    public RanchOverviewResponse getOverview(Long farmId, Long userId) {
+    public RanchOverviewResponse getOverview(Long farmId, Long userId, Long tenantId) {
+        // 0. Short-TTL Redis cache to absorb polling bursts (30s timer) and concurrent viewers.
+        String cacheKey = "ranch:overview:" + farmId + ":" + userId;
+        try {
+            String cached = redisCacheService.get(cacheKey);
+            if (cached != null) {
+                return objectMapper.readValue(cached, RanchOverviewResponse.class);
+            }
+        } catch (Exception ignored) {
+            // Cache miss or deserialization error — fall through to DB query
+        }
+
         // 1. Fences
         List<Fence> fences = fenceRepository.findByFarmId(farmId);
         List<FenceData> fenceDataList = fences.stream()
@@ -117,12 +133,12 @@ public class RanchOverviewApplicationService {
         Map<String, Integer> fenceAlertSummary = buildFenceAlertSummary(allAlerts);
         Map<String, Integer> healthAlertSummary = buildHealthAlertSummary(allAlerts);
 
-        // 5. Health overview stats + scene summary
-        HealthOverview healthOverview = healthQueryPort.getHealthOverview(farmId);
-
-        double deviceOnlineRate = identityQueryPort.findFarmById(farmId)
-                .map(f -> ioTQueryPort.getDeviceOnlineRate(f.tenantId()))
-                .orElse(0.85);
+        // Reuse the already-loaded livestock/health/alerts data instead of re-querying
+        // (getHealthOverview would re-fetch snapshots, livestock, and alerts a second time).
+        HealthOverview healthOverview = buildHealthOverview(livestockList, healthStates, activeAlerts);
+        double deviceOnlineRate = tenantId != null
+                ? ioTQueryPort.getDeviceOnlineRate(tenantId)
+                : 0.85;
 
         // 6. InFenceRate: livestock inside any fence / livestock with GPS
         Double inFenceRate = calculateInFenceRate(livestockList, fences);
@@ -165,7 +181,7 @@ public class RanchOverviewApplicationService {
             }
         }
 
-        return new RanchOverviewResponse(
+        RanchOverviewResponse response = new RanchOverviewResponse(
                 overallStats,
                 sceneSummary,
                 pendingTasks,
@@ -176,6 +192,15 @@ public class RanchOverviewApplicationService {
                 healthAlertSummary,
                 fenceZoneRepository.findByFarmId(farmId).stream().map(FenceZoneData::from).toList()
         );
+
+        try {
+            redisCacheService.set(cacheKey, objectMapper.writeValueAsString(response),
+                    Duration.ofSeconds(10));
+        } catch (Exception ignored) {
+            // Cache write failure is non-critical
+        }
+
+        return response;
     }
 
     /**
@@ -200,6 +225,63 @@ public class RanchOverviewApplicationService {
                 .count();
 
         return (double) inFence / withGps;
+    }
+
+    /**
+     * Build HealthOverview from data already loaded by getOverview(), avoiding the
+     * duplicate snapshot/livestock/alert queries that getHealthOverview() would issue.
+     * Semantics mirror HealthQueryPortAdapter.getHealthOverview().
+     */
+    private HealthOverview buildHealthOverview(
+            List<Livestock> livestockList,
+            List<LivestockHealthState> healthStates,
+            List<Alert> activeAlerts) {
+        Set<Long> activeLivestockIds = livestockList.stream()
+                .map(Livestock::getId)
+                .collect(Collectors.toSet());
+        int total = activeLivestockIds.size();
+
+        List<LivestockHealthState> active = healthStates.stream()
+                .filter(h -> activeLivestockIds.contains(h.livestockId()))
+                .toList();
+
+        long healthyCount = active.stream()
+                .filter(h -> "NORMAL".equals(h.tempStatus()) && "NORMAL".equals(h.motilityStatus()))
+                .count();
+        Double healthyRate = total > 0 ? (double) healthyCount / total : null;
+
+        int criticalCount = (int) active.stream()
+                .filter(h -> "CRITICAL".equals(h.tempStatus()))
+                .count();
+        int feverAbnormal = (int) active.stream()
+                .filter(h -> "FEVER".equals(h.tempStatus()) || "CRITICAL".equals(h.tempStatus()))
+                .count();
+        int digestiveAbnormal = (int) active.stream()
+                .filter(h -> "ABNORMAL".equals(h.motilityStatus()))
+                .count();
+        int digestiveWatch = (int) active.stream()
+                .filter(h -> "LOW".equals(h.motilityStatus()))
+                .count();
+        int estrusHighScore = (int) active.stream()
+                .filter(h -> h.estrusScore() >= 70)
+                .count();
+        double epidemicAbnormalRate = total > 0
+                ? (double) active.stream()
+                        .filter(h -> !"NORMAL".equals(h.tempStatus())
+                                || !"NORMAL".equals(h.motilityStatus()))
+                        .count() / total
+                : 0.0;
+
+        return new HealthOverview(
+                total,
+                healthyRate != null ? Math.round(healthyRate * 1000.0) / 1000.0 : null,
+                activeAlerts.size(),
+                criticalCount,
+                feverAbnormal, criticalCount,
+                digestiveAbnormal, digestiveWatch,
+                estrusHighScore,
+                Math.round(epidemicAbnormalRate * 1000.0) / 1000.0
+        );
     }
 
     private Map<String, Integer> buildFenceAlertSummary(List<Alert> alerts) {

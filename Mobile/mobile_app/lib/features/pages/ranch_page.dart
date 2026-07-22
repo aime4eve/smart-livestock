@@ -91,7 +91,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
       ),
       body: asyncData.when(
         data: (overview) => _buildMapWithSheet(context, overview, role),
-        loading: () => const Center(child: CircularProgressIndicator()),
+         loading: () => _buildSkeletonMap(context),
         error: (e, _) => _buildError(context, e.toString()),
       ),
     );
@@ -446,6 +446,54 @@ class _RanchPageState extends ConsumerState<RanchPage>
           ..showSnackBar(SnackBar(content: Text(l10n.commonDeleteFailed(e.toString()))));
       }
     }
+  }
+
+  /// Skeleton map shown while ranch data loads — shows map background immediately
+  /// with a small loading indicator, instead of a blank spinner screen.
+  Widget _buildSkeletonMap(BuildContext context) {
+    return Stack(
+      children: [
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            initialCenter: MapConstants.mapCenter,
+            initialZoom: MapConstants.defaultZoom,
+          ),
+          children: [
+            TileLayer(
+              tileProvider: _tileProvider ?? _PlaceholderTileProvider(),
+              urlTemplate: '',
+            ),
+          ],
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: AppSpacing.xl,
+          child: Center(
+            child: Card(
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2.5),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(AppLocalizations.of(context)!.commonLoading),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildError(BuildContext context, String error) {

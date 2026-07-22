@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.Optional;
 
 @Component
@@ -48,44 +50,59 @@ public class HealthQueryPortAdapter implements HealthQueryPort {
                 .toList();
     }
 
-    @Override
-    public HealthOverview getHealthOverview(Long farmId) {
-        List<HealthSnapshot> snapshots = snapshotRepository.findByFarmId(farmId);
-        int total = ranchQueryPort.findAllByFarmId(farmId).size();
-        int alertCount = ranchQueryPort.countActiveAlertsByFarmId(farmId);
+   @Override
+   public HealthOverview getHealthOverview(Long farmId) {
+       List<HealthSnapshot> snapshots = snapshotRepository.findByFarmId(farmId);
+        // Active livestock IDs exclude soft-deleted records; use them to filter
+        // out stale health snapshots left by deleted livestock, otherwise
+        // healthyCount / total can exceed 1.0 (>100%).
+        Set<Long> activeLivestockIds = ranchQueryPort.findAllByFarmId(farmId).stream()
+                .map(l -> l.id())
+                .collect(Collectors.toSet());
+        int total = activeLivestockIds.size();
+        List<HealthSnapshot> activeSnapshots = snapshots.stream()
+                .filter(s -> activeLivestockIds.contains(s.getLivestockId()))
+                .toList();
+       int alertCount = ranchQueryPort.countActiveAlertsByFarmId(farmId);
 
-        long healthyCount = snapshots.stream()
-                .filter(s -> s.getTempStatus() == TempStatus.NORMAL
-                        && s.getMotilityStatus() == MotilityStatus.NORMAL)
-                .count();
+        long healthyCount = activeSnapshots.stream()
+               .filter(s -> s.getTempStatus() == TempStatus.NORMAL
+                       && s.getMotilityStatus() == MotilityStatus.NORMAL)
+               .count();
         Double healthyRate = total > 0 ? (double) healthyCount / total : null;
 
-        int criticalCount = (int) snapshots.stream()
-                .filter(s -> s.getTempStatus() == TempStatus.CRITICAL)
-                .count();
+       int criticalCount = (int) snapshots.stream()
+                .filter(s -> activeLivestockIds.contains(s.getLivestockId()))
+               .filter(s -> s.getTempStatus() == TempStatus.CRITICAL)
+               .count();
 
-        int feverAbnormal = (int) snapshots.stream()
-                .filter(s -> s.getTempStatus() == TempStatus.FEVER || s.getTempStatus() == TempStatus.CRITICAL)
-                .count();
-        int feverCritical = criticalCount;
+       int feverAbnormal = (int) snapshots.stream()
+                .filter(s -> activeLivestockIds.contains(s.getLivestockId()))
+               .filter(s -> s.getTempStatus() == TempStatus.FEVER || s.getTempStatus() == TempStatus.CRITICAL)
+               .count();
+       int feverCritical = criticalCount;
 
-        int digestiveAbnormal = (int) snapshots.stream()
-                .filter(s -> s.getMotilityStatus() == MotilityStatus.ABNORMAL)
-                .count();
-        int digestiveWatch = (int) snapshots.stream()
-                .filter(s -> s.getMotilityStatus() == MotilityStatus.LOW)
-                .count();
+       int digestiveAbnormal = (int) snapshots.stream()
+                .filter(s -> activeLivestockIds.contains(s.getLivestockId()))
+               .filter(s -> s.getMotilityStatus() == MotilityStatus.ABNORMAL)
+               .count();
+       int digestiveWatch = (int) snapshots.stream()
+                .filter(s -> activeLivestockIds.contains(s.getLivestockId()))
+               .filter(s -> s.getMotilityStatus() == MotilityStatus.LOW)
+               .count();
 
-        int estrusHighScore = (int) snapshots.stream()
-                .filter(s -> s.getEstrusScore() != null && s.getEstrusScore() >= 70)
-                .count();
+       int estrusHighScore = (int) snapshots.stream()
+                .filter(s -> activeLivestockIds.contains(s.getLivestockId()))
+               .filter(s -> s.getEstrusScore() != null && s.getEstrusScore() >= 70)
+               .count();
 
-        double epidemicAbnormalRate = total > 0
-                ? (double) snapshots.stream()
-                        .filter(s -> s.getTempStatus() != TempStatus.NORMAL
-                                || s.getMotilityStatus() != MotilityStatus.NORMAL)
-                        .count() / total
-                : 0.0;
+       double epidemicAbnormalRate = total > 0
+               ? (double) snapshots.stream()
+                        .filter(s -> activeLivestockIds.contains(s.getLivestockId()))
+                       .filter(s -> s.getTempStatus() != TempStatus.NORMAL
+                               || s.getMotilityStatus() != MotilityStatus.NORMAL)
+                       .count() / total
+               : 0.0;
 
         return new HealthOverview(
                 total, healthyRate != null ? Math.round(healthyRate * 1000.0) / 1000.0 : null,

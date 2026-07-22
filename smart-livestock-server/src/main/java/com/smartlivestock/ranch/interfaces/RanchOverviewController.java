@@ -21,19 +21,20 @@ public class RanchOverviewController {
     private final RanchOverviewApplicationService ranchOverviewService;
     private final IdentityQueryPort identityQueryPort;
 
-    private void verifyFarmOwnership(Long farmId) {
+    private Long verifyFarmOwnership(Long farmId) {
         var farm = identityQueryPort.findFarmById(farmId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牧场不存在: " + farmId));
         Long currentTenant = TenantContext.getCurrentTenant();
         if (currentTenant != null && !farm.tenantId().equals(currentTenant)) {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "无权访问该牧场");
         }
+        return farm.tenantId();
     }
 
     @GetMapping("/ranch-overview")
     public ResponseEntity<ApiResponse<RanchOverviewResponse>> getOverview(@PathVariable Long farmId) {
-        verifyFarmOwnership(farmId);
-        return ResponseEntity.ok(ApiResponse.ok(ranchOverviewService.getOverview(farmId, getCurrentUserId())));
+        Long tenantId = verifyFarmOwnership(farmId);
+        return ResponseEntity.ok(ApiResponse.ok(ranchOverviewService.getOverview(farmId, getCurrentUserId(), tenantId)));
     }
 
     private Long getCurrentUserId() {

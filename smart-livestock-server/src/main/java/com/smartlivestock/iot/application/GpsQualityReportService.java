@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +39,16 @@ public class GpsQualityReportService {
 
     private final GpsQualityCalculator calculator = new GpsQualityCalculator();
 
+    /**
+     * GPS recorded_at values come from the blade platform's reportTime, which
+     * is a Beijing-time (UTC+8) number stored without a timezone designator.
+     * The platform sync treats these as plain UTC, so recorded_at values run
+     * ~8 h ahead of the server's true UTC clock. When endedAt is null we must
+     * shift the upper bound forward by the same offset, otherwise the query
+     * window misses data that the platform has already delivered.
+     */
+    private static final int PLATFORM_TZ_OFFSET_HOURS = 8;
+
     public ReportResult generate(Long testId, boolean excludeSuspect) {
         GpsQualityTest test = testRepository.findById(testId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
@@ -58,7 +69,9 @@ public class GpsQualityReportService {
                     .map(Device::getDeviceCode).orElse(null);
         }
 
-        Instant endTime = test.getEndedAt() != null ? test.getEndedAt() : Instant.now();
+        Instant endTime = test.getEndedAt() != null
+                ? test.getEndedAt()
+                : Instant.now().plus(PLATFORM_TZ_OFFSET_HOURS, ChronoUnit.HOURS);
         List<GpsPointWithTelemetry> points = gpsLogRepository.findByDeviceIdAndTimeRangeWithTelemetry(
                 deviceId, test.getStartedAt(), endTime);
 
@@ -92,9 +105,11 @@ public class GpsQualityReportService {
                 code = deviceRepository.findById(deviceId)
                         .map(Device::getDeviceCode).orElse(null);
             }
-            Instant endTime2 = test.getEndedAt() != null ? test.getEndedAt() : Instant.now();
-            List<GpsPointWithTelemetry> points = gpsLogRepository.findByDeviceIdAndTimeRangeWithTelemetry(
-                    deviceId, test.getStartedAt(), endTime2);
+           Instant endTime2 = test.getEndedAt() != null
+                   ? test.getEndedAt()
+                   : Instant.now().plus(PLATFORM_TZ_OFFSET_HOURS, ChronoUnit.HOURS);
+           List<GpsPointWithTelemetry> points = gpsLogRepository.findByDeviceIdAndTimeRangeWithTelemetry(
+                   deviceId, test.getStartedAt(), endTime2);
             GpsQualityStats stats = calculator.calculate(points, rtk.getLatitude(), rtk.getLongitude(), true);
             entries.add(new ComparisonEntry(test.getId(), deviceId, code, stats));
         }
