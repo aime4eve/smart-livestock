@@ -855,8 +855,9 @@ class TrajectoryParseResult {
     required this.filePaired,
     required this.logPaired,
     required this.unpaired,
-    required this.rows,
-  });
+   required this.rows,
+    required this.autoRegisteredEuis,
+ });
 
   final int totalRows;
   final int validRows;
@@ -865,7 +866,8 @@ class TrajectoryParseResult {
   final int filePaired;
   final int logPaired;
   final int unpaired;
-  final List<TrajectoryParseRow> rows;
+ final List<TrajectoryParseRow> rows;
+  final List<String> autoRegisteredEuis;
 
   factory TrajectoryParseResult.fromJson(Map<String, dynamic> json) =>
       TrajectoryParseResult(
@@ -876,7 +878,10 @@ class TrajectoryParseResult {
         filePaired: json['filePaired'] as int? ?? 0,
         logPaired: json['logPaired'] as int? ?? 0,
         unpaired: json['unpaired'] as int? ?? 0,
-        rows: (json['rows'] as List? ?? [])
+       autoRegisteredEuis: (json['autoRegisteredEuis'] as List? ?? [])
+           .whereType<String>()
+           .toList(),
+       rows: (json['rows'] as List? ?? [])
             .whereType<Map<String, dynamic>>()
             .map(TrajectoryParseRow.fromJson)
             .toList(),
@@ -922,18 +927,21 @@ class TrajectoryImportResult {
   const TrajectoryImportResult({
     required this.createdCount,
     required this.skippedCount,
-    required this.devices,
-  });
+   required this.devices,
+    required this.autoRegisteredCount,
+ });
 
-  final int createdCount;
-  final int skippedCount;
-  final List<TrajectoryDeviceResult> devices;
+ final int createdCount;
+ final int skippedCount;
+  final int autoRegisteredCount;
+ final List<TrajectoryDeviceResult> devices;
 
   factory TrajectoryImportResult.fromJson(Map<String, dynamic> json) =>
       TrajectoryImportResult(
         createdCount: json['createdCount'] as int? ?? 0,
         skippedCount: json['skippedCount'] as int? ?? 0,
-        devices: (json['devices'] as List? ?? [])
+        autoRegisteredCount: json['autoRegisteredCount'] as int? ?? 0,
+       devices: (json['devices'] as List? ?? [])
             .whereType<Map<String, dynamic>>()
             .map(TrajectoryDeviceResult.fromJson)
             .toList(),

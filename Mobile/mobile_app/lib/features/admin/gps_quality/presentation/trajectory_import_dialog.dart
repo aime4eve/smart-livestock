@@ -270,8 +270,11 @@ class _TrajectoryImportDialogState extends ConsumerState<TrajectoryImportDialog>
           _stat('${r.filePaired}', l10n.gpsQualityFilePaired, color: const Color(0xFF7C3AED)),
           _stat('${r.logPaired}', l10n.gpsQualityLogPaired, color: AppColors.warning),
           _stat('${r.unpaired}', l10n.gpsQualityUnpaired,
-              color: r.unpaired > 0 ? AppColors.warning : null),
-        ]),
+             color: r.unpaired > 0 ? AppColors.warning : null),
+         if (r.autoRegisteredEuis.isNotEmpty)
+           _stat('${r.autoRegisteredEuis.length}', l10n.gpsQualityTrajectoryAutoRegistered,
+               color: const Color(0xFF0EA5E9)),
+       ]),
       ),
       const SizedBox(height: AppSpacing.md),
       // Tolerance setting
@@ -369,7 +372,7 @@ class _TrajectoryImportDialogState extends ConsumerState<TrajectoryImportDialog>
             DataCell(Text(row.deviceLongitude?.toStringAsFixed(5) ?? '—', style: mono)),
             DataCell(_matchTag(l10n, row)),
             DataCell(invalid
-                ? Text(row.error ?? '', style: const TextStyle(fontSize: 11, color: AppColors.danger))
+                ? _invalidCell(l10n, row)
                 : const Icon(Icons.check_circle, size: 14, color: AppColors.success)),
           ]);
         }).toList(),
@@ -575,5 +578,77 @@ class _TrajectoryImportDialogState extends ConsumerState<TrajectoryImportDialog>
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Widget _invalidCell(AppLocalizations l10n, TrajectoryParseRow row) {
+    final isRegFailed = row.error != null && row.error!.contains('注册');
+    if (!isRegFailed) {
+      return Text(row.error ?? '',
+          style: const TextStyle(fontSize: 11, color: AppColors.danger));
+    }
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      Text(row.error ?? '',
+          style: const TextStyle(fontSize: 10, color: AppColors.danger)),
+      const SizedBox(width: 4),
+      InkWell(
+        key: Key('manual-register-${row.rowNo}'),
+        onTap: () => _showManualRegisterDialog(l10n, row.deviceEui),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+          decoration: BoxDecoration(
+            color: AppColors.primarySoft,
+            borderRadius: BorderRadius.circular(3),
+          ),
+          child: Text(l10n.gpsQualityTrajectoryManualRegister,
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.primary)),
+        ),
+      ),
+    ]);
+  }
+
+  void _showManualRegisterDialog(AppLocalizations l10n, String eui) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        var deviceCode = '';
+        return AlertDialog(
+          title: Text(l10n.gpsQualityTrajectoryManualRegister),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text('${l10n.gpsQualityTrajectoryColEui}: $eui',
+                style: const TextStyle(fontSize: 13, fontFamily: 'monospace')),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              key: const Key('manual-register-device-code'),
+              decoration: InputDecoration(
+                labelText: l10n.gpsQualityTrajectoryColEuiNote,
+                hintText: 'GPS-$eui',
+                border: const OutlineInputBorder(),
+                isDense: true,
+              ),
+              onChanged: (v) => deviceCode = v,
+            ),
+          ]),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.commonCancel)),
+            FilledButton(
+              key: const Key('manual-register-confirm'),
+              onPressed: () async {
+                Navigator.pop(ctx);
+                try {
+                  await ref.read(gpsQualityApiRepositoryProvider)
+                      .registerTrajectoryDevice(eui, deviceCode.isEmpty ? null : deviceCode);
+                  if (mounted) _runParse();
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+                  }
+                }
+              },
+              child: Text(l10n.commonConfirm),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

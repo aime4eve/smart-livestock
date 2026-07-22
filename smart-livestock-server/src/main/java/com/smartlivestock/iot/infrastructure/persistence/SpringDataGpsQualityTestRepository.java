@@ -29,6 +29,13 @@ public interface SpringDataGpsQualityTestRepository extends JpaRepository<GpsQua
 
     List<GpsQualityTestJpaEntity> findByBatchImportId(Long batchImportId);
     List<GpsQualityTestJpaEntity> findByStatus(String status);
+
+    @Query("SELECT t FROM GpsQualityTestJpaEntity t " +
+           "JOIN DeviceJpaEntity d ON d.id = t.deviceId " +
+           "WHERE t.status = :status AND d.tenantId = :tenantId")
+    List<GpsQualityTestJpaEntity> findByStatusAndTenantId(@Param("status") String status,
+                                                          @Param("tenantId") Long tenantId);
+
     List<GpsQualityTestJpaEntity> findByRouteIdAndStatus(Long routeId, String status);
 
     /** Bulk delete of all quality tests of one device (device record itself is kept). */

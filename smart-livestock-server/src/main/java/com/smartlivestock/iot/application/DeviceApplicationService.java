@@ -23,6 +23,7 @@ import com.smartlivestock.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -217,7 +218,7 @@ public class DeviceApplicationService {
      *
      * @param localDeviceId the local device ID (must already exist)
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public DeviceDto registerWithPlatform(Long localDeviceId) {
         Device device = deviceRepository.findById(localDeviceId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,

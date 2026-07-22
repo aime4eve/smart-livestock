@@ -12,10 +12,12 @@ case "$ENV" in
   dev)
     COMPOSE_FILE="docker-compose.dev.yml"
     PROJECT="sl-dev"
+    ENV_FILE=".env.dev"
     ;;
   test)
     COMPOSE_FILE="docker-compose.test.yml"
     PROJECT="smart-livestock-server"
+    ENV_FILE=".env"
     ;;
   *)
     echo "Usage: $0 <dev|test>"
@@ -54,13 +56,13 @@ echo "==> [3/5] Cleaning old JARs on remote..."
 ssh "$REMOTE" "cd $REMOTE_DIR/build/libs && ls -t smart-livestock-server-*.jar 2>/dev/null | tail -n +2 | xargs -r rm -f"
 
 echo "==> [4/5] Building and starting $ENV stack..."
-ssh "$REMOTE" "cd $REMOTE_DIR && docker compose -f $COMPOSE_FILE -p $PROJECT build app nginx && docker compose -f $COMPOSE_FILE -p $PROJECT up -d"
+ssh "$REMOTE" "cd $REMOTE_DIR && docker compose --env-file $ENV_FILE -f $COMPOSE_FILE -p $PROJECT build app nginx && docker compose --env-file $ENV_FILE -f $COMPOSE_FILE -p $PROJECT up -d"
 
 echo "==> [4.5/5] Syncing tileserver data to named volume..."
 # Snap Docker cannot bind-mount paths under /data/agentic, so we sync the
 # project's mbtiles + config.json into the named volume after compose up.
 ssh "$REMOTE" "cd $REMOTE_DIR && \
-  TILE_CTR=\$(docker compose -f $COMPOSE_FILE -p $PROJECT ps -q tileserver) && \
+  TILE_CTR=\$(docker compose --env-file $ENV_FILE -f $COMPOSE_FILE -p $PROJECT ps -q tileserver) && \
   docker cp infrastructure/tileserver/data/. \$TILE_CTR:/data/ && \
   docker exec -u root \$TILE_CTR sh -c 'chmod -R a+rX /data && rm -f /data/._* && rm -f /data/*-shm /data/*-wal' && \
   docker restart \$TILE_CTR"

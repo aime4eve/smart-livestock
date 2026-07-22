@@ -70,6 +70,12 @@ public class JpaGpsQualityTestRepositoryImpl implements GpsQualityTestRepository
     }
 
     @Override
+    public List<GpsQualityTest> findByStatusAndTenantId(String status, Long tenantId) {
+        return springDataRepo.findByStatusAndTenantId(status, tenantId).stream()
+                .map(this::toDomain).toList();
+    }
+
+    @Override
     public List<GpsQualityTest> findByRouteIdAndStatus(Long routeId, String status) {
         return springDataRepo.findByRouteIdAndStatus(routeId, status).stream()
                 .map(this::toDomain).toList();

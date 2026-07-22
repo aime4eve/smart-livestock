@@ -6102,6 +6102,18 @@ abstract class AppLocalizations {
   /// **'涉及设备'**
   String get gpsQualityTrajectoryStatDevices;
 
+  /// No description provided for @gpsQualityTrajectoryAutoRegistered.
+  ///
+  /// In zh, this message translates to:
+  /// **'自动注册'**
+  String get gpsQualityTrajectoryAutoRegistered;
+
+  /// No description provided for @gpsQualityTrajectoryManualRegister.
+  ///
+  /// In zh, this message translates to:
+  /// **'手工注册'**
+  String get gpsQualityTrajectoryManualRegister;
+
   /// No description provided for @gpsQualityFilePaired.
   ///
   /// In zh, this message translates to:

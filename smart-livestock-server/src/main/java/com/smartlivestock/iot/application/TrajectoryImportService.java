@@ -18,6 +18,7 @@ import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.DateUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -59,6 +60,7 @@ import java.util.Set;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TrajectoryImportService {
 
     private static final int MAX_ROWS = 5000;
@@ -87,6 +89,7 @@ public class TrajectoryImportService {
     private final DeviceRepository deviceRepository;
     private final GpsQualityTestRepository testRepository;
     private final GpsQualityTrackPointRepository trackPointRepository;
+    private final DeviceApplicationService deviceApplicationService;
     private final GpsLogRepository gpsLogRepository;
 
     private final TrajectoryPairingService pairingService = new TrajectoryPairingService();
@@ -114,7 +117,8 @@ public class TrajectoryImportService {
     public TrajectoryParseResultDto parse(MultipartFile file, int toleranceSec, Long tenantId) {
         List<RawRow> rawRows = readRows(file);
         List<ValidRow> valid = new ArrayList<>();
-        List<TrajectoryParseResultDto.Row> preview = validate(rawRows, tenantId, valid);
+        Set<String> autoRegistered = new java.util.LinkedHashSet<>();
+        List<TrajectoryParseResultDto.Row> preview = validate(rawRows, tenantId, valid, autoRegistered);
         List<PairedRow> paired = pairAll(valid, toleranceSec);
 
         int filePaired = 0, logPaired = 0, unpaired = 0;
@@ -152,6 +156,7 @@ public class TrajectoryImportService {
         dto.setLogPaired(logPaired);
         dto.setUnpaired(unpaired);
         dto.setRows(rows);
+        dto.setAutoRegisteredEuis(new ArrayList<>(autoRegistered));
         return dto;
     }
 
@@ -162,7 +167,8 @@ public class TrajectoryImportService {
     public TrajectoryImportResultDto importFile(MultipartFile file, int toleranceSec, Long tenantId) {
         List<RawRow> rawRows = readRows(file);
         List<ValidRow> valid = new ArrayList<>();
-        validate(rawRows, tenantId, valid);
+        Set<String> autoRegistered = new java.util.LinkedHashSet<>();
+        validate(rawRows, tenantId, valid, autoRegistered);
         List<PairedRow> paired = pairAll(valid, toleranceSec);
         String fileName = file.getOriginalFilename() != null ? file.getOriginalFilename() : "trajectory";
 
@@ -239,6 +245,7 @@ public class TrajectoryImportService {
         dto.setCreatedCount(created);
         dto.setSkippedCount(skipped);
         dto.setDevices(devices);
+        dto.setAutoRegisteredCount(autoRegistered.size());
         return dto;
     }
 
@@ -259,7 +266,8 @@ public class TrajectoryImportService {
     // ------------------------------------------------------------------
 
     private List<TrajectoryParseResultDto.Row> validate(List<RawRow> rawRows, Long tenantId,
-                                                        List<ValidRow> validOut) {
+                                                        List<ValidRow> validOut,
+                                                        Set<String> autoRegisteredOut) {
         List<TrajectoryParseResultDto.Row> preview = new ArrayList<>(rawRows.size());
         Map<String, Device> deviceCache = new HashMap<>();
         Set<String> seen = new HashSet<>();
@@ -274,9 +282,9 @@ public class TrajectoryImportService {
             // --- field validation (first failure wins) ---
             if (eui.isEmpty()) {
                 error = "EUI 为空";
-            } else {
-                device = resolveDevice(deviceCache, eui, tenantId);
-                if (device == null) error = "EUI 未注册";
+           } else {
+                device = resolveDevice(deviceCache, eui, tenantId, autoRegisteredOut);
+                if (device == null) error = "自动注册失败";
             }
             if (error == null) {
                 try {
@@ -367,12 +375,31 @@ public class TrajectoryImportService {
         return paired;
     }
 
-    private Device resolveDevice(Map<String, Device> cache, String eui, Long tenantId) {
-        return cache.computeIfAbsent(eui, k ->
-                deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted(k, tenantId).stream()
-                        .filter(d -> d.getDeletedAt() == null)
-                        .findFirst()
-                        .orElse(null));
+    private Device resolveDevice(Map<String, Device> cache, String eui, Long tenantId,
+                                 Set<String> autoRegisteredOut) {
+        if (cache.containsKey(eui)) {
+            return cache.get(eui);
+        }
+        Device existing = deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted(eui, tenantId).stream()
+                .filter(d -> d.getDeletedAt() == null)
+                .findFirst()
+                .orElse(null);
+        if (existing != null) {
+            cache.put(eui, existing);
+            return existing;
+        }
+        try {
+            var dto = deviceApplicationService.findOrCreateByEui(eui, null, tenantId);
+            Device created = deviceRepository.findById(dto.id()).orElse(null);
+            if (created != null) {
+                cache.put(eui, created);
+                autoRegisteredOut.add(eui);
+                return created;
+            }
+        } catch (Exception e) {
+            log.warn("Auto-registration failed for EUI {}: {}", eui, e.getMessage());
+        }
+        return null;
     }
 
     private TrackPairCandidate toCandidate(GpsLog log) {

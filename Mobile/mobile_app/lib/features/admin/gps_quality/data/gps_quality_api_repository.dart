@@ -386,9 +386,22 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
 
   /// Download the trajectory import CSV template.
   Future<void> downloadTrajectoryTemplate() async {
-    final bytes =
-        await ApiClient.instance.getBytes('$_base/trajectory/template');
-    await downloadBytes('trajectory-import-template.csv', bytes);
+   final bytes =
+       await ApiClient.instance.getBytes('$_base/trajectory/template');
+   await downloadBytes('trajectory-import-template.csv', bytes);
+ }
+  /// Manually register a device for trajectory import.
+  /// Returns (deviceId, deviceCode, platformBound).
+  Future<({int deviceId, String deviceCode, bool platformBound})>
+      registerTrajectoryDevice(String eui, String? deviceCode) async {
+    final body = <String, dynamic>{'eui': eui};
+    if (deviceCode != null && deviceCode.isNotEmpty) body['deviceCode'] = deviceCode;
+    final data = await ApiClient.instance.post('$_base/trajectory/register-device', body: body);
+    return (
+      deviceId: data['id'] as int,
+      deviceCode: data['deviceCode'] as String,
+      platformBound: data['platformBound'] as bool? ?? false,
+    );
   }
 
   /// Fetch the TRAJECTORY quality report of one check.
