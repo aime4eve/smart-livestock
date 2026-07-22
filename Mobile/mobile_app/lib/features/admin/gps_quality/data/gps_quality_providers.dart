@@ -181,3 +181,18 @@ final checksProvider =
     AsyncNotifierProvider<ChecksController, QualityCheckListResult>(
   ChecksController.new,
 );
+
+// ── NIX-22: Trajectory report + comparison ───────────────────────
+
+final trajectoryReportProvider =
+    FutureProvider.family<TrajectoryQualityReport, int>(
+  (ref, testId) => ref
+      .read(gpsQualityApiRepositoryProvider)
+      .fetchTrajectoryReport(testId),
+);
+
+final trajectoryComparisonProvider =
+    FutureProvider<List<TrajectoryComparisonRow>>(
+  (ref) =>
+      ref.read(gpsQualityApiRepositoryProvider).fetchTrajectoryComparison(),
+);

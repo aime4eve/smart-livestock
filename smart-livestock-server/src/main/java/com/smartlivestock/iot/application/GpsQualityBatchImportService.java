@@ -17,6 +17,7 @@ import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -32,7 +33,10 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
+import java.time.format.SignStyle;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -52,6 +56,31 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GpsQualityBatchImportService {
 
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    /**
+     * Accepted datetime text formats for the startedAt/endedAt columns:
+     * dash or slash separated, 1-2 digit fields, seconds optional
+     * (e.g. "2026-07-18 09:00:00", "2026-07-18 09:00", "2026/7/8 9:05").
+     * Numeric date-formatted Excel cells are converted to text via
+     * {@link #DT_FMT} before parsing, so they need no pattern here.
+     */
+    private static final List<DateTimeFormatter> DT_FORMATS = List.of(
+            flexibleDateTime('-'),
+            flexibleDateTime('/'));
+
+    private static DateTimeFormatter flexibleDateTime(char sep) {
+        return new DateTimeFormatterBuilder()
+                .appendPattern("yyyy").appendLiteral(sep)
+                .appendValue(ChronoField.MONTH_OF_YEAR, 1, 2, SignStyle.NORMAL).appendLiteral(sep)
+                .appendValue(ChronoField.DAY_OF_MONTH, 1, 2, SignStyle.NORMAL)
+                .appendLiteral(' ')
+                .appendValue(ChronoField.HOUR_OF_DAY, 1, 2, SignStyle.NORMAL).appendLiteral(':')
+                .appendValue(ChronoField.MINUTE_OF_HOUR, 1, 2, SignStyle.NORMAL)
+                .optionalStart().appendLiteral(':')
+                .appendValue(ChronoField.SECOND_OF_MINUTE, 1, 2, SignStyle.NORMAL)
+                .optionalEnd()
+                .toFormatter();
+    }
 
     private final GpsQualityTestRepository testRepository;
     private final DeviceApplicationService deviceApplicationService;
@@ -498,21 +527,33 @@ public class GpsQualityBatchImportService {
         if (cell == null) return null;
         return switch (cell.getCellType()) {
             case STRING -> cell.getStringCellValue();
-            case NUMERIC -> String.valueOf((long) cell.getNumericCellValue());
+            // Date-formatted numeric cells become canonical datetime text;
+            // plain numbers keep the old long-string behavior (e.g. EUI column).
+            case NUMERIC -> DateUtil.isCellDateFormatted(cell)
+                    ? cell.getLocalDateTimeCellValue().format(DT_FMT)
+                    : String.valueOf((long) cell.getNumericCellValue());
             default -> null;
         };
     }
 
     private Instant parseDateTime(String str) {
-        try {
-            return LocalDateTime.parse(str, DT_FMT).toInstant(ZoneOffset.ofHours(8));
-        } catch (DateTimeParseException e) {
+        String value = str.trim();
+        for (DateTimeFormatter fmt : DT_FORMATS) {
             try {
-                return Instant.parse(str);
-            } catch (DateTimeParseException e2) {
-                throw new ApiException(ErrorCode.VALIDATION_ERROR,
-                    "Invalid datetime format: '" + str + "'. Expected format: yyyy-MM-dd HH:mm:ss");
+                // Naive text stays on the UTC+8 baseline, consistent with
+                // previously imported data.
+                return LocalDateTime.parse(value, fmt).toInstant(ZoneOffset.ofHours(8));
+            } catch (DateTimeParseException ignored) {
+                // try the next format
             }
+        }
+        try {
+            return Instant.parse(value);
+        } catch (DateTimeParseException e) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                "Invalid datetime format: '" + str + "'. Supported formats: "
+                + "yyyy-MM-dd HH:mm:ss, yyyy-MM-dd HH:mm, yyyy/MM/dd HH:mm:ss, yyyy/MM/dd HH:mm, "
+                + "or an Excel date-formatted cell");
         }
     }
 

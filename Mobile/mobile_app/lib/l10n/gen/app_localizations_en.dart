@@ -3127,6 +3127,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpsQualityDeleteCheck => 'Delete Check';
 
   @override
+  String get gpsQualityDeleteCheckConfirm =>
+      'This will delete this quality check record. This action cannot be undone.';
+
+  @override
+  String get gpsQualityDeleteCheckSuccess => 'Check record deleted';
+
+  @override
+  String gpsQualityDeleteCheckTip(Object end, Object start, Object type) {
+    return 'Delete $type, $start → $end';
+  }
+
+  @override
   String get gpsQualityBatchConfirmDelete => 'Confirm delete this batch?';
 
   @override
@@ -3241,4 +3253,206 @@ class AppLocalizationsEn extends AppLocalizations {
   String gpsQualityDeviceCount(Object n) {
     return '$n devices';
   }
+
+  @override
+  String get commonNext => 'Next';
+
+  @override
+  String get commonDone => 'Done';
+
+  @override
+  String get gpsQualityTrajectoryImport => 'Import RTK Track Data';
+
+  @override
+  String get gpsQualityTrajectoryChecks => 'Track';
+
+  @override
+  String get gpsQualityTrajectoryReport => 'Trajectory Check Report';
+
+  @override
+  String get gpsQualityTrajectoryUploadTitle => 'Upload RTK track file';
+
+  @override
+  String get gpsQualityTrajectoryUploadHint => '.csv / .xlsx, up to 5000 rows';
+
+  @override
+  String get gpsQualityTrajectoryClockNote =>
+      'Clock baseline: collection times must share the same baseline as device report timestamps (server ingestion time, UTC+8). Default pairing window ±60s, adjustable in the next step.';
+
+  @override
+  String get gpsQualityTrajectoryFormatTitle =>
+      'File format (fixed column order, header optional)';
+
+  @override
+  String get gpsQualityTrajectoryRequired => 'Required';
+
+  @override
+  String get gpsQualityTrajectoryOptional => 'Optional';
+
+  @override
+  String get gpsQualityTrajectoryColEui => 'Device EUI';
+
+  @override
+  String get gpsQualityTrajectoryColTime => 'Collected At';
+
+  @override
+  String get gpsQualityTrajectoryColRtkLat => 'RTK Lat';
+
+  @override
+  String get gpsQualityTrajectoryColRtkLng => 'RTK Lng';
+
+  @override
+  String get gpsQualityTrajectoryColDevLat => 'Device Lat';
+
+  @override
+  String get gpsQualityTrajectoryColDevLng => 'Device Lng';
+
+  @override
+  String get gpsQualityTrajectoryColEuiNote =>
+      'EUI of the tracker under test; must be registered';
+
+  @override
+  String get gpsQualityTrajectoryColTimeNote =>
+      'Device report time, same clock baseline as report timestamps';
+
+  @override
+  String get gpsQualityTrajectoryColDevNote =>
+      'Leave empty to pair from gps_logs by EUI + time';
+
+  @override
+  String get gpsQualityTrajectoryStatRows => 'Total rows';
+
+  @override
+  String get gpsQualityTrajectoryStatValid => 'Valid';
+
+  @override
+  String get gpsQualityTrajectoryStatInvalid => 'Invalid';
+
+  @override
+  String get gpsQualityTrajectoryStatDevices => 'Devices';
+
+  @override
+  String get gpsQualityFilePaired => 'From file';
+
+  @override
+  String get gpsQualityLogPaired => 'From gps_logs';
+
+  @override
+  String get gpsQualityUnpaired => 'Unpaired';
+
+  @override
+  String get gpsQualityPairTolerance => 'Pairing';
+
+  @override
+  String get gpsQualityPairToleranceSec => 's';
+
+  @override
+  String get gpsQualityPairToleranceNote =>
+      'Takes the gps_logs report nearest to the collection time for the EUI; beyond the tolerance it counts as unpaired';
+
+  @override
+  String get gpsQualityTrajectoryMatchMode => 'Pairing';
+
+  @override
+  String get gpsQualityTrajectoryCheck => 'Check';
+
+  @override
+  String get gpsQualityTrajectoryMatchFile => 'File';
+
+  @override
+  String get gpsQualityTrajectoryMatchLog => 'DB';
+
+  @override
+  String get gpsQualityTrajectoryMatchUnpaired => 'Unpaired';
+
+  @override
+  String gpsQualityTrajectoryImportDone(int created, int skipped) {
+    return 'Import finished: $created trajectory checks created, $skipped skipped (duplicates)';
+  }
+
+  @override
+  String gpsQualityTrajectoryDevicePoints(int n) {
+    return '$n pts';
+  }
+
+  @override
+  String get gpsQualityTrajectoryCreated => 'Check created';
+
+  @override
+  String get gpsQualityTrajectorySkippedDuplicate => 'Exists, skipped';
+
+  @override
+  String get gpsQualityTrajectoryUnpairedNote =>
+      'Unpaired samples (no gps_logs report within the window) stay in the check and are listed separately in the report; they do not join error statistics.';
+
+  @override
+  String get gpsQualityTrajectoryImportAction => 'Import';
+
+  @override
+  String get gpsQualityTrajectoryPoints => 'Track points';
+
+  @override
+  String get gpsQualityPairRate => 'Pair rate';
+
+  @override
+  String get gpsQualityTrajectoryMeanError => 'Mean error';
+
+  @override
+  String get gpsQualityTrajectoryMaxError => 'Max error';
+
+  @override
+  String get gpsQualityTrajectoryLegendRtk => 'RTK truth track';
+
+  @override
+  String get gpsQualityTrajectoryLegendDevice => 'Device track';
+
+  @override
+  String get gpsQualityTrajectoryLegendLink => 'Pair link (error)';
+
+  @override
+  String get gpsQualityTrajectoryLegendUnpaired => 'Unpaired point';
+
+  @override
+  String get gpsQualityTrajectoryErrorDist => 'Error distribution';
+
+  @override
+  String get gpsQualityTrajectoryError => 'Error';
+
+  @override
+  String get gpsQualityTrajectorySource => 'Source';
+
+  @override
+  String gpsQualityTrajectoryUnpairedDetail(int n, int tolerance) {
+    return '$n unpaired samples: no gps_logs report for this device within ±${tolerance}s of the collection time (possible missing/delayed reports); excluded from error statistics.';
+  }
+
+  @override
+  String get gpsQualityTrajectoryNoStatic =>
+      'No static check data for this device; static-vs-dynamic comparison unavailable.';
+
+  @override
+  String gpsQualityTrajectoryStaticDelta(
+    String staticP95,
+    String dynamicP95,
+    String delta,
+    String direction,
+  ) {
+    return 'Static vs dynamic: static P95 = ${staticP95}m, this trajectory P95 = ${dynamicP95}m, dynamic error $direction by ${delta}m';
+  }
+
+  @override
+  String get gpsQualityTrajectorySmaller => 'smaller';
+
+  @override
+  String get gpsQualityTrajectoryLarger => 'larger';
+
+  @override
+  String get gpsQualityTrajectoryComparison => 'Trajectory Comparison';
+
+  @override
+  String get gpsQualityTrajectoryEmpty =>
+      'No trajectory checks yet — import an RTK track from the check list first';
+
+  @override
+  String get gpsQualityPaired => 'Paired';
 }

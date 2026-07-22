@@ -5724,6 +5724,24 @@ abstract class AppLocalizations {
   /// **'删除检验'**
   String get gpsQualityDeleteCheck;
 
+  /// No description provided for @gpsQualityDeleteCheckConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'将删除该条质量检验记录，此操作不可恢复。'**
+  String get gpsQualityDeleteCheckConfirm;
+
+  /// No description provided for @gpsQualityDeleteCheckSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'检验记录已删除'**
+  String get gpsQualityDeleteCheckSuccess;
+
+  /// No description provided for @gpsQualityDeleteCheckTip.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除{type}，{start} → {end}'**
+  String gpsQualityDeleteCheckTip(Object end, Object start, Object type);
+
   /// No description provided for @gpsQualityBatchConfirmDelete.
   ///
   /// In zh, this message translates to:
@@ -5939,6 +5957,371 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'{n} 台设备'**
   String gpsQualityDeviceCount(Object n);
+
+  /// No description provided for @commonNext.
+  ///
+  /// In zh, this message translates to:
+  /// **'下一步'**
+  String get commonNext;
+
+  /// No description provided for @commonDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'完成'**
+  String get commonDone;
+
+  /// No description provided for @gpsQualityTrajectoryImport.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入 RTK 轨迹数据'**
+  String get gpsQualityTrajectoryImport;
+
+  /// No description provided for @gpsQualityTrajectoryChecks.
+  ///
+  /// In zh, this message translates to:
+  /// **'轨迹'**
+  String get gpsQualityTrajectoryChecks;
+
+  /// No description provided for @gpsQualityTrajectoryReport.
+  ///
+  /// In zh, this message translates to:
+  /// **'轨迹动态检验报告'**
+  String get gpsQualityTrajectoryReport;
+
+  /// No description provided for @gpsQualityTrajectoryUploadTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'上传 RTK 轨迹文件'**
+  String get gpsQualityTrajectoryUploadTitle;
+
+  /// No description provided for @gpsQualityTrajectoryUploadHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'支持 .csv / .xlsx，单次最多 5000 行'**
+  String get gpsQualityTrajectoryUploadHint;
+
+  /// No description provided for @gpsQualityTrajectoryClockNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'时钟基准：采集时间须与设备上报时间戳使用同一基准（服务器落库时间，UTC+8）。配对窗口默认 ±60 秒，可在下一步调整。'**
+  String get gpsQualityTrajectoryClockNote;
+
+  /// No description provided for @gpsQualityTrajectoryFormatTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'文件格式（列顺序固定，表头可省略）'**
+  String get gpsQualityTrajectoryFormatTitle;
+
+  /// No description provided for @gpsQualityTrajectoryRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'必填'**
+  String get gpsQualityTrajectoryRequired;
+
+  /// No description provided for @gpsQualityTrajectoryOptional.
+  ///
+  /// In zh, this message translates to:
+  /// **'可选'**
+  String get gpsQualityTrajectoryOptional;
+
+  /// No description provided for @gpsQualityTrajectoryColEui.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备 EUI'**
+  String get gpsQualityTrajectoryColEui;
+
+  /// No description provided for @gpsQualityTrajectoryColTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'采集时间'**
+  String get gpsQualityTrajectoryColTime;
+
+  /// No description provided for @gpsQualityTrajectoryColRtkLat.
+  ///
+  /// In zh, this message translates to:
+  /// **'RTK 纬度'**
+  String get gpsQualityTrajectoryColRtkLat;
+
+  /// No description provided for @gpsQualityTrajectoryColRtkLng.
+  ///
+  /// In zh, this message translates to:
+  /// **'RTK 经度'**
+  String get gpsQualityTrajectoryColRtkLng;
+
+  /// No description provided for @gpsQualityTrajectoryColDevLat.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备纬度'**
+  String get gpsQualityTrajectoryColDevLat;
+
+  /// No description provided for @gpsQualityTrajectoryColDevLng.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备经度'**
+  String get gpsQualityTrajectoryColDevLng;
+
+  /// No description provided for @gpsQualityTrajectoryColEuiNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'被检验追踪器设备 EUI，须已注册'**
+  String get gpsQualityTrajectoryColEuiNote;
+
+  /// No description provided for @gpsQualityTrajectoryColTimeNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备上报时刻，与设备上报时间戳同一时钟基准'**
+  String get gpsQualityTrajectoryColTimeNote;
+
+  /// No description provided for @gpsQualityTrajectoryColDevNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'留空则系统按 EUI+时间从 gps_logs 自动配对'**
+  String get gpsQualityTrajectoryColDevNote;
+
+  /// No description provided for @gpsQualityTrajectoryStatRows.
+  ///
+  /// In zh, this message translates to:
+  /// **'总行数'**
+  String get gpsQualityTrajectoryStatRows;
+
+  /// No description provided for @gpsQualityTrajectoryStatValid.
+  ///
+  /// In zh, this message translates to:
+  /// **'校验通过'**
+  String get gpsQualityTrajectoryStatValid;
+
+  /// No description provided for @gpsQualityTrajectoryStatInvalid.
+  ///
+  /// In zh, this message translates to:
+  /// **'校验失败'**
+  String get gpsQualityTrajectoryStatInvalid;
+
+  /// No description provided for @gpsQualityTrajectoryStatDevices.
+  ///
+  /// In zh, this message translates to:
+  /// **'涉及设备'**
+  String get gpsQualityTrajectoryStatDevices;
+
+  /// No description provided for @gpsQualityFilePaired.
+  ///
+  /// In zh, this message translates to:
+  /// **'文件配对'**
+  String get gpsQualityFilePaired;
+
+  /// No description provided for @gpsQualityLogPaired.
+  ///
+  /// In zh, this message translates to:
+  /// **'库内配对'**
+  String get gpsQualityLogPaired;
+
+  /// No description provided for @gpsQualityUnpaired.
+  ///
+  /// In zh, this message translates to:
+  /// **'未配对'**
+  String get gpsQualityUnpaired;
+
+  /// No description provided for @gpsQualityPairTolerance.
+  ///
+  /// In zh, this message translates to:
+  /// **'配对设置'**
+  String get gpsQualityPairTolerance;
+
+  /// No description provided for @gpsQualityPairToleranceSec.
+  ///
+  /// In zh, this message translates to:
+  /// **'秒'**
+  String get gpsQualityPairToleranceSec;
+
+  /// No description provided for @gpsQualityPairToleranceNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'取该 EUI 在 gps_logs 中距采集时间最近的一条上报，超出容差记为「未配对」'**
+  String get gpsQualityPairToleranceNote;
+
+  /// No description provided for @gpsQualityTrajectoryMatchMode.
+  ///
+  /// In zh, this message translates to:
+  /// **'配对方式'**
+  String get gpsQualityTrajectoryMatchMode;
+
+  /// No description provided for @gpsQualityTrajectoryCheck.
+  ///
+  /// In zh, this message translates to:
+  /// **'校验'**
+  String get gpsQualityTrajectoryCheck;
+
+  /// No description provided for @gpsQualityTrajectoryMatchFile.
+  ///
+  /// In zh, this message translates to:
+  /// **'文件'**
+  String get gpsQualityTrajectoryMatchFile;
+
+  /// No description provided for @gpsQualityTrajectoryMatchLog.
+  ///
+  /// In zh, this message translates to:
+  /// **'库内'**
+  String get gpsQualityTrajectoryMatchLog;
+
+  /// No description provided for @gpsQualityTrajectoryMatchUnpaired.
+  ///
+  /// In zh, this message translates to:
+  /// **'未配对'**
+  String get gpsQualityTrajectoryMatchUnpaired;
+
+  /// No description provided for @gpsQualityTrajectoryImportDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入完成：新建 {created} 条轨迹检验会话，跳过 {skipped} 条（重复）'**
+  String gpsQualityTrajectoryImportDone(int created, int skipped);
+
+  /// No description provided for @gpsQualityTrajectoryDevicePoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 点'**
+  String gpsQualityTrajectoryDevicePoints(int n);
+
+  /// No description provided for @gpsQualityTrajectoryCreated.
+  ///
+  /// In zh, this message translates to:
+  /// **'会话已创建'**
+  String get gpsQualityTrajectoryCreated;
+
+  /// No description provided for @gpsQualityTrajectorySkippedDuplicate.
+  ///
+  /// In zh, this message translates to:
+  /// **'已存在，跳过'**
+  String get gpsQualityTrajectorySkippedDuplicate;
+
+  /// No description provided for @gpsQualityTrajectoryUnpairedNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'未配对样本（时间窗内 gps_logs 无上报）保留在会话中并在报告内单独列出，不参与误差统计。'**
+  String get gpsQualityTrajectoryUnpairedNote;
+
+  /// No description provided for @gpsQualityTrajectoryImportAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入'**
+  String get gpsQualityTrajectoryImportAction;
+
+  /// No description provided for @gpsQualityTrajectoryPoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'轨迹样本点'**
+  String get gpsQualityTrajectoryPoints;
+
+  /// No description provided for @gpsQualityPairRate.
+  ///
+  /// In zh, this message translates to:
+  /// **'配对率'**
+  String get gpsQualityPairRate;
+
+  /// No description provided for @gpsQualityTrajectoryMeanError.
+  ///
+  /// In zh, this message translates to:
+  /// **'平均误差'**
+  String get gpsQualityTrajectoryMeanError;
+
+  /// No description provided for @gpsQualityTrajectoryMaxError.
+  ///
+  /// In zh, this message translates to:
+  /// **'最大误差'**
+  String get gpsQualityTrajectoryMaxError;
+
+  /// No description provided for @gpsQualityTrajectoryLegendRtk.
+  ///
+  /// In zh, this message translates to:
+  /// **'RTK 真值轨迹'**
+  String get gpsQualityTrajectoryLegendRtk;
+
+  /// No description provided for @gpsQualityTrajectoryLegendDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备上报轨迹'**
+  String get gpsQualityTrajectoryLegendDevice;
+
+  /// No description provided for @gpsQualityTrajectoryLegendLink.
+  ///
+  /// In zh, this message translates to:
+  /// **'配对连线（误差）'**
+  String get gpsQualityTrajectoryLegendLink;
+
+  /// No description provided for @gpsQualityTrajectoryLegendUnpaired.
+  ///
+  /// In zh, this message translates to:
+  /// **'未配对点'**
+  String get gpsQualityTrajectoryLegendUnpaired;
+
+  /// No description provided for @gpsQualityTrajectoryErrorDist.
+  ///
+  /// In zh, this message translates to:
+  /// **'误差分布'**
+  String get gpsQualityTrajectoryErrorDist;
+
+  /// No description provided for @gpsQualityTrajectoryError.
+  ///
+  /// In zh, this message translates to:
+  /// **'误差'**
+  String get gpsQualityTrajectoryError;
+
+  /// No description provided for @gpsQualityTrajectorySource.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据来源'**
+  String get gpsQualityTrajectorySource;
+
+  /// No description provided for @gpsQualityTrajectoryUnpairedDetail.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 条未配对样本：采集时间 ±{tolerance}s 内在 gps_logs 中找不到该设备上报（可能漏报/延迟入库），不参与误差统计。'**
+  String gpsQualityTrajectoryUnpairedDetail(int n, int tolerance);
+
+  /// No description provided for @gpsQualityTrajectoryNoStatic.
+  ///
+  /// In zh, this message translates to:
+  /// **'该设备暂无静态检验数据，无法进行静动态对比。'**
+  String get gpsQualityTrajectoryNoStatic;
+
+  /// No description provided for @gpsQualityTrajectoryStaticDelta.
+  ///
+  /// In zh, this message translates to:
+  /// **'静态 vs 动态：静态 P95 = {staticP95}m，本次轨迹动态 P95 = {dynamicP95}m，动态偏差{direction} {delta}m'**
+  String gpsQualityTrajectoryStaticDelta(
+    String staticP95,
+    String dynamicP95,
+    String delta,
+    String direction,
+  );
+
+  /// No description provided for @gpsQualityTrajectorySmaller.
+  ///
+  /// In zh, this message translates to:
+  /// **'小'**
+  String get gpsQualityTrajectorySmaller;
+
+  /// No description provided for @gpsQualityTrajectoryLarger.
+  ///
+  /// In zh, this message translates to:
+  /// **'大'**
+  String get gpsQualityTrajectoryLarger;
+
+  /// No description provided for @gpsQualityTrajectoryComparison.
+  ///
+  /// In zh, this message translates to:
+  /// **'轨迹动态对比'**
+  String get gpsQualityTrajectoryComparison;
+
+  /// No description provided for @gpsQualityTrajectoryEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无轨迹检验数据，请先在检验列表导入 RTK 轨迹'**
+  String get gpsQualityTrajectoryEmpty;
+
+  /// No description provided for @gpsQualityPaired.
+  ///
+  /// In zh, this message translates to:
+  /// **'已配对'**
+  String get gpsQualityPaired;
 }
 
 class _AppLocalizationsDelegate

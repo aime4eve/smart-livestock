@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIX-22 RTK 轨迹导入动态检验 · 高保真原型（含界面关系设计）</title>
+<style>
+:root{--primary:#2F6B3B;--primary-dark:#244F2D;--primary-soft:#E3F0E4;--accent:#8BA95A;--surface:#F8F6F0;--surface-alt:#FFFFFF;--border:#D7D2C6;--text-primary:#263126;--text-secondary:#617061;--success:#4C9A5F;--warning:#D28A2D;--danger:#C2564B;--info:#4A7F9D;--xs:4px;--sm:8px;--md:12px;--lg:16px;--xl:24px;
+--c-static:#2563EB;--c-dynamic:#D97706;--c-traj:#7C3AED}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sans-serif;background:var(--surface);color:var(--text-primary);min-height:100vh}
+.appbar{background:var(--primary);color:#fff;padding:10px var(--xl);display:flex;align-items:center;gap:var(--md);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.appbar h1{font-size:18px;font-weight:600}
+.badge-proto{background:rgba(255,255,255,.2);padding:2px 8px;border-radius:8px;font-size:11px}
+.tabbar{display:flex;background:var(--primary-dark)}
+.tab{flex:1;padding:12px;text-align:center;color:rgba(255,255,255,.7);font-size:14px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent}
+.tab.active{color:#fff;border-bottom-color:var(--accent);font-weight:600}
+.page{display:none;padding:var(--lg)}
+.page.active{display:block}
+.panel{background:var(--surface-alt);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:var(--lg)}
+.panel-hd{padding:var(--md) var(--lg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface)}
+.panel-hd h2{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px}
+.panel-bd{padding:var(--lg)}
+.btn{padding:7px 14px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-primary)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.icon-btn{width:30px;height:30px;border:none;background:transparent;border-radius:6px;cursor:pointer;font-size:16px;color:var(--primary);display:inline-flex;align-items:center;justify-content:center;position:relative}
+.icon-btn:hover{background:var(--primary-soft)}
+.icon-btn.new-feature{box-shadow:0 0 0 2px var(--c-traj);background:#F3E8FF}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap}
+.t-ok{background:#DCFCE7;color:#16A34A}
+.t-wn{background:#FFF7ED;color:#C2410C}
+.t-er{background:#FEE2E2;color:#DC2626}
+.type-dot{display:inline-flex;align-items:center;gap:3px;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:500}
+.type-dot i{width:6px;height:6px;border-radius:50%;display:inline-block}
+.td-static{background:rgba(37,99,235,.1);color:var(--c-static)}.td-static i{background:var(--c-static)}
+.td-dynamic{background:rgba(217,119,6,.1);color:#B45309}.td-dynamic i{background:var(--c-dynamic)}
+.td-traj{background:rgba(124,58,237,.1);color:var(--c-traj)}.td-traj i{background:var(--c-traj)}
+.grade{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;border:0.5px solid}
+.grade-ex{background:#DCFCE7;color:#16A34A;border-color:#BBF7D0}
+.grade-us{background:#DBEAFE;color:#2563EB;border-color:#BFDBFE}
+.grade-mg{background:#FFF7ED;color:#C2410C;border-color:#FED7AA}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal-overlay.show{display:flex}
+.modal{background:var(--surface-alt);border-radius:12px;max-width:96vw;width:1060px;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-hd{padding:var(--lg) var(--xl);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:var(--sm);flex-wrap:wrap}
+.modal-hd h3{font-size:16px;font-weight:600;flex:1}
+.modal-bd{padding:var(--md) var(--xl);overflow-y:auto;flex:1}
+.modal-ft{padding:var(--lg) var(--xl);border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:var(--sm)}
+.muted{color:var(--text-secondary);font-size:12px}
+.steps{display:flex;gap:var(--sm);justify-content:center}
+.step{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary)}
+.step-num{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:var(--border);color:#fff}
+.step.active .step-num{background:var(--primary)}.step.done .step-num{background:var(--success)}
+.step.active{color:var(--primary);font-weight:600}
+.step-arrow{color:var(--border);font-size:14px}
+.summary{background:var(--surface);border-radius:10px;padding:var(--md);margin-bottom:var(--md);display:flex;gap:var(--xl);align-items:center;flex-wrap:wrap}
+.summary .stat{text-align:center}
+.summary .stat-val{font-size:22px;font-weight:700}
+.summary .stat-label{font-size:11px;color:var(--text-secondary)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px var(--md);background:var(--surface);font-weight:600;color:var(--text-secondary);font-size:12px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:8px var(--md);border-bottom:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:#FAF9F5}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+.upload-zone{border:2px dashed var(--border);border-radius:10px;padding:32px var(--xl);text-align:center;cursor:pointer;background:var(--surface)}
+.upload-zone:hover{border-color:var(--primary);background:var(--primary-soft)}
+.upload-zone .ico{font-size:34px;margin-bottom:var(--sm)}
+.opt-tag{font-size:10px;background:var(--primary-soft);color:var(--primary-dark);padding:1px 6px;border-radius:4px;font-weight:600}
+.req-tag{font-size:10px;background:#FEE2E2;color:#DC2626;padding:1px 6px;border-radius:4px;font-weight:600}
+.callout{border-left:3px solid var(--info);background:#EFF6FB;padding:var(--sm) var(--md);border-radius:0 8px 8px 0;font-size:12px;color:#33566B;margin:var(--sm) 0}
+.callout.warn{border-left-color:var(--warning);background:#FDF6EA;color:#7A5416}
+.callout.ok{border-left-color:var(--success);background:#EEF7EF;color:#2F5D3A}
+.setting-row{display:flex;align-items:center;gap:var(--md);flex-wrap:wrap;padding:var(--sm) 0}
+.setting-row input{padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:var(--surface-alt);width:70px}
+.histo{display:flex;align-items:flex-end;gap:3px;height:90px;padding:var(--sm) 0}
+.histo .bar{flex:1;background:var(--accent);border-radius:3px 3px 0 0;min-height:3px}
+.histo-x{display:flex;justify-content:space-between;font-size:10px;color:var(--text-secondary)}
+.map-box{background:#EDEBE3;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.legend{display:flex;gap:var(--lg);padding:var(--sm) var(--md);font-size:11px;color:var(--text-secondary);align-items:center;flex-wrap:wrap}
+.legend .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.step-pane{display:none}.step-pane.active{display:block}
+.imp-row{display:flex;gap:var(--md);align-items:center;padding:var(--sm) var(--md);border:1px solid var(--border);border-radius:8px;margin-bottom:var(--sm);font-size:13px;background:var(--surface)}
+.proto-note{position:fixed;bottom:12px;right:14px;font-size:11px;color:var(--text-secondary);background:rgba(255,255,255,.9);border:1px solid var(--border);border-radius:8px;padding:4px 10px;z-index:2000}
+
+/* ── 标注系统（新增/变更点） ── */
+.anno{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:var(--c-traj);color:#fff;font-size:10px;font-weight:700;font-style:normal;vertical-align:2px;margin-left:4px;cursor:help;box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--c-traj)}
+.anno-region{outline:2px dashed var(--c-traj);outline-offset:3px;border-radius:8px}
+.anno-panel{background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border:1px solid #C4B5FD;border-radius:12px;padding:var(--md) var(--lg);margin-bottom:var(--lg)}
+.anno-panel h3{font-size:13px;color:#5B21B6;margin-bottom:6px}
+.anno-panel ol{margin-left:18px;font-size:12px;color:#4C1D95;line-height:1.9}
+.anno-panel b{color:#5B21B6}
+
+/* ── 检验列表（复刻现有 UI） ── */
+.layout{display:flex;gap:var(--lg);align-items:flex-start}
+.left-col{width:320px;flex-shrink:0}
+.right-col{flex:1;min-width:0}
+.dev-group{padding:10px 14px;border-left:3px solid transparent;cursor:pointer}
+.dev-group:hover{background:#FAF9F5}
+.dev-group.sel{background:var(--primary-soft);border-left-color:var(--primary)}
+.dev-eui{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.dev-meta{display:flex;align-items:center;gap:6px;margin-top:3px;font-size:11px;color:var(--text-secondary)}
+.dev-time{font-size:10px;color:var(--text-secondary);margin-top:2px}
+.toolbar-search{display:flex;gap:6px;margin-top:8px}
+.toolbar-search input{flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:monospace}
+.toolbar-search select{padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:var(--surface-alt)}
+.timeline-bar{position:relative;height:32px;background:var(--surface);border:1px solid var(--border);border-radius:6px;margin:6px 0 2px}
+.tl-seg{position:absolute;top:3px;bottom:3px;border-radius:4px;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tl-seg.sel{box-shadow:0 0 0 2px var(--primary)}
+.tl-seg.c-static{background:var(--c-static)}
+.tl-seg.c-dynamic{background:var(--c-dynamic)}
+.tl-seg.c-traj{background:var(--c-traj)}
+.tl-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text-secondary)}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;text-align:center;min-width:76px}
+.stat-chip .v{font-size:19px;font-weight:700}
+.stat-chip .l{font-size:10px;color:var(--text-secondary)}
+.rep-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* ── 界面关系树 ── */
+.tree{font-size:12.5px;line-height:1.6}
+.tree ul{list-style:none;margin-left:22px;border-left:1px solid #C4B5FD;padding-left:16px}
+.tree li{margin:7px 0;position:relative}
+.tree li::before{content:"";position:absolute;left:-16px;top:11px;width:14px;height:1px;background:#C4B5FD}
+.tree .node{display:inline-block;background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;padding:5px 12px}
+.tree .node.root{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600}
+.tree .node.unchanged{color:var(--text-secondary)}
+.tree .node.changed{border:1.5px solid var(--c-traj);background:#F5F3FF}
+.tree .node .sub{display:block;font-size:11px;color:var(--text-secondary);font-weight:400}
+.tree .badge-new{font-size:10px;background:var(--c-traj);color:#fff;padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:1px}
+.tree .badge-keep{font-size:10px;background:#E5E7EB;color:#6B7280;padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:1px}
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <h1>GPS 质量检验</h1>
+  <span class="badge-proto">NIX-22 原型 v2 · 轨迹动态检验 + 界面关系</span>
+</div>
+
+<div class="tabbar">
+  <div class="tab active" data-tab="checks" onclick="switchTab('checks')">检验列表</div>
+  <div class="tab" data-tab="truth" onclick="switchTab('truth')">真值基准</div>
+  <div class="tab" data-tab="compare" onclick="switchTab('compare')">质量对比</div>
+</div>
+
+<!-- ═══════════════ Tab 1: 检验列表（复刻现有 UI + 新增标注） ═══════════════ -->
+<div class="page active" id="page-checks">
+
+  <!-- 变更点说明 -->
+  <div class="anno-panel">
+    <h3>🟣 本原型相对现有界面的变更点（紫色标注 = 新增/变更，其余像素级保持现状）</h3>
+    <ol>
+      <li><b>① 左栏工具条</b>新增「导入 RTK 轨迹数据」入口（🛰），与现有「新建检验 ＋」「批量导入 ⬆」并列</li>
+      <li><b>② 设备分组行</b>新增第三种类型标记「轨迹」（紫色点），与现有 静态（蓝）/ 动态（橙）并列</li>
+      <li><b>③ 检验时间轴</b>新增紫色「轨」段，点击后下方报告区切换为轨迹检验报告</li>
+      <li><b>④ 报告区</b>按检验类型分派：静态→散布图（现状）· 路线动态→路线匹配图（现状）· <b>轨迹动态→配对报告（新增）</b></li>
+      <li><b>⑤ 质量对比 Tab</b>：轨迹动态报告计入「动态」一侧参与静态 vs 动态对比</li>
+      <li><b>⑥ 真值基准 Tab</b>：完全不变（轨迹检验的真值来自导入文件，不占用 33 个固定真值点/路线）</li>
+    </ol>
+  </div>
+
+  <div class="layout">
+    <!-- ── 左栏：设备分组列表（复刻现有） ── -->
+    <div class="left-col">
+      <div class="panel" style="margin-bottom:0">
+        <div class="panel-hd" style="flex-direction:column;align-items:stretch;gap:0">
+          <div style="display:flex;align-items:center">
+            <h2>检验设备分组</h2>
+            <span style="flex:1"></span>
+            <button class="icon-btn" title="新建检验（现有）">＋</button>
+            <button class="icon-btn" title="批量导入会话（现有）">⬆</button>
+            <button class="icon-btn new-feature" title="导入 RTK 轨迹数据（新增）" onclick="openImport()">🛰<i class="anno" style="position:absolute;top:-9px;right:-9px;margin:0">1</i></button>
+          </div>
+          <div class="toolbar-search">
+            <input placeholder="设备编号 / EUI">
+            <select><option>全部状态</option><option>进行中</option><option>已完成</option></select>
+          </div>
+        </div>
+        <div>
+          <div class="dev-group sel" onclick="selDevice(this)">
+            <div class="dev-eui">8CF957…3A21</div>
+            <div class="dev-meta">3 项检验
+              <span class="type-dot td-static"><i></i>静态</span>
+              <span class="type-dot td-traj anno-region"><i></i>轨迹</span><i class="anno">2</i>
+            </div>
+            <div class="dev-time">07-21 09:00</div>
+          </div>
+          <div class="dev-group" onclick="selDevice(this)">
+            <div class="dev-eui">8CF957…7B09</div>
+            <div class="dev-meta">1 项检验
+              <span class="type-dot td-traj"><i></i>轨迹</span>
+            </div>
+            <div class="dev-time">07-21 09:00</div>
+          </div>
+          <div class="dev-group" onclick="selDevice(this)">
+            <div class="dev-eui">8CF957…11F2</div>
+            <div class="dev-meta">2 项检验
+              <span class="type-dot td-static"><i></i>静态</span>
+              <span class="type-dot td-dynamic"><i></i>动态</span>
+            </div>
+            <div class="dev-time">07-18 14:00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 右栏：设备详情（复刻现有） ── -->
+    <div class="right-col">
+
+      <!-- 概览卡（现有，不变） -->
+      <div class="panel">
+        <div class="panel-bd" style="padding:var(--md) var(--lg)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <b style="font-size:15px">8CF957…3A21</b>
+            <span class="tag" style="background:var(--primary-soft);color:var(--primary)">3 项检验</span>
+            <span style="flex:1"></span>
+            <button class="btn btn-outline btn-sm">🗑 删除设备检验</button>
+          </div>
+          <div class="muted" style="margin-top:4px">2026-07-15 09:00 → 07-21 11:30</div>
+        </div>
+      </div>
+
+      <!-- 时间轴（现有 + 新增紫色「轨」段） -->
+      <div class="panel anno-region">
+        <i class="anno" style="position:absolute">3</i>
+        <div class="panel-bd" style="padding:var(--md) var(--lg)">
+          <div class="muted" style="font-weight:600">检验时间轴</div>
+          <div class="timeline-bar">
+            <div class="tl-seg c-static" style="left:1%;width:24%" title="静态 · 07-15 09:00→18:00">静</div>
+            <div class="tl-seg c-traj sel" style="left:27%;width:11%" title="轨迹动态 · 07-21 09:00→11:30（新增类型）">轨</div>
+            <div class="tl-seg c-static" style="left:40%;width:18%" title="静态 · 07-19 09:00→15:00">静</div>
+          </div>
+          <div class="tl-labels"><span>07-15 09:00</span><span>07-21 11:30</span></div>
+          <div class="legend" style="padding:6px 0 0">
+            <span><span class="dot" style="background:var(--c-static)"></span>静态（现有）</span>
+            <span><span class="dot" style="background:var(--c-dynamic)"></span>路线动态（现有）</span>
+            <span><span class="dot" style="background:var(--c-traj)"></span><b>轨迹动态（新增）</b></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 报告区（轨迹动态报告 = 新增分派） -->
+      <div class="panel anno-region">
+        <i class="anno" style="position:absolute">4</i>
+        <div class="panel-hd">
+          <div class="rep-title">
+            <h2>轨迹动态检验报告</h2>
+            <span class="type-dot td-traj" style="font-size:11px;padding:2px 8px"><i></i>轨迹动态</span>
+            <span class="grade grade-ex">EXCELLENT</span>
+          </div>
+          <span class="muted mono">rtk_walk_0721.csv · 07-21 09:00 → 11:30</span>
+        </div>
+
+        <!-- 配对概览 -->
+        <div class="panel-bd" style="display:flex;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--border)">
+          <div class="stat-chip"><div class="v">24</div><div class="l">轨迹样本点</div></div>
+          <div class="stat-chip"><div class="v" style="color:var(--c-traj)">14</div><div class="l">文件内直接配对</div></div>
+          <div class="stat-chip"><div class="v" style="color:var(--info)">7</div><div class="l">gps_logs 库内配对</div></div>
+          <div class="stat-chip"><div class="v" style="color:var(--warning)">3</div><div class="l">未配对</div></div>
+          <div class="stat-chip"><div class="v">87.5%</div><div class="l">配对率</div></div>
+          <div class="stat-chip"><div class="v" style="color:var(--primary)">6.8m</div><div class="l">平均误差</div></div>
+          <div class="stat-chip"><div class="v">5.9m</div><div class="l">P50</div></div>
+          <div class="stat-chip"><div class="v">12.4m</div><div class="l">P95</div></div>
+          <div class="stat-chip"><div class="v" style="color:var(--danger)">18.2m</div><div class="l">最大误差</div></div>
+        </div>
+
+        <!-- 轨迹对比图 -->
+        <div class="panel-bd" style="border-bottom:1px solid var(--border)">
+          <div class="map-box">
+            <svg viewBox="0 0 640 220" width="100%">
+              <rect width="640" height="220" fill="#EDEBE3"/>
+              <g stroke="#DAD6C9"><line x1="0" y1="55" x2="640" y2="55"/><line x1="0" y1="110" x2="640" y2="110"/><line x1="0" y1="165" x2="640" y2="165"/><line x1="160" y1="0" x2="160" y2="220"/><line x1="320" y1="0" x2="320" y2="220"/><line x1="480" y1="0" x2="480" y2="220"/></g>
+              <polyline points="40,185 130,150 230,158 320,115 410,122 490,80 590,48" fill="none" stroke="#2F6B3B" stroke-width="2.5"/>
+              <polyline points="46,181 138,145 225,166 327,108 403,130 498,74 585,55" fill="none" stroke="#C2564B" stroke-width="2" stroke-dasharray="6,4"/>
+              <g stroke="#8BA95A" stroke-dasharray="2,2">
+                <line x1="40" y1="185" x2="46" y2="181"/><line x1="130" y1="150" x2="138" y2="145"/>
+                <line x1="230" y1="158" x2="225" y2="166"/><line x1="320" y1="115" x2="327" y2="108"/>
+                <line x1="410" y1="122" x2="403" y2="130"/><line x1="490" y1="80" x2="498" y2="74"/>
+                <line x1="590" y1="48" x2="585" y2="55"/>
+              </g>
+              <circle cx="445" cy="102" r="5.5" fill="none" stroke="#D28A2D" stroke-width="2" stroke-dasharray="3,2"/>
+              <circle cx="40" cy="185" r="4.5" fill="#2F6B3B"/><circle cx="590" cy="48" r="4.5" fill="#2F6B3B"/>
+            </svg>
+            <div class="legend">
+              <span><span class="dot" style="background:#2F6B3B"></span>RTK 真值轨迹</span>
+              <span><span class="dot" style="background:#C2564B"></span>设备上报轨迹</span>
+              <span><span class="dot" style="background:#8BA95A"></span>配对连线（误差）</span>
+              <span><span class="dot" style="background:#D28A2D"></span>未配对点</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 误差分布 + 静态/动态对比 -->
+        <div class="panel-bd" style="border-bottom:1px solid var(--border)">
+          <div class="muted" style="font-weight:600;margin-bottom:4px">误差分布</div>
+          <div class="histo">
+            <div class="bar" style="height:12%"></div><div class="bar" style="height:30%"></div>
+            <div class="bar" style="height:55%"></div><div class="bar" style="height:88%"></div>
+            <div class="bar" style="height:100%"></div><div class="bar" style="height:70%"></div>
+            <div class="bar" style="height:42%"></div><div class="bar" style="height:25%"></div>
+            <div class="bar" style="height:14%"></div><div class="bar" style="height:6%"></div>
+          </div>
+          <div class="histo-x"><span>0m</span><span>5m</span><span>10m</span><span>15m</span><span>20m</span></div>
+          <div class="callout ok" style="margin-top:10px">静态 vs 动态（同设备，现有对比逻辑）：静态 P95 = 21.3m（USABLE）→ 本次轨迹动态 P95 = <b>12.4m</b>，动态偏差小 8.9m。</div>
+        </div>
+
+        <!-- 逐样本明细 -->
+        <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>#</th><th>采集时间</th><th>RTK 纬度</th><th>RTK 经度</th><th>设备纬度</th><th>设备经度</th><th>误差</th><th>数据来源</th>
+          </tr></thead>
+          <tbody class="mono">
+            <tr><td>1</td><td>09:00:12</td><td>28.22841</td><td>112.93876</td><td>28.22839</td><td>112.93871</td><td style="color:var(--success);font-weight:600">4.6m</td><td><span class="type-dot td-traj" style="font-size:10px"><i></i>文件</span></td></tr>
+            <tr><td>2</td><td>09:30:05</td><td>28.22890</td><td>112.93921</td><td>28.22885</td><td>112.93915</td><td style="color:var(--success);font-weight:600">7.1m</td><td><span class="type-dot td-static" style="font-size:10px;background:rgba(74,127,157,.12);color:var(--info)"><i style="background:var(--info)"></i>库内</span></td></tr>
+            <tr><td>3</td><td>10:00:48</td><td>28.22902</td><td>112.93985</td><td>28.22910</td><td>112.93978</td><td style="color:var(--success);font-weight:600">10.3m</td><td><span class="type-dot td-traj" style="font-size:10px"><i></i>文件</span></td></tr>
+            <tr><td>4</td><td>10:30:31</td><td>28.22966</td><td>112.94040</td><td>28.22971</td><td>112.94032</td><td style="color:var(--success);font-weight:600">9.6m</td><td><span class="type-dot td-static" style="font-size:10px;background:rgba(74,127,157,.12);color:var(--info)"><i style="background:var(--info)"></i>库内</span></td></tr>
+            <tr><td>5</td><td>11:00:17</td><td>28.22971</td><td>112.94102</td><td>28.22963</td><td>112.94110</td><td style="color:var(--warning);font-weight:600">11.4m</td><td><span class="type-dot td-traj" style="font-size:10px"><i></i>文件</span></td></tr>
+            <tr><td>6</td><td>11:30:02</td><td>28.23035</td><td>112.94155</td><td>28.23052</td><td>112.94141</td><td style="color:var(--danger);font-weight:600">18.2m</td><td><span class="type-dot td-static" style="font-size:10px;background:rgba(74,127,157,.12);color:var(--info)"><i style="background:var(--info)"></i>库内</span></td></tr>
+            <tr><td colspan="8" class="muted" style="text-align:center">… 其余 15 条 … ｜ ⚠ 3 条未配对样本（±60s 内 gps_logs 无上报）单独列出，不参与误差统计</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ Tab 2: 真值基准（不变） ═══════════════ -->
+<div class="page" id="page-truth">
+  <div class="panel">
+    <div class="panel-hd"><h2>📍 真值基准管理 <span class="tag t-ok" style="margin-left:6px">⑥ 完全不变</span></h2></div>
+    <div class="panel-bd muted">RTK 真值点（33 个）与计划路线管理维持现状。轨迹动态检验的真值来自导入的 RTK 轨迹文件（随会话存储），<b>不占用</b>此处的固定真值点与路线，两种动态检验方式并存：<br><br>
+    · <b>路线动态</b>（现有）：真值 = 固定 RTK 点序列，适合反复使用的标准巡回路线<br>
+    · <b>轨迹动态</b>（新增）：真值 = 随行 RTK 轨迹，适合任意路径的外场检验</div>
+  </div>
+</div>
+
+<!-- ═══════════════ Tab 3: 质量对比（动态侧纳入轨迹数据） ═══════════════ -->
+<div class="page" id="page-compare">
+  <div class="panel">
+    <div class="panel-hd"><h2>📊 质量对比 <span class="tag t-wn" style="margin-left:6px">⑤ 数据源扩展</span></h2></div>
+    <div class="panel-bd">
+      <div class="muted" style="margin-bottom:10px">对比逻辑与界面不变；「动态」一侧的样本来源从仅「路线动态」扩展为「路线动态 + 轨迹动态」，逐设备标注动态数据来源：</div>
+      <table>
+        <thead><tr><th>设备</th><th>静态 P95</th><th>静态评级</th><th>动态 P95</th><th>动态评级</th><th>动态数据来源</th><th>结论</th></tr></thead>
+        <tbody class="mono">
+          <tr><td>8CF957…3A21</td><td>21.3m</td><td><span class="grade grade-us">USABLE</span></td><td>12.4m</td><td><span class="grade grade-ex">EXCELLENT</span></td><td><span class="type-dot td-traj"><i></i>轨迹</span></td><td style="color:var(--success)">动态小 8.9m ✓</td></tr>
+          <tr><td>8CF957…7B09</td><td>—</td><td><span class="grade grade-mg">无数据</span></td><td>19.8m</td><td><span class="grade grade-us">USABLE</span></td><td><span class="type-dot td-traj"><i></i>轨迹</span></td><td class="muted">—</td></tr>
+          <tr><td>8CF957…11F2</td><td>17.5m</td><td><span class="grade grade-us">USABLE</span></td><td>23.1m</td><td><span class="grade grade-mg">MARGINAL</span></td><td><span class="type-dot td-dynamic"><i></i>路线</span></td><td style="color:var(--warning)">动态大 5.6m ⚠</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 界面关系总览（独立视图） ═══════════════ -->
+<div class="page" id="page-tree">
+  <div class="panel">
+    <div class="panel-hd"><h2>🧭 轨迹动态检验 × 现有界面关系总览</h2></div>
+    <div class="panel-bd">
+      <div class="tree">
+        <span class="node root">GPS 质量检验页（/admin/gps-quality）</span>
+        <ul>
+          <li><span class="node changed">Tab 1 检验列表<span class="badge-new">变更</span>
+            <span class="sub">左栏工具条 +🛰 导入入口（①）｜设备分组行 +「轨迹」类型标记（②）</span></span>
+            <ul>
+              <li><span class="node unchanged">新建检验弹窗<span class="badge-keep">不变</span><span class="sub">仍只创建 静态（设备+真值点）/ 路线动态（设备+路线）；轨迹检验只由文件导入产生</span></span></li>
+              <li><span class="node unchanged">批量导入会话弹窗<span class="badge-keep">不变</span><span class="sub">现有 Excel 模板批量建静态/路线动态会话，与轨迹导入是两条独立入口</span></span></li>
+              <li><span class="node changed">🛰 导入 RTK 轨迹数据向导<span class="badge-new">新增</span><span class="sub">3 步：上传文件 → 校验与配对预览（±60s 容差可调）→ 按设备生成「轨迹动态」会话</span></span></li>
+              <li><span class="node changed">检验时间轴<span class="badge-new">变更</span><span class="sub">新增紫色「轨」段（③），点击切换报告</span></span></li>
+              <li><span class="node changed">报告区按类型分派（④）<span class="badge-new">扩展</span></span>
+                <ul>
+                  <li><span class="node unchanged">静态 → 散布图 + 抖动分析<span class="badge-keep">不变</span></span></li>
+                  <li><span class="node unchanged">路线动态 → 路线匹配图 + 覆盖率<span class="badge-keep">不变</span></span></li>
+                  <li><span class="node changed">轨迹动态 → 配对报告<span class="badge-new">新增</span><span class="sub">配对概览 / 轨迹对比图 / 误差分布 / 逐样本明细（文件 vs 库内来源）/ 未配对清单 / 静动态对比</span></span></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li><span class="node unchanged">Tab 2 真值基准<span class="badge-keep">不变（⑥）</span><span class="sub">33 个 RTK 点 + 计划路线；轨迹真值随导入文件存储，不占用固定真值点</span></span></li>
+          <li><span class="node changed">Tab 3 质量对比<span class="badge-new">数据源扩展（⑤）</span><span class="sub">「动态」一侧 = 路线动态 + 轨迹动态，逐设备标注来源；对比逻辑不变</span></span></li>
+        </ul>
+      </div>
+      <div class="callout" style="margin-top:16px">📦 数据归属：轨迹动态会话 = 设备 + 时间窗（由文件采集时间 min/max 推导）+ 随行 RTK 轨迹点集合；与静态/路线动态共用同一张 <span class="mono">gps_quality_tests</span> 会话表（新增 test_type=TRAJECTORY），轨迹点存新表。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 导入向导弹窗 ═══════════════ -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <h3>🛰 导入 RTK 轨迹检验数据</h3>
+      <div class="steps">
+        <div class="step active" id="st1"><span class="step-num">1</span>上传文件</div>
+        <span class="step-arrow">→</span>
+        <div class="step" id="st2"><span class="step-num">2</span>校验与配对预览</div>
+        <span class="step-arrow">→</span>
+        <div class="step" id="st3"><span class="step-num">3</span>导入结果</div>
+      </div>
+    </div>
+    <div class="modal-bd">
+
+      <!-- Step 1: 上传 -->
+      <div class="step-pane active" id="pane1">
+        <div class="upload-zone" onclick="gotoStep(2)">
+          <div class="ico">📂</div>
+          <div style="font-weight:600;margin-bottom:4px">点击选择或拖入 RTK 轨迹文件</div>
+          <div class="muted">支持 .csv / .xlsx，单次最多 5000 行</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 6px">
+          <b style="font-size:13px">文件格式（列顺序固定，表头可省略）</b>
+          <button class="btn btn-outline btn-sm">⬇ 下载模板</button>
+        </div>
+        <table>
+          <thead><tr><th>列</th><th>字段</th><th>必填</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>A</td><td>设备 EUI</td><td><span class="req-tag">必填</span></td><td>被检验追踪器设备 EUI，须已注册</td></tr>
+            <tr><td>B</td><td>采集时间</td><td><span class="req-tag">必填</span></td><td>设备上报时刻（与设备上报时间戳同一时钟基准），如 2026-07-21 09:30:05</td></tr>
+            <tr><td>C</td><td>RTK 纬度</td><td><span class="req-tag">必填</span></td><td>该时刻 RTK 设备读出的纬度（WGS-84，十进制度）</td></tr>
+            <tr><td>D</td><td>RTK 经度</td><td><span class="req-tag">必填</span></td><td>该时刻 RTK 设备读出的经度（WGS-84）</td></tr>
+            <tr><td>E</td><td>设备纬度</td><td><span class="opt-tag">可选</span></td><td>被检设备上报的纬度；<b>留空则系统按 EUI+时间从 gps_logs 自动配对</b></td></tr>
+            <tr><td>F</td><td>设备经度</td><td><span class="opt-tag">可选</span></td><td>被检设备上报的经度；E/F 须同时填或同时留空</td></tr>
+          </tbody>
+        </table>
+        <div class="callout" style="margin-top:12px">🕐 时钟基准：采集时间须与设备上报时间戳使用同一基准（服务器落库时间，UTC+8）。配对窗口默认 ±60 秒，可在下一步调整。</div>
+      </div>
+
+      <!-- Step 2: 校验与配对预览 -->
+      <div class="step-pane" id="pane2">
+        <div class="summary">
+          <div class="stat"><div class="stat-val">48</div><div class="stat-label">总行数</div></div>
+          <div class="stat"><div class="stat-val" style="color:var(--success)">46</div><div class="stat-label">校验通过</div></div>
+          <div class="stat"><div class="stat-val" style="color:var(--danger)">2</div><div class="stat-label">校验失败（跳过）</div></div>
+          <div class="stat"><div class="stat-val">3</div><div class="stat-label">涉及设备数</div></div>
+          <div class="stat"><div class="stat-val" style="color:var(--c-traj)">14</div><div class="stat-label">文件内直接配对</div></div>
+          <div class="stat"><div class="stat-val" style="color:var(--warning)">32</div><div class="stat-label">待库内配对</div></div>
+        </div>
+        <div class="setting-row" style="background:var(--surface);border-radius:8px;padding:10px 14px;margin-bottom:12px">
+          <b style="font-size:13px">配对设置</b>
+          <span class="muted">时间容差 ±</span><input type="number" value="60"><span class="muted">秒</span>
+          <span class="muted">· 取该 EUI 在 gps_logs 中距采集时间最近的一条上报，超出容差记为「未配对」</span>
+        </div>
+        <table>
+          <thead><tr>
+            <th>行</th><th>设备 EUI</th><th>采集时间</th><th>RTK 纬度</th><th>RTK 经度</th><th>设备纬度</th><th>设备经度</th><th>配对方式</th><th>校验</th>
+          </tr></thead>
+          <tbody class="mono">
+            <tr><td>2</td><td>…3A21</td><td>07-21 09:00:12</td><td>28.22841</td><td>112.93876</td><td>28.22839</td><td>112.93871</td><td><span class="type-dot td-traj" style="font-size:10px"><i></i>文件</span></td><td><span class="tag t-ok">通过</span></td></tr>
+            <tr><td>3</td><td>…3A21</td><td>07-21 09:30:05</td><td>28.22890</td><td>112.93921</td><td class="muted">—</td><td class="muted">—</td><td><span class="type-dot td-static" style="font-size:10px;background:rgba(74,127,157,.12);color:var(--info)"><i style="background:var(--info)"></i>库内配对</span></td><td><span class="tag t-ok">通过</span></td></tr>
+            <tr><td>4</td><td>…7B09</td><td>07-21 09:00:14</td><td>28.22842</td><td>112.93877</td><td class="muted">—</td><td class="muted">—</td><td><span class="type-dot td-static" style="font-size:10px;background:rgba(74,127,157,.12);color:var(--info)"><i style="background:var(--info)"></i>库内配对</span></td><td><span class="tag t-ok">通过</span></td></tr>
+            <tr style="background:#FEF2F2"><td>17</td><td>…ZZ99</td><td>07-21 10:00:00</td><td>28.22901</td><td>112.93980</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td><span class="tag t-er">EUI 未注册</span></td></tr>
+            <tr style="background:#FEF2F2"><td>23</td><td>…3A21</td><td class="muted">格式错误</td><td>28.22911</td><td>112.93988</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td><span class="tag t-er">时间格式错误</span></td></tr>
+            <tr><td colspan="9" class="muted" style="text-align:center">… 其余 43 行 …</td></tr>
+          </tbody>
+        </table>
+        <div class="callout warn" style="margin-top:12px">💡 「库内配对」行的设备经纬度以系统 gps_logs 落库数据为准；预览中可查看匹配到的实际上报（含时间差）。</div>
+      </div>
+
+      <!-- Step 3: 导入结果 -->
+      <div class="step-pane" id="pane3">
+        <div class="callout ok" style="font-size:13px;margin-bottom:14px">✅ 导入完成：按设备生成 3 条「轨迹动态」检验会话，共 46 个轨迹样本点。</div>
+        <div class="imp-row"><span class="mono">8CF957…3A21</span><span class="muted">16 点</span><span style="flex:1"></span><span class="type-dot td-traj" style="font-size:10px"><i></i>文件 9</span><span class="tag" style="background:rgba(74,127,157,.12);color:var(--info)">库内 5</span><span class="tag t-wn">未配对 2</span><span class="tag t-ok">会话已创建</span></div>
+        <div class="imp-row"><span class="mono">8CF957…7B09</span><span class="muted">16 点</span><span style="flex:1"></span><span class="type-dot td-traj" style="font-size:10px"><i></i>文件 5</span><span class="tag" style="background:rgba(74,127,157,.12);color:var(--info)">库内 10</span><span class="tag t-wn">未配对 1</span><span class="tag t-ok">会话已创建</span></div>
+        <div class="imp-row"><span class="mono">8CF957…11F2</span><span class="muted">14 点</span><span style="flex:1"></span><span class="type-dot td-traj" style="font-size:10px"><i></i>文件 0</span><span class="tag" style="background:rgba(74,127,157,.12);color:var(--info)">库内 14</span><span class="tag t-ok">会话已创建</span></div>
+        <div class="callout" style="margin-top:14px">未配对样本（±60s 内 gps_logs 无上报）保留在会话中并在报告内单独列出，不参与误差统计。导入完成后设备分组立即可见，点击时间轴紫色「轨」段查看报告。</div>
+      </div>
+
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-outline" onclick="closeImport()">取消</button>
+      <button class="btn btn-outline" id="btnBack" style="display:none" onclick="prevStep()">← 上一步</button>
+      <button class="btn btn-primary" id="btnNext" onclick="nextStep()">下一步 →</button>
+    </div>
+  </div>
+</div>
+
+<div class="proto-note">NIX-22 原型 v2 · 顶部紫色面板列全部变更点 ｜ <a href="#" onclick="switchTab('tree');return false" style="color:var(--c-traj)">查看界面关系总览图</a></div>
+
+<script>
+let curStep=1;
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const tgt=document.getElementById('page-'+name);
+  if(tgt)tgt.classList.add('active');
+}
+function selDevice(el){
+  document.querySelectorAll('.dev-group').forEach(g=>g.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function openImport(){document.getElementById('importModal').classList.add('show');gotoStep(1);}
+function closeImport(){document.getElementById('importModal').classList.remove('show');}
+function gotoStep(n){
+  curStep=n;
+  for(let i=1;i<=3;i++){
+    document.getElementById('pane'+i).classList.toggle('active',i===n);
+    const st=document.getElementById('st'+i);
+    st.classList.toggle('active',i===n);
+    st.classList.toggle('done',i<n);
+  }
+  document.getElementById('btnBack').style.display=n>1?'inline-flex':'none';
+  document.getElementById('btnNext').textContent=n===3?'完成':'下一步 →';
+}
+function nextStep(){
+  if(curStep===3){closeImport();return;}
+  gotoStep(curStep+1);
+}
+function prevStep(){if(curStep>1)gotoStep(curStep-1);}
+</script>
+</body>
+</html>

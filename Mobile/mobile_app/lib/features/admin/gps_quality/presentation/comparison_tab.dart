@@ -18,7 +18,8 @@ class ComparisonTab extends ConsumerStatefulWidget {
 }
 
 class _ComparisonTabState extends ConsumerState<ComparisonTab> {
-  bool _isStatic = true;
+  // 0 = 静态（按真值点）, 1 = 动态（按路线）, 2 = 轨迹（按设备）
+  int _segment = 0;
   int? _selectedRtkPointId;
   int? _selectedRouteId;
 
@@ -37,25 +38,28 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
             padding: const EdgeInsets.all(AppSpacing.md),
             child: Row(children: [
               // Type toggle
-              SegmentedButton<bool>(
+              SegmentedButton<int>(
                 segments: [
-                  ButtonSegment(value: true,
+                  ButtonSegment(value: 0,
                     icon: const Icon(Icons.location_on, size: 16),
                     label: Text(l10n.gpsQualityTestTypeStatic, style: const TextStyle(fontSize: 12))),
-                  ButtonSegment(value: false,
+                  ButtonSegment(value: 1,
                     icon: const Icon(Icons.directions_walk, size: 16),
                     label: Text(l10n.gpsQualityTestTypeDynamic, style: const TextStyle(fontSize: 12))),
+                  ButtonSegment(value: 2,
+                    icon: const Icon(Icons.satellite_alt, size: 16),
+                    label: Text(l10n.gpsQualityTrajectoryChecks, style: const TextStyle(fontSize: 12))),
                 ],
-                selected: {_isStatic},
+                selected: {_segment},
                 onSelectionChanged: (v) => setState(() {
-                  _isStatic = v.first;
+                  _segment = v.first;
                   _selectedRtkPointId = null;
                   _selectedRouteId = null;
                 }),
               ),
               const SizedBox(width: AppSpacing.lg),
               // Point/Route filter
-              if (_isStatic)
+              if (_segment == 0)
                 Expanded(child: DropdownButtonFormField<int>(
                   decoration: InputDecoration(
                     labelText: l10n.gpsQualitySelectRtkPoint,
@@ -70,7 +74,7 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
                   ],
                   onChanged: (v) => setState(() => _selectedRtkPointId = v),
                 ))
-              else
+              else if (_segment == 1)
                 Expanded(child: DropdownButtonFormField<int>(
                   key: const Key('dynamic-route-dropdown'),
                   decoration: InputDecoration(
@@ -91,10 +95,12 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
         ),
         const SizedBox(height: AppSpacing.lg),
         // Comparison body
-        if (_isStatic)
+        if (_segment == 0)
           _buildStaticComparison(l10n, rtkPoints)
+        else if (_segment == 1)
+          _buildDynamicComparison(l10n)
         else
-          _buildDynamicComparison(l10n),
+          _buildTrajectoryComparison(l10n),
       ]),
     );
   }
@@ -291,6 +297,88 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
       fontWeight: isBest ? FontWeight.w700 : FontWeight.w400,
       color: isBest ? AppColors.success : AppColors.textPrimary,
     ));
+  }
+
+  // ── Trajectory comparison (NIX-22) ─────────────────────────────
+
+  Widget _buildTrajectoryComparison(AppLocalizations l10n) {
+    final comparisonAsync = ref.watch(trajectoryComparisonProvider);
+
+    return Card(
+      key: const Key('trajectory-comparison-card'),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: comparisonAsync.when(
+          loading: () => const SizedBox(height: 60, child: Center(child: CircularProgressIndicator())),
+          error: (e, _) => Text('$e', style: const TextStyle(color: AppColors.danger, fontSize: 12)),
+          data: (devices) {
+            if (devices.isEmpty) {
+              return SizedBox(
+                height: 200,
+                child: Center(
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    const Icon(Icons.satellite_alt, size: 40, color: AppColors.textSecondary),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(l10n.gpsQualityTrajectoryEmpty,
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                  ]),
+                ),
+              );
+            }
+            final bestP95 = devices.map((d) => d.p95).reduce((a, b) => a < b ? a : b);
+            final bestPairRate = devices.map((d) => d.pairRate).reduce((a, b) => a > b ? a : b);
+            return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Text(l10n.gpsQualityTrajectoryComparison,
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                const SizedBox(width: 8),
+                Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(10)),
+                  child: Text(l10n.gpsQualityDeviceCount(devices.length),
+                    style: const TextStyle(fontSize: 11, color: AppColors.primary))),
+              ]),
+              const SizedBox(height: AppSpacing.sm),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  key: const Key('trajectory-comparison-table'),
+                  columnSpacing: 16,
+                  columns: [
+                    DataColumn(label: Text(l10n.gpsQualityDeviceCode, style: const TextStyle(fontSize: 12))),
+                    DataColumn(label: Text(l10n.gpsQualityTrajectoryPoints, style: const TextStyle(fontSize: 12))),
+                    DataColumn(label: Text(l10n.gpsQualityPaired, style: const TextStyle(fontSize: 12))),
+                    DataColumn(label: Text(l10n.gpsQualityPairRate, style: const TextStyle(fontSize: 12))),
+                    DataColumn(label: Text(l10n.gpsQualityTipMeanError, style: const TextStyle(fontSize: 12))),
+                    DataColumn(label: Text('P50', style: const TextStyle(fontSize: 12))),
+                    DataColumn(label: Text('P95', style: const TextStyle(fontSize: 12))),
+                    DataColumn(label: Text(l10n.gpsQualityTimeRange, style: const TextStyle(fontSize: 12))),
+                  ],
+                  rows: devices.map((d) {
+                    final timeRange = d.startedAt != null
+                      ? '${DateFormat('MM-dd HH:mm').format(d.startedAt!)} → ${d.endedAt != null ? DateFormat('MM-dd HH:mm').format(d.endedAt!) : "..."}'
+                      : '-';
+                    return DataRow(cells: [
+                      DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
+                        _GradeBadge(grade: d.grade),
+                        const SizedBox(width: 8),
+                        Text(d.deviceCode, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                      ])),
+                      DataCell(Text('${d.totalPoints}', style: const TextStyle(fontSize: 12))),
+                      DataCell(Text('${d.paired}', style: const TextStyle(fontSize: 12, color: AppColors.success))),
+                      DataCell(_metricCell('${d.pairRate.toStringAsFixed(1)}%', d.pairRate == bestPairRate)),
+                      DataCell(Text('${d.meanError.toStringAsFixed(1)}m', style: const TextStyle(fontSize: 12))),
+                      DataCell(Text('${d.p50.toStringAsFixed(1)}m', style: const TextStyle(fontSize: 12))),
+                      DataCell(_metricCell('${d.p95.toStringAsFixed(1)}m', d.p95 == bestP95)),
+                      DataCell(Text(timeRange, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
+                    ]);
+                  }).toList(),
+                ),
+              ),
+            ]);
+          },
+        ),
+      ),
+    );
   }
 }
 
