@@ -10,6 +10,7 @@ public class TrajectoryImportResultDto {
     private int createdCount;
     private int skippedCount;
     private List<DeviceResult> devices;
+    private int autoRegisteredCount;
 
     /**
      * @param status  CREATED / SKIPPED_DUPLICATE
@@ -31,4 +32,6 @@ public class TrajectoryImportResultDto {
     public void setSkippedCount(int skippedCount) { this.skippedCount = skippedCount; }
     public List<DeviceResult> getDevices() { return devices; }
     public void setDevices(List<DeviceResult> devices) { this.devices = devices; }
+    public int getAutoRegisteredCount() { return autoRegisteredCount; }
+    public void setAutoRegisteredCount(int autoRegisteredCount) { this.autoRegisteredCount = autoRegisteredCount; }
 }

@@ -3259,6 +3259,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsQualityTrajectoryStatDevices => '涉及设备';
 
   @override
+  String get gpsQualityTrajectoryAutoRegistered => '自动注册';
+
+  @override
+  String get gpsQualityTrajectoryManualRegister => '手工注册';
+
+  @override
   String get gpsQualityFilePaired => '文件配对';
 
   @override

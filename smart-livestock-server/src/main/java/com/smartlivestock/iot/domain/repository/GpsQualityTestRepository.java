@@ -18,6 +18,7 @@ public interface GpsQualityTestRepository {
 
     List<GpsQualityTest> findByBatchImportId(Long batchImportId);
     List<GpsQualityTest> findByStatus(String status);
+    List<GpsQualityTest> findByStatusAndTenantId(String status, Long tenantId);
     List<GpsQualityTest> findByRouteIdAndStatus(Long routeId, String status);
 
     List<GpsQualityTest> findFiltered(String status, String eui, Long deviceId, int offset, int limit);

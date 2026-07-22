@@ -290,7 +290,7 @@ public class GpsQualityBatchImportService {
                 .filter(t -> t != null && "DEVICE_PENDING".equals(t.getStatus()))
                 .toList();
         } else {
-            pendingTests = testRepository.findByStatus("DEVICE_PENDING").stream()
+            pendingTests = testRepository.findByStatusAndTenantId("DEVICE_PENDING", tenantId).stream()
                     .filter(t -> t.getDeviceId() != null)
                     .toList();
         }

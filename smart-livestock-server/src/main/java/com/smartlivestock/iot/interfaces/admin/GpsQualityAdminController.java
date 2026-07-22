@@ -390,6 +390,26 @@ public class GpsQualityAdminController {
         return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
+    /**
+     * Manual device registration for trajectory import: register (or find) a
+     * device by EUI with optional user-specified deviceCode. Returns device
+     * id/code and platform binding status.
+     */
+    @PostMapping("/trajectory/register-device")
+    public ResponseEntity<ApiResponse<DeviceBriefDto>> trajectoryRegisterDevice(
+            @RequestBody Map<String, Object> body) {
+        Long tenantId = resolveTenantId();
+        String eui = (String) body.get("eui");
+        if (eui == null || eui.isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "eui is required");
+        }
+        String deviceCode = (String) body.get("deviceCode");
+        var deviceDto = deviceApplicationService.findOrCreateByEui(eui, deviceCode, tenantId);
+        boolean platformBound = deviceDto.platformDeviceId() != null;
+        return ResponseEntity.ok(ApiResponse.ok(new DeviceBriefDto(
+                deviceDto.id(), deviceDto.deviceCode(), platformBound)));
+    }
+
     @GetMapping("/tests/{id}/trajectory-report")
     public ResponseEntity<ApiResponse<TrajectoryQualityReportDto>> trajectoryReport(
             @PathVariable Long id) {

@@ -18,6 +18,7 @@ public class TrajectoryParseResultDto {
     private int logPaired;
     private int unpaired;
     private List<Row> rows;
+    private List<String> autoRegisteredEuis;
 
     /**
      * @param matchMode          FILE / GPS_LOG / UNPAIRED / INVALID
@@ -54,5 +55,7 @@ public class TrajectoryParseResultDto {
     public int getUnpaired() { return unpaired; }
     public void setUnpaired(int unpaired) { this.unpaired = unpaired; }
     public List<Row> getRows() { return rows; }
+    public List<String> getAutoRegisteredEuis() { return autoRegisteredEuis; }
+    public void setAutoRegisteredEuis(List<String> autoRegisteredEuis) { this.autoRegisteredEuis = autoRegisteredEuis; }
     public void setRows(List<Row> rows) { this.rows = rows; }
 }

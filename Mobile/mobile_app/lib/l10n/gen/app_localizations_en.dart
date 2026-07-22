@@ -3332,6 +3332,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpsQualityTrajectoryStatDevices => 'Devices';
 
   @override
+  String get gpsQualityTrajectoryAutoRegistered => 'Auto-registered';
+
+  @override
+  String get gpsQualityTrajectoryManualRegister => 'Manual register';
+
+  @override
   String get gpsQualityFilePaired => 'From file';
 
   @override
