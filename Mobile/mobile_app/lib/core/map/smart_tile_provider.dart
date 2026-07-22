@@ -89,12 +89,17 @@ class SmartTileProvider extends TileProvider {
       return;
     }
 
-    // 2. Try secondary (高德)
-    if (fallbackOnlineUrl != null && await _tryUrl(fallbackOnlineUrl!)) {
-      _consecutiveFailures = 0;
-      _switchSource(_OnlineSource.secondary);
-      return;
-    }
+   // 2. Try secondary (高德)
+   if (fallbackOnlineUrl != null && await _tryUrl(fallbackOnlineUrl!)) {
+     _consecutiveFailures = 0;
+     _switchSource(_OnlineSource.secondary);
+      // OSM is unreachable (e.g. blocked in China). Stop probing to avoid
+      // flooding the console with ERR_CONNECTION_RESET on every cycle.
+      // Stay on 高德 for the rest of this session.
+      _probeTimer?.cancel();
+      _probeTimer = null;
+     return;
+   }
 
     // 3. Both failed
     _consecutiveFailures++;
