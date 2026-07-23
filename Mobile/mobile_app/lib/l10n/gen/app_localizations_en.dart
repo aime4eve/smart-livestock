@@ -2849,7 +2849,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpsQualityNoData => 'No data';
 
   @override
-  String get gpsQualityViewTrajectory => 'View trajectory';
+  String get gpsQualityViewTrajectory => 'View Trajectory';
 
   @override
   String get gpsQualityScatterChart => 'GPS Scatter Plot';

@@ -35,6 +35,27 @@ class _FakeRepo extends GpsQualityApiRepository {
   }
 
   @override
+  Future<TrajectoryQualityReport> fetchTrajectoryReport(int testId) async =>
+      TrajectoryQualityReport(
+        testId: testId,
+        deviceCode: 'DEV001',
+        startedAt: DateTime(2026, 7, 18, 9),
+        endedAt: DateTime(2026, 7, 18, 10),
+        toleranceSec: 60,
+        grade: QualityGrade.usable,
+        totalPoints: 10,
+        filePaired: 8,
+        logPaired: 2,
+        unpaired: 0,
+        pairRate: 100,
+        meanError: 3.5,
+        p50: 3.0,
+        p95: 5.2,
+        maxError: 6.1,
+        points: const [],
+      );
+
+  @override
   Future<GpsQualityReport> fetchReport(int sessionId,
           {bool excludeSuspect = false}) async =>
       GpsQualityReport(
@@ -84,12 +105,13 @@ QualityCheck _check({
   required String status,
   required DateTime startedAt,
   String? errorMessage,
+  String checkType = 'STATIC',
 }) =>
     QualityCheck(
       id: id,
       deviceCode: deviceCode,
       deviceId: deviceId,
-      checkType: 'STATIC',
+      checkType: checkType,
       rtkPointId: 11,
       startedAt: startedAt,
       endedAt: startedAt.add(const Duration(hours: 1)),
@@ -130,6 +152,27 @@ Future<_FakeRepo> _pumpList(WidgetTester tester) async {
   await tester.pumpWidget(ProviderScope(
     overrides: [
       checksProvider.overrideWith(() => _FakeChecks(_testData())),
+      rtkPointsProvider.overrideWith(() => _FakeRtkPoints()),
+      gpsQualityApiRepositoryProvider.overrideWithValue(repo),
+    ],
+    child: const MaterialApp(
+      locale: Locale('zh'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(body: QualityCheckList()),
+    ),
+  ));
+  await tester.pumpAndSettle();
+  return repo;
+}
+
+/// Pump the list with custom test data (for swimlane-specific tests).
+Future<_FakeRepo> _pumpListWithData(
+    WidgetTester tester, QualityCheckListResult data) async {
+  final repo = _FakeRepo();
+  await tester.pumpWidget(ProviderScope(
+    overrides: [
+      checksProvider.overrideWith(() => _FakeChecks(data)),
       rtkPointsProvider.overrideWith(() => _FakeRtkPoints()),
       gpsQualityApiRepositoryProvider.overrideWithValue(repo),
     ],
@@ -247,7 +290,77 @@ void main() {
         findsOneWidget);
 
     await tester.tap(find.byKey(const Key('delete-check-confirm-btn')));
+   await tester.pumpAndSettle();
+   expect(repo.deletedCheckId, 2);
+ });
+
+  testWidgets('静态+轨迹泳道：两段均可独立点击选中', (tester) async {
+    // Same device with overlapping STATIC and TRAJECTORY checks.
+    final base = DateTime(2026, 7, 18, 9);
+    final data = QualityCheckListResult(items: [
+      _check(
+          id: 10,
+          deviceCode: 'DEV001',
+          deviceId: 50,
+          status: 'READY',
+          startedAt: base),
+      _check(
+          id: 11,
+          deviceCode: 'DEV001',
+          deviceId: 50,
+          status: 'READY',
+          startedAt: base.add(const Duration(minutes: 30)),
+          checkType: 'TRAJECTORY'),
+    ]);
+    await _pumpListWithData(tester, data);
+
+    // Both timeline segments exist and are independently tappable.
+    expect(find.byKey(const ValueKey('timeline-segment-10')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('timeline-segment-11')),
+        findsOneWidget);
+
+    // Tap the TRAJECTORY segment — it should become selected.
+    await tester.tap(find.byKey(const ValueKey('timeline-segment-11')));
     await tester.pumpAndSettle();
-    expect(repo.deletedCheckId, 2);
+
+    // Tap the STATIC segment — it should switch back.
+    await tester.tap(find.byKey(const ValueKey('timeline-segment-10')));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('静态+轨迹泳道：轨迹段删除图标可正常触发', (tester) async {
+    final base = DateTime(2026, 7, 18, 9);
+    final data = QualityCheckListResult(items: [
+      _check(
+          id: 20,
+          deviceCode: 'DEV002',
+          deviceId: 60,
+          status: 'READY',
+          startedAt: base),
+      _check(
+          id: 21,
+          deviceCode: 'DEV002',
+          deviceId: 60,
+          status: 'READY',
+          startedAt: base.add(const Duration(minutes: 15)),
+          checkType: 'TRAJECTORY'),
+    ]);
+    final repo = await _pumpListWithData(tester, data);
+
+    // Both delete badges exist.
+    expect(find.byKey(const ValueKey('delete-check-20')), findsOneWidget);
+    expect(find.byKey(const ValueKey('delete-check-21')), findsOneWidget);
+
+    // Delete the TRAJECTORY check.
+    await tester.ensureVisible(find.byKey(const ValueKey('delete-check-21')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('delete-check-21')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('delete-check-confirm-dialog')),
+        findsOneWidget);
+    await tester.tap(find.byKey(const Key('delete-check-confirm-btn')));
+    await tester.pumpAndSettle();
+    expect(repo.deletedCheckId, 21);
   });
 }

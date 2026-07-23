@@ -33,6 +33,24 @@ void showTrajectorySheet(
     ),
   );
 }
+ 
+ /// Shows a device trajectory bottom sheet (admin / GPS quality context).
+ /// Loads GPS logs via admin API by deviceId — no farm or livestock scope.
+ void showDeviceTrajectorySheet(
+   BuildContext context,
+   int deviceId,
+   String deviceCode,
+ ) {
+   showModalBottomSheet(
+     context: context,
+     isScrollControlled: true,
+     builder: (ctx) => _TrajectorySheet(
+       livestockId: '',
+       deviceId: deviceId,
+       deviceCode: deviceCode,
+     ),
+   );
+ }
 
 /// Time range options for trajectory data loading.
 enum _TrajectoryRange { h24, d7, d30, custom }
@@ -72,11 +90,15 @@ class _TrajectorySheet extends ConsumerStatefulWidget {
     this.livestockCode,
     this.breedLabel,
     this.deviceName,
+    this.deviceId,
+    this.deviceCode,
   });
   final String livestockId;
   final String? livestockCode;
   final String? breedLabel;
   final String? deviceName;
+  final int? deviceId;
+  final String? deviceCode;
 
   @override
   ConsumerState<_TrajectorySheet> createState() => _TrajectorySheetState();
@@ -178,13 +200,20 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
           .toIso8601String();
 
       var url =
-          '/livestock/${widget.livestockId}/gps-logs?startTime=${ts(start)}&endTime=${ts(now)}';
-      if (sampleSize != null) {
-        url += '&sampleSize=$sampleSize';
-      }
+         '/livestock/${widget.livestockId}/gps-logs?startTime=${ts(start)}&endTime=${ts(now)}';
+     if (sampleSize != null) {
+       url += '&sampleSize=$sampleSize';
+     }
 
-      final data = await ApiClient.instance.farmGet(url);
-      final items = data['items'];
+     // Device mode: admin API (no farm scope); livestock mode: farm-scoped.
+     final isDeviceMode = widget.deviceId != null;
+     final data = isDeviceMode
+         ? await ApiClient.instance.get(
+             '/admin/gps-quality/devices/${widget.deviceId}/gps-logs'
+             '?startTime=${ts(start)}&endTime=${ts(now)}'
+             '${sampleSize != null ? '&sampleSize=$sampleSize' : ''}')
+         : await ApiClient.instance.farmGet(url);
+     final items = data['items'];
       final raw = items is List
           ? items.whereType<Map<String, dynamic>>().toList()
           : <Map<String, dynamic>>[];
@@ -383,7 +412,12 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
 
   /// Combined display: "#A001 湘西黄牛 · GPS-3201"
   String get _livestockSummary {
-    final parts = <String>[];
+   final parts = <String>[];
+    // Device mode: show device code only.
+    if (widget.deviceId != null) {
+      return widget.deviceCode ?? 'Device #${widget.deviceId}';
+    }
+    // Livestock mode: code · breed · device name.
     if (widget.livestockCode != null && widget.livestockCode!.isNotEmpty) {
       parts.add('#${widget.livestockCode}');
     }
@@ -394,7 +428,7 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
       parts.add(widget.deviceName!);
     }
     return parts.isEmpty ? '#${widget.livestockId}' : parts.join(' · ');
-  }
+ }
 
   Widget _buildHeaderRow(AppLocalizations l10n) {
     final rangeLabel = switch (_range) {

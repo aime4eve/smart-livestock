@@ -10,6 +10,8 @@ import com.smartlivestock.iot.application.GpsQualityTestService.GpsQualityTestPa
 import com.smartlivestock.iot.application.GpsQualityBatchImportService;
 import com.smartlivestock.iot.application.TrajectoryImportService;
 import com.smartlivestock.iot.application.TrajectoryReportService;
+import com.smartlivestock.iot.application.GpsLogApplicationService;
+import com.smartlivestock.iot.application.dto.GpsLogDto;
 import com.smartlivestock.iot.domain.model.DynamicTestRoute;
 import com.smartlivestock.iot.domain.model.DynamicTestRoutePoint;
 import com.smartlivestock.iot.domain.model.GpsQualityTest;
@@ -68,7 +70,8 @@ public class GpsQualityAdminController {
     private final GpsQualityBatchImportService batchImportService;
     private final DeviceApplicationService deviceApplicationService;
     private final TrajectoryImportService trajectoryImportService;
-    private final TrajectoryReportService trajectoryReportService;
+   private final TrajectoryReportService trajectoryReportService;
+   private final GpsLogApplicationService gpsLogApplicationService;
 
     // platform_admin has no tenant; GPS quality checks fall back to the demo tenant.
     // TODO: for production, add explicit tenant selection in the request body.
@@ -495,6 +498,27 @@ public class GpsQualityAdminController {
                         ((Number) p.get("sequenceNo")).intValue()))
                 .toList();
         routeService.replacePoints(id, inputs);
-        return ResponseEntity.ok(ApiResponse.ok(null));
+       return ResponseEntity.ok(ApiResponse.ok(null));
+   }
+
+    // --- Device GPS logs (for trajectory visualization) ---
+
+    @GetMapping("/devices/{deviceId}/gps-logs")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getDeviceGpsLogs(
+            @PathVariable Long deviceId,
+            @RequestParam(required = false) String startTime,
+            @RequestParam(required = false) String endTime,
+            @RequestParam(required = false) Integer sampleSize) {
+        List<GpsLogDto> logs;
+        if (startTime != null && endTime != null && sampleSize != null && sampleSize > 0) {
+            logs = gpsLogApplicationService.sampleByDeviceAndTimeRange(
+                    deviceId, parseInstant(startTime), parseInstant(endTime), sampleSize);
+        } else if (startTime != null && endTime != null) {
+            logs = gpsLogApplicationService.getByDeviceAndTimeRange(
+                    deviceId, parseInstant(startTime), parseInstant(endTime));
+        } else {
+            logs = gpsLogApplicationService.getByDevice(deviceId);
+        }
+        return ResponseEntity.ok(ApiResponse.ok(Map.of("items", logs, "total", logs.size())));
     }
 }

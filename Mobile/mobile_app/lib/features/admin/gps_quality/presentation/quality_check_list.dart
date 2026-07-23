@@ -13,6 +13,7 @@ import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/wi
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/route_match_chart.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/edit_retry_dialog.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
 import 'package:intl/intl.dart';
 
 /// Tab 1: Quality check list — device-grouped checks with timeline & reports.
@@ -456,10 +457,24 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
           ]),
           const SizedBox(height: 4),
           Text(
-            '${DateFormat('yyyy-MM-dd HH:mm').format(first.startedAt)} → ${last.endedAt != null ? DateFormat('MM-dd HH:mm').format(last.endedAt!) : '...'}',
-            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-          ),
-          if (hasFailed)
+           '${DateFormat('yyyy-MM-dd HH:mm').format(first.startedAt)} → ${last.endedAt != null ? DateFormat('MM-dd HH:mm').format(last.endedAt!) : '...'}',
+           style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+         ),
+         const SizedBox(height: AppSpacing.sm),
+         // View device trajectory on map (NIX: device movement track)
+         if (checks.any((c) => c.deviceId != null))
+           OutlinedButton.icon(
+             key: const Key('view-device-trajectory-btn'),
+             icon: const Icon(Icons.map_outlined, size: 14),
+             label: Text(l10n.gpsQualityViewTrajectory,
+                 style: const TextStyle(fontSize: 11)),
+             onPressed: () => showDeviceTrajectorySheet(
+               context,
+               checks.firstWhere((c) => c.deviceId != null).deviceId!,
+               deviceCode,
+             ),
+           ),
+         if (hasFailed)
             Padding(
               padding: const EdgeInsets.only(top: AppSpacing.sm),
               child: Container(
@@ -499,16 +514,22 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
         (c.endedAt ?? DateTime.now()).millisecondsSinceEpoch.toDouble();
     final leftFrac = ((start - overallStart) / totalMs).clamp(0.0, 1.0);
     final rightFrac = ((end - overallStart) / totalMs).clamp(0.0, 1.0);
-    final left = leftFrac * barWidth;
-    final width = ((rightFrac - leftFrac) * barWidth).clamp(8.0, barWidth);
-    return (left: left, width: width);
+   final left = leftFrac * barWidth;
+    final width = ((rightFrac - leftFrac) * barWidth).clamp(56.0, barWidth);
+   return (left: left, width: width);
   }
 
   Widget _buildTimeline(AppLocalizations l10n, List<QualityCheck> sortedChecks, List<RtkPoint> rtkPoints) {
     if (sortedChecks.isEmpty) return const SizedBox();
-    final overallStart = sortedChecks.first.startedAt.millisecondsSinceEpoch.toDouble();
-    final overallEnd = (sortedChecks.last.endedAt ?? sortedChecks.last.startedAt).millisecondsSinceEpoch.toDouble();
-    final totalMs = (overallEnd - overallStart).clamp(1.0, double.infinity);
+
+    // Swimlane: each check type gets its own row with an independent time
+    // axis, so segments are never compressed by other lanes' time ranges.
+    const typeOrder = ['STATIC', 'TRAJECTORY', 'DYNAMIC'];
+    final byType = <String, List<QualityCheck>>{};
+    for (final c in sortedChecks) {
+      byType.putIfAbsent(c.checkType, () => []).add(c);
+    }
+    final lanes = typeOrder.where((t) => byType.containsKey(t)).toList();
 
     return Card(
       key: const Key('timeline-card'),
@@ -518,110 +539,144 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
           Text(l10n.gpsQualityTimeline, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
           const SizedBox(height: AppSpacing.sm),
           LayoutBuilder(builder: (context, constraints) {
-            final barWidth = constraints.maxWidth;
-            return Container(
-              height: 32,
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Stack(clipBehavior: Clip.none, children: [
-                ...sortedChecks.map((c) {
-                  final seg = _segmentGeometry(c, barWidth, overallStart, totalMs);
-                  final (segColor, segLabel) = _timelineStyle(c.checkType);
-                  final typeName = _typeLabel(l10n, c.checkType);
-                  final isSelected = _selectedCheckId == c.id;
-                  final isFailed = c.status == 'FAILED';
-                  return Positioned(
-                    left: seg.left,
-                    top: 3, bottom: 3,
-                    width: seg.width,
-                    child: GestureDetector(
-                      onTap: () => setState(() => _selectedCheckId = c.id),
-                      child: Tooltip(
-                        message: '$typeName · ${isFailed ? "失败" : "${c.status}"}\n${DateFormat('MM-dd HH:mm').format(c.startedAt)} → ${c.endedAt != null ? DateFormat('MM-dd HH:mm').format(c.endedAt!) : "..."}',
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 1),
-                          decoration: BoxDecoration(
-                            color: isFailed
-                                ? AppColors.danger
-                                : segColor,
-                            borderRadius: BorderRadius.circular(4),
-                            border: isSelected
-                                ? Border.all(color: AppColors.primary, width: 2)
-                                : null,
-                          ),
-                          child: Center(child: Text(
-                            segLabel,
-                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
-                          )),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-                // Per-check delete badges, as siblings of the segments so taps
-                // on the overflowing badge area hit the badge (not the segment).
-                ...sortedChecks.map((c) {
-                  final seg = _segmentGeometry(c, barWidth, overallStart, totalMs);
-                  return Positioned(
-                    left: seg.left + seg.width - 10,
-                    top: -4,
-                    child: Tooltip(
-                      message: l10n.gpsQualityDeleteCheckTip(
-                        c.endedAt != null
-                            ? DateFormat('MM-dd HH:mm').format(c.endedAt!)
-                            : '...',
-                        DateFormat('MM-dd HH:mm').format(c.startedAt),
-                        c.checkType == 'STATIC'
-                            ? l10n.gpsQualityTestTypeStatic
-                            : c.checkType == 'TRAJECTORY'
-                                ? l10n.gpsQualityTrajectoryChecks
-                                : l10n.gpsQualityTestTypeDynamic,
-                      ),
-                      child: GestureDetector(
-                        key: ValueKey('delete-check-${c.id}'),
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => _deleteCheck(l10n, c),
-                        child: Container(
-                          width: 14,
-                          height: 14,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.danger, width: 1),
-                          ),
-                          child: const Icon(Icons.close, size: 9, color: AppColors.danger),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ]),
-            );
+            const laneLabelWidth = 24.0;
+            final barWidth = constraints.maxWidth - laneLabelWidth;
+            return Column(children: [
+              ...lanes.map((type) => _buildTimelineLane(
+                    l10n, type, byType[type]!, barWidth)),
+            ]);
           }),
-          const SizedBox(height: 4),
-          // Time axis labels
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(DateFormat('MM-dd HH:mm').format(sortedChecks.first.startedAt),
-                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-              Text(DateFormat('MM-dd HH:mm').format(sortedChecks.last.endedAt ?? sortedChecks.last.startedAt),
-                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-            ],
-          ),
           const SizedBox(height: 6),
-          Row(children: [
+          Wrap(spacing: AppSpacing.md, children: [
             _timelineLegend(const Color(0xFF2563EB), l10n.gpsQualityTestTypeStatic),
-            const SizedBox(width: AppSpacing.md),
+            _timelineLegend(const Color(0xFF7C3AED), l10n.gpsQualityTrajectoryChecks),
             _timelineLegend(const Color(0xFFD97706), l10n.gpsQualityTestTypeDynamic),
-            const SizedBox(width: AppSpacing.md),
             _timelineLegend(AppColors.danger, l10n.gpsQualityImportFailed),
           ]),
         ]),
       ),
+    );
+  }
+
+  /// One horizontal swimlane row for a single check type.
+  /// Each lane computes its own independent time axis from its own checks.
+  Widget _buildTimelineLane(
+    AppLocalizations l10n,
+    String checkType,
+    List<QualityCheck> checks,
+    double barWidth,
+  ) {
+    final (segColor, segLabel) = _timelineStyle(checkType);
+    // Independent time axis for this lane only.
+    final laneSorted = List<QualityCheck>.from(checks)
+      ..sort((a, b) => a.startedAt.compareTo(b.startedAt));
+    final laneStart =
+        laneSorted.first.startedAt.millisecondsSinceEpoch.toDouble();
+    final laneEnd = (laneSorted.last.endedAt ?? laneSorted.last.startedAt)
+        .millisecondsSinceEpoch.toDouble();
+    final laneTotalMs = (laneEnd - laneStart).clamp(1.0, double.infinity);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(children: [
+        SizedBox(
+          width: 24,
+          child: Center(child: Text(segLabel, style: TextStyle(
+            fontSize: 12, fontWeight: FontWeight.w600, color: segColor,
+          ))),
+        ),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Container(
+            height: 28,
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Stack(clipBehavior: Clip.none, children: [
+              ...laneSorted.map((c) {
+                final seg = _segmentGeometry(c, barWidth, laneStart, laneTotalMs);
+                final typeName = _typeLabel(l10n, c.checkType);
+                final isSelected = _selectedCheckId == c.id;
+                final isFailed = c.status == 'FAILED';
+                return Positioned(
+                  left: seg.left,
+                  top: 3, bottom: 3,
+                  width: seg.width,
+                  child: GestureDetector(
+                    key: ValueKey('timeline-segment-${c.id}'),
+                    onTap: () => setState(() => _selectedCheckId = c.id),
+                    child: Tooltip(
+                      message: '$typeName · ${isFailed ? "失败" : "${c.status}"}\n${DateFormat('MM-dd HH:mm').format(c.startedAt)} → ${c.endedAt != null ? DateFormat('MM-dd HH:mm').format(c.endedAt!) : "..."}',
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 1),
+                        decoration: BoxDecoration(
+                          color: isFailed ? AppColors.danger : segColor,
+                          borderRadius: BorderRadius.circular(4),
+                          border: isSelected
+                              ? Border.all(color: AppColors.primary, width: 2)
+                              : null,
+                        ),
+                        child: Center(child: Text(
+                          DateFormat('HH:mm').format(c.startedAt),
+                          style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w600),
+                        )),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+              // Per-check delete badges, rendered above segments.
+              ...laneSorted.map((c) {
+                final seg = _segmentGeometry(c, barWidth, laneStart, laneTotalMs);
+                return Positioned(
+                  left: seg.left + seg.width - 10,
+                  top: -4,
+                  child: Tooltip(
+                    message: l10n.gpsQualityDeleteCheckTip(
+                      c.endedAt != null
+                          ? DateFormat('MM-dd HH:mm').format(c.endedAt!)
+                          : '...',
+                      DateFormat('MM-dd HH:mm').format(c.startedAt),
+                      c.checkType == 'STATIC'
+                          ? l10n.gpsQualityTestTypeStatic
+                          : c.checkType == 'TRAJECTORY'
+                              ? l10n.gpsQualityTrajectoryChecks
+                              : l10n.gpsQualityTestTypeDynamic,
+                    ),
+                    child: GestureDetector(
+                      key: ValueKey('delete-check-${c.id}'),
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _deleteCheck(l10n, c),
+                      child: Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.danger, width: 1),
+                        ),
+                        child: const Icon(Icons.close, size: 9, color: AppColors.danger),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ]),
+          ),
+          const SizedBox(height: 2),
+          // Per-lane independent time axis labels.
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(DateFormat('MM-dd HH:mm').format(laneSorted.first.startedAt),
+                style: const TextStyle(fontSize: 9, color: AppColors.textSecondary)),
+              Text(DateFormat('MM-dd HH:mm').format(laneSorted.last.endedAt ?? laneSorted.last.startedAt),
+                style: const TextStyle(fontSize: 9, color: AppColors.textSecondary)),
+            ],
+          ),
+        ])),
+      ]),
     );
   }
 
