@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIX-52 告警中心 UI/UX 重设计 · 完整体验原型</title>
+<style>
+:root{
+  --primary:#2F6B3B;--primary-dark:#244F2D;--primary-soft:#E3F0E4;--accent:#8BA95A;
+  --surface:#F8F6F0;--surface-alt:#FFFFFF;--border:#D7D2C6;
+  --text-primary:#263126;--text-secondary:#617061;
+  --success:#4C9A5F;--warning:#D28A2D;--danger:#C2564B;--info:#4A7F9D;--estrus:#C25689;
+  --xs:4px;--sm:8px;--md:12px;--lg:16px;--xl:24px;--xxl:32px;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+  --shadow-card:0 1px 3px rgba(38,49,38,.06),0 1px 2px rgba(38,49,38,.04);
+  --shadow-elev:0 4px 16px rgba(38,49,38,.12);
+  --shadow-sheet:0 -4px 24px rgba(38,49,38,.15);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sans-serif;background:#E0DDD6;color:var(--text-primary);min-height:100vh;padding:24px}
+
+/* ═══ Page Layout ═══ */
+.page-title{text-align:center;margin-bottom:8px}
+.page-title h1{font-size:22px;font-weight:700;color:var(--text-primary)}
+.page-title p{font-size:13px;color:var(--text-secondary);margin-top:4px}
+.flow-grid{display:flex;flex-wrap:wrap;gap:32px;justify-content:center;margin-top:24px;max-width:1800px;margin-left:auto;margin-right:auto}
+
+/* ═══ Screen Group ═══ */
+.screen-group{display:flex;flex-direction:column;align-items:center;gap:12px}
+.screen-label{font-size:13px;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:6px}
+.screen-label .num{width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.screen-sublabel{font-size:11px;color:var(--text-secondary);max-width:280px;text-align:center;line-height:1.4}
+
+/* ═══ Phone Frame ═══ */
+.phone{width:280px;height:580px;background:var(--surface);border-radius:36px;overflow:hidden;box-shadow:0 0 0 8px #1a1a1a,0 0 0 9px #2a2a2a,0 20px 50px rgba(0,0,0,.25);position:relative;display:flex;flex-direction:column}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:100px;height:22px;background:#1a1a1a;border-radius:0 0 16px 16px;z-index:9999}
+.phone-status{height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:11px;font-weight:600;flex-shrink:0}
+.phone-status .icons{display:flex;gap:4px;font-size:10px}
+
+/* ═══ App Bar ═══ */
+.appbar{background:var(--primary);color:#fff;padding:6px 12px;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.appbar .back{font-size:18px;cursor:pointer;width:28px;text-align:center}
+.appbar h1{font-size:13px;font-weight:600;flex:1}
+.appbar .action{background:rgba(255,255,255,.15);border:none;color:#fff;padding:4px 8px;border-radius:6px;font-size:10px;cursor:pointer}
+
+/* ═══ Map (mock) ═══ */
+.map-area{flex:1;position:relative;overflow:hidden;background:linear-gradient(135deg,#E8E5DE 0%,#DDD9D0 100%)}
+.map-grid{position:absolute;inset:0;opacity:.3;background-image:linear-gradient(rgba(100,100,100,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(100,100,100,.1) 1px,transparent 1px);background-size:30px 30px}
+.map-road{position:absolute;background:#FFF;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.map-fence{position:absolute;border:2px solid var(--danger);border-radius:4px;opacity:.6}
+.map-fence.approach{border-color:var(--warning)}
+.map-marker{position:absolute;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.2);border:2px solid #fff;z-index:5;cursor:pointer}
+.map-marker.critical{background:var(--danger)}
+.map-marker.warning{background:var(--warning)}
+.map-marker.normal{background:var(--success)}
+.map-marker.estrus{background:var(--estrus)}
+.map-pulse{position:absolute;width:40px;height:40px;border-radius:50%;border:2px solid var(--danger);opacity:.4;animation:pulse 2s infinite;z-index:4}
+@keyframes pulse{0%{transform:scale(.8);opacity:.6}100%{transform:scale(1.8);opacity:0}}
+
+/* ═══ Bottom Sheet (on map) ═══ */
+.map-sheet{position:absolute;bottom:0;left:0;right:0;background:var(--surface-alt);border-radius:16px 16px 0 0;box-shadow:var(--shadow-sheet);z-index:10}
+.map-sheet-handle{width:32px;height:3px;background:var(--border);border-radius:2px;margin:8px auto 0}
+
+/* ═══ Dashboard Cards ═══ */
+.dash-row{display:flex;gap:8px;padding:10px 12px 6px}
+.dash-card{flex:1;background:var(--surface);border-radius:10px;padding:8px;border:1px solid var(--border);cursor:pointer}
+.dash-card.has-alert{border-color:rgba(194,86,75,.3);background:rgba(194,86,75,.03)}
+.dash-card-top{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.dash-card-top .ico{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.dash-card-top .ico.danger{background:rgba(194,86,75,.1);color:var(--danger)}
+.dash-card-top .ico.warning{background:rgba(210,138,45,.1);color:var(--warning)}
+.dash-card-top .ico.success{background:rgba(76,154,95,.1);color:var(--success)}
+.dash-card .count{font-size:18px;font-weight:700;line-height:1}
+.dash-card .label{font-size:9px;color:var(--text-secondary)}
+.dash-card .badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;float:right}
+.dash-card .badge.danger{background:var(--danger);color:#fff}
+
+/* ═══ Alert Banner ═══ */
+.alert-banner{position:absolute;top:36px;left:8px;right:8px;background:var(--danger);color:#fff;border-radius:8px;padding:6px 10px;display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;box-shadow:0 2px 8px rgba(194,86,75,.3);z-index:8;cursor:pointer}
+.alert-banner .pulse-dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:pulse-dot 1.5s infinite}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ═══ Scroll Area ═══ */
+.scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.scroll-area::-webkit-scrollbar{width:0}
+
+/* ═══ Summary Strip ═══ */
+.summary-strip{display:flex;padding:8px 12px;background:var(--surface-alt);border-bottom:1px solid var(--border);flex-shrink:0}
+.summary-item{flex:1;text-align:center;cursor:pointer}
+.summary-item .count{font-size:20px;font-weight:700;line-height:1.2}
+.summary-item .label{font-size:9px;color:var(--text-secondary)}
+.summary-item.crit .count{color:var(--danger)}
+.summary-item.warn .count{color:var(--warning)}
+.summary-item.act .count{color:var(--primary)}
+
+/* ═══ Filter Bar ═══ */
+.filter-bar{background:var(--surface);padding:6px 12px;border-bottom:1px solid var(--border)}
+.seg-tabs{display:flex;background:var(--border);border-radius:6px;padding:2px;gap:2px}
+.seg-tab{flex:1;padding:5px 0;text-align:center;font-size:10px;font-weight:500;color:var(--text-secondary);cursor:pointer;border-radius:4px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;gap:2px}
+.seg-tab.active{background:var(--surface-alt);color:var(--primary);font-weight:600;box-shadow:var(--shadow-card)}
+.seg-tab .badge{background:var(--danger);color:#fff;font-size:8px;font-weight:700;padding:0 4px;border-radius:6px;min-width:12px;text-align:center}
+.type-chips{display:flex;gap:4px;margin-top:5px;overflow-x:auto}
+.type-chips::-webkit-scrollbar{height:0}
+.type-chip{padding:3px 8px;border-radius:12px;font-size:9px;font-weight:500;white-space:nowrap;cursor:pointer;border:1px solid var(--border);background:var(--surface-alt);color:var(--text-secondary);display:flex;align-items:center;gap:3px}
+.type-chip.active{background:var(--primary-soft);color:var(--primary-dark);border-color:var(--primary);font-weight:600}
+.type-chip .dot{width:5px;height:5px;border-radius:50%}
+
+/* ═══ Date Group ═══ */
+.date-group{display:flex;align-items:center;gap:6px;padding:8px 12px 2px;font-size:10px;font-weight:600;color:var(--text-secondary)}
+.date-group .line{flex:1;height:1px;background:var(--border)}
+.date-group .cnt{font-size:9px;font-weight:500;background:var(--surface);padding:1px 5px;border-radius:6px;border:1px solid var(--border)}
+
+/* ═══ Alert Card ═══ */
+.alert-list{padding:0 12px 16px}
+.alert-card{background:var(--surface-alt);border-radius:10px;margin-bottom:6px;overflow:hidden;cursor:pointer;border:1px solid transparent}
+.alert-card.unread{border-color:rgba(47,107,59,.12)}
+.alert-inner{display:flex;align-items:stretch}
+.alert-bar{width:3px;flex-shrink:0}
+.alert-bar.critical{background:var(--danger)}
+.alert-bar.warning{background:var(--warning)}
+.alert-bar.info{background:var(--info)}
+.alert-body{flex:1;padding:8px}
+.alert-top{display:flex;align-items:flex-start;gap:7px;margin-bottom:2px}
+.alert-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.alert-icon.critical{background:#FCEAE8;color:var(--danger)}
+.alert-icon.warning{background:#FBF0E0;color:var(--warning)}
+.alert-icon.info{background:#E8F0F5;color:var(--info)}
+.alert-icon.estrus{background:#FCEAF2;color:var(--estrus)}
+.alert-icon.ai{background:#EDE9FE;color:#7C3AED}
+.alert-content{flex:1;min-width:0}
+.alert-title-row{display:flex;align-items:center;gap:4px}
+.alert-title{font-size:11px;font-weight:600;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.unread-dot{width:6px;height:6px;border-radius:50%;background:var(--primary);flex-shrink:0;margin-top:3px}
+.alert-meta{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--text-secondary);flex-wrap:wrap}
+.alert-meta .sep{color:var(--border)}
+.alert-badges{display:flex;gap:4px;margin-top:3px;flex-wrap:wrap}
+.type-badge{padding:1px 5px;border-radius:3px;font-size:8px;font-weight:600;white-space:nowrap}
+.type-badge.critical{background:#FCEAE8;color:var(--danger)}
+.type-badge.warning{background:#FBF0E0;color:#92580E}
+.type-badge.info{background:#E8F0F5;color:var(--info)}
+.type-badge.estrus{background:#FCEAF2;color:var(--estrus)}
+.type-badge.ai{background:#EDE9FE;color:#7C3AED}
+.type-badge.resolved{background:#E8F5EC;color:var(--success)}
+.status-tag{font-size:8px;font-weight:600;padding:1px 5px;border-radius:3px}
+.status-tag.active{background:#FFF3CD;color:#92580E}
+.status-tag.dismissed{background:#E8E8E8;color:var(--text-secondary)}
+.status-tag.auto_resolved{background:#E8F5EC;color:var(--success)}
+.source-tag{font-size:7px;font-weight:700;padding:0 3px;border-radius:2px;background:#F3F0FA;color:#7C3AED}
+.source-tag.rule{background:#E8F0E5;color:var(--primary-dark)}
+
+/* ═══ Checkbox ═══ */
+.batch-cb{width:18px;height:18px;border-radius:4px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;margin-right:5px}
+.batch-cb.checked{background:var(--primary);border-color:var(--primary)}
+.batch-cb.checked::after{content:"";width:5px;height:9px;border:solid #fff;border-width:0 1.5px 1.5px 0;transform:rotate(45deg) translateY(-1px)}
+
+/* ═══ Detail Sheet ═══ */
+.sheet-overlay{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:9000;display:flex;align-items:flex-end}
+.detail-sheet{background:var(--surface-alt);border-radius:16px 16px 0 0;width:100%;box-shadow:var(--shadow-sheet);max-height:88%;overflow:hidden;display:flex;flex-direction:column}
+.detail-handle{width:32px;height:3px;background:var(--border);border-radius:2px;margin:8px auto 0}
+.detail-close{position:absolute;top:10px;right:14px;width:24px;height:24px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--text-secondary);border:none;z-index:1}
+.detail-header{padding:8px 14px 12px;text-align:center;border-bottom:1px solid var(--border)}
+.detail-icon-lg{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 6px}
+.detail-icon-lg.critical{background:#FCEAE8;color:var(--danger)}
+.detail-icon-lg.warning{background:#FBF0E0;color:var(--warning)}
+.detail-icon-lg.info{background:#E8F0F5;color:var(--info)}
+.detail-icon-lg.estrus{background:#FCEAF2;color:var(--estrus)}
+.detail-title{font-size:13px;font-weight:700;line-height:1.3}
+.detail-badges{display:flex;gap:4px;justify-content:center;margin-top:5px;flex-wrap:wrap}
+.detail-body{padding:12px 14px;overflow-y:auto;flex:1}
+.detail-desc{font-size:11px;line-height:1.5;color:var(--text-primary);margin-bottom:10px;padding:8px;background:var(--surface);border-radius:6px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+.detail-field{display:flex;flex-direction:column;gap:1px}
+.detail-field .fl{font-size:9px;color:var(--text-secondary)}
+.detail-field .fv{font-size:11px;font-weight:600}
+.detail-timeline{margin-top:10px;padding:8px;background:var(--surface);border-radius:6px}
+.detail-timeline-title{font-size:10px;font-weight:600;margin-bottom:6px}
+.detail-timeline-item{display:flex;gap:8px;font-size:9px;color:var(--text-secondary);padding:3px 0;align-items:center}
+.detail-timeline-item .tl-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.detail-timeline-item .tl-dot.active{background:var(--warning)}
+.detail-timeline-item .tl-dot.done{background:var(--success)}
+.detail-timeline-item .tl-dot.dismiss{background:var(--text-secondary)}
+.detail-actions{padding:10px 14px;display:flex;gap:6px;border-top:1px solid var(--border)}
+.btn{padding:9px 0;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;flex:1;text-align:center}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-secondary{background:var(--primary-soft);color:var(--primary-dark)}
+.btn-danger{background:#FCEAE8;color:var(--danger)}
+.btn-disabled{background:var(--border);color:var(--text-secondary)}
+.btn-nav{background:var(--info);color:#fff}
+
+/* ═══ Empty State ═══ */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center}
+.empty-state .empty-icon{width:56px;height:56px;border-radius:50%;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:10px}
+.empty-state h3{font-size:13px;font-weight:600;margin-bottom:2px}
+.empty-state p{font-size:10px;color:var(--text-secondary);line-height:1.4}
+
+/* ═══ Batch Bar ═══ */
+.batch-bar{position:absolute;bottom:0;left:0;right:0;background:var(--surface-alt);border-top:1px solid var(--border);padding:8px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 -2px 8px rgba(0,0,0,.06);z-index:80}
+.batch-bar .sel-count{font-size:10px;font-weight:600}
+.batch-bar .sel-count span{color:var(--primary)}
+.batch-bar .batch-actions{display:flex;gap:4px;margin-left:auto}
+.batch-bar .batch-btn{padding:5px 10px;border:none;border-radius:5px;font-size:9px;font-weight:600;cursor:pointer}
+.batch-bar .batch-btn.read{background:var(--primary-soft);color:var(--primary-dark)}
+.batch-bar .batch-btn.dismiss{background:#FCEAE8;color:var(--danger)}
+
+/* ═══ Bottom Nav ═══ */
+.bottom-nav{display:flex;background:var(--surface-alt);border-top:1px solid var(--border);padding:5px 0 14px;flex-shrink:0}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:9px;color:var(--text-secondary);cursor:pointer;padding:3px}
+.nav-item.active{color:var(--primary)}
+.nav-item .nav-icon{font-size:18px;line-height:1}
+
+/* ═══ Flow Arrows ═══ */
+.flow-arrow{display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--text-secondary);margin:0 -8px;align-self:center}
+
+/* ═══ Notes Panel ═══ */
+.notes-panel{max-width:1800px;margin:32px auto 0;background:var(--surface-alt);border-radius:12px;padding:20px;box-shadow:var(--shadow-card)}
+.notes-panel h2{font-size:16px;font-weight:700;margin-bottom:12px;color:var(--primary)}
+.notes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.note-card{background:var(--surface);border-radius:8px;padding:12px;border-left:3px solid var(--primary)}
+.note-card .note-title{font-size:13px;font-weight:700;margin-bottom:6px;color:var(--primary)}
+.note-card .note-body{font-size:11px;color:var(--text-secondary);line-height:1.5}
+.note-card .note-body li{margin:3px 0;display:flex;gap:4px}
+.note-card .note-body li::before{content:"·";font-weight:700}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.compare-col{padding:12px;border-radius:8px;font-size:11px;line-height:1.5}
+.compare-col.before{background:#FCEAE8;color:#7A2E25;border:1px solid rgba(194,86,75,.2)}
+.compare-col.after{background:#E8F5EC;color:#2A5A35;border:1px solid rgba(76,154,95,.2)}
+.compare-col b{display:block;font-size:12px;margin-bottom:4px}
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <h1>NIX-52 告警中心 UI/UX 重设计</h1>
+  <p>完整用户旅程 · 6 个核心场景 · 从发现告警到处置完毕</p>
+</div>
+
+<div class="flow-grid">
+
+<!-- ══════ Screen 1: 牧场页 · 告警入口 ══════ -->
+<div class="screen-group">
+  <div class="screen-label"><span class="num">1</span>牧场页 · 地图+告警入口</div>
+  <div class="screen-sublabel">用户日常视图：地图上告警标记 + 顶部告警横幅 + 底部看板卡片</div>
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="phone-status"><span>9:41</span><span class="icons">📶 🔋</span></div>
+    <div class="appbar">
+      <span class="back">‹</span>
+      <h1>长沙示范牧场</h1>
+      <span style="font-size:10px;background:rgba(255,255,255,.15);padding:3px 8px;border-radius:6px">⇅ 切换</span>
+    </div>
+    <div class="map-area">
+      <div class="map-grid"></div>
+      <!-- Roads -->
+      <div class="map-road" style="left:0;top:38%;width:100%;height:8px;transform:rotate(-5deg)"></div>
+      <div class="map-road" style="left:45%;top:0;width:8px;height:100%;transform:rotate(8deg)"></div>
+      <!-- Fences -->
+      <div class="map-fence" style="left:15%;top:20%;width:120px;height:80px"></div>
+      <div class="map-fence approach" style="left:52%;top:45%;width:90px;height:60px"></div>
+      <!-- Pulse for critical -->
+      <div class="map-pulse" style="left:28%;top:30%"></div>
+      <!-- Markers -->
+      <div class="map-marker critical" style="left:30%;top:32%">🐄</div>
+      <div class="map-marker warning" style="left:55%;top:50%">🐂</div>
+      <div class="map-marker normal" style="left:60%;top:35%">🐄</div>
+      <div class="map-marker estrus" style="left:70%;top:55%">🐄</div>
+      <div class="map-marker normal" style="left:25%;top:50%">🐂</div>
+      <div class="map-marker normal" style="left:40%;top:60%">🐄</div>
+      <!-- Alert Banner -->
+      <div class="alert-banner">
+        <span class="pulse-dot"></span>
+        <span>2 条严重告警待处理</span>
+        <span style="margin-left:auto;font-size:14px">›</span>
+      </div>
+    </div>
+    <!-- Bottom Sheet: Dashboard Cards -->
+    <div class="map-sheet">
+      <div class="map-sheet-handle"></div>
+      <div class="dash-row">
+        <div class="dash-card has-alert" onclick="document.getElementById('screen2').scrollIntoView({behavior:'smooth'})">
+          <div class="dash-card-top">
+            <div class="ico danger">🚧</div>
+            <span class="badge danger">2</span>
+          </div>
+          <div class="count">2</div>
+          <div class="label">围栏告警</div>
+        </div>
+        <div class="dash-card has-alert">
+          <div class="dash-card-top">
+            <div class="ico warning">🌡️</div>
+            <span class="badge" style="background:var(--warning);color:#fff">1</span>
+          </div>
+          <div class="count">1</div>
+          <div class="label">健康告警</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-top">
+            <div class="ico success">📡</div>
+          </div>
+          <div class="count">0</div>
+          <div class="label">设备告警</div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active"><span class="nav-icon">🗺️</span>牧场</div>
+        <div class="nav-item"><span class="nav-icon">👤</span>我的</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="flow-arrow">→</div>
+
+<!-- ══════ Screen 2: 告警列表 ══════ -->
+<div class="screen-group">
+  <div class="screen-label"><span class="num">2</span>告警列表 · 全量浏览</div>
+  <div class="screen-sublabel">点击围栏告警卡片或横幅进入。摘要条 + 状态/类型筛选 + 按日期分组</div>
+  <div class="phone" id="screen2">
+    <div class="phone-notch"></div>
+    <div class="phone-status"><span>9:41</span><span class="icons">📶 🔋</span></div>
+    <div class="appbar">
+      <span class="back">‹</span>
+      <h1>告警中心</h1>
+      <button class="action">✓ 全部已读</button>
+    </div>
+    <div class="summary-strip">
+      <div class="summary-item crit"><div class="count">2</div><div class="label">严重</div></div>
+      <div class="summary-item warn"><div class="count">2</div><div class="label">警告</div></div>
+      <div class="summary-item act"><div class="count">5</div><div class="label">待处理</div></div>
+    </div>
+    <div class="filter-bar">
+      <div class="seg-tabs">
+        <button class="seg-tab active">全部</button>
+        <button class="seg-tab">活跃 <span class="badge">5</span></button>
+        <button class="seg-tab">已处理</button>
+      </div>
+      <div class="type-chips">
+        <div class="type-chip active">全部类型</div>
+        <div class="type-chip"><span class="dot" style="background:var(--danger)"></span>围栏越界</div>
+        <div class="type-chip"><span class="dot" style="background:var(--warning)"></span>体温异常</div>
+        <div class="type-chip"><span class="dot" style="background:var(--estrus)"></span>发情</div>
+        <div class="type-chip"><span class="dot" style="background:#7C3AED"></span>AI异常</div>
+      </div>
+    </div>
+    <div class="scroll-area">
+      <div class="alert-list">
+        <div class="date-group"><span>今天</span><div class="line"></div><span class="cnt">5 条</span></div>
+        <!-- Unread critical -->
+        <div class="alert-card unread">
+          <div class="alert-inner">
+            <div class="alert-bar critical"></div>
+            <div class="alert-body">
+              <div class="alert-top">
+                <div class="alert-icon critical">🚧</div>
+                <div class="alert-content">
+                  <div class="alert-title-row"><span class="alert-title">牲畜 #LS-028 越出西区围栏边界</span><span class="unread-dot"></span></div>
+                  <div class="alert-meta"><span>🏷️ LS-028</span><span class="sep">·</span><span>📍 西区围栏</span><span class="sep">·</span><span>⏱️ 2分钟前</span></div>
+                  <div class="alert-badges"><span class="type-badge critical">围栏越界</span><span class="status-tag active">活跃</span><span class="source-tag rule">规则</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Unread critical -->
+        <div class="alert-card unread">
+          <div class="alert-inner">
+            <div class="alert-bar critical"></div>
+            <div class="alert-body">
+              <div class="alert-top">
+                <div class="alert-icon critical">🌡️</div>
+                <div class="alert-content">
+                  <div class="alert-title-row"><span class="alert-title">牲畜 #LS-015 体温 41.2°C 超出阈值</span><span class="unread-dot"></span></div>
+                  <div class="alert-meta"><span>🏷️ LS-015</span><span class="sep">·</span><span>📍 北区放牧区</span><span class="sep">·</span><span>⏱️ 12分钟前</span></div>
+                  <div class="alert-badges"><span class="type-badge critical">体温异常</span><span class="status-tag active">活跃</span><span class="source-tag">AI</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Read warning -->
+        <div class="alert-card">
+          <div class="alert-inner">
+            <div class="alert-bar warning"></div>
+            <div class="alert-body">
+              <div class="alert-top">
+                <div class="alert-icon warning">🔋</div>
+                <div class="alert-content">
+                  <div class="alert-title-row"><span class="alert-title">设备 DEV-0042 电量仅 12%</span></div>
+                  <div class="alert-meta"><span>🏷️ LS-003</span><span class="sep">·</span><span>📍 南区围栏</span><span class="sep">·</span><span>⏱️ 38分钟前</span></div>
+                  <div class="alert-badges"><span class="type-badge warning">低电量</span><span class="status-tag active">活跃</span><span class="source-tag rule">规则</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="alert-card">
+          <div class="alert-inner">
+            <div class="alert-bar info"></div>
+            <div class="alert-body">
+              <div class="alert-top">
+                <div class="alert-icon estrus">💕</div>
+                <div class="alert-content">
+                  <div class="alert-title-row"><span class="alert-title">牲畜 #LS-022 进入发情期窗口</span></div>
+                  <div class="alert-meta"><span>🏷️ LS-022</span><span class="sep">·</span><span>📍 繁殖区</span><span class="sep">·</span><span>⏱️ 1小时前</span></div>
+                  <div class="alert-badges"><span class="type-badge estrus">发情检测</span><span class="status-tag active">活跃</span><span class="source-tag">AI</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="alert-card">
+          <div class="alert-inner">
+            <div class="alert-bar warning"></div>
+            <div class="alert-body">
+              <div class="alert-top">
+                <div class="alert-icon warning">⚠️</div>
+                <div class="alert-content">
+                  <div class="alert-title-row"><span class="alert-title">#LS-031 正在接近北区围栏边缘</span></div>
+                  <div class="alert-meta"><span>🏷️ LS-031</span><span class="sep">·</span><span>📍 北区围栏</span><span class="sep">·</span><span>⏱️ 2小时前</span></div>
+                  <div class="alert-badges"><span class="type-badge warning">接近围栏</span><span class="status-tag active">活跃</span><span class="source-tag rule">规则</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="date-group"><span>昨天</span><div class="line"></div><span class="cnt">2 条</span></div>
+        <div class="alert-card">
+          <div class="alert-inner">
+            <div class="alert-bar warning"></div>
+            <div class="alert-body">
+              <div class="alert-top">
+                <div class="alert-icon warning">🫃</div>
+                <div class="alert-content">
+                  <div class="alert-title-row"><span class="alert-title">#LS-009 蠕动频率低于正常范围</span></div>
+                  <div class="alert-meta"><span>🏷️ LS-009</span><span class="sep">·</span><span>📍 东区放牧区</span><span class="sep">·</span><span>⏱️ 昨天 16:20</span></div>
+                  <div class="alert-badges"><span class="type-badge warning">消化异常</span><span class="status-tag dismissed">已忽略</span><span class="source-tag">AI</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item active"><span class="nav-icon">🗺️</span>牧场</div>
+      <div class="nav-item"><span class="nav-icon">👤</span>我的</div>
+    </div>
+  </div>
+</div>
+
+<div class="flow-arrow">→</div>
+
+<!-- ══════ Screen 3: 告警详情面板 ══════ -->
+<div class="screen-group">
+  <div class="screen-label"><span class="num">3</span>告警详情 · 底部面板</div>
+  <div class="screen-sublabel">点击告警卡片弹出。完整元数据 + 处置时间线 + 操作按钮 + 跳转关联实体</div>
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="phone-status"><span>9:41</span><span class="icons">📶 🔋</span></div>
+    <!-- Dimmed list behind sheet -->
+    <div style="flex:1;position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;opacity:.15">
+        <div class="alert-list" style="padding-top:8px">
+          <div class="alert-card unread"><div class="alert-inner"><div class="alert-bar critical"></div><div class="alert-body"><div class="alert-top"><div class="alert-icon critical">🚧</div><div class="alert-content"><div class="alert-title-row"><span class="alert-title">牲畜 #LS-028 越出西区围栏</span></div></div></div></div></div></div>
+        </div>
+      </div>
+      <div class="sheet-overlay">
+        <div class="detail-sheet">
+          <button class="detail-close">✕</button>
+          <div class="detail-handle"></div>
+          <div class="detail-header">
+            <div class="detail-icon-lg critical">🚧</div>
+            <div class="detail-title">牲畜 #LS-028 越出西区围栏边界</div>
+            <div class="detail-badges">
+              <span class="type-badge critical">围栏越界</span>
+              <span class="type-badge critical">严重</span>
+              <span class="status-tag active">活跃</span>
+              <span class="source-tag rule">规则触发</span>
+            </div>
+          </div>
+          <div class="detail-body">
+            <div class="detail-desc">💡 牲畜 #LS-028 已越出「西区围栏」边界，当前位置距围栏约 120m。建议尽快确认牲畜位置并引导归回。</div>
+            <div class="detail-grid">
+              <div class="detail-field"><span class="fl">发生时间</span><span class="fv">今天 09:39</span></div>
+              <div class="detail-field"><span class="fl">牲畜编号</span><span class="fv">LS-028</span></div>
+              <div class="detail-field"><span class="fl">牲畜类型</span><span class="fv">牦牛</span></div>
+              <div class="detail-field"><span class="fl">所在围栏</span><span class="fv">西区围栏</span></div>
+              <div class="detail-field"><span class="fl">偏离距离</span><span class="fv" style="color:var(--danger)">120m</span></div>
+              <div class="detail-field"><span class="fl">告警来源</span><span class="fv">规则引擎</span></div>
+            </div>
+            <div class="detail-timeline">
+              <div class="detail-timeline-title">📋 处置时间线</div>
+              <div class="detail-timeline-item"><span class="tl-dot active"></span>09:39 规则引擎触发围栏越界告警</div>
+              <div class="detail-timeline-item" style="color:var(--border)"><span class="tl-dot" style="background:var(--border)"></span>等待处理...</div>
+            </div>
+          </div>
+          <div class="detail-actions">
+            <button class="btn btn-nav">📍 地图定位</button>
+            <button class="btn btn-secondary">✓ 标记已读</button>
+            <button class="btn btn-danger">忽略</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ Screen 4: 批量模式 ══════ -->
+<div class="screen-group">
+  <div class="screen-label"><span class="num">4</span>批量管理 · 多选操作</div>
+  <div class="screen-sublabel">长按告警卡片进入。批量已读 / 批量忽略，底部操作栏实时更新选中数</div>
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="phone-status"><span>9:41</span><span class="icons">📶 🔋</span></div>
+    <div class="appbar" style="background:var(--primary-dark)">
+      <span class="back">✕</span>
+      <h1>批量管理 (3)</h1>
+      <button class="action">全选</button>
+    </div>
+    <div class="scroll-area">
+      <div class="alert-list">
+        <div class="date-group"><span>今天</span><div class="line"></div><span class="cnt">5 条</span></div>
+        <div class="alert-card unread">
+          <div class="alert-inner">
+            <div class="alert-bar critical"></div>
+            <div class="alert-body">
+              <div class="alert-top">
+                <div class="batch-cb checked"></div>
+                <div class="alert-icon critical">🚧</div>
+                <div class="alert-content">
+                  <div class="alert-title-row"><span class="alert-title">#LS-028 越出西区围栏</span></div>
+                  <div class="alert-meta"><span>🏷️ LS-028</span><span class="sep">·</span><span>⏱️ 2分钟前</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="alert-card unread">
+          <div class="alert-inner">
+            <div class="alert-bar critical"></div>
+            <div class="alert-body">
+              <div class="alert-top">
+                <div class="batch-cb checked"></div>
+                <div class="alert-icon critical">🌡️</div>
+                <div class="alert-content">
+                  <div class="alert-title-row"><span class="alert-title">#LS-015 体温 41.2°C</span></div>
+                  <div class="alert-meta"><span>🏷️ LS-015</span><span class="sep">·</span><span>⏱️ 12分钟前</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="alert-card">
+          <div class="alert-inner">
+            <div class="alert-bar warning"></div>
+            <div class="alert-body">
+              <div class="alert-top">
+                <div class="batch-cb"></div>
+                <div class="alert-icon warning">🔋</div>
+                <div class="alert-content">
+                  <div class="alert-title-row"><span class="alert-title">DEV-0042 电量仅 12%</span></div>
+                  <div class="alert-meta"><span>🏷️ LS-003</span><span class="sep">·</span><span>⏱️ 38分钟前</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="alert-card">
+          <div class="alert-inner">
+            <div class="alert-bar info"></div>
+            <div class="alert-body">
+              <div class="alert-top">
+                <div class="batch-cb checked"></div>
+                <div class="alert-icon estrus">💕</div>
+                <div class="alert-content">
+                  <div class="alert-title-row"><span class="alert-title">#LS-022 进入发情期窗口</span></div>
+                  <div class="alert-meta"><span>🏷️ LS-022</span><span class="sep">·</span><span>⏱️ 1小时前</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="alert-card">
+          <div class="alert-inner">
+            <div class="alert-bar warning"></div>
+            <div class="alert-body">
+              <div class="alert-top">
+                <div class="batch-cb"></div>
+                <div class="alert-icon warning">⚠️</div>
+                <div class="alert-content">
+                  <div class="alert-title-row"><span class="alert-title">#LS-031 接近北区围栏</span></div>
+                  <div class="alert-meta"><span>🏷️ LS-031</span><span class="sep">·</span><span>⏱️ 2小时前</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="batch-bar">
+      <div class="sel-count">已选 <span>3</span> 条</div>
+      <div class="batch-actions">
+        <button class="batch-btn read">批量已读</button>
+        <button class="batch-btn dismiss">批量忽略</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ Screen 5: 已处理视图 ══════ -->
+<div class="screen-group">
+  <div class="screen-label"><span class="num">5</span>已处理视图 · 状态追踪</div>
+  <div class="screen-sublabel">切换到「已处理」tab：已忽略 + 自动恢复的告警，含处置时间线</div>
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="phone-status"><span>9:41</span><span class="icons">📶 🔋</span></div>
+    <div class="appbar">
+      <span class="back">‹</span>
+      <h1>告警中心</h1>
+      <button class="action">✓ 全部已读</button>
+    </div>
+    <div class="filter-bar">
+      <div class="seg-tabs">
+        <button class="seg-tab">全部</button>
+        <button class="seg-tab">活跃</button>
+        <button class="seg-tab active">已处理</button>
+      </div>
+    </div>
+    <div class="scroll-area">
+      <div class="alert-list">
+        <div class="date-group"><span>昨天</span><div class="line"></div><span class="cnt">2 条</span></div>
+        <!-- Dismissed -->
+        <div class="alert-card">
+          <div class="alert-inner">
+            <div class="alert-bar warning" style="background:var(--text-secondary);opacity:.3"></div>
+            <div class="alert-body">
+              <div class="alert-top">
+                <div class="alert-icon" style="background:#F0F0F0;color:var(--text-secondary)">🫃</div>
+                <div class="alert-content">
+                  <div class="alert-title-row"><span class="alert-title" style="color:var(--text-secondary)">#LS-009 蠕动频率低于正常范围</span></div>
+                  <div class="alert-meta"><span>🏷️ LS-009</span><span class="sep">·</span><span>📍 东区放牧区</span><span class="sep">·</span><span>⏱️ 昨天 16:20</span></div>
+                  <div class="alert-badges"><span class="type-badge" style="background:#F0F0F0;color:var(--text-secondary)">消化异常</span><span class="status-tag dismissed">已忽略</span><span class="source-tag">AI</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Auto resolved -->
+        <div class="alert-card">
+          <div class="alert-inner">
+            <div class="alert-bar" style="background:var(--success);opacity:.3"></div>
+            <div class="alert-body">
+              <div class="alert-top">
+                <div class="alert-icon" style="background:#E8F5EC;color:var(--success)">🦠</div>
+                <div class="alert-content">
+                  <div class="alert-title-row"><span class="alert-title" style="color:var(--text-secondary)">#LS-007 体温持续偏高 3 天</span></div>
+                  <div class="alert-meta"><span>🏷️ LS-007</span><span class="sep">·</span><span>📍 隔离区</span><span class="sep">·</span><span>⏱️ 昨天 14:05</span></div>
+                  <div class="alert-badges"><span class="type-badge resolved">疫病预警</span><span class="status-tag auto_resolved">自动恢复</span><span class="source-tag">AI</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="date-group"><span>更早</span><div class="line"></div><span class="cnt">2 条</span></div>
+        <div class="alert-card">
+          <div class="alert-inner">
+            <div class="alert-bar" style="background:var(--success);opacity:.3"></div>
+            <div class="alert-body">
+              <div class="alert-top">
+                <div class="alert-icon" style="background:#E8F5EC;color:var(--success)">🚧</div>
+                <div class="alert-content">
+                  <div class="alert-title-row"><span class="alert-title" style="color:var(--text-secondary)">#LS-005 越出东区围栏（已归回）</span></div>
+                  <div class="alert-meta"><span>🏷️ LS-005</span><span class="sep">·</span><span>⏱️ 7月18日</span></div>
+                  <div class="alert-badges"><span class="type-badge resolved">围栏越界</span><span class="status-tag auto_resolved">自动恢复</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="alert-card">
+          <div class="alert-inner">
+            <div class="alert-bar" style="background:var(--text-secondary);opacity:.3"></div>
+            <div class="alert-body">
+              <div class="alert-top">
+                <div class="alert-icon" style="background:#F0F0F0;color:var(--text-secondary)">📡</div>
+                <div class="alert-content">
+                  <div class="alert-title-row"><span class="alert-title" style="color:var(--text-secondary)">DEV-0018 检测到异常拆卸</span></div>
+                  <div class="alert-meta"><span>🏷️ LS-012</span><span class="sep">·</span><span>⏱️ 7月17日</span></div>
+                  <div class="alert-badges"><span class="type-badge resolved">设备拆卸</span><span class="status-tag auto_resolved">自动恢复</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item active"><span class="nav-icon">🗺️</span>牧场</div>
+      <div class="nav-item"><span class="nav-icon">👤</span>我的</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ Screen 6: 空状态 ══════ -->
+<div class="screen-group">
+  <div class="screen-label"><span class="num">6</span>空状态 · 无告警</div>
+  <div class="screen-sublabel">无告警时的友好引导，不再是空白页</div>
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="phone-status"><span>9:41</span><span class="icons">📶 🔋</span></div>
+    <div class="appbar">
+      <span class="back">‹</span>
+      <h1>告警中心</h1>
+    </div>
+    <div class="summary-strip">
+      <div class="summary-item crit"><div class="count" style="color:var(--success)">0</div><div class="label">严重</div></div>
+      <div class="summary-item warn"><div class="count" style="color:var(--success)">0</div><div class="label">警告</div></div>
+      <div class="summary-item act"><div class="count" style="color:var(--success)">0</div><div class="label">待处理</div></div>
+    </div>
+    <div class="filter-bar">
+      <div class="seg-tabs">
+        <button class="seg-tab active">全部</button>
+        <button class="seg-tab">活跃</button>
+        <button class="seg-tab">已处理</button>
+      </div>
+    </div>
+    <div class="scroll-area" style="display:flex;align-items:center;justify-content:center">
+      <div class="empty-state">
+        <div class="empty-icon">🔔</div>
+        <h3>暂无告警</h3>
+        <p>所有牲畜状态正常<br>围栏和设备运行良好</p>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item active"><span class="nav-icon">🗺️</span>牧场</div>
+      <div class="nav-item"><span class="nav-icon">👤</span>我的</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- ═══ Design Notes ═══ -->
+<div class="notes-panel">
+  <h2>设计改进说明</h2>
+  <div class="notes-grid">
+    <div class="note-card">
+      <div class="note-title">痛点 1：操作杂乱 → 清晰有序</div>
+      <div class="note-body">
+        <ul style="list-style:none;padding:0">
+          <li>移除硬编码 P0 假数据，全部来自真实 API</li>
+          <li>状态分段控件 + 类型 chips 均可点击实时过滤</li>
+          <li>每张卡片独立操作（点击看详情 → 操作按钮）</li>
+          <li>长按进入批量选择，支持批量已读/忽略</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note-card">
+      <div class="note-title">痛点 2：浏览不丝滑 → 流畅自然</div>
+      <div class="note-body">
+        <ul style="list-style:none;padding:0">
+          <li>告警按日期分组（今天/昨天/更早）</li>
+          <li>已读/未读通过色条 + 绿点视觉区分</li>
+          <li>摘要条点击快速跳转到严重/警告/待处理</li>
+          <li>已处理视图与活跃视图风格统一但视觉降级</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note-card">
+      <div class="note-title">痛点 3：看不到细节 → 信息完整</div>
+      <div class="note-body">
+        <ul style="list-style:none;padding:0">
+          <li>卡片展示：严重程度、类型图标、牲畜编号、围栏、时间、来源</li>
+          <li>详情面板：完整元数据网格 + 处置时间线</li>
+          <li>「地图定位」按钮从详情直接跳转到地图上的告警位置</li>
+          <li>围栏告警展示偏离距离，健康告警展示体温值</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note-card">
+      <div class="note-title">与牧场页的联动</div>
+      <div class="note-body">
+        <ul style="list-style:none;padding:0">
+          <li>牧场页地图上用色标标记告警牲畜位置</li>
+          <li>顶部告警横幅显示严重告警数，点击进入告警中心</li>
+          <li>底部看板卡片按类别显示告警数，点击筛选</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="compare-grid">
+    <div class="compare-col before">
+      <b>现有问题</b>
+      告警页是独立的 SingleChildScrollView，与牧场页无联动；P0 告警行是硬编码假数据；状态/类型 chips 是装饰性的不可点击；操作按钮只作用于第一条告警；没有详情页、没有批量操作、没有已读状态、没有日期分组
+    </div>
+    <div class="compare-col after">
+      <b>重设计后</b>
+      告警从牧场页自然延伸（横幅→列表→详情→地图定位）；完整的数据驱动列表；功能性筛选；每卡片独立操作 + 批量模式；富信息详情面板含处置时间线；已读/未读视觉区分；按日期分组浏览
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
