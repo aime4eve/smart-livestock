@@ -2792,7 +2792,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsQualityNoData => '暂无数据';
 
   @override
-  String get gpsQualityViewTrajectory => '查看完整移动轨迹';
+  String get gpsQualityViewTrajectory => '查看轨迹';
 
   @override
   String get gpsQualityScatterChart => '静止 GPS 散点图';

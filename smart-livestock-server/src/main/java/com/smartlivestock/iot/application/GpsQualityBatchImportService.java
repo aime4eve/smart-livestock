@@ -195,8 +195,10 @@ public class GpsQualityBatchImportService {
                 }
 
                 // Step 5: Create GpsQualityTest
-                GpsQualityTest test = new GpsQualityTest(row.eui(), row.checkType(), rtkPointId, routeId, row.startedAt());
-                test.setDeviceId(deviceDto.id());
+                // Use the resolved device's code (not the raw EUI) as deviceCode
+                // so all three import paths share one consistent identifier.
+                GpsQualityTest test = new GpsQualityTest(deviceDto.deviceCode(), row.checkType(), rtkPointId, routeId, row.startedAt());
+               test.setDeviceId(deviceDto.id());
                 test.setEndedAt(row.endedAt());
                 test.setBatchImportId(batchId);
 

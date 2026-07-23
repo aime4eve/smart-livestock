@@ -7,6 +7,9 @@ import com.smartlivestock.iot.infrastructure.client.agenticplatform.client.Agent
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.InternalResponse;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.ReportRecordPageResp;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.oauth.AgenticPlatformGatewayTokenService;
+import org.springframework.dao.DataIntegrityViolationException;
+
+import java.math.BigDecimal;
 import feign.codec.DecodeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -84,10 +87,27 @@ public class AgenticPlatformTelemetrySyncJob {
                 AgenticPlatformReportData.parseReportTime(r.getReportTime())));
 
         for (ReportRecordPageResp.ReportRecord record : toProcess) {
-            Instant reportTime = AgenticPlatformReportData.parseReportTime(record.getReportTime());
-            Map<String, Object> readings = AgenticPlatformReportData.toReadings(record);
-            AgenticPlatformReportData.applyAccelerometerConversion(readings);
-            telemetryIngestionService.ingest(deviceId, readings, reportTime, TelemetrySource.AGENTIC_PLATFORM);
+           Instant reportTime = AgenticPlatformReportData.parseReportTime(record.getReportTime());
+           Map<String, Object> readings = AgenticPlatformReportData.toReadings(record);
+           AgenticPlatformReportData.applyAccelerometerConversion(readings);
+           // Validate GPS values to prevent numeric overflow (precision 10,7 = max 999.x)
+           Object latObj = readings.get("latitude");
+           Object lngObj = readings.get("longitude");
+           if (latObj instanceof BigDecimal lat && lat.abs().compareTo(BigDecimal.valueOf(1000)) >= 0) {
+               log.warn("[PlatformSync] device {} has out-of-range latitude={}, clamping", deviceId, lat);
+               readings.put("latitude", null);
+           }
+           if (lngObj instanceof BigDecimal lng && lng.abs().compareTo(BigDecimal.valueOf(1000)) >= 0) {
+               log.warn("[PlatformSync] device {} has out-of-range longitude={}, clamping", deviceId, lng);
+               readings.put("longitude", null);
+           }
+           try {
+               telemetryIngestionService.ingest(deviceId, readings, reportTime, TelemetrySource.AGENTIC_PLATFORM);
+           } catch (DataIntegrityViolationException e) {
+               // Skip bad record so the sync cursor still advances.
+               log.error("[PlatformSync] device {} skipping bad record (rt={}): readings={} err={}",
+                       deviceId, reportTime, readings, e.getMessage());
+           }
         }
 
         log.debug("[PlatformSync] device {} synced {} records", deviceId, toProcess.size());

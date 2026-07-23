@@ -209,12 +209,13 @@ public class TrajectoryImportService {
                 continue;
             }
 
-            GpsQualityTest test = new GpsQualityTest(eui, TestType.TRAJECTORY, null, null, startedAt);
-            test.setDeviceId(device.getId());
-            test.setEndedAt(endedAt);
-            test.setStatus("READY");
-            test.setNote(fileName + " · ±" + toleranceSec + "s");
-            GpsQualityTest saved = testRepository.save(test);
+           // Use the resolved device's code (not the raw EUI) as deviceCode.
+           GpsQualityTest test = new GpsQualityTest(device.getDeviceCode(), TestType.TRAJECTORY, null, null, startedAt);
+           test.setDeviceId(device.getId());
+           test.setEndedAt(endedAt);
+           test.setStatus("READY");
+           test.setNote(fileName + " · ±" + toleranceSec + "s");
+           GpsQualityTest saved = testRepository.save(test);
 
             List<GpsQualityTrackPoint> points = new ArrayList<>(rows.size());
             int seq = 1;
@@ -524,7 +525,13 @@ public class TrajectoryImportService {
     // Scalar parsing helpers
     // ------------------------------------------------------------------
 
-    /** Parse a datetime on the UTC+8 baseline (spec D4, lesson #17). */
+    /** Parse a datetime using the same raw-value basis as GPS logs (lesson #17).
+     *  <p>
+     *  The collection time in the CSV is a local (UTC+8) clock value, but GPS
+     *  logs from blade are also stored at face value (no timezone conversion).
+     *  To pair correctly, both sides must share the same basis, so we parse the
+     *  CSV time as-is (UTC) — matching how blade reportTime is stored.
+     */
     private Instant parseDateTime(String str) {
         if (str == null || str.isBlank()) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "empty datetime");
@@ -532,7 +539,7 @@ public class TrajectoryImportService {
         String value = str.trim();
         for (DateTimeFormatter fmt : DT_FORMATS) {
             try {
-                return LocalDateTime.parse(value, fmt).toInstant(ZoneOffset.ofHours(8));
+                return LocalDateTime.parse(value, fmt).toInstant(ZoneOffset.UTC);
             } catch (DateTimeParseException ignored) {
                 // try the next format
             }

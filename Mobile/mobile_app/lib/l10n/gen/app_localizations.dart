@@ -5201,7 +5201,7 @@ abstract class AppLocalizations {
   /// No description provided for @gpsQualityViewTrajectory.
   ///
   /// In zh, this message translates to:
-  /// **'查看完整移动轨迹'**
+  /// **'查看轨迹'**
   String get gpsQualityViewTrajectory;
 
   /// No description provided for @gpsQualityScatterChart.
