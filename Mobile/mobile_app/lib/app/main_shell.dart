@@ -20,10 +20,10 @@ class MainShell extends ConsumerWidget {
   final String location;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final session = ref.watch(sessionControllerProvider);
-    final role = session.role;
-    if (role == UserRole.platformAdmin) {
+ Widget build(BuildContext context, WidgetRef ref) {
+   final session = ref.watch(sessionControllerProvider);
+   final role = session.role;
+   if (role == UserRole.platformAdmin) {
       return _PlatformAdminShell(child: child);
     }
 
@@ -301,7 +301,6 @@ class _B2bAdminShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final session = ref.watch(sessionControllerProvider);
     final theme = Theme.of(context);
 
     return Scaffold(

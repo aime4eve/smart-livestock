@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/core/widgets/date_time_input_field.dart';
-import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_api_repository.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_providers.dart';
-import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 /// Dialog for creating a single GPS quality check (EUI-driven).
@@ -102,7 +99,7 @@ class _CreateCheckDialogState extends ConsumerState<CreateCheckDialog> {
                 DropdownButtonFormField<int>(
                   key: const Key('check-rtk-point-select'),
                   decoration: InputDecoration(labelText: l10n.gpsQualitySelectRtkPoint),
-                  value: _rtkPointId,
+                  initialValue: _rtkPointId,
                   isExpanded: true,
                   items: rtkPoints.map((p) => DropdownMenuItem(
                     value: p.id,
@@ -114,7 +111,7 @@ class _CreateCheckDialogState extends ConsumerState<CreateCheckDialog> {
                 DropdownButtonFormField<int>(
                   key: const Key('check-route-select'),
                   decoration: InputDecoration(labelText: l10n.gpsQualitySelectRoute),
-                  value: _routeId,
+                  initialValue: _routeId,
                   isExpanded: true,
                   items: routes.map((r) => DropdownMenuItem(
                     value: r.id,

@@ -82,9 +82,18 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 **实现新功能或做功能增强时，遵循以下分阶段确认工作流（每阶段需用户确认后才进入下一阶段）：**
 
 1. **HTML 高保真原型** → 用户确认 → ✅
+   - 原型必须包含 CSS `:root` 自定义属性（颜色/间距/圆角/阴影），可被 `prototype-to-flutter-fidelity` skill 的提取脚本解析
+   - 原型定义的视觉令牌是后续 spec、plan、编码的唯一视觉真相来源
 2. **spec 设计文档** → 用户确认 → ✅
+   - spec 必须包含从原型提取的设计令牌表（颜色 hex / 间距 px / 圆角 / 阴影 / 字号）和每个组件的视觉规格
+   - 令牌表随 spec 确认后锁定，编码阶段不得偏离
 3. **plan 实施计划** → 用户确认 → ✅
-4. **编码实现 + 编译验证**（`flutter build web` / `./gradlew bootJar`）
+   - plan 必须包含 Task 0（视觉保真准备）：运行令牌提取脚本 + 截取原型各屏幕基准截图
+   - plan 的每个编码 Task 末尾必须列出「视觉保真验证」步骤，指明对比哪个基准截图
+   - 保真验证是 Task 完成的必要条件，与编译验证并列
+4. **编码实现 + 编译验证 + 视觉保真验证**（使用 `prototype-to-flutter-fidelity` skill）
+   - 每个 Task 完成时：`flutter build web` → Playwright 截图 → 与基准对比 10 维度，至少 5 个通过
+   - 未通过保真门的 Task 必须修正后才能进入下一个
 5. **部署 dev 环境**（`./scripts/deploy.sh dev`）
 6. **用户集成测试**（用户确认部署完成后执行）
 7. **提交 git + 合并 PR + 关闭工单**
@@ -92,6 +101,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - 产出物归档：高保真原型放 `docs/marketing/`，spec 放 `docs/superpowers/specs/`，plan 放 `docs/superpowers/plans/`
 - 每个阶段的产出物在用户确认前不得跳到下一阶段
 - 参考：NIX-11（移动轨迹滑动条）是首个完整走通该流程的范例
+- 参考：NIX-52（告警 UI/UX 重设计）是首个包含视觉保真闭环的范例
 
 ## 7. 代码实现通用规范
 
@@ -113,6 +123,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - Flutter 端：种子数据由后端 Flyway 迁移统一管理，前端无需维护独立的 Mock 数据层。
 - 逻辑合理：种子数据必须符合业务约束（外键引用真实存在、状态机合法、时间字段顺序合理、配额/订阅 tier 与功能门控匹配），不得构造自相矛盾或无法被正常流程读取的数据。
 - 校验：种子数据写入后，至少通过编译 + 单元测试/脚本确认可被正确加载和查询；涉及登录凭据的，部署后用 `curl` 调用 `/auth/login` 验证。
+
 
 ## 项目概述
 

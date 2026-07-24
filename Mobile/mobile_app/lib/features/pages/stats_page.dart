@@ -167,7 +167,7 @@ class _DistBar extends StatelessWidget {
         children: [
           Container(
             height: 8,
-            decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(4)),
             child: FractionallySizedBox(
               alignment: Alignment.centerLeft,
               widthFactor: total > 0 ? count / total : 0,

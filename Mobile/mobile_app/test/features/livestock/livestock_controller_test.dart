@@ -5,7 +5,6 @@ import 'package:hkt_livestock_agentic/app/session/app_session.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
-import 'package:hkt_livestock_agentic/features/livestock/data/livestock_api_repository.dart';
 import 'package:hkt_livestock_agentic/features/livestock/domain/livestock_repository.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/livestock_controller.dart';
 

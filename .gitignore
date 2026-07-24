@@ -95,3 +95,8 @@ smart-livestock-server/frontend/
 
 # Offline map tiles (large binary, synced via rsync on deploy)
 smart-livestock-server/infrastructure/tileserver/data/*.mbtiles
+
+# Test data files (RTK/GPS imports)
+/0095690a00008b05.csv
+/GPS*.xlsx
+/business-platform/hkt-blade-device-docking/scripts/*.txt

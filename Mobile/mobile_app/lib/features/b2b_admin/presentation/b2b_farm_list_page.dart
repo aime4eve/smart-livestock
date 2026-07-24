@@ -86,6 +86,7 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
 
   // ── Create dialog (P2: enhanced with optional fields) ───────
 
+  // ignore: unused_element
   void _showCreateDialog() {
     final l10n = AppLocalizations.of(context)!;
     final formKey = GlobalKey<FormState>();

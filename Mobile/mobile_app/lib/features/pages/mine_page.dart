@@ -258,26 +258,28 @@ class MinePage extends ConsumerWidget {
       context: context,
       builder: (ctx) => SimpleDialog(
         title: Text(l10n.settingsLanguage),
-        children: [
-          RadioListTile<Locale?>(
-            value: const Locale('zh'),
-            groupValue: current,
-            title: Text(l10n.settingsLanguageZh),
-            onChanged: (v) => _applyLocale(ctx, ref, v),
-          ),
-          RadioListTile<Locale?>(
-            value: const Locale('en'),
-            groupValue: current,
-            title: Text(l10n.settingsLanguageEn),
-            onChanged: (v) => _applyLocale(ctx, ref, v),
-          ),
-          RadioListTile<Locale?>(
-            value: null,
-            groupValue: current,
-            title: Text(l10n.settingsLanguageSystem),
-            onChanged: (v) => _applyLocale(ctx, ref, v),
-          ),
-        ],
+       children: [
+         RadioGroup<Locale?>(
+           groupValue: current,
+           onChanged: (v) => _applyLocale(ctx, ref, v),
+           child: Column(
+             children: [
+               RadioListTile<Locale?>(
+                 value: const Locale('zh'),
+                 title: Text(l10n.settingsLanguageZh),
+               ),
+               RadioListTile<Locale?>(
+                 value: const Locale('en'),
+                 title: Text(l10n.settingsLanguageEn),
+               ),
+               RadioListTile<Locale?>(
+                 value: null,
+                 title: Text(l10n.settingsLanguageSystem),
+               ),
+             ],
+           ),
+         ),
+       ],
       ),
     );
   }

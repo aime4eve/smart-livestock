@@ -11,7 +11,6 @@ import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/device
 import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/locked_overlay.dart';
 import 'package:hkt_livestock_agentic/features/ai_anomaly/presentation/widgets/anomaly_score_card.dart';
-import 'package:hkt_livestock_agentic/core/widgets/auto_refresh_listener.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class EstrusDetailPage extends ConsumerWidget {

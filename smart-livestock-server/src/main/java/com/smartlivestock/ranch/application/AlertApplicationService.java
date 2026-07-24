@@ -73,7 +73,7 @@ public class AlertApplicationService {
 
     @Transactional(readOnly = true)
     public List<AlertDto> listByFarmWithReadStatus(Long farmId, Long userId) {
-        List<Alert> alerts = alertRepository.findByFarmId(farmId);
+        List<Alert> alerts = alertRepository.findByFarmIdRecent(farmId, 200);
         return enrichWithReadStatus(alerts, userId);
     }
 

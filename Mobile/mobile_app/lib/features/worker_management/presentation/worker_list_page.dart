@@ -102,7 +102,7 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
   }
 
   void _loadActiveFarm() {
-    if (!mounted) return;
+    if (!context.mounted) return;
     final farmId = ref.read(farmSwitcherControllerProvider).activeFarmId;
     if (farmId == null) return;
     ref.read(workerControllerProvider.notifier).loadWorkers(farmId);
@@ -162,9 +162,9 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
                   phone: phoneCtrl.text.trim(),
                   password: pwdCtrl.text,
                 );
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.workerCreateSuccess)));
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.workerCreateSuccess)));
               } catch (e) {
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.workerCreateFailed(e.toString()))));
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.workerCreateFailed(e.toString()))));
               }
             },
             child: Text(l10n.adminApiAuthCreate),

@@ -227,7 +227,7 @@ class FeverDetailPage extends ConsumerWidget {
           ),
           lineBarsData: [
             LineChartBarData(spots: spots, isCurved: true, color: AppColors.danger, barWidth: 2, dotData: const FlDotData(show: false)),
-            LineChartBarData(spots: [FlSpot(0, baseline), FlSpot((readings.length - 1).toDouble(), baseline)], color: AppColors.textSecondary.withOpacity(0.4), dashArray: [4, 4], barWidth: 1, dotData: const FlDotData(show: false)),
+            LineChartBarData(spots: [FlSpot(0, baseline), FlSpot((readings.length - 1).toDouble(), baseline)], color: AppColors.textSecondary.withValues(alpha: 0.4), dashArray: [4, 4], barWidth: 1, dotData: const FlDotData(show: false)),
           ],
         ))),
       ])),

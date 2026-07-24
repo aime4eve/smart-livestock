@@ -24,7 +24,6 @@ class _B2bRevenueDetailPageState extends ConsumerState<B2bRevenueDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(b2bRevenueControllerProvider);
 
     return asyncData.when(
@@ -55,7 +54,6 @@ class _B2bRevenueDetailPageState extends ConsumerState<B2bRevenueDetailPage> {
   }
 
   Widget _buildContent(BuildContext context, RevenuePeriod period) {
-    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: SingleChildScrollView(
         key: const Key('page-b2b-revenue-detail'),

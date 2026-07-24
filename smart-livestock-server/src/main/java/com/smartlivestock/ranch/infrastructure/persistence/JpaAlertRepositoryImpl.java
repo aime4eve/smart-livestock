@@ -41,6 +41,12 @@ public class JpaAlertRepositoryImpl implements AlertRepository {
                 .map(AlertMapper::toDomain)
                 .toList();
     }
+    @Override
+    public List<Alert> findByFarmIdRecent(Long farmId, int limit) {
+        return springDataRepo.findByFarmIdOrderByIdDesc(farmId, org.springframework.data.domain.PageRequest.of(0, limit)).stream()
+                .map(AlertMapper::toDomain)
+                .toList();
+    }
 
     @Override
     public List<Alert> findByFarmIdAndStatus(Long farmId, AlertStatus status) {

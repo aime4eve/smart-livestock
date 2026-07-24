@@ -1,6 +1,7 @@
 /// 录制真实后端 API 响应为 fixture 文件。
 ///
 /// 用法: dart test/contract/record_fixtures.dart
+// ignore_for_file: avoid_print
 ///
 /// 前提: 后端服务运行在 http://172.22.1.123:18080
 library;

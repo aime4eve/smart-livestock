@@ -15,11 +15,9 @@ import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip
 import 'package:hkt_livestock_agentic/features/livestock/presentation/livestock_controller.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/livestock_form_sheet.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
-import 'package:hkt_livestock_agentic/features/livestock/domain/livestock_repository.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/locked_overlay.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
-import 'package:hkt_livestock_agentic/features/devices/domain/devices_repository.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/devices_controller.dart';
 
@@ -316,7 +314,7 @@ void _showDeleteConfirm(
   showDialog(
     context: context,
     builder: (ctx) => AlertDialog(
-      icon: Icon(Icons.warning_amber_rounded,
+      icon: const Icon(Icons.warning_amber_rounded,
           color: AppColors.warning, size: 48),
       title: Text(l10n.livestockDeleteConfirmTitle),
       content: Column(
@@ -330,7 +328,7 @@ void _showDeleteConfirm(
                   padding: const EdgeInsets.only(top: 4),
                   child: Row(
                     children: [
-                      Icon(Icons.link_off, size: 14, color: AppColors.warning),
+                      const Icon(Icons.link_off, size: 14, color: AppColors.warning),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -345,7 +343,7 @@ void _showDeleteConfirm(
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
-              Icon(Icons.archive_outlined, size: 14, color: AppColors.info),
+              const Icon(Icons.archive_outlined, size: 14, color: AppColors.info),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(

@@ -54,10 +54,10 @@ class _EstrusCard extends StatelessWidget {
     final stepInfo = item.stepIncreasePercent != null ? '+${item.stepIncreasePercent}% steps' : '';
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: color.withOpacity(0.3))),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: color.withValues(alpha: 0.3))),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.15),
+          backgroundColor: color.withValues(alpha: 0.15),
           child: Text('${item.score}', style: TextStyle(fontWeight: FontWeight.bold, color: color)),
         ),
         title: Text(item.livestockCode, style: const TextStyle(fontWeight: FontWeight.bold)),

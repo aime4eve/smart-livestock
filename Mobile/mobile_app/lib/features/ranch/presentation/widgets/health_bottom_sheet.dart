@@ -112,7 +112,6 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final stats = widget.overview.overallStats;
     final role = ref.watch(sessionControllerProvider).role;
     final controller = ref.read(ranchControllerProvider.notifier);
@@ -562,7 +561,6 @@ class _BackBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: onBack,
       child: Container(

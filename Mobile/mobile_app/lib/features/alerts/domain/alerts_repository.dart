@@ -31,7 +31,14 @@ class AlertDetail {
     required this.livestockCode,
     this.livestockId,
     this.occurredAt,
+    this.resolvedAt,
     this.description,
+    this.severity = 'WARNING',
+    this.source = 'RULE',
+    this.fenceName,
+    this.resolvedType,
+    this.read = false,
+    this.fenceId,
   });
 
   final String id;
@@ -43,7 +50,26 @@ class AlertDetail {
   final String livestockCode;
   final String? livestockId;
   final String? occurredAt;
+  final String? resolvedAt;
   final String? description;
+  final String severity;
+  final String source;
+  final String? fenceName;
+  final String? resolvedType;
+  final bool read;
+  final String? fenceId;
+}
+
+/// Metadata entry for the detail timeline.
+class AlertTimelineEntry {
+  const AlertTimelineEntry({
+    required this.label,
+    required this.time,
+    this.done = false,
+  });
+  final String label;
+  final String? time;
+  final bool done;
 }
 
 abstract class AlertsRepository {
@@ -51,6 +77,7 @@ abstract class AlertsRepository {
     int page = 1,
     int pageSize = 20,
     String? status,
+    String? severity,
   });
 
   Future<AlertDetail> loadDetail(String alertId);
@@ -60,4 +87,6 @@ abstract class AlertsRepository {
   Future<void> dismiss(String alertId);
 
   Future<void> batchRead(List<String> alertIds);
+
+  Future<void> batchDismiss(List<String> alertIds);
 }

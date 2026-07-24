@@ -137,7 +137,7 @@ class TrajectoryReportPanel extends ConsumerWidget {
             dataRowMaxHeight: 36,
             columnSpacing: 14,
             columns: [
-              DataColumn(label: Text('#', style: _th)),
+              const DataColumn(label: Text('#', style: _th)),
               DataColumn(label: Text(l10n.gpsQualityTrajectoryColTime, style: _th)),
               DataColumn(label: Text(l10n.gpsQualityTrajectoryColRtkLat, style: _th)),
               DataColumn(label: Text(l10n.gpsQualityTrajectoryColRtkLng, style: _th)),
@@ -304,9 +304,9 @@ class _ErrorHistogram extends StatelessWidget {
                   heightFactor: frac == 0 ? 0.03 : frac,
                   alignment: Alignment.bottomCenter,
                   child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF8BA95A),
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(3)),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF8BA95A),
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(3)),
                     ),
                   ),
                 ),

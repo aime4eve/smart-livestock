@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
-import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_api_repository.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_providers.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
@@ -172,7 +171,7 @@ class _TruthReferenceTabState extends ConsumerState<TruthReferenceTab> {
 
     return Container(
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.border)),
+        border: const Border(bottom: BorderSide(color: AppColors.border)),
         color: selected ? AppColors.primarySoft : null,
       ),
       child: Column(
@@ -340,7 +339,7 @@ class _TruthReferenceTabState extends ConsumerState<TruthReferenceTab> {
       content: SizedBox(width: 400, child: Column(mainAxisSize: MainAxisSize.min, children: [
         DropdownButtonFormField<int>(
           decoration: InputDecoration(labelText: l10n.gpsQualitySelectRtkPoint),
-          value: selectedPointId,
+          initialValue: selectedPointId,
           items: rtkPoints.map((p) => DropdownMenuItem(value: p.id,
             child: Text('${p.locationName}·${p.pointLabel}', style: const TextStyle(fontSize: 13)))).toList(),
           onChanged: (v) => setS(() => selectedPointId = v),

@@ -57,12 +57,12 @@ class _DigestiveCard extends StatelessWidget {
         : 0;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: color.withOpacity(0.3))),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: color.withValues(alpha: 0.3))),
       child: ListTile(
         leading: Icon(item.status == 'ABNORMAL' ? Icons.error : Icons.warning, color: color, size: 28),
         title: Text(item.livestockCode, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(l10n.digestiveItemSubtitle(item.breed ?? '', item.currentFrequency.toStringAsFixed(1), dropPercent.toString())),
-        trailing: Chip(label: Text(item.status, style: const TextStyle(fontSize: 11)), backgroundColor: color.withOpacity(0.15)),
+        trailing: Chip(label: Text(item.status, style: const TextStyle(fontSize: 11)), backgroundColor: color.withValues(alpha: 0.15)),
         onTap: () => context.push('/twin/digestive/${item.livestockId}'),
       ),
     );

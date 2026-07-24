@@ -1,377 +1,440 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
-import 'package:hkt_livestock_agentic/features/alerts/domain/alerts_repository.dart';
-import 'package:hkt_livestock_agentic/features/alerts/presentation/alerts_controller.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
-import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
-import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_empty_error_state.dart';
-import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip.dart';
+import 'package:hkt_livestock_agentic/features/alerts/domain/alerts_repository.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/alerts_controller.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_batch_bar.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_card.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_detail_sheet.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_empty_state.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_filter_bar.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_summary_strip.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
-enum _P0AlertType { fenceBreach, batteryLow, signalLost }
-
-class AlertsPage extends ConsumerWidget {
+class AlertsPage extends ConsumerStatefulWidget {
   const AlertsPage({super.key, required this.role});
 
   final UserRole role;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AlertsPage> createState() => _AlertsPageState();
+}
+
+class _AlertsPageState extends ConsumerState<AlertsPage> {
+  AlertFilterTab _activeTab = AlertFilterTab.all;
+  String? _selectedType;
+  bool _batchMode = false;
+  final Set<String> _selectedIds = {};
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(alertsControllerProvider);
     final controller = ref.read(alertsControllerProvider.notifier);
 
-    return SingleChildScrollView(
+    return Scaffold(
       key: const Key('page-alerts'),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          asyncData.when(
-            data: (data) => _buildContent(context, data, controller),
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(32),
-                child: CircularProgressIndicator(),
+      backgroundColor: AppColors.surface,
+      appBar: _buildAppBar(context, l10n, controller),
+      body: asyncData.when(
+        data: (data) => _buildBody(context, data, controller),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('${l10n.commonLoadFailed}: $e'),
+              const SizedBox(height: AppSpacing.md),
+              ElevatedButton(
+                onPressed: () => controller.refresh(),
+                child: Text(l10n.commonRetry),
               ),
-            ),
-            error: (e, _) => Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('${l10n.commonLoadFailed}: $e'),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => controller.refresh(),
-                    child: Text(l10n.commonRetry),
-                  ),
-                ],
-              ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
+      bottomNavigationBar: _batchMode
+          ? _buildBatchBar(context, controller)
+          : null,
     );
   }
 
-  Widget _buildContent(
+  PreferredSizeWidget _buildAppBar(
+    BuildContext context,
+    AppLocalizations l10n,
+    AlertsController controller,
+  ) {
+    if (_batchMode) {
+      return AppBar(
+        backgroundColor: AppColors.primaryDark,
+        foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.close, size: 18),
+          onPressed: _exitBatchMode,
+        ),
+        title: Text(
+          '${l10n.alertBatchTitle} (${_selectedIds.length})',
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        ),
+        centerTitle: false,
+        actions: [
+          TextButton(
+            onPressed: () => setState(() {
+              final data = ref.read(alertsControllerProvider).value;
+              if (data != null) {
+                final allIds = _visibleAlertIds(data);
+                if (_selectedIds.length == allIds.length) {
+                  _selectedIds.clear();
+                } else {
+                  _selectedIds
+                    ..clear()
+                    ..addAll(allIds);
+                }
+              }
+            }),
+            child: Text(
+              l10n.alertBatchSelectAll,
+              style: const TextStyle(fontSize: 10, color: Colors.white),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return AppBar(
+      backgroundColor: AppColors.primary,
+      foregroundColor: Colors.white,
+      title: Text(
+        l10n.alertCenterTitle,
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+      ),
+      centerTitle: false,
+      leading: IconButton(
+        icon: const Icon(Icons.chevron_left, size: 18),
+        onPressed: () => Navigator.of(context).maybePop(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => _markAllRead(controller),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.done_all, size: 12),
+              const SizedBox(width: 3),
+              Text(
+                l10n.alertActionMarkAllRead,
+                style: const TextStyle(fontSize: 10, color: Colors.white),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBatchBar(
+    BuildContext context,
+    AlertsController controller,
+  ) {
+    final canDismiss = RolePermission.canHandleAlert(widget.role);
+    return AlertBatchBar(
+      selectedCount: _selectedIds.length,
+      canDismiss: canDismiss,
+      onBatchRead: () async {
+        if (_selectedIds.isEmpty) return;
+        await controller.batchRead(_selectedIds.toList());
+        _exitBatchMode();
+      },
+      onBatchDismiss: () async {
+        if (_selectedIds.isEmpty) return;
+        await controller.batchDismiss(_selectedIds.toList());
+        _exitBatchMode();
+      },
+    );
+  }
+
+  Widget _buildBody(
     BuildContext context,
     AlertsListData data,
     AlertsController controller,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    if (data.items.isEmpty) {
-      return HighfiEmptyErrorState(
-        title: l10n.alertsNoAlerts,
-        description: l10n.alertsNoAlertsDesc,
-        icon: Icons.notifications_off_outlined,
-      );
-    }
+    final items = data.items;
 
-    final firstItem = data.items.first;
+    // Compute summary counts from all items (not filtered)
+    final criticalCount = items
+        .where((a) => a.severity == 'CRITICAL' && a.stage == 'active')
+        .length;
+    final warningCount = items
+        .where((a) => a.severity == 'WARNING' && a.stage == 'active')
+        .length;
+    final pendingCount = items.where((a) => a.stage == 'active').length;
+    final unreadCount =
+        items.where((a) => !a.read && a.stage == 'active').length;
+
+    // Apply status filter from active tab
+    final statusFiltered = switch (_activeTab) {
+      AlertFilterTab.all => items,
+      AlertFilterTab.active =>
+        items.where((a) => a.stage == 'active').toList(),
+      AlertFilterTab.resolved =>
+        items.where((a) => a.stage != 'active').toList(),
+    };
+
+    // Apply type filter
+    final typeFiltered = _selectedType == null
+        ? statusFiltered
+        : statusFiltered.where((a) => a.type == _selectedType).toList();
+
+    // Apply controller's severity filter (from summary strip tap)
+    final severityFiltered = controller.filterSeverity == null
+        ? typeFiltered
+        : typeFiltered
+            .where((a) => a.severity == controller.filterSeverity)
+            .toList();
+
+    // Build available types from data
+    final availableTypes = items.map((a) => a.type).toSet().toList()..sort();
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        HighfiCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.alertCenterTitle,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                l10n.alertCenterDesc,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.sm,
-                children: [
-                  HighfiStatusChip(
-                    label: l10n.commonAll,
-                    color: AppColors.primary,
-                    icon: Icons.grid_view_rounded,
-                  ),
-                  HighfiStatusChip(
-                    label: l10n.alertFilterPending,
-                    color: AppColors.warning,
-                    icon: Icons.pending_actions_outlined,
-                  ),
-                  HighfiStatusChip(
-                    label: l10n.alertFilterHandled,
-                    color: AppColors.success,
-                    icon: Icons.task_alt_outlined,
-                  ),
-                ],
-              ),
-            ],
+        if (!_batchMode)
+          AlertSummaryStrip(
+            criticalCount: criticalCount,
+            warningCount: warningCount,
+            pendingCount: pendingCount,
+            activeFilter: controller.filterSeverity,
+            onTap: (severity) => controller.setFilterSeverity(severity),
+            onPendingTap: () {
+              setState(() => _activeTab = AlertFilterTab.active);
+              controller.setFilterStatus('ACTIVE');
+            },
           ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: [
-            _AlertTypeChip(
-              chipKey: const Key('alert-type-fence-breach'),
-              label: l10n.alertChipFenceBreach,
-              icon: Icons.fence,
-              color: AppColors.danger,
-            ),
-            _AlertTypeChip(
-              chipKey: const Key('alert-type-battery-low'),
-              label: l10n.alertChipBatteryLow,
-              icon: Icons.battery_alert_outlined,
-              color: AppColors.warning,
-            ),
-            _AlertTypeChip(
-              chipKey: const Key('alert-type-signal-lost'),
-              label: l10n.alertChipSignalLost,
-              icon: Icons.signal_wifi_connected_no_internet_4_outlined,
-              color: AppColors.info,
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.md),
-        HighfiCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    _statusLabel(l10n, firstItem.stage),
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: _statusColor(firstItem.stage),
-                        ),
-                  ),
-                  Wrap(
-                    spacing: AppSpacing.sm,
-                    children: [
-                      if (RolePermission.canAcknowledgeAlert(role) &&
-                          firstItem.stage == AlertStage.active.name)
-                        TextButton(
-                          key: const Key('alert-ack'),
-                          onPressed: () => controller.acknowledge(firstItem.id),
-                          child: Text(l10n.alertsConfirm),
-                        ),
-                      if (RolePermission.canHandleAlert(role) &&
-                          firstItem.stage == AlertStage.active.name)
-                        TextButton(
-                          key: const Key('alert-handle'),
-                          onPressed: () => controller.handle(firstItem.id),
-                          child: Text(l10n.alertsHandle),
-                        ),
-                      if (RolePermission.canArchiveAlert(role) &&
-                          firstItem.stage == AlertStage.dismissed.name)
-                        TextButton(
-                          key: const Key('alert-archive'),
-                          onPressed: () => controller.archive(firstItem.id),
-                          child: Text(l10n.alertsArchive),
-                        ),
-                      if (RolePermission.canBatchAlerts(role) &&
-                          firstItem.stage != AlertStage.autoResolved.name)
-                        TextButton(
-                          key: const Key('alert-batch'),
-                          onPressed: () {
-                            final messenger = ScaffoldMessenger.of(context);
-                            messenger
-                              ..hideCurrentSnackBar()
-                              ..showSnackBar(
-                                SnackBar(content: Text(l10n.alertsBatchDemo)),
-                              );
-                          },
-                          child: Text(l10n.alertsBatchHandle),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.md),
-              ..._buildP0AlertRows(context),
-            ],
+        if (!_batchMode)
+          AlertFilterBar(
+            activeTab: _activeTab,
+            unreadCount: unreadCount,
+            onTabChanged: (tab) {
+              setState(() => _activeTab = tab);
+              final statusParam = switch (tab) {
+                AlertFilterTab.all => null,
+                AlertFilterTab.active => 'ACTIVE',
+                AlertFilterTab.resolved => null,
+              };
+              controller.setFilterStatus(statusParam);
+            },
+            availableTypes: availableTypes,
+            selectedType: _selectedType,
+            onTypeChanged: (type) => setState(() => _selectedType = type),
           ),
+        Expanded(
+          child: severityFiltered.isEmpty
+              ? const AlertEmptyState()
+              : _buildGroupedList(context, severityFiltered, l10n),
         ),
-        if (_hasAiAlerts(data)) ...[
-          const SizedBox(height: AppSpacing.md),
-          _buildAiAlertSection(context, data),
-        ],
       ],
     );
   }
 
-  bool _hasAiAlerts(AlertsListData data) {
-    return data.items.any((a) => a.source == 'AI');
-  }
+  Widget _buildGroupedList(
+    BuildContext context,
+    List<AlertItem> items,
+    AppLocalizations l10n,
+  ) {
+    final groups = _groupByDate(items, l10n);
 
-  Widget _buildAiAlertSection(BuildContext context, AlertsListData data) {
-    final l10n = AppLocalizations.of(context)!;
-    final aiAlerts = data.items.where((a) => a.source == 'AI').toList();
-    return HighfiCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.psychology, size: 18, color: AppColors.info),
-              const SizedBox(width: AppSpacing.sm),
-              Text(l10n.aiAnomalyAiAlerts,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: AppColors.info,
-                      )),
+    return CustomScrollView(
+      slivers: [
+        for (final entry in groups.entries)
+          SliverMainAxisGroup(
+            slivers: [
+              SliverToBoxAdapter(
+                child:
+                    _DateGroupHeader(label: entry.key, count: entry.value.length),
+              ),
+              SliverPadding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final alert = entry.value[index];
+                      return AlertCard(
+                        key: Key('alert-card-${alert.id}'),
+                        alert: alert,
+                        isBatchMode: _batchMode,
+                        isSelected: _selectedIds.contains(alert.id),
+                        onSelectionToggle: () => _toggleSelection(alert.id),
+                        onTap: () {
+                          if (_batchMode) {
+                            _toggleSelection(alert.id);
+                          } else {
+                            _onAlertTap(alert);
+                          }
+                        },
+                        onLongPress: () {
+                          if (!_batchMode) {
+                            setState(() {
+                              _batchMode = true;
+                              _selectedIds.add(alert.id);
+                            });
+                          }
+                        },
+                      );
+                    },
+                    childCount: entry.value.length,
+                  ),
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
-          for (final alert in aiAlerts)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.warning_amber_rounded,
-                      size: 16, color: AppColors.warning),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(alert.title,
-                            style: Theme.of(context).textTheme.bodyMedium),
-                        Text(alert.type,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.textSecondary)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
+        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xxl)),
+      ],
     );
   }
 
-  String _statusLabel(AppLocalizations l10n, String stage) {
-    final s = AlertStage.values.where((e) => e.name == stage).firstOrNull;
-    return switch (s) {
-      AlertStage.active => l10n.alertStageActive,
-      AlertStage.dismissed => l10n.alertStageDismissed,
-      AlertStage.autoResolved => l10n.alertStageAutoResolved,
-      _ => stage,
-    };
+  // ── Batch helpers ──
+
+  void _toggleSelection(String id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+      } else {
+        _selectedIds.add(id);
+      }
+    });
   }
 
-  Color _statusColor(String stage) {
-    final s = AlertStage.values.where((e) => e.name == stage).firstOrNull;
-    return switch (s) {
-      AlertStage.active => AppColors.warning,
-      AlertStage.dismissed => AppColors.textSecondary,
-      AlertStage.autoResolved => AppColors.success,
-      _ => AppColors.textSecondary,
-    };
+  void _exitBatchMode() {
+    setState(() {
+      _batchMode = false;
+      _selectedIds.clear();
+    });
   }
 
-  List<Widget> _buildP0AlertRows(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final rows = <({_P0AlertType type, String rowKey})>[
-      (type: _P0AlertType.fenceBreach, rowKey: 'alert-row-fence-breach'),
-      (type: _P0AlertType.batteryLow, rowKey: 'alert-row-battery-low'),
-      (type: _P0AlertType.signalLost, rowKey: 'alert-row-signal-lost'),
+  List<String> _visibleAlertIds(AlertsListData data) {
+    final items = data.items;
+    final statusFiltered = switch (_activeTab) {
+      AlertFilterTab.all => items,
+      AlertFilterTab.active =>
+        items.where((a) => a.stage == 'active').toList(),
+      AlertFilterTab.resolved =>
+        items.where((a) => a.stage != 'active').toList(),
+    };
+    return statusFiltered.map((a) => a.id).toList();
+  }
+
+  // ── Non-batch helpers ──
+
+  Map<String, List<AlertItem>> _groupByDate(
+      List<AlertItem> items, AppLocalizations l10n) {
+    final now = DateTime.now();
+    final groups = <String, List<AlertItem>>{};
+
+    for (final item in items) {
+      String key;
+      if (item.occurredAt != null) {
+        try {
+          final dt = DateTime.parse(item.occurredAt!).toLocal();
+          final diff = now.difference(dt);
+          if (diff.inDays == 0 && now.day == dt.day) {
+            key = l10n.alertDateToday;
+          } else if (diff.inDays == 1) {
+            key = l10n.alertDateYesterday;
+          } else {
+            key = l10n.alertDateEarlier;
+          }
+        } catch (_) {
+          key = l10n.alertDateEarlier;
+        }
+      } else {
+        key = l10n.alertDateEarlier;
+      }
+      groups.putIfAbsent(key, () => []).add(item);
+    }
+
+    final orderedKeys = [
+      l10n.alertDateToday,
+      l10n.alertDateYesterday,
+      l10n.alertDateEarlier
     ];
+    final result = <String, List<AlertItem>>{};
+    for (final k in orderedKeys) {
+      if (groups.containsKey(k)) result[k] = groups[k]!;
+    }
+    return result;
+  }
 
-    String titleFor(_P0AlertType t) => switch (t) {
-          _P0AlertType.fenceBreach => l10n.alertChipFenceBreach,
-          _P0AlertType.batteryLow => l10n.alertChipBatteryLow,
-          _P0AlertType.signalLost => l10n.alertChipSignalLost,
-        };
+  void _onAlertTap(AlertItem alert) {
+    showAlertDetailSheet(
+      context,
+      alert: alert,
+      role: widget.role,
+    );
+  }
 
-    String detailFor(_P0AlertType t) => switch (t) {
-          _P0AlertType.fenceBreach => l10n.alertP0FenceBreachDetail,
-          _P0AlertType.batteryLow => l10n.alertP0BatteryLowDetail,
-          _P0AlertType.signalLost => l10n.alertP0SignalLostDetail,
-        };
-
-    IconData iconFor(_P0AlertType t) => switch (t) {
-          _P0AlertType.fenceBreach => Icons.fence,
-          _P0AlertType.batteryLow => Icons.battery_alert_outlined,
-          _P0AlertType.signalLost =>
-            Icons.signal_wifi_connected_no_internet_4_outlined,
-        };
-
-    Color colorFor(_P0AlertType t) => switch (t) {
-          _P0AlertType.fenceBreach => AppColors.danger,
-          _P0AlertType.batteryLow => AppColors.warning,
-          _P0AlertType.signalLost => AppColors.info,
-        };
-
-    return [
-      for (final row in rows)
-        Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-          child: Container(
-            key: Key(row.rowKey),
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Theme.of(context).dividerColor),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(iconFor(row.type), color: colorFor(row.type)),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        titleFor(row.type),
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        detailFor(row.type),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-    ];
+  void _markAllRead(AlertsController controller) {
+    final data = ref.read(alertsControllerProvider).value;
+    if (data == null) return;
+    final unreadIds =
+        data.items.where((a) => !a.read).map((a) => a.id).toList();
+    if (unreadIds.isNotEmpty) {
+      controller.batchRead(unreadIds);
+    }
   }
 }
 
-class _AlertTypeChip extends StatelessWidget {
-  const _AlertTypeChip({
-    required this.chipKey,
-    required this.label,
-    required this.icon,
-    required this.color,
-  });
-
-  final Key chipKey;
+class _DateGroupHeader extends StatelessWidget {
+  const _DateGroupHeader({required this.label, required this.count});
   final String label;
-  final IconData icon;
-  final Color color;
+  final int count;
 
   @override
   Widget build(BuildContext context) {
-    return HighfiStatusChip(
-      key: chipKey,
-      label: label,
-      icon: icon,
-      color: color,
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md, AppSpacing.sm, AppSpacing.md, 2),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(width: 6),
+          const Expanded(
+            child: Divider(
+              height: 1,
+              color: AppColors.border,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Text(
+              l10n.alertDateCount(count),
+              style: const TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

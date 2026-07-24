@@ -9,14 +9,15 @@ class _FakeAdminRepository implements AdminRepository {
   final TenantDetail? tenantDetail;
   final AdminListResult<UserSummary>? users;
   final Object? loadError;
-  final Object? createError;
+ final Object? createError;
 
   _FakeAdminRepository({
     this.tenantDetail,
     this.users,
-    this.loadError,
-    this.createError,
-  });
+   this.loadError,
+   // ignore: unused_element_parameter
+   this.createError,
+ });
 
   @override
   Future<TenantDetail> loadTenantDetail(String id) async {

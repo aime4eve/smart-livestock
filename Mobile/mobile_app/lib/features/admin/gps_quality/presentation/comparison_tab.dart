@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
-import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_api_repository.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_providers.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
@@ -66,7 +65,7 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   ),
-                  value: _selectedRtkPointId,
+                  initialValue: _selectedRtkPointId,
                   items: [
                     DropdownMenuItem(value: null, child: Text(l10n.gpsQualityRtkPointList, style: const TextStyle(fontSize: 13))),
                     ...rtkPoints.map((p) => DropdownMenuItem(value: p.id,
@@ -82,7 +81,7 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   ),
-                  value: _selectedRouteId,
+                  initialValue: _selectedRouteId,
                   items: [
                     DropdownMenuItem(value: null, child: Text(l10n.gpsQualityRouteList, style: const TextStyle(fontSize: 13))),
                     ...routes.map((r) => DropdownMenuItem(value: r.id,
@@ -109,16 +108,16 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
 
   Widget _buildStaticComparison(AppLocalizations l10n, List<RtkPoint> rtkPoints) {
     if (_selectedRtkPointId == null) {
-      return Card(
+      return const Card(
         child: SizedBox(
           height: 200,
           child: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.filter_alt_outlined, size: 40, color: AppColors.textSecondary),
-                const SizedBox(height: AppSpacing.sm),
-                Text('请选择一个 RTK 点位查看对比', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                Icon(Icons.filter_alt_outlined, size: 40, color: AppColors.textSecondary),
+                SizedBox(height: AppSpacing.sm),
+                Text('请选择一个 RTK 点位查看对比', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
               ],
             ),
           ),
@@ -159,8 +158,8 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
                   columns: [
                     DataColumn(label: Text(l10n.gpsQualityDevice, style: const TextStyle(fontSize: 12))),
                     DataColumn(label: Text(l10n.gpsQualityTipMaxError, style: const TextStyle(fontSize: 12))),
-                    DataColumn(label: Text('P95', style: const TextStyle(fontSize: 12))),
-                    DataColumn(label: Text('P50', style: const TextStyle(fontSize: 12))),
+                    const DataColumn(label: Text('P95', style: TextStyle(fontSize: 12))),
+                    const DataColumn(label: Text('P50', style: TextStyle(fontSize: 12))),
                     DataColumn(label: Text(l10n.gpsQualityTipMeanError, style: const TextStyle(fontSize: 12))),
                     DataColumn(label: Text(l10n.gpsQualityTipEffectivePoints, style: const TextStyle(fontSize: 12))),
                     DataColumn(label: Text(l10n.gpsQualityTipJitterDiameter, style: const TextStyle(fontSize: 12))),
@@ -259,8 +258,8 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
                     DataColumn(label: Text(l10n.gpsQualityDynamicAmbiguous, style: const TextStyle(fontSize: 12))),
                     DataColumn(label: Text(l10n.gpsQualityDynamicOrderOk, style: const TextStyle(fontSize: 12))),
                     DataColumn(label: Text(l10n.gpsQualityTipMeanError, style: const TextStyle(fontSize: 12))),
-                    DataColumn(label: Text('P50', style: const TextStyle(fontSize: 12))),
-                    DataColumn(label: Text('P95', style: const TextStyle(fontSize: 12))),
+                    const DataColumn(label: Text('P50', style: TextStyle(fontSize: 12))),
+                    const DataColumn(label: Text('P95', style: TextStyle(fontSize: 12))),
                     DataColumn(label: Text(l10n.gpsQualityTimeRange, style: const TextStyle(fontSize: 12))),
                   ],
                   rows: devices.map((d) {
@@ -349,8 +348,8 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
                     DataColumn(label: Text(l10n.gpsQualityPaired, style: const TextStyle(fontSize: 12))),
                     DataColumn(label: Text(l10n.gpsQualityPairRate, style: const TextStyle(fontSize: 12))),
                     DataColumn(label: Text(l10n.gpsQualityTipMeanError, style: const TextStyle(fontSize: 12))),
-                    DataColumn(label: Text('P50', style: const TextStyle(fontSize: 12))),
-                    DataColumn(label: Text('P95', style: const TextStyle(fontSize: 12))),
+                    const DataColumn(label: Text('P50', style: TextStyle(fontSize: 12))),
+                    const DataColumn(label: Text('P95', style: TextStyle(fontSize: 12))),
                     DataColumn(label: Text(l10n.gpsQualityTimeRange, style: const TextStyle(fontSize: 12))),
                   ],
                   rows: devices.map((d) {

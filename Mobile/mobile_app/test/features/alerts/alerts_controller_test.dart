@@ -5,7 +5,6 @@ import 'package:hkt_livestock_agentic/app/session/app_session.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
-import 'package:hkt_livestock_agentic/features/alerts/data/alerts_api_repository.dart';
 import 'package:hkt_livestock_agentic/features/alerts/domain/alerts_repository.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/alerts_controller.dart';
 
@@ -22,14 +21,19 @@ class _FakeAlertsRepository implements AlertsRepository {
 
   void setItems(List<AlertItem> items) => _items = items;
 
+  String? lastSeverity;
+  List<List<String>> batchDismisses = [];
+
   @override
   Future<AlertsListData> loadAlerts({
     int page = 1,
     int pageSize = 20,
     String? status,
+    String? severity,
   }) async {
     loadCallCount++;
     lastStatus = status;
+    lastSeverity = severity;
     return AlertsListData(
       items: _items,
       total: _items.length,
@@ -62,6 +66,11 @@ class _FakeAlertsRepository implements AlertsRepository {
   @override
   Future<void> batchRead(List<String> alertIds) async {
     batchReads.add(alertIds);
+  }
+ 
+  @override
+  Future<void> batchDismiss(List<String> alertIds) async {
+    batchDismisses.add(alertIds);
   }
 }
 
@@ -108,21 +117,37 @@ void main() {
 
     final state = container.read(alertsControllerProvider);
     expect(state.value, isNotNull);
-    expect(state.value!.items.length, 3);
-  });
+   expect(state.value!.items.length, 3);
+ });
 
-  test('refresh with status filter passes it to repo', () async {
+  test('setFilterStatus passes status to repo', () async {
     final container = setup();
     addTearDown(container.dispose);
 
     container.read(alertsControllerProvider);
     await Future<void>.delayed(const Duration(milliseconds: 50));
 
-    await container
+    container
         .read(alertsControllerProvider.notifier)
-        .refresh(status: 'ACTIVE');
+        .setFilterStatus('ACTIVE');
+    await Future<void>.delayed(const Duration(milliseconds: 50));
 
     expect(repo.lastStatus, 'ACTIVE');
+  });
+
+  test('setFilterSeverity passes severity to repo', () async {
+    final container = setup();
+    addTearDown(container.dispose);
+
+    container.read(alertsControllerProvider);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    container
+        .read(alertsControllerProvider.notifier)
+        .setFilterSeverity('CRITICAL');
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(repo.lastSeverity, 'CRITICAL');
   });
 
   test('markRead delegates to repo and refreshes', () async {

@@ -4,7 +4,7 @@ import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_qual
 void main() {
   group('BatchParseResult.fromJson', () {
     test('parses counts and rows per backend contract', () {
-      final result = BatchParseResult.fromJson({
+      final result = BatchParseResult.fromJson(const {
         'totalRows': 8,
         'okCount': 5,
         'warnCount': 2,
@@ -73,7 +73,7 @@ void main() {
 
   group('DynamicComparisonResult.fromJson', () {
     test('parses device summaries per backend contract', () {
-      final result = DynamicComparisonResult.fromJson({
+      final result = DynamicComparisonResult.fromJson(const {
         'routeId': 5,
         'routeName': '线路1',
         'devices': [

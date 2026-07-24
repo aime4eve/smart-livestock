@@ -100,7 +100,7 @@ class EpidemicPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final color = data.riskLevel == '警戒' ? AppColors.danger : data.riskLevel == '关注' ? AppColors.warning : AppColors.success;
     return Card(
-      color: color.withOpacity(0.08),
+      color: color.withValues(alpha: 0.08),
       child: Padding(padding: const EdgeInsets.all(12), child: Row(children: [
         Icon(Icons.shield, color: color),
         const SizedBox(width: 8),

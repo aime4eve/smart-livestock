@@ -1,12 +1,10 @@
 import 'dart:async';
-import 'dart:math' show min;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
-import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/map/map_constants.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
@@ -22,7 +20,7 @@ import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_widge
 import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/ranch_controller.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/livestock_map_marker.dart';
-import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/health_bottom_sheet.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/ranch_fence_tab.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/livestock_detail_sheet.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/fence_buffer_layer.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
@@ -39,8 +37,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
   final _mapController = MapController();
   SmartTileProvider? _tileProvider;
   String? _selectedFenceId;
-  bool _fencePanelOpen = false;
-  late final AnimationController _breathingController;
+ int _sheetTab = 0; // 0=overview, 1=fence, 2=alerts
+ bool _sheetExpanded = false;
+ late final AnimationController _breathingController;
   Timer? _refreshTimer;
 
   @override
@@ -52,16 +51,16 @@ class _RanchPageState extends ConsumerState<RanchPage>
     );
     _initTileProvider();
     _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) ref.read(ranchControllerProvider.notifier).silentRefresh();
+      if (context.mounted) ref.read(ranchControllerProvider.notifier).silentRefresh();
     });
   }
 
   Future<void> _initTileProvider() async {
     _tileProvider = await loadSmartTileProvider(
       ref,
-      onSourceChanged: () { if (mounted) setState(() {}); },
+      onSourceChanged: () { if (context.mounted) setState(() {}); },
     );
-    if (mounted) setState(() {});
+    if (context.mounted) setState(() {});
   }
 
   @override
@@ -98,7 +97,6 @@ class _RanchPageState extends ConsumerState<RanchPage>
   }
 
   Widget _buildMapWithSheet(BuildContext context, RanchOverview overview, dynamic role) {
-    final l10n = AppLocalizations.of(context)!;
     final canManage = role != null && RolePermission.canEditFence(role);
     final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
 
@@ -142,8 +140,6 @@ class _RanchPageState extends ConsumerState<RanchPage>
       }
     }
 
-    const panelAnimDuration = Duration(milliseconds: 280);
-    const panelCurve = Curves.easeOutCubic;
 
     return Stack(
       children: [
@@ -236,168 +232,257 @@ class _RanchPageState extends ConsumerState<RanchPage>
           ],
         ),
 
-        // Fence list sidebar overlay
-        LayoutBuilder(builder: (context, constraints) {
-          final panelW = min(280.0, constraints.maxWidth * 0.78);
-          return Stack(
-            children: [
-              AnimatedPositioned(
-                duration: panelAnimDuration,
-                curve: panelCurve,
-                left: _fencePanelOpen ? 0 : -panelW,
-                top: 0,
-                bottom: 0,
-                width: panelW,
-                child: Material(
-                  elevation: 8,
-                  shadowColor: Colors.black38,
-                  color: Theme.of(context).colorScheme.surface,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.horizontal(
-                      right: Radius.circular(AppSpacing.lg),
-                    ),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: SafeArea(
-                    right: false,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(AppSpacing.md),
-                          child: Row(
-                            children: [
-                              Text(l10n.ranchFenceList, style: Theme.of(context).textTheme.titleMedium),
-                              const Spacer(),
-                              if (canManage)
-                                IconButton(
-                                  onPressed: () {
-                                    context.push(AppRoute.fenceForm.path).then((_) {
-                                      ref.read(ranchControllerProvider.notifier).refresh();
-                                    });
-                                  },
-                                  icon: const Icon(Icons.add_circle_outline),
-                                  tooltip: l10n.ranchNewFence,
-                                ),
-                            ],
-                          ),
-                        ),
-                        const Divider(height: 1),
-                        Expanded(
-                          child: ListView(
-                            padding: const EdgeInsets.all(AppSpacing.sm),
-                            children: [
-                              if (overview.fences.isEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-                                  child: Center(
-                                    child: Text(
-                                      l10n.ranchNoFence,
-                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: AppColors.textSecondary,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              else
-                                for (final fence in overview.fences)
-                                  _RanchFenceCard(
-                                    fence: fence,
-                                    isSelected: fence.id == _selectedFenceId,
-                                    canManage: canManage,
-                                    onTap: () {
-                                      setState(() => _selectedFenceId = fence.id);
-                                      _mapController.move(
-                                        _fenceCenter(shouldTransform
-                                            ? CoordTransform.wgs84ToGcj02All(fence.points)
-                                            : fence.points),
-                                        16.0,
-                                      );
-                                    },
-                                    onEdit: () => context.go(AppRoute.fence.path),
-                                    onDelete: () => _showDeleteDialog(context, fence),
-                                  ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              // Fence panel toggle button
-              AnimatedPositioned(
-                duration: panelAnimDuration,
-                curve: panelCurve,
-                left: _fencePanelOpen ? panelW + 8 : 8,
-                top: 0,
-                bottom: 0,
-                child: Align(
-                  alignment: Alignment.center,
-                  child: FloatingActionButton.small(
-                    key: const Key('ranch-fence-panel-toggle'),
-                    heroTag: 'ranch-fence-panel-toggle',
-                    onPressed: () => setState(() => _fencePanelOpen = !_fencePanelOpen),
-                    tooltip: _fencePanelOpen ? l10n.ranchCollapseFenceList : l10n.ranchFenceList,
-                    child: Icon(_fencePanelOpen ? Icons.chevron_left : Icons.menu),
-                  ),
-                ),
-              ),
-
-              // Edit boundary FAB (only when fence selected)
-              if (canManage && _selectedFenceId != null)
-                Positioned(
-                  right: AppSpacing.md,
-                  bottom: 140,
-                  child: FloatingActionButton.extended(
-                    key: const Key('ranch-edit-fence-btn'),
-                    heroTag: 'ranch-edit-fence',
-                    onPressed: () => context.go(AppRoute.fence.path),
-                    icon: const Icon(Icons.edit_location_alt_outlined),
-                    label: Text(l10n.ranchEditBoundary),
-                  ),
-                ),
-
-              // Add fence FAB (only when no fence selected)
-              if (canManage && _selectedFenceId == null)
-                Positioned(
-                  right: AppSpacing.md,
-                  bottom: 140,
-                  child: FloatingActionButton.small(
-                    key: const Key('ranch-add-fence-btn'),
-                    heroTag: 'ranch-add-fence',
-                    onPressed: () => context.push(AppRoute.fenceForm.path).then((_) {
-                      ref.read(ranchControllerProvider.notifier).refresh();
-                    }),
-                    child: const Icon(Icons.add),
-                  ),
-                ),
-            ],
-          );
-        }),
-
-        // Bottom health sheet — anchored to bottom, full width
+        // Bottom sheet with segmented tabs (overview / fence / alerts)
         Positioned(
           left: 0,
           right: 0,
           bottom: 0,
-          child: HealthBottomSheet(overview: overview),
+          child: _buildBottomSheet(context, overview, canManage),
         ),
         TileSourceWatermark(provider: _tileProvider),
       ],
     );
   }
 
-  void _showLivestockDetail(BuildContext context, RanchLivestockMarker marker, RanchOverview overview) {
+ void _showLivestockDetail(BuildContext context, RanchLivestockMarker marker, RanchOverview overview) {
     final relatedAlerts = overview.alerts
         .where((a) => a.livestockId == marker.livestockId)
         .toList();
     showModalBottomSheet(
       context: context,
-      builder: (_) => LivestockDetailSheet(marker: marker, relatedAlerts: relatedAlerts),
+      builder: (_) =>
+          LivestockDetailSheet(marker: marker, relatedAlerts: relatedAlerts),
     );
   }
+
+  // ── Bottom sheet with segmented tabs ──
+
+ Widget _buildBottomSheet(
+   BuildContext context,
+   RanchOverview overview,
+   bool canManage,
+ ) {
+   final l10n = AppLocalizations.of(context)!;
+   final activeAlerts =
+       overview.alerts.where((a) => a.status == 'ACTIVE').length;
+ 
+  return AnimatedContainer(
+     duration: const Duration(milliseconds: 280),
+     curve: Curves.easeOutCubic,
+     constraints: BoxConstraints(
+       maxHeight: _sheetExpanded
+           ? MediaQuery.of(context).size.height * 0.85
+           : MediaQuery.of(context).size.height * 0.40,
+     ),
+     decoration: const BoxDecoration(
+       color: AppColors.surfaceAlt,
+       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+       boxShadow: [
+         BoxShadow(
+           offset: Offset(0, -4),
+           blurRadius: 24,
+           color: Color.fromRGBO(38, 49, 38, 0.15),
+         ),
+       ],
+     ),
+     child: Column(
+       mainAxisSize: MainAxisSize.min,
+       children: [
+         // Drag handle — tap to toggle expand/collapse, drag to swipe
+        GestureDetector(
+          onTap: () => setState(() => _sheetExpanded = !_sheetExpanded),
+          onVerticalDragEnd: (details) {
+            final vel = details.primaryVelocity ?? 0;
+            if (vel > 100) {
+              setState(() => _sheetExpanded = false);
+            } else if (vel < -100) {
+              setState(() => _sheetExpanded = true);
+            }
+          },
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(0, 6, 0, 6),
+            child: Container(
+              width: 32,
+              height: 3,
+              margin: const EdgeInsets.only(top: 8),
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+        ),
+        // Segmented tabs
+         Container(
+           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 4),
+           decoration: const BoxDecoration(
+             border: Border(bottom: BorderSide(color: AppColors.border)),
+           ),
+           child: Row(
+             children: [
+               _SheetTab(
+                 icon: Icons.dashboard_outlined,
+                 label: l10n.ranchTabOverview,
+                 isActive: _sheetTab == 0,
+                 onTap: () => setState(() => _sheetTab = 0),
+               ),
+               _SheetTab(
+                 icon: Icons.fence,
+                 label: l10n.ranchTabFence,
+                 isActive: _sheetTab == 1,
+                 onTap: () => setState(() => _sheetTab = 1),
+               ),
+               _SheetTab(
+                 icon: Icons.notifications,
+                 label: l10n.ranchTabAlerts,
+                 badge: activeAlerts,
+                 isActive: _sheetTab == 2,
+                 onTap: () => setState(() => _sheetTab = 2),
+               ),
+             ],
+           ),
+         ),
+         // Tab content
+         Flexible(
+           child: switch (_sheetTab) {
+             0 => _buildOverviewTab(context, overview),
+             1 => SingleChildScrollView(
+                child: RanchFenceTab(
+                  fences: overview.fences,
+                  alerts: overview.alerts,
+                  selectedFenceId: _selectedFenceId,
+                  canManage: canManage,
+                  onFenceSelected: (id) {
+                     setState(() {
+                       _selectedFenceId = id.isEmpty ? null : id;
+                       if (!id.isEmpty) {
+                         final fence = overview.fences
+                             .where((f) => f.id == id)
+                             .firstOrNull;
+                         if (fence != null) {
+                           _mapController.move(
+                             _fenceCenter(fence.points),
+                             16.0,
+                           );
+                         }
+                       }
+                     });
+                   },
+                 ),
+               ),
+             _ => _buildAlertsTab(context, overview),
+           },
+         ),
+       ],
+     ),
+   );
+ }
+ 
+ Widget _buildOverviewTab(BuildContext context, RanchOverview overview) {
+   final l10n = AppLocalizations.of(context)!;
+   final fenceSummary = overview.fenceAlertSummary;
+   final healthSummary = overview.healthAlertSummary;
+   final fenceTotal = fenceSummary.values.fold(0, (a, b) => a + b);
+   final healthTotal = healthSummary.values.fold(0, (a, b) => a + b);
+   final deviceAlerts = overview.alerts
+       .where((a) =>
+           a.status == 'ACTIVE' &&
+           (a.type == 'DEVICE_TAMPER' || a.type == 'DEVICE_LOW_BATTERY'))
+       .length;
+ 
+   return SingleChildScrollView(
+     padding: const EdgeInsets.symmetric(
+         horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+     child: Wrap(
+       spacing: AppSpacing.sm,
+       runSpacing: AppSpacing.sm,
+       children: [
+         _DashCard(
+           icon: Icons.fence,
+           count: fenceTotal,
+           label: l10n.ranchSectionFenceAlerts,
+           color: AppColors.danger,
+         ),
+         _DashCard(
+           icon: Icons.favorite,
+           count: healthTotal,
+           label: l10n.ranchSectionHealthAlerts,
+           color: AppColors.warning,
+         ),
+         _DashCard(
+           icon: Icons.devices,
+           count: deviceAlerts,
+           label: l10n.ranchSectionDeviceAlerts,
+           color: AppColors.success,
+         ),
+         _DashCard(
+           icon: Icons.pets,
+           count: overview.overallStats.totalLivestock,
+           label: l10n.ranchLivestockTotal,
+           color: AppColors.info,
+         ),
+       ],
+     ),
+   );
+ }
+ 
+ Widget _buildAlertsTab(BuildContext context, RanchOverview overview) {
+   final l10n = AppLocalizations.of(context)!;
+   final active = overview.alerts.where((a) => a.status == 'ACTIVE').toList();
+   if (active.isEmpty) {
+     return Center(
+       child: Column(
+         mainAxisAlignment: MainAxisAlignment.center,
+         children: [
+           const Icon(Icons.notifications_off, size: 32, color: AppColors.textSecondary),
+           const SizedBox(height: AppSpacing.sm),
+           Text(l10n.alertEmptyTitle,
+               style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+         ],
+       ),
+     );
+   }
+   return ListView.builder(
+     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+     itemCount: active.length,
+     itemBuilder: (context, index) {
+       final alert = active[index];
+       return Card(
+         margin: const EdgeInsets.only(bottom: AppSpacing.xs),
+         child: ListTile(
+           dense: true,
+           leading: Icon(
+             _alertIcon(alert.type),
+             size: 18,
+             color: alert.severity == 'CRITICAL'
+                 ? AppColors.danger
+                 : AppColors.warning,
+           ),
+           title: Text(alert.message, maxLines: 1, overflow: TextOverflow.ellipsis),
+           subtitle: Text(alert.type, style: const TextStyle(fontSize: 10)),
+           onTap: () => context.push(AppRoute.alerts.path),
+         ),
+       );
+     },
+   );
+ }
+ 
+ IconData _alertIcon(String type) {
+   return switch (type) {
+     'FENCE_BREACH' => Icons.fence,
+     'FENCE_APPROACH' => Icons.warning_amber,
+     'TEMPERATURE_ABNORMAL' => Icons.thermostat,
+     'ESTRUS' => Icons.favorite,
+     'EPIDEMIC' => Icons.shield,
+     'AI_ANOMALY' => Icons.psychology,
+     'DEVICE_TAMPER' => Icons.sensors,
+     'DEVICE_LOW_BATTERY' => Icons.battery_alert,
+     _ => Icons.notifications,
+   };
+ }
+
+
 
   void _handleMapTap(LatLng point) {
     setState(() => _selectedFenceId = null);
@@ -412,42 +497,6 @@ class _RanchPageState extends ConsumerState<RanchPage>
     return LatLng(lat / points.length, lng / points.length);
   }
 
-  Future<void> _showDeleteDialog(BuildContext context, RanchFenceData fence) async {
-    final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.commonConfirmDelete),
-        content: Text(l10n.ranchConfirmDeleteFence(fence.name)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.commonCancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.commonDelete, style: const TextStyle(color: AppColors.danger)),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true) {
-      try {
-        await ApiClient.instance.farmDelete('/fences/${fence.id}');
-        if (!mounted) return;
-        ref.read(ranchControllerProvider.notifier).refresh();
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(l10n.ranchFenceDeleted(fence.name))));
-      } catch (e) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(l10n.commonDeleteFailed(e.toString()))));
-      }
-    }
-  }
-
   /// Skeleton map shown while ranch data loads — shows map background immediately
   /// with a small loading indicator, instead of a blank spinner screen.
   Widget _buildSkeletonMap(BuildContext context) {
@@ -455,7 +504,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
       children: [
         FlutterMap(
           mapController: _mapController,
-          options: MapOptions(
+          options: const MapOptions(
             initialCenter: MapConstants.mapCenter,
             initialZoom: MapConstants.defaultZoom,
           ),
@@ -579,100 +628,163 @@ class _FenceMapNameChip extends StatelessWidget {
   }
 }
 
-// ── Fence card in sidebar ──────────────────────────────────────────────
 
-class _RanchFenceCard extends StatelessWidget {
-  const _RanchFenceCard({
-    required this.fence,
-    required this.isSelected,
-    required this.canManage,
+// ── Bottom sheet tab button ──
+
+class _SheetTab extends StatelessWidget {
+  const _SheetTab({
+    required this.icon,
+    required this.label,
+    required this.isActive,
     required this.onTap,
-    required this.onEdit,
-    required this.onDelete,
+    this.badge,
   });
 
-  final RanchFenceData fence;
-  final bool isSelected;
-  final bool canManage;
+  final IconData icon;
+  final String label;
+  final bool isActive;
   final VoidCallback onTap;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final int? badge;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Card(
-      key: Key('ranch-fence-card-${fence.id}'),
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.md),
-        side: isSelected
-            ? BorderSide(color: Color(fence.colorValue), width: 2)
-            : BorderSide.none,
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+    return Expanded(
+      child: GestureDetector(
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 7),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: isActive ? AppColors.primary : Colors.transparent,
+                width: 2,
+              ),
+            ),
+          ),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 4,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: Color(fence.colorValue),
-                  borderRadius: BorderRadius.circular(2),
+              Icon(
+                icon,
+                size: 14,
+                color: isActive ? AppColors.primary : AppColors.textSecondary,
+              ),
+              const SizedBox(width: 3),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: isActive ? AppColors.primary : AppColors.textSecondary,
                 ),
               ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(fence.name, style: Theme.of(context).textTheme.titleSmall),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: fence.active
-                                ? AppColors.success.withValues(alpha: 0.1)
-                                : AppColors.textSecondary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            fence.active ? l10n.ranchFenceActive : l10n.ranchFenceInactive,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: fence.active ? AppColors.success : AppColors.textSecondary,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Text(l10n.ranchLivestockCountHead(fence.livestockCount.toString()),
-                          style: Theme.of(context).textTheme.bodySmall),
-                      ],
+              if (badge != null && badge! > 0) ...[
+                const SizedBox(width: 3),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  constraints: const BoxConstraints(minWidth: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.danger,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '$badge',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
                     ),
-                  ],
-                ),
-              ),
-              if (canManage) ...[
-                IconButton(
-                  onPressed: onEdit,
-                  icon: const Icon(Icons.edit_outlined, size: 20),
-                  tooltip: l10n.commonEdit,
-                ),
-                IconButton(
-                  onPressed: onDelete,
-                  icon: const Icon(Icons.delete_outline, size: 20),
-                  tooltip: l10n.commonDelete,
+                  ),
                 ),
               ],
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ── Dashboard card for overview tab ──
+
+class _DashCard extends StatelessWidget {
+  const _DashCard({
+    required this.icon,
+    required this.count,
+    required this.label,
+    required this.color,
+  });
+
+  final IconData icon;
+  final int count;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasAlert = count > 0 && label.contains('告警');
+    return Container(
+      width: (MediaQuery.of(context).size.width - AppSpacing.md * 2 - AppSpacing.sm) / 2,
+      padding: const EdgeInsets.all(7),
+      decoration: BoxDecoration(
+        color: hasAlert ? color.withValues(alpha: 0.03) : AppColors.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: hasAlert ? color.withValues(alpha: 0.3) : AppColors.border,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(icon, size: 12, color: color),
+              ),
+              const Spacer(),
+              if (count > 0 && hasAlert)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  child: Text(
+                    '$count',
+                    style: const TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$count',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 9,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
       ),
     );
   }

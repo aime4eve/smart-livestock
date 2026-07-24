@@ -91,7 +91,7 @@ class EpidemicContactPage extends ConsumerWidget {
     final diseaseType = network.diseaseType ?? l10n.epidemicNotMarked;
     final markedAt = network.markedAt;
     return Card(
-      color: AppColors.danger.withOpacity(0.08),
+      color: AppColors.danger.withValues(alpha: 0.08),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
@@ -118,7 +118,7 @@ class EpidemicContactPage extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppColors.info.withOpacity(0.06),
+        color: AppColors.info.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -242,13 +242,13 @@ class EpidemicContactPage extends ConsumerWidget {
                   Text('${l10n.contactDistance} ${node.proximityMeters.toStringAsFixed(1)}m · ${l10n.contactDuration} ${node.contactDurationMinutes}min',
                       style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
                   Text('${l10n.contactFactorTime} ${node.timeScore} · ${l10n.contactFactorDistance} ${node.distanceScore} · ${l10n.contactFactorDuration} ${node.durationScore}',
-                      style: TextStyle(fontSize: 9, color: AppColors.textSecondary.withOpacity(0.7))),
+                      style: TextStyle(fontSize: 9, color: AppColors.textSecondary.withValues(alpha: 0.7))),
                 ],
               ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(color: riskColor.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(color: riskColor.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
               child: Text(riskLabel, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: riskColor)),
             ),
           ],
@@ -269,7 +269,7 @@ class EpidemicContactPage extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppColors.info.withOpacity(0.06),
+        color: AppColors.info.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -319,12 +319,12 @@ class _NetworkPainter extends CustomPainter {
           : node.riskLevel == 'MEDIUM' ? AppColors.warning : AppColors.success;
 
       final linePaint = Paint()
-        ..color = nodeColor.withOpacity(0.4)
+        ..color = nodeColor.withValues(alpha: 0.4)
         ..strokeWidth = node.riskLevel == 'HIGH' ? 2.5 : 1.5
         ..style = PaintingStyle.stroke;
       canvas.drawLine(center, nodePos, linePaint);
 
-      canvas.drawCircle(nodePos, 12, Paint()..color = nodeColor.withOpacity(0.8));
+      canvas.drawCircle(nodePos, 12, Paint()..color = nodeColor.withValues(alpha: 0.8));
 
       final shortCode = node.livestockCode.length > 6 ? node.livestockCode.substring(node.livestockCode.length - 3) : node.livestockCode;
       final labelTp = TextPainter(text: TextSpan(text: shortCode, style: const TextStyle(color: Colors.white, fontSize: 8)), textDirection: TextDirection.ltr);

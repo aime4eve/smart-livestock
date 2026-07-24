@@ -10,9 +10,11 @@ class AlertsApiRepository implements AlertsRepository {
     int page = 1,
     int pageSize = 20,
     String? status,
+    String? severity,
   }) async {
     var path = '/alerts?page=$page&pageSize=$pageSize';
     if (status != null) path += '&status=$status';
+    if (severity != null) path += '&severity=$severity';
     final data = await ApiClient.instance.farmGet(path);
     final itemsRaw = data['items'];
     final items = itemsRaw is List
@@ -48,7 +50,15 @@ class AlertsApiRepository implements AlertsRepository {
   @override
   Future<void> batchRead(List<String> alertIds) async {
     await ApiClient.instance
-        .farmPost('/alerts/batch-read', body: {'alertIds': alertIds});
+       .farmPost('/alerts/batch-read', body: {'alertIds': alertIds});
+  }
+
+  @override
+  Future<void> batchDismiss(List<String> alertIds) async {
+    // Backend has no /alerts/batch-dismiss; reuse /alerts/batch-handle
+    // (deprecated but active, internally loops dismiss, OWNER/B2B_ADMIN only).
+    await ApiClient.instance
+        .farmPost('/alerts/batch-handle', body: {'alertIds': alertIds});
   }
 
   static AlertItem _alertItemFromMap(Map<String, dynamic> m) {
@@ -61,6 +71,8 @@ class AlertsApiRepository implements AlertsRepository {
       'WARNING' => 'P1',
       _ => 'P2',
     };
+    final readVal = m['read'];
+    final isRead = readVal is bool ? readVal : false;
     final type = m['type'] as String? ?? 'unknown';
     final stageStr = (m['status'] as String? ?? 'ACTIVE').toLowerCase();
     final stage = switch (stageStr) {
@@ -78,21 +90,31 @@ class AlertsApiRepository implements AlertsRepository {
     final livestockId = rawLivestockId is int
         ? rawLivestockId.toString()
         : (rawLivestockId as String?);
-   return AlertItem(
-     id: id,
-     title: message,
-     subtitle: '',
-     priority: priority,
-     type: type,
-     stage: stage.name,
-     livestockCode: livestockId ?? '-',
-     livestockId: livestockId,
-     source: (m['source'] as String?) ?? 'RULE',
-   );
+    return AlertItem(
+      id: id,
+      title: message,
+      subtitle: '',
+      priority: priority,
+      type: type,
+      stage: stage.name,
+      livestockCode: livestockId ?? '-',
+      livestockId: livestockId,
+      source: (m['source'] as String?) ?? 'RULE',
+      severity: severity,
+      read: isRead,
+      occurredAt: _extractTimestamp(m, 'occurredAt', 'resolvedAt'),
+      resolvedAt: m['resolvedAt'] as String?,
+      fenceName: m['fenceName'] as String?,
+      resolvedType: m['resolvedType'] as String?,
+    );
   }
 
   static AlertDetail _alertDetailFromMap(Map<String, dynamic> m) {
     final item = _alertItemFromMap(m);
+    final rawFenceId = m['fenceId'];
+    final fenceId = rawFenceId is int
+        ? rawFenceId.toString()
+        : (rawFenceId as String?);
     return AlertDetail(
       id: item.id,
       title: item.title,
@@ -102,9 +124,26 @@ class AlertsApiRepository implements AlertsRepository {
       stage: item.stage,
       livestockCode: item.livestockCode,
       livestockId: item.livestockId,
-      occurredAt: m['occurredAt'] as String? ?? m['resolvedAt'] as String?,
+      occurredAt: item.occurredAt,
+      resolvedAt: item.resolvedAt,
       description: m['message'] as String?,
+      severity: item.severity,
+      source: item.source,
+      fenceName: item.fenceName,
+      resolvedType: item.resolvedType,
+      read: item.read,
+      fenceId: fenceId,
     );
+  }
+
+  /// Tries multiple possible timestamp field names from the DTO.
+  static String? _extractTimestamp(
+      Map<String, dynamic> m, String primary, String fallback) {
+    final v = m[primary];
+    if (v is String && v.isNotEmpty) return v;
+    final f = m[fallback];
+    if (f is String && f.isNotEmpty) return f;
+    return null;
   }
 
   // Test-only accessors for private parsing methods

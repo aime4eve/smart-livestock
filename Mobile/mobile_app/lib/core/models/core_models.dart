@@ -274,18 +274,30 @@ class AlertItem {
     required this.priority,
     required this.type,
     required this.stage,
-   required this.livestockCode,
-   this.livestockId,
-   this.source = 'RULE',
- });
+    required this.livestockCode,
+    this.livestockId,
+    this.source = 'RULE',
+    this.severity = 'WARNING',
+    this.read = false,
+    this.occurredAt,
+    this.resolvedAt,
+    this.fenceName,
+    this.resolvedType,
+  });
 
- final String id;
+  final String id;
   final String title;
   final String subtitle;
   final String priority;
   final String type;
- final String stage;
+  final String stage;
   final String livestockCode;
-final String? livestockId;
- final String source; // RULE / AI
+  final String? livestockId;
+  final String source; // RULE / AI
+  final String severity; // INFO | WARNING | CRITICAL
+  final bool read;
+  final String? occurredAt;
+  final String? resolvedAt;
+  final String? fenceName;
+  final String? resolvedType; // AUTO | MANUAL_DISMISS
 }

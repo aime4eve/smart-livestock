@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
-import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_api_repository.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_providers.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/web_file_utils.dart';
@@ -152,7 +151,7 @@ class _BatchImportDialogState extends ConsumerState<BatchImportDialog> {
             const SizedBox(height: AppSpacing.sm),
             _fileName != null
                 ? Text(_fileName!, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))
-                : Text('.xlsx', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                : const Text('.xlsx', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
             const SizedBox(height: AppSpacing.md),
             FilledButton.icon(
               key: const Key('batch-import-pick-file'),
@@ -235,7 +234,7 @@ class _BatchImportDialogState extends ConsumerState<BatchImportDialog> {
               DataColumn(label: Text(l10n.gpsQualityTruthRef, style: const TextStyle(fontSize: 11))),
               DataColumn(label: Text(l10n.gpsQualityTimeRange, style: const TextStyle(fontSize: 11))),
               DataColumn(label: Text(l10n.gpsQualityStatus, style: const TextStyle(fontSize: 11))),
-              DataColumn(label: Text('', style: const TextStyle(fontSize: 11))),
+              const DataColumn(label: Text('', style: TextStyle(fontSize: 11))),
             ],
             rows: visibleRows.map((r) {
               final isError = r.preStatus == 'ERROR';

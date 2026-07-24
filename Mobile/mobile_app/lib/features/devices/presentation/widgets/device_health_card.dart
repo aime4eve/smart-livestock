@@ -3,7 +3,6 @@ import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
-import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 /// Full device health detail dialog — shows all real data from agentic-platform.
 /// Triggered by tapping on a device tile.
@@ -50,7 +49,6 @@ class _DeviceHealthDialogState extends State<DeviceHealthDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final d = widget.device;
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
@@ -150,7 +148,6 @@ class _HeaderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: Theme.of(context).dividerColor)),

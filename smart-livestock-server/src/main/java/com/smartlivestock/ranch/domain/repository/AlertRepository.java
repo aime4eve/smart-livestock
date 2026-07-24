@@ -11,6 +11,7 @@ public interface AlertRepository {
     Alert save(Alert alert);
     Optional<Alert> findById(Long id);
     List<Alert> findByFarmId(Long farmId);
+    List<Alert> findByFarmIdRecent(Long farmId, int limit);
     List<Alert> findByFarmIdAndStatus(Long farmId, AlertStatus status);
     List<Alert> findByLivestockIdAndTypeAndStatus(Long livestockId, AlertType type, AlertStatus status);
     List<Alert> findByDeviceIdAndTypeAndStatus(Long deviceId, AlertType type, AlertStatus status);

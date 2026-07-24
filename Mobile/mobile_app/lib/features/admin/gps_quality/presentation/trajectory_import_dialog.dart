@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
-import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_api_repository.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_providers.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/web_file_utils.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
@@ -288,7 +287,7 @@ class _TrajectoryImportDialogState extends ConsumerState<TrajectoryImportDialog>
           Text(l10n.gpsQualityPairTolerance,
               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           const SizedBox(width: AppSpacing.md),
-          Text('±', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          const Text('±', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
           const SizedBox(width: 4),
           SizedBox(
             width: 70,
@@ -345,7 +344,7 @@ class _TrajectoryImportDialogState extends ConsumerState<TrajectoryImportDialog>
         dataRowMaxHeight: 36,
         columnSpacing: 16,
         columns: [
-          DataColumn(label: Text('#', style: _th)),
+          const DataColumn(label: Text('#', style: _th)),
           DataColumn(label: Text(l10n.gpsQualityTrajectoryColEui, style: _th)),
           DataColumn(label: Text(l10n.gpsQualityTrajectoryColTime, style: _th)),
           DataColumn(label: Text(l10n.gpsQualityTrajectoryColRtkLat, style: _th)),

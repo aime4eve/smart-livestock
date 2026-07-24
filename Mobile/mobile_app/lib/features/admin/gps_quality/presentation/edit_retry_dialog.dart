@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
-import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_api_repository.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_providers.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
@@ -104,7 +103,7 @@ class _EditRetryDialogState extends ConsumerState<EditRetryDialog> {
                   : l10n.gpsQualityNoData),
               const SizedBox(width: AppSpacing.sm),
               _infoChip(widget.failedCheck?.startedAt != null
-                  ? '${widget.failedCheck!.startedAt.toLocal().toString().substring(0, 16)}'
+                  ? widget.failedCheck!.startedAt.toLocal().toString().substring(0, 16)
                   : l10n.gpsQualityNoData),
             ]),
             if (_error != null)

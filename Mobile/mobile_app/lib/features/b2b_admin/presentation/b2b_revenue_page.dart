@@ -20,7 +20,6 @@ class _B2bRevenuePageState extends ConsumerState<B2bRevenuePage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(b2bRevenueControllerProvider);
 
     return asyncData.when(

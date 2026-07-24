@@ -195,7 +195,7 @@ class _LivestockFormSheetState extends ConsumerState<LivestockFormSheet> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline, size: 16, color: AppColors.primary),
+                    const Icon(Icons.info_outline, size: 16, color: AppColors.primary),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(

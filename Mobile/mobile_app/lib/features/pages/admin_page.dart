@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
-import 'package:hkt_livestock_agentic/features/mine/presentation/mine_controller.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/subscription_status_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:go_router/go_router.dart';
@@ -14,7 +13,6 @@ class AdminPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final asyncProfile = ref.watch(mineControllerProvider);
 
     return Scaffold(
       body: SingleChildScrollView(

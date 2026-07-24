@@ -8,6 +8,7 @@ import java.util.List;
 public interface SpringDataAlertRepository extends JpaRepository<AlertJpaEntity, Long> {
     List<AlertJpaEntity> findByFarmId(Long farmId);
     List<AlertJpaEntity> findByFarmIdAndStatus(Long farmId, String status);
+    List<AlertJpaEntity> findByFarmIdOrderByIdDesc(Long farmId, org.springframework.data.domain.Pageable pageable);
     List<AlertJpaEntity> findByLivestockIdAndTypeAndStatus(Long livestockId, String type, String status);
     List<AlertJpaEntity> findByDeviceIdAndTypeAndStatus(Long deviceId, String type, String status);
 }

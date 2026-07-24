@@ -142,8 +142,8 @@ class DigestiveDetailPage extends ConsumerWidget {
                           child: Container(
                             decoration: BoxDecoration(
                               color: isAbnormal
-                                  ? AppColors.danger.withOpacity(0.3 + (intensity / 100).clamp(0, 0.7))
-                                  : AppColors.success.withOpacity(0.3 + (intensity / 100).clamp(0, 0.7)),
+                                  ? AppColors.danger.withValues(alpha: 0.3 + (intensity / 100).clamp(0, 0.7))
+                                  : AppColors.success.withValues(alpha: 0.3 + (intensity / 100).clamp(0, 0.7)),
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),

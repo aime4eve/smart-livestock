@@ -82,14 +82,14 @@ class _FeverCard extends StatelessWidget {
     final color = _statusColor();
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: color.withOpacity(0.3))),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: color.withValues(alpha: 0.3))),
       child: ListTile(
         leading: Icon(_statusIcon(), color: color, size: 28),
         title: Text(item.livestockCode, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text('${item.breed ?? ""}  ${item.currentTemp.toStringAsFixed(1)}°C  ▲+${item.delta.toStringAsFixed(1)}'),
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
           child: Text(item.status, style: TextStyle(fontSize: 11, color: color)),
         ),
         onTap: () => context.push('/twin/fever/${item.livestockId}'),
