@@ -38,7 +38,8 @@ class _RanchPageState extends ConsumerState<RanchPage>
   SmartTileProvider? _tileProvider;
   String? _selectedFenceId;
  int _sheetTab = 0; // 0=overview, 1=fence, 2=alerts
- bool _sheetExpanded = false;
+
+ int _sheetSnap = 1; // 0=peek(tabs only), 1=half(40%), 2=full(85%)
  late final AnimationController _breathingController;
   Timer? _refreshTimer;
 
@@ -270,9 +271,11 @@ class _RanchPageState extends ConsumerState<RanchPage>
      duration: const Duration(milliseconds: 280),
      curve: Curves.easeOutCubic,
      constraints: BoxConstraints(
-       maxHeight: _sheetExpanded
-           ? MediaQuery.of(context).size.height * 0.85
-           : MediaQuery.of(context).size.height * 0.40,
+       maxHeight: switch (_sheetSnap) {
+         0 => 80.0, // peek: handle + tab bar only
+         1 => MediaQuery.of(context).size.height * 0.40,
+         _ => MediaQuery.of(context).size.height * 0.85,
+       },
      ),
      decoration: const BoxDecoration(
        color: AppColors.surfaceAlt,
@@ -290,13 +293,24 @@ class _RanchPageState extends ConsumerState<RanchPage>
        children: [
          // Drag handle — tap to toggle expand/collapse, drag to swipe
         GestureDetector(
-          onTap: () => setState(() => _sheetExpanded = !_sheetExpanded),
+          onTap: () => setState(() {
+            // Cycle: peek(0) -> half(1) -> full(2) -> half(1) -> peek(0)
+            if (_sheetSnap == 0) {
+              _sheetSnap = 1;
+            } else if (_sheetSnap == 1) {
+              _sheetSnap = 2;
+            } else {
+              _sheetSnap = 0;
+            }
+          }),
           onVerticalDragEnd: (details) {
             final vel = details.primaryVelocity ?? 0;
             if (vel > 100) {
-              setState(() => _sheetExpanded = false);
+              // Swipe down: collapse
+              setState(() => _sheetSnap = _sheetSnap > 0 ? _sheetSnap - 1 : 0);
             } else if (vel < -100) {
-              setState(() => _sheetExpanded = true);
+              // Swipe up: expand
+              setState(() => _sheetSnap = _sheetSnap < 2 ? _sheetSnap + 1 : 2);
             }
           },
           behavior: HitTestBehavior.opaque,
@@ -343,7 +357,8 @@ class _RanchPageState extends ConsumerState<RanchPage>
              ],
            ),
          ),
-         // Tab content
+         // Tab content (hidden in peek mode)
+         if (_sheetSnap > 0)
          Flexible(
            child: switch (_sheetTab) {
              0 => _buildOverviewTab(context, overview),
@@ -381,10 +396,12 @@ class _RanchPageState extends ConsumerState<RanchPage>
  
  Widget _buildOverviewTab(BuildContext context, RanchOverview overview) {
    final l10n = AppLocalizations.of(context)!;
-   final fenceSummary = overview.fenceAlertSummary;
-   final healthSummary = overview.healthAlertSummary;
-   final fenceTotal = fenceSummary.values.fold(0, (a, b) => a + b);
-   final healthTotal = healthSummary.values.fold(0, (a, b) => a + b);
+   final activeAlerts = overview.alerts.where((a) => a.status == 'ACTIVE');
+   final fenceTotal = activeAlerts.where((a) =>
+       a.type == 'FENCE_BREACH' || a.type == 'FENCE_APPROACH' || a.type == 'ZONE_APPROACH').length;
+   final healthTotal = activeAlerts.where((a) =>
+       a.type == 'TEMPERATURE_ABNORMAL' || a.type == 'DIGESTIVE_ABNORMAL' ||
+       a.type == 'ESTRUS' || a.type == 'EPIDEMIC' || a.type == 'AI_ANOMALY').length;
    final deviceAlerts = overview.alerts
        .where((a) =>
            a.status == 'ACTIVE' &&
@@ -398,30 +415,34 @@ class _RanchPageState extends ConsumerState<RanchPage>
        spacing: AppSpacing.sm,
        runSpacing: AppSpacing.sm,
        children: [
-         _DashCard(
-           icon: Icons.fence,
-           count: fenceTotal,
-           label: l10n.ranchSectionFenceAlerts,
-           color: AppColors.danger,
-         ),
-         _DashCard(
-           icon: Icons.favorite,
-           count: healthTotal,
-           label: l10n.ranchSectionHealthAlerts,
-           color: AppColors.warning,
-         ),
-         _DashCard(
-           icon: Icons.devices,
-           count: deviceAlerts,
-           label: l10n.ranchSectionDeviceAlerts,
-           color: AppColors.success,
-         ),
-         _DashCard(
-           icon: Icons.pets,
-           count: overview.overallStats.totalLivestock,
-           label: l10n.ranchLivestockTotal,
-           color: AppColors.info,
-         ),
+       _DashCard(
+          icon: Icons.fence,
+          count: fenceTotal,
+          label: l10n.ranchSectionFenceAlerts,
+          color: AppColors.danger,
+          onTap: () => context.push('${AppRoute.alerts.path}?category=fence'),
+        ),
+        _DashCard(
+          icon: Icons.favorite,
+          count: healthTotal,
+          label: l10n.ranchSectionHealthAlerts,
+          color: AppColors.warning,
+          onTap: () => context.push('${AppRoute.alerts.path}?category=health'),
+        ),
+        _DashCard(
+          icon: Icons.devices,
+          count: deviceAlerts,
+          label: l10n.ranchSectionDeviceAlerts,
+          color: AppColors.success,
+          onTap: () => context.push('${AppRoute.alerts.path}?category=device'),
+        ),
+        _DashCard(
+          icon: Icons.pets,
+          count: overview.overallStats.totalLivestock,
+          label: l10n.ranchLivestockTotal,
+          color: AppColors.info,
+          onTap: () => context.push(AppRoute.livestockList.path),
+        ),
        ],
      ),
    );
@@ -715,17 +736,19 @@ class _DashCard extends StatelessWidget {
     required this.count,
     required this.label,
     required this.color,
+    this.onTap,
   });
 
   final IconData icon;
   final int count;
   final String label;
   final Color color;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final hasAlert = count > 0 && label.contains('告警');
-    return Container(
+    final card = Container(
       width: (MediaQuery.of(context).size.width - AppSpacing.md * 2 - AppSpacing.sm) / 2,
       padding: const EdgeInsets.all(7),
       decoration: BoxDecoration(
@@ -787,5 +810,8 @@ class _DashCard extends StatelessWidget {
         ],
       ),
     );
+    return onTap != null
+        ? GestureDetector(onTap: onTap, child: card)
+        : card;
   }
 }

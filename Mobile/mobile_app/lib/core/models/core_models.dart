@@ -281,9 +281,10 @@ class AlertItem {
     this.read = false,
     this.occurredAt,
     this.resolvedAt,
-    this.fenceName,
-    this.resolvedType,
-  });
+   this.fenceName,
+   this.resolvedType,
+    this.fenceId,
+ });
 
   final String id;
   final String title;
@@ -299,5 +300,6 @@ class AlertItem {
   final String? occurredAt;
   final String? resolvedAt;
   final String? fenceName;
-  final String? resolvedType; // AUTO | MANUAL_DISMISS
+ final String? resolvedType; // AUTO | MANUAL_DISMISS
+ final String? fenceId;
 }

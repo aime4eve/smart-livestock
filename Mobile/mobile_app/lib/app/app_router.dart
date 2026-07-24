@@ -201,10 +201,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoute.alerts.path,
             name: AppRoute.alerts.routeName,
-            builder: (context, state) => Consumer(
-              builder: (context, ref, child) {
-                final role = ref.watch(sessionControllerProvider).role!;
-                return AlertsPage(role: role);
+           builder: (context, state) => Consumer(
+             builder: (context, ref, child) {
+               final role = ref.watch(sessionControllerProvider).role!;
+               final category = state.uri.queryParameters['category'];
+               final fenceId = state.uri.queryParameters['fenceId'];
+               return AlertsPage(role: role);
+               return AlertsPage(role: role, category: category, fenceId: fenceId);
               },
             ),
           ),
@@ -227,7 +230,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoute.fenceForm.path,
             name: AppRoute.fenceForm.routeName,
             builder: (context, state) {
-              final id = state.uri.queryParameters['id'];
+              final id = state.uri.queryParameters['fenceId'];
               return FenceFormPage(fenceId: id);
             },
           ),

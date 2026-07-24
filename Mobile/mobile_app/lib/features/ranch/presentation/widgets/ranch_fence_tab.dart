@@ -85,9 +85,13 @@ class _RanchFenceTabState extends ConsumerState<RanchFenceTab> {
                 GestureDetector(
                   onTap: () => context
                       .push(AppRoute.fenceForm.path)
-                      .then((_) => ref
+                      .then((saved) {
+                    if (saved == true) {
+                      ref
                           .read(ranchControllerProvider.notifier)
-                          .refresh()),
+                          .refresh();
+                    }
+                  }),
                   child: Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -122,6 +126,13 @@ class _RanchFenceTabState extends ConsumerState<RanchFenceTab> {
             alerts: widget.alerts,
             canManage: widget.canManage,
             onDelete: () => _deleteFence(selectedFence),
+            onEdit: () => context.push(
+              '${AppRoute.fenceForm.path}?fenceId=${selectedFence.id}',
+            ).then((saved) {
+              if (saved == true) {
+                ref.read(ranchControllerProvider.notifier).refresh();
+              }
+            }),
           ),
           const SizedBox(height: AppSpacing.sm),
         ],
@@ -141,7 +152,11 @@ class _RanchFenceTabState extends ConsumerState<RanchFenceTab> {
             },
             onEdit: () => context.push(
               '${AppRoute.fenceForm.path}?fenceId=${fence.id}',
-            ),
+            ).then((saved) {
+              if (saved == true) {
+                ref.read(ranchControllerProvider.notifier).refresh();
+              }
+            }),
             onDelete: () => _deleteFence(fence),
           ),
       ],
@@ -289,12 +304,14 @@ class _FenceDetailCard extends StatelessWidget {
     required this.alerts,
     required this.canManage,
     required this.onDelete,
+    required this.onEdit,
   });
 
   final RanchFenceData fence;
   final List<RanchAlertData> alerts;
   final bool canManage;
   final VoidCallback onDelete;
+  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -359,9 +376,7 @@ class _FenceDetailCard extends StatelessWidget {
                     icon: Icons.edit_location_alt,
                     bgColor: AppColors.info,
                     fgColor: Colors.white,
-                    onTap: () => context.push(
-                      '${AppRoute.fenceForm.path}?fenceId=${fence.id}',
-                    ),
+                    onTap: onEdit,
                   ),
                 ),
                 const SizedBox(width: 5),
@@ -371,7 +386,7 @@ class _FenceDetailCard extends StatelessWidget {
                     icon: Icons.warning_amber,
                     bgColor: AppColors.primarySoft,
                     fgColor: AppColors.primaryDark,
-                    onTap: () => context.push(AppRoute.alerts.path),
+                    onTap: () => context.push('${AppRoute.alerts.path}?fenceId=${fence.id}'),
                   ),
                 ),
                 const SizedBox(width: 5),

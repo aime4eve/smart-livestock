@@ -16,9 +16,11 @@ import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class AlertsPage extends ConsumerStatefulWidget {
-  const AlertsPage({super.key, required this.role});
+  const AlertsPage({super.key, required this.role, this.category, this.fenceId});
 
   final UserRole role;
+  final String? category; // 'fence' | 'health' | 'device'
+  final String? fenceId;
 
   @override
   ConsumerState<AlertsPage> createState() => _AlertsPageState();
@@ -27,6 +29,17 @@ class AlertsPage extends ConsumerStatefulWidget {
 class _AlertsPageState extends ConsumerState<AlertsPage> {
   AlertFilterTab _activeTab = AlertFilterTab.all;
   String? _selectedType;
+
+  static const _fenceTypes = {'FENCE_BREACH', 'FENCE_APPROACH', 'ZONE_APPROACH'};
+  static const _healthTypes = {'TEMPERATURE_ABNORMAL', 'DIGESTIVE_ABNORMAL', 'ESTRUS', 'EPIDEMIC', 'AI_ANOMALY'};
+  static const _deviceTypes = {'DEVICE_TAMPER', 'DEVICE_LOW_BATTERY'};
+
+  Set<String> get _categoryTypes => switch (widget.category) {
+    'fence' => _fenceTypes,
+    'health' => _healthTypes,
+    'device' => _deviceTypes,
+    _ => <String>{},
+  };
   bool _batchMode = false;
   final Set<String> _selectedIds = {};
 
@@ -185,10 +198,26 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
         items.where((a) => a.stage != 'active').toList(),
     };
 
-    // Apply type filter
+    // Apply category filter (from dashboard card tap)
+    var categoryFiltered = statusFiltered;
+    if (_categoryTypes.isNotEmpty) {
+      categoryFiltered = categoryFiltered
+          .where((a) => _categoryTypes.contains(a.type))
+          .toList();
+    }
+
+    // Apply fenceId filter (from fence detail "view alerts")
+    var fenceFiltered = categoryFiltered;
+    if (widget.fenceId != null) {
+      fenceFiltered = fenceFiltered
+          .where((a) => a.fenceId == widget.fenceId)
+          .toList();
+    }
+
+    // Apply type chip filter on top of category/fence
     final typeFiltered = _selectedType == null
-        ? statusFiltered
-        : statusFiltered.where((a) => a.type == _selectedType).toList();
+        ? fenceFiltered
+        : fenceFiltered.where((a) => a.type == _selectedType).toList();
 
     // Apply controller's severity filter (from summary strip tap)
     final severityFiltered = controller.filterSeverity == null
@@ -197,8 +226,10 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
             .where((a) => a.severity == controller.filterSeverity)
             .toList();
 
-    // Build available types from data
-    final availableTypes = items.map((a) => a.type).toSet().toList()..sort();
+    final finalFiltered = severityFiltered;
+
+    // Build available types from category-filtered data (not fully filtered)
+    final availableTypes = fenceFiltered.map((a) => a.type).toSet().toList()..sort();
 
     return Column(
       children: [
@@ -232,9 +263,9 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
             onTypeChanged: (type) => setState(() => _selectedType = type),
           ),
         Expanded(
-          child: severityFiltered.isEmpty
+          child: finalFiltered.isEmpty
               ? const AlertEmptyState()
-              : _buildGroupedList(context, severityFiltered, l10n),
+              : _buildGroupedList(context, finalFiltered, l10n),
         ),
       ],
     );

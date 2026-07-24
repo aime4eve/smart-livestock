@@ -247,7 +247,7 @@ class _LivestockListPageState extends ConsumerState<LivestockListPage> {
                                       ],
                                     ),
                                     onTap: () =>
-                                        context.go('/livestock/${item.id}'),
+                                        context.push('/livestock/${item.id}'),
                                   ),
                                 ),
                               ),

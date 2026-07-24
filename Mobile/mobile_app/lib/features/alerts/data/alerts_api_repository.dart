@@ -104,14 +104,15 @@ class AlertsApiRepository implements AlertsRepository {
       read: isRead,
       occurredAt: _extractTimestamp(m, 'occurredAt', 'resolvedAt'),
       resolvedAt: m['resolvedAt'] as String?,
-      fenceName: m['fenceName'] as String?,
-      resolvedType: m['resolvedType'] as String?,
-    );
-  }
+     fenceName: m['fenceName'] as String?,
+     resolvedType: m['resolvedType'] as String?,
+      fenceId: m['fenceId']?.toString(),
+   );
+ }
 
-  static AlertDetail _alertDetailFromMap(Map<String, dynamic> m) {
-    final item = _alertItemFromMap(m);
-    final rawFenceId = m['fenceId'];
+ static AlertDetail _alertDetailFromMap(Map<String, dynamic> m) {
+   final item = _alertItemFromMap(m);
+   final rawFenceId = m['fenceId'];
     final fenceId = rawFenceId is int
         ? rawFenceId.toString()
         : (rawFenceId as String?);

@@ -535,7 +535,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
       controller.reloadFromRepository();
       if (mounted) {
         setState(() => _saving = false);
-        context.pop();
+        context.pop(true);
       }
       return;
     }
