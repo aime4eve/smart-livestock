@@ -1497,6 +1497,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get deviceViewLocation => '查看位置';
 
   @override
+  String get deviceViewTrajectory => '查看轨迹';
+
+  @override
   String get offlineTileNoRegions => '暂无可用离线地图';
 
   @override
@@ -2792,6 +2795,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsQualityNoData => '暂无数据';
 
   @override
+  String get gpsQualityNoGpsData => '该设备在检测时段内未采集到有效 GPS 数据';
+
+  @override
+  String get gpsQualityNoGpsDataHint =>
+      '设备遥测数据正常，但 GPS 坐标为 (0,0)，说明 GPS 模块可能未定位成功。请检查设备是否在室外、天线连接是否正常。';
+
+  @override
   String get gpsQualityViewTrajectory => '查看轨迹';
 
   @override
@@ -3386,4 +3396,301 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpsQualityPaired => '已配对';
+
+  @override
+  String get alertSeverityCritical => '严重';
+
+  @override
+  String get alertSeverityWarning => '警告';
+
+  @override
+  String get alertSeverityInfo => '提示';
+
+  @override
+  String get alertSummaryCritical => '严重';
+
+  @override
+  String get alertSummaryWarning => '警告';
+
+  @override
+  String get alertSummaryPending => '待处理';
+
+  @override
+  String get alertFilterAll => '全部';
+
+  @override
+  String get alertFilterActive => '活跃';
+
+  @override
+  String get alertFilterResolved => '已处理';
+
+  @override
+  String get alertFilterAllTypes => '全部类型';
+
+  @override
+  String get alertDetailTitle => '告警详情';
+
+  @override
+  String get alertDetailOccurredAt => '发生时间';
+
+  @override
+  String get alertDetailLivestockCode => '牲畜编号';
+
+  @override
+  String get alertDetailLivestockType => '牲畜类型';
+
+  @override
+  String get alertDetailFence => '所在围栏';
+
+  @override
+  String get alertDetailSeverity => '严重程度';
+
+  @override
+  String get alertDetailSource => '告警来源';
+
+  @override
+  String get alertDetailStatus => '状态';
+
+  @override
+  String get alertDetailDistance => '偏离距离';
+
+  @override
+  String get alertDetailTimeline => '处置时间线';
+
+  @override
+  String get alertDetailTimelineTriggered => '规则引擎触发告警';
+
+  @override
+  String get alertDetailTimelineAcknowledged => '已确认';
+
+  @override
+  String get alertDetailTimelineHandled => '已处理';
+
+  @override
+  String get alertDetailTimelineResolved => '自动恢复';
+
+  @override
+  String get alertDetailTimelineDismissed => '手动忽略';
+
+  @override
+  String get alertDetailTimelineWaiting => '等待处理';
+
+  @override
+  String get alertActionMarkRead => '标记已读';
+
+  @override
+  String get alertActionDismiss => '忽略';
+
+  @override
+  String get alertActionLocate => '地图定位';
+
+  @override
+  String get alertActionTrajectory => '查看轨迹';
+
+  @override
+  String get alertActionMarkAllRead => '全部已读';
+
+  @override
+  String get alertBatchTitle => '批量管理';
+
+  @override
+  String alertBatchSelected(int count) {
+    return '已选 $count 条';
+  }
+
+  @override
+  String get alertBatchSelectAll => '全选';
+
+  @override
+  String get alertBatchCancel => '取消';
+
+  @override
+  String get alertBatchRead => '批量已读';
+
+  @override
+  String get alertBatchDismiss => '批量忽略';
+
+  @override
+  String get alertEmptyTitle => '暂无告警';
+
+  @override
+  String get alertEmptyDesc => '所有牲畜状态正常，围栏和设备运行良好';
+
+  @override
+  String get alertTypeFenceBreach => '围栏越界';
+
+  @override
+  String get alertTypeFenceApproach => '接近围栏';
+
+  @override
+  String get alertTypeZoneApproach => '区域接近';
+
+  @override
+  String get alertTypeTemperatureAbnormal => '体温异常';
+
+  @override
+  String get alertTypeDigestiveAbnormal => '消化异常';
+
+  @override
+  String get alertTypeEstrus => '发情检测';
+
+  @override
+  String get alertTypeEpidemic => '疫病预警';
+
+  @override
+  String get alertTypeAiAnomaly => 'AI异常';
+
+  @override
+  String get alertTypeDeviceTamper => '设备拆卸';
+
+  @override
+  String get alertTypeDeviceLowBattery => '低电量';
+
+  @override
+  String get alertSourceRule => '规则触发';
+
+  @override
+  String get alertSourceAi => 'AI检测';
+
+  @override
+  String get alertStatusActive => '活跃';
+
+  @override
+  String get alertStatusDismissed => '已忽略';
+
+  @override
+  String get alertStatusAutoResolved => '自动恢复';
+
+  @override
+  String get alertResolvedTypeAuto => '自动';
+
+  @override
+  String get alertResolvedTypeManualDismiss => '手动忽略';
+
+  @override
+  String alertRanchBannerActive(int count) {
+    return '$count 条活跃告警';
+  }
+
+  @override
+  String get alertFenceListTitle => '围栏列表';
+
+  @override
+  String alertFenceArea(String area) {
+    return '$area 公顷';
+  }
+
+  @override
+  String alertFenceLivestockCount(int count) {
+    return '$count 头牲畜';
+  }
+
+  @override
+  String alertFenceAlertCount(int count) {
+    return '$count 条告警';
+  }
+
+  @override
+  String get alertFenceAddBtn => '新增围栏';
+
+  @override
+  String get alertFenceEditBoundary => '编辑边界';
+
+  @override
+  String alertFenceDeleteConfirm(String name) {
+    return '确认删除围栏「$name」？';
+  }
+
+  @override
+  String get alertFenceDeleteBtn => '删除';
+
+  @override
+  String get alertJustNow => '刚刚';
+
+  @override
+  String alertMinutesAgo(int count) {
+    return '$count分钟前';
+  }
+
+  @override
+  String alertYesterdayTime(String time) {
+    return '昨天 $time';
+  }
+
+  @override
+  String get alertMonthUnit => '月';
+
+  @override
+  String get alertDayUnit => '日';
+
+  @override
+  String get alertDateToday => '今天';
+
+  @override
+  String get alertDateYesterday => '昨天';
+
+  @override
+  String get alertDateEarlier => '更早';
+
+  @override
+  String alertDateCount(int count) {
+    return '$count 条';
+  }
+
+  @override
+  String get alertBatchSelectedCount => '条';
+
+  @override
+  String get alertFenceAreaLabel => '面积';
+
+  @override
+  String get alertFenceTypeLabel => '围栏类型';
+
+  @override
+  String get alertFenceLivestockLabel => '围栏内牲畜';
+
+  @override
+  String get alertFenceAlertLabel => '活跃告警';
+
+  @override
+  String get commonCollapse => '收起';
+
+  @override
+  String get ranchTabOverview => '概览';
+
+  @override
+  String get ranchTabFence => '围栏';
+
+  @override
+  String get ranchTabAlerts => '告警';
+
+  @override
+  String get ranchSectionDeviceAlerts => '设备告警';
+
+  @override
+  String get ranchLivestockTotal => '牲畜总数';
+
+  @override
+  String get livestockSheetLastLoc => '最后定位';
+
+  @override
+  String get livestockSheetCurrentPos => '实时位置';
+
+  @override
+  String get livestockSheetHealthStatus => '健康状态';
+
+  @override
+  String get livestockSheetNormal => '正常';
+
+  @override
+  String get livestockSheetRelatedAlerts => '关联告警';
+
+  @override
+  String get fenceTypePolygon => '多边形';
+
+  @override
+  String get fenceTypeRectangle => '矩形';
+
+  @override
+  String get fenceTypeCircle => '圆形';
 }

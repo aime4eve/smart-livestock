@@ -10,22 +10,27 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Scheduled dispatcher: scans ACTIVE devices with platform_device_id,
  * and syncs each device's telemetry directly via a bounded thread pool.
  * <p>
- * Previously used RocketMQ for dispatch→worker decoupling, but the
+ * Previously used RocketMQ for dispatch->worker decoupling, but the
  * full-snapshot dispatch model (all devices every cycle) combined with
  * CLUSTERING-mode ordered consumption caused severe message backlog:
  * old duplicate messages for early devices blocked newer devices'
  * messages from ever being consumed. The direct-call approach eliminates
- * this entirely — each cycle processes all devices within a bounded
+ * this entirely -- each cycle processes all devices within a bounded
  * concurrency window, with no queue to accumulate.
+ * <p>
+ * Backpressure: uses an explicit bounded queue (at least 1000 capacity)
+ * with CallerRunsPolicy so no device task is ever silently dropped.
+ * If the previous cycle hasn't finished, the queue still has pending
+ * tasks and dispatch() skips the new cycle entirely (logged as INFO).
  */
 @Component
 @RequiredArgsConstructor
@@ -42,12 +47,30 @@ public class AgenticPlatformSyncDispatcher {
     @Value("${agentic-platform.sync.concurrency:5}")
     private int concurrency;
 
-    private ExecutorService syncExecutor;
+    private ThreadPoolExecutor syncExecutor;
+    private int queueCapacity;
 
     @Scheduled(fixedDelayString = "${agentic-platform.sync.dispatch-interval-ms:300000}")
     public void dispatch() {
         if (syncExecutor == null || syncExecutor.isShutdown()) {
-            syncExecutor = Executors.newFixedThreadPool(concurrency);
+            // Queue must hold at least one full dispatch cycle worth of tasks,
+            // otherwise devices at the end of the list get silently dropped.
+            queueCapacity = Math.max(concurrency * 10, 1000);
+            BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>(queueCapacity);
+            syncExecutor = new ThreadPoolExecutor(
+                    concurrency, concurrency,
+                    0L, TimeUnit.MILLISECONDS,
+                    queue,
+                    new ThreadPoolExecutor.CallerRunsPolicy());
+        }
+
+        // Backpressure: skip this cycle if the previous one hasn't finished.
+        int pending = syncExecutor.getQueue().size();
+        int active = syncExecutor.getActiveCount();
+        if (pending > 0) {
+            log.info("[PlatformSync] previous cycle still running (active={}, pending={}), skipping this cycle",
+                    active, pending);
+            return;
         }
 
         int offset = 0;
@@ -72,7 +95,7 @@ public class AgenticPlatformSyncDispatcher {
         }
 
         if (total > 0) {
-            log.info("[PlatformSync] dispatched {} device sync tasks (concurrency={})", total, concurrency);
+            log.info("[PlatformSync] dispatched {} device sync tasks (concurrency={}, queueCapacity={})", total, concurrency, queueCapacity);
         }
     }
 

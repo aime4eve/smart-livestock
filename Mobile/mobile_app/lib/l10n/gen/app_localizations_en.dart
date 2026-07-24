@@ -1524,6 +1524,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deviceViewLocation => 'View Location';
 
   @override
+  String get deviceViewTrajectory => 'View Trajectory';
+
+  @override
   String get offlineTileNoRegions => 'No offline maps available';
 
   @override
@@ -2849,6 +2852,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpsQualityNoData => 'No data';
 
   @override
+  String get gpsQualityNoGpsData =>
+      'No valid GPS data collected during the test period';
+
+  @override
+  String get gpsQualityNoGpsDataHint =>
+      'Telemetry data is normal, but GPS coordinates are (0,0), indicating the GPS module may not have achieved a fix. Please verify the device is outdoors and the antenna connection is secure.';
+
+  @override
   String get gpsQualityViewTrajectory => 'View Trajectory';
 
   @override
@@ -3461,4 +3472,302 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsQualityPaired => 'Paired';
+
+  @override
+  String get alertSeverityCritical => 'Critical';
+
+  @override
+  String get alertSeverityWarning => 'Warning';
+
+  @override
+  String get alertSeverityInfo => 'Info';
+
+  @override
+  String get alertSummaryCritical => 'Critical';
+
+  @override
+  String get alertSummaryWarning => 'Warning';
+
+  @override
+  String get alertSummaryPending => 'Pending';
+
+  @override
+  String get alertFilterAll => 'All';
+
+  @override
+  String get alertFilterActive => 'Active';
+
+  @override
+  String get alertFilterResolved => 'Resolved';
+
+  @override
+  String get alertFilterAllTypes => 'All Types';
+
+  @override
+  String get alertDetailTitle => 'Alert Detail';
+
+  @override
+  String get alertDetailOccurredAt => 'Occurred At';
+
+  @override
+  String get alertDetailLivestockCode => 'Livestock ID';
+
+  @override
+  String get alertDetailLivestockType => 'Livestock Type';
+
+  @override
+  String get alertDetailFence => 'Fence';
+
+  @override
+  String get alertDetailSeverity => 'Severity';
+
+  @override
+  String get alertDetailSource => 'Source';
+
+  @override
+  String get alertDetailStatus => 'Status';
+
+  @override
+  String get alertDetailDistance => 'Distance';
+
+  @override
+  String get alertDetailTimeline => 'Timeline';
+
+  @override
+  String get alertDetailTimelineTriggered => 'Alert triggered by rule engine';
+
+  @override
+  String get alertDetailTimelineAcknowledged => 'Acknowledged';
+
+  @override
+  String get alertDetailTimelineHandled => 'Handled';
+
+  @override
+  String get alertDetailTimelineResolved => 'Auto-resolved';
+
+  @override
+  String get alertDetailTimelineDismissed => 'Dismissed';
+
+  @override
+  String get alertDetailTimelineWaiting => 'Waiting for action';
+
+  @override
+  String get alertActionMarkRead => 'Mark Read';
+
+  @override
+  String get alertActionDismiss => 'Dismiss';
+
+  @override
+  String get alertActionLocate => 'Locate';
+
+  @override
+  String get alertActionTrajectory => 'Trajectory';
+
+  @override
+  String get alertActionMarkAllRead => 'Mark All Read';
+
+  @override
+  String get alertBatchTitle => 'Batch Actions';
+
+  @override
+  String alertBatchSelected(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get alertBatchSelectAll => 'Select All';
+
+  @override
+  String get alertBatchCancel => 'Cancel';
+
+  @override
+  String get alertBatchRead => 'Batch Read';
+
+  @override
+  String get alertBatchDismiss => 'Batch Dismiss';
+
+  @override
+  String get alertEmptyTitle => 'No Alerts';
+
+  @override
+  String get alertEmptyDesc =>
+      'All livestock are normal. Fences and devices are running well.';
+
+  @override
+  String get alertTypeFenceBreach => 'Fence Breach';
+
+  @override
+  String get alertTypeFenceApproach => 'Fence Approach';
+
+  @override
+  String get alertTypeZoneApproach => 'Zone Approach';
+
+  @override
+  String get alertTypeTemperatureAbnormal => 'Temperature Abnormal';
+
+  @override
+  String get alertTypeDigestiveAbnormal => 'Digestive Abnormal';
+
+  @override
+  String get alertTypeEstrus => 'Estrus';
+
+  @override
+  String get alertTypeEpidemic => 'Epidemic';
+
+  @override
+  String get alertTypeAiAnomaly => 'AI Anomaly';
+
+  @override
+  String get alertTypeDeviceTamper => 'Device Tamper';
+
+  @override
+  String get alertTypeDeviceLowBattery => 'Low Battery';
+
+  @override
+  String get alertSourceRule => 'Rule';
+
+  @override
+  String get alertSourceAi => 'AI';
+
+  @override
+  String get alertStatusActive => 'Active';
+
+  @override
+  String get alertStatusDismissed => 'Dismissed';
+
+  @override
+  String get alertStatusAutoResolved => 'Auto-resolved';
+
+  @override
+  String get alertResolvedTypeAuto => 'Auto';
+
+  @override
+  String get alertResolvedTypeManualDismiss => 'Manual';
+
+  @override
+  String alertRanchBannerActive(int count) {
+    return '$count active alerts';
+  }
+
+  @override
+  String get alertFenceListTitle => 'Fence List';
+
+  @override
+  String alertFenceArea(String area) {
+    return '$area ha';
+  }
+
+  @override
+  String alertFenceLivestockCount(int count) {
+    return '$count livestock';
+  }
+
+  @override
+  String alertFenceAlertCount(int count) {
+    return '$count alerts';
+  }
+
+  @override
+  String get alertFenceAddBtn => 'Add Fence';
+
+  @override
+  String get alertFenceEditBoundary => 'Edit Boundary';
+
+  @override
+  String alertFenceDeleteConfirm(String name) {
+    return 'Delete fence \"$name\"?';
+  }
+
+  @override
+  String get alertFenceDeleteBtn => 'Delete';
+
+  @override
+  String get alertJustNow => 'just now';
+
+  @override
+  String alertMinutesAgo(int count) {
+    return '$count min ago';
+  }
+
+  @override
+  String alertYesterdayTime(String time) {
+    return 'yesterday $time';
+  }
+
+  @override
+  String get alertMonthUnit => '/';
+
+  @override
+  String get alertDayUnit => '';
+
+  @override
+  String get alertDateToday => 'Today';
+
+  @override
+  String get alertDateYesterday => 'Yesterday';
+
+  @override
+  String get alertDateEarlier => 'Earlier';
+
+  @override
+  String alertDateCount(int count) {
+    return '$count items';
+  }
+
+  @override
+  String get alertBatchSelectedCount => 'items';
+
+  @override
+  String get alertFenceAreaLabel => 'Area';
+
+  @override
+  String get alertFenceTypeLabel => 'Fence Type';
+
+  @override
+  String get alertFenceLivestockLabel => 'Livestock';
+
+  @override
+  String get alertFenceAlertLabel => 'Active Alerts';
+
+  @override
+  String get commonCollapse => 'Collapse';
+
+  @override
+  String get ranchTabOverview => 'Overview';
+
+  @override
+  String get ranchTabFence => 'Fence';
+
+  @override
+  String get ranchTabAlerts => 'Alerts';
+
+  @override
+  String get ranchSectionDeviceAlerts => 'Device Alerts';
+
+  @override
+  String get ranchLivestockTotal => 'Livestock';
+
+  @override
+  String get livestockSheetLastLoc => 'Last Position';
+
+  @override
+  String get livestockSheetCurrentPos => 'Live Position';
+
+  @override
+  String get livestockSheetHealthStatus => 'Health';
+
+  @override
+  String get livestockSheetNormal => 'Normal';
+
+  @override
+  String get livestockSheetRelatedAlerts => 'Related Alerts';
+
+  @override
+  String get fenceTypePolygon => 'Polygon';
+
+  @override
+  String get fenceTypeRectangle => 'Rectangle';
+
+  @override
+  String get fenceTypeCircle => 'Circle';
 }

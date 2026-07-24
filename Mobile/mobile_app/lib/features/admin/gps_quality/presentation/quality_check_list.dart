@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
-import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_api_repository.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_providers.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/create_check_dialog.dart';
@@ -208,7 +207,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                   width: 110,
                   child: DropdownButtonFormField<String>(
                     key: const Key('status-filter-dropdown'),
-                    value: _statusFilter,
+                    initialValue: _statusFilter,
                     isDense: true,
                     decoration: InputDecoration(
                       isDense: true,
@@ -296,7 +295,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                   ]),
                   const SizedBox(height: 2),
                   Row(children: [
-                    Text('${l10n.gpsQualityChecksCount(checks.length)}',
+                    Text(l10n.gpsQualityChecksCount(checks.length),
                       style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                     if (staticCount > 0) ...[
                       const SizedBox(width: 6),
@@ -313,7 +312,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                   ]),
                   // Latest check time
                   Text(
-                    '${DateFormat('MM-dd HH:mm').format(checks.first.startedAt)}',
+                    DateFormat('MM-dd HH:mm').format(checks.first.startedAt),
                     style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
                   ),
                 ])),
@@ -428,7 +427,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                 color: AppColors.primarySoft,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Text('${l10n.gpsQualityChecksCount(checks.length)}',
+              child: Text(l10n.gpsQualityChecksCount(checks.length),
                 style: const TextStyle(fontSize: 11, color: AppColors.primary)),
             ),
             const Spacer(),
@@ -607,7 +606,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                     key: ValueKey('timeline-segment-${c.id}'),
                     onTap: () => setState(() => _selectedCheckId = c.id),
                     child: Tooltip(
-                      message: '$typeName · ${isFailed ? "失败" : "${c.status}"}\n${DateFormat('MM-dd HH:mm').format(c.startedAt)} → ${c.endedAt != null ? DateFormat('MM-dd HH:mm').format(c.endedAt!) : "..."}',
+                      message: '$typeName · ${isFailed ? "失败" : c.status}\n${DateFormat('MM-dd HH:mm').format(c.startedAt)} → ${c.endedAt != null ? DateFormat('MM-dd HH:mm').format(c.endedAt!) : "..."}',
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 1),
                         decoration: BoxDecoration(
@@ -938,9 +937,13 @@ class _StaticReportCard extends ConsumerWidget {
         child: reportAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Text('$e', style: const TextStyle(color: AppColors.danger)),
-          data: (report) {
-            final s = report.stats;
-            return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+         data: (report) {
+           final s = report.stats;
+           // No GPS data collected: show friendly hint instead of zero-value stats.
+           if (s.totalPoints == 0) {
+             return _NoGpsDataBanner(l10n: l10n);
+           }
+           return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
                 _GradeBadge(grade: report.grade),
                 const SizedBox(width: AppSpacing.sm),
@@ -1008,9 +1011,13 @@ class _DynamicReportCard extends ConsumerWidget {
         child: reportAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Text('$e', style: const TextStyle(color: AppColors.danger)),
-          data: (report) {
-            final s = report.stats;
-            // Assemble route RTK points (with coordinates & match outcome)
+         data: (report) {
+           final s = report.stats;
+           // No GPS data collected: show friendly hint instead of zero-value stats.
+           if (s.matchedCount == 0 && s.routePointCount > 0) {
+             return _NoGpsDataBanner(l10n: l10n);
+           }
+           // Assemble route RTK points (with coordinates & match outcome)
             // for the route match chart.
             final routePoints =
                 ref.watch(routePointsProvider(report.routeId)).value ?? [];
@@ -1132,7 +1139,7 @@ class _DistanceDistribution extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('误差分布', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+        const Text('误差分布', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
         const SizedBox(height: AppSpacing.sm),
         _distBar('0-15m', b1, const Color(0xFF66BB6A)),
         const SizedBox(height: AppSpacing.xs),
@@ -1144,10 +1151,10 @@ class _DistanceDistribution extends StatelessWidget {
         const SizedBox(height: AppSpacing.xs),
         Row(
           children: [
-            Text('≤25m 累计: ', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+            const Text('≤25m 累计: ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
             Text('${w25.toStringAsFixed(1)}%', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary)),
             const SizedBox(width: AppSpacing.lg),
-            Text('≤40m 累计: ', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+            const Text('≤40m 累计: ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
             Text('${w40.toStringAsFixed(1)}%', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.warning)),
           ],
         ),
@@ -1256,6 +1263,54 @@ class _EmptyState extends StatelessWidget {
           ]),
         ]),
       ),
+    );
+  }
+}
+
+/// Friendly banner shown when a quality check has zero GPS data points
+/// (e.g. GPS module never achieved a fix -- all coordinates are 0,0).
+class _NoGpsDataBanner extends StatelessWidget {
+  const _NoGpsDataBanner({required this.l10n});
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.location_off, size: 20, color: AppColors.warning),
+            const SizedBox(width: AppSpacing.sm),
+            Text(l10n.gpsQualityNoGpsData,
+                style: const TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.w600)),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.warning.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+                color: AppColors.warning.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.info_outline,
+                  size: 16, color: AppColors.warning),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(l10n.gpsQualityNoGpsDataHint,
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

@@ -4,6 +4,9 @@ import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.TelemetrySource;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.client.AgenticPlatformHistoryDataClient;
+import com.smartlivestock.iot.infrastructure.client.agenticplatform.client.AgenticPlatformDeviceClient;
+import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.DeviceDetailReq;
+import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.DeviceDetailResp;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.InternalResponse;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.ReportRecordPageResp;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.oauth.AgenticPlatformGatewayTokenService;
@@ -39,6 +42,7 @@ public class AgenticPlatformTelemetrySyncJob {
 
     private final DeviceRepository deviceRepository;
     private final AgenticPlatformHistoryDataClient historyClient;
+    private final AgenticPlatformDeviceClient deviceClient;
     private final TelemetryIngestionService telemetryIngestionService;
     private final AgenticPlatformGatewayTokenService gatewayTokenService;
 
@@ -64,47 +68,100 @@ public class AgenticPlatformTelemetrySyncJob {
 
         String platformDeviceId = String.valueOf(device.getPlatformDeviceId());
         Instant cursor = device.getLastTelemetrySyncedAt();
+
+        // Optimization: check blade lastActiveTime before fetching report records.
+        // If lastActive <= cursor, the device has no new data since last sync, so skip
+        // the full report-record pagination entirely. Best-effort: if the detail fetch
+        // fails (token expiry, network, etc.), fall through to full sync.
+        if (cursor != null) {
+            try {
+                InternalResponse<DeviceDetailResp> detail = deviceClient.getDeviceDetail(
+                        new DeviceDetailReq(platformDeviceId));
+                if (detail != null && detail.isOk() && detail.getData() != null) {
+                    String lastActiveStr = detail.getData().getLastActiveTime();
+                    if (lastActiveStr != null && !lastActiveStr.isBlank()) {
+                        Instant lastActive = AgenticPlatformReportData.parseReportTime(lastActiveStr);
+                        if (!lastActive.isAfter(cursor)) {
+                            log.info("[PlatformSync] device {} (platformId={}) skipping: lastActive={} <= cursor={}",
+                                    deviceId, platformDeviceId, lastActiveStr, cursor);
+                            return;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("[PlatformSync] device {} (platformId={}) lastActive check failed ({}), proceeding with full sync",
+                        deviceId, platformDeviceId, e.getMessage());
+            }
+        }
+
         log.info("[PlatformSync] device {} (platformId={}) sync start, cursor={}", deviceId, platformDeviceId, cursor);
 
-        List<ReportRecordPageResp.ReportRecord> toProcess = new ArrayList<>();
-        int page = 1;
-        while (true) {
-            InternalResponse<ReportRecordPageResp> resp;
-            try {
-                resp = queryReportRecordsWithTokenRetry(platformDeviceId, page, pageSize);
-            } catch (Exception e) {
-                log.error("[PlatformSync] device {} (platformId={}) report-record fetch failed: {}",
-                        deviceId, platformDeviceId, e.getMessage());
-                throw e;
+       List<ReportRecordPageResp.ReportRecord> toProcess = new ArrayList<>();
+       int page = 1;
+        // Safety limit: cap pagination to avoid infinite loops when the platform
+        // returns cyclical/repeated data beyond the actual record count.
+        int maxPages = 500;
+        int consecutiveSkipped = 0;
+       while (true) {
+           InternalResponse<ReportRecordPageResp> resp;
+           try {
+               resp = queryReportRecordsWithTokenRetry(platformDeviceId, page, pageSize);
+           } catch (Exception e) {
+               log.error("[PlatformSync] device {} (platformId={}) report-record fetch failed: {}",
+                       deviceId, platformDeviceId, e.getMessage());
+               throw e;
+           }
+
+           if (resp == null) {
+               log.warn("[PlatformSync] device {} (platformId={}) page {} returned null response",
+                       deviceId, platformDeviceId, page);
+               break;
+           }
+           if (!resp.isOk()) {
+               log.warn("[PlatformSync] device {} (platformId={}) page {} returned code={} msg={}",
+                       deviceId, platformDeviceId, page, resp.getCode(), resp.getMsg());
+               break;
+           }
+           if (resp.getData() == null || resp.getData().getRecords() == null
+                   || resp.getData().getRecords().isEmpty()) {
+               log.info("[PlatformSync] device {} (platformId={}) page {} returned empty records (total={})",
+                       deviceId, platformDeviceId, page,
+                       resp.getData() != null ? resp.getData().getTotal() : "null");
+               break;
+           }
+            // Use total from first page to compute max pages dynamically.
+            if (page == 1 && resp.getData().getTotal() != null && resp.getData().getTotal() > 0) {
+                int computedMax = (int) (resp.getData().getTotal() / pageSize) + 2;
+                if (computedMax < maxPages) maxPages = computedMax;
             }
 
-            if (resp == null) {
-                log.warn("[PlatformSync] device {} (platformId={}) page {} returned null response",
-                        deviceId, platformDeviceId, page);
-                break;
-            }
-            if (!resp.isOk()) {
-                log.warn("[PlatformSync] device {} (platformId={}) page {} returned code={} msg={}",
-                        deviceId, platformDeviceId, page, resp.getCode(), resp.getMsg());
-                break;
-            }
-            if (resp.getData() == null || resp.getData().getRecords() == null
-                    || resp.getData().getRecords().isEmpty()) {
-                log.info("[PlatformSync] device {} (platformId={}) page {} returned empty records (total={})",
-                        deviceId, platformDeviceId, page,
-                        resp.getData() != null ? resp.getData().getTotal() : "null");
+           for (ReportRecordPageResp.ReportRecord record : resp.getData().getRecords()) {
+               Instant reportTime = AgenticPlatformReportData.parseReportTime(record.getReportTime());
+                if (cursor != null && !reportTime.isAfter(cursor)) {
+                    consecutiveSkipped++;
+                    continue;
+                }
+                consecutiveSkipped = 0;
+               toProcess.add(record);
+           }
+
+            // Early exit: if we've skipped many consecutive old records, the remaining
+            // pages are all older than cursor — no need to continue.
+            if (cursor != null && consecutiveSkipped >= pageSize) {
+                log.info("[PlatformSync] device {} (platformId={}) early exit at page {} ({} consecutive old records skipped)",
+                        deviceId, platformDeviceId, page, consecutiveSkipped);
                 break;
             }
 
-            for (ReportRecordPageResp.ReportRecord record : resp.getData().getRecords()) {
-                Instant reportTime = AgenticPlatformReportData.parseReportTime(record.getReportTime());
-                if (cursor != null && !reportTime.isAfter(cursor)) continue;
-                toProcess.add(record);
+            if (page >= maxPages) {
+                log.warn("[PlatformSync] device {} (platformId={}) hit max page limit {} (total={}), stopping pagination",
+                        deviceId, platformDeviceId, maxPages,
+                        resp.getData().getTotal());
+                break;
             }
-
-            if (resp.getData().getRecords().size() < pageSize) break;
-            page++;
-        }
+           if (resp.getData().getRecords().size() < pageSize) break;
+           page++;
+       }
 
         if (toProcess.isEmpty()) {
             log.info("[PlatformSync] device {} (platformId={}) no new records to process", deviceId, platformDeviceId);

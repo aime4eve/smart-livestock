@@ -2800,6 +2800,12 @@ abstract class AppLocalizations {
   /// **'查看位置'**
   String get deviceViewLocation;
 
+  /// No description provided for @deviceViewTrajectory.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看轨迹'**
+  String get deviceViewTrajectory;
+
   /// No description provided for @offlineTileNoRegions.
   ///
   /// In zh, this message translates to:
@@ -5198,6 +5204,18 @@ abstract class AppLocalizations {
   /// **'暂无数据'**
   String get gpsQualityNoData;
 
+  /// No description provided for @gpsQualityNoGpsData.
+  ///
+  /// In zh, this message translates to:
+  /// **'该设备在检测时段内未采集到有效 GPS 数据'**
+  String get gpsQualityNoGpsData;
+
+  /// No description provided for @gpsQualityNoGpsDataHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备遥测数据正常，但 GPS 坐标为 (0,0)，说明 GPS 模块可能未定位成功。请检查设备是否在室外、天线连接是否正常。'**
+  String get gpsQualityNoGpsDataHint;
+
   /// No description provided for @gpsQualityViewTrajectory.
   ///
   /// In zh, this message translates to:
@@ -6334,6 +6352,564 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'已配对'**
   String get gpsQualityPaired;
+
+  /// No description provided for @alertSeverityCritical.
+  ///
+  /// In zh, this message translates to:
+  /// **'严重'**
+  String get alertSeverityCritical;
+
+  /// No description provided for @alertSeverityWarning.
+  ///
+  /// In zh, this message translates to:
+  /// **'警告'**
+  String get alertSeverityWarning;
+
+  /// No description provided for @alertSeverityInfo.
+  ///
+  /// In zh, this message translates to:
+  /// **'提示'**
+  String get alertSeverityInfo;
+
+  /// No description provided for @alertSummaryCritical.
+  ///
+  /// In zh, this message translates to:
+  /// **'严重'**
+  String get alertSummaryCritical;
+
+  /// No description provided for @alertSummaryWarning.
+  ///
+  /// In zh, this message translates to:
+  /// **'警告'**
+  String get alertSummaryWarning;
+
+  /// No description provided for @alertSummaryPending.
+  ///
+  /// In zh, this message translates to:
+  /// **'待处理'**
+  String get alertSummaryPending;
+
+  /// No description provided for @alertFilterAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部'**
+  String get alertFilterAll;
+
+  /// No description provided for @alertFilterActive.
+  ///
+  /// In zh, this message translates to:
+  /// **'活跃'**
+  String get alertFilterActive;
+
+  /// No description provided for @alertFilterResolved.
+  ///
+  /// In zh, this message translates to:
+  /// **'已处理'**
+  String get alertFilterResolved;
+
+  /// No description provided for @alertFilterAllTypes.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部类型'**
+  String get alertFilterAllTypes;
+
+  /// No description provided for @alertDetailTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警详情'**
+  String get alertDetailTitle;
+
+  /// No description provided for @alertDetailOccurredAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'发生时间'**
+  String get alertDetailOccurredAt;
+
+  /// No description provided for @alertDetailLivestockCode.
+  ///
+  /// In zh, this message translates to:
+  /// **'牲畜编号'**
+  String get alertDetailLivestockCode;
+
+  /// No description provided for @alertDetailLivestockType.
+  ///
+  /// In zh, this message translates to:
+  /// **'牲畜类型'**
+  String get alertDetailLivestockType;
+
+  /// No description provided for @alertDetailFence.
+  ///
+  /// In zh, this message translates to:
+  /// **'所在围栏'**
+  String get alertDetailFence;
+
+  /// No description provided for @alertDetailSeverity.
+  ///
+  /// In zh, this message translates to:
+  /// **'严重程度'**
+  String get alertDetailSeverity;
+
+  /// No description provided for @alertDetailSource.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警来源'**
+  String get alertDetailSource;
+
+  /// No description provided for @alertDetailStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'状态'**
+  String get alertDetailStatus;
+
+  /// No description provided for @alertDetailDistance.
+  ///
+  /// In zh, this message translates to:
+  /// **'偏离距离'**
+  String get alertDetailDistance;
+
+  /// No description provided for @alertDetailTimeline.
+  ///
+  /// In zh, this message translates to:
+  /// **'处置时间线'**
+  String get alertDetailTimeline;
+
+  /// No description provided for @alertDetailTimelineTriggered.
+  ///
+  /// In zh, this message translates to:
+  /// **'规则引擎触发告警'**
+  String get alertDetailTimelineTriggered;
+
+  /// No description provided for @alertDetailTimelineAcknowledged.
+  ///
+  /// In zh, this message translates to:
+  /// **'已确认'**
+  String get alertDetailTimelineAcknowledged;
+
+  /// No description provided for @alertDetailTimelineHandled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已处理'**
+  String get alertDetailTimelineHandled;
+
+  /// No description provided for @alertDetailTimelineResolved.
+  ///
+  /// In zh, this message translates to:
+  /// **'自动恢复'**
+  String get alertDetailTimelineResolved;
+
+  /// No description provided for @alertDetailTimelineDismissed.
+  ///
+  /// In zh, this message translates to:
+  /// **'手动忽略'**
+  String get alertDetailTimelineDismissed;
+
+  /// No description provided for @alertDetailTimelineWaiting.
+  ///
+  /// In zh, this message translates to:
+  /// **'等待处理'**
+  String get alertDetailTimelineWaiting;
+
+  /// No description provided for @alertActionMarkRead.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记已读'**
+  String get alertActionMarkRead;
+
+  /// No description provided for @alertActionDismiss.
+  ///
+  /// In zh, this message translates to:
+  /// **'忽略'**
+  String get alertActionDismiss;
+
+  /// No description provided for @alertActionLocate.
+  ///
+  /// In zh, this message translates to:
+  /// **'地图定位'**
+  String get alertActionLocate;
+
+  /// No description provided for @alertActionTrajectory.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看轨迹'**
+  String get alertActionTrajectory;
+
+  /// No description provided for @alertActionMarkAllRead.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部已读'**
+  String get alertActionMarkAllRead;
+
+  /// No description provided for @alertBatchTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'批量管理'**
+  String get alertBatchTitle;
+
+  /// No description provided for @alertBatchSelected.
+  ///
+  /// In zh, this message translates to:
+  /// **'已选 {count} 条'**
+  String alertBatchSelected(int count);
+
+  /// No description provided for @alertBatchSelectAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全选'**
+  String get alertBatchSelectAll;
+
+  /// No description provided for @alertBatchCancel.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消'**
+  String get alertBatchCancel;
+
+  /// No description provided for @alertBatchRead.
+  ///
+  /// In zh, this message translates to:
+  /// **'批量已读'**
+  String get alertBatchRead;
+
+  /// No description provided for @alertBatchDismiss.
+  ///
+  /// In zh, this message translates to:
+  /// **'批量忽略'**
+  String get alertBatchDismiss;
+
+  /// No description provided for @alertEmptyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无告警'**
+  String get alertEmptyTitle;
+
+  /// No description provided for @alertEmptyDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'所有牲畜状态正常，围栏和设备运行良好'**
+  String get alertEmptyDesc;
+
+  /// No description provided for @alertTypeFenceBreach.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏越界'**
+  String get alertTypeFenceBreach;
+
+  /// No description provided for @alertTypeFenceApproach.
+  ///
+  /// In zh, this message translates to:
+  /// **'接近围栏'**
+  String get alertTypeFenceApproach;
+
+  /// No description provided for @alertTypeZoneApproach.
+  ///
+  /// In zh, this message translates to:
+  /// **'区域接近'**
+  String get alertTypeZoneApproach;
+
+  /// No description provided for @alertTypeTemperatureAbnormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'体温异常'**
+  String get alertTypeTemperatureAbnormal;
+
+  /// No description provided for @alertTypeDigestiveAbnormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'消化异常'**
+  String get alertTypeDigestiveAbnormal;
+
+  /// No description provided for @alertTypeEstrus.
+  ///
+  /// In zh, this message translates to:
+  /// **'发情检测'**
+  String get alertTypeEstrus;
+
+  /// No description provided for @alertTypeEpidemic.
+  ///
+  /// In zh, this message translates to:
+  /// **'疫病预警'**
+  String get alertTypeEpidemic;
+
+  /// No description provided for @alertTypeAiAnomaly.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI异常'**
+  String get alertTypeAiAnomaly;
+
+  /// No description provided for @alertTypeDeviceTamper.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备拆卸'**
+  String get alertTypeDeviceTamper;
+
+  /// No description provided for @alertTypeDeviceLowBattery.
+  ///
+  /// In zh, this message translates to:
+  /// **'低电量'**
+  String get alertTypeDeviceLowBattery;
+
+  /// No description provided for @alertSourceRule.
+  ///
+  /// In zh, this message translates to:
+  /// **'规则触发'**
+  String get alertSourceRule;
+
+  /// No description provided for @alertSourceAi.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI检测'**
+  String get alertSourceAi;
+
+  /// No description provided for @alertStatusActive.
+  ///
+  /// In zh, this message translates to:
+  /// **'活跃'**
+  String get alertStatusActive;
+
+  /// No description provided for @alertStatusDismissed.
+  ///
+  /// In zh, this message translates to:
+  /// **'已忽略'**
+  String get alertStatusDismissed;
+
+  /// No description provided for @alertStatusAutoResolved.
+  ///
+  /// In zh, this message translates to:
+  /// **'自动恢复'**
+  String get alertStatusAutoResolved;
+
+  /// No description provided for @alertResolvedTypeAuto.
+  ///
+  /// In zh, this message translates to:
+  /// **'自动'**
+  String get alertResolvedTypeAuto;
+
+  /// No description provided for @alertResolvedTypeManualDismiss.
+  ///
+  /// In zh, this message translates to:
+  /// **'手动忽略'**
+  String get alertResolvedTypeManualDismiss;
+
+  /// No description provided for @alertRanchBannerActive.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 条活跃告警'**
+  String alertRanchBannerActive(int count);
+
+  /// No description provided for @alertFenceListTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏列表'**
+  String get alertFenceListTitle;
+
+  /// No description provided for @alertFenceArea.
+  ///
+  /// In zh, this message translates to:
+  /// **'{area} 公顷'**
+  String alertFenceArea(String area);
+
+  /// No description provided for @alertFenceLivestockCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 头牲畜'**
+  String alertFenceLivestockCount(int count);
+
+  /// No description provided for @alertFenceAlertCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 条告警'**
+  String alertFenceAlertCount(int count);
+
+  /// No description provided for @alertFenceAddBtn.
+  ///
+  /// In zh, this message translates to:
+  /// **'新增围栏'**
+  String get alertFenceAddBtn;
+
+  /// No description provided for @alertFenceEditBoundary.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑边界'**
+  String get alertFenceEditBoundary;
+
+  /// No description provided for @alertFenceDeleteConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认删除围栏「{name}」？'**
+  String alertFenceDeleteConfirm(String name);
+
+  /// No description provided for @alertFenceDeleteBtn.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除'**
+  String get alertFenceDeleteBtn;
+
+  /// No description provided for @alertJustNow.
+  ///
+  /// In zh, this message translates to:
+  /// **'刚刚'**
+  String get alertJustNow;
+
+  /// No description provided for @alertMinutesAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count}分钟前'**
+  String alertMinutesAgo(int count);
+
+  /// No description provided for @alertYesterdayTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'昨天 {time}'**
+  String alertYesterdayTime(String time);
+
+  /// No description provided for @alertMonthUnit.
+  ///
+  /// In zh, this message translates to:
+  /// **'月'**
+  String get alertMonthUnit;
+
+  /// No description provided for @alertDayUnit.
+  ///
+  /// In zh, this message translates to:
+  /// **'日'**
+  String get alertDayUnit;
+
+  /// No description provided for @alertDateToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天'**
+  String get alertDateToday;
+
+  /// No description provided for @alertDateYesterday.
+  ///
+  /// In zh, this message translates to:
+  /// **'昨天'**
+  String get alertDateYesterday;
+
+  /// No description provided for @alertDateEarlier.
+  ///
+  /// In zh, this message translates to:
+  /// **'更早'**
+  String get alertDateEarlier;
+
+  /// No description provided for @alertDateCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 条'**
+  String alertDateCount(int count);
+
+  /// No description provided for @alertBatchSelectedCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'条'**
+  String get alertBatchSelectedCount;
+
+  /// No description provided for @alertFenceAreaLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'面积'**
+  String get alertFenceAreaLabel;
+
+  /// No description provided for @alertFenceTypeLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏类型'**
+  String get alertFenceTypeLabel;
+
+  /// No description provided for @alertFenceLivestockLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏内牲畜'**
+  String get alertFenceLivestockLabel;
+
+  /// No description provided for @alertFenceAlertLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'活跃告警'**
+  String get alertFenceAlertLabel;
+
+  /// No description provided for @commonCollapse.
+  ///
+  /// In zh, this message translates to:
+  /// **'收起'**
+  String get commonCollapse;
+
+  /// No description provided for @ranchTabOverview.
+  ///
+  /// In zh, this message translates to:
+  /// **'概览'**
+  String get ranchTabOverview;
+
+  /// No description provided for @ranchTabFence.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏'**
+  String get ranchTabFence;
+
+  /// No description provided for @ranchTabAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警'**
+  String get ranchTabAlerts;
+
+  /// No description provided for @ranchSectionDeviceAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备告警'**
+  String get ranchSectionDeviceAlerts;
+
+  /// No description provided for @ranchLivestockTotal.
+  ///
+  /// In zh, this message translates to:
+  /// **'牲畜总数'**
+  String get ranchLivestockTotal;
+
+  /// No description provided for @livestockSheetLastLoc.
+  ///
+  /// In zh, this message translates to:
+  /// **'最后定位'**
+  String get livestockSheetLastLoc;
+
+  /// No description provided for @livestockSheetCurrentPos.
+  ///
+  /// In zh, this message translates to:
+  /// **'实时位置'**
+  String get livestockSheetCurrentPos;
+
+  /// No description provided for @livestockSheetHealthStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康状态'**
+  String get livestockSheetHealthStatus;
+
+  /// No description provided for @livestockSheetNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'正常'**
+  String get livestockSheetNormal;
+
+  /// No description provided for @livestockSheetRelatedAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'关联告警'**
+  String get livestockSheetRelatedAlerts;
+
+  /// No description provided for @fenceTypePolygon.
+  ///
+  /// In zh, this message translates to:
+  /// **'多边形'**
+  String get fenceTypePolygon;
+
+  /// No description provided for @fenceTypeRectangle.
+  ///
+  /// In zh, this message translates to:
+  /// **'矩形'**
+  String get fenceTypeRectangle;
+
+  /// No description provided for @fenceTypeCircle.
+  ///
+  /// In zh, this message translates to:
+  /// **'圆形'**
+  String get fenceTypeCircle;
 }
 
 class _AppLocalizationsDelegate
