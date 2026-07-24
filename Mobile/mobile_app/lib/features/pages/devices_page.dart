@@ -13,6 +13,7 @@ import 'package:hkt_livestock_agentic/features/devices/domain/devices_repository
 import 'package:hkt_livestock_agentic/features/devices/presentation/devices_controller.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_device_tile.dart';
+import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
@@ -64,7 +65,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
    showModalBottomSheet(
      context: context,
      isScrollControlled: true,
-     builder: (ctx) => DeviceFormSheet(),
+     builder: (ctx) => const DeviceFormSheet(),
    ).then((_) => ref.read(devicesControllerProvider.notifier).refresh());
  }
 
@@ -97,11 +98,13 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
           if (instId.isNotEmpty) installationMap[devId] = instId;
         }
       }
-      if (mounted) setState(() {
+      if (context.mounted) {
+        setState(() {
         _deviceIdToLivestockCode = codeMap;
         _deviceIdToLivestockId = idMap;
         _deviceIdToInstallationId = installationMap;
       });
+      }
     } catch (_) {}
   }
 
@@ -201,11 +204,16 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
                               onUnbind: _deviceIdToInstallationId.containsKey(device.id)
                                   ? () => _showUnbindDialog(context, ref, device)
                                   : null,
-                              onDelete: () => _showDeleteDialog(context, ref, device),
-                              onViewLocation: _deviceIdToLivestockId[device.id] != null
-                                   ? () => context.push('/livestock/${_deviceIdToLivestockId[device.id]}')
-                                   : () => context.go('/ranch'),
-                             ),
+                             onDelete: () => _showDeleteDialog(context, ref, device),
+                             onViewLocation: _deviceIdToLivestockId[device.id] != null
+                                  ? () => context.push('/livestock/${_deviceIdToLivestockId[device.id]}')
+                                  : null,
+                             onViewTrajectory: _deviceIdToLivestockId[device.id] == null
+                                 ? () => showDeviceTrajectorySheet(
+                                       context, int.parse(device.id), device.name,
+                                       useFarmScope: true)
+                                 : null,
+                            ),
                          ],
                        ),
                      ),
@@ -298,7 +306,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
     try {
       await ApiClient.instance
           .farmPut('/installations/$installationId/uninstall');
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(SnackBar(
@@ -309,7 +317,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
      ref.invalidate(devicesControllerProvider);
      ref.invalidate(dashboardControllerProvider);
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(SnackBar(
@@ -346,7 +354,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
 
     try {
       await ref.read(devicesRepositoryProvider).delete(device.id);
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(SnackBar(
@@ -356,7 +364,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
       await _loadInstallations();
       ref.invalidate(devicesControllerProvider);
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(SnackBar(
@@ -490,7 +498,7 @@ class _InstallDialogState extends State<_InstallDialog> {
     } catch (_) {
       _items = [];
     }
-    if (mounted) setState(() => _loading = false);
+    if (context.mounted) setState(() => _loading = false);
   }
 
   Future<void> _loadMore() async {
@@ -507,7 +515,7 @@ class _InstallDialogState extends State<_InstallDialog> {
       _page = nextPage;
       _hasMore = data.page * data.pageSize < data.total;
     } catch (_) {}
-    if (mounted) setState(() => _loadingMore = false);
+    if (context.mounted) setState(() => _loadingMore = false);
   }
 
   void _onSearchChanged(String value) {
@@ -578,7 +586,7 @@ class _InstallDialogState extends State<_InstallDialog> {
   Future<void> _select(_LivestockOption item) async {
     setState(() => _loading = true);
     await widget.onConfirm(item.id);
-    if (mounted) {
+    if (context.mounted) {
       setState(() => _loading = false);
     }
   }
@@ -591,34 +599,37 @@ class _DeviceWithBinding extends StatelessWidget {
     required this.boundLivestockCode,
     this.onActivate,
     this.onInstall,
-    this.onUnbind,
-    this.onDelete,
-    this.onViewLocation,
-  });
+   this.onUnbind,
+   this.onDelete,
+   this.onViewLocation,
+   this.onViewTrajectory,
+ });
 
-  final DeviceItem device;
-  final String boundLivestockCode;
-  final VoidCallback? onActivate;
-  final VoidCallback? onInstall;
-  final VoidCallback? onUnbind;
-  final VoidCallback? onDelete;
-  final VoidCallback? onViewLocation;
+ final DeviceItem device;
+ final String boundLivestockCode;
+ final VoidCallback? onActivate;
+ final VoidCallback? onInstall;
+ final VoidCallback? onUnbind;
+ final VoidCallback? onDelete;
+ final VoidCallback? onViewLocation;
+ final VoidCallback? onViewTrajectory;
 
-  @override
-  Widget build(BuildContext context) {
-   final effective = device.copyWith(boundLivestockCode: boundLivestockCode);
-   return GestureDetector(
-     onTap: () => DeviceHealthDialog.show(context, device, boundLivestockCode: boundLivestockCode),
-     child: Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: HighfiDeviceTile(
-        device: effective,
-        onActivate: onActivate,
-        onInstall: onInstall,
-        onUnbind: onUnbind,
-        onDelete: onDelete,
-        onViewLocation: onViewLocation,
-      ),
+ @override
+ Widget build(BuildContext context) {
+  final effective = device.copyWith(boundLivestockCode: boundLivestockCode);
+  return GestureDetector(
+    onTap: () => DeviceHealthDialog.show(context, device, boundLivestockCode: boundLivestockCode),
+    child: Padding(
+     padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+     child: HighfiDeviceTile(
+       device: effective,
+       onActivate: onActivate,
+       onInstall: onInstall,
+       onUnbind: onUnbind,
+       onDelete: onDelete,
+       onViewLocation: onViewLocation,
+       onViewTrajectory: onViewTrajectory,
+     ),
      ),
     );
   }
@@ -768,12 +779,11 @@ class _DeviceHealthDialogState extends State<DeviceHealthDialog> {
      final d = health['data'];
       if (d is Map) _healthData = d.cast<String, dynamic>();
     } catch (_) {}
-    if (mounted) setState(() => _loading = false);
+    if (context.mounted) setState(() => _loading = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final d = widget.device;
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
@@ -873,7 +883,6 @@ class _HeaderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: Theme.of(context).dividerColor)),
@@ -1020,4 +1029,3 @@ class _Badge extends StatelessWidget {
     child: Text(label, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
   );
 }
-

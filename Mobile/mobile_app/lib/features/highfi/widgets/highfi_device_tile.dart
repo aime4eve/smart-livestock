@@ -9,17 +9,19 @@ class HighfiDeviceTile extends StatelessWidget {
   const HighfiDeviceTile({
    super.key,
    required this.device,
-   this.onUnbind,
-   this.onViewLocation,
-   this.onActivate,
+  this.onUnbind,
+  this.onViewLocation,
+  this.onViewTrajectory,
+  this.onActivate,
    this.onInstall,
    this.onDelete,
  });
 
  final DeviceItem device;
- final VoidCallback? onUnbind;
- final VoidCallback? onViewLocation;
-  final VoidCallback? onActivate;
+final VoidCallback? onUnbind;
+final VoidCallback? onViewLocation;
+final VoidCallback? onViewTrajectory;
+final VoidCallback? onActivate;
  final VoidCallback? onInstall;
   final VoidCallback? onDelete;
 
@@ -64,7 +66,7 @@ class HighfiDeviceTile extends StatelessWidget {
                  const SizedBox(height: AppSpacing.xs),
                  Row(
                    children: [
-                     Icon(Icons.warning, size: 14, color: AppColors.danger),
+                     const Icon(Icons.warning, size: 14, color: AppColors.danger),
                      const SizedBox(width: 4),
                      Text('防拆卸告警',
                        style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.danger),
@@ -112,13 +114,19 @@ class HighfiDeviceTile extends StatelessWidget {
                         onPressed: onUnbind,
                         child: Text(l10n.deviceUnbind),
                       ),
-                    if (onViewLocation != null)
-                      TextButton(
-                        key: Key('device-locate-${device.id}'),
-                        onPressed: onViewLocation,
-                        child: Text(l10n.deviceViewLocation),
-                      ),
-                    if (onDelete != null)
+                  if (onViewLocation != null)
+                    TextButton(
+                      key: Key('device-locate-${device.id}'),
+                      onPressed: onViewLocation,
+                      child: Text(l10n.deviceViewLocation),
+                    ),
+                  if (onViewTrajectory != null)
+                    TextButton(
+                      key: Key('device-trajectory-${device.id}'),
+                      onPressed: onViewTrajectory,
+                      child: Text(l10n.deviceViewTrajectory),
+                    ),
+                  if (onDelete != null)
                       TextButton(
                         key: Key('device-delete-${device.id}'),
                         style: TextButton.styleFrom(foregroundColor: AppColors.danger),

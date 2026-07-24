@@ -102,8 +102,33 @@ public class GpsLogController {
 
     // Handle both "Z" suffix and "+00:00" offset formats; URL encoding
     // may turn "+" into a space, so normalize before parsing.
-    private static Instant parseInstant(String value) {
-        String normalized = value.trim().replace(" ", "+");
-        return Instant.parse(normalized);
+   private static Instant parseInstant(String value) {
+       String normalized = value.trim().replace(" ", "+");
+       return Instant.parse(normalized);
+   }
+
+    /**
+     * GET /api/v1/farms/{farmId}/devices/{deviceId}/gps-logs
+     * Get GPS history for a specific device (no livestock binding required).
+     * Used by the device overview "view trajectory" button for unbound devices.
+     */
+    @GetMapping("/devices/{deviceId}/gps-logs")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getDeviceGpsHistory(
+            @PathVariable Long farmId,
+            @PathVariable Long deviceId,
+            @RequestParam(required = false) String startTime,
+            @RequestParam(required = false) String endTime,
+            @RequestParam(required = false) Integer sampleSize) {
+        List<GpsLogDto> logs;
+        if (startTime != null && endTime != null && sampleSize != null && sampleSize > 0) {
+            logs = gpsLogApplicationService.sampleByDeviceAndTimeRange(
+                    deviceId, parseInstant(startTime), parseInstant(endTime), sampleSize);
+        } else if (startTime != null && endTime != null) {
+            logs = gpsLogApplicationService.getByDeviceAndTimeRange(
+                    deviceId, parseInstant(startTime), parseInstant(endTime));
+        } else {
+            logs = gpsLogApplicationService.getByDevice(deviceId);
+        }
+        return ResponseEntity.ok(ApiResponse.ok(Map.of("items", logs, "total", logs.size())));
     }
 }

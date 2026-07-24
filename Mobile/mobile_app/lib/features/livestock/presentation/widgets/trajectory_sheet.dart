@@ -34,23 +34,28 @@ void showTrajectorySheet(
   );
 }
  
- /// Shows a device trajectory bottom sheet (admin / GPS quality context).
- /// Loads GPS logs via admin API by deviceId — no farm or livestock scope.
- void showDeviceTrajectorySheet(
-   BuildContext context,
-   int deviceId,
-   String deviceCode,
- ) {
-   showModalBottomSheet(
-     context: context,
-     isScrollControlled: true,
-     builder: (ctx) => _TrajectorySheet(
-       livestockId: '',
-       deviceId: deviceId,
-       deviceCode: deviceCode,
-     ),
-   );
- }
+/// Shows a device trajectory bottom sheet (admin / GPS quality context).
+/// When [useFarmScope] is false (default), loads GPS logs via admin API
+/// by deviceId — no farm or livestock scope (GPS quality check context).
+/// When [useFarmScope] is true, loads via farm-scoped app API
+/// (device overview context, accessible by any authenticated role).
+void showDeviceTrajectorySheet(
+  BuildContext context,
+  int deviceId,
+  String deviceCode,
+  {bool useFarmScope = false}
+) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (ctx) => _TrajectorySheet(
+      livestockId: '',
+      deviceId: deviceId,
+      deviceCode: deviceCode,
+      useFarmScope: useFarmScope,
+    ),
+  );
+}
 
 /// Time range options for trajectory data loading.
 enum _TrajectoryRange { h24, d7, d30, custom }
@@ -90,15 +95,17 @@ class _TrajectorySheet extends ConsumerStatefulWidget {
     this.livestockCode,
     this.breedLabel,
     this.deviceName,
-    this.deviceId,
-    this.deviceCode,
-  });
+   this.deviceId,
+   this.deviceCode,
+   this.useFarmScope = false,
+ });
   final String livestockId;
   final String? livestockCode;
   final String? breedLabel;
   final String? deviceName;
-  final int? deviceId;
-  final String? deviceCode;
+ final int? deviceId;
+ final String? deviceCode;
+ final bool useFarmScope;
 
   @override
   ConsumerState<_TrajectorySheet> createState() => _TrajectorySheetState();
@@ -205,15 +212,19 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
        url += '&sampleSize=$sampleSize';
      }
 
-     // Device mode: admin API (no farm scope); livestock mode: farm-scoped.
-     final isDeviceMode = widget.deviceId != null;
-     final data = isDeviceMode
-         ? await ApiClient.instance.get(
-             '/admin/gps-quality/devices/${widget.deviceId}/gps-logs'
-             '?startTime=${ts(start)}&endTime=${ts(now)}'
-             '${sampleSize != null ? '&sampleSize=$sampleSize' : ''}')
-         : await ApiClient.instance.farmGet(url);
-     final items = data['items'];
+    // Device mode: admin API (no farm scope); livestock mode: farm-scoped.
+    final isDeviceMode = widget.deviceId != null;
+    final deviceGpsPath =
+        '/devices/${widget.deviceId}/gps-logs'
+        '?startTime=${ts(start)}&endTime=${ts(now)}'
+        '${sampleSize != null ? '&sampleSize=$sampleSize' : ''}';
+    final data = isDeviceMode
+        ? (widget.useFarmScope
+            ? await ApiClient.instance.farmGet(deviceGpsPath)
+            : await ApiClient.instance.get(
+                '/admin/gps-quality$deviceGpsPath'))
+        : await ApiClient.instance.farmGet(url);
+    final items = data['items'];
       final raw = items is List
           ? items.whereType<Map<String, dynamic>>().toList()
           : <Map<String, dynamic>>[];
