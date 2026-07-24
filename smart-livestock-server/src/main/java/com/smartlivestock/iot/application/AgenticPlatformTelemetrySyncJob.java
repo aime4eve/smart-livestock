@@ -45,29 +45,54 @@ public class AgenticPlatformTelemetrySyncJob {
     @Value("${agentic-platform.sync.page-size:100}")
     private int pageSize;
 
+    @Value("${agentic-platform.oauth2.service-user-id:2074385063398711296}")
+    private String serviceUserId;
+
     /**
      * Sync a single device by its local deviceId.
      */
     public void syncDevice(Long deviceId) {
         Device device = deviceRepository.findById(deviceId).orElse(null);
-        if (device == null || device.getPlatformDeviceId() == null) return;
+        if (device == null) {
+            log.warn("[PlatformSync] device {} not found, skipping", deviceId);
+            return;
+        }
+        if (device.getPlatformDeviceId() == null) {
+            log.warn("[PlatformSync] device {} has no platformDeviceId, skipping", deviceId);
+            return;
+        }
 
+        String platformDeviceId = String.valueOf(device.getPlatformDeviceId());
         Instant cursor = device.getLastTelemetrySyncedAt();
+        log.info("[PlatformSync] device {} (platformId={}) sync start, cursor={}", deviceId, platformDeviceId, cursor);
 
         List<ReportRecordPageResp.ReportRecord> toProcess = new ArrayList<>();
         int page = 1;
         while (true) {
             InternalResponse<ReportRecordPageResp> resp;
             try {
-                resp = queryReportRecordsWithTokenRetry(
-                        String.valueOf(device.getPlatformDeviceId()), page, pageSize);
+                resp = queryReportRecordsWithTokenRetry(platformDeviceId, page, pageSize);
             } catch (Exception e) {
-                log.error("[PlatformSync] device {} report-record fetch failed: {}", deviceId, e.getMessage());
+                log.error("[PlatformSync] device {} (platformId={}) report-record fetch failed: {}",
+                        deviceId, platformDeviceId, e.getMessage());
                 throw e;
             }
 
-            if (resp == null || !resp.isOk() || resp.getData() == null
-                    || resp.getData().getRecords() == null || resp.getData().getRecords().isEmpty()) {
+            if (resp == null) {
+                log.warn("[PlatformSync] device {} (platformId={}) page {} returned null response",
+                        deviceId, platformDeviceId, page);
+                break;
+            }
+            if (!resp.isOk()) {
+                log.warn("[PlatformSync] device {} (platformId={}) page {} returned code={} msg={}",
+                        deviceId, platformDeviceId, page, resp.getCode(), resp.getMsg());
+                break;
+            }
+            if (resp.getData() == null || resp.getData().getRecords() == null
+                    || resp.getData().getRecords().isEmpty()) {
+                log.info("[PlatformSync] device {} (platformId={}) page {} returned empty records (total={})",
+                        deviceId, platformDeviceId, page,
+                        resp.getData() != null ? resp.getData().getTotal() : "null");
                 break;
             }
 
@@ -81,11 +106,16 @@ public class AgenticPlatformTelemetrySyncJob {
             page++;
         }
 
-        if (toProcess.isEmpty()) return;
+        if (toProcess.isEmpty()) {
+            log.info("[PlatformSync] device {} (platformId={}) no new records to process", deviceId, platformDeviceId);
+            return;
+        }
 
         toProcess.sort(Comparator.comparing(r ->
                 AgenticPlatformReportData.parseReportTime(r.getReportTime())));
 
+        int ingested = 0;
+        int skipped = 0;
         for (ReportRecordPageResp.ReportRecord record : toProcess) {
            Instant reportTime = AgenticPlatformReportData.parseReportTime(record.getReportTime());
            Map<String, Object> readings = AgenticPlatformReportData.toReadings(record);
@@ -103,14 +133,17 @@ public class AgenticPlatformTelemetrySyncJob {
            }
            try {
                telemetryIngestionService.ingest(deviceId, readings, reportTime, TelemetrySource.AGENTIC_PLATFORM);
+               ingested++;
            } catch (DataIntegrityViolationException e) {
                // Skip bad record so the sync cursor still advances.
                log.error("[PlatformSync] device {} skipping bad record (rt={}): readings={} err={}",
                        deviceId, reportTime, readings, e.getMessage());
+               skipped++;
            }
         }
 
-        log.debug("[PlatformSync] device {} synced {} records", deviceId, toProcess.size());
+        log.info("[PlatformSync] device {} (platformId={}) synced {} records (ingested={}, skipped={})",
+                deviceId, platformDeviceId, toProcess.size(), ingested, skipped);
     }
 
     /**
@@ -120,14 +153,21 @@ public class AgenticPlatformTelemetrySyncJob {
      * String in data (the expired token echo). This causes Feign DecodeException because
      * it expects a page object. We catch that, evict the cached token (forcing
      * re-exchange), and retry once with a fresh token.
+     * <p>
+     * Uses evictToken(serviceUserId) instead of evictAll() to avoid a thundering herd:
+     * when 20 concurrent workers all get DecodeException simultaneously, evictAll()
+     * clears the entire cache and each worker independently re-fetches a token,
+     * creating cascading evictions. evictToken() achieves the same result (there is
+     * only one service userId) without the ConcurrentHashMap-wide churn.
      */
     private InternalResponse<ReportRecordPageResp> queryReportRecordsWithTokenRetry(
             String platformDeviceId, int page, int pageSize) {
         try {
             return historyClient.queryReportRecords(platformDeviceId, page, pageSize);
         } catch (DecodeException e) {
-            log.warn("[PlatformSync] token likely expired (Feign DecodeException), evicting cache and retrying");
-            gatewayTokenService.evictAll();
+            log.warn("[PlatformSync] token likely expired for platformId={} page={} (Feign DecodeException), evicting and retrying",
+                    platformDeviceId, page);
+            gatewayTokenService.evictToken(serviceUserId);
             return historyClient.queryReportRecords(platformDeviceId, page, pageSize);
         }
     }

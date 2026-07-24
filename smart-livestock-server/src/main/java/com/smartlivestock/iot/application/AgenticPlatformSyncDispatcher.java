@@ -1,8 +1,7 @@
 package com.smartlivestock.iot.application;
 
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
-import com.smartlivestock.shared.messaging.RocketMQEventPublisher;
-import com.smartlivestock.shared.messaging.Topics;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,12 +9,23 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Scheduled dispatcher: scans ACTIVE devices with platform_device_id,
- * sends sync tasks to RocketMQ topic for workers to consume.
+ * and syncs each device's telemetry directly via a bounded thread pool.
+ * <p>
+ * Previously used RocketMQ for dispatch→worker decoupling, but the
+ * full-snapshot dispatch model (all devices every cycle) combined with
+ * CLUSTERING-mode ordered consumption caused severe message backlog:
+ * old duplicate messages for early devices blocked newer devices'
+ * messages from ever being consumed. The direct-call approach eliminates
+ * this entirely — each cycle processes all devices within a bounded
+ * concurrency window, with no queue to accumulate.
  */
 @Component
 @RequiredArgsConstructor
@@ -24,13 +34,22 @@ import java.util.List;
 public class AgenticPlatformSyncDispatcher {
 
     private final DeviceRepository deviceRepository;
-    private final RocketMQEventPublisher eventPublisher;
+    private final AgenticPlatformTelemetrySyncJob syncJob;
 
     @Value("${agentic-platform.sync.batch-size:1000}")
     private int batchSize;
 
+    @Value("${agentic-platform.sync.concurrency:5}")
+    private int concurrency;
+
+    private ExecutorService syncExecutor;
+
     @Scheduled(fixedDelayString = "${agentic-platform.sync.dispatch-interval-ms:300000}")
     public void dispatch() {
+        if (syncExecutor == null || syncExecutor.isShutdown()) {
+            syncExecutor = Executors.newFixedThreadPool(concurrency);
+        }
+
         int offset = 0;
         int total = 0;
 
@@ -38,10 +57,14 @@ public class AgenticPlatformSyncDispatcher {
             List<Long> deviceIds = deviceRepository.findActivePlatformDeviceIds(offset, batchSize);
             if (deviceIds.isEmpty()) break;
 
-            Instant scheduledAt = Instant.now();
             for (Long deviceId : deviceIds) {
-                eventPublisher.publish(Topics.DEVICE_TELEMETRY_SYNC,
-                        new DeviceTelemetrySyncTask(deviceId, scheduledAt));
+                syncExecutor.submit(() -> {
+                    try {
+                        syncJob.syncDevice(deviceId);
+                    } catch (Exception e) {
+                        log.error("[PlatformSync] device {} sync failed: {}", deviceId, e.getMessage());
+                    }
+                });
             }
 
             total += deviceIds.size();
@@ -49,7 +72,23 @@ public class AgenticPlatformSyncDispatcher {
         }
 
         if (total > 0) {
-            log.info("[PlatformSync] dispatched {} device sync tasks", total);
+            log.info("[PlatformSync] dispatched {} device sync tasks (concurrency={})", total, concurrency);
+        }
+    }
+
+    @PreDestroy
+    void shutdown() {
+        if (syncExecutor != null) {
+            log.info("[PlatformSync] shutting down sync executor, waiting up to 60s for in-flight tasks");
+            syncExecutor.shutdown();
+            try {
+                if (!syncExecutor.awaitTermination(60, TimeUnit.SECONDS)) {
+                    syncExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                syncExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
         }
     }
 }
