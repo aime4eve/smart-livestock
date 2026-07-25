@@ -2,10 +2,12 @@ package com.smartlivestock.iot.application;
 
 import com.smartlivestock.iot.domain.model.GpsQualityTest;
 import com.smartlivestock.iot.domain.model.GpsQualityTrackPoint;
+import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.QualityGrade;
 import com.smartlivestock.iot.domain.model.TestType;
 import com.smartlivestock.iot.domain.model.TrackMatchSource;
 import com.smartlivestock.iot.domain.port.dto.TrajectoryQualityStats;
+import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.domain.repository.GpsQualityTestRepository;
 import com.smartlivestock.iot.domain.repository.GpsQualityTrackPointRepository;
 import com.smartlivestock.iot.domain.service.TrajectoryPairingService;
@@ -34,6 +36,7 @@ public class TrajectoryReportService {
     private final GpsQualityTestRepository testRepository;
     private final GpsQualityTrackPointRepository trackPointRepository;
     private final GpsQualityReportService staticReportService;
+    private final DeviceRepository deviceRepository;
 
     private final TrajectoryPairingService pairingService = new TrajectoryPairingService();
 
@@ -73,6 +76,19 @@ public class TrajectoryReportService {
         TrajectoryQualityReportDto dto = new TrajectoryQualityReportDto();
         dto.setTestId(test.getId());
         dto.setDeviceCode(test.getDeviceCode());
+        // Best-effort: backfill deviceEui (and deviceCode if missing) from Device.
+        Long deviceId = test.getDeviceId();
+        String deviceCode = test.getDeviceCode();
+        String deviceEui = null;
+        if (deviceId != null) {
+            Device device = deviceRepository.findById(deviceId).orElse(null);
+            if (device != null) {
+                if (deviceCode == null) deviceCode = device.getDeviceCode();
+                deviceEui = device.getDevEui();
+            }
+        }
+        if (deviceCode != null) dto.setDeviceCode(deviceCode);
+        dto.setDeviceEui(deviceEui);
         dto.setStartedAt(test.getStartedAt());
         dto.setEndedAt(test.getEndedAt());
         dto.setToleranceSec(points.isEmpty() || points.get(0).getToleranceSeconds() == null

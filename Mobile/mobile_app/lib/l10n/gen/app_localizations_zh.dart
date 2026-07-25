@@ -3036,6 +3036,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsQualityDeviceEui => '设备 EUI';
 
   @override
+  String get gpsQualityEuiCopied => '已复制 EUI';
+
+  @override
   String get gpsQualityDeviceGroup => '设备分组';
 
   @override

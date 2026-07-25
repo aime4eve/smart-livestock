@@ -3103,6 +3103,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpsQualityDeviceEui => 'Device EUI';
 
   @override
+  String get gpsQualityEuiCopied => 'EUI copied';
+
+  @override
   String get gpsQualityDeviceGroup => 'Device Group';
 
   @override

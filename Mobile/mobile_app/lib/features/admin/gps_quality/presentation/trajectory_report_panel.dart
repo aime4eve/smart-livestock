@@ -5,6 +5,7 @@ import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_providers.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/trajectory_chart.dart';
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/device_identity_line.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
 
@@ -51,7 +52,8 @@ class TrajectoryReportPanel extends ConsumerWidget {
           decoration: const BoxDecoration(
             border: Border(bottom: BorderSide(color: AppColors.border)),
           ),
-          child: Row(children: [
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
             Text(l10n.gpsQualityTrajectoryReport,
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
             const SizedBox(width: AppSpacing.sm),
@@ -60,6 +62,12 @@ class TrajectoryReportPanel extends ConsumerWidget {
             Text(
               '${timeFmt.format(r.startedAt)} → ${r.endedAt != null ? timeFmt.format(r.endedAt!) : "..."} · ±${r.toleranceSec}s',
               style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+            ),
+          ]),
+            DeviceIdentityLine(
+              deviceEui: r.deviceEui,
+              deviceCode: r.deviceCode,
+              l10n: l10n,
             ),
           ]),
         ),

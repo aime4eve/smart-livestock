@@ -18,6 +18,7 @@ public class DynamicQualityReportDto {
     private Long testId;
     private Long deviceId;
     private String deviceCode;
+    private String deviceEui;
     private Long routeId;
     private String routeName;
     private Instant startedAt;
@@ -82,6 +83,8 @@ public class DynamicQualityReportDto {
 
     public String getDeviceCode() { return deviceCode; }
     public void setDeviceCode(String deviceCode) { this.deviceCode = deviceCode; }
+    public String getDeviceEui() { return deviceEui; }
+    public void setDeviceEui(String deviceEui) { this.deviceEui = deviceEui; }
 
     public Long getRouteId() { return routeId; }
     public void setRouteId(Long routeId) { this.routeId = routeId; }

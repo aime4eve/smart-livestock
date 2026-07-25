@@ -85,9 +85,13 @@ public class DynamicQualityReportService {
 
         Long deviceId = test.getDeviceId();
         String deviceCode = test.getDeviceCode();
+        String deviceEui = null;
         if (deviceCode == null && deviceId != null) {
-            deviceCode = deviceRepository.findById(deviceId)
-                    .map(Device::getDeviceCode).orElse(null);
+            Device device = deviceRepository.findById(deviceId).orElse(null);
+            if (device != null) {
+                deviceCode = device.getDeviceCode();
+                deviceEui = device.getDevEui();
+            }
         }
 
         double threshold = thresholdOverride != null ? thresholdOverride : DEFAULT_THRESHOLD;
@@ -151,6 +155,7 @@ public class DynamicQualityReportService {
        dto.setTestId(test.getId());
        dto.setDeviceId(deviceId);
        dto.setDeviceCode(deviceCode);
+       dto.setDeviceEui(deviceEui);
        dto.setRouteId(route.getId());
        dto.setRouteName(route.getName());
        dto.setStartedAt(test.getStartedAt());

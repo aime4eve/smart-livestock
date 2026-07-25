@@ -8,6 +8,7 @@ import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/cr
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/batch_import_dialog.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/trajectory_import_dialog.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/trajectory_report_panel.dart';
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/device_identity_line.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/scatter_chart.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/route_match_chart.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/edit_retry_dialog.dart';
@@ -953,6 +954,11 @@ class _StaticReportCard extends ConsumerWidget {
                 Text('${DateFormat('MM-dd HH:mm').format(report.startedAt)} → ${report.endedAt != null ? DateFormat('MM-dd HH:mm').format(report.endedAt!) : "..."}',
                   style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
               ]),
+              DeviceIdentityLine(
+                deviceEui: report.deviceEui,
+                deviceCode: report.deviceCode,
+                l10n: l10n,
+              ),
               const SizedBox(height: AppSpacing.md),
               Wrap(spacing: AppSpacing.md, runSpacing: AppSpacing.md, children: [
                 _StatCard(label: l10n.gpsQualityTipEffectivePoints, value: '${s.effectivePoints}'),
@@ -1051,6 +1057,11 @@ class _DynamicReportCard extends ConsumerWidget {
                 Text('${DateFormat('MM-dd HH:mm').format(report.startedAt)} → ${report.endedAt != null ? DateFormat('MM-dd HH:mm').format(report.endedAt!) : "..."}',
                   style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
               ]),
+              DeviceIdentityLine(
+                deviceEui: report.deviceEui,
+                deviceCode: report.deviceCode,
+                l10n: l10n,
+              ),
               const SizedBox(height: AppSpacing.md),
               Wrap(spacing: AppSpacing.md, runSpacing: AppSpacing.md, children: [
                 _StatCard(label: l10n.gpsQualityRoutePoints, value: '${s.routePointCount}'),

@@ -64,9 +64,13 @@ public class GpsQualityReportService {
 
         Long deviceId = test.getDeviceId();
         String deviceCode = test.getDeviceCode();
+        String deviceEui = null;
         if (deviceCode == null && deviceId != null) {
-            deviceCode = deviceRepository.findById(deviceId)
-                    .map(Device::getDeviceCode).orElse(null);
+            Device device = deviceRepository.findById(deviceId).orElse(null);
+            if (device != null) {
+                deviceCode = device.getDeviceCode();
+                deviceEui = device.getDevEui();
+            }
         }
 
         Instant endTime = test.getEndedAt() != null
@@ -87,7 +91,7 @@ public class GpsQualityReportService {
                         p.stepNumber() != null && p.stepNumber() > 0))
                 .toList();
 
-        return new ReportResult(test, rtk, deviceCode, stats, excludeSuspect, scatter);
+        return new ReportResult(test, rtk, deviceCode, deviceEui, stats, excludeSuspect, scatter);
     }
 
     public ComparisonResult generateComparison(Long rtkPointId) {
@@ -120,7 +124,7 @@ public class GpsQualityReportService {
                                Instant recordedAt, boolean suspect) {}
 
     public record ReportResult(GpsQualityTest test, RtkReferencePoint rtk,
-                               String deviceCode, GpsQualityStats stats, boolean excludeSuspect,
+                               String deviceCode, String deviceEui, GpsQualityStats stats, boolean excludeSuspect,
                                List<ScatterPoint> scatter) {}
 
     public record ComparisonEntry(Long testId, Long deviceId, String deviceCode, GpsQualityStats stats) {}
