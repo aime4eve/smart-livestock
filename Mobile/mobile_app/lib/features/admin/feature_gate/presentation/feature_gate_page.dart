@@ -3,18 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/admin/feature_gate/domain/feature_gate_models.dart';
+import 'package:hkt_livestock_agentic/features/admin/feature_gate/presentation/feature_gate_card.dart';
 import 'package:hkt_livestock_agentic/features/admin/feature_gate/presentation/feature_gate_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class FeatureGatePage extends ConsumerWidget {
   const FeatureGatePage({super.key});
 
-  static const _tiers = ['BASIC', 'STANDARD', 'PREMIUM', 'ENTERPRISE'];
+  // Tier keys match the backend values (lowercase).
+  static const _tierKeys = ['basic', 'standard', 'premium', 'enterprise'];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final asyncGates = ref.watch(featureGateControllerProvider);
+
     return Scaffold(
       appBar: AppBar(title: Text(l10n.featureGateTitle)),
       body: asyncGates.when(
@@ -36,25 +39,40 @@ class FeatureGatePage extends ConsumerWidget {
           ),
         ),
         data: (gates) {
-          final grouped = <String, List<FeatureGateEntry>>{};
-          for (final g in gates) {
-            grouped.putIfAbsent(g.tier, () => []).add(g);
-          }
+          final tierLabels = [
+            l10n.featureGateTierBasic,
+            l10n.featureGateTierStandard,
+            l10n.featureGateTierPremium,
+            l10n.featureGateTierEnterprise,
+          ];
           return DefaultTabController(
-            length: _tiers.length,
+            length: _tierKeys.length,
             child: Column(
               children: [
                 TabBar(
-                  tabs: _tiers.map((t) => Tab(text: t)).toList(),
+                  tabAlignment: TabAlignment.start,
+                  isScrollable: false,
+                  labelColor: AppColors.primary,
+                  unselectedLabelColor: AppColors.textSecondary,
+                  indicatorColor: AppColors.primary,
+                  tabs: List.generate(_tierKeys.length, (i) {
+                    final count = gates.where((g) => g.tier == _tierKeys[i]).length;
+                    return Tab(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(tierLabels[i], style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                          Text('$count', style: const TextStyle(fontSize: 8)),
+                        ],
+                      ),
+                    );
+                  }),
                 ),
                 Expanded(
                   child: TabBarView(
-                    children: _tiers.map((tier) {
-                      final items = grouped[tier] ?? [];
-                      if (items.isEmpty) {
-                        return Center(child: Text(l10n.featureGateNoData));
-                      }
-                      return _GateList(items: items);
+                    children: _tierKeys.map((tierKey) {
+                      final tierGates = gates.where((g) => g.tier == tierKey).toList();
+                      return _TierContent(gates: tierGates);
                     }).toList(),
                   ),
                 ),
@@ -67,116 +85,75 @@ class FeatureGatePage extends ConsumerWidget {
   }
 }
 
-class _GateList extends ConsumerWidget {
-  const _GateList({required this.items});
-  final List<FeatureGateEntry> items;
+class _TierContent extends ConsumerWidget {
+  const _TierContent({required this.gates});
+  final List<FeatureGateEntry> gates;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ListView.separated(
-      itemCount: items.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
-      itemBuilder: (context, index) {
-        final gate = items[index];
-        return _GateTile(gate: gate);
-      },
+    final l10n = AppLocalizations.of(context)!;
+
+    if (gates.isEmpty) {
+      return Center(child: Text(l10n.featureGateNoData));
+    }
+
+    // Group by category: platform first, then health.
+    final platform = gates.where((g) => g.meta?.category == FeatureCategory.platform).toList();
+    final health = gates.where((g) => g.meta?.category == FeatureCategory.health).toList();
+
+    return ListView(
+      key: const Key('feature-gate-list'),
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      children: [
+        if (platform.isNotEmpty) ...[
+          _SectionHeader(label: l10n.featureGateCatPlatform, count: platform.length),
+          ...platform.map((g) => FeatureGateCard(gate: g)),
+        ],
+        if (health.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.md),
+          _SectionHeader(label: l10n.featureGateCatHealth, count: health.length),
+          ...health.map((g) => FeatureGateCard(gate: g)),
+        ],
+      ],
     );
   }
 }
 
-class _GateTile extends ConsumerStatefulWidget {
-  const _GateTile({required this.gate});
-  final FeatureGateEntry gate;
-
-  @override
-  ConsumerState<_GateTile> createState() => _GateTileState();
-}
-
-class _GateTileState extends ConsumerState<_GateTile> {
-  late TextEditingController _limitCtrl;
-  late TextEditingController _retentionCtrl;
-  late bool _isEnabled;
-  bool _dirty = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _limitCtrl = TextEditingController(text: '${widget.gate.limitValue}');
-    _retentionCtrl = TextEditingController(text: '${widget.gate.retentionDays}');
-    _isEnabled = widget.gate.isEnabled;
-  }
-
-  @override
-  void dispose() {
-    _limitCtrl.dispose();
-    _retentionCtrl.dispose();
-    super.dispose();
-  }
-
-  void _markDirty() {
-    if (!_dirty) setState(() => _dirty = true);
-  }
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.label, required this.count});
+  final String label;
+  final int count;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, AppSpacing.sm),
       child: Row(
         children: [
-          Expanded(
-            flex: 3,
-            child: Text(widget.gate.featureKey, style: Theme.of(context).textTheme.bodyMedium),
-          ),
-          SizedBox(
-            width: 80,
-            child: TextFormField(
-              controller: _limitCtrl,
-              decoration: InputDecoration(labelText: l10n.featureGateLimit, isDense: true, border: const OutlineInputBorder()),
-              keyboardType: TextInputType.number,
-              onChanged: (_) => _markDirty(),
+          Text(
+            label.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textSecondary,
+              letterSpacing: 0.5,
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
-          SizedBox(
-            width: 80,
-            child: TextFormField(
-              controller: _retentionCtrl,
-              decoration: InputDecoration(labelText: l10n.featureGateRetentionDays, isDense: true, border: const OutlineInputBorder()),
-              keyboardType: TextInputType.number,
-              onChanged: (_) => _markDirty(),
+          const Spacer(),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceAlt,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.border),
             ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Switch(
-            value: _isEnabled,
-            onChanged: (v) {
-              setState(() { _isEnabled = v; _markDirty(); });
-            },
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          FilledButton.tonal(
-            onPressed: _dirty ? _save : null,
-            child: Text(l10n.commonSave),
+            child: Text(
+              '$count',
+              style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+            ),
           ),
         ],
       ),
     );
-  }
-
-  Future<void> _save() async {
-    final l10n = AppLocalizations.of(context)!;
-    await ref.read(featureGateControllerProvider.notifier).updateGate(
-      widget.gate.id,
-      limitValue: int.tryParse(_limitCtrl.text),
-      retentionDays: int.tryParse(_retentionCtrl.text),
-      isEnabled: _isEnabled,
-    );
-    if (mounted) {
-      setState(() => _dirty = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.featureGateUpdated(widget.gate.featureKey))),
-      );
-    }
   }
 }

@@ -1710,6 +1710,87 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get featureGateTierBasic => 'Basic';
+
+  @override
+  String get featureGateTierStandard => 'Standard';
+
+  @override
+  String get featureGateTierPremium => 'Premium';
+
+  @override
+  String get featureGateTierEnterprise => 'Enterprise';
+
+  @override
+  String get featureGateCatPlatform => 'Platform Features';
+
+  @override
+  String get featureGateCatHealth => 'Health Modules';
+
+  @override
+  String get featureGateUnitHead => 'head(s)';
+
+  @override
+  String get featureGateUnitCount => 'fence(s)';
+
+  @override
+  String get featureGateUnitPerson => 'worker(s)';
+
+  @override
+  String get featureGateUnitDay => 'day(s)';
+
+  @override
+  String get gateTypeNone => 'Unlimited';
+
+  @override
+  String get gateTypeLimit => 'Quota';
+
+  @override
+  String get gateTypeLock => 'Locked';
+
+  @override
+  String get gateTypeLockOpen => 'Unlocked';
+
+  @override
+  String get gateTypeFilter => 'Range';
+
+  @override
+  String get featLivestockManagement => 'Livestock Management';
+
+  @override
+  String get featFenceManagement => 'Fence Management';
+
+  @override
+  String get featAlertManagement => 'Alert Management';
+
+  @override
+  String get featWorkerManagement => 'Worker Management';
+
+  @override
+  String get featAdvancedAnalytics => 'Advanced Analytics';
+
+  @override
+  String get featApiAccess => 'API Access';
+
+  @override
+  String get featHealthMonitoring => 'Health Monitoring';
+
+  @override
+  String get featTemperatureMonitor => 'Temperature Monitor';
+
+  @override
+  String get featPeristalticMonitor => 'Peristaltic Monitor';
+
+  @override
+  String get featHealthScore => 'Health Score';
+
+  @override
+  String get featEstrusDetect => 'Estrus Detection';
+
+  @override
+  String get featEpidemicAlert => 'Epidemic Alert';
+
+  @override
   String get analyticsTitle => 'Analytics';
 
   @override

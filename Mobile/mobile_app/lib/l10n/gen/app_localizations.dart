@@ -3118,6 +3118,168 @@ abstract class AppLocalizations {
   /// **'{key} 已更新'**
   String featureGateUpdated(String key);
 
+  /// No description provided for @featureGateTierBasic.
+  ///
+  /// In zh, this message translates to:
+  /// **'基础版'**
+  String get featureGateTierBasic;
+
+  /// No description provided for @featureGateTierStandard.
+  ///
+  /// In zh, this message translates to:
+  /// **'标准版'**
+  String get featureGateTierStandard;
+
+  /// No description provided for @featureGateTierPremium.
+  ///
+  /// In zh, this message translates to:
+  /// **'高级版'**
+  String get featureGateTierPremium;
+
+  /// No description provided for @featureGateTierEnterprise.
+  ///
+  /// In zh, this message translates to:
+  /// **'企业版'**
+  String get featureGateTierEnterprise;
+
+  /// No description provided for @featureGateCatPlatform.
+  ///
+  /// In zh, this message translates to:
+  /// **'平台功能'**
+  String get featureGateCatPlatform;
+
+  /// No description provided for @featureGateCatHealth.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康模块'**
+  String get featureGateCatHealth;
+
+  /// No description provided for @featureGateUnitHead.
+  ///
+  /// In zh, this message translates to:
+  /// **'头'**
+  String get featureGateUnitHead;
+
+  /// No description provided for @featureGateUnitCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'个'**
+  String get featureGateUnitCount;
+
+  /// No description provided for @featureGateUnitPerson.
+  ///
+  /// In zh, this message translates to:
+  /// **'人'**
+  String get featureGateUnitPerson;
+
+  /// No description provided for @featureGateUnitDay.
+  ///
+  /// In zh, this message translates to:
+  /// **'天'**
+  String get featureGateUnitDay;
+
+  /// No description provided for @gateTypeNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'无限制'**
+  String get gateTypeNone;
+
+  /// No description provided for @gateTypeLimit.
+  ///
+  /// In zh, this message translates to:
+  /// **'配额'**
+  String get gateTypeLimit;
+
+  /// No description provided for @gateTypeLock.
+  ///
+  /// In zh, this message translates to:
+  /// **'锁定'**
+  String get gateTypeLock;
+
+  /// No description provided for @gateTypeLockOpen.
+  ///
+  /// In zh, this message translates to:
+  /// **'已解锁'**
+  String get gateTypeLockOpen;
+
+  /// No description provided for @gateTypeFilter.
+  ///
+  /// In zh, this message translates to:
+  /// **'范围'**
+  String get gateTypeFilter;
+
+  /// No description provided for @featLivestockManagement.
+  ///
+  /// In zh, this message translates to:
+  /// **'牲畜管理'**
+  String get featLivestockManagement;
+
+  /// No description provided for @featFenceManagement.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏管理'**
+  String get featFenceManagement;
+
+  /// No description provided for @featAlertManagement.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警管理'**
+  String get featAlertManagement;
+
+  /// No description provided for @featWorkerManagement.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧工管理'**
+  String get featWorkerManagement;
+
+  /// No description provided for @featAdvancedAnalytics.
+  ///
+  /// In zh, this message translates to:
+  /// **'高级分析'**
+  String get featAdvancedAnalytics;
+
+  /// No description provided for @featApiAccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'API 访问'**
+  String get featApiAccess;
+
+  /// No description provided for @featHealthMonitoring.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康监控'**
+  String get featHealthMonitoring;
+
+  /// No description provided for @featTemperatureMonitor.
+  ///
+  /// In zh, this message translates to:
+  /// **'温度监控'**
+  String get featTemperatureMonitor;
+
+  /// No description provided for @featPeristalticMonitor.
+  ///
+  /// In zh, this message translates to:
+  /// **'蠕动监控'**
+  String get featPeristalticMonitor;
+
+  /// No description provided for @featHealthScore.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康评分'**
+  String get featHealthScore;
+
+  /// No description provided for @featEstrusDetect.
+  ///
+  /// In zh, this message translates to:
+  /// **'发情检测'**
+  String get featEstrusDetect;
+
+  /// No description provided for @featEpidemicAlert.
+  ///
+  /// In zh, this message translates to:
+  /// **'疫情预警'**
+  String get featEpidemicAlert;
+
   /// No description provided for @analyticsTitle.
   ///
   /// In zh, this message translates to:
