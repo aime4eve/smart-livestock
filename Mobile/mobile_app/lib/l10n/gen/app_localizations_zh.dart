@@ -1680,6 +1680,87 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get featureGateTierBasic => '基础版';
+
+  @override
+  String get featureGateTierStandard => '标准版';
+
+  @override
+  String get featureGateTierPremium => '高级版';
+
+  @override
+  String get featureGateTierEnterprise => '企业版';
+
+  @override
+  String get featureGateCatPlatform => '平台功能';
+
+  @override
+  String get featureGateCatHealth => '健康模块';
+
+  @override
+  String get featureGateUnitHead => '头';
+
+  @override
+  String get featureGateUnitCount => '个';
+
+  @override
+  String get featureGateUnitPerson => '人';
+
+  @override
+  String get featureGateUnitDay => '天';
+
+  @override
+  String get gateTypeNone => '无限制';
+
+  @override
+  String get gateTypeLimit => '配额';
+
+  @override
+  String get gateTypeLock => '锁定';
+
+  @override
+  String get gateTypeLockOpen => '已解锁';
+
+  @override
+  String get gateTypeFilter => '范围';
+
+  @override
+  String get featLivestockManagement => '牲畜管理';
+
+  @override
+  String get featFenceManagement => '围栏管理';
+
+  @override
+  String get featAlertManagement => '告警管理';
+
+  @override
+  String get featWorkerManagement => '牧工管理';
+
+  @override
+  String get featAdvancedAnalytics => '高级分析';
+
+  @override
+  String get featApiAccess => 'API 访问';
+
+  @override
+  String get featHealthMonitoring => '健康监控';
+
+  @override
+  String get featTemperatureMonitor => '温度监控';
+
+  @override
+  String get featPeristalticMonitor => '蠕动监控';
+
+  @override
+  String get featHealthScore => '健康评分';
+
+  @override
+  String get featEstrusDetect => '发情检测';
+
+  @override
+  String get featEpidemicAlert => '疫情预警';
+
+  @override
   String get analyticsTitle => '用量分析';
 
   @override
