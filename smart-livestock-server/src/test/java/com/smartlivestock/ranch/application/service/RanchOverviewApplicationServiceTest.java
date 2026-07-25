@@ -58,7 +58,7 @@ class RanchOverviewApplicationServiceTest {
         when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(Collections.emptyList());
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
                 new HealthOverview(0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0));
-        return service.getOverview(1L, 1L);
+        return service.getOverview(1L, 1L, 1L);
     }
 
     @Test
@@ -93,7 +93,7 @@ class RanchOverviewApplicationServiceTest {
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
                 new HealthOverview(0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0));
 
-        RanchOverviewResponse response = service.getOverview(1L, 1L);
+        RanchOverviewResponse response = service.getOverview(1L, 1L, 1L);
 
         assertThat(response.fences()).hasSize(1);
         assertThat(response.fences().get(0).name()).isEqualTo("东区");
@@ -117,7 +117,7 @@ class RanchOverviewApplicationServiceTest {
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
                 new HealthOverview(1, 0.0, 0, 0, 1, 0, 0, 0, 0, 0.0));
 
-        RanchOverviewResponse response = service.getOverview(1L, 1L);
+        RanchOverviewResponse response = service.getOverview(1L, 1L, 1L);
 
         assertThat(response.livestockMarkers()).hasSize(1);
         assertThat(response.livestockMarkers().get(0).healthStatus()).isEqualTo("WARNING");
@@ -142,7 +142,7 @@ class RanchOverviewApplicationServiceTest {
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
                 new HealthOverview(1, 0.0, 0, 1, 1, 1, 0, 0, 0, 1.0));
 
-        RanchOverviewResponse response = service.getOverview(1L, 1L);
+        RanchOverviewResponse response = service.getOverview(1L, 1L, 1L);
 
         assertThat(response.livestockMarkers().get(0).healthStatus()).isEqualTo("CRITICAL");
         assertThat(response.pendingTasks()).hasSize(1);
@@ -168,7 +168,7 @@ class RanchOverviewApplicationServiceTest {
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
                 new HealthOverview(0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0));
 
-        RanchOverviewResponse response = service.getOverview(1L, 1L);
+        RanchOverviewResponse response = service.getOverview(1L, 1L, 1L);
 
         assertThat(response.alerts()).hasSize(1);
         assertThat(response.alerts().get(0).status()).isEqualTo("ACTIVE");
@@ -192,7 +192,7 @@ class RanchOverviewApplicationServiceTest {
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
                 new HealthOverview(1, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0));
 
-        RanchOverviewResponse response = service.getOverview(1L, 1L);
+        RanchOverviewResponse response = service.getOverview(1L, 1L, 1L);
 
         assertThat(response.livestockMarkers()).isEmpty();
     }
