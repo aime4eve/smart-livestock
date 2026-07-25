@@ -36,10 +36,11 @@ class _FakeRepo extends GpsQualityApiRepository {
 
   @override
   Future<TrajectoryQualityReport> fetchTrajectoryReport(int testId) async =>
-      TrajectoryQualityReport(
-        testId: testId,
-        deviceCode: 'DEV001',
-        startedAt: DateTime(2026, 7, 18, 9),
+     TrajectoryQualityReport(
+       testId: testId,
+       deviceCode: 'DEV001',
+       deviceEui: '0095690a00008aea',
+       startedAt: DateTime(2026, 7, 18, 9),
         endedAt: DateTime(2026, 7, 18, 10),
         toleranceSec: 60,
         grade: QualityGrade.usable,
@@ -58,10 +59,11 @@ class _FakeRepo extends GpsQualityApiRepository {
   @override
   Future<GpsQualityReport> fetchReport(int sessionId,
           {bool excludeSuspect = false}) async =>
-      GpsQualityReport(
-        sessionId: sessionId,
-        deviceCode: '847A000000000F03',
-        rtkPoint: const RtkPoint(
+     GpsQualityReport(
+       sessionId: sessionId,
+       deviceCode: '847A000000000F03',
+       deviceEui: '847A000000000F03',
+       rtkPoint: const RtkPoint(
             id: 11,
             locationName: '北门',
             pointLabel: '11号点',
