@@ -2511,6 +2511,8 @@
   "@gpsQualityBatchImport": {},
   "gpsQualityDeviceEui": "Device EUI",
   "@gpsQualityDeviceEui": {},
+  "gpsQualityEuiCopied": "EUI copied",
+  "@gpsQualityEuiCopied": {},
   "gpsQualityDeviceGroup": "Device Group",
   "@gpsQualityDeviceGroup": {},
   "gpsQualityTimeline": "Timeline",

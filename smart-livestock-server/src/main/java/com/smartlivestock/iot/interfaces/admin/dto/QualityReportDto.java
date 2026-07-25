@@ -19,6 +19,7 @@ public class QualityReportDto {
     private java.math.BigDecimal rtkLongitude;
     private Long deviceId;
     private String deviceCode;
+    private String deviceEui;
     private boolean excludeSuspect;
     private QualityGrade grade;
     private GpsQualityStats stats;
@@ -37,6 +38,7 @@ public class QualityReportDto {
         dto.rtkLongitude = r.rtk().getLongitude();
         dto.deviceId = r.test().getDeviceId();
         dto.deviceCode = r.deviceCode();
+        dto.deviceEui = r.deviceEui();
         dto.excludeSuspect = r.excludeSuspect();
         dto.grade = r.stats().grade();
         dto.stats = r.stats();
@@ -67,6 +69,8 @@ public class QualityReportDto {
 
     public String getDeviceCode() { return deviceCode; }
     public void setDeviceCode(String deviceCode) { this.deviceCode = deviceCode; }
+    public String getDeviceEui() { return deviceEui; }
+    public void setDeviceEui(String deviceEui) { this.deviceEui = deviceEui; }
 
     public boolean isExcludeSuspect() { return excludeSuspect; }
     public void setExcludeSuspect(boolean excludeSuspect) { this.excludeSuspect = excludeSuspect; }

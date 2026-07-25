@@ -98,6 +98,7 @@ class DynamicQualityReport {
     required this.testId,
     required this.deviceId,
     required this.deviceCode,
+    required this.deviceEui,
     required this.routeId,
     required this.routeName,
     required this.startedAt,
@@ -113,6 +114,7 @@ class DynamicQualityReport {
   final int testId;
   final int deviceId;
   final String deviceCode;
+  final String deviceEui;
   final int routeId;
   final String routeName;
   final DateTime startedAt;
@@ -129,6 +131,7 @@ class DynamicQualityReport {
         testId: json['testId'] as int? ?? 0,
         deviceId: json['deviceId'] as int? ?? 0,
         deviceCode: json['deviceCode'] as String? ?? '',
+        deviceEui: json['deviceEui'] as String? ?? '',
         routeId: json['routeId'] as int? ?? 0,
         routeName: json['routeName'] as String? ?? '',
         startedAt: json['startedAt'] != null
@@ -322,6 +325,7 @@ class GpsQualityReport {
   const GpsQualityReport({
     required this.sessionId,
     required this.deviceCode,
+    required this.deviceEui,
     required this.rtkPoint,
     required this.startedAt,
     this.endedAt,
@@ -332,6 +336,7 @@ class GpsQualityReport {
 
   final int sessionId;
   final String deviceCode;
+  final String deviceEui;
   final RtkPoint rtkPoint;
   final DateTime startedAt;
   final DateTime? endedAt;
@@ -343,6 +348,7 @@ class GpsQualityReport {
       GpsQualityReport(
         sessionId: (json['testId'] ?? json['sessionId']) as int,
         deviceCode: json['deviceCode'] as String? ?? '',
+        deviceEui: json['deviceEui'] as String? ?? '',
         // Backend QualityReportDto has flat fields: rtkPointId, locationName,
         // label (no nested rtkPoint object, no lat/lng).
         rtkPoint: RtkPoint(
@@ -1019,6 +1025,7 @@ class TrajectoryQualityReport {
   const TrajectoryQualityReport({
     required this.testId,
     required this.deviceCode,
+    required this.deviceEui,
     required this.startedAt,
     this.endedAt,
     required this.toleranceSec,
@@ -1038,6 +1045,7 @@ class TrajectoryQualityReport {
 
   final int testId;
   final String deviceCode;
+  final String deviceEui;
   final DateTime startedAt;
   final DateTime? endedAt;
   final int toleranceSec;
@@ -1058,6 +1066,7 @@ class TrajectoryQualityReport {
       TrajectoryQualityReport(
         testId: json['testId'] as int? ?? 0,
         deviceCode: json['deviceCode'] as String? ?? '',
+        deviceEui: json['deviceEui'] as String? ?? '',
         startedAt: DateTime.parse(json['startedAt'] as String),
         endedAt: json['endedAt'] != null
             ? DateTime.parse(json['endedAt'] as String)

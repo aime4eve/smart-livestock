@@ -5676,6 +5676,12 @@ abstract class AppLocalizations {
   /// **'设备 EUI'**
   String get gpsQualityDeviceEui;
 
+  /// No description provided for @gpsQualityEuiCopied.
+  ///
+  /// In zh, this message translates to:
+  /// **'已复制 EUI'**
+  String get gpsQualityEuiCopied;
+
   /// No description provided for @gpsQualityDeviceGroup.
   ///
   /// In zh, this message translates to:

@@ -2511,6 +2511,8 @@
   "@gpsQualityBatchImport": {},
   "gpsQualityDeviceEui": "设备 EUI",
   "@gpsQualityDeviceEui": {},
+  "gpsQualityEuiCopied": "已复制 EUI",
+  "@gpsQualityEuiCopied": {},
   "gpsQualityDeviceGroup": "设备分组",
   "@gpsQualityDeviceGroup": {},
   "gpsQualityTimeline": "时间轴",

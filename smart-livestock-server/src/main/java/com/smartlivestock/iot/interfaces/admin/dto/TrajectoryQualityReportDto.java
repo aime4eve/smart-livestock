@@ -14,6 +14,7 @@ public class TrajectoryQualityReportDto {
 
     private Long testId;
     private String deviceCode;
+    private String deviceEui;
     private Instant startedAt;
     private Instant endedAt;
     private int toleranceSec;
@@ -57,6 +58,8 @@ public class TrajectoryQualityReportDto {
     public void setTestId(Long testId) { this.testId = testId; }
     public String getDeviceCode() { return deviceCode; }
     public void setDeviceCode(String deviceCode) { this.deviceCode = deviceCode; }
+    public String getDeviceEui() { return deviceEui; }
+    public void setDeviceEui(String deviceEui) { this.deviceEui = deviceEui; }
     public Instant getStartedAt() { return startedAt; }
     public void setStartedAt(Instant startedAt) { this.startedAt = startedAt; }
     public Instant getEndedAt() { return endedAt; }
