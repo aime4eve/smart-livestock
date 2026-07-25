@@ -35,7 +35,7 @@ class DeviceIdentityLine extends StatelessWidget {
               style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
             ),
             const SizedBox(width: AppSpacing.xs),
-            SelectableText(
+            Text(
               deviceEui,
               style: const TextStyle(
                 fontSize: 11,
