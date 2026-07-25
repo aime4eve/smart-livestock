@@ -245,10 +245,10 @@ class ApiClient {
       try {
         body = jsonDecode(response.body) as Map<String, dynamic>;
       } catch (_) {}
-      final code = body?['code'] as String?;
-      if (code == 'AUTH_INVALID_TOKEN') {
-        await JwtStorage.instance.clear();
-      }
+      // Do NOT clear the token here. _withRefreshRetry relies on the stored
+      // (possibly expired) token to call /auth/refresh. Clearing it now would
+      // starve _doRefresh and turn any single 401 into a permanent logout.
+      // Token lifecycle is owned by _doRefresh, which clears on real failure.
       throw AuthException(
         message: body?['message'] as String? ?? '认证失败',
         statusCode: 401,
