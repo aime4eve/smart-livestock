@@ -62,18 +62,20 @@ public class GpsQualityReportService {
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "RTK point not found: " + test.getRtkPointId()));
 
-        Long deviceId = test.getDeviceId();
-        String deviceCode = test.getDeviceCode();
-        String deviceEui = null;
-        if (deviceCode == null && deviceId != null) {
-            Device device = deviceRepository.findById(deviceId).orElse(null);
-            if (device != null) {
-                deviceCode = device.getDeviceCode();
-                deviceEui = device.getDevEui();
-            }
-        }
+       Long deviceId = test.getDeviceId();
+       String deviceCode = test.getDeviceCode();
+       String deviceEui = null;
+       // deviceCode may be denormalized on the test, but EUI always comes
+       // from the Device entity, so resolve it whenever deviceId is present.
+       if (deviceId != null) {
+           Device device = deviceRepository.findById(deviceId).orElse(null);
+           if (device != null) {
+               if (deviceCode == null) deviceCode = device.getDeviceCode();
+               deviceEui = device.getDevEui();
+           }
+       }
 
-        Instant endTime = test.getEndedAt() != null
+       Instant endTime = test.getEndedAt() != null
                 ? test.getEndedAt()
                 : Instant.now().plus(PLATFORM_TZ_OFFSET_HOURS, ChronoUnit.HOURS);
         List<GpsPointWithTelemetry> points = gpsLogRepository.findByDeviceIdAndTimeRangeWithTelemetry(

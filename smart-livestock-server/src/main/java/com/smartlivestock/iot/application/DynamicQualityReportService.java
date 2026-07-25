@@ -83,18 +83,20 @@ public class DynamicQualityReportService {
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "Route not found: " + test.getRouteId()));
 
-        Long deviceId = test.getDeviceId();
-        String deviceCode = test.getDeviceCode();
-        String deviceEui = null;
-        if (deviceCode == null && deviceId != null) {
-            Device device = deviceRepository.findById(deviceId).orElse(null);
-            if (device != null) {
-                deviceCode = device.getDeviceCode();
-                deviceEui = device.getDevEui();
-            }
-        }
+       Long deviceId = test.getDeviceId();
+       String deviceCode = test.getDeviceCode();
+       String deviceEui = null;
+       // deviceCode may be denormalized on the test, but EUI always comes
+       // from the Device entity, so resolve it whenever deviceId is present.
+       if (deviceId != null) {
+           Device device = deviceRepository.findById(deviceId).orElse(null);
+           if (device != null) {
+               if (deviceCode == null) deviceCode = device.getDeviceCode();
+               deviceEui = device.getDevEui();
+           }
+       }
 
-        double threshold = thresholdOverride != null ? thresholdOverride : DEFAULT_THRESHOLD;
+       double threshold = thresholdOverride != null ? thresholdOverride : DEFAULT_THRESHOLD;
 
         // --- assemble route points with RTK coordinates ---
         List<DynamicTestRoutePoint> routePoints =
