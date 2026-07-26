@@ -138,6 +138,12 @@ class SmartTileProvider extends TileProvider {
   }
 
   @visibleForTesting
+  void simulatePrimary() {
+    _initialized = true;
+    _switchSource(_OnlineSource.primary);
+  }
+
+  @visibleForTesting
   void simulateSecondary() {
     _initialized = true;
     _switchSource(_OnlineSource.secondary);

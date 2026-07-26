@@ -15,9 +15,9 @@ void main() {
       expect(stats.inFenceRate, 0.98);
     });
 
-    test('inFenceRate defaults to 0 when missing', () {
+    test('inFenceRate is null when missing', () {
       final stats = RanchOverviewStats.fromJson({});
-      expect(stats.inFenceRate, 0.0);
+      expect(stats.inFenceRate, isNull);
     });
   });
 

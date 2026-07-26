@@ -45,6 +45,7 @@ void main() {
         onlineUrl: osmUrl,
         fallbackOnlineUrl: amapUrl,
       );
+      provider.simulatePrimary();
       const coords = TileCoordinates(3332, 1712, 12);
       final img = provider.getImage(coords, TileLayer());
       expect(img, isA<NetworkImage>());
