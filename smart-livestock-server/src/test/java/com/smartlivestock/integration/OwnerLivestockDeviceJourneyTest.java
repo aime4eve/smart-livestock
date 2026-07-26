@@ -117,10 +117,11 @@ class OwnerLivestockDeviceJourneyTest extends AbstractJourneyTest {
         @Test
         @DisplayName("owner 注册新设备")
         void owner_registerDevice() {
-            var body = Map.of(
-                    "deviceCode", "DEV-E2E-001",
-                    "deviceType", "TRACKER"
-            );
+           var body = Map.of(
+                   "deviceCode", "DEV-E2E-001",
+                    "deviceType", "TRACKER",
+                    "serialNo", "SN-E2E-001"
+           );
             var resp = postRaw(ownerToken, "/api/v1/farms/1/devices", body);
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         }

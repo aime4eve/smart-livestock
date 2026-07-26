@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:hkt_livestock_agentic/features/admin/domain/admin_repository.dart';
 import 'package:hkt_livestock_agentic/features/admin/presentation/admin_controller.dart';
 import 'package:hkt_livestock_agentic/features/tenant/presentation/pages/tenant_detail_page.dart';
+
+/// Wraps [child] with localization delegates so AppLocalizations resolves.
+Widget _localized(Widget child) => MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: child,
+    );
 
 class _FakeAdminRepository implements AdminRepository {
   final TenantDetail? tenantDetail;
@@ -103,9 +111,7 @@ void main() {
         overrides: [
           adminRepositoryProvider.overrideWithValue(repo),
         ],
-        child: const MaterialApp(
-          home: TenantDetailPage(id: '1'),
-        ),
+        child: _localized(const TenantDetailPage(id: '1')),
       ));
       await tester.pumpAndSettle();
 
@@ -141,9 +147,7 @@ void main() {
         overrides: [
           adminRepositoryProvider.overrideWithValue(repo),
         ],
-        child: const MaterialApp(
-          home: TenantDetailPage(id: '999'),
-        ),
+        child: _localized(const TenantDetailPage(id: '999')),
       ));
       await tester.pumpAndSettle();
 
@@ -161,9 +165,7 @@ void main() {
         overrides: [
           adminRepositoryProvider.overrideWithValue(repo),
         ],
-        child: const MaterialApp(
-          home: TenantDetailPage(id: '1'),
-        ),
+        child: _localized(const TenantDetailPage(id: '1')),
       ));
       await tester.pumpAndSettle();
 
@@ -188,9 +190,7 @@ void main() {
         overrides: [
           adminRepositoryProvider.overrideWithValue(repo),
         ],
-        child: const MaterialApp(
-          home: TenantDetailPage(id: '1'),
-        ),
+        child: _localized(const TenantDetailPage(id: '1')),
       ));
       await tester.pumpAndSettle();
 
@@ -222,9 +222,7 @@ void main() {
         overrides: [
           adminRepositoryProvider.overrideWithValue(repo),
         ],
-        child: const MaterialApp(
-          home: TenantDetailPage(id: '1'),
-        ),
+        child: _localized(const TenantDetailPage(id: '1')),
       ));
       await tester.pumpAndSettle();
 
@@ -242,9 +240,7 @@ void main() {
         overrides: [
           adminRepositoryProvider.overrideWithValue(repo),
         ],
-        child: const MaterialApp(
-          home: TenantDetailPage(id: '1'),
-        ),
+        child: _localized(const TenantDetailPage(id: '1')),
       ));
       await tester.pumpAndSettle();
 

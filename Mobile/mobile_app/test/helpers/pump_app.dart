@@ -30,7 +30,11 @@ Future<void> pumpAppWithRole(
   try {
     await tester.pumpAndSettle(const Duration(seconds: 3));
   } catch (_) {
-    await tester.pump();
+    // pumpAndSettle timed out (periodic timers in router/riverpod).
+    // Pump a few extra frames so GoRouter redirect settles to its final route.
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
   }
 }
 

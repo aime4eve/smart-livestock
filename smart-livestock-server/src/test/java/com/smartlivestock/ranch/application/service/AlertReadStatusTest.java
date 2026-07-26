@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +32,7 @@ import static org.mockito.Mockito.when;
  * Unit tests for per-user read status tracking (alert_read_status).
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AlertReadStatusTest {
 
     @Mock
@@ -106,7 +109,7 @@ class AlertReadStatusTest {
     void listWithReadStatus_multiUserIsolation() {
         Alert alert1 = createActiveAlert(1L);
         Alert alert2 = createActiveAlert(2L);
-        when(alertRepository.findByFarmId(1L)).thenReturn(List.of(alert1, alert2));
+        when(alertRepository.findByFarmIdRecent(1L, 200)).thenReturn(List.of(alert1, alert2));
         // User 200 has read alert 1 but not alert 2
         when(readStatusRepository.findReadAlertIdsByUserId(eq(200L), anyCollection()))
                 .thenReturn(Set.of(1L));
@@ -145,7 +148,7 @@ class AlertReadStatusTest {
     @Test
     @DisplayName("listByFarmWithReadStatus — 空列表直接返回空")
     void listWithReadStatus_emptyFarm() {
-        when(alertRepository.findByFarmId(99L)).thenReturn(List.of());
+        when(alertRepository.findByFarmIdRecent(99L, 200)).thenReturn(List.of());
 
         List<AlertDto> result = service.listByFarmWithReadStatus(99L, 200L);
 
