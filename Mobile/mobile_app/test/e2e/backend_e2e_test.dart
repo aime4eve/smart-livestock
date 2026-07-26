@@ -186,7 +186,15 @@ void main() {
     });
 
     test('告警 status 为合法枚举值', () async {
-      final valid = {'PENDING', 'ACKNOWLEDGED', 'HANDLED', 'ARCHIVED'};
+      final valid = {
+        'ACTIVE',
+        'DISMISSED',
+        'AUTO_RESOLVED',
+        'PENDING',
+        'ACKNOWLEDGED',
+        'HANDLED',
+        'ARCHIVED',
+      };
       final resp =
           await _get('/farms/$farmId/alerts?pageSize=100', ownerToken);
       final body = jsonDecode(resp.body) as Map<String, dynamic>;
