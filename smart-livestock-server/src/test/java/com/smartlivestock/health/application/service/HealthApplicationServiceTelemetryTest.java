@@ -57,12 +57,15 @@ class HealthApplicationServiceTelemetryTest {
                 ranchQueryPort, ranchCommandPort,
                 subscriptionPort,
                 healthAnomalyService,
-                feverService, digestiveService, estrusAnalysisService, epidemicService);
+               feverService, digestiveService, estrusAnalysisService, epidemicService);
+
+        // refreshSnapshot calls ensureSnapshotExists then findByLivestockId.
+        doNothing().when(snapshotRepo).ensureSnapshotExists(anyLong(), anyLong());
     }
 
     @Test
     void processTelemetry_capsule_withTemperatures_expandsTo7Logs() {
-        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.empty());
+        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(new HealthSnapshot()));
         when(tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(10L, 10)).thenReturn(List.of());
         when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(10L), anyInt())).thenReturn(List.of());
 
@@ -86,7 +89,7 @@ class HealthApplicationServiceTelemetryTest {
 
     @Test
     void processTelemetry_capsule_gastricMotilityDividedBy100000() {
-        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.empty());
+        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(new HealthSnapshot()));
         when(tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(10L, 10)).thenReturn(List.of());
         when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(10L), anyInt())).thenReturn(List.of());
 
@@ -104,7 +107,7 @@ class HealthApplicationServiceTelemetryTest {
 
     @Test
     void processTelemetry_tracker_ingestActivityOnly() {
-        when(snapshotRepo.findByLivestockId(5L)).thenReturn(Optional.empty());
+        when(snapshotRepo.findByLivestockId(5L)).thenReturn(Optional.of(new HealthSnapshot()));
         when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(5L), anyInt())).thenReturn(List.of());
 
         Map<String, Object> readings = Map.of(
@@ -123,7 +126,7 @@ class HealthApplicationServiceTelemetryTest {
 
     @Test
     void processTelemetry_capsule_noTemperatures_skipsTempLog() {
-        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.empty());
+        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(new HealthSnapshot()));
         when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(10L), anyInt())).thenReturn(List.of());
 
         Map<String, Object> readings = Map.of(
@@ -138,7 +141,7 @@ class HealthApplicationServiceTelemetryTest {
 
     @Test
     void processTelemetry_createsNewSnapshotWhenNotExists() {
-        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.empty());
+        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(new HealthSnapshot()));
         when(tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(10L, 10)).thenReturn(List.of());
         when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(10L), anyInt())).thenReturn(List.of());
         when(feverService.assessStatus(any(), any())).thenReturn(TempStatus.NORMAL);
@@ -152,15 +155,12 @@ class HealthApplicationServiceTelemetryTest {
         service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE, readings,
                 Instant.parse("2026-06-04T10:00:00Z"));
 
-        verify(snapshotRepo).save(argThat(snap ->
-                snap.getLivestockId().equals(10L) &&
-                snap.getFarmId().equals(1L) &&
-                snap.getTempStatus() == TempStatus.NORMAL));
+        verify(snapshotRepo).ensureSnapshotExists(eq(10L), eq(1L));
     }
 
     @Test
     void processTelemetry_capsule_singleTemperature_fallback() {
-        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.empty());
+        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(new HealthSnapshot()));
         when(tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(10L, 10)).thenReturn(List.of());
         when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(10L), anyInt())).thenReturn(List.of());
 
@@ -173,7 +173,7 @@ class HealthApplicationServiceTelemetryTest {
 
     @Test
     void processTelemetry_tracker_noActivityData_skipsActivityLog() {
-        when(snapshotRepo.findByLivestockId(5L)).thenReturn(Optional.empty());
+        when(snapshotRepo.findByLivestockId(5L)).thenReturn(Optional.of(new HealthSnapshot()));
         when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(5L), anyInt())).thenReturn(List.of());
 
         Map<String, Object> readings = Map.of("batteryLevel", 85);
