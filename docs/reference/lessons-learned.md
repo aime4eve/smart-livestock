@@ -288,4 +288,27 @@
   - 对接第三方平台的时间字段，如对方不带时区标识（无 Z/+08:00 后缀）→ **直接用原始数值不做换算**，只做格式转换。不要猜对方时区。
   - 后端解析无时区时间字符串一律 LocalDateTime.toInstant(ZoneOffset.UTC)，不用 ZoneId.systemDefault()、不硬编码来源时区。
   - 前端查询时间参数也不要做 toUtc() 转换，保持和后端存储同一基准。
-  - 时间范围查询返回空但数据存在 → 先确认存储端和查询端是否在同一时间基准上（都做换算 vs 都不做换算），不要只改一端。
+ - 时间范围查询返回空但数据存在 → 先确认存储端和查询端是否在同一时间基准上（都做换算 vs 都不做换算），不要只改一端。
+ 
+ ---
+ 
+ ## 关键词索引（遇症状按关键词快速定位）
+ 
+ | 编号 | 关键词 |
+ |------|--------|
+ | #1 | utf-8, decode, `._`, gen-l10n, arb, apple-double |
+ | #2 | non-monotonic index, git, `._`, pack-idx, `/Volumes/DEV` |
+ | #3 | 空列表, tile, status, 数据卷, glob, 挂载路径 |
+ | #4 | sandbox, flutter, dart-tool, telemetry, HOME, analytics |
+ | #5 | 路由, 状态机, 迟滞, hysteresis, neff, 阈值, 评审 |
+ | #6 | 入口缺失, nginx, 镜像, main.dart.js, docker compose build |
+ | #7 | 前端无变化, build_web.sh, deploy.sh, 缺一不可 |
+ | #8 | jpql, @Query, from, 保留字, reserved-word, 返回空 |
+ | #10 | reportTime, 数据膨胀, cursor, now(), 不收敛 |
+ | #11 | datagen, source 字段, 多数据源, 共表 |
+ | #12 | flyway, checksum, 迁移未提交, schema_history |
+ | #13 | numeric overflow, decimal, precision, scale |
+ | #14 | gps 空轨迹, installation, url-encode, 时间格式 |
+ | #15 | 解绑, 连锁 bug, 端到端, install→active→unbind |
+ | #16 | farmGet, 404, suffix, 前导斜杠, 路径粘连 |
+ | #17 | reportTime, 时区, timezone, toInstant, UTC, 不换算 |
