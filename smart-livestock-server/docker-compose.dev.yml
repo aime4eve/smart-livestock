@@ -8,48 +8,53 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "16432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+   volumes:
+     - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+   healthcheck:
+     test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "26380:6379"
-    healthcheck:
+ redis:
+   image: redis:7-alpine
+   ports:
+     - "26380:6379"
+    restart: unless-stopped
+   healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  rocketmq-namesrv:
-    image: apache/rocketmq:5.1.0
-    command: sh mqnamesrv
-    ports:
-      - "19877:9876"
+ rocketmq-namesrv:
+   image: apache/rocketmq:5.1.0
+   command: sh mqnamesrv
+   ports:
+     - "19877:9876"
+    restart: unless-stopped
 
-  rocketmq-broker:
-    image: apache/rocketmq:5.1.0
-    command: sh mqbroker -n rocketmq-namesrv:9876
-    depends_on:
-      - rocketmq-namesrv
-    ports:
-      - "10912:10911"
-    environment:
-      JAVA_OPT: "-Duser.home=/home/rocketmq"
+ rocketmq-broker:
+   image: apache/rocketmq:5.1.0
+   command: sh mqbroker -n rocketmq-namesrv:9876
+   depends_on:
+     - rocketmq-namesrv
+   ports:
+     - "10912:10911"
+   environment:
+     JAVA_OPT: "-Duser.home=/home/rocketmq"
+    restart: unless-stopped
 
-  rocketmq-dashboard:
-    image: apacherocketmq/rocketmq-dashboard:latest
-    ports:
-      - "19082:8082"
-    environment:
-      JAVA_OPTS: "-Drocketmq.namesrv.addr=rocketmq-namesrv:9876"
-    depends_on:
-      - rocketmq-namesrv
+ rocketmq-dashboard:
+   image: apacherocketmq/rocketmq-dashboard:latest
+   ports:
+     - "19082:8082"
+   environment:
+     JAVA_OPTS: "-Drocketmq.namesrv.addr=rocketmq-namesrv:9876"
+   depends_on:
+     - rocketmq-namesrv
+    restart: unless-stopped
 
   app:
     build: .
@@ -112,14 +117,15 @@ services:
     command: ["-c", "config.json", "--port", "8080"]
     restart: unless-stopped
 
-  nginx:
-    build:
-      context: .
-      dockerfile: infrastructure/nginx/Dockerfile
-    ports:
-      - "19080:80"
-    depends_on:
-      - app
+ nginx:
+   build:
+     context: .
+     dockerfile: infrastructure/nginx/Dockerfile
+   ports:
+     - "19080:80"
+   depends_on:
+     - app
+    restart: unless-stopped
 
   tile-worker:
     build:
