@@ -2793,9 +2793,19 @@
       "tolerance": {"type": "int"}
     }
   },
-  "gpsQualityTrajectoryNoStatic": "该设备暂无静态检验数据，无法进行静动态对比。",
-  "@gpsQualityTrajectoryNoStatic": {},
-  "gpsQualityTrajectoryStaticDelta": "静态 vs 动态：静态 P95 = {staticP95}m，本次轨迹动态 P95 = {dynamicP95}m，动态偏差{direction} {delta}m",
+ "gpsQualityTrajectoryNoStatic": "该设备暂无静态检验数据，无法进行静动态对比。",
+ "@gpsQualityTrajectoryNoStatic": {},
+  "gpsQualityTrajectoryToleranceLabel": "配对容差",
+  "@gpsQualityTrajectoryToleranceLabel": {},
+  "gpsQualityTrajectoryRePair": "重新配对",
+  "@gpsQualityTrajectoryRePair": {},
+  "gpsQualityTrajectoryNearestLabel": "(最近 {duration})",
+  "@gpsQualityTrajectoryNearestLabel": {
+    "placeholders": {
+      "duration": {"type": "String"}
+    }
+  },
+ "gpsQualityTrajectoryStaticDelta": "静态 vs 动态：静态 P95 = {staticP95}m，本次轨迹动态 P95 = {dynamicP95}m，动态偏差{direction} {delta}m",
   "@gpsQualityTrajectoryStaticDelta": {
     "placeholders": {
       "staticP95": {"type": "String"},

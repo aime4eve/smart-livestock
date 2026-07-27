@@ -413,10 +413,23 @@ public class GpsQualityAdminController {
                 deviceDto.id(), deviceDto.deviceCode(), platformBound)));
     }
 
-    @GetMapping("/tests/{id}/trajectory-report")
-    public ResponseEntity<ApiResponse<TrajectoryQualityReportDto>> trajectoryReport(
-            @PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.ok(trajectoryReportService.generate(id)));
+   @GetMapping("/tests/{id}/trajectory-report")
+   public ResponseEntity<ApiResponse<TrajectoryQualityReportDto>> trajectoryReport(
+           @PathVariable Long id) {
+       return ResponseEntity.ok(ApiResponse.ok(trajectoryReportService.generate(id)));
+   }
+
+    /**
+     * Re-pair a TRAJECTORY test with a new tolerance: re-queries gps_logs,
+     * updates the persisted pairing snapshot, and returns the fresh report.
+     */
+    @PostMapping("/tests/{id}/re-pair")
+    public ResponseEntity<ApiResponse<TrajectoryQualityReportDto>> rePair(
+            @PathVariable Long id,
+            @RequestParam int toleranceSec) {
+        validateTolerance(toleranceSec);
+        return ResponseEntity.ok(ApiResponse.ok(
+                trajectoryReportService.rePair(id, toleranceSec)));
     }
 
     /**

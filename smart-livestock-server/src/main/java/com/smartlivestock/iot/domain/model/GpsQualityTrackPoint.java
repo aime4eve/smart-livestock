@@ -26,8 +26,10 @@ public class GpsQualityTrackPoint {
     private TrackMatchSource matchSource;
     private Long matchedGpsLogId;
     private Integer timeDiffSeconds;
-    private Integer toleranceSeconds;
-    private Instant createdAt;
+   private Integer toleranceSeconds;
+   private Instant createdAt;
+    /** Absolute |collectedAt - nearest gps_logs reportedAt| in seconds. Null for FILE points. */
+    private Integer nearestGpsLogSeconds;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -51,8 +53,10 @@ public class GpsQualityTrackPoint {
     public void setMatchedGpsLogId(Long matchedGpsLogId) { this.matchedGpsLogId = matchedGpsLogId; }
     public Integer getTimeDiffSeconds() { return timeDiffSeconds; }
     public void setTimeDiffSeconds(Integer timeDiffSeconds) { this.timeDiffSeconds = timeDiffSeconds; }
-    public Integer getToleranceSeconds() { return toleranceSeconds; }
-    public void setToleranceSeconds(Integer toleranceSeconds) { this.toleranceSeconds = toleranceSeconds; }
-    public Instant getCreatedAt() { return createdAt; }
+   public Integer getToleranceSeconds() { return toleranceSeconds; }
+   public void setToleranceSeconds(Integer toleranceSeconds) { this.toleranceSeconds = toleranceSeconds; }
+    public Integer getNearestGpsLogSeconds() { return nearestGpsLogSeconds; }
+    public void setNearestGpsLogSeconds(Integer nearestGpsLogSeconds) { this.nearestGpsLogSeconds = nearestGpsLogSeconds; }
+   public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

@@ -404,14 +404,22 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
     );
   }
 
-  /// Fetch the TRAJECTORY quality report of one check.
-  Future<TrajectoryQualityReport> fetchTrajectoryReport(int testId) async {
-    final data =
-        await ApiClient.instance.get('$_base/tests/$testId/trajectory-report');
+ /// Fetch the TRAJECTORY quality report of one check.
+ Future<TrajectoryQualityReport> fetchTrajectoryReport(int testId) async {
+   final data =
+       await ApiClient.instance.get('$_base/tests/$testId/trajectory-report');
+   return TrajectoryQualityReport.fromJson(data);
+ }
+
+  /// Re-pair a TRAJECTORY test with a new tolerance and return the fresh report.
+  Future<TrajectoryQualityReport> rePairTrajectory(
+      int testId, int toleranceSec) async {
+    final data = await ApiClient.instance
+        .post('$_base/tests/$testId/re-pair?toleranceSec=$toleranceSec');
     return TrajectoryQualityReport.fromJson(data);
   }
 
-  /// Fetch the cross-device trajectory comparison.
+ /// Fetch the cross-device trajectory comparison.
   Future<List<TrajectoryComparisonRow>> fetchTrajectoryComparison() async {
     final data = await ApiClient.instance.get('$_base/comparison/trajectory');
     final items = (data['devices'] as List? ?? []);

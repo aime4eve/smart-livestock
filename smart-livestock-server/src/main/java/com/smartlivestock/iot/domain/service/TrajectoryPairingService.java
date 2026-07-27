@@ -29,8 +29,8 @@ import java.util.List;
  */
 public class TrajectoryPairingService {
 
-    /** Default pairing tolerance T in seconds (spec D3). */
-    public static final int DEFAULT_TOLERANCE_SECONDS = 60;
+   /** Default pairing tolerance T in seconds (spec D3). */
+    public static final int DEFAULT_TOLERANCE_SECONDS = 300;
 
     private static final double EARTH_RADIUS_METERS = 6_371_000.0;
 

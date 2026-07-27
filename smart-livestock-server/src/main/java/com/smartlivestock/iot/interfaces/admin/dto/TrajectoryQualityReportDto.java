@@ -33,18 +33,19 @@ public class TrajectoryQualityReportDto {
     private List<TrackPoint> points;
     private StaticComparison staticComparison;
 
-    /** One track point row; error is null when UNPAIRED. */
-    public record TrackPoint(
-        int sequenceNo,
-        Instant collectedAt,
-        BigDecimal rtkLatitude,
-        BigDecimal rtkLongitude,
-        BigDecimal deviceLatitude,
-        BigDecimal deviceLongitude,
-        Double error,
-        String matchSource,
-        Integer timeDiffSec
-    ) {}
+   /** One track point row; error is null when UNPAIRED. */
+   public record TrackPoint(
+       int sequenceNo,
+       Instant collectedAt,
+       BigDecimal rtkLatitude,
+       BigDecimal rtkLongitude,
+       BigDecimal deviceLatitude,
+       BigDecimal deviceLongitude,
+       Double error,
+       String matchSource,
+        Integer timeDiffSec,
+        Integer nearestGpsLogSec
+   ) {}
 
     /** Same-device static comparison; null when the device has no STATIC test. */
     public record StaticComparison(

@@ -52,6 +52,9 @@ public class GpsQualityTrackPointJpaEntity {
     @Column(name = "tolerance_seconds", nullable = false)
     private Integer toleranceSeconds = 60;
 
+    @Column(name = "nearest_gps_log_seconds")
+    private Integer nearestGpsLogSeconds;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -82,8 +85,10 @@ public class GpsQualityTrackPointJpaEntity {
     public void setMatchedGpsLogId(Long matchedGpsLogId) { this.matchedGpsLogId = matchedGpsLogId; }
     public Integer getTimeDiffSeconds() { return timeDiffSeconds; }
     public void setTimeDiffSeconds(Integer timeDiffSeconds) { this.timeDiffSeconds = timeDiffSeconds; }
-    public Integer getToleranceSeconds() { return toleranceSeconds; }
-    public void setToleranceSeconds(Integer toleranceSeconds) { this.toleranceSeconds = toleranceSeconds; }
-    public Instant getCreatedAt() { return createdAt; }
+   public Integer getToleranceSeconds() { return toleranceSeconds; }
+   public void setToleranceSeconds(Integer toleranceSeconds) { this.toleranceSeconds = toleranceSeconds; }
+    public Integer getNearestGpsLogSeconds() { return nearestGpsLogSeconds; }
+    public void setNearestGpsLogSeconds(Integer nearestGpsLogSeconds) { this.nearestGpsLogSeconds = nearestGpsLogSeconds; }
+   public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

@@ -184,11 +184,28 @@ final checksProvider =
 
 // ── NIX-22: Trajectory report + comparison ───────────────────────
 
-final trajectoryReportProvider =
-    FutureProvider.family<TrajectoryQualityReport, int>(
-  (ref, testId) => ref
+class TrajectoryReportController extends AsyncNotifier<TrajectoryQualityReport> {
+  TrajectoryReportController(this.testId);
+  final int testId;
+
+  @override
+  Future<TrajectoryQualityReport> build() => ref
       .read(gpsQualityApiRepositoryProvider)
-      .fetchTrajectoryReport(testId),
+      .fetchTrajectoryReport(testId);
+
+  /// Re-pair with a new tolerance, persist on server, refresh local state.
+  Future<void> rePair(int toleranceSec) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => ref
+        .read(gpsQualityApiRepositoryProvider)
+        .rePairTrajectory(testId, toleranceSec));
+  }
+}
+
+final trajectoryReportProvider =
+    AsyncNotifierProvider.family<
+        TrajectoryReportController, TrajectoryQualityReport, int>(
+  TrajectoryReportController.new,
 );
 
 final trajectoryComparisonProvider =

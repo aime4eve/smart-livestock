@@ -3457,6 +3457,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsQualityTrajectoryNoStatic => '该设备暂无静态检验数据，无法进行静动态对比。';
 
   @override
+  String get gpsQualityTrajectoryToleranceLabel => '配对容差';
+
+  @override
+  String get gpsQualityTrajectoryRePair => '重新配对';
+
+  @override
+  String gpsQualityTrajectoryNearestLabel(String duration) {
+    return '(最近 $duration)';
+  }
+
+  @override
   String gpsQualityTrajectoryStaticDelta(
     String staticP95,
     String dynamicP95,

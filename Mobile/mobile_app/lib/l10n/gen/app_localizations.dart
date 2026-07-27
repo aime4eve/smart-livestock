@@ -6480,6 +6480,24 @@ abstract class AppLocalizations {
   /// **'该设备暂无静态检验数据，无法进行静动态对比。'**
   String get gpsQualityTrajectoryNoStatic;
 
+  /// No description provided for @gpsQualityTrajectoryToleranceLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'配对容差'**
+  String get gpsQualityTrajectoryToleranceLabel;
+
+  /// No description provided for @gpsQualityTrajectoryRePair.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新配对'**
+  String get gpsQualityTrajectoryRePair;
+
+  /// No description provided for @gpsQualityTrajectoryNearestLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'(最近 {duration})'**
+  String gpsQualityTrajectoryNearestLabel(String duration);
+
   /// No description provided for @gpsQualityTrajectoryStaticDelta.
   ///
   /// In zh, this message translates to:

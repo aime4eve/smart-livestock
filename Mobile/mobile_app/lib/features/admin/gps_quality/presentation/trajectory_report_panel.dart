@@ -34,12 +34,12 @@ class TrajectoryReportPanel extends ConsumerWidget {
           child: Text('$e', style: const TextStyle(color: AppColors.danger)),
         ),
       ),
-      data: (report) => _buildReport(context, l10n, report),
+     data: (report) => _buildReport(context, l10n, ref, report),
     );
   }
 
   Widget _buildReport(
-      BuildContext context, AppLocalizations l10n, TrajectoryQualityReport r) {
+      BuildContext context, AppLocalizations l10n, WidgetRef ref, TrajectoryQualityReport r) {
     final timeFmt = DateFormat('MM-dd HH:mm');
     final timeSecFmt = DateFormat('HH:mm:ss');
 
@@ -64,12 +64,18 @@ class TrajectoryReportPanel extends ConsumerWidget {
               style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
             ),
           ]),
-            DeviceIdentityLine(
-              deviceEui: r.deviceEui,
-              deviceCode: r.deviceCode,
+           DeviceIdentityLine(
+             deviceEui: r.deviceEui,
+             deviceCode: r.deviceCode,
+             l10n: l10n,
+           ),
+            _ToleranceControl(
+              initialTolerance: r.toleranceSec,
+              onRePair: (newTolerance) =>
+                  ref.read(trajectoryReportProvider(testId).notifier).rePair(newTolerance),
               l10n: l10n,
             ),
-          ]),
+         ]),
         ),
 
         // ── Pairing overview chips ────────────────────────────────
@@ -228,12 +234,20 @@ class TrajectoryReportPanel extends ConsumerWidget {
     ]);
   }
 
-  Widget _sourceTag(AppLocalizations l10n, TrajectoryTrackPoint p) {
-    final (label, color) = switch (p.matchSource) {
-      'FILE' => (l10n.gpsQualityTrajectoryMatchFile, const Color(0xFF7C3AED)),
-      'GPS_LOG' => (l10n.gpsQualityTrajectoryMatchLog, const Color(0xFF4A7F9D)),
-      _ => (l10n.gpsQualityTrajectoryMatchUnpaired, AppColors.warning),
-    };
+ Widget _sourceTag(AppLocalizations l10n, TrajectoryTrackPoint p) {
+    // For UNPAIRED points, append the nearest GPS log distance
+    final nearestSuffix = p.matchSource == 'UNPAIRED' && p.nearestGpsLogSec != null
+        ? _formatDuration(p.nearestGpsLogSec!)
+        : null;
+   final (label, color) = switch (p.matchSource) {
+     'FILE' => (l10n.gpsQualityTrajectoryMatchFile, const Color(0xFF7C3AED)),
+     'GPS_LOG' => (l10n.gpsQualityTrajectoryMatchLog, const Color(0xFF4A7F9D)),
+      _ => (
+          nearestSuffix != null
+              ? '${l10n.gpsQualityTrajectoryMatchUnpaired} ${l10n.gpsQualityTrajectoryNearestLabel(nearestSuffix)}'
+              : l10n.gpsQualityTrajectoryMatchUnpaired,
+          AppColors.warning),
+   };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
       decoration: BoxDecoration(
@@ -356,6 +370,102 @@ class _GradeBadge extends StatelessWidget {
       ),
       child: Text(label,
           style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+    );
+  }
+}
+/// Format seconds as a human-readable duration (e.g. "9m30s", "2h15m").
+String _formatDuration(int seconds) {
+  if (seconds < 60) return '${seconds}s';
+  if (seconds < 3600) {
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    return s == 0 ? '${m}m' : '${m}m${s}s';
+  }
+  final h = seconds ~/ 3600;
+  final m = (seconds % 3600) ~/ 60;
+  return m == 0 ? '${h}h' : '${h}h${m}m';
+}
+
+/// Tolerance adjustment control with a slider + apply button.
+/// Lets the user change the pairing tolerance and trigger a dynamic re-pair.
+class _ToleranceControl extends StatefulWidget {
+  const _ToleranceControl({
+    required this.initialTolerance,
+    required this.onRePair,
+    required this.l10n,
+  });
+
+  final int initialTolerance;
+  final Future<void> Function(int toleranceSec) onRePair;
+  final AppLocalizations l10n;
+
+  @override
+  State<_ToleranceControl> createState() => _ToleranceControlState();
+}
+
+class _ToleranceControlState extends State<_ToleranceControl> {
+  late double _slider;
+  bool _rePairing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _slider = widget.initialTolerance.toDouble();
+  }
+
+  @override
+  void didUpdateWidget(_ToleranceControl oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialTolerance != widget.initialTolerance) {
+      _slider = widget.initialTolerance.toDouble();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentVal = _slider.round();
+    final changed = currentVal != widget.initialTolerance;
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
+      child: Row(children: [
+        Text(widget.l10n.gpsQualityTrajectoryToleranceLabel,
+            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+        Expanded(
+          child: Slider(
+            value: _slider,
+            min: 30,
+            max: 600,
+            divisions: 19, // 30s steps
+            label: '${currentVal}s',
+            onChanged: _rePairing ? null : (v) => setState(() => _slider = v),
+          ),
+        ),
+        SizedBox(
+          width: 56,
+          child: Text('${currentVal}s',
+              style: const TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w600,
+                  fontFamily: 'monospace')),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        FilledButton.tonal(
+          onPressed: (_rePairing || !changed)
+              ? null
+              : () async {
+                  setState(() => _rePairing = true);
+                  try {
+                    await widget.onRePair(currentVal);
+                  } finally {
+                    if (mounted) setState(() => _rePairing = false);
+                  }
+                },
+          child: _rePairing
+              ? const SizedBox(
+                  width: 14, height: 14,
+                  child: CircularProgressIndicator(strokeWidth: 2))
+              : Text(widget.l10n.gpsQualityTrajectoryRePair),
+        ),
+      ]),
     );
   }
 }

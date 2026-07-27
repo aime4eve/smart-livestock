@@ -3532,6 +3532,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'No static check data for this device; static-vs-dynamic comparison unavailable.';
 
   @override
+  String get gpsQualityTrajectoryToleranceLabel => 'Pairing tolerance';
+
+  @override
+  String get gpsQualityTrajectoryRePair => 'Re-pair';
+
+  @override
+  String gpsQualityTrajectoryNearestLabel(String duration) {
+    return '(nearest $duration)';
+  }
+
+  @override
   String gpsQualityTrajectoryStaticDelta(
     String staticP95,
     String dynamicP95,

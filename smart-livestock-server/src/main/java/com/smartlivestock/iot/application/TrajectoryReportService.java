@@ -3,13 +3,17 @@ package com.smartlivestock.iot.application;
 import com.smartlivestock.iot.domain.model.GpsQualityTest;
 import com.smartlivestock.iot.domain.model.GpsQualityTrackPoint;
 import com.smartlivestock.iot.domain.model.Device;
+import com.smartlivestock.iot.domain.model.GpsLog;
 import com.smartlivestock.iot.domain.model.QualityGrade;
 import com.smartlivestock.iot.domain.model.TestType;
 import com.smartlivestock.iot.domain.model.TrackMatchSource;
+import com.smartlivestock.iot.domain.port.dto.TrackPairCandidate;
+import com.smartlivestock.iot.domain.port.dto.TrackPairResult;
 import com.smartlivestock.iot.domain.port.dto.TrajectoryQualityStats;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.domain.repository.GpsQualityTestRepository;
 import com.smartlivestock.iot.domain.repository.GpsQualityTrackPointRepository;
+import com.smartlivestock.iot.domain.repository.GpsLogRepository;
 import com.smartlivestock.iot.domain.service.TrajectoryPairingService;
 import com.smartlivestock.iot.interfaces.admin.dto.TrajectoryComparisonDto;
 import com.smartlivestock.iot.interfaces.admin.dto.TrajectoryQualityReportDto;
@@ -18,7 +22,10 @@ import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,10 +40,11 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TrajectoryReportService {
 
-    private final GpsQualityTestRepository testRepository;
-    private final GpsQualityTrackPointRepository trackPointRepository;
-    private final GpsQualityReportService staticReportService;
-    private final DeviceRepository deviceRepository;
+   private final GpsQualityTestRepository testRepository;
+   private final GpsQualityTrackPointRepository trackPointRepository;
+   private final GpsQualityReportService staticReportService;
+   private final DeviceRepository deviceRepository;
+    private final GpsLogRepository gpsLogRepository;
 
     private final TrajectoryPairingService pairingService = new TrajectoryPairingService();
 
@@ -61,16 +69,17 @@ public class TrajectoryReportService {
         List<TrajectoryQualityReportDto.TrackPoint> rows = new ArrayList<>(points.size());
         for (GpsQualityTrackPoint p : points) {
             boolean paired = p.getMatchSource() != TrackMatchSource.UNPAIRED;
-            rows.add(new TrajectoryQualityReportDto.TrackPoint(
-                    p.getSequenceNo(),
-                    p.getCollectedAt(),
-                    p.getRtkLatitude(),
-                    p.getRtkLongitude(),
-                    p.getDeviceLatitude(),
-                    p.getDeviceLongitude(),
-                    paired ? pairingService.errorMeters(p) : null,
-                    p.getMatchSource().name(),
-                    p.getTimeDiffSeconds()));
+           rows.add(new TrajectoryQualityReportDto.TrackPoint(
+                   p.getSequenceNo(),
+                   p.getCollectedAt(),
+                   p.getRtkLatitude(),
+                   p.getRtkLongitude(),
+                   p.getDeviceLatitude(),
+                   p.getDeviceLongitude(),
+                   paired ? pairingService.errorMeters(p) : null,
+                   p.getMatchSource().name(),
+                    p.getTimeDiffSeconds(),
+                    p.getNearestGpsLogSeconds()));
         }
 
         TrajectoryQualityReportDto dto = new TrajectoryQualityReportDto();
@@ -105,8 +114,100 @@ public class TrajectoryReportService {
         dto.setP95(stats.p95());
         dto.setMaxError(stats.maxError());
         dto.setPoints(rows);
-        dto.setStaticComparison(buildStaticComparison(test, stats.p95()));
-        return dto;
+       dto.setStaticComparison(buildStaticComparison(test, stats.p95()));
+       return dto;
+   }
+
+    // ------------------------------------------------------------------
+    // Re-pair: re-query gps_logs with a new tolerance and persist results
+    // ------------------------------------------------------------------
+
+    /**
+     * Re-pair all track points of a TRAJECTORY test against gps_logs using the
+     * given tolerance, persist the updated snapshot, and return the fresh report.
+     * <p>
+     * Points originally paired from FILE (device coordinate in the import file)
+     * keep their FILE source and are not affected. Only GPS_LOG / UNPAIRED
+     * points are re-evaluated.
+     */
+    public TrajectoryQualityReportDto rePair(Long testId, int toleranceSec) {
+        GpsQualityTest test = testRepository.findById(testId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "GPS quality test not found: " + testId));
+        if (test.getTestType() != TestType.TRAJECTORY) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                    "Test " + testId + " is not a TRAJECTORY test");
+        }
+        if (test.getDeviceId() == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                    "Test " + testId + " has no device; cannot re-pair");
+        }
+
+        List<GpsQualityTrackPoint> points =
+                trackPointRepository.findByTestIdOrderByCollectedAt(testId);
+        if (points.isEmpty()) {
+            return generate(testId);
+        }
+
+        // Determine the expanded time window from collected_at ± tolerance
+        Instant minCollected = points.stream().map(GpsQualityTrackPoint::getCollectedAt)
+                .min(Comparator.naturalOrder()).orElse(Instant.now());
+        Instant maxCollected = points.stream().map(GpsQualityTrackPoint::getCollectedAt)
+                .max(Comparator.naturalOrder()).orElse(Instant.now());
+
+        // Load GPS candidates once for the entire window (with extra margin so
+        // we can compute nearestGpsLogSeconds even for UNPAIRED points)
+        Instant from = minCollected.minusSeconds(toleranceSec);
+        Instant to = maxCollected.plusSeconds(toleranceSec);
+        List<GpsLog> logs = gpsLogRepository.findByDeviceIdAndRecordedAtBetween(
+                test.getDeviceId(), from, to);
+
+        for (GpsQualityTrackPoint p : points) {
+            // FILE points are immutable — device coordinate came from the file
+            if (p.getMatchSource() == TrackMatchSource.FILE) {
+                p.setToleranceSeconds(toleranceSec);
+                continue;
+            }
+
+            // Build candidate list and pair
+            List<TrackPairCandidate> candidates = logs.stream()
+                    .map(l -> new TrackPairCandidate(l.getId(), l.getLatitude(),
+                            l.getLongitude(), l.getRecordedAt()))
+                    .toList();
+            TrackPairResult pair = pairingService.pair(
+                    p.getCollectedAt(), null, null, candidates, toleranceSec);
+
+            p.setMatchSource(pair.matchSource());
+            p.setMatchedGpsLogId(pair.matchedGpsLogId());
+            p.setDeviceLatitude(pair.deviceLatitude());
+            p.setDeviceLongitude(pair.deviceLongitude());
+            p.setTimeDiffSeconds(pair.timeDiffSeconds());
+            p.setToleranceSeconds(toleranceSec);
+
+            // Compute nearest GPS log distance for diagnostic display
+            if (pair.matchSource() == TrackMatchSource.UNPAIRED && !logs.isEmpty()) {
+                long nearest = logs.stream()
+                        .mapToLong(l -> Math.abs(Duration.between(
+                                p.getCollectedAt(), l.getRecordedAt()).getSeconds()))
+                        .min().orElse(0);
+                p.setNearestGpsLogSeconds((int) nearest);
+            } else {
+                p.setNearestGpsLogSeconds(null);
+            }
+        }
+
+        trackPointRepository.saveAll(points);
+
+        // Also update test note to reflect new tolerance
+        String note = test.getNote();
+        if (note != null) {
+            // Replace the old "±Ns" suffix if present
+            String updated = note.replaceAll(" ±\\d+s$", " ±" + toleranceSec + "s");
+            test.setNote(updated);
+            testRepository.save(test);
+        }
+
+        return generate(testId);
     }
 
     // ------------------------------------------------------------------

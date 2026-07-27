@@ -2793,9 +2793,19 @@
       "tolerance": {"type": "int"}
     }
   },
-  "gpsQualityTrajectoryNoStatic": "No static check data for this device; static-vs-dynamic comparison unavailable.",
-  "@gpsQualityTrajectoryNoStatic": {},
-  "gpsQualityTrajectoryStaticDelta": "Static vs dynamic: static P95 = {staticP95}m, this trajectory P95 = {dynamicP95}m, dynamic error {direction} by {delta}m",
+ "gpsQualityTrajectoryNoStatic": "No static check data for this device; static-vs-dynamic comparison unavailable.",
+ "@gpsQualityTrajectoryNoStatic": {},
+  "gpsQualityTrajectoryToleranceLabel": "Pairing tolerance",
+  "@gpsQualityTrajectoryToleranceLabel": {},
+  "gpsQualityTrajectoryRePair": "Re-pair",
+  "@gpsQualityTrajectoryRePair": {},
+  "gpsQualityTrajectoryNearestLabel": "(nearest {duration})",
+  "@gpsQualityTrajectoryNearestLabel": {
+    "placeholders": {
+      "duration": {"type": "String"}
+    }
+  },
+ "gpsQualityTrajectoryStaticDelta": "Static vs dynamic: static P95 = {staticP95}m, this trajectory P95 = {dynamicP95}m, dynamic error {direction} by {delta}m",
   "@gpsQualityTrajectoryStaticDelta": {
     "placeholders": {
       "staticP95": {"type": "String"},

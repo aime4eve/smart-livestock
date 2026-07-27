@@ -49,9 +49,11 @@ public class JpaGpsQualityTrackPointRepositoryImpl implements GpsQualityTrackPoi
         jpa.setDeviceLongitude(p.getDeviceLongitude());
         jpa.setMatchSource(p.getMatchSource() != null ? p.getMatchSource().name() : null);
         jpa.setMatchedGpsLogId(p.getMatchedGpsLogId());
-        jpa.setTimeDiffSeconds(p.getTimeDiffSeconds());
-        jpa.setToleranceSeconds(p.getToleranceSeconds() != null ? p.getToleranceSeconds() : 60);
-        return jpa;
+       jpa.setTimeDiffSeconds(p.getTimeDiffSeconds());
+       jpa.setToleranceSeconds(p.getToleranceSeconds() != null ? p.getToleranceSeconds() : 60);
+       jpa.setNearestGpsLogSeconds(p.getNearestGpsLogSeconds());
+        jpa.setCreatedAt(p.getCreatedAt());
+       return jpa;
     }
 
     private GpsQualityTrackPoint toDomain(GpsQualityTrackPointJpaEntity jpa) {
@@ -67,8 +69,9 @@ public class JpaGpsQualityTrackPointRepositoryImpl implements GpsQualityTrackPoi
         p.setMatchSource(jpa.getMatchSource() != null ? TrackMatchSource.valueOf(jpa.getMatchSource()) : null);
         p.setMatchedGpsLogId(jpa.getMatchedGpsLogId());
         p.setTimeDiffSeconds(jpa.getTimeDiffSeconds());
-        p.setToleranceSeconds(jpa.getToleranceSeconds());
-        p.setCreatedAt(jpa.getCreatedAt());
+       p.setToleranceSeconds(jpa.getToleranceSeconds());
+        p.setNearestGpsLogSeconds(jpa.getNearestGpsLogSeconds());
+       p.setCreatedAt(jpa.getCreatedAt());
         return p;
     }
 }

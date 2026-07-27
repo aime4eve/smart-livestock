@@ -321,17 +321,37 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
 
   // === Map helpers ===
 
-  void _fitAll() {
-    if (_points.isEmpty) return;
-    final latLngs = _transformAllPoints();
-    if (latLngs.isEmpty) return;
-    final bounds = LatLngBounds.fromPoints(latLngs);
+ void _fitAll() {
+   if (_points.isEmpty) return;
+   final latLngs = _transformAllPoints();
+   if (latLngs.isEmpty) return;
+   final bounds = LatLngBounds.fromPoints(latLngs);
+    _fitBounds(bounds);
+  }
+
+ /// Fit camera to bounds, expanding degenerate (single-point or zero-span)
+ /// bounds to avoid Infinity.round() in flutter_map's zoom calculation.
+ void _fitBounds(LatLngBounds bounds) {
     _mapController.fitCamera(
-      CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(30)),
+      CameraFit.bounds(bounds: _safeBounds(bounds), padding: const EdgeInsets.all(30)),
     );
   }
 
-  /// Transform ALL points (for bounds calculation).
+  /// Expand degenerate bounds (all points at same coordinate) by a small
+  /// epsilon (~50m) to avoid Infinity zoom in flutter_map.
+  LatLngBounds _safeBounds(LatLngBounds bounds) {
+    var b = bounds;
+    if (b.north == b.south && b.east == b.west) {
+      const eps = 0.0005;
+      b = LatLngBounds(
+        LatLng(b.south - eps, b.west - eps),
+        LatLng(b.north + eps, b.east + eps),
+      );
+    }
+    return b;
+}
+
+ /// Transform ALL points (for bounds calculation).
   List<LatLng> _transformAllPoints() {
     final raw =
         _points.map((p) => LatLng(p.lat, p.lng)).toList();
@@ -576,15 +596,12 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
         _tileProvider?.shouldTransformCoordinates() ?? false;
     if (_lastTransformed != shouldTransform) {
       _lastTransformed = shouldTransform;
-      _lastBounds = bounds;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _lastBounds != null) {
-          _mapController.fitCamera(
-            CameraFit.bounds(
-                bounds: _lastBounds!, padding: const EdgeInsets.all(30)),
-          );
-        }
-      });
+     _lastBounds = bounds;
+     WidgetsBinding.instance.addPostFrameCallback((_) {
+       if (mounted && _lastBounds != null) {
+          _fitBounds(_lastBounds!);
+       }
+     });
     }
 
     // Trail: last 5 visible points highlighted
@@ -600,10 +617,10 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
           borderRadius: BorderRadius.circular(10),
           child: FlutterMap(
             mapController: _mapController,
-            options: MapOptions(
+           options: MapOptions(
               initialCameraFit:
-                  CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(30)),
-            ),
+                  CameraFit.bounds(bounds: _safeBounds(bounds), padding: const EdgeInsets.all(30)),
+           ),
             children: [
               TileLayer(
                 key: ValueKey(_tileProvider?.activeSourceName),

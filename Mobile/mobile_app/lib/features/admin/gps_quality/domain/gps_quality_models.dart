@@ -964,22 +964,25 @@ class TrajectoryTrackPoint {
     required this.rtkLongitude,
     this.deviceLatitude,
     this.deviceLongitude,
-    this.error,
-    required this.matchSource, // FILE / GPS_LOG / UNPAIRED
-    this.timeDiffSec,
-  });
+   this.error,
+   required this.matchSource, // FILE / GPS_LOG / UNPAIRED
+   this.timeDiffSec,
+    this.nearestGpsLogSec,
+ });
 
-  final int sequenceNo;
+ final int sequenceNo;
   final DateTime collectedAt;
   final double rtkLatitude;
   final double rtkLongitude;
   final double? deviceLatitude;
   final double? deviceLongitude;
   final double? error;
-  final String matchSource;
-  final int? timeDiffSec;
+ final String matchSource;
+ final int? timeDiffSec;
+  /// Absolute seconds to nearest gps_logs report (UNPAIRED diagnostic).
+  final int? nearestGpsLogSec;
 
-  bool get paired => matchSource != 'UNPAIRED';
+ bool get paired => matchSource != 'UNPAIRED';
 
   factory TrajectoryTrackPoint.fromJson(Map<String, dynamic> json) =>
       TrajectoryTrackPoint(
@@ -990,9 +993,10 @@ class TrajectoryTrackPoint {
         deviceLatitude: (json['deviceLatitude'] as num?)?.toDouble(),
         deviceLongitude: (json['deviceLongitude'] as num?)?.toDouble(),
         error: (json['error'] as num?)?.toDouble(),
-        matchSource: json['matchSource'] as String? ?? 'UNPAIRED',
-        timeDiffSec: json['timeDiffSec'] as int?,
-      );
+       matchSource: json['matchSource'] as String? ?? 'UNPAIRED',
+       timeDiffSec: json['timeDiffSec'] as int?,
+        nearestGpsLogSec: json['nearestGpsLogSec'] as int?,
+     );
 }
 
 /// Same-device static-vs-trajectory comparison.

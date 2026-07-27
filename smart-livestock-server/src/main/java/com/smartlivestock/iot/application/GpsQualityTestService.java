@@ -86,7 +86,7 @@ public class GpsQualityTestService {
     public GpsQualityTestPage findChecks(String status, String eui, Long deviceId,
                                           int page, int size) {
         int safePage = Math.max(0, page);
-        int safeSize = Math.max(1, Math.min(100, size));
+        int safeSize = Math.max(1, Math.min(500, size));
         int offset = safePage * safeSize;
         List<GpsQualityTest> items = testRepository.findFiltered(status, eui, deviceId, offset, safeSize);
         long total = testRepository.countFiltered(status, eui, deviceId);
