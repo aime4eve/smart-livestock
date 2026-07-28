@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
-import 'package:hkt_livestock_agentic/core/widgets/date_time_input_field.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_providers.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
 
-/// Create LINE checks dialog (NIX-68, spec §8.4): pick a time range, query
-/// devices with gps_logs data in it, select devices + a standard track line
-/// (SELECTED pinned with ★), then launch one READY LINE test per device.
+/// Create LINE checks dialog (NIX-68, spatial matching): devices with
+/// gps_logs data load on open (refresh button available), select devices +
+/// a standard track line (SELECTED pinned with ★), then launch one READY
+/// LINE test per device. No time window — matching is purely spatial.
 class LineCheckCreateDialog extends ConsumerStatefulWidget {
   const LineCheckCreateDialog({super.key});
 
@@ -21,13 +21,17 @@ class LineCheckCreateDialog extends ConsumerStatefulWidget {
 
 class _LineCheckCreateDialogState
     extends ConsumerState<LineCheckCreateDialog> {
-  DateTime? _start;
-  DateTime? _end;
   bool _querying = false;
   bool _launching = false;
   List<LineCheckDevice>? _devices;
   final Set<String> _selectedDevices = {};
   int? _trackLineId;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _queryDevices());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,23 +58,7 @@ class _LineCheckCreateDialogState
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ① Time range + query devices
-              DateTimeInputField(
-                key: const Key('line-check-start-time'),
-                label: l10n.gpsQualityStartTime,
-                value: _start,
-                onChanged: (v) => setState(() => _start = v),
-                isRequired: true,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              DateTimeInputField(
-                key: const Key('line-check-end-time'),
-                label: l10n.gpsQualityEndTime,
-                value: _end,
-                onChanged: (v) => setState(() => _end = v),
-                isRequired: true,
-              ),
-              const SizedBox(height: AppSpacing.sm),
+              // ① Query devices (auto-loaded on open)
               Row(children: [
                 FilledButton.icon(
                   key: const Key('line-check-query-devices-btn'),
@@ -80,12 +68,10 @@ class _LineCheckCreateDialogState
                           height: 14,
                           child: CircularProgressIndicator(
                               strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.search, size: 16),
+                      : const Icon(Icons.refresh, size: 16),
                   label: Text(l10n.gpsQualityLineQueryDevices,
                       style: const TextStyle(fontSize: 12)),
-                  onPressed: (_start == null || _end == null || _querying)
-                      ? null
-                      : _queryDevices,
+                  onPressed: _querying ? null : _queryDevices,
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
@@ -94,7 +80,7 @@ class _LineCheckCreateDialogState
                           fontSize: 11, color: AppColors.textSecondary)),
                 ),
               ]),
-              // ② Device list (after query)
+              // ② Device list
               if (_devices != null) ...[
                 const SizedBox(height: AppSpacing.md),
                 Text(
@@ -213,7 +199,7 @@ class _LineCheckCreateDialogState
 
   Widget _buildDeviceRow(LineCheckDevice d) {
     final l10n = AppLocalizations.of(context)!;
-    final timeFmt = DateFormat('HH:mm:ss');
+    final timeFmt = DateFormat('MM-dd HH:mm');
     final checked = _selectedDevices.contains(d.deviceCode);
     return InkWell(
       key: ValueKey('line-check-device-${d.deviceCode}'),
@@ -246,7 +232,7 @@ class _LineCheckCreateDialogState
                     fontWeight: FontWeight.w600,
                     fontFamily: 'monospace')),
           ),
-          Text(l10n.gpsQualityLinePointsInRange(d.pointCount),
+          Text(l10n.gpsQualityLinePointTotal(d.pointCount),
               style: const TextStyle(
                   fontSize: 11, color: AppColors.textSecondary)),
           const SizedBox(width: AppSpacing.md),
@@ -275,7 +261,7 @@ class _LineCheckCreateDialogState
     try {
       final devices = await ref
           .read(gpsQualityApiRepositoryProvider)
-          .fetchLineCheckDevices(start: _start!, end: _end!);
+          .fetchLineCheckDevices();
       if (mounted) {
         setState(() {
           _devices = devices;
@@ -303,12 +289,11 @@ class _LineCheckCreateDialogState
           .createLineChecks(
             trackLineId: _trackLineId!,
             deviceCodes: _selectedDevices.toList(),
-            start: _start!,
-            end: _end!,
           );
       if (!mounted) return;
       Navigator.pop(context);
       ref.invalidate(checksProvider);
+      ref.invalidate(lineComparisonProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content:

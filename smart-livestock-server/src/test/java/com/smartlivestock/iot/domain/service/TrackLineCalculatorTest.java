@@ -2,11 +2,14 @@ package com.smartlivestock.iot.domain.service;
 
 import com.smartlivestock.iot.domain.model.QualityGrade;
 import com.smartlivestock.iot.domain.port.dto.LineQualityStats;
+import com.smartlivestock.iot.domain.service.TrackLineCalculator.LineMatch;
 import com.smartlivestock.iot.domain.service.TrackLineCalculator.LinePoint;
 import com.smartlivestock.iot.domain.service.TrackLineCalculator.NearestDeviation;
+import com.smartlivestock.iot.domain.service.TrackLineCalculator.TrackSample;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -180,7 +183,7 @@ class TrackLineCalculatorTest {
     class Grading {
 
         private LineQualityStats stats(int samples, double p95) {
-            return new LineQualityStats(samples, p95, p95, p95, p95, 0, 0, 0);
+            return new LineQualityStats(samples, 0, p95, p95, p95, p95, 0, 0, 0);
         }
 
         @Test
@@ -217,6 +220,134 @@ class TrackLineCalculatorTest {
         void p95Above40IsUnavailable() {
             assertThat(calculator.determineLineGrade(stats(10, 40.01)))
                     .isEqualTo(QualityGrade.UNAVAILABLE);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // matchLine: spatial trip-segment matching (corridor + gap + min size)
+    // ------------------------------------------------------------------
+
+    private static final Instant T0 = Instant.parse("2026-07-28T00:00:00Z");
+
+    /** A sample ~metersNorth of the straight line's midpoint at time t. */
+    private static TrackSample sampleAt(Instant t, double metersNorth) {
+        List<LinePoint> line = straightLine();
+        double midLng = (line.get(0).longitude() + line.get(1).longitude()) / 2.0;
+        return new TrackSample(t, line.get(0).latitude() + metersNorth * ONE_M_LAT, midLng);
+    }
+
+    /** count points spaced stepSeconds apart, all ~metersNorth of the line. */
+    private static List<TrackSample> trip(Instant start, int count, long stepSeconds,
+                                          double metersNorth) {
+        List<TrackSample> out = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            out.add(sampleAt(start.plusSeconds(i * stepSeconds), metersNorth));
+        }
+        return out;
+    }
+
+    @Nested
+    class SpatialMatching {
+
+        @Test
+        void corridorBoundaryIncludes99m() {
+            LineMatch match = calculator.matchLine(straightLine(), trip(T0, 4, 60, 99.0));
+
+            assertThat(match.stats().sampleCount()).isEqualTo(4);
+            assertThat(match.stats().tripCount()).isEqualTo(1);
+            assertThat(match.points()).hasSize(4);
+            assertThat(match.stats().maxDeviation()).isCloseTo(99.0, within(0.5));
+        }
+
+        @Test
+        void corridorBoundaryExcludes101m() {
+            LineMatch match = calculator.matchLine(straightLine(), trip(T0, 4, 60, 101.0));
+
+            assertThat(match.stats().sampleCount()).isZero();
+            assertThat(match.stats().tripCount()).isZero();
+            assertThat(match.points()).isEmpty();
+            assertThat(calculator.determineLineGrade(match.stats()))
+                    .isEqualTo(QualityGrade.UNAVAILABLE);
+        }
+
+        @Test
+        void gapOver300sSplitsIntoTwoTrips() {
+            List<TrackSample> samples = new ArrayList<>(trip(T0, 4, 60, 10.0));
+            samples.addAll(trip(T0.plusSeconds(180 + 301), 4, 60, 20.0));
+
+            LineMatch match = calculator.matchLine(straightLine(), samples);
+
+            assertThat(match.stats().tripCount()).isEqualTo(2);
+            assertThat(match.stats().sampleCount()).isEqualTo(8);
+        }
+
+        @Test
+        void gapExactly300sStaysInOneTrip() {
+            LineMatch match = calculator.matchLine(straightLine(), trip(T0, 5, 300, 10.0));
+
+            assertThat(match.stats().tripCount()).isEqualTo(1);
+            assertThat(match.stats().sampleCount()).isEqualTo(5);
+        }
+
+        @Test
+        void segmentWithFewerThan4PointsIsDropped() {
+            List<TrackSample> samples = new ArrayList<>(trip(T0, 3, 60, 10.0)); // dropped
+            samples.addAll(trip(T0.plusSeconds(1000), 4, 60, 20.0));            // kept
+
+            LineMatch match = calculator.matchLine(straightLine(), samples);
+
+            assertThat(match.stats().tripCount()).isEqualTo(1);
+            assertThat(match.stats().sampleCount()).isEqualTo(4);
+            assertThat(match.stats().meanDeviation()).isCloseTo(20.0, within(0.5));
+        }
+
+        @Test
+        void outsideCorridorPointCutsTheSegment() {
+            List<TrackSample> samples = new ArrayList<>(trip(T0, 4, 60, 10.0));
+            samples.add(sampleAt(T0.plusSeconds(240), 150.0)); // far point cuts the segment
+            samples.addAll(trip(T0.plusSeconds(300), 4, 60, 10.0));
+
+            LineMatch match = calculator.matchLine(straightLine(), samples);
+
+            assertThat(match.stats().tripCount()).isEqualTo(2);
+            assertThat(match.stats().sampleCount()).isEqualTo(8);
+        }
+
+        @Test
+        void multipleTripsMergeIntoOneStatistic() {
+            List<TrackSample> samples = new ArrayList<>(trip(T0, 4, 60, 10.0));
+            samples.addAll(trip(T0.plusSeconds(1000), 4, 60, 20.0));
+
+            LineMatch match = calculator.matchLine(straightLine(), samples);
+            LineQualityStats stats = match.stats();
+
+            assertThat(stats.sampleCount()).isEqualTo(8);
+            assertThat(stats.tripCount()).isEqualTo(2);
+            assertThat(stats.meanDeviation()).isCloseTo(15.0, within(0.5));
+            assertThat(stats.maxDeviation()).isCloseTo(20.0, within(0.5));
+            // 8 samples < 20 → p95 = max = 20 ≤ 25 with ≥ 6 samples → USABLE
+            assertThat(calculator.determineLineGrade(stats)).isEqualTo(QualityGrade.USABLE);
+        }
+
+        @Test
+        void noValidSegmentYieldsZeroSamplesAndUnavailable() {
+            LineMatch match = calculator.matchLine(straightLine(), trip(T0, 10, 60, 150.0));
+
+            assertThat(match.stats().sampleCount()).isZero();
+            assertThat(match.stats().tripCount()).isZero();
+            assertThat(match.points()).isEmpty();
+            assertThat(calculator.determineLineGrade(match.stats()))
+                    .isEqualTo(QualityGrade.UNAVAILABLE);
+        }
+
+        @Test
+        void matchedPointsCarryDeviationAndSegment() {
+            LineMatch match = calculator.matchLine(straightLine(), trip(T0, 4, 60, 12.0));
+
+            assertThat(match.points()).allSatisfy(p -> {
+                assertThat(p.deviationMeters()).isCloseTo(12.0, within(0.5));
+                assertThat(p.segmentNo()).isZero();
+            });
         }
     }
 

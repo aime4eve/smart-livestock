@@ -3998,19 +3998,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsQualityLineQueryDevices => '查询设备';
 
   @override
-  String get gpsQualityLineQueryHint => '从 gps_logs 查出该范围内有上报的设备';
+  String get gpsQualityLineQueryHint => '从 gps_logs 查出所有有上报数据的设备（空间匹配，不限时间范围）';
 
   @override
   String get gpsQualityLineSelectDevices => '勾选设备';
 
   @override
   String gpsQualityLineDevicesFound(int n) {
-    return '范围内 $n 台设备有数据';
+    return '$n 台设备有数据';
   }
 
   @override
-  String gpsQualityLinePointsInRange(int n) {
-    return '范围内 $n 点';
+  String gpsQualityLinePointTotal(int n) {
+    return '共 $n 点';
   }
 
   @override
@@ -4029,10 +4029,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpsQualityLineCalcNote =>
-      '计算口径：对每台设备，取其时间范围内 gps_logs 全部点位，逐点计算到标准轨迹折线的最短距离（点到线，不做时间对齐），汇总 mean / p50 / p95 / max 与 15 / 25 / 40m 内占比，按 QualityGrade 分级。';
+      '计算口径：对每台设备取其全部 gps_logs，提取连续接近线路的轨迹段（走廊 100m 内、间隔 5 分钟内、单趟 ≥4 点）作为有效样本，逐点计算到标准轨迹折线的最短距离（点到线，不做时间对齐），汇总 mean / p50 / p95 / max 与 15 / 25 / 40m 内占比，按 QualityGrade 分级。';
 
   @override
-  String get gpsQualityLineCalcNoteShort => '口径：点到线最短距离（不做时间对齐）';
+  String get gpsQualityLineCalcNoteShort =>
+      '有效样本 = 连续接近线路的轨迹段（走廊 100m 内、间隔 5 分钟内、单趟 ≥4 点）';
 
   @override
   String gpsQualityLineLaunch(int n) {
@@ -4067,6 +4068,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpsQualityLineSamples => '样本数';
+
+  @override
+  String get gpsQualityLineTripCount => '趟数';
 
   @override
   String get gpsQualityLineMeanDeviation => '平均偏差';
@@ -4111,7 +4115,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsQualityLineComparison => '线路检验对比';
 
   @override
-  String get gpsQualityLineSelectTrackPrompt => '请选择标准轨迹与时间范围查看对比';
+  String get gpsQualityLineExportCsv => '导出 CSV';
+
+  @override
+  String get gpsQualityLineSelectTrackPrompt => '请选择标准轨迹查看对比';
 
   @override
   String get gpsQualityLineComparisonEmpty => '该条件下暂无线路检验数据';

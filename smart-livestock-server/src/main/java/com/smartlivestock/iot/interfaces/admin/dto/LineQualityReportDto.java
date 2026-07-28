@@ -19,6 +19,7 @@ public class LineQualityReportDto {
     private String trackLineName;
     private QualityGrade grade;
     private int sampleCount;
+    private int tripCount;
     private double meanDeviation;
     private double p50;
     private double p95;
@@ -43,6 +44,8 @@ public class LineQualityReportDto {
     public void setGrade(QualityGrade grade) { this.grade = grade; }
     public int getSampleCount() { return sampleCount; }
     public void setSampleCount(int sampleCount) { this.sampleCount = sampleCount; }
+    public int getTripCount() { return tripCount; }
+    public void setTripCount(int tripCount) { this.tripCount = tripCount; }
     public double getMeanDeviation() { return meanDeviation; }
     public void setMeanDeviation(double meanDeviation) { this.meanDeviation = meanDeviation; }
     public double getP50() { return p50; }

@@ -18,6 +18,7 @@ public class LineComparisonDto {
         Long testId,
         String deviceCode,
         int sampleCount,
+        int tripCount,
         double mean,
         double p50,
         double p95,

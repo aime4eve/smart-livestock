@@ -35,9 +35,10 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * LINE check creation (NIX-68, spec §7.3): finds devices with gps_logs data
- * in a window, then creates one READY LINE test per device — point-list
- * snapshot + synchronous deviation computation + result snapshot (D4).
+ * LINE check creation (NIX-68, spec §7.3): lists devices having any gps_logs
+ * data, then creates one READY LINE test per device — point-list snapshot +
+ * synchronous spatial matching (corridor + trip segmentation, no time
+ * window) + result snapshot (D4).
  * <p>
  * Synchronous by design (spec §6.5 load estimate: worst case &lt;10s, no
  * DEVICE_PENDING flow). Intentionally NOT @Transactional, same rationale as
@@ -60,13 +61,13 @@ public class TrackLineCheckService {
     private final TrackLineCalculator calculator = new TrackLineCalculator();
 
     /**
-     * Devices having at least one gps_logs report inside [start, end],
+     * Devices having at least one gps_logs report (no time window),
      * with point count and first/last report time.
      */
-    public List<LineCheckDeviceDto> findDevicesWithLogs(Instant start, Instant end) {
+    public List<LineCheckDeviceDto> findDevicesWithLogs() {
         List<LineCheckDeviceDto> devices = new ArrayList<>();
         for (Device device : deviceRepository.findAllTrackers()) {
-            List<GpsLog> logs = sortedLogs(device.getId(), start, end);
+            List<GpsLog> logs = sortedLogs(device.getId());
             if (logs.isEmpty()) continue;
             devices.add(new LineCheckDeviceDto(
                     device.getDeviceCode(), device.getId(), logs.size(),
@@ -77,11 +78,12 @@ public class TrackLineCheckService {
 
     /**
      * Create one LINE test per device: snapshot the standard track points,
-     * compute per-point deviations against the polyline (no time alignment),
-     * and snapshot statistics + grade. All tests are READY on return.
+     * spatially match the device's full report history against the polyline
+     * (corridor + trip segmentation), and snapshot statistics + grade.
+     * Devices without any gps_logs are skipped (no test created). All created
+     * tests are READY on return.
      */
-    public LineCheckCreateResultDto createLineChecks(Long trackLineId, List<String> deviceCodes,
-                                                     Instant start, Instant end) {
+    public LineCheckCreateResultDto createLineChecks(Long trackLineId, List<String> deviceCodes) {
         StandardTrackLine line = trackLineRepository.findById(trackLineId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "Standard track line not found: " + trackLineId));
@@ -101,12 +103,34 @@ public class TrackLineCheckService {
             Device device = deviceRepository.findByDeviceCode(deviceCode)
                     .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                             "Device not found: " + deviceCode));
-            List<GpsLog> logs = sortedLogs(device.getId(), start, end);
+            List<GpsLog> logs = sortedLogs(device.getId());
+            if (logs.isEmpty()) {
+                // Nothing to analyze; no test is created for this device.
+                results.add(new LineCheckCreateResultDto.DeviceResult(
+                        null, device.getDeviceCode(), 0, QualityGrade.UNAVAILABLE.name()));
+                continue;
+            }
+
+            List<TrackLineCalculator.TrackSample> samples = logs.stream()
+                    .map(l -> new TrackLineCalculator.TrackSample(l.getRecordedAt(),
+                            l.getLatitude().doubleValue(), l.getLongitude().doubleValue()))
+                    .toList();
+            TrackLineCalculator.LineMatch match = calculator.matchLine(polyline, samples);
+            List<TrackLineCalculator.MatchedPoint> matched = match.points();
+
+            // Test window = first/last matched sample; started_at is NOT NULL,
+            // so without valid segments fall back to the device's data span.
+            Instant startedAt = !matched.isEmpty()
+                    ? matched.get(0).sample().recordedAt()
+                    : logs.get(0).getRecordedAt();
+            Instant endedAt = !matched.isEmpty()
+                    ? matched.get(matched.size() - 1).sample().recordedAt()
+                    : logs.get(logs.size() - 1).getRecordedAt();
 
             GpsQualityTest test = new GpsQualityTest(
-                    device.getDeviceCode(), TestType.LINE, null, null, trackLineId, start);
+                    device.getDeviceCode(), TestType.LINE, null, null, trackLineId, startedAt);
             test.setDeviceId(device.getId());
-            test.setEndedAt(end);
+            test.setEndedAt(endedAt);
             test.setStatus("READY");
             test.setNote(line.getName()); // snapshot-time track name (spec §6.1)
             GpsQualityTest saved = testRepository.save(test);
@@ -124,34 +148,30 @@ public class TrackLineCheckService {
             }
             linePointRepository.saveAll(snapshot);
 
-            // Per-point deviations + statistics snapshot
-            List<GpsQualityLineDeviation> deviations = new ArrayList<>(logs.size());
-            List<Double> deviationValues = new ArrayList<>(logs.size());
+            // Deviation snapshot: only the valid trip-segment points
+            List<GpsQualityLineDeviation> deviations = new ArrayList<>(matched.size());
             int devSeq = 1;
-            for (GpsLog log : logs) {
-                TrackLineCalculator.NearestDeviation nearest = calculator.nearestDeviation(
-                        log.getLatitude().doubleValue(), log.getLongitude().doubleValue(), polyline);
-                deviationValues.add(nearest.deviationMeters());
-
+            for (TrackLineCalculator.MatchedPoint p : matched) {
                 GpsQualityLineDeviation d = new GpsQualityLineDeviation();
                 d.setTestId(saved.getId());
                 d.setSequenceNo(devSeq++);
-                d.setRecordedAt(log.getRecordedAt());
-                d.setLongitude(log.getLongitude());
-                d.setLatitude(log.getLatitude());
-                d.setDeviationM(BigDecimal.valueOf(nearest.deviationMeters())
+                d.setRecordedAt(p.sample().recordedAt());
+                d.setLongitude(BigDecimal.valueOf(p.sample().longitude()));
+                d.setLatitude(BigDecimal.valueOf(p.sample().latitude()));
+                d.setDeviationM(BigDecimal.valueOf(p.deviationMeters())
                         .setScale(2, RoundingMode.HALF_UP));
-                d.setSegmentNo(nearest.segmentNo());
+                d.setSegmentNo(p.segmentNo());
                 deviations.add(d);
             }
             lineDeviationRepository.saveAll(deviations);
 
-            LineQualityStats stats = calculator.aggregate(deviationValues);
+            LineQualityStats stats = match.stats();
             QualityGrade grade = calculator.determineLineGrade(stats);
 
             GpsQualityLineResult result = new GpsQualityLineResult();
             result.setTestId(saved.getId());
             result.setSampleCount(stats.sampleCount());
+            result.setTripCount(stats.tripCount());
             result.setMeanDeviationM(decimal2(stats.meanDeviation()));
             result.setP50M(decimal2(stats.p50()));
             result.setP95M(decimal2(stats.p95()));
@@ -160,9 +180,9 @@ public class TrackLineCheckService {
             result.setWithin25mPct(decimal1(stats.within25mPct()));
             result.setWithin40mPct(decimal1(stats.within40mPct()));
             result.setGrade(grade.name());
-            if (!logs.isEmpty()) {
-                result.setFirstRecordedAt(logs.get(0).getRecordedAt());
-                result.setLastRecordedAt(logs.get(logs.size() - 1).getRecordedAt());
+            if (!matched.isEmpty()) {
+                result.setFirstRecordedAt(matched.get(0).sample().recordedAt());
+                result.setLastRecordedAt(matched.get(matched.size() - 1).sample().recordedAt());
             }
             lineResultRepository.save(result);
 
@@ -175,8 +195,8 @@ public class TrackLineCheckService {
         return dto;
     }
 
-    private List<GpsLog> sortedLogs(Long deviceId, Instant start, Instant end) {
-        return gpsLogRepository.findByDeviceIdAndRecordedAtBetween(deviceId, start, end).stream()
+    private List<GpsLog> sortedLogs(Long deviceId) {
+        return gpsLogRepository.findByDeviceId(deviceId).stream()
                 .sorted(Comparator.comparing(GpsLog::getRecordedAt))
                 .toList();
     }

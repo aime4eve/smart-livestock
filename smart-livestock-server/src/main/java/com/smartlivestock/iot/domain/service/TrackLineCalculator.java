@@ -3,15 +3,18 @@ package com.smartlivestock.iot.domain.service;
 import com.smartlivestock.iot.domain.model.QualityGrade;
 import com.smartlivestock.iot.domain.port.dto.LineQualityStats;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 /**
  * Pure domain service for LINE tests (NIX-68, spec §5): shortest distance
- * from a device point to the standard track polyline, statistics aggregation
- * and grading. No time alignment — point timestamps only select the window,
- * they never enter the deviation math (the essential difference from
- * TRAJECTORY).
+ * from a device point to the standard track polyline, spatial trip-segment
+ * matching, statistics aggregation and grading. No time alignment — point
+ * timestamps only drive trip segmentation (gap detection), they never enter
+ * the deviation math (the essential difference from TRAJECTORY).
  * <p>
  * Distance math uses an equirectangular local projection centered on the
  * device point: x = (lng - P.lng) * cos(P.lat) * 111320,
@@ -25,8 +28,27 @@ public class TrackLineCalculator {
     private static final double METERS_PER_DEG_LNG = 111_320.0;
     private static final double EARTH_RADIUS_METERS = 6_371_000.0;
 
+    /** A device point counts as "on the line" within this corridor. */
+    public static final double CORRIDOR_METERS = 100.0;
+    /** Consecutive corridor points farther apart than this start a new trip. */
+    public static final long GAP_SECONDS = 300L;
+    /** Trips with fewer points are dropped as isolated-point noise. */
+    public static final int MIN_SEGMENT_POINTS = 4;
+
     /** One vertex of the standard track polyline. */
     public record LinePoint(double latitude, double longitude) {}
+
+    /** One device GPS report: report time + WGS84 coordinates. */
+    public record TrackSample(Instant recordedAt, double latitude, double longitude) {}
+
+    /** A corridor sample with its deviation and nearest polyline segment. */
+    public record MatchedPoint(TrackSample sample, double deviationMeters, int segmentNo) {}
+
+    /**
+     * Spatial match result: statistics over all valid trip points plus the
+     * matched points themselves (for the deviation snapshot).
+     */
+    public record LineMatch(LineQualityStats stats, List<MatchedPoint> points) {}
 
     /**
      * Shortest distance of one device point to the polyline, plus the index
@@ -91,15 +113,69 @@ public class TrackLineCalculator {
     }
 
     /**
+     * Spatial matching of one device's full report history against the
+     * standard track (NIX-68): points within {@link #CORRIDOR_METERS} of the
+     * polyline are "near"; consecutive near points no more than
+     * {@link #GAP_SECONDS} apart form one trip segment (a farther gap or an
+     * outside-corridor point cuts the segment); segments with fewer than
+     * {@link #MIN_SEGMENT_POINTS} points are dropped as noise. Statistics are
+     * aggregated over the merged points of all valid segments, and
+     * {@code tripCount} is the number of valid segments.
+     *
+     * @param line    standard track points (at least 2)
+     * @param samples device reports, ascending by {@code recordedAt}
+     */
+    public LineMatch matchLine(List<LinePoint> line, List<TrackSample> samples) {
+        List<List<MatchedPoint>> segments = new ArrayList<>();
+        List<MatchedPoint> current = new ArrayList<>();
+        Instant lastNearAt = null;
+        for (TrackSample s : samples) {
+            NearestDeviation nearest = nearestDeviation(s.latitude(), s.longitude(), line);
+            if (nearest.deviationMeters() > CORRIDOR_METERS) {
+                closeSegment(segments, current);
+                lastNearAt = null;
+                continue;
+            }
+            if (lastNearAt != null
+                    && Duration.between(lastNearAt, s.recordedAt()).getSeconds() > GAP_SECONDS) {
+                closeSegment(segments, current);
+            }
+            current.add(new MatchedPoint(s, nearest.deviationMeters(), nearest.segmentNo()));
+            lastNearAt = s.recordedAt();
+        }
+        closeSegment(segments, current);
+
+        List<MatchedPoint> points = segments.stream()
+                .flatMap(List::stream)
+                .toList();
+        LineQualityStats stats = aggregate(
+                points.stream().map(MatchedPoint::deviationMeters).toList(), segments.size());
+        return new LineMatch(stats, points);
+    }
+
+    /** Keeps a segment when it has enough points; always resets the accumulator. */
+    private static void closeSegment(List<List<MatchedPoint>> segments, List<MatchedPoint> current) {
+        if (current.size() >= MIN_SEGMENT_POINTS) {
+            segments.add(List.copyOf(current));
+        }
+        current.clear();
+    }
+
+    /**
      * Aggregate per-point deviations into statistics (spec §5.2). Percentile
      * uses the same linear interpolation and degenerate rules as
      * {@code TrajectoryPairingService}: p50 falls back to max below 5 samples,
      * p95 below 20.
      */
     public LineQualityStats aggregate(List<Double> deviations) {
+        return aggregate(deviations, 0);
+    }
+
+    /** Same as {@link #aggregate(List)}, carrying the matched trip count. */
+    public LineQualityStats aggregate(List<Double> deviations, int tripCount) {
         int n = deviations.size();
         if (n == 0) {
-            return new LineQualityStats(0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+            return new LineQualityStats(0, tripCount, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
         }
         double[] sorted = deviations.stream().mapToDouble(Double::doubleValue).toArray();
         Arrays.sort(sorted);
@@ -109,7 +185,7 @@ public class TrackLineCalculator {
         double p50 = n >= 5 ? percentile(sorted, 50) : max;
         double p95 = n >= 20 ? percentile(sorted, 95) : max;
 
-        return new LineQualityStats(n, mean, p50, p95, max,
+        return new LineQualityStats(n, tripCount, mean, p50, p95, max,
                 withinPct(sorted, 15.0), withinPct(sorted, 25.0), withinPct(sorted, 40.0));
     }
 

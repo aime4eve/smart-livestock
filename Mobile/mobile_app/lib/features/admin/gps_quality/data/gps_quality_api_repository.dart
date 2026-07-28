@@ -490,15 +490,9 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
 
   // ── NIX-68: LINE checks ─────────────────────────────────────────
 
-  /// Devices with gps_logs data inside [start, end].
-  /// Naive ISO strings are sent at face value (UTC baseline, lesson #17).
-  Future<List<LineCheckDevice>> fetchLineCheckDevices({
-    required DateTime start,
-    required DateTime end,
-  }) async {
-    final qs = 'start=${Uri.encodeQueryComponent(start.toIso8601String())}'
-        '&end=${Uri.encodeQueryComponent(end.toIso8601String())}';
-    final data = await ApiClient.instance.get('$_base/line-checks/devices?$qs');
+  /// All devices with gps_logs data (spatial matching: no time window).
+  Future<List<LineCheckDevice>> fetchLineCheckDevices() async {
+    final data = await ApiClient.instance.get('$_base/line-checks/devices');
     final items = (data['value'] ?? []) as List;
     return items
         .whereType<Map<String, dynamic>>()
@@ -507,17 +501,14 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
   }
 
   /// Create one READY LINE test per device (computed synchronously).
+  /// Spatial matching: only trackLineId + deviceCodes, no time window.
   Future<List<LineCheckDeviceResult>> createLineChecks({
     required int trackLineId,
     required List<String> deviceCodes,
-    required DateTime start,
-    required DateTime end,
   }) async {
     final data = await ApiClient.instance.post('$_base/line-checks', body: {
       'trackLineId': trackLineId,
       'deviceCodes': deviceCodes,
-      'start': start.toIso8601String(),
-      'end': end.toIso8601String(),
     });
     final items = (data['devices'] as List? ?? []);
     return items
@@ -572,15 +563,12 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
 
   /// Cross-device LINE comparison. When [deviceCode] is given the response
   /// additionally contains that device's track points (lazy per-device load).
+  /// Spatial matching: only trackLineId (+ optional deviceCode), no time window.
   Future<LineComparisonResult> fetchLineComparison({
     required int trackLineId,
-    required DateTime start,
-    required DateTime end,
     String? deviceCode,
   }) async {
-    var qs = 'trackLineId=$trackLineId'
-        '&start=${Uri.encodeQueryComponent(start.toIso8601String())}'
-        '&end=${Uri.encodeQueryComponent(end.toIso8601String())}';
+    var qs = 'trackLineId=$trackLineId';
     if (deviceCode != null && deviceCode.isNotEmpty) {
       qs += '&deviceCode=${Uri.encodeQueryComponent(deviceCode)}';
     }

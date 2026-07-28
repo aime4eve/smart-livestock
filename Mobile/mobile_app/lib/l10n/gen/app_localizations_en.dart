@@ -4082,19 +4082,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsQualityLineQueryHint =>
-      'Find devices with gps_logs reports inside the range';
+      'List all devices with gps_logs reports (spatial matching, no time window)';
 
   @override
   String get gpsQualityLineSelectDevices => 'Select Devices';
 
   @override
   String gpsQualityLineDevicesFound(int n) {
-    return '$n devices with data in range';
+    return '$n devices with data';
   }
 
   @override
-  String gpsQualityLinePointsInRange(int n) {
-    return '$n pts in range';
+  String gpsQualityLinePointTotal(int n) {
+    return '$n pts total';
   }
 
   @override
@@ -4114,11 +4114,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsQualityLineCalcNote =>
-      'Method: for each device, take all gps_logs points in the time window, compute the shortest distance from each point to the standard polyline (point-to-line, no time alignment), aggregate mean / p50 / p95 / max and within-15/25/40m ratios, then grade with QualityGrade.';
+      'Method: for each device, take all gps_logs, extract consecutive track segments near the line as effective samples (within a 100m corridor, gaps under 5 minutes, at least 4 points per trip), compute the shortest distance from each point to the standard polyline (point-to-line, no time alignment), aggregate mean / p50 / p95 / max and within-15/25/40m ratios, then grade with QualityGrade.';
 
   @override
   String get gpsQualityLineCalcNoteShort =>
-      'Method: point-to-line shortest distance (no time alignment)';
+      'Effective samples = consecutive track segments near the line (100m corridor, gaps under 5 min, at least 4 points per trip)';
 
   @override
   String gpsQualityLineLaunch(int n) {
@@ -4154,6 +4154,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsQualityLineSamples => 'Samples';
+
+  @override
+  String get gpsQualityLineTripCount => 'Trips';
 
   @override
   String get gpsQualityLineMeanDeviation => 'Mean Deviation';
@@ -4199,8 +4202,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpsQualityLineComparison => 'Line Check Comparison';
 
   @override
+  String get gpsQualityLineExportCsv => 'Export CSV';
+
+  @override
   String get gpsQualityLineSelectTrackPrompt =>
-      'Select a standard track and time range to compare';
+      'Select a standard track to compare';
 
   @override
   String get gpsQualityLineComparisonEmpty =>

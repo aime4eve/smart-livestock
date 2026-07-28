@@ -278,11 +278,9 @@ final checksSummaryProvider =
 
 /// Query key for the LINE comparison endpoint. A null [deviceCode] returns
 /// only the stats table + standard track; a value lazily loads one device's
-/// track points.
+/// track points. Spatial matching: no time window.
 typedef LineComparisonQuery = ({
   int trackLineId,
-  DateTime start,
-  DateTime end,
   String? deviceCode,
 });
 
@@ -291,8 +289,6 @@ final lineComparisonProvider =
   (ref, query) =>
       ref.read(gpsQualityApiRepositoryProvider).fetchLineComparison(
             trackLineId: query.trackLineId,
-            start: query.start,
-            end: query.end,
             deviceCode: query.deviceCode,
           ),
 );
