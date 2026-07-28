@@ -1148,3 +1148,384 @@ class TrajectoryComparisonRow {
             : null,
       );
 }
+
+// ── NIX-68: Standard track lines + LINE checks ─────────────────────
+
+/// One standard track line candidate (append-only, no merging).
+@immutable
+class StandardTrackLine {
+  const StandardTrackLine({
+    required this.id,
+    required this.name,
+    required this.status, // CANDIDATE / SELECTED
+    required this.pointCount,
+    required this.lengthM,
+    this.startLng,
+    this.startLat,
+    this.sourceFile,
+    this.createdAt,
+  });
+
+  final int id;
+  final String name;
+  final String status;
+  final int pointCount;
+  final double lengthM;
+  final double? startLng;
+  final double? startLat;
+  final String? sourceFile;
+  final DateTime? createdAt;
+
+  bool get selected => status == 'SELECTED';
+
+  factory StandardTrackLine.fromJson(Map<String, dynamic> json) =>
+      StandardTrackLine(
+        id: json['id'] as int,
+        name: json['name'] as String? ?? '',
+        status: json['status'] as String? ?? 'CANDIDATE',
+        pointCount: json['pointCount'] as int? ?? 0,
+        lengthM: (json['lengthM'] as num?)?.toDouble() ?? 0,
+        startLng: (json['startLng'] as num?)?.toDouble(),
+        startLat: (json['startLat'] as num?)?.toDouble(),
+        sourceFile: json['sourceFile'] as String?,
+        createdAt: json['createdAt'] != null
+            ? DateTime.parse(json['createdAt'] as String)
+            : null,
+      );
+}
+
+/// One coordinate point of a standard track polyline (no timestamp).
+@immutable
+class LineTrackPoint {
+  const LineTrackPoint({
+    required this.sequenceNo,
+    required this.lng,
+    required this.lat,
+  });
+
+  final int sequenceNo;
+  final double lng;
+  final double lat;
+
+  factory LineTrackPoint.fromJson(Map<String, dynamic> json) =>
+      LineTrackPoint(
+        sequenceNo: json['sequenceNo'] as int? ?? 0,
+        lng: (json['lng'] as num?)?.toDouble() ?? 0,
+        lat: (json['lat'] as num?)?.toDouble() ?? 0,
+      );
+}
+
+/// Parse-only preview of an RTK handset track-line XLSX (not persisted).
+@immutable
+class TrackLineParseResult {
+  const TrackLineParseResult({
+    required this.defaultName,
+    required this.rawPointCount,
+    required this.pointCount,
+    required this.removedDuplicates,
+    required this.invalidPoints,
+    required this.lengthMeters,
+    this.startLng,
+    this.startLat,
+    this.endLng,
+    this.endLat,
+    this.metadataWarning,
+    required this.previewPoints,
+  });
+
+  final String defaultName;
+  final int rawPointCount;
+  final int pointCount;
+  final int removedDuplicates;
+  final int invalidPoints;
+  final double lengthMeters;
+  final double? startLng;
+  final double? startLat;
+  final double? endLng;
+  final double? endLat;
+  final String? metadataWarning;
+  final List<LineTrackPoint> previewPoints;
+
+  factory TrackLineParseResult.fromJson(Map<String, dynamic> json) =>
+      TrackLineParseResult(
+        defaultName: json['defaultName'] as String? ?? '',
+        rawPointCount: json['rawPointCount'] as int? ?? 0,
+        pointCount: json['pointCount'] as int? ?? 0,
+        removedDuplicates: json['removedDuplicates'] as int? ?? 0,
+        invalidPoints: json['invalidPoints'] as int? ?? 0,
+        lengthMeters: (json['lengthMeters'] as num?)?.toDouble() ?? 0,
+        startLng: (json['startLng'] as num?)?.toDouble(),
+        startLat: (json['startLat'] as num?)?.toDouble(),
+        endLng: (json['endLng'] as num?)?.toDouble(),
+        endLat: (json['endLat'] as num?)?.toDouble(),
+        metadataWarning: json['metadataWarning'] as String?,
+        previewPoints: (json['previewPoints'] as List? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .map(LineTrackPoint.fromJson)
+            .toList(),
+      );
+}
+
+/// One device with gps_logs data inside the requested time window.
+@immutable
+class LineCheckDevice {
+  const LineCheckDevice({
+    required this.deviceCode,
+    this.deviceId,
+    required this.pointCount,
+    this.firstRecordedAt,
+    this.lastRecordedAt,
+  });
+
+  final String deviceCode;
+  final int? deviceId;
+  final int pointCount;
+  final DateTime? firstRecordedAt;
+  final DateTime? lastRecordedAt;
+
+  factory LineCheckDevice.fromJson(Map<String, dynamic> json) =>
+      LineCheckDevice(
+        deviceCode: json['deviceCode'] as String? ?? '',
+        deviceId: json['deviceId'] as int?,
+        pointCount: json['pointCount'] as int? ?? 0,
+        firstRecordedAt: json['firstRecordedAt'] != null
+            ? DateTime.parse(json['firstRecordedAt'] as String)
+            : null,
+        lastRecordedAt: json['lastRecordedAt'] != null
+            ? DateTime.parse(json['lastRecordedAt'] as String)
+            : null,
+      );
+}
+
+/// Per-device outcome of a LINE check creation.
+@immutable
+class LineCheckDeviceResult {
+  const LineCheckDeviceResult({
+    this.testId,
+    required this.deviceCode,
+    required this.sampleCount,
+    required this.grade,
+  });
+
+  final int? testId;
+  final String deviceCode;
+  final int sampleCount;
+  final String grade;
+
+  factory LineCheckDeviceResult.fromJson(Map<String, dynamic> json) =>
+      LineCheckDeviceResult(
+        testId: json['testId'] as int?,
+        deviceCode: json['deviceCode'] as String? ?? '',
+        sampleCount: json['sampleCount'] as int? ?? 0,
+        grade: json['grade'] as String? ?? 'UNAVAILABLE',
+      );
+}
+
+/// LINE quality report statistics summary (read from result snapshot).
+@immutable
+class LineQualityReport {
+  const LineQualityReport({
+    required this.testId,
+    required this.deviceCode,
+    required this.startedAt,
+    this.endedAt,
+    this.trackLineId,
+    required this.trackLineName,
+    required this.grade,
+    required this.sampleCount,
+    required this.meanDeviation,
+    required this.p50,
+    required this.p95,
+    required this.maxDeviation,
+    required this.within15mPct,
+    required this.within25mPct,
+    required this.within40mPct,
+  });
+
+  final int testId;
+  final String deviceCode;
+  final DateTime startedAt;
+  final DateTime? endedAt;
+  final int? trackLineId;
+  final String trackLineName;
+  final QualityGrade grade;
+  final int sampleCount;
+  final double meanDeviation;
+  final double p50;
+  final double p95;
+  final double maxDeviation;
+  final double within15mPct;
+  final double within25mPct;
+  final double within40mPct;
+
+  factory LineQualityReport.fromJson(Map<String, dynamic> json) =>
+      LineQualityReport(
+        testId: json['testId'] as int? ?? 0,
+        deviceCode: json['deviceCode'] as String? ?? '',
+        startedAt: json['startedAt'] != null
+            ? DateTime.parse(json['startedAt'] as String)
+            : DateTime.now(),
+        endedAt: json['endedAt'] != null
+            ? DateTime.parse(json['endedAt'] as String)
+            : null,
+        trackLineId: json['trackLineId'] as int?,
+        trackLineName: json['trackLineName'] as String? ?? '',
+        grade: trajectoryGradeFrom(json['grade'] as String?),
+        sampleCount: json['sampleCount'] as int? ?? 0,
+        meanDeviation: (json['meanDeviation'] as num?)?.toDouble() ?? 0,
+        p50: (json['p50'] as num?)?.toDouble() ?? 0,
+        p95: (json['p95'] as num?)?.toDouble() ?? 0,
+        maxDeviation: (json['maxDeviation'] as num?)?.toDouble() ?? 0,
+        within15mPct: (json['within15mPct'] as num?)?.toDouble() ?? 0,
+        within25mPct: (json['within25mPct'] as num?)?.toDouble() ?? 0,
+        within40mPct: (json['within40mPct'] as num?)?.toDouble() ?? 0,
+      );
+}
+
+/// One per-point deviation of a LINE test (ascending time order).
+@immutable
+class LineDeviation {
+  const LineDeviation({
+    required this.sequenceNo,
+    required this.recordedAt,
+    required this.lng,
+    required this.lat,
+    required this.deviationM,
+    required this.segmentNo,
+  });
+
+  final int sequenceNo;
+  final DateTime recordedAt;
+  final double lng;
+  final double lat;
+  final double deviationM;
+  final int segmentNo;
+
+  factory LineDeviation.fromJson(Map<String, dynamic> json) => LineDeviation(
+        sequenceNo: json['sequenceNo'] as int? ?? 0,
+        recordedAt: json['recordedAt'] != null
+            ? DateTime.parse(json['recordedAt'] as String)
+            : DateTime.now(),
+        lng: (json['lng'] as num?)?.toDouble() ?? 0,
+        lat: (json['lat'] as num?)?.toDouble() ?? 0,
+        deviationM: (json['deviationM'] as num?)?.toDouble() ?? 0,
+        segmentNo: json['segmentNo'] as int? ?? 0,
+      );
+}
+
+/// Latest-check summary entry of one type for a device (unified view).
+@immutable
+class CheckSummaryItem {
+  const CheckSummaryItem({
+    required this.checkType,
+    this.testId,
+    this.endedAt,
+    required this.grade,
+    required this.keyMetric,
+  });
+
+  final String checkType; // STATIC / DYNAMIC / TRAJECTORY / LINE
+  final int? testId;
+  final DateTime? endedAt;
+  final QualityGrade grade;
+  final String keyMetric;
+
+  factory CheckSummaryItem.fromJson(Map<String, dynamic> json) =>
+      CheckSummaryItem(
+        checkType: json['checkType'] as String? ?? '',
+        testId: json['testId'] as int?,
+        endedAt: json['endedAt'] != null
+            ? DateTime.parse(json['endedAt'] as String)
+            : null,
+        grade: trajectoryGradeFrom(json['grade'] as String?),
+        keyMetric: json['keyMetric'] as String? ?? '',
+      );
+}
+
+/// One device row of the cross-device LINE comparison.
+@immutable
+class LineComparisonRow {
+  const LineComparisonRow({
+    this.testId,
+    required this.deviceCode,
+    required this.sampleCount,
+    required this.mean,
+    required this.p50,
+    required this.p95,
+    required this.max,
+    required this.within15mPct,
+    required this.within25mPct,
+    required this.within40mPct,
+    required this.grade,
+    this.startedAt,
+    this.endedAt,
+  });
+
+  final int? testId;
+  final String deviceCode;
+  final int sampleCount;
+  final double mean;
+  final double p50;
+  final double p95;
+  final double max;
+  final double within15mPct;
+  final double within25mPct;
+  final double within40mPct;
+  final QualityGrade grade;
+  final DateTime? startedAt;
+  final DateTime? endedAt;
+
+  factory LineComparisonRow.fromJson(Map<String, dynamic> json) =>
+      LineComparisonRow(
+        testId: json['testId'] as int?,
+        deviceCode: json['deviceCode'] as String? ?? '',
+        sampleCount: json['sampleCount'] as int? ?? 0,
+        mean: (json['mean'] as num?)?.toDouble() ?? 0,
+        p50: (json['p50'] as num?)?.toDouble() ?? 0,
+        p95: (json['p95'] as num?)?.toDouble() ?? 0,
+        max: (json['max'] as num?)?.toDouble() ?? 0,
+        within15mPct: (json['within15mPct'] as num?)?.toDouble() ?? 0,
+        within25mPct: (json['within25mPct'] as num?)?.toDouble() ?? 0,
+        within40mPct: (json['within40mPct'] as num?)?.toDouble() ?? 0,
+        grade: trajectoryGradeFrom(json['grade'] as String?),
+        startedAt: json['startedAt'] != null
+            ? DateTime.parse(json['startedAt'] as String)
+            : null,
+        endedAt: json['endedAt'] != null
+            ? DateTime.parse(json['endedAt'] as String)
+            : null,
+      );
+}
+
+/// Cross-device LINE comparison: stats rows + standard track polyline;
+/// device track points only when requested via the deviceCode parameter.
+@immutable
+class LineComparisonResult {
+  const LineComparisonResult({
+    required this.trackLine,
+    required this.rows,
+    this.deviceTrack,
+  });
+
+  final List<LineTrackPoint> trackLine;
+  final List<LineComparisonRow> rows;
+
+  /// Device track points, present only for a deviceCode-scoped request.
+  final List<LineTrackPoint>? deviceTrack;
+
+  factory LineComparisonResult.fromJson(Map<String, dynamic> json) =>
+      LineComparisonResult(
+        trackLine: (json['trackLine'] as List? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .map(LineTrackPoint.fromJson)
+            .toList(),
+        rows: (json['rows'] as List? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .map(LineComparisonRow.fromJson)
+            .toList(),
+        deviceTrack: (json['deviceTrack'] as List?)
+            ?.whereType<Map<String, dynamic>>()
+            .map(LineTrackPoint.fromJson)
+            .toList(),
+      );
+}

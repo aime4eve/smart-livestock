@@ -428,4 +428,163 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
         .map(TrajectoryComparisonRow.fromJson)
         .toList();
   }
+
+  // ── NIX-68: Standard track lines ────────────────────────────────
+
+  /// List all standard track line candidates of the tenant.
+  Future<List<StandardTrackLine>> fetchTrackLines() async {
+    final data = await ApiClient.instance.get('$_base/track-lines');
+    final items = (data['value'] ?? data['items'] ?? []) as List;
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map(StandardTrackLine.fromJson)
+        .toList();
+  }
+
+  /// Parse-only preview of a track-line XLSX (nothing is persisted).
+  Future<TrackLineParseResult> parseTrackLine(
+      List<int> fileBytes, String fileName) async {
+    final data = await ApiClient.instance
+        .uploadFile('$_base/track-lines/parse', fileBytes, fileName);
+    return TrackLineParseResult.fromJson(data);
+  }
+
+  /// Import a track-line XLSX: creates one CANDIDATE candidate
+  /// (append-only; re-importing the same file adds a new record).
+  Future<StandardTrackLine> importTrackLine(
+      List<int> fileBytes, String fileName, {String? name}) async {
+    final data = await ApiClient.instance.uploadFile(
+      '$_base/track-lines/import',
+      fileBytes,
+      fileName,
+      fields: (name != null && name.isNotEmpty) ? {'name': name} : null,
+    );
+    return StandardTrackLine.fromJson(data);
+  }
+
+  Future<StandardTrackLine> selectTrackLine(int id) async {
+    final data =
+        await ApiClient.instance.post('$_base/track-lines/$id/select');
+    return StandardTrackLine.fromJson(data);
+  }
+
+  Future<StandardTrackLine> unselectTrackLine(int id) async {
+    final data =
+        await ApiClient.instance.post('$_base/track-lines/$id/unselect');
+    return StandardTrackLine.fromJson(data);
+  }
+
+  Future<void> deleteTrackLine(int id) async {
+    await ApiClient.instance.delete('$_base/track-lines/$id');
+  }
+
+  /// Point list of a candidate (map preview).
+  Future<List<LineTrackPoint>> fetchTrackLinePoints(int id) async {
+    final data = await ApiClient.instance.get('$_base/track-lines/$id/points');
+    final items = (data['value'] ?? []) as List;
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map(LineTrackPoint.fromJson)
+        .toList();
+  }
+
+  // ── NIX-68: LINE checks ─────────────────────────────────────────
+
+  /// Devices with gps_logs data inside [start, end].
+  /// Naive ISO strings are sent at face value (UTC baseline, lesson #17).
+  Future<List<LineCheckDevice>> fetchLineCheckDevices({
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    final qs = 'start=${Uri.encodeQueryComponent(start.toIso8601String())}'
+        '&end=${Uri.encodeQueryComponent(end.toIso8601String())}';
+    final data = await ApiClient.instance.get('$_base/line-checks/devices?$qs');
+    final items = (data['value'] ?? []) as List;
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map(LineCheckDevice.fromJson)
+        .toList();
+  }
+
+  /// Create one READY LINE test per device (computed synchronously).
+  Future<List<LineCheckDeviceResult>> createLineChecks({
+    required int trackLineId,
+    required List<String> deviceCodes,
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    final data = await ApiClient.instance.post('$_base/line-checks', body: {
+      'trackLineId': trackLineId,
+      'deviceCodes': deviceCodes,
+      'start': start.toIso8601String(),
+      'end': end.toIso8601String(),
+    });
+    final items = (data['devices'] as List? ?? []);
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map(LineCheckDeviceResult.fromJson)
+        .toList();
+  }
+
+  // ── NIX-68: LINE reports ────────────────────────────────────────
+
+  /// LINE report statistics summary (snapshot).
+  Future<LineQualityReport> fetchLineReport(int testId) async {
+    final data =
+        await ApiClient.instance.get('$_base/tests/$testId/line-report');
+    return LineQualityReport.fromJson(data);
+  }
+
+  /// Standard track point list snapshot (green polyline on the map).
+  Future<List<LineTrackPoint>> fetchLineReportTrack(int testId) async {
+    final data =
+        await ApiClient.instance.get('$_base/tests/$testId/line-report/track');
+    final items = (data['value'] ?? []) as List;
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map(LineTrackPoint.fromJson)
+        .toList();
+  }
+
+  /// Per-point deviations (ascending time order), optionally limited.
+  Future<List<LineDeviation>> fetchLineReportDeviations(int testId,
+      {int? limit}) async {
+    final qs = limit != null ? '?limit=$limit' : '';
+    final data = await ApiClient.instance
+        .get('$_base/tests/$testId/line-report/deviations$qs');
+    final items = (data['value'] ?? []) as List;
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map(LineDeviation.fromJson)
+        .toList();
+  }
+
+  /// Unified per-device summary: latest READY test of each type.
+  Future<List<CheckSummaryItem>> fetchChecksSummary(String deviceCode) async {
+    final data = await ApiClient.instance.get(
+        '$_base/checks/summary?deviceCode=${Uri.encodeQueryComponent(deviceCode)}');
+    final items = (data['items'] as List? ?? []);
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map(CheckSummaryItem.fromJson)
+        .toList();
+  }
+
+  /// Cross-device LINE comparison. When [deviceCode] is given the response
+  /// additionally contains that device's track points (lazy per-device load).
+  Future<LineComparisonResult> fetchLineComparison({
+    required int trackLineId,
+    required DateTime start,
+    required DateTime end,
+    String? deviceCode,
+  }) async {
+    var qs = 'trackLineId=$trackLineId'
+        '&start=${Uri.encodeQueryComponent(start.toIso8601String())}'
+        '&end=${Uri.encodeQueryComponent(end.toIso8601String())}';
+    if (deviceCode != null && deviceCode.isNotEmpty) {
+      qs += '&deviceCode=${Uri.encodeQueryComponent(deviceCode)}';
+    }
+    final data = await ApiClient.instance.get('$_base/comparison/line?$qs');
+    return LineComparisonResult.fromJson(data);
+  }
 }

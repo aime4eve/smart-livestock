@@ -21,6 +21,9 @@ class AppColors {
   static const Color info = Color(0xFF4A7F9D);
   static const Color estrus = Color(0xFFC25689);
   static const Color aiAnomaly = Color(0xFF7C3AED);
+
+  /// LINE check type color (NIX-68, spec §9 --c-line).
+  static const Color lineTeal = Color(0xFF0F766E);
   static const Color fenceApproach = Color(0xFF454F45);
   static const Color fenceBreach = Color(0xFF1A1F1A);
 

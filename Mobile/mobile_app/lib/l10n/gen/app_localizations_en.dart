@@ -3865,4 +3865,344 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fenceTypeCircle => 'Circle';
+
+  @override
+  String get gpsQualityLineCheck => 'Line';
+
+  @override
+  String get gpsQualityLineCreate => 'New Line Check';
+
+  @override
+  String get gpsQualityLineReport => 'Line Check Report';
+
+  @override
+  String get gpsQualityLineImport => 'Import Standard Track';
+
+  @override
+  String get gpsQualityTrackLines => 'Standard Tracks';
+
+  @override
+  String get gpsQualityTrackLineName => 'Name';
+
+  @override
+  String get gpsQualityTrackLinePoints => 'Points';
+
+  @override
+  String get gpsQualityTrackLineLength => 'Length';
+
+  @override
+  String get gpsQualityTrackLineImportTime => 'Imported At';
+
+  @override
+  String get gpsQualityTrackLineActions => 'Actions';
+
+  @override
+  String get gpsQualityTrackLineCandidate => 'Candidate';
+
+  @override
+  String get gpsQualityTrackLineSelected => '★ Selected';
+
+  @override
+  String get gpsQualityTrackLinePreview => 'Preview';
+
+  @override
+  String get gpsQualityTrackLineSelect => 'Select';
+
+  @override
+  String get gpsQualityTrackLineUnselect => 'Unselect';
+
+  @override
+  String get gpsQualityTrackLineStartPoint => 'Start';
+
+  @override
+  String get gpsQualityTrackLineEmpty =>
+      'No standard track candidates yet. Click \"Import Track\" to start.';
+
+  @override
+  String get gpsQualityTrackLineImportBtn => 'Import Track';
+
+  @override
+  String get gpsQualityTrackLineRules =>
+      'Management rules (append-only, no merging): one import = one independent candidate, never auto-merged; re-importing the same file adds a new record instead of overwriting; the point list is snapshotted when a check is launched, so deleting a candidate does not affect historical reports; select ≥2 to \"Merge\" (phase 2).';
+
+  @override
+  String gpsQualityTrackLineDeleteConfirm(Object name) {
+    return 'Delete candidate track \"$name\"? Historical check reports are not affected (point list is snapshotted).';
+  }
+
+  @override
+  String gpsQualityTrackLinePointLength(int points, Object length) {
+    return '$points pts · $length m';
+  }
+
+  @override
+  String get gpsQualityLineMerge => 'Merge';
+
+  @override
+  String gpsQualityLineMergeSelectedCount(int n) {
+    return '$n selected';
+  }
+
+  @override
+  String gpsQualityLineMergePhase2(int n) {
+    return '$n source tracks selected. The merge algorithm ships in phase 2: this release only keeps the entry and selection interaction; source records stay untouched until the algorithm lands.';
+  }
+
+  @override
+  String get gpsQualityLineUploadTitle => 'Upload RTK Handset Export';
+
+  @override
+  String get gpsQualityLineUploadHint =>
+      'Supports .xlsx (RTK handset \"line tracking\" export). One line per file; each import creates one candidate.';
+
+  @override
+  String get gpsQualityLinePickFile => 'Choose File';
+
+  @override
+  String get gpsQualityLineFormatTitle =>
+      'File layout (RTK handset export: single sheet \"line tracking\", 8 columns, one row per line)';
+
+  @override
+  String get gpsQualityLineCleanRules =>
+      'Cleaning rules: remove consecutive duplicate points (handsets produce many duplicates while stationary), ignore elevation, tolerate dirty metadata (bad start/end times or length never block the import; everything is recomputed from coordinates). The cleaned track becomes one candidate standard track line as a whole — it is not split by device.';
+
+  @override
+  String get gpsQualityLineColUsed => 'Used';
+
+  @override
+  String get gpsQualityLineColIgnored => 'Ignored';
+
+  @override
+  String get gpsQualityLineColUntrusted => 'Untrusted';
+
+  @override
+  String get gpsQualityLineColName => 'Name';
+
+  @override
+  String get gpsQualityLineColCategory => 'Category';
+
+  @override
+  String get gpsQualityLineColStartTime => 'Start Time';
+
+  @override
+  String get gpsQualityLineColEndTime => 'End Time';
+
+  @override
+  String get gpsQualityLineColLength => 'Length (m)';
+
+  @override
+  String get gpsQualityLineColRemark => 'Remark';
+
+  @override
+  String get gpsQualityLineColLineType => 'Line Type';
+
+  @override
+  String get gpsQualityLineColCoords => 'Coordinates';
+
+  @override
+  String get gpsQualityLineColNameNote =>
+      'Default name of the candidate line (editable)';
+
+  @override
+  String get gpsQualityLineColTimeNote =>
+      'Metadata is untrusted; display only, never stored';
+
+  @override
+  String get gpsQualityLineColLengthNote =>
+      'Metadata is untrusted; length is computed from coordinates';
+
+  @override
+  String get gpsQualityLineColCoordsNote =>
+      'Newline-separated lng,lat,elevation triples (WGS-84) inside the cell; elevation ignored';
+
+  @override
+  String get gpsQualityLineStatRaw => 'Raw Points';
+
+  @override
+  String get gpsQualityLineStatDedup => 'After Dedup';
+
+  @override
+  String get gpsQualityLineStatRemoved => 'Duplicates Removed';
+
+  @override
+  String get gpsQualityLineStatLength => 'Computed Length';
+
+  @override
+  String get gpsQualityLineStatStart => 'Start Coordinate';
+
+  @override
+  String get gpsQualityLineStatEnd => 'End Coordinate';
+
+  @override
+  String gpsQualityLineInvalidPoints(int n) {
+    return '$n invalid coordinate rows skipped';
+  }
+
+  @override
+  String get gpsQualityLinePreviewPoints =>
+      'First 8 coordinate points (after dedup)';
+
+  @override
+  String get gpsQualityLineColSeq => 'No.';
+
+  @override
+  String get gpsQualityLineNameLabel => 'Name';
+
+  @override
+  String get gpsQualityLineNameHint =>
+      'Defaults to the file\'s \"name\" column, editable. One import = one independent candidate; re-importing the same file adds a record instead of overwriting.';
+
+  @override
+  String get gpsQualityLineImportAction => 'Import';
+
+  @override
+  String gpsQualityLineImportDone(int points, Object length) {
+    return 'Import complete: created 1 candidate standard track line ($points pts · computed length $length m), added to the standard track list.';
+  }
+
+  @override
+  String get gpsQualityLineAppendNote =>
+      'Append-only management: this import is an independent candidate and is never merged into existing records; importing the same file again adds a new record instead of overwriting.';
+
+  @override
+  String get gpsQualityLinePreviewTitle => 'Standard Track Map Preview';
+
+  @override
+  String get gpsQualityLinePreviewHint =>
+      'Overlay all candidate lines of the same physical route to aid select / merge decisions';
+
+  @override
+  String get gpsQualityLineCurrentLine => 'Current Line';
+
+  @override
+  String get gpsQualityLineSelectThis => '★ Select as Standard Track';
+
+  @override
+  String get gpsQualityLineQueryDevices => 'Query Devices';
+
+  @override
+  String get gpsQualityLineQueryHint =>
+      'Find devices with gps_logs reports inside the range';
+
+  @override
+  String get gpsQualityLineSelectDevices => 'Select Devices';
+
+  @override
+  String gpsQualityLineDevicesFound(int n) {
+    return '$n devices with data in range';
+  }
+
+  @override
+  String gpsQualityLinePointsInRange(int n) {
+    return '$n pts in range';
+  }
+
+  @override
+  String gpsQualityLineFirstLast(Object first, Object last) {
+    return 'first $first ｜ last $last';
+  }
+
+  @override
+  String get gpsQualityLineSelectTrack => 'Standard Track';
+
+  @override
+  String get gpsQualityLineStarHint => '★ = selected line (pinned to top)';
+
+  @override
+  String get gpsQualityLineNoTrackLine =>
+      'No standard track candidates yet. Import one in Truth Reference first.';
+
+  @override
+  String get gpsQualityLineCalcNote =>
+      'Method: for each device, take all gps_logs points in the time window, compute the shortest distance from each point to the standard polyline (point-to-line, no time alignment), aggregate mean / p50 / p95 / max and within-15/25/40m ratios, then grade with QualityGrade.';
+
+  @override
+  String get gpsQualityLineCalcNoteShort =>
+      'Method: point-to-line shortest distance (no time alignment)';
+
+  @override
+  String gpsQualityLineLaunch(int n) {
+    return 'Launch Check ($n devices)';
+  }
+
+  @override
+  String gpsQualityLineLaunchDone(int n) {
+    return 'Line check launched for $n devices';
+  }
+
+  @override
+  String get gpsQualityCheckSummary => 'Check Summary';
+
+  @override
+  String get gpsQualityCheckSummaryHint =>
+      'Click \"View Report\" to open the report of that type';
+
+  @override
+  String get gpsQualitySummaryLatest => 'Latest Check';
+
+  @override
+  String get gpsQualitySummaryGrade => 'Grade';
+
+  @override
+  String get gpsQualitySummaryKeyMetric => 'Key Metric';
+
+  @override
+  String get gpsQualitySummaryNoData => 'None for this device';
+
+  @override
+  String get gpsQualityViewReport => 'View Report';
+
+  @override
+  String get gpsQualityLineSamples => 'Samples';
+
+  @override
+  String get gpsQualityLineMeanDeviation => 'Mean Deviation';
+
+  @override
+  String get gpsQualityLineMaxDeviation => 'Max Deviation';
+
+  @override
+  String get gpsQualityLineWithin15m => '≤15m Ratio';
+
+  @override
+  String get gpsQualityLineWithin25m => '≤25m Ratio';
+
+  @override
+  String get gpsQualityLineWithin40m => '≤40m Ratio';
+
+  @override
+  String get gpsQualityLineMapStandard => 'Standard Track';
+
+  @override
+  String get gpsQualityLineMapDevice => 'Device Track';
+
+  @override
+  String get gpsQualityLineMapMax => 'Max Deviation Point';
+
+  @override
+  String get gpsQualityLineDeviationTable => 'Per-point Deviations';
+
+  @override
+  String get gpsQualityLineColTime => 'Reported At';
+
+  @override
+  String get gpsQualityLineColSegment => 'Nearest Segment';
+
+  @override
+  String get gpsQualityLineColDeviation => 'Shortest Distance';
+
+  @override
+  String get gpsQualityLineGotoComparison =>
+      'For cross-device comparison, go to the \"Quality Comparison\" tab.';
+
+  @override
+  String get gpsQualityLineComparison => 'Line Check Comparison';
+
+  @override
+  String get gpsQualityLineSelectTrackPrompt =>
+      'Select a standard track and time range to compare';
+
+  @override
+  String get gpsQualityLineComparisonEmpty =>
+      'No line check data under these conditions';
 }

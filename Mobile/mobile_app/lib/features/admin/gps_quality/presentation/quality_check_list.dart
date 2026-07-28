@@ -8,6 +8,8 @@ import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/cr
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/batch_import_dialog.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/trajectory_import_dialog.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/trajectory_report_panel.dart';
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/line_check_create_dialog.dart';
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/line_report_panel.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/device_identity_line.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/scatter_chart.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/route_match_chart.dart';
@@ -181,6 +183,12 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                   tooltip: l10n.gpsQualityTrajectoryImport,
                   onPressed: () => _showTrajectoryImportDialog(l10n),
                 ),
+                IconButton(
+                  key: const Key('line-check-create-btn'),
+                  icon: const Icon(Icons.alt_route, color: AppColors.lineTeal, size: 20),
+                  tooltip: l10n.gpsQualityLineCreate,
+                  onPressed: () => _showLineCheckCreateDialog(),
+                ),
               ]),
               const SizedBox(height: AppSpacing.sm),
               // Search (EUI / device code substring) + status filter
@@ -263,6 +271,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
           final staticCount = checks.where((c) => c.checkType == 'STATIC').length;
           final dynamicCount = checks.where((c) => c.checkType == 'DYNAMIC').length;
           final trajectoryCount = checks.where((c) => c.checkType == 'TRAJECTORY').length;
+          final lineCount = checks.where((c) => c.checkType == 'LINE').length;
 
           return InkWell(
             key: ValueKey('device-group-$deviceCode'),
@@ -310,6 +319,10 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                       const SizedBox(width: 4),
                       _typeTag(l10n.gpsQualityTrajectoryChecks, const Color(0xFF7C3AED)),
                     ],
+                    if (lineCount > 0) ...[
+                      const SizedBox(width: 4),
+                      _typeTag(l10n.gpsQualityLineCheck, AppColors.lineTeal),
+                    ],
                   ]),
                   // Latest check time
                   Text(
@@ -338,10 +351,11 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
   }
 
   /// Timeline segment color + single-char label per check type.
-  /// 静=blue STATIC, 动=amber DYNAMIC, 轨=purple TRAJECTORY.
+  /// 静=blue STATIC, 动=amber DYNAMIC, 轨=purple TRAJECTORY, 线=teal LINE.
   (Color, String) _timelineStyle(String checkType) => switch (checkType) {
         'STATIC' => (const Color(0xFF2563EB), '静'),
         'TRAJECTORY' => (const Color(0xFF7C3AED), '轨'),
+        'LINE' => (AppColors.lineTeal, '线'),
         _ => (const Color(0xFFD97706), '动'),
       };
 
@@ -349,6 +363,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
       switch (checkType) {
         'STATIC' => l10n.gpsQualityTestTypeStatic,
         'TRAJECTORY' => l10n.gpsQualityTrajectoryChecks,
+        'LINE' => l10n.gpsQualityLineCheck,
         _ => l10n.gpsQualityTestTypeDynamic,
       };
 
@@ -383,6 +398,9 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       // Device overview card
       _buildOverview(l10n, _selectedDeviceCode!, checks, hasAnyPending),
+      const SizedBox(height: AppSpacing.lg),
+      // Unified per-device check summary (NIX-68, latest test of each type)
+      _buildCheckSummary(l10n, _selectedDeviceCode!),
       const SizedBox(height: AppSpacing.lg),
       // Timeline
       if (checks.length > 1)
@@ -504,6 +522,99 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
     );
   }
 
+  // ── Unified check summary (NIX-68, spec §3.2) ──────────────────
+
+  /// Latest READY test of each type for the selected device.「查看报告」
+  /// simply selects that checkId, falling into the existing dispatch.
+  Widget _buildCheckSummary(AppLocalizations l10n, String deviceCode) {
+    final summaryAsync = ref.watch(checksSummaryProvider(deviceCode));
+    const typeOrder = ['STATIC', 'DYNAMIC', 'TRAJECTORY', 'LINE'];
+    final typeColors = {
+      'STATIC': const Color(0xFF2563EB),
+      'DYNAMIC': const Color(0xFFD97706),
+      'TRAJECTORY': const Color(0xFF7C3AED),
+      'LINE': AppColors.lineTeal,
+    };
+
+    return Card(
+      key: const Key('check-summary-card'),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: AppColors.border)),
+          ),
+          child: Row(children: [
+            Text(l10n.gpsQualityCheckSummary,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+            const Spacer(),
+            Text(l10n.gpsQualityCheckSummaryHint,
+                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+          ]),
+        ),
+        summaryAsync.when(
+          loading: () => const SizedBox(
+              height: 80, child: Center(child: CircularProgressIndicator())),
+          error: (e, _) => Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Text('$e', style: const TextStyle(color: AppColors.danger, fontSize: 12)),
+          ),
+          data: (items) {
+            final byType = {for (final i in items) i.checkType: i};
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                key: const Key('check-summary-table'),
+                columnSpacing: 16,
+                columns: [
+                  DataColumn(label: Text(l10n.gpsQualityTestType)),
+                  DataColumn(label: Text(l10n.gpsQualitySummaryLatest)),
+                  DataColumn(label: Text(l10n.gpsQualitySummaryGrade)),
+                  DataColumn(label: Text(l10n.gpsQualitySummaryKeyMetric)),
+                  DataColumn(label: Text(l10n.gpsQualityTrackLineActions)),
+                ],
+                rows: typeOrder.map((type) {
+                  final item = byType[type];
+                  return DataRow(
+                    key: ValueKey('summary-$type'),
+                    cells: [
+                      DataCell(_typeTag(_typeLabel(l10n, type), typeColors[type]!)),
+                      if (item == null) ...[
+                        DataCell(Text(l10n.gpsQualitySummaryNoData,
+                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                        const DataCell(Text('—')),
+                        const DataCell(Text('—')),
+                        const DataCell(Text('—')),
+                      ] else ...[
+                        DataCell(Text(
+                          item.endedAt != null
+                              ? DateFormat('MM-dd HH:mm').format(item.endedAt!)
+                              : '-',
+                          style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+                        )),
+                        DataCell(_GradeBadge(grade: item.grade)),
+                        DataCell(Text(item.keyMetric,
+                            style: const TextStyle(fontSize: 12, fontFamily: 'monospace'))),
+                        DataCell(TextButton(
+                          key: ValueKey('summary-view-$type'),
+                          onPressed: item.testId == null
+                              ? null
+                              : () => setState(() => _selectedCheckId = item.testId),
+                          child: Text(l10n.gpsQualityViewReport,
+                              style: const TextStyle(fontSize: 12)),
+                        )),
+                      ],
+                    ],
+                  );
+                }).toList(),
+              ),
+            );
+          },
+        ),
+      ]),
+    );
+  }
+
   // ── Timeline ────────────────────────────────────────────────────
 
   /// Geometry of one check's timeline segment (shared by segment & badge).
@@ -524,7 +635,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
 
     // Swimlane: each check type gets its own row with an independent time
     // axis, so segments are never compressed by other lanes' time ranges.
-    const typeOrder = ['STATIC', 'TRAJECTORY', 'DYNAMIC'];
+    const typeOrder = ['STATIC', 'TRAJECTORY', 'LINE', 'DYNAMIC'];
     final byType = <String, List<QualityCheck>>{};
     for (final c in sortedChecks) {
       byType.putIfAbsent(c.checkType, () => []).add(c);
@@ -550,6 +661,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
           Wrap(spacing: AppSpacing.md, children: [
             _timelineLegend(const Color(0xFF2563EB), l10n.gpsQualityTestTypeStatic),
             _timelineLegend(const Color(0xFF7C3AED), l10n.gpsQualityTrajectoryChecks),
+            _timelineLegend(AppColors.lineTeal, l10n.gpsQualityLineCheck),
             _timelineLegend(const Color(0xFFD97706), l10n.gpsQualityTestTypeDynamic),
             _timelineLegend(AppColors.danger, l10n.gpsQualityImportFailed),
           ]),
@@ -638,11 +750,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                           ? DateFormat('MM-dd HH:mm').format(c.endedAt!)
                           : '...',
                       DateFormat('MM-dd HH:mm').format(c.startedAt),
-                      c.checkType == 'STATIC'
-                          ? l10n.gpsQualityTestTypeStatic
-                          : c.checkType == 'TRAJECTORY'
-                              ? l10n.gpsQualityTrajectoryChecks
-                              : l10n.gpsQualityTestTypeDynamic,
+                      _typeLabel(l10n, c.checkType),
                     ),
                     child: GestureDetector(
                       key: ValueKey('delete-check-${c.id}'),
@@ -704,6 +812,8 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
       return _StaticReportCard(testId: checkId);
     } else if (check.checkType == 'TRAJECTORY') {
       return TrajectoryReportPanel(testId: checkId);
+    } else if (check.checkType == 'LINE') {
+      return LineReportPanel(testId: checkId);
     } else {
       return _DynamicReportCard(testId: checkId);
     }
@@ -758,6 +868,12 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
 
   void _showTrajectoryImportDialog(AppLocalizations l10n) {
     showDialog(context: context, builder: (_) => const TrajectoryImportDialog()).then((_) {
+      ref.invalidate(checksProvider);
+    });
+  }
+
+  void _showLineCheckCreateDialog() {
+    showDialog(context: context, builder: (_) => const LineCheckCreateDialog()).then((_) {
       ref.invalidate(checksProvider);
     });
   }
@@ -1227,7 +1343,7 @@ class _GradeBadge extends StatelessWidget {
     final (label, color) = switch (grade) {
       QualityGrade.excellent => ('EXCELLENT', const Color(0xFF16A34A)),
       QualityGrade.usable => ('USABLE', const Color(0xFF2563EB)),
-      QualityGrade.marginal => ('MARGINAL', const Color(0xFFB45309)),
+      QualityGrade.marginal => ('MARGINAL', const Color(0xFFC2410C)),
       QualityGrade.unavailable => ('UNAVAILABLE', AppColors.textSecondary),
     };
     return Container(

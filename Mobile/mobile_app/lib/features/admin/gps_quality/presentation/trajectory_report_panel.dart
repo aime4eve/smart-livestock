@@ -358,7 +358,7 @@ class _GradeBadge extends StatelessWidget {
     final (label, color) = switch (grade) {
       QualityGrade.excellent => ('EXCELLENT', const Color(0xFF16A34A)),
       QualityGrade.usable => ('USABLE', const Color(0xFF2563EB)),
-      QualityGrade.marginal => ('MARGINAL', const Color(0xFFB45309)),
+      QualityGrade.marginal => ('MARGINAL', const Color(0xFFC2410C)),
       QualityGrade.unavailable => ('UNAVAILABLE', AppColors.textSecondary),
     };
     return Container(

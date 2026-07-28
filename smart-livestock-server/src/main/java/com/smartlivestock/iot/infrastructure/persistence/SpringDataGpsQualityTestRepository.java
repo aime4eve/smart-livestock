@@ -38,6 +38,12 @@ public interface SpringDataGpsQualityTestRepository extends JpaRepository<GpsQua
 
     List<GpsQualityTestJpaEntity> findByRouteIdAndStatus(Long routeId, String status);
 
+    List<GpsQualityTestJpaEntity> findByDeviceCodeOrderByStartedAt(String deviceCode);
+
+    /** Window-overlap: test [startedAt, endedAt] intersects query [start, end]. */
+    List<GpsQualityTestJpaEntity> findByTrackLineIdAndStartedAtLessThanEqualAndEndedAtGreaterThanEqual(
+            Long trackLineId, Instant end, Instant start);
+
     /** Bulk delete of all quality tests of one device (device record itself is kept). */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM GpsQualityTestJpaEntity t WHERE t.deviceId = :deviceId")

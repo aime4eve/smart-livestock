@@ -4,11 +4,12 @@ import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_providers.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/standard_tracks_panel.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 /// Tab 2: Truth reference management.
-/// Left panel: RTK reference points CRUD.
-/// Right panel: Dynamic test routes CRUD + point sequence.
+/// Three category sub-tabs (NIX-68): RTK points / dynamic routes / standard
+/// track lines. The first two panels are unchanged, the third is new.
 class TruthReferenceTab extends ConsumerStatefulWidget {
   const TruthReferenceTab({super.key});
 
@@ -18,38 +19,58 @@ class TruthReferenceTab extends ConsumerStatefulWidget {
 
 class _TruthReferenceTabState extends ConsumerState<TruthReferenceTab> {
   int? _selectedRouteId;
+  // 0 = RTK 真值点, 1 = 动态路线, 2 = 标准轨迹 (NIX-68)
+  int _subTab = 0;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final pointsAsync = ref.watch(rtkPointsProvider);
     final routesAsync = ref.watch(dynamicRoutesProvider);
+    final trackLinesAsync = ref.watch(trackLinesProvider);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 900;
-        final left = _buildRtkPointsPanel(l10n, pointsAsync);
-        final right = _buildRoutesPanel(l10n, routesAsync, pointsAsync);
-        if (wide) {
-          return Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(width: 380, child: SingleChildScrollView(child: left)),
-                const SizedBox(width: AppSpacing.lg),
-                Expanded(child: SingleChildScrollView(child: right)),
-              ],
+    final pointCount = pointsAsync.value?.length ?? 0;
+    final routeCount = routesAsync.value?.length ?? 0;
+    final trackLineCount = trackLinesAsync.value?.length ?? 0;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // Category sub-tabs (pill segmented, spec §9.2 .subtab)
+        SegmentedButton<int>(
+          key: const Key('truth-ref-subtabs'),
+          segments: [
+            ButtonSegment(
+              value: 0,
+              icon: const Icon(Icons.location_on, size: 16),
+              label: Text('${l10n.gpsQualityRtkPointList} ($pointCount)',
+                  style: const TextStyle(fontSize: 12)),
             ),
-          );
-        }
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(children: [
-            left, const SizedBox(height: AppSpacing.lg), right,
-          ]),
-        );
-      },
+            ButtonSegment(
+              value: 1,
+              icon: const Icon(Icons.route, size: 16),
+              label: Text('${l10n.gpsQualityRouteList} ($routeCount)',
+                  style: const TextStyle(fontSize: 12)),
+            ),
+            ButtonSegment(
+              value: 2,
+              icon: const Icon(Icons.satellite_alt, size: 16),
+              label: Text('${l10n.gpsQualityTrackLines} ($trackLineCount)',
+                  style: const TextStyle(fontSize: 12)),
+            ),
+          ],
+          selected: {_subTab},
+          onSelectionChanged: (v) => setState(() => _subTab = v.first),
+          showSelectedIcon: false,
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        if (_subTab == 0)
+          _buildRtkPointsPanel(l10n, pointsAsync)
+        else if (_subTab == 1)
+          _buildRoutesPanel(l10n, routesAsync, pointsAsync)
+        else
+          const StandardTracksPanel(),
+      ]),
     );
   }
 

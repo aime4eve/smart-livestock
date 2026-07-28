@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<!--
+═══════════════════════════════════════════════════════════════════════════════
+ 功能：GPS 线路检验（标准轨迹检验 / LINE）
+ 工单：NIX-68
+ 版本：v3 · 2026-07-28（导入格式切换为 RTK 手簿 XLSX 导出版式；标准轨迹改为追加式管理）
+
+ v3 变更说明：
+  · 决策 1：导入文件格式 = RTK 手簿导出 XLSX（单 sheet「线路追踪」，8 列，整条线路一行，
+    坐标列内为换行分隔的 经度,纬度,高程 三元组，高程忽略）；元数据（开始/结束时间、长度）
+    不可信，点数/全长/起终点一律以坐标实算为准；清洗 = 去连续重复点
+  · 决策 2：标准轨迹追加式管理——一次导入 = 一条独立候选，系统不自动归并，重复导入新增
+    不覆盖；表格列简化为 名称/点数/全长/导入时间/状态/操作；检验发起时快照点列，
+    删除候选不影响历史报告；勾选多条可合成（二期）
+
+ 信息架构（v2 调整说明）：
+  · 设备维度 → 「检验列表」Tab：右栏新增 4 类检验统一报告区（静态/动态/轨迹/线路各一行），
+    点击时间轴青绿「线」段或汇总行 → 打开单设备线路检验报告详情弹窗（与轨迹报告打开方式一致）
+  · 横向对比维度 → 「质量对比」Tab：对比类型选择器新增「线路检验」，选标准轨迹 + 时间范围 +
+    设备批次 → 多设备横向对比表 + 同图多设备轨迹叠加地图
+  · 顶部导航恢复与现网一致的 3 个 Tab：检验列表 / 真值管理 / 质量对比
+
+ 覆盖界面清单：
+  ① 真值管理 Tab（改造后）：RTK 真值点 / 动态路线 / 标准轨迹 三分类页签；
+     标准轨迹视图 = 工具栏（导入轨迹 / 合成）+ 候选线路表格 + 勾选合成交互
+  ② 标准轨迹导入向导（弹窗）：上传 XLSX → 解析预览（原始/去重点数、实算全长、起终点 + 前 8 个坐标点）→ 导入结果
+  ③ 标准轨迹地图预览（弹窗）：左侧候选列表 + 右侧地图（绿色标准线 + 灰色源轨迹叠加）+ 底部统计
+  ④ 新建线路检验（弹窗流程）：时间范围 → 查询设备 → 设备列表 → 选择标准轨迹 → 发起检验
+  ⑤ 检验列表 · 统一报告区（新增）：单设备 4 类检验结果汇总（最近时间 / 分级徽章 / 关键指标）
+  ⑥ 线路检验报告详情（弹窗）：指标卡片（分级 + mean/p50/p95/max + 15/25/40m 占比 + 样本数）
+     + 地图对比（绿色标准线 vs 红色设备轨迹点线）+ 逐点偏差明细表
+  ⑦ 质量对比 Tab（扩展）：新增「线路检验」对比类型 → 多设备横向对比表 + 同图叠加地图
+
+ 设计令牌说明（供 prototype-to-flutter-fidelity 解析）：
+  --primary / --primary-dark / --primary-soft / --accent   主色阶梯（沿用 NIX-22）
+  --surface / --surface-alt / --border                     背景与描边
+  --text-primary / --text-secondary                        文本
+  --success / --warning / --danger / --info                语义色
+  --c-static / --c-dynamic / --c-traj / --c-line           检验类型色（线路=新增青绿）
+  --grade-ex / --grade-us / --grade-mg / --grade-un        分级色
+  --xs/--sm/--md/--lg/--xl                                 间距阶梯
+  --r-sm/--r-md/--r-lg                                     圆角阶梯
+  --shadow-sm/--shadow-md/--shadow-lg                      阴影阶梯
+  --fs-xs/--fs-sm/--fs-md/--fs-lg/--fs-xl/--fs-num         字号阶梯
+═══════════════════════════════════════════════════════════════════════════════
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIX-68 GPS 线路检验（标准轨迹检验）· 高保真原型</title>
+<style>
+:root{
+  /* 主色阶梯 */
+  --primary:#2F6B3B;--primary-dark:#244F2D;--primary-soft:#E3F0E4;--accent:#8BA95A;
+  /* 背景 / 描边 / 文本 */
+  --surface:#F8F6F0;--surface-alt:#FFFFFF;--border:#D7D2C6;
+  --text-primary:#263126;--text-secondary:#617061;
+  /* 语义色 */
+  --success:#4C9A5F;--warning:#D28A2D;--danger:#C2564B;--info:#4A7F9D;
+  /* 检验类型色 */
+  --c-static:#2563EB;--c-dynamic:#D97706;--c-traj:#7C3AED;--c-line:#0F766E;
+  /* 分级色（QualityGrade：EXCELLENT p95≤15m / USABLE ≤25m / MARGINAL ≤40m / UNAVAILABLE） */
+  --grade-ex:#16A34A;--grade-us:#2563EB;--grade-mg:#C2410C;--grade-un:#DC2626;
+  /* 间距阶梯 */
+  --xs:4px;--sm:8px;--md:12px;--lg:16px;--xl:24px;
+  /* 圆角阶梯 */
+  --r-sm:4px;--r-md:8px;--r-lg:12px;
+  /* 阴影阶梯 */
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08);--shadow-md:0 2px 8px rgba(0,0,0,.15);--shadow-lg:0 20px 60px rgba(0,0,0,.2);
+  /* 字号阶梯 */
+  --fs-xs:10px;--fs-sm:12px;--fs-md:13px;--fs-lg:14px;--fs-xl:18px;--fs-num:22px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sans-serif;background:var(--surface);color:var(--text-primary);min-height:100vh}
+.appbar{background:var(--primary);color:#fff;padding:10px var(--xl);display:flex;align-items:center;gap:var(--md);box-shadow:var(--shadow-md)}
+.appbar h1{font-size:var(--fs-xl);font-weight:600}
+.badge-proto{background:rgba(255,255,255,.2);padding:2px 8px;border-radius:var(--r-md);font-size:11px}
+.tabbar{display:flex;background:var(--primary-dark)}
+.tab{flex:1;padding:12px;text-align:center;color:rgba(255,255,255,.7);font-size:var(--fs-lg);font-weight:500;cursor:pointer;border-bottom:3px solid transparent}
+.tab.active{color:#fff;border-bottom-color:var(--accent);font-weight:600}
+.page{display:none;padding:var(--lg)}
+.page.active{display:block}
+.panel{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:var(--lg)}
+.panel-hd{padding:var(--md) var(--lg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface)}
+.panel-hd h2{font-size:var(--fs-lg);font-weight:600;display:flex;align-items:center;gap:6px}
+.panel-bd{padding:var(--lg)}
+.btn{padding:7px 14px;border:none;border-radius:var(--r-md);font-size:var(--fs-md);font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+.btn-line{background:var(--c-line);color:#fff}.btn-line:hover{filter:brightness(.92)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-primary)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-sm{padding:4px 10px;font-size:var(--fs-sm)}
+.icon-btn{width:30px;height:30px;border:none;background:transparent;border-radius:6px;cursor:pointer;font-size:16px;color:var(--primary);display:inline-flex;align-items:center;justify-content:center;position:relative}
+.icon-btn:hover{background:var(--primary-soft)}
+.icon-btn.new-feature{box-shadow:0 0 0 2px var(--c-line);background:#E6F4F2}
+.tag{display:inline-block;padding:2px 8px;border-radius:var(--r-sm);font-size:11px;font-weight:600;white-space:nowrap}
+.t-ok{background:#DCFCE7;color:#16A34A}
+.t-wn{background:#FFF7ED;color:#C2410C}
+.t-er{background:#FEE2E2;color:#DC2626}
+.t-cand{background:#F1F5F9;color:#475569}
+.t-sel{background:#CCFBF1;color:#0F766E}
+.type-dot{display:inline-flex;align-items:center;gap:3px;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:500}
+.type-dot i{width:6px;height:6px;border-radius:50%;display:inline-block}
+.td-static{background:rgba(37,99,235,.1);color:var(--c-static)}.td-static i{background:var(--c-static)}
+.td-dynamic{background:rgba(217,119,6,.1);color:#B45309}.td-dynamic i{background:var(--c-dynamic)}
+.td-traj{background:rgba(124,58,237,.1);color:var(--c-traj)}.td-traj i{background:var(--c-traj)}
+.td-line{background:rgba(15,118,110,.1);color:var(--c-line)}.td-line i{background:var(--c-line)}
+.grade{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;border:0.5px solid}
+.grade-ex{background:#DCFCE7;color:var(--grade-ex);border-color:#BBF7D0}
+.grade-us{background:#DBEAFE;color:var(--grade-us);border-color:#BFDBFE}
+.grade-mg{background:#FFF7ED;color:var(--grade-mg);border-color:#FED7AA}
+.grade-un{background:#FEE2E2;color:var(--grade-un);border-color:#FECACA}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal-overlay.show{display:flex}
+.modal{background:var(--surface-alt);border-radius:var(--r-lg);max-width:96vw;width:1060px;max-height:92vh;display:flex;flex-direction:column;box-shadow:var(--shadow-lg)}
+.modal-hd{padding:var(--lg) var(--xl);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:var(--sm);flex-wrap:wrap}
+.modal-hd h3{font-size:16px;font-weight:600;flex:1}
+.modal-bd{padding:var(--md) var(--xl);overflow-y:auto;flex:1}
+.modal-ft{padding:var(--lg) var(--xl);border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:var(--sm)}
+.muted{color:var(--text-secondary);font-size:var(--fs-sm)}
+.steps{display:flex;gap:var(--sm);justify-content:center}
+.step{display:flex;align-items:center;gap:4px;font-size:var(--fs-sm);color:var(--text-secondary)}
+.step-num{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:var(--border);color:#fff}
+.step.active .step-num{background:var(--primary)}.step.done .step-num{background:var(--success)}
+.step.active{color:var(--primary);font-weight:600}
+.step-arrow{color:var(--border);font-size:var(--fs-lg)}
+.summary{background:var(--surface);border-radius:10px;padding:var(--md);margin-bottom:var(--md);display:flex;gap:var(--xl);align-items:center;flex-wrap:wrap}
+.summary .stat{text-align:center}
+.summary .stat-val{font-size:var(--fs-num);font-weight:700}
+.summary .stat-label{font-size:11px;color:var(--text-secondary)}
+table{width:100%;border-collapse:collapse;font-size:var(--fs-md)}
+th{text-align:left;padding:8px var(--md);background:var(--surface);font-weight:600;color:var(--text-secondary);font-size:var(--fs-sm);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:8px var(--md);border-bottom:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:#FAF9F5}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:var(--fs-sm)}
+.upload-zone{border:2px dashed var(--border);border-radius:10px;padding:32px var(--xl);text-align:center;cursor:pointer;background:var(--surface)}
+.upload-zone:hover{border-color:var(--primary);background:var(--primary-soft)}
+.upload-zone .ico{font-size:34px;margin-bottom:var(--sm)}
+.opt-tag{font-size:var(--fs-xs);background:var(--primary-soft);color:var(--primary-dark);padding:1px 6px;border-radius:var(--r-sm);font-weight:600}
+.req-tag{font-size:var(--fs-xs);background:#FEE2E2;color:#DC2626;padding:1px 6px;border-radius:var(--r-sm);font-weight:600}
+.callout{border-left:3px solid var(--info);background:#EFF6FB;padding:var(--sm) var(--md);border-radius:0 var(--r-md) var(--r-md) 0;font-size:var(--fs-sm);color:#33566B;margin:var(--sm) 0}
+.callout.warn{border-left-color:var(--warning);background:#FDF6EA;color:#7A5416}
+.callout.ok{border-left-color:var(--success);background:#EEF7EF;color:#2F5D3A}
+.map-box{background:#EDEBE3;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.legend{display:flex;gap:var(--lg);padding:var(--sm) var(--md);font-size:11px;color:var(--text-secondary);align-items:center;flex-wrap:wrap}
+.legend .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.step-pane{display:none}.step-pane.active{display:block}
+.imp-row{display:flex;gap:var(--md);align-items:center;padding:var(--sm) var(--md);border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:var(--sm);font-size:var(--fs-md);background:var(--surface)}
+.proto-note{position:fixed;bottom:12px;right:14px;font-size:11px;color:var(--text-secondary);background:rgba(255,255,255,.9);border:1px solid var(--border);border-radius:var(--r-md);padding:4px 10px;z-index:2000}
+
+/* ── 标注系统（新增/变更点，青绿 = 本期线路检验） ── */
+.anno{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:var(--c-line);color:#fff;font-size:var(--fs-xs);font-weight:700;font-style:normal;vertical-align:2px;margin-left:4px;cursor:help;box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--c-line)}
+.anno-region{outline:2px dashed var(--c-line);outline-offset:3px;border-radius:var(--r-md)}
+.anno-panel{background:linear-gradient(135deg,#F0FDFA,#CCFBF1);border:1px solid #5EEAD4;border-radius:var(--r-lg);padding:var(--md) var(--lg);margin-bottom:var(--lg)}
+.anno-panel h3{font-size:var(--fs-md);color:#115E59;margin-bottom:6px}
+.anno-panel ol{margin-left:18px;font-size:var(--fs-sm);color:#134E4A;line-height:1.9}
+.anno-panel b{color:#115E59}
+
+/* ── 真值管理：三分类子页签 ── */
+.subtab-bar{display:flex;gap:var(--sm);margin-bottom:var(--lg)}
+.subtab{padding:8px 18px;border-radius:999px;border:1px solid var(--border);background:var(--surface-alt);font-size:var(--fs-md);font-weight:500;cursor:pointer;color:var(--text-secondary);display:inline-flex;align-items:center;gap:6px}
+.subtab:hover{border-color:var(--primary)}
+.subtab.active{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600}
+.subtab .cnt{font-size:11px;background:rgba(0,0,0,.08);border-radius:8px;padding:0 6px}
+.subtab.active .cnt{background:rgba(255,255,255,.22)}
+.subpane{display:none}.subpane.active{display:block}
+.toolbar{display:flex;align-items:center;gap:var(--sm);flex-wrap:wrap}
+.chk{width:15px;height:15px;accent-color:var(--c-line);cursor:pointer}
+.merge-bar{display:none;align-items:center;gap:var(--md);background:#F0FDFA;border:1px solid #5EEAD4;border-radius:var(--r-md);padding:var(--sm) var(--md);margin-bottom:var(--md);font-size:var(--fs-md)}
+.merge-bar.show{display:flex}
+
+/* ── 检验列表（复刻现有 UI） ── */
+.layout{display:flex;gap:var(--lg);align-items:flex-start}
+.left-col{width:320px;flex-shrink:0}
+.right-col{flex:1;min-width:0}
+.dev-group{padding:10px 14px;border-left:3px solid transparent;cursor:pointer}
+.dev-group:hover{background:#FAF9F5}
+.dev-group.sel{background:var(--primary-soft);border-left-color:var(--primary)}
+.dev-eui{font-size:var(--fs-md);font-weight:600;display:flex;align-items:center;gap:6px}
+.dev-meta{display:flex;align-items:center;gap:6px;margin-top:3px;font-size:11px;color:var(--text-secondary)}
+.dev-time{font-size:var(--fs-xs);color:var(--text-secondary);margin-top:2px}
+.toolbar-search{display:flex;gap:6px;margin-top:8px}
+.toolbar-search input{flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-md);font-size:var(--fs-sm);font-family:monospace}
+.toolbar-search select{padding:6px 8px;border:1px solid var(--border);border-radius:var(--r-md);font-size:var(--fs-sm);background:var(--surface-alt)}
+.timeline-bar{position:relative;height:32px;background:var(--surface);border:1px solid var(--border);border-radius:6px;margin:6px 0 2px}
+.tl-seg{position:absolute;top:3px;bottom:3px;border-radius:var(--r-sm);color:#fff;font-size:var(--fs-xs);font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tl-seg.sel{box-shadow:0 0 0 2px var(--primary)}
+.tl-seg.c-static{background:var(--c-static)}
+.tl-seg.c-dynamic{background:var(--c-dynamic)}
+.tl-seg.c-traj{background:var(--c-traj)}
+.tl-seg.c-line{background:var(--c-line)}
+.tl-labels{display:flex;justify-content:space-between;font-size:var(--fs-xs);color:var(--text-secondary)}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 12px;text-align:center;min-width:76px}
+.stat-chip .v{font-size:19px;font-weight:700}
+.stat-chip .l{font-size:var(--fs-xs);color:var(--text-secondary)}
+.rep-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* ── 标准轨迹预览：左列表 + 右地图 ── */
+.preview-layout{display:flex;gap:var(--lg);align-items:stretch}
+.preview-list{width:280px;flex-shrink:0;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.preview-item{padding:10px var(--md);border-bottom:1px solid var(--border);cursor:pointer;font-size:var(--fs-md)}
+.preview-item:hover{background:#FAF9F5}
+.preview-item.sel{background:#F0FDFA;border-left:3px solid var(--c-line)}
+.preview-item .nm{font-weight:600;display:flex;align-items:center;gap:6px}
+.preview-item .mt{font-size:11px;color:var(--text-secondary);margin-top:2px}
+.preview-map{flex:1;min-width:0;display:flex;flex-direction:column}
+.stat-strip{display:flex;gap:var(--xl);padding:var(--sm) var(--md);background:var(--surface);border-top:1px solid var(--border);flex-wrap:wrap}
+.stat-strip .it{text-align:center}
+.stat-strip .v{font-size:16px;font-weight:700}
+.stat-strip .l{font-size:var(--fs-xs);color:var(--text-secondary)}
+
+/* ── 新建线路检验：设备查询 ── */
+.form-row{display:flex;align-items:center;gap:var(--sm);flex-wrap:wrap;padding:var(--sm) 0}
+.form-row input,.form-row select{padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-md);font-size:var(--fs-sm);background:var(--surface-alt)}
+.form-row label{font-size:var(--fs-md);font-weight:600}
+.dev-check-row{display:flex;align-items:center;gap:var(--md);padding:var(--sm) var(--md);border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:var(--sm);font-size:var(--fs-md);background:var(--surface)}
+.hidden{display:none!important}
+
+/* ── 质量对比：线路检验横向对比 ── */
+.cmp-pane{display:none}.cmp-pane.active{display:block}
+.dev-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border:1px solid var(--border);border-radius:999px;font-size:var(--fs-sm);font-family:ui-monospace,Menlo,monospace;background:var(--surface-alt)}
+.dev-chip .dot{display:inline-block;width:9px;height:9px;border-radius:50%}
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <h1>GPS 质量检验</h1>
+  <span class="badge-proto">NIX-68 原型 v1 · 线路检验（标准轨迹检验）</span>
+</div>
+
+<div class="tabbar">
+  <div class="tab active" data-tab="checks" onclick="switchTab('checks')">检验列表</div>
+  <div class="tab" data-tab="truth" onclick="switchTab('truth')">真值管理</div>
+  <div class="tab" data-tab="compare" onclick="switchTab('compare')">质量对比</div>
+</div>
+
+<!-- ═══════════════ 界面 ①：真值管理 Tab（改造后） ═══════════════ -->
+<div class="page" id="page-truth">
+
+  <div class="anno-panel">
+    <h3>🟢 本期变更点（青绿标注 = 新增/变更，其余像素级保持现状）｜ v2：线路检验报告不设顶层 Tab，下沉到「检验列表」（设备维度）与「质量对比」（横向对比维度）</h3>
+    <ol>
+      <li><b>① 真值管理顶部新增分类页签</b>：RTK 真值点（33 个，现状）/ 动态路线（现状）/ <b>标准轨迹（新增第三类真值）</b></li>
+      <li><b>② 标准轨迹视图</b>：工具栏「🛰 导入轨迹」「🧬 合成」+ 候选线路表格（名称 / 点数 / 全长 / 导入时间 / 状态 / 操作），<b>追加式管理</b>：一次导入 = 一条独立候选，不归并、不覆盖</li>
+      <li><b>③ 勾选多条同线路原始轨迹</b> → 「合成」按钮可用，触发合成生成新候选线（<b>合成算法本期为第二步实现</b>，界面交互完整呈现）</li>
+      <li><b>④ 检验列表</b>新增第四种检验类型「线路」（青绿点）：入口为左栏「＋新建检验」；右栏新增 <b>4 类检验统一报告区</b>（汇总行），时间轴青绿「线」段 / 汇总行点击 → 单设备线路报告详情弹窗（口径：点到线最短距离，不做时间对齐，mean/p50/p95/max + 15/25/40m 占比，按 QualityGrade 分级）</li>
+      <li><b>⑤ 质量对比</b>对比类型选择器新增「线路检验」：选标准轨迹 + 时间范围 + 设备批次 → 多设备横向对比表 + 同图多设备轨迹叠加地图</li>
+    </ol>
+  </div>
+
+  <!-- 三分类页签 -->
+  <div class="subtab-bar">
+    <button class="subtab" data-sub="rtk" onclick="switchSub('rtk')">📍 RTK 真值点 <span class="cnt">33</span></button>
+    <button class="subtab" data-sub="route" onclick="switchSub('route')">🛣 动态路线 <span class="cnt">4</span></button>
+    <button class="subtab active anno-region" data-sub="track" onclick="switchSub('track')">🛰 标准轨迹 <span class="cnt">3</span><i class="anno">1</i></button>
+  </div>
+
+  <!-- 子页签 1：RTK 真值点（现状，不变） -->
+  <div class="subpane" id="sub-rtk">
+    <div class="panel">
+      <div class="panel-hd"><h2>📍 RTK 真值点列表 <span class="tag t-ok" style="margin-left:6px">现状不变</span></h2>
+        <button class="icon-btn" title="新增真值点（现有）">＋</button></div>
+      <table>
+        <thead><tr><th>位置名称</th><th>点位标签</th><th>纬度</th><th>经度</th><th>操作</th></tr></thead>
+        <tbody class="mono">
+          <tr><td>2 号牛舍东侧</td><td>P-01</td><td>28.24187</td><td>112.84213</td><td><button class="btn btn-outline btn-sm">🗑</button></td></tr>
+          <tr><td>2 号牛舍东侧</td><td>P-02</td><td>28.24205</td><td>112.84248</td><td><button class="btn btn-outline btn-sm">🗑</button></td></tr>
+          <tr><td>中央通道南口</td><td>P-03</td><td>28.24312</td><td>112.84377</td><td><button class="btn btn-outline btn-sm">🗑</button></td></tr>
+          <tr><td colspan="5" class="muted" style="text-align:center">… 共 33 个点位，按位置分组（现状） …</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 子页签 2：动态路线（现状，不变） -->
+  <div class="subpane" id="sub-route">
+    <div class="panel">
+      <div class="panel-hd"><h2>🛣 动态路线列表 <span class="tag t-ok" style="margin-left:6px">现状不变</span></h2>
+        <button class="icon-btn" title="新增路线（现有）">＋</button></div>
+      <div class="imp-row"><b>1 号舍巡回路线</b><span class="muted">12 个点位序列 · 每日晨检用</span><span style="flex:1"></span><button class="btn btn-outline btn-sm">🗑</button></div>
+      <div class="imp-row"><b>运动场环线</b><span class="muted">8 个点位序列</span><span style="flex:1"></span><button class="btn btn-outline btn-sm">🗑</button></div>
+      <div class="imp-row"><b>挤奶厅通道</b><span class="muted">6 个点位序列</span><span style="flex:1"></span><button class="btn btn-outline btn-sm">🗑</button></div>
+      <div class="imp-row"><b>饲料通道西线</b><span class="muted">9 个点位序列</span><span style="flex:1"></span><button class="btn btn-outline btn-sm">🗑</button></div>
+    </div>
+  </div>
+
+  <!-- 子页签 3：标准轨迹（新增，原型重点） -->
+  <div class="subpane active anno-region" id="sub-track">
+    <i class="anno" style="position:absolute">2</i>
+    <div class="panel">
+      <div class="panel-hd">
+        <h2>🛰 标准轨迹线路 <span class="tag t-sel" style="margin-left:6px">新增 · 第三类真值</span></h2>
+        <div class="toolbar">
+          <span class="muted" id="selInfo">已选 0 条</span>
+          <button class="btn btn-line btn-sm" id="btnMerge" disabled onclick="openMerge()">🧬 合成候选线<i class="anno">3</i></button>
+          <button class="btn btn-primary btn-sm" onclick="openImport()">🛰 导入轨迹</button>
+        </div>
+      </div>
+
+      <div class="merge-bar" id="mergeBar">
+        <span>🧬 已勾选 <b id="mergeCnt">0</b> 条原始轨迹，可合成为新的候选标准线（同一线路的多次采集取最优/平均轨迹）</span>
+        <span style="flex:1"></span>
+        <button class="btn btn-line btn-sm" onclick="openMerge()">开始合成 →</button>
+      </div>
+
+      <div class="callout" style="margin:var(--md) var(--lg) 0">📌 管理规则（追加式导入，不归并）：一次导入 = 一条独立候选，系统<b>不自动归并</b>；同一文件重复导入会<b>新增记录而不覆盖</b>；检验发起时对标准轨迹点列做<b>快照</b>，删除候选不影响历史报告；勾选 ≥2 条可「🧬 合成」（二期实现）。</div>
+
+      <table style="margin-top:var(--md)">
+        <thead><tr>
+          <th style="width:34px"><input type="checkbox" class="chk" onchange="toggleAll(this)"></th>
+          <th>名称</th><th>点数</th><th>全长</th><th>导入时间</th><th>状态</th><th>操作</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td><input type="checkbox" class="chk row-chk" onchange="updateSel()"></td>
+            <td><b class="mono">自动追踪_20260728153839</b><div class="muted mono" style="font-size:10px">起点 112.85174,28.24686 ｜ 轨迹检验线路1.xlsx</div></td>
+            <td class="mono">430</td><td class="mono">1177 m</td>
+            <td class="mono">2026-07-28 16:21</td>
+            <td><span class="tag t-sel">★ 已选定</span></td>
+            <td style="white-space:nowrap">
+              <button class="btn btn-outline btn-sm" onclick="openPreview()">🗺 预览</button>
+              <button class="btn btn-outline btn-sm" style="color:var(--warning);border-color:var(--warning)">取消选定</button>
+              <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)">🗑</button>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="chk row-chk" checked onchange="updateSel()"></td>
+            <td><b class="mono">自动追踪_20260728155125</b><div class="muted mono" style="font-size:10px">起点 112.85174,28.24688 ｜ 轨迹检验线路2.xlsx</div></td>
+            <td class="mono">387</td><td class="mono">1192 m</td>
+            <td class="mono">2026-07-28 16:23</td>
+            <td><span class="tag t-cand">候选</span></td>
+            <td style="white-space:nowrap">
+              <button class="btn btn-outline btn-sm" onclick="openPreview()">🗺 预览</button>
+              <button class="btn btn-line btn-sm">选定</button>
+              <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)">🗑</button>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="chk row-chk" checked onchange="updateSel()"></td>
+            <td><b class="mono">自动追踪_20260728155954</b><div class="muted mono" style="font-size:10px">起点 112.85177,28.24687 ｜ 轨迹检验线路3.xlsx</div></td>
+            <td class="mono">406</td><td class="mono">1192 m</td>
+            <td class="mono">2026-07-28 16:25</td>
+            <td><span class="tag t-cand">候选</span></td>
+            <td style="white-space:nowrap">
+              <button class="btn btn-outline btn-sm" onclick="openPreview()">🗺 预览</button>
+              <button class="btn btn-line btn-sm">选定</button>
+              <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)">🗑</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="panel-bd" style="padding-top:var(--sm)">
+        <div class="callout">💡 状态口径：<b>候选</b> = 导入清洗后的原始轨迹（去连续重复点、高程忽略），可参与检验；<b>已选定</b> = 当前生效的标准轨迹。新建线路检验时下拉优先列出已选定线路。删除「已选定」线路前需先取消选定；删除任何候选不影响已生成报告（点列已快照）。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 界面 ②入口：检验列表（含新建线路检验） ═══════════════ -->
+<div class="page active" id="page-checks">
+  <div class="layout">
+    <!-- 左栏：设备分组列表（复刻现有 + 新增线路类型标记） -->
+    <div class="left-col">
+      <div class="panel" style="margin-bottom:0">
+        <div class="panel-hd" style="flex-direction:column;align-items:stretch;gap:0">
+          <div style="display:flex;align-items:center">
+            <h2>检验设备分组</h2>
+            <span style="flex:1"></span>
+            <button class="icon-btn new-feature" title="新建检验（新增「线路」类型）" onclick="openNewLine()">＋<i class="anno" style="position:absolute;top:-9px;right:-9px;margin:0">4</i></button>
+            <button class="icon-btn" title="批量导入会话（现有）">⬆</button>
+            <button class="icon-btn" title="导入 RTK 轨迹数据（NIX-22，现有）">🛰</button>
+          </div>
+          <div class="toolbar-search">
+            <input placeholder="设备编号 / EUI">
+            <select><option>全部状态</option><option>进行中</option><option>已完成</option></select>
+          </div>
+        </div>
+        <div>
+          <div class="dev-group sel" onclick="selDevice(this)">
+            <div class="dev-eui">GPS-20260728A01</div>
+            <div class="dev-meta">3 项检验
+              <span class="type-dot td-static"><i></i>静态</span>
+              <span class="type-dot td-line anno-region"><i></i>线路</span><i class="anno">4</i>
+            </div>
+            <div class="dev-time">07-26 09:00</div>
+          </div>
+          <div class="dev-group" onclick="selDevice(this)">
+            <div class="dev-eui">GPS-20260728A02</div>
+            <div class="dev-meta">1 项检验
+              <span class="type-dot td-line"><i></i>线路</span>
+            </div>
+            <div class="dev-time">07-26 09:00</div>
+          </div>
+          <div class="dev-group" onclick="selDevice(this)">
+            <div class="dev-eui">GPS-20260728A03</div>
+            <div class="dev-meta">2 项检验
+              <span class="type-dot td-dynamic"><i></i>动态</span>
+              <span class="type-dot td-traj"><i></i>轨迹</span>
+            </div>
+            <div class="dev-time">07-22 14:00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右栏：设备详情（复刻现有 + 时间轴新增青绿「线」段） -->
+    <div class="right-col">
+      <div class="panel">
+        <div class="panel-bd" style="padding:var(--md) var(--lg)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <b style="font-size:15px">GPS-20260728A01</b>
+            <span class="tag" style="background:var(--primary-soft);color:var(--primary)">3 项检验</span>
+            <span style="flex:1"></span>
+            <button class="btn btn-outline btn-sm">🗑 删除设备检验</button>
+          </div>
+          <div class="muted" style="margin-top:4px">2026-07-20 09:00 → 07-26 11:30</div>
+        </div>
+      </div>
+
+      <div class="panel anno-region">
+        <div class="panel-bd" style="padding:var(--md) var(--lg)">
+          <div class="muted" style="font-weight:600">检验时间轴</div>
+          <div class="timeline-bar">
+            <div class="tl-seg c-static" style="left:1%;width:22%" title="静态 · 07-20 09:00→18:00">静</div>
+            <div class="tl-seg c-dynamic" style="left:26%;width:14%" title="路线动态 · 07-22 09:00→12:00">动</div>
+            <div class="tl-seg c-line sel" style="left:43%;width:20%" title="线路检验 · 07-26 09:00→11:30（新增类型，点击查看报告详情）" onclick="openLineDetail()">线</div>
+            <div class="tl-seg c-static" style="left:66%;width:18%" title="静态 · 07-24 09:00→15:00">静</div>
+          </div>
+          <div class="tl-labels"><span>07-20 09:00</span><span>07-26 11:30</span></div>
+          <div class="legend" style="padding:6px 0 0">
+            <span><span class="dot" style="background:var(--c-static)"></span>静态（现有）</span>
+            <span><span class="dot" style="background:var(--c-dynamic)"></span>路线动态（现有）</span>
+            <span><span class="dot" style="background:var(--c-traj)"></span>轨迹动态（现有）</span>
+            <span><span class="dot" style="background:var(--c-line)"></span><b>线路（新增，点击「线」段打开报告详情弹窗）</b></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 统一报告区：该设备 4 类检验结果汇总（新增「线路」行） -->
+      <div class="panel anno-region">
+        <div class="panel-hd">
+          <h2>检验结果汇总 <span class="tag t-sel" style="margin-left:6px">4 类检验统一视图 · 新增</span></h2>
+          <span class="muted">点击「查看报告」打开对应类型报告（线路 → 详情弹窗）</span>
+        </div>
+        <table>
+          <thead><tr><th>检验类型</th><th>最近一次检验</th><th>分级</th><th>关键指标</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="type-dot td-static" style="font-size:10px;padding:2px 7px"><i></i>静态</span></td>
+              <td class="mono">07-24 09:00 → 15:00</td>
+              <td><span class="grade grade-us">USABLE</span></td>
+              <td class="mono">P95 21.3m · 33 个真值点覆盖 29</td>
+              <td><button class="btn btn-outline btn-sm">查看报告</button></td>
+            </tr>
+            <tr>
+              <td><span class="type-dot td-dynamic" style="font-size:10px;padding:2px 7px"><i></i>动态</span></td>
+              <td class="mono">07-22 09:00 → 12:00</td>
+              <td><span class="grade grade-mg">MARGINAL</span></td>
+              <td class="mono">P95 23.1m · 路线覆盖率 86%</td>
+              <td><button class="btn btn-outline btn-sm">查看报告</button></td>
+            </tr>
+            <tr>
+              <td><span class="type-dot td-traj" style="font-size:10px;padding:2px 7px"><i></i>轨迹</span></td>
+              <td class="muted">本设备暂无</td>
+              <td class="muted">—</td>
+              <td class="muted">—</td>
+              <td class="muted">—</td>
+            </tr>
+            <tr style="background:#F0FDFA">
+              <td><span class="type-dot td-line" style="font-size:10px;padding:2px 7px"><i></i>线路</span><span class="tag t-sel" style="margin-left:4px">新</span></td>
+              <td class="mono">07-26 09:00 → 11:30</td>
+              <td><span class="grade grade-ex">EXCELLENT</span></td>
+              <td class="mono">mean 6.9m · P95 13.6m · ≤15m 97.2% · 1,482 样本 · 标准轨迹「中央通道巡线 A」</td>
+              <td><button class="btn btn-line btn-sm" onclick="openLineDetail()">查看报告</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="panel-bd" style="padding-top:var(--sm)">
+          <div class="callout">🧭 流转：时间轴各类型「段」与汇总表「查看报告」打开同一份报告；线路检验与轨迹检验一致，以<b>弹窗</b>呈现单次详情，不占用顶层 Tab。多设备横向对比请前往「质量对比」Tab。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 界面 ⑦：质量对比 Tab（对比类型新增「线路检验」） ═══════════════ -->
+<div class="page" id="page-compare">
+
+  <!-- 过滤条：对比类型选择器（复刻现网 ComparisonTab 的 SegmentedButton，新增第 4 段） -->
+  <div class="panel">
+    <div class="panel-bd" style="display:flex;align-items:center;gap:var(--lg);flex-wrap:wrap">
+      <div class="subtab-bar" style="margin-bottom:0">
+        <button class="subtab" data-cmp="static" onclick="switchCmp('static')">📍 静态</button>
+        <button class="subtab" data-cmp="dynamic" onclick="switchCmp('dynamic')">🚶 动态</button>
+        <button class="subtab" data-cmp="traj" onclick="switchCmp('traj')">🛰 轨迹</button>
+        <button class="subtab active anno-region" data-cmp="line" onclick="switchCmp('line')">🧭 线路检验 <span class="tag t-sel">新增</span><i class="anno">5</i></button>
+      </div>
+      <span style="flex:1"></span>
+      <span class="muted">复刻现网 ComparisonTab（SegmentedButton + 维度下拉）；本期新增第 4 段「线路检验」</span>
+    </div>
+  </div>
+
+  <!-- 既有类型对比（现状占位，不变） -->
+  <div class="cmp-pane" id="cmp-static">
+    <div class="panel"><div class="panel-bd muted">📍 静态对比（现状不变）：按 RTK 真值点分组，下拉选择点位后查看各设备散布 / 分级对比。</div></div>
+  </div>
+  <div class="cmp-pane" id="cmp-dynamic">
+    <div class="panel"><div class="panel-bd muted">🚶 动态对比（现状不变）：按动态路线分组，下拉选择路线后查看各设备匹配 / 覆盖率对比。</div></div>
+  </div>
+  <div class="cmp-pane" id="cmp-traj">
+    <div class="panel"><div class="panel-bd muted">🛰 轨迹对比（现状不变）：按设备列出轨迹动态检验结果对比。</div></div>
+  </div>
+
+  <!-- 线路检验横向对比（新增） -->
+  <div class="cmp-pane active" id="cmp-line">
+
+    <!-- 条件选择：标准轨迹 + 时间范围 + 设备批次 -->
+    <div class="panel anno-region">
+      <div class="panel-bd" style="display:flex;align-items:center;gap:var(--md);flex-wrap:wrap">
+        <label style="font-size:var(--fs-md);font-weight:600">标准轨迹</label>
+        <select style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-md);font-size:var(--fs-sm);min-width:300px;background:var(--surface-alt)">
+          <option>★ 自动追踪_20260728153839（已选定 · 430 点 · 1177 m）</option>
+          <option>自动追踪_20260728155125（候选 · 387 点 · 1192 m）</option>
+          <option>自动追踪_20260728155954（候选 · 406 点 · 1192 m）</option>
+        </select>
+        <label style="font-size:var(--fs-md);font-weight:600">时间范围</label>
+        <input type="datetime-local" value="2026-07-26T09:00" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-md);font-size:var(--fs-sm)">
+        <span class="muted">→</span>
+        <input type="datetime-local" value="2026-07-26T11:30" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-md);font-size:var(--fs-sm)">
+        <label style="font-size:var(--fs-md);font-weight:600">被检设备</label>
+        <span class="dev-chip"><span class="dot" style="background:#C2564B"></span>GPS-20260728A01</span>
+        <span class="dev-chip"><span class="dot" style="background:#D97706"></span>GPS-20260728A02</span>
+        <span class="dev-chip"><span class="dot" style="background:#2563EB"></span>GPS-20260728A03</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-hd">
+        <h2>📊 线路检验 · 多设备横向对比 <span class="tag t-sel" style="margin-left:6px">同一标准轨迹 · 同图叠加</span></h2>
+        <span class="muted mono">2026-07-26 09:00 → 11:30 ｜ 口径：点到线最短距离（不做时间对齐）</span>
+      </div>
+
+      <!-- 同图多设备叠加地图 -->
+      <div class="panel-bd" style="border-bottom:1px solid var(--border)">
+        <div class="map-box">
+          <svg viewBox="0 0 640 260" width="100%">
+            <rect width="640" height="260" fill="#EDEBE3"/>
+            <g stroke="#DAD6C9"><line x1="0" y1="65" x2="640" y2="65"/><line x1="0" y1="130" x2="640" y2="130"/><line x1="0" y1="195" x2="640" y2="195"/><line x1="160" y1="0" x2="160" y2="260"/><line x1="320" y1="0" x2="320" y2="260"/><line x1="480" y1="0" x2="480" y2="260"/></g>
+            <text x="12" y="20" font-size="10" fill="#617061">28.2480°N ↑</text>
+            <text x="12" y="252" font-size="10" fill="#617061">28.2430°N ｜ 112.8438°E</text>
+            <text x="580" y="252" font-size="10" fill="#617061">112.8502°E</text>
+            <!-- 设备轨迹（A03 蓝 / A02 橙 / A01 红，先画下层） -->
+            <polyline points="72,216 158,178 210,225 348,132 388,188 516,92 572,106" fill="none" stroke="#2563EB" stroke-width="2" stroke-dasharray="5,4"/>
+            <polyline points="64,233 152,188 218,218 336,144 396,182 508,104 580,98" fill="none" stroke="#D97706" stroke-width="2" stroke-dasharray="5,4"/>
+            <polyline points="56,221 146,192 226,211 326,151 404,171 501,111 585,90" fill="none" stroke="#C2564B" stroke-width="2" stroke-dasharray="5,4"/>
+            <!-- 标准轨迹（绿色实线，置顶） -->
+            <polyline points="50,225 140,198 230,204 320,158 410,164 495,118 590,84" fill="none" stroke="#2F6B3B" stroke-width="3.5"/>
+            <circle cx="50" cy="225" r="5" fill="#2F6B3B"/><circle cx="590" cy="84" r="5" fill="#2F6B3B"/>
+            <text x="34" y="243" font-size="9" fill="#2F6B3B">起点</text><text x="576" y="76" font-size="9" fill="#2F6B3B">终点</text>
+          </svg>
+          <div class="legend">
+            <span><span class="dot" style="background:#2F6B3B"></span>标准轨迹（中央通道巡线 A）</span>
+            <span><span class="dot" style="background:#C2564B"></span>GPS-20260728A01（1,482 点 · EXCELLENT）</span>
+            <span><span class="dot" style="background:#D97706"></span>GPS-20260728A02（1,465 点 · USABLE）</span>
+            <span><span class="dot" style="background:#2563EB"></span>GPS-20260728A03（1,208 点 · MARGINAL）</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 多设备横向对比表（自原报告页迁入，设备列标注轨迹色） -->
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>设备</th><th>样本数</th><th>mean</th><th>P50</th><th>P95</th><th>max</th><th>≤15m</th><th>≤25m</th><th>≤40m</th><th>分级</th></tr></thead>
+        <tbody class="mono">
+          <tr><td><span class="dev-chip"><span class="dot" style="background:#C2564B"></span>GPS-20260728A01</span></td><td>1,482</td><td>6.9m</td><td>5.8m</td><td>13.6m</td><td>24.1m</td><td>97.2%</td><td>99.9%</td><td>100%</td><td><span class="grade grade-ex">EXCELLENT</span></td></tr>
+          <tr><td><span class="dev-chip"><span class="dot" style="background:#D97706"></span>GPS-20260728A02</span></td><td>1,465</td><td>11.8m</td><td>10.2m</td><td>22.4m</td><td>38.7m</td><td>82.5%</td><td>96.1%</td><td>99.9%</td><td><span class="grade grade-us">USABLE</span></td></tr>
+          <tr><td><span class="dev-chip"><span class="dot" style="background:#2563EB"></span>GPS-20260728A03</span></td><td>1,208</td><td>19.6m</td><td>16.9m</td><td>35.8m</td><td>52.3m</td><td>58.4%</td><td>84.2%</td><td>96.3%</td><td><span class="grade grade-mg">MARGINAL</span></td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="panel-bd" style="padding-top:var(--sm)">
+        <div class="callout">🧭 流转：此处只做同条件横向对比；单台设备的完整线路报告（指标卡 + 单设备地图 + 逐点偏差明细）请回「检验列表」→ 选设备 → 点时间轴青绿「线」段或汇总表「查看报告」打开。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 界面 ②：标准轨迹导入向导（弹窗） ═══════════════ -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <h3>🛰 导入标准轨迹（候选线路）</h3>
+      <div class="steps">
+        <div class="step active" id="st1"><span class="step-num">1</span>上传 XLSX</div>
+        <span class="step-arrow">→</span>
+        <div class="step" id="st2"><span class="step-num">2</span>解析预览</div>
+        <span class="step-arrow">→</span>
+        <div class="step" id="st3"><span class="step-num">3</span>导入结果</div>
+      </div>
+    </div>
+    <div class="modal-bd">
+
+      <!-- Step 1: 上传 -->
+      <div class="step-pane active" id="pane1">
+        <div class="upload-zone" onclick="gotoStep(2)">
+          <div class="ico">📂</div>
+          <div style="font-weight:600;margin-bottom:4px">点击选择或拖入 RTK 手簿导出文件</div>
+          <div class="muted">支持 .xlsx（RTK 手簿「线路追踪」导出），单条线路一个文件，一次导入生成一条候选</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 6px">
+          <b style="font-size:13px">文件版式（RTK 手簿导出：单 sheet「线路追踪」，8 列，整条线路一行数据）</b>
+          <button class="btn btn-outline btn-sm">⬇ 下载示例</button>
+        </div>
+        <table>
+          <thead><tr><th>列</th><th>字段</th><th>系统使用</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>A</td><td>名称</td><td><span class="req-tag">使用</span></td><td>作为候选线路默认名称（可改），如 自动追踪_20260728153839</td></tr>
+            <tr><td>B</td><td>类别</td><td><span class="opt-tag">忽略</span></td><td>手簿内部字段，通常为空</td></tr>
+            <tr><td>C</td><td>开始时间</td><td><span class="opt-tag">不采信</span></td><td>元数据不可信（存在开始=结束、格式手误等脏值），仅展示不入库</td></tr>
+            <tr><td>D</td><td>结束时间</td><td><span class="opt-tag">不采信</span></td><td>同上，如脏数据 <span class="mono">2026=07-28 16:19:35</span></td></tr>
+            <tr><td>E</td><td>长度(单位:米)</td><td><span class="opt-tag">不采信</span></td><td>元数据不可信（常为 0），全长由坐标实算</td></tr>
+            <tr><td>F</td><td>备注</td><td><span class="opt-tag">忽略</span></td><td>—</td></tr>
+            <tr><td>G</td><td>线路类型</td><td><span class="opt-tag">忽略</span></td><td>—</td></tr>
+            <tr><td>H</td><td>坐标</td><td><span class="req-tag">使用</span></td><td>单元格内为<b>换行分隔</b>的 <span class="mono">经度,纬度,高程</span> 三元组（WGS-84）；高程列忽略</td></tr>
+          </tbody>
+        </table>
+        <div class="callout" style="margin-top:12px">🧹 清洗规则：<b>去连续重复点</b>（手簿静止时会产生大量重复坐标）、<b>忽略高程</b>、<b>元数据脏值容忍</b>（开始/结束时间、长度字段异常不影响导入，系统一律以坐标实算为准）。清洗后的轨迹整体成为一条「候选标准轨迹线路」，不再拆分设备——线路检验的真值只属于线路本身。</div>
+      </div>
+
+      <!-- Step 2: 解析预览 -->
+      <div class="step-pane" id="pane2">
+        <div class="summary">
+          <div class="stat"><div class="stat-val">525</div><div class="stat-label">原始点数</div></div>
+          <div class="stat"><div class="stat-val" style="color:var(--success)">430</div><div class="stat-label">去重后点数（去连续重复）</div></div>
+          <div class="stat"><div class="stat-val" style="color:var(--warning)">95</div><div class="stat-label">去除连续重复</div></div>
+          <div class="stat"><div class="stat-val" style="color:var(--c-line)">1177 m</div><div class="stat-label">实算全长（坐标逐段累加）</div></div>
+          <div class="stat"><div class="stat-val mono" style="font-size:13px">112.85174, 28.24686</div><div class="stat-label">起点坐标（实算）</div></div>
+          <div class="stat"><div class="stat-val mono" style="font-size:13px">112.85174, 28.24687</div><div class="stat-label">终点坐标（实算）</div></div>
+        </div>
+        <b style="font-size:13px">前 8 个坐标点（去重后）</b>
+        <table style="margin-top:6px">
+          <thead><tr><th>序号</th><th>经度</th><th>纬度</th></tr></thead>
+          <tbody class="mono">
+            <tr><td>1</td><td>112.85174042202968</td><td>28.246855063618117</td></tr>
+            <tr><td>2</td><td>112.85174335450697</td><td>28.24685667783055</td></tr>
+            <tr><td>3</td><td>112.85174660486791</td><td>28.24685623274783</td></tr>
+            <tr><td>4</td><td>112.85175398440377</td><td>28.24685799072024</td></tr>
+            <tr><td>5</td><td>112.85176037360522</td><td>28.24685679544257</td></tr>
+            <tr><td>6</td><td>112.8517662491068</td><td>28.24685654635617</td></tr>
+            <tr><td>7</td><td>112.85176885098159</td><td>28.24685560398755</td></tr>
+            <tr><td>8</td><td>112.85177239866924</td><td>28.24685638222456</td></tr>
+            <tr><td colspan="3" class="muted" style="text-align:center">… 其余 422 个点 …</td></tr>
+          </tbody>
+        </table>
+        <div class="callout warn" style="margin-top:12px">⚠ 文件中的开始/结束时间与长度字段不可信（本文件：开始=结束时间、长度=0），系统以坐标实算为准，不展示采集时长与点密度。</div>
+        <div class="setting-row" style="display:flex;gap:var(--md);align-items:center;background:var(--surface);border-radius:8px;padding:10px 14px;margin-top:12px;flex-wrap:wrap">
+          <b style="font-size:13px">命名</b>
+          <input value="自动追踪_20260728153839" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;width:240px">
+          <span class="muted">默认取文件「名称」列，可改。一次导入 = 一条独立候选；同一文件重复导入会新增记录而不覆盖。</span>
+        </div>
+      </div>
+
+      <!-- Step 3: 导入结果 -->
+      <div class="step-pane" id="pane3">
+        <div class="callout ok" style="font-size:13px;margin-bottom:14px">✅ 导入完成：生成 1 条候选标准轨迹线路（430 点 · 实算全长 1177 m），已加入真值管理 → 标准轨迹列表。</div>
+        <div class="imp-row"><b class="mono">自动追踪_20260728153839</b><span class="muted">430 点 · 1177 m</span><span style="flex:1"></span><span class="tag t-cand">候选</span><span class="tag t-ok">已创建</span></div>
+        <div class="callout" style="margin-top:14px">追加式管理：本次导入为独立候选，不与既有记录归并；同一文件再次导入会新增一条而不覆盖。现有候选：自动追踪_20260728155125（387 点）/ 自动追踪_20260728155954（406 点）。建议打开 <b>🗺 地图预览</b> 叠加对比；若走向一致，可勾选后 <b>🧬 合成</b>（二期）一条更稳健的标准线再选定。</div>
+      </div>
+
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-outline" onclick="closeModal('importModal')">取消</button>
+      <button class="btn btn-outline" id="btnBack" style="display:none" onclick="prevStep()">← 上一步</button>
+      <button class="btn btn-primary" id="btnNext" onclick="nextStep()">下一步 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 界面 ③：标准轨迹地图预览（弹窗） ═══════════════ -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal" style="width:1120px">
+    <div class="modal-hd">
+      <h3>🗺 标准轨迹地图预览</h3>
+      <span class="muted">叠加同一物理线路的全部候选线，辅助选定 / 合成决策</span>
+    </div>
+    <div class="modal-bd">
+      <div class="preview-layout">
+        <!-- 左：候选列表 -->
+        <div class="preview-list">
+          <div class="preview-item sel" onclick="selPreview(this)">
+            <div class="nm"><span class="dot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#2F6B3B"></span><span class="mono" style="font-size:12px">自动追踪_20260728153839</span></div>
+            <div class="mt">430 点 · 1177 m · <span class="tag t-sel" style="font-size:10px">★ 已选定</span></div>
+          </div>
+          <div class="preview-item" onclick="selPreview(this)">
+            <div class="nm"><span class="dot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#9CA3AF"></span><span class="mono" style="font-size:12px">自动追踪_20260728155125</span></div>
+            <div class="mt">387 点 · 1192 m · <span class="tag t-cand" style="font-size:10px">候选</span></div>
+          </div>
+          <div class="preview-item" onclick="selPreview(this)">
+            <div class="nm"><span class="dot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#B6BCC4"></span><span class="mono" style="font-size:12px">自动追踪_20260728155954</span></div>
+            <div class="mt">406 点 · 1192 m · <span class="tag t-cand" style="font-size:10px">候选</span></div>
+          </div>
+        </div>
+        <!-- 右：地图 -->
+        <div class="preview-map">
+          <div class="map-box" style="flex:1">
+            <svg viewBox="0 0 640 360" width="100%">
+              <rect width="640" height="360" fill="#EDEBE3"/>
+              <g stroke="#DAD6C9"><line x1="0" y1="90" x2="640" y2="90"/><line x1="0" y1="180" x2="640" y2="180"/><line x1="0" y1="270" x2="640" y2="270"/><line x1="160" y1="0" x2="160" y2="360"/><line x1="320" y1="0" x2="320" y2="360"/><line x1="480" y1="0" x2="480" y2="360"/></g>
+              <text x="12" y="22" font-size="10" fill="#617061">28.2470°N ↑</text>
+              <text x="12" y="352" font-size="10" fill="#617061">28.2449°N ｜ 112.8485°E</text>
+              <text x="580" y="352" font-size="10" fill="#617061">112.8531°E</text>
+              <!-- 源轨迹 2 / 3（灰色） -->
+              <polyline points="58,312 148,272 236,280 326,212 414,220 500,152 592,104" fill="none" stroke="#9CA3AF" stroke-width="2"/>
+              <polyline points="46,318 134,280 224,286 314,222 406,228 490,162 584,114" fill="none" stroke="#B6BCC4" stroke-width="2"/>
+              <!-- 标准线（绿色实线，置顶） -->
+              <polyline points="52,314 142,276 231,283 321,217 411,224 496,157 589,109" fill="none" stroke="#2F6B3B" stroke-width="3.5"/>
+              <circle cx="52" cy="314" r="5.5" fill="#2F6B3B"/><circle cx="589" cy="109" r="5.5" fill="#2F6B3B"/>
+              <text x="34" y="332" font-size="9" fill="#2F6B3B">起点 112.85174,28.24686</text>
+              <text x="472" y="100" font-size="9" fill="#2F6B3B">终点 112.85174,28.24687</text>
+              <!-- 局部放大标注：三源离散度 -->
+              <circle cx="410" cy="223" r="14" fill="none" stroke="#D28A2D" stroke-width="1.5" stroke-dasharray="3,2"/>
+              <text x="428" y="246" font-size="9" fill="#C2410C">源间最大离散 3.2m</text>
+            </svg>
+            <div class="legend">
+              <span><span class="dot" style="background:#2F6B3B"></span>自动追踪_…153839（已选定）</span>
+              <span><span class="dot" style="background:#9CA3AF"></span>自动追踪_…155125</span>
+              <span><span class="dot" style="background:#B6BCC4"></span>自动追踪_…155954</span>
+              <span><span class="dot" style="background:#D28A2D"></span>源间离散热点</span>
+            </div>
+            <!-- 底部统计 -->
+            <div class="stat-strip">
+              <div class="it"><div class="v mono" style="font-size:13px">自动追踪_20260728153839</div><div class="l">当前选中线路</div></div>
+              <div class="it"><div class="v">430</div><div class="l">点数（去连续重复后）</div></div>
+              <div class="it"><div class="v">1177 m</div><div class="l">实算全长</div></div>
+              <div class="it"><div class="v mono" style="font-size:12px">112.85174, 28.24686</div><div class="l">起点</div></div>
+              <div class="it"><div class="v mono" style="font-size:12px">112.85174, 28.24687</div><div class="l">终点</div></div>
+              <div class="it"><div class="v" style="color:var(--c-line)">3.2m</div><div class="l">三源间最大离散</div></div>
+              <div class="it"><div class="v">2026-07-28 16:21</div><div class="l">导入时间</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-outline" onclick="closeModal('previewModal')">关闭</button>
+      <button class="btn btn-line" onclick="closeModal('previewModal')">★ 选定此线为标准轨迹</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 界面 ④：新建线路检验（弹窗流程） ═══════════════ -->
+<div class="modal-overlay" id="newLineModal">
+  <div class="modal" style="width:760px">
+    <div class="modal-hd">
+      <h3>＋ 新建检验</h3>
+      <span class="type-dot td-line" style="font-size:11px;padding:2px 8px"><i></i>检验类型：线路 LINE（新增）</span>
+    </div>
+    <div class="modal-bd">
+      <!-- Step A: 时间范围 + 查询设备 -->
+      <div class="form-row">
+        <label>① 时间范围</label>
+        <input type="datetime-local" value="2026-07-26T09:00">
+        <span class="muted">→</span>
+        <input type="datetime-local" value="2026-07-26T11:30">
+        <button class="btn btn-primary btn-sm" onclick="queryDevices()">🔍 查询设备</button>
+        <span class="muted">从 gps_logs 查出该范围内有上报的设备</span>
+      </div>
+
+      <!-- Step B: 设备列表（点击查询后展示） -->
+      <div id="devList" class="hidden" style="margin-top:var(--sm)">
+        <div class="form-row" style="padding-top:0"><label>② 勾选设备</label><span class="muted">范围内 3 台设备有数据</span></div>
+        <div class="dev-check-row">
+          <input type="checkbox" class="chk" checked>
+          <b class="mono">GPS-20260728A01</b>
+          <span class="muted">范围内 1,482 点</span>
+          <span style="flex:1"></span>
+          <span class="muted mono">首 09:00:04 ｜ 末 11:29:58</span>
+        </div>
+        <div class="dev-check-row">
+          <input type="checkbox" class="chk" checked>
+          <b class="mono">GPS-20260728A02</b>
+          <span class="muted">范围内 1,465 点</span>
+          <span style="flex:1"></span>
+          <span class="muted mono">首 09:00:06 ｜ 末 11:29:54</span>
+        </div>
+        <div class="dev-check-row">
+          <input type="checkbox" class="chk" checked>
+          <b class="mono">GPS-20260728A03</b>
+          <span class="muted">范围内 1,208 点 ⚠ 有空洞</span>
+          <span style="flex:1"></span>
+          <span class="muted mono">首 09:00:08 ｜ 末 11:28:41</span>
+        </div>
+
+        <!-- Step C: 选择标准轨迹 -->
+        <div class="form-row" style="margin-top:var(--sm)">
+          <label>③ 标准轨迹</label>
+          <select style="min-width:320px">
+            <option>★ 自动追踪_20260728153839（已选定 · 430 点 · 1177 m）</option>
+            <option>自动追踪_20260728155125（候选 · 387 点 · 1192 m）</option>
+            <option>自动追踪_20260728155954（候选 · 406 点 · 1192 m）</option>
+          </select>
+          <span class="muted">★ = 已选定线路（下拉置顶）</span>
+        </div>
+        <div class="callout" style="margin-top:10px">📐 计算口径：对每台设备，取其时间范围内 gps_logs 全部点位，逐点计算到标准轨迹折线的<b>最短距离（点到线，不做时间对齐）</b>，汇总 mean / p50 / p95 / max 与 15 / 25 / 40m 内占比，按 QualityGrade 分级。</div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-outline" onclick="closeModal('newLineModal')">取消</button>
+      <button class="btn btn-line" id="btnLaunch" disabled onclick="launchCheck()">🚀 发起检验（3 台设备）</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 合成确认弹窗（第二步实现，交互完整呈现） ═══════════════ -->
+<div class="modal-overlay" id="mergeModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-hd"><h3>🧬 合成候选标准线</h3></div>
+    <div class="modal-bd">
+      <div class="muted" style="margin-bottom:10px">将以下 <b>2</b> 条同线路原始轨迹合成为一条新的候选标准线（合成结果同样以追加方式新增，不改动源记录）：</div>
+      <div class="imp-row"><b class="mono">自动追踪_20260728155125</b><span class="muted">387 点 · 1192 m</span></div>
+      <div class="imp-row"><b class="mono">自动追踪_20260728155954</b><span class="muted">406 点 · 1192 m</span></div>
+      <div class="form-row" style="margin-top:var(--md)">
+        <label>合成策略</label>
+        <select><option>逐段取源轨迹中位点（推荐）</option><option>取点数最多的源轨迹</option><option>逐段取均值</option></select>
+      </div>
+      <div class="form-row">
+        <label>新线名称</label>
+        <input value="合成线_20260728（2 源）" style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px">
+      </div>
+      <div class="callout warn" style="margin-top:10px">🚧 <b>合成算法为第二期实现</b>：本期界面交互完整可用，点击「确认合成」将创建占位候选线并标记「算法待接入」，算法落地后自动重算。</div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-outline" onclick="closeModal('mergeModal')">取消</button>
+      <button class="btn btn-line" onclick="closeModal('mergeModal')">确认合成</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 界面 ⑥：线路检验报告详情（弹窗，从检验列表时间轴/汇总行进入） ═══════════════ -->
+<div class="modal-overlay" id="lineDetailModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <h3>线路检验报告 · GPS-20260728A01</h3>
+      <span class="type-dot td-line" style="font-size:11px;padding:2px 8px"><i></i>线路 LINE</span>
+      <span class="grade grade-ex">EXCELLENT</span>
+    </div>
+    <div class="modal-bd">
+      <div class="muted" style="margin-bottom:var(--sm)">
+        标准轨迹：<b>中央通道巡线 A</b>（296 点 · 1.24 km）｜ 检验范围 <span class="mono">2026-07-26 09:00 → 11:30</span> ｜ 口径：点到线最短距离（不做时间对齐）
+      </div>
+      <!-- 指标卡 -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:var(--md);margin-bottom:var(--md)">
+        <div class="stat-chip"><div class="v">1,482</div><div class="l">样本数（gps_logs 点）</div></div>
+        <div class="stat-chip"><div class="v" style="color:var(--primary)">6.9m</div><div class="l">平均偏差 mean</div></div>
+        <div class="stat-chip"><div class="v">5.8m</div><div class="l">P50</div></div>
+        <div class="stat-chip"><div class="v">13.6m</div><div class="l">P95</div></div>
+        <div class="stat-chip"><div class="v" style="color:var(--warning)">24.1m</div><div class="l">最大偏差 max</div></div>
+        <div class="stat-chip"><div class="v" style="color:var(--success)">97.2%</div><div class="l">≤15m 占比</div></div>
+        <div class="stat-chip"><div class="v">99.9%</div><div class="l">≤25m 占比</div></div>
+        <div class="stat-chip"><div class="v">100%</div><div class="l">≤40m 占比</div></div>
+      </div>
+      <!-- 单设备地图对比 -->
+      <div class="map-box" style="margin-bottom:var(--md)">
+        <svg viewBox="0 0 640 220" width="100%">
+          <rect width="640" height="220" fill="#EDEBE3"/>
+          <g stroke="#DAD6C9"><line x1="0" y1="55" x2="640" y2="55"/><line x1="0" y1="110" x2="640" y2="110"/><line x1="0" y1="165" x2="640" y2="165"/><line x1="160" y1="0" x2="160" y2="220"/><line x1="320" y1="0" x2="320" y2="220"/><line x1="480" y1="0" x2="480" y2="220"/></g>
+          <text x="12" y="18" font-size="10" fill="#617061">28.2480°N ↑</text>
+          <text x="12" y="212" font-size="10" fill="#617061">28.2430°N ｜ 112.8438°E</text>
+          <text x="580" y="212" font-size="10" fill="#617061">112.8502°E</text>
+          <!-- 标准轨迹（绿色实线） -->
+          <polyline points="50,190 140,165 230,170 320,128 410,133 495,92 590,60" fill="none" stroke="#2F6B3B" stroke-width="3"/>
+          <!-- 设备轨迹（红色点线） -->
+          <polyline points="56,186 146,159 226,177 326,121 404,140 501,85 585,66" fill="none" stroke="#C2564B" stroke-width="2" stroke-dasharray="5,4"/>
+          <g fill="#C2564B">
+            <circle cx="56" cy="186" r="2.4"/><circle cx="146" cy="159" r="2.4"/><circle cx="226" cy="177" r="2.4"/>
+            <circle cx="326" cy="121" r="2.4"/><circle cx="404" cy="140" r="2.4"/><circle cx="501" cy="85" r="2.4"/><circle cx="585" cy="66" r="2.4"/>
+          </g>
+          <!-- 最大偏差点标注 -->
+          <circle cx="404" cy="140" r="7" fill="none" stroke="#D28A2D" stroke-width="2" stroke-dasharray="3,2"/>
+          <text x="368" y="158" font-size="10" fill="#C2410C" font-weight="700">max 24.1m</text>
+          <circle cx="50" cy="190" r="4.5" fill="#2F6B3B"/><circle cx="590" cy="60" r="4.5" fill="#2F6B3B"/>
+        </svg>
+        <div class="legend">
+          <span><span class="dot" style="background:#2F6B3B"></span>标准轨迹（中央通道巡线 A）</span>
+          <span><span class="dot" style="background:#C2564B"></span>GPS-20260728A01 上报轨迹（1,482 点）</span>
+          <span><span class="dot" style="background:#D28A2D"></span>最大偏差点</span>
+        </div>
+      </div>
+      <!-- 逐点偏差明细 -->
+      <table>
+        <thead><tr><th>#</th><th>上报时间</th><th>设备纬度</th><th>设备经度</th><th>最近点所在线段</th><th>最短距离（偏差）</th></tr></thead>
+        <tbody class="mono">
+          <tr><td>1</td><td>09:00:04</td><td>28.24311</td><td>112.84381</td><td>#1–#2</td><td style="color:var(--success);font-weight:600">3.8m</td></tr>
+          <tr><td>2</td><td>09:00:10</td><td>28.24316</td><td>112.84390</td><td>#2–#3</td><td style="color:var(--success);font-weight:600">5.2m</td></tr>
+          <tr><td>3</td><td>09:00:16</td><td>28.24322</td><td>112.84399</td><td>#3–#4</td><td style="color:var(--success);font-weight:600">6.7m</td></tr>
+          <tr><td>4</td><td>09:00:22</td><td>28.24329</td><td>112.84410</td><td>#4–#5</td><td style="color:var(--warning);font-weight:600">14.8m</td></tr>
+          <tr><td>5</td><td>09:00:28</td><td>28.24335</td><td>112.84418</td><td>#5–#6</td><td style="color:var(--danger);font-weight:600">24.1m ⚠ max</td></tr>
+          <tr><td colspan="6" class="muted" style="text-align:center">… 其余 1,477 条逐点偏差记录（支持导出 CSV） …</td></tr>
+        </tbody>
+      </table>
+      <div class="callout" style="margin-top:var(--md)">🧭 打开方式与轨迹检验报告一致：检验列表 → 选设备 → 点时间轴青绿「线」段或汇总表「查看报告」。多设备横向对比见「质量对比」Tab。</div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-outline" onclick="closeModal('lineDetailModal')">关闭</button>
+      <button class="btn btn-line" onclick="closeModal('lineDetailModal');switchTab('compare')">前往质量对比 →</button>
+    </div>
+  </div>
+</div>
+
+<div class="proto-note">NIX-68 原型 v3 · RTK 手簿 XLSX 导入 + 追加式候选管理 ｜ 青绿标注 = 本期新增/变更点</div>
+
+<script>
+let curStep=1;
+function switchTab(name){
+  document.querySelectorAll('.tabbar .tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const tgt=document.getElementById('page-'+name);
+  if(tgt)tgt.classList.add('active');
+}
+function switchSub(name){
+  document.querySelectorAll('.subtab').forEach(t=>t.classList.toggle('active',t.dataset.sub===name));
+  document.querySelectorAll('.subpane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('sub-'+name).classList.add('active');
+}
+function selDevice(el){
+  document.querySelectorAll('.dev-group').forEach(g=>g.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function switchCmp(name){
+  document.querySelectorAll('[data-cmp]').forEach(t=>t.classList.toggle('active',t.dataset.cmp===name));
+  document.querySelectorAll('.cmp-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('cmp-'+name).classList.add('active');
+}
+function selPreview(el){
+  document.querySelectorAll('.preview-item').forEach(i=>i.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function openImport(){openModal('importModal');gotoStep(1);}
+function openPreview(){openModal('previewModal');}
+function openMerge(){openModal('mergeModal');}
+function openNewLine(){openModal('newLineModal');}
+function openLineDetail(){openModal('lineDetailModal');}
+function queryDevices(){
+  document.getElementById('devList').classList.remove('hidden');
+  document.getElementById('btnLaunch').disabled=false;
+}
+function launchCheck(){
+  closeModal('newLineModal');
+  switchTab('checks');
+  openLineDetail();
+}
+/* 勾选合成联动 */
+function updateSel(){
+  const n=document.querySelectorAll('.row-chk:checked').length;
+  document.getElementById('selInfo').textContent='已选 '+n+' 条';
+  document.getElementById('mergeCnt').textContent=n;
+  const ok=n>=2;
+  document.getElementById('btnMerge').disabled=!ok;
+  document.getElementById('mergeBar').classList.toggle('show',ok);
+}
+function toggleAll(master){
+  document.querySelectorAll('.row-chk').forEach(c=>c.checked=master.checked);
+  updateSel();
+}
+/* 导入向导步骤 */
+function gotoStep(n){
+  curStep=n;
+  for(let i=1;i<=3;i++){
+    document.getElementById('pane'+i).classList.toggle('active',i===n);
+    const st=document.getElementById('st'+i);
+    st.classList.toggle('active',i===n);
+    st.classList.toggle('done',i<n);
+  }
+  document.getElementById('btnBack').style.display=n>1?'inline-flex':'none';
+  document.getElementById('btnNext').textContent=n===3?'完成':'下一步 →';
+}
+function nextStep(){
+  if(curStep===3){closeModal('importModal');return;}
+  gotoStep(curStep+1);
+}
+function prevStep(){if(curStep>1)gotoStep(curStep-1);}
+/* 初始化合成按钮态（表格预置 2 条勾选） */
+updateSel();
+</script>
+</body>
+</html>

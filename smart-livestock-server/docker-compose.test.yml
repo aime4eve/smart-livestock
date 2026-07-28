@@ -8,52 +8,52 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "15432:5432"
-   volumes:
-     - pgdata:/var/lib/postgresql/data
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
-   healthcheck:
-     test: ["CMD-SHELL", "pg_isready -U postgres"]
-     interval: 5s
-     timeout: 5s
-     retries: 5
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
- redis:
-   image: redis:7-alpine
-   ports:
-     - "26379:6379"
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "26379:6379"
     restart: unless-stopped
-   healthcheck:
+    healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
 
- rocketmq-namesrv:
-   image: apache/rocketmq:5.1.0
-   command: sh mqnamesrv
-   ports:
-     - "19876:9876"
+  rocketmq-namesrv:
+    image: apache/rocketmq:5.1.0
+    command: sh mqnamesrv
+    ports:
+      - "19876:9876"
     restart: unless-stopped
 
- rocketmq-broker:
-   image: apache/rocketmq:5.1.0
-   command: sh mqbroker -n rocketmq-namesrv:9876
-   depends_on:
-     - rocketmq-namesrv
-   ports:
-     - "10911:10911"
-   environment:
-     JAVA_OPT: "-Duser.home=/home/rocketmq"
+  rocketmq-broker:
+    image: apache/rocketmq:5.1.0
+    command: sh mqbroker -n rocketmq-namesrv:9876
+    depends_on:
+      - rocketmq-namesrv
+    ports:
+      - "10911:10911"
+    environment:
+      JAVA_OPT: "-Duser.home=/home/rocketmq"
     restart: unless-stopped
 
- rocketmq-dashboard:
-   image: apacherocketmq/rocketmq-dashboard:latest
-   ports:
-     - "18082:8082"
-   environment:
-     JAVA_OPTS: "-Drocketmq.namesrv.addr=rocketmq-namesrv:9876"
-   depends_on:
-     - rocketmq-namesrv
+  rocketmq-dashboard:
+    image: apacherocketmq/rocketmq-dashboard:latest
+    ports:
+      - "18082:8082"
+    environment:
+      JAVA_OPTS: "-Drocketmq.namesrv.addr=rocketmq-namesrv:9876"
+    depends_on:
+      - rocketmq-namesrv
     restart: unless-stopped
 
   app:
@@ -74,7 +74,6 @@ services:
       REDIS_PORT: 6379
       ROCKETMQ_NAME_SERVER: rocketmq-namesrv:9876
       AI_PLATFORM_URL: http://ai-platform:8000
-      # blade 平台 test 环境（172.22.4.17）；dev 环境为 172.21.2.41，见 docker-compose.dev.yml
       AGENTIC_PLATFORM_DEVICE_BASE_URL: ${AGENTIC_PLATFORM_DEVICE_BASE_URL:-http://172.22.4.17:8100}
       AGENTIC_PLATFORM_LICENSE_BASE_URL: ${AGENTIC_PLATFORM_LICENSE_BASE_URL:-http://172.22.4.17:8100}
       AGENTIC_PLATFORM_OAUTH2_TOKEN_URI: ${AGENTIC_PLATFORM_OAUTH2_TOKEN_URI:-http://172.22.4.17:8108/oauth2/token}
@@ -98,13 +97,11 @@ services:
       AI_DB_HOST: postgres
       AI_DB_PORT: 5432
       AI_DB_NAME: smart_livestock
-      # Phase A 临时用 postgres 账号；Plan 2 V38 创建只读账号后切换 AI_DB_USER
       AI_DB_USER: ${AI_DB_USER:-postgres}
       AI_DB_PASSWORD: ${AI_DB_PASSWORD:-postgres}
     depends_on:
       postgres:
         condition: service_healthy
-    # 评审 L7：Plan 2 Java 端 depends_on ai-platform 时需 healthcheck（service_started 不够）
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/ai/health/live')"]
       interval: 10s
@@ -121,14 +118,14 @@ services:
     command: ["-c", "config.json", "--port", "8080"]
     restart: unless-stopped
 
- nginx:
-   build:
-     context: .
-     dockerfile: infrastructure/nginx/Dockerfile
-   ports:
-     - "18080:80"
-   depends_on:
-     - app
+  nginx:
+    build:
+      context: .
+      dockerfile: infrastructure/nginx/Dockerfile
+    ports:
+      - "18080:80"
+    depends_on:
+      - app
     restart: unless-stopped
 
   tile-worker:
