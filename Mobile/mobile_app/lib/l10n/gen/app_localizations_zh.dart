@@ -3788,4 +3788,331 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get fenceTypeCircle => '圆形';
+
+  @override
+  String get gpsQualityLineCheck => '线路';
+
+  @override
+  String get gpsQualityLineCreate => '新建线路检验';
+
+  @override
+  String get gpsQualityLineReport => '线路检验报告';
+
+  @override
+  String get gpsQualityLineImport => '导入标准轨迹';
+
+  @override
+  String get gpsQualityTrackLines => '标准轨迹';
+
+  @override
+  String get gpsQualityTrackLineName => '名称';
+
+  @override
+  String get gpsQualityTrackLinePoints => '点数';
+
+  @override
+  String get gpsQualityTrackLineLength => '全长';
+
+  @override
+  String get gpsQualityTrackLineImportTime => '导入时间';
+
+  @override
+  String get gpsQualityTrackLineActions => '操作';
+
+  @override
+  String get gpsQualityTrackLineCandidate => '候选';
+
+  @override
+  String get gpsQualityTrackLineSelected => '★ 已选定';
+
+  @override
+  String get gpsQualityTrackLinePreview => '预览';
+
+  @override
+  String get gpsQualityTrackLineSelect => '选定';
+
+  @override
+  String get gpsQualityTrackLineUnselect => '取消选定';
+
+  @override
+  String get gpsQualityTrackLineStartPoint => '起点';
+
+  @override
+  String get gpsQualityTrackLineEmpty => '暂无标准轨迹候选，点击「导入轨迹」开始';
+
+  @override
+  String get gpsQualityTrackLineImportBtn => '导入轨迹';
+
+  @override
+  String get gpsQualityTrackLineRules =>
+      '管理规则（追加式导入，不归并）：一次导入 = 一条独立候选，系统不自动归并；同一文件重复导入会新增记录而不覆盖；检验发起时对标准轨迹点列做快照，删除候选不影响历史报告；勾选 ≥2 条可「合成」（二期实现）。';
+
+  @override
+  String gpsQualityTrackLineDeleteConfirm(Object name) {
+    return '删除候选轨迹「$name」？历史检验报告不受影响（点列已快照）。';
+  }
+
+  @override
+  String gpsQualityTrackLinePointLength(int points, Object length) {
+    return '$points 点 · $length m';
+  }
+
+  @override
+  String get gpsQualityLineMerge => '合成';
+
+  @override
+  String gpsQualityLineMergeSelectedCount(int n) {
+    return '已选 $n 条';
+  }
+
+  @override
+  String gpsQualityLineMergePhase2(int n) {
+    return '已勾选 $n 条原始轨迹。合成算法将在二期实现：本期仅保留入口与勾选交互，算法落地前不会改动源记录。';
+  }
+
+  @override
+  String get gpsQualityLineUploadTitle => '上传 RTK 手簿导出文件';
+
+  @override
+  String get gpsQualityLineUploadHint =>
+      '支持 .xlsx（RTK 手簿「线路追踪」导出），单条线路一个文件，一次导入生成一条候选';
+
+  @override
+  String get gpsQualityLinePickFile => '选择文件';
+
+  @override
+  String get gpsQualityLineFormatTitle =>
+      '文件版式（RTK 手簿导出：单 sheet「线路追踪」，8 列，整条线路一行数据）';
+
+  @override
+  String get gpsQualityLineCleanRules =>
+      '清洗规则：去连续重复点（手簿静止时会产生大量重复坐标）、忽略高程、元数据脏值容忍（开始/结束时间、长度字段异常不影响导入，一律以坐标实算为准）。清洗后整体成为一条候选标准轨迹线路，不再拆分设备。';
+
+  @override
+  String get gpsQualityLineColUsed => '使用';
+
+  @override
+  String get gpsQualityLineColIgnored => '忽略';
+
+  @override
+  String get gpsQualityLineColUntrusted => '不采信';
+
+  @override
+  String get gpsQualityLineColName => '名称';
+
+  @override
+  String get gpsQualityLineColCategory => '类别';
+
+  @override
+  String get gpsQualityLineColStartTime => '开始时间';
+
+  @override
+  String get gpsQualityLineColEndTime => '结束时间';
+
+  @override
+  String get gpsQualityLineColLength => '长度(单位:米)';
+
+  @override
+  String get gpsQualityLineColRemark => '备注';
+
+  @override
+  String get gpsQualityLineColLineType => '线路类型';
+
+  @override
+  String get gpsQualityLineColCoords => '坐标';
+
+  @override
+  String get gpsQualityLineColNameNote => '作为候选线路默认名称（可改）';
+
+  @override
+  String get gpsQualityLineColTimeNote => '元数据不可信，仅展示不入库';
+
+  @override
+  String get gpsQualityLineColLengthNote => '元数据不可信，全长由坐标实算';
+
+  @override
+  String get gpsQualityLineColCoordsNote =>
+      '单元格内换行分隔的 经度,纬度,高程 三元组（WGS-84）；高程忽略';
+
+  @override
+  String get gpsQualityLineStatRaw => '原始点数';
+
+  @override
+  String get gpsQualityLineStatDedup => '去重后点数';
+
+  @override
+  String get gpsQualityLineStatRemoved => '去除连续重复';
+
+  @override
+  String get gpsQualityLineStatLength => '实算全长';
+
+  @override
+  String get gpsQualityLineStatStart => '起点坐标';
+
+  @override
+  String get gpsQualityLineStatEnd => '终点坐标';
+
+  @override
+  String gpsQualityLineInvalidPoints(int n) {
+    return '$n 行无效坐标已跳过';
+  }
+
+  @override
+  String get gpsQualityLinePreviewPoints => '前 8 个坐标点（去重后）';
+
+  @override
+  String get gpsQualityLineColSeq => '序号';
+
+  @override
+  String get gpsQualityLineNameLabel => '命名';
+
+  @override
+  String get gpsQualityLineNameHint =>
+      '默认取文件「名称」列，可改。一次导入 = 一条独立候选；同一文件重复导入会新增记录而不覆盖。';
+
+  @override
+  String get gpsQualityLineImportAction => '导入';
+
+  @override
+  String gpsQualityLineImportDone(int points, Object length) {
+    return '导入完成：生成 1 条候选标准轨迹线路（$points 点 · 实算全长 $length m），已加入标准轨迹列表。';
+  }
+
+  @override
+  String get gpsQualityLineAppendNote =>
+      '追加式管理：本次导入为独立候选，不与既有记录归并；同一文件再次导入会新增一条而不覆盖。';
+
+  @override
+  String get gpsQualityLinePreviewTitle => '标准轨迹地图预览';
+
+  @override
+  String get gpsQualityLinePreviewHint => '叠加同一物理线路的全部候选线，辅助选定 / 合成决策';
+
+  @override
+  String get gpsQualityLineCurrentLine => '当前选中线路';
+
+  @override
+  String get gpsQualityLineSelectThis => '★ 选定此线为标准轨迹';
+
+  @override
+  String get gpsQualityLineQueryDevices => '查询设备';
+
+  @override
+  String get gpsQualityLineQueryHint => '从 gps_logs 查出该范围内有上报的设备';
+
+  @override
+  String get gpsQualityLineSelectDevices => '勾选设备';
+
+  @override
+  String gpsQualityLineDevicesFound(int n) {
+    return '范围内 $n 台设备有数据';
+  }
+
+  @override
+  String gpsQualityLinePointsInRange(int n) {
+    return '范围内 $n 点';
+  }
+
+  @override
+  String gpsQualityLineFirstLast(Object first, Object last) {
+    return '首 $first ｜ 末 $last';
+  }
+
+  @override
+  String get gpsQualityLineSelectTrack => '标准轨迹';
+
+  @override
+  String get gpsQualityLineStarHint => '★ = 已选定线路（下拉置顶）';
+
+  @override
+  String get gpsQualityLineNoTrackLine => '暂无标准轨迹候选，请先在真值管理中导入';
+
+  @override
+  String get gpsQualityLineCalcNote =>
+      '计算口径：对每台设备，取其时间范围内 gps_logs 全部点位，逐点计算到标准轨迹折线的最短距离（点到线，不做时间对齐），汇总 mean / p50 / p95 / max 与 15 / 25 / 40m 内占比，按 QualityGrade 分级。';
+
+  @override
+  String get gpsQualityLineCalcNoteShort => '口径：点到线最短距离（不做时间对齐）';
+
+  @override
+  String gpsQualityLineLaunch(int n) {
+    return '发起检验（$n 台设备）';
+  }
+
+  @override
+  String gpsQualityLineLaunchDone(int n) {
+    return '已发起 $n 台设备的线路检验';
+  }
+
+  @override
+  String get gpsQualityCheckSummary => '检验结果汇总';
+
+  @override
+  String get gpsQualityCheckSummaryHint => '点击「查看报告」打开对应类型报告';
+
+  @override
+  String get gpsQualitySummaryLatest => '最近一次检验';
+
+  @override
+  String get gpsQualitySummaryGrade => '分级';
+
+  @override
+  String get gpsQualitySummaryKeyMetric => '关键指标';
+
+  @override
+  String get gpsQualitySummaryNoData => '本设备暂无';
+
+  @override
+  String get gpsQualityViewReport => '查看报告';
+
+  @override
+  String get gpsQualityLineSamples => '样本数';
+
+  @override
+  String get gpsQualityLineMeanDeviation => '平均偏差';
+
+  @override
+  String get gpsQualityLineMaxDeviation => '最大偏差';
+
+  @override
+  String get gpsQualityLineWithin15m => '≤15m 占比';
+
+  @override
+  String get gpsQualityLineWithin25m => '≤25m 占比';
+
+  @override
+  String get gpsQualityLineWithin40m => '≤40m 占比';
+
+  @override
+  String get gpsQualityLineMapStandard => '标准轨迹';
+
+  @override
+  String get gpsQualityLineMapDevice => '设备上报轨迹';
+
+  @override
+  String get gpsQualityLineMapMax => '最大偏差点';
+
+  @override
+  String get gpsQualityLineDeviationTable => '逐点偏差明细';
+
+  @override
+  String get gpsQualityLineColTime => '上报时间';
+
+  @override
+  String get gpsQualityLineColSegment => '最近点所在线段';
+
+  @override
+  String get gpsQualityLineColDeviation => '最短距离（偏差）';
+
+  @override
+  String get gpsQualityLineGotoComparison => '多设备横向对比请前往「质量对比」Tab。';
+
+  @override
+  String get gpsQualityLineComparison => '线路检验对比';
+
+  @override
+  String get gpsQualityLineSelectTrackPrompt => '请选择标准轨迹与时间范围查看对比';
+
+  @override
+  String get gpsQualityLineComparisonEmpty => '该条件下暂无线路检验数据';
 }

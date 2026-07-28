@@ -213,3 +213,86 @@ final trajectoryComparisonProvider =
   (ref) =>
       ref.read(gpsQualityApiRepositoryProvider).fetchTrajectoryComparison(),
 );
+
+// ── NIX-68: Standard track lines ─────────────────────────────────
+
+class TrackLinesController extends AsyncNotifier<List<StandardTrackLine>> {
+  @override
+  Future<List<StandardTrackLine>> build() =>
+      ref.read(gpsQualityApiRepositoryProvider).fetchTrackLines();
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+      () => ref.read(gpsQualityApiRepositoryProvider).fetchTrackLines(),
+    );
+  }
+}
+
+final trackLinesProvider =
+    AsyncNotifierProvider<TrackLinesController, List<StandardTrackLine>>(
+  TrackLinesController.new,
+);
+
+/// Point list of one candidate (map preview), family by trackLineId.
+final trackLinePointsProvider =
+    FutureProvider.family<List<LineTrackPoint>, int>(
+  (ref, lineId) =>
+      ref.read(gpsQualityApiRepositoryProvider).fetchTrackLinePoints(lineId),
+);
+
+// ── NIX-68: LINE reports ─────────────────────────────────────────
+
+/// LINE report statistics summary, family by testId.
+final lineReportProvider = FutureProvider.family<LineQualityReport, int>(
+  (ref, testId) =>
+      ref.read(gpsQualityApiRepositoryProvider).fetchLineReport(testId),
+);
+
+/// Standard track point list snapshot, family by testId.
+final lineReportTrackProvider =
+    FutureProvider.family<List<LineTrackPoint>, int>(
+  (ref, testId) =>
+      ref.read(gpsQualityApiRepositoryProvider).fetchLineReportTrack(testId),
+);
+
+/// Per-point deviations, family by testId.
+final lineReportDeviationsProvider =
+    FutureProvider.family<List<LineDeviation>, int>(
+  (ref, testId) => ref
+      .read(gpsQualityApiRepositoryProvider)
+      .fetchLineReportDeviations(testId),
+);
+
+// ── NIX-68: Unified per-device check summary ─────────────────────
+
+/// Latest test of each type for one device, family by deviceCode.
+final checksSummaryProvider =
+    FutureProvider.family<List<CheckSummaryItem>, String>(
+  (ref, deviceCode) => ref
+      .read(gpsQualityApiRepositoryProvider)
+      .fetchChecksSummary(deviceCode),
+);
+
+// ── NIX-68: LINE comparison ──────────────────────────────────────
+
+/// Query key for the LINE comparison endpoint. A null [deviceCode] returns
+/// only the stats table + standard track; a value lazily loads one device's
+/// track points.
+typedef LineComparisonQuery = ({
+  int trackLineId,
+  DateTime start,
+  DateTime end,
+  String? deviceCode,
+});
+
+final lineComparisonProvider =
+    FutureProvider.family<LineComparisonResult, LineComparisonQuery>(
+  (ref, query) =>
+      ref.read(gpsQualityApiRepositoryProvider).fetchLineComparison(
+            trackLineId: query.trackLineId,
+            start: query.start,
+            end: query.end,
+            deviceCode: query.deviceCode,
+          ),
+);

@@ -12,8 +12,10 @@ import java.time.Instant;
  * <ul>
  *   <li>{@link TestType#STATIC} — truth is a single RTK point ({@code rtkPointId})</li>
  *   <li>{@link TestType#DYNAMIC} — truth is an ordered route ({@code routeId})</li>
+ *   <li>{@link TestType#TRAJECTORY} — truth is an imported RTK track (pairing snapshot)</li>
+ *   <li>{@link TestType#LINE} — truth is a standard track line ({@code trackLineId})</li>
  * </ul>
- * {@code rtkPointId} and {@code routeId} are mutually exclusive (DB CHECK constraint).
+ * Exactly one truth reference is set per test (DB CHECK constraint).
  * <p>
  * A test has no lifecycle — it is an analysis record created on demand.
  * <p>
@@ -27,6 +29,7 @@ public class GpsQualityTest extends AggregateRoot {
     private TestType testType;
     private Long rtkPointId;
     private Long routeId;
+    private Long trackLineId;
     private Instant startedAt;
     private Instant endedAt;
     private String status;
@@ -51,12 +54,12 @@ public class GpsQualityTest extends AggregateRoot {
     }
 
     /**
-     * Full constructor.
+     * Full constructor (STATIC / DYNAMIC / TRAJECTORY).
      *
      * @param deviceCode  device identifier
-     * @param testType    STATIC or DYNAMIC
-     * @param rtkPointId  STATIC truth point (null when DYNAMIC)
-     * @param routeId     DYNAMIC truth route (null when STATIC)
+     * @param testType    STATIC, DYNAMIC or TRAJECTORY
+     * @param rtkPointId  STATIC truth point (null when DYNAMIC/TRAJECTORY)
+     * @param routeId     DYNAMIC truth route (null when STATIC/TRAJECTORY)
      * @param startedAt   analysis window start
      */
     public GpsQualityTest(String deviceCode, TestType testType, Long rtkPointId, Long routeId, Instant startedAt) {
@@ -64,6 +67,27 @@ public class GpsQualityTest extends AggregateRoot {
         this.testType = testType != null ? testType : TestType.STATIC;
         this.rtkPointId = rtkPointId;
         this.routeId = routeId;
+        this.startedAt = startedAt;
+        this.status = "READY";
+    }
+
+    /**
+     * Full constructor including the LINE truth reference.
+     *
+     * @param deviceCode  device identifier
+     * @param testType    STATIC, DYNAMIC, TRAJECTORY or LINE
+     * @param rtkPointId  STATIC truth point (null otherwise)
+     * @param routeId     DYNAMIC truth route (null otherwise)
+     * @param trackLineId LINE standard track line (null otherwise)
+     * @param startedAt   analysis window start
+     */
+    public GpsQualityTest(String deviceCode, TestType testType, Long rtkPointId, Long routeId,
+                          Long trackLineId, Instant startedAt) {
+        this.deviceCode = deviceCode;
+        this.testType = testType != null ? testType : TestType.STATIC;
+        this.rtkPointId = rtkPointId;
+        this.routeId = routeId;
+        this.trackLineId = trackLineId;
         this.startedAt = startedAt;
         this.status = "READY";
     }
@@ -84,6 +108,9 @@ public class GpsQualityTest extends AggregateRoot {
 
     public Long getRouteId() { return routeId; }
     public void setRouteId(Long routeId) { this.routeId = routeId; }
+
+    public Long getTrackLineId() { return trackLineId; }
+    public void setTrackLineId(Long trackLineId) { this.trackLineId = trackLineId; }
 
     public Instant getStartedAt() { return startedAt; }
     public void setStartedAt(Instant startedAt) { this.startedAt = startedAt; }

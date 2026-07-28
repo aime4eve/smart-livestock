@@ -82,6 +82,20 @@ public class JpaGpsQualityTestRepositoryImpl implements GpsQualityTestRepository
     }
 
     @Override
+    public List<GpsQualityTest> findByDeviceCodeOrderByStartedAt(String deviceCode) {
+        return springDataRepo.findByDeviceCodeOrderByStartedAt(deviceCode).stream()
+                .map(this::toDomain).toList();
+    }
+
+    @Override
+    public List<GpsQualityTest> findByTrackLineIdAndWindowOverlapping(
+            Long trackLineId, Instant start, Instant end) {
+        return springDataRepo.findByTrackLineIdAndStartedAtLessThanEqualAndEndedAtGreaterThanEqual(
+                trackLineId, end, start).stream()
+                .map(this::toDomain).toList();
+    }
+
+    @Override
     public void deleteById(Long id) { springDataRepo.deleteById(id); }
 
     @Override
@@ -113,6 +127,7 @@ public class JpaGpsQualityTestRepositoryImpl implements GpsQualityTestRepository
         jpa.setTestType(t.getTestType() != null ? t.getTestType().name() : TestType.STATIC.name());
         jpa.setRtkPointId(t.getRtkPointId());
         jpa.setRouteId(t.getRouteId());
+        jpa.setTrackLineId(t.getTrackLineId());
         jpa.setStartedAt(t.getStartedAt());
         jpa.setEndedAt(t.getEndedAt());
         jpa.setStatus(t.getStatus());
@@ -130,6 +145,7 @@ public class JpaGpsQualityTestRepositoryImpl implements GpsQualityTestRepository
         t.setTestType(jpa.getTestType() != null ? TestType.valueOf(jpa.getTestType()) : TestType.STATIC);
         t.setRtkPointId(jpa.getRtkPointId());
         t.setRouteId(jpa.getRouteId());
+        t.setTrackLineId(jpa.getTrackLineId());
         t.setStartedAt(jpa.getStartedAt());
         t.setEndedAt(jpa.getEndedAt());
         t.setStatus(jpa.getStatus());

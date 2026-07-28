@@ -10,6 +10,9 @@ import com.smartlivestock.iot.application.GpsQualityTestService.GpsQualityTestPa
 import com.smartlivestock.iot.application.GpsQualityBatchImportService;
 import com.smartlivestock.iot.application.TrajectoryImportService;
 import com.smartlivestock.iot.application.TrajectoryReportService;
+import com.smartlivestock.iot.application.StandardTrackLineService;
+import com.smartlivestock.iot.application.TrackLineCheckService;
+import com.smartlivestock.iot.application.TrackLineReportService;
 import com.smartlivestock.iot.application.GpsLogApplicationService;
 import com.smartlivestock.iot.application.dto.GpsLogDto;
 import com.smartlivestock.iot.domain.model.DynamicTestRoute;
@@ -32,6 +35,15 @@ import com.smartlivestock.iot.interfaces.admin.dto.TrajectoryComparisonDto;
 import com.smartlivestock.iot.interfaces.admin.dto.TrajectoryImportResultDto;
 import com.smartlivestock.iot.interfaces.admin.dto.TrajectoryParseResultDto;
 import com.smartlivestock.iot.interfaces.admin.dto.TrajectoryQualityReportDto;
+import com.smartlivestock.iot.interfaces.admin.dto.CheckSummaryDto;
+import com.smartlivestock.iot.interfaces.admin.dto.LineCheckCreateResultDto;
+import com.smartlivestock.iot.interfaces.admin.dto.LineCheckDeviceDto;
+import com.smartlivestock.iot.interfaces.admin.dto.LineComparisonDto;
+import com.smartlivestock.iot.interfaces.admin.dto.LineDeviationDto;
+import com.smartlivestock.iot.interfaces.admin.dto.LineQualityReportDto;
+import com.smartlivestock.iot.interfaces.admin.dto.LineTrackPointDto;
+import com.smartlivestock.iot.interfaces.admin.dto.StandardTrackLineDto;
+import com.smartlivestock.iot.interfaces.admin.dto.TrackLineParseResultDto;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -72,6 +84,9 @@ public class GpsQualityAdminController {
     private final TrajectoryImportService trajectoryImportService;
    private final TrajectoryReportService trajectoryReportService;
    private final GpsLogApplicationService gpsLogApplicationService;
+   private final StandardTrackLineService standardTrackLineService;
+   private final TrackLineCheckService trackLineCheckService;
+   private final TrackLineReportService trackLineReportService;
 
     // platform_admin has no tenant; GPS quality checks fall back to the demo tenant.
     // TODO: for production, add explicit tenant selection in the request body.
@@ -513,6 +528,134 @@ public class GpsQualityAdminController {
         routeService.replacePoints(id, inputs);
        return ResponseEntity.ok(ApiResponse.ok(null));
    }
+
+    // --- Standard track lines (NIX-68) ---
+
+    @GetMapping("/track-lines")
+    public ResponseEntity<ApiResponse<List<StandardTrackLineDto>>> listTrackLines() {
+        Long tenantId = resolveTenantId();
+        return ResponseEntity.ok(ApiResponse.ok(standardTrackLineService.list(tenantId)));
+    }
+
+    /**
+     * Parse-only preview of an RTK handset track-line XLSX. Nothing is persisted.
+     */
+    @PostMapping(value = "/track-lines/parse", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<TrackLineParseResultDto>> trackLineParse(
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(ApiResponse.ok(standardTrackLineService.parse(file)));
+    }
+
+    /**
+     * Import a track-line XLSX: creates one CANDIDATE candidate (append-only,
+     * re-importing the same file adds a new record, spec D3).
+     */
+    @PostMapping(value = "/track-lines/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<StandardTrackLineDto>> trackLineImport(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "name", required = false) String name) {
+        Long tenantId = resolveTenantId();
+        return ResponseEntity.ok(ApiResponse.ok(
+                standardTrackLineService.importFile(file, name, tenantId)));
+    }
+
+    @PostMapping("/track-lines/{id}/select")
+    public ResponseEntity<ApiResponse<StandardTrackLineDto>> trackLineSelect(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(standardTrackLineService.select(id)));
+    }
+
+    @PostMapping("/track-lines/{id}/unselect")
+    public ResponseEntity<ApiResponse<StandardTrackLineDto>> trackLineUnselect(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(standardTrackLineService.unselect(id)));
+    }
+
+    @DeleteMapping("/track-lines/{id}")
+    public ResponseEntity<ApiResponse<Void>> trackLineDelete(@PathVariable Long id) {
+        standardTrackLineService.delete(id);
+        return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    @GetMapping("/track-lines/{id}/points")
+    public ResponseEntity<ApiResponse<List<LineTrackPointDto>>> trackLinePoints(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(standardTrackLineService.findPoints(id)));
+    }
+
+    // --- LINE checks (NIX-68) ---
+
+    @GetMapping("/line-checks/devices")
+    public ResponseEntity<ApiResponse<List<LineCheckDeviceDto>>> lineCheckDevices(
+            @RequestParam String start,
+            @RequestParam String end) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                trackLineCheckService.findDevicesWithLogs(parseInstant(start), parseInstant(end))));
+    }
+
+    /**
+     * Create one READY LINE test per device: point-list snapshot + synchronous
+     * computation + result snapshot (spec D4, no DEVICE_PENDING flow).
+     */
+    @PostMapping("/line-checks")
+    public ResponseEntity<ApiResponse<LineCheckCreateResultDto>> createLineChecks(
+            @RequestBody Map<String, Object> body) {
+        Long trackLineId = body.get("trackLineId") != null
+                ? ((Number) body.get("trackLineId")).longValue() : null;
+        if (trackLineId == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "trackLineId is required");
+        }
+        List<String> deviceCodes = body.get("deviceCodes") != null
+                ? ((List<?>) body.get("deviceCodes")).stream().map(String::valueOf).toList()
+                : List.of();
+        if (deviceCodes.isEmpty()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "deviceCodes is required");
+        }
+        Instant start = parseInstant((String) body.get("start"));
+        Instant end = parseInstant((String) body.get("end"));
+        return ResponseEntity.ok(ApiResponse.ok(
+                trackLineCheckService.createLineChecks(trackLineId, deviceCodes, start, end)));
+    }
+
+    // --- LINE reports (NIX-68, spec §7.4: summary + track/deviations sub-endpoints) ---
+
+    @GetMapping("/tests/{id}/line-report")
+    public ResponseEntity<ApiResponse<LineQualityReportDto>> lineReport(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(trackLineReportService.generateLineReport(id)));
+    }
+
+    @GetMapping("/tests/{id}/line-report/track")
+    public ResponseEntity<ApiResponse<List<LineTrackPointDto>>> lineReportTrack(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(trackLineReportService.getTrack(id)));
+    }
+
+    @GetMapping("/tests/{id}/line-report/deviations")
+    public ResponseEntity<ApiResponse<List<LineDeviationDto>>> lineReportDeviations(
+            @PathVariable Long id,
+            @RequestParam(required = false) Integer limit) {
+        return ResponseEntity.ok(ApiResponse.ok(trackLineReportService.getDeviations(id, limit)));
+    }
+
+    /**
+     * Unified per-device summary: latest READY test of each type (spec §7.5).
+     * Does not change the existing /checks list endpoint.
+     */
+    @GetMapping("/checks/summary")
+    public ResponseEntity<ApiResponse<CheckSummaryDto>> checksSummary(
+            @RequestParam String deviceCode) {
+        return ResponseEntity.ok(ApiResponse.ok(trackLineReportService.summary(deviceCode)));
+    }
+
+    /**
+     * LINE comparison (spec §7.6): stats table + standard track polyline;
+     * a device's own track points load lazily via the deviceCode parameter.
+     */
+    @GetMapping("/comparison/line")
+    public ResponseEntity<ApiResponse<LineComparisonDto>> lineComparison(
+            @RequestParam Long trackLineId,
+            @RequestParam String start,
+            @RequestParam String end,
+            @RequestParam(required = false) String deviceCode) {
+        return ResponseEntity.ok(ApiResponse.ok(trackLineReportService.comparison(
+                trackLineId, parseInstant(start), parseInstant(end), deviceCode)));
+    }
 
     // --- Device GPS logs (for trajectory visualization) ---
 

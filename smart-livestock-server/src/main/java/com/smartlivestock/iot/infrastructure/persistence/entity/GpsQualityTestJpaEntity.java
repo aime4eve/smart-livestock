@@ -34,6 +34,9 @@ public class GpsQualityTestJpaEntity {
     @Column(name = "route_id")
     private Long routeId;
 
+    @Column(name = "track_line_id")
+    private Long trackLineId;
+
     @Column(name = "started_at", nullable = false)
     private Instant startedAt;
 
@@ -82,6 +85,8 @@ public class GpsQualityTestJpaEntity {
     public void setRtkPointId(Long rtkPointId) { this.rtkPointId = rtkPointId; }
     public Long getRouteId() { return routeId; }
     public void setRouteId(Long routeId) { this.routeId = routeId; }
+    public Long getTrackLineId() { return trackLineId; }
+    public void setTrackLineId(Long trackLineId) { this.trackLineId = trackLineId; }
     public Instant getStartedAt() { return startedAt; }
     public void setStartedAt(Instant startedAt) { this.startedAt = startedAt; }
     public Instant getEndedAt() { return endedAt; }

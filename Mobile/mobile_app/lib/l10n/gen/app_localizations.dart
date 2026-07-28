@@ -7096,6 +7096,600 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'圆形'**
   String get fenceTypeCircle;
+
+  /// No description provided for @gpsQualityLineCheck.
+  ///
+  /// In zh, this message translates to:
+  /// **'线路'**
+  String get gpsQualityLineCheck;
+
+  /// No description provided for @gpsQualityLineCreate.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建线路检验'**
+  String get gpsQualityLineCreate;
+
+  /// No description provided for @gpsQualityLineReport.
+  ///
+  /// In zh, this message translates to:
+  /// **'线路检验报告'**
+  String get gpsQualityLineReport;
+
+  /// No description provided for @gpsQualityLineImport.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入标准轨迹'**
+  String get gpsQualityLineImport;
+
+  /// No description provided for @gpsQualityTrackLines.
+  ///
+  /// In zh, this message translates to:
+  /// **'标准轨迹'**
+  String get gpsQualityTrackLines;
+
+  /// No description provided for @gpsQualityTrackLineName.
+  ///
+  /// In zh, this message translates to:
+  /// **'名称'**
+  String get gpsQualityTrackLineName;
+
+  /// No description provided for @gpsQualityTrackLinePoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'点数'**
+  String get gpsQualityTrackLinePoints;
+
+  /// No description provided for @gpsQualityTrackLineLength.
+  ///
+  /// In zh, this message translates to:
+  /// **'全长'**
+  String get gpsQualityTrackLineLength;
+
+  /// No description provided for @gpsQualityTrackLineImportTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入时间'**
+  String get gpsQualityTrackLineImportTime;
+
+  /// No description provided for @gpsQualityTrackLineActions.
+  ///
+  /// In zh, this message translates to:
+  /// **'操作'**
+  String get gpsQualityTrackLineActions;
+
+  /// No description provided for @gpsQualityTrackLineCandidate.
+  ///
+  /// In zh, this message translates to:
+  /// **'候选'**
+  String get gpsQualityTrackLineCandidate;
+
+  /// No description provided for @gpsQualityTrackLineSelected.
+  ///
+  /// In zh, this message translates to:
+  /// **'★ 已选定'**
+  String get gpsQualityTrackLineSelected;
+
+  /// No description provided for @gpsQualityTrackLinePreview.
+  ///
+  /// In zh, this message translates to:
+  /// **'预览'**
+  String get gpsQualityTrackLinePreview;
+
+  /// No description provided for @gpsQualityTrackLineSelect.
+  ///
+  /// In zh, this message translates to:
+  /// **'选定'**
+  String get gpsQualityTrackLineSelect;
+
+  /// No description provided for @gpsQualityTrackLineUnselect.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消选定'**
+  String get gpsQualityTrackLineUnselect;
+
+  /// No description provided for @gpsQualityTrackLineStartPoint.
+  ///
+  /// In zh, this message translates to:
+  /// **'起点'**
+  String get gpsQualityTrackLineStartPoint;
+
+  /// No description provided for @gpsQualityTrackLineEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无标准轨迹候选，点击「导入轨迹」开始'**
+  String get gpsQualityTrackLineEmpty;
+
+  /// No description provided for @gpsQualityTrackLineImportBtn.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入轨迹'**
+  String get gpsQualityTrackLineImportBtn;
+
+  /// No description provided for @gpsQualityTrackLineRules.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理规则（追加式导入，不归并）：一次导入 = 一条独立候选，系统不自动归并；同一文件重复导入会新增记录而不覆盖；检验发起时对标准轨迹点列做快照，删除候选不影响历史报告；勾选 ≥2 条可「合成」（二期实现）。'**
+  String get gpsQualityTrackLineRules;
+
+  /// No description provided for @gpsQualityTrackLineDeleteConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除候选轨迹「{name}」？历史检验报告不受影响（点列已快照）。'**
+  String gpsQualityTrackLineDeleteConfirm(Object name);
+
+  /// No description provided for @gpsQualityTrackLinePointLength.
+  ///
+  /// In zh, this message translates to:
+  /// **'{points} 点 · {length} m'**
+  String gpsQualityTrackLinePointLength(int points, Object length);
+
+  /// No description provided for @gpsQualityLineMerge.
+  ///
+  /// In zh, this message translates to:
+  /// **'合成'**
+  String get gpsQualityLineMerge;
+
+  /// No description provided for @gpsQualityLineMergeSelectedCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'已选 {n} 条'**
+  String gpsQualityLineMergeSelectedCount(int n);
+
+  /// No description provided for @gpsQualityLineMergePhase2.
+  ///
+  /// In zh, this message translates to:
+  /// **'已勾选 {n} 条原始轨迹。合成算法将在二期实现：本期仅保留入口与勾选交互，算法落地前不会改动源记录。'**
+  String gpsQualityLineMergePhase2(int n);
+
+  /// No description provided for @gpsQualityLineUploadTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'上传 RTK 手簿导出文件'**
+  String get gpsQualityLineUploadTitle;
+
+  /// No description provided for @gpsQualityLineUploadHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'支持 .xlsx（RTK 手簿「线路追踪」导出），单条线路一个文件，一次导入生成一条候选'**
+  String get gpsQualityLineUploadHint;
+
+  /// No description provided for @gpsQualityLinePickFile.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择文件'**
+  String get gpsQualityLinePickFile;
+
+  /// No description provided for @gpsQualityLineFormatTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'文件版式（RTK 手簿导出：单 sheet「线路追踪」，8 列，整条线路一行数据）'**
+  String get gpsQualityLineFormatTitle;
+
+  /// No description provided for @gpsQualityLineCleanRules.
+  ///
+  /// In zh, this message translates to:
+  /// **'清洗规则：去连续重复点（手簿静止时会产生大量重复坐标）、忽略高程、元数据脏值容忍（开始/结束时间、长度字段异常不影响导入，一律以坐标实算为准）。清洗后整体成为一条候选标准轨迹线路，不再拆分设备。'**
+  String get gpsQualityLineCleanRules;
+
+  /// No description provided for @gpsQualityLineColUsed.
+  ///
+  /// In zh, this message translates to:
+  /// **'使用'**
+  String get gpsQualityLineColUsed;
+
+  /// No description provided for @gpsQualityLineColIgnored.
+  ///
+  /// In zh, this message translates to:
+  /// **'忽略'**
+  String get gpsQualityLineColIgnored;
+
+  /// No description provided for @gpsQualityLineColUntrusted.
+  ///
+  /// In zh, this message translates to:
+  /// **'不采信'**
+  String get gpsQualityLineColUntrusted;
+
+  /// No description provided for @gpsQualityLineColName.
+  ///
+  /// In zh, this message translates to:
+  /// **'名称'**
+  String get gpsQualityLineColName;
+
+  /// No description provided for @gpsQualityLineColCategory.
+  ///
+  /// In zh, this message translates to:
+  /// **'类别'**
+  String get gpsQualityLineColCategory;
+
+  /// No description provided for @gpsQualityLineColStartTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'开始时间'**
+  String get gpsQualityLineColStartTime;
+
+  /// No description provided for @gpsQualityLineColEndTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'结束时间'**
+  String get gpsQualityLineColEndTime;
+
+  /// No description provided for @gpsQualityLineColLength.
+  ///
+  /// In zh, this message translates to:
+  /// **'长度(单位:米)'**
+  String get gpsQualityLineColLength;
+
+  /// No description provided for @gpsQualityLineColRemark.
+  ///
+  /// In zh, this message translates to:
+  /// **'备注'**
+  String get gpsQualityLineColRemark;
+
+  /// No description provided for @gpsQualityLineColLineType.
+  ///
+  /// In zh, this message translates to:
+  /// **'线路类型'**
+  String get gpsQualityLineColLineType;
+
+  /// No description provided for @gpsQualityLineColCoords.
+  ///
+  /// In zh, this message translates to:
+  /// **'坐标'**
+  String get gpsQualityLineColCoords;
+
+  /// No description provided for @gpsQualityLineColNameNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'作为候选线路默认名称（可改）'**
+  String get gpsQualityLineColNameNote;
+
+  /// No description provided for @gpsQualityLineColTimeNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'元数据不可信，仅展示不入库'**
+  String get gpsQualityLineColTimeNote;
+
+  /// No description provided for @gpsQualityLineColLengthNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'元数据不可信，全长由坐标实算'**
+  String get gpsQualityLineColLengthNote;
+
+  /// No description provided for @gpsQualityLineColCoordsNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'单元格内换行分隔的 经度,纬度,高程 三元组（WGS-84）；高程忽略'**
+  String get gpsQualityLineColCoordsNote;
+
+  /// No description provided for @gpsQualityLineStatRaw.
+  ///
+  /// In zh, this message translates to:
+  /// **'原始点数'**
+  String get gpsQualityLineStatRaw;
+
+  /// No description provided for @gpsQualityLineStatDedup.
+  ///
+  /// In zh, this message translates to:
+  /// **'去重后点数'**
+  String get gpsQualityLineStatDedup;
+
+  /// No description provided for @gpsQualityLineStatRemoved.
+  ///
+  /// In zh, this message translates to:
+  /// **'去除连续重复'**
+  String get gpsQualityLineStatRemoved;
+
+  /// No description provided for @gpsQualityLineStatLength.
+  ///
+  /// In zh, this message translates to:
+  /// **'实算全长'**
+  String get gpsQualityLineStatLength;
+
+  /// No description provided for @gpsQualityLineStatStart.
+  ///
+  /// In zh, this message translates to:
+  /// **'起点坐标'**
+  String get gpsQualityLineStatStart;
+
+  /// No description provided for @gpsQualityLineStatEnd.
+  ///
+  /// In zh, this message translates to:
+  /// **'终点坐标'**
+  String get gpsQualityLineStatEnd;
+
+  /// No description provided for @gpsQualityLineInvalidPoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 行无效坐标已跳过'**
+  String gpsQualityLineInvalidPoints(int n);
+
+  /// No description provided for @gpsQualityLinePreviewPoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'前 8 个坐标点（去重后）'**
+  String get gpsQualityLinePreviewPoints;
+
+  /// No description provided for @gpsQualityLineColSeq.
+  ///
+  /// In zh, this message translates to:
+  /// **'序号'**
+  String get gpsQualityLineColSeq;
+
+  /// No description provided for @gpsQualityLineNameLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'命名'**
+  String get gpsQualityLineNameLabel;
+
+  /// No description provided for @gpsQualityLineNameHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'默认取文件「名称」列，可改。一次导入 = 一条独立候选；同一文件重复导入会新增记录而不覆盖。'**
+  String get gpsQualityLineNameHint;
+
+  /// No description provided for @gpsQualityLineImportAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入'**
+  String get gpsQualityLineImportAction;
+
+  /// No description provided for @gpsQualityLineImportDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入完成：生成 1 条候选标准轨迹线路（{points} 点 · 实算全长 {length} m），已加入标准轨迹列表。'**
+  String gpsQualityLineImportDone(int points, Object length);
+
+  /// No description provided for @gpsQualityLineAppendNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'追加式管理：本次导入为独立候选，不与既有记录归并；同一文件再次导入会新增一条而不覆盖。'**
+  String get gpsQualityLineAppendNote;
+
+  /// No description provided for @gpsQualityLinePreviewTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'标准轨迹地图预览'**
+  String get gpsQualityLinePreviewTitle;
+
+  /// No description provided for @gpsQualityLinePreviewHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'叠加同一物理线路的全部候选线，辅助选定 / 合成决策'**
+  String get gpsQualityLinePreviewHint;
+
+  /// No description provided for @gpsQualityLineCurrentLine.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前选中线路'**
+  String get gpsQualityLineCurrentLine;
+
+  /// No description provided for @gpsQualityLineSelectThis.
+  ///
+  /// In zh, this message translates to:
+  /// **'★ 选定此线为标准轨迹'**
+  String get gpsQualityLineSelectThis;
+
+  /// No description provided for @gpsQualityLineQueryDevices.
+  ///
+  /// In zh, this message translates to:
+  /// **'查询设备'**
+  String get gpsQualityLineQueryDevices;
+
+  /// No description provided for @gpsQualityLineQueryHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'从 gps_logs 查出该范围内有上报的设备'**
+  String get gpsQualityLineQueryHint;
+
+  /// No description provided for @gpsQualityLineSelectDevices.
+  ///
+  /// In zh, this message translates to:
+  /// **'勾选设备'**
+  String get gpsQualityLineSelectDevices;
+
+  /// No description provided for @gpsQualityLineDevicesFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'范围内 {n} 台设备有数据'**
+  String gpsQualityLineDevicesFound(int n);
+
+  /// No description provided for @gpsQualityLinePointsInRange.
+  ///
+  /// In zh, this message translates to:
+  /// **'范围内 {n} 点'**
+  String gpsQualityLinePointsInRange(int n);
+
+  /// No description provided for @gpsQualityLineFirstLast.
+  ///
+  /// In zh, this message translates to:
+  /// **'首 {first} ｜ 末 {last}'**
+  String gpsQualityLineFirstLast(Object first, Object last);
+
+  /// No description provided for @gpsQualityLineSelectTrack.
+  ///
+  /// In zh, this message translates to:
+  /// **'标准轨迹'**
+  String get gpsQualityLineSelectTrack;
+
+  /// No description provided for @gpsQualityLineStarHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'★ = 已选定线路（下拉置顶）'**
+  String get gpsQualityLineStarHint;
+
+  /// No description provided for @gpsQualityLineNoTrackLine.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无标准轨迹候选，请先在真值管理中导入'**
+  String get gpsQualityLineNoTrackLine;
+
+  /// No description provided for @gpsQualityLineCalcNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'计算口径：对每台设备，取其时间范围内 gps_logs 全部点位，逐点计算到标准轨迹折线的最短距离（点到线，不做时间对齐），汇总 mean / p50 / p95 / max 与 15 / 25 / 40m 内占比，按 QualityGrade 分级。'**
+  String get gpsQualityLineCalcNote;
+
+  /// No description provided for @gpsQualityLineCalcNoteShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'口径：点到线最短距离（不做时间对齐）'**
+  String get gpsQualityLineCalcNoteShort;
+
+  /// No description provided for @gpsQualityLineLaunch.
+  ///
+  /// In zh, this message translates to:
+  /// **'发起检验（{n} 台设备）'**
+  String gpsQualityLineLaunch(int n);
+
+  /// No description provided for @gpsQualityLineLaunchDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'已发起 {n} 台设备的线路检验'**
+  String gpsQualityLineLaunchDone(int n);
+
+  /// No description provided for @gpsQualityCheckSummary.
+  ///
+  /// In zh, this message translates to:
+  /// **'检验结果汇总'**
+  String get gpsQualityCheckSummary;
+
+  /// No description provided for @gpsQualityCheckSummaryHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'点击「查看报告」打开对应类型报告'**
+  String get gpsQualityCheckSummaryHint;
+
+  /// No description provided for @gpsQualitySummaryLatest.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近一次检验'**
+  String get gpsQualitySummaryLatest;
+
+  /// No description provided for @gpsQualitySummaryGrade.
+  ///
+  /// In zh, this message translates to:
+  /// **'分级'**
+  String get gpsQualitySummaryGrade;
+
+  /// No description provided for @gpsQualitySummaryKeyMetric.
+  ///
+  /// In zh, this message translates to:
+  /// **'关键指标'**
+  String get gpsQualitySummaryKeyMetric;
+
+  /// No description provided for @gpsQualitySummaryNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'本设备暂无'**
+  String get gpsQualitySummaryNoData;
+
+  /// No description provided for @gpsQualityViewReport.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看报告'**
+  String get gpsQualityViewReport;
+
+  /// No description provided for @gpsQualityLineSamples.
+  ///
+  /// In zh, this message translates to:
+  /// **'样本数'**
+  String get gpsQualityLineSamples;
+
+  /// No description provided for @gpsQualityLineMeanDeviation.
+  ///
+  /// In zh, this message translates to:
+  /// **'平均偏差'**
+  String get gpsQualityLineMeanDeviation;
+
+  /// No description provided for @gpsQualityLineMaxDeviation.
+  ///
+  /// In zh, this message translates to:
+  /// **'最大偏差'**
+  String get gpsQualityLineMaxDeviation;
+
+  /// No description provided for @gpsQualityLineWithin15m.
+  ///
+  /// In zh, this message translates to:
+  /// **'≤15m 占比'**
+  String get gpsQualityLineWithin15m;
+
+  /// No description provided for @gpsQualityLineWithin25m.
+  ///
+  /// In zh, this message translates to:
+  /// **'≤25m 占比'**
+  String get gpsQualityLineWithin25m;
+
+  /// No description provided for @gpsQualityLineWithin40m.
+  ///
+  /// In zh, this message translates to:
+  /// **'≤40m 占比'**
+  String get gpsQualityLineWithin40m;
+
+  /// No description provided for @gpsQualityLineMapStandard.
+  ///
+  /// In zh, this message translates to:
+  /// **'标准轨迹'**
+  String get gpsQualityLineMapStandard;
+
+  /// No description provided for @gpsQualityLineMapDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备上报轨迹'**
+  String get gpsQualityLineMapDevice;
+
+  /// No description provided for @gpsQualityLineMapMax.
+  ///
+  /// In zh, this message translates to:
+  /// **'最大偏差点'**
+  String get gpsQualityLineMapMax;
+
+  /// No description provided for @gpsQualityLineDeviationTable.
+  ///
+  /// In zh, this message translates to:
+  /// **'逐点偏差明细'**
+  String get gpsQualityLineDeviationTable;
+
+  /// No description provided for @gpsQualityLineColTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'上报时间'**
+  String get gpsQualityLineColTime;
+
+  /// No description provided for @gpsQualityLineColSegment.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近点所在线段'**
+  String get gpsQualityLineColSegment;
+
+  /// No description provided for @gpsQualityLineColDeviation.
+  ///
+  /// In zh, this message translates to:
+  /// **'最短距离（偏差）'**
+  String get gpsQualityLineColDeviation;
+
+  /// No description provided for @gpsQualityLineGotoComparison.
+  ///
+  /// In zh, this message translates to:
+  /// **'多设备横向对比请前往「质量对比」Tab。'**
+  String get gpsQualityLineGotoComparison;
+
+  /// No description provided for @gpsQualityLineComparison.
+  ///
+  /// In zh, this message translates to:
+  /// **'线路检验对比'**
+  String get gpsQualityLineComparison;
+
+  /// No description provided for @gpsQualityLineSelectTrackPrompt.
+  ///
+  /// In zh, this message translates to:
+  /// **'请选择标准轨迹与时间范围查看对比'**
+  String get gpsQualityLineSelectTrackPrompt;
+
+  /// No description provided for @gpsQualityLineComparisonEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'该条件下暂无线路检验数据'**
+  String get gpsQualityLineComparisonEmpty;
 }
 
 class _AppLocalizationsDelegate

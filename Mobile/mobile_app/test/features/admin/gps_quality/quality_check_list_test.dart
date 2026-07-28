@@ -35,6 +35,10 @@ class _FakeRepo extends GpsQualityApiRepository {
   }
 
   @override
+  Future<List<CheckSummaryItem>> fetchChecksSummary(String deviceCode) async =>
+      [];
+
+  @override
   Future<TrajectoryQualityReport> fetchTrajectoryReport(int testId) async =>
      TrajectoryQualityReport(
        testId: testId,
