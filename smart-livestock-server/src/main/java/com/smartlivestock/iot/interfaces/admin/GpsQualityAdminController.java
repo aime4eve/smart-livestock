@@ -583,16 +583,14 @@ public class GpsQualityAdminController {
     // --- LINE checks (NIX-68) ---
 
     @GetMapping("/line-checks/devices")
-    public ResponseEntity<ApiResponse<List<LineCheckDeviceDto>>> lineCheckDevices(
-            @RequestParam String start,
-            @RequestParam String end) {
-        return ResponseEntity.ok(ApiResponse.ok(
-                trackLineCheckService.findDevicesWithLogs(parseInstant(start), parseInstant(end))));
+    public ResponseEntity<ApiResponse<List<LineCheckDeviceDto>>> lineCheckDevices() {
+        return ResponseEntity.ok(ApiResponse.ok(trackLineCheckService.findDevicesWithLogs()));
     }
 
     /**
      * Create one READY LINE test per device: point-list snapshot + synchronous
-     * computation + result snapshot (spec D4, no DEVICE_PENDING flow).
+     * spatial matching (corridor + trip segmentation) + result snapshot
+     * (spec D4, no DEVICE_PENDING flow).
      */
     @PostMapping("/line-checks")
     public ResponseEntity<ApiResponse<LineCheckCreateResultDto>> createLineChecks(
@@ -608,10 +606,8 @@ public class GpsQualityAdminController {
         if (deviceCodes.isEmpty()) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "deviceCodes is required");
         }
-        Instant start = parseInstant((String) body.get("start"));
-        Instant end = parseInstant((String) body.get("end"));
         return ResponseEntity.ok(ApiResponse.ok(
-                trackLineCheckService.createLineChecks(trackLineId, deviceCodes, start, end)));
+                trackLineCheckService.createLineChecks(trackLineId, deviceCodes)));
     }
 
     // --- LINE reports (NIX-68, spec §7.4: summary + track/deviations sub-endpoints) ---
@@ -650,11 +646,9 @@ public class GpsQualityAdminController {
     @GetMapping("/comparison/line")
     public ResponseEntity<ApiResponse<LineComparisonDto>> lineComparison(
             @RequestParam Long trackLineId,
-            @RequestParam String start,
-            @RequestParam String end,
             @RequestParam(required = false) String deviceCode) {
-        return ResponseEntity.ok(ApiResponse.ok(trackLineReportService.comparison(
-                trackLineId, parseInstant(start), parseInstant(end), deviceCode)));
+        return ResponseEntity.ok(ApiResponse.ok(
+                trackLineReportService.comparison(trackLineId, deviceCode)));
     }
 
     // --- Device GPS logs (for trajectory visualization) ---

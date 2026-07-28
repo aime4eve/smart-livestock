@@ -38,6 +38,7 @@ public class JpaGpsQualityLineResultRepositoryImpl implements GpsQualityLineResu
         GpsQualityLineResultJpaEntity jpa = new GpsQualityLineResultJpaEntity();
         jpa.setTestId(r.getTestId());
         jpa.setSampleCount(r.getSampleCount());
+        jpa.setTripCount(r.getTripCount());
         jpa.setMeanDeviationM(r.getMeanDeviationM());
         jpa.setP50M(r.getP50M());
         jpa.setP95M(r.getP95M());
@@ -56,6 +57,7 @@ public class JpaGpsQualityLineResultRepositoryImpl implements GpsQualityLineResu
         GpsQualityLineResult r = new GpsQualityLineResult();
         r.setTestId(jpa.getTestId());
         r.setSampleCount(jpa.getSampleCount());
+        r.setTripCount(jpa.getTripCount());
         r.setMeanDeviationM(jpa.getMeanDeviationM());
         r.setP50M(jpa.getP50M());
         r.setP95M(jpa.getP95M());

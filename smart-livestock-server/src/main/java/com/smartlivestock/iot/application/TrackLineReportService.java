@@ -24,7 +24,6 @@ import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -70,6 +69,7 @@ public class TrackLineReportService {
         dto.setTrackLineName(test.getNote()); // snapshot-time name survives candidate deletion
         dto.setGrade(QualityGrade.valueOf(result.getGrade()));
         dto.setSampleCount(result.getSampleCount());
+        dto.setTripCount(result.getTripCount() != null ? result.getTripCount() : 0);
         dto.setMeanDeviation(result.getMeanDeviationM().doubleValue());
         dto.setP50(result.getP50M().doubleValue());
         dto.setP95(result.getP95M().doubleValue());
@@ -183,8 +183,7 @@ public class TrackLineReportService {
     // Line comparison (spec §7.6): stats table + track, lazy device track
     // ------------------------------------------------------------------
 
-    public LineComparisonDto comparison(Long trackLineId, Instant start, Instant end,
-                                        String deviceCode) {
+    public LineComparisonDto comparison(Long trackLineId, String deviceCode) {
         StandardTrackLine line = trackLineRepository.findById(trackLineId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "Standard track line not found: " + trackLineId));
@@ -194,10 +193,9 @@ public class TrackLineReportService {
                 .map(p -> new LineTrackPointDto(p.getSequenceNo(), p.getLongitude(), p.getLatitude()))
                 .toList());
 
-        // Latest READY LINE test per device whose window overlaps the query window
+        // Latest READY LINE test per device on this standard track
         Map<String, GpsQualityTest> latestByDevice = new LinkedHashMap<>();
-        for (GpsQualityTest t : testRepository.findByTrackLineIdAndWindowOverlapping(
-                trackLineId, start, end)) {
+        for (GpsQualityTest t : testRepository.findByTrackLineIdOrderByStartedAt(trackLineId)) {
             if (!"READY".equals(t.getStatus())) continue;
             latestByDevice.merge(t.getDeviceCode(), t, (a, b) -> {
                 int cmp = a.getStartedAt().compareTo(b.getStartedAt());
@@ -212,6 +210,7 @@ public class TrackLineReportService {
             if (r == null) continue;
             rows.add(new LineComparisonDto.Row(
                     t.getId(), t.getDeviceCode(), r.getSampleCount(),
+                    r.getTripCount() != null ? r.getTripCount() : 0,
                     r.getMeanDeviationM().doubleValue(), r.getP50M().doubleValue(),
                     r.getP95M().doubleValue(), r.getMaxDeviationM().doubleValue(),
                     r.getWithin15mPct().doubleValue(), r.getWithin25mPct().doubleValue(),

@@ -12,6 +12,7 @@ public class GpsQualityLineResult {
 
     private Long testId;
     private Integer sampleCount;
+    private Integer tripCount;
     private BigDecimal meanDeviationM;
     private BigDecimal p50M;
     private BigDecimal p95M;
@@ -28,6 +29,8 @@ public class GpsQualityLineResult {
     public void setTestId(Long testId) { this.testId = testId; }
     public Integer getSampleCount() { return sampleCount; }
     public void setSampleCount(Integer sampleCount) { this.sampleCount = sampleCount; }
+    public Integer getTripCount() { return tripCount; }
+    public void setTripCount(Integer tripCount) { this.tripCount = tripCount; }
     public BigDecimal getMeanDeviationM() { return meanDeviationM; }
     public void setMeanDeviationM(BigDecimal meanDeviationM) { this.meanDeviationM = meanDeviationM; }
     public BigDecimal getP50M() { return p50M; }

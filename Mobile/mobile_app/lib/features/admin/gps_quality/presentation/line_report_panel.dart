@@ -88,6 +88,7 @@ class LineReportPanel extends ConsumerWidget {
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Wrap(spacing: 8, runSpacing: 8, children: [
             _chip('${r.sampleCount}', l10n.gpsQualityLineSamples),
+            _chip('${r.tripCount}', l10n.gpsQualityLineTripCount),
             _chip('${r.meanDeviation.toStringAsFixed(1)}m',
                 l10n.gpsQualityLineMeanDeviation,
                 color: AppColors.primary),

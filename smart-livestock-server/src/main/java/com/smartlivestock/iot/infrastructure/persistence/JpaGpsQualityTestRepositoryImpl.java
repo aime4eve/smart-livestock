@@ -88,10 +88,8 @@ public class JpaGpsQualityTestRepositoryImpl implements GpsQualityTestRepository
     }
 
     @Override
-    public List<GpsQualityTest> findByTrackLineIdAndWindowOverlapping(
-            Long trackLineId, Instant start, Instant end) {
-        return springDataRepo.findByTrackLineIdAndStartedAtLessThanEqualAndEndedAtGreaterThanEqual(
-                trackLineId, end, start).stream()
+    public List<GpsQualityTest> findByTrackLineIdOrderByStartedAt(Long trackLineId) {
+        return springDataRepo.findByTrackLineIdOrderByStartedAt(trackLineId).stream()
                 .map(this::toDomain).toList();
     }
 

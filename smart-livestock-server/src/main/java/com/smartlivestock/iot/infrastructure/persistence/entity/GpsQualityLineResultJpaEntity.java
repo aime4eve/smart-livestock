@@ -20,6 +20,9 @@ public class GpsQualityLineResultJpaEntity {
     @Column(name = "sample_count", nullable = false)
     private Integer sampleCount;
 
+    @Column(name = "trip_count", nullable = false)
+    private Integer tripCount;
+
     @Column(name = "mean_deviation_m", nullable = false, precision = 10, scale = 2)
     private BigDecimal meanDeviationM;
 
@@ -62,6 +65,8 @@ public class GpsQualityLineResultJpaEntity {
     public void setTestId(Long testId) { this.testId = testId; }
     public Integer getSampleCount() { return sampleCount; }
     public void setSampleCount(Integer sampleCount) { this.sampleCount = sampleCount; }
+    public Integer getTripCount() { return tripCount; }
+    public void setTripCount(Integer tripCount) { this.tripCount = tripCount; }
     public BigDecimal getMeanDeviationM() { return meanDeviationM; }
     public void setMeanDeviationM(BigDecimal meanDeviationM) { this.meanDeviationM = meanDeviationM; }
     public BigDecimal getP50M() { return p50M; }

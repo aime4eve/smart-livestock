@@ -1,10 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
-import 'package:hkt_livestock_agentic/core/widgets/date_time_input_field.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_quality_providers.dart';
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/web_file_utils.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/track_line_map.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
@@ -25,10 +27,8 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
   int _segment = 0;
   int? _selectedRtkPointId;
   int? _selectedRouteId;
-  // LINE comparison state (NIX-68)
+  // LINE comparison state (NIX-68, spatial matching: no time window)
   int? _selectedTrackLineId;
-  DateTime? _lineStart;
-  DateTime? _lineEnd;
   final Set<String> _lineDevices = {};
 
   @override
@@ -432,86 +432,41 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
   ];
 
   Widget _buildLineComparison(AppLocalizations l10n) {
-    // Condition bar: time range (track line dropdown lives in the filter bar)
-    final conditionCard = Card(
-      key: const Key('line-comparison-condition'),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Wrap(spacing: AppSpacing.md, runSpacing: AppSpacing.sm,
-          crossAxisAlignment: WrapCrossAlignment.center, children: [
-          SizedBox(
-            width: 240,
-            child: DateTimeInputField(
-              key: const Key('line-cmp-start'),
-              label: l10n.gpsQualityStartTime,
-              value: _lineStart,
-              onChanged: (v) => setState(() {
-                _lineStart = v;
-                _lineDevices.clear();
-              }),
-            ),
-          ),
-          SizedBox(
-            width: 240,
-            child: DateTimeInputField(
-              key: const Key('line-cmp-end'),
-              label: l10n.gpsQualityEndTime,
-              value: _lineEnd,
-              onChanged: (v) => setState(() {
-                _lineEnd = v;
-                _lineDevices.clear();
-              }),
-            ),
-          ),
-          Text(l10n.gpsQualityLineCalcNoteShort,
-            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-        ]),
-      ),
-    );
-
-    if (_selectedTrackLineId == null || _lineStart == null || _lineEnd == null) {
-      return Column(children: [
-        conditionCard,
-        const SizedBox(height: AppSpacing.lg),
-        Card(
-          child: SizedBox(
-            height: 200,
-            child: Center(
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                const Icon(Icons.alt_route, size: 40, color: AppColors.textSecondary),
-                const SizedBox(height: AppSpacing.sm),
-                Text(l10n.gpsQualityLineSelectTrackPrompt,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-              ]),
-            ),
+    // Spatial matching: picking a track line in the filter bar loads the
+    // comparison immediately; device chips toggle per-device tracks.
+    if (_selectedTrackLineId == null) {
+      return Card(
+        child: SizedBox(
+          height: 200,
+          child: Center(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.alt_route, size: 40, color: AppColors.textSecondary),
+              const SizedBox(height: AppSpacing.sm),
+              Text(l10n.gpsQualityLineSelectTrackPrompt,
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+            ]),
           ),
         ),
-      ]);
+      );
     }
 
     final query = (
       trackLineId: _selectedTrackLineId!,
-      start: _lineStart!,
-      end: _lineEnd!,
       deviceCode: null,
     );
     final comparisonAsync = ref.watch(lineComparisonProvider(query));
 
-    return Column(children: [
-      conditionCard,
-      const SizedBox(height: AppSpacing.lg),
-      Card(
-        key: const Key('line-comparison-card'),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: comparisonAsync.when(
-            loading: () => const SizedBox(height: 60, child: Center(child: CircularProgressIndicator())),
-            error: (e, _) => Text('$e', style: const TextStyle(color: AppColors.danger, fontSize: 12)),
-            data: (result) => _buildLineComparisonBody(l10n, result),
-          ),
+    return Card(
+      key: const Key('line-comparison-card'),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: comparisonAsync.when(
+          loading: () => const SizedBox(height: 60, child: Center(child: CircularProgressIndicator())),
+          error: (e, _) => Text('$e', style: const TextStyle(color: AppColors.danger, fontSize: 12)),
+          data: (result) => _buildLineComparisonBody(l10n, result),
         ),
       ),
-    ]);
+    );
   }
 
   Widget _buildLineComparisonBody(AppLocalizations l10n, LineComparisonResult result) {
@@ -528,8 +483,6 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
       if (!_lineDevices.contains(row.deviceCode)) continue;
       final trackAsync = ref.watch(lineComparisonProvider((
         trackLineId: _selectedTrackLineId!,
-        start: _lineStart!,
-        end: _lineEnd!,
         deviceCode: row.deviceCode,
       )));
       final pts = trackAsync.value?.deviceTrack;
@@ -571,6 +524,14 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
           decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(10)),
           child: Text(l10n.gpsQualityDeviceCount(rows.length),
             style: const TextStyle(fontSize: 11, color: AppColors.primary))),
+        const SizedBox(width: 8),
+        TextButton.icon(
+          key: const Key('line-comparison-export'),
+          onPressed: rows.isEmpty ? null : () => _exportLineCsv(l10n, rows),
+          icon: const Icon(Icons.download, size: 16),
+          label: Text(l10n.gpsQualityLineExportCsv,
+              style: const TextStyle(fontSize: 12)),
+        ),
       ]),
       const SizedBox(height: AppSpacing.sm),
       // Device chips (toggle to load that device's track onto the map)
@@ -602,6 +563,7 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
           columns: [
             DataColumn(label: Text(l10n.gpsQualityDeviceCode, style: const TextStyle(fontSize: 12))),
             DataColumn(label: Text(l10n.gpsQualityLineSamples, style: const TextStyle(fontSize: 12))),
+            DataColumn(label: Text(l10n.gpsQualityLineTripCount, style: const TextStyle(fontSize: 12))),
             DataColumn(label: Text(l10n.gpsQualityLineMeanDeviation, style: const TextStyle(fontSize: 12))),
             const DataColumn(label: Text('P50', style: TextStyle(fontSize: 12))),
             const DataColumn(label: Text('P95', style: TextStyle(fontSize: 12))),
@@ -623,6 +585,7 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
                   Text(rows[i].deviceCode, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                 ])),
                 DataCell(Text('${rows[i].sampleCount}', style: const TextStyle(fontSize: 12))),
+                DataCell(Text('${rows[i].tripCount}', style: const TextStyle(fontSize: 12))),
                 DataCell(Text('${rows[i].mean.toStringAsFixed(1)}m', style: const TextStyle(fontSize: 12))),
                 DataCell(Text('${rows[i].p50.toStringAsFixed(1)}m', style: const TextStyle(fontSize: 12))),
                 DataCell(Text('${rows[i].p95.toStringAsFixed(1)}m',
@@ -640,8 +603,48 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
     ]);
   }
 
-  Widget _deviceChip(AppLocalizations l10n, LineComparisonRow row, Color color) {
-    final selected = _lineDevices.contains(row.deviceCode);
+  /// Export the LINE comparison table as a UTF-8 (BOM) CSV for Excel.
+  Future<void> _exportLineCsv(
+      AppLocalizations l10n, List<LineComparisonRow> rows) async {
+    String esc(String v) =>
+        v.contains(',') || v.contains('"') || v.contains('\n')
+            ? '"${v.replaceAll('"', '""')}"'
+            : v;
+    final sb = StringBuffer('﻿');
+    sb.writeln([
+      l10n.gpsQualityDeviceCode,
+      l10n.gpsQualityLineSamples,
+      l10n.gpsQualityLineTripCount,
+      '${l10n.gpsQualityLineMeanDeviation}(m)',
+      'P50(m)',
+      'P95(m)',
+      '${l10n.gpsQualityLineMaxDeviation}(m)',
+      '${l10n.gpsQualityLineWithin15m}(%)',
+      '${l10n.gpsQualityLineWithin25m}(%)',
+      '${l10n.gpsQualityLineWithin40m}(%)',
+      l10n.gpsQualitySummaryGrade,
+    ].map(esc).join(','));
+    for (final r in rows) {
+      sb.writeln([
+        r.deviceCode,
+        '${r.sampleCount}',
+        '${r.tripCount}',
+        r.mean.toStringAsFixed(1),
+        r.p50.toStringAsFixed(1),
+        r.p95.toStringAsFixed(1),
+        r.max.toStringAsFixed(1),
+        r.within15mPct.toStringAsFixed(1),
+        r.within25mPct.toStringAsFixed(1),
+        r.within40mPct.toStringAsFixed(1),
+        r.grade.name.toUpperCase(),
+      ].map(esc).join(','));
+    }
+    final stamp = DateFormat('yyyyMMdd-HHmmss').format(DateTime.now());
+    await downloadBytes(
+        'line-comparison-$stamp.csv', utf8.encode(sb.toString()));
+  }
+
+  Widget _deviceChip(AppLocalizations l10n, LineComparisonRow row, Color color) {    final selected = _lineDevices.contains(row.deviceCode);
     return FilterChip(
       key: ValueKey('line-cmp-chip-${row.deviceCode}'),
       selected: selected,

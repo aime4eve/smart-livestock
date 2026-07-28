@@ -24,8 +24,8 @@ public interface GpsQualityTestRepository {
     /** NIX-68: all tests of one device code (summary aggregation per type). */
     List<GpsQualityTest> findByDeviceCodeOrderByStartedAt(String deviceCode);
 
-    /** NIX-68: LINE tests of one standard track whose window overlaps [start, end]. */
-    List<GpsQualityTest> findByTrackLineIdAndWindowOverlapping(Long trackLineId, Instant start, Instant end);
+    /** NIX-68: LINE tests of one standard track, oldest first. */
+    List<GpsQualityTest> findByTrackLineIdOrderByStartedAt(Long trackLineId);
 
     List<GpsQualityTest> findFiltered(String status, String eui, Long deviceId, int offset, int limit);
     long countFiltered(String status, String eui, Long deviceId);

@@ -1266,7 +1266,7 @@ class TrackLineParseResult {
       );
 }
 
-/// One device with gps_logs data inside the requested time window.
+/// One device with gps_logs data (no time window; totals across all logs).
 @immutable
 class LineCheckDevice {
   const LineCheckDevice({
@@ -1333,6 +1333,7 @@ class LineQualityReport {
     required this.trackLineName,
     required this.grade,
     required this.sampleCount,
+    this.tripCount = 0,
     required this.meanDeviation,
     required this.p50,
     required this.p95,
@@ -1350,6 +1351,9 @@ class LineQualityReport {
   final String trackLineName;
   final QualityGrade grade;
   final int sampleCount;
+
+  /// Number of valid track segments (trips) in the spatial matching window.
+  final int tripCount;
   final double meanDeviation;
   final double p50;
   final double p95;
@@ -1372,6 +1376,7 @@ class LineQualityReport {
         trackLineName: json['trackLineName'] as String? ?? '',
         grade: trajectoryGradeFrom(json['grade'] as String?),
         sampleCount: json['sampleCount'] as int? ?? 0,
+        tripCount: json['tripCount'] as int? ?? 0,
         meanDeviation: (json['meanDeviation'] as num?)?.toDouble() ?? 0,
         p50: (json['p50'] as num?)?.toDouble() ?? 0,
         p95: (json['p95'] as num?)?.toDouble() ?? 0,
@@ -1449,6 +1454,7 @@ class LineComparisonRow {
     this.testId,
     required this.deviceCode,
     required this.sampleCount,
+    required this.tripCount,
     required this.mean,
     required this.p50,
     required this.p95,
@@ -1464,6 +1470,7 @@ class LineComparisonRow {
   final int? testId;
   final String deviceCode;
   final int sampleCount;
+  final int tripCount;
   final double mean;
   final double p50;
   final double p95;
@@ -1480,6 +1487,7 @@ class LineComparisonRow {
         testId: json['testId'] as int?,
         deviceCode: json['deviceCode'] as String? ?? '',
         sampleCount: json['sampleCount'] as int? ?? 0,
+        tripCount: json['tripCount'] as int? ?? 0,
         mean: (json['mean'] as num?)?.toDouble() ?? 0,
         p50: (json['p50'] as num?)?.toDouble() ?? 0,
         p95: (json['p95'] as num?)?.toDouble() ?? 0,

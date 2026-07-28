@@ -37,7 +37,7 @@ RTK 手簿导出的 XLSX（样例：仓库根目录 `轨迹检验线路1/2/3.xls
 ### 1.3 设计目标
 
 - **G1**：真值管理 Tab 新增第三类真值「标准轨迹」：XLSX 导入 → 候选列表（查看/选定/删除/地图预览），追加式管理不归并
-- **G2**：新增检验类型 LINE：选时间范围 → 查出有数据的设备 → 选标准轨迹 → 逐设备计算 GPS 点到标准折线的最短距离（不做时间对齐）→ 统计 + 分级，结果快照
+- **G2**：新增检验类型 LINE：查出有 gps_logs 数据的设备 → 选标准轨迹 → 逐设备做空间匹配：计算 GPS 点到标准折线的最短距离、按走廊阈值切出有效轨迹段（不做时间对齐，时间仅用于切段，I3）→ 统计 + 分级，结果快照
 - **G3**：检验列表 Tab 新增「检验结果汇总」区：单设备 4 类检验统一视图；LINE 报告加入既有按类型分派机制
 - **G4**：质量对比 Tab 类型选择器 3 段扩 4 段，线路检验横向对比 = 同图叠加地图（绿色标准线 + 多设备多色轨迹）+ 对比表
 - **G5**：STATIC / DYNAMIC / TRAJECTORY 三类的报告面板、打开方式、API、分级逻辑**完全不变**（§3 继承关系）
@@ -58,14 +58,14 @@ RTK 手簿导出的 XLSX（样例：仓库根目录 `轨迹检验线路1/2/3.xls
 | D1 | **新增检验类型 LINE，三类既有类型不动** | `TestType` 枚举追加 `LINE`（`TestType.java:7-11`）；`gps_quality_tests` 统一会话表沿用，CHECK 约束按既有演进写法放开（§6.1） |
 | D2 | **不开新顶层 Tab，报告下沉到两个既有维度** | 设备维度 → 检验列表（统一报告区 + 类型分派）；横向对比维度 → 质量对比（第 4 段）。顶部 3 Tab 结构不变 |
 | D3 | **标准轨迹追加式管理，不归并** | 一次导入 = 一条独立候选（status=CANDIDATE）；同一文件重复导入**新增记录而不覆盖**；选定（SELECTED）不互斥仅标记；合成（勾选 ≥2 条）为二期，本期只做入口与交互预留 |
-| D4 | **检验发起时快照，删除候选不影响历史报告** | 发起 LINE 检验时把标准轨迹点列快照进 `gps_quality_line_points`；计算结果（逐设备统计 + 逐点偏差）快照进 `gps_quality_line_results` / `gps_quality_line_deviations`。与 NIX-22 D2 的快照哲学一致；此处连结果也快照，因为 LINE 计算依赖 `gps_logs` 时间窗查询，而 `DataRetentionService` 会清理 gps_logs——若现算，历史报告会随遥测清理而变化或消失 |
+| D4 | **检验发起时快照，删除候选不影响历史报告** | 发起 LINE 检验时把标准轨迹点列快照进 `gps_quality_line_points`；计算结果（逐设备统计 + 逐点偏差）快照进 `gps_quality_line_results` / `gps_quality_line_deviations`。与 NIX-22 D2 的快照哲学一致；此处连结果也快照，因为 LINE 计算依赖 `gps_logs` 查询（I3 后为设备全量点列空间匹配），而 `DataRetentionService` 会清理 gps_logs——若现算，历史报告会随遥测清理而变化或消失 |
 | D5 | **只支持 RTK 手簿 XLSX 版式** | 单 sheet「线路追踪」、8 列单行、坐标列换行分隔三元组。不做多格式识别（非目标） |
 | D6 | **元数据不采信，一切以坐标实算** | 开始/结束时间、长度字段仅展示不入库，解析失败不阻断；点数 = 去连续重复后计数；全长 = 去重后逐段 haversine 累加；名称默认取「名称」列可改 |
 | D7 | **清洗 = 去连续重复点 + 忽略高程** | 仅剔除与前一保留点完全相同的连续点；不做速度跳点剔除、不做抽稀（线路真值需要完整几何） |
 | D8 | **导入沿用 parse 预检 → import 落库两段式** | 对齐 `/trajectory/parse`、`/trajectory/import`（`GpsQualityAdminController.java:373,386`）；上限沿用 MAX_ROWS 思路按解析后坐标点数限制（`TrajectoryImportService.java:66` 的 `MAX_ROWS = 5000`，本期按点数 20000 限） |
 | D9 | **LINE 检验只由「新建线路检验」流程产生** | `create_check_dialog.dart:75-97` 的两段选择器（STATIC/DYNAMIC）不变；新建线路检验是左栏工具条新入口打开的独立弹窗（与 TRAJECTORY 只由导入产生同一思路，NIX-22 D8） |
-| D10 | **分级沿用现有 QualityGrade 口径，无配对率维度** | LINE 的样本是时间窗内全部 gps_logs 点，无"配对"概念，故不设 pairRate 约束：samples ≥10 且 p95 ≤15m → EXCELLENT；≥6 且 ≤25m → USABLE；≥4 且 ≤40m → MARGINAL；否则 UNAVAILABLE。阈值与 `TrajectoryPairingService.determineTrajectoryGrade`（`TrajectoryPairingService.java:120-132`）的 p95 档位一致 |
-| D11 | **时间解析沿用 UTC 面值惯例** | 前端 datetime-local 提交 naive 时间，后端按 `GpsQualityAdminController.parseInstant`（`GpsQualityAdminController.java:91-97`）面值解析（lesson #17：不做时区猜测，两端同一基准）；前端不做 `toUtc()` |
+| D10 | **分级沿用现有 QualityGrade 口径，无配对率维度** | LINE 的样本是空间匹配出的有效轨迹段内 gps_logs 点（I3 修订，原为时间窗内全部点），无"配对"概念，故不设 pairRate 约束：samples ≥10 且 p95 ≤15m → EXCELLENT；≥6 且 ≤25m → USABLE；≥4 且 ≤40m → MARGINAL；否则 UNAVAILABLE。阈值与 `TrajectoryPairingService.determineTrajectoryGrade`（`TrajectoryPairingService.java:120-132`）的 p95 档位一致 |
+| D11 | **时间解析沿用 UTC 面值惯例** | 前端 datetime-local 提交 naive 时间，后端按 `GpsQualityAdminController.parseInstant`（`GpsQualityAdminController.java:91-97`）面值解析（lesson #17：不做时区猜测，两端同一基准）；前端不做 `toUtc()`。**I3 变更**：LINE 端点与 UI 已完全去掉时间范围参数（匹配键改为空间），本条不再适用于 LINE 发起/对比流程，仍适用于 TRAJECTORY 等既有带时间窗的流程 |
 | D12 | **计算下沉纯 domain service** | 新建 `TrackLineCalculator`（点到折线最短距离 + 统计聚合 + 分级），无 IO、可单测，与 `TrajectoryPairingService`（`TrajectoryPairingService.java:28-30`）同一模式 |
 
 ---
@@ -185,22 +185,42 @@ pointToSegment(P, A, B):
     # 与既有 haversine（TrajectoryPairingService.java:162-170）在 <1km 量级误差 <0.1%
 ```
 
-- **不做时间对齐**：设备点时间只用于落入时间窗与展示，不参与偏差计算（与 TRAJECTORY 的本质区别，§1.1）
+- **时间只用于切段，不进入偏差计算**：设备点的 recordedAt 仅用于按时间升序排序与相邻点间隔切段（§5.2），偏差本身纯空间（与 TRAJECTORY 时间配对的本质区别，§1.1）
 - 线段局部投影的纬度系数与既有 haversine 约定一致；算法说明写在 javadoc
 
-### 5.2 统计聚合
+### 5.2 空间匹配与轨迹段切分（I3 修订：空间匹配取代时间窗匹配）
 
 ```
-输入：某设备时间窗内 gps_logs 点列（按 recorded_at 升序）
-逐点 → (recordedAt, lat, lng, deviation, segmentNo)
+输入：标准轨迹点列 L（去重后，n≥2）+ 单设备全部 gps_logs 点列（按 recorded_at 升序，不带时间窗过滤）
+逐点：计算到折线 L 的最短距离（§5.1，等距圆柱投影）→ (recordedAt, lat, lng, deviation, segmentNo)
+接近标记：deviation ≤ CORRIDOR_METERS(100m) → 该点"接近线路"
+切段：相邻接近点的 recordedAt 间隔 ≤ GAP_SECONDS(300s) → 归同一轨迹段；超过则切段
+过滤：段内点数 < MIN_SEGMENT_POINTS(4) → 整段丢弃（去孤点噪声）
+有效样本 = 所有有效段合并后的点集（同一设备多趟合成一次检验）
+```
+
+三个常量：
+
+| 常量 | 值 | 取值理由 |
+|---|---|---|
+| `CORRIDOR_METERS` | 100 | 走廊阈值，判定"经过线路"；必须 > 分级带宽上限 40m（D10 的 MARGINAL p95 档），否则 UNAVAILABLE 设备的点进不了样本，永远无法被检验区分 |
+| `GAP_SECONDS` | 300 | 相邻点间隔容忍，覆盖 LoRaWAN 丢点/上报抖动，避免一次丢点把一趟切成两趟 |
+| `MIN_SEGMENT_POINTS` | 4 | 单趟最小点数，剔除偶尔飘过走廊的孤点噪声 |
+
+### 5.3 统计聚合
+
+```
+输入：有效样本点集（各有效段合并，保持时间升序）
 聚合：
-  sampleCount = 点数
+  sampleCount = 有效样本点数
+  tripCount   = 有效轨迹段数
   mean / p50 / p95 / max（percentile 线性插值 + 退化规则沿用既有约定，§3.5）
   within15mPct / within25mPct / within40mPct = deviation ≤ 阈值 的占比
 grade = determineLineGrade(stats)   # D10
+无有效段 → sampleCount = 0 → grade = UNAVAILABLE（test 正常创建，结果快照照落）
 ```
 
-### 5.3 分级（D10）
+### 5.4 分级（D10）
 
 | Grade | 条件 | 最小样本 |
 |---|---|---|
@@ -247,9 +267,11 @@ LINE 会话字段填充规则：
 | test_type | LINE |
 | rtk_point_id / route_id | NULL |
 | track_line_id | 发起时选定的标准轨迹 |
-| started_at / ended_at | 用户选择的时间范围 |
+| started_at / ended_at | 有效样本首末 recordedAt（I3 修订：原为用户选择的时间范围）；无有效段时回退设备 gps_logs 数据首末；started_at 列 NOT NULL |
 | status | READY（发起即完成计算与快照，无 DEVICE_PENDING 流程） |
 | note | 标准轨迹名称（快照时点），如 `自动追踪_20260728153839` |
+
+设备完全无 gps_logs 时不创建 test（I3）：发起响应中该设备条目返回 `testId=null, sampleCount=0, grade=UNAVAILABLE`。
 
 `track_line_id ON DELETE SET NULL`：删除候选线路后历史检验保留（点列已快照），外键置空，note 仍可追溯名称。
 
@@ -306,6 +328,7 @@ CREATE TABLE gps_quality_line_points (
 CREATE TABLE gps_quality_line_results (
     test_id BIGINT PRIMARY KEY REFERENCES gps_quality_tests(id) ON DELETE CASCADE,
     sample_count INTEGER NOT NULL,
+    trip_count INTEGER NOT NULL DEFAULT 0,               -- 有效轨迹段数（I3，V20260728140000 补列）
     mean_deviation_m NUMERIC(10,2) NOT NULL,
     p50_m NUMERIC(10,2) NOT NULL,
     p95_m NUMERIC(10,2) NOT NULL,
@@ -333,7 +356,7 @@ CREATE TABLE gps_quality_line_deviations (
 CREATE INDEX idx_gld_test ON gps_quality_line_deviations(test_id, sequence_no);
 ```
 
-规模评估：30 分钟上报间隔 × 2.5h ≈ 5 点/设备；高频场景（5s 上报）2.5h ≈ 1800 点/设备，与 NIX-22 轨迹点同量级，可接受。
+规模评估：deviations 只落有效段内的点（I3）；单趟 30 分钟上报间隔 × 2.5h ≈ 5 点/设备，高频场景（5s 上报）单趟 2.5h ≈ 1800 点/设备，与 NIX-22 轨迹点同量级，可接受。
 
 负载估算（评审 F2 补充）：
 
@@ -341,9 +364,13 @@ CREATE INDEX idx_gld_test ON gps_quality_line_deviations(test_id, sequence_no);
 - **最坏场景**：30 设备 × 1800 点 × 430 段 ≈ 2300 万次等距圆柱投影——纯算术、无 IO（~1μs/次，秒级）+ 约 5.4 万行 deviations 批量 INSERT，预估总耗时 **<10s**。
 - **结论**：最坏场景下同步 READY（发起即完成计算与快照）可接受，**本期保持同步计算，不引入 DEVICE_PENDING 异步流程**；若未来上报频率显著提高（如秒级上报常态化），再评估异步化。
 
+> **I3 注**：匹配键改为空间后，计算输入为设备全部 gps_logs（不再按时间窗截取），单次计算量随设备历史数据量增长；但 deviations 只落有效段内的点（走廊外与被丢弃孤段的点不进快照），结果快照行数只降不升。
+
 ### 6.6 迁移命名
 
 `V20260728100000__nix68_track_line_inspection.sql`：`track_line_id` 加列 + CHECK 演进 + 2 条新索引（`idx_gqt_device_type_time`、`idx_gqt_track_line`，§6.1）+ 4 张新表。**无种子数据**——标准轨迹来自用户导入（同 NIX-22 §5.4 的处理）。
+
+`V20260728140000__nix68_line_trip_count.sql`（I3）：`gps_quality_line_results` 加列 `trip_count INTEGER NOT NULL DEFAULT 0`；存量行回填 0——既有结果是时间窗语义，无从追溯轨迹段数，回填 0 仅作占位。
 
 ---
 
@@ -383,8 +410,8 @@ public class TrackLineParseResultDto {
 
 | 方法 | 路径 | 说明 |
 |---|---|---|
-| GET | `/line-checks/devices?start=&end=` | 查时间窗内 gps_logs 有数据的设备列表：{deviceCode, deviceId, pointCount, firstRecordedAt, lastRecordedAt} |
-| POST | `/line-checks` | 发起：{trackLineId, deviceCodes[], start, end} → 逐设备创建 LINE test + 快照点列 + 计算 + 结果快照，返回逐设备 {testId, deviceCode, sampleCount, grade} |
+| GET | `/line-checks/devices` | 查所有有 gps_logs 数据的设备列表（I3 起无 start/end 时间参数）：{deviceCode, deviceId, pointCount（总点数）, firstRecordedAt, lastRecordedAt} |
+| POST | `/line-checks` | 发起：{trackLineId, deviceCodes[]}（I3 起无 start/end）→ 逐设备创建 LINE test + 快照点列 + 空间匹配计算 + 结果快照，返回逐设备 {testId, deviceCode, sampleCount, grade}；设备完全无 gps_logs → testId=null, sampleCount=0, grade=UNAVAILABLE（§6.1） |
 | GET | `/tests/{id}/line-report` | LINE 报告统计摘要（读快照；testType≠LINE → 400），对齐 `/tests/{id}/trajectory-report`；点列与逐点偏差走子端点（§7.4） |
 
 ### 7.4 报告 DTO（读快照，不再回查 gps_logs；响应体积控制，评审 F3）
@@ -395,11 +422,12 @@ public class TrackLineParseResultDto {
 public class LineQualityReportDto {
     Long testId;
     String deviceCode;
-    Instant startedAt, endedAt;
+    Instant startedAt, endedAt; // 有效样本首末 recordedAt（无有效段时回退设备数据首末，§6.1）
     Long trackLineId;          // 发起时选用的标准轨迹（候选删除后置空，§6.1）
     String trackLineName;      // 快照时点名称（note）
     QualityGrade grade;
     int sampleCount;
+    int tripCount;             // 有效轨迹段数（I3，§5.2）
     double meanDeviation, p50, p95, maxDeviation;
     double within15mPct, within25mPct, within40mPct;
 }
@@ -410,7 +438,7 @@ public class LineQualityReportDto {
 | 方法 | 路径 | 说明 |
 |---|---|---|
 | GET | `/tests/{id}/line-report/track` | 标准轨迹点列快照（地图绿线）：`List<LinePoint> {sequenceNo, lng, lat}` |
-| GET | `/tests/{id}/line-report/deviations?limit=` | 逐点偏差明细（时间升序）：`List<Deviation> {sequenceNo, recordedAt, lng, lat, deviationM, segmentNo}`；默认全量，`limit` 可选限量 |
+| GET | `/tests/{id}/line-report/deviations?limit=` | 逐点偏差明细（时间升序）：`List<Deviation> {sequenceNo, recordedAt, lng, lat, deviationM, segmentNo}`；**只返回有效段内的点**（I3：走廊外与被丢弃孤段的点不进快照）；默认全量，`limit` 可选限量 |
 
 ### 7.5 统一报告区摘要端点
 
@@ -424,16 +452,18 @@ GET /checks/summary?deviceCode=
 ### 7.6 质量对比端点
 
 ```
-GET /comparison/line?trackLineId=&start=&end=
-→ 不传 deviceCode：只返回统计对比表 + 标准轨迹点列（同图叠加地图绿线）：
+GET /comparison/line?trackLineId=
+→ 不传 deviceCode：返回该线路下每设备最新一条 READY 检验的统计对比表 + 标准轨迹点列（同图叠加地图绿线）：
    { trackLine: [{sequenceNo, lng, lat}, ...],
-     rows: [{testId, deviceCode, sampleCount, mean, p50, p95, max, within15/25/40, grade, startedAt, endedAt}] }
-GET /comparison/line?trackLineId=&start=&end=&deviceCode=
-→ 追加返回该设备的上报轨迹点（多色 polyline，来自偏差快照）；
+     rows: [{testId, deviceCode, sampleCount, tripCount, mean, p50, p95, max, within15/25/40, grade, startedAt, endedAt}] }
+GET /comparison/line?trackLineId=&deviceCode=
+→ 追加返回该设备的上报轨迹点（多色 polyline，来自偏差快照，仅有效段内点）；
   前端按设备逐个按需加载，避免多设备轨迹点一次性内联（评审 F3）
 ```
 
-**时间窗过滤口径（I2 修正）**：检验记录按**窗口相交**匹配——检验窗口 [startedAt, endedAt] 与查询窗口 [start, end] 有重叠即纳入（`startedAt <= end AND endedAt >= start`）。最初实现为"startedAt 落在查询窗内"，用户查询窗起点晚于检验起点时会全部漏掉（如检验 08:02 发起、查询 08:35 开始），不符合直觉。
+**I3 变更**：start/end 时间参数已随匹配键改空间而移除，对比口径改为"该线路下每设备最新一条 READY"。I2 的窗口相交口径（`startedAt <= end AND endedAt >= start`）随之废止，原始说明保留于本节下方备查。
+
+> （已废止，I2 原文）时间窗过滤口径：检验记录按窗口相交匹配——检验窗口 [startedAt, endedAt] 与查询窗口 [start, end] 有重叠即纳入（`startedAt <= end AND endedAt >= start`）。最初实现为"startedAt 落在查询窗内"，用户查询窗起点晚于检验起点时会全部漏掉（如检验 08:02 发起、查询 08:35 开始），不符合直觉。
 
 ---
 
@@ -470,14 +500,14 @@ GET /comparison/line?trackLineId=&start=&end=&deviceCode=
 
 ### 8.4 新增 `line_check_create_dialog.dart`（原型 ④）
 
-时间范围（datetime-local）→「查询设备」（`/line-checks/devices`）→ 设备列表勾选（设备号/范围内点数/首末时间，含空洞提示）→ 标准轨迹下拉（SELECTED 置顶带 ★，CANDIDATE 列后）→ 发起（`/line-checks`）→ 关闭并刷新 `checksProvider`。
+打开即加载设备（`/line-checks/devices`，I3 起去时间范围步骤）→ 设备列表勾选（设备号/总点数/首末时间）→ 标准轨迹下拉（SELECTED 置顶带 ★，CANDIDATE 列后）→ 发起（`/line-checks`）→ 关闭并刷新 `checksProvider`。
 
 ### 8.5 新增 `line_report_panel.dart`（原型 ⑥，内联报告面板）
 
 自上而下（与原型一致，结构对齐 `trajectory_report_panel.dart`）：
 
-1. **标题行**：线路检验报告 + 类型标记 + Grade 徽章 + 标准轨迹名/时间窗
-2. **指标 chips**：样本数 / mean / P50 / P95 / max / ≤15m / ≤25m / ≤40m 占比
+1. **标题行**：线路检验报告 + 类型标记 + Grade 徽章 + 标准轨迹名/有效样本首末时间
+2. **指标 chips**：样本数 / 趟数 tripCount / mean / P50 / P95 / max / ≤15m / ≤25m / ≤40m 占比；chips 下方口径说明条：有效样本 = 连续接近线路的轨迹段（走廊 100m 内、间隔 5 分钟内、单趟 ≥4 点）
 3. **地图对比**：flutter_map（§8.7）——标准轨迹绿色实线 Polyline + 设备上报红色虚线 Polyline + max 偏差点 Marker
 4. **逐点偏差明细表**：# / 上报时间 / 设备经纬度 / 最近点所在线段 / 最短距离
 5. 末尾 callout：多设备横向对比引导至质量对比 Tab
@@ -487,9 +517,10 @@ GET /comparison/line?trackLineId=&start=&end=&deviceCode=
 ### 8.6 Tab 3 质量对比（`comparison_tab.dart`，原型 ⑦）
 
 - `SegmentedButton`（:40-58）3 段扩 4 段：静态/动态/轨迹/**线路**
-- `_buildLineComparison`：条件条（标准轨迹下拉 + 时间范围 + 设备 chip 带轨迹色）→ `/comparison/line`（先取统计对比表 + 标准轨迹点列，设备轨迹点按 `deviceCode` 逐个按需加载，§7.6）→
+- `_buildLineComparison`：条件条（标准轨迹下拉 + 设备 chip 带轨迹色；I3 起去时间范围，选轨迹即加载）→ `/comparison/line`（先取统计对比表 + 标准轨迹点列，设备轨迹点按 `deviceCode` 逐个按需加载，§7.6）→
   - **同图叠加地图**（flutter_map）：绿色标准线 + 每设备一色 Polyline（A01 红 #C2564B / A02 橙 #D97706 / A03 蓝 #2563EB，设备色板循环）
-  - **横向对比 DataTable**（列与原型一致：设备/样本数/mean/P50/P95/max/≤15m/≤25m/≤40m/分级，样式对齐 `_buildTrajectoryComparison`:303 的 DataTable）
+  - **横向对比 DataTable**（列与原型一致：设备/样本数/趟数/mean/P50/P95/max/≤15m/≤25m/≤40m/分级，样式对齐 `_buildTrajectoryComparison`:303 的 DataTable）
+  - **导出 CSV**（I4）：标题行"导出 CSV"按钮，由已加载 rows 直接生成 UTF-8(BOM) CSV 下载（列同对比表，文件名 `line-comparison-yyyyMMdd-HHmmss.csv`），复用 `web_file_utils.downloadBytes`，不动后端
 
 ### 8.7 地图实现
 
@@ -565,21 +596,21 @@ GET /comparison/line?trackLineId=&start=&end=&deviceCode=
 | 多格式导入识别（CSV/KML/GPX 等） | 决策只支持 RTK 手簿 XLSX 版式（D5），避免无需求的格式矩阵 |
 | 修改 STATIC / DYNAMIC / TRAJECTORY 任何逻辑 | §3 继承关系：三类报告面板、分派、API、分级零改动 |
 | 标准轨迹编辑（删点/截断） | 追加式模型下用"重新导入 + 删除旧候选"覆盖 |
-| gps_logs 写路径任何改动 | 只读时间窗查询；不回写（同 NIX-22 D11 精神） |
+| gps_logs 写路径任何改动 | 只读查询；不回写（同 NIX-22 D11 精神） |
 
 ---
 
 ## 11. 验收标准
 
-- [ ] Flyway 迁移成功：`chk_test_type_truth` 允许 LINE（track_line_id NOT NULL）；4 张新表建成（含 UNIQUE/CHECK/索引）；既有三类检验回归无变化
+- [ ] Flyway 迁移成功：`chk_test_type_truth` 允许 LINE；4 张新表建成（含 UNIQUE/CHECK/索引）；`V20260728140000` 后 `gps_quality_line_results` 含 trip_count（存量回填 0）；既有三类检验回归无变化
 - [ ] 导入：仓库根目录 3 个真实样例文件依次导入 → 3 条独立候选：自动追踪_20260728153839（430 点 · 1177m）、自动追踪_20260728155125（387 点 · 1192m）、自动追踪_20260728155954（406 点 · 1192m），**点数/全长与坐标实算一致**（容差 ±1m）；元数据脏值（开始=结束、长度=0、`2026=07-28`）不阻断
 - [ ] 追加式：同一文件再次导入 → 新增第 4 条候选而非覆盖；删除任一候选不影响其余
 - [ ] parse 预览：原始点数/去重后/去除数/实算全长/起终点/前 8 点，与原型第 2 步一致；点级无效行跳过计数
-- [ ] 发起：`/line-checks/devices` 返回时间窗内有数据的设备（含点数与首末时间）；POST `/line-checks` 后每设备生成一条 READY 的 LINE test，且 `gps_quality_line_points` 快照点列与标准轨迹一致
-- [ ] 报告：`/tests/{id}/line-report` 输出统计摘要（mean/p50/p95/max、15/25/40m 占比、样本数、trackLineId/trackLineName）；`/tests/{id}/line-report/track` 返回标准轨迹点列快照，`/tests/{id}/line-report/deviations` 返回逐点偏差（含 segment_no，`limit` 限量生效）；分级符合 D10（p95≤15 且 samples≥10 → EXCELLENT）；删除该检验所用候选线路后报告仍可完整打开（快照生效，track_line_id 置空）
-- [ ] 前端：真值管理三页签；标准轨迹表格/导入向导/地图预览/合成入口交互与原型一致；检验列表出现青绿「线路」标记与「线」时间轴段；统一报告区 4 行展示且「查看报告」进入对应类型报告；LINE 报告内联展示指标卡+地图+明细表
-- [ ] 质量对比：第 4 段「线路」展示同图叠加地图（绿标准线+多设备多色）与对比表；前三段回归无变化
-- [ ] `TrackLineCalculator` 单测：点到线段（垂足内/外）、多点折线取 min、percentile 退化规则、分级边界（p95=15.0 恰等阈值 → EXCELLENT）
+- [ ] 发起：`/line-checks/devices` 不传时间参数即返回所有有 gps_logs 的设备（含总点数与首末时间）；POST `/line-checks`（无 start/end）后每设备生成一条 READY 的 LINE test，且 `gps_quality_line_points` 快照点列与标准轨迹一致；完全无 gps_logs 的设备返回 testId=null / sampleCount=0 / UNAVAILABLE 且不建 test
+- [ ] 报告：`/tests/{id}/line-report` 输出统计摘要（mean/p50/p95/max、15/25/40m 占比、样本数、趟数 tripCount、trackLineId/trackLineName）；`/tests/{id}/line-report/track` 返回标准轨迹点列快照，`/tests/{id}/line-report/deviations` 返回逐点偏差（仅有效段内点，含 segment_no，`limit` 限量生效）；分级符合 D10（p95≤15 且 samples≥10 → EXCELLENT）；删除该检验所用候选线路后报告仍可完整打开（快照生效，track_line_id 置空）
+- [ ] 前端：真值管理三页签；标准轨迹表格/导入向导/地图预览/合成入口交互与原型一致；检验列表出现青绿「线路」标记与「线」时间轴段；统一报告区 4 行展示且「查看报告」进入对应类型报告；LINE 报告内联展示指标卡（含趟数与口径说明条）+地图+明细表
+- [ ] 质量对比：第 4 段「线路」无需选择时间范围，选轨迹即加载（该线路下每设备最新一条 READY），展示同图叠加地图（绿标准线+多设备多色）与对比表（含趟数列）；前三段回归无变化
+- [ ] `TrackLineCalculator` 单测：点到线段（垂足内/外）、多点折线取 min、走廊接近标记（100m 边界）、间隔切段（≤300s 同段 / >300s 切段）、孤段丢弃（<4 点）、多趟合并与 tripCount 计数、无有效段 → sampleCount=0/UNAVAILABLE、percentile 退化规则、分级边界（p95=15.0 恰等阈值 → EXCELLENT）
 - [ ] 后端 `./gradlew compileJava` + 前端 `flutter build web` 通过；`flutter gen-l10n` 无缺失 key，中英 arb 对齐
 - [ ] dev 部署后 curl 验证：track-lines parse/import、line-checks devices/发起、line-report（含 track/deviations 子端点）、comparison/line（含 deviceCode 按需加载）、checks/summary 各端点返回正确
 
@@ -608,7 +639,9 @@ GET /comparison/line?trackLineId=&start=&end=&deviceCode=
 | 编号 | 处置 | 说明 |
 |---|---|---|
 | I1 | **修复** | §6.1 CHECK 约束缺陷：LINE 分支原要求 `track_line_id IS NOT NULL`，与 FK `ON DELETE SET NULL` 自相矛盾，删除候选必然违反约束（dev 实测 `chk_test_type_truth` violation）。新增迁移 `V20260728130000__nix68_line_check_allow_null_track_line.sql` 放开 LINE 分支非空要求；track_line_id 定位为候选存活期间的活引用，真值由快照承载 |
-| I2 | **修复** | `/comparison/line` 时间窗口径：原实现"test.startedAt 落在查询窗内"，test 环境实测用户查询窗（08:35 起）晚于检验起点（08:02）时 22 条 LINE 检验全部漏掉。改为窗口相交（`startedAt <= end AND endedAt >= start`），§7.6 已注明 |
+| I2 | **修复** | `/comparison/line` 时间窗口径：原实现"test.startedAt 落在查询窗内"，test 环境实测用户查询窗（08:35 起）晚于检验起点（08:02）时 22 条 LINE 检验全部漏掉。改为窗口相交（`startedAt <= end AND endedAt >= start`），§7.6 已注明（该口径后被 I3 废止） |
+| I3 | **变更** | **空间匹配取代时间匹配**（用户 2026-07-28 拍板）：时间范围从端点与 UI 完全去掉、同一设备多趟合成一次检验、连续接近线路的轨迹段为有效样本。算法三常量：`CORRIDOR_METERS=100`（走廊阈值，须 > 40m 分级带宽上限，否则 UNAVAILABLE 设备进不了样本）、`GAP_SECONDS=300`（容忍 LoRaWAN 丢点）、`MIN_SEGMENT_POINTS=4`（去孤点噪声）；时间只用于切段，不进入偏差计算（§5.2）。端点去时间参数：`/line-checks/devices`、`POST /line-checks`、`/comparison/line`（对比口径改为该线路下每设备最新一条 READY，I2 窗口相交口径随之废止）。新增迁移 `V20260728140000__nix68_line_trip_count.sql` 补 trip_count（存量回填 0）。既有 22 条时间窗时代的 LINE 检验保留混排，不追溯重算 |
+| I4 | **新增 + 修复** | **质量对比 LINE 段导出 CSV**（2026-07-28 用户追加需求）：前端由已加载的对比表数据直接生成 UTF-8(BOM) CSV 下载（列=设备/样本数/趟数/mean/P50/P95/max/≤15m/≤25m/≤40m 占比/分级，文件名 `line-comparison-yyyyMMdd-HHmmss.csv`），不动后端，§8.6 同步。同批修复：发起检验后 `lineComparisonProvider` 未失效导致对比页缓存不刷新（`line_check_create_dialog.dart` 发起成功后补 `ref.invalidate(lineComparisonProvider)`） |
 
 ---
 

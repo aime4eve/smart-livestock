@@ -7478,7 +7478,7 @@ abstract class AppLocalizations {
   /// No description provided for @gpsQualityLineQueryHint.
   ///
   /// In zh, this message translates to:
-  /// **'从 gps_logs 查出该范围内有上报的设备'**
+  /// **'从 gps_logs 查出所有有上报数据的设备（空间匹配，不限时间范围）'**
   String get gpsQualityLineQueryHint;
 
   /// No description provided for @gpsQualityLineSelectDevices.
@@ -7490,14 +7490,14 @@ abstract class AppLocalizations {
   /// No description provided for @gpsQualityLineDevicesFound.
   ///
   /// In zh, this message translates to:
-  /// **'范围内 {n} 台设备有数据'**
+  /// **'{n} 台设备有数据'**
   String gpsQualityLineDevicesFound(int n);
 
-  /// No description provided for @gpsQualityLinePointsInRange.
+  /// No description provided for @gpsQualityLinePointTotal.
   ///
   /// In zh, this message translates to:
-  /// **'范围内 {n} 点'**
-  String gpsQualityLinePointsInRange(int n);
+  /// **'共 {n} 点'**
+  String gpsQualityLinePointTotal(int n);
 
   /// No description provided for @gpsQualityLineFirstLast.
   ///
@@ -7526,13 +7526,13 @@ abstract class AppLocalizations {
   /// No description provided for @gpsQualityLineCalcNote.
   ///
   /// In zh, this message translates to:
-  /// **'计算口径：对每台设备，取其时间范围内 gps_logs 全部点位，逐点计算到标准轨迹折线的最短距离（点到线，不做时间对齐），汇总 mean / p50 / p95 / max 与 15 / 25 / 40m 内占比，按 QualityGrade 分级。'**
+  /// **'计算口径：对每台设备取其全部 gps_logs，提取连续接近线路的轨迹段（走廊 100m 内、间隔 5 分钟内、单趟 ≥4 点）作为有效样本，逐点计算到标准轨迹折线的最短距离（点到线，不做时间对齐），汇总 mean / p50 / p95 / max 与 15 / 25 / 40m 内占比，按 QualityGrade 分级。'**
   String get gpsQualityLineCalcNote;
 
   /// No description provided for @gpsQualityLineCalcNoteShort.
   ///
   /// In zh, this message translates to:
-  /// **'口径：点到线最短距离（不做时间对齐）'**
+  /// **'有效样本 = 连续接近线路的轨迹段（走廊 100m 内、间隔 5 分钟内、单趟 ≥4 点）'**
   String get gpsQualityLineCalcNoteShort;
 
   /// No description provided for @gpsQualityLineLaunch.
@@ -7594,6 +7594,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'样本数'**
   String get gpsQualityLineSamples;
+
+  /// No description provided for @gpsQualityLineTripCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'趟数'**
+  String get gpsQualityLineTripCount;
 
   /// No description provided for @gpsQualityLineMeanDeviation.
   ///
@@ -7679,10 +7685,16 @@ abstract class AppLocalizations {
   /// **'线路检验对比'**
   String get gpsQualityLineComparison;
 
+  /// No description provided for @gpsQualityLineExportCsv.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出 CSV'**
+  String get gpsQualityLineExportCsv;
+
   /// No description provided for @gpsQualityLineSelectTrackPrompt.
   ///
   /// In zh, this message translates to:
-  /// **'请选择标准轨迹与时间范围查看对比'**
+  /// **'请选择标准轨迹查看对比'**
   String get gpsQualityLineSelectTrackPrompt;
 
   /// No description provided for @gpsQualityLineComparisonEmpty.
