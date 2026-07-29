@@ -25,6 +25,7 @@ import com.smartlivestock.iot.interfaces.admin.dto.LineCheckDeviceDto;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -65,6 +66,7 @@ public class TrackLineCheckService {
      * LINE test (+ snapshots) for this trackLine, then re-create tests for all
      * devices that currently have gps_logs data. Returns the creation result.
      */
+    @Transactional
     public LineCheckCreateResultDto refreshLineChecks(Long trackLineId) {
         // Validate the track line exists before deleting anything.
         trackLineRepository.findById(trackLineId)
