@@ -3,6 +3,7 @@ package com.smartlivestock.iot.application;
 import com.smartlivestock.iot.application.dto.GpsLogDto;
 import com.smartlivestock.iot.domain.event.GpsLogUpdatedEvent;
 import com.smartlivestock.iot.domain.model.GpsLog;
+import com.smartlivestock.iot.domain.model.TelemetrySource;
 import com.smartlivestock.iot.domain.repository.GpsLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -22,13 +23,14 @@ public class GpsLogApplicationService {
 
     @Transactional
     public GpsLogDto logGps(Long deviceId, BigDecimal latitude, BigDecimal longitude,
-                            BigDecimal accuracy, Instant recordedAt) {
-        GpsLog gpsLog = new GpsLog(deviceId, latitude, longitude, accuracy, recordedAt);
+                            BigDecimal accuracy, Instant recordedAt, TelemetrySource source) {
+        GpsLog gpsLog = new GpsLog(deviceId, latitude, longitude, accuracy, recordedAt, source);
         GpsLog saved = gpsLogRepository.save(gpsLog);
 
         // Publish domain event for cross-context consumers (e.g., fence breach detection)
         eventPublisher.publishEvent(new GpsLogUpdatedEvent(
-                deviceId, latitude, longitude, recordedAt));
+                deviceId, latitude, longitude, recordedAt,
+                source != null ? source.name() : null));
 
         return GpsLogDto.from(saved);
     }

@@ -33,6 +33,7 @@ import 'package:hkt_livestock_agentic/features/pages/livestock_list_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/mine_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/stats_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/gps_quality_page.dart';
+import 'package:hkt_livestock_agentic/features/admin/telemetry_import/presentation/telemetry_import_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/twin_overview_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/ranch_page.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_checkout_page.dart';
@@ -388,6 +389,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoute.platformGpsQuality.path,
             name: AppRoute.platformGpsQuality.routeName,
             builder: (context, state) => const GpsQualityPage(),
+          ),
+          GoRoute(
+            path: AppRoute.platformTelemetryImport.path,
+            name: AppRoute.platformTelemetryImport.routeName,
+            builder: (context, state) => const TelemetryImportPage(),
           ),
         ],
       ),

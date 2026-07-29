@@ -3,8 +3,10 @@ package com.smartlivestock.iot.application;
 import com.smartlivestock.iot.domain.event.TelemetryReceivedEvent;
 import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.DeviceStatus;
+import com.smartlivestock.iot.domain.model.DeviceTelemetryLog;
 import com.smartlivestock.iot.domain.model.DeviceType;
 import com.smartlivestock.iot.domain.model.Installation;
+import com.smartlivestock.iot.domain.model.TelemetrySource;
 import com.smartlivestock.iot.domain.port.RanchQueryPort;
 import com.smartlivestock.iot.domain.port.dto.LivestockInfo;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
@@ -127,7 +129,7 @@ class TelemetryIngestionServiceTest {
         // Verify GPS was extracted and logged
         verify(gpsLogApplicationService).logGps(eq(1L),
                 eq(new BigDecimal("28.229")), eq(new BigDecimal("112.938")),
-                isNull(), eq(recordedAt));
+                isNull(), eq(recordedAt), eq(TelemetrySource.HTTP));
 
         // Verify telemetry event published
         ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
@@ -151,7 +153,7 @@ class TelemetryIngestionServiceTest {
         Map<String, Object> readings = Map.of("temperatures", java.util.List.of(new BigDecimal("38.6")));
         service.ingest(51L, readings, Instant.now());
 
-        verify(gpsLogApplicationService, never()).logGps(any(), any(), any(), any(), any());
+        verify(gpsLogApplicationService, never()).logGps(any(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -207,5 +209,87 @@ class TelemetryIngestionServiceTest {
 
         TelemetryReceivedEvent event = (TelemetryReceivedEvent) eventCaptor.getValue();
         assertNotNull(event.getRecordedAt());
+    }
+
+    // --- NIX-79: MANUAL_IMPORT isolation (spec §4.4) ---
+
+    @Test
+    void ingest_manualImport_skipsRuntimeSnapshot_logsHistoricalValues() {
+        Device device = createTrackerDevice(7L);
+        device.setBatteryLevel(50);
+        device.setRssi(-70);
+        Instant previousOnlineAt = Instant.parse("2026-07-29T00:00:00Z");
+        device.setLastOnlineAt(previousOnlineAt);
+
+        when(deviceRepository.findById(7L)).thenReturn(Optional.of(device));
+        when(installationRepository.findActiveByDeviceId(7L)).thenReturn(Optional.empty());
+
+        Instant recordedAt = Instant.parse("2026-07-23T16:09:11Z");
+        Map<String, Object> readings = new java.util.HashMap<>(Map.of(
+                "battery", 99,
+                "rssi", -99,
+                "snr", new BigDecimal("-9"),
+                "latitude", new BigDecimal("28.246777"),
+                "longitude", new BigDecimal("112.851138"),
+                "stepCount", 27
+        ));
+
+        service.ingest(7L, readings, recordedAt, TelemetrySource.MANUAL_IMPORT);
+
+        // Runtime snapshot untouched: no save, no field rewrite
+        verify(deviceRepository, never()).save(any());
+        assertEquals(50, device.getBatteryLevel());
+        assertEquals(-70, device.getRssi());
+        assertEquals(previousOnlineAt, device.getLastOnlineAt());
+
+        // Telemetry log row carries the row's own historical values + source
+        ArgumentCaptor<DeviceTelemetryLog> logCaptor = ArgumentCaptor.forClass(DeviceTelemetryLog.class);
+        verify(deviceTelemetryLogRepository).save(logCaptor.capture());
+        DeviceTelemetryLog logEntry = logCaptor.getValue();
+        assertEquals(99, logEntry.getBatteryLevel());
+        assertEquals(-99, logEntry.getRssi());
+        assertEquals(new BigDecimal("-9"), logEntry.getSnr());
+        assertEquals(TelemetrySource.MANUAL_IMPORT, logEntry.getSource());
+        assertEquals(recordedAt, logEntry.getReportTime());
+
+        // GPS extracted with MANUAL_IMPORT source; no alerts; event still published
+        verify(gpsLogApplicationService).logGps(eq(7L),
+                eq(new BigDecimal("28.246777")), eq(new BigDecimal("112.851138")),
+                isNull(), eq(recordedAt), eq(TelemetrySource.MANUAL_IMPORT));
+        verifyNoInteractions(alertRepository);
+        verify(eventPublisher).publishEvent(any(TelemetryReceivedEvent.class));
+    }
+
+    @Test
+    void ingest_agenticPlatform_updatesSnapshotAndWritesSource() {
+        Device device = createTrackerDevice(8L);
+
+        when(deviceRepository.findById(8L)).thenReturn(Optional.of(device));
+        when(installationRepository.findActiveByDeviceId(8L)).thenReturn(Optional.empty());
+
+        Instant recordedAt = Instant.parse("2026-07-28T10:00:00Z");
+        Map<String, Object> readings = new java.util.HashMap<>(Map.of(
+                "battery", 80,
+                "latitude", new BigDecimal("28.23"),
+                "longitude", new BigDecimal("112.94")
+        ));
+
+        service.ingest(8L, readings, recordedAt, TelemetrySource.AGENTIC_PLATFORM);
+
+        // Snapshot still updated for live sources
+        assertEquals(80, device.getBatteryLevel());
+        assertNotNull(device.getLastOnlineAt());
+        verify(deviceRepository, atLeastOnce()).save(device);
+        // Sync cursor advanced only for AGENTIC_PLATFORM
+        assertEquals(recordedAt, device.getLastTelemetrySyncedAt());
+
+        ArgumentCaptor<DeviceTelemetryLog> logCaptor = ArgumentCaptor.forClass(DeviceTelemetryLog.class);
+        verify(deviceTelemetryLogRepository).save(logCaptor.capture());
+        assertEquals(TelemetrySource.AGENTIC_PLATFORM, logCaptor.getValue().getSource());
+        assertEquals(80, logCaptor.getValue().getBatteryLevel());
+
+        verify(gpsLogApplicationService).logGps(eq(8L),
+                eq(new BigDecimal("28.23")), eq(new BigDecimal("112.94")),
+                isNull(), eq(recordedAt), eq(TelemetrySource.AGENTIC_PLATFORM));
     }
 }

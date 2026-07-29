@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -25,5 +27,10 @@ public class JpaDeviceTelemetryLogRepositoryImpl implements DeviceTelemetryLogRe
         return springDataRepo.findLatestByDeviceId(deviceId, PageRequest.of(0, 1))
                 .stream().findFirst()
                 .map(DeviceTelemetryLogMapper::toDomain);
+    }
+
+    @Override
+    public List<Instant> findReportTimesByDeviceIdAndReportTimeBetween(Long deviceId, Instant min, Instant max) {
+        return springDataRepo.findReportTimesByDeviceIdAndReportTimeBetween(deviceId, min, max);
     }
 }

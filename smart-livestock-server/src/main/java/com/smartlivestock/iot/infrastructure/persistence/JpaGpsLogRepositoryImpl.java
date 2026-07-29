@@ -1,6 +1,7 @@
 package com.smartlivestock.iot.infrastructure.persistence;
 
 import com.smartlivestock.iot.domain.model.GpsLog;
+import com.smartlivestock.iot.domain.model.TelemetrySource;
 import com.smartlivestock.iot.domain.port.dto.GpsPointWithTelemetry;
 import com.smartlivestock.iot.domain.repository.GpsLogRepository;
 import com.smartlivestock.iot.infrastructure.persistence.entity.GpsLogJpaEntity;
@@ -30,7 +31,9 @@ public class JpaGpsLogRepositoryImpl implements GpsLogRepository {
                 gpsLog.getLatitude(),
                 gpsLog.getLongitude(),
                 gpsLog.getAccuracy(),
-                gpsLog.getRecordedAt());
+                gpsLog.getRecordedAt(),
+                gpsLog.getSource() != null ? gpsLog.getSource().name()
+                        : TelemetrySource.AGENTIC_PLATFORM.name());
         springDataRepo.flush();
         List<GpsLogJpaEntity> rows = springDataRepo.findByDeviceIdAndRecordedAtBetween(
                 gpsLog.getDeviceId(), gpsLog.getRecordedAt(), gpsLog.getRecordedAt());

@@ -34,6 +34,9 @@ public class GpsLogJpaEntity {
     @Column(name = "recorded_at", nullable = false)
     private Instant recordedAt;
 
+    @Column(name = "source", nullable = false, length = 20)
+    private String source;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -61,6 +64,9 @@ public class GpsLogJpaEntity {
 
     public Instant getRecordedAt() { return recordedAt; }
     public void setRecordedAt(Instant recordedAt) { this.recordedAt = recordedAt; }
+
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

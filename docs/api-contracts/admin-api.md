@@ -1,8 +1,8 @@
 # Admin API 端点（`/api/v1/admin/`）
 
-> **端点总数**: 59（Phase 1 + Phase 2a Commerce + Phase 2c；与实际对齐）
+> **端点总数**: 112（Phase 1 + Phase 2a Commerce + Phase 2c + GPS 质量检查 + NIX-79 遥测导入；与实际对齐）
 >
-> ⚠️ **As-Built 校准（2026-06-26）**: 当前 Admin API 实际 **59 个端点**，本文档已**全量详列 59 个**：Phase 1 全部（含 TenantAdmin 补全的 `PUT /admin/tenants/{id}` 与 `GET /admin/tenants/{id}/farms`）+ Phase 2a Commerce 21 + Phase 2c（瓦片 7 / API 用量 3 / Portal 5）。端点真源为代码，详见 [后端实现现状 §7 API 设计](../superpowers/specs/2026-05-06-mvp-backend-design.md)。
+> ⚠️ **As-Built 校准（2026-06-26）**: 当前 Admin API 实际 **110 个端点**，本文档已**全量详列 110 个**：Phase 1 全部（含 TenantAdmin 补全的 `PUT /admin/tenants/{id}` 与 `GET /admin/tenants/{id}/farms`）+ Phase 2a Commerce 21 + Phase 2c（瓦片 7 / API 用量 3 / Portal 5）+ GPS 质量检查 51。端点真源为代码，详见 [后端实现现状 §7 API 设计](../superpowers/specs/2026-05-06-mvp-backend-design.md)。2026-07-29 NIX-79 新增遥测数据导入 2 端点（§12），总数 112。
 > **认证**: JWT Bearer Token（role = platform_admin）
 > **特点**: 跨租户视图，批量操作，管理动作。基础资源操作复用 App API 端点，admin 角色可访问任意 farm 数据。
 
@@ -948,6 +948,754 @@ Response 200:
 > ⚠️ 实现中 `all = List.of()` 硬编码空列表，**统计恒为 0**（端点无实际数据来源）。
 
 ---
+
+## 11. GPS 质量检查（GpsQualityAdminController）— 51 端点
+
+> **基路径**: `/api/v1/admin/gps-quality`。**权限**: `@PreAuthorize("hasRole('PLATFORM_ADMIN')")`。
+> 测试模型（NIX-21 重构）：以 `GpsQualityTest` 为顶层资源，无 session 间接层。支持四种测试类型：`STATIC`（单 RTK 点）、`DYNAMIC`（路线）、`TRAJECTORY`（导入 RTK 轨迹）、`LINE`（标准轨迹线）。
+> ⚠️ platform_admin 无租户上下文，GPS 质量检查回退到 `FALLBACK_TENANT_ID = 1L`（demo 租户）；生产环境需在请求体中指定租户（代码标注 TODO）。
+> 状态值：`READY`（已创建，可生成报告）、`DEVICE_PENDING`（设备未在 blade 平台注册）、`FAILED`（注册或数据拉取失败）。报告仅 `READY` 状态可生成（`STATE_CONFLICT`）。
+
+**RTK 参考点（4 端点）**
+
+### GET /gps-quality/rtk-points
+
+列出全部 RTK 参考点，可按 `locationName` 过滤。
+
+```
+查询参数: locationName（可选）
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-G01",
+  "data": [ { "id": 1, "locationName": "牛舍A", "pointLabel": "P1", "latitude": 28.2400000, "longitude": 112.8500000, "dmsLat": null, "dmsLng": null, "createdAt": "2026-07-01T00:00:00Z" } ]
+}
+```
+
+### POST /gps-quality/rtk-points
+
+创建 RTK 参考点（decimal 经纬度或 DMS 字符串二选一）。
+
+```
+Request:
+{ "locationName": "牛舍B", "pointLabel": "P2", "latitude": 28.2500000, "longitude": 112.8600000 }
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G02", "data": { "id": 2, "locationName": "牛舍B", "pointLabel": "P2", "latitude": 28.2500000, "longitude": 112.8600000 } }
+```
+
+### PUT /gps-quality/rtk-points/{id}
+
+更新 RTK 参考点（全字段覆盖）。
+
+```
+Request:
+{ "locationName": "牛舍B（更新）", "pointLabel": "P2-updated", "latitude": 28.2510000, "longitude": 112.8610000 }
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G03", "data": { "id": 2, "...": "..." } }
+```
+
+### DELETE /gps-quality/rtk-points/{id}
+
+删除 RTK 参考点。
+
+```
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G04", "data": null }
+```
+
+**设备（2 端点）**
+
+### GET /gps-quality/devices
+
+列出全部追踪器设备（`device_type = TRACKER`）。
+
+```
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G05", "data": [ { "id": 10, "deviceCode": "DEV-001", "platformBound": false } ] }
+```
+
+### GET /gps-quality/devices/{deviceId}/gps-logs
+
+查询设备 GPS 日志（轨迹可视化用），支持时间范围 + 采样。
+
+```
+路径变量: deviceId
+查询参数: startTime / endTime（ISO-8601，可选）、sampleSize（可选，> 0 时按均匀采样返回）
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G06", "data": { "items": [ { "...GpsLogDto": "..." } ], "total": 500 } }
+```
+
+> 三种模式：有 sampleSize → 均匀采样；有 startTime+endTime 无 sampleSize → 全量；无参数 → 设备全部日志。
+
+**测试（3 端点）**
+
+### GET /gps-quality/tests
+
+按 `deviceId` 列出测试。⚠️ 不传 `deviceId` 返回空列表。
+
+```
+查询参数: deviceId（可选）
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G07",
+  "data": [ { "id": 101, "deviceCode": "DEV-001", "deviceId": 10, "testType": "STATIC", "rtkPointId": 1, "routeId": null, "startedAt": "2026-07-16T16:00:00Z", "endedAt": null, "status": "READY", "errorMessage": null, "note": null, "batchImportId": null, "createdAt": "2026-07-16T16:05:00Z" } ] }
+```
+
+### POST /gps-quality/tests
+
+创建测试。通过 `eui` 自动 find-or-create 设备（eui 为主路径）；`testType` 默认 `STATIC`。
+
+```
+Request:
+{ "eui": "a84041XXXXXX", "deviceCode": "DEV-001", "testType": "STATIC", "rtkPointId": 1, "startedAt": "2026-07-16T16:00:00Z", "endedAt": "2026-07-16T16:10:00Z" }
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G08", "data": { "id": 102, "status": "READY", "...": "..." } }
+```
+
+> `startedAt` / `endedAt` 支持 offset-aware（`...Z`）和 naive local（`...000`）两种格式；naive 值按 UTC 面值解释（lesson #17）。
+
+### DELETE /gps-quality/tests/{id}
+
+删除测试。
+
+```
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G09", "data": null }
+```
+
+**检查列表（3 端点）**
+
+### GET /gps-quality/checks
+
+分页列出检查记录，支持 status / eui / deviceId 过滤。
+
+```
+查询参数: status（可选）、eui（可选）、deviceId（可选）、page（默认 0）、size（默认 20）
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-G10",
+  "data": { "items": [ { "id": 101, "...GpsQualityTestDto": "..." } ], "page": 0, "pageSize": 20, "total": 5 }
+}
+```
+
+### POST /gps-quality/checks
+
+创建检查（同 `POST /tests`，但 `eui` 必填）。
+
+```
+Request:
+{ "eui": "a84041XXXXXX", "testType": "DYNAMIC", "routeId": 1, "startedAt": "2026-07-16T16:00:00Z" }
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G11", "data": { "id": 103, "status": "READY", "...": "..." } }
+
+Error 422:
+{ "code": "VALIDATION_ERROR", "message": "eui is required", "requestId": "req-G11" }
+```
+
+### DELETE /gps-quality/checks/by-device/{deviceId}
+
+删除指定设备的全部检查记录。
+
+```
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G12", "data": { "deleted": 5 } }
+```
+
+**批量导入（6 端点）**
+
+### POST /gps-quality/batch/parse
+
+解析 Excel 预检（不持久化）：逐行校验并返回 per-row `preStatus`（OK/WARN/ERROR）。
+
+```
+Content-Type: multipart/form-data
+表单字段: file
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-G13",
+  "data": { "totalRows": 10, "okCount": 8, "warnCount": 1, "errorCount": 1,
+    "rows": [ { "rowIndex": 1, "eui": "a84041XXXXXX", "deviceCode": "DEV-001", "testType": "STATIC", "refName": "牛舍A", "rtkPointId": 1, "routeId": null, "startedAt": "2026-07-16T16:00:00Z", "endedAt": null, "preStatus": "OK", "message": null } ] }
+}
+```
+
+### POST /gps-quality/batch/import
+
+导入 Excel：逐行创建测试 + 设备注册，返回 batchId。
+
+```
+Content-Type: multipart/form-data
+表单字段: file、excludeRows（可选，逗号分隔行号）
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-G14",
+  "data": { "batchId": 201, "totalRows": 10, "totalSuccess": 7, "totalPending": 2, "totalFailed": 1,
+    "rows": [ { "rowIndex": 1, "status": "SUCCESS", "eui": "a84041XXXXXX", "deviceCode": "DEV-001", "deviceId": 10, "checkId": 101, "message": null } ] }
+}
+```
+
+> `status`：`SUCCESS` / `DEVICE_PENDING` / `FAILED` / `SKIPPED`。
+
+### GET /gps-quality/batch/template
+
+下载 Excel 模板（`Content-Disposition: attachment`，`.xlsx`）。
+
+### POST /gps-quality/batch/retry-registration
+
+重试 `DEVICE_PENDING` 检查的设备注册（可指定 `checkIds`，不传则重试全部 PENDING）。
+
+```
+Request（可选）:
+{ "checkIds": [101, 102] }
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G16", "data": [ { "rowIndex": 0, "status": "SUCCESS", "...RowResult": "..." } ] }
+```
+
+### POST /gps-quality/batch/retry-row
+
+重试单行（手动指定参数创建测试）。
+
+```
+Request:
+{ "eui": "a84041XXXXXX", "testType": "STATIC", "rtkPointId": 1, "startedAt": "2026-07-16T16:00:00Z" }
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G17", "data": { "rowIndex": 0, "status": "READY", "eui": "a84041XXXXXX", "deviceCode": null, "deviceId": 10, "checkId": 104, "message": null } }
+```
+
+### DELETE /gps-quality/batch/{batchId}
+
+删除整个批次（级联删除该批次下全部检查记录）。
+
+```
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G18", "data": null }
+```
+
+**报告（2 端点）**
+
+### GET /gps-quality/tests/{id}/report
+
+生成 STATIC 测试质量报告（含统计 + 散点图数据）。仅 `READY` 状态可调用。
+
+```
+路径变量: id
+查询参数: excludeSuspect（默认 false，排除 stepNumber > 0 的可疑点）
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-G19",
+  "data": {
+    "testId": 101, "rtkPointId": 1, "locationName": "牛舍A", "label": "P1",
+    "rtkLatitude": 28.2400000, "rtkLongitude": 112.8500000,
+    "deviceId": 10, "deviceCode": "DEV-001", "deviceEui": "a84041XXXXXX",
+    "excludeSuspect": false, "grade": "USABLE",
+    "stats": { "totalPoints": 120, "suspectPoints": 5, "effectivePoints": 115, "meanError": 8.5, "p50": 6.2, "p95": 15.3, "p99": 22.1, "maxError": 28.4, "jitterDiameter": 45.2, "outlierCount": 3, "grade": "USABLE", "within15m": 0.85, "within25m": 0.95, "within40m": 0.99 },
+    "scatter": [ { "latitude": 28.24001, "longitude": 112.85002, "error": 2.3, "recordedAt": "2026-07-16T16:01:00Z", "suspect": false } ]
+  }
+}
+
+Error 409:
+{ "code": "STATE_CONFLICT", "message": "Cannot generate report for test 101: status is DEVICE_PENDING", "requestId": "req-G19" }
+```
+
+### GET /gps-quality/tests/{id}/dynamic-report
+
+生成 DYNAMIC 测试质量报告（路线驱动匹配 + 误差分布）。可选 `threshold`（匹配阈值，米）。
+
+```
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-G20",
+  "data": {
+    "testId": 103, "deviceId": 10, "deviceCode": "DEV-001", "deviceEui": "a84041XXXXXX",
+    "routeId": 1, "routeName": "测试路线A", "startedAt": "2026-07-16T16:00:00Z", "endedAt": "2026-07-16T17:00:00Z",
+    "threshold": 30.0, "grade": "EXCELLENT",
+    "stats": { "routePointCount": 5, "matchedCount": 5, "missedCount": 0, "ambiguousCount": 0, "transitCount": 200, "inOrder": true, "coverage": 100.0, "meanError": 3.2, "p50": 2.8, "p95": 5.1, "maxError": 7.3 },
+    "perPoint": [ { "rtkPointId": 1, "locationName": "牛舍A", "label": "P1", "sequenceNo": 1, "passed": true, "ambiguous": false, "error": 3.1, "matchedAt": "2026-07-16T16:02:00Z" } ],
+    "passes": [ { "sequenceNo": 1, "latitude": 28.24001, "longitude": 112.85002, "rtkLatitude": 28.24000, "rtkLongitude": 112.85000, "error": 3.1, "ambiguous": false, "recordedAt": "2026-07-16T16:02:00Z" } ],
+    "staticComparison": { "staticTestId": 101, "staticP95": 15.3, "staticGrade": "USABLE", "deltaP95": -10.2 }
+  }
+}
+```
+
+**RTK 轨迹导入（NIX-22，8 端点）**
+
+### GET /gps-quality/trajectory/template
+
+下载 CSV 轨迹导入模板（`Content-Disposition: attachment`，`.csv`）。
+
+### POST /gps-quality/trajectory/parse
+
+解析 + 配对预览（不持久化）：逐行匹配设备坐标。
+
+```
+Content-Type: multipart/form-data
+表单字段: file、toleranceSec（默认 60，范围 1..3600）
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-G22",
+  "data": { "totalRows": 100, "validRows": 95, "invalidRows": 5, "deviceCount": 2, "filePaired": 50, "logPaired": 40, "unpaired": 5,
+    "rows": [ { "rowNo": 1, "deviceEui": "a84041XXXXXX", "collectedAt": "2026-07-16T16:00:00Z", "rtkLatitude": 28.2400000, "rtkLongitude": 112.8500000, "deviceLatitude": 28.24001, "deviceLongitude": 112.85002, "matchMode": "FILE", "error": null, "matchedRecordedAt": null, "timeDiffSec": null } ],
+    "autoRegisteredEuis": [] }
+}
+```
+
+> `matchMode`：`FILE`（文件含设备坐标）/ `GPS_LOG`（从 gps_logs 配对）/ `UNPAIRED` / `INVALID`。
+
+### POST /gps-quality/trajectory/import
+
+导入轨迹文件：每设备创建一条 `TRAJECTORY` 测试 + 配对快照。
+
+```
+Content-Type: multipart/form-data
+表单字段: file、toleranceSec（默认 60，范围 1..3600）
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-G23",
+  "data": { "createdCount": 2, "skippedCount": 0, "autoRegisteredCount": 1,
+    "devices": [ { "deviceEui": "a84041XXXXXX", "testId": 201, "status": "CREATED", "totalPoints": 50, "filePaired": 30, "logPaired": 15, "unpaired": 5 } ] }
+}
+```
+
+> `status`：`CREATED` / `SKIPPED_DUPLICATE`。
+
+### POST /gps-quality/trajectory/register-device
+
+手动注册设备（find-or-create by EUI），返回平台绑定状态。
+
+```
+Request:
+{ "eui": "a84041XXXXXX", "deviceCode": "DEV-001" }
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G24", "data": { "id": 10, "deviceCode": "DEV-001", "platformBound": true } }
+
+Error 422:
+{ "code": "VALIDATION_ERROR", "message": "eui is required", "requestId": "req-G24" }
+```
+
+### GET /gps-quality/tests/{id}/trajectory-report
+
+生成 TRAJECTORY 测试报告（从持久化配对快照读取，不重新查询 gps_logs）。
+
+```
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-G25",
+  "data": {
+    "testId": 201, "deviceCode": "DEV-001", "deviceEui": "a84041XXXXXX",
+    "startedAt": "2026-07-16T16:00:00Z", "endedAt": "2026-07-16T17:00:00Z",
+    "toleranceSec": 60, "grade": "USABLE",
+    "totalPoints": 50, "filePaired": 30, "logPaired": 15, "unpaired": 5, "pairRate": 0.9,
+    "meanError": 6.2, "p50": 4.8, "p95": 12.1, "maxError": 20.5,
+    "points": [ { "sequenceNo": 1, "collectedAt": "2026-07-16T16:00:00Z", "rtkLatitude": 28.2400000, "rtkLongitude": 112.8500000, "deviceLatitude": 28.24002, "deviceLongitude": 112.85001, "error": 2.5, "matchSource": "FILE", "timeDiffSec": null, "nearestGpsLogSec": null } ],
+    "staticComparison": { "staticTestId": 101, "staticP95": 15.3, "staticGrade": "USABLE", "deltaP95": -3.2 }
+  }
+}
+```
+
+> `matchSource`：`FILE` / `GPS_LOG` / `UNPAIRED`。
+
+### POST /gps-quality/tests/{id}/re-pair
+
+重新配对 TRAJECTORY 测试：重新查询 gps_logs，更新配对快照，返回刷新后的报告。
+
+```
+路径变量: id
+查询参数: toleranceSec（必填，范围 1..3600）
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G26", "data": { "testId": 201, "...": "..." } }
+```
+
+### GET /gps-quality/comparison/trajectory
+
+跨设备 TRAJECTORY 对比：每设备最新 READY TRAJECTORY 测试。
+
+```
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-G27",
+  "data": { "devices": [ { "testId": 201, "deviceId": 10, "deviceCode": "DEV-001", "totalPoints": 50, "paired": 45, "pairRate": 0.9, "meanError": 6.2, "p50": 4.8, "p95": 12.1, "grade": "USABLE", "startedAt": "2026-07-16T16:00:00Z", "endedAt": "2026-07-16T17:00:00Z" } ] }
+}
+```
+
+### GET /gps-quality/tests/{id}/trajectory
+
+获取 TRAJECTORY 测试的散点图数据（复用 report 的 scatter 字段，单独端点供前端按需加载）。
+
+```
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G28", "data": [ { "latitude": 28.24001, "longitude": 112.85002, "error": 2.3, "recordedAt": "2026-07-16T16:01:00Z", "suspect": false } ] }
+```
+
+**对比（2 端点）**
+
+### GET /gps-quality/comparison
+
+STATIC 多设备对比（同一 RTK 参考点下所有测试）。不传 `rtkPointId` 返回 `null`。
+
+```
+查询参数: rtkPointId（可选）
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-G29",
+  "data": {
+    "rtkPointId": 1, "locationName": "牛舍A", "label": "P1",
+    "devices": [ { "testId": 101, "deviceId": 10, "deviceCode": "DEV-001", "grade": "USABLE", "p95": 15.3, "meanError": 8.5, "effectivePoints": 115, "within15m": 0.85, "within25m": 0.95, "within40m": 0.99, "locationName": "牛舍A", "pointLabel": "P1" } ]
+  }
+}
+```
+
+### GET /gps-quality/comparison/dynamic
+
+DYNAMIC 多设备对比（同一路线下每设备最新 READY 动态测试）。
+
+```
+查询参数: routeId（必填）
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-G30",
+  "data": {
+    "routeId": 1, "routeName": "测试路线A",
+    "devices": [ { "deviceId": 10, "deviceCode": "DEV-001", "checkId": 103, "coverage": 100.0, "matchedCount": 5, "missedCount": 0, "ambiguousCount": 0, "inOrder": true, "meanError": 3.2, "p50": 2.8, "p95": 5.1, "startedAt": "2026-07-16T16:00:00Z", "endedAt": "2026-07-16T17:00:00Z" } ]
+  }
+}
+```
+
+**动态测试路线（6 端点）**
+
+### GET /gps-quality/dynamic-routes
+
+列出全部动态测试路线。
+
+```
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G31", "data": [ { "id": 1, "name": "测试路线A", "description": "南北向 500m", "createdAt": "2026-07-01T00:00:00Z", "updatedAt": "2026-07-01T00:00:00Z" } ] }
+```
+
+### POST /gps-quality/dynamic-routes
+
+创建路线。
+
+```
+Request:
+{ "name": "测试路线B", "description": "环形 1km" }
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G32", "data": { "id": 2, "name": "测试路线B", "...": "..." } }
+```
+
+### PUT /gps-quality/dynamic-routes/{id}
+
+更新路线名称/描述。
+
+```
+Request:
+{ "name": "测试路线B（更新）", "description": "环形 2km" }
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G33", "data": { "id": 2, "...": "..." } }
+```
+
+### DELETE /gps-quality/dynamic-routes/{id}
+
+删除路线。
+
+```
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G34", "data": null }
+```
+
+### GET /gps-quality/dynamic-routes/{id}/points
+
+列出路线下的有序 RTK 参考点序列。
+
+```
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G35", "data": [ { "id": 11, "routeId": 1, "rtkPointId": 1, "sequenceNo": 1, "...": "..." } ] }
+```
+
+### PUT /gps-quality/dynamic-routes/{id}/points
+
+替换路线的 RTK 点序列（全量覆盖）。
+
+```
+Request:
+[ { "rtkPointId": 1, "sequenceNo": 1 }, { "rtkPointId": 2, "sequenceNo": 2 } ]
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G36", "data": null }
+```
+
+**标准轨迹线 NIX-68（7 端点）**
+
+### GET /gps-quality/track-lines
+
+列出全部标准轨迹线候选（tenant 过滤）。
+
+```
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G37",
+  "data": [ { "id": 301, "name": "主干道线A", "status": "SELECTED", "pointCount": 120, "lengthM": 1500.0, "startLng": 112.850, "startLat": 28.240, "sourceFile": "track-a.xlsx", "createdAt": "2026-07-20T00:00:00Z" } ] }
+```
+
+> `status`：`CANDIDATE` / `SELECTED`（非排他标记，可多条 SELECTED）。
+
+### POST /gps-quality/track-lines/parse
+
+解析 XLSX 预览（不持久化）：去重 + 长度计算。
+
+```
+Content-Type: multipart/form-data
+表单字段: file
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-G38",
+  "data": { "defaultName": "主干道线A", "rawPointCount": 125, "pointCount": 120, "removedDuplicates": 5, "invalidPoints": 0, "lengthMeters": 1500.0, "startLng": 112.850, "startLat": 28.240, "endLng": 112.860, "endLat": 28.250, "metadataWarning": null,
+    "previewPoints": [ { "sequenceNo": 1, "lng": 112.850, "lat": 28.240 } ] }
+}
+```
+
+> 仅信任坐标列，文件元数据（时间/长度列）不信任（spec D6）。
+
+### POST /gps-quality/track-lines/import
+
+导入 XLSX：创建一条 `CANDIDATE` 候选（append-only，重复导入新建记录，spec D3）。
+
+```
+Content-Type: multipart/form-data
+表单字段: file、name（可选，默认从文件元数据推断）
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G39", "data": { "id": 302, "name": "主干道线B", "status": "CANDIDATE", "...": "..." } }
+```
+
+### POST /gps-quality/track-lines/{id}/select
+
+标记为 `SELECTED`。
+
+```
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G40", "data": { "id": 301, "status": "SELECTED", "...": "..." } }
+```
+
+### POST /gps-quality/track-lines/{id}/unselect
+
+取消 `SELECTED` 标记（回退为 `CANDIDATE`）。
+
+```
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G41", "data": { "id": 301, "status": "CANDIDATE", "...": "..." } }
+```
+
+### DELETE /gps-quality/track-lines/{id}
+
+删除轨迹线候选。
+
+```
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G42", "data": null }
+```
+
+### GET /gps-quality/track-lines/{id}/points
+
+列出轨迹线的有序坐标点。
+
+```
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G43", "data": [ { "sequenceNo": 1, "lng": 112.850, "lat": 28.240 } ] }
+```
+
+**LINE 检查 NIX-68（3 端点）**
+
+### GET /gps-quality/line-checks/devices
+
+列出在指定时间窗口内有 gps_logs 数据的设备。
+
+```
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G44", "data": [ { "deviceCode": "DEV-001", "deviceId": 10, "pointCount": 500, "firstRecordedAt": "2026-07-16T16:00:00Z", "lastRecordedAt": "2026-07-16T17:00:00Z" } ] }
+```
+
+### POST /gps-quality/line-checks
+
+为每设备创建一条 READY LINE 测试（同步完成空间匹配 + 结果快照，spec D4）。
+
+```
+Request:
+{ "trackLineId": 301, "deviceCodes": ["DEV-001", "DEV-002"] }
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G45", "data": { "devices": [ { "testId": 401, "deviceCode": "DEV-001", "sampleCount": 120, "grade": "EXCELLENT" } ] } }
+
+Error 422:
+{ "code": "VALIDATION_ERROR", "message": "trackLineId is required", "requestId": "req-G45" }
+```
+
+### POST /gps-quality/line-checks/refresh
+
+刷新某标准轨迹线的全部 LINE 测试（删除旧测试 + 快照，从所有有 gps_logs 的设备重新创建）。
+
+```
+查询参数: trackLineId（必填）
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G46", "data": { "devices": [ { "testId": 411, "deviceCode": "DEV-001", "sampleCount": 120, "grade": "EXCELLENT" } ] } }
+```
+
+**LINE 报告 NIX-68（5 端点）**
+
+### GET /gps-quality/tests/{id}/line-report
+
+LINE 测试质量报告（统计摘要，读自结果快照）。
+
+```
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-G47",
+  "data": {
+    "testId": 401, "deviceCode": "DEV-001", "startedAt": "2026-07-16T16:00:00Z", "endedAt": "2026-07-16T17:00:00Z",
+    "trackLineId": 301, "trackLineName": "主干道线A", "grade": "EXCELLENT",
+    "sampleCount": 120, "tripCount": 3, "meanDeviation": 4.2, "p50": 3.1, "p95": 8.5, "maxDeviation": 15.2,
+    "within15mPct": 95.0, "within25mPct": 99.0, "within40mPct": 100.0
+  }
+}
+```
+
+### GET /gps-quality/tests/{id}/line-report/track
+
+LINE 测试的轨迹线坐标点快照（测试时捕获的 point-list）。
+
+```
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G48", "data": [ { "sequenceNo": 1, "lng": 112.850, "lat": 28.240 } ] }
+```
+
+### GET /gps-quality/tests/{id}/line-report/deviations
+
+LINE 测试的逐点偏差（按时间升序）。
+
+```
+查询参数: limit（可选，限制返回条数）
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-G49", "data": [ { "sequenceNo": 1, "recordedAt": "2026-07-16T16:01:00Z", "lng": 112.850, "lat": 28.240, "deviationM": 2.3, "segmentNo": 1 } ] }
+```
+
+### GET /gps-quality/checks/summary
+
+设备统一摘要：每类型最新 READY 测试（spec 7.5）。
+
+```
+查询参数: deviceCode（必填）
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-G50",
+  "data": { "items": [
+    { "checkType": "STATIC", "testId": 101, "endedAt": "2026-07-16T16:10:00Z", "grade": "USABLE", "keyMetric": "p95 15.3m" },
+    { "checkType": "LINE", "testId": 401, "endedAt": "2026-07-16T17:00:00Z", "grade": "EXCELLENT", "keyMetric": "mean 4.2m · p95 8.5m" }
+  ] }
+}
+```
+
+> 无测试的类型不在列表中出现。
+
+### GET /gps-quality/comparison/line
+
+LINE 跨设备对比（统计表 + 标准轨迹线折线，spec 7.6）。
+
+```
+查询参数: trackLineId（必填）、deviceCode（可选，传入时返回该设备的轨迹点）
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-G51",
+  "data": {
+    "trackLine": [ { "sequenceNo": 1, "lng": 112.850, "lat": 28.240 } ],
+    "rows": [ { "testId": 401, "deviceCode": "DEV-001", "sampleCount": 120, "tripCount": 3, "mean": 4.2, "p50": 3.1, "p95": 8.5, "max": 15.2, "within15mPct": 95.0, "within25mPct": 99.0, "within40mPct": 100.0, "grade": "EXCELLENT", "startedAt": "2026-07-16T16:00:00Z", "endedAt": "2026-07-16T17:00:00Z" } ],
+    "deviceTrack": [ { "sequenceNo": 1, "lng": 112.8501, "lat": 28.2401 } ]
+  }
+}
+```
+
+> `deviceTrack` 仅当传入 `deviceCode` 时非 null。
+
+---
+
+## 12. 遥测数据导入（TelemetryImportAdminController）— 2 端点（NIX-79）
+
+> **基路径**: `/api/v1/admin/telemetry-import`。**权限**: `@PreAuthorize("hasRole('PLATFORM_ADMIN')")`。
+> 用途：blade 平台故障丢失遥测数据时，手工导入平台导出的设备历史数据文件（xlsx，列：数据类型/帧计数器/数据(hex)/RSSI/SNR/创建时间）。
+> 两段式：`parse` 解析预览（**零持久化**）→ `import` 落库（经 `TelemetryIngestionService.ingest()`，source=`MANUAL_IMPORT`）。
+> tenant 解析同 GPS 质量检查：无租户上下文时回退 `FALLBACK_TENANT_ID = 1L`。
+> 约束：文件名须以 16 位 DevEUI 开头；设备须已注册且 `ACTIVE`、`TRACKER` 类型，否则整文件报错；单文件 ≤ 5000 行；仅解码牛羊追踪器固件协议（`68 6B 74` 帧头 TLV），协议外帧跳过不计错误；时间列按 UTC 原值入库；幂等——(device_id, report_time) 已存在的行判重跳过。
+> 隔离性：导入数据不触发设备告警、不推进平台同步游标、不改写设备运行时快照、GPS 点不参与围栏越界检测（不补发历史告警、不回写牲畜当前位置）。
+
+### POST /telemetry-import/parse
+
+解析预览：分类统计 + 设备匹配结果 + 逐行状态，不落库。
+
+```
+Request: multipart/form-data，字段 file（.xlsx）
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-B01",
+  "data": {
+    "totalRows": 408, "uplinkRows": 396, "decodableRows": 390, "importableRows": 387,
+    "gpsPointRows": 387, "duplicateRows": 3, "skippedRows": 18, "invalidRows": 0,
+    "device": { "matched": true, "devEui": "0095690600028577", "deviceCode": "28577", "deviceType": "TRACKER", "livestockName": "HKT13", "farmName": "Demo 牧场", "error": null },
+    "rows": [
+      { "rowNo": 2, "frameCounter": "119", "recordTime": "2026-07-23T16:09:11Z", "battery": 99, "latitude": 28.246777, "longitude": 112.851138, "stepCount": 27, "status": "IMPORTABLE", "error": null },
+      { "rowNo": 5, "frameCounter": "115", "recordTime": "2026-07-23T16:05:49Z", "battery": 99, "latitude": 28.245320, "longitude": 112.850498, "stepCount": 2, "status": "DUPLICATE", "error": null },
+      { "rowNo": 7, "frameCounter": null, "recordTime": null, "battery": null, "latitude": null, "longitude": null, "stepCount": null, "status": "SKIPPED_DOWNLINK", "error": null }
+    ]
+  }
+}
+
+Error 400（文件名无 DevEUI 前缀）:
+{ "code": "VALIDATION_ERROR", "message": "文件名须以 16 位设备 DevEUI 开头", "requestId": "req-B01" }
+```
+
+> `device.matched=false` 时 `error` 为原因 message key（`error.telemetryImport.deviceNotRegistered` / `deviceNotActive` / `unsupportedDeviceType`），整文件不可导入。
+> `rows[].status`：`IMPORTABLE`（将导入）/ `DUPLICATE`（重复）/ `SKIPPED_DOWNLINK`（下行帧）/ `SKIPPED_UNSUPPORTED`（协议外帧）/ `INVALID`（行错误，`error` 为 message key，如 `error.telemetryImport.invalidTime`）。
+
+### POST /telemetry-import/import
+
+执行导入：同 parse 管线，IMPORTABLE 行按时间升序逐行入库；单行失败计数继续，不整体回滚。
+
+```
+Request: multipart/form-data，字段 file（.xlsx）
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-B02",
+  "data": { "telemetryCreated": 387, "gpsCreated": 387, "duplicateSkipped": 3, "skippedRows": 18, "invalidRows": 0, "failedRows": 0, "devEui": "0095690600028577", "deviceCode": "28577" }
+}
+
+Error 400（设备未注册）:
+{ "code": "VALIDATION_ERROR", "message": "设备未注册: 0095690600028577", "requestId": "req-B02" }
+```
+
+---
+
+
 
 ## 设计要点
 

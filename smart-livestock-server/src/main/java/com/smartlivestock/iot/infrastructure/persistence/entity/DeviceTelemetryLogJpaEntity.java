@@ -82,6 +82,9 @@ public class DeviceTelemetryLogJpaEntity {
     @Column(name = "pitch_degrees")
     private BigDecimal pitchDegrees;
 
+    @Column(name = "source", nullable = false, length = 20)
+    private String source;
+
     @Column(name = "report_time", nullable = false)
     private Instant reportTime;
 
@@ -160,6 +163,9 @@ public class DeviceTelemetryLogJpaEntity {
 
     public BigDecimal getPitchDegrees() { return pitchDegrees; }
     public void setPitchDegrees(BigDecimal pitchDegrees) { this.pitchDegrees = pitchDegrees; }
+
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 
     public Instant getReportTime() { return reportTime; }
     public void setReportTime(Instant reportTime) { this.reportTime = reportTime; }

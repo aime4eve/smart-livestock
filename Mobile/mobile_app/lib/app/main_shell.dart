@@ -218,6 +218,14 @@ class _PlatformAdminShell extends ConsumerWidget {
                 onTap: () => context.go(AppRoute.platformGpsQuality.path),
               ),
               _IconSidebarItem(
+                icon: Icons.upload_file_outlined,
+                tooltip: AppRoute.platformTelemetryImport.label,
+                selected: location
+                    .startsWith(AppRoute.platformTelemetryImport.path),
+                onTap: () =>
+                    context.go(AppRoute.platformTelemetryImport.path),
+              ),
+              _IconSidebarItem(
                 icon: Icons.account_balance_wallet_outlined,
                 tooltip: AppRoute.platformRevenue.label,
                 selected: location.startsWith(AppRoute.platformRevenue.path),

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIX-79 设备遥测数据导入 · 高保真原型</title>
+<style>
+:root{
+  /* 颜色 */
+  --primary:#2F6B3B;--primary-dark:#244F2D;--primary-soft:#E3F0E4;
+  --accent:#8BA95A;
+  --surface:#F8F6F0;--surface-alt:#FFFFFF;--border:#D7D2C6;
+  --text-primary:#263126;--text-secondary:#617061;
+  --success:#4C9A5F;--warning:#D28A2D;--danger:#C2564B;--info:#4A7F9D;
+  /* 间距 */
+  --xs:4px;--sm:8px;--md:12px;--lg:16px;--xl:24px;
+  /* 圆角 */
+  --radius-sm:4px;--radius-md:8px;--radius-lg:12px;
+  /* 阴影 */
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08);--shadow-md:0 2px 8px rgba(0,0,0,.15);--shadow-lg:0 20px 60px rgba(0,0,0,.2);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sans-serif;background:var(--surface);color:var(--text-primary);min-height:100vh;display:flex}
+/* ── 平台后台 56px 图标侧栏（功能归宿示意） ── */
+.sidebar{width:56px;background:#F8F9FA;border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding-top:var(--sm);gap:2px;flex-shrink:0}
+.sb-item{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:18px;border-radius:var(--radius-md);cursor:pointer;color:var(--text-secondary);position:relative}
+.sb-item:hover{background:var(--primary-soft)}
+.sb-item.active{background:var(--primary-soft);color:var(--primary)}
+.sb-item.active::before{content:'';position:absolute;left:-8px;top:8px;bottom:8px;width:3px;border-radius:2px;background:var(--primary)}
+.sb-div{width:40px;border-top:1px solid var(--border);margin:6px 0}
+.sb-item .tip{display:none;position:absolute;left:48px;top:50%;transform:translateY(-50%);background:var(--text-primary);color:#fff;font-size:11px;padding:3px 8px;border-radius:var(--radius-sm);white-space:nowrap;z-index:10}
+.sb-item:hover .tip{display:block}
+/* ── 主区域 ── */
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.appbar{background:var(--primary);color:#fff;padding:10px var(--xl);display:flex;align-items:center;gap:var(--md);box-shadow:var(--shadow-md)}
+.appbar h1{font-size:18px;font-weight:600}
+.badge-proto{background:rgba(255,255,255,.2);padding:2px 8px;border-radius:var(--radius-md);font-size:11px}
+.content{padding:var(--xl);max-width:1080px;width:100%;margin:0 auto;overflow-y:auto}
+/* 步骤指示器 */
+.steps{display:flex;align-items:center;gap:var(--sm);margin-bottom:var(--xl)}
+.step{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary)}
+.step-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:var(--surface-alt);border:2px solid var(--border);color:var(--text-secondary)}
+.step.active .step-num{border-color:var(--primary);color:var(--primary)}
+.step.active{font-weight:600;color:var(--primary)}
+.step.done .step-num{background:var(--primary);border-color:var(--primary);color:#fff}
+.step-line{width:32px;height:2px;background:var(--border)}
+.step-line.done{background:var(--primary)}
+/* 面板与按钮 */
+.panel{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm)}
+.panel-bd{padding:var(--xl)}
+.btn{padding:8px 16px;border:none;border-radius:var(--radius-md);font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+.btn-primary:disabled{background:var(--border);cursor:not-allowed}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-primary)}
+.btn-outline:hover{background:var(--surface)}
+.actions{display:flex;justify-content:flex-end;gap:var(--sm);margin-top:var(--xl)}
+/* 上传区 */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius-lg);padding:36px var(--xl);text-align:center;cursor:pointer;transition:.15s}
+.upload-zone:hover{border-color:var(--primary);background:var(--primary-soft)}
+.upload-zone .icon{font-size:40px;margin-bottom:var(--sm)}
+.upload-zone .fname{font-family:monospace;font-size:12px;color:var(--primary);font-weight:600;margin-top:var(--sm)}
+.muted{color:var(--text-secondary);font-size:12px}
+/* 格式表 */
+.fmt{margin-top:var(--lg)}
+.fmt h4{font-size:13px;font-weight:600;margin-bottom:6px}
+.fmt-row{display:flex;align-items:center;gap:var(--sm);padding:3px 0;font-size:12px}
+.fmt-row .col{width:20px;font-weight:700}
+.fmt-row .name{width:90px}
+.tag-req{padding:1px 6px;border-radius:var(--radius-sm);font-size:10px;font-weight:600;background:#FEE2E2;color:var(--danger)}
+.tag-opt{padding:1px 6px;border-radius:var(--radius-sm);font-size:10px;font-weight:600;background:var(--primary-soft);color:var(--primary)}
+/* 规则说明 */
+.note{margin-top:var(--lg);padding:var(--md);border-radius:var(--radius-md);font-size:12px;line-height:1.8}
+.note-blue{background:#EFF6FB;border-left:3px solid var(--info);color:#33566B}
+.note-amber{background:#FFFBEB;border-left:3px solid var(--warning);color:#7A5A18}
+.note b{font-weight:600}
+/* 统计条 */
+.stats{display:flex;gap:var(--lg);background:var(--surface);border-radius:var(--radius-lg);padding:var(--lg);flex-wrap:wrap}
+.stat{text-align:center;flex:1;min-width:80px}
+.stat-val{font-size:24px;font-weight:700}
+.stat-val.ok{color:var(--success)}.stat-val.warn{color:var(--warning)}.stat-val.err{color:var(--danger)}.stat-val.info{color:var(--info)}
+.stat-label{font-size:11px;color:var(--text-secondary);margin-top:2px}
+/* 设备匹配卡 */
+.device-card{display:flex;align-items:center;gap:var(--lg);padding:var(--lg);border-radius:var(--radius-lg);border:1px solid var(--border);background:var(--surface-alt);margin-top:var(--lg)}
+.device-card.matched{border-left:4px solid var(--success)}
+.device-card.unmatched{border-left:4px solid var(--danger);background:#FEF6F5}
+.device-icon{font-size:28px}
+.device-meta{font-size:12px;color:var(--text-secondary);line-height:1.7}
+.device-meta b{color:var(--text-primary)}
+.eui{font-family:monospace;font-weight:600;font-size:13px}
+/* 预览表 */
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:var(--lg)}
+th{text-align:left;padding:8px var(--md);background:var(--surface);font-weight:600;color:var(--text-secondary);font-size:12px;border-bottom:1px solid var(--border)}
+td{padding:7px var(--md);border-bottom:1px solid var(--border);font-family:monospace;font-size:12px}
+tr:hover td{background:#FAF9F5}
+.tag{display:inline-block;padding:2px 8px;border-radius:var(--radius-sm);font-size:11px;font-weight:600;font-family:-apple-system,"Noto Sans SC",sans-serif}
+.t-ok{background:#DCFCE7;color:#16A34A}
+.t-dup{background:#FFF7ED;color:#C2410C}
+.t-skip{background:#F3F4F6;color:#6B7280}
+.t-er{background:#FEE2E2;color:#DC2626}
+/* 结果 */
+.result-banner{padding:var(--lg);border-radius:var(--radius-md);background:#EEF7EF;border-left:3px solid var(--success);color:#2F5D3A;font-size:13px;line-height:1.8}
+.result-card{display:flex;align-items:center;gap:var(--md);padding:var(--lg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-top:var(--lg);background:var(--surface)}
+.result-card .num{font-size:20px;font-weight:700}
+.proto-flag{position:fixed;right:12px;bottom:12px;background:var(--text-primary);color:#fff;font-size:11px;padding:4px 10px;border-radius:var(--radius-md);opacity:.7}
+.section-title{font-size:14px;font-weight:600;margin:var(--xl) 0 var(--sm)}
+h3.page-sub{font-size:13px;color:var(--text-secondary);font-weight:500;margin-top:2px}
+</style>
+</head>
+<body>
+<!-- ══ 平台后台图标侧栏：新入口位于「GPS 质量检查」之后，同属设备数据运维组 ══ -->
+<nav class="sidebar">
+  <div class="sb-item">🏢<span class="tip">平台后台</span></div>
+  <div class="sb-div"></div>
+  <div class="sb-item">📡<span class="tip">GPS 质量检查</span></div>
+  <div class="sb-item active">📥<span class="tip">遥测数据导入（本功能）</span></div>
+  <div class="sb-item">💰<span class="tip">对账看板</span></div>
+  <div class="sb-item">📄<span class="tip">合同管理</span></div>
+  <div class="sb-item">🎖️<span class="tip">订阅服务管理</span></div>
+  <div class="sb-div"></div>
+  <div class="sb-item">🔑<span class="tip">API授权管理</span></div>
+  <div class="sb-item">📊<span class="tip">用量分析</span></div>
+  <div class="sb-item">🕘<span class="tip">审计日志</span></div>
+  <div class="sb-item">⚙️<span class="tip">功能门控</span></div>
+  <div class="sb-item">🗺️<span class="tip">瓦片管理</span></div>
+</nav>
+
+<div class="main">
+  <div class="appbar"><span style="font-size:20px">📥</span><h1>遥测数据导入</h1><span class="badge-proto">NIX-79 高保真原型</span></div>
+
+  <div class="content">
+    <!-- 步骤指示器 -->
+    <div class="steps">
+      <div class="step" id="st0"><span class="step-num">1</span>上传文件</div>
+      <div class="step-line" id="sl0"></div>
+      <div class="step" id="st1"><span class="step-num">2</span>解析预览</div>
+      <div class="step-line" id="sl1"></div>
+      <div class="step" id="st2"><span class="step-num">3</span>导入结果</div>
+    </div>
+
+    <!-- ════════ Step 1 · 上传文件 ════════ -->
+    <div class="panel" id="page0">
+      <div class="panel-bd">
+        <div class="upload-zone" onclick="pickFile()">
+          <div class="icon">🛰️</div>
+          <div style="font-size:14px;font-weight:600">选择 blade 平台导出的设备历史数据文件</div>
+          <div class="muted" style="margin-top:6px">支持 .xlsx，单文件不超过 5000 行；文件名须以设备 DevEUI 开头，如 <b>0095690600028577-历史数据.xlsx</b></div>
+          <div class="fname" id="fname" style="display:none">0095690600028577-历史数据.xlsx（23.3 KB）</div>
+          <button class="btn btn-primary" style="margin-top:var(--md)" id="pickBtn">📂 选择文件</button>
+        </div>
+
+        <div class="fmt">
+          <h4>文件格式要求（blade 平台「设备数据」导出，共 6 列）</h4>
+          <div class="fmt-row"><span class="col">A</span><span class="name">数据类型</span><span class="tag-req">必填</span><span class="muted">仅导入「上行」行，「下行」行自动跳过</span></div>
+          <div class="fmt-row"><span class="col">B</span><span class="name">帧计数器</span><span class="tag-opt">可选</span><span class="muted">设备帧序号，用于辅助排序与排错</span></div>
+          <div class="fmt-row"><span class="col">C</span><span class="name">数据</span><span class="tag-req">必填</span><span class="muted">原始报文 hex（空格分隔），如 68 6B 74 00 BC 01 04 …</span></div>
+          <div class="fmt-row"><span class="col">D</span><span class="name">RSSI</span><span class="tag-opt">可选</span><span class="muted">信号强度，入库到遥测记录</span></div>
+          <div class="fmt-row"><span class="col">E</span><span class="name">SNR</span><span class="tag-opt">可选</span><span class="muted">信噪比，入库到遥测记录</span></div>
+          <div class="fmt-row"><span class="col">F</span><span class="name">创建时间</span><span class="tag-req">必填</span><span class="muted">平台接收时间，按 UTC 原值入库，不做时区换算</span></div>
+        </div>
+
+        <div class="note note-blue">
+          <b>解码能力：</b>当前支持 <b>牛羊追踪器</b>（HKT <code>68 6B 74</code> 帧头，按固件组包协议解码：电量 / 经纬度 / 周期步数 / 三轴加速度 / 防拆）。<br>
+          注册帧、ACK 帧等非遥测帧自动跳过并计数；暂不支持其他设备型号（后续按协议文档扩展解码器）。
+        </div>
+        <div class="note note-amber">
+          <b>导入规则：</b>设备按文件名 DevEUI 匹配，<b>未注册设备整文件报错</b>，不产生孤儿数据；
+          同一设备同一时间点的 GPS 记录已存在时自动跳过（幂等，可重复导入）；
+          导入的历史数据<b>不触发告警</b>、不影响设备实时同步游标，来源标记为「手工导入」。
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" id="next0" disabled onclick="go(1)">下一步：解析</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════ Step 2 · 解析预览 ════════ -->
+    <div class="panel" id="page1" style="display:none">
+      <div class="panel-bd">
+        <div class="stats">
+          <div class="stat"><div class="stat-val">408</div><div class="stat-label">总行数</div></div>
+          <div class="stat"><div class="stat-val info">396</div><div class="stat-label">上行帧</div></div>
+          <div class="stat"><div class="stat-val">390</div><div class="stat-label">可解码</div></div>
+          <div class="stat"><div class="stat-val ok">387</div><div class="stat-label">将导入</div></div>
+          <div class="stat"><div class="stat-val warn">3</div><div class="stat-label">重复跳过</div></div>
+          <div class="stat"><div class="stat-val">18</div><div class="stat-label">非遥测跳过</div></div>
+        </div>
+
+        <!-- 设备匹配卡：已匹配态 -->
+        <div class="device-card matched" id="devOk">
+          <div class="device-icon">🐄</div>
+          <div style="flex:1">
+            <span class="eui">0095690600028577</span> <span class="tag t-ok">✓ 设备已匹配</span>
+            <div class="device-meta">设备编号 <b>GPS-0095690600028577</b> · 类型 <b>牛羊追踪器</b> · 绑定牲畜 <b>黄牛 N-1024</b> · 牧场 <b>长沙示范牧场</b></div>
+          </div>
+          <button class="btn btn-outline" onclick="toggleDev(true)">模拟「未注册」情形</button>
+        </div>
+        <!-- 设备匹配卡：未注册态（演示） -->
+        <div class="device-card unmatched" id="devBad" style="display:none">
+          <div class="device-icon">⚠️</div>
+          <div style="flex:1">
+            <span class="eui">0095690600028577</span> <span class="tag t-er">✗ 设备未注册</span>
+            <div class="device-meta">系统中不存在该 DevEUI 对应的设备，<b>整文件不可导入</b>。请先在设备管理中完成注册，或联系平台运维。</div>
+          </div>
+          <button class="btn btn-outline" onclick="toggleDev(false)">返回「已匹配」</button>
+        </div>
+
+        <div class="section-title">逐行预览（前 8 行示例）</div>
+        <table>
+          <thead><tr><th>#</th><th>帧计数</th><th>时间 (UTC)</th><th>电量</th><th>纬度</th><th>经度</th><th>步数</th><th>状态</th></tr></thead>
+          <tbody>
+            <tr><td>2</td><td>119</td><td>07-23 16:09:11</td><td>99</td><td>28.246777</td><td>112.851138</td><td>27</td><td><span class="tag t-ok">将导入</span></td></tr>
+            <tr><td>3</td><td>117</td><td>07-23 16:08:04</td><td>99</td><td>28.245942</td><td>112.848988</td><td>2</td><td><span class="tag t-ok">将导入</span></td></tr>
+            <tr><td>4</td><td>116</td><td>07-23 16:07:02</td><td>99</td><td>28.246414</td><td>112.850316</td><td>35</td><td><span class="tag t-ok">将导入</span></td></tr>
+            <tr><td>5</td><td>115</td><td>07-23 16:05:49</td><td>99</td><td>28.245320</td><td>112.850498</td><td>2</td><td><span class="tag t-dup">重复 · 已存在</span></td></tr>
+            <tr><td>6</td><td>114</td><td>07-23 16:04:52</td><td>99</td><td>28.245510</td><td>112.850857</td><td>28</td><td><span class="tag t-ok">将导入</span></td></tr>
+            <tr><td>7</td><td>—</td><td>07-23 16:03:40</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="tag t-skip">跳过 · 下行帧</span></td></tr>
+            <tr><td>8</td><td>—</td><td>07-23 16:03:31</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="tag t-skip">跳过 · 非遥测帧</span></td></tr>
+            <tr><td>9</td><td>111</td><td>07-23 16:02:58</td><td>99</td><td>28.245401</td><td>112.852496</td><td>17</td><td><span class="tag t-ok">将导入</span></td></tr>
+          </tbody>
+        </table>
+        <div class="muted" style="margin-top:var(--sm)">仅展示前 8 行；完整 408 行已全部解析。解码字段：电量 / 经纬度（写入 GPS 轨迹）/ 周期步数与三轴加速度（写入遥测记录，供健康分析）。</div>
+
+        <div class="actions">
+          <button class="btn btn-outline" onclick="go(0)">上一步</button>
+          <button class="btn btn-primary" id="importBtn" onclick="go(2)">确认导入 387 条</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════ Step 3 · 导入结果 ════════ -->
+    <div class="panel" id="page2" style="display:none">
+      <div class="panel-bd">
+        <div class="result-banner">
+          ✅ <b>导入完成。</b>成功写入遥测记录 <b>387</b> 条，其中 GPS 轨迹点 <b>387</b> 个；跳过重复 <b>3</b> 条、非遥测帧 <b>18</b> 条、下行帧 <b>12</b> 条；失败 <b>0</b> 条。<br>
+          数据来源已标记为「手工导入」，未触发告警，不影响设备实时同步游标。
+        </div>
+
+        <div class="section-title">设备导入明细</div>
+        <div class="result-card">
+          <div class="device-icon">🐄</div>
+          <div style="flex:1">
+            <span class="eui">0095690600028577</span>
+            <div class="device-meta">黄牛 N-1024 · 长沙示范牧场</div>
+          </div>
+          <div style="text-align:center"><div class="num">387</div><div class="stat-label">遥测记录</div></div>
+          <div style="text-align:center"><div class="num">387</div><div class="stat-label">GPS 点</div></div>
+          <div style="text-align:center"><div class="num" style="color:var(--warning)">3</div><div class="stat-label">重复跳过</div></div>
+          <span class="tag t-ok">成功</span>
+        </div>
+
+        <div class="note note-blue" style="margin-top:var(--lg)">
+          导入后可在「地图 · 历史轨迹」按时间回放该设备轨迹；步数与加速度已进入健康分析数据池，参与活动量统计。
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-outline" onclick="go(0)">继续导入其他文件</button>
+          <button class="btn btn-primary" onclick="go(0)">完成</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="proto-flag">NIX-79 原型 · 供 UI/UX 决策评审 · 数据为真实样例解码值</div>
+
+<script>
+let cur = 0;
+function go(n){
+  cur = n;
+  for(let i=0;i<3;i++){
+    document.getElementById('page'+i).style.display = i===n ? '' : 'none';
+    const st = document.getElementById('st'+i);
+    st.className = 'step' + (i<n?' done':i===n?' active':'');
+    st.querySelector('.step-num').innerHTML = i<n ? '✓' : (i+1);
+    if(i<2) document.getElementById('sl'+i).className = 'step-line' + (i<n?' done':'');
+  }
+  window.scrollTo(0,0);
+}
+function pickFile(){
+  document.getElementById('fname').style.display = '';
+  document.getElementById('next0').disabled = false;
+  document.getElementById('pickBtn').textContent = '✅ 重新选择';
+}
+function toggleDev(bad){
+  document.getElementById('devOk').style.display = bad ? 'none' : '';
+  document.getElementById('devBad').style.display = bad ? '' : 'none';
+  document.getElementById('importBtn').disabled = bad;
+  document.getElementById('importBtn').textContent = bad ? '设备未注册，不可导入' : '确认导入 387 条';
+}
+// 支持 #step1/#step2/#step3 深链，便于评审与截图
+const m = location.hash.match(/^#step([123])$/);
+if (m) { pickFile(); go(parseInt(m[1], 10) - 1); } else { go(0); }
+</script>
+</body>
+</html>

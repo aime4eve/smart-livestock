@@ -4133,4 +4133,219 @@ class AppLocalizationsZh extends AppLocalizations {
   String gpsQualityLineRefreshDone(int n) {
     return '已刷新：重新检验 $n 台设备';
   }
+
+  @override
+  String get telemetryImportTitle => '遥测数据导入';
+
+  @override
+  String get telemetryImportStepUpload => '上传文件';
+
+  @override
+  String get telemetryImportStepPreview => '解析预览';
+
+  @override
+  String get telemetryImportStepResult => '导入结果';
+
+  @override
+  String get telemetryImportUploadTitle => '选择 blade 平台导出的设备历史数据文件';
+
+  @override
+  String get telemetryImportUploadHint =>
+      '支持 .xlsx，单文件不超过 5000 行；文件名须以设备 DevEUI 开头，如 0095690600028577-历史数据.xlsx';
+
+  @override
+  String get telemetryImportPickFile => '选择文件';
+
+  @override
+  String get telemetryImportRePickFile => '重新选择';
+
+  @override
+  String get telemetryImportFormatTitle => '文件格式要求（blade 平台「设备数据」导出，共 6 列）';
+
+  @override
+  String get telemetryImportRequired => '必填';
+
+  @override
+  String get telemetryImportOptional => '可选';
+
+  @override
+  String get telemetryImportColDataType => '数据类型';
+
+  @override
+  String get telemetryImportColDataTypeNote => '仅导入「上行」行，「下行」行自动跳过';
+
+  @override
+  String get telemetryImportColFrameCounter => '帧计数器';
+
+  @override
+  String get telemetryImportColFrameCounterNote => '设备帧序号，用于辅助排序与排错';
+
+  @override
+  String get telemetryImportColData => '数据';
+
+  @override
+  String get telemetryImportColDataNote =>
+      '原始报文 hex（空格分隔），如 68 6B 74 00 BC 01 04 …';
+
+  @override
+  String get telemetryImportColRssi => 'RSSI';
+
+  @override
+  String get telemetryImportColRssiNote => '信号强度，入库到遥测记录';
+
+  @override
+  String get telemetryImportColSnr => 'SNR';
+
+  @override
+  String get telemetryImportColSnrNote => '信噪比，入库到遥测记录';
+
+  @override
+  String get telemetryImportColCreateTime => '创建时间';
+
+  @override
+  String get telemetryImportColCreateTimeNote => '平台接收时间，按 UTC 原值入库，不做时区换算';
+
+  @override
+  String get telemetryImportDecodeNote =>
+      '解码能力：当前支持牛羊追踪器（HKT 68 6B 74 帧头，按固件组包协议解码：电量 / 经纬度 / 周期步数 / 三轴加速度 / 防拆）。注册帧、ACK 帧等非遥测帧自动跳过并计数；暂不支持其他设备型号（后续按协议文档扩展解码器）。';
+
+  @override
+  String get telemetryImportRulesNote =>
+      '导入规则：设备按文件名 DevEUI 匹配，未注册设备整文件报错，不产生孤儿数据；同一设备同一时间点的记录已存在时自动跳过（幂等，可重复导入）；导入的历史数据不触发告警、不影响设备实时同步游标，来源标记为「手工导入」。';
+
+  @override
+  String get telemetryImportNextParse => '下一步：解析';
+
+  @override
+  String get telemetryImportStatTotal => '总行数';
+
+  @override
+  String get telemetryImportStatUplink => '上行帧';
+
+  @override
+  String get telemetryImportStatDecodable => '可解码';
+
+  @override
+  String get telemetryImportStatImportable => '将导入';
+
+  @override
+  String get telemetryImportStatDuplicate => '重复跳过';
+
+  @override
+  String get telemetryImportStatSkipped => '非遥测跳过';
+
+  @override
+  String get telemetryImportDeviceMatched => '✓ 设备已匹配';
+
+  @override
+  String get telemetryImportDeviceNotMatched => '✗ 设备未匹配';
+
+  @override
+  String get telemetryImportMetaCode => '设备编号';
+
+  @override
+  String get telemetryImportMetaType => '类型';
+
+  @override
+  String get telemetryImportMetaLivestock => '绑定牲畜';
+
+  @override
+  String get telemetryImportMetaFarm => '牧场';
+
+  @override
+  String get telemetryImportFileBlocked => '整文件不可导入';
+
+  @override
+  String get telemetryImportPreviewTitle => '逐行预览（前 8 行示例）';
+
+  @override
+  String telemetryImportPreviewNote(int total) {
+    return '仅展示前 8 行；完整 $total 行已全部解析。解码字段：电量 / 经纬度（写入 GPS 轨迹）/ 周期步数与三轴加速度（写入遥测记录，供健康分析）。';
+  }
+
+  @override
+  String get telemetryImportColTime => '时间 (UTC)';
+
+  @override
+  String get telemetryImportColBattery => '电量';
+
+  @override
+  String get telemetryImportColLatitude => '纬度';
+
+  @override
+  String get telemetryImportColLongitude => '经度';
+
+  @override
+  String get telemetryImportColSteps => '步数';
+
+  @override
+  String get telemetryImportColStatus => '状态';
+
+  @override
+  String get telemetryImportRowWillImport => '将导入';
+
+  @override
+  String get telemetryImportRowDuplicate => '重复 · 已存在';
+
+  @override
+  String get telemetryImportRowSkipDownlink => '跳过 · 下行帧';
+
+  @override
+  String get telemetryImportRowSkipUnsupported => '跳过 · 非遥测帧';
+
+  @override
+  String get telemetryImportRowInvalid => '错误';
+
+  @override
+  String telemetryImportConfirmAction(int count) {
+    return '确认导入 $count 条';
+  }
+
+  @override
+  String get telemetryImportConfirmDisabled => '设备未匹配，不可导入';
+
+  @override
+  String telemetryImportDone(int telemetry, int gps) {
+    return '导入完成。成功写入遥测记录 $telemetry 条，其中 GPS 轨迹点 $gps 个；重复与不可导入的行已自动跳过。数据来源已标记为「手工导入」，未触发告警，不影响设备实时同步游标。';
+  }
+
+  @override
+  String get telemetryImportResultDetailTitle => '设备导入明细';
+
+  @override
+  String get telemetryImportResultTelemetry => '遥测记录';
+
+  @override
+  String get telemetryImportResultGps => 'GPS 点';
+
+  @override
+  String get telemetryImportResultSuccess => '成功';
+
+  @override
+  String get telemetryImportResultHint =>
+      '导入后可在「地图 · 历史轨迹」按时间回放该设备轨迹；步数与加速度已进入健康分析数据池，参与活动量统计。';
+
+  @override
+  String get telemetryImportImportAnother => '继续导入其他文件';
+
+  @override
+  String telemetryImportErrorDeviceNotRegistered(Object devEui) {
+    return '设备未注册：$devEui';
+  }
+
+  @override
+  String telemetryImportErrorDeviceNotActive(Object devEui) {
+    return '设备未激活：$devEui';
+  }
+
+  @override
+  String telemetryImportErrorUnsupportedDeviceType(Object deviceType) {
+    return '暂不支持的设备类型：$deviceType';
+  }
+
+  @override
+  String get telemetryImportErrorInvalidTime => '时间格式错误';
+
+  @override
+  String get telemetryImportErrorInvalidHex => '报文 hex 解析失败';
 }

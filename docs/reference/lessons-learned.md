@@ -289,14 +289,32 @@
   - 后端解析无时区时间字符串一律 LocalDateTime.toInstant(ZoneOffset.UTC)，不用 ZoneId.systemDefault()、不硬编码来源时区。
   - 前端查询时间参数也不要做 toUtc() 转换，保持和后端存储同一基准。
  - 时间范围查询返回空但数据存在 → 先确认存储端和查询端是否在同一时间基准上（都做换算 vs 都不做换算），不要只改一端。
- 
- ---
- 
- ## 关键词索引（遇症状按关键词快速定位）
- 
- | 编号 | 关键词 |
- |------|--------|
- | #1 | utf-8, decode, `._`, gen-l10n, arb, apple-double |
+
+---
+
+## 18. Excel 数值单元格读出 ".0" 后缀：Integer 解析静默失败、展示串带小数点
+
+- **日期**:2026-07-29
+- **现象**:NIX-79 遥测文件导入部署后集成验证：xlsx 的 RSSI 列（-99）入库后变成设备快照值（-89），与文件不符；帧计数器在预览中显示为 "119.0"。
+- **误判**:第一反应是 readings 优先逻辑没生效（4.4 适配漏了 rssi 分支），查 logDeviceTelemetry 代码确认 readings-first 写法无误。然后怀疑 xlsx 里 RSSI 列是空字符串——用 Python 直接读文件确认值就是 -99。
+- **根因**:blade 导出的 xlsx 中帧计数器/RSSI/SNR 是 **NUMERIC 单元格**（非文本）。POI 读出 double `-99.0`，经 `BigDecimal.toPlainString()` 得到字符串 `"-99.0"`；`Integer.parseInt("-99.0")` 抛 NumberFormatException，被"宽容解析返回 null"的逻辑吞掉 → readings 缺 rssi → 静默回退到设备快照值。单元测试全程用 STRING 单元格构造 xlsx，没覆盖到真实文件的 NUMERIC 形态。
+- **历史教训**:与 #8（JPQL 返回空无报错）同类——**静默 fallback 让数据错误不可见**：解析失败返回 null 再兜底快照值，功能"看起来正常"，只有逐字段核对数据才能发现。宽容解析（garbage → null → 默认值）的代价是错误输入永远不报。
+- **解决**:
+  1. `TelemetryImportService.cellString` NUMERIC 分支：整数值按 Excel 显示语义渲染（`value == Math.floor(value)` → long 字符串，"119" 而非 "119.0"），一处修复同时解决解析失败与展示问题。
+  2. 补回归测试：用 POI 构造 NUMERIC 单元格的 xlsx（double 119.0/-99.0/-9.0），断言 frameCounter="119" 且 rssi/snr 正确进 readings。
+  3. dev 库中已导入的错误行按 source='MANUAL_IMPORT' 清理后重导（source 列（#11）第一次发挥排障价值）。
+- **判据**:
+  - 读 Excel 数值列做 Integer/Long 解析 → 先想单元格类型：NUMERIC 读出必带 ".0"，要么渲染时去尾，要么用 BigDecimal 解析再取整。
+  - 涉及文件解析的功能，测试 fixtures 必须覆盖**真实文件里的单元格类型**（NUMERIC vs STRING），不能只用顺手的一种。
+  - 宽容解析 + 兜底默认值 = 错误隐身衣；集成验证要逐字段比对源文件与入库值，不只看行数。
+
+---
+
+## 关键词索引（遇症状按关键词快速定位）
+
+| 编号 | 关键词 |
+|------|--------|
+| #1 | utf-8, decode, `._`, gen-l10n, arb, apple-double |
  | #2 | non-monotonic index, git, `._`, pack-idx, `/Volumes/DEV` |
  | #3 | 空列表, tile, status, 数据卷, glob, 挂载路径 |
  | #4 | sandbox, flutter, dart-tool, telemetry, HOME, analytics |
@@ -312,3 +330,4 @@
  | #15 | 解绑, 连锁 bug, 端到端, install→active→unbind |
  | #16 | farmGet, 404, suffix, 前导斜杠, 路径粘连 |
  | #17 | reportTime, 时区, timezone, toInstant, UTC, 不换算 |
+ | #18 | excel, xlsx, poi, numeric-cell, ".0", 静默回退, Integer.parseInt |

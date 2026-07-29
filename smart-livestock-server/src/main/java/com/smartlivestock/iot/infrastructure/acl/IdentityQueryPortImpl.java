@@ -20,6 +20,6 @@ public class IdentityQueryPortImpl implements IdentityQueryPort {
     @Override
     public Optional<FarmInfo> findFarmById(Long farmId) {
         return farmRepository.findById(farmId)
-                .map(f -> new FarmInfo(f.getId(), f.getLatitude(), f.getLongitude()));
+                .map(f -> new FarmInfo(f.getId(), f.getName(), f.getLatitude(), f.getLongitude()));
     }
 }

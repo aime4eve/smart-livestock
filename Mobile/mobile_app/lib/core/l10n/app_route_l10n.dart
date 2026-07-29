@@ -62,6 +62,7 @@ extension AppRouteL10n on AppRoute {
       case AppRoute.platformAnalytics:
       case AppRoute.platformTileAdmin:
       case AppRoute.platformGpsQuality:
+      case AppRoute.platformTelemetryImport:
       case AppRoute.offlineTileManagement:
         return label;
     }

@@ -18,18 +18,20 @@ public interface SpringDataGpsLogRepository extends JpaRepository<GpsLogJpaEntit
      */
     @Modifying
     @Query(value = """
-           INSERT INTO gps_logs (device_id, latitude, longitude, accuracy, recorded_at, created_at)
-           VALUES (:deviceId, :latitude, :longitude, :accuracy, :recordedAt, NOW())
+           INSERT INTO gps_logs (device_id, latitude, longitude, accuracy, recorded_at, source, created_at)
+           VALUES (:deviceId, :latitude, :longitude, :accuracy, :recordedAt, :source, NOW())
            ON CONFLICT (device_id, recorded_at) DO UPDATE
            SET latitude = EXCLUDED.latitude,
                longitude = EXCLUDED.longitude,
-               accuracy = EXCLUDED.accuracy
+               accuracy = EXCLUDED.accuracy,
+               source = EXCLUDED.source
            """, nativeQuery = true)
     void upsertByDeviceAndRecordedAt(@Param("deviceId") Long deviceId,
                                      @Param("latitude") BigDecimal latitude,
                                      @Param("longitude") BigDecimal longitude,
                                      @Param("accuracy") BigDecimal accuracy,
-                                     @Param("recordedAt") Instant recordedAt);
+                                     @Param("recordedAt") Instant recordedAt,
+                                     @Param("source") String source);
 
     @Query("SELECT g FROM GpsLogJpaEntity g WHERE g.deviceId = :deviceId AND (g.latitude <> 0 OR g.longitude <> 0) ORDER BY g.recordedAt DESC")
     List<GpsLogJpaEntity> findByDeviceId(@Param("deviceId") Long deviceId);

@@ -1,6 +1,7 @@
 package com.smartlivestock.iot.infrastructure.persistence.mapper;
 
 import com.smartlivestock.iot.domain.model.GpsLog;
+import com.smartlivestock.iot.domain.model.TelemetrySource;
 import com.smartlivestock.iot.infrastructure.persistence.entity.GpsLogJpaEntity;
 
 public final class GpsLogMapper {
@@ -15,6 +16,9 @@ public final class GpsLogMapper {
         jpa.setLongitude(gpsLog.getLongitude());
         jpa.setAccuracy(gpsLog.getAccuracy());
         jpa.setRecordedAt(gpsLog.getRecordedAt());
+        if (gpsLog.getSource() != null) {
+            jpa.setSource(gpsLog.getSource().name());
+        }
         return jpa;
     }
 
@@ -26,6 +30,9 @@ public final class GpsLogMapper {
         gpsLog.setLongitude(jpa.getLongitude());
         gpsLog.setAccuracy(jpa.getAccuracy());
         gpsLog.setRecordedAt(jpa.getRecordedAt());
+        gpsLog.setSource(jpa.getSource() != null
+                ? TelemetrySource.valueOf(jpa.getSource())
+                : TelemetrySource.AGENTIC_PLATFORM);
         return gpsLog;
     }
 }

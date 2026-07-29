@@ -54,6 +54,16 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
             BigDecimal latitude = new BigDecimal(root.path("latitude").asText());
             BigDecimal longitude = new BigDecimal(root.path("longitude").asText());
 
+            // NIX-79/D6: historical backfill must not re-fire fence alerts or
+            // rewrite the livestock's current position. Missing source means the
+            // message predates the field → treat as AGENTIC_PLATFORM (original path).
+            String source = root.path("source").isTextual()
+                    ? root.path("source").asText() : "AGENTIC_PLATFORM";
+            if ("MANUAL_IMPORT".equals(source)) {
+                log.debug("Skipping MANUAL_IMPORT GPS log for device [{}] - no fence detection, no position update", deviceId);
+                return;
+            }
+
             log.debug("Processing GPS log for device [{}]", deviceId);
 
             InstallationInfo installation = ioTQueryPort.findActiveInstallation(deviceId).orElse(null);

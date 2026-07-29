@@ -31,6 +31,7 @@ public class DeviceTelemetryLog {
     private String activityClass;
     private BigDecimal rollDegrees;
     private BigDecimal pitchDegrees;
+    private TelemetrySource source;
     private Instant reportTime;
     private Instant createdAt;
 
@@ -101,6 +102,9 @@ public class DeviceTelemetryLog {
 
     public BigDecimal getPitchDegrees() { return pitchDegrees; }
     public void setPitchDegrees(BigDecimal pitchDegrees) { this.pitchDegrees = pitchDegrees; }
+
+    public TelemetrySource getSource() { return source; }
+    public void setSource(TelemetrySource source) { this.source = source; }
 
     public Instant getReportTime() { return reportTime; }
     public void setReportTime(Instant reportTime) { this.reportTime = reportTime; }

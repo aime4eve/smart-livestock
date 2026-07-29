@@ -17,17 +17,24 @@ public class GpsLog extends Entity {
     private BigDecimal longitude;
     private BigDecimal accuracy;
     private Instant recordedAt;
+    private TelemetrySource source;
 
     public GpsLog() {
     }
 
     public GpsLog(Long deviceId, BigDecimal latitude, BigDecimal longitude,
                   BigDecimal accuracy, Instant recordedAt) {
+        this(deviceId, latitude, longitude, accuracy, recordedAt, TelemetrySource.AGENTIC_PLATFORM);
+    }
+
+    public GpsLog(Long deviceId, BigDecimal latitude, BigDecimal longitude,
+                  BigDecimal accuracy, Instant recordedAt, TelemetrySource source) {
         this.deviceId = deviceId;
         this.latitude = latitude;
         this.longitude = longitude;
         this.accuracy = accuracy;
         this.recordedAt = recordedAt;
+        this.source = source;
     }
 
     // --- Getters and Setters ---
@@ -46,4 +53,7 @@ public class GpsLog extends Entity {
 
     public Instant getRecordedAt() { return recordedAt; }
     public void setRecordedAt(Instant recordedAt) { this.recordedAt = recordedAt; }
+
+    public TelemetrySource getSource() { return source; }
+    public void setSource(TelemetrySource source) { this.source = source; }
 }

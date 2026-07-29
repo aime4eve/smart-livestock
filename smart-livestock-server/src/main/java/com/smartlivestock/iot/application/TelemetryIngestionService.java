@@ -90,18 +90,22 @@ public class TelemetryIngestionService {
             }
         }
 
-        // 1. Update device runtime status snapshot
-        updateDeviceRuntimeStatus(device, readings);
-        deviceRepository.save(device);
+        // 1. Update device runtime status snapshot.
+        // MANUAL_IMPORT backfills historical rows: it must not rewrite the
+        // device's live snapshot (battery/rssi/lastOnlineAt) with stale values.
+        if (source != TelemetrySource.MANUAL_IMPORT) {
+            updateDeviceRuntimeStatus(device, readings);
+            deviceRepository.save(device);
+        }
 
        // 2. Write device operational timeseries
-       logDeviceTelemetry(device, readings, effectiveRecordedAt);
+       logDeviceTelemetry(device, readings, effectiveRecordedAt, source);
 
         // 2a. Compute stepNumber delta (累计值 → 周期增量) and inject into readings
         computeStepDelta(device, readings);
 
         // 3. Extract GPS for TRACKER devices
-        extractAndLogGps(device, readings, effectiveRecordedAt);
+        extractAndLogGps(device, readings, effectiveRecordedAt, source);
 
         // 4. Detect device alerts (only for AGENTIC_PLATFORM source)
         if (source == TelemetrySource.AGENTIC_PLATFORM) {
@@ -202,14 +206,23 @@ public class TelemetryIngestionService {
         return "online";
     }
 
-    private void logDeviceTelemetry(Device device, Map<String, Object> readings, Instant recordedAt) {
+    private void logDeviceTelemetry(Device device, Map<String, Object> readings, Instant recordedAt,
+                                    TelemetrySource source) {
         DeviceTelemetryLog logEntry = new DeviceTelemetryLog();
         logEntry.setDeviceId(device.getId());
         logEntry.setTenantId(device.getTenantId());
-        logEntry.setBatteryLevel(device.getBatteryLevel());
-        logEntry.setRssi(device.getRssi());
-        logEntry.setSnr(device.getSnr());
-        logEntry.setGatewayId(device.getLastGateway());
+        // readings-first, snapshot fallback: MANUAL_IMPORT rows carry per-row
+        // historical values (their device snapshot is intentionally untouched);
+        // live sources already merged readings into the snapshot, so this is
+        // behavior-neutral for AGENTIC_PLATFORM/DATAGEN/HTTP.
+        Integer battery = getInteger(readings, "battery");
+        logEntry.setBatteryLevel(battery != null ? battery : device.getBatteryLevel());
+        Integer rssi = getInteger(readings, "rssi");
+        logEntry.setRssi(rssi != null ? rssi : device.getRssi());
+        BigDecimal snr = getBigDecimal(readings, "snr");
+        logEntry.setSnr(snr != null ? snr : device.getSnr());
+        String gatewayId = getString(readings, "gatewayId");
+        logEntry.setGatewayId(gatewayId != null ? gatewayId : device.getLastGateway());
         logEntry.setLatitude(getBigDecimal(readings, "latitude"));
         logEntry.setLongitude(getBigDecimal(readings, "longitude"));
         logEntry.setStepNumber(getInteger(readings, "stepNumber"));
@@ -224,11 +237,13 @@ public class TelemetryIngestionService {
         logEntry.setActivityClass(getString(readings, "activityClass"));
         logEntry.setRollDegrees(getBigDecimal(readings, "rollDegrees"));
         logEntry.setPitchDegrees(getBigDecimal(readings, "pitchDegrees"));
+        logEntry.setSource(source);
         logEntry.setReportTime(recordedAt);
         deviceTelemetryLogRepository.save(logEntry);
     }
 
-   private void extractAndLogGps(Device device, Map<String, Object> readings, Instant recordedAt) {
+   private void extractAndLogGps(Device device, Map<String, Object> readings, Instant recordedAt,
+                                 TelemetrySource source) {
        if (device.getDeviceType() != com.smartlivestock.iot.domain.model.DeviceType.TRACKER) return;
 
        Object latObj = readings.get("latitude");
@@ -243,7 +258,7 @@ public class TelemetryIngestionService {
                log.debug("Skipping invalid GPS (0,0) for device [{}]", device.getId());
                return;
            }
-           gpsLogApplicationService.logGps(device.getId(), latitude, longitude, null, recordedAt);
+           gpsLogApplicationService.logGps(device.getId(), latitude, longitude, null, recordedAt, source);
        }
    }
 

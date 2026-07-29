@@ -7720,6 +7720,402 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'已刷新：重新检验 {n} 台设备'**
   String gpsQualityLineRefreshDone(int n);
+
+  /// No description provided for @telemetryImportTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'遥测数据导入'**
+  String get telemetryImportTitle;
+
+  /// No description provided for @telemetryImportStepUpload.
+  ///
+  /// In zh, this message translates to:
+  /// **'上传文件'**
+  String get telemetryImportStepUpload;
+
+  /// No description provided for @telemetryImportStepPreview.
+  ///
+  /// In zh, this message translates to:
+  /// **'解析预览'**
+  String get telemetryImportStepPreview;
+
+  /// No description provided for @telemetryImportStepResult.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入结果'**
+  String get telemetryImportStepResult;
+
+  /// No description provided for @telemetryImportUploadTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择 blade 平台导出的设备历史数据文件'**
+  String get telemetryImportUploadTitle;
+
+  /// No description provided for @telemetryImportUploadHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'支持 .xlsx，单文件不超过 5000 行；文件名须以设备 DevEUI 开头，如 0095690600028577-历史数据.xlsx'**
+  String get telemetryImportUploadHint;
+
+  /// No description provided for @telemetryImportPickFile.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择文件'**
+  String get telemetryImportPickFile;
+
+  /// No description provided for @telemetryImportRePickFile.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新选择'**
+  String get telemetryImportRePickFile;
+
+  /// No description provided for @telemetryImportFormatTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'文件格式要求（blade 平台「设备数据」导出，共 6 列）'**
+  String get telemetryImportFormatTitle;
+
+  /// No description provided for @telemetryImportRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'必填'**
+  String get telemetryImportRequired;
+
+  /// No description provided for @telemetryImportOptional.
+  ///
+  /// In zh, this message translates to:
+  /// **'可选'**
+  String get telemetryImportOptional;
+
+  /// No description provided for @telemetryImportColDataType.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据类型'**
+  String get telemetryImportColDataType;
+
+  /// No description provided for @telemetryImportColDataTypeNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'仅导入「上行」行，「下行」行自动跳过'**
+  String get telemetryImportColDataTypeNote;
+
+  /// No description provided for @telemetryImportColFrameCounter.
+  ///
+  /// In zh, this message translates to:
+  /// **'帧计数器'**
+  String get telemetryImportColFrameCounter;
+
+  /// No description provided for @telemetryImportColFrameCounterNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备帧序号，用于辅助排序与排错'**
+  String get telemetryImportColFrameCounterNote;
+
+  /// No description provided for @telemetryImportColData.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据'**
+  String get telemetryImportColData;
+
+  /// No description provided for @telemetryImportColDataNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'原始报文 hex（空格分隔），如 68 6B 74 00 BC 01 04 …'**
+  String get telemetryImportColDataNote;
+
+  /// No description provided for @telemetryImportColRssi.
+  ///
+  /// In zh, this message translates to:
+  /// **'RSSI'**
+  String get telemetryImportColRssi;
+
+  /// No description provided for @telemetryImportColRssiNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'信号强度，入库到遥测记录'**
+  String get telemetryImportColRssiNote;
+
+  /// No description provided for @telemetryImportColSnr.
+  ///
+  /// In zh, this message translates to:
+  /// **'SNR'**
+  String get telemetryImportColSnr;
+
+  /// No description provided for @telemetryImportColSnrNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'信噪比，入库到遥测记录'**
+  String get telemetryImportColSnrNote;
+
+  /// No description provided for @telemetryImportColCreateTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建时间'**
+  String get telemetryImportColCreateTime;
+
+  /// No description provided for @telemetryImportColCreateTimeNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'平台接收时间，按 UTC 原值入库，不做时区换算'**
+  String get telemetryImportColCreateTimeNote;
+
+  /// No description provided for @telemetryImportDecodeNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'解码能力：当前支持牛羊追踪器（HKT 68 6B 74 帧头，按固件组包协议解码：电量 / 经纬度 / 周期步数 / 三轴加速度 / 防拆）。注册帧、ACK 帧等非遥测帧自动跳过并计数；暂不支持其他设备型号（后续按协议文档扩展解码器）。'**
+  String get telemetryImportDecodeNote;
+
+  /// No description provided for @telemetryImportRulesNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入规则：设备按文件名 DevEUI 匹配，未注册设备整文件报错，不产生孤儿数据；同一设备同一时间点的记录已存在时自动跳过（幂等，可重复导入）；导入的历史数据不触发告警、不影响设备实时同步游标，来源标记为「手工导入」。'**
+  String get telemetryImportRulesNote;
+
+  /// No description provided for @telemetryImportNextParse.
+  ///
+  /// In zh, this message translates to:
+  /// **'下一步：解析'**
+  String get telemetryImportNextParse;
+
+  /// No description provided for @telemetryImportStatTotal.
+  ///
+  /// In zh, this message translates to:
+  /// **'总行数'**
+  String get telemetryImportStatTotal;
+
+  /// No description provided for @telemetryImportStatUplink.
+  ///
+  /// In zh, this message translates to:
+  /// **'上行帧'**
+  String get telemetryImportStatUplink;
+
+  /// No description provided for @telemetryImportStatDecodable.
+  ///
+  /// In zh, this message translates to:
+  /// **'可解码'**
+  String get telemetryImportStatDecodable;
+
+  /// No description provided for @telemetryImportStatImportable.
+  ///
+  /// In zh, this message translates to:
+  /// **'将导入'**
+  String get telemetryImportStatImportable;
+
+  /// No description provided for @telemetryImportStatDuplicate.
+  ///
+  /// In zh, this message translates to:
+  /// **'重复跳过'**
+  String get telemetryImportStatDuplicate;
+
+  /// No description provided for @telemetryImportStatSkipped.
+  ///
+  /// In zh, this message translates to:
+  /// **'非遥测跳过'**
+  String get telemetryImportStatSkipped;
+
+  /// No description provided for @telemetryImportDeviceMatched.
+  ///
+  /// In zh, this message translates to:
+  /// **'✓ 设备已匹配'**
+  String get telemetryImportDeviceMatched;
+
+  /// No description provided for @telemetryImportDeviceNotMatched.
+  ///
+  /// In zh, this message translates to:
+  /// **'✗ 设备未匹配'**
+  String get telemetryImportDeviceNotMatched;
+
+  /// No description provided for @telemetryImportMetaCode.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备编号'**
+  String get telemetryImportMetaCode;
+
+  /// No description provided for @telemetryImportMetaType.
+  ///
+  /// In zh, this message translates to:
+  /// **'类型'**
+  String get telemetryImportMetaType;
+
+  /// No description provided for @telemetryImportMetaLivestock.
+  ///
+  /// In zh, this message translates to:
+  /// **'绑定牲畜'**
+  String get telemetryImportMetaLivestock;
+
+  /// No description provided for @telemetryImportMetaFarm.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧场'**
+  String get telemetryImportMetaFarm;
+
+  /// No description provided for @telemetryImportFileBlocked.
+  ///
+  /// In zh, this message translates to:
+  /// **'整文件不可导入'**
+  String get telemetryImportFileBlocked;
+
+  /// No description provided for @telemetryImportPreviewTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'逐行预览（前 8 行示例）'**
+  String get telemetryImportPreviewTitle;
+
+  /// No description provided for @telemetryImportPreviewNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'仅展示前 8 行；完整 {total} 行已全部解析。解码字段：电量 / 经纬度（写入 GPS 轨迹）/ 周期步数与三轴加速度（写入遥测记录，供健康分析）。'**
+  String telemetryImportPreviewNote(int total);
+
+  /// No description provided for @telemetryImportColTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'时间 (UTC)'**
+  String get telemetryImportColTime;
+
+  /// No description provided for @telemetryImportColBattery.
+  ///
+  /// In zh, this message translates to:
+  /// **'电量'**
+  String get telemetryImportColBattery;
+
+  /// No description provided for @telemetryImportColLatitude.
+  ///
+  /// In zh, this message translates to:
+  /// **'纬度'**
+  String get telemetryImportColLatitude;
+
+  /// No description provided for @telemetryImportColLongitude.
+  ///
+  /// In zh, this message translates to:
+  /// **'经度'**
+  String get telemetryImportColLongitude;
+
+  /// No description provided for @telemetryImportColSteps.
+  ///
+  /// In zh, this message translates to:
+  /// **'步数'**
+  String get telemetryImportColSteps;
+
+  /// No description provided for @telemetryImportColStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'状态'**
+  String get telemetryImportColStatus;
+
+  /// No description provided for @telemetryImportRowWillImport.
+  ///
+  /// In zh, this message translates to:
+  /// **'将导入'**
+  String get telemetryImportRowWillImport;
+
+  /// No description provided for @telemetryImportRowDuplicate.
+  ///
+  /// In zh, this message translates to:
+  /// **'重复 · 已存在'**
+  String get telemetryImportRowDuplicate;
+
+  /// No description provided for @telemetryImportRowSkipDownlink.
+  ///
+  /// In zh, this message translates to:
+  /// **'跳过 · 下行帧'**
+  String get telemetryImportRowSkipDownlink;
+
+  /// No description provided for @telemetryImportRowSkipUnsupported.
+  ///
+  /// In zh, this message translates to:
+  /// **'跳过 · 非遥测帧'**
+  String get telemetryImportRowSkipUnsupported;
+
+  /// No description provided for @telemetryImportRowInvalid.
+  ///
+  /// In zh, this message translates to:
+  /// **'错误'**
+  String get telemetryImportRowInvalid;
+
+  /// No description provided for @telemetryImportConfirmAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认导入 {count} 条'**
+  String telemetryImportConfirmAction(int count);
+
+  /// No description provided for @telemetryImportConfirmDisabled.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备未匹配，不可导入'**
+  String get telemetryImportConfirmDisabled;
+
+  /// No description provided for @telemetryImportDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入完成。成功写入遥测记录 {telemetry} 条，其中 GPS 轨迹点 {gps} 个；重复与不可导入的行已自动跳过。数据来源已标记为「手工导入」，未触发告警，不影响设备实时同步游标。'**
+  String telemetryImportDone(int telemetry, int gps);
+
+  /// No description provided for @telemetryImportResultDetailTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备导入明细'**
+  String get telemetryImportResultDetailTitle;
+
+  /// No description provided for @telemetryImportResultTelemetry.
+  ///
+  /// In zh, this message translates to:
+  /// **'遥测记录'**
+  String get telemetryImportResultTelemetry;
+
+  /// No description provided for @telemetryImportResultGps.
+  ///
+  /// In zh, this message translates to:
+  /// **'GPS 点'**
+  String get telemetryImportResultGps;
+
+  /// No description provided for @telemetryImportResultSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'成功'**
+  String get telemetryImportResultSuccess;
+
+  /// No description provided for @telemetryImportResultHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入后可在「地图 · 历史轨迹」按时间回放该设备轨迹；步数与加速度已进入健康分析数据池，参与活动量统计。'**
+  String get telemetryImportResultHint;
+
+  /// No description provided for @telemetryImportImportAnother.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续导入其他文件'**
+  String get telemetryImportImportAnother;
+
+  /// No description provided for @telemetryImportErrorDeviceNotRegistered.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备未注册：{devEui}'**
+  String telemetryImportErrorDeviceNotRegistered(Object devEui);
+
+  /// No description provided for @telemetryImportErrorDeviceNotActive.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备未激活：{devEui}'**
+  String telemetryImportErrorDeviceNotActive(Object devEui);
+
+  /// No description provided for @telemetryImportErrorUnsupportedDeviceType.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂不支持的设备类型：{deviceType}'**
+  String telemetryImportErrorUnsupportedDeviceType(Object deviceType);
+
+  /// No description provided for @telemetryImportErrorInvalidTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'时间格式错误'**
+  String get telemetryImportErrorInvalidTime;
+
+  /// No description provided for @telemetryImportErrorInvalidHex.
+  ///
+  /// In zh, this message translates to:
+  /// **'报文 hex 解析失败'**
+  String get telemetryImportErrorInvalidHex;
 }
 
 class _AppLocalizationsDelegate

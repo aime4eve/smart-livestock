@@ -4223,4 +4223,227 @@ class AppLocalizationsEn extends AppLocalizations {
   String gpsQualityLineRefreshDone(int n) {
     return 'Refreshed: $n devices re-checked';
   }
+
+  @override
+  String get telemetryImportTitle => 'Telemetry Import';
+
+  @override
+  String get telemetryImportStepUpload => 'Upload File';
+
+  @override
+  String get telemetryImportStepPreview => 'Parse Preview';
+
+  @override
+  String get telemetryImportStepResult => 'Import Result';
+
+  @override
+  String get telemetryImportUploadTitle =>
+      'Select a device history data file exported from the blade platform';
+
+  @override
+  String get telemetryImportUploadHint =>
+      'Supports .xlsx, up to 5000 rows per file; the file name must start with the device DevEUI, e.g. 0095690600028577-history.xlsx';
+
+  @override
+  String get telemetryImportPickFile => 'Choose File';
+
+  @override
+  String get telemetryImportRePickFile => 'Choose Another';
+
+  @override
+  String get telemetryImportFormatTitle =>
+      'File format requirements (blade platform \"Device Data\" export, 6 columns)';
+
+  @override
+  String get telemetryImportRequired => 'Required';
+
+  @override
+  String get telemetryImportOptional => 'Optional';
+
+  @override
+  String get telemetryImportColDataType => 'Data Type';
+
+  @override
+  String get telemetryImportColDataTypeNote =>
+      'Only uplink rows are imported; downlink rows are skipped automatically';
+
+  @override
+  String get telemetryImportColFrameCounter => 'Frame Counter';
+
+  @override
+  String get telemetryImportColFrameCounterNote =>
+      'Device frame sequence number, aids ordering and troubleshooting';
+
+  @override
+  String get telemetryImportColData => 'Payload';
+
+  @override
+  String get telemetryImportColDataNote =>
+      'Raw frame hex (space-separated), e.g. 68 6B 74 00 BC 01 04 …';
+
+  @override
+  String get telemetryImportColRssi => 'RSSI';
+
+  @override
+  String get telemetryImportColRssiNote =>
+      'Signal strength, stored in telemetry records';
+
+  @override
+  String get telemetryImportColSnr => 'SNR';
+
+  @override
+  String get telemetryImportColSnrNote =>
+      'Signal-to-noise ratio, stored in telemetry records';
+
+  @override
+  String get telemetryImportColCreateTime => 'Created At';
+
+  @override
+  String get telemetryImportColCreateTimeNote =>
+      'Platform receive time, stored as the raw UTC value without timezone conversion';
+
+  @override
+  String get telemetryImportDecodeNote =>
+      'Decoding: HKT cattle/sheep trackers are supported (68 6B 74 header, firmware TLV protocol: battery / coordinates / period steps / 3-axis acceleration / anti-tamper). Registration, ACK and other non-telemetry frames are skipped and counted; other device models are not supported yet (decoders will be extended per protocol docs).';
+
+  @override
+  String get telemetryImportRulesNote =>
+      'Import rules: the device is matched by the DevEUI in the file name; unregistered devices fail the whole file so no orphan data is produced; records already existing at the same device timestamp are skipped (idempotent, safe to re-import); imported history triggers no alerts, does not move the live sync cursor, and is marked as \"manual import\".';
+
+  @override
+  String get telemetryImportNextParse => 'Next: Parse';
+
+  @override
+  String get telemetryImportStatTotal => 'Total Rows';
+
+  @override
+  String get telemetryImportStatUplink => 'Uplink';
+
+  @override
+  String get telemetryImportStatDecodable => 'Decodable';
+
+  @override
+  String get telemetryImportStatImportable => 'To Import';
+
+  @override
+  String get telemetryImportStatDuplicate => 'Duplicates';
+
+  @override
+  String get telemetryImportStatSkipped => 'Skipped';
+
+  @override
+  String get telemetryImportDeviceMatched => '✓ Device matched';
+
+  @override
+  String get telemetryImportDeviceNotMatched => '✗ Device not matched';
+
+  @override
+  String get telemetryImportMetaCode => 'Device Code';
+
+  @override
+  String get telemetryImportMetaType => 'Type';
+
+  @override
+  String get telemetryImportMetaLivestock => 'Livestock';
+
+  @override
+  String get telemetryImportMetaFarm => 'Farm';
+
+  @override
+  String get telemetryImportFileBlocked => 'the whole file cannot be imported';
+
+  @override
+  String get telemetryImportPreviewTitle => 'Row Preview (first 8 rows)';
+
+  @override
+  String telemetryImportPreviewNote(int total) {
+    return 'Showing the first 8 rows only; all $total rows have been parsed. Decoded fields: battery / coordinates (written to the GPS track) / period steps & 3-axis acceleration (written to telemetry records for health analytics).';
+  }
+
+  @override
+  String get telemetryImportColTime => 'Time (UTC)';
+
+  @override
+  String get telemetryImportColBattery => 'Battery';
+
+  @override
+  String get telemetryImportColLatitude => 'Latitude';
+
+  @override
+  String get telemetryImportColLongitude => 'Longitude';
+
+  @override
+  String get telemetryImportColSteps => 'Steps';
+
+  @override
+  String get telemetryImportColStatus => 'Status';
+
+  @override
+  String get telemetryImportRowWillImport => 'To Import';
+
+  @override
+  String get telemetryImportRowDuplicate => 'Duplicate · Exists';
+
+  @override
+  String get telemetryImportRowSkipDownlink => 'Skipped · Downlink';
+
+  @override
+  String get telemetryImportRowSkipUnsupported => 'Skipped · Non-telemetry';
+
+  @override
+  String get telemetryImportRowInvalid => 'Error';
+
+  @override
+  String telemetryImportConfirmAction(int count) {
+    return 'Import $count Rows';
+  }
+
+  @override
+  String get telemetryImportConfirmDisabled =>
+      'Device not matched; import unavailable';
+
+  @override
+  String telemetryImportDone(int telemetry, int gps) {
+    return 'Import complete. $telemetry telemetry records written, including $gps GPS track points; duplicate and non-importable rows were skipped automatically. The source is marked as \"manual import\" — no alerts were triggered and the live sync cursor is untouched.';
+  }
+
+  @override
+  String get telemetryImportResultDetailTitle => 'Device Import Details';
+
+  @override
+  String get telemetryImportResultTelemetry => 'Telemetry Records';
+
+  @override
+  String get telemetryImportResultGps => 'GPS Points';
+
+  @override
+  String get telemetryImportResultSuccess => 'Success';
+
+  @override
+  String get telemetryImportResultHint =>
+      'You can replay this device\'s track by time in \"Map · Track History\"; steps and acceleration have joined the health analytics data pool and count toward activity statistics.';
+
+  @override
+  String get telemetryImportImportAnother => 'Import Another File';
+
+  @override
+  String telemetryImportErrorDeviceNotRegistered(Object devEui) {
+    return 'Device not registered: $devEui';
+  }
+
+  @override
+  String telemetryImportErrorDeviceNotActive(Object devEui) {
+    return 'Device not active: $devEui';
+  }
+
+  @override
+  String telemetryImportErrorUnsupportedDeviceType(Object deviceType) {
+    return 'Unsupported device type: $deviceType';
+  }
+
+  @override
+  String get telemetryImportErrorInvalidTime => 'Invalid time format';
+
+  @override
+  String get telemetryImportErrorInvalidHex => 'Failed to parse payload hex';
 }

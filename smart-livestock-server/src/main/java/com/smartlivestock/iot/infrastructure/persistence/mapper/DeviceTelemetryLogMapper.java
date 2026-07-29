@@ -1,6 +1,7 @@
 package com.smartlivestock.iot.infrastructure.persistence.mapper;
 
 import com.smartlivestock.iot.domain.model.DeviceTelemetryLog;
+import com.smartlivestock.iot.domain.model.TelemetrySource;
 import com.smartlivestock.iot.infrastructure.persistence.entity.DeviceTelemetryLogJpaEntity;
 
 public final class DeviceTelemetryLogMapper {
@@ -31,6 +32,9 @@ public final class DeviceTelemetryLogMapper {
         jpa.setActivityClass(log.getActivityClass());
         jpa.setRollDegrees(log.getRollDegrees());
         jpa.setPitchDegrees(log.getPitchDegrees());
+        if (log.getSource() != null) {
+            jpa.setSource(log.getSource().name());
+        }
         jpa.setReportTime(log.getReportTime());
         return jpa;
     }
@@ -59,6 +63,9 @@ public final class DeviceTelemetryLogMapper {
         log.setActivityClass(jpa.getActivityClass());
         log.setRollDegrees(jpa.getRollDegrees());
         log.setPitchDegrees(jpa.getPitchDegrees());
+        log.setSource(jpa.getSource() != null
+                ? TelemetrySource.valueOf(jpa.getSource())
+                : TelemetrySource.AGENTIC_PLATFORM);
         log.setReportTime(jpa.getReportTime());
         log.setCreatedAt(jpa.getCreatedAt());
         return log;

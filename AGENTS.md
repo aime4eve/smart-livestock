@@ -137,6 +137,7 @@ Transform tasks into verifiable goals:
 - Flyway checksum mismatch → 先查 `flyway_schema_history` 再对比 git 文件 — #12
 - `numeric field overflow` → 定位列 precision/scale，差值列至少 DECIMAL(10,2) — #13
 - GPS 轨迹查询空（`gps_logs` 有数据）→ 先查 active installation，再查时间格式 URL 编码 — #14
+- Excel 数值列解析失败/显示带 `.0` → POI NUMERIC 单元格读出是 double，先按 Excel 显示语义去尾再解析；宽容解析+兜底默认值会让数据错误隐身 — #18
 
 **代码审查**
 - 评审路由/分档/状态机 → 从 design 原文时态主语倒推，代入调用方参数逐步求值，不要从阈值数字联想 — #5
