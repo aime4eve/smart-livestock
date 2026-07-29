@@ -61,6 +61,38 @@ public class TrackLineCheckService {
     private final TrackLineCalculator calculator = new TrackLineCalculator();
 
     /**
+     * Refresh all LINE tests for one standard track: delete every existing
+     * LINE test (+ snapshots) for this trackLine, then re-create tests for all
+     * devices that currently have gps_logs data. Returns the creation result.
+     */
+    public LineCheckCreateResultDto refreshLineChecks(Long trackLineId) {
+        // Validate the track line exists before deleting anything.
+        trackLineRepository.findById(trackLineId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "Standard track line not found: " + trackLineId));
+
+        // Delete old LINE tests and their snapshots for this track line.
+        for (GpsQualityTest old : testRepository.findByTrackLineIdOrderByStartedAt(trackLineId)) {
+            if (old.getTestType() != TestType.LINE) continue;
+            linePointRepository.deleteByTestId(old.getId());
+            lineResultRepository.deleteByTestId(old.getId());
+            lineDeviationRepository.deleteByTestId(old.getId());
+            testRepository.deleteById(old.getId());
+        }
+
+        // Re-create tests for all devices that currently have gps_logs data.
+       List<String> deviceCodes = findDevicesWithLogs().stream()
+                .map(LineCheckDeviceDto::deviceCode)
+               .toList();
+        if (deviceCodes.isEmpty()) {
+            LineCheckCreateResultDto dto = new LineCheckCreateResultDto();
+            dto.setDevices(List.of());
+            return dto;
+        }
+        return createLineChecks(trackLineId, deviceCodes);
+    }
+
+    /**
      * Devices having at least one gps_logs report (no time window),
      * with point count and first/last report time.
      */

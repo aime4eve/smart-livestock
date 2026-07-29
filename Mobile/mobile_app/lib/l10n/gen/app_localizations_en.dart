@@ -4215,4 +4215,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get gpsQualityLineComparisonEmptyHint =>
       'No line checks have been created for this track yet. Create one to see device comparison.';
+
+  @override
+  String get gpsQualityLineRefresh => 'Refresh';
+
+  @override
+  String gpsQualityLineRefreshDone(int n) {
+    return 'Refreshed: $n devices re-checked';
+  }
 }

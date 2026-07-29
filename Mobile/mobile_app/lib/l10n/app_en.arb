@@ -3248,6 +3248,10 @@
   "@gpsQualityLineSelectTrackPrompt": {},
  "gpsQualityLineComparisonEmpty": "No line check data under these conditions",
  "@gpsQualityLineComparisonEmpty": {},
- "gpsQualityLineComparisonEmptyHint": "No line checks have been created for this track yet. Create one to see device comparison.",
- "@gpsQualityLineComparisonEmptyHint": {}
+"gpsQualityLineComparisonEmptyHint": "No line checks have been created for this track yet. Create one to see device comparison.",
+ "@gpsQualityLineComparisonEmptyHint": {},
+ "gpsQualityLineRefresh": "Refresh",
+ "@gpsQualityLineRefresh": {},
+ "gpsQualityLineRefreshDone": "Refreshed: {n} devices re-checked",
+ "@gpsQualityLineRefreshDone": {"placeholders": {"n": {"type": "int"}}}
 }

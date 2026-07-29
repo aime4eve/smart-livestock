@@ -610,6 +610,17 @@ public class GpsQualityAdminController {
                 trackLineCheckService.createLineChecks(trackLineId, deviceCodes)));
     }
 
+    /**
+     * Refresh all LINE tests for one standard track: delete old tests (+ snapshots)
+     * and re-create from all devices that currently have gps_logs data.
+     */
+    @PostMapping("/line-checks/refresh")
+    public ResponseEntity<ApiResponse<LineCheckCreateResultDto>> refreshLineChecks(
+            @RequestParam Long trackLineId) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                trackLineCheckService.refreshLineChecks(trackLineId)));
+    }
+
     // --- LINE reports (NIX-68, spec §7.4: summary + track/deviations sub-endpoints) ---
 
     @GetMapping("/tests/{id}/line-report")

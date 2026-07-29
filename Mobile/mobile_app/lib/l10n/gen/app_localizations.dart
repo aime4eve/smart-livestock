@@ -7708,6 +7708,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'该标准轨迹尚未创建线路检验，请先发起检验后再查看对比。'**
   String get gpsQualityLineComparisonEmptyHint;
+
+  /// No description provided for @gpsQualityLineRefresh.
+  ///
+  /// In zh, this message translates to:
+  /// **'刷新'**
+  String get gpsQualityLineRefresh;
+
+  /// No description provided for @gpsQualityLineRefreshDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'已刷新：重新检验 {n} 台设备'**
+  String gpsQualityLineRefreshDone(int n);
 }
 
 class _AppLocalizationsDelegate

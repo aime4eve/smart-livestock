@@ -526,7 +526,10 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
     return LineQualityReport.fromJson(data);
   }
 
-  /// Standard track point list snapshot (green polyline on the map).
+ /// Refresh all LINE tests for one standard track: delete old tests (+ snapshots)
+ /// and re-create from all devices that currently have gps_logs data.
+
+ /// Standard track point list snapshot (green polyline on the map).
   Future<List<LineTrackPoint>> fetchLineReportTrack(int testId) async {
     final data =
         await ApiClient.instance.get('$_base/tests/$testId/line-report/track');
@@ -572,7 +575,19 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
     if (deviceCode != null && deviceCode.isNotEmpty) {
       qs += '&deviceCode=${Uri.encodeQueryComponent(deviceCode)}';
     }
-    final data = await ApiClient.instance.get('$_base/comparison/line?$qs');
-    return LineComparisonResult.fromJson(data);
+   final data = await ApiClient.instance.get('$_base/comparison/line?$qs');
+   return LineComparisonResult.fromJson(data);
+ }
+
+  /// Refresh all LINE tests for one standard track: delete old tests (+ snapshots)
+  /// and re-create from all devices that currently have gps_logs data.
+  Future<List<LineCheckDeviceResult>> refreshLineChecks(int trackLineId) async {
+    final data = await ApiClient.instance
+        .post('$_base/line-checks/refresh?trackLineId=$trackLineId');
+    final items = (data['devices'] as List? ?? []);
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map(LineCheckDeviceResult.fromJson)
+        .toList();
   }
 }

@@ -4125,4 +4125,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpsQualityLineComparisonEmptyHint => '该标准轨迹尚未创建线路检验，请先发起检验后再查看对比。';
+
+  @override
+  String get gpsQualityLineRefresh => '刷新';
+
+  @override
+  String gpsQualityLineRefreshDone(int n) {
+    return '已刷新：重新检验 $n 台设备';
+  }
 }

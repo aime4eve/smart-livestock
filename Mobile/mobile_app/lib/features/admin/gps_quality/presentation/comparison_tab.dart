@@ -31,6 +31,29 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
   // LINE comparison state (NIX-68, spatial matching: no time window)
   int? _selectedTrackLineId;
   final Set<String> _lineDevices = {};
+  bool _refreshing = false;
+
+  Future<void> _refreshLineChecks(AppLocalizations l10n) async {
+    setState(() => _refreshing = true);
+    try {
+      final results = await ref
+          .read(gpsQualityApiRepositoryProvider)
+          .refreshLineChecks(_selectedTrackLineId!);
+      _lineDevices.clear();
+      ref.invalidate(lineComparisonProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.gpsQualityLineRefreshDone(results.length))),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      }
+    } finally {
+      if (mounted) setState(() => _refreshing = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -548,15 +571,26 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
           decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(10)),
           child: Text(l10n.gpsQualityDeviceCount(rows.length),
             style: const TextStyle(fontSize: 11, color: AppColors.primary))),
-        const SizedBox(width: 8),
-        TextButton.icon(
-          key: const Key('line-comparison-export'),
-          onPressed: rows.isEmpty ? null : () => _exportLineCsv(l10n, rows),
-          icon: const Icon(Icons.download, size: 16),
-          label: Text(l10n.gpsQualityLineExportCsv,
+       const SizedBox(width: 8),
+       TextButton.icon(
+         key: const Key('line-comparison-export'),
+         onPressed: rows.isEmpty ? null : () => _exportLineCsv(l10n, rows),
+         icon: const Icon(Icons.download, size: 16),
+         label: Text(l10n.gpsQualityLineExportCsv,
+             style: const TextStyle(fontSize: 12)),
+       ),
+        const SizedBox(width: 4),
+        OutlinedButton.icon(
+          key: const Key('line-comparison-refresh'),
+          onPressed: _refreshing ? null : () => _refreshLineChecks(l10n),
+          icon: _refreshing
+              ? const SizedBox(width: 14, height: 14,
+                  child: CircularProgressIndicator(strokeWidth: 2))
+              : const Icon(Icons.refresh, size: 16),
+          label: Text(l10n.gpsQualityLineRefresh,
               style: const TextStyle(fontSize: 12)),
         ),
-      ]),
+     ]),
       const SizedBox(height: AppSpacing.sm),
       // Device chips (toggle to load that device's track onto the map)
       Wrap(spacing: 6, runSpacing: 6, children: [
