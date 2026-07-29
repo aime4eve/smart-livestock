@@ -12,7 +12,10 @@ import 'package:intl/intl.dart';
 /// a standard track line (SELECTED pinned with ★), then launch one READY
 /// LINE test per device. No time window — matching is purely spatial.
 class LineCheckCreateDialog extends ConsumerStatefulWidget {
-  const LineCheckCreateDialog({super.key});
+  const LineCheckCreateDialog({super.key, this.initialTrackLineId});
+
+  /// Pre-select a track line (e.g. launched from the comparison tab).
+  final int? initialTrackLineId;
 
   @override
   ConsumerState<LineCheckCreateDialog> createState() =>
@@ -30,6 +33,7 @@ class _LineCheckCreateDialogState
   @override
   void initState() {
     super.initState();
+    _trackLineId = widget.initialTrackLineId;
     WidgetsBinding.instance.addPostFrameCallback((_) => _queryDevices());
   }
 

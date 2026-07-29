@@ -4211,4 +4211,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get gpsQualityLineComparisonEmpty =>
       'No line check data under these conditions';
+
+  @override
+  String get gpsQualityLineComparisonEmptyHint =>
+      'No line checks have been created for this track yet. Create one to see device comparison.';
 }

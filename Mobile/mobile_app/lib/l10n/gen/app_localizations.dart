@@ -7702,6 +7702,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'该条件下暂无线路检验数据'**
   String get gpsQualityLineComparisonEmpty;
+
+  /// No description provided for @gpsQualityLineComparisonEmptyHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'该标准轨迹尚未创建线路检验，请先发起检验后再查看对比。'**
+  String get gpsQualityLineComparisonEmptyHint;
 }
 
 class _AppLocalizationsDelegate

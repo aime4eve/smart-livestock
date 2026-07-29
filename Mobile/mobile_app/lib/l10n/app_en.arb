@@ -3246,6 +3246,8 @@
   "@gpsQualityLineExportCsv": {},
   "gpsQualityLineSelectTrackPrompt": "Select a standard track to compare",
   "@gpsQualityLineSelectTrackPrompt": {},
-  "gpsQualityLineComparisonEmpty": "No line check data under these conditions",
-  "@gpsQualityLineComparisonEmpty": {}
+ "gpsQualityLineComparisonEmpty": "No line check data under these conditions",
+ "@gpsQualityLineComparisonEmpty": {},
+ "gpsQualityLineComparisonEmptyHint": "No line checks have been created for this track yet. Create one to see device comparison.",
+ "@gpsQualityLineComparisonEmptyHint": {}
 }

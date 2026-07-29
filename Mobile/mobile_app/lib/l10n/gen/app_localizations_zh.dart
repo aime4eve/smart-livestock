@@ -4122,4 +4122,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpsQualityLineComparisonEmpty => '该条件下暂无线路检验数据';
+
+  @override
+  String get gpsQualityLineComparisonEmptyHint => '该标准轨迹尚未创建线路检验，请先发起检验后再查看对比。';
 }

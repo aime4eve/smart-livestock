@@ -9,6 +9,7 @@ import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_qualit
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/web_file_utils.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/track_line_map.dart';
+import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/line_check_create_dialog.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
@@ -472,8 +473,31 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
   Widget _buildLineComparisonBody(AppLocalizations l10n, LineComparisonResult result) {
     final rows = result.rows;
     if (rows.isEmpty) {
-      return Text(l10n.gpsQualityLineComparisonEmpty,
-        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12));
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(l10n.gpsQualityLineComparisonEmptyHint,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+            const SizedBox(height: AppSpacing.sm),
+            FilledButton.icon(
+              key: const Key('line-comparison-create-checks'),
+              icon: const Icon(Icons.add, size: 16),
+              label: Text(l10n.gpsQualityLineCreate,
+                  style: const TextStyle(fontSize: 12)),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => LineCheckCreateDialog(
+                      initialTrackLineId: _selectedTrackLineId),
+                ).then((_) => ref.invalidate(lineComparisonProvider));
+              },
+            ),
+          ],
+        ),
+      );
     }
 
     // Lazily load each selected device's track points (spec §7.6).
