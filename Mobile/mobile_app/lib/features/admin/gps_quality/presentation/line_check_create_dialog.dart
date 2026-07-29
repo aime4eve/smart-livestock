@@ -137,16 +137,28 @@ class _LineCheckCreateDialogState
                 const SizedBox(height: AppSpacing.md),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     color: AppColors.lineTeal.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(8),
-                    border: const Border(
-                        left: BorderSide(color: AppColors.lineTeal, width: 3)),
                   ),
-                  child: Text(l10n.gpsQualityLineCalcNote,
-                      style: const TextStyle(
-                          fontSize: 11, color: AppColors.textSecondary)),
+                  // Left accent bar via stretched container: a non-uniform
+                  // Border is not allowed with borderRadius (paint assertion).
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: IntrinsicHeight(
+                      child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                        Container(width: 3, color: AppColors.lineTeal),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppSpacing.md),
+                            child: Text(l10n.gpsQualityLineCalcNote,
+                                style: const TextStyle(
+                                    fontSize: 11, color: AppColors.textSecondary)),
+                          ),
+                        ),
+                      ]),
+                    ),
+                  ),
                 ),
               ],
             ],

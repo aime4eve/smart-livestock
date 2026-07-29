@@ -491,10 +491,20 @@ Widget build(BuildContext context) {
         decoration: BoxDecoration(
           color: severityColor.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
-          border: Border(left: BorderSide(color: severityColor, width: 4)),
         ),
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
+        // Left accent bar via stretched container: a non-uniform Border is
+        // not allowed together with borderRadius (paint-time assertion).
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(width: 4, color: severityColor),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -516,6 +526,12 @@ Widget build(BuildContext context) {
               Text(livestockLabel, style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
             ],
           ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

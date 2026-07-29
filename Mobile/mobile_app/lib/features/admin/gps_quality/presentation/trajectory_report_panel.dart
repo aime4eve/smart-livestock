@@ -191,16 +191,28 @@ class TrajectoryReportPanel extends ConsumerWidget {
             padding: const EdgeInsets.all(AppSpacing.md),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 color: const Color(0xFFFDF6EA),
                 borderRadius: BorderRadius.circular(8),
-                border: const Border(
-                    left: BorderSide(color: AppColors.warning, width: 3)),
               ),
-              child: Text(
-                l10n.gpsQualityTrajectoryUnpairedDetail(r.unpaired, r.toleranceSec),
-                style: const TextStyle(fontSize: 12, color: Color(0xFF7A5416)),
+              // Left accent bar via stretched container: a non-uniform
+              // Border is not allowed with borderRadius (paint assertion).
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: IntrinsicHeight(
+                  child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                    Container(width: 3, color: AppColors.warning),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        child: Text(
+                          l10n.gpsQualityTrajectoryUnpairedDetail(r.unpaired, r.toleranceSec),
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF7A5416)),
+                        ),
+                      ),
+                    ),
+                  ]),
+                ),
               ),
             ),
           ),
@@ -269,20 +281,33 @@ class TrajectoryReportPanel extends ConsumerWidget {
     final color = better ? AppColors.success : AppColors.warning;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: better ? const Color(0xFFEEF7EF) : const Color(0xFFFDF6EA),
         borderRadius: BorderRadius.circular(8),
-        border: Border(left: BorderSide(color: color, width: 3)),
       ),
-      child: Text(
-        l10n.gpsQualityTrajectoryStaticDelta(
-          cmp.staticP95.toStringAsFixed(1),
-          r.p95.toStringAsFixed(1),
-          cmp.deltaP95.abs().toStringAsFixed(1),
-          better ? l10n.gpsQualityTrajectorySmaller : l10n.gpsQualityTrajectoryLarger,
+      // Left accent bar via stretched container: a non-uniform Border is
+      // not allowed together with borderRadius (paint-time assertion).
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: IntrinsicHeight(
+          child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Container(width: 3, color: color),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Text(
+                  l10n.gpsQualityTrajectoryStaticDelta(
+                    cmp.staticP95.toStringAsFixed(1),
+                    r.p95.toStringAsFixed(1),
+                    cmp.deltaP95.abs().toStringAsFixed(1),
+                    better ? l10n.gpsQualityTrajectorySmaller : l10n.gpsQualityTrajectoryLarger,
+                  ),
+                  style: TextStyle(fontSize: 12, color: better ? const Color(0xFF2F5D3A) : const Color(0xFF7A5416)),
+                ),
+              ),
+            ),
+          ]),
         ),
-        style: TextStyle(fontSize: 12, color: better ? const Color(0xFF2F5D3A) : const Color(0xFF7A5416)),
       ),
     );
   }

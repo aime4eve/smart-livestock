@@ -194,16 +194,27 @@ class _TrackLineImportDialogState
       const SizedBox(height: AppSpacing.md),
       Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: AppColors.lineTeal.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(8),
-          border: const Border(
-              left: BorderSide(color: AppColors.lineTeal, width: 3)),
         ),
-        child: Text(l10n.gpsQualityLineCleanRules,
-            style:
-                const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        // Left accent bar via stretched container: a non-uniform Border is
+        // not allowed together with borderRadius (paint-time assertion).
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: IntrinsicHeight(
+            child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Container(width: 3, color: AppColors.lineTeal),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Text(l10n.gpsQualityLineCleanRules,
+                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                ),
+              ),
+            ]),
+          ),
+        ),
       ),
     ]);
   }
@@ -316,20 +327,32 @@ class _TrackLineImportDialogState
         const SizedBox(height: AppSpacing.md),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: const Color(0xFFFDF6EA),
             borderRadius: BorderRadius.circular(8),
-            border: const Border(
-                left: BorderSide(color: AppColors.warning, width: 3)),
           ),
-          child: Text(
-            [
-              if (r.metadataWarning != null) r.metadataWarning!,
-              if (r.invalidPoints > 0)
-                l10n.gpsQualityLineInvalidPoints(r.invalidPoints),
-            ].join('\n'),
-            style: const TextStyle(fontSize: 12, color: Color(0xFF7A5416)),
+          // Left accent bar via stretched container: a non-uniform Border is
+          // not allowed together with borderRadius (paint-time assertion).
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: IntrinsicHeight(
+              child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                Container(width: 3, color: AppColors.warning),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Text(
+                      [
+                        if (r.metadataWarning != null) r.metadataWarning!,
+                        if (r.invalidPoints > 0)
+                          l10n.gpsQualityLineInvalidPoints(r.invalidPoints),
+                      ].join('\n'),
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF7A5416)),
+                    ),
+                  ),
+                ),
+              ]),
+            ),
           ),
         ),
       ],
@@ -428,18 +451,30 @@ class _TrackLineImportDialogState
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: const Color(0xFFEEF7EF),
           borderRadius: BorderRadius.circular(8),
-          border: const Border(
-              left: BorderSide(color: AppColors.success, width: 3)),
         ),
-        child: Text(
-          l10n.gpsQualityLineImportDone(
-              r.pointCount, r.lengthM.toStringAsFixed(0)),
-          key: const Key('track-line-import-done'),
-          style: const TextStyle(fontSize: 13, color: Color(0xFF2F5D3A)),
+        // Left accent bar via stretched container: a non-uniform Border is
+        // not allowed together with borderRadius (paint-time assertion).
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: IntrinsicHeight(
+            child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Container(width: 3, color: AppColors.success),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Text(
+                    l10n.gpsQualityLineImportDone(
+                        r.pointCount, r.lengthM.toStringAsFixed(0)),
+                    key: const Key('track-line-import-done'),
+                    style: const TextStyle(fontSize: 13, color: Color(0xFF2F5D3A)),
+                  ),
+                ),
+              ),
+            ]),
+          ),
         ),
       ),
       const SizedBox(height: AppSpacing.md),
@@ -482,16 +517,27 @@ class _TrackLineImportDialogState
       const SizedBox(height: AppSpacing.md),
       Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: AppColors.lineTeal.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(8),
-          border: const Border(
-              left: BorderSide(color: AppColors.lineTeal, width: 3)),
         ),
-        child: Text(l10n.gpsQualityLineAppendNote,
-            style:
-                const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        // Left accent bar via stretched container: a non-uniform Border is
+        // not allowed together with borderRadius (paint-time assertion).
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: IntrinsicHeight(
+            child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Container(width: 3, color: AppColors.lineTeal),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Text(l10n.gpsQualityLineAppendNote,
+                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                ),
+              ),
+            ]),
+          ),
+        ),
       ),
     ]);
   }

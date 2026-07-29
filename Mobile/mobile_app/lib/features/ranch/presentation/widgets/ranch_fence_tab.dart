@@ -321,16 +321,24 @@ class _FenceDetailCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(10),
-        border: Border(
-          left: BorderSide(color: Color(fence.colorValue), width: 3),
-        ),
       ),
-      child: Column(
-        children: [
+      // Left accent bar via stretched container: a non-uniform Border is
+      // not allowed together with borderRadius (paint-time assertion).
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(width: 3, color: Color(fence.colorValue)),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    children: [
           // Metadata grid 2x2
           Row(
             children: [
@@ -407,6 +415,12 @@ class _FenceDetailCard extends StatelessWidget {
             ),
           ],
         ],
+      ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

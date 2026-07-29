@@ -184,14 +184,27 @@ class _TrajectoryImportDialogState extends ConsumerState<TrajectoryImportDialog>
       _buildFormatTable(l10n),
       const SizedBox(height: AppSpacing.sm),
       Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: const Color(0xFFEFF6FB),
           borderRadius: BorderRadius.circular(8),
-          border: const Border(left: BorderSide(color: Color(0xFF4A7F9D), width: 3)),
         ),
-        child: Text(l10n.gpsQualityTrajectoryClockNote,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF33566B))),
+        // Left accent bar via stretched container: a non-uniform Border is
+        // not allowed together with borderRadius (paint-time assertion).
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: IntrinsicHeight(
+            child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Container(width: 3, color: const Color(0xFF4A7F9D)),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Text(l10n.gpsQualityTrajectoryClockNote,
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF33566B))),
+                ),
+              ),
+            ]),
+          ),
+        ),
       ),
     ]);
   }
@@ -417,16 +430,29 @@ class _TrajectoryImportDialogState extends ConsumerState<TrajectoryImportDialog>
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: const Color(0xFFEEF7EF),
           borderRadius: BorderRadius.circular(8),
-          border: const Border(left: BorderSide(color: AppColors.success, width: 3)),
         ),
-        child: Text(
-          l10n.gpsQualityTrajectoryImportDone(r.createdCount, r.skippedCount),
-          key: const Key('trajectory-import-done'),
-          style: const TextStyle(fontSize: 13, color: Color(0xFF2F5D3A)),
+        // Left accent bar via stretched container: a non-uniform Border is
+        // not allowed together with borderRadius (paint-time assertion).
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: IntrinsicHeight(
+            child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Container(width: 3, color: AppColors.success),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Text(
+                    l10n.gpsQualityTrajectoryImportDone(r.createdCount, r.skippedCount),
+                    key: const Key('trajectory-import-done'),
+                    style: const TextStyle(fontSize: 13, color: Color(0xFF2F5D3A)),
+                  ),
+                ),
+              ),
+            ]),
+          ),
         ),
       ),
       const SizedBox(height: AppSpacing.md),

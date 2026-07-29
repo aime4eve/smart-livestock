@@ -222,17 +222,27 @@ class _TrackLinePreviewDialogState
       onTap: () => setState(() => _selectedId = l.id),
       child: Container(
         margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-        padding: const EdgeInsets.all(AppSpacing.sm + 2),
         decoration: BoxDecoration(
           color: sel ? const Color(0xFFF0FDFA) : null,
           borderRadius: BorderRadius.circular(8),
-          border: Border(
-            left: BorderSide(
-                color: sel ? AppColors.lineTeal : Colors.transparent,
-                width: 3),
-          ),
         ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // Selection bar via stretched container: a non-uniform Border is
+        // not allowed together with borderRadius (paint-time assertion).
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: IntrinsicHeight(
+            child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                      width: 3,
+                      color: sel ? AppColors.lineTeal : Colors.transparent),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.sm + 2),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
           Row(children: [
             Container(
                 width: 9,
@@ -255,7 +265,13 @@ class _TrackLinePreviewDialogState
                 const TextStyle(fontSize: 10, color: AppColors.textSecondary),
           ),
         ]),
-      ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
     );
   }
 
