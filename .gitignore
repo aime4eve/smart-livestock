@@ -100,3 +100,6 @@ smart-livestock-server/infrastructure/tileserver/data/*.mbtiles
 /0095690a00008b05.csv
 /GPS*.xlsx
 /business-platform/hkt-blade-device-docking/scripts/*.txt
+
+# Playwright CLI artifacts
+.playwright-cli/
