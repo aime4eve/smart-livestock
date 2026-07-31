@@ -55,8 +55,13 @@ class ApiClient {
   Future<Map<String, dynamic>> get(String path) =>
       _withRefreshRetry(() => _doGet(path));
 
-  Future<Map<String, dynamic>> post(String path, {Object? body}) =>
-      _withRefreshRetry(() => _doPost(path, body: body));
+ Future<Map<String, dynamic>> post(String path, {Object? body}) =>
+     _withRefreshRetry(() => _doPost(path, body: body));
+ 
+   /// POST with a custom timeout (for known heavy operations like LINE refresh).
+   Future<Map<String, dynamic>> postWithTimeout(String path,
+       {Object? body, required Duration timeout}) =>
+      _withRefreshRetry(() => _doPost(path, body: body, timeout: timeout));
 
   Future<Map<String, dynamic>> put(String path, {Object? body}) =>
       _withRefreshRetry(() => _doPut(path, body: body));
@@ -112,13 +117,14 @@ class ApiClient {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _doPost(String path, {Object? body}) async {
+  Future<Map<String, dynamic>> _doPost(String path,
+      {Object? body, Duration? timeout}) async {
     final headers = await _headers();
     final response = await http.post(
       Uri.parse('$_baseUrl$path'),
       headers: headers,
       body: body != null ? jsonEncode(body) : null,
-    ).timeout(_timeout);
+    ).timeout(timeout ?? _timeout);
     return _handleResponse(response);
   }
 

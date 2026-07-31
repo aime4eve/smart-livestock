@@ -583,7 +583,8 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
   /// and re-create from all devices that currently have gps_logs data.
   Future<List<LineCheckDeviceResult>> refreshLineChecks(int trackLineId) async {
     final data = await ApiClient.instance
-        .post('$_base/line-checks/refresh?trackLineId=$trackLineId');
+        .postWithTimeout('$_base/line-checks/refresh?trackLineId=$trackLineId',
+            timeout: const Duration(seconds: 60));
     final items = (data['devices'] as List? ?? []);
     return items
         .whereType<Map<String, dynamic>>()

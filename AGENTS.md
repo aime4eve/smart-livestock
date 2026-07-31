@@ -10,50 +10,7 @@
 
 ---
 
-## 1. Think Before Coding
-
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
-
-Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
-
-## 2. Simplicity First
-
-**Minimum code that solves the problem. Nothing speculative.**
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- If you write 200 lines and it could be 50, rewrite it.
-
-## 3. Surgical Changes
-
-**Touch only what you must. Clean up only your own mess.**
-
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
-
-## 4. Goal-Driven Execution
-
-**Define success criteria. Loop until verified.**
-
-Transform tasks into verifiable goals:
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
----
-
-## 5. Build / Deploy / Test 分工
+## 1. Build / Deploy / Test 分工
 
 - **编译**：Agent 可自行执行（`./gradlew compileJava`、`flutter build` 等），验证代码可构建。
 - **部署**：Agent 可自行执行（`./scripts/deploy.sh dev|test`）。用户也可手动执行。细节见 `docs/reference/deployment.md`。
@@ -62,7 +19,7 @@ Transform tasks into verifiable goals:
 
 ---
 
-## 6. 新功能实施流程（按复杂度分级）
+## 2. 新功能实施流程（按复杂度分级）
 
 **根据变更规模选择对应流程，不要一刀切。**
 
@@ -88,16 +45,16 @@ Transform tasks into verifiable goals:
 
 ---
 
-## 7. 代码实现规范
+## 3. 代码实现规范
 
-### 7.1 国际化（i18n）
+### 3.1 国际化（i18n）
 
 - 所有面向用户的文本必须通过国际化资源引用，禁止硬编码中/英文字符串。
 - Flutter：`AppLocalizations` + `lib/l10n/app_*.arb`（中英文同步），`context.l10n.xxx` 访问。
 - 后端：`MessageSource`（`messages_zh/en.properties` 双语同步），按 `Accept-Language` 返回。
 - 校验：`flutter gen-l10n` 无缺失 key，`flutter analyze` 无未定义引用；后端编译通过且 properties 双语对齐。
 
-### 7.2 种子数据（Seed Data）
+### 3.2 种子数据（Seed Data）
 
 - 新增表/枚举/业务规则时同步生成种子数据（Flyway 迁移），使新功能可直接验证。
 - BCrypt hash 必须三步验证（生成时 bcrypt.compare → 写入迁移 → 部署后 curl 验证），不得跨迁移复制旧 hash。可用 `scripts/verify-seed-hash.sh`。
@@ -113,6 +70,28 @@ Transform tasks into verifiable goals:
 2. **在 build() 开头调用 `watchActiveFarmId()`**：声明对 activeFarmId 的依赖，确保切换时自动重建刷新。
 3. **checklist**：Repository 用 `farmGet()` 等方法 → Controller 必须继承 FarmScoped* 基类。
 4. **违反症状**：牧场切换后页面数据不更新，仍显示旧牧场数据。
+
+---
+
+## 故障层定位（先定位层，再查症状）
+
+**先判断工作单元在哪一层损坏，只修那一层。最容易被编辑的层（代码）总替外层背锅。**
+
+项目故障层（从外到内逐层排除）：
+
+1. **环境层** — 工具链 / 沙箱 / 外置卷 → `._*` 污染、Flutter 崩、卷权限
+2. **部署层** — Docker / nginx / 镜像 → API 正常但前端无变化、入口缺失
+3. **数据层** — Flyway / 种子 / 表结构 → 接口返回空、字段溢出、checksum mismatch
+4. **代码层** — 文件 / 函数 → 编译错误、逻辑 bug → 最后才改这里
+
+Agent 自身出问题时（元故障）：
+
+- 任务理解偏差 → 重读请求，明确假设，不要反复改代码
+- 漏读约束 / 约定 → 查 AGENTS.md / docs / 相关代码
+- 验证不充分 → 补编译 / 测试 / 端到端验证
+- 提前停止 → 成功标准未满足就停了；"做了" ≠ "完成了"
+
+下面的经验判据速查按症状定位，本节按层定位，互补使用。
 
 ---
 
@@ -146,18 +125,4 @@ Transform tasks into verifiable goals:
 
 ---
 
-## Agent 自主性与确认规则
 
-**原则：分析清楚就动手，只在真正需要用户决策时才停下来问。**
-
-### 直接执行，不问用户
-- 可逆操作：文件移动/重命名、代码编辑、git add/commit/push
-- 意图明确的请求：用户说了做什么就做什么，不要求二次确认方案
-- 标准工作流步骤：编译 → 部署 → 验证 → 提交 → 推送，一气呵成
-- 遗留文件处理：发现非本次产生的未提交改动，直接纳入提交，列出即可
-
-### 才需要问用户
-- 不可逆/破坏性操作：删数据、drop 表、`git reset --hard`、`rm -rf`
-- 意图真的模糊：存在两种合理解读，选错代价大（如删除 vs 归档）
-- 违反用户明确约束：如 test 环境部署需用户通知后才可执行
-- Agent 自己解不了的阻塞：缺少凭据、权限不足、外部依赖不可用
