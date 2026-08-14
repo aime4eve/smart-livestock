@@ -1,6 +1,7 @@
 package com.smartlivestock.iot.application;
 
 import com.smartlivestock.iot.domain.model.Device;
+import com.smartlivestock.iot.domain.model.DeviceType;
 import com.smartlivestock.iot.domain.model.TelemetrySource;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.client.AgenticPlatformHistoryDataClient;
@@ -175,8 +176,11 @@ public class AgenticPlatformTelemetrySyncJob {
         int skipped = 0;
         for (ReportRecordPageResp.ReportRecord record : toProcess) {
            Instant reportTime = AgenticPlatformReportData.parseReportTime(record.getReportTime());
-           Map<String, Object> readings = AgenticPlatformReportData.toReadings(record);
-           AgenticPlatformReportData.applyAccelerometerConversion(readings);
+           Map<String, Object> readings = AgenticPlatformReportData.toReadings(
+                   record, device.getDeviceType());
+           if (device.getDeviceType() == DeviceType.TRACKER) {
+               AgenticPlatformReportData.applyAccelerometerConversion(readings);
+           }
            // Validate GPS values to prevent numeric overflow (precision 10,7 = max 999.x)
            Object latObj = readings.get("latitude");
            Object lngObj = readings.get("longitude");

@@ -2,6 +2,8 @@ package com.smartlivestock.iot.application;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.smartlivestock.iot.domain.model.DeviceType;
+import com.smartlivestock.iot.domain.service.RumenPayloadDecoder;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.ReportRecordPageResp;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.util.AccelerometerConverter;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +58,22 @@ public class AgenticPlatformReportData {
      * Reads both top-level fields and nested decodeData.properties.properties.
      */
     public static Map<String, Object> toReadings(ReportRecordPageResp.ReportRecord record) {
+        return toReadings(record, DeviceType.TRACKER);
+    }
+
+    /**
+     * Convert a report record into standard readings for the reporting device type.
+     * Capsule frames are decoded from raw hexData because blade currently has no
+     * rumen-specific decodeData mapping.
+     */
+    public static Map<String, Object> toReadings(
+            ReportRecordPageResp.ReportRecord record, DeviceType deviceType) {
         Map<String, Object> readings = new HashMap<>();
+
+        if (deviceType == DeviceType.CAPSULE && record.getHexData() != null) {
+            RumenPayloadDecoder.decode(parseHex(record.getHexData()))
+                    .ifPresent(frame -> readings.putAll(frame.toReadings()));
+        }
 
         // Top-level fields
         if (record.getRssi() != null) readings.put("rssi", record.getRssi());
@@ -89,6 +106,22 @@ public class AgenticPlatformReportData {
         }
 
         return readings;
+    }
+
+    private static byte[] parseHex(String value) {
+        String clean = value.replace(" ", "").replace("\n", "");
+        if (clean.length() % 2 != 0) {
+            return new byte[0];
+        }
+        try {
+            byte[] bytes = new byte[clean.length() / 2];
+            for (int i = 0; i < bytes.length; i++) {
+                bytes[i] = (byte) Integer.parseInt(clean.substring(i * 2, i * 2 + 2), 16);
+            }
+            return bytes;
+        } catch (NumberFormatException e) {
+            return new byte[0];
+        }
     }
 
     /**
