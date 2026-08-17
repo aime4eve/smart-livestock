@@ -10,15 +10,24 @@ class AppColors {
 
   static const Color surface = Color(0xFFF8F6F0);
   static const Color surfaceAlt = Color(0xFFFFFFFF);
+  static const Color surfaceMuted = Color(0xFFF2F0EA);
   static const Color border = Color(0xFFD7D2C6);
 
   static const Color textPrimary = Color(0xFF263126);
   static const Color textSecondary = Color(0xFF617061);
 
   static const Color success = Color(0xFF4C9A5F);
+  static const Color successStrong = Color(0xFF2F7D44);
+  static const Color successSoft = Color(0xFFE4F3E8);
   static const Color warning = Color(0xFFD28A2D);
+  static const Color warningStrong = Color(0xFFB36A16);
+  static const Color warningSoft = Color(0xFFFFF2DE);
   static const Color danger = Color(0xFFC2564B);
+  static const Color dangerStrong = Color(0xFFB3352C);
+  static const Color dangerSoft = Color(0xFFFBE8E6);
   static const Color info = Color(0xFF4A7F9D);
+  static const Color infoStrong = Color(0xFF315F79);
+  static const Color infoSoft = Color(0xFFE7F1F6);
   static const Color estrus = Color(0xFFC25689);
   static const Color aiAnomaly = Color(0xFF7C3AED);
 

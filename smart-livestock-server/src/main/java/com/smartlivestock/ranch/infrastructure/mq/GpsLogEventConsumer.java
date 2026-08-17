@@ -111,10 +111,12 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
                     boolean inBuffer = fenceBreachDetector.isApproaching(fence, position);
                     if (inBuffer) {
                         // In buffer zone but outside fence → FENCE_APPROACH
-                        createAlertIfNeeded(livestock, fence, AlertType.FENCE_APPROACH, Severity.WARNING, position);
+                        createAlertIfNeeded(livestock, fence, AlertType.FENCE_APPROACH,
+                                Severity.WARNING, position, source);
                     } else {
                         // Fully outside fence and buffer → FENCE_BREACH
-                        createAlertIfNeeded(livestock, fence, AlertType.FENCE_BREACH, Severity.CRITICAL, position);
+                        createAlertIfNeeded(livestock, fence, AlertType.FENCE_BREACH,
+                                Severity.CRITICAL, position, source);
                         fullyBreachedFences.add(fence);
                     }
                 }
@@ -127,7 +129,8 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
                 // This case shouldn't normally happen since approaching = inBuffer && !inFence,
                 // which means isBreaching would also be true. But handle it defensively.
                 for (Fence fence : approachingFences) {
-                    createAlertIfNeeded(livestock, fence, AlertType.FENCE_APPROACH, Severity.WARNING, position);
+                    createAlertIfNeeded(livestock, fence, AlertType.FENCE_APPROACH,
+                            Severity.WARNING, position, source);
                 }
             }
 
@@ -164,7 +167,7 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
      * Create fence alert if there isn't already an active one for this livestock+fence+type.
      */
     private void createAlertIfNeeded(Livestock livestock, Fence fence, AlertType type,
-                                      Severity severity, GpsCoordinate position) {
+                                      Severity severity, GpsCoordinate position, String source) {
         // Check for existing active alert of same type for this livestock
         List<Alert> existing = alertRepository.findByLivestockIdAndTypeAndStatus(
                 livestock.getId(), type, AlertStatus.ACTIVE);
@@ -181,6 +184,7 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
                 position.latitude(), position.longitude());
         Alert alert = new Alert(livestock.getFarmId(), livestock.getId(), fence.getId(),
                 type, severity, msg);
+        alert.setSource("DATAGEN".equals(source) ? "DATAGEN" : "RULE");
         alert.setMessageKey(messageKey);
         alert.setMessageArgs(toJson(List.of(
                 livestock.getLivestockCode(),

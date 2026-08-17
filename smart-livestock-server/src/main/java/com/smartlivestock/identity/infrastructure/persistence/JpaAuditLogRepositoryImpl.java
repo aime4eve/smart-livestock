@@ -52,6 +52,19 @@ public class JpaAuditLogRepositoryImpl implements AuditLogRepository {
     }
 
     @Override
+    public List<AuditLog> findByFarmIdOrderByOccurredAtDesc(Long farmId, int limit) {
+        TypedQuery<AuditLogJpaEntity> query = entityManager.createQuery(
+                "SELECT a FROM AuditLogJpaEntity a WHERE a.farmId = :farmId "
+                        + "ORDER BY a.occurredAt DESC",
+                AuditLogJpaEntity.class);
+        query.setParameter("farmId", farmId);
+        query.setMaxResults(limit);
+        return query.getResultList().stream()
+                .map(AuditLogMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public long count(Long tenantId, Long userId, String action, String startTime, String endTime) {
         StringBuilder jpql = new StringBuilder("SELECT COUNT(a) FROM AuditLogJpaEntity a WHERE 1=1");
         if (tenantId != null) jpql.append(" AND a.tenantId = :tenantId");

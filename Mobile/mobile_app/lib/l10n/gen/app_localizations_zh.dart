@@ -4348,4 +4348,216 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get telemetryImportErrorInvalidHex => '报文 hex 解析失败';
+
+  @override
+  String get datagenConsoleTitle => '仿真控制';
+
+  @override
+  String get datagenConsoleSubtitle => 'test · NORMAL 基线场景';
+
+  @override
+  String get datagenConsoleRunning => '运行中';
+
+  @override
+  String get datagenConsoleStopped => '已停止';
+
+  @override
+  String get datagenConsoleTabStatus => '运行状态';
+
+  @override
+  String get datagenConsoleTabDevices => '设备范围';
+
+  @override
+  String get datagenConsoleTabClear => '数据清理';
+
+  @override
+  String get datagenConsoleTabOperations => '操作记录';
+
+  @override
+  String get datagenConsoleStatSelectedDevices => '已指定设备';
+
+  @override
+  String get datagenConsoleStatNextBatch => '下一批数据';
+
+  @override
+  String get datagenConsoleStatTodayRows => '今日仿真数据';
+
+  @override
+  String get datagenConsoleStatLastGenerated => '最近写入';
+
+  @override
+  String get datagenConsoleConfigTitle => '当前规则';
+
+  @override
+  String get datagenConsoleConfigTracker => '追踪器频率';
+
+  @override
+  String get datagenConsoleConfigCapsule => '胶囊频率';
+
+  @override
+  String get datagenConsoleConfigFence => '围栏外出事件';
+
+  @override
+  String get datagenConsoleConfigHealth => '健康异常事件';
+
+  @override
+  String get datagenConsoleConfigTrackerValue => '5 分钟';
+
+  @override
+  String get datagenConsoleConfigCapsuleValue => '15 分钟';
+
+  @override
+  String get datagenConsoleConfigFenceValue => '2% · 10-30 分钟';
+
+  @override
+  String get datagenConsoleConfigHealthValue => '0.5% · 4-12 小时';
+
+  @override
+  String get datagenConsoleConfigEffective => '生效';
+
+  @override
+  String get datagenConsoleRuntimeOnline => '在线';
+
+  @override
+  String get datagenConsoleRuntimeOffline => '离线';
+
+  @override
+  String get datagenConsoleRolePlatform => '平台管理员';
+
+  @override
+  String get datagenConsoleRoleB2b => 'B2B 管理员';
+
+  @override
+  String get datagenConsoleSelectFarm => '牧场';
+
+  @override
+  String get datagenConsoleTenant => '租户';
+
+  @override
+  String get datagenConsoleDeviceType => '设备类型';
+
+  @override
+  String get datagenConsoleAll => '全部';
+
+  @override
+  String get datagenConsoleTracker => '追踪器';
+
+  @override
+  String get datagenConsoleCapsule => '胶囊';
+
+  @override
+  String get datagenConsoleSearchHint => '搜索设备 / EUI / 牲畜';
+
+  @override
+  String get datagenConsoleColDevice => '设备';
+
+  @override
+  String get datagenConsoleColType => '类型';
+
+  @override
+  String get datagenConsoleColLivestock => '绑定牲畜';
+
+  @override
+  String get datagenConsoleColRuntime => '运行状态';
+
+  @override
+  String get datagenConsoleColFrequency => '仿真频率';
+
+  @override
+  String get datagenConsoleColLastGenerated => '最近生成';
+
+  @override
+  String get datagenConsoleSaveRange => '保存范围';
+
+  @override
+  String get datagenConsoleSelectFiltered => '选择筛选结果';
+
+  @override
+  String get datagenConsoleClearSelection => '清空选择';
+
+  @override
+  String datagenConsoleSelectedCount(int count) {
+    return '已选择 $count 台';
+  }
+
+  @override
+  String get datagenConsoleClearData => '清空仿真数据';
+
+  @override
+  String get datagenConsoleRange24h => '最近 24 小时';
+
+  @override
+  String get datagenConsoleRange7d => '最近 7 天';
+
+  @override
+  String get datagenConsoleRangeAll => '全部';
+
+  @override
+  String get datagenConsoleRangeCustom => '自定义';
+
+  @override
+  String get datagenConsoleFrom => '开始时间';
+
+  @override
+  String get datagenConsoleTo => '结束时间';
+
+  @override
+  String get datagenConsolePreview => '预览删除量';
+
+  @override
+  String get datagenConsoleDeletedTotal => '删除记录';
+
+  @override
+  String get datagenConsoleUnattributableRows => '无法归属并保留的记录';
+
+  @override
+  String get datagenConsoleCrossFarmLimit =>
+      '清理按设备历史归属执行。设备迁移过牧场时，其仿真数据可能随任一归属牧场一起清理。';
+
+  @override
+  String get datagenConsoleRunningCannotClear => '请先停止仿真，再清理数据。';
+
+  @override
+  String get datagenConsoleConfirmClearTitle => '清空仿真数据';
+
+  @override
+  String get datagenConsoleConfirmClearWordHint => '输入“清空”确认';
+
+  @override
+  String get datagenConsoleConfirmClearAction => '确认清空';
+
+  @override
+  String get datagenConsoleOperationStart => '启动仿真';
+
+  @override
+  String get datagenConsoleOperationStop => '停止仿真';
+
+  @override
+  String get datagenConsoleOperationUpdateDevices => '调整设备范围';
+
+  @override
+  String get datagenConsoleOperationClear => '清理仿真数据';
+
+  @override
+  String get datagenConsoleColTime => '时间';
+
+  @override
+  String get datagenConsoleColOperator => '操作者';
+
+  @override
+  String get datagenConsoleNoOperations => '暂无操作记录';
+
+  @override
+  String get datagenConsoleRefresh => '刷新';
+
+  @override
+  String get datagenConsoleNever => '从未生成';
+
+  @override
+  String get datagenConsoleDevicesRequired => '启动仿真前请至少选择一台设备。';
+
+  @override
+  String datagenConsoleClearDone(int count) {
+    return '清理完成，已删除 $count 条记录。';
+  }
 }

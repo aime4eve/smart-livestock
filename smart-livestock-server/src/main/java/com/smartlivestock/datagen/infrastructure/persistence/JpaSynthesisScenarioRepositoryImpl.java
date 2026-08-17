@@ -41,4 +41,10 @@ public class JpaSynthesisScenarioRepositoryImpl implements SynthesisScenarioRepo
         return jpaRepository.findAll().stream()
             .map(SynthesisScenarioMapper::toDomain).toList();
     }
+
+    @Override
+    public Optional<SynthesisScenario> findFirstByNameOrderById(String name) {
+        return jpaRepository.findFirstByNameOrderByIdAsc(name)
+                .map(SynthesisScenarioMapper::toDomain);
+    }
 }

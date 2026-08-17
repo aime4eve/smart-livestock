@@ -34,6 +34,7 @@ import 'package:hkt_livestock_agentic/features/pages/mine_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/stats_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/gps_quality_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/telemetry_import/presentation/telemetry_import_page.dart';
+import 'package:hkt_livestock_agentic/features/admin/datagen/presentation/datagen_console_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/twin_overview_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/ranch_page.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_checkout_page.dart';
@@ -89,6 +90,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (role == UserRole.b2bAdmin) {
         // b2b_admin 可访问 /b2b/admin/* 及瓦片管理页（/admin/tiles，后端允许 B2B_ADMIN）
         if (location.startsWith(AppRoute.b2bAdmin.path) ||
+            location.startsWith(AppRoute.platformDatagen.path) ||
             location.startsWith(AppRoute.platformTileAdmin.path)) {
           return null;
         }
@@ -394,6 +396,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoute.platformTelemetryImport.path,
             name: AppRoute.platformTelemetryImport.routeName,
             builder: (context, state) => const TelemetryImportPage(),
+          ),
+          GoRoute(
+            path: AppRoute.platformDatagen.path,
+            name: AppRoute.platformDatagen.routeName,
+            builder: (context, state) => const DatagenConsolePage(),
           ),
         ],
       ),

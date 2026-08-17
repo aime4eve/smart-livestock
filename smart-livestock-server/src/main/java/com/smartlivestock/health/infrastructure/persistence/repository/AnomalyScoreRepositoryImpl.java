@@ -63,6 +63,7 @@ public class AnomalyScoreRepositoryImpl implements AnomalyScoreRepository {
         entity.setCapabilityUsed(score.getCapabilityUsed());
         entity.setNEff(score.getNEff());
         entity.setModelMeta(toJson(score.getModelMeta()));
+        entity.setSource(score.getSource());
         return entity;
     }
 
@@ -81,6 +82,7 @@ public class AnomalyScoreRepositoryImpl implements AnomalyScoreRepository {
         score.setNEff(entity.getNEff());
         score.setModelMeta(fromJson(entity.getModelMeta()));
         score.setCreatedAt(entity.getCreatedAt());
+        score.setSource(entity.getSource());
         return score;
     }
 

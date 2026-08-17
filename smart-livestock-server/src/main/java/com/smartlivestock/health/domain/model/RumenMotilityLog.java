@@ -12,6 +12,7 @@ public class RumenMotilityLog {
     private BigDecimal intensity;
     private Instant recordedAt;
     private Instant createdAt;
+    private String source;
 
     public RumenMotilityLog() {}
 
@@ -35,4 +36,7 @@ public class RumenMotilityLog {
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 }

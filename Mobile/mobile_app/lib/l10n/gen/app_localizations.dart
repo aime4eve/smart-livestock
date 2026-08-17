@@ -8116,6 +8116,420 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'报文 hex 解析失败'**
   String get telemetryImportErrorInvalidHex;
+
+  /// No description provided for @datagenConsoleTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'仿真控制'**
+  String get datagenConsoleTitle;
+
+  /// No description provided for @datagenConsoleSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'test · NORMAL 基线场景'**
+  String get datagenConsoleSubtitle;
+
+  /// No description provided for @datagenConsoleRunning.
+  ///
+  /// In zh, this message translates to:
+  /// **'运行中'**
+  String get datagenConsoleRunning;
+
+  /// No description provided for @datagenConsoleStopped.
+  ///
+  /// In zh, this message translates to:
+  /// **'已停止'**
+  String get datagenConsoleStopped;
+
+  /// No description provided for @datagenConsoleTabStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'运行状态'**
+  String get datagenConsoleTabStatus;
+
+  /// No description provided for @datagenConsoleTabDevices.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备范围'**
+  String get datagenConsoleTabDevices;
+
+  /// No description provided for @datagenConsoleTabClear.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据清理'**
+  String get datagenConsoleTabClear;
+
+  /// No description provided for @datagenConsoleTabOperations.
+  ///
+  /// In zh, this message translates to:
+  /// **'操作记录'**
+  String get datagenConsoleTabOperations;
+
+  /// No description provided for @datagenConsoleStatSelectedDevices.
+  ///
+  /// In zh, this message translates to:
+  /// **'已指定设备'**
+  String get datagenConsoleStatSelectedDevices;
+
+  /// No description provided for @datagenConsoleStatNextBatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'下一批数据'**
+  String get datagenConsoleStatNextBatch;
+
+  /// No description provided for @datagenConsoleStatTodayRows.
+  ///
+  /// In zh, this message translates to:
+  /// **'今日仿真数据'**
+  String get datagenConsoleStatTodayRows;
+
+  /// No description provided for @datagenConsoleStatLastGenerated.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近写入'**
+  String get datagenConsoleStatLastGenerated;
+
+  /// No description provided for @datagenConsoleConfigTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前规则'**
+  String get datagenConsoleConfigTitle;
+
+  /// No description provided for @datagenConsoleConfigTracker.
+  ///
+  /// In zh, this message translates to:
+  /// **'追踪器频率'**
+  String get datagenConsoleConfigTracker;
+
+  /// No description provided for @datagenConsoleConfigCapsule.
+  ///
+  /// In zh, this message translates to:
+  /// **'胶囊频率'**
+  String get datagenConsoleConfigCapsule;
+
+  /// No description provided for @datagenConsoleConfigFence.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏外出事件'**
+  String get datagenConsoleConfigFence;
+
+  /// No description provided for @datagenConsoleConfigHealth.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康异常事件'**
+  String get datagenConsoleConfigHealth;
+
+  /// No description provided for @datagenConsoleConfigTrackerValue.
+  ///
+  /// In zh, this message translates to:
+  /// **'5 分钟'**
+  String get datagenConsoleConfigTrackerValue;
+
+  /// No description provided for @datagenConsoleConfigCapsuleValue.
+  ///
+  /// In zh, this message translates to:
+  /// **'15 分钟'**
+  String get datagenConsoleConfigCapsuleValue;
+
+  /// No description provided for @datagenConsoleConfigFenceValue.
+  ///
+  /// In zh, this message translates to:
+  /// **'2% · 10-30 分钟'**
+  String get datagenConsoleConfigFenceValue;
+
+  /// No description provided for @datagenConsoleConfigHealthValue.
+  ///
+  /// In zh, this message translates to:
+  /// **'0.5% · 4-12 小时'**
+  String get datagenConsoleConfigHealthValue;
+
+  /// No description provided for @datagenConsoleConfigEffective.
+  ///
+  /// In zh, this message translates to:
+  /// **'生效'**
+  String get datagenConsoleConfigEffective;
+
+  /// No description provided for @datagenConsoleRuntimeOnline.
+  ///
+  /// In zh, this message translates to:
+  /// **'在线'**
+  String get datagenConsoleRuntimeOnline;
+
+  /// No description provided for @datagenConsoleRuntimeOffline.
+  ///
+  /// In zh, this message translates to:
+  /// **'离线'**
+  String get datagenConsoleRuntimeOffline;
+
+  /// No description provided for @datagenConsoleRolePlatform.
+  ///
+  /// In zh, this message translates to:
+  /// **'平台管理员'**
+  String get datagenConsoleRolePlatform;
+
+  /// No description provided for @datagenConsoleRoleB2b.
+  ///
+  /// In zh, this message translates to:
+  /// **'B2B 管理员'**
+  String get datagenConsoleRoleB2b;
+
+  /// No description provided for @datagenConsoleSelectFarm.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧场'**
+  String get datagenConsoleSelectFarm;
+
+  /// No description provided for @datagenConsoleTenant.
+  ///
+  /// In zh, this message translates to:
+  /// **'租户'**
+  String get datagenConsoleTenant;
+
+  /// No description provided for @datagenConsoleDeviceType.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备类型'**
+  String get datagenConsoleDeviceType;
+
+  /// No description provided for @datagenConsoleAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部'**
+  String get datagenConsoleAll;
+
+  /// No description provided for @datagenConsoleTracker.
+  ///
+  /// In zh, this message translates to:
+  /// **'追踪器'**
+  String get datagenConsoleTracker;
+
+  /// No description provided for @datagenConsoleCapsule.
+  ///
+  /// In zh, this message translates to:
+  /// **'胶囊'**
+  String get datagenConsoleCapsule;
+
+  /// No description provided for @datagenConsoleSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索设备 / EUI / 牲畜'**
+  String get datagenConsoleSearchHint;
+
+  /// No description provided for @datagenConsoleColDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备'**
+  String get datagenConsoleColDevice;
+
+  /// No description provided for @datagenConsoleColType.
+  ///
+  /// In zh, this message translates to:
+  /// **'类型'**
+  String get datagenConsoleColType;
+
+  /// No description provided for @datagenConsoleColLivestock.
+  ///
+  /// In zh, this message translates to:
+  /// **'绑定牲畜'**
+  String get datagenConsoleColLivestock;
+
+  /// No description provided for @datagenConsoleColRuntime.
+  ///
+  /// In zh, this message translates to:
+  /// **'运行状态'**
+  String get datagenConsoleColRuntime;
+
+  /// No description provided for @datagenConsoleColFrequency.
+  ///
+  /// In zh, this message translates to:
+  /// **'仿真频率'**
+  String get datagenConsoleColFrequency;
+
+  /// No description provided for @datagenConsoleColLastGenerated.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近生成'**
+  String get datagenConsoleColLastGenerated;
+
+  /// No description provided for @datagenConsoleSaveRange.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存范围'**
+  String get datagenConsoleSaveRange;
+
+  /// No description provided for @datagenConsoleSelectFiltered.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择筛选结果'**
+  String get datagenConsoleSelectFiltered;
+
+  /// No description provided for @datagenConsoleClearSelection.
+  ///
+  /// In zh, this message translates to:
+  /// **'清空选择'**
+  String get datagenConsoleClearSelection;
+
+  /// No description provided for @datagenConsoleSelectedCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'已选择 {count} 台'**
+  String datagenConsoleSelectedCount(int count);
+
+  /// No description provided for @datagenConsoleClearData.
+  ///
+  /// In zh, this message translates to:
+  /// **'清空仿真数据'**
+  String get datagenConsoleClearData;
+
+  /// No description provided for @datagenConsoleRange24h.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近 24 小时'**
+  String get datagenConsoleRange24h;
+
+  /// No description provided for @datagenConsoleRange7d.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近 7 天'**
+  String get datagenConsoleRange7d;
+
+  /// No description provided for @datagenConsoleRangeAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部'**
+  String get datagenConsoleRangeAll;
+
+  /// No description provided for @datagenConsoleRangeCustom.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义'**
+  String get datagenConsoleRangeCustom;
+
+  /// No description provided for @datagenConsoleFrom.
+  ///
+  /// In zh, this message translates to:
+  /// **'开始时间'**
+  String get datagenConsoleFrom;
+
+  /// No description provided for @datagenConsoleTo.
+  ///
+  /// In zh, this message translates to:
+  /// **'结束时间'**
+  String get datagenConsoleTo;
+
+  /// No description provided for @datagenConsolePreview.
+  ///
+  /// In zh, this message translates to:
+  /// **'预览删除量'**
+  String get datagenConsolePreview;
+
+  /// No description provided for @datagenConsoleDeletedTotal.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除记录'**
+  String get datagenConsoleDeletedTotal;
+
+  /// No description provided for @datagenConsoleUnattributableRows.
+  ///
+  /// In zh, this message translates to:
+  /// **'无法归属并保留的记录'**
+  String get datagenConsoleUnattributableRows;
+
+  /// No description provided for @datagenConsoleCrossFarmLimit.
+  ///
+  /// In zh, this message translates to:
+  /// **'清理按设备历史归属执行。设备迁移过牧场时，其仿真数据可能随任一归属牧场一起清理。'**
+  String get datagenConsoleCrossFarmLimit;
+
+  /// No description provided for @datagenConsoleRunningCannotClear.
+  ///
+  /// In zh, this message translates to:
+  /// **'请先停止仿真，再清理数据。'**
+  String get datagenConsoleRunningCannotClear;
+
+  /// No description provided for @datagenConsoleConfirmClearTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'清空仿真数据'**
+  String get datagenConsoleConfirmClearTitle;
+
+  /// No description provided for @datagenConsoleConfirmClearWordHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入“清空”确认'**
+  String get datagenConsoleConfirmClearWordHint;
+
+  /// No description provided for @datagenConsoleConfirmClearAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认清空'**
+  String get datagenConsoleConfirmClearAction;
+
+  /// No description provided for @datagenConsoleOperationStart.
+  ///
+  /// In zh, this message translates to:
+  /// **'启动仿真'**
+  String get datagenConsoleOperationStart;
+
+  /// No description provided for @datagenConsoleOperationStop.
+  ///
+  /// In zh, this message translates to:
+  /// **'停止仿真'**
+  String get datagenConsoleOperationStop;
+
+  /// No description provided for @datagenConsoleOperationUpdateDevices.
+  ///
+  /// In zh, this message translates to:
+  /// **'调整设备范围'**
+  String get datagenConsoleOperationUpdateDevices;
+
+  /// No description provided for @datagenConsoleOperationClear.
+  ///
+  /// In zh, this message translates to:
+  /// **'清理仿真数据'**
+  String get datagenConsoleOperationClear;
+
+  /// No description provided for @datagenConsoleColTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'时间'**
+  String get datagenConsoleColTime;
+
+  /// No description provided for @datagenConsoleColOperator.
+  ///
+  /// In zh, this message translates to:
+  /// **'操作者'**
+  String get datagenConsoleColOperator;
+
+  /// No description provided for @datagenConsoleNoOperations.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无操作记录'**
+  String get datagenConsoleNoOperations;
+
+  /// No description provided for @datagenConsoleRefresh.
+  ///
+  /// In zh, this message translates to:
+  /// **'刷新'**
+  String get datagenConsoleRefresh;
+
+  /// No description provided for @datagenConsoleNever.
+  ///
+  /// In zh, this message translates to:
+  /// **'从未生成'**
+  String get datagenConsoleNever;
+
+  /// No description provided for @datagenConsoleDevicesRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'启动仿真前请至少选择一台设备。'**
+  String get datagenConsoleDevicesRequired;
+
+  /// No description provided for @datagenConsoleClearDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'清理完成，已删除 {count} 条记录。'**
+  String datagenConsoleClearDone(int count);
 }
 
 class _AppLocalizationsDelegate

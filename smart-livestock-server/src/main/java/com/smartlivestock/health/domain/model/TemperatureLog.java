@@ -13,6 +13,7 @@ public class TemperatureLog {
     private BigDecimal delta;
     private Instant recordedAt;
     private Instant createdAt;
+    private String source;
 
     public TemperatureLog() {}
 
@@ -39,4 +40,7 @@ public class TemperatureLog {
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 }

@@ -226,6 +226,13 @@ class _PlatformAdminShell extends ConsumerWidget {
                     context.go(AppRoute.platformTelemetryImport.path),
               ),
               _IconSidebarItem(
+                icon: Icons.model_training_outlined,
+                tooltip: AppRoute.platformDatagen.label,
+                selected:
+                    location.startsWith(AppRoute.platformDatagen.path),
+                onTap: () => context.go(AppRoute.platformDatagen.path),
+              ),
+              _IconSidebarItem(
                 icon: Icons.account_balance_wallet_outlined,
                 tooltip: AppRoute.platformRevenue.label,
                 selected: location.startsWith(AppRoute.platformRevenue.path),
@@ -347,12 +354,18 @@ class _B2bAdminShell extends ConsumerWidget {
                   icon: Icons.account_balance_wallet_outlined,
                   tooltip: '对账',
                   selected: _isSelected(context, 3),
-                  onTap: () => context.go(AppRoute.b2bAdminRevenue.path),
-                ),
-                _IconSidebarItem(
-                  icon: Icons.map_outlined,
-                  tooltip: '瓦片管理',
-                  selected: _isSelected(context, 4),
+                onTap: () => context.go(AppRoute.b2bAdminRevenue.path),
+              ),
+              _IconSidebarItem(
+                icon: Icons.model_training_outlined,
+                tooltip: AppRoute.platformDatagen.label,
+                selected: _isSelected(context, 5),
+                onTap: () => context.go(AppRoute.platformDatagen.path),
+              ),
+              _IconSidebarItem(
+                icon: Icons.map_outlined,
+                tooltip: '瓦片管理',
+                selected: _isSelected(context, 6),
                   onTap: () => context.go(AppRoute.platformTileAdmin.path),
                 ),
 
@@ -391,7 +404,8 @@ class _B2bAdminShell extends ConsumerWidget {
       1 => location.startsWith('/b2b/admin/farms'),
       2 => location.startsWith('/b2b/admin/contract'),
       3 => location.startsWith('/b2b/admin/revenue'),
-      4 => location.startsWith('/admin/tiles'),
+      5 => location.startsWith('/admin/datagen'),
+      6 => location.startsWith('/admin/tiles'),
       _ => false,
     };
   }

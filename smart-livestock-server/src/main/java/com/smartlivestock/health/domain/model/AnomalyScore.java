@@ -25,6 +25,7 @@ public class AnomalyScore extends Entity {
     private Integer nEff;
     private Map<String, Object> modelMeta;
     private Instant createdAt;
+    private String source;
 
     public AnomalyScore() {}
 
@@ -66,4 +67,7 @@ public class AnomalyScore extends Entity {
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 }

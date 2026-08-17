@@ -12,10 +12,18 @@ public class AuditLog {
     private final String action;
     private final Map<String, Object> details;
     private final Instant occurredAt;
+    private final Long farmId;
+    private final String operatorRole;
     private Instant createdAt;
 
     public AuditLog(String eventId, String eventType, Long tenantId, Long userId,
                     String action, Map<String, Object> details, Instant occurredAt) {
+        this(eventId, eventType, tenantId, userId, action, details, occurredAt, null, null);
+    }
+
+    public AuditLog(String eventId, String eventType, Long tenantId, Long userId,
+                    String action, Map<String, Object> details, Instant occurredAt,
+                    Long farmId, String operatorRole) {
         this.eventId = eventId;
         this.eventType = eventType;
         this.tenantId = tenantId;
@@ -23,6 +31,8 @@ public class AuditLog {
         this.action = action;
         this.details = details;
         this.occurredAt = occurredAt;
+        this.farmId = farmId;
+        this.operatorRole = operatorRole;
     }
 
     public Long getId() { return id; }
@@ -34,6 +44,8 @@ public class AuditLog {
     public String getAction() { return action; }
     public Map<String, Object> getDetails() { return details; }
     public Instant getOccurredAt() { return occurredAt; }
+    public Long getFarmId() { return farmId; }
+    public String getOperatorRole() { return operatorRole; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

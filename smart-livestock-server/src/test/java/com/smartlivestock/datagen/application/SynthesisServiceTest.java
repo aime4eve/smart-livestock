@@ -64,10 +64,12 @@ class SynthesisServiceTest {
                 new CoordinateInfo(28.001, 112.001),
                 new CoordinateInfo(28.0, 112.001)));
 
-        when(deviceQueryPort.findActiveInstallations()).thenReturn(List.of(installation));
+        SynthesisScenario testScenario = scenario(now);
+        when(deviceQueryPort.findActiveInstallationsByScenario(testScenario.getId()))
+                .thenReturn(List.of(installation));
         when(fenceQueryPort.findActiveFencesByLivestockId(1L)).thenReturn(List.of(fence));
 
-        service.generate(scenario(now));
+        service.generate(testScenario);
 
         ArgumentCaptor<Map<String, Object>> readingsCaptor = ArgumentCaptor.forClass(Map.class);
         verify(ingestionPort).ingest(eq(5L), readingsCaptor.capture(), any(Instant.class),
@@ -80,7 +82,7 @@ class SynthesisServiceTest {
         assertTrue(Math.abs(longitude - 112.0005) < 0.0005);
         assertTrue(latitude != 28.0005 || longitude != 112.0005);
 
-        service.generate(scenario(now));
+        service.generate(testScenario);
         verify(ingestionPort, times(1)).ingest(
                 eq(5L), any(), any(Instant.class), eq(TelemetrySource.DATAGEN));
     }
@@ -91,9 +93,11 @@ class SynthesisServiceTest {
         ActiveInstallationInfo installation = new ActiveInstallationInfo(
                 51L, 1L, DeviceType.CAPSULE, null, null);
 
-        when(deviceQueryPort.findActiveInstallations()).thenReturn(List.of(installation));
+        SynthesisScenario testScenario = scenario(now);
+        when(deviceQueryPort.findActiveInstallationsByScenario(testScenario.getId()))
+                .thenReturn(List.of(installation));
 
-        service.generate(scenario(now));
+        service.generate(testScenario);
 
         ArgumentCaptor<Map<String, Object>> readingsCaptor = ArgumentCaptor.forClass(Map.class);
         verify(ingestionPort).ingest(eq(51L), readingsCaptor.capture(), any(Instant.class),
@@ -103,7 +107,7 @@ class SynthesisServiceTest {
         assertTrue(((Number) readings.get("gastricMotility")).longValue() > 0);
         assertTrue(((Number) readings.get("batteryVoltage")).intValue() > 0);
 
-        service.generate(scenario(now));
+        service.generate(testScenario);
         verify(ingestionPort, times(1)).ingest(
                 eq(51L), any(), any(Instant.class), eq(TelemetrySource.DATAGEN));
     }
@@ -121,10 +125,12 @@ class SynthesisServiceTest {
                 new CoordinateInfo(28.001, 112.001),
                 new CoordinateInfo(28.0, 112.001)));
 
-        when(deviceQueryPort.findActiveInstallations()).thenReturn(List.of(capsule, tracker));
+        SynthesisScenario testScenario = scenario(now);
+        when(deviceQueryPort.findActiveInstallationsByScenario(testScenario.getId()))
+                .thenReturn(List.of(capsule, tracker));
         when(fenceQueryPort.findActiveFencesByLivestockId(1L)).thenReturn(List.of(fence));
 
-        service.generate(scenario(now));
+        service.generate(testScenario);
 
         ArgumentCaptor<Map<String, Object>> readingsCaptor = ArgumentCaptor.forClass(Map.class);
         verify(ingestionPort).ingest(
@@ -144,5 +150,20 @@ class SynthesisServiceTest {
         scenario.setWindowEnd(now.plusSeconds(3600));
         scenario.setIntervalSeconds(30);
         return scenario;
+    }
+
+    @Test
+    void clearDeviceSchedules_removesOnlyRequestedDevices() {
+        Instant now = Instant.now();
+        SynthesisScenario testScenario = scenario(now);
+        ActiveInstallationInfo installation = new ActiveInstallationInfo(
+                5L, 1L, DeviceType.CAPSULE, null, null);
+        when(deviceQueryPort.findActiveInstallationsByScenario(testScenario.getId()))
+                .thenReturn(List.of(installation));
+
+        service.clearDeviceSchedules(List.of(5L));
+        service.generate(testScenario);
+        verify(ingestionPort).ingest(
+                eq(5L), any(), any(Instant.class), eq(TelemetrySource.DATAGEN));
     }
 }

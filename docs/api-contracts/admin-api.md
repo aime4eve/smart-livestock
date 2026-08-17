@@ -1,9 +1,9 @@
 # Admin API 端点（`/api/v1/admin/`）
 
-> **端点总数**: 112（Phase 1 + Phase 2a Commerce + Phase 2c + GPS 质量检查 + NIX-79 遥测导入；与实际对齐）
+> **端点总数**: 117（Phase 1 + Phase 2a Commerce + Phase 2c + GPS 质量检查 + NIX-79 遥测导入 + 仿真控制台；与实际对齐）
 >
-> ⚠️ **As-Built 校准（2026-06-26）**: 当前 Admin API 实际 **110 个端点**，本文档已**全量详列 110 个**：Phase 1 全部（含 TenantAdmin 补全的 `PUT /admin/tenants/{id}` 与 `GET /admin/tenants/{id}/farms`）+ Phase 2a Commerce 21 + Phase 2c（瓦片 7 / API 用量 3 / Portal 5）+ GPS 质量检查 51。端点真源为代码，详见 [后端实现现状 §7 API 设计](../superpowers/specs/2026-05-06-mvp-backend-design.md)。2026-07-29 NIX-79 新增遥测数据导入 2 端点（§12），总数 112。
-> **认证**: JWT Bearer Token（role = platform_admin）
+> ⚠️ **As-Built 校准（2026-06-26）**: 当前 Admin API 实际 **110 个端点**，本文档已**全量详列 110 个**：Phase 1 全部（含 TenantAdmin 补全的 `PUT /admin/tenants/{id}` 与 `GET /admin/tenants/{id}/farms`）+ Phase 2a Commerce 21 + Phase 2c（瓦片 7 / API 用量 3 / Portal 5）+ GPS 质量检查 51。端点真源为代码，详见 [后端实现现状 §7 API 设计](../superpowers/specs/2026-05-06-mvp-backend-design.md)。2026-07-29 NIX-79 新增遥测数据导入 2 端点（§12）；2026-08-17 新增仿真控制台 5 端点（§13），总数 117。
+> **认证**: JWT Bearer Token（本文件多数端点要求 platform_admin；仿真控制台允许 platform_admin / b2b_admin，B2B 管理员限定本租户）
 > **特点**: 跨租户视图，批量操作，管理动作。基础资源操作复用 App API 端点，admin 角色可访问任意 farm 数据。
 
 ---
@@ -1696,6 +1696,131 @@ Error 400（设备未注册）:
 ---
 
 
+
+## 13. 仿真控制台（DataGenConsoleController）— 5 端点
+
+> **基路径**: `/api/v1/admin/datagen`。**权限**: `@PreAuthorize("hasAnyRole('PLATFORM_ADMIN','B2B_ADMIN')")`。
+> `PLATFORM_ADMIN` 可访问任意 farm；`B2B_ADMIN` 仅可访问当前 tenant 下的 farm，跨 tenant 返回 `AUTH_FORBIDDEN`。
+> 同路径下的既有全局端点（`/scenarios`、`/scenarios/{id}/start|stop`、`/labels`、`/evaluation`）仅允许 `PLATFORM_ADMIN`，不再向 owner / worker / B2B 管理员暴露全局 scenario 控制。
+> 控制粒度为 farm + device assignment：启用时设备范围不能为空；历史 assignment 软删除保留，供 DATAGEN 数据清理归属使用。
+
+### GET /admin/datagen/farms
+
+列出当前管理员可见的牧场仿真控制摘要。平台管理员返回全部未删除牧场，B2B 管理员仅返回本租户牧场。
+
+```
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-D01",
+  "data": {
+    "items": [
+      { "farmId": 1, "farmName": "Main Ranch", "tenantId": 1, "tenantName": "Demo Tenant", "enabled": true, "selectedDeviceCount": 16 }
+    ],
+    "total": 1
+  }
+}
+```
+
+### GET /admin/datagen/console
+
+获取单个牧场的控制台快照。首次访问会确保默认 `NORMAL` scenario、farm control 存在，但不会把 farm 置为启用。
+
+```
+查询参数: farmId（必填）
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-D02",
+  "data": {
+    "farm": { "farmId": 1, "farmName": "Main Ranch", "tenantId": 1, "tenantName": "Demo Tenant", "enabled": true, "selectedDeviceCount": 16 },
+    "enabled": true,
+    "scenario": { "id": 1, "name": "默认持续合成", "type": "normal" },
+    "devices": [
+      {
+        "deviceId": 5, "deviceCode": "TRK-001", "devEui": "001a0102ff000650", "deviceType": "TRACKER",
+        "livestockId": 10, "livestockCode": "ST-10", "runtimeStatus": "ONLINE",
+        "selected": true, "eligible": true, "ineligibleReason": null,
+        "lastGeneratedAt": "2026-08-17T08:00:00Z"
+      }
+    ],
+    "stats": {
+      "statsTimeZone": "Asia/Shanghai", "selectedTotal": 16, "selectedTrackerCount": 8, "selectedCapsuleCount": 8,
+      "todayTelemetryRows": 3284, "todayGpsRows": 1842, "todayHealthRows": 812,
+      "lastGeneratedAt": "2026-08-17T08:00:00Z"
+    },
+    "operations": [
+      { "id": 91, "action": "START", "operatorId": 3, "operatorRole": "B2B_ADMIN", "occurredAt": "2026-08-17T08:00:00Z", "summary": "datagenConsoleOperationStart" }
+    ]
+  }
+}
+
+Error 404:
+{ "code": "RESOURCE_NOT_FOUND", "message": "牧场不存在: 1", "requestId": "req-D02" }
+```
+
+> `today*` 按 `Asia/Shanghai` 自然日计算。`devices[].ineligibleReason` 为后端 i18n message key（当前合法设备为未软删、ACTIVE、TRACKER/CAPSULE 且当前安装在同名 farm 的设备）。`operations[].summary` 是前端 i18n key。
+
+### PUT /admin/datagen/control/{farmId}
+
+保存 farm 启停状态并全量替换当前 active 设备范围。启用时至少选择一台设备；任一设备不合法则整个请求失败，不会部分保存。
+
+```
+Request:
+{ "enabled": true, "deviceIds": [5, 6, 133, 134] }
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-D03", "data": { "farmId": 1, "enabled": true, "selectedDeviceCount": 4 } }
+
+Error 400:
+{ "code": "VALIDATION_ERROR", "message": "启用仿真时必须指定至少一台设备", "requestId": "req-D03" }
+```
+
+> 启停和设备范围可在一次请求完成。重新启用会清理内存中的设备 due schedule，使下一轮合成按新范围及时生成；关闭仅停用 farm control，不停止全局默认 scenario。操作写入 farm-scoped audit log。
+
+### POST /admin/datagen/clear/preview
+
+预估指定时间范围内可安全归属到该 farm 历史 device assignment 的 `source=DATAGEN` 数据量。该接口不修改数据。
+
+```
+Request:
+{ "farmId": 1, "rangeType": "LAST_24_HOURS", "from": null, "to": null }
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-D04",
+  "data": {
+    "telemetryRows": 3284, "gpsRows": 1842, "temperatureRows": 612, "motilityRows": 96, "activityRows": 104,
+    "estrusRows": 18, "anomalyRows": 0, "alertRows": 12,
+    "unattributableHealthRows": 0, "unattributableAlertRows": 4,
+    "limitationKey": "datagenConsoleCrossFarmLimit"
+  }
+}
+```
+
+> `rangeType`: `LAST_24_HOURS` / `LAST_7_DAYS` / `ALL` / `CUSTOM`。`CUSTOM` 必须提供 `from < to`；其它 range 忽略 `from` / `to`，按服务器当前时间计算。`limitationKey` 供 UI 展示跨 farm 历史归属限制。
+
+### POST /admin/datagen/clear
+
+停止仿真后清理 DATAGEN 数据。必须输入确认词 `"清空"`（中英文界面均相同）；事务内执行删除并写入 `CLEAR_DATA` 审计。
+
+```
+Request:
+{ "farmId": 1, "rangeType": "LAST_24_HOURS", "from": null, "to": null, "confirmText": "清空" }
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-D05",
+  "data": { "telemetryRows": 3282, "gpsRows": 1840, "temperatureRows": 610, "motilityRows": 96, "activityRows": 104, "estrusRows": 18, "anomalyRows": 0, "alertRows": 12, "unattributableHealthRows": 0, "unattributableAlertRows": 4, "limitationKey": "datagenConsoleCrossFarmLimit" }
+}
+
+Error 409:
+{ "code": "STATE_CONFLICT", "message": "请先停止仿真后再清理数据", "requestId": "req-D05" }
+```
+
+> 清理范围包含该 farm 历史 assignment 设备的 `device_telemetry_logs` / `gps_logs` / `temperature_logs` / `rumen_motility_logs` / `activity_logs`，以及该 farm 的 `estrus_scores` / `anomaly_scores` / `alerts` 中 `source=DATAGEN` 的行。真实来源、`UNKNOWN` 健康数据、历史 `RULE` alerts、health snapshot、设备 runtime snapshot、GPS 质量点、接触追踪和 ground truth label 均保留。
+> `device_telemetry_logs` / `gps_logs` 没有 farm 字段；首版按设备历史 assignment 归属清理。设备跨 farm 迁移后，其 DATAGEN 行可能随任一历史归属 farm 的清理被删除，但不会影响非 DATAGEN 数据。
+
+---
 
 ## 设计要点
 

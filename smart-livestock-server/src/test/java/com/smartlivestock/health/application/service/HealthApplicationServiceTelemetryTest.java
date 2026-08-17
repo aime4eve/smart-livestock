@@ -13,6 +13,7 @@ import com.smartlivestock.iot.domain.model.DeviceType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.quality.Strictness;
@@ -81,10 +82,17 @@ class HealthApplicationServiceTelemetryTest {
         );
 
         service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE, readings,
-                Instant.parse("2026-06-04T10:00:00Z"));
+                Instant.parse("2026-06-04T10:00:00Z"), "DATAGEN");
 
-        verify(tempLogRepo, times(7)).save(any());
-        verify(motilityLogRepo, times(1)).save(any());
+        ArgumentCaptor<TemperatureLog> tempCaptor =
+                ArgumentCaptor.forClass(TemperatureLog.class);
+        ArgumentCaptor<RumenMotilityLog> motilityCaptor =
+                ArgumentCaptor.forClass(RumenMotilityLog.class);
+        verify(tempLogRepo, times(7)).save(tempCaptor.capture());
+        verify(motilityLogRepo, times(1)).save(motilityCaptor.capture());
+        tempCaptor.getAllValues().forEach(log ->
+                assertEquals("DATAGEN", log.getSource()));
+        assertEquals("DATAGEN", motilityCaptor.getValue().getSource());
     }
 
     @Test
@@ -99,7 +107,7 @@ class HealthApplicationServiceTelemetryTest {
         );
 
         service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE, readings,
-                Instant.parse("2026-06-04T10:00:00Z"));
+                Instant.parse("2026-06-04T10:00:00Z"), "DATAGEN");
 
         verify(motilityLogRepo).save(argThat(log ->
                 log.getFrequency().compareTo(new BigDecimal("3.00")) == 0));
@@ -118,7 +126,7 @@ class HealthApplicationServiceTelemetryTest {
         );
 
         service.processTelemetry(1L, 5L, 1L, DeviceType.TRACKER, readings,
-                Instant.parse("2026-06-04T10:00:00Z"));
+                Instant.parse("2026-06-04T10:00:00Z"), "DATAGEN");
 
         verify(tempLogRepo, never()).save(any());
         verify(activityLogRepo, times(1)).save(any());
@@ -134,7 +142,7 @@ class HealthApplicationServiceTelemetryTest {
         );
 
         service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE, readings,
-                Instant.parse("2026-06-04T10:00:00Z"));
+                Instant.parse("2026-06-04T10:00:00Z"), "DATAGEN");
 
         verify(tempLogRepo, never()).save(any());
     }
@@ -153,7 +161,7 @@ class HealthApplicationServiceTelemetryTest {
         );
 
         service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE, readings,
-                Instant.parse("2026-06-04T10:00:00Z"));
+                Instant.parse("2026-06-04T10:00:00Z"), "DATAGEN");
 
         verify(snapshotRepo).ensureSnapshotExists(eq(10L), eq(1L));
     }
@@ -166,7 +174,7 @@ class HealthApplicationServiceTelemetryTest {
 
         Map<String, Object> readings = Map.of("temperature", 38.5);
         service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE, readings,
-                Instant.parse("2026-06-04T10:00:00Z"));
+                Instant.parse("2026-06-04T10:00:00Z"), "DATAGEN");
 
         verify(tempLogRepo, times(1)).save(any());
     }
@@ -178,12 +186,28 @@ class HealthApplicationServiceTelemetryTest {
 
         Map<String, Object> readings = Map.of("batteryLevel", 85);
         service.processTelemetry(1L, 5L, 1L, DeviceType.TRACKER, readings,
-                Instant.parse("2026-06-04T10:00:00Z"));
+                Instant.parse("2026-06-04T10:00:00Z"), "DATAGEN");
 
         verify(activityLogRepo, never()).save(any());
     }
 
     private BigDecimal bd(String val) {
         return new BigDecimal(val);
+    }
+
+    @Test
+    void processTelemetry_missingSource_normalizesToUnknown() {
+        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(new HealthSnapshot()));
+        when(tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(10L, 10)).thenReturn(List.of());
+        when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(10L), anyInt())).thenReturn(List.of());
+
+        Map<String, Object> readings = Map.of("temperature", 38.5);
+        service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE, readings,
+                Instant.parse("2026-06-04T10:00:00Z"), null);
+
+        ArgumentCaptor<TemperatureLog> captor =
+                ArgumentCaptor.forClass(TemperatureLog.class);
+        verify(tempLogRepo).save(captor.capture());
+        assertEquals("UNKNOWN", captor.getValue().getSource());
     }
 }

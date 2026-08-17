@@ -15,6 +15,7 @@ public class EstrusScore {
     private String advice;
     private Instant scoredAt;
     private Instant createdAt;
+    private String source;
 
     public EstrusScore() {}
 
@@ -47,4 +48,7 @@ public class EstrusScore {
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 }

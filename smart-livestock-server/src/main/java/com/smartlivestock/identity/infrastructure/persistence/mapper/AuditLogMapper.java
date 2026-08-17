@@ -14,6 +14,8 @@ public final class AuditLogMapper {
         entity.setEventType(domain.getEventType());
         entity.setTenantId(domain.getTenantId());
         entity.setUserId(domain.getUserId());
+        entity.setFarmId(domain.getFarmId());
+        entity.setOperatorRole(domain.getOperatorRole());
         entity.setAction(domain.getAction());
         entity.setDetails(domain.getDetails());
         entity.setOccurredAt(domain.getOccurredAt());
@@ -28,7 +30,9 @@ public final class AuditLogMapper {
                 entity.getUserId(),
                 entity.getAction(),
                 entity.getDetails(),
-                entity.getOccurredAt()
+                entity.getOccurredAt(),
+                entity.getFarmId(),
+                entity.getOperatorRole()
         );
         domain.setId(entity.getId());
         domain.setCreatedAt(entity.getCreatedAt());

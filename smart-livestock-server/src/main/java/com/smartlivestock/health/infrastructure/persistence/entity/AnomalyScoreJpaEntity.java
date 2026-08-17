@@ -47,6 +47,9 @@ public class AnomalyScoreJpaEntity {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    @Column(name = "source", nullable = false, length = 20)
+    private String source = "UNKNOWN";
+
     @PrePersist
     protected void onCreate() { this.createdAt = Instant.now(); }
 
@@ -76,4 +79,6 @@ public class AnomalyScoreJpaEntity {
     public void setModelMeta(String modelMeta) { this.modelMeta = modelMeta; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 }

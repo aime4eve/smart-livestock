@@ -19,6 +19,7 @@ public final class HealthMapper {
         d.setDelta(e.getDelta());
         d.setRecordedAt(e.getRecordedAt());
         d.setCreatedAt(e.getCreatedAt());
+        d.setSource(e.getSource());
         return d;
     }
 
@@ -31,6 +32,7 @@ public final class HealthMapper {
         e.setBaselineTemp(d.getBaselineTemp());
         e.setRecordedAt(d.getRecordedAt());
         e.setCreatedAt(d.getCreatedAt());
+        e.setSource(d.getSource());
         return e;
     }
 
@@ -45,6 +47,7 @@ public final class HealthMapper {
         d.setIntensity(e.getIntensity());
         d.setRecordedAt(e.getRecordedAt());
         d.setCreatedAt(e.getCreatedAt());
+        d.setSource(e.getSource());
         return d;
     }
 
@@ -57,6 +60,7 @@ public final class HealthMapper {
         e.setIntensity(d.getIntensity());
         e.setRecordedAt(d.getRecordedAt());
         e.setCreatedAt(d.getCreatedAt());
+        e.setSource(d.getSource());
         return e;
     }
 
@@ -72,6 +76,7 @@ public final class HealthMapper {
         d.setDistanceMeters(e.getDistanceMeters());
         d.setRecordedAt(e.getRecordedAt());
         d.setCreatedAt(e.getCreatedAt());
+        d.setSource(e.getSource());
         return d;
     }
 
@@ -85,6 +90,7 @@ public final class HealthMapper {
         e.setDistanceMeters(d.getDistanceMeters());
         e.setRecordedAt(d.getRecordedAt());
         e.setCreatedAt(d.getCreatedAt());
+        e.setSource(d.getSource());
         return e;
     }
 
@@ -102,6 +108,7 @@ public final class HealthMapper {
         d.setAdvice(e.getAdvice());
         d.setScoredAt(e.getScoredAt());
         d.setCreatedAt(e.getCreatedAt());
+        d.setSource(e.getSource());
         return d;
     }
 
@@ -117,6 +124,7 @@ public final class HealthMapper {
         e.setAdvice(d.getAdvice());
         e.setScoredAt(d.getScoredAt());
         e.setCreatedAt(d.getCreatedAt());
+        e.setSource(d.getSource());
         return e;
     }
 

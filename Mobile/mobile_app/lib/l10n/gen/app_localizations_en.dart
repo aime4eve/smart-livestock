@@ -4446,4 +4446,219 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get telemetryImportErrorInvalidHex => 'Failed to parse payload hex';
+
+  @override
+  String get datagenConsoleTitle => 'Simulation Control';
+
+  @override
+  String get datagenConsoleSubtitle => 'test · NORMAL baseline scenario';
+
+  @override
+  String get datagenConsoleRunning => 'Running';
+
+  @override
+  String get datagenConsoleStopped => 'Stopped';
+
+  @override
+  String get datagenConsoleTabStatus => 'Status';
+
+  @override
+  String get datagenConsoleTabDevices => 'Devices';
+
+  @override
+  String get datagenConsoleTabClear => 'Data Clearing';
+
+  @override
+  String get datagenConsoleTabOperations => 'Operations';
+
+  @override
+  String get datagenConsoleStatSelectedDevices => 'Selected Devices';
+
+  @override
+  String get datagenConsoleStatNextBatch => 'Next Batch';
+
+  @override
+  String get datagenConsoleStatTodayRows => 'Today\'s Data';
+
+  @override
+  String get datagenConsoleStatLastGenerated => 'Last Write';
+
+  @override
+  String get datagenConsoleConfigTitle => 'Current Rules';
+
+  @override
+  String get datagenConsoleConfigTracker => 'Tracker cadence';
+
+  @override
+  String get datagenConsoleConfigCapsule => 'Capsule cadence';
+
+  @override
+  String get datagenConsoleConfigFence => 'Fence excursion events';
+
+  @override
+  String get datagenConsoleConfigHealth => 'Health events';
+
+  @override
+  String get datagenConsoleConfigTrackerValue => '5 min';
+
+  @override
+  String get datagenConsoleConfigCapsuleValue => '15 min';
+
+  @override
+  String get datagenConsoleConfigFenceValue => '2% · 10-30 min';
+
+  @override
+  String get datagenConsoleConfigHealthValue => '0.5% · 4-12 h';
+
+  @override
+  String get datagenConsoleConfigEffective => 'Effective';
+
+  @override
+  String get datagenConsoleRuntimeOnline => 'Online';
+
+  @override
+  String get datagenConsoleRuntimeOffline => 'Offline';
+
+  @override
+  String get datagenConsoleRolePlatform => 'Platform Admin';
+
+  @override
+  String get datagenConsoleRoleB2b => 'B2B Admin';
+
+  @override
+  String get datagenConsoleSelectFarm => 'Farm';
+
+  @override
+  String get datagenConsoleTenant => 'Tenant';
+
+  @override
+  String get datagenConsoleDeviceType => 'Device Type';
+
+  @override
+  String get datagenConsoleAll => 'All';
+
+  @override
+  String get datagenConsoleTracker => 'Tracker';
+
+  @override
+  String get datagenConsoleCapsule => 'Capsule';
+
+  @override
+  String get datagenConsoleSearchHint => 'Search device / EUI / livestock';
+
+  @override
+  String get datagenConsoleColDevice => 'Device';
+
+  @override
+  String get datagenConsoleColType => 'Type';
+
+  @override
+  String get datagenConsoleColLivestock => 'Livestock';
+
+  @override
+  String get datagenConsoleColRuntime => 'Runtime';
+
+  @override
+  String get datagenConsoleColFrequency => 'Cadence';
+
+  @override
+  String get datagenConsoleColLastGenerated => 'Last Generated';
+
+  @override
+  String get datagenConsoleSaveRange => 'Save Range';
+
+  @override
+  String get datagenConsoleSelectFiltered => 'Select Filtered';
+
+  @override
+  String get datagenConsoleClearSelection => 'Clear Selection';
+
+  @override
+  String datagenConsoleSelectedCount(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get datagenConsoleClearData => 'Clear Simulation Data';
+
+  @override
+  String get datagenConsoleRange24h => 'Last 24 Hours';
+
+  @override
+  String get datagenConsoleRange7d => 'Last 7 Days';
+
+  @override
+  String get datagenConsoleRangeAll => 'All';
+
+  @override
+  String get datagenConsoleRangeCustom => 'Custom';
+
+  @override
+  String get datagenConsoleFrom => 'From';
+
+  @override
+  String get datagenConsoleTo => 'To';
+
+  @override
+  String get datagenConsolePreview => 'Preview';
+
+  @override
+  String get datagenConsoleDeletedTotal => 'Deleted rows';
+
+  @override
+  String get datagenConsoleUnattributableRows =>
+      'Rows retained without source attribution';
+
+  @override
+  String get datagenConsoleCrossFarmLimit =>
+      'Cleanup follows device history. If a device moved between farms, its simulated rows may be cleared from either historically assigned farm.';
+
+  @override
+  String get datagenConsoleRunningCannotClear =>
+      'Stop simulation before clearing data.';
+
+  @override
+  String get datagenConsoleConfirmClearTitle => 'Clear Simulation Data';
+
+  @override
+  String get datagenConsoleConfirmClearWordHint => 'Type CLEAR to confirm';
+
+  @override
+  String get datagenConsoleConfirmClearAction => 'Clear Now';
+
+  @override
+  String get datagenConsoleOperationStart => 'Start simulation';
+
+  @override
+  String get datagenConsoleOperationStop => 'Stop simulation';
+
+  @override
+  String get datagenConsoleOperationUpdateDevices => 'Update device range';
+
+  @override
+  String get datagenConsoleOperationClear => 'Clear simulation data';
+
+  @override
+  String get datagenConsoleColTime => 'Time';
+
+  @override
+  String get datagenConsoleColOperator => 'Operator';
+
+  @override
+  String get datagenConsoleNoOperations => 'No operations yet';
+
+  @override
+  String get datagenConsoleRefresh => 'Refresh';
+
+  @override
+  String get datagenConsoleNever => 'Never';
+
+  @override
+  String get datagenConsoleDevicesRequired =>
+      'Select at least one device before starting.';
+
+  @override
+  String datagenConsoleClearDone(int count) {
+    return 'Clearing complete. $count rows deleted.';
+  }
 }

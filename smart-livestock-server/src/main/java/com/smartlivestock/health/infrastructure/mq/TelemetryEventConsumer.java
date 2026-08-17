@@ -60,9 +60,11 @@ public class TelemetryEventConsumer implements RocketMQListener<String> {
             String recordedAtStr = root.path("recordedAt").asText(null);
             java.time.Instant recordedAt = recordedAtStr != null
                     ? java.time.Instant.parse(recordedAtStr) : java.time.Instant.now();
+            String source = root.path("source").isTextual()
+                    ? root.path("source").asText() : "UNKNOWN";
 
             healthApplicationService.processTelemetry(
-                    deviceId, livestockId, farmId, deviceType, readings, recordedAt);
+                    deviceId, livestockId, farmId, deviceType, readings, recordedAt, source);
 
         } catch (Exception e) {
             log.error("Failed to process telemetry message: {}", e.getMessage(), e);

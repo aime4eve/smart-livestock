@@ -21,17 +21,28 @@ public class TelemetryReceivedEvent extends DomainEvent {
     private final DeviceType deviceType;
     private final Map<String, Object> readings;
     private final Instant recordedAt;
+    private final String source;
 
+    @Deprecated
     public TelemetryReceivedEvent(Long deviceId, Long livestockId, Long farmId,
                                    DeviceType deviceType,
                                    Map<String, Object> readings,
                                    Instant recordedAt) {
+        this(deviceId, livestockId, farmId, deviceType, readings, recordedAt, "UNKNOWN");
+    }
+
+    public TelemetryReceivedEvent(Long deviceId, Long livestockId, Long farmId,
+                                  DeviceType deviceType,
+                                  Map<String, Object> readings,
+                                  Instant recordedAt,
+                                  String source) {
         this.deviceId = deviceId;
         this.livestockId = livestockId;
         this.farmId = farmId;
         this.deviceType = deviceType;
         this.readings = readings;
         this.recordedAt = recordedAt;
+        this.source = source;
     }
 
     public Long getDeviceId() { return deviceId; }
@@ -40,4 +51,5 @@ public class TelemetryReceivedEvent extends DomainEvent {
     public DeviceType getDeviceType() { return deviceType; }
     public Map<String, Object> getReadings() { return readings; }
     public Instant getRecordedAt() { return recordedAt; }
+    public String getSource() { return source; }
 }

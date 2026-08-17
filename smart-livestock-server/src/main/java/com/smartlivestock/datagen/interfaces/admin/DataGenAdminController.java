@@ -10,6 +10,7 @@ import com.smartlivestock.datagen.domain.model.*;
 import com.smartlivestock.datagen.domain.repository.SynthesisScenarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -25,6 +26,7 @@ public class DataGenAdminController {
     private final GroundTruthLabelService labelService;
     private final EvaluationService evaluationService;
 
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     @PostMapping("/scenarios")
     public ResponseEntity<ScenarioDto> createScenario(@RequestBody CreateScenarioRequest req) {
         SynthesisScenario scenario = new SynthesisScenario();
@@ -39,11 +41,13 @@ public class DataGenAdminController {
         return ResponseEntity.ok(ScenarioDto.from(scenario));
     }
 
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     @GetMapping("/scenarios")
     public ResponseEntity<List<ScenarioDto>> listScenarios() {
         return ResponseEntity.ok(scenarioRepository.findAll().stream().map(ScenarioDto::from).toList());
     }
 
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     @PostMapping("/scenarios/{id}/start")
     public ResponseEntity<Void> startScenario(@PathVariable Long id) {
         SynthesisScenario s = scenarioRepository.findById(id).orElseThrow();
@@ -52,6 +56,7 @@ public class DataGenAdminController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     @PostMapping("/scenarios/{id}/stop")
     public ResponseEntity<Void> stopScenario(@PathVariable Long id) {
         SynthesisScenario s = scenarioRepository.findById(id).orElseThrow();
@@ -60,6 +65,7 @@ public class DataGenAdminController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     @GetMapping("/labels")
     public ResponseEntity<List<GroundTruthLabel>> listLabels(
             @RequestParam(required = false) Long livestockId,
@@ -71,6 +77,7 @@ public class DataGenAdminController {
         return ResponseEntity.ok(List.of());
     }
 
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     @GetMapping("/evaluation")
     public ResponseEntity<EvaluationReport> evaluate(
             @RequestParam Instant from, @RequestParam Instant to,

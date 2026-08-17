@@ -117,7 +117,8 @@ public class TelemetryIngestionService {
         // 5. Publish telemetry event for cross-context consumption
         TelemetryReceivedEvent event = new TelemetryReceivedEvent(
                 device.getId(), livestockId, farmId,
-                device.getDeviceType(), readings, effectiveRecordedAt);
+                device.getDeviceType(), readings, effectiveRecordedAt,
+                source != null ? source.name() : "UNKNOWN");
         eventPublisher.publishEvent(event);
 
         // 6. Advance sync cursor to the ingested reportTime (not Instant.now()).

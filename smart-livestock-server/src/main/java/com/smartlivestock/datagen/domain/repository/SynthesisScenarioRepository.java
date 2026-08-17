@@ -11,4 +11,5 @@ public interface SynthesisScenarioRepository {
     Optional<SynthesisScenario> findById(Long id);
     List<SynthesisScenario> findByStatus(ScenarioStatus status);
     List<SynthesisScenario> findAll();
+    Optional<SynthesisScenario> findFirstByNameOrderById(String name);
 }

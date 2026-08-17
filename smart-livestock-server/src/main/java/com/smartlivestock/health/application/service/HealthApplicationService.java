@@ -62,8 +62,10 @@ public class HealthApplicationService {
     public void processTelemetry(Long deviceId, Long livestockId, Long farmId,
                                   DeviceType deviceType,
                                   Map<String, Object> readings,
-                                  Instant recordedAt) {
+                                  Instant recordedAt,
+                                  String source) {
         log.debug("Processing telemetry for livestock [{}] deviceType [{}]", livestockId, deviceType);
+        String effectiveSource = normalizeSource(source);
 
         BigDecimal temperature = toBigDecimal(readings.get("temperature"));
         BigDecimal motilityFrequency = null;
@@ -74,36 +76,38 @@ public class HealthApplicationService {
                 for (int i = 0; i < temps.size(); i++) {
                     BigDecimal temp = toBigDecimal(temps.get(i));
                     Instant pointTime = recordedAt.minus(java.time.Duration.ofMinutes(5L * (temps.size() - 1 - i)));
-                    ingestTemperature(deviceId, livestockId, temp, pointTime);
+                    ingestTemperature(deviceId, livestockId, temp, pointTime, effectiveSource);
                 }
                 if (!temps.isEmpty()) {
                     temperature = toBigDecimal(temps.get(temps.size() - 1));
                 }
             } else if (temperature != null) {
-                ingestTemperature(deviceId, livestockId, temperature, recordedAt);
+                ingestTemperature(deviceId, livestockId, temperature, recordedAt, effectiveSource);
             }
 
             Object motilityObj = readings.get("gastricMotility");
             if (motilityObj != null) {
                 motilityFrequency = toBigDecimal(motilityObj).divide(new BigDecimal("100000"), 2, java.math.RoundingMode.HALF_UP);
-                ingestMotility(deviceId, livestockId, motilityFrequency, BigDecimal.ZERO, recordedAt);
+                ingestMotility(deviceId, livestockId, motilityFrequency, BigDecimal.ZERO,
+                        recordedAt, effectiveSource);
             }
 
             ingestActivity(deviceId, livestockId,
                     toBigDecimal(readings.get("activityIndex")),
                     toInteger(readings.get("stepCount")),
                     toBigDecimal(readings.get("distanceMeters")),
-                    recordedAt);
+                    recordedAt, effectiveSource);
 
         } else if (deviceType == DeviceType.TRACKER) {
             ingestActivity(deviceId, livestockId,
                     toBigDecimal(readings.get("activityIndex")),
                     toInteger(readings.get("stepCount")),
                     toBigDecimal(readings.get("distanceMeters")),
-                    recordedAt);
+                    recordedAt, effectiveSource);
         }
 
-        refreshSnapshot(livestockId, farmId, deviceType.name(), temperature, motilityFrequency);
+        refreshSnapshot(livestockId, farmId, deviceType.name(), temperature,
+                motilityFrequency, effectiveSource);
 
         // AI anomaly detection — temporarily disabled in processTelemetry.
         // REQUIRES_NEW transaction corruption under backlog caused all telemetry
@@ -113,6 +117,13 @@ public class HealthApplicationService {
         // } catch (Exception e) {
         //     log.warn("AI anomaly assessment failed for livestock [{}]: {}", livestockId, e.getMessage());
         // }
+    }
+
+    private String normalizeSource(String source) {
+        return switch (source == null ? "" : source) {
+            case "AGENTIC_PLATFORM", "DATAGEN", "HTTP", "MANUAL_IMPORT" -> source;
+            default -> "UNKNOWN";
+        };
     }
 
     private BigDecimal toBigDecimal(Object value) {
@@ -130,7 +141,7 @@ public class HealthApplicationService {
     }
 
     private void ingestTemperature(Long deviceId, Long livestockId,
-                                    BigDecimal temperature, Instant recordedAt) {
+                                    BigDecimal temperature, Instant recordedAt, String source) {
         if (temperature == null) return;
 
         TemperatureLog log = new TemperatureLog();
@@ -144,11 +155,13 @@ public class HealthApplicationService {
         log.setBaselineTemp(baseline);
 
         log.setRecordedAt(recordedAt);
+        log.setSource(source);
         tempLogRepo.save(log);
     }
 
     private void ingestMotility(Long deviceId, Long livestockId,
-                                 BigDecimal frequency, BigDecimal intensity, Instant recordedAt) {
+                                 BigDecimal frequency, BigDecimal intensity, Instant recordedAt,
+                                 String source) {
         if (frequency == null) return;
 
         RumenMotilityLog log = new RumenMotilityLog();
@@ -157,12 +170,13 @@ public class HealthApplicationService {
         log.setFrequency(frequency);
         log.setIntensity(intensity);
         log.setRecordedAt(recordedAt);
+        log.setSource(source);
         motilityLogRepo.save(log);
     }
 
     private void ingestActivity(Long deviceId, Long livestockId,
                                  BigDecimal activityIndex, Integer stepCount,
-                                 BigDecimal distanceMeters, Instant recordedAt) {
+                                 BigDecimal distanceMeters, Instant recordedAt, String source) {
         if (activityIndex == null && stepCount == null && distanceMeters == null) return;
 
         ActivityLog log = new ActivityLog();
@@ -172,11 +186,13 @@ public class HealthApplicationService {
         log.setStepCount(stepCount);
         log.setDistanceMeters(distanceMeters);
         log.setRecordedAt(recordedAt);
+        log.setSource(source);
         activityLogRepo.save(log);
     }
 
    private void refreshSnapshot(Long livestockId, Long farmId, String telemetryType,
-                                 BigDecimal latestTemp, BigDecimal latestMotilityFrequency) {
+                                 BigDecimal latestTemp, BigDecimal latestMotilityFrequency,
+                                 String source) {
         // UPSERT: ensure snapshot row exists (race-safe, idempotent)
         snapshotRepo.ensureSnapshotExists(livestockId, farmId);
 
@@ -217,10 +233,10 @@ public class HealthApplicationService {
         snapshotRepo.save(snapshot);
 
         // Trigger estrus scoring
-        triggerEstrusScoring(livestockId, farmId);
+        triggerEstrusScoring(livestockId, farmId, source);
     }
 
-    private void triggerEstrusScoring(Long livestockId, Long farmId) {
+    private void triggerEstrusScoring(Long livestockId, Long farmId, String source) {
         List<ActivityLog> recentActivities = activityLogRepo.findByLivestockIdOrderByRecordedAtDesc(livestockId, 7);
         List<TemperatureLog> recentTemps = tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(livestockId, 7);
 
@@ -241,6 +257,7 @@ public class HealthApplicationService {
         estrusScore.setDistanceDelta(distanceDelta);
         estrusScore.setAdvice(estrusAnalysisService.generateAdvice(score));
         estrusScore.setScoredAt(Instant.now());
+        estrusScore.setSource(source);
         estrusScoreRepo.save(estrusScore);
 
         // Update snapshot with estrus score

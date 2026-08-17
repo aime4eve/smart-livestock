@@ -28,6 +28,14 @@ public class JpaFarmRepositoryImpl implements FarmRepository {
     }
 
     @Override
+    public List<Farm> findAll() {
+        return springDataRepo.findAll().stream()
+                .filter(farm -> farm.getDeletedAt() == null)
+                .map(FarmMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public List<Farm> findByTenantId(Long tenantId) {
         return springDataRepo.findByTenantId(tenantId).stream()
                 .map(FarmMapper::toDomain)

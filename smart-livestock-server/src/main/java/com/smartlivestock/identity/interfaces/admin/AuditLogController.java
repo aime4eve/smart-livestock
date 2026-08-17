@@ -39,17 +39,21 @@ public class AuditLogController {
         List<AuditLog> items = auditLogRepository.findAll(page, pageSize, tenantId, userId, action, startTime, endTime);
         long total = auditLogRepository.count(tenantId, userId, action, startTime, endTime);
 
-        List<Map<String, Object>> rows = items.stream().map(a -> Map.<String, Object>of(
-                "id", a.getId(),
-                "eventId", a.getEventId(),
-                "eventType", a.getEventType(),
-                "tenantId", (Object) (a.getTenantId() != null ? a.getTenantId() : ""),
-                "userId", (Object) (a.getUserId() != null ? a.getUserId() : ""),
-                "action", a.getAction(),
-                "details", a.getDetails() != null ? a.getDetails() : Map.of(),
-                "occurredAt", a.getOccurredAt().toString(),
-                "createdAt", a.getCreatedAt() != null ? a.getCreatedAt().toString() : ""
-        )).toList();
+        List<Map<String, Object>> rows = items.stream().map(a -> {
+            Map<String, Object> row = new java.util.LinkedHashMap<>();
+            row.put("id", a.getId());
+            row.put("eventId", a.getEventId());
+            row.put("eventType", a.getEventType());
+            row.put("tenantId", a.getTenantId() != null ? a.getTenantId() : "");
+            row.put("userId", a.getUserId() != null ? a.getUserId() : "");
+            row.put("farmId", a.getFarmId() != null ? a.getFarmId() : "");
+            row.put("operatorRole", a.getOperatorRole() != null ? a.getOperatorRole() : "");
+            row.put("action", a.getAction());
+            row.put("details", a.getDetails() != null ? a.getDetails() : Map.of());
+            row.put("occurredAt", a.getOccurredAt().toString());
+            row.put("createdAt", a.getCreatedAt() != null ? a.getCreatedAt().toString() : "");
+            return row;
+        }).toList();
 
         Map<String, Object> data = Map.of(
                 "items", rows,

@@ -30,6 +30,9 @@ public class RumenMotilityLogJpaEntity {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    @Column(name = "source", nullable = false, length = 20)
+    private String source = "UNKNOWN";
+
     @PrePersist
     protected void onCreate() { this.createdAt = Instant.now(); }
 
@@ -47,4 +50,6 @@ public class RumenMotilityLogJpaEntity {
     public void setRecordedAt(Instant recordedAt) { this.recordedAt = recordedAt; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 }

@@ -7,4 +7,6 @@ import java.util.List;
 /** ACL port: datagen -> IoT. Queries active installations to know which devices need data. */
 public interface DeviceQueryPort {
     List<ActiveInstallationInfo> findActiveInstallations();
+
+    List<ActiveInstallationInfo> findActiveInstallationsByScenario(Long scenarioId);
 }

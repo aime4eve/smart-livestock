@@ -54,8 +54,13 @@ public class HealthAnomalyService {
      */
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public void assess(Long tenantId, Long farmId, Long livestockId) {
+        assess(tenantId, farmId, livestockId, "UNKNOWN");
+    }
+
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    public void assess(Long tenantId, Long farmId, Long livestockId, String telemetrySource) {
         try {
-            doAssess(tenantId, farmId, livestockId);
+            doAssess(tenantId, farmId, livestockId, telemetrySource);
         } catch (Exception e) {
             log.warn("AI assess failed (suppressed, telemetry continues) for livestock [{}]: {}", livestockId, e.getMessage());
             // Do NOT rethrow — ensures REQUIRES_NEW transaction failure
@@ -63,7 +68,7 @@ public class HealthAnomalyService {
         }
     }
 
-    private void doAssess(Long tenantId, Long farmId, Long livestockId) {
+    private void doAssess(Long tenantId, Long farmId, Long livestockId, String telemetrySource) {
         // 1. Dedup: skip if assessed recently
         String dedupKey = DEDUP_KEY_PREFIX + livestockId;
         if (redis.get(dedupKey) != null) {
@@ -100,6 +105,7 @@ public class HealthAnomalyService {
         score.setContributions(contributions);
         score.setCapabilityUsed(pred.capabilityUsed());
         score.setNEff(pred.nEff());
+        score.setSource(telemetrySource);
         anomalyScoreRepo.save(score);
 
         // 4. Update health_snapshots AI columns
@@ -116,7 +122,7 @@ public class HealthAnomalyService {
             String severity = pred.anomalyScore() >= 0.85 ? "CRITICAL" : "WARNING";
             ranchCommandPort.createAlert(new AlertInfo(
                     farmId, livestockId, alertType, severity,
-                    buildAlertMessage(pred), "AI", "alert.ai.anomaly",
+                    buildAlertMessage(pred), telemetrySource, "alert.ai.anomaly",
                     java.util.List.of(
                             pred.anomalyType(),
                             String.format("%.3f", pred.anomalyScore()),

@@ -51,6 +51,7 @@ enum AppRoute {
   platformTileAdmin('/admin/tiles', 'platform-tile-admin', '瓦片管理'),
   platformGpsQuality('/admin/gps-quality', 'platform-gps-quality', 'GPS 质量检查'),
   platformTelemetryImport('/admin/telemetry-import', 'platform-telemetry-import', '遥测数据导入'),
+  platformDatagen('/admin/datagen', 'platform-datagen', '仿真控制'),
   offlineTileManagement('/offline/tiles', 'offline-tile-management', '离线地图管理'),
   fenceConflict('/fence/conflict', 'fence-conflict', '围栏冲突');
 

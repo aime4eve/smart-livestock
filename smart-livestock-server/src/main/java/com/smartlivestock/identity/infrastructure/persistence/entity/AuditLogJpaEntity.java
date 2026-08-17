@@ -25,6 +25,12 @@ public class AuditLogJpaEntity {
     @Column(name = "user_id")
     private Long userId;
 
+    @Column(name = "farm_id")
+    private Long farmId;
+
+    @Column(name = "operator_role", length = 20)
+    private String operatorRole;
+
     @Column(name = "action", nullable = false, length = 50)
     private String action;
 
@@ -51,6 +57,10 @@ public class AuditLogJpaEntity {
     public void setTenantId(Long tenantId) { this.tenantId = tenantId; }
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
+    public Long getFarmId() { return farmId; }
+    public void setFarmId(Long farmId) { this.farmId = farmId; }
+    public String getOperatorRole() { return operatorRole; }
+    public void setOperatorRole(String operatorRole) { this.operatorRole = operatorRole; }
     public String getAction() { return action; }
     public void setAction(String action) { this.action = action; }
     public Map<String, Object> getDetails() { return details; }

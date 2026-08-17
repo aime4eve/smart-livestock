@@ -39,8 +39,16 @@ public class SynthesisService {
     private final ConcurrentHashMap<Long, SynthesisState> states = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Long, Instant> nextDueByDevice = new ConcurrentHashMap<>();
 
+    public void clearDeviceSchedules(Collection<Long> deviceIds) {
+        if (deviceIds == null || deviceIds.isEmpty()) return;
+        for (Long deviceId : deviceIds) {
+            nextDueByDevice.remove(deviceId);
+        }
+    }
+
     public void generate(SynthesisScenario scenario) {
-        List<ActiveInstallationInfo> installations = deviceQueryPort.findActiveInstallations();
+        List<ActiveInstallationInfo> installations =
+                deviceQueryPort.findActiveInstallationsByScenario(scenario.getId());
         if (installations.isEmpty()) return;
 
         Instant now = Instant.now();

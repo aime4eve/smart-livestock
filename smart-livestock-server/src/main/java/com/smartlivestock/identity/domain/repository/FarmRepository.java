@@ -8,6 +8,7 @@ import java.util.Optional;
 public interface FarmRepository {
     Farm save(Farm farm);
     Optional<Farm> findById(Long id);
+    List<Farm> findAll();
     List<Farm> findByTenantId(Long tenantId);
     void deleteById(Long id);
 }
