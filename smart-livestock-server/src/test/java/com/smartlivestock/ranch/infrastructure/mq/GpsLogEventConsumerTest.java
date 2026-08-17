@@ -117,6 +117,7 @@ class GpsLogEventConsumerTest {
         Fence fence = fenceRepository.findByFarmId(1L).get(0);
         when(fence.contains(any(GpsCoordinate.class))).thenReturn(false);
         when(fence.getId()).thenReturn(1L);
+        when(fence.getName()).thenReturn("HKT");
 
         when(fenceBreachDetector.findBreachedFences(any(), any(GpsCoordinate.class)))
                 .thenReturn(List.of(fence));
@@ -136,6 +137,8 @@ class GpsLogEventConsumerTest {
 
         assertEquals(AlertStatus.ACTIVE, saved.get().getStatus());
         assertEquals(AlertType.FENCE_APPROACH, saved.get().getType());
+        assertEquals("alert.fence.approach", saved.get().getMessageKey());
+        org.junit.jupiter.api.Assertions.assertTrue(saved.get().getMessageArgs().contains("C001"));
         verify(alertRepository, org.mockito.Mockito.times(1))
                 .findByLivestockIdAndTypeAndStatus(10L, AlertType.FENCE_APPROACH, AlertStatus.ACTIVE);
     }

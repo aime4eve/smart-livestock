@@ -1,6 +1,7 @@
 package com.smartlivestock.ranch.application.service;
 
 import com.smartlivestock.ranch.application.RanchOverviewApplicationService;
+import com.smartlivestock.ranch.application.service.AlertMessageLocalizer;
 import com.smartlivestock.ranch.application.dto.RanchOverviewDto.RanchOverviewResponse;
 import com.smartlivestock.ranch.domain.model.*;
 import com.smartlivestock.ranch.domain.port.HealthQueryPort;
@@ -43,6 +44,7 @@ class RanchOverviewApplicationServiceTest {
     @Mock private IdentityQueryPort identityQueryPort;
     @Mock private SpringDataAlertReadStatusRepository readStatusRepository;
     @Mock private FenceZoneRepository fenceZoneRepository;
+    @Mock private AlertMessageLocalizer alertMessageLocalizer;
 
     @InjectMocks
     private RanchOverviewApplicationService service;

@@ -21,6 +21,8 @@ public final class AlertMapper {
         jpa.setStatus(alert.getStatus().name());
         jpa.setSeverity(alert.getSeverity().name());
         jpa.setMessage(alert.getMessage());
+        jpa.setMessageKey(alert.getMessageKey());
+        jpa.setMessageArgs(alert.getMessageArgs());
         jpa.setResolvedType(alert.getResolvedType());
         jpa.setResolvedAt(alert.getResolvedAt());
         // Legacy compatibility
@@ -41,6 +43,8 @@ public final class AlertMapper {
         jpa.setStatus(alert.getStatus().name());
         jpa.setSeverity(alert.getSeverity().name());
         jpa.setMessage(alert.getMessage());
+        jpa.setMessageKey(alert.getMessageKey());
+        jpa.setMessageArgs(alert.getMessageArgs());
         jpa.setResolvedType(alert.getResolvedType());
         jpa.setResolvedAt(alert.getResolvedAt());
         // Legacy compatibility
@@ -62,6 +66,8 @@ public final class AlertMapper {
         alert.setStatus(AlertStatus.valueOf(jpa.getStatus()));
         alert.setSeverity(Severity.valueOf(jpa.getSeverity()));
         alert.setMessage(jpa.getMessage());
+        alert.setMessageKey(jpa.getMessageKey());
+        alert.setMessageArgs(jpa.getMessageArgs());
         alert.reconstituteResolved(jpa.getResolvedType(), jpa.getResolvedAt());
         alert.reconstituteAcknowledgement(jpa.getAcknowledgedBy(), jpa.getAcknowledgedAt());
         alert.reconstituteHandled(jpa.getHandledBy(), jpa.getHandledAt());

@@ -7,6 +7,7 @@ import com.smartlivestock.iot.domain.model.DeviceTelemetryLog;
 import com.smartlivestock.iot.domain.model.DeviceType;
 import com.smartlivestock.iot.domain.model.Installation;
 import com.smartlivestock.iot.domain.model.TelemetrySource;
+import com.smartlivestock.ranch.domain.model.Alert;
 import com.smartlivestock.iot.domain.port.RanchQueryPort;
 import com.smartlivestock.iot.domain.port.dto.LivestockInfo;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
@@ -48,7 +49,8 @@ class TelemetryIngestionServiceTest {
     void setUp() {
         service = new TelemetryIngestionService(
                 deviceRepository, deviceTelemetryLogRepository, installationRepository,
-                ranchQueryPort, gpsLogApplicationService, alertRepository, eventPublisher);
+                ranchQueryPort, gpsLogApplicationService, alertRepository, eventPublisher,
+                new com.fasterxml.jackson.databind.ObjectMapper());
     }
 
     private Device createCapsuleDevice(Long id) {
@@ -216,6 +218,7 @@ class TelemetryIngestionServiceTest {
     @Test
     void ingest_manualImport_skipsRuntimeSnapshot_logsHistoricalValues() {
         Device device = createTrackerDevice(7L);
+        device.setDeviceCode("TRK-7");
         device.setBatteryLevel(50);
         device.setRssi(-70);
         Instant previousOnlineAt = Instant.parse("2026-07-29T00:00:00Z");
@@ -258,6 +261,24 @@ class TelemetryIngestionServiceTest {
                 isNull(), eq(recordedAt), eq(TelemetrySource.MANUAL_IMPORT));
         verifyNoInteractions(alertRepository);
         verify(eventPublisher).publishEvent(any(TelemetryReceivedEvent.class));
+    }
+
+    @Test
+    void ingest_platformDeviceFault_persistsLocalizedMessageKey() {
+        Device device = createTrackerDevice(7L);
+        device.setDeviceCode("TRK-7");
+        device.setTenantId(1L);
+        device.setBatteryLevel(50);
+        when(deviceRepository.findById(7L)).thenReturn(Optional.of(device));
+        when(installationRepository.findActiveByDeviceId(7L)).thenReturn(Optional.empty());
+
+        service.ingest(7L, Map.of("antiDisassemblyStatus", 1),
+                Instant.now(), TelemetrySource.AGENTIC_PLATFORM);
+
+        ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
+        verify(alertRepository).save(alertCaptor.capture());
+        assertEquals("alert.device.tamper", alertCaptor.getValue().getMessageKey());
+        assertTrue(alertCaptor.getValue().getMessageArgs().contains("TRK-7"));
     }
 
     @Test

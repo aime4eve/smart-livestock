@@ -24,6 +24,10 @@ public record AlertDto(
         String source
 ) {
     public static AlertDto from(Alert alert) {
+        return from(alert, alert.getMessage());
+    }
+
+    public static AlertDto from(Alert alert, String message) {
         return new AlertDto(
                 alert.getId(),
                 alert.getFarmId(),
@@ -32,7 +36,7 @@ public record AlertDto(
                 alert.getType().name(),
                 alert.getStatus().name(),
                 alert.getSeverity().name(),
-                alert.getMessage(),
+                message,
                 false, // read status is populated separately via alert_read_status join
                 alert.getResolvedType(),
                 alert.getResolvedAt(),

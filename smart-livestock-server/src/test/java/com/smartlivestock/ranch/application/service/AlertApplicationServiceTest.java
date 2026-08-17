@@ -1,6 +1,7 @@
 package com.smartlivestock.ranch.application.service;
 
 import com.smartlivestock.ranch.application.AlertApplicationService;
+import com.smartlivestock.ranch.application.service.AlertMessageLocalizer;
 import com.smartlivestock.ranch.application.dto.AlertDto;
 import com.smartlivestock.ranch.domain.model.Alert;
 import com.smartlivestock.ranch.domain.model.AlertStatus;
@@ -33,6 +34,8 @@ class AlertApplicationServiceTest {
 
     @Mock
     private SpringDataAlertReadStatusRepository readStatusRepository;
+    @Mock
+    private AlertMessageLocalizer alertMessageLocalizer;
 
     @InjectMocks
     private AlertApplicationService service;

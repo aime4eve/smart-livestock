@@ -116,7 +116,11 @@ public class HealthAnomalyService {
             String severity = pred.anomalyScore() >= 0.85 ? "CRITICAL" : "WARNING";
             ranchCommandPort.createAlert(new AlertInfo(
                     farmId, livestockId, alertType, severity,
-                    buildAlertMessage(pred), "AI"));
+                    buildAlertMessage(pred), "AI", "alert.ai.anomaly",
+                    java.util.List.of(
+                            pred.anomalyType(),
+                            String.format("%.3f", pred.anomalyScore()),
+                            String.valueOf(pred.nEff()))));
         }
 
         // 6. Set dedup key

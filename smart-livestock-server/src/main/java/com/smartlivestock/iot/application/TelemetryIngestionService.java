@@ -18,6 +18,7 @@ import com.smartlivestock.ranch.domain.model.Severity;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -55,6 +56,7 @@ public class TelemetryIngestionService {
     private final GpsLogApplicationService gpsLogApplicationService;
     private final AlertRepository alertRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final ObjectMapper objectMapper;
 
     /**
      * Ingest telemetry data from any source (Phase 3 unified entry point).
@@ -266,22 +268,35 @@ public class TelemetryIngestionService {
         Object antiDis = readings.get("antiDisassemblyStatus");
         if (antiDis != null && toInteger(antiDis) != 0) {
             createDeviceAlertIfNotExists(device, farmId, AlertType.DEVICE_TAMPER, Severity.CRITICAL,
-                    "设备防拆卸告警: " + device.getDeviceCode());
+                    "设备防拆卸告警: " + device.getDeviceCode(),
+                    "alert.device.tamper", List.of(device.getDeviceCode()));
         }
         if (device.getBatteryLevel() != null && device.getBatteryLevel() < 20) {
             createDeviceAlertIfNotExists(device, farmId, AlertType.DEVICE_LOW_BATTERY, Severity.WARNING,
-                    "设备低电量: " + device.getBatteryLevel() + "%");
+                    "设备低电量: " + device.getBatteryLevel() + "%",
+                    "alert.device.lowBattery", List.of(device.getBatteryLevel()));
         }
     }
 
     private void createDeviceAlertIfNotExists(Device device, Long farmId,
-                                               AlertType type, Severity severity, String message) {
+                                               AlertType type, Severity severity, String message,
+                                               String messageKey, List<?> messageArgs) {
         List<Alert> existing = alertRepository.findByDeviceIdAndTypeAndStatus(
                 device.getId(), type, AlertStatus.ACTIVE);
         if (!existing.isEmpty()) return;
 
         Alert alert = new Alert(farmId, null, null, device.getId(), type, severity, message);
+        alert.setMessageKey(messageKey);
+        alert.setMessageArgs(toJson(messageArgs));
         alertRepository.save(alert);
+    }
+
+    private String toJson(List<?> args) {
+        try {
+            return objectMapper.writeValueAsString(args);
+        } catch (Exception e) {
+            return "[]";
+        }
     }
 
     // --- Type conversion helpers ---

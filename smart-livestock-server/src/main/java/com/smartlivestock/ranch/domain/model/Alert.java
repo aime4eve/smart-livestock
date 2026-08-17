@@ -22,6 +22,8 @@ public class Alert extends AggregateRoot {
     private AlertStatus status;
     private Severity severity;
     private String message;
+    private String messageKey;
+    private String messageArgs;
     private String resolvedType;   // "AUTO" / "MANUAL_DISMISS"
     private Instant resolvedAt;
     private String source = "RULE"; // RULE / AI
@@ -159,6 +161,12 @@ public class Alert extends AggregateRoot {
 
     public String getMessage() { return message; }
     public void setMessage(String message) { this.message = message; }
+
+    public String getMessageKey() { return messageKey; }
+    public void setMessageKey(String messageKey) { this.messageKey = messageKey; }
+
+    public String getMessageArgs() { return messageArgs; }
+    public void setMessageArgs(String messageArgs) { this.messageArgs = messageArgs; }
 
     public String getResolvedType() { return resolvedType; }
     public void setResolvedType(String resolvedType) { this.resolvedType = resolvedType; }

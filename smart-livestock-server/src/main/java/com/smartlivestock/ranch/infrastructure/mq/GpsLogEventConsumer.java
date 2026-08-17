@@ -174,11 +174,20 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
         if (hasExistingForFence) return;
 
         String typeLabel = type == AlertType.FENCE_BREACH ? "越出" : "接近";
+        String messageKey = type == AlertType.FENCE_BREACH
+                ? "alert.fence.breach" : "alert.fence.approach";
         String msg = String.format("牲畜 [%s] %s围栏 [%s]，位置: (%s, %s)",
                 livestock.getLivestockCode(), typeLabel, fence.getName(),
                 position.latitude(), position.longitude());
         Alert alert = new Alert(livestock.getFarmId(), livestock.getId(), fence.getId(),
                 type, severity, msg);
+        alert.setMessageKey(messageKey);
+        alert.setMessageArgs(toJson(List.of(
+                livestock.getLivestockCode(),
+                fence.getName(),
+                position.latitude().toPlainString(),
+                position.longitude().toPlainString()
+        )));
         alertRepository.save(alert);
         log.info("Created {} alert for livestock [{}] fence [{}]", type, livestock.getId(), fence.getId());
     }
@@ -197,6 +206,14 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
                 alertRepository.save(alert);
                 log.info("Auto-resolved FENCE_APPROACH [{}] - escalated to FENCE_BREACH", alert.getId());
             }
+        }
+    }
+
+    private String toJson(List<String> args) {
+        try {
+            return objectMapper.writeValueAsString(args);
+        } catch (Exception e) {
+            return "[]";
         }
     }
 }

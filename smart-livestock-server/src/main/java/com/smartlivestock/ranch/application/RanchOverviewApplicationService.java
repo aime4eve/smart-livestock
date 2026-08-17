@@ -2,6 +2,7 @@ package com.smartlivestock.ranch.application;
 
 import com.smartlivestock.ranch.application.dto.RanchOverviewDto;
 import com.smartlivestock.ranch.application.dto.RanchOverviewDto.*;
+import com.smartlivestock.ranch.application.service.AlertMessageLocalizer;
 import com.smartlivestock.ranch.domain.model.Alert;
 import com.smartlivestock.ranch.domain.model.AlertStatus;
 import com.smartlivestock.ranch.domain.model.AlertType;
@@ -22,6 +23,7 @@ import com.smartlivestock.shared.cache.RedisCacheService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,12 +46,14 @@ public class RanchOverviewApplicationService {
     private final FenceZoneRepository fenceZoneRepository;
     private final RedisCacheService redisCacheService;
     private final ObjectMapper objectMapper;
+    private final AlertMessageLocalizer alertMessageLocalizer;
 
 
     @Transactional(readOnly = true)
     public RanchOverviewResponse getOverview(Long farmId, Long userId, Long tenantId) {
         // 0. Short-TTL Redis cache to absorb polling bursts (30s timer) and concurrent viewers.
-        String cacheKey = "ranch:overview:" + farmId + ":" + userId;
+        String cacheKey = "ranch:overview:" + farmId + ":" + userId + ":"
+                + LocaleContextHolder.getLocale().toLanguageTag();
         try {
             String cached = redisCacheService.get(cacheKey);
             if (cached != null) {
@@ -118,7 +122,7 @@ public class RanchOverviewApplicationService {
                         a.getType().name(),
                         a.getSeverity().name(),
                         a.getStatus().name(),
-                        a.getMessage(),
+                        alertMessageLocalizer.localize(a),
                         a.getLivestockId(),
                         a.getFenceId(),
                         null,

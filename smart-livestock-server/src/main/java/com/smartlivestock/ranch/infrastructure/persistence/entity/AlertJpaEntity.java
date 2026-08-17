@@ -43,6 +43,12 @@ public class AlertJpaEntity {
     @Column(name = "message", columnDefinition = "TEXT")
     private String message;
 
+    @Column(name = "message_key", length = 100)
+    private String messageKey;
+
+    @Column(name = "message_args", columnDefinition = "TEXT")
+    private String messageArgs;
+
     @Column(name = "resolved_type", length = 20)
     private String resolvedType;
 
@@ -111,6 +117,12 @@ public class AlertJpaEntity {
 
     public String getMessage() { return message; }
     public void setMessage(String message) { this.message = message; }
+
+    public String getMessageKey() { return messageKey; }
+    public void setMessageKey(String messageKey) { this.messageKey = messageKey; }
+
+    public String getMessageArgs() { return messageArgs; }
+    public void setMessageArgs(String messageArgs) { this.messageArgs = messageArgs; }
 
     public String getResolvedType() { return resolvedType; }
     public void setResolvedType(String resolvedType) { this.resolvedType = resolvedType; }

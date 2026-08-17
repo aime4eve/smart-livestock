@@ -1,5 +1,6 @@
 package com.smartlivestock.health.infrastructure.acl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartlivestock.health.domain.port.RanchCommandPort;
 import com.smartlivestock.health.domain.port.dto.AlertInfo;
 import com.smartlivestock.ranch.application.AlertApplicationService;
@@ -13,9 +14,11 @@ import org.springframework.stereotype.Component;
 public class RanchCommandPortImpl implements RanchCommandPort {
 
     private final AlertRepository alertRepository;
+    private final ObjectMapper objectMapper;
 
-    public RanchCommandPortImpl(AlertRepository alertRepository) {
+    public RanchCommandPortImpl(AlertRepository alertRepository, ObjectMapper objectMapper) {
         this.alertRepository = alertRepository;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -28,6 +31,8 @@ public class RanchCommandPortImpl implements RanchCommandPort {
                 Severity.valueOf(info.severity()),
                info.message());
         alert.setSource(info.source());
+        alert.setMessageKey(info.messageKey());
+        alert.setMessageArgs(toJson(info.messageArgs()));
        alertRepository.save(alert);
     }
 
@@ -40,6 +45,15 @@ public class RanchCommandPortImpl implements RanchCommandPort {
         for (Alert alert : activeAlerts) {
             alert.autoResolve();
             alertRepository.save(alert);
+        }
+    }
+
+    private String toJson(java.util.List<?> args) {
+        if (args == null) return null;
+        try {
+            return objectMapper.writeValueAsString(args);
+        } catch (Exception e) {
+            return null;
         }
     }
 }

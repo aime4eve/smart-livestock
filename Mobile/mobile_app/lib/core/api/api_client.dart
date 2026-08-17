@@ -17,6 +17,7 @@ class ApiClient {
   Future<String?>? _refreshFuture;
 
   String _baseUrl = _resolveBaseUrl();
+  String? _localeHeader;
 
   static String _resolveBaseUrl() {
     const env = String.fromEnvironment('API_BASE_URL');
@@ -43,6 +44,7 @@ class ApiClient {
     final token = await JwtStorage.instance.getAccessToken();
     return {
       'Content-Type': 'application/json',
+      if (_localeHeader != null) 'Accept-Language': _localeHeader!,
       if (token != null) 'Authorization': 'Bearer $token',
     };
   }
@@ -342,8 +344,6 @@ class ApiClient {
   Future<void> logout() async {
     await JwtStorage.instance.clear();
   }
- // TODO: implement locale header injection
-
   /// Upload a file via multipart/form-data POST.
   /// The response is parsed through the standard JSON handler.
   /// Optional [fields] are added as extra multipart form fields.
@@ -381,5 +381,7 @@ class ApiClient {
     return response.bodyBytes;
   }
 
- void setLocale(String? localeHeader) {}
+ void setLocale(String? localeHeader) {
+   _localeHeader = localeHeader;
+ }
 }
