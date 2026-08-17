@@ -103,6 +103,50 @@ class RanchOverviewApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("should count livestock whose current GPS position is inside each fence")
+    void fenceLivestockCount() {
+        setupDefaultMocks();
+        Fence activeFence = new Fence(1L, "东区", List.of(
+                new GpsCoordinate("28.0", "112.0"),
+                new GpsCoordinate("28.1", "112.0"),
+                new GpsCoordinate("28.1", "112.1"),
+                new GpsCoordinate("28.0", "112.1")
+        ), "#4CAF50");
+        activeFence.setId(10L);
+
+        Fence inactiveFence = new Fence(1L, "西区", List.of(
+                new GpsCoordinate("29.0", "113.0"),
+                new GpsCoordinate("29.1", "113.0"),
+                new GpsCoordinate("29.1", "113.1"),
+                new GpsCoordinate("29.0", "113.1")
+        ), "#FF5722");
+        inactiveFence.setId(11L);
+        inactiveFence.disable();
+
+        Livestock inside = new Livestock(1L, "SL-001", "Holstein", "F", null, null);
+        inside.setId(1L);
+        inside.updatePosition(new BigDecimal("28.05"), new BigDecimal("112.05"));
+
+        Livestock outside = new Livestock(1L, "SL-002", "Holstein", "F", null, null);
+        outside.setId(2L);
+        outside.updatePosition(new BigDecimal("28.2"), new BigDecimal("112.05"));
+
+        Livestock withoutGps = new Livestock(1L, "SL-003", "Holstein", "F", null, null);
+        withoutGps.setId(3L);
+
+        when(fenceRepository.findByFarmId(1L)).thenReturn(List.of(activeFence, inactiveFence));
+        when(fenceZoneRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
+        when(livestockRepository.findByFarmId(1L)).thenReturn(List.of(inside, outside, withoutGps));
+        when(alertRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
+        when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(Collections.emptyList());
+
+        RanchOverviewResponse response = service.getOverview(1L, 1L, 1L);
+
+        assertThat(response.fences().get(0).livestockCount()).isEqualTo(1);
+        assertThat(response.fences().get(1).livestockCount()).isZero();
+    }
+
+    @Test
     @DisplayName("should return livestock markers with WARNING health status for FEVER")
     void livestockWithWarningHealth() {
         setupDefaultMocks();

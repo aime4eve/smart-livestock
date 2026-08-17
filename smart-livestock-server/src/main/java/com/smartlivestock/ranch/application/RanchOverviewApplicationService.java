@@ -59,7 +59,10 @@ public class RanchOverviewApplicationService {
             // Cache miss or deserialization error — fall through to DB query
         }
 
-        // 1. Fences
+        // 1. Livestock with health + GPS
+        List<Livestock> livestockList = livestockRepository.findByFarmId(farmId);
+
+        // 2. Fences
         List<Fence> fences = fenceRepository.findByFarmId(farmId);
         List<FenceData> fenceDataList = fences.stream()
                 .map(f -> new FenceData(
@@ -70,13 +73,11 @@ public class RanchOverviewApplicationService {
                         f.getColor(),
                         f.getVertices(),
                         0.0,
-                        0,
+                        countLivestockInFence(livestockList, f),
                         f.getVersion()
                 ))
                 .toList();
 
-        // 2. Livestock with health + GPS
-        List<Livestock> livestockList = livestockRepository.findByFarmId(farmId);
         List<LivestockHealthState> healthStates = healthQueryPort.findHealthByFarmId(farmId);
         Map<Long, LivestockHealthState> healthMap = healthStates.stream()
                 .collect(Collectors.toMap(LivestockHealthState::livestockId, h -> h, (a, b) -> a));
@@ -225,6 +226,16 @@ public class RanchOverviewApplicationService {
                 .count();
 
         return (double) inFence / withGps;
+    }
+
+    private int countLivestockInFence(List<Livestock> livestockList, Fence fence) {
+        if (!fence.isActive()) return 0;
+
+        return (int) livestockList.stream()
+                .filter(l -> l.getLastLatitude() != null && l.getLastLongitude() != null)
+                .filter(l -> fence.contains(
+                        new GpsCoordinate(l.getLastLatitude(), l.getLastLongitude())))
+                .count();
     }
 
     /**
