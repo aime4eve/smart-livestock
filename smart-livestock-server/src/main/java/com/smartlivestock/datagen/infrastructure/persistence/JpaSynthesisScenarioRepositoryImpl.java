@@ -18,7 +18,9 @@ public class JpaSynthesisScenarioRepositoryImpl implements SynthesisScenarioRepo
 
     @Override
     public SynthesisScenario save(SynthesisScenario scenario) {
-        SynthesisScenarioJpaEntity entity = SynthesisScenarioMapper.toEntity(scenario);
+        SynthesisScenarioJpaEntity existing = scenario.getId() == null
+                ? null : jpaRepository.findById(scenario.getId()).orElse(null);
+        SynthesisScenarioJpaEntity entity = SynthesisScenarioMapper.toEntity(scenario, existing);
         entity = jpaRepository.save(entity);
         return SynthesisScenarioMapper.toDomain(entity);
     }

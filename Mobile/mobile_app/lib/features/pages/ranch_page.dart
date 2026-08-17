@@ -37,7 +37,8 @@ class _RanchPageState extends ConsumerState<RanchPage>
   final _mapController = MapController();
   SmartTileProvider? _tileProvider;
   String? _selectedFenceId;
- int _sheetTab = 0; // 0=overview, 1=fence, 2=alerts
+  String? _centeredFarmId;
+  int _sheetTab = 0; // 0=overview, 1=fence, 2=alerts
 
  int _sheetSnap = 1; // 0=peek(tabs only), 1=half(40%), 2=full(85%)
  late final AnimationController _breathingController;
@@ -78,6 +79,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
     final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(ranchControllerProvider);
     final farmName = ref.watch(farmSwitcherControllerProvider).activeFarmName;
+    final activeFarmId = ref.watch(farmSwitcherControllerProvider).activeFarmId;
     final role = ref.watch(sessionControllerProvider).role;
 
     return Scaffold(
@@ -90,16 +92,18 @@ class _RanchPageState extends ConsumerState<RanchPage>
         ],
       ),
       body: asyncData.when(
-        data: (overview) => _buildMapWithSheet(context, overview, role),
+        data: (overview) => _buildMapWithSheet(context, overview, role, activeFarmId),
          loading: () => _buildSkeletonMap(context),
         error: (e, _) => _buildError(context, e.toString()),
       ),
     );
   }
 
-  Widget _buildMapWithSheet(BuildContext context, RanchOverview overview, dynamic role) {
+  Widget _buildMapWithSheet(
+      BuildContext context, RanchOverview overview, dynamic role, String? activeFarmId) {
     final canManage = role != null && RolePermission.canEditFence(role);
     final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
+    _centerOnFirstFenceOnce(overview, activeFarmId, shouldTransform);
 
     if (_selectedFenceId != null) {
       if (!_breathingController.isAnimating) _breathingController.repeat(reverse: true);
@@ -516,6 +520,32 @@ class _RanchPageState extends ConsumerState<RanchPage>
       lng += p.longitude;
     }
     return LatLng(lat / points.length, lng / points.length);
+  }
+
+  void _centerOnFirstFenceOnce(
+      RanchOverview overview, String? farmId, bool shouldTransform) {
+    final farmKey = farmId ?? '';
+    if (_centeredFarmId == farmKey) return;
+    if (_tileProvider == null) return;
+
+    List<LatLng>? points;
+    for (final fence in overview.fences) {
+      if (fence.points.isNotEmpty) {
+        points = fence.points;
+        break;
+      }
+    }
+    if (points == null) return;
+
+    _centeredFarmId = farmKey;
+    final center = _fenceCenter(
+      shouldTransform ? CoordTransform.wgs84ToGcj02All(points) : points,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _centeredFarmId == farmKey) {
+        _mapController.move(center, MapConstants.defaultZoom);
+      }
+    });
   }
 
   /// Skeleton map shown while ranch data loads — shows map background immediately

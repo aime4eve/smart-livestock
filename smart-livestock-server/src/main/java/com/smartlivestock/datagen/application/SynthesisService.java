@@ -1,6 +1,8 @@
 package com.smartlivestock.datagen.application;
 
 import com.smartlivestock.datagen.domain.model.*;
+import com.smartlivestock.iot.domain.model.DeviceType;
+import com.smartlivestock.iot.domain.model.TelemetrySource;
 import com.smartlivestock.datagen.domain.port.DeviceQueryPort;
 import com.smartlivestock.datagen.domain.port.FenceQueryPort;
 import com.smartlivestock.datagen.domain.port.TelemetryIngestionPort;
@@ -44,11 +46,15 @@ public class SynthesisService {
         Set<Long> targets = selectTargetsIfNeeded(installations, scenario, now);
 
         for (ActiveInstallationInfo inst : installations) {
+            PrimaryFence primaryFence = primaryFenceFor(inst);
             SynthesisState state = states.computeIfAbsent(
                     inst.livestockId(), id -> SynthesisState.create(id, inst));
+            if (inst.deviceType() == DeviceType.TRACKER && primaryFence != null) {
+                constrainInitialState(state, primaryFence);
+            }
 
             // Layer 1: baseline data (all categories)
-            Map<String, Object> readings = generateBaseline(inst, state, now);
+            Map<String, Object> readings = generateBaseline(inst, state, now, primaryFence);
 
             // Layer 2: category-specific overlay
            switch (scenario.getType().getCategory()) {
@@ -59,7 +65,7 @@ public class SynthesisService {
            }
 
             try {
-                ingestionPort.ingest(inst.deviceId(), readings, now);
+                ingestionPort.ingest(inst.deviceId(), readings, now, TelemetrySource.DATAGEN);
             } catch (Exception e) {
                 log.warn("Failed to ingest for device [{}]: {}", inst.deviceId(), e.getMessage());
             }
@@ -227,15 +233,17 @@ public class SynthesisService {
 
     // --- Baseline generation (shared by all categories) ---
 
-    private Map<String, Object> generateBaseline(ActiveInstallationInfo inst, SynthesisState state, Instant now) {
+    private Map<String, Object> generateBaseline(
+            ActiveInstallationInfo inst, SynthesisState state, Instant now, PrimaryFence primaryFence) {
         return switch (inst.deviceType()) {
-            case TRACKER -> generateTrackerBaseline(state, now);
+            case TRACKER -> generateTrackerBaseline(state, now, primaryFence);
             case CAPSULE -> generateCapsuleBaseline(state, now);
             default -> Map.of();
         };
     }
 
-    private Map<String, Object> generateTrackerBaseline(SynthesisState state, Instant now) {
+    private Map<String, Object> generateTrackerBaseline(
+            SynthesisState state, Instant now, PrimaryFence primaryFence) {
         Map<String, Object> readings = new HashMap<>();
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         int hour = now.atZone(ZoneId.of("Asia/Shanghai")).getHour();
@@ -250,8 +258,12 @@ public class SynthesisService {
 
         double step = rng.nextDouble(0.0002, 0.0005);
         double bearing = rng.nextDouble(0, 2 * Math.PI);
-        state.currentLat += step * Math.sin(bearing);
-        state.currentLng += step * Math.cos(bearing);
+        double nextLat = state.currentLat + step * Math.sin(bearing);
+        double nextLng = state.currentLng + step * Math.cos(bearing);
+        if (primaryFence == null || containsPoint(primaryFence, nextLat, nextLng)) {
+            state.currentLat = nextLat;
+            state.currentLng = nextLng;
+        }
         readings.put("latitude", state.currentLat);
         readings.put("longitude", state.currentLng);
 
@@ -263,6 +275,45 @@ public class SynthesisService {
         readings.put("activityIndex", round(hourFactor * rng.nextDouble(30, 80), 1));
         return readings;
     }
+
+    private PrimaryFence primaryFenceFor(ActiveInstallationInfo inst) {
+        if (inst.deviceType() != DeviceType.TRACKER) return null;
+        return fenceQueryPort.findActiveFencesByLivestockId(inst.livestockId()).stream()
+                .filter(fence -> fence.vertices() != null && fence.vertices().size() >= 3)
+                .findFirst()
+                .map(fence -> new PrimaryFence(fence.vertices()))
+                .orElse(null);
+    }
+
+    private void constrainInitialState(SynthesisState state, PrimaryFence fence) {
+        if (containsPoint(fence, state.currentLat, state.currentLng)) return;
+
+        double lat = 0;
+        double lng = 0;
+        for (CoordinateInfo vertex : fence.vertices()) {
+            lat += vertex.latitude();
+            lng += vertex.longitude();
+        }
+        state.currentLat = lat / fence.vertices().size();
+        state.currentLng = lng / fence.vertices().size();
+    }
+
+    private boolean containsPoint(PrimaryFence fence, double latitude, double longitude) {
+        List<CoordinateInfo> vertices = fence.vertices();
+        boolean inside = false;
+        for (int i = 0, j = vertices.size() - 1; i < vertices.size(); j = i++) {
+            double yi = vertices.get(i).latitude();
+            double xi = vertices.get(i).longitude();
+            double yj = vertices.get(j).latitude();
+            double xj = vertices.get(j).longitude();
+            boolean intersects = ((yi > latitude) != (yj > latitude))
+                    && (longitude < (xj - xi) * (latitude - yi) / (yj - yi) + xi);
+            if (intersects) inside = !inside;
+        }
+        return inside;
+    }
+
+    private record PrimaryFence(List<CoordinateInfo> vertices) {}
 
     private Map<String, Object> generateCapsuleBaseline(SynthesisState state, Instant now) {
         Map<String, Object> readings = new HashMap<>();

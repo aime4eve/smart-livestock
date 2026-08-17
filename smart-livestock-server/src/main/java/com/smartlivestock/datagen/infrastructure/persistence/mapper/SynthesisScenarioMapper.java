@@ -24,7 +24,11 @@ public class SynthesisScenarioMapper {
     }
 
     public static SynthesisScenarioJpaEntity toEntity(SynthesisScenario s) {
-        SynthesisScenarioJpaEntity e = new SynthesisScenarioJpaEntity();
+        return toEntity(s, null);
+    }
+
+    public static SynthesisScenarioJpaEntity toEntity(SynthesisScenario s, SynthesisScenarioJpaEntity existing) {
+        SynthesisScenarioJpaEntity e = existing != null ? existing : new SynthesisScenarioJpaEntity();
         e.setId(s.getId());
         e.setName(s.getName());
         e.setStatus(s.getStatus().name());
