@@ -102,6 +102,7 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
             // Point is outside ALL active fences → detect breach or approach
             List<Fence> breachedFences = fenceBreachDetector.findBreachedFences(fences, position);
             List<Fence> approachingFences = fenceBreachDetector.findApproachingFences(fences, position);
+            List<Fence> fullyBreachedFences = new java.util.ArrayList<>();
 
             if (!breachedFences.isEmpty()) {
                 // Livestock is outside fence boundary
@@ -114,11 +115,13 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
                     } else {
                         // Fully outside fence and buffer → FENCE_BREACH
                         createAlertIfNeeded(livestock, fence, AlertType.FENCE_BREACH, Severity.CRITICAL, position);
+                        fullyBreachedFences.add(fence);
                     }
                 }
-                // Auto-resolve any opposite type alerts for same fence
-                // (e.g. if now breaching, resolve old approach alert)
-                autoResolveOppositeTypeAlerts(livestockId, breachedFences);
+                if (!fullyBreachedFences.isEmpty()) {
+                    // Only escalation to FENCE_BREACH supersedes FENCE_APPROACH.
+                    autoResolveOppositeTypeAlerts(livestockId, fullyBreachedFences);
+                }
             } else {
                 // Only approaching (in buffer zone but still "outside" fence in the contains check)
                 // This case shouldn't normally happen since approaching = inBuffer && !inFence,

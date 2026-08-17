@@ -1,6 +1,9 @@
 package com.smartlivestock.ranch.infrastructure.mq;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.smartlivestock.ranch.domain.model.Alert;
+import com.smartlivestock.ranch.domain.model.AlertStatus;
+import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.model.Fence;
 import com.smartlivestock.ranch.domain.model.GpsCoordinate;
 import com.smartlivestock.ranch.domain.model.Livestock;
@@ -18,8 +21,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -59,12 +65,13 @@ class GpsLogEventConsumerTest {
         InstallationInfo installation = new InstallationInfo(1L, 7L, 10L);
         when(ioTQueryPort.findActiveInstallation(7L)).thenReturn(Optional.of(installation));
         Livestock livestock = org.mockito.Mockito.mock(Livestock.class);
+        lenient().when(livestock.getId()).thenReturn(10L);
         when(livestock.getFarmId()).thenReturn(1L);
         lenient().when(livestock.getLivestockCode()).thenReturn("C001");
         when(livestockRepository.findById(10L)).thenReturn(Optional.of(livestock));
         Fence fence = org.mockito.Mockito.mock(Fence.class);
         when(fence.isActive()).thenReturn(true);
-        when(fence.contains(any(GpsCoordinate.class))).thenReturn(true);
+        lenient().when(fence.contains(any(GpsCoordinate.class))).thenReturn(true);
         when(fenceRepository.findByFarmId(1L)).thenReturn(List.of(fence));
     }
 
@@ -102,5 +109,34 @@ class GpsLogEventConsumerTest {
 
         verify(livestockRepository, never()).save(any());
         verify(alertRepository, never()).save(any());
+    }
+
+    @Test
+    void onMessage_approachAlert_staysActiveUntilLivestockReturnsOrEscalates() {
+        stubLivestockInsideFence();
+        Fence fence = fenceRepository.findByFarmId(1L).get(0);
+        when(fence.contains(any(GpsCoordinate.class))).thenReturn(false);
+        when(fence.getId()).thenReturn(1L);
+
+        when(fenceBreachDetector.findBreachedFences(any(), any(GpsCoordinate.class)))
+                .thenReturn(List.of(fence));
+        when(fenceBreachDetector.isApproaching(eq(fence), any(GpsCoordinate.class)))
+                .thenReturn(true);
+
+        AtomicReference<Alert> saved = new AtomicReference<>();
+        when(alertRepository.findByLivestockIdAndTypeAndStatus(
+                10L, AlertType.FENCE_APPROACH, AlertStatus.ACTIVE))
+                .thenReturn(List.of());
+        when(alertRepository.save(any(Alert.class))).thenAnswer(invocation -> {
+            saved.set(invocation.getArgument(0));
+            return saved.get();
+        });
+
+        consumer.onMessage(message("DATAGEN"));
+
+        assertEquals(AlertStatus.ACTIVE, saved.get().getStatus());
+        assertEquals(AlertType.FENCE_APPROACH, saved.get().getType());
+        verify(alertRepository, org.mockito.Mockito.times(1))
+                .findByLivestockIdAndTypeAndStatus(10L, AlertType.FENCE_APPROACH, AlertStatus.ACTIVE);
     }
 }
