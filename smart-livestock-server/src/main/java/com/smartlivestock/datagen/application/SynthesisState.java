@@ -10,6 +10,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 class SynthesisState {
+    enum DemoHealthEvent { NONE, FEVER, MOTILITY_DROP }
+
     double tempBaselineOffset;
     long motilityBaseline;
     int batteryLevel;
@@ -19,6 +21,12 @@ class SynthesisState {
     ScenarioType activeType;
     Instant eventStart;
     Instant eventEnd;
+    Instant fenceExcursionStart;
+    Instant fenceExcursionEnd;
+    DemoHealthEvent demoHealthEvent = DemoHealthEvent.NONE;
+    Instant demoHealthEventStart;
+    Instant demoHealthEventEnd;
+    boolean trackerPositionInitialized;
 
     private SynthesisState() {}
 
@@ -52,5 +60,18 @@ class SynthesisState {
         long total = Duration.between(eventStart, eventEnd).getSeconds();
         long elapsed = Duration.between(eventStart, now).getSeconds();
         return total > 0 ? Math.min(1.0, (double) elapsed / total) : 0;
+    }
+
+    boolean isOnFenceExcursion(Instant now) {
+        return fenceExcursionStart != null && now.isAfter(fenceExcursionStart)
+                && now.isBefore(fenceExcursionEnd);
+    }
+
+    double demoHealthEventProgress(Instant now) {
+        if (demoHealthEvent == DemoHealthEvent.NONE || demoHealthEventStart == null) return 0;
+        long total = Duration.between(demoHealthEventStart, demoHealthEventEnd).getSeconds();
+        long elapsed = Duration.between(demoHealthEventStart, now).getSeconds();
+        if (total <= 0 || elapsed < 0) return 0;
+        return Math.min(1.0, (double) elapsed / total);
     }
 }

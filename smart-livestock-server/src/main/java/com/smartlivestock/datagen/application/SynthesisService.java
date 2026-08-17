@@ -27,6 +27,8 @@ import java.util.concurrent.ThreadLocalRandom;
 @RequiredArgsConstructor
 @Slf4j
 public class SynthesisService {
+    static final Duration TRACKER_INTERVAL = Duration.ofMinutes(5);
+    static final Duration CAPSULE_INTERVAL = Duration.ofMinutes(15);
 
     private final TelemetryIngestionPort ingestionPort;
     private final DeviceQueryPort deviceQueryPort;
@@ -35,6 +37,7 @@ public class SynthesisService {
     private final GroundTruthLabelService labelService;
 
     private final ConcurrentHashMap<Long, SynthesisState> states = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, Instant> nextDueByDevice = new ConcurrentHashMap<>();
 
     public void generate(SynthesisScenario scenario) {
         List<ActiveInstallationInfo> installations = deviceQueryPort.findActiveInstallations();
@@ -46,11 +49,16 @@ public class SynthesisService {
         Set<Long> targets = selectTargetsIfNeeded(installations, scenario, now);
 
         for (ActiveInstallationInfo inst : installations) {
+            if (!isDue(inst, now)) continue;
+
             PrimaryFence primaryFence = primaryFenceFor(inst);
             SynthesisState state = states.computeIfAbsent(
                     inst.livestockId(), id -> SynthesisState.create(id, inst));
-            if (inst.deviceType() == DeviceType.TRACKER && primaryFence != null) {
+            if (!state.trackerPositionInitialized
+                    && inst.deviceType() == DeviceType.TRACKER
+                    && primaryFence != null) {
                 constrainInitialState(state, primaryFence);
+                state.trackerPositionInitialized = true;
             }
 
             // Layer 1: baseline data (all categories)
@@ -70,6 +78,23 @@ public class SynthesisService {
                 log.warn("Failed to ingest for device [{}]: {}", inst.deviceId(), e.getMessage());
             }
         }
+    }
+
+    private boolean isDue(ActiveInstallationInfo inst, Instant now) {
+        Duration interval = switch (inst.deviceType()) {
+            case TRACKER -> TRACKER_INTERVAL;
+            case CAPSULE -> CAPSULE_INTERVAL;
+            default -> null;
+        };
+        if (interval == null) return false;
+
+        Instant due = nextDueByDevice.get(inst.deviceId());
+        if (due != null && now.isBefore(due)) return false;
+
+        // Set the next due time before ingestion so a failed row is retried only
+        // at the next normal sampling interval, matching real device behavior.
+        nextDueByDevice.put(inst.deviceId(), now.plus(interval));
+        return true;
     }
 
     // --- Target selection ---
@@ -249,21 +274,14 @@ public class SynthesisService {
         int hour = now.atZone(ZoneId.of("Asia/Shanghai")).getHour();
         double hourFactor = (hour >= 6 && hour <= 20) ? 1.0 : 0.2;
 
-        int baseSteps = (hour >= 6 && hour <= 20) ? rng.nextInt(800, 2501) : rng.nextInt(50, 301);
+        int baseSteps = (hour >= 6 && hour <= 20) ? rng.nextInt(60, 241) : rng.nextInt(10, 81);
         readings.put("stepCount", Math.min(baseSteps, 65535));
         readings.put("distanceMeters", round(baseSteps * rng.nextDouble(0.3, 0.6), 1));
         readings.put("accelX", rng.nextInt(-2000, 2001));
         readings.put("accelY", rng.nextInt(-2000, 2001));
         readings.put("accelZ", rng.nextInt(-2000, 2001));
 
-        double step = rng.nextDouble(0.0002, 0.0005);
-        double bearing = rng.nextDouble(0, 2 * Math.PI);
-        double nextLat = state.currentLat + step * Math.sin(bearing);
-        double nextLng = state.currentLng + step * Math.cos(bearing);
-        if (primaryFence == null || containsPoint(primaryFence, nextLat, nextLng)) {
-            state.currentLat = nextLat;
-            state.currentLng = nextLng;
-        }
+        moveTracker(state, now, primaryFence);
         readings.put("latitude", state.currentLat);
         readings.put("longitude", state.currentLng);
 
@@ -315,21 +333,123 @@ public class SynthesisService {
 
     private record PrimaryFence(List<CoordinateInfo> vertices) {}
 
+    private void moveTracker(SynthesisState state, Instant now, PrimaryFence fence) {
+        ThreadLocalRandom rng = ThreadLocalRandom.current();
+
+        if (fence == null) {
+            moveByStep(state, rng);
+            return;
+        }
+
+        expireFenceExcursion(state, now);
+        boolean excursionActive = state.isOnFenceExcursion(now);
+        if (!excursionActive
+                && state.fenceExcursionStart == null
+                && rng.nextDouble() < 0.02) {
+            state.fenceExcursionStart = now;
+            state.fenceExcursionEnd = now.plus(Duration.ofMinutes(rng.nextInt(10, 31)));
+            excursionActive = true;
+        }
+
+        // During an excursion prefer points outside; after it ends prefer a small
+        // continuous walk back inside instead of snapping to the fence center.
+        boolean preferOutside = excursionActive;
+        double[] fallback = null;
+        double centerLat = averageLatitude(fence.vertices());
+        double centerLng = averageLongitude(fence.vertices());
+        for (int attempt = 0; attempt < 12; attempt++) {
+            double[] candidate = candidateStep(state, rng);
+            if (containsPoint(fence, candidate[0], candidate[1]) != preferOutside) continue;
+            state.currentLat = candidate[0];
+            state.currentLng = candidate[1];
+            return;
+        }
+
+        if (!preferOutside) {
+            fallback = fallbackTowardCenter(state, fence, centerLat, centerLng, rng);
+            if (fallback != null) {
+                state.currentLat = fallback[0];
+                state.currentLng = fallback[1];
+            }
+        }
+    }
+
+    private void expireFenceExcursion(SynthesisState state, Instant now) {
+        if (state.fenceExcursionEnd != null && !now.isBefore(state.fenceExcursionEnd)) {
+            state.fenceExcursionStart = null;
+            state.fenceExcursionEnd = null;
+        }
+    }
+
+    private void moveByStep(SynthesisState state, ThreadLocalRandom rng) {
+        double[] next = candidateStep(state, rng);
+        state.currentLat = next[0];
+        state.currentLng = next[1];
+    }
+
+    private double[] candidateStep(SynthesisState state, ThreadLocalRandom rng) {
+        double meters = rng.nextDouble(10, 40);
+        double bearing = rng.nextDouble(0, 2 * Math.PI);
+        double latitudeStep = meters / 111_000d;
+        double longitudeStep = meters
+                / (111_000d * Math.max(0.1, Math.cos(Math.toRadians(state.currentLat))));
+        return new double[]{
+                state.currentLat + latitudeStep * Math.sin(bearing),
+                state.currentLng + longitudeStep * Math.cos(bearing)
+        };
+    }
+
+    private double[] fallbackTowardCenter(
+            SynthesisState state, PrimaryFence fence,
+            double centerLat, double centerLng, ThreadLocalRandom rng) {
+        double latDeltaMeters = (centerLat - state.currentLat) * 111_000d;
+        double lngDeltaMeters = (centerLng - state.currentLng)
+                * 111_000d * Math.cos(Math.toRadians(state.currentLat));
+        double centerDistance = Math.hypot(latDeltaMeters, lngDeltaMeters);
+
+        double stepMeters = rng.nextDouble(10, 20);
+        double bearing;
+        if (centerDistance > 1) {
+            bearing = Math.atan2(latDeltaMeters, lngDeltaMeters);
+            stepMeters = Math.min(stepMeters, centerDistance * 0.8);
+        } else {
+            bearing = rng.nextDouble(0, 2 * Math.PI);
+        }
+
+        double latitudeStep = stepMeters * Math.sin(bearing) / 111_000d;
+        double longitudeStep = stepMeters * Math.cos(bearing)
+                / (111_000d * Math.max(0.1, Math.cos(Math.toRadians(state.currentLat))));
+        double[] candidate = {state.currentLat + latitudeStep, state.currentLng + longitudeStep};
+        return containsPoint(fence, candidate[0], candidate[1]) ? candidate : null;
+    }
+
+    private double averageLatitude(List<CoordinateInfo> vertices) {
+        return vertices.stream().mapToDouble(CoordinateInfo::latitude).average().orElse(0);
+    }
+
+    private double averageLongitude(List<CoordinateInfo> vertices) {
+        return vertices.stream().mapToDouble(CoordinateInfo::longitude).average().orElse(0);
+    }
+
     private Map<String, Object> generateCapsuleBaseline(SynthesisState state, Instant now) {
         Map<String, Object> readings = new HashMap<>();
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         int hour = now.atZone(ZoneId.of("Asia/Shanghai")).getHour();
         double hourFactor = (hour >= 6 && hour <= 20) ? 1.0 : 0.2;
 
+        updateDemoHealthEvent(state, now);
         List<BigDecimal> temperatures = new ArrayList<>();
         double baseTemp = 38.5 + state.tempBaselineOffset;
         for (int i = 0; i < 7; i++) {
-            double temp = baseTemp + rng.nextDouble(-0.15, 0.15);
+            Instant pointTime = now.minus(Duration.ofMinutes(5L * (6 - i)));
+            double temp = baseTemp + demoTemperatureDelta(state, pointTime)
+                    + rng.nextDouble(-0.12, 0.12);
             temperatures.add(BigDecimal.valueOf(round(temp, 2)));
         }
         readings.put("temperatures", temperatures);
 
-        long motility = state.motilityBaseline + rng.nextLong(-50000, 50001);
+        long motility = Math.round(state.motilityBaseline
+                * demoMotilityRatio(state, now)) + rng.nextLong(-25000, 25001);
         readings.put("gastricMotility", Math.max(0, motility));
 
         readings.put("accelX", rng.nextInt(0, 256));
@@ -345,6 +465,46 @@ public class SynthesisService {
 
         readings.put("activityIndex", round(hourFactor * rng.nextDouble(30, 80), 1));
         return readings;
+    }
+
+    private void updateDemoHealthEvent(SynthesisState state, Instant now) {
+        if (state.demoHealthEvent != SynthesisState.DemoHealthEvent.NONE) {
+            if (now.isBefore(state.demoHealthEventEnd)) return;
+            state.demoHealthEvent = SynthesisState.DemoHealthEvent.NONE;
+            state.demoHealthEventStart = null;
+            state.demoHealthEventEnd = null;
+        }
+
+        ThreadLocalRandom rng = ThreadLocalRandom.current();
+        if (rng.nextDouble() >= 0.005) return;
+
+        boolean fever = rng.nextBoolean();
+        state.demoHealthEvent = fever
+                ? SynthesisState.DemoHealthEvent.FEVER
+                : SynthesisState.DemoHealthEvent.MOTILITY_DROP;
+        state.demoHealthEventStart = now;
+        state.demoHealthEventEnd = now.plus(Duration.ofHours(fever ? rng.nextInt(4, 9) : rng.nextInt(8, 13)));
+    }
+
+    private double demoTemperatureDelta(SynthesisState state, Instant pointTime) {
+        if (state.demoHealthEvent != SynthesisState.DemoHealthEvent.FEVER) return 0;
+        if (pointTime.isBefore(state.demoHealthEventStart)
+                || !pointTime.isBefore(state.demoHealthEventEnd)) return 0;
+        return eventIntensity(state.demoHealthEventProgress(pointTime)) * 1.8;
+    }
+
+    private double demoMotilityRatio(SynthesisState state, Instant now) {
+        if (state.demoHealthEvent != SynthesisState.DemoHealthEvent.MOTILITY_DROP) return 1.0;
+        if (now.isBefore(state.demoHealthEventStart)
+                || !now.isBefore(state.demoHealthEventEnd)) return 1.0;
+        return 1.0 - eventIntensity(state.demoHealthEventProgress(now)) * 0.6;
+    }
+
+    private double eventIntensity(double progress) {
+        double p = Math.max(0.0, Math.min(1.0, progress));
+        if (p < 0.4) return p / 0.4;
+        if (p < 0.7) return 1.0;
+        return 1.0 - (p - 0.7) / 0.3;
     }
 
     private static double round(double value, int places) {

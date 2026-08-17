@@ -4,6 +4,7 @@ import com.smartlivestock.iot.application.command.InstallDeviceCommand;
 import com.smartlivestock.iot.application.dto.InstallationDto;
 import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.DeviceStatus;
+import com.smartlivestock.iot.domain.model.DeviceType;
 import com.smartlivestock.iot.domain.model.Installation;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.domain.repository.InstallationRepository;
@@ -96,7 +97,9 @@ public class InstallationApplicationService {
 
     @Transactional(readOnly = true)
     public Optional<InstallationDto> getActiveInstallationByLivestock(Long livestockId) {
-        return installationRepository.findActiveByLivestockId(livestockId)
+        // GPS history is tracker-specific; a livestock can also have a capsule.
+        return installationRepository.findActiveByLivestockIdAndDeviceType(
+                        livestockId, DeviceType.TRACKER)
                 .map(InstallationDto::from);
     }
 }

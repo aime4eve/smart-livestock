@@ -26,6 +26,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +39,12 @@ class SynthesisServiceTest {
     @Mock private SynthesisScenarioRepository scenarioRepository;
 
     private SynthesisService service;
+
+    @Test
+    void deviceIntervals_useDemoSamplingRates() {
+        assertEquals(300, SynthesisService.TRACKER_INTERVAL.toSeconds());
+        assertEquals(900, SynthesisService.CAPSULE_INTERVAL.toSeconds());
+    }
 
     @BeforeEach
     void setUp() {
@@ -69,6 +76,13 @@ class SynthesisServiceTest {
         double longitude = ((Number) readingsCaptor.getValue().get("longitude")).doubleValue();
         assertTrue(latitude >= 28.0 && latitude <= 28.001);
         assertTrue(longitude >= 112.0 && longitude <= 112.001);
+        assertTrue(Math.abs(latitude - 28.0005) < 0.0005);
+        assertTrue(Math.abs(longitude - 112.0005) < 0.0005);
+        assertTrue(latitude != 28.0005 || longitude != 112.0005);
+
+        service.generate(scenario(now));
+        verify(ingestionPort, times(1)).ingest(
+                eq(5L), any(), any(Instant.class), eq(TelemetrySource.DATAGEN));
     }
 
     @Test
@@ -88,6 +102,37 @@ class SynthesisServiceTest {
         assertEquals(7, ((List<?>) readings.get("temperatures")).size());
         assertTrue(((Number) readings.get("gastricMotility")).longValue() > 0);
         assertTrue(((Number) readings.get("batteryVoltage")).intValue() > 0);
+
+        service.generate(scenario(now));
+        verify(ingestionPort, times(1)).ingest(
+                eq(51L), any(), any(Instant.class), eq(TelemetrySource.DATAGEN));
+    }
+
+    @Test
+    void generate_capsuleCreatesSharedStateBeforeTracker_trackerStillInitializesInFence() {
+        Instant now = Instant.now();
+        ActiveInstallationInfo capsule = new ActiveInstallationInfo(
+                51L, 1L, DeviceType.CAPSULE, null, null);
+        ActiveInstallationInfo tracker = new ActiveInstallationInfo(
+                5L, 1L, DeviceType.TRACKER, 29.0, 113.0);
+        FenceGeometryInfo fence = new FenceGeometryInfo(1L, 1L, "HKT", List.of(
+                new CoordinateInfo(28.0, 112.0),
+                new CoordinateInfo(28.001, 112.0),
+                new CoordinateInfo(28.001, 112.001),
+                new CoordinateInfo(28.0, 112.001)));
+
+        when(deviceQueryPort.findActiveInstallations()).thenReturn(List.of(capsule, tracker));
+        when(fenceQueryPort.findActiveFencesByLivestockId(1L)).thenReturn(List.of(fence));
+
+        service.generate(scenario(now));
+
+        ArgumentCaptor<Map<String, Object>> readingsCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(ingestionPort).ingest(
+                eq(5L), readingsCaptor.capture(), any(Instant.class), eq(TelemetrySource.DATAGEN));
+        double latitude = ((Number) readingsCaptor.getValue().get("latitude")).doubleValue();
+        double longitude = ((Number) readingsCaptor.getValue().get("longitude")).doubleValue();
+        assertTrue(latitude >= 28.0 && latitude <= 28.001);
+        assertTrue(longitude >= 112.0 && longitude <= 112.001);
     }
 
     private static SynthesisScenario scenario(Instant now) {

@@ -108,4 +108,17 @@ class InstallationApplicationServiceTest {
         assertThat(result.livestockId()).isEqualTo(10L);
         assertThat(result.active()).isTrue();
     }
+
+    @Test
+    void shouldResolveTrackerForLivestockGpsWhenCapsuleIsAlsoInstalled() {
+        Installation tracker = new Installation(5L, 10L, 100L);
+        tracker.setId(50L);
+        when(installationRepository.findActiveByLivestockIdAndDeviceType(10L, DeviceType.TRACKER))
+                .thenReturn(Optional.of(tracker));
+
+        var result = service.getActiveInstallationByLivestock(10L);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().deviceId()).isEqualTo(5L);
+    }
 }
