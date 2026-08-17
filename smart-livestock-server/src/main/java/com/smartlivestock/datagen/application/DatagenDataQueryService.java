@@ -5,6 +5,7 @@ import com.smartlivestock.datagen.domain.model.DatagenDeviceAssignment;
 import com.smartlivestock.datagen.domain.repository.DatagenDeviceAssignmentRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -159,12 +160,12 @@ public class DatagenDataQueryService {
         String sql = verb + " " + table + " WHERE device_id IN (:deviceIds) "
                 + "AND source = 'DATAGEN' AND " + timeColumn + " >= :from AND "
                 + timeColumn + " < :to";
-        Object result = entityManager.createNativeQuery(sql)
+        Query query = entityManager.createNativeQuery(sql)
                 .setParameter("deviceIds", deviceIds)
                 .setParameter("from", Timestamp.from(from))
-                .setParameter("to", Timestamp.from(to))
-                .getSingleResult();
-        return ((Number) result).longValue();
+                .setParameter("to", Timestamp.from(to));
+        if (delete) return query.executeUpdate();
+        return ((Number) query.getSingleResult()).longValue();
     }
 
     private long executeFarm(
@@ -174,12 +175,12 @@ public class DatagenDataQueryService {
         String sql = verb + " " + table + " WHERE farm_id = :farmId "
                 + "AND source = 'DATAGEN' AND " + timeColumn + " >= :from AND "
                 + timeColumn + " < :to";
-        Object result = entityManager.createNativeQuery(sql)
+        Query query = entityManager.createNativeQuery(sql)
                 .setParameter("farmId", farmId)
                 .setParameter("from", Timestamp.from(from))
-                .setParameter("to", Timestamp.from(to))
-                .getSingleResult();
-        return ((Number) result).longValue();
+                .setParameter("to", Timestamp.from(to));
+        if (delete) return query.executeUpdate();
+        return ((Number) query.getSingleResult()).longValue();
     }
 
     private long countUnattributableHealth(Long farmId, Instant from, Instant to) {
