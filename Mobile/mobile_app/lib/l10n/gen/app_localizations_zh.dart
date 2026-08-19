@@ -4410,10 +4410,48 @@ class AppLocalizationsZh extends AppLocalizations {
   String get datagenConsoleConfigFenceValue => '2% · 10-30 分钟';
 
   @override
-  String get datagenConsoleConfigHealthValue => '0.5% · 4-12 小时';
+  String get datagenConsoleConfigHealthValue =>
+      '0.5% · 发热 4-8 小时 · 消化动力下降 8-12 小时';
 
   @override
   String get datagenConsoleConfigEffective => '生效';
+
+  @override
+  String get datagenConsoleRulesFenceProbability => '围栏外出触发概率';
+
+  @override
+  String get datagenConsoleRulesFenceDuration => '围栏外出持续范围';
+
+  @override
+  String get datagenConsoleRulesHealthProbability => '健康异常触发概率';
+
+  @override
+  String get datagenConsoleRulesFever => '发热持续范围';
+
+  @override
+  String get datagenConsoleRulesMotility => '消化动力下降持续范围';
+
+  @override
+  String get datagenConsoleRulesUnitMinutes => '分钟';
+
+  @override
+  String get datagenConsoleRulesUnitHours => '小时';
+
+  @override
+  String get datagenConsoleRulesUnitPercent => '%';
+
+  @override
+  String get datagenConsoleRulesSave => '保存规则';
+
+  @override
+  String get datagenConsoleRulesReset => '恢复默认';
+
+  @override
+  String get datagenConsoleRulesNote =>
+      '规则按牧场保存，运行中修改后下一批数据生效；健康异常触发后按 50/50 随机选择发热或消化动力下降。';
+
+  @override
+  String get datagenConsoleInvalidRules => '规则配置无效，请检查范围';
 
   @override
   String get datagenConsoleRuntimeOnline => '在线';
@@ -4534,6 +4572,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get datagenConsoleOperationUpdateDevices => '调整设备范围';
+
+  @override
+  String get datagenConsoleOperationUpdateRules => '调整仿真规则';
 
   @override
   String get datagenConsoleOperationClear => '清理仿真数据';

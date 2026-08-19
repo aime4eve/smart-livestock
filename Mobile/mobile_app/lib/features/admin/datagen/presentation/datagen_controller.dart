@@ -19,6 +19,7 @@ class DatagenConsoleState {
     this.isLoading = false,
     this.isSwitching = false,
     this.isSavingDevices = false,
+    this.isSavingRules = false,
     this.isClearing = false,
     this.previewResult,
     this.clearResult,
@@ -34,6 +35,7 @@ class DatagenConsoleState {
   final bool isLoading;
   final bool isSwitching;
   final bool isSavingDevices;
+  final bool isSavingRules;
   final bool isClearing;
   final DatagenClearResult? previewResult;
   final DatagenClearResult? clearResult;
@@ -49,6 +51,7 @@ class DatagenConsoleState {
     bool? isLoading,
     bool? isSwitching,
     bool? isSavingDevices,
+    bool? isSavingRules,
     bool? isClearing,
     DatagenClearResult? previewResult,
     DatagenClearResult? clearResult,
@@ -67,6 +70,7 @@ class DatagenConsoleState {
         isLoading: isLoading ?? this.isLoading,
         isSwitching: isSwitching ?? this.isSwitching,
         isSavingDevices: isSavingDevices ?? this.isSavingDevices,
+        isSavingRules: isSavingRules ?? this.isSavingRules,
         isClearing: isClearing ?? this.isClearing,
         previewResult: clearPreview ? null : previewResult ?? this.previewResult,
         clearResult: discardClearResult
@@ -211,6 +215,23 @@ class DatagenController extends Notifier<DatagenConsoleState> {
       state = state.copyWith(previewResult: result, clearError: true);
     } catch (error) {
       state = state.copyWith(error: error.toString(), clearError: true);
+    }
+  }
+
+  Future<void> saveRules(DatagenRules rules) async {
+    final farmId = state.selectedFarmId;
+    if (farmId == null) return;
+    state = state.copyWith(isSavingRules: true, clearError: true);
+    try {
+      final console = await _repository.updateRules(
+        farmId: farmId,
+        rules: rules,
+      );
+      state = state.copyWith(console: console);
+    } catch (error) {
+      state = state.copyWith(error: error.toString(), clearError: true);
+    } finally {
+      state = state.copyWith(isSavingRules: false);
     }
   }
 

@@ -2,6 +2,7 @@ package com.smartlivestock.datagen.application;
 
 import com.smartlivestock.datagen.domain.model.ScenarioStatus;
 import com.smartlivestock.datagen.domain.model.ScenarioType;
+import com.smartlivestock.datagen.domain.model.DatagenFarmRules;
 import com.smartlivestock.datagen.domain.model.SynthesisScenario;
 import com.smartlivestock.datagen.domain.port.DeviceQueryPort;
 import com.smartlivestock.datagen.domain.port.FenceQueryPort;
@@ -19,6 +20,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -41,9 +43,28 @@ class SynthesisServiceTest {
     private SynthesisService service;
 
     @Test
-    void deviceIntervals_useDemoSamplingRates() {
-        assertEquals(300, SynthesisService.TRACKER_INTERVAL.toSeconds());
-        assertEquals(900, SynthesisService.CAPSULE_INTERVAL.toSeconds());
+    void deviceIntervals_useFarmRules() throws Exception {
+        Instant now = Instant.now();
+        SynthesisScenario testScenario = scenario(now);
+        ActiveInstallationInfo tracker = new ActiveInstallationInfo(
+                5L, 1L, DeviceType.TRACKER, null, null,
+                new DatagenFarmRules(61, 900, 0, 5, 10, 0,
+                        120, 130, 120, 130));
+        ActiveInstallationInfo capsule = new ActiveInstallationInfo(
+                6L, 2L, DeviceType.CAPSULE, null, null,
+                new DatagenFarmRules(300, 301, 0, 5, 10, 0,
+                        120, 130, 120, 130));
+        when(deviceQueryPort.findActiveInstallationsByScenario(testScenario.getId()))
+                .thenReturn(List.of(tracker, capsule));
+
+        service.generate(testScenario);
+
+        Field nextDueField = SynthesisService.class.getDeclaredField("nextDueByDevice");
+        nextDueField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<Long, Instant> nextDue = (Map<Long, Instant>) nextDueField.get(service);
+        assertTrue(nextDue.get(5L).isAfter(Instant.now().plusSeconds(60)));
+        assertTrue(nextDue.get(6L).isAfter(Instant.now().plusSeconds(300)));
     }
 
     @BeforeEach

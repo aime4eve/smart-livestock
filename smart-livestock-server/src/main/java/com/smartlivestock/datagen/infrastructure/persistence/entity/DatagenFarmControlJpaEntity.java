@@ -1,6 +1,9 @@
 package com.smartlivestock.datagen.infrastructure.persistence.entity;
 
+import com.smartlivestock.datagen.domain.model.DatagenFarmRules;
 import jakarta.persistence.*;
+
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
@@ -21,6 +24,38 @@ public class DatagenFarmControlJpaEntity {
 
     @Column(name = "enabled", nullable = false)
     private boolean enabled;
+
+    @Column(name = "tracker_interval_seconds", nullable = false)
+    private int trackerIntervalSeconds = 300;
+
+    @Column(name = "capsule_interval_seconds", nullable = false)
+    private int capsuleIntervalSeconds = 900;
+
+    @Column(name = "fence_excursion_probability", nullable = false,
+            precision = 6, scale = 5)
+    private BigDecimal fenceExcursionProbability = BigDecimal.valueOf(0.02);
+
+    @Column(name = "fence_excursion_min_minutes", nullable = false)
+    private int fenceExcursionMinMinutes = 10;
+
+    @Column(name = "fence_excursion_max_minutes", nullable = false)
+    private int fenceExcursionMaxMinutes = 30;
+
+    @Column(name = "health_event_probability", nullable = false,
+            precision = 6, scale = 5)
+    private BigDecimal healthEventProbability = BigDecimal.valueOf(0.005);
+
+    @Column(name = "fever_duration_min_minutes", nullable = false)
+    private int feverDurationMinMinutes = 240;
+
+    @Column(name = "fever_duration_max_minutes", nullable = false)
+    private int feverDurationMaxMinutes = 480;
+
+    @Column(name = "motility_duration_min_minutes", nullable = false)
+    private int motilityDurationMinMinutes = 480;
+
+    @Column(name = "motility_duration_max_minutes", nullable = false)
+    private int motilityDurationMaxMinutes = 720;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -48,6 +83,31 @@ public class DatagenFarmControlJpaEntity {
     public void setScenarioId(Long scenarioId) { this.scenarioId = scenarioId; }
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    public DatagenFarmRules getRules() {
+        return new DatagenFarmRules(
+                trackerIntervalSeconds,
+                capsuleIntervalSeconds,
+                fenceExcursionProbability.doubleValue(),
+                fenceExcursionMinMinutes,
+                fenceExcursionMaxMinutes,
+                healthEventProbability.doubleValue(),
+                feverDurationMinMinutes,
+                feverDurationMaxMinutes,
+                motilityDurationMinMinutes,
+                motilityDurationMaxMinutes);
+    }
+    public void setRules(DatagenFarmRules rules) {
+        trackerIntervalSeconds = rules.trackerIntervalSeconds();
+        capsuleIntervalSeconds = rules.capsuleIntervalSeconds();
+        fenceExcursionProbability = BigDecimal.valueOf(rules.fenceExcursionProbability());
+        fenceExcursionMinMinutes = rules.fenceExcursionMinMinutes();
+        fenceExcursionMaxMinutes = rules.fenceExcursionMaxMinutes();
+        healthEventProbability = BigDecimal.valueOf(rules.healthEventProbability());
+        feverDurationMinMinutes = rules.feverDurationMinMinutes();
+        feverDurationMaxMinutes = rules.feverDurationMaxMinutes();
+        motilityDurationMinMinutes = rules.motilityDurationMinMinutes();
+        motilityDurationMaxMinutes = rules.motilityDurationMaxMinutes();
+    }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }

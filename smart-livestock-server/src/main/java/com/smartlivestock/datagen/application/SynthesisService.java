@@ -27,9 +27,6 @@ import java.util.concurrent.ThreadLocalRandom;
 @RequiredArgsConstructor
 @Slf4j
 public class SynthesisService {
-    static final Duration TRACKER_INTERVAL = Duration.ofMinutes(5);
-    static final Duration CAPSULE_INTERVAL = Duration.ofMinutes(15);
-
     private final TelemetryIngestionPort ingestionPort;
     private final DeviceQueryPort deviceQueryPort;
     private final FenceQueryPort fenceQueryPort;
@@ -70,7 +67,8 @@ public class SynthesisService {
             }
 
             // Layer 1: baseline data (all categories)
-            Map<String, Object> readings = generateBaseline(inst, state, now, primaryFence);
+            Map<String, Object> readings = generateBaseline(
+                    inst, state, now, primaryFence, inst.rules());
 
             // Layer 2: category-specific overlay
            switch (scenario.getType().getCategory()) {
@@ -90,8 +88,8 @@ public class SynthesisService {
 
     private boolean isDue(ActiveInstallationInfo inst, Instant now) {
         Duration interval = switch (inst.deviceType()) {
-            case TRACKER -> TRACKER_INTERVAL;
-            case CAPSULE -> CAPSULE_INTERVAL;
+            case TRACKER -> Duration.ofSeconds(inst.rules().trackerIntervalSeconds());
+            case CAPSULE -> Duration.ofSeconds(inst.rules().capsuleIntervalSeconds());
             default -> null;
         };
         if (interval == null) return false;
@@ -267,16 +265,18 @@ public class SynthesisService {
     // --- Baseline generation (shared by all categories) ---
 
     private Map<String, Object> generateBaseline(
-            ActiveInstallationInfo inst, SynthesisState state, Instant now, PrimaryFence primaryFence) {
+            ActiveInstallationInfo inst, SynthesisState state, Instant now,
+            PrimaryFence primaryFence, DatagenFarmRules rules) {
         return switch (inst.deviceType()) {
-            case TRACKER -> generateTrackerBaseline(state, now, primaryFence);
-            case CAPSULE -> generateCapsuleBaseline(state, now);
+            case TRACKER -> generateTrackerBaseline(state, now, primaryFence, rules);
+            case CAPSULE -> generateCapsuleBaseline(state, now, rules);
             default -> Map.of();
         };
     }
 
     private Map<String, Object> generateTrackerBaseline(
-            SynthesisState state, Instant now, PrimaryFence primaryFence) {
+            SynthesisState state, Instant now, PrimaryFence primaryFence,
+            DatagenFarmRules rules) {
         Map<String, Object> readings = new HashMap<>();
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         int hour = now.atZone(ZoneId.of("Asia/Shanghai")).getHour();
@@ -289,7 +289,7 @@ public class SynthesisService {
         readings.put("accelY", rng.nextInt(-2000, 2001));
         readings.put("accelZ", rng.nextInt(-2000, 2001));
 
-        moveTracker(state, now, primaryFence);
+        moveTracker(state, now, primaryFence, rules);
         readings.put("latitude", state.currentLat);
         readings.put("longitude", state.currentLng);
 
@@ -341,7 +341,9 @@ public class SynthesisService {
 
     private record PrimaryFence(List<CoordinateInfo> vertices) {}
 
-    private void moveTracker(SynthesisState state, Instant now, PrimaryFence fence) {
+    private void moveTracker(
+            SynthesisState state, Instant now, PrimaryFence fence,
+            DatagenFarmRules rules) {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
 
         if (fence == null) {
@@ -353,9 +355,11 @@ public class SynthesisService {
         boolean excursionActive = state.isOnFenceExcursion(now);
         if (!excursionActive
                 && state.fenceExcursionStart == null
-                && rng.nextDouble() < 0.02) {
+                && rng.nextDouble() < rules.fenceExcursionProbability()) {
             state.fenceExcursionStart = now;
-            state.fenceExcursionEnd = now.plus(Duration.ofMinutes(rng.nextInt(10, 31)));
+            state.fenceExcursionEnd = now.plus(Duration.ofMinutes(randomMinutes(
+                    rules.fenceExcursionMinMinutes(),
+                    rules.fenceExcursionMaxMinutes())));
             excursionActive = true;
         }
 
@@ -439,13 +443,14 @@ public class SynthesisService {
         return vertices.stream().mapToDouble(CoordinateInfo::longitude).average().orElse(0);
     }
 
-    private Map<String, Object> generateCapsuleBaseline(SynthesisState state, Instant now) {
+    private Map<String, Object> generateCapsuleBaseline(
+            SynthesisState state, Instant now, DatagenFarmRules rules) {
         Map<String, Object> readings = new HashMap<>();
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         int hour = now.atZone(ZoneId.of("Asia/Shanghai")).getHour();
         double hourFactor = (hour >= 6 && hour <= 20) ? 1.0 : 0.2;
 
-        updateDemoHealthEvent(state, now);
+        updateDemoHealthEvent(state, now, rules);
         List<BigDecimal> temperatures = new ArrayList<>();
         double baseTemp = 38.5 + state.tempBaselineOffset;
         for (int i = 0; i < 7; i++) {
@@ -475,7 +480,8 @@ public class SynthesisService {
         return readings;
     }
 
-    private void updateDemoHealthEvent(SynthesisState state, Instant now) {
+    private void updateDemoHealthEvent(
+            SynthesisState state, Instant now, DatagenFarmRules rules) {
         if (state.demoHealthEvent != SynthesisState.DemoHealthEvent.NONE) {
             if (now.isBefore(state.demoHealthEventEnd)) return;
             state.demoHealthEvent = SynthesisState.DemoHealthEvent.NONE;
@@ -484,14 +490,20 @@ public class SynthesisService {
         }
 
         ThreadLocalRandom rng = ThreadLocalRandom.current();
-        if (rng.nextDouble() >= 0.005) return;
+        if (rng.nextDouble() >= rules.healthEventProbability()) return;
 
         boolean fever = rng.nextBoolean();
         state.demoHealthEvent = fever
                 ? SynthesisState.DemoHealthEvent.FEVER
                 : SynthesisState.DemoHealthEvent.MOTILITY_DROP;
         state.demoHealthEventStart = now;
-        state.demoHealthEventEnd = now.plus(Duration.ofHours(fever ? rng.nextInt(4, 9) : rng.nextInt(8, 13)));
+        state.demoHealthEventEnd = now.plus(Duration.ofMinutes(fever
+                ? randomMinutes(rules.feverDurationMinMinutes(), rules.feverDurationMaxMinutes())
+                : randomMinutes(rules.motilityDurationMinMinutes(), rules.motilityDurationMaxMinutes())));
+    }
+
+    private int randomMinutes(int minInclusive, int maxInclusive) {
+        return ThreadLocalRandom.current().nextInt(minInclusive, maxInclusive + 1);
     }
 
     private double demoTemperatureDelta(SynthesisState state, Instant pointTime) {

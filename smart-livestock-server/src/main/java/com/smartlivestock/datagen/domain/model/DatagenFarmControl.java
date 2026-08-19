@@ -9,6 +9,7 @@ public class DatagenFarmControl extends AggregateRoot {
     private Long farmId;
     private Long scenarioId;
     private boolean enabled;
+    private DatagenFarmRules rules = DatagenFarmRules.defaults();
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -27,6 +28,11 @@ public class DatagenFarmControl extends AggregateRoot {
 
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+    public DatagenFarmRules getRules() { return rules; }
+    public void setRules(DatagenFarmRules rules) {
+        this.rules = rules == null ? DatagenFarmRules.defaults() : rules;
+    }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

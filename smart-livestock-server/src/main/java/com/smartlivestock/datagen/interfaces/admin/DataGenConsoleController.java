@@ -43,6 +43,14 @@ public class DataGenConsoleController {
                 controlService.updateControl(farmId, request)));
     }
 
+    @PutMapping("/rules/{farmId}")
+    public ResponseEntity<ApiResponse<DatagenRulesDto>> updateRules(
+            @PathVariable Long farmId,
+            @RequestBody DatagenRulesDto request) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                controlService.updateRules(farmId, request)));
+    }
+
     @PostMapping("/clear/preview")
     public ResponseEntity<ApiResponse<DatagenClearResultDto>> previewClear(
             @RequestBody DatagenClearRequest request) {

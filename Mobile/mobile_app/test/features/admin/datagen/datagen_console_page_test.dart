@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +9,8 @@ import 'package:hkt_livestock_agentic/features/admin/datagen/presentation/datage
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class _FakeRepository implements DatagenApiRepository {
+  DatagenRules? savedRules;
+
   @override
   Future<List<DatagenFarm>> loadFarms() async => const [
         DatagenFarm(
@@ -29,6 +32,15 @@ class _FakeRepository implements DatagenApiRepository {
     required bool enabled,
     required List<int> deviceIds,
   }) async => _console();
+
+  @override
+  Future<DatagenConsoleData> updateRules({
+    required int farmId,
+    required DatagenRules rules,
+  }) async {
+    savedRules = rules;
+    return _console();
+  }
 
   @override
   Future<DatagenClearResult> previewClear({
@@ -61,6 +73,18 @@ class _FakeRepository implements DatagenApiRepository {
           id: 3,
           name: '默认持续合成',
           type: 'normal',
+        ),
+        rules: const DatagenRules(
+          trackerIntervalSeconds: 600,
+          capsuleIntervalSeconds: 1200,
+          fenceExcursionProbability: 0.05,
+          fenceExcursionMinMinutes: 10,
+          fenceExcursionMaxMinutes: 20,
+          healthEventProbability: 0.01,
+          feverDurationMinMinutes: 180,
+          feverDurationMaxMinutes: 300,
+          motilityDurationMinMinutes: 480,
+          motilityDurationMaxMinutes: 720,
         ),
         devices: const [
           DatagenDevice(
@@ -109,6 +133,14 @@ class _FakeRepository implements DatagenApiRepository {
             occurredAt: null,
             summaryKey: 'datagenConsoleOperationStart',
           ),
+          DatagenOperation(
+            id: 10,
+            action: 'UPDATE_RULES',
+            operatorId: 1,
+            operatorRole: 'B2B_ADMIN',
+            occurredAt: null,
+            summaryKey: 'datagenConsoleOperationUpdateRules',
+          ),
         ],
       );
 
@@ -134,9 +166,10 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
+    final fake = _FakeRepository();
     await tester.pumpWidget(ProviderScope(
       overrides: [
-        datagenApiRepositoryProvider.overrideWithValue(_FakeRepository()),
+        datagenApiRepositoryProvider.overrideWithValue(fake),
       ],
       child: MaterialApp(
         locale: const Locale('zh'),
@@ -151,10 +184,20 @@ void main() {
     expect(find.text('设备范围'), findsOneWidget);
     expect(find.text('数据清理'), findsOneWidget);
     expect(find.text('操作记录'), findsOneWidget);
-    expect(find.text('5 分钟'), findsOneWidget);
-    expect(find.text('15 分钟'), findsOneWidget);
-    expect(find.text('2% · 10-30 分钟'), findsOneWidget);
-    expect(find.text('0.5% · 4-12 小时'), findsOneWidget);
+    expect(find.text('围栏外出触发概率'), findsOneWidget);
+    expect(find.text('围栏外出持续范围'), findsOneWidget);
+    expect(find.text('发热持续范围'), findsOneWidget);
+    expect(find.text('消化动力下降持续范围'), findsOneWidget);
+    expect(find.textContaining('50/50'), findsOneWidget);
+
+    await tester.tap(find.text('保存规则'));
+    await tester.pumpAndSettle();
+    expect(fake.savedRules?.trackerIntervalSeconds, 600);
+    expect(fake.savedRules?.capsuleIntervalSeconds, 1200);
+    expect(fake.savedRules?.fenceExcursionProbability, 0.05);
+    expect(fake.savedRules?.healthEventProbability, 0.01);
+    expect(fake.savedRules?.feverDurationMinMinutes, 180);
+    expect(fake.savedRules?.motilityDurationMinMinutes, 480);
 
     await tester.tap(find.byType(Tab).at(1));
     await tester.pumpAndSettle();
@@ -166,5 +209,6 @@ void main() {
     await tester.tap(find.byType(Tab).at(3));
     await tester.pumpAndSettle();
     expect(find.textContaining('平台管理员'), findsOneWidget);
+    expect(find.text('调整仿真规则'), findsOneWidget);
   });
 }

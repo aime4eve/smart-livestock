@@ -18,6 +18,18 @@ void main() {
         'name': 'NORMAL',
         'type': 'normal',
       },
+      'rules': {
+        'trackerIntervalSeconds': 600,
+        'capsuleIntervalSeconds': 1200,
+        'fenceExcursionProbability': 0.05,
+        'fenceExcursionMinMinutes': 10,
+        'fenceExcursionMaxMinutes': 20,
+        'healthEventProbability': 0.01,
+        'feverDurationMinMinutes': 180,
+        'feverDurationMaxMinutes': 300,
+        'motilityDurationMinMinutes': 480,
+        'motilityDurationMaxMinutes': 720,
+      },
       'devices': [
         {
           'deviceId': 5,
@@ -57,6 +69,9 @@ void main() {
     expect(console.farm.farmName, 'Main Ranch');
     expect(console.devices.single.selected, isTrue);
     expect(console.stats.todayTelemetryRows, 3);
+    expect(console.rules.trackerIntervalSeconds, 600);
+    expect(console.rules.fenceExcursionProbability, 0.05);
+    expect(console.rules.feverDurationMinMinutes, 180);
     expect(console.operations.single.summaryKey,
         'datagenConsoleOperationStart');
   });

@@ -2,7 +2,9 @@ package com.smartlivestock.datagen.infrastructure.acl;
 
 import com.smartlivestock.datagen.domain.port.DeviceQueryPort;
 import com.smartlivestock.datagen.domain.model.DatagenDeviceAssignment;
+import com.smartlivestock.datagen.domain.model.DatagenFarmRules;
 import com.smartlivestock.datagen.domain.repository.DatagenDeviceAssignmentRepository;
+import com.smartlivestock.datagen.domain.repository.DatagenFarmControlRepository;
 import com.smartlivestock.datagen.domain.port.dto.ActiveInstallationInfo;
 import com.smartlivestock.iot.domain.model.DeviceStatus;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
@@ -13,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -21,6 +25,7 @@ public class DeviceQueryPortImpl implements DeviceQueryPort {
     private final DeviceRepository deviceRepository;
     private final LivestockRepository livestockRepository;
     private final DatagenDeviceAssignmentRepository assignmentRepository;
+    private final DatagenFarmControlRepository controlRepository;
 
     @Override
     public List<ActiveInstallationInfo> findActiveInstallations() {
@@ -42,7 +47,10 @@ public class DeviceQueryPortImpl implements DeviceQueryPort {
 
     @Override
     public List<ActiveInstallationInfo> findActiveInstallationsByScenario(Long scenarioId) {
-        return assignmentRepository.findActiveByScenarioId(scenarioId).stream()
+        List<DatagenDeviceAssignment> assignments =
+                assignmentRepository.findActiveByScenarioId(scenarioId);
+        Map<Long, DatagenFarmRules> rulesByControl = new HashMap<>();
+        return assignments.stream()
                 .map(assignment -> {
                     var device = deviceRepository.findById(assignment.getDeviceId()).orElse(null);
                     if (device == null || device.getStatus() != DeviceStatus.ACTIVE
@@ -55,6 +63,11 @@ public class DeviceQueryPortImpl implements DeviceQueryPort {
                     Livestock livestock = livestockRepository
                             .findById(installation.getLivestockId()).orElse(null);
                     if (livestock == null) return null;
+                    DatagenFarmRules rules = rulesByControl.computeIfAbsent(
+                            assignment.getControlId(),
+                            controlId -> controlRepository.findById(controlId)
+                                    .map(control -> control.getRules())
+                                    .orElse(DatagenFarmRules.defaults()));
                     return new ActiveInstallationInfo(
                             device.getId(),
                             livestock.getId(),
@@ -62,7 +75,8 @@ public class DeviceQueryPortImpl implements DeviceQueryPort {
                             livestock.getLastLatitude() != null
                                     ? livestock.getLastLatitude().doubleValue() : null,
                             livestock.getLastLongitude() != null
-                                    ? livestock.getLastLongitude().doubleValue() : null);
+                                    ? livestock.getLastLongitude().doubleValue() : null,
+                            rules);
                 })
                 .filter(java.util.Objects::nonNull)
                 .toList();

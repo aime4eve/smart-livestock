@@ -326,15 +326,84 @@ class _DatagenConsolePageState extends ConsumerState<DatagenConsolePage>
   }
 }
 
-class _StatusTab extends StatelessWidget {
+class _StatusTab extends ConsumerStatefulWidget {
   const _StatusTab({required this.console});
 
   final DatagenConsoleData? console;
 
   @override
+  ConsumerState<_StatusTab> createState() => _StatusTabState();
+}
+
+class _StatusTabState extends ConsumerState<_StatusTab> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _trackerInterval;
+  late final TextEditingController _capsuleInterval;
+  late final TextEditingController _fenceProbability;
+  late final TextEditingController _fenceMin;
+  late final TextEditingController _fenceMax;
+  late final TextEditingController _healthProbability;
+  late final TextEditingController _feverMin;
+  late final TextEditingController _feverMax;
+  late final TextEditingController _motilityMin;
+  late final TextEditingController _motilityMax;
+
+  @override
+  void initState() {
+    super.initState();
+    _trackerInterval = TextEditingController();
+    _capsuleInterval = TextEditingController();
+    _fenceProbability = TextEditingController();
+    _fenceMin = TextEditingController();
+    _fenceMax = TextEditingController();
+    _healthProbability = TextEditingController();
+    _feverMin = TextEditingController();
+    _feverMax = TextEditingController();
+    _motilityMin = TextEditingController();
+    _motilityMax = TextEditingController();
+    _syncControllers();
+  }
+
+  @override
+  void didUpdateWidget(covariant _StatusTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.console != widget.console) _syncControllers();
+  }
+
+  @override
+  void dispose() {
+    _trackerInterval.dispose();
+    _capsuleInterval.dispose();
+    _fenceProbability.dispose();
+    _fenceMin.dispose();
+    _fenceMax.dispose();
+    _healthProbability.dispose();
+    _feverMin.dispose();
+    _feverMax.dispose();
+    _motilityMin.dispose();
+    _motilityMax.dispose();
+    super.dispose();
+  }
+
+  void _syncControllers() {
+    final rules = widget.console?.rules ?? _defaultRules();
+    _trackerInterval.text = _minutesText(rules.trackerIntervalSeconds);
+    _capsuleInterval.text = _minutesText(rules.capsuleIntervalSeconds);
+    _fenceProbability.text = _percentText(rules.fenceExcursionProbability);
+    _fenceMin.text = rules.fenceExcursionMinMinutes.toString();
+    _fenceMax.text = rules.fenceExcursionMaxMinutes.toString();
+    _healthProbability.text = _percentText(rules.healthEventProbability);
+    _feverMin.text = _hoursText(rules.feverDurationMinMinutes);
+    _feverMax.text = _hoursText(rules.feverDurationMaxMinutes);
+    _motilityMin.text = _hoursText(rules.motilityDurationMinMinutes);
+    _motilityMax.text = _hoursText(rules.motilityDurationMaxMinutes);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final stats = console?.stats;
+    final state = ref.watch(datagenControllerProvider);
+    final stats = widget.console?.stats;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -372,43 +441,271 @@ class _StatusTab extends StatelessWidget {
         const SizedBox(height: 16),
         _SectionCard(
           title: l10n.datagenConsoleConfigTitle,
-          child: Table(
-            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-            children: [
-              _configRow(l10n.datagenConsoleConfigTracker,
-                  l10n.datagenConsoleConfigTrackerValue),
-              _configRow(l10n.datagenConsoleConfigCapsule,
-                  l10n.datagenConsoleConfigCapsuleValue),
-              _configRow(l10n.datagenConsoleConfigFence,
-                  l10n.datagenConsoleConfigFenceValue),
-              _configRow(l10n.datagenConsoleConfigHealth,
-                  l10n.datagenConsoleConfigHealthValue),
-            ],
+          actions: [
+            OutlinedButton(
+              onPressed: state.isSavingRules ? null : _resetDefaults,
+              child: Text(l10n.datagenConsoleRulesReset),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: state.isSavingRules ? null : _saveRules,
+              child: state.isSavingRules
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : Text(l10n.datagenConsoleRulesSave),
+            ),
+          ],
+          child: Form(
+            key: _formKey,
+            child: LayoutBuilder(builder: (context, constraints) {
+              final itemWidth = constraints.maxWidth > 900 ? 330.0 : null;
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  SizedBox(
+                    width: itemWidth,
+                    child: _numberField(
+                      label: l10n.datagenConsoleConfigTracker,
+                      controller: _trackerInterval,
+                      suffix: l10n.datagenConsoleRulesUnitMinutes,
+                      min: 1,
+                      max: 60,
+                    ),
+                  ),
+                  SizedBox(
+                    width: itemWidth,
+                    child: _numberField(
+                      label: l10n.datagenConsoleConfigCapsule,
+                      controller: _capsuleInterval,
+                      suffix: l10n.datagenConsoleRulesUnitMinutes,
+                      min: 5,
+                      max: 120,
+                    ),
+                  ),
+                  SizedBox(
+                    width: itemWidth,
+                    child: _numberField(
+                      label: l10n.datagenConsoleRulesFenceProbability,
+                      controller: _fenceProbability,
+                      suffix: l10n.datagenConsoleRulesUnitPercent,
+                      min: 0,
+                      max: 20,
+                    ),
+                  ),
+                  SizedBox(
+                    width: itemWidth,
+                    child: _rangeField(
+                      label: l10n.datagenConsoleRulesFenceDuration,
+                      minController: _fenceMin,
+                      maxController: _fenceMax,
+                      suffix: l10n.datagenConsoleRulesUnitMinutes,
+                      min: 5,
+                      max: 120,
+                    ),
+                  ),
+                  SizedBox(
+                    width: itemWidth,
+                    child: _numberField(
+                      label: l10n.datagenConsoleRulesHealthProbability,
+                      controller: _healthProbability,
+                      suffix: l10n.datagenConsoleRulesUnitPercent,
+                      min: 0,
+                      max: 10,
+                    ),
+                  ),
+                  SizedBox(
+                    width: itemWidth,
+                    child: _rangeField(
+                      label: l10n.datagenConsoleRulesFever,
+                      minController: _feverMin,
+                      maxController: _feverMax,
+                      suffix: l10n.datagenConsoleRulesUnitHours,
+                      min: 2,
+                      max: 24,
+                    ),
+                  ),
+                  SizedBox(
+                    width: itemWidth,
+                    child: _rangeField(
+                      label: l10n.datagenConsoleRulesMotility,
+                      minController: _motilityMin,
+                      maxController: _motilityMax,
+                      suffix: l10n.datagenConsoleRulesUnitHours,
+                      min: 2,
+                      max: 24,
+                    ),
+                  ),
+                ],
+              );
+            }),
           ),
+        ),
+        const SizedBox(height: 8),
+        _Notice(
+          text: AppLocalizations.of(context)!.datagenConsoleRulesNote,
+          color: AppColors.infoStrong,
+          background: AppColors.infoSoft,
         ),
       ],
     );
   }
 
   String _nextBatch() {
-    final last = console?.stats.lastGeneratedAt;
+    final last = widget.console?.stats.lastGeneratedAt;
     if (last == null) return '-';
-    final intervalMinutes = console!.stats.selectedTrackerCount > 0 ? 5 : 15;
-    return _time(last.add(Duration(minutes: intervalMinutes))) ?? '-';
+    final rules = widget.console!.rules;
+    final intervalSeconds = widget.console!.stats.selectedTrackerCount > 0
+        ? rules.trackerIntervalSeconds
+        : rules.capsuleIntervalSeconds;
+    return _time(last.add(Duration(seconds: intervalSeconds))) ?? '-';
   }
 
-  TableRow _configRow(String label, String value) => TableRow(children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Text(label,
-              style: const TextStyle(color: AppColors.textSecondary)),
+  Widget _numberField({
+    required String label,
+    required TextEditingController controller,
+    required String suffix,
+    required num min,
+    required num max,
+  }) =>
+      TextFormField(
+        controller: controller,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        decoration: InputDecoration(
+          labelText: label,
+          suffixText: suffix,
+          border: const OutlineInputBorder(),
+          isDense: true,
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Text(value,
-              style: const TextStyle(fontWeight: FontWeight.w600)),
-        ),
-      ]);
+        validator: (value) => _isValidNumber(value, min, max)
+            ? null
+            : AppLocalizations.of(context)!.datagenConsoleInvalidRules,
+      );
+
+  Widget _rangeField({
+    required String label,
+    required TextEditingController minController,
+    required TextEditingController maxController,
+    required String suffix,
+    required num min,
+    required num max,
+  }) =>
+      Row(
+        children: [
+          Expanded(child: _numberField(
+            label: label,
+            controller: minController,
+            suffix: suffix,
+            min: min,
+            max: max,
+          )),
+          const Padding(padding: EdgeInsets.symmetric(horizontal: 6), child: Text('-')),
+          Expanded(child: _numberField(
+            label: '',
+            controller: maxController,
+            suffix: suffix,
+            min: min,
+            max: max,
+          )),
+        ],
+      );
+
+  bool _isValidNumber(String? value, num min, num max) {
+    final number = num.tryParse(value ?? '');
+    return number != null && number >= min && number <= max;
+  }
+
+  DatagenRules _defaultRules() => const DatagenRules(
+        trackerIntervalSeconds: 300,
+        capsuleIntervalSeconds: 900,
+        fenceExcursionProbability: 0.02,
+        fenceExcursionMinMinutes: 10,
+        fenceExcursionMaxMinutes: 30,
+        healthEventProbability: 0.005,
+        feverDurationMinMinutes: 240,
+        feverDurationMaxMinutes: 480,
+        motilityDurationMinMinutes: 480,
+        motilityDurationMaxMinutes: 720,
+      );
+
+  void _resetDefaults() {
+    _setTextFromRules(_defaultRules());
+  }
+
+  void _setTextFromRules(DatagenRules rules) {
+    _trackerInterval.text = _minutesText(rules.trackerIntervalSeconds);
+    _capsuleInterval.text = _minutesText(rules.capsuleIntervalSeconds);
+    _fenceProbability.text = _percentText(rules.fenceExcursionProbability);
+    _fenceMin.text = rules.fenceExcursionMinMinutes.toString();
+    _fenceMax.text = rules.fenceExcursionMaxMinutes.toString();
+    _healthProbability.text = _percentText(rules.healthEventProbability);
+    _feverMin.text = _hoursText(rules.feverDurationMinMinutes);
+    _feverMax.text = _hoursText(rules.feverDurationMaxMinutes);
+    _motilityMin.text = _hoursText(rules.motilityDurationMinMinutes);
+    _motilityMax.text = _hoursText(rules.motilityDurationMaxMinutes);
+  }
+
+  Future<void> _saveRules() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final rules = _readRules();
+    if (rules == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(AppLocalizations.of(context)!.datagenConsoleInvalidRules),
+      ));
+      return;
+    }
+    await ref.read(datagenControllerProvider.notifier).saveRules(rules);
+  }
+
+  DatagenRules? _readRules() {
+    final trackerMinutes = int.tryParse(_trackerInterval.text);
+    final capsuleMinutes = int.tryParse(_capsuleInterval.text);
+    final fencePercent = double.tryParse(_fenceProbability.text);
+    final fenceMin = int.tryParse(_fenceMin.text);
+    final fenceMax = int.tryParse(_fenceMax.text);
+    final healthPercent = double.tryParse(_healthProbability.text);
+    final feverMinHours = double.tryParse(_feverMin.text);
+    final feverMaxHours = double.tryParse(_feverMax.text);
+    final motilityMinHours = double.tryParse(_motilityMin.text);
+    final motilityMaxHours = double.tryParse(_motilityMax.text);
+    if (trackerMinutes == null || capsuleMinutes == null ||
+        fencePercent == null || fenceMin == null || fenceMax == null ||
+        healthPercent == null || feverMinHours == null ||
+        feverMaxHours == null || motilityMinHours == null ||
+        motilityMaxHours == null || fenceMin > fenceMax ||
+        feverMinHours > feverMaxHours || motilityMinHours > motilityMaxHours) {
+      return null;
+    }
+    return DatagenRules(
+      trackerIntervalSeconds: trackerMinutes * 60,
+      capsuleIntervalSeconds: capsuleMinutes * 60,
+      fenceExcursionProbability: fencePercent / 100,
+      fenceExcursionMinMinutes: fenceMin,
+      fenceExcursionMaxMinutes: fenceMax,
+      healthEventProbability: healthPercent / 100,
+      feverDurationMinMinutes: (feverMinHours * 60).round(),
+      feverDurationMaxMinutes: (feverMaxHours * 60).round(),
+      motilityDurationMinMinutes: (motilityMinHours * 60).round(),
+      motilityDurationMaxMinutes: (motilityMaxHours * 60).round(),
+    );
+  }
+
+  String _minutesText(int seconds) {
+    final value = seconds / 60;
+    return value == value.roundToDouble() ? value.round().toString() : value.toString();
+  }
+
+  String _hoursText(int minutes) {
+    final value = minutes / 60;
+    return value == value.roundToDouble() ? value.round().toString() : value.toString();
+  }
+
+  String _percentText(double probability) {
+    final value = probability * 100;
+    return value == value.roundToDouble() ? value.round().toString() : value.toString();
+  }
 }
 
 class _DevicesTab extends ConsumerWidget {
@@ -507,8 +804,8 @@ class _DevicesTab extends ConsumerWidget {
                             DataCell(Text(device.livestockCode)),
                             DataCell(_RuntimeTag(status: device.runtimeStatus)),
                             DataCell(Text(device.deviceType == 'TRACKER'
-                                ? l10n.datagenConsoleConfigTrackerValue
-                                : l10n.datagenConsoleConfigCapsuleValue)),
+                                ? '${rules.trackerIntervalSeconds ~/ 60} ${l10n.datagenConsoleRulesUnitMinutes}'
+                                : '${rules.capsuleIntervalSeconds ~/ 60} ${l10n.datagenConsoleRulesUnitMinutes}')),
                             DataCell(Text(_time(device.lastGeneratedAt) ??
                                 l10n.datagenConsoleNever)),
                           ],
@@ -528,6 +825,21 @@ class _DevicesTab extends ConsumerWidget {
         'CAPSULE' => l10n.datagenConsoleCapsule,
         _ => deviceType,
       };
+
+  DatagenRules get rules =>
+      console?.rules ??
+      const DatagenRules(
+        trackerIntervalSeconds: 300,
+        capsuleIntervalSeconds: 900,
+        fenceExcursionProbability: 0.02,
+        fenceExcursionMinMinutes: 10,
+        fenceExcursionMaxMinutes: 30,
+        healthEventProbability: 0.005,
+        feverDurationMinMinutes: 240,
+        feverDurationMaxMinutes: 480,
+        motilityDurationMinMinutes: 480,
+        motilityDurationMaxMinutes: 720,
+      );
 }
 
 class _ClearTab extends StatelessWidget {
@@ -696,6 +1008,8 @@ class _OperationsTab extends StatelessWidget {
         'datagenConsoleOperationStop' => l10n.datagenConsoleOperationStop,
         'datagenConsoleOperationUpdateDevices' =>
           l10n.datagenConsoleOperationUpdateDevices,
+        'datagenConsoleOperationUpdateRules' =>
+          l10n.datagenConsoleOperationUpdateRules,
         'datagenConsoleOperationClear' => l10n.datagenConsoleOperationClear,
         _ => key,
       };
@@ -741,9 +1055,10 @@ class _MetricCard extends StatelessWidget {
 }
 
 class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.title, required this.child});
+  const _SectionCard({required this.title, required this.child, this.actions});
 
   final String title;
+  final List<Widget>? actions;
   final Widget child;
 
   @override
@@ -758,9 +1073,19 @@ class _SectionCard extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(title,
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w700)),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(title,
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w700)),
+                  ),
+                  if (actions != null) ...[
+                    const SizedBox(width: 8),
+                    ...actions!,
+                  ],
+                ],
+              ),
             ),
             const Divider(height: 1),
             Padding(padding: const EdgeInsets.all(16), child: child),

@@ -8240,7 +8240,7 @@ abstract class AppLocalizations {
   /// No description provided for @datagenConsoleConfigHealthValue.
   ///
   /// In zh, this message translates to:
-  /// **'0.5% · 4-12 小时'**
+  /// **'0.5% · 发热 4-8 小时 · 消化动力下降 8-12 小时'**
   String get datagenConsoleConfigHealthValue;
 
   /// No description provided for @datagenConsoleConfigEffective.
@@ -8248,6 +8248,78 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'生效'**
   String get datagenConsoleConfigEffective;
+
+  /// No description provided for @datagenConsoleRulesFenceProbability.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏外出触发概率'**
+  String get datagenConsoleRulesFenceProbability;
+
+  /// No description provided for @datagenConsoleRulesFenceDuration.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏外出持续范围'**
+  String get datagenConsoleRulesFenceDuration;
+
+  /// No description provided for @datagenConsoleRulesHealthProbability.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康异常触发概率'**
+  String get datagenConsoleRulesHealthProbability;
+
+  /// No description provided for @datagenConsoleRulesFever.
+  ///
+  /// In zh, this message translates to:
+  /// **'发热持续范围'**
+  String get datagenConsoleRulesFever;
+
+  /// No description provided for @datagenConsoleRulesMotility.
+  ///
+  /// In zh, this message translates to:
+  /// **'消化动力下降持续范围'**
+  String get datagenConsoleRulesMotility;
+
+  /// No description provided for @datagenConsoleRulesUnitMinutes.
+  ///
+  /// In zh, this message translates to:
+  /// **'分钟'**
+  String get datagenConsoleRulesUnitMinutes;
+
+  /// No description provided for @datagenConsoleRulesUnitHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'小时'**
+  String get datagenConsoleRulesUnitHours;
+
+  /// No description provided for @datagenConsoleRulesUnitPercent.
+  ///
+  /// In zh, this message translates to:
+  /// **'%'**
+  String get datagenConsoleRulesUnitPercent;
+
+  /// No description provided for @datagenConsoleRulesSave.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存规则'**
+  String get datagenConsoleRulesSave;
+
+  /// No description provided for @datagenConsoleRulesReset.
+  ///
+  /// In zh, this message translates to:
+  /// **'恢复默认'**
+  String get datagenConsoleRulesReset;
+
+  /// No description provided for @datagenConsoleRulesNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'规则按牧场保存，运行中修改后下一批数据生效；健康异常触发后按 50/50 随机选择发热或消化动力下降。'**
+  String get datagenConsoleRulesNote;
+
+  /// No description provided for @datagenConsoleInvalidRules.
+  ///
+  /// In zh, this message translates to:
+  /// **'规则配置无效，请检查范围'**
+  String get datagenConsoleInvalidRules;
 
   /// No description provided for @datagenConsoleRuntimeOnline.
   ///
@@ -8482,6 +8554,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'调整设备范围'**
   String get datagenConsoleOperationUpdateDevices;
+
+  /// No description provided for @datagenConsoleOperationUpdateRules.
+  ///
+  /// In zh, this message translates to:
+  /// **'调整仿真规则'**
+  String get datagenConsoleOperationUpdateRules;
 
   /// No description provided for @datagenConsoleOperationClear.
   ///

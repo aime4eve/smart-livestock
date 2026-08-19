@@ -1,6 +1,6 @@
 # Admin API 端点（`/api/v1/admin/`）
 
-> **端点总数**: 117（Phase 1 + Phase 2a Commerce + Phase 2c + GPS 质量检查 + NIX-79 遥测导入 + 仿真控制台；与实际对齐）
+> **端点总数**: 118（Phase 1 + Phase 2a Commerce + Phase 2c + GPS 质量检查 + NIX-79 遥测导入 + 仿真控制台；与实际对齐）
 >
 > ⚠️ **As-Built 校准（2026-06-26）**: 当前 Admin API 实际 **110 个端点**，本文档已**全量详列 110 个**：Phase 1 全部（含 TenantAdmin 补全的 `PUT /admin/tenants/{id}` 与 `GET /admin/tenants/{id}/farms`）+ Phase 2a Commerce 21 + Phase 2c（瓦片 7 / API 用量 3 / Portal 5）+ GPS 质量检查 51。端点真源为代码，详见 [后端实现现状 §7 API 设计](../superpowers/specs/2026-05-06-mvp-backend-design.md)。2026-07-29 NIX-79 新增遥测数据导入 2 端点（§12）；2026-08-17 新增仿真控制台 5 端点（§13），总数 117。
 > **认证**: JWT Bearer Token（本文件多数端点要求 platform_admin；仿真控制台允许 platform_admin / b2b_admin，B2B 管理员限定本租户）
@@ -1697,7 +1697,7 @@ Error 400（设备未注册）:
 
 
 
-## 13. 仿真控制台（DataGenConsoleController）— 5 端点
+## 13. 仿真控制台（DataGenConsoleController）— 6 端点
 
 > **基路径**: `/api/v1/admin/datagen`。**权限**: `@PreAuthorize("hasAnyRole('PLATFORM_ADMIN','B2B_ADMIN')")`。
 > `PLATFORM_ADMIN` 可访问任意 farm；`B2B_ADMIN` 仅可访问当前 tenant 下的 farm，跨 tenant 返回 `AUTH_FORBIDDEN`。
@@ -1735,6 +1735,12 @@ Response 200:
     "farm": { "farmId": 1, "farmName": "Main Ranch", "tenantId": 1, "tenantName": "Demo Tenant", "enabled": true, "selectedDeviceCount": 16 },
     "enabled": true,
     "scenario": { "id": 1, "name": "默认持续合成", "type": "normal" },
+    "rules": {
+      "trackerIntervalSeconds": 300, "capsuleIntervalSeconds": 900,
+      "fenceExcursionProbability": 0.02, "fenceExcursionMinMinutes": 10, "fenceExcursionMaxMinutes": 30,
+      "healthEventProbability": 0.005, "feverDurationMinMinutes": 240, "feverDurationMaxMinutes": 480,
+      "motilityDurationMinMinutes": 480, "motilityDurationMaxMinutes": 720
+    },
     "devices": [
       {
         "deviceId": 5, "deviceCode": "TRK-001", "devEui": "001a0102ff000650", "deviceType": "TRACKER",
@@ -1776,6 +1782,28 @@ Error 400:
 ```
 
 > 启停和设备范围可在一次请求完成。重新启用会清理内存中的设备 due schedule，使下一轮合成按新范围及时生成；关闭仅停用 farm control，不停止全局默认 scenario。操作写入 farm-scoped audit log。
+
+### PUT /admin/datagen/rules/{farmId}
+
+按牧场保存仿真规则，不改变启停状态和设备范围。运行中保存会清理当前 active 设备 due schedule，下一批调度按新规则生成。
+
+```
+Request:
+{
+  "trackerIntervalSeconds": 300, "capsuleIntervalSeconds": 900,
+  "fenceExcursionProbability": 0.02, "fenceExcursionMinMinutes": 10, "fenceExcursionMaxMinutes": 30,
+  "healthEventProbability": 0.005, "feverDurationMinMinutes": 240, "feverDurationMaxMinutes": 480,
+  "motilityDurationMinMinutes": 480, "motilityDurationMaxMinutes": 720
+}
+
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-D03b", "data": { "...": "同 console.rules" } }
+
+Error 400:
+{ "code": "VALIDATION_ERROR", "message": "仿真规则配置无效", "requestId": "req-D03b" }
+```
+
+> 允许范围：TRACKER 60-3600 秒；CAPSULE 300-7200 秒；围栏外出概率 0-0.2、持续 5-120 分钟；健康异常概率 0-0.1；发热与消化动力下降持续均为 120-1440 分钟。所有持续范围必须 `min <= max`。健康异常触发后仍按现有逻辑 50/50 选择发热或消化动力下降。
 
 ### POST /admin/datagen/clear/preview
 

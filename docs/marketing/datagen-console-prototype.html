@@ -85,11 +85,19 @@ body{
   display:grid;grid-template-columns:1.1fr .9fr .8fr 1fr;gap:var(--md);align-items:end;
 }
 .field label{display:block;font-size:11px;color:var(--text-secondary);margin-bottom:4px;font-weight:650}
-.select,input[type=text]{
+.select,input[type=text],input[type=number]{
   width:100%;height:34px;border:1px solid var(--border);border-radius:var(--radius-md);background:#fff;
   padding:0 9px;font-size:13px;color:var(--text-primary);outline:none;
 }
-.select:focus,input[type=text]:focus{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-soft)}
+.select:focus,input[type=text]:focus,input[type=number]:focus{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-soft)}
+.rule-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 24px;padding:16px}
+.rule-field label{display:block;font-size:11px;color:var(--text-secondary);font-weight:700;margin-bottom:5px}
+.rule-field .unit{display:flex;align-items:center;gap:6px}
+.rule-field input{flex:1;min-width:0}
+.rule-field .unit span{min-width:24px;color:var(--text-secondary);font-size:12px}
+.range-input{display:grid;grid-template-columns:1fr 10px 1fr;align-items:center;gap:6px}
+.range-input em{color:var(--text-secondary);font-style:normal}
+.rule-note{padding:10px 16px;border-top:1px solid var(--border);background:var(--surface-muted);color:var(--text-secondary);font-size:12px}
 .console-tabs{
   display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);background:#fff;
 }
@@ -315,20 +323,19 @@ tr.selected td{background:#FBFDFB}
             </div>
             <div class="section">
               <div class="section-head">
-                <div><h2>当前配置</h2><p>场景 NORMAL · 连续运动 · 健康事件低概率</p></div>
-                <div class="toolbar"><button class="btn" onclick="showTab(1)">调整设备</button></div>
+                <div><h2>规则配置</h2><p>按牧场保存 · 运行中修改后下一批生效</p></div>
+                <div class="toolbar"><button class="btn" onclick="resetRules()">恢复默认</button><button class="btn primary" onclick="saveRules()">保存规则</button></div>
               </div>
-              <div class="table-wrap">
-                <table>
-                  <thead><tr><th>项目</th><th>当前值</th><th>状态</th></tr></thead>
-                  <tbody>
-                    <tr><td>动物追踪器频率</td><td>每 5 分钟</td><td><span class="tag green">生效</span></td></tr>
-                    <tr><td>瘤胃胶囊频率</td><td>每 15 分钟</td><td><span class="tag green">生效</span></td></tr>
-                    <tr><td>围栏外出事件</td><td>低概率 · 10-30 分钟</td><td><span class="tag green">生效</span></td></tr>
-                    <tr><td>健康异常事件</td><td>低概率 · 4-12 小时</td><td><span class="tag green">生效</span></td></tr>
-                  </tbody>
-                </table>
+              <div class="rule-grid">
+                <div class="rule-field"><label>动物追踪器上报间隔</label><div class="unit"><input id="trackerInterval" type="number" min="1" max="60" value="5"><span>分钟</span></div></div>
+                <div class="rule-field"><label>瘤胃胶囊上报间隔</label><div class="unit"><input id="capsuleInterval" type="number" min="5" max="120" value="15"><span>分钟</span></div></div>
+                <div class="rule-field"><label>围栏外出触发概率</label><div class="unit"><input id="fenceProbability" type="number" min="0" max="20" step="0.1" value="2"><span>%</span></div></div>
+                <div class="rule-field"><label>围栏外出持续范围</label><div class="unit range-input"><input id="fenceMin" type="number" min="5" max="120" value="10"><em>-</em><input id="fenceMax" type="number" min="5" max="120" value="30"><span>分钟</span></div></div>
+                <div class="rule-field"><label>健康异常触发概率</label><div class="unit"><input id="healthProbability" type="number" min="0" max="10" step="0.1" value="0.5"><span>%</span></div></div>
+                <div class="rule-field"><label>发热持续范围</label><div class="unit range-input"><input id="feverMin" type="number" min="2" max="24" step="0.5" value="4"><em>-</em><input id="feverMax" type="number" min="2" max="24" step="0.5" value="8"><span>小时</span></div></div>
+                <div class="rule-field"><label>消化动力下降持续范围</label><div class="unit range-input"><input id="motilityMin" type="number" min="2" max="24" step="0.5" value="8"><em>-</em><input id="motilityMax" type="number" min="2" max="24" step="0.5" value="12"><span>小时</span></div></div>
               </div>
+              <div class="rule-note">健康异常触发后按 50/50 随机选择发热或消化动力下降；两类异常持续时间分别配置。</div>
             </div>
           </div>
 
@@ -452,6 +459,10 @@ function syncSelection(){
 function setAll(v){selectedBoxes().forEach(x=>{x.checked=v});syncSelection()}
 function saveSelection(){showTab(0)}
 function setRange(el){document.querySelectorAll('.option').forEach(x=>x.classList.toggle('active',x.contains(el)))}
+function resetRules(){
+  Object.entries({trackerInterval:5,capsuleInterval:15,fenceProbability:2,fenceMin:10,fenceMax:30,healthProbability:.5,feverMin:4,feverMax:8,motilityMin:8,motilityMax:12}).forEach(([id,v])=>document.getElementById(id).value=v)
+}
+function saveRules(){showTab(0)}
 function openClean(){document.getElementById('cleanModal').classList.add('show')}
 function closeClean(){document.getElementById('cleanModal').classList.remove('show')}
 document.getElementById('confirmInput').addEventListener('input',e=>{

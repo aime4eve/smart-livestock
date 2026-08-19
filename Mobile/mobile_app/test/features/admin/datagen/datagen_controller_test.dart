@@ -7,6 +7,7 @@ import 'package:hkt_livestock_agentic/features/admin/datagen/presentation/datage
 class _FakeRepository implements DatagenApiRepository {
   bool enabledRequested = false;
   List<int>? savedDeviceIds;
+  DatagenRules? savedRules;
 
   @override
   Future<List<DatagenFarm>> loadFarms() async => [
@@ -53,6 +54,15 @@ class _FakeRepository implements DatagenApiRepository {
     return _console(enabled: enabled, selected: enabled);
   }
 
+  @override
+  Future<DatagenConsoleData> updateRules({
+    required int farmId,
+    required DatagenRules rules,
+  }) async {
+    savedRules = rules;
+    return _console(enabled: true);
+  }
+
   DatagenConsoleData _console({
     bool enabled = false,
     bool selected = true,
@@ -71,6 +81,18 @@ class _FakeRepository implements DatagenApiRepository {
           id: 3,
           name: '默认持续合成',
           type: 'NORMAL',
+        ),
+        rules: const DatagenRules(
+          trackerIntervalSeconds: 300,
+          capsuleIntervalSeconds: 900,
+          fenceExcursionProbability: 0.02,
+          fenceExcursionMinMinutes: 10,
+          fenceExcursionMaxMinutes: 30,
+          healthEventProbability: 0.005,
+          feverDurationMinMinutes: 240,
+          feverDurationMaxMinutes: 480,
+          motilityDurationMinMinutes: 480,
+          motilityDurationMaxMinutes: 720,
         ),
         devices: [
           DatagenDevice(
@@ -163,5 +185,33 @@ void main() {
     expect(fake.enabledRequested, true);
     expect(fake.savedDeviceIds, [5]);
     expect(container.read(datagenControllerProvider).console?.enabled, true);
+  });
+
+  test('saving rules updates the console without changing devices', () async {
+    final fake = _FakeRepository();
+    final container = ProviderContainer(
+      overrides: [datagenApiRepositoryProvider.overrideWithValue(fake)],
+    );
+    addTearDown(container.dispose);
+    final controller = container.read(datagenControllerProvider.notifier);
+    await controller.load();
+
+    const rules = DatagenRules(
+      trackerIntervalSeconds: 600,
+      capsuleIntervalSeconds: 1200,
+      fenceExcursionProbability: 0.05,
+      fenceExcursionMinMinutes: 10,
+      fenceExcursionMaxMinutes: 20,
+      healthEventProbability: 0.01,
+      feverDurationMinMinutes: 180,
+      feverDurationMaxMinutes: 300,
+      motilityDurationMinMinutes: 480,
+      motilityDurationMaxMinutes: 720,
+    );
+    await controller.saveRules(rules);
+
+    expect(fake.savedRules, rules);
+    expect(container.read(datagenControllerProvider).isSavingRules, isFalse);
+    expect(container.read(datagenControllerProvider).selectedDeviceIds, {5});
   });
 }

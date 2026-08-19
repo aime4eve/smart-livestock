@@ -27,7 +27,7 @@ public class DatagenAuditService {
         AuditLog auditLog = new AuditLog(
                 UUID.randomUUID().toString(),
                 switch (action) {
-                    case "START", "STOP", "UPDATE_DEVICES" -> "DATAGEN_CONTROL_CHANGED";
+                    case "START", "STOP", "UPDATE_DEVICES", "UPDATE_RULES" -> "DATAGEN_CONTROL_CHANGED";
                     case "CLEAR_DATA" -> "DATAGEN_DATA_CLEARED";
                     default -> throw new IllegalArgumentException("Unknown datagen audit action: " + action);
                 },
@@ -47,6 +47,7 @@ public class DatagenAuditService {
             case "START" -> "datagenConsoleOperationStart";
             case "STOP" -> "datagenConsoleOperationStop";
             case "UPDATE_DEVICES" -> "datagenConsoleOperationUpdateDevices";
+            case "UPDATE_RULES" -> "datagenConsoleOperationUpdateRules";
             case "CLEAR_DATA" -> "datagenConsoleOperationClear";
             default -> action;
         };

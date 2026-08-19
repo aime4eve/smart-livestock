@@ -31,6 +31,17 @@ class DatagenApiRepository {
     return loadConsole(farmId);
   }
 
+  Future<DatagenConsoleData> updateRules({
+    required int farmId,
+    required DatagenRules rules,
+  }) async {
+    await ApiClient.instance.put(
+      '$_base/rules/$farmId',
+      body: rules.toJson(),
+    );
+    return loadConsole(farmId);
+  }
+
   Future<DatagenClearResult> previewClear({
     required int farmId,
     required String rangeType,

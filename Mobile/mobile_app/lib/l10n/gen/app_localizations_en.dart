@@ -4508,10 +4508,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get datagenConsoleConfigFenceValue => '2% · 10-30 min';
 
   @override
-  String get datagenConsoleConfigHealthValue => '0.5% · 4-12 h';
+  String get datagenConsoleConfigHealthValue =>
+      '0.5% · fever 4-8 h · motility drop 8-12 h';
 
   @override
   String get datagenConsoleConfigEffective => 'Effective';
+
+  @override
+  String get datagenConsoleRulesFenceProbability =>
+      'Fence excursion probability';
+
+  @override
+  String get datagenConsoleRulesFenceDuration => 'Fence excursion duration';
+
+  @override
+  String get datagenConsoleRulesHealthProbability => 'Health event probability';
+
+  @override
+  String get datagenConsoleRulesFever => 'Fever duration';
+
+  @override
+  String get datagenConsoleRulesMotility => 'Motility drop duration';
+
+  @override
+  String get datagenConsoleRulesUnitMinutes => 'min';
+
+  @override
+  String get datagenConsoleRulesUnitHours => 'h';
+
+  @override
+  String get datagenConsoleRulesUnitPercent => '%';
+
+  @override
+  String get datagenConsoleRulesSave => 'Save rules';
+
+  @override
+  String get datagenConsoleRulesReset => 'Reset defaults';
+
+  @override
+  String get datagenConsoleRulesNote =>
+      'Rules are saved per farm and take effect on the next batch. A health event has a 50/50 chance of fever or motility drop.';
+
+  @override
+  String get datagenConsoleInvalidRules =>
+      'Invalid rules. Check the allowed ranges.';
 
   @override
   String get datagenConsoleRuntimeOnline => 'Online';
@@ -4634,6 +4674,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get datagenConsoleOperationUpdateDevices => 'Update device range';
+
+  @override
+  String get datagenConsoleOperationUpdateRules => 'Update simulation rules';
 
   @override
   String get datagenConsoleOperationClear => 'Clear simulation data';

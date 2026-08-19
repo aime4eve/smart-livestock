@@ -15,6 +15,7 @@ public final class DatagenControlMapper {
         control.setFarmId(entity.getFarmId());
         control.setScenarioId(entity.getScenarioId());
         control.setEnabled(entity.isEnabled());
+        control.setRules(entity.getRules());
         control.setCreatedAt(entity.getCreatedAt());
         control.setUpdatedAt(entity.getUpdatedAt());
         return control;
@@ -29,6 +30,7 @@ public final class DatagenControlMapper {
         entity.setFarmId(control.getFarmId());
         entity.setScenarioId(control.getScenarioId());
         entity.setEnabled(control.isEnabled());
+        entity.setRules(control.getRules());
         return entity;
     }
 

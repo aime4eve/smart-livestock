@@ -43,6 +43,63 @@ class DatagenScenario {
       );
 }
 
+class DatagenRules {
+  const DatagenRules({
+    required this.trackerIntervalSeconds,
+    required this.capsuleIntervalSeconds,
+    required this.fenceExcursionProbability,
+    required this.fenceExcursionMinMinutes,
+    required this.fenceExcursionMaxMinutes,
+    required this.healthEventProbability,
+    required this.feverDurationMinMinutes,
+    required this.feverDurationMaxMinutes,
+    required this.motilityDurationMinMinutes,
+    required this.motilityDurationMaxMinutes,
+  });
+
+  final int trackerIntervalSeconds;
+  final int capsuleIntervalSeconds;
+  final double fenceExcursionProbability;
+  final int fenceExcursionMinMinutes;
+  final int fenceExcursionMaxMinutes;
+  final double healthEventProbability;
+  final int feverDurationMinMinutes;
+  final int feverDurationMaxMinutes;
+  final int motilityDurationMinMinutes;
+  final int motilityDurationMaxMinutes;
+
+  factory DatagenRules.fromJson(Map<String, dynamic> json) => DatagenRules(
+        trackerIntervalSeconds: _int(json['trackerIntervalSeconds']),
+        capsuleIntervalSeconds: _int(json['capsuleIntervalSeconds']),
+        fenceExcursionProbability: _double(
+            json['fenceExcursionProbability']),
+        fenceExcursionMinMinutes:
+            _int(json['fenceExcursionMinMinutes']),
+        fenceExcursionMaxMinutes:
+            _int(json['fenceExcursionMaxMinutes']),
+        healthEventProbability: _double(json['healthEventProbability']),
+        feverDurationMinMinutes: _int(json['feverDurationMinMinutes']),
+        feverDurationMaxMinutes: _int(json['feverDurationMaxMinutes']),
+        motilityDurationMinMinutes:
+            _int(json['motilityDurationMinMinutes']),
+        motilityDurationMaxMinutes:
+            _int(json['motilityDurationMaxMinutes']),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'trackerIntervalSeconds': trackerIntervalSeconds,
+        'capsuleIntervalSeconds': capsuleIntervalSeconds,
+        'fenceExcursionProbability': fenceExcursionProbability,
+        'fenceExcursionMinMinutes': fenceExcursionMinMinutes,
+        'fenceExcursionMaxMinutes': fenceExcursionMaxMinutes,
+        'healthEventProbability': healthEventProbability,
+        'feverDurationMinMinutes': feverDurationMinMinutes,
+        'feverDurationMaxMinutes': feverDurationMaxMinutes,
+        'motilityDurationMinMinutes': motilityDurationMinMinutes,
+        'motilityDurationMaxMinutes': motilityDurationMaxMinutes,
+      };
+}
+
 class DatagenDevice {
   const DatagenDevice({
     required this.deviceId,
@@ -153,6 +210,7 @@ class DatagenConsoleData {
     required this.farm,
     required this.enabled,
     required this.scenario,
+    required this.rules,
     required this.devices,
     required this.stats,
     required this.operations,
@@ -161,6 +219,7 @@ class DatagenConsoleData {
   final DatagenFarm farm;
   final bool enabled;
   final DatagenScenario scenario;
+  final DatagenRules rules;
   final List<DatagenDevice> devices;
   final DatagenStats stats;
   final List<DatagenOperation> operations;
@@ -170,6 +229,7 @@ class DatagenConsoleData {
         farm: DatagenFarm.fromJson(_map(json['farm'])),
         enabled: json['enabled'] as bool? ?? false,
         scenario: DatagenScenario.fromJson(_map(json['scenario'])),
+        rules: DatagenRules.fromJson(_map(json['rules'])),
         devices: (json['devices'] as List? ?? [])
             .whereType<Map<String, dynamic>>()
             .map(DatagenDevice.fromJson)
@@ -180,6 +240,12 @@ class DatagenConsoleData {
             .map(DatagenOperation.fromJson)
             .toList(),
       );
+}
+
+double _double(dynamic value) {
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value) ?? 0;
+  return 0;
 }
 
 class DatagenClearResult {

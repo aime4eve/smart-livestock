@@ -6,6 +6,7 @@ public record DatagenConsoleDto(
         DatagenFarmDto farm,
         boolean enabled,
         DatagenScenarioDto scenario,
+        DatagenRulesDto rules,
         List<DatagenDeviceDto> devices,
         DatagenStatsDto stats,
         List<DatagenOperationDto> operations) {}

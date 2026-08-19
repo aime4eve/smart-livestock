@@ -4,6 +4,7 @@ import com.smartlivestock.datagen.application.DatagenOperatorContext.DatagenOper
 import com.smartlivestock.datagen.application.dto.*;
 import com.smartlivestock.datagen.domain.model.DatagenDeviceAssignment;
 import com.smartlivestock.datagen.domain.model.DatagenFarmControl;
+import com.smartlivestock.datagen.domain.model.DatagenFarmRules;
 import com.smartlivestock.datagen.domain.model.ScenarioStatus;
 import com.smartlivestock.datagen.domain.model.SynthesisScenario;
 import com.smartlivestock.datagen.domain.repository.DatagenDeviceAssignmentRepository;
@@ -117,7 +118,8 @@ public class DatagenControlService {
         DatagenScenarioDto scenarioDto =
                 new DatagenScenarioDto(scenario.getId(), scenario.getName(), scenario.getType().getDbValue());
         return new DatagenConsoleDto(
-                farmDto, control.isEnabled(), scenarioDto, devices, stats, operations(farm.getId()));
+                farmDto, control.isEnabled(), scenarioDto, rulesDto(control.getRules()),
+                devices, stats, operations(farm.getId()));
     }
 
     @Transactional
@@ -179,6 +181,74 @@ public class DatagenControlService {
                 "deviceIds", requested,
                 "deviceCount", requested.size()));
         return new DatagenControlResponse(farm.getId(), request.enabled(), requested.size());
+    }
+
+    @Transactional
+    public DatagenRulesDto updateRules(Long farmId, DatagenRulesDto request) {
+        DatagenOperatorContext operator = operatorResolver.resolve();
+        Farm farm = accessService.requireAccessibleFarm(farmId, operator);
+        SynthesisScenario scenario = defaultScenario();
+        DatagenFarmControl control = controlRepository.ensureByFarmId(
+                farm.getTenantId(), farm.getId(), scenario.getId());
+        validateRules(request);
+
+        DatagenFarmRules rules = new DatagenFarmRules(
+                request.trackerIntervalSeconds(),
+                request.capsuleIntervalSeconds(),
+                request.fenceExcursionProbability(),
+                request.fenceExcursionMinMinutes(),
+                request.fenceExcursionMaxMinutes(),
+                request.healthEventProbability(),
+                request.feverDurationMinMinutes(),
+                request.feverDurationMaxMinutes(),
+                request.motilityDurationMinMinutes(),
+                request.motilityDurationMaxMinutes());
+        control.setRules(rules);
+        controlRepository.save(control);
+
+        List<Long> activeDeviceIds = assignmentRepository
+                .findActiveByControlId(control.getId()).stream()
+                .map(DatagenDeviceAssignment::getDeviceId)
+                .toList();
+        synthesisService.clearDeviceSchedules(activeDeviceIds);
+
+        auditService.record("UPDATE_RULES", farm.getId(), operator, Map.of(
+                "rules", rulesDto(rules)));
+        return rulesDto(rules);
+    }
+
+    private void validateRules(DatagenRulesDto rules) {
+        if (rules == null
+                || rules.trackerIntervalSeconds() < 60 || rules.trackerIntervalSeconds() > 3600
+                || rules.capsuleIntervalSeconds() < 300 || rules.capsuleIntervalSeconds() > 7200
+                || rules.fenceExcursionProbability() < 0 || rules.fenceExcursionProbability() > 0.2
+                || rules.fenceExcursionMinMinutes() < 5 || rules.fenceExcursionMinMinutes() > 120
+                || rules.fenceExcursionMaxMinutes() < 5 || rules.fenceExcursionMaxMinutes() > 120
+                || rules.fenceExcursionMinMinutes() > rules.fenceExcursionMaxMinutes()
+                || rules.healthEventProbability() < 0 || rules.healthEventProbability() > 0.1
+                || rules.feverDurationMinMinutes() < 120 || rules.feverDurationMinMinutes() > 1440
+                || rules.feverDurationMaxMinutes() < 120 || rules.feverDurationMaxMinutes() > 1440
+                || rules.feverDurationMinMinutes() > rules.feverDurationMaxMinutes()
+                || rules.motilityDurationMinMinutes() < 120 || rules.motilityDurationMinMinutes() > 1440
+                || rules.motilityDurationMaxMinutes() < 120 || rules.motilityDurationMaxMinutes() > 1440
+                || rules.motilityDurationMinMinutes() > rules.motilityDurationMaxMinutes()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                    "error.datagen.invalidRules");
+        }
+    }
+
+    private DatagenRulesDto rulesDto(DatagenFarmRules rules) {
+        return new DatagenRulesDto(
+                rules.trackerIntervalSeconds(),
+                rules.capsuleIntervalSeconds(),
+                rules.fenceExcursionProbability(),
+                rules.fenceExcursionMinMinutes(),
+                rules.fenceExcursionMaxMinutes(),
+                rules.healthEventProbability(),
+                rules.feverDurationMinMinutes(),
+                rules.feverDurationMaxMinutes(),
+                rules.motilityDurationMinMinutes(),
+                rules.motilityDurationMaxMinutes());
     }
 
     private List<DatagenDeviceDto> buildDevices(Farm farm, DatagenFarmControl control) {
