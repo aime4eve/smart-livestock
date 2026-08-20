@@ -5006,6 +5006,24 @@ abstract class AppLocalizations {
   /// **'RTK 真值点'**
   String get gpsQualityRtkPointList;
 
+  /// No description provided for @gpsQualityRtkSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索位置、点位或坐标'**
+  String get gpsQualityRtkSearchHint;
+
+  /// No description provided for @gpsQualityRtkAllLocations.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部位置'**
+  String get gpsQualityRtkAllLocations;
+
+  /// No description provided for @gpsQualityRtkNoMatches.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有匹配的 RTK 真值点'**
+  String get gpsQualityRtkNoMatches;
+
   /// No description provided for @gpsQualitySessionList.
   ///
   /// In zh, this message translates to:

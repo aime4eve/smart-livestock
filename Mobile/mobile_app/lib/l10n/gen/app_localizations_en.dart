@@ -2735,6 +2735,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpsQualityRtkPointList => 'RTK Reference Points';
 
   @override
+  String get gpsQualityRtkSearchHint =>
+      'Search location, point, or coordinates';
+
+  @override
+  String get gpsQualityRtkAllLocations => 'All locations';
+
+  @override
+  String get gpsQualityRtkNoMatches => 'No matching RTK points';
+
+  @override
   String get gpsQualitySessionList => 'Sessions';
 
   @override

@@ -81,6 +81,20 @@ class CommerceJourneyTest extends AbstractJourneyTest {
         }
 
         @Test
+        @DisplayName("owner checkout 不带 billingCycle 也能成功（App 端无周期概念）")
+        void owner_checkoutWithoutBillingCycle() {
+            try {
+                var resp = postRaw(ownerToken, "/api/v1/subscription/checkout",
+                        Map.of("tier", "STANDARD"));
+                assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+            } finally {
+                // 无论如何恢复为 premium
+                postRaw(ownerToken, "/api/v1/subscription/checkout",
+                        Map.of("tier", "PREMIUM", "billingCycle", "monthly"));
+            }
+        }
+
+        @Test
         @DisplayName("owner PUT /subscription/tier 降级订阅")
         void owner_downgradeTier() {
             var current = getApi(ownerToken, "/api/v1/subscription");

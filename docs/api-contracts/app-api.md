@@ -1019,7 +1019,7 @@ Response 200:
 
 ### POST /subscription/checkout
 
-结账/升级订阅。`tier`、`billingCycle` 均必填。
+结账/升级订阅。`tier` 必填；`billingCycle` 可省略（回退到订阅现有值，仍无则默认 `monthly`）。
 
 ```
 Request:

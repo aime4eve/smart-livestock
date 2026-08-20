@@ -2682,6 +2682,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsQualityRtkPointList => 'RTK 真值点';
 
   @override
+  String get gpsQualityRtkSearchHint => '搜索位置、点位或坐标';
+
+  @override
+  String get gpsQualityRtkAllLocations => '全部位置';
+
+  @override
+  String get gpsQualityRtkNoMatches => '没有匹配的 RTK 真值点';
+
+  @override
   String get gpsQualitySessionList => '检验会话';
 
   @override
