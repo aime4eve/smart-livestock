@@ -47,7 +47,11 @@ public class SubscriptionApplicationService {
      */
     public Subscription upgrade(Long tenantId, SubscriptionTier newTier, String billingCycle) {
         Subscription sub = loadSubscription(tenantId);
-        String resolvedCycle = billingCycle != null ? billingCycle : sub.getBillingCycle();
+        String resolvedCycle = billingCycle != null && !billingCycle.isBlank()
+            ? billingCycle : sub.getBillingCycle();
+        if (resolvedCycle == null || resolvedCycle.isBlank()) {
+            resolvedCycle = "monthly";
+        }
         Instant expiresAt = Instant.now().plusSeconds(cycleSeconds(resolvedCycle));
         sub.changeTier(newTier, resolvedCycle, expiresAt);
         Subscription saved = subscriptionRepository.save(sub);

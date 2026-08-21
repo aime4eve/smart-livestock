@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
+<title>GPS 质量检查 · RTK 真值点浏览优化原型</title>
+<style>
+:root {
+  --color-primary: #2F6B3B;
+  --color-primary-dark: #244F2D;
+  --color-primary-soft: #E3F0E4;
+  --color-surface: #F8F6F0;
+  --color-surface-alt: #FFFFFF;
+  --color-surface-muted: #F2F0EA;
+  --color-border: #D7D2C6;
+  --color-text: #263126;
+  --color-text-secondary: #617061;
+  --color-danger: #C2564B;
+  --color-danger-soft: #FBE8E6;
+  --color-row-hover: #FBFAF6;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --shadow-card: 0 1px 2px rgba(38, 49, 38, 0.08);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+button, input {
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.top-bar {
+  height: 56px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 0 var(--space-xl);
+  background: var(--color-surface-alt);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.top-bar h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.top-bar .context {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.top-bar .spacer { flex: 1; }
+
+.icon-button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.main-tabs {
+  display: flex;
+  gap: var(--space-lg);
+  padding: 0 var(--space-xl);
+  background: var(--color-surface-alt);
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.main-tab {
+  padding: 12px 2px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.main-tab.active {
+  border-bottom-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.page {
+  width: min(1280px, 100%);
+  margin: 0 auto;
+  padding: var(--space-xl);
+  flex: 1;
+}
+
+.sub-tabs {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-alt);
+  margin-bottom: var(--space-lg);
+}
+
+.sub-tab {
+  min-height: 32px;
+  padding: 5px 12px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.sub-tab.active {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.rtk-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 160px);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.panel-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  min-width: 150px;
+}
+
+.panel-title h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.result-count {
+  min-width: 38px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.toolbar {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}
+
+.search-field {
+  position: relative;
+  width: min(320px, 100%);
+}
+
+.search-field::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--color-text-secondary);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.search-field::after {
+  content: "";
+  position: absolute;
+  left: 21px;
+  top: 55%;
+  width: 7px;
+  height: 2px;
+  background: var(--color-text-secondary);
+  border-radius: 1px;
+  transform: rotate(45deg);
+}
+
+.search-input {
+  width: 100%;
+  height: 34px;
+  padding: 0 12px 0 32px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-size: 13px;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+.primary-button {
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.primary-button:hover { background: var(--color-primary-dark); }
+
+.rtk-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  min-height: 0;
+}
+
+.location-nav {
+  border-right: 1px solid var(--color-border);
+  padding: var(--space-sm);
+  overflow-y: auto;
+}
+
+.location-option {
+  width: 100%;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 6px 10px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.location-option + .location-option { margin-top: 2px; }
+.location-option:hover { background: var(--color-surface-muted); }
+.location-option.active { background: var(--color-primary-soft); color: var(--color-primary-dark); font-weight: 600; }
+
+.location-option .location-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.location-option .location-count {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.location-option.active .location-count { color: var(--color-primary); }
+
+.table-panel {
+  min-width: 0;
+  overflow: auto;
+  max-height: calc(100vh - 212px);
+}
+
+.rtk-table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+}
+
+.rtk-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0;
+  background: var(--color-surface-alt);
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.th-button {
+  width: 100%;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 16px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.th-button:hover { color: var(--color-text); background: var(--color-surface-muted); }
+.th-button.active { color: var(--color-primary); }
+.th-button .sort-arrow { font-size: 10px; }
+
+.rtk-table td {
+  height: 40px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.rtk-table tbody tr:hover td { background: var(--color-row-hover); }
+.rtk-table tr:last-child td { border-bottom: 0; }
+
+.point-cell {
+  min-width: 96px;
+  font-weight: 600;
+}
+
+.location-cell {
+  max-width: 180px;
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  text-overflow: ellipsis;
+}
+
+.coordinate {
+  min-width: 124px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.action-cell {
+  width: 56px;
+  text-align: right;
+}
+
+.delete-button {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.empty-state {
+  display: none;
+  padding: var(--space-xl);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  text-align: center;
+}
+
+.empty-state.visible { display: block; }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  background: rgba(38, 49, 38, 0.32);
+}
+
+.modal-overlay.visible { display: flex; }
+
+.modal {
+  width: min(440px, 100%);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 48px rgba(38, 49, 38, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.modal-form {
+  display: grid;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.text-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-size: 13px;
+  outline: none;
+}
+
+.text-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+.coordinate-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid var(--color-border);
+}
+
+.secondary-button {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.secondary-button:hover { background: var(--color-surface-muted); }
+
+.form-error {
+  display: none;
+  margin: 0;
+  color: var(--color-danger);
+  font-size: 12px;
+}
+
+.form-error.visible { display: block; }
+
+@media (max-width: 960px) {
+  .rtk-layout { display: block; overflow: visible; }
+  .location-nav {
+    display: flex;
+    gap: var(--space-sm);
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+    overflow-x: auto;
+    padding: var(--space-sm) var(--space-md);
+  }
+  .location-option {
+    width: auto;
+    flex-shrink: 0;
+    border: 1px solid var(--color-border);
+  }
+  .location-option + .location-option { margin-top: 0; }
+  .table-panel { max-height: none; }
+}
+
+@media (max-width: 720px) {
+  .top-bar, .main-tabs, .page { padding-right: var(--space-md); padding-left: var(--space-md); }
+  .top-bar .context { display: none; }
+  .main-tabs { gap: var(--space-md); }
+  .panel-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .panel-title { justify-content: space-between; }
+  .toolbar { justify-content: stretch; }
+  .search-field { width: 100%; }
+  .toolbar .primary-button { flex: 1; justify-content: center; }
+  .rtk-table { min-width: 620px; }
+  .rtk-table td, .th-button { padding-right: 10px; padding-left: 10px; }
+  .modal-actions { flex-direction: column-reverse; }
+  .modal-actions button { width: 100%; }
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="top-bar">
+    <span class="context">平台管理</span>
+    <h1>GPS 质量检查</h1>
+    <div class="spacer"></div>
+    <button class="icon-button" type="button" title="管理功能">⚙</button>
+    <button class="icon-button" type="button" title="退出登录">⏻</button>
+  </header>
+
+  <nav class="main-tabs" aria-label="GPS 质量检查">
+    <button class="main-tab" type="button">动态对比</button>
+    <button class="main-tab active" type="button">真值参照</button>
+    <button class="main-tab" type="button">Session-Test</button>
+    <button class="main-tab" type="button">质量报告</button>
+  </nav>
+
+  <main class="page">
+    <div class="sub-tabs" role="tablist" aria-label="真值参照类型">
+      <button class="sub-tab active" type="button" role="tab" aria-selected="true">RTK 真值点 <span id="rtk-subtab-count">33</span></button>
+      <button class="sub-tab" type="button" role="tab" aria-selected="false">动态路线</button>
+      <button class="sub-tab" type="button" role="tab" aria-selected="false">标准轨迹</button>
+    </div>
+
+    <section class="rtk-panel" aria-label="RTK 真值点">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h2>RTK 真值点</h2>
+          <span class="result-count" id="result-count">20</span>
+        </div>
+        <div class="toolbar">
+          <div class="search-field">
+            <input class="search-input" id="point-search" type="search" placeholder="搜索位置、点位或坐标" aria-label="搜索 RTK 真值点">
+          </div>
+          <button class="primary-button" type="button" id="open-create">+ 新增点位</button>
+        </div>
+      </div>
+
+      <div class="rtk-layout">
+        <aside class="location-nav" id="location-nav" aria-label="位置分组"></aside>
+        <div class="table-panel">
+          <table class="rtk-table" id="rtk-table">
+            <thead>
+              <tr>
+                <th aria-sort="ascending"><button class="th-button active" type="button" data-sort="label">点位编号 <span class="sort-arrow">↑</span></button></th>
+                <th id="location-header" aria-hidden="true"><button class="th-button" type="button" data-sort="location">位置 <span class="sort-arrow"></span></button></th>
+                <th aria-sort="none"><button class="th-button" type="button" data-sort="latitude">纬度 <span class="sort-arrow"></span></button></th>
+                <th aria-sort="none"><button class="th-button" type="button" data-sort="longitude">经度 <span class="sort-arrow"></span></button></th>
+                <th><span class="th-button">操作</span></th>
+              </tr>
+            </thead>
+            <tbody id="point-rows"></tbody>
+          </table>
+          <div class="empty-state" id="empty-state">没有匹配的 RTK 真值点</div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal-overlay" id="create-modal" role="dialog" aria-modal="true" aria-labelledby="create-title">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="create-title">新增点位</h3>
+      <button class="icon-button" type="button" id="close-create" title="关闭">×</button>
+    </div>
+    <form class="modal-form" id="create-form">
+      <div>
+        <label class="field-label" for="location-input">位置名称</label>
+        <input class="text-input" id="location-input" required>
+      </div>
+      <div>
+        <label class="field-label" for="label-input">点位编号</label>
+        <input class="text-input" id="label-input" required>
+      </div>
+      <div class="coordinate-fields">
+        <div>
+          <label class="field-label" for="latitude-input">纬度</label>
+          <input class="text-input" id="latitude-input" type="number" step="0.0000001" required>
+        </div>
+        <div>
+          <label class="field-label" for="longitude-input">经度</label>
+          <input class="text-input" id="longitude-input" type="number" step="0.0000001" required>
+        </div>
+      </div>
+      <p class="form-error" id="form-error">请填写完整点位信息</p>
+    </form>
+    <div class="modal-actions">
+      <button class="secondary-button" type="button" id="cancel-create">取消</button>
+      <button class="primary-button" type="button" id="save-create">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const initialPoints = [
+  { id: 1, location: "宿舍楼顶", label: "1号点", latitude: 28.2453909, longitude: 112.8507819 },
+  { id: 2, location: "宿舍楼顶", label: "2号点", latitude: 28.2455344, longitude: 112.8507807 },
+  { id: 3, location: "宿舍楼顶", label: "3号点", latitude: 28.2455843, longitude: 112.8505580 },
+  { id: 4, location: "宿舍楼顶", label: "4号点", latitude: 28.2454514, longitude: 112.8505182 },
+  { id: 5, location: "西南门", label: "5号点", latitude: 28.2454077, longitude: 112.8504692 },
+  { id: 6, location: "西南门", label: "6号点", latitude: 28.2453967, longitude: 112.8505024 },
+  { id: 7, location: "东南门", label: "7号点", latitude: 28.2451891, longitude: 112.8512999 },
+  { id: 8, location: "东南门", label: "8号点", latitude: 28.2451752, longitude: 112.8513665 },
+  { id: 9, location: "北门", label: "9号点", latitude: 28.2467991, longitude: 112.8517161 },
+  { id: 10, location: "北门", label: "10号点", latitude: 28.2468189, longitude: 112.8516268 },
+  { id: 11, location: "一期楼顶", label: "11号点", latitude: 28.2465940, longitude: 112.8516104 },
+  { id: 12, location: "一期楼顶", label: "12号点", latitude: 28.2465306, longitude: 112.8515918 },
+  { id: 13, location: "一期楼顶", label: "13号点", latitude: 28.2465423, longitude: 112.8515446 },
+  { id: 14, location: "一期楼顶", label: "14号点", latitude: 28.2465773, longitude: 112.8515541 },
+  { id: 15, location: "一期楼顶", label: "15号点", latitude: 28.2466024, longitude: 112.8515760 },
+  { id: 16, location: "一期楼顶", label: "16号点", latitude: 28.2466361, longitude: 112.8514458 },
+  { id: 17, location: "一期楼顶", label: "17号点", latitude: 28.2466571, longitude: 112.8513552 },
+  { id: 18, location: "一期楼顶", label: "18号点", latitude: 28.2465998, longitude: 112.8513146 },
+  { id: 19, location: "一期楼顶", label: "19号点", latitude: 28.2465576, longitude: 112.8512925 },
+  { id: 20, location: "一期楼顶", label: "20号点", latitude: 28.2465651, longitude: 112.8511910 },
+  { id: 21, location: "一期楼顶", label: "21号点", latitude: 28.2465803, longitude: 112.8511422 },
+  { id: 22, location: "一期楼顶", label: "22号点", latitude: 28.2465892, longitude: 112.8510874 },
+  { id: 23, location: "一期楼顶", label: "23号点", latitude: 28.2465939, longitude: 112.8513259 },
+  { id: 24, location: "一期楼顶", label: "24号点", latitude: 28.2466036, longitude: 112.8509989 },
+  { id: 25, location: "一期楼顶", label: "25号点", latitude: 28.2466036, longitude: 112.8509648 },
+  { id: 26, location: "一期楼顶", label: "26号点", latitude: 28.2466344, longitude: 112.8510530 },
+  { id: 27, location: "一期楼顶", label: "27号点", latitude: 28.2466735, longitude: 112.8510666 },
+  { id: 28, location: "一期楼顶", label: "28号点", latitude: 28.2466218, longitude: 112.8511026 },
+  { id: 29, location: "一期楼顶", label: "29号点", latitude: 28.2466114, longitude: 112.8511535 },
+  { id: 30, location: "一期楼顶", label: "30号点", latitude: 28.2466007, longitude: 112.8511949 },
+  { id: 31, location: "一期电梯楼顶（西中）", label: "31号点", latitude: 28.2465617, longitude: 112.8513945 },
+  { id: 32, location: "一期电梯楼顶（东中）", label: "32号点", latitude: 28.2464889, longitude: 112.8515712 },
+  { id: 33, location: "一期电梯楼顶（东南）", label: "33号点", latitude: 28.2464447, longitude: 112.8515829 }
+];
+
+let points = [...initialPoints];
+let activeLocation = "一期楼顶";
+let searchValue = "";
+let sortField = "label";
+let sortDirection = 1;
+let nextId = 34;
+
+const elements = {
+  nav: document.getElementById("location-nav"),
+  rows: document.getElementById("point-rows"),
+  count: document.getElementById("result-count"),
+  search: document.getElementById("point-search"),
+  empty: document.getElementById("empty-state"),
+  locationHeader: document.getElementById("location-header"),
+  subtabCount: document.getElementById("rtk-subtab-count"),
+  modal: document.getElementById("create-modal"),
+  form: document.getElementById("create-form"),
+  formError: document.getElementById("form-error")
+};
+
+function naturalLabel(label) {
+  const match = label.match(/\d+/);
+  return match ? Number(match[0]) : Number.MAX_SAFE_INTEGER;
+}
+
+function locationOrder() {
+  return [...new Set(points.map(point => point.location))];
+}
+
+function renderNav() {
+  const locations = locationOrder();
+  const groups = [
+    { name: "全部位置", count: points.length },
+    ...locations.map(name => ({
+      name,
+      count: points.filter(point => point.location === name).length
+    }))
+  ];
+
+  elements.nav.replaceChildren(...groups.map(group => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `location-option${activeLocation === group.name ? " active" : ""}`;
+    button.setAttribute("aria-current", activeLocation === group.name ? "true" : "false");
+    button.innerHTML = `<span class="location-name"></span><span class="location-count"></span>`;
+    button.querySelector(".location-name").textContent = group.name;
+    button.querySelector(".location-count").textContent = group.count;
+    button.addEventListener("click", () => {
+      activeLocation = group.name;
+      render();
+    });
+    return button;
+  }));
+}
+
+function visiblePoints() {
+  const query = searchValue.trim().toLowerCase();
+  return points.filter(point => {
+    const locationOk = activeLocation === "全部位置" || point.location === activeLocation;
+    const searchText = `${point.location} ${point.label} ${point.latitude.toFixed(7)} ${point.longitude.toFixed(7)}`.toLowerCase();
+    return locationOk && (!query || searchText.includes(query));
+  }).sort((a, b) => {
+    if (sortField === "location") {
+      const locations = locationOrder();
+      const delta = locations.indexOf(a.location) - locations.indexOf(b.location);
+      if (delta !== 0) return delta;
+    }
+    if (sortField === "label") return (naturalLabel(a.label) - naturalLabel(b.label)) * sortDirection;
+    return ((a[sortField] - b[sortField]) || naturalLabel(a.label) - naturalLabel(b.label)) * sortDirection;
+  });
+}
+
+function renderRows() {
+  const visible = visiblePoints();
+  const isAll = activeLocation === "全部位置";
+  elements.locationHeader.hidden = !isAll;
+  elements.count.textContent = visible.length;
+  elements.empty.classList.toggle("visible", visible.length === 0);
+
+  elements.rows.replaceChildren(...visible.map(point => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td class="point-cell"></td>
+      ${isAll ? '<td class="location-cell"></td>' : ""}
+      <td class="coordinate"></td>
+      <td class="coordinate"></td>
+      <td class="action-cell"><button class="delete-button" type="button" title="删除">🗑</button></td>`;
+    const cells = row.querySelectorAll("td");
+    cells[0].textContent = point.label;
+    if (isAll) cells[1].textContent = point.location;
+    cells[isAll ? 2 : 1].textContent = point.latitude.toFixed(7);
+    cells[isAll ? 3 : 2].textContent = point.longitude.toFixed(7);
+    row.querySelector(".delete-button").addEventListener("click", () => {
+      points = points.filter(item => item.id !== point.id);
+      if (!locationOrder().includes(activeLocation)) activeLocation = "全部位置";
+      render();
+    });
+    return row;
+  }));
+}
+
+function renderSortControls() {
+  document.querySelectorAll(".th-button[data-sort]").forEach(button => {
+    const field = button.dataset.sort;
+    const isActive = field === sortField;
+    button.classList.toggle("active", isActive);
+    const arrow = button.querySelector(".sort-arrow");
+    arrow.textContent = isActive ? (sortDirection === 1 ? "↑" : "↓") : "";
+    button.closest("th").setAttribute("aria-sort", isActive ? (sortDirection === 1 ? "ascending" : "descending") : "none");
+  });
+}
+
+function render() {
+  elements.subtabCount.textContent = points.length;
+  renderNav();
+  renderRows();
+  renderSortControls();
+}
+
+elements.search.addEventListener("input", event => {
+  searchValue = event.target.value;
+  if (searchValue.trim() && activeLocation !== "全部位置") activeLocation = "全部位置";
+  render();
+});
+
+document.querySelectorAll(".th-button[data-sort]").forEach(button => {
+  button.addEventListener("click", () => {
+    const field = button.dataset.sort;
+    if (sortField === field) {
+      sortDirection *= -1;
+    } else {
+      sortField = field;
+      sortDirection = 1;
+    }
+    render();
+  });
+});
+
+elements.modal.addEventListener("click", event => {
+  if (event.target === elements.modal) closeCreateModal();
+});
+
+document.getElementById("open-create").addEventListener("click", () => {
+  elements.form.reset();
+  elements.formError.classList.remove("visible");
+  elements.modal.classList.add("visible");
+  document.getElementById("location-input").focus();
+});
+
+document.getElementById("close-create").addEventListener("click", closeCreateModal);
+document.getElementById("cancel-create").addEventListener("click", closeCreateModal);
+
+function closeCreateModal() {
+  elements.modal.classList.remove("visible");
+}
+
+document.getElementById("save-create").addEventListener("click", () => {
+  const location = document.getElementById("location-input").value.trim();
+  const label = document.getElementById("label-input").value.trim();
+  const latitude = Number(document.getElementById("latitude-input").value);
+  const longitude = Number(document.getElementById("longitude-input").value);
+
+  if (!location || !label || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    elements.formError.classList.add("visible");
+    return;
+  }
+
+  points = [...points, { id: nextId++, location, label, latitude, longitude }];
+  activeLocation = location;
+  searchValue = "";
+  elements.search.value = "";
+  closeCreateModal();
+  render();
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && elements.modal.classList.contains("visible")) closeCreateModal();
+});
+
+render();
+</script>
+</body>
+</html>

@@ -63,13 +63,14 @@ public class SubscriptionController {
     /**
      * POST /api/v1/subscription/checkout
      * Checkout / upgrade subscription.
+     * billingCycle is optional — defaults to current cycle, then "monthly".
      */
     @PostMapping("/checkout")
     public ResponseEntity<ApiResponse<SubscriptionResponse>> checkout(
             @RequestBody Map<String, String> body) {
         Long tenantId = requireTenantId();
         String tierStr = requireField(body, "tier");
-        String billingCycle = requireField(body, "billingCycle");
+        String billingCycle = body.get("billingCycle");
 
         SubscriptionTier tier = parseTier(tierStr);
         subscriptionApplicationService.upgrade(tenantId, tier, billingCycle);

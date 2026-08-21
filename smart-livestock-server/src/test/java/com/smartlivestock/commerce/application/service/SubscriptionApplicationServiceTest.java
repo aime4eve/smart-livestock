@@ -121,6 +121,30 @@ class SubscriptionApplicationServiceTest {
         }
 
         @Test
+        void nullBillingCycle_reusesCurrentCycle() {
+            Subscription active = createActiveSubscription();
+            when(subscriptionRepository.findByTenantId(1L)).thenReturn(Optional.of(active));
+            when(subscriptionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            SubscriptionApplicationService service = createService();
+            Subscription result = service.upgrade(1L, SubscriptionTier.PREMIUM, null);
+
+            assertThat(result.getBillingCycle()).isEqualTo("monthly");
+        }
+
+        @Test
+        void nullBillingCycle_andNoCurrentCycle_defaultsToMonthly() {
+            Subscription trial = createTrialSubscription();
+            when(subscriptionRepository.findByTenantId(1L)).thenReturn(Optional.of(trial));
+            when(subscriptionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            SubscriptionApplicationService service = createService();
+            Subscription result = service.upgrade(1L, SubscriptionTier.PREMIUM, null);
+
+            assertThat(result.getBillingCycle()).isEqualTo("monthly");
+        }
+
+        @Test
         void subscriptionNotFound_throws() {
             when(subscriptionRepository.findByTenantId(999L)).thenReturn(Optional.empty());
 
