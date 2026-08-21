@@ -97,7 +97,7 @@ Future<void> _loadFonts() => Future.wait([
     'assets/fonts/Roboto-Bold.ttf',
   ]),
   _loadFont('MaterialIcons', [
-    '/opt/homebrew/share/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+    '${Platform.environment['FLUTTER_ROOT'] ?? '/opt/homebrew/share/flutter'}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
   ]),
 ]);
 
@@ -117,7 +117,9 @@ Widget _buildApp() => ProviderScope(
 );
 
 void main() {
-  testWidgets('capture RTK panel visual states', (tester) async {
+  // Golden pixels depend on local font rasterization; generate and compare locally.
+  final bool isCi = Platform.environment['CI'] == 'true';
+  testWidgets('capture RTK panel visual states', skip: isCi, (tester) async {
     await tester.runAsync(_loadFonts);
     tester.view.physicalSize = const Size(1264, 746);
     tester.view.devicePixelRatio = 1;
