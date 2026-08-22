@@ -42,6 +42,13 @@ telemetry:
     enabled: ${TELEMETRY_SIMULATOR_ENABLED:false}
     interval-ms: ${TELEMETRY_SIMULATOR_INTERVAL_MS:30000}
 
+gps:
+  ingestion:
+    poll-ms: ${GPS_INGESTION_POLL_MS:500}
+    batch-size: ${GPS_INGESTION_BATCH_SIZE:100}
+    max-attempts: ${GPS_INGESTION_MAX_ATTEMPTS:10}
+    retry-delay: ${GPS_INGESTION_RETRY_DELAY:30s}
+
 datagen:
   enabled: ${DATAGEN_ENABLED:true}
   tick-ms: ${DATAGEN_TICK_MS:10000}

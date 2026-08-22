@@ -4,12 +4,14 @@ import com.smartlivestock.iot.domain.event.TelemetryReceivedEvent;
 import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.DeviceStatus;
 import com.smartlivestock.iot.domain.model.DeviceTelemetryLog;
+import com.smartlivestock.iot.domain.model.GpsIngestionTask;
 import com.smartlivestock.iot.domain.model.Installation;
 import com.smartlivestock.iot.domain.model.TelemetrySource;
 import com.smartlivestock.iot.domain.port.RanchQueryPort;
 import com.smartlivestock.iot.domain.port.dto.LivestockInfo;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.domain.repository.DeviceTelemetryLogRepository;
+import com.smartlivestock.iot.domain.repository.GpsIngestionTaskRepository;
 import com.smartlivestock.iot.domain.repository.InstallationRepository;
 import com.smartlivestock.ranch.domain.model.Alert;
 import com.smartlivestock.ranch.domain.model.AlertStatus;
@@ -38,7 +40,7 @@ import java.util.Map;
  * <ol>
  *   <li>Updates device runtime status snapshot (devices table)</li>
  *   <li>Writes device operational timeseries (device_telemetry_logs)</li>
- *   <li>Extracts GPS for TRACKER devices (gps_logs)</li>
+ *   <li>Enqueues GPS writes for TRACKER devices (durable outbox)</li>
  *   <li>Detects device alerts (tamper / low battery) — only for AGENTIC_PLATFORM source</li>
  *   <li>Publishes TelemetryReceivedEvent for cross-context consumption</li>
  *   <li>Advances sync cursor — only for AGENTIC_PLATFORM source</li>
@@ -53,7 +55,7 @@ public class TelemetryIngestionService {
     private final DeviceTelemetryLogRepository deviceTelemetryLogRepository;
     private final InstallationRepository installationRepository;
     private final RanchQueryPort ranchQueryPort;
-    private final GpsLogApplicationService gpsLogApplicationService;
+    private final GpsIngestionTaskRepository gpsIngestionTaskRepository;
     private final AlertRepository alertRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
@@ -106,8 +108,8 @@ public class TelemetryIngestionService {
         // 2a. Compute stepNumber delta (累计值 → 周期增量) and inject into readings
         computeStepDelta(device, readings);
 
-        // 3. Extract GPS for TRACKER devices
-        extractAndLogGps(device, readings, effectiveRecordedAt, source);
+        // 3. Enqueue GPS for TRACKER devices; gps_logs is written by the outbox worker.
+        enqueueGps(device, readings, effectiveRecordedAt, source);
 
         // 4. Detect device alerts (only for AGENTIC_PLATFORM source)
         if (source == TelemetrySource.AGENTIC_PLATFORM) {
@@ -245,23 +247,42 @@ public class TelemetryIngestionService {
         deviceTelemetryLogRepository.save(logEntry);
     }
 
-   private void extractAndLogGps(Device device, Map<String, Object> readings, Instant recordedAt,
-                                 TelemetrySource source) {
+   private void enqueueGps(Device device, Map<String, Object> readings, Instant recordedAt,
+                           TelemetrySource source) {
        if (device.getDeviceType() != com.smartlivestock.iot.domain.model.DeviceType.TRACKER) return;
 
        Object latObj = readings.get("latitude");
        Object lngObj = readings.get("longitude");
        if (latObj != null && lngObj != null) {
-           BigDecimal latitude = toBigDecimal(latObj);
-           BigDecimal longitude = toBigDecimal(lngObj);
+           BigDecimal latitude;
+           BigDecimal longitude;
+           try {
+               latitude = toBigDecimal(latObj);
+               longitude = toBigDecimal(lngObj);
+           } catch (RuntimeException e) {
+               log.warn("Skipping unparseable GPS for device [{}]: {}", device.getId(), e.getMessage());
+               return;
+           }
+           if (latitude == null || longitude == null
+                   || latitude.abs().compareTo(BigDecimal.valueOf(90)) > 0
+                   || longitude.abs().compareTo(BigDecimal.valueOf(180)) > 0) {
+               log.warn("Skipping out-of-range GPS for device [{}]: lat={}, lng={}",
+                       device.getId(), latObj, lngObj);
+               return;
+           }
            // Skip invalid GPS fixes (0,0 means no fix)
-           if (latitude != null && longitude != null
-                   && latitude.compareTo(BigDecimal.ZERO) == 0
+           if (latitude.compareTo(BigDecimal.ZERO) == 0
                    && longitude.compareTo(BigDecimal.ZERO) == 0) {
                log.debug("Skipping invalid GPS (0,0) for device [{}]", device.getId());
                return;
            }
-           gpsLogApplicationService.logGps(device.getId(), latitude, longitude, null, recordedAt, source);
+           GpsIngestionTask task = new GpsIngestionTask();
+           task.setDeviceId(device.getId());
+           task.setLatitude(latitude);
+           task.setLongitude(longitude);
+           task.setRecordedAt(recordedAt);
+           task.setSource(source);
+           gpsIngestionTaskRepository.enqueue(task);
        }
    }
 

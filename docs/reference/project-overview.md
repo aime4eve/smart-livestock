@@ -61,6 +61,7 @@ Spring Boot 3.3 + Java 17 + Gradle + PostgreSQL 16 + Redis 7 + RocketMQ 5.1 + Fl
 | V38-V41 | datagen + AI anomaly | IoT/Health |
 | V20260709... | Phase 3 device extension + seed | IoT |
 | V20260710... | bugfix 迁移（时区/精度/数据清理） | 各上下文 |
+| V20260822200000 | GPS ingestion outbox | IoT |
 
 > 关键迁移摘要，非完整列表。完整列表：`ls smart-livestock-server/src/main/resources/db/migration/`
 

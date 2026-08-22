@@ -86,6 +86,42 @@ ORDER BY parent.relname, child.relname;
 SELECT COUNT(*) FROM temperature_logs_default;
 ```
 
+## GPS 写入 Outbox
+
+`TelemetryIngestionService` 不在同一事务内直接写 `gps_logs`。TRACKER 遥测会在 ingest 事务中写入 `gps_ingestion_tasks`，`GpsIngestionTaskScheduler` 每 500ms 最多处理 100 条任务；每条任务独立事务调用既有 `(device_id, recorded_at)` 幂等 upsert，成功后删除任务。
+
+### 监控
+
+```sql
+SELECT status, count(*), max(attempts) AS max_attempts
+FROM gps_ingestion_tasks
+GROUP BY status;
+
+SELECT id, device_id, recorded_at, attempts, next_attempt_at, last_error
+FROM gps_ingestion_tasks
+WHERE status = 'FAILED'
+ORDER BY updated_at DESC;
+```
+
+- 正常稳态：`PENDING` 接近 0，`FAILED` 为 0；成功任务会被删除，不保留在表中。
+- 失败日志关键字：`GPS ingestion task` / `GPS ingestion batch complete`。
+- 可用环境变量调整：`GPS_INGESTION_POLL_MS`、`GPS_INGESTION_BATCH_SIZE`、`GPS_INGESTION_MAX_ATTEMPTS`、`GPS_INGESTION_RETRY_DELAY`。
+
+### 失败恢复
+
+排查并修复根因后，可将指定任务重置：
+
+```sql
+UPDATE gps_ingestion_tasks
+SET status = 'PENDING',
+    attempts = 0,
+    next_attempt_at = NOW(),
+    last_error = NULL
+WHERE id = :taskId;
+```
+
+不要直接删除 `FAILED` 任务，除非确认该 GPS 帧允许丢弃；新到的重复 `(device_id, recorded_at)` 会自动把任务重置为 `PENDING`。
+
 ## 前端 Live 模式连接后端
 
 ```bash

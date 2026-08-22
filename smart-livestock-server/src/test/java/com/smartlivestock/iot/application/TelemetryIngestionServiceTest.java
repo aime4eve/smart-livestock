@@ -5,6 +5,7 @@ import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.DeviceStatus;
 import com.smartlivestock.iot.domain.model.DeviceTelemetryLog;
 import com.smartlivestock.iot.domain.model.DeviceType;
+import com.smartlivestock.iot.domain.model.GpsIngestionTask;
 import com.smartlivestock.iot.domain.model.Installation;
 import com.smartlivestock.iot.domain.model.TelemetrySource;
 import com.smartlivestock.ranch.domain.model.Alert;
@@ -12,6 +13,7 @@ import com.smartlivestock.iot.domain.port.RanchQueryPort;
 import com.smartlivestock.iot.domain.port.dto.LivestockInfo;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.domain.repository.DeviceTelemetryLogRepository;
+import com.smartlivestock.iot.domain.repository.GpsIngestionTaskRepository;
 import com.smartlivestock.iot.domain.repository.InstallationRepository;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.shared.common.ApiException;
@@ -39,7 +41,7 @@ class TelemetryIngestionServiceTest {
     @Mock private DeviceTelemetryLogRepository deviceTelemetryLogRepository;
     @Mock private InstallationRepository installationRepository;
     @Mock private RanchQueryPort ranchQueryPort;
-    @Mock private GpsLogApplicationService gpsLogApplicationService;
+    @Mock private GpsIngestionTaskRepository gpsIngestionTaskRepository;
     @Mock private AlertRepository alertRepository;
     @Mock private ApplicationEventPublisher eventPublisher;
 
@@ -49,7 +51,7 @@ class TelemetryIngestionServiceTest {
     void setUp() {
         service = new TelemetryIngestionService(
                 deviceRepository, deviceTelemetryLogRepository, installationRepository,
-                ranchQueryPort, gpsLogApplicationService, alertRepository, eventPublisher,
+                ranchQueryPort, gpsIngestionTaskRepository, alertRepository, eventPublisher,
                 new com.fasterxml.jackson.databind.ObjectMapper());
     }
 
@@ -109,7 +111,7 @@ class TelemetryIngestionServiceTest {
     }
 
     @Test
-    void ingest_tracker_extractsGpsAndPublishesEvent() {
+    void ingest_tracker_enqueuesGpsAndPublishesEvent() {
         Device device = createTrackerDevice(1L);
         Installation installation = createInstallation(1L, 5L);
         LivestockInfo livestockInfo = new LivestockInfo(5L, 1L, "C002", "MALE", null, null);
@@ -128,10 +130,15 @@ class TelemetryIngestionServiceTest {
 
         service.ingest(1L, readings, recordedAt);
 
-        // Verify GPS was extracted and logged
-        verify(gpsLogApplicationService).logGps(eq(1L),
-                eq(new BigDecimal("28.229")), eq(new BigDecimal("112.938")),
-                isNull(), eq(recordedAt), eq(TelemetrySource.HTTP));
+        // Verify GPS was extracted and enqueued for the outbox worker
+        ArgumentCaptor<GpsIngestionTask> taskCaptor = ArgumentCaptor.forClass(GpsIngestionTask.class);
+        verify(gpsIngestionTaskRepository).enqueue(taskCaptor.capture());
+        GpsIngestionTask task = taskCaptor.getValue();
+        assertEquals(1L, task.getDeviceId());
+        assertEquals(new BigDecimal("28.229"), task.getLatitude());
+        assertEquals(new BigDecimal("112.938"), task.getLongitude());
+        assertEquals(recordedAt, task.getRecordedAt());
+        assertEquals(TelemetrySource.HTTP, task.getSource());
 
         // Verify telemetry event published
         ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
@@ -155,7 +162,7 @@ class TelemetryIngestionServiceTest {
         Map<String, Object> readings = Map.of("temperatures", java.util.List.of(new BigDecimal("38.6")));
         service.ingest(51L, readings, Instant.now());
 
-        verify(gpsLogApplicationService, never()).logGps(any(), any(), any(), any(), any(), any());
+        verifyNoInteractions(gpsIngestionTaskRepository);
     }
 
     @Test
@@ -192,6 +199,40 @@ class TelemetryIngestionServiceTest {
         verify(eventPublisher).publishEvent(eventCaptor.capture());
         TelemetryReceivedEvent event = (TelemetryReceivedEvent) eventCaptor.getValue();
         assertNull(event.getLivestockId());
+    }
+
+    @Test
+    void ingest_invalidGpsFix_skipsOutboxAndStillPublishesTelemetry() {
+        Device device = createTrackerDevice(9L);
+        when(deviceRepository.findById(9L)).thenReturn(Optional.of(device));
+        when(installationRepository.findActiveByDeviceId(9L)).thenReturn(Optional.empty());
+
+        service.ingest(9L, Map.of(
+                "latitude", BigDecimal.ZERO,
+                "longitude", BigDecimal.ZERO,
+                "battery", 80
+        ), Instant.parse("2026-08-22T10:00:00Z"), TelemetrySource.AGENTIC_PLATFORM);
+
+        verifyNoInteractions(gpsIngestionTaskRepository);
+        verify(eventPublisher).publishEvent(any(TelemetryReceivedEvent.class));
+        verify(deviceTelemetryLogRepository).save(any(DeviceTelemetryLog.class));
+    }
+
+    @Test
+    void ingest_outOfRangeGps_skipsOutboxAndStillIngestsTelemetry() {
+        Device device = createTrackerDevice(10L);
+        when(deviceRepository.findById(10L)).thenReturn(Optional.of(device));
+        when(installationRepository.findActiveByDeviceId(10L)).thenReturn(Optional.empty());
+
+        service.ingest(10L, Map.of(
+                "latitude", 999,
+                "longitude", 112.938,
+                "battery", 90
+        ), Instant.parse("2026-08-22T10:00:00Z"), TelemetrySource.AGENTIC_PLATFORM);
+
+        verifyNoInteractions(gpsIngestionTaskRepository);
+        verify(eventPublisher).publishEvent(any(TelemetryReceivedEvent.class));
+        verify(deviceTelemetryLogRepository).save(any(DeviceTelemetryLog.class));
     }
 
     @Test
@@ -255,10 +296,14 @@ class TelemetryIngestionServiceTest {
         assertEquals(TelemetrySource.MANUAL_IMPORT, logEntry.getSource());
         assertEquals(recordedAt, logEntry.getReportTime());
 
-        // GPS extracted with MANUAL_IMPORT source; no alerts; event still published
-        verify(gpsLogApplicationService).logGps(eq(7L),
-                eq(new BigDecimal("28.246777")), eq(new BigDecimal("112.851138")),
-                isNull(), eq(recordedAt), eq(TelemetrySource.MANUAL_IMPORT));
+        // GPS enqueued with MANUAL_IMPORT source; no alerts; event still published
+        ArgumentCaptor<GpsIngestionTask> taskCaptor = ArgumentCaptor.forClass(GpsIngestionTask.class);
+        verify(gpsIngestionTaskRepository).enqueue(taskCaptor.capture());
+        assertEquals(7L, taskCaptor.getValue().getDeviceId());
+        assertEquals(new BigDecimal("28.246777"), taskCaptor.getValue().getLatitude());
+        assertEquals(new BigDecimal("112.851138"), taskCaptor.getValue().getLongitude());
+        assertEquals(recordedAt, taskCaptor.getValue().getRecordedAt());
+        assertEquals(TelemetrySource.MANUAL_IMPORT, taskCaptor.getValue().getSource());
         verifyNoInteractions(alertRepository);
         verify(eventPublisher).publishEvent(any(TelemetryReceivedEvent.class));
     }
@@ -309,8 +354,9 @@ class TelemetryIngestionServiceTest {
         assertEquals(TelemetrySource.AGENTIC_PLATFORM, logCaptor.getValue().getSource());
         assertEquals(80, logCaptor.getValue().getBatteryLevel());
 
-        verify(gpsLogApplicationService).logGps(eq(8L),
-                eq(new BigDecimal("28.23")), eq(new BigDecimal("112.94")),
-                isNull(), eq(recordedAt), eq(TelemetrySource.AGENTIC_PLATFORM));
+        ArgumentCaptor<GpsIngestionTask> taskCaptor = ArgumentCaptor.forClass(GpsIngestionTask.class);
+        verify(gpsIngestionTaskRepository).enqueue(taskCaptor.capture());
+        assertEquals(TelemetrySource.AGENTIC_PLATFORM, taskCaptor.getValue().getSource());
+        assertEquals(recordedAt, taskCaptor.getValue().getRecordedAt());
     }
 }
