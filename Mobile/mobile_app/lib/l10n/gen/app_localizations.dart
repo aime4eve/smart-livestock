@@ -6078,6 +6078,12 @@ abstract class AppLocalizations {
   /// **'无匹配设备'**
   String get gpsQualityNoMatchDevice;
 
+  /// No description provided for @gpsQualityLoadMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'加载更多'**
+  String get gpsQualityLoadMore;
+
   /// No description provided for @gpsQualityDeleteDevice.
   ///
   /// In zh, this message translates to:

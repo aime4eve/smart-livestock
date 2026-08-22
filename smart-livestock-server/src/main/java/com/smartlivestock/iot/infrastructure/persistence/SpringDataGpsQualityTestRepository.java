@@ -51,7 +51,8 @@ public interface SpringDataGpsQualityTestRepository extends JpaRepository<GpsQua
            "LEFT JOIN DeviceJpaEntity d ON d.id = t.deviceId " +
            "WHERE (:status = '' OR t.status = :status) " +
            "AND (:deviceId = 0 OR t.deviceId = :deviceId) " +
-           "AND (:eui = '' OR d.devEui LIKE CONCAT('%', :eui, '%')) " +
+           "AND (:eui = '' OR d.devEui LIKE CONCAT('%', :eui, '%') " +
+           "OR t.deviceCode LIKE CONCAT('%', :eui, '%')) " +
            "ORDER BY t.startedAt DESC")
     Page<GpsQualityTestJpaEntity> findByFilters(
             @Param("status") String status,
@@ -63,7 +64,8 @@ public interface SpringDataGpsQualityTestRepository extends JpaRepository<GpsQua
            "LEFT JOIN DeviceJpaEntity d ON d.id = t.deviceId " +
            "WHERE (:status = '' OR t.status = :status) " +
            "AND (:deviceId = 0 OR t.deviceId = :deviceId) " +
-           "AND (:eui = '' OR d.devEui LIKE CONCAT('%', :eui, '%'))")
+           "AND (:eui = '' OR d.devEui LIKE CONCAT('%', :eui, '%') " +
+           "OR t.deviceCode LIKE CONCAT('%', :eui, '%'))")
     long countByFilters(
             @Param("status") String status,
             @Param("deviceId") Long deviceId,

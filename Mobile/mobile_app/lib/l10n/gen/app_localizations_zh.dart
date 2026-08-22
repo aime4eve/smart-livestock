@@ -3241,6 +3241,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsQualityNoMatchDevice => '无匹配设备';
 
   @override
+  String get gpsQualityLoadMore => '加载更多';
+
+  @override
   String get gpsQualityDeleteDevice => '删除设备';
 
   @override

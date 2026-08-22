@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
@@ -33,13 +35,34 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
   String? _selectedDeviceCode;
   int? _selectedCheckId;
   String? _statusFilter;
-  String? _euiFilter;
   final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 400), () {
+      if (!mounted) return;
+      ref.read(checksProvider.notifier).fetchFiltered(
+            status: _statusFilter,
+            eui: value.trim(),
+          );
+    });
+  }
+
+  void _onStatusChanged(String? value) {
+    setState(() => _statusFilter = value);
+    _searchDebounce?.cancel();
+    ref.read(checksProvider.notifier).fetchFiltered(
+          status: value,
+          eui: _searchController.text.trim(),
+        );
   }
 
   @override
@@ -54,7 +77,9 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
         onRetry: () => ref.invalidate(checksProvider),
       ),
       data: (result) {
-        if (result.items.isEmpty) {
+        final hasActiveFilter = _statusFilter != null ||
+            _searchController.text.trim().isNotEmpty;
+        if (result.items.isEmpty && !hasActiveFilter) {
           return _EmptyState(
             l10n: l10n,
             onCreateCheck: () => _showCreateCheckDialog(l10n),
@@ -62,19 +87,11 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
           );
         }
 
-        // Front-end filter: status + EUI/device code substring (case-insensitive)
-        final query = (_euiFilter ?? '').trim().toLowerCase();
-        final filtered = result.items.where((c) {
-          if (_statusFilter != null && c.status != _statusFilter) return false;
-          if (query.isNotEmpty &&
-              !c.deviceCode.toLowerCase().contains(query)) {
-            return false;
-          }
-          return true;
-        }).toList();
+        final filtered = result.items;
 
         final hasAnyPending =
             result.items.any((c) => c.status == 'DEVICE_PENDING');
+        final hasMore = (result.page + 1) * result.pageSize < result.total;
 
         // Group checks by device code (EUI)
         final grouped = <String, List<QualityCheck>>{};
@@ -117,7 +134,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
         return LayoutBuilder(
           builder: (context, constraints) {
             final wide = constraints.maxWidth >= 900;
-            final left = _buildDeviceGroupList(l10n, sortedGroups);
+            final left = _buildDeviceGroupList(l10n, sortedGroups, hasMore);
             final right = _buildDeviceDetail(l10n, grouped, hasAnyPending);
             if (wide) {
               return Padding(
@@ -149,6 +166,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
   Widget _buildDeviceGroupList(
     AppLocalizations l10n,
     List<MapEntry<String, List<QualityCheck>>> groups,
+    bool hasMore,
   ) {
     return Card(
       key: const Key('device-group-list'),
@@ -208,7 +226,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8)),
                     ),
-                    onChanged: (v) => setState(() => _euiFilter = v),
+                    onChanged: _onSearchChanged,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -245,7 +263,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                           child: Text(l10n.gpsQualityCheckStatusFailed,
                               style: const TextStyle(fontSize: 12))),
                     ],
-                    onChanged: (v) => setState(() => _statusFilter = v),
+                    onChanged: _onStatusChanged,
                   ),
                 ),
               ]),
@@ -260,6 +278,15 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
               child: Text(l10n.gpsQualityNoMatchDevice,
                   style: const TextStyle(
                       fontSize: 12, color: AppColors.textSecondary)),
+            ),
+          ),
+        if (hasMore)
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: OutlinedButton(
+              key: const Key('load-more-checks-btn'),
+              onPressed: () => ref.read(checksProvider.notifier).loadMore(),
+              child: Text(l10n.gpsQualityLoadMore),
             ),
           ),
         ...groups.map((entry) {

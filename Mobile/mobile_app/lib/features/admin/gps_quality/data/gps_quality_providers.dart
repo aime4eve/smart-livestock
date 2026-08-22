@@ -143,37 +143,74 @@ final dynamicReportProvider =
 // ── NIX-21: Checks (top-level, check-centric) ────────────────────
 
 class ChecksController extends AsyncNotifier<QualityCheckListResult> {
+  static const _pageSize = 200;
+  String? _status;
+  String? _eui;
+  int? _deviceId;
+  bool _loadingMore = false;
+
   @override
   Future<QualityCheckListResult> build() async {
-    return ref
-        .read(gpsQualityApiRepositoryProvider)
-        .fetchChecks();
+    _status = null;
+    _eui = null;
+    _deviceId = null;
+    _loadingMore = false;
+    return ref.read(gpsQualityApiRepositoryProvider)
+        .fetchChecks(page: 0, size: _pageSize);
   }
 
-  Future<void> refresh() async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(
-      () => ref.read(gpsQualityApiRepositoryProvider).fetchChecks(),
-    );
-  }
+  Future<void> refresh() => fetchFiltered(
+        status: _status,
+        eui: _eui,
+        deviceId: _deviceId,
+      );
 
   Future<void> fetchFiltered({
     String? status,
     String? eui,
     int? deviceId,
-    int page = 0,
-    int size = 20,
   }) async {
+    _status = status;
+    _eui = eui;
+    _deviceId = deviceId;
+    _loadingMore = false;
     state = const AsyncLoading();
-    state = await AsyncValue.guard(
-      () => ref.read(gpsQualityApiRepositoryProvider).fetchChecks(
-        status: status,
-        eui: eui,
-        deviceId: deviceId,
-        page: page,
-        size: size,
-      ),
-    );
+    final keyword = eui?.trim();
+    state = await AsyncValue.guard(() => ref
+        .read(gpsQualityApiRepositoryProvider)
+        .fetchChecks(
+          status: status,
+          eui: keyword == null || keyword.isEmpty ? null : keyword,
+          deviceId: deviceId,
+          page: 0,
+          size: _pageSize,
+        ));
+  }
+
+  Future<void> loadMore() async {
+    final current = state.value;
+    if (_loadingMore || current == null) return;
+    if ((current.page + 1) * current.pageSize >= current.total) return;
+
+    _loadingMore = true;
+    try {
+      final nextPage = current.page + 1;
+      final result = await ref.read(gpsQualityApiRepositoryProvider).fetchChecks(
+            status: _status,
+            eui: _eui?.trim(),
+            deviceId: _deviceId,
+            page: nextPage,
+            size: current.pageSize,
+          );
+      state = AsyncData(QualityCheckListResult(
+        items: [...current.items, ...result.items],
+        page: result.page,
+        pageSize: result.pageSize,
+        total: result.total,
+      ));
+    } finally {
+      _loadingMore = false;
+    }
   }
 }
 

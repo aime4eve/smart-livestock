@@ -2647,6 +2647,8 @@
   "@gpsQualityFilterAllStatus": {},
   "gpsQualityNoMatchDevice": "无匹配设备",
   "@gpsQualityNoMatchDevice": {},
+  "gpsQualityLoadMore": "加载更多",
+  "@gpsQualityLoadMore": {},
   "gpsQualityDeleteDevice": "删除设备",
   "@gpsQualityDeleteDevice": {},
   "gpsQualityDeleteDeviceConfirm": "将删除该设备名下的全部 {n} 条质量检验记录（设备本身保留），此操作不可恢复。",

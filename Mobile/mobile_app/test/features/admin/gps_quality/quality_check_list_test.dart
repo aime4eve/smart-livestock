@@ -95,6 +95,60 @@ class _FakeRepo extends GpsQualityApiRepository {
 class _FakeChecks extends ChecksController {
   _FakeChecks(this._data);
   final QualityCheckListResult _data;
+  QualityCheckListResult? searchResult;
+  String? lastEui;
+  String? lastStatus;
+  int loadMoreCount = 0;
+
+  @override
+  Future<void> fetchFiltered({
+    String? status,
+    String? eui,
+    int? deviceId,
+  }) async {
+    lastStatus = status;
+    lastEui = eui;
+    final query = (eui ?? '').trim().toLowerCase();
+    if (searchResult != null && query.isNotEmpty) {
+      state = AsyncData(searchResult!);
+      return;
+    }
+
+    final items = _data.items.where((c) {
+      if (status != null && c.status != status) return false;
+      if (query.isNotEmpty && !c.deviceCode.toLowerCase().contains(query)) {
+        return false;
+      }
+      return true;
+    }).toList();
+    state = AsyncData(QualityCheckListResult(
+      items: items,
+      page: 0,
+      pageSize: _data.pageSize,
+      total: items.length,
+    ));
+  }
+
+  @override
+  Future<void> loadMore() async {
+    loadMoreCount++;
+    state = AsyncData(QualityCheckListResult(
+      items: [
+        ..._data.items,
+        _check(
+          id: 99,
+          deviceCode: 'GPS-LOADED-MORE',
+          deviceId: 99,
+          status: 'READY',
+          startedAt: DateTime(2026, 7, 18, 15),
+        ),
+      ],
+      page: _data.page + 1,
+      pageSize: _data.pageSize,
+      total: _data.total,
+    ));
+  }
+
   @override
   Future<QualityCheckListResult> build() async => _data;
 }
@@ -153,11 +207,15 @@ QualityCheckListResult _testData() => QualityCheckListResult(items: [
           errorMessage: 'EUI格式无效'),
     ]);
 
+_FakeChecks? _lastChecks;
+
 Future<_FakeRepo> _pumpList(WidgetTester tester) async {
   final repo = _FakeRepo();
+  final checks = _FakeChecks(_testData());
+  _lastChecks = checks;
   await tester.pumpWidget(ProviderScope(
     overrides: [
-      checksProvider.overrideWith(() => _FakeChecks(_testData())),
+      checksProvider.overrideWith(() => checks),
       rtkPointsProvider.overrideWith(() => _FakeRtkPoints()),
       gpsQualityApiRepositoryProvider.overrideWithValue(repo),
     ],
@@ -176,9 +234,11 @@ Future<_FakeRepo> _pumpList(WidgetTester tester) async {
 Future<_FakeRepo> _pumpListWithData(
     WidgetTester tester, QualityCheckListResult data) async {
   final repo = _FakeRepo();
+  final checks = _FakeChecks(data);
+  _lastChecks = checks;
   await tester.pumpWidget(ProviderScope(
     overrides: [
-      checksProvider.overrideWith(() => _FakeChecks(data)),
+      checksProvider.overrideWith(() => checks),
       rtkPointsProvider.overrideWith(() => _FakeRtkPoints()),
       gpsQualityApiRepositoryProvider.overrideWithValue(repo),
     ],
@@ -203,6 +263,7 @@ void main() {
 
     await tester.enterText(
         find.byKey(const Key('device-search-field')), 'f03');
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('device-group-847A000000000F03')),
         findsOneWidget);
@@ -216,6 +277,7 @@ void main() {
     await _pumpList(tester);
     await tester.enterText(
         find.byKey(const Key('device-search-field')), 'ZZZ-NO-MATCH');
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.pumpAndSettle();
     expect(find.text('无匹配设备'), findsOneWidget);
   });
@@ -231,6 +293,86 @@ void main() {
         findsOneWidget);
     expect(find.byKey(const ValueKey('device-group-847A000000000F03')),
         findsNothing);
+    expect(_lastChecks!.lastStatus, 'DEVICE_PENDING');
+  });
+
+  testWidgets('搜索首页外设备时通过后端 EUI 查询返回', (tester) async {
+    final target = _check(
+      id: 17001,
+      deviceCode: 'GPS-0095690a00008c5a',
+      deviceId: 170,
+      status: 'READY',
+      startedAt: DateTime(2026, 8, 21, 18, 43),
+    );
+    await _pumpListWithData(
+      tester,
+      QualityCheckListResult(
+        items: List.generate(
+          200,
+          (i) => _check(
+            id: 100000 + i,
+            deviceCode: 'OTHER-$i',
+            deviceId: 1000 + i,
+            status: 'READY',
+            startedAt: DateTime(2026, 8, 22, 17).add(Duration(minutes: i)),
+          ),
+        ),
+        page: 0,
+        pageSize: 200,
+        total: 3838,
+      ),
+    );
+    _lastChecks!.searchResult = QualityCheckListResult(
+      items: [target],
+      page: 0,
+      pageSize: 200,
+      total: 1,
+    );
+
+    expect(find.byKey(const ValueKey('device-group-GPS-0095690a00008c5a')),
+        findsNothing);
+    await tester.enterText(
+        find.byKey(const Key('device-search-field')), '0095690a00008c5a');
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+
+    expect(_lastChecks!.lastEui, '0095690a00008c5a');
+    expect(find.byKey(const ValueKey('device-group-GPS-0095690a00008c5a')),
+        findsOneWidget);
+  });
+
+  testWidgets('检验记录超过一页时可以加载更多', (tester) async {
+    final first = _check(
+      id: 1,
+      deviceCode: '847A000000000F03',
+      deviceId: 11,
+      status: 'READY',
+      startedAt: DateTime(2026, 7, 18, 9),
+    );
+    final second = _check(
+      id: 2,
+      deviceCode: 'F1C2000000000D88',
+      deviceId: 12,
+      status: 'READY',
+      startedAt: DateTime(2026, 7, 18, 10),
+    );
+    await _pumpListWithData(
+      tester,
+      QualityCheckListResult(
+        items: [first, second],
+        page: 0,
+        pageSize: 2,
+        total: 5,
+      ),
+    );
+
+    expect(find.byKey(const Key('load-more-checks-btn')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('load-more-checks-btn')));
+    await tester.pumpAndSettle();
+
+    expect(_lastChecks!.loadMoreCount, 1);
+    expect(find.byKey(const ValueKey('device-group-GPS-LOADED-MORE')),
+        findsOneWidget);
   });
 
   testWidgets('存在待注册检验时显示批量注册按钮，点击调 retryRegistration(全部)',

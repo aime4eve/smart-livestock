@@ -3310,6 +3310,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpsQualityNoMatchDevice => 'No matching devices';
 
   @override
+  String get gpsQualityLoadMore => 'Load more';
+
+  @override
   String get gpsQualityDeleteDevice => 'Delete device';
 
   @override
