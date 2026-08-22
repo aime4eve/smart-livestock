@@ -67,7 +67,7 @@ Java 后端 ──HTTP──→ orchestration 端点（Java 写 anomaly_scores/s
 | 版本 | 范围 | 服务于 | 设计文档 |
 |------|------|--------|---------|
 | **v1** | 合成数据引擎（Scenario 驱动 + 时序异常曲线）+ ground-truth 标签表 + 评估框架 | Phase B | [`2026-06-26-datagen-context-design.md`](./2026-06-26-datagen-context-design.md) |
-| **v2** | 行为数据生成（反刍/进食/躺卧波形）+ 多分类评估 + 真实数据适配层 | Phase C | 待设计 |
+| **v2** | 行为数据生成（反刍/进食/躺卧波形）+ 多分类评估 + 真实数据适配层 | Phase C | [`2026-08-22-datagen-v2-behavior-and-phase-c-design.md`](./2026-08-22-datagen-v2-behavior-and-phase-c-design.md) |
 | **v3** | 数据质量监控 + 数据血缘（真实数据到来后扩张为广义数据治理） | 未来 | — |
 
 > datagen 不是"做完 Phase B 就结束"的子任务。Phase C 需要它生成行为数据、做多分类评估，未来真实数据到来需要它做质量监控。它和 AI 能力轨道**平行演进**。

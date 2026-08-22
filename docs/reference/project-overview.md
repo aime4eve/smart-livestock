@@ -104,6 +104,7 @@ Spring Boot 3.3 + Java 17 + Gradle + PostgreSQL 16 + Redis 7 + RocketMQ 5.1 + Fl
 | AI 路线图 | `docs/superpowers/specs/2026-06-19-ai-health-roadmap.md` | AI/datagen 双轨演进 |
 | datagen 控制台 | `docs/superpowers/specs/2026-08-17-datagen-admin-console-design.md` | 仿真启停、设备范围、清理和审计 |
 | datagen 规则 | `docs/superpowers/specs/2026-08-18-datagen-configurable-rules-design.md` | 按牧场配置仿真频率和异常概率 |
+| datagen v2 / Phase C | `docs/superpowers/specs/2026-08-22-datagen-v2-behavior-and-phase-c-design.md` | 行为波形、窗口特征、多标签评估与真实数据适配 |
 | GPS RTK 浏览优化 | `docs/superpowers/specs/2026-08-20-gps-quality-rtk-truth-points-browse-design.md` | RTK 真值点搜索、分组、排序 |
 | Analytics+Portal | `docs/superpowers/specs/2026-05-31-analytics-portal-context-design.md` | API Key 自管理 + 频率限制 + 统计聚合 |
 | API 契约总览 | `docs/api-contracts/api-overview.md` | 三端隔离、通用约定、Farm Scope |
