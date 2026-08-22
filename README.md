@@ -1,6 +1,6 @@
 # 智慧畜牧（Smart Livestock）
 
-面向牧场主的牲畜管理平台：通过 IoT 设备（GPS 追踪器、瘤胃胶囊、加速度计等）实现定位、健康预警与行为分析。本仓库包含 **PC 端**与 **Mobile 端**两个彼此独立、不共享依赖的子项目。
+面向牧场主的牲畜管理平台：通过 IoT 设备（GPS 追踪器、瘤胃胶囊、加速度计等）实现定位、健康预警与行为分析。当前主线由 **Flutter 移动端** 与 **Spring Boot 后端**组成，PC 端仅保留历史归档。
 
 **仓库：** [github.com/aime4eve/smart-livestock](https://github.com/aime4eve/smart-livestock) · 默认分支 `master`
 
@@ -8,75 +8,31 @@
 
 ## 当前维护重点
 
-**活跃开发在 `Mobile/`。** `PC/` 为历史 Angular 前端与规划中的后端，当前不随主流程迭代；协作约定见 [`AGENTS.md`](./AGENTS.md) 与 [`CLAUDE.md`](./CLAUDE.md)。
+**活跃开发在 `Mobile/mobile_app/` 与 `smart-livestock-server/`。** 后端已覆盖 MVP Phase 1-2c 与 Phase 3 blade 对接、设备健康管理、GPS 质量检验和 datagen；`PC/` 为历史 Angular 前端，不随主流程迭代。
 
 ---
 
-## Mobile 端（Flutter + Mock API）
-
-高保真 Demo 向 MVP 过渡：Flutter 使用 **本地 Mock 种子**（默认）或 **Node.js Mock Server**（Live 模式）拉取与内存种子对齐的数据；尚无生产级后端。
+## 当前工程结构
 
 | 目录 | 说明 |
 |------|------|
-| [`Mobile/mobile_app/`](./Mobile/mobile_app/) | Flutter 应用（`flutter_riverpod` + `go_router`） |
-| [`Mobile/backend/`](./Mobile/backend/) | Express Mock API，默认 **3001**，内存数据、统一 JSON 包络 `{ code, message, requestId, data }` |
+| [`Mobile/mobile_app/`](./Mobile/mobile_app/) | Flutter Web/App，通过 `ApiClient` 对接 Spring Boot API |
+| [`smart-livestock-server/`](./smart-livestock-server/) | Spring Boot 3.3 + Java 17 + PostgreSQL/Flyway + Redis/RocketMQ，DDD 洋葱架构 |
+| [`PC/`](./PC/) | 历史 Angular 前端，归档不维护 |
 
-### Demo 数据规模（Mock 与 Live 对齐）
-
-- 牲畜约 **50** 头，耳标 `SL-2024-001`～`050`，数字孪生 ID `0001`～`0050`
-- 围栏 **4** 个（放牧 A/B、休息区、隔离区）
-- 告警 **18** 条（与看板/告警模块一致）
-- 看板指标、孪生体温/消化/发情等见 `demo_seed.dart` 与 `backend/data/seed.js`
-- Live 模式下地图轨迹由 `GET /api/map/trajectories` 按 `range=24h|7d|30d` **动态生成**；`ApiCache` 默认请求 `API_BASE_URL`（未设置时为 `http://localhost:3001/api`）
-
-### 环境要求
-
-- [Flutter SDK](https://docs.flutter.dev/get-started/install)（`pubspec.yaml`：`sdk >=3.3.0 <4.0.0`）
-- [Node.js](https://nodejs.org/)（Mock Server）
-
-### 快速开始
-
-**方式一：一键脚本（在 `Mobile/` 目录）**
+### 常用验证
 
 ```bash
-cd Mobile
-./dev.sh start          # Mock Server + Flutter（Mock 数据）
-./dev.sh start live     # Mock Server + Flutter（Live，连 3001）
-./dev.sh stop
-./dev.sh status
-```
-
-**方式二：手动**
-
-```bash
-cd Mobile/backend && npm install && node server.js
+cd smart-livestock-server && ./gradlew compileJava
 
 cd Mobile/mobile_app
-flutter pub get
-flutter run                              # 默认 APP_MODE=mock
-flutter run --dart-define=APP_MODE=live  # 连接 Mock Server
+HOME=/private/tmp FLUTTER_SUPPRESS_ANALYTICS=true flutter analyze
+HOME=/private/tmp FLUTTER_SUPPRESS_ANALYTICS=true flutter test
 ```
 
-常用校验：
-
-```bash
-cd Mobile/mobile_app
-flutter analyze
-flutter test
-```
+部署仍以后端目录脚本为准：`cd smart-livestock-server && ./scripts/deploy.sh dev|test`。环境细节见 [`docs/reference/deployment.md`](./docs/reference/deployment.md)。
 
 架构与模块说明见 [`Mobile/AGENTS.md`](./Mobile/AGENTS.md)。
-
----
-
-## PC 端（Angular，归档说明）
-
-| 目录 | 说明 |
-|------|------|
-| [`PC/frontend/`](./PC/frontend/) | Angular 19 独立组件 + 静态 JSON 数据 |
-| `PC/` 后端 | Spring Boot 仍为骨架，前端未实际调用 API |
-
-本地运行历史前端见 [`CLAUDE.md`](./CLAUDE.md) 中 PC 端命令。
 
 ---
 
@@ -84,9 +40,11 @@ flutter test
 
 | 阶段 | 内容 |
 |------|------|
-| Demo（当前 Mobile） | 高保真 UI、Mock Server、数智孪生等演示能力 |
-| MVP 1.0 | GPS、电子围栏、基础告警、租户管理 |
-| 后续 | 瘤胃监测、健康评分、行为与发情检测等（见 [`CLAUDE.md`](./CLAUDE.md)） |
+| MVP Phase 1-2c | 认证/租户/牧场/设备/围栏/告警/地图、Commerce、Health、Analytics 已完成 |
+| Phase 3 | blade 真实设备接入、设备健康管理、GPS 质量运营持续迭代中 |
+| AI 双轨 | Phase A/B 与 datagen v1 已形成合成数据闭环；下一步是真实遥测验证与 datagen v2 / Phase C |
+
+详细路线图见 [`docs/reference/project-overview.md`](./docs/reference/project-overview.md) 与 [`docs/superpowers/specs/2026-06-19-ai-health-roadmap.md`](./docs/superpowers/specs/2026-06-19-ai-health-roadmap.md)。
 
 ---
 

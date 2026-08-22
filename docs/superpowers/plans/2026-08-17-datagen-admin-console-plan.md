@@ -1,6 +1,7 @@
 # 仿真控制管理界面实施计划
 
 > 日期：2026-08-17
+> 状态：已实施并合入 master（`f879ab3c` 主功能，`dddf1499` 清理修复；下方 checkbox 未逐项回填，以迁移/代码/测试/提交为准）
 > spec：`docs/superpowers/specs/2026-08-17-datagen-admin-console-design.md`（已按评审修订并确认）
 > 原型：`docs/marketing/datagen-console-prototype.html`（已确认）
 > REQUIRED SKILL：`/Users/hkt/.codex/skills/prototype-to-flutter-fidelity/SKILL.md`

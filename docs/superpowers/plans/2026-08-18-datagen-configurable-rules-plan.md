@@ -1,6 +1,7 @@
 # 仿真规则手工配置实施计划
 
 > 日期：2026-08-18
+> 状态：已实施并合入 master（`9c14238d`；下方 checkbox 未逐项回填，以迁移/代码/测试/提交为准）
 > spec：`docs/superpowers/specs/2026-08-18-datagen-configurable-rules-design.md`
 
 ## Task 1 — 数据模型
