@@ -60,6 +60,32 @@ Seed 迁移中的 BCrypt hash 必须严格遵循三步验证，不可跳过：
 - V20260701... 及以后的新迁移用时间戳格式（Flyway 按数字排序，时间戳天然大于 41）
 - 安装 pre-commit hook 防止重复版本号：`cp smart-livestock-server/scripts/check-flyway-duplicates.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit`
 
+## 时序分区与数据保留
+
+系统维护以下按月分区表：`temperature_logs`、`rumen_motility_logs`、`activity_logs`、`device_telemetry_logs`、`anomaly_scores`。
+
+- 应用启动和每日 `02:10` 会执行 `PartitionMaintenanceService`：先把 `_default` 分区中已有月份的数据搬回对应月分区，再确保当前月和未来 2 个月分区存在。
+- `_default` 分区仍残留数据时，应用日志输出 `WARN`；该分区正常状态应保持 0 行。
+- 前 4 张遥测/健康分区表跟随 `DATAGEN_RETENTION_DAYS`（默认 30 天）做分区清理；`anomaly_scores` 只做分区维护，不跟随 30 天清理。
+- `gps_logs` 仍为普通表并通过 `DataRetentionService` 删除 30 天前数据；分区化需要数据迁移与唯一索引改造，暂列为专项评估。
+- `api_call_logs` 已有 90 天保留任务；相关查询依赖 `requested_at` 索引，暂不分区。
+
+部署后可用 SQL 验证：
+
+```sql
+SELECT parent.relname AS table_name, child.relname AS partition_name
+FROM pg_inherits inh
+JOIN pg_class parent ON parent.oid = inh.inhparent
+JOIN pg_class child ON child.oid = inh.inhrelid
+WHERE parent.relname IN (
+  'temperature_logs', 'rumen_motility_logs', 'activity_logs',
+  'device_telemetry_logs', 'anomaly_scores'
+)
+ORDER BY parent.relname, child.relname;
+
+SELECT COUNT(*) FROM temperature_logs_default;
+```
+
 ## 前端 Live 模式连接后端
 
 ```bash

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -100,6 +101,7 @@ public class UsageAggregationService {
      * Clean up call logs older than 90 days.
      */
     @Scheduled(cron = "0 30 1 * * *")
+    @Transactional
     public void cleanupOldLogs() {
         Instant cutoff = Instant.now().minusSeconds(90L * 24 * 60 * 60);
         log.info("Cleaning up API call logs older than {}", cutoff);

@@ -17,7 +17,7 @@ import java.util.List;
  * For partitioned health tables, drops entire monthly partitions that are
  * fully outside the retention window (fast, space reclaimed immediately).
  * For unpartitioned tables (gps_logs), uses DELETE (space reclaimed by autovacuum).
- * Also ensures future monthly partitions exist so data always has a landing zone.
+ * Monthly partition creation is handled by PartitionMaintenanceService.
  */
 @Slf4j
 @Service
@@ -29,8 +29,8 @@ public class DataRetentionService {
     @Value("${datagen.retention-days:30}")
     private int retentionDays;
 
-    private static final String[] PARTITIONED_TABLES = {
-        "temperature_logs", "rumen_motility_logs", "activity_logs"
+    private static final String[] PURGE_PARTITIONED_TABLES = {
+        "temperature_logs", "rumen_motility_logs", "activity_logs", "device_telemetry_logs"
     };
 
     /**
@@ -42,27 +42,11 @@ public class DataRetentionService {
         LocalDate cutoff = LocalDate.now().minusDays(retentionDays);
         log.info("Data retention purge: cutoff={}, {}-day window", cutoff, retentionDays);
 
-        for (String table : PARTITIONED_TABLES) {
+        for (String table : PURGE_PARTITIONED_TABLES) {
             dropOldPartitions(table, cutoff);
         }
         deleteOldGpsLogs(cutoff);
         deleteOldResolvedAlerts(cutoff);
-    }
-
-    /**
-     * Monthly: ensure partitions exist for current + next 2 months.
-     */
-    @Scheduled(cron = "0 0 2 25 * *")
-    @Transactional
-    public void ensureFuturePartitions() {
-        YearMonth base = YearMonth.now();
-        for (int i = 0; i <= 2; i++) {
-            YearMonth month = base.plusMonths(i);
-            for (String table : PARTITIONED_TABLES) {
-                ensurePartition(table, month);
-            }
-        }
-        log.info("Partition check: ensured current+2 months for {} tables", PARTITIONED_TABLES.length);
     }
 
     @SuppressWarnings("unchecked")
@@ -122,12 +106,4 @@ public class DataRetentionService {
         }
     }
 
-    private void ensurePartition(String parentTable, YearMonth month) {
-        String partitionName = parentTable + "_" + month.toString().replace("-", "_");
-        String start = month.atDay(1).toString();
-        String end = month.plusMonths(1).atDay(1).toString();
-        entityManager.createNativeQuery(String.format(
-            "CREATE TABLE IF NOT EXISTS %s PARTITION OF %s FOR VALUES FROM ('%s') TO ('%s')",
-            partitionName, parentTable, start, end)).executeUpdate();
-    }
 }

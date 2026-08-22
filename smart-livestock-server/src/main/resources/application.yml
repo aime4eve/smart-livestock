@@ -48,6 +48,11 @@ datagen:
   retention-days: ${DATAGEN_RETENTION_DAYS:30}
   retention-cron: ${DATAGEN_RETENTION_CRON:0 0 3 * * *}
 
+platform:
+  partition:
+    months-ahead: ${PARTITION_MONTHS_AHEAD:2}
+    check-cron: ${PARTITION_CHECK_CRON:0 10 2 * * *}
+
 ai:
   platform:
     url: ${AI_PLATFORM_URL:http://localhost:18000}
