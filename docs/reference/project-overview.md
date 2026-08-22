@@ -6,11 +6,11 @@
 
 智慧畜牧系统（Smart Livestock）是面向牧场主的牲畜管理平台，通过 IoT 设备（GPS 追踪器、瘤胃胶囊、加速度计）实现定位、健康预警和行为分析。
 
-- **Mobile/** — Flutter 移动端（通过 ApiClient 对接 Spring Boot 后端）
+- **Mobile/mobile_app/** — Flutter Web/App（通过 ApiClient 对接 Spring Boot 后端）
 - **smart-livestock-server/** — Spring Boot 后端（Phase 1-2c + Phase 3 blade 对接已实施，DDD 洋葱架构）
 - **PC/** — Angular 历史遗留前端，暂不维护（架构细节见 `backend-migration-database-design.md`、`backend-springboot-design.md`）
 
-**工作重点**：后端在 `smart-livestock-server/`，前端在 `Mobile/`，PC/ 暂不维护。
+**工作重点**：后端在 `smart-livestock-server/`，前端在 `Mobile/mobile_app/`，PC/ 暂不维护。
 
 ## GitHub 仓库
 
@@ -44,6 +44,7 @@ Spring Boot 3.3 + Java 17 + Gradle + PostgreSQL 16 + Redis 7 + RocketMQ 5.1 + Fl
 | Phase 2b | Health | 温度/蠕动/发情/疫情分析引擎 + 时序数据 | ✅ |
 | Phase 2c | Analytics | API Key 生命周期 + 开发者门户 + 频率限制 + 统计聚合 + 趋势分析 | ✅ |
 | Phase 3 | IoT 扩展 | blade 平台对接（设备注册 + 遥测采集 + datagen 适配）、设备健康管理 | 🔧 |
+| AI/datagen | datagen + ai-platform | 合成数据控制台、GroundTruth、L1 异常检测、评估与前端异常展示 | ✅ |
 
 ## 数据库迁移摘要
 
@@ -61,7 +62,10 @@ Spring Boot 3.3 + Java 17 + Gradle + PostgreSQL 16 + Redis 7 + RocketMQ 5.1 + Fl
 | V38-V41 | datagen + AI anomaly | IoT/Health |
 | V20260709... | Phase 3 device extension + seed | IoT |
 | V20260710... | bugfix 迁移（时区/精度/数据清理） | 各上下文 |
+| V20260817-18... | datagen 控制台与可配置仿真规则 | datagen |
+| V20260822...100000 | 时序分区自动维护与查询索引 | Platform/IoT/Ranch |
 | V20260822200000 | GPS ingestion outbox | IoT |
+| V20260822210000 | GPS outbox source 约束 | IoT |
 
 > 关键迁移摘要，非完整列表。完整列表：`ls smart-livestock-server/src/main/resources/db/migration/`
 
@@ -69,9 +73,11 @@ Spring Boot 3.3 + Java 17 + Gradle + PostgreSQL 16 + Redis 7 + RocketMQ 5.1 + Fl
 
 | 分类 | Controller |
 |------|-----------|
-| App API | AuthController, MeController, TenantController, FarmController, B2bController, LivestockController, FenceController, AlertController, DashboardController, MapController, TileAppController, DeviceController, DeviceLicenseController, InstallationController, GpsLogController, HealthController, CommerceController, SubscriptionController |
-| Admin API | TenantAdminController, FarmAdminController, UserAdminController, DashboardAdminController, AuditLogController, ApiKeyAdminController, TileAdminController, AdminSubscriptionController, AdminContractController, AdminFeatureGateController, AdminRevenueController, AdminServiceController, AnalyticsController |
-| Open API | OpenLivestockController, OpenFenceController, OpenAlertController, OpenDeviceController, OpenDeviceRegisterController, OpenGpsController |
+| App API | Auth、Me、Tenant、Farm、B2b、Livestock、Fence、Alert、Dashboard、Map、Tile、Device、Installation、Telemetry、GpsLog、Health、Commerce 等 |
+| Admin API | Tenant、Farm、User、Dashboard、AuditLog、ApiKey、Tile、Subscription、Contract、FeatureGate、Revenue、Service、Analytics、GPS Quality、Telemetry Import、DataGen 等 |
+| Open API | Livestock、Fence、Alert、Device、DeviceRegister、Gps 等 |
+
+> Controller/endpoint 的完整事实源是 `smart-livestock-server/src/main/java/` 与 `docs/api-contracts/`；上表只保留当前分类入口。
 
 ## 地图瓦片基础设施
 
@@ -95,6 +101,10 @@ Spring Boot 3.3 + Java 17 + Gradle + PostgreSQL 16 + Redis 7 + RocketMQ 5.1 + Fl
 | Phase C blade 对接 | `docs/superpowers/specs/2026-07-07-phase-c-blade-device-integration.md` | OAuth2 + Feign + 设备注册 + 遥测采集 |
 | Phase 3 设计 | `docs/superpowers/specs/2026-07-08-phase3-blade-integration-device-health-spec.md` | 设备健康管理 + blade 集成 + datagen 适配 |
 | blade 环境映射 | `docs/superpowers/specs/2026-07-21-blade-env-mapping-design.md` | dev/test ↔ blade dev/test 环境对应 |
+| AI 路线图 | `docs/superpowers/specs/2026-06-19-ai-health-roadmap.md` | AI/datagen 双轨演进 |
+| datagen 控制台 | `docs/superpowers/specs/2026-08-17-datagen-admin-console-design.md` | 仿真启停、设备范围、清理和审计 |
+| datagen 规则 | `docs/superpowers/specs/2026-08-18-datagen-configurable-rules-design.md` | 按牧场配置仿真频率和异常概率 |
+| GPS RTK 浏览优化 | `docs/superpowers/specs/2026-08-20-gps-quality-rtk-truth-points-browse-design.md` | RTK 真值点搜索、分组、排序 |
 | Analytics+Portal | `docs/superpowers/specs/2026-05-31-analytics-portal-context-design.md` | API Key 自管理 + 频率限制 + 统计聚合 |
 | API 契约总览 | `docs/api-contracts/api-overview.md` | 三端隔离、通用约定、Farm Scope |
 | App API | `docs/api-contracts/app-api.md` | `/api/v1/` 端点 |
@@ -110,6 +120,8 @@ Spring Boot 3.3 + Java 17 + Gradle + PostgreSQL 16 + Redis 7 + RocketMQ 5.1 + Fl
 | MVP Phase 2b — Health | 温度/蠕动/发情/疫情分析引擎 + 时序数据 | ✅ |
 | MVP Phase 2c — 平台扩展 | API Key 生命周期 + 开发者门户 + 频率限制 + 统计聚合 + 趋势分析 | ✅ |
 | Phase 3 — IoT 真实接入 | blade 平台对接、设备健康管理、AI 异常检测，持续迭代中 | 🔧 |
+| AI/datagen 轨道 | Phase A/B 与 datagen v1 已闭环；Phase C 等待真实遥测验证与 datagen v2 | 🔧 |
+| 生产化 | 分区维护、索引加固、GPS outbox 已落地；test 验证与真实遥测扩量继续推进 | 🔧 |
 
 ## 前端角色与 Shell
 

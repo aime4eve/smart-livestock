@@ -1,6 +1,6 @@
 # 智慧畜牧系统文档索引
 
-> 本文件是 `docs/` 目录的导航入口，更新日期：2026-07-04
+> 本文件是 `docs/` 目录的导航入口，更新日期：2026-08-22
 
 ## 目录结构
 
@@ -13,15 +13,17 @@
 | `customer-journey.md` | 客户旅程（platform_admin → b2b_admin → owner） |
 | `user-journey-guide.md` | 用户旅程指南 |
 
-### `features/` — 功能清单
+### `features/` — 历史功能快照
+
+生成于 2026-05/06，用于保留当时的前后端差距与交付过程记录。它不反映 Phase 3、GPS 质量运营、datagen、AI、分区与 outbox 的当前状态；当前事实源是代码、Flyway、测试记录与 `reference/`。
 
 | 文档 | 说明 |
 |------|------|
-| `feature-checklist.csv` | 功能跟踪表（前后端分工 + 联调状态） |
-| `system-feature-document.md` | 系统功能说明文档 |
-| `system-feature-list.md` | 系统功能清单（含前后端差异对比） |
-| `backend-feature-list.md` | 后端功能清单 |
-| `frontend-feature-list.md` | 前端功能清单 |
+| `feature-checklist.csv` | 历史功能跟踪表 |
+| `system-feature-document.md` | 历史系统功能说明 |
+| `system-feature-list.md` | 历史系统功能清单 |
+| `backend-feature-list.md` | 历事后端功能清单 |
+| `frontend-feature-list.md` | 历史前端功能清单 |
 
 ### `protocols/` — 硬件协议
 
@@ -43,6 +45,8 @@
 
 | 文档 | 说明 |
 |------|------|
+| `project-overview.md` | 当前项目概述、上下文与路线图 |
+| `deployment.md` | 当前部署、分区、outbox 与环境验证 |
 | `lessons-learned.md` | 经验教训（五段式） |
 | `code-statistics.md` | 代码行数统计 |
 | `seed-data-landscape.md` | 种子数据全景 |
@@ -63,10 +67,10 @@
 
 | 子目录 | 说明 |
 |--------|------|
-| `specs/` | 设计规格文档（30 篇） |
-| `plans/` | 实施计划文档（27 篇） |
-| `reviews/` | 评审文档（30 篇） |
-| `reports/` | 质量报告（4 篇） |
+| `specs/` | 设计规格文档 |
+| `plans/` | 实施计划文档 |
+| `reviews/` | 评审文档 |
+| `reports/` | 质量报告 |
 | `requirements/` | 需求脑暴（事件风暴、阿根廷场景） |
 | `testing/` | 测试文档与 Postman 集合 |
 

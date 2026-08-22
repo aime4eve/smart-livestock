@@ -1,6 +1,7 @@
 # 智慧畜牧后端功能清单
 
 > 基于 smart-livestock-server 代码分析，更新时间 2026-06-01
+> **历史快照**：本文不反映后续 Phase 3、GPS 质量、datagen、AI、分区与 outbox。当前事实源是代码、Flyway 与 API 契约。
 
 ## 一、全局概览
 

@@ -13,13 +13,25 @@
 ## 1. Build / Deploy / Test 分工
 
 - **编译**：Agent 可自行执行（`./gradlew compileJava`、`flutter build` 等），验证代码可构建。
-- **部署**：Agent 可自行执行（`./scripts/deploy.sh dev|test`）。用户也可手动执行。细节见 `docs/reference/deployment.md`。
+- **部署**：Agent 可自行执行 dev 部署（`cd smart-livestock-server && ./scripts/deploy.sh dev`）；test 环境必须等用户通知后再执行。
 - **集成测试**：仅在部署完成后执行；不得在部署前提前运行。
 - **顺序**：编码 → 编译验证 → 部署 → 集成测试。
+- **全量测试基线**：后端全量测试当前有 19 个既有失败（14 个 Testcontainers Docker 环境初始化 + 5 个 `AlertReadStatusTest` mock 债务）。判断本次回归时优先运行目标测试，并对比失败集合是否扩大。
 
 ---
 
-## 2. 新功能实施流程（按复杂度分级）
+## 2. 当前工程基线
+
+- **主线**：`Mobile/mobile_app/` + `smart-livestock-server/`；`PC/` 仅历史归档。
+- **数据文档事实源**：代码、Flyway 迁移、部署验证记录优先于历史 checklist；`docs/features/*` 与 `Mobile/docs/*` 是历史快照。
+- **时序分区**：`temperature_logs`、`rumen_motility_logs`、`activity_logs`、`device_telemetry_logs`、`anomaly_scores` 由 `PartitionMaintenanceService` 自动维护；不要手工预建分区，除非先说明与该服务的兼容性。
+- **GPS 写入**：`TelemetryIngestionService` 主事务只写 `gps_ingestion_tasks`，由 `GpsIngestionTaskScheduler` 异步写 `gps_logs`；不要在 ingest 事务里重新直写 GPS。
+- **GPS 幂等与清理**：以 `(device_id, recorded_at)` 为幂等键；压测/验证数据必须用明确时间窗和 `MANUAL_IMPORT` source，结束后清理并恢复设备快照。
+- **多来源数据**：写入共享表时必须保留合法 `source`，不得把 `DATAGEN` 与真实来源混淆。
+
+---
+
+## 3. 新功能实施流程（按复杂度分级）
 
 **根据变更规模选择对应流程，不要一刀切。**
 
@@ -45,16 +57,16 @@
 
 ---
 
-## 3. 代码实现规范
+## 4. 代码实现规范
 
-### 3.1 国际化（i18n）
+### 4.1 国际化（i18n）
 
 - 所有面向用户的文本必须通过国际化资源引用，禁止硬编码中/英文字符串。
 - Flutter：`AppLocalizations` + `lib/l10n/app_*.arb`（中英文同步），`context.l10n.xxx` 访问。
 - 后端：`MessageSource`（`messages_zh/en.properties` 双语同步），按 `Accept-Language` 返回。
 - 校验：`flutter gen-l10n` 无缺失 key，`flutter analyze` 无未定义引用；后端编译通过且 properties 双语对齐。
 
-### 3.2 种子数据（Seed Data）
+### 4.2 种子数据（Seed Data）
 
 - 新增表/枚举/业务规则时同步生成种子数据（Flyway 迁移），使新功能可直接验证。
 - BCrypt hash 必须三步验证（生成时 bcrypt.compare → 写入迁移 → 部署后 curl 验证），不得跨迁移复制旧 hash。可用 `scripts/verify-seed-hash.sh`。
@@ -62,7 +74,7 @@
 
 ---
 
-## 牧场切换数据刷新规则
+## 5. 牧场切换数据刷新规则
 
 **所有使用 farm-scoped API（ApiClient 的 farmGet / farmPost / farmPut / farmDelete）的 Controller：**
 
@@ -73,7 +85,7 @@
 
 ---
 
-## 故障层定位（先定位层，再查症状）
+## 6. 故障层定位（先定位层，再查症状）
 
 **先判断工作单元在哪一层损坏，只修那一层。最容易被编辑的层（代码）总替外层背锅。**
 
@@ -95,7 +107,7 @@ Agent 自身出问题时（元故障）：
 
 ---
 
-## 经验判据速查（每次会话生效）
+## 7. 经验判据速查（每次会话生效）
 
 > 完整五段式见 `docs/reference/lessons-learned.md`，遇下列症状先查编号再翻原文。
 
@@ -124,5 +136,4 @@ Agent 自身出问题时（元故障）：
 - `farmGet` 返回 404 且 URL farmId 与路径粘连 → suffix 缺前导 `/` — #16
 
 ---
-
 

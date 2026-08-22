@@ -1,6 +1,7 @@
 # 智慧畜牧系统功能清单（统一版）
 
 > 合并前端（Flutter）+ 后端（Spring Boot）代码分析，更新时间 2026-06-01
+> **历史快照**：本文不反映 2026-06-01 之后的 Phase 3、GPS 质量、datagen、AI、分区与 outbox 状态。当前状态以代码、Flyway、测试记录与 `docs/reference/*` 为准。
 
 ---
 

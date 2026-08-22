@@ -1,6 +1,7 @@
 # 智慧畜牧前端功能清单
 
 > 基于 Mobile/mobile_app 代码分析，更新时间 2026-05-31
+> **历史快照**：本文不反映后续 GPS 质量、datagen、AI 异常和运营功能。当前状态以代码、测试记录与 `docs/reference/project-overview.md` 为准。
 
 ## 一、全局基础设施
 
