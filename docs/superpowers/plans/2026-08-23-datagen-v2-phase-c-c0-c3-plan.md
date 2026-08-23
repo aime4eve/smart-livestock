@@ -1,10 +1,11 @@
 # datagen v2 Phase C C0-C3 实施计划
 
-> Date: 2026-08-23  
-> Status: 待评审  
-> Issue: NIX-149  
-> Spec: `docs/superpowers/specs/2026-08-22-datagen-v2-behavior-and-phase-c-design.md`  
-> Review: `docs/superpowers/reviews/2026-08-22-datagen-v2-behavior-and-phase-c-design-review.md`  
+> Date: 2026-08-23\
+> Status: 评审修订版 v1.1，待最终确认\
+> Issue: NIX-149\
+> Spec: `docs/superpowers/specs/2026-08-22-datagen-v2-behavior-and-phase-c-design.md`\
+> Review: `docs/superpowers/reviews/2026-08-22-datagen-v2-behavior-and-phase-c-design-review.md`\
+> Plan review: `docs/superpowers/reviews/2026-08-23-datagen-v2-phase-c-c0-c3-plan-review.md`\
 > Scope: C0-C3 only; no firmware change, no production L2 model training
 
 ## Goal
@@ -72,14 +73,14 @@ Raw research waveforms remain offline artifacts. Production-path validation may 
    - Dominant: `LYING`, `RUMINATING`, `FEEDING`, `WALKING`, `OTHER`
    - `UNKNOWN` is an input-quality state, never a dominant label.
    - Facets: `posture`, `oral_activity`, `locomotion`, `event`
-7. Add contract tests proving `COARSE_SNAPSHOT` cannot emit `RUMINATING` or `FEEDING`.
+7. Add contract tests proving `COARSE_SNAPSHOT` cannot emit `RUMINATING` or `FEEDING`. Coarse input has no oral-activity facet row; it records the oral fields unavailable in the missing-feature mask rather than claiming `NONE`.
 
 **Acceptance**
 
 - Same contract definition and field order always yields the same hash.
 - Field insertion, removal, reordering, type change, or range change yields a different hash.
 - Missing required fields, non-finite values, out-of-range values, and version/hash mismatch are rejected.
-- Coarse snapshots have no oral-activity label.
+- Coarse snapshots have no oral-activity label and never encode unavailable oral evidence as `NONE`.
 
 ## Task 2 - C1 Deterministic Episode and Waveform Generator
 
@@ -110,13 +111,17 @@ Raw research waveforms remain offline artifacts. Production-path validation may 
    - calving-like restlessness: event overlay, not a dominant class
 4. Parameterize individual baseline, device orientation, noise, sampling jitter, missing windows, and adversarial overlaps.
 5. Extract the five-minute feature vector from the waveform through `BehaviorFeatureValidator`.
-6. Make all generated artifacts reproducible from `(scenario_id, seed, generator_version)`.
-7. Export deterministic five-minute summary datasets as versioned NDJSON/JSON for pipeline tests. Do not create a raw-waveform interchange format in this batch; the later research exporter must still use NumPy/Parquet with the same manifest and schema hash before C5 model work.
-8. Keep the generator independent of JPA repositories and `TelemetryIngestionPort`.
+6. Make all generated artifacts reproducible from the canonical scenario definition, `(scenario_id, seed, generator_version)`, and generator configuration.
+7. Use an explicit deterministic PRNG implementation; do not call `Math.random()`, unseeded `Random`, or wall-clock time inside generation.
+8. Serialize floating-point values with a fixed scale and canonical JSON ordering. Reproducibility is checked by canonical output and semantic digest, not by arbitrary platform JSON formatting.
+9. Generate and extract one episode chunk at a time; do not retain a full 24-hour 25Hz waveform in memory.
+10. Apply configurable maximum duration, livestock/device count, and window count limits to admin generation requests.
+11. Export deterministic five-minute summary datasets as versioned NDJSON/JSON for pipeline tests. Do not create a raw-waveform interchange format in this batch; the later research exporter must still use NumPy/Parquet with the same manifest and schema hash before C5 model work.
+12. Keep the generator independent of JPA repositories and `TelemetryIngestionPort`.
 
 **Acceptance**
 
-- Re-running the same scenario, seed, generator version, and input definition produces byte-stable manifests and identical semantic samples.
+- Re-running the same canonical scenario definition, seed, generator version, and configuration produces identical canonical JSON and semantic digest.
 - Changing seed, generator version, individual baseline, or orientation changes generated samples.
 - A 24-hour episode contains plausible class imbalance and missing-window behavior.
 - Rumination shows a spectral peak around 1.0-1.5Hz with lower entropy than feeding.
@@ -147,47 +152,63 @@ Raw research waveforms remain offline artifacts. Production-path validation may 
    - UUID id
    - scenario name/id, seed, generator version
    - `data_source`, status, time range
+   - unique canonical definition digest
    - reproducibility manifest
-3. `behavior_episodes`
+3. `behavior_livestock_split_assignments`
+   - primary key `(dataset_id, livestock_id)`
+   - split value plus assignment audit fields
+4. `behavior_episode_split_assignments`
+   - primary key `(dataset_id, episode_id)`
+   - split value plus assignment audit fields
+   - episode/livestock compatibility checked in one transaction
+5. `behavior_episodes`
    - UUID id, dataset id
    - livestock/device scope, start/end time
-4. `behavior_windows`
+6. `behavior_windows`
    - scope and dataset/episode ids
    - five-minute boundary
    - denormalized dominant behavior
    - feature version/hash and JSONB features
-   - `input_quality`, `data_source`, `dataset_split`, `sampling_mode`, `model_compatible`
-   - unique `(device_id, window_start, feature_version)`
-5. `behavior_window_labels`
+   - `input_quality`, `sampling_mode`, `model_compatible`
+   - source and split derive from dataset/episode assignments; any denormalized copies must use composite foreign keys
+   - unique `(dataset_id, device_id, window_start, feature_version)`
+7. `behavior_window_labels`
    - one row per facet value
+   - unique `(window_id, facet, label_value)`
    - label source, confidence, labeler, timestamp, note
-6. `behavior_predictions`
+8. `behavior_predictions`
    - model name/version, predicted dominant and labels, probability vector, capability, predicted time
+   - unique `(window_id, model_name, model_version)`
+
+`behavior_datasets` owns `data_source` and a deterministic dataset identity derived from the canonical generation definition. Re-submitting the same definition is idempotent and returns the existing dataset rather than creating a duplicate.
 
 **Steps**
 
 1. Add CHECK constraints for all enums, time ranges, confidence, and split values.
-2. Add partial unique split constraints:
-   - `(dataset_id, livestock_id, dataset_split)`
-   - `(dataset_id, episode_id, dataset_split)`
-3. Enforce the same rules in the application layer before database insertion, with actionable i18n errors.
-4. Persist only protocol summaries; raw waveforms stay offline.
-5. Assign splits by farm/livestock/contiguous episode blocks, never randomly by window.
-6. Keep synthetic and real rows in separate datasets and reject a non-debug evaluation request whose selected test rows contain multiple sources.
-7. Add minimal authenticated admin endpoints:
+2. Create two split assignment tables with primary keys:
+   - `(dataset_id, livestock_id)`
+   - `(dataset_id, episode_id)`
+3. Enforce episode/livestock split compatibility in the application layer within the same transaction, with actionable i18n errors.
+4. Reject duplicate facet label rows in the application layer before insert.
+5. Persist only protocol summaries; raw waveforms stay offline.
+6. Assign splits by farm/livestock/contiguous episode blocks, never randomly by window.
+7. Keep synthetic and real rows in separate datasets and reject a non-debug evaluation request whose selected datasets contain multiple sources.
+8. Add minimal authenticated admin endpoints:
    - generate behavior dataset
    - inspect dataset manifest and counts
-8. Reuse existing datagen admin role and tenant/farm access checks.
-9. Do not add a scheduler in this batch.
+9. Reuse existing datagen admin role and tenant/farm access checks.
+10. Do not add a scheduler in this batch.
 
 **Acceptance**
 
 - Flyway migration succeeds on a clean database.
-- The same `(device, window_start, feature_version)` cannot be inserted twice.
+- The same `(dataset, device, window_start, feature_version)` cannot be inserted twice, while the same device/window/version may exist in separate datasets for the synthetic-to-real transition.
 - One livestock cannot occupy multiple splits in one dataset.
 - One episode cannot be split across multiple dataset splits.
+- A second 24-hour window for the same livestock inserts normally; split assignment rows, not window rows, enforce leakage rules.
+- The same `(window, facet, label_value)` cannot be inserted twice.
 - Synthetic and real sources cannot silently share a non-debug dataset.
-- `DATAGEN` is persisted as the explicit source.
+- `DATAGEN` is owned by the dataset and cannot disagree with window-level denormalization.
 - No generated window calls `TelemetryIngestionService`.
 - Admin API returns authorization, validation, and generation errors through MessageSource.
 
@@ -212,18 +233,20 @@ Raw research waveforms remain offline artifacts. Production-path validation may 
    - oral activity
    - locomotion
    - event
-4. Report boundary tolerance at configurable 0, 30, 60, and 300 second tolerances.
+4. Report class-transition boundary F1 with a one-window tolerance. Merge adjacent positive windows for event-level precision/recall and report event detection latency at event-window granularity.
 5. Report source partitions and dataset/model/generator versions.
 6. Mark every synthetic report `PIPELINE_ONLY`; do not emit a production-accuracy interpretation.
-7. Reject a non-debug evaluation when selected test windows contain multiple `data_source` values.
+7. Reject a non-debug evaluation when selected datasets contain multiple `data_source` values.
 8. Allow mixed-source evaluation only with explicit `allow_mixed_debug=true`; title and JSON metadata must then carry `debug=true` and list all sources.
 9. Return empty/error metrics by explicit state rather than silently imputing labels.
+10. Do not fabricate predictions in C0-C3. Metric completeness is tested with explicit fixture predictions; the dev endpoint returns `NO_PREDICTIONS` until C4/C5 persists real predictions.
 
 **Acceptance**
 
 - A report with only accuracy and no macro/weighted F1 or facet metrics fails the service test.
 - Near-class confusion for `RUMINATING` vs `FEEDING` is explicitly visible.
 - Missing predictions or labels never count as silent positives or negatives.
+- A prediction-free dev request returns an explicit `NO_PREDICTIONS` report state rather than zero-value model metrics.
 - Mixed-source reports cannot be produced accidentally.
 - All synthetic report payloads carry `PIPELINE_ONLY`.
 
@@ -250,9 +273,9 @@ Compare full-suite failures against the documented 19-failure legacy baseline if
    - dataset/episode/window counts are internally consistent
    - labels contain expected facets
    - every window has the registered schema hash
-   - split constraints reject leakage probes
+   - split assignment keys and compatibility checks reject leakage probes
    - IoT telemetry row counts do not increase from research waveform generation
-6. Run evaluation and verify the report contains confusion, F1, facet, boundary, source, and `PIPELINE_ONLY` metadata.
+6. Run evaluation before C4/C5 and verify the explicit `NO_PREDICTIONS` state plus source, split, and `PIPELINE_ONLY` metadata; metric arithmetic and complete report structure are covered by service tests using fixture predictions.
 7. Keep the generated dataset marked `DATAGEN`; if cleanup is required, remove by dataset id rather than deleting by broad time range.
 8. Update deployment/API reference docs with the new internal admin contract.
 

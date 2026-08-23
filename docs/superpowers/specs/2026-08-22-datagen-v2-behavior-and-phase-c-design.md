@@ -1,9 +1,9 @@
 # datagen v2 与 AI Phase C 设计
 
-> Date: 2026-08-22  
+> Date: 2026-08-22\
 > Status: 设计已确认；C0-C3 实施计划待评审\
-> Issue: NIX-147  
-> Roadmap: `2026-06-19-ai-health-roadmap.md` §4  
+> Issue: NIX-147\
+> Roadmap: `2026-06-19-ai-health-roadmap.md` §4\
 > Baseline: `2026-06-26-datagen-context-design.md`
 > Plan: `2026-08-23-datagen-v2-phase-c-c0-c3-plan.md` (NIX-149)
 
@@ -122,21 +122,18 @@ Owned by datagen as the Phase C feature store. Future v3 governance can generali
 | `dominant_behavior` | §2.2 enum |
 | `feature_version`, `feature_schema_hash`, `features` JSONB | Semantic feature contract |
 | `input_quality` | `FULL_0X40`, `PARTIAL_0X40`, `COARSE_SNAPSHOT`, `UNKNOWN` |
-| `data_source` | `DATAGEN`, `AGENTIC_PLATFORM`, `MANUAL_IMPORT`, `RESEARCH_IMPORT` |
-| `dataset_split` | `TRAIN`, `VALIDATION`, `TEST`, `UNASSIGNED` |
 | `sampling_mode` | `PROTOCOL_SUMMARY`, `SPARSE_SNAPSHOT`, `RESEARCH_WAVEFORM` |
 | `model_compatible` | boolean | Derived from quality/version rules |
 
-Unique key: `(device_id, window_start, feature_version)`.
+`data_source` is owned by the parent dataset. A window may denormalize it only through a composite foreign key or derive it at query time. `dataset_split` is governed by dataset assignment records rather than an unconstrained window column.
 
-Within one dataset, split leakage is prevented by two partial unique constraints:
+The window unique key is dataset-scoped:
 
 ```sql
-UNIQUE (dataset_id, livestock_id, dataset_split)
-UNIQUE (dataset_id, episode_id, dataset_split)
+UNIQUE (dataset_id, device_id, window_start, feature_version)
 ```
 
-The second constraint is redundant for single-livestock episodes but protects future group episodes. The service must reject an attempted episode split when any member livestock already belongs to another split in the same dataset.
+Split leakage is prevented by assignment rows keyed by `(dataset_id, livestock_id)` and `(dataset_id, episode_id)`, plus a transactional compatibility check. Unique constraints on window rows would incorrectly allow only one window per split.
 
 ### 4.2 `behavior_window_labels`
 
@@ -151,6 +148,8 @@ One row per multi-label facet value:
 
 The dominant behavior is denormalized on `behavior_windows` for efficient retrieval, while facets remain source-attributed.
 
+Unique key: `(window_id, facet, label_value)`.
+
 ### 4.3 `behavior_predictions`
 
 One row per model run per window:
@@ -162,6 +161,8 @@ One row per model run per window:
 - `probability_vector` JSONB
 - `capability_level` (`L1_RULE`, `L2_SUPERVISED`)
 - `predicted_at`
+
+Unique key: `(window_id, model_name, model_version)`.
 
 Evaluation joins predictions to labels by `window_id`; it never treats a later prediction as ground truth.
 
