@@ -27,4 +27,11 @@ class DataGenControllerSecurityTest {
         assertTrue(annotation != null);
         assertEquals("hasAnyRole('PLATFORM_ADMIN','B2B_ADMIN')", annotation.value());
     }
+
+    @Test
+    void behaviorController_allowsPlatformAndB2bAdmin() {
+        PreAuthorize annotation = DataGenBehaviorController.class.getAnnotation(PreAuthorize.class);
+        assertTrue(annotation != null);
+        assertEquals("hasAnyRole('PLATFORM_ADMIN','B2B_ADMIN')", annotation.value());
+    }
 }

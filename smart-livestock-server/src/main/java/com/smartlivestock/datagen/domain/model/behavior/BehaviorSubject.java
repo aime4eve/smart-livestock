@@ -9,6 +9,9 @@ public record BehaviorSubject(
         double baselinePitchDegrees,
         double capsuleMotilityBaseline) {
     public BehaviorSubject {
+        if (tenantId == null || farmId == null || livestockId == null || deviceId == null) {
+            throw new IllegalArgumentException("Behavior subject scope is incomplete");
+        }
         if (baselineRollDegrees < -180 || baselineRollDegrees > 180
                 || baselinePitchDegrees < -180 || baselinePitchDegrees > 180
                 || capsuleMotilityBaseline < 0 || capsuleMotilityBaseline > 100) {
