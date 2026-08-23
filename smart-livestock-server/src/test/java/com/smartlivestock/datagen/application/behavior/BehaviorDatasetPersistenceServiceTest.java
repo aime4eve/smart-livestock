@@ -6,6 +6,7 @@ import com.smartlivestock.datagen.application.behavior.dto.BehaviorDatasetGenera
 import com.smartlivestock.datagen.application.behavior.dto.BehaviorDatasetStatusDto;
 import com.smartlivestock.datagen.domain.model.behavior.BehaviorFeatureContract;
 import com.smartlivestock.datagen.domain.model.behavior.BehaviorGeneratedDataset;
+import com.smartlivestock.datagen.domain.port.BehaviorSubjectScopePort;
 import com.smartlivestock.datagen.domain.service.BehaviorFeatureValidator;
 import com.smartlivestock.datagen.infrastructure.persistence.BehaviorDatasetJpaRepository;
 import com.smartlivestock.datagen.infrastructure.persistence.BehaviorEpisodeJpaRepository;
@@ -38,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -45,6 +47,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class BehaviorDatasetPersistenceServiceTest {
     @Mock private DatagenFarmAccessService farmAccessService;
+    @Mock private BehaviorSubjectScopePort subjectScopePort;
     @Mock private BehaviorFeatureContractJpaRepository contractRepository;
     @Mock private BehaviorDatasetJpaRepository datasetRepository;
     @Mock private BehaviorEpisodeJpaRepository episodeRepository;
@@ -67,6 +70,7 @@ class BehaviorDatasetPersistenceServiceTest {
                 canonicalizer,
                 featureValidator,
                 farmAccessService,
+                subjectScopePort,
                 contractRepository,
                 datasetRepository,
                 episodeRepository,
@@ -188,6 +192,46 @@ class BehaviorDatasetPersistenceServiceTest {
 
         assertEquals("VALIDATION_ERROR", exception.getCode().name());
         verify(datasetRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void validatesSubjectScopeBeforeGeneratingDataset() {
+        BehaviorDatasetGenerateRequest request = request(
+                Instant.parse("2026-08-23T00:00:00Z"),
+                Instant.parse("2026-08-23T00:05:00Z"));
+        when(farmAccessService.requireAccessibleFarm(any(), any())).thenReturn(null);
+        doThrow(new IllegalArgumentException("invalid scope"))
+                .when(subjectScopePort).validate(any(), any());
+
+        ApiException exception = assertThrows(ApiException.class,
+                () -> service.generate(request, platformOperator()));
+
+        assertEquals("VALIDATION_ERROR", exception.getCode().name());
+        verify(subjectScopePort).validate(any(), any());
+        verify(datasetRepository, never()).findByDefinitionDigest(any());
+        verify(datasetRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void rejectsNullInitialWeightWithoutInternalServerError() {
+        BehaviorDatasetGenerateRequest base = request(
+                Instant.parse("2026-08-23T00:00:00Z"),
+                Instant.parse("2026-08-23T00:05:00Z"));
+        BehaviorDatasetGenerateRequest request = new BehaviorDatasetGenerateRequest(
+                base.scenarioId(),
+                base.seed(),
+                base.generatorVersion(),
+                base.startAt(),
+                base.endAt(),
+                base.subjects(),
+                java.util.Arrays.asList(4.0, null, 2.0, 1.0, 0.2),
+                base.realism());
+        when(farmAccessService.requireAccessibleFarm(any(), any())).thenReturn(null);
+
+        ApiException exception = assertThrows(ApiException.class,
+                () -> service.generate(request, platformOperator()));
+
+        assertEquals("VALIDATION_ERROR", exception.getCode().name());
     }
 
     private BehaviorDatasetGenerateRequest request(Instant start, Instant end) {

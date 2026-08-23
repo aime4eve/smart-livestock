@@ -50,6 +50,30 @@ class BehaviorDatasetGeneratorTest {
     }
 
     @Test
+    void changingSubjectDefinitionChangesDatasetIdentity() {
+        BehaviorScenarioDefinition original = scenario(1001, false);
+        BehaviorScenarioDefinition changed = new BehaviorScenarioDefinition(
+                original.scenarioId(),
+                original.seed(),
+                original.generatorVersion(),
+                original.startAt(),
+                original.endAt(),
+                List.of(new com.smartlivestock.datagen.domain.model.behavior.BehaviorSubject(
+                        1L, 1L, 1L, 5L, 9, -4, 3.2)),
+                original.transitionMatrix(),
+                original.initialWeights(),
+                original.realismProfile());
+
+        BehaviorGeneratedDataset first = generator.generate(original);
+        BehaviorGeneratedDataset second = generator.generate(changed);
+
+        assertNotEquals(first.manifest().datasetId(), second.manifest().datasetId());
+        assertNotEquals(
+                canonicalizer.scenarioDigest(original),
+                canonicalizer.scenarioDigest(changed));
+    }
+
+    @Test
     void twentyFourHourDatasetHasStableWindowsAndEpisodeBoundaries() {
         BehaviorGeneratedDataset dataset = generator.generate(scenario(1001, true));
 

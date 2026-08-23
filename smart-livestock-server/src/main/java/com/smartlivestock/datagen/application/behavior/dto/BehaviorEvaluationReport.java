@@ -8,6 +8,7 @@ public record BehaviorEvaluationReport(
         String state,
         String reportType,
         boolean debug,
+        int missingPredictionWindows,
         List<UUID> datasetIds,
         List<String> dataSources,
         List<String> generatorVersions,

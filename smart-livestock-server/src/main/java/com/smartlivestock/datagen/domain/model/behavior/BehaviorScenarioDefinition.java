@@ -45,8 +45,8 @@ public record BehaviorScenarioDefinition(
             throw new IllegalArgumentException("Behavior initial weights must cover every dominant class");
         }
         double sum = 0;
-        for (double weight : initialWeights) {
-            if (!Double.isFinite(weight) || weight < 0) {
+        for (Double weight : initialWeights) {
+            if (weight == null || !Double.isFinite(weight) || weight < 0) {
                 throw new IllegalArgumentException("Behavior initial weights are invalid");
             }
             sum += weight;

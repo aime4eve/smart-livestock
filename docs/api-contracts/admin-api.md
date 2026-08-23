@@ -1762,6 +1762,7 @@ Response 200:
   "code": "OK", "message": "success", "requestId": "req-D08",
   "data": {
     "state": "NO_PREDICTIONS", "reportType": "PIPELINE_ONLY", "debug": false,
+    "missingPredictionWindows": 43,
     "datasetIds": ["0d5f6f97-7ff6-3c61-99f1-58209e83b221"],
     "dataSources": ["DATAGEN"], "generatorVersions": ["behavior-generator-v1"], "modelVersions": [],
     "sourceCounts": { "DATAGEN": 43 }, "inputQualityCounts": { "FULL_0X40": 43 },

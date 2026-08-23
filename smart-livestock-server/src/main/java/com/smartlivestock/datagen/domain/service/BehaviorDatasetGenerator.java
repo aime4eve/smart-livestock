@@ -14,6 +14,8 @@ import com.smartlivestock.datagen.domain.model.behavior.InputQuality;
 import com.smartlivestock.datagen.domain.model.behavior.SamplingMode;
 
 import java.nio.charset.StandardCharsets;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
@@ -32,7 +34,7 @@ public class BehaviorDatasetGenerator {
     }
 
     public BehaviorGeneratedDataset generate(BehaviorScenarioDefinition scenario) {
-        UUID datasetId = deterministicId(datasetIdentity(scenario));
+        UUID datasetId = deterministicId(fullScenarioIdentity(scenario));
         int expectedWindowsPerSubject = scenario.expectedWindows();
         List<BehaviorGeneratedEpisode> episodes = new ArrayList<>();
         List<BehaviorGeneratedWindow> windows = new ArrayList<>();
@@ -166,10 +168,56 @@ public class BehaviorDatasetGenerator {
         episodes.add(new BehaviorGeneratedEpisode(episodeId, subject, dominant, start, end));
     }
 
-    private String datasetIdentity(BehaviorScenarioDefinition scenario) {
-        return scenario.scenarioId() + ":" + scenario.seed() + ":" + scenario.generatorVersion()
-                + ":" + scenario.startAt() + ":" + scenario.endAt() + ":"
-                + scenario.subjects().size() + ":" + BehaviorFeatureContract.v1().schemaHash();
+    private String fullScenarioIdentity(BehaviorScenarioDefinition scenario) {
+        StringBuilder identity = new StringBuilder()
+                .append(scenario.scenarioId()).append('|')
+                .append(scenario.seed()).append('|')
+                .append(scenario.generatorVersion()).append('|')
+                .append(scenario.startAt()).append('|')
+                .append(scenario.endAt()).append('|')
+                .append(BehaviorFeatureContract.v1().schemaHash()).append('|')
+                .append("initial=");
+        for (double weight : scenario.initialWeights()) {
+            identity.append(canonicalDecimal(weight)).append(',');
+        }
+        identity.append("|transitions=");
+        Map<BehaviorDominant, Map<BehaviorDominant, Double>> weights =
+                scenario.transitionMatrix().weights();
+        for (BehaviorDominant from : BehaviorDominant.values()) {
+            for (BehaviorDominant to : BehaviorDominant.values()) {
+                identity.append(from.name())
+                        .append('>')
+                        .append(to.name())
+                        .append('=')
+                        .append(canonicalDecimal(weights.get(from).get(to)))
+                        .append(',');
+            }
+        }
+        identity.append("|realism=")
+                .append(canonicalDecimal(scenario.realismProfile().noiseStdDevG())).append(',')
+                .append(canonicalDecimal(scenario.realismProfile().sampleDropoutRate())).append(',')
+                .append(canonicalDecimal(scenario.realismProfile().missingWindowRate())).append(',')
+                .append(canonicalDecimal(scenario.realismProfile().eventRate()))
+                .append("|subjects=");
+        for (BehaviorSubject subject : scenario.subjects()) {
+            identity.append(subject.tenantId()).append(',')
+                    .append(subject.farmId()).append(',')
+                    .append(subject.livestockId()).append(',')
+                    .append(subject.deviceId()).append(',')
+                    .append(canonicalDecimal(subject.baselineRollDegrees())).append(',')
+                    .append(canonicalDecimal(subject.baselinePitchDegrees())).append(',')
+                    .append(canonicalDecimal(subject.capsuleMotilityBaseline())).append(';');
+        }
+        return identity.toString();
+    }
+
+    private String canonicalDecimal(double value) {
+        if (value == 0) {
+            value = 0;
+        }
+        return BigDecimal.valueOf(value)
+                .setScale(6, RoundingMode.HALF_UP)
+                .toPlainString();
     }
 
     private UUID deterministicId(String value) {

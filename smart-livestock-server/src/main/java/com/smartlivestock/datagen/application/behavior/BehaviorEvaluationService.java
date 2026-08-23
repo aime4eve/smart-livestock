@@ -37,6 +37,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -111,14 +112,18 @@ public class BehaviorEvaluationService {
                 .collect(Collectors.groupingBy(BehaviorWindowLabelJpaEntity::getWindowId));
         List<BehaviorPredictionJpaEntity> predictions = predictionsFor(selectedWindows);
         Map<UUID, BehaviorPredictionJpaEntity> predictionByWindow = predictions.stream()
-                .collect(Collectors.toMap(
+                .collect(Collectors.groupingBy(
                         BehaviorPredictionJpaEntity::getWindowId,
-                        prediction -> prediction,
-                        (first, second) -> first));
+                        Collectors.collectingAndThen(
+                                Collectors.maxBy(this::latestPrediction),
+                                Optional::get)));
 
         String state = selectedWindows.isEmpty()
                 ? "NO_WINDOWS"
-                : predictions.isEmpty() ? "NO_PREDICTIONS" : "COMPLETE";
+                : predictions.isEmpty() ? "NO_PREDICTIONS"
+                : evaluatedWindowCount(selectedWindows, predictionByWindow) == selectedWindows.size()
+                        ? "COMPLETE"
+                        : "PARTIAL_PREDICTIONS";
         List<BehaviorWindowJpaEntity> evaluatedWindows = selectedWindows.stream()
                 .filter(window -> predictionByWindow.containsKey(window.getId()))
                 .toList();
@@ -128,6 +133,7 @@ public class BehaviorEvaluationService {
                 state,
                 sources.contains("DATAGEN") ? "PIPELINE_ONLY" : "EVALUATION",
                 request.allowMixedDebug() && sources.size() > 1,
+                selectedWindows.size() - evaluatedWindows.size(),
                 datasets.stream().map(BehaviorDatasetJpaEntity::getId).toList(),
                 sources,
                 datasets.stream().map(BehaviorDatasetJpaEntity::getGeneratorVersion).distinct().toList(),
@@ -148,6 +154,28 @@ public class BehaviorEvaluationService {
     private boolean splitMatches(String requested, String actual) {
         return requested == null || requested.isBlank() || "ALL".equals(requested)
                 || requested.equals(actual);
+    }
+
+    private int evaluatedWindowCount(
+            List<BehaviorWindowJpaEntity> windows,
+            Map<UUID, BehaviorPredictionJpaEntity> predictions) {
+        return (int) windows.stream()
+                .filter(window -> predictions.containsKey(window.getId()))
+                .count();
+    }
+
+    private int latestPrediction(
+            BehaviorPredictionJpaEntity first,
+            BehaviorPredictionJpaEntity second) {
+        int byTime = first.getPredictedAt().compareTo(second.getPredictedAt());
+        if (byTime != 0) {
+            return byTime;
+        }
+        int byName = first.getModelName().compareTo(second.getModelName());
+        if (byName != 0) {
+            return byName;
+        }
+        return first.getModelVersion().compareTo(second.getModelVersion());
     }
 
     private BehaviorDominantMetrics dominantMetrics(

@@ -18,6 +18,7 @@ import com.smartlivestock.datagen.domain.model.behavior.BehaviorSubject;
 import com.smartlivestock.datagen.domain.model.behavior.BehaviorTransitionMatrix;
 import com.smartlivestock.datagen.domain.model.behavior.InputQuality;
 import com.smartlivestock.datagen.domain.model.behavior.SamplingMode;
+import com.smartlivestock.datagen.domain.port.BehaviorSubjectScopePort;
 import com.smartlivestock.datagen.domain.service.BehaviorFeatureValidator;
 import com.smartlivestock.datagen.infrastructure.persistence.BehaviorDatasetJpaRepository;
 import com.smartlivestock.datagen.infrastructure.persistence.BehaviorEpisodeJpaRepository;
@@ -61,6 +62,7 @@ public class BehaviorDatasetPersistenceService {
     private final BehaviorDatasetCanonicalizer canonicalizer;
     private final BehaviorFeatureValidator featureValidator;
     private final DatagenFarmAccessService farmAccessService;
+    private final BehaviorSubjectScopePort subjectScopePort;
     private final BehaviorFeatureContractJpaRepository contractRepository;
     private final BehaviorDatasetJpaRepository datasetRepository;
     private final BehaviorEpisodeJpaRepository episodeRepository;
@@ -240,8 +242,9 @@ public class BehaviorDatasetPersistenceService {
         List<BehaviorSubject> subjects = request.subjects().stream()
                 .map(this::subject)
                 .toList();
-        subjects.stream().map(BehaviorSubject::farmId).distinct()
-                .forEach(farmId -> farmAccessService.requireAccessibleFarm(farmId, operator));
+        subjects.forEach(subject -> subjectScopePort.validate(
+                subject,
+                farmAccessService.requireAccessibleFarm(subject.farmId(), operator)));
 
         List<Double> initialWeights = request.initialWeights() == null
                 ? List.of(4.0, 3.0, 2.0, 1.0, 0.2)

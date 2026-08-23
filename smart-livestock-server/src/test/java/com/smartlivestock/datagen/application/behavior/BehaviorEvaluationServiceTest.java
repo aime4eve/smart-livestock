@@ -81,6 +81,7 @@ class BehaviorEvaluationServiceTest {
         assertEquals("COMPLETE", report.state());
         assertEquals("PIPELINE_ONLY", report.reportType());
         assertFalse(report.debug());
+        assertEquals(0, report.missingPredictionWindows());
         assertEquals(List.of("DATAGEN"), report.dataSources());
         assertEquals(4, report.dominantMetrics().evaluatedWindows());
         assertEquals(0.75, report.dominantMetrics().accuracy());
@@ -132,9 +133,36 @@ class BehaviorEvaluationServiceTest {
 
         assertEquals("NO_PREDICTIONS", report.state());
         assertEquals("PIPELINE_ONLY", report.reportType());
+        assertEquals(4, report.missingPredictionWindows());
         assertEquals(0, report.dominantMetrics().evaluatedWindows());
         assertEquals(4, report.facetMetrics().size());
         assertEquals(5, report.dominantMetrics().classMetrics().size());
+    }
+
+    @Test
+    void partialPredictionsAreExplicitlyReported() {
+        stubDataset(dataset(DATASET_ID, "DATAGEN"));
+        when(episodeRepository.findByDatasetIdOrderByStartAtAsc(DATASET_ID))
+                .thenReturn(List.of(episode()));
+        when(farmAccessService.requireAccessibleFarm(any(), any())).thenReturn(null);
+        when(episodeSplitRepository.findByIdDatasetId(DATASET_ID))
+                .thenReturn(List.of(episodeSplit()));
+        List<BehaviorWindowJpaEntity> windows = windows();
+        when(windowRepository.findByDatasetIdOrderByWindowStartAsc(DATASET_ID))
+                .thenReturn(windows);
+        when(labelRepository.findByWindowIdIn(anyCollection())).thenReturn(labels(windows));
+        List<BehaviorPredictionJpaEntity> predictions = predictions(windows);
+        predictions.remove(0);
+        when(predictionRepository.findByWindowIdIn(anyCollection())).thenReturn(predictions);
+
+        BehaviorEvaluationReport report = service.evaluate(
+                new BehaviorEvaluationRequest(List.of(DATASET_ID), "TEST", false),
+                platformOperator());
+
+        assertEquals("PARTIAL_PREDICTIONS", report.state());
+        assertEquals(1, report.missingPredictionWindows());
+        assertEquals(3, report.dominantMetrics().evaluatedWindows());
+        assertTrue(report.sourceCounts().containsKey("DATAGEN"));
     }
 
     @Test
