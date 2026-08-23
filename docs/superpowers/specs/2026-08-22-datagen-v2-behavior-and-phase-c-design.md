@@ -1,7 +1,7 @@
 # datagen v2 与 AI Phase C 设计
 
 > Date: 2026-08-22  
-> Status: 待评审  
+> Status: 设计已确认，待实施计划\
 > Issue: NIX-147  
 > Roadmap: `2026-06-19-ai-health-roadmap.md` §4  
 > Baseline: `2026-06-26-datagen-context-design.md`
@@ -21,6 +21,8 @@ Therefore v2 has three explicit layers:
 3. **Sparse-snapshot adapter**: use current GPS, step count, activity class, posture, and capsule motility only for coarse behavior, with an explicit `COARSE` quality marker.
 
 Raw high-rate waveforms are not sent over LoRaWAN and are not ingested into production telemetry tables.
+
+Decision record (2026-08-23): synthetic data may unblock C0-C5 while firmware behavior summaries are incomplete, but it is a transitional bootstrap rather than the end state. Once qualified real telemetry is available, the real adapter, fine-tuning, and real-only evaluation in C6-C7 are mandatory.
 
 ## 2. Label Model
 
@@ -215,6 +217,20 @@ Every generated dataset must include:
 - adversarial near-classes: ruminating vs feeding, lying vs standing-ruminating, feeding while walking slowly
 
 Generated files are reproducible from `(scenario_id, seed, generator_version)`.
+
+### 5.4 Synthetic-to-real transition policy
+
+Synthetic datasets exist to build and validate the pipeline before firmware `0x40` or another qualified real telemetry source is available. They are not a substitute for production validation.
+
+When real telemetry becomes available:
+
+1. Freeze the synthetic baseline and retain its dataset/model versions for traceability.
+2. Verify the real adapter against the same feature contract and schema hash.
+3. Build a labeled real dataset and keep it separate from synthetic datasets.
+4. Fine-tune or retrain models with real data and run a real-only test set.
+5. Reproduce all evaluation reports with explicit source partitions.
+
+A production behavior-model claim cannot be closed from synthetic-only metrics, and synthetic and real rows must never be mixed silently in the same evaluation set.
 
 ## 6. Real-Data Adapter
 

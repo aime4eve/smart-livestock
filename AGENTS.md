@@ -28,6 +28,7 @@
 - **GPS 写入**：`TelemetryIngestionService` 主事务只写 `gps_ingestion_tasks`，由 `GpsIngestionTaskScheduler` 异步写 `gps_logs`；不要在 ingest 事务里重新直写 GPS。
 - **GPS 幂等与清理**：以 `(device_id, recorded_at)` 为幂等键；压测/验证数据必须用明确时间窗和 `MANUAL_IMPORT` source，结束后清理并恢复设备快照。
 - **多来源数据**：写入共享表时必须保留合法 `source`，不得把 `DATAGEN` 与真实来源混淆。
+- **AI 仿真过渡**：datagen 仿真数据仅用于 Phase C 管道研发和模型预训练，不能作为真实效果验收；一旦可评估的真实采集遥测可用，必须按 C6/C7 切换到真实数据适配、微调和 real-only 评估，禁止用合成结果混充生产效果。
 
 ---
 
@@ -136,4 +137,3 @@ Agent 自身出问题时（元故障）：
 - `farmGet` 返回 404 且 URL farmId 与路径粘连 → suffix 缺前导 `/` — #16
 
 ---
-
