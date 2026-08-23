@@ -1,7 +1,7 @@
 # datagen v2 Phase C C0-C3 实施计划
 
 > Date: 2026-08-23\
-> Status: 评审修订版 v1.1，待最终确认\
+> Status: 已实施并完成 dev 验证（2026-08-23）\
 > Issue: NIX-149\
 > Spec: `docs/superpowers/specs/2026-08-22-datagen-v2-behavior-and-phase-c-design.md`\
 > Review: `docs/superpowers/reviews/2026-08-22-datagen-v2-behavior-and-phase-c-design-review.md`\
@@ -307,3 +307,11 @@ When real telemetry is available, a separate implementation batch must:
 6. Docs, commit, push, and Linear status update.
 
 Each task should land as a separately reviewable commit, but all C0-C3 work may be delivered in one PR if review capacity is constrained.
+
+## Implementation Result
+
+- C0-C3 implementation completed on 2026-08-23.
+- Backend compilation and all targeted datagen tests passed.
+- dev build `0.3.2-b493` passed Flyway, contract seed, deterministic dataset generation, idempotency, split/label/window integrity, explicit `NO_PREDICTIONS`, and IoT no-pollution checks.
+- The first dev build `0.3.2-b492` exposed an invalid Spring Data embedded-id query name; it was corrected to `findByIdDatasetId` before final verification.
+- Verification record: `docs/reports/2026-08-23-datagen-v2-c0-c3-dev-verification.md`.

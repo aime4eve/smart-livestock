@@ -114,7 +114,7 @@ class BehaviorDatasetPersistenceServiceTest {
             episodeSplits.addAll((List<BehaviorEpisodeSplitAssignmentJpaEntity>) invocation.getArgument(0));
             return episodeSplits;
         });
-        when(episodeSplitRepository.findByDatasetId(datasetId)).thenReturn(episodeSplits);
+        when(episodeSplitRepository.findByIdDatasetId(datasetId)).thenReturn(episodeSplits);
 
         List<BehaviorWindowJpaEntity> windows = new ArrayList<>();
         when(windowRepository.saveAll(any())).thenAnswer(invocation -> {
@@ -165,7 +165,7 @@ class BehaviorDatasetPersistenceServiceTest {
                 .thenReturn(Optional.of(existing));
         when(datasetRepository.findById(datasetId)).thenReturn(Optional.of(existing));
         when(episodeRepository.findByDatasetIdOrderByStartAtAsc(datasetId)).thenReturn(List.of());
-        when(episodeSplitRepository.findByDatasetId(datasetId)).thenReturn(List.of());
+        when(episodeSplitRepository.findByIdDatasetId(datasetId)).thenReturn(List.of());
         when(windowRepository.findByDatasetIdOrderByWindowStartAsc(datasetId)).thenReturn(List.of());
 
         BehaviorDatasetStatusDto status = service.generate(request, platformOperator());

@@ -7,7 +7,6 @@ import com.smartlivestock.datagen.application.behavior.dto.BehaviorDatasetStatus
 import com.smartlivestock.datagen.domain.model.behavior.BehaviorDataSource;
 import com.smartlivestock.datagen.domain.model.behavior.BehaviorDatasetSplit;
 import com.smartlivestock.datagen.domain.model.behavior.BehaviorDatasetStatus;
-import com.smartlivestock.datagen.domain.model.behavior.BehaviorDominant;
 import com.smartlivestock.datagen.domain.model.behavior.BehaviorGeneratedDataset;
 import com.smartlivestock.datagen.domain.model.behavior.BehaviorGeneratedEpisode;
 import com.smartlivestock.datagen.domain.model.behavior.BehaviorGeneratedWindow;
@@ -48,6 +47,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -107,7 +107,7 @@ public class BehaviorDatasetPersistenceService {
         List<BehaviorWindowJpaEntity> windows =
                 windowRepository.findByDatasetIdOrderByWindowStartAsc(datasetId);
         List<BehaviorWindowLabelJpaEntity> labels = labelsFor(windows);
-        Map<UUID, String> episodeSplits = episodeSplitRepository.findByDatasetId(datasetId).stream()
+        Map<UUID, String> episodeSplits = episodeSplitRepository.findByIdDatasetId(datasetId).stream()
                 .collect(Collectors.toMap(
                         item -> item.getId().getEpisodeId(),
                         item -> item.getDatasetSplit()));
@@ -224,6 +224,14 @@ public class BehaviorDatasetPersistenceService {
             BehaviorDatasetGenerateRequest request,
             DatagenOperatorContext operator) {
         if (request == null || request.subjects() == null) {
+            throw new IllegalArgumentException("Request is incomplete");
+        }
+        if (request.scenarioId() == null || request.scenarioId().isBlank()
+                || request.seed() == null
+                || request.generatorVersion() == null || request.generatorVersion().isBlank()
+                || request.startAt() == null || request.endAt() == null
+                || request.subjects().isEmpty()
+                || request.subjects().stream().anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException("Request is incomplete");
         }
         if (request.subjects().size() > MAX_SUBJECTS) {

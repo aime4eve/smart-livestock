@@ -9,5 +9,5 @@ import java.util.UUID;
 
 public interface BehaviorLivestockSplitAssignmentJpaRepository
         extends JpaRepository<BehaviorLivestockSplitAssignmentJpaEntity, BehaviorLivestockSplitId> {
-    List<BehaviorLivestockSplitAssignmentJpaEntity> findByDatasetId(UUID datasetId);
+    List<BehaviorLivestockSplitAssignmentJpaEntity> findByIdDatasetId(UUID datasetId);
 }

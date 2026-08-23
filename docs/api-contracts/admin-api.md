@@ -1697,12 +1697,81 @@ Error 400（设备未注册）:
 
 
 
-## 13. 仿真控制台（DataGenConsoleController）— 6 端点
+## 13. 仿真控制台与行为数据集（DataGenConsoleController / DataGenBehaviorController）— 9 端点
 
 > **基路径**: `/api/v1/admin/datagen`。**权限**: `@PreAuthorize("hasAnyRole('PLATFORM_ADMIN','B2B_ADMIN')")`。
 > `PLATFORM_ADMIN` 可访问任意 farm；`B2B_ADMIN` 仅可访问当前 tenant 下的 farm，跨 tenant 返回 `AUTH_FORBIDDEN`。
 > 同路径下的既有全局端点（`/scenarios`、`/scenarios/{id}/start|stop`、`/labels`、`/evaluation`）仅允许 `PLATFORM_ADMIN`，不再向 owner / worker / B2B 管理员暴露全局 scenario 控制。
 > 控制粒度为 farm + device assignment：启用时设备范围不能为空；历史 assignment 软删除保留，供 DATAGEN 数据清理归属使用。
+
+### POST /admin/datagen/behavior/datasets
+
+生成并持久化 Phase C 行为摘要数据集。仅生成五分钟 `PROTOCOL_SUMMARY`，不写入 IoT 遥测表；同一 canonical scenario definition 幂等返回既有 dataset。
+
+```
+Request:
+{
+  "scenarioId": "behavior-smoke",
+  "seed": 1001,
+  "generatorVersion": "behavior-generator-v1",
+  "startAt": "2026-08-23T00:00:00Z",
+  "endAt": "2026-08-24T00:00:00Z",
+  "subjects": [
+    { "tenantId": 1, "farmId": 1, "livestockId": 10, "deviceId": 5,
+      "baselineRollDegrees": 8, "baselinePitchDegrees": -4, "capsuleMotilityBaseline": 3.2 }
+  ],
+  "initialWeights": [4, 3, 2, 1, 0.2],
+  "realism": { "noiseStdDevG": 0.003, "sampleDropoutRate": 0.01, "missingWindowRate": 0.02, "eventRate": 0.01 }
+}
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-D06",
+  "data": {
+    "id": "0d5f6f97-7ff6-3c61-99f1-58209e83b221", "scenarioId": "behavior-smoke", "seed": 1001,
+    "generatorVersion": "behavior-generator-v1", "dataSource": "DATAGEN", "status": "READY",
+    "startAt": "2026-08-23T00:00:00Z", "endAt": "2026-08-24T00:00:00Z",
+    "episodeCount": 18, "windowCount": 288, "labelCount": 1128,
+    "splitCounts": { "TRAIN": 288 }, "dominantCounts": { "...": 0 }, "qualityCounts": { "FULL_0X40": 282, "UNKNOWN": 6 },
+    "alreadyExists": false
+  }
+}
+```
+
+> 请求最多 50 个 subject、20,000 个窗口；时间边界必须按 5 分钟对齐且最长 31 天。`dataSource` 由 dataset 拥有，split 由 livestock/episode assignment 表治理。当前 `initialWeights` 顺序为 `LYING, RUMINATING, FEEDING, WALKING, OTHER`，transition matrix 首版使用默认 semi-Markov 矩阵。
+
+### GET /admin/datagen/behavior/datasets/{id}
+
+查看 dataset 状态、窗口/episode/label 数量和 split、dominant、input quality 分布。
+
+```
+Response 200:
+{ "code": "OK", "message": "success", "requestId": "req-D07", "data": { "...": "同 POST 响应 data，alreadyExists=false" } }
+```
+
+### POST /admin/datagen/behavior/evaluations
+
+评估指定 datasets。非 debug 请求拒绝混合 `data_source`；`datasetSplit` 可为 `TRAIN` / `VALIDATION` / `TEST` / `ALL`。C4/C5 未产出 predictions 前返回显式 `NO_PREDICTIONS`，不会用 ground truth 伪造模型指标。
+
+```
+Request:
+{ "datasetIds": ["0d5f6f97-7ff6-3c61-99f1-58209e83b221"], "datasetSplit": "TEST", "allowMixedDebug": false }
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-D08",
+  "data": {
+    "state": "NO_PREDICTIONS", "reportType": "PIPELINE_ONLY", "debug": false,
+    "datasetIds": ["0d5f6f97-7ff6-3c61-99f1-58209e83b221"],
+    "dataSources": ["DATAGEN"], "generatorVersions": ["behavior-generator-v1"], "modelVersions": [],
+    "sourceCounts": { "DATAGEN": 43 }, "inputQualityCounts": { "FULL_0X40": 43 },
+    "splitCounts": { "TEST": 43 }, "livestockCounts": { "dataset-id:10": 43 },
+    "dominantMetrics": { "...": 0 }, "facetMetrics": [], "boundaryMetrics": { "...": 0 }, "eventMetrics": { "...": 0 }
+  }
+}
+```
+
+> 完整报告包含 dominant confusion/top-2/macro/weighted F1、四个 facet 的 per-label metrics 与 Hamming loss、one-window transition boundary F1、事件合并/漏检/检测 latency。合成数据报告必须携带 `PIPELINE_ONLY`，不得解释为真实世界效果。`allowMixedDebug=true` 时 payload 会置 `debug=true`，仅用于诊断。
 
 ### GET /admin/datagen/farms
 
