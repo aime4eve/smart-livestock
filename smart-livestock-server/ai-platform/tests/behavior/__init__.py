@@ -1,0 +1,1 @@
+"""Behavior capability tests."""

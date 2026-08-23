@@ -10,4 +10,7 @@ import java.util.UUID;
 public interface BehaviorPredictionJpaRepository
         extends JpaRepository<BehaviorPredictionJpaEntity, UUID> {
     List<BehaviorPredictionJpaEntity> findByWindowIdIn(Collection<UUID> windowIds);
+
+    List<BehaviorPredictionJpaEntity> findByWindowIdInAndModelNameAndModelVersion(
+            Collection<UUID> windowIds, String modelName, String modelVersion);
 }

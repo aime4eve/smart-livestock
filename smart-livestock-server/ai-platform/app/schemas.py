@@ -1,4 +1,6 @@
 """对外 API 契约（design §5.1 capability 同构契约 / §5.2 orchestration 端点）。"""
+from __future__ import annotations
+
 from enum import Enum
 from pydantic import BaseModel, Field, field_validator
 
@@ -77,3 +79,58 @@ class PredictResponse(BaseModel):
 class AnalyzeResponse(BaseModel):
     request_id: str
     results: list[PredictResponse]
+
+
+class BehaviorFeatureWindow(BaseModel):
+    window_id: str
+    feature_version: str
+    feature_schema_hash: str
+    input_quality: str
+    sampling_mode: str
+    features: dict[str, float | int | None]
+
+
+class BehaviorCapability(str, Enum):
+    L1_RULE = "L1_RULE"
+    L2_SUPERVISED = "L2_SUPERVISED"
+
+
+class BehaviorAnalyzeRequest(BaseModel):
+    tenant_id: int
+    farm_id: int
+    requested_capability: BehaviorCapability = BehaviorCapability.L1_RULE
+    model_name: str | None = None
+    model_version: str | None = None
+    windows: list[BehaviorFeatureWindow] = Field(min_length=1, max_length=5000)
+
+
+class BehaviorPredictionResult(BaseModel):
+    window_id: str
+    dominant_behavior: str
+    probability_vector: dict[str, float]
+    predicted_labels: dict[str, str]
+    capability_level: BehaviorCapability
+    model_name: str
+    model_version: str
+
+
+class BehaviorAnalyzeResponse(BaseModel):
+    request_id: str
+    results: list[BehaviorPredictionResult]
+    errors: list[dict] = Field(default_factory=list)
+
+
+class BehaviorTrainRequest(BaseModel):
+    dataset_id: str
+    model_name: str = "behavior-l2"
+    model_version: str = "v1"
+    minimum_support: int = Field(default=1, ge=1)
+    random_seed: int | None = None
+
+
+class BehaviorTrainResponse(BaseModel):
+    dataset_id: str
+    model_name: str
+    model_version: str
+    artifact_hash: str
+    manifest: dict

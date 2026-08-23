@@ -1,7 +1,7 @@
 # datagen v2 Phase C C4-C5 实施计划
 
 > Date: 2026-08-23\
-> Status: 待评审\
+> Status: 已实施并完成 dev 验证（2026-08-23）\
 > Issue: NIX-150\
 > Spec: `2026-08-22-datagen-v2-behavior-and-phase-c-design.md`\
 > Prior plan: `2026-08-23-datagen-v2-phase-c-c0-c3-plan.md`\
@@ -250,3 +250,11 @@ C4/C5 must keep these C6/C7 hooks:
 5. Java client, orchestration, persistence, and API docs.
 6. Targeted tests and dev integration.
 7. Review evaluation report, commit, push, and update Linear.
+
+## Implementation Result
+
+- C4 L1 coarse rule prediction and C5 deterministic supervised pretraining were implemented on 2026-08-23.
+- Java orchestration validates farm/tenant/livestock/device scope, batches AI requests, and upserts predictions by model version.
+- ai-platform full tests and Java full tests passed within the documented legacy failure baseline.
+- dev build `0.3.2-b505` completed L1/L2 prediction and C3 evaluation successfully.
+- Verification record: `docs/reports/2026-08-23-datagen-v2-c4-c5-dev-verification.md`.

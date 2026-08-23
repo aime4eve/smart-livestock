@@ -1,7 +1,7 @@
 # datagen v2 与 AI Phase C 设计
 
 > Date: 2026-08-22\
-> Status: 设计已确认；C0-C3 已实施并 dev 验证；C4-C5 实施计划待评审\
+> Status: 设计已确认；C0-C5 已实施并 dev 验证；C6-C10 继续推进\
 > Issue: NIX-147\
 > Roadmap: `2026-06-19-ai-health-roadmap.md` §4\
 > Baseline: `2026-06-26-datagen-context-design.md`

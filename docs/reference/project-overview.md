@@ -122,7 +122,7 @@ Spring Boot 3.3 + Java 17 + Gradle + PostgreSQL 16 + Redis 7 + RocketMQ 5.1 + Fl
 | MVP Phase 2b — Health | 温度/蠕动/发情/疫情分析引擎 + 时序数据 | ✅ |
 | MVP Phase 2c — 平台扩展 | API Key 生命周期 + 开发者门户 + 频率限制 + 统计聚合 + 趋势分析 | ✅ |
 | Phase 3 — IoT 真实接入 | blade 平台对接、设备健康管理、AI 异常检测，持续迭代中 | 🔧 |
-| AI/datagen 轨道 | Phase A/B 与 datagen v1 已闭环；Phase C C0-C3 仿真行为管道已 dev 验证，C4-C10 与真实数据效果验证继续推进 | 🔧 |
+| AI/datagen 轨道 | Phase A/B 与 datagen v1 已闭环；Phase C C0-C5 仿真行为管道已 dev 验证，C6-C10 与真实数据效果验证继续推进 | 🔧 |
 | 生产化 | 分区维护、索引加固、GPS outbox 已落地；test 验证与真实遥测扩量继续推进 | 🔧 |
 
 ## 前端角色与 Shell

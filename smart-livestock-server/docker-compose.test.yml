@@ -74,6 +74,7 @@ services:
       REDIS_PORT: 6379
       ROCKETMQ_NAME_SERVER: rocketmq-namesrv:9876
       AI_PLATFORM_URL: http://ai-platform:8000
+      AI_PLATFORM_BEHAVIOR_TIMEOUT_MS: "300000"
       AGENTIC_PLATFORM_DEVICE_BASE_URL: ${AGENTIC_PLATFORM_DEVICE_BASE_URL:-http://172.22.4.17:8100}
       AGENTIC_PLATFORM_LICENSE_BASE_URL: ${AGENTIC_PLATFORM_LICENSE_BASE_URL:-http://172.22.4.17:8100}
       AGENTIC_PLATFORM_OAUTH2_TOKEN_URI: ${AGENTIC_PLATFORM_OAUTH2_TOKEN_URI:-http://172.22.4.17:8108/oauth2/token}
@@ -91,14 +92,15 @@ services:
   ai-platform:
     build:
       context: ./ai-platform
-    ports:
-      - "18000:8000"
     environment:
       AI_DB_HOST: postgres
       AI_DB_PORT: 5432
       AI_DB_NAME: smart_livestock
       AI_DB_USER: ${AI_DB_USER:-postgres}
       AI_DB_PASSWORD: ${AI_DB_PASSWORD:-postgres}
+      AI_BEHAVIOR_MODEL_DIR: /data/behavior-models
+    volumes:
+      - behavior-models:/data
     depends_on:
       postgres:
         condition: service_healthy
@@ -148,3 +150,4 @@ services:
 volumes:
   pgdata:
   tileserver-data:
+  behavior-models:

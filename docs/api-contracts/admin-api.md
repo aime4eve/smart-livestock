@@ -1774,6 +1774,58 @@ Response 200:
 
 > 完整报告包含 dominant confusion/top-2/macro/weighted F1、四个 facet 的 per-label metrics 与 Hamming loss、one-window transition boundary F1、事件合并/漏检/检测 latency。合成数据报告必须携带 `PIPELINE_ONLY`，不得解释为真实世界效果。`allowMixedDebug=true` 时 payload 会置 `debug=true`，仅用于诊断。
 
+### POST /admin/datagen/behavior/datasets/{datasetId}/models/train
+
+触发 ai-platform 在单个合成 `DATAGEN` dataset 上执行 C5 L2 预训练。Java 侧先完成 dataset/farm scope 校验；训练标签只来自 `behavior_window_labels`，不读取 `behavior_predictions`。
+
+```
+Request:
+{
+  "requestedCapability": "L2_SUPERVISED",
+  "modelName": "behavior-l2",
+  "modelVersion": "v1",
+  "minimumSupport": 1,
+  "randomSeed": 149
+}
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-D09",
+  "data": {
+    "datasetId": "765e8c53-4130-38a7-b011-9af9dfe7671c",
+    "modelName": "behavior-l2", "modelVersion": "v1", "artifactHash": "64-hex",
+    "manifest": {
+      "featureVersion": "v1", "featureSchemaHash": "64-hex",
+      "datasetDefinitionDigest": "64-hex", "generatorVersion": "behavior-generator-v1",
+      "trainWindowCount": 210, "validationWindowCount": 72,
+      "reportType": "PIPELINE_ONLY", "syntheticPretraining": true
+    }
+  }
+}
+```
+
+> 仅支持 `L2_SUPERVISED`。模型 artifact 由 ai-platform 内部持久卷管理，manifest 必须绑定 feature schema、dataset definition、generator/model 版本与 artifact hash；同名同版本禁止覆盖。当前训练要求 dataset 同时包含 `TRAIN` 与 `VALIDATION` split，且每个主导类和 facet label 满足最低支持数。
+
+### POST /admin/datagen/behavior/datasets/{datasetId}/analyze
+
+对 dataset 内 `model_compatible=true` 窗口执行行为分析，并按 `(window_id, model_name, model_version)` 幂等写 `behavior_predictions`。
+
+```
+Request:
+{ "requestedCapability": "L1_RULE" }
+
+或 L2:
+{ "requestedCapability": "L2_SUPERVISED", "modelName": "behavior-l2", "modelVersion": "v1" }
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-D10",
+  "data": { "datasetId": "765e8c53-4130-38a7-b011-9af9dfe7671c", "capabilityLevel": "L1_RULE", "predictionCount": 12 }
+}
+```
+
+> L1 只输出 `LYING` / `WALKING` / `OTHER` 粗粒度 dominant 及 posture/locomotion，不输出 rumination 或 feeding。L2 必须提供兼容模型版本。数据集跨 tenant/farm、存在 schema 不匹配、预测结果与请求窗口不一致或 ai-platform 失败时不会部分落库。
+
 ### GET /admin/datagen/farms
 
 列出当前管理员可见的牧场仿真控制摘要。平台管理员返回全部未删除牧场，B2B 管理员仅返回本租户牧场。

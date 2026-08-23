@@ -13,6 +13,18 @@ from app.engine import Engine
 from app.l1.features import resample_to_slots
 from app.schemas import (AnalyzeResponse, Contributions, PredictRequest, PredictResponse,
                          SinglePredictRequest, AnomalyType, CapabilityUsed)
+from app.behavior.rules import predict_l1
+from app.behavior.dataset import fetch_training_dataset
+from app.behavior.model import BehaviorModelStore, predict_l2_batch
+from app.config import settings
+from app.schemas import (
+    BehaviorAnalyzeRequest,
+    BehaviorAnalyzeResponse,
+    BehaviorCapability,
+    BehaviorPredictionResult,
+    BehaviorTrainRequest,
+    BehaviorTrainResponse,
+)
 import app.db as dbmod
 
 app = FastAPI(title="ai-platform", version="phase-a")
@@ -23,6 +35,7 @@ _registry.register(HealthAnomalyL1())
 _registry.register(DeepLearningL2())
 _registry.register(LlmL3())
 _engine = Engine(registry=_registry)
+_behavior_models = BehaviorModelStore()
 
 
 def _fetch(conn, livestock_id: int, window_hours: int) -> dict[str, pd.Series]:
@@ -80,3 +93,103 @@ def analyze_single(livestock_id: int, req: SinglePredictRequest):
     with dbmod.connect() as conn:
         results = [_predict_one(engine_req, livestock_id, conn)]
     return AnalyzeResponse(request_id=str(uuid.uuid4()), results=results)
+
+
+@app.post("/ai/behavior/analyze", response_model=BehaviorAnalyzeResponse)
+def analyze_behavior(req: BehaviorAnalyzeRequest):
+    results: list[BehaviorPredictionResult] = []
+    errors: list[dict] = []
+
+    if req.requested_capability is not BehaviorCapability.L1_RULE:
+        if not req.model_name or not req.model_version:
+            return JSONResponse(status_code=422, content={
+                "detail": "L2 model name and version are required"
+            })
+        artifact = None
+        compatible_windows = []
+        for window in req.windows:
+            try:
+                if artifact is None:
+                    artifact, _ = _behavior_models.load(
+                        req.model_name,
+                        req.model_version,
+                        window.feature_version,
+                        window.feature_schema_hash,
+                    )
+                else:
+                    from app.behavior.contract import validate_contract
+                    validate_contract(
+                        window.feature_version,
+                        window.feature_schema_hash,
+                        window.features,
+                    )
+                compatible_windows.append(window)
+            except (ValueError, TypeError, FileNotFoundError) as exc:
+                errors.append({"window_id": window.window_id, "message": str(exc)})
+        try:
+            if artifact is None:
+                raise FileNotFoundError("behavior model artifact not found")
+            results.extend(BehaviorPredictionResult(**item) for item in predict_l2_batch(
+                artifact,
+                compatible_windows,
+                req.model_name,
+                req.model_version,
+            ))
+        except (ValueError, TypeError, FileNotFoundError) as exc:
+            if not errors:
+                errors.append({"window_id": "batch", "message": str(exc)})
+        return BehaviorAnalyzeResponse(
+            request_id=str(uuid.uuid4()), results=results, errors=errors
+        )
+
+    for window in req.windows:
+        try:
+            prediction = predict_l1(
+                window.window_id,
+                window.feature_version,
+                window.feature_schema_hash,
+                window.input_quality,
+                window.sampling_mode,
+                window.features,
+            )
+            results.append(BehaviorPredictionResult(
+                window_id=prediction.window_id,
+                dominant_behavior=prediction.dominant_behavior,
+                probability_vector=prediction.probability_vector,
+                predicted_labels=prediction.labels,
+                capability_level=prediction.capability,
+                model_name=prediction.model_name,
+                model_version=prediction.model_version,
+            ))
+        except (ValueError, TypeError, FileNotFoundError) as exc:
+            errors.append({"window_id": window.window_id, "message": str(exc)})
+    return BehaviorAnalyzeResponse(
+        request_id=str(uuid.uuid4()), results=results, errors=errors
+    )
+
+
+@app.post("/ai/behavior/train", response_model=BehaviorTrainResponse)
+def train_behavior(req: BehaviorTrainRequest):
+    seed = settings.behavior_model_seed if req.random_seed is None else req.random_seed
+    try:
+        with dbmod.connect() as conn:
+            dataset = fetch_training_dataset(conn, req.dataset_id)
+        artifact_hash, manifest = _behavior_models.train(
+            dataset["windows"],
+            req.model_name,
+            req.model_version,
+            dataset["dataset_id"],
+            dataset["definition_digest"],
+            dataset["generator_version"],
+            req.minimum_support,
+            seed,
+        )
+    except (ValueError, FileNotFoundError, FileExistsError) as exc:
+        return JSONResponse(status_code=409, content={"detail": str(exc)})
+    return BehaviorTrainResponse(
+        dataset_id=req.dataset_id,
+        model_name=req.model_name,
+        model_version=req.model_version,
+        artifact_hash=artifact_hash,
+        manifest=manifest,
+    )

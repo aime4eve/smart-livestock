@@ -28,6 +28,8 @@ class Settings:
 
     # 告警阈值（融合分数超此值由 Java 端写 alerts）
     alert_threshold: float = float(os.getenv("AI_ALERT_THRESHOLD", "0.7"))
+    behavior_model_dir: str = os.getenv("AI_BEHAVIOR_MODEL_DIR", "/data/behavior-models")
+    behavior_model_seed: int = int(os.getenv("AI_BEHAVIOR_MODEL_SEED", "149"))
 
     def __post_init__(self):
         for fld in ("detection_window_hours", "baseline_window_days", "slot_minutes",

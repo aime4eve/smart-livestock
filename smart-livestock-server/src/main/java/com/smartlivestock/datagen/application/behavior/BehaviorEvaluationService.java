@@ -107,10 +107,13 @@ public class BehaviorEvaluationService {
                         .stream())
                 .filter(window -> splitMatches(request.datasetSplit(), episodeSplits.get(window.getEpisodeId())))
                 .toList();
+        List<BehaviorWindowJpaEntity> predictionEligibleWindows = selectedWindows.stream()
+                .filter(BehaviorWindowJpaEntity::isModelCompatible)
+                .toList();
         List<BehaviorWindowLabelJpaEntity> labels = labelsFor(selectedWindows);
         Map<UUID, List<BehaviorWindowLabelJpaEntity>> labelsByWindow = labels.stream()
                 .collect(Collectors.groupingBy(BehaviorWindowLabelJpaEntity::getWindowId));
-        List<BehaviorPredictionJpaEntity> predictions = predictionsFor(selectedWindows);
+        List<BehaviorPredictionJpaEntity> predictions = predictionsFor(predictionEligibleWindows);
         Map<UUID, BehaviorPredictionJpaEntity> predictionByWindow = predictions.stream()
                 .collect(Collectors.groupingBy(
                         BehaviorPredictionJpaEntity::getWindowId,
@@ -121,10 +124,11 @@ public class BehaviorEvaluationService {
         String state = selectedWindows.isEmpty()
                 ? "NO_WINDOWS"
                 : predictions.isEmpty() ? "NO_PREDICTIONS"
-                : evaluatedWindowCount(selectedWindows, predictionByWindow) == selectedWindows.size()
+                : evaluatedWindowCount(predictionEligibleWindows, predictionByWindow)
+                        == predictionEligibleWindows.size()
                         ? "COMPLETE"
                         : "PARTIAL_PREDICTIONS";
-        List<BehaviorWindowJpaEntity> evaluatedWindows = selectedWindows.stream()
+        List<BehaviorWindowJpaEntity> evaluatedWindows = predictionEligibleWindows.stream()
                 .filter(window -> predictionByWindow.containsKey(window.getId()))
                 .toList();
         List<BehaviorFacetMetrics> facetMetrics = facetMetrics(
@@ -133,7 +137,7 @@ public class BehaviorEvaluationService {
                 state,
                 sources.contains("DATAGEN") ? "PIPELINE_ONLY" : "EVALUATION",
                 request.allowMixedDebug() && sources.size() > 1,
-                selectedWindows.size() - evaluatedWindows.size(),
+                predictionEligibleWindows.size() - evaluatedWindows.size(),
                 datasets.stream().map(BehaviorDatasetJpaEntity::getId).toList(),
                 sources,
                 datasets.stream().map(BehaviorDatasetJpaEntity::getGeneratorVersion).distinct().toList(),
@@ -344,10 +348,13 @@ public class BehaviorEvaluationService {
             }
             groundTruth += truthIndexes.size();
             predicted += predictedIndexes.size();
+            Set<Integer> matchedPredictions = new LinkedHashSet<>();
             for (int truthIndex : truthIndexes) {
                 for (int candidateIndex : predictedIndexes) {
-                    if (Math.abs(candidateIndex - truthIndex) <= 1) {
+                    if (!matchedPredictions.contains(candidateIndex)
+                            && Math.abs(candidateIndex - truthIndex) <= 1) {
                         matched++;
+                        matchedPredictions.add(candidateIndex);
                         break;
                     }
                 }
@@ -368,6 +375,7 @@ public class BehaviorEvaluationService {
         long matched = 0;
         long missed = 0;
         List<Long> latencies = new ArrayList<>();
+        Set<Integer> matchedPredictionEvents = new LinkedHashSet<>();
         for (List<BehaviorWindowJpaEntity> sequence : sequences(windows)) {
             List<EventInterval> truthEvents = eventIntervals(sequence, window -> {
                 List<BehaviorWindowLabelJpaEntity> labels = labelsByWindow.getOrDefault(
@@ -384,15 +392,22 @@ public class BehaviorEvaluationService {
             groundTruth += truthEvents.size();
             predicted += predictedEvents.size();
             for (EventInterval truth : truthEvents) {
-                EventInterval match = predictedEvents.stream()
-                        .filter(candidate -> overlapsOrAdjacent(candidate, truth))
-                        .findFirst()
-                        .orElse(null);
-                if (match == null) {
+                int matchIndex = -1;
+                for (int index = 0; index < predictedEvents.size(); index++) {
+                    if (!matchedPredictionEvents.contains(index)
+                            && overlapsOrAdjacent(predictedEvents.get(index), truth)) {
+                        matchIndex = index;
+                        break;
+                    }
+                }
+                if (matchIndex < 0) {
                     missed++;
                 } else {
                     matched++;
-                    latencies.add(Duration.between(truth.startAt(), match.startAt()).toSeconds() / 300);
+                    matchedPredictionEvents.add(matchIndex);
+                    latencies.add(Duration.between(
+                            truth.startAt(),
+                            predictedEvents.get(matchIndex).startAt()).toSeconds() / 300);
                 }
             }
         }

@@ -56,7 +56,7 @@ echo "==> [3/5] Cleaning old JARs on remote..."
 ssh "$REMOTE" "cd $REMOTE_DIR/build/libs && ls -t smart-livestock-server-*.jar 2>/dev/null | tail -n +2 | xargs -r rm -f"
 
 echo "==> [4/5] Building and starting $ENV stack..."
-ssh "$REMOTE" "cd $REMOTE_DIR && docker compose --env-file $ENV_FILE -f $COMPOSE_FILE -p $PROJECT build app nginx && docker compose --env-file $ENV_FILE -f $COMPOSE_FILE -p $PROJECT up -d"
+ssh "$REMOTE" "cd $REMOTE_DIR && docker compose --env-file $ENV_FILE -f $COMPOSE_FILE -p $PROJECT build app ai-platform nginx && docker compose --env-file $ENV_FILE -f $COMPOSE_FILE -p $PROJECT up -d"
 
 echo "==> [4.5/5] Syncing tileserver data to named volume..."
 # Snap Docker cannot bind-mount paths under /data/agentic, so we sync the

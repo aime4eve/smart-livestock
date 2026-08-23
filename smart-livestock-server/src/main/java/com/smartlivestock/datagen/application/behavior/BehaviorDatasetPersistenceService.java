@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -185,10 +186,15 @@ public class BehaviorDatasetPersistenceService {
                 .toList();
         episodeRepository.saveAll(episodes);
 
-        Map<Long, BehaviorDatasetSplit> livestockSplits = generated.episodes().stream()
-                .map(episode -> episode.subject().livestockId())
-                .distinct()
-                .collect(Collectors.toMap(livestockId -> livestockId, this::splitFor));
+        AtomicInteger subjectIndex = new AtomicInteger();
+        Map<Long, BehaviorDatasetSplit> livestockSplits = scenario.subjects().stream()
+                .collect(Collectors.toMap(
+                        BehaviorSubject::livestockId,
+                        subject -> splitFor(
+                                subjectIndex.getAndIncrement(),
+                                scenario.subjects().size()),
+                        (first, second) -> first,
+                        LinkedHashMap::new));
         livestockSplitRepository.saveAll(livestockSplits.entrySet().stream()
                 .map(entry -> livestockSplitEntity(
                         manifest.datasetId(), entry.getKey(), entry.getValue(), operator))
@@ -369,10 +375,13 @@ public class BehaviorDatasetPersistenceService {
         return entity;
     }
 
-    private BehaviorDatasetSplit splitFor(Long livestockId) {
-        int bucket = Math.floorMod(Long.hashCode(livestockId), 100);
-        if (bucket < 70) return BehaviorDatasetSplit.TRAIN;
-        if (bucket < 85) return BehaviorDatasetSplit.VALIDATION;
+    private BehaviorDatasetSplit splitFor(int subjectIndex, int subjectCount) {
+        // Dataset subjects are canonical-sorted; apply proportional blocked
+        // boundaries instead of an absolute livestock-id hash bucket.
+        int trainBoundary = subjectCount * 70 / 100;
+        int validationBoundary = trainBoundary + subjectCount * 15 / 100;
+        if (subjectIndex < trainBoundary) return BehaviorDatasetSplit.TRAIN;
+        if (subjectIndex < validationBoundary) return BehaviorDatasetSplit.VALIDATION;
         return BehaviorDatasetSplit.TEST;
     }
 
