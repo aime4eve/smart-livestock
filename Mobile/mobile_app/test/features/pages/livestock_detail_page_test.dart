@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/models/health_models.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
@@ -53,6 +54,23 @@ class _FakeFeverRepository implements FeverRepository {
         baselineTemp: 38.5,
         threshold: 39.5,
         status: 'NORMAL',
+        recent72h: [
+          TemperatureRecord(
+            livestockId: livestockId,
+            temperature: 38.00,
+            timestamp: DateTime.utc(2026, 8, 26, 7),
+          ),
+          TemperatureRecord(
+            livestockId: livestockId,
+            temperature: 38.01,
+            timestamp: DateTime.utc(2026, 8, 26, 8),
+          ),
+          TemperatureRecord(
+            livestockId: livestockId,
+            temperature: 38.02,
+            timestamp: DateTime.utc(2026, 8, 26, 9),
+          ),
+        ],
       );
 
   @override
@@ -142,5 +160,26 @@ void main() {
     expect(find.text('24小时蠕动曲线'), findsOneWidget);
     expect(find.text('实测蠕动'), findsOneWidget);
     expect(find.text('基线参考'), findsWidgets);
+
+    final axisLabels = tester
+        .widgetList<Text>(find.byType(Text))
+        .map((text) => text.data)
+        .whereType<String>()
+        .where((text) => text.endsWith('°'))
+        .toList();
+    expect(axisLabels, isNotEmpty);
+    expect(axisLabels.toSet().length, axisLabels.length,
+        reason: 'temperature axis labels must not duplicate after formatting');
+
+    final temperatureChart = tester
+        .widgetList<LineChart>(find.byType(LineChart))
+        .firstWhere((chart) => chart.data.lineBarsData.any(
+              (bar) => bar.spots.any((spot) => spot.y > 35 && spot.y < 42),
+            ));
+    final sideTitles = temperatureChart
+        .data.titlesData.leftTitles.sideTitles;
+    expect(sideTitles.interval, greaterThanOrEqualTo(0.1));
+    expect(sideTitles.minIncluded, isFalse);
+    expect(sideTitles.maxIncluded, isFalse);
   });
 }
