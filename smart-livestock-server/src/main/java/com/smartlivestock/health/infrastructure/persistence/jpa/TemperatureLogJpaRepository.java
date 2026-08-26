@@ -9,4 +9,5 @@ import java.util.List;
 public interface TemperatureLogJpaRepository extends JpaRepository<TemperatureLogJpaEntity, Long> {
     List<TemperatureLogJpaEntity> findByLivestockIdAndRecordedAtBetweenOrderByRecordedAtAsc(Long livestockId, Instant from, Instant to);
     List<TemperatureLogJpaEntity> findByLivestockIdOrderByRecordedAtDesc(Long livestockId);
+    boolean existsByDeviceIdAndRecordedAtAndSource(Long deviceId, Instant recordedAt, String source);
 }

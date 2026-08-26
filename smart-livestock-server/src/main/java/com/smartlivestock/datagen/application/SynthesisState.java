@@ -11,7 +11,9 @@ import java.util.concurrent.ThreadLocalRandom;
 @Slf4j
 class SynthesisState {
     enum DemoHealthEvent { NONE, FEVER, MOTILITY_DROP }
+    enum MovementMode { IN_FENCE, EXCURSION, RETURN }
 
+    long livestockId;
     double tempBaselineOffset;
     long motilityBaseline;
     int batteryLevel;
@@ -23,6 +25,8 @@ class SynthesisState {
     Instant eventEnd;
     Instant fenceExcursionStart;
     Instant fenceExcursionEnd;
+    MovementMode movementMode = MovementMode.IN_FENCE;
+    Long activeFenceId;
     DemoHealthEvent demoHealthEvent = DemoHealthEvent.NONE;
     Instant demoHealthEventStart;
     Instant demoHealthEventEnd;
@@ -33,6 +37,7 @@ class SynthesisState {
     static SynthesisState create(Long livestockId, ActiveInstallationInfo inst) {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         SynthesisState s = new SynthesisState();
+        s.livestockId = livestockId;
         s.tempBaselineOffset = rng.nextDouble(-0.3, 0.3);
         s.motilityBaseline = (long) (rng.nextDouble(2.5, 3.5) * 100000);
         s.batteryLevel = rng.nextInt(70, 101);

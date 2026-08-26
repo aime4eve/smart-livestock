@@ -143,6 +143,10 @@ public class HealthApplicationService {
     private void ingestTemperature(Long deviceId, Long livestockId,
                                     BigDecimal temperature, Instant recordedAt, String source) {
         if (temperature == null) return;
+        if (tempLogRepo.existsByDeviceIdAndRecordedAtAndSource(
+                deviceId, recordedAt, source)) {
+            return;
+        }
 
         TemperatureLog log = new TemperatureLog();
         log.setLivestockId(livestockId);

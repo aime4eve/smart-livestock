@@ -96,6 +96,26 @@ class HealthApplicationServiceTelemetryTest {
     }
 
     @Test
+    void processTelemetry_capsule_skipsAlreadyIngestedTemperaturePoint() {
+        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(new HealthSnapshot()));
+        when(tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(10L, 10)).thenReturn(List.of());
+        when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(10L), anyInt()))
+                .thenReturn(List.of());
+        when(tempLogRepo.existsByDeviceIdAndRecordedAtAndSource(
+                eq(51L), eq(Instant.parse("2026-06-04T10:00:00Z")), eq("DATAGEN")))
+                .thenReturn(true);
+
+        Map<String, Object> readings = Map.of(
+                "temperatures", List.of(bd("38.3"), bd("38.4")),
+                "gastricMotility", 500000L);
+
+        service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE, readings,
+                Instant.parse("2026-06-04T10:00:00Z"), "DATAGEN");
+
+        verify(tempLogRepo, times(1)).save(any());
+    }
+
+    @Test
     void processTelemetry_capsule_gastricMotilityDividedBy100000() {
         when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(new HealthSnapshot()));
         when(tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(10L, 10)).thenReturn(List.of());

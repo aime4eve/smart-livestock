@@ -19,6 +19,7 @@ import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -67,8 +68,10 @@ public class SynthesisService {
             }
 
             // Layer 1: baseline data (all categories)
+            Instant readingTime = inst.deviceType() == DeviceType.CAPSULE
+                    ? stableSampleTime(now, 300) : now;
             Map<String, Object> readings = generateBaseline(
-                    inst, state, now, primaryFence, inst.rules());
+                    inst, state, readingTime, primaryFence, inst.rules());
 
             // Layer 2: category-specific overlay
            switch (scenario.getType().getCategory()) {
@@ -79,7 +82,7 @@ public class SynthesisService {
            }
 
             try {
-                ingestionPort.ingest(inst.deviceId(), readings, now, TelemetrySource.DATAGEN);
+                ingestionPort.ingest(inst.deviceId(), readings, readingTime, TelemetrySource.DATAGEN);
             } catch (Exception e) {
                 log.warn("Failed to ingest for device [{}]: {}", inst.deviceId(), e.getMessage());
             }
@@ -307,7 +310,7 @@ public class SynthesisService {
         return fenceQueryPort.findActiveFencesByLivestockId(inst.livestockId()).stream()
                 .filter(fence -> fence.vertices() != null && fence.vertices().size() >= 3)
                 .findFirst()
-                .map(fence -> new PrimaryFence(fence.vertices()))
+                .map(fence -> new PrimaryFence(fence.fenceId(), fence.vertices()))
                 .orElse(null);
     }
 
@@ -322,6 +325,8 @@ public class SynthesisService {
         }
         state.currentLat = lat / fence.vertices().size();
         state.currentLng = lng / fence.vertices().size();
+        state.activeFenceId = fence.fenceId();
+        state.movementMode = SynthesisState.MovementMode.IN_FENCE;
     }
 
     private boolean containsPoint(PrimaryFence fence, double latitude, double longitude) {
@@ -339,7 +344,7 @@ public class SynthesisService {
         return inside;
     }
 
-    private record PrimaryFence(List<CoordinateInfo> vertices) {}
+    private record PrimaryFence(Long fenceId, List<CoordinateInfo> vertices) {}
 
     private void moveTracker(
             SynthesisState state, Instant now, PrimaryFence fence,
@@ -347,92 +352,255 @@ public class SynthesisService {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
 
         if (fence == null) {
-            moveByStep(state, rng);
+            double[] next = boundedStep(state, rng, 25);
+            state.currentLat = next[0];
+            state.currentLng = next[1];
             return;
         }
 
+        state.activeFenceId = fence.fenceId();
         expireFenceExcursion(state, now);
-        boolean excursionActive = state.isOnFenceExcursion(now);
-        if (!excursionActive
+
+        if (state.movementMode == SynthesisState.MovementMode.RETURN) {
+            returnToFence(state, fence);
+            return;
+        }
+
+        if (state.movementMode == SynthesisState.MovementMode.EXCURSION) {
+            moveDuringExcursion(state, now, fence, rng);
+            return;
+        }
+
+        boolean otherExcursion = states.values().stream().anyMatch(other ->
+                other.livestockId != state.livestockId
+                        && fence.fenceId().equals(other.activeFenceId)
+                        && other.movementMode == SynthesisState.MovementMode.EXCURSION);
+        if (!otherExcursion
                 && state.fenceExcursionStart == null
                 && rng.nextDouble() < rules.fenceExcursionProbability()) {
             state.fenceExcursionStart = now;
             state.fenceExcursionEnd = now.plus(Duration.ofMinutes(randomMinutes(
                     rules.fenceExcursionMinMinutes(),
                     rules.fenceExcursionMaxMinutes())));
-            excursionActive = true;
+            state.movementMode = SynthesisState.MovementMode.EXCURSION;
+            moveDuringExcursion(state, now, fence, rng);
+            return;
         }
 
-        // During an excursion prefer points outside; after it ends prefer a small
-        // continuous walk back inside instead of snapping to the fence center.
-        boolean preferOutside = excursionActive;
-        double[] fallback = null;
-        double centerLat = averageLatitude(fence.vertices());
-        double centerLng = averageLongitude(fence.vertices());
-        for (int attempt = 0; attempt < 12; attempt++) {
-            double[] candidate = candidateStep(state, rng);
-            if (containsPoint(fence, candidate[0], candidate[1]) != preferOutside) continue;
+        moveInsideFence(state, fence, rng);
+    }
+
+    private void expireFenceExcursion(SynthesisState state, Instant now) {
+        if (state.fenceExcursionEnd != null && !now.isBefore(state.fenceExcursionEnd)) {
+            boolean outside = state.fenceExcursionStart != null;
+            state.movementMode = outside
+                    ? SynthesisState.MovementMode.RETURN
+                    : SynthesisState.MovementMode.IN_FENCE;
+            if (!outside) {
+                state.fenceExcursionStart = null;
+                state.fenceExcursionEnd = null;
+            }
+        }
+    }
+
+    private void moveInsideFence(
+            SynthesisState state, PrimaryFence fence, ThreadLocalRandom rng) {
+        double[] candidate = boundedStep(state, rng, 25);
+        if (containsPoint(fence, candidate[0], candidate[1])) {
             state.currentLat = candidate[0];
             state.currentLng = candidate[1];
             return;
         }
 
-        if (!preferOutside) {
-            fallback = fallbackTowardCenter(state, fence, centerLat, centerLng, rng);
-            if (fallback != null) {
-                state.currentLat = fallback[0];
-                state.currentLng = fallback[1];
-            }
-        }
-    }
-
-    private void expireFenceExcursion(SynthesisState state, Instant now) {
-        if (state.fenceExcursionEnd != null && !now.isBefore(state.fenceExcursionEnd)) {
+        double[] target = interiorPointNearBoundary(fence, nearestBoundary(
+                state.currentLat, state.currentLng, fence));
+        double[] next = stepTowards(
+                state.currentLat, state.currentLng, target[0], target[1], 20);
+        // Always advance the walk. If the position is already outside because of
+        // legacy state, this also starts bringing it back instead of freezing it.
+        state.currentLat = next[0];
+        state.currentLng = next[1];
+        if (containsPoint(fence, state.currentLat, state.currentLng)) {
+            state.movementMode = SynthesisState.MovementMode.IN_FENCE;
             state.fenceExcursionStart = null;
             state.fenceExcursionEnd = null;
         }
     }
 
-    private void moveByStep(SynthesisState state, ThreadLocalRandom rng) {
-        double[] next = candidateStep(state, rng);
+    private void moveDuringExcursion(
+            SynthesisState state, Instant now, PrimaryFence fence,
+            ThreadLocalRandom rng) {
+        if (!containsPoint(fence, state.currentLat, state.currentLng)) {
+            double[] candidate = boundedStep(state, rng, 20);
+            double distance = boundaryDistanceMeters(candidate[0], candidate[1], fence);
+            if (!containsPoint(fence, candidate[0], candidate[1]) && distance <= 40) {
+                state.currentLat = candidate[0];
+                state.currentLng = candidate[1];
+                return;
+            }
+            clampNearBoundary(state, fence, 25);
+            return;
+        }
+
+        double[] target = boundedOutsideTarget(state, fence, rng);
+        double[] next = stepTowards(
+                state.currentLat, state.currentLng, target[0], target[1], 25);
         state.currentLat = next[0];
         state.currentLng = next[1];
+        if (!containsPoint(fence, state.currentLat, state.currentLng)) {
+            state.fenceExcursionStart = state.fenceExcursionStart == null
+                    ? now : state.fenceExcursionStart;
+            clampNearBoundary(state, fence, 35);
+        }
     }
 
-    private double[] candidateStep(SynthesisState state, ThreadLocalRandom rng) {
-        double meters = rng.nextDouble(10, 40);
+    private void returnToFence(SynthesisState state, PrimaryFence fence) {
+        if (containsPoint(fence, state.currentLat, state.currentLng)) {
+            state.movementMode = SynthesisState.MovementMode.IN_FENCE;
+            state.fenceExcursionStart = null;
+            state.fenceExcursionEnd = null;
+            return;
+        }
+        double[] target = interiorPointNearBoundary(fence, nearestBoundary(
+                state.currentLat, state.currentLng, fence));
+        double[] next = stepTowards(
+                state.currentLat, state.currentLng, target[0], target[1], 25);
+        state.currentLat = next[0];
+        state.currentLng = next[1];
+        if (containsPoint(fence, state.currentLat, state.currentLng)) {
+            state.movementMode = SynthesisState.MovementMode.IN_FENCE;
+            state.activeFenceId = fence.fenceId();
+            state.fenceExcursionStart = null;
+            state.fenceExcursionEnd = null;
+        }
+    }
+
+    private double[] boundedStep(
+            SynthesisState state, ThreadLocalRandom rng, double maxMeters) {
+        double meters = rng.nextDouble(8, maxMeters + 1);
         double bearing = rng.nextDouble(0, 2 * Math.PI);
-        double latitudeStep = meters / 111_000d;
-        double longitudeStep = meters
-                / (111_000d * Math.max(0.1, Math.cos(Math.toRadians(state.currentLat))));
+        return offset(state.currentLat, state.currentLng, bearing, meters);
+    }
+
+    private double[] boundedOutsideTarget(
+            SynthesisState state, PrimaryFence fence, ThreadLocalRandom rng) {
+        double[] boundary = nearestBoundary(state.currentLat, state.currentLng, fence);
+        for (int attempt = 0; attempt < 24; attempt++) {
+            double bearing = rng.nextDouble(0, 2 * Math.PI);
+            double distance = rng.nextDouble(12, 31);
+            double[] candidate = offset(boundary[0], boundary[1], bearing, distance);
+            if (!containsPoint(fence, candidate[0], candidate[1])) return candidate;
+        }
+        return offset(boundary[0], boundary[1], 0, 20);
+    }
+
+    private void clampNearBoundary(
+            SynthesisState state, PrimaryFence fence, double distance) {
+        double[] boundary = nearestBoundary(state.currentLat, state.currentLng, fence);
+        double bearing = bearing(
+                state.currentLat, state.currentLng, boundary[0], boundary[1]);
+        // The vector from boundary back to the current point points outward.
+        double outward = bearing + Math.PI;
+        double[] bounded = offset(boundary[0], boundary[1], outward, distance);
+        state.currentLat = bounded[0];
+        state.currentLng = bounded[1];
+    }
+
+    private double[] interiorPointNearBoundary(PrimaryFence fence, double[] boundary) {
+        double centerLat = averageLatitude(fence.vertices());
+        double centerLng = averageLongitude(fence.vertices());
+        double[] towardCenter = stepTowards(
+                boundary[0], boundary[1], centerLat, centerLng, 5);
+        if (containsPoint(fence, towardCenter[0], towardCenter[1])) return towardCenter;
+
+        ThreadLocalRandom rng = ThreadLocalRandom.current();
+        for (int attempt = 0; attempt < 24; attempt++) {
+            double[] candidate = offset(
+                    boundary[0], boundary[1], rng.nextDouble(0, 2 * Math.PI), 5);
+            if (containsPoint(fence, candidate[0], candidate[1])) return candidate;
+        }
+        return new double[]{centerLat, centerLng};
+    }
+
+    private double[] stepTowards(
+            double fromLat, double fromLng, double toLat, double toLng,
+            double maxMeters) {
+        double bearing = bearing(fromLat, fromLng, toLat, toLng);
+        double distance = distanceMeters(fromLat, fromLng, toLat, toLng);
+        return offset(fromLat, fromLng, bearing, Math.min(maxMeters, distance));
+    }
+
+    private double bearing(double fromLat, double fromLng, double toLat, double toLng) {
+        double latDelta = (toLat - fromLat) * 111_000d;
+        double lngDelta = (toLng - fromLng) * 111_000d
+                * Math.cos(Math.toRadians(fromLat));
+        if (Math.hypot(latDelta, lngDelta) < 0.01) return 0;
+        return Math.atan2(latDelta, lngDelta);
+    }
+
+    private double distanceMeters(double fromLat, double fromLng,
+                                  double toLat, double toLng) {
+        double latDelta = (toLat - fromLat) * 111_000d;
+        double lngDelta = (toLng - fromLng) * 111_000d
+                * Math.cos(Math.toRadians(fromLat));
+        return Math.hypot(latDelta, lngDelta);
+    }
+
+    private double[] offset(double lat, double lng, double bearing, double meters) {
         return new double[]{
-                state.currentLat + latitudeStep * Math.sin(bearing),
-                state.currentLng + longitudeStep * Math.cos(bearing)
+                lat + meters * Math.sin(bearing) / 111_000d,
+                lng + meters * Math.cos(bearing)
+                        / (111_000d * Math.max(0.1, Math.cos(Math.toRadians(lat))))
         };
     }
 
-    private double[] fallbackTowardCenter(
-            SynthesisState state, PrimaryFence fence,
-            double centerLat, double centerLng, ThreadLocalRandom rng) {
-        double latDeltaMeters = (centerLat - state.currentLat) * 111_000d;
-        double lngDeltaMeters = (centerLng - state.currentLng)
-                * 111_000d * Math.cos(Math.toRadians(state.currentLat));
-        double centerDistance = Math.hypot(latDeltaMeters, lngDeltaMeters);
+    private double boundaryDistanceMeters(
+            double latitude, double longitude, PrimaryFence fence) {
+        double[] nearest = nearestBoundary(latitude, longitude, fence);
+        return distanceMeters(latitude, longitude, nearest[0], nearest[1]);
+    }
 
-        double stepMeters = rng.nextDouble(10, 20);
-        double bearing;
-        if (centerDistance > 1) {
-            bearing = Math.atan2(latDeltaMeters, lngDeltaMeters);
-            stepMeters = Math.min(stepMeters, centerDistance * 0.8);
-        } else {
-            bearing = rng.nextDouble(0, 2 * Math.PI);
+    private double[] nearestBoundary(
+            double latitude, double longitude, PrimaryFence fence) {
+        List<CoordinateInfo> vertices = fence.vertices();
+        double bestLat = vertices.get(0).latitude();
+        double bestLng = vertices.get(0).longitude();
+        double bestDistance = Double.MAX_VALUE;
+        for (int i = 0, j = vertices.size() - 1; i < vertices.size(); j = i++) {
+            double aLat = vertices.get(i).latitude();
+            double aLng = vertices.get(i).longitude();
+            double bLat = vertices.get(j).latitude();
+            double bLng = vertices.get(j).longitude();
+
+            double aLatMeters = aLat * 111_000d;
+            double aLngMeters = aLng * 111_000d * Math.cos(Math.toRadians(latitude));
+            double bLatMeters = bLat * 111_000d;
+            double bLngMeters = bLng * 111_000d * Math.cos(Math.toRadians(latitude));
+            double pLatMeters = latitude * 111_000d;
+            double pLngMeters = longitude * 111_000d * Math.cos(Math.toRadians(latitude));
+
+            double dx = bLngMeters - aLngMeters;
+            double dy = bLatMeters - aLatMeters;
+            double lengthSquared = dx * dx + dy * dy;
+            double t = lengthSquared == 0 ? 0
+                    : ((pLngMeters - aLngMeters) * dx + (pLatMeters - aLatMeters) * dy)
+                      / lengthSquared;
+            t = Math.max(0, Math.min(1, t));
+            double candidateLatMeters = aLatMeters + t * dy;
+            double candidateLngMeters = aLngMeters + t * dx;
+            double candidateLat = candidateLatMeters / 111_000d;
+            double candidateLng = candidateLngMeters
+                    / (111_000d * Math.cos(Math.toRadians(latitude)));
+            double distance = distanceMeters(latitude, longitude, candidateLat, candidateLng);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                bestLat = candidateLat;
+                bestLng = candidateLng;
+            }
         }
-
-        double latitudeStep = stepMeters * Math.sin(bearing) / 111_000d;
-        double longitudeStep = stepMeters * Math.cos(bearing)
-                / (111_000d * Math.max(0.1, Math.cos(Math.toRadians(state.currentLat))));
-        double[] candidate = {state.currentLat + latitudeStep, state.currentLng + longitudeStep};
-        return containsPoint(fence, candidate[0], candidate[1]) ? candidate : null;
+        return new double[]{
+                bestLat, bestLng
+        };
     }
 
     private double averageLatitude(List<CoordinateInfo> vertices) {
@@ -452,17 +620,17 @@ public class SynthesisService {
 
         updateDemoHealthEvent(state, now, rules);
         List<BigDecimal> temperatures = new ArrayList<>();
-        double baseTemp = 38.5 + state.tempBaselineOffset;
         for (int i = 0; i < 7; i++) {
             Instant pointTime = now.minus(Duration.ofMinutes(5L * (6 - i)));
-            double temp = baseTemp + demoTemperatureDelta(state, pointTime)
-                    + rng.nextDouble(-0.12, 0.12);
+            double temp = baselineTemperature(state, pointTime)
+                    + demoTemperatureDelta(state, pointTime);
             temperatures.add(BigDecimal.valueOf(round(temp, 2)));
         }
         readings.put("temperatures", temperatures);
 
         long motility = Math.round(state.motilityBaseline
-                * demoMotilityRatio(state, now)) + rng.nextLong(-25000, 25001);
+                * baselineMotilityRatio(state, now)
+                * demoMotilityRatio(state, now));
         readings.put("gastricMotility", Math.max(0, motility));
 
         readings.put("accelX", rng.nextInt(0, 256));
@@ -513,6 +681,22 @@ public class SynthesisService {
         return eventIntensity(state.demoHealthEventProgress(pointTime)) * 1.8;
     }
 
+    private double baselineTemperature(SynthesisState state, Instant pointTime) {
+        long seconds = Duration.between(Instant.EPOCH, pointTime).getSeconds();
+        double phase = (state.livestockId % 17) / 17.0;
+        double daily = Math.sin(2 * Math.PI * (seconds / 86400.0 + phase));
+        double slow = Math.sin(2 * Math.PI * (seconds / 21600.0 + phase * 1.7));
+        return 38.5 + state.tempBaselineOffset + 0.055 * daily + 0.025 * slow;
+    }
+
+    private double baselineMotilityRatio(SynthesisState state, Instant pointTime) {
+        long seconds = Duration.between(Instant.EPOCH, pointTime).getSeconds();
+        double phase = (state.livestockId % 13) / 13.0;
+        double slow = Math.sin(2 * Math.PI * (seconds / 21600.0 + phase));
+        double feeding = Math.sin(2 * Math.PI * (seconds / 14400.0 + phase * 0.7));
+        return 1.0 + 0.035 * slow + 0.015 * feeding;
+    }
+
     private double demoMotilityRatio(SynthesisState state, Instant now) {
         if (state.demoHealthEvent != SynthesisState.DemoHealthEvent.MOTILITY_DROP) return 1.0;
         if (now.isBefore(state.demoHealthEventStart)
@@ -525,6 +709,11 @@ public class SynthesisService {
         if (p < 0.4) return p / 0.4;
         if (p < 0.7) return 1.0;
         return 1.0 - (p - 0.7) / 0.3;
+    }
+
+    private Instant stableSampleTime(Instant value, int intervalSeconds) {
+        long epochSecond = value.getEpochSecond() / intervalSeconds * intervalSeconds;
+        return Instant.ofEpochSecond(epochSecond).truncatedTo(ChronoUnit.SECONDS);
     }
 
     private static double round(double value, int places) {

@@ -698,6 +698,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get digestiveFreqUnit => 'times/min';
 
   @override
+  String get digestiveLoadFailed => 'Failed to load motility data';
+
+  @override
+  String get digestiveNoRecords => 'No motility records';
+
+  @override
+  String get digestiveLegendActual => 'Actual motility';
+
+  @override
+  String get digestiveLegendBaseline => 'Baseline';
+
+  @override
   String get digestiveCapabilityNote =>
       'The system can notify you of digestive abnormalities; cause must be investigated offline.';
 

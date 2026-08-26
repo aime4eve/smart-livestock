@@ -1368,6 +1368,30 @@ abstract class AppLocalizations {
   /// **'次/分'**
   String get digestiveFreqUnit;
 
+  /// No description provided for @digestiveLoadFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'蠕动数据加载失败'**
+  String get digestiveLoadFailed;
+
+  /// No description provided for @digestiveNoRecords.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无蠕动记录'**
+  String get digestiveNoRecords;
+
+  /// No description provided for @digestiveLegendActual.
+  ///
+  /// In zh, this message translates to:
+  /// **'实测蠕动'**
+  String get digestiveLegendActual;
+
+  /// No description provided for @digestiveLegendBaseline.
+  ///
+  /// In zh, this message translates to:
+  /// **'基线参考'**
+  String get digestiveLegendBaseline;
+
   /// No description provided for @digestiveCapabilityNote.
   ///
   /// In zh, this message translates to:

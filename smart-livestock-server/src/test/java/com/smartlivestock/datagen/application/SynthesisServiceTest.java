@@ -21,7 +21,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Field;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -134,6 +136,109 @@ class SynthesisServiceTest {
     }
 
     @Test
+    void generate_boundedExcursion_returnsContinuously() throws Exception {
+        FenceGeometryInfo fence = new FenceGeometryInfo(1L, 1L, "HKT", List.of(
+                new CoordinateInfo(28.0, 112.0),
+                new CoordinateInfo(28.001, 112.0),
+                new CoordinateInfo(28.001, 112.001),
+                new CoordinateInfo(28.0, 112.001)));
+        DatagenFarmRules rules = new DatagenFarmRules(
+                60, 900, 1.0, 5, 5,
+                0, 120, 130, 120, 130);
+        ActiveInstallationInfo installation = new ActiveInstallationInfo(
+                5L, 1L, DeviceType.TRACKER, 28.0005, 112.0005, rules);
+        SynthesisScenario testScenario = scenario(Instant.now());
+        when(deviceQueryPort.findActiveInstallationsByScenario(testScenario.getId()))
+                .thenReturn(List.of(installation));
+        when(fenceQueryPort.findActiveFencesByLivestockId(1L)).thenReturn(List.of(fence));
+
+        service.generate(testScenario);
+        int excursionCallCount = 1;
+        while (!isOutsideRectangle(latestPosition(service), fence) && excursionCallCount < 10) {
+            service.clearDeviceSchedules(List.of(5L));
+            service.generate(testScenario);
+            excursionCallCount++;
+        }
+
+        Field statesField = SynthesisService.class.getDeclaredField("states");
+        statesField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<Long, SynthesisState> states = (Map<Long, SynthesisState>) statesField.get(service);
+        states.get(1L).fenceExcursionEnd = Instant.now().minusSeconds(1);
+
+        for (int i = 0; i < 8; i++) {
+            service.clearDeviceSchedules(List.of(5L));
+            service.generate(testScenario);
+        }
+
+        ArgumentCaptor<Map<String, Object>> readingsCaptor =
+                ArgumentCaptor.forClass(Map.class);
+        verify(ingestionPort, times(excursionCallCount + 8)).ingest(
+                eq(5L), readingsCaptor.capture(), any(Instant.class),
+                eq(TelemetrySource.DATAGEN));
+        List<double[]> positions = readingsCaptor.getAllValues().stream()
+                .map(value -> new double[]{
+                        ((Number) value.get("latitude")).doubleValue(),
+                        ((Number) value.get("longitude")).doubleValue()})
+                .toList();
+
+        int excursionIndex = excursionCallCount - 1;
+        assertTrue(isOutsideRectangle(positions.get(excursionIndex), fence),
+                "probability 1 should start an excursion");
+        double previousDistance = rectangleBoundaryDistanceMeters(
+                positions.get(excursionIndex), fence);
+        assertTrue(previousDistance <= 40, "excursion should stay near the fence");
+
+        boolean returned = false;
+        for (int i = excursionIndex + 1; i < positions.size(); i++) {
+            if (!isOutsideRectangle(positions.get(i), fence)) {
+                returned = true;
+                break;
+            }
+            double distance = rectangleBoundaryDistanceMeters(positions.get(i), fence);
+            assertTrue(distance <= 40, "excursion distance must stay bounded");
+            assertTrue(distance <= previousDistance,
+                    "return movement should move closer to the fence");
+            previousDistance = distance;
+        }
+        assertTrue(returned, "livestock should return to the fence");
+    }
+
+    @Test
+    void generate_capsuleCurves_areDeterministicAndSmooth() throws Exception {
+        ActiveInstallationInfo installation = new ActiveInstallationInfo(
+                51L, 1L, DeviceType.CAPSULE, null, null);
+        SynthesisState state = SynthesisState.create(1L, installation);
+        DatagenFarmRules rules = new DatagenFarmRules(
+                300, 900, 0.02, 10, 30,
+                0, 240, 480, 480, 720);
+        var method = SynthesisService.class.getDeclaredMethod(
+                "generateCapsuleBaseline", SynthesisState.class, Instant.class,
+                DatagenFarmRules.class);
+        method.setAccessible(true);
+
+        Instant now = Instant.parse("2026-08-26T08:00:00Z");
+        Map<String, Object> first = (Map<String, Object>) method.invoke(service, state, now, rules);
+        Map<String, Object> second = (Map<String, Object>) method.invoke(service, state, now, rules);
+        assertEquals(first.get("temperatures"), second.get("temperatures"));
+        assertEquals(first.get("gastricMotility"), second.get("gastricMotility"));
+
+        Map<String, Object> next = (Map<String, Object>) method.invoke(
+                service, state, now.plus(Duration.ofMinutes(5)), rules);
+        List<? extends Number> temperatures = (List<? extends Number>) first.get("temperatures");
+        List<? extends Number> nextTemperatures = (List<? extends Number>) next.get("temperatures");
+        for (int i = 1; i < temperatures.size(); i++) {
+            double delta = Math.abs(temperatures.get(i).doubleValue()
+                    - temperatures.get(i - 1).doubleValue());
+            assertTrue(delta <= 0.08, "normal temperature should move smoothly");
+        }
+        long motilityDelta = Math.abs(
+                ((Number) first.get("gastricMotility")).longValue()
+                        - ((Number) next.get("gastricMotility")).longValue());
+        assertTrue(motilityDelta <= 20_000, "normal motility should move smoothly");
+    }
+
+    @Test
     void generate_capsuleCreatesSharedStateBeforeTracker_trackerStillInitializesInFence() {
         Instant now = Instant.now();
         ActiveInstallationInfo capsule = new ActiveInstallationInfo(
@@ -171,6 +276,38 @@ class SynthesisServiceTest {
         scenario.setWindowEnd(now.plusSeconds(3600));
         scenario.setIntervalSeconds(30);
         return scenario;
+    }
+
+    private static boolean isOutsideRectangle(double[] position, FenceGeometryInfo fence) {
+        double minLat = fence.vertices().stream().mapToDouble(CoordinateInfo::latitude).min().orElseThrow();
+        double maxLat = fence.vertices().stream().mapToDouble(CoordinateInfo::latitude).max().orElseThrow();
+        double minLng = fence.vertices().stream().mapToDouble(CoordinateInfo::longitude).min().orElseThrow();
+        double maxLng = fence.vertices().stream().mapToDouble(CoordinateInfo::longitude).max().orElseThrow();
+        return position[0] < minLat || position[0] > maxLat
+                || position[1] < minLng || position[1] > maxLng;
+    }
+
+    private static double[] latestPosition(SynthesisService service) throws Exception {
+        Field statesField = SynthesisService.class.getDeclaredField("states");
+        statesField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<Long, SynthesisState> states = (Map<Long, SynthesisState>) statesField.get(service);
+        SynthesisState state = states.get(1L);
+        return new double[]{state.currentLat, state.currentLng};
+    }
+
+    private static double rectangleBoundaryDistanceMeters(
+            double[] position, FenceGeometryInfo fence) {
+        double minLat = fence.vertices().stream().mapToDouble(CoordinateInfo::latitude).min().orElseThrow();
+        double maxLat = fence.vertices().stream().mapToDouble(CoordinateInfo::latitude).max().orElseThrow();
+        double minLng = fence.vertices().stream().mapToDouble(CoordinateInfo::longitude).min().orElseThrow();
+        double maxLng = fence.vertices().stream().mapToDouble(CoordinateInfo::longitude).max().orElseThrow();
+        double latDistance = position[0] < minLat ? minLat - position[0]
+                : position[0] > maxLat ? position[0] - maxLat : 0;
+        double lngDistance = position[1] < minLng ? minLng - position[1]
+                : position[1] > maxLng ? position[1] - maxLng : 0;
+        return Math.hypot(latDistance * 111_000d,
+                lngDistance * 111_000d * Math.cos(Math.toRadians(position[0])));
     }
 
     @Test

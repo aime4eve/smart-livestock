@@ -36,6 +36,12 @@ public class TemperatureLogRepositoryImpl implements TemperatureLogRepository {
     }
 
     @Override
+    public boolean existsByDeviceIdAndRecordedAtAndSource(
+            Long deviceId, Instant recordedAt, String source) {
+        return jpaRepo.existsByDeviceIdAndRecordedAtAndSource(deviceId, recordedAt, source);
+    }
+
+    @Override
     public TemperatureLog save(TemperatureLog log) {
         return HealthMapper.toDomain(jpaRepo.save(HealthMapper.toJpa(log)));
     }

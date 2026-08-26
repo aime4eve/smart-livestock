@@ -20,6 +20,7 @@ import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/devices_controller.dart';
+import 'package:hkt_livestock_agentic/features/digestive/presentation/digestive_controller.dart';
 
 class LivestockDetailPage extends ConsumerWidget {
   const LivestockDetailPage({super.key, required this.livestockId});
@@ -544,6 +545,9 @@ class _HealthDataCard extends ConsumerWidget {
           // ── Inline: temperature trend chart ──
           _FeverTrendSection(livestockId: detail.livestockId),
           const SizedBox(height: AppSpacing.md),
+          // ── Inline: rumen motility trend chart ──
+          _DigestiveTrendSection(livestockId: detail.livestockId),
+          const SizedBox(height: AppSpacing.md),
           // ── Inline: estrus score trend chart (Premium+) ──
           _EstrusTrendSection(livestockId: detail.livestockId, tier: tier),
         ],
@@ -602,6 +606,69 @@ class _FeverTrendSection extends ConsumerWidget {
               _chartLegend(AppColors.danger, l10n.feverLegendActual),
               const SizedBox(width: 12),
               _chartLegend(AppColors.textSecondary.withValues(alpha: 0.4), l10n.feverLegendBaseline),
+            ]),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _DigestiveTrendSection extends ConsumerWidget {
+  const _DigestiveTrendSection({required this.livestockId});
+  final String livestockId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final asyncDigestive = ref.watch(digestiveDetailControllerProvider(livestockId));
+
+    return asyncDigestive.when(
+      loading: () => const SizedBox(height: 180, child: Center(child: CircularProgressIndicator())),
+      error: (e, _) => SizedBox(height: 180, child: Center(child: Text(l10n.digestiveLoadFailed))),
+      data: (digestive) {
+        final readings = digestive.recent24h;
+        if (readings.isEmpty) {
+          return SizedBox(
+            height: 120,
+            child: Center(child: Text(l10n.digestiveNoRecords, style: Theme.of(context).textTheme.bodySmall)),
+          );
+        }
+        final spots = readings.asMap().entries
+            .map((entry) => FlSpot(entry.key.toDouble(), entry.value.frequency))
+            .toList();
+        final minFrequency = readings.map((reading) => reading.frequency)
+                .reduce((a, b) => a < b ? a : b) - 0.5;
+        final maxFrequency = readings.map((reading) => reading.frequency)
+                .reduce((a, b) => a > b ? a : b) + 0.5;
+        final baseline = digestive.motilityBaseline;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.digestiveDetailChartTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Container(height: 160, padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(8)), child: LineChart(LineChartData(
+              minY: minFrequency,
+              maxY: maxFrequency,
+              gridData: const FlGridData(show: true, drawVerticalLine: false),
+              titlesData: FlTitlesData(
+                leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 40, getTitlesWidget: (value, _) => Text(value.toStringAsFixed(1), style: const TextStyle(fontSize: 10)))),
+                bottomTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              ),
+              lineBarsData: [
+                LineChartBarData(spots: spots, isCurved: true, color: AppColors.primary, barWidth: 2, dotData: const FlDotData(show: false),
+                  belowBarData: BarAreaData(show: true, gradient: LinearGradient(colors: [AppColors.primary.withValues(alpha: 0.25), AppColors.primary.withValues(alpha: 0.0)], begin: Alignment.topCenter, end: Alignment.bottomCenter))),
+                LineChartBarData(spots: [FlSpot(0, baseline), FlSpot((readings.length - 1).toDouble(), baseline)], color: AppColors.textSecondary.withValues(alpha: 0.4), dashArray: const [4, 4], barWidth: 1, dotData: const FlDotData(show: false)),
+              ],
+            ))),
+            const SizedBox(height: 6),
+            Row(children: [
+              _chartLegend(AppColors.primary, l10n.digestiveLegendActual),
+              const SizedBox(width: 12),
+              _chartLegend(AppColors.textSecondary.withValues(alpha: 0.4), l10n.digestiveLegendBaseline),
             ]),
           ],
         );

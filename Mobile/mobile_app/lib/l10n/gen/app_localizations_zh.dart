@@ -686,6 +686,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get digestiveFreqUnit => '次/分';
 
   @override
+  String get digestiveLoadFailed => '蠕动数据加载失败';
+
+  @override
+  String get digestiveNoRecords => '暂无蠕动记录';
+
+  @override
+  String get digestiveLegendActual => '实测蠕动';
+
+  @override
+  String get digestiveLegendBaseline => '基线参考';
+
+  @override
   String get digestiveCapabilityNote => '系统能通知你消化异常，需线下排查确认原因';
 
   @override
