@@ -4625,4 +4625,126 @@ class AppLocalizationsZh extends AppLocalizations {
   String datagenConsoleClearDone(int count) {
     return '清理完成，已删除 $count 条记录。';
   }
+
+  @override
+  String get tbWizardTitle => '开通设备';
+
+  @override
+  String get tbWizardStepPreflight => '预检';
+
+  @override
+  String get tbWizardStepConfirm => '确认';
+
+  @override
+  String get tbWizardStepResult => '结果';
+
+  @override
+  String get tbWizardEuiLabel => 'LoRa EUI';
+
+  @override
+  String get tbWizardPreflightAction => '预检设备';
+
+  @override
+  String get tbWizardAmbiguousWarning => '存在多个同名大小写变体的 TB 设备，请先人工确认 deviceId。';
+
+  @override
+  String get tbWizardLivestockLabel => '安装到牲畜';
+
+  @override
+  String get tbWizardNoLivestock => '暂不安装';
+
+  @override
+  String get tbWizardNoLivestockNote => '暂不安装仍可采集遥测，但围栏预警和牲畜健康计算不会生效。';
+
+  @override
+  String get tbWizardRecheck => '重新预检';
+
+  @override
+  String get tbWizardProvisionAction => '确认开通';
+
+  @override
+  String get tbWizardNsProject => 'NS 项目';
+
+  @override
+  String get tbWizardTbDevice => 'TB 设备';
+
+  @override
+  String get tbWizardProfile => 'Device Profile';
+
+  @override
+  String get tbWizardLatestTelemetry => '最近遥测';
+
+  @override
+  String get tbWizardMissing => '缺失';
+
+  @override
+  String get tbWizardNoTelemetry => '暂无遥测';
+
+  @override
+  String get tbWizardStatus => '开通状态';
+
+  @override
+  String get tbWizardStatusPendingNs => '等待 NS 配置';
+
+  @override
+  String get tbWizardStatusPendingTbDevice => '等待 TB 设备';
+
+  @override
+  String get tbWizardStatusPendingTelemetry => '等待真实遥测';
+
+  @override
+  String get tbWizardStatusReady => '可开通采集';
+
+  @override
+  String get tbWizardStatusPendingInstallation => '可采集，待安装';
+
+  @override
+  String get tbWizardStatusActive => '已启用';
+
+  @override
+  String tbWizardStatusUnknown(String status) {
+    return '未知状态：$status';
+  }
+
+  @override
+  String get tbWizardResultDevice => '设备创建';
+
+  @override
+  String get tbWizardResultBinding => 'TB 绑定';
+
+  @override
+  String get tbWizardResultActivation => '设备激活';
+
+  @override
+  String get tbWizardResultInstallation => '安装到牲畜';
+
+  @override
+  String get tbWizardResultFence => '围栏计算';
+
+  @override
+  String get tbWizardResultHealth => '健康计算';
+
+  @override
+  String get tbWizardInstalled => '已安装';
+
+  @override
+  String get tbWizardSkipped => '未安装';
+
+  @override
+  String get tbWizardEnabled => '已启用';
+
+  @override
+  String get tbWizardDisabled => '未启用';
+
+  @override
+  String get tbWizardTriggerDone => '已立即触发一次 TB 拉取。';
+
+  @override
+  String get tbWizardTriggerDisabled => 'TB 通道未启用，本次未触发拉取。';
+
+  @override
+  String get tbWizardTriggerBindingMissing => '未找到 RESOLVED 绑定，本次未触发拉取。';
+
+  @override
+  String get tbWizardTriggerFailed => 'TB 拉取触发失败，将等待下轮调度。';
 }

@@ -36,6 +36,8 @@ public class TbTelemetryChannel {
 
     private static final int MAX_PAGES_PER_CYCLE = 50;
 
+    public enum TriggerResult { TRIGGERED, BINDING_NOT_FOUND, TRIGGER_FAILED }
+
     private final TbProperties properties;
     private final TbClient tbClient;
     private final TbDeviceBindingRepository bindingRepository;
@@ -60,6 +62,22 @@ public class TbTelemetryChannel {
                 log.warn("[TB] device {} (eui={}) cycle failed: {}",
                         binding.getDeviceId(), binding.getDeviceEui(), e.getMessage());
             }
+        }
+    }
+
+    public TriggerResult pollDevice(Long deviceId) {
+        List<TbDeviceBinding> bindings = bindingRepository.findByTenantIdAndStatus(
+                properties.getTenantId(), TbDeviceBinding.Status.RESOLVED);
+        TbDeviceBinding binding = bindings.stream()
+                .filter(item -> deviceId.equals(item.getDeviceId()))
+                .findFirst().orElse(null);
+        if (binding == null) return TriggerResult.BINDING_NOT_FOUND;
+        try {
+            processBinding(binding);
+            return TriggerResult.TRIGGERED;
+        } catch (Exception e) {
+            log.warn("[TB] immediate pull for device {} failed: {}", deviceId, e.getMessage());
+            return TriggerResult.TRIGGER_FAILED;
         }
     }
 

@@ -195,10 +195,48 @@ class DevicesApiRepository implements DevicesRepository {
     );
   }
 
- @override
- Future<Map<String, dynamic>> loadDeviceHealth(String deviceId) async {
-  return await ApiClient.instance.farmGet('/devices/$deviceId/health');
- }
+  @override
+  Future<Map<String, dynamic>> loadDeviceHealth(String deviceId) async {
+    return await ApiClient.instance.farmGet('/devices/$deviceId/health');
+  }
+
+  @override
+  Future<TbDevicePreflight> preflightTbDevice(String eui) async {
+    final data = await ApiClient.instance.farmGet(
+      '/devices/tb/preflight?eui=${Uri.encodeQueryComponent(eui)}',
+    );
+    return _parseTbPreflight(data);
+  }
+
+  @override
+  Future<TbDeviceProvisionResult> provisionTbDevice({
+    required String eui,
+    String? deviceCode,
+    String? deviceType,
+    String? livestockId,
+  }) async {
+    final data = await ApiClient.instance.farmPost(
+      '/devices/tb/provision',
+      body: {
+        'eui': eui,
+        if (deviceCode != null && deviceCode.isNotEmpty) 'deviceCode': deviceCode,
+        if (deviceType != null) 'deviceType': deviceType,
+        if (livestockId != null) 'livestockId': livestockId,
+      },
+    );
+    final result = _requiredMap(data['result']);
+    return TbDeviceProvisionResult(
+      eui: result['eui']?.toString() ?? eui,
+      localDeviceId: result['localDeviceId']?.toString() ?? '',
+      deviceCode: result['deviceCode']?.toString() ?? '',
+      deviceStatus: result['deviceStatus']?.toString() ?? '',
+      bindingStatus: result['bindingStatus']?.toString() ?? '',
+      livestockId: result['livestockId']?.toString(),
+      installationCreated: result['installationCreated'] == true,
+      deviceType: result['deviceType']?.toString(),
+      firstTelemetryTrigger: data['firstTelemetryTrigger']?.toString() ?? '',
+    );
+  }
 
   static int? _parseNullableInt(dynamic v) {
     if (v == null) return null;
@@ -216,4 +254,51 @@ class DevicesApiRepository implements DevicesRepository {
       _parseInstallation(m);
   static GpsPoint parseGpsPointForTest(Map<String, dynamic> m) =>
       _parseGpsPoint(m);
+
+  static TbDevicePreflight parseTbPreflightForTest(Map<String, dynamic> m) =>
+      _parseTbPreflight(m);
+
+  static TbDevicePreflight _parseTbPreflight(Map<String, dynamic> data) {
+    final ns = _optionalMap(data['nsDevice']);
+    final candidatesRaw = data['tbCandidates'];
+    final candidates = candidatesRaw is List
+        ? candidatesRaw
+            .whereType<Map<String, dynamic>>()
+            .map(_parseTbCandidate)
+            .toList()
+        : <TbDeviceCandidate>[];
+    return TbDevicePreflight(
+      eui: data['eui']?.toString() ?? '',
+      status: data['status']?.toString() ?? '',
+      nsProjectId: _parseNullableInt(ns?['projectId']),
+      nsAppId: _parseNullableInt(ns?['appId']),
+      candidates: candidates,
+      latestTelemetryAt: data['latestTelemetryAt']?.toString(),
+      localDeviceId: data['localDeviceId']?.toString(),
+      localDeviceCode: data['localDeviceCode']?.toString(),
+      bindingStatus: data['bindingStatus']?.toString(),
+      activeInstallation: data['activeInstallation'] == true,
+    );
+  }
+
+  static TbDeviceCandidate _parseTbCandidate(Map<String, dynamic> data) {
+    return TbDeviceCandidate(
+      tbDeviceId: data['tbDeviceId']?.toString() ?? '',
+      tbDeviceName: data['tbDeviceName']?.toString() ?? '',
+      profileId: data['profileId']?.toString() ?? '',
+      profileName: data['profileName']?.toString() ?? '',
+      deviceType: data['deviceType']?.toString(),
+      profileValid: data['profileValid'] == true,
+    );
+  }
+
+  static Map<String, dynamic>? _optionalMap(Object? value) {
+    if (value is Map<String, dynamic>) return value;
+    return null;
+  }
+
+  static Map<String, dynamic> _requiredMap(Object? value) {
+    if (value is Map<String, dynamic>) return value;
+    throw FormatException('Expected object: $value');
+  }
 }

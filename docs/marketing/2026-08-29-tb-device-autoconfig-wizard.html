@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TB Device Autoconfig Wizard</title>
+  <style>
+    :root {
+      --primary: #2F6B3B;
+      --primary-dark: #244F2D;
+      --primary-soft: #E3F0E4;
+      --surface: #F8F6F0;
+      --surface-alt: #FFFFFF;
+      --surface-muted: #F2F0EA;
+      --border: #D7D2C6;
+      --text-primary: #263126;
+      --text-secondary: #617061;
+      --success: #4C9A5F;
+      --success-soft: #E4F3E8;
+      --warning: #D28A2D;
+      --warning-soft: #FFF2DE;
+      --danger: #C2564B;
+      --danger-soft: #FBE8E6;
+      --info: #4A7F9D;
+      --info-soft: #E7F1F6;
+      --xs: 4px;
+      --sm: 8px;
+      --md: 12px;
+      --lg: 16px;
+      --xl: 24px;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(38, 49, 38, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--surface); color: var(--text-primary); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; }
+    .phone { width: 390px; min-height: 780px; margin: 0 auto; background: var(--surface); }
+    .sheet { padding: var(--lg); padding-bottom: var(--xl); }
+    .handle { width: 40px; height: 4px; border-radius: 2px; background: var(--border); margin: 0 auto var(--md); }
+    h1 { margin: 0 0 var(--lg); font-size: 24px; line-height: 1.25; }
+    .steps { display: flex; align-items: center; gap: var(--sm); margin-bottom: var(--lg); }
+    .step { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border); color: var(--text-secondary); font-size: 12px; font-weight: 600; }
+    .step.active { border-color: var(--primary); background: var(--primary); color: #fff; }
+    .line { flex: 1; height: 1px; background: var(--border); }
+    label { display: block; margin-bottom: var(--xs); color: var(--text-secondary); font-size: 12px; }
+    input, select { width: 100%; height: 46px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-alt); padding: 0 var(--md); font-size: 15px; color: var(--text-primary); }
+    .field { margin-bottom: var(--md); }
+    .card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-alt); box-shadow: var(--shadow); padding: var(--md); margin-bottom: var(--md); }
+    .row { display: flex; justify-content: space-between; gap: var(--md); font-size: 13px; }
+    .row + .row { margin-top: var(--sm); }
+    .row span:first-child { color: var(--text-secondary); }
+    .badge { display: inline-flex; align-items: center; height: 22px; border-radius: 4px; padding: 0 var(--sm); font-size: 12px; font-weight: 600; }
+    .success { background: var(--success-soft); color: var(--success); }
+    .warning { background: var(--warning-soft); color: var(--warning); }
+    .danger { background: var(--danger-soft); color: var(--danger); }
+    .info { background: var(--info-soft); color: var(--info); }
+    .actions { display: flex; gap: var(--md); margin-top: var(--lg); }
+    .button { flex: 1; height: 46px; border: 0; border-radius: var(--radius); font-size: 15px; font-weight: 600; }
+    .secondary { background: var(--surface-muted); color: var(--text-primary); }
+    .primary { background: var(--primary); color: #fff; }
+    .note { border-left: 3px solid var(--warning); background: var(--warning-soft); color: var(--text-primary); padding: var(--md); border-radius: 0 var(--radius) var(--radius) 0; font-size: 13px; line-height: 1.45; }
+    .states { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sm); }
+    .state { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-alt); padding: var(--sm); font-size: 12px; color: var(--text-secondary); }
+    .state strong { display: block; color: var(--text-primary); font-size: 13px; margin-bottom: 2px; }
+  </style>
+</head>
+<body>
+<main class="phone">
+  <section id="confirm" class="sheet">
+    <div class="handle"></div>
+    <h1>开通设备</h1>
+    <div class="steps" aria-label="步骤 2 / 3">
+      <div class="step">1</div><div class="line"></div><div class="step active">2</div><div class="line"></div><div class="step">3</div>
+    </div>
+    <div class="card">
+      <div class="row"><span>EUI</span><strong>001a0103ff000262</strong></div>
+      <div class="row"><span>ThingsBoard</span><span class="badge success">已识别</span></div>
+      <div class="row"><span>设备类型</span><strong>瘤胃胶囊</strong></div>
+      <div class="row"><span>Profile</span><strong>瘤胃胶囊-OC-配置-v2</strong></div>
+      <div class="row"><span>最近遥测</span><strong>2026-08-29 09:31</strong></div>
+    </div>
+    <div class="field">
+      <label for="code">设备编号</label>
+      <input id="code" value="TB-89-001a0103ff000262">
+    </div>
+    <div class="field">
+      <label for="livestock">安装到牲畜</label>
+      <select id="livestock"><option>牛 188</option><option>暂不安装</option></select>
+    </div>
+    <div class="note">暂不安装仍可采集遥测，但围栏预警和牲畜健康计算不会生效。</div>
+    <div class="actions">
+      <button class="button secondary">上一步</button>
+      <button class="button primary">确认开通</button>
+    </div>
+  </section>
+  <section id="result" class="sheet" hidden>
+    <div class="handle"></div>
+    <h1>开通结果</h1>
+    <div class="card">
+      <div class="row"><span>设备创建</span><span class="badge success">完成</span></div>
+      <div class="row"><span>TB 绑定</span><span class="badge success">完成</span></div>
+      <div class="row"><span>设备激活</span><span class="badge success">完成</span></div>
+      <div class="row"><span>安装到牲畜</span><span class="badge success">完成</span></div>
+      <div class="row"><span>首次遥测</span><span class="badge info">已触发</span></div>
+    </div>
+    <div class="states">
+      <div class="state"><strong>围栏计算</strong>已启用</div>
+      <div class="state"><strong>健康计算</strong>已启用</div>
+      <div class="state"><strong>本地设备</strong>188</div>
+      <div class="state"><strong>TB 设备</strong>f80c52a0</div>
+    </div>
+    <div class="actions"><button class="button primary">完成</button></div>
+  </section>
+</main>
+<script>
+  if (location.hash === '#result') {
+    document.querySelector('#confirm').hidden = true;
+    document.querySelector('#result').hidden = false;
+  }
+</script>
+</body>
+</html>

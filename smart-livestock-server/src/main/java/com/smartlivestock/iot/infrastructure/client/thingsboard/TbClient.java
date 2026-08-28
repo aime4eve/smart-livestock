@@ -18,8 +18,10 @@ import org.springframework.web.util.UriUtils;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Locale;
@@ -89,6 +91,56 @@ public class TbClient {
             throw new IllegalStateException("Ambiguous TB devices for EUI " + eui + ": " + matches);
         }
         return matches.iterator().next();
+    }
+
+    public List<TbDeviceView> findDevices(String eui) {
+        Map<String, TbDeviceView> matches = new LinkedHashMap<>();
+        for (String variant : variantsOf(eui)) {
+            String path = "/api/tenant/devices?pageSize=100&page=0&textSearch="
+                    + UriUtils.encodeQueryParam(variant, StandardCharsets.UTF_8);
+            JsonNode page = exchangeForJson(path, HttpMethod.GET, null);
+            for (JsonNode device : page.path("data")) {
+                if (variant.equals(device.path("name").asText())) {
+                    String id = device.path("id").path("id").asText();
+                    matches.putIfAbsent(id, new TbDeviceView(
+                            id,
+                            device.path("name").asText(),
+                            device.path("deviceProfileId").path("id").asText()));
+                }
+            }
+        }
+        return List.copyOf(matches.values());
+    }
+
+    public Map<String, String> fetchDeviceProfiles() {
+        Map<String, String> profiles = new LinkedHashMap<>();
+        int page = 0;
+        while (true) {
+            JsonNode result = exchangeForJson("/api/deviceProfiles?pageSize=100&page=" + page,
+                    HttpMethod.GET, null);
+            JsonNode data = result.path("data");
+            for (JsonNode profile : data) {
+                profiles.put(profile.path("id").path("id").asText(), profile.path("name").asText());
+            }
+            if (data.size() < 100) break;
+            page++;
+        }
+        return profiles;
+    }
+
+    public Instant fetchLatestTelemetryTs(String tbDeviceId) {
+        String path = "/api/plugins/telemetry/DEVICE/" + tbDeviceId + "/values/timeseries"
+                + "?keys=result,dataHex&startTs=0&endTs=" + System.currentTimeMillis()
+                + "&orderBy=DESC&limit=1";
+        JsonNode timeseries = exchangeForJson(path, HttpMethod.GET, null);
+        long maxTs = Long.MIN_VALUE;
+        for (String key : List.of("result", "dataHex")) {
+            JsonNode values = timeseries.path(key);
+            if (values.isArray() && !values.isEmpty()) {
+                maxTs = Math.max(maxTs, values.get(0).path("ts").asLong());
+            }
+        }
+        return maxTs == Long.MIN_VALUE ? null : Instant.ofEpochMilli(maxTs);
     }
 
     static List<String> variantsOf(String eui) {
@@ -163,6 +215,8 @@ public class TbClient {
     }
 
     private record CachedToken(String token, Instant expiresAt) {}
+
+    public record TbDeviceView(String id, String name, String profileId) {}
 
     private static class TbUnauthorizedException extends RuntimeException {
         TbUnauthorizedException(Throwable cause) {

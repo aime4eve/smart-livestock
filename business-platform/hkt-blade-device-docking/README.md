@@ -280,6 +280,73 @@ org/1/project/89/device/001a0103ff000262/dat/up
 6. 若要温度、胃动力等 health 数据生效，创建 active installation，将设备绑定到牲畜。
 7. 输出 NS/TB/本地三方清单差集和绑定审计记录。
 
+### 项目级对账与导入 API（NIX-180）
+
+后端提供 farm-scoped API，`OWNER / B2B_ADMIN` 可调用。NS 与 TB 自动配置均需启用；
+NS 凭据通过 `SMARTLIVESTOCK_NS_USERNAME / SMARTLIVESTOCK_NS_PASSWORD` 注入，不写入仓库。
+
+1. 只读对账：
+
+```http
+GET /api/v1/farms/{farmId}/devices/tb/reconcile?projectId=89
+Authorization: Bearer <jwt>
+```
+
+返回每台 NS 设备的规范化 EUI、NS project/app、TB 候选 deviceId/profile、最近 TB telemetry
+时间、本地 device/binding/installation 状态，以及 `TB_MISSING`、`TB_AMBIGUOUS`、
+`LOCAL_MISSING`、`BINDING_MISSING`、`NO_ACTIVE_INSTALLATION` 等差集代码。报告事实源是
+NS project device list API；project 89 的“项目名称含 60 台”不代表清单数量，2026-08-29
+API 事实为 30 台。
+
+2. wet-run 导入（提交时会重新对账，不信任旧 dry-run）：
+
+```http
+POST /api/v1/farms/{farmId}/devices/tb/import
+Authorization: Bearer <jwt>
+Content-Type: application/json
+
+{
+  "projectId": 89,
+  "items": [
+    {
+      "eui": "001a0103ff000262",
+      "expectedTbDeviceId": "<reconcile输出的deviceId>",
+      "deviceCode": "TB-89-001a0103ff000262"
+    }
+  ]
+}
+```
+
+安全规则：
+
+- 对账接口 dry-run，不写 device、binding 或 audit。
+- 导入前重新校验 NS 存在性、TB 三变体唯一性、Profile 与 expected deviceId。
+- 大小写同名多个 TB deviceId、Profile 不匹配、本地软删除、TB 身份冲突均跳过并返回原因。
+- 本地 EUI 已存在时复用；重复执行返回 `ALREADY_BOUND`，不新增重复设备或绑定。
+- 每个提交项写入 `audit_logs`，action 为 `TB_DEVICE_IMPORTED`，可追溯 project id、EUI、
+  TB deviceId、本地 device/binding id、结果和操作者。
+- 导入不创建 active installation；健康和围栏业务仍需显式选择牲畜。
+
+3. 单设备向导 API：
+
+```http
+GET /api/v1/farms/{farmId}/devices/tb/preflight?eui=<eui>
+POST /api/v1/farms/{farmId}/devices/tb/provision
+```
+
+`provision` 请求包含 EUI、可选 deviceCode 和可选 livestockId。livestockId 必须属于当前
+farm；缺省时只创建/复用本地设备与 `RESOLVED` TB binding，并明确进入
+`PENDING_INSTALLATION` 语义。事务提交后立即触发一次该设备 TB 拉取，响应中的
+`firstTelemetryTrigger` 说明触发结果。
+
+移动端“设备管理 → 添加”已使用同一 API：输入 EUI 预检、确认 TB profile 与设备编号、
+选择牲畜或暂不安装、查看设备/TB 绑定/激活/安装/围栏/健康分层结果。暂不安装时会明确提示
+围栏预警和健康计算不会生效。
+
+该工具不读取、不生成、不修改 TB Gateway `OC` shared attribute。若对账显示 TB 缺设备或
+无 telemetry，project route 仍按前文“管理员审批 + 全量备份 + JSON diff + 受控重载 +
+真实上行验证”的人工流程处理。
+
 ### 分层验收标准
 
 | 层级 | 验收问题 | 证据 |

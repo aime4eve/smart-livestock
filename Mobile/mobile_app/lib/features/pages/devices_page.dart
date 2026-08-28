@@ -8,9 +8,9 @@ import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/dashboard/presentation/dashboard_controller.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/livestock_controller.dart';
 import 'package:hkt_livestock_agentic/features/livestock/domain/livestock_repository.dart';
-import 'package:hkt_livestock_agentic/features/devices/presentation/widgets/device_form_sheet.dart';
 import 'package:hkt_livestock_agentic/features/devices/domain/devices_repository.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/devices_controller.dart';
+import 'package:hkt_livestock_agentic/features/devices/presentation/widgets/tb_device_wizard_sheet.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_device_tile.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
@@ -65,7 +65,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
    showModalBottomSheet(
      context: context,
      isScrollControlled: true,
-     builder: (ctx) => const DeviceFormSheet(),
+     builder: (ctx) => const TbDeviceWizardSheet(),
    ).then((_) => ref.read(devicesControllerProvider.notifier).refresh());
  }
 

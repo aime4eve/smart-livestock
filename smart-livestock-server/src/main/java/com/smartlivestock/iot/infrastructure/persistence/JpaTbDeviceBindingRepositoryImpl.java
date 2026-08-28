@@ -35,8 +35,21 @@ public class JpaTbDeviceBindingRepositoryImpl implements TbDeviceBindingReposito
     }
 
     @Override
+    public List<TbDeviceBinding> findByTenantIdAndProvider(Long tenantId, String provider) {
+        return springDataRepo.findByTenantIdAndProvider(tenantId, provider).stream()
+                .map(TbDeviceBindingMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public Optional<TbDeviceBinding> findByDeviceIdAndProvider(Long deviceId, String provider) {
         return springDataRepo.findByDeviceIdAndProvider(deviceId, provider)
+                .map(TbDeviceBindingMapper::toDomain);
+    }
+
+    @Override
+    public Optional<TbDeviceBinding> findByProviderAndExternalDeviceId(String provider, String externalDeviceId) {
+        return springDataRepo.findByProviderAndExternalDeviceId(provider, externalDeviceId)
                 .map(TbDeviceBindingMapper::toDomain);
     }
 

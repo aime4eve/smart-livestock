@@ -8656,6 +8656,246 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'清理完成，已删除 {count} 条记录。'**
   String datagenConsoleClearDone(int count);
+
+  /// No description provided for @tbWizardTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'开通设备'**
+  String get tbWizardTitle;
+
+  /// No description provided for @tbWizardStepPreflight.
+  ///
+  /// In zh, this message translates to:
+  /// **'预检'**
+  String get tbWizardStepPreflight;
+
+  /// No description provided for @tbWizardStepConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认'**
+  String get tbWizardStepConfirm;
+
+  /// No description provided for @tbWizardStepResult.
+  ///
+  /// In zh, this message translates to:
+  /// **'结果'**
+  String get tbWizardStepResult;
+
+  /// No description provided for @tbWizardEuiLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'LoRa EUI'**
+  String get tbWizardEuiLabel;
+
+  /// No description provided for @tbWizardPreflightAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'预检设备'**
+  String get tbWizardPreflightAction;
+
+  /// No description provided for @tbWizardAmbiguousWarning.
+  ///
+  /// In zh, this message translates to:
+  /// **'存在多个同名大小写变体的 TB 设备，请先人工确认 deviceId。'**
+  String get tbWizardAmbiguousWarning;
+
+  /// No description provided for @tbWizardLivestockLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'安装到牲畜'**
+  String get tbWizardLivestockLabel;
+
+  /// No description provided for @tbWizardNoLivestock.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂不安装'**
+  String get tbWizardNoLivestock;
+
+  /// No description provided for @tbWizardNoLivestockNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂不安装仍可采集遥测，但围栏预警和牲畜健康计算不会生效。'**
+  String get tbWizardNoLivestockNote;
+
+  /// No description provided for @tbWizardRecheck.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新预检'**
+  String get tbWizardRecheck;
+
+  /// No description provided for @tbWizardProvisionAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认开通'**
+  String get tbWizardProvisionAction;
+
+  /// No description provided for @tbWizardNsProject.
+  ///
+  /// In zh, this message translates to:
+  /// **'NS 项目'**
+  String get tbWizardNsProject;
+
+  /// No description provided for @tbWizardTbDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'TB 设备'**
+  String get tbWizardTbDevice;
+
+  /// No description provided for @tbWizardProfile.
+  ///
+  /// In zh, this message translates to:
+  /// **'Device Profile'**
+  String get tbWizardProfile;
+
+  /// No description provided for @tbWizardLatestTelemetry.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近遥测'**
+  String get tbWizardLatestTelemetry;
+
+  /// No description provided for @tbWizardMissing.
+  ///
+  /// In zh, this message translates to:
+  /// **'缺失'**
+  String get tbWizardMissing;
+
+  /// No description provided for @tbWizardNoTelemetry.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无遥测'**
+  String get tbWizardNoTelemetry;
+
+  /// No description provided for @tbWizardStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'开通状态'**
+  String get tbWizardStatus;
+
+  /// No description provided for @tbWizardStatusPendingNs.
+  ///
+  /// In zh, this message translates to:
+  /// **'等待 NS 配置'**
+  String get tbWizardStatusPendingNs;
+
+  /// No description provided for @tbWizardStatusPendingTbDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'等待 TB 设备'**
+  String get tbWizardStatusPendingTbDevice;
+
+  /// No description provided for @tbWizardStatusPendingTelemetry.
+  ///
+  /// In zh, this message translates to:
+  /// **'等待真实遥测'**
+  String get tbWizardStatusPendingTelemetry;
+
+  /// No description provided for @tbWizardStatusReady.
+  ///
+  /// In zh, this message translates to:
+  /// **'可开通采集'**
+  String get tbWizardStatusReady;
+
+  /// No description provided for @tbWizardStatusPendingInstallation.
+  ///
+  /// In zh, this message translates to:
+  /// **'可采集，待安装'**
+  String get tbWizardStatusPendingInstallation;
+
+  /// No description provided for @tbWizardStatusActive.
+  ///
+  /// In zh, this message translates to:
+  /// **'已启用'**
+  String get tbWizardStatusActive;
+
+  /// No description provided for @tbWizardStatusUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'未知状态：{status}'**
+  String tbWizardStatusUnknown(String status);
+
+  /// No description provided for @tbWizardResultDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备创建'**
+  String get tbWizardResultDevice;
+
+  /// No description provided for @tbWizardResultBinding.
+  ///
+  /// In zh, this message translates to:
+  /// **'TB 绑定'**
+  String get tbWizardResultBinding;
+
+  /// No description provided for @tbWizardResultActivation.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备激活'**
+  String get tbWizardResultActivation;
+
+  /// No description provided for @tbWizardResultInstallation.
+  ///
+  /// In zh, this message translates to:
+  /// **'安装到牲畜'**
+  String get tbWizardResultInstallation;
+
+  /// No description provided for @tbWizardResultFence.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏计算'**
+  String get tbWizardResultFence;
+
+  /// No description provided for @tbWizardResultHealth.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康计算'**
+  String get tbWizardResultHealth;
+
+  /// No description provided for @tbWizardInstalled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已安装'**
+  String get tbWizardInstalled;
+
+  /// No description provided for @tbWizardSkipped.
+  ///
+  /// In zh, this message translates to:
+  /// **'未安装'**
+  String get tbWizardSkipped;
+
+  /// No description provided for @tbWizardEnabled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已启用'**
+  String get tbWizardEnabled;
+
+  /// No description provided for @tbWizardDisabled.
+  ///
+  /// In zh, this message translates to:
+  /// **'未启用'**
+  String get tbWizardDisabled;
+
+  /// No description provided for @tbWizardTriggerDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'已立即触发一次 TB 拉取。'**
+  String get tbWizardTriggerDone;
+
+  /// No description provided for @tbWizardTriggerDisabled.
+  ///
+  /// In zh, this message translates to:
+  /// **'TB 通道未启用，本次未触发拉取。'**
+  String get tbWizardTriggerDisabled;
+
+  /// No description provided for @tbWizardTriggerBindingMissing.
+  ///
+  /// In zh, this message translates to:
+  /// **'未找到 RESOLVED 绑定，本次未触发拉取。'**
+  String get tbWizardTriggerBindingMissing;
+
+  /// No description provided for @tbWizardTriggerFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'TB 拉取触发失败，将等待下轮调度。'**
+  String get tbWizardTriggerFailed;
 }
 
 class _AppLocalizationsDelegate

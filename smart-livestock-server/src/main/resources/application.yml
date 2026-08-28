@@ -93,6 +93,13 @@ agentic-platform:
 
 # ThingsBoard direct telemetry channel (NIX-179, disabled by default)
 smartlivestock:
+  ns:
+    enabled: ${SMARTLIVESTOCK_NS_ENABLED:false}
+    base-url: ${SMARTLIVESTOCK_NS_BASE_URL:http://172.17.201.15}
+    username: ${SMARTLIVESTOCK_NS_USERNAME:}
+    password: ${SMARTLIVESTOCK_NS_PASSWORD:}
+    org-id: ${SMARTLIVESTOCK_NS_ORG_ID:1}
+    page-size: ${SMARTLIVESTOCK_NS_PAGE_SIZE:100}
   tb:
     enabled: ${SMARTLIVESTOCK_TB_ENABLED:false}
     base-url: ${SMARTLIVESTOCK_TB_BASE_URL:http://172.22.3.105}

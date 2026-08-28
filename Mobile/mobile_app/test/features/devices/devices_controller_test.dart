@@ -5,6 +5,7 @@ import 'package:hkt_livestock_agentic/app/session/app_session.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
+import 'package:hkt_livestock_agentic/features/devices/data/devices_api_repository.dart';
 import 'package:hkt_livestock_agentic/features/devices/domain/devices_repository.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/devices_controller.dart';
 
@@ -71,6 +72,21 @@ class _FakeDevicesRepository implements DevicesRepository {
 
   @override
   Future<Map<String, dynamic>> loadDeviceHealth(String deviceId) async => {};
+
+  @override
+  Future<TbDevicePreflight> preflightTbDevice(String eui) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<TbDeviceProvisionResult> provisionTbDevice({
+    required String eui,
+    String? deviceCode,
+    String? deviceType,
+    String? livestockId,
+  }) async {
+    throw UnimplementedError();
+  }
 }
 
 DeviceItem _makeDevice(String id) => DeviceItem(
@@ -208,5 +224,30 @@ void main() {
     // total=25, pageSize=20 → ceil(25/20) = 2
     expect(controller.totalPages, 2);
     expect(controller.pageSize, 20);
+  });
+
+  test('parses TB preflight payload', () {
+    final preflight = DevicesApiRepository.parseTbPreflightForTest({
+      'eui': '001a0103ff000262',
+      'status': 'READY_TO_INGEST',
+      'nsDevice': {'projectId': 89, 'appId': 18},
+      'tbCandidates': [
+        {
+          'tbDeviceId': 'tb-1',
+          'tbDeviceName': '001a0103ff000262',
+          'profileId': 'profile-1',
+          'profileName': '瘤胃胶囊-OC-配置-v2',
+          'deviceType': 'CAPSULE',
+          'profileValid': true,
+        }
+      ],
+      'latestTelemetryAt': '2026-08-29T01:31:23Z',
+      'activeInstallation': false,
+    });
+
+    expect(preflight.nsProjectId, 89);
+    expect(preflight.selectedCandidate?.tbDeviceId, 'tb-1');
+    expect(preflight.selectedCandidate?.deviceType, 'CAPSULE');
+    expect(preflight.canProvision, isTrue);
   });
 }
