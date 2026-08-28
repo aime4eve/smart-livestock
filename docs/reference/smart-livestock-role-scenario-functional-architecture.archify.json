@@ -1,0 +1,322 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "智慧畜牧角色场景功能架构",
+    "locale": "zh-CN",
+    "output": "smart-livestock-role-scenario-functional-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/aime4eve/smart-livestock.git",
+      "revision": "95e0797d9fbd3ebfcd488cd41cc79c10cf5d2c2e"
+    },
+    "viewBox": [1390, 620]
+  },
+  "components": [
+    {
+      "id": "platform_console",
+      "type": "frontend",
+      "label": "运营运维台",
+      "sublabel": "租户 · 用户 · 商业化 · 审计",
+      "tag": "platform_admin",
+      "pos": [48, 42],
+      "size": [180, 76],
+      "sources": [
+        { "path": "Mobile/mobile_app/lib/app/app_router.dart", "label": "Ops routes" },
+        { "path": "docs/product/user-journey-guide.md", "label": "Admin journey" }
+      ]
+    },
+    {
+      "id": "market_console",
+      "type": "frontend",
+      "label": "代理商工作台",
+      "sublabel": "牧场分配 · 合同 · 分润",
+      "tag": "b2b_admin",
+      "pos": [52, 134],
+      "size": [188, 82],
+      "sources": [
+        { "path": "Mobile/mobile_app/lib/app/app_router.dart", "label": "Partner shell" },
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/interfaces/admin/AdminRevenueController.java", "label": "Revenue share" }
+      ]
+    },
+    {
+      "id": "rancher_app",
+      "type": "frontend",
+      "label": "牧场主应用",
+      "sublabel": "生产 · 健康 · 地图告警",
+      "tag": "owner / worker",
+      "pos": [50, 250],
+      "size": [180, 86],
+      "sources": [
+        { "path": "Mobile/mobile_app/lib/app/main_shell.dart", "label": "Ranch shell" },
+        { "path": "Mobile/mobile_app/lib/core/api/farm_scoped_controller.dart", "label": "Farm scope" }
+      ]
+    },
+    {
+      "id": "nginx_edge",
+      "type": "backend",
+      "label": "Nginx Edge",
+      "sublabel": "SPA · API · Tiles 统一入口",
+      "pos": [340, 128],
+      "size": [194, 94],
+      "sources": [
+        { "path": "smart-livestock-server/infrastructure/nginx/nginx.conf", "label": "Routing" },
+        { "path": "smart-livestock-server/docker-compose.dev.yml", "label": "Deployment" }
+      ]
+    },
+    {
+      "id": "access_gateway",
+      "type": "security",
+      "label": "授权穿透网关",
+      "sublabel": "JWT / API Key · 租户与牧场 Scope",
+      "tag": "RBAC + FeatureGate",
+      "pos": [595, 106],
+      "size": [210, 138],
+      "sources": [
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/security/SecurityConfig.java", "label": "Auth chain" },
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/security/JwtAuthenticationFilter.java", "label": "JWT claims" },
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java", "label": "Tenant farm check" }
+      ]
+    },
+    {
+      "id": "scenario_core",
+      "type": "backend",
+      "label": "Spring Boot 场景核心",
+      "sublabel": "牧场生产 · IoT 健康 · 商业运营",
+      "tag": "DDD bounded contexts",
+      "pos": [845, 107],
+      "size": [254, 136],
+      "sources": [
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/ranch/interfaces/DashboardController.java", "label": "Ranch overview" },
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceController.java", "label": "Devices" },
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/interfaces/app/SubscriptionController.java", "label": "Commerce" }
+      ]
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "租户状态 · 生产时序 · 商业数据",
+      "tag": "Flyway",
+      "pos": [1148, 127],
+      "size": [180, 96],
+      "sources": [
+        { "path": "smart-livestock-server/src/main/resources/application.yml", "label": "Datasource" },
+        { "path": "docs/reference/project-overview.md", "label": "Domains" }
+      ]
+    },
+    {
+      "id": "rocketmq",
+      "type": "messagebus",
+      "label": "RocketMQ",
+      "sublabel": "跨上下文事件 · 汇总刷新",
+      "pos": [1128, 272],
+      "size": [172, 78],
+      "sources": [
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/RocketMQEventPublisher.java", "label": "Producer" },
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/Topics.java", "label": "Topics" }
+      ]
+    },
+    {
+      "id": "ai_platform",
+      "type": "backend",
+      "label": "AI Platform",
+      "sublabel": "异常检测 · 行为分析评估",
+      "pos": [398, 412],
+      "size": [232, 92],
+      "sources": [
+        { "path": "smart-livestock-server/ai-platform/app/main.py", "label": "FastAPI" },
+        { "path": "docs/reference/project-overview.md", "label": "Health AI" }
+      ]
+    },
+    {
+      "id": "agentic_platform",
+      "type": "external",
+      "label": "Agentic 中台",
+      "sublabel": "设备注册 · 历史遥测",
+      "tag": "OAuth2 service account",
+      "pos": [1118, 390],
+      "size": [198, 106],
+      "sources": [
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/iot/application/AgenticPlatformTelemetrySyncJob.java", "label": "Sync job" },
+        { "path": "docs/reference/deployment.md", "label": "Environment map" }
+      ]
+    },
+    {
+      "id": "public_maps",
+      "type": "external",
+      "label": "公共地图服务",
+      "sublabel": "高德 / OSM 兜底源",
+      "pos": [54, 420],
+      "size": [172, 90],
+      "sources": [
+        { "path": "Mobile/mobile_app/lib/core/map/smart_tile_provider.dart", "label": "Tile fallback" },
+        { "path": "docs/reference/project-overview.md", "label": "Map stack" }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "security-group",
+      "label": "平台运维通道（不受信）",
+      "wraps": ["platform_console"]
+    },
+    {
+      "kind": "security-group",
+      "label": "市场代理商通道（不受信）",
+      "wraps": ["market_console"]
+    },
+    {
+      "kind": "security-group",
+      "label": "牧场主设备通道（不受信）",
+      "wraps": ["rancher_app"]
+    },
+    {
+      "kind": "region",
+      "label": "Smart Livestock Docker Stack（应用与数据信任域）",
+      "wraps": ["nginx_edge", "access_gateway", "scenario_core", "postgres", "rocketmq", "ai_platform"],
+      "pad": 24
+    },
+    {
+      "kind": "security-group",
+      "label": "Agentic 租户外包边界",
+      "wraps": ["agentic_platform"]
+    },
+    {
+      "kind": "security-group",
+      "label": "公共互联网依赖",
+      "wraps": ["public_maps"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "ops_entry",
+      "from": "platform_console",
+      "to": "nginx_edge",
+      "label": "/admin API",
+      "labelAt": [268, 88]
+    },
+    {
+      "id": "market_entry",
+      "from": "market_console",
+      "to": "nginx_edge",
+      "label": "/b2b API",
+      "labelAt": [246, 227]
+    },
+    {
+      "id": "owner_primary_entry",
+      "from": "rancher_app",
+      "to": "nginx_edge",
+      "label": "HTTPS / JSON",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [[278, 293], [278, 175]],
+      "labelAt": [309, 256]
+    },
+    {
+      "id": "edge_to_gateway",
+      "from": "nginx_edge",
+      "to": "access_gateway",
+      "label": "/api/v1 反代",
+      "variant": "emphasis",
+      "labelAt": [542, 278]
+    },
+    {
+      "id": "gateway_to_scenarios",
+      "from": "access_gateway",
+      "to": "scenario_core",
+      "label": "RBAC 授权",
+      "variant": "emphasis",
+      "labelAt": [813, 263]
+    },
+    {
+      "id": "scenarios_to_state",
+      "from": "scenario_core",
+      "to": "postgres",
+      "label": "SQL",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "domain_events",
+      "from": "scenario_core",
+      "to": "rocketmq",
+      "label": "领域事件",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "labelAt": [1072, 296]
+    },
+    {
+      "id": "anomaly_analysis",
+      "from": "scenario_core",
+      "to": "ai_platform",
+      "label": "异常推理",
+      "route": "orthogonal-v",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [652, 326]
+    },
+    {
+      "id": "device_telemetry_sync",
+      "from": "agentic_platform",
+      "to": "scenario_core",
+      "label": "OAuth2 遥测拉取",
+      "variant": "dashed",
+      "fromSide": "left",
+      "toSide": "bottom",
+      "via": [[1060, 443], [1060, 305], [972, 305]],
+      "labelAt": [986, 431]
+    },
+    {
+      "id": "map_fallback",
+      "from": "rancher_app",
+      "to": "public_maps",
+      "label": "瓦片降级",
+      "route": "orthogonal-v",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "牧场主场景",
+      "items": [
+        "登录后进入 ranch 主页，按 activeFarm 加载聚合看板和地图围栏",
+        "数字孪生覆盖体温、消化、发情和疫病接触追踪，订阅门控控制图表深度",
+        "牧场主可管理牲畜、围栏、设备和牧工；worker 仅能确认告警"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "代理商场景",
+      "items": [
+        "b2b_admin 是当前实现中的 B 端代理 / 合作方管理员，并锁定在 /b2b/admin/*",
+        "核心链路为创建牧场、分配 owner、管理牧工，再查看合同和分润结算明细",
+        "后端允许 B2B_ADMIN 参与生产资源写操作；前端当前仍以经营视图为主"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "运营运维场景",
+      "items": [
+        "跨租户创建和管理租户、用户、牧场，并维护平台总览与审计日志",
+        "管理合同、订阅服务、分润对账、功能门禁和 API Key 审批",
+        "额外承担 GPS 质量、遥测导入、仿真控制台和瓦片治理等运行操作"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "授权与边界",
+      "items": [
+        "主链路经 Nginx 进入 Security 过滤器，再校验 JWT 角色、租户归属和 farm scope",
+        "b2b_admin 锁定本租户；platform_admin 可跨租户；公共地图仅用于前端降级",
+        "Agentic 地址按 dev/test 隔离，凭据保存在远程环境文件并用 OAuth2 服务账号换取 token"
+      ]
+    }
+  ]
+}

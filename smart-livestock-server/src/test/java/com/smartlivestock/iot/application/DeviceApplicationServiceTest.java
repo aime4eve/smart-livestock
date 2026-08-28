@@ -19,6 +19,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,7 +44,8 @@ class DeviceApplicationServiceTest {
         var result = service.registerDevice(cmd);
 
         assertThat(result.deviceCode()).isEqualTo("DEV-001");
-        assertThat(result.devEui()).isEqualTo("AABBCCDDEEFF0011");
+        assertThat(result.devEui()).isEqualTo("aabbccddeeff0011");
+        verify(deviceRepository).findAllByDevEuiAndTenantIdIncludeDeleted("aabbccddeeff0011", 1L);
     }
 
     @Test
@@ -74,7 +76,20 @@ class DeviceApplicationServiceTest {
         var result = service.updateDevice(10L, cmd);
 
         assertThat(result.deviceCode()).isEqualTo("DEV-002");
-        assertThat(result.devEui()).isEqualTo("AABBCCDDEEFF0022");
+        assertThat(result.devEui()).isEqualTo("aabbccddeeff0022");
+    }
+
+    @Test
+    void shouldLowercaseEuiOnFindOrCreate() {
+        when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> {
+            Device d = inv.getArgument(0);
+            d.setId(1L);
+            return d;
+        });
+
+        service.findOrCreateByEui("ABCD1234", null, 1L);
+
+        verify(deviceRepository).findAllByDevEuiAndTenantIdIncludeDeleted("abcd1234", 1L);
     }
 
     @Test

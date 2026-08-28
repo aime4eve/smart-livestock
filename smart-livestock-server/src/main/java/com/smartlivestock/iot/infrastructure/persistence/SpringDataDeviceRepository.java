@@ -41,7 +41,7 @@ public interface SpringDataDeviceRepository extends JpaRepository<DeviceJpaEntit
      * Lookup by devEui including soft-deleted rows (native query bypasses @SQLRestriction).
      * Used for revive detection on the re-add paths.
      */
-    @Query(value = "SELECT * FROM devices WHERE dev_eui = :devEui AND tenant_id = :tenantId",
+    @Query(value = "SELECT * FROM devices WHERE lower(dev_eui) = lower(:devEui) AND tenant_id = :tenantId",
            nativeQuery = true)
     List<DeviceJpaEntity> findAllByDevEuiAndTenantIdIncludeDeleted(@Param("devEui") String devEui,
                                                                    @Param("tenantId") Long tenantId);

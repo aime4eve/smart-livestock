@@ -1,0 +1,298 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "智慧畜牧高层运行时架构",
+    "locale": "zh-CN",
+    "output": "smart-livestock-runtime-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/aime4eve/smart-livestock.git",
+      "revision": "95e0797d9fbd3ebfcd488cd41cc79c10cf5d2c2e"
+    },
+    "viewBox": [1390, 920]
+  },
+  "components": [
+    {
+      "id": "flutter-client",
+      "type": "frontend",
+      "label": "Flutter 客户端",
+      "sublabel": "Web / Mobile · Riverpod",
+      "tag": "Bearer JWT",
+      "sources": [
+        { "path": "Mobile/mobile_app/lib/core/api/api_client.dart", "label": "API client" },
+        { "path": "Mobile/mobile_app/lib/main.dart", "label": "App entry" }
+      ],
+      "pos": [60, 336],
+      "size": [190, 82]
+    },
+    {
+      "id": "nginx-edge",
+      "type": "backend",
+      "label": "Nginx Edge",
+      "sublabel": "静态资源 + API/瓦片代理",
+      "sources": [
+        { "path": "smart-livestock-server/infrastructure/nginx/nginx.conf", "label": "Routing" }
+      ],
+      "pos": [340, 336],
+      "size": [190, 82]
+    },
+    {
+      "id": "auth-gateway",
+      "type": "security",
+      "label": "认证与授权",
+      "sublabel": "Spring Security",
+      "tag": "JWT / API Key",
+      "sources": [
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/security/SecurityConfig.java", "label": "Filter chain" },
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/security/JwtAuthenticationFilter.java", "label": "JWT filter" }
+      ],
+      "pos": [340, 154],
+      "size": [190, 82]
+    },
+    {
+      "id": "spring-api",
+      "type": "backend",
+      "label": "Spring Boot API",
+      "sublabel": "领域 API + 用例服务",
+      "tag": "Java 17",
+      "sources": [
+        { "path": "smart-livestock-server/build.gradle", "label": "Runtime deps" },
+        { "path": "smart-livestock-server/src/main/resources/application.yml", "label": "Configuration" }
+      ],
+      "pos": [650, 336],
+      "size": [200, 82]
+    },
+    {
+      "id": "redis",
+      "type": "database",
+      "label": "Redis",
+      "sublabel": "缓存 / 限流 / 去重",
+      "sources": [
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/ratelimit/RateLimitService.java", "label": "Rate limit" }
+      ],
+      "pos": [672, 154],
+      "size": [190, 82]
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "业务状态 + 时序数据",
+      "tag": "Flyway",
+      "sources": [
+        { "path": "smart-livestock-server/src/main/resources/application.yml", "label": "Datasource" },
+        { "path": "smart-livestock-server/src/main/resources/db/migration/V13__create_tile_tables_and_fence_version.sql", "label": "Migrations" }
+      ],
+      "pos": [1160, 336],
+      "size": [200, 82]
+    },
+    {
+      "id": "rocketmq",
+      "type": "messagebus",
+      "label": "RocketMQ",
+      "sublabel": "跨上下文事件",
+      "sources": [
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/RocketMQEventPublisher.java", "label": "Producer" },
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/health/infrastructure/mq/TelemetryEventConsumer.java", "label": "Consumer" }
+      ],
+      "pos": [910, 526],
+      "size": [190, 82]
+    },
+    {
+      "id": "async-workers",
+      "type": "backend",
+      "label": "调度与消费者",
+      "sublabel": "Outbox / 同步 / 聚合",
+      "sources": [
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/iot/application/GpsIngestionTaskScheduler.java", "label": "GPS outbox" },
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/platform/application/PartitionMaintenanceService.java", "label": "Partitions" }
+      ],
+      "pos": [1160, 526],
+      "size": [200, 82]
+    },
+    {
+      "id": "ai-platform",
+      "type": "backend",
+      "label": "AI Platform",
+      "sublabel": "FastAPI 推理 / 训练",
+      "sources": [
+        { "path": "smart-livestock-server/ai-platform/app/main.py", "label": "HTTP API" },
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/health/infrastructure/client/RestAnomalyScoreClient.java", "label": "Spring client" }
+      ],
+      "pos": [650, 714],
+      "size": [200, 82]
+    },
+    {
+      "id": "agentic-platform",
+      "type": "external",
+      "label": "Agentic 中台",
+      "sublabel": "设备 / 遥测 / OAuth2",
+      "sources": [
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/iot/infrastructure/client/agenticplatform/client/AgenticPlatformDeviceClient.java", "label": "Feign client" }
+      ],
+      "pos": [910, 714],
+      "size": [200, 82]
+    },
+    {
+      "id": "tile-pipeline",
+      "type": "cloud",
+      "label": "离线瓦片子系统",
+      "sublabel": "Tile Worker + tileserver-gl",
+      "tag": "共享 MBTiles",
+      "sources": [
+        { "path": "smart-livestock-server/infrastructure/tile-worker/entrypoint.sh", "label": "Worker" },
+        { "path": "smart-livestock-server/docker-compose.dev.yml", "label": "Deployment" }
+      ],
+      "pos": [340, 714],
+      "size": [200, 82]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "security-group",
+      "label": "用户设备 / 浏览器（不受信客户端）",
+      "wraps": ["flutter-client"]
+    },
+    {
+      "kind": "region",
+      "label": "Smart Livestock Docker 内网（dev 部署信任边界）",
+      "wraps": [
+        "nginx-edge",
+        "auth-gateway",
+        "spring-api",
+        "redis",
+        "postgres",
+        "rocketmq",
+        "async-workers",
+        "ai-platform",
+        "tile-pipeline"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "数据与事件平面（服务间信任域）",
+      "wraps": ["auth-gateway", "spring-api", "redis", "postgres", "rocketmq", "async-workers"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "client-to-edge",
+      "from": "flutter-client",
+      "to": "nginx-edge",
+      "label": "HTTPS / JSON",
+      "variant": "emphasis"
+    },
+    {
+      "id": "edge-to-api",
+      "from": "nginx-edge",
+      "to": "spring-api",
+      "label": "/api/v1 反代",
+      "variant": "emphasis",
+      "labelAt": [530, 318]
+    },
+    {
+      "id": "auth-to-api",
+      "from": "auth-gateway",
+      "to": "spring-api",
+      "label": "JWT / API Key"
+    },
+    {
+      "id": "api-to-redis",
+      "from": "spring-api",
+      "to": "redis",
+      "label": "缓存 / 限流",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "api-to-postgres",
+      "from": "spring-api",
+      "to": "postgres",
+      "label": "JPA / SQL",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-to-mq",
+      "from": "spring-api",
+      "to": "rocketmq",
+      "label": "发布事件",
+      "variant": "dashed"
+    },
+    {
+      "id": "mq-to-workers",
+      "from": "rocketmq",
+      "to": "async-workers",
+      "label": "消费事件",
+      "variant": "dashed"
+    },
+    {
+      "id": "workers-to-postgres",
+      "from": "async-workers",
+      "to": "postgres",
+      "label": "异步写入"
+    },
+    {
+      "id": "agentic-to-workers",
+      "from": "agentic-platform",
+      "to": "async-workers",
+      "label": "遥测同步"
+    },
+    {
+      "id": "api-to-ai",
+      "from": "spring-api",
+      "to": "ai-platform",
+      "label": "异常分析",
+      "labelAt": [750, 432]
+    },
+    {
+      "id": "tile-to-api",
+      "from": "tile-pipeline",
+      "to": "spring-api",
+      "label": "轮询任务",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "主请求路径",
+      "items": [
+        "Flutter ApiClient 自动附带 Bearer JWT，并在 401 后尝试刷新令牌",
+        "Nginx 提供 Flutter Web 静态资源，并将 /api/v1 反代到 Spring Boot",
+        "Spring Security 校验 JWT；开放接口可走 API Key",
+        "API 通过 JPA 读写 PostgreSQL，结构变更由 Flyway 管理"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "异步与数据平面",
+      "items": [
+        "遥测入口统一更新设备快照与时序日志，GPS 先写 durable outbox",
+        "GpsIngestionTaskScheduler 每 500ms 批量处理 GPS 写入与重试",
+        "RocketMQ 承载跨上下文事件；调度器还负责分区维护、同步和聚合",
+        "Redis 用于热点缓存、原子限流和 AI 异常去重"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "AI 与外部依赖",
+      "items": [
+        "FastAPI AI Platform 与 Spring API 共享 PostgreSQL 数据契约",
+        "Spring 侧调用 /ai/behavior/analyze 获取异常分数并写回业务表",
+        "Agentic 中台提供设备、历史遥测与 OAuth2 服务账号集成",
+        "地图显示可在 AutoNavi / OSM / 自建瓦片间降级，商业地图不出现在主链路"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "瓦片与部署边界",
+      "items": [
+        "Tile Worker 使用专用 API Key 轮询任务并生成 MBTiles",
+        "tileserver-gl 读取共享卷，Nginx 将 /tiles/ 代理到瓦片服务",
+        "核心服务运行在同一 dev Docker 网络内，客户端流量先经过 Nginx",
+        "PostgreSQL / Redis / RocketMQ 端口仍按 compose 配置映射到宿主机"
+      ]
+    }
+  ]
+}

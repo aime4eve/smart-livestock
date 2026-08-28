@@ -70,7 +70,7 @@ class DeviceApplicationServiceTest {
     }
 
     private Device createInventoryDevice() {
-        Device device = new Device(1L, "DEV-001", DeviceType.TRACKER, "AABBCCDD");
+        Device device = new Device(1L, "DEV-001", DeviceType.TRACKER, "aabbccdd");
         device.setId(1L);
         return device;
     }
@@ -284,12 +284,12 @@ class DeviceApplicationServiceTest {
     @DisplayName("findOrCreateByEui 命中软删除设备 → 复活（restoreById 先于 save，platformDeviceId 复用）")
     void shouldReviveSoftDeletedDeviceOnFindOrCreateByEui() {
         Device deleted = createSoftDeletedDevice();
-        when(deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted("AABBCCDD", 1L))
+        when(deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted("aabbccdd", 1L))
                 .thenReturn(List.of(deleted));
         when(deviceRepository.findByDeviceCode("GPS-NEW")).thenReturn(Optional.empty());
         when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        DeviceDto result = service.findOrCreateByEui("AABBCCDD", "GPS-NEW", 1L);
+        DeviceDto result = service.findOrCreateByEui("aabbccdd", "GPS-NEW", 1L);
 
         InOrder inOrder = inOrder(deviceRepository);
         inOrder.verify(deviceRepository).restoreById(7L, "GPS-NEW");
@@ -303,11 +303,11 @@ class DeviceApplicationServiceTest {
     @DisplayName("findOrCreateByEui 复活时传入空 code → 保留原 deviceCode")
     void shouldKeepOriginalDeviceCodeWhenBlankOnRevive() {
         Device deleted = createSoftDeletedDevice();
-        when(deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted("AABBCCDD", 1L))
+        when(deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted("aabbccdd", 1L))
                 .thenReturn(List.of(deleted));
         when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        DeviceDto result = service.findOrCreateByEui("AABBCCDD", null, 1L);
+        DeviceDto result = service.findOrCreateByEui("aabbccdd", null, 1L);
 
         verify(deviceRepository, never()).findByDeviceCode(any());
         assertThat(result.deviceCode()).isEqualTo("DEV-001");
@@ -320,11 +320,11 @@ class DeviceApplicationServiceTest {
         Device deleted = createSoftDeletedDevice();
         Device conflicting = createInventoryDevice();
         conflicting.setId(99L);
-        when(deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted("AABBCCDD", 1L))
+        when(deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted("aabbccdd", 1L))
                 .thenReturn(List.of(deleted));
         when(deviceRepository.findByDeviceCode("GPS-NEW")).thenReturn(Optional.of(conflicting));
 
-        assertThatThrownBy(() -> service.findOrCreateByEui("AABBCCDD", "GPS-NEW", 1L))
+        assertThatThrownBy(() -> service.findOrCreateByEui("aabbccdd", "GPS-NEW", 1L))
                 .isInstanceOf(ApiException.class)
                 .satisfies(ex -> assertThat(((ApiException) ex).getCode())
                         .isEqualTo(ErrorCode.DUPLICATE_RESOURCE));
@@ -338,10 +338,10 @@ class DeviceApplicationServiceTest {
     void shouldReuseActiveDecommissionedDeviceAsIs() {
         Device device = createDecommissionedDevice();
         device.setPlatformDeviceId(555L);
-        when(deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted("AABBCCDD", 1L))
+        when(deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted("aabbccdd", 1L))
                 .thenReturn(List.of(device));
 
-        DeviceDto result = service.findOrCreateByEui("AABBCCDD", null, 1L);
+        DeviceDto result = service.findOrCreateByEui("aabbccdd", null, 1L);
 
         assertThat(result.status()).isEqualTo("DECOMMISSIONED");
         assertThat(result.platformDeviceId()).isEqualTo(555L);
@@ -353,13 +353,13 @@ class DeviceApplicationServiceTest {
     @DisplayName("findOrCreateByEui 命中 ACTIVE 未绑定设备 → 尝试绑定平台（注册门放宽），status 不变且落库")
     void shouldTryBindingForActiveDeviceWithoutPlatformId() {
         Device device = createActiveDevice();
-        when(deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted("AABBCCDD", 1L))
+        when(deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted("aabbccdd", 1L))
                 .thenReturn(List.of(device));
         when(platformDeviceClient.pageDevices(any())).thenReturn(emptyPage());
         when(platformDeviceClient.registerDevice(any())).thenReturn(registered(100L));
         when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        DeviceDto result = service.findOrCreateByEui("AABBCCDD", null, 1L);
+        DeviceDto result = service.findOrCreateByEui("aabbccdd", null, 1L);
 
         assertThat(result.status()).isEqualTo("ACTIVE");
         assertThat(result.platformDeviceId()).isEqualTo(100L);
@@ -375,7 +375,7 @@ class DeviceApplicationServiceTest {
         deleted.setId(9L);
         deleted.setSerialNo("OLD-SN");
         deleted.setDeletedAt(Instant.now());
-        when(deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted("AABBCCDD", 1L))
+        when(deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted("aabbccdd", 1L))
                 .thenReturn(List.of(deleted));
         when(deviceRepository.findByDeviceCode("NEW-CODE")).thenReturn(Optional.empty());
         when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -383,7 +383,7 @@ class DeviceApplicationServiceTest {
         when(platformDeviceClient.registerDevice(any())).thenReturn(registered(77L));
 
         DeviceDto result = service.registerDevice(
-                new RegisterDeviceCommand("NEW-CODE", DeviceType.CAPSULE, 1L, "AABBCCDD", "NEW-SN"));
+                new RegisterDeviceCommand("NEW-CODE", DeviceType.CAPSULE, 1L, "aabbccdd", "NEW-SN"));
 
         InOrder inOrder = inOrder(deviceRepository);
         inOrder.verify(deviceRepository).restoreById(9L, "NEW-CODE");
@@ -402,7 +402,7 @@ class DeviceApplicationServiceTest {
         deleted.setId(9L);
         deleted.setSerialNo("OLD-SN");
         deleted.setDeletedAt(Instant.now());
-        when(deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted("AABBCCDD", 1L))
+        when(deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted("aabbccdd", 1L))
                 .thenReturn(List.of(deleted));
         when(deviceRepository.findByDeviceCode("NEW-CODE")).thenReturn(Optional.empty());
         when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -410,7 +410,7 @@ class DeviceApplicationServiceTest {
         when(platformDeviceClient.registerDevice(any())).thenReturn(registered(77L));
 
         DeviceDto result = service.registerDevice(
-                new RegisterDeviceCommand("NEW-CODE", DeviceType.CAPSULE, 1L, "AABBCCDD", null));
+                new RegisterDeviceCommand("NEW-CODE", DeviceType.CAPSULE, 1L, "aabbccdd", null));
 
         assertThat(result.serialNo()).isEqualTo("OLD-SN");
     }
@@ -419,11 +419,11 @@ class DeviceApplicationServiceTest {
     @DisplayName("registerDevice 的 EUI 命中活跃设备 → DUPLICATE_RESOURCE（error.deviceEuiDuplicate）")
     void shouldRejectRegisterWhenEuiHitsActiveDevice() {
         Device active = createActiveDevice();
-        when(deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted("AABBCCDD", 1L))
+        when(deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted("aabbccdd", 1L))
                 .thenReturn(List.of(active));
 
         assertThatThrownBy(() -> service.registerDevice(
-                new RegisterDeviceCommand("NEW-CODE", DeviceType.TRACKER, 1L, "AABBCCDD", "NEW-SN")))
+                new RegisterDeviceCommand("NEW-CODE", DeviceType.TRACKER, 1L, "aabbccdd", "NEW-SN")))
                 .isInstanceOf(ApiException.class)
                 .satisfies(ex -> {
                     ApiException apiEx = (ApiException) ex;
