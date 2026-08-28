@@ -90,3 +90,15 @@ agentic-platform:
   sync:
     enabled: ${AGENTIC_PLATFORM_SYNC_ENABLED:false}
     dispatch-interval-ms: ${AGENTIC_PLATFORM_SYNC_INTERVAL_MS:300000}
+
+# ThingsBoard direct telemetry channel (NIX-179, disabled by default)
+smartlivestock:
+  tb:
+    enabled: ${SMARTLIVESTOCK_TB_ENABLED:false}
+    base-url: ${SMARTLIVESTOCK_TB_BASE_URL:http://172.22.3.105}
+    username: ${SMARTLIVESTOCK_TB_USERNAME:tenant@hkt.com}
+    password: ${SMARTLIVESTOCK_TB_PASSWORD:}
+    poll-interval-ms: ${SMARTLIVESTOCK_TB_POLL_INTERVAL_MS:300000}
+    lookback-days: ${SMARTLIVESTOCK_TB_LOOKBACK_DAYS:7}
+    batch-size: ${SMARTLIVESTOCK_TB_BATCH_SIZE:200}
+    blade-exclusion: ${SMARTLIVESTOCK_TB_BLADE_EXCLUSION:false}
