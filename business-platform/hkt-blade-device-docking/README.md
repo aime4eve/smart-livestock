@@ -10,6 +10,9 @@ blade 不可改代码，本工程只作为消费方。
 ThingsBoard 直连、blade 轮询，以及三条链路的取舍。datagen 仿真数据用于市场演示和算法
 预训练，不计入真实设备采集通道。
 
+本机敏感运维细节记录在 `.local/device-autoconfig.md`。该路径已被 Git 忽略，只保存环境
+标识、对象 ID、凭据来源和自动化 runbook，不保存明文密码。
+
 阅读顺序：
 
 1. `数据采集途径总览`回答“选哪条通道”。
@@ -126,7 +129,8 @@ NIX-179 Phase 1 已实现 TB REST 增量轮询：
 2. TB 同帧收到并生成 `result`、`dataHex`、`temperatureGroup`、`gastricMotility`、三轴加速度、RSSI 和 SNR。
 3. smart-livestock test 入库 1 条 `source=THINGSBOARD` DTL。
 4. TB binding 游标推进到 `1787938283391`。
-5. `001a0103ff00024e` 已创建 TB 设备和本地 `RESOLVED` 绑定，等待下一帧真实上行。
+5. `001a0103ff00024e` 后续也完成真实上行采集：TB 出现 `result/dataHex`，
+   smart-livestock test 入库 1 条 `source=THINGSBOARD` DTL。
 
 注意：手工给 TB 设备补 `connectorType/connectorName/devEui/app/project` 属性并不会让数据流入；
 这些属性更多是 connector 接管后的结果或映射信息。真正决定收数的是 gateway connector 的
