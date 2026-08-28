@@ -1,7 +1,7 @@
 # ThingsBoard 遥测直连通道设计（Phase 1 REST）
 
 > Date: 2026-08-28\
-> Status: 设计确认，进入实施\
+> Status: 评审修订，待整改验证\
 > Issue: NIX-179（Parent: NIX-142）\
 > 参照: smart-parking NIX-80 决策文档（`04-smart-parking/docs/research/2026-07-30-blade数据采集通道设计决策.md`）与 NIX-122 正式通道 spec（`04-smart-parking/docs/features/tb-telemetry-channel/spec.md`）\
 > Plan: `docs/superpowers/plans/2026-08-28-tb-telemetry-channel-plan.md`
@@ -47,6 +47,13 @@
 - 跨通道 canonical 去重（parking D13 全套）：按设备路由规避后，确有双源并存需求再上。
 - 替换或修改现有 blade 轮询通道、datagen 仿真链路。
 
+### 评审修订结论
+
+1. 游标采用 at-least-once 语义：只允许推进到连续成功处理的前缀边界；单帧失败不得被游标越过。
+2. `result` 只有在 `decodeStatus=true` 且能解析出有效 `decodeData.properties` 时才是 authoritative；坏 result 不得抑制 `dataHex` fallback。
+3. `blade-exclusion=true` 是明确的源路由选择，不是故障回退机制；开启后绑定设备的采集连续性依赖 TB 通道可用性。
+4. Phase 1 种子包含 tracker 与 capsule 两个已验证绑定；多租户批量接入前必须补 tenant-scoped 绑定查询。
+
 ## 3. 现有架构基线
 
 通道层（怎么拉）：
@@ -78,23 +85,25 @@ TelemetryIngestionService.ingest(deviceId, readings, recordedAt, source)
 |------|------|------|
 | `TbProperties` | `iot/infrastructure/client/thingsboard/` | `smartlivestock.tb.*` 配置：enabled（默认 false）、base-url、username、password、poll-interval-ms、lookback-days、blade-exclusion |
 | `TbClient` | 同上 | JWT 登录（POST /api/auth/login）、`X-Authorization` 注入、401 重新登录一次、设备三变体名解析、timeseries 窗口查询、limit 截断续拉 |
-| `TbDeviceBinding` + Repository | `iot/domain/model` + `iot/infrastructure/persistence` | 绑定实体与查询（按 tenant + device、按 enabled 列表） |
-| `TbTelemetryChannel` | `iot/application/` | @Scheduled 增量轮询绑定设备 → `result.decodeData.properties` → `readings` → `ingest()` → 游标推进 |
+| `TbDeviceBinding` + Repository | `iot/domain/model` + `iot/infrastructure/persistence` | 绑定实体与查询（按 tenant + device、按 tenant + status 列表） |
+| `TbTelemetryChannel` | `iot/application/` | @Scheduled 增量轮询绑定设备 → `result.decodeData.properties` → `readings` → `ingest()` → 连续成功前缀游标推进 |
 | Dispatcher 排除 | `AgenticPlatformSyncDispatcher` | 查询绑定表排除已绑 TB 的设备（仅当 `smartlivestock.tb.blade-exclusion=true`） |
 
 ### 4.2 数据流
 
 ```
 TbTelemetryChannel（@Scheduled，默认 300s，enabled=false 时整个通道不装配）
-  1. 读绑定表：status=RESOLVED 的绑定
+  1. 读绑定表：当前接入范围内 status=RESOLVED 的绑定
   2. 每设备：GET /api/plugins/telemetry/DEVICE/{tbDeviceId}/values/timeseries
        ?keys=<按设备类型>&startTs=cursor+1&endTs=now&orderBy=ASC&limit=<batch>
   3. limit 截断：以本批最大 ts 收窄窗口续拉，禁止推进游标丢尾部帧
-  4. 每帧：优先 result.decodeData.properties（decodeStatus=true），
-       dataHex 仅在 result 不可解析时按 TLV 帧解析（复用现有 frame decoder），
-       同帧 result/dataHex 只入库一次
+  4. 每帧：仅有效 result（decodeStatus=true 且映射出非空业务 readings）
+       才作为 authoritative；无效 result 走 dataHex fallback。当前 TLV fallback
+       覆盖 capsule；tracker 若 result 无效且 dataHex 不可解码，按失败帧处理
   5. readings（键与 blade 通道一致）→ ingest(deviceId, readings, ts, THINGSBOARD)
-  6. 游标 = 本批实际完整处理的最大 ts（事务内与入库一致推进）
+  6. 游标 = 本批连续成功处理前缀的最大 ts；遇到失败帧立即停止该设备后续帧，
+       但不影响其他绑定设备。若崩溃发生在 ingest 与游标保存之间，重启后允许重放，
+       由 (device_id, report_time) / (device_id, recorded_at) 唯一约束吸收重复
 ```
 
 ### 4.3 数据模型：`tb_device_bindings`
@@ -113,18 +122,18 @@ TbTelemetryChannel（@Scheduled，默认 300s，enabled=false 时整个通道不
 | last_event_at / last_verified_at | TIMESTAMP | 最近事件 / 最近绑定校验 |
 | created_at / updated_at | TIMESTAMP | |
 
-约束：`unique(provider, external_device_id)`、`unique(device_id, provider)`。种子数据（迁移内）仅登记验证设备 `001a0103ff00027f`（RESOLVED），其余设备由运维后续插入，不自动全量绑定。
+约束：`unique(provider, external_device_id)`、`unique(device_id, provider)`。种子数据（迁移内）登记两个已验证绑定：tracker `00956906000285cf` 与 capsule `001a0103ff00027f`（均 RESOLVED）。tracker 用于有历史数据的端到端验证，capsule 作为后续验证绑定保留；其余设备由运维后续插入，不自动全量绑定。
 
 ## 5. 关键规则
 
 1. **三变体解析**：TB 设备名大小写敏感，按 `原样 → 大写 → 小写` 依次精确匹配 DevEUI；多变体同时命中不同设备时标 INVALID 并告警日志，不随机绑定。
-2. **同帧单次入库**：`result.decodeStatus=true` 时只处理 `result`，跳过 `dataHex`；`dataHex` 仅作 TLV fallback。
-3. **游标语义**：游标 = 已完整处理的最大源时间；REST 拉取 `startTs=cursor+1ms`；断连/重启不推进边界，靠 startTs 重放天然幂等（时序表无唯一约束，靠游标不回退保证不重拉已处理窗口）。
+2. **同帧单次入库**：仅当 `result.decodeStatus=true` 且 `decodeData.properties` 可解析出非空 readings 时，`result` 才是 authoritative 并抑制同帧 `dataHex`；`decodeStatus=false`、result 缺失、JSON 损坏或映射后为空时必须走 `dataHex` TLV fallback。
+3. **游标语义**：游标 = 连续成功处理前缀的最大源时间；REST 拉取 `startTs=cursor+1ms`。单帧 ingest 失败时禁止推进到该帧之后，必须停止该设备本轮后续帧并保留失败边界供下轮重试。断连、进程崩溃或游标保存前重启按 at-least-once 处理，允许重放，重复帧由数据库唯一约束和同事务回滚吸收。
 4. **limit 截断**：本批达到 limit 时收窄 endTs 续拉，直到不足一批，最后才推进游标。
 5. **时间**：TB `ts` 直接 epoch ms → Instant（UTC），不做墙钟换算（教训 #17）。
 6. **401 自愈**：任何 TB 调用收到 401 → 重新登录一次并重放该请求，再失败才抛错；登录失败计数告警日志。
-7. **fail-open 隔离**：TB 通道任何异常不得影响 blade 通道与 API 服务（异常捕获 + warn 日志 + 下轮重试）。
-8. **双写防护**：`blade-exclusion=true` 时 Dispatcher 排除已绑设备；该开关默认 false——Phase 1 种子仅含 blade 无数据的胶囊设备，天然无重叠。
+7. **fail-open 隔离**：TB 通道异常不得阻断 blade Dispatcher、其他绑定设备或 API 服务（异常捕获 + warn 日志 + 下轮重试）。注意这不等于为已路由到 TB 的设备提供 blade 故障回退。
+8. **双写防护与路由语义**：`blade-exclusion=true` 时 Dispatcher 排除已绑设备，表示该设备的数据源路由到 TB；TB 故障期间这些设备会出现采集延迟，直到 TB 恢复。该开关默认 false。Phase 3 批量启用前必须补充 TB 不可用告警，或实现明确的 blade 回退策略。
 9. **凭据**：`SMARTLIVESTOCK_TB_USERNAME / SMARTLIVESTOCK_TB_PASSWORD` env 注入，不落库不硬编码；当前密码已曾在会话中暴露，上线前应轮换。
 
 ## 6. 解析映射（result.decodeData.properties → readings）
@@ -156,20 +165,25 @@ Tracker 帧走 `applyAccelerometerConversion`；GPS 越界值沿用现有 clamp 
 | `smartlivestock.tb.lookback-days` | `7` | 首次绑定（cursor=null）回看窗口 |
 | `smartlivestock.tb.batch-size` | `200` | 单设备单次 limit |
 | `smartlivestock.tb.blade-exclusion` | `false` | Dispatcher 排除已绑设备开关 |
+| `smartlivestock.tb.tenant-id` | 空 | Phase 1 单接入范围租户；启用 tenant-scoped 绑定查询时必填 |
+
+Phase 1 允许单接入范围读取绑定；Phase 3 多租户/批量接入前必须改为显式 tenant-scoped 查询，禁止跨租户调度绑定设备。
 
 ## 8. 验收标准
 
-- [ ] 绑定表迁移 + 种子部署 dev 成功；`001a0103ff00027f` 绑定 RESOLVED
+- [ ] 绑定表迁移 + 种子部署 dev 成功；`00956906000285cf` 与 `001a0103ff00027f` 均绑定 RESOLVED
 - [ ] TB 通道轮询后 `device_telemetry_logs` 出现 `source=THINGSBOARD` 记录，设备快照更新正常（告警评估按现有设计仅对 AGENTIC_PLATFORM 来源触发，TB 来源暂不触发告警，如需放开另行决策）
-- [ ] 游标单调推进；重启后不重复拉取已处理窗口
+- [ ] 游标单调推进；失败帧之后的帧不被处理，游标不越过失败帧；崩溃后重放不产生重复 telemetry/GPS 记录
 - [ ] 未绑定设备 blade 通道行为与现状一致（回归：目标测试 + dev 巡检日志）
 - [ ] `enabled=false`（默认）时零行为变化（不装配、不建 HTTP 连接）
-- [ ] 单元测试：properties→readings 映射、同帧单次、游标推进与 limit 续拉、401 自愈、三变体解析
+- [ ] 单元测试：properties→readings 映射、同帧单次、`decodeStatus=false`/坏 result 走 fallback、失败帧阻断游标、limit 截断续拉、401 自愈、三变体解析、blade exclusion、GPS clamp、非 ACTIVE 容错
 - [ ] `./gradlew compileJava` + 目标测试全绿；dev 部署健康检查通过
 
 ## 9. 风险与开放问题
 
 1. 胶囊 `001a0103ff000262` 物理层未上线（lastActivity=never），通道不解决设备本体问题，需另行排查 NS/密钥/网关覆盖。
 2. TB 密码已在排查会话中明文暴露，上线前轮换。
-3. 追踪器双源（blade + TB）并存时的 canonical 去重留待 Phase 3 决策。
-4. TB 生产环境地址与凭据分发方式待平台团队提供（当前仅 test）。
+3. `blade-exclusion=true` 当前不提供 blade 故障回退；Phase 3 批量启用前需要补充可用性告警或回退策略。
+4. 追踪器双源（blade + TB）并存时的 canonical 去重留待 Phase 3 决策。
+5. 多租户批量接入前必须补 tenant-scoped 绑定查询与测试。
+6. TB 生产环境地址与凭据分发方式待平台团队提供（当前仅 test）。
