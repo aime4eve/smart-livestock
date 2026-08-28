@@ -5,6 +5,7 @@
 > - `docs/superpowers/plans/2026-08-28-tb-telemetry-channel-plan.md`
 > **评审日期**：2026-08-28 · **方法**：16 项事实断言逐条对照代码库（子代理核查 + 主评审抽验）+ Linear NIX-179 现状核对
 > **评审基线**：分支 `nix/tb-telemetry-channel` 当前 HEAD（迁移已至 V20260828130000）
+> **整改状态**：F1-F8 已于 2026-08-28 关闭；F1 初稿误判已修正，dev 已完成迁移与幂等重放复验
 
 ---
 
@@ -26,7 +27,7 @@
 | 2 | 入库层：ingest 四参单事务含快照+五时序表+告警+游标；GPS 特例异步 | ⚠️ 四参签名属实（:72）；GPS outbox→Scheduler 属实；**「单事务」不成立**：temperature/rumen_motility/activity 经 SpringEventPublisher→RocketMQ `telemetry-received`→HealthApplicationService **异步独立事务**写入；**anomaly_scores 无活跃写入方**（assess() 被注释） | TelemetryIngestionService.java:72,132-135；SpringEventPublisher.java:54-58；HealthApplicationService.java:112-119 |
 | 3 | TelemetrySource 现有四值，本次新增 THINGSBOARD | ❌ **已含 THINGSBOARD 共五值**（实现先行） | TelemetrySource.java:6-17 |
 | 4 | 「告警评估仅对 AGENTIC_PLATFORM 来源触发」 | ⚠️ **仅设备告警（tamper/低电量）属实**（TelemetryIngestionService:115-117）；**围栏告警来源无关**（GpsLogEventConsumer:60-65 仅排除 MANUAL_IMPORT，THINGSBOARD 照常触发 FENCE_BREACH/APPROACH）；AI 异常告警全来源停用 | TelemetryIngestionService.java:115-117；GpsLogEventConsumer.java:60-65,114-133 |
-| 5 | 崩溃重放由 (device_id, report_time/recorded_at) 唯一约束吸收 | ❌ **四张时序表均为按月分区、PK (id, 时间列)、无 (device_id, time) 唯一约束**；唯一约束仅 GPS 两表（uq_gps_logs_device_recorded_at 等）；temperature 另有应用层 existsBy 去重；**motility/activity/device_telemetry_logs 无任何去重** | V20260709120000:56；V20:18,51,84；V20260720120000:32；HealthApplicationService.java:146-148 |
+| 5 | 崩溃重放由 (device_id, report_time/recorded_at) 唯一约束吸收 | ⚠️ **DTL/GPS 幂等约束存在，可阻断重复行；但通道未把重复冲突归类为幂等成功**。`device_telemetry_logs` 有 `uq_dtl_device_report_time`，GPS task/log 有 `(device_id, recorded_at)` 唯一约束；temperature 另有应用层去重，motility/activity 无唯一约束。由于 ingest 先写 DTL/GPS task 且在同一事务内发布事件，重复帧会在事件发布前触发唯一约束并回滚，正常不会污染下游表。真正缺口是：按“失败帧阻断游标”修正后，重复冲突必须识别为已处理成功，否则游标会被已存在帧卡住 | V20260718120000:31-34；V20260720120000:31-33；V20260822200000:17；TelemetryIngestionService.java:105-124,214-247；TbTelemetryChannel.java:115-123 |
 | 6 | TLV fallback 覆盖 capsule；tracker 无 fallback 按失败帧处理 | ✅ decodeHexFallback 非 CAPSULE 返回 null（TbTelemetryFrameParser:125-133）；blade 侧同样仅 capsule | TbTelemetryFrameParser.java:125-133 |
 | 7 | 加速度转换 + GPS clamp 沿用 | ✅（clamp 细节：\|值\|≥1000 置 null 防 DECIMAL 溢出 + ingest 层 \|lat\|>90 丢弃，spec 措辞略粗但方向正确） | AgenticPlatformReportData.java:131-150；TbTelemetryChannel.java:125-134 |
 | 8 | stepNumber 累计→增量在 ingest 内 | ✅ computeStepDelta（ingest:108-109,156-176） | TelemetryIngestionService.java:156-176 |
@@ -45,10 +46,9 @@
 
 ### P1（验收前提级 / 数据正确性）
 
-**F1｜重放吸收断言失实——at-least-once 重放将产生重复行**
-spec §4.2-6 与 §5.3 两处声称「崩溃重放允许，重复由 (device_id, report_time)/(device_id, recorded_at) 唯一约束吸收」。实测：temperature/rumen_motility/activity/device_telemetry_logs 四表**均无该唯一约束**（按月分区表，PK 含 id），唯一约束只在 GPS 两表；temperature 有应用层 existsBy 去重，**其余三表连应用层去重都没有**。游标保存滞后于 ingest 的崩溃窗口真实存在（ingest:132-135），一旦发生，三表写重复行且无兜底。
-这正是 smart-parking 审计 NIX-174（B3-F2 去重竞态）同类问题——那边靠唯一索引+异常归类吸收，这边连索引都不存在。
-**整改方向**：① 分区表补 (device_id, recorded_at) 唯一索引（按月分区内唯一即可，需评估分区键组合）或 ② temperature 的 existsBy 模式推广到其余三表，或 ③ 显式接受重复并在 spec 标注「重放可能产生少量重复时序行，下游聚合幂等」。三选一，写入 spec §5.3 并补回归。
+**F1｜重放幂等冲突未归类——at-least-once 重放会阻塞连续成功游标**
+初稿断言「DTL 无唯一约束、重放必然产生重复行」不准确，已修正：`device_telemetry_logs` 现有 `uq_dtl_device_report_time`，GPS task/log 也有 `(device_id, recorded_at)` 唯一约束；`ingest()` 每帧先写 DTL/GPS task，再发布下游事件，重复帧会在事件发布前触发约束并回滚，因此正常不会重复污染 motility/activity。
+真实缺口是通道层未区分“幂等重复”与“业务失败”：当前 `ingestFrame()` 捕获所有异常后继续推进游标；若按 spec 修成失败帧阻断游标，已存在 DTL 行的重放帧会持续触发唯一约束，游标将卡在该帧。整改应在 ingest/通道边界显式识别已处理帧并视为成功，或入库前做存在性检查，并补“DTL 已存在时重放可推进游标且不重复发布事件”的回归。
 
 **F2｜spec §3「现有架构基线」三处失实，已丧失基线资格**
 ① 「内部 RocketMQ → Worker」派发跳已被移除（积压原因改线程池直调）；② 「单事务入库」不成立（三张时序表异步独立事务）；③ anomaly_scores 写入是死路径（assess() 注释，任何来源都不产 AI 告警）。spec 作为「现状基线 + 设计依据」，这三处会直接误导 Phase 2/3 的设计决策（例如 Phase 2 若依赖「单事务原子性」推游标语义即踩坑）。
@@ -93,7 +93,7 @@ PENDING/RESOLVED/INVALID 三值仅靠应用层枚举，迁移未加 CHECK——�
 | # | 动作 | 类型 | 关联 |
 |---|------|------|------|
 | 1 | spec §3 架构基线重写（MQ 跳移除 / 单事务面 vs 异步面 / anomaly 死路径） | 文档 | F2 |
-| 2 | spec §5.3/§4.2-6 重放吸收方案三选一并落地（约束 or existsBy 推广 or 显式接受） | 代码+文档 | F1 |
+| 2 | 重放冲突归类为幂等成功，补 DTL 已存在时的游标推进回归 | 代码+文档 | F1 |
 | 3 | 设备告警门控决策：放开 THINGSBOARD 或风险标注 + exclusion 文档加注 | 决策+代码/文档 | F3 |
 | 4 | normalizeSource 白名单补 THINGSBOARD + 回归 | 代码 | F4 |
 | 5 | 文档定位改「实现对齐版」，plan 标注各 Task 实际状态，Task 7 改验证收尾口径 | 文档 | F5 |
@@ -102,6 +102,19 @@ PENDING/RESOLVED/INVALID 三值仅靠应用层枚举，迁移未加 CHECK——�
 | 8 | plan Task 7 回链上一轮评审项清单 | 文档 | F8 |
 
 建议 F1/F3/F4/F7 在 NIX-179 内闭环（属 Phase 1 验收完备性）；文档侧 1/5/6/8 随本轮修订完成。
+
+### 整改关闭记录
+
+| 发现项 | 状态 | 关闭证据 |
+|--------|------|----------|
+| F1 | 已关闭 | `TbTelemetryChannel` 将 DTL 已存在/并发唯一冲突归类为幂等成功；游标只推进连续成功前缀；单测覆盖 DTL 重放与失败帧；dev 回拨游标重放后 DTL 397/GPS 390 保持不变，游标恢复 `1784724389803` |
+| F2 | 已关闭 | spec §3 改为线程池直调、同步事务面/异步事件面、AI anomaly 停用现状 |
+| F3 | 已关闭 | 设备 tamper/低电量告警对 `THINGSBOARD` 放开；spec 区分设备告警、GPS 围栏告警、AI 异常告警；单测覆盖 TB 设备告警 |
+| F4 | 已关闭 | `normalizeSource` 保留 `THINGSBOARD`；V20260828140000 扩展 health/estrus source CHECK；单测覆盖 source 保留 |
+| F5 | 已关闭 | spec/plan 改为实现对齐版并标注各任务当前状态 |
+| F6 | 已关闭 | spec 标注种子 UUID 绑定当前 TB test 环境、guarded insert 语义（dev 仅 tracker 生效），并补 `last_verified_at` / INVALID 维护语义 |
+| F7 | 已关闭 | V20260828140000 增加 `chk_tb_bindings_status`，dev 确认约束已创建并传播到分区 |
+| F8 | 已关闭 | plan Task 7 回链本文档，并在本节记录逐项关闭状态 |
 
 ---
 

@@ -230,4 +230,19 @@ class HealthApplicationServiceTelemetryTest {
         verify(tempLogRepo).save(captor.capture());
         assertEquals("UNKNOWN", captor.getValue().getSource());
     }
+
+    @Test
+    void processTelemetry_thingsBoardSource_isPreserved() {
+        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(new HealthSnapshot()));
+        when(tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(10L, 10)).thenReturn(List.of());
+        when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(10L), anyInt())).thenReturn(List.of());
+
+        service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE,
+                Map.of("temperature", 38.5), Instant.parse("2026-08-28T10:00:00Z"),
+                "THINGSBOARD");
+
+        ArgumentCaptor<TemperatureLog> captor = ArgumentCaptor.forClass(TemperatureLog.class);
+        verify(tempLogRepo).save(captor.capture());
+        assertEquals("THINGSBOARD", captor.getValue().getSource());
+    }
 }

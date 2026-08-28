@@ -11,7 +11,7 @@ public interface TbDeviceBindingRepository {
 
     Optional<TbDeviceBinding> findById(Long id);
 
-    List<TbDeviceBinding> findByStatus(TbDeviceBinding.Status status);
+    List<TbDeviceBinding> findByTenantIdAndStatus(Long tenantId, TbDeviceBinding.Status status);
 
     Optional<TbDeviceBinding> findByDeviceIdAndProvider(Long deviceId, String provider);
 

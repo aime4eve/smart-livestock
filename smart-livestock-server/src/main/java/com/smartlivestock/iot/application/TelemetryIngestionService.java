@@ -41,7 +41,7 @@ import java.util.Map;
  *   <li>Updates device runtime status snapshot (devices table)</li>
  *   <li>Writes device operational timeseries (device_telemetry_logs)</li>
  *   <li>Enqueues GPS writes for TRACKER devices (durable outbox)</li>
- *   <li>Detects device alerts (tamper / low battery) — only for AGENTIC_PLATFORM source</li>
+ *   <li>Detects device alerts (tamper / low battery) for live platform sources</li>
  *   <li>Publishes TelemetryReceivedEvent for cross-context consumption</li>
  *   <li>Advances sync cursor — only for AGENTIC_PLATFORM source</li>
  * </ol>
@@ -111,8 +111,8 @@ public class TelemetryIngestionService {
         // 3. Enqueue GPS for TRACKER devices; gps_logs is written by the outbox worker.
         enqueueGps(device, readings, effectiveRecordedAt, source);
 
-        // 4. Detect device alerts (only for AGENTIC_PLATFORM source)
-        if (source == TelemetrySource.AGENTIC_PLATFORM) {
+        // 4. Keep device alerts aligned for the two live platform channels.
+        if (source == TelemetrySource.AGENTIC_PLATFORM || source == TelemetrySource.THINGSBOARD) {
             detectDeviceAlerts(device, farmId, readings);
         }
 

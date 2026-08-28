@@ -30,6 +30,11 @@ public class JpaDeviceTelemetryLogRepositoryImpl implements DeviceTelemetryLogRe
     }
 
     @Override
+    public boolean existsByDeviceIdAndReportTime(Long deviceId, Instant reportTime) {
+        return springDataRepo.existsByDeviceIdAndReportTime(deviceId, reportTime);
+    }
+
+    @Override
     public List<Instant> findReportTimesByDeviceIdAndReportTimeBetween(Long deviceId, Instant min, Instant max) {
         return springDataRepo.findReportTimesByDeviceIdAndReportTimeBetween(deviceId, min, max);
     }

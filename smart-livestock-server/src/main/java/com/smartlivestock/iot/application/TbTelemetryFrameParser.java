@@ -31,13 +31,26 @@ public final class TbTelemetryFrameParser {
 
     public record Frame(long ts, Map<String, Object> readings) {}
 
+    public static class FrameParseException extends RuntimeException {
+        FrameParseException(String message) {
+            super(message);
+        }
+    }
+
     public static List<Frame> extractFrames(JsonNode timeseries, DeviceType deviceType) {
         TreeMap<Long, Map<String, Object>> resultFrames = new TreeMap<>();
         TreeMap<Long, String> hexFrames = new TreeMap<>();
+        TreeMap<Long, String> invalidFrames = new TreeMap<>();
         Map<Long, Map<String, Object>> transport = new HashMap<>();
 
-        collectPoints(timeseries, "result", (ts, value) ->
-                resultFrames.put(ts, parseResultProperties(value)));
+        collectPoints(timeseries, "result", (ts, value) -> {
+            Map<String, Object> readings = parseResultProperties(value);
+            if (readings == null || readings.isEmpty()) {
+                invalidFrames.put(ts, value.asText());
+            } else {
+                resultFrames.put(ts, readings);
+            }
+        });
         collectPoints(timeseries, "dataHex", (ts, value) ->
                 hexFrames.put(ts, value.asText()));
         collectPoints(timeseries, "rssi", (ts, value) ->
@@ -59,14 +72,30 @@ public final class TbTelemetryFrameParser {
             }
             Map<String, Object> readings = decodeHexFallback(entry.getValue(), deviceType);
             if (readings == null) {
-                log.debug("[TB] dataHex at {} not decodable and no result key, skipping", entry.getKey());
+                invalidFrames.put(entry.getKey(), entry.getValue());
                 continue;
             }
+            removeInvalidResultNearby(invalidFrames, entry.getKey());
             readings.putAll(transport.getOrDefault(entry.getKey(), Map.of()));
             frames.add(new Frame(entry.getKey(), readings));
         }
+        if (!invalidFrames.isEmpty()) {
+            throw new FrameParseException("Undecodable TB frames at timestamps " + invalidFrames.keySet());
+        }
         frames.sort(Comparator.comparingLong(Frame::ts));
         return frames;
+    }
+
+    private static void removeInvalidResultNearby(TreeMap<Long, String> invalidFrames, long ts) {
+        Long floor = invalidFrames.floorKey(ts);
+        if (floor != null && ts - floor <= SAME_FRAME_WINDOW_MS) {
+            invalidFrames.remove(floor);
+            return;
+        }
+        Long ceiling = invalidFrames.ceilingKey(ts);
+        if (ceiling != null && ceiling - ts <= SAME_FRAME_WINDOW_MS) {
+            invalidFrames.remove(ceiling);
+        }
     }
 
     private static boolean hasResultFrameNearby(TreeMap<Long, Map<String, Object>> resultFrames, long ts) {
@@ -83,10 +112,13 @@ public final class TbTelemetryFrameParser {
                 decoded = new com.fasterxml.jackson.databind.ObjectMapper().readTree(resultValue.asText());
             } catch (Exception e) {
                 log.warn("[TB] result is not valid JSON: {}", e.getMessage());
-                return Map.of();
+                return null;
             }
         } else {
             decoded = resultValue;
+        }
+        if (!decoded.path("decodeStatus").asBoolean(false)) {
+            return null;
         }
         JsonNode props = decoded.path("decodeData").path("properties");
         Map<String, Object> readings = new LinkedHashMap<>();

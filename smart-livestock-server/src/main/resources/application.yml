@@ -102,3 +102,4 @@ smartlivestock:
     lookback-days: ${SMARTLIVESTOCK_TB_LOOKBACK_DAYS:7}
     batch-size: ${SMARTLIVESTOCK_TB_BATCH_SIZE:200}
     blade-exclusion: ${SMARTLIVESTOCK_TB_BLADE_EXCLUSION:false}
+    tenant-id: ${SMARTLIVESTOCK_TB_TENANT_ID:1}

@@ -6,12 +6,14 @@ import com.smartlivestock.iot.domain.model.DeviceStatus;
 import com.smartlivestock.iot.domain.model.TelemetrySource;
 import com.smartlivestock.iot.domain.model.TbDeviceBinding;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
+import com.smartlivestock.iot.domain.repository.DeviceTelemetryLogRepository;
 import com.smartlivestock.iot.domain.repository.TbDeviceBindingRepository;
 import com.smartlivestock.iot.infrastructure.client.thingsboard.TbClient;
 import com.smartlivestock.iot.infrastructure.client.thingsboard.TbProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -38,11 +40,17 @@ public class TbTelemetryChannel {
     private final TbClient tbClient;
     private final TbDeviceBindingRepository bindingRepository;
     private final DeviceRepository deviceRepository;
+    private final DeviceTelemetryLogRepository deviceTelemetryLogRepository;
     private final TelemetryIngestionService ingestionService;
 
     @Scheduled(fixedDelayString = "${smartlivestock.tb.poll-interval-ms:300000}")
     public void poll() {
-        List<TbDeviceBinding> bindings = bindingRepository.findByStatus(TbDeviceBinding.Status.RESOLVED);
+        if (properties.getTenantId() == null || properties.getTenantId() <= 0) {
+            log.error("[TB] invalid tenant-id {}, skip cycle", properties.getTenantId());
+            return;
+        }
+        List<TbDeviceBinding> bindings = bindingRepository.findByTenantIdAndStatus(
+                properties.getTenantId(), TbDeviceBinding.Status.RESOLVED);
         if (bindings.isEmpty()) return;
         log.info("[TB] polling {} bound device(s)", bindings.size());
         for (TbDeviceBinding binding : bindings) {
@@ -72,12 +80,20 @@ public class TbTelemetryChannel {
                 : now - properties.getLookbackDays() * 86_400_000L;
         long overallMaxTs = Long.MIN_VALUE;
         int pages = 0;
+        boolean failed = false;
 
         while (pages < MAX_PAGES_PER_CYCLE) {
-            JsonNode timeseries = tbClient.fetchTimeseries(
-                    binding.getExternalDeviceId(), pageStart, now, properties.getBatchSize());
-            List<TbTelemetryFrameParser.Frame> frames =
-                    TbTelemetryFrameParser.extractFrames(timeseries, device.getDeviceType());
+            List<TbTelemetryFrameParser.Frame> frames;
+            try {
+                JsonNode timeseries = tbClient.fetchTimeseries(
+                        binding.getExternalDeviceId(), pageStart, now, properties.getBatchSize());
+                frames = TbTelemetryFrameParser.extractFrames(timeseries, device.getDeviceType());
+            } catch (Exception e) {
+                log.warn("[TB] device {} page failed at {}: {}",
+                        device.getId(), pageStart, e.getMessage());
+                failed = true;
+                break;
+            }
             if (frames.isEmpty()) break;
 
             long batchMaxTs = Long.MIN_VALUE;
@@ -85,12 +101,16 @@ public class TbTelemetryChannel {
                 // Continuation pages re-fetch the boundary frame (startTs is
                 // inclusive); skip already-ingested frames.
                 if (pages > 0 && frame.ts() <= pageStart) continue;
-                ingestFrame(binding, device, frame);
+                if (!ingestFrame(device, frame)) {
+                    failed = true;
+                    break;
+                }
                 batchMaxTs = Math.max(batchMaxTs, frame.ts());
             }
-            if (batchMaxTs == Long.MIN_VALUE) break;
-            overallMaxTs = Math.max(overallMaxTs, batchMaxTs);
             pages++;
+            overallMaxTs = Math.max(overallMaxTs, batchMaxTs);
+            if (failed) break;
+            if (batchMaxTs == Long.MIN_VALUE) break;
             if (frames.size() < properties.getBatchSize() || batchMaxTs == Long.MIN_VALUE) break;
             // Limit truncation: continue from the boundary frame onward.
             pageStart = batchMaxTs;
@@ -104,22 +124,31 @@ public class TbTelemetryChannel {
         }
     }
 
-    private void ingestFrame(TbDeviceBinding binding, Device device,
-                             TbTelemetryFrameParser.Frame frame) {
+    private boolean ingestFrame(Device device, TbTelemetryFrameParser.Frame frame) {
         Map<String, Object> readings = new java.util.HashMap<>(frame.readings());
         clampGps(readings, device.getId());
         if (device.getDeviceType() == com.smartlivestock.iot.domain.model.DeviceType.TRACKER) {
             com.smartlivestock.iot.application.AgenticPlatformReportData
                     .applyAccelerometerConversion(readings);
         }
-        try {
-            ingestionService.ingest(device.getId(), readings,
-                    Instant.ofEpochMilli(frame.ts()), TelemetrySource.THINGSBOARD);
-        } catch (Exception e) {
-            // Per-frame fail-open: one bad frame (e.g. STATE_CONFLICT on a
-            // deactivated device) must not abort the remaining frames.
-            log.warn("[TB] device {} frame {} ingest failed: {}", device.getId(), frame.ts(), e.getMessage());
+        Instant recordedAt = Instant.ofEpochMilli(frame.ts());
+        if (deviceTelemetryLogRepository.existsByDeviceIdAndReportTime(device.getId(), recordedAt)) {
+            log.debug("[TB] device {} frame {} already ingested", device.getId(), frame.ts());
+            return true;
         }
+        try {
+            ingestionService.ingest(device.getId(), readings, recordedAt, TelemetrySource.THINGSBOARD);
+        } catch (Exception e) {
+            if (e instanceof DataIntegrityViolationException
+                    && deviceTelemetryLogRepository.existsByDeviceIdAndReportTime(device.getId(), recordedAt)) {
+                log.info("[TB] device {} frame {} concurrently ingested", device.getId(), frame.ts());
+                return true;
+            }
+            log.warn("[TB] device {} frame {} ingest failed: {}",
+                    device.getId(), frame.ts(), e.getMessage());
+            return false;
+        }
+        return true;
     }
 
     private void clampGps(Map<String, Object> readings, Long deviceId) {

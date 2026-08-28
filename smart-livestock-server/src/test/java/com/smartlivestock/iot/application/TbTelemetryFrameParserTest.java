@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class TbTelemetryFrameParserTest {
 
@@ -17,6 +18,10 @@ class TbTelemetryFrameParserTest {
         return mapper.writeValueAsString(Map.of(
                 "decodeStatus", true,
                 "decodeData", Map.of("properties", properties)));
+    }
+
+    private String rawResult(String raw) {
+        return raw;
     }
 
     @Test
@@ -75,6 +80,43 @@ class TbTelemetryFrameParserTest {
         assertThat(frames).hasSize(1);
         assertThat(frames.get(0).readings().get("battery")).isEqualTo(50);
         assertThat(frames.get(0).readings().get("gastricMotility")).isEqualTo(10000L);
+    }
+
+    @Test
+    void shouldFallbackToTlvWhenDecodeStatusIsFalse() throws Exception {
+        String hex = "686B7405010332" + "4900002710";
+        var node = mapper.readTree(mapper.writeValueAsString(Map.of(
+                "result", List.of(Map.of("ts", 1000, "value",
+                        "{\"decodeStatus\":false,\"decodeData\":{\"properties\":{\"battery\":80}}")),
+                "dataHex", List.of(Map.of("ts", 1000, "value", hex)))));
+
+        var frames = TbTelemetryFrameParser.extractFrames(node, DeviceType.CAPSULE);
+
+        assertThat(frames).hasSize(1);
+        assertThat(frames.get(0).readings().get("battery")).isEqualTo(50);
+    }
+
+    @Test
+    void shouldFallbackToTlvWhenResultIsMalformedJson() throws Exception {
+        String hex = "686B7405010332" + "4900002710";
+        var node = mapper.readTree(mapper.writeValueAsString(Map.of(
+                "result", List.of(Map.of("ts", 1000, "value", rawResult("{bad json"))),
+                "dataHex", List.of(Map.of("ts", 1000, "value", hex)))));
+
+        var frames = TbTelemetryFrameParser.extractFrames(node, DeviceType.CAPSULE);
+
+        assertThat(frames).hasSize(1);
+        assertThat(frames.get(0).readings().get("battery")).isEqualTo(50);
+    }
+
+    @Test
+    void shouldRejectInvalidTrackerResultWithoutFallback() throws Exception {
+        var node = mapper.readTree(mapper.writeValueAsString(Map.of(
+                "result", List.of(Map.of("ts", 1000, "value",
+                        "{\"decodeStatus\":false,\"decodeData\":{\"properties\":{\"battery\":80}}")))));
+
+        assertThatThrownBy(() -> TbTelemetryFrameParser.extractFrames(node, DeviceType.TRACKER))
+                .isInstanceOf(TbTelemetryFrameParser.FrameParseException.class);
     }
 
     @Test

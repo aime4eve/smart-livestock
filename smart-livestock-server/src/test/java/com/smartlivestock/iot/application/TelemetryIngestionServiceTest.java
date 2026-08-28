@@ -327,6 +327,21 @@ class TelemetryIngestionServiceTest {
     }
 
     @Test
+    void ingest_thingsBoardDeviceFault_triggersDeviceAlert() {
+        Device device = createTrackerDevice(7L);
+        device.setDeviceCode("TRK-TB");
+        when(deviceRepository.findById(7L)).thenReturn(Optional.of(device));
+        when(installationRepository.findActiveByDeviceId(7L)).thenReturn(Optional.empty());
+
+        service.ingest(7L, Map.of("antiDisassemblyStatus", 1),
+                Instant.now(), TelemetrySource.THINGSBOARD);
+
+        ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
+        verify(alertRepository).save(alertCaptor.capture());
+        assertEquals("alert.device.tamper", alertCaptor.getValue().getMessageKey());
+    }
+
+    @Test
     void ingest_agenticPlatform_updatesSnapshotAndWritesSource() {
         Device device = createTrackerDevice(8L);
 

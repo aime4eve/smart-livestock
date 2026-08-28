@@ -58,6 +58,9 @@ public class AgenticPlatformSyncDispatcher {
     @Value("${smartlivestock.tb.blade-exclusion:false}")
     private boolean tbBladeExclusion;
 
+    @Value("${smartlivestock.tb.tenant-id:1}")
+    private Long tbTenantId;
+
     /** Loaded once per cycle; empty when exclusion is off or no devices bound. */
     private volatile java.util.Set<Long> tbBoundDeviceIds = java.util.Set.of();
 
@@ -122,7 +125,7 @@ public class AgenticPlatformSyncDispatcher {
         }
         try {
             tbBoundDeviceIds = tbDeviceBindingRepository
-                    .findByStatus(TbDeviceBinding.Status.RESOLVED).stream()
+                    .findByTenantIdAndStatus(tbTenantId, TbDeviceBinding.Status.RESOLVED).stream()
                     .map(TbDeviceBinding::getDeviceId)
                     .collect(java.util.stream.Collectors.toSet());
         } catch (Exception e) {

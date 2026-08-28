@@ -121,7 +121,7 @@ public class HealthApplicationService {
 
     private String normalizeSource(String source) {
         return switch (source == null ? "" : source) {
-            case "AGENTIC_PLATFORM", "DATAGEN", "HTTP", "MANUAL_IMPORT" -> source;
+            case "AGENTIC_PLATFORM", "THINGSBOARD", "DATAGEN", "HTTP", "MANUAL_IMPORT" -> source;
             default -> "UNKNOWN";
         };
     }

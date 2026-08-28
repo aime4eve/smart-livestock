@@ -19,4 +19,5 @@ public class TbProperties {
     private int lookbackDays = 7;
     private int batchSize = 200;
     private boolean bladeExclusion = false;
+    private Long tenantId = 1L;
 }

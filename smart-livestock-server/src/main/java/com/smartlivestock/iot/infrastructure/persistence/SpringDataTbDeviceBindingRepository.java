@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface SpringDataTbDeviceBindingRepository
         extends JpaRepository<TbDeviceBindingJpaEntity, Long> {
 
-    List<TbDeviceBindingJpaEntity> findByBindingStatus(String bindingStatus);
+    List<TbDeviceBindingJpaEntity> findByTenantIdAndBindingStatus(Long tenantId, String bindingStatus);
 
     Optional<TbDeviceBindingJpaEntity> findByDeviceIdAndProvider(Long deviceId, String provider);
 

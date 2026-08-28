@@ -22,6 +22,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Locale;
 
 /**
  * ThingsBoard REST client (NIX-179 Phase 1).
@@ -94,8 +95,8 @@ public class TbClient {
         List<String> variants = new ArrayList<>();
         if (eui != null && !eui.isBlank()) {
             variants.add(eui);
-            String upper = eui.toUpperCase();
-            String lower = eui.toLowerCase();
+            String upper = eui.toUpperCase(Locale.ROOT);
+            String lower = eui.toLowerCase(Locale.ROOT);
             if (!variants.contains(upper)) variants.add(upper);
             if (!variants.contains(lower)) variants.add(lower);
         }
