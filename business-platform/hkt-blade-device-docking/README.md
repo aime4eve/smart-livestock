@@ -343,6 +343,94 @@ PENDING_NS
 - `PENDING_INSTALLATION`：本地可采集 DTL/GPS，但设备未安装到牲畜。
 - `ACTIVE`：设备、绑定、安装和业务计算条件全部满足。
 
+### 自动配置前置条件
+
+自动配置不是单一开关，至少分四档；不同档位的输入、权限、外部状态和审批要求不同。
+
+#### A. 本地自动开通
+
+目标：创建本地设备、通道绑定和 active installation。
+
+| 前置条件 | 要求 |
+|----------|------|
+| EUI | 16 位 hex，入库前统一小写 |
+| 设备类型 | 用户确认，或由已确认的 TB Device Profile 推断 |
+| 租户 / 牧场 | 当前用户有租户和牧场权限 |
+| TB 设备 | 若走 TB 通道，必须先有唯一且 profile 正确的 TB deviceId |
+| 牲畜 | 若要围栏和健康计算，用户必须显式选择 livestock；EUI 不能推导牲畜归属 |
+| 幂等键 | 本地 EUI + tenant 唯一，TB binding 按 device + provider 唯一 |
+| 审计 | 记录操作者、EUI、TB deviceId、livestockId、时间和结果 |
+
+没有 livestockId 时可以自动创建设备和绑定，但只能进入 `PENDING_INSTALLATION`，
+不能承诺围栏预警和健康计算。
+
+#### B. TB 单设备自动创建
+
+目标：TB 缺设备但项目路由已通时，通过 TB API 创建正确 profile 的设备。
+
+| 前置条件 | 要求 |
+|----------|------|
+| TB 地址和账号 | 配置 `SMARTLIVESTOCK_TB_BASE_URL / USERNAME / PASSWORD` |
+| TB 权限 | 可登录、查询设备、创建设备、写 server attributes、查询 timeseries |
+| EUI 唯一性 | 原样 / 大写 / 小写三变体精确查询后仍无设备，或只有唯一正确设备 |
+| Device Profile | 必须明确 profile，例如 `瘤胃胶囊-OC-配置-v2` |
+| 项目归属 | 已知 NS project id 和 app id；不能从 EUI 猜测 |
+| 项目路由 | TB Gateway 已订阅该 NS project topic；单设备创建不能替代项目路由 |
+| 验收 | 创建后必须等待或触发真实上行，出现 timeseries 才算通过 |
+
+大小写同名多个 TB 设备、profile 不匹配、项目未知时，禁止自动创建或自动绑定。
+
+#### C. TB Gateway 项目路由辅助配置
+
+目标：NS project 已存在且设备有上行，但 TB Gateway 未订阅该 project topic 时，辅助完成
+`OC` connector mapping 变更。
+
+| 前置条件 | 要求 |
+|----------|------|
+| 变更权限 | 拥有 TB Gateway `OC` shared attribute 读取和更新权限 |
+| 项目允许 | project id 必须在平台允许列表中，禁止全组织通配 |
+| 正常模板 | 已有同设备类型的正常 project mapping 可对照，例如项目 111 |
+| 外部状态 | NS 设备、LoRaWAN App、密钥、网关和项目归属已配置，且 MQTT topic 有真实 payload |
+| 变更方案 | 输出 JSON diff、影响范围、重载方案和回滚方案 |
+| 审批 | 项目级配置影响整批设备，必须管理员确认，不允许新增单设备流程静默修改 |
+| 备份 | 变更前完整备份 `OC` shared attribute JSON，并归档到受控配置库 |
+| 生效验证 | 受控重载 connector 后，用单台设备真实上行验证，再扩大到项目级通配 |
+
+这类配置可以由系统生成方案并辅助应用，不能作为普通用户新增设备时的静默自动配置。
+
+#### D. Blade 兜底注册
+
+目标：TB 不可用但 blade 已有该设备数据时，注册或反查 blade 设备并走既有轮询。
+
+| 前置条件 | 要求 |
+|----------|------|
+| blade 地址 | dev/test 对应 blade device/auth 地址已配置 |
+| OAuth 配置 | client id/secret、service user id、tenant id 有效 |
+| 设备标识 | EUI 或 SN 至少一个可用 |
+| 设备类型 | 本地类型可映射 blade `deviceTypeCode` |
+| 数据验证 | `pageDevices` 能找到 deviceId，且 `report-record/page` 有真实记录 |
+| 路由策略 | TB 可用时不自动把 blade 作为主路由，避免同帧双写 |
+
+blade 注册成功只表示平台存在设备，不表示已有遥测；必须以 `report-record` 为准。
+
+#### E. 禁止自动处理的内容
+
+- NS 设备新增、删除、密钥和 ABP/OTAA 配置。
+- LoRaWAN App、频段、网关绑定和无线电参数。
+- NS project 归属和跨项目迁移。
+- 未审批的 TB Gateway project mapping。
+- 未确认牲畜的 active installation。
+- 用 datagen 生成数据冒充真实接入验收。
+
+完整自动开通的最低输入不是单独一个 EUI，而是：
+
+```text
+EUI + 设备类型或可确认 profile + NS project/app + 期望通道 + livestockId
+```
+
+其中 `livestockId` 只影响围栏和健康计算，不影响 DTL/GPS 采集；`NS project/app` 是 TB 路由
+和项目级配置的前置条件；期望通道决定创建 TB binding 还是 blade `platform_device_id`。
+
 ### 自动化与责任边界
 
 | 配置层 | smart-livestock 是否可自动处理 | 说明 |
