@@ -15,8 +15,9 @@ ThingsBoard 直连、blade 轮询，以及三条链路的取舍。datagen 仿真
 1. `数据采集途径总览`回答“选哪条通道”。
 2. `Blade 对接`、`ThingsBoard 对接`、`NS 平台配置`分别说明各层的数据路径、接口和配置事实。
 3. `统一接入语义与项目级流程`沉淀跨通道的身份、时间、幂等、接入 Checklist 和验收分级。
-4. `数据采集优化审视`在此基础上给出后续工程化和治理方向。
-5. 附录保留原 Phase C PoC 的完整验证记录，供追溯历史结论。
+4. `新增设备预检与缺失配置应对`说明上游未配置时的预检、状态机、降级和待办策略。
+5. `数据采集优化审视`在此基础上给出后续工程化和治理方向。
+6. 附录保留原 Phase C PoC 的完整验证记录，供追溯历史结论。
 
 ## 数据采集途径总览
 
@@ -287,6 +288,89 @@ org/1/project/89/device/001a0103ff000262/dat/up
 
 只达到 L4 时，说明采集通道已打通；L5 还依赖 active installation。验收时必须写明达到的层级，
 不能用 L1 或 L3 代替 L4/L5。
+
+## 新增设备预检与缺失配置应对
+
+新增设备不能把“本地创建成功”等同于“真实遥测可用”。输入 EUI 后应先做四方预检，再决定
+采集路由和待办动作。
+
+### 预检顺序
+
+| 顺序 | 检查对象 | 问题 | 通过证据 |
+|------|----------|------|----------|
+| 1 | NS | 设备是否已入网并上报 | NS 设备存在、项目正确、历史数据有原始 TLV |
+| 2 | NS MQTT | 项目 topic 是否发布 | 订阅或探测收到真实 payload |
+| 3 | TB | 项目路由、设备、profile、timeseries 是否可用 | TB 有正确 profile 设备和 `result/dataHex` |
+| 4 | blade | 设备与上行历史是否可用 | blade 有 `deviceId` 且 `report-record/page` 有记录 |
+| 5 | 本地 | device、binding、installation 是否满足业务计算 | `RESOLVED` binding、active installation 存在 |
+
+预检必须使用真实上行证据；不能用 datagen、接口健康检查或设备在线状态替代。
+
+### 采集路由决策
+
+| 上游状态 | 决策 | 结果 |
+|----------|------|------|
+| NS 无设备或无历史上行 | 阻断真实采集 | 进入 `PENDING_NS`，生成 NS 配置待办 |
+| NS 有上行，TB 有 timeseries | 优先走 TB | 创建 TB binding，等待/触发拉取 |
+| NS 有上行，TB 不可用，blade 有 report-record | 降级走 blade | 绑定 `platform_device_id`，走既有轮询 |
+| NS 有上行，TB 和 blade 均无数据 | 不能承诺采集 | 保留外部配置待办，等待上游打通 |
+| TB 和 blade 均可用 | 只选一个主路由 | 避免同帧双写；另一路只作为备用策略 |
+
+NS 是真实数据源头。NS 未配置时，继续创建 TB 设备、注册 blade 或调大轮询频率都不能产生
+真实遥测。
+
+### 建议状态机
+
+下面的状态是新增设备向导的设计语义，不要求直接等同于当前数据库字段：
+
+```text
+PENDING_NS
+  → PENDING_TB_PROJECT
+  → PENDING_TB_DEVICE
+  → PENDING_TELEMETRY
+  → READY_TO_INGEST
+  → PENDING_INSTALLATION
+  → ACTIVE
+```
+
+状态含义：
+
+- `PENDING_NS`：设备未入 NS、项目错误、密钥缺失或无原始上行。
+- `PENDING_TB_PROJECT`：TB Gateway 未订阅该项目 MQTT topic。
+- `PENDING_TB_DEVICE`：项目路由存在，但 TB 设备不存在或 profile 不匹配。
+- `PENDING_TELEMETRY`：配置已存在，但尚未看到真实设备上行。
+- `READY_TO_INGEST`：TB 或 blade 已有真实数据，可创建本地设备与通道绑定。
+- `PENDING_INSTALLATION`：本地可采集 DTL/GPS，但设备未安装到牲畜。
+- `ACTIVE`：设备、绑定、安装和业务计算条件全部满足。
+
+### 自动化与责任边界
+
+| 配置层 | smart-livestock 是否可自动处理 | 说明 |
+|--------|-------------------------------|------|
+| 本地 `devices` | 可以 | EUI 小写、设备类型、租户和设备编码可向导确认后创建 |
+| 本地 `tb_device_bindings` | 可以 | TB deviceId 和 profile 校验通过后创建 `RESOLVED` 绑定 |
+| active installation | 可以，但必须用户确认 | EUI 不能推导牲畜归属，用户必须选择牲畜 |
+| TB 单设备创建 | 有权限时可以 | 需指定正确 Device Profile；仍不能替代项目 topic mapping |
+| TB Gateway project mapping | 不应静默自动修改 | 项目级配置影响整批设备，必须备份、审批、重载和真实验证 |
+| NS 设备 / 密钥 / LoRaWAN App / 项目归属 | 不自动处理 | 涉及设备身份、无线电配置和平台权限，由 NS 管理员处理 |
+| blade 设备注册 | 可以尝试 | 但 blade 数据依赖 TB→Kafka→blade，注册成功不代表有 report-record |
+
+### 界面待办面板
+
+新增设备结果页应展示阻塞原因和下一步，而不是只显示“创建成功”：
+
+| 状态 | 用户可见提示 | 下一步 |
+|------|--------------|--------|
+| `PENDING_NS` | NS 未配置或设备无上行 | 生成 NS 配置申请：入网、密钥、App、project、网关 |
+| `PENDING_TB_PROJECT` | TB 项目路由未配置 | 生成 project topic mapping 审批单 |
+| `PENDING_TB_DEVICE` | TB 设备不存在或 profile 错误 | 自动创建 TB 设备，或提示等待下一帧自动创建 |
+| `PENDING_TELEMETRY` | 配置已提交，等待真实上行 | 展示预计等待时间和最近一次检查结果 |
+| `READY_TO_INGEST` | 上游数据已可用 | 创建本地设备和通道绑定，立即触发拉取 |
+| `PENDING_INSTALLATION` | 可采集遥测，围栏和健康计算未启用 | 引导用户选择牲畜并创建 active installation |
+| `ACTIVE` | 采集与业务计算已启用 | 展示首次 DTL/GPS/health 证据 |
+
+上游配置完成后，系统可以自动或半自动继续执行：重新预检 → 创建本地绑定 → 拉取最近
+遥测 → 更新开通状态。若仍无数据，必须保留原状态和最新检查时间，不能把设备误标为 ACTIVE。
 
 ## 数据采集优化审视
 
