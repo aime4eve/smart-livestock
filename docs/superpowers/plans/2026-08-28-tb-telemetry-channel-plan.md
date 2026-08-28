@@ -3,7 +3,7 @@
 > Date: 2026-08-28\
 > Spec: `docs/superpowers/specs/2026-08-28-tb-telemetry-channel-design.md`\
 > Issue: NIX-179（Parent: NIX-142）\
-> 策略: 实现对齐版。Phase 1 代码已在分支落地，本计划用于记录缺口整改与验证收尾；全部完成后部署 dev 做端到端验证，test 部署等待用户通知。完整评审锚点：`docs/reviews/2026-08-28-tb-telemetry-channel-spec-plan-review.md`
+> 策略: 实现对齐版。Phase 1 代码已在分支落地，本计划用于记录缺口整改与验证收尾；dev/test 均已完成部署与端到端验证，等待用户集成测试。完整评审锚点：`docs/reviews/2026-08-28-tb-telemetry-channel-spec-plan-review.md`
 
 ---
 
@@ -67,4 +67,4 @@
 
 1. 按 `docs/reviews/2026-08-28-tb-telemetry-channel-spec-plan-review.md` 的 F1-F8 逐项关闭，并在该文档回填关闭状态。
 2. 更新 Linear NIX-179 评论，附 spec/plan 修订说明、目标测试结果和 dev 验证证据。
-3. 提交分支 `nix/tb-telemetry-channel` 并推送；test 环境部署等待用户通知。
+3. test 部署与复验已完成：四个 NIX-179 迁移均成功；tracker 产生 397 行 DTL / 390 行 GPS；游标回拨重放后行数不变并恢复 `1784724389803`。

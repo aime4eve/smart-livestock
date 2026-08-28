@@ -107,7 +107,7 @@ PENDING/RESOLVED/INVALID 三值仅靠应用层枚举，迁移未加 CHECK——�
 
 | 发现项 | 状态 | 关闭证据 |
 |--------|------|----------|
-| F1 | 已关闭 | `TbTelemetryChannel` 将 DTL 已存在/并发唯一冲突归类为幂等成功；游标只推进连续成功前缀；单测覆盖 DTL 重放与失败帧；dev 回拨游标重放后 DTL 397/GPS 390 保持不变，游标恢复 `1784724389803` |
+| F1 | 已关闭 | `TbTelemetryChannel` 将 DTL 已存在/并发唯一冲突归类为幂等成功；游标只推进连续成功前缀；单测覆盖 DTL 重放与失败帧；dev/test 回拨游标重放后 DTL 397/GPS 390 均保持不变，游标恢复 `1784724389803` |
 | F2 | 已关闭 | spec §3 改为线程池直调、同步事务面/异步事件面、AI anomaly 停用现状 |
 | F3 | 已关闭 | 设备 tamper/低电量告警对 `THINGSBOARD` 放开；spec 区分设备告警、GPS 围栏告警、AI 异常告警；单测覆盖 TB 设备告警 |
 | F4 | 已关闭 | `normalizeSource` 保留 `THINGSBOARD`；V20260828140000 扩展 health/estrus source CHECK；单测覆盖 source 保留 |

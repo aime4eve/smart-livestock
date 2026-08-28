@@ -1,7 +1,7 @@
 # ThingsBoard 遥测直连通道设计（Phase 1 REST）
 
 > Date: 2026-08-28\
-> Status: 实现对齐版，评审整改已验证，待 test 部署与用户验收\
+> Status: 实现对齐版，dev/test 已部署验证，待用户验收\
 > Issue: NIX-179（Parent: NIX-142）\
 > 参照: smart-parking NIX-80 决策文档（`04-smart-parking/docs/research/2026-07-30-blade数据采集通道设计决策.md`）与 NIX-122 正式通道 spec（`04-smart-parking/docs/features/tb-telemetry-channel/spec.md`）\
 > Plan: `docs/superpowers/plans/2026-08-28-tb-telemetry-channel-plan.md`
