@@ -96,4 +96,14 @@ class NsClientTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("disabled");
     }
+
+    @Test
+    void enabledClientShouldRequireCredentials() {
+        properties.setEnabled(true);
+        properties.setUsername("ns-user");
+        properties.setPassword("");
+        assertThatThrownBy(properties::validateCredentials)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("smartlivestock.ns.enabled=true");
+    }
 }

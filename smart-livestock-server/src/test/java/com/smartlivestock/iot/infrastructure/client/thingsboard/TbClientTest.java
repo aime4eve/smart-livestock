@@ -151,4 +151,13 @@ class TbClientTest {
         assertThat(client.fetchLatestTelemetryTs("tb-1"))
                 .isEqualTo(Instant.ofEpochMilli(1787938283391L));
     }
+
+    @Test
+    void enabledClientShouldRequireCredentials() {
+        TbProperties insecure = new TbProperties();
+        insecure.setEnabled(true);
+        assertThatThrownBy(insecure::validateCredentials)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("smartlivestock.tb.enabled=true");
+    }
 }

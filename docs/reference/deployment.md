@@ -33,6 +33,7 @@ cd smart-livestock-server
 - `.env`（test）和 `.env.dev`（dev）在远程手动维护，不随 rsync 覆盖
 - `.env.example` / `.env.dev.example` 是可提交的键契约；非敏感默认值优先放在 `application.yml` 或 compose 默认值，远程 env 只维护真实环境值、开关和凭据，避免部署漂移
 - `SMARTLIVESTOCK_TB_*` 与 `SMARTLIVESTOCK_NS_*` 只有在对应 `*_ENABLED=true` 且 username/password 均非空时才可启用；`.local/device-autoconfig.md` 只记录凭据来源，不保存明文密码
+- `deploy.sh` 会先执行 `scripts/check-env.sh` 远程只读校验；应用启动也会对已启用的 TB/NS 客户端做凭据非空校验，配置缺失时 fail fast
 - tile-worker 的 Dockerfile 需要联网下载 docker-ce-cli，若服务器无法访问 download.docker.com，dev stack 可复用 test 已构建的镜像（`docker tag smart-livestock-server-tile-worker:latest sl-dev-tile-worker:latest`）
 - Flutter 连接环境通过运行参数切换，不改代码：`--dart-define=API_BASE_URL=http://172.22.1.123:19080/api/v1`（dev）或 `:18080`（test）
 

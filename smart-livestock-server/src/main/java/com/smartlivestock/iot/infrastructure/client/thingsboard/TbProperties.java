@@ -5,6 +5,8 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
+
 @Component
 @ConfigurationProperties(prefix = "smartlivestock.tb")
 @Getter
@@ -20,4 +22,13 @@ public class TbProperties {
     private int batchSize = 200;
     private boolean bladeExclusion = false;
     private Long tenantId = 1L;
+
+    @PostConstruct
+    void validateCredentials() {
+        if (enabled && (username == null || username.isBlank()
+                || password == null || password.isBlank())) {
+            throw new IllegalStateException(
+                    "smartlivestock.tb.enabled=true requires username and password");
+        }
+    }
 }
