@@ -59,6 +59,18 @@ require_secret() {
   esac
 }
 
+# A configured database password may legitimately equal a historical template
+# value if that exact value initialized the environment's Postgres volume.
+require_configured_secret() {
+  local key="$1"
+  local value
+  value="$(value_of "$key")"
+  if [[ -z "$value" ]]; then
+    echo "  missing: $key" >&2
+    failures=$((failures + 1))
+  fi
+}
+
 require_enabled_pair() {
   local enabled_key="$1"
   local username_key="$2"
@@ -85,7 +97,7 @@ for key in \
   require_value "$key"
 done
 
-require_secret DB_PASSWORD
+require_configured_secret DB_PASSWORD
 require_secret JWT_SECRET
 require_secret SIMULATOR_DEVICE_REGISTER_KEY
 require_secret SIMULATOR_FENCE_SYNC_KEY

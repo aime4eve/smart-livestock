@@ -85,3 +85,11 @@
     golden，目标测试 9/9、analyze 和 release web build 通过。
 11. test 环境未部署，等待用户通知。test preflight 当前会因远程 `.env` 中 DB_PASSWORD
     和 JWT_SECRET 仍是模板占位值而拒绝部署，属于既有环境安全债。
+12. 用户通知后完成 test 受控同步与部署。新增
+    `scripts/sync-env-dev-to-test.sh`：以 dev 为基础，保留 test 的 DB password、
+    blade 配置和 simulator API key，为占位 JWT 生成 test 独立值；远程备份为
+    `.env.before-dev-sync-20260829T030030Z`。
+13. test build `0.3.2-b523` 启动成功，Flyway 校验 86 个迁移通过；test env preflight
+    通过。project 89 test 对账：NS 30、TB 唯一 5、本地 2、RESOLVED 2、active
+    installation 0。`001a0103ff000262` / `001a0103ff00024e` 分别对应本地设备
+    188 / 189，均识别到正确 TB deviceId/profile/最近遥测，仅缺安装。
