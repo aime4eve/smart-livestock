@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -26,7 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class NsClient {
 
-    private static final String API_PREFIX = "/backend/api/";
+    private static final String LOGIN_API_PREFIX = "/backend/api/";
+    private static final String ORG_API_PREFIX = "/backend/org_api/";
 
     private final NsProperties properties;
     private final ObjectMapper objectMapper;
@@ -45,28 +47,41 @@ public class NsClient {
     }
 
     public List<NsDevice> listDevices(Integer projectId) {
+        return listDevices(projectId, null);
+    }
+
+    public Optional<NsDevice> findDeviceByEui(String eui) {
+        return listDevices(null, eui).stream()
+                .filter(item -> item.eui().equalsIgnoreCase(eui))
+                .findFirst();
+    }
+
+    private List<NsDevice> listDevices(Integer projectId, String eui) {
         requireEnabled();
         List<NsDevice> devices = new ArrayList<>();
         int page = 1;
         int count = Integer.MAX_VALUE;
         while (devices.size() < count) {
             UriComponentsBuilder builder = UriComponentsBuilder
-                    .fromHttpUrl(properties.getBaseUrl() + API_PREFIX + "lora_wan/device/list/")
+                    .fromHttpUrl(properties.getBaseUrl() + ORG_API_PREFIX + "lora_wan/device/list/")
                     .queryParam("org", properties.getOrgId())
                     .queryParam("page", page)
                     .queryParam("limit", properties.getPageSize());
             if (projectId != null) {
                 builder.queryParam("project", projectId);
             }
+            if (eui != null) {
+                builder.queryParam("dev_eui", eui);
+            }
             JsonNode response = exchangeForJson(builder.build().toUriString(), null);
             requireSuccess(response, "NS device list");
             JsonNode data = response.path("data");
             count = response.path("count").asInt(data.size());
             for (JsonNode item : data) {
-                String eui = firstText(item, "dev_eui", "devEui", "devEUI");
-                if (eui == null || eui.isBlank()) continue;
+                String rawEui = firstText(item, "dev_eui", "devEui", "devEUI");
+                if (rawEui == null || rawEui.isBlank()) continue;
                 devices.add(new NsDevice(
-                        eui,
+                        rawEui,
                         item.path("project").asInt(item.path("project_id").asInt(0)),
                         item.path("app").asInt(item.path("app_id").asInt(0)),
                         firstText(item, "name", "device_name")));
@@ -108,7 +123,7 @@ public class NsClient {
             Map<String, String> payload = Map.of(
                     "username", properties.getUsername(), "password", properties.getPassword());
             ResponseEntity<String> response = rest.postForEntity(
-                    properties.getBaseUrl() + API_PREFIX + "login/",
+                    properties.getBaseUrl() + LOGIN_API_PREFIX + "login/",
                     new HttpEntity<>(objectMapper.writeValueAsString(payload), headers),
                     String.class);
             JsonNode root = objectMapper.readTree(response.getBody());

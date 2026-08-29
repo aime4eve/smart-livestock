@@ -71,8 +71,17 @@
    397 行 `THINGSBOARD` DTL、游标 `1784724389803`。
 5. 使用 dev 种子 B2B 账号调用 reconcile 路由，按预期返回
    `NS 或 ThingsBoard 自动配置开关未启用`，确认路由、认证与安全开关生效。
-6. dev `.env.dev` 当前只有 TB 配置，没有 NS username/password；因此 project 89 的
-   30 台真实清单对账、少量 wet-run、重复导入和 audit 追溯尚未执行。
-7. test 环境未部署，等待用户通知。
-8. 原型 token 已提取；本地 HTML 截图被浏览器安全策略阻断，当前以 token 表、
-   Flutter analyze/build 和代码结构检查替代，后续补实际页面视觉比对。
+6. 用户已在 dev `.env.dev` 补充 NS username/password。首次调用发现组织账号设备清单
+   必须使用 `/backend/org_api/lora_wan/device/list/`；已修正并增加单 EUI
+   `dev_eui` 查询，preflight 从约 35 秒优化到约 0.94 秒。
+7. project 89 真实对账结果：NS 30 台、TB 唯一命中 5 台、本地 1 台、RESOLVED 1 台、
+   active installation 0 台。差异：25 台 TB 缺失、29 台本地缺失、25 台无最近 telemetry、
+   1 台已导入但未安装。
+8. 单台 wet-run 导入 `001a0103ff000262`：首次 `IMPORTED`，重复 `ALREADY_BOUND`，
+   始终是 device 153 / binding 2，DB 中各只有 1 行。审计 id 3/4 分别记录两次结果。
+9. 单设备 provision API 复用设备/绑定，返回 `PENDING_INSTALLATION` 语义和
+   `TB_TRIGGERED`；首次拉取后 DTL 15 行，游标 `1787950882885`；installation 仍为 0。
+10. Flutter 向导修复 EUI 输入后预检按钮仍禁用的交互缺陷；新增 390px confirm/result
+    golden，目标测试 9/9、analyze 和 release web build 通过。
+11. test 环境未部署，等待用户通知。test preflight 当前会因远程 `.env` 中 DB_PASSWORD
+    和 JWT_SECRET 仍是模板占位值而拒绝部署，属于既有环境安全债。

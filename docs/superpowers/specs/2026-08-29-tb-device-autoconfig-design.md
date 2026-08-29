@@ -1,7 +1,7 @@
 # 项目级 TB 设备接入对账与一站式开通设计（NIX-180）
 
 > Date: 2026-08-29  
-> Status: 已实现并部署 dev；project 89 NS 清单/导入验收等待 dev NS 凭据  
+> Status: 已实现并部署 dev；project 89 核心验收已通过，等待用户集成测试
 > Issue: NIX-180（Parent: NIX-142）  
 > Plan: `docs/superpowers/plans/2026-08-29-tb-device-autoconfig-plan.md`  
 > Prototype: `docs/marketing/2026-08-29-tb-device-autoconfig-wizard.html`

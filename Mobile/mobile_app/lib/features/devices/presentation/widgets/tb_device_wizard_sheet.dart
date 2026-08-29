@@ -124,6 +124,7 @@ class _TbDeviceWizardSheetState extends ConsumerState<TbDeviceWizardSheet> {
               _WizardStep.input => _InputStep(
                   controller: _euiController,
                   loading: state.loading,
+                  onEuiChanged: (_) => setState(() {}),
                   onPreflight: _preflight,
                 ),
               _WizardStep.confirm => _ConfirmStep(
@@ -187,11 +188,13 @@ class _InputStep extends StatelessWidget {
   const _InputStep({
     required this.controller,
     required this.loading,
+    required this.onEuiChanged,
     required this.onPreflight,
   });
 
   final TextEditingController controller;
   final bool loading;
+  final ValueChanged<String> onEuiChanged;
   final VoidCallback onPreflight;
 
   @override
@@ -203,6 +206,7 @@ class _InputStep extends StatelessWidget {
         TextField(
           key: const Key('tb-wizard-eui'),
           controller: controller,
+          onChanged: onEuiChanged,
           decoration: InputDecoration(
             labelText: l10n.tbWizardEuiLabel,
             border: const OutlineInputBorder(),

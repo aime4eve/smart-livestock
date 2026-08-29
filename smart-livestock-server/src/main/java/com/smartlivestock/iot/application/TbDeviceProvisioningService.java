@@ -144,9 +144,7 @@ public class TbDeviceProvisioningService {
     @Transactional(readOnly = true)
     public Preflight preflight(String eui, Long tenantId) {
         String normalized = requireEui(eui);
-        NsClient.NsDevice nsDevice = nsClient.listDevices(null).stream()
-                .filter(item -> normalizeEui(item.eui()).equals(normalized))
-                .findFirst().orElse(null);
+        NsClient.NsDevice nsDevice = nsClient.findDeviceByEui(normalized).orElse(null);
         TbInventory tb = tbInventory(normalized, tbClient.fetchDeviceProfiles());
         LocalInventory local = localInventory(normalized, tenantId);
         Instant latestTelemetry = tb.selected() == null ? null
@@ -180,9 +178,8 @@ public class TbDeviceProvisioningService {
     public ProvisionResult provision(
             ProvisionCommand command, Long tenantId, Long farmId, Long operatorId) {
         String eui = requireEui(command.eui());
-        NsClient.NsDevice nsDevice = nsClient.listDevices(null).stream()
-                .filter(item -> normalizeEui(item.eui()).equals(eui))
-                .findFirst().orElseThrow(() -> new ApiException(
+        NsClient.NsDevice nsDevice = nsClient.findDeviceByEui(eui)
+                .orElseThrow(() -> new ApiException(
                         ErrorCode.VALIDATION_ERROR, "iot.tb.nsDeviceMissing", new Object[]{eui}));
         TbInventory tb = tbInventory(eui, tbClient.fetchDeviceProfiles());
         if (tb.selected() == null || !tb.selected().profileValid()) {

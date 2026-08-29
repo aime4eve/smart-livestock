@@ -69,11 +69,27 @@ class NsClientTest {
                         entity.getHeaders().getFirst(HttpHeaders.CONTENT_TYPE) != null),
                 eq(String.class));
         ArgumentCaptor<HttpEntity> requests = ArgumentCaptor.forClass(HttpEntity.class);
-        verify(rest, times(2)).exchange(any(URI.class), eq(HttpMethod.GET), requests.capture(),
+        ArgumentCaptor<URI> uris = ArgumentCaptor.forClass(URI.class);
+        verify(rest, times(2)).exchange(uris.capture(), eq(HttpMethod.GET), requests.capture(),
                 eq(String.class));
+        assertThat(uris.getAllValues())
+                .allSatisfy(uri -> assertThat(uri.getPath())
+                        .isEqualTo("/backend/org_api/lora_wan/device/list/"));
         assertThat(requests.getAllValues())
                 .allSatisfy(request -> assertThat(request.getHeaders().get("x-token"))
                         .containsExactly("token-1"));
+    }
+
+    @Test
+    void shouldQuerySingleDeviceByEui() {
+        when(rest.postForEntity(any(String.class), any(HttpEntity.class), eq(String.class)))
+                .thenReturn(new ResponseEntity<>("{\"code\":0,\"data\":{\"token\":\"token-1\"}}",
+                        HttpStatus.OK));
+        when(rest.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
+                .thenReturn(new ResponseEntity<>("{\"code\":0,\"count\":1,\"data\":[{\"dev_eui\":\"a\"}]}",
+                        HttpStatus.OK));
+
+        assertThat(client.findDeviceByEui("a")).contains(new NsClient.NsDevice("a", 0, 0, null));
     }
 
     @Test
