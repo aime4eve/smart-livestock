@@ -1,6 +1,8 @@
 package com.smartlivestock.iot.application;
 
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
+import com.smartlivestock.iot.domain.model.TbDeviceBinding;
+import com.smartlivestock.iot.domain.repository.TbDeviceBindingRepository;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,12 +42,27 @@ public class AgenticPlatformSyncDispatcher {
 
     private final DeviceRepository deviceRepository;
     private final AgenticPlatformTelemetrySyncJob syncJob;
+    private final TbDeviceBindingRepository tbDeviceBindingRepository;
 
     @Value("${agentic-platform.sync.batch-size:1000}")
     private int batchSize;
 
     @Value("${agentic-platform.sync.concurrency:5}")
     private int concurrency;
+
+    /**
+     * NIX-179: when true, devices bound to the ThingsBoard channel are skipped
+     * by the blade poller to prevent the same frame arriving from both sources.
+     * Default false keeps existing behavior untouched.
+     */
+    @Value("${smartlivestock.tb.blade-exclusion:false}")
+    private boolean tbBladeExclusion;
+
+    @Value("${smartlivestock.tb.tenant-id:1}")
+    private Long tbTenantId;
+
+    /** Loaded once per cycle; empty when exclusion is off or no devices bound. */
+    private volatile java.util.Set<Long> tbBoundDeviceIds = java.util.Set.of();
 
     private ThreadPoolExecutor syncExecutor;
     private int queueCapacity;
@@ -75,12 +92,14 @@ public class AgenticPlatformSyncDispatcher {
 
         int offset = 0;
         int total = 0;
+        refreshTbBoundDeviceIds();
 
         while (true) {
             List<Long> deviceIds = deviceRepository.findActivePlatformDeviceIds(offset, batchSize);
             if (deviceIds.isEmpty()) break;
 
             for (Long deviceId : deviceIds) {
+                if (tbBoundDeviceIds.contains(deviceId)) continue;
                 syncExecutor.submit(() -> {
                     try {
                         syncJob.syncDevice(deviceId);
@@ -96,6 +115,24 @@ public class AgenticPlatformSyncDispatcher {
 
         if (total > 0) {
             log.info("[PlatformSync] dispatched {} device sync tasks (concurrency={}, queueCapacity={})", total, concurrency, queueCapacity);
+        }
+    }
+
+    private void refreshTbBoundDeviceIds() {
+        if (!tbBladeExclusion) {
+            tbBoundDeviceIds = java.util.Set.of();
+            return;
+        }
+        try {
+            tbBoundDeviceIds = tbDeviceBindingRepository
+                    .findByTenantIdAndStatus(tbTenantId, TbDeviceBinding.Status.RESOLVED).stream()
+                    .map(TbDeviceBinding::getDeviceId)
+                    .collect(java.util.stream.Collectors.toSet());
+        } catch (Exception e) {
+            // Fail-open: exclusion is an optimization against double-pull; a
+            // binding lookup failure must never stop the blade channel.
+            log.warn("[PlatformSync] TB binding lookup failed, blade exclusion disabled this cycle: {}", e.getMessage());
+            tbBoundDeviceIds = java.util.Set.of();
         }
     }
 

@@ -59,7 +59,7 @@ public class DecodedRumenFrame {
         return readings;
     }
 
-    private static int batteryPercent(int voltage) {
+    public static int batteryPercent(int voltage) {
         if (voltage >= 3100) return 100;
         if (voltage > 2500) return (voltage - 2500) * 100 / 600;
         return 0;

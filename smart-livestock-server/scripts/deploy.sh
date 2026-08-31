@@ -28,6 +28,8 @@ esac
 # Resolve repo root (parent of scripts/)
 cd "$(dirname "$0")/.."
 
+./scripts/check-env.sh "$ENV"
+
 echo "==> [1/5] Building JAR (skip tests)..."
 ./gradlew bootJar -x test
 

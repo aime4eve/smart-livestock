@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "智慧畜牧系统架构",
+    "locale": "zh-CN",
+    "output": "smart-livestock-system-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/aime4eve/smart-livestock.git",
+      "revision": "95e0797d9fbd3ebfcd488cd41cc79c10cf5d2c2e"
+    },
+    "viewBox": [1360, 760]
+  },
+  "components": [
+    {
+      "id": "flutter_client",
+      "type": "frontend",
+      "label": "Flutter 客户端",
+      "sublabel": "Web / Mobile · ApiClient",
+      "tag": "Bearer JWT",
+      "pos": [52, 268],
+      "size": [180, 76],
+      "sources": [
+        { "path": "Mobile/mobile_app/lib/core/api/api_client.dart", "label": "API client" },
+        { "path": "docs/reference/deployment.md", "label": "Live mode" }
+      ]
+    },
+    {
+      "id": "nginx_edge",
+      "type": "backend",
+      "label": "Nginx Edge",
+      "sublabel": "静态资源 · API · Tiles",
+      "pos": [322, 268],
+      "size": [186, 76],
+      "sources": [
+        { "path": "smart-livestock-server/infrastructure/nginx/nginx.conf", "label": "Routing" },
+        { "path": "smart-livestock-server/docker-compose.dev.yml", "label": "Deployment" }
+      ]
+    },
+    {
+      "id": "spring_api",
+      "type": "backend",
+      "label": "Spring Boot API",
+      "sublabel": "Security · DDD 用例 · 调度",
+      "tag": "Java 17",
+      "pos": [654, 254],
+      "size": [236, 104],
+      "sources": [
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/security/SecurityConfig.java", "label": "Auth chain" },
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/iot/application/TelemetryIngestionService.java", "label": "Telemetry" },
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/iot/application/GpsIngestionTaskScheduler.java", "label": "Outbox worker" }
+      ]
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "业务状态 · 时序分区",
+      "tag": "Flyway",
+      "pos": [1020, 254],
+      "size": [206, 88],
+      "sources": [
+        { "path": "smart-livestock-server/src/main/resources/application.yml", "label": "Datasource" },
+        { "path": "docs/reference/project-overview.md", "label": "Migrations" }
+      ]
+    },
+    {
+      "id": "redis",
+      "type": "database",
+      "label": "Redis 7",
+      "sublabel": "缓存 · 限流 · 去重",
+      "pos": [668, 78],
+      "size": [206, 80],
+      "sources": [
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/cache/RedisCacheService.java", "label": "Cache" },
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/ratelimit/RateLimitService.java", "label": "Rate limit" }
+      ]
+    },
+    {
+      "id": "rocketmq",
+      "type": "messagebus",
+      "label": "RocketMQ",
+      "sublabel": "跨上下文事件 · Dashboard",
+      "pos": [990, 450],
+      "size": [216, 82],
+      "sources": [
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/messaging/RocketMQEventPublisher.java", "label": "Producer" },
+        { "path": "smart-livestock-server/docker-compose.dev.yml", "label": "Broker stack" }
+      ]
+    },
+    {
+      "id": "ai_platform",
+      "type": "backend",
+      "label": "AI Platform",
+      "sublabel": "FastAPI 推理 · 训练",
+      "pos": [618, 568],
+      "size": [226, 82],
+      "sources": [
+        { "path": "smart-livestock-server/ai-platform/app/main.py", "label": "HTTP API" },
+        { "path": "smart-livestock-server/docker-compose.dev.yml", "label": "Runtime deps" }
+      ]
+    },
+    {
+      "id": "tile_pipeline",
+      "type": "cloud",
+      "label": "Tile Pipeline",
+      "sublabel": "Tile Worker + tileserver-gl",
+      "tag": "MBTiles",
+      "pos": [300, 542],
+      "size": [214, 90],
+      "sources": [
+        { "path": "smart-livestock-server/infrastructure/tile-worker/entrypoint.sh", "label": "Worker" },
+        { "path": "smart-livestock-server/infrastructure/nginx/nginx.conf", "label": "Tile proxy" }
+      ]
+    },
+    {
+      "id": "agentic_platform",
+      "type": "external",
+      "label": "Agentic 中台",
+      "sublabel": "设备 · 历史遥测 · OAuth2",
+      "tag": "blade",
+      "pos": [1026, 552],
+      "size": [218, 94],
+      "sources": [
+        { "path": "smart-livestock-server/src/main/java/com/smartlivestock/iot/application/AgenticPlatformTelemetrySyncJob.java", "label": "Sync job" },
+        { "path": "docs/reference/deployment.md", "label": "Environment map" }
+      ]
+    },
+    {
+      "id": "public_maps",
+      "type": "external",
+      "label": "公共地图服务",
+      "sublabel": "高德 / OSM 降级源",
+      "tag": "SmartTileProvider",
+      "pos": [1038, 86],
+      "size": [206, 84],
+      "sources": [
+        { "path": "docs/reference/project-overview.md", "label": "Map fallback" },
+        { "path": "Mobile/mobile_app/lib/core/api/api_client.dart", "label": "Auth headers" }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "security-group",
+      "label": "用户设备 / 浏览器（不受信）",
+      "wraps": ["flutter_client"]
+    },
+    {
+      "kind": "region",
+      "label": "Smart Livestock Docker Stack（应用与数据信任域）",
+      "wraps": ["nginx_edge", "spring_api", "postgres", "redis", "rocketmq", "ai_platform", "tile_pipeline"],
+      "pad": 24
+    },
+    {
+      "kind": "security-group",
+      "label": "外部平台边界",
+      "wraps": ["agentic_platform"]
+    },
+    {
+      "kind": "security-group",
+      "label": "公共互联网依赖",
+      "wraps": ["public_maps"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "request_client_edge",
+      "from": "flutter_client",
+      "to": "nginx_edge",
+      "label": "HTTPS / JSON",
+      "variant": "emphasis"
+    },
+    {
+      "id": "request_edge_api",
+      "from": "nginx_edge",
+      "to": "spring_api",
+      "label": "/api/v1 反代",
+      "variant": "emphasis"
+    },
+    {
+      "id": "request_api_db",
+      "from": "spring_api",
+      "to": "postgres",
+      "label": "JPA / SQL",
+      "variant": "emphasis"
+    },
+    {
+      "id": "edge_tiles",
+      "from": "nginx_edge",
+      "to": "tile_pipeline",
+      "label": "/tiles",
+      "route": "orthogonal-v"
+    },
+    {
+      "id": "tiles_tasks",
+      "from": "tile_pipeline",
+      "to": "spring_api",
+      "label": "轮询任务",
+      "variant": "dashed",
+      "route": "orthogonal-v"
+    },
+    {
+      "id": "api_redis",
+      "from": "spring_api",
+      "to": "redis",
+      "label": "缓存 / 限流",
+      "route": "orthogonal-v"
+    },
+    {
+      "id": "api_events",
+      "from": "spring_api",
+      "to": "rocketmq",
+      "label": "领域事件",
+      "variant": "dashed",
+      "labelAt": [832, 406],
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "api_ai",
+      "from": "spring_api",
+      "to": "ai_platform",
+      "label": "异常推理",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [800, 478]
+    },
+    {
+      "id": "agentic_sync",
+      "from": "agentic_platform",
+      "to": "spring_api",
+      "label": "OAuth2 / 遥测拉取",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "请求与数据",
+      "items": [
+        "Bearer JWT 由 Nginx 转入 Spring Security，再执行 farm-scoped 用例",
+        "JPA 写入 PostgreSQL；表结构变更由 Flyway 管理并随迁移交付"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "遥测与事件",
+      "items": [
+        "GPS 先进 outbox，再按设备与时间幂等落库；Spring 内维护时序分区",
+        "RocketMQ 发布跨上下文遥测事件，Broker 缺席时保留业务主流程"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "外部与边界",
+      "items": [
+        "Agentic 用 OAuth2 拉取遥测；公共地图按自建、MBTiles、云端源降级",
+        "Nginx 是唯一公开入口；核心运行时同属 Smart Livestock Docker Stack"
+      ]
+    }
+  ]
+}

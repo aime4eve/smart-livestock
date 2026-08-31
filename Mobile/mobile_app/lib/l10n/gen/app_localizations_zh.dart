@@ -710,7 +710,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get devicesManagement => '设备管理';
 
   @override
-  String get deviceSearchHint => '搜索设备编号';
+  String get deviceSearchHint => '搜索设备编号或 EUI';
 
   @override
   String deviceSearchResult(Object total) {
@@ -1507,6 +1507,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get deviceViewLocation => '查看位置';
+
+  @override
+  String get deviceViewHealth => '查看设备数据';
 
   @override
   String get deviceViewTrajectory => '查看轨迹';
@@ -4624,5 +4627,201 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String datagenConsoleClearDone(int count) {
     return '清理完成，已删除 $count 条记录。';
+  }
+
+  @override
+  String get tbWizardTitle => '开通设备';
+
+  @override
+  String get tbWizardStepPreflight => '预检';
+
+  @override
+  String get tbWizardStepConfirm => '确认';
+
+  @override
+  String get tbWizardStepResult => '结果';
+
+  @override
+  String get tbWizardEuiLabel => 'LoRa EUI';
+
+  @override
+  String get tbWizardPreflightAction => '预检设备';
+
+  @override
+  String get tbWizardAmbiguousWarning => '存在多个同名大小写变体的 TB 设备，请先人工确认 deviceId。';
+
+  @override
+  String get tbWizardLivestockLabel => '安装到牲畜';
+
+  @override
+  String get tbWizardNoLivestock => '暂不安装';
+
+  @override
+  String get tbWizardNoLivestockNote => '暂不安装仍可采集遥测，但围栏预警和牲畜健康计算不会生效。';
+
+  @override
+  String get tbWizardRecheck => '重新预检';
+
+  @override
+  String get tbWizardProvisionAction => '确认开通';
+
+  @override
+  String get tbWizardNsProject => 'NS 项目';
+
+  @override
+  String get tbWizardTbDevice => 'TB 设备';
+
+  @override
+  String get tbWizardProfile => 'Device Profile';
+
+  @override
+  String get tbWizardLatestTelemetry => '最近遥测';
+
+  @override
+  String get tbWizardMissing => '缺失';
+
+  @override
+  String get tbWizardNoTelemetry => '暂无遥测';
+
+  @override
+  String get tbWizardStatus => '开通状态';
+
+  @override
+  String get tbWizardStatusPendingNs => '等待 NS 配置';
+
+  @override
+  String get tbWizardStatusPendingTbDevice => '等待 TB 设备';
+
+  @override
+  String get tbWizardStatusPendingTelemetry => '等待真实遥测';
+
+  @override
+  String get tbWizardStatusReady => '可开通采集';
+
+  @override
+  String get tbWizardStatusPendingInstallation => '可采集，待安装';
+
+  @override
+  String get tbWizardStatusActive => '已启用';
+
+  @override
+  String tbWizardStatusUnknown(String status) {
+    return '未知状态：$status';
+  }
+
+  @override
+  String get tbWizardResultDevice => '设备创建';
+
+  @override
+  String get tbWizardResultBinding => 'TB 绑定';
+
+  @override
+  String get tbWizardResultActivation => '设备激活';
+
+  @override
+  String get tbWizardResultInstallation => '安装到牲畜';
+
+  @override
+  String get tbWizardResultFence => '围栏计算';
+
+  @override
+  String get tbWizardResultHealth => '健康计算';
+
+  @override
+  String get tbWizardInstalled => '已安装';
+
+  @override
+  String get tbWizardSkipped => '未安装';
+
+  @override
+  String get tbWizardEnabled => '已启用';
+
+  @override
+  String get tbWizardDisabled => '未启用';
+
+  @override
+  String get tbWizardTriggerDone => '已立即触发一次 TB 拉取。';
+
+  @override
+  String get tbWizardTriggerDisabled => 'TB 通道未启用，本次未触发拉取。';
+
+  @override
+  String get tbWizardTriggerBindingMissing => '未找到 RESOLVED 绑定，本次未触发拉取。';
+
+  @override
+  String get tbWizardTriggerFailed => 'TB 拉取触发失败，将等待下轮调度。';
+
+  @override
+  String get tbWizardLivestockSearchHint => '搜索编号、设备或性别';
+
+  @override
+  String get tbWizardFilterAll => '全部';
+
+  @override
+  String get tbWizardFilterHealth => '健康';
+
+  @override
+  String get tbWizardFilterConditions => '条件';
+
+  @override
+  String get tbWizardFilterAllDevices => '全部设备';
+
+  @override
+  String get tbWizardFilterWithoutDevice => '无设备';
+
+  @override
+  String get tbWizardFilterWithDevice => '有设备';
+
+  @override
+  String get tbWizardFilterHasLocation => '有位置';
+
+  @override
+  String get tbWizardFilterNoLocation => '无位置';
+
+  @override
+  String tbWizardLivestockCount(int shown, int total) {
+    return '显示 $shown / 共 $total 头';
+  }
+
+  @override
+  String get tbWizardLivestockNoMatch => '没有匹配的牲畜，请调整搜索或筛选条件。';
+
+  @override
+  String get tbWizardLocate => '定位';
+
+  @override
+  String tbWizardLocationTitle(String name) {
+    return '定位：$name';
+  }
+
+  @override
+  String get tbWizardSortCode => '编号';
+
+  @override
+  String get tbWizardSortHealth => '健康';
+
+  @override
+  String get tbWizardSortLocation => '位置';
+
+  @override
+  String get tbWizardGenderUnknown => '未知';
+
+  @override
+  String get tbWizardLocationUnknown => '位置未知';
+
+  @override
+  String tbWizardLivestockSubtitle(
+    String breed,
+    String health,
+    String gender,
+    int deviceCount,
+    String location,
+  ) {
+    return '$breed · $health · $gender · $deviceCount 台设备 · $location';
+  }
+
+  @override
+  String tbWizardInstalledLivestockWarning(String livestockId) {
+    return '该设备已安装在牲畜 $livestockId；更换目标前请先解绑。';
   }
 }

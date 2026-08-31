@@ -30,6 +30,20 @@ public class JpaDeviceTelemetryLogRepositoryImpl implements DeviceTelemetryLogRe
     }
 
     @Override
+    public Optional<DeviceTelemetryLog> findLatestGpsByDeviceIdAndReportTimeBefore(
+            Long deviceId, Instant reportTime) {
+        return springDataRepo.findLatestGpsByDeviceIdAndReportTimeBefore(
+                        deviceId, reportTime, PageRequest.of(0, 1))
+                .stream().findFirst()
+                .map(DeviceTelemetryLogMapper::toDomain);
+    }
+
+    @Override
+    public boolean existsByDeviceIdAndReportTime(Long deviceId, Instant reportTime) {
+        return springDataRepo.existsByDeviceIdAndReportTime(deviceId, reportTime);
+    }
+
+    @Override
     public List<Instant> findReportTimesByDeviceIdAndReportTimeBetween(Long deviceId, Instant min, Instant max) {
         return springDataRepo.findReportTimesByDeviceIdAndReportTimeBetween(deviceId, min, max);
     }

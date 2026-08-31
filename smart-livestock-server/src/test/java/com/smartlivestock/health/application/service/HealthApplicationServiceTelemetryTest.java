@@ -134,6 +134,38 @@ class HealthApplicationServiceTelemetryTest {
     }
 
     @Test
+    void processTelemetry_capsuleWithoutLivestock_persistsDeviceSeriesWithoutSnapshot() {
+        Map<String, Object> readings = Map.of(
+                "temperatures", List.of(bd("38.4"), bd("38.6")),
+                "gastricMotility", 300000L
+        );
+
+        service.processTelemetry(
+                51L,
+                null,
+                null,
+                DeviceType.CAPSULE,
+                readings,
+                Instant.parse("2026-08-31T10:00:00Z"),
+                "HTTP"
+        );
+
+        ArgumentCaptor<TemperatureLog> temperatureCaptor =
+                ArgumentCaptor.forClass(TemperatureLog.class);
+        ArgumentCaptor<RumenMotilityLog> motilityCaptor =
+                ArgumentCaptor.forClass(RumenMotilityLog.class);
+        verify(tempLogRepo, times(2)).save(temperatureCaptor.capture());
+        verify(motilityLogRepo).save(motilityCaptor.capture());
+        temperatureCaptor.getAllValues().forEach(log ->
+                assertNull(log.getLivestockId()));
+        assertNull(motilityCaptor.getValue().getLivestockId());
+        assertEquals(51L, temperatureCaptor.getValue().getDeviceId());
+        assertEquals(51L, motilityCaptor.getValue().getDeviceId());
+        verifyNoInteractions(snapshotRepo);
+        verify(estrusScoreRepo, never()).save(any());
+    }
+
+    @Test
     void processTelemetry_tracker_ingestActivityOnly() {
         when(snapshotRepo.findByLivestockId(5L)).thenReturn(Optional.of(new HealthSnapshot()));
         when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(5L), anyInt())).thenReturn(List.of());
@@ -150,6 +182,21 @@ class HealthApplicationServiceTelemetryTest {
 
         verify(tempLogRepo, never()).save(any());
         verify(activityLogRepo, times(1)).save(any());
+    }
+
+    @Test
+    void processTelemetry_earTag_ingestGpsDerivedActivity() {
+        when(snapshotRepo.findByLivestockId(6L)).thenReturn(Optional.of(new HealthSnapshot()));
+        when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(6L), anyInt()))
+                .thenReturn(List.of());
+
+        service.processTelemetry(61L, 6L, 1L, DeviceType.EAR_TAG, Map.of(
+                "distanceMeters", 320.5
+        ), Instant.parse("2026-08-31T10:00:00Z"), "AGENTIC_PLATFORM");
+
+        ArgumentCaptor<ActivityLog> captor = ArgumentCaptor.forClass(ActivityLog.class);
+        verify(activityLogRepo).save(captor.capture());
+        assertEquals(new BigDecimal("320.5"), captor.getValue().getDistanceMeters());
     }
 
     @Test
@@ -229,5 +276,20 @@ class HealthApplicationServiceTelemetryTest {
                 ArgumentCaptor.forClass(TemperatureLog.class);
         verify(tempLogRepo).save(captor.capture());
         assertEquals("UNKNOWN", captor.getValue().getSource());
+    }
+
+    @Test
+    void processTelemetry_thingsBoardSource_isPreserved() {
+        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(new HealthSnapshot()));
+        when(tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(10L, 10)).thenReturn(List.of());
+        when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(10L), anyInt())).thenReturn(List.of());
+
+        service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE,
+                Map.of("temperature", 38.5), Instant.parse("2026-08-28T10:00:00Z"),
+                "THINGSBOARD");
+
+        ArgumentCaptor<TemperatureLog> captor = ArgumentCaptor.forClass(TemperatureLog.class);
+        verify(tempLogRepo).save(captor.capture());
+        assertEquals("THINGSBOARD", captor.getValue().getSource());
     }
 }

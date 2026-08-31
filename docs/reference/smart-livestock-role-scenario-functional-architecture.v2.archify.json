@@ -1,0 +1,554 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "智慧畜牧角色场景功能架构 V2",
+    "locale": "zh-CN",
+    "output": "smart-livestock-role-scenario-functional-architecture.v2.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/aime4eve/smart-livestock.git",
+      "revision": "95e0797d9fbd3ebfcd488cd41cc79c10cf5d2c2e"
+    },
+    "viewBox": [
+      1256,
+      624
+    ]
+  },
+  "components": [
+    {
+      "id": "ops_console_v2",
+      "type": "frontend",
+      "label": "运营运维台",
+      "sublabel": "租户 · 订阅 · 审计",
+      "tag": "platform_admin",
+      "pos": [
+        43.68,
+        32.76
+      ],
+      "size": [
+        179.4,
+        63.96
+      ],
+      "sources": [
+        {
+          "path": "Mobile/mobile_app/lib/app/app_router.dart",
+          "label": "Ops routes"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/identity/interfaces/admin/TenantAdminController.java",
+          "label": "Tenant admin"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/interfaces/admin/AdminSubscriptionController.java",
+          "label": "Subscription ops"
+        }
+      ]
+    },
+    {
+      "id": "partner_console_v2",
+      "type": "frontend",
+      "label": "市场代理商工作台",
+      "sublabel": "牧场分配 · 合同 · 分润",
+      "tag": "b2b_admin",
+      "pos": [
+        51.480000000000004,
+        117
+      ],
+      "size": [
+        190.32,
+        67.08
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/identity/interfaces/b2b/B2bController.java",
+          "label": "Partner API"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/interfaces/admin/AdminRevenueController.java",
+          "label": "Revenue share"
+        },
+        {
+          "path": "Mobile/mobile_app/lib/app/app_router.dart",
+          "label": "Partner shell"
+        }
+      ]
+    },
+    {
+      "id": "rancher_app_v2",
+      "type": "frontend",
+      "label": "牧场主应用",
+      "sublabel": "生产地图 · 健康告警 · 功能门控",
+      "tag": "owner / worker",
+      "pos": [
+        45.24,
+        205.92000000000002
+      ],
+      "size": [
+        184.08,
+        68.64
+      ],
+      "sources": [
+        {
+          "path": "Mobile/mobile_app/lib/app/main_shell.dart",
+          "label": "Ranch shell"
+        },
+        {
+          "path": "Mobile/mobile_app/lib/core/api/farm_scoped_controller.dart",
+          "label": "Active farm refresh"
+        },
+        {
+          "path": "Mobile/mobile_app/lib/core/map/smart_tile_provider.dart",
+          "label": "Map fallback"
+        }
+      ]
+    },
+    {
+      "id": "access_edge_v2",
+      "type": "security",
+      "label": "授权接入边缘",
+      "sublabel": "JWT · 角色 · Scope",
+      "tag": "RBAC + FeatureGate",
+      "pos": [
+        315.12,
+        98.28
+      ],
+      "size": [
+        193.44,
+        106.08
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/security/SecurityConfig.java",
+          "label": "Auth chain"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/security/JwtAuthenticationFilter.java",
+          "label": "JWT claims"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java",
+          "label": "Farm scope"
+        }
+      ]
+    },
+    {
+      "id": "ranch_domain_v2",
+      "type": "backend",
+      "label": "牧场生产域",
+      "sublabel": "牲畜档案 · 设备安装 · GPS 轨迹",
+      "tag": "Livestock / IoT / GPS",
+      "pos": [
+        581.88,
+        34.32
+      ],
+      "size": [
+        207.48000000000002,
+        81.12
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/ranch/interfaces/LivestockController.java",
+          "label": "Livestock CRUD"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/DeviceController.java",
+          "label": "Devices"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/GpsLogController.java",
+          "label": "GPS history"
+        }
+      ]
+    },
+    {
+      "id": "fence_alert_domain_v2",
+      "type": "backend",
+      "label": "围栏预警域",
+      "sublabel": "电子围栏 · 越界规则 · 告警处置",
+      "tag": "Fence + Alert",
+      "pos": [
+        578.76,
+        141.96
+      ],
+      "size": [
+        213.72,
+        82.68
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/ranch/interfaces/FenceController.java",
+          "label": "Fences"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/ranch/interfaces/FenceZoneController.java",
+          "label": "Fence zones"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/ranch/interfaces/AlertController.java",
+          "label": "Alert state"
+        }
+      ]
+    },
+    {
+      "id": "health_alert_domain_v2",
+      "type": "backend",
+      "label": "健康预警域",
+      "sublabel": "发热监测 · 疫病接触 · 异常评分",
+      "tag": "Health + AI",
+      "pos": [
+        575.64,
+        249.60000000000002
+      ],
+      "size": [
+        207.48000000000002,
+        84.24000000000001
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/health/interfaces/app/HealthOverviewController.java",
+          "label": "Health overview"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/health/interfaces/app/FeverController.java",
+          "label": "Fever alerts"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/health/interfaces/app/EpidemicController.java",
+          "label": "Epidemic contact"
+        }
+      ]
+    },
+    {
+      "id": "commerce_domain_v2",
+      "type": "backend",
+      "label": "订阅商业化域",
+      "sublabel": "订阅套餐 · 功能门控 · 分润结算",
+      "tag": "FeatureGate",
+      "pos": [
+        570.96,
+        358.8
+      ],
+      "size": [
+        223.08,
+        85.8
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/interfaces/app/SubscriptionController.java",
+          "label": "Ranch subscription"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/interfaces/admin/AdminFeatureGateController.java",
+          "label": "Feature gates"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/interfaces/admin/AdminRevenueController.java",
+          "label": "Revenue share"
+        }
+      ]
+    },
+    {
+      "id": "postgres_v2",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "租户 · 时序 · 商业数据",
+      "tag": "Flyway partitions",
+      "pos": [
+        850.2,
+        126.36
+      ],
+      "size": [
+        160.68,
+        76.44
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/resources/application.yml",
+          "label": "Datasource"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/platform/application/PartitionMaintenanceService.java",
+          "label": "Time-series care"
+        }
+      ]
+    },
+    {
+      "id": "ai_platform_v2",
+      "type": "backend",
+      "label": "AI Platform",
+      "sublabel": "异常检测 · 行为分析评估",
+      "tag": "FastAPI",
+      "pos": [
+        845.52,
+        335.40000000000003
+      ],
+      "size": [
+        163.8,
+        74.88
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/ai-platform/app/main.py",
+          "label": "FastAPI service"
+        },
+        {
+          "path": "docs/reference/project-overview.md",
+          "label": "Health AI"
+        }
+      ]
+    },
+    {
+      "id": "agentic_platform_v2",
+      "type": "external",
+      "label": "Agentic 中台",
+      "sublabel": "设备注册 · 遥测同步",
+      "tag": "external tenant platform",
+      "pos": [
+        1062.3600000000001,
+        42.120000000000005
+      ],
+      "size": [
+        149.76,
+        87.36
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/iot/application/AgenticPlatformTelemetrySyncJob.java",
+          "label": "Telemetry sync"
+        },
+        {
+          "path": "docs/reference/deployment.md",
+          "label": "Isolated credentials"
+        }
+      ]
+    },
+    {
+      "id": "public_maps_v2",
+      "type": "external",
+      "label": "公共地图服务",
+      "sublabel": "高德 / OSM 兜底瓦片",
+      "tag": "browser-only fallback",
+      "pos": [
+        45.24,
+        375.96000000000004
+      ],
+      "size": [
+        149.76,
+        74.88
+      ],
+      "sources": [
+        {
+          "path": "Mobile/mobile_app/lib/core/map/smart_tile_provider.dart",
+          "label": "Tile fallback"
+        },
+        {
+          "path": "docs/reference/project-overview.md",
+          "label": "Map stack"
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "security-group",
+      "label": "平台运维通道（不受信）",
+      "wraps": [
+        "ops_console_v2"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "市场代理商通道（不受信）",
+      "wraps": [
+        "partner_console_v2"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "牧场主设备通道（不受信）",
+      "wraps": [
+        "rancher_app_v2"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Smart Livestock 应用与数据信任域",
+      "wraps": [
+        "access_edge_v2",
+        "ranch_domain_v2",
+        "fence_alert_domain_v2",
+        "health_alert_domain_v2",
+        "commerce_domain_v2",
+        "postgres_v2",
+        "ai_platform_v2"
+      ],
+      "pad": 28
+    },
+    {
+      "kind": "security-group",
+      "label": "Agentic 租户外包边界",
+      "pad": 16,
+      "wraps": [
+        "agentic_platform_v2"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "公共互联网依赖",
+      "pad": 14,
+      "wraps": [
+        "public_maps_v2"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "ops_entry_v2",
+      "from": "ops_console_v2",
+      "to": "access_edge_v2",
+      "label": "/admin API"
+    },
+    {
+      "id": "market_entry_v2",
+      "from": "partner_console_v2",
+      "to": "access_edge_v2",
+      "label": "/b2b API",
+      "labelAt": [
+        225,
+        289
+      ]
+    },
+    {
+      "id": "owner_primary_entry_v2",
+      "from": "rancher_app_v2",
+      "to": "access_edge_v2",
+      "label": "HTTPS / JSON",
+      "variant": "emphasis",
+      "labelAt": [
+        306,
+        258
+      ]
+    },
+    {
+      "id": "gateway_to_ranch_v2",
+      "from": "access_edge_v2",
+      "to": "ranch_domain_v2",
+      "label": "授权读",
+      "variant": "emphasis",
+      "labelAt": [
+        545,
+        80
+      ]
+    },
+    {
+      "id": "gateway_to_fence_v2",
+      "from": "access_edge_v2",
+      "to": "fence_alert_domain_v2",
+      "label": "围栏告警",
+      "labelAt": [
+        476,
+        243
+      ]
+    },
+    {
+      "id": "gateway_to_health_v2",
+      "from": "access_edge_v2",
+      "to": "health_alert_domain_v2",
+      "label": "健康预警",
+      "labelAt": [
+        504,
+        273
+      ]
+    },
+    {
+      "id": "gateway_to_commerce_v2",
+      "from": "access_edge_v2",
+      "to": "commerce_domain_v2",
+      "label": "门控判定",
+      "labelAt": [
+        449,
+        218
+      ]
+    },
+    {
+      "id": "ranch_state_path_v2",
+      "from": "ranch_domain_v2",
+      "to": "postgres_v2",
+      "label": "SQL 写读",
+      "variant": "emphasis"
+    },
+    {
+      "id": "fence_state_v2",
+      "from": "fence_alert_domain_v2",
+      "to": "postgres_v2",
+      "label": "预警状态",
+      "labelAt": [
+        827,
+        195
+      ]
+    },
+    {
+      "id": "health_ai_v2",
+      "from": "health_alert_domain_v2",
+      "to": "ai_platform_v2",
+      "label": "异常推理",
+      "variant": "dashed"
+    },
+    {
+      "id": "agentic_pull_v2",
+      "from": "agentic_platform_v2",
+      "to": "ranch_domain_v2",
+      "label": "OAuth2 拉取",
+      "variant": "dashed"
+    },
+    {
+      "id": "map_fallback_v2",
+      "from": "rancher_app_v2",
+      "to": "public_maps_v2",
+      "label": "瓦片降级",
+      "variant": "dashed",
+      "route": "orthogonal-v",
+      "fromSide": "bottom",
+      "toSide": "top"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "核心应用场景与功能模块",
+      "items": [
+        "牧场：牲畜档案、牧工协作、设备安装和 GPS 轨迹",
+        "围栏预警：围栏区、越界告警、确认与处置状态",
+        "健康预警：发热、疫病接触、AI 异常评分联动"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "牧场主主线",
+      "items": [
+        "登录后按 activeFarm 进入牧场主页和地图围栏视图",
+        "查看牲畜、设备、GPS、订阅可用能力与预警列表",
+        "主链路经授权网关进入牧场生产域，再读写 PostgreSQL"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "代理商与运营穿透",
+      "items": [
+        "代理商创建牧场、分配 owner、维护牧工、查合同分润",
+        "运营管理租户用户、订阅审批、功能门禁、API Key 和审计",
+        "两条通道都进入同一授权边缘，但角色和租户范围不同"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "外部依赖与边界",
+      "items": [
+        "Agentic 是外包租户平台，用服务账号换取 token 后拉取遥测",
+        "公共地图仅作浏览器侧降级源，不承载业务鉴权数据",
+        "应用、数据库和内部 AI 同属信任域；三类前端通道均不受信"
+      ]
+    }
+  ]
+}

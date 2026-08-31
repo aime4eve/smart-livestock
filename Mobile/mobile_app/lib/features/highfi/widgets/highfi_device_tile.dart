@@ -7,22 +7,24 @@ import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class HighfiDeviceTile extends StatelessWidget {
   const HighfiDeviceTile({
-   super.key,
-   required this.device,
-  this.onUnbind,
-  this.onViewLocation,
-  this.onViewTrajectory,
-  this.onActivate,
-   this.onInstall,
-   this.onDelete,
- });
+    super.key,
+    required this.device,
+    this.onUnbind,
+    this.onViewLocation,
+    this.onViewHealth,
+    this.onViewTrajectory,
+    this.onActivate,
+    this.onInstall,
+    this.onDelete,
+  });
 
- final DeviceItem device;
-final VoidCallback? onUnbind;
-final VoidCallback? onViewLocation;
-final VoidCallback? onViewTrajectory;
-final VoidCallback? onActivate;
- final VoidCallback? onInstall;
+  final DeviceItem device;
+  final VoidCallback? onUnbind;
+  final VoidCallback? onViewLocation;
+  final VoidCallback? onViewHealth;
+  final VoidCallback? onViewTrajectory;
+  final VoidCallback? onActivate;
+  final VoidCallback? onInstall;
   final VoidCallback? onDelete;
 
   @override
@@ -39,11 +41,7 @@ final VoidCallback? onActivate;
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            _typeIcon,
-            size: 28,
-            color: _statusColor,
-          ),
+          Icon(_typeIcon, size: 28, color: _statusColor),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
@@ -58,51 +56,66 @@ final VoidCallback? onActivate;
                   _subtitle(l10n),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
-               if (device.batteryPercent != null) ...[
-                 const SizedBox(height: AppSpacing.xs),
-                 _BatteryBar(percent: device.batteryPercent!),
-               ],
-               if (device.hasTamperAlert) ...[
-                 const SizedBox(height: AppSpacing.xs),
-                 Row(
-                   children: [
-                     const Icon(Icons.warning, size: 14, color: AppColors.danger),
-                     const SizedBox(width: 4),
-                     Text('防拆卸告警',
-                       style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.danger),
-                     ),
-                   ],
-                 ),
-               ],
-               const SizedBox(height: AppSpacing.xs),
-               Row(
-                 children: [
-                   Icon(
-                     device.isPlatformRegistered ? Icons.cloud_done : Icons.cloud_off,
-                     size: 14,
-                     color: device.isPlatformRegistered ? AppColors.success : AppColors.textSecondary,
-                   ),
-                   const SizedBox(width: 4),
-                   Text(
-                     device.isPlatformRegistered ? '已注册平台 ${device.platformDeviceId}' : '未注册平台',
-                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                       color: device.isPlatformRegistered ? AppColors.success : AppColors.textSecondary,
-                     ),
-                   ),
-                 ],
-               ),
-               const SizedBox(height: AppSpacing.sm),
+                if (device.batteryPercent != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  _BatteryBar(percent: device.batteryPercent!),
+                ],
+                if (device.hasTamperAlert) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.warning,
+                        size: 14,
+                        color: AppColors.danger,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '防拆卸告警',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.danger,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: AppSpacing.xs),
+                Row(
+                  children: [
+                    Icon(
+                      device.isPlatformRegistered
+                          ? Icons.cloud_done
+                          : Icons.cloud_off,
+                      size: 14,
+                      color: device.isPlatformRegistered
+                          ? AppColors.success
+                          : AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      device.isPlatformRegistered
+                          ? '已注册平台 ${device.platformDeviceId}'
+                          : '未注册平台',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: device.isPlatformRegistered
+                            ? AppColors.success
+                            : AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                 children: [
-                   if (onActivate != null)
-                     TextButton(
-                       key: Key('device-activate-${device.id}'),
-                       onPressed: onActivate,
-                       child: Text(l10n.deviceActivate),
-                     ),
-                   if (onInstall != null)
+                  children: [
+                    if (onActivate != null)
+                      TextButton(
+                        key: Key('device-activate-${device.id}'),
+                        onPressed: onActivate,
+                        child: Text(l10n.deviceActivate),
+                      ),
+                    if (onInstall != null)
                       TextButton(
                         key: Key('device-install-${device.id}'),
                         onPressed: onInstall,
@@ -114,22 +127,30 @@ final VoidCallback? onActivate;
                         onPressed: onUnbind,
                         child: Text(l10n.deviceUnbind),
                       ),
-                  if (onViewLocation != null)
-                    TextButton(
-                      key: Key('device-locate-${device.id}'),
-                      onPressed: onViewLocation,
-                      child: Text(l10n.deviceViewLocation),
-                    ),
-                  if (onViewTrajectory != null)
-                    TextButton(
-                      key: Key('device-trajectory-${device.id}'),
-                      onPressed: onViewTrajectory,
-                      child: Text(l10n.deviceViewTrajectory),
-                    ),
-                  if (onDelete != null)
+                    if (onViewLocation != null)
+                      TextButton(
+                        key: Key('device-locate-${device.id}'),
+                        onPressed: onViewLocation,
+                        child: Text(l10n.deviceViewLocation),
+                      ),
+                    if (onViewHealth != null)
+                      TextButton(
+                        key: Key('device-health-${device.id}'),
+                        onPressed: onViewHealth,
+                        child: Text(l10n.deviceViewHealth),
+                      ),
+                    if (onViewTrajectory != null)
+                      TextButton(
+                        key: Key('device-trajectory-${device.id}'),
+                        onPressed: onViewTrajectory,
+                        child: Text(l10n.deviceViewTrajectory),
+                      ),
+                    if (onDelete != null)
                       TextButton(
                         key: Key('device-delete-${device.id}'),
-                        style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.danger,
+                        ),
                         onPressed: onDelete,
                         child: Text(l10n.commonDelete),
                       ),
@@ -144,26 +165,26 @@ final VoidCallback? onActivate;
   }
 
   IconData get _typeIcon => switch (device.type) {
-        DeviceType.gps => Icons.gps_fixed,
-        DeviceType.rumenCapsule => Icons.medication,
-        DeviceType.earTag => Icons.tag,
-      };
+    DeviceType.gps => Icons.gps_fixed,
+    DeviceType.rumenCapsule => Icons.medication,
+    DeviceType.earTag => Icons.tag,
+  };
 
   Color get _statusColor => switch (device.status) {
-        DeviceStatus.online => AppColors.success,
-        DeviceStatus.offline => AppColors.textSecondary,
-      };
+    DeviceStatus.online => AppColors.success,
+    DeviceStatus.offline => AppColors.textSecondary,
+  };
 
- String _subtitle(AppLocalizations l10n) {
-   final parts = <String>[
-     device.boundLivestockCode,
-     device.status.localizedLabel(l10n),
-   ];
-   if (device.rssi != null) parts.add('RSSI ${device.rssi}dBm');
-   if (device.signalStrength != null) parts.add('信号${device.signalStrength}');
-   if (device.lastSync != null) parts.add('同步 ${device.lastSync}');
-   return parts.join(' · ');
- }
+  String _subtitle(AppLocalizations l10n) {
+    final parts = <String>[
+      device.boundLivestockCode,
+      device.status.localizedLabel(l10n),
+    ];
+    if (device.rssi != null) parts.add('RSSI ${device.rssi}dBm');
+    if (device.signalStrength != null) parts.add('信号${device.signalStrength}');
+    if (device.lastSync != null) parts.add('同步 ${device.lastSync}');
+    return parts.join(' · ');
+  }
 }
 
 class _BatteryBar extends StatelessWidget {
@@ -176,8 +197,8 @@ class _BatteryBar extends StatelessWidget {
     final color = percent > 50
         ? AppColors.success
         : percent > 20
-            ? AppColors.warning
-            : AppColors.danger;
+        ? AppColors.warning
+        : AppColors.danger;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

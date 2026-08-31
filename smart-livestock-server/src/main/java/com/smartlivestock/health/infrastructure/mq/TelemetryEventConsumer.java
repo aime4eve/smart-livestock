@@ -43,16 +43,6 @@ public class TelemetryEventConsumer implements RocketMQListener<String> {
             String deviceTypeStr = root.path("deviceType").asText("CAPSULE");
             DeviceType deviceType = DeviceType.valueOf(deviceTypeStr);
 
-            // Telemetry for a device without an active installation carries no
-            // livestock/farm context, so it cannot produce a health snapshot.
-            // ACK and skip it instead of letting the INSERT fail and trigger
-            // broker retries, which exhaust the DB pool and block web requests.
-            if (livestockId == null || livestockId <= 0 || farmId == null || farmId <= 0) {
-                log.warn("Skipping telemetry without valid context: deviceId={}, livestockId={}, farmId={}",
-                        deviceId, livestockId, farmId);
-                return;
-            }
-
             @SuppressWarnings("unchecked")
             Map<String, Object> readings = objectMapper.convertValue(
                     root.path("readings"), Map.class);

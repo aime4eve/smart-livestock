@@ -1261,6 +1261,28 @@ Response 200:
 
 > Feature gate `health_score` 未启用 → 返回 `[]`（不报错）。窗口 = `min(retentionDays("health_score"), 7)` 天；温度 > 39.5°C（基线+1.0）的每条日志按 0.5 小时累计。
 
+### GET /farms/{farmId}/health/devices/{deviceId}
+
+设备级健康时序（不要求设备已绑定牲畜；`livestock_id` 为空的历史数据仍按 `device_id` 查询）。
+
+```
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-hd1",
+  "data": {
+    "deviceId": "51",
+    "temperature72h": [
+      { "temperature": 38.6, "timestamp": "2026-08-31T08:00:00Z" }
+    ],
+    "motility24h": [
+      { "frequency": 3.2, "intensity": 0, "timestamp": "2026-08-31T08:00:00Z" }
+    ]
+  }
+}
+```
+
+> 设备未绑定牲畜时只落设备级时序，不生成 health snapshot，也不触发 estrus score；发情评分始终是 livestock 级能力。
+
 ### GET /farms/{farmId}/health/estrus
 
 发情评分列表（每头牲畜最新评分，score > 0，按 score 降序）。

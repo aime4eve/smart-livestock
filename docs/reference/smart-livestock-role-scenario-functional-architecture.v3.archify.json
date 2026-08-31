@@ -1,0 +1,554 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "智慧畜牧端到端场景功能架构 V3",
+    "locale": "zh-CN",
+    "output": "smart-livestock-role-scenario-functional-architecture.v3.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/aime4eve/smart-livestock.git",
+      "revision": "95e0797d9fbd3ebfcd488cd41cc79c10cf5d2c2e"
+    },
+    "viewBox": [
+      1320,
+      611
+    ]
+  },
+  "components": [
+    {
+      "id": "ops_partner_console_v3",
+      "type": "frontend",
+      "label": "运营与代理商工作台",
+      "sublabel": "租户 · 订阅审批 · 分润",
+      "tag": "platform + b2b",
+      "pos": [
+        43.99999999999999,
+        38.37777777777778
+      ],
+      "size": [
+        198.86666666666667,
+        75.0111111111111
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/identity/interfaces/admin/TenantAdminController.java",
+          "label": "Operations"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/identity/interfaces/b2b/B2bController.java",
+          "label": "Partner API"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/interfaces/admin/AdminRevenueController.java",
+          "label": "Revenue share"
+        }
+      ]
+    },
+    {
+      "id": "rancher_app_v3",
+      "type": "frontend",
+      "label": "牧场主应用",
+      "sublabel": "地图围栏 · 预警 · 订阅视图",
+      "tag": "owner / worker",
+      "pos": [
+        42.16231343283582,
+        148.27777777777777
+      ],
+      "size": [
+        174.44444444444446,
+        73.26666666666667
+      ],
+      "sources": [
+        {
+          "path": "Mobile/mobile_app/lib/app/main_shell.dart",
+          "label": "Ranch shell"
+        },
+        {
+          "path": "Mobile/mobile_app/lib/core/api/farm_scoped_controller.dart",
+          "label": "Active farm"
+        },
+        {
+          "path": "Mobile/mobile_app/lib/features/devices/presentation/widgets/device_health_card.dart",
+          "label": "Gateway display"
+        }
+      ]
+    },
+    {
+      "id": "auth_api_edge_v3",
+      "type": "security",
+      "label": "授权与 Open API 边缘",
+      "sublabel": "JWT · Scope · 设备 API Key",
+      "tag": "trust gate",
+      "pos": [
+        329.93203883495145,
+        137.8111111111111
+      ],
+      "size": [
+        181.42222222222222,
+        90.71111111111111
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/security/SecurityConfig.java",
+          "label": "Auth chain"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/shared/scope/FarmScopeInterceptor.java",
+          "label": "Farm scope"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/open/OpenDeviceRegisterController.java",
+          "label": "Device key"
+        }
+      ]
+    },
+    {
+      "id": "animal_tracker_v3",
+      "type": "external",
+      "label": "动物追踪器",
+      "sublabel": "活动 · 步数 · GPS 轨迹",
+      "tag": "device_tracker",
+      "pos": [
+        64.16666666666667,
+        479.72222222222223
+      ],
+      "size": [
+        167.46666666666667,
+        68.03333333333333
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/open/OpenDeviceRegisterController.java",
+          "line": 40,
+          "label": "TRACKER mapping"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/iot/application/TelemetryIngestionService.java",
+          "label": "GPS outbox"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/health/application/service/HealthApplicationService.java",
+          "line": 101,
+          "label": "Activity intake"
+        }
+      ]
+    },
+    {
+      "id": "rumen_capsule_v3",
+      "type": "external",
+      "label": "瘤胃胶囊",
+      "sublabel": "体温 · 瘤胃运动频率",
+      "tag": "capsule",
+      "pos": [
+        56.81970873786408,
+        366.3333333333333
+      ],
+      "size": [
+        158.74444444444444,
+        71.52222222222223
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/open/OpenDeviceRegisterController.java",
+          "line": 41,
+          "label": "CAPSULE mapping"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/health/domain/model/RumenMotilityLog.java",
+          "label": "Motility series"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/health/domain/service/DigestiveAnalysisService.java",
+          "label": "Digestive rule"
+        }
+      ]
+    },
+    {
+      "id": "lorawan_gateway_v3",
+      "type": "cloud",
+      "label": "LoRaWAN 网关",
+      "sublabel": "汇聚 · Network Server · 推送",
+      "tag": "gatewayId",
+      "pos": [
+        331.6764840425532,
+        464.02222222222224
+      ],
+      "size": [
+        177.93333333333334,
+        76.75555555555556
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/iot/application/TelemetryIngestionService.java",
+          "label": "gatewayId persisted"
+        },
+        {
+          "path": "Mobile/mobile_app/lib/features/devices/presentation/widgets/device_health_card.dart",
+          "line": 82,
+          "label": "Runtime status"
+        },
+        {
+          "path": "docs/reference/project-overview.md",
+          "label": "IoT topology"
+        }
+      ]
+    },
+    {
+      "id": "telemetry_ingestion_v3",
+      "type": "backend",
+      "label": "统一遥测接入",
+      "sublabel": "快照 · 时序日志 · 遥测事件",
+      "tag": "single ingest()",
+      "pos": [
+        625.1673553719008,
+        191.88888888888889
+      ],
+      "size": [
+        186.65555555555557,
+        83.73333333333333
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/iot/interfaces/TelemetryController.java",
+          "label": "HTTP endpoint"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/iot/application/TelemetryIngestionService.java",
+          "label": "Single pipeline"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/platform/application/PartitionMaintenanceService.java",
+          "label": "Time-series care"
+        }
+      ]
+    },
+    {
+      "id": "datagen_domain_v3",
+      "type": "backend",
+      "label": "Datagen 仿真评估域",
+      "sublabel": "控制台 · 规则 · ACL 注入",
+      "tag": "source=DATAGEN",
+      "pos": [
+        555,
+        305
+      ],
+      "size": [
+        186.65555555555557,
+        73.26666666666667
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/datagen/interfaces/admin/DataGenConsoleController.java",
+          "label": "Admin console"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/datagen/domain/model/DatagenFarmRules.java",
+          "label": "Sim rules"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/datagen/infrastructure/acl/TelemetryIngestionPortImpl.java",
+          "label": "Pipeline ACL"
+        }
+      ]
+    },
+    {
+      "id": "ranch_fence_domain_v3",
+      "type": "backend",
+      "label": "牧场生产与围栏预警域",
+      "sublabel": "牲畜档案 · 安装 · GPS · 越界",
+      "tag": "Ranch + Fence",
+      "pos": [
+        907.4805825242718,
+        66.28888888888889
+      ],
+      "size": [
+        179.67777777777778,
+        81.9888888888889
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/ranch/interfaces/LivestockController.java",
+          "label": "Livestock"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/ranch/interfaces/FenceController.java",
+          "label": "Fences"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/ranch/infrastructure/mq/GpsLogEventConsumer.java",
+          "line": 187,
+          "label": "Fence alert"
+        }
+      ]
+    },
+    {
+      "id": "health_alert_domain_v3",
+      "type": "backend",
+      "label": "健康预警域",
+      "sublabel": "发热 · 消化 · 异常评分",
+      "tag": "Health events",
+      "pos": [
+        900.2508090614887,
+        218.05555555555557
+      ],
+      "size": [
+        172.7,
+        78.5
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/health/application/service/HealthApplicationService.java",
+          "label": "CAPSULE branch"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/health/interfaces/app/FeverController.java",
+          "label": "Fever alerts"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/health/interfaces/app/EpidemicController.java",
+          "label": "Epidemic"
+        }
+      ]
+    },
+    {
+      "id": "commerce_subscription_domain_v3",
+      "type": "backend",
+      "label": "订阅商业化域",
+      "sublabel": "套餐 · 功能门控 · 合同分润",
+      "tag": "FeatureGate",
+      "pos": [
+        889.0886597938144,
+        347.14444444444445
+      ],
+      "size": [
+        176.1888888888889,
+        76.75555555555556
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/interfaces/app/SubscriptionController.java",
+          "label": "Subscription"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/interfaces/admin/AdminFeatureGateController.java",
+          "label": "Feature gates"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/commerce/interfaces/admin/AdminRevenueController.java",
+          "label": "Revenue share"
+        }
+      ]
+    },
+    {
+      "id": "postgres_v3",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "业务 · 预警 · 分区时序",
+      "tag": "Flyway",
+      "pos": [
+        1132.9850515463918,
+        204.1
+      ],
+      "size": [
+        123.85555555555555,
+        80.24444444444444
+      ],
+      "sources": [
+        {
+          "path": "smart-livestock-server/src/main/resources/application.yml",
+          "label": "Datasource"
+        },
+        {
+          "path": "smart-livestock-server/src/main/java/com/smartlivestock/platform/application/PartitionMaintenanceService.java",
+          "label": "Partition care"
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "security-group",
+      "label": "运营 · 代理商 · 牧场主通道（不受信）",
+      "wraps": [
+        "ops_partner_console_v3",
+        "rancher_app_v3"
+      ],
+      "pad": 12.211111111111112
+    },
+    {
+      "kind": "security-group",
+      "label": "现场感知与网络边界（不受信）",
+      "wraps": [
+        "animal_tracker_v3",
+        "rumen_capsule_v3",
+        "lorawan_gateway_v3"
+      ],
+      "pad": 13.955555555555556
+    },
+    {
+      "kind": "region",
+      "label": "Smart Livestock 应用与数据信任域",
+      "wraps": [
+        "auth_api_edge_v3",
+        "telemetry_ingestion_v3",
+        "datagen_domain_v3",
+        "ranch_fence_domain_v3",
+        "health_alert_domain_v3",
+        "commerce_subscription_domain_v3",
+        "postgres_v3"
+      ],
+      "pad": 20.933333333333334
+    }
+  ],
+  "connections": [
+    {
+      "id": "owner_primary_entry_v3",
+      "from": "rancher_app_v3",
+      "to": "auth_api_edge_v3",
+      "label": "HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "ops_market_entry_v3",
+      "from": "ops_partner_console_v3",
+      "to": "auth_api_edge_v3",
+      "label": "/admin · /b2b",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "route": "orthogonal-v",
+      "labelAt": [
+        287.0103626943005,
+        127
+      ]
+    },
+    {
+      "id": "capsule_to_gateway_v3",
+      "from": "rumen_capsule_v3",
+      "to": "lorawan_gateway_v3",
+      "label": "LoRa 上行",
+      "variant": "emphasis"
+    },
+    {
+      "id": "tracker_to_gateway_v3",
+      "from": "animal_tracker_v3",
+      "to": "lorawan_gateway_v3"
+    },
+    {
+      "id": "gateway_push_v3",
+      "from": "lorawan_gateway_v3",
+      "to": "auth_api_edge_v3",
+      "label": "HTTP + API Key",
+      "variant": "emphasis",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "route": "orthogonal-v"
+    },
+    {
+      "id": "edge_to_ingestion_v3",
+      "from": "auth_api_edge_v3",
+      "to": "telemetry_ingestion_v3",
+      "label": "HTTP 遥测",
+      "variant": "emphasis"
+    },
+    {
+      "id": "datagen_injection_v3",
+      "from": "datagen_domain_v3",
+      "to": "telemetry_ingestion_v3",
+      "label": "ACL 注入",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "labelAt": [
+        683,
+        290
+      ],
+      "variant": "dashed"
+    },
+    {
+      "id": "datagen_simulated_gateway_v3",
+      "from": "datagen_domain_v3",
+      "to": "lorawan_gateway_v3",
+      "label": "伪 gatewayId 上行",
+      "variant": "dashed"
+    },
+    {
+      "id": "gps_fanout_v3",
+      "from": "telemetry_ingestion_v3",
+      "to": "ranch_fence_domain_v3",
+      "label": "GPS outbox"
+    },
+    {
+      "id": "health_event_v3",
+      "from": "telemetry_ingestion_v3",
+      "to": "health_alert_domain_v3",
+      "variant": "emphasis"
+    },
+    {
+      "id": "ranch_state_v3",
+      "from": "ranch_fence_domain_v3",
+      "to": "postgres_v3"
+    },
+    {
+      "id": "health_state_v3",
+      "from": "health_alert_domain_v3",
+      "to": "postgres_v3"
+    },
+    {
+      "id": "commerce_state_v3",
+      "from": "commerce_subscription_domain_v3",
+      "to": "postgres_v3"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "端到端强调链路",
+      "items": [
+        "胶囊 LoRa 至网关",
+        "网关 API Key 推送",
+        "单一 ingest 入库分发",
+        "健康预警回至牧场应用"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "核心功能模块",
+      "items": [
+        "牧场：档案 / 牧工 / 轨迹",
+        "围栏：分区与越界告警",
+        "健康：体温消化异常评分",
+        "订阅：套餐门控分润"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Datagen 与仿真",
+      "items": [
+        "控制台启动配置清理",
+        "追踪器 300 秒节奏",
+        "胶囊 900 秒节奏",
+        "伪 gw 后经 ACL 入库"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "外部依赖支持面",
+      "items": [
+        "LoRaWAN Network Server",
+        "Agentic 中台轮询遥测",
+        "AI Platform FastAPI 推理",
+        "地图瓦片浏览器降级"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "归属与信任边界",
+      "items": [
+        "运营租户权，代理商分润",
+        "牧场主 JWT + activeFarm",
+        "设备网关专用 API Key",
+        "Datagen 仅限实验验收"
+      ]
+    }
+  ]
+}

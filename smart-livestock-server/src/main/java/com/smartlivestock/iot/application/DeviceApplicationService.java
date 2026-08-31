@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
@@ -47,18 +48,24 @@ public class DeviceApplicationService {
             DeviceType.EAR_TAG, "EAR_TAG"
     );
 
+    /** Device EUIs are case-insensitive and always stored lowercase. */
+    private static String normalizeEui(String devEui) {
+        return devEui == null ? null : devEui.toLowerCase(Locale.ROOT);
+    }
+
     @Transactional
     public DeviceDto registerDevice(RegisterDeviceCommand command) {
+        String devEui = normalizeEui(command.devEui());
         // EUI branch: same devEui = same physical device → revive soft-deleted record;
         // an active record with the same EUI is a business error (not a new device).
-        if (command.devEui() != null && !command.devEui().isBlank()) {
+        if (devEui != null && !devEui.isBlank()) {
             List<Device> euiMatches = deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted(
-                    command.devEui(), command.tenantId());
+                    devEui, command.tenantId());
             if (!euiMatches.isEmpty()) {
                 Device match = euiMatches.get(0);
                 if (match.getDeletedAt() == null) {
                     throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,
-                            "error.deviceEuiDuplicate", new Object[]{command.devEui()});
+                            "error.deviceEuiDuplicate", new Object[]{devEui});
                 }
                 // Revive: check deviceCode against the active set first (avoids partial-index 500)
                 deviceRepository.findByDeviceCode(command.deviceCode())
@@ -102,7 +109,7 @@ public class DeviceApplicationService {
         device.setDeviceCode(command.deviceCode());
         device.setSerialNo(command.serialNo());
         device.setDeviceType(command.deviceType());
-        device.setDevEui(command.devEui());
+        device.setDevEui(devEui);
         Device saved = deviceRepository.save(device);
 
         // 录入即注册：EUI 反查优先（设备已在 blade 注册则直接绑定），
@@ -133,6 +140,7 @@ public class DeviceApplicationService {
             throw new ApiException(ErrorCode.VALIDATION_ERROR,
                     "iot.invalidEuiFormat", new Object[]{eui});
         }
+        eui = normalizeEui(eui);
         if (tenantId == null) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR,
                     "tenantId is required for device creation");
@@ -394,7 +402,7 @@ public class DeviceApplicationService {
                         }
                     });
         }
-        device.updateInfo(command.deviceCode(), command.devEui());
+        device.updateInfo(command.deviceCode(), normalizeEui(command.devEui()));
         Device saved = deviceRepository.save(device);
         return DeviceDto.from(saved);
     }

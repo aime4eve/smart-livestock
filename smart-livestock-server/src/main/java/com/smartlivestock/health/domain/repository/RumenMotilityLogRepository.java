@@ -8,5 +8,6 @@ import java.util.List;
 public interface RumenMotilityLogRepository {
     List<RumenMotilityLog> findByLivestockIdAndTimeRange(Long livestockId, Instant from, Instant to);
     List<RumenMotilityLog> findByLivestockIdOrderByRecordedAtDesc(Long livestockId, int limit);
+    List<RumenMotilityLog> findByDeviceIdAndTimeRange(Long deviceId, Instant from, Instant to);
     RumenMotilityLog save(RumenMotilityLog log);
 }

@@ -723,7 +723,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get devicesManagement => 'Device Management';
 
   @override
-  String get deviceSearchHint => 'Search device code';
+  String get deviceSearchHint => 'Search device code or EUI';
 
   @override
   String deviceSearchResult(Object total) {
@@ -1534,6 +1534,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deviceViewLocation => 'View Location';
+
+  @override
+  String get deviceViewHealth => 'View Device Data';
 
   @override
   String get deviceViewTrajectory => 'View Trajectory';
@@ -4728,5 +4731,208 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String datagenConsoleClearDone(int count) {
     return 'Clearing complete. $count rows deleted.';
+  }
+
+  @override
+  String get tbWizardTitle => 'Provision Device';
+
+  @override
+  String get tbWizardStepPreflight => 'Preflight';
+
+  @override
+  String get tbWizardStepConfirm => 'Confirm';
+
+  @override
+  String get tbWizardStepResult => 'Result';
+
+  @override
+  String get tbWizardEuiLabel => 'LoRa EUI';
+
+  @override
+  String get tbWizardPreflightAction => 'Check Device';
+
+  @override
+  String get tbWizardAmbiguousWarning =>
+      'Multiple TB devices match case variants. Confirm the deviceId manually first.';
+
+  @override
+  String get tbWizardLivestockLabel => 'Install to livestock';
+
+  @override
+  String get tbWizardNoLivestock => 'Skip installation';
+
+  @override
+  String get tbWizardNoLivestockNote =>
+      'Telemetry can be collected, but fence alerts and livestock health calculations will stay disabled.';
+
+  @override
+  String get tbWizardRecheck => 'Check again';
+
+  @override
+  String get tbWizardProvisionAction => 'Provision now';
+
+  @override
+  String get tbWizardNsProject => 'NS project';
+
+  @override
+  String get tbWizardTbDevice => 'TB device';
+
+  @override
+  String get tbWizardProfile => 'Device Profile';
+
+  @override
+  String get tbWizardLatestTelemetry => 'Latest telemetry';
+
+  @override
+  String get tbWizardMissing => 'Missing';
+
+  @override
+  String get tbWizardNoTelemetry => 'No telemetry';
+
+  @override
+  String get tbWizardStatus => 'Provisioning status';
+
+  @override
+  String get tbWizardStatusPendingNs => 'Waiting for NS';
+
+  @override
+  String get tbWizardStatusPendingTbDevice => 'Waiting for TB device';
+
+  @override
+  String get tbWizardStatusPendingTelemetry => 'Waiting for telemetry';
+
+  @override
+  String get tbWizardStatusReady => 'Ready to ingest';
+
+  @override
+  String get tbWizardStatusPendingInstallation =>
+      'Ingest ready, installation pending';
+
+  @override
+  String get tbWizardStatusActive => 'Active';
+
+  @override
+  String tbWizardStatusUnknown(String status) {
+    return 'Unknown status: $status';
+  }
+
+  @override
+  String get tbWizardResultDevice => 'Device created';
+
+  @override
+  String get tbWizardResultBinding => 'TB binding';
+
+  @override
+  String get tbWizardResultActivation => 'Device activated';
+
+  @override
+  String get tbWizardResultInstallation => 'Installed to livestock';
+
+  @override
+  String get tbWizardResultFence => 'Fence calculation';
+
+  @override
+  String get tbWizardResultHealth => 'Health calculation';
+
+  @override
+  String get tbWizardInstalled => 'Installed';
+
+  @override
+  String get tbWizardSkipped => 'Not installed';
+
+  @override
+  String get tbWizardEnabled => 'Enabled';
+
+  @override
+  String get tbWizardDisabled => 'Disabled';
+
+  @override
+  String get tbWizardTriggerDone => 'An immediate TB pull was triggered.';
+
+  @override
+  String get tbWizardTriggerDisabled =>
+      'The TB channel is disabled; no pull was triggered.';
+
+  @override
+  String get tbWizardTriggerBindingMissing =>
+      'No RESOLVED binding was found; no pull was triggered.';
+
+  @override
+  String get tbWizardTriggerFailed =>
+      'The immediate TB pull failed and will retry on schedule.';
+
+  @override
+  String get tbWizardLivestockSearchHint => 'Search code, device, or gender';
+
+  @override
+  String get tbWizardFilterAll => 'All';
+
+  @override
+  String get tbWizardFilterHealth => 'Health';
+
+  @override
+  String get tbWizardFilterConditions => 'Filters';
+
+  @override
+  String get tbWizardFilterAllDevices => 'All devices';
+
+  @override
+  String get tbWizardFilterWithoutDevice => 'No device';
+
+  @override
+  String get tbWizardFilterWithDevice => 'Has device';
+
+  @override
+  String get tbWizardFilterHasLocation => 'Has location';
+
+  @override
+  String get tbWizardFilterNoLocation => 'No location';
+
+  @override
+  String tbWizardLivestockCount(int shown, int total) {
+    return 'Showing $shown of $total';
+  }
+
+  @override
+  String get tbWizardLivestockNoMatch =>
+      'No livestock matches the search or filters.';
+
+  @override
+  String get tbWizardLocate => 'Locate';
+
+  @override
+  String tbWizardLocationTitle(String name) {
+    return 'Locate: $name';
+  }
+
+  @override
+  String get tbWizardSortCode => 'Code';
+
+  @override
+  String get tbWizardSortHealth => 'Health';
+
+  @override
+  String get tbWizardSortLocation => 'Location';
+
+  @override
+  String get tbWizardGenderUnknown => 'Unknown';
+
+  @override
+  String get tbWizardLocationUnknown => 'Unknown location';
+
+  @override
+  String tbWizardLivestockSubtitle(
+    String breed,
+    String health,
+    String gender,
+    int deviceCount,
+    String location,
+  ) {
+    return '$breed · $health · $gender · $deviceCount devices · $location';
+  }
+
+  @override
+  String tbWizardInstalledLivestockWarning(String livestockId) {
+    return 'This device is installed on livestock $livestockId; uninstall it before selecting another target.';
   }
 }

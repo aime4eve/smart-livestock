@@ -20,7 +20,8 @@ public interface SpringDataDeviceRepository extends JpaRepository<DeviceJpaEntit
     Page<DeviceJpaEntity> findByTenantIdPaged(@Param("tenantId") Long tenantId, Pageable pageable);
 
     @Query("SELECT d FROM DeviceJpaEntity d WHERE d.tenantId = :tenantId " +
-           "AND (LOWER(d.deviceCode) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY d.id")
+           "AND (LOWER(d.deviceCode) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(d.devEui) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY d.id")
     Page<DeviceJpaEntity> findByTenantIdAndKeyword(@Param("tenantId") Long tenantId,
                                                    @Param("keyword") String keyword,
                                                    Pageable pageable);
@@ -29,7 +30,8 @@ public interface SpringDataDeviceRepository extends JpaRepository<DeviceJpaEntit
     long countByTenantIdActive(@Param("tenantId") Long tenantId);
 
     @Query("SELECT COUNT(d) FROM DeviceJpaEntity d WHERE d.tenantId = :tenantId " +
-           "AND (LOWER(d.deviceCode) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+           "AND (LOWER(d.deviceCode) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(d.devEui) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     long countByTenantIdAndKeyword(@Param("tenantId") Long tenantId, @Param("keyword") String keyword);
 
     @Query("SELECT d.id FROM DeviceJpaEntity d WHERE d.status = 'ACTIVE' AND d.platformDeviceId IS NOT NULL ORDER BY d.id")
@@ -41,7 +43,7 @@ public interface SpringDataDeviceRepository extends JpaRepository<DeviceJpaEntit
      * Lookup by devEui including soft-deleted rows (native query bypasses @SQLRestriction).
      * Used for revive detection on the re-add paths.
      */
-    @Query(value = "SELECT * FROM devices WHERE dev_eui = :devEui AND tenant_id = :tenantId",
+    @Query(value = "SELECT * FROM devices WHERE lower(dev_eui) = lower(:devEui) AND tenant_id = :tenantId",
            nativeQuery = true)
     List<DeviceJpaEntity> findAllByDevEuiAndTenantIdIncludeDeleted(@Param("devEui") String devEui,
                                                                    @Param("tenantId") Long tenantId);

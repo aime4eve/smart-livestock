@@ -1,13 +1,13 @@
 import 'package:latlong2/latlong.dart';
 
-enum TrajectoryRange {
-  h24,
-  d7,
-  d30,
-}
+enum TrajectoryRange { h24, d7, d30 }
 
 class GeoPoint {
-  const GeoPoint({required this.lat, required this.lng, required this.timestamp});
+  const GeoPoint({
+    required this.lat,
+    required this.lng,
+    required this.timestamp,
+  });
   final double lat;
   final double lng;
   final String timestamp;
@@ -132,6 +132,10 @@ class LivestockDetail {
 
 enum DeviceType { gps, rumenCapsule, earTag }
 
+extension DeviceTypeCapabilities on DeviceType {
+  bool get supportsGps => this == DeviceType.gps || this == DeviceType.earTag;
+}
+
 enum DeviceStatus { online, offline }
 
 class DeviceItem {
@@ -150,13 +154,13 @@ class DeviceItem {
     this.lastGateway,
     this.antiDisassemblyStatus,
     this.lastTelemetrySyncedAt,
-   this.devEui,
-   this.runtimeStatus,
-   this.softwareVersion,
-   this.hardwareVersion,
-   this.deviceTypeName,
-   this.lifecycleStatus,
- });
+    this.devEui,
+    this.runtimeStatus,
+    this.softwareVersion,
+    this.hardwareVersion,
+    this.deviceTypeName,
+    this.lifecycleStatus,
+  });
 
   final String id;
   final String name;
@@ -174,16 +178,18 @@ class DeviceItem {
   final String? lastTelemetrySyncedAt;
   final String? devEui;
   final String? runtimeStatus;
- final String? softwareVersion;
- final String? hardwareVersion;
- final String? deviceTypeName;
- final String? lifecycleStatus;
+  final String? softwareVersion;
+  final String? hardwareVersion;
+  final String? deviceTypeName;
+  final String? lifecycleStatus;
 
- bool get isPlatformRegistered => platformDeviceId != null;
- bool get hasTamperAlert => antiDisassemblyStatus != null && antiDisassemblyStatus != 0;
- bool get isActivated => lifecycleStatus == null || lifecycleStatus!.toUpperCase() == 'ACTIVE';
+  bool get isPlatformRegistered => platformDeviceId != null;
+  bool get hasTamperAlert =>
+      antiDisassemblyStatus != null && antiDisassemblyStatus != 0;
+  bool get isActivated =>
+      lifecycleStatus == null || lifecycleStatus!.toUpperCase() == 'ACTIVE';
 
- DeviceItem copyWith({
+  DeviceItem copyWith({
     String? boundLivestockCode,
     int? batteryPercent,
     int? rssi,
@@ -281,10 +287,10 @@ class AlertItem {
     this.read = false,
     this.occurredAt,
     this.resolvedAt,
-   this.fenceName,
-   this.resolvedType,
+    this.fenceName,
+    this.resolvedType,
     this.fenceId,
- });
+  });
 
   final String id;
   final String title;
@@ -300,6 +306,6 @@ class AlertItem {
   final String? occurredAt;
   final String? resolvedAt;
   final String? fenceName;
- final String? resolvedType; // AUTO | MANUAL_DISMISS
- final String? fenceId;
+  final String? resolvedType; // AUTO | MANUAL_DISMISS
+  final String? fenceId;
 }

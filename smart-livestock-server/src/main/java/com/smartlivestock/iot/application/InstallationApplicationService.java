@@ -97,9 +97,14 @@ public class InstallationApplicationService {
 
     @Transactional(readOnly = true)
     public Optional<InstallationDto> getActiveInstallationByLivestock(Long livestockId) {
-        // GPS history is tracker-specific; a livestock can also have a capsule.
+        // Prefer the dedicated tracker when both tracker and ear tag are installed.
+        Optional<Installation> installation = installationRepository
+                .findActiveByLivestockIdAndDeviceType(livestockId, DeviceType.TRACKER);
+        if (installation.isPresent()) {
+            return installation.map(InstallationDto::from);
+        }
         return installationRepository.findActiveByLivestockIdAndDeviceType(
-                        livestockId, DeviceType.TRACKER)
+                        livestockId, DeviceType.EAR_TAG)
                 .map(InstallationDto::from);
     }
 }

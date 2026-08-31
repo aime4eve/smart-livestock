@@ -36,6 +36,12 @@ public class TemperatureLogRepositoryImpl implements TemperatureLogRepository {
     }
 
     @Override
+    public List<TemperatureLog> findByDeviceIdAndTimeRange(Long deviceId, Instant from, Instant to) {
+        return jpaRepo.findByDeviceIdAndRecordedAtBetweenOrderByRecordedAtAsc(deviceId, from, to)
+                .stream().map(HealthMapper::toDomain).toList();
+    }
+
+    @Override
     public boolean existsByDeviceIdAndRecordedAtAndSource(
             Long deviceId, Instant recordedAt, String source) {
         return jpaRepo.existsByDeviceIdAndRecordedAtAndSource(deviceId, recordedAt, source);

@@ -55,7 +55,7 @@ public class HealthApplicationService {
      * <p>
      * Branches on telemetry type:
      * - CAPSULE: ingest temperature + motility + activity, then refresh snapshot
-     * - TRACKER: ingest activity (step_count + distance_meters), then refresh snapshot
+     * - TRACKER / EAR_TAG: ingest activity (step_count + distance_meters), then refresh snapshot
      */
     @Transactional
     @SuppressWarnings("unchecked")
@@ -98,7 +98,7 @@ public class HealthApplicationService {
                     toBigDecimal(readings.get("distanceMeters")),
                     recordedAt, effectiveSource);
 
-        } else if (deviceType == DeviceType.TRACKER) {
+        } else if (deviceType.supportsGps()) {
             ingestActivity(deviceId, livestockId,
                     toBigDecimal(readings.get("activityIndex")),
                     toInteger(readings.get("stepCount")),
@@ -121,7 +121,7 @@ public class HealthApplicationService {
 
     private String normalizeSource(String source) {
         return switch (source == null ? "" : source) {
-            case "AGENTIC_PLATFORM", "DATAGEN", "HTTP", "MANUAL_IMPORT" -> source;
+            case "AGENTIC_PLATFORM", "THINGSBOARD", "DATAGEN", "HTTP", "MANUAL_IMPORT" -> source;
             default -> "UNKNOWN";
         };
     }
@@ -153,7 +153,8 @@ public class HealthApplicationService {
         log.setDeviceId(deviceId);
         log.setTemperature(temperature);
 
-        HealthSnapshot snapshot = snapshotRepo.findByLivestockId(livestockId).orElse(null);
+        HealthSnapshot snapshot = livestockId == null ? null
+                : snapshotRepo.findByLivestockId(livestockId).orElse(null);
         BigDecimal baseline = (snapshot != null && snapshot.getBaselineTemp() != null)
                 ? snapshot.getBaselineTemp() : DEFAULT_BASELINE_TEMP;
         log.setBaselineTemp(baseline);
@@ -194,9 +195,13 @@ public class HealthApplicationService {
         activityLogRepo.save(log);
     }
 
-   private void refreshSnapshot(Long livestockId, Long farmId, String telemetryType,
+    private void refreshSnapshot(Long livestockId, Long farmId, String telemetryType,
                                  BigDecimal latestTemp, BigDecimal latestMotilityFrequency,
                                  String source) {
+        if (livestockId == null || farmId == null) {
+            return;
+        }
+
         // UPSERT: ensure snapshot row exists (race-safe, idempotent)
         snapshotRepo.ensureSnapshotExists(livestockId, farmId);
 
