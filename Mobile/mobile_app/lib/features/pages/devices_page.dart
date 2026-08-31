@@ -823,10 +823,14 @@ class DeviceHealthDialog extends StatefulWidget {
     super.key,
     required this.device,
     this.boundLivestockCode,
+    this.healthLoader,
+    this.seriesLoader,
   });
 
   final DeviceItem device;
   final String? boundLivestockCode;
+  final Future<Map<String, dynamic>> Function(String deviceId)? healthLoader;
+  final Future<Map<String, dynamic>> Function(String deviceId)? seriesLoader;
 
   static Future<void> show(
     BuildContext context,
@@ -874,11 +878,15 @@ class _DeviceHealthDialogState extends State<DeviceHealthDialog> {
     }
 
     final healthFuture = getOrNone(
-      ApiClient.instance.farmGet('/devices/${widget.device.id}/health'),
+      widget.healthLoader?.call(widget.device.id) ??
+          ApiClient.instance.farmGet('/devices/${widget.device.id}/health'),
     );
     final seriesFuture = widget.device.type == DeviceType.rumenCapsule
         ? getOrNone(
-            ApiClient.instance.farmGet('/health/devices/${widget.device.id}'),
+            widget.seriesLoader?.call(widget.device.id) ??
+                ApiClient.instance.farmGet(
+                  '/health/devices/${widget.device.id}',
+                ),
           )
         : null;
 
@@ -888,20 +896,12 @@ class _DeviceHealthDialogState extends State<DeviceHealthDialog> {
     ]);
 
     try {
-      final health = results[0];
-      final d = health == null ? null : health['data'];
-      if (d is Map) _healthData = d.cast<String, dynamic>();
+      _healthData = results[0];
     } catch (_) {}
 
     if (seriesFuture != null) {
       try {
-        final series = results[1];
-        final d = series == null ? null : series['data'];
-        if (d is Map) {
-          _seriesData = _DeviceHealthSeries.fromJson(d.cast<String, dynamic>());
-        } else {
-          _seriesLoadFailed = true;
-        }
+        _seriesData = _DeviceHealthSeries.fromJson(results[1]!);
       } catch (_) {
         _seriesLoadFailed = true;
       }
@@ -1147,11 +1147,16 @@ class _DeviceHealthSeries {
 
   static List<_DeviceHealthPoint> _points(Object? raw, String valueKey) {
     return (raw as List? ?? [])
-        .whereType<Map<String, dynamic>>()
+        .whereType<Map>()
         .map(
           (item) => _DeviceHealthPoint(
-            value: (item[valueKey] as num?)?.toDouble() ?? 0,
-            timestamp: DateTime.parse(item['timestamp'] as String),
+            value:
+                (Map<String, dynamic>.from(item)[valueKey] as num?)
+                    ?.toDouble() ??
+                0,
+            timestamp: DateTime.parse(
+              Map<String, dynamic>.from(item)['timestamp'] as String,
+            ),
           ),
         )
         .toList();
