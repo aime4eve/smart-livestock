@@ -249,7 +249,7 @@ public class TelemetryIngestionService {
 
    private void enqueueGps(Device device, Map<String, Object> readings, Instant recordedAt,
                            TelemetrySource source) {
-       if (device.getDeviceType() != com.smartlivestock.iot.domain.model.DeviceType.TRACKER) return;
+       if (!device.getDeviceType().supportsGps()) return;
 
        Object latObj = readings.get("latitude");
        Object lngObj = readings.get("longitude");

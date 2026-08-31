@@ -121,4 +121,19 @@ class InstallationApplicationServiceTest {
         assertThat(result).isPresent();
         assertThat(result.get().deviceId()).isEqualTo(5L);
     }
+
+    @Test
+    void shouldResolveEarTagForLivestockGpsWhenTrackerIsNotInstalled() {
+        Installation earTag = new Installation(6L, 10L, 100L);
+        earTag.setId(51L);
+        when(installationRepository.findActiveByLivestockIdAndDeviceType(10L, DeviceType.TRACKER))
+                .thenReturn(Optional.empty());
+        when(installationRepository.findActiveByLivestockIdAndDeviceType(10L, DeviceType.EAR_TAG))
+                .thenReturn(Optional.of(earTag));
+
+        var result = service.getActiveInstallationByLivestock(10L);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().deviceId()).isEqualTo(6L);
+    }
 }

@@ -26,19 +26,19 @@ class DevicesPage extends ConsumerStatefulWidget {
 }
 
 class _DevicesPageState extends ConsumerState<DevicesPage> {
- final _searchCtrl = TextEditingController();
- Timer? _debounce;
- bool _hasSearch = false;
- Map<String, String> _deviceIdToLivestockCode = {};
+  final _searchCtrl = TextEditingController();
+  Timer? _debounce;
+  bool _hasSearch = false;
+  Map<String, String> _deviceIdToLivestockCode = {};
   Map<String, String> _deviceIdToLivestockId = {};
   Map<String, String> _deviceIdToInstallationId = {};
 
- @override
- void dispose() {
-   _searchCtrl.dispose();
-   _debounce?.cancel();
-   super.dispose();
- }
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -61,23 +61,27 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
     ref.read(devicesControllerProvider.notifier).search('');
   }
 
- void _openForm() {
-   showModalBottomSheet(
-     context: context,
-     isScrollControlled: true,
-     builder: (ctx) => const TbDeviceWizardSheet(),
-   ).then((_) => ref.read(devicesControllerProvider.notifier).refresh());
- }
+  void _openForm() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => const TbDeviceWizardSheet(),
+    ).then((_) => ref.read(devicesControllerProvider.notifier).refresh());
+  }
 
   Future<void> _loadInstallations() async {
-   try {
-    // Request a large page size to get all active installations in one call;
-    // default pageSize=20 would miss devices beyond the first page.
-    final data = await ApiClient.instance.farmGet('/installations?pageSize=500');
-     final items = data['items'] as List? ?? [];
+    try {
+      // Request a large page size to get all active installations in one call;
+      // default pageSize=20 would miss devices beyond the first page.
+      final data = await ApiClient.instance.farmGet(
+        '/installations?pageSize=500',
+      );
+      final items = data['items'] as List? ?? [];
 
       // Fetch livestock codes for matching
-      final livestockData = await ref.read(livestockRepositoryProvider).loadAll(pageSize: 200);
+      final livestockData = await ref
+          .read(livestockRepositoryProvider)
+          .loadAll(pageSize: 200);
       final Map<String, String> livestockIdToCode = {};
       final Map<String, String> livestockIdToNumeric = {};
       for (final l in livestockData.items) {
@@ -100,16 +104,16 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
       }
       if (context.mounted) {
         setState(() {
-        _deviceIdToLivestockCode = codeMap;
-        _deviceIdToLivestockId = idMap;
-        _deviceIdToInstallationId = installationMap;
-      });
+          _deviceIdToLivestockCode = codeMap;
+          _deviceIdToLivestockId = idMap;
+          _deviceIdToInstallationId = installationMap;
+        });
       }
     } catch (_) {}
   }
 
- @override
- Widget build(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(devicesControllerProvider);
     final controller = ref.read(devicesControllerProvider.notifier);
@@ -129,7 +133,11 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
           // Search bar
           Padding(
             padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.sm),
+              AppSpacing.lg,
+              AppSpacing.sm,
+              AppSpacing.lg,
+              AppSpacing.sm,
+            ),
             child: TextField(
               key: const Key('device-search'),
               controller: _searchCtrl,
@@ -154,14 +162,17 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: Row(
                 children: [
-                  Icon(Icons.filter_list, size: 16,
-                      color: Theme.of(context).colorScheme.primary),
+                  Icon(
+                    Icons.filter_list,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   const SizedBox(width: AppSpacing.xs),
                   Text(
                     l10n.deviceSearchResult(asyncData.value!.total),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                   const Spacer(),
                   TextButton(
@@ -179,53 +190,33 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
                 if (data.items.isEmpty) {
                   return Center(child: Text(l10n.devicesNoDevices));
                 }
-           return Column(
-                 children: [
-                   Expanded(
-                     child: SingleChildScrollView(
-                       key: const Key('page-devices'),
-                       padding: const EdgeInsets.symmetric(
-                           horizontal: AppSpacing.lg),
-                       child: Column(
-                         crossAxisAlignment: CrossAxisAlignment.stretch,
-                         children: [
-                           _DeviceOverviewCard(data: data),
-                           const SizedBox(height: AppSpacing.md),
-                           for (final device in data.items)
-                             _DeviceWithBinding(
-                               device: device,
-                               boundLivestockCode: _deviceIdToLivestockCode[device.id] ?? '',
-                              onActivate: !device.isActivated
-                                  ? () => _activateDevice(context, ref, device)
-                                  : null,
-                              onInstall: device.isActivated && !_deviceIdToLivestockCode.containsKey(device.id)
-                                  ? () => _showInstallDialog(context, ref, device)
-                                  : null,
-                              onUnbind: _deviceIdToInstallationId.containsKey(device.id)
-                                  ? () => _showUnbindDialog(context, ref, device)
-                                  : null,
-                             onDelete: () => _showDeleteDialog(context, ref, device),
-                             onViewLocation: _deviceIdToLivestockId[device.id] != null
-                                  ? () => context.push('/livestock/${_deviceIdToLivestockId[device.id]}')
-                                  : null,
-                             onViewTrajectory: _deviceIdToLivestockId[device.id] == null
-                                 ? () => showDeviceTrajectorySheet(
-                                       context, int.parse(device.id), device.name,
-                                       useFarmScope: true)
-                                 : null,
-                            ),
-                         ],
-                       ),
-                     ),
-                   ),
+                return Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        key: const Key('page-devices'),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.lg,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _DeviceOverviewCard(data: data),
+                            const SizedBox(height: AppSpacing.md),
+                            for (final device in data.items)
+                              _buildDeviceWithBinding(device),
+                          ],
+                        ),
+                      ),
+                    ),
                     _PaginationBar(
                       currentPage: controller.currentPage,
                       totalPages: controller.totalPages,
                       total: data.total,
-                      onPrev: () => controller
-                          .goToPage(controller.currentPage - 1),
-                      onNext: () => controller
-                          .goToPage(controller.currentPage + 1),
+                      onPrev: () =>
+                          controller.goToPage(controller.currentPage - 1),
+                      onNext: () =>
+                          controller.goToPage(controller.currentPage + 1),
                     ),
                   ],
                 );
@@ -248,28 +239,65 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
           ),
         ],
       ),
-   );
- }
+    );
+  }
+
+  Widget _buildDeviceWithBinding(DeviceItem device) {
+    final livestockId = _deviceIdToLivestockId[device.id];
+    return _DeviceWithBinding(
+      device: device,
+      boundLivestockCode: _deviceIdToLivestockCode[device.id] ?? '',
+      onActivate: !device.isActivated
+          ? () => _activateDevice(context, ref, device)
+          : null,
+      onInstall:
+          device.isActivated && !_deviceIdToLivestockCode.containsKey(device.id)
+          ? () => _showInstallDialog(context, ref, device)
+          : null,
+      onUnbind: _deviceIdToInstallationId.containsKey(device.id)
+          ? () => _showUnbindDialog(context, ref, device)
+          : null,
+      onDelete: () => _showDeleteDialog(context, ref, device),
+      onViewLocation: device.type.supportsGps && livestockId != null
+          ? () => context.push('/livestock/$livestockId')
+          : null,
+      onViewHealth:
+          device.type == DeviceType.rumenCapsule && livestockId != null
+          ? () => context.push('/livestock/$livestockId')
+          : null,
+      onViewTrajectory: device.type.supportsGps && livestockId == null
+          ? () => showDeviceTrajectorySheet(
+              context,
+              int.parse(device.id),
+              device.name,
+              useFarmScope: true,
+            )
+          : null,
+    );
+  }
 
   Future<void> _activateDevice(
-      BuildContext context, WidgetRef ref, DeviceItem device) async {
+    BuildContext context,
+    WidgetRef ref,
+    DeviceItem device,
+  ) async {
     final l10n = AppLocalizations.of(context)!;
     try {
       await ApiClient.instance.farmPut('/devices/${device.id}/activate');
       if (context.mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(
-            content: Text(l10n.deviceActivateSuccess(device.name)),
-          ));
+          ..showSnackBar(
+            SnackBar(content: Text(l10n.deviceActivateSuccess(device.name))),
+          );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(
-            content: Text(l10n.deviceActivateFailed(e.toString())),
-          ));
+          ..showSnackBar(
+            SnackBar(content: Text(l10n.deviceActivateFailed(e.toString()))),
+          );
       }
     }
     await _loadInstallations();
@@ -278,7 +306,10 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
   }
 
   Future<void> _showUnbindDialog(
-      BuildContext context, WidgetRef ref, DeviceItem device) async {
+    BuildContext context,
+    WidgetRef ref,
+    DeviceItem device,
+  ) async {
     final l10n = AppLocalizations.of(context)!;
     final installationId = _deviceIdToInstallationId[device.id];
 
@@ -304,31 +335,35 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
     if (confirmed != true) return;
 
     try {
-      await ApiClient.instance
-          .farmPut('/installations/$installationId/uninstall');
+      await ApiClient.instance.farmPut(
+        '/installations/$installationId/uninstall',
+      );
       if (context.mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(
-            content: Text(l10n.deviceUnbindSuccess(device.name)),
-          ));
-     }
-     await _loadInstallations();
-     ref.invalidate(devicesControllerProvider);
-     ref.invalidate(dashboardControllerProvider);
+          ..showSnackBar(
+            SnackBar(content: Text(l10n.deviceUnbindSuccess(device.name))),
+          );
+      }
+      await _loadInstallations();
+      ref.invalidate(devicesControllerProvider);
+      ref.invalidate(dashboardControllerProvider);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(
-            content: Text(l10n.deviceUnbindFailed(e.toString())),
-          ));
+          ..showSnackBar(
+            SnackBar(content: Text(l10n.deviceUnbindFailed(e.toString()))),
+          );
       }
     }
   }
 
   Future<void> _showDeleteDialog(
-      BuildContext context, WidgetRef ref, DeviceItem device) async {
+    BuildContext context,
+    WidgetRef ref,
+    DeviceItem device,
+  ) async {
     final l10n = AppLocalizations.of(context)!;
 
     final confirmed = await showDialog<bool>(
@@ -357,9 +392,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
       if (context.mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(
-            content: Text(l10n.deviceDeleteSuccess),
-          ));
+          ..showSnackBar(SnackBar(content: Text(l10n.deviceDeleteSuccess)));
       }
       await _loadInstallations();
       ref.invalidate(devicesControllerProvider);
@@ -367,15 +400,18 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
       if (context.mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(
-            content: Text(l10n.deviceDeleteFailed(e.toString())),
-          ));
+          ..showSnackBar(
+            SnackBar(content: Text(l10n.deviceDeleteFailed(e.toString()))),
+          );
       }
     }
   }
 
   Future<void> _showInstallDialog(
-      BuildContext context, WidgetRef ref, DeviceItem device) async {
+    BuildContext context,
+    WidgetRef ref,
+    DeviceItem device,
+  ) async {
     final l10n = AppLocalizations.of(context)!;
 
     showDialog<void>(
@@ -389,36 +425,42 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
           if (farmId.isEmpty) {
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
-              ..showSnackBar(SnackBar(content: Text(l10n.fencePleaseSelectFarm)));
+              ..showSnackBar(
+                SnackBar(content: Text(l10n.fencePleaseSelectFarm)),
+              );
             return;
           }
           try {
-            await ApiClient.instance.farmPost('/installations', body: {
-              'deviceId': device.id,
-              'livestockId': livestockId,
-            });
+            await ApiClient.instance.farmPost(
+              '/installations',
+              body: {'deviceId': device.id, 'livestockId': livestockId},
+            );
             if (context.mounted) {
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
-                ..showSnackBar(SnackBar(
-                  content: Text(l10n.devicesInstallSuccess(device.name)),
-                ));
+                ..showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.devicesInstallSuccess(device.name)),
+                  ),
+                );
             }
           } catch (e) {
             if (context.mounted) {
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
-                ..showSnackBar(SnackBar(
-                  content: Text(l10n.devicesInstallFailed(e.toString())),
-                ));
+                ..showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.devicesInstallFailed(e.toString())),
+                  ),
+                );
             }
           }
-         await _loadInstallations();
-         ref.invalidate(devicesControllerProvider);
-         ref.invalidate(dashboardControllerProvider);
-       },
-     ),
-   );
+          await _loadInstallations();
+          ref.invalidate(devicesControllerProvider);
+          ref.invalidate(dashboardControllerProvider);
+        },
+      ),
+    );
   }
 }
 
@@ -477,7 +519,8 @@ class _InstallDialogState extends State<_InstallDialog> {
   }
 
   void _onScroll() {
-    if (_scrollCtrl.position.pixels >= _scrollCtrl.position.maxScrollExtent - 200) {
+    if (_scrollCtrl.position.pixels >=
+        _scrollCtrl.position.maxScrollExtent - 200) {
       _loadMore();
     }
   }
@@ -488,11 +531,18 @@ class _InstallDialogState extends State<_InstallDialog> {
     _hasMore = true;
     try {
       final data = await widget.livestockRepo.loadAll(
-        page: 1, pageSize: _pageSize,
+        page: 1,
+        pageSize: _pageSize,
         keyword: _keyword.isNotEmpty ? _keyword : null,
       );
       _items = data.items
-          .map((l) => _LivestockOption(id: l.id, label: l.livestockCode, subtitle: l.breed.name))
+          .map(
+            (l) => _LivestockOption(
+              id: l.id,
+              label: l.livestockCode,
+              subtitle: l.breed.name,
+            ),
+          )
           .toList();
       _hasMore = data.page * data.pageSize < data.total;
     } catch (_) {
@@ -507,11 +557,19 @@ class _InstallDialogState extends State<_InstallDialog> {
     try {
       final nextPage = _page + 1;
       final data = await widget.livestockRepo.loadAll(
-        page: nextPage, pageSize: _pageSize,
+        page: nextPage,
+        pageSize: _pageSize,
         keyword: _keyword.isNotEmpty ? _keyword : null,
       );
-      _items.addAll(data.items
-          .map((l) => _LivestockOption(id: l.id, label: l.livestockCode, subtitle: l.breed.name)));
+      _items.addAll(
+        data.items.map(
+          (l) => _LivestockOption(
+            id: l.id,
+            label: l.livestockCode,
+            subtitle: l.breed.name,
+          ),
+        ),
+      );
       _page = nextPage;
       _hasMore = data.page * data.pageSize < data.total;
     } catch (_) {}
@@ -548,8 +606,8 @@ class _InstallDialogState extends State<_InstallDialog> {
             const SizedBox(height: AppSpacing.sm),
             Expanded(
               child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : _items.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
+                  : _items.isEmpty
                   ? Center(child: Text(l10n.devicesNoMatchingLivestock))
                   : ListView.builder(
                       controller: _scrollCtrl,
@@ -558,7 +616,9 @@ class _InstallDialogState extends State<_InstallDialog> {
                         if (i >= _items.length) {
                           return const Padding(
                             padding: EdgeInsets.all(16),
-                            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                            child: Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
                           );
                         }
                         final item = _items[i];
@@ -599,38 +659,45 @@ class _DeviceWithBinding extends StatelessWidget {
     required this.boundLivestockCode,
     this.onActivate,
     this.onInstall,
-   this.onUnbind,
-   this.onDelete,
-   this.onViewLocation,
-   this.onViewTrajectory,
- });
+    this.onUnbind,
+    this.onDelete,
+    this.onViewLocation,
+    this.onViewHealth,
+    this.onViewTrajectory,
+  });
 
- final DeviceItem device;
- final String boundLivestockCode;
- final VoidCallback? onActivate;
- final VoidCallback? onInstall;
- final VoidCallback? onUnbind;
- final VoidCallback? onDelete;
- final VoidCallback? onViewLocation;
- final VoidCallback? onViewTrajectory;
+  final DeviceItem device;
+  final String boundLivestockCode;
+  final VoidCallback? onActivate;
+  final VoidCallback? onInstall;
+  final VoidCallback? onUnbind;
+  final VoidCallback? onDelete;
+  final VoidCallback? onViewLocation;
+  final VoidCallback? onViewHealth;
+  final VoidCallback? onViewTrajectory;
 
- @override
- Widget build(BuildContext context) {
-  final effective = device.copyWith(boundLivestockCode: boundLivestockCode);
-  return GestureDetector(
-    onTap: () => DeviceHealthDialog.show(context, device, boundLivestockCode: boundLivestockCode),
-    child: Padding(
-     padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-     child: HighfiDeviceTile(
-       device: effective,
-       onActivate: onActivate,
-       onInstall: onInstall,
-       onUnbind: onUnbind,
-       onDelete: onDelete,
-       onViewLocation: onViewLocation,
-       onViewTrajectory: onViewTrajectory,
-     ),
-     ),
+  @override
+  Widget build(BuildContext context) {
+    final effective = device.copyWith(boundLivestockCode: boundLivestockCode);
+    return GestureDetector(
+      onTap: () => DeviceHealthDialog.show(
+        context,
+        device,
+        boundLivestockCode: boundLivestockCode,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+        child: HighfiDeviceTile(
+          device: effective,
+          onActivate: onActivate,
+          onInstall: onInstall,
+          onUnbind: onUnbind,
+          onDelete: onDelete,
+          onViewLocation: onViewLocation,
+          onViewHealth: onViewHealth,
+          onViewTrajectory: onViewTrajectory,
+        ),
+      ),
     );
   }
 }
@@ -643,16 +710,21 @@ class _DeviceOverviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final online =
-        data.items.where((d) => d.status == DeviceStatus.online).length;
-    final offline =
-        data.items.where((d) => d.status == DeviceStatus.offline).length;
+    final online = data.items
+        .where((d) => d.status == DeviceStatus.online)
+        .length;
+    final offline = data.items
+        .where((d) => d.status == DeviceStatus.offline)
+        .length;
     return HighfiCard(
       key: const Key('device-overview-card'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(l10n.devicesOverview, style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            l10n.devicesOverview,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: AppSpacing.md),
           Wrap(
             spacing: AppSpacing.lg,
@@ -707,10 +779,11 @@ class _PaginationBar extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
-        border:
-            Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+        border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -740,21 +813,31 @@ class _PaginationBar extends StatelessWidget {
   }
 }
 
-
 class DeviceHealthDialog extends StatefulWidget {
-  const DeviceHealthDialog({super.key, required this.device, this.boundLivestockCode});
+  const DeviceHealthDialog({
+    super.key,
+    required this.device,
+    this.boundLivestockCode,
+  });
 
   final DeviceItem device;
   final String? boundLivestockCode;
 
-  static Future<void> show(BuildContext context, DeviceItem device, {String? boundLivestockCode}) {
+  static Future<void> show(
+    BuildContext context,
+    DeviceItem device, {
+    String? boundLivestockCode,
+  }) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => DeviceHealthDialog(device: device, boundLivestockCode: boundLivestockCode),
+      builder: (_) => DeviceHealthDialog(
+        device: device,
+        boundLivestockCode: boundLivestockCode,
+      ),
     );
   }
 
@@ -764,7 +847,7 @@ class DeviceHealthDialog extends StatefulWidget {
 
 class _DeviceHealthDialogState extends State<DeviceHealthDialog> {
   Map<String, dynamic>? _healthData;
-    // unused
+  // unused
   bool _loading = true;
 
   @override
@@ -774,9 +857,11 @@ class _DeviceHealthDialogState extends State<DeviceHealthDialog> {
   }
 
   Future<void> _load() async {
-   try {
-    final health = await ApiClient.instance.farmGet('/devices/${widget.device.id}/health');
-     final d = health['data'];
+    try {
+      final health = await ApiClient.instance.farmGet(
+        '/devices/${widget.device.id}/health',
+      );
+      final d = health['data'];
       if (d is Map) _healthData = d.cast<String, dynamic>();
     } catch (_) {}
     if (context.mounted) setState(() => _loading = false);
@@ -791,66 +876,152 @@ class _DeviceHealthDialogState extends State<DeviceHealthDialog> {
       maxChildSize: 0.95,
       expand: false,
       builder: (ctx, scrollCtrl) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: ListView(
           controller: scrollCtrl,
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.lg),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.sm,
+            AppSpacing.lg,
+            AppSpacing.lg,
+          ),
           children: [
             // Handle
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)))),
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
             const SizedBox(height: AppSpacing.md),
 
             // Header
-            _HeaderTile(device: d, boundLivestockCode: widget.boundLivestockCode),
+            _HeaderTile(
+              device: d,
+              boundLivestockCode: widget.boundLivestockCode,
+            ),
 
             // Health score card
             if (_loading)
-              const Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator()))
+              const Padding(
+                padding: EdgeInsets.all(32),
+                child: Center(child: CircularProgressIndicator()),
+              )
             else if (_healthData != null)
-              _HealthScoreCard(score: _healthData!['score'] as int?, grade: _healthData!['grade'] as String?, dimensions: _healthData!['dimensions'] as Map<String, dynamic>?),
+              _HealthScoreCard(
+                score: _healthData!['score'] as int?,
+                grade: _healthData!['grade'] as String?,
+                dimensions: _healthData!['dimensions'] as Map<String, dynamic>?,
+              ),
             const SizedBox(height: AppSpacing.md),
 
             // Signal card
-            _InfoCard(title: '信号质量', icon: Icons.signal_cellular_alt, children: [
-              if (d.rssi != null) _InfoRow(label: 'RSSI', value: '${d.rssi} dBm', badge: _rssiBadge(d.rssi!)),
-              if (d.snr != null) _InfoRow(label: 'SNR', value: d.snr!),
-              if (d.lastGateway != null) _InfoRow(label: '网关', value: d.lastGateway!, mono: true),
-            ]),
+            _InfoCard(
+              title: '信号质量',
+              icon: Icons.signal_cellular_alt,
+              children: [
+                if (d.rssi != null)
+                  _InfoRow(
+                    label: 'RSSI',
+                    value: '${d.rssi} dBm',
+                    badge: _rssiBadge(d.rssi!),
+                  ),
+                if (d.snr != null) _InfoRow(label: 'SNR', value: d.snr!),
+                if (d.lastGateway != null)
+                  _InfoRow(label: '网关', value: d.lastGateway!, mono: true),
+              ],
+            ),
             const SizedBox(height: AppSpacing.sm),
 
             // Device identity card
-            _InfoCard(title: '设备信息', icon: Icons.memory, children: [
-              if (d.devEui != null) _InfoRow(label: 'DevEUI', value: d.devEui!, mono: true),
-              if (d.platformDeviceId != null) _InfoRow(label: '平台 ID', value: d.platformDeviceId!, mono: true),
-              if (d.softwareVersion != null) _InfoRow(label: '软件版本', value: d.softwareVersion!),
-              if (d.hardwareVersion != null) _InfoRow(label: '硬件版本', value: d.hardwareVersion!),
-              if (d.lastTelemetrySyncedAt != null) _InfoRow(label: '最后同步', value: _fmtTime(d.lastTelemetrySyncedAt!.toString())),
-              _InfoRow(label: '运行状态', value: d.runtimeStatus ?? d.status.name, badge: _statusBadge(d)),
-            ]),
+            _InfoCard(
+              title: '设备信息',
+              icon: Icons.memory,
+              children: [
+                if (d.devEui != null)
+                  _InfoRow(label: 'DevEUI', value: d.devEui!, mono: true),
+                if (d.platformDeviceId != null)
+                  _InfoRow(
+                    label: '平台 ID',
+                    value: d.platformDeviceId!,
+                    mono: true,
+                  ),
+                if (d.softwareVersion != null)
+                  _InfoRow(label: '软件版本', value: d.softwareVersion!),
+                if (d.hardwareVersion != null)
+                  _InfoRow(label: '硬件版本', value: d.hardwareVersion!),
+                if (d.lastTelemetrySyncedAt != null)
+                  _InfoRow(
+                    label: '最后同步',
+                    value: _fmtTime(d.lastTelemetrySyncedAt!.toString()),
+                  ),
+                _InfoRow(
+                  label: '运行状态',
+                  value: d.runtimeStatus ?? d.status.name,
+                  badge: _statusBadge(d),
+                ),
+              ],
+            ),
 
             // Platform registration
             const SizedBox(height: AppSpacing.sm),
-            _InfoCard(title: '平台注册', icon: Icons.cloud, children: [
-              Row(children: [
-                Icon(d.isPlatformRegistered ? Icons.cloud_done : Icons.cloud_off, size: 20,
-                    color: d.isPlatformRegistered ? AppColors.success : AppColors.textSecondary),
-                const SizedBox(width: AppSpacing.sm),
-                Text(d.isPlatformRegistered ? '已注册 (agentic-middle-platform)' : '未注册'),
-              ]),
-              if (d.lastTelemetrySyncedAt != null) ...[
-                const SizedBox(height: AppSpacing.xs),
-                Text('同步时间: ${_fmtTime(d.lastTelemetrySyncedAt!.toString())}', style: Theme.of(context).textTheme.bodySmall),
+            _InfoCard(
+              title: '平台注册',
+              icon: Icons.cloud,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      d.isPlatformRegistered
+                          ? Icons.cloud_done
+                          : Icons.cloud_off,
+                      size: 20,
+                      color: d.isPlatformRegistered
+                          ? AppColors.success
+                          : AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      d.isPlatformRegistered
+                          ? '已注册 (agentic-middle-platform)'
+                          : '未注册',
+                    ),
+                  ],
+                ),
+                if (d.lastTelemetrySyncedAt != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    '同步时间: ${_fmtTime(d.lastTelemetrySyncedAt!.toString())}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
               ],
-            ]),
+            ),
             const SizedBox(height: AppSpacing.sm),
 
             // Binding info
-            _InfoCard(title: '牲畜绑定', icon: Icons.link, children: [
-              if (widget.boundLivestockCode != null && widget.boundLivestockCode!.isNotEmpty)
-                _InfoRow(label: '绑定牲畜', value: widget.boundLivestockCode!)
-              else
-                Text('未绑定', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary)),
-            ]),
+            _InfoCard(
+              title: '牲畜绑定',
+              icon: Icons.link,
+              children: [
+                if (widget.boundLivestockCode != null &&
+                    widget.boundLivestockCode!.isNotEmpty)
+                  _InfoRow(label: '绑定牲畜', value: widget.boundLivestockCode!)
+                else
+                  Text(
+                    '未绑定',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+              ],
+            ),
           ],
         ),
       ),
@@ -858,21 +1029,36 @@ class _DeviceHealthDialogState extends State<DeviceHealthDialog> {
   }
 
   Widget _rssiBadge(int rssi) {
-    final color = rssi >= -50 ? AppColors.success : rssi >= -80 ? AppColors.warning : AppColors.danger;
-    final label = rssi >= -50 ? '优良' : rssi >= -80 ? '一般' : '差';
+    final color = rssi >= -50
+        ? AppColors.success
+        : rssi >= -80
+        ? AppColors.warning
+        : AppColors.danger;
+    final label = rssi >= -50
+        ? '优良'
+        : rssi >= -80
+        ? '一般'
+        : '差';
     return _Badge(color: color, label: label);
   }
 
   Widget _statusBadge(DeviceItem d) {
-    final online = d.runtimeStatus?.toLowerCase() == 'online' || d.status == DeviceStatus.online;
-    return _Badge(color: online ? AppColors.success : AppColors.danger, label: online ? '在线' : '离线');
+    final online =
+        d.runtimeStatus?.toLowerCase() == 'online' ||
+        d.status == DeviceStatus.online;
+    return _Badge(
+      color: online ? AppColors.success : AppColors.danger,
+      label: online ? '在线' : '离线',
+    );
   }
 
   String _fmtTime(String ts) {
     try {
       final dt = DateTime.parse(ts).toLocal();
       return '${dt.month}/${dt.day} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-    } catch (_) { return ts; }
+    } catch (_) {
+      return ts;
+    }
   }
 }
 
@@ -885,26 +1071,59 @@ class _HeaderTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: Theme.of(context).dividerColor)),
-      child: Row(children: [
-        Icon(_typeIcon(device.type), size: 36, color: _statusColor(device)),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(device.name, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 4),
-          Text('${device.deviceTypeName ?? device.type.name} · ${device.runtimeStatus ?? device.status.name} · 电量 ${device.batteryPercent ?? "?"}%', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary)),
-          if (boundLivestockCode != null && boundLivestockCode!.isNotEmpty) Text('绑定: $boundLivestockCode', style: Theme.of(context).textTheme.bodySmall),
-        ])),
-
-      ]),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: Row(
+        children: [
+          Icon(_typeIcon(device.type), size: 36, color: _statusColor(device)),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  device.name,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${device.deviceTypeName ?? device.type.name} · ${device.runtimeStatus ?? device.status.name} · 电量 ${device.batteryPercent ?? "?"}%',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                if (boundLivestockCode != null &&
+                    boundLivestockCode!.isNotEmpty)
+                  Text(
+                    '绑定: $boundLivestockCode',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   IconData _typeIcon(dynamic t) {
-    if (t is DeviceType) return switch (t) { DeviceType.gps => Icons.gps_fixed, DeviceType.rumenCapsule => Icons.medication, DeviceType.earTag => Icons.tag };
+    if (t is DeviceType)
+      return switch (t) {
+        DeviceType.gps => Icons.gps_fixed,
+        DeviceType.rumenCapsule => Icons.medication,
+        DeviceType.earTag => Icons.tag,
+      };
     return Icons.devices;
   }
-  Color _statusColor(DeviceItem d) => (d.runtimeStatus?.toLowerCase() == 'online' || d.status == DeviceStatus.online) ? AppColors.success : AppColors.danger;
+
+  Color _statusColor(DeviceItem d) =>
+      (d.runtimeStatus?.toLowerCase() == 'online' ||
+          d.status == DeviceStatus.online)
+      ? AppColors.success
+      : AppColors.danger;
 }
 
 class _HealthScoreCard extends StatelessWidget {
@@ -922,67 +1141,153 @@ class _HealthScoreCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _gradeColor(grade).withValues(alpha: 0.3)),
       ),
-      child: Column(children: [
-        Row(children: [
-          _HealthScoreCircle(score: score ?? 0, radius: 30, fontSize: 20),
-          const SizedBox(width: AppSpacing.md),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('设备健康分', style: Theme.of(context).textTheme.titleMedium),
-            Text(grade ?? '--', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: _gradeColor(grade), fontWeight: FontWeight.bold)),
-          ]),
-        ]),
-        if (dimensions != null) ...[
-          const SizedBox(height: AppSpacing.md),
-          ...dimensions!.entries.map((e) => Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: _DimBar(label: _dimLabel(e.key), value: (e.value as num).toInt(), color: _dimColor(e.key)),
-          )),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              _HealthScoreCircle(score: score ?? 0, radius: 30, fontSize: 20),
+              const SizedBox(width: AppSpacing.md),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('设备健康分', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    grade ?? '--',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: _gradeColor(grade),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          if (dimensions != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            ...dimensions!.entries.map(
+              (e) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: _DimBar(
+                  label: _dimLabel(e.key),
+                  value: (e.value as num).toInt(),
+                  color: _dimColor(e.key),
+                ),
+              ),
+            ),
+          ],
         ],
-      ]),
+      ),
     );
   }
 
-  Color _gradeColor(String? g) => switch (g?.toUpperCase()) { 'HEALTHY' => AppColors.success, 'WARNING' => AppColors.warning, _ => AppColors.danger };
-  String _dimLabel(String k) => switch (k) { 'battery' => '电量', 'signal' => '信号', 'online' => '在线', 'tamper' => '防拆卸', 'reporting' => '数据上报', _ => k };
-  Color _dimColor(String k) => switch (k) { 'battery' => Colors.orange, 'signal' => Colors.blue, 'online' => Colors.teal, 'tamper' => Colors.red, 'reporting' => Colors.purple, _ => Colors.grey };
+  Color _gradeColor(String? g) => switch (g?.toUpperCase()) {
+    'HEALTHY' => AppColors.success,
+    'WARNING' => AppColors.warning,
+    _ => AppColors.danger,
+  };
+  String _dimLabel(String k) => switch (k) {
+    'battery' => '电量',
+    'signal' => '信号',
+    'online' => '在线',
+    'tamper' => '防拆卸',
+    'reporting' => '数据上报',
+    _ => k,
+  };
+  Color _dimColor(String k) => switch (k) {
+    'battery' => Colors.orange,
+    'signal' => Colors.blue,
+    'online' => Colors.teal,
+    'tamper' => Colors.red,
+    'reporting' => Colors.purple,
+    _ => Colors.grey,
+  };
 }
 
 class _DimBar extends StatelessWidget {
-  const _DimBar({required this.label, required this.value, required this.color});
+  const _DimBar({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
   final String label;
   final int value;
   final Color color;
 
   @override
-  Widget build(BuildContext context) => Row(children: [
-    SizedBox(width: 80, child: Text(label, style: Theme.of(context).textTheme.bodySmall)),
-    Expanded(child: ClipRRect(
-      borderRadius: BorderRadius.circular(4),
-      child: LinearProgressIndicator(value: value / 100, backgroundColor: Colors.grey[200], color: color, minHeight: 8),
-    )),
-    SizedBox(width: 40, child: Text('$value', textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodySmall)),
-  ]);
+  Widget build(BuildContext context) => Row(
+    children: [
+      SizedBox(
+        width: 80,
+        child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+      ),
+      Expanded(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: value / 100,
+            backgroundColor: Colors.grey[200],
+            color: color,
+            minHeight: 8,
+          ),
+        ),
+      ),
+      SizedBox(
+        width: 40,
+        child: Text(
+          '$value',
+          textAlign: TextAlign.right,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ),
+    ],
+  );
 }
 
 class _HealthScoreCircle extends StatelessWidget {
-  const _HealthScoreCircle({required this.score, this.radius = 24, this.fontSize = 16});
+  const _HealthScoreCircle({
+    required this.score,
+    this.radius = 24,
+    this.fontSize = 16,
+  });
   final int score;
   final double radius;
   final double fontSize;
 
   @override
   Widget build(BuildContext context) {
-    final color = score >= 80 ? AppColors.success : score >= 60 ? AppColors.warning : AppColors.danger;
+    final color = score >= 80
+        ? AppColors.success
+        : score >= 60
+        ? AppColors.warning
+        : AppColors.danger;
     return Container(
-      width: radius * 2, height: radius * 2,
-      decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: 0.15), border: Border.all(color: color, width: 3)),
-      child: Center(child: Text('$score', style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold, color: color))),
+      width: radius * 2,
+      height: radius * 2,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withValues(alpha: 0.15),
+        border: Border.all(color: color, width: 3),
+      ),
+      child: Center(
+        child: Text(
+          '$score',
+          style: TextStyle(
+            fontSize: fontSize,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ),
     );
   }
 }
 
 class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.title, required this.icon, required this.children});
+  const _InfoCard({
+    required this.title,
+    required this.icon,
+    required this.children,
+  });
   final String title;
   final IconData icon;
   final List<Widget> children;
@@ -990,17 +1295,35 @@ class _InfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(AppSpacing.md),
-    decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: Theme.of(context).dividerColor)),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary), const SizedBox(width: AppSpacing.sm), Text(title, style: Theme.of(context).textTheme.titleMedium)]),
-      const SizedBox(height: AppSpacing.sm),
-      ...children,
-    ]),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: Theme.of(context).dividerColor),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(width: AppSpacing.sm),
+            Text(title, style: Theme.of(context).textTheme.titleMedium),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        ...children,
+      ],
+    ),
   );
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value, this.badge, this.mono = false});
+  const _InfoRow({
+    required this.label,
+    required this.value,
+    this.badge,
+    this.mono = false,
+  });
   final String label;
   final String value;
   final Widget? badge;
@@ -1009,11 +1332,29 @@ class _InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
-    child: Row(children: [
-      SizedBox(width: 80, child: Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary))),
-      Expanded(child: Text(value, style: TextStyle(fontFamily: mono ? 'monospace' : null, fontSize: 13))),
-      if (badge != null) badge!,
-    ]),
+    child: Row(
+      children: [
+        SizedBox(
+          width: 80,
+          child: Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontFamily: mono ? 'monospace' : null,
+              fontSize: 13,
+            ),
+          ),
+        ),
+        if (badge != null) badge!,
+      ],
+    ),
   );
 }
 
@@ -1025,7 +1366,13 @@ class _Badge extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-    decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
-    child: Text(label, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.15),
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Text(
+      label,
+      style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600),
+    ),
   );
 }

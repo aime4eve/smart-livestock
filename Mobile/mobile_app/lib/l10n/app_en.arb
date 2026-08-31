@@ -1315,6 +1315,8 @@
   },
  "deviceViewLocation": "View Location",
  "@deviceViewLocation": {},
+ "deviceViewHealth": "View Health Data",
+ "@deviceViewHealth": {},
   "deviceViewTrajectory": "View Trajectory",
   "@deviceViewTrajectory": {},
   "offlineTileNoRegions": "No offline maps available",

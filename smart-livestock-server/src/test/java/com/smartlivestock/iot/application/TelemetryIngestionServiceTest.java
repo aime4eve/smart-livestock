@@ -71,6 +71,14 @@ class TelemetryIngestionServiceTest {
         return d;
     }
 
+    private Device createEarTagDevice(Long id) {
+        Device d = new Device();
+        d.setId(id);
+        d.setDeviceType(DeviceType.EAR_TAG);
+        d.setStatus(DeviceStatus.ACTIVE);
+        return d;
+    }
+
     private Installation createInstallation(Long deviceId, Long livestockId) {
         Installation inst = new Installation(deviceId, livestockId, 1L);
         inst.setId(1L);
@@ -163,6 +171,24 @@ class TelemetryIngestionServiceTest {
         service.ingest(51L, readings, Instant.now());
 
         verifyNoInteractions(gpsIngestionTaskRepository);
+    }
+
+    @Test
+    void ingest_earTag_enqueuesGps() {
+        Device device = createEarTagDevice(61L);
+        when(deviceRepository.findById(61L)).thenReturn(Optional.of(device));
+        when(installationRepository.findActiveByDeviceId(61L)).thenReturn(Optional.empty());
+
+        service.ingest(61L, Map.of(
+                "latitude", 28.231,
+                "longitude", 112.94
+        ), Instant.parse("2026-08-31T01:00:00Z"));
+
+        ArgumentCaptor<GpsIngestionTask> taskCaptor = ArgumentCaptor.forClass(GpsIngestionTask.class);
+        verify(gpsIngestionTaskRepository).enqueue(taskCaptor.capture());
+        assertEquals(61L, taskCaptor.getValue().getDeviceId());
+        assertEquals(new BigDecimal("28.231"), taskCaptor.getValue().getLatitude());
+        assertEquals(new BigDecimal("112.94"), taskCaptor.getValue().getLongitude());
     }
 
     @Test

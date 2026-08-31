@@ -1,9 +1,13 @@
 package com.smartlivestock.iot.interfaces;
 
 import com.smartlivestock.iot.application.GpsLogApplicationService;
+import com.smartlivestock.iot.application.DeviceApplicationService;
 import com.smartlivestock.iot.application.InstallationApplicationService;
 import com.smartlivestock.iot.application.dto.GpsLogDto;
 import com.smartlivestock.iot.application.dto.InstallationDto;
+import com.smartlivestock.iot.domain.model.DeviceType;
+import com.smartlivestock.shared.common.ApiException;
+import com.smartlivestock.shared.common.ErrorCode;
 import com.smartlivestock.shared.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +27,7 @@ public class GpsLogController {
 
     private final GpsLogApplicationService gpsLogApplicationService;
     private final InstallationApplicationService installationApplicationService;
+    private final DeviceApplicationService deviceApplicationService;
 
     /**
      * GET /api/v1/farms/{farmId}/gps-logs/latest
@@ -119,6 +124,12 @@ public class GpsLogController {
             @RequestParam(required = false) String startTime,
             @RequestParam(required = false) String endTime,
             @RequestParam(required = false) Integer sampleSize) {
+        var deviceType = DeviceType.valueOf(
+                deviceApplicationService.getDevice(deviceId).deviceType());
+        if (!deviceType.supportsGps()) {
+            throw new ApiException(ErrorCode.STATE_CONFLICT,
+                    "error.deviceGpsUnsupported", new Object[]{deviceType.name()});
+        }
         List<GpsLogDto> logs;
         if (startTime != null && endTime != null && sampleSize != null && sampleSize > 0) {
             logs = gpsLogApplicationService.sampleByDeviceAndTimeRange(
