@@ -104,3 +104,9 @@ smart-livestock-server/infrastructure/tileserver/data/*.mbtiles
 
 # Playwright CLI artifacts
 .playwright-cli/
+
+# Architecture/design tool state (keep generated diagrams & knowledge graph)
+.mimosa/
+**/.mimosa/
+.understand-anything/.trash-*/
+.understand-anything/intermediate/

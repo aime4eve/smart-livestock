@@ -1,0 +1,325 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "智慧畜牧 · 设备遥测数据流",
+    "locale": "zh-CN",
+    "output": "docs/diagrams/telemetry-data-flow.html",
+    "viewBox": [
+      1160,
+      748
+    ],
+    "quality_profile": "standard"
+  },
+  "stages": [
+    {
+      "label": "数据采集"
+    },
+    {
+      "label": "统一摄取"
+    },
+    {
+      "label": "存储 · 事件流"
+    },
+    {
+      "label": "数据分析"
+    },
+    {
+      "label": "结果应用"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "tb",
+      "type": "cloud",
+      "label": "ThingsBoard",
+      "sublabel": "设备接入平台 · REST 轮询",
+      "tag": "MQTT 接入",
+      "stage": 0,
+      "row": 0,
+      "yOffset": -20
+    },
+    {
+      "id": "devices",
+      "type": "external",
+      "label": "智能项圈 / 耳标",
+      "sublabel": "体温 · 活动 · GPS",
+      "tag": "CAPSULE · TRACKER",
+      "stage": 0,
+      "row": 1
+    },
+    {
+      "id": "blade",
+      "type": "external",
+      "label": "Agentic 中台",
+      "sublabel": "report-record 分页拉取",
+      "tag": "5min 轮询",
+      "stage": 0,
+      "row": 3,
+      "yOffset": 20
+    },
+    {
+      "id": "ingest",
+      "type": "backend",
+      "label": "遥测统一摄取",
+      "sublabel": "TelemetryIngestionService",
+      "tag": "幂等去重",
+      "stage": 1,
+      "row": 2,
+      "width": 130
+    },
+    {
+      "id": "raw-store",
+      "type": "database",
+      "label": "原始遥测库",
+      "sublabel": "device_telemetry_logs",
+      "tag": "按月分区",
+      "stage": 2,
+      "row": 0
+    },
+    {
+      "id": "mq",
+      "type": "messagebus",
+      "label": "RocketMQ 事件流",
+      "sublabel": "telemetry-received · gps-log-updated",
+      "tag": "异步解耦",
+      "stage": 2,
+      "row": 2,
+      "width": 144
+    },
+    {
+      "id": "gps-store",
+      "type": "database",
+      "label": "GPS 轨迹库",
+      "sublabel": "gps_logs · outbox 异步落库",
+      "tag": "幂等键",
+      "stage": 2,
+      "row": 4
+    },
+    {
+      "id": "analysis",
+      "type": "backend",
+      "label": "健康规则分析",
+      "sublabel": "发热/消化/发情/疫病 · 围栏",
+      "tag": "规则引擎",
+      "stage": 3,
+      "row": 0,
+      "yOffset": 24
+    },
+    {
+      "id": "health-store",
+      "type": "database",
+      "label": "健康明细与评分",
+      "sublabel": "健康时序 · 快照 · 评分表",
+      "tag": "时序 + 快照",
+      "stage": 3,
+      "row": 2
+    },
+    {
+      "id": "ai",
+      "type": "backend",
+      "label": "AI 异常分析",
+      "sublabel": "ai-platform · STL/CUSUM 融合",
+      "tag": "FastAPI",
+      "stage": 3,
+      "row": 4,
+      "yOffset": 16
+    },
+    {
+      "id": "mobile",
+      "type": "frontend",
+      "label": "移动端",
+      "sublabel": "健康总览 · 轨迹 · 告警",
+      "tag": "Flutter",
+      "stage": 4,
+      "row": 0
+    },
+    {
+      "id": "alerts",
+      "type": "database",
+      "label": "告警中心",
+      "sublabel": "alerts · 已读状态",
+      "tag": "RULE / AI",
+      "stage": 4,
+      "row": 2
+    },
+    {
+      "id": "open-api",
+      "type": "backend",
+      "label": "开放 API",
+      "sublabel": "第三方系统集成",
+      "tag": "API Key",
+      "stage": 4,
+      "row": 4,
+      "yOffset": 16
+    }
+  ],
+  "flows": [
+    {
+      "id": "dev-to-tb",
+      "from": "devices",
+      "to": "tb",
+      "label": "MQTT 上报",
+      "classification": "设备上行",
+      "variant": "emphasis",
+      "width": 2
+    },
+    {
+      "id": "dev-to-blade",
+      "from": "devices",
+      "to": "blade",
+      "label": "设备直连上报",
+      "classification": "设备上行",
+      "width": 2
+    },
+    {
+      "id": "tb-to-ingest",
+      "from": "tb",
+      "to": "ingest",
+      "label": "REST 轮询 · 游标幂等",
+      "classification": "平台拉取",
+      "variant": "emphasis",
+      "labelDy": 65
+    },
+    {
+      "id": "blade-to-ingest",
+      "from": "blade",
+      "to": "ingest",
+      "label": "report-record 分页",
+      "classification": "平台拉取",
+      "labelDx": 25
+    },
+    {
+      "id": "ingest-to-raw",
+      "from": "ingest",
+      "to": "raw-store",
+      "label": "原始遥测落库",
+      "classification": "持久化"
+    },
+    {
+      "id": "ingest-to-mq",
+      "from": "ingest",
+      "to": "mq",
+      "label": "遥测事件",
+      "variant": "emphasis",
+      "labelDx": -50,
+      "labelDy": -22
+    },
+    {
+      "id": "ingest-to-gps",
+      "from": "ingest",
+      "to": "gps-store",
+      "label": "GPS outbox",
+      "classification": "异步落库"
+    },
+    {
+      "id": "gps-to-mq",
+      "from": "gps-store",
+      "to": "mq",
+      "label": "GPS 事件",
+      "classification": "事件发布"
+    },
+    {
+      "id": "mq-to-analysis",
+      "from": "mq",
+      "to": "analysis",
+      "label": "异步消费遥测事件",
+      "classification": "事件消费",
+      "variant": "emphasis",
+      "labelDx": -20
+    },
+    {
+      "id": "analysis-to-health",
+      "from": "analysis",
+      "to": "health-store",
+      "label": "明细落库 · 快照刷新",
+      "classification": "持久化",
+      "width": 2
+    },
+    {
+      "id": "health-to-ai",
+      "from": "health-store",
+      "to": "ai",
+      "label": "24h 特征窗口",
+      "classification": "特征读取",
+      "width": 2
+    },
+    {
+      "id": "analysis-to-alerts",
+      "from": "analysis",
+      "to": "alerts",
+      "label": "健康 / 围栏告警",
+      "classification": "结果产出",
+      "labelDx": 25,
+      "labelSegment": 0
+    },
+    {
+      "id": "ai-to-alerts",
+      "from": "ai",
+      "to": "alerts",
+      "label": "超阈值 AI 告警",
+      "classification": "结果产出"
+    },
+    {
+      "id": "health-to-mobile",
+      "from": "health-store",
+      "to": "mobile",
+      "label": "健康数据",
+      "classification": "REST 查询",
+      "route": "vertical-channel",
+      "toSide": "top",
+      "via": [
+        [
+          840,
+          385
+        ],
+        [
+          840,
+          340
+        ],
+        [
+          685,
+          340
+        ],
+        [
+          685,
+          104
+        ],
+        [
+          960,
+          104
+        ]
+      ]
+    },
+    {
+      "id": "alerts-to-mobile",
+      "from": "alerts",
+      "to": "mobile",
+      "label": "拉取 · 已读回写",
+      "classification": "REST 读取",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "route": "straight",
+      "labelDy": -60
+    },
+    {
+      "id": "alerts-to-open",
+      "from": "alerts",
+      "to": "open-api",
+      "label": "告警 / GPS 开放数据",
+      "classification": "开放数据",
+      "width": 2
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "关键结论",
+      "items": [
+        "统一摄取：全部来源经 ingest() 幂等汇入，TB 游标轮询防双源重复，GPS 走 outbox 异步落库",
+        "双轨分析：事件驱动规则评估与围栏检测；ai-platform 读 24h 窗口出 AI 评分（主链路暂禁用）",
+        "结果应用：告警中心聚合 RULE/AI 告警，移动端拉取 + 开放 API 消费；datagen 仅 Phase C 研发"
+      ]
+    }
+  ]
+}
