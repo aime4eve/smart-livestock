@@ -1,9 +1,11 @@
 package com.smartlivestock.iot.application;
 
 import com.smartlivestock.identity.domain.repository.AuditLogRepository;
+import com.smartlivestock.iot.domain.model.Installation;
 import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.DeviceStatus;
 import com.smartlivestock.iot.domain.model.DeviceType;
+import com.smartlivestock.iot.domain.port.dto.LivestockInfo;
 import com.smartlivestock.iot.domain.model.TbDeviceBinding;
 import com.smartlivestock.iot.domain.port.RanchQueryPort;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
@@ -152,6 +154,30 @@ class TbDeviceProvisioningServiceTest {
         assertThat(second.results().get(0).bindingId()).isEqualTo(9L);
         verify(deviceRepository, Mockito.times(2)).save(any(Device.class));
         verify(auditLogRepository, Mockito.times(2)).save(any());
+    }
+
+    @Test
+    void provisionShouldRejectMovingInstalledDeviceToAnotherLivestock() {
+        when(nsClient.findDeviceByEui(EUI)).thenReturn(Optional.of(
+                new NsClient.NsDevice(EUI, 89, 18, "capsule")));
+        when(tbClient.fetchDeviceProfiles()).thenReturn(Map.of("profile-1", "瘤胃胶囊-OC-配置-v2"));
+        when(tbClient.findDevices(EUI)).thenReturn(List.of(
+                new TbClient.TbDeviceView("tb-1", EUI, "profile-1")));
+        when(ranchQueryPort.findAllByFarmId(1L)).thenReturn(List.of(
+                new LivestockInfo(9L, 1L, "ST-99", "MALE", null, null)));
+        Device installed = device(133L, DeviceStatus.ACTIVE);
+        when(deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted(EUI, 1L))
+                .thenReturn(List.of(installed));
+        when(installationRepository.findActiveByDeviceId(133L)).thenReturn(Optional.of(
+                new Installation(133L, 1L, 2L)));
+
+        assertThatThrownBy(() -> service.provision(
+                new TbDeviceProvisioningService.ProvisionCommand(EUI, null, DeviceType.CAPSULE, 9L),
+                1L, 1L, 2L)).isInstanceOf(Exception.class);
+
+        verify(bindingRepository, never()).save(any());
+        verify(installationRepository, never()).save(any());
+        verify(auditLogRepository, never()).save(any());
     }
 
     private static Device device(Long id, DeviceStatus status) {

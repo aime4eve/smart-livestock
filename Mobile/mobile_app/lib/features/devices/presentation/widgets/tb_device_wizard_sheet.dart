@@ -298,6 +298,10 @@ class _ConfirmStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final candidate = preflight.selectedCandidate;
+    final activeLivestockId = preflight.activeInstallationLivestockId;
+    final installationConflict = activeLivestockId != null &&
+        selectedLivestockId != null &&
+        selectedLivestockId != activeLivestockId;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -337,6 +341,19 @@ class _ConfirmStep extends StatelessWidget {
               foregroundColor: AppColors.warningStrong,
               icon: Icons.info_outline,
             ),
+          if (activeLivestockId != null)
+            _MessageTile(
+              message: l10n.tbWizardInstalledLivestockWarning(activeLivestockId),
+              backgroundColor: installationConflict
+                  ? AppColors.dangerSoft
+                  : AppColors.warningSoft,
+              foregroundColor: installationConflict
+                  ? AppColors.danger
+                  : AppColors.warningStrong,
+              icon: installationConflict
+                  ? Icons.block
+                  : Icons.info_outline,
+            ),
           const SizedBox(height: AppSpacing.lg),
           Row(
             children: [
@@ -348,10 +365,12 @@ class _ConfirmStep extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: FilledButton.icon(
-                  key: const Key('tb-wizard-provision'),
-                  onPressed: loading ? null : onProvision,
+	              Expanded(
+	                child: FilledButton.icon(
+	                  key: const Key('tb-wizard-provision'),
+	                  onPressed: loading || installationConflict
+	                      ? null
+	                      : onProvision,
                   icon: loading
                       ? const SizedBox(
                           width: 18,

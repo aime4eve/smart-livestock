@@ -171,7 +171,8 @@ public class TbDeviceProvisioningService {
                 local.device() == null ? null : local.device().getDeviceCode(),
                 local.device() == null ? null : local.device().getDeviceType(),
                 local.binding() == null ? null : local.binding().getStatus().name(),
-                local.installation() != null);
+                local.installation() != null,
+                local.installation() == null ? null : local.installation().getLivestockId());
     }
 
     @Transactional
@@ -193,6 +194,12 @@ public class TbDeviceProvisioningService {
         LocalInventory local = localInventory(eui, tenantId);
         if (local.softDeleted()) {
             throw new ApiException(ErrorCode.STATE_CONFLICT, "iot.tb.localDeviceSoftDeleted", new Object[]{eui});
+        }
+        if (command.livestockId() != null && local.installation() != null
+                && !local.installation().getLivestockId().equals(command.livestockId())) {
+            throw new ApiException(ErrorCode.STATE_CONFLICT, "iot.tb.deviceInstalledOnOtherLivestock",
+                    new Object[]{local.device() != null ? local.device().getDeviceCode() : eui,
+                            local.installation().getLivestockId()});
         }
         Device device = local.device();
         boolean deviceCreated = false;
@@ -489,7 +496,8 @@ public class TbDeviceProvisioningService {
             String eui, String status, NsClient.NsDevice nsDevice,
             List<TbCandidate> tbCandidates, Instant latestTelemetryAt,
             Long localDeviceId, String localDeviceCode, DeviceType localDeviceType,
-            String bindingStatus, boolean activeInstallation) {}
+            String bindingStatus, boolean activeInstallation,
+            Long activeInstallationLivestockId) {}
 
     public record ProvisionResult(
             String eui, Long localDeviceId, String deviceCode, String deviceStatus,

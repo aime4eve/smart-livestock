@@ -194,6 +194,7 @@ class _FakeDevicesRepository implements DevicesRepository {
         localDeviceCode: null,
         bindingStatus: null,
         activeInstallation: false,
+        activeInstallationLivestockId: null,
       );
 
   @override

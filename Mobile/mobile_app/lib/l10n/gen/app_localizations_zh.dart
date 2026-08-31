@@ -4819,4 +4819,9 @@ class AppLocalizationsZh extends AppLocalizations {
   ) {
     return '$breed · $health · $gender · $deviceCount 台设备 · $location';
   }
+
+  @override
+  String tbWizardInstalledLivestockWarning(String livestockId) {
+    return '该设备已安装在牲畜 $livestockId；更换目标前请先解绑。';
+  }
 }

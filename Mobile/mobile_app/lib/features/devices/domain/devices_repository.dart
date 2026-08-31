@@ -86,6 +86,7 @@ class TbDevicePreflight {
     required this.localDeviceCode,
     required this.bindingStatus,
     required this.activeInstallation,
+    required this.activeInstallationLivestockId,
   });
 
   final String eui;
@@ -98,6 +99,7 @@ class TbDevicePreflight {
   final String? localDeviceCode;
   final String? bindingStatus;
   final bool activeInstallation;
+  final String? activeInstallationLivestockId;
 
   TbDeviceCandidate? get selectedCandidate =>
       candidates.length == 1 ? candidates.first : null;

@@ -278,6 +278,8 @@ class DevicesApiRepository implements DevicesRepository {
       localDeviceCode: data['localDeviceCode']?.toString(),
       bindingStatus: data['bindingStatus']?.toString(),
       activeInstallation: data['activeInstallation'] == true,
+      activeInstallationLivestockId:
+          data['activeInstallationLivestockId']?.toString(),
     );
   }
 

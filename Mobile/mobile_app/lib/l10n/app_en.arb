@@ -3685,5 +3685,7 @@
   "tbWizardLocationUnknown": "Unknown location",
   "@tbWizardLocationUnknown": {},
   "tbWizardLivestockSubtitle": "{breed} · {health} · {gender} · {deviceCount} devices · {location}",
-  "@tbWizardLivestockSubtitle": {"placeholders": {"breed": {"type": "String"}, "health": {"type": "String"}, "gender": {"type": "String"}, "deviceCount": {"type": "int"}, "location": {"type": "String"}}}
+  "@tbWizardLivestockSubtitle": {"placeholders": {"breed": {"type": "String"}, "health": {"type": "String"}, "gender": {"type": "String"}, "deviceCount": {"type": "int"}, "location": {"type": "String"}}},
+  "tbWizardInstalledLivestockWarning": "This device is installed on livestock {livestockId}; uninstall it before selecting another target.",
+  "@tbWizardInstalledLivestockWarning": {"placeholders": {"livestockId": {"type": "String"}}}
 }

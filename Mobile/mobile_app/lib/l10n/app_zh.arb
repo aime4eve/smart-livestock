@@ -3685,5 +3685,7 @@
   "tbWizardLocationUnknown": "位置未知",
   "@tbWizardLocationUnknown": {},
   "tbWizardLivestockSubtitle": "{breed} · {health} · {gender} · {deviceCount} 台设备 · {location}",
-  "@tbWizardLivestockSubtitle": {"placeholders": {"breed": {"type": "String"}, "health": {"type": "String"}, "gender": {"type": "String"}, "deviceCount": {"type": "int"}, "location": {"type": "String"}}}
+  "@tbWizardLivestockSubtitle": {"placeholders": {"breed": {"type": "String"}, "health": {"type": "String"}, "gender": {"type": "String"}, "deviceCount": {"type": "int"}, "location": {"type": "String"}}},
+  "tbWizardInstalledLivestockWarning": "该设备已安装在牲畜 {livestockId}；更换目标前请先解绑。",
+  "@tbWizardInstalledLivestockWarning": {"placeholders": {"livestockId": {"type": "String"}}}
 }

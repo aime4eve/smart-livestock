@@ -9022,6 +9022,12 @@ abstract class AppLocalizations {
     int deviceCount,
     String location,
   );
+
+  /// No description provided for @tbWizardInstalledLivestockWarning.
+  ///
+  /// In zh, this message translates to:
+  /// **'该设备已安装在牲畜 {livestockId}；更换目标前请先解绑。'**
+  String tbWizardInstalledLivestockWarning(String livestockId);
 }
 
 class _AppLocalizationsDelegate

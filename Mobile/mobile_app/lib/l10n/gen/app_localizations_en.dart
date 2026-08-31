@@ -4930,4 +4930,9 @@ class AppLocalizationsEn extends AppLocalizations {
   ) {
     return '$breed · $health · $gender · $deviceCount devices · $location';
   }
+
+  @override
+  String tbWizardInstalledLivestockWarning(String livestockId) {
+    return 'This device is installed on livestock $livestockId; uninstall it before selecting another target.';
+  }
 }
