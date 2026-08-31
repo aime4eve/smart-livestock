@@ -4857,4 +4857,74 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get tbWizardTriggerFailed =>
       'The immediate TB pull failed and will retry on schedule.';
+
+  @override
+  String get tbWizardLivestockSearchHint => 'Search code, device, or gender';
+
+  @override
+  String get tbWizardFilterAll => 'All';
+
+  @override
+  String get tbWizardFilterHealth => 'Health';
+
+  @override
+  String get tbWizardFilterConditions => 'Filters';
+
+  @override
+  String get tbWizardFilterAllDevices => 'All devices';
+
+  @override
+  String get tbWizardFilterWithoutDevice => 'No device';
+
+  @override
+  String get tbWizardFilterWithDevice => 'Has device';
+
+  @override
+  String get tbWizardFilterHasLocation => 'Has location';
+
+  @override
+  String get tbWizardFilterNoLocation => 'No location';
+
+  @override
+  String tbWizardLivestockCount(int shown, int total) {
+    return 'Showing $shown of $total';
+  }
+
+  @override
+  String get tbWizardLivestockNoMatch =>
+      'No livestock matches the search or filters.';
+
+  @override
+  String get tbWizardLocate => 'Locate';
+
+  @override
+  String tbWizardLocationTitle(String name) {
+    return 'Locate: $name';
+  }
+
+  @override
+  String get tbWizardSortCode => 'Code';
+
+  @override
+  String get tbWizardSortHealth => 'Health';
+
+  @override
+  String get tbWizardSortLocation => 'Location';
+
+  @override
+  String get tbWizardGenderUnknown => 'Unknown';
+
+  @override
+  String get tbWizardLocationUnknown => 'Unknown location';
+
+  @override
+  String tbWizardLivestockSubtitle(
+    String breed,
+    String health,
+    String gender,
+    int deviceCount,
+    String location,
+  ) {
+    return '$breed · $health · $gender · $deviceCount devices · $location';
+  }
 }

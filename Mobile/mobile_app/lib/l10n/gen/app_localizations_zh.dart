@@ -4747,4 +4747,73 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tbWizardTriggerFailed => 'TB 拉取触发失败，将等待下轮调度。';
+
+  @override
+  String get tbWizardLivestockSearchHint => '搜索编号、设备或性别';
+
+  @override
+  String get tbWizardFilterAll => '全部';
+
+  @override
+  String get tbWizardFilterHealth => '健康';
+
+  @override
+  String get tbWizardFilterConditions => '条件';
+
+  @override
+  String get tbWizardFilterAllDevices => '全部设备';
+
+  @override
+  String get tbWizardFilterWithoutDevice => '无设备';
+
+  @override
+  String get tbWizardFilterWithDevice => '有设备';
+
+  @override
+  String get tbWizardFilterHasLocation => '有位置';
+
+  @override
+  String get tbWizardFilterNoLocation => '无位置';
+
+  @override
+  String tbWizardLivestockCount(int shown, int total) {
+    return '显示 $shown / 共 $total 头';
+  }
+
+  @override
+  String get tbWizardLivestockNoMatch => '没有匹配的牲畜，请调整搜索或筛选条件。';
+
+  @override
+  String get tbWizardLocate => '定位';
+
+  @override
+  String tbWizardLocationTitle(String name) {
+    return '定位：$name';
+  }
+
+  @override
+  String get tbWizardSortCode => '编号';
+
+  @override
+  String get tbWizardSortHealth => '健康';
+
+  @override
+  String get tbWizardSortLocation => '位置';
+
+  @override
+  String get tbWizardGenderUnknown => '未知';
+
+  @override
+  String get tbWizardLocationUnknown => '位置未知';
+
+  @override
+  String tbWizardLivestockSubtitle(
+    String breed,
+    String health,
+    String gender,
+    int deviceCount,
+    String location,
+  ) {
+    return '$breed · $health · $gender · $deviceCount 台设备 · $location';
+  }
 }

@@ -8896,6 +8896,126 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'TB 拉取触发失败，将等待下轮调度。'**
   String get tbWizardTriggerFailed;
+
+  /// No description provided for @tbWizardLivestockSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索编号、设备或性别'**
+  String get tbWizardLivestockSearchHint;
+
+  /// No description provided for @tbWizardFilterAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部'**
+  String get tbWizardFilterAll;
+
+  /// No description provided for @tbWizardFilterHealth.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康'**
+  String get tbWizardFilterHealth;
+
+  /// No description provided for @tbWizardFilterConditions.
+  ///
+  /// In zh, this message translates to:
+  /// **'条件'**
+  String get tbWizardFilterConditions;
+
+  /// No description provided for @tbWizardFilterAllDevices.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部设备'**
+  String get tbWizardFilterAllDevices;
+
+  /// No description provided for @tbWizardFilterWithoutDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'无设备'**
+  String get tbWizardFilterWithoutDevice;
+
+  /// No description provided for @tbWizardFilterWithDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'有设备'**
+  String get tbWizardFilterWithDevice;
+
+  /// No description provided for @tbWizardFilterHasLocation.
+  ///
+  /// In zh, this message translates to:
+  /// **'有位置'**
+  String get tbWizardFilterHasLocation;
+
+  /// No description provided for @tbWizardFilterNoLocation.
+  ///
+  /// In zh, this message translates to:
+  /// **'无位置'**
+  String get tbWizardFilterNoLocation;
+
+  /// No description provided for @tbWizardLivestockCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'显示 {shown} / 共 {total} 头'**
+  String tbWizardLivestockCount(int shown, int total);
+
+  /// No description provided for @tbWizardLivestockNoMatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有匹配的牲畜，请调整搜索或筛选条件。'**
+  String get tbWizardLivestockNoMatch;
+
+  /// No description provided for @tbWizardLocate.
+  ///
+  /// In zh, this message translates to:
+  /// **'定位'**
+  String get tbWizardLocate;
+
+  /// No description provided for @tbWizardLocationTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'定位：{name}'**
+  String tbWizardLocationTitle(String name);
+
+  /// No description provided for @tbWizardSortCode.
+  ///
+  /// In zh, this message translates to:
+  /// **'编号'**
+  String get tbWizardSortCode;
+
+  /// No description provided for @tbWizardSortHealth.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康'**
+  String get tbWizardSortHealth;
+
+  /// No description provided for @tbWizardSortLocation.
+  ///
+  /// In zh, this message translates to:
+  /// **'位置'**
+  String get tbWizardSortLocation;
+
+  /// No description provided for @tbWizardGenderUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'未知'**
+  String get tbWizardGenderUnknown;
+
+  /// No description provided for @tbWizardLocationUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'位置未知'**
+  String get tbWizardLocationUnknown;
+
+  /// No description provided for @tbWizardLivestockSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'{breed} · {health} · {gender} · {deviceCount} 台设备 · {location}'**
+  String tbWizardLivestockSubtitle(
+    String breed,
+    String health,
+    String gender,
+    int deviceCount,
+    String location,
+  );
 }
 
 class _AppLocalizationsDelegate

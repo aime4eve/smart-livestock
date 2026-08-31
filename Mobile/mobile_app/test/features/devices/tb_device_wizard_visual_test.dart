@@ -29,42 +29,42 @@ Future<void> _loadFont(String family, List<String> paths) async {
 }
 
 Future<void> _loadFonts() => Future.wait([
-      _loadFont('NotoSansSC', [
-        'assets/fonts/NotoSansSC-Regular.ttf',
-        'assets/fonts/NotoSansSC-Medium.ttf',
-        'assets/fonts/NotoSansSC-Bold.ttf',
-      ]),
-      _loadFont('Roboto', [
-        'assets/fonts/Roboto-Regular.ttf',
-        'assets/fonts/Roboto-Medium.ttf',
-        'assets/fonts/Roboto-Bold.ttf',
-      ]),
-      _loadFont('MaterialIcons', [
-        '${Platform.environment['FLUTTER_ROOT'] ?? '/opt/homebrew/share/flutter'}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
-      ]),
-    ]);
+  _loadFont('NotoSansSC', [
+    'assets/fonts/NotoSansSC-Regular.ttf',
+    'assets/fonts/NotoSansSC-Medium.ttf',
+    'assets/fonts/NotoSansSC-Bold.ttf',
+  ]),
+  _loadFont('Roboto', [
+    'assets/fonts/Roboto-Regular.ttf',
+    'assets/fonts/Roboto-Medium.ttf',
+    'assets/fonts/Roboto-Bold.ttf',
+  ]),
+  _loadFont('MaterialIcons', [
+    '${Platform.environment['FLUTTER_ROOT'] ?? '/opt/homebrew/share/flutter'}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+  ]),
+]);
 
 Widget _buildApp() => ProviderScope(
-      overrides: [
-        devicesRepositoryProvider.overrideWithValue(_FakeDevicesRepository()),
-        livestockRepositoryProvider.overrideWithValue(_FakeLivestockRepository()),
-        sessionControllerProvider.overrideWith(_FakeSessionController.new),
-      ],
-      child: MaterialApp(
-        theme: AppTheme.light(),
-        locale: const Locale('zh'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: const Scaffold(
-          body: Center(
-            child: RepaintBoundary(
-              key: Key('tb-wizard-visual-boundary'),
-              child: TbDeviceWizardSheet(),
-            ),
-          ),
+  overrides: [
+    devicesRepositoryProvider.overrideWithValue(_FakeDevicesRepository()),
+    livestockRepositoryProvider.overrideWithValue(_FakeLivestockRepository()),
+    sessionControllerProvider.overrideWith(_FakeSessionController.new),
+  ],
+  child: MaterialApp(
+    theme: AppTheme.light(),
+    locale: const Locale('zh'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: const Scaffold(
+      body: Center(
+        child: RepaintBoundary(
+          key: Key('tb-wizard-visual-boundary'),
+          child: TbDeviceWizardSheet(),
         ),
       ),
-    );
+    ),
+  ),
+);
 
 void main() {
   testWidgets('captures TB wizard confirm and result states', (tester) async {
@@ -81,8 +81,26 @@ void main() {
     await tester.tap(find.byKey(const Key('tb-wizard-preflight')));
     await tester.pumpAndSettle();
 
+    await tester.enterText(
+      find.byKey(const Key('tb-wizard-livestock-search')),
+      '188',
+    );
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(ListTile, '188'), findsOneWidget);
+    expect(find.text('999'), findsNothing);
+    await tester.enterText(
+      find.byKey(const Key('tb-wizard-livestock-search')),
+      '',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, '188'));
+    await tester.pump();
+
     final sheet = find.byKey(const Key('tb-wizard-visual-boundary'));
-    await expectLater(sheet, matchesGoldenFile('goldens/tb-wizard-confirm.png'));
+    await expectLater(
+      sheet,
+      matchesGoldenFile('goldens/tb-wizard-confirm.png'),
+    );
 
     await tester.ensureVisible(find.byKey(const Key('tb-wizard-provision')));
     await tester.pumpAndSettle();
@@ -95,15 +113,15 @@ void main() {
 class _FakeSessionController extends SessionController {
   @override
   AppSession build() => const AppSession.authenticated(
-        role: UserRole.owner,
-        accessToken: 'test-token',
-        userId: 1,
-        userName: 'Test User',
-        phone: '13800138000',
-        tenantId: 1,
-        username: 'testuser',
-        activeFarmId: '1',
-      );
+    role: UserRole.owner,
+    accessToken: 'test-token',
+    userId: 1,
+    userName: 'Test User',
+    phone: '13800138000',
+    tenantId: 1,
+    username: 'testuser',
+    activeFarmId: '1',
+  );
 }
 
 class _FakeLivestockRepository implements LivestockRepository {
@@ -114,28 +132,40 @@ class _FakeLivestockRepository implements LivestockRepository {
     String? status,
     String? keyword,
   }) async => LivestockListData(
-        items: [
-          LivestockSummary(
-            id: '188',
-            livestockCode: '188',
-            breed: Breed.other,
-            health: LivestockHealth.healthy,
-            fenceId: '1',
-          ),
-        ],
-        total: 1,
-        page: page,
-        pageSize: pageSize,
-      );
+    items: const [
+      LivestockSummary(
+        id: '188',
+        livestockCode: '188',
+        breed: Breed.other,
+        health: LivestockHealth.healthy,
+        fenceId: '1',
+      ),
+      LivestockSummary(
+        id: '999',
+        livestockCode: '999',
+        breed: Breed.angus,
+        health: LivestockHealth.watch,
+        fenceId: '2',
+        lat: 28.2458,
+        lng: 112.8519,
+      ),
+    ],
+    total: 2,
+    page: page,
+    pageSize: pageSize,
+  );
 
   @override
-  Future<LivestockDetail> loadDetail(String id) async => throw UnimplementedError();
+  Future<LivestockDetail> loadDetail(String id) async =>
+      throw UnimplementedError();
 
   @override
-  Future<LivestockDetail> create(Map<String, dynamic> body) async => throw UnimplementedError();
+  Future<LivestockDetail> create(Map<String, dynamic> body) async =>
+      throw UnimplementedError();
 
   @override
-  Future<LivestockDetail> update(String id, Map<String, dynamic> body) async => throw UnimplementedError();
+  Future<LivestockDetail> update(String id, Map<String, dynamic> body) async =>
+      throw UnimplementedError();
 
   @override
   Future<void> delete(String id) async {}
@@ -152,7 +182,8 @@ class _FakeDevicesRepository implements DevicesRepository {
   );
 
   @override
-  Future<TbDevicePreflight> preflightTbDevice(String eui) async => TbDevicePreflight(
+  Future<TbDevicePreflight> preflightTbDevice(String eui) async =>
+      TbDevicePreflight(
         eui: _eui,
         status: 'READY_TO_INGEST',
         nsProjectId: 89,
@@ -172,32 +203,39 @@ class _FakeDevicesRepository implements DevicesRepository {
     String? deviceType,
     String? livestockId,
   }) async => TbDeviceProvisionResult(
-        eui: _eui,
-        localDeviceId: '153',
-        deviceCode: deviceCode ?? '',
-        deviceStatus: 'ACTIVE',
-        bindingStatus: 'RESOLVED',
-        livestockId: livestockId,
-        installationCreated: livestockId != null,
-        deviceType: 'CAPSULE',
-        firstTelemetryTrigger: 'TB_TRIGGERED',
-      );
+    eui: _eui,
+    localDeviceId: '153',
+    deviceCode: deviceCode ?? '',
+    deviceStatus: 'ACTIVE',
+    bindingStatus: 'RESOLVED',
+    livestockId: livestockId,
+    installationCreated: livestockId != null,
+    deviceType: 'CAPSULE',
+    firstTelemetryTrigger: 'TB_TRIGGERED',
+  );
 
   @override
   Future<DevicesListData> loadDevices({
     int page = 1,
     int pageSize = 20,
     String? keyword,
-  }) async => DevicesListData(items: const [], total: 0, page: page, pageSize: pageSize);
+  }) async => DevicesListData(
+    items: const [],
+    total: 0,
+    page: page,
+    pageSize: pageSize,
+  );
 
   @override
   Future<DeviceItem> loadDetail(String id) async => throw UnimplementedError();
 
   @override
-  Future<DeviceItem> create(Map<String, dynamic> body) async => throw UnimplementedError();
+  Future<DeviceItem> create(Map<String, dynamic> body) async =>
+      throw UnimplementedError();
 
   @override
-  Future<DeviceItem> update(String id, Map<String, dynamic> body) async => throw UnimplementedError();
+  Future<DeviceItem> update(String id, Map<String, dynamic> body) async =>
+      throw UnimplementedError();
 
   @override
   Future<void> activate(String id) async {}
@@ -221,5 +259,6 @@ class _FakeDevicesRepository implements DevicesRepository {
   Future<List<GpsPoint>> loadGpsHistory(String livestockId) async => const [];
 
   @override
-  Future<Map<String, dynamic>> loadDeviceHealth(String deviceId) async => const {};
+  Future<Map<String, dynamic>> loadDeviceHealth(String deviceId) async =>
+      const {};
 }
