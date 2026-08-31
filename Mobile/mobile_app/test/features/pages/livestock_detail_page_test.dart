@@ -7,6 +7,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/models/health_models.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/features/digestive/domain/digestive_repository.dart';
 import 'package:hkt_livestock_agentic/features/digestive/presentation/digestive_controller.dart';
 import 'package:hkt_livestock_agentic/features/estrus/domain/estrus_repository.dart';
@@ -31,15 +32,15 @@ class _FakeLivestockRepository implements LivestockRepository {
 class _FakeSubscriptionRepository implements SubscriptionRepository {
   @override
   Future<SubscriptionStatus> loadCurrent() async => const SubscriptionStatus(
-        id: '1',
-        tenantId: '1',
-        tier: SubscriptionTier.premium,
-        status: 'active',
-        livestockCount: 1,
-        calculatedDeviceFee: 0,
-        calculatedTierFee: 0,
-        calculatedTotal: 0,
-      );
+    id: '1',
+    tenantId: '1',
+    tier: SubscriptionTier.premium,
+    status: 'active',
+    livestockCount: 1,
+    calculatedDeviceFee: 0,
+    calculatedTierFee: 0,
+    calculatedTotal: 0,
+  );
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
@@ -119,19 +120,19 @@ class _FakeEstrusRepository implements EstrusRepository {
 }
 
 LivestockDetail _detail() => LivestockDetail(
-      livestockCode: 'ST-10',
-      livestockId: '10',
-      breed: Breed.simmental,
-      ageMonths: 30,
-      weightKg: 500,
-      health: LivestockHealth.healthy,
-      fenceId: '1',
-      devices: const [],
-      bodyTemp: 38.5,
-      activityLevel: 'NORMAL',
-      ruminationFreq: '3',
-      lastLocation: '28.0, 112.0',
-    );
+  livestockCode: 'ST-10',
+  livestockId: '10',
+  breed: Breed.simmental,
+  ageMonths: 30,
+  weightKg: 500,
+  health: LivestockHealth.healthy,
+  fenceId: '1',
+  devices: const [],
+  bodyTemp: 38.5,
+  activityLevel: 'NORMAL',
+  ruminationFreq: '3',
+  lastLocation: '28.0, 112.0',
+);
 
 void main() {
   testWidgets('livestock detail shows rumen motility trend', (tester) async {
@@ -140,21 +141,29 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(ProviderScope(
-      overrides: [
-        livestockRepositoryProvider.overrideWithValue(_FakeLivestockRepository()),
-        subscriptionRepositoryProvider.overrideWithValue(_FakeSubscriptionRepository()),
-        feverRepositoryProvider.overrideWithValue(_FakeFeverRepository()),
-        digestiveRepositoryProvider.overrideWithValue(_FakeDigestiveRepository()),
-        estrusRepositoryProvider.overrideWithValue(_FakeEstrusRepository()),
-      ],
-      child: MaterialApp(
-        locale: const Locale('zh'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: const LivestockDetailPage(livestockId: '10'),
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          livestockRepositoryProvider.overrideWithValue(
+            _FakeLivestockRepository(),
+          ),
+          subscriptionRepositoryProvider.overrideWithValue(
+            _FakeSubscriptionRepository(),
+          ),
+          feverRepositoryProvider.overrideWithValue(_FakeFeverRepository()),
+          digestiveRepositoryProvider.overrideWithValue(
+            _FakeDigestiveRepository(),
+          ),
+          estrusRepositoryProvider.overrideWithValue(_FakeEstrusRepository()),
+        ],
+        child: MaterialApp(
+          locale: const Locale('zh'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const LivestockDetailPage(livestockId: '10'),
+        ),
       ),
-    ));
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('24小时蠕动曲线'), findsOneWidget);
@@ -168,16 +177,31 @@ void main() {
         .where((text) => text.endsWith('°'))
         .toList();
     expect(axisLabels, isNotEmpty);
-    expect(axisLabels.toSet().length, axisLabels.length,
-        reason: 'temperature axis labels must not duplicate after formatting');
+    expect(
+      axisLabels.toSet().length,
+      axisLabels.length,
+      reason: 'temperature axis labels must not duplicate after formatting',
+    );
 
     final temperatureChart = tester
         .widgetList<LineChart>(find.byType(LineChart))
-        .firstWhere((chart) => chart.data.lineBarsData.any(
-              (bar) => bar.spots.any((spot) => spot.y > 35 && spot.y < 42),
-            ));
-    final sideTitles = temperatureChart
-        .data.titlesData.leftTitles.sideTitles;
+        .firstWhere(
+          (chart) => chart.data.lineBarsData.any(
+            (bar) => bar.spots.any((spot) => spot.y > 35 && spot.y < 42),
+          ),
+        );
+    final actualTemperatureBar = temperatureChart.data.lineBarsData.firstWhere(
+      (bar) => bar.spots.any((spot) => spot.y > 35 && spot.y < 42),
+    );
+    final temperatureSpot = actualTemperatureBar.spots.first;
+    final tooltip = temperatureChart.data.lineTouchData.touchTooltipData;
+    final touchedSpot = LineBarSpot(actualTemperatureBar, 0, temperatureSpot);
+
+    expect(tooltip.getTooltipColor(touchedSpot), AppColors.surfaceAlt);
+    final tooltipItems = tooltip.getTooltipItems([touchedSpot]);
+    expect(tooltipItems.single?.text, contains('°C'));
+    expect(tooltipItems.single?.text, contains('/'));
+    final sideTitles = temperatureChart.data.titlesData.leftTitles.sideTitles;
     expect(sideTitles.interval, greaterThanOrEqualTo(0.1));
     expect(sideTitles.minIncluded, isFalse);
     expect(sideTitles.maxIncluded, isFalse);

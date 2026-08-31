@@ -51,6 +51,12 @@ public final class HealthDtos {
             Instant timestamp
     ) {}
 
+    public record DeviceHealthSeries(
+            String deviceId,
+            List<TemperatureReading> temperature72h,
+            List<MotilityReading> motility24h
+    ) {}
+
     public record DigestiveListItem(
             String livestockId,
             String livestockCode,

@@ -1509,7 +1509,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get deviceViewLocation => '查看位置';
 
   @override
-  String get deviceViewHealth => '查看健康数据';
+  String get deviceViewHealth => '查看设备数据';
 
   @override
   String get deviceViewTrajectory => '查看轨迹';

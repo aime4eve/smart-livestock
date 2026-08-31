@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/charts/health_line_touch.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/dashboard/presentation/dashboard_controller.dart';
@@ -261,9 +263,12 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
       onViewLocation: device.type.supportsGps && livestockId != null
           ? () => context.push('/livestock/$livestockId')
           : null,
-      onViewHealth:
-          device.type == DeviceType.rumenCapsule && livestockId != null
-          ? () => context.push('/livestock/$livestockId')
+      onViewHealth: device.type == DeviceType.rumenCapsule
+          ? () => DeviceHealthDialog.show(
+              context,
+              device,
+              boundLivestockCode: _deviceIdToLivestockCode[device.id] ?? '',
+            )
           : null,
       onViewTrajectory: device.type.supportsGps && livestockId == null
           ? () => showDeviceTrajectorySheet(
@@ -847,7 +852,8 @@ class DeviceHealthDialog extends StatefulWidget {
 
 class _DeviceHealthDialogState extends State<DeviceHealthDialog> {
   Map<String, dynamic>? _healthData;
-  // unused
+  _DeviceHealthSeries? _seriesData;
+  bool _seriesLoadFailed = false;
   bool _loading = true;
 
   @override
@@ -857,13 +863,50 @@ class _DeviceHealthDialogState extends State<DeviceHealthDialog> {
   }
 
   Future<void> _load() async {
+    Future<Map<String, dynamic>?> getOrNone(
+      Future<Map<String, dynamic>> future,
+    ) async {
+      try {
+        return await future;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    final healthFuture = getOrNone(
+      ApiClient.instance.farmGet('/devices/${widget.device.id}/health'),
+    );
+    final seriesFuture = widget.device.type == DeviceType.rumenCapsule
+        ? getOrNone(
+            ApiClient.instance.farmGet('/health/devices/${widget.device.id}'),
+          )
+        : null;
+
+    final results = await Future.wait([
+      healthFuture,
+      if (seriesFuture != null) seriesFuture,
+    ]);
+
     try {
-      final health = await ApiClient.instance.farmGet(
-        '/devices/${widget.device.id}/health',
-      );
-      final d = health['data'];
+      final health = results[0];
+      final d = health == null ? null : health['data'];
       if (d is Map) _healthData = d.cast<String, dynamic>();
     } catch (_) {}
+
+    if (seriesFuture != null) {
+      try {
+        final series = results[1];
+        final d = series == null ? null : series['data'];
+        if (d is Map) {
+          _seriesData = _DeviceHealthSeries.fromJson(d.cast<String, dynamic>());
+        } else {
+          _seriesLoadFailed = true;
+        }
+      } catch (_) {
+        _seriesLoadFailed = true;
+      }
+    }
+
     if (context.mounted) setState(() => _loading = false);
   }
 
@@ -919,6 +962,23 @@ class _DeviceHealthDialogState extends State<DeviceHealthDialog> {
                 grade: _healthData!['grade'] as String?,
                 dimensions: _healthData!['dimensions'] as Map<String, dynamic>?,
               ),
+            if (widget.device.type == DeviceType.rumenCapsule) ...[
+              const SizedBox(height: AppSpacing.md),
+              if (_loading)
+                const SizedBox(
+                  height: 120,
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (_seriesLoadFailed)
+                SizedBox(
+                  height: 80,
+                  child: Center(
+                    child: Text(AppLocalizations.of(context)!.commonLoadFailed),
+                  ),
+                )
+              else
+                _DeviceHealthSeriesCard(series: _seriesData),
+            ],
             const SizedBox(height: AppSpacing.md),
 
             // Signal card
@@ -1062,6 +1122,174 @@ class _DeviceHealthDialogState extends State<DeviceHealthDialog> {
   }
 }
 
+class _DeviceHealthPoint {
+  const _DeviceHealthPoint({required this.value, required this.timestamp});
+
+  final double value;
+  final DateTime timestamp;
+}
+
+class _DeviceHealthSeries {
+  const _DeviceHealthSeries({
+    required this.temperature72h,
+    required this.motility24h,
+  });
+
+  final List<_DeviceHealthPoint> temperature72h;
+  final List<_DeviceHealthPoint> motility24h;
+
+  factory _DeviceHealthSeries.fromJson(Map<String, dynamic> data) {
+    return _DeviceHealthSeries(
+      temperature72h: _points(data['temperature72h'], 'temperature'),
+      motility24h: _points(data['motility24h'], 'frequency'),
+    );
+  }
+
+  static List<_DeviceHealthPoint> _points(Object? raw, String valueKey) {
+    return (raw as List? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(
+          (item) => _DeviceHealthPoint(
+            value: (item[valueKey] as num?)?.toDouble() ?? 0,
+            timestamp: DateTime.parse(item['timestamp'] as String),
+          ),
+        )
+        .toList();
+  }
+}
+
+class _DeviceHealthSeriesCard extends StatelessWidget {
+  const _DeviceHealthSeriesCard({required this.series});
+
+  final _DeviceHealthSeries? series;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return _InfoCard(
+      title: l10n.deviceViewHealth,
+      icon: Icons.monitor_heart_outlined,
+      children: [
+        _DeviceTrendSection(
+          title: l10n.feverDetailChartTitle,
+          emptyText: l10n.feverNoRecords,
+          points: series?.temperature72h ?? const [],
+          color: AppColors.danger,
+          formatValue: (value) => '${value.toStringAsFixed(1)}°C',
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _DeviceTrendSection(
+          title: l10n.digestiveDetailChartTitle,
+          emptyText: l10n.digestiveNoRecords,
+          points: series?.motility24h ?? const [],
+          color: AppColors.primary,
+          formatValue: (value) => value.toStringAsFixed(1),
+        ),
+      ],
+    );
+  }
+}
+
+class _DeviceTrendSection extends StatelessWidget {
+  const _DeviceTrendSection({
+    required this.title,
+    required this.emptyText,
+    required this.points,
+    required this.color,
+    required this.formatValue,
+  });
+
+  final String title;
+  final String emptyText;
+  final List<_DeviceHealthPoint> points;
+  final Color color;
+  final String Function(double value) formatValue;
+
+  @override
+  Widget build(BuildContext context) {
+    if (points.isEmpty) {
+      return SizedBox(height: 72, child: Center(child: Text(emptyText)));
+    }
+
+    final spots = points
+        .asMap()
+        .entries
+        .map((entry) => FlSpot(entry.key.toDouble(), entry.value.value))
+        .toList();
+    final values = points.map((point) => point.value).toList();
+    final padding =
+        (values.reduce((a, b) => a > b ? a : b) -
+            values.reduce((a, b) => a < b ? a : b)) /
+        2;
+    final safePadding = padding.isFinite && padding > 0 ? padding : 1.0;
+    final minY = values.reduce((a, b) => a < b ? a : b) - safePadding;
+    final maxY = values.reduce((a, b) => a > b ? a : b) + safePadding;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: AppSpacing.sm),
+        SizedBox(
+          height: 140,
+          child: LineChart(
+            LineChartData(
+              minY: minY,
+              maxY: maxY,
+              gridData: const FlGridData(show: true, drawVerticalLine: false),
+              titlesData: FlTitlesData(
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 38,
+                    getTitlesWidget: (value, _) => Text(
+                      value.toStringAsFixed(1),
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                  ),
+                ),
+                bottomTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+              ),
+              lineBarsData: [
+                LineChartBarData(
+                  spots: spots,
+                  isCurved: true,
+                  color: color,
+                  barWidth: 2,
+                  dotData: const FlDotData(show: false),
+                  belowBarData: BarAreaData(
+                    show: true,
+                    gradient: LinearGradient(
+                      colors: [
+                        color.withValues(alpha: 0.22),
+                        color.withValues(alpha: 0),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+                ),
+              ],
+              lineTouchData: healthLineTouchData(
+                timestamps: points.map((point) => point.timestamp).toList(),
+                formatValue: formatValue,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _HeaderTile extends StatelessWidget {
   const _HeaderTile({required this.device, this.boundLivestockCode});
   final DeviceItem device;
@@ -1110,12 +1338,13 @@ class _HeaderTile extends StatelessWidget {
   }
 
   IconData _typeIcon(dynamic t) {
-    if (t is DeviceType)
+    if (t is DeviceType) {
       return switch (t) {
         DeviceType.gps => Icons.gps_fixed,
         DeviceType.rumenCapsule => Icons.medication,
         DeviceType.earTag => Icons.tag,
       };
+    }
     return Icons.devices;
   }
 

@@ -12,7 +12,7 @@ public class ActivityLogJpaEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "livestock_id", nullable = false)
+    @Column(name = "livestock_id")
     private Long livestockId;
 
     @Column(name = "device_id", nullable = false)

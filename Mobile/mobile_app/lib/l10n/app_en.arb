@@ -1315,7 +1315,7 @@
   },
  "deviceViewLocation": "View Location",
  "@deviceViewLocation": {},
- "deviceViewHealth": "View Health Data",
+ "deviceViewHealth": "View Device Data",
  "@deviceViewHealth": {},
   "deviceViewTrajectory": "View Trajectory",
   "@deviceViewTrajectory": {},

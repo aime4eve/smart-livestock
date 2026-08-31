@@ -9,4 +9,6 @@ import java.util.List;
 public interface RumenMotilityLogJpaRepository extends JpaRepository<RumenMotilityLogJpaEntity, Long> {
     List<RumenMotilityLogJpaEntity> findByLivestockIdAndRecordedAtBetweenOrderByRecordedAtAsc(Long livestockId, Instant from, Instant to);
     List<RumenMotilityLogJpaEntity> findByLivestockIdOrderByRecordedAtDesc(Long livestockId);
+    List<RumenMotilityLogJpaEntity> findByDeviceIdAndRecordedAtBetweenOrderByRecordedAtAsc(
+            Long deviceId, Instant from, Instant to);
 }

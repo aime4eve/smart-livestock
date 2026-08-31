@@ -1536,7 +1536,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deviceViewLocation => 'View Location';
 
   @override
-  String get deviceViewHealth => 'View Health Data';
+  String get deviceViewHealth => 'View Device Data';
 
   @override
   String get deviceViewTrajectory => 'View Trajectory';

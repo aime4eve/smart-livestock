@@ -134,6 +134,38 @@ class HealthApplicationServiceTelemetryTest {
     }
 
     @Test
+    void processTelemetry_capsuleWithoutLivestock_persistsDeviceSeriesWithoutSnapshot() {
+        Map<String, Object> readings = Map.of(
+                "temperatures", List.of(bd("38.4"), bd("38.6")),
+                "gastricMotility", 300000L
+        );
+
+        service.processTelemetry(
+                51L,
+                null,
+                null,
+                DeviceType.CAPSULE,
+                readings,
+                Instant.parse("2026-08-31T10:00:00Z"),
+                "HTTP"
+        );
+
+        ArgumentCaptor<TemperatureLog> temperatureCaptor =
+                ArgumentCaptor.forClass(TemperatureLog.class);
+        ArgumentCaptor<RumenMotilityLog> motilityCaptor =
+                ArgumentCaptor.forClass(RumenMotilityLog.class);
+        verify(tempLogRepo, times(2)).save(temperatureCaptor.capture());
+        verify(motilityLogRepo).save(motilityCaptor.capture());
+        temperatureCaptor.getAllValues().forEach(log ->
+                assertNull(log.getLivestockId()));
+        assertNull(motilityCaptor.getValue().getLivestockId());
+        assertEquals(51L, temperatureCaptor.getValue().getDeviceId());
+        assertEquals(51L, motilityCaptor.getValue().getDeviceId());
+        verifyNoInteractions(snapshotRepo);
+        verify(estrusScoreRepo, never()).save(any());
+    }
+
+    @Test
     void processTelemetry_tracker_ingestActivityOnly() {
         when(snapshotRepo.findByLivestockId(5L)).thenReturn(Optional.of(new HealthSnapshot()));
         when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(5L), anyInt())).thenReturn(List.of());

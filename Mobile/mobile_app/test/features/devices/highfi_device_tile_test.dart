@@ -43,7 +43,7 @@ void main() {
     expect(find.byKey(const Key('device-trajectory-7')), findsNothing);
     expect(find.byKey(const Key('device-locate-7')), findsNothing);
     expect(find.byKey(const Key('device-health-7')), findsOneWidget);
-    expect(find.text('查看健康数据'), findsOneWidget);
+    expect(find.text('查看设备数据'), findsOneWidget);
   });
 
   testWidgets('ear tag shows trajectory action', (tester) async {

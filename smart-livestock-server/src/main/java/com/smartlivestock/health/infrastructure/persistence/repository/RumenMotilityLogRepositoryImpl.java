@@ -29,6 +29,12 @@ public class RumenMotilityLogRepositoryImpl implements RumenMotilityLogRepositor
     }
 
     @Override
+    public List<RumenMotilityLog> findByDeviceIdAndTimeRange(Long deviceId, Instant from, Instant to) {
+        return jpaRepo.findByDeviceIdAndRecordedAtBetweenOrderByRecordedAtAsc(deviceId, from, to)
+                .stream().map(HealthMapper::toDomain).toList();
+    }
+
+    @Override
     public RumenMotilityLog save(RumenMotilityLog log) {
         return HealthMapper.toDomain(jpaRepo.save(HealthMapper.toJpa(log)));
     }

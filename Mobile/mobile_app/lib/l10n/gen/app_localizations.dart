@@ -2827,7 +2827,7 @@ abstract class AppLocalizations {
   /// No description provided for @deviceViewHealth.
   ///
   /// In zh, this message translates to:
-  /// **'查看健康数据'**
+  /// **'查看设备数据'**
   String get deviceViewHealth;
 
   /// No description provided for @deviceViewTrajectory.

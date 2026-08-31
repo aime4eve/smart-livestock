@@ -1315,7 +1315,7 @@
   },
  "deviceViewLocation": "查看位置",
  "@deviceViewLocation": {},
- "deviceViewHealth": "查看健康数据",
+ "deviceViewHealth": "查看设备数据",
  "@deviceViewHealth": {},
   "deviceViewTrajectory": "查看轨迹",
   "@deviceViewTrajectory": {},
