@@ -569,7 +569,7 @@
   "estrusDetailChartTitle": "7天评分趋势",
   "@estrusDetailChartTitle": {},
   "devicesManagement": "设备管理",
-  "deviceSearchHint": "搜索设备编号",
+  "deviceSearchHint": "搜索设备编号或 EUI",
   "@deviceSearchHint": {},
   "deviceSearchResult": "搜索结果：{total} 条",
   "@deviceSearchResult": {

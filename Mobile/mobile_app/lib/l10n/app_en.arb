@@ -569,7 +569,7 @@
   "estrusDetailChartTitle": "7-Day Score Trend",
   "@estrusDetailChartTitle": {},
   "devicesManagement": "Device Management",
-  "deviceSearchHint": "Search device code",
+  "deviceSearchHint": "Search device code or EUI",
   "@deviceSearchHint": {},
   "deviceSearchResult": "{total} results found",
   "@deviceSearchResult": {

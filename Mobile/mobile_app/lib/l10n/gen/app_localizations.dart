@@ -1419,7 +1419,7 @@ abstract class AppLocalizations {
   /// No description provided for @deviceSearchHint.
   ///
   /// In zh, this message translates to:
-  /// **'搜索设备编号'**
+  /// **'搜索设备编号或 EUI'**
   String get deviceSearchHint;
 
   /// No description provided for @deviceSearchResult.

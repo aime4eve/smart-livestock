@@ -710,7 +710,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get devicesManagement => '设备管理';
 
   @override
-  String get deviceSearchHint => '搜索设备编号';
+  String get deviceSearchHint => '搜索设备编号或 EUI';
 
   @override
   String deviceSearchResult(Object total) {

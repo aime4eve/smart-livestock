@@ -723,7 +723,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get devicesManagement => 'Device Management';
 
   @override
-  String get deviceSearchHint => 'Search device code';
+  String get deviceSearchHint => 'Search device code or EUI';
 
   @override
   String deviceSearchResult(Object total) {

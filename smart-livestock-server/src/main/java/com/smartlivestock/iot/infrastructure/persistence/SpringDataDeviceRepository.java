@@ -20,7 +20,8 @@ public interface SpringDataDeviceRepository extends JpaRepository<DeviceJpaEntit
     Page<DeviceJpaEntity> findByTenantIdPaged(@Param("tenantId") Long tenantId, Pageable pageable);
 
     @Query("SELECT d FROM DeviceJpaEntity d WHERE d.tenantId = :tenantId " +
-           "AND (LOWER(d.deviceCode) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY d.id")
+           "AND (LOWER(d.deviceCode) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(d.devEui) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY d.id")
     Page<DeviceJpaEntity> findByTenantIdAndKeyword(@Param("tenantId") Long tenantId,
                                                    @Param("keyword") String keyword,
                                                    Pageable pageable);
@@ -29,7 +30,8 @@ public interface SpringDataDeviceRepository extends JpaRepository<DeviceJpaEntit
     long countByTenantIdActive(@Param("tenantId") Long tenantId);
 
     @Query("SELECT COUNT(d) FROM DeviceJpaEntity d WHERE d.tenantId = :tenantId " +
-           "AND (LOWER(d.deviceCode) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+           "AND (LOWER(d.deviceCode) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(d.devEui) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     long countByTenantIdAndKeyword(@Param("tenantId") Long tenantId, @Param("keyword") String keyword);
 
     @Query("SELECT d.id FROM DeviceJpaEntity d WHERE d.status = 'ACTIVE' AND d.platformDeviceId IS NOT NULL ORDER BY d.id")
