@@ -55,7 +55,7 @@ public class HealthApplicationService {
      * <p>
      * Branches on telemetry type:
      * - CAPSULE: ingest temperature + motility + activity, then refresh snapshot
-     * - TRACKER: ingest activity (step_count + distance_meters), then refresh snapshot
+     * - TRACKER / EAR_TAG: ingest activity (step_count + distance_meters), then refresh snapshot
      */
     @Transactional
     @SuppressWarnings("unchecked")
@@ -98,7 +98,7 @@ public class HealthApplicationService {
                     toBigDecimal(readings.get("distanceMeters")),
                     recordedAt, effectiveSource);
 
-        } else if (deviceType == DeviceType.TRACKER) {
+        } else if (deviceType.supportsGps()) {
             ingestActivity(deviceId, livestockId,
                     toBigDecimal(readings.get("activityIndex")),
                     toInteger(readings.get("stepCount")),

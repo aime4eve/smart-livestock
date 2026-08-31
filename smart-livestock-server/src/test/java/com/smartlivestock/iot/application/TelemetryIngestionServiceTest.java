@@ -15,6 +15,7 @@ import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.domain.repository.DeviceTelemetryLogRepository;
 import com.smartlivestock.iot.domain.repository.GpsIngestionTaskRepository;
 import com.smartlivestock.iot.domain.repository.InstallationRepository;
+import com.smartlivestock.iot.domain.service.GpsDistanceDerivationService;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -32,6 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,6 +54,7 @@ class TelemetryIngestionServiceTest {
         service = new TelemetryIngestionService(
                 deviceRepository, deviceTelemetryLogRepository, installationRepository,
                 ranchQueryPort, gpsIngestionTaskRepository, alertRepository, eventPublisher,
+                new GpsDistanceDerivationService(),
                 new com.fasterxml.jackson.databind.ObjectMapper());
     }
 
@@ -189,6 +192,32 @@ class TelemetryIngestionServiceTest {
         assertEquals(61L, taskCaptor.getValue().getDeviceId());
         assertEquals(new BigDecimal("28.231"), taskCaptor.getValue().getLatitude());
         assertEquals(new BigDecimal("112.94"), taskCaptor.getValue().getLongitude());
+    }
+
+    @Test
+    void ingest_gpsCapableDevice_derivesDistanceFromPreviousCoordinate() {
+        Device device = createTrackerDevice(71L);
+        when(deviceRepository.findById(71L)).thenReturn(Optional.of(device));
+        when(installationRepository.findActiveByDeviceId(71L)).thenReturn(Optional.empty());
+        DeviceTelemetryLog previous = new DeviceTelemetryLog();
+        previous.setLatitude(new BigDecimal("28.000000"));
+        previous.setLongitude(new BigDecimal("112.000000"));
+        previous.setReportTime(Instant.parse("2026-08-31T10:00:00Z"));
+        when(deviceTelemetryLogRepository.findLatestGpsByDeviceIdAndReportTimeBefore(
+                71L, Instant.parse("2026-08-31T10:30:00Z")))
+                .thenReturn(Optional.of(previous));
+
+        service.ingest(71L, Map.of(
+                "latitude", 28.001,
+                "longitude", 112.000
+        ), Instant.parse("2026-08-31T10:30:00Z"));
+
+        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        TelemetryReceivedEvent event = (TelemetryReceivedEvent) eventCaptor.getValue();
+        BigDecimal distance = (BigDecimal) event.getReadings().get("distanceMeters");
+        assertNotNull(distance);
+        assertThat(distance.doubleValue()).isBetween(105.0, 115.0);
     }
 
     @Test

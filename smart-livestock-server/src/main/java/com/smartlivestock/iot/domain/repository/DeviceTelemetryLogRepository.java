@@ -12,6 +12,10 @@ public interface DeviceTelemetryLogRepository {
     /** Find the most recent telemetry log for a device (used for stepNumber delta calculation). */
     Optional<DeviceTelemetryLog> findLatestByDeviceId(Long deviceId);
 
+    /** Find the closest valid GPS fix before a report time. */
+    Optional<DeviceTelemetryLog> findLatestGpsByDeviceIdAndReportTimeBefore(
+            Long deviceId, Instant reportTime);
+
     /** Whether a telemetry frame has already been persisted for this device/time. */
     boolean existsByDeviceIdAndReportTime(Long deviceId, Instant reportTime);
 

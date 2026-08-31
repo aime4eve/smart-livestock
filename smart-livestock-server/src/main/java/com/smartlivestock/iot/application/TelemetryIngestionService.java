@@ -13,6 +13,7 @@ import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.domain.repository.DeviceTelemetryLogRepository;
 import com.smartlivestock.iot.domain.repository.GpsIngestionTaskRepository;
 import com.smartlivestock.iot.domain.repository.InstallationRepository;
+import com.smartlivestock.iot.domain.service.GpsDistanceDerivationService;
 import com.smartlivestock.ranch.domain.model.Alert;
 import com.smartlivestock.ranch.domain.model.AlertStatus;
 import com.smartlivestock.ranch.domain.model.AlertType;
@@ -29,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -58,6 +60,7 @@ public class TelemetryIngestionService {
     private final GpsIngestionTaskRepository gpsIngestionTaskRepository;
     private final AlertRepository alertRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final GpsDistanceDerivationService gpsDistanceDerivationService;
     private final ObjectMapper objectMapper;
 
     /**
@@ -72,6 +75,7 @@ public class TelemetryIngestionService {
     public void ingest(Long deviceId, Map<String, Object> readings,
                        Instant recordedAt, TelemetrySource source) {
         Instant effectiveRecordedAt = recordedAt != null ? recordedAt : Instant.now();
+        readings = new HashMap<>(readings);
 
         Device device = deviceRepository.findById(deviceId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
@@ -102,28 +106,31 @@ public class TelemetryIngestionService {
             deviceRepository.save(device);
         }
 
-       // 2. Write device operational timeseries
+       // 2. Derive segment distance before the current GPS fix becomes the latest row.
+       deriveGpsDistance(device, readings, effectiveRecordedAt);
+
+       // 3. Write device operational timeseries
        logDeviceTelemetry(device, readings, effectiveRecordedAt, source);
 
-        // 2a. Compute stepNumber delta (累计值 → 周期增量) and inject into readings
+        // 3a. Compute stepNumber delta (累计值 → 周期增量) and inject into readings
         computeStepDelta(device, readings);
 
-        // 3. Enqueue GPS for TRACKER devices; gps_logs is written by the outbox worker.
+        // 4. Enqueue GPS for GPS-capable devices; gps_logs is written by the outbox worker.
         enqueueGps(device, readings, effectiveRecordedAt, source);
 
-        // 4. Keep device alerts aligned for the two live platform channels.
+        // 5. Keep device alerts aligned for the two live platform channels.
         if (source == TelemetrySource.AGENTIC_PLATFORM || source == TelemetrySource.THINGSBOARD) {
             detectDeviceAlerts(device, farmId, readings);
         }
 
-        // 5. Publish telemetry event for cross-context consumption
+        // 6. Publish telemetry event for cross-context consumption
         TelemetryReceivedEvent event = new TelemetryReceivedEvent(
                 device.getId(), livestockId, farmId,
                 device.getDeviceType(), readings, effectiveRecordedAt,
                 source != null ? source.name() : "UNKNOWN");
         eventPublisher.publishEvent(event);
 
-        // 6. Advance sync cursor to the ingested reportTime (not Instant.now()).
+        // 7. Advance sync cursor to the ingested reportTime (not Instant.now()).
         // The cursor and reportTime must share the same time basis so the
         // > cursor filter in syncDevice() correctly skips already-processed
         // records. Using Instant.now() here created an 8-hour gap when the
@@ -173,6 +180,31 @@ public class TelemetryIngestionService {
             // Regression or reset: discard this cycle
             log.warn("stepNumber regression: last={}, current={}, device={}", lastStep, currentStep, device.getId());
         }
+    }
+
+    private void deriveGpsDistance(Device device, Map<String, Object> readings, Instant recordedAt) {
+        if (!device.getDeviceType().supportsGps() || readings.containsKey("distanceMeters")) {
+            return;
+        }
+
+        BigDecimal latitude = toBigDecimal(readings.get("latitude"));
+        BigDecimal longitude = toBigDecimal(readings.get("longitude"));
+        if (latitude == null || longitude == null
+                || (latitude.compareTo(BigDecimal.ZERO) == 0
+                    && longitude.compareTo(BigDecimal.ZERO) == 0)) {
+            return;
+        }
+
+        DeviceTelemetryLog previous = deviceTelemetryLogRepository
+                .findLatestGpsByDeviceIdAndReportTimeBefore(device.getId(), recordedAt)
+                .orElse(null);
+        var previousPoint = previous == null ? null : new GpsDistanceDerivationService.GpsSegmentPoint(
+                previous.getLatitude(), previous.getLongitude(), previous.getReportTime());
+        var currentPoint = new GpsDistanceDerivationService.GpsSegmentPoint(
+                latitude, longitude, recordedAt);
+
+        gpsDistanceDerivationService.deriveDistanceMeters(previousPoint, currentPoint)
+                .ifPresent(distance -> readings.put("distanceMeters", distance));
     }
 
     private void updateDeviceRuntimeStatus(Device device, Map<String, Object> readings) {

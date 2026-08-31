@@ -153,6 +153,21 @@ class HealthApplicationServiceTelemetryTest {
     }
 
     @Test
+    void processTelemetry_earTag_ingestGpsDerivedActivity() {
+        when(snapshotRepo.findByLivestockId(6L)).thenReturn(Optional.of(new HealthSnapshot()));
+        when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(6L), anyInt()))
+                .thenReturn(List.of());
+
+        service.processTelemetry(61L, 6L, 1L, DeviceType.EAR_TAG, Map.of(
+                "distanceMeters", 320.5
+        ), Instant.parse("2026-08-31T10:00:00Z"), "AGENTIC_PLATFORM");
+
+        ArgumentCaptor<ActivityLog> captor = ArgumentCaptor.forClass(ActivityLog.class);
+        verify(activityLogRepo).save(captor.capture());
+        assertEquals(new BigDecimal("320.5"), captor.getValue().getDistanceMeters());
+    }
+
+    @Test
     void processTelemetry_capsule_noTemperatures_skipsTempLog() {
         when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(new HealthSnapshot()));
         when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(10L), anyInt())).thenReturn(List.of());
