@@ -38,6 +38,8 @@ class AgenticPlatformSyncDispatcherTest {
         ReflectionTestUtils.setField(dispatcher, "concurrency", 1);
         ReflectionTestUtils.setField(dispatcher, "tbBladeExclusion", true);
         ReflectionTestUtils.setField(dispatcher, "tbTenantId", 1L);
+        ReflectionTestUtils.setField(dispatcher, "tbFallbackStaleAfterMs", 900000L);
+        ReflectionTestUtils.setField(dispatcher, "tbFallbackFailureThreshold", 3);
     }
 
     @AfterEach
@@ -74,12 +76,29 @@ class AgenticPlatformSyncDispatcherTest {
         verifyNoInteractions(bindingRepository);
     }
 
+    @Test
+    void dispatch_shouldFallBackToBladeWhenTbCursorIsStale() {
+        when(deviceRepository.findActivePlatformDeviceIds(eq(0), anyInt()))
+                .thenReturn(List.of(122L));
+        when(deviceRepository.findActivePlatformDeviceIds(eq(2), anyInt()))
+                .thenReturn(List.of());
+        TbDeviceBinding stale = binding(122L);
+        stale.setTelemetryCursorMs(System.currentTimeMillis() - 900001L);
+        when(bindingRepository.findByTenantIdAndStatus(1L, TbDeviceBinding.Status.RESOLVED))
+                .thenReturn(List.of(stale));
+
+        dispatcher.dispatch();
+
+        verify(syncJob, timeout(1000)).syncDevice(122L);
+    }
+
     private TbDeviceBinding binding(Long deviceId) {
         TbDeviceBinding binding = new TbDeviceBinding();
         binding.setTenantId(1L);
         binding.setDeviceId(deviceId);
         binding.setProvider(TbDeviceBinding.PROVIDER_THINGSBOARD);
         binding.setStatus(TbDeviceBinding.Status.RESOLVED);
+        binding.setTelemetryCursorMs(System.currentTimeMillis() - 60000L);
         return binding;
     }
 }

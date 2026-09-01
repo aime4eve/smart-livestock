@@ -20,6 +20,8 @@ public final class TbDeviceBindingMapper {
         jpa.setTelemetryCursorMs(binding.getTelemetryCursorMs());
         jpa.setLastEventAt(binding.getLastEventAt());
         jpa.setLastVerifiedAt(binding.getLastVerifiedAt());
+        jpa.setLastPollAt(binding.getLastPollAt());
+        jpa.setConsecutiveFailures(binding.getConsecutiveFailures());
         return jpa;
     }
 
@@ -37,6 +39,8 @@ public final class TbDeviceBindingMapper {
         binding.setTelemetryCursorMs(jpa.getTelemetryCursorMs());
         binding.setLastEventAt(jpa.getLastEventAt());
         binding.setLastVerifiedAt(jpa.getLastVerifiedAt());
+        binding.setLastPollAt(jpa.getLastPollAt());
+        binding.setConsecutiveFailures(jpa.getConsecutiveFailures());
         return binding;
     }
 }

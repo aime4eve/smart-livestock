@@ -61,6 +61,14 @@ public class AgenticPlatformSyncDispatcher {
     @Value("${smartlivestock.tb.tenant-id:1}")
     private Long tbTenantId;
 
+    /** Blade fallback tuning: a binding whose TB cursor is frozen longer than
+     * this window (or that fails this many cycles in a row) degrades to blade. */
+    @Value("${smartlivestock.tb.fallback.stale-after-ms:900000}")
+    private long tbFallbackStaleAfterMs;
+
+    @Value("${smartlivestock.tb.fallback.failure-threshold:3}")
+    private int tbFallbackFailureThreshold;
+
     /** Loaded once per cycle; empty when exclusion is off or no devices bound. */
     private volatile java.util.Set<Long> tbBoundDeviceIds = java.util.Set.of();
 
@@ -124,10 +132,29 @@ public class AgenticPlatformSyncDispatcher {
             return;
         }
         try {
-            tbBoundDeviceIds = tbDeviceBindingRepository
-                    .findByTenantIdAndStatus(tbTenantId, TbDeviceBinding.Status.RESOLVED).stream()
-                    .map(TbDeviceBinding::getDeviceId)
-                    .collect(java.util.stream.Collectors.toSet());
+            // Dynamic fallback: only TB-healthy bindings stay excluded. A bound
+            // device whose TB cursor froze (e.g. a modified TB rule chain) or
+            // that keeps failing degrades to the blade channel automatically;
+            // once TB recovers and the cursor advances, it is excluded again.
+            // Double-source overlap stays safe through the (device_id,
+            // report_time) idempotency in the unified ingest path.
+            long now = System.currentTimeMillis();
+            java.util.List<TbDeviceBinding> bindings = tbDeviceBindingRepository
+                    .findByTenantIdAndStatus(tbTenantId, TbDeviceBinding.Status.RESOLVED);
+            java.util.Set<Long> healthy = new java.util.HashSet<>();
+            java.util.List<Long> degraded = new java.util.ArrayList<>();
+            for (TbDeviceBinding binding : bindings) {
+                if (binding.isTbChannelHealthy(now, tbFallbackStaleAfterMs, tbFallbackFailureThreshold)) {
+                    healthy.add(binding.getDeviceId());
+                } else {
+                    degraded.add(binding.getDeviceId());
+                }
+            }
+            if (!degraded.isEmpty()) {
+                log.warn("[PlatformSync] TB channel degraded for device(s) {}, blade fallback active (healthy exclusions: {})",
+                        degraded, healthy.size());
+            }
+            tbBoundDeviceIds = java.util.Collections.unmodifiableSet(healthy);
         } catch (Exception e) {
             // Fail-open: exclusion is an optimization against double-pull; a
             // binding lookup failure must never stop the blade channel.
