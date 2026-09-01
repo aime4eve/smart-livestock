@@ -45,6 +45,8 @@ public final class HealthMapper {
         d.setDeviceId(e.getDeviceId());
         d.setFrequency(e.getFrequency());
         d.setIntensity(e.getIntensity());
+        d.setRawCounter(e.getRawCounter());
+        d.setCounterDelta(e.getCounterDelta());
         d.setRecordedAt(e.getRecordedAt());
         d.setCreatedAt(e.getCreatedAt());
         d.setSource(e.getSource());
@@ -58,6 +60,8 @@ public final class HealthMapper {
         e.setDeviceId(d.getDeviceId());
         e.setFrequency(d.getFrequency());
         e.setIntensity(d.getIntensity());
+        e.setRawCounter(d.getRawCounter());
+        e.setCounterDelta(d.getCounterDelta());
         e.setRecordedAt(d.getRecordedAt());
         e.setCreatedAt(d.getCreatedAt());
         e.setSource(d.getSource());

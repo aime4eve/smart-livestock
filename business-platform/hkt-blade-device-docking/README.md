@@ -113,6 +113,11 @@ NIX-179 Phase 1 已实现 TB REST 增量轮询：
 4. TB `ts` 是 epoch milliseconds，按 UTC Instant 入库，不做墙时区换算。
 5. DTL 和 GPS 依赖数据库唯一键吸收 at-least-once 重放。
 
+`gastricMotility` 是固件自上电以来的累计计数。真实 TB/blade 通道在采集边界计算
+相邻两次上报的正向 `counter_delta`，并保留 `raw_counter`；在该计数与瘤胃蠕动频率的
+换算关系被标定前，不生成 `frequency`、`intensity` 或消化健康状态。DATAGEN 演示数据
+继续使用既有 `/100000` 频率映射。
+
 ### 需要同时满足的绑定条件
 
 | 层 | 条件 |

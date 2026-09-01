@@ -212,12 +212,18 @@ class MotilityRecord {
     required this.livestockId,
     required this.frequency,
     required this.intensity,
+    this.rawCounter,
+    this.counterDelta,
+    this.source,
     required this.timestamp,
   });
 
   final String livestockId;
-  final double frequency;
-  final double intensity;
+  final double? frequency;
+  final double? intensity;
+  final int? rawCounter;
+  final int? counterDelta;
+  final String? source;
   final DateTime timestamp;
 }
 
@@ -237,7 +243,9 @@ class DigestiveHealth {
   final List<MotilityRecord> recent24h;
 
   double get currentFrequency =>
-      recent24h.isEmpty ? motilityBaseline : recent24h.last.frequency;
+      recent24h.where((item) => item.frequency != null).isEmpty
+          ? motilityBaseline
+          : recent24h.where((item) => item.frequency != null).last.frequency!;
 }
 
 class EstrusTrendPoint {

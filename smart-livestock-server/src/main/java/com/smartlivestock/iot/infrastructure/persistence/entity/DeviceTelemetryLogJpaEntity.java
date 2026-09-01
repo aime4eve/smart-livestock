@@ -43,6 +43,9 @@ public class DeviceTelemetryLogJpaEntity {
     @Column(name = "step_number")
     private Integer stepNumber;
 
+    @Column(name = "gastric_motility")
+    private Long gastricMotility;
+
     @Column(name = "latitude")
     private BigDecimal latitude;
 
@@ -124,6 +127,9 @@ public class DeviceTelemetryLogJpaEntity {
 
     public Integer getStepNumber() { return stepNumber; }
     public void setStepNumber(Integer stepNumber) { this.stepNumber = stepNumber; }
+
+    public Long getGastricMotility() { return gastricMotility; }
+    public void setGastricMotility(Long gastricMotility) { this.gastricMotility = gastricMotility; }
 
     public BigDecimal getLatitude() { return latitude; }
     public void setLatitude(BigDecimal latitude) { this.latitude = latitude; }

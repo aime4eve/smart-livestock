@@ -48,6 +48,9 @@ public final class HealthDtos {
     public record MotilityReading(
             BigDecimal frequency,
             BigDecimal intensity,
+            Long rawCounter,
+            Long counterDelta,
+            String source,
             Instant timestamp
     ) {}
 

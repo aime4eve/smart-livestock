@@ -1141,22 +1141,26 @@ class _DeviceHealthSeries {
   factory _DeviceHealthSeries.fromJson(Map<String, dynamic> data) {
     return _DeviceHealthSeries(
       temperature72h: _points(data['temperature72h'], 'temperature'),
-      motility24h: _points(data['motility24h'], 'frequency'),
+      motility24h: _points(data['motility24h'], 'frequency',
+          fallbackKey: 'counterDelta'),
     );
   }
 
-  static List<_DeviceHealthPoint> _points(Object? raw, String valueKey) {
+  static List<_DeviceHealthPoint> _points(Object? raw, String valueKey,
+      {String? fallbackKey}) {
     return (raw as List? ?? [])
         .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .where((item) => item[valueKey] != null ||
+            (fallbackKey != null && item[fallbackKey] != null))
         .map(
           (item) => _DeviceHealthPoint(
             value:
-                (Map<String, dynamic>.from(item)[valueKey] as num?)
+                ((item[valueKey] ?? (fallbackKey == null ? null : item[fallbackKey]))
+                        as num?)
                     ?.toDouble() ??
-                0,
-            timestamp: DateTime.parse(
-              Map<String, dynamic>.from(item)['timestamp'] as String,
-            ),
+                    0,
+            timestamp: DateTime.parse(item['timestamp'] as String),
           ),
         )
         .toList();

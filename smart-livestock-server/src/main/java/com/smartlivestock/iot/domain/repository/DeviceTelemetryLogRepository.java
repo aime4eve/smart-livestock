@@ -12,6 +12,14 @@ public interface DeviceTelemetryLogRepository {
     /** Find the most recent telemetry log for a device (used for stepNumber delta calculation). */
     Optional<DeviceTelemetryLog> findLatestByDeviceId(Long deviceId);
 
+    /** Find the latest cumulative counter value reported before a report time. */
+    Optional<DeviceTelemetryLog> findLatestStepNumberByDeviceIdAndReportTimeBefore(
+            Long deviceId, Instant reportTime);
+
+    /** Find the latest cumulative gastric motility counter before a report time. */
+    Optional<DeviceTelemetryLog> findLatestGastricMotilityByDeviceIdAndReportTimeBefore(
+            Long deviceId, Instant reportTime);
+
     /** Find the closest valid GPS fix before a report time. */
     Optional<DeviceTelemetryLog> findLatestGpsByDeviceIdAndReportTimeBefore(
             Long deviceId, Instant reportTime);

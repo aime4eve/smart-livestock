@@ -10,6 +10,8 @@ public class RumenMotilityLog {
     private Long deviceId;
     private BigDecimal frequency;
     private BigDecimal intensity;
+    private Long rawCounter;
+    private Long counterDelta;
     private Instant recordedAt;
     private Instant createdAt;
     private String source;
@@ -30,6 +32,12 @@ public class RumenMotilityLog {
 
     public BigDecimal getIntensity() { return intensity; }
     public void setIntensity(BigDecimal intensity) { this.intensity = intensity; }
+
+    public Long getRawCounter() { return rawCounter; }
+    public void setRawCounter(Long rawCounter) { this.rawCounter = rawCounter; }
+
+    public Long getCounterDelta() { return counterDelta; }
+    public void setCounterDelta(Long counterDelta) { this.counterDelta = counterDelta; }
 
     public Instant getRecordedAt() { return recordedAt; }
     public void setRecordedAt(Instant recordedAt) { this.recordedAt = recordedAt; }

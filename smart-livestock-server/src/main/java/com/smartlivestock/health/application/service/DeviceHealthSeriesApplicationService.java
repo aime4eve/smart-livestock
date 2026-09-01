@@ -30,10 +30,16 @@ public class DeviceHealthSeriesApplicationService {
         var motilities = motilityLogRepository
                 .findByDeviceIdAndTimeRange(deviceId, now.minus(Duration.ofHours(24)), now)
                 .stream()
-                .map(log -> new MotilityReading(
-                        log.getFrequency(), log.getIntensity(), log.getRecordedAt()))
+                .map(this::toMotilityReading)
                 .toList();
 
         return new DeviceHealthSeries(deviceId.toString(), temperatures, motilities);
+    }
+
+    private MotilityReading toMotilityReading(
+            com.smartlivestock.health.domain.model.RumenMotilityLog log) {
+        return new MotilityReading(
+                log.getFrequency(), log.getIntensity(), log.getRawCounter(),
+                log.getCounterDelta(), log.getSource(), log.getRecordedAt());
     }
 }

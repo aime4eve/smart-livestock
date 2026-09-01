@@ -210,8 +210,11 @@ class DigestiveDetailPage extends ConsumerWidget {
 
   Widget _buildStatusCards(DigestiveDetailData detail, AppLocalizations l10n) {
     final unit = l10n.digestiveFreqUnit;
+    final validatedReadings = detail.recent24h
+        .where((reading) => reading.frequency != null)
+        .toList();
     return Row(children: [
-      _statCard(l10n.digestiveCurrentFreq, '${detail.recent24h.isEmpty ? detail.motilityBaseline.toStringAsFixed(1) : detail.recent24h.last.frequency.toStringAsFixed(1)}$unit', AppColors.danger),
+      _statCard(l10n.digestiveCurrentFreq, '${validatedReadings.isEmpty ? detail.motilityBaseline.toStringAsFixed(1) : validatedReadings.last.frequency!.toStringAsFixed(1)}$unit', AppColors.danger),
       const SizedBox(width: 8),
       _statCard(l10n.digestiveBaselineFreq, '${detail.motilityBaseline.toStringAsFixed(1)}$unit', AppColors.textSecondary),
       const SizedBox(width: 8),
@@ -230,7 +233,13 @@ class DigestiveDetailPage extends ConsumerWidget {
   Widget _buildChart(DigestiveDetailData detail, AppLocalizations l10n) {
     final readings = detail.recent24h;
     if (readings.isEmpty) return const SizedBox.shrink();
-    final spots = readings.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value.frequency)).toList();
+    final spots = readings
+        .where((reading) => reading.frequency != null)
+        .toList()
+        .asMap()
+        .entries
+        .map((e) => FlSpot(e.key.toDouble(), e.value.frequency!))
+        .toList();
 
     return Card(
       child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

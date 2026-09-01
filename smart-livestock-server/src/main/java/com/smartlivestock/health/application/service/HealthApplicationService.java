@@ -87,9 +87,16 @@ public class HealthApplicationService {
 
             Object motilityObj = readings.get("gastricMotility");
             if (motilityObj != null) {
-                motilityFrequency = toBigDecimal(motilityObj).divide(new BigDecimal("100000"), 2, java.math.RoundingMode.HALF_UP);
-                ingestMotility(deviceId, livestockId, motilityFrequency, BigDecimal.ZERO,
-                        recordedAt, effectiveSource);
+                if (isCumulativeCounterSource(effectiveSource)) {
+                    ingestMotility(deviceId, livestockId, null, null,
+                            toLong(motilityObj), toLong(readings.get("gastricMotilityDelta")),
+                            recordedAt, effectiveSource);
+                } else {
+                    motilityFrequency = toBigDecimal(motilityObj)
+                            .divide(new BigDecimal("100000"), 2, java.math.RoundingMode.HALF_UP);
+                    ingestMotility(deviceId, livestockId, motilityFrequency, BigDecimal.ZERO,
+                            recordedAt, effectiveSource);
+                }
             }
 
             ingestActivity(deviceId, livestockId,
@@ -126,6 +133,13 @@ public class HealthApplicationService {
         };
     }
 
+    private boolean isCumulativeCounterSource(String source) {
+        return switch (source) {
+            case "AGENTIC_PLATFORM", "THINGSBOARD", "MANUAL_IMPORT" -> true;
+            default -> false;
+        };
+    }
+
     private BigDecimal toBigDecimal(Object value) {
         if (value == null) return null;
         if (value instanceof BigDecimal bd) return bd;
@@ -138,6 +152,13 @@ public class HealthApplicationService {
         if (value instanceof Integer i) return i;
         if (value instanceof Number n) return n.intValue();
         return Integer.parseInt(value.toString());
+    }
+
+    private Long toLong(Object value) {
+        if (value == null) return null;
+        if (value instanceof Long l) return l;
+        if (value instanceof Number n) return n.longValue();
+        return Long.parseLong(value.toString());
     }
 
     private void ingestTemperature(Long deviceId, Long livestockId,
@@ -167,13 +188,23 @@ public class HealthApplicationService {
     private void ingestMotility(Long deviceId, Long livestockId,
                                  BigDecimal frequency, BigDecimal intensity, Instant recordedAt,
                                  String source) {
-        if (frequency == null) return;
+        ingestMotility(deviceId, livestockId, frequency, intensity,
+                null, null, recordedAt, source);
+    }
+
+    private void ingestMotility(Long deviceId, Long livestockId,
+                                 BigDecimal frequency, BigDecimal intensity,
+                                 Long rawCounter, Long counterDelta, Instant recordedAt,
+                                 String source) {
+        if (frequency == null && rawCounter == null) return;
 
         RumenMotilityLog log = new RumenMotilityLog();
         log.setLivestockId(livestockId);
         log.setDeviceId(deviceId);
         log.setFrequency(frequency);
         log.setIntensity(intensity);
+        log.setRawCounter(rawCounter);
+        log.setCounterDelta(counterDelta);
         log.setRecordedAt(recordedAt);
         log.setSource(source);
         motilityLogRepo.save(log);
@@ -502,7 +533,7 @@ public class HealthApplicationService {
         String code = ranchQueryPort.findLivestockById(livestockId).map(LivestockInfo::livestockCode).orElse("?");
 
         List<MotilityReading> recent24h = logs.stream()
-                .map(l -> new MotilityReading(l.getFrequency(), l.getIntensity(), l.getRecordedAt()))
+                .map(this::toMotilityReading)
                 .toList();
 
        return new DigestiveDetail(
@@ -512,6 +543,12 @@ public class HealthApplicationService {
                digestiveService.generateAdvice(snapshot.getMotilityStatus()),
                recent24h,
                healthAnomalyService.getLatestSummary(farmId, livestockId).orElse(null));
+   }
+
+   private HealthDtos.MotilityReading toMotilityReading(RumenMotilityLog log) {
+       return new HealthDtos.MotilityReading(
+               log.getFrequency(), log.getIntensity(), log.getRawCounter(),
+               log.getCounterDelta(), log.getSource(), log.getRecordedAt());
    }
 
     // ── Estrus ──────────────────────────────────────────────────

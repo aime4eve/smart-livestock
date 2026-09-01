@@ -18,11 +18,17 @@ public class RumenMotilityLogJpaEntity {
     @Column(name = "device_id", nullable = false)
     private Long deviceId;
 
-    @Column(name = "frequency", nullable = false, precision = 5, scale = 2)
+    @Column(name = "frequency", precision = 5, scale = 2)
     private BigDecimal frequency;
 
-    @Column(name = "intensity", nullable = false, precision = 5, scale = 2)
+    @Column(name = "intensity", precision = 5, scale = 2)
     private BigDecimal intensity;
+
+    @Column(name = "raw_counter")
+    private Long rawCounter;
+
+    @Column(name = "counter_delta")
+    private Long counterDelta;
 
     @Column(name = "recorded_at", nullable = false)
     private Instant recordedAt;
@@ -46,6 +52,12 @@ public class RumenMotilityLogJpaEntity {
     public void setFrequency(BigDecimal frequency) { this.frequency = frequency; }
     public BigDecimal getIntensity() { return intensity; }
     public void setIntensity(BigDecimal intensity) { this.intensity = intensity; }
+
+    public Long getRawCounter() { return rawCounter; }
+    public void setRawCounter(Long rawCounter) { this.rawCounter = rawCounter; }
+
+    public Long getCounterDelta() { return counterDelta; }
+    public void setCounterDelta(Long counterDelta) { this.counterDelta = counterDelta; }
     public Instant getRecordedAt() { return recordedAt; }
     public void setRecordedAt(Instant recordedAt) { this.recordedAt = recordedAt; }
     public Instant getCreatedAt() { return createdAt; }
