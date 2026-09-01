@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class TbTelemetryFrameParserTest {
 
@@ -39,7 +38,7 @@ class TbTelemetryFrameParserTest {
                 "snr", List.of(Map.of("ts", 1000, "value", 9.5)),
                 "downLinkGateway", List.of(Map.of("ts", 1000, "value", "gw-01")))));
 
-        var frames = TbTelemetryFrameParser.extractFrames(node, DeviceType.CAPSULE);
+        var frames = TbTelemetryFrameParser.extract(node, DeviceType.CAPSULE).frames();
 
         assertThat(frames).hasSize(1);
         var frame = frames.get(0);
@@ -62,7 +61,7 @@ class TbTelemetryFrameParserTest {
                 "result", List.of(Map.of("ts", 1000, "value", result)),
                 "dataHex", List.of(Map.of("ts", 1800, "value", hex)))));
 
-        var frames = TbTelemetryFrameParser.extractFrames(node, DeviceType.CAPSULE);
+        var frames = TbTelemetryFrameParser.extract(node, DeviceType.CAPSULE).frames();
 
         assertThat(frames).hasSize(1);
         assertThat(frames.get(0).ts()).isEqualTo(1000L);
@@ -75,7 +74,7 @@ class TbTelemetryFrameParserTest {
         var node = mapper.readTree(mapper.writeValueAsString(Map.of(
                 "dataHex", List.of(Map.of("ts", 900000, "value", hex)))));
 
-        var frames = TbTelemetryFrameParser.extractFrames(node, DeviceType.CAPSULE);
+        var frames = TbTelemetryFrameParser.extract(node, DeviceType.CAPSULE).frames();
 
         assertThat(frames).hasSize(1);
         assertThat(frames.get(0).readings().get("battery")).isEqualTo(50);
@@ -90,7 +89,7 @@ class TbTelemetryFrameParserTest {
                         "{\"decodeStatus\":false,\"decodeData\":{\"properties\":{\"battery\":80}}")),
                 "dataHex", List.of(Map.of("ts", 1000, "value", hex)))));
 
-        var frames = TbTelemetryFrameParser.extractFrames(node, DeviceType.CAPSULE);
+        var frames = TbTelemetryFrameParser.extract(node, DeviceType.CAPSULE).frames();
 
         assertThat(frames).hasSize(1);
         assertThat(frames.get(0).readings().get("battery")).isEqualTo(50);
@@ -103,20 +102,49 @@ class TbTelemetryFrameParserTest {
                 "result", List.of(Map.of("ts", 1000, "value", rawResult("{bad json"))),
                 "dataHex", List.of(Map.of("ts", 1000, "value", hex)))));
 
-        var frames = TbTelemetryFrameParser.extractFrames(node, DeviceType.CAPSULE);
+        var frames = TbTelemetryFrameParser.extract(node, DeviceType.CAPSULE).frames();
 
         assertThat(frames).hasSize(1);
         assertThat(frames.get(0).readings().get("battery")).isEqualTo(50);
     }
 
     @Test
-    void shouldRejectInvalidTrackerResultWithoutFallback() throws Exception {
+    void shouldFallbackToLegacyTlvWhenConverterReportsLegacyUnknownTypes() throws Exception {
+        String legacyTemperatureHex = "686B74007C01100A45050B030AFA0AF80AEE0B02"
+                + "8BEE49000099974A684B624CD886000F";
+        String legacyMotilityHex = "686B74007C01100A4D050B030AFA0AF80AEE0B02"
+                + "8B0BF924000099974A684B624CD886000F";
+        var node = mapper.readTree(mapper.writeValueAsString(Map.of(
+                "result", List.of(
+                        Map.of("ts", 1000, "value",
+                                "{\"sync_header\":\"68 6B 74\",\"unknown_type\":69}"),
+                        Map.of("ts", 2000, "value",
+                                "{\"sync_header\":\"68 6B 74\",\"unknown_type\":36}")),
+                "dataHex", List.of(
+                        Map.of("ts", 1000, "value", legacyTemperatureHex),
+                        Map.of("ts", 2000, "value", legacyMotilityHex)))));
+
+        var parsed = TbTelemetryFrameParser.extract(node, DeviceType.CAPSULE);
+        var frames = parsed.frames();
+
+        assertThat(parsed.skippedTs()).isEmpty();
+        assertThat(frames).hasSize(2);
+        assertThat(frames.get(0).readings().get("temperatures")).asList().hasSize(5);
+        assertThat(frames.get(0).readings().get("gastricMotility")).isEqualTo(39319L);
+        assertThat(frames.get(1).readings().get("batteryVoltage")).isEqualTo(3065);
+        assertThat(frames.get(1).readings().get("gastricMotility")).isEqualTo(39319L);
+    }
+
+    @Test
+    void shouldSkipInvalidTrackerResultWithoutFallback() throws Exception {
         var node = mapper.readTree(mapper.writeValueAsString(Map.of(
                 "result", List.of(Map.of("ts", 1000, "value",
                         "{\"decodeStatus\":false,\"decodeData\":{\"properties\":{\"battery\":80}}")))));
 
-        assertThatThrownBy(() -> TbTelemetryFrameParser.extractFrames(node, DeviceType.TRACKER))
-                .isInstanceOf(TbTelemetryFrameParser.FrameParseException.class);
+        var parsed = TbTelemetryFrameParser.extract(node, DeviceType.TRACKER);
+
+        assertThat(parsed.frames()).isEmpty();
+        assertThat(parsed.skippedTs()).containsExactly(1000L);
     }
 
     @Test
@@ -132,7 +160,7 @@ class TbTelemetryFrameParserTest {
                         Map.of("ts", 3000, "value", newer),
                         Map.of("ts", 2000, "value", older)))));
 
-        var frames = TbTelemetryFrameParser.extractFrames(node, DeviceType.TRACKER);
+        var frames = TbTelemetryFrameParser.extract(node, DeviceType.TRACKER).frames();
 
         assertThat(frames).hasSize(2);
         assertThat(frames.get(0).ts()).isEqualTo(2000L);

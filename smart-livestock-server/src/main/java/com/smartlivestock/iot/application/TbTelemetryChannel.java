@@ -93,10 +93,12 @@ public class TbTelemetryChannel {
         }
 
         long now = System.currentTimeMillis();
+        binding.setLastPollAt(Instant.ofEpochMilli(now));
         long pageStart = binding.getTelemetryCursorMs() != null
                 ? binding.getTelemetryCursorMs() + 1
                 : now - properties.getLookbackDays() * 86_400_000L;
         long overallMaxTs = Long.MIN_VALUE;
+        long skippedMaxTs = Long.MIN_VALUE;
         int pages = 0;
         boolean failed = false;
 
@@ -105,7 +107,19 @@ public class TbTelemetryChannel {
             try {
                 JsonNode timeseries = tbClient.fetchTimeseries(
                         binding.getExternalDeviceId(), pageStart, now, properties.getBatchSize());
-                frames = TbTelemetryFrameParser.extractFrames(timeseries, device.getDeviceType());
+                TbTelemetryFrameParser.ParseResult parsed =
+                        TbTelemetryFrameParser.extract(timeseries, device.getDeviceType());
+                frames = parsed.frames();
+                // Undecodable frames (e.g. a modified TB rule chain saving
+                // decodeStatus:false results) are dropped on purpose; the
+                // cursor must pass them or the same page is re-fetched forever.
+                if (!parsed.skippedTs().isEmpty()) {
+                    skippedMaxTs = Math.max(skippedMaxTs,
+                            parsed.skippedTs().get(parsed.skippedTs().size() - 1));
+                    log.warn("[TB] device {} skipping {} undecodable frame(s), latest at {}",
+                            device.getId(), parsed.skippedTs().size(),
+                            parsed.skippedTs().get(parsed.skippedTs().size() - 1));
+                }
             } catch (Exception e) {
                 log.warn("[TB] device {} page failed at {}: {}",
                         device.getId(), pageStart, e.getMessage());
@@ -134,12 +148,25 @@ public class TbTelemetryChannel {
             pageStart = batchMaxTs;
         }
 
-        if (overallMaxTs != Long.MIN_VALUE) {
-            binding.setTelemetryCursorMs(overallMaxTs);
-            binding.setLastEventAt(Instant.ofEpochMilli(overallMaxTs));
-            bindingRepository.save(binding);
-            log.info("[TB] device {} cursor advanced to {}", device.getId(), overallMaxTs);
+        // Health is persisted even when nothing was ingested so the blade
+        // dispatcher can degrade this device to the blade channel.
+        if (failed) {
+            binding.setConsecutiveFailures(binding.getConsecutiveFailures() + 1);
+            // Keep the successful prefix cursor; never jump past a failed frame.
+            if (overallMaxTs != Long.MIN_VALUE) {
+                binding.setTelemetryCursorMs(overallMaxTs);
+                binding.setLastEventAt(Instant.ofEpochMilli(overallMaxTs));
+            }
+        } else {
+            binding.setConsecutiveFailures(0);
+            long processedMaxTs = Math.max(overallMaxTs, skippedMaxTs);
+            if (processedMaxTs != Long.MIN_VALUE) {
+                binding.setTelemetryCursorMs(processedMaxTs);
+                binding.setLastEventAt(Instant.ofEpochMilli(processedMaxTs));
+                log.info("[TB] device {} cursor advanced to {}", device.getId(), processedMaxTs);
+            }
         }
+        bindingRepository.save(binding);
     }
 
     private boolean ingestFrame(Device device, TbTelemetryFrameParser.Frame frame) {

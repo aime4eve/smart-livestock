@@ -53,6 +53,12 @@ public class TbDeviceBindingJpaEntity {
     @Column(name = "last_verified_at")
     private Instant lastVerifiedAt;
 
+    @Column(name = "last_poll_at")
+    private Instant lastPollAt;
+
+    @Column(name = "consecutive_failures", nullable = false)
+    private int consecutiveFailures;
+
     @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;
 

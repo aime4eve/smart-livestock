@@ -42,6 +42,50 @@ class RumenPayloadDecoderTest {
     }
 
     @Test
+    void decode_legacyTemperatureGroupType_extractsCapsuleReadings() {
+        Optional<DecodedRumenFrame> result = RumenPayloadDecoder.decode(hex(
+                "68 6B 74 00 7C 01 10 0A 45 05 0B 03 0A FA 0A F8 0A EE 0B 02 "
+                        + "8B EE 49 00 00 99 97 4A 68 4B 62 4C D8 86 00 0F"));
+
+        assertTrue(result.isPresent());
+        Map<String, Object> readings = result.get().toReadings();
+        assertEquals(
+                java.util.List.of(
+                        new BigDecimal("28.19"), new BigDecimal("28.10"),
+                        new BigDecimal("28.08"), new BigDecimal("27.98"),
+                        new BigDecimal("28.18")),
+                readings.get("temperatures"));
+        assertEquals(39319L, readings.get("gastricMotility"));
+        assertEquals(104, readings.get("accelXRaw"));
+        assertEquals(98, readings.get("accelYRaw"));
+        assertEquals(216, readings.get("accelZRaw"));
+        assertEquals(15, readings.get("reportIntervalMinutes"));
+        assertFalse(readings.containsKey("batteryVoltage"));
+    }
+
+    @Test
+    void decode_legacyGastricMotilityType_extractsCapsuleReadings() {
+        Optional<DecodedRumenFrame> result = RumenPayloadDecoder.decode(hex(
+                "68 6B 74 00 7C 01 10 0A 4D 05 0B 03 0A FA 0A F8 0A EE 0B 02 "
+                        + "8B 0B F9 24 00 00 99 97 4A 68 4B 62 4C D8 86 00 0F"));
+
+        assertTrue(result.isPresent());
+        Map<String, Object> readings = result.get().toReadings();
+        assertEquals(3065, readings.get("batteryVoltage"));
+        assertEquals(39319L, readings.get("gastricMotility"));
+        assertEquals(15, readings.get("reportIntervalMinutes"));
+    }
+
+    @Test
+    void decode_timestampTlv_isConsumedForFramingOnly() {
+        Optional<DecodedRumenFrame> result = RumenPayloadDecoder.decode(hex(
+                "68 6B 74 00 7C 4E 78 56 34 12 03 50"));
+
+        assertTrue(result.isPresent());
+        assertEquals(80, result.get().toReadings().get("battery"));
+    }
+
+    @Test
     void decode_truncatedOrUnknownTlv_returnsEmpty() {
         assertTrue(RumenPayloadDecoder.decode(hex("68 6B 74 00 32 4D 02 0F")).isEmpty());
         assertTrue(RumenPayloadDecoder.decode(hex("68 6B 74 00 32 20 01")).isEmpty());

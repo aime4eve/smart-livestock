@@ -30,4 +30,23 @@ public class TbDeviceBinding {
     private Long telemetryCursorMs;
     private Instant lastEventAt;
     private Instant lastVerifiedAt;
+    /** Last cycle that attempted this device, successful or not. */
+    private Instant lastPollAt;
+    /** Consecutive page/API/ingest failures; reset on a clean cycle. */
+    private int consecutiveFailures;
+
+    /**
+     * TB-channel health gate for the blade fallback: blade polling stays
+     * excluded for a bound device only while the TB channel looks healthy.
+     * A frozen cursor (rule chain stopped saving decodable timeseries) or
+     * repeated failures degrade the device back to the blade channel. A
+     * binding that has never been polled gets the benefit of the doubt until
+     * its first stale window elapses after the first poll.
+     */
+    public boolean isTbChannelHealthy(long nowMs, long staleAfterMs, int failureThreshold) {
+        if (consecutiveFailures >= failureThreshold) return false;
+        Long baseline = telemetryCursorMs != null ? telemetryCursorMs
+                : lastPollAt != null ? lastPollAt.toEpochMilli() : null;
+        return baseline == null || nowMs - baseline <= staleAfterMs;
+    }
 }

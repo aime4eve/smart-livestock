@@ -21,6 +21,12 @@ import java.util.TreeMap;
  * physical frame. result frames are authoritative; a dataHex point within
  * 2s of a result frame is the same frame and is skipped. A dataHex point
  * further away is a result-less frame and gets the TLV fallback decode.
+ * <p>
+ * Fault tolerance (NIX-179): frames that cannot be decoded under any path
+ * (e.g. a modified TB rule chain saving {@code decodeStatus:false} results)
+ * are reported as skipped instead of failing the whole page — the channel
+ * advances its cursor past them so a handful of bad frames can never stall
+ * the device permanently.
  */
 @Slf4j
 public final class TbTelemetryFrameParser {
@@ -31,13 +37,10 @@ public final class TbTelemetryFrameParser {
 
     public record Frame(long ts, Map<String, Object> readings) {}
 
-    public static class FrameParseException extends RuntimeException {
-        FrameParseException(String message) {
-            super(message);
-        }
-    }
+    /** Parsed page: decodable frames plus the timestamps of dropped ones. */
+    public record ParseResult(List<Frame> frames, List<Long> skippedTs) {}
 
-    public static List<Frame> extractFrames(JsonNode timeseries, DeviceType deviceType) {
+    public static ParseResult extract(JsonNode timeseries, DeviceType deviceType) {
         TreeMap<Long, Map<String, Object>> resultFrames = new TreeMap<>();
         TreeMap<Long, String> hexFrames = new TreeMap<>();
         TreeMap<Long, String> invalidFrames = new TreeMap<>();
@@ -80,10 +83,11 @@ public final class TbTelemetryFrameParser {
             frames.add(new Frame(entry.getKey(), readings));
         }
         if (!invalidFrames.isEmpty()) {
-            throw new FrameParseException("Undecodable TB frames at timestamps " + invalidFrames.keySet());
+            log.warn("[TB] {} undecodable frame(s) skipped at timestamps {}",
+                    invalidFrames.size(), invalidFrames.keySet());
         }
         frames.sort(Comparator.comparingLong(Frame::ts));
-        return frames;
+        return new ParseResult(List.copyOf(frames), List.copyOf(invalidFrames.keySet()));
     }
 
     private static void removeInvalidResultNearby(TreeMap<Long, String> invalidFrames, long ts) {

@@ -110,3 +110,8 @@ smartlivestock:
     batch-size: ${SMARTLIVESTOCK_TB_BATCH_SIZE:200}
     blade-exclusion: ${SMARTLIVESTOCK_TB_BLADE_EXCLUSION:false}
     tenant-id: ${SMARTLIVESTOCK_TB_TENANT_ID:1}
+    fallback:
+      # Blade fallback triggers: TB cursor frozen longer than this window, or
+      # this many consecutive failed cycles, degrades the device to blade.
+      stale-after-ms: ${SMARTLIVESTOCK_TB_FALLBACK_STALE_AFTER_MS:900000}
+      failure-threshold: ${SMARTLIVESTOCK_TB_FALLBACK_FAILURE_THRESHOLD:3}

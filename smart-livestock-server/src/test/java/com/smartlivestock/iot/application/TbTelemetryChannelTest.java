@@ -209,6 +209,67 @@ class TbTelemetryChannelTest {
         verify(ingestionService, never()).ingest(any(), any(), any(), any());
     }
 
+    @Test
+    void shouldSkipUndecodableFramesAndAdvanceCursorPastThem() {
+        TbDeviceBinding binding = resolvedBinding(500L);
+        when(bindingRepository.findByTenantIdAndStatus(1L, TbDeviceBinding.Status.RESOLVED))
+                .thenReturn(List.of(binding));
+        when(deviceRepository.findById(122L)).thenReturn(Optional.of(activeTracker()));
+        // Incident NIX-179: a modified TB rule chain saves decodeStatus:false
+        // frames between good ones; they must be skipped and the cursor must
+        // advance past them instead of stalling on the same page forever.
+        when(tbClient.fetchTimeseries(eq("tb-uuid"), anyLong(), anyLong(), anyInt()))
+                .thenReturn(parse("{\"result\":[" + frameJson("1000", "65")
+                        + ",{\"ts\":1500,\"value\":\"{\\\"decodeStatus\\\":false,\\\"error\\\":\\\"Invalid sync header\\\"}\"}"
+                        + "]}"));
+
+        channel.poll();
+
+        verify(ingestionService).ingest(eq(122L), any(),
+                eq(Instant.ofEpochMilli(1000L)), any());
+        ArgumentCaptor<TbDeviceBinding> bindingCaptor = ArgumentCaptor.forClass(TbDeviceBinding.class);
+        verify(bindingRepository).save(bindingCaptor.capture());
+        assertThat(bindingCaptor.getValue().getTelemetryCursorMs()).isEqualTo(1500L);
+        assertThat(bindingCaptor.getValue().getConsecutiveFailures()).isZero();
+    }
+
+    @Test
+    void shouldCountConsecutiveFailuresOnPageError() {
+        TbDeviceBinding binding = resolvedBinding(500L);
+        when(bindingRepository.findByTenantIdAndStatus(1L, TbDeviceBinding.Status.RESOLVED))
+                .thenReturn(List.of(binding));
+        when(deviceRepository.findById(122L)).thenReturn(Optional.of(activeTracker()));
+        when(tbClient.fetchTimeseries(eq("tb-uuid"), anyLong(), anyLong(), anyInt()))
+                .thenThrow(new RuntimeException("TB unreachable"));
+
+        channel.poll();
+
+        ArgumentCaptor<TbDeviceBinding> bindingCaptor = ArgumentCaptor.forClass(TbDeviceBinding.class);
+        verify(bindingRepository).save(bindingCaptor.capture());
+        assertThat(bindingCaptor.getValue().getConsecutiveFailures()).isEqualTo(1);
+        assertThat(bindingCaptor.getValue().getTelemetryCursorMs()).isEqualTo(500L);
+        assertThat(bindingCaptor.getValue().getLastPollAt()).isNotNull();
+    }
+
+    @Test
+    void shouldResetFailuresOnCleanCycleWithoutFrames() {
+        TbDeviceBinding binding = resolvedBinding(null);
+        binding.setConsecutiveFailures(2);
+        when(bindingRepository.findByTenantIdAndStatus(1L, TbDeviceBinding.Status.RESOLVED))
+                .thenReturn(List.of(binding));
+        when(deviceRepository.findById(122L)).thenReturn(Optional.of(activeTracker()));
+        when(tbClient.fetchTimeseries(eq("tb-uuid"), anyLong(), anyLong(), anyInt()))
+                .thenReturn(parse("{}"));
+
+        channel.poll();
+
+        ArgumentCaptor<TbDeviceBinding> bindingCaptor = ArgumentCaptor.forClass(TbDeviceBinding.class);
+        verify(bindingRepository).save(bindingCaptor.capture());
+        assertThat(bindingCaptor.getValue().getConsecutiveFailures()).isZero();
+        assertThat(bindingCaptor.getValue().getTelemetryCursorMs()).isNull();
+        assertThat(bindingCaptor.getValue().getLastPollAt()).isNotNull();
+    }
+
     private com.fasterxml.jackson.databind.JsonNode parse(String raw) {
         try {
             return new ObjectMapper().readTree(raw);
