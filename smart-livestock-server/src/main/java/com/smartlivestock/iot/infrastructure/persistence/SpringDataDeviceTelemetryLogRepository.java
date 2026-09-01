@@ -18,6 +18,30 @@ public interface SpringDataDeviceTelemetryLogRepository extends JpaRepository<De
             SELECT t FROM DeviceTelemetryLogJpaEntity t
             WHERE t.deviceId = :deviceId
               AND t.reportTime < :reportTime
+              AND t.stepNumber IS NOT NULL
+            ORDER BY t.reportTime DESC
+            """)
+    List<DeviceTelemetryLogJpaEntity> findLatestStepNumberByDeviceIdAndReportTimeBefore(
+            @Param("deviceId") Long deviceId,
+            @Param("reportTime") Instant reportTime,
+            Pageable pageable);
+
+    @Query("""
+            SELECT t FROM DeviceTelemetryLogJpaEntity t
+            WHERE t.deviceId = :deviceId
+              AND t.reportTime < :reportTime
+              AND t.gastricMotility IS NOT NULL
+            ORDER BY t.reportTime DESC
+            """)
+    List<DeviceTelemetryLogJpaEntity> findLatestGastricMotilityByDeviceIdAndReportTimeBefore(
+            @Param("deviceId") Long deviceId,
+            @Param("reportTime") Instant reportTime,
+            Pageable pageable);
+
+    @Query("""
+            SELECT t FROM DeviceTelemetryLogJpaEntity t
+            WHERE t.deviceId = :deviceId
+              AND t.reportTime < :reportTime
               AND t.latitude IS NOT NULL
               AND t.longitude IS NOT NULL
               AND t.latitude <> 0

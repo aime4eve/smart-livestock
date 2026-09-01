@@ -134,6 +134,32 @@ class HealthApplicationServiceTelemetryTest {
     }
 
     @Test
+    void processTelemetry_realCapsule_preservesCounterWithoutFakeFrequencyOrStatus() {
+        HealthSnapshot snapshot = new HealthSnapshot();
+        snapshot.setMotilityBaseline(new BigDecimal("3.0"));
+        snapshot.setCurrentMotility(new BigDecimal("3.0"));
+        snapshot.setMotilityStatus(MotilityStatus.NORMAL);
+        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(snapshot));
+        when(tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(10L, 10)).thenReturn(List.of());
+        when(activityLogRepo.findByLivestockIdOrderByRecordedAtDesc(eq(10L), anyInt()))
+                .thenReturn(List.of());
+        when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(10L), anyInt()))
+                .thenReturn(List.of());
+
+        service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE,
+                Map.of("gastricMotility", 60109L, "gastricMotilityDelta", 109L),
+                Instant.parse("2026-09-01T10:00:00Z"), "THINGSBOARD");
+
+        verify(motilityLogRepo).save(argThat(log ->
+                log.getFrequency() == null
+                        && log.getIntensity() == null
+                        && Long.valueOf(60109L).equals(log.getRawCounter())
+                        && Long.valueOf(109L).equals(log.getCounterDelta())));
+        assertEquals(new BigDecimal("3.0"), snapshot.getCurrentMotility());
+        assertEquals(MotilityStatus.NORMAL, snapshot.getMotilityStatus());
+    }
+
+    @Test
     void processTelemetry_capsuleWithoutLivestock_persistsDeviceSeriesWithoutSnapshot() {
         Map<String, Object> readings = Map.of(
                 "temperatures", List.of(bd("38.4"), bd("38.6")),

@@ -41,6 +41,9 @@ class DeviceHealthSeriesApplicationServiceTest {
         RumenMotilityLog motility = new RumenMotilityLog();
         motility.setFrequency(new BigDecimal("3.20"));
         motility.setIntensity(BigDecimal.ZERO);
+        motility.setRawCounter(60109L);
+        motility.setCounterDelta(109L);
+        motility.setSource("THINGSBOARD");
         motility.setRecordedAt(Instant.now().minusSeconds(300));
         when(temperatureLogRepository.findByDeviceIdAndTimeRange(
                 eq(51L), any(Instant.class), any(Instant.class)))
@@ -56,6 +59,9 @@ class DeviceHealthSeriesApplicationServiceTest {
         assertEquals(new BigDecimal("38.6"), result.temperature72h().get(0).temperature());
         assertEquals(1, result.motility24h().size());
         assertEquals(new BigDecimal("3.20"), result.motility24h().get(0).frequency());
+        assertEquals(60109L, result.motility24h().get(0).rawCounter());
+        assertEquals(109L, result.motility24h().get(0).counterDelta());
+        assertEquals("THINGSBOARD", result.motility24h().get(0).source());
 
         var temperatureStart = org.mockito.ArgumentCaptor.forClass(Instant.class);
         var temperatureEnd = org.mockito.ArgumentCaptor.forClass(Instant.class);

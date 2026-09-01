@@ -122,6 +122,53 @@ class TelemetryIngestionServiceTest {
     }
 
     @Test
+    void ingest_realCapsule_computesGastricCounterDeltaAndStoresRawCounter() {
+        Device device = createCapsuleDevice(51L);
+        Instant recordedAt = Instant.parse("2026-09-01T10:00:00Z");
+        DeviceTelemetryLog previous = new DeviceTelemetryLog();
+        previous.setGastricMotility(60000L);
+        previous.setReportTime(recordedAt.minusSeconds(900));
+        when(deviceRepository.findById(51L)).thenReturn(Optional.of(device));
+        when(installationRepository.findActiveByDeviceId(51L)).thenReturn(Optional.empty());
+        when(deviceTelemetryLogRepository.findLatestGastricMotilityByDeviceIdAndReportTimeBefore(
+                51L, recordedAt)).thenReturn(Optional.of(previous));
+
+        service.ingest(51L, Map.of("gastricMotility", 60109L),
+                recordedAt, TelemetrySource.THINGSBOARD);
+
+        ArgumentCaptor<DeviceTelemetryLog> logCaptor =
+                ArgumentCaptor.forClass(DeviceTelemetryLog.class);
+        verify(deviceTelemetryLogRepository).save(logCaptor.capture());
+        assertEquals(60109L, logCaptor.getValue().getGastricMotility());
+
+        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        TelemetryReceivedEvent event = (TelemetryReceivedEvent) eventCaptor.getValue();
+        assertEquals(109L, event.getReadings().get("gastricMotilityDelta"));
+    }
+
+    @Test
+    void ingest_realCapsule_ignoresGastricCounterReset() {
+        Device device = createCapsuleDevice(51L);
+        Instant recordedAt = Instant.parse("2026-09-01T10:00:00Z");
+        DeviceTelemetryLog previous = new DeviceTelemetryLog();
+        previous.setGastricMotility(60000L);
+        previous.setReportTime(recordedAt.minusSeconds(900));
+        when(deviceRepository.findById(51L)).thenReturn(Optional.of(device));
+        when(installationRepository.findActiveByDeviceId(51L)).thenReturn(Optional.empty());
+        when(deviceTelemetryLogRepository.findLatestGastricMotilityByDeviceIdAndReportTimeBefore(
+                51L, recordedAt)).thenReturn(Optional.of(previous));
+
+        service.ingest(51L, Map.of("gastricMotility", 100L),
+                recordedAt, TelemetrySource.THINGSBOARD);
+
+        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        TelemetryReceivedEvent event = (TelemetryReceivedEvent) eventCaptor.getValue();
+        assertFalse(event.getReadings().containsKey("gastricMotilityDelta"));
+    }
+
+    @Test
     void ingest_tracker_enqueuesGpsAndPublishesEvent() {
         Device device = createTrackerDevice(1L);
         Installation installation = createInstallation(1L, 5L);

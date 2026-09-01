@@ -18,6 +18,7 @@ public class DeviceTelemetryLog {
     private String gatewayId;
     private Integer antiDisassemblyStatus;
     private Integer stepNumber;
+    private Long gastricMotility;
     private BigDecimal latitude;
     private BigDecimal longitude;
     private Integer accelXRaw;
@@ -63,6 +64,9 @@ public class DeviceTelemetryLog {
 
     public Integer getStepNumber() { return stepNumber; }
     public void setStepNumber(Integer stepNumber) { this.stepNumber = stepNumber; }
+
+    public Long getGastricMotility() { return gastricMotility; }
+    public void setGastricMotility(Long gastricMotility) { this.gastricMotility = gastricMotility; }
 
     public BigDecimal getLatitude() { return latitude; }
     public void setLatitude(BigDecimal latitude) { this.latitude = latitude; }

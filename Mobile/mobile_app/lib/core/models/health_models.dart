@@ -235,8 +235,11 @@ class DigestiveDetailData {
               ?.whereType<Map<String, dynamic>>()
               .map((e) => MotilityRecord(
                     livestockId: (m['livestockId'] ?? '').toString(),
-                    frequency: (e['frequency'] as num?)?.toDouble() ?? 3.0,
-                    intensity: (e['intensity'] as num?)?.toDouble() ?? 50.0,
+                    frequency: (e['frequency'] as num?)?.toDouble(),
+                    intensity: (e['intensity'] as num?)?.toDouble(),
+                    rawCounter: (e['rawCounter'] as num?)?.toInt(),
+                    counterDelta: (e['counterDelta'] as num?)?.toInt(),
+                    source: e['source'] as String?,
                     timestamp: DateTime.parse(e['timestamp'] as String),
                   ))
               .toList() ??

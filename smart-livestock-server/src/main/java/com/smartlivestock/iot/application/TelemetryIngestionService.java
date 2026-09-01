@@ -4,6 +4,7 @@ import com.smartlivestock.iot.domain.event.TelemetryReceivedEvent;
 import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.DeviceStatus;
 import com.smartlivestock.iot.domain.model.DeviceTelemetryLog;
+import com.smartlivestock.iot.domain.model.DeviceType;
 import com.smartlivestock.iot.domain.model.GpsIngestionTask;
 import com.smartlivestock.iot.domain.model.Installation;
 import com.smartlivestock.iot.domain.model.TelemetrySource;
@@ -109,28 +110,30 @@ public class TelemetryIngestionService {
        // 2. Derive segment distance before the current GPS fix becomes the latest row.
        deriveGpsDistance(device, readings, effectiveRecordedAt);
 
-       // 3. Write device operational timeseries
-       logDeviceTelemetry(device, readings, effectiveRecordedAt, source);
+        // 3. Convert cumulative counters before the current row becomes the
+        // previous baseline for these queries.
+        computeStepDelta(device, readings, effectiveRecordedAt);
+        computeGastricMotilityDelta(device, readings, effectiveRecordedAt, source);
 
-        // 3a. Compute stepNumber delta (累计值 → 周期增量) and inject into readings
-        computeStepDelta(device, readings);
+        // 4. Write device operational timeseries
+        logDeviceTelemetry(device, readings, effectiveRecordedAt, source);
 
-        // 4. Enqueue GPS for GPS-capable devices; gps_logs is written by the outbox worker.
+        // 5. Enqueue GPS for GPS-capable devices; gps_logs is written by the outbox worker.
         enqueueGps(device, readings, effectiveRecordedAt, source);
 
-        // 5. Keep device alerts aligned for the two live platform channels.
+        // 6. Keep device alerts aligned for the two live platform channels.
         if (source == TelemetrySource.AGENTIC_PLATFORM || source == TelemetrySource.THINGSBOARD) {
             detectDeviceAlerts(device, farmId, readings);
         }
 
-        // 6. Publish telemetry event for cross-context consumption
+        // 7. Publish telemetry event for cross-context consumption
         TelemetryReceivedEvent event = new TelemetryReceivedEvent(
                 device.getId(), livestockId, farmId,
                 device.getDeviceType(), readings, effectiveRecordedAt,
                 source != null ? source.name() : "UNKNOWN");
         eventPublisher.publishEvent(event);
 
-        // 7. Advance sync cursor to the ingested reportTime (not Instant.now()).
+        // 8. Advance sync cursor to the ingested reportTime (not Instant.now()).
         // The cursor and reportTime must share the same time basis so the
         // > cursor filter in syncDevice() correctly skips already-processed
         // records. Using Instant.now() here created an 8-hour gap when the
@@ -160,11 +163,12 @@ public class TelemetryIngestionService {
      * Injects result as "stepCount" into readings for downstream HealthApplicationService consumption.
      * Three cases: first report (skip), normal delta (inject), regression/reset (discard).
      */
-    private void computeStepDelta(Device device, Map<String, Object> readings) {
+    private void computeStepDelta(Device device, Map<String, Object> readings, Instant recordedAt) {
         Integer currentStep = getInteger(readings, "stepNumber");
         if (currentStep == null) return;
 
-        Integer lastStep = deviceTelemetryLogRepository.findLatestByDeviceId(device.getId())
+        Integer lastStep = deviceTelemetryLogRepository
+                .findLatestStepNumberByDeviceIdAndReportTimeBefore(device.getId(), recordedAt)
                 .map(DeviceTelemetryLog::getStepNumber)
                 .orElse(null);
 
@@ -179,6 +183,29 @@ public class TelemetryIngestionService {
         } else {
             // Regression or reset: discard this cycle
             log.warn("stepNumber regression: last={}, current={}, device={}", lastStep, currentStep, device.getId());
+        }
+    }
+
+    /**
+     * Capsule firmware reports a cumulative gastric motility counter. Health
+     * consumers need the positive per-report delta; counter resets are ignored.
+     */
+    private void computeGastricMotilityDelta(
+            Device device, Map<String, Object> readings, Instant recordedAt,
+            TelemetrySource source) {
+        if (device.getDeviceType() != DeviceType.CAPSULE || source == TelemetrySource.DATAGEN) {
+            return;
+        }
+        Long currentCounter = getLong(readings, "gastricMotility");
+        if (currentCounter == null) {
+            return;
+        }
+        Long lastCounter = deviceTelemetryLogRepository
+                .findLatestGastricMotilityByDeviceIdAndReportTimeBefore(device.getId(), recordedAt)
+                .map(DeviceTelemetryLog::getGastricMotility)
+                .orElse(null);
+        if (lastCounter != null && currentCounter > lastCounter) {
+            readings.put("gastricMotilityDelta", currentCounter - lastCounter);
         }
     }
 
@@ -263,6 +290,7 @@ public class TelemetryIngestionService {
         logEntry.setLatitude(getBigDecimal(readings, "latitude"));
         logEntry.setLongitude(getBigDecimal(readings, "longitude"));
         logEntry.setStepNumber(getInteger(readings, "stepNumber"));
+        logEntry.setGastricMotility(getLong(readings, "gastricMotility"));
         logEntry.setAccelXRaw(getInteger(readings, "accelXRaw"));
         logEntry.setAccelYRaw(getInteger(readings, "accelYRaw"));
         logEntry.setAccelZRaw(getInteger(readings, "accelZRaw"));
@@ -375,6 +403,14 @@ public class TelemetryIngestionService {
         if (val instanceof Integer i) return i;
         if (val instanceof Number n) return n.intValue();
         return Integer.parseInt(val.toString());
+    }
+
+    private Long getLong(Map<String, Object> readings, String key) {
+        Object val = readings.get(key);
+        if (val == null) return null;
+        if (val instanceof Long l) return l;
+        if (val instanceof Number n) return n.longValue();
+        return Long.parseLong(val.toString());
     }
 
     private BigDecimal getBigDecimal(Map<String, Object> readings, String key) {

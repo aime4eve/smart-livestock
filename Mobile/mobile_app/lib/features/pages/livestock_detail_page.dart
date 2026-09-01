@@ -799,7 +799,9 @@ class _DigestiveTrendSection extends ConsumerWidget {
         child: Center(child: Text(l10n.digestiveLoadFailed)),
       ),
       data: (digestive) {
-        final readings = digestive.recent24h;
+        final readings = digestive.recent24h
+            .where((reading) => reading.frequency != null)
+            .toList();
         if (readings.isEmpty) {
           return SizedBox(
             height: 120,
@@ -814,19 +816,19 @@ class _DigestiveTrendSection extends ConsumerWidget {
         final spots = readings
             .asMap()
             .entries
-            .map((entry) => FlSpot(entry.key.toDouble(), entry.value.frequency))
+            .map((entry) => FlSpot(entry.key.toDouble(), entry.value.frequency!))
             .toList();
         final timestamps = readings
             .map((reading) => reading.timestamp)
             .toList();
         final minFrequency =
             readings
-                .map((reading) => reading.frequency)
+                .map((reading) => reading.frequency!)
                 .reduce((a, b) => a < b ? a : b) -
             0.5;
         final maxFrequency =
             readings
-                .map((reading) => reading.frequency)
+                .map((reading) => reading.frequency!)
                 .reduce((a, b) => a > b ? a : b) +
             0.5;
         final baseline = digestive.motilityBaseline;

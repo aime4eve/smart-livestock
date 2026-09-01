@@ -19,6 +19,7 @@ public final class DeviceTelemetryLogMapper {
         jpa.setGatewayId(log.getGatewayId());
         jpa.setAntiDisassemblyStatus(log.getAntiDisassemblyStatus());
         jpa.setStepNumber(log.getStepNumber());
+        jpa.setGastricMotility(log.getGastricMotility());
         jpa.setLatitude(log.getLatitude());
         jpa.setLongitude(log.getLongitude());
         jpa.setAccelXRaw(log.getAccelXRaw());
@@ -50,6 +51,7 @@ public final class DeviceTelemetryLogMapper {
         log.setGatewayId(jpa.getGatewayId());
         log.setAntiDisassemblyStatus(jpa.getAntiDisassemblyStatus());
         log.setStepNumber(jpa.getStepNumber());
+        log.setGastricMotility(jpa.getGastricMotility());
         log.setLatitude(jpa.getLatitude());
         log.setLongitude(jpa.getLongitude());
         log.setAccelXRaw(jpa.getAccelXRaw());
