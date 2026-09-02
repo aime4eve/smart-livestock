@@ -9028,6 +9028,78 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'该设备已安装在牲畜 {livestockId}；更换目标前请先解绑。'**
   String tbWizardInstalledLivestockWarning(String livestockId);
+
+  /// No description provided for @healthTipAssigned.
+  ///
+  /// In zh, this message translates to:
+  /// **'赋值：{value} / 100'**
+  String healthTipAssigned(int value);
+
+  /// No description provided for @healthTipBasis.
+  ///
+  /// In zh, this message translates to:
+  /// **'取值：{detail}'**
+  String healthTipBasis(String detail);
+
+  /// No description provided for @healthBasisBattery.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备电量 {percent}%'**
+  String healthBasisBattery(int percent);
+
+  /// No description provided for @healthBasisSignal.
+  ///
+  /// In zh, this message translates to:
+  /// **'RSSI {rssi} dBm，SNR {snr}'**
+  String healthBasisSignal(int rssi, String snr);
+
+  /// No description provided for @healthBasisSignalNoSnr.
+  ///
+  /// In zh, this message translates to:
+  /// **'RSSI {rssi} dBm'**
+  String healthBasisSignalNoSnr(int rssi);
+
+  /// No description provided for @healthBasisOnlineHoursAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'最后上线于 {hours} 小时前'**
+  String healthBasisOnlineHoursAgo(int hours);
+
+  /// No description provided for @healthBasisOnlineWithinHour.
+  ///
+  /// In zh, this message translates to:
+  /// **'最后上线于 1 小时内'**
+  String get healthBasisOnlineWithinHour;
+
+  /// No description provided for @healthBasisTamperOk.
+  ///
+  /// In zh, this message translates to:
+  /// **'防拆卸未触发'**
+  String get healthBasisTamperOk;
+
+  /// No description provided for @healthBasisTamperTriggered.
+  ///
+  /// In zh, this message translates to:
+  /// **'防拆卸已触发'**
+  String get healthBasisTamperTriggered;
+
+  /// No description provided for @healthBasisReportingFresh.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近 2 小时内有遥测上报'**
+  String get healthBasisReportingFresh;
+
+  /// No description provided for @healthBasisReportingStale.
+  ///
+  /// In zh, this message translates to:
+  /// **'超过 2 小时无遥测上报'**
+  String get healthBasisReportingStale;
+
+  /// No description provided for @healthBasisMissing.
+  ///
+  /// In zh, this message translates to:
+  /// **'无原始读数'**
+  String get healthBasisMissing;
 }
 
 class _AppLocalizationsDelegate

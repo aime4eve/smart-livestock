@@ -958,6 +958,7 @@ class _DeviceHealthDialogState extends State<DeviceHealthDialog> {
               )
             else if (_healthData != null)
               _HealthScoreCard(
+                device: d,
                 score: _healthData!['score'] as int?,
                 grade: _healthData!['grade'] as String?,
                 dimensions: _healthData!['dimensions'] as Map<String, dynamic>?,
@@ -1365,7 +1366,13 @@ class _HeaderTile extends StatelessWidget {
 }
 
 class _HealthScoreCard extends StatelessWidget {
-  const _HealthScoreCard({this.score, this.grade, this.dimensions});
+  const _HealthScoreCard({
+    required this.device,
+    this.score,
+    this.grade,
+    this.dimensions,
+  });
+  final DeviceItem device;
   final int? score;
   final String? grade;
   final Map<String, dynamic>? dimensions;
@@ -1405,10 +1412,14 @@ class _HealthScoreCard extends StatelessWidget {
             ...dimensions!.entries.map(
               (e) => Padding(
                 padding: const EdgeInsets.only(bottom: 6),
-                child: _DimBar(
-                  label: _dimLabel(e.key),
-                  value: (e.value as num).toInt(),
-                  color: _dimColor(e.key),
+                child: Tooltip(
+                  message: _dimTip(context, e.key, (e.value as num).toInt()),
+                  waitDuration: const Duration(milliseconds: 200),
+                  child: _DimBar(
+                    label: _dimLabel(e.key),
+                    value: (e.value as num).toInt(),
+                    color: _dimColor(e.key),
+                  ),
                 ),
               ),
             ),
@@ -1439,6 +1450,53 @@ class _HealthScoreCard extends StatelessWidget {
     'reporting' => Colors.purple,
     _ => Colors.grey,
   };
+
+  /// Hover tip: the dimension's assigned score plus the raw value it was
+  /// derived from, mirroring DeviceHealthScoreService's scoring inputs.
+  String _dimTip(BuildContext context, String key, int score) {
+    final l10n = AppLocalizations.of(context)!;
+    final basis = switch (key) {
+      'battery' => device.batteryPercent != null
+          ? l10n.healthBasisBattery(device.batteryPercent!)
+          : l10n.healthBasisMissing,
+      'signal' => _signalBasis(l10n),
+      'online' => _onlineBasis(l10n),
+      'tamper' => (device.antiDisassemblyStatus ?? 0) == 0
+          ? l10n.healthBasisTamperOk
+          : l10n.healthBasisTamperTriggered,
+      'reporting' => _reportingBasis(l10n),
+      _ => l10n.healthBasisMissing,
+    };
+    return '${l10n.healthTipAssigned(score)}\n${l10n.healthTipBasis(basis)}';
+  }
+
+  String _signalBasis(AppLocalizations l10n) {
+    final rssi = device.rssi;
+    if (rssi == null) return l10n.healthBasisMissing;
+    final snr = device.snr;
+    return snr != null
+        ? l10n.healthBasisSignal(rssi, snr)
+        : l10n.healthBasisSignalNoSnr(rssi);
+  }
+
+  String _onlineBasis(AppLocalizations l10n) {
+    final lastSync = device.lastSync;
+    final at = lastSync == null ? null : DateTime.tryParse(lastSync);
+    if (at == null) return l10n.healthBasisMissing;
+    final hours = DateTime.now().difference(at).inHours;
+    return hours < 1
+        ? l10n.healthBasisOnlineWithinHour
+        : l10n.healthBasisOnlineHoursAgo(hours);
+  }
+
+  String _reportingBasis(AppLocalizations l10n) {
+    final raw = device.lastTelemetrySyncedAt;
+    final at = raw == null ? null : DateTime.tryParse(raw);
+    if (at == null) return l10n.healthBasisReportingStale;
+    return DateTime.now().difference(at).inHours < 2
+        ? l10n.healthBasisReportingFresh
+        : l10n.healthBasisReportingStale;
+  }
 }
 
 class _DimBar extends StatelessWidget {

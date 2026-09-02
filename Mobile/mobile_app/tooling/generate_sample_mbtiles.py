@@ -10,12 +10,15 @@ Usage:
 Output defaults to ../assets/map/sample.mbtiles
 """
 
+import ipaddress
 import math
 import os
+import socket
 import sqlite3
 import sys
 import time
 import urllib.request
+from urllib.parse import urlsplit
 
 # Changsha center
 CENTER_LAT = 28.2282
@@ -24,9 +27,21 @@ MIN_ZOOM = 12
 MAX_ZOOM = 14
 
 TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+TILE_HOSTS = {"tile.openstreetmap.org"}
 OUTPUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
     os.path.dirname(__file__), "..", "assets", "map", "sample.mbtiles"
 )
+
+
+def validate_tile_url(url):
+    """Only https against the pinned public tile host; reject anything that
+    resolves to a loopback/private address (SSRF guard for this dev tool)."""
+    parts = urlsplit(url)
+    if parts.scheme != "https" or parts.hostname not in TILE_HOSTS:
+        raise ValueError(f"non-allowlisted tile url: {url}")
+    for _, _, _, _, sockaddr in socket.getaddrinfo(parts.hostname, 443):
+        if not ipaddress.ip_address(sockaddr[0]).is_global:
+            raise ValueError(f"tile host resolves to non-public address: {sockaddr[0]}")
 
 
 def lat_lon_to_tile(lat, lon, zoom):
@@ -40,6 +55,7 @@ def lat_lon_to_tile(lat, lon, zoom):
 
 def download_tile(z, x, y, retries=2):
     url = TILE_URL.format(z=z, x=x, y=y)
+    validate_tile_url(url)
     for attempt in range(retries + 1):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "SmartLivestock/0.1"})
