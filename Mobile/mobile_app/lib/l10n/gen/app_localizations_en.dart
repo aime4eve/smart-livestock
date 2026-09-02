@@ -4935,4 +4935,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String tbWizardInstalledLivestockWarning(String livestockId) {
     return 'This device is installed on livestock $livestockId; uninstall it before selecting another target.';
   }
+
+  @override
+  String healthTipAssigned(int value) {
+    return 'Score: $value / 100';
+  }
+
+  @override
+  String healthTipBasis(String detail) {
+    return 'Basis: $detail';
+  }
+
+  @override
+  String healthBasisBattery(int percent) {
+    return 'Battery at $percent%';
+  }
+
+  @override
+  String healthBasisSignal(int rssi, String snr) {
+    return 'RSSI $rssi dBm, SNR $snr';
+  }
+
+  @override
+  String healthBasisSignalNoSnr(int rssi) {
+    return 'RSSI $rssi dBm';
+  }
+
+  @override
+  String healthBasisOnlineHoursAgo(int hours) {
+    return 'Last online $hours h ago';
+  }
+
+  @override
+  String get healthBasisOnlineWithinHour => 'Last online within 1 h';
+
+  @override
+  String get healthBasisTamperOk => 'Anti-disassembly not triggered';
+
+  @override
+  String get healthBasisTamperTriggered => 'Anti-disassembly triggered';
+
+  @override
+  String get healthBasisReportingFresh => 'Telemetry reported within 2 h';
+
+  @override
+  String get healthBasisReportingStale => 'No telemetry for over 2 h';
+
+  @override
+  String get healthBasisMissing => 'No raw reading';
 }

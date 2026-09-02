@@ -4824,4 +4824,52 @@ class AppLocalizationsZh extends AppLocalizations {
   String tbWizardInstalledLivestockWarning(String livestockId) {
     return '该设备已安装在牲畜 $livestockId；更换目标前请先解绑。';
   }
+
+  @override
+  String healthTipAssigned(int value) {
+    return '赋值：$value / 100';
+  }
+
+  @override
+  String healthTipBasis(String detail) {
+    return '取值：$detail';
+  }
+
+  @override
+  String healthBasisBattery(int percent) {
+    return '设备电量 $percent%';
+  }
+
+  @override
+  String healthBasisSignal(int rssi, String snr) {
+    return 'RSSI $rssi dBm，SNR $snr';
+  }
+
+  @override
+  String healthBasisSignalNoSnr(int rssi) {
+    return 'RSSI $rssi dBm';
+  }
+
+  @override
+  String healthBasisOnlineHoursAgo(int hours) {
+    return '最后上线于 $hours 小时前';
+  }
+
+  @override
+  String get healthBasisOnlineWithinHour => '最后上线于 1 小时内';
+
+  @override
+  String get healthBasisTamperOk => '防拆卸未触发';
+
+  @override
+  String get healthBasisTamperTriggered => '防拆卸已触发';
+
+  @override
+  String get healthBasisReportingFresh => '最近 2 小时内有遥测上报';
+
+  @override
+  String get healthBasisReportingStale => '超过 2 小时无遥测上报';
+
+  @override
+  String get healthBasisMissing => '无原始读数';
 }
