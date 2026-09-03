@@ -306,8 +306,27 @@ class CommerceLicenseAdapterTest {
         }
 
         @Test
-        void fromActive_throwsStateConflict() {
+        void fromActive_downgradesToFreeBasic() {
+            // NIX-184 T4: license expiry over an ACTIVE subscription must
+            // degrade to FREE/BASIC via Subscription.downgradeToFree().
             Subscription sub = createActiveSubscription(SubscriptionTier.STANDARD);
+            when(subscriptionRepository.findByTenantId(TENANT_ID)).thenReturn(Optional.of(sub));
+            when(subscriptionRepository.save(any(Subscription.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+            createAdapter().downgradeForLicense(TENANT_ID);
+
+            ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
+            verify(subscriptionRepository).save(captor.capture());
+            Subscription saved = captor.getValue();
+            assertThat(saved.getStatus()).isEqualTo(SubscriptionStatus.FREE);
+            assertThat(saved.getTier()).isEqualTo(SubscriptionTier.BASIC);
+        }
+
+        @Test
+        void fromSuspended_throwsStateConflict() {
+            Subscription sub = createActiveSubscription(SubscriptionTier.STANDARD);
+            sub.suspend();
             when(subscriptionRepository.findByTenantId(TENANT_ID)).thenReturn(Optional.of(sub));
 
             assertThatThrownBy(() -> createAdapter().downgradeForLicense(TENANT_ID))

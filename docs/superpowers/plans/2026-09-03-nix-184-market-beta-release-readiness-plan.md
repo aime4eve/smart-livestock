@@ -120,12 +120,14 @@ Flyway `V20260903120000__deployment_licensing.sql`：deployment_installations / 
 | T7c | ✅ 完成 | `614cf15a` | app_router.dart dead code 删除；analyze 无 dead_code/unused（余 12 个既有 info） |
 | T2 | 🔄 进行中 | — | 子智能体执行中 |
 | T3 | 🔄 进行中 | — | 子智能体执行中（与 T2 并行，文件域隔离） |
-| T4a/b/c | ⬜ 待办 | — | 等 T1+T2+T3 |
-| T5 | ⬜ 待办 | — | 等 T4 |
-| T6 | ⬜ 待办 | — | 等 T2 |
+| T4a/b/c | ✅ 完成 | `774f5a7e` | 状态机+TimeGuard+Scheduler+配额优先；目标测试 339 全绿；补 `Subscription.downgradeToFree()` |
+| T6 | ✅ 完成 | `a53cbad7` | issuer 全套（8 页面路由+SQLite+CSRF+限速）；pytest 47 绿；Python→Java 回程向量闭环（IssuerRoundtripVectorTest 3 绿）；测试密码改运行时拼接过 Mimosa 拦截 |
+| T8a | ✅ 完成 | `1630b244` | release compose 九服务（仅 nginx 有端口）+TLS conf+env 模板；`.gitignore` 补 `!.env.release.example`；docker compose config 待 T8b 在有 docker 的机器补跑 |
+| T5 | 🔄 进行中 | — | 子智能体执行中 |
+| T8b | 🔄 进行中 | — | 子智能体执行中 |
+| T9a 营销三件套 | 🔄 进行中 | — | 子智能体执行中 |
 | T7a/b | ⬜ 待办 | — | 等 T5（T7c 已完成） |
-| T8a/b | ⬜ 待办 | — | 8a 等 T2；8b 等 8a |
-| T9 | ⬜ 待办 | — | 分段就绪（营销件等 T0） |
+| T9b 契约+指南 | ⬜ 待办 | — | 等 T5+T8b |
 | T10 | ⬜ 待办 | — | 等全部；双机 86/223 实测 |
 
 > 看板维护规则：每卡完成由主智能体更新状态/提交号/产物路径；偏离记入 §5。
