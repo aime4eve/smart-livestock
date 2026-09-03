@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}签发预览确认{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>签发预览 · 请二次确认</h1>
+  <div class="ok-box">
+    请核对下方授权内容与 SHA-256 摘要。确认后系统将使用密钥
+    <span class="tag tag-active">{{ draft.keyId }}</span> 签名并生成 .sllicense 文件。
+  </div>
+  <div class="kv">
+    <div class="muted">licenseId</div><div class="mono">{{ draft.payload.licenseId }}</div>
+    <div class="muted">tenantId</div><div>{{ draft.payload.tenantId }}</div>
+    <div class="muted">installationId</div><div class="mono">{{ draft.payload.installationId }}</div>
+    <div class="muted">fingerprintHash</div><div class="mono">{{ draft.payload.fingerprintHash }}</div>
+    <div class="muted">licenseType</div><div>{{ draft.payload.licenseType }}</div>
+    <div class="muted">tier / effectiveTier</div><div>{{ draft.payload.tier }} / {{ draft.payload.effectiveTier }}</div>
+    <div class="muted">issuedAt (UTC)</div><div>{{ draft.payload.issuedAt }}</div>
+    <div class="muted">expiresAt (UTC)</div><div>{{ draft.payload.expiresAt }}</div>
+    <div class="muted">quotas</div><div class="mono">{{ draft.payload.quotas | tojson }}</div>
+    <div class="muted">features</div><div class="mono">{{ draft.payload.features | tojson }}</div>
+    {% if draft.payload.replacesLicenseId %}
+    <div class="muted">replacesLicenseId</div><div class="mono">{{ draft.payload.replacesLicenseId }}</div>
+    {% endif %}
+    <div class="muted">签发原因</div><div>{{ draft.reason }}</div>
+    <div class="muted">payload SHA-256</div><div class="mono">{{ draft.payloadSha256 }}</div>
+  </div>
+  <div class="actions">
+    <form method="post" action="{{ base }}/issue/confirm">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="btn btn-danger" type="submit">确认无误，签名并生成</button>
+    </form>
+    <a class="btn btn-secondary" href="{{ base }}/issue/new">返回修改</a>
+  </div>
+</div>
+{% endblock %}

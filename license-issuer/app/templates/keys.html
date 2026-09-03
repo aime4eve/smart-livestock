@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}密钥状态{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>签名密钥状态</h1>
+  <p class="muted">本页只展示 keyId、公钥指纹与启用状态；私钥永不显示、永不出服务。</p>
+  <table>
+    <thead>
+      <tr><th>keyId</th><th>公钥指纹（sha256 of raw public key）</th><th>公钥（raw base64）</th><th>状态</th></tr>
+    </thead>
+    <tbody>
+      {% for k in keys %}
+      <tr>
+        <td class="mono">{{ k.keyId }}</td>
+        <td class="mono">{{ k.publicKeyFingerprint }}</td>
+        <td class="mono">{{ k.publicKeyB64 }}</td>
+        <td>
+          {% if k.active %}<span class="tag tag-active">active（当前签名密钥）</span>
+          {% else %}<span class="tag">rotated</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

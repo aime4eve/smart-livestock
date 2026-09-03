@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}授权详情{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>授权详情</h1>
+  <div class="kv">
+    <div class="muted">licenseId</div><div class="mono">{{ license.license_id }}</div>
+    <div class="muted">tenantId</div><div>{{ license.tenant_id }}</div>
+    <div class="muted">installationId</div><div class="mono">{{ license.installation_id }}</div>
+    <div class="muted">fingerprintHash</div><div class="mono">{{ license.fingerprint_hash }}</div>
+    <div class="muted">keyId</div><div class="mono">{{ license.key_id }}</div>
+    <div class="muted">licenseType</div><div>{{ license.license_type }}</div>
+    <div class="muted">tier / effectiveTier</div><div>{{ license.tier }} / {{ license.effective_tier }}</div>
+    <div class="muted">有效期</div><div>{{ license.issued_at }} ~ {{ license.expires_at }} (UTC)</div>
+    <div class="muted">payload SHA-256</div><div class="mono">{{ license.payload_sha256 }}</div>
+    <div class="muted">签发人</div><div>{{ license.issued_by }}</div>
+    <div class="muted">签发时间</div><div>{{ license.created_at }}</div>
+    <div class="muted">签发原因</div><div>{{ license.reason }}</div>
+  </div>
+  <div class="actions">
+    <a class="btn" href="{{ base }}/licenses/{{ license.license_id }}/download">下载 .sllicense 文件</a>
+    <a class="btn btn-secondary" href="{{ base }}/licenses">返回列表</a>
+  </div>
+</div>
+{% endblock %}

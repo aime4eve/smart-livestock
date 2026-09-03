@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}审计日志{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>审计日志</h1>
+  {% if entries %}
+  <table>
+    <thead>
+      <tr><th>#</th><th>时间 (UTC)</th><th>操作</th><th>操作人</th><th>详情</th></tr>
+    </thead>
+    <tbody>
+      {% for e in entries %}
+      <tr>
+        <td>{{ e.id }}</td>
+        <td class="mono">{{ e.occurred_at }}</td>
+        <td><span class="tag">{{ e.action }}</span></td>
+        <td>{{ e.operator }}</td>
+        <td class="mono">{{ e.details | tojson }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">暂无审计记录。</p>
+  {% endif %}
+</div>
+{% endblock %}

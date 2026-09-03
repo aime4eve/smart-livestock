@@ -1,0 +1,9 @@
+# local venv and runtime data
+.venv/
+data/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# NOTE: secrets/ is ignored by the repository root .gitignore
+# (license-issuer/secrets/). Never commit private keys.
