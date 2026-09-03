@@ -2492,6 +2492,8 @@
   "gpsQualityTipSuspectPoints": "Points with step_number > 0",
   "tenantListTitle": "Tenant Management",
   "@tenantListTitle": {},
+  "tenantListCreate": "New Tenant",
+  "@tenantListCreate": {},
   "tenantDetailTitle": "Tenant Detail",
   "@tenantDetailTitle": {},
   "@gpsQualityTipSuspectPoints": {},

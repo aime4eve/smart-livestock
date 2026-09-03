@@ -49,6 +49,7 @@ class _TenantListContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return SingleChildScrollView(
       key: const Key('page-tenant-list'),
@@ -60,11 +61,21 @@ class _TenantListContent extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('租户列表 ($total)', style: theme.textTheme.titleLarge),
-              IconButton(
-                key: const Key('tenant-list-refresh'),
-                onPressed: () =>
-                    ref.read(tenantListControllerProvider.notifier).refresh(),
-                icon: const Icon(Icons.refresh),
+              Row(
+                children: [
+                  FilledButton.icon(
+                    key: const Key('tenant-list-create'),
+                    onPressed: () => context.go('/ops/admin/create'),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text(l10n.tenantListCreate),
+                  ),
+                  IconButton(
+                    key: const Key('tenant-list-refresh'),
+                    onPressed: () =>
+                        ref.read(tenantListControllerProvider.notifier).refresh(),
+                    icon: const Icon(Icons.refresh),
+                  ),
+                ],
               ),
             ],
           ),

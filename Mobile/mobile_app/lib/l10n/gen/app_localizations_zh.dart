@@ -3003,6 +3003,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tenantListTitle => '租户管理';
 
   @override
+  String get tenantListCreate => '新建租户';
+
+  @override
   String get tenantDetailTitle => '租户详情';
 
   @override

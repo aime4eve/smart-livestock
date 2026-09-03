@@ -5618,6 +5618,12 @@ abstract class AppLocalizations {
   /// **'租户管理'**
   String get tenantListTitle;
 
+  /// No description provided for @tenantListCreate.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建租户'**
+  String get tenantListCreate;
+
   /// No description provided for @tenantDetailTitle.
   ///
   /// In zh, this message translates to:

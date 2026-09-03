@@ -2492,6 +2492,8 @@
   "gpsQualityTipSuspectPoints": "step_number > 0 的点数",
   "tenantListTitle": "租户管理",
   "@tenantListTitle": {},
+  "tenantListCreate": "新建租户",
+  "@tenantListCreate": {},
   "tenantDetailTitle": "租户详情",
   "@tenantDetailTitle": {},
   "@gpsQualityTipSuspectPoints": {},

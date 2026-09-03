@@ -3069,6 +3069,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tenantListTitle => 'Tenant Management';
 
   @override
+  String get tenantListCreate => 'New Tenant';
+
+  @override
   String get tenantDetailTitle => 'Tenant Detail';
 
   @override
