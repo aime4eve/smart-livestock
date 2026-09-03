@@ -396,6 +396,26 @@
       .arch-layer { flex-direction: column; gap: var(--space-sm); }
       .arch-ctx-grid { grid-template-columns: repeat(2, 1fr); }
     }
+    /* === Deployment Options === */
+    .deploy-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-lg); max-width: var(--max-width);
+      margin: 0 auto; padding: 0 var(--space-lg);
+    }
+    .deploy-card {
+      background: var(--color-white); border-radius: var(--border-radius);
+      padding: var(--space-xl); box-shadow: var(--shadow-sm);
+      border-top: 4px solid var(--color-primary);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .deploy-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+    .deploy-card.alt { border-top-color: var(--color-accent); }
+    .deploy-card h3 { font-size: 1.15rem; margin-bottom: var(--space-sm); color: var(--color-text-primary); }
+    .deploy-card p { font-size: 0.95rem; color: var(--color-text-secondary); line-height: 1.7; margin-bottom: var(--space-md); }
+    .deploy-card ul { list-style: none; text-align: left; }
+    .deploy-card li { font-size: 0.9rem; color: var(--color-text-secondary); padding: 0.3rem 0; border-bottom: 1px solid #f0f0f0; }
+    .deploy-card li::before { content: '✓ '; color: var(--color-success); font-weight: 700; }
+    @media (max-width: 768px) { .deploy-grid { grid-template-columns: 1fr; } }
     /* === Pricing === */
     .pricing { background: var(--color-primary-soft); }
     .pricing-grid {
@@ -760,6 +780,30 @@
         <span data-i18n="arch.hl6.desc">PostgreSQL 按月 RANGE 分区管理海量传感器数据，无需专用 TSDB，运维栈统一</span>
       </div>
     </div>
+
+    <!-- Deployment Options -->
+    <h2 class="section-title" style="margin-top:var(--space-xxl);" data-i18n="arch.deploy.title">灵活的部署形态</h2>
+    <p class="section-subtitle" data-i18n="arch.deploy.subtitle">同一平台，两种交付：云端托管开通即用，地端部署数据不出场</p>
+    <div class="deploy-grid">
+      <div class="deploy-card reveal">
+        <h3 data-i18n="deploy.hosted.title">云端托管 HOSTED</h3>
+        <p data-i18n="deploy.hosted.desc">由我们负责运维与升级的开箱即用模式，注册即可使用，适合快速启动试点与规模化扩展。</p>
+        <ul>
+          <li data-i18n="deploy.hosted.i1">平台开通即用，无需自建基础设施</li>
+          <li data-i18n="deploy.hosted.i2">多租户隔离，运维、监控与升级由我方负责</li>
+          <li data-i18n="deploy.hosted.i3">支持 365 天试点授权，按需平滑升级订阅档位</li>
+        </ul>
+      </div>
+      <div class="deploy-card alt reveal">
+        <h3 data-i18n="deploy.onprem.title">地端独立部署 ONPREM</h3>
+        <p data-i18n="deploy.onprem.desc">离线镜像整包交付到客户机房，授权绑定主机，数据不出场，适合对数据驻留有严格要求的客户。</p>
+        <ul>
+          <li data-i18n="deploy.onprem.i1">离线镜像整包交付，运行不依赖公网</li>
+          <li data-i18n="deploy.onprem.i2">离线授权文件签名校验，绑定安装 ID 与主机指纹</li>
+          <li data-i18n="deploy.onprem.i3">数据完整保留在客户内网，续费通过授权文件导入完成</li>
+        </ul>
+      </div>
+    </div>
   </section>
   <!-- /SECTION: architecture -->
 
@@ -941,6 +985,12 @@
     <div class="pricing-trial" data-i18n-html="price.trial">
       新用户注册即享 <strong>14 天 PREMIUM 全功能免费试用</strong>，到期后自动降为免费版，数据保留，随时升级
     </div>
+    <div class="pricing-trial" style="margin-top:var(--space-md);" data-i18n-html="price.pilot">
+      市场测试期提供 <strong>365 天试点授权</strong>：开通即按专业版（PREMIUM）能力体验，到期自动降级为基础免费版，数据保留；续费通过人工合同与授权文件恢复
+    </div>
+    <div class="pricing-trial" style="margin-top:var(--space-md);" data-i18n="price.note">
+      美元价格为参考价，按 1 美元 ≈ 7.2 元人民币换算（¥299 ≈ $41.5，¥699 ≈ $97.1）
+    </div>
   </section>
   <!-- /SECTION: pricing -->
 
@@ -1068,6 +1118,18 @@
         'arch.hl5.desc': '逐瓦片智能路由 + MBTiles 本地缓存，无网络环境全功能作业，网络恢复自动同步',
         'arch.hl6.title': '时序数据原生分区',
         'arch.hl6.desc': 'PostgreSQL 按月 RANGE 分区管理海量传感器数据，无需专用 TSDB，运维栈统一',
+        'arch.deploy.title': '灵活的部署形态',
+        'arch.deploy.subtitle': '同一平台，两种交付：云端托管开通即用，地端部署数据不出场',
+        'deploy.hosted.title': '云端托管 HOSTED',
+        'deploy.hosted.desc': '由我们负责运维与升级的开箱即用模式，注册即可使用，适合快速启动试点与规模化扩展。',
+        'deploy.hosted.i1': '平台开通即用，无需自建基础设施',
+        'deploy.hosted.i2': '多租户隔离，运维、监控与升级由我方负责',
+        'deploy.hosted.i3': '支持 365 天试点授权，按需平滑升级订阅档位',
+        'deploy.onprem.title': '地端独立部署 ONPREM',
+        'deploy.onprem.desc': '离线镜像整包交付到客户机房，授权绑定主机，数据不出场，适合对数据驻留有严格要求的客户。',
+        'deploy.onprem.i1': '离线镜像整包交付，运行不依赖公网',
+        'deploy.onprem.i2': '离线授权文件签名校验，绑定安装 ID 与主机指纹',
+        'deploy.onprem.i3': '数据完整保留在客户内网，续费通过授权文件导入完成',
         /* Advantages */
         'adv.col.dim': '功能维度',
         'adv.cell.cellular': '蜂窝',
@@ -1145,6 +1207,8 @@
         'price.ent.f8': 'SLA 99.99%',
         'price.ent.cta': '联系销售',
         'price.trial': '新用户注册即享 <strong>14 天 PREMIUM 全功能免费试用</strong>，到期后自动降为免费版，数据保留，随时升级',
+        'price.pilot': '市场测试期提供 <strong>365 天试点授权</strong>：开通即按专业版（PREMIUM）能力体验，到期自动降级为基础免费版，数据保留；续费通过人工合同与授权文件恢复',
+        'price.note': '美元价格为参考价，按 1 美元 ≈ 7.2 元人民币换算（¥299 ≈ $41.5，¥699 ≈ $97.1）',
         /* CTA */
         'cta.title': '开启智慧养殖之旅',
         'cta.subtitle': '14 天全功能免费试用，亲眼见证数据驱动的改变',
@@ -1264,6 +1328,18 @@
         'arch.hl5.desc': 'Per-tile smart routing + MBTiles local cache. Full functionality without network, automatic sync when connectivity returns.',
         'arch.hl6.title': 'Native Time-Series Partitioning',
         'arch.hl6.desc': 'PostgreSQL monthly RANGE partitioning for massive sensor data. No dedicated TSDB needed — unified operations stack.',
+        'arch.deploy.title': 'Flexible Deployment Options',
+        'arch.deploy.subtitle': 'One platform, two delivery models: managed cloud for instant start, on-premises with data kept on-farm',
+        'deploy.hosted.title': 'Cloud Hosted (HOSTED)',
+        'deploy.hosted.desc': 'A turnkey model operated and upgraded by us. Sign up and start immediately — ideal for fast pilots and scale-up.',
+        'deploy.hosted.i1': 'Instant platform access, no infrastructure to build',
+        'deploy.hosted.i2': 'Multi-tenant isolation with operations, monitoring, and upgrades handled by us',
+        'deploy.hosted.i3': 'Supports 365-day pilot licenses with smooth tier upgrades as needed',
+        'deploy.onprem.title': 'On-Premises (ONPREM)',
+        'deploy.onprem.desc': 'Delivered as an offline image bundle to your own server room. License bound to the host, data never leaves the farm — for strict data-residency requirements.',
+        'deploy.onprem.i1': 'Offline image bundle delivery, runs without public internet',
+        'deploy.onprem.i2': 'Signed offline license file bound to installation ID and host fingerprint',
+        'deploy.onprem.i3': 'Data stays entirely inside the customer intranet; renewal via license file import',
         'adv.col.dim': 'Feature',
         'adv.cell.cellular': 'Cellular',
         'adv.title': 'Why Choose SmartLivestock',
@@ -1302,7 +1378,7 @@
         'price.basic.f8': 'API Access',
         'price.basic.cta': 'Start Free',
         'price.std.name': 'STANDARD',
-        'price.std.price': '$14<small>/mo</small>',
+        'price.std.price': '$41.5<small>/mo</small>',
         'price.std.heads': 'Up to 200 head',
         'price.std.f1': 'GPS Tracking',
         'price.std.f2': 'Virtual Fences ≤5',
@@ -1315,7 +1391,7 @@
         'price.std.cta': 'Choose Standard',
         'price.pre.badge': 'Recommended',
         'price.pre.name': 'PREMIUM',
-        'price.pre.price': '$28<small>/mo</small>',
+        'price.pre.price': '$97.1<small>/mo</small>',
         'price.pre.heads': 'Up to 1,000 head',
         'price.pre.f1': 'All STANDARD Features',
         'price.pre.f2': 'Virtual Fences ≤10',
@@ -1339,6 +1415,8 @@
         'price.ent.f8': 'SLA 99.99%',
         'price.ent.cta': 'Contact Sales',
         'price.trial': 'New users enjoy a <strong>14-day PREMIUM full-featured free trial</strong>. Auto-downgrades to free tier after expiry — data retained, upgrade anytime.',
+        'price.pilot': 'During the market beta, a <strong>365-day pilot license</strong> is available: full PREMIUM capabilities on activation, automatic downgrade to the free tier on expiry with data retained; renewal is restored via contract and license file.',
+        'price.note': 'USD prices are for reference only, converted from CNY at 1 USD ≈ 7.2 CNY (¥299 ≈ $41.5, ¥699 ≈ $97.1).',
         'cta.title': 'Start Your Smart Farming Journey',
         'cta.subtitle': '14-day full-featured free trial — witness the data-driven transformation',
         'cta.btn1': 'Request Demo',
