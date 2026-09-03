@@ -308,6 +308,23 @@
   - 涉及文件解析的功能，测试 fixtures 必须覆盖**真实文件里的单元格类型**（NUMERIC vs STRING），不能只用顺手的一种。
   - 宽容解析 + 兜底默认值 = 错误隐身衣；集成验证要逐字段比对源文件与入库值，不只看行数。
 
+
+## 19. 被单测 mock 掉的数据库约束：startTrial 缺 billingCycle 在线上首跑才炸
+
+- **日期**:2026-09-04
+- **现象**:NIX-184 试点授权上线后人工验证：对新租户开通 365 天试点返回 INTERNAL_ERROR。日志 `null value in column "billing_cycle" of relation "subscriptions" violates not-null constraint`，抛点在 `CommerceLicenseAdapter.applyTrialLicense → Subscription.startTrial → save`。
+- **误判**:三层防线全部漏过——① `CommerceLicenseAdapterTest` mock 了仓储 save，SQL 约束不在测试世界里；② `SubscriptionTest` 原有断言 `getBillingCycle()).isNull()` 把 bug 行为**固化成了预期**（对着实现写测试而非对着 schema 写）；③ 该链路没有任何 Testcontainers 集成测试。深层：本机 Docker 跑不了 Testcontainers（既有 14 失败），任务卡全部按"纯单测"设计，**环境限制悄悄降格了验收标准**；且部署后只做了 /health 存活检查，没对新写路径做业务冒烟——这条路径在所有环境都从未真实执行过，人工测试是它的第一次运行。
+- **历史教训**:与 #15（修复后必须端到端走全链路）同源的新变体——**新功能上线也必须端到端走一遍**；"目标单测全绿"只是下限不是验收。测试断言必须从契约（schema/设计文档）推导，不能从当前实现反推，否则测试会变成 bug 的保护伞。
+- **解决**:
+  1. `Subscription.startTrial` 工厂默认 `billingCycle="monthly"`（列 NOT NULL，付费周期语义激活后才生效），删除断言 null 的过时用例并新增 monthly 断言（243c0505）。
+  2. 补 `PilotLicenseJourneyTest`（Testcontainers 真库）：创建租户→授权→断言订阅行真实落库（billingCycle 非空）→再授权延长→ACTIVE 租户冲突拒绝。
+  3. 部署验证升级为两段：存活检查（/health）+ **新增写端点业务冒烟**（真实调用成功与拒绝路径）。
+- **判据**:
+  - 单测 mock 掉仓储的写路径 → 数据库约束/触发器/迁移语义全部脱测，**新增 INSERT/UPDATE 路径必须至少一条真库集成测试**。
+  - 写领域单测时先看表约束：NOT NULL/唯一键/生成列都是领域工厂必须满足的契约。
+  - 测试断言与实现"意外一致"地断言了可疑行为（如 isNull）→ 停下来查 schema 与设计，不要顺手固化。
+  - 本机跑不了的测试层（Testcontainers/Docker）≠ 可以不写；要显式安排在有 Docker 的环境执行（如 dev 服务器 `./gradlew test`），否则验收门槛被环境静默掏空。
+
 ---
 
 ## 关键词索引（遇症状按关键词快速定位）
@@ -331,3 +348,4 @@
  | #16 | farmGet, 404, suffix, 前导斜杠, 路径粘连 |
  | #17 | reportTime, 时区, timezone, toInstant, UTC, 不换算 |
  | #18 | excel, xlsx, poi, numeric-cell, ".0", 静默回退, Integer.parseInt |
+ | #19 | billing-cycle, not-null, start-trial, mock, 集成测试, journey, testcontainers, 生成列, generated-column, 冒烟 |
