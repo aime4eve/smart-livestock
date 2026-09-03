@@ -202,92 +202,106 @@ class _PlatformAdminShell extends ConsumerWidget {
               ),
             ),
             child: Column(children: [
-              const SizedBox(height: 8),
-              _IconSidebarItem(
-                icon: Icons.domain_outlined,
-                tooltip: AppRoute.platformAdmin.label,
-                selected: location.startsWith(AppRoute.platformAdmin.path),
-                onTap: () => context.go(AppRoute.platformAdmin.path),
+              // Scrollable top group: stays usable on short viewports now
+              // that the icon list has grown (deployment license entry).
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(children: [
+                    const SizedBox(height: 8),
+                    _IconSidebarItem(
+                      icon: Icons.domain_outlined,
+                      tooltip: AppRoute.platformAdmin.label,
+                      selected: location.startsWith(AppRoute.platformAdmin.path),
+                      onTap: () => context.go(AppRoute.platformAdmin.path),
+                    ),
+                    const Divider(height: 1, indent: 8, endIndent: 8),
+                    _IconSidebarItem(
+                      icon: Icons.gps_fixed,
+                      tooltip: AppRoute.platformGpsQuality.label,
+                      selected:
+                          location.startsWith(AppRoute.platformGpsQuality.path),
+                      onTap: () => context.go(AppRoute.platformGpsQuality.path),
+                    ),
+                    _IconSidebarItem(
+                      icon: Icons.upload_file_outlined,
+                      tooltip: AppRoute.platformTelemetryImport.label,
+                      selected: location
+                          .startsWith(AppRoute.platformTelemetryImport.path),
+                      onTap: () =>
+                          context.go(AppRoute.platformTelemetryImport.path),
+                    ),
+                    _IconSidebarItem(
+                      icon: Icons.model_training_outlined,
+                      tooltip: AppRoute.platformDatagen.label,
+                      selected:
+                          location.startsWith(AppRoute.platformDatagen.path),
+                      onTap: () => context.go(AppRoute.platformDatagen.path),
+                    ),
+                    _IconSidebarItem(
+                      icon: Icons.account_balance_wallet_outlined,
+                      tooltip: AppRoute.platformRevenue.label,
+                      selected: location.startsWith(AppRoute.platformRevenue.path),
+                      onTap: () => context.go(AppRoute.platformRevenue.path),
+                    ),
+                    _IconSidebarItem(
+                      icon: Icons.description_outlined,
+                      tooltip: AppRoute.platformContracts.label,
+                      selected:
+                          location.startsWith(AppRoute.platformContracts.path),
+                      onTap: () => context.go(AppRoute.platformContracts.path),
+                    ),
+                    _IconSidebarItem(
+                      icon: Icons.workspace_premium_outlined,
+                      tooltip: AppRoute.platformSubscriptions.label,
+                      selected: location
+                          .startsWith(AppRoute.platformSubscriptions.path),
+                      onTap: () => context.go(AppRoute.platformSubscriptions.path),
+                    ),
+                    _IconSidebarItem(
+                      icon: Icons.key_outlined,
+                      tooltip: AppRoute.platformDeploymentLicense.label,
+                      selected: location
+                          .startsWith(AppRoute.platformDeploymentLicense.path),
+                      onTap: () => context.go(AppRoute.platformDeploymentLicense.path),
+                    ),
+                    const Divider(height: 1, indent: 8, endIndent: 8),
+                    _IconSidebarItem(
+                      icon: Icons.api_outlined,
+                      tooltip: AppRoute.platformApiAuth.label,
+                      selected: location.startsWith(AppRoute.platformApiAuth.path),
+                      onTap: () => context.go(AppRoute.platformApiAuth.path),
+                    ),
+                    _IconSidebarItem(
+                      icon: Icons.analytics_outlined,
+                      tooltip: AppRoute.platformAnalytics.label,
+                      selected:
+                          location.startsWith(AppRoute.platformAnalytics.path),
+                      onTap: () => context.go(AppRoute.platformAnalytics.path),
+                    ),
+                    _IconSidebarItem(
+                      icon: Icons.history,
+                      tooltip: AppRoute.platformAuditLog.label,
+                      selected:
+                          location.startsWith(AppRoute.platformAuditLog.path),
+                      onTap: () => context.go(AppRoute.platformAuditLog.path),
+                    ),
+                    _IconSidebarItem(
+                      icon: Icons.tune,
+                      tooltip: AppRoute.platformFeatureGates.label,
+                      selected: location
+                          .startsWith(AppRoute.platformFeatureGates.path),
+                      onTap: () => context.go(AppRoute.platformFeatureGates.path),
+                    ),
+                    _IconSidebarItem(
+                      icon: Icons.map_outlined,
+                      tooltip: AppRoute.platformTileAdmin.label,
+                      selected:
+                          location.startsWith(AppRoute.platformTileAdmin.path),
+                      onTap: () => context.go(AppRoute.platformTileAdmin.path),
+                    ),
+                  ]),
+                ),
               ),
-              const Divider(height: 1, indent: 8, endIndent: 8),
-              _IconSidebarItem(
-                icon: Icons.gps_fixed,
-                tooltip: AppRoute.platformGpsQuality.label,
-                selected:
-                    location.startsWith(AppRoute.platformGpsQuality.path),
-                onTap: () => context.go(AppRoute.platformGpsQuality.path),
-              ),
-              _IconSidebarItem(
-                icon: Icons.upload_file_outlined,
-                tooltip: AppRoute.platformTelemetryImport.label,
-                selected: location
-                    .startsWith(AppRoute.platformTelemetryImport.path),
-                onTap: () =>
-                    context.go(AppRoute.platformTelemetryImport.path),
-              ),
-              _IconSidebarItem(
-                icon: Icons.model_training_outlined,
-                tooltip: AppRoute.platformDatagen.label,
-                selected:
-                    location.startsWith(AppRoute.platformDatagen.path),
-                onTap: () => context.go(AppRoute.platformDatagen.path),
-              ),
-              _IconSidebarItem(
-                icon: Icons.account_balance_wallet_outlined,
-                tooltip: AppRoute.platformRevenue.label,
-                selected: location.startsWith(AppRoute.platformRevenue.path),
-                onTap: () => context.go(AppRoute.platformRevenue.path),
-              ),
-              _IconSidebarItem(
-                icon: Icons.description_outlined,
-                tooltip: AppRoute.platformContracts.label,
-                selected:
-                    location.startsWith(AppRoute.platformContracts.path),
-                onTap: () => context.go(AppRoute.platformContracts.path),
-              ),
-              _IconSidebarItem(
-                icon: Icons.workspace_premium_outlined,
-                tooltip: AppRoute.platformSubscriptions.label,
-                selected: location
-                    .startsWith(AppRoute.platformSubscriptions.path),
-                onTap: () => context.go(AppRoute.platformSubscriptions.path),
-              ),
-              const Divider(height: 1, indent: 8, endIndent: 8),
-              _IconSidebarItem(
-                icon: Icons.api_outlined,
-                tooltip: AppRoute.platformApiAuth.label,
-                selected: location.startsWith(AppRoute.platformApiAuth.path),
-                onTap: () => context.go(AppRoute.platformApiAuth.path),
-              ),
-              _IconSidebarItem(
-                icon: Icons.analytics_outlined,
-                tooltip: AppRoute.platformAnalytics.label,
-                selected:
-                    location.startsWith(AppRoute.platformAnalytics.path),
-                onTap: () => context.go(AppRoute.platformAnalytics.path),
-              ),
-              _IconSidebarItem(
-                icon: Icons.history,
-                tooltip: AppRoute.platformAuditLog.label,
-                selected:
-                    location.startsWith(AppRoute.platformAuditLog.path),
-                onTap: () => context.go(AppRoute.platformAuditLog.path),
-              ),
-              _IconSidebarItem(
-                icon: Icons.tune,
-                tooltip: AppRoute.platformFeatureGates.label,
-                selected: location
-                    .startsWith(AppRoute.platformFeatureGates.path),
-                onTap: () => context.go(AppRoute.platformFeatureGates.path),
-              ),
-              _IconSidebarItem(
-                icon: Icons.map_outlined,
-                tooltip: AppRoute.platformTileAdmin.label,
-                selected:
-                    location.startsWith(AppRoute.platformTileAdmin.path),
-                onTap: () => context.go(AppRoute.platformTileAdmin.path),
-              ),
-              const Spacer(),
               const Divider(height: 1, indent: 8, endIndent: 8),
               _IconSidebarItem(
                 icon: Icons.logout,

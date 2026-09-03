@@ -39,6 +39,7 @@ enum AppRoute {
   platformContracts('/admin/contracts', 'platform-contracts', '合同管理'),
   platformRevenue('/admin/revenue', 'platform-revenue', '对账看板'),
   platformSubscriptions('/admin/subscriptions', 'platform-subscriptions', '订阅服务管理'),
+  platformDeploymentLicense('/admin/deployment-license', 'platform-deployment-license', '部署授权'),
   platformApiAuth('/admin/api-auth', 'platform-api-auth', 'API授权管理'),
   b2bAdminRevenue('/b2b/admin/revenue', 'b2b-admin-revenue', '对账'),
   b2bAdminRevenueDetail('/b2b/admin/revenue/:id', 'b2b-admin-revenue-detail', '对账详情'),

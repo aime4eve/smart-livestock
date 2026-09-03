@@ -4983,4 +4983,162 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get healthBasisMissing => 'No raw reading';
+
+  @override
+  String get deploymentLicenseTitle => 'Deployment License';
+
+  @override
+  String get deploymentLicenseTenantLabel => 'Tenant';
+
+  @override
+  String get deploymentLicenseNoTenants => 'No tenants';
+
+  @override
+  String get deploymentLicenseEnrollmentTitle => 'Enrollment Information';
+
+  @override
+  String get deploymentLicenseEnrollmentDesc =>
+      'Provide the information below together with the tenant details when requesting a license file from the vendor.';
+
+  @override
+  String get deploymentLicenseInstallationId => 'Installation ID';
+
+  @override
+  String get deploymentLicenseFingerprintHash => 'Fingerprint Hash';
+
+  @override
+  String get deploymentLicensePublicKeyId => 'Public Key ID';
+
+  @override
+  String get deploymentLicenseGeneratedAt => 'Enrolled At';
+
+  @override
+  String get deploymentLicenseCopied => 'Copied to clipboard';
+
+  @override
+  String get deploymentLicenseStatusTitle => 'Current License Status';
+
+  @override
+  String get deploymentLicenseStatusValid => 'Valid';
+
+  @override
+  String get deploymentLicenseStatusPendingActivation => 'Pending Activation';
+
+  @override
+  String get deploymentLicenseStatusExpired => 'Expired';
+
+  @override
+  String get deploymentLicenseStatusSuspended => 'Suspended';
+
+  @override
+  String get deploymentLicenseStatusUnknown => 'Unknown';
+
+  @override
+  String get deploymentLicenseExpiresAt => 'Expires At';
+
+  @override
+  String deploymentLicenseDaysRemaining(int days) {
+    return '$days days remaining';
+  }
+
+  @override
+  String deploymentLicenseDaysOverdue(int days) {
+    return '$days days overdue';
+  }
+
+  @override
+  String get deploymentLicenseIssuedAt => 'Issued At';
+
+  @override
+  String get deploymentLicenseAcceptedAt => 'Accepted At';
+
+  @override
+  String get deploymentLicenseLastValidatedAt => 'Last Validated At';
+
+  @override
+  String get deploymentLicenseLastResult => 'Last Validation Result';
+
+  @override
+  String get deploymentLicenseLastErrorCode => 'Last Error Code';
+
+  @override
+  String get deploymentLicenseMaxObservedAt => 'Max Observed At';
+
+  @override
+  String get deploymentLicenseProtectionReason => 'Protection Reason';
+
+  @override
+  String get deploymentLicenseLicenseId => 'License ID';
+
+  @override
+  String get deploymentLicenseLicenseType => 'License Type';
+
+  @override
+  String get deploymentLicenseEffectiveTier => 'Effective Tier';
+
+  @override
+  String get deploymentLicenseSubscriptionMapping => 'Subscription Mapping';
+
+  @override
+  String get deploymentLicenseSubscriptionStatus => 'Subscription Status';
+
+  @override
+  String get deploymentLicenseSubscriptionTrialEnds => 'Trial Ends At';
+
+  @override
+  String get deploymentLicenseRenewalGuidance =>
+      'The license has expired or been suspended and system features are restricted. Contact the vendor to issue and import a new license file to restore service.';
+
+  @override
+  String get deploymentLicenseUploadTitle => 'Import License File';
+
+  @override
+  String get deploymentLicenseUploadDesc =>
+      'Select the .sllicense text file issued by the vendor. Importing directly drives the tenant subscription — proceed with care.';
+
+  @override
+  String get deploymentLicensePickFile => 'Choose License File';
+
+  @override
+  String get deploymentLicenseUploadConfirmTitle => 'Confirm License Import';
+
+  @override
+  String deploymentLicenseUploadConfirmMessage(String fileName) {
+    return 'About to import license file $fileName for this tenant. This operation affects the subscription state. Continue?';
+  }
+
+  @override
+  String get deploymentLicenseUploadSuccess => 'License imported successfully';
+
+  @override
+  String get deploymentLicenseUploadFailed => 'License import failed';
+
+  @override
+  String get deploymentLicenseHostedTitle => 'Hosted Deployment';
+
+  @override
+  String get deploymentLicenseHostedNotice =>
+      'This environment runs in hosted mode. Licenses and subscriptions are managed by the platform — no offline license file import is needed.';
+
+  @override
+  String get pilotLicenseGrantButton => 'Grant 365-Day Pilot License';
+
+  @override
+  String get pilotLicenseConfirmTitle => 'Confirm Pilot License';
+
+  @override
+  String get pilotLicenseConfirmMessage =>
+      'This will grant a 365-day pilot license (PREMIUM trial) to the tenant. It can be upgraded to a paid subscription at any time before expiry. Continue?';
+
+  @override
+  String pilotLicenseGrantSuccess(String trialEndsAt) {
+    return 'Pilot license granted. Trial ends at $trialEndsAt';
+  }
+
+  @override
+  String get pilotLicenseGrantFailed => 'Failed to grant pilot license';
+
+  @override
+  String get pilotLicenseStateConflict =>
+      'The current subscription state does not allow granting a pilot license';
 }

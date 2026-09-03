@@ -130,6 +130,29 @@ class SubscriptionListData {
   bool get isEmpty => subscriptions.isEmpty;
 }
 
+/// Result of `POST /admin/tenants/{tenantId}/pilot-license` (NIX-184 T7b):
+/// the granted/extended 365-day hosted pilot trial.
+class PilotLicenseGrant {
+  const PilotLicenseGrant({
+    required this.tenantId,
+    required this.status,
+    this.trialEndsAt,
+  });
+
+  final String tenantId;
+  final String status;
+  final String? trialEndsAt;
+
+  factory PilotLicenseGrant.fromJson(Map<String, dynamic> json) {
+    final rawTenant = json['tenantId'];
+    return PilotLicenseGrant(
+      tenantId: rawTenant?.toString() ?? '',
+      status: json['status'] as String? ?? '',
+      trialEndsAt: json['trialEndsAt'] as String?,
+    );
+  }
+}
+
 abstract class SubscriptionServiceRepository {
   // Subscriptions (AdminSubscriptionController)
   Future<SubscriptionListData> loadSubscriptions({
@@ -153,4 +176,9 @@ abstract class SubscriptionServiceRepository {
       String id, String targetStatus);
   Future<SubscriptionServiceInfo> updateServiceQuota(
       String id, int deviceQuota);
+
+  // Hosted pilot license (CloudPilotLicenseController, NIX-184).
+  /// Throws [ConflictException] (code STATE_CONFLICT) when the tenant
+  /// subscription exists in a state that cannot receive the pilot trial.
+  Future<PilotLicenseGrant> grantPilotLicense(int tenantId);
 }

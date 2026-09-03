@@ -113,4 +113,13 @@ class SubscriptionServiceApiRepository
     );
     return SubscriptionServiceInfo.fromJson(data);
   }
+
+  // ── Hosted pilot license (CloudPilotLicenseController, NIX-184) ───
+
+  @override
+  Future<PilotLicenseGrant> grantPilotLicense(int tenantId) async {
+    final data = await ApiClient.instance
+        .post('/admin/tenants/$tenantId/pilot-license');
+    return PilotLicenseGrant.fromJson(data);
+  }
 }
