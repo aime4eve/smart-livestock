@@ -49,6 +49,9 @@ public class Subscription extends AggregateRoot {
         sub.tenantId = tenantId;
         sub.tier = SubscriptionTier.BASIC;
         sub.billingModel = billingModel;
+        // billing_cycle is NOT NULL in the schema; trials default to monthly
+        // (paid-cycle semantics apply only after activation).
+        sub.billingCycle = "monthly";
         sub.status = SubscriptionStatus.TRIAL;
         sub.startedAt = startedAt;
         sub.trialEndsAt = trialEndsAt;

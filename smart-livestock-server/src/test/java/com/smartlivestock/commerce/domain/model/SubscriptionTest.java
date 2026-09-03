@@ -49,11 +49,11 @@ class SubscriptionTest {
             assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.TRIAL);
             assertThat(sub.getTier()).isEqualTo(SubscriptionTier.BASIC);
             assertThat(sub.getBillingModel()).isEqualTo("direct");
+            assertThat(sub.getBillingCycle()).isEqualTo("monthly");
             assertThat(sub.getStartedAt()).isEqualTo(now);
             assertThat(sub.getTrialEndsAt()).isEqualTo(trialEnd);
             assertThat(sub.getExpiresAt()).isNull();
             assertThat(sub.getCancelledAt()).isNull();
-            assertThat(sub.getBillingCycle()).isNull();
         }
 
         @Test
