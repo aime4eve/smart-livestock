@@ -1,8 +1,8 @@
 # Admin API 端点（`/api/v1/admin/`）
 
-> **端点总数**: 118（Phase 1 + Phase 2a Commerce + Phase 2c + GPS 质量检查 + NIX-79 遥测导入 + 仿真控制台；与实际对齐）
+> **端点总数**: 123（Phase 1 + Phase 2a Commerce + Phase 2c + GPS 质量检查 + NIX-79 遥测导入 + 仿真控制台 + NIX-184 部署授权与试点授权；与实际对齐）
 >
-> ⚠️ **As-Built 校准（2026-06-26）**: 当前 Admin API 实际 **110 个端点**，本文档已**全量详列 110 个**：Phase 1 全部（含 TenantAdmin 补全的 `PUT /admin/tenants/{id}` 与 `GET /admin/tenants/{id}/farms`）+ Phase 2a Commerce 21 + Phase 2c（瓦片 7 / API 用量 3 / Portal 5）+ GPS 质量检查 51。端点真源为代码，详见 [后端实现现状 §7 API 设计](../superpowers/specs/2026-05-06-mvp-backend-design.md)。2026-07-29 NIX-79 新增遥测数据导入 2 端点（§12）；2026-08-17 新增仿真控制台 5 端点（§13），总数 117。
+> ⚠️ **As-Built 校准（2026-06-26）**: 当前 Admin API 实际 **110 个端点**，本文档已**全量详列 110 个**：Phase 1 全部（含 TenantAdmin 补全的 `PUT /admin/tenants/{id}` 与 `GET /admin/tenants/{id}/farms`）+ Phase 2a Commerce 21 + Phase 2c（瓦片 7 / API 用量 3 / Portal 5）+ GPS 质量检查 51。端点真源为代码，详见 [后端实现现状 §7 API 设计](../superpowers/specs/2026-05-06-mvp-backend-design.md)。2026-07-29 NIX-79 新增遥测数据导入 2 端点（§12）；2026-08-17 新增仿真控制台 5 端点（§13），总数 117。2026-09-03 NIX-184 新增部署授权与试点授权 5 端点（§14）。
 > **认证**: JWT Bearer Token（本文件多数端点要求 platform_admin；仿真控制台允许 platform_admin / b2b_admin，B2B 管理员限定本租户）
 > **特点**: 跨租户视图，批量操作，管理动作。基础资源操作复用 App API 端点，admin 角色可访问任意 farm 数据。
 
@@ -1969,6 +1969,172 @@ Error 409:
 
 > 清理范围包含该 farm 历史 assignment 设备的 `device_telemetry_logs` / `gps_logs` / `temperature_logs` / `rumen_motility_logs` / `activity_logs`，以及该 farm 的 `estrus_scores` / `anomaly_scores` / `alerts` 中 `source=DATAGEN` 的行。真实来源、`UNKNOWN` 健康数据、历史 `RULE` alerts、health snapshot、设备 runtime snapshot、GPS 质量点、接触追踪和 ground truth label 均保留。
 > `device_telemetry_logs` / `gps_logs` 没有 farm 字段；首版按设备历史 assignment 归属清理。设备跨 farm 迁移后，其 DATAGEN 行可能随任一历史归属 farm 的清理被删除，但不会影响非 DATAGEN 数据。
+
+---
+
+## 14. 部署授权与试点授权（DeploymentLicenseAdminController / CloudPilotLicenseController）— 5 端点（NIX-184）
+
+> **基路径**: `/api/v1/admin/deployment-license`（地端部署授权 4 端点）+ `/api/v1/admin/tenants/{tenantId}/pilot-license`（云端试点授权 1 端点）。
+> **权限**: 全部要求 `ROLE_PLATFORM_ADMIN`（手写 `requirePlatformAdmin()` 守卫，TenantAdminController 先例）。SecurityContext 无 Authentication → 401 `AUTH_INVALID_TOKEN`；已认证但非 platform_admin → 403 `AUTH_FORBIDDEN`（message key `license.pilot.platformAdminRequired`）。
+> **模式互斥（HOSTED/ONPREM，配置键 `SMARTLIVESTOCK_LICENSE_MODE`）**:
+
+| 端点 | HOSTED（厂商托管） | ONPREM（客户机房离线） |
+|------|------------------|----------------------|
+| POST /admin/tenants/{tenantId}/pilot-license | ✅ 需 `SMARTLIVESTOCK_PILOT_LICENSE_ENABLED=true`；否则 403 | ❌ 403 `AUTH_FORBIDDEN`（`license.pilot.modeForbidden`） |
+| GET /admin/deployment-license/mode | ✅ | ✅（唯一全模式端点，供前端功能探测） |
+| GET /admin/deployment-license/enrollment | ❌ 403 `AUTH_FORBIDDEN`（`license.onpremOnly`） | ✅ |
+| POST /admin/deployment-license | ❌ 403 `AUTH_FORBIDDEN`（`license.onpremOnly`） | ✅ |
+| GET /admin/deployment-license/current | ❌ 403 `AUTH_FORBIDDEN`（`license.onpremOnly`） | ✅ |
+
+> **ONPREM 联动行为**：订阅由导入授权驱动，commerce 自助订阅/人工订阅变更端点被 `LicenseModeGuard.requireSelfServiceAllowed()` 拒绝（403 `LICENSE_REQUIRED`，`license.selfServiceDisabled`）。授权拦截器（ONPREM）放行清单：`/api/v1/auth/**`、`/api/v1/me/**`、`/api/v1/admin/deployment-license/**`、`/api/v1/admin/tenants/**`、`/health`；其余业务 API 在 PENDING_ACTIVATION / SUSPENDED 下返回 403 `LICENSE_REQUIRED`。
+> **ID 序列化**：响应 record 中的 `Long` 字段（tenantId 等）按 JSON 数字输出；pilot-license 端点在 Controller 内显式 `String.valueOf(tenantId)`，其 `tenantId` 为字符串。时间字段均为 ISO-8601 Instant（UTC）。
+
+### POST /admin/tenants/{tenantId}/pilot-license
+
+开通（或延长）租户 365 天云端试点：无订阅 → 创建 TRIAL（trialEndsAt = now + 365d）；活跃 TRIAL → 延长到 `max(currentTrialEndsAt, now + 365d)`（不缩短）；其他订阅状态 → 409。无请求体。授权/拒绝均写审计（PILOT_LICENSE_GRANT / PILOT_LICENSE_REJECTED）。
+
+```
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-L01",
+  "data": { "tenantId": "3", "status": "TRIAL", "trialEndsAt": "2027-09-03T08:00:00Z" }
+}
+
+Error 409:
+{ "code": "STATE_CONFLICT", "message": "...", "requestId": "req-L01" }
+```
+
+| 错误码 | HTTP | 触发条件 |
+|--------|------|---------|
+| AUTH_INVALID_TOKEN | 401 | 未认证（无 Authentication） |
+| AUTH_FORBIDDEN | 403 | 非 platform_admin；或 ONPREM 模式 / `SMARTLIVESTOCK_PILOT_LICENSE_ENABLED=false`（`license.pilot.modeForbidden`） |
+| STATE_CONFLICT | 409 | 订阅存在且不是活跃 TRIAL（FREE/ACTIVE/SUSPENDED/CANCELLED/EXPIRED/RENEWAL_FAILED 等，`license.pilot.stateConflict`，参数为当前状态） |
+
+### GET /admin/deployment-license/mode
+
+报告部署模式与试点授权可用性。全模式可用（前端启动探测）。
+
+```
+Response 200（ONPREM）:
+{ "code": "OK", "message": "success", "requestId": "req-L02",
+  "data": { "mode": "ONPREM", "pilotLicenseEnabled": false } }
+
+Response 200（HOSTED 且试点开启）:
+{ "code": "OK", "message": "success", "requestId": "req-L02",
+  "data": { "mode": "HOSTED", "pilotLicenseEnabled": true } }
+```
+
+> `pilotLicenseEnabled` = `SMARTLIVESTOCK_PILOT_LICENSE_ENABLED=true` **且** mode == HOSTED。
+
+| 错误码 | HTTP | 触发条件 |
+|--------|------|---------|
+| AUTH_INVALID_TOKEN | 401 | 未认证 |
+| AUTH_FORBIDDEN | 403 | 非 platform_admin |
+
+### GET /admin/deployment-license/enrollment?tenantId=
+
+返回（或惰性创建）租户的安装登记：`installationId` 首次生成后保持稳定；`fingerprintHash` 每次从宿主机身份源实时读取（release 环境 = Linux `/etc/machine-id`），指纹变化会刷新登记。`installationId`/`fingerprintHash` 供 issuer 签发绑定授权。
+
+```
+查询参数: tenantId（必填，Long）
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-L03",
+  "data": {
+    "tenantId": 7,
+    "installationId": "0d5f6f97-7ff6-3c61-99f1-58209e83b221",
+    "fingerprintHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "publicKeyId": "sl-license-2026q3",
+    "supportedPublicKeyIds": ["sl-license-2026q3"],
+    "generatedAt": "2026-09-03T08:00:00Z"
+  }
+}
+```
+
+| 错误码 | HTTP | 触发条件 |
+|--------|------|---------|
+| AUTH_INVALID_TOKEN / AUTH_FORBIDDEN | 401 / 403 | 未认证 / 非 platform_admin |
+| AUTH_FORBIDDEN | 403 | HOSTED 模式调用（`license.onpremOnly`） |
+
+### POST /admin/deployment-license?tenantId=
+
+导入离线授权文件（multipart/form-data）。导入驱动租户订阅映射（§9 规则），因此 `confirm=true` 强制确认。校验管线：envelope 结构 → SHA-256 payload 摘要 → Ed25519 验签 → 绑定三元组（tenant + installation + 实时指纹）→ 时间窗 → 配额预检 → 订阅映射。**被拒绝的导入不改动订阅与运行时状态**，只写审计事件（payload 可验签时另写 REJECTED 记录）。成功导入后旧 CURRENT 记录标记 REPLACED，运行时置 VALID。
+
+```
+Content-Type: multipart/form-data
+表单字段: file（.sllicense UTF-8 文本，≤ 512 KiB）、confirm（必须为 true）
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-L04",
+  "data": {
+    "tenantId": 7, "licenseId": "5f0a1c2e-8b3d-4e5f-a6b7-c8d9e0f1a2b3",
+    "licenseType": "ACTIVE", "tier": "PREMIUM", "effectiveTier": "PREMIUM",
+    "expiresAt": "2027-09-03T00:00:00Z", "runtimeStatus": "VALID"
+  }
+}
+
+Error 403:
+{ "code": "LICENSE_BINDING_MISMATCH", "message": "...", "requestId": "req-L04" }
+```
+
+| 错误码 | HTTP | 触发条件 |
+|--------|------|---------|
+| VALIDATION_ERROR | 400 | `confirm` 缺失/false（`license.import.confirmRequired`）；`file` 缺失/为空（`license.import.fileRequired`）；文件 > 512 KiB（`license.import.fileTooLarge`）；文件不可读（`license.import.fileUnreadable`）；未登记先导入（`license.import.notEnrolled`） |
+| LICENSE_INVALID | 403 | envelope JSON 结构非法 / keyId 不在公钥注册表 / payloadSha256 不匹配 / Ed25519 验签失败（`license.invalid`） |
+| LICENSE_EXPIRED | 403 | 授权 expiresAt 早于当前时间（`license.import.expired`） |
+| LICENSE_BINDING_MISMATCH | 403 | tenantId / installationId / fingerprintHash 任一与预期绑定不符（`license.bindingMismatch`） |
+| LICENSE_QUOTA_EXCEEDED | 403 | 牲畜/围栏/牧工/设备任一 featureKey 现用量超 payload 配额（`license.import.quotaExceeded`） |
+| STATE_CONFLICT | 409 | TRIAL 类型授权无法映射当前订阅（订阅已降级 FREE 或非活跃 TRIAL，`license.import.trialDowngradeRejected`；须改用 ACTIVE 类型续费授权） |
+
+> 订阅映射：TRIAL 授权仅允许「无订阅 / 活跃 TRIAL」；ACTIVE 授权允许从 TRIAL / FREE / ACTIVE 映射到 ACTIVE（SUSPENDED 等由 commerce 领域守卫拒绝）。
+
+### GET /admin/deployment-license/current?tenantId=
+
+租户授权全景：当前授权记录、运行时状态、订阅映射、防篡改锚点（单调时间 `maxObservedAt`）与最近一次校验结果。
+
+```
+查询参数: tenantId（必填，Long）
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-L05",
+  "data": {
+    "tenantId": 7,
+    "installationId": "0d5f6f97-7ff6-3c61-99f1-58209e83b221",
+    "fingerprintHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtimeStatus": "VALID",
+    "licenseId": "5f0a1c2e-8b3d-4e5f-a6b7-c8d9e0f1a2b3",
+    "licenseType": "ACTIVE", "tier": "PREMIUM", "effectiveTier": "PREMIUM",
+    "issuedAt": "2026-09-03T00:00:00Z", "expiresAt": "2027-09-03T00:00:00Z",
+    "acceptedAt": "2026-09-03T08:00:00Z",
+    "lastValidatedAt": "2026-09-03T08:05:00Z",
+    "lastResult": "VALID", "lastErrorCode": null,
+    "maxObservedAt": "2026-09-03T08:05:00Z",
+    "protectionReason": null,
+    "subscriptionStatus": "ACTIVE", "subscriptionTrialEndsAt": null
+  }
+}
+```
+
+> 未导入授权时 `runtimeStatus` 为 `PENDING_ACTIVATION`，`licenseId`/`licenseType`/`tier` 等授权字段为 null，`installationId`/`fingerprintHash` 在已登记后仍有值。
+
+| 错误码 | HTTP | 触发条件 |
+|--------|------|---------|
+| AUTH_INVALID_TOKEN / AUTH_FORBIDDEN | 401 / 403 | 未认证 / 非 platform_admin |
+| AUTH_FORBIDDEN | 403 | HOSTED 模式调用（`license.onpremOnly`） |
+
+### runtime 状态机简表（ONPREM，设计 §9）
+
+| runtimeStatus | 含义 | 业务 API | 订阅映射 |
+|---------------|------|---------|---------|
+| PENDING_ACTIVATION | 未导入可用授权 | 阻断（403 `LICENSE_REQUIRED`，`license.pendingActivation`）；登录/授权管理可达 | 未由授权驱动 |
+| VALID | 当前授权通过签名/绑定/时间全部校验 | 放行 | TRIAL 授权 → TRIAL（trialEndsAt = expiresAt）；ACTIVE 授权 → ACTIVE / payload tier |
+| EXPIRED | 超过 expiresAt（调度器降级，非 SUSPENDED） | 放行（能力受 FeatureGate 限制） | 降级 FREE/BASIC（ACTIVE/TRIAL/RENEWAL_FAILED → FREE，FREE 幂等）；CURRENT 记录与授权原文保留，可被续费授权 REPLACED；数据不删除 |
+| SUSPENDED | 保护性冻结：时间回拨超容差（`LICENSE_TIME_ROLLBACK`）/ 签名或绑定失效（`PROTECTION_LICENSE_INVALID` / `PROTECTION_BINDING_MISMATCH`） | 仅登录与授权管理可达，其余全部 403 `LICENSE_REQUIRED`（含 Open API） | 订阅为 ACTIVE 时挂起为 SUSPENDED（TRIAL/FREE 不动）；解除 = 恢复正确时间 / 消除失配原因，调度器重验后自愈回 VALID（订阅按授权重映射） |
+
+> 调度器：ONPREM 下应用启动时及按 `SMARTLIVESTOCK_LICENSE_VALIDATION_CRON`（默认 `0 */5 * * * *`，每 5 分钟）对全部已登记租户重跑校验管线；HOSTED 为 no-op。时间容差 `SMARTLIVESTOCK_LICENSE_TIME_TOLERANCE`（默认 PT2M）。手工改库会在下个周期自愈并留事件（`deployment_license_events`）。
 
 ---
 

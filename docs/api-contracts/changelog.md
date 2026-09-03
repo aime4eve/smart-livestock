@@ -41,3 +41,33 @@
 - `open-api.md` — Open API 11 端点 + 专属约定
 - `migration-guide.md` — Mock Server → Spring Boot 迁移指南
 - `changelog.md` — 本文件
+
+---
+
+## 2026-09-03 — NIX-184 部署授权与试点授权（licensing 端点）
+
+**来源**: NIX-184 市场测试版发布准备（部署授权设计 §7/§8/§9/§11）；实现为 `DeploymentLicenseAdminController` / `CloudPilotLicenseController`（licensing 上下文）。
+
+**变更范围**: `admin-api.md` 新增 §14「部署授权与试点授权」5 端点。
+
+**新增端点**:
+
+| 端点 | 模式 | 说明 |
+|------|------|------|
+| POST /admin/tenants/{tenantId}/pilot-license | HOSTED（需 pilot 开关） | 365 天云端试点开通/延长（TRIAL，now+365d 或 max 不缩短） |
+| GET /admin/deployment-license/mode | 通用 | 报告 `{mode, pilotLicenseEnabled}`，前端功能探测 |
+| GET /admin/deployment-license/enrollment | ONPREM | 安装登记：installationId / 实时指纹 / 公钥 ID |
+| POST /admin/deployment-license | ONPREM | multipart 导入 .sllicense（file + confirm=true），驱动订阅映射 |
+| GET /admin/deployment-license/current | ONPREM | 授权 / 运行时状态 / 订阅映射 / 防篡改锚点全景 |
+
+**新增错误码与 HTTP 映射**（`ErrorCode` + `GlobalExceptionHandler`）:
+
+| 错误码 | HTTP | 触发场景 |
+|--------|------|---------|
+| LICENSE_REQUIRED | 403 | ONPREM 未激活/挂起阻断业务 API；ONPREM 下自助订阅端点禁用 |
+| LICENSE_INVALID | 403 | envelope 结构/摘要/验签/keyId 失败 |
+| LICENSE_BINDING_MISMATCH | 403 | tenant/installation/指纹绑定三元组不匹配 |
+| LICENSE_TIME_ROLLBACK | 409 | 系统时间回拨超容差（保护性 SUSPENDED） |
+| LICENSE_QUOTA_EXCEEDED | 403 | 导入预检：用量超 payload 配额 |
+
+**行为约束**: HOSTED/ONPREM 模式互斥（`SMARTLIVESTOCK_LICENSE_MODE`）；试点授权仅 HOSTED + `SMARTLIVESTOCK_PILOT_LICENSE_ENABLED=true`；runtime 状态机 PENDING_ACTIVATION / VALID / EXPIRED / SUSPENDED（调度器默认每 5 分钟重验）；ONPREM 下 commerce 自助订阅端点被 `requireSelfServiceAllowed()` 拒绝（LICENSE_REQUIRED）。详见 `admin-api.md` §14。
