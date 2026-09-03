@@ -129,9 +129,9 @@ Flyway `V20260903120000__deployment_licensing.sql`：deployment_installations / 
 | T5 | ✅ 完成 | `b264994b` | 4 端点+enforcement 拦截器+ONPREM 自助禁用守卫；目标测试 392 全绿；偏离：`/api/v1/me/**` 加入放行（前端会话引导需要） |
 | T8b | ✅ 完成 | `30777c13` | 六运维脚本+generate-license-key.sh；bash -n 全过+verify 正负例冒烟；公钥推导与 T2 密钥交叉验证一致；实机验证留 T10 |
 | T9a | ✅ 完成 | `41f1b434` | 营销三件套+brochure 增补；用户裁决同步修正：定价统一 ¥299/¥699（英文 $41.5/$97.1，7.2 汇率注记）、保留期统一 7/30/90/3 年（customer-journey.md 365→90） |
-| T7a/b | 🔄 进行中 | — | 子智能体执行中（T7c 已完成） |
-| T9b | 🔄 进行中 | — | 子智能体执行中 |
-| T10 | ⬜ 待办 | — | 等全部；双机 86/223 实测 |
+| T7a/b | ✅ 完成 | `6461fb7d` | 部署授权页+试点入口+侧边栏；48 arb key；CI 口径 499 测试全绿；build web 通过；analyze exit 0 |
+| T9b | ✅ 完成 | `ce6f5128` | 契约 5 端点（字段逐一对 DTO）+changelog；安装/运维指南+发布检查清单；脚本引用核对一致 |
+| T10 | 🔄 进行中 | — | 本地部分完成：目标测试 392/0/0、pytest 47、dev 部署 /health 200、Mimosa deep 封印扫描完成；**双机实测（86/223）等 SSH 访问方式** |
 
 > 看板维护规则：每卡完成由主智能体更新状态/提交号/产物路径；偏离记入 §5。
 > 其他待办：Mimosa 完整安全审计补跑（commit 钩子提示 scanner_enobufs / library_source_unavailable，T10 前执行）。
