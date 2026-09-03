@@ -24,4 +24,10 @@ public interface LicensePublicKeyRegistry {
 
     /** True when the given keyId is present in the registry. */
     boolean supports(String keyId);
+
+    /**
+     * All trusted keyIds (current + rotated), used by enrollment to tell the
+     * operator which issuer keys this build accepts.
+     */
+    java.util.Set<String> supportedKeyIds();
 }

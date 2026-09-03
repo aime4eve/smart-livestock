@@ -4,8 +4,10 @@ import com.smartlivestock.commerce.application.dto.QuotaResult;
 import com.smartlivestock.commerce.domain.model.*;
 import com.smartlivestock.commerce.domain.repository.FeatureGateRepository;
 import com.smartlivestock.commerce.domain.repository.SubscriptionRepository;
+import com.smartlivestock.licensing.application.port.LicenseQuotaPort;
 import com.smartlivestock.shared.common.DomainException;
 import com.smartlivestock.shared.common.ErrorCode;
+import com.smartlivestock.shared.common.MessageResolver;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +19,12 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,8 +36,21 @@ class QuotaApplicationServiceTest {
     @Mock
     private FeatureGateRepository featureGateRepository;
 
+    @Mock
+    private LicenseQuotaPort licenseQuotaPort;
+
+    @Mock
+    private MessageResolver messageResolver;
+
+    /** Default stub: no license quota applies (HOSTED semantics / fallback). */
+    private void noLicenseQuota() {
+        when(licenseQuotaPort.findLicenseQuota(anyLong(), anyString()))
+            .thenReturn(Optional.empty());
+    }
+
     private QuotaApplicationService createService() {
-        return new QuotaApplicationService(subscriptionRepository, featureGateRepository);
+        return new QuotaApplicationService(subscriptionRepository, featureGateRepository,
+            licenseQuotaPort, messageResolver);
     }
 
     private Subscription createActiveSubscription(SubscriptionTier tier) {
@@ -123,6 +144,7 @@ class QuotaApplicationServiceTest {
 
         @Test
         void allowsAccess() {
+            noLicenseQuota();
             when(subscriptionRepository.findByTenantId(1L))
                 .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.PREMIUM)));
             when(featureGateRepository.findByTierAndFeatureKey("premium", "api_access"))
@@ -137,6 +159,7 @@ class QuotaApplicationServiceTest {
 
         @Test
         void missingGate_treatedAsNone() {
+            noLicenseQuota();
             when(subscriptionRepository.findByTenantId(1L))
                 .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.PREMIUM)));
             when(featureGateRepository.findByTierAndFeatureKey("premium", "unknown_feature"))
@@ -154,6 +177,7 @@ class QuotaApplicationServiceTest {
 
         @Test
         void enabledLock_allowsAccess() {
+            noLicenseQuota();
             when(subscriptionRepository.findByTenantId(1L))
                 .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.STANDARD)));
             when(featureGateRepository.findByTierAndFeatureKey("standard", "alert_management"))
@@ -167,6 +191,7 @@ class QuotaApplicationServiceTest {
 
         @Test
         void disabledLock_deniesAccess() {
+            noLicenseQuota();
             when(subscriptionRepository.findByTenantId(1L))
                 .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.BASIC)));
             when(featureGateRepository.findByTierAndFeatureKey("basic", "advanced_analytics"))
@@ -185,6 +210,7 @@ class QuotaApplicationServiceTest {
 
         @Test
         void underLimit_allowsAccess() {
+            noLicenseQuota();
             when(subscriptionRepository.findByTenantId(1L))
                 .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.BASIC)));
             when(featureGateRepository.findByTierAndFeatureKey("basic", "livestock_management"))
@@ -198,6 +224,7 @@ class QuotaApplicationServiceTest {
 
         @Test
         void atLimit_deniesAccess() {
+            noLicenseQuota();
             when(subscriptionRepository.findByTenantId(1L))
                 .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.BASIC)));
             when(featureGateRepository.findByTierAndFeatureKey("basic", "livestock_management"))
@@ -212,6 +239,7 @@ class QuotaApplicationServiceTest {
 
         @Test
         void overLimit_deniesAccess() {
+            noLicenseQuota();
             when(subscriptionRepository.findByTenantId(1L))
                 .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.BASIC)));
             when(featureGateRepository.findByTierAndFeatureKey("basic", "fence_management"))
@@ -229,6 +257,7 @@ class QuotaApplicationServiceTest {
 
         @Test
         void allowedWithRetentionDays() {
+            noLicenseQuota();
             when(subscriptionRepository.findByTenantId(1L))
                 .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.STANDARD)));
             when(featureGateRepository.findByTierAndFeatureKey("standard", "advanced_analytics"))
@@ -249,6 +278,7 @@ class QuotaApplicationServiceTest {
 
         @Test
         void trialUsesEffectiveTierPremium() {
+            noLicenseQuota();
             when(subscriptionRepository.findByTenantId(1L))
                 .thenReturn(Optional.of(createTrialSubscription()));
             when(featureGateRepository.findByTierAndFeatureKey("premium", "api_access"))
@@ -258,6 +288,73 @@ class QuotaApplicationServiceTest {
             QuotaResult result = service.checkQuota(1L, "api_access", 0);
 
             assertThat(result.isAllowed()).isTrue();
+        }
+    }
+
+    // ── Layer 0: license quota precedence (NIX-184 T4, ONPREM) ──────
+
+    @Nested
+    class LicenseQuotaPrecedence {
+
+        @Test
+        void licenseQuotaPresent_overridesFeatureGate() {
+            when(subscriptionRepository.findByTenantId(1L))
+                .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.BASIC)));
+            // License declares 500; the FeatureGate table would say 50.
+            when(licenseQuotaPort.findLicenseQuota(1L, "livestock_management"))
+                .thenReturn(Optional.of(500));
+
+            QuotaApplicationService service = createService();
+            QuotaResult result = service.checkQuota(1L, "livestock_management", 300);
+
+            assertThat(result.isAllowed()).isTrue();
+            verify(featureGateRepository, never()).findByTierAndFeatureKey(anyString(), anyString());
+        }
+
+        @Test
+        void licenseQuotaBoundaryUsageInclusive_allowed() {
+            when(subscriptionRepository.findByTenantId(1L))
+                .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.BASIC)));
+            when(licenseQuotaPort.findLicenseQuota(1L, "livestock_management"))
+                .thenReturn(Optional.of(500));
+
+            QuotaApplicationService service = createService();
+            QuotaResult result = service.checkQuota(1L, "livestock_management", 500);
+
+            // License semantics: usage <= quota is allowed (design §10).
+            assertThat(result.isAllowed()).isTrue();
+        }
+
+        @Test
+        void licenseQuotaExceeded_deniesWithLocalizedMessage() {
+            when(subscriptionRepository.findByTenantId(1L))
+                .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.BASIC)));
+            when(licenseQuotaPort.findLicenseQuota(1L, "livestock_management"))
+                .thenReturn(Optional.of(50));
+            when(messageResolver.resolve(eq("license.quotaExceeded.detail"), any(), any()))
+                .thenReturn("已达到部署授权配额上限：livestock_management 当前用量 60，授权配额 50");
+
+            QuotaApplicationService service = createService();
+            QuotaResult result = service.checkQuota(1L, "livestock_management", 60);
+
+            assertThat(result.isAllowed()).isFalse();
+            assertThat(result.getReason()).contains("部署授权配额");
+            verify(featureGateRepository, never()).findByTierAndFeatureKey(anyString(), anyString());
+        }
+
+        @Test
+        void licenseQuotaEmpty_fallsBackToFeatureGateLimit() {
+            when(subscriptionRepository.findByTenantId(1L))
+                .thenReturn(Optional.of(createActiveSubscription(SubscriptionTier.BASIC)));
+            noLicenseQuota();
+            when(featureGateRepository.findByTierAndFeatureKey("basic", "livestock_management"))
+                .thenReturn(Optional.of(new FeatureGate("basic", "livestock_management", GateType.LIMIT, 5, null, true)));
+
+            QuotaApplicationService service = createService();
+            QuotaResult result = service.checkQuota(1L, "livestock_management", 10);
+
+            assertThat(result.isAllowed()).isFalse();
+            assertThat(result.getReason()).contains("已达到上限 5");
         }
     }
 }

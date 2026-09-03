@@ -165,6 +165,27 @@ public class Subscription extends AggregateRoot {
     }
 
     /**
+     * License-driven downgrade to FREE with BASIC tier (NIX-184 T4: offline
+     * license expiry path). Allowed from ACTIVE, TRIAL, or RENEWAL_FAILED;
+     * FREE is an idempotent no-op. SUSPENDED/CANCELLED/EXPIRED are rejected —
+     * those states are managed by their own dedicated transitions.
+     */
+    public void downgradeToFree() {
+        requireStatusFor("downgradeToFree",
+            SubscriptionStatus.ACTIVE,
+            SubscriptionStatus.TRIAL,
+            SubscriptionStatus.RENEWAL_FAILED,
+            SubscriptionStatus.FREE);
+        if (this.status == SubscriptionStatus.FREE) {
+            return;
+        }
+        SubscriptionTier oldTier = this.tier;
+        this.tier = SubscriptionTier.BASIC;
+        this.status = SubscriptionStatus.FREE;
+        registerEvent(new SubscriptionTierChangedEvent(tenantId, oldTier.name(), "FREE"));
+    }
+
+    /**
      * Cancel the subscription. Allowed from ACTIVE or TRIAL.
      *
      * @param cancelledAt the timestamp when cancellation occurs

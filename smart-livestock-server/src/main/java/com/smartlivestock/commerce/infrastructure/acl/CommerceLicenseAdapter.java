@@ -22,11 +22,6 @@ import java.util.Optional;
  * All state changes go through {@link Subscription} domain methods so the
  * aggregate's invariants and domain events stay intact; events are published
  * after save, matching {@code SubscriptionApplicationService}'s pattern.
- * <p>
- * Known limitation: {@link #downgradeForLicense(Long)} relies on existing
- * domain transitions (TRIAL -&gt; FREE, RENEWAL_FAILED -&gt; FREE), so ACTIVE
- * subscriptions cannot be downgraded until commerce adds an explicit
- * ACTIVE -&gt; FREE domain method (tracked for task T4).
  */
 @Component
 @RequiredArgsConstructor
@@ -85,16 +80,8 @@ public class CommerceLicenseAdapter implements LicenseSubscriptionPort {
     @Transactional
     public void downgradeForLicense(Long tenantId) {
         Subscription sub = loadSubscription(tenantId);
-        SubscriptionStatus status = sub.getStatus();
-        if (status == SubscriptionStatus.TRIAL) {
-            sub.expireTrial();
-        } else if (status == SubscriptionStatus.RENEWAL_FAILED) {
-            sub.downgradeAfterRenewalFailure();
-        } else if (status != SubscriptionStatus.FREE) {
-            // FREE: already downgraded, idempotent no-op.
-            throw new DomainException(ErrorCode.STATE_CONFLICT,
-                "Cannot downgradeForLicense: current status is " + status);
-        }
+        // ACTIVE / TRIAL / RENEWAL_FAILED -> FREE; FREE is idempotent (T4).
+        sub.downgradeToFree();
         Subscription saved = subscriptionRepository.save(sub);
         domainEventPublisher.publishDomainEvents(saved);
     }

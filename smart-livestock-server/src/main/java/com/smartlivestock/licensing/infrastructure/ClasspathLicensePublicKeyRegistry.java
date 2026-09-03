@@ -78,6 +78,11 @@ public class ClasspathLicensePublicKeyRegistry implements LicensePublicKeyRegist
         return keyId != null && keys.containsKey(keyId);
     }
 
+    @Override
+    public java.util.Set<String> supportedKeyIds() {
+        return java.util.Collections.unmodifiableSet(new java.util.TreeSet<>(keys.keySet()));
+    }
+
     /** Number of trusted keys (current + rotated). */
     public int size() {
         return keys.size();
