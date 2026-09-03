@@ -7,6 +7,7 @@ import com.smartlivestock.commerce.application.service.SubscriptionApplicationSe
 import com.smartlivestock.commerce.domain.model.Subscription;
 import com.smartlivestock.commerce.infrastructure.persistence.SpringDataSubscriptionRepository;
 import com.smartlivestock.commerce.infrastructure.persistence.mapper.SubscriptionMapper;
+import com.smartlivestock.licensing.application.LicenseModeGuard;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -22,6 +23,10 @@ import java.util.Map;
 /**
  * Admin subscription management — 3 endpoints.
  * All operations require platform_admin role.
+ * <p>
+ * NIX-184 T5 (design §11): the manual status change endpoint is disabled in
+ * ONPREM mode where the subscription lifecycle is license-driven; HOSTED
+ * behavior is unchanged.
  */
 @RestController
 @RequestMapping("/api/v1/admin/subscriptions")
@@ -31,6 +36,7 @@ public class AdminSubscriptionController {
     private final SubscriptionApplicationService subscriptionApplicationService;
     private final SubscriptionQueryService subscriptionQueryService;
     private final SpringDataSubscriptionRepository springDataSubscriptionRepository;
+    private final LicenseModeGuard licenseModeGuard;
 
     /**
      * GET /api/v1/admin/subscriptions
@@ -84,6 +90,8 @@ public class AdminSubscriptionController {
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {
         requirePlatformAdmin();
+        // NIX-184 T5: ONPREM subscriptions are license-driven (design §11).
+        licenseModeGuard.requireSelfServiceAllowed();
 
         String targetStatus = body.get("targetStatus");
         if (targetStatus == null || targetStatus.isBlank()) {
