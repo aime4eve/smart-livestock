@@ -209,7 +209,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                final role = ref.watch(sessionControllerProvider).role!;
                final category = state.uri.queryParameters['category'];
                final fenceId = state.uri.queryParameters['fenceId'];
-               return AlertsPage(role: role);
                return AlertsPage(role: role, category: category, fenceId: fenceId);
               },
             ),
