@@ -1,0 +1,62 @@
+{
+  "name": "canonical-json-v1",
+  "description": "Shared canonical JSON test vectors for .sllicense payloads (design section 3). Both the Java verifier and the Python license-issuer must reproduce expectedCanonical byte-for-byte from input.",
+  "conventions": {
+    "encoding": "UTF-8",
+    "keyOrder": "lexicographic by key name, applied recursively",
+    "separators": "compact (',' and ':'), no whitespace or newlines",
+    "instants": "UTC yyyy-MM-dd'T'HH:mm:ss'Z'",
+    "integers": "no decimal point",
+    "instantKeys": "input JSON cannot carry typed instants; values listed here are converted from ISO-8601 strings to instant values before serialization in each implementation"
+  },
+  "cases": [
+    {
+      "name": "nested keys sorted recursively",
+      "instantKeys": [],
+      "input": {
+        "zeta": 1,
+        "alpha": {
+          "omega": 2,
+          "beta": {
+            "inner": 3,
+            "aaa": 4
+          }
+        }
+      },
+      "expectedCanonical": "{\"alpha\":{\"beta\":{\"aaa\":4,\"inner\":3},\"omega\":2},\"zeta\":1}"
+    },
+    {
+      "name": "utc instants and integral numbers",
+      "instantKeys": ["issuedAt", "expiresAt"],
+      "input": {
+        "payloadVersion": 1,
+        "quota": 1000,
+        "big": 9007199254740993,
+        "issuedAt": "2026-08-31T00:00:00Z",
+        "expiresAt": "2027-08-31T00:00:00Z"
+      },
+      "expectedCanonical": "{\"big\":9007199254740993,\"expiresAt\":\"2027-08-31T00:00:00Z\",\"issuedAt\":\"2026-08-31T00:00:00Z\",\"payloadVersion\":1,\"quota\":1000}"
+    },
+    {
+      "name": "quotas and features maps",
+      "instantKeys": [],
+      "input": {
+        "licenseId": "0b8f6c1e-1111-4222-8333-444455556666",
+        "quotas": {
+          "worker_management": 50,
+          "device_management": 1000,
+          "fence_management": 100,
+          "livestock_management": 1000
+        },
+        "features": {
+          "offline_maps": {
+            "region": "asia-east",
+            "max_tiles": 200
+          },
+          "ai_health": true
+        }
+      },
+      "expectedCanonical": "{\"features\":{\"ai_health\":true,\"offline_maps\":{\"max_tiles\":200,\"region\":\"asia-east\"}},\"licenseId\":\"0b8f6c1e-1111-4222-8333-444455556666\",\"quotas\":{\"device_management\":1000,\"fence_management\":100,\"livestock_management\":1000,\"worker_management\":50}}"
+    }
+  ]
+}
