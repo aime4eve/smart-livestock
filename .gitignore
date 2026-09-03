@@ -75,6 +75,7 @@ android/app/release/
 .env.*
 !.env.example
 !.env.dev.example
+!.env.release.example
 
 # License issuer signing keys (NIX-184) — private keys never enter git
 license-issuer/secrets/
