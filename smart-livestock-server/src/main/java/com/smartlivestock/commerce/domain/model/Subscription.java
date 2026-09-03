@@ -82,6 +82,23 @@ public class Subscription extends AggregateRoot {
     }
 
     /**
+     * Extend the trial end timestamp (e.g. hosted pilot license, NIX-184).
+     * Only allowed while in TRIAL status, and never shortens the current
+     * trial end; extending to the exact same timestamp is a no-op success.
+     *
+     * @param newTrialEndsAt the new trial end timestamp
+     */
+    public void extendTrial(Instant newTrialEndsAt) {
+        requireStatus(SubscriptionStatus.TRIAL, "extendTrial");
+        if (this.trialEndsAt != null && newTrialEndsAt.isBefore(this.trialEndsAt)) {
+            throw new DomainException(ErrorCode.STATE_CONFLICT,
+                "Cannot extendTrial: new trial end " + newTrialEndsAt
+                    + " is before current trial end " + this.trialEndsAt);
+        }
+        this.trialEndsAt = newTrialEndsAt;
+    }
+
+    /**
      * Change tier. Allowed from ACTIVE, TRIAL, or FREE.
      * When coming from FREE, transitions to ACTIVE.
      */

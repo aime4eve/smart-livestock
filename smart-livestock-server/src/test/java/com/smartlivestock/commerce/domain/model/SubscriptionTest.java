@@ -140,6 +140,65 @@ class SubscriptionTest {
         }
     }
 
+    // ── extendTrial ──────────────────────────────────────────────────
+
+    @Nested
+    class ExtendTrial {
+
+        @Test
+        void extendsTrialEndFromTrial() {
+            Subscription sub = createTrialSubscription();
+            Instant newEnd = sub.getTrialEndsAt().plusSeconds(365 * 86400);
+
+            sub.extendTrial(newEnd);
+
+            assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.TRIAL);
+            assertThat(sub.getTrialEndsAt()).isEqualTo(newEnd);
+        }
+
+        @Test
+        void rejectsFromNonTrial() {
+            Subscription sub = createActiveSubscription();
+            Instant newEnd = Instant.now().plusSeconds(365 * 86400);
+
+            assertThatThrownBy(() -> sub.extendTrial(newEnd))
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
+        }
+
+        @Test
+        void rejectsShorteningCurrentTrialEnd() {
+            Subscription sub = createTrialSubscription();
+            Instant shortened = sub.getTrialEndsAt().minusSeconds(86400);
+
+            assertThatThrownBy(() -> sub.extendTrial(shortened))
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
+            assertThat(sub.getTrialEndsAt()).isNotEqualTo(shortened);
+        }
+
+        @Test
+        void sameTimestampAllowed() {
+            Subscription sub = createTrialSubscription();
+            Instant sameEnd = sub.getTrialEndsAt();
+
+            sub.extendTrial(sameEnd);
+
+            assertThat(sub.getTrialEndsAt()).isEqualTo(sameEnd);
+        }
+
+        @Test
+        void setsTrialEndWhenCurrentIsNull() {
+            Subscription sub = createTrialSubscription();
+            sub.setTrialEndsAt(null);
+            Instant newEnd = Instant.now().plusSeconds(365 * 86400);
+
+            sub.extendTrial(newEnd);
+
+            assertThat(sub.getTrialEndsAt()).isEqualTo(newEnd);
+        }
+    }
+
     // ── effectiveTier / isTrialActive / isActiveOrTrial ──────────────
 
     @Nested
