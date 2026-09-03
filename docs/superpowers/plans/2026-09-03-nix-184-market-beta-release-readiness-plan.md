@@ -115,16 +115,18 @@ Flyway `V20260903120000__deployment_licensing.sql`：deployment_installations / 
 
 | 卡 | 状态 | 提交 | 产物/备注 |
 |---|---|---|---|
-| T0 | ✅ 完成 | `<本次提交>` | 本计划 + docs/testing/market-beta-test-cases.md |
-| T1 | ⬜ 待办 | — | 前置 T0 已满足，就绪 |
-| T2 | ⬜ 待办 | — | 等 T1 |
-| T3 | ⬜ 待办 | — | 等 T1 |
+| T0 | ✅ 完成 | `3a2a28d5` | 本计划 + docs/testing/market-beta-test-cases.md |
+| T1 | ✅ 完成 | `153046fc` | V20260903120000 四表+device_management 种子；5 个 LICENSE_* 错误码+handler case+双语文案；compileJava 通过 |
+| T7c | ✅ 完成 | `614cf15a` | app_router.dart dead code 删除；analyze 无 dead_code/unused（余 12 个既有 info） |
+| T2 | 🔄 进行中 | — | 子智能体执行中 |
+| T3 | 🔄 进行中 | — | 子智能体执行中（与 T2 并行，文件域隔离） |
 | T4a/b/c | ⬜ 待办 | — | 等 T1+T2+T3 |
 | T5 | ⬜ 待办 | — | 等 T4 |
 | T6 | ⬜ 待办 | — | 等 T2 |
-| T7a/b/c | ⬜ 待办 | — | 等 T5（T7c 就绪即可做） |
+| T7a/b | ⬜ 待办 | — | 等 T5（T7c 已完成） |
 | T8a/b | ⬜ 待办 | — | 8a 等 T2；8b 等 8a |
 | T9 | ⬜ 待办 | — | 分段就绪（营销件等 T0） |
 | T10 | ⬜ 待办 | — | 等全部；双机 86/223 实测 |
 
 > 看板维护规则：每卡完成由主智能体更新状态/提交号/产物路径；偏离记入 §5。
+> 其他待办：Mimosa 完整安全审计补跑（commit 钩子提示 scanner_enobufs / library_source_unavailable，T10 前执行）。
