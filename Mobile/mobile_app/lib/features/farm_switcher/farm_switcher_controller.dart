@@ -4,9 +4,18 @@ import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
 
 class FarmInfo {
-  const FarmInfo({required this.id, required this.name});
+  const FarmInfo({
+    required this.id,
+    required this.name,
+    this.latitude,
+    this.longitude,
+  });
   final String id;
   final String name;
+
+  /// WGS-84 登记坐标，来自 GET /farms 的 FarmDto；历史数据可能为空
+  final double? latitude;
+  final double? longitude;
 }
 
 class FarmSwitcherState {
@@ -36,6 +45,14 @@ class FarmSwitcherState {
     }
     return farms.isNotEmpty ? farms.first.name : '';
   }
+
+  FarmInfo? get activeFarm {
+    if (activeFarmId == null) return farms.isNotEmpty ? farms.first : null;
+    for (final farm in farms) {
+      if (farm.id == activeFarmId) return farm;
+    }
+    return farms.isNotEmpty ? farms.first : null;
+  }
 }
 
 class FarmSwitcherController extends Notifier<FarmSwitcherState> {
@@ -59,6 +76,8 @@ class FarmSwitcherController extends Notifier<FarmSwitcherState> {
         return FarmInfo(
           id: rawId is int ? rawId.toString() : (rawId as String? ?? ''),
           name: json['name'] as String? ?? '',
+          latitude: (json['latitude'] as num?)?.toDouble(),
+          longitude: (json['longitude'] as num?)?.toDouble(),
         );
       }).toList();
 

@@ -10,6 +10,7 @@ import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
 import 'package:hkt_livestock_agentic/core/map/tile_source_watermark.dart';
 import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
+import 'package:hkt_livestock_agentic/core/map/farm_map_center.dart';
 import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/fence_polygon_contains.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
@@ -103,7 +104,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
       BuildContext context, RanchOverview overview, dynamic role, String? activeFarmId) {
     final canManage = role != null && RolePermission.canEditFence(role);
     final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
-    _centerOnFirstFenceOnce(overview, activeFarmId, shouldTransform);
+    _centerOnFarmOnce(overview, activeFarmId, shouldTransform);
 
     if (_selectedFenceId != null) {
       if (!_breathingController.isAnimating) _breathingController.repeat(reverse: true);
@@ -152,7 +153,8 @@ class _RanchPageState extends ConsumerState<RanchPage>
         FlutterMap(
           mapController: _mapController,
           options: MapOptions(
-            initialCenter: MapConstants.mapCenter,
+            initialCenter:
+                _activeFarmCenter(shouldTransform) ?? MapConstants.mapCenter,
             initialZoom: MapConstants.defaultZoom,
             onTap: (_, point) => _handleMapTap(point),
           ),
@@ -522,28 +524,39 @@ class _RanchPageState extends ConsumerState<RanchPage>
     return LatLng(lat / points.length, lng / points.length);
   }
 
-  void _centerOnFirstFenceOnce(
+  /// 当前牧场的登记坐标（WGS-84，按瓦片源需要转换）；未登记时返回 null
+  LatLng? _activeFarmCenter(bool shouldTransform) {
+    final farm = ref.read(farmSwitcherControllerProvider).activeFarm;
+    return resolveFarmMapCenter(
+      fenceRings: const [],
+      farmLatitude: farm?.latitude,
+      farmLongitude: farm?.longitude,
+      shouldTransform: shouldTransform,
+    );
+  }
+
+  /// 首次加载后把地图定位到当前牧场的实际位置：
+  /// 优先按围栏范围居中，牧场尚未画围栏时退回登记坐标，避免停在演示默认点。
+  void _centerOnFarmOnce(
       RanchOverview overview, String? farmId, bool shouldTransform) {
     final farmKey = farmId ?? '';
     if (_centeredFarmId == farmKey) return;
     if (_tileProvider == null) return;
 
-    List<LatLng>? points;
-    for (final fence in overview.fences) {
-      if (fence.points.isNotEmpty) {
-        points = fence.points;
-        break;
-      }
-    }
-    if (points == null) return;
-
-    _centeredFarmId = farmKey;
-    final center = _fenceCenter(
-      shouldTransform ? CoordTransform.wgs84ToGcj02All(points) : points,
+    final farm = ref.read(farmSwitcherControllerProvider).activeFarm;
+    final center = resolveFarmMapCenter(
+      fenceRings: overview.fences.map((f) => f.points),
+      farmLatitude: farm?.latitude,
+      farmLongitude: farm?.longitude,
+      shouldTransform: shouldTransform,
     );
+    if (center == null) return;
+
+    final resolved = center;
+    _centeredFarmId = farmKey;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _centeredFarmId == farmKey) {
-        _mapController.move(center, MapConstants.defaultZoom);
+        _mapController.move(resolved, MapConstants.defaultZoom);
       }
     });
   }
