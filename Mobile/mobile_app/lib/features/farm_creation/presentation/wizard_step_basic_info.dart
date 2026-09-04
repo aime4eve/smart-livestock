@@ -8,6 +8,7 @@ import 'package:hkt_livestock_agentic/core/map/map_config.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 
@@ -17,7 +18,7 @@ class WizardStepBasicInfo extends ConsumerStatefulWidget {
     required this.onComplete,
   });
 
-  final void Function(String farmId, String farmName) onComplete;
+  final void Function(String farmId, String farmName, LatLng center) onComplete;
 
   @override
   ConsumerState<WizardStepBasicInfo> createState() =>
@@ -33,6 +34,14 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
   bool _submitting = false;
   SmartTileProvider? _tileProvider;
   bool _tileProviderInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 已有牧场的用户再建新牧场时，默认锚定当前牧场位置而非演示默认点
+    final center = ref.read(farmSwitcherControllerProvider).activeFarmCenter;
+    if (center != null) _selectedCenter = center;
+  }
 
   @override
   void dispose() {
@@ -84,7 +93,7 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
       }
 
       ref.read(sessionControllerProvider.notifier).updateActiveFarm(farmId);
-      widget.onComplete(farmId, _nameController.text.trim());
+      widget.onComplete(farmId, _nameController.text.trim(), _selectedCenter);
     } catch (e) {
       if (!mounted) return;
       setState(() => _submitting = false);
@@ -161,7 +170,7 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
                 child: FlutterMap(
                   mapController: _mapController,
                   options: MapOptions(
-                    initialCenter: MapConfig.defaultCenter,
+                    initialCenter: _selectedCenter,
                     initialZoom: 13.0,
                     onTap: (tapPosition, point) {
                       if (!mounted) return;

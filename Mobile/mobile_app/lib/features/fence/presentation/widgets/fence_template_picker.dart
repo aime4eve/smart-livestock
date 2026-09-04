@@ -23,33 +23,50 @@ class FenceTemplatePreset {
   final LatLng focusPoint;
 }
 
-FenceTemplatePreset fenceTemplatePresetFor(FenceTemplate template) {
+/// 生成模板预设。[anchor] 为模板形状的落点（屏幕坐标系），
+/// 默认保持演示区域中心，实际调用方应传当前牧场坐标。
+FenceTemplatePreset fenceTemplatePresetFor(
+  FenceTemplate template, {
+  LatLng anchor = MapConstants.mapCenter,
+}) {
   return switch (template) {
     FenceTemplate.rectangle => FenceTemplatePreset(
         template: template,
         type: FenceType.rectangle,
-        drawingPoints: const [
-          LatLng(28.2294, 112.9372),
-          LatLng(28.2271, 112.9406),
+        drawingPoints: [
+          LatLng(anchor.latitude + 0.0012, anchor.longitude - 0.0016),
+          LatLng(anchor.latitude - 0.0011, anchor.longitude + 0.0018),
         ],
-        focusPoint: MapConstants.mapCenter,
+        focusPoint: anchor,
       ),
     FenceTemplate.circle => FenceTemplatePreset(
         template: template,
         type: FenceType.circle,
-        drawingPoints: const [
-          MapConstants.mapCenter,
-          LatLng(28.2295, 112.9390),
+        drawingPoints: [
+          anchor,
+          LatLng(anchor.latitude + 0.0013, anchor.longitude + 0.0002),
         ],
-        focusPoint: MapConstants.mapCenter,
+        focusPoint: anchor,
       ),
-    FenceTemplate.trajectoryBuffer => FenceTemplatePreset(
-        template: template,
-        type: FenceType.polygon,
-        drawingPoints: _trajectoryBufferPolygon(),
-        focusPoint: _trajectoryCenter(),
-      ),
+    FenceTemplate.trajectoryBuffer => _trajectoryBufferPreset(template, anchor),
   };
+}
+
+/// 演示轨迹缓冲多边形整体平移到 [anchor]，形状保持不变
+FenceTemplatePreset _trajectoryBufferPreset(
+    FenceTemplate template, LatLng anchor) {
+  final demoPolygon = _trajectoryBufferPolygon();
+  final demoCenter = _trajectoryCenter();
+  final dLat = anchor.latitude - demoCenter.latitude;
+  final dLng = anchor.longitude - demoCenter.longitude;
+  return FenceTemplatePreset(
+    template: template,
+    type: FenceType.polygon,
+    drawingPoints: [
+      for (final p in demoPolygon) LatLng(p.latitude + dLat, p.longitude + dLng),
+    ],
+    focusPoint: anchor,
+  );
 }
 
 class FenceTemplatePicker extends StatelessWidget {

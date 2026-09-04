@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:hkt_livestock_agentic/features/farm_creation/presentation/wizard_step_basic_info.dart';
 import 'package:hkt_livestock_agentic/features/farm_creation/presentation/wizard_step_complete.dart';
@@ -20,13 +21,15 @@ class _FarmCreationWizardPageState
   int _step = 1;
   String? _createdFarmId;
   String? _createdFarmName;
+  LatLng? _createdFarmCenter;
   int _fenceCount = 0;
 
-  void _onStep1Complete(String farmId, String farmName) {
+  void _onStep1Complete(String farmId, String farmName, LatLng center) {
     setState(() {
       _step = 2;
       _createdFarmId = farmId;
       _createdFarmName = farmName;
+      _createdFarmCenter = center;
     });
   }
 
@@ -86,6 +89,7 @@ class _FarmCreationWizardPageState
           1 => WizardStepBasicInfo(onComplete: _onStep1Complete),
           2 => WizardStepFenceDrawing(
               farmId: _createdFarmId!,
+              initialCenter: _createdFarmCenter,
               onComplete: _onStep2Complete,
               onSkip: _onStep2Skip,
             ),

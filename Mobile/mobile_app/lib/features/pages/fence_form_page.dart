@@ -14,6 +14,7 @@ import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_template_picker.dart';
@@ -50,6 +51,14 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
   Offset? _lastPolygonCursorLocal;
 
   bool get _isEdit => widget.fenceId != null;
+
+  /// 新建围栏的锚点：当前牧场登记坐标（转为屏幕坐标系）；未登记时退回演示默认点
+  LatLng get _farmAnchor {
+    final center = ref.read(farmSwitcherControllerProvider).activeFarmCenter;
+    if (center == null) return MapConstants.mapCenter;
+    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
+    return shouldTransform ? CoordTransform.wgs84ToGcj02(center) : center;
+  }
 
   @override
   void dispose() {
@@ -333,7 +342,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
   }
 
   void _applyTemplate(FenceTemplate template) {
-    final preset = fenceTemplatePresetFor(template);
+    final preset = fenceTemplatePresetFor(template, anchor: _farmAnchor);
     setState(() {
       _selectedTemplate = template;
       _type = preset.type;
@@ -544,7 +553,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
   List<List<double>> _getFinalPointsForSave() {
     var pts = _getPreviewPoints().isNotEmpty
         ? _getPreviewPoints()
-        : FenceItem.defaultPointsForType(_type, MapConstants.mapCenter);
+        : FenceItem.defaultPointsForType(_type, _farmAnchor);
     if (_tileProvider?.shouldTransformCoordinates() ?? false) {
       pts = CoordTransform.gcj02ToWgs84All(pts);
     }
@@ -572,7 +581,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
       options: MapOptions(
         initialCenter: _drawingPoints.isNotEmpty
             ? _drawingPoints.first
-            : MapConstants.mapCenter,
+            : _farmAnchor,
         initialZoom: 15.0,
         interactionOptions: InteractionOptions(
           flags: _drawMode ? InteractiveFlag.none : InteractiveFlag.all,

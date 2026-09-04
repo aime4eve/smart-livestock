@@ -526,13 +526,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
 
   /// 当前牧场的登记坐标（WGS-84，按瓦片源需要转换）；未登记时返回 null
   LatLng? _activeFarmCenter(bool shouldTransform) {
-    final farm = ref.read(farmSwitcherControllerProvider).activeFarm;
-    return resolveFarmMapCenter(
-      fenceRings: const [],
-      farmLatitude: farm?.latitude,
-      farmLongitude: farm?.longitude,
-      shouldTransform: shouldTransform,
-    );
+    final center = ref.read(farmSwitcherControllerProvider).activeFarmCenter;
+    if (center == null) return null;
+    return shouldTransform ? CoordTransform.wgs84ToGcj02(center) : center;
   }
 
   /// 首次加载后把地图定位到当前牧场的实际位置：

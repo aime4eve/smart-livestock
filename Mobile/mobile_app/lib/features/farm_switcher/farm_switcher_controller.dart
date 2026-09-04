@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
@@ -52,6 +53,15 @@ class FarmSwitcherState {
       if (farm.id == activeFarmId) return farm;
     }
     return farms.isNotEmpty ? farms.first : null;
+  }
+
+  /// 当前牧场登记坐标（WGS-84）；未登记或无牧场时为 null
+  LatLng? get activeFarmCenter {
+    final farm = activeFarm;
+    final lat = farm?.latitude;
+    final lng = farm?.longitude;
+    if (lat == null || lng == null) return null;
+    return LatLng(lat, lng);
   }
 }
 
