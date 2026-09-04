@@ -325,6 +325,26 @@
   - 测试断言与实现"意外一致"地断言了可疑行为（如 isNull）→ 停下来查 schema 与设计，不要顺手固化。
   - 本机跑不了的测试层（Testcontainers/Docker）≠ 可以不写；要显式安排在有 Docker 的环境执行（如 dev 服务器 `./gradlew test`），否则验收门槛被环境静默掏空。
 
+
+## 20. 全新库迁移链三连断：只有存量环境验证过的迁移，对"第一次"没有免疫力
+
+- **日期**:2026-09-04
+- **现象**:NIX-184 补 `PilotLicenseJourneyTest`（Testcontainers 全新库）后在 dev 服务器首跑，Spring 启动连续倒在三个不同位置：① `V20260822100000__partition_ops_hardening.sql` 报 "cannot insert a non-DEFAULT value into column delta"；② `behavior_datasets.definition_digest` / `behavior_feature_contracts.schema_hash` 等列 Hibernate validate 报 "found bpchar, expecting varchar(64)"；③ 修 ① 时 `attgenerated='0'` 条件写错（应为空字节 `''`）报 syntax error at ")"。
+- **误判**:①初期怀疑迁移与版本顺序相关，实际是分区搬移函数 `INSERT ... SELECT *` 回插时撞上 `temperature_logs.delta`（V20 `GENERATED ALWAYS` 生成列）——存量库迁移执行时默认分区恰好无行所以从未触发，全新库有种子数据必炸；②CHAR(64) 哈希列在存量库上恰好已是 varchar（或建库历史不同），validate 从未在全新库跑过。
+- **根因**:迁移链只在"存量库增量执行"语境下验证过，**全新库路径（Testcontainers 每次都走）从未被真实执行**——与 #19 同源：写路径/初始化路径没有第一次。目录列类型细节（`pg_attribute.attgenerated` 正常值是空字节 `''` 不是 '0'）只能靠真实执行暴露。
+- **历史教训**:与 #12（checksum mismatch）配套的另一半——改历史迁移必须同步修 checksum（CRC32 逐行不回加换行、低 32 位有符号，先用未改动文件对拍验证算法）；而**允许自己改历史迁移的前提是接受全新库也会重跑它**，这正是暴露 ①② 的机会而非代价。
+- **解决**:
+  1. 分区搬移回插改为显式列清单（`pg_attribute` 过滤 `attgenerated=''`），生成列由 DB 重算（V20260822100000）。
+  2. 三文件 5 处 `CHAR(64)` → `VARCHAR(64)`（V20260822100000 未涉、V20260823100000 ×2、V20260903120000 ×3——后者是 NIX-184 自己引入的，设计文档写法照抄也会踩）。
+  3. dev/test 库 `flyway_schema_history` 逐版本修 checksum，重新部署 dev 使 jar 内嵌迁移与 DB 一致。
+  4. `PilotLicenseJourneyTest` + 既有 Auth/CommerceJourneyTest 在 dev 服务器全新库全绿——Testcontainers 家族复活。
+- **判据**:
+  - 新增/修改迁移后，验证标准不是"dev 库重启正常"，而是"**全新库能从零跑通**"（本地 Testcontainers 或 dev 服务器 `./gradlew clean test --tests *JourneyTest`）。
+  - 表里存在 `GENERATED ALWAYS`/identity 列 → 一切行复制/搬移逻辑禁止 `SELECT *`，必须显式列清单排除生成列。
+  - 哈希/指纹列用 `CHAR(n)` 而 JPA 实体是 `@Column(length=n)` 的 String → validate 必挂；项目约定统一 `VARCHAR(n)`。
+  - 迁移里查 PG 目录（pg_attribute 等）先查文档确认取值域（attgenerated: ''/'s'/'v'），不要凭感觉写 '0'。
+  - dev 服务器跑真库测试三件套：rsync `--delete --exclude='._*'`（防 AppleDouble 假迁移）→ `./gradlew clean`（防陈旧 build/resources 脏副本）→ 改过的迁移同步修 checksum。
+
 ---
 
 ## 关键词索引（遇症状按关键词快速定位）
@@ -349,3 +369,4 @@
  | #17 | reportTime, 时区, timezone, toInstant, UTC, 不换算 |
  | #18 | excel, xlsx, poi, numeric-cell, ".0", 静默回退, Integer.parseInt |
  | #19 | billing-cycle, not-null, start-trial, mock, 集成测试, journey, testcontainers, 生成列, generated-column, 冒烟 |
+ | #20 | fresh-database, 全新库, generated-column, 生成列, bpchar, char, varchar, partition, attgenerated, checksum, journey |

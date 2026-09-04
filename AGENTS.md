@@ -126,6 +126,7 @@ Agent 自身出问题时（元故障）：
 - 第三方时间字段 → 直接用原始数值不换算（`toInstant(ZoneOffset.UTC)`），前端也不做 `toUtc()` — #17
 - 同步数据量不收敛 → 检查时间解析是否 fallback `now()` 导致 cursor 去重失效 — #10
 - 新增写路径只有 mock 单测 → 库约束脱测，必须补真库集成测试（Testcontainers/部署后冒烟）— #19
+- 迁移改动后只在存量库重启验证过 ≠ 通过 → 必须全新库跑通（生成列禁 SELECT *、哈希列用 VARCHAR、改动修 checksum）— #20
 - 多数据源写同一表 → 必须有 `source` 字段 — #11
 - Flyway checksum mismatch → 先查 `flyway_schema_history` 再对比 git 文件 — #12
 - `numeric field overflow` → 定位列 precision/scale，差值列至少 DECIMAL(10,2) — #13
