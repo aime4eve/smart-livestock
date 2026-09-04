@@ -131,7 +131,7 @@ Flyway `V20260903120000__deployment_licensing.sql`：deployment_installations / 
 | T9a | ✅ 完成 | `41f1b434` | 营销三件套+brochure 增补；用户裁决同步修正：定价统一 ¥299/¥699（英文 $41.5/$97.1，7.2 汇率注记）、保留期统一 7/30/90/3 年（customer-journey.md 365→90） |
 | T7a/b | ✅ 完成 | `6461fb7d` | 部署授权页+试点入口+侧边栏；48 arb key；CI 口径 499 测试全绿；build web 通过；analyze exit 0 |
 | T9b | ✅ 完成 | `ce6f5128` | 契约 5 端点（字段逐一对 DTO）+changelog；安装/运维指南+发布检查清单；脚本引用核对一致 |
-| T10 | 🔄 进行中 | — | 本地部分完成：目标测试 392/0/0、pytest 47、dev 部署 /health 200、Mimosa deep 封印扫描完成；**双机实测（86/223）等 SSH 访问方式** |
+| T10 | ✅ 完成 | 2d6bb2a9 / bb19bc81 / 00268108 | **双机实测通过**：86 装 HOSTED（试点 TRIAL 至 2027-09-04）；223 离线装 ONPREM（PENDING 阻断→签发导入→VALID→篡改/错绑拒绝→改库自愈 RECOVERED）；双机 check-release-health 26/26；86 备份恢复闭环；外部扫描暴露面仅 80/443。实测暴露并修复 5 处缺陷（详见知识库档案） |
 
 > 看板维护规则：每卡完成由主智能体更新状态/提交号/产物路径；偏离记入 §5。
 > 其他待办：Mimosa 完整安全审计补跑（commit 钩子提示 scanner_enobufs / library_source_unavailable，T10 前执行）。
