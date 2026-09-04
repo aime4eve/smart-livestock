@@ -109,7 +109,7 @@ else
   warn "secrets/certs not found — backup proceeds without TLS material"
 fi
 # Backup contains a DB password and the TLS private key: lock it to root/owner.
-chmod -R go-rwx "$BACKUP_DIR"
+chmod -R go-rwx "$BACKUP_DIR" 2>/dev/null || true  # volume tars may be root-owned
 
 # ── 4. SHA256SUMS ────────────────────────────────────────────────────────────
 info "[4/4] Generating SHA256SUMS..."

@@ -114,3 +114,7 @@ smart-livestock-server/infrastructure/tileserver/data/*.mbtiles
 **/.mimosa/
 .understand-anything/.trash-*/
 .understand-anything/intermediate/
+
+# Issued license files never enter git (only test fixtures under test-vectors/)
+license-issuer/*.sllicense
+license-issuer/issued-*
