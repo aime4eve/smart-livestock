@@ -71,3 +71,17 @@
 | LICENSE_QUOTA_EXCEEDED | 403 | 导入预检：用量超 payload 配额 |
 
 **行为约束**: HOSTED/ONPREM 模式互斥（`SMARTLIVESTOCK_LICENSE_MODE`）；试点授权仅 HOSTED + `SMARTLIVESTOCK_PILOT_LICENSE_ENABLED=true`；runtime 状态机 PENDING_ACTIVATION / VALID / EXPIRED / SUSPENDED（调度器默认每 5 分钟重验）；ONPREM 下 commerce 自助订阅端点被 `requireSelfServiceAllowed()` 拒绝（LICENSE_REQUIRED）。详见 `admin-api.md` §14。
+
+---
+
+## 2026-09-04 — 集成测试修正：牲畜规范值与 API Key 契约对齐
+
+**来源**: NIX-184 双机集成测试发现（86/223 实测 + 契约与实现比对）。
+
+**修正内容**:
+
+| 位置 | 修正 |
+|------|------|
+| `app-api.md` / `open-api.md` 牲畜示例 | breed/gender 统一为 DB CHECK 约束的规范码（`ANGUS/WAGYU/SIMMENTAL/LIMOUSIN/OTHER`、`MALE/FEMALE`）；后端服务层同步做别名规范化（中文别名 → 规范码）与校验（未知值 400 `VALIDATION_ERROR`，不再 500） |
+| `admin-api.md` §6 API Key 管理 | 按实现修正字段：创建响应为 `id/keyName/prefix/role/rawKey/scopes`（原 `keyId/apiKey` 为笔误）；`scopes` 接受数组或逗号串并逐个校验；限流默认 60 rpm / 20000 日；DELETE 前须先置 `disabled` |
+| 门户 `POST /portal/keys` | 创建响应补回一次性 `rawKey`（此前响应丢失密钥明文，key 创建后不可获得） |

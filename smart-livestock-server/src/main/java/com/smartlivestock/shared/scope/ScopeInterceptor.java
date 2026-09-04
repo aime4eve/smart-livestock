@@ -18,6 +18,11 @@ public class ScopeInterceptor implements HandlerInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(ScopeInterceptor.class);
     private static final Set<String> WILDCARD_SCOPES = Set.of("*", "all");
+
+    /** Every scope an API key can be granted (single source of truth for key creation validation). */
+    public static final Set<String> KNOWN_SCOPES = Set.of(
+            "livestock:read", "fence:read", "alert:read", "device:read",
+            "device:register", "gps:read", "health:read", "*");
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override

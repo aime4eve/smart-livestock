@@ -339,7 +339,7 @@ Response 200:
   "code": "OK", "message": "success", "requestId": "req-A18",
   "data": {
     "items": [
-      { "keyId": "key_abc123", "tenantId": "7", "tenantName": "Demo牧场", "name": "Demo Key", "prefix": "sl_test_a1b2", "scopes": ["livestock:read", "fence:read", "alert:read", "device:read", "gps:read"], "status": "active", "expiresAt": null, "rateLimit": 60, "lastUsedAt": "2026-05-07T10:00:00.000Z", "createdAt": "2026-03-01T08:00:00.000Z" }
+      { "id": 12, "keyName": "Demo Key", "prefix": "sk_live_a1b2c3d4e5f", "role": "admin", "scopes": "livestock:read,fence:read,alert:read,device:read,gps:read", "status": "ACTIVE", "tenantId": 7, "expiresAt": "", "lastUsedAt": "2026-05-07T10:00:00Z", "createdAt": "2026-03-01T08:00:00Z" }
     ],
     "page": 1, "pageSize": 20, "total": 15
   }
@@ -348,24 +348,24 @@ Response 200:
 
 ### POST /admin/api-keys
 
-创建 Key。
+创建 Key。`scopes` 接受字符串数组或逗号分隔字符串，逐个校验（未知 scope 返回 400 `VALIDATION_ERROR`）；限流默认 60 次/分钟、20000 次/日。`role` 可选（默认 `admin`）。
 
 ```
 Request:
-{ "tenantId": "7", "name": "新客户 Key", "scopes": ["livestock:read", "fence:read", "alert:read"], "expiresInDays": 365 }
+{ "tenantId": 7, "name": "新客户 Key", "scopes": ["livestock:read", "fence:read", "alert:read"] }
 
 Response 201:
 {
   "code": "OK", "message": "success", "requestId": "req-A19",
-  "data": { "keyId": "key_def456", "prefix": "sl_live_c3d4", "apiKey": "sl_live_c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8", "scopes": ["livestock:read", "fence:read", "alert:read"], "expiresAt": "2027-05-07T00:00:00.000Z", "rateLimit": 60 }
+  "data": { "id": 15, "keyName": "新客户 Key", "prefix": "sk_live_c3d4e5f67", "role": "admin", "rawKey": "sk_live_c3d4e5f6…（64 位十六进制）", "scopes": "livestock:read,fence:read,alert:read" }
 }
 ```
 
-注意：`apiKey` 完整明文仅在创建响应中返回一次，之后不可再次获取。
+注意：`rawKey` 完整明文仅在创建响应中返回一次，之后不可再次获取。删除 Key 前须先 `PUT /admin/api-keys/{keyId}/status` 置为 `disabled`（对 ACTIVE Key 直接 DELETE 返回 `STATE_CONFLICT`）。
 
 ### PUT /admin/api-keys/{keyId}/status
 
-启用/禁用 Key。幂等。
+启用/禁用 Key。幂等。`status` 仅接受 `active` / `disabled`。
 
 ```
 Request:
@@ -377,7 +377,7 @@ Response 200:
 
 ### DELETE /admin/api-keys/{keyId}
 
-撤销 Key（不可恢复）。状态变为 revoked，Key 立即失效。
+删除 Key（不可恢复）。仅非 ACTIVE 状态可删，否则 `STATE_CONFLICT`。
 
 ```
 Response 200:

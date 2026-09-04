@@ -26,7 +26,7 @@ public class ApiKeyApplicationService {
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Transactional
-    public Map<String, Object> createApiKey(Long tenantId, String name, String role) {
+    public Map<String, Object> createApiKey(Long tenantId, String name, String role, String scopes) {
         byte[] rawBytes = new byte[32];
         secureRandom.nextBytes(rawBytes);
         String rawKey = KEY_PREFIX + HexFormat.of().formatHex(rawBytes);
@@ -39,17 +39,23 @@ public class ApiKeyApplicationService {
         apiKey.setKeyHash(keyHash);
         apiKey.setKeyPrefix(keyPrefix);
         apiKey.setRole(role != null ? role : "admin");
+        // Rate-limit defaults match the portal self-service path so both
+        // creation routes produce equivalent keys.
+        apiKey.setScopes(scopes);
+        apiKey.setRequestsPerMinute(60);
+        apiKey.setDailyQuota(20000);
         apiKey.setCreatedAt(Instant.now());
         apiKey.setStatus("ACTIVE");
         ApiKey saved = apiKeyRepository.save(apiKey);
 
-        return Map.of(
-                "id", saved.getId(),
-                "keyName", name,
-                "prefix", keyPrefix,
-                "role", apiKey.getRole(),
-                "rawKey", rawKey
-        );
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("id", saved.getId());
+        result.put("keyName", name);
+        result.put("prefix", keyPrefix);
+        result.put("role", apiKey.getRole());
+        result.put("rawKey", rawKey);
+        result.put("scopes", scopes);
+        return result;
     }
 
     @Transactional
