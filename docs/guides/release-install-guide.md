@@ -142,7 +142,7 @@ chmod 600 .env.release
 | `TELEMETRY_SIMULATOR_ENABLED` | ✅ | 必须 `false` | 同上 |
 | `POSTGRES_PASSWORD` | ✅ | 非模板占位符 | 单一口令源：postgres / app / ai-platform 共用 |
 | `JWT_SECRET` | ✅ | 非模板占位符 | `openssl rand -base64 48` 生成 |
-| `SMART_LIVESTOCK_TILE_WORKER_KEY` | ✅ | 非模板占位符 | tile-worker 调用 app /api/v1 的 API Key |
+| `SMART_LIVESTOCK_TILE_WORKER_KEY` | ✅ | **保持种子值不动** | 必须等于迁移 V36 预置 Key：`sl_live_tile_worker_a1b2c3d4e5f6g7h8i9j0k1l2`。随机自填会与库中哈希失配，worker 每次轮询 401、瓦片永不渲染；轮换步骤见运维指南 §2.4 |
 | `AGENTIC_PLATFORM_OAUTH2_ENABLED` | 条件 | 为 `true` 时 CLIENT_ID/CLIENT_SECRET 必填且非占位 | blade 平台 OAuth2；不用 blade 保持 `false` |
 | `SMARTLIVESTOCK_TB_ENABLED` | 条件 | 为 `true` 时 USERNAME/PASSWORD 必填且非占位 | ThingsBoard 遥测源，默认 `false` |
 | `SMARTLIVESTOCK_NS_ENABLED` | 条件 | 为 `true` 时 USERNAME/PASSWORD 必填且非占位 | NS 遥测源，默认 `false` |

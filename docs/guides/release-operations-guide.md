@@ -87,6 +87,22 @@ dcr logs -f app                  # 跟踪滚动
 
 > 授权类症状（导入失败、PENDING_ACTIVATION 阻断、SUSPENDED、指纹不匹配）见 §4；客户端 FAQ 见 `docs/marketing/technical-support-guide.md` §3。
 
+### 2.4 瓦片服务：worker 密钥与首次建图
+
+**worker 密钥必须等于种子值。** tile-worker 用 `SMART_LIVESTOCK_TILE_WORKER_KEY` 调 app `/api/v1`，服务端只认迁移 V36 预置的「瓦片下载 Worker」Key（`sl_live_tile_worker_a1b2c3d4e5f6g7h8i9j0k1l2`，scopes=`*`）。若此处填了随机值，症状是：app 日志每 `POLL_INTERVAL`（默认 60s）一条 `ApiKeyAuthFilter: API Key authentication failed`，worker 永远拉不到任务。`.env.release.example` 已直接带种子值；随机自填会静默失配。
+
+轮换步骤（生产建议做，beta 可沿用种子值）：
+
+```bash
+NEW_KEY="sk_live_$(openssl rand -hex 32)"
+docker exec -i $(docker ps --format '{{.Names}}' | grep postgres) psql -U postgres -d smart_livestock \
+  -c "UPDATE api_keys SET key_hash = encode(sha256(convert_to('$NEW_KEY','UTF8')),'hex') WHERE key_name='瓦片下载 Worker';"
+# 再把 .env.release 的 SMART_LIVESTOCK_TILE_WORKER_KEY 改为 $NEW_KEY，然后：
+docker compose --env-file .env.release -f docker-compose.release.yml up -d tile-worker
+```
+
+**首次建图（全新安装瓦片集为空属预期）。** 新装机器 `/tiles/*` 全部 404、前端地图灰底降级，不是故障——tileserver 数据卷里还没有任何区域。建图链路：b2b_admin / platform_admin 在地图页圈选区域（或 `POST /admin/tiles/tasks`）→ tile-worker 轮询渲染 mbtiles → tileserver 出图。验证：`curl -ks https://localhost/tiles/<区域名>/<z>/<x>/<y>.png` 返回图片即通。
+
 ---
 
 ## 3. 备份与恢复
