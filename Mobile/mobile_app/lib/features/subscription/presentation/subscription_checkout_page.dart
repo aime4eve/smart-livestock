@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/core/l10n/l10n.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
@@ -27,6 +28,7 @@ class _SubscriptionCheckoutPageState
     extends ConsumerState<SubscriptionCheckoutPage> {
   late int _livestockCount;
   final _countController = TextEditingController();
+  bool _paying = false;
 
   @override
   void initState() {
@@ -202,23 +204,28 @@ class _SubscriptionCheckoutPageState
               height: 48,
               child: ElevatedButton(
                 key: const Key('pay-button'),
-                onPressed: () async {
-                  await ref
+                onPressed: _paying ? null : () async {
+                  setState(() => _paying = true);
+                  final ok = await ref
                       .read(subscriptionControllerProvider.notifier)
                       .checkout(
                         tier: widget.tier.name,
                         livestockCount: _livestockCount,
                       );
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          l10n.subSubscribeSuccess(localizedTierName(tierInfo.tier)),
-                        ),
+                  if (!mounted || !context.mounted) return;
+                  setState(() => _paying = false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        ok
+                            ? l10n.subSubscribeSuccess(
+                                localizedTierName(tierInfo.tier))
+                            : l10n.subSubscribeFailed,
                       ),
-                    );
-                    context.pop();
-                  }
+                    ),
+                  );
+                  // 订购成功后清栈回到"我的"，避免用户停在套餐页找不到返回路径
+                  if (ok) context.go(AppRoute.mine.path);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -227,10 +234,18 @@ class _SubscriptionCheckoutPageState
                     borderRadius: BorderRadius.circular(AppSpacing.md),
                   ),
                 ),
-                child: Text(
-                  l10n.subConfirmPay(_total.toStringAsFixed(2)),
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
+                child: _paying
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: AppColors.surfaceAlt),
+                      )
+                    : Text(
+                        l10n.subConfirmPay(_total.toStringAsFixed(2)),
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
               ),
             ),
             const SizedBox(height: AppSpacing.xxl),

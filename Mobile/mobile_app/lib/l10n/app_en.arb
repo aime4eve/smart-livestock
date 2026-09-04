@@ -1038,6 +1038,8 @@
       }
     }
   },
+  "subSubscribeFailed": "Subscription failed, please try again later",
+  "@subSubscribeFailed": {},
   "subExcessDeviceFeeWithin": "Excess device fee (within {quota})",
   "@subExcessDeviceFeeWithin": {
     "placeholders": {

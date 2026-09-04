@@ -1185,6 +1185,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get subSubscribeFailed => '订阅失败，请稍后重试';
+
+  @override
   String subExcessDeviceFeeWithin(String quota) {
     return '超出设备费（在$quota额度内）';
   }

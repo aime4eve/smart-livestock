@@ -1208,6 +1208,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get subSubscribeFailed =>
+      'Subscription failed, please try again later';
+
+  @override
   String subExcessDeviceFeeWithin(String quota) {
     return 'Excess device fee (within $quota)';
   }

@@ -2230,6 +2230,12 @@ abstract class AppLocalizations {
   /// **'已成功订阅{tier}'**
   String subSubscribeSuccess(String tier);
 
+  /// No description provided for @subSubscribeFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅失败，请稍后重试'**
+  String get subSubscribeFailed;
+
   /// No description provided for @subExcessDeviceFeeWithin.
   ///
   /// In zh, this message translates to:

@@ -1039,6 +1039,8 @@
       }
     }
   },
+  "subSubscribeFailed": "订阅失败，请稍后重试",
+  "@subSubscribeFailed": {},
   "subExcessDeviceFeeWithin": "超出设备费（在{quota}额度内）",
   "@subExcessDeviceFeeWithin": {
     "placeholders": {

@@ -13,16 +13,19 @@ class SubscriptionController extends AsyncNotifier<SubscriptionStatus> {
     return ref.read(subscriptionRepositoryProvider).loadCurrent();
   }
 
-  Future<void> checkout({
+  /// 支付并开通套餐；返回是否成功，供 UI 区分成功/失败提示
+  Future<bool> checkout({
     required String tier,
     required int livestockCount,
   }) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() =>
+    final result = await AsyncValue.guard(() =>
         ref.read(subscriptionRepositoryProvider).checkout(
               tier: tier,
               livestockCount: livestockCount,
             ));
+    state = result;
+    return result.hasValue;
   }
 
   Future<void> changeTier(String tier) async {
