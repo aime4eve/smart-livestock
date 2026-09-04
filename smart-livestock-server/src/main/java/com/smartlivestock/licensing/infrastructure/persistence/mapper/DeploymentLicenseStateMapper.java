@@ -12,6 +12,7 @@ public final class DeploymentLicenseStateMapper {
 
     public static DeploymentLicenseStateJpaEntity toEntity(DeploymentLicenseState domain) {
         DeploymentLicenseStateJpaEntity entity = new DeploymentLicenseStateJpaEntity();
+        // tenant_id is the natural @Id; set it explicitly anyway for clarity
         entity.setTenantId(domain.getTenantId());
         entity.setCurrentLicenseId(domain.getCurrentLicenseId());
         entity.setRuntimeStatus(domain.getRuntimeStatus() != null

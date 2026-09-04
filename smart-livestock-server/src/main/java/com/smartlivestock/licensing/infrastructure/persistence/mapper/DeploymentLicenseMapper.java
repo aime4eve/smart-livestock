@@ -14,6 +14,8 @@ public final class DeploymentLicenseMapper {
 
     public static DeploymentLicenseJpaEntity toEntity(DeploymentLicense domain) {
         DeploymentLicenseJpaEntity entity = new DeploymentLicenseJpaEntity();
+        // preserve the surrogate key so save() merges instead of inserting
+        entity.setId(domain.getId());
         entity.setLicenseId(domain.getLicenseId());
         entity.setTenantId(domain.getTenantId());
         entity.setInstallationId(domain.getInstallationId());

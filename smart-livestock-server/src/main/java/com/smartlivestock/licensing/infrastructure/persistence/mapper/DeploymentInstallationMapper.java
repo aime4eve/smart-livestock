@@ -11,6 +11,8 @@ public final class DeploymentInstallationMapper {
 
     public static DeploymentInstallationJpaEntity toEntity(DeploymentInstallation domain) {
         DeploymentInstallationJpaEntity entity = new DeploymentInstallationJpaEntity();
+        // preserve the surrogate key so save() merges instead of inserting
+        entity.setId(domain.getId());
         entity.setTenantId(domain.getTenantId());
         entity.setInstallationId(domain.getInstallationId());
         entity.setFingerprintHash(domain.getFingerprintHash());

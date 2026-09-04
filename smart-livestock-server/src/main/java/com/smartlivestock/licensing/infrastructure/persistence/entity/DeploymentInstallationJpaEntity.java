@@ -51,6 +51,8 @@ public class DeploymentInstallationJpaEntity {
     }
 
     public Long getId() { return id; }
+    /** Used by the mapper to re-attach the surrogate key on merge. */
+    public void setId(Long id) { this.id = id; }
 
     public Long getTenantId() { return tenantId; }
 

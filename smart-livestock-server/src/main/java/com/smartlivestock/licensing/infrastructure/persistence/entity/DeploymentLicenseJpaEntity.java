@@ -74,6 +74,8 @@ public class DeploymentLicenseJpaEntity {
     private UUID replacesLicenseId;
 
     public Long getId() { return id; }
+    /** Used by the mapper to re-attach the surrogate key on merge. */
+    public void setId(Long id) { this.id = id; }
 
     public UUID getLicenseId() { return licenseId; }
 
