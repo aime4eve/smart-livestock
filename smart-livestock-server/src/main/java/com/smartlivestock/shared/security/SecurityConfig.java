@@ -48,6 +48,11 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/health"
                         ).permitAll()
+                        // Public deployment descriptor for the login screen
+                        // (license-mode badge renders before authentication).
+                        .requestMatchers(
+                                HttpMethod.GET, "/api/v1/deployment-info"
+                        ).permitAll()
                         .requestMatchers(
                                 "/api/v1/open/**"
                         ).authenticated()

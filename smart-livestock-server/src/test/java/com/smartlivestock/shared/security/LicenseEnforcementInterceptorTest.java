@@ -189,7 +189,9 @@ class LicenseEnforcementInterceptorTest {
                             "/api/v1/auth/**",
                             "/api/v1/me/**",
                             "/api/v1/admin/deployment-license/**",
-                            "/api/v1/admin/tenants/**");
+                            "/api/v1/admin/tenants/**",
+                            // public deployment descriptor for the login screen
+                            "/api/v1/deployment-info");
         }
     }
 

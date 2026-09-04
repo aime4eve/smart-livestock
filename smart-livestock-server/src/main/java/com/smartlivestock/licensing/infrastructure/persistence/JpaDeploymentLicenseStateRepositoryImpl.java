@@ -21,6 +21,12 @@ public class JpaDeploymentLicenseStateRepositoryImpl implements DeploymentLicens
     }
 
     @Override
+    public Optional<DeploymentLicenseState> findLatest() {
+        return springDataRepo.findTopByOrderByUpdatedAtDesc()
+                .map(DeploymentLicenseStateMapper::toDomain);
+    }
+
+    @Override
     public DeploymentLicenseState save(DeploymentLicenseState state) {
         return DeploymentLicenseStateMapper.toDomain(
                 springDataRepo.save(DeploymentLicenseStateMapper.toEntity(state)));

@@ -3003,6 +3003,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tenantListTitle => '租户管理';
 
   @override
+  String get authModeHosted => '云端托管版';
+
+  @override
+  String get authModeOnprem => '地端独立部署';
+
+  @override
+  String get authModeOnpremValidSub => '离线授权生效中';
+
+  @override
+  String get authModePendingBanner =>
+      '系统未激活：请先导入部署授权（.sllicense）。授权登记信息可在登录后于「部署授权」页获取。';
+
+  @override
+  String get authModeExpiredBanner => '授权已到期：系统已降级为基础版，数据完整保留。请联系厂商签发续费授权。';
+
+  @override
+  String get authModeSuspendedBanner =>
+      '授权已挂起：检测到授权异常（如时间回拨）。时间恢复正常并导入有效授权后自动解除。';
+
+  @override
   String get tenantListCreate => '新建租户';
 
   @override

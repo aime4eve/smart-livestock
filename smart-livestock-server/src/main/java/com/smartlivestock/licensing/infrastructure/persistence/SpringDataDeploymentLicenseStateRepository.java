@@ -9,4 +9,6 @@ interface SpringDataDeploymentLicenseStateRepository
         extends JpaRepository<DeploymentLicenseStateJpaEntity, Long> {
 
     Optional<DeploymentLicenseStateJpaEntity> findByTenantId(Long tenantId);
+
+    Optional<DeploymentLicenseStateJpaEntity> findTopByOrderByUpdatedAtDesc();
 }

@@ -49,7 +49,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(licenseEnforcementInterceptor)
                 .addPathPatterns("/api/v1/**")
                 .excludePathPatterns("/api/v1/auth/**", "/api/v1/me/**",
-                        "/api/v1/admin/deployment-license/**", "/api/v1/admin/tenants/**");
+                        "/api/v1/admin/deployment-license/**", "/api/v1/admin/tenants/**",
+                        // public deployment descriptor: the login screen must
+                        // be able to read it even in PENDING_ACTIVATION state
+                        "/api/v1/deployment-info");
 
         registry.addInterceptor(scopeInterceptor)
                 .addPathPatterns("/api/v1/open/**");

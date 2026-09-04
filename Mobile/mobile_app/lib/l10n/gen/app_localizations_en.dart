@@ -3070,6 +3070,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tenantListTitle => 'Tenant Management';
 
   @override
+  String get authModeHosted => 'Cloud Hosted';
+
+  @override
+  String get authModeOnprem => 'On-Premise Deployment';
+
+  @override
+  String get authModeOnpremValidSub => 'Offline license active';
+
+  @override
+  String get authModePendingBanner =>
+      'System not activated: import the deployment license (.sllicense) first. Enrollment info is available on the \'Deployment License\' page after sign-in.';
+
+  @override
+  String get authModeExpiredBanner =>
+      'License expired: the system is downgraded to the free tier with all data retained. Contact the vendor to issue a renewal license.';
+
+  @override
+  String get authModeSuspendedBanner =>
+      'License suspended: an anomaly was detected (e.g. clock rollback). It is released automatically once time is restored and a valid license is imported.';
+
+  @override
   String get tenantListCreate => 'New Tenant';
 
   @override

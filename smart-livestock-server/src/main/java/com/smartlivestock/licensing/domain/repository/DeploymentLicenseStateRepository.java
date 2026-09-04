@@ -9,5 +9,11 @@ public interface DeploymentLicenseStateRepository {
 
     Optional<DeploymentLicenseState> findByTenantId(Long tenantId);
 
+    /**
+     * Most recently updated state row. ONPREM deployments are single-tenant,
+     * so this backs the tenant-less public deployment-info lookup.
+     */
+    Optional<DeploymentLicenseState> findLatest();
+
     DeploymentLicenseState save(DeploymentLicenseState state);
 }

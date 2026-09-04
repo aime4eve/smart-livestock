@@ -5618,6 +5618,42 @@ abstract class AppLocalizations {
   /// **'租户管理'**
   String get tenantListTitle;
 
+  /// No description provided for @authModeHosted.
+  ///
+  /// In zh, this message translates to:
+  /// **'云端托管版'**
+  String get authModeHosted;
+
+  /// No description provided for @authModeOnprem.
+  ///
+  /// In zh, this message translates to:
+  /// **'地端独立部署'**
+  String get authModeOnprem;
+
+  /// No description provided for @authModeOnpremValidSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'离线授权生效中'**
+  String get authModeOnpremValidSub;
+
+  /// No description provided for @authModePendingBanner.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统未激活：请先导入部署授权（.sllicense）。授权登记信息可在登录后于「部署授权」页获取。'**
+  String get authModePendingBanner;
+
+  /// No description provided for @authModeExpiredBanner.
+  ///
+  /// In zh, this message translates to:
+  /// **'授权已到期：系统已降级为基础版，数据完整保留。请联系厂商签发续费授权。'**
+  String get authModeExpiredBanner;
+
+  /// No description provided for @authModeSuspendedBanner.
+  ///
+  /// In zh, this message translates to:
+  /// **'授权已挂起：检测到授权异常（如时间回拨）。时间恢复正常并导入有效授权后自动解除。'**
+  String get authModeSuspendedBanner;
+
   /// No description provided for @tenantListCreate.
   ///
   /// In zh, this message translates to:
