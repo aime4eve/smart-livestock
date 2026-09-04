@@ -34,8 +34,10 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      # nginx:alpine ships busybox wget; /health is proxied to app:8080/health.
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/health"]
+      # nginx:alpine ships busybox wget; /health on :80 301-redirects to HTTPS
+      # (self-signed certs), so probe the HTTPS endpoint directly and skip the
+      # certificate check (the TLS-gate itself is check #8 in the health script).
+      test: ["CMD-SHELL", "wget -q -O /dev/null --no-check-certificate https://127.0.0.1/health"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -85,17 +87,11 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      # eclipse-temurin:17-jre (Ubuntu base) ships neither curl nor wget, and this
-      # card must not modify the app image. Probe via bash /dev/tcp + raw HTTP/1.0
-      # request instead (bash is present in the Ubuntu base image; the `\r\n`
-      # escapes below are interpreted by printf, not by YAML).
-      # TODO(T8b or follow-up): bake curl into the app image and simplify to
-      # `curl -fsS http://localhost:8080/health`.
-      test:
-        - CMD
-        - bash
-        - -c
-        - 'exec 3<>/dev/tcp/127.0.0.1:8080 && printf "GET /health HTTP/1.0\r\n\r\n" >&3 && head -1 <&3 | grep -q " 200 "'
+      # The temurin jammy base actually ships BOTH curl and wget, and its bash
+      # build has /dev/tcp net-redirections compiled out — so the original
+      # bash /dev/tcp probe always failed. curl -f on the health endpoint is
+      # the simple, image-agnostic probe.
+      test: ["CMD", "curl", "-fs", "http://127.0.0.1:8080/health"]
       interval: 15s
       timeout: 5s
       retries: 10
@@ -134,10 +130,10 @@ services:
     command: sh mqnamesrv
     restart: unless-stopped
     healthcheck:
-      # apache/rocketmq:5.1.0 is CentOS-based (CMD ["/bin/bash"]), so bash /dev/tcp
-      # is available. If the image pin ever moves to the -alpine variant, drop this
-      # healthcheck (no bash) or switch to a TCP probe tool.
-      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1:9876"]
+      # apache/rocketmq:5.1.0 ships RHEL bash 4.2 which is built WITHOUT
+      # /dev/tcp net-redirections — probe with the image's own nc instead
+      # (verified present in the 5.1.0 image; curl too as a fallback).
+      test: ["CMD", "nc", "-z", "127.0.0.1", "9876"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -153,8 +149,8 @@ services:
       JAVA_OPT: "-Duser.home=/home/rocketmq"
     restart: unless-stopped
     healthcheck:
-      # Best-effort TCP probe on the broker listen port (same CentOS/bash base).
-      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1:10911"]
+      # Best-effort TCP probe on the broker listen port (RHEL bash: no /dev/tcp).
+      test: ["CMD", "nc", "-z", "127.0.0.1", "10911"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -189,9 +185,10 @@ services:
     command: ["-c", "config.json", "--port", "8080"]
     restart: unless-stopped
     healthcheck:
-      # maptiler/tileserver-gl is node-alpine based: busybox wget is available,
-      # curl is not. Probe the local HTTP port (root serves the viewer page).
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/"]
+      # maptiler/tileserver-gl is node-alpine based but ships NEITHER wget nor
+      # curl (verified in the 5.1.0 image on real hosts) — probe with node's
+      # own http module instead.
+      test: ["CMD-SHELL", "node -e 'require(\"http\").get(\"http://127.0.0.1:8080/\",r=>process.exit(r.statusCode===200?0:1)).on(\"error\",()=>process.exit(1))'"]
       interval: 15s
       timeout: 5s
       retries: 5

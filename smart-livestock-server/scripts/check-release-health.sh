@@ -144,12 +144,15 @@ for entry in "${INTERNAL_PORTS[@]}"; do
     bad "$svc container not found (is the stack up?)"
     continue
   fi
-  published="$(compose port "$svc" "$port" 2>/dev/null || true)"
+  # `docker compose port` output varies across versions for unpublished ports
+  # (v5.5.1 prints "invalid IP:0" on stdout), so the authoritative check is
+  # HostConfig.PortBindings: internal-only services must have none.
   bindings="$(docker inspect -f '{{json .HostConfig.PortBindings}}' "$cid" 2>/dev/null || echo '{}')"
-  if [[ -n "$published" ]]; then
-    bad "$svc has a host port mapping: $published"
-  elif [[ "$bindings" == *HostPort* ]]; then
+  published="$(compose port "$svc" "$port" 2>/dev/null || true)"
+  if [[ "$bindings" == *HostPort* ]]; then
     bad "$svc has a host port mapping (PortBindings: $bindings)"
+  elif [[ "$published" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+$ ]]; then
+    bad "$svc has a host port mapping: $published"
   else
     pass "$svc has no host port mapping (internal-only)"
   fi

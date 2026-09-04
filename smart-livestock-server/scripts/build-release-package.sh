@@ -108,8 +108,8 @@ info "      postgres (infrastructure/postgres/ — hardened pg_hba.conf, see com
 docker build -t "smart-livestock/postgres:$VERSION" infrastructure/postgres/
 info "      ai-platform (ai-platform/)"
 docker build -t "smart-livestock/ai-platform:$VERSION" ai-platform/
-info "      tile-worker (infrastructure/tile-worker/)"
-docker build -t "smart-livestock/tile-worker:$VERSION" infrastructure/tile-worker/
+info "      tile-worker (infrastructure/tile-worker/Dockerfile — server-root context)"
+docker build -f infrastructure/tile-worker/Dockerfile -t "smart-livestock/tile-worker:$VERSION" "$SERVER_DIR"
 
 # ── [4/8] Pinned third-party images ──────────────────────────────────────────
 info "[4/8] Pulling pinned third-party images..."

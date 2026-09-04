@@ -87,7 +87,10 @@ public class LicenseEnforcementInterceptor implements HandlerInterceptor {
 
         LicenseRuntimeStatus status = stateRepository.findByTenantId(tenantId)
                 .map(DeploymentLicenseState::getRuntimeStatus)
-                .orElse(null);
+                // No state row = no license ever imported on this ONPREM host:
+                // that IS PENDING_ACTIVATION (design §9 — a fresh deployment
+                // must block business APIs until a license is imported).
+                .orElse(LicenseRuntimeStatus.PENDING_ACTIVATION);
 
         if (status == LicenseRuntimeStatus.PENDING_ACTIVATION) {
             return reject(response, "license.pendingActivation",
@@ -97,7 +100,7 @@ public class LicenseEnforcementInterceptor implements HandlerInterceptor {
             return reject(response, "license.suspended",
                     "License suspended for tenant {}", tenantId);
         }
-        // VALID / EXPIRED / no row: allow. EXPIRED tenants run on the degraded
+        // VALID / EXPIRED: allow. EXPIRED tenants run on the degraded
         // FREE/BASIC subscription; capability limits live in the FeatureGate.
         return true;
     }

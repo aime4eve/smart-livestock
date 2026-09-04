@@ -144,20 +144,30 @@ class LicenseEnforcementInterceptorTest {
         }
 
         @Test
-        void missingStateRowPasses() throws Exception {
+        void missingStateRowBlocksAsPendingActivation() throws Exception {
+            // design §9: an ONPREM host with no imported license IS
+            // PENDING_ACTIVATION — business APIs must be blocked even before
+            // the first enrollment/validation creates a state row.
             TenantContext.setCurrentTenant(TENANT_ID);
             when(stateRepository.findByTenantId(TENANT_ID)).thenReturn(Optional.empty());
 
-            assertThat(interceptor.preHandle(request, response, new Object())).isTrue();
+            assertThat(interceptor.preHandle(request, response, new Object())).isFalse();
+            assertThat(response.getStatus()).isEqualTo(403);
+            assertThat(response.getContentAsString())
+                    .contains("\"code\":\"LICENSE_REQUIRED\"")
+                    .contains("not activated");
         }
 
         @Test
-        void nullRuntimeStatusPasses() throws Exception {
+        void nullRuntimeStatusBlocksAsPendingActivation() throws Exception {
             TenantContext.setCurrentTenant(TENANT_ID);
             DeploymentLicenseState state = new DeploymentLicenseState();
             when(stateRepository.findByTenantId(TENANT_ID)).thenReturn(Optional.of(state));
 
-            assertThat(interceptor.preHandle(request, response, new Object())).isTrue();
+            assertThat(interceptor.preHandle(request, response, new Object())).isFalse();
+            assertThat(response.getStatus()).isEqualTo(403);
+            assertThat(response.getContentAsString())
+                    .contains("\"code\":\"LICENSE_REQUIRED\"");
         }
     }
 

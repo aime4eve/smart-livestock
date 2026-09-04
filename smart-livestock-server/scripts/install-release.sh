@@ -25,6 +25,7 @@ fi
 info() { printf '%s==> %s%s\n'  "$C_INFO" "$*" "$C_OFF"; }
 ok()   { printf '%s    [OK] %s%s\n' "$C_OK" "$*" "$C_OFF"; }
 warn() { printf '%s [WARN] %s%s\n' "$C_WARN" "$*" "$C_OFF"; }
+fail() { printf '%s [FAIL] %s%s\n' "$C_ERR" "$*" "$C_OFF" >&2; }
 die()  { printf '%s [FAIL] %s%s\n' "$C_ERR" "$*" "$C_OFF" >&2; exit 1; }
 
 # Self-locate: this script lives at <package>/release/scripts/install-release.sh
