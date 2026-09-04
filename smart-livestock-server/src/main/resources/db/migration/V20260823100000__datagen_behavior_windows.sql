@@ -2,7 +2,7 @@
 
 CREATE TABLE behavior_feature_contracts (
     feature_version VARCHAR(20) PRIMARY KEY,
-    schema_hash CHAR(64) NOT NULL UNIQUE,
+    schema_hash VARCHAR(64) NOT NULL UNIQUE,
     definition JSONB NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -14,7 +14,7 @@ CREATE TABLE behavior_datasets (
     generator_version VARCHAR(40) NOT NULL,
     data_source VARCHAR(30) NOT NULL,
     status VARCHAR(20) NOT NULL,
-    definition_digest CHAR(64) NOT NULL UNIQUE,
+    definition_digest VARCHAR(64) NOT NULL UNIQUE,
     manifest JSONB NOT NULL,
     start_at TIMESTAMP NOT NULL,
     end_at TIMESTAMP NOT NULL,
@@ -91,7 +91,7 @@ CREATE TABLE behavior_windows (
     dominant_behavior VARCHAR(20) NOT NULL,
     feature_version VARCHAR(20) NOT NULL
         REFERENCES behavior_feature_contracts(feature_version),
-    feature_schema_hash CHAR(64) NOT NULL,
+    feature_schema_hash VARCHAR(64) NOT NULL,
     features JSONB NOT NULL,
     input_quality VARCHAR(20) NOT NULL,
     sampling_mode VARCHAR(20) NOT NULL,
