@@ -32,7 +32,7 @@ Response 200:
   "code": "OK", "message": "success", "requestId": "req-O01",
   "data": {
     "items": [
-      { "id": "101", "livestockCode": "LIV-1-001", "breed": "安格斯牛", "gender": "male", "healthStatus": "healthy", "lastLatitude": 28.2459123, "lastLongitude": 112.8521004, "lastPositionAt": "2026-05-07T10:25:00.000Z" }
+      { "id": "101", "livestockCode": "LIV-1-001", "breed": "ANGUS", "gender": "MALE", "healthStatus": "healthy", "lastLatitude": 28.2459123, "lastLongitude": 112.8521004, "lastPositionAt": "2026-05-07T10:25:00.000Z" }
     ],
     "page": 1, "pageSize": 20, "total": 120
   }
@@ -45,7 +45,7 @@ Response 200:
 
 ```
 Response 200:
-{ "code": "OK", "message": "success", "requestId": "req-O02", "data": { "id": "101", "livestockCode": "LIV-1-001", "breed": "安格斯牛", ... } }
+{ "code": "OK", "message": "success", "requestId": "req-O02", "data": { "id": "101", "livestockCode": "LIV-1-001", "breed": "ANGUS", ... } }
 ```
 
 ---

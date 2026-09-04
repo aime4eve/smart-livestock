@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 class LivestockApplicationServiceTest {
@@ -60,9 +61,71 @@ class LivestockApplicationServiceTest {
         var result = service.createLivestock(createCommand());
 
         assertThat(result.livestockCode()).isEqualTo("COW-001");
-        assertThat(result.breed()).isEqualTo("安格斯");
+        // Chinese alias is normalized to the canonical code (V20260702150000).
+        assertThat(result.breed()).isEqualTo("ANGUS");
         assertThat(result.gender()).isEqualTo("MALE");
         assertThat(result.weight()).isEqualByComparingTo(new BigDecimal("450.5"));
+    }
+
+    @Test
+    void shouldNormalizeLowercaseBreedAndGender() {
+        when(livestockRepository.findByLivestockCode("COW-002")).thenReturn(Optional.empty());
+        when(livestockRepository.save(any(Livestock.class))).thenAnswer(inv -> {
+            Livestock l = inv.getArgument(0);
+            l.setId(11L);
+            return l;
+        });
+
+        var cmd = new CreateLivestockCommand(1L, "COW-002", "simmental", "female",
+                LocalDate.of(2025, 1, 10), new BigDecimal("380"));
+        var result = service.createLivestock(cmd);
+
+        assertThat(result.breed()).isEqualTo("SIMMENTAL");
+        assertThat(result.gender()).isEqualTo("FEMALE");
+    }
+
+    @Test
+    void shouldDefaultBlankBreedToOther() {
+        when(livestockRepository.findByLivestockCode("COW-003")).thenReturn(Optional.empty());
+        when(livestockRepository.save(any(Livestock.class))).thenAnswer(inv -> {
+            Livestock l = inv.getArgument(0);
+            l.setId(12L);
+            return l;
+        });
+
+        var cmd = new CreateLivestockCommand(1L, "COW-003", null, null,
+                LocalDate.of(2025, 1, 10), new BigDecimal("380"));
+        var result = service.createLivestock(cmd);
+
+        assertThat(result.breed()).isEqualTo("OTHER");
+        assertThat(result.gender()).isNull();
+    }
+
+    @Test
+    void shouldRejectUnknownBreedWithValidationError() {
+        when(livestockRepository.findByLivestockCode("COW-004")).thenReturn(Optional.empty());
+
+        var cmd = new CreateLivestockCommand(1L, "COW-004", "夏洛莱", "FEMALE",
+                LocalDate.of(2025, 1, 10), new BigDecimal("380"));
+
+        assertThatThrownBy(() -> service.createLivestock(cmd))
+                .isInstanceOf(ApiException.class)
+                .satisfies(ex -> assertThat(((ApiException) ex).getCode())
+                        .isEqualTo(ErrorCode.VALIDATION_ERROR));
+        verify(livestockRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldRejectInvalidGenderWithValidationError() {
+        when(livestockRepository.findByLivestockCode("COW-005")).thenReturn(Optional.empty());
+
+        var cmd = new CreateLivestockCommand(1L, "COW-005", "ANGUS", "unknown",
+                LocalDate.of(2025, 1, 10), new BigDecimal("380"));
+
+        assertThatThrownBy(() -> service.createLivestock(cmd))
+                .isInstanceOf(ApiException.class)
+                .satisfies(ex -> assertThat(((ApiException) ex).getCode())
+                        .isEqualTo(ErrorCode.VALIDATION_ERROR));
     }
 
     @Test
@@ -91,7 +154,7 @@ class LivestockApplicationServiceTest {
                 LocalDate.of(2024, 5, 1), new BigDecimal("500"));
         var result = service.updateLivestock(10L, cmd);
 
-        assertThat(result.breed()).isEqualTo("和牛");
+        assertThat(result.breed()).isEqualTo("WAGYU");
         assertThat(result.gender()).isEqualTo("FEMALE");
         assertThat(result.weight()).isEqualByComparingTo(new BigDecimal("500"));
     }
