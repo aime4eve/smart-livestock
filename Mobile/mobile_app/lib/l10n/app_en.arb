@@ -162,7 +162,6 @@
   "@ranchCollapseFenceList": {},
   "ranchEditBoundary": "Edit Boundary",
   "@ranchEditBoundary": {},
-  "ranchFenceDeleted": "Deleted \"{name}\"",
   "@ranchFenceDeleted": {
     "placeholders": {
       "name": {
@@ -1898,8 +1897,6 @@
   "@fenceTemplateRectangle": {},
   "fenceTemplateCircle": "Circle Area",
   "@fenceTemplateCircle": {},
-  "fenceTemplateTrajectoryBuffer": "Trajectory Buffer",
-  "@fenceTemplateTrajectoryBuffer": {},
   "fenceLoadFailed": "Failed to load fences",
   "@fenceLoadFailed": {},
   "fenceBoundaryMinPoints": "Boundary requires at least 3 points",
@@ -3014,7 +3011,6 @@
   },
   "alertMonthUnit": "/",
   "@alertMonthUnit": {},
-  "alertDayUnit": "",
   "@alertDayUnit": {},
   "alertDateToday": "Today",
   "@alertDateToday": {},

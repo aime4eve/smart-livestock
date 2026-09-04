@@ -2151,9 +2151,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get fenceTemplateCircle => '圆形区域';
 
   @override
-  String get fenceTemplateTrajectoryBuffer => '轨迹缓冲区';
-
-  @override
   String get fenceLoadFailed => '围栏加载失败';
 
   @override

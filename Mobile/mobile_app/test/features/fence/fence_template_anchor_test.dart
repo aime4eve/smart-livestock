@@ -34,23 +34,6 @@ void main() {
       expect(preset.focusPoint, farmAnchor);
     });
 
-    test('trajectory buffer preset shifted to the anchor, shape preserved', () {
-      final preset = fenceTemplatePresetFor(
-        FenceTemplate.trajectoryBuffer,
-        anchor: farmAnchor,
-      );
-      final shiftedCenter = LatLng(
-        preset.drawingPoints.map((p) => p.latitude).reduce((a, b) => a + b) /
-            preset.drawingPoints.length,
-        preset.drawingPoints.map((p) => p.longitude).reduce((a, b) => a + b) /
-            preset.drawingPoints.length,
-      );
-      expect((shiftedCenter.latitude - farmAnchor.latitude).abs(), lessThan(0.01));
-      expect(
-          (shiftedCenter.longitude - farmAnchor.longitude).abs(), lessThan(0.01));
-      expect(preset.focusPoint, farmAnchor);
-    });
-
     test('defaults keep the legacy demo-centre behaviour', () {
       final preset = fenceTemplatePresetFor(FenceTemplate.circle);
       expect(preset.focusPoint, MapConstants.mapCenter);

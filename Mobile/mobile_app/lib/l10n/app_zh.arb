@@ -1898,8 +1898,6 @@
   "@fenceTemplateRectangle": {},
   "fenceTemplateCircle": "圆形区域",
   "@fenceTemplateCircle": {},
-  "fenceTemplateTrajectoryBuffer": "轨迹缓冲区",
-  "@fenceTemplateTrajectoryBuffer": {},
   "fenceLoadFailed": "围栏加载失败",
   "@fenceLoadFailed": {},
   "fenceBoundaryMinPoints": "边界至少需要 3 个点",

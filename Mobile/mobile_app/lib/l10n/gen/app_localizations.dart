@@ -3988,12 +3988,6 @@ abstract class AppLocalizations {
   /// **'圆形区域'**
   String get fenceTemplateCircle;
 
-  /// No description provided for @fenceTemplateTrajectoryBuffer.
-  ///
-  /// In zh, this message translates to:
-  /// **'轨迹缓冲区'**
-  String get fenceTemplateTrajectoryBuffer;
-
   /// No description provided for @fenceLoadFailed.
   ///
   /// In zh, this message translates to:

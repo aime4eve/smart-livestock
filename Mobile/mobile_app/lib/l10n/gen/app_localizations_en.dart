@@ -242,7 +242,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String ranchFenceDeleted(String name) {
-    return 'Deleted \"$name\"';
+    return '已删除「$name」';
   }
 
   @override
@@ -2191,9 +2191,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fenceTemplateCircle => 'Circle Area';
 
   @override
-  String get fenceTemplateTrajectoryBuffer => 'Trajectory Buffer';
-
-  @override
   String get fenceLoadFailed => 'Failed to load fences';
 
   @override
@@ -3824,7 +3821,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alertMonthUnit => '/';
 
   @override
-  String get alertDayUnit => '';
+  String get alertDayUnit => '日';
 
   @override
   String get alertDateToday => 'Today';
