@@ -347,6 +347,21 @@
 
 ---
 
+## 21. 集成测试一轮抓四缺陷：契约示例、配置模板与实现语义的三方脱节
+
+- **日期**: 2026-09-04
+- **现象**: NIX-184 集成测试（API 级按契约文档打 86/223/dev）一轮发现 4 个单测全绿的真实缺陷：① 按契约示例传 `"breed":"西门塔尔牛"` / `"gender":"female"` 建牲畜 → 500（撞 `chk_livestock_breed` / `chk_livestock_gender`，服务层零校验）；② `POST /admin/api-keys` 按契约传 `scopes` 创建成功，但实现根本不读该字段 → 建出的 key 调任何 Open API 都 403；③ 门户建 key 返回体里没有 rawKey——ACL 适配器建完按 id 回查实体，把唯一一次的密钥明文丢了；④ 安装指南让操作员随机生成 `SMART_LIVESTOCK_TILE_WORKER_KEY`，但 DB 只认 V36 种子固定 rawKey → 两台验证机 tile-worker 每 60s 一条 401，瓦片永不渲染。
+- **误判**: ①一开始以为是 NIX-184 新代码引入；实际是 7 月品种规范迁移只改了库和 Flutter（App 发规范码），契约文档示例从未跟进。②③ 是上线以来就存在的功能缺失，只是没人用管理端/门户真实建过 key 走完 Open API。
+- **根因**: **文档示例、配置模板、实现语义三个"非代码层"没有随代码演进的同步机制**——迁移改了取值域、契约写了实现没有的字段、模板要求与种子矛盾，全都不会让任何测试变红，只有拿文档当输入去打真实环境才炸。与 #15（端到端走完整链路）同源：mock/单测验证"代码彼此一致"，集成测试验证"文档与代码一致"。
+- **解决**: ① `LivestockAttributes` 服务层规范化（中文别名→规范码、大小写宽容、未知值 400 带可选清单）+ 契约示例全部改规范码；② 管理端接受并校验 scopes（`ScopeInterceptor.KNOWN_SCOPES` 单一事实源）+ 门户级限流默认对齐；③ 端口方法直返服务层 Map（含 rawKey），创建响应一次性返回；④ env 模板直接带种子值 + 安装指南钉死 + 运维指南补轮换 SQL 与首次建图章节（两台验证机运维侧已即时修复验证）。
+- **判据**:
+  - 迁移收紧取值域（CHECK/枚举/规范化）时，同一次提交必须同步：API 契约示例、Flutter 提交值、服务层校验——三处缺一就是"按文档调用 500"。
+  - 创建类响应若含一次性机密（rawKey/密码/token），禁止"建完回查实体"的映射路径——回查永远拿不到明文；契约字段要在实现里逐字段核对（本次 `apiKey` vs `rawKey` 笔误即漏网）。
+  - 配置模板里与 DB 种子耦合的键，模板必须带种子值本身（或安装脚本同步写库），"让用户随机生成"与"库里只有固定 hash"不能同时成立；症状特征：**周期性 401（等于 POLL_INTERVAL）= 某个轮询组件密钥失配**。
+  - 集成测试输入必须来自契约文档而非自己发明的 payload——用自己"正确的"值测，等于替文档掩盖了漂移。
+
+---
+
 ## 关键词索引（遇症状按关键词快速定位）
 
 | 编号 | 关键词 |
@@ -370,3 +385,4 @@
  | #18 | excel, xlsx, poi, numeric-cell, ".0", 静默回退, Integer.parseInt |
  | #19 | billing-cycle, not-null, start-trial, mock, 集成测试, journey, testcontainers, 生成列, generated-column, 冒烟 |
  | #20 | fresh-database, 全新库, generated-column, 生成列, bpchar, char, varchar, partition, attgenerated, checksum, journey |
+ | #21 | 契约漂移, breed, gender, check-constraint, scopes, raw-key, api-key, tile-worker, 401, 轮询, 文档示例, 集成测试 |
