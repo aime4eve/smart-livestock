@@ -362,6 +362,21 @@
 
 ---
 
+## 22. verify 脚本的 awk 区间表达式在 mawk 上静默失配：目标机 awk 方言是发布包的现实环境
+
+- **日期**: 2026-09-05
+- **现象**: 558 发布包在 86（Ubuntu）上机校验，`verify-release-bundle.sh` 报 `compose ports: found outside nginx -> []`——列表为空却判 FAIL；同一包同一文件在 dev 服务器（GNU awk）上是全过的。
+- **误判**: 先怀疑包损坏或 compose 变更，实际 SHA256 全对；是脚本第 142 行 awk 正则 `[[:space:]]{4,}` 用了 POSIX 区间表达式，**mawk 1.3.4（Ubuntu 默认 awk）不实现区间**，静默匹配零行 → nginx 自己的 ports: 都探不到 → 空列表走 FAIL 分支。
+- **根因**: 脚本头部宣称 "Runs on: Any machine"，但开发与自测只发生在 GNU awk 机器上——**验证工具本身没有在它声称要跑的方言环境里验证过**（与 #20"全新库没有第一次"同构：目标机 awk 没有第一次）。
+- **解决**: 区间展开为四个显式 `[[:space:]]` 类 + `+`（f812e02e）；557 包作废重出 558；双机重装后 13/13 全过。
+- **判据**:
+  - 随发布包下机的校验/运维脚本，禁用 awk 正则区间 `{n,m}`（mawk 不支持且**静默失配**，不报错最危险）；显式枚举字符类最稳。
+  - "校验工具在构建机上是绿的" ≠ "在目标机是绿的"——发布验收必须包含**在目标机原样跑一遍 verify**，并把它当真实测试而不是仪式。
+  - 热修补过包内文件后，SHA256SUMS 必然失配——这是完整性校验在正确工作；正确出路是修复进 repo 重出包，而不是手改清单。
+  - 复装/升级语境的 install 预检失败（端口占用/证书缺失/资源阈值）不是包的问题：先 down 旧栈、拷贝 secrets/certs、用 `MIN_MEM_GB/MIN_DISK_GB` 覆盖参数（install 脚本自带）。
+
+---
+
 ## 关键词索引（遇症状按关键词快速定位）
 
 | 编号 | 关键词 |
@@ -386,3 +401,4 @@
  | #19 | billing-cycle, not-null, start-trial, mock, 集成测试, journey, testcontainers, 生成列, generated-column, 冒烟 |
  | #20 | fresh-database, 全新库, generated-column, 生成列, bpchar, char, varchar, partition, attgenerated, checksum, journey |
  | #21 | 契约漂移, breed, gender, check-constraint, scopes, raw-key, api-key, tile-worker, 401, 轮询, 文档示例, 集成测试 |
+ | #22 | mawk, awk, interval, {4,}, 区间表达式, verify-release-bundle, sha256sums, 热修, 重装, 预检, ubuntu |
