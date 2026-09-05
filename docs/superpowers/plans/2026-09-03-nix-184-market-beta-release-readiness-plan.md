@@ -133,6 +133,7 @@ Flyway `V20260903120000__deployment_licensing.sql`：deployment_installations / 
 | T9b | ✅ 完成 | `ce6f5128` | 契约 5 端点（字段逐一对 DTO）+changelog；安装/运维指南+发布检查清单；脚本引用核对一致 |
 | T10 | ✅ 完成 | 2d6bb2a9 / bb19bc81 / 00268108 | **双机实测通过**：86 装 HOSTED（试点 TRIAL 至 2027-09-04）；223 离线装 ONPREM（PENDING 阻断→签发导入→VALID→篡改/错绑拒绝→改库自愈 RECOVERED）；双机 check-release-health 26/26；86 备份恢复闭环；外部扫描暴露面仅 80/443。实测暴露并修复 5 处缺陷（详见知识库档案） |
 
+| RI 重装终验轮 | ✅ 完成 | f812e02e | 发布包重建 557→（verify 脚本 mawk 假失败，lesson #22）→**558 定稿**：86/223 双机重装（证书/数据卷/env 继承，MIN_MEM/MIN_DISK 覆盖），双机 verify 13/13 + check-release-health 26/26；86 试点数据存续、223 授权 VALID 存续（PREMIUM 至 2027-09-04）；牲畜修复/管理 key scopes/tile-worker key 双机全数生效，401 清零 |
 | IT 集成测试轮 | ✅ 完成 | dd82af98 / e59c488b / 1c69307d | 四环境回归（dev/test/86/223）+ 86 HOSTED 与 223 ONPREM 端到端：TC-C/TC-E/TC-H/TC-O 关键项全过；发现并修复 4 缺陷：①牲畜 breed/gender 无校验撞 DB CHECK 变 500（含契约示例纠正）②管理端建 Open API key 无 scopes 全 403 ③门户建 key 响应丢 rawKey ④tile-worker key 与 V36 种子失配（86/223 运维侧已改种子值+重建，双机鉴权失败清零）。dev 已部署并回归通过；86/223 的 jar 修复随下次发布包生效。登录页授权徽章 dev 双语截图验证通过 |
 
 > 看板维护规则：每卡完成由主智能体更新状态/提交号/产物路径；偏离记入 §5。
