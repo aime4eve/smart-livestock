@@ -136,10 +136,13 @@ if [[ -f "$COMPOSE" ]]; then
   # ── 8. ports: only under nginx ─────────────────────────────────────────────
   # Indentation-based parse (documented limitation): a service key is a line
   # with exactly 2 leading spaces ending in ':', a ports key has 4+ spaces.
+  # NOTE: no regex interval ({4,}) here — mawk (Ubuntu default awk) does not
+  # implement intervals and would silently match nothing, failing this check
+  # on machines where the bundle must verify.
   PORT_SVCS="$(awk '
     /^[[:space:]]*#/ { next }
     /^  [A-Za-z0-9_-]+:[[:space:]]*$/ { svc = $1; sub(/:$/, "", svc) }
-    /^[[:space:]]{4,}ports:/ { print svc }
+    /^[[:space:]][[:space:]][[:space:]][[:space:]]+ports:/ { print svc }
   ' "$COMPOSE" | LC_ALL=C sort -u)"
   if [[ "$PORT_SVCS" == "nginx" ]]; then
     pass "compose ports: only under nginx"
