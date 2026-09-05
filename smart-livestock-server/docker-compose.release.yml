@@ -1,0 +1,216 @@
+# =============================================================================
+# Smart Livestock — release (market beta) single-host Compose baseline
+#
+# Task card: NIX-184 T8a
+# Design: docs/superpowers/specs/2026-08-31-market-beta-release-readiness-implementation-design.md (§2/§13)
+#
+# Contract (enforced by scripts/build-release-package.sh / install-release.sh, T8b):
+#   - All images are PRE-BUILT and loaded offline via `docker load`. No `build:`
+#     sections on purpose: an install host must never need build context.
+#     Self-built images carry tag smart-livestock/<svc>:${RELEASE_VERSION}.
+#   - Copy .env.release.example to .env.release and fill every CHANGE_ME_* value
+#     before `docker compose -f docker-compose.release.yml up -d`.
+#   - TLS certs must exist at ./secrets/certs/{fullchain.pem,privkey.pem}.
+#   - Only nginx exposes host ports (HTTP/HTTPS). postgres/redis/rocketmq/ai-platform/
+#     tileserver/app/tile-worker are internal-only (service name = hostname).
+#   - No rocketmq-dashboard, no datagen service (release exclusion list, design §13).
+#   - App reads the ONPREM host fingerprint from the Linux host's /etc/machine-id
+#     (read-only bind mount below) — release hosts are Linux only.
+# =============================================================================
+
+name: smart-livestock-release
+
+services:
+  nginx:
+    image: smart-livestock/nginx:${RELEASE_VERSION:-beta}
+    ports:
+      - "${HTTP_PORT}:80"
+      - "${HTTPS_PORT}:443"
+    volumes:
+      - ./secrets/certs/fullchain.pem:/etc/nginx/certs/fullchain.pem:ro
+      - ./secrets/certs/privkey.pem:/etc/nginx/certs/privkey.pem:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      # nginx:alpine ships busybox wget; /health on :80 301-redirects to HTTPS
+      # (self-signed certs), so probe the HTTPS endpoint directly and skip the
+      # certificate check (the TLS-gate itself is check #8 in the health script).
+      test: ["CMD-SHELL", "wget -q -O /dev/null --no-check-certificate https://127.0.0.1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  app:
+    image: smart-livestock/app:${RELEASE_VERSION:-beta}
+    env_file:
+      - .env.release
+    environment:
+      # Internal routing pinned to compose service names — overrides whatever
+      # comes from .env.release so a typo cannot point the app off-network.
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: smart_livestock
+      DB_USER: postgres
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required in .env.release}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ROCKETMQ_NAME_SERVER: rocketmq-namesrv:9876
+      AI_PLATFORM_URL: http://ai-platform:8000
+      AI_PLATFORM_BEHAVIOR_TIMEOUT_MS: "300000"
+      AGENTIC_PLATFORM_DEVICE_BASE_URL: ${AGENTIC_PLATFORM_DEVICE_BASE_URL}
+      AGENTIC_PLATFORM_LICENSE_BASE_URL: ${AGENTIC_PLATFORM_LICENSE_BASE_URL}
+      AGENTIC_PLATFORM_OAUTH2_TOKEN_URI: ${AGENTIC_PLATFORM_OAUTH2_TOKEN_URI}
+      # Release hard requirements: synthetic data and telemetry simulator stay off
+      # (double guard — values in .env.release must also be "false", design §13).
+      DATAGEN_ENABLED: "false"
+      TELEMETRY_SIMULATOR_ENABLED: "false"
+      # Licensing deployment mode (HOSTED | ONPREM) — see .env.release.example.
+      SMARTLIVESTOCK_LICENSE_MODE: ${SMARTLIVESTOCK_LICENSE_MODE}
+    volumes:
+      - tileserver-data:/data:ro
+      # ONPREM host fingerprint source (SMARTLIVESTOCK_LICENSE_HOST_FINGERPRINT_FILE
+      # defaults to /etc/machine-id); bind-mounted read-only from the Linux host.
+      - /etc/machine-id:/etc/machine-id:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rocketmq-namesrv:
+        condition: service_healthy
+      rocketmq-broker:
+        condition: service_started
+      ai-platform:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      # The temurin jammy base actually ships BOTH curl and wget, and its bash
+      # build has /dev/tcp net-redirections compiled out — so the original
+      # bash /dev/tcp probe always failed. curl -f on the health endpoint is
+      # the simple, image-agnostic probe.
+      test: ["CMD", "curl", "-fs", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 120s
+
+  postgres:
+    # Self-built image = official postgres:16 + hardened pg_hba.conf, built and
+    # saved by build-release-package.sh (T8b):
+    #   docker build -t smart-livestock/postgres:${RELEASE_VERSION} infrastructure/postgres/
+    image: smart-livestock/postgres:${RELEASE_VERSION:-beta}
+    command: ["postgres", "-c", "hba_file=/etc/postgresql/pg_hba.conf"]
+    environment:
+      POSTGRES_DB: smart_livestock
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required in .env.release}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rocketmq-namesrv:
+    image: apache/rocketmq:5.1.0
+    command: sh mqnamesrv
+    restart: unless-stopped
+    healthcheck:
+      # apache/rocketmq:5.1.0 ships RHEL bash 4.2 which is built WITHOUT
+      # /dev/tcp net-redirections — probe with the image's own nc instead
+      # (verified present in the 5.1.0 image; curl too as a fallback).
+      test: ["CMD", "nc", "-z", "127.0.0.1", "9876"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  rocketmq-broker:
+    image: apache/rocketmq:5.1.0
+    command: sh mqbroker -n rocketmq-namesrv:9876
+    depends_on:
+      rocketmq-namesrv:
+        condition: service_healthy
+    environment:
+      JAVA_OPT: "-Duser.home=/home/rocketmq"
+    restart: unless-stopped
+    healthcheck:
+      # Best-effort TCP probe on the broker listen port (RHEL bash: no /dev/tcp).
+      test: ["CMD", "nc", "-z", "127.0.0.1", "10911"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  ai-platform:
+    image: smart-livestock/ai-platform:${RELEASE_VERSION:-beta}
+    environment:
+      AI_DB_HOST: postgres
+      AI_DB_PORT: 5432
+      AI_DB_NAME: smart_livestock
+      AI_DB_USER: postgres
+      # Shares the single PostgreSQL password source (no second credential to rotate).
+      AI_DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required in .env.release}
+      AI_BEHAVIOR_MODEL_DIR: /data/behavior-models
+    volumes:
+      - behavior-models:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/ai/health/live')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  tileserver:
+    image: maptiler/tileserver-gl:latest
+    volumes:
+      - tileserver-data:/data
+    command: ["-c", "config.json", "--port", "8080"]
+    restart: unless-stopped
+    healthcheck:
+      # maptiler/tileserver-gl is node-alpine based but ships NEITHER wget nor
+      # curl (verified in the 5.1.0 image on real hosts) — probe with node's
+      # own http module instead.
+      test: ["CMD-SHELL", "node -e 'require(\"http\").get(\"http://127.0.0.1:8080/\",r=>process.exit(r.statusCode===200?0:1)).on(\"error\",()=>process.exit(1))'"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  tile-worker:
+    image: smart-livestock/tile-worker:${RELEASE_VERSION:-beta}
+    environment:
+      API_URL: http://app:8080/api/v1
+      SMART_LIVESTOCK_API_KEY: ${SMART_LIVESTOCK_TILE_WORKER_KEY:?SMART_LIVESTOCK_TILE_WORKER_KEY is required in .env.release}
+      OUTDIR: /data
+      POLL_INTERVAL: "${POLL_INTERVAL:-60}"
+      TILE_CONCURRENCY: "${TILE_CONCURRENCY:-8}"
+    volumes:
+      - tileserver-data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  tileserver-data:
+  behavior-models:

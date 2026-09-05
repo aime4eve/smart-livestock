@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -48,8 +49,20 @@ public class PortalAppController {
         int dailyQuota = body.get("dailyQuota") != null ? ((Number) body.get("dailyQuota")).intValue() : 20000;
         String description = (String) body.get("description");
 
-        var newKey = identityQueryPort.createApiKey(tenantId, name, scopes, rpm, dailyQuota, description);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(toSummary(newKey)));
+        Map<String, Object> created = identityQueryPort.createApiKey(tenantId, name, scopes, rpm, dailyQuota, description);
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("id", created.get("id"));
+        response.put("keyName", created.get("keyName"));
+        response.put("prefix", created.get("prefix"));
+        response.put("rawKey", created.get("rawKey"));
+        response.put("scopes", created.get("scopes"));
+        response.put("requestsPerMinute", created.get("requestsPerMinute"));
+        response.put("dailyQuota", created.get("dailyQuota"));
+        response.put("status", created.get("status"));
+        response.put("description", description);
+        response.put("createdAt", created.get("createdAt"));
+        response.put("warning", created.get("warning"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(response));
     }
 
     @PutMapping("/{keyId}")

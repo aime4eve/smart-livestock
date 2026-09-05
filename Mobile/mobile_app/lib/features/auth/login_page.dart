@@ -4,6 +4,7 @@ import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/l10n/locale_controller.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/auth/data/deployment_info.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
@@ -66,6 +67,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final deploymentInfo = ref.watch(deploymentInfoProvider);
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -108,10 +110,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                             const SizedBox(height: AppSpacing.md),
-                            const HighfiStatusChip(
-                              label: '在线模式',
-                              color: AppColors.success,
-                              icon: Icons.cloud_outlined,
+                            // License-mode display (NIX-184): driven by the
+                            // public deployment-info endpoint; hidden entirely
+                            // when it is unavailable so login never blocks.
+                            deploymentInfo.when(
+                              skipLoadingOnReload: true,
+                              data: (info) => info == null
+                                  ? const SizedBox.shrink()
+                                  : _LicenseModeBadge(info: info),
+                              loading: () => const SizedBox.shrink(),
+                              error: (_, __) => const SizedBox.shrink(),
                             ),
                           ],
                         ),
@@ -199,6 +207,83 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// License-mode badge + banner, mirroring the reviewed prototype
+/// (docs/marketing/nix-184-login-license-mode-prototype.html).
+class _LicenseModeBadge extends StatelessWidget {
+  const _LicenseModeBadge({required this.info});
+  final DeploymentInfo info;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    if (!info.isOnprem) {
+      return HighfiStatusChip(
+        key: const Key('license-mode-chip'),
+        label: l10n.authModeHosted,
+        color: AppColors.success,
+        icon: Icons.cloud_outlined,
+      );
+    }
+    final status = info.runtimeStatus;
+    final (chipColor, bannerColor, bannerText) = switch (status) {
+      'PENDING_ACTIVATION' => (
+          AppColors.warning,
+          AppColors.warning,
+          l10n.authModePendingBanner,
+        ),
+      'EXPIRED' => (
+          AppColors.danger,
+          AppColors.danger,
+          l10n.authModeExpiredBanner,
+        ),
+      'SUSPENDED' => (
+          AppColors.danger,
+          AppColors.danger,
+          l10n.authModeSuspendedBanner,
+        ),
+      _ => (AppColors.info, null, null),
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        HighfiStatusChip(
+          key: const Key('license-mode-chip'),
+          // Keep the label short: HighfiStatusChip does not wrap, and the
+          // "offline license active" nuance is carried by the banner states.
+          label: l10n.authModeOnprem,
+          color: chipColor,
+          icon: Icons.dns_outlined,
+        ),
+        if (bannerText != null && bannerColor != null) ...[
+          const SizedBox(height: AppSpacing.md),
+          Container(
+            key: Key('license-mode-banner-$status'),
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: bannerColor == AppColors.warning
+                  ? const Color(0xFFF7ECDC)
+                  : const Color(0xFFF6E4E2),
+              border: Border(
+                left: BorderSide(color: bannerColor, width: 4),
+              ),
+              borderRadius: BorderRadius.circular(AppSpacing.sm),
+            ),
+            child: Text(
+              bannerText,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(height: 1.5),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

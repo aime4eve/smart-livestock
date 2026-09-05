@@ -26,11 +26,15 @@ class WizardStepFenceDrawing extends ConsumerStatefulWidget {
   const WizardStepFenceDrawing({
     super.key,
     required this.farmId,
+    this.initialCenter,
     required this.onComplete,
     required this.onSkip,
   });
 
   final String farmId;
+
+  /// 第一步选定的牧场中心（屏幕坐标系）；空则退回演示默认点
+  final LatLng? initialCenter;
   final void Function(int count) onComplete;
   final VoidCallback onSkip;
 
@@ -339,7 +343,8 @@ class _WizardStepFenceDrawingState
                 child: FlutterMap(
                   mapController: _mapController,
                   options: MapOptions(
-                    initialCenter: MapConfig.defaultCenter,
+                    initialCenter:
+                        widget.initialCenter ?? MapConfig.defaultCenter,
                     initialZoom: 14.0,
                     onTap: _onMapTap,
                   ),

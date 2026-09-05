@@ -1,0 +1,25 @@
+{
+  "envelopeFile": "issuer-roundtrip.sllicense",
+  "keyId": "sl-license-test",
+  "payloadSha256": "d2428ae60b4f7611548b7856b52e49e56ec14b76cad9ff7e633e6dcd37d8f5ec",
+  "payload": {
+    "payloadVersion": 1,
+    "licenseId": "7f6c1a2e-3b4d-4e5f-8a9b-0c1d2e3f4a5b",
+    "tenantId": 42,
+    "installationId": "9e1c2b3a-4d5e-4f60-8a71-9b0c1d2e3f40",
+    "fingerprintHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "keyId": "sl-license-test",
+    "licenseType": "ACTIVE",
+    "tier": "PREMIUM",
+    "effectiveTier": "PREMIUM",
+    "issuedAt": "2026-09-01T00:00:00Z",
+    "expiresAt": "2027-09-01T00:00:00Z",
+    "quotas": {
+      "livestock_management": 1000,
+      "fence_management": 100,
+      "worker_management": 50,
+      "device_management": 1000
+    },
+    "features": {}
+  }
+}

@@ -2,8 +2,8 @@
 
 ## 1. 设计结论
 
-- 引入独立 `licensing` 限界上下文，负责云端试点授权与地端离线授权。
-- 云端试点授权由 `platform_admin` 调用，固定开通或延长 365 天。
+- 引入独立 `licensing` 限界上下文，负责托管试点授权与地端离线授权。
+- 托管试点授权由 `platform_admin` 调用，固定开通或延长 365 天。
 - 地端使用厂商签发的 `.sllicense` 离线授权文件，采用 Ed25519 签名、安装 ID 和主机指纹绑定。
 - 新增独立 `license-issuer` 内部签发服务；它不进入客户 release 包，私钥不进入地端。
 - 地端信任根是内置公钥，不允许通过普通环境变量替换。
@@ -17,7 +17,7 @@
 ```yaml
 smartlivestock:
   license:
-    mode: CLOUD | ONPREM
+    mode: HOSTED | ONPREM
     public-key-file: classpath:licensing/license-public-keys.json
     time-tolerance: PT2M
     validation-cron: "0 */5 * * * *"
@@ -25,10 +25,16 @@ smartlivestock:
     enabled: true | false
 ```
 
-- `CLOUD`：默认模式，dev/test/云端使用；启用试点授权 API，不要求主机指纹。
-- `ONPREM`：release 地端模式；启用离线授权、主机绑定、授权 enforcement，禁用云端试点 API 和自助订阅变更。
+- `HOSTED`：默认模式，dev/test、内部模拟环境和试点服务器使用；启用试点授权 API，不要求主机指纹。
+- `ONPREM`：release 地端模式；启用离线授权、主机绑定、授权 enforcement，禁用托管试点 API 和自助订阅变更。
 - `.env.release.example` 中 `SMARTLIVESTOCK_LICENSE_MODE=ONPREM`、`SMARTLIVESTOCK_PILOT_LICENSE_ENABLED=false`。
-- 云端环境反向配置为 `CLOUD=true`。
+- 内部模拟环境或另一台试点服务器配置为 `SMARTLIVESTOCK_LICENSE_MODE=HOSTED`。
+
+这里的 `HOSTED / ONPREM` 不是按物理位置区分，而是按信任边界区分：
+
+- 另找一台服务器安装部署，如果服务器仍由我方运营和排障，属于 `HOSTED` 模拟环境/试点服务器。
+- 服务器交付给客户、客户拥有 root 权限，则属于 `ONPREM` 地端环境。
+- 同一个 Docker Compose 发布包既可用于 `HOSTED` 模拟环境，也可用于 `ONPREM` 地端；差异来自配置和信任根。
 
 ## 3. 授权文件格式
 
@@ -242,7 +248,7 @@ V20260831120000__deployment_licensing.sql
 
 不种子任何可用授权文件，避免迁移本身成为绕过入口。
 
-## 7. 云端试点授权
+## 7. 托管试点授权
 
 新增接口：
 
@@ -253,7 +259,7 @@ POST /api/v1/admin/tenants/{tenantId}/pilot-license
 规则：
 
 - 仅 `platform_admin`。
-- `CLOUD` 模式且 `pilot-license.enabled=true` 时可用。
+- `HOSTED` 模式且 `pilot-license.enabled=true` 时可用。
 - `ONPREM` 模式返回 `AUTH_FORBIDDEN`。
 - 无订阅：创建 `TRIAL / BASIC`，`trialEndsAt = now + 365d`。
 - 已有未过期 `TRIAL`：延长到 `max(currentTrialEndsAt, now + 365d)`。
@@ -366,7 +372,7 @@ LicenseQuotaPort
 1. `ONPREM` 下先查询 license quota。
 2. license 存在配额时优先生效。
 3. license 无该 key 配额时回退现有 `FeatureGate`。
-4. `CLOUD` 下行为不变。
+4. `HOSTED` 下行为不变。
 
 导入授权前检查：
 
@@ -409,7 +415,7 @@ LicenseQuotaPort
 
 `ONPREM` 下同时禁用：
 
-- 云端试点授权接口。
+- 托管试点授权接口。
 - 自助订阅结账。
 - 自助订阅升级。
 - 自助取消。
@@ -456,7 +462,7 @@ platformDeploymentLicense(
 
 只对 `platform_admin` 显示。
 
-云端订阅管理页新增：
+托管试点/模拟环境订阅管理页新增：
 
 - 开通 365 天试点授权按钮。
 - 当前订阅状态展示。
@@ -607,13 +613,13 @@ smart-livestock-market-beta-<version>/
 - 授权配额优先于 FeatureGate。
 - 时间回拨进入保护模式。
 - 手工改库后 scheduler 恢复真实状态。
-- 云端 365 天试用创建和延长。
+- 托管/模拟环境 365 天试用创建和延长。
 - 非法订阅状态拒绝试点授权。
 
 ### Controller 测试
 
 - 非 platform_admin 返回 403。
-- CLOUD 模式禁用地端 API。
+- HOSTED 模式禁用地端 API。
 - ONPREM 模式禁用试点 API。
 - pending 状态阻止业务 API。
 - suspended 状态只允许授权管理。
@@ -659,7 +665,7 @@ smart-livestock-market-beta-<version>/
 5. 实现 offline license validator、状态机、Commerce adapter。
 6. 实现 enrollment/import/current API 与 enforcement。
 7. 实现 license-issuer 服务和后台页面。
-8. 实现 Flutter 授权页与云端试点入口。
+8. 实现 Flutter 授权页与托管试点入口。
 9. 修复 alerts route dead code。
 10. 增加 release compose、TLS、离线镜像包和运维脚本。
 11. 跑目标测试、发布包验证、备份恢复、端到端链路。

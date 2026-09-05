@@ -6,6 +6,7 @@ import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
 import com.smartlivestock.shared.tenant.TenantContext;
+import com.smartlivestock.shared.scope.ScopeInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +43,7 @@ public class ApiKeyAdminController {
                         "keyName", k.getKeyName() != null ? k.getKeyName() : "",
                         "prefix", k.getKeyPrefix() != null ? k.getKeyPrefix() : "",
                         "role", k.getRole() != null ? k.getRole() : "",
+                        "scopes", k.getScopes() != null ? k.getScopes() : "",
                         "status", k.getStatus() != null ? k.getStatus() : "",
                         "tenantId", k.getTenantId(),
                         "expiresAt", k.getExpiresAt() != null ? k.getExpiresAt().toString() : "",
@@ -68,17 +71,51 @@ public class ApiKeyAdminController {
         Long tenantId = body.get("tenantId") != null
                 ? ((Number) body.get("tenantId")).longValue()
                 : TenantContext.getCurrentTenant();
+        String scopes = normalizeScopes(body.get("scopes"));
 
-        Map<String, Object> result = apiKeyApplicationService.createApiKey(tenantId, name, role);
+        Map<String, Object> result = apiKeyApplicationService.createApiKey(tenantId, name, role, scopes);
 
-        Map<String, Object> response = Map.of(
-                "id", result.get("id"),
-                "keyName", result.get("keyName"),
-                "prefix", result.get("prefix"),
-                "role", result.get("role"),
-                "rawKey", result.get("rawKey")
-        );
+        Map<String, Object> response = new LinkedHashMap<>(
+                Map.of(
+                        "id", result.get("id"),
+                        "keyName", result.get("keyName"),
+                        "prefix", result.get("prefix"),
+                        "role", result.get("role"),
+                        "rawKey", result.get("rawKey")
+                ));
+        response.put("scopes", result.get("scopes"));
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(response));
+    }
+
+    /**
+     * Accepts scopes as a JSON array or a comma-separated string (both shapes
+     * appear in the field) and validates each token against the known scope
+     * set, so keys are never created without the grants their consumers need.
+     */
+    private String normalizeScopes(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        List<String> tokens;
+        if (raw instanceof List<?> list) {
+            tokens = list.stream().map(String::valueOf).toList();
+        } else {
+            tokens = List.of(String.valueOf(raw).split(","));
+        }
+        List<String> cleaned = tokens.stream()
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+        if (cleaned.isEmpty()) {
+            return null;
+        }
+        for (String scope : cleaned) {
+            if (!ScopeInterceptor.KNOWN_SCOPES.contains(scope)) {
+                throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.apiKeyScopeInvalid",
+                        new Object[]{scope, String.join(", ", ScopeInterceptor.KNOWN_SCOPES)});
+            }
+        }
+        return String.join(",", cleaned);
     }
 
     @PutMapping("/{keyId}/status")

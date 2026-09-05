@@ -139,6 +139,14 @@ public class GlobalExceptionHandler {
             case SERVICE_KEY_MISMATCH -> HttpStatus.BAD_REQUEST;
             case SERVICE_LICENSE_EXPIRED -> HttpStatus.FORBIDDEN;
             case SETTLEMENT_DUPLICATE_CONFIRM -> HttpStatus.CONFLICT;
+            // Deployment licensing (NIX-184): forbidden semantics align with the
+            // existing LICENSE_EXPIRED / QUOTA_EXCEEDED mappings; time rollback is
+            // a state conflict between the host clock and validation preconditions.
+            case LICENSE_REQUIRED -> HttpStatus.FORBIDDEN;
+            case LICENSE_INVALID -> HttpStatus.FORBIDDEN;
+            case LICENSE_BINDING_MISMATCH -> HttpStatus.FORBIDDEN;
+            case LICENSE_TIME_ROLLBACK -> HttpStatus.CONFLICT;
+            case LICENSE_QUOTA_EXCEEDED -> HttpStatus.FORBIDDEN;
             case INTERNAL_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }

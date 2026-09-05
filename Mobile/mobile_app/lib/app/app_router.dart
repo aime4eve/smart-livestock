@@ -50,6 +50,7 @@ import 'package:hkt_livestock_agentic/features/admin/presentation/subscriptions_
 import 'package:hkt_livestock_agentic/features/admin/presentation/api_auth_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/audit_log/presentation/audit_log_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/feature_gate/presentation/feature_gate_page.dart';
+import 'package:hkt_livestock_agentic/features/admin/license/presentation/deployment_license_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/analytics/presentation/analytics_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/tile_admin/presentation/tile_admin_page.dart';
 import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_revenue_page.dart';
@@ -102,7 +103,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return AppRoute.ranch.path;
       }
 
-      if (location == AppRoute.admin.path) {
+      // /admin/** 管理页仅平台管理员可入（platformAdmin 已在前序分支放行，
+      // b2b_admin 的 /admin/datagen、/admin/tiles 亦在前序分支放行）。
+      if (location == AppRoute.admin.path ||
+          location.startsWith('${AppRoute.admin.path}/')) {
         return AppRoute.ranch.path;
       }
 
@@ -209,7 +213,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                final role = ref.watch(sessionControllerProvider).role!;
                final category = state.uri.queryParameters['category'];
                final fenceId = state.uri.queryParameters['fenceId'];
-               return AlertsPage(role: role);
                return AlertsPage(role: role, category: category, fenceId: fenceId);
               },
             ),
@@ -356,6 +359,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoute.platformSubscriptions.path,
             name: AppRoute.platformSubscriptions.routeName,
             builder: (context, state) => const SubscriptionsPage(),
+          ),
+          GoRoute(
+            path: AppRoute.platformDeploymentLicense.path,
+            name: AppRoute.platformDeploymentLicense.routeName,
+            builder: (context, state) => const DeploymentLicensePage(),
           ),
           GoRoute(
             path: AppRoute.platformApiAuth.path,

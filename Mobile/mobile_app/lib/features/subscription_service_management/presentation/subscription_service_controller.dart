@@ -78,6 +78,20 @@ class SubscriptionServiceController
         .read(subscriptionServiceRepositoryProvider)
         .updateSubscriptionStatus(id, targetStatus);
   }
+
+  // ── Hosted pilot license (NIX-184 T7b) ────────────────────────────
+
+  /// Grant (or extend) the 365-day hosted pilot trial for [tenantId], then
+  /// refresh the service list. Rethrows on failure, including
+  /// [ConflictException] (STATE_CONFLICT) so the page can render a
+  /// dedicated conflict message.
+  Future<PilotLicenseGrant> grantPilotLicense(int tenantId) async {
+    final grant = await ref
+        .read(subscriptionServiceRepositoryProvider)
+        .grantPilotLicense(tenantId);
+    await refresh();
+    return grant;
+  }
 }
 
 final subscriptionServiceControllerProvider =

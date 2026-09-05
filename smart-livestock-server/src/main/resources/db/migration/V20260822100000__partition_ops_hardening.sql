@@ -23,6 +23,7 @@ DECLARE
     v_default text;
     v_stage text;
     v_column text;
+    v_cols text;
     v_end date;
     v_moved bigint;
 BEGIN
@@ -43,6 +44,16 @@ BEGIN
     IF v_column IS NULL THEN
         RAISE EXCEPTION 'table % is not range-partitioned on one column', p_parent;
     END IF;
+
+    -- GENERATED ALWAYS columns (e.g. temperature_logs.delta) reject explicit
+    -- values on re-insert, so row moves must round-trip without them.
+    SELECT string_agg(format('%I', a.attname), ', ' ORDER BY a.attnum)
+      INTO v_cols
+      FROM pg_attribute a
+     WHERE a.attrelid = p_parent
+       AND a.attnum > 0
+       AND NOT a.attisdropped
+       AND a.attgenerated = '';
 
     v_end := (date_trunc('month', p_month) + INTERVAL '1 month')::date;
     v_partition := v_parent || '_' || to_char(p_month, 'YYYY_MM');
@@ -74,8 +85,8 @@ BEGIN
 
     IF v_moved > 0 THEN
         EXECUTE format(
-            'INSERT INTO %I.%I SELECT * FROM pg_temp.%I',
-            v_schema, v_parent, v_stage);
+            'INSERT INTO %I.%I (%s) SELECT %s FROM pg_temp.%I',
+            v_schema, v_parent, v_cols, v_cols, v_stage);
     END IF;
 
     RETURN v_moved;

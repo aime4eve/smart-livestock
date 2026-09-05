@@ -1,13 +1,12 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
+
 import 'package:latlong2/latlong.dart';
 import 'package:hkt_livestock_agentic/core/map/map_constants.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
-enum FenceTemplate { rectangle, circle, trajectoryBuffer }
+enum FenceTemplate { rectangle, circle }
 
 class FenceTemplatePreset {
   const FenceTemplatePreset({
@@ -23,31 +22,30 @@ class FenceTemplatePreset {
   final LatLng focusPoint;
 }
 
-FenceTemplatePreset fenceTemplatePresetFor(FenceTemplate template) {
+/// 生成模板预设。[anchor] 为模板形状的落点（屏幕坐标系），
+/// 默认保持演示区域中心，实际调用方应传当前牧场坐标。
+FenceTemplatePreset fenceTemplatePresetFor(
+  FenceTemplate template, {
+  LatLng anchor = MapConstants.mapCenter,
+}) {
   return switch (template) {
     FenceTemplate.rectangle => FenceTemplatePreset(
         template: template,
         type: FenceType.rectangle,
-        drawingPoints: const [
-          LatLng(28.2294, 112.9372),
-          LatLng(28.2271, 112.9406),
+        drawingPoints: [
+          LatLng(anchor.latitude + 0.0012, anchor.longitude - 0.0016),
+          LatLng(anchor.latitude - 0.0011, anchor.longitude + 0.0018),
         ],
-        focusPoint: MapConstants.mapCenter,
+        focusPoint: anchor,
       ),
     FenceTemplate.circle => FenceTemplatePreset(
         template: template,
         type: FenceType.circle,
-        drawingPoints: const [
-          MapConstants.mapCenter,
-          LatLng(28.2295, 112.9390),
+        drawingPoints: [
+          anchor,
+          LatLng(anchor.latitude + 0.0013, anchor.longitude + 0.0002),
         ],
-        focusPoint: MapConstants.mapCenter,
-      ),
-    FenceTemplate.trajectoryBuffer => FenceTemplatePreset(
-        template: template,
-        type: FenceType.polygon,
-        drawingPoints: _trajectoryBufferPolygon(),
-        focusPoint: _trajectoryCenter(),
+        focusPoint: anchor,
       ),
   };
 }
@@ -98,13 +96,6 @@ class FenceTemplatePicker extends StatelessWidget {
               selected: selectedTemplate == FenceTemplate.circle,
               onTap: () => onSelected(FenceTemplate.circle),
             ),
-            _FenceTemplateAction(
-              key: const Key('fence-template-trajectory-buffer'),
-              label: l10n.fenceTemplateTrajectoryBuffer,
-              icon: Icons.route,
-              selected: selectedTemplate == FenceTemplate.trajectoryBuffer,
-              onTap: () => onSelected(FenceTemplate.trajectoryBuffer),
-            ),
           ],
         ),
       ],
@@ -145,67 +136,3 @@ class _FenceTemplateAction extends StatelessWidget {
   }
 }
 
-List<LatLng> _trajectoryBufferPolygon() {
-  const anchors = MapConstants.gpsAnchorPoints;
-  if (anchors.length < 2) {
-    return FenceItem.defaultPointsForType(FenceType.polygon, MapConstants.mapCenter);
-  }
-
-  const buffer = 0.0007;
-  final left = <LatLng>[];
-  final right = <LatLng>[];
-
-  for (var i = 0; i < anchors.length; i++) {
-    final current = anchors[i];
-    final previous = i == 0 ? anchors[i] : anchors[i - 1];
-    final next = i == anchors.length - 1 ? anchors[i] : anchors[i + 1];
-
-    var directionLat = next.latitude - previous.latitude;
-    var directionLng = next.longitude - previous.longitude;
-    final length = sqrt(directionLat * directionLat + directionLng * directionLng);
-
-    if (length == 0) {
-      directionLat = 1;
-      directionLng = 0;
-    } else {
-      directionLat /= length;
-      directionLng /= length;
-    }
-
-    final normalLat = -directionLng;
-    final normalLng = directionLat;
-    final lngScale = max(cos(current.latitude * pi / 180).abs(), 0.2);
-    final offsetLat = normalLat * buffer;
-    final offsetLng = normalLng * buffer / lngScale;
-
-    left.add(
-      LatLng(
-        current.latitude + offsetLat,
-        current.longitude + offsetLng,
-      ),
-    );
-    right.add(
-      LatLng(
-        current.latitude - offsetLat,
-        current.longitude - offsetLng,
-      ),
-    );
-  }
-
-  return [...left, ...right.reversed];
-}
-
-LatLng _trajectoryCenter() {
-  const anchors = MapConstants.gpsAnchorPoints;
-  if (anchors.isEmpty) {
-    return MapConstants.mapCenter;
-  }
-
-  var lat = 0.0;
-  var lng = 0.0;
-  for (final point in anchors) {
-    lat += point.latitude;
-    lng += point.longitude;
-  }
-  return LatLng(lat / anchors.length, lng / anchors.length);
-}

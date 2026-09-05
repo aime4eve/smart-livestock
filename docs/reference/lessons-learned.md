@@ -308,6 +308,73 @@
   - 涉及文件解析的功能，测试 fixtures 必须覆盖**真实文件里的单元格类型**（NUMERIC vs STRING），不能只用顺手的一种。
   - 宽容解析 + 兜底默认值 = 错误隐身衣；集成验证要逐字段比对源文件与入库值，不只看行数。
 
+
+## 19. 被单测 mock 掉的数据库约束：startTrial 缺 billingCycle 在线上首跑才炸
+
+- **日期**:2026-09-04
+- **现象**:NIX-184 试点授权上线后人工验证：对新租户开通 365 天试点返回 INTERNAL_ERROR。日志 `null value in column "billing_cycle" of relation "subscriptions" violates not-null constraint`，抛点在 `CommerceLicenseAdapter.applyTrialLicense → Subscription.startTrial → save`。
+- **误判**:三层防线全部漏过——① `CommerceLicenseAdapterTest` mock 了仓储 save，SQL 约束不在测试世界里；② `SubscriptionTest` 原有断言 `getBillingCycle()).isNull()` 把 bug 行为**固化成了预期**（对着实现写测试而非对着 schema 写）；③ 该链路没有任何 Testcontainers 集成测试。深层：本机 Docker 跑不了 Testcontainers（既有 14 失败），任务卡全部按"纯单测"设计，**环境限制悄悄降格了验收标准**；且部署后只做了 /health 存活检查，没对新写路径做业务冒烟——这条路径在所有环境都从未真实执行过，人工测试是它的第一次运行。
+- **历史教训**:与 #15（修复后必须端到端走全链路）同源的新变体——**新功能上线也必须端到端走一遍**；"目标单测全绿"只是下限不是验收。测试断言必须从契约（schema/设计文档）推导，不能从当前实现反推，否则测试会变成 bug 的保护伞。
+- **解决**:
+  1. `Subscription.startTrial` 工厂默认 `billingCycle="monthly"`（列 NOT NULL，付费周期语义激活后才生效），删除断言 null 的过时用例并新增 monthly 断言（243c0505）。
+  2. 补 `PilotLicenseJourneyTest`（Testcontainers 真库）：创建租户→授权→断言订阅行真实落库（billingCycle 非空）→再授权延长→ACTIVE 租户冲突拒绝。
+  3. 部署验证升级为两段：存活检查（/health）+ **新增写端点业务冒烟**（真实调用成功与拒绝路径）。
+- **判据**:
+  - 单测 mock 掉仓储的写路径 → 数据库约束/触发器/迁移语义全部脱测，**新增 INSERT/UPDATE 路径必须至少一条真库集成测试**。
+  - 写领域单测时先看表约束：NOT NULL/唯一键/生成列都是领域工厂必须满足的契约。
+  - 测试断言与实现"意外一致"地断言了可疑行为（如 isNull）→ 停下来查 schema 与设计，不要顺手固化。
+  - 本机跑不了的测试层（Testcontainers/Docker）≠ 可以不写；要显式安排在有 Docker 的环境执行（如 dev 服务器 `./gradlew test`），否则验收门槛被环境静默掏空。
+
+
+## 20. 全新库迁移链三连断：只有存量环境验证过的迁移，对"第一次"没有免疫力
+
+- **日期**:2026-09-04
+- **现象**:NIX-184 补 `PilotLicenseJourneyTest`（Testcontainers 全新库）后在 dev 服务器首跑，Spring 启动连续倒在三个不同位置：① `V20260822100000__partition_ops_hardening.sql` 报 "cannot insert a non-DEFAULT value into column delta"；② `behavior_datasets.definition_digest` / `behavior_feature_contracts.schema_hash` 等列 Hibernate validate 报 "found bpchar, expecting varchar(64)"；③ 修 ① 时 `attgenerated='0'` 条件写错（应为空字节 `''`）报 syntax error at ")"。
+- **误判**:①初期怀疑迁移与版本顺序相关，实际是分区搬移函数 `INSERT ... SELECT *` 回插时撞上 `temperature_logs.delta`（V20 `GENERATED ALWAYS` 生成列）——存量库迁移执行时默认分区恰好无行所以从未触发，全新库有种子数据必炸；②CHAR(64) 哈希列在存量库上恰好已是 varchar（或建库历史不同），validate 从未在全新库跑过。
+- **根因**:迁移链只在"存量库增量执行"语境下验证过，**全新库路径（Testcontainers 每次都走）从未被真实执行**——与 #19 同源：写路径/初始化路径没有第一次。目录列类型细节（`pg_attribute.attgenerated` 正常值是空字节 `''` 不是 '0'）只能靠真实执行暴露。
+- **历史教训**:与 #12（checksum mismatch）配套的另一半——改历史迁移必须同步修 checksum（CRC32 逐行不回加换行、低 32 位有符号，先用未改动文件对拍验证算法）；而**允许自己改历史迁移的前提是接受全新库也会重跑它**，这正是暴露 ①② 的机会而非代价。
+- **解决**:
+  1. 分区搬移回插改为显式列清单（`pg_attribute` 过滤 `attgenerated=''`），生成列由 DB 重算（V20260822100000）。
+  2. 三文件 5 处 `CHAR(64)` → `VARCHAR(64)`（V20260822100000 未涉、V20260823100000 ×2、V20260903120000 ×3——后者是 NIX-184 自己引入的，设计文档写法照抄也会踩）。
+  3. dev/test 库 `flyway_schema_history` 逐版本修 checksum，重新部署 dev 使 jar 内嵌迁移与 DB 一致。
+  4. `PilotLicenseJourneyTest` + 既有 Auth/CommerceJourneyTest 在 dev 服务器全新库全绿——Testcontainers 家族复活。
+- **判据**:
+  - 新增/修改迁移后，验证标准不是"dev 库重启正常"，而是"**全新库能从零跑通**"（本地 Testcontainers 或 dev 服务器 `./gradlew clean test --tests *JourneyTest`）。
+  - 表里存在 `GENERATED ALWAYS`/identity 列 → 一切行复制/搬移逻辑禁止 `SELECT *`，必须显式列清单排除生成列。
+  - 哈希/指纹列用 `CHAR(n)` 而 JPA 实体是 `@Column(length=n)` 的 String → validate 必挂；项目约定统一 `VARCHAR(n)`。
+  - 迁移里查 PG 目录（pg_attribute 等）先查文档确认取值域（attgenerated: ''/'s'/'v'），不要凭感觉写 '0'。
+  - dev 服务器跑真库测试三件套：rsync `--delete --exclude='._*'`（防 AppleDouble 假迁移）→ `./gradlew clean`（防陈旧 build/resources 脏副本）→ 改过的迁移同步修 checksum。
+
+---
+
+## 21. 集成测试一轮抓四缺陷：契约示例、配置模板与实现语义的三方脱节
+
+- **日期**: 2026-09-04
+- **现象**: NIX-184 集成测试（API 级按契约文档打 86/223/dev）一轮发现 4 个单测全绿的真实缺陷：① 按契约示例传 `"breed":"西门塔尔牛"` / `"gender":"female"` 建牲畜 → 500（撞 `chk_livestock_breed` / `chk_livestock_gender`，服务层零校验）；② `POST /admin/api-keys` 按契约传 `scopes` 创建成功，但实现根本不读该字段 → 建出的 key 调任何 Open API 都 403；③ 门户建 key 返回体里没有 rawKey——ACL 适配器建完按 id 回查实体，把唯一一次的密钥明文丢了；④ 安装指南让操作员随机生成 `SMART_LIVESTOCK_TILE_WORKER_KEY`，但 DB 只认 V36 种子固定 rawKey → 两台验证机 tile-worker 每 60s 一条 401，瓦片永不渲染。
+- **误判**: ①一开始以为是 NIX-184 新代码引入；实际是 7 月品种规范迁移只改了库和 Flutter（App 发规范码），契约文档示例从未跟进。②③ 是上线以来就存在的功能缺失，只是没人用管理端/门户真实建过 key 走完 Open API。
+- **根因**: **文档示例、配置模板、实现语义三个"非代码层"没有随代码演进的同步机制**——迁移改了取值域、契约写了实现没有的字段、模板要求与种子矛盾，全都不会让任何测试变红，只有拿文档当输入去打真实环境才炸。与 #15（端到端走完整链路）同源：mock/单测验证"代码彼此一致"，集成测试验证"文档与代码一致"。
+- **解决**: ① `LivestockAttributes` 服务层规范化（中文别名→规范码、大小写宽容、未知值 400 带可选清单）+ 契约示例全部改规范码；② 管理端接受并校验 scopes（`ScopeInterceptor.KNOWN_SCOPES` 单一事实源）+ 门户级限流默认对齐；③ 端口方法直返服务层 Map（含 rawKey），创建响应一次性返回；④ env 模板直接带种子值 + 安装指南钉死 + 运维指南补轮换 SQL 与首次建图章节（两台验证机运维侧已即时修复验证）。
+- **判据**:
+  - 迁移收紧取值域（CHECK/枚举/规范化）时，同一次提交必须同步：API 契约示例、Flutter 提交值、服务层校验——三处缺一就是"按文档调用 500"。
+  - 创建类响应若含一次性机密（rawKey/密码/token），禁止"建完回查实体"的映射路径——回查永远拿不到明文；契约字段要在实现里逐字段核对（本次 `apiKey` vs `rawKey` 笔误即漏网）。
+  - 配置模板里与 DB 种子耦合的键，模板必须带种子值本身（或安装脚本同步写库），"让用户随机生成"与"库里只有固定 hash"不能同时成立；症状特征：**周期性 401（等于 POLL_INTERVAL）= 某个轮询组件密钥失配**。
+  - 集成测试输入必须来自契约文档而非自己发明的 payload——用自己"正确的"值测，等于替文档掩盖了漂移。
+
+---
+
+## 22. verify 脚本的 awk 区间表达式在 mawk 上静默失配：目标机 awk 方言是发布包的现实环境
+
+- **日期**: 2026-09-05
+- **现象**: 558 发布包在 86（Ubuntu）上机校验，`verify-release-bundle.sh` 报 `compose ports: found outside nginx -> []`——列表为空却判 FAIL；同一包同一文件在 dev 服务器（GNU awk）上是全过的。
+- **误判**: 先怀疑包损坏或 compose 变更，实际 SHA256 全对；是脚本第 142 行 awk 正则 `[[:space:]]{4,}` 用了 POSIX 区间表达式，**mawk 1.3.4（Ubuntu 默认 awk）不实现区间**，静默匹配零行 → nginx 自己的 ports: 都探不到 → 空列表走 FAIL 分支。
+- **根因**: 脚本头部宣称 "Runs on: Any machine"，但开发与自测只发生在 GNU awk 机器上——**验证工具本身没有在它声称要跑的方言环境里验证过**（与 #20"全新库没有第一次"同构：目标机 awk 没有第一次）。
+- **解决**: 区间展开为四个显式 `[[:space:]]` 类 + `+`（f812e02e）；557 包作废重出 558；双机重装后 13/13 全过。
+- **判据**:
+  - 随发布包下机的校验/运维脚本，禁用 awk 正则区间 `{n,m}`（mawk 不支持且**静默失配**，不报错最危险）；显式枚举字符类最稳。
+  - "校验工具在构建机上是绿的" ≠ "在目标机是绿的"——发布验收必须包含**在目标机原样跑一遍 verify**，并把它当真实测试而不是仪式。
+  - 热修补过包内文件后，SHA256SUMS 必然失配——这是完整性校验在正确工作；正确出路是修复进 repo 重出包，而不是手改清单。
+  - 复装/升级语境的 install 预检失败（端口占用/证书缺失/资源阈值）不是包的问题：先 down 旧栈、拷贝 secrets/certs、用 `MIN_MEM_GB/MIN_DISK_GB` 覆盖参数（install 脚本自带）。
+
 ---
 
 ## 关键词索引（遇症状按关键词快速定位）
@@ -331,3 +398,7 @@
  | #16 | farmGet, 404, suffix, 前导斜杠, 路径粘连 |
  | #17 | reportTime, 时区, timezone, toInstant, UTC, 不换算 |
  | #18 | excel, xlsx, poi, numeric-cell, ".0", 静默回退, Integer.parseInt |
+ | #19 | billing-cycle, not-null, start-trial, mock, 集成测试, journey, testcontainers, 生成列, generated-column, 冒烟 |
+ | #20 | fresh-database, 全新库, generated-column, 生成列, bpchar, char, varchar, partition, attgenerated, checksum, journey |
+ | #21 | 契约漂移, breed, gender, check-constraint, scopes, raw-key, api-key, tile-worker, 401, 轮询, 文档示例, 集成测试 |
+ | #22 | mawk, awk, interval, {4,}, 区间表达式, verify-release-bundle, sha256sums, 热修, 重装, 预检, ubuntu |

@@ -33,7 +33,7 @@ class MapperRoundTripTest {
             assertThat(restored.getTier()).isEqualTo(SubscriptionTier.BASIC);
             assertThat(restored.getBillingModel()).isEqualTo("revenue_share");
             assertThat(restored.getStatus()).isEqualTo(SubscriptionStatus.TRIAL);
-            assertThat(restored.getBillingCycle()).isNull();
+            assertThat(restored.getBillingCycle()).isEqualTo("monthly");
             assertThat(restored.getStartedAt()).isEqualTo(Instant.parse("2026-01-01T00:00:00Z"));
             assertThat(restored.getTrialEndsAt()).isEqualTo(Instant.parse("2026-01-15T00:00:00Z"));
             assertThat(restored.getExpiresAt()).isNull();

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}新建授权{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>新建离线授权（.sllicense）</h1>
+  <p class="muted">当前签名密钥：<span class="tag tag-active">{{ active_key_id }}</span>。
+    提交后将进入预览页进行二次确认。</p>
+  {% if errors %}
+  <div class="error-box">
+    <ul style="margin:0;padding-left:18px;">
+      {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+  <form method="post" action="{{ base }}/issue/preview">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="grid">
+      <div>
+        <label for="tenantId">租户 ID（tenantId）</label>
+        <input type="number" id="tenantId" name="tenantId" min="1" required
+               value="{{ form.get('tenantId', '') }}">
+      </div>
+      <div>
+        <label for="installationId">安装 ID（installationId，UUID）</label>
+        <input type="text" id="installationId" name="installationId" required
+               value="{{ form.get('installationId', '') }}">
+      </div>
+      <div>
+        <label for="fingerprintHash">主机指纹哈希（sha256 hex，64 位）</label>
+        <input type="text" id="fingerprintHash" name="fingerprintHash" required
+               value="{{ form.get('fingerprintHash', '') }}">
+      </div>
+      <div>
+        <label for="licenseType">授权类型</label>
+        <select id="licenseType" name="licenseType">
+          <option value="TRIAL" {% if form.get('licenseType', 'TRIAL') == 'TRIAL' %}selected{% endif %}>TRIAL</option>
+          <option value="ACTIVE" {% if form.get('licenseType') == 'ACTIVE' %}selected{% endif %}>ACTIVE</option>
+        </select>
+      </div>
+      <div>
+        <label for="tier">档位（tier）</label>
+        <select id="tier" name="tier">
+          <option value="BASIC" {% if form.get('tier', 'BASIC') == 'BASIC' %}selected{% endif %}>BASIC</option>
+          <option value="PREMIUM" {% if form.get('tier') == 'PREMIUM' %}selected{% endif %}>PREMIUM</option>
+          <option value="ENTERPRISE" {% if form.get('tier') == 'ENTERPRISE' %}selected{% endif %}>ENTERPRISE</option>
+        </select>
+      </div>
+      <div>
+        <label for="effectiveTier">生效档位（effectiveTier）</label>
+        <select id="effectiveTier" name="effectiveTier">
+          <option value="BASIC" {% if form.get('effectiveTier', 'BASIC') == 'BASIC' %}selected{% endif %}>BASIC</option>
+          <option value="PREMIUM" {% if form.get('effectiveTier') == 'PREMIUM' %}selected{% endif %}>PREMIUM</option>
+          <option value="ENTERPRISE" {% if form.get('effectiveTier') == 'ENTERPRISE' %}selected{% endif %}>ENTERPRISE</option>
+        </select>
+      </div>
+      <div>
+        <label for="issuedAt">生效时间（UTC）</label>
+        <input type="datetime-local" id="issuedAt" name="issuedAt" required
+               value="{{ form.get('issuedAt', '') }}">
+      </div>
+      <div>
+        <label for="expiresAt">到期时间（UTC）</label>
+        <input type="datetime-local" id="expiresAt" name="expiresAt" required
+               value="{{ form.get('expiresAt', '') }}">
+      </div>
+    </div>
+    <fieldset style="border:1px solid var(--color-border);border-radius:var(--radius);margin-top:16px;">
+      <legend>配额（可留空）</legend>
+      <div class="grid">
+        <div>
+          <label for="quota_livestock_management">livestock_management</label>
+          <input type="number" id="quota_livestock_management" name="quota_livestock_management" min="0"
+                 value="{{ form.get('quota_livestock_management', '') }}">
+        </div>
+        <div>
+          <label for="quota_fence_management">fence_management</label>
+          <input type="number" id="quota_fence_management" name="quota_fence_management" min="0"
+                 value="{{ form.get('quota_fence_management', '') }}">
+        </div>
+        <div>
+          <label for="quota_worker_management">worker_management</label>
+          <input type="number" id="quota_worker_management" name="quota_worker_management" min="0"
+                 value="{{ form.get('quota_worker_management', '') }}">
+        </div>
+        <div>
+          <label for="quota_device_management">device_management</label>
+          <input type="number" id="quota_device_management" name="quota_device_management" min="0"
+                 value="{{ form.get('quota_device_management', '') }}">
+        </div>
+      </div>
+    </fieldset>
+    <label for="replacesLicenseId">被替换授权 ID（可选，UUID）</label>
+    <input type="text" id="replacesLicenseId" name="replacesLicenseId"
+           value="{{ form.get('replacesLicenseId', '') }}">
+    <label for="reason">签发原因（必填，进入审计）</label>
+    <textarea id="reason" name="reason" rows="2" required>{{ form.get('reason', '') }}</textarea>
+    <div class="actions">
+      <button class="btn" type="submit">生成预览</button>
+      <a class="btn btn-secondary" href="{{ base }}/licenses">取消</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

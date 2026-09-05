@@ -326,8 +326,8 @@ Response 200:
         "id": "101",
         "farmId": "1",
         "livestockCode": "LIV-1-001",
-        "breed": "安格斯牛",
-        "gender": "male",
+        "breed": "ANGUS",
+        "gender": "MALE",
         "birthDate": "2024-03-15",
         "weight": 450.50,
         "healthStatus": "healthy",
@@ -350,7 +350,7 @@ Response 200:
 
 ```
 Request:
-{ "livestockCode": "LIV-1-050", "breed": "西门塔尔牛", "gender": "female", "birthDate": "2025-01-10", "weight": 380.00 }
+{ "livestockCode": "LIV-1-050", "breed": "SIMMENTAL", "gender": "FEMALE", "birthDate": "2025-01-10", "weight": 380.00 }
 
 Response 201:
 { "code": "OK", "message": "success", "requestId": "req-017", "data": { "id": "150", "livestockCode": "LIV-1-050", ... } }
@@ -374,10 +374,10 @@ Response 200:
 
 ```
 Request:
-{ "breed": "安格斯牛（纯种）", "weight": 460.00, "healthStatus": "warning" }
+{ "breed": "ANGUS", "weight": 460.00, "healthStatus": "warning" }
 
 Response 200:
-{ "code": "OK", "message": "success", "requestId": "req-019", "data": { "id": "101", "breed": "安格斯牛（纯种）", ... } }
+{ "code": "OK", "message": "success", "requestId": "req-019", "data": { "id": "101", "breed": "ANGUS", ... } }
 ```
 
 #### DELETE /farms/{farmId}/livestock/{livestockId}
@@ -1220,7 +1220,7 @@ Response 200:
   "code": "OK", "message": "success", "requestId": "req-h3",
   "data": {
     "items": [
-      { "livestockId": "101", "livestockCode": "LIV-1-001", "breed": "安格斯牛",
+      { "livestockId": "101", "livestockCode": "LIV-1-001", "breed": "ANGUS",
         "baselineTemp": 38.5, "currentTemp": 40.2, "delta": 1.7, "status": "FEVER",
         "conclusion": "体温偏高，建议隔离观察" }
     ]
@@ -1293,7 +1293,7 @@ Response 200:
   "code": "OK", "message": "success", "requestId": "req-h6",
   "data": {
     "items": [
-      { "livestockId": "101", "livestockCode": "LIV-1-001", "breed": "安格斯牛", "gender": "母",
+      { "livestockId": "101", "livestockCode": "LIV-1-001", "breed": "ANGUS", "gender": "FEMALE",
         "score": 78, "stepIncreasePercent": 320, "tempDelta": 0.6, "distanceDelta": 2200,
         "timestamp": "2026-05-20T08:00:00Z", "advice": "High estrus，建议 12h 内配种" }
     ]
@@ -1348,7 +1348,7 @@ Response 200:
   "code": "OK", "message": "success", "requestId": "req-h9",
   "data": {
     "items": [
-      { "livestockId": "102", "livestockCode": "LIV-1-002", "breed": "西门塔尔牛",
+      { "livestockId": "102", "livestockCode": "LIV-1-002", "breed": "SIMMENTAL",
         "motilityBaseline": 3.0, "currentFrequency": 1.2, "status": "ABNORMAL",
         "advice": "蠕动异常偏低，建议检查饲料与饮水" }
     ]

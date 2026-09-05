@@ -75,6 +75,10 @@ android/app/release/
 .env.*
 !.env.example
 !.env.dev.example
+!.env.release.example
+
+# License issuer signing keys (NIX-184) — private keys never enter git
+license-issuer/secrets/
 
 # ============================================
 # Test & Coverage
@@ -110,3 +114,7 @@ smart-livestock-server/infrastructure/tileserver/data/*.mbtiles
 **/.mimosa/
 .understand-anything/.trash-*/
 .understand-anything/intermediate/
+
+# Issued license files never enter git (only test fixtures under test-vectors/)
+license-issuer/*.sllicense
+license-issuer/issued-*

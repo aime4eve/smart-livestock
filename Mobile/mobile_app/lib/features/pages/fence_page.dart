@@ -73,6 +73,14 @@ class _FencePageState extends ConsumerState<FencePage>
     if (mounted) setState(() {});
   }
 
+  /// 初始位置：当前牧场登记坐标（屏幕坐标系）；未登记时退回演示默认点
+  LatLng get _initialMapCenter {
+    final center = ref.read(farmSwitcherControllerProvider).activeFarmCenter;
+    if (center == null) return MapConstants.mapCenter;
+    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
+    return shouldTransform ? CoordTransform.wgs84ToGcj02(center) : center;
+  }
+
 
   @override
   void dispose() {
@@ -192,7 +200,7 @@ class _FencePageState extends ConsumerState<FencePage>
                         key: const Key('fence-map'),
                         mapController: _mapController,
                         options: MapOptions(
-                          initialCenter: MapConstants.mapCenter,
+                          initialCenter: _initialMapCenter,
                           initialZoom: MapConstants.defaultZoom,
                           interactionOptions: InteractionOptions(
                             flags: isEditing &&

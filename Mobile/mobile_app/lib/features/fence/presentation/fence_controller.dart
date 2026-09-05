@@ -134,6 +134,9 @@ class FenceController extends FarmScopedNotifier<FenceState> {
     }
   }
 
+  /// 确保围栏列表已加载（外部编辑入口需要先有数据才能 startEditing）
+  Future<void> ensureLoaded() => _loadFencesAsync();
+
   void startEditing(String fenceId) {
     if (_isSaving) return;
     FenceItem? targetFence;

@@ -5,6 +5,7 @@ import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
 import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/ranch_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
@@ -126,13 +127,7 @@ class _RanchFenceTabState extends ConsumerState<RanchFenceTab> {
             alerts: widget.alerts,
             canManage: widget.canManage,
             onDelete: () => _deleteFence(selectedFence),
-            onEdit: () => context.push(
-              '${AppRoute.fenceForm.path}?fenceId=${selectedFence.id}',
-            ).then((saved) {
-              if (saved == true) {
-                ref.read(ranchControllerProvider.notifier).refresh();
-              }
-            }),
+            onEdit: () => _openFullEditor(selectedFence.id),
           ),
           const SizedBox(height: AppSpacing.sm),
         ],
@@ -150,17 +145,30 @@ class _RanchFenceTabState extends ConsumerState<RanchFenceTab> {
                 widget.onFenceSelected(fence.id);
               }
             },
-            onEdit: () => context.push(
-              '${AppRoute.fenceForm.path}?fenceId=${fence.id}',
-            ).then((saved) {
-              if (saved == true) {
-                ref.read(ranchControllerProvider.notifier).refresh();
-              }
-            }),
+            onEdit: () => _openFullEditor(fence.id),
             onDelete: () => _deleteFence(fence),
           ),
       ],
     );
+  }
+
+  /// 打开围栏页的完整编辑模式（拖拽顶点/整体平移/增删顶点）。
+  /// fenceController 在 ranch 页可能尚未初始化，需先确保围栏列表加载完成，
+  /// 否则 startEditing 找不到目标围栏会静默失败。
+  Future<void> _openFullEditor(String fenceId) async {
+    final known = ref
+        .read(fenceControllerProvider)
+        .fences
+        .any((f) => f.id == fenceId);
+    if (!known) {
+      await ref.read(fenceControllerProvider.notifier).ensureLoaded();
+    }
+    if (!mounted) return;
+    ref.read(fenceControllerProvider.notifier).startEditing(fenceId);
+    if (!mounted) return;
+    await context.push(AppRoute.fence.path);
+    // 编辑（或放弃）返回后同步牧场概览数据
+    if (mounted) ref.read(ranchControllerProvider.notifier).refresh();
   }
 
   Future<void> _deleteFence(RanchFenceData fence) async {

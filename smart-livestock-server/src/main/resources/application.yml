@@ -115,3 +115,14 @@ smartlivestock:
       # this many consecutive failed cycles, degrades the device to blade.
       stale-after-ms: ${SMARTLIVESTOCK_TB_FALLBACK_STALE_AFTER_MS:900000}
       failure-threshold: ${SMARTLIVESTOCK_TB_FALLBACK_FAILURE_THRESHOLD:3}
+  # Licensing context (NIX-184): HOSTED = we operate the server, ONPREM =
+  # customer-owned server with offline license enforcement.
+  license:
+    mode: ${SMARTLIVESTOCK_LICENSE_MODE:HOSTED}
+    public-key-file: ${SMARTLIVESTOCK_LICENSE_PUBLIC_KEY_FILE:classpath:licensing/license-public-keys.json}
+    time-tolerance: ${SMARTLIVESTOCK_LICENSE_TIME_TOLERANCE:PT2M}
+    validation-cron: ${SMARTLIVESTOCK_LICENSE_VALIDATION_CRON:0 */5 * * * *}
+    host-fingerprint-file: ${SMARTLIVESTOCK_LICENSE_HOST_FINGERPRINT_FILE:/etc/machine-id}
+  # Hosted pilot-license API toggle (consumed by the licensing application layer).
+  pilot-license:
+    enabled: ${SMARTLIVESTOCK_PILOT_LICENSE_ENABLED:true}

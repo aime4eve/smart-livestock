@@ -4,6 +4,7 @@ import com.smartlivestock.commerce.application.dto.SubscriptionResponse;
 import com.smartlivestock.commerce.application.query.SubscriptionQueryService;
 import com.smartlivestock.commerce.application.service.SubscriptionApplicationService;
 import com.smartlivestock.commerce.domain.model.SubscriptionTier;
+import com.smartlivestock.licensing.application.LicenseModeGuard;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -19,6 +20,10 @@ import java.util.Map;
 /**
  * App-facing subscription endpoints — 6 endpoints.
  * All endpoints operate on the authenticated tenant.
+ * <p>
+ * NIX-184 T5 (design §11): subscription self-service mutations (checkout /
+ * tier change / cancel) are disabled in ONPREM mode where the subscription
+ * is driven by the imported deployment license; read endpoints stay open.
  */
 @RestController
 @RequestMapping("/api/v1/subscription")
@@ -27,6 +32,7 @@ public class SubscriptionController {
 
     private final SubscriptionApplicationService subscriptionApplicationService;
     private final SubscriptionQueryService subscriptionQueryService;
+    private final LicenseModeGuard licenseModeGuard;
 
     /**
      * GET /api/v1/subscription
@@ -68,6 +74,7 @@ public class SubscriptionController {
     @PostMapping("/checkout")
     public ResponseEntity<ApiResponse<SubscriptionResponse>> checkout(
             @RequestBody Map<String, String> body) {
+        licenseModeGuard.requireSelfServiceAllowed();
         Long tenantId = requireTenantId();
         String tierStr = requireField(body, "tier");
         String billingCycle = body.get("billingCycle");
@@ -88,6 +95,7 @@ public class SubscriptionController {
     @PutMapping("/tier")
     public ResponseEntity<ApiResponse<SubscriptionResponse>> upgradeTier(
             @RequestBody Map<String, String> body) {
+        licenseModeGuard.requireSelfServiceAllowed();
         Long tenantId = requireTenantId();
         String tierStr = requireField(body, "tier");
         String billingCycle = body.get("billingCycle");
@@ -107,6 +115,7 @@ public class SubscriptionController {
      */
     @PostMapping("/cancel")
     public ResponseEntity<ApiResponse<SubscriptionResponse>> cancel() {
+        licenseModeGuard.requireSelfServiceAllowed();
         Long tenantId = requireTenantId();
         subscriptionApplicationService.cancel(tenantId);
 

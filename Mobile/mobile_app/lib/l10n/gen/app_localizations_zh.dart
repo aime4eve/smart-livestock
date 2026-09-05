@@ -1185,6 +1185,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get subSubscribeFailed => '订阅失败，请稍后重试';
+
+  @override
   String subExcessDeviceFeeWithin(String quota) {
     return '超出设备费（在$quota额度内）';
   }
@@ -2151,9 +2154,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get fenceTemplateCircle => '圆形区域';
 
   @override
-  String get fenceTemplateTrajectoryBuffer => '轨迹缓冲区';
-
-  @override
   String get fenceLoadFailed => '围栏加载失败';
 
   @override
@@ -3001,6 +3001,29 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tenantListTitle => '租户管理';
+
+  @override
+  String get authModeHosted => '云端托管版';
+
+  @override
+  String get authModeOnprem => '地端独立部署';
+
+  @override
+  String get authModeOnpremValidSub => '离线授权生效中';
+
+  @override
+  String get authModePendingBanner =>
+      '系统未激活：请先导入部署授权（.sllicense）。授权登记信息可在登录后于「部署授权」页获取。';
+
+  @override
+  String get authModeExpiredBanner => '授权已到期：系统已降级为基础版，数据完整保留。请联系厂商签发续费授权。';
+
+  @override
+  String get authModeSuspendedBanner =>
+      '授权已挂起：检测到授权异常（如时间回拨）。时间恢复正常并导入有效授权后自动解除。';
+
+  @override
+  String get tenantListCreate => '新建租户';
 
   @override
   String get tenantDetailTitle => '租户详情';
@@ -4872,4 +4895,160 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get healthBasisMissing => '无原始读数';
+
+  @override
+  String get deploymentLicenseTitle => '部署授权';
+
+  @override
+  String get deploymentLicenseTenantLabel => '租户';
+
+  @override
+  String get deploymentLicenseNoTenants => '暂无租户';
+
+  @override
+  String get deploymentLicenseEnrollmentTitle => '授权登记信息';
+
+  @override
+  String get deploymentLicenseEnrollmentDesc => '以下信息用于向厂商申请授权文件，请连同租户信息一并提供。';
+
+  @override
+  String get deploymentLicenseInstallationId => '安装 ID';
+
+  @override
+  String get deploymentLicenseFingerprintHash => '指纹哈希';
+
+  @override
+  String get deploymentLicensePublicKeyId => '公钥 ID';
+
+  @override
+  String get deploymentLicenseGeneratedAt => '登记生成时间';
+
+  @override
+  String get deploymentLicenseCopied => '已复制到剪贴板';
+
+  @override
+  String get deploymentLicenseStatusTitle => '当前授权状态';
+
+  @override
+  String get deploymentLicenseStatusValid => '有效';
+
+  @override
+  String get deploymentLicenseStatusPendingActivation => '待激活';
+
+  @override
+  String get deploymentLicenseStatusExpired => '已过期';
+
+  @override
+  String get deploymentLicenseStatusSuspended => '已暂停';
+
+  @override
+  String get deploymentLicenseStatusUnknown => '未知';
+
+  @override
+  String get deploymentLicenseExpiresAt => '到期时间';
+
+  @override
+  String deploymentLicenseDaysRemaining(int days) {
+    return '剩余 $days 天';
+  }
+
+  @override
+  String deploymentLicenseDaysOverdue(int days) {
+    return '已超期 $days 天';
+  }
+
+  @override
+  String get deploymentLicenseIssuedAt => '签发时间';
+
+  @override
+  String get deploymentLicenseAcceptedAt => '激活时间';
+
+  @override
+  String get deploymentLicenseLastValidatedAt => '最近校验时间';
+
+  @override
+  String get deploymentLicenseLastResult => '最近校验结果';
+
+  @override
+  String get deploymentLicenseLastErrorCode => '最近错误码';
+
+  @override
+  String get deploymentLicenseMaxObservedAt => '最大观测时间';
+
+  @override
+  String get deploymentLicenseProtectionReason => '保护原因';
+
+  @override
+  String get deploymentLicenseLicenseId => '授权 ID';
+
+  @override
+  String get deploymentLicenseLicenseType => '授权类型';
+
+  @override
+  String get deploymentLicenseEffectiveTier => '生效档位';
+
+  @override
+  String get deploymentLicenseSubscriptionMapping => '订阅映射';
+
+  @override
+  String get deploymentLicenseSubscriptionStatus => '订阅状态';
+
+  @override
+  String get deploymentLicenseSubscriptionTrialEnds => '试用到期时间';
+
+  @override
+  String get deploymentLicenseRenewalGuidance =>
+      '授权已过期或已暂停，系统功能受限。请联系厂商重新签发并导入新的授权文件以恢复服务。';
+
+  @override
+  String get deploymentLicenseUploadTitle => '导入授权文件';
+
+  @override
+  String get deploymentLicenseUploadDesc =>
+      '请选择厂商签发的 .sllicense 授权文本文件。导入操作会直接驱动该租户的订阅状态，请谨慎操作。';
+
+  @override
+  String get deploymentLicensePickFile => '选择授权文件';
+
+  @override
+  String get deploymentLicenseUploadConfirmTitle => '确认导入授权';
+
+  @override
+  String deploymentLicenseUploadConfirmMessage(String fileName) {
+    return '即将为该租户导入授权文件 $fileName，该操作会影响订阅状态，确认继续？';
+  }
+
+  @override
+  String get deploymentLicenseUploadSuccess => '授权导入成功';
+
+  @override
+  String get deploymentLicenseUploadFailed => '授权导入失败';
+
+  @override
+  String get deploymentLicenseHostedTitle => '云端托管模式';
+
+  @override
+  String get deploymentLicenseHostedNotice =>
+      '当前环境为云端托管模式，授权与订阅由平台统一管理，无需导入离线授权文件。';
+
+  @override
+  String get pilotLicenseGrantButton => '开通 365 天试点授权';
+
+  @override
+  String get pilotLicenseConfirmTitle => '确认开通试点授权';
+
+  @override
+  String get pilotLicenseConfirmMessage =>
+      '将为该租户开通 365 天试点授权（试用为 PREMIUM 档），到期前可随时升级为正式订阅。确认继续？';
+
+  @override
+  String pilotLicenseGrantSuccess(String trialEndsAt) {
+    return '试点授权已开通，试用到期：$trialEndsAt';
+  }
+
+  @override
+  String get pilotLicenseGrantFailed => '试点授权开通失败';
+
+  @override
+  String get pilotLicenseStateConflict => '当前订阅状态不支持开通试点授权';
 }

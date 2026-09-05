@@ -30,12 +30,17 @@ class ApiKeyApplicationServiceTest {
         });
 
         ApiKeyApplicationService svc = new ApiKeyApplicationService(apiKeyRepository);
-        Map<String, Object> result = svc.createApiKey(1L, "test-key", "admin");
+        Map<String, Object> result = svc.createApiKey(1L, "test-key", "admin", "livestock:read,fence:read");
 
         String rawKey = (String) result.get("rawKey");
         assertTrue(rawKey.startsWith("sk_live_"));
         assertTrue(((String) result.get("prefix")).startsWith("sk_live_"));
         assertEquals("test-key", result.get("keyName"));
+        assertEquals("livestock:read,fence:read", result.get("scopes"));
+        verify(apiKeyRepository).save(argThat(k ->
+                "livestock:read,fence:read".equals(k.getScopes())
+                        && Integer.valueOf(60).equals(k.getRequestsPerMinute())
+                        && Integer.valueOf(20000).equals(k.getDailyQuota())));
     }
 
     @Test
@@ -48,7 +53,7 @@ class ApiKeyApplicationServiceTest {
 
         ApiKeyApplicationService svc = new ApiKeyApplicationService(apiKeyRepository);
 
-        Map<String, Object> created = svc.createApiKey(1L, "test", "admin");
+        Map<String, Object> created = svc.createApiKey(1L, "test", "admin", null);
         String rawKey = (String) created.get("rawKey");
 
         ApiKey stored = new ApiKey();

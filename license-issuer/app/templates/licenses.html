@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}授权列表{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>已签发授权</h1>
+  {% if licenses %}
+  <table>
+    <thead>
+      <tr>
+        <th>licenseId</th><th>租户</th><th>类型</th><th>档位</th>
+        <th>到期时间 (UTC)</th><th>keyId</th><th>签发人</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lic in licenses %}
+      <tr>
+        <td class="mono">{{ lic.license_id }}</td>
+        <td>{{ lic.tenant_id }}</td>
+        <td>{{ lic.license_type }}</td>
+        <td>{{ lic.tier }} / {{ lic.effective_tier }}</td>
+        <td>{{ lic.expires_at }}</td>
+        <td class="mono">{{ lic.key_id }}</td>
+        <td>{{ lic.issued_by }}</td>
+        <td><a href="{{ base }}/licenses/{{ lic.license_id }}">详情</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">还没有签发记录，<a href="{{ base }}/issue/new">新建一张授权</a>。</p>
+  {% endif %}
+</div>
+{% endblock %}

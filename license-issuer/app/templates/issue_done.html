@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}签发完成{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>授权已签发</h1>
+  {% if just_issued %}
+  <div class="ok-box">签名完成，请下载授权文件并交付客户导入。</div>
+  {% endif %}
+  <div class="kv">
+    <div class="muted">licenseId</div><div class="mono">{{ license.license_id }}</div>
+    <div class="muted">tenantId</div><div>{{ license.tenant_id }}</div>
+    <div class="muted">installationId</div><div class="mono">{{ license.installation_id }}</div>
+    <div class="muted">licenseType</div><div>{{ license.license_type }}</div>
+    <div class="muted">tier / effectiveTier</div><div>{{ license.tier }} / {{ license.effective_tier }}</div>
+    <div class="muted">有效期</div><div>{{ license.issued_at }} ~ {{ license.expires_at }} (UTC)</div>
+    <div class="muted">payload SHA-256</div><div class="mono">{{ license.payload_sha256 }}</div>
+    <div class="muted">签发人</div><div>{{ license.issued_by }}</div>
+    <div class="muted">签发原因</div><div>{{ license.reason }}</div>
+  </div>
+  <div class="actions">
+    <a class="btn" href="{{ base }}/licenses/{{ license.license_id }}/download">下载 .sllicense 文件</a>
+    <a class="btn btn-secondary" href="{{ base }}/licenses/{{ license.license_id }}">查看详情</a>
+    <a class="btn btn-secondary" href="{{ base }}/issue/new">继续签发</a>
+  </div>
+</div>
+{% endblock %}

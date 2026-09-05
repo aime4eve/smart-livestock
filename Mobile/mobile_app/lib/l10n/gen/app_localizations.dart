@@ -2230,6 +2230,12 @@ abstract class AppLocalizations {
   /// **'已成功订阅{tier}'**
   String subSubscribeSuccess(String tier);
 
+  /// No description provided for @subSubscribeFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅失败，请稍后重试'**
+  String get subSubscribeFailed;
+
   /// No description provided for @subExcessDeviceFeeWithin.
   ///
   /// In zh, this message translates to:
@@ -3988,12 +3994,6 @@ abstract class AppLocalizations {
   /// **'圆形区域'**
   String get fenceTemplateCircle;
 
-  /// No description provided for @fenceTemplateTrajectoryBuffer.
-  ///
-  /// In zh, this message translates to:
-  /// **'轨迹缓冲区'**
-  String get fenceTemplateTrajectoryBuffer;
-
   /// No description provided for @fenceLoadFailed.
   ///
   /// In zh, this message translates to:
@@ -5617,6 +5617,48 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'租户管理'**
   String get tenantListTitle;
+
+  /// No description provided for @authModeHosted.
+  ///
+  /// In zh, this message translates to:
+  /// **'云端托管版'**
+  String get authModeHosted;
+
+  /// No description provided for @authModeOnprem.
+  ///
+  /// In zh, this message translates to:
+  /// **'地端独立部署'**
+  String get authModeOnprem;
+
+  /// No description provided for @authModeOnpremValidSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'离线授权生效中'**
+  String get authModeOnpremValidSub;
+
+  /// No description provided for @authModePendingBanner.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统未激活：请先导入部署授权（.sllicense）。授权登记信息可在登录后于「部署授权」页获取。'**
+  String get authModePendingBanner;
+
+  /// No description provided for @authModeExpiredBanner.
+  ///
+  /// In zh, this message translates to:
+  /// **'授权已到期：系统已降级为基础版，数据完整保留。请联系厂商签发续费授权。'**
+  String get authModeExpiredBanner;
+
+  /// No description provided for @authModeSuspendedBanner.
+  ///
+  /// In zh, this message translates to:
+  /// **'授权已挂起：检测到授权异常（如时间回拨）。时间恢复正常并导入有效授权后自动解除。'**
+  String get authModeSuspendedBanner;
+
+  /// No description provided for @tenantListCreate.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建租户'**
+  String get tenantListCreate;
 
   /// No description provided for @tenantDetailTitle.
   ///
@@ -9100,6 +9142,294 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'无原始读数'**
   String get healthBasisMissing;
+
+  /// No description provided for @deploymentLicenseTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'部署授权'**
+  String get deploymentLicenseTitle;
+
+  /// No description provided for @deploymentLicenseTenantLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'租户'**
+  String get deploymentLicenseTenantLabel;
+
+  /// No description provided for @deploymentLicenseNoTenants.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无租户'**
+  String get deploymentLicenseNoTenants;
+
+  /// No description provided for @deploymentLicenseEnrollmentTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'授权登记信息'**
+  String get deploymentLicenseEnrollmentTitle;
+
+  /// No description provided for @deploymentLicenseEnrollmentDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'以下信息用于向厂商申请授权文件，请连同租户信息一并提供。'**
+  String get deploymentLicenseEnrollmentDesc;
+
+  /// No description provided for @deploymentLicenseInstallationId.
+  ///
+  /// In zh, this message translates to:
+  /// **'安装 ID'**
+  String get deploymentLicenseInstallationId;
+
+  /// No description provided for @deploymentLicenseFingerprintHash.
+  ///
+  /// In zh, this message translates to:
+  /// **'指纹哈希'**
+  String get deploymentLicenseFingerprintHash;
+
+  /// No description provided for @deploymentLicensePublicKeyId.
+  ///
+  /// In zh, this message translates to:
+  /// **'公钥 ID'**
+  String get deploymentLicensePublicKeyId;
+
+  /// No description provided for @deploymentLicenseGeneratedAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'登记生成时间'**
+  String get deploymentLicenseGeneratedAt;
+
+  /// No description provided for @deploymentLicenseCopied.
+  ///
+  /// In zh, this message translates to:
+  /// **'已复制到剪贴板'**
+  String get deploymentLicenseCopied;
+
+  /// No description provided for @deploymentLicenseStatusTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前授权状态'**
+  String get deploymentLicenseStatusTitle;
+
+  /// No description provided for @deploymentLicenseStatusValid.
+  ///
+  /// In zh, this message translates to:
+  /// **'有效'**
+  String get deploymentLicenseStatusValid;
+
+  /// No description provided for @deploymentLicenseStatusPendingActivation.
+  ///
+  /// In zh, this message translates to:
+  /// **'待激活'**
+  String get deploymentLicenseStatusPendingActivation;
+
+  /// No description provided for @deploymentLicenseStatusExpired.
+  ///
+  /// In zh, this message translates to:
+  /// **'已过期'**
+  String get deploymentLicenseStatusExpired;
+
+  /// No description provided for @deploymentLicenseStatusSuspended.
+  ///
+  /// In zh, this message translates to:
+  /// **'已暂停'**
+  String get deploymentLicenseStatusSuspended;
+
+  /// No description provided for @deploymentLicenseStatusUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'未知'**
+  String get deploymentLicenseStatusUnknown;
+
+  /// No description provided for @deploymentLicenseExpiresAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'到期时间'**
+  String get deploymentLicenseExpiresAt;
+
+  /// No description provided for @deploymentLicenseDaysRemaining.
+  ///
+  /// In zh, this message translates to:
+  /// **'剩余 {days} 天'**
+  String deploymentLicenseDaysRemaining(int days);
+
+  /// No description provided for @deploymentLicenseDaysOverdue.
+  ///
+  /// In zh, this message translates to:
+  /// **'已超期 {days} 天'**
+  String deploymentLicenseDaysOverdue(int days);
+
+  /// No description provided for @deploymentLicenseIssuedAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'签发时间'**
+  String get deploymentLicenseIssuedAt;
+
+  /// No description provided for @deploymentLicenseAcceptedAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'激活时间'**
+  String get deploymentLicenseAcceptedAt;
+
+  /// No description provided for @deploymentLicenseLastValidatedAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近校验时间'**
+  String get deploymentLicenseLastValidatedAt;
+
+  /// No description provided for @deploymentLicenseLastResult.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近校验结果'**
+  String get deploymentLicenseLastResult;
+
+  /// No description provided for @deploymentLicenseLastErrorCode.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近错误码'**
+  String get deploymentLicenseLastErrorCode;
+
+  /// No description provided for @deploymentLicenseMaxObservedAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'最大观测时间'**
+  String get deploymentLicenseMaxObservedAt;
+
+  /// No description provided for @deploymentLicenseProtectionReason.
+  ///
+  /// In zh, this message translates to:
+  /// **'保护原因'**
+  String get deploymentLicenseProtectionReason;
+
+  /// No description provided for @deploymentLicenseLicenseId.
+  ///
+  /// In zh, this message translates to:
+  /// **'授权 ID'**
+  String get deploymentLicenseLicenseId;
+
+  /// No description provided for @deploymentLicenseLicenseType.
+  ///
+  /// In zh, this message translates to:
+  /// **'授权类型'**
+  String get deploymentLicenseLicenseType;
+
+  /// No description provided for @deploymentLicenseEffectiveTier.
+  ///
+  /// In zh, this message translates to:
+  /// **'生效档位'**
+  String get deploymentLicenseEffectiveTier;
+
+  /// No description provided for @deploymentLicenseSubscriptionMapping.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅映射'**
+  String get deploymentLicenseSubscriptionMapping;
+
+  /// No description provided for @deploymentLicenseSubscriptionStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅状态'**
+  String get deploymentLicenseSubscriptionStatus;
+
+  /// No description provided for @deploymentLicenseSubscriptionTrialEnds.
+  ///
+  /// In zh, this message translates to:
+  /// **'试用到期时间'**
+  String get deploymentLicenseSubscriptionTrialEnds;
+
+  /// No description provided for @deploymentLicenseRenewalGuidance.
+  ///
+  /// In zh, this message translates to:
+  /// **'授权已过期或已暂停，系统功能受限。请联系厂商重新签发并导入新的授权文件以恢复服务。'**
+  String get deploymentLicenseRenewalGuidance;
+
+  /// No description provided for @deploymentLicenseUploadTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入授权文件'**
+  String get deploymentLicenseUploadTitle;
+
+  /// No description provided for @deploymentLicenseUploadDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'请选择厂商签发的 .sllicense 授权文本文件。导入操作会直接驱动该租户的订阅状态，请谨慎操作。'**
+  String get deploymentLicenseUploadDesc;
+
+  /// No description provided for @deploymentLicensePickFile.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择授权文件'**
+  String get deploymentLicensePickFile;
+
+  /// No description provided for @deploymentLicenseUploadConfirmTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认导入授权'**
+  String get deploymentLicenseUploadConfirmTitle;
+
+  /// No description provided for @deploymentLicenseUploadConfirmMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'即将为该租户导入授权文件 {fileName}，该操作会影响订阅状态，确认继续？'**
+  String deploymentLicenseUploadConfirmMessage(String fileName);
+
+  /// No description provided for @deploymentLicenseUploadSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'授权导入成功'**
+  String get deploymentLicenseUploadSuccess;
+
+  /// No description provided for @deploymentLicenseUploadFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'授权导入失败'**
+  String get deploymentLicenseUploadFailed;
+
+  /// No description provided for @deploymentLicenseHostedTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'云端托管模式'**
+  String get deploymentLicenseHostedTitle;
+
+  /// No description provided for @deploymentLicenseHostedNotice.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前环境为云端托管模式，授权与订阅由平台统一管理，无需导入离线授权文件。'**
+  String get deploymentLicenseHostedNotice;
+
+  /// No description provided for @pilotLicenseGrantButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'开通 365 天试点授权'**
+  String get pilotLicenseGrantButton;
+
+  /// No description provided for @pilotLicenseConfirmTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认开通试点授权'**
+  String get pilotLicenseConfirmTitle;
+
+  /// No description provided for @pilotLicenseConfirmMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'将为该租户开通 365 天试点授权（试用为 PREMIUM 档），到期前可随时升级为正式订阅。确认继续？'**
+  String get pilotLicenseConfirmMessage;
+
+  /// No description provided for @pilotLicenseGrantSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'试点授权已开通，试用到期：{trialEndsAt}'**
+  String pilotLicenseGrantSuccess(String trialEndsAt);
+
+  /// No description provided for @pilotLicenseGrantFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'试点授权开通失败'**
+  String get pilotLicenseGrantFailed;
+
+  /// No description provided for @pilotLicenseStateConflict.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前订阅状态不支持开通试点授权'**
+  String get pilotLicenseStateConflict;
 }
 
 class _AppLocalizationsDelegate

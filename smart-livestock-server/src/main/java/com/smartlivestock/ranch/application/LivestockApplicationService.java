@@ -38,8 +38,8 @@ public class LivestockApplicationService {
         Livestock livestock = new Livestock();
         livestock.setFarmId(command.farmId());
         livestock.setLivestockCode(command.livestockCode());
-        livestock.setBreed(command.breed());
-        livestock.setGender(command.gender());
+        livestock.setBreed(LivestockAttributes.normalizeBreed(command.breed()));
+        livestock.setGender(LivestockAttributes.normalizeGender(command.gender()));
         livestock.setBirthDate(command.birthDate());
         livestock.setWeight(command.weight());
         Livestock saved = livestockRepository.save(livestock);
@@ -88,10 +88,15 @@ public class LivestockApplicationService {
                         }
                     });
         }
+        String breed = command.breed() != null
+                ? LivestockAttributes.normalizeBreed(command.breed())
+                : livestock.getBreed();
+        String gender = command.gender() != null
+                ? LivestockAttributes.normalizeGender(command.gender())
+                : livestock.getGender();
         livestock.updateInfo(
                 command.livestockCode() != null ? command.livestockCode() : livestock.getLivestockCode(),
-                command.breed() != null ? command.breed() : livestock.getBreed(),
-                command.gender(), command.birthDate(), command.weight());
+                breed, gender, command.birthDate(), command.weight());
         Livestock saved = livestockRepository.save(livestock);
         return LivestockDto.from(saved);
     }

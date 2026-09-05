@@ -49,11 +49,11 @@ class SubscriptionTest {
             assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.TRIAL);
             assertThat(sub.getTier()).isEqualTo(SubscriptionTier.BASIC);
             assertThat(sub.getBillingModel()).isEqualTo("direct");
+            assertThat(sub.getBillingCycle()).isEqualTo("monthly");
             assertThat(sub.getStartedAt()).isEqualTo(now);
             assertThat(sub.getTrialEndsAt()).isEqualTo(trialEnd);
             assertThat(sub.getExpiresAt()).isNull();
             assertThat(sub.getCancelledAt()).isNull();
-            assertThat(sub.getBillingCycle()).isNull();
         }
 
         @Test
@@ -137,6 +137,65 @@ class SubscriptionTest {
             assertThatThrownBy(sub::expireTrial)
                 .isInstanceOf(DomainException.class)
                 .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
+        }
+    }
+
+    // ── extendTrial ──────────────────────────────────────────────────
+
+    @Nested
+    class ExtendTrial {
+
+        @Test
+        void extendsTrialEndFromTrial() {
+            Subscription sub = createTrialSubscription();
+            Instant newEnd = sub.getTrialEndsAt().plusSeconds(365 * 86400);
+
+            sub.extendTrial(newEnd);
+
+            assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.TRIAL);
+            assertThat(sub.getTrialEndsAt()).isEqualTo(newEnd);
+        }
+
+        @Test
+        void rejectsFromNonTrial() {
+            Subscription sub = createActiveSubscription();
+            Instant newEnd = Instant.now().plusSeconds(365 * 86400);
+
+            assertThatThrownBy(() -> sub.extendTrial(newEnd))
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
+        }
+
+        @Test
+        void rejectsShorteningCurrentTrialEnd() {
+            Subscription sub = createTrialSubscription();
+            Instant shortened = sub.getTrialEndsAt().minusSeconds(86400);
+
+            assertThatThrownBy(() -> sub.extendTrial(shortened))
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
+            assertThat(sub.getTrialEndsAt()).isNotEqualTo(shortened);
+        }
+
+        @Test
+        void sameTimestampAllowed() {
+            Subscription sub = createTrialSubscription();
+            Instant sameEnd = sub.getTrialEndsAt();
+
+            sub.extendTrial(sameEnd);
+
+            assertThat(sub.getTrialEndsAt()).isEqualTo(sameEnd);
+        }
+
+        @Test
+        void setsTrialEndWhenCurrentIsNull() {
+            Subscription sub = createTrialSubscription();
+            sub.setTrialEndsAt(null);
+            Instant newEnd = Instant.now().plusSeconds(365 * 86400);
+
+            sub.extendTrial(newEnd);
+
+            assertThat(sub.getTrialEndsAt()).isEqualTo(newEnd);
         }
     }
 
@@ -482,6 +541,103 @@ class SubscriptionTest {
 
             assertThatThrownBy(sub::markExpired)
                 .isInstanceOf(DomainException.class);
+        }
+    }
+
+    // ── downgradeToFree (NIX-184 T4 license-driven downgrade) ────────
+
+    @Nested
+    class DowngradeToFree {
+
+        @Test
+        void fromActive_downgradesToFreeBasic() {
+            Subscription sub = createActiveSubscription();
+            sub.clearDomainEvents();
+
+            sub.downgradeToFree();
+
+            assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.FREE);
+            assertThat(sub.getTier()).isEqualTo(SubscriptionTier.BASIC);
+        }
+
+        @Test
+        void fromTrial_downgradesToFreeBasic() {
+            Subscription sub = createTrialSubscription();
+            sub.clearDomainEvents();
+
+            sub.downgradeToFree();
+
+            assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.FREE);
+            assertThat(sub.getTier()).isEqualTo(SubscriptionTier.BASIC);
+        }
+
+        @Test
+        void fromRenewalFailed_downgradesToFreeBasic() {
+            Subscription sub = createActiveSubscription();
+            sub.markRenewalFailed();
+            sub.clearDomainEvents();
+
+            sub.downgradeToFree();
+
+            assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.FREE);
+            assertThat(sub.getTier()).isEqualTo(SubscriptionTier.BASIC);
+        }
+
+        @Test
+        void fromFree_isIdempotentNoOp() {
+            Subscription sub = createTrialSubscription();
+            sub.downgradeToFree();
+            sub.clearDomainEvents();
+
+            sub.downgradeToFree();
+
+            assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.FREE);
+            assertThat(sub.getTier()).isEqualTo(SubscriptionTier.BASIC);
+            assertThat(sub.getDomainEvents()).isEmpty();
+        }
+
+        @Test
+        void registersTierChangedEventFromActive() {
+            Subscription sub = createActiveSubscription();
+            sub.clearDomainEvents();
+
+            sub.downgradeToFree();
+
+            assertThat(sub.getDomainEvents()).hasSize(1);
+            SubscriptionTierChangedEvent event =
+                (SubscriptionTierChangedEvent) sub.getDomainEvents().get(0);
+            assertThat(event.getOldTier()).isEqualTo("STANDARD");
+            assertThat(event.getNewTier()).isEqualTo("FREE");
+        }
+
+        @Test
+        void fromSuspended_throwsStateConflict() {
+            Subscription sub = createActiveSubscription();
+            sub.suspend();
+
+            assertThatThrownBy(sub::downgradeToFree)
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
+        }
+
+        @Test
+        void fromCancelled_throwsStateConflict() {
+            Subscription sub = createActiveSubscription();
+            sub.cancel(Instant.now());
+
+            assertThatThrownBy(sub::downgradeToFree)
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
+        }
+
+        @Test
+        void fromExpired_throwsStateConflict() {
+            Subscription sub = createActiveSubscription();
+            sub.markExpired();
+
+            assertThatThrownBy(sub::downgradeToFree)
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
         }
     }
 }

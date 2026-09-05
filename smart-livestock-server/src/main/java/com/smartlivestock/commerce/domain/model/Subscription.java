@@ -49,6 +49,9 @@ public class Subscription extends AggregateRoot {
         sub.tenantId = tenantId;
         sub.tier = SubscriptionTier.BASIC;
         sub.billingModel = billingModel;
+        // billing_cycle is NOT NULL in the schema; trials default to monthly
+        // (paid-cycle semantics apply only after activation).
+        sub.billingCycle = "monthly";
         sub.status = SubscriptionStatus.TRIAL;
         sub.startedAt = startedAt;
         sub.trialEndsAt = trialEndsAt;
@@ -79,6 +82,23 @@ public class Subscription extends AggregateRoot {
         this.status = SubscriptionStatus.FREE;
         this.tier = SubscriptionTier.BASIC;
         registerEvent(new SubscriptionTierChangedEvent(tenantId, oldTier.name(), "FREE"));
+    }
+
+    /**
+     * Extend the trial end timestamp (e.g. hosted pilot license, NIX-184).
+     * Only allowed while in TRIAL status, and never shortens the current
+     * trial end; extending to the exact same timestamp is a no-op success.
+     *
+     * @param newTrialEndsAt the new trial end timestamp
+     */
+    public void extendTrial(Instant newTrialEndsAt) {
+        requireStatus(SubscriptionStatus.TRIAL, "extendTrial");
+        if (this.trialEndsAt != null && newTrialEndsAt.isBefore(this.trialEndsAt)) {
+            throw new DomainException(ErrorCode.STATE_CONFLICT,
+                "Cannot extendTrial: new trial end " + newTrialEndsAt
+                    + " is before current trial end " + this.trialEndsAt);
+        }
+        this.trialEndsAt = newTrialEndsAt;
     }
 
     /**
@@ -141,6 +161,27 @@ public class Subscription extends AggregateRoot {
      */
     public void downgradeAfterRenewalFailure() {
         requireStatus(SubscriptionStatus.RENEWAL_FAILED, "downgradeAfterRenewalFailure");
+        SubscriptionTier oldTier = this.tier;
+        this.tier = SubscriptionTier.BASIC;
+        this.status = SubscriptionStatus.FREE;
+        registerEvent(new SubscriptionTierChangedEvent(tenantId, oldTier.name(), "FREE"));
+    }
+
+    /**
+     * License-driven downgrade to FREE with BASIC tier (NIX-184 T4: offline
+     * license expiry path). Allowed from ACTIVE, TRIAL, or RENEWAL_FAILED;
+     * FREE is an idempotent no-op. SUSPENDED/CANCELLED/EXPIRED are rejected —
+     * those states are managed by their own dedicated transitions.
+     */
+    public void downgradeToFree() {
+        requireStatusFor("downgradeToFree",
+            SubscriptionStatus.ACTIVE,
+            SubscriptionStatus.TRIAL,
+            SubscriptionStatus.RENEWAL_FAILED,
+            SubscriptionStatus.FREE);
+        if (this.status == SubscriptionStatus.FREE) {
+            return;
+        }
         SubscriptionTier oldTier = this.tier;
         this.tier = SubscriptionTier.BASIC;
         this.status = SubscriptionStatus.FREE;

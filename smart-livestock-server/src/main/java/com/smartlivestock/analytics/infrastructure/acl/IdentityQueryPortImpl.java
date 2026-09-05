@@ -7,6 +7,7 @@ import com.smartlivestock.identity.domain.model.ApiKey;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Component("analyticsIdentityQueryPort")
@@ -29,11 +30,10 @@ public class IdentityQueryPortImpl implements IdentityQueryPort {
     }
 
     @Override
-    public ApiKeyInfo createApiKey(Long tenantId, String name, String scopes, Integer rpm, Integer dailyQuota, String description) {
-        var result = apiKeyApplicationService.createApiKeyForPortal(tenantId, name, scopes, rpm, dailyQuota, description);
-        // result is Map<String, Object>, extract the key
-        Long keyId = ((Number) result.get("id")).longValue();
-        return findApiKeyById(keyId).orElseThrow();
+    public Map<String, Object> createApiKey(Long tenantId, String name, String scopes, Integer rpm, Integer dailyQuota, String description) {
+        // Pass the service map straight through: it carries the one-time
+        // rawKey, which a re-fetch by id can never recover.
+        return apiKeyApplicationService.createApiKeyForPortal(tenantId, name, scopes, rpm, dailyQuota, description);
     }
 
     @Override
