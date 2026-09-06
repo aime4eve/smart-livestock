@@ -10,6 +10,7 @@ class AppSession {
     this.tenantId,
     this.username,
     this.activeFarmId,
+    this.mustChangePassword = false,
   });
 
   static const loggedOut = AppSession._();
@@ -23,6 +24,7 @@ class AppSession {
     this.tenantId,
     this.username,
     this.activeFarmId,
+    this.mustChangePassword = false,
   });
 
   final UserRole? role;
@@ -34,9 +36,13 @@ class AppSession {
   final String? username;
   final String? activeFarmId;
 
+  /// NIX-191: true while the account must replace its initial password
+  /// before any other API can be used.
+  final bool mustChangePassword;
+
   bool get isLoggedIn => role != null;
 
-  AppSession copyWith({String? activeFarmId}) {
+  AppSession copyWith({String? activeFarmId, bool? mustChangePassword}) {
     return AppSession._(
       role: role,
       accessToken: accessToken,
@@ -46,6 +52,7 @@ class AppSession {
       tenantId: tenantId,
       username: username,
       activeFarmId: activeFarmId ?? this.activeFarmId,
+      mustChangePassword: mustChangePassword ?? this.mustChangePassword,
     );
   }
 }

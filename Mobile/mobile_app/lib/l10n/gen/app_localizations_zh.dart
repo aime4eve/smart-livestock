@@ -5051,4 +5051,34 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get pilotLicenseStateConflict => '当前订阅状态不支持开通试点授权';
+
+  @override
+  String get forcedChangeTitle => '设置您的新密码';
+
+  @override
+  String get forcedChangeHint => '检测到您仍在使用初始密码。为保障安全，请先设置您自己的新密码，之后才能使用系统其他功能。';
+
+  @override
+  String get forcedChangeCurrent => '当前密码（初始密码）';
+
+  @override
+  String get forcedChangeNew => '新密码';
+
+  @override
+  String get forcedChangeConfirm => '确认新密码';
+
+  @override
+  String get forcedChangeRequired => '请输入密码';
+
+  @override
+  String get forcedChangeSubmit => '保存并继续';
+
+  @override
+  String get forcedChangeSuccess => '密码修改成功，请使用新密码重新登录';
+
+  @override
+  String get forcedChangeMismatch => '两次输入的新密码不一致';
+
+  @override
+  String get errorPasswordWeak => '新密码至少 10 位，且必须同时包含字母和数字';
 }

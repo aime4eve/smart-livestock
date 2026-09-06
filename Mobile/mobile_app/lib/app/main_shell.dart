@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
+import 'package:hkt_livestock_agentic/features/auth/data/deployment_info.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_widget.dart';
@@ -188,6 +189,10 @@ class _PlatformAdminShell extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final location = GoRouterState.of(context).uri.toString();
+    // NIX-191: contracts live in the cloud (commercial system of record).
+    // Hide the entry on ONPREM deployments, where the page would be a shell.
+    final deploymentInfo = ref.watch(deploymentInfoProvider);
+    final showContractsEntry = deploymentInfo.value?.isOnprem != true;
 
     return Scaffold(
       body: Row(
@@ -243,13 +248,14 @@ class _PlatformAdminShell extends ConsumerWidget {
                       selected: location.startsWith(AppRoute.platformRevenue.path),
                       onTap: () => context.go(AppRoute.platformRevenue.path),
                     ),
-                    _IconSidebarItem(
-                      icon: Icons.description_outlined,
-                      tooltip: AppRoute.platformContracts.label,
-                      selected:
-                          location.startsWith(AppRoute.platformContracts.path),
-                      onTap: () => context.go(AppRoute.platformContracts.path),
-                    ),
+                    if (showContractsEntry)
+                      _IconSidebarItem(
+                        icon: Icons.description_outlined,
+                        tooltip: AppRoute.platformContracts.label,
+                        selected:
+                            location.startsWith(AppRoute.platformContracts.path),
+                        onTap: () => context.go(AppRoute.platformContracts.path),
+                      ),
                     _IconSidebarItem(
                       icon: Icons.workspace_premium_outlined,
                       tooltip: AppRoute.platformSubscriptions.label,

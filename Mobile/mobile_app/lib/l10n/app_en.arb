@@ -1314,10 +1314,10 @@
       }
     }
   },
- "deviceViewLocation": "View Location",
- "@deviceViewLocation": {},
- "deviceViewHealth": "View Device Data",
- "@deviceViewHealth": {},
+  "deviceViewLocation": "View Location",
+  "@deviceViewLocation": {},
+  "deviceViewHealth": "View Device Data",
+  "@deviceViewHealth": {},
   "deviceViewTrajectory": "View Trajectory",
   "@deviceViewTrajectory": {},
   "offlineTileNoRegions": "No offline maps available",
@@ -2423,12 +2423,11 @@
   "@gpsQualityGradeUnavailableDesc": {},
   "gpsQualityNoData": "No data",
   "@gpsQualityNoData": {},
-
   "gpsQualityNoGpsData": "No valid GPS data collected during the test period",
   "@gpsQualityNoGpsData": {},
   "gpsQualityNoGpsDataHint": "Telemetry data is normal, but GPS coordinates are (0,0), indicating the GPS module may not have achieved a fix. Please verify the device is outdoors and the antenna connection is secure.",
   "@gpsQualityNoGpsDataHint": {},
-  "gpsQualityViewTrajectory": "View trajectory",
+  "gpsQualityViewTrajectory": "View Trajectory",
   "@gpsQualityViewTrajectory": {},
   "gpsQualityScatterChart": "GPS Scatter Plot",
   "@gpsQualityScatterChart": {},
@@ -2491,7 +2490,7 @@
   "gpsQualityTipSuspectPoints": "Points with step_number > 0",
   "tenantListTitle": "Tenant Management",
   "@tenantListTitle": {},
-    "authModeHosted": "Cloud Hosted",
+  "authModeHosted": "Cloud Hosted",
   "@authModeHosted": {},
   "authModeOnprem": "On-Premise Deployment",
   "@authModeOnprem": {},
@@ -2503,7 +2502,7 @@
   "@authModeExpiredBanner": {},
   "authModeSuspendedBanner": "License suspended: an anomaly was detected (e.g. clock rollback). It is released automatically once time is restored and a valid license is imported.",
   "@authModeSuspendedBanner": {},
-"tenantListCreate": "New Tenant",
+  "tenantListCreate": "New Tenant",
   "@tenantListCreate": {},
   "tenantDetailTitle": "Tenant Detail",
   "@tenantDetailTitle": {},
@@ -2631,9 +2630,7 @@
   "gpsQualityEditRetry": "Edit & Retry",
   "@gpsQualityEditRetry": {},
   "gpsQualityBatchRegister": "Batch Register",
- "@gpsQualityBatchRegister": {},
- "gpsQualityViewTrajectory": "View Trajectory",
- "@gpsQualityViewTrajectory": {},
+  "@gpsQualityBatchRegister": {},
   "gpsQualityEditAndRetry": "Edit & Retry",
   "@gpsQualityEditAndRetry": {},
   "gpsQualityCheckStatusReady": "Ready",
@@ -2747,12 +2744,12 @@
   "gpsQualityTrajectoryStatInvalid": "Invalid",
   "@gpsQualityTrajectoryStatInvalid": {},
   "gpsQualityTrajectoryStatDevices": "Devices",
- "@gpsQualityTrajectoryStatDevices": {},
+  "@gpsQualityTrajectoryStatDevices": {},
   "gpsQualityTrajectoryAutoRegistered": "Auto-registered",
   "@gpsQualityTrajectoryAutoRegistered": {},
   "gpsQualityTrajectoryManualRegister": "Manual register",
   "@gpsQualityTrajectoryManualRegister": {},
- "gpsQualityFilePaired": "From file",
+  "gpsQualityFilePaired": "From file",
   "@gpsQualityFilePaired": {},
   "gpsQualityLogPaired": "From gps_logs",
   "@gpsQualityLogPaired": {},
@@ -2777,14 +2774,20 @@
   "gpsQualityTrajectoryImportDone": "Import finished: {created} trajectory checks created, {skipped} skipped (duplicates)",
   "@gpsQualityTrajectoryImportDone": {
     "placeholders": {
-      "created": {"type": "int"},
-      "skipped": {"type": "int"}
+      "created": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
     }
   },
   "gpsQualityTrajectoryDevicePoints": "{n} pts",
   "@gpsQualityTrajectoryDevicePoints": {
     "placeholders": {
-      "n": {"type": "int"}
+      "n": {
+        "type": "int"
+      }
     }
   },
   "gpsQualityTrajectoryCreated": "Check created",
@@ -2820,12 +2823,16 @@
   "gpsQualityTrajectoryUnpairedDetail": "{n} unpaired samples: no gps_logs report for this device within ±{tolerance}s of the collection time (possible missing/delayed reports); excluded from error statistics.",
   "@gpsQualityTrajectoryUnpairedDetail": {
     "placeholders": {
-      "n": {"type": "int"},
-      "tolerance": {"type": "int"}
+      "n": {
+        "type": "int"
+      },
+      "tolerance": {
+        "type": "int"
+      }
     }
   },
- "gpsQualityTrajectoryNoStatic": "No static check data for this device; static-vs-dynamic comparison unavailable.",
- "@gpsQualityTrajectoryNoStatic": {},
+  "gpsQualityTrajectoryNoStatic": "No static check data for this device; static-vs-dynamic comparison unavailable.",
+  "@gpsQualityTrajectoryNoStatic": {},
   "gpsQualityTrajectoryToleranceLabel": "Pairing tolerance",
   "@gpsQualityTrajectoryToleranceLabel": {},
   "gpsQualityTrajectoryRePair": "Re-pair",
@@ -2833,16 +2840,26 @@
   "gpsQualityTrajectoryNearestLabel": "(nearest {duration})",
   "@gpsQualityTrajectoryNearestLabel": {
     "placeholders": {
-      "duration": {"type": "String"}
+      "duration": {
+        "type": "String"
+      }
     }
   },
- "gpsQualityTrajectoryStaticDelta": "Static vs dynamic: static P95 = {staticP95}m, this trajectory P95 = {dynamicP95}m, dynamic error {direction} by {delta}m",
+  "gpsQualityTrajectoryStaticDelta": "Static vs dynamic: static P95 = {staticP95}m, this trajectory P95 = {dynamicP95}m, dynamic error {direction} by {delta}m",
   "@gpsQualityTrajectoryStaticDelta": {
     "placeholders": {
-      "staticP95": {"type": "String"},
-      "dynamicP95": {"type": "String"},
-      "delta": {"type": "String"},
-      "direction": {"type": "String"}
+      "staticP95": {
+        "type": "String"
+      },
+      "dynamicP95": {
+        "type": "String"
+      },
+      "delta": {
+        "type": "String"
+      },
+      "direction": {
+        "type": "String"
+      }
     }
   },
   "gpsQualityTrajectorySmaller": "smaller",
@@ -2855,7 +2872,7 @@
   "@gpsQualityTrajectoryEmpty": {},
   "gpsQualityPaired": "Paired",
   "@gpsQualityPaired": {},
-"alertSeverityCritical": "Critical",
+  "alertSeverityCritical": "Critical",
   "@alertSeverityCritical": {},
   "alertSeverityWarning": "Warning",
   "@alertSeverityWarning": {},
@@ -2922,7 +2939,9 @@
   "alertBatchSelected": "{count} selected",
   "@alertBatchSelected": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "alertBatchSelectAll": "Select All",
@@ -2974,7 +2993,9 @@
   "alertRanchBannerActive": "{count} active alerts",
   "@alertRanchBannerActive": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "alertFenceListTitle": "Fence List",
@@ -2982,19 +3003,25 @@
   "alertFenceArea": "{area} ha",
   "@alertFenceArea": {
     "placeholders": {
-      "area": {"type": "String"}
+      "area": {
+        "type": "String"
+      }
     }
   },
   "alertFenceLivestockCount": "{count} livestock",
   "@alertFenceLivestockCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "alertFenceAlertCount": "{count} alerts",
   "@alertFenceAlertCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "alertFenceAddBtn": "Add Fence",
@@ -3004,7 +3031,9 @@
   "alertFenceDeleteConfirm": "Delete fence \"{name}\"?",
   "@alertFenceDeleteConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "alertFenceDeleteBtn": "Delete",
@@ -3014,13 +3043,17 @@
   "alertMinutesAgo": "{count} min ago",
   "@alertMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "alertYesterdayTime": "yesterday {time}",
   "@alertYesterdayTime": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "alertMonthUnit": "/",
@@ -3035,7 +3068,9 @@
   "alertDateCount": "{count} items",
   "@alertDateCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "alertBatchSelectedCount": "items",
@@ -3115,15 +3150,38 @@
   "gpsQualityTrackLineRules": "Management rules (append-only, no merging): one import = one independent candidate, never auto-merged; re-importing the same file adds a new record instead of overwriting; the point list is snapshotted when a check is launched, so deleting a candidate does not affect historical reports; select ≥2 to \"Merge\" (phase 2).",
   "@gpsQualityTrackLineRules": {},
   "gpsQualityTrackLineDeleteConfirm": "Delete candidate track \"{name}\"? Historical check reports are not affected (point list is snapshotted).",
-  "@gpsQualityTrackLineDeleteConfirm": {"placeholders": {"name": {}}},
+  "@gpsQualityTrackLineDeleteConfirm": {
+    "placeholders": {
+      "name": {}
+    }
+  },
   "gpsQualityTrackLinePointLength": "{points} pts · {length} m",
-  "@gpsQualityTrackLinePointLength": {"placeholders": {"points": {"type": "int"}, "length": {}}},
+  "@gpsQualityTrackLinePointLength": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      },
+      "length": {}
+    }
+  },
   "gpsQualityLineMerge": "Merge",
   "@gpsQualityLineMerge": {},
   "gpsQualityLineMergeSelectedCount": "{n} selected",
-  "@gpsQualityLineMergeSelectedCount": {"placeholders": {"n": {"type": "int"}}},
+  "@gpsQualityLineMergeSelectedCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "gpsQualityLineMergePhase2": "{n} source tracks selected. The merge algorithm ships in phase 2: this release only keeps the entry and selection interaction; source records stay untouched until the algorithm lands.",
-  "@gpsQualityLineMergePhase2": {"placeholders": {"n": {"type": "int"}}},
+  "@gpsQualityLineMergePhase2": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "gpsQualityLineUploadTitle": "Upload RTK Handset Export",
   "@gpsQualityLineUploadTitle": {},
   "gpsQualityLineUploadHint": "Supports .xlsx (RTK handset \"line tracking\" export). One line per file; each import creates one candidate.",
@@ -3177,7 +3235,13 @@
   "gpsQualityLineStatEnd": "End Coordinate",
   "@gpsQualityLineStatEnd": {},
   "gpsQualityLineInvalidPoints": "{n} invalid coordinate rows skipped",
-  "@gpsQualityLineInvalidPoints": {"placeholders": {"n": {"type": "int"}}},
+  "@gpsQualityLineInvalidPoints": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "gpsQualityLinePreviewPoints": "First 8 coordinate points (after dedup)",
   "@gpsQualityLinePreviewPoints": {},
   "gpsQualityLineColSeq": "No.",
@@ -3189,7 +3253,14 @@
   "gpsQualityLineImportAction": "Import",
   "@gpsQualityLineImportAction": {},
   "gpsQualityLineImportDone": "Import complete: created 1 candidate standard track line ({points} pts · computed length {length} m), added to the standard track list.",
-  "@gpsQualityLineImportDone": {"placeholders": {"points": {"type": "int"}, "length": {}}},
+  "@gpsQualityLineImportDone": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      },
+      "length": {}
+    }
+  },
   "gpsQualityLineAppendNote": "Append-only management: this import is an independent candidate and is never merged into existing records; importing the same file again adds a new record instead of overwriting.",
   "@gpsQualityLineAppendNote": {},
   "gpsQualityLinePreviewTitle": "Standard Track Map Preview",
@@ -3207,11 +3278,28 @@
   "gpsQualityLineSelectDevices": "Select Devices",
   "@gpsQualityLineSelectDevices": {},
   "gpsQualityLineDevicesFound": "{n} devices with data",
-  "@gpsQualityLineDevicesFound": {"placeholders": {"n": {"type": "int"}}},
+  "@gpsQualityLineDevicesFound": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "gpsQualityLinePointTotal": "{n} pts total",
-  "@gpsQualityLinePointTotal": {"placeholders": {"n": {"type": "int"}}},
+  "@gpsQualityLinePointTotal": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "gpsQualityLineFirstLast": "first {first} ｜ last {last}",
-  "@gpsQualityLineFirstLast": {"placeholders": {"first": {}, "last": {}}},
+  "@gpsQualityLineFirstLast": {
+    "placeholders": {
+      "first": {},
+      "last": {}
+    }
+  },
   "gpsQualityLineSelectTrack": "Standard Track",
   "@gpsQualityLineSelectTrack": {},
   "gpsQualityLineStarHint": "★ = selected line (pinned to top)",
@@ -3223,9 +3311,21 @@
   "gpsQualityLineCalcNoteShort": "Effective samples = consecutive track segments near the line (100m corridor, gaps under 5 min, at least 4 points per trip)",
   "@gpsQualityLineCalcNoteShort": {},
   "gpsQualityLineLaunch": "Launch Check ({n} devices)",
-  "@gpsQualityLineLaunch": {"placeholders": {"n": {"type": "int"}}},
+  "@gpsQualityLineLaunch": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "gpsQualityLineLaunchDone": "Line check launched for {n} devices",
-  "@gpsQualityLineLaunchDone": {"placeholders": {"n": {"type": "int"}}},
+  "@gpsQualityLineLaunchDone": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "gpsQualityCheckSummary": "Check Summary",
   "@gpsQualityCheckSummary": {},
   "gpsQualityCheckSummaryHint": "Click \"View Report\" to open the report of that type",
@@ -3276,14 +3376,20 @@
   "@gpsQualityLineExportCsv": {},
   "gpsQualityLineSelectTrackPrompt": "Select a standard track to compare",
   "@gpsQualityLineSelectTrackPrompt": {},
- "gpsQualityLineComparisonEmpty": "No line check data under these conditions",
- "@gpsQualityLineComparisonEmpty": {},
-"gpsQualityLineComparisonEmptyHint": "No line checks have been created for this track yet. Create one to see device comparison.",
- "@gpsQualityLineComparisonEmptyHint": {},
- "gpsQualityLineRefresh": "Refresh",
- "@gpsQualityLineRefresh": {},
- "gpsQualityLineRefreshDone": "Refreshed: {n} devices re-checked",
- "@gpsQualityLineRefreshDone": {"placeholders": {"n": {"type": "int"}}},
+  "gpsQualityLineComparisonEmpty": "No line check data under these conditions",
+  "@gpsQualityLineComparisonEmpty": {},
+  "gpsQualityLineComparisonEmptyHint": "No line checks have been created for this track yet. Create one to see device comparison.",
+  "@gpsQualityLineComparisonEmptyHint": {},
+  "gpsQualityLineRefresh": "Refresh",
+  "@gpsQualityLineRefresh": {},
+  "gpsQualityLineRefreshDone": "Refreshed: {n} devices re-checked",
+  "@gpsQualityLineRefreshDone": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "telemetryImportTitle": "Telemetry Import",
   "@telemetryImportTitle": {},
   "telemetryImportStepUpload": "Upload File",
@@ -3365,7 +3471,13 @@
   "telemetryImportPreviewTitle": "Row Preview (first 8 rows)",
   "@telemetryImportPreviewTitle": {},
   "telemetryImportPreviewNote": "Showing the first 8 rows only; all {total} rows have been parsed. Decoded fields: battery / coordinates (written to the GPS track) / period steps & 3-axis acceleration (written to telemetry records for health analytics).",
-  "@telemetryImportPreviewNote": {"placeholders": {"total": {"type": "int"}}},
+  "@telemetryImportPreviewNote": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "telemetryImportColTime": "Time (UTC)",
   "@telemetryImportColTime": {},
   "telemetryImportColBattery": "Battery",
@@ -3389,11 +3501,26 @@
   "telemetryImportRowInvalid": "Error",
   "@telemetryImportRowInvalid": {},
   "telemetryImportConfirmAction": "Import {count} Rows",
-  "@telemetryImportConfirmAction": {"placeholders": {"count": {"type": "int"}}},
+  "@telemetryImportConfirmAction": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "telemetryImportConfirmDisabled": "Device not matched; import unavailable",
   "@telemetryImportConfirmDisabled": {},
   "telemetryImportDone": "Import complete. {telemetry} telemetry records written, including {gps} GPS track points; duplicate and non-importable rows were skipped automatically. The source is marked as \"manual import\" — no alerts were triggered and the live sync cursor is untouched.",
-  "@telemetryImportDone": {"placeholders": {"telemetry": {"type": "int"}, "gps": {"type": "int"}}},
+  "@telemetryImportDone": {
+    "placeholders": {
+      "telemetry": {
+        "type": "int"
+      },
+      "gps": {
+        "type": "int"
+      }
+    }
+  },
   "telemetryImportResultDetailTitle": "Device Import Details",
   "@telemetryImportResultDetailTitle": {},
   "telemetryImportResultTelemetry": "Telemetry Records",
@@ -3407,11 +3534,23 @@
   "telemetryImportImportAnother": "Import Another File",
   "@telemetryImportImportAnother": {},
   "telemetryImportErrorDeviceNotRegistered": "Device not registered: {devEui}",
-  "@telemetryImportErrorDeviceNotRegistered": {"placeholders": {"devEui": {}}},
+  "@telemetryImportErrorDeviceNotRegistered": {
+    "placeholders": {
+      "devEui": {}
+    }
+  },
   "telemetryImportErrorDeviceNotActive": "Device not active: {devEui}",
-  "@telemetryImportErrorDeviceNotActive": {"placeholders": {"devEui": {}}},
+  "@telemetryImportErrorDeviceNotActive": {
+    "placeholders": {
+      "devEui": {}
+    }
+  },
   "telemetryImportErrorUnsupportedDeviceType": "Unsupported device type: {deviceType}",
-  "@telemetryImportErrorUnsupportedDeviceType": {"placeholders": {"deviceType": {}}},
+  "@telemetryImportErrorUnsupportedDeviceType": {
+    "placeholders": {
+      "deviceType": {}
+    }
+  },
   "telemetryImportErrorInvalidTime": "Invalid time format",
   "@telemetryImportErrorInvalidTime": {},
   "telemetryImportErrorInvalidHex": "Failed to parse payload hex",
@@ -3525,7 +3664,13 @@
   "datagenConsoleClearSelection": "Clear Selection",
   "@datagenConsoleClearSelection": {},
   "datagenConsoleSelectedCount": "{count} selected",
-  "@datagenConsoleSelectedCount": {"placeholders": {"count": {"type": "int"}}},
+  "@datagenConsoleSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "datagenConsoleClearData": "Clear Simulation Data",
   "@datagenConsoleClearData": {},
   "datagenConsoleRange24h": "Last 24 Hours",
@@ -3579,7 +3724,13 @@
   "datagenConsoleDevicesRequired": "Select at least one device before starting.",
   "@datagenConsoleDevicesRequired": {},
   "datagenConsoleClearDone": "Clearing complete. {count} rows deleted.",
-  "@datagenConsoleClearDone": {"placeholders": {"count": {"type": "int"}}},
+  "@datagenConsoleClearDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tbWizardTitle": "Provision Device",
   "@tbWizardTitle": {},
   "tbWizardStepPreflight": "Preflight",
@@ -3631,7 +3782,13 @@
   "tbWizardStatusActive": "Active",
   "@tbWizardStatusActive": {},
   "tbWizardStatusUnknown": "Unknown status: {status}",
-  "@tbWizardStatusUnknown": {"placeholders": {"status": {"type": "String"}}},
+  "@tbWizardStatusUnknown": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "tbWizardResultDevice": "Device created",
   "@tbWizardResultDevice": {},
   "tbWizardResultBinding": "TB binding",
@@ -3679,13 +3836,28 @@
   "tbWizardFilterNoLocation": "No location",
   "@tbWizardFilterNoLocation": {},
   "tbWizardLivestockCount": "Showing {shown} of {total}",
-  "@tbWizardLivestockCount": {"placeholders": {"shown": {"type": "int"}, "total": {"type": "int"}}},
+  "@tbWizardLivestockCount": {
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "tbWizardLivestockNoMatch": "No livestock matches the search or filters.",
   "@tbWizardLivestockNoMatch": {},
   "tbWizardLocate": "Locate",
   "@tbWizardLocate": {},
   "tbWizardLocationTitle": "Locate: {name}",
-  "@tbWizardLocationTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@tbWizardLocationTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "tbWizardSortCode": "Code",
   "@tbWizardSortCode": {},
   "tbWizardSortHealth": "Health",
@@ -3697,21 +3869,84 @@
   "tbWizardLocationUnknown": "Unknown location",
   "@tbWizardLocationUnknown": {},
   "tbWizardLivestockSubtitle": "{breed} · {health} · {gender} · {deviceCount} devices · {location}",
-  "@tbWizardLivestockSubtitle": {"placeholders": {"breed": {"type": "String"}, "health": {"type": "String"}, "gender": {"type": "String"}, "deviceCount": {"type": "int"}, "location": {"type": "String"}}},
+  "@tbWizardLivestockSubtitle": {
+    "placeholders": {
+      "breed": {
+        "type": "String"
+      },
+      "health": {
+        "type": "String"
+      },
+      "gender": {
+        "type": "String"
+      },
+      "deviceCount": {
+        "type": "int"
+      },
+      "location": {
+        "type": "String"
+      }
+    }
+  },
   "tbWizardInstalledLivestockWarning": "This device is installed on livestock {livestockId}; uninstall it before selecting another target.",
-  "@tbWizardInstalledLivestockWarning": {"placeholders": {"livestockId": {"type": "String"}}},
+  "@tbWizardInstalledLivestockWarning": {
+    "placeholders": {
+      "livestockId": {
+        "type": "String"
+      }
+    }
+  },
   "healthTipAssigned": "Score: {value} / 100",
-  "@healthTipAssigned": {"placeholders": {"value": {"type": "int"}}},
+  "@healthTipAssigned": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
   "healthTipBasis": "Basis: {detail}",
-  "@healthTipBasis": {"placeholders": {"detail": {"type": "String"}}},
+  "@healthTipBasis": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
   "healthBasisBattery": "Battery at {percent}%",
-  "@healthBasisBattery": {"placeholders": {"percent": {"type": "int"}}},
+  "@healthBasisBattery": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "healthBasisSignal": "RSSI {rssi} dBm, SNR {snr}",
-  "@healthBasisSignal": {"placeholders": {"rssi": {"type": "int"}, "snr": {"type": "String"}}},
+  "@healthBasisSignal": {
+    "placeholders": {
+      "rssi": {
+        "type": "int"
+      },
+      "snr": {
+        "type": "String"
+      }
+    }
+  },
   "healthBasisSignalNoSnr": "RSSI {rssi} dBm",
-  "@healthBasisSignalNoSnr": {"placeholders": {"rssi": {"type": "int"}}},
+  "@healthBasisSignalNoSnr": {
+    "placeholders": {
+      "rssi": {
+        "type": "int"
+      }
+    }
+  },
   "healthBasisOnlineHoursAgo": "Last online {hours} h ago",
-  "@healthBasisOnlineHoursAgo": {"placeholders": {"hours": {"type": "int"}}},
+  "@healthBasisOnlineHoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
   "healthBasisOnlineWithinHour": "Last online within 1 h",
   "@healthBasisOnlineWithinHour": {},
   "healthBasisTamperOk": "Anti-disassembly not triggered",
@@ -3759,9 +3994,21 @@
   "deploymentLicenseExpiresAt": "Expires At",
   "@deploymentLicenseExpiresAt": {},
   "deploymentLicenseDaysRemaining": "{days} days remaining",
-  "@deploymentLicenseDaysRemaining": {"placeholders": {"days": {"type": "int"}}},
+  "@deploymentLicenseDaysRemaining": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "deploymentLicenseDaysOverdue": "{days} days overdue",
-  "@deploymentLicenseDaysOverdue": {"placeholders": {"days": {"type": "int"}}},
+  "@deploymentLicenseDaysOverdue": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "deploymentLicenseIssuedAt": "Issued At",
   "@deploymentLicenseIssuedAt": {},
   "deploymentLicenseAcceptedAt": "Accepted At",
@@ -3799,7 +4046,13 @@
   "deploymentLicenseUploadConfirmTitle": "Confirm License Import",
   "@deploymentLicenseUploadConfirmTitle": {},
   "deploymentLicenseUploadConfirmMessage": "About to import license file {fileName} for this tenant. This operation affects the subscription state. Continue?",
-  "@deploymentLicenseUploadConfirmMessage": {"placeholders": {"fileName": {"type": "String"}}},
+  "@deploymentLicenseUploadConfirmMessage": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
   "deploymentLicenseUploadSuccess": "License imported successfully",
   "@deploymentLicenseUploadSuccess": {},
   "deploymentLicenseUploadFailed": "License import failed",
@@ -3815,9 +4068,35 @@
   "pilotLicenseConfirmMessage": "This will grant a 365-day pilot license (PREMIUM trial) to the tenant. It can be upgraded to a paid subscription at any time before expiry. Continue?",
   "@pilotLicenseConfirmMessage": {},
   "pilotLicenseGrantSuccess": "Pilot license granted. Trial ends at {trialEndsAt}",
-  "@pilotLicenseGrantSuccess": {"placeholders": {"trialEndsAt": {"type": "String"}}},
+  "@pilotLicenseGrantSuccess": {
+    "placeholders": {
+      "trialEndsAt": {
+        "type": "String"
+      }
+    }
+  },
   "pilotLicenseGrantFailed": "Failed to grant pilot license",
   "@pilotLicenseGrantFailed": {},
   "pilotLicenseStateConflict": "The current subscription state does not allow granting a pilot license",
-  "@pilotLicenseStateConflict": {}
+  "@pilotLicenseStateConflict": {},
+  "forcedChangeTitle": "Set your new password",
+  "@forcedChangeTitle": {},
+  "forcedChangeHint": "You are still using the initial password. For your security, set your own password before using the rest of the system.",
+  "@forcedChangeHint": {},
+  "forcedChangeCurrent": "Current password (initial password)",
+  "@forcedChangeCurrent": {},
+  "forcedChangeNew": "New password",
+  "@forcedChangeNew": {},
+  "forcedChangeConfirm": "Confirm new password",
+  "@forcedChangeConfirm": {},
+  "forcedChangeRequired": "Please enter a password",
+  "@forcedChangeRequired": {},
+  "forcedChangeSubmit": "Save and continue",
+  "@forcedChangeSubmit": {},
+  "forcedChangeSuccess": "Password changed. Please sign in with your new password",
+  "@forcedChangeSuccess": {},
+  "forcedChangeMismatch": "The two new passwords do not match",
+  "@forcedChangeMismatch": {},
+  "errorPasswordWeak": "The new password must be at least 10 characters and contain both letters and digits",
+  "@errorPasswordWeak": {}
 }

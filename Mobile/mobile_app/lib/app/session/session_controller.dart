@@ -30,11 +30,13 @@ class SessionController extends Notifier<AppSession> {
         phone: user['phone'] as String?,
         tenantId: user['tenantId'] as int?,
         username: user['username'] as String?,
+        mustChangePassword: user['mustChangePassword'] == true,
       );
 
       // Prefetch farm list for farm-scoped roles so the ranch page doesn't
       // wait for a serial round-trip through MainShell's microtask.
-      if (role == UserRole.owner || role == UserRole.worker) {
+      if ((role == UserRole.owner || role == UserRole.worker) &&
+          !(user['mustChangePassword'] == true)) {
         ref.read(farmSwitcherControllerProvider.notifier).loadFarms();
       }
 
@@ -48,6 +50,12 @@ class SessionController extends Notifier<AppSession> {
     state = state.copyWith(activeFarmId: farmId);
     ApiClient.instance.setActiveFarmId(farmId);
     JwtStorage.instance.saveActiveFarmId(farmId);
+  }
+
+  /// NIX-191: clears the forced password-change lock after the initial
+  /// password has been replaced successfully.
+  void markPasswordChanged() {
+    state = state.copyWith(mustChangePassword: false);
   }
 
   Future<void> logout() async {

@@ -5166,4 +5166,37 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pilotLicenseStateConflict =>
       'The current subscription state does not allow granting a pilot license';
+
+  @override
+  String get forcedChangeTitle => 'Set your new password';
+
+  @override
+  String get forcedChangeHint =>
+      'You are still using the initial password. For your security, set your own password before using the rest of the system.';
+
+  @override
+  String get forcedChangeCurrent => 'Current password (initial password)';
+
+  @override
+  String get forcedChangeNew => 'New password';
+
+  @override
+  String get forcedChangeConfirm => 'Confirm new password';
+
+  @override
+  String get forcedChangeRequired => 'Please enter a password';
+
+  @override
+  String get forcedChangeSubmit => 'Save and continue';
+
+  @override
+  String get forcedChangeSuccess =>
+      'Password changed. Please sign in with your new password';
+
+  @override
+  String get forcedChangeMismatch => 'The two new passwords do not match';
+
+  @override
+  String get errorPasswordWeak =>
+      'The new password must be at least 10 characters and contain both letters and digits';
 }

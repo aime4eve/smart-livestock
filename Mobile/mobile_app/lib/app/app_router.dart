@@ -9,6 +9,8 @@ import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/features/auth/login_page.dart';
+import 'package:hkt_livestock_agentic/features/auth/presentation/forced_password_change_page.dart'
+    as features_auth;
 import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_contract_page.dart';
 import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_dashboard_page.dart';
 import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_farm_list_page.dart';
@@ -80,6 +82,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return location == AppRoute.login.path ? null : AppRoute.login.path;
       }
 
+      // NIX-191: accounts still on their initial password are locked to the
+      // forced password-change page until the password has been replaced.
+      if (session.mustChangePassword) {
+        const forcedPath = '/me/password-change';
+        return location == forcedPath ? null : forcedPath;
+      }
+
       final role = session.role!;
       if (role == UserRole.platformAdmin) {
         return location.startsWith(AppRoute.platformAdmin.path) ||
@@ -122,6 +131,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoute.login.path,
         name: AppRoute.login.routeName,
         builder: (context, state) => const LoginPage(),
+      ),
+      // NIX-191: forced initial-password change (top-level, outside shells —
+      // the redirect lock above routes every other location here until done).
+      GoRoute(
+        path: '/me/password-change',
+        builder: (context, state) =>
+            const features_auth.ForcedPasswordChangePage(),
       ),
       ShellRoute(
         builder: (context, state, child) {

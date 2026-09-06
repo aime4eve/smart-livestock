@@ -9430,6 +9430,66 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'当前订阅状态不支持开通试点授权'**
   String get pilotLicenseStateConflict;
+
+  /// No description provided for @forcedChangeTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'设置您的新密码'**
+  String get forcedChangeTitle;
+
+  /// No description provided for @forcedChangeHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'检测到您仍在使用初始密码。为保障安全，请先设置您自己的新密码，之后才能使用系统其他功能。'**
+  String get forcedChangeHint;
+
+  /// No description provided for @forcedChangeCurrent.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前密码（初始密码）'**
+  String get forcedChangeCurrent;
+
+  /// No description provided for @forcedChangeNew.
+  ///
+  /// In zh, this message translates to:
+  /// **'新密码'**
+  String get forcedChangeNew;
+
+  /// No description provided for @forcedChangeConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认新密码'**
+  String get forcedChangeConfirm;
+
+  /// No description provided for @forcedChangeRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入密码'**
+  String get forcedChangeRequired;
+
+  /// No description provided for @forcedChangeSubmit.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存并继续'**
+  String get forcedChangeSubmit;
+
+  /// No description provided for @forcedChangeSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'密码修改成功，请使用新密码重新登录'**
+  String get forcedChangeSuccess;
+
+  /// No description provided for @forcedChangeMismatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'两次输入的新密码不一致'**
+  String get forcedChangeMismatch;
+
+  /// No description provided for @errorPasswordWeak.
+  ///
+  /// In zh, this message translates to:
+  /// **'新密码至少 10 位，且必须同时包含字母和数字'**
+  String get errorPasswordWeak;
 }
 
 class _AppLocalizationsDelegate
