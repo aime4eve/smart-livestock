@@ -51,6 +51,9 @@ public class ContractJpaEntity {
     @Column(name = "expires_at")
     private Instant expiresAt;
 
+    @Column(name = "issued_license_id", length = 64)
+    private String issuedLicenseId;
+
     @Version
     @Column(name = "version", nullable = false)
     private Long version;
@@ -107,6 +110,9 @@ public class ContractJpaEntity {
 
     public Instant getExpiresAt() { return expiresAt; }
     public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
+
+    public String getIssuedLicenseId() { return issuedLicenseId; }
+    public void setIssuedLicenseId(String issuedLicenseId) { this.issuedLicenseId = issuedLicenseId; }
 
     public Long getVersion() { return version; }
     public void setVersion(Long version) { this.version = version; }

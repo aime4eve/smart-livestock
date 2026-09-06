@@ -22,7 +22,9 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
-    locations: classpath:db/migration
+    # NIX-191: dev/test append classpath:db/demo (demo accounts re-activation);
+    # release installs load db/migration only — no known credentials at all.
+    locations: ${FLYWAY_LOCATIONS:classpath:db/migration}
     out-of-order: true
   data:
     redis:

@@ -76,6 +76,7 @@ services:
       AI_PLATFORM_URL: http://ai-platform:8000
       AI_PLATFORM_BEHAVIOR_TIMEOUT_MS: "300000"
       DATAGEN_ENABLED: "false"
+      FLYWAY_LOCATIONS: "classpath:db/migration,classpath:db/demo"
     depends_on:
       postgres:
         condition: service_healthy

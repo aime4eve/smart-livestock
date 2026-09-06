@@ -4,6 +4,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+  flyway:
+    # Journey tests log in with the well-known demo admin — the demo location
+    # re-activates it (V20260907120000 deactivates seeded admins on fresh DBs).
+    locations: classpath:db/migration,classpath:db/demo
   autoconfigure:
     exclude:
       - org.apache.rocketmq.spring.autoconfigure.RocketMQAutoConfiguration

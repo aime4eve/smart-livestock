@@ -122,7 +122,7 @@ public class AdminContractController {
     }
 
     /**
-     * PUT /api/v1/admin/contracts/{id}/status
+     * POST /api/v1/admin/contracts/{id}/status
      * Change contract status (suspend / reactivate / terminate).
      */
     @PutMapping("/{id}/status")
@@ -147,6 +147,29 @@ public class AdminContractController {
         ContractResponse contract = revenueQueryService.findContractById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "Contract not found after status change"));
+        return ResponseEntity.ok(ApiResponse.ok(contract));
+    }
+
+    /**
+     * POST /api/v1/admin/contracts/{id}/license-issued
+     * NIX-191: called by the internal issuing tool after signing an
+     * activation certificate, keeping certificate ↔ contract traceability.
+     */
+    @PostMapping("/{id}/license-issued")
+    public ResponseEntity<ApiResponse<ContractResponse>> recordIssuedLicense(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        requirePlatformAdmin();
+
+        String licenseId = body.get("licenseId");
+        if (licenseId == null || licenseId.isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "licenseId 不能为空");
+        }
+
+        contractApplicationService.recordIssuedLicense(id, licenseId);
+        ContractResponse contract = revenueQueryService.findContractById(id)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "Contract not found after recording the issued license"));
         return ResponseEntity.ok(ApiResponse.ok(contract));
     }
 
