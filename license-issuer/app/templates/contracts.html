@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}合同台账{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>合同台账（NIX-191）</h1>
+  <p class="muted">签发授权时选择合同，可自动带入档位与期限，并在签发后把证书编号回写到云端合同，
+    保证每张证书都能追溯到商业合同。</p>
+
+  {% if cloud_enabled %}
+  <h2>云端生效中合同</h2>
+  {% if cloud_error %}
+  <div class="error-box">云端合同拉取失败：{{ cloud_error }}</div>
+  {% elif cloud_contracts is none %}
+  <div class="muted">未配置。</div>
+  {% else %}
+  <table>
+    <thead><tr><th>ID</th><th>合同号</th><th>租户</th><th>档位</th><th>状态</th><th>最近证书</th><th></th></tr></thead>
+    <tbody>
+      {% for c in cloud_contracts %}
+      <tr>
+        <td>{{ c.id }}</td><td>{{ c.contractNumber }}</td><td>{{ c.tenantId }}</td>
+        <td>{{ c.effectiveTier }}</td><td>{{ c.status }}</td><td>{{ c.issuedLicenseId or '—' }}</td>
+        <td><a class="btn btn-secondary"
+               href="{{ base }}/issue/new?contractId={{ c.id }}&contractNumber={{ c.contractNumber }}&tenantId={{ c.tenantId }}&effectiveTier={{ c.effectiveTier }}">去签发</a></td>
+      </tr>
+      {% endfor %}
+      {% if not cloud_contracts %}<tr><td colspan="7" class="muted">暂无生效中合同。</td></tr>{% endif %}
+    </tbody>
+  </table>
+  {% endif %}
+  {% else %}
+  <div class="muted">未配置 CLOUD_BASE_URL / CLOUD_TOKEN，当前为离线手工模式。</div>
+  {% endif %}
+
+  <h2 style="margin-top:24px;">离线手工登记</h2>
+  <form method="post" action="{{ base }}/contracts">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="grid">
+      <div><label for="contractNumber">合同编号</label>
+        <input id="contractNumber" name="contractNumber" required value=""></div>
+      <div><label for="customer">客户名称</label>
+        <input id="customer" name="customer" value=""></div>
+      <div><label for="tier">档位</label>
+        <input id="tier" name="tier" placeholder="BASIC/PREMIUM/ENTERPRISE" value=""></div>
+      <div><label for="note">备注</label>
+        <input id="note" name="note" value=""></div>
+    </div>
+    <div class="actions"><button class="btn" type="submit">登记合同</button></div>
+  </form>
+
+  <h2 style="margin-top:24px;">已登记合同（本机台账）</h2>
+  <table>
+    <thead><tr><th>合同编号</th><th>客户</th><th>档位</th><th>备注</th><th>登记时间</th><th></th></tr></thead>
+    <tbody>
+      {% for c in manual_contracts %}
+      <tr>
+        <td>{{ c.contractNumber }}</td><td>{{ c.customer }}</td><td>{{ c.tier }}</td>
+        <td>{{ c.note }}</td><td>{{ c.occurredAt }}</td>
+        <td><a class="btn btn-secondary"
+               href="{{ base }}/issue/new?contractNumber={{ c.contractNumber | urlencode }}">去签发</a></td>
+      </tr>
+      {% endfor %}
+      {% if not manual_contracts %}<tr><td colspan="6" class="muted">暂无登记。</td></tr>{% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

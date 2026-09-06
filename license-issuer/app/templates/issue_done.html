@@ -6,6 +6,17 @@
   {% if just_issued %}
   <div class="ok-box">签名完成，请下载授权文件并交付客户导入。</div>
   {% endif %}
+  {% if oneTimePassword %}
+  <div class="error-box" style="border-color:#b26a00;background:#fff7e6;">
+    <strong>管理员初始密码（仅此一次显示，请立即通过电话/纸质等单独渠道交给客户）：</strong>
+    <div class="mono" style="font-size:1.2em;margin-top:6px;">{{ oneTimePassword }}</div>
+    <div class="muted">管理员登录手机号：{{ adminPhone }}。客户首次登录后会被强制要求修改此密码。
+    证书文件与该密码请分开两条渠道交付。</div>
+  </div>
+  {% endif %}
+  {% if writebackNote %}
+  <div class="muted">{{ writebackNote }}</div>
+  {% endif %}
   <div class="kv">
     <div class="muted">licenseId</div><div class="mono">{{ license.license_id }}</div>
     <div class="muted">tenantId</div><div>{{ license.tenant_id }}</div>

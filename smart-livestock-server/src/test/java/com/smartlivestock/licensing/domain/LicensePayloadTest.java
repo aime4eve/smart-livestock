@@ -57,6 +57,50 @@ class LicensePayloadTest {
         }
 
         @Test
+        void parsesAdminBootstrapPair() {
+            Map<String, Object> map = validPayloadMap();
+            map.put("adminPhone", "13912345678");
+            map.put("adminPasswordHash", "$2b$10$abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLM");
+
+            LicensePayload payload = LicensePayload.fromMap(map);
+
+            assertThat(payload.hasAdminBootstrap()).isTrue();
+            assertThat(payload.getAdminPhone()).isEqualTo("13912345678");
+            // Round trip keeps the signed bootstrap fields.
+            LicensePayload reparsed = LicensePayload.fromMap(payload.toMap());
+            assertThat(reparsed.getAdminPhone()).isEqualTo("13912345678");
+            assertThat(reparsed.getAdminPasswordHash()).isEqualTo(payload.getAdminPasswordHash());
+        }
+
+        @Test
+        void omitsAdminFieldsWhenAbsent_keepingCanonicalFormStable() {
+            Map<String, Object> map = LicensePayload.fromMap(validPayloadMap()).toMap();
+
+            assertThat(map).doesNotContainKeys("adminPhone", "adminPasswordHash");
+        }
+
+        @Test
+        void rejectsHalfAdminPair() {
+            Map<String, Object> map = validPayloadMap();
+            map.put("adminPhone", "13912345678");
+
+            assertThatThrownBy(() -> LicensePayload.fromMap(map))
+                    .isInstanceOfSatisfying(DomainException.class, e ->
+                            assertThat(e.getMessage()).contains("adminPhone"));
+        }
+
+        @Test
+        void rejectsNonBcryptAdminPasswordHash() {
+            Map<String, Object> map = validPayloadMap();
+            map.put("adminPhone", "13912345678");
+            map.put("adminPasswordHash", "plaintext-password");
+
+            assertThatThrownBy(() -> LicensePayload.fromMap(map))
+                    .isInstanceOfSatisfying(DomainException.class, e ->
+                            assertThat(e.getMessage()).contains("bcrypt"));
+        }
+
+        @Test
         void toMapRoundTripsThroughFromMap() {
             LicensePayload original = LicensePayload.fromMap(validPayloadMap());
 
