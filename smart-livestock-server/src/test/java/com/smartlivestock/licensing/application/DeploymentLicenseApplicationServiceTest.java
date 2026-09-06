@@ -74,6 +74,8 @@ class DeploymentLicenseApplicationServiceTest {
     @Mock
     private LicenseUsagePort usagePort;
     @Mock
+    private com.smartlivestock.licensing.domain.port.DeploymentAdminProvisioningPort adminProvisioningPort;
+    @Mock
     private MessageResolver messageResolver;
 
     private Ed25519LicenseVerifier verifier;
@@ -96,7 +98,8 @@ class DeploymentLicenseApplicationServiceTest {
     private DeploymentLicenseApplicationService createService() {
         return new DeploymentLicenseApplicationService(installationRepository, licenseRepository,
                 stateRepository, eventRepository, verifier, fingerprintReader,
-                LicenseTestSupport.testRegistry(), subscriptionPort, usagePort, messageResolver);
+                LicenseTestSupport.testRegistry(), subscriptionPort, usagePort,
+                adminProvisioningPort, messageResolver);
     }
 
     private DeploymentInstallation installation() {
@@ -185,7 +188,7 @@ class DeploymentLicenseApplicationServiceTest {
         @Test
         void notConfirmed_rejectsWithValidationError() {
             assertThatThrownBy(() -> createService()
-                    .importLicense(TENANT_ID, envelopeJson(payloadMap()), false))
+                    .importLicense(TENANT_ID, envelopeJson(payloadMap()), false, false))
                     .isInstanceOf(ApiException.class)
                     .satisfies(ex -> assertThat(((ApiException) ex).getCode())
                             .isEqualTo(ErrorCode.VALIDATION_ERROR));
@@ -196,7 +199,7 @@ class DeploymentLicenseApplicationServiceTest {
             when(installationRepository.findByTenantId(TENANT_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> createService()
-                    .importLicense(TENANT_ID, envelopeJson(payloadMap()), true))
+                    .importLicense(TENANT_ID, envelopeJson(payloadMap()), true, false))
                     .isInstanceOf(ApiException.class)
                     .satisfies(ex -> assertThat(((ApiException) ex).getCode())
                             .isEqualTo(ErrorCode.VALIDATION_ERROR));
@@ -206,7 +209,7 @@ class DeploymentLicenseApplicationServiceTest {
         void unreadableEnvelope_writesRejectedEventAndThrowsInvalid() {
             stubInstallation();
 
-            assertThatThrownBy(() -> createService().importLicense(TENANT_ID, "not json", true))
+            assertThatThrownBy(() -> createService().importLicense(TENANT_ID, "not json", true, false))
                     .isInstanceOf(ApiException.class)
                     .satisfies(ex -> assertThat(((ApiException) ex).getCode())
                             .isEqualTo(ErrorCode.LICENSE_INVALID));
@@ -235,7 +238,7 @@ class DeploymentLicenseApplicationServiceTest {
 
             Instant expiresAt = (Instant) payloadMap().get("expiresAt");
             DeploymentLicenseApplicationService.ImportResult result = createService()
-                    .importLicense(TENANT_ID, envelopeJson(payloadMap()), true);
+                    .importLicense(TENANT_ID, envelopeJson(payloadMap()), true, false);
 
             assertThat(result.runtimeStatus()).isEqualTo(LicenseRuntimeStatus.VALID.name());
             assertThat(result.licenseType()).isEqualTo("TRIAL");
@@ -270,7 +273,7 @@ class DeploymentLicenseApplicationServiceTest {
             lenient().when(usagePort.countCurrentUsage(anyLong(), anyString())).thenReturn(0);
 
             Instant payloadExpiry = (Instant) payloadMap().get("expiresAt");
-            createService().importLicense(TENANT_ID, envelopeJson(payloadMap()), true);
+            createService().importLicense(TENANT_ID, envelopeJson(payloadMap()), true, false);
 
             verify(subscriptionPort).applyTrialLicense(TENANT_ID, payloadExpiry);
         }
@@ -286,7 +289,7 @@ class DeploymentLicenseApplicationServiceTest {
             Instant expiresAt = (Instant) payload.get("expiresAt");
 
             DeploymentLicenseApplicationService.ImportResult result = createService()
-                    .importLicense(TENANT_ID, envelopeJson(payload), true);
+                    .importLicense(TENANT_ID, envelopeJson(payload), true, false);
 
             assertThat(result.licenseType()).isEqualTo("ACTIVE");
             verify(subscriptionPort).applyActiveLicense(TENANT_ID, "PREMIUM", expiresAt);
@@ -311,7 +314,7 @@ class DeploymentLicenseApplicationServiceTest {
 
             Map<String, Object> nextPayload = payloadMapWithType("ACTIVE", "STANDARD");
             nextPayload.put("licenseId", "4f2b8a5e-0c1d-4e2f-9a8b-7c6d5e4f3a2c");
-            createService().importLicense(TENANT_ID, envelopeJson(nextPayload), true);
+            createService().importLicense(TENANT_ID, envelopeJson(nextPayload), true, false);
 
             assertThat(previous.getStatus()).isEqualTo(LicenseRecordStatus.REPLACED);
             ArgumentCaptor<DeploymentLicense> licenseCaptor =
@@ -341,7 +344,7 @@ class DeploymentLicenseApplicationServiceTest {
                     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
 
             assertThatThrownBy(() -> createService()
-                    .importLicense(TENANT_ID, envelopeJson(payload), true))
+                    .importLicense(TENANT_ID, envelopeJson(payload), true, false))
                     .isInstanceOf(ApiException.class)
                     .satisfies(ex -> assertThat(((ApiException) ex).getCode())
                             .isEqualTo(ErrorCode.LICENSE_BINDING_MISMATCH));
@@ -371,7 +374,7 @@ class DeploymentLicenseApplicationServiceTest {
             when(usagePort.countCurrentUsage(TENANT_ID, "livestock_management")).thenReturn(2000);
 
             assertThatThrownBy(() -> createService()
-                    .importLicense(TENANT_ID, envelopeJson(payloadMap()), true))
+                    .importLicense(TENANT_ID, envelopeJson(payloadMap()), true, false))
                     .isInstanceOf(ApiException.class)
                     .satisfies(ex -> assertThat(((ApiException) ex).getCode())
                             .isEqualTo(ErrorCode.LICENSE_QUOTA_EXCEEDED));
@@ -399,7 +402,7 @@ class DeploymentLicenseApplicationServiceTest {
             quotas.put("livestock_management", 1000);
             payload.put("quotas", quotas);
 
-            createService().importLicense(TENANT_ID, envelopeJson(payload), true);
+            createService().importLicense(TENANT_ID, envelopeJson(payload), true, false);
 
             // Only the key carried by the payload is pre-checked.
             verify(usagePort, times(1)).countCurrentUsage(anyLong(), anyString());
@@ -414,7 +417,7 @@ class DeploymentLicenseApplicationServiceTest {
             lenient().when(usagePort.countCurrentUsage(anyLong(), anyString())).thenReturn(0);
 
             assertThatThrownBy(() -> createService()
-                    .importLicense(TENANT_ID, envelopeJson(payloadMap()), true))
+                    .importLicense(TENANT_ID, envelopeJson(payloadMap()), true, false))
                     .isInstanceOf(ApiException.class)
                     .satisfies(ex -> assertThat(((ApiException) ex).getCode())
                             .isEqualTo(ErrorCode.STATE_CONFLICT));
@@ -431,7 +434,7 @@ class DeploymentLicenseApplicationServiceTest {
             lenient().when(usagePort.countCurrentUsage(anyLong(), anyString())).thenReturn(0);
 
             assertThatThrownBy(() -> createService()
-                    .importLicense(TENANT_ID, envelopeJson(payloadMap()), true))
+                    .importLicense(TENANT_ID, envelopeJson(payloadMap()), true, false))
                     .isInstanceOf(ApiException.class)
                     .satisfies(ex -> assertThat(((ApiException) ex).getCode())
                             .isEqualTo(ErrorCode.STATE_CONFLICT));
@@ -447,10 +450,113 @@ class DeploymentLicenseApplicationServiceTest {
             payload.put("expiresAt", Instant.now().minus(Duration.ofDays(35)));
 
             assertThatThrownBy(() -> createService()
-                    .importLicense(TENANT_ID, envelopeJson(payload), true))
+                    .importLicense(TENANT_ID, envelopeJson(payload), true, false))
                     .isInstanceOf(ApiException.class)
                     .satisfies(ex -> assertThat(((ApiException) ex).getCode())
                             .isEqualTo(ErrorCode.LICENSE_EXPIRED));
+
+            verify(subscriptionPort, never()).applyTrialLicense(anyLong(), any());
+            verify(subscriptionPort, never()).applyActiveLicense(anyLong(), anyString(), any());
+        }
+    }
+
+    // ── NIX-191: admin bootstrap & replay guard ──────────────────────
+
+    @Nested
+    class AdminBootstrapAndReplay {
+
+        private Map<String, Object> payloadWithAdmin() {
+            Map<String, Object> payload = payloadMap();
+            payload.put("adminPhone", "13900001111");
+            payload.put("adminPasswordHash",
+                    "$2b$10$abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLM");
+            return payload;
+        }
+
+        @Test
+        void windowImport_requiresAdminBootstrap() {
+            stubInstallation();
+            stubNoState();
+
+            assertThatThrownBy(() -> createService()
+                    .importLicense(TENANT_ID, envelopeJson(payloadMap()), true, true))
+                    .isInstanceOf(ApiException.class)
+                    .satisfies(ex -> assertThat(((ApiException) ex).getCode())
+                            .isEqualTo(ErrorCode.VALIDATION_ERROR));
+
+            verify(subscriptionPort, never()).applyTrialLicense(anyLong(), any());
+            ArgumentCaptor<DeploymentLicenseEvent> eventCaptor =
+                    ArgumentCaptor.forClass(DeploymentLicenseEvent.class);
+            verify(eventRepository).save(eventCaptor.capture());
+            assertThat(eventCaptor.getValue().getEventType())
+                    .isEqualTo(LicenseEventType.IMPORT_REJECTED);
+        }
+
+        @Test
+        void windowImportWithAdminBootstrap_createsAdminAccount() {
+            stubInstallation();
+            stubNoState();
+            when(subscriptionPort.findSubscription(TENANT_ID)).thenReturn(Optional.empty());
+            lenient().when(usagePort.countCurrentUsage(anyLong(), anyString())).thenReturn(0);
+            when(adminProvisioningPort.provisionAdmin(anyString(), anyString(), eq(true)))
+                    .thenReturn(777L);
+
+            Map<String, Object> payload = payloadWithAdmin();
+            DeploymentLicenseApplicationService.ImportResult result = createService()
+                    .importLicense(TENANT_ID, envelopeJson(payload), true, true);
+
+            assertThat(result.runtimeStatus()).isEqualTo(LicenseRuntimeStatus.VALID.name());
+            verify(adminProvisioningPort).provisionAdmin("13900001111",
+                    (String) payload.get("adminPasswordHash"), true);
+        }
+
+        @Test
+        void renewalWithoutAdminFields_keepsExistingAdminUntouched() {
+            stubInstallation();
+            stubNoState();
+            stubSubscription("TRIAL", Instant.now().plus(Duration.ofDays(10)), true);
+            lenient().when(usagePort.countCurrentUsage(anyLong(), anyString())).thenReturn(0);
+
+            createService().importLicense(TENANT_ID, envelopeJson(payloadMap()), true, false);
+
+            verify(adminProvisioningPort, never()).provisionAdmin(anyString(), anyString(),
+                    org.mockito.ArgumentMatchers.anyBoolean());
+        }
+
+        @Test
+        void halfAdminPair_isInvalidPayload() {
+            stubInstallation();
+            stubNoState();
+            Map<String, Object> payload = payloadMap();
+            payload.put("adminPhone", "13900001111");
+
+            assertThatThrownBy(() -> createService()
+                    .importLicense(TENANT_ID, envelopeJson(payload), true, false))
+                    .isInstanceOf(ApiException.class)
+                    .satisfies(ex -> assertThat(((ApiException) ex).getCode())
+                            .isEqualTo(ErrorCode.LICENSE_INVALID));
+        }
+
+        @Test
+        void replayedCertificate_rejected() {
+            stubInstallation();
+            stubNoState();
+            // The fixture licenseId was already imported (CURRENT record exists);
+            // the replay guard runs right after validation, before the
+            // previous-license lookup.
+            DeploymentLicense previous = DeploymentLicense.accept(
+                    com.smartlivestock.licensing.domain.LicensePayload.fromMap(
+                            LicenseTestSupport.serializer().parse(
+                                    LicenseTestSupport.buildEnvelope(payloadMap()).decodePayload())),
+                    TENANT_ID, envelopeJson(payloadMap()), null, Instant.now().minusSeconds(60));
+            when(licenseRepository.findByLicenseId(previous.getLicenseId()))
+                    .thenReturn(Optional.of(previous));
+
+            assertThatThrownBy(() -> createService()
+                    .importLicense(TENANT_ID, envelopeJson(payloadMap()), true, false))
+                    .isInstanceOf(ApiException.class)
+                    .satisfies(ex -> assertThat(((ApiException) ex).getCode())
+                            .isEqualTo(ErrorCode.STATE_CONFLICT));
 
             verify(subscriptionPort, never()).applyTrialLicense(anyLong(), any());
             verify(subscriptionPort, never()).applyActiveLicense(anyLong(), anyString(), any());

@@ -41,6 +41,19 @@ public class LicensePayload {
     private Map<String, Object> features;
     /** License replaced by this one; {@code null} for first issuance. */
     private UUID replacesLicenseId;
+    /**
+     * Phone number of the deployment administrator born with this license
+     * (first issuance). {@code null} for renewals that keep the existing
+     * administrator. Must be paired with {@link #adminPasswordHash}.
+     */
+    private String adminPhone;
+    /**
+     * bcrypt hash of the one-time initial password for the administrator
+     * above. The plaintext never enters the signed payload; it is delivered
+     * to the customer through a separate channel. Paired with
+     * {@link #adminPhone}.
+     */
+    private String adminPasswordHash;
 
     /**
      * Convert the payload to a transport/signing map for canonical serialization.
@@ -65,6 +78,10 @@ public class LicensePayload {
         map.put("features", new LinkedHashMap<>(features));
         if (replacesLicenseId != null) {
             map.put("replacesLicenseId", replacesLicenseId.toString());
+        }
+        if (adminPhone != null) {
+            map.put("adminPhone", adminPhone);
+            map.put("adminPasswordHash", adminPasswordHash);
         }
         return map;
     }
@@ -95,6 +112,16 @@ public class LicensePayload {
         payload.quotas = requireQuotas(map.get("quotas"));
         payload.features = requireFeatures(map.get("features"));
         payload.replacesLicenseId = optionalUuid(map, "replacesLicenseId");
+        payload.adminPhone = optionalString(map, "adminPhone");
+        payload.adminPasswordHash = optionalString(map, "adminPasswordHash");
+        // Administrator identity is a pair: phone selects the account, the
+        // hash carries its initial credential. Half a pair is a signing error.
+        if ((payload.adminPhone == null) != (payload.adminPasswordHash == null)) {
+            throw invalid("adminPhone and adminPasswordHash must be provided together");
+        }
+        if (payload.adminPhone != null && !payload.adminPasswordHash.startsWith("$2")) {
+            throw invalid("adminPasswordHash must be a bcrypt hash");
+        }
         if (!payload.expiresAt.isAfter(payload.issuedAt)) {
             throw invalid("expiresAt must be after issuedAt");
         }
@@ -130,6 +157,15 @@ public class LicensePayload {
     public Map<String, Object> getFeatures() { return new LinkedHashMap<>(features); }
 
     public UUID getReplacesLicenseId() { return replacesLicenseId; }
+
+    public String getAdminPhone() { return adminPhone; }
+
+    public String getAdminPasswordHash() { return adminPasswordHash; }
+
+    /** {@code true} when this license births the deployment administrator. */
+    public boolean hasAdminBootstrap() {
+        return adminPhone != null && adminPasswordHash != null;
+    }
 
     // ── Parsing helpers ──────────────────────────────────────────────
 
@@ -186,6 +222,17 @@ public class LicensePayload {
         } catch (IllegalArgumentException e) {
             throw invalid(field + " must be a UUID");
         }
+    }
+
+    private static String optionalString(Map<String, Object> map, String field) {
+        Object value = map.get(field);
+        if (value == null) {
+            return null;
+        }
+        if (!(value instanceof String s) || s.isBlank()) {
+            throw invalid(field + " must be a non-empty string when present");
+        }
+        return s;
     }
 
     private static String requireHex64(Map<String, Object> map, String field) {

@@ -1,5 +1,6 @@
 package com.smartlivestock.licensing.interfaces.admin;
 
+import com.smartlivestock.licensing.application.AdminBootstrapWindow;
 import com.smartlivestock.licensing.application.DeploymentLicenseApplicationService;
 import com.smartlivestock.licensing.application.LicenseModeGuard;
 import com.smartlivestock.licensing.application.PilotLicenseModeGuard;
@@ -64,19 +65,28 @@ public class DeploymentLicenseAdminController {
     private final DeploymentLicenseApplicationService applicationService;
     private final LicenseModeGuard licenseModeGuard;
     private final PilotLicenseModeGuard pilotLicenseModeGuard;
+    private final AdminBootstrapWindow adminBootstrapWindow;
 
     /**
      * GET /api/v1/admin/deployment-license/enrollment?tenantId=
      * Return (or lazily create) the tenant's installation registration.
+     * NIX-191: reachable without authentication while the first-certificate
+     * window is open (zero admins + pending activation) — the customer must
+     * read the installation id before any account exists. tenantId becomes
+     * optional in that window (the single seeded tenant is used).
      */
     @GetMapping("/enrollment")
     public ResponseEntity<ApiResponse<EnrollmentResponse>> enrollment(
-            @RequestParam("tenantId") Long tenantId) {
-        requirePlatformAdmin();
+            @RequestParam(value = "tenantId", required = false) Long tenantId) {
+        boolean window = adminBootstrapWindow.isOpen();
+        if (!window) {
+            requirePlatformAdmin();
+        }
         licenseModeGuard.requireOnPrem();
+        Long effectiveTenantId = resolveTenantId(tenantId, window);
 
         EnrollmentResponse response = DeploymentLicenseResponseAssembler.toResponse(
-                applicationService.enroll(tenantId));
+                applicationService.enroll(effectiveTenantId));
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
@@ -85,21 +95,29 @@ public class DeploymentLicenseAdminController {
      * Import an offline license envelope (multipart {@code file} as UTF-8
      * text); {@code confirm} must be {@code true} — the import drives the
      * tenant subscription (design §9 mapping).
+     * NIX-191: within the first-certificate window this is reachable without
+     * authentication and the certificate must carry the deployment admin
+     * bootstrap (adminPhone + adminPasswordHash); the account is born with
+     * the import and locked to a forced password change.
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<ImportLicenseResponse>> importLicense(
-            @RequestParam("tenantId") Long tenantId,
+            @RequestParam(value = "tenantId", required = false) Long tenantId,
             @RequestParam(name = "file", required = false) MultipartFile file,
             @RequestParam(name = "confirm", required = false) Boolean confirm) {
-        requirePlatformAdmin();
+        boolean window = adminBootstrapWindow.isOpen();
+        if (!window) {
+            requirePlatformAdmin();
+        }
         licenseModeGuard.requireOnPrem();
+        Long effectiveTenantId = resolveTenantId(tenantId, window);
 
         String rawEnvelope = readEnvelope(file);
         // A missing confirm flag is treated as "not confirmed" on purpose:
         // the application service owns the license.import.confirmRequired rejection.
         ImportLicenseResponse response = DeploymentLicenseResponseAssembler.toResponse(
-                applicationService.importLicense(tenantId, rawEnvelope,
-                        Boolean.TRUE.equals(confirm)));
+                applicationService.importLicense(effectiveTenantId, rawEnvelope,
+                        Boolean.TRUE.equals(confirm), window));
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
@@ -146,6 +164,21 @@ public class DeploymentLicenseAdminController {
         if (!isAdmin) {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "license.pilot.platformAdminRequired");
         }
+    }
+
+    /**
+     * Inside the first-certificate window the anonymous operator cannot know
+     * the tenant id yet — fall back to the single seeded tenant.
+     */
+    private Long resolveTenantId(Long tenantId, boolean window) {
+        if (tenantId != null) {
+            return tenantId;
+        }
+        Long resolved = window ? applicationService.defaultTenantId() : null;
+        if (resolved == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "tenantId 不能为空");
+        }
+        return resolved;
     }
 
     /**

@@ -38,6 +38,9 @@ public class MeController {
     /**
      * PUT /api/v1/me
      * Update current user info (name, phone).
+     * Phone changes require the current password for confirmation — the phone
+     * number is the login identity, so it must not be swapable by an XSS-ed
+     * or borrowed session (NIX-191).
      */
     @PutMapping("/me")
     public ResponseEntity<ApiResponse<UserDto>> updateCurrentUser(@RequestBody Map<String, String> body) {
@@ -49,7 +52,23 @@ public class MeController {
             user.setName(body.get("name"));
         }
         if (body.containsKey("phone")) {
-            user.setPhone(body.get("phone"));
+            String newPhone = body.get("phone");
+            if (newPhone == null || newPhone.isBlank()) {
+                throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.phoneChangeRequiresPassword");
+            }
+            if (!newPhone.equals(user.getPhone())) {
+                String currentPassword = body.get("currentPassword");
+                if (currentPassword == null
+                        || !passwordHasher.matches(currentPassword, user.getPasswordHash())) {
+                    throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.phoneChangeRequiresPassword");
+                }
+                userRepository.findByPhone(newPhone)
+                        .filter(other -> !other.getId().equals(userId))
+                        .ifPresent(other -> {
+                            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.phoneAlreadyUsed");
+                        });
+                user.setPhone(newPhone);
+            }
         }
 
         User saved = userRepository.save(user);
@@ -58,7 +77,8 @@ public class MeController {
 
     /**
      * PUT /api/v1/me/password
-     * Change password.
+     * Change password. Strength: >= 10 chars with letters and digits.
+     * Clears must_change_password (NIX-191 forced password change).
      */
     @PutMapping("/me/password")
     public ResponseEntity<ApiResponse<Void>> changePassword(@RequestBody Map<String, String> body) {
@@ -77,10 +97,21 @@ public class MeController {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "原密码错误");
         }
 
+        if (!isStrongPassword(newPassword)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.passwordWeak");
+        }
+
         user.setPasswordHash(passwordHasher.hash(newPassword));
+        user.completePasswordChange();
         userRepository.save(user);
 
         return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    private boolean isStrongPassword(String password) {
+        return password.length() >= 10
+                && password.chars().anyMatch(Character::isLetter)
+                && password.chars().anyMatch(Character::isDigit);
     }
 
     private Long getCurrentUserId() {

@@ -147,6 +147,8 @@ public class GlobalExceptionHandler {
             case LICENSE_BINDING_MISMATCH -> HttpStatus.FORBIDDEN;
             case LICENSE_TIME_ROLLBACK -> HttpStatus.CONFLICT;
             case LICENSE_QUOTA_EXCEEDED -> HttpStatus.FORBIDDEN;
+            // NIX-191: the account is locked to the password-change flow.
+            case PASSWORD_CHANGE_REQUIRED -> HttpStatus.FORBIDDEN;
             case INTERNAL_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }

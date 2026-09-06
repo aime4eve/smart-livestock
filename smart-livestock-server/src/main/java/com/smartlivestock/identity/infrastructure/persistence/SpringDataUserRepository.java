@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface SpringDataUserRepository extends JpaRepository<UserJpaEntity, Long> {
     Optional<UserJpaEntity> findByPhone(String phone);
     List<UserJpaEntity> findByTenantId(Long tenantId);
+    boolean existsByRoleAndIsActive(String role, boolean isActive);
 }
