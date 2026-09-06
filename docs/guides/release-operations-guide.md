@@ -169,8 +169,22 @@ GET /current 确认：runtimeStatus=VALID、licenseType=ACTIVE、subscriptionSta
 - 续期授权必须是 **ACTIVE 类型**。到期降级为 FREE 后，TRIAL 类型授权会被拒绝（409 `STATE_CONFLICT`，`license.import.trialDowngradeRejected`）——试用不可重来，只能付费续。
 - 绑定三元组任一不符 → 403 `LICENSE_BINDING_MISMATCH`（客户换机/重装系统指纹会变，见 §4.4）。
 - 导入被拒时订阅与运行态**不变**，可放心重试；每次拒绝都留审计事件。
+- 续期证书（renewal）**不要填管理员手机号**：留空则沿用客户现有管理员；填写会在导入时尝试创建/确认管理员（NIX-191）。
 
-### 4.2 到期降级行为（客户预期管理）
+### 4.2 管理员账号与初始密码（NIX-191）
+
+- **全新 ONPREM 安装出厂零账号**：系统装好即"待激活"，无任何可登录账号。激活证书（首张）内含客户管理员手机号与初始密码指纹，导入时账号自动诞生，且**首次登录强制修改密码**。
+- **存量部署升级到 560+**：迁移会把两个已知口令的种子管理员（13800000000 / 13700000000）置为强制改密；若升级后无法登录（HOSTED 存量机上可能被停用），用下面 SQL 恢复并强制改密：
+
+```sql
+UPDATE users SET is_active = TRUE, must_change_password = TRUE
+WHERE phone = '13800000000' AND role = 'PLATFORM_ADMIN';
+```
+
+- **忘记密码**：在服务器上执行 `scripts/reset-admin-password.sh <手机号> <临时密码>`（需机房权限；重置后首登会再次强制改密）。
+- **改管理员手机号**：管理员登录后自助修改（需当前密码确认）；无需重签证书。
+
+### 4.3 到期降级行为（客户预期管理）
 
 授权过期后由调度器（每 5 分钟，启动时也跑）自动处理：
 

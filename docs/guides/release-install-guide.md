@@ -197,60 +197,55 @@ Next: run ./scripts/check-release-health.sh for the full health report.
 
 ## 7. 首次授权流程（ONPREM）
 
-ONPREM 部署启动后处于 `PENDING_ACTIVATION`：可登录、可查看登记信息，但业务 API 全部被阻断（403 `LICENSE_REQUIRED`）。按以下流程完成首次授权。
+ONPREM 部署启动后处于 `PENDING_ACTIVATION`，且**出厂没有任何可登录账号**（NIX-191：已知口令的种子管理员在全新安装中不存在）。此时系统处于"首装免登录窗口"：登记与首张证书导入**无需令牌**，客户把安装 ID/指纹发来、拿回证书后自行导入，管理员账号随证书自动诞生（首登强制改密）。流程如下。
 
-### 7.1 获取 platform_admin 令牌
+### 7.1 获取安装登记（installationId + 指纹）——免登录
 
 ```bash
 BASE="https://localhost:443"
-TOKEN=$(curl -ksS -X POST "$BASE/api/v1/auth/login" \
-  -H 'Content-Type: application/json' \
-  -d '{"phone":"<platform_admin 手机号>","password":"<密码>"}' \
-  | python3 -c 'import sys,json;print(json.load(sys.stdin)["data"]["accessToken"])')
+curl -ksS "$BASE/api/v1/admin/deployment-license/enrollment"
 ```
 
-### 7.2 获取安装登记（installationId + 指纹）
-
-```bash
-curl -ksS -H "Authorization: Bearer $TOKEN" \
-  "$BASE/api/v1/admin/deployment-license/enrollment?tenantId=<租户ID>"
-```
+免登录窗口（零管理员 + 待激活）下无需 `tenantId`（自动使用唯一租户）；窗口关闭后该端点需要 platform_admin 令牌与 `?tenantId=`。
 
 返回 `data.tenantId`、`data.installationId`、`data.fingerprintHash`、`data.publicKeyId`。重复调用 `installationId` 保持稳定；指纹来自宿主机 `/etc/machine-id`，实机重装系统会变化（变化后旧授权拒绑，需重新签发）。
 
-> 也可在管理端 Web 的授权页直接查看并复制这三个值（Flutter 授权页，对应测试用例 TC-F-02）。
+> 也可在管理端 Web 的授权页直接查看并复制这三个值。
 
-### 7.3 厂商 issuer 签发 .sllicense（issuer 主机操作，内网）
+### 7.2 厂商 issuer 签发 .sllicense（issuer 主机操作，内网）
 
 在厂商内部 license-issuer（FastAPI，只部署在内部可信网络，绝不进客户包/公网）：
 
 1. `/login` 登录运营账号；
-2. `/issue/new` 填写绑定字段：`tenantId`、`installationId`、`fingerprintHash`（即 7.2 的三个值）、`publicKeyId` 用登记返回的 `publicKeyId`；选择类型（首次建议 TRIAL 或按合同 ACTIVE）、档位（BASIC/PREMIUM/ENTERPRISE）、有效期 `expiresAt`、可选配额；
-3. `/issue/preview` 核对 canonical payload 摘要 → 确认签发；
-4. `/issue/{id}/done` 下载 `{licenseId}.sllicense`。
+2. （可选）`/contracts` 选择客户合同——自动带入档位与期限，签发后证书编号自动回写到合同；
+3. `/issue/new` 填写绑定字段：`tenantId`、`installationId`、`fingerprintHash`（即 7.1 的三个值）；选择类型（首次建议 TRIAL 或按合同 ACTIVE）、档位、有效期、可选配额；
+   **填写部署管理员手机号（首次签发必填）**——工具会生成 14 位一次性初始密码，仅在完成页显示一次，请通过电话/纸质等**单独渠道**交给客户（证书文件与密码分开交付）；
+4. `/issue/preview` 核对 canonical payload 摘要 → 确认签发；
+5. `/issue/{id}/done` 下载 `{licenseId}.sllicense`。
 
-> issuer 侧初始化/密钥管理见 `license-issuer/README.md`（私钥目录 0700/0600、Ed25519、`ACTIVE_KEY_ID`）；生成新签名密钥用 `license-issuer/scripts/generate-license-key.sh <keyId>`（仅在 issuer 主机/安全操作机运行）。
+> issuer 侧初始化/密钥管理与独立部署（compose、合同关联配置）见 `license-issuer/DEPLOY.md` 与 `license-issuer/README.md`（私钥目录 0700/0600；生成新签名密钥用 `license-issuer/scripts/generate-license-key.sh <keyId>`，仅在 issuer 主机/安全操作机运行）。
 
-### 7.4 上传导入授权
+### 7.3 客户导入授权（免登录 + 管理员诞生）
 
 ```bash
-curl -ksS -X POST "$BASE/api/v1/admin/deployment-license?tenantId=<租户ID>" \
-  -H "Authorization: Bearer $TOKEN" \
+curl -ksS -X POST "$BASE/api/v1/admin/deployment-license?confirm=true" \
   -F "file=@{licenseId}.sllicense" \
   -F "confirm=true"
 ```
 
-成功返回 `data.runtimeStatus="VALID"` 与授权类型/档位/到期时间；导入即驱动订阅映射（TRIAL → TRIAL 订阅；ACTIVE → ACTIVE 订阅）。常见拒绝：缺 `confirm=true`（400）、绑定不匹配（403 `LICENSE_BINDING_MISMATCH`）、已过期（403 `LICENSE_EXPIRED`）、用量超授权配额（403 `LICENSE_QUOTA_EXCEEDED`）——完整错误码表见 `docs/api-contracts/admin-api.md` §14。
+首装窗口内**无需令牌**。成功返回 `data.runtimeStatus="VALID"`；同时系统按证书内的管理员手机号自动创建平台管理员账号（首登强制改密）。把一次性初始密码交给客户后，客户首次登录会被锁定在改密页，设置自己的密码后即可正常使用。
 
-### 7.5 确认生效
+常见拒绝：缺 `confirm=true`（400）、绑定不匹配（403 `LICENSE_BINDING_MISMATCH`）、已过期（403 `LICENSE_EXPIRED`）、**首张证书未携带管理员信息**（400，用签发工具重新签发）、证书重复导入（409）、用量超授权配额（403 `LICENSE_QUOTA_EXCEEDED`）——完整错误码表见 `docs/api-contracts/admin-api.md` §14。
+
+### 7.4 确认生效
 
 ```bash
-curl -ksS -H "Authorization: Bearer $TOKEN" \
-  "$BASE/api/v1/admin/deployment-license/current?tenantId=<租户ID>"
+curl -ksS "$BASE/api/v1/admin/deployment-license/current?tenantId=<租户ID>"
 # 期望：runtimeStatus=VALID、lastResult=VALID、subscriptionStatus=TRIAL/ACTIVE
 ```
 
 业务 API 随即恢复可用。之后调度器每 5 分钟自动重验（时间回拨/篡改自愈与降级见运维指南 §4）。
+管理员账号已随证书诞生：客户首次登录会被锁定在改密页，设置个人密码后解锁（首登改密是产品强制行为）。
 
 ### 7.6 HOSTED 环境的对应动作（无 7.2–7.5）
 
