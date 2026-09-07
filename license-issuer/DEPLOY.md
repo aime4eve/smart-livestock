@@ -88,11 +88,16 @@
 
 3. 首次启动后创建操作员账号（容器内一次性）：
 
-```bash
-docker compose exec issuer sh -c \
-  "python -m app.create_user <运营用户名>"
-# 按提示输入密码（bcrypt 入库；登录用）
-```
+   **`<运营用户名>`** = 我方运营人员登录签发工具网页的登录名（自己起，建议按人名拼音，
+   一人一个——签发审计要能归因到人）。它与客户管理员手机号、业务系统账号完全无关。
+
+   ```bash
+   docker compose exec issuer sh -c \
+     "python -m app.create_user <运营用户名>"
+   # 按提示输入两遍密码（bcrypt 存进签发工具自己的数据库；登录签发工具用）
+   ```
+   每位需要签发权限的同事各建一个账号；不再使用的账号可用删除数据库 users 表
+   对应行的方式停用（或后续版本提供管理页）。
 
 4. 启动：`docker compose up -d`，浏览器打开 `http://<签发机内网IP>:8500`。
 
