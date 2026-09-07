@@ -214,7 +214,13 @@ for port in "$HTTP_PORT" "$HTTPS_PORT"; do
   fi
 done
 
-# ── 7. TLS certs present and not expired ─────────────────────────────────────
+# ── 7. TLS certs present and not expired (auto-generate when missing) ────────
+if [[ ! -f secrets/certs/fullchain.pem || ! -f secrets/certs/privkey.pem ]]; then
+  info "TLS certificates missing — generating a self-signed certificate (SAN: host IPs)..."
+  warn "浏览器会提示证书不受信任：交付/生产环境请替换为正规 CA 证书（覆盖 secrets/certs/ 后重启 nginx）"
+  bash "$SCRIPT_DIR/gen-tls-cert.sh" --out secrets/certs \
+    || preflight_fail "automatic TLS certificate generation failed (provide secrets/certs/ manually)"
+fi
 if [[ -f secrets/certs/fullchain.pem && -f secrets/certs/privkey.pem ]]; then
   if CERT_END="$(openssl x509 -enddate -noout -in secrets/certs/fullchain.pem 2>/dev/null | cut -d= -f2)"; then
     CERT_END_EPOCH="$(date -d "$CERT_END" +%s 2>/dev/null || echo 0)"
