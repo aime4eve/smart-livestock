@@ -8,7 +8,8 @@ public record UserDto(
         String phone,
         String role,
         Long tenantId,
-        boolean active
+        boolean active,
+        boolean mustChangePassword
 ) {
     public static UserDto from(User user) {
         return new UserDto(
@@ -17,7 +18,8 @@ public record UserDto(
                 user.getPhone(),
                 user.getRole().name(),
                 user.getTenantId(),
-                user.isActive()
+                user.isActive(),
+                user.isMustChangePassword()
         );
     }
 }

@@ -182,14 +182,19 @@ class LicenseEnforcementInterceptorTest {
                     mock(FarmScopeInterceptor.class), mock(QuotaInterceptor.class),
                     mock(RateLimitInterceptor.class), mock(ApiCallLogInterceptor.class),
                     mock(ScopeInterceptor.class),
-                    new LicenseEnforcementInterceptor(stateRepository, messageResolver(), "ONPREM"));
+                    new LicenseEnforcementInterceptor(stateRepository, messageResolver(), "ONPREM"),
+                    // NIX-191 forced password change runs in front of the gate
+                    mock(PasswordChangeRequiredInterceptor.class));
             InterceptorRegistry registry = new InterceptorRegistry();
             config.addInterceptors(registry);
 
             List<InterceptorRegistration> registrations = registrationsOf(registry);
             assertThat(registrations).isNotEmpty();
 
-            InterceptorRegistration licenseGate = registrations.get(0); // before quota
+            InterceptorRegistration passwordGate = registrations.get(0); // NIX-191
+            assertThat(interceptorOf(passwordGate))
+                    .isInstanceOf(PasswordChangeRequiredInterceptor.class);
+            InterceptorRegistration licenseGate = registrations.get(1); // before quota
             assertThat(interceptorOf(licenseGate))
                     .isInstanceOf(LicenseEnforcementInterceptor.class);
             assertThat(patterns(licenseGate, "includePatterns", "pathPatterns"))

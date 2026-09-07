@@ -53,6 +53,17 @@ public class SecurityConfig {
                         .requestMatchers(
                                 HttpMethod.GET, "/api/v1/deployment-info"
                         ).permitAll()
+                        // NIX-191 first-certificate window: a fresh install has
+                        // zero accounts, so enrollment and the first import must
+                        // be reachable anonymously. The controller gates these
+                        // to the window (zero admins + pending activation) and
+                        // the Ed25519 signature gatekeeps what can be imported.
+                        .requestMatchers(
+                                HttpMethod.GET, "/api/v1/admin/deployment-license/enrollment"
+                        ).permitAll()
+                        .requestMatchers(
+                                HttpMethod.POST, "/api/v1/admin/deployment-license"
+                        ).permitAll()
                         .requestMatchers(
                                 "/api/v1/open/**"
                         ).authenticated()

@@ -6,10 +6,12 @@ the operator does not have to fix the form one field at a time.
 """
 from __future__ import annotations
 
+import re
 import uuid
 from typing import Mapping
 
 from app.canonical import CanonicalJsonError, canonical_instant
+from app.security import generate_one_time_password, hash_password
 from app.signing import (
     LICENSE_TYPES,
     QUOTA_KEYS,
@@ -20,6 +22,8 @@ from app.signing import (
 )
 
 DRAFT_SESSION_KEY = "issue_draft"
+
+_PHONE_RE = re.compile(r"^\d{5,20}$")
 
 
 class FormValidationError(ValueError):
@@ -123,6 +127,25 @@ def parse_issue_form(form: Mapping[str, str], key_id: str) -> dict:
     if len(reason) < 3:
         errors.append("请填写签发原因（至少 3 个字符），将进入审计记录")
 
+    # NIX-191: deployment administrator bootstrap (first issuance). Optional
+    # here — renewals keep the existing administrator — but the customer
+    # deployment enforces its presence while its bootstrap window is open.
+    admin_phone = (form.get("adminPhone") or "").strip()
+    one_time_password = ""
+    admin_password_hash = ""
+    if admin_phone:
+        if not _PHONE_RE.match(admin_phone):
+            errors.append("管理员手机号必须是 5-20 位数字")
+            admin_phone = ""
+        else:
+            one_time_password = generate_one_time_password(14)
+            admin_password_hash = hash_password(one_time_password)
+
+    contract_id = (form.get("contractId") or "").strip()
+    contract_number = (form.get("contractNumber") or "").strip()
+    if contract_id and not contract_id.isdigit():
+        errors.append("合同 ID 必须是数字（云端合同列表中的 ID）")
+
     if errors:
         raise FormValidationError(errors)
 
@@ -140,5 +163,13 @@ def parse_issue_form(form: Mapping[str, str], key_id: str) -> dict:
         quotas=quotas,
         features={},
         replaces_license_id=replaces_license_id or None,
+        admin_phone=admin_phone or None,
+        admin_password_hash=admin_password_hash or None,
     )
-    return {"payload": payload, "reason": reason}
+    result = {"payload": payload, "reason": reason}
+    if one_time_password:
+        result["oneTimePassword"] = one_time_password
+        result["adminPhone"] = admin_phone
+    if contract_id or contract_number:
+        result["contract"] = {"contractId": contract_id, "contractNumber": contract_number}
+    return result

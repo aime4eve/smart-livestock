@@ -214,7 +214,13 @@ for port in "$HTTP_PORT" "$HTTPS_PORT"; do
   fi
 done
 
-# ── 7. TLS certs present and not expired ─────────────────────────────────────
+# ── 7. TLS certs present and not expired (auto-generate when missing) ────────
+if [[ ! -f secrets/certs/fullchain.pem || ! -f secrets/certs/privkey.pem ]]; then
+  info "TLS certificates missing — generating a self-signed certificate (SAN: host IPs)..."
+  warn "浏览器会提示证书不受信任：交付/生产环境请替换为正规 CA 证书（覆盖 secrets/certs/ 后重启 nginx）"
+  bash "$SCRIPT_DIR/gen-tls-cert.sh" --out secrets/certs \
+    || preflight_fail "automatic TLS certificate generation failed (provide secrets/certs/ manually)"
+fi
 if [[ -f secrets/certs/fullchain.pem && -f secrets/certs/privkey.pem ]]; then
   if CERT_END="$(openssl x509 -enddate -noout -in secrets/certs/fullchain.pem 2>/dev/null | cut -d= -f2)"; then
     CERT_END_EPOCH="$(date -d "$CERT_END" +%s 2>/dev/null || echo 0)"
@@ -279,3 +285,20 @@ info "Install complete."
 ok "version : $(value_of RELEASE_VERSION) (images smart-livestock/<svc>:$(value_of RELEASE_VERSION))"
 ok "entry   : https://${HOSTNAME_HINT}:${HTTPS_PORT}/"
 info "Next: run ./scripts/check-release-health.sh for the full health report."
+
+# ── 11. ONPREM: print activation info right on the completion screen ─────────
+# A fresh install has zero accounts, so the deployer cannot log in to read the
+# enrollment — hand them the registration info here and now (NIX-191 方案二).
+if [[ "$LICENSE_MODE" == "ONPREM" ]]; then
+  ENROLL_JSON="$(curl -k -s "https://localhost:${HTTPS_PORT}/api/v1/admin/deployment-license/enrollment" || true)"
+  INSTALL_ID="$(printf '%s' "$ENROLL_JSON" | sed -n 's/.*"installationId":"\([^"]*\)".*/\1/p')"
+  FINGERPRINT="$(printf '%s' "$ENROLL_JSON" | sed -n 's/.*"fingerprintHash":"\([^"]*\)".*/\1/p')"
+  if [[ -n "$INSTALL_ID" && -n "$FINGERPRINT" ]]; then
+    printf '\n%s\n' "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    printf '%s\n' "📋 部署激活：请把下面两行发给厂商，获取授权文件 (.sllicense)"
+    printf '%s\n' "   安装ID: $INSTALL_ID"
+    printf '%s\n' "   指纹:   $FINGERPRINT"
+    printf '%s\n' "（也可随时在系统登录页点击「复制登记信息」重新获取）"
+    printf '%s\n' "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  fi
+fi

@@ -33,6 +33,8 @@ public class Contract extends AggregateRoot {
     private Instant signedAt;
     private Instant startedAt;
     private Instant expiresAt;
+    /** Latest activation-certificate id issued against this contract (NIX-191). */
+    private String issuedLicenseId;
 
     /** Nested result record for revenue share calculation. */
     public record RevenueShareResult(int platformShare, int partnerShare) {}
@@ -206,4 +208,7 @@ public class Contract extends AggregateRoot {
 
     public Instant getExpiresAt() { return expiresAt; }
     public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
+
+    public String getIssuedLicenseId() { return issuedLicenseId; }
+    public void setIssuedLicenseId(String issuedLicenseId) { this.issuedLicenseId = issuedLicenseId; }
 }

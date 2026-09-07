@@ -95,6 +95,17 @@ public class ContractApplicationService {
         return saved;
     }
 
+    /**
+     * NIX-191: record the latest activation-certificate id issued against a
+     * contract, keeping every certificate traceable to its commercial
+     * agreement. Called by the internal issuing tool via the admin API.
+     */
+    public Contract recordIssuedLicense(Long contractId, String licenseId) {
+        Contract contract = loadContract(contractId);
+        contract.setIssuedLicenseId(licenseId);
+        return contractRepository.save(contract);
+    }
+
     // ── Helpers ────────────────────────────────────────────────────
 
     private Contract loadContract(Long contractId) {

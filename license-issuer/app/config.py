@@ -7,6 +7,7 @@ fast at startup, never at first request.
 from __future__ import annotations
 
 import os
+import urllib.parse
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -42,6 +43,15 @@ class Settings:
     bcrypt_rounds: int
     rate_limit_max_failures: int
     rate_limit_window_seconds: int
+    # NIX-191 contract linkage (optional): when set, the contracts page pulls
+    # ACTIVE contracts from the cloud business API and issuance writes the
+    # certificate id back. Without it the tool falls back to the offline
+    # manual contract registry.
+    cloud_base_url: str
+    cloud_token: str
+    cloud_allow_private_ip: bool
+    # Accept self-signed certificates on the cloud endpoint (beta boxes).
+    cloud_tls_insecure: bool
 
     @classmethod
     def from_env(cls, env: dict | None = None) -> "Settings":
@@ -93,6 +103,28 @@ class Settings:
         except ValueError:
             raise IssuerConfigError("rate limit settings must be integers")
 
+        cloud_base_url = (read("CLOUD_BASE_URL", "") or "").strip().rstrip("/")
+        cloud_token = (read("CLOUD_TOKEN", "") or "").strip()
+        if bool(cloud_base_url) != bool(cloud_token):
+            raise IssuerConfigError(
+                "CLOUD_BASE_URL and CLOUD_TOKEN must be provided together "
+                "(contract auto-linkage), or both left empty (offline mode)"
+            )
+        if cloud_base_url:
+            parsed = urllib.parse.urlparse(cloud_base_url)
+            if parsed.scheme not in ("http", "https") or not parsed.hostname:
+                raise IssuerConfigError(
+                    "CLOUD_BASE_URL must be an http(s) URL pointing at the cloud business API"
+                )
+            if parsed.username or parsed.password or parsed.query:
+                raise IssuerConfigError("CLOUD_BASE_URL must not carry credentials or a query string")
+        cloud_allow_private_ip = (read("CLOUD_ALLOW_PRIVATE_IP", "1") or "1").lower() in (
+            "1", "true", "yes"
+        )
+        cloud_tls_insecure = (read("CLOUD_TLS_INSECURE", "1") or "1").lower() in (
+            "1", "true", "yes"
+        )
+
         return cls(
             keys_dir=keys_dir,
             active_key_id=active_key_id,
@@ -105,4 +137,8 @@ class Settings:
             bcrypt_rounds=bcrypt_rounds,
             rate_limit_max_failures=max(1, rate_max),
             rate_limit_window_seconds=max(1, rate_window),
+            cloud_base_url=cloud_base_url,
+            cloud_token=cloud_token,
+            cloud_allow_private_ip=cloud_allow_private_ip,
+            cloud_tls_insecure=cloud_tls_insecure,
         )

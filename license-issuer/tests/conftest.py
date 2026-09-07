@@ -53,6 +53,10 @@ def make_settings(tmp_path: Path | None, **overrides) -> Settings:
         bcrypt_rounds=4,
         rate_limit_max_failures=5,
         rate_limit_window_seconds=900,
+        cloud_base_url="",
+        cloud_token="",
+        cloud_allow_private_ip=True,
+        cloud_tls_insecure=True,
     )
     values.update(overrides)
     return Settings(
@@ -67,6 +71,10 @@ def make_settings(tmp_path: Path | None, **overrides) -> Settings:
         bcrypt_rounds=values["bcrypt_rounds"],
         rate_limit_max_failures=values["rate_limit_max_failures"],
         rate_limit_window_seconds=values["rate_limit_window_seconds"],
+        cloud_base_url=values["cloud_base_url"],
+        cloud_token=values["cloud_token"],
+        cloud_allow_private_ip=values["cloud_allow_private_ip"],
+        cloud_tls_insecure=values["cloud_tls_insecure"],
     )
 
 

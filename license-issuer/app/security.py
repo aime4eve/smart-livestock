@@ -32,6 +32,23 @@ def hash_password(password: str, rounds: int = 12) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), salt).decode("ascii")
 
 
+def generate_one_time_password(length: int = 14) -> str:
+    """NIX-191: one-time initial password for a certificate-born admin.
+
+    Letters + digits only (safe to read aloud over the phone); guaranteed to
+    contain at least one of each so it always satisfies the server-side
+    strength rule (>= 10 chars, letters and digits).
+    """
+    if length < 10:
+        raise ValueError("one-time passwords must be at least 10 characters")
+    alphabet = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    while True:
+        password = "".join(secrets.choice(alphabet) for _ in range(length))
+        if any(c.islower() for c in password) and any(c.isupper() for c in password) \
+                and any(c.isdigit() for c in password):
+            return password
+
+
 def verify_password(password: str, password_hash: str) -> bool:
     if not password or not password_hash:
         return False

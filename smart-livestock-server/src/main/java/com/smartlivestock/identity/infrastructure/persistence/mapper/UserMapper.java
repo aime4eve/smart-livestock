@@ -17,6 +17,7 @@ public final class UserMapper {
         jpa.setRole(user.getRole().name());
         jpa.setTenantId(user.getTenantId());
         jpa.setIsActive(user.isActive());
+        jpa.setMustChangePassword(user.isMustChangePassword());
         jpa.setLastLoginAt(user.getLastLoginAt());
         return jpa;
     }
@@ -32,6 +33,7 @@ public final class UserMapper {
         jpa.setRole(user.getRole().name());
         jpa.setTenantId(user.getTenantId());
         jpa.setIsActive(user.isActive());
+        jpa.setMustChangePassword(user.isMustChangePassword());
         jpa.setLastLoginAt(user.getLastLoginAt());
     }
 
@@ -44,6 +46,7 @@ public final class UserMapper {
         user.setRole(Role.valueOf(jpa.getRole()));
         user.setTenantId(jpa.getTenantId());
         user.reconstituteActive(Boolean.TRUE.equals(jpa.getIsActive()));
+        user.reconstituteMustChangePassword(Boolean.TRUE.equals(jpa.getMustChangePassword()));
         user.reconstituteLastLoginAt(jpa.getLastLoginAt());
         return user;
     }

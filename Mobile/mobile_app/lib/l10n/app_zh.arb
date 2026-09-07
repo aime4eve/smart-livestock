@@ -1315,10 +1315,10 @@
       }
     }
   },
- "deviceViewLocation": "查看位置",
- "@deviceViewLocation": {},
- "deviceViewHealth": "查看设备数据",
- "@deviceViewHealth": {},
+  "deviceViewLocation": "查看位置",
+  "@deviceViewLocation": {},
+  "deviceViewHealth": "查看设备数据",
+  "@deviceViewHealth": {},
   "deviceViewTrajectory": "查看轨迹",
   "@deviceViewTrajectory": {},
   "offlineTileNoRegions": "暂无可用离线地图",
@@ -2424,12 +2424,11 @@
   "@gpsQualityGradeUnavailableDesc": {},
   "gpsQualityNoData": "暂无数据",
   "@gpsQualityNoData": {},
-
   "gpsQualityNoGpsData": "该设备在检测时段内未采集到有效 GPS 数据",
   "@gpsQualityNoGpsData": {},
   "gpsQualityNoGpsDataHint": "设备遥测数据正常，但 GPS 坐标为 (0,0)，说明 GPS 模块可能未定位成功。请检查设备是否在室外、天线连接是否正常。",
   "@gpsQualityNoGpsDataHint": {},
-  "gpsQualityViewTrajectory": "查看完整移动轨迹",
+  "gpsQualityViewTrajectory": "查看轨迹",
   "@gpsQualityViewTrajectory": {},
   "gpsQualityScatterChart": "静止 GPS 散点图",
   "@gpsQualityScatterChart": {},
@@ -2492,19 +2491,19 @@
   "gpsQualityTipSuspectPoints": "step_number > 0 的点数",
   "tenantListTitle": "租户管理",
   "@tenantListTitle": {},
-    "authModeHosted": "云端托管版",
+  "authModeHosted": "云端托管版",
   "@authModeHosted": {},
   "authModeOnprem": "地端独立部署",
   "@authModeOnprem": {},
   "authModeOnpremValidSub": "离线授权生效中",
   "@authModeOnpremValidSub": {},
-  "authModePendingBanner": "系统未激活：请先导入部署授权（.sllicense）。授权登记信息可在登录后于「部署授权」页获取。",
+  "authModePendingBanner": "系统未激活：请先导入部署授权（.sllicense）。尚未开通？点击下方按钮复制登记信息并发给厂商。",
   "@authModePendingBanner": {},
   "authModeExpiredBanner": "授权已到期：系统已降级为基础版，数据完整保留。请联系厂商签发续费授权。",
   "@authModeExpiredBanner": {},
   "authModeSuspendedBanner": "授权已挂起：检测到授权异常（如时间回拨）。时间恢复正常并导入有效授权后自动解除。",
   "@authModeSuspendedBanner": {},
-"tenantListCreate": "新建租户",
+  "tenantListCreate": "新建租户",
   "@tenantListCreate": {},
   "tenantDetailTitle": "租户详情",
   "@tenantDetailTitle": {},
@@ -2632,9 +2631,7 @@
   "gpsQualityEditRetry": "编辑重试",
   "@gpsQualityEditRetry": {},
   "gpsQualityBatchRegister": "批量注册",
- "@gpsQualityBatchRegister": {},
- "gpsQualityViewTrajectory": "查看轨迹",
- "@gpsQualityViewTrajectory": {},
+  "@gpsQualityBatchRegister": {},
   "gpsQualityEditAndRetry": "编辑并重试",
   "@gpsQualityEditAndRetry": {},
   "gpsQualityCheckStatusReady": "就绪",
@@ -2748,12 +2745,12 @@
   "gpsQualityTrajectoryStatInvalid": "校验失败",
   "@gpsQualityTrajectoryStatInvalid": {},
   "gpsQualityTrajectoryStatDevices": "涉及设备",
- "@gpsQualityTrajectoryStatDevices": {},
+  "@gpsQualityTrajectoryStatDevices": {},
   "gpsQualityTrajectoryAutoRegistered": "自动注册",
   "@gpsQualityTrajectoryAutoRegistered": {},
   "gpsQualityTrajectoryManualRegister": "手工注册",
   "@gpsQualityTrajectoryManualRegister": {},
- "gpsQualityFilePaired": "文件配对",
+  "gpsQualityFilePaired": "文件配对",
   "@gpsQualityFilePaired": {},
   "gpsQualityLogPaired": "库内配对",
   "@gpsQualityLogPaired": {},
@@ -2778,14 +2775,20 @@
   "gpsQualityTrajectoryImportDone": "导入完成：新建 {created} 条轨迹检验会话，跳过 {skipped} 条（重复）",
   "@gpsQualityTrajectoryImportDone": {
     "placeholders": {
-      "created": {"type": "int"},
-      "skipped": {"type": "int"}
+      "created": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
     }
   },
   "gpsQualityTrajectoryDevicePoints": "{n} 点",
   "@gpsQualityTrajectoryDevicePoints": {
     "placeholders": {
-      "n": {"type": "int"}
+      "n": {
+        "type": "int"
+      }
     }
   },
   "gpsQualityTrajectoryCreated": "会话已创建",
@@ -2821,12 +2824,16 @@
   "gpsQualityTrajectoryUnpairedDetail": "{n} 条未配对样本：采集时间 ±{tolerance}s 内在 gps_logs 中找不到该设备上报（可能漏报/延迟入库），不参与误差统计。",
   "@gpsQualityTrajectoryUnpairedDetail": {
     "placeholders": {
-      "n": {"type": "int"},
-      "tolerance": {"type": "int"}
+      "n": {
+        "type": "int"
+      },
+      "tolerance": {
+        "type": "int"
+      }
     }
   },
- "gpsQualityTrajectoryNoStatic": "该设备暂无静态检验数据，无法进行静动态对比。",
- "@gpsQualityTrajectoryNoStatic": {},
+  "gpsQualityTrajectoryNoStatic": "该设备暂无静态检验数据，无法进行静动态对比。",
+  "@gpsQualityTrajectoryNoStatic": {},
   "gpsQualityTrajectoryToleranceLabel": "配对容差",
   "@gpsQualityTrajectoryToleranceLabel": {},
   "gpsQualityTrajectoryRePair": "重新配对",
@@ -2834,16 +2841,26 @@
   "gpsQualityTrajectoryNearestLabel": "(最近 {duration})",
   "@gpsQualityTrajectoryNearestLabel": {
     "placeholders": {
-      "duration": {"type": "String"}
+      "duration": {
+        "type": "String"
+      }
     }
   },
- "gpsQualityTrajectoryStaticDelta": "静态 vs 动态：静态 P95 = {staticP95}m，本次轨迹动态 P95 = {dynamicP95}m，动态偏差{direction} {delta}m",
+  "gpsQualityTrajectoryStaticDelta": "静态 vs 动态：静态 P95 = {staticP95}m，本次轨迹动态 P95 = {dynamicP95}m，动态偏差{direction} {delta}m",
   "@gpsQualityTrajectoryStaticDelta": {
     "placeholders": {
-      "staticP95": {"type": "String"},
-      "dynamicP95": {"type": "String"},
-      "delta": {"type": "String"},
-      "direction": {"type": "String"}
+      "staticP95": {
+        "type": "String"
+      },
+      "dynamicP95": {
+        "type": "String"
+      },
+      "delta": {
+        "type": "String"
+      },
+      "direction": {
+        "type": "String"
+      }
     }
   },
   "gpsQualityTrajectorySmaller": "小",
@@ -2856,7 +2873,7 @@
   "@gpsQualityTrajectoryEmpty": {},
   "gpsQualityPaired": "已配对",
   "@gpsQualityPaired": {},
-"alertSeverityCritical": "严重",
+  "alertSeverityCritical": "严重",
   "@alertSeverityCritical": {},
   "alertSeverityWarning": "警告",
   "@alertSeverityWarning": {},
@@ -2923,7 +2940,9 @@
   "alertBatchSelected": "已选 {count} 条",
   "@alertBatchSelected": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "alertBatchSelectAll": "全选",
@@ -2975,7 +2994,9 @@
   "alertRanchBannerActive": "{count} 条活跃告警",
   "@alertRanchBannerActive": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "alertFenceListTitle": "围栏列表",
@@ -2983,19 +3004,25 @@
   "alertFenceArea": "{area} 公顷",
   "@alertFenceArea": {
     "placeholders": {
-      "area": {"type": "String"}
+      "area": {
+        "type": "String"
+      }
     }
   },
   "alertFenceLivestockCount": "{count} 头牲畜",
   "@alertFenceLivestockCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "alertFenceAlertCount": "{count} 条告警",
   "@alertFenceAlertCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "alertFenceAddBtn": "新增围栏",
@@ -3005,7 +3032,9 @@
   "alertFenceDeleteConfirm": "确认删除围栏「{name}」？",
   "@alertFenceDeleteConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "alertFenceDeleteBtn": "删除",
@@ -3015,13 +3044,17 @@
   "alertMinutesAgo": "{count}分钟前",
   "@alertMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "alertYesterdayTime": "昨天 {time}",
   "@alertYesterdayTime": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "alertMonthUnit": "月",
@@ -3037,7 +3070,9 @@
   "alertDateCount": "{count} 条",
   "@alertDateCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "alertBatchSelectedCount": "条",
@@ -3117,15 +3152,38 @@
   "gpsQualityTrackLineRules": "管理规则（追加式导入，不归并）：一次导入 = 一条独立候选，系统不自动归并；同一文件重复导入会新增记录而不覆盖；检验发起时对标准轨迹点列做快照，删除候选不影响历史报告；勾选 ≥2 条可「合成」（二期实现）。",
   "@gpsQualityTrackLineRules": {},
   "gpsQualityTrackLineDeleteConfirm": "删除候选轨迹「{name}」？历史检验报告不受影响（点列已快照）。",
-  "@gpsQualityTrackLineDeleteConfirm": {"placeholders": {"name": {}}},
+  "@gpsQualityTrackLineDeleteConfirm": {
+    "placeholders": {
+      "name": {}
+    }
+  },
   "gpsQualityTrackLinePointLength": "{points} 点 · {length} m",
-  "@gpsQualityTrackLinePointLength": {"placeholders": {"points": {"type": "int"}, "length": {}}},
+  "@gpsQualityTrackLinePointLength": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      },
+      "length": {}
+    }
+  },
   "gpsQualityLineMerge": "合成",
   "@gpsQualityLineMerge": {},
   "gpsQualityLineMergeSelectedCount": "已选 {n} 条",
-  "@gpsQualityLineMergeSelectedCount": {"placeholders": {"n": {"type": "int"}}},
+  "@gpsQualityLineMergeSelectedCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "gpsQualityLineMergePhase2": "已勾选 {n} 条原始轨迹。合成算法将在二期实现：本期仅保留入口与勾选交互，算法落地前不会改动源记录。",
-  "@gpsQualityLineMergePhase2": {"placeholders": {"n": {"type": "int"}}},
+  "@gpsQualityLineMergePhase2": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "gpsQualityLineUploadTitle": "上传 RTK 手簿导出文件",
   "@gpsQualityLineUploadTitle": {},
   "gpsQualityLineUploadHint": "支持 .xlsx（RTK 手簿「线路追踪」导出），单条线路一个文件，一次导入生成一条候选",
@@ -3179,7 +3237,13 @@
   "gpsQualityLineStatEnd": "终点坐标",
   "@gpsQualityLineStatEnd": {},
   "gpsQualityLineInvalidPoints": "{n} 行无效坐标已跳过",
-  "@gpsQualityLineInvalidPoints": {"placeholders": {"n": {"type": "int"}}},
+  "@gpsQualityLineInvalidPoints": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "gpsQualityLinePreviewPoints": "前 8 个坐标点（去重后）",
   "@gpsQualityLinePreviewPoints": {},
   "gpsQualityLineColSeq": "序号",
@@ -3191,7 +3255,14 @@
   "gpsQualityLineImportAction": "导入",
   "@gpsQualityLineImportAction": {},
   "gpsQualityLineImportDone": "导入完成：生成 1 条候选标准轨迹线路（{points} 点 · 实算全长 {length} m），已加入标准轨迹列表。",
-  "@gpsQualityLineImportDone": {"placeholders": {"points": {"type": "int"}, "length": {}}},
+  "@gpsQualityLineImportDone": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      },
+      "length": {}
+    }
+  },
   "gpsQualityLineAppendNote": "追加式管理：本次导入为独立候选，不与既有记录归并；同一文件再次导入会新增一条而不覆盖。",
   "@gpsQualityLineAppendNote": {},
   "gpsQualityLinePreviewTitle": "标准轨迹地图预览",
@@ -3209,11 +3280,28 @@
   "gpsQualityLineSelectDevices": "勾选设备",
   "@gpsQualityLineSelectDevices": {},
   "gpsQualityLineDevicesFound": "{n} 台设备有数据",
-  "@gpsQualityLineDevicesFound": {"placeholders": {"n": {"type": "int"}}},
+  "@gpsQualityLineDevicesFound": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "gpsQualityLinePointTotal": "共 {n} 点",
-  "@gpsQualityLinePointTotal": {"placeholders": {"n": {"type": "int"}}},
+  "@gpsQualityLinePointTotal": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "gpsQualityLineFirstLast": "首 {first} ｜ 末 {last}",
-  "@gpsQualityLineFirstLast": {"placeholders": {"first": {}, "last": {}}},
+  "@gpsQualityLineFirstLast": {
+    "placeholders": {
+      "first": {},
+      "last": {}
+    }
+  },
   "gpsQualityLineSelectTrack": "标准轨迹",
   "@gpsQualityLineSelectTrack": {},
   "gpsQualityLineStarHint": "★ = 已选定线路（下拉置顶）",
@@ -3225,9 +3313,21 @@
   "gpsQualityLineCalcNoteShort": "有效样本 = 连续接近线路的轨迹段（走廊 100m 内、间隔 5 分钟内、单趟 ≥4 点）",
   "@gpsQualityLineCalcNoteShort": {},
   "gpsQualityLineLaunch": "发起检验（{n} 台设备）",
-  "@gpsQualityLineLaunch": {"placeholders": {"n": {"type": "int"}}},
+  "@gpsQualityLineLaunch": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "gpsQualityLineLaunchDone": "已发起 {n} 台设备的线路检验",
-  "@gpsQualityLineLaunchDone": {"placeholders": {"n": {"type": "int"}}},
+  "@gpsQualityLineLaunchDone": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "gpsQualityCheckSummary": "检验结果汇总",
   "@gpsQualityCheckSummary": {},
   "gpsQualityCheckSummaryHint": "点击「查看报告」打开对应类型报告",
@@ -3278,14 +3378,20 @@
   "@gpsQualityLineExportCsv": {},
   "gpsQualityLineSelectTrackPrompt": "请选择标准轨迹查看对比",
   "@gpsQualityLineSelectTrackPrompt": {},
- "gpsQualityLineComparisonEmpty": "该条件下暂无线路检验数据",
- "@gpsQualityLineComparisonEmpty": {},
-"gpsQualityLineComparisonEmptyHint": "该标准轨迹尚未创建线路检验，请先发起检验后再查看对比。",
- "@gpsQualityLineComparisonEmptyHint": {},
- "gpsQualityLineRefresh": "刷新",
- "@gpsQualityLineRefresh": {},
- "gpsQualityLineRefreshDone": "已刷新：重新检验 {n} 台设备",
- "@gpsQualityLineRefreshDone": {"placeholders": {"n": {"type": "int"}}},
+  "gpsQualityLineComparisonEmpty": "该条件下暂无线路检验数据",
+  "@gpsQualityLineComparisonEmpty": {},
+  "gpsQualityLineComparisonEmptyHint": "该标准轨迹尚未创建线路检验，请先发起检验后再查看对比。",
+  "@gpsQualityLineComparisonEmptyHint": {},
+  "gpsQualityLineRefresh": "刷新",
+  "@gpsQualityLineRefresh": {},
+  "gpsQualityLineRefreshDone": "已刷新：重新检验 {n} 台设备",
+  "@gpsQualityLineRefreshDone": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "telemetryImportTitle": "遥测数据导入",
   "@telemetryImportTitle": {},
   "telemetryImportStepUpload": "上传文件",
@@ -3367,7 +3473,13 @@
   "telemetryImportPreviewTitle": "逐行预览（前 8 行示例）",
   "@telemetryImportPreviewTitle": {},
   "telemetryImportPreviewNote": "仅展示前 8 行；完整 {total} 行已全部解析。解码字段：电量 / 经纬度（写入 GPS 轨迹）/ 周期步数与三轴加速度（写入遥测记录，供健康分析）。",
-  "@telemetryImportPreviewNote": {"placeholders": {"total": {"type": "int"}}},
+  "@telemetryImportPreviewNote": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "telemetryImportColTime": "时间 (UTC)",
   "@telemetryImportColTime": {},
   "telemetryImportColBattery": "电量",
@@ -3391,11 +3503,26 @@
   "telemetryImportRowInvalid": "错误",
   "@telemetryImportRowInvalid": {},
   "telemetryImportConfirmAction": "确认导入 {count} 条",
-  "@telemetryImportConfirmAction": {"placeholders": {"count": {"type": "int"}}},
+  "@telemetryImportConfirmAction": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "telemetryImportConfirmDisabled": "设备未匹配，不可导入",
   "@telemetryImportConfirmDisabled": {},
   "telemetryImportDone": "导入完成。成功写入遥测记录 {telemetry} 条，其中 GPS 轨迹点 {gps} 个；重复与不可导入的行已自动跳过。数据来源已标记为「手工导入」，未触发告警，不影响设备实时同步游标。",
-  "@telemetryImportDone": {"placeholders": {"telemetry": {"type": "int"}, "gps": {"type": "int"}}},
+  "@telemetryImportDone": {
+    "placeholders": {
+      "telemetry": {
+        "type": "int"
+      },
+      "gps": {
+        "type": "int"
+      }
+    }
+  },
   "telemetryImportResultDetailTitle": "设备导入明细",
   "@telemetryImportResultDetailTitle": {},
   "telemetryImportResultTelemetry": "遥测记录",
@@ -3409,11 +3536,23 @@
   "telemetryImportImportAnother": "继续导入其他文件",
   "@telemetryImportImportAnother": {},
   "telemetryImportErrorDeviceNotRegistered": "设备未注册：{devEui}",
-  "@telemetryImportErrorDeviceNotRegistered": {"placeholders": {"devEui": {}}},
+  "@telemetryImportErrorDeviceNotRegistered": {
+    "placeholders": {
+      "devEui": {}
+    }
+  },
   "telemetryImportErrorDeviceNotActive": "设备未激活：{devEui}",
-  "@telemetryImportErrorDeviceNotActive": {"placeholders": {"devEui": {}}},
+  "@telemetryImportErrorDeviceNotActive": {
+    "placeholders": {
+      "devEui": {}
+    }
+  },
   "telemetryImportErrorUnsupportedDeviceType": "暂不支持的设备类型：{deviceType}",
-  "@telemetryImportErrorUnsupportedDeviceType": {"placeholders": {"deviceType": {}}},
+  "@telemetryImportErrorUnsupportedDeviceType": {
+    "placeholders": {
+      "deviceType": {}
+    }
+  },
   "telemetryImportErrorInvalidTime": "时间格式错误",
   "@telemetryImportErrorInvalidTime": {},
   "telemetryImportErrorInvalidHex": "报文 hex 解析失败",
@@ -3527,7 +3666,13 @@
   "datagenConsoleClearSelection": "清空选择",
   "@datagenConsoleClearSelection": {},
   "datagenConsoleSelectedCount": "已选择 {count} 台",
-  "@datagenConsoleSelectedCount": {"placeholders": {"count": {"type": "int"}}},
+  "@datagenConsoleSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "datagenConsoleClearData": "清空仿真数据",
   "@datagenConsoleClearData": {},
   "datagenConsoleRange24h": "最近 24 小时",
@@ -3581,7 +3726,13 @@
   "datagenConsoleDevicesRequired": "启动仿真前请至少选择一台设备。",
   "@datagenConsoleDevicesRequired": {},
   "datagenConsoleClearDone": "清理完成，已删除 {count} 条记录。",
-  "@datagenConsoleClearDone": {"placeholders": {"count": {"type": "int"}}},
+  "@datagenConsoleClearDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tbWizardTitle": "开通设备",
   "@tbWizardTitle": {},
   "tbWizardStepPreflight": "预检",
@@ -3633,7 +3784,13 @@
   "tbWizardStatusActive": "已启用",
   "@tbWizardStatusActive": {},
   "tbWizardStatusUnknown": "未知状态：{status}",
-  "@tbWizardStatusUnknown": {"placeholders": {"status": {"type": "String"}}},
+  "@tbWizardStatusUnknown": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "tbWizardResultDevice": "设备创建",
   "@tbWizardResultDevice": {},
   "tbWizardResultBinding": "TB 绑定",
@@ -3681,13 +3838,28 @@
   "tbWizardFilterNoLocation": "无位置",
   "@tbWizardFilterNoLocation": {},
   "tbWizardLivestockCount": "显示 {shown} / 共 {total} 头",
-  "@tbWizardLivestockCount": {"placeholders": {"shown": {"type": "int"}, "total": {"type": "int"}}},
+  "@tbWizardLivestockCount": {
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "tbWizardLivestockNoMatch": "没有匹配的牲畜，请调整搜索或筛选条件。",
   "@tbWizardLivestockNoMatch": {},
   "tbWizardLocate": "定位",
   "@tbWizardLocate": {},
   "tbWizardLocationTitle": "定位：{name}",
-  "@tbWizardLocationTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@tbWizardLocationTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "tbWizardSortCode": "编号",
   "@tbWizardSortCode": {},
   "tbWizardSortHealth": "健康",
@@ -3699,21 +3871,84 @@
   "tbWizardLocationUnknown": "位置未知",
   "@tbWizardLocationUnknown": {},
   "tbWizardLivestockSubtitle": "{breed} · {health} · {gender} · {deviceCount} 台设备 · {location}",
-  "@tbWizardLivestockSubtitle": {"placeholders": {"breed": {"type": "String"}, "health": {"type": "String"}, "gender": {"type": "String"}, "deviceCount": {"type": "int"}, "location": {"type": "String"}}},
+  "@tbWizardLivestockSubtitle": {
+    "placeholders": {
+      "breed": {
+        "type": "String"
+      },
+      "health": {
+        "type": "String"
+      },
+      "gender": {
+        "type": "String"
+      },
+      "deviceCount": {
+        "type": "int"
+      },
+      "location": {
+        "type": "String"
+      }
+    }
+  },
   "tbWizardInstalledLivestockWarning": "该设备已安装在牲畜 {livestockId}；更换目标前请先解绑。",
-  "@tbWizardInstalledLivestockWarning": {"placeholders": {"livestockId": {"type": "String"}}},
+  "@tbWizardInstalledLivestockWarning": {
+    "placeholders": {
+      "livestockId": {
+        "type": "String"
+      }
+    }
+  },
   "healthTipAssigned": "赋值：{value} / 100",
-  "@healthTipAssigned": {"placeholders": {"value": {"type": "int"}}},
+  "@healthTipAssigned": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
   "healthTipBasis": "取值：{detail}",
-  "@healthTipBasis": {"placeholders": {"detail": {"type": "String"}}},
+  "@healthTipBasis": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
   "healthBasisBattery": "设备电量 {percent}%",
-  "@healthBasisBattery": {"placeholders": {"percent": {"type": "int"}}},
+  "@healthBasisBattery": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "healthBasisSignal": "RSSI {rssi} dBm，SNR {snr}",
-  "@healthBasisSignal": {"placeholders": {"rssi": {"type": "int"}, "snr": {"type": "String"}}},
+  "@healthBasisSignal": {
+    "placeholders": {
+      "rssi": {
+        "type": "int"
+      },
+      "snr": {
+        "type": "String"
+      }
+    }
+  },
   "healthBasisSignalNoSnr": "RSSI {rssi} dBm",
-  "@healthBasisSignalNoSnr": {"placeholders": {"rssi": {"type": "int"}}},
+  "@healthBasisSignalNoSnr": {
+    "placeholders": {
+      "rssi": {
+        "type": "int"
+      }
+    }
+  },
   "healthBasisOnlineHoursAgo": "最后上线于 {hours} 小时前",
-  "@healthBasisOnlineHoursAgo": {"placeholders": {"hours": {"type": "int"}}},
+  "@healthBasisOnlineHoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
   "healthBasisOnlineWithinHour": "最后上线于 1 小时内",
   "@healthBasisOnlineWithinHour": {},
   "healthBasisTamperOk": "防拆卸未触发",
@@ -3761,9 +3996,21 @@
   "deploymentLicenseExpiresAt": "到期时间",
   "@deploymentLicenseExpiresAt": {},
   "deploymentLicenseDaysRemaining": "剩余 {days} 天",
-  "@deploymentLicenseDaysRemaining": {"placeholders": {"days": {"type": "int"}}},
+  "@deploymentLicenseDaysRemaining": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "deploymentLicenseDaysOverdue": "已超期 {days} 天",
-  "@deploymentLicenseDaysOverdue": {"placeholders": {"days": {"type": "int"}}},
+  "@deploymentLicenseDaysOverdue": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "deploymentLicenseIssuedAt": "签发时间",
   "@deploymentLicenseIssuedAt": {},
   "deploymentLicenseAcceptedAt": "激活时间",
@@ -3801,7 +4048,13 @@
   "deploymentLicenseUploadConfirmTitle": "确认导入授权",
   "@deploymentLicenseUploadConfirmTitle": {},
   "deploymentLicenseUploadConfirmMessage": "即将为该租户导入授权文件 {fileName}，该操作会影响订阅状态，确认继续？",
-  "@deploymentLicenseUploadConfirmMessage": {"placeholders": {"fileName": {"type": "String"}}},
+  "@deploymentLicenseUploadConfirmMessage": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
   "deploymentLicenseUploadSuccess": "授权导入成功",
   "@deploymentLicenseUploadSuccess": {},
   "deploymentLicenseUploadFailed": "授权导入失败",
@@ -3817,9 +4070,41 @@
   "pilotLicenseConfirmMessage": "将为该租户开通 365 天试点授权（试用为 PREMIUM 档），到期前可随时升级为正式订阅。确认继续？",
   "@pilotLicenseConfirmMessage": {},
   "pilotLicenseGrantSuccess": "试点授权已开通，试用到期：{trialEndsAt}",
-  "@pilotLicenseGrantSuccess": {"placeholders": {"trialEndsAt": {"type": "String"}}},
+  "@pilotLicenseGrantSuccess": {
+    "placeholders": {
+      "trialEndsAt": {
+        "type": "String"
+      }
+    }
+  },
   "pilotLicenseGrantFailed": "试点授权开通失败",
   "@pilotLicenseGrantFailed": {},
   "pilotLicenseStateConflict": "当前订阅状态不支持开通试点授权",
-  "@pilotLicenseStateConflict": {}
+  "@pilotLicenseStateConflict": {},
+  "forcedChangeTitle": "设置您的新密码",
+  "@forcedChangeTitle": {},
+  "forcedChangeHint": "检测到您仍在使用初始密码。为保障安全，请先设置您自己的新密码，之后才能使用系统其他功能。",
+  "@forcedChangeHint": {},
+  "forcedChangeCurrent": "当前密码（初始密码）",
+  "@forcedChangeCurrent": {},
+  "forcedChangeNew": "新密码",
+  "@forcedChangeNew": {},
+  "forcedChangeConfirm": "确认新密码",
+  "@forcedChangeConfirm": {},
+  "forcedChangeRequired": "请输入密码",
+  "@forcedChangeRequired": {},
+  "forcedChangeSubmit": "保存并继续",
+  "@forcedChangeSubmit": {},
+  "forcedChangeSuccess": "密码修改成功，请使用新密码重新登录",
+  "@forcedChangeSuccess": {},
+  "forcedChangeMismatch": "两次输入的新密码不一致",
+  "@forcedChangeMismatch": {},
+  "errorPasswordWeak": "新密码至少 10 位，且必须同时包含字母和数字",
+  "@errorPasswordWeak": {},
+  "loginCopyEnrollmentInfo": "复制登记信息（发给厂商）",
+  "@loginCopyEnrollmentInfo": {},
+  "loginEnrollmentCopied": "登记信息已复制，请发送给厂商获取授权文件",
+  "@loginEnrollmentCopied": {},
+  "loginEnrollmentFailed": "获取登记信息失败，请稍后重试或联系厂商",
+  "@loginEnrollmentFailed": {}
 }

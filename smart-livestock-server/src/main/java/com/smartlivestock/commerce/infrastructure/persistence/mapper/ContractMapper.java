@@ -24,6 +24,7 @@ public final class ContractMapper {
         jpa.setSignedAt(domain.getSignedAt());
         jpa.setStartedAt(domain.getStartedAt());
         jpa.setExpiresAt(domain.getExpiresAt());
+        jpa.setIssuedLicenseId(domain.getIssuedLicenseId());
         return jpa;
     }
 
@@ -37,6 +38,7 @@ public final class ContractMapper {
         existing.setSignedAt(domain.getSignedAt());
         existing.setStartedAt(domain.getStartedAt());
         existing.setExpiresAt(domain.getExpiresAt());
+        existing.setIssuedLicenseId(domain.getIssuedLicenseId());
     }
 
     public static Contract toDomain(ContractJpaEntity jpa) {
@@ -52,6 +54,7 @@ public final class ContractMapper {
         domain.setSignedAt(jpa.getSignedAt());
         domain.setStartedAt(jpa.getStartedAt());
         domain.setExpiresAt(jpa.getExpiresAt());
+        domain.setIssuedLicenseId(jpa.getIssuedLicenseId());
         return domain;
     }
 }

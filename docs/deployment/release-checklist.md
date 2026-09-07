@@ -65,9 +65,9 @@
 
 - [ ] `docs/api-contracts/admin-api.md` §14「部署授权与试点授权」5 端点契约完整
 - [ ] `docs/api-contracts/changelog.md` 2026-09-03 条目已追加
-- [ ] `docs/guides/release-install-guide.md`（本清单与运维指南随包发布：包内 `release/docs/` 三份齐）
-- [ ] `docs/guides/release-operations-guide.md`
-- [ ] `docs/guides/release-checklist.md`（本文件）
+- [ ] `docs/deployment/release-install-guide.md`（本清单与运维指南随包发布：包内 `release/docs/` 三份齐）
+- [ ] `docs/deployment/release-operations-guide.md`
+- [ ] `docs/deployment/release-checklist.md`（本文件）
 - [ ] `docs/marketing/technical-support-guide.md`（售后 FAQ 与 ONPREM 支持边界为最新版）
 
 ## 6. 发布后

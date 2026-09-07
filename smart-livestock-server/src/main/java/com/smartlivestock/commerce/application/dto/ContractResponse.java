@@ -55,4 +55,10 @@ public class ContractResponse {
 
     public Instant getExpiresAt() { return expiresAt; }
     public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
+
+    /** Latest activation-certificate id issued against this contract (NIX-191). */
+    private String issuedLicenseId;
+
+    public String getIssuedLicenseId() { return issuedLicenseId; }
+    public void setIssuedLicenseId(String issuedLicenseId) { this.issuedLicenseId = issuedLicenseId; }
 }

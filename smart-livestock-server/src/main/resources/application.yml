@@ -1,5 +1,11 @@
 server:
   port: 8080
+  # Trust X-Forwarded-* sent by our nginx: without this, the app sees the
+  # internal http://app:8080 scheme while the browser Origin is https://<host>,
+  # so Spring treats same-origin browser requests as cross-origin and CORS
+  # rejects them (403 "Invalid CORS request") on any release install.
+  # Only nginx can reach the app port in every deployment topology.
+  forward-headers-strategy: native
 
 spring:
   datasource:
@@ -16,7 +22,9 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
-    locations: classpath:db/migration
+    # NIX-191: dev/test append classpath:db/demo (demo accounts re-activation);
+    # release installs load db/migration only — no known credentials at all.
+    locations: ${FLYWAY_LOCATIONS:classpath:db/migration}
     out-of-order: true
   data:
     redis:

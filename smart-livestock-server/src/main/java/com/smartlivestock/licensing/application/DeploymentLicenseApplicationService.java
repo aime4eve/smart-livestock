@@ -16,6 +16,7 @@ import com.smartlivestock.licensing.domain.LicenseType;
 import com.smartlivestock.licensing.domain.LicenseValidationOutcome;
 import com.smartlivestock.licensing.domain.LicenseValidationResult;
 import com.smartlivestock.licensing.domain.LicenseValidator;
+import com.smartlivestock.licensing.domain.port.DeploymentAdminProvisioningPort;
 import com.smartlivestock.licensing.domain.repository.DeploymentInstallationRepository;
 import com.smartlivestock.licensing.domain.repository.DeploymentLicenseEventRepository;
 import com.smartlivestock.licensing.domain.repository.DeploymentLicenseRepository;
@@ -70,6 +71,7 @@ public class DeploymentLicenseApplicationService {
     private final LicensePublicKeyRegistry publicKeyRegistry;
     private final LicenseSubscriptionPort subscriptionPort;
     private final LicenseUsagePort usagePort;
+    private final DeploymentAdminProvisioningPort adminProvisioningPort;
     private final MessageResolver messageResolver;
 
     // ── Enrollment (design §8 GET /enrollment) ───────────────────────
@@ -107,13 +109,21 @@ public class DeploymentLicenseApplicationService {
      * front — the import mutates the tenant subscription, so an explicit
      * confirmation is mandatory.
      *
-     * @throws ApiException VALIDATION_ERROR        when not confirmed / not enrolled
+     * @param requireAdminBootstrap NIX-191 first-certificate window: the
+     *                              deployment has no administrator yet, so the
+     *                              certificate must birth one (adminPhone +
+     *                              adminPasswordHash). The account is created
+     *                              on the accept path and locked to a forced
+     *                              password change.
+     * @throws ApiException VALIDATION_ERROR        when not confirmed / not enrolled /
+     *                                              admin bootstrap missing in window
      * @throws ApiException LICENSE_*               when validation refuses the file
      * @throws ApiException STATE_CONFLICT          when the license type cannot map
      *                                              onto the current subscription state
      */
     @Transactional
-    public ImportResult importLicense(Long tenantId, String rawEnvelope, boolean confirm) {
+    public ImportResult importLicense(Long tenantId, String rawEnvelope, boolean confirm,
+                                      boolean requireAdminBootstrap) {
         if (!confirm) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "license.import.confirmRequired");
         }
@@ -146,6 +156,25 @@ public class DeploymentLicenseApplicationService {
         }
 
         LicensePayload payload = result.getPayload();
+        // Replay guard (NIX-191 review): a previously imported certificate —
+        // CURRENT or REPLACED — must never be re-accepted, otherwise a
+        // customer could bounce between an old cheap certificate and the new
+        // renewal indefinitely.
+        if (licenseRepository.findByLicenseId(payload.getLicenseId()).isPresent()) {
+            writeEvent(payload.getLicenseId(), tenantId, LicenseEventType.IMPORT_REJECTED,
+                    LicenseValidationOutcome.VALID.name(), ErrorCode.STATE_CONFLICT.name(),
+                    Map.of("reason", "certificate replay"), operatorId, now);
+            throw new ApiException(ErrorCode.STATE_CONFLICT, "license.import.replay");
+        }
+        if (requireAdminBootstrap && !payload.hasAdminBootstrap()) {
+            // Window rule: the first certificate must birth the deployment
+            // administrator — otherwise the install would unlock with no one
+            // able to manage it and the bootstrap window could never close.
+            writeEvent(payload.getLicenseId(), tenantId, LicenseEventType.IMPORT_REJECTED,
+                    LicenseValidationOutcome.VALID.name(), ErrorCode.VALIDATION_ERROR.name(),
+                    Map.of("reason", "admin bootstrap required"), operatorId, now);
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "license.import.adminRequired");
+        }
         precheckQuotas(tenantId, payload, rawEnvelope, operatorId, now);
         mapSubscription(tenantId, payload, rawEnvelope, operatorId, now);
 
@@ -172,6 +201,11 @@ public class DeploymentLicenseApplicationService {
         if (previous != null) {
             details.put("replacedLicenseId", previous.getLicenseId().toString());
         }
+        if (payload.hasAdminBootstrap()) {
+            Long adminUserId = adminProvisioningPort.provisionAdmin(
+                    payload.getAdminPhone(), payload.getAdminPasswordHash(), true);
+            details.put("adminUserId", adminUserId);
+        }
         writeEvent(record.getLicenseId(), tenantId, LicenseEventType.IMPORT_ACCEPTED,
                 LicenseValidationOutcome.VALID.name(), null, details, operatorId, now);
 
@@ -183,6 +217,14 @@ public class DeploymentLicenseApplicationService {
     }
 
     // ── Status (design §8 GET /current) ──────────────────────────────
+
+    /**
+     * NIX-191 first-certificate window: the anonymous operator cannot know
+     * the tenant id yet — resolve the single seeded tenant instead.
+     */
+    public Long defaultTenantId() {
+        return adminProvisioningPort.firstTenantId();
+    }
 
     /**
      * Current license, derived runtime state, subscription mapping, monotonic

@@ -134,7 +134,29 @@ sudo bash scripts/check-release-health.sh
 
 ---
 
-## 6. HTTPS 证书：本地 CA 方案（根治 Chromium `-202`）
+## 6. HTTPS 证书：三种签发方式（脚本一键完成）
+
+**560+ 包自带 `release/scripts/gen-tls-cert.sh`**，覆盖内部部署的全部场景（openssl 一条依赖）：
+
+```bash
+# 方式一：快速自签（SAN 自动带本机 IP + localhost）
+# 浏览器会提示不受信任——仅适合临时起服
+bash scripts/gen-tls-cert.sh --out secrets/certs
+
+# 方式二：本地 CA 模式（推荐内部使用）——创建 CA 并签发
+# 把生成的 secrets/certs/ca/ca.crt 装进运营人员浏览器一次，
+# 之后该 CA 签的所有服务器证书都被信任
+bash scripts/gen-tls-cert.sh --out secrets/certs --create-ca \
+  --san IP:172.17.10.86 --san IP:172.17.10.223
+
+# 方式三：已有 CA（公司 CA / 上节创建的本地 CA）直接签发
+bash scripts/gen-tls-cert.sh --out secrets/certs \
+  --ca-cert ca.crt --ca-key ca.key --san IP:172.17.10.223
+```
+
+- 不带 `--san` 时自动探测本机 IP；`--force` 覆盖已存在的证书。
+- 签完 `docker compose restart nginx` 生效。
+- 一次性手敲等价操作（脚本内部做的事）见下；装 CA 进浏览器信任链后提示即消失。
 
 安装器自签证书一年且不进任何信任链——Chromium 内核浏览器（含 ZCode 内建浏览器、Chrome）直接 `ERR_CERT_AUTHORITY_INVALID` 且无跳过入口。**不要用"忽略证书校验"**（全局降级）。我方演示环境的做法：
 

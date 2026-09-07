@@ -158,12 +158,19 @@ def build_payload(
     quotas: dict,
     features: dict | None = None,
     replaces_license_id: str | None = None,
+    admin_phone: str | None = None,
+    admin_password_hash: str | None = None,
 ) -> dict:
     """Build the fixed payload map (field set per design section 3).
 
     Instants are stored as canonical UTC strings so the canonical serialization
     is deterministic. ``replacesLicenseId`` is omitted when absent, matching the
     Java ``LicensePayload.toMap`` behavior.
+
+    NIX-191: ``admin_phone`` + ``admin_password_hash`` (bcrypt of the one-time
+    initial password) ride along on first issuances so the deployment
+    administrator is born at import time. Both are omitted for renewals that
+    keep the existing administrator.
     """
     payload = {
         "payloadVersion": PAYLOAD_VERSION,
@@ -182,6 +189,9 @@ def build_payload(
     }
     if replaces_license_id:
         payload["replacesLicenseId"] = replaces_license_id
+    if admin_phone and admin_password_hash:
+        payload["adminPhone"] = admin_phone
+        payload["adminPasswordHash"] = admin_password_hash
     return payload
 
 

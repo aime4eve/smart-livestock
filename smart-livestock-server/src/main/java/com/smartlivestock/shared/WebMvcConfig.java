@@ -6,6 +6,7 @@ import com.smartlivestock.shared.ratelimit.RateLimitInterceptor;
 import com.smartlivestock.shared.scope.FarmScopeInterceptor;
 import com.smartlivestock.shared.scope.ScopeInterceptor;
 import com.smartlivestock.shared.security.LicenseEnforcementInterceptor;
+import com.smartlivestock.shared.security.PasswordChangeRequiredInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -19,23 +20,32 @@ public class WebMvcConfig implements WebMvcConfigurer {
     private final ApiCallLogInterceptor apiCallLogInterceptor;
     private final ScopeInterceptor scopeInterceptor;
     private final LicenseEnforcementInterceptor licenseEnforcementInterceptor;
+    private final PasswordChangeRequiredInterceptor passwordChangeRequiredInterceptor;
 
     public WebMvcConfig(FarmScopeInterceptor farmScopeInterceptor,
                         QuotaInterceptor quotaInterceptor,
                         RateLimitInterceptor rateLimitInterceptor,
                         ApiCallLogInterceptor apiCallLogInterceptor,
                         ScopeInterceptor scopeInterceptor,
-                        LicenseEnforcementInterceptor licenseEnforcementInterceptor) {
+                        LicenseEnforcementInterceptor licenseEnforcementInterceptor,
+                        PasswordChangeRequiredInterceptor passwordChangeRequiredInterceptor) {
         this.farmScopeInterceptor = farmScopeInterceptor;
         this.quotaInterceptor = quotaInterceptor;
         this.rateLimitInterceptor = rateLimitInterceptor;
         this.apiCallLogInterceptor = apiCallLogInterceptor;
         this.scopeInterceptor = scopeInterceptor;
         this.licenseEnforcementInterceptor = licenseEnforcementInterceptor;
+        this.passwordChangeRequiredInterceptor = passwordChangeRequiredInterceptor;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // NIX-191: forced password change runs before everything else so a
+        // must-change account always gets the actionable
+        // PASSWORD_CHANGE_REQUIRED error instead of downstream noise.
+        registry.addInterceptor(passwordChangeRequiredInterceptor)
+                .addPathPatterns("/api/v1/**");
+
         // NIX-184 T5: on-premise license gate runs first (before the quota
         // interceptor) so a blocked tenant never reaches quota evaluation.
         // Exclusions (design §11 enforcement matrix):

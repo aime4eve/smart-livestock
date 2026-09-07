@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/l10n/locale_controller.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
@@ -229,8 +231,10 @@ class _LicenseModeBadge extends StatelessWidget {
       );
     }
     final status = info.runtimeStatus;
+    // NIX-191: a fresh install has no state row (null) until the scheduler's
+    // first tick — that IS the bootstrap/pending state for the deployer.
     final (chipColor, bannerColor, bannerText) = switch (status) {
-      'PENDING_ACTIVATION' => (
+      'PENDING_ACTIVATION' || null => (
           AppColors.warning,
           AppColors.warning,
           l10n.authModePendingBanner,
@@ -282,8 +286,71 @@ class _LicenseModeBadge extends StatelessWidget {
                   ?.copyWith(height: 1.5),
             ),
           ),
+          // NIX-191: one-tap enrollment info copy for the zero-account
+          // bootstrap state — the deployer never types the raw API URL.
+          if (status == 'PENDING_ACTIVATION' || status == null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            _CopyEnrollmentButton(),
+          ],
         ],
       ],
+    );
+  }
+}
+
+class _CopyEnrollmentButton extends StatefulWidget {
+  @override
+  State<_CopyEnrollmentButton> createState() => _CopyEnrollmentButtonState();
+}
+
+class _CopyEnrollmentButtonState extends State<_CopyEnrollmentButton> {
+  bool _busy = false;
+
+  Future<void> _copy() async {
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _busy = true);
+    try {
+      final data = await ApiClient.instance.get(
+        '/deployment-license/enrollment',
+      );
+      final installationId = data['installationId']?.toString() ?? '';
+      final fingerprintHash = data['fingerprintHash']?.toString() ?? '';
+      if (installationId.isEmpty || fingerprintHash.isEmpty) {
+        throw const FormatException('empty enrollment payload');
+      }
+      await Clipboard.setData(ClipboardData(
+        text: '安装ID: $installationId\n指纹: $fingerprintHash',
+      ));
+      messenger.showSnackBar(SnackBar(
+        content: Text(l10n.loginEnrollmentCopied),
+        backgroundColor: AppColors.success,
+      ));
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(
+        content: Text(l10n.loginEnrollmentFailed),
+        backgroundColor: AppColors.danger,
+      ));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return TextButton.icon(
+      key: const Key('copy-enrollment'),
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+      ),
+      icon: _busy
+          ? const SizedBox(
+              width: 14, height: 14,
+              child: CircularProgressIndicator(strokeWidth: 2))
+          : const Icon(Icons.copy_all_outlined, size: 16),
+      label: Text(l10n.loginCopyEnrollmentInfo),
+      onPressed: _busy ? null : _copy,
     );
   }
 }

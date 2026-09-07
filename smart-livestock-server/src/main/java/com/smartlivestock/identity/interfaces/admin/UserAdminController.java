@@ -133,7 +133,7 @@ public class UserAdminController {
             password = "Default@123";
         }
 
-        User user = new User(passwordHasher.hash(password), name, role, tenantId);
+        User user = new User(passwordHasher.hash(password), name, role, tenantId, true);
         user.setPhone(phone);
         User saved = userRepository.save(user);
 
@@ -258,6 +258,9 @@ public class UserAdminController {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "用户不存在: " + userId));
+        // NIX-191: an operator-set reset password is again "someone else's"
+        // credential — re-arm the forced password change.
+        user.reconstituteMustChangePassword(true);
 
         user.setPasswordHash(passwordHasher.hash(newPassword));
         userRepository.save(user);

@@ -142,17 +142,18 @@ cp docker-compose.release.yml "$PKG/release/"
 cp .env.release.example "$PKG/release/"
 cp infrastructure/nginx/nginx.release.conf "$PKG/release/infrastructure/nginx/"
 printf '%s\n' "$VERSION" > "$PKG/release/RELEASE_VERSION"
-# The five target-host scripts (build-release-package.sh itself stays out —
+# The target-host scripts (build-release-package.sh itself stays out —
 # the install host never builds anything).
-for s in install-release.sh check-release-health.sh backup-release.sh restore-release.sh verify-release-bundle.sh; do
+for s in install-release.sh check-release-health.sh backup-release.sh restore-release.sh verify-release-bundle.sh gen-tls-cert.sh reset-admin-password.sh; do
   cp "$SCRIPT_DIR/$s" "$PKG/release/scripts/"
 done
 # Operator guides (owned by T9b — warn + continue when not written yet).
+# Living in docs/deployment/ (market-launch deployment doc center).
 for d in release-install-guide.md release-operations-guide.md release-checklist.md; do
-  if [[ -f "$REPO_ROOT/docs/guides/$d" ]]; then
-    cp "$REPO_ROOT/docs/guides/$d" "$PKG/release/docs/"
+  if [[ -f "$REPO_ROOT/docs/deployment/$d" ]]; then
+    cp "$REPO_ROOT/docs/deployment/$d" "$PKG/release/docs/"
   else
-    warn "docs/guides/$d not found — packaged without it (T9b pending?)"
+    warn "docs/deployment/$d not found — packaged without it (T9b pending?)"
   fi
 done
 

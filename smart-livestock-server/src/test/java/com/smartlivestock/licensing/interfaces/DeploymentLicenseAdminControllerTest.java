@@ -1,5 +1,6 @@
 package com.smartlivestock.licensing.interfaces;
 
+import com.smartlivestock.licensing.application.AdminBootstrapWindow;
 import com.smartlivestock.licensing.application.DeploymentLicenseApplicationService;
 import com.smartlivestock.licensing.application.LicenseModeGuard;
 import com.smartlivestock.licensing.application.PilotLicenseModeGuard;
@@ -29,7 +30,9 @@ import java.time.Instant;
 import java.util.Locale;
 import java.util.Set;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -54,22 +57,28 @@ class DeploymentLicenseAdminControllerTest {
     @Mock
     private DeploymentLicenseApplicationService applicationService;
 
+    @Mock
+    private AdminBootstrapWindow bootstrapWindow;
+
     private MockMvc onPremMvc;
     private MockMvc hostedMvc;
 
     @BeforeEach
     void setUp() {
         LocaleContextHolder.setLocale(Locale.ENGLISH); // stable message assertions
+        lenient().when(bootstrapWindow.isOpen()).thenReturn(false); // closed unless a test opens it
 
         GlobalExceptionHandler advice = new GlobalExceptionHandler(
                 new MessageResolver(testMessageSource()));
 
         onPremMvc = build(new DeploymentLicenseAdminController(applicationService,
                 new LicenseModeGuard("ONPREM"),
-                new PilotLicenseModeGuard(pilotProperties(true), "ONPREM")), advice);
+                new PilotLicenseModeGuard(pilotProperties(true), "ONPREM"),
+                bootstrapWindow), advice);
         hostedMvc = build(new DeploymentLicenseAdminController(applicationService,
                 new LicenseModeGuard("HOSTED"),
-                new PilotLicenseModeGuard(pilotProperties(true), "HOSTED")), advice);
+                new PilotLicenseModeGuard(pilotProperties(true), "HOSTED"),
+                bootstrapWindow), advice);
     }
 
     @AfterEach
@@ -147,7 +156,7 @@ class DeploymentLicenseAdminControllerTest {
                     .andExpect(jsonPath("$.code").value("AUTH_FORBIDDEN"));
 
             verify(applicationService, never()).importLicense(eq(TENANT_ID), eq("{\"payload\":{}}"),
-                    eq(true));
+                    eq(true), eq(false));
         }
 
         @Test
@@ -211,7 +220,7 @@ class DeploymentLicenseAdminControllerTest {
         @Test
         void multipartImportWithFileAndConfirmSucceeds() throws Exception {
             loginAs("ROLE_PLATFORM_ADMIN");
-            when(applicationService.importLicense(TENANT_ID, "{\"payload\":{}}", true))
+            when(applicationService.importLicense(TENANT_ID, "{\"payload\":{}}", true, false))
                     .thenReturn(new ImportResultFixture().result());
 
             onPremMvc.perform(multipart(BASE)
@@ -223,13 +232,13 @@ class DeploymentLicenseAdminControllerTest {
                     .andExpect(jsonPath("$.data.runtimeStatus").value("VALID"))
                     .andExpect(jsonPath("$.data.effectiveTier").value("PREMIUM"));
 
-            verify(applicationService).importLicense(TENANT_ID, "{\"payload\":{}}", true);
+            verify(applicationService).importLicense(TENANT_ID, "{\"payload\":{}}", true, false);
         }
 
         @Test
         void multipartImportWithoutConfirmPropagatesFalseAndIsRefused() throws Exception {
             loginAs("ROLE_PLATFORM_ADMIN");
-            when(applicationService.importLicense(TENANT_ID, "{\"payload\":{}}", false))
+            when(applicationService.importLicense(TENANT_ID, "{\"payload\":{}}", false, false))
                     .thenThrow(new ApiException(ErrorCode.VALIDATION_ERROR,
                             "license.import.confirmRequired"));
 
@@ -239,7 +248,7 @@ class DeploymentLicenseAdminControllerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
 
-            verify(applicationService).importLicense(TENANT_ID, "{\"payload\":{}}", false);
+            verify(applicationService).importLicense(TENANT_ID, "{\"payload\":{}}", false, false);
         }
 
         @Test
@@ -276,7 +285,7 @@ class DeploymentLicenseAdminControllerTest {
         @Test
         void malformedEnvelopeSurfacesLicenseInvalidFromService() throws Exception {
             loginAs("ROLE_PLATFORM_ADMIN");
-            when(applicationService.importLicense(TENANT_ID, "not-a-json", true))
+            when(applicationService.importLicense(TENANT_ID, "not-a-json", true, false))
                     .thenThrow(new ApiException(ErrorCode.LICENSE_INVALID, "license.invalid"));
 
             onPremMvc.perform(multipart(BASE)
@@ -285,6 +294,58 @@ class DeploymentLicenseAdminControllerTest {
                             .param("confirm", "true"))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.code").value("LICENSE_INVALID"));
+        }
+    }
+
+    // ── NIX-191 first-certificate window ─────────────────────────────
+
+    @Nested
+    class BootstrapWindow {
+
+        @Test
+        void anonymousEnrollmentAllowedWhileWindowOpen_usesSeededTenant() throws Exception {
+            when(bootstrapWindow.isOpen()).thenReturn(true);
+            when(applicationService.defaultTenantId()).thenReturn(TENANT_ID);
+            when(applicationService.enroll(TENANT_ID)).thenReturn(new EnrollmentInfoFixture().info());
+
+            onPremMvc.perform(get(BASE + "/enrollment")) // anonymous, no tenantId
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.installationId").value("inst-1"));
+
+            verify(applicationService).defaultTenantId();
+            verify(applicationService).enroll(TENANT_ID);
+        }
+
+        @Test
+        void anonymousImportRejectedWhenCertificateCarriesNoAdminBootstrap() throws Exception {
+            when(bootstrapWindow.isOpen()).thenReturn(true);
+            when(applicationService.importLicense(TENANT_ID, "{\"payload\":{}}", true, true))
+                    .thenThrow(new ApiException(ErrorCode.VALIDATION_ERROR,
+                            "license.import.adminRequired"));
+
+            onPremMvc.perform(multipart(BASE)
+                            .file(envelopeFile("{\"payload\":{}}"))
+                            .param("tenantId", "42")
+                            .param("confirm", "true")) // anonymous
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+
+            verify(applicationService).importLicense(TENANT_ID, "{\"payload\":{}}", true, true);
+        }
+
+        @Test
+        void anonymousImportStillBlockedWhenWindowClosed() throws Exception {
+            onPremMvc.perform(multipart(BASE)
+                            .file(envelopeFile("{\"payload\":{}}"))
+                            .param("tenantId", "42")
+                            .param("confirm", "true")) // anonymous, window closed
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code").value("AUTH_INVALID_TOKEN"));
+
+            verify(applicationService, never()).importLicense(
+                    org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyString(),
+                    org.mockito.ArgumentMatchers.anyBoolean(),
+                    org.mockito.ArgumentMatchers.anyBoolean());
         }
     }
 

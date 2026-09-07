@@ -25,6 +25,7 @@ public final class ContractAssembler {
         dto.setSignedAt(domain.getSignedAt());
         dto.setStartedAt(domain.getStartedAt());
         dto.setExpiresAt(domain.getExpiresAt());
+        dto.setIssuedLicenseId(domain.getIssuedLicenseId());
         return dto;
     }
 

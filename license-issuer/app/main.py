@@ -20,7 +20,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from app.config import IssuerConfigError, Settings
-from app.routers import auth, issue, views
+from app.routers import auth, contracts, deploycerts, issue, views
 from app.security import LoginRateLimiter, SessionSigner
 from app.signing import LoadedKey, load_signing_key, self_test
 from app.store import IssuerStore
@@ -67,6 +67,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     prefix = settings.base_path
     app.include_router(auth.router, prefix=prefix)
     app.include_router(issue.router, prefix=prefix)
+    app.include_router(contracts.router, prefix=prefix)
+    app.include_router(deploycerts.router, prefix=prefix)
     app.include_router(views.router, prefix=prefix)
 
     @app.exception_handler(LoginRequired)

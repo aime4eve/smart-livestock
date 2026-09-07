@@ -5639,7 +5639,7 @@ abstract class AppLocalizations {
   /// No description provided for @authModePendingBanner.
   ///
   /// In zh, this message translates to:
-  /// **'系统未激活：请先导入部署授权（.sllicense）。授权登记信息可在登录后于「部署授权」页获取。'**
+  /// **'系统未激活：请先导入部署授权（.sllicense）。尚未开通？点击下方按钮复制登记信息并发给厂商。'**
   String get authModePendingBanner;
 
   /// No description provided for @authModeExpiredBanner.
@@ -9430,6 +9430,84 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'当前订阅状态不支持开通试点授权'**
   String get pilotLicenseStateConflict;
+
+  /// No description provided for @forcedChangeTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'设置您的新密码'**
+  String get forcedChangeTitle;
+
+  /// No description provided for @forcedChangeHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'检测到您仍在使用初始密码。为保障安全，请先设置您自己的新密码，之后才能使用系统其他功能。'**
+  String get forcedChangeHint;
+
+  /// No description provided for @forcedChangeCurrent.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前密码（初始密码）'**
+  String get forcedChangeCurrent;
+
+  /// No description provided for @forcedChangeNew.
+  ///
+  /// In zh, this message translates to:
+  /// **'新密码'**
+  String get forcedChangeNew;
+
+  /// No description provided for @forcedChangeConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认新密码'**
+  String get forcedChangeConfirm;
+
+  /// No description provided for @forcedChangeRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入密码'**
+  String get forcedChangeRequired;
+
+  /// No description provided for @forcedChangeSubmit.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存并继续'**
+  String get forcedChangeSubmit;
+
+  /// No description provided for @forcedChangeSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'密码修改成功，请使用新密码重新登录'**
+  String get forcedChangeSuccess;
+
+  /// No description provided for @forcedChangeMismatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'两次输入的新密码不一致'**
+  String get forcedChangeMismatch;
+
+  /// No description provided for @errorPasswordWeak.
+  ///
+  /// In zh, this message translates to:
+  /// **'新密码至少 10 位，且必须同时包含字母和数字'**
+  String get errorPasswordWeak;
+
+  /// No description provided for @loginCopyEnrollmentInfo.
+  ///
+  /// In zh, this message translates to:
+  /// **'复制登记信息（发给厂商）'**
+  String get loginCopyEnrollmentInfo;
+
+  /// No description provided for @loginEnrollmentCopied.
+  ///
+  /// In zh, this message translates to:
+  /// **'登记信息已复制，请发送给厂商获取授权文件'**
+  String get loginEnrollmentCopied;
+
+  /// No description provided for @loginEnrollmentFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'获取登记信息失败，请稍后重试或联系厂商'**
+  String get loginEnrollmentFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -89,6 +89,29 @@
         </div>
       </div>
     </fieldset>
+    <fieldset style="border:1px solid var(--color-border);border-radius:var(--radius);margin-top:16px;">
+      <legend>部署管理员（NIX-191，首次签发必填 / 续费可留空）</legend>
+      <div class="grid">
+        <div>
+          <label for="adminPhone">管理员手机号（客户首登账号）</label>
+          <input type="text" id="adminPhone" name="adminPhone" inputmode="numeric"
+                 placeholder="首次签发必填；续费留空则沿用现有管理员"
+                 value="{{ form.get('adminPhone', '') }}">
+        </div>
+        <div>
+          <label for="contractId">云端合同 ID（可选，自动回写证书编号）</label>
+          <input type="number" id="contractId" name="contractId" min="1"
+                 value="{{ form.get('contractId', '') }}">
+        </div>
+        <div>
+          <label for="contractNumber">合同编号（离线手工登记可选）</label>
+          <input type="text" id="contractNumber" name="contractNumber"
+                 value="{{ form.get('contractNumber', '') }}">
+        </div>
+      </div>
+      <p class="muted" style="margin-bottom:0;">填写手机号后将生成 14 位一次性初始密码，
+        仅在签发完成页显示一次；客户首次登录会被强制要求修改密码。</p>
+    </fieldset>
     <label for="replacesLicenseId">被替换授权 ID（可选，UUID）</label>
     <input type="text" id="replacesLicenseId" name="replacesLicenseId"
            value="{{ form.get('replacesLicenseId', '') }}">
