@@ -98,21 +98,31 @@ sha256sum -c SHA256SUMS
 
 ## 4. TLS 证书准备
 
-证书不随包携带，安装前放到包内 `release/secrets/certs/`：
+**首选：包内脚本一键生成（560+ 包自带 `release/scripts/gen-tls-cert.sh`）**：
 
 ```bash
 cd release
+# 快速自签（SAN 自动带本机 IP + localhost；浏览器会告警，冒烟可用）
+bash scripts/gen-tls-cert.sh --out secrets/certs
+
+# 本地 CA 模式（内部交付推荐）：创建 CA 并签发；ca.crt 装进浏览器一次即可
+bash scripts/gen-tls-cert.sh --out secrets/certs --create-ca --san IP:<服务器IP>
+
+# 用已有 CA 签发（公司 CA / 正式证书链）
+bash scripts/gen-tls-cert.sh --out secrets/certs --ca-cert ca.crt --ca-key ca.key \
+  --san IP:<服务器IP> --domain <域名>
+```
+
+或手工放置正式证书到包内 `release/secrets/certs/`：
+
+```bash
 mkdir -p secrets/certs
-# 放置正式证书：
 #   secrets/certs/fullchain.pem   （证书链）
 #   secrets/certs/privkey.pem     （私钥）
 chmod 600 secrets/certs/privkey.pem
-
-# 仅冒烟验证可用自签证书（浏览器会告警，正式交付勿用）：
-cd secrets/certs && \
-openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
-  -keyout privkey.pem -out fullchain.pem -subj "/CN=<你的域名或IP>" && cd ../..
 ```
+
+> 不做任何准备也**不会卡安装**：安装器检测到证书缺失时会自动生成一张自签证书（明确提示浏览器将告警），并继续安装；正式交付前替换为上述任一方式生成的证书即可。
 
 要点：
 
