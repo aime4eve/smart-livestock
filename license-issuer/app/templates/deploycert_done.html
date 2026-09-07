@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}部署证书已签发{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>部署证书已签发</h1>
+  <div class="ok-box">下载两个文件，放到客户服务器 release 的 secrets/certs/ 目录
+    （fullchain.pem / privkey.pem），然后 `docker compose restart nginx` 生效。
+    <strong>私钥文件请走与证书分开的渠道交付。</strong></div>
+  <div class="kv">
+    <div class="muted">serial</div><div class="mono">{{ cert.serial }}</div>
+    <div class="muted">SAN</div><div>{{ cert.san }}</div>
+    <div class="muted">有效期</div><div>{{ cert.notBefore }} ~ {{ cert.notAfter }} (UTC)</div>
+    <div class="muted">操作人</div><div>{{ cert.issuedBy }}</div>
+    {% if cert.note %}<div class="muted">备注</div><div>{{ cert.note }}</div>{% endif %}
+  </div>
+  <div class="actions">
+    <a class="btn" href="{{ base }}/deploy-certs/{{ cert.serial }}/download/fullchain">下载 fullchain.pem</a>
+    <a class="btn btn-secondary" href="{{ base }}/deploy-certs/{{ cert.serial }}/download/privkey">下载 privkey.pem</a>
+    <a class="btn btn-secondary" href="{{ base }}/deploy-certs">返回列表</a>
+  </div>
+</div>
+{% endblock %}

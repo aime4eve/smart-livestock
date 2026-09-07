@@ -48,6 +48,18 @@ CREATE TABLE IF NOT EXISTS contracts (
     note            TEXT NOT NULL DEFAULT '',
     created_at      TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS deploy_certs (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    san           TEXT NOT NULL,
+    not_before    TEXT NOT NULL,
+    not_after     TEXT NOT NULL,
+    serial        TEXT NOT NULL,
+    issued_by     TEXT NOT NULL,
+    note          TEXT NOT NULL DEFAULT '',
+    fullchain_pem TEXT NOT NULL,
+    privkey_pem   TEXT NOT NULL,
+    created_at    TEXT NOT NULL
+);
 """
 
 

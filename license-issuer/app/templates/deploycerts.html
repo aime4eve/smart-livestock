@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}部署证书{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>部署 TLS 证书（NIX-191）</h1>
+  <p class="muted">为客户服务器的 nginx 签发 HTTPS 证书。公司 CA 只需创建一次；
+    客户浏览器装一次 ca.crt 后，该 CA 签的所有部署证书都受信任。</p>
+
+  {% if issue_error %}
+  <div class="error-box">{{ issue_error }}</div>
+  {% endif %}
+  {% if createdCa %}
+  <div class="ok-box">公司 CA 已创建。请下载 ca.crt 安装到运营人员浏览器（受信任的根证书颁发机构），并离线备份 secrets/deploy-ca/ 目录。</div>
+  {% endif %}
+
+  {% if not ca_exists %}
+  <h2>第一步：创建公司 CA（一次性）</h2>
+  <form method="post" action="{{ base }}/deploy-certs/ca">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="commonName">CA 名称（可默认）</label>
+    <input type="text" id="commonName" name="commonName" value="Livestock Deployment CA" required>
+    <div class="actions"><button class="btn" type="submit">创建公司 CA</button></div>
+  </form>
+  {% else %}
+  <h2>签发部署证书</h2>
+  <form method="post" action="{{ base }}/deploy-certs/issue">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="sans">SAN（IP / 域名，逗号或空格分隔，必填）</label>
+    <textarea id="sans" name="sans" rows="2" required
+              placeholder="例如：172.17.10.223, 172.17.10.86 或 mq.example.com"></textarea>
+    <label for="days">有效期（天，默认 825）</label>
+    <input type="number" id="days" name="days" min="1" max="8250" value="825">
+    <label for="note">备注（交付给哪个客户等，进入台账）</label>
+    <input type="text" id="note" name="note" value="">
+    <div class="actions"><button class="btn" type="submit">签发部署证书</button></div>
+  </form>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>签发台账（{{ deploy_certs | length }}）</h2>
+  <table>
+    <thead><tr><th>serial</th><th>SAN</th><th>有效期至</th><th>操作人</th><th>签发时间</th><th></th></tr></thead>
+    <tbody>
+      {% for c in deploy_certs %}
+      <tr>
+        <td class="mono">{{ c.serial[:16] }}…</td>
+        <td>{{ c.san }}</td>
+        <td>{{ c.notAfter[:10] }}</td>
+        <td>{{ c.issuedBy }}</td>
+        <td>{{ c.occurredAt }}</td>
+        <td><a class="btn btn-secondary" href="{{ base }}/deploy-certs/{{ c.serial | urlencode }}/done">查看/下载</a></td>
+      </tr>
+      {% endfor %}
+      {% if not deploy_certs %}<tr><td colspan="6" class="muted">暂无签发记录。</td></tr>{% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
