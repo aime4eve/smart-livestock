@@ -1,7 +1,7 @@
 # 发布部署管理员账号设计与引导方案（提案）
 
 > **状态**：设计提案，待评审后按 feature 流程实施（建议工单 NIX-191）。
-> **背景**：86（HOSTED 托管验证）/ 223（ONPREM 离线独立部署）双机部署实战后暴露的账号治理问题。部署操作本身见 `release-deployment-playbook.md`。
+> **背景**：86（HOSTED 托管验证）/ 223（ONPREM 离线独立部署）双机部署实战后暴露的账号治理问题。部署操作本身见 `docs/deployment/release-deployment-playbook.md`。
 
 ## 1. 现状与风险
 

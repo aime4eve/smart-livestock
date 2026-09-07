@@ -233,7 +233,7 @@ curl -ksS "$BASE/api/v1/admin/deployment-license/enrollment"
 4. `/issue/preview` 核对 canonical payload 摘要 → 确认签发；
 5. `/issue/{id}/done` 下载 `{licenseId}.sllicense`。
 
-> issuer 侧初始化/密钥管理与独立部署（compose、合同关联配置）见 `license-issuer/DEPLOY.md` 与 `license-issuer/README.md`（私钥目录 0700/0600；生成新签名密钥用 `license-issuer/scripts/generate-license-key.sh <keyId>`，仅在 issuer 主机/安全操作机运行）。
+> issuer 侧初始化/密钥管理与独立部署（compose、合同关联配置）见 `docs/deployment/license-issuer-deploy.md` 与 `license-issuer/README.md`（私钥目录 0700/0600；生成新签名密钥用 `license-issuer/scripts/generate-license-key.sh <keyId>`，仅在 issuer 主机/安全操作机运行）。
 
 ### 7.3 客户导入授权（免登录 + 管理员诞生）
 
