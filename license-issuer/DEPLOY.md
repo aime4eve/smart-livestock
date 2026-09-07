@@ -40,6 +40,8 @@
      <运维提供的账号>@<签发机内网IP>:/opt/license-issuer/
    # 目标目录约定为 /opt/license-issuer/（含 app/ templates/ docker-compose.yml 三项）
    ```
+
+   > **为什么是 `/opt/license-issuer/`**：`/opt` 是 Linux 标准——"自己手动装的第三方应用"放这里，系统升级不会动它；固定路径让交接文档、备份、升级命令人人一致；也避免台账/私钥落进某个员工的 home 目录（账号删除时被连带清掉）。**路径本身不是硬性要求**（compose 用相对路径，放哪都能跑）——若公司规范用别的目录，保持 `docker-compose.yml`、`app/`、`templates/`、`.env.issuer` 四样同目录，并替换文档中出现的路径即可。
 2. 生成密钥与配置：
 
 ```bash
