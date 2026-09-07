@@ -44,23 +44,47 @@
    > **为什么是 `/opt/license-issuer/`**：`/opt` 是 Linux 标准——"自己手动装的第三方应用"放这里，系统升级不会动它；固定路径让交接文档、备份、升级命令人人一致；也避免台账/私钥落进某个员工的 home 目录（账号删除时被连带清掉）。**路径本身不是硬性要求**（compose 用相对路径，放哪都能跑）——若公司规范用别的目录，保持 `docker-compose.yml`、`app/`、`templates/`、`.env.issuer` 四样同目录，并替换文档中出现的路径即可。
 2. 生成密钥与配置：
 
-```bash
-mkdir -p secrets data && chmod 700 secrets
-cp <私钥备份>/sl-license-2026q3.* secrets/     # 签发私钥（务必离线备份一份）
-python3 -c "import secrets; print(secrets.token_hex(32))"   # → SESSION_SECRET
-cat > .env.issuer <<EOF
-KEYS_DIR=/app/secrets
-ACTIVE_KEY_ID=sl-license-2026q3
-SESSION_SECRET=<上面生成的值>
-ISSUER_ALLOW_EMPTY_USERS=1
-# 合同自动关联（可选；不配则使用离线手工合同台账）
-CLOUD_BASE_URL=https://<云端业务地址>
-CLOUD_TOKEN=<专用机器账号的 accessToken>
-CLOUD_ALLOW_PRIVATE_IP=1     # 云端在内网时必须
-CLOUD_TLS_INSECURE=1         # 云端为 beta 自签/本地 CA 证书时；生产请装 CA 后置 0
-EOF
-chmod 600 .env.issuer
-```
+   **`<私钥备份>` 是什么**：签发工具的 **Ed25519 签名私钥文件**——每张 `.sllicense`
+   证书都是用它签名的，谁持有它谁就能签发合法授权，所以它是整个授权体系里
+   最核心的机密：不进 git 仓库（已 gitignore）、权限 0600、只存在签发机上，
+   另外保留一份离线备份（U 盘/保密存储）。**丢失 = 无法再签发证书（换新钥
+   匙需逐台客户机更新公钥，代价极高）；泄露 = 任何人都能伪造授权。**
+
+   当前这把私钥的实物位置：开发机代码目录 `license-issuer/secrets/sl-license-2026q3.pem`
+   （PKCS#8 PEM，2026-09-03 生成）。**首次部署时就从这里拷贝**。按 a→b→c 顺序执行：
+
+   a. 在**签发机**上创建目录（先建目录，私钥才有地方落）：
+
+   ```bash
+   cd /opt/license-issuer && mkdir -p secrets data && chmod 700 secrets
+   ```
+
+   b. 在**开发机**的仓库根目录执行（私钥从开发机送到签发机，走保密渠道）：
+
+   ```bash
+   scp license-issuer/secrets/sl-license-2026q3.pem \
+       <运维提供的账号>@<签发机内网IP>:/opt/license-issuer/secrets/
+   ```
+
+   c. 在**签发机**上收紧权限并生成配置：
+
+   ```bash
+   cd /opt/license-issuer && chmod 600 secrets/sl-license-2026q3.pem
+
+   python3 -c "import secrets; print(secrets.token_hex(32))"   # → SESSION_SECRET
+   cat > .env.issuer <<EOF
+   KEYS_DIR=/app/secrets
+   ACTIVE_KEY_ID=sl-license-2026q3
+   SESSION_SECRET=<上面生成的值>
+   ISSUER_ALLOW_EMPTY_USERS=1
+   # 合同自动关联（可选；不配则使用离线手工合同台账）
+   CLOUD_BASE_URL=https://<云端业务地址>
+   CLOUD_TOKEN=<专用机器账号的 accessToken>
+   CLOUD_ALLOW_PRIVATE_IP=1     # 云端在内网时必须
+   CLOUD_TLS_INSECURE=1         # 云端为 beta 自签/本地 CA 证书时；生产请装 CA 后置 0
+   EOF
+   chmod 600 .env.issuer
+   ```
 
 3. 首次启动后创建操作员账号（容器内一次性）：
 
