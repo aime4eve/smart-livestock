@@ -14,7 +14,32 @@
 
 ## 部署步骤
 
-1. 代码同步本目录到专用机（`app/ templates/` + 本 compose 文件）。
+1. **同步签发工具代码到专用机。**
+
+   - **"本目录"** 指代码仓库里的 `license-issuer/` 目录（签发工具就住在智慧畜牧仓库的这个子目录里）。
+   - **"代码"** 只有三样，同步它们即可——整个仓库的其他部分（Java 后端、Mobile、docs）都不需要：
+     | 内容 | 是什么 |
+     |------|--------|
+     | `app/` | 签发工具的 Python 源码（FastAPI 后端、签发/验签逻辑、路由） |
+     | `templates/` | 网页模板（登录、新建授权、合同台账、审计等页面） |
+     | `docker-compose.yml` | 部署编排文件（定义容器、内网端口、数据卷） |
+   - **"专用机"** 指我方内网专门跑签发工具的那台服务器（Docker + Compose 已装，仅内网可达）。不与开发机、业务云、客户机器混用。
+   - **绝不随代码同步的东西**：`secrets/`（签发私钥，第 2 步用保密渠道单独放）、`data/`（签发台账，只在专用机上生成）、`.venv/`（依赖由容器内自动安装）。
+
+   同步示例（在开发机上执行；专用机的 IP 与账号向运维申请）：
+
+   ```bash
+   # 在代码仓库根目录执行
+   rsync -av \
+     --exclude 'license-issuer/secrets' \
+     --exclude 'license-issuer/.venv' \
+     --exclude 'license-issuer/data' \
+     license-issuer/app \
+     license-issuer/templates \
+     license-issuer/docker-compose.yml \
+     <运维提供的账号>@<签发机内网IP>:/opt/license-issuer/
+   # 目标目录约定为 /opt/license-issuer/（含 app/ templates/ docker-compose.yml 三项）
+   ```
 2. 生成密钥与配置：
 
 ```bash
