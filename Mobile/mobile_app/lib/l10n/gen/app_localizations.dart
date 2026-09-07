@@ -5639,7 +5639,7 @@ abstract class AppLocalizations {
   /// No description provided for @authModePendingBanner.
   ///
   /// In zh, this message translates to:
-  /// **'系统未激活：请先导入部署授权（.sllicense）。授权登记信息可在登录后于「部署授权」页获取。'**
+  /// **'系统未激活：请先导入部署授权（.sllicense）。尚未开通？点击下方按钮复制登记信息并发给厂商。'**
   String get authModePendingBanner;
 
   /// No description provided for @authModeExpiredBanner.
@@ -9490,6 +9490,24 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'新密码至少 10 位，且必须同时包含字母和数字'**
   String get errorPasswordWeak;
+
+  /// No description provided for @loginCopyEnrollmentInfo.
+  ///
+  /// In zh, this message translates to:
+  /// **'复制登记信息（发给厂商）'**
+  String get loginCopyEnrollmentInfo;
+
+  /// No description provided for @loginEnrollmentCopied.
+  ///
+  /// In zh, this message translates to:
+  /// **'登记信息已复制，请发送给厂商获取授权文件'**
+  String get loginEnrollmentCopied;
+
+  /// No description provided for @loginEnrollmentFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'获取登记信息失败，请稍后重试或联系厂商'**
+  String get loginEnrollmentFailed;
 }
 
 class _AppLocalizationsDelegate

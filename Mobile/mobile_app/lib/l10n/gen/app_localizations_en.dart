@@ -3080,7 +3080,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authModePendingBanner =>
-      'System not activated: import the deployment license (.sllicense) first. Enrollment info is available on the \'Deployment License\' page after sign-in.';
+      'System not activated: import the deployment license (.sllicense) first. First time here? Tap the button below to copy the registration info and send it to the vendor.';
 
   @override
   String get authModeExpiredBanner =>
@@ -5199,4 +5199,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorPasswordWeak =>
       'The new password must be at least 10 characters and contain both letters and digits';
+
+  @override
+  String get loginCopyEnrollmentInfo =>
+      'Copy registration info (send to vendor)';
+
+  @override
+  String get loginEnrollmentCopied =>
+      'Registration info copied — send it to the vendor to obtain the license file';
+
+  @override
+  String get loginEnrollmentFailed =>
+      'Could not fetch the registration info — try again later or contact the vendor';
 }

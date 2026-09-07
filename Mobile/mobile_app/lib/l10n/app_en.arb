@@ -2496,7 +2496,7 @@
   "@authModeOnprem": {},
   "authModeOnpremValidSub": "Offline license active",
   "@authModeOnpremValidSub": {},
-  "authModePendingBanner": "System not activated: import the deployment license (.sllicense) first. Enrollment info is available on the 'Deployment License' page after sign-in.",
+  "authModePendingBanner": "System not activated: import the deployment license (.sllicense) first. First time here? Tap the button below to copy the registration info and send it to the vendor.",
   "@authModePendingBanner": {},
   "authModeExpiredBanner": "License expired: the system is downgraded to the free tier with all data retained. Contact the vendor to issue a renewal license.",
   "@authModeExpiredBanner": {},
@@ -4098,5 +4098,11 @@
   "forcedChangeMismatch": "The two new passwords do not match",
   "@forcedChangeMismatch": {},
   "errorPasswordWeak": "The new password must be at least 10 characters and contain both letters and digits",
-  "@errorPasswordWeak": {}
+  "@errorPasswordWeak": {},
+  "loginCopyEnrollmentInfo": "Copy registration info (send to vendor)",
+  "@loginCopyEnrollmentInfo": {},
+  "loginEnrollmentCopied": "Registration info copied — send it to the vendor to obtain the license file",
+  "@loginEnrollmentCopied": {},
+  "loginEnrollmentFailed": "Could not fetch the registration info — try again later or contact the vendor",
+  "@loginEnrollmentFailed": {}
 }

@@ -2497,7 +2497,7 @@
   "@authModeOnprem": {},
   "authModeOnpremValidSub": "离线授权生效中",
   "@authModeOnpremValidSub": {},
-  "authModePendingBanner": "系统未激活：请先导入部署授权（.sllicense）。授权登记信息可在登录后于「部署授权」页获取。",
+  "authModePendingBanner": "系统未激活：请先导入部署授权（.sllicense）。尚未开通？点击下方按钮复制登记信息并发给厂商。",
   "@authModePendingBanner": {},
   "authModeExpiredBanner": "授权已到期：系统已降级为基础版，数据完整保留。请联系厂商签发续费授权。",
   "@authModeExpiredBanner": {},
@@ -4100,5 +4100,11 @@
   "forcedChangeMismatch": "两次输入的新密码不一致",
   "@forcedChangeMismatch": {},
   "errorPasswordWeak": "新密码至少 10 位，且必须同时包含字母和数字",
-  "@errorPasswordWeak": {}
+  "@errorPasswordWeak": {},
+  "loginCopyEnrollmentInfo": "复制登记信息（发给厂商）",
+  "@loginCopyEnrollmentInfo": {},
+  "loginEnrollmentCopied": "登记信息已复制，请发送给厂商获取授权文件",
+  "@loginEnrollmentCopied": {},
+  "loginEnrollmentFailed": "获取登记信息失败，请稍后重试或联系厂商",
+  "@loginEnrollmentFailed": {}
 }

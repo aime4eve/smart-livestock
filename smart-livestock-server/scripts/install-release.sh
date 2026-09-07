@@ -285,3 +285,20 @@ info "Install complete."
 ok "version : $(value_of RELEASE_VERSION) (images smart-livestock/<svc>:$(value_of RELEASE_VERSION))"
 ok "entry   : https://${HOSTNAME_HINT}:${HTTPS_PORT}/"
 info "Next: run ./scripts/check-release-health.sh for the full health report."
+
+# ── 11. ONPREM: print activation info right on the completion screen ─────────
+# A fresh install has zero accounts, so the deployer cannot log in to read the
+# enrollment — hand them the registration info here and now (NIX-191 方案二).
+if [[ "$LICENSE_MODE" == "ONPREM" ]]; then
+  ENROLL_JSON="$(curl -k -s "https://localhost:${HTTPS_PORT}/api/v1/admin/deployment-license/enrollment" || true)"
+  INSTALL_ID="$(printf '%s' "$ENROLL_JSON" | sed -n 's/.*"installationId":"\([^"]*\)".*/\1/p')"
+  FINGERPRINT="$(printf '%s' "$ENROLL_JSON" | sed -n 's/.*"fingerprintHash":"\([^"]*\)".*/\1/p')"
+  if [[ -n "$INSTALL_ID" && -n "$FINGERPRINT" ]]; then
+    printf '\n%s\n' "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    printf '%s\n' "📋 部署激活：请把下面两行发给厂商，获取授权文件 (.sllicense)"
+    printf '%s\n' "   安装ID: $INSTALL_ID"
+    printf '%s\n' "   指纹:   $FINGERPRINT"
+    printf '%s\n' "（也可随时在系统登录页点击「复制登记信息」重新获取）"
+    printf '%s\n' "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  fi
+fi

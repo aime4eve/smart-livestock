@@ -47,6 +47,22 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('系统未激活'), findsOneWidget);
+    // NIX-191: the zero-account bootstrap needs a one-tap copy of the
+    // enrollment info — no long URL for the deployer to type.
+    expect(find.byKey(const Key('copy-enrollment')), findsOneWidget);
+  });
+
+  testWidgets('ONPREM fresh install (null runtime) shows pending banner and copy button',
+      (tester) async {
+    await tester.pumpWidget(_wrap(const DeploymentInfo(mode: 'ONPREM')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('license-mode-banner-null')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('copy-enrollment')), findsOneWidget);
+    expect(find.textContaining('系统未激活'), findsOneWidget);
   });
 
   testWidgets('ONPREM EXPIRED shows the expired banner', (tester) async {

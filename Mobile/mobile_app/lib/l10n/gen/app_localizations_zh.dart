@@ -3013,7 +3013,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get authModePendingBanner =>
-      '系统未激活：请先导入部署授权（.sllicense）。授权登记信息可在登录后于「部署授权」页获取。';
+      '系统未激活：请先导入部署授权（.sllicense）。尚未开通？点击下方按钮复制登记信息并发给厂商。';
 
   @override
   String get authModeExpiredBanner => '授权已到期：系统已降级为基础版，数据完整保留。请联系厂商签发续费授权。';
@@ -5081,4 +5081,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get errorPasswordWeak => '新密码至少 10 位，且必须同时包含字母和数字';
+
+  @override
+  String get loginCopyEnrollmentInfo => '复制登记信息（发给厂商）';
+
+  @override
+  String get loginEnrollmentCopied => '登记信息已复制，请发送给厂商获取授权文件';
+
+  @override
+  String get loginEnrollmentFailed => '获取登记信息失败，请稍后重试或联系厂商';
 }
