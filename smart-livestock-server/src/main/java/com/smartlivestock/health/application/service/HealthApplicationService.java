@@ -46,7 +46,13 @@ public class HealthApplicationService {
     private final EpidemicAnalysisService epidemicService;
 
     private static final BigDecimal DEFAULT_BASELINE_TEMP = new BigDecimal("38.5");
-    private static final BigDecimal DEFAULT_MOTILITY_BASELINE = new BigDecimal("3.0");
+    /** Matches DigestiveAnalysisService.DEFAULT_BASELINE; the DB column default stays 3.0. */
+    private static final BigDecimal DEFAULT_MOTILITY_BASELINE = new BigDecimal("2.0");
+    /** Physiologically plausible bovine core temperature band; readings outside are
+     *  treated as detached/defective sensor data (e.g. 27°C ambient) and excluded
+     *  from fever assessment so they can neither trigger rules nor mask real ones. */
+    private static final BigDecimal MIN_PLAUSIBLE_TEMP = new BigDecimal("35.0");
+    private static final BigDecimal MAX_PLAUSIBLE_TEMP = new BigDecimal("43.0");
     private static final java.time.ZoneId DISPLAY_ZONE = java.time.ZoneId.of("Asia/Shanghai");
 
     // ── Telemetry Processing (IoT → Health) ────────────────────
@@ -125,6 +131,12 @@ public class HealthApplicationService {
         // } catch (Exception e) {
         //     log.warn("AI anomaly assessment failed for livestock [{}]: {}", livestockId, e.getMessage());
         // }
+    }
+
+    private static boolean isPhysiologicallyPlausible(TemperatureLog log) {
+        if (log == null || log.getTemperature() == null) return false;
+        BigDecimal t = log.getTemperature();
+        return t.compareTo(MIN_PLAUSIBLE_TEMP) >= 0 && t.compareTo(MAX_PLAUSIBLE_TEMP) <= 0;
     }
 
     private String normalizeSource(String source) {
@@ -247,14 +259,20 @@ public class HealthApplicationService {
         MotilityStatus prevMotilityStatus = snapshot.getMotilityStatus();
         Integer prevEstrusScore = snapshot.getEstrusScore();
 
-        // Update temperature status
+        // Update temperature status — implausible readings (detached/defective
+        // capsule, e.g. ambient 27°C) are excluded so they cannot corrupt the
+        // snapshot; raw logs are still kept for sensor diagnostics.
         if ("CAPSULE".equals(telemetryType) && latestTemp != null) {
-            snapshot.setCurrentTemp(latestTemp);
-
             List<TemperatureLog> recentTemps = tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(livestockId, 10);
-            TemperatureLog latestTempLog = recentTemps.isEmpty() ? null : recentTemps.get(0);
-            TempStatus tempStatus = feverService.assessStatus(latestTempLog, recentTemps);
-            snapshot.setTempStatus(tempStatus);
+            List<TemperatureLog> plausibleTemps = recentTemps.stream()
+                    .filter(HealthApplicationService::isPhysiologicallyPlausible)
+                    .toList();
+            TemperatureLog latestPlausible = plausibleTemps.isEmpty() ? null : plausibleTemps.get(0);
+            if (latestPlausible != null) {
+                snapshot.setCurrentTemp(latestPlausible.getTemperature());
+                snapshot.setTempStatus(feverService.assessStatus(latestPlausible, plausibleTemps));
+            }
+            // No plausible reading: keep the existing temp status and value.
         }
 
         // Update motility status

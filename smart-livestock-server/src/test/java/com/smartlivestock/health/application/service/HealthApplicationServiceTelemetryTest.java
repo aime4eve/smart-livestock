@@ -286,6 +286,64 @@ class HealthApplicationServiceTelemetryTest {
         verify(activityLogRepo, never()).save(any());
     }
 
+    @Test
+    void processTelemetry_implausibleTemperature_excludedFromAssessment() {
+        // Detached capsule reads ambient 27°C; a plausible 38.5 exists in the
+        // recent window — assessment must use the plausible one, not the latest raw.
+        HealthSnapshot snapshot = new HealthSnapshot();
+        snapshot.setLivestockId(10L);
+        snapshot.setTempStatus(TempStatus.NORMAL);
+        snapshot.setCurrentTemp(new BigDecimal("38.4"));
+        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(snapshot));
+        when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(10L), anyInt())).thenReturn(List.of());
+
+        TemperatureLog ambient = new TemperatureLog();
+        ambient.setTemperature(new BigDecimal("27.0"));
+        ambient.setBaselineTemp(new BigDecimal("38.5"));
+        ambient.setRecordedAt(Instant.parse("2026-06-04T10:00:00Z"));
+        TemperatureLog plausible = new TemperatureLog();
+        plausible.setTemperature(new BigDecimal("38.5"));
+        plausible.setBaselineTemp(new BigDecimal("38.5"));
+        plausible.setRecordedAt(Instant.parse("2026-06-04T09:55:00Z"));
+        when(tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(10L, 10))
+                .thenReturn(List.of(ambient, plausible));
+
+        service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE,
+                Map.of("temperature", 27.0),
+                Instant.parse("2026-06-04T10:00:00Z"), "THINGSBOARD");
+
+        // currentTemp keeps the plausible reading, not the 27°C ambient one
+        assertEquals(new BigDecimal("38.5"), snapshot.getCurrentTemp());
+        verify(feverService).assessStatus(eq(plausible), argThat(
+                logs -> logs.size() == 1 && logs.get(0) == plausible));
+    }
+
+    @Test
+    void processTelemetry_allTemperaturesImplausible_statusAndValueKept() {
+        HealthSnapshot snapshot = new HealthSnapshot();
+        snapshot.setLivestockId(10L);
+        snapshot.setTempStatus(TempStatus.FEVER);
+        snapshot.setCurrentTemp(new BigDecimal("39.8"));
+        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(snapshot));
+        when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(10L), anyInt())).thenReturn(List.of());
+
+        TemperatureLog ambient = new TemperatureLog();
+        ambient.setTemperature(new BigDecimal("24.9"));
+        ambient.setBaselineTemp(new BigDecimal("38.5"));
+        ambient.setRecordedAt(Instant.parse("2026-06-04T10:00:00Z"));
+        when(tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(10L, 10))
+                .thenReturn(List.of(ambient));
+
+        service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE,
+                Map.of("temperature", 24.9),
+                Instant.parse("2026-06-04T10:00:00Z"), "DATAGEN");
+
+        // No plausible reading: previous FEVER state and value are preserved
+        assertEquals(TempStatus.FEVER, snapshot.getTempStatus());
+        assertEquals(new BigDecimal("39.8"), snapshot.getCurrentTemp());
+        verify(feverService, never()).assessStatus(any(), any());
+    }
+
     private BigDecimal bd(String val) {
         return new BigDecimal(val);
     }
