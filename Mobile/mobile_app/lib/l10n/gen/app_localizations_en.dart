@@ -246,6 +246,21 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get fenceDeleteAlertsPrompt =>
+      'How should this fence\'s alert history be handled?';
+
+  @override
+  String get fenceDeleteKeepAlerts => 'Keep alert records (unlink only)';
+
+  @override
+  String get fenceDeleteWithAlerts => 'Delete along with alert history';
+
+  @override
+  String ranchFenceDeletedWithAlerts(String name, int count) {
+    return 'Deleted fence \"$name\" and $count alerts';
+  }
+
+  @override
   String ranchConfirmDeleteFence(String name) {
     return 'Confirm delete \"$name\"? This cannot be undone.';
   }

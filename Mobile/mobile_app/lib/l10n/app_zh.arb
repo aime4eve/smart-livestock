@@ -163,6 +163,20 @@
   "ranchEditBoundary": "编辑边界",
   "@ranchEditBoundary": {},
   "ranchFenceDeleted": "已删除「{name}」",
+  "fenceDeleteAlertsPrompt": "该围栏的历史告警如何处理？",
+  "fenceDeleteKeepAlerts": "保留告警记录（仅解除关联）",
+  "fenceDeleteWithAlerts": "连同历史告警一起删除",
+  "ranchFenceDeletedWithAlerts": "已删除围栏「{name}」及 {count} 条历史告警",
+  "@ranchFenceDeletedWithAlerts": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "@ranchFenceDeleted": {
     "placeholders": {
       "name": {
