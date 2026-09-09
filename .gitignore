@@ -118,3 +118,9 @@ smart-livestock-server/infrastructure/tileserver/data/*.mbtiles
 # Issued license files never enter git (only test fixtures under test-vectors/)
 license-issuer/*.sllicense
 license-issuer/issued-*
+
+# ============================================
+# Open datasets (large, registered in data/datasets/README.md)
+# ============================================
+data/datasets/*
+!data/datasets/README.md
