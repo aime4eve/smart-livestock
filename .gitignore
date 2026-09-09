@@ -122,5 +122,8 @@ license-issuer/issued-*
 # ============================================
 # Open datasets (large, registered in data/datasets/README.md)
 # ============================================
-data/datasets/*
+data/datasets/**
 !data/datasets/README.md
+# CC BY 4.0 papers accompanying datasets (small, redistributable)
+!data/datasets/*/
+!data/datasets/**/*.pdf
