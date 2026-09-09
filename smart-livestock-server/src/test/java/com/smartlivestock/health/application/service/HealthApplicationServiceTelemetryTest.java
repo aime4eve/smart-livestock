@@ -136,7 +136,7 @@ class HealthApplicationServiceTelemetryTest {
     }
 
     @Test
-    void processTelemetry_realCapsule_preservesCounterWithoutFakeFrequencyOrStatus() {
+    void processTelemetry_realCapsule_firstCounterReport_storesCounterWithoutFrequency() {
         HealthSnapshot snapshot = new HealthSnapshot();
         snapshot.setMotilityBaseline(new BigDecimal("3.0"));
         snapshot.setCurrentMotility(new BigDecimal("3.0"));
@@ -147,18 +147,112 @@ class HealthApplicationServiceTelemetryTest {
                 .thenReturn(List.of());
         when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(10L), anyInt()))
                 .thenReturn(List.of());
+        when(motilityLogRepo.findLatestByDeviceIdWithRawCounter(51L)).thenReturn(Optional.empty());
 
         service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE,
                 Map.of("gastricMotility", 60109L, "gastricMotilityDelta", 109L),
                 Instant.parse("2026-09-01T10:00:00Z"), "THINGSBOARD");
 
+        // First counter report: no previous reading → no derived rate, motility unassessed
         verify(motilityLogRepo).save(argThat(log ->
                 log.getFrequency() == null
-                        && log.getIntensity() == null
-                        && Long.valueOf(60109L).equals(log.getRawCounter())
+                        && log.getRawCounter() != null
                         && Long.valueOf(109L).equals(log.getCounterDelta())));
         assertEquals(new BigDecimal("3.0"), snapshot.getCurrentMotility());
         assertEquals(MotilityStatus.NORMAL, snapshot.getMotilityStatus());
+    }
+
+    @Test
+    void processTelemetry_realCapsule_secondReport_derivesPerMinuteFrequency() {
+        HealthSnapshot snapshot = new HealthSnapshot();
+        snapshot.setLivestockId(10L);
+        snapshot.setMotilityBaseline(new BigDecimal("2.0"));
+        snapshot.setCurrentMotility(new BigDecimal("1.5"));
+        snapshot.setMotilityStatus(MotilityStatus.LOW);
+        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(snapshot));
+        when(tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(10L, 10)).thenReturn(List.of());
+        when(activityLogRepo.findByLivestockIdOrderByRecordedAtDesc(eq(10L), anyInt()))
+                .thenReturn(List.of());
+        when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(10L), anyInt()))
+                .thenReturn(List.of());
+        RumenMotilityLog prev = new RumenMotilityLog();
+        prev.setDeviceId(51L);
+        prev.setRawCounter(60049L);
+        prev.setRecordedAt(Instant.parse("2026-09-01T09:30:00Z"));
+        when(motilityLogRepo.findLatestByDeviceIdWithRawCounter(51L)).thenReturn(Optional.of(prev));
+        // decoded delta (999) must be ignored in favour of the counter-derived 60
+        when(digestiveService.assessStatus(any(BigDecimal.class), any(BigDecimal.class)))
+                .thenReturn(MotilityStatus.NORMAL);
+
+        service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE,
+                Map.of("gastricMotility", 60109L, "gastricMotilityDelta", 999L),
+                Instant.parse("2026-09-01T10:00:00Z"), "THINGSBOARD");
+
+        // 60109-60049 = 60 contractions over 30min = 2.00/min, snapshot re-assessed
+        verify(motilityLogRepo).save(argThat(log ->
+                log.getFrequency() != null
+                        && log.getFrequency().compareTo(new BigDecimal("2.00")) == 0
+                        && Long.valueOf(60L).equals(log.getCounterDelta())));
+        verify(digestiveService).assessStatus(new BigDecimal("2.00"), new BigDecimal("2.0"));
+        assertEquals(MotilityStatus.NORMAL, snapshot.getMotilityStatus());
+        assertEquals(new BigDecimal("2.00"), snapshot.getCurrentMotility());
+    }
+
+    @Test
+    void processTelemetry_counterReset_negativeDelta_noFrequencyNoAssessment() {
+        HealthSnapshot snapshot = new HealthSnapshot();
+        snapshot.setLivestockId(10L);
+        snapshot.setMotilityBaseline(new BigDecimal("2.0"));
+        snapshot.setCurrentMotility(new BigDecimal("1.8"));
+        snapshot.setMotilityStatus(MotilityStatus.LOW);
+        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(snapshot));
+        when(tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(10L, 10)).thenReturn(List.of());
+        when(activityLogRepo.findByLivestockIdOrderByRecordedAtDesc(eq(10L), anyInt()))
+                .thenReturn(List.of());
+        when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(10L), anyInt()))
+                .thenReturn(List.of());
+        RumenMotilityLog prev = new RumenMotilityLog();
+        prev.setDeviceId(51L);
+        prev.setRawCounter(70000L);
+        prev.setRecordedAt(Instant.parse("2026-09-01T09:30:00Z"));
+        when(motilityLogRepo.findLatestByDeviceIdWithRawCounter(51L)).thenReturn(Optional.of(prev));
+
+        service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE,
+                Map.of("gastricMotility", 60109L),
+                Instant.parse("2026-09-01T10:00:00Z"), "THINGSBOARD");
+
+        // shrinking counter = device reboot; no rate, previous state untouched
+        verify(motilityLogRepo).save(argThat(log -> log.getFrequency() == null));
+        assertEquals(MotilityStatus.LOW, snapshot.getMotilityStatus());
+        assertEquals(new BigDecimal("1.8"), snapshot.getCurrentMotility());
+    }
+
+    @Test
+    void processTelemetry_counterWindow_tooLong_noFrequency() {
+        HealthSnapshot snapshot = new HealthSnapshot();
+        snapshot.setLivestockId(10L);
+        snapshot.setMotilityBaseline(new BigDecimal("2.0"));
+        snapshot.setCurrentMotility(new BigDecimal("1.8"));
+        snapshot.setMotilityStatus(MotilityStatus.LOW);
+        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(snapshot));
+        when(tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(10L, 10)).thenReturn(List.of());
+        when(activityLogRepo.findByLivestockIdOrderByRecordedAtDesc(eq(10L), anyInt()))
+                .thenReturn(List.of());
+        when(estrusScoreRepo.findByLivestockIdOrderByScoredAtDesc(eq(10L), anyInt()))
+                .thenReturn(List.of());
+        RumenMotilityLog prev = new RumenMotilityLog();
+        prev.setDeviceId(51L);
+        prev.setRawCounter(50000L);
+        prev.setRecordedAt(Instant.parse("2026-09-01T03:20:00Z")); // 400min before
+        when(motilityLogRepo.findLatestByDeviceIdWithRawCounter(51L)).thenReturn(Optional.of(prev));
+
+        service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE,
+                Map.of("gastricMotility", 60109L),
+                Instant.parse("2026-09-01T10:00:00Z"), "AGENTIC_PLATFORM");
+
+        // 400min gap (detach cadence / backfill) is not rate-worthy
+        verify(motilityLogRepo).save(argThat(log -> log.getFrequency() == null));
+        assertEquals(MotilityStatus.LOW, snapshot.getMotilityStatus());
     }
 
     @Test

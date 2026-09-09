@@ -95,9 +95,19 @@ public class HealthApplicationService {
             Object motilityObj = readings.get("gastricMotility");
             if (motilityObj != null) {
                 if (isCumulativeCounterSource(effectiveSource)) {
-                    ingestMotility(deviceId, livestockId, null, null,
-                            toLong(motilityObj), toLong(readings.get("gastricMotilityDelta")),
-                            recordedAt, effectiveSource);
+                    // Firmware (RBC100) reports the accelerometer chip's cumulative
+                    // step-counter, not a rate. Derive contractions/min against the
+                    // previous counter reading and the measured reporting interval;
+                    // decoded deltas from upstream are kept only as fallback.
+                    long rawCounter = toLong(motilityObj);
+                    Long counterDelta = toLong(readings.get("gastricMotilityDelta"));
+                    RumenMotilityLog prev = motilityLogRepo.findLatestByDeviceIdWithRawCounter(deviceId)
+                            .orElse(null);
+                    Long derivedDelta = deriveCounterDelta(prev, rawCounter, counterDelta);
+                    BigDecimal counterFreq = deriveCounterFrequency(prev, rawCounter, recordedAt);
+                    ingestMotility(deviceId, livestockId, counterFreq, null,
+                            rawCounter, derivedDelta, recordedAt, effectiveSource);
+                    motilityFrequency = counterFreq;
                 } else {
                     motilityFrequency = toBigDecimal(motilityObj)
                             .divide(new BigDecimal("100000"), 2, java.math.RoundingMode.HALF_UP);
@@ -151,6 +161,44 @@ public class HealthApplicationService {
             case "AGENTIC_PLATFORM", "THINGSBOARD", "MANUAL_IMPORT" -> true;
             default -> false;
         };
+    }
+
+    /** Reporting windows outside this band (device detach switches the firmware
+     *  to a 240min cadence; counter resets / backfill gaps) are not rate-worthy. */
+    private static final long MIN_COUNTER_WINDOW_MINUTES = 5;
+    private static final long MAX_COUNTER_WINDOW_MINUTES = 120;
+
+    /**
+     * Counter increment against the previous reading; upstream-decoded delta is
+     * only a fallback for the very first report. A shrinking counter means the
+     * device rebooted (counter reset) — no valid delta.
+     */
+    private Long deriveCounterDelta(RumenMotilityLog prev, long rawCounter, Long decodedDelta) {
+        if (prev != null && prev.getRawCounter() != null) {
+            long derived = rawCounter - prev.getRawCounter();
+            if (derived >= 0) return derived;
+        }
+        return decodedDelta;
+    }
+
+    /**
+     * Contractions per minute from the counter increment over the measured
+     * interval between reports (in-body default cadence is 30min). Returns
+     * null when there is no previous reading or the window is not rate-worthy.
+     */
+    private BigDecimal deriveCounterFrequency(RumenMotilityLog prev, long rawCounter, Instant recordedAt) {
+        if (prev == null || prev.getRecordedAt() == null || prev.getRawCounter() == null) {
+            return null;
+        }
+        long minutes = Duration.between(prev.getRecordedAt(), recordedAt).toMinutes();
+        long delta = rawCounter - prev.getRawCounter();
+        if (minutes < MIN_COUNTER_WINDOW_MINUTES
+                || minutes > MAX_COUNTER_WINDOW_MINUTES
+                || delta < 0) {
+            return null;
+        }
+        return BigDecimal.valueOf(delta)
+                .divide(BigDecimal.valueOf(minutes), 2, java.math.RoundingMode.HALF_UP);
     }
 
     private BigDecimal toBigDecimal(Object value) {

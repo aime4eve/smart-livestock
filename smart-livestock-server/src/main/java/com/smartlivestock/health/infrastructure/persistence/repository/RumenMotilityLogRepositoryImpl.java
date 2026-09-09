@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -32,6 +33,12 @@ public class RumenMotilityLogRepositoryImpl implements RumenMotilityLogRepositor
     public List<RumenMotilityLog> findByDeviceIdAndTimeRange(Long deviceId, Instant from, Instant to) {
         return jpaRepo.findByDeviceIdAndRecordedAtBetweenOrderByRecordedAtAsc(deviceId, from, to)
                 .stream().map(HealthMapper::toDomain).toList();
+    }
+
+    @Override
+    public Optional<RumenMotilityLog> findLatestByDeviceIdWithRawCounter(Long deviceId) {
+        return jpaRepo.findFirstByDeviceIdAndRawCounterIsNotNullOrderByRecordedAtDesc(deviceId)
+                .map(HealthMapper::toDomain);
     }
 
     @Override
