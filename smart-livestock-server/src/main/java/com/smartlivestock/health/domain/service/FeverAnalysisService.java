@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -27,11 +28,14 @@ public class FeverAnalysisService {
     private static final Duration SUSTAINED_DURATION = Duration.ofHours(2);
 
     public TempStatus assessStatus(TemperatureLog latest, List<TemperatureLog> recentLogs) {
-        if (latest == null || latest.getDelta() == null) {
+        if (latest == null) {
             return TempStatus.NORMAL;
         }
 
-        BigDecimal delta = latest.getDelta();
+        BigDecimal delta = effectiveDelta(latest);
+        if (delta == null) {
+            return TempStatus.NORMAL;
+        }
 
         if (delta.compareTo(CRITICAL_DELTA) >= 0 || latest.getTemperature().compareTo(CRITICAL_TEMP) >= 0) {
             return TempStatus.CRITICAL;
@@ -42,11 +46,23 @@ public class FeverAnalysisService {
         }
 
         if (delta.compareTo(FEVER_THRESHOLD) >= 0) {
-            boolean sustained = isSustainedElevation(recentLogs, FEVER_THRESHOLD);
+            boolean sustained = isSustainedElevation(recentLogs, FEVER_THRESHOLD, latest.getRecordedAt());
             return sustained ? TempStatus.FEVER : TempStatus.ELEVATED;
         }
 
         return TempStatus.NORMAL;
+    }
+
+    /**
+     * delta is a DB-generated column (temperature - baseline_temp) that is not
+     * populated on the just-inserted entity within the same persistence context,
+     * so derive it from its definition when missing — otherwise live fever
+     * assessment silently degrades to NORMAL.
+     */
+    private static BigDecimal effectiveDelta(TemperatureLog log) {
+        if (log.getDelta() != null) return log.getDelta();
+        if (log.getTemperature() == null || log.getBaselineTemp() == null) return null;
+        return log.getTemperature().subtract(log.getBaselineTemp());
     }
 
    public String generateConclusion(TempStatus status, BigDecimal delta, Duration duration) {
@@ -58,21 +74,31 @@ public class FeverAnalysisService {
        };
    }
 
-    private boolean isSustainedElevation(List<TemperatureLog> logs, BigDecimal threshold) {
-        if (logs == null || logs.size() < 2) return false;
+    /**
+     * Recent logs arrive newest-first, but the historical implementation walked
+     * them assuming oldest-first and measured against the oldest row, so a ≥2h
+     * sustained elevation could never be detected. Sort explicitly and measure
+     * from the start of the trailing elevated run to the latest reading.
+     */
+    private boolean isSustainedElevation(List<TemperatureLog> logs, BigDecimal threshold, Instant latestTime) {
+        if (logs == null || logs.size() < 2 || latestTime == null) return false;
+
+        List<TemperatureLog> byRecordedAtDesc = logs.stream()
+                .filter(l -> l.getRecordedAt() != null)
+                .sorted(Comparator.comparing(TemperatureLog::getRecordedAt).reversed())
+                .toList();
 
         Instant firstElevated = null;
-        for (int i = logs.size() - 1; i >= 0; i--) {
-            TemperatureLog log = logs.get(i);
-            if (log.getDelta() != null && log.getDelta().compareTo(threshold) >= 0) {
-                if (firstElevated == null) firstElevated = log.getRecordedAt();
+        for (TemperatureLog log : byRecordedAtDesc) {
+            BigDecimal delta = effectiveDelta(log);
+            if (delta != null && delta.compareTo(threshold) >= 0) {
+                firstElevated = log.getRecordedAt();
             } else {
                 break;
             }
         }
 
         if (firstElevated == null) return false;
-        Instant latestTime = logs.get(logs.size() - 1).getRecordedAt();
         return Duration.between(firstElevated, latestTime).compareTo(SUSTAINED_DURATION) >= 0;
     }
 

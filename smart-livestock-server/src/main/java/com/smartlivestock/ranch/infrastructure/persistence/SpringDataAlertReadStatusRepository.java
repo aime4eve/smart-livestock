@@ -23,4 +23,9 @@ public interface SpringDataAlertReadStatusRepository extends JpaRepository<Alert
     @Query(value = "INSERT INTO alert_read_status (alert_id, user_id, read_at) VALUES (:alertId, :userId, NOW()) ON CONFLICT DO NOTHING",
             nativeQuery = true)
     void insertOnConflictDoNothing(@Param("alertId") Long alertId, @Param("userId") Long userId);
+
+    @Modifying
+    @Query("DELETE FROM AlertReadStatusJpaEntity ars WHERE ars.alertId IN "
+            + "(SELECT a.id FROM AlertJpaEntity a WHERE a.fenceId = :fenceId)")
+    int deleteByFenceId(@Param("fenceId") Long fenceId);
 }

@@ -5,7 +5,9 @@ import com.smartlivestock.ranch.application.command.UpdateFenceCommand;
 import com.smartlivestock.ranch.application.dto.FenceDto;
 import com.smartlivestock.ranch.domain.model.Fence;
 import com.smartlivestock.ranch.domain.model.GpsCoordinate;
+import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.domain.repository.FenceRepository;
+import com.smartlivestock.ranch.domain.repository.FenceZoneRepository;
 import com.smartlivestock.ranch.domain.service.BufferPolygonCalculator;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -22,6 +24,8 @@ import java.util.List;
 public class FenceApplicationService {
 
     private final FenceRepository fenceRepository;
+    private final AlertRepository alertRepository;
+    private final FenceZoneRepository fenceZoneRepository;
     private final BufferPolygonCalculator bufferPolygonCalculator;
 
     @Transactional
@@ -90,12 +94,30 @@ public class FenceApplicationService {
         }
     }
 
+    /**
+     * Deletes a fence together with its zones. Alerts referencing the fence
+     * would violate the FK constraint, so the caller decides their fate:
+     * delete them along with the fence, or keep the rows and just detach
+     * them (alerts.fence_id = NULL; rendered text carries the fence name
+     * snapshot, so display is unaffected).
+     *
+     * @return number of alerts removed when {@code deleteAlerts} is true
+     */
     @Transactional
-    public void deleteFence(Long id) {
+    public int deleteFence(Long id, boolean deleteAlerts) {
         if (fenceRepository.findById(id).isEmpty()) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "围栏不存在: " + id);
         }
+        int deletedAlerts = 0;
+        if (deleteAlerts) {
+            alertRepository.deleteReadStatusByFenceId(id);
+            deletedAlerts = alertRepository.deleteByFenceId(id);
+        } else {
+            alertRepository.clearFenceReference(id);
+        }
+        fenceZoneRepository.deleteByFenceId(id);
         fenceRepository.deleteById(id);
+        return deletedAlerts;
     }
 
     /**

@@ -461,12 +461,24 @@ Response 200:
 
 #### DELETE /farms/{farmId}/fences/{fenceId}
 
-删除围栏。权限: owner。
+删除围栏。权限: owner、b2b_admin。
+
+`deleteAlerts` 查询参数（默认 `false`）决定引用该围栏的历史告警（`alerts.fence_id`）的处理方式：
+
+- `false`（默认）：保留告警记录，仅解除与围栏的关联（`fence_id` 置空）；告警文案内含围栏名快照，展示不受影响。
+- `true`：历史告警一并删除。
+
+两种情况都会顺带删除围栏的分区（`fence_zones`）。
 
 ```
+Request: DELETE /farms/1/fences/301?deleteAlerts=true
+
 Response 200:
-{ "code": "OK", "message": "success", "requestId": "req-025" }
+{ "code": "OK", "message": "success", "requestId": "req-025", "data": { "deletedAlerts": 664 } }
 ```
+
+> `data.deletedAlerts` 仅在 `deleteAlerts=true` 时非零；`false` 时恒为 0。
+> 2026-09-09 变更：此前无参数、无引用清理，删除被历史告警引用的围栏会因外键 `alerts_fence_id_fkey` 报 500（NIX-192）。
 
 #### PUT /farms/{farmId}/fences/{fenceId}/force
 

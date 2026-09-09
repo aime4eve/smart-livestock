@@ -9,4 +9,12 @@ public interface FenceZoneRepository {
     FenceZone save(FenceZone fenceZone);
     Optional<FenceZone> findById(Long id);
     List<FenceZone> findByFarmId(Long farmId);
+
+    /**
+     * Deletes all zones belonging to the given fence (zones have no meaning
+     * without their parent fence).
+     *
+     * @return number of zones removed
+     */
+    int deleteByFenceId(Long fenceId);
 }

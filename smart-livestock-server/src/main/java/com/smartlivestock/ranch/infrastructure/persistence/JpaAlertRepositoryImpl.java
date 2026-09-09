@@ -16,6 +16,7 @@ import java.util.Optional;
 public class JpaAlertRepositoryImpl implements AlertRepository {
 
     private final SpringDataAlertRepository springDataRepo;
+    private final SpringDataAlertReadStatusRepository springDataReadStatusRepo;
 
     @Override
     public Alert save(Alert alert) {
@@ -67,5 +68,20 @@ public class JpaAlertRepositoryImpl implements AlertRepository {
         return springDataRepo.findByDeviceIdAndTypeAndStatus(deviceId, type.name(), status.name()).stream()
                 .map(AlertMapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    public int deleteByFenceId(Long fenceId) {
+        return springDataRepo.deleteByFenceId(fenceId);
+    }
+
+    @Override
+    public int deleteReadStatusByFenceId(Long fenceId) {
+        return springDataReadStatusRepo.deleteByFenceId(fenceId);
+    }
+
+    @Override
+    public int clearFenceReference(Long fenceId) {
+        return springDataRepo.clearFenceReference(fenceId);
     }
 }

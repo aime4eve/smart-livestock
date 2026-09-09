@@ -2,6 +2,8 @@ package com.smartlivestock.health.infrastructure.acl;
 
 import com.smartlivestock.health.domain.port.RanchQueryPort;
 import com.smartlivestock.health.domain.port.dto.LivestockInfo;
+import com.smartlivestock.ranch.domain.model.AlertStatus;
+import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.model.Livestock;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
@@ -37,8 +39,14 @@ public class RanchQueryPortImpl implements RanchQueryPort {
     @Override
     public int countActiveAlertsByFarmId(Long farmId) {
         return (int) alertRepository.findByFarmId(farmId).stream()
-                .filter(a -> "ACTIVE".equals(a.getStatus()))
+                .filter(a -> a.getStatus() == AlertStatus.ACTIVE)
                 .count();
+    }
+
+    @Override
+    public boolean hasActiveAlert(Long livestockId, String alertType) {
+        return !alertRepository.findByLivestockIdAndTypeAndStatus(
+                livestockId, AlertType.valueOf(alertType), AlertStatus.ACTIVE).isEmpty();
     }
 
     private LivestockInfo toInfo(Livestock l) {
