@@ -129,14 +129,20 @@ public class FenceController {
         return ResponseEntity.ok(ApiResponse.ok(fence));
     }
 
+    /**
+     * DELETE /fences/{fenceId}?deleteAlerts=true|false (default false).
+     * false keeps alert rows and only detaches them from the fence;
+     * true removes the fence's alert history along with it.
+     */
     @DeleteMapping("/{fenceId}")
     @PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteFence(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> deleteFence(
             @PathVariable Long farmId,
-            @PathVariable Long fenceId) {
+            @PathVariable Long fenceId,
+            @RequestParam(name = "deleteAlerts", defaultValue = "false") boolean deleteAlerts) {
         verifyFarmOwnership(farmId);
-        fenceApplicationService.deleteFence(fenceId);
-        return ResponseEntity.ok(ApiResponse.ok(null));
+        int deletedAlerts = fenceApplicationService.deleteFence(fenceId, deleteAlerts);
+        return ResponseEntity.ok(ApiResponse.ok(Map.of("deletedAlerts", deletedAlerts)));
     }
 
     @SuppressWarnings("unchecked")

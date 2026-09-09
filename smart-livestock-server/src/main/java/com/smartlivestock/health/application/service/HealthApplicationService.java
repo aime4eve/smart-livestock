@@ -38,6 +38,7 @@ public class HealthApplicationService {
     private final RanchCommandPort ranchCommandPort;
     private final HealthSubscriptionPort subscriptionPort;
     private final HealthAnomalyService healthAnomalyService;
+    private final HealthAlertBridgeService healthAlertBridgeService;
 
     private final FeverAnalysisService feverService;
     private final DigestiveAnalysisService digestiveService;
@@ -241,6 +242,11 @@ public class HealthApplicationService {
                 .orElseThrow(() -> new IllegalStateException(
                         "HealthSnapshot not found after ensureSnapshotExists for livestock " + livestockId));
 
+        // Capture pre-assessment rule states so the alert bridge only runs on transitions
+        TempStatus prevTempStatus = snapshot.getTempStatus();
+        MotilityStatus prevMotilityStatus = snapshot.getMotilityStatus();
+        Integer prevEstrusScore = snapshot.getEstrusScore();
+
         // Update temperature status
         if ("CAPSULE".equals(telemetryType) && latestTemp != null) {
             snapshot.setCurrentTemp(latestTemp);
@@ -274,6 +280,12 @@ public class HealthApplicationService {
 
         // Trigger estrus scoring
         triggerEstrusScoring(livestockId, farmId, source);
+
+        // Keep alert tickets consistent with the rule states that drive map markers
+        if (HealthAlertBridgeService.hasStateChanged(snapshot, prevTempStatus,
+                prevMotilityStatus, prevEstrusScore)) {
+            healthAlertBridgeService.syncAlertsWithSnapshot(snapshot, source);
+        }
     }
 
     private void triggerEstrusScoring(Long livestockId, Long farmId, String source) {

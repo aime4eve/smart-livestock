@@ -554,6 +554,30 @@ abstract class AppLocalizations {
   /// **'已删除「{name}」'**
   String ranchFenceDeleted(String name);
 
+  /// No description provided for @fenceDeleteAlertsPrompt.
+  ///
+  /// In zh, this message translates to:
+  /// **'该围栏的历史告警如何处理？'**
+  String get fenceDeleteAlertsPrompt;
+
+  /// No description provided for @fenceDeleteKeepAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'保留告警记录（仅解除关联）'**
+  String get fenceDeleteKeepAlerts;
+
+  /// No description provided for @fenceDeleteWithAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'连同历史告警一起删除'**
+  String get fenceDeleteWithAlerts;
+
+  /// No description provided for @ranchFenceDeletedWithAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'已删除围栏「{name}」及 {count} 条历史告警'**
+  String ranchFenceDeletedWithAlerts(String name, int count);
+
   /// No description provided for @ranchConfirmDeleteFence.
   ///
   /// In zh, this message translates to:

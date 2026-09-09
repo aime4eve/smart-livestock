@@ -1,5 +1,4 @@
 import 'dart:math' show min;
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -21,10 +20,12 @@ import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/fence_edit_session.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_polygon_contains.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/fence_state.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/fence_hit_detection.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_candidate_sheet.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_delete_dialog.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_edit_toolbar.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_mini_title_bar.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_unsaved_dialog.dart';
@@ -51,6 +52,7 @@ class _FencePageState extends ConsumerState<FencePage>
   int _activePointerCount = 0;
   bool _isMultiTouch = false;
   int? _draggingVertexIndex;
+  bool _translatingFence = false;
   Offset? _lastTranslateOffset;
 
   SmartTileProvider? _tileProvider;
@@ -190,6 +192,7 @@ class _FencePageState extends ConsumerState<FencePage>
             Positioned.fill(
               child: Listener(
                 onPointerDown: _onPointerDown,
+                onPointerMove: _onPointerMove,
                 onPointerUp: _onPointerUp,
                 onPointerCancel: _onPointerCancel,
                 child: Stack(
@@ -202,10 +205,11 @@ class _FencePageState extends ConsumerState<FencePage>
                         options: MapOptions(
                           initialCenter: _initialMapCenter,
                           initialZoom: MapConstants.defaultZoom,
+                          // Vertex drags and fence translation must not pan the
+                          // map; every other touch keeps panning available.
                           interactionOptions: InteractionOptions(
-                            flags: isEditing &&
-                                    editSession.tool ==
-                                        FenceEditTool.moveVertex
+                            flags: _draggingVertexIndex != null ||
+                                    _translatingFence
                                 ? InteractiveFlag.all & ~InteractiveFlag.drag
                                 : InteractiveFlag.all,
                           ),
@@ -282,29 +286,6 @@ class _FencePageState extends ConsumerState<FencePage>
                         ],
                       ),
                     ),
-                    if (isEditing &&
-                        !isSaving &&
-                        editSession.tool == FenceEditTool.translate &&
-                        editSession.points.length >= 3)
-                      Positioned.fill(
-                        child: ClipPath(
-                          clipper:
-                              _PolygonClipper(_translateHitPolygon(editSession)),
-                          child: GestureDetector(
-                            key: const Key(
-                                'fence-edit-translate-hit-area'),
-                            behavior: HitTestBehavior.opaque,
-                            onPanStart: _handleTranslatePanStart,
-                            onPanUpdate: _handleTranslatePanUpdate,
-                            onPanEnd: (_) =>
-                                _lastTranslateOffset = null,
-                            onPanCancel: () =>
-                                _lastTranslateOffset = null,
-                            child: const ColoredBox(
-                                color: Colors.transparent),
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -669,13 +650,76 @@ class _FencePageState extends ConsumerState<FencePage>
     _activePointerCount++;
     if (_activePointerCount >= 2) {
       _isMultiTouch = true;
-      if (_draggingVertexIndex != null || _lastTranslateOffset != null) {
+      if (_draggingVertexIndex != null ||
+          _translatingFence ||
+          _lastTranslateOffset != null) {
         setState(() {
           _draggingVertexIndex = null;
+          _translatingFence = false;
           _lastTranslateOffset = null;
         });
       }
+      return;
     }
+    _maybeBeginFenceTranslate(event);
+  }
+
+  /// 平移工具语义：按下点在选中围栏内 → 本次拖动平移围栏（地图拖动临时禁用）；
+  /// 未点中围栏（或非平移工具）→ 不拦截，交给地图平移。
+  void _maybeBeginFenceTranslate(PointerDownEvent event) {
+    final fenceState = ref.read(fenceControllerProvider);
+    final session = fenceState.editSession;
+    if (session == null ||
+        fenceState.editMode == FenceEditMode.saving ||
+        session.tool != FenceEditTool.translate ||
+        session.points.length < 3) {
+      return;
+    }
+    final local = _localFromGlobal(event.position);
+    if (local == null) return;
+    final raw = _latLngFromLocal(local);
+    if (raw == null) return;
+    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
+    final point = shouldTransform ? CoordTransform.gcj02ToWgs84(raw) : raw;
+    if (!fencePolygonContainsLatLng(point, session.points)) return;
+    setState(() {
+      _translatingFence = true;
+      _lastTranslateOffset = local;
+    });
+  }
+
+  void _onPointerMove(PointerMoveEvent event) {
+    if (!_translatingFence || _isMultiTouch || !mounted) return;
+    final local = _localFromGlobal(event.position);
+    if (local == null) return;
+    final previous = _lastTranslateOffset;
+    if (previous == null) {
+      _lastTranslateOffset = local;
+      return;
+    }
+    final prevRaw = _latLngFromLocal(previous);
+    final currRaw = _latLngFromLocal(local);
+    if (prevRaw == null || currRaw == null) {
+      _lastTranslateOffset = local;
+      return;
+    }
+    // 地图屏幕坐标 → GCJ-02（高德降级），转 WGS-84 后算 delta，保证平移量与 WGS-84 存储一致
+    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
+    final previousLatLng = shouldTransform ? CoordTransform.gcj02ToWgs84(prevRaw) : prevRaw;
+    final currentLatLng = shouldTransform ? CoordTransform.gcj02ToWgs84(currRaw) : currRaw;
+    ref.read(fenceControllerProvider.notifier).translateDraft(
+          currentLatLng.latitude - previousLatLng.latitude,
+          currentLatLng.longitude - previousLatLng.longitude,
+        );
+    _lastTranslateOffset = local;
+  }
+
+  Offset? _localFromGlobal(Offset global) {
+    final context = _gestureKey.currentContext;
+    if (context == null) return null;
+    final renderBox = context.findRenderObject();
+    if (renderBox is! RenderBox) return null;
+    return renderBox.globalToLocal(global);
   }
 
   void _onPointerUp(PointerUpEvent event) {
@@ -684,6 +728,14 @@ class _FencePageState extends ConsumerState<FencePage>
       _activePointerCount = 0;
       _isMultiTouch = false;
     }
+    if (_translatingFence && mounted) {
+      setState(() {
+        _translatingFence = false;
+        _lastTranslateOffset = null;
+      });
+    } else {
+      _lastTranslateOffset = null;
+    }
   }
 
   void _onPointerCancel(PointerCancelEvent event) {
@@ -691,6 +743,14 @@ class _FencePageState extends ConsumerState<FencePage>
     if (_activePointerCount <= 0) {
       _activePointerCount = 0;
       _isMultiTouch = false;
+    }
+    if (_translatingFence && mounted) {
+      setState(() {
+        _translatingFence = false;
+        _lastTranslateOffset = null;
+      });
+    } else {
+      _lastTranslateOffset = null;
     }
   }
 
@@ -798,39 +858,6 @@ class _FencePageState extends ConsumerState<FencePage>
     controller.moveDraftVertex(vertexIndex, nextPoint);
   }
 
-  void _handleTranslatePanStart(DragStartDetails details) {
-    if (_isMultiTouch) return;
-    _lastTranslateOffset = details.localPosition;
-  }
-
-  void _handleTranslatePanUpdate(DragUpdateDetails details) {
-    if (_isMultiTouch) {
-      _lastTranslateOffset = null;
-      return;
-    }
-    final previous = _lastTranslateOffset;
-    final current = details.localPosition;
-    if (previous == null) {
-      _lastTranslateOffset = current;
-      return;
-    }
-    final prevRaw = _latLngFromLocal(previous);
-    final currRaw = _latLngFromLocal(current);
-    if (prevRaw == null || currRaw == null) {
-      _lastTranslateOffset = current;
-      return;
-    }
-    // 地图屏幕坐标 → GCJ-02（高德降级），转 WGS-84 后算 delta，保证平移量与 WGS-84 存储一致
-    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
-    final previousLatLng = shouldTransform ? CoordTransform.gcj02ToWgs84(prevRaw) : prevRaw;
-    final currentLatLng = shouldTransform ? CoordTransform.gcj02ToWgs84(currRaw) : currRaw;
-    ref.read(fenceControllerProvider.notifier).translateDraft(
-          currentLatLng.latitude - previousLatLng.latitude,
-          currentLatLng.longitude - previousLatLng.longitude,
-        );
-    _lastTranslateOffset = current;
-  }
-
   LatLng? _latLngFromLocal(Offset localPosition) {
     try {
       final camera = _mapController.camera;
@@ -866,16 +893,6 @@ class _FencePageState extends ConsumerState<FencePage>
       }
     }
     return best;
-  }
-
-  List<Offset> _translateHitPolygon(FenceEditSession editSession) {
-    final offsets = <Offset>[];
-    for (final point in editSession.points) {
-      final offset = _offsetForPoint(point);
-      if (offset == null) return const [];
-      offsets.add(offset);
-    }
-    return offsets;
   }
 
   static LatLng _midPointForEdge(List<LatLng> points, int edgeStartIndex) {
@@ -1056,54 +1073,42 @@ class _FencePageState extends ConsumerState<FencePage>
     }).toList();
   }
 
-  void _showDeleteDialog(
+  Future<void> _showDeleteDialog(
     BuildContext context,
     FenceItem fence,
     FenceController controller,
     dynamic appMode,
-  ) {
+  ) async {
     final l10n = AppLocalizations.of(context)!;
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.commonConfirmDelete),
-        content: Text(l10n.ranchConfirmDeleteFence(fence.name)),
-        actions: [
-          TextButton(
-            key: const Key('fence-delete-cancel'),
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(l10n.commonCancel),
-          ),
-          TextButton(
-            key: const Key('fence-delete-confirm'),
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              try {
-                await ApiClient.instance.farmDelete('/fences/${fence.id}');
-                if (!context.mounted) return;
-                controller.reloadFromRepository();
-                ScaffoldMessenger.of(context)
-                  ..hideCurrentSnackBar()
-                  ..showSnackBar(
-                    SnackBar(
-                        content: Text(l10n.ranchFenceDeleted(fence.name))),
-                  );
-              } catch (e) {
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context)
-                  ..hideCurrentSnackBar()
-                  ..showSnackBar(
-                    SnackBar(
-                        content: Text(l10n.commonDeleteFailed(e.toString()))),
-                  );
-              }
-            },
-            child: Text(l10n.commonDelete,
-                style: const TextStyle(color: AppColors.danger)),
-          ),
-        ],
-      ),
+    final choice = await showFenceDeleteConfirmDialog(
+      context,
+      fenceName: fence.name,
     );
+    if (choice == null || !context.mounted) return;
+    final deleteAlerts = choice == FenceDeleteAlertsChoice.deleteWithAlerts;
+    try {
+      final result = await ApiClient.instance
+          .farmDeleteJson('/fences/${fence.id}?deleteAlerts=$deleteAlerts');
+      if (!context.mounted) return;
+      controller.reloadFromRepository();
+      final deletedAlerts = (result['deletedAlerts'] as num?)?.toInt() ?? 0;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(deleteAlerts && deletedAlerts > 0
+                ? l10n.ranchFenceDeletedWithAlerts(fence.name, deletedAlerts)
+                : l10n.ranchFenceDeleted(fence.name)),
+          ),
+        );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(l10n.commonDeleteFailed(e.toString()))),
+        );
+    }
   }
 }
 
@@ -1150,28 +1155,6 @@ class _EdgeHit {
   const _EdgeHit({required this.edgeStartIndex, required this.distance});
   final int edgeStartIndex;
   final double distance;
-}
-
-class _PolygonClipper extends CustomClipper<ui.Path> {
-  const _PolygonClipper(this.points);
-  final List<Offset> points;
-
-  @override
-  ui.Path getClip(Size size) {
-    final path = ui.Path();
-    if (points.length < 3) return path;
-    path.addPolygon(points, true);
-    return path;
-  }
-
-  @override
-  bool shouldReclip(covariant _PolygonClipper oldClipper) {
-    if (oldClipper.points.length != points.length) return true;
-    for (var i = 0; i < points.length; i++) {
-      if (oldClipper.points[i] != points[i]) return true;
-    }
-    return false;
-  }
 }
 
 class _FenceCard extends StatelessWidget {

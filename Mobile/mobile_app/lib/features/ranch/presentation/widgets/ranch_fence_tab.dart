@@ -6,6 +6,7 @@ import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_delete_dialog.dart';
 import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/ranch_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
@@ -173,31 +174,33 @@ class _RanchFenceTabState extends ConsumerState<RanchFenceTab> {
 
   Future<void> _deleteFence(RanchFenceData fence) async {
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.commonConfirmDelete),
-        content: Text(l10n.alertFenceDeleteConfirm(fence.name)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.commonCancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.alertFenceDeleteBtn,
-                style: const TextStyle(color: AppColors.danger)),
-          ),
-        ],
-      ),
+    final choice = await showFenceDeleteConfirmDialog(
+      context,
+      fenceName: fence.name,
     );
-    if (confirmed == true) {
-      try {
-        await ApiClient.instance.farmDelete('/fences/${fence.id}');
-        if (!mounted) return;
-        widget.onFenceSelected('');
-        ref.read(ranchControllerProvider.notifier).refresh();
-      } catch (_) {}
+    if (choice == null || !mounted) return;
+    final deleteAlerts = choice == FenceDeleteAlertsChoice.deleteWithAlerts;
+    try {
+      final result = await ApiClient.instance
+          .farmDeleteJson('/fences/${fence.id}?deleteAlerts=$deleteAlerts');
+      if (!mounted) return;
+      widget.onFenceSelected('');
+      ref.read(ranchControllerProvider.notifier).refresh();
+      final deletedAlerts = (result['deletedAlerts'] as num?)?.toInt() ?? 0;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          content: Text(deleteAlerts && deletedAlerts > 0
+              ? l10n.ranchFenceDeletedWithAlerts(fence.name, deletedAlerts)
+              : l10n.ranchFenceDeleted(fence.name)),
+        ));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(l10n.commonDeleteFailed(e.toString()))),
+        );
     }
   }
 }

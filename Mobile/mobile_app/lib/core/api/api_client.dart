@@ -104,6 +104,15 @@ class ApiClient {
     return delete('/farms/$id$suffix');
   }
 
+  /// Farm-scoped DELETE that returns the parsed JSON response body
+  /// (e.g. fence deletion returns {deletedAlerts: n}).
+  Future<Map<String, dynamic>> farmDeleteJson(String suffix,
+      {String? farmId}) async {
+    final id = farmId ?? _activeFarmId;
+    if (id == null) throw StateError('No active farm');
+    return deleteJson('/farms/$id$suffix');
+  }
+
   // ── Raw HTTP methods (no retry) ──────────────────────────────────
 
   Future<Map<String, dynamic>> _doGet(String path) async {

@@ -243,6 +243,20 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get fenceDeleteAlertsPrompt => '该围栏的历史告警如何处理？';
+
+  @override
+  String get fenceDeleteKeepAlerts => '保留告警记录（仅解除关联）';
+
+  @override
+  String get fenceDeleteWithAlerts => '连同历史告警一起删除';
+
+  @override
+  String ranchFenceDeletedWithAlerts(String name, int count) {
+    return '已删除围栏「$name」及 $count 条历史告警';
+  }
+
+  @override
   String ranchConfirmDeleteFence(String name) {
     return '确认删除「$name」？删除后无法恢复。';
   }

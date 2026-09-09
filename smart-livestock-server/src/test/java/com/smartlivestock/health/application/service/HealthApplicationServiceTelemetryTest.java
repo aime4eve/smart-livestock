@@ -47,6 +47,7 @@ class HealthApplicationServiceTelemetryTest {
     @Mock private EstrusAnalysisService estrusAnalysisService;
     @Mock private EpidemicAnalysisService epidemicService;
     @Mock private HealthAnomalyService healthAnomalyService;
+    @Mock private HealthAlertBridgeService healthAlertBridgeService;
 
     private HealthApplicationService service;
 
@@ -58,6 +59,7 @@ class HealthApplicationServiceTelemetryTest {
                 ranchQueryPort, ranchCommandPort,
                 subscriptionPort,
                 healthAnomalyService,
+                healthAlertBridgeService,
                feverService, digestiveService, estrusAnalysisService, epidemicService);
 
         // refreshSnapshot calls ensureSnapshotExists then findByLivestockId.
@@ -317,5 +319,45 @@ class HealthApplicationServiceTelemetryTest {
         ArgumentCaptor<TemperatureLog> captor = ArgumentCaptor.forClass(TemperatureLog.class);
         verify(tempLogRepo).save(captor.capture());
         assertEquals("THINGSBOARD", captor.getValue().getSource());
+    }
+
+    @Test
+    void processTelemetry_motilityTransition_invokesAlertBridge() {
+        HealthSnapshot snapshot = new HealthSnapshot();
+        snapshot.setLivestockId(10L);
+        snapshot.setMotilityStatus(MotilityStatus.NORMAL);
+        snapshot.setMotilityBaseline(new BigDecimal("3.00"));
+        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(snapshot));
+        when(tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(10L, 10)).thenReturn(List.of());
+        when(digestiveService.assessStatus(any(BigDecimal.class), any(BigDecimal.class)))
+                .thenReturn(MotilityStatus.ABNORMAL);
+
+        service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE,
+                Map.of("gastricMotility", 120000L),
+                Instant.parse("2026-06-04T10:00:00Z"), "DATAGEN");
+
+        verify(healthAlertBridgeService).syncAlertsWithSnapshot(snapshot, "DATAGEN");
+        assertEquals(MotilityStatus.ABNORMAL, snapshot.getMotilityStatus());
+    }
+
+    @Test
+    void processTelemetry_steadyState_skipsAlertBridge() {
+        HealthSnapshot snapshot = new HealthSnapshot();
+        snapshot.setLivestockId(10L);
+        snapshot.setTempStatus(TempStatus.NORMAL);
+        snapshot.setMotilityStatus(MotilityStatus.NORMAL);
+        snapshot.setMotilityBaseline(new BigDecimal("3.00"));
+        snapshot.setEstrusScore(0);
+        when(snapshotRepo.findByLivestockId(10L)).thenReturn(Optional.of(snapshot));
+        when(tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(10L, 10)).thenReturn(List.of());
+        when(feverService.assessStatus(any(), any())).thenReturn(TempStatus.NORMAL);
+        when(digestiveService.assessStatus(any(BigDecimal.class), any(BigDecimal.class)))
+                .thenReturn(MotilityStatus.NORMAL);
+
+        service.processTelemetry(51L, 10L, 1L, DeviceType.CAPSULE,
+                Map.of("temperature", 38.5, "gastricMotility", 300000L),
+                Instant.parse("2026-06-04T10:00:00Z"), "DATAGEN");
+
+        verify(healthAlertBridgeService, never()).syncAlertsWithSnapshot(any(), any());
     }
 }

@@ -32,4 +32,9 @@ public class JpaFenceZoneRepositoryImpl implements FenceZoneRepository {
                 .map(FenceZoneMapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public int deleteByFenceId(Long fenceId) {
+        return springDataRepo.deleteByFenceId(fenceId);
+    }
 }

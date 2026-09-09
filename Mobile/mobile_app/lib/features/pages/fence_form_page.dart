@@ -584,7 +584,13 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
             : _farmAnchor,
         initialZoom: 15.0,
         interactionOptions: InteractionOptions(
-          flags: _drawMode ? InteractiveFlag.none : InteractiveFlag.all,
+          // Freeze gestures only while a rect/circle drag-draw is in progress
+          // (drag start flips this via setState); otherwise keep the map
+          // pannable/zoomable. Polygon taps are disambiguated from pan by the
+          // pointer-up distance/time thresholds in _handleMapPointerUp.
+          flags: (_drawMode && _type != FenceType.polygon && _dragStart != null)
+              ? InteractiveFlag.none
+              : InteractiveFlag.all,
         ),
       ),
       children: [

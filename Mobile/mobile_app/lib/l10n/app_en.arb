@@ -170,6 +170,23 @@
     }
   },
   "ranchConfirmDeleteFence": "Confirm delete \"{name}\"? This cannot be undone.",
+  "fenceDeleteAlertsPrompt": "How should this fence's alert history be handled?",
+  "@fenceDeleteAlertsPrompt": {},
+  "fenceDeleteKeepAlerts": "Keep alert records (unlink only)",
+  "@fenceDeleteKeepAlerts": {},
+  "fenceDeleteWithAlerts": "Delete along with alert history",
+  "@fenceDeleteWithAlerts": {},
+  "ranchFenceDeletedWithAlerts": "Deleted fence \"{name}\" and {count} alerts",
+  "@ranchFenceDeletedWithAlerts": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "@ranchConfirmDeleteFence": {
     "placeholders": {
       "name": {
