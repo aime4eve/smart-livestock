@@ -4,7 +4,7 @@
 > Status: 已实现并部署 dev/test；project 89 核心验收通过，等待用户集成测试
 > Issue: NIX-180（Parent: NIX-142）  
 > Plan: `docs/superpowers/plans/2026-08-29-tb-device-autoconfig-plan.md`  
-> Prototype: `docs/marketing/2026-08-29-tb-device-autoconfig-wizard.html`
+> Prototype: `docs/prototypes/2026-08-29-tb-device-autoconfig-wizard.html`
 
 ## 1. 背景
 

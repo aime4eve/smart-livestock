@@ -1,6 +1,6 @@
 # Design Tokens (extracted from prototype)
 
-Source: `/Volumes/DEV/00-products-dev/01-solutions/02-smart-livestock/docs/marketing/nix-52-alert-ui-redesign-prototype.html`
+Source: `/Volumes/DEV/00-products-dev/01-solutions/02-smart-livestock/docs/prototypes/nix-52-alert-ui-redesign-prototype.html`
 
 ## CSS Custom Properties (:root)
 

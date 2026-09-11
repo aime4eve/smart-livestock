@@ -44,7 +44,7 @@
 2. 计划 Task 0 说"运行 prototype token 提取脚本"、Task 10.7 说"运行 prototype-to-flutter-fidelity skill 保存对比结果"，但**没有给出脚本路径与参数**。参考 NIX-60 计划（Task 0.1）已固定为：
    ```bash
    python3 ~/.codex/skills/prototype-to-flutter-fidelity/scripts/extract_design_tokens.py \
-     docs/marketing/datagen-console-prototype.html --out docs/design-tokens-datagen.md
+     docs/prototypes/datagen-console-prototype.html --out docs/prototypes/design-tokens-datagen.md
    ```
 3. `compare_screenshots.py` 默认 `--target-width 390`（iPhone 14），而本原型是**桌面管理台布局**（Task 0 已声明 tablet/desktop 对齐）。若不传 `--target-width`，对比会拿 390px 宽度比桌面截图，误报失配。
 

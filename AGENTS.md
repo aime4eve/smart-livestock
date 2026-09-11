@@ -23,7 +23,7 @@
 ## 2. 当前工程基线
 
 - **主线**：`Mobile/mobile_app/` + `smart-livestock-server/`；`PC/` 仅历史归档。
-- **数据文档事实源**：代码、Flyway 迁移、部署验证记录优先于历史 checklist；`docs/features/*` 与 `Mobile/docs/*` 是历史快照。
+- **数据文档事实源**：代码、Flyway 迁移、部署验证记录优先于历史 checklist；`docs/archive/features/*` 与 `Mobile/docs/*` 是历史快照。
 - **时序分区**：`temperature_logs`、`rumen_motility_logs`、`activity_logs`、`device_telemetry_logs`、`anomaly_scores` 由 `PartitionMaintenanceService` 自动维护；不要手工预建分区，除非先说明与该服务的兼容性。
 - **GPS 写入**：`TelemetryIngestionService` 主事务只写 `gps_ingestion_tasks`，由 `GpsIngestionTaskScheduler` 异步写 `gps_logs`；不要在 ingest 事务里重新直写 GPS。
 - **GPS 幂等与清理**：以 `(device_id, recorded_at)` 为幂等键；压测/验证数据必须用明确时间窗和 `MANUAL_IMPORT` source，结束后清理并恢复设备快照。
@@ -55,7 +55,7 @@
   5. **部署 dev**（`./scripts/deploy.sh dev`）
   6. **用户集成测试**
   7. **提交 git + 合并 PR + 关闭工单**
-- 产出物归档：原型 `docs/marketing/`，spec `docs/superpowers/specs/`，plan `docs/superpowers/plans/`
+- 产出物归档：原型 `docs/prototypes/`，spec `docs/superpowers/specs/`，plan `docs/superpowers/plans/`
 - 参考：NIX-52（告警 UI/UX 重设计）是包含视觉保真闭环的范例
 
 ---

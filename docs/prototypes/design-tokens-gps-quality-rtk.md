@@ -1,6 +1,6 @@
 # Design Tokens (extracted from prototype)
 
-Source: `docs/marketing/gps-quality-rtk-truth-points-browse-prototype.html`
+Source: `docs/prototypes/gps-quality-rtk-truth-points-browse-prototype.html`
 
 ## CSS Custom Properties (:root)
 

@@ -8,7 +8,7 @@
 | 前置依赖 | NIX-20 动态检验（路线驱动，已实施）、NIX-21 批量导入重构（已实施） |
 | 设计日期 | 2026-07-22 |
 | 状态 | 待评审 |
-| 原型 | `docs/marketing/nix-22-rtk-trajectory-import-prototype.html`（v2，已确认） |
+| 原型 | `docs/prototypes/nix-22-rtk-trajectory-import-prototype.html`（v2，已确认） |
 
 ---
 
@@ -382,6 +382,6 @@ public class TrajectoryQualityReportDto {
 
 ## 10. 引用
 
-- 原型：`docs/marketing/nix-22-rtk-trajectory-import-prototype.html`（v2，含界面关系总览）
+- 原型：`docs/prototypes/nix-22-rtk-trajectory-import-prototype.html`（v2，含界面关系总览）
 - NIX-20 动态检验：`docs/superpowers/specs/2026-07-16-nix20-gps-dynamic-quality-spec.md`
 - NIX-21 批量导入重构：`docs/superpowers/specs/2026-07-18-nix21-batch-import-and-quality-check-refactor.md`

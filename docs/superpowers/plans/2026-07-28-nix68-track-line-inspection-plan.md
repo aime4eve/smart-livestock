@@ -1,7 +1,7 @@
 # NIX-68 GPS 线路检验（LINE）实施计划
 
 依据：`docs/superpowers/specs/2026-07-28-nix68-track-line-inspection-spec.md`（已评审修订，§1.4 范围声明确认分期）
-原型：`docs/marketing/nix-68-track-line-inspection-prototype.html`（v3，已确认）
+原型：`docs/prototypes/nix-68-track-line-inspection-prototype.html`（v3，已确认）
 完成后归档：本计划复制到 `docs/superpowers/plans/2026-07-28-nix68-track-line-inspection-plan.md`
 
 ## Task 0 — 视觉保真准备

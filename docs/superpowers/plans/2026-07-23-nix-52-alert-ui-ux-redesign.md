@@ -8,7 +8,7 @@
 **Architecture:** 前端纯 Flutter 改动，后端无需改动。复用现有 showTrajectorySheet()、FarmScopedAsyncNotifier、RolePermission。
 
 **Spec:** `docs/superpowers/specs/2026-07-23-nix-52-alert-ui-ux-redesign.md`
-**原型:** `docs/marketing/nix-52-alert-ui-redesign-prototype.html`
+**原型:** `docs/prototypes/nix-52-alert-ui-redesign-prototype.html`
 
 ---
 
@@ -16,7 +16,7 @@
 
 **目标**：提取设计令牌，截取原型基准截图
 
-- [x] 0.1 运行 `extract_design_tokens.py` 提取原型 CSS 令牌到 `docs/design-tokens.md`
+- [x] 0.1 运行 `extract_design_tokens.py` 提取原型 CSS 令牌到 `docs/prototypes/design-tokens.md`
 - [x] 0.2 对照令牌表检查现有 `app_colors.dart` / `app_spacing.dart`，补充缺失值
 - [x] 0.3 用 Playwright 截取原型 9 个屏幕的基准截图，存入 `/private/tmp/nix52-baselines/`
 - [x] 0.4 记录每个基准截图对应的 Flutter Task 编号

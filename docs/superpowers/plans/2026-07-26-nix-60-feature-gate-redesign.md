@@ -7,7 +7,7 @@
 **Architecture:** 前端纯 Flutter 改动，后端无需改动。复用现有 FeatureGateApiRepository / FeatureGateController / HighfiCard。
 
 **Spec:** `docs/superpowers/specs/2026-07-26-nix-60-feature-gate-redesign.md`
-**原型:** `docs/marketing/nix-60-feature-gate-redesign-prototype.html`（方案 B：按 tier 分 Tab）
+**原型:** `docs/prototypes/nix-60-feature-gate-redesign-prototype.html`（方案 B：按 tier 分 Tab）
 
 ---
 
@@ -15,7 +15,7 @@
 
 **目标**：提取设计令牌，截取原型基准截图
 
-- [ ] 0.1 运行 `python3 ~/.codex/skills/prototype-to-flutter-fidelity/scripts/extract_design_tokens.py docs/marketing/nix-60-feature-gate-redesign-prototype.html --out docs/design-tokens-nix60.md`
+- [ ] 0.1 运行 `python3 ~/.codex/skills/prototype-to-flutter-fidelity/scripts/extract_design_tokens.py docs/prototypes/nix-60-feature-gate-redesign-prototype.html --out docs/prototypes/design-tokens-nix60.md`
 - [ ] 0.2 对照令牌表检查现有 `app_colors.dart` / `app_spacing.dart`，确认所有令牌已存在（本页令牌与订阅管理同源，预期无需新增）
 - [ ] 0.3 用 Playwright 截取原型方案 B 的基准截图，存入 `/private/tmp/nix60-baselines/`：
   - `planB-basic.png`（基础版 tab，含 lock 锁定项）

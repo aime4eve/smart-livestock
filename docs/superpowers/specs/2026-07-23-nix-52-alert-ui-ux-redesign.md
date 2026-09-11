@@ -3,7 +3,7 @@
 **Date**: 2026-07-23
 **Status**: Spec 待评审
 **关联工单**: [NIX-52](https://linear.app/nix-agentic/issue/NIX-52)
-**高保真原型**: `docs/marketing/nix-52-alert-ui-redesign-prototype.html`
+**高保真原型**: `docs/prototypes/nix-52-alert-ui-redesign-prototype.html`
 
 ---
 

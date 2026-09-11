@@ -3,7 +3,7 @@
 **Date**: 2026-08-20
 **Status**: 完成
 **Spec**: `docs/superpowers/specs/2026-08-20-gps-quality-rtk-truth-points-browse-design.md`
-**原型**: `docs/marketing/gps-quality-rtk-truth-points-browse-prototype.html`
+**原型**: `docs/prototypes/gps-quality-rtk-truth-points-browse-prototype.html`
 **REQUIRED SKILL**: `/Users/hkt/.codex/skills/prototype-to-flutter-fidelity/SKILL.md`
 
 ---
@@ -22,12 +22,12 @@
 
 ```bash
 python3 /Users/hkt/.codex/skills/prototype-to-flutter-fidelity/scripts/extract_design_tokens.py \
-  docs/marketing/gps-quality-rtk-truth-points-browse-prototype.html \
-  --out docs/design-tokens-gps-quality-rtk.md
+  docs/prototypes/gps-quality-rtk-truth-points-browse-prototype.html \
+  --out docs/prototypes/design-tokens-gps-quality-rtk.md
 ```
 
 - [x] 0.2 对照生成的令牌表与 `AppColors`、`AppSpacing` 复核映射；`row-hover #FBFAF6` 允许作为本面板局部常量，不新增全局主题 token。
-- [x] 0.3 用 Playwright 截取原型 `.rtk-panel` 元素基准，存入 `docs/marketing/gps-quality-rtk-truth-points-browse-prototype/`：
+- [x] 0.3 用 Playwright 截取原型 `.rtk-panel` 元素基准，存入 `docs/prototypes/gps-quality-rtk-truth-points-browse-prototype/`：
   - `desktop-default.png`：1280×800，默认最大位置组。
   - `desktop-all.png`：1280×800，全部位置。
   - `desktop-search.png`：1280×800，搜索 `24号点` 后单行结果。

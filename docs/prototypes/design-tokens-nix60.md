@@ -1,6 +1,6 @@
 # Design Tokens (extracted from prototype)
 
-Source: `docs/marketing/nix-60-feature-gate-redesign-prototype.html`
+Source: `docs/prototypes/nix-60-feature-gate-redesign-prototype.html`
 
 ## CSS Custom Properties (:root)
 

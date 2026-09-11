@@ -4,7 +4,7 @@
 |---|---|
 | 工单 | NIX-20 GPS动态检验工具 |
 | spec | `docs/superpowers/specs/2026-07-17-nix20-session-test-model-redesign.md` |
-| 原型 | `docs/marketing/nix20-session-test-model-prototype.html` |
+| 原型 | `docs/prototypes/nix20-session-test-model-prototype.html` |
 | 计划日期 | 2026-07-17 |
 | 状态 | 待评审 |
 

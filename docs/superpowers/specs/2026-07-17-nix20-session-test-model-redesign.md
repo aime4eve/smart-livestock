@@ -8,7 +8,7 @@
 | 前置依赖 | NIX-20 第一版（已实施，会话+检验压平为一张表） |
 | 设计日期 | 2026-07-17 |
 | 状态 | 待评审 |
-| 原型 | `docs/marketing/nix20-session-test-model-prototype.html` |
+| 原型 | `docs/prototypes/nix20-session-test-model-prototype.html` |
 
 ---
 

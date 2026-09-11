@@ -2,7 +2,7 @@
 
 > 日期：2026-07-20
 > 前置：`2026-07-18-nix21-batch-import-and-quality-check-refactor.md`（NIX-21 主方案，已实施）
-> 高保真：`docs/marketing/nix-21-batch-import-prototype.html`
+> 高保真：`docs/prototypes/nix-21-batch-import-prototype.html`
 > 性质：对照高保真原型逐项核查后的缺口补齐，不涉及数据库 Schema 变更
 
 ## 1. 背景与缺口清单

@@ -8,7 +8,7 @@
 | 前置依赖 | NIX-20 会话-检验模型（已实施，但本次将其废弃） |
 | 设计日期 | 2026-07-18 |
 | 状态 | 待评审 |
-| 原型 | `docs/marketing/nix-21-batch-import-prototype.html` |
+| 原型 | `docs/prototypes/nix-21-batch-import-prototype.html` |
 
 ---
 
@@ -710,8 +710,8 @@ private Long resolveTruthReference(ImportRow row, Long checkTypeId) {
 
 ## 11. 参考
 
-- 原型：`docs/marketing/nix-21-batch-import-prototype.html`
+- 原型：`docs/prototypes/nix-21-batch-import-prototype.html`
 - NIX-20 设计：`docs/superpowers/specs/2026-07-17-nix20-session-test-model-redesign.md`
 - 设备注册：`DeviceApplicationService.java`
 - 现有批量对话框：`batch_create_session_dialog.dart`
-- 会话-检验模型原型：`docs/marketing/nix20-session-test-model-prototype.html`
+- 会话-检验模型原型：`docs/prototypes/nix20-session-test-model-prototype.html`
