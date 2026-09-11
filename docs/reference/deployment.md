@@ -17,6 +17,10 @@
 
 dev stack ↔ blade dev（172.21.2.41），test stack ↔ blade test（172.22.4.17）。地址默认值写在各自 compose 文件的 `AGENTIC_PLATFORM_*` 变量中，密钥在远程 `.env` / `.env.dev` 手动维护。本项目作为 blade 外部调用方走 URL 直连，不注册 Nacos。
 
+## 验证机环境归属与采集对接
+
+**86（HOSTED）= dev 环境载体、223（ONPREM）= test 环境载体**：两台验证机的采集对接复用同环境凭据（事实源：123 远程 `.env.dev` / `.env`）。三条通道端点：TB 遥测 `http://172.22.3.105`、NS 设备预置 `http://172.17.201.15`（均为 application.yml 默认值）、blade 按上表环境对应。当前接入状态与操作/验证步骤见 `docs/deployment/release-deployment-playbook.md` §9（2026-09-12：223 全套已通，86 的 TB+NS 已通、blade dev 因网络策略待开通）。
+
 blade dev/test 是两套独立平台：OAuth2 client（`hkt_openapi`）相同，但服务账号各自独立（dev=`2079382969422938112`，test=`2074385063398711296`）。新建环境需按 `business-platform/hkt-blade-device-docking/README.md` 自助流程创建服务账号。设计文档：`docs/superpowers/specs/2026-07-21-blade-env-mapping-design.md`
 
 ## 一键部署（本地执行）

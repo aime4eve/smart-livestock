@@ -188,6 +188,7 @@ sudo docker compose --env-file .env.release -f docker-compose.release.yml restar
 | 包 verify 在 Ubuntu 目标机报 `compose ports: found outside nginx -> []` | mawk 不支持 awk 区间 `{4,}`，**静默**匹配零行；558 起已修（显式枚举字符类）。更早的包该结果不可信 | lesson #22 |
 | 热修文件后 verify 报 SHA256SUMS 失配 | 完整性校验在正确工作——**修复进 repo 重出包**，不要手改清单 | lesson #22 |
 | 重装预检 FAIL：端口占用 / 证书缺失 / 内存磁盘不足 | 升级语境正常：先 down 旧栈；certs 从旧目录拷；`MIN_MEM_GB`/`MIN_DISK_GB` 覆盖 | 安装器 |
+| 启用 TB 后日志里没有任何 `[TB]` 行 | **正常**：绑定表（`tb_device_bindings`）空时 `poll()` 直接 return，连 `[TB] polling` 都不打；TB 绑定走 NS 设备预置路径创建，blade 同步来的设备走 blade 遥测通道、不建 TB 绑定 | §9.4 |
 | tile-worker 每 POLL_INTERVAL 一条 401、瓦片永不渲染 | worker key ≠ V36 种子值；env 保持种子值，生产按运维指南 §2.4 轮换 | lesson #21 |
 | rsync 源码后 Flyway 报重复迁移版本 | AppleDouble（`._*`）文件被当迁移；rsync 带 `--delete --exclude='._*'` | lesson #20 |
 | 改过的迁移在目标机 checksum mismatch | 逐版本修 `flyway_schema_history` checksum；且必须先过"全新库从零跑通" | lesson #20 |
@@ -210,3 +211,91 @@ sudo docker compose --env-file .env.release -f docker-compose.release.yml restar
 | 全新安装（含镜像 load + health 等待） | 4–6 分钟 |
 | 升级重装（含 down 旧栈） | 5–8 分钟 |
 | check-release-health | ~1 分钟 |
+
+---
+
+## 9. 采集对接（ThingsBoard / NS / blade）
+
+> **环境归属**：86 = dev 环境载体、223 = test 环境载体——采集对接复用对应 dev/test 环境的凭据与端点。凭据事实源是 dev 构建机 `agentic@172.22.1.123` 的 `~/smart-livestock-server/.env.dev`（dev）与 `.env`（test）；**绝不写入发布包、仓库或文档**。2026-09-12 首次接入，操作与验证方法沉淀如下。
+
+### 9.1 三条通道与端点
+
+| 通道 | 作用 | dev（→86） | test（→223） |
+|------|------|-----------|-------------|
+| ThingsBoard（TB） | 瘤胃胶囊遥测直拉（轮询 5 分钟，回看 180 天） | `.env.dev` 的 `SMARTLIVESTOCK_TB_*` | `.env` 的 `SMARTLIVESTOCK_TB_*` |
+| NS | 设备预置数据源（导入/绑定设备时经 `listDevices` 建档建 TB 绑定） | `SMARTLIVESTOCK_NS_*` | 同左 |
+| blade 设备同步 | 设备台账同步 + 遥测通道（5 分钟增量） | blade dev `172.21.2.41:8100/8108`，服务账号 `2079382969422938112` | blade test `172.22.4.17:8100/8108`，服务账号 `2074385063398711296` |
+
+TB / NS 的 BASE_URL 不需要配：application.yml 默认值即 `http://172.22.3.105` / `http://172.17.201.15`。
+
+**网络可达性实测（2026-09-12）**：
+
+| 目标 | 86（172.17.10.x） | 223（172.17.10.x） |
+|------|------|------|
+| TB `172.22.3.105:80` | ✅ | ✅ |
+| NS `172.17.201.15:80` | ✅ | ✅ |
+| blade dev `172.21.2.41:8100/8108` | ❌ 网络策略阻断，**待开通后按 §9.3 补配** | — |
+| blade test `172.22.4.17:8100` | — | ✅ |
+
+### 9.2 双机当前状态
+
+| 机器 | 运行栈 | TB | NS | blade | 数据流 |
+|------|--------|----|----|-------|--------|
+| 86（HOSTED / dev 载体） | `~/smart-livestock-market-beta-560/release` | ✅ 登录 200 | ✅ | ⏳ 待网络开通 | 暂无（无绑定设备时 TB 静默待命） |
+| 223（ONPREM / test 载体） | `~/smart-livestock-market-beta-562/release` | ✅ 登录 200 | ✅ | ✅ 同步中 | blade 首轮 2 设备 2073 条入库，此后 5 分钟增量 |
+
+升级到新版本目录时，`.env.release` 随目录走（§4 步骤 2 会继承），采集配置跟着迁移，无需重配。
+
+### 9.3 给发布机接采集的操作步骤
+
+（1）凭据从 dev 构建机 **ssh 管道直传**目标机（不落中间明文、不进日志；Mac 上执行）：
+
+```bash
+# 86：TB+NS（dev 侧凭据）
+ssh agentic@172.22.1.123 'grep -E "^SMARTLIVESTOCK_(TB|NS)_(USERNAME|PASSWORD)=" ~/smart-livestock-server/.env.dev; \
+  echo SMARTLIVESTOCK_TB_ENABLED=true; echo SMARTLIVESTOCK_NS_ENABLED=true; \
+  echo SMARTLIVESTOCK_TB_LOOKBACK_DAYS=180' \
+| ssh hkt@172.17.10.86 'cat > ~/tb-ns-merge.env && chmod 600 ~/tb-ns-merge.env'
+
+# 223：全套（test 侧凭据，含 AGENTIC_PLATFORM_*）
+ssh agentic@172.22.1.123 'grep -E "^(AGENTIC_PLATFORM|SMARTLIVESTOCK_TB|SMARTLIVESTOCK_NS)" ~/smart-livestock-server/.env' \
+| ssh hkt@172.17.10.223 'cat > ~/test-merge.env && chmod 600 ~/test-merge.env'
+```
+
+（2）目标机上备份 + awk 合并（先替换已有键、再**追加缺失键**——`AGENTIC_PLATFORM_SYNC_ENABLED` 等键不在 `.env.release.example` 预置列表里，漏追加会静默走默认 `false`）：
+
+```bash
+cd ~/smart-livestock-market-beta-<版本>/release
+cp .env.release .env.release.bak-$(date +%Y%m%d)
+awk -v mf="$HOME/<合并文件>" '
+BEGIN { while ((getline line < mf) > 0) {
+    if (line == "" || line !~ /=/) continue
+    i=index(line,"="); k=substr(line,1,i-1); v=substr(line,i+1)
+    if (!(k in kv)) order[++n]=k; kv[k]=v }
+  close(mf) }
+{ i=index($0,"=")
+  if (i>1) { k=substr($0,1,i-1); if (k in kv) { seen[k]=1; print k"="kv[k]; next } }
+  print }
+END { for (j=1;j<=n;j++) if (!(order[j] in seen)) print order[j]"="kv[order[j]] }
+' .env.release > .env.release.new && mv .env.release.new .env.release && rm -f "$HOME/<合并文件>"
+```
+
+回滚：`cp .env.release.bak-<日期> .env.release` 后重新 `up -d`。
+
+（3）重启（只重建 app 容器，数据卷与授权状态不动）：
+
+```bash
+docker compose --env-file .env.release -f docker-compose.release.yml up -d
+```
+
+### 9.4 验证清单
+
+| 项 | 方法 / 判据 |
+|----|------------|
+| TB 凭据 | `source` 进 `.env.release` 的 `SMARTLIVESTOCK_TB_*` 后 `curl -s -o /dev/null -w "%{http_code}" -X POST http://172.22.3.105/api/auth/login` → **200**；只看状态码，不要打印 token |
+| blade 同步 | `docker compose logs app \| grep PlatformSync`：`[PlatformSync] device N ... synced M records (ingested=M)`；无行则查 `AGENTIC_PLATFORM_SYNC_ENABLED` 是否真进了容器 |
+| 遥测入库 | psql：`select source, count(*) from device_telemetry_logs where created_at > now() - interval '2 hours' group by source`（blade 来源 = `AGENTIC_PLATFORM`） |
+| TB 通道 | psql：`select binding_status, count(*) from tb_device_bindings group by binding_status`；**表空 = 静默待命，属正常**（见 §7 踩坑表） |
+| 整机 | `bash scripts/check-release-health.sh` → 26/26 |
+
+> 机制背景：发布 compose 的 app 服务用 `env_file: .env.release` 整体注入，`environment:` 段只钉内部路由——所以在 `.env.release` 加键即可达 Spring 配置；但反过来说，**没写的键不会出现在容器里**，会走 application.yml 默认值（如 `SYNC_ENABLED` 默认 false、`TB_BLADE_EXCLUSION` 默认 false）。

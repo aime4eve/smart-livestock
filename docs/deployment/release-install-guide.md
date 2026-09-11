@@ -159,6 +159,7 @@ chmod 600 .env.release
 
 > 密钥生成：`openssl rand -base64 48`。模板值（`CHANGE_ME_*` / `your-*` / `generate-*` 等）会被安装器识别为「未填写」并拒绝。
 > 内部路由键（`DB_HOST=postgres`、`REDIS_HOST=redis`、`ROCKETMQ_NAME_SERVER=rocketmq-namesrv:9876` 等）保持模板值不动：compose 已显式钉死到服务名，指向外部地址不会生效。
+> TB / NS / blade 三条采集通道的端点、验证机实接状态与操作/验证步骤见 `release-deployment-playbook.md` §9（86=dev 载体、223=test 载体，凭据复用对应环境，不入发布包）。
 
 ### 5.2 SMARTLIVESTOCK_LICENSE_MODE：HOSTED / ONPREM 选择与信任边界
 
