@@ -3,7 +3,7 @@
 > 日期：2026-08-17
 > 状态：已实施并合入 master（`f879ab3c` 主功能，`dddf1499` 清理修复；下方 checkbox 未逐项回填，以迁移/代码/测试/提交为准）
 > spec：`docs/superpowers/specs/2026-08-17-datagen-admin-console-design.md`（已按评审修订并确认）
-> 原型：`docs/marketing/datagen-console-prototype.html`（已确认）
+> 原型：`docs/prototypes/datagen-console-prototype.html`（已确认）
 > REQUIRED SKILL：`/Users/hkt/.codex/skills/prototype-to-flutter-fidelity/SKILL.md`
 > 视觉对比依赖：`Pillow`（`compare_screenshots.py` 需要）；对比命令见 Task 0 / Task 10.7
 
@@ -32,23 +32,23 @@
 ## Task 0 — 视觉保真准备
 
 - [ ] 从已确认原型截取并归档基准图：
-  - `docs/marketing/datagen-console-prototype/status.png`
-  - `docs/marketing/datagen-console-prototype/devices.png`
-  - `docs/marketing/datagen-console-prototype/clear.png`
-  - `docs/marketing/datagen-console-prototype/operations.png`
-  - `docs/marketing/datagen-console-prototype/clear-dialog.png`
-  - `docs/marketing/datagen-console-prototype/narrow.png`
+  - `docs/prototypes/datagen-console-prototype/status.png`
+  - `docs/prototypes/datagen-console-prototype/devices.png`
+  - `docs/prototypes/datagen-console-prototype/clear.png`
+  - `docs/prototypes/datagen-console-prototype/operations.png`
+  - `docs/prototypes/datagen-console-prototype/clear-dialog.png`
+  - `docs/prototypes/datagen-console-prototype/narrow.png`
 - [ ] 运行 prototype token 提取脚本，生成设计令牌核对表：
 
 ```bash
 python3 /Users/hkt/.codex/skills/prototype-to-flutter-fidelity/scripts/extract_design_tokens.py \
-  docs/marketing/datagen-console-prototype.html \
-  --out docs/design-tokens-datagen.md
+  docs/prototypes/datagen-console-prototype.html \
+  --out docs/prototypes/design-tokens-datagen.md
 ```
 
 - [ ] 基准截图统一使用 desktop viewport `1440x1000`（narrow 另用 `390x1000`）。
 - [ ] 为桌面截图创建 custom regions JSON，避免 `compare_screenshots.py` 默认手机分区误导：
-  - `docs/marketing/datagen-console-prototype/regions-console.json`
+  - `docs/prototypes/datagen-console-prototype/regions-console.json`
   - 建议 regions：`topbar 0.00-0.07`、`filters 0.07-0.15`、`tabs 0.15-0.22`、`content 0.22-0.95`
 - [ ] 确认 Pillow 可用：
 
@@ -696,10 +696,10 @@ HOME=/private/tmp FLUTTER_SUPPRESS_ANALYTICS=true flutter analyze
 
 ```bash
 python3 /Users/hkt/.codex/skills/prototype-to-flutter-fidelity/scripts/compare_screenshots.py \
-  docs/marketing/datagen-console-prototype/status.png \
+  docs/prototypes/datagen-console-prototype/status.png \
   build/web-screenshots/status.png \
   --target-width 1440 \
-  --regions docs/marketing/datagen-console-prototype/regions-console.json \
+  --regions docs/prototypes/datagen-console-prototype/regions-console.json \
   --out build/web-screenshots/status-fidelity.txt
 ```
 

@@ -2,7 +2,7 @@
 
 > 日期：2026-07-20
 > Spec：`docs/superpowers/specs/2026-07-20-nix21-gap-closure-spec.md`（已确认）
-> 高保真：`docs/marketing/nix-21-batch-import-prototype.html`
+> 高保真：`docs/prototypes/nix-21-batch-import-prototype.html`
 > 顺序：后端端点 → 后端编译 → 前端仓库层 → 前端各页面 → i18n/分析 → 部署 dev → curl 验证
 
 ## Task 1 — 后端：POST /batch/parse（parse-only 预检）

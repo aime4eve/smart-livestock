@@ -3,7 +3,7 @@
 > 日期：2026-08-18
 > 状态：用户已确认
 > 基线功能：`docs/superpowers/specs/2026-08-17-datagen-admin-console-design.md`
-> 原型：`docs/marketing/datagen-console-prototype.html`
+> 原型：`docs/prototypes/datagen-console-prototype.html`
 
 ## 1. 目标
 

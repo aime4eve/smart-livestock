@@ -3,7 +3,7 @@
 - **日期**: 2026-07-15
 - **工单**: [NIX-15](https://linear.app/nix-agentic/issue/NIX-15)
 - **状态**: 设计阶段
-- **高保真原型**: `docs/marketing/nix-15-gps-quality-prototype.html`
+- **高保真原型**: `docs/prototypes/nix-15-gps-quality-prototype.html`
 
 ---
 

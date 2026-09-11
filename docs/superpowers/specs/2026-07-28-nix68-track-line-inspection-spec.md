@@ -8,7 +8,7 @@
 | 前置依赖 | NIX-20 动态检验、NIX-21 批量导入重构、NIX-22 RTK 轨迹导入动态检验（均已实施） |
 | 设计日期 | 2026-07-28 |
 | 状态 | 待评审 |
-| 原型 | `docs/marketing/nix-68-track-line-inspection-prototype.html`（v3，已确认） |
+| 原型 | `docs/prototypes/nix-68-track-line-inspection-prototype.html`（v3，已确认） |
 
 ---
 
@@ -647,7 +647,7 @@ GET /comparison/line?trackLineId=&deviceCode=
 
 ## 13. 引用
 
-- 原型：`docs/marketing/nix-68-track-line-inspection-prototype.html`（v3，已确认）
+- 原型：`docs/prototypes/nix-68-track-line-inspection-prototype.html`（v3，已确认）
 - 真实样例：仓库根目录 `轨迹检验线路1/2/3.xlsx`（解析统计见 §4.4）
 - NIX-22 轨迹导入：`docs/superpowers/specs/2026-07-22-nix22-rtk-trajectory-import-spec.md`
 - NIX-20 动态检验：`docs/superpowers/specs/2026-07-16-nix20-gps-dynamic-quality-spec.md`

@@ -68,4 +68,4 @@ HOME=/private/tmp FLUTTER_SUPPRESS_ANALYTICS=true flutter test
 | [`docs/api-contracts/api-overview.md`](./docs/api-contracts/api-overview.md) | API 契约入口 |
 | [`Mobile/AGENTS.md`](./Mobile/AGENTS.md) | Flutter 模块、测试与风格 |
 
-`docs/features/*` 与 `Mobile/docs/*` 中的功能清单是历史快照，不作为当前完成状态的事实来源；以代码、Flyway、测试记录和 `docs/reference/*` 为准。
+`docs/archive/features/*` 与 `Mobile/docs/*` 中的功能清单是历史快照，不作为当前完成状态的事实来源；以代码、Flyway、测试记录和 `docs/reference/*` 为准。

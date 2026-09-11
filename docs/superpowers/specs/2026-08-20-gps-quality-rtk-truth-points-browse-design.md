@@ -2,7 +2,7 @@
 
 **Date**: 2026-08-20
 **Status**: 已确认
-**高保真原型**: `docs/marketing/gps-quality-rtk-truth-points-browse-prototype.html`
+**高保真原型**: `docs/prototypes/gps-quality-rtk-truth-points-browse-prototype.html`
 **影响范围**: Flutter 管理端 GPS 质量检查 → 真值参照 → RTK 真值点
 
 ---

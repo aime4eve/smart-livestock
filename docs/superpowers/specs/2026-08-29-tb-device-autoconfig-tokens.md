@@ -1,6 +1,6 @@
 # Design Tokens (extracted from prototype)
 
-Source: `docs/marketing/2026-08-29-tb-device-autoconfig-wizard.html`
+Source: `docs/prototypes/2026-08-29-tb-device-autoconfig-wizard.html`
 
 ## CSS Custom Properties (:root)
 

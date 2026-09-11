@@ -7,7 +7,7 @@
 **Architecture:** 后端 Spring Boot 3.3 / Java 17，前端 Flutter（Riverpod），数据库 PostgreSQL 16。后端按 DDD 四层架构，新增 `GpsQualityBatchImportService` 作为应用服务，`DeviceApplicationService` 新增 `findOrCreateByEui` 方法。
 
 **Spec:** `docs/superpowers/specs/2026-07-18-nix21-batch-import-and-quality-check-refactor.md`
-**Prototype:** `docs/marketing/nix-21-batch-import-prototype.html`
+**Prototype:** `docs/prototypes/nix-21-batch-import-prototype.html`
 **前依赖:** NIX-20 会话-检验模型（已存在，本次将其废弃）
 
 ---

@@ -1,11 +1,11 @@
 # NIX-79 设备遥测文件导入实施计划
 
 > 日期：2026-07-29 · 工单：NIX-79 · spec：`docs/superpowers/specs/2026-07-29-nix79-telemetry-file-import-design.md`（已确认，含 D1-D6）
-> 原型：`docs/marketing/nix-79-telemetry-import-prototype.html`（已确认）
+> 原型：`docs/prototypes/nix-79-telemetry-import-prototype.html`（已确认）
 
 ## Task 0 — 视觉保真准备
 
-- [ ] 原型基准截图归档：用 playwright 对 `#step1/#step2/#step3` 截图，存 `docs/marketing/nix-79-telemetry-import-prototype/`（step1/2/3.png），作为保真验证基准
+- [ ] 原型基准截图归档：用 playwright 对 `#step1/#step2/#step3` 截图，存 `docs/prototypes/nix-79-telemetry-import-prototype/`（step1/2/3.png），作为保真验证基准
 - [ ] 核对 spec §5.5 令牌表与 `Mobile/mobile_app/lib/core/theme/app_colors.dart`、`app_spacing.dart` 一致（已勘察一致，复核即可）
 - [ ] 已知偏差登记：`_IconSidebarItem` 选中色硬编码蓝 `#1565C0`（全侧栏一致，不修）；圆角/阴影无全局 token 按原型值散写
 - 验证：截图文件生成且与原型渲染一致

@@ -127,3 +127,4 @@ data/datasets/**
 # CC BY 4.0 papers accompanying datasets (small, redistributable)
 !data/datasets/*/
 !data/datasets/**/*.pdf
+.claude/

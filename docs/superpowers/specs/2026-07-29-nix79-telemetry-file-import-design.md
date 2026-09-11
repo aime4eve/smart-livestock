@@ -1,7 +1,7 @@
 # NIX-79 设备遥测文件导入设计
 
 > 日期：2026-07-29 · 工单：NIX-79 · 状态：待评审
-> 原型：`docs/marketing/nix-79-telemetry-import-prototype.html`（已确认，令牌随本文锁定）
+> 原型：`docs/prototypes/nix-79-telemetry-import-prototype.html`（已确认，令牌随本文锁定）
 
 ## 1. 背景与目标
 

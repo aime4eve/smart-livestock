@@ -6,7 +6,7 @@
 
 ## Task 0：视觉保真准备
 
-1. 新增 `docs/marketing/2026-08-29-tb-device-autoconfig-wizard.html`，使用现有 App tokens：`--primary #2F6B3B`、`--surface #F8F6F0`、`--surface-alt #FFFFFF`、`--border #D7D2C6`、`--text-primary #263126`、`--text-secondary #617061`、间距 4/8/12/16/24。
+1. 新增 `docs/prototypes/2026-08-29-tb-device-autoconfig-wizard.html`，使用现有 App tokens：`--primary #2F6B3B`、`--surface #F8F6F0`、`--surface-alt #FFFFFF`、`--border #D7D2C6`、`--text-primary #263126`、`--text-secondary #617061`、间距 4/8/12/16/24。
 2. 提取 token 表，截取原型基线；Flutter 实现后按 390px 宽做视觉比对。
 3. 本任务只涉及一个 bottom sheet 向导，不新增页面路由。
 

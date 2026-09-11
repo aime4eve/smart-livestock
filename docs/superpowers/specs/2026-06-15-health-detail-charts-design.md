@@ -10,7 +10,7 @@
 - **后端**：Health API 注入 `SubscriptionQueryService`，按 Tier 的 `dataRetentionDays`（filter gate）截断时序数据深度，按 featureKey（lock gate）决定是否返回高级分析数据。防止越权获取。
 - **前端**：Flutter 详情页读取 `subscriptionControllerProvider` 的 Tier + `FeatureFlags`，决定渲染哪些图表 / 是否套 `LockedOverlay`。
 
-**交互原型**：`docs/mockups/health-detail-charts.html`（可切换 Basic/Standard/Premium/Enterprise 实时预览）
+**交互原型**：`docs/prototypes/health-detail-charts.html`（可切换 Basic/Standard/Premium/Enterprise 实时预览）
 
 ---
 

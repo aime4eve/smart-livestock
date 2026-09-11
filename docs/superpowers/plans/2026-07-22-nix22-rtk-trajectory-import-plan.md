@@ -7,7 +7,7 @@
 **Architecture:** 后端 Spring Boot 3.3 / Java 17（DDD 四层），前端 Flutter（Riverpod），DB PostgreSQL 16 + Flyway。XLSX 解析复用现有 Apache POI；CSV 用手写轻量解析器（不新增依赖）。
 
 **Spec:** `docs/superpowers/specs/2026-07-22-nix22-rtk-trajectory-import-spec.md`（已确认，含 D1-D11 决策）
-**Prototype:** `docs/marketing/nix-22-rtk-trajectory-import-prototype.html`（v2，已确认，变更点 ①~⑥）
+**Prototype:** `docs/prototypes/nix-22-rtk-trajectory-import-prototype.html`（v2，已确认，变更点 ①~⑥）
 **前依赖:** NIX-20（路线动态）、NIX-21（批量导入重构），均已实施
 
 ---

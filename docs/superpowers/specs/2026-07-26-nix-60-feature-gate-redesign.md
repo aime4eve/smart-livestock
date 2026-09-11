@@ -3,7 +3,7 @@
 **Date**: 2026-07-26
 **Status**: Spec 待评审
 **关联工单**: [NIX-60](https://linear.app/nix-agentic/issue/NIX-60)
-**高保真原型**: `docs/marketing/nix-60-feature-gate-redesign-prototype.html`
+**高保真原型**: `docs/prototypes/nix-60-feature-gate-redesign-prototype.html`
 **选定方案**: 方案 B — 按 tier 分 Tab + 功能列表卡片
 
 ---

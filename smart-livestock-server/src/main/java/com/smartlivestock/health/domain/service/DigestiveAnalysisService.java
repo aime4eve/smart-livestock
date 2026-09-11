@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 /**
  * Analyzes rumen motility logs to detect digestive issues.
  * Rules (calibrated against clinical reference 1–3 contractions/min, see
- * docs/calibration/2026-09-10-bolus-activity-threshold-report.md):
+ * docs/research/2026-09-10-bolus-activity-threshold-report.md):
  *   frequency ≥ baseline × 0.7              → NORMAL
  *   baseline × 0.5 ≤ frequency < baseline × 0.7 → LOW
  *   frequency < baseline × 0.5              → ABNORMAL

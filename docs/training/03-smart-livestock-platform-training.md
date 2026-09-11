@@ -395,7 +395,7 @@ Demo 红线：
 - `docs/product/system-architecture.md`
 - `docs/product/customer-journey.md`
 - `docs/reference/project-overview.md`
-- `docs/features/system-feature-list.md`
+- `docs/archive/features/system-feature-list.md`
 - `docs/api-contracts/api-overview.md`
 - `smart-livestock-server/src/main/java/`
 - `Mobile/mobile_app/lib/`

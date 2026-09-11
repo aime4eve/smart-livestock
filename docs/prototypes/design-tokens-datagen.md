@@ -1,6 +1,6 @@
 # Design Tokens (extracted from prototype)
 
-Source: `docs/marketing/datagen-console-prototype.html`
+Source: `docs/prototypes/datagen-console-prototype.html`
 
 ## CSS Custom Properties (:root)
 

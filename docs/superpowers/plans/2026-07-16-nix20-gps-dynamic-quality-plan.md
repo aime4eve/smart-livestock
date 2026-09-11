@@ -4,7 +4,7 @@
 |---|---|
 | 工单 | NIX-20 GPS动态检验工具 |
 | spec | `docs/superpowers/specs/2026-07-16-nix20-gps-dynamic-quality-spec.md` |
-| 原型 | `docs/marketing/nix20-gps-dynamic-quality-prototype.html` |
+| 原型 | `docs/prototypes/nix20-gps-dynamic-quality-prototype.html` |
 | 计划日期 | 2026-07-16 |
 | 状态 | 待评审 |
 

@@ -3,7 +3,7 @@
 - **工单**: [NIX-15](https://linear.app/nix-agentic/issue/NIX-15)
 - **日期**: 2026-07-15
 - **spec**: `docs/superpowers/specs/2026-07-15-gps-quality-check-spec-v2.md`（v2，已确认）
-- **原型**: `docs/marketing/nix-15-gps-quality-prototype.html`（已确认）
+- **原型**: `docs/prototypes/nix-15-gps-quality-prototype.html`（已确认）
 - **评审**: `docs/superpowers/reviews/2026-07-15-gps-quality-check-spec-review.md`（4 阻塞项已在 spec v2 修正，6 建议项纳入本计划）
 
 ---

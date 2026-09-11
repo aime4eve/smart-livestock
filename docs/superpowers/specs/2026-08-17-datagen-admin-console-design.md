@@ -1,7 +1,7 @@
 # 仿真控制管理界面设计
 
 > 日期：2026-08-17 · 状态：已按评审修订，待用户确认
-> 原型：`docs/marketing/datagen-console-prototype.html`
+> 原型：`docs/prototypes/datagen-console-prototype.html`
 > 阶段：feature 流程第 2 步；确认后进入实施计划
 
 ## 1. 背景
