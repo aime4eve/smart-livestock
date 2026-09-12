@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hkt_livestock_agentic/core/l10n/enum_labels.dart';
 import 'package:hkt_livestock_agentic/core/charts/temperature_axis.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/core/models/health_models.dart';
@@ -13,6 +14,7 @@ import 'package:hkt_livestock_agentic/features/subscription/presentation/subscri
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/locked_overlay.dart';
 import 'package:hkt_livestock_agentic/features/ai_anomaly/presentation/widgets/anomaly_score_card.dart';
 import 'package:hkt_livestock_agentic/core/widgets/auto_refresh_listener.dart';
+import 'package:hkt_livestock_agentic/core/widgets/data_freshness_indicator.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class FeverDetailPage extends ConsumerWidget {
@@ -26,11 +28,25 @@ class FeverDetailPage extends ConsumerWidget {
     final subAsync = ref.watch(subscriptionControllerProvider);
     final tier = subAsync.value?.tier ?? SubscriptionTier.basic;
     final hasHealthScore = checkTierAccess(tier, FeatureFlags.healthScore);
+    final refreshedAt = ref.watch(dataRefreshedAtProvider(livestockId));
     return AutoRefreshListener(
-      interval: const Duration(seconds: 120),
-      onTick: () => ref.read(feverDetailControllerProvider(livestockId).notifier).silentRefresh(),
+      interval: const Duration(seconds: 30),
+      onTick: () async {
+        await ref
+            .read(feverDetailControllerProvider(livestockId).notifier)
+            .silentRefresh();
+        ref.read(dataRefreshedAtProvider(livestockId).notifier).mark();
+      },
       child: Scaffold(
-      appBar: AppBar(title: Text(l10n.feverDetailTitle), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: AppBar(
+        title: Text(l10n.feverDetailTitle),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        bottom: DataFreshnessIndicator(
+          refreshedAt: refreshedAt,
+          foregroundColor: Colors.white,
+        ),
+      ),
       body: asyncDetail.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('${l10n.commonLoadFailed}: $e')),
@@ -194,7 +210,7 @@ class FeverDetailPage extends ConsumerWidget {
      const SizedBox(width: 8),
       _statCard(l10n.feverBaselineTemp, '${detail.baselineTemp.toStringAsFixed(1)}°C', AppColors.textSecondary),
      const SizedBox(width: 8),
-      _statCard(l10n.feverStatus, detail.status, detail.status == 'CRITICAL' ? AppColors.danger : AppColors.warning),
+      _statCard(l10n.feverStatus, tempStatusLabel(l10n, detail.status), detail.status == 'CRITICAL' ? AppColors.danger : AppColors.warning),
     ]);
   }
 
@@ -214,7 +230,12 @@ class FeverDetailPage extends ConsumerWidget {
 
     return Card(
       child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(l10n.feverDetailChartTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        Row(children: [
+          Text(l10n.feverDetailChartTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          const Spacer(),
+          Text(l10n.latestDataAt(formatMdhm(readings.last.timestamp)),
+              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+        ]),
         const SizedBox(height: 8),
         SizedBox(height: 180, child: LineChart(LineChartData(
           minY: minTemp,

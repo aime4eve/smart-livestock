@@ -375,9 +375,10 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
 
  String _fmtTime(DateTime dt) {
    String two(int v) => v.toString().padLeft(2, '0');
+   final local = dt.toLocal();
     // Always include date: 月-日 时:分:秒
-    return '${two(dt.month)}-${two(dt.day)} '
-        '${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
+    return '${two(local.month)}-${two(local.day)} '
+        '${two(local.hour)}:${two(local.minute)}:${two(local.second)}';
  }
 
   double _calcArea(List<LatLng> points) {

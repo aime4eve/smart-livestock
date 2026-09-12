@@ -115,6 +115,7 @@ class LivestockApiRepository implements LivestockRepository {
       activityLevel: (m['activityLevel'] ?? '正常').toString(),
       ruminationFreq: (m['ruminationFreq'] ?? '--').toString(),
       lastLocation: '${m['lastLatitude'] ?? '--'}, ${m['lastLongitude'] ?? '--'}',
+      lastPositionAt: DateTime.tryParse(m['lastPositionAt'] as String? ?? ''),
       gender: m['gender'] as String?,
       birthDate: m['birthDate'] != null
           ? DateTime.tryParse(m['birthDate'] as String)

@@ -115,7 +115,6 @@ class _FakeRepository implements DatagenApiRepository {
           ),
         ],
         stats: const DatagenStats(
-          statsTimeZone: 'Asia/Shanghai',
           selectedTotal: 2,
           selectedTrackerCount: 1,
           selectedCapsuleCount: 1,

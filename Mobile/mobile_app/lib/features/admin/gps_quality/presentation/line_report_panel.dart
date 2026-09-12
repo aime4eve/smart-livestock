@@ -8,8 +8,8 @@ import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_qual
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/grade_badge.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/track_line_map.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
-import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 
 /// LINE quality report panel (NIX-68, spec §8.5), shown inline in the right
 /// column of the check list: metric chips + map comparison (green standard
@@ -44,7 +44,7 @@ class LineReportPanel extends ConsumerWidget {
 
   Widget _buildReport(BuildContext context, AppLocalizations l10n,
       WidgetRef ref, LineQualityReport r) {
-    final timeFmt = DateFormat('MM-dd HH:mm');
+    
 
     return Card(
       key: const Key('line-report-panel'),
@@ -67,7 +67,7 @@ class LineReportPanel extends ConsumerWidget {
               GradeBadge(grade: r.grade),
               const Spacer(),
               Text(
-                '${timeFmt.format(r.startedAt)} → ${r.endedAt != null ? timeFmt.format(r.endedAt!) : "..."}',
+                '${formatDashMdhm(r.startedAt)} → ${r.endedAt != null ? formatDashMdhm(r.endedAt!) : "..."}',
                 style: const TextStyle(
                     fontSize: 11, color: AppColors.textSecondary),
               ),
@@ -267,7 +267,7 @@ class LineReportPanel extends ConsumerWidget {
                     cells: [
                       DataCell(Text('${d.sequenceNo}', style: mono)),
                       DataCell(Text(
-                          DateFormat('HH:mm:ss').format(d.recordedAt),
+                          formatHms(d.recordedAt),
                           style: mono)),
                       DataCell(Text(d.lat.toStringAsFixed(5), style: mono)),
                       DataCell(Text(d.lng.toStringAsFixed(5), style: mono)),

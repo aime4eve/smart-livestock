@@ -78,6 +78,14 @@ class LivestockDetailController extends AsyncNotifier<LivestockDetail> {
       () => ref.read(livestockRepositoryProvider).loadDetail(id),
     );
   }
+
+  /// Silent refresh for auto-polling: no loading spinner, keeps data on error.
+  Future<void> silentRefresh() async {
+    final next = await AsyncValue.guard(
+      () => ref.read(livestockRepositoryProvider).loadDetail(id),
+    );
+    if (next.hasValue) state = next;
+  }
 }
 
 final livestockDetailControllerProvider = AsyncNotifierProvider.family<

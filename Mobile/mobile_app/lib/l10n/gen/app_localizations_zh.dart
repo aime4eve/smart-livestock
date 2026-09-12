@@ -615,6 +615,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get livestockHealthData => '健康数据';
 
   @override
+  String dataUpdatedAt(String time) {
+    return '数据更新于 $time';
+  }
+
+  @override
+  String latestDataAt(String time) {
+    return '最新数据 $time';
+  }
+
+  @override
   String get livestockLocation => '位置信息';
 
   @override
@@ -2427,6 +2437,39 @@ class AppLocalizationsZh extends AppLocalizations {
   String get livestockActivity => '活动量';
 
   @override
+  String get activityStatusNormal => '正常';
+
+  @override
+  String get activityStatusElevated => '偏高';
+
+  @override
+  String get activityStatusLow => '偏低';
+
+  @override
+  String get activityStatusAbnormal => '异常';
+
+  @override
+  String get tempStatusNormal => '正常';
+
+  @override
+  String get tempStatusElevated => '偏高';
+
+  @override
+  String get tempStatusFever => '发热';
+
+  @override
+  String get tempStatusCritical => '危重';
+
+  @override
+  String get motilityStatusNormal => '正常';
+
+  @override
+  String get motilityStatusLow => '偏低';
+
+  @override
+  String get motilityStatusAbnormal => '异常';
+
+  @override
   String get livestockRumination => '反刍频率';
 
   @override
@@ -3234,6 +3277,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpsQualityEditRetry => '编辑重试';
+
+  @override
+  String get gpsQualityEuiHint => '如：ABC123456789';
 
   @override
   String get gpsQualityBatchRegister => '批量注册';

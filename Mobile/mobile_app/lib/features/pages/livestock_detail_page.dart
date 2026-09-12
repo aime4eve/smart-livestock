@@ -7,6 +7,8 @@ import 'package:hkt_livestock_agentic/core/charts/health_line_touch.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/widgets/auto_refresh_listener.dart';
+import 'package:hkt_livestock_agentic/core/widgets/data_freshness_indicator.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
@@ -33,9 +35,38 @@ class LivestockDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(livestockDetailControllerProvider(livestockId));
-    return Scaffold(
+    final refreshedAt = ref.watch(dataRefreshedAtProvider(livestockId));
+    return AutoRefreshListener(
+      interval: const Duration(seconds: 30),
+      onTick: () async {
+        // Page aggregates main detail + fever + digestive + estrus trends;
+        // silent refresh keeps the UI stable while new telemetry arrives.
+        final futures = <Future<void>>[
+          ref
+              .read(livestockDetailControllerProvider(livestockId).notifier)
+              .silentRefresh(),
+          ref
+              .read(feverDetailControllerProvider(livestockId).notifier)
+              .silentRefresh(),
+          ref
+              .read(digestiveDetailControllerProvider(livestockId).notifier)
+              .silentRefresh(),
+        ];
+        // Estrus chart is premium-gated; only poll when its provider is active.
+        if (ref.exists(estrusDetailControllerProvider(livestockId))) {
+          futures.add(
+            ref
+                .read(estrusDetailControllerProvider(livestockId).notifier)
+                .silentRefresh(),
+          );
+        }
+        await Future.wait(futures);
+        ref.read(dataRefreshedAtProvider(livestockId).notifier).mark();
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: Text(l10n.livestockDetailTitle),
+        bottom: DataFreshnessIndicator(refreshedAt: refreshedAt),
         leading: IconButton(
           key: const Key('livestock-back'),
           onPressed: () {
@@ -112,6 +143,7 @@ class LivestockDetailPage extends ConsumerWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -611,7 +643,7 @@ class _HealthDataCard extends ConsumerWidget {
               ),
               _InfoItem(
                 label: l10n.livestockActivity,
-                value: detail.activityLevel,
+                value: activityStatusLabel(l10n, detail.activityLevel),
               ),
               _InfoItem(
                 label: l10n.livestockRumination,
@@ -682,12 +714,26 @@ class _FeverTrendSection extends ConsumerWidget {
             readings.map((r) => r.temperature).reduce((a, b) => a > b ? a : b) +
             0.3;
 
+        final latestPoint = readings.last.timestamp;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.feverDetailChartTitle,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                Text(
+                  l10n.feverDetailChartTitle,
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                Text(
+                  l10n.latestDataAt(formatMdhm(latestPoint)),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                      ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Container(
@@ -833,12 +879,26 @@ class _DigestiveTrendSection extends ConsumerWidget {
             0.5;
         final baseline = digestive.motilityBaseline;
 
+        final latestPoint = readings.last.timestamp;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.digestiveDetailChartTitle,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                Text(
+                  l10n.digestiveDetailChartTitle,
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                Text(
+                  l10n.latestDataAt(formatMdhm(latestPoint)),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                      ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Container(
@@ -1007,12 +1067,26 @@ class _EstrusTrendSection extends ConsumerWidget {
             .toList();
         final timestamps = trend.map((point) => point.timestamp).toList();
 
+        final latestPoint = trend.last.timestamp;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.estrusDetailChartTitle,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                Text(
+                  l10n.estrusDetailChartTitle,
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                Text(
+                  l10n.latestDataAt(formatMdhm(latestPoint)),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                      ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Container(
@@ -1116,6 +1190,15 @@ class _LocationCard extends StatelessWidget {
             l10n.livestockLastLocation(detail.lastLocation),
             style: Theme.of(context).textTheme.bodyMedium,
           ),
+          if (detail.lastPositionAt != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              l10n.dataUpdatedAt(formatMdhm(detail.lastPositionAt!)),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+            ),
+          ],
           const SizedBox(height: AppSpacing.md),
           OutlinedButton.icon(
             key: const Key('livestock-view-track'),

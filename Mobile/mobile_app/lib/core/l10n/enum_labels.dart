@@ -51,6 +51,40 @@ extension LivestockHealthL10n on LivestockHealth {
   }
 }
 
+// ── Health status passthrough strings (backend enum .name()) ──
+//
+// These arrive from the API as plain strings (ActivityStatus / TempStatus /
+// MotilityStatus `.name()`), so they can't be typed extensions like above.
+// Unknown values fall back to the raw string instead of lying about them.
+
+/// ActivityStatus: NORMAL / ELEVATED / LOW / ABNORMAL.
+String activityStatusLabel(AppLocalizations l10n, String? value) =>
+    switch (value) {
+      'NORMAL' => l10n.activityStatusNormal,
+      'ELEVATED' => l10n.activityStatusElevated,
+      'LOW' => l10n.activityStatusLow,
+      'ABNORMAL' => l10n.activityStatusAbnormal,
+      _ => value ?? '--',
+    };
+
+/// TempStatus: NORMAL / ELEVATED / FEVER / CRITICAL.
+String tempStatusLabel(AppLocalizations l10n, String? value) => switch (value) {
+      'NORMAL' => l10n.tempStatusNormal,
+      'ELEVATED' => l10n.tempStatusElevated,
+      'FEVER' => l10n.tempStatusFever,
+      'CRITICAL' => l10n.tempStatusCritical,
+      _ => value ?? '--',
+    };
+
+/// MotilityStatus: NORMAL / LOW / ABNORMAL.
+String motilityStatusLabel(AppLocalizations l10n, String? value) =>
+    switch (value) {
+      'NORMAL' => l10n.motilityStatusNormal,
+      'LOW' => l10n.motilityStatusLow,
+      'ABNORMAL' => l10n.motilityStatusAbnormal,
+      _ => value ?? '--',
+    };
+
 // ── Breed ───────────────────────────────────────────────────
 
 extension BreedL10n on Breed {

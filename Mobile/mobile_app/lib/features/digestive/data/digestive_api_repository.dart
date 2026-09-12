@@ -1,6 +1,7 @@
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/models/health_models.dart';
 import 'package:hkt_livestock_agentic/features/digestive/domain/digestive_repository.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 
 class DigestiveApiRepository implements DigestiveRepository {
   const DigestiveApiRepository();
@@ -23,7 +24,8 @@ class DigestiveApiRepository implements DigestiveRepository {
 
   @override
  Future<List<IntensityCell>> fetchIntensityHeatmap(String livestockId) async {
-   final data = await ApiClient.instance.farmGet('/health/digestive/$livestockId/heatmap');
+   final data = await ApiClient.instance
+       .farmGet('/health/digestive/$livestockId/heatmap?tzOffsetMinutes=${localTzOffsetMinutes()}');
     final items = (data['value'] ?? data['items']) as List? ?? [];
    return items
        .whereType<Map<String, dynamic>>()

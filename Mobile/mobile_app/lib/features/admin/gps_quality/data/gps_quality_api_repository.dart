@@ -284,8 +284,8 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
     final data = await ApiClient.instance.post('$_base/batch/retry-row', body: {
       'eui': eui,
       'testType': checkType,
-      'startedAt': startedAt.toIso8601String(),
-      if (endedAt != null) 'endedAt': endedAt.toIso8601String(),
+      'startedAt': startedAt.toUtc().toIso8601String(),
+      if (endedAt != null) 'endedAt': endedAt.toUtc().toIso8601String(),
     });
     return RowResult.fromJson(data);
   }
@@ -313,8 +313,8 @@ Future<List<DynamicRoute>> fetchDynamicRoutes() async {
       'testType': checkType,
       if (rtkPointId != null) 'rtkPointId': rtkPointId,
       if (routeId != null) 'routeId': routeId,
-      'startedAt': startedAt.toIso8601String(),
-      if (endedAt != null) 'endedAt': endedAt.toIso8601String(),
+      'startedAt': startedAt.toUtc().toIso8601String(),
+      if (endedAt != null) 'endedAt': endedAt.toUtc().toIso8601String(),
     });
     return QualityCheck.fromJson(data);
   }

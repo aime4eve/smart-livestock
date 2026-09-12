@@ -242,7 +242,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String ranchFenceDeleted(String name) {
-    return '已删除「$name」';
+    return 'Deleted fence \"$name\"';
   }
 
   @override
@@ -626,6 +626,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get livestockHealthData => 'Health Data';
+
+  @override
+  String dataUpdatedAt(String time) {
+    return 'Updated at $time';
+  }
+
+  @override
+  String latestDataAt(String time) {
+    return 'Latest data $time';
+  }
 
   @override
   String get livestockLocation => 'Location';
@@ -2480,6 +2490,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get livestockActivity => 'Activity';
 
   @override
+  String get activityStatusNormal => 'Normal';
+
+  @override
+  String get activityStatusElevated => 'Elevated';
+
+  @override
+  String get activityStatusLow => 'Low';
+
+  @override
+  String get activityStatusAbnormal => 'Abnormal';
+
+  @override
+  String get tempStatusNormal => 'Normal';
+
+  @override
+  String get tempStatusElevated => 'Elevated';
+
+  @override
+  String get tempStatusFever => 'Fever';
+
+  @override
+  String get tempStatusCritical => 'Critical';
+
+  @override
+  String get motilityStatusNormal => 'Normal';
+
+  @override
+  String get motilityStatusLow => 'Low';
+
+  @override
+  String get motilityStatusAbnormal => 'Abnormal';
+
+  @override
   String get livestockRumination => 'Rumination';
 
   @override
@@ -3308,6 +3351,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpsQualityEditRetry => 'Edit & Retry';
 
   @override
+  String get gpsQualityEuiHint => 'e.g. ABC123456789';
+
+  @override
   String get gpsQualityBatchRegister => 'Batch Register';
 
   @override
@@ -3861,7 +3907,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alertMonthUnit => '/';
 
   @override
-  String get alertDayUnit => '日';
+  String get alertDayUnit => '';
 
   @override
   String get alertDateToday => 'Today';

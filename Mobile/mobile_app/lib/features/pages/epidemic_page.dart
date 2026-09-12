@@ -5,6 +5,7 @@ import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/models/health_models.dart';
 import 'package:hkt_livestock_agentic/features/epidemic/presentation/epidemic_controller.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class EpidemicPage extends ConsumerWidget {
@@ -109,7 +110,5 @@ class EpidemicPage extends ConsumerWidget {
     );
   }
 
-  String _formatTime(DateTime dt) {
-    return '${dt.month}/${dt.day} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
-  }
+  String _formatTime(DateTime dt) => formatMdhm(dt);
 }
