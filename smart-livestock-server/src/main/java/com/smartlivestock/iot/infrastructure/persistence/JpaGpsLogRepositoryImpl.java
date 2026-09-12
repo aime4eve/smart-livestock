@@ -88,6 +88,13 @@ public class JpaGpsLogRepositoryImpl implements GpsLogRepository {
         return result;
     }
 
+    @Override
+    public java.util.Optional<Instant> findLastRecordedAtAtOrAfter(Long deviceId, Instant from) {
+        return springDataRepo
+                .findFirstByDeviceIdAndRecordedAtGreaterThanEqualOrderByRecordedAtDesc(deviceId, from)
+                .map(GpsLogJpaEntity::getRecordedAt);
+    }
+
     private static BigDecimal toBigDecimal(Object o) {
         if (o == null) return null;
         if (o instanceof BigDecimal bd) return bd;

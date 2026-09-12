@@ -5,6 +5,7 @@ import com.smartlivestock.iot.domain.port.dto.GpsPointWithTelemetry;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 public interface GpsLogRepository {
     GpsLog save(GpsLog gpsLog);
@@ -16,4 +17,7 @@ public interface GpsLogRepository {
 
     /** GPS points joined with telemetry (step/motion/activity) for a device time window. */
     List<GpsPointWithTelemetry> findByDeviceIdAndTimeRangeWithTelemetry(Long deviceId, Instant from, Instant to);
+
+    /** Latest recorded_at of a device at/after a moment (index backward scan, no aggregate). */
+    Optional<Instant> findLastRecordedAtAtOrAfter(Long deviceId, Instant from);
 }
