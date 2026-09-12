@@ -179,8 +179,8 @@ class _AuditLogPageState extends ConsumerState<AuditLogPage> {
     ref.read(auditLogControllerProvider.notifier).refresh(
       filter: AuditLogFilter(
         action: _selectedAction,
-        startTime: _dateRange?.start.toIso8601String(),
-        endTime: _dateRange?.end.toIso8601String(),
+        startTime: _dateRange?.start.toUtc().toIso8601String(),
+        endTime: _dateRange?.end.toUtc().toIso8601String(),
       ),
     );
   }
@@ -191,8 +191,8 @@ class _AuditLogPageState extends ConsumerState<AuditLogPage> {
       page: page,
       filter: AuditLogFilter(
         action: _selectedAction,
-        startTime: _dateRange?.start.toIso8601String(),
-        endTime: _dateRange?.end.toIso8601String(),
+        startTime: _dateRange?.start.toUtc().toIso8601String(),
+        endTime: _dateRange?.end.toUtc().toIso8601String(),
       ),
     );
   }

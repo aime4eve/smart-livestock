@@ -7,7 +7,7 @@ import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_qual
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/trajectory_chart.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/device_identity_line.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
-import 'package:intl/intl.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 
 /// TRAJECTORY quality report card (NIX-22): pairing overview, trajectory
 /// chart, error distribution + static comparison, per-sample detail table.
@@ -40,8 +40,8 @@ class TrajectoryReportPanel extends ConsumerWidget {
 
   Widget _buildReport(
       BuildContext context, AppLocalizations l10n, WidgetRef ref, TrajectoryQualityReport r) {
-    final timeFmt = DateFormat('MM-dd HH:mm');
-    final timeSecFmt = DateFormat('HH:mm:ss');
+    
+    
 
     return Card(
       key: const Key('trajectory-report-panel'),
@@ -60,7 +60,7 @@ class TrajectoryReportPanel extends ConsumerWidget {
             _GradeBadge(grade: r.grade),
             const Spacer(),
             Text(
-              '${timeFmt.format(r.startedAt)} → ${r.endedAt != null ? timeFmt.format(r.endedAt!) : "..."} · ±${r.toleranceSec}s',
+              '${formatDashMdhm(r.startedAt)} → ${r.endedAt != null ? formatDashMdhm(r.endedAt!) : "..."} · ±${r.toleranceSec}s',
               style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
             ),
           ]),
@@ -171,7 +171,7 @@ class TrajectoryReportPanel extends ConsumerWidget {
                           : AppColors.danger;
               return DataRow(cells: [
                 DataCell(Text('${p.sequenceNo}', style: mono)),
-                DataCell(Text(timeSecFmt.format(p.collectedAt), style: mono)),
+                DataCell(Text(formatHms(p.collectedAt), style: mono)),
                 DataCell(Text(p.rtkLatitude.toStringAsFixed(5), style: mono)),
                 DataCell(Text(p.rtkLongitude.toStringAsFixed(5), style: mono)),
                 DataCell(Text(p.deviceLatitude?.toStringAsFixed(5) ?? '—', style: mono)),

@@ -110,6 +110,7 @@ class LivestockDetail {
     required this.activityLevel,
     required this.ruminationFreq,
     required this.lastLocation,
+    this.lastPositionAt,
     this.gender,
     this.birthDate,
   });
@@ -126,6 +127,8 @@ class LivestockDetail {
   final String activityLevel;
   final String ruminationFreq;
   final String lastLocation;
+  /// When the last GPS fix was recorded (backend `lastPositionAt`, UTC).
+  final DateTime? lastPositionAt;
   final String? gender;
   final DateTime? birthDate;
 }

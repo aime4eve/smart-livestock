@@ -61,13 +61,13 @@ void main() {
       expect(a.stage, 'dismissed');
     });
 
-    test('status AUTO_RESOLVED maps to autoResolved stage', () {
+    test('status AUTO_RESOLVED maps to auto_resolved wire stage', () {
       final a = AlertsApiRepository.alertItemFromMapForTest({
         'id': '1',
         'severity': 'WARNING',
         'status': 'AUTO_RESOLVED',
       });
-      expect(a.stage, 'autoResolved');
+      expect(a.stage, 'auto_resolved');
     });
 
     test('legacy status PENDING maps to active', () {
@@ -97,13 +97,13 @@ void main() {
       expect(a.stage, 'dismissed');
     });
 
-    test('legacy status ARCHIVED maps to autoResolved', () {
+    test('legacy status ARCHIVED maps to auto_resolved', () {
       final a = AlertsApiRepository.alertItemFromMapForTest({
         'id': '1',
         'severity': 'WARNING',
         'status': 'ARCHIVED',
       });
-      expect(a.stage, 'autoResolved');
+      expect(a.stage, 'auto_resolved');
     });
 
     test('unknown status defaults to active', () {

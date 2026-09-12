@@ -1264,6 +1264,8 @@ Response 200:
 发热持续时长图（按日累计发热小时数）。
 
 ```
+查询参数: tzOffsetMinutes（可选，调用方设备时区的 UTC 偏移分钟数，如 UTC+8 传 480；缺省按 UTC 分桶）
+
 Response 200:
 {
   "code": "OK", "message": "success", "requestId": "req-h5",
@@ -1271,7 +1273,7 @@ Response 200:
 }
 ```
 
-> Feature gate `health_score` 未启用 → 返回 `[]`（不报错）。窗口 = `min(retentionDays("health_score"), 7)` 天；温度 > 39.5°C（基线+1.0）的每条日志按 0.5 小时累计。
+> Feature gate `health_score` 未启用 → 返回 `[]`（不报错）。窗口 = `min(retentionDays("health_score"), 7)` 天；温度 > 39.5°C（基线+1.0）的每条日志按 0.5 小时累计。`date` 按 `tzOffsetMinutes` 对应时区的日界归组。
 
 ### GET /farms/{farmId}/health/devices/{deviceId}
 
@@ -1391,6 +1393,8 @@ Response 200:
 消化强度热力图（24 小时分布）。
 
 ```
+查询参数: tzOffsetMinutes（可选，调用方设备时区的 UTC 偏移分钟数，如 UTC+8 传 480；缺省按 UTC 分桶）
+
 Response 200:
 {
   "code": "OK", "message": "success", "requestId": "req-h11",
@@ -1401,7 +1405,7 @@ Response 200:
 }
 ```
 
-> 固定 24 元素（0-23 点）；Feature gate `health_score` 未启用 → 返回 `[]`（非 24 元素）。`abnormal` = `intensity > 0 && intensity < 30.0`。
+> 固定 24 元素（0-23 点）；Feature gate `health_score` 未启用 → 返回 `[]`（非 24 元素）。`abnormal` = `intensity > 0 && intensity < 30.0`。`hour` 按 `tzOffsetMinutes` 对应时区的小时归组。
 
 ### GET /farms/{farmId}/health/epidemic
 

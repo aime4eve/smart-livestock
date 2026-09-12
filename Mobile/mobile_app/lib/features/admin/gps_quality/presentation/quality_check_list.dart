@@ -18,7 +18,7 @@ import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/wi
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/edit_retry_dialog.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
-import 'package:intl/intl.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 
 /// Tab 1: Quality check list — device-grouped checks with timeline & reports.
 ///
@@ -353,7 +353,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                   ]),
                   // Latest check time
                   Text(
-                    DateFormat('MM-dd HH:mm').format(checks.first.startedAt),
+                    formatDashMdhm(checks.first.startedAt),
                     style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
                   ),
                 ])),
@@ -502,7 +502,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
           ]),
           const SizedBox(height: 4),
           Text(
-           '${DateFormat('yyyy-MM-dd HH:mm').format(first.startedAt)} → ${last.endedAt != null ? DateFormat('MM-dd HH:mm').format(last.endedAt!) : '...'}',
+           '${formatYmdhm(first.startedAt)} → ${last.endedAt != null ? formatDashMdhm(last.endedAt!) : '...'}',
            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
          ),
          const SizedBox(height: AppSpacing.sm),
@@ -615,7 +615,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                       ] else ...[
                         DataCell(Text(
                           item.endedAt != null
-                              ? DateFormat('MM-dd HH:mm').format(item.endedAt!)
+                              ? formatDashMdhm(item.endedAt!)
                               : '-',
                           style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
                         )),
@@ -746,7 +746,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                     key: ValueKey('timeline-segment-${c.id}'),
                     onTap: () => setState(() => _selectedCheckId = c.id),
                     child: Tooltip(
-                      message: '$typeName · ${isFailed ? "失败" : c.status}\n${DateFormat('MM-dd HH:mm').format(c.startedAt)} → ${c.endedAt != null ? DateFormat('MM-dd HH:mm').format(c.endedAt!) : "..."}',
+                      message: '$typeName · ${isFailed ? "失败" : c.status}\n${formatDashMdhm(c.startedAt)} → ${c.endedAt != null ? formatDashMdhm(c.endedAt!) : "..."}',
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 1),
                         decoration: BoxDecoration(
@@ -757,7 +757,7 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                               : null,
                         ),
                         child: Center(child: Text(
-                          DateFormat('HH:mm').format(c.startedAt),
+                          formatHm(c.startedAt),
                           style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w600),
                         )),
                       ),
@@ -774,9 +774,9 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
                   child: Tooltip(
                     message: l10n.gpsQualityDeleteCheckTip(
                       c.endedAt != null
-                          ? DateFormat('MM-dd HH:mm').format(c.endedAt!)
+                          ? formatDashMdhm(c.endedAt!)
                           : '...',
-                      DateFormat('MM-dd HH:mm').format(c.startedAt),
+                      formatDashMdhm(c.startedAt),
                       _typeLabel(l10n, c.checkType),
                     ),
                     child: GestureDetector(
@@ -804,9 +804,9 @@ class _QualityCheckListState extends ConsumerState<QualityCheckList> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(DateFormat('MM-dd HH:mm').format(laneSorted.first.startedAt),
+              Text(formatDashMdhm(laneSorted.first.startedAt),
                 style: const TextStyle(fontSize: 9, color: AppColors.textSecondary)),
-              Text(DateFormat('MM-dd HH:mm').format(laneSorted.last.endedAt ?? laneSorted.last.startedAt),
+              Text(formatDashMdhm(laneSorted.last.endedAt ?? laneSorted.last.startedAt),
                 style: const TextStyle(fontSize: 9, color: AppColors.textSecondary)),
             ],
           ),
@@ -1094,7 +1094,7 @@ class _StaticReportCard extends ConsumerWidget {
                 Text('${l10n.gpsQualityTestTypeStatic} · ${report.rtkPoint.pointLabel}',
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                 const Spacer(),
-                Text('${DateFormat('MM-dd HH:mm').format(report.startedAt)} → ${report.endedAt != null ? DateFormat('MM-dd HH:mm').format(report.endedAt!) : "..."}',
+                Text('${formatDashMdhm(report.startedAt)} → ${report.endedAt != null ? formatDashMdhm(report.endedAt!) : "..."}',
                   style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
               ]),
               DeviceIdentityLine(
@@ -1197,7 +1197,7 @@ class _DynamicReportCard extends ConsumerWidget {
                 Text('${l10n.gpsQualityTestTypeDynamic} · ${report.routeName}',
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                 const Spacer(),
-                Text('${DateFormat('MM-dd HH:mm').format(report.startedAt)} → ${report.endedAt != null ? DateFormat('MM-dd HH:mm').format(report.endedAt!) : "..."}',
+                Text('${formatDashMdhm(report.startedAt)} → ${report.endedAt != null ? formatDashMdhm(report.endedAt!) : "..."}',
                   style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
               ]),
               DeviceIdentityLine(
@@ -1484,7 +1484,7 @@ class _ErrorView extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           Text(message, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
           const SizedBox(height: AppSpacing.md),
-          OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+          OutlinedButton(onPressed: onRetry, child: Text(AppLocalizations.of(context)!.commonRetry)),
         ]),
       ),
     );

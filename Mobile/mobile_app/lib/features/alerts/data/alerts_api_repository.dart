@@ -96,7 +96,13 @@ class AlertsApiRepository implements AlertsRepository {
       subtitle: '',
       priority: priority,
       type: type,
-      stage: stage.name,
+      // Wire format consumed by alert widgets — NOT the Dart enum name
+      // (`autoResolved` camelCase leaked into badges as raw English text).
+      stage: switch (stage) {
+        AlertStage.active => 'active',
+        AlertStage.dismissed => 'dismissed',
+        AlertStage.autoResolved => 'auto_resolved',
+      },
       livestockCode: livestockId ?? '-',
       livestockId: livestockId,
       source: (m['source'] as String?) ?? 'RULE',

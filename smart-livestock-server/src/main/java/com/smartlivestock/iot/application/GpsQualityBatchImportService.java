@@ -57,6 +57,12 @@ public class GpsQualityBatchImportService {
 
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+    /** Imported lab-report timestamps are naive text on the UTC+8 baseline,
+     *  consistent with all previously imported data — a source-data contract,
+     *  not a display preference. */
+    private static final java.time.ZoneOffset IMPORT_SOURCE_ZONE =
+            java.time.ZoneOffset.ofHours(8);
+
     /**
      * Accepted datetime text formats for the startedAt/endedAt columns:
      * dash or slash separated, 1-2 digit fields, seconds optional
@@ -542,9 +548,7 @@ public class GpsQualityBatchImportService {
         String value = str.trim();
         for (DateTimeFormatter fmt : DT_FORMATS) {
             try {
-                // Naive text stays on the UTC+8 baseline, consistent with
-                // previously imported data.
-                return LocalDateTime.parse(value, fmt).toInstant(ZoneOffset.ofHours(8));
+                return LocalDateTime.parse(value, fmt).toInstant(IMPORT_SOURCE_ZONE);
             } catch (DateTimeParseException ignored) {
                 // try the next format
             }

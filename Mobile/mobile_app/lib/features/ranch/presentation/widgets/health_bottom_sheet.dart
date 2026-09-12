@@ -5,6 +5,7 @@ import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/ranch_controller.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/alert_card.dart';
@@ -643,7 +644,7 @@ class _FenceDetailContent extends StatelessWidget {
             if (alert.direction != null)
               _InfoRow(label: L10n.instance.ranchFieldDirection, value: alert.direction!),
             if (alert.occurredAt != null)
-              _InfoRow(label: L10n.instance.ranchFieldOccurredTime, value: alert.occurredAt!),
+              _InfoRow(label: L10n.instance.ranchFieldOccurredTime, value: _formatOccurredAt(alert.occurredAt)),
           ],
         ),
       ),
@@ -673,7 +674,7 @@ class _HealthDetailContent extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             _InfoRow(label: L10n.instance.ranchFieldAbnormalType, value: _healthLabel(healthType)),
             if (alert.occurredAt != null)
-              _InfoRow(label: L10n.instance.ranchFieldOccurredTime, value: alert.occurredAt!),
+              _InfoRow(label: L10n.instance.ranchFieldOccurredTime, value: _formatOccurredAt(alert.occurredAt)),
             if (canNavigate) ...[
               const SizedBox(height: AppSpacing.sm),
               SizedBox(
@@ -716,6 +717,13 @@ class _HealthDetailContent extends StatelessWidget {
 }
 
 // ── Info row helper ──────────────────────────────────────────────
+
+/// Renders the backend's UTC ISO timestamp in the device timezone.
+String _formatOccurredAt(String? iso) {
+  final dt = parseApiTime(iso);
+  return dt == null ? (iso ?? '--') : formatMdhm(dt);
+}
+
 class _InfoRow extends StatelessWidget {
   const _InfoRow({required this.label, required this.value});
   final String label;

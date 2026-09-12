@@ -22,11 +22,14 @@ LineTouchData healthLineTouchData({
             final timestamp = index >= 0 && index < timestamps.length
                 ? timestamps[index]
                 : null;
-            final timeLabel = timestamp == null
+            // Backend timestamps are UTC instants; render them in the
+            // device timezone or every label reads 8h stale for UTC+8 users.
+            final local = timestamp?.toLocal();
+            final timeLabel = local == null
                 ? ''
-                : '${timestamp.month}/${timestamp.day} '
-                      '${timestamp.hour.toString().padLeft(2, '0')}:'
-                      '${timestamp.minute.toString().padLeft(2, '0')}';
+                : '${local.month}/${local.day} '
+                      '${local.hour.toString().padLeft(2, '0')}:'
+                      '${local.minute.toString().padLeft(2, '0')}';
             return LineTooltipItem(
               '${formatValue(spot.y)}\n$timeLabel',
               const TextStyle(

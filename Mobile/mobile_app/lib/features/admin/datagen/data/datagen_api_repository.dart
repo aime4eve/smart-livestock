@@ -1,5 +1,6 @@
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/features/admin/datagen/domain/datagen_models.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 
 class DatagenApiRepository {
   const DatagenApiRepository();
@@ -15,7 +16,8 @@ class DatagenApiRepository {
   }
 
   Future<DatagenConsoleData> loadConsole(int farmId) async {
-    final data = await ApiClient.instance.get('$_base/console?farmId=$farmId');
+    final data = await ApiClient.instance
+        .get('$_base/console?farmId=$farmId&tzOffsetMinutes=${localTzOffsetMinutes()}');
     return DatagenConsoleData.fromJson(data);
   }
 

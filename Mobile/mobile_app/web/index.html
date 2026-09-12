@@ -31,6 +31,26 @@
 
   <title>hkt_livestock_agentic</title>
   <link rel="manifest" href="manifest.json">
+
+  <!--
+    One-off migration: the app previously shipped an offline-first service
+    worker that kept serving a stale main.dart.js after every deploy. The
+    build no longer registers one (--pwa-strategy=none); this unregisters any
+    SW left over in browsers that visited the old build and drops its caches.
+    No-op for browsers that never registered one.
+  -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (rs) {
+        rs.forEach(function (r) { r.unregister(); });
+      });
+      if (window.caches && caches.keys) {
+        caches.keys().then(function (keys) {
+          keys.forEach(function (k) { caches.delete(k); });
+        });
+      }
+    }
+  </script>
 </head>
 <body>
   <!--

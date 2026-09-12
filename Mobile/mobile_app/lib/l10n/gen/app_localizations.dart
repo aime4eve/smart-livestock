@@ -1238,6 +1238,18 @@ abstract class AppLocalizations {
   /// **'健康数据'**
   String get livestockHealthData;
 
+  /// No description provided for @dataUpdatedAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据更新于 {time}'**
+  String dataUpdatedAt(String time);
+
+  /// No description provided for @latestDataAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'最新数据 {time}'**
+  String latestDataAt(String time);
+
   /// No description provided for @livestockLocation.
   ///
   /// In zh, this message translates to:
@@ -4516,6 +4528,72 @@ abstract class AppLocalizations {
   /// **'活动量'**
   String get livestockActivity;
 
+  /// No description provided for @activityStatusNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'正常'**
+  String get activityStatusNormal;
+
+  /// No description provided for @activityStatusElevated.
+  ///
+  /// In zh, this message translates to:
+  /// **'偏高'**
+  String get activityStatusElevated;
+
+  /// No description provided for @activityStatusLow.
+  ///
+  /// In zh, this message translates to:
+  /// **'偏低'**
+  String get activityStatusLow;
+
+  /// No description provided for @activityStatusAbnormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'异常'**
+  String get activityStatusAbnormal;
+
+  /// No description provided for @tempStatusNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'正常'**
+  String get tempStatusNormal;
+
+  /// No description provided for @tempStatusElevated.
+  ///
+  /// In zh, this message translates to:
+  /// **'偏高'**
+  String get tempStatusElevated;
+
+  /// No description provided for @tempStatusFever.
+  ///
+  /// In zh, this message translates to:
+  /// **'发热'**
+  String get tempStatusFever;
+
+  /// No description provided for @tempStatusCritical.
+  ///
+  /// In zh, this message translates to:
+  /// **'危重'**
+  String get tempStatusCritical;
+
+  /// No description provided for @motilityStatusNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'正常'**
+  String get motilityStatusNormal;
+
+  /// No description provided for @motilityStatusLow.
+  ///
+  /// In zh, this message translates to:
+  /// **'偏低'**
+  String get motilityStatusLow;
+
+  /// No description provided for @motilityStatusAbnormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'异常'**
+  String get motilityStatusAbnormal;
+
   /// No description provided for @livestockRumination.
   ///
   /// In zh, this message translates to:
@@ -6059,6 +6137,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'编辑重试'**
   String get gpsQualityEditRetry;
+
+  /// No description provided for @gpsQualityEuiHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'如：ABC123456789'**
+  String get gpsQualityEuiHint;
 
   /// No description provided for @gpsQualityBatchRegister.
   ///

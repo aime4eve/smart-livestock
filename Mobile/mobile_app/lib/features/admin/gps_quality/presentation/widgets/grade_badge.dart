@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 /// Shared quality-grade badge (spec §9: EXCELLENT #16A34A / USABLE #2563EB /
 /// MARGINAL #C2410C / UNAVAILABLE #DC2626). Used by the NIX-68 LINE panels;
@@ -19,11 +20,12 @@ class GradeBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final label = switch (grade) {
-      QualityGrade.excellent => 'EXCELLENT',
-      QualityGrade.usable => 'USABLE',
-      QualityGrade.marginal => 'MARGINAL',
-      QualityGrade.unavailable => 'UNAVAILABLE',
+      QualityGrade.excellent => l10n.gpsQualityGradeExcellent,
+      QualityGrade.usable => l10n.gpsQualityGradeUsable,
+      QualityGrade.marginal => l10n.gpsQualityGradeMarginal,
+      QualityGrade.unavailable => l10n.gpsQualityGradeUnavailable,
     };
     final color = gradeColor(grade);
     return Container(

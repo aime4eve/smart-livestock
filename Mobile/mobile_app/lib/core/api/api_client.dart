@@ -256,12 +256,30 @@ class ApiClient {
 
   // ── Response handling ────────────────────────────────────────────
 
+  /// Bodies at or above this size are JSON-decoded in a background isolate,
+  /// so parsing a multi-hundred-KB report does not stall the UI isolate.
+  static const int _isolateDecodeMinBytes = 64 * 1024;
+
   Future<Map<String, dynamic>> _handleResponse(http.Response response) async {
-    if (response.statusCode == 401) {
-      Map<String, dynamic>? body;
+    // Lenient decode: a non-JSON body yields null and is interpreted below.
+    Map<String, dynamic>? body;
+    if (response.bodyBytes.length >= _isolateDecodeMinBytes) {
+      // compute() falls back to inline execution on the web.
+      try {
+        body = await compute(_decodeJsonMap, response.body);
+      } catch (_) {}
+    } else {
       try {
         body = jsonDecode(response.body) as Map<String, dynamic>;
       } catch (_) {}
+    }
+    return _interpretBody(response.statusCode, body);
+  }
+
+  /// Error mapping + envelope unwrap, split from [_handleResponse] so the
+  /// decode step can run in a background isolate.
+  Map<String, dynamic> _interpretBody(int statusCode, Map<String, dynamic>? body) {
+    if (statusCode == 401) {
       // Do NOT clear the token here. _withRefreshRetry relies on the stored
       // (possibly expired) token to call /auth/refresh. Clearing it now would
       // starve _doRefresh and turn any single 401 into a permanent logout.
@@ -273,24 +291,19 @@ class ApiClient {
       );
     }
 
-    Map<String, dynamic>? body;
-    try {
-      body = jsonDecode(response.body) as Map<String, dynamic>;
-    } catch (_) {
-      if (response.statusCode >= 400) {
-        throw ServerException(message: '服务器异常', statusCode: response.statusCode);
-      }
-      return {};
+    if (body == null && statusCode >= 400) {
+      throw ServerException(message: '服务器异常', statusCode: statusCode);
     }
+    if (body == null) return {};
 
     final code = body['code'] as String?;
     final message = body['message'] as String? ?? '';
 
-    if (response.statusCode >= 500) {
-      throw ServerException(message: message, statusCode: response.statusCode, code: code);
+    if (statusCode >= 500) {
+      throw ServerException(message: message, statusCode: statusCode, code: code);
     }
 
-    switch (response.statusCode) {
+    switch (statusCode) {
       case 403:
         if (code == 'TENANT_DISABLED') {
           throw ForbiddenException(message: '租户已禁用', statusCode: 403, code: code);
@@ -305,12 +318,12 @@ class ApiClient {
         throw ConflictException(message: message, statusCode: 409, code: code, data: body['data'] as Map<String, dynamic>?);
     }
 
-    if (response.statusCode >= 400) {
-      throw ValidationException(message: message, statusCode: response.statusCode, code: code);
+    if (statusCode >= 400) {
+      throw ValidationException(message: message, statusCode: statusCode, code: code);
     }
 
     if (code != 'OK') {
-      throw ServerException(message: message, statusCode: response.statusCode, code: code);
+      throw ServerException(message: message, statusCode: statusCode, code: code);
     }
 
     final data = body['data'];
@@ -394,3 +407,6 @@ class ApiClient {
    _localeHeader = localeHeader;
  }
 }
+
+/// Top-level so [compute] can run it in a background isolate.
+Map<String, dynamic> _decodeJsonMap(String body) => jsonDecode(body) as Map<String, dynamic>;

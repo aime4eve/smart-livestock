@@ -7,8 +7,8 @@ import 'package:hkt_livestock_agentic/features/admin/gps_quality/data/gps_qualit
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/domain/gps_quality_models.dart';
 import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/widgets/track_line_map.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
-import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 
 /// Standard track line map preview dialog (NIX-68, spec §8.1):
 /// left candidate list + right map overlay (selected = green solid,
@@ -201,8 +201,7 @@ class _TrackLinePreviewDialogState
                   _statItem(
                     l10n.gpsQualityTrackLineImportTime,
                     selected.createdAt != null
-                        ? DateFormat('yyyy-MM-dd HH:mm')
-                            .format(selected.createdAt!)
+                        ? formatYmdhm(selected.createdAt!)
                         : '-',
                     mono: true,
                   ),

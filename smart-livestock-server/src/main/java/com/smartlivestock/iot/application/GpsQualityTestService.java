@@ -36,6 +36,14 @@ public class GpsQualityTestService {
         if (startedAt == null) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "startedAt is required");
         }
+        // A check window must be bounded: open-ended checks made report queries
+        // and payloads grow forever as the device kept syncing new points.
+        if (endedAt == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "endedAt is required");
+        }
+        if (!endedAt.isAfter(startedAt)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "endedAt must be after startedAt");
+        }
 
         // Validate truth reference
         if (testType == TestType.STATIC) {

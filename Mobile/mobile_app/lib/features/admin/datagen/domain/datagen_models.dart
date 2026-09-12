@@ -146,7 +146,6 @@ class DatagenDevice {
 
 class DatagenStats {
   const DatagenStats({
-    required this.statsTimeZone,
     required this.selectedTotal,
     required this.selectedTrackerCount,
     required this.selectedCapsuleCount,
@@ -156,7 +155,6 @@ class DatagenStats {
     required this.lastGeneratedAt,
   });
 
-  final String statsTimeZone;
   final int selectedTotal;
   final int selectedTrackerCount;
   final int selectedCapsuleCount;
@@ -166,7 +164,6 @@ class DatagenStats {
   final DateTime? lastGeneratedAt;
 
   factory DatagenStats.fromJson(Map<String, dynamic> json) => DatagenStats(
-        statsTimeZone: json['statsTimeZone'] as String? ?? 'Asia/Shanghai',
         selectedTotal: _int(json['selectedTotal']),
         selectedTrackerCount: _int(json['selectedTrackerCount']),
         selectedCapsuleCount: _int(json['selectedCapsuleCount']),

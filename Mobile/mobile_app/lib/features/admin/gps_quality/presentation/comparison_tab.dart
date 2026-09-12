@@ -13,6 +13,7 @@ import 'package:hkt_livestock_agentic/features/admin/gps_quality/presentation/li
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 
 /// Tab 3: Quality comparison across devices.
 /// Static: grouped by RTK point. Dynamic: grouped by route.
@@ -327,7 +328,7 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
                   ],
                   rows: devices.map((d) {
                     final timeRange = d.startedAt != null
-                      ? '${DateFormat('MM-dd HH:mm').format(d.startedAt!)} → ${d.endedAt != null ? DateFormat('MM-dd HH:mm').format(d.endedAt!) : "..."}'
+                      ? '${formatDashMdhm(d.startedAt!)} → ${d.endedAt != null ? formatDashMdhm(d.endedAt!) : "..."}'
                       : '-';
                     return DataRow(cells: [
                       DataCell(Text(d.deviceCode, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
@@ -417,7 +418,7 @@ class _ComparisonTabState extends ConsumerState<ComparisonTab> {
                   ],
                   rows: devices.map((d) {
                     final timeRange = d.startedAt != null
-                      ? '${DateFormat('MM-dd HH:mm').format(d.startedAt!)} → ${d.endedAt != null ? DateFormat('MM-dd HH:mm').format(d.endedAt!) : "..."}'
+                      ? '${formatDashMdhm(d.startedAt!)} → ${d.endedAt != null ? formatDashMdhm(d.endedAt!) : "..."}'
                       : '-';
                     return DataRow(cells: [
                       DataCell(Row(mainAxisSize: MainAxisSize.min, children: [

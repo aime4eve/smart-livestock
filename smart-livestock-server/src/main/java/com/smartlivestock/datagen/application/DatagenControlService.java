@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DatagenControlService {
     private static final String DEFAULT_SCENARIO_NAME = "默认持续合成";
-    private static final String STATS_TIME_ZONE = "Asia/Shanghai";
 
     private final FarmRepository farmRepository;
     private final TenantRepository tenantRepository;
@@ -77,7 +76,7 @@ public class DatagenControlService {
     }
 
     @Transactional
-    public DatagenConsoleDto getConsole(Long farmId) {
+    public DatagenConsoleDto getConsole(Long farmId, Integer tzOffsetMinutes) {
         DatagenOperatorContext operator = operatorResolver.resolve();
         Farm farm = accessService.requireAccessibleFarm(farmId, operator);
         SynthesisScenario scenario = defaultScenario();
@@ -94,14 +93,13 @@ public class DatagenControlService {
                 .map(DatagenDeviceAssignment::getDeviceId).toList();
 
         DatagenDataQueryService.DatagenStatsParts parts = dataQueryService.statsByDeviceIds(
-                assignedDeviceIds, dataQueryService.todayStart(), Instant.now());
+                assignedDeviceIds, dataQueryService.todayStart(tzOffsetMinutes), Instant.now());
         int trackerCount = (int) activeDeviceIds.stream()
                 .filter(id -> deviceRepository.findById(id)
                         .filter(device -> device.getDeviceType() == DeviceType.TRACKER)
                         .isPresent())
                 .count();
         DatagenStatsDto stats = new DatagenStatsDto(
-                STATS_TIME_ZONE,
                 activeDeviceIds.size(),
                 trackerCount,
                 activeDeviceIds.size() - trackerCount,

@@ -7,6 +7,7 @@ import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/device_info_line.dart';
 import 'package:hkt_livestock_agentic/core/l10n/l10n.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 
 /// Detail sheet for a fence alert — shows a mini map with fence polygon,
 /// livestock position, buffer zone, and distance/direction info.
@@ -123,12 +124,8 @@ class FenceAlertDetailSheet extends StatelessWidget {
 
   String _formatTime(String? iso) {
     if (iso == null) return L10n.instance.ranchTimeUnknown;
-    try {
-      final dt = DateTime.parse(iso);
-      return '${dt.month}/${dt.day} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
-    } catch (_) {
-      return iso;
-    }
+    final dt = parseApiTime(iso);
+    return dt == null ? iso : formatMdhm(dt);
   }
 }
 

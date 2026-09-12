@@ -6,6 +6,8 @@ import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/core/models/health_models.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/widgets/auto_refresh_listener.dart';
+import 'package:hkt_livestock_agentic/core/widgets/data_freshness_indicator.dart';
 import 'package:hkt_livestock_agentic/features/estrus/presentation/estrus_controller.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/device_info_line.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
@@ -25,8 +27,25 @@ class EstrusDetailPage extends ConsumerWidget {
     final tier = subAsync.value?.tier ?? SubscriptionTier.basic;
    final hasEstrusDetect = checkTierAccess(tier, FeatureFlags.estrusDetect);
    final hasHealthScore = checkTierAccess(tier, FeatureFlags.healthScore);
-   return Scaffold(
-      appBar: AppBar(title: Text(l10n.estrusDetailTitle), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+   final refreshedAt = ref.watch(dataRefreshedAtProvider(livestockId));
+   return AutoRefreshListener(
+      interval: const Duration(seconds: 30),
+      onTick: () async {
+        await ref
+            .read(estrusDetailControllerProvider(livestockId).notifier)
+            .silentRefresh();
+        ref.read(dataRefreshedAtProvider(livestockId).notifier).mark();
+      },
+      child: Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.estrusDetailTitle),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        bottom: DataFreshnessIndicator(
+          refreshedAt: refreshedAt,
+          foregroundColor: Colors.white,
+        ),
+      ),
       body: asyncDetail.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('${l10n.commonLoadFailed}: $e')),
@@ -59,6 +78,7 @@ class EstrusDetailPage extends ConsumerWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }
@@ -144,7 +164,12 @@ class EstrusDetailPage extends ConsumerWidget {
 
     return Card(
       child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(l10n.estrusDetailChartTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        Row(children: [
+          Text(l10n.estrusDetailChartTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          const Spacer(),
+          Text(l10n.latestDataAt(formatMdhm(trend.last.timestamp)),
+              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+        ]),
         const SizedBox(height: 8),
         SizedBox(height: 180, child: LineChart(LineChartData(
           minY: 0, maxY: 100,

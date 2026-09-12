@@ -8,6 +8,7 @@ import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/features/epidemic/presentation/epidemic_controller.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class EpidemicContactPage extends ConsumerWidget {
@@ -103,7 +104,7 @@ class EpidemicContactPage extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('${network.sourceLivestockCode} · ${l10n.epidemicSourceInfected}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.danger)),
-                  Text('$diseaseType · ${l10n.epidemicMarkedAt}：${markedAt != null ? '${markedAt.month}/${markedAt.day} ${markedAt.hour}:${markedAt.minute.toString().padLeft(2, '0')}' : l10n.epidemicUnknown}',
+                  Text('$diseaseType · ${l10n.epidemicMarkedAt}：${markedAt != null ? _formatMarkedAt(markedAt) : l10n.epidemicUnknown}',
                       style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                 ],
               ),
@@ -284,6 +285,8 @@ class EpidemicContactPage extends ConsumerWidget {
       ),
     );
   }
+
+  String _formatMarkedAt(DateTime dt) => formatMdhm(dt);
 }
 
 class _NetworkPainter extends CustomPainter {

@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 public interface SpringDataGpsLogRepository extends JpaRepository<GpsLogJpaEntity, Long> {
     /**
@@ -50,6 +51,9 @@ public interface SpringDataGpsLogRepository extends JpaRepository<GpsLogJpaEntit
 
     @Query("SELECT g FROM GpsLogJpaEntity g WHERE g.id IN :ids ORDER BY g.recordedAt ASC")
     List<GpsLogJpaEntity> findAllByIdInOrderByRecordedAt(@Param("ids") List<Long> ids);
+
+    Optional<GpsLogJpaEntity> findFirstByDeviceIdAndRecordedAtGreaterThanEqualOrderByRecordedAtDesc(
+            Long deviceId, Instant recordedAt);
 
   @Query(value = """
          SELECT gl.latitude, gl.longitude, gl.accuracy, gl.recorded_at,

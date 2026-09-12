@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
+import 'package:hkt_livestock_agentic/core/l10n/enum_labels.dart';
 import 'package:hkt_livestock_agentic/core/models/health_models.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
@@ -12,6 +13,7 @@ import 'package:hkt_livestock_agentic/features/subscription/presentation/subscri
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/locked_overlay.dart';
 import 'package:hkt_livestock_agentic/features/ai_anomaly/presentation/widgets/anomaly_score_card.dart';
 import 'package:hkt_livestock_agentic/core/widgets/auto_refresh_listener.dart';
+import 'package:hkt_livestock_agentic/core/widgets/data_freshness_indicator.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class DigestiveDetailPage extends ConsumerWidget {
@@ -25,11 +27,25 @@ class DigestiveDetailPage extends ConsumerWidget {
     final subAsync = ref.watch(subscriptionControllerProvider);
     final tier = subAsync.value?.tier ?? SubscriptionTier.basic;
     final hasHealthScore = checkTierAccess(tier, FeatureFlags.healthScore);
+    final refreshedAt = ref.watch(dataRefreshedAtProvider(livestockId));
     return AutoRefreshListener(
-      interval: const Duration(seconds: 120),
-      onTick: () => ref.read(digestiveDetailControllerProvider(livestockId).notifier).silentRefresh(),
+      interval: const Duration(seconds: 30),
+      onTick: () async {
+        await ref
+            .read(digestiveDetailControllerProvider(livestockId).notifier)
+            .silentRefresh();
+        ref.read(dataRefreshedAtProvider(livestockId).notifier).mark();
+      },
       child: Scaffold(
-      appBar: AppBar(title: Text(l10n.digestiveDetailTitle), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: AppBar(
+        title: Text(l10n.digestiveDetailTitle),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        bottom: DataFreshnessIndicator(
+          refreshedAt: refreshedAt,
+          foregroundColor: Colors.white,
+        ),
+      ),
       body: asyncDetail.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('${l10n.commonLoadFailed}: $e')),
@@ -138,6 +154,9 @@ class DigestiveDetailPage extends ConsumerWidget {
                         final intensity = cell.intensity;
                         final isAbnormal = cell.abnormal;
                         return Tooltip(
+                          // Backend buckets hours at Asia/Shanghai, which
+                          // equals the user's local wall clock for the
+                          // current customer base (see P3 timezone note).
                           message: '${cell.hour}:00 · ${intensity.toStringAsFixed(1)}',
                           child: Container(
                             decoration: BoxDecoration(
@@ -218,7 +237,7 @@ class DigestiveDetailPage extends ConsumerWidget {
       const SizedBox(width: 8),
       _statCard(l10n.digestiveBaselineFreq, '${detail.motilityBaseline.toStringAsFixed(1)}$unit', AppColors.textSecondary),
       const SizedBox(width: 8),
-      _statCard(l10n.digestiveStatus, detail.status, detail.status == 'ABNORMAL' ? AppColors.danger : AppColors.warning),
+      _statCard(l10n.digestiveStatus, motilityStatusLabel(l10n, detail.status), detail.status == 'ABNORMAL' ? AppColors.danger : AppColors.warning),
     ]);
   }
 
@@ -240,10 +259,17 @@ class DigestiveDetailPage extends ConsumerWidget {
         .entries
         .map((e) => FlSpot(e.key.toDouble(), e.value.frequency!))
         .toList();
+    final latestWithFrequency =
+        readings.lastWhere((reading) => reading.frequency != null);
 
     return Card(
       child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(l10n.digestiveDetailChartTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        Row(children: [
+          Text(l10n.digestiveDetailChartTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          const Spacer(),
+          Text(l10n.latestDataAt(formatMdhm(latestWithFrequency.timestamp)),
+              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+        ]),
         const SizedBox(height: 8),
         SizedBox(height: 180, child: LineChart(LineChartData(
           gridData: const FlGridData(show: true, drawVerticalLine: false),

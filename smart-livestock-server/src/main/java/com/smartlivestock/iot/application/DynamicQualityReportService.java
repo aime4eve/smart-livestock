@@ -115,9 +115,7 @@ public class DynamicQualityReportService {
 
        // --- fetch GPS logs in the test window ---
        List<GpsPointWithTelemetry> gpsPoints = gpsLogRepository.findByDeviceIdAndTimeRangeWithTelemetry(
-                deviceId, test.getStartedAt(), test.getEndedAt() != null
-                        ? test.getEndedAt()
-                        : Instant.now().plus(8, ChronoUnit.HOURS));
+                deviceId, test.getStartedAt(), resolveReportWindowEnd(test));
 
         // --- run matching ---
         DynamicQualityStats stats = dynamicCalculator.calculate(calculatorInput, gpsPoints, threshold);
@@ -170,6 +168,22 @@ public class DynamicQualityReportService {
        dto.setStaticComparison(comparison);
        return dto;
    }
+
+    /**
+     * Window upper bound for open-ended checks: last known device point + 8h
+     * (blade reportTime runs ~8h ahead of true UTC) instead of now+8h, so the
+     * scan stops growing with live syncs. Same rationale as the static report
+     * window in {@link GpsQualityReportService}.
+     */
+    private Instant resolveReportWindowEnd(GpsQualityTest test) {
+        if (test.getEndedAt() != null) return test.getEndedAt();
+        Instant startedAt = test.getStartedAt();
+        Long deviceId = test.getDeviceId();
+        if (deviceId == null) return startedAt.plus(8, ChronoUnit.HOURS);
+        return gpsLogRepository.findLastRecordedAtAtOrAfter(deviceId, startedAt)
+                .map(ts -> ts.plus(8, ChronoUnit.HOURS))
+                .orElseGet(() -> startedAt.plus(8, ChronoUnit.HOURS));
+    }
 
     // ------------------------------------------------------------------
     // Route-level dynamic comparison (latest READY test per device)

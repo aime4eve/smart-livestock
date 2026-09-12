@@ -308,7 +308,7 @@ class _BatchImportDialogState extends ConsumerState<BatchImportDialog> {
   // ── Step 2: Results ──────────────────────────────────────────────
 
   Widget _buildResultStep(AppLocalizations l10n) {
-    if (_result == null) return const Center(child: Text('No result'));
+    if (_result == null) return Center(child: Text(l10n.gpsQualityNoData));
     final r = _result!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
