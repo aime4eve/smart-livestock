@@ -66,6 +66,9 @@ services:
       - tileserver-data:/data:ro
     environment:
       DB_HOST: postgres
+      # Pin the JVM/DB clock to UTC — do not rely on image defaults.
+      TZ: UTC
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=UTC"
       DB_PORT: 5432
       DB_NAME: smart_livestock
       DB_USER: postgres

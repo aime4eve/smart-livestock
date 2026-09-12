@@ -31,8 +31,9 @@ public class DataGenConsoleController {
 
     @GetMapping("/console")
     public ResponseEntity<ApiResponse<DatagenConsoleDto>> console(
-            @RequestParam Long farmId) {
-        return ResponseEntity.ok(ApiResponse.ok(controlService.getConsole(farmId)));
+            @RequestParam Long farmId,
+            @RequestParam(required = false) Integer tzOffsetMinutes) {
+        return ResponseEntity.ok(ApiResponse.ok(controlService.getConsole(farmId, tzOffsetMinutes)));
     }
 
     @PutMapping("/control/{farmId}")

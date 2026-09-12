@@ -1848,7 +1848,7 @@ Response 200:
 获取单个牧场的控制台快照。首次访问会确保默认 `NORMAL` scenario、farm control 存在，但不会把 farm 置为启用。
 
 ```
-查询参数: farmId（必填）
+查询参数: farmId（必填）; tzOffsetMinutes（可选，调用方设备时区的 UTC 偏移分钟数，"今日合成行数"按该时区日界统计；缺省按 UTC）
 
 Response 200:
 {
@@ -1872,7 +1872,7 @@ Response 200:
       }
     ],
     "stats": {
-      "statsTimeZone": "Asia/Shanghai", "selectedTotal": 16, "selectedTrackerCount": 8, "selectedCapsuleCount": 8,
+      "selectedTotal": 16, "selectedTrackerCount": 8, "selectedCapsuleCount": 8,
       "todayTelemetryRows": 3284, "todayGpsRows": 1842, "todayHealthRows": 812,
       "lastGeneratedAt": "2026-08-17T08:00:00Z"
     },

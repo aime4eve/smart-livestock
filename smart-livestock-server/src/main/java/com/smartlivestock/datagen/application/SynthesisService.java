@@ -28,6 +28,9 @@ import java.util.concurrent.ThreadLocalRandom;
 @RequiredArgsConstructor
 @Slf4j
 public class SynthesisService {
+    /** Activity rhythms simulate pastures in China — cows follow the
+     *  pasture's local wall clock, not any viewer's timezone. */
+    private static final ZoneId SIMULATION_ZONE = ZoneId.of("Asia/Shanghai");
     private final TelemetryIngestionPort ingestionPort;
     private final DeviceQueryPort deviceQueryPort;
     private final FenceQueryPort fenceQueryPort;
@@ -282,7 +285,7 @@ public class SynthesisService {
             DatagenFarmRules rules) {
         Map<String, Object> readings = new HashMap<>();
         ThreadLocalRandom rng = ThreadLocalRandom.current();
-        int hour = now.atZone(ZoneId.of("Asia/Shanghai")).getHour();
+        int hour = now.atZone(SIMULATION_ZONE).getHour();
         double hourFactor = (hour >= 6 && hour <= 20) ? 1.0 : 0.2;
 
         int baseSteps = (hour >= 6 && hour <= 20) ? rng.nextInt(60, 241) : rng.nextInt(10, 81);
@@ -615,7 +618,7 @@ public class SynthesisService {
             SynthesisState state, Instant now, DatagenFarmRules rules) {
         Map<String, Object> readings = new HashMap<>();
         ThreadLocalRandom rng = ThreadLocalRandom.current();
-        int hour = now.atZone(ZoneId.of("Asia/Shanghai")).getHour();
+        int hour = now.atZone(SIMULATION_ZONE).getHour();
         double hourFactor = (hour >= 6 && hour <= 20) ? 1.0 : 0.2;
 
         updateDemoHealthEvent(state, now, rules);

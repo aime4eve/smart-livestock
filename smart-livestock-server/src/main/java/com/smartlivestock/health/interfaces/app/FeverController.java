@@ -29,7 +29,8 @@ public class FeverController {
 
     @GetMapping("/fever/{livestockId}/duration")
     public ResponseEntity<ApiResponse<List<DailyFeverHour>>> getFeverDurationChart(
-            @PathVariable Long farmId, @PathVariable Long livestockId) {
-        return ResponseEntity.ok(ApiResponse.ok(healthService.getFeverDurationChart(farmId, livestockId)));
+            @PathVariable Long farmId, @PathVariable Long livestockId,
+            @RequestParam(required = false) Integer tzOffsetMinutes) {
+        return ResponseEntity.ok(ApiResponse.ok(healthService.getFeverDurationChart(farmId, livestockId, tzOffsetMinutes)));
     }
 }

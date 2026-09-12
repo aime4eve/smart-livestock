@@ -29,7 +29,8 @@ public class DigestiveController {
 
     @GetMapping("/digestive/{livestockId}/heatmap")
     public ResponseEntity<ApiResponse<List<IntensityCell>>> getIntensityHeatmap(
-            @PathVariable Long farmId, @PathVariable Long livestockId) {
-        return ResponseEntity.ok(ApiResponse.ok(healthService.getIntensityHeatmap(farmId, livestockId)));
+            @PathVariable Long farmId, @PathVariable Long livestockId,
+            @RequestParam(required = false) Integer tzOffsetMinutes) {
+        return ResponseEntity.ok(ApiResponse.ok(healthService.getIntensityHeatmap(farmId, livestockId, tzOffsetMinutes)));
     }
 }

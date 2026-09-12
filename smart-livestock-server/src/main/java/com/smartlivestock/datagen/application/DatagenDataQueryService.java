@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,6 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class DatagenDataQueryService {
-    private static final ZoneId STATS_ZONE = ZoneId.of("Asia/Shanghai");
 
     private final DatagenDeviceAssignmentRepository assignmentRepository;
 
@@ -34,9 +34,13 @@ public class DatagenDataQueryService {
                 .toList();
     }
 
-    public Instant todayStart() {
-        return Instant.now().atZone(STATS_ZONE).toLocalDate()
-                .atStartOfDay(STATS_ZONE).toInstant();
+    /** Local-midnight "today" start in the caller's timezone (null → UTC). */
+    public Instant todayStart(Integer tzOffsetMinutes) {
+        ZoneId zone = tzOffsetMinutes == null
+                ? ZoneOffset.UTC
+                : ZoneOffset.ofTotalSeconds(tzOffsetMinutes * 60);
+        return Instant.now().atZone(zone).toLocalDate()
+                .atStartOfDay(zone).toInstant();
     }
 
     public Instant lastGeneratedAt(List<Long> deviceIds) {

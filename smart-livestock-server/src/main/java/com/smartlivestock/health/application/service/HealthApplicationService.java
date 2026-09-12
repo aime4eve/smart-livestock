@@ -53,7 +53,17 @@ public class HealthApplicationService {
      *  from fever assessment so they can neither trigger rules nor mask real ones. */
     private static final BigDecimal MIN_PLAUSIBLE_TEMP = new BigDecimal("35.0");
     private static final BigDecimal MAX_PLAUSIBLE_TEMP = new BigDecimal("43.0");
-    private static final java.time.ZoneId DISPLAY_ZONE = java.time.ZoneId.of("Asia/Shanghai");
+
+    /**
+     * Resolves the caller's timezone for day/hour bucketing. Callers pass
+     * their device UTC offset (`tzOffsetMinutes`, e.g. 480 for UTC+8) so
+     * buckets follow the user's local calendar; absent that, buckets are
+     * plain UTC. No server-side default timezone.
+     */
+    private static java.time.ZoneId bucketZone(Integer tzOffsetMinutes) {
+        if (tzOffsetMinutes == null) return java.time.ZoneOffset.UTC;
+        return java.time.ZoneOffset.ofTotalSeconds(tzOffsetMinutes * 60);
+    }
 
     // ── Telemetry Processing (IoT → Health) ────────────────────
 
@@ -691,10 +701,11 @@ public class HealthApplicationService {
      * Daily fever hours bar chart data (Standard+ tier).
      * Returns daily hours where temperature exceeded baseline+1.0°C.
      */
-    public List<HealthDtos.DailyFeverHour> getFeverDurationChart(Long farmId, Long livestockId) {
+    public List<HealthDtos.DailyFeverHour> getFeverDurationChart(Long farmId, Long livestockId, Integer tzOffsetMinutes) {
         if (!subscriptionPort.hasFeature("health_score")) {
             return List.of();
         }
+        java.time.ZoneId zone = bucketZone(tzOffsetMinutes);
         int retentionDays = Math.min(subscriptionPort.getRetentionDays("health_score"), 7);
         Instant now = Instant.now();
         List<TemperatureLog> logs = tempLogRepo.findByLivestockIdAndTimeRange(
@@ -702,14 +713,14 @@ public class HealthApplicationService {
 
         Map<String, Double> dailyHours = new LinkedHashMap<>();
         for (int i = retentionDays - 1; i >= 0; i--) {
-            String dateStr = java.time.LocalDate.now().minusDays(i).toString();
+            String dateStr = java.time.LocalDate.now(zone).minusDays(i).toString();
             dailyHours.put(dateStr, 0.0);
         }
 
         BigDecimal threshold = DEFAULT_BASELINE_TEMP.add(new BigDecimal("1.0"));
         for (TemperatureLog log : logs) {
             if (log.getTemperature() != null && log.getTemperature().compareTo(threshold) > 0) {
-                String dateStr = log.getRecordedAt().atZone(DISPLAY_ZONE).toLocalDate().toString();
+                String dateStr = log.getRecordedAt().atZone(zone).toLocalDate().toString();
                 dailyHours.merge(dateStr, 0.5, Double::sum);
             }
         }
@@ -722,10 +733,11 @@ public class HealthApplicationService {
     /**
      * 24h motility intensity heatmap data (Standard+ tier).
      */
-    public List<HealthDtos.IntensityCell> getIntensityHeatmap(Long farmId, Long livestockId) {
+    public List<HealthDtos.IntensityCell> getIntensityHeatmap(Long farmId, Long livestockId, Integer tzOffsetMinutes) {
         if (!subscriptionPort.hasFeature("health_score")) {
             return List.of();
         }
+        java.time.ZoneId zone = bucketZone(tzOffsetMinutes);
         Instant now = Instant.now();
         List<RumenMotilityLog> logs = motilityLogRepo.findByLivestockIdAndTimeRange(
                 livestockId, now.minus(Duration.ofHours(24)), now);
@@ -733,7 +745,7 @@ public class HealthApplicationService {
         double[] avgIntensity = new double[24];
         int[] counts = new int[24];
         for (RumenMotilityLog log : logs) {
-            int hour = log.getRecordedAt().atZone(DISPLAY_ZONE).getHour();
+            int hour = log.getRecordedAt().atZone(zone).getHour();
             if (log.getIntensity() != null) {
                 avgIntensity[hour] += log.getIntensity().doubleValue();
                 counts[hour]++;
