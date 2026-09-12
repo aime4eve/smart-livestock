@@ -53,7 +53,7 @@ class _CreateCheckDialogState extends ConsumerState<CreateCheckDialog> {
                 controller: _euiCtrl,
                 decoration: InputDecoration(
                   labelText: l10n.gpsQualityDeviceEui,
-                  hintText: 'e.g. ABC123456789',
+                  hintText: l10n.gpsQualityEuiHint,
                   errorText: _euiError,
                   prefixIcon: const Icon(Icons.wifi_tethering, size: 18),
                 ),
