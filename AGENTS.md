@@ -14,6 +14,7 @@
 
 - **编译**：Agent 可自行执行（`./gradlew compileJava`、`flutter build` 等），验证代码可构建。
 - **部署**：Agent 可自行执行 dev 部署（`cd smart-livestock-server && ./scripts/deploy.sh dev`）；test 环境必须等用户通知后再执行。
+- **4 环境全量部署链**（dev / test / 86 HOSTED / 223 ONPREM，用户明确要求"全部部署"时按序执行，实操细节见 `docs/deployment/release-deployment-playbook.md`、经验 #23）：前端 `Mobile/mobile_app/build_web.sh` → `deploy.sh dev`（19080）→ `deploy.sh test`（18080）→ 123 上 `build-release-package.sh --skip-web` 打包 + verify → Mac 两跳传输逐台升级 86/223（继承 `.env.release`+certs、sed RELEASE_VERSION 以打包日志为准、down 旧栈、`MIN_MEM_GB=15 MIN_DISK_GB=50` 覆盖安装、免 sudo）。**顺序不可颠倒**：86/223 包内 frontend 复用 dev/test 阶段 rsync 上去的新前端。各环境生效判据：容器内 `main.dart.js` md5 对比本地 + 种子账号登录 200。
 - **集成测试**：仅在部署完成后执行；不得在部署前提前运行。
 - **顺序**：编码 → 编译验证 → 部署 → 集成测试。
 - **全量测试基线**：后端全量测试当前有 19 个既有失败（14 个 Testcontainers Docker 环境初始化 + 5 个 `AlertReadStatusTest` mock 债务）。判断本次回归时优先运行目标测试，并对比失败集合是否扩大。
@@ -121,6 +122,10 @@ Agent 自身出问题时（元故障）：
 **部署 / 前端**
 - 前端入口/功能"缺失"，代码里有 key → 先 grep 容器内 `main.dart.js`，不一致则是 nginx 镜像未重建 — #6
 - API curl 正常但前端无变化 → 前端未重新构建部署（`build_web.sh` + `deploy.sh` 两步缺一不可）— #7
+- 部署后判活：`/actuator/health` 502→401 是启动中正常轨迹（该端点要认证），种子账号登录 200 才是可用；前端生效看容器内 `main.dart.js` md5 对比本地 — #23
+- 发布包升级：verify 11/13 属预期（2 条证书 FAIL = 继承成功，看 SHA256SUMS）；目标版本号以打包日志 `[OK] version` 为准（本地每次 deploy.sh 会使 build.number +1 并 rsync）— #23
+- 远程进程探活禁裸 `pgrep -f <关键词>`：ssh 命令行自匹配误报 RUNNING，用 `pgrep -af ... | grep -v pgrep` 或产物 mtime/日志尾 — #23
+- 86/223 升级免 sudo（hkt 在 docker 组）；资源预检 FAIL 先 `df -h` 核实再用 `MIN_MEM_GB/MIN_DISK_GB` 覆盖，旧版本目录留作回滚点 — #23
 
 **后端 / 数据库**
 - 接口返回空列表 → 先核代码 glob 与挂载路径，再进容器 `ls` 数据卷 — #3

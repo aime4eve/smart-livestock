@@ -36,8 +36,12 @@ nohup bash scripts/build-release-package.sh --skip-web --out ~/release-pkg \
 
 ```bash
 cd ~/release-pkg && mkdir -p v && tar xzf smart-livestock-market-beta-<版本>.tar.gz -C v \
-  && cd v && bash release/scripts/verify-release-bundle.sh . && cd .. && rm -rf v
+  && cd v/smart-livestock-market-beta-<版本> && bash release/scripts/verify-release-bundle.sh . \
+  && cd ~/release-pkg && rm -rf v
 ```
+
+> 包内顶层是版本目录 `smart-livestock-market-beta-<版本>/`（release/、images.tar.gz、SHA256SUMS 在其下），verify/install 都要进这一层执行（#23）。
+> 升级语境（已按 §4 拷入证书）verify 显示 11/13 属预期：2 条"包内不应有私钥/pem"FAIL 正是证书继承成功的证明，完整性判据看 `SHA256SUMS verifies` 是否 PASS（#23）。
 
 > ⚠️ 历史教训 #22：verify 脚本曾因 awk 区间表达式在目标机 mawk 上假失败——**558 起已修复**；更早的包（≤557）在 Ubuntu 目标机上 verify 不可信。
 

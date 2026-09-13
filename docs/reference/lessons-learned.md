@@ -377,6 +377,28 @@
 
 ---
 
+## 23. 一次变更覆盖 4 环境：dev/test 与 86/223 是两条链路，顺序和判据都不能错
+
+- **日期**: 2026-09-13
+- **现象**: 前端 bug 修复（设备开通向导重开残留）要求一次部署到全部 4 个环境：dev（123:19080）、test（123:18080）、86（HOSTED 验证机）、223（ONPREM 验证机）。全程遇到四类"部署假信号"：① 轮询 123 打包进程连续 12 轮误报 RUNNING，实际早已完成；② 升级场景包校验 11/13 以为是包损坏；③ `/actuator/health` 部署后 502 → 401，像是不健康；④ 86 安装预检 FAIL"Disk 69G < 75G"，旧参数直接重跑过不去。
+- **误判**: ① 怀疑打包卡死——实际 `pgrep -f build-release-package` 在 ssh 远程命令里执行时，**匹配到了命令行自身**（ssh 传过去的整条命令含该关键词），RUNNING 是自匹配假象；② 怀疑包完整性——SHA256SUMS 其实 PASS，两条 FAIL 恰是"包内不应有私钥/pem"检查，而证书是升级流程**故意**从旧目录拷进去的；③ 以为部署失败——401 说明 app 已启动（该端点要认证），502→401→登录 200 才是启动的真实轨迹；④ 想清理旧版本目录腾空间——实际 playbook 的 `MIN_MEM_GB/MIN_DISK_GB` 本来就是覆盖参数，先 `df -h` 核实水位（69G 对安装增量绰绰有余）降阈值即可。
+- **根因**: 4 环境本质是**两条部署链路 + 一个顺序依赖**：dev/test = `build_web.sh` → `deploy.sh`（rsync 整仓 + 远程重建 nginx）；86/223 = 123 上打包（`--skip-web` **复用 deploy.sh 刚 rsync 上去的 frontend/**）→ Mac 两跳传输 → 继承 env/certs → 停旧栈 → 安装。顺序错了（先打包后 deploy）会把**旧前端**打进验证机包——链路间的隐式耦合没有任何机制保护。此外运维语义知识（hkt 在 docker 组可免 sudo、86 磁盘水位随版本累积下降、包版本号 = 打包时 build.number）散落在 playbook、脚本与目标机现实三处，不实战一次不会对齐。
+- **历史教训**: 与 #7（前端两步缺一不可）同族的链路完整性问题，但跨到了"两条链路 + 顺序依赖"的尺度；与 #22 的"预检 FAIL 不是包的问题"判据一脉相承——资源阈值 FAIL 用覆盖参数，证书 FAIL 是继承成功。
+- **解决**:
+  1. 固定顺序链：`build_web.sh` → `deploy.sh dev` → `deploy.sh test`（各验证登录 200 + 前端 md5）→ 123 打包 `--skip-web` + verify 13/13 → Mac 两跳逐台传输 → 86/223 升级（26/26 + 登录 + 223 `deployment-info` 仍 VALID）。本次 dev/test 前端 md5 一致、86（560→593）/223（562→593）全绿。
+  2. 前端生效判定统一为"**目标容器内 `md5sum main.dart.js` == 本地 `frontend/main.dart.js` md5**"，比 curl 页面或看日志可靠。
+  3. 86/223 升级**免 sudo**：hkt 在 docker 组（`groups` 含 docker），`install-release.sh` 与 `docker compose down` 直接跑通；前提是安装目录在 home、端口由容器绑定——换目标机先 `id` 核实。
+  4. 资源预检 FAIL → `df -h` 核实后 `MIN_MEM_GB=15 MIN_DISK_GB=50` 覆盖（86 实际可用 69G）。
+  5. 升级判读：verify 只看 `SHA256SUMS verifies` 是否 PASS；**包名版本以打包日志 `[OK] version : <N>` 为准**——本地每次 `deploy.sh` 跑 bootJar 都会使 build.number +1 并随 rsync 覆盖 123，打包读的是当时值（本次 593，不是预期推算的 594）。
+- **判据**:
+  - 全环境部署顺序固定：**build_web.sh → deploy dev → deploy test → 123 打包（--skip-web）→ verify → 两跳逐台升级**；86/223 包内 frontend 依赖 dev/test 阶段的 rsync，先打包后部署 = 旧前端进验证机。
+  - 部署"假成功"排查标准动作：容器内 `main.dart.js` md5 对比本地；`/actuator/health` 502→401 是启动中正常轨迹，**种子账号登录 200 才是可用判据**。
+  - 远程进程探活**禁用裸 `pgrep -f <关键词>`**（ssh 命令行自匹配误报 RUNNING）；用 `pgrep -af ... | grep -v pgrep`、产物文件 mtime 或日志尾判断。
+  - 升级场景 verify 必然 11/13（2 条证书 FAIL = 继承成功），SHA256SUMS PASS 即完整性成立；升级 sed RELEASE_VERSION 的目标值以打包日志输出为准，不靠推算。
+  - 目标机资源预检 FAIL 先 `df -h`/`free` 核实真实水位，再用 playbook 覆盖参数（`MIN_MEM_GB/MIN_DISK_GB`），不盲目放行也不急删旧版本目录（那是回滚点）。
+
+---
+
 ## 关键词索引（遇症状按关键词快速定位）
 
 | 编号 | 关键词 |
@@ -402,3 +424,4 @@
  | #20 | fresh-database, 全新库, generated-column, 生成列, bpchar, char, varchar, partition, attgenerated, checksum, journey |
  | #21 | 契约漂移, breed, gender, check-constraint, scopes, raw-key, api-key, tile-worker, 401, 轮询, 文档示例, 集成测试 |
  | #22 | mawk, awk, interval, {4,}, 区间表达式, verify-release-bundle, sha256sums, 热修, 重装, 预检, ubuntu |
+ | #23 | 4环境, 全量部署, 部署顺序, build-release-package, --skip-web, 两跳, 86, 223, main.dart.js, md5, 假成功, pgrep, 自匹配, actuator, 401, min-disk-gb, 免sudo, verify 11/13, build.number |
