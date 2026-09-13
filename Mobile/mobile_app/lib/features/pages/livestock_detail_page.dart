@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,6 +25,7 @@ import 'package:hkt_livestock_agentic/features/subscription/presentation/subscri
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/locked_overlay.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/features/devices/domain/devices_repository.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/devices_controller.dart';
 import 'package:hkt_livestock_agentic/features/digestive/presentation/digestive_controller.dart';
 
@@ -320,6 +323,14 @@ class _DeviceListCard extends ConsumerWidget {
                         ],
                       ),
                     ),
+                    IconButton(
+                      key: Key('livestock-unbind-device-${device.id}'),
+                      tooltip: l10n.installUnbind,
+                      icon: const Icon(Icons.link_off),
+                      color: AppColors.textSecondary,
+                      onPressed: () =>
+                          _showUnbindConfirm(context, ref, detail, device),
+                    ),
                   ],
                 ),
               ),
@@ -347,10 +358,94 @@ void _showBindDeviceSheet(
     isScrollControlled: true,
     builder: (ctx) => _BindDeviceSheet(livestockId: detail.livestockId),
   ).then(
-    (_) => ref
-        .read(livestockDetailControllerProvider(detail.livestockId).notifier)
-        .refresh(),
+    (_) {
+      ref.invalidate(livestockListControllerProvider);
+      ref
+          .read(livestockDetailControllerProvider(detail.livestockId).notifier)
+          .refresh();
+    },
   );
+}
+
+void _showUnbindConfirm(
+  BuildContext context,
+  WidgetRef ref,
+  LivestockDetail detail,
+  DeviceItem device,
+) {
+  final l10n = AppLocalizations.of(context)!;
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      icon: const Icon(
+        Icons.link_off,
+        color: AppColors.warning,
+        size: 48,
+      ),
+      title: Text(l10n.installUnbindConfirmTitle),
+      content: Text(l10n.installUnbindConfirmMsg(device.name)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: Text(l10n.commonCancel),
+        ),
+        FilledButton(
+          onPressed: () {
+            Navigator.of(ctx).pop();
+            _unbindDevice(context, ref, detail, device);
+          },
+          child: Text(l10n.installUnbind),
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> _unbindDevice(
+  BuildContext context,
+  WidgetRef ref,
+  LivestockDetail detail,
+  DeviceItem device,
+) async {
+  final l10n = AppLocalizations.of(context)!;
+  final messenger = ScaffoldMessenger.of(context);
+  try {
+    // Server-side livestockId filter: only this livestock's installations
+    // come back, so the lookup stays correct no matter how many devices
+    // the farm has bound overall.
+    final installations = await ref
+        .read(devicesRepositoryProvider)
+        .loadInstallations(livestockId: detail.livestockId);
+    Installation? installation;
+    for (final i in installations) {
+      if (i.active && i.deviceId == device.id) {
+        installation = i;
+        break;
+      }
+    }
+    if (installation == null) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.commonLoadFailed)),
+      );
+      return;
+    }
+    await ref
+        .read(devicesRepositoryProvider)
+        .uninstall(installation.id);
+    if (context.mounted) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.installUnbindSuccess)),
+      );
+      ref.invalidate(livestockListControllerProvider);
+      ref
+          .read(livestockDetailControllerProvider(detail.livestockId).notifier)
+          .refresh();
+    }
+  } catch (e) {
+    messenger.showSnackBar(
+      SnackBar(content: Text('${l10n.commonLoadFailed}: $e')),
+    );
+  }
 }
 
 void _showEditForm(
@@ -370,9 +465,12 @@ void _showEditForm(
       weight: detail.weightKg,
     ),
   ).then(
-    (_) => ref
-        .read(livestockDetailControllerProvider(detail.livestockId).notifier)
-        .refresh(),
+    (_) {
+      ref.invalidate(livestockListControllerProvider);
+      ref
+          .read(livestockDetailControllerProvider(detail.livestockId).notifier)
+          .refresh();
+    },
   );
 }
 
@@ -456,6 +554,7 @@ void _showDeleteConfirm(
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(SnackBar(content: Text(l10n.livestockDeleted)));
+                ref.invalidate(livestockListControllerProvider);
                 context.go(AppRoute.livestockList.path);
               }
             } catch (e) {
@@ -482,56 +581,119 @@ class _BindDeviceSheet extends ConsumerStatefulWidget {
 }
 
 class _BindDeviceSheetState extends ConsumerState<_BindDeviceSheet> {
-  List<DeviceItem> _devices = [];
+  static const _pageSize = 20;
+
+  final _searchCtrl = TextEditingController();
+  final _scrollCtrl = ScrollController();
+  Timer? _debounce;
+
+  final List<DeviceItem> _devices = [];
   bool _loading = true;
+  bool _loadingMore = false;
+  bool _hasMore = true;
+  int _page = 0;
 
   @override
   void initState() {
     super.initState();
-    _loadDevices();
+    _scrollCtrl.addListener(_onScroll);
+    _loadPage();
   }
 
-  Future<void> _loadDevices() async {
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _scrollCtrl.dispose();
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_hasMore || _loadingMore || _loading) return;
+    if (_scrollCtrl.position.pixels >=
+        _scrollCtrl.position.maxScrollExtent - 200) {
+      _loadPage();
+    }
+  }
+
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), () {
+      if (mounted) _reload();
+    });
+  }
+
+  Future<void> _reload() async {
+    setState(() {
+      _devices.clear();
+      _page = 0;
+      _hasMore = true;
+      _loading = true;
+    });
+    await _loadPage();
+  }
+
+  Future<void> _loadPage() async {
+    if (_loadingMore) return;
+    final isInitial = _page == 0;
+    if (!isInitial) setState(() => _loadingMore = true);
     try {
+      final keyword = _searchCtrl.text.trim();
       final data = await ref
           .read(devicesRepositoryProvider)
-          .loadDevices(pageSize: 100);
-      final installed = await ref
-          .read(devicesRepositoryProvider)
-          .loadInstallations();
-      // Filter out ALL devices that are actively installed on ANY livestock
-      final allInstalledDeviceIds = installed
-          .where((i) => i.installedAt.isNotEmpty)
-          .map((i) => i.deviceId)
-          .toSet();
-      // Also get current livestock's bound device types for conflict check
-      final detailAsync = ref.read(
-        livestockDetailControllerProvider(widget.livestockId),
-      );
-      final boundTypes = <DeviceType>{};
-      final detailVal = detailAsync.value;
-      if (detailVal != null) {
-        for (final d in detailVal.devices) {
-          boundTypes.add(d.type);
-        }
-      }
-      if (mounted) {
-        setState(() {
-          _devices = data.items
-              .where((d) => !allInstalledDeviceIds.contains(d.id))
-              .where((d) => !boundTypes.contains(d.type))
-              .toList();
-          _loading = false;
-        });
-      }
+          .loadDevices(
+            page: _page + 1,
+            pageSize: _pageSize,
+            keyword: keyword.isNotEmpty ? keyword : null,
+            unboundOnly: true,
+          );
+      // Conflict rule kept client-side: one device per type per livestock.
+      // Unbound filtering itself is done server-side (unboundOnly=true).
+      final detailVal = ref
+          .read(livestockDetailControllerProvider(widget.livestockId))
+          .value;
+      final boundTypes = <DeviceType>{
+        for (final d in detailVal?.devices ?? const <DeviceItem>[]) d.type,
+      };
+      if (!mounted) return;
+      setState(() {
+        _page += 1;
+        _devices.addAll(
+          data.items.where((d) => !boundTypes.contains(d.type)),
+        );
+        _hasMore = data.items.length >= _pageSize;
+        _loading = false;
+        _loadingMore = false;
+      });
+      _maybeAutoFill();
     } catch (_) {
-      if (mounted) setState(() => _loading = false);
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _loadingMore = false;
+      });
     }
+  }
+
+  /// A page can come back full from the server yet shrink to almost nothing
+  /// after the client-side type-conflict filter, leaving the list without a
+  /// scrollable area — scroll-triggered pagination then never fires and the
+  /// footer spinner spins forever. Keep fetching in that case until the
+  /// viewport is scrollable or the server runs out of pages.
+  void _maybeAutoFill() {
+    if (!_hasMore) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_hasMore || _loading || _loadingMore) return;
+      final hasScrollSpace =
+          _scrollCtrl.hasClients && _scrollCtrl.position.maxScrollExtent > 0;
+      if (!hasScrollSpace) _loadPage();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final keyword = _searchCtrl.text.trim();
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -555,19 +717,59 @@ class _BindDeviceSheetState extends ConsumerState<_BindDeviceSheet> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppSpacing.md),
+            TextField(
+              key: const Key('bind-device-search'),
+              controller: _searchCtrl,
+              decoration: InputDecoration(
+                hintText: l10n.installSearchHint,
+                prefixIcon: const Icon(Icons.search),
+                isDense: true,
+                border: const OutlineInputBorder(),
+                suffixIcon: _searchCtrl.text.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchCtrl.clear();
+                          _reload();
+                        },
+                      ),
+              ),
+              onChanged: _onSearchChanged,
+            ),
+            const SizedBox(height: AppSpacing.md),
             if (_loading)
               const Center(child: CircularProgressIndicator())
             else if (_devices.isEmpty)
-              Center(child: Text(l10n.installNoAvailableDevices))
+              Center(
+                child: Text(
+                  keyword.isNotEmpty
+                      ? l10n.installNoSearchMatch
+                      : l10n.installNoAvailableDevices,
+                ),
+              )
             else
               ConstrainedBox(
                 constraints: BoxConstraints(
                   maxHeight: MediaQuery.of(context).size.height * 0.4,
                 ),
                 child: ListView.builder(
+                  controller: _scrollCtrl,
                   shrinkWrap: true,
-                  itemCount: _devices.length,
+                  itemCount: _devices.length + (_hasMore ? 1 : 0),
                   itemBuilder: (ctx, i) {
+                    if (i >= _devices.length) {
+                      return const Padding(
+                        padding: EdgeInsets.all(AppSpacing.md),
+                        child: Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      );
+                    }
                     final d = _devices[i];
                     return ListTile(
                       key: Key('bind-device-${d.id}'),

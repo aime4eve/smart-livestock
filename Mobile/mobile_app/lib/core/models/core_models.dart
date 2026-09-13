@@ -158,6 +158,7 @@ class DeviceItem {
     this.antiDisassemblyStatus,
     this.lastTelemetrySyncedAt,
     this.devEui,
+    this.serialNo,
     this.runtimeStatus,
     this.softwareVersion,
     this.hardwareVersion,
@@ -180,6 +181,7 @@ class DeviceItem {
   final int? antiDisassemblyStatus;
   final String? lastTelemetrySyncedAt;
   final String? devEui;
+  final String? serialNo;
   final String? runtimeStatus;
   final String? softwareVersion;
   final String? hardwareVersion;

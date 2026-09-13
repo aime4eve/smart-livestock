@@ -2656,6 +2656,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get installSuccess => '安装成功';
 
   @override
+  String get installSearchHint => '搜索设备名称 / 设备号 / EUI';
+
+  @override
+  String get installNoSearchMatch => '无匹配设备';
+
+  @override
+  String get installUnbind => '解绑';
+
+  @override
+  String get installUnbindConfirmTitle => '确认解绑？';
+
+  @override
+  String installUnbindConfirmMsg(String deviceName) {
+    return '确定要将设备 $deviceName 与该牲畜解绑吗？解绑后设备可重新绑定到其他牲畜。';
+  }
+
+  @override
+  String get installUnbindSuccess => '解绑成功';
+
+  @override
   String get livestockNoDeviceBound => '未绑定设备';
 
   @override

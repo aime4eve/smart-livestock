@@ -18,6 +18,12 @@ public interface DeviceRepository {
     long countByTenantIdPaged(Long tenantId);
     long countByTenantIdAndKeyword(Long tenantId, String keyword);
 
+    /** Paged devices with no active installation (bindable candidates). */
+    java.util.List<Device> findByTenantIdUnboundPaged(Long tenantId, int offset, int limit);
+    java.util.List<Device> findByTenantIdUnboundAndKeyword(Long tenantId, String keyword, int offset, int limit);
+    long countByTenantIdUnbound(Long tenantId);
+    long countByTenantIdUnboundAndKeyword(Long tenantId, String keyword);
+
     /** Find IDs of ACTIVE devices with platform_device_id set, paginated by offset/limit. */
     List<Long> findActivePlatformDeviceIds(int offset, int limit);
 

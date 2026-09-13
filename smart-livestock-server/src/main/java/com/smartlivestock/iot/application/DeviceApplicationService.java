@@ -423,16 +423,27 @@ public class DeviceApplicationService {
     }
 
     /**
-     * Paginated device query with optional keyword search.
+     * Paginated device query with optional keyword search. When unboundOnly is
+     * set, devices holding an active installation are excluded server-side so
+     * bind pickers can page through large inventories without client-side
+     * filtering.
      */
     @Transactional(readOnly = true)
-    public DevicePage listByTenant(Long tenantId, String keyword, int page, int pageSize) {
+    public DevicePage listByTenant(Long tenantId, String keyword, boolean unboundOnly, int page, int pageSize) {
         String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
         int safePage = Math.max(1, page);
         int offset = (safePage - 1) * pageSize;
         java.util.List<DeviceDto> items;
         long total;
-        if (kw != null) {
+        if (unboundOnly) {
+            items = (kw != null
+                    ? deviceRepository.findByTenantIdUnboundAndKeyword(tenantId, kw, offset, pageSize)
+                    : deviceRepository.findByTenantIdUnboundPaged(tenantId, offset, pageSize))
+                    .stream().map(DeviceDto::from).toList();
+            total = kw != null
+                    ? deviceRepository.countByTenantIdUnboundAndKeyword(tenantId, kw)
+                    : deviceRepository.countByTenantIdUnbound(tenantId);
+        } else if (kw != null) {
             items = deviceRepository.findByTenantIdAndKeyword(tenantId, kw, offset, pageSize)
                     .stream().map(DeviceDto::from).toList();
             total = deviceRepository.countByTenantIdAndKeyword(tenantId, kw);

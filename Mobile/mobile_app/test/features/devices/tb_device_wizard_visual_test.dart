@@ -220,6 +220,7 @@ class _FakeDevicesRepository implements DevicesRepository {
     int page = 1,
     int pageSize = 20,
     String? keyword,
+  bool? unboundOnly,
   }) async => DevicesListData(
     items: const [],
     total: 0,
@@ -251,7 +252,10 @@ class _FakeDevicesRepository implements DevicesRepository {
   Future<List<DeviceLicense>> loadLicenses() async => const [];
 
   @override
-  Future<List<Installation>> loadInstallations() async => const [];
+  Future<List<Installation>> loadInstallations({int? pageSize, String? livestockId}) async => const [];
+
+  @override
+  Future<void> uninstall(String installationId) async {}
 
   @override
   Future<List<GpsPoint>> loadLatestGps() async => const [];

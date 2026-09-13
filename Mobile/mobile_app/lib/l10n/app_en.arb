@@ -2271,6 +2271,24 @@
   "@installNoAvailableDevices": {},
   "installSuccess": "Installed successfully",
   "@installSuccess": {},
+  "installSearchHint": "Search by name, serial no. or EUI",
+  "@installSearchHint": {},
+  "installNoSearchMatch": "No matching devices",
+  "@installNoSearchMatch": {},
+  "installUnbind": "Unbind",
+  "@installUnbind": {},
+  "installUnbindConfirmTitle": "Unbind Device?",
+  "@installUnbindConfirmTitle": {},
+  "installUnbindConfirmMsg": "Unbind device {deviceName} from this livestock? The device can be bound to another livestock afterwards.",
+  "@installUnbindConfirmMsg": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
+  "installUnbindSuccess": "Unbound successfully",
+  "@installUnbindSuccess": {},
   "livestockNoDeviceBound": "No device bound",
   "@livestockNoDeviceBound": {},
   "livestockDeleteConfirmTitle": "Confirm Delete?",

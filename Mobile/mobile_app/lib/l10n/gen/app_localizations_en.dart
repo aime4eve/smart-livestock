@@ -2709,6 +2709,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get installSuccess => 'Installed successfully';
 
   @override
+  String get installSearchHint => 'Search by name, serial no. or EUI';
+
+  @override
+  String get installNoSearchMatch => 'No matching devices';
+
+  @override
+  String get installUnbind => 'Unbind';
+
+  @override
+  String get installUnbindConfirmTitle => 'Unbind Device?';
+
+  @override
+  String installUnbindConfirmMsg(String deviceName) {
+    return 'Unbind device $deviceName from this livestock? The device can be bound to another livestock afterwards.';
+  }
+
+  @override
+  String get installUnbindSuccess => 'Unbound successfully';
+
+  @override
   String get livestockNoDeviceBound => 'No device bound';
 
   @override

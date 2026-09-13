@@ -27,6 +27,7 @@ class _FakeDevicesRepository implements DevicesRepository {
     int page = 1,
     int pageSize = 20,
     String? keyword,
+  bool? unboundOnly,
   }) async {
     loadCallCount++;
     lastKeyword = keyword;
@@ -62,7 +63,10 @@ class _FakeDevicesRepository implements DevicesRepository {
   Future<List<DeviceLicense>> loadLicenses() async => [];
 
   @override
-  Future<List<Installation>> loadInstallations() async => [];
+  Future<List<Installation>> loadInstallations({int? pageSize, String? livestockId}) async => [];
+
+  @override
+  Future<void> uninstall(String installationId) async {}
 
   @override
   Future<List<GpsPoint>> loadLatestGps() async => [];

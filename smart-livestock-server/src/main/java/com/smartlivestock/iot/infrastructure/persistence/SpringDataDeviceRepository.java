@@ -21,16 +21,43 @@ public interface SpringDataDeviceRepository extends JpaRepository<DeviceJpaEntit
 
     @Query("SELECT d FROM DeviceJpaEntity d WHERE d.tenantId = :tenantId " +
            "AND (LOWER(d.deviceCode) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(d.serialNo) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "OR LOWER(d.devEui) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY d.id")
     Page<DeviceJpaEntity> findByTenantIdAndKeyword(@Param("tenantId") Long tenantId,
                                                    @Param("keyword") String keyword,
                                                    Pageable pageable);
+
+    String KEYWORD_MATCH = "(LOWER(d.deviceCode) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(d.serialNo) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(d.devEui) LIKE LOWER(CONCAT('%', :keyword, '%')))";
+
+    String UNBOUND = "NOT EXISTS (SELECT i FROM InstallationJpaEntity i " +
+            "WHERE i.deviceId = d.id AND i.removedAt IS NULL)";
+
+    @Query("SELECT d FROM DeviceJpaEntity d WHERE d.tenantId = :tenantId " +
+           "AND " + UNBOUND + " ORDER BY d.id")
+    Page<DeviceJpaEntity> findByTenantIdUnboundPaged(@Param("tenantId") Long tenantId,
+                                                     Pageable pageable);
+
+    @Query("SELECT d FROM DeviceJpaEntity d WHERE d.tenantId = :tenantId " +
+           "AND " + UNBOUND + " AND " + KEYWORD_MATCH + " ORDER BY d.id")
+    Page<DeviceJpaEntity> findByTenantIdUnboundAndKeyword(@Param("tenantId") Long tenantId,
+                                                          @Param("keyword") String keyword,
+                                                          Pageable pageable);
+
+    @Query("SELECT COUNT(d) FROM DeviceJpaEntity d WHERE d.tenantId = :tenantId AND " + UNBOUND)
+    long countByTenantIdUnbound(@Param("tenantId") Long tenantId);
+
+    @Query("SELECT COUNT(d) FROM DeviceJpaEntity d WHERE d.tenantId = :tenantId " +
+           "AND " + UNBOUND + " AND " + KEYWORD_MATCH)
+    long countByTenantIdUnboundAndKeyword(@Param("tenantId") Long tenantId, @Param("keyword") String keyword);
 
     @Query("SELECT COUNT(d) FROM DeviceJpaEntity d WHERE d.tenantId = :tenantId")
     long countByTenantIdActive(@Param("tenantId") Long tenantId);
 
     @Query("SELECT COUNT(d) FROM DeviceJpaEntity d WHERE d.tenantId = :tenantId " +
            "AND (LOWER(d.deviceCode) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(d.serialNo) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "OR LOWER(d.devEui) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     long countByTenantIdAndKeyword(@Param("tenantId") Long tenantId, @Param("keyword") String keyword);
 

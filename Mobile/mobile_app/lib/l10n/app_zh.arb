@@ -2268,6 +2268,24 @@
   "@installNoAvailableDevices": {},
   "installSuccess": "安装成功",
   "@installSuccess": {},
+  "installSearchHint": "搜索设备名称 / 设备号 / EUI",
+  "@installSearchHint": {},
+  "installNoSearchMatch": "无匹配设备",
+  "@installNoSearchMatch": {},
+  "installUnbind": "解绑",
+  "@installUnbind": {},
+  "installUnbindConfirmTitle": "确认解绑？",
+  "@installUnbindConfirmTitle": {},
+  "installUnbindConfirmMsg": "确定要将设备 {deviceName} 与该牲畜解绑吗？解绑后设备可重新绑定到其他牲畜。",
+  "@installUnbindConfirmMsg": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
+  "installUnbindSuccess": "解绑成功",
+  "@installUnbindSuccess": {},
   "livestockNoDeviceBound": "未绑定设备",
   "@livestockNoDeviceBound": {},
   "livestockDeleteConfirmTitle": "确认删除？",

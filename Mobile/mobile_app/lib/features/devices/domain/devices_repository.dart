@@ -34,12 +34,14 @@ class Installation {
     required this.deviceId,
     required this.livestockId,
     required this.installedAt,
+    this.active = true,
   });
 
   final String id;
   final String deviceId;
   final String livestockId;
   final String installedAt;
+  final bool active;
 }
 
 class GpsPoint {
@@ -137,6 +139,7 @@ abstract class DevicesRepository {
     int page = 1,
     int pageSize = 20,
     String? keyword,
+    bool? unboundOnly,
   });
 
   Future<DeviceItem> loadDetail(String id);
@@ -153,7 +156,9 @@ abstract class DevicesRepository {
 
   Future<List<DeviceLicense>> loadLicenses();
 
-  Future<List<Installation>> loadInstallations();
+  Future<List<Installation>> loadInstallations({int? pageSize, String? livestockId});
+
+  Future<void> uninstall(String installationId);
 
   Future<List<GpsPoint>> loadLatestGps();
 

@@ -10,10 +10,14 @@ class DevicesApiRepository implements DevicesRepository {
     int page = 1,
     int pageSize = 20,
     String? keyword,
+    bool? unboundOnly,
   }) async {
     var path = '/devices?page=$page&pageSize=$pageSize';
     if (keyword != null && keyword.isNotEmpty) {
       path += '&keyword=${Uri.encodeQueryComponent(keyword)}';
+    }
+    if (unboundOnly == true) {
+      path += '&unboundOnly=true';
     }
     final data = await ApiClient.instance.farmGet(path);
     final itemsRaw = data['items'];
@@ -79,14 +83,27 @@ class DevicesApiRepository implements DevicesRepository {
   }
 
   @override
-  Future<List<Installation>> loadInstallations() async {
-    final data = await ApiClient.instance.farmGet('/installations');
+  Future<List<Installation>> loadInstallations({int? pageSize, String? livestockId}) async {
+    final params = <String>[];
+    if (livestockId != null && livestockId.isNotEmpty) {
+      params.add('livestockId=${Uri.encodeQueryComponent(livestockId)}');
+    }
+    if (pageSize != null) {
+      params.add('page=1&pageSize=$pageSize');
+    }
+    final data = await ApiClient.instance
+        .farmGet(params.isEmpty ? '/installations' : '/installations?${params.join('&')}');
     final itemsRaw = data['items'] ?? data['value'];
     if (itemsRaw is! List) return const [];
     return itemsRaw
         .whereType<Map<String, dynamic>>()
         .map(_parseInstallation)
         .toList();
+  }
+
+  @override
+  Future<void> uninstall(String installationId) async {
+    await ApiClient.instance.farmPut('/installations/$installationId/uninstall');
   }
 
   @override
@@ -147,6 +164,7 @@ class DevicesApiRepository implements DevicesRepository {
       antiDisassemblyStatus: _parseNullableInt(m['antiDisassemblyStatus']),
       lastTelemetrySyncedAt: m['lastTelemetrySyncedAt'] as String?,
       devEui: m['devEui'] as String?,
+      serialNo: m['serialNo'] as String?,
       runtimeStatus: m['runtimeStatus'] as String?,
       softwareVersion: m['softwareVersion'] as String?,
       hardwareVersion: m['hardwareVersion'] as String?,
@@ -181,6 +199,7 @@ class DevicesApiRepository implements DevicesRepository {
       deviceId: (m['deviceId'] ?? '').toString(),
       livestockId: (m['livestockId'] ?? '').toString(),
       installedAt: (m['installedAt'] ?? '') as String,
+      active: m['active'] as bool? ?? true,
     );
   }
 

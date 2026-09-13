@@ -4946,6 +4946,42 @@ abstract class AppLocalizations {
   /// **'安装成功'**
   String get installSuccess;
 
+  /// No description provided for @installSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索设备名称 / 设备号 / EUI'**
+  String get installSearchHint;
+
+  /// No description provided for @installNoSearchMatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'无匹配设备'**
+  String get installNoSearchMatch;
+
+  /// No description provided for @installUnbind.
+  ///
+  /// In zh, this message translates to:
+  /// **'解绑'**
+  String get installUnbind;
+
+  /// No description provided for @installUnbindConfirmTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认解绑？'**
+  String get installUnbindConfirmTitle;
+
+  /// No description provided for @installUnbindConfirmMsg.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要将设备 {deviceName} 与该牲畜解绑吗？解绑后设备可重新绑定到其他牲畜。'**
+  String installUnbindConfirmMsg(String deviceName);
+
+  /// No description provided for @installUnbindSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'解绑成功'**
+  String get installUnbindSuccess;
+
   /// No description provided for @livestockNoDeviceBound.
   ///
   /// In zh, this message translates to:

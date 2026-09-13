@@ -29,15 +29,20 @@ public class InstallationController {
 
     /**
      * GET /api/v1/farms/{farmId}/installations
-     * List installations for a farm.
+     * List installations for a farm. When livestockId is provided, only that
+     * livestock's installations are returned (unpaged semantics preserved via
+     * the same in-memory window).
      */
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> listInstallations(
             @PathVariable Long farmId,
+            @RequestParam(required = false) Long livestockId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int pageSize) {
-        List<Long> livestockIds = ranchQueryPort.findAllByFarmId(farmId).stream()
-                .map(LivestockInfo::id).toList();
+        List<Long> livestockIds = livestockId != null
+                ? List.of(livestockId)
+                : ranchQueryPort.findAllByFarmId(farmId).stream()
+                        .map(LivestockInfo::id).toList();
         List<InstallationDto> all = installationApplicationService.findByLivestockIds(livestockIds);
         int total = all.size();
         int from = Math.min((page - 1) * pageSize, total);

@@ -38,9 +38,10 @@ public class DeviceController {
             @PathVariable Long farmId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int pageSize,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "false") boolean unboundOnly) {
         Long tenantId = TenantContext.getCurrentTenant();
-        var result = deviceApplicationService.listByTenant(tenantId, keyword, page, pageSize);
+        var result = deviceApplicationService.listByTenant(tenantId, keyword, unboundOnly, page, pageSize);
         Map<String, Object> data = Map.of(
                 "items", result.items(),
                 "page", result.page(),

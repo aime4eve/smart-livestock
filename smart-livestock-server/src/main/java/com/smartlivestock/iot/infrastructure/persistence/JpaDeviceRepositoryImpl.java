@@ -75,6 +75,32 @@ public class JpaDeviceRepositoryImpl implements DeviceRepository {
     }
 
     @Override
+    public List<Device> findByTenantIdUnboundPaged(Long tenantId, int offset, int limit) {
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(offset / limit, limit);
+        return springDataRepo.findByTenantIdUnboundPaged(tenantId, pageable)
+                .stream().map(DeviceMapper::toDomain).toList();
+    }
+
+    @Override
+    public List<Device> findByTenantIdUnboundAndKeyword(Long tenantId, String keyword, int offset, int limit) {
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(offset / limit, limit);
+        return springDataRepo.findByTenantIdUnboundAndKeyword(tenantId, keyword, pageable)
+                .stream().map(DeviceMapper::toDomain).toList();
+    }
+
+    @Override
+    public long countByTenantIdUnbound(Long tenantId) {
+        return springDataRepo.countByTenantIdUnbound(tenantId);
+    }
+
+    @Override
+    public long countByTenantIdUnboundAndKeyword(Long tenantId, String keyword) {
+        return springDataRepo.countByTenantIdUnboundAndKeyword(tenantId, keyword);
+    }
+
+    @Override
     public List<Device> findAllTrackers() {
         return springDataRepo.findByDeviceTypeOrderById("TRACKER").stream()
                 .map(DeviceMapper::toDomain).toList();
