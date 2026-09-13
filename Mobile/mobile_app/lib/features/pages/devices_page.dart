@@ -12,6 +12,7 @@ import 'package:hkt_livestock_agentic/features/livestock/presentation/livestock_
 import 'package:hkt_livestock_agentic/features/livestock/domain/livestock_repository.dart';
 import 'package:hkt_livestock_agentic/features/devices/domain/devices_repository.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/devices_controller.dart';
+import 'package:hkt_livestock_agentic/features/devices/presentation/tb_device_wizard_controller.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/widgets/tb_device_wizard_sheet.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_device_tile.dart';
@@ -64,6 +65,10 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
   }
 
   void _openForm() {
+    // The wizard controller is a non-autoDispose provider, so a finished run
+    // (result != null) would otherwise reopen straight into the stale result
+    // step. Every wizard session must start from the input step.
+    ref.read(tbDeviceWizardControllerProvider.notifier).reset();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
