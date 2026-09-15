@@ -37,12 +37,8 @@ esac
 echo "==> Building release IPA v${APP_VERSION} ($ENV env, $API_BASE_URL)"
 
 # Check signing identity
-if [ -z "${DEVELOPMENT_TEAM:-}" ]; then
-  echo "ERROR: DEVELOPMENT_TEAM env var not set."
-  echo "  Find your Team ID at: https://developer.apple.com/account -> Membership"
-  echo "  Usage: DEVELOPMENT_TEAM=ABCD1234 ./build_ios.sh test"
-  exit 1
-fi
+# Default team = free personal team of sales@hktlora.com (zhiyong wu)
+DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM:-J62PU4Y357}"
 
 echo "==> Team: $DEVELOPMENT_TEAM"
 

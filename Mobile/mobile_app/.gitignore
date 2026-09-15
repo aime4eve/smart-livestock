@@ -43,3 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# local-only icon workspace artifacts
+tooling/backup_*/
+tooling/preview_*.png
+tooling/app-icon-watermarked-original.png
