@@ -41,6 +41,24 @@
   "settingsLanguageEn": "English",
   "@settingsLanguageEn": {},
   "settingsLanguageSystem": "System",
+  "settingsTimeZone": "Time Zone",
+  "@settingsTimeZone": {},
+  "settingsTimeZoneDesc": "China time zones use AMap tiles; others use OpenStreetMap",
+  "@settingsTimeZoneDesc": {},
+  "settingsTimeZoneSystem": "Follow system",
+  "@settingsTimeZoneSystem": {},
+  "settingsTimeZoneChina": "China Standard Time (Beijing)",
+  "@settingsTimeZoneChina": {},
+  "settingsTimeZoneHongKong": "Hong Kong Time",
+  "@settingsTimeZoneHongKong": {},
+  "settingsTimeZoneUtc": "Coordinated Universal Time (UTC)",
+  "@settingsTimeZoneUtc": {},
+  "settingsTimeZoneUk": "United Kingdom",
+  "@settingsTimeZoneUk": {},
+  "settingsTimeZoneUsEastern": "US Eastern Time",
+  "@settingsTimeZoneUsEastern": {},
+  "settingsTimeZoneAustraliaEast": "Australian Eastern Time",
+  "@settingsTimeZoneAustraliaEast": {},
   "@settingsLanguageSystem": {},
   "settingsTitle": "Settings",
   "@settingsTitle": {},
@@ -492,9 +510,21 @@
   "livestockHealthData": "Health Data",
   "@livestockHealthData": {},
   "dataUpdatedAt": "Updated at {time}",
-  "@dataUpdatedAt": { "placeholders": { "time": { "type": "String" } } },
+  "@dataUpdatedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "latestDataAt": "Latest data {time}",
-  "@latestDataAt": { "placeholders": { "time": { "type": "String" } } },
+  "@latestDataAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "livestockLocation": "Location",
   "@livestockLocation": {},
   "livestockViewTrajectory": "View Full Trajectory",

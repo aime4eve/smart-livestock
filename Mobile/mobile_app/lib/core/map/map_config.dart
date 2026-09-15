@@ -39,10 +39,6 @@ class MapConfig {
   /// Default tile URL template (points to OSM for international market).
   static const String tileUrlTemplate = overseasFallbackUrl;
 
-  /// MBTiles 离线瓦片配置
-  static const String mbtilesAssetPath = 'assets/map/sample.mbtiles';
-  static const String mbtilesFileName = 'sample.mbtiles';
-
   /// 缓存子目录名
   static const String cacheDirName = 'map_tiles';
 

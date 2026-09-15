@@ -36,14 +36,21 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.4
 
   test: any
+flutter_launcher_icons:
+  image_path: "tooling/app_icon_master_1024.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  adaptive_icon_background: "#2F6B3B"
+  adaptive_icon_foreground: "tooling/app_icon_adaptive_fg_1024.png"
 flutter:
   generate: true
   uses-material-design: true
   assets:
     - assets/fonts/
-    - assets/map/sample.mbtiles
   fonts:
     - family: Roboto
       fonts:

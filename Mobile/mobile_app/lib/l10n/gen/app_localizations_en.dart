@@ -72,6 +72,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLanguageSystem => 'System';
 
   @override
+  String get settingsTimeZone => 'Time Zone';
+
+  @override
+  String get settingsTimeZoneDesc =>
+      'China time zones use AMap tiles; others use OpenStreetMap';
+
+  @override
+  String get settingsTimeZoneSystem => 'Follow system';
+
+  @override
+  String get settingsTimeZoneChina => 'China Standard Time (Beijing)';
+
+  @override
+  String get settingsTimeZoneHongKong => 'Hong Kong Time';
+
+  @override
+  String get settingsTimeZoneUtc => 'Coordinated Universal Time (UTC)';
+
+  @override
+  String get settingsTimeZoneUk => 'United Kingdom';
+
+  @override
+  String get settingsTimeZoneUsEastern => 'US Eastern Time';
+
+  @override
+  String get settingsTimeZoneAustraliaEast => 'Australian Eastern Time';
+
+  @override
   String get settingsTitle => 'Settings';
 
   @override

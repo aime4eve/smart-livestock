@@ -224,6 +224,60 @@ abstract class AppLocalizations {
   /// **'跟随系统'**
   String get settingsLanguageSystem;
 
+  /// No description provided for @settingsTimeZone.
+  ///
+  /// In zh, this message translates to:
+  /// **'时区'**
+  String get settingsTimeZone;
+
+  /// No description provided for @settingsTimeZoneDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'中国时区使用高德地图，其他时区使用 OpenStreetMap'**
+  String get settingsTimeZoneDesc;
+
+  /// No description provided for @settingsTimeZoneSystem.
+  ///
+  /// In zh, this message translates to:
+  /// **'跟随系统'**
+  String get settingsTimeZoneSystem;
+
+  /// No description provided for @settingsTimeZoneChina.
+  ///
+  /// In zh, this message translates to:
+  /// **'中国标准时间（北京时间）'**
+  String get settingsTimeZoneChina;
+
+  /// No description provided for @settingsTimeZoneHongKong.
+  ///
+  /// In zh, this message translates to:
+  /// **'香港时间'**
+  String get settingsTimeZoneHongKong;
+
+  /// No description provided for @settingsTimeZoneUtc.
+  ///
+  /// In zh, this message translates to:
+  /// **'协调世界时（UTC）'**
+  String get settingsTimeZoneUtc;
+
+  /// No description provided for @settingsTimeZoneUk.
+  ///
+  /// In zh, this message translates to:
+  /// **'英国时间'**
+  String get settingsTimeZoneUk;
+
+  /// No description provided for @settingsTimeZoneUsEastern.
+  ///
+  /// In zh, this message translates to:
+  /// **'美国东部时间'**
+  String get settingsTimeZoneUsEastern;
+
+  /// No description provided for @settingsTimeZoneAustraliaEast.
+  ///
+  /// In zh, this message translates to:
+  /// **'澳大利亚东部时间'**
+  String get settingsTimeZoneAustraliaEast;
+
   /// No description provided for @settingsTitle.
   ///
   /// In zh, this message translates to:

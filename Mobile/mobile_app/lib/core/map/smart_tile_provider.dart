@@ -5,35 +5,30 @@ import 'package:http/http.dart' as http;
 import 'package:hkt_livestock_agentic/core/map/mbtiles_tile_provider.dart';
 
 /// Which online source is currently active.
-enum _OnlineSource { primary, secondary, offline }
+enum _OnlineSource { primary, offline }
 
-/// Per-tile smart router with dual online sources + offline fallback.
+/// Per-tile smart router with one online source + offline fallback.
 ///
+/// The online source is fixed by the client time-zone setting (高德 for China,
+/// OSM elsewhere) and passed in via [onlineUrl]; no cross-source switching.
 /// Priority chain (each tile independently):
-/// 1. Local mbtiles — zero latency, zero network
-/// 2. Primary online (OSM) — full zoom, global, WGS-84
-/// 3. Secondary online (高德) — when OSM unreachable (e.g. China), GCJ-02
-/// 4. Server tileserver — when both online sources fail (z12-15, WGS-84)
-///
-/// This dual-source design ensures the app works in both international markets
-/// (OSM primary) and China (高德 fallback when OSM is blocked).
-///
-/// See docs/superpowers/specs/2026-07-04-smart-tile-routing-design.md
+/// 1. Local mbtiles (user-downloaded) — zero latency, zero network
+/// 2. Online ([onlineUrl]) — full zoom, global
+/// 3. Server tileserver — when the online source is unreachable (z12-15)
 class SmartTileProvider extends TileProvider {
   final List<MBTilesTileProvider> mbtilesProviders;
 
-  /// Primary online tile URL template (OSM, WGS-84).
+  /// Online tile URL template. GCJ-02 (高德) or WGS-84 (OSM) per time zone.
   final String onlineUrl;
 
-  /// Secondary online tile URL template (高德, GCJ-02). Null disables.
-  final String? fallbackOnlineUrl;
+  /// True when [onlineUrl] serves GCJ-02 tiles (高德).
+  final bool onlineIsGcj02;
 
   /// Server tileserver-gl URL (last-resort fallback). Null if unavailable.
   final String? serverTileUrl;
 
  _OnlineSource _activeSource = _OnlineSource.primary;
  bool _initialized = false;
- bool _probing = false;
  int _consecutiveFailures = 0;
   Timer? _probeTimer;
   VoidCallback? onSourceChanged;
@@ -41,7 +36,7 @@ class SmartTileProvider extends TileProvider {
   SmartTileProvider({
     required this.mbtilesProviders,
     required this.onlineUrl,
-    this.fallbackOnlineUrl,
+    this.onlineIsGcj02 = false,
     this.serverTileUrl,
     this.onSourceChanged,
   });
@@ -49,14 +44,14 @@ class SmartTileProvider extends TileProvider {
   static Future<SmartTileProvider> create({
     required List<MBTilesTileProvider> mbtilesProviders,
     required String onlineUrl,
-    String? fallbackOnlineUrl,
+    bool onlineIsGcj02 = false,
     String? serverTileUrl,
     VoidCallback? onSourceChanged,
   }) async {
     return SmartTileProvider(
       mbtilesProviders: mbtilesProviders,
       onlineUrl: onlineUrl,
-      fallbackOnlineUrl: fallbackOnlineUrl,
+      onlineIsGcj02: onlineIsGcj02,
       serverTileUrl: serverTileUrl,
       onSourceChanged: onSourceChanged,
     );
@@ -64,12 +59,11 @@ class SmartTileProvider extends TileProvider {
 
   bool get isOnline => _activeSource != _OnlineSource.offline;
 
-  /// GCJ-02 transform needed only when using 高德 (secondary source).
+  /// GCJ-02 transform needed only when serving 高德 tiles online.
   bool shouldTransformCoordinates() =>
-      _activeSource == _OnlineSource.secondary;
+      _activeSource != _OnlineSource.offline && onlineIsGcj02;
 
  void probeConnectivity() {
-    _probing = true;
    _probe();
  }
 
@@ -81,10 +75,10 @@ class SmartTileProvider extends TileProvider {
    _probeTimer = Timer.periodic(interval, (_) => _probe());
  }
 
- /// Probe primary (OSM) → secondary (高德) → offline.
+ /// Probe online → offline.
  void _probe() async {
     final isFirstProbe = !_initialized;
-   // 1. Try primary (OSM)
+   // 1. Try online
    if (await _tryUrl(onlineUrl)) {
      _consecutiveFailures = 0;
      _switchSource(_OnlineSource.primary);
@@ -92,20 +86,7 @@ class SmartTileProvider extends TileProvider {
      return;
    }
 
-  // 2. Try secondary (高德)
-  if (fallbackOnlineUrl != null && await _tryUrl(fallbackOnlineUrl!)) {
-    _consecutiveFailures = 0;
-    _switchSource(_OnlineSource.secondary);
-     // OSM is unreachable (e.g. blocked in China). Stop probing to avoid
-     // flooding the console with ERR_CONNECTION_RESET on every cycle.
-     // Stay on 高德 for the rest of this session.
-     _probeTimer?.cancel();
-     _probeTimer = null;
-     _finishFirstProbe(isFirstProbe);
-    return;
-  }
-
-   // 3. Both failed
+   // 2. Online unreachable
    _consecutiveFailures++;
    if (_consecutiveFailures >= 3) {
      _switchSource(_OnlineSource.offline);
@@ -114,7 +95,6 @@ class SmartTileProvider extends TileProvider {
  }
 
  void _finishFirstProbe(bool isFirstProbe) {
-   _probing = false;
    if (isFirstProbe) {
      _initialized = true;
    }
@@ -143,12 +123,6 @@ class SmartTileProvider extends TileProvider {
     _switchSource(_OnlineSource.primary);
   }
 
-  @visibleForTesting
-  void simulateSecondary() {
-    _initialized = true;
-    _switchSource(_OnlineSource.secondary);
-  }
-
   void _switchSource(_OnlineSource source) {
     if (_activeSource == source) return;
     _activeSource = source;
@@ -164,20 +138,14 @@ class SmartTileProvider extends TileProvider {
       }
     }
 
-    // Before first probe, default to primary so map renders immediately
-    final source = (_initialized && !_probing) ? _activeSource : null;
-
-    if (source == null) {
-      return MemoryImage(TileProvider.transparentImage);
-    }
-    switch (source) {
+    // The online source is fixed at construction (single-source design), so
+    // tiles fetch immediately — including while the first probe is in flight.
+    // Never return a "transparent" placeholder here: flutter_map caches it as
+    // a successfully loaded tile and the map would stay blank forever.
+    switch (_activeSource) {
       case _OnlineSource.primary:
         return NetworkImage(
             _buildUrl(onlineUrl, coordinates.x, coordinates.y, coordinates.z));
-      case _OnlineSource.secondary:
-        final url = fallbackOnlineUrl ?? onlineUrl;
-        return NetworkImage(
-            _buildUrl(url, coordinates.x, coordinates.y, coordinates.z));
       case _OnlineSource.offline:
         if (serverTileUrl != null) {
           return NetworkImage(_buildUrl(
@@ -205,11 +173,12 @@ class SmartTileProvider extends TileProvider {
 
   /// Current tile source name for watermark display.
   String get activeSourceName {
-    if (!_initialized) return 'OSM';
+    if (!_initialized) return onlineIsGcj02 ? '高德' : 'OSM';
     switch (_activeSource) {
-      case _OnlineSource.primary: return 'OSM';
-      case _OnlineSource.secondary: return '高德';
-      case _OnlineSource.offline: return 'Server';
+      case _OnlineSource.primary:
+        return onlineIsGcj02 ? '高德' : 'OSM';
+      case _OnlineSource.offline:
+        return 'Server';
     }
   }
 }

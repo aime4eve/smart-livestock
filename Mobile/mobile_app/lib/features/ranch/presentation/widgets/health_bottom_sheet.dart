@@ -53,13 +53,13 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
   };
 
   void _snapTo(_SnapLevel target) => setState(() {
-        _snap = target;
-        if (target == _SnapLevel.full) {
-          _expanding = false; // reached the top -> next tap collapses
-        } else if (target == _SnapLevel.peek) {
-          _expanding = true; // reached the bottom -> next tap expands
-        }
-      });
+    _snap = target;
+    if (target == _SnapLevel.full) {
+      _expanding = false; // reached the top -> next tap collapses
+    } else if (target == _SnapLevel.peek) {
+      _expanding = true; // reached the bottom -> next tap expands
+    }
+  });
 
   /// Tapping the peek handle bounces through the three snap levels:
   ///   peek -> half -> full -> half -> peek -> ...
@@ -153,7 +153,9 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
                 cursor: SystemMouseCursors.click,
                 child: Container(
                   height: _peekHeight,
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                  ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -175,9 +177,23 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
             // ── Content area ────────────────────────────────────────
             Expanded(
               child: switch (drillLevel) {
-                RanchDrillLevel.dashboard => _buildDashboard(context, widget.overview, controller),
-                RanchDrillLevel.list => _buildList(context, widget.overview, controller, selectedCategory, role),
-                RanchDrillLevel.detail => _buildDetail(context, controller, role),
+                RanchDrillLevel.dashboard => _buildDashboard(
+                  context,
+                  widget.overview,
+                  controller,
+                ),
+                RanchDrillLevel.list => _buildList(
+                  context,
+                  widget.overview,
+                  controller,
+                  selectedCategory,
+                  role,
+                ),
+                RanchDrillLevel.detail => _buildDetail(
+                  context,
+                  controller,
+                  role,
+                ),
               },
             ),
           ],
@@ -208,7 +224,9 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
             fontSize: 13,
             color: stats.inFenceRate == null
                 ? AppColors.textSecondary
-                : (stats.inFenceRate! >= 0.9 ? AppColors.success : AppColors.warning),
+                : (stats.inFenceRate! >= 0.9
+                      ? AppColors.success
+                      : AppColors.warning),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -218,7 +236,9 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
             fontSize: 13,
             color: stats.healthyRate == null
                 ? AppColors.textSecondary
-                : (stats.healthyRate! >= 0.9 ? AppColors.success : AppColors.warning),
+                : (stats.healthyRate! >= 0.9
+                      ? AppColors.success
+                      : AppColors.warning),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -250,7 +270,11 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
   }
 
   // ── Dashboard: fence + health summary cards ────────────────────
-  Widget _buildDashboard(BuildContext context, RanchOverview overview, RanchController controller) {
+  Widget _buildDashboard(
+    BuildContext context,
+    RanchOverview overview,
+    RanchController controller,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     final fenceSummary = overview.fenceAlertSummary;
     final healthSummary = overview.healthAlertSummary;
@@ -267,45 +291,56 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
         // Fence card — only show when count > 0
         if (fenceTotal > 0)
           StatusDashboardCard(
-          icon: Icons.fence,
-          title: l10n.ranchSectionFenceAlerts,
-          alertCount: fenceTotal,
-          subtitle: fenceTotal > 0
-              ? fenceSummary.entries.map((e) => '${_fenceTypeLabel(e.key)} ${e.value}').join('  ')
-              : l10n.ranchSectionFenceNormal,
-          accentColor: AppColors.warning,
-          onTap: () => controller.showCategoryList('fence'),
-        ),
+            icon: Icons.fence,
+            title: l10n.ranchSectionFenceAlerts,
+            alertCount: fenceTotal,
+            subtitle: fenceTotal > 0
+                ? fenceSummary.entries
+                      .map((e) => '${_fenceTypeLabel(e.key)} ${e.value}')
+                      .join('  ')
+                : l10n.ranchSectionFenceNormal,
+            accentColor: AppColors.warning,
+            onTap: () => controller.showCategoryList('fence'),
+          ),
         const SizedBox(height: AppSpacing.sm),
 
         // Health card — only show when count > 0
         if (healthTotal > 0)
-        StatusDashboardCard(
-          icon: Icons.favorite,
-          title: l10n.ranchSectionHealthAlerts,
-          alertCount: healthTotal,
-          subtitle: healthTotal > 0
-              ? healthSummary.entries.map((e) => '${_healthTypeLabel(e.key)} ${e.value}').join('  ')
-              : l10n.ranchSectionLivestockHealthy,
-          accentColor: AppColors.danger,
-          onTap: () => controller.showCategoryList('health'),
-        ),
+          StatusDashboardCard(
+            icon: Icons.favorite,
+            title: l10n.ranchSectionHealthAlerts,
+            alertCount: healthTotal,
+            subtitle: healthTotal > 0
+                ? healthSummary.entries
+                      .map((e) => '${_healthTypeLabel(e.key)} ${e.value}')
+                      .join('  ')
+                : l10n.ranchSectionLivestockHealthy,
+            accentColor: AppColors.danger,
+            onTap: () => controller.showCategoryList('health'),
+          ),
         const SizedBox(height: AppSpacing.md),
 
         // Recent active alerts preview
-        if (overview.alerts.where((a) => a.status == 'ACTIVE' || a.status == 'PENDING').isNotEmpty) ...[
-          Text(AppLocalizations.of(context)!.ranchHealthLatestAlerts, style: Theme.of(context).textTheme.titleSmall),
+        if (overview.alerts
+            .where((a) => a.status == 'ACTIVE' || a.status == 'PENDING')
+            .isNotEmpty) ...[
+          Text(
+            AppLocalizations.of(context)!.ranchHealthLatestAlerts,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
           const SizedBox(height: AppSpacing.sm),
           ...overview.alerts
-            .where((a) => a.status == 'ACTIVE' || a.status == 'PENDING')
-            .take(3)
-            .map((alert) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: AlertCard(
-                alert: alert,
-                onTap: () => controller.showAlertDetail(alert.id),
+              .where((a) => a.status == 'ACTIVE' || a.status == 'PENDING')
+              .take(3)
+              .map(
+                (alert) => Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: AlertCard(
+                    alert: alert,
+                    onTap: () => controller.showAlertDetail(alert.id),
+                  ),
+                ),
               ),
-            )),
         ],
       ],
     );
@@ -315,10 +350,30 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
   Widget _buildSceneChips(BuildContext context, RanchSceneSummary scene) {
     final l = AppLocalizations.of(context)!;
     final items = [
-      (Icons.thermostat, l.ranchAlertTypeFever, scene.fever.abnormalCount, AppColors.danger),
-      (Icons.pets, l.ranchAlertTypeShortDigestive, scene.digestive.abnormalCount, AppColors.warning),
-      (Icons.favorite, l.ranchAlertTypeEstrus, scene.estrus.highScoreCount, AppColors.accent),
-      (Icons.shield, l.ranchAlertTypeEpidemic, scene.epidemic.abnormalRate > 0.1 ? 1 : 0, AppColors.info),
+      (
+        Icons.thermostat,
+        l.ranchAlertTypeFever,
+        scene.fever.abnormalCount,
+        AppColors.danger,
+      ),
+      (
+        Icons.pets,
+        l.ranchAlertTypeShortDigestive,
+        scene.digestive.abnormalCount,
+        AppColors.warning,
+      ),
+      (
+        Icons.favorite,
+        l.ranchAlertTypeEstrus,
+        scene.estrus.highScoreCount,
+        AppColors.accent,
+      ),
+      (
+        Icons.shield,
+        l.ranchAlertTypeEpidemic,
+        scene.epidemic.abnormalRate > 0.1 ? 1 : 0,
+        AppColors.info,
+      ),
     ];
 
     return Row(
@@ -359,9 +414,20 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
       return matchCat;
     }).toList();
 
-    final active = filtered.where((a) => a.status == 'ACTIVE' || a.status == 'PENDING' || a.status == 'ACKNOWLEDGED').toList();
-    final autoResolved = filtered.where((a) => a.status == 'AUTO_RESOLVED' || a.status == 'ARCHIVED').toList();
-    final dismissed = filtered.where((a) => a.status == 'DISMISSED' || a.status == 'HANDLED').toList();
+    final active = filtered
+        .where(
+          (a) =>
+              a.status == 'ACTIVE' ||
+              a.status == 'PENDING' ||
+              a.status == 'ACKNOWLEDGED',
+        )
+        .toList();
+    final autoResolved = filtered
+        .where((a) => a.status == 'AUTO_RESOLVED' || a.status == 'ARCHIVED')
+        .toList();
+    final dismissed = filtered
+        .where((a) => a.status == 'DISMISSED' || a.status == 'HANDLED')
+        .toList();
 
     final unreadActiveCount = active.where((a) => !a.read).length;
     final canManage = role is UserRole && role != UserRole.worker;
@@ -370,7 +436,9 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
       children: [
         // Back bar
         _BackBar(
-          title: isFence ? l10n.ranchSectionFenceAlerts : l10n.ranchSectionHealthAlerts,
+          title: isFence
+              ? l10n.ranchSectionFenceAlerts
+              : l10n.ranchSectionHealthAlerts,
           onBack: controller.showDashboard,
         ),
         if (unreadActiveCount > 0 && canManage)
@@ -383,10 +451,18 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () {
-                  final ids = active.where((a) => !a.read).map((a) => a.id).toList();
+                  final ids = active
+                      .where((a) => !a.read)
+                      .map((a) => a.id)
+                      .toList();
                   if (ids.isNotEmpty) controller.batchRead(ids);
                 },
-                child: Text(AppLocalizations.of(context)!.ranchHealthAllRead(unreadActiveCount.toString()), style: const TextStyle(fontSize: 12)),
+                child: Text(
+                  AppLocalizations.of(
+                    context,
+                  )!.ranchHealthAllRead(unreadActiveCount.toString()),
+                  style: const TextStyle(fontSize: 12),
+                ),
               ),
             ),
           ),
@@ -395,30 +471,41 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             children: [
               // Active alerts
-              ...active.map((alert) => Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: AlertCard(
-                  alert: alert,
-                  showDismiss: canManage,
-                  onTap: () => controller.showAlertDetail(alert.id),
-                  onDismiss: canManage ? () => controller.dismiss(alert.id) : null,
+              ...active.map(
+                (alert) => Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: AlertCard(
+                    alert: alert,
+                    showDismiss: canManage,
+                    onTap: () => controller.showAlertDetail(alert.id),
+                    onDismiss: canManage
+                        ? () => controller.dismiss(alert.id)
+                        : null,
+                  ),
                 ),
-              )),
+              ),
 
               // Dismissed alerts (compact)
               if (dismissed.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.sm),
-                Text(AppLocalizations.of(context)!.ranchHealthDismissed(dismissed.length.toString()),
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.textSecondary),
+                Text(
+                  AppLocalizations.of(
+                    context,
+                  )!.ranchHealthDismissed(dismissed.length.toString()),
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 4),
-                ...dismissed.map((alert) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: AlertCard(
-                    alert: alert,
-                    onTap: () => controller.showAlertDetail(alert.id),
+                ...dismissed.map(
+                  (alert) => Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: AlertCard(
+                      alert: alert,
+                      onTap: () => controller.showAlertDetail(alert.id),
+                    ),
                   ),
-                )),
+                ),
               ],
 
               // Auto-resolved section (collapsible)
@@ -434,7 +521,11 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
   }
 
   // ── Detail: single alert detail view ───────────────────────────
-  Widget _buildDetail(BuildContext context, RanchController controller, dynamic role) {
+  Widget _buildDetail(
+    BuildContext context,
+    RanchController controller,
+    dynamic role,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     final overview = widget.overview;
     final selectedId = controller.selectedAlertId;
@@ -452,10 +543,11 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
     return Column(
       children: [
         _BackBar(
-          title: isFence ? l10n.ranchSectionFenceAlertDetail : l10n.ranchSectionHealthAlertDetail,
-          onBack: () => controller.showCategoryList(
-            isFence ? 'fence' : 'health',
-          ),
+          title: isFence
+              ? l10n.ranchSectionFenceAlertDetail
+              : l10n.ranchSectionHealthAlertDetail,
+          onBack: () =>
+              controller.showCategoryList(isFence ? 'fence' : 'health'),
         ),
         Expanded(
           child: SingleChildScrollView(
@@ -488,16 +580,19 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.info_outline, size: 14, color: AppColors.info),
+                      const Icon(
+                        Icons.info_outline,
+                        size: 14,
+                        color: AppColors.info,
+                      ),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           isFence
-                            ? l10n.ranchCapabilityFenceNote
-                            : l10n.ranchCapabilityHealthNote,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.info,
-                          ),
+                              ? l10n.ranchCapabilityFenceNote
+                              : l10n.ranchCapabilityHealthNote,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.info),
                         ),
                       ),
                     ],
@@ -505,7 +600,9 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
                 ),
 
                 // Dismiss button for active alerts (owner/b2b_admin only)
-                if (alert.status == 'ACTIVE' && role is UserRole && role != UserRole.worker)
+                if (alert.status == 'ACTIVE' &&
+                    role is UserRole &&
+                    role != UserRole.worker)
                   Padding(
                     padding: const EdgeInsets.only(top: AppSpacing.md),
                     child: SizedBox(
@@ -516,7 +613,9 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
                           controller.showDashboard();
                         },
                         icon: const Icon(Icons.close, size: 18),
-                        label: Text(AppLocalizations.of(context)!.ranchHealthIgnoreAlert),
+                        label: Text(
+                          AppLocalizations.of(context)!.ranchHealthIgnoreAlert,
+                        ),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.warning,
                           side: const BorderSide(color: AppColors.warning),
@@ -546,7 +645,8 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
     final l = L10n.instance;
     return switch (type) {
       'TEMPERATURE_ABNORMAL' || 'FEVER' => l.ranchAlertTypeFever,
-      'DIGESTIVE_ABNORMAL' || 'BEHAVIOR_ABNORMAL' => l.ranchAlertTypeShortDigestive,
+      'DIGESTIVE_ABNORMAL' ||
+      'BEHAVIOR_ABNORMAL' => l.ranchAlertTypeShortDigestive,
       'ESTRUS' => l.ranchAlertTypeEstrus,
       'EPIDEMIC' => l.ranchAlertTypeEpidemic,
       _ => type,
@@ -601,21 +701,35 @@ class _SceneChip extends StatelessWidget {
         color: hasAlert ? color.withValues(alpha: 0.06) : Colors.transparent,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: hasAlert ? color.withValues(alpha: 0.3) : AppColors.border.withValues(alpha: 0.3),
+          color: hasAlert
+              ? color.withValues(alpha: 0.3)
+              : AppColors.border.withValues(alpha: 0.3),
           width: 0.5,
         ),
       ),
       child: Column(
         children: [
-          Icon(icon, size: 14, color: hasAlert ? color : AppColors.textSecondary),
+          Icon(
+            icon,
+            size: 14,
+            color: hasAlert ? color : AppColors.textSecondary,
+          ),
           const SizedBox(height: 2),
-          Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 10)),
+          Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(fontSize: 10),
+          ),
           if (hasAlert)
-            Text('$count', style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: color,
-            )),
+            Text(
+              '$count',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
         ],
       ),
     );
@@ -627,6 +741,16 @@ class _FenceDetailContent extends StatelessWidget {
   const _FenceDetailContent({required this.alert});
   final RanchAlertData alert;
 
+  String _fenceTypeLabel(String type) {
+    final l = L10n.instance;
+    return switch (type) {
+      'FENCE_BREACH' => l.ranchAlertTypeFenceBreach,
+      'FENCE_APPROACH' => l.ranchAlertTypeShortApproach,
+      'ZONE_APPROACH' => l.ranchAlertTypeShortZone,
+      _ => type,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -636,15 +760,30 @@ class _FenceDetailContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l10n.ranchHealthFenceInfo, style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              l10n.ranchHealthFenceInfo,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(height: AppSpacing.sm),
-            _InfoRow(label: L10n.instance.ranchFieldType, value: alert.type),
+            _InfoRow(
+              label: L10n.instance.ranchFieldType,
+              value: _fenceTypeLabel(alert.type),
+            ),
             if (alert.distance != null)
-              _InfoRow(label: L10n.instance.ranchFieldDistanceToFence, value: '${alert.distance!.toStringAsFixed(0)}m'),
+              _InfoRow(
+                label: L10n.instance.ranchFieldDistanceToFence,
+                value: '${alert.distance!.toStringAsFixed(0)}m',
+              ),
             if (alert.direction != null)
-              _InfoRow(label: L10n.instance.ranchFieldDirection, value: alert.direction!),
+              _InfoRow(
+                label: L10n.instance.ranchFieldDirection,
+                value: alert.direction!,
+              ),
             if (alert.occurredAt != null)
-              _InfoRow(label: L10n.instance.ranchFieldOccurredTime, value: _formatOccurredAt(alert.occurredAt)),
+              _InfoRow(
+                label: L10n.instance.ranchFieldOccurredTime,
+                value: _formatOccurredAt(alert.occurredAt),
+              ),
           ],
         ),
       ),
@@ -670,19 +809,31 @@ class _HealthDetailContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l10n.ranchHealthDetail, style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              l10n.ranchHealthDetail,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(height: AppSpacing.sm),
-            _InfoRow(label: L10n.instance.ranchFieldAbnormalType, value: _healthLabel(healthType)),
+            _InfoRow(
+              label: L10n.instance.ranchFieldAbnormalType,
+              value: _healthLabel(healthType),
+            ),
             if (alert.occurredAt != null)
-              _InfoRow(label: L10n.instance.ranchFieldOccurredTime, value: _formatOccurredAt(alert.occurredAt)),
+              _InfoRow(
+                label: L10n.instance.ranchFieldOccurredTime,
+                value: _formatOccurredAt(alert.occurredAt),
+              ),
             if (canNavigate) ...[
               const SizedBox(height: AppSpacing.sm),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () => _navigateToDetail(context, healthType, livestockId),
+                  onPressed: () =>
+                      _navigateToDetail(context, healthType, livestockId),
                   icon: const Icon(Icons.open_in_new, size: 16),
-                  label: Text(l10n.ranchHealthDetailLink(_healthLabel(healthType))),
+                  label: Text(
+                    l10n.ranchHealthDetailLink(_healthLabel(healthType)),
+                  ),
                 ),
               ),
             ],
@@ -703,10 +854,15 @@ class _HealthDetailContent extends StatelessWidget {
     };
   }
 
-  void _navigateToDetail(BuildContext context, String type, String livestockId) {
+  void _navigateToDetail(
+    BuildContext context,
+    String type,
+    String livestockId,
+  ) {
     final path = switch (type) {
       'TEMPERATURE_ABNORMAL' || 'FEVER' => '/twin/fever/$livestockId',
-      'DIGESTIVE_ABNORMAL' || 'BEHAVIOR_ABNORMAL' => '/twin/digestive/$livestockId',
+      'DIGESTIVE_ABNORMAL' ||
+      'BEHAVIOR_ABNORMAL' => '/twin/digestive/$livestockId',
       'ESTRUS' => '/twin/estrus/$livestockId',
       _ => null,
     };

@@ -8,53 +8,68 @@ import 'package:hkt_livestock_agentic/core/map/map_config.dart';
 import 'package:hkt_livestock_agentic/core/map/mbtiles_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/tile_source_resolver.dart';
+import 'package:hkt_livestock_agentic/core/timezone/time_zone_controller.dart';
 
-/// Creates a fully-configured SmartTileProvider for any map page.
+/// Builds the app-wide [SmartTileProvider] from explicit inputs.
 ///
-/// OSM is always the primary online source (for international markets).
-/// 高德 is always the secondary fallback (for China where OSM is blocked).
-/// The connectivity probe auto-detects which one works and switches accordingly.
+/// The online tile source is fixed by the client time zone: China
+/// (北京/上海时区, [useChinaTileSource]) → 高德 (GCJ-02), otherwise OSM
+/// (WGS-84). No cross-source switching; the connectivity probe only decides
+/// when to fall back to the self-hosted tileserver ([serverTileUrl]).
+Future<SmartTileProvider> buildSmartTileProvider({
+  required List<MBTilesTileProvider> mbtilesProviders,
+  required bool useChinaTileSource,
+  Future<List<TileSource>> Function()? resolveTileSources,
+  VoidCallback? onSourceChanged,
+}) async {
+  // Server-side offline fallback (best effort, never blocks map init).
+  String? serverTileUrl;
+  if (resolveTileSources != null) {
+    try {
+      final sources =
+          await resolveTileSources().timeout(const Duration(seconds: 5));
+      serverTileUrl = sources.isEmpty ? null : sources.first.tileUrl;
+    } catch (_) {}
+  }
+
+  final provider = await SmartTileProvider.create(
+    mbtilesProviders: mbtilesProviders,
+    onlineUrl:
+        useChinaTileSource ? MapConfig.chinaFallbackUrl : MapConfig.overseasFallbackUrl,
+    onlineIsGcj02: useChinaTileSource,
+    serverTileUrl: serverTileUrl,
+    onSourceChanged: onSourceChanged,
+  );
+
+  provider.probeConnectivity();
+  provider.startConnectivityMonitor();
+  return provider;
+}
+
+/// Widget-side adapter: collects local state and delegates to
+/// [buildSmartTileProvider].
 Future<SmartTileProvider> loadSmartTileProvider(
   WidgetRef ref, {
   VoidCallback? onSourceChanged,
 }) async {
-  // 1. Collect local mbtiles providers
+  // Locally available mbtiles (user-downloaded regions only).
   final mbtilesProviders = <MBTilesTileProvider>[];
-
   if (!kIsWeb) {
-    // User-downloaded tiles (highest priority)
     final mgr = ref.read(offlineTileManagerProvider);
     for (final path in mgr.getLocalMbtilesFiles()) {
       try {
         mbtilesProviders.add(MBTilesTileProvider.open(path));
       } catch (_) {}
     }
-    // Built-in sample.mbtiles as last-resort fallback
-    final builtin = await MBTilesTileProvider.fromAsset();
-    if (builtin != null) mbtilesProviders.add(builtin);
   }
 
-  // 2. Get tileserver URL from API (server-side offline fallback)
-  String? serverTileUrl;
-  if (ApiClient.instance.activeFarmId != null) {
-    try {
-      final sources = await ref.read(tileSourceResolverProvider).resolve();
-      serverTileUrl = sources.isEmpty ? null : sources.first.tileUrl;
-    } catch (_) {}
-  }
-
-  // 3. Create provider: OSM primary + 高德 secondary + tileserver offline
-  final provider = await SmartTileProvider.create(
+  return buildSmartTileProvider(
     mbtilesProviders: mbtilesProviders,
-    onlineUrl: MapConfig.overseasFallbackUrl,
-    fallbackOnlineUrl: MapConfig.chinaFallbackUrl,
-    serverTileUrl: serverTileUrl,
+    useChinaTileSource:
+        ref.read(timeZoneControllerProvider.notifier).useChinaTileSource,
+    resolveTileSources: ApiClient.instance.activeFarmId == null
+        ? null
+        : () => ref.read(tileSourceResolverProvider).resolve(),
     onSourceChanged: onSourceChanged,
   );
-
-  // 4. Start background connectivity monitoring
-  provider.probeConnectivity();
-  provider.startConnectivityMonitor();
-
-  return provider;
 }

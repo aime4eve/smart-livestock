@@ -14,16 +14,19 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:hkt_livestock_agentic/app/demo_app.dart';
+import 'package:hkt_livestock_agentic/core/database/app_database.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('e2e — 登录到看板', () {
     testWidgets('owner 登录后看到导航栏', (tester) async {
-      await tester.pumpWidget(const DemoApp());
+      await AppDatabase.createAsync();
+      await tester.pumpWidget(const ProviderScope(child: DemoApp()));
       await tester.pumpAndSettle();
 
       // 登录页应显示

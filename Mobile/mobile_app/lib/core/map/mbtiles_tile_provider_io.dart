@@ -1,13 +1,9 @@
-import 'dart:io';
+import 'dart:typed_data';
 
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'dart:math' as math;
-
-import 'map_config.dart';
 
 /// In-memory metadata for an mbtiles file, enabling O(1) tile containment
 /// checks without SQLite queries.
@@ -115,14 +111,6 @@ class MBTilesTileProvider extends TileProvider {
       maxLon: maxLon,
       maxLat: maxLat,
     );
-  }
-
-  static Future<MBTilesTileProvider?> fromAsset() async {
-    final data = await rootBundle.load(MapConfig.mbtilesAssetPath);
-    final dir = await getApplicationSupportDirectory();
-    final file = File('${dir.path}/${MapConfig.mbtilesFileName}');
-    await file.writeAsBytes(data.buffer.asUint8List());
-    return MBTilesTileProvider.open(file.path);
   }
 
   @override

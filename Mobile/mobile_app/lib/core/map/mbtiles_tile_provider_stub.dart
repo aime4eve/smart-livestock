@@ -36,8 +36,6 @@ class MBTilesTileProvider extends TileProvider {
         minLon: 0, minLat: 0, maxLon: 0, maxLat: 0,
       ));
 
-  static Future<MBTilesTileProvider?> fromAsset() async => null;
-
   @override
   ImageProvider getImage(TileCoordinates coordinates, TileLayer options) {
     return MemoryImage(TileProvider.transparentImage);

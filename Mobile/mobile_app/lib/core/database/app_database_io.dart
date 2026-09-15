@@ -118,12 +118,16 @@ class AppDatabase {
   }
 
   String _getApplicationSupportDirectorySync() {
-    if (Platform.isAndroid || Platform.isIOS) {
+    if (Platform.isAndroid) {
+      // Android app-private dir (writable by the app uid).
       final dir = p.join('/data', 'data', 'com.example.hkt_livestock_agentic', 'databases');
       Directory(dir).createSync(recursive: true);
       return dir;
     }
-    return '${Platform.environment['HOME'] ?? '.'}/Library/Application Support';
+    // iOS/macOS: '/data' is a read-only mount; HOME points into the app
+    // sandbox and matches getApplicationSupportDirectory()'s parent.
+    final home = Platform.environment['HOME'] ?? '.';
+    return p.join(home, 'Library', 'Application Support');
   }
 
   // CachedFences queries

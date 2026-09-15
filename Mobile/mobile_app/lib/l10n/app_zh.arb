@@ -41,6 +41,24 @@
   "settingsLanguageEn": "English",
   "@settingsLanguageEn": {},
   "settingsLanguageSystem": "跟随系统",
+  "settingsTimeZone": "时区",
+  "@settingsTimeZone": {},
+  "settingsTimeZoneDesc": "中国时区使用高德地图，其他时区使用 OpenStreetMap",
+  "@settingsTimeZoneDesc": {},
+  "settingsTimeZoneSystem": "跟随系统",
+  "@settingsTimeZoneSystem": {},
+  "settingsTimeZoneChina": "中国标准时间（北京时间）",
+  "@settingsTimeZoneChina": {},
+  "settingsTimeZoneHongKong": "香港时间",
+  "@settingsTimeZoneHongKong": {},
+  "settingsTimeZoneUtc": "协调世界时（UTC）",
+  "@settingsTimeZoneUtc": {},
+  "settingsTimeZoneUk": "英国时间",
+  "@settingsTimeZoneUk": {},
+  "settingsTimeZoneUsEastern": "美国东部时间",
+  "@settingsTimeZoneUsEastern": {},
+  "settingsTimeZoneAustraliaEast": "澳大利亚东部时间",
+  "@settingsTimeZoneAustraliaEast": {},
   "@settingsLanguageSystem": {},
   "settingsTitle": "设置",
   "@settingsTitle": {},
@@ -489,9 +507,21 @@
   "livestockHealthData": "健康数据",
   "@livestockHealthData": {},
   "dataUpdatedAt": "数据更新于 {time}",
-  "@dataUpdatedAt": { "placeholders": { "time": { "type": "String" } } },
+  "@dataUpdatedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "latestDataAt": "最新数据 {time}",
-  "@latestDataAt": { "placeholders": { "time": { "type": "String" } } },
+  "@latestDataAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "livestockLocation": "位置信息",
   "@livestockLocation": {},
   "livestockViewTrajectory": "查看完整轨迹",

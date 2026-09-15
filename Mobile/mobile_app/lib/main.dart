@@ -10,7 +10,9 @@ import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/l10n/locale_controller.dart';
 import 'package:hkt_livestock_agentic/core/api/jwt_decoder.dart';
 import 'package:hkt_livestock_agentic/core/api/jwt_storage.dart';
+import 'package:hkt_livestock_agentic/core/database/app_database.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
+import 'package:hkt_livestock_agentic/core/timezone/time_zone_controller.dart';
 
 SemanticsHandle? _webSemanticsHandle;
 
@@ -29,16 +31,28 @@ void main() async {
     ApiClient.instance.setBaseUrl(apiBaseUrl);
   }
 
+  // Seed AppDatabase via path_provider (correct sandbox path on every
+  // platform) before any provider touches AppDatabase.instance, whose sync
+  // constructor cannot resolve an app-support dir on iOS.
+  await AppDatabase.createAsync();
+
   // Restore session from stored JWT token (survives page refresh).
   final initialSession = await _restoreSession();
+  debugPrint('boot: session restored (${initialSession.isLoggedIn})');
   // Restore persisted locale so the language choice survives a page refresh.
   final initialLocale = await LocaleController.restore();
+  debugPrint('boot: locale restored ($initialLocale)');
+  // Restore persisted time zone so map tile source choice survives restart.
+  final initialTimeZoneId = await TimeZoneController.restore();
+  debugPrint('boot: time zone restored ($initialTimeZoneId)');
 
+  debugPrint('boot: runApp');
   runApp(
     ProviderScope(
       overrides: [
         initialSessionProvider.overrideWithValue(initialSession),
         initialLocaleProvider.overrideWithValue(initialLocale),
+        initialTimeZoneIdProvider.overrideWithValue(initialTimeZoneId),
       ],
       child: const DemoApp(),
     ),

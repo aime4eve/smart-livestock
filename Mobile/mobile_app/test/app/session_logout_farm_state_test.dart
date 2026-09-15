@@ -74,6 +74,23 @@ const _fenceA = FenceItem(
   ],
 );
 
+/// Polls until FenceController reaches [target] (fixed 50ms sleeps are
+/// load-sensitive and flake in full-suite parallel runs).
+Future<void> _waitUntilViewState(
+  ProviderContainer container,
+  ViewState target,
+) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 3));
+  while (DateTime.now().isBefore(deadline)) {
+    if (container.read(fenceControllerProvider).viewState == target) {
+      // One extra settle lap so pending rebuilds finish before asserts.
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      return;
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+  }
+}
+
 void main() {
   setUp(() {
     FlutterSecureStorage.setMockInitialValues({});
@@ -137,14 +154,14 @@ void main() {
 
     // 初始 activeFarmId='1' → 加载成功
     container.read(fenceControllerProvider);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    await _waitUntilViewState(container, ViewState.normal);
     expect(container.read(fenceControllerProvider).viewState, ViewState.normal);
 
     // logout → activeFarmId=null
     await container.read(sessionControllerProvider.notifier).logout();
     // activeFarmId 变化后需 read 触发 rebuild，await 等 _loadFencesAsync 完成
     container.read(fenceControllerProvider);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    await _waitUntilViewState(container, ViewState.error);
     // activeFarmId=null 时 repo 抛 StateError → catch → error（而非无限 loading）
     expect(
       container.read(fenceControllerProvider).viewState,
@@ -155,7 +172,7 @@ void main() {
     // 模拟 login 后 activeFarmId 恢复（loadFarms 触发 updateActiveFarm）
     container.read(sessionControllerProvider.notifier).updateActiveFarm('1');
     container.read(fenceControllerProvider);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    await _waitUntilViewState(container, ViewState.normal);
     // 自愈：activeFarmId 变化触发 rebuild → 重新加载成功
     expect(
       container.read(fenceControllerProvider).viewState,

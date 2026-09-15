@@ -5,6 +5,7 @@ import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:hkt_livestock_agentic/core/l10n/locale_controller.dart';
+import 'package:hkt_livestock_agentic/core/timezone/time_zone_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
@@ -222,6 +223,8 @@ class MinePage extends ConsumerWidget {
     } else {
       currentLabel = l10n.settingsLanguageEn;
     }
+    final timeZoneId = ref.watch(timeZoneControllerProvider);
+    final timeZoneLabel = _timeZoneLabel(l10n, timeZoneId);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -248,7 +251,75 @@ class MinePage extends ConsumerWidget {
             onTap: () => _showLanguagePicker(context, ref, locale),
           ),
         ),
+        const SizedBox(height: AppSpacing.md),
+        HighfiCard(
+          child: ListTile(
+            key: const Key('mine-timezone-setting'),
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.schedule_outlined),
+            title: Text(l10n.settingsTimeZone),
+            subtitle: Text(l10n.settingsTimeZoneDesc),
+            isThreeLine: false,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(timeZoneLabel),
+                const SizedBox(width: AppSpacing.xs),
+                const Icon(Icons.chevron_right),
+              ],
+            ),
+            onTap: () => _showTimeZonePicker(context, ref, timeZoneId),
+          ),
+        ),
       ],
+    );
+  }
+
+  String _timeZoneLabel(AppLocalizations l10n, String? id) {
+    switch (id) {
+      case null:
+        return l10n.settingsTimeZoneSystem;
+      case 'Asia/Shanghai':
+        return l10n.settingsTimeZoneChina;
+      case 'Asia/Hong_Kong':
+        return l10n.settingsTimeZoneHongKong;
+      case 'UTC':
+        return l10n.settingsTimeZoneUtc;
+      case 'Europe/London':
+        return l10n.settingsTimeZoneUk;
+      case 'America/New_York':
+        return l10n.settingsTimeZoneUsEastern;
+      case 'Australia/Sydney':
+        return l10n.settingsTimeZoneAustraliaEast;
+    }
+    return id;
+  }
+
+  void _showTimeZonePicker(BuildContext context, WidgetRef ref, String? current) {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(l10n.settingsTimeZone),
+       children: [
+         RadioGroup<String?>(
+           groupValue: current,
+           onChanged: (v) {
+             Navigator.pop(ctx);
+             ref.read(timeZoneControllerProvider.notifier).setTimeZone(v);
+           },
+           child: Column(
+             children: [
+               for (final id in timeZonePickerOptions)
+                 RadioListTile<String?>(
+                   value: id,
+                   title: Text(_timeZoneLabel(l10n, id)),
+                 ),
+             ],
+           ),
+         ),
+       ],
+      ),
     );
   }
 
