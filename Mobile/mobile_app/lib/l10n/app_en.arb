@@ -3096,10 +3096,18 @@
   "alertSumReconcile": "{critical} + {warning} + {info} = {total} active",
   "@alertSumReconcile": {
     "placeholders": {
-      "critical": { "type": "int" },
-      "warning": { "type": "int" },
-      "info": { "type": "int" },
-      "total": { "type": "int" }
+      "critical": {
+        "type": "int"
+      },
+      "warning": {
+        "type": "int"
+      },
+      "info": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "alertRefreshHint": "Auto-refreshes every 30s",
@@ -3113,8 +3121,12 @@
   "alertShownOf": "Showing {shown}/{total}",
   "@alertShownOf": {
     "placeholders": {
-      "shown": { "type": "int" },
-      "total": { "type": "int" }
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "alertFenceStatusTitle": "Fence status",
@@ -3122,14 +3134,20 @@
   "alertFenceAggSub": "{out} outside · {near} approaching (per animal)",
   "@alertFenceAggSub": {
     "placeholders": {
-      "out": { "type": "int" },
-      "near": { "type": "int" }
+      "out": {
+        "type": "int"
+      },
+      "near": {
+        "type": "int"
+      }
     }
   },
   "alertFenceViewAll": "View all {count} fence alerts",
   "@alertFenceViewAll": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "alertFenceStateOut": "Outside",
@@ -3139,7 +3157,9 @@
   "alertEmptyCta": "View {count} resolved records",
   "@alertEmptyCta": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "alertBackToActive": "Back to active alerts",
@@ -3366,8 +3386,6 @@
       }
     }
   },
-  "ranchFenceInactive": "Inactive",
-  "@ranchFenceInactive": {},
   "ranchFenceLocationGap": "{noGps} unlocated · {outside} outside fences",
   "@ranchFenceLocationGap": {
     "placeholders": {
@@ -4410,5 +4428,105 @@
   "tbWizardBack": "Back",
   "@tbWizardBack": {},
   "tbWizardAnother": "Provision Another",
-  "@tbWizardAnother": {}
+  "@tbWizardAnother": {},
+  "deviceProfileRuleTitle": "Device Profile Rules",
+  "@deviceProfileRuleTitle": {},
+  "deviceProfileRuleHint": "This list decides which TB device profiles the provisioning wizard accepts: devices whose profile is missing (or disabled) will show \"Waiting for TB device\". Add mappings here when onboarding a new link — no release needed.",
+  "@deviceProfileRuleHint": {},
+  "deviceProfileRuleStat": "{total} rules · {enabled} enabled · {disabled} disabled",
+  "@deviceProfileRuleStat": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "enabled": {
+        "type": "int"
+      },
+      "disabled": {
+        "type": "int"
+      }
+    }
+  },
+  "deviceProfileRuleReload": "Reload",
+  "@deviceProfileRuleReload": {},
+  "deviceProfileRuleAdd": "Add Rule",
+  "@deviceProfileRuleAdd": {},
+  "deviceProfileRuleEmpty": "No rules yet — tap \"Add Rule\" to create one",
+  "@deviceProfileRuleEmpty": {},
+  "deviceProfileRuleColName": "Profile (TB)",
+  "@deviceProfileRuleColName": {},
+  "deviceProfileRuleColType": "Type",
+  "@deviceProfileRuleColType": {},
+  "deviceProfileRuleColStatus": "Status",
+  "@deviceProfileRuleColStatus": {},
+  "deviceProfileRuleColRemark": "Remark",
+  "@deviceProfileRuleColRemark": {},
+  "deviceProfileRuleColUpdatedAt": "Updated",
+  "@deviceProfileRuleColUpdatedAt": {},
+  "deviceProfileRuleColActions": "Actions",
+  "@deviceProfileRuleColActions": {},
+  "deviceProfileRuleSourceTb": "TB",
+  "@deviceProfileRuleSourceTb": {},
+  "deviceProfileRuleSourceManual": "Manual",
+  "@deviceProfileRuleSourceManual": {},
+  "deviceProfileRuleDisabledBadge": "Disabled",
+  "@deviceProfileRuleDisabledBadge": {},
+  "deviceProfileRuleTypeEarTag": "Ear Tag",
+  "@deviceProfileRuleTypeEarTag": {},
+  "deviceProfileRuleTypeTracker": "Tracker",
+  "@deviceProfileRuleTypeTracker": {},
+  "deviceProfileRuleTypeCapsule": "Capsule",
+  "@deviceProfileRuleTypeCapsule": {},
+  "deviceProfileRuleEnabled": "Enabled",
+  "@deviceProfileRuleEnabled": {},
+  "deviceProfileRuleDisabled": "Disabled",
+  "@deviceProfileRuleDisabled": {},
+  "deviceProfileRuleToggleFailed": "Toggle failed",
+  "@deviceProfileRuleToggleFailed": {},
+  "deviceProfileRuleDeleted": "Deleted",
+  "@deviceProfileRuleDeleted": {},
+  "deviceProfileRuleDeleteTitle": "Delete Device Profile Rule",
+  "@deviceProfileRuleDeleteTitle": {},
+  "deviceProfileRuleDeleteBody": "Confirm deletion of ",
+  "@deviceProfileRuleDeleteBody": {},
+  "deviceProfileRuleDeleteWarn": "After deletion, devices on profile \"{name}\" will fail provisioning with \"Waiting for TB device\". Devices and telemetry on the ThingsBoard platform are not affected.",
+  "@deviceProfileRuleDeleteWarn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceProfileRuleAddTitle": "Add Device Profile Rule",
+  "@deviceProfileRuleAddTitle": {},
+  "deviceProfileRuleEditTitle": "Edit Device Profile Rule",
+  "@deviceProfileRuleEditTitle": {},
+  "deviceProfileRuleFieldName": "TB Device Profile",
+  "@deviceProfileRuleFieldName": {},
+  "deviceProfileRulePickTb": "Select a TB device profile",
+  "@deviceProfileRulePickTb": {},
+  "deviceProfileRuleManualInput": "Or enter manually →",
+  "@deviceProfileRuleManualInput": {},
+  "deviceProfileRuleManualHint": "Enter the TB profile name",
+  "@deviceProfileRuleManualHint": {},
+  "deviceProfileRuleUseTbList": "← Pick from TB list",
+  "@deviceProfileRuleUseTbList": {},
+  "deviceProfileRuleTbUnavailable": "TB is unreachable; enter the profile name manually",
+  "@deviceProfileRuleTbUnavailable": {},
+  "deviceProfileRuleTagTaken": "Added",
+  "@deviceProfileRuleTagTaken": {},
+  "deviceProfileRuleFieldDeviceType": "Device Type",
+  "@deviceProfileRuleFieldDeviceType": {},
+  "deviceProfileRuleTypeHelp": "Determines device capabilities after provisioning (GPS / activity / health monitoring).",
+  "@deviceProfileRuleTypeHelp": {},
+  "deviceProfileRuleEnabledHelp": "Disabled rules fail provisioning (\"Waiting for TB device\"); re-enable any time.",
+  "@deviceProfileRuleEnabledHelp": {},
+  "deviceProfileRuleFieldRemark": "Remark",
+  "@deviceProfileRuleFieldRemark": {},
+  "deviceProfileRuleRemarkHint": "Optional, e.g. legacy chain, kept for existing devices",
+  "@deviceProfileRuleRemarkHint": {},
+  "deviceProfileRuleNameRequired": "Profile name is required",
+  "@deviceProfileRuleNameRequired": {},
+  "deviceProfileRuleDuplicateLocal": "A rule with this name already exists",
+  "@deviceProfileRuleDuplicateLocal": {}
 }

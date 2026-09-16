@@ -5559,4 +5559,138 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tbWizardAnother => 'Provision Another';
+
+  @override
+  String get deviceProfileRuleTitle => 'Device Profile Rules';
+
+  @override
+  String get deviceProfileRuleHint =>
+      'This list decides which TB device profiles the provisioning wizard accepts: devices whose profile is missing (or disabled) will show \"Waiting for TB device\". Add mappings here when onboarding a new link — no release needed.';
+
+  @override
+  String deviceProfileRuleStat(int total, int enabled, int disabled) {
+    return '$total rules · $enabled enabled · $disabled disabled';
+  }
+
+  @override
+  String get deviceProfileRuleReload => 'Reload';
+
+  @override
+  String get deviceProfileRuleAdd => 'Add Rule';
+
+  @override
+  String get deviceProfileRuleEmpty =>
+      'No rules yet — tap \"Add Rule\" to create one';
+
+  @override
+  String get deviceProfileRuleColName => 'Profile (TB)';
+
+  @override
+  String get deviceProfileRuleColType => 'Type';
+
+  @override
+  String get deviceProfileRuleColStatus => 'Status';
+
+  @override
+  String get deviceProfileRuleColRemark => 'Remark';
+
+  @override
+  String get deviceProfileRuleColUpdatedAt => 'Updated';
+
+  @override
+  String get deviceProfileRuleColActions => 'Actions';
+
+  @override
+  String get deviceProfileRuleSourceTb => 'TB';
+
+  @override
+  String get deviceProfileRuleSourceManual => 'Manual';
+
+  @override
+  String get deviceProfileRuleDisabledBadge => 'Disabled';
+
+  @override
+  String get deviceProfileRuleTypeEarTag => 'Ear Tag';
+
+  @override
+  String get deviceProfileRuleTypeTracker => 'Tracker';
+
+  @override
+  String get deviceProfileRuleTypeCapsule => 'Capsule';
+
+  @override
+  String get deviceProfileRuleEnabled => 'Enabled';
+
+  @override
+  String get deviceProfileRuleDisabled => 'Disabled';
+
+  @override
+  String get deviceProfileRuleToggleFailed => 'Toggle failed';
+
+  @override
+  String get deviceProfileRuleDeleted => 'Deleted';
+
+  @override
+  String get deviceProfileRuleDeleteTitle => 'Delete Device Profile Rule';
+
+  @override
+  String get deviceProfileRuleDeleteBody => 'Confirm deletion of ';
+
+  @override
+  String deviceProfileRuleDeleteWarn(String name) {
+    return 'After deletion, devices on profile \"$name\" will fail provisioning with \"Waiting for TB device\". Devices and telemetry on the ThingsBoard platform are not affected.';
+  }
+
+  @override
+  String get deviceProfileRuleAddTitle => 'Add Device Profile Rule';
+
+  @override
+  String get deviceProfileRuleEditTitle => 'Edit Device Profile Rule';
+
+  @override
+  String get deviceProfileRuleFieldName => 'TB Device Profile';
+
+  @override
+  String get deviceProfileRulePickTb => 'Select a TB device profile';
+
+  @override
+  String get deviceProfileRuleManualInput => 'Or enter manually →';
+
+  @override
+  String get deviceProfileRuleManualHint => 'Enter the TB profile name';
+
+  @override
+  String get deviceProfileRuleUseTbList => '← Pick from TB list';
+
+  @override
+  String get deviceProfileRuleTbUnavailable =>
+      'TB is unreachable; enter the profile name manually';
+
+  @override
+  String get deviceProfileRuleTagTaken => 'Added';
+
+  @override
+  String get deviceProfileRuleFieldDeviceType => 'Device Type';
+
+  @override
+  String get deviceProfileRuleTypeHelp =>
+      'Determines device capabilities after provisioning (GPS / activity / health monitoring).';
+
+  @override
+  String get deviceProfileRuleEnabledHelp =>
+      'Disabled rules fail provisioning (\"Waiting for TB device\"); re-enable any time.';
+
+  @override
+  String get deviceProfileRuleFieldRemark => 'Remark';
+
+  @override
+  String get deviceProfileRuleRemarkHint =>
+      'Optional, e.g. legacy chain, kept for existing devices';
+
+  @override
+  String get deviceProfileRuleNameRequired => 'Profile name is required';
+
+  @override
+  String get deviceProfileRuleDuplicateLocal =>
+      'A rule with this name already exists';
 }

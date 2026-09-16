@@ -34,11 +34,10 @@ import java.util.regex.Pattern;
 public class TbDeviceProvisioningService {
 
     private static final Pattern EUI_PATTERN = Pattern.compile("^[0-9a-f]{16}$");
-    private static final String CAPSULE_PROFILE = "瘤胃胶囊-OC-配置-v2";
-    private static final String TRACKER_PROFILE = "牛羊追踪器-OC-配置-v2";
 
     private final NsClient nsClient;
     private final TbClient tbClient;
+    private final DeviceProfileRuleService profileRuleService;
     private final DeviceRepository deviceRepository;
     private final TbDeviceBindingRepository bindingRepository;
     private final InstallationRepository installationRepository;
@@ -49,11 +48,12 @@ public class TbDeviceProvisioningService {
     public ReconciliationReport reconcile(Integer nsProjectId, Long tenantId) {
         List<NsClient.NsDevice> nsDevices = nsClient.listDevices(nsProjectId);
         Map<String, String> profiles = tbClient.fetchDeviceProfiles();
+        Map<String, DeviceType> ruleTypes = profileRuleService.resolveActiveTypeMap();
         List<ReconciliationRow> rows = new ArrayList<>();
 
         for (NsClient.NsDevice nsDevice : nsDevices) {
             String eui = normalizeEui(nsDevice.eui());
-            TbInventory tb = tbInventory(eui, profiles);
+            TbInventory tb = tbInventory(eui, profiles, ruleTypes);
             LocalInventory local = localInventory(eui, tenantId);
             Instant latestTelemetry = tb.selected() == null ? null
                     : tbClient.fetchLatestTelemetryTs(tb.selected().tbDeviceId());
@@ -134,9 +134,10 @@ public class TbDeviceProvisioningService {
             Integer nsProjectId, List<ImportItem> items, Long tenantId, Long operatorId) {
         Map<String, NsClient.NsDevice> nsByEui = nsDeviceMap(nsProjectId);
         Map<String, String> profiles = tbClient.fetchDeviceProfiles();
+        Map<String, DeviceType> ruleTypes = profileRuleService.resolveActiveTypeMap();
         List<ImportResult> results = new ArrayList<>();
         for (ImportItem item : items) {
-            results.add(importDevice(item, nsByEui, profiles, tenantId, operatorId, nsProjectId));
+            results.add(importDevice(item, nsByEui, profiles, ruleTypes, tenantId, operatorId, nsProjectId));
         }
         return new ImportReport(nsProjectId, results);
     }
@@ -145,7 +146,8 @@ public class TbDeviceProvisioningService {
     public Preflight preflight(String eui, Long tenantId) {
         String normalized = requireEui(eui);
         NsClient.NsDevice nsDevice = nsClient.findDeviceByEui(normalized).orElse(null);
-        TbInventory tb = tbInventory(normalized, tbClient.fetchDeviceProfiles());
+        TbInventory tb = tbInventory(normalized, tbClient.fetchDeviceProfiles(),
+                profileRuleService.resolveActiveTypeMap());
         LocalInventory local = localInventory(normalized, tenantId);
         Instant latestTelemetry = tb.selected() == null ? null
                 : tbClient.fetchLatestTelemetryTs(tb.selected().tbDeviceId());
@@ -182,7 +184,8 @@ public class TbDeviceProvisioningService {
         NsClient.NsDevice nsDevice = nsClient.findDeviceByEui(eui)
                 .orElseThrow(() -> new ApiException(
                         ErrorCode.VALIDATION_ERROR, "iot.tb.nsDeviceMissing", new Object[]{eui}));
-        TbInventory tb = tbInventory(eui, tbClient.fetchDeviceProfiles());
+        TbInventory tb = tbInventory(eui, tbClient.fetchDeviceProfiles(),
+                profileRuleService.resolveActiveTypeMap());
         if (tb.selected() == null || !tb.selected().profileValid()) {
             throw new ApiException(ErrorCode.STATE_CONFLICT, "iot.tb.deviceNotImportable", new Object[]{eui});
         }
@@ -293,7 +296,8 @@ public class TbDeviceProvisioningService {
 
     private ImportResult importDevice(
             ImportItem item, Map<String, NsClient.NsDevice> nsByEui,
-            Map<String, String> profiles, Long tenantId, Long operatorId, Integer nsProjectId) {
+            Map<String, String> profiles, Map<String, DeviceType> ruleTypes,
+            Long tenantId, Long operatorId, Integer nsProjectId) {
         String eui = requireEui(item.eui());
         String result = "IMPORTED";
         Long localDeviceId = null;
@@ -304,7 +308,7 @@ public class TbDeviceProvisioningService {
                 result = "SKIPPED_NS_MISSING";
                 return new ImportResult(eui, item.expectedTbDeviceId(), null, null, result);
             }
-            TbInventory tb = tbInventory(eui, profiles);
+            TbInventory tb = tbInventory(eui, profiles, ruleTypes);
             if (tb.selected() == null || !tb.selected().profileValid()) {
                 result = tb.views().size() > 1 ? "SKIPPED_TB_AMBIGUOUS" : "SKIPPED_TB_INVALID";
                 return new ImportResult(eui, item.expectedTbDeviceId(), null, null, result);
@@ -391,11 +395,12 @@ public class TbDeviceProvisioningService {
         }
     }
 
-    private TbInventory tbInventory(String eui, Map<String, String> profiles) {
+    private TbInventory tbInventory(String eui, Map<String, String> profiles,
+            Map<String, DeviceType> ruleTypes) {
         List<TbCandidate> candidates = tbClient.findDevices(eui).stream()
                 .map(view -> {
                     String profileName = profiles.getOrDefault(view.profileId(), "");
-                    DeviceType type = deviceTypeForProfile(profileName);
+                    DeviceType type = ruleTypes.get(profileName);
                     return new TbCandidate(view.id(), view.name(), view.profileId(), profileName,
                             type, type != null);
                 }).toList();
@@ -454,12 +459,6 @@ public class TbDeviceProvisioningService {
                     "iot.invalidEuiFormat", new Object[]{eui});
         }
         return normalized;
-    }
-
-    private static DeviceType deviceTypeForProfile(String profileName) {
-        if (CAPSULE_PROFILE.equals(profileName)) return DeviceType.CAPSULE;
-        if (TRACKER_PROFILE.equals(profileName)) return DeviceType.TRACKER;
-        return null;
     }
 
     public record ImportItem(String eui, String expectedTbDeviceId, String deviceCode) {}

@@ -5425,4 +5425,133 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tbWizardAnother => '再开通一台';
+
+  @override
+  String get deviceProfileRuleTitle => '设备配置管理';
+
+  @override
+  String get deviceProfileRuleHint =>
+      '此列表决定设备开通向导认可哪些 TB 设备配置：配置名不在列表（或已停用）的设备，开通校验将显示“等待 TB 设备”。新增接入链路时在此添加映射，无需发版。';
+
+  @override
+  String deviceProfileRuleStat(int total, int enabled, int disabled) {
+    return '共 $total 条规则 · 启用 $enabled · 停用 $disabled';
+  }
+
+  @override
+  String get deviceProfileRuleReload => '刷新';
+
+  @override
+  String get deviceProfileRuleAdd => '新增规则';
+
+  @override
+  String get deviceProfileRuleEmpty => '暂无规则，点击“新增规则”创建';
+
+  @override
+  String get deviceProfileRuleColName => '设备配置（TB Profile）';
+
+  @override
+  String get deviceProfileRuleColType => '设备类型';
+
+  @override
+  String get deviceProfileRuleColStatus => '状态';
+
+  @override
+  String get deviceProfileRuleColRemark => '备注';
+
+  @override
+  String get deviceProfileRuleColUpdatedAt => '更新时间';
+
+  @override
+  String get deviceProfileRuleColActions => '操作';
+
+  @override
+  String get deviceProfileRuleSourceTb => 'TB';
+
+  @override
+  String get deviceProfileRuleSourceManual => '手动';
+
+  @override
+  String get deviceProfileRuleDisabledBadge => '已停用';
+
+  @override
+  String get deviceProfileRuleTypeEarTag => '耳标';
+
+  @override
+  String get deviceProfileRuleTypeTracker => '牛羊追踪器';
+
+  @override
+  String get deviceProfileRuleTypeCapsule => '瘤胃胶囊';
+
+  @override
+  String get deviceProfileRuleEnabled => '启用';
+
+  @override
+  String get deviceProfileRuleDisabled => '停用';
+
+  @override
+  String get deviceProfileRuleToggleFailed => '切换失败';
+
+  @override
+  String get deviceProfileRuleDeleted => '已删除';
+
+  @override
+  String get deviceProfileRuleDeleteTitle => '删除设备配置规则';
+
+  @override
+  String get deviceProfileRuleDeleteBody => '确认删除 ';
+
+  @override
+  String deviceProfileRuleDeleteWarn(String name) {
+    return '删除后，挂在此配置「$name」下的设备开通校验将显示“等待 TB 设备”，无法完成开通。不影响 TB 平台上的设备与遥测数据。';
+  }
+
+  @override
+  String get deviceProfileRuleAddTitle => '新增设备配置规则';
+
+  @override
+  String get deviceProfileRuleEditTitle => '编辑设备配置规则';
+
+  @override
+  String get deviceProfileRuleFieldName => 'TB 设备配置';
+
+  @override
+  String get deviceProfileRulePickTb => '选择 TB 设备配置';
+
+  @override
+  String get deviceProfileRuleManualInput => '或 手动输入配置名 →';
+
+  @override
+  String get deviceProfileRuleManualHint => '输入 TB 设备配置名';
+
+  @override
+  String get deviceProfileRuleUseTbList => '← 从 TB 列表选择';
+
+  @override
+  String get deviceProfileRuleTbUnavailable => 'TB 暂不可达，请手动输入配置名';
+
+  @override
+  String get deviceProfileRuleTagTaken => '已添加';
+
+  @override
+  String get deviceProfileRuleFieldDeviceType => '设备类型';
+
+  @override
+  String get deviceProfileRuleTypeHelp => '决定开通后设备的能力口径（GPS / 活动量 / 健康监测）。';
+
+  @override
+  String get deviceProfileRuleEnabledHelp =>
+      '停用后该配置下的设备开通校验不通过（显示“等待 TB 设备”），可随时重新启用。';
+
+  @override
+  String get deviceProfileRuleFieldRemark => '备注';
+
+  @override
+  String get deviceProfileRuleRemarkHint => '选填，如：旧链路配置，仅兼容存量设备';
+
+  @override
+  String get deviceProfileRuleNameRequired => '配置名不能为空';
+
+  @override
+  String get deviceProfileRuleDuplicateLocal => '已存在同名规则';
 }

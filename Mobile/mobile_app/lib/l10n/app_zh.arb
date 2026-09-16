@@ -212,7 +212,7 @@
   },
   "ranchFenceActive": "启用",
   "@ranchFenceActive": {},
-  "ranchFenceInactive": "停用",
+  "ranchFenceInactive": "已停用",
   "@ranchFenceInactive": {},
   "ranchLivestockCountHead": "{count}头",
   "@ranchLivestockCountHead": {
@@ -3093,10 +3093,18 @@
   "alertSumReconcile": "{critical} + {warning} + {info} ＝ {total} 活跃",
   "@alertSumReconcile": {
     "placeholders": {
-      "critical": { "type": "int" },
-      "warning": { "type": "int" },
-      "info": { "type": "int" },
-      "total": { "type": "int" }
+      "critical": {
+        "type": "int"
+      },
+      "warning": {
+        "type": "int"
+      },
+      "info": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "alertRefreshHint": "每 30 秒自动更新",
@@ -3110,8 +3118,12 @@
   "alertShownOf": "已显示 {shown}/{total} 条",
   "@alertShownOf": {
     "placeholders": {
-      "shown": { "type": "int" },
-      "total": { "type": "int" }
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "alertFenceStatusTitle": "围栏状态",
@@ -3119,14 +3131,20 @@
   "alertFenceAggSub": "当前 {out} 头在栏外 · {near} 头接近（按牲畜去重）",
   "@alertFenceAggSub": {
     "placeholders": {
-      "out": { "type": "int" },
-      "near": { "type": "int" }
+      "out": {
+        "type": "int"
+      },
+      "near": {
+        "type": "int"
+      }
     }
   },
   "alertFenceViewAll": "查看全部 {count} 条围栏告警",
   "@alertFenceViewAll": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "alertFenceStateOut": "在栏外",
@@ -3136,7 +3154,9 @@
   "alertEmptyCta": "查看 {count} 条已处理记录",
   "@alertEmptyCta": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "alertBackToActive": "返回活跃告警",
@@ -3363,8 +3383,6 @@
       }
     }
   },
-  "ranchFenceInactive": "已停用",
-  "@ranchFenceInactive": {},
   "ranchFenceLocationGap": "未定位 {noGps} 头 · 栏外 {outside} 头",
   "@ranchFenceLocationGap": {
     "placeholders": {
@@ -4407,5 +4425,105 @@
   "tbWizardBack": "上一步",
   "@tbWizardBack": {},
   "tbWizardAnother": "再开通一台",
-  "@tbWizardAnother": {}
+  "@tbWizardAnother": {},
+  "deviceProfileRuleTitle": "设备配置管理",
+  "@deviceProfileRuleTitle": {},
+  "deviceProfileRuleHint": "此列表决定设备开通向导认可哪些 TB 设备配置：配置名不在列表（或已停用）的设备，开通校验将显示“等待 TB 设备”。新增接入链路时在此添加映射，无需发版。",
+  "@deviceProfileRuleHint": {},
+  "deviceProfileRuleStat": "共 {total} 条规则 · 启用 {enabled} · 停用 {disabled}",
+  "@deviceProfileRuleStat": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "enabled": {
+        "type": "int"
+      },
+      "disabled": {
+        "type": "int"
+      }
+    }
+  },
+  "deviceProfileRuleReload": "刷新",
+  "@deviceProfileRuleReload": {},
+  "deviceProfileRuleAdd": "新增规则",
+  "@deviceProfileRuleAdd": {},
+  "deviceProfileRuleEmpty": "暂无规则，点击“新增规则”创建",
+  "@deviceProfileRuleEmpty": {},
+  "deviceProfileRuleColName": "设备配置（TB Profile）",
+  "@deviceProfileRuleColName": {},
+  "deviceProfileRuleColType": "设备类型",
+  "@deviceProfileRuleColType": {},
+  "deviceProfileRuleColStatus": "状态",
+  "@deviceProfileRuleColStatus": {},
+  "deviceProfileRuleColRemark": "备注",
+  "@deviceProfileRuleColRemark": {},
+  "deviceProfileRuleColUpdatedAt": "更新时间",
+  "@deviceProfileRuleColUpdatedAt": {},
+  "deviceProfileRuleColActions": "操作",
+  "@deviceProfileRuleColActions": {},
+  "deviceProfileRuleSourceTb": "TB",
+  "@deviceProfileRuleSourceTb": {},
+  "deviceProfileRuleSourceManual": "手动",
+  "@deviceProfileRuleSourceManual": {},
+  "deviceProfileRuleDisabledBadge": "已停用",
+  "@deviceProfileRuleDisabledBadge": {},
+  "deviceProfileRuleTypeEarTag": "耳标",
+  "@deviceProfileRuleTypeEarTag": {},
+  "deviceProfileRuleTypeTracker": "牛羊追踪器",
+  "@deviceProfileRuleTypeTracker": {},
+  "deviceProfileRuleTypeCapsule": "瘤胃胶囊",
+  "@deviceProfileRuleTypeCapsule": {},
+  "deviceProfileRuleEnabled": "启用",
+  "@deviceProfileRuleEnabled": {},
+  "deviceProfileRuleDisabled": "停用",
+  "@deviceProfileRuleDisabled": {},
+  "deviceProfileRuleToggleFailed": "切换失败",
+  "@deviceProfileRuleToggleFailed": {},
+  "deviceProfileRuleDeleted": "已删除",
+  "@deviceProfileRuleDeleted": {},
+  "deviceProfileRuleDeleteTitle": "删除设备配置规则",
+  "@deviceProfileRuleDeleteTitle": {},
+  "deviceProfileRuleDeleteBody": "确认删除 ",
+  "@deviceProfileRuleDeleteBody": {},
+  "deviceProfileRuleDeleteWarn": "删除后，挂在此配置「{name}」下的设备开通校验将显示“等待 TB 设备”，无法完成开通。不影响 TB 平台上的设备与遥测数据。",
+  "@deviceProfileRuleDeleteWarn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceProfileRuleAddTitle": "新增设备配置规则",
+  "@deviceProfileRuleAddTitle": {},
+  "deviceProfileRuleEditTitle": "编辑设备配置规则",
+  "@deviceProfileRuleEditTitle": {},
+  "deviceProfileRuleFieldName": "TB 设备配置",
+  "@deviceProfileRuleFieldName": {},
+  "deviceProfileRulePickTb": "选择 TB 设备配置",
+  "@deviceProfileRulePickTb": {},
+  "deviceProfileRuleManualInput": "或 手动输入配置名 →",
+  "@deviceProfileRuleManualInput": {},
+  "deviceProfileRuleManualHint": "输入 TB 设备配置名",
+  "@deviceProfileRuleManualHint": {},
+  "deviceProfileRuleUseTbList": "← 从 TB 列表选择",
+  "@deviceProfileRuleUseTbList": {},
+  "deviceProfileRuleTbUnavailable": "TB 暂不可达，请手动输入配置名",
+  "@deviceProfileRuleTbUnavailable": {},
+  "deviceProfileRuleTagTaken": "已添加",
+  "@deviceProfileRuleTagTaken": {},
+  "deviceProfileRuleFieldDeviceType": "设备类型",
+  "@deviceProfileRuleFieldDeviceType": {},
+  "deviceProfileRuleTypeHelp": "决定开通后设备的能力口径（GPS / 活动量 / 健康监测）。",
+  "@deviceProfileRuleTypeHelp": {},
+  "deviceProfileRuleEnabledHelp": "停用后该配置下的设备开通校验不通过（显示“等待 TB 设备”），可随时重新启用。",
+  "@deviceProfileRuleEnabledHelp": {},
+  "deviceProfileRuleFieldRemark": "备注",
+  "@deviceProfileRuleFieldRemark": {},
+  "deviceProfileRuleRemarkHint": "选填，如：旧链路配置，仅兼容存量设备",
+  "@deviceProfileRuleRemarkHint": {},
+  "deviceProfileRuleNameRequired": "配置名不能为空",
+  "@deviceProfileRuleNameRequired": {},
+  "deviceProfileRuleDuplicateLocal": "已存在同名规则",
+  "@deviceProfileRuleDuplicateLocal": {}
 }

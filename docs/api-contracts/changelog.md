@@ -85,3 +85,15 @@
 | `app-api.md` / `open-api.md` 牲畜示例 | breed/gender 统一为 DB CHECK 约束的规范码（`ANGUS/WAGYU/SIMMENTAL/LIMOUSIN/OTHER`、`MALE/FEMALE`）；后端服务层同步做别名规范化（中文别名 → 规范码）与校验（未知值 400 `VALIDATION_ERROR`，不再 500） |
 | `admin-api.md` §6 API Key 管理 | 按实现修正字段：创建响应为 `id/keyName/prefix/role/rawKey/scopes`（原 `keyId/apiKey` 为笔误）；`scopes` 接受数组或逗号串并逐个校验；限流默认 60 rpm / 20000 日；DELETE 前须先置 `disabled` |
 | 门户 `POST /portal/keys` | 创建响应补回一次性 `rawKey`（此前响应丢失密钥明文，key 创建后不可获得） |
+
+---
+
+## 2026-09-16 — NIX-214 设备配置规则管理（admin 端点）
+
+**来源**: 设备开通向导 TB profile 白名单由硬编码改为平台级配置（NIX-214）。
+
+**新增**:
+
+| 位置 | 内容 |
+|------|------|
+| `admin-api.md` §15 | `DeviceProfileRuleAdminController` 5 端点（列表/创建/更新/删除/TB 配置透传），权限 platform_admin+b2b_admin，表 `device_profile_rules`，种子迁移 V20260916100000 保持现行白名单行为不变；写操作审计 `DEVICE_PROFILE_RULE_*` |

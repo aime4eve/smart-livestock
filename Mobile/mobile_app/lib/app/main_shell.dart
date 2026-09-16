@@ -221,6 +221,14 @@ class _PlatformAdminShell extends ConsumerWidget {
                     ),
                     const Divider(height: 1, indent: 8, endIndent: 8),
                     _IconSidebarItem(
+                      icon: Icons.settings_input_antenna_outlined,
+                      tooltip: AppRoute.platformDeviceProfiles.label,
+                      selected: location
+                          .startsWith(AppRoute.platformDeviceProfiles.path),
+                      onTap: () =>
+                          context.go(AppRoute.platformDeviceProfiles.path),
+                    ),
+                    _IconSidebarItem(
                       icon: Icons.gps_fixed,
                       tooltip: AppRoute.platformGpsQuality.label,
                       selected:
@@ -388,6 +396,13 @@ class _B2bAdminShell extends ConsumerWidget {
                 selected: _isSelected(context, 6),
                   onTap: () => context.go(AppRoute.platformTileAdmin.path),
                 ),
+              _IconSidebarItem(
+                icon: Icons.settings_input_antenna_outlined,
+                tooltip: AppRoute.platformDeviceProfiles.label,
+                selected: GoRouterState.of(context).uri.toString()
+                    .startsWith(AppRoute.platformDeviceProfiles.path),
+                onTap: () => context.go(AppRoute.platformDeviceProfiles.path),
+              ),
 
                 const Spacer(),
 
