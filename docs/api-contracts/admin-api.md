@@ -1,8 +1,8 @@
 # Admin API 端点（`/api/v1/admin/`）
 
-> **端点总数**: 123（Phase 1 + Phase 2a Commerce + Phase 2c + GPS 质量检查 + NIX-79 遥测导入 + 仿真控制台 + NIX-184 部署授权与试点授权；与实际对齐）
+> **端点总数**: 128（Phase 1 + Phase 2a Commerce + Phase 2c + GPS 质量检查 + NIX-79 遥测导入 + 仿真控制台 + NIX-184 部署授权与试点授权；与实际对齐）
 >
-> ⚠️ **As-Built 校准（2026-06-26）**: 当前 Admin API 实际 **110 个端点**，本文档已**全量详列 110 个**：Phase 1 全部（含 TenantAdmin 补全的 `PUT /admin/tenants/{id}` 与 `GET /admin/tenants/{id}/farms`）+ Phase 2a Commerce 21 + Phase 2c（瓦片 7 / API 用量 3 / Portal 5）+ GPS 质量检查 51。端点真源为代码，详见 [后端实现现状 §7 API 设计](../superpowers/specs/2026-05-06-mvp-backend-design.md)。2026-07-29 NIX-79 新增遥测数据导入 2 端点（§12）；2026-08-17 新增仿真控制台 5 端点（§13），总数 117。2026-09-03 NIX-184 新增部署授权与试点授权 5 端点（§14）。
+> ⚠️ **As-Built 校准（2026-06-26）**: 当前 Admin API 实际 **110 个端点**，本文档已**全量详列 110 个**：Phase 1 全部（含 TenantAdmin 补全的 `PUT /admin/tenants/{id}` 与 `GET /admin/tenants/{id}/farms`）+ Phase 2a Commerce 21 + Phase 2c（瓦片 7 / API 用量 3 / Portal 5）+ GPS 质量检查 51。端点真源为代码，详见 [后端实现现状 §7 API 设计](../superpowers/specs/2026-05-06-mvp-backend-design.md)。2026-07-29 NIX-79 新增遥测数据导入 2 端点（§12）；2026-08-17 新增仿真控制台 5 端点（§13），总数 117。2026-09-03 NIX-184 新增部署授权与试点授权 5 端点（§14）；2026-09-16 NIX-214 新增设备配置规则 5 端点（§15），总数 128。
 > **认证**: JWT Bearer Token（本文件多数端点要求 platform_admin；仿真控制台允许 platform_admin / b2b_admin，B2B 管理员限定本租户）
 > **特点**: 跨租户视图，批量操作，管理动作。基础资源操作复用 App API 端点，admin 角色可访问任意 farm 数据。
 
@@ -2135,6 +2135,58 @@ Response 200:
 | SUSPENDED | 保护性冻结：时间回拨超容差（`LICENSE_TIME_ROLLBACK`）/ 签名或绑定失效（`PROTECTION_LICENSE_INVALID` / `PROTECTION_BINDING_MISMATCH`） | 仅登录与授权管理可达，其余全部 403 `LICENSE_REQUIRED`（含 Open API） | 订阅为 ACTIVE 时挂起为 SUSPENDED（TRIAL/FREE 不动）；解除 = 恢复正确时间 / 消除失配原因，调度器重验后自愈回 VALID（订阅按授权重映射） |
 
 > 调度器：ONPREM 下应用启动时及按 `SMARTLIVESTOCK_LICENSE_VALIDATION_CRON`（默认 `0 */5 * * * *`，每 5 分钟）对全部已登记租户重跑校验管线；HOSTED 为 no-op。时间容差 `SMARTLIVESTOCK_LICENSE_TIME_TOLERANCE`（默认 PT2M）。手工改库会在下个周期自愈并留事件（`deployment_license_events`）。
+
+---
+
+## 15. 设备配置规则（DeviceProfileRuleAdminController）— 5 端点（NIX-214）
+
+> TB 设备配置（Device Profile）白名单的平台级 CRUD，替代开通向导中硬编码的 profile 白名单（`瘤胃胶囊-OC-配置-v2` / `牛羊追踪器-OC-配置-v2` 已作为种子迁移）。权限：**platform_admin / b2b_admin**（与瓦片管理一致）。数据表 `device_profile_rules`，平台级数据、无租户隔离。
+
+### GET /admin/device-profile-rules
+
+全量列表（含停用），按 profileName 升序。
+
+```
+Response 200:
+{
+  "code": "OK",
+  "data": [
+    { "id": 1, "profileName": "瘤胃胶囊-OC-配置-v2", "deviceType": "CAPSULE",
+      "enabled": true, "remark": "现行 OC 链路（自硬编码白名单迁移）",
+      "updatedAt": "2026-09-16T10:19:35.054750Z" }
+  ]
+}
+```
+
+### POST /admin/device-profile-rules
+
+Request: `{ "profileName": "…", "deviceType": "TRACKER|CAPSULE|EAR_TAG", "enabled": true, "remark": "选填" }`
+
+- profileName 全表唯一；重名 → 409 `DUPLICATE_RESOURCE`（`iot.profileRule.duplicate`）
+- deviceType 非法/缺失 → 400 `VALIDATION_ERROR`（`iot.profileRule.invalidDeviceType`）
+
+### PUT /admin/device-profile-rules/{id}
+
+Request: `{ "deviceType": "…", "enabled": false, "remark": "…" }`
+
+- **profileName 不可变**（body 中携带也会被忽略，改名 = 删除重建）
+- id 不存在 → 404 `RESOURCE_NOT_FOUND`（`iot.profileRule.notFound`）
+
+### DELETE /admin/device-profile-rules/{id}
+
+物理删除。删除/停用后，挂在该配置下的设备开通 preflight 变为 `PENDING_TB_DEVICE`（"等待 TB 设备"），恢复启用即重新通过校验。
+
+### GET /admin/device-profile-rules/tb-profiles
+
+透传 ThingsBoard 设备配置实时列表，供前端下拉选择（已建规则的项由前端置灰）。
+
+```
+Response 200: { "code": "OK", "data": [ { "id": "f5396a40-…", "name": "牛羊追踪器-OC-配置-v2" } ] }
+```
+
+- TB 不可达 → 500 `INTERNAL_ERROR`（`iot.tb.profilesUnavailable`），前端降级为手动输入配置名。
+
+**审计**: 写操作记录 `DEVICE_PROFILE_RULE_CREATED / _UPDATED / _DELETED`（audit_logs，detail 含 ruleId/profileName/deviceType/enabled）。
 
 ---
 
