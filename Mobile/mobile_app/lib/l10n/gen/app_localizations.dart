@@ -9706,6 +9706,252 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'获取登记信息失败，请稍后重试或联系厂商'**
   String get loginEnrollmentFailed;
+
+  /// No description provided for @deviceProfileRuleTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备配置管理'**
+  String get deviceProfileRuleTitle;
+
+  /// No description provided for @deviceProfileRuleHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'此列表决定设备开通向导认可哪些 TB 设备配置：配置名不在列表（或已停用）的设备，开通校验将显示“等待 TB 设备”。新增接入链路时在此添加映射，无需发版。'**
+  String get deviceProfileRuleHint;
+
+  /// No description provided for @deviceProfileRuleStat.
+  ///
+  /// In zh, this message translates to:
+  /// **'共 {total} 条规则 · 启用 {enabled} · 停用 {disabled}'**
+  String deviceProfileRuleStat(int total, int enabled, int disabled);
+
+  /// No description provided for @deviceProfileRuleReload.
+  ///
+  /// In zh, this message translates to:
+  /// **'刷新'**
+  String get deviceProfileRuleReload;
+
+  /// No description provided for @deviceProfileRuleAdd.
+  ///
+  /// In zh, this message translates to:
+  /// **'新增规则'**
+  String get deviceProfileRuleAdd;
+
+  /// No description provided for @deviceProfileRuleEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无规则，点击“新增规则”创建'**
+  String get deviceProfileRuleEmpty;
+
+  /// No description provided for @deviceProfileRuleColName.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备配置（TB Profile）'**
+  String get deviceProfileRuleColName;
+
+  /// No description provided for @deviceProfileRuleColType.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备类型'**
+  String get deviceProfileRuleColType;
+
+  /// No description provided for @deviceProfileRuleColStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'状态'**
+  String get deviceProfileRuleColStatus;
+
+  /// No description provided for @deviceProfileRuleColRemark.
+  ///
+  /// In zh, this message translates to:
+  /// **'备注'**
+  String get deviceProfileRuleColRemark;
+
+  /// No description provided for @deviceProfileRuleColUpdatedAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'更新时间'**
+  String get deviceProfileRuleColUpdatedAt;
+
+  /// No description provided for @deviceProfileRuleColActions.
+  ///
+  /// In zh, this message translates to:
+  /// **'操作'**
+  String get deviceProfileRuleColActions;
+
+  /// No description provided for @deviceProfileRuleSourceTb.
+  ///
+  /// In zh, this message translates to:
+  /// **'TB'**
+  String get deviceProfileRuleSourceTb;
+
+  /// No description provided for @deviceProfileRuleSourceManual.
+  ///
+  /// In zh, this message translates to:
+  /// **'手动'**
+  String get deviceProfileRuleSourceManual;
+
+  /// No description provided for @deviceProfileRuleDisabledBadge.
+  ///
+  /// In zh, this message translates to:
+  /// **'已停用'**
+  String get deviceProfileRuleDisabledBadge;
+
+  /// No description provided for @deviceProfileRuleTypeEarTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'耳标'**
+  String get deviceProfileRuleTypeEarTag;
+
+  /// No description provided for @deviceProfileRuleTypeTracker.
+  ///
+  /// In zh, this message translates to:
+  /// **'牛羊追踪器'**
+  String get deviceProfileRuleTypeTracker;
+
+  /// No description provided for @deviceProfileRuleTypeCapsule.
+  ///
+  /// In zh, this message translates to:
+  /// **'瘤胃胶囊'**
+  String get deviceProfileRuleTypeCapsule;
+
+  /// No description provided for @deviceProfileRuleEnabled.
+  ///
+  /// In zh, this message translates to:
+  /// **'启用'**
+  String get deviceProfileRuleEnabled;
+
+  /// No description provided for @deviceProfileRuleDisabled.
+  ///
+  /// In zh, this message translates to:
+  /// **'停用'**
+  String get deviceProfileRuleDisabled;
+
+  /// No description provided for @deviceProfileRuleToggleFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'切换失败'**
+  String get deviceProfileRuleToggleFailed;
+
+  /// No description provided for @deviceProfileRuleDeleted.
+  ///
+  /// In zh, this message translates to:
+  /// **'已删除'**
+  String get deviceProfileRuleDeleted;
+
+  /// No description provided for @deviceProfileRuleDeleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除设备配置规则'**
+  String get deviceProfileRuleDeleteTitle;
+
+  /// No description provided for @deviceProfileRuleDeleteBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认删除 '**
+  String get deviceProfileRuleDeleteBody;
+
+  /// No description provided for @deviceProfileRuleDeleteWarn.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除后，挂在此配置「{name}」下的设备开通校验将显示“等待 TB 设备”，无法完成开通。不影响 TB 平台上的设备与遥测数据。'**
+  String deviceProfileRuleDeleteWarn(String name);
+
+  /// No description provided for @deviceProfileRuleAddTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'新增设备配置规则'**
+  String get deviceProfileRuleAddTitle;
+
+  /// No description provided for @deviceProfileRuleEditTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑设备配置规则'**
+  String get deviceProfileRuleEditTitle;
+
+  /// No description provided for @deviceProfileRuleFieldName.
+  ///
+  /// In zh, this message translates to:
+  /// **'TB 设备配置'**
+  String get deviceProfileRuleFieldName;
+
+  /// No description provided for @deviceProfileRulePickTb.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择 TB 设备配置'**
+  String get deviceProfileRulePickTb;
+
+  /// No description provided for @deviceProfileRuleManualInput.
+  ///
+  /// In zh, this message translates to:
+  /// **'或 手动输入配置名 →'**
+  String get deviceProfileRuleManualInput;
+
+  /// No description provided for @deviceProfileRuleManualHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入 TB 设备配置名'**
+  String get deviceProfileRuleManualHint;
+
+  /// No description provided for @deviceProfileRuleUseTbList.
+  ///
+  /// In zh, this message translates to:
+  /// **'← 从 TB 列表选择'**
+  String get deviceProfileRuleUseTbList;
+
+  /// No description provided for @deviceProfileRuleTbUnavailable.
+  ///
+  /// In zh, this message translates to:
+  /// **'TB 暂不可达，请手动输入配置名'**
+  String get deviceProfileRuleTbUnavailable;
+
+  /// No description provided for @deviceProfileRuleTagTaken.
+  ///
+  /// In zh, this message translates to:
+  /// **'已添加'**
+  String get deviceProfileRuleTagTaken;
+
+  /// No description provided for @deviceProfileRuleFieldDeviceType.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备类型'**
+  String get deviceProfileRuleFieldDeviceType;
+
+  /// No description provided for @deviceProfileRuleTypeHelp.
+  ///
+  /// In zh, this message translates to:
+  /// **'决定开通后设备的能力口径（GPS / 活动量 / 健康监测）。'**
+  String get deviceProfileRuleTypeHelp;
+
+  /// No description provided for @deviceProfileRuleEnabledHelp.
+  ///
+  /// In zh, this message translates to:
+  /// **'停用后该配置下的设备开通校验不通过（显示“等待 TB 设备”），可随时重新启用。'**
+  String get deviceProfileRuleEnabledHelp;
+
+  /// No description provided for @deviceProfileRuleFieldRemark.
+  ///
+  /// In zh, this message translates to:
+  /// **'备注'**
+  String get deviceProfileRuleFieldRemark;
+
+  /// No description provided for @deviceProfileRuleRemarkHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'选填，如：旧链路配置，仅兼容存量设备'**
+  String get deviceProfileRuleRemarkHint;
+
+  /// No description provided for @deviceProfileRuleNameRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'配置名不能为空'**
+  String get deviceProfileRuleNameRequired;
+
+  /// No description provided for @deviceProfileRuleDuplicateLocal.
+  ///
+  /// In zh, this message translates to:
+  /// **'已存在同名规则'**
+  String get deviceProfileRuleDuplicateLocal;
 }
 
 class _AppLocalizationsDelegate

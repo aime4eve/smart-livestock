@@ -55,6 +55,7 @@ import 'package:hkt_livestock_agentic/features/admin/feature_gate/presentation/f
 import 'package:hkt_livestock_agentic/features/admin/license/presentation/deployment_license_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/analytics/presentation/analytics_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/tile_admin/presentation/tile_admin_page.dart';
+import 'package:hkt_livestock_agentic/features/admin/device_profile_rules/presentation/device_profile_rules_page.dart';
 import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_revenue_page.dart';
 import 'package:hkt_livestock_agentic/features/mine/presentation/api_auth_page.dart';
 import 'package:hkt_livestock_agentic/features/farm_creation/presentation/farm_creation_wizard_page.dart';
@@ -410,6 +411,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoute.platformTileAdmin.path,
             name: AppRoute.platformTileAdmin.routeName,
             builder: (context, state) => const TileAdminPage(),
+          ),
+          GoRoute(
+            path: AppRoute.platformDeviceProfiles.path,
+            name: AppRoute.platformDeviceProfiles.routeName,
+            builder: (context, state) => const DeviceProfileRulesPage(),
           ),
           GoRoute(
             path: AppRoute.platformGpsQuality.path,

@@ -50,6 +50,7 @@ enum AppRoute {
   platformFeatureGates('/admin/feature-gates', 'platform-feature-gates', '功能门控'),
   platformAnalytics('/admin/analytics', 'platform-analytics', '用量分析'),
   platformTileAdmin('/admin/tiles', 'platform-tile-admin', '瓦片管理'),
+  platformDeviceProfiles('/admin/device-profile-rules', 'platform-device-profiles', '设备配置管理'),
   platformGpsQuality('/admin/gps-quality', 'platform-gps-quality', 'GPS 质量检查'),
   platformTelemetryImport('/admin/telemetry-import', 'platform-telemetry-import', '遥测数据导入'),
   platformDatagen('/admin/datagen', 'platform-datagen', '仿真控制'),
