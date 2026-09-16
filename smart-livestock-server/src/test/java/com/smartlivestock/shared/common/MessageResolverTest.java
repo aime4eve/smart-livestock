@@ -48,4 +48,12 @@ class MessageResolverTest {
         assertEquals("权限不足", zh);
         assertEquals("Access denied", en);
     }
+
+    @Test
+    void numericArgsRenderVerbatimWithoutLocaleGrouping() {
+        String msg = messageResolver.resolve("iot.profileRule.notFound",
+                new Object[]{999999L}, Locale.SIMPLIFIED_CHINESE);
+        assertTrue(msg.contains("999999"), () -> "Expected verbatim id, got: " + msg);
+        assertTrue(!msg.contains("999,999"), () -> "MessageFormat grouping leaked: " + msg);
+    }
 }

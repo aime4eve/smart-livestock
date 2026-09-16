@@ -32,6 +32,23 @@ public class MessageResolver {
      * @return the resolved message, or {@code key} if not found
      */
     public String resolve(String key, Object[] args, Locale locale) {
-        return messageSource.getMessage(key, args, key, locale);
+        return messageSource.getMessage(key, stringifyNumbers(args), key, locale);
+    }
+
+    /**
+     * Spring routes non-String args through {@link java.text.MessageFormat},
+     * which applies locale number grouping to {@code Number} args
+     * ({@code 999999L} renders as "999,999"). Ids must appear verbatim in
+     * messages, so numbers are passed as pre-rendered strings.
+     */
+    private static Object[] stringifyNumbers(Object[] args) {
+        if (args == null) {
+            return null;
+        }
+        Object[] out = new Object[args.length];
+        for (int i = 0; i < args.length; i++) {
+            out[i] = args[i] instanceof Number ? String.valueOf(args[i]) : args[i];
+        }
+        return out;
     }
 }
