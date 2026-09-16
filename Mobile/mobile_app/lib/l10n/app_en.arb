@@ -811,9 +811,9 @@
   "@fenceImportStepPreview": {},
   "fenceImportStepResult": "Result",
   "@fenceImportStepResult": {},
-  "fenceImportPickFile": "Choose GPX file",
+  "fenceImportPickFile": "Choose track file (GPX / XLSX)",
   "@fenceImportPickFile": {},
-  "fenceImportFormatHint": "Supports GPX tracks (trkpt/rtept) exported by RTK controllers, Ovital, 2bulu and other tools, in WGS-84",
+  "fenceImportFormatHint": "Supports RTK-controller track XLSX workbooks (column A name, column H coordinates) and GPX tracks (trkpt/rtept) from other tools, in WGS-84",
   "@fenceImportFormatHint": {},
   "fenceImportGpxFailed": "GPX import failed: {error}",
   "@fenceImportGpxFailed": {

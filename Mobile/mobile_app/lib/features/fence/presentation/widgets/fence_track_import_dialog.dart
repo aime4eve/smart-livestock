@@ -47,7 +47,7 @@ class FenceTrackImportDialog extends StatefulWidget {
 }
 
 class _FenceTrackImportDialogState extends State<FenceTrackImportDialog> {
-  static const _extensions = ['gpx', 'xml'];
+  static const _extensions = ['gpx', 'xml', 'xlsx'];
 
   int _step = 0;
   bool _busy = false;

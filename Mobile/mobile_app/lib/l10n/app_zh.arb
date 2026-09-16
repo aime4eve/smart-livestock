@@ -808,9 +808,9 @@
   "@fenceImportStepPreview": {},
   "fenceImportStepResult": "生成",
   "@fenceImportStepResult": {},
-  "fenceImportPickFile": "选择 GPX 文件",
+  "fenceImportPickFile": "选择轨迹文件（GPX / XLSX）",
   "@fenceImportPickFile": {},
-  "fenceImportFormatHint": "支持 RTK 手簿、奥维、两步路等导出的 GPX 轨迹（trkpt/rtept），坐标为 WGS-84",
+  "fenceImportFormatHint": "支持 RTK 手簿轨迹检验线路 XLSX（A 列名称、H 列坐标）与外部工具导出的 GPX 轨迹（trkpt/rtept），坐标为 WGS-84",
   "@fenceImportFormatHint": {},
   "fenceImportGpxFailed": "GPX 导入失败: {error}",
   "@fenceImportGpxFailed": {
