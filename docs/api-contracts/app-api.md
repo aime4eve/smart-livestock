@@ -496,31 +496,36 @@ Response 200:
 
 #### POST /farms/{farmId}/fences/track-parse
 
-GPX 轨迹解析预览（NIX-213，2026-09-16 增补）。围栏"导入 GPX"流程的第一步：服务端解析 GPX（`<trkpt>` 多段合并 + `<rtept>`，忽略 `<wpt>`）→ 清洗（剔除非法坐标、合并连续重复点、上限 20000 点）→ 返回统计与清洗后点集。**无状态、不落库**——围栏本体仍通过 POST /fences 创建（配额/乐观锁不旁路）；客户端对 `trackPoints` 在本地跑外包络管线。
+轨迹文件解析预览（NIX-213，2026-09-16 增补；同日增补 XLSX 支持）。围栏"导入轨迹"流程的第一步。按扩展名分流：
+
+- **GPX**（`.gpx`/`.xml`）：解析 `<trkpt>`（多段合并）+ `<rtept>`，忽略 `<wpt>`；多段时 `metadataWarning` 提示合并。
+- **XLSX**（`.xlsx`）：RTK 手簿「轨迹检验线路」版式——第一个 sheet、表头后第一条非空数据行、A 列=默认名称、H 列=换行分隔的 `lng,lat,高程` 三元组（与 gps-quality track-lines 同格式）；多个数据行仅取第 1 条并告警。
+
+清洗规则统一：剔除非法坐标、合并连续重复点、上限 20000 点。返回统计与清洗后点集。**无状态、不落库**——围栏本体仍通过 POST /fences 创建（配额/乐观锁不旁路）；客户端对 `trackPoints` 在本地跑外包络管线。
 
 ```
-Request: multipart/form-data，字段 file=<.gpx 文件>
+Request: multipart/form-data，字段 file=<.gpx 或 .xlsx 文件>
 
 Response 200:
 {
   "code": "OK", "message": "success", "requestId": "req-031",
   "data": {
-    "defaultName": "北围栏",
-    "rawPointCount": 3200,
-    "pointCount": 2980,
-    "removedDuplicates": 220,
+    "defaultName": "自动追踪_20260729140734",
+    "rawPointCount": 485,
+    "pointCount": 485,
+    "removedDuplicates": 0,
     "invalidPoints": 0,
-    "lengthMeters": 4820.5,
-    "startLat": 28.24012, "startLng": 112.85031,
-    "endLat": 28.24050, "endLng": 112.85010,
-    "metadataWarning": "文件包含 2 个轨迹段，已合并处理",
-    "previewPoints": [ { "sequenceNo": 1, "lat": 28.24012, "lng": 112.85031 } ],
-    "trackPoints": [ { "sequenceNo": 1, "lat": 28.24012, "lng": 112.85031 } ]
+    "lengthMeters": 566.4,
+    "startLat": 28.245404, "startLng": 112.850488,
+    "endLat": 28.246739, "endLng": 112.851718,
+    "metadataWarning": null,
+    "previewPoints": [ { "sequenceNo": 1, "lat": 28.245404, "lng": 112.850488 } ],
+    "trackPoints": [ { "sequenceNo": 1, "lat": 28.245404, "lng": 112.850488 } ]
   }
 }
 ```
 
-> 权限: `OWNER` / `B2B_ADMIN`（与创建围栏一致）。`previewPoints` 为前 8 个点；`pointCount` 是清洗后总点数，而 `trackPoints` 超过 5000 时按均匀步进抽稀传输（首尾保留，围栏包络在 ≥25m 边界尺度下不受影响）。清洗后不足 2 点 → 400 `error.gpxNoTrack`；超 20000 点 → 400 `error.gpxTooManyPoints`；非 XML/XXE 载荷 → 400 `error.gpxParseFailed`。相关防御：POST/PUT /fences 顶点 <3 → 400 `error.fenceTooFewVertices`；JTS 缓冲计算拓扑异常 → 400 `error.fenceInvalidGeometry`（原 500）。`metadataWarning` 为展示用文本（多段合并提示），不参与落库。
+> 权限: `OWNER` / `B2B_ADMIN`（与创建围栏一致）。`previewPoints` 为前 8 个点；`pointCount` 是清洗后总点数，而 `trackPoints` 超过 5000 时按均匀步进抽稀传输（首尾保留，围栏包络在 ≥25m 边界尺度下不受影响）。清洗后不足 2 点 → 400 `error.gpxNoTrack`；超 20000 点 → 400 `error.gpxTooManyPoints`；GPX 解析失败/XXE → 400 `error.gpxParseFailed`；XLSX 解析失败 → 400 `error.trackFileParseFailed`；XLSX 无坐标 → 400 `error.trackNoPoints`。相关防御：POST/PUT /fences 顶点 <3 → 400 `error.fenceTooFewVertices`；JTS 缓冲计算拓扑异常 → 400 `error.fenceInvalidGeometry`（原 500）。`metadataWarning` 为展示用文本，不参与落库。
 
 ### 3.3 告警 — 7 端点
 

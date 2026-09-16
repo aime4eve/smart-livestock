@@ -5,10 +5,13 @@ import com.smartlivestock.ranch.application.command.UpdateFenceCommand;
 import com.smartlivestock.ranch.application.dto.FenceDto;
 import com.smartlivestock.ranch.domain.model.Fence;
 import com.smartlivestock.ranch.domain.model.GpsCoordinate;
+import com.smartlivestock.ranch.domain.model.Livestock;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.domain.repository.FenceRepository;
 import com.smartlivestock.ranch.domain.repository.FenceZoneRepository;
+import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import com.smartlivestock.ranch.domain.service.BufferPolygonCalculator;
+import com.smartlivestock.ranch.domain.service.FenceLivestockCounter;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +30,9 @@ public class FenceApplicationService {
     private final FenceRepository fenceRepository;
     private final AlertRepository alertRepository;
     private final FenceZoneRepository fenceZoneRepository;
+    private final LivestockRepository livestockRepository;
     private final BufferPolygonCalculator bufferPolygonCalculator;
+    private final FenceLivestockCounter fenceLivestockCounter;
 
     @Transactional
     public FenceDto createFence(CreateFenceCommand command) {
@@ -50,8 +55,12 @@ public class FenceApplicationService {
 
     @Transactional(readOnly = true)
     public List<FenceDto> listByFarm(Long farmId) {
-        return fenceRepository.findByFarmId(farmId).stream()
-                .map(FenceDto::from)
+        List<Fence> fences = fenceRepository.findByFarmId(farmId);
+        // One livestock load for all fences: count = GPS fix inside the active
+        // polygon, same semantics as ranch-overview (FenceLivestockCounter).
+        List<Livestock> livestockList = livestockRepository.findByFarmId(farmId);
+        return fences.stream()
+                .map(f -> FenceDto.from(f, fenceLivestockCounter.countInFence(livestockList, f)))
                 .toList();
     }
 

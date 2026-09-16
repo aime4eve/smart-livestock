@@ -1176,6 +1176,7 @@ class _FenceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       key: Key('fence-card-${fence.id}'),
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -1217,7 +1218,7 @@ class _FenceCard extends StatelessWidget {
                         const SizedBox(width: AppSpacing.sm),
                         Flexible(
                           child: Text(
-                            '${fence.livestockCount}头',
+                            l10n.fenceHeadCount('${fence.livestockCount}'),
                             style: Theme.of(context)
                                 .textTheme
                                 .bodySmall,

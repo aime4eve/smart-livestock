@@ -16,8 +16,8 @@ class FenceApiRepository implements FenceRepository {
     final itemsRaw = data['items'] ?? data['value'];
     if (itemsRaw is! List) return const [];
     final rows = itemsRaw.whereType<Map<String, dynamic>>().toList();
-    final counts = livestockCountsByFenceIdRows([]);
-    return fenceItemsFromApiMaps(rows, counts);
+    // livestockCount comes straight from the API rows (computed server-side).
+    return fenceItemsFromApiMaps(rows, const {});
   }
 
   @override
@@ -94,10 +94,5 @@ class FenceApiRepository implements FenceRepository {
       version: version,
       fenceType: fenceType,
     );
-  }
-
-  /// Placeholder: no livestock data fetched in loadAll context.
-  Map<String, int> livestockCountsByFenceIdRows(List<dynamic> animals) {
-    return const {};
   }
 }

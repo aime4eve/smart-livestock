@@ -18,6 +18,8 @@ class RanchFenceTab extends ConsumerStatefulWidget {
     super.key,
     required this.fences,
     required this.alerts,
+    required this.noGpsCount,
+    required this.outsideFenceCount,
     required this.selectedFenceId,
     required this.onFenceSelected,
     this.canManage = false,
@@ -25,6 +27,13 @@ class RanchFenceTab extends ConsumerStatefulWidget {
 
   final List<RanchFenceData> fences;
   final List<RanchAlertData> alerts;
+
+  /// Livestock without a GPS fix — counted in no fence. Together with
+  /// [outsideFenceCount] this reconciles the per-fence counts with the
+  /// overview total: total = inside + outside + no GPS.
+  final int noGpsCount;
+  final int outsideFenceCount;
+
   final String? selectedFenceId;
   final void Function(String fenceId) onFenceSelected;
   final bool canManage;
@@ -149,6 +158,22 @@ class _RanchFenceTabState extends ConsumerState<RanchFenceTab> {
             onEdit: () => _openFullEditor(fence.id),
             onDelete: () => _deleteFence(fence),
           ),
+        // Reconciliation line: explains why per-fence counts may be lower
+        // than the overview "livestock total" (animals with no GPS fix or
+        // outside every active fence belong to no fence).
+        if (widget.noGpsCount + widget.outsideFenceCount > 0)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md, AppSpacing.xs, AppSpacing.md, 0),
+            child: Text(
+              l10n.ranchFenceLocationGap(
+                  widget.noGpsCount, widget.outsideFenceCount),
+              style: const TextStyle(
+                fontSize: 9,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -262,18 +287,42 @@ class _FenceListItem extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      fence.name,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        height: 1.2,
-                        color: AppColors.textPrimary,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            fence.name,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              height: 1.2,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ),
+                        if (!fence.active) ...[
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(3),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Text(
+                              l10n.ranchFenceInactive,
+                              style: const TextStyle(
+                                fontSize: 8,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 1),
                     Text(
-                      l10n.alertFenceLivestockCount(fence.livestockCount),
+                      l10n.ranchFenceInFenceCount(fence.livestockCount),
                       style: const TextStyle(
                         fontSize: 9,
                         color: AppColors.textSecondary,

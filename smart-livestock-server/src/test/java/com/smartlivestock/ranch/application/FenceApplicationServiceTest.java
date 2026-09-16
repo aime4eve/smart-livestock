@@ -4,7 +4,9 @@ import com.smartlivestock.ranch.domain.model.Fence;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.domain.repository.FenceRepository;
 import com.smartlivestock.ranch.domain.repository.FenceZoneRepository;
+import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import com.smartlivestock.ranch.domain.service.BufferPolygonCalculator;
+import com.smartlivestock.ranch.domain.service.FenceLivestockCounter;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +34,7 @@ class FenceApplicationServiceTest {
     @Mock private FenceRepository fenceRepository;
     @Mock private AlertRepository alertRepository;
     @Mock private FenceZoneRepository fenceZoneRepository;
+    @Mock private LivestockRepository livestockRepository;
     @Mock private BufferPolygonCalculator bufferPolygonCalculator;
 
     private FenceApplicationService service;
@@ -39,7 +42,8 @@ class FenceApplicationServiceTest {
     @BeforeEach
     void setUp() {
         service = new FenceApplicationService(
-                fenceRepository, alertRepository, fenceZoneRepository, bufferPolygonCalculator);
+                fenceRepository, alertRepository, fenceZoneRepository, livestockRepository,
+                bufferPolygonCalculator, new FenceLivestockCounter());
     }
 
     @Test

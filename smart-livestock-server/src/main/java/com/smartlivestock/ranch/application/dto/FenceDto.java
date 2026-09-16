@@ -13,9 +13,19 @@ public record FenceDto(
         String color,
         boolean active,
         int version,
-        String fenceType
+        String fenceType,
+        int livestockCount
 ) {
     public static FenceDto from(Fence fence) {
+        return from(fence, 0);
+    }
+
+    /**
+     * @param livestockCount livestock with a GPS fix currently inside the fence
+     *                       (computed by the caller for list endpoints; 0 for
+     *                       single-fence mutations)
+     */
+    public static FenceDto from(Fence fence, int livestockCount) {
         return new FenceDto(
                 fence.getId(),
                 fence.getFarmId(),
@@ -24,7 +34,8 @@ public record FenceDto(
                 fence.getColor(),
                 fence.isActive(),
                 fence.getVersion(),
-                fence.getFenceType()
+                fence.getFenceType(),
+                livestockCount
         );
     }
 }

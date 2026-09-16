@@ -86,7 +86,10 @@ List<FenceItem> fenceItemsFromApiMaps(
     final r = rows[i];
     final rawFid = r['id'];
     final id = rawFid is int ? rawFid.toString() : (rawFid as String? ?? '');
-    final count = livestockByFenceId[id] ?? 0;
+    // Backend computes the in-fence count (GPS fix inside active polygon);
+    // fall back to the client-side map for older payloads.
+    final apiCount = (r['livestockCount'] as num?)?.toInt();
+    final count = apiCount ?? livestockByFenceId[id] ?? 0;
     out.add(fenceItemFromJson(r, i, count));
   }
   return out;

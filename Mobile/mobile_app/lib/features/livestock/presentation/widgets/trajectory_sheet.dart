@@ -10,6 +10,8 @@ import 'package:hkt_livestock_agentic/core/utils/geo_utils.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
 import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -373,7 +375,17 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
     return shouldTransform ? CoordTransform.wgs84ToGcj02All(raw) : raw;
   }
 
- String _fmtTime(DateTime dt) {
+  /// Average of ring vertices — label anchor for a fence polygon.
+  LatLng _polygonCenter(List<LatLng> points) {
+    var lat = 0.0, lng = 0.0;
+    for (final p in points) {
+      lat += p.latitude;
+      lng += p.longitude;
+    }
+    return LatLng(lat / points.length, lng / points.length);
+  }
+
+  String _fmtTime(DateTime dt) {
    String two(int v) => v.toString().padLeft(2, '0');
    final local = dt.toLocal();
     // Always include date: 月-日 时:分:秒
@@ -595,6 +607,22 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
     // Re-fit camera when tile source switches coordinate system
     final shouldTransform =
         _tileProvider?.shouldTransformCoordinates() ?? false;
+
+    // Farm fences: only in farm-scoped contexts (livestock / farm device
+    // overview). Admin device mode has no farm scope — skip entirely.
+    final fences = (widget.deviceId == null || widget.useFarmScope)
+        ? ref.watch(fenceControllerProvider).fences
+        : const <FenceItem>[];
+    final fenceShapes = [
+      for (final fence in fences)
+        if (fence.points.length >= 3)
+          (
+            fence: fence,
+            ring: shouldTransform
+                ? CoordTransform.wgs84ToGcj02All(fence.points)
+                : fence.points,
+          ),
+    ];
     if (_lastTransformed != shouldTransform) {
       _lastTransformed = shouldTransform;
      _lastBounds = bounds;
@@ -628,6 +656,34 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
                 tileProvider: _tileProvider,
                 urlTemplate: '',
               ),
+              if (fenceShapes.isNotEmpty) ...[
+                PolygonLayer(
+                  polygons: [
+                    for (final shape in fenceShapes)
+                      Polygon(
+                        points: shape.ring,
+                        color:
+                            Color(shape.fence.colorValue).withValues(alpha: 0.15),
+                        borderColor: Color(shape.fence.colorValue),
+                        borderStrokeWidth: 2,
+                      ),
+                  ],
+                ),
+                MarkerLayer(
+                  markers: [
+                    for (final shape in fenceShapes)
+                      Marker(
+                        point: _polygonCenter(shape.ring),
+                        width: 120,
+                        height: 24,
+                        child: _FenceNameChip(
+                          name: shape.fence.name,
+                          colorValue: shape.fence.colorValue,
+                        ),
+                      ),
+                  ],
+                ),
+              ],
               if (visible.length > 1)
                 PolylineLayer(
                   polylines: [
@@ -935,6 +991,48 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
                     ),
                 textAlign: TextAlign.center),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Name chip drawn at a fence polygon center (same look as the ranch map).
+class _FenceNameChip extends StatelessWidget {
+  const _FenceNameChip({required this.name, required this.colorValue});
+
+  final String name;
+  final int colorValue;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = Color(colorValue);
+    return IgnorePointer(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 116),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm,
+            vertical: 2,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.92),
+            borderRadius: BorderRadius.circular(AppSpacing.sm),
+            border: Border.all(color: accent.withValues(alpha: 0.45)),
+            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3)],
+          ),
+          child: Text(
+            name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+          ),
         ),
       ),
     );

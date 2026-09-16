@@ -40,7 +40,9 @@ class FenceVersionTest {
         FenceApplicationService svc = new FenceApplicationService(fenceRepository,
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.AlertRepository.class),
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.FenceZoneRepository.class),
-                new BufferPolygonCalculator());
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.LivestockRepository.class),
+                new BufferPolygonCalculator(),
+                new com.smartlivestock.ranch.domain.service.FenceLivestockCounter());
         FenceDto result = svc.updateFence(1L, new UpdateFenceCommand("up", TRIANGLE, "#00F", 2));
         assertEquals(2, result.version());
     }
@@ -54,7 +56,9 @@ class FenceVersionTest {
         FenceApplicationService svc = new FenceApplicationService(fenceRepository,
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.AlertRepository.class),
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.FenceZoneRepository.class),
-                new BufferPolygonCalculator());
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.LivestockRepository.class),
+                new BufferPolygonCalculator(),
+                new com.smartlivestock.ranch.domain.service.FenceLivestockCounter());
         assertThrows(ApiException.class,
             () -> svc.updateFence(1L, new UpdateFenceCommand("up", TRIANGLE, "#00F", 3)));
     }
@@ -69,7 +73,9 @@ class FenceVersionTest {
         FenceApplicationService svc = new FenceApplicationService(fenceRepository,
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.AlertRepository.class),
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.FenceZoneRepository.class),
-                new BufferPolygonCalculator());
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.LivestockRepository.class),
+                new BufferPolygonCalculator(),
+                new com.smartlivestock.ranch.domain.service.FenceLivestockCounter());
         FenceDto result = svc.updateFence(1L, new UpdateFenceCommand("up", TRIANGLE, "#00F", null));
         assertEquals(5, result.version());
     }
