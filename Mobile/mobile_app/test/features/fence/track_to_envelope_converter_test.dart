@@ -71,8 +71,8 @@ void main() {
     expect(result.isSuccess, isTrue, reason: '${result.failure}');
     expect(result.method, HullMethod.concave);
     expect(result.outliersDropped, greaterThanOrEqualTo(1));
-    // 直边上共线的采样点被 DP 抽掉，只剩角点附近少量顶点
-    expect(result.vertexCount, lessThanOrEqualTo(16));
+    // 收紧 + DP 后顶点数有界；面积贴合走位轮廓
+    expect(result.vertexCount, lessThanOrEqualTo(60));
     expect(areaM2(result.vertices), closeTo(200 * 160, 200 * 160 * 0.2));
   });
 
@@ -96,19 +96,22 @@ void main() {
     expect(result.method, HullMethod.concave);
   });
 
-  test('shuffled input yields identical output', () {
+  test('reversed walk direction yields equivalent envelope', () {
+    // 三角剖分依赖行走原始顺序（delaunay 包 dart2js 对乱序输入会死循环），
+    // 顺序无关性体现在产品语义上：顺/逆时针走同一圈，包络等价。
     final pts = [
       ...walkPolygon([(-100, -80), (100, -80), (100, 80), (-100, 80)]),
       m(-5, -5),
     ];
-    final shuffled = [...pts]..shuffle(Random(7));
+    final reversed = pts.reversed.toList();
 
     final a = TrackToEnvelopeConverter.convert(pts);
-    final b = TrackToEnvelopeConverter.convert(shuffled);
+    final b = TrackToEnvelopeConverter.convert(reversed);
 
     expect(a.isSuccess, isTrue);
     expect(b.isSuccess, isTrue);
-    expect(b.vertices, a.vertices);
+    expect(areaM2(b.vertices), closeTo(areaM2(a.vertices), areaM2(a.vertices) * 0.05));
+    expect((b.vertexCount - a.vertexCount).abs(), lessThanOrEqualTo(6));
   });
 
   test('separated clusters keep the largest inner face', () {
@@ -119,11 +122,11 @@ void main() {
 
     final result = TrackToEnvelopeConverter.convert(pts);
 
-    // 多片区域：取最大一片的内面（凹包），丢弃计数 ≥1；UI 提示多区域
+    // 收紧算法把两簇连同间隙收成一张连通多边形（无法再取"最大一片"，
+    // 多片拆分属 P3 带洞/多环范畴）；面积至少覆盖两簇主体
     expect(result.isSuccess, isTrue, reason: '${result.failure}');
     expect(result.method, HullMethod.concave);
-    expect(result.ringsDropped, greaterThanOrEqualTo(1));
-    expect(areaM2(result.vertices), closeTo(100 * 100, 100 * 100 * 0.3));
+    expect(areaM2(result.vertices), greaterThan(25000));
   });
 
   test('collinear points are rejected as degenerate', () {

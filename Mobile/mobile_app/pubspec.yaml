@@ -30,9 +30,9 @@ dependencies:
 
   intl: ^0.20.2
   excel: ^4.0.6
+  mobile_scanner: ^7.4.2
   geolocator: ^13.0.1
   wakelock_plus: ^1.2.8
-  delaunay: ^3.0.0
   file_picker: ^8.0.0
 dev_dependencies:
   flutter_test:

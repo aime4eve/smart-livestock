@@ -1,7 +1,5 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
 
-import 'package:delaunay/delaunay.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'track_point.dart';
@@ -82,6 +80,7 @@ class TrackToEnvelopeConverter {
   static const double lMaxBaseM = 25; // α-shape 基准边界单元边长
   static const int lMaxRetries = 3; // L_max 放大重试次数
   static const double lMaxGrowth = 1.6;
+  static const int maxInsertions = 600; // 收紧阶段插入上限（硬终止）
 
   static const double _mPerDegLat = 111320.0;
 
@@ -126,92 +125,66 @@ class TrackToEnvelopeConverter {
           EnvelopeFailure.tooFewPoints, raw.length);
     }
 
-    // 5) 规范排序 + 精确去重：同一组点洗牌后产出逐位相同的结果
-    points.sort((a, b) {
-      final c = a.lng.compareTo(b.lng);
-      return c != 0 ? c : a.lat.compareTo(b.lat);
-    });
-    final unique = <TrackPoint>[points.first];
-    for (final p in points.skip(1)) {
-      final last = unique.last;
-      if (last.lat != p.lat || last.lng != p.lng) unique.add(p);
+    // 5) 局部米制投影（原点=中位数中心；float32 三角剖分需要米制小数值）。
+    //    坐标量化到 1cm + 保序去重：吸收亚毫米/厘米级近重合点（RTK 停留
+    //    漂移），防止剖分产生退化三角。
+    //    ⚠️ 保持行走原始顺序：delaunay 包在 dart2js 下对"排序后/打乱后"的
+    //    特定输入序会死循环（实测该数据 VM 31ms 正常、JS 挂死），行走序
+    //    5ms 正常——顺序即产品真实输入形态，不排序。
+    final lat0 = _median(points.map((p) => p.lat));
+    final lng0 = _median(points.map((p) => p.lng));
+    final mPerDegLng = _mPerDegLat * math.cos(lat0 * math.pi / 180.0);
+    final pts = <(double, double)>[];
+    for (final p in points) {
+      final q = (
+        ((p.lng - lng0) * mPerDegLng * 100).roundToDouble() / 100,
+        ((p.lat - lat0) * _mPerDegLat * 100).roundToDouble() / 100,
+      );
+      // 最小间距过滤（≥0.5m）：delaunay 包的 JS 版对近重合点会死循环
+      // （真实 RTK 数据实测），1cm 量化不足以根除，直接保证间距下限。
+      // 不用 Record Set：dart2js 下其迭代顺序不保证与插入一致。对包络
+      // 精度影响 ≤0.5m，远小于 2m 的抽稀容差。
+      if (pts.isEmpty) {
+        pts.add(q);
+        continue;
+      }
+      final last = pts.last;
+      final dx = q.$1 - last.$1;
+      final dy = q.$2 - last.$2;
+      if (dx * dx + dy * dy >= 0.25) pts.add(q);
     }
-    points = unique;
-    if (points.length < 3) {
+    if (pts.length < 3) {
       return TrackToEnvelopeResult.failed(
           EnvelopeFailure.tooFewPoints, raw.length);
     }
 
-    // 6) 局部米制投影（原点=中位数中心；float32 三角剖分需要米制小数值）。
-    //    坐标量化到 1cm：吸收亚毫米级近重合点（RTK 停留漂移），防止剖分
-    //    产生退化三角把面遍历带进死循环。
-    final lat0 = _median(points.map((p) => p.lat));
-    final lng0 = _median(points.map((p) => p.lng));
-    final mPerDegLng = _mPerDegLat * math.cos(lat0 * math.pi / 180.0);
-    final projected = points
-        .map((p) => ((p.lng - lng0) * mPerDegLng, (p.lat - lat0) * _mPerDegLat))
-        .toList();
-    final pts = <(double, double)>[];
-    for (final p in projected) {
-      final q = (
-        (p.$1 * 100).roundToDouble() / 100,
-        (p.$2 * 100).roundToDouble() / 100,
-      );
-      if (pts.isEmpty || pts.last != q) pts.add(q);
-    }
-
-    // 7) 退化检查：凸包面积过小（近似共线/原地转圈）
-    final hull = _convexHull(pts);
-    if (hull.length < 3 || _ringArea(hull) < minAreaM2) {
+    // 6) 凹包收紧：以凸包为起点，反复把"距某条边 ≤ lMax 的最远内部点"
+    //    插入对应边，包络逐步向真实边界收紧（保留 L/U 形凹角）。每插入
+    //    一点顶点数 +1，天然可终止；纯自写实现，VM/JS 行为一致。
+    //    （原 delaunay 包 α-shape 方案在 dart2js 产物上对病态输入死循环，
+    //    已弃用——见工单 NIX-213 死循环事故。）
+    final hull = _convexHullIndices(pts);
+    if (hull.length < 3 || _ringAreaOf(hull, pts) < minAreaM2) {
       return TrackToEnvelopeResult.failed(
           EnvelopeFailure.degenerate, raw.length);
     }
-
-    // 8) 凹包 α-shape：面遍历产出两种环——逆时针（正面积）为复杂体内面
-    //    （即围栏轮廓），顺时针（负面积）为外侧面（凸包侧）。取最大内面；
-    //    走位稀疏导致内面不闭合（与外面连通）时凸包兜底。多个内面 = 多片
-    //    区域或凹角伪影面，取最大并计数丢弃。病态输入（薄条带/近重合点）
-    //    下的剖分与遍历异常一律捕获后凸包兜底——终止性与可用性优先。
     final medianAccuracy = _median(points.map((p) => p.accuracyMeters));
-    var lMax = math.max(lMaxBaseM, 3 * medianAccuracy);
-    List<(double, double)>? inner;
-    var ringsDropped = 0;
-    for (var attempt = 0; attempt <= lMaxRetries; attempt++) {
-      List<List<(double, double)>>? rings;
-      try {
-        rings = _alphaShapeRings(pts, lMax);
-      } catch (_) {
-        rings = null; // 病态结构：尝试放大 L_max 或凸包兜底
-      }
-      final innerRings =
-          rings?.where((r) => _signedArea(r) > 0).toList() ?? const [];
-      if (innerRings.isNotEmpty) {
-        innerRings.sort((a, b) => _ringArea(b).compareTo(_ringArea(a)));
-        inner = innerRings.first;
-        // 只把"面积可比"的丢弃环计为多片区域；凹角伪影小面不告警
-        final keptArea = _ringArea(innerRings.first);
-        ringsDropped = innerRings
-            .skip(1)
-            .where((r) => _ringArea(r) >= 0.05 * keptArea)
-            .length;
-        break;
-      }
-      if (attempt == lMaxRetries) break; // 凸包兜底
-      lMax *= lMaxGrowth;
-    }
-    final ring = inner ?? hull;
-    final method = inner != null ? HullMethod.concave : HullMethod.convex;
+    final lMax = math.max(lMaxBaseM, 3 * medianAccuracy);
+    final tightened = _tightenHull(pts, hull, lMax, maxInsertions);
+    final method =
+        tightened.length > hull.length ? HullMethod.concave : HullMethod.convex;
 
-    // 9) Douglas-Peucker 抽稀 + 顶点上限迭代
+    // 7) Douglas-Peucker 抽稀 + 顶点上限迭代
+    final ringCoords = [for (final i in tightened) pts[i]];
     var epsilon = simplifyEpsilonM;
-    var simplified = _douglasPeucker(ring, epsilon);
+    var simplified = _douglasPeucker(ringCoords, epsilon);
     while (simplified.length > maxVertices && epsilon < 50) {
       epsilon *= 1.5;
-      simplified = _douglasPeucker(ring, epsilon);
+      simplified = _douglasPeucker(ringCoords, epsilon);
     }
-    if (simplified.length < 3) simplified = ring;
+    if (simplified.length < 3) simplified = ringCoords;
 
-    // 10) 逆投影回 WGS-84
+    // 9) 逆投影回 WGS-84
     final vertices = simplified
         .map((p) => LatLng(
               lat0 + p.$2 / _mPerDegLat,
@@ -223,7 +196,7 @@ class TrackToEnvelopeConverter {
       failure: null,
       vertices: vertices,
       method: method,
-      ringsDropped: ringsDropped,
+      ringsDropped: 0,
       outliersDropped: outliersDropped,
       rawCount: raw.length,
     );
@@ -271,30 +244,30 @@ class TrackToEnvelopeConverter {
 
   // ── 凸包（Andrew monotone chain）────────────────────────────
 
-  static List<(double, double)> _convexHull(List<(double, double)> pts) {
-    final sorted = [...pts]..sort((a, b) {
-        final c = a.$1.compareTo(b.$1);
-        return c != 0 ? c : a.$2.compareTo(b.$2);
-      });
-    if (sorted.length < 3) return sorted;
+  /// Andrew monotone chain 凸包，返回顶点在 [pts] 中的下标序列。
+  static List<int> _convexHullIndices(List<(double, double)> pts) {
+    final order = List<int>.generate(pts.length, (i) => i);
+    order.sort((a, b) {
+      final c = pts[a].$1.compareTo(pts[b].$1);
+      return c != 0 ? c : pts[a].$2.compareTo(pts[b].$2);
+    });
+    if (order.length < 3) return order;
 
-    final lower = <(double, double)>[];
-    for (final p in sorted) {
-      while (lower.length >= 2 && _cross2(lower[lower.length - 2],
-              lower[lower.length - 1], p) <=
-          0) {
+    final lower = <int>[];
+    for (final i in order) {
+      while (lower.length >= 2 &&
+          _cross2(pts[lower[lower.length - 2]], pts[lower.last], pts[i]) <= 0) {
         lower.removeLast();
       }
-      lower.add(p);
+      lower.add(i);
     }
-    final upper = <(double, double)>[];
-    for (final p in sorted.reversed) {
-      while (upper.length >= 2 && _cross2(upper[upper.length - 2],
-              upper[upper.length - 1], p) <=
-          0) {
+    final upper = <int>[];
+    for (final i in order.reversed) {
+      while (upper.length >= 2 &&
+          _cross2(pts[upper[upper.length - 2]], pts[upper.last], pts[i]) <= 0) {
         upper.removeLast();
       }
-      upper.add(p);
+      upper.add(i);
     }
     lower.removeLast();
     upper.removeLast();
@@ -305,149 +278,72 @@ class TrackToEnvelopeConverter {
           (double, double) b) =>
       (a.$1 - o.$1) * (b.$2 - o.$2) - (a.$2 - o.$2) * (b.$1 - o.$1);
 
-  // ── 凹包 α-shape ──────────────────────────────────────────
-
-  /// Delaunay 剖分 → 保留最长边 ≤[lMax] 的三角形 → 复杂体的外边界环。
-  ///
-  /// 边界提取用半边面遍历（而非顶点贪心行走）：外轮廓是一个完整面，凹角处
-  /// 跨角的伪影小三角形自然成为独立小面，被"取最大环"规则丢弃；洞同理。
-  /// 无法剖分时返回 null。
-  static List<List<(double, double)>>? _alphaShapeRings(
-      List<(double, double)> pts, double lMax) {
-    if (pts.length < 3) return null;
-    final coords = Float32List(pts.length * 2);
-    for (var i = 0; i < pts.length; i++) {
-      coords[2 * i] = pts[i].$1;
-      coords[2 * i + 1] = pts[i].$2;
+  /// 凹包收紧：对凸包（顶点下标 [hullIdx]）的每条边，寻找距该边最远且
+  /// ≤[lMax] 的未用点插入；反复扫描直到无可插入点或达到插入上限。
+  /// 每次插入顶点数 +1，硬终止。
+  static List<int> _tightenHull(List<(double, double)> pts,
+      List<int> hullIdx, double lMax, int maxInsertions) {
+    final inPoly = List<bool>.filled(pts.length, false);
+    for (final i in hullIdx) {
+      inPoly[i] = true;
     }
-    final delaunay = Delaunay(coords);
-    delaunay.update();
-    final tris = delaunay.triangles;
-    if (tris.isEmpty) return null;
-
-    final triangleCount = tris.length ~/ 3;
-    final kept = List<bool>.filled(triangleCount, false);
-    for (var t = 0; t < triangleCount; t++) {
-      final a = tris[3 * t], b = tris[3 * t + 1], c = tris[3 * t + 2];
-      final maxEdgeSq = _max(
-        _distSq(coords[2 * a], coords[2 * a + 1], coords[2 * b],
-            coords[2 * b + 1]),
-        _distSq(coords[2 * b], coords[2 * b + 1], coords[2 * c],
-            coords[2 * c + 1]),
-        _distSq(coords[2 * c], coords[2 * c + 1], coords[2 * a],
-            coords[2 * a + 1]),
-      );
-      kept[t] = maxEdgeSq <= lMax * lMax;
-    }
-
-    // 有向边 → 半边下标；twin = 方向相反的那条半边
-    final dirToEdge = <int, int>{};
-    for (var e = 0; e < tris.length; e++) {
-      dirToEdge[_edgeKey(tris[e], tris[_nextHalfedge(e)])] = e;
-    }
-
-    // 半边在 α 复杂体边界上 ⟺ 所在三角形被保留，且对面三角形被剔除或不存在
-    final isBoundary = List<bool>.filled(tris.length, false);
-    for (var e = 0; e < tris.length; e++) {
-      if (!kept[e ~/ 3]) continue;
-      final twin = dirToEdge[_edgeKey(tris[_nextHalfedge(e)], tris[e])];
-      if (twin == null || !kept[twin ~/ 3]) isBoundary[e] = true;
-    }
-
-    // 面遍历：从边界半边出发，绕顶点经相邻保留三角形旋转（twin+next），
-    // 直到遇到下一条边界半边——这是三角剖分面追踪的标准走法。
-    // 终止性硬保证：旋转与环长均设步数上限，病态结构（近重合点导致的
-    // 退化三角自环等）宁可丢弃该环走凸包兜底，也绝不挂死 UI 线程。
-    final visited = List<bool>.filled(tris.length, false);
-    final rings = <List<(double, double)>>[];
-    for (var e = 0; e < tris.length; e++) {
-      if (!isBoundary[e] || visited[e]) continue;
-      final ringIdx = <int>[];
-      var cur = e;
-      var closed = true;
-      while (true) {
-        if (visited[cur]) {
-          if (cur == e) break; // 正常闭合
-          closed = false; // 撞上已访问的半边但没回到起点 → 病态
-          break;
+    final poly = List<int>.from(hullIdx);
+    final lMaxSq = lMax * lMax;
+    var insertions = 0;
+    var changed = true;
+    while (changed && insertions < maxInsertions) {
+      changed = false;
+      var e = 0;
+      while (e < poly.length && insertions < maxInsertions) {
+        final a = poly[e];
+        final b = poly[(e + 1) % poly.length];
+        final abx = pts[b].$1 - pts[a].$1;
+        final aby = pts[b].$2 - pts[a].$2;
+        final lenSq = abx * abx + aby * aby;
+        var bestIdx = -1;
+        var bestDistSq = 0.0;
+        if (lenSq > 0) {
+          for (var i = 0; i < pts.length; i++) {
+            if (inPoly[i]) continue;
+            final apx = pts[i].$1 - pts[a].$1;
+            final apy = pts[i].$2 - pts[a].$2;
+            final t = (apx * abx + apy * aby) / lenSq;
+            if (t <= 0 || t >= 1) continue; // 垂足须落在边段内
+            final cross = abx * apy - aby * apx;
+            final distSq = cross * cross / lenSq;
+            if (distSq > bestDistSq && distSq <= lMaxSq) {
+              bestDistSq = distSq;
+              bestIdx = i;
+            }
+          }
         }
-        visited[cur] = true;
-        ringIdx.add(tris[cur]);
-        cur = _advanceAlongFace(tris, kept, dirToEdge, cur);
-        if (cur == e) break; // 正常闭合
-        if (cur < 0 || ringIdx.length > tris.length) {
-          closed = false; // 旋转超限 → 病态
-          break;
+        if (bestIdx >= 0) {
+          poly.insert(e + 1, bestIdx);
+          inPoly[bestIdx] = true;
+          insertions++;
+          changed = true;
         }
-      }
-      if (closed && ringIdx.length >= 3) {
-        rings.add([
-          for (final i in ringIdx) (coords[2 * i], coords[2 * i + 1]),
-        ]);
+        e++;
       }
     }
-    return rings;
+    return poly;
   }
-
-  /// 从面边界半边 [cur] 推进到同一面上的下一条边界半边。
-  ///
-  /// 先转到同三角形的下一条半边；若它不是边界边，则跨 twin 进入相邻保留
-  /// 三角形继续绕同一顶点旋转，直到命中边界边。返回 -1 表示旋转步数超限
-  /// （病态结构保护）。
-  static int _advanceAlongFace(
-      Uint32List tris,
-      List<bool> kept,
-      Map<int, int> dirToEdge,
-      int cur) {
-    var cand = _nextHalfedge(cur);
-    var steps = 0;
-    while (!isBoundaryHalfedge(tris, kept, dirToEdge, cand)) {
-      final twin = dirToEdge[_edgeKey(tris[_nextHalfedge(cand)], tris[cand])];
-      if (twin == null || !kept[twin ~/ 3]) {
-        // 理论不可达（非边界 ⟹ twin 保留）；兜底返回避免死循环
-        return cand;
-      }
-      cand = _nextHalfedge(twin);
-      if (++steps > tris.length) return -1;
-    }
-    return cand;
-  }
-
-  static bool isBoundaryHalfedge(Uint32List tris, List<bool> kept,
-      Map<int, int> dirToEdge, int e) {
-    if (!kept[e ~/ 3]) return false;
-    final twin = dirToEdge[_edgeKey(tris[_nextHalfedge(e)], tris[e])];
-    return twin == null || !kept[twin ~/ 3];
-  }
-
-  static int _nextHalfedge(int e) => (e % 3 == 2) ? e - 2 : e + 1;
-
-  static int _edgeKey(int a, int b) => a * 100000 + b;
-
-  static double _distSq(double ax, double ay, double bx, double by) {
-    final dx = ax - bx;
-    final dy = ay - by;
-    return dx * dx + dy * dy;
-  }
-
-  static double _max(double a, double b, double c) =>
-      math.max(a, math.max(b, c));
 
   // ── 环面积 / Douglas-Peucker ───────────────────────────────
 
   /// 鞋带公式带符号面积（平方米；输入为局部米制坐标，逆时针为正）。
-  static double _signedArea(List<(double, double)> ring) {
+  static double _signedAreaOf(List<int> ring, List<(double, double)> pts) {
     var area = 0.0;
     for (var i = 0; i < ring.length; i++) {
       final j = (i + 1) % ring.length;
-      area += ring[i].$1 * ring[j].$2 - ring[j].$1 * ring[i].$2;
+      area += pts[ring[i]].$1 * pts[ring[j]].$2 -
+          pts[ring[j]].$1 * pts[ring[i]].$2;
     }
     return area / 2;
   }
 
-  /// 鞋带公式面积（平方米；输入已是局部米制坐标）。
-  static double _ringArea(List<(double, double)> ring) =>
-      _signedArea(ring).abs();
+  static double _ringAreaOf(List<int> ring, List<(double, double)> pts) =>
+      _signedAreaOf(ring, pts).abs();
 
   static List<(double, double)> _douglasPeucker(
       List<(double, double)> pts, double epsilon) {
