@@ -77,6 +77,7 @@ class _AlertDetailSheetState extends ConsumerState<AlertDetailSheet> {
             resolvedAt: detail.resolvedAt,
             fenceName: detail.fenceName,
             resolvedType: detail.resolvedType,
+            deviceCode: detail.deviceCode,
           );
         });
       }
@@ -261,6 +262,13 @@ class _AlertDetailSheetState extends ConsumerState<AlertDetailSheet> {
         l10n.alertDetailLivestockCode,
         _alert.livestockCode,
       ),
+      // Device-originated alerts (low battery, tamper) carry a device
+      // instead of livestock/fence context.
+      if (_alert.deviceCode != null)
+        _MetadataField(
+          l10n.alertDetailDevice,
+          _alert.deviceCode!,
+        ),
       _MetadataField(
         l10n.alertDetailFence,
         _alert.fenceName ?? '-',
@@ -380,17 +388,18 @@ class _AlertDetailSheetState extends ConsumerState<AlertDetailSheet> {
         spacing: 5,
         runSpacing: 5,
         children: [
-          // Locate
-          _ActionButton(
-            label: l10n.alertActionLocate,
-            icon: Icons.location_on,
-            bgColor: AppColors.info,
-            fgColor: Colors.white,
-            onTap: () {
-              Navigator.of(context).pop();
-              context.push(AppRoute.ranch.path);
-            },
-          ),
+          // Locate (livestock alerts only — device alerts have no position)
+          if (!_alert.type.startsWith('DEVICE_'))
+            _ActionButton(
+              label: l10n.alertActionLocate,
+              icon: Icons.location_on,
+              bgColor: AppColors.info,
+              fgColor: Colors.white,
+              onTap: () {
+                Navigator.of(context).pop();
+                context.push(AppRoute.ranch.path);
+              },
+            ),
           // Trajectory
           if (_alert.livestockId != null)
             _ActionButton(

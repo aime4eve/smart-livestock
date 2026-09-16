@@ -11,7 +11,7 @@ class AlertFilterBar extends StatelessWidget {
   const AlertFilterBar({
     super.key,
     required this.activeTab,
-    required this.unreadCount,
+    required this.activeBadge,
     required this.onTabChanged,
     required this.availableTypes,
     required this.selectedType,
@@ -19,7 +19,7 @@ class AlertFilterBar extends StatelessWidget {
   });
 
   final AlertFilterTab activeTab;
-  final int unreadCount;
+  final int activeBadge;
   final void Function(AlertFilterTab) onTabChanged;
 
   /// Alert type codes present in the data, e.g. ['FENCE_BREACH', 'TEMPERATURE_ABNORMAL']
@@ -43,7 +43,7 @@ class AlertFilterBar extends StatelessWidget {
         children: [
           _SegmentedTabs(
             activeTab: activeTab,
-            unreadCount: unreadCount,
+            activeBadge: activeBadge,
             onTabChanged: onTabChanged,
           ),
           const SizedBox(height: 5),
@@ -110,12 +110,12 @@ class AlertFilterBar extends StatelessWidget {
 class _SegmentedTabs extends StatelessWidget {
   const _SegmentedTabs({
     required this.activeTab,
-    required this.unreadCount,
+    required this.activeBadge,
     required this.onTabChanged,
   });
 
   final AlertFilterTab activeTab;
-  final int unreadCount;
+  final int activeBadge;
   final void Function(AlertFilterTab) onTabChanged;
 
   @override
@@ -139,7 +139,7 @@ class _SegmentedTabs extends StatelessWidget {
           Expanded(
             child: _SegTab(
               label: l10n.alertFilterActive,
-              badge: unreadCount > 0 ? unreadCount : null,
+              badge: activeBadge > 0 ? activeBadge : null,
               isActive: activeTab == AlertFilterTab.active,
               onTap: () => onTabChanged(AlertFilterTab.active),
             ),

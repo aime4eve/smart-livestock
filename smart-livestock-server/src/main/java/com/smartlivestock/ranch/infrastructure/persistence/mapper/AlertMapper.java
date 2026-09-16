@@ -72,6 +72,7 @@ public final class AlertMapper {
         alert.reconstituteAcknowledgement(jpa.getAcknowledgedBy(), jpa.getAcknowledgedAt());
         alert.reconstituteHandled(jpa.getHandledBy(), jpa.getHandledAt());
         alert.setSource(jpa.getSource());
+        alert.setCreatedAt(jpa.getCreatedAt());
         return alert;
     }
 }

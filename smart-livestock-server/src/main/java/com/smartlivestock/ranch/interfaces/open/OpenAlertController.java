@@ -2,7 +2,7 @@ package com.smartlivestock.ranch.interfaces.open;
 
 import com.smartlivestock.ranch.application.AlertApplicationService;
 import com.smartlivestock.ranch.application.dto.AlertDto;
-import com.smartlivestock.ranch.domain.model.AlertStatus;
+import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.security.ApiKeyAuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,8 +27,8 @@ public class OpenAlertController {
 
     /**
      * GET /api/v1/open/farms/{farmId}/alerts
-     * Paginated alert list with filters (severity, status, time range).
-     * pageSize max 100 for Open API.
+     * Paginated alert list with filters (severity, status), id descending.
+     * pageSize max 100 for Open API; total is the real filtered count.
      */
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> listAlerts(
@@ -37,32 +37,23 @@ public class OpenAlertController {
             @RequestParam(defaultValue = "20") int pageSize,
             @RequestParam(required = false) String severity,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String startTime,
-            @RequestParam(required = false) String endTime,
             HttpServletRequest request) {
         String apiKey = apiKeyAuthService.requireApiKey(request);
         apiKeyAuthService.validateFarmAccess(apiKey, farmId);
 
         // Open API: pageSize capped at 100
-        int effectivePageSize = Math.min(pageSize, 100);
+        int effectivePage = Math.max(page, 1);
+        int effectivePageSize = Math.min(Math.max(pageSize, 1), 100);
 
-        List<AlertDto> alerts;
-        if (status != null) {
-            AlertStatus alertStatus = AlertStatus.valueOf(status.toUpperCase());
-            alerts = alertApplicationService.listByFarmAndStatus(farmId, alertStatus);
-        } else {
-            alerts = alertApplicationService.listByFarm(farmId);
-        }
-
-        // Phase 1: severity and time range filters not yet applied at service layer.
-        // The service returns all alerts for the farm; client-side filtering or
-        // repository-level filtering will be added in Phase 2.
+        // userId null: open API has no per-user read concept
+        AlertRepository.AlertPage<AlertDto> result = alertApplicationService.listByFarmPaged(
+                farmId, null, status, severity, List.of(), null, false, effectivePage, effectivePageSize);
 
         Map<String, Object> data = Map.of(
-                "items", alerts,
-                "page", page,
+                "items", result.items(),
+                "page", effectivePage,
                 "pageSize", effectivePageSize,
-                "total", alerts.size()
+                "total", result.total()
         );
 
         return ResponseEntity.ok()

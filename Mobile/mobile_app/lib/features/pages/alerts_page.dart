@@ -5,14 +5,17 @@ import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/widgets/auto_refresh_listener.dart';
+import 'package:hkt_livestock_agentic/features/alerts/domain/alert_summary.dart';
 import 'package:hkt_livestock_agentic/features/alerts/domain/alerts_repository.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/alerts_controller.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_batch_bar.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_card.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_detail_sheet.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_empty_state.dart';
-import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_filter_bar.dart';
-import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_summary_strip.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_summary_header.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/load_more_footer.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/refresh_hint.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class AlertsPage extends ConsumerStatefulWidget {
@@ -27,7 +30,11 @@ class AlertsPage extends ConsumerStatefulWidget {
 }
 
 class _AlertsPageState extends ConsumerState<AlertsPage> {
-  AlertFilterTab _activeTab = AlertFilterTab.all;
+  /// The list always shows one status server-side: ACTIVE by default ("what
+  /// needs handling"), RESOLVED only through the explicit history links.
+  bool _showResolved = false;
+
+  /// Hero "Unread" filter: list shows only unread active alerts.
   String? _selectedType;
 
   static const _fenceTypes = {'FENCE_BREACH', 'FENCE_APPROACH', 'ZONE_APPROACH'};
@@ -41,32 +48,58 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
     _ => <String>{},
   };
   bool _batchMode = false;
+  bool _detailOpen = false;
+  bool _loadingMore = false;
   final Set<String> _selectedIds = {};
+
+  /// Last known category-scoped summary — keeps the header stable across
+  /// silent refreshes (invalidation briefly clears the provider value).
+  RanchAlertSummary? _lastScopedSummary;
+
+  bool get _refreshPaused => _batchMode || _detailOpen;
+
+  @override
+  void initState() {
+    super.initState();
+    // Deep-link category/fence filters go to the API (server-side pagination
+    // counts must respect them) — pushed once after the first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final controller = ref.read(alertsControllerProvider.notifier);
+      controller.setFilterCategory(_categoryTypes);
+      controller.setFilterFenceId(widget.fenceId);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(alertsControllerProvider);
+    final summary = ref.watch(alertSummaryControllerProvider).value;
     final controller = ref.read(alertsControllerProvider.notifier);
 
     return Scaffold(
       key: const Key('page-alerts'),
       backgroundColor: AppColors.surface,
       appBar: _buildAppBar(context, l10n, controller),
-      body: asyncData.when(
-        data: (data) => _buildBody(context, data, controller),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('${l10n.commonLoadFailed}: $e'),
-              const SizedBox(height: AppSpacing.md),
-              ElevatedButton(
-                onPressed: () => controller.refresh(),
-                child: Text(l10n.commonRetry),
-              ),
-            ],
+      body: AutoRefreshListener(
+        interval: const Duration(seconds: 30),
+        onTick: _onAutoRefreshTick,
+        child: asyncData.when(
+          data: (data) => _buildBody(context, data, summary, controller),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('${l10n.commonLoadFailed}: $e'),
+                const SizedBox(height: AppSpacing.md),
+                ElevatedButton(
+                  onPressed: () => controller.refresh(),
+                  child: Text(l10n.commonRetry),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -74,6 +107,12 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
           ? _buildBatchBar(context, controller)
           : null,
     );
+  }
+
+  void _onAutoRefreshTick() {
+    if (_refreshPaused) return;
+    ref.read(alertsControllerProvider.notifier).silentRefresh();
+    ref.invalidate(scopedAlertSummaryProvider(scopedSummaryKey(_categoryTypes)));
   }
 
   PreferredSizeWidget _buildAppBar(
@@ -173,101 +212,178 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
   Widget _buildBody(
     BuildContext context,
     AlertsListData data,
+    RanchAlertSummary? summary,
     AlertsController controller,
   ) {
     final l10n = AppLocalizations.of(context)!;
     final items = data.items;
 
-    // Compute summary counts from all items (not filtered)
-    final criticalCount = items
-        .where((a) => a.severity == 'CRITICAL' && a.stage == 'active')
-        .length;
-    final warningCount = items
-        .where((a) => a.severity == 'WARNING' && a.stage == 'active')
-        .length;
-    final pendingCount = items.where((a) => a.stage == 'active').length;
-    final unreadCount =
-        items.where((a) => !a.read && a.stage == 'active').length;
+    // Category-scoped summary (matches the filtered list exactly); falls back
+    // to the farm-wide summary, then zeros while loading.
+    final typesKey = scopedSummaryKey(_categoryTypes);
+    final scoped = ref.watch(scopedAlertSummaryProvider(typesKey)).value;
+    if (scoped != null) _lastScopedSummary = scoped;
+    final headerSummary = scoped ?? _lastScopedSummary ?? summary;
 
-    // Apply status filter from active tab
-    final statusFiltered = switch (_activeTab) {
-      AlertFilterTab.all => items,
-      AlertFilterTab.active =>
-        items.where((a) => a.stage == 'active').toList(),
-      AlertFilterTab.resolved =>
-        items.where((a) => a.stage != 'active').toList(),
-    };
+    // Status filtering is server-side: the list shows ACTIVE by default and
+    // RESOLVED only through the explicit "resolved records" links.
+    // Category/type-chip and fenceId filters are applied server-side too (see
+    // initState / onTypeChanged) so pagination totals stay correct.
+    // Severity filter comes from the API already (controller.filterSeverity);
+    // kept as a client-side guard for stale responses mid-toggle.
+    final finalFiltered = controller.filterSeverity == null
+        ? items
+        : items.where((a) => a.severity == controller.filterSeverity).toList();
 
-    // Apply category filter (from dashboard card tap)
-    var categoryFiltered = statusFiltered;
-    if (_categoryTypes.isNotEmpty) {
-      categoryFiltered = categoryFiltered
-          .where((a) => _categoryTypes.contains(a.type))
-          .toList();
-    }
-
-    // Apply fenceId filter (from fence detail "view alerts")
-    var fenceFiltered = categoryFiltered;
-    if (widget.fenceId != null) {
-      fenceFiltered = fenceFiltered
-          .where((a) => a.fenceId == widget.fenceId)
-          .toList();
-    }
-
-    // Apply type chip filter on top of category/fence
-    final typeFiltered = _selectedType == null
-        ? fenceFiltered
-        : fenceFiltered.where((a) => a.type == _selectedType).toList();
-
-    // Apply controller's severity filter (from summary strip tap)
-    final severityFiltered = controller.filterSeverity == null
-        ? typeFiltered
-        : typeFiltered
-            .where((a) => a.severity == controller.filterSeverity)
-            .toList();
-
-    final finalFiltered = severityFiltered;
-
-    // Build available types from category-filtered data (not fully filtered)
-    final availableTypes = fenceFiltered.map((a) => a.type).toSet().toList()..sort();
+    // Chip row: with a deep-link category, offer the category's full type set
+    // (server-side filtering means loaded items can't be used as the source —
+    // a narrowed filter would hide the other chips).
+    final availableTypes = _categoryTypes.isNotEmpty
+        ? (_categoryTypes.toList()..sort())
+        : (items.map((a) => a.type).toSet().toList()..sort());
 
     return Column(
       children: [
-        if (!_batchMode)
-          AlertSummaryStrip(
-            criticalCount: criticalCount,
-            warningCount: warningCount,
-            pendingCount: pendingCount,
-            activeFilter: controller.filterSeverity,
-            onTap: (severity) => controller.setFilterSeverity(severity),
-            onPendingTap: () {
-              setState(() => _activeTab = AlertFilterTab.active);
-              controller.setFilterStatus('ACTIVE');
+        if (!_batchMode) ...[
+          AlertSummaryHeader(
+            summary: headerSummary ??
+                const RanchAlertSummary(
+                  activeTotal: 0, unread: 0, critical: 0, warning: 0, info: 0,
+                  byGroup: GroupCounts(), byGroupUnread: GroupCounts(),
+                  resolved: 0,
+                ),
+            selectedSeverity: controller.filterSeverity,
+            // Severity cells are active-scoped: tapping one snaps the status
+            // filter to Active so the list count always equals the cell count.
+            onSeverityToggle: (sev) {
+              _showResolved = false;
+              controller.applyFilters(status: 'ACTIVE', severity: sev);
             },
           ),
+          RefreshHint(
+            state: _refreshPaused ? RefreshHintState.paused : RefreshHintState.ok,
+          ),
+        ],
+        // Type chips (server-side filter via onTypeChanged)
         if (!_batchMode)
-          AlertFilterBar(
-            activeTab: _activeTab,
-            unreadCount: unreadCount,
-            onTabChanged: (tab) {
-              setState(() => _activeTab = tab);
-              final statusParam = switch (tab) {
-                AlertFilterTab.all => null,
-                AlertFilterTab.active => 'ACTIVE',
-                AlertFilterTab.resolved => null,
-              };
-              controller.setFilterStatus(statusParam);
-            },
-            availableTypes: availableTypes,
-            selectedType: _selectedType,
-            onTypeChanged: (type) => setState(() => _selectedType = type),
+          Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md, vertical: 6),
+            color: AppColors.surface,
+            child: SizedBox(
+              height: 24,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  for (final t in [null, ...availableTypes])
+                    Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.xs),
+                      child: _TypeChip(
+                        label: t == null
+                            ? l10n.alertFilterAllTypes
+                            : _alertTypeLabel(l10n, t),
+                        selected: _selectedType == t,
+                        onTap: () {
+                          setState(() => _selectedType = t);
+                          controller.setFilterCategory(
+                              t != null ? {t} : _categoryTypes);
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
         Expanded(
           child: finalFiltered.isEmpty
-              ? const AlertEmptyState()
+              ? (!_showResolved && _categoryTypes.isEmpty
+                  ? _buildEmptyActive(context, summary, l10n)
+                  : const AlertEmptyState())
               : _buildGroupedList(context, finalFiltered, l10n),
         ),
       ],
+    );
+  }
+
+  String _alertTypeLabel(AppLocalizations l10n, String type) {
+    return switch (type) {
+      'FENCE_BREACH' => l10n.alertTypeFenceBreach,
+      'FENCE_APPROACH' => l10n.alertTypeFenceApproach,
+      'ZONE_APPROACH' => l10n.alertTypeZoneApproach,
+      'TEMPERATURE_ABNORMAL' => l10n.alertTypeTemperatureAbnormal,
+      'DIGESTIVE_ABNORMAL' => l10n.alertTypeDigestiveAbnormal,
+      'ESTRUS' => l10n.alertTypeEstrus,
+      'EPIDEMIC' => l10n.alertTypeEpidemic,
+      'AI_ANOMALY' => l10n.alertTypeAiAnomaly,
+      'DEVICE_TAMPER' => l10n.alertTypeDeviceTamper,
+      'DEVICE_LOW_BATTERY' => l10n.alertTypeDeviceLowBattery,
+      _ => type,
+    };
+  }
+
+  /// Positive-feedback empty state for the ACTIVE tab (spec 4.6).
+  Widget _buildEmptyActive(
+    BuildContext context,
+    RanchAlertSummary? summary,
+    AppLocalizations l10n,
+  ) {
+    final resolved = summary?.resolved ?? 0;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: const BoxDecoration(
+              color: AppColors.primarySoft,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.check_circle_outline,
+                size: 30, color: AppColors.primary),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            l10n.alertEmptyTitle,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            l10n.alertEmptyDesc,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 10,
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+          ),
+          if (resolved > 0) ...[
+            const SizedBox(height: AppSpacing.md),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _showResolved = true;
+                });
+                ref
+                    .read(alertsControllerProvider.notifier)
+                    .setFilterStatus('RESOLVED');
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: AppColors.primarySoft,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+              ),
+              child: Text(
+                l10n.alertEmptyCta(resolved),
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -277,6 +393,7 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
     AppLocalizations l10n,
   ) {
     final groups = _groupByDate(items, l10n);
+    final data = ref.read(alertsControllerProvider).value;
 
     return CustomScrollView(
       slivers: [
@@ -323,7 +440,49 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
               ),
             ],
           ),
-        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xxl)),
+        // Pagination footer (true server-side total) + low-key resolved
+        // history entry (replaces the former all/active/resolved tab bar).
+        SliverToBoxAdapter(
+          child: Column(
+            children: [
+              LoadMoreFooter(
+                shown: items.length,
+                total: data?.total ?? items.length,
+                loading: _loadingMore,
+                onLoadMore: () async {
+                  setState(() => _loadingMore = true);
+                  await ref.read(alertsControllerProvider.notifier).loadMore();
+                  if (mounted) setState(() => _loadingMore = false);
+                },
+              ),
+              TextButton(
+                onPressed: () {
+                  final next = !_showResolved;
+                  setState(() {
+                    _showResolved = next;
+                  });
+                  ref
+                      .read(alertsControllerProvider.notifier)
+                      .setFilterStatus(next ? 'RESOLVED' : 'ACTIVE');
+                },
+                child: Text(
+                  _showResolved
+                      ? l10n.alertBackToActive
+                      : l10n.alertEmptyCta(
+                          ref.watch(scopedAlertSummaryProvider(
+                                  scopedSummaryKey(_categoryTypes)))
+                              .value
+                              ?.resolved ??
+                              0),
+                  style: const TextStyle(
+                    fontSize: 9,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -348,15 +507,9 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
   }
 
   List<String> _visibleAlertIds(AlertsListData data) {
-    final items = data.items;
-    final statusFiltered = switch (_activeTab) {
-      AlertFilterTab.all => items,
-      AlertFilterTab.active =>
-        items.where((a) => a.stage == 'active').toList(),
-      AlertFilterTab.resolved =>
-        items.where((a) => a.stage != 'active').toList(),
-    };
-    return statusFiltered.map((a) => a.id).toList();
+    // The server already scopes the list to one status; batch select-all
+    // operates on the loaded page.
+    return data.items.map((a) => a.id).toList();
   }
 
   // ── Non-batch helpers ──
@@ -400,22 +553,69 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
     return result;
   }
 
-  void _onAlertTap(AlertItem alert) {
-    showAlertDetailSheet(
-      context,
-      alert: alert,
-      role: widget.role,
-    );
+  Future<void> _onAlertTap(AlertItem alert) async {
+    setState(() => _detailOpen = true);
+    try {
+      await showAlertDetailSheet(
+        context,
+        alert: alert,
+        role: widget.role,
+      );
+    } finally {
+      if (mounted) setState(() => _detailOpen = false);
+    }
   }
 
   void _markAllRead(AlertsController controller) {
     final data = ref.read(alertsControllerProvider).value;
     if (data == null) return;
     final unreadIds =
-        data.items.where((a) => !a.read).map((a) => a.id).toList();
+        data.items.where((a) => !a.read && a.stage == 'active').map((a) => a.id).toList();
     if (unreadIds.isNotEmpty) {
-      controller.batchRead(unreadIds);
+      controller.batchRead(unreadIds).then((_) {
+        if (mounted) {
+          ref.invalidate(scopedAlertSummaryProvider(scopedSummaryKey(_categoryTypes)));
+        }
+      });
     }
+  }
+}
+
+/// Text chip for the type filter row (server-side filtered).
+class _TypeChip extends StatelessWidget {
+  const _TypeChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primarySoft : AppColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? AppColors.primary : AppColors.border,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 9,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+            color: selected ? AppColors.primaryDark : AppColors.textSecondary,
+          ),
+        ),
+      ),
+    );
   }
 }
 

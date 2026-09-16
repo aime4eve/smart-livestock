@@ -1,5 +1,6 @@
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
+import 'package:hkt_livestock_agentic/features/alerts/domain/alert_summary.dart';
 import 'package:hkt_livestock_agentic/features/alerts/domain/alerts_repository.dart';
 
 class AlertsApiRepository implements AlertsRepository {
@@ -11,10 +12,16 @@ class AlertsApiRepository implements AlertsRepository {
     int pageSize = 20,
     String? status,
     String? severity,
+    Set<String>? types,
+    String? fenceId,
+    bool unreadOnly = false,
   }) async {
     var path = '/alerts?page=$page&pageSize=$pageSize';
     if (status != null) path += '&status=$status';
     if (severity != null) path += '&severity=$severity';
+    if (types != null && types.isNotEmpty) path += '&types=${types.join(',')}';
+    if (fenceId != null) path += '&fenceId=$fenceId';
+    if (unreadOnly) path += '&unreadOnly=true';
     final data = await ApiClient.instance.farmGet(path);
     final itemsRaw = data['items'];
     final items = itemsRaw is List
@@ -29,6 +36,16 @@ class AlertsApiRepository implements AlertsRepository {
       page: data['page'] as int? ?? page,
       pageSize: data['pageSize'] as int? ?? pageSize,
     );
+  }
+
+  @override
+  Future<RanchAlertSummary> loadSummary({Set<String>? types}) async {
+    var path = '/alerts/summary';
+    if (types != null && types.isNotEmpty) {
+      path += '?types=${types.join(',')}';
+    }
+    final data = await ApiClient.instance.farmGet(path);
+    return RanchAlertSummary.fromJson(data);
   }
 
   @override
@@ -113,6 +130,7 @@ class AlertsApiRepository implements AlertsRepository {
      fenceName: m['fenceName'] as String?,
      resolvedType: m['resolvedType'] as String?,
       fenceId: m['fenceId']?.toString(),
+      deviceCode: m['deviceCode'] as String?,
    );
  }
 
@@ -140,6 +158,7 @@ class AlertsApiRepository implements AlertsRepository {
       resolvedType: item.resolvedType,
       read: item.read,
       fenceId: fenceId,
+      deviceCode: item.deviceCode,
     );
   }
 

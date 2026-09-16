@@ -5,7 +5,8 @@ import com.smartlivestock.ranch.application.command.AcknowledgeAlertCommand;
 import com.smartlivestock.ranch.application.command.ArchiveAlertCommand;
 import com.smartlivestock.ranch.application.command.HandleAlertCommand;
 import com.smartlivestock.ranch.application.dto.AlertDto;
-import com.smartlivestock.ranch.domain.model.AlertStatus;
+import com.smartlivestock.ranch.application.dto.AlertSummaryDto.AlertSummaryResponse;
+import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -32,23 +33,42 @@ public class AlertController {
             @RequestParam(defaultValue = "20") int pageSize,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String severity,
-            @RequestParam(required = false) String startTime,
-            @RequestParam(required = false) String endTime) {
+            @RequestParam(required = false) String types,
+            @RequestParam(required = false) Long fenceId,
+            @RequestParam(defaultValue = "false") boolean unreadOnly) {
         Long userId = getCurrentUserId();
-        List<AlertDto> alerts;
-        if (status != null) {
-            AlertStatus alertStatus = AlertStatus.valueOf(status.toUpperCase());
-            alerts = alertApplicationService.listByFarmAndStatus(farmId, alertStatus);
-        } else {
-            alerts = alertApplicationService.listByFarmWithReadStatus(farmId, userId);
-        }
+        int safePage = Math.max(page, 1);
+        int safePageSize = Math.min(Math.max(pageSize, 1), 200);
+        List<String> typeList = (types == null || types.isBlank())
+                ? List.of()
+                : List.of(types.split(","));
+        AlertRepository.AlertPage<AlertDto> result = alertApplicationService.listByFarmPaged(
+                farmId, userId, status, severity, typeList, fenceId, unreadOnly, safePage, safePageSize);
         Map<String, Object> data = Map.of(
-                "items", alerts,
-                "page", page,
-                "pageSize", pageSize,
-                "total", alerts.size()
+                "items", result.items(),
+                "page", safePage,
+                "pageSize", safePageSize,
+                "total", result.total()
         );
         return ResponseEntity.ok(ApiResponse.ok(data));
+    }
+
+    /**
+     * Farm-global alert counters for the summary strip and ranch badges.
+     * Kept separate from the list so summary numbers never depend on
+     * list filters or pagination windows. Optional {@code types} (comma
+     * separated) scopes the counters to a category view.
+     */
+    @GetMapping("/alerts/summary")
+    public ResponseEntity<ApiResponse<AlertSummaryResponse>> summary(
+            @PathVariable Long farmId,
+            @RequestParam(required = false) String types) {
+        Long userId = getCurrentUserId();
+        List<String> typeList = (types == null || types.isBlank())
+                ? List.of()
+                : List.of(types.split(","));
+        return ResponseEntity.ok(ApiResponse.ok(
+                alertApplicationService.getAlertSummary(farmId, userId, typeList)));
     }
 
     @GetMapping("/alerts/{alertId}")

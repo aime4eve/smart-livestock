@@ -26,6 +26,7 @@ public class Alert extends AggregateRoot {
     private String messageArgs;
     private String resolvedType;   // "AUTO" / "MANUAL_DISMISS"
     private Instant resolvedAt;
+    private Instant createdAt;     // when the alert was raised (DB default now())
     private String source = "RULE"; // RULE / AI
 
     // Legacy fields retained for backward compatibility during migration window
@@ -188,4 +189,7 @@ public class Alert extends AggregateRoot {
 
     public String getSource() { return source; }
     public void setSource(String source) { this.source = source; }
+
+    public Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

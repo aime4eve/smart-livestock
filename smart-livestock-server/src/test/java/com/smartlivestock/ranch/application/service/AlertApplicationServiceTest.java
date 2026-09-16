@@ -7,10 +7,13 @@ import com.smartlivestock.ranch.domain.model.Alert;
 import com.smartlivestock.ranch.domain.model.AlertStatus;
 import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.model.Severity;
+import com.smartlivestock.ranch.domain.port.IoTQueryPort;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.infrastructure.persistence.SpringDataAlertReadStatusRepository;
+import com.smartlivestock.shared.cache.RedisCacheService;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +39,12 @@ class AlertApplicationServiceTest {
     private SpringDataAlertReadStatusRepository readStatusRepository;
     @Mock
     private AlertMessageLocalizer alertMessageLocalizer;
+    @Mock
+    private IoTQueryPort ioTQueryPort;
+    @Mock
+    private RedisCacheService redisCacheService;
+    @Mock
+    private ObjectMapper objectMapper;
 
     @InjectMocks
     private AlertApplicationService service;

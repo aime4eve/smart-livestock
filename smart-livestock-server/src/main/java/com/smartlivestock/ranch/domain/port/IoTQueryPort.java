@@ -23,4 +23,11 @@ public interface IoTQueryPort {
      *         livestock without devices will not appear as a key
      */
     Map<Long, List<DeviceBrief>> findActiveDevicesByLivestockIds(List<Long> livestockIds);
+
+    /**
+     * Batch resolve device serial codes for device-originated alerts.
+     * @param deviceIds device IDs to query (empty list returns empty map)
+     * @return Map: deviceId -> deviceCode; unknown ids will not appear as a key
+     */
+    Map<Long, String> findDeviceCodesByIds(List<Long> deviceIds);
 }

@@ -1,4 +1,5 @@
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
+import 'package:hkt_livestock_agentic/features/alerts/domain/alert_summary.dart';
 
 enum AlertStage {
   active,
@@ -39,6 +40,7 @@ class AlertDetail {
     this.resolvedType,
     this.read = false,
     this.fenceId,
+    this.deviceCode,
   });
 
   final String id;
@@ -58,6 +60,9 @@ class AlertDetail {
   final String? resolvedType;
   final bool read;
   final String? fenceId;
+
+  /// Device serial for device-originated alerts.
+  final String? deviceCode;
 }
 
 /// Metadata entry for the detail timeline.
@@ -78,7 +83,15 @@ abstract class AlertsRepository {
     int pageSize = 20,
     String? status,
     String? severity,
+    Set<String>? types,
+    String? fenceId,
+    bool unreadOnly = false,
   });
+
+  /// Farm-global counters (active/unread/severity/type-group), independent of
+  /// any list filter or pagination window. Non-empty [types] scopes them to a
+  /// category view.
+  Future<RanchAlertSummary> loadSummary({Set<String>? types});
 
   Future<AlertDetail> loadDetail(String alertId);
 

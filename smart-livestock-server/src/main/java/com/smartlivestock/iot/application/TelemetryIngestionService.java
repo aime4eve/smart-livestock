@@ -354,9 +354,12 @@ public class TelemetryIngestionService {
                     "alert.device.tamper", List.of(device.getDeviceCode()));
         }
         if (device.getBatteryLevel() != null && device.getBatteryLevel() < 20) {
+            // v2 template carries the device code ([code, level] args); the legacy
+            // 1-arg key is kept so pre-existing alerts still render correctly.
             createDeviceAlertIfNotExists(device, farmId, AlertType.DEVICE_LOW_BATTERY, Severity.WARNING,
-                    "设备低电量: " + device.getBatteryLevel() + "%",
-                    "alert.device.lowBattery", List.of(device.getBatteryLevel()));
+                    "设备低电量: " + device.getDeviceCode() + " 剩余" + device.getBatteryLevel() + "%",
+                    "alert.device.lowBattery.v2",
+                    List.of(device.getDeviceCode(), device.getBatteryLevel()));
         }
     }
 

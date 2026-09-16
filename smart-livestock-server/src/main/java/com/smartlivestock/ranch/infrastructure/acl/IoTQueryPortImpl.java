@@ -93,6 +93,16 @@ public class IoTQueryPortImpl implements IoTQueryPort {
                 ));
     }
 
+    @Override
+    public Map<Long, String> findDeviceCodesByIds(List<Long> deviceIds) {
+        if (deviceIds == null || deviceIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return deviceRepository.findAllByIdIn(deviceIds).stream()
+                .filter(d -> d.getDeviceCode() != null)
+                .collect(Collectors.toMap(Device::getId, Device::getDeviceCode, (a, b) -> a));
+    }
+
     private DeviceBrief toDeviceBrief(Device device) {
         return new DeviceBrief(
                 device.getId(),

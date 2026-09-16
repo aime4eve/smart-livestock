@@ -5,6 +5,7 @@ import 'package:hkt_livestock_agentic/app/session/app_session.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
+import 'package:hkt_livestock_agentic/features/alerts/domain/alert_summary.dart';
 import 'package:hkt_livestock_agentic/features/alerts/domain/alerts_repository.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/alerts_controller.dart';
 
@@ -30,6 +31,9 @@ class _FakeAlertsRepository implements AlertsRepository {
     int pageSize = 20,
     String? status,
     String? severity,
+    Set<String>? types,
+    String? fenceId,
+    bool unreadOnly = false,
   }) async {
     loadCallCount++;
     lastStatus = status;
@@ -41,6 +45,18 @@ class _FakeAlertsRepository implements AlertsRepository {
       pageSize: pageSize,
     );
   }
+
+  @override
+  Future<RanchAlertSummary> loadSummary({Set<String>? types}) async => const RanchAlertSummary(
+        activeTotal: 0,
+        unread: 0,
+        critical: 0,
+        warning: 0,
+        info: 0,
+        byGroup: GroupCounts(),
+        byGroupUnread: GroupCounts(),
+        resolved: 0,
+      );
 
   @override
   Future<AlertDetail> loadDetail(String alertId) async => AlertDetail(

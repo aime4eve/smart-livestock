@@ -3,11 +3,16 @@ package com.smartlivestock.ranch.infrastructure.persistence;
 import com.smartlivestock.ranch.domain.model.Alert;
 import com.smartlivestock.ranch.domain.model.AlertStatus;
 import com.smartlivestock.ranch.domain.model.AlertType;
+import com.smartlivestock.ranch.domain.model.Severity;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.infrastructure.persistence.mapper.AlertMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,18 +47,52 @@ public class JpaAlertRepositoryImpl implements AlertRepository {
                 .map(AlertMapper::toDomain)
                 .toList();
     }
+
     @Override
-    public List<Alert> findByFarmIdRecent(Long farmId, int limit) {
-        return springDataRepo.findByFarmIdOrderByIdDesc(farmId, org.springframework.data.domain.PageRequest.of(0, limit)).stream()
-                .map(AlertMapper::toDomain)
+    public List<StatusSeverityTypeCount> countByFarmGrouped(Long farmId, Collection<String> types) {
+        List<String> typeNames = resolveTypeNames(types);
+        return springDataRepo.countByFarmGrouped(farmId, typeNames).stream()
+                .map(p -> new StatusSeverityTypeCount(p.getStatus(), p.getSeverity(), p.getType(), p.getCnt()))
                 .toList();
     }
 
     @Override
-    public List<Alert> findByFarmIdAndStatus(Long farmId, AlertStatus status) {
-        return springDataRepo.findByFarmIdAndStatus(farmId, status.name()).stream()
+    public List<TypeCount> countActiveUnreadGroupedByType(Long farmId, Long userId, Collection<String> types) {
+        List<String> typeNames = resolveTypeNames(types);
+        return springDataRepo.countActiveUnreadGroupedByType(farmId, userId, typeNames).stream()
+                .map(p -> new TypeCount(p.getType(), p.getCnt()))
+                .toList();
+    }
+
+    private List<String> resolveTypeNames(Collection<String> types) {
+        return types == null || types.isEmpty()
+                ? Arrays.stream(AlertType.values()).map(AlertType::name).toList()
+                : List.copyOf(types);
+    }
+
+    @Override
+    public AlertPage<Alert> findPageByFilters(Long farmId, Collection<AlertStatus> statuses,
+                                              Severity severity, Collection<String> types,
+                                              Long fenceId, boolean unreadOnly, Long readerId,
+                                              int page, int size) {
+        // Always pass full value lists instead of null so the JPQL needs no
+        // nullable-parameter handling (Postgres type-inference safe); only the
+        // scalar fenceId uses the IS NULL pattern.
+        List<String> statusNames = statuses.stream().map(AlertStatus::name).toList();
+        List<String> severityNames = severity == null
+                ? Arrays.stream(Severity.values()).map(Severity::name).toList()
+                : List.of(severity.name());
+        List<String> typeNames = types == null || types.isEmpty()
+                ? Arrays.stream(AlertType.values()).map(AlertType::name).toList()
+                : List.copyOf(types);
+        Pageable pageable = PageRequest.of(Math.max(page - 1, 0), Math.max(size, 1));
+        List<Alert> items = springDataRepo
+                .pageByFilters(farmId, statusNames, severityNames, typeNames, fenceId, unreadOnly, readerId, pageable)
+                .stream()
                 .map(AlertMapper::toDomain)
                 .toList();
+        long total = springDataRepo.countByFilters(farmId, statusNames, severityNames, typeNames, fenceId, unreadOnly, readerId);
+        return new AlertPage(items, total);
     }
 
     @Override

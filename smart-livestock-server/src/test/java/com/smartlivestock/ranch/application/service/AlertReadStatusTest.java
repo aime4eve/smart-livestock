@@ -2,11 +2,15 @@ package com.smartlivestock.ranch.application.service;
 
 import com.smartlivestock.ranch.application.AlertApplicationService;
 import com.smartlivestock.ranch.application.dto.AlertDto;
+import com.smartlivestock.ranch.application.service.AlertMessageLocalizer;
 import com.smartlivestock.ranch.domain.model.Alert;
 import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.model.Severity;
+import com.smartlivestock.ranch.domain.port.IoTQueryPort;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.infrastructure.persistence.SpringDataAlertReadStatusRepository;
+import com.smartlivestock.shared.cache.RedisCacheService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,6 +45,18 @@ class AlertReadStatusTest {
 
     @Mock
     private SpringDataAlertReadStatusRepository readStatusRepository;
+
+    @Mock
+    private AlertMessageLocalizer alertMessageLocalizer;
+
+    @Mock
+    private IoTQueryPort ioTQueryPort;
+
+    @Mock
+    private RedisCacheService redisCacheService;
+
+    @Mock
+    private ObjectMapper objectMapper;
 
     @InjectMocks
     private AlertApplicationService service;
@@ -105,20 +122,22 @@ class AlertReadStatusTest {
     }
 
     @Test
-    @DisplayName("listByFarmWithReadStatus — 正确填充 read 字段（多用户隔离）")
+    @DisplayName("listByFarmPaged — 正确填充 read 字段（多用户隔离）")
     void listWithReadStatus_multiUserIsolation() {
         Alert alert1 = createActiveAlert(1L);
         Alert alert2 = createActiveAlert(2L);
-        when(alertRepository.findByFarmIdRecent(1L, 200)).thenReturn(List.of(alert1, alert2));
+        when(alertRepository.findPageByFilters(eq(1L), anyCollection(), isNull(), anyCollection(), isNull(), eq(false), eq(200L), eq(1), eq(20)))
+                .thenReturn(new AlertRepository.AlertPage<>(List.of(alert1, alert2), 2));
         // User 200 has read alert 1 but not alert 2
         when(readStatusRepository.findReadAlertIdsByUserId(eq(200L), anyCollection()))
                 .thenReturn(Set.of(1L));
 
-        List<AlertDto> result = service.listByFarmWithReadStatus(1L, 200L);
+        AlertRepository.AlertPage<AlertDto> result = service.listByFarmPaged(1L, 200L, null, null, List.of(), null, false, 1, 20);
 
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).read()).isTrue();   // alert 1 read by user 200
-        assertThat(result.get(1).read()).isFalse();  // alert 2 not read by user 200
+        assertThat(result.items()).hasSize(2);
+        assertThat(result.total()).isEqualTo(2);
+        assertThat(result.items().get(0).read()).isTrue();   // alert 1 read by user 200
+        assertThat(result.items().get(1).read()).isFalse();  // alert 2 not read by user 200
     }
 
     @Test
@@ -146,13 +165,14 @@ class AlertReadStatusTest {
     }
 
     @Test
-    @DisplayName("listByFarmWithReadStatus — 空列表直接返回空")
+    @DisplayName("listByFarmPaged — 空列表直接返回空")
     void listWithReadStatus_emptyFarm() {
-        when(alertRepository.findByFarmIdRecent(99L, 200)).thenReturn(List.of());
+        when(alertRepository.findPageByFilters(eq(99L), anyCollection(), isNull(), anyCollection(), isNull(), eq(false), eq(200L), eq(1), eq(20)))
+                .thenReturn(new AlertRepository.AlertPage<>(List.of(), 0));
 
-        List<AlertDto> result = service.listByFarmWithReadStatus(99L, 200L);
+        AlertRepository.AlertPage<AlertDto> result = service.listByFarmPaged(99L, 200L, null, null, List.of(), null, false, 1, 20);
 
-        assertThat(result).isEmpty();
+        assertThat(result.items()).isEmpty();
         verify(readStatusRepository, never()).findReadAlertIdsByUserId(any(), any());
     }
 }
