@@ -142,13 +142,23 @@ class TrackToEnvelopeConverter {
           EnvelopeFailure.tooFewPoints, raw.length);
     }
 
-    // 6) 局部米制投影（原点=中位数中心；float32 三角剖分需要米制小数值）
+    // 6) 局部米制投影（原点=中位数中心；float32 三角剖分需要米制小数值）。
+    //    坐标量化到 1cm：吸收亚毫米级近重合点（RTK 停留漂移），防止剖分
+    //    产生退化三角把面遍历带进死循环。
     final lat0 = _median(points.map((p) => p.lat));
     final lng0 = _median(points.map((p) => p.lng));
     final mPerDegLng = _mPerDegLat * math.cos(lat0 * math.pi / 180.0);
-    final pts = points
+    final projected = points
         .map((p) => ((p.lng - lng0) * mPerDegLng, (p.lat - lat0) * _mPerDegLat))
         .toList();
+    final pts = <(double, double)>[];
+    for (final p in projected) {
+      final q = (
+        (p.$1 * 100).roundToDouble() / 100,
+        (p.$2 * 100).roundToDouble() / 100,
+      );
+      if (pts.isEmpty || pts.last != q) pts.add(q);
+    }
 
     // 7) 退化检查：凸包面积过小（近似共线/原地转圈）
     final hull = _convexHull(pts);
@@ -160,13 +170,19 @@ class TrackToEnvelopeConverter {
     // 8) 凹包 α-shape：面遍历产出两种环——逆时针（正面积）为复杂体内面
     //    （即围栏轮廓），顺时针（负面积）为外侧面（凸包侧）。取最大内面；
     //    走位稀疏导致内面不闭合（与外面连通）时凸包兜底。多个内面 = 多片
-    //    区域或凹角伪影面，取最大并计数丢弃。
+    //    区域或凹角伪影面，取最大并计数丢弃。病态输入（薄条带/近重合点）
+    //    下的剖分与遍历异常一律捕获后凸包兜底——终止性与可用性优先。
     final medianAccuracy = _median(points.map((p) => p.accuracyMeters));
     var lMax = math.max(lMaxBaseM, 3 * medianAccuracy);
     List<(double, double)>? inner;
     var ringsDropped = 0;
     for (var attempt = 0; attempt <= lMaxRetries; attempt++) {
-      final rings = _alphaShapeRings(pts, lMax);
+      List<List<(double, double)>>? rings;
+      try {
+        rings = _alphaShapeRings(pts, lMax);
+      } catch (_) {
+        rings = null; // 病态结构：尝试放大 L_max 或凸包兜底
+      }
       final innerRings =
           rings?.where((r) => _signedArea(r) > 0).toList() ?? const [];
       if (innerRings.isNotEmpty) {
@@ -340,18 +356,31 @@ class TrackToEnvelopeConverter {
 
     // 面遍历：从边界半边出发，绕顶点经相邻保留三角形旋转（twin+next），
     // 直到遇到下一条边界半边——这是三角剖分面追踪的标准走法。
+    // 终止性硬保证：旋转与环长均设步数上限，病态结构（近重合点导致的
+    // 退化三角自环等）宁可丢弃该环走凸包兜底，也绝不挂死 UI 线程。
     final visited = List<bool>.filled(tris.length, false);
     final rings = <List<(double, double)>>[];
     for (var e = 0; e < tris.length; e++) {
       if (!isBoundary[e] || visited[e]) continue;
       final ringIdx = <int>[];
       var cur = e;
-      do {
+      var closed = true;
+      while (true) {
+        if (visited[cur]) {
+          if (cur == e) break; // 正常闭合
+          closed = false; // 撞上已访问的半边但没回到起点 → 病态
+          break;
+        }
         visited[cur] = true;
         ringIdx.add(tris[cur]);
         cur = _advanceAlongFace(tris, kept, dirToEdge, cur);
-      } while (cur != e);
-      if (ringIdx.length >= 3) {
+        if (cur == e) break; // 正常闭合
+        if (cur < 0 || ringIdx.length > tris.length) {
+          closed = false; // 旋转超限 → 病态
+          break;
+        }
+      }
+      if (closed && ringIdx.length >= 3) {
         rings.add([
           for (final i in ringIdx) (coords[2 * i], coords[2 * i + 1]),
         ]);
@@ -363,13 +392,15 @@ class TrackToEnvelopeConverter {
   /// 从面边界半边 [cur] 推进到同一面上的下一条边界半边。
   ///
   /// 先转到同三角形的下一条半边；若它不是边界边，则跨 twin 进入相邻保留
-  /// 三角形继续绕同一顶点旋转，直到命中边界边。
+  /// 三角形继续绕同一顶点旋转，直到命中边界边。返回 -1 表示旋转步数超限
+  /// （病态结构保护）。
   static int _advanceAlongFace(
       Uint32List tris,
       List<bool> kept,
       Map<int, int> dirToEdge,
       int cur) {
     var cand = _nextHalfedge(cur);
+    var steps = 0;
     while (!isBoundaryHalfedge(tris, kept, dirToEdge, cand)) {
       final twin = dirToEdge[_edgeKey(tris[_nextHalfedge(cand)], tris[cand])];
       if (twin == null || !kept[twin ~/ 3]) {
@@ -377,6 +408,7 @@ class TrackToEnvelopeConverter {
         return cand;
       }
       cand = _nextHalfedge(twin);
+      if (++steps > tris.length) return -1;
     }
     return cand;
   }

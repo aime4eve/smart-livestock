@@ -86,12 +86,27 @@ class _FenceTrackImportDialogState extends State<FenceTrackImportDialog> {
     }
   }
 
-  void _buildEnvelope() {
+  Future<void> _buildEnvelope() async {
     final l10n = AppLocalizations.of(context)!;
     final parse = _parseResult;
-    if (parse == null) return;
-    final envelope = TrackToEnvelopeConverter.convert(parse.trackPoints);
+    if (parse == null || _busy) return;
+    // 先渲染"计算中"再进入同步计算，避免大点集计算期间界面像无响应
+    setState(() => _busy = true);
+    await Future<void>.delayed(Duration.zero);
+    TrackToEnvelopeResult envelope;
+    try {
+      envelope = TrackToEnvelopeConverter.convert(parse.trackPoints);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.fenceTrackDegenerate)),
+      );
+      return;
+    }
     if (!envelope.isSuccess) {
+      if (!mounted) return;
+      setState(() => _busy = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -103,9 +118,11 @@ class _FenceTrackImportDialogState extends State<FenceTrackImportDialog> {
       );
       return;
     }
+    if (!mounted) return;
     setState(() {
       _envelope = envelope;
       _step = 2;
+      _busy = false;
     });
   }
 
@@ -163,8 +180,16 @@ class _FenceTrackImportDialogState extends State<FenceTrackImportDialog> {
           FilledButton(
             key: const Key('fence-import-generate'),
             onPressed:
-                (_parseResult?.pointCount ?? 0) < 3 ? null : _buildEnvelope,
-            child: Text(l10n.fenceImportGenerate),
+                (_parseResult?.pointCount ?? 0) < 3 || _busy
+                    ? null
+                    : _buildEnvelope,
+            child: _busy
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(l10n.fenceImportGenerate),
           ),
         if (_step == 2)
           FilledButton(

@@ -156,8 +156,17 @@ class _TrackCollectPageState extends ConsumerState<TrackCollectPage> {
     _elapsedTimer?.cancel();
     _stopwatch.stop();
     setState(() => _phase = _CollectPhase.processing);
+    // 让"处理中"先渲染一帧，再进入同步计算
+    await Future<void>.delayed(Duration.zero);
 
-    final result = TrackToEnvelopeConverter.convert(_track);
+    TrackToEnvelopeResult result;
+    try {
+      result = TrackToEnvelopeConverter.convert(_track);
+    } catch (_) {
+      // 病态数据兜底：与转换失败同样处理
+      result = TrackToEnvelopeResult.failed(
+          EnvelopeFailure.tooFewPoints, _track.length);
+    }
     if (!result.isSuccess) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
