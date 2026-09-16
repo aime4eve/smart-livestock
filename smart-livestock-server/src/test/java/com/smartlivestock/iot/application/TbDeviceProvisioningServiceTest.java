@@ -41,6 +41,7 @@ class TbDeviceProvisioningServiceTest {
 
     @Mock private NsClient nsClient;
     @Mock private TbClient tbClient;
+    @Mock private DeviceProfileRuleService profileRuleService;
     @Mock private DeviceRepository deviceRepository;
     @Mock private TbDeviceBindingRepository bindingRepository;
     @Mock private InstallationRepository installationRepository;
@@ -51,8 +52,9 @@ class TbDeviceProvisioningServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new TbDeviceProvisioningService(nsClient, tbClient, deviceRepository,
-                bindingRepository, installationRepository, auditLogRepository, ranchQueryPort);
+        service = new TbDeviceProvisioningService(nsClient, tbClient, profileRuleService,
+                deviceRepository, bindingRepository, installationRepository, auditLogRepository,
+                ranchQueryPort);
     }
 
     @Test
@@ -73,6 +75,8 @@ class TbDeviceProvisioningServiceTest {
         when(nsClient.listDevices(89)).thenReturn(List.of(
                 new NsClient.NsDevice(EUI, 89, 18, "capsule-262")));
         when(tbClient.fetchDeviceProfiles()).thenReturn(Map.of("profile-1", "瘤胃胶囊-OC-配置-v2"));
+        when(profileRuleService.resolveActiveTypeMap())
+                .thenReturn(Map.of("瘤胃胶囊-OC-配置-v2", DeviceType.CAPSULE));
         when(tbClient.findDevices(EUI)).thenReturn(List.of(
                 new TbClient.TbDeviceView("tb-1", EUI, "profile-1")));
         when(tbClient.fetchLatestTelemetryTs("tb-1")).thenReturn(LATEST);
@@ -99,6 +103,8 @@ class TbDeviceProvisioningServiceTest {
         when(nsClient.listDevices(89)).thenReturn(List.of(
                 new NsClient.NsDevice(EUI, 89, 18, null)));
         when(tbClient.fetchDeviceProfiles()).thenReturn(Map.of("profile-1", "瘤胃胶囊-OC-配置-v2"));
+        when(profileRuleService.resolveActiveTypeMap())
+                .thenReturn(Map.of("瘤胃胶囊-OC-配置-v2", DeviceType.CAPSULE));
         when(tbClient.findDevices(EUI)).thenReturn(List.of(
                 new TbClient.TbDeviceView("tb-lower", EUI, "profile-1"),
                 new TbClient.TbDeviceView("tb-upper", EUI.toUpperCase(), "profile-1")));
@@ -119,6 +125,8 @@ class TbDeviceProvisioningServiceTest {
         when(nsClient.listDevices(89)).thenReturn(List.of(
                 new NsClient.NsDevice(EUI, 89, 18, null)));
         when(tbClient.fetchDeviceProfiles()).thenReturn(Map.of("profile-1", "瘤胃胶囊-OC-配置-v2"));
+        when(profileRuleService.resolveActiveTypeMap())
+                .thenReturn(Map.of("瘤胃胶囊-OC-配置-v2", DeviceType.CAPSULE));
         when(tbClient.findDevices(EUI)).thenReturn(List.of(
                 new TbClient.TbDeviceView("tb-1", EUI, "profile-1")));
 
@@ -161,6 +169,8 @@ class TbDeviceProvisioningServiceTest {
         when(nsClient.findDeviceByEui(EUI)).thenReturn(Optional.of(
                 new NsClient.NsDevice(EUI, 89, 18, "capsule")));
         when(tbClient.fetchDeviceProfiles()).thenReturn(Map.of("profile-1", "瘤胃胶囊-OC-配置-v2"));
+        when(profileRuleService.resolveActiveTypeMap())
+                .thenReturn(Map.of("瘤胃胶囊-OC-配置-v2", DeviceType.CAPSULE));
         when(tbClient.findDevices(EUI)).thenReturn(List.of(
                 new TbClient.TbDeviceView("tb-1", EUI, "profile-1")));
         when(ranchQueryPort.findAllByFarmId(1L)).thenReturn(List.of(
