@@ -65,6 +65,84 @@ void main() {
       expect(find.text('153'), findsNothing);
     },
   );
+
+  testWidgets(
+    'the confirm step offers a back button returning to the input step',
+    (tester) async {
+      await tester.pumpWidget(_buildApp());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('device-add-btn')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('tb-wizard-eui')), _eui);
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('tb-wizard-preflight')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('tb-wizard-code')), findsOneWidget);
+
+      // Back keeps the entered EUI for editing or re-scanning.
+      await tester.ensureVisible(find.byKey(const Key('tb-wizard-back')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('tb-wizard-back')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('tb-wizard-eui')), findsOneWidget);
+      expect(find.text(_eui), findsOneWidget);
+      expect(find.byKey(const Key('tb-wizard-code')), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'the result step offers provisioning another device from a clean input',
+    (tester) async {
+      await tester.pumpWidget(_buildApp());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('device-add-btn')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('tb-wizard-eui')), _eui);
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('tb-wizard-preflight')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('tb-wizard-provision')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('tb-wizard-provision')));
+      await tester.pumpAndSettle();
+      expect(find.text('153'), findsOneWidget);
+
+      // Restart lands on the input step with cleared fields.
+      await tester.ensureVisible(find.byKey(const Key('tb-wizard-another')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('tb-wizard-another')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('tb-wizard-eui')), findsOneWidget);
+      expect(find.text(_eui), findsNothing);
+      expect(find.text('153'), findsNothing);
+
+      // The reset must not break the next preflight run.
+      await tester.enterText(find.byKey(const Key('tb-wizard-eui')), _eui);
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('tb-wizard-preflight')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('tb-wizard-code')), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'the wizard title row offers a close button that dismisses the sheet',
+    (tester) async {
+      await tester.pumpWidget(_buildApp());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('device-add-btn')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('tb-wizard-close')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('tb-wizard-close')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('tb-wizard-eui')), findsNothing);
+      expect(find.text('153'), findsNothing);
+    },
+  );
 }
 
 class _FakeSessionController extends SessionController {

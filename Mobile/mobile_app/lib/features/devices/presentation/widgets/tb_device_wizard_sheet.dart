@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,7 @@ import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/core/map/map_config.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/features/devices/domain/devices_repository.dart';
+import 'package:hkt_livestock_agentic/features/devices/presentation/qr_eui_scan_page.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/tb_device_wizard_controller.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/livestock_controller.dart';
 import 'package:hkt_livestock_agentic/features/livestock/domain/livestock_repository.dart';
@@ -85,6 +87,16 @@ class _TbDeviceWizardSheetState extends ConsumerState<TbDeviceWizardSheet> {
     }
   }
 
+  Future<void> _scanEui() async {
+    final eui = await QrEuiScanPage.push(context);
+    if (!mounted || eui == null) return;
+    _euiController.text = eui;
+    setState(() {});
+    // Scanned codes are server-validated anyway; jump straight into the
+    // regular preflight flow so the wizard lands on the confirm step.
+    await _preflight();
+  }
+
   Future<void> _preflight() async {
     final controller = ref.read(tbDeviceWizardControllerProvider.notifier);
     await controller.preflight(_euiController.text);
@@ -106,6 +118,22 @@ class _TbDeviceWizardSheetState extends ConsumerState<TbDeviceWizardSheet> {
           deviceCode: _deviceCodeController.text,
           livestockId: _selectedLivestockId,
         );
+  }
+
+  /// Confirm step → input step: clears the preflight but keeps the entered
+  /// EUI so the user can fix it or scan a different label.
+  void _backToInput() {
+    ref.read(tbDeviceWizardControllerProvider.notifier).reset();
+  }
+
+  /// Result step → input step for provisioning the next device: full reset
+  /// including the local EUI/code fields; the livestock picker keeps its
+  /// selection since consecutive devices often go to the same herd.
+  void _provisionAnother() {
+    ref.read(tbDeviceWizardControllerProvider.notifier).reset();
+    _euiController.clear();
+    _deviceCodeController.clear();
+    setState(() {});
   }
 
   @override
@@ -137,9 +165,23 @@ class _TbDeviceWizardSheetState extends ConsumerState<TbDeviceWizardSheet> {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            Text(
-              l10n.tbWizardTitle,
-              style: Theme.of(context).textTheme.titleLarge,
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Text(
+                  l10n.tbWizardTitle,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                Positioned(
+                  right: 0,
+                  child: IconButton(
+                    key: const Key('tb-wizard-close'),
+                    tooltip: l10n.commonClose,
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.lg),
             _StepIndicator(step: step),
@@ -159,6 +201,7 @@ class _TbDeviceWizardSheetState extends ConsumerState<TbDeviceWizardSheet> {
                 loading: state.loading,
                 onEuiChanged: (_) => setState(() {}),
                 onPreflight: _preflight,
+                onScan: _scanEui,
               ),
               _WizardStep.confirm => _ConfirmStep(
                 preflight: state.preflight!,
@@ -170,10 +213,14 @@ class _TbDeviceWizardSheetState extends ConsumerState<TbDeviceWizardSheet> {
                 loading: state.loading,
                 onLivestockChanged: (value) =>
                     setState(() => _selectedLivestockId = value),
+                onBack: _backToInput,
                 onRecheck: _preflight,
                 onProvision: () => _provision(state.preflight!),
               ),
-              _WizardStep.result => _ResultStep(result: state.result!),
+              _WizardStep.result => _ResultStep(
+                result: state.result!,
+                onRestart: _provisionAnother,
+              ),
             },
             const SizedBox(height: AppSpacing.xl),
           ],
@@ -227,12 +274,14 @@ class _InputStep extends StatelessWidget {
     required this.loading,
     required this.onEuiChanged,
     required this.onPreflight,
+    required this.onScan,
   });
 
   final TextEditingController controller;
   final bool loading;
   final ValueChanged<String> onEuiChanged;
   final VoidCallback onPreflight;
+  final VoidCallback onScan;
 
   @override
   Widget build(BuildContext context) {
@@ -247,6 +296,15 @@ class _InputStep extends StatelessWidget {
           decoration: InputDecoration(
             labelText: l10n.tbWizardEuiLabel,
             border: const OutlineInputBorder(),
+            // Camera QR scanning is App-only; the web build keeps manual input.
+            suffixIcon: kIsWeb
+                ? null
+                : IconButton(
+                    key: const Key('tb-wizard-scan'),
+                    tooltip: l10n.tbWizardScanEui,
+                    icon: const Icon(Icons.qr_code_scanner),
+                    onPressed: onScan,
+                  ),
           ),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -279,6 +337,7 @@ class _ConfirmStep extends StatelessWidget {
     required this.selectedLivestockId,
     required this.loading,
     required this.onLivestockChanged,
+    required this.onBack,
     required this.onRecheck,
     required this.onProvision,
   });
@@ -291,6 +350,7 @@ class _ConfirmStep extends StatelessWidget {
   final String? selectedLivestockId;
   final bool loading;
   final ValueChanged<String?> onLivestockChanged;
+  final VoidCallback onBack;
   final VoidCallback onRecheck;
   final VoidCallback onProvision;
 
@@ -384,6 +444,15 @@ class _ConfirmStep extends StatelessWidget {
             ],
           ),
         ],
+        // Outside the profile-valid block so an abnormal preflight can still
+        // go back instead of being stuck on the confirm step.
+        const SizedBox(height: AppSpacing.md),
+        OutlinedButton.icon(
+          key: const Key('tb-wizard-back'),
+          onPressed: loading ? null : onBack,
+          icon: const Icon(Icons.arrow_back),
+          label: Text(l10n.tbWizardBack),
+        ),
       ],
     );
   }
@@ -935,9 +1004,10 @@ class _PreflightCard extends StatelessWidget {
 }
 
 class _ResultStep extends StatelessWidget {
-  const _ResultStep({required this.result});
+  const _ResultStep({required this.result, required this.onRestart});
 
   final TbDeviceProvisionResult result;
+  final VoidCallback onRestart;
 
   @override
   Widget build(BuildContext context) {
@@ -1000,9 +1070,24 @@ class _ResultStep extends StatelessWidget {
               : Icons.schedule,
         ),
         const SizedBox(height: AppSpacing.lg),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(l10n.commonConfirm),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                key: const Key('tb-wizard-another'),
+                onPressed: onRestart,
+                icon: const Icon(Icons.add),
+                label: Text(l10n.tbWizardAnother),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: FilledButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(l10n.commonConfirm),
+              ),
+            ),
+          ],
         ),
       ],
     );

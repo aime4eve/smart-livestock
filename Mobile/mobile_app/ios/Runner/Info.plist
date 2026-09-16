@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>扫描设备二维码以读取 LoRa EUI</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>沿围栏边界行走时记录您的位置以生成围栏 / Records your location while you walk the fence boundary to create it</string>
 	<key>UIApplicationSceneManifest</key>
