@@ -734,7 +734,117 @@
   "@adminSubtitle": {},
   "fenceFormManualEntry": "手动录入坐标",
   "@fenceFormManualEntry": {},
-  "fenceFormApply": "应用",
+  "fenceTrackMode": "轨迹采集",
+  "@fenceTrackMode": {},
+  "fenceTrackModeDesc": "沿场地边缘走一圈，自动圈出围栏范围",
+  "@fenceTrackModeDesc": {},
+  "fenceTrackGuide": "沿场地边缘走一圈，拐角和边线附近务必走到；中途走进场地内部无妨",
+  "@fenceTrackGuide": {},
+  "fenceTrackStart": "开始采集",
+  "@fenceTrackStart": {},
+  "fenceTrackPause": "暂停",
+  "@fenceTrackPause": {},
+  "fenceTrackResume": "继续",
+  "@fenceTrackResume": {},
+  "fenceTrackFinish": "完成采集",
+  "@fenceTrackFinish": {},
+  "fenceTrackDiscard": "放弃轨迹",
+  "@fenceTrackDiscard": {},
+  "fenceTrackPointCount": "已采 {count} 点",
+  "@fenceTrackPointCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTrackAccuracy": "精度 ±{meters}m",
+  "@fenceTrackAccuracy": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTrackPermissionDenied": "需要定位权限才能采集轨迹",
+  "@fenceTrackPermissionDenied": {},
+  "fenceTrackServiceDisabled": "请先开启系统定位服务",
+  "@fenceTrackServiceDisabled": {},
+  "fenceTrackOpenSettings": "打开系统设置",
+  "@fenceTrackOpenSettings": {},
+  "fenceTrackKeepScreenOn": "采集中请保持屏幕常亮",
+  "@fenceTrackKeepScreenOn": {},
+  "fenceTrackTooFewPoints": "有效定位点不足，无法生成围栏",
+  "@fenceTrackTooFewPoints": {},
+  "fenceTrackDegenerate": "定位点几乎在一条直线上，无法生成围栏范围",
+  "@fenceTrackDegenerate": {},
+  "fenceTrackMultiArea": "检测到多片区域，已取最大一片",
+  "@fenceTrackMultiArea": {},
+  "fenceTrackConvexFallback": "边缘点位较稀疏，已按最简外沿生成，建议修正顶点",
+  "@fenceTrackConvexFallback": {},
+  "fenceTrackOutliersRemoved": "已剔除 {count} 个漂移点",
+  "@fenceTrackOutliersRemoved": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTrackVertices": "围栏顶点：{count} 个",
+  "@fenceTrackVertices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceImportGpxTitle": "导入 GPX 轨迹",
+  "@fenceImportGpxTitle": {},
+  "fenceImportGpxButton": "导入 GPX",
+  "@fenceImportGpxButton": {},
+  "fenceImportStepUpload": "上传",
+  "@fenceImportStepUpload": {},
+  "fenceImportStepPreview": "预览",
+  "@fenceImportStepPreview": {},
+  "fenceImportStepResult": "生成",
+  "@fenceImportStepResult": {},
+  "fenceImportPickFile": "选择 GPX 文件",
+  "@fenceImportPickFile": {},
+  "fenceImportFormatHint": "支持 RTK 手簿、奥维、两步路等导出的 GPX 轨迹（trkpt/rtept），坐标为 WGS-84",
+  "@fenceImportFormatHint": {},
+  "fenceImportGpxFailed": "GPX 导入失败: {error}",
+  "@fenceImportGpxFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fenceImportRawPoints": "原始点数",
+  "@fenceImportRawPoints": {},
+  "fenceImportCleanPoints": "清洗后点数",
+  "@fenceImportCleanPoints": {},
+  "fenceImportRemovedDuplicates": "合并重复点",
+  "@fenceImportRemovedDuplicates": {},
+  "fenceImportLength": "轨迹全长",
+  "@fenceImportLength": {},
+  "fenceImportGenerate": "生成围栏范围",
+  "@fenceImportGenerate": {},
+  "fenceImportApply": "载入围栏",
+  "@fenceImportApply": {},
+  "fenceImportMethodConcave": "外包络（贴合边线）",
+  "@fenceImportMethodConcave": {},
+  "fenceImportMethodConvex": "最简外沿（建议修正顶点）",
+  "@fenceImportMethodConvex": {},
+  "fenceImportMeters": "{length} m",
+  "@fenceImportMeters": {
+    "placeholders": {
+      "length": {
+        "type": "String"
+      }
+    }
+  },
+    "fenceFormApply": "应用",
   "@fenceFormApply": {},
   "fenceFormVersionConflict": "版本冲突",
   "@fenceFormVersionConflict": {},

@@ -737,7 +737,117 @@
   "@adminSubtitle": {},
   "fenceFormManualEntry": "Manual Coordinate Entry",
   "@fenceFormManualEntry": {},
-  "fenceFormApply": "Apply",
+  "fenceTrackMode": "Walk Recording",
+  "@fenceTrackMode": {},
+  "fenceTrackModeDesc": "Walk the boundary once and the fence draws itself",
+  "@fenceTrackModeDesc": {},
+  "fenceTrackGuide": "Walk along the boundary and be sure to pass every corner and edge line. Cutting through the inside is fine.",
+  "@fenceTrackGuide": {},
+  "fenceTrackStart": "Start Recording",
+  "@fenceTrackStart": {},
+  "fenceTrackPause": "Pause",
+  "@fenceTrackPause": {},
+  "fenceTrackResume": "Resume",
+  "@fenceTrackResume": {},
+  "fenceTrackFinish": "Finish",
+  "@fenceTrackFinish": {},
+  "fenceTrackDiscard": "Discard Track",
+  "@fenceTrackDiscard": {},
+  "fenceTrackPointCount": "{count} points recorded",
+  "@fenceTrackPointCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTrackAccuracy": "Accuracy ±{meters} m",
+  "@fenceTrackAccuracy": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTrackPermissionDenied": "Location permission is required to record a track",
+  "@fenceTrackPermissionDenied": {},
+  "fenceTrackServiceDisabled": "Please enable location services first",
+  "@fenceTrackServiceDisabled": {},
+  "fenceTrackOpenSettings": "Open Settings",
+  "@fenceTrackOpenSettings": {},
+  "fenceTrackKeepScreenOn": "Keep the screen on while recording",
+  "@fenceTrackKeepScreenOn": {},
+  "fenceTrackTooFewPoints": "Not enough valid points to build a fence",
+  "@fenceTrackTooFewPoints": {},
+  "fenceTrackDegenerate": "Points are nearly collinear; cannot build a fence area",
+  "@fenceTrackDegenerate": {},
+  "fenceTrackMultiArea": "Multiple areas detected; the largest one was kept",
+  "@fenceTrackMultiArea": {},
+  "fenceTrackConvexFallback": "Sparse boundary points; a simplified outline was created. Please adjust the vertices.",
+  "@fenceTrackConvexFallback": {},
+  "fenceTrackOutliersRemoved": "Removed {count} drifting point(s)",
+  "@fenceTrackOutliersRemoved": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTrackVertices": "Fence vertices: {count}",
+  "@fenceTrackVertices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceImportGpxTitle": "Import GPX Track",
+  "@fenceImportGpxTitle": {},
+  "fenceImportGpxButton": "Import GPX",
+  "@fenceImportGpxButton": {},
+  "fenceImportStepUpload": "Upload",
+  "@fenceImportStepUpload": {},
+  "fenceImportStepPreview": "Preview",
+  "@fenceImportStepPreview": {},
+  "fenceImportStepResult": "Result",
+  "@fenceImportStepResult": {},
+  "fenceImportPickFile": "Choose GPX file",
+  "@fenceImportPickFile": {},
+  "fenceImportFormatHint": "Supports GPX tracks (trkpt/rtept) exported by RTK controllers, Ovital, 2bulu and other tools, in WGS-84",
+  "@fenceImportFormatHint": {},
+  "fenceImportGpxFailed": "GPX import failed: {error}",
+  "@fenceImportGpxFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fenceImportRawPoints": "Raw points",
+  "@fenceImportRawPoints": {},
+  "fenceImportCleanPoints": "Cleaned points",
+  "@fenceImportCleanPoints": {},
+  "fenceImportRemovedDuplicates": "Duplicates merged",
+  "@fenceImportRemovedDuplicates": {},
+  "fenceImportLength": "Track length",
+  "@fenceImportLength": {},
+  "fenceImportGenerate": "Build Fence Range",
+  "@fenceImportGenerate": {},
+  "fenceImportApply": "Use for Fence",
+  "@fenceImportApply": {},
+  "fenceImportMethodConcave": "Envelope (boundary-fitted)",
+  "@fenceImportMethodConcave": {},
+  "fenceImportMethodConvex": "Simplified outline (adjust vertices)",
+  "@fenceImportMethodConvex": {},
+  "fenceImportMeters": "{length} m",
+  "@fenceImportMeters": {
+    "placeholders": {
+      "length": {
+        "type": "String"
+      }
+    }
+  },
+    "fenceFormApply": "Apply",
   "@fenceFormApply": {},
   "fenceFormVersionConflict": "Version Conflict",
   "@fenceFormVersionConflict": {},

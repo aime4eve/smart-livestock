@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,7 +18,9 @@ import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/track_collect_page.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_template_picker.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_track_import_dialog.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class FenceFormPage extends ConsumerStatefulWidget {
@@ -476,6 +479,58 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
     inputController.dispose();
   }
 
+  /// 轨迹采集 / GPX 导入的顶点回传（NIX-213）。
+  ///
+  /// 两个来源都是 WGS-84；表单 state 存屏幕坐标（高德瓦片下为 GCJ-02），
+  /// 与手绘多边形一致，保存链路的 GCJ→WGS 转换零改动复用。
+  void _applyCollectedVertices(List<LatLng> wgsPoints, {String? defaultName}) {
+    if (wgsPoints.length < 3 || !mounted) return;
+    final shouldTransform =
+        _tileProvider?.shouldTransformCoordinates() ?? false;
+    final screen = shouldTransform
+        ? CoordTransform.wgs84ToGcj02All(wgsPoints)
+        : List<LatLng>.from(wgsPoints);
+    setState(() {
+      _selectedTemplate = null;
+      _type = FenceType.polygon;
+      _drawingPoints = screen;
+      _drawMode = false;
+      _clearTransientGesture();
+    });
+    _formMapController.move(screen.first, 15.0);
+    if (defaultName != null &&
+        defaultName.isNotEmpty &&
+        _nameController.text.trim().isEmpty) {
+      _nameController.text = defaultName;
+    }
+  }
+
+  Future<void> _openTrackCollect() async {
+    final result = await Navigator.of(context).push<TrackCollectResult>(
+      MaterialPageRoute(builder: (_) => const TrackCollectPage()),
+    );
+    if (result != null) {
+      _applyCollectedVertices(result.vertices);
+    }
+  }
+
+  Future<void> _openGpxImport() async {
+    final result = await showDialog<FenceTrackImportResult>(
+      context: context,
+      builder: (_) => const FenceTrackImportDialog(),
+    );
+    if (result == null) return;
+    _applyCollectedVertices(result.vertices, defaultName: result.defaultName);
+    if (result.multiArea && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text(AppLocalizations.of(context)!.fenceTrackMultiArea),
+        ),
+      );
+    }
+  }
+
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
@@ -701,6 +756,44 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                   selectedTemplate: _selectedTemplate,
                   onSelected: _applyTemplate,
                 ),
+                if (!kIsWeb) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  OutlinedButton(
+                    key: const Key('fence-form-track-collect'),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(52),
+                    ),
+                    onPressed: _openTrackCollect,
+                    child: Row(
+                      children: [
+                        const Icon(Icons.route, size: 22),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                l10n.fenceTrackMode,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                              ),
+                              Text(
+                                l10n.fenceTrackModeDesc,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.lg),
               ],
              TextFormField(
@@ -887,6 +980,11 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                     key: const Key('fence-form-map-manual'),
                     onPressed: () => _showManualEntryDialog(context),
                     child: Text(l10n.fenceFormManualInput),
+                  ),
+                  TextButton(
+                    key: const Key('fence-form-import-gpx'),
+                    onPressed: _openGpxImport,
+                    child: Text(l10n.fenceImportGpxButton),
                   ),
                 ],
               ),

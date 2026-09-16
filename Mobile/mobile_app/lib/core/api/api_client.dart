@@ -104,6 +104,14 @@ class ApiClient {
     return delete('/farms/$id$suffix');
   }
 
+  /// Farm-scoped multipart upload (e.g. fence GPX track parse, NIX-213).
+  Future<Map<String, dynamic>> farmUploadFile(String suffix, List<int> bytes,
+      String fileName, {String? farmId, Map<String, String>? fields}) async {
+    final id = farmId ?? _activeFarmId;
+    if (id == null) throw StateError('No active farm');
+    return uploadFile('/farms/$id$suffix', bytes, fileName, fields: fields);
+  }
+
   /// Farm-scoped DELETE that returns the parsed JSON response body
   /// (e.g. fence deletion returns {deletedAlerts: n}).
   Future<Map<String, dynamic>> farmDeleteJson(String suffix,
