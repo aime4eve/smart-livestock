@@ -888,6 +888,138 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fenceFormManualEntry => 'Manual Coordinate Entry';
 
   @override
+  String get fenceTrackMode => 'Walk Recording';
+
+  @override
+  String get fenceTrackModeDesc =>
+      'Walk the boundary once and the fence draws itself';
+
+  @override
+  String get fenceTrackGuide =>
+      'Walk along the boundary and be sure to pass every corner and edge line. Cutting through the inside is fine.';
+
+  @override
+  String get fenceTrackStart => 'Start Recording';
+
+  @override
+  String get fenceTrackPause => 'Pause';
+
+  @override
+  String get fenceTrackResume => 'Resume';
+
+  @override
+  String get fenceTrackFinish => 'Finish';
+
+  @override
+  String get fenceTrackDiscard => 'Discard Track';
+
+  @override
+  String fenceTrackPointCount(int count) {
+    return '$count points recorded';
+  }
+
+  @override
+  String fenceTrackAccuracy(int meters) {
+    return 'Accuracy ±$meters m';
+  }
+
+  @override
+  String get fenceTrackPermissionDenied =>
+      'Location permission is required to record a track';
+
+  @override
+  String get fenceTrackServiceDisabled =>
+      'Please enable location services first';
+
+  @override
+  String get fenceTrackOpenSettings => 'Open Settings';
+
+  @override
+  String get fenceTrackKeepScreenOn => 'Keep the screen on while recording';
+
+  @override
+  String get fenceTrackTooFewPoints =>
+      'Not enough valid points to build a fence';
+
+  @override
+  String get fenceTrackDegenerate =>
+      'Points are nearly collinear; cannot build a fence area';
+
+  @override
+  String get fenceTrackMultiArea =>
+      'Multiple areas detected; the largest one was kept';
+
+  @override
+  String get fenceTrackConvexFallback =>
+      'Sparse boundary points; a simplified outline was created. Please adjust the vertices.';
+
+  @override
+  String fenceTrackOutliersRemoved(int count) {
+    return 'Removed $count drifting point(s)';
+  }
+
+  @override
+  String fenceTrackVertices(int count) {
+    return 'Fence vertices: $count';
+  }
+
+  @override
+  String get fenceImportGpxTitle => 'Import GPX Track';
+
+  @override
+  String get fenceImportGpxButton => 'Import GPX';
+
+  @override
+  String get fenceImportStepUpload => 'Upload';
+
+  @override
+  String get fenceImportStepPreview => 'Preview';
+
+  @override
+  String get fenceImportStepResult => 'Result';
+
+  @override
+  String get fenceImportPickFile => 'Choose track file (GPX / XLSX)';
+
+  @override
+  String get fenceImportFormatHint =>
+      'Supports RTK-controller track XLSX workbooks (column A name, column H coordinates) and GPX tracks (trkpt/rtept) from other tools, in WGS-84';
+
+  @override
+  String fenceImportGpxFailed(String error) {
+    return 'GPX import failed: $error';
+  }
+
+  @override
+  String get fenceImportRawPoints => 'Raw points';
+
+  @override
+  String get fenceImportCleanPoints => 'Cleaned points';
+
+  @override
+  String get fenceImportRemovedDuplicates => 'Duplicates merged';
+
+  @override
+  String get fenceImportLength => 'Track length';
+
+  @override
+  String get fenceImportGenerate => 'Build Fence Range';
+
+  @override
+  String get fenceImportApply => 'Use for Fence';
+
+  @override
+  String get fenceImportMethodConcave => 'Envelope (boundary-fitted)';
+
+  @override
+  String get fenceImportMethodConvex => 'Simplified outline (adjust vertices)';
+
+  @override
+  String fenceImportMeters(String length) {
+    return '$length m';
+  }
+
+  @override
   String get fenceFormApply => 'Apply';
 
   @override
@@ -3749,6 +3881,64 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alertSummaryPending => 'Pending';
 
   @override
+  String get alertSumActive => 'Active · To handle';
+
+  @override
+  String get alertSumUnread => 'Unread · Not viewed';
+
+  @override
+  String get alertSumInfo => 'Info';
+
+  @override
+  String alertSumReconcile(int critical, int warning, int info, int total) {
+    return '$critical + $warning + $info = $total active';
+  }
+
+  @override
+  String get alertRefreshHint => 'Auto-refreshes every 30s';
+
+  @override
+  String get alertRefreshPaused => 'Paused (working)';
+
+  @override
+  String get alertRefreshedJustNow => 'just refreshed';
+
+  @override
+  String get alertLoadMore => 'Load earlier alerts';
+
+  @override
+  String alertShownOf(int shown, int total) {
+    return 'Showing $shown/$total';
+  }
+
+  @override
+  String get alertFenceStatusTitle => 'Fence status';
+
+  @override
+  String alertFenceAggSub(int out, int near) {
+    return '$out outside · $near approaching (per animal)';
+  }
+
+  @override
+  String alertFenceViewAll(int count) {
+    return 'View all $count fence alerts';
+  }
+
+  @override
+  String get alertFenceStateOut => 'Outside';
+
+  @override
+  String get alertFenceStateNear => 'Approaching buffer';
+
+  @override
+  String alertEmptyCta(int count) {
+    return 'View $count resolved records';
+  }
+
+  @override
+  String get alertBackToActive => 'Back to active alerts';
+
+  @override
   String get alertFilterAll => 'All';
 
   @override
@@ -3768,6 +3958,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alertDetailLivestockCode => 'Livestock ID';
+
+  @override
+  String get alertDetailDevice => 'Device';
 
   @override
   String get alertDetailLivestockType => 'Livestock Type';
@@ -3916,7 +4109,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String alertFenceLivestockCount(int count) {
-    return '$count livestock';
+    return '$count';
   }
 
   @override
@@ -3981,7 +4174,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alertFenceTypeLabel => 'Fence Type';
 
   @override
-  String get alertFenceLivestockLabel => 'Livestock';
+  String get alertFenceLivestockLabel => 'In Fence';
 
   @override
   String get alertFenceAlertLabel => 'Active Alerts';
@@ -4003,6 +4196,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ranchLivestockTotal => 'Livestock';
+
+  @override
+  String ranchFenceInFenceCount(int count) {
+    return '$count in fence';
+  }
+
+  @override
+  String ranchFenceLocationGap(int noGps, int outside) {
+    return '$noGps unlocated · $outside outside fences';
+  }
 
   @override
   String get livestockSheetLastLoc => 'Last Position';
@@ -5320,4 +5523,40 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get loginEnrollmentFailed =>
       'Could not fetch the registration info — try again later or contact the vendor';
+
+  @override
+  String get qrScanTitle => 'Scan Device QR Code';
+
+  @override
+  String get qrScanHint =>
+      'Align the device QR code or barcode within the frame';
+
+  @override
+  String get qrScanNotEui => 'This code does not contain a valid LoRa EUI';
+
+  @override
+  String get qrScanPermissionDenied =>
+      'Camera permission was denied. Enable it in system settings and retry, or enter the EUI manually.';
+
+  @override
+  String get qrScanGenericError =>
+      'Failed to start the camera. Retry, or enter the EUI manually.';
+
+  @override
+  String get qrScanManualEntry => 'Enter Manually';
+
+  @override
+  String get qrScanRetry => 'Retry';
+
+  @override
+  String get qrScanTorch => 'Flashlight';
+
+  @override
+  String get tbWizardScanEui => 'Scan to Fill';
+
+  @override
+  String get tbWizardBack => 'Back';
+
+  @override
+  String get tbWizardAnother => 'Provision Another';
 }

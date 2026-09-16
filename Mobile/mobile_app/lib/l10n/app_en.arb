@@ -847,7 +847,7 @@
       }
     }
   },
-    "fenceFormApply": "Apply",
+  "fenceFormApply": "Apply",
   "@fenceFormApply": {},
   "fenceFormVersionConflict": "Version Conflict",
   "@fenceFormVersionConflict": {},
@@ -3087,6 +3087,63 @@
   "@alertSummaryWarning": {},
   "alertSummaryPending": "Pending",
   "@alertSummaryPending": {},
+  "alertSumActive": "Active · To handle",
+  "@alertSumActive": {},
+  "alertSumUnread": "Unread · Not viewed",
+  "@alertSumUnread": {},
+  "alertSumInfo": "Info",
+  "@alertSumInfo": {},
+  "alertSumReconcile": "{critical} + {warning} + {info} = {total} active",
+  "@alertSumReconcile": {
+    "placeholders": {
+      "critical": { "type": "int" },
+      "warning": { "type": "int" },
+      "info": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "alertRefreshHint": "Auto-refreshes every 30s",
+  "@alertRefreshHint": {},
+  "alertRefreshPaused": "Paused (working)",
+  "@alertRefreshPaused": {},
+  "alertRefreshedJustNow": "just refreshed",
+  "@alertRefreshedJustNow": {},
+  "alertLoadMore": "Load earlier alerts",
+  "@alertLoadMore": {},
+  "alertShownOf": "Showing {shown}/{total}",
+  "@alertShownOf": {
+    "placeholders": {
+      "shown": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "alertFenceStatusTitle": "Fence status",
+  "@alertFenceStatusTitle": {},
+  "alertFenceAggSub": "{out} outside · {near} approaching (per animal)",
+  "@alertFenceAggSub": {
+    "placeholders": {
+      "out": { "type": "int" },
+      "near": { "type": "int" }
+    }
+  },
+  "alertFenceViewAll": "View all {count} fence alerts",
+  "@alertFenceViewAll": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "alertFenceStateOut": "Outside",
+  "@alertFenceStateOut": {},
+  "alertFenceStateNear": "Approaching buffer",
+  "@alertFenceStateNear": {},
+  "alertEmptyCta": "View {count} resolved records",
+  "@alertEmptyCta": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "alertBackToActive": "Back to active alerts",
+  "@alertBackToActive": {},
   "alertFilterAll": "All",
   "@alertFilterAll": {},
   "alertFilterActive": "Active",
@@ -3101,6 +3158,8 @@
   "@alertDetailOccurredAt": {},
   "alertDetailLivestockCode": "Livestock ID",
   "@alertDetailLivestockCode": {},
+  "alertDetailDevice": "Device",
+  "@alertDetailDevice": {},
   "alertDetailLivestockType": "Livestock Type",
   "@alertDetailLivestockType": {},
   "alertDetailFence": "Fence",
@@ -3211,7 +3270,7 @@
       }
     }
   },
-  "alertFenceLivestockCount": "{count} livestock",
+  "alertFenceLivestockCount": "{count}",
   "@alertFenceLivestockCount": {
     "placeholders": {
       "count": {
@@ -3283,7 +3342,7 @@
   "@alertFenceAreaLabel": {},
   "alertFenceTypeLabel": "Fence Type",
   "@alertFenceTypeLabel": {},
-  "alertFenceLivestockLabel": "Livestock",
+  "alertFenceLivestockLabel": "In Fence",
   "@alertFenceLivestockLabel": {},
   "alertFenceAlertLabel": "Active Alerts",
   "@alertFenceAlertLabel": {},
@@ -3299,6 +3358,27 @@
   "@ranchSectionDeviceAlerts": {},
   "ranchLivestockTotal": "Livestock",
   "@ranchLivestockTotal": {},
+  "ranchFenceInFenceCount": "{count} in fence",
+  "@ranchFenceInFenceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ranchFenceInactive": "Inactive",
+  "@ranchFenceInactive": {},
+  "ranchFenceLocationGap": "{noGps} unlocated · {outside} outside fences",
+  "@ranchFenceLocationGap": {
+    "placeholders": {
+      "noGps": {
+        "type": "int"
+      },
+      "outside": {
+        "type": "int"
+      }
+    }
+  },
   "livestockSheetLastLoc": "Last Position",
   "@livestockSheetLastLoc": {},
   "livestockSheetCurrentPos": "Live Position",
@@ -4308,5 +4388,27 @@
   "loginEnrollmentCopied": "Registration info copied — send it to the vendor to obtain the license file",
   "@loginEnrollmentCopied": {},
   "loginEnrollmentFailed": "Could not fetch the registration info — try again later or contact the vendor",
-  "@loginEnrollmentFailed": {}
+  "@loginEnrollmentFailed": {},
+  "qrScanTitle": "Scan Device QR Code",
+  "@qrScanTitle": {},
+  "qrScanHint": "Align the device QR code or barcode within the frame",
+  "@qrScanHint": {},
+  "qrScanNotEui": "This code does not contain a valid LoRa EUI",
+  "@qrScanNotEui": {},
+  "qrScanPermissionDenied": "Camera permission was denied. Enable it in system settings and retry, or enter the EUI manually.",
+  "@qrScanPermissionDenied": {},
+  "qrScanGenericError": "Failed to start the camera. Retry, or enter the EUI manually.",
+  "@qrScanGenericError": {},
+  "qrScanManualEntry": "Enter Manually",
+  "@qrScanManualEntry": {},
+  "qrScanRetry": "Retry",
+  "@qrScanRetry": {},
+  "qrScanTorch": "Flashlight",
+  "@qrScanTorch": {},
+  "tbWizardScanEui": "Scan to Fill",
+  "@tbWizardScanEui": {},
+  "tbWizardBack": "Back",
+  "@tbWizardBack": {},
+  "tbWizardAnother": "Provision Another",
+  "@tbWizardAnother": {}
 }

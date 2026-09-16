@@ -647,7 +647,7 @@ abstract class AppLocalizations {
   /// No description provided for @ranchFenceInactive.
   ///
   /// In zh, this message translates to:
-  /// **'停用'**
+  /// **'已停用'**
   String get ranchFenceInactive;
 
   /// No description provided for @ranchLivestockCountHead.
@@ -1683,6 +1683,228 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'手动录入坐标'**
   String get fenceFormManualEntry;
+
+  /// No description provided for @fenceTrackMode.
+  ///
+  /// In zh, this message translates to:
+  /// **'轨迹采集'**
+  String get fenceTrackMode;
+
+  /// No description provided for @fenceTrackModeDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'沿场地边缘走一圈，自动圈出围栏范围'**
+  String get fenceTrackModeDesc;
+
+  /// No description provided for @fenceTrackGuide.
+  ///
+  /// In zh, this message translates to:
+  /// **'沿场地边缘走一圈，拐角和边线附近务必走到；中途走进场地内部无妨'**
+  String get fenceTrackGuide;
+
+  /// No description provided for @fenceTrackStart.
+  ///
+  /// In zh, this message translates to:
+  /// **'开始采集'**
+  String get fenceTrackStart;
+
+  /// No description provided for @fenceTrackPause.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂停'**
+  String get fenceTrackPause;
+
+  /// No description provided for @fenceTrackResume.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续'**
+  String get fenceTrackResume;
+
+  /// No description provided for @fenceTrackFinish.
+  ///
+  /// In zh, this message translates to:
+  /// **'完成采集'**
+  String get fenceTrackFinish;
+
+  /// No description provided for @fenceTrackDiscard.
+  ///
+  /// In zh, this message translates to:
+  /// **'放弃轨迹'**
+  String get fenceTrackDiscard;
+
+  /// No description provided for @fenceTrackPointCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'已采 {count} 点'**
+  String fenceTrackPointCount(int count);
+
+  /// No description provided for @fenceTrackAccuracy.
+  ///
+  /// In zh, this message translates to:
+  /// **'精度 ±{meters}m'**
+  String fenceTrackAccuracy(int meters);
+
+  /// No description provided for @fenceTrackPermissionDenied.
+  ///
+  /// In zh, this message translates to:
+  /// **'需要定位权限才能采集轨迹'**
+  String get fenceTrackPermissionDenied;
+
+  /// No description provided for @fenceTrackServiceDisabled.
+  ///
+  /// In zh, this message translates to:
+  /// **'请先开启系统定位服务'**
+  String get fenceTrackServiceDisabled;
+
+  /// No description provided for @fenceTrackOpenSettings.
+  ///
+  /// In zh, this message translates to:
+  /// **'打开系统设置'**
+  String get fenceTrackOpenSettings;
+
+  /// No description provided for @fenceTrackKeepScreenOn.
+  ///
+  /// In zh, this message translates to:
+  /// **'采集中请保持屏幕常亮'**
+  String get fenceTrackKeepScreenOn;
+
+  /// No description provided for @fenceTrackTooFewPoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'有效定位点不足，无法生成围栏'**
+  String get fenceTrackTooFewPoints;
+
+  /// No description provided for @fenceTrackDegenerate.
+  ///
+  /// In zh, this message translates to:
+  /// **'定位点几乎在一条直线上，无法生成围栏范围'**
+  String get fenceTrackDegenerate;
+
+  /// No description provided for @fenceTrackMultiArea.
+  ///
+  /// In zh, this message translates to:
+  /// **'检测到多片区域，已取最大一片'**
+  String get fenceTrackMultiArea;
+
+  /// No description provided for @fenceTrackConvexFallback.
+  ///
+  /// In zh, this message translates to:
+  /// **'边缘点位较稀疏，已按最简外沿生成，建议修正顶点'**
+  String get fenceTrackConvexFallback;
+
+  /// No description provided for @fenceTrackOutliersRemoved.
+  ///
+  /// In zh, this message translates to:
+  /// **'已剔除 {count} 个漂移点'**
+  String fenceTrackOutliersRemoved(int count);
+
+  /// No description provided for @fenceTrackVertices.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏顶点：{count} 个'**
+  String fenceTrackVertices(int count);
+
+  /// No description provided for @fenceImportGpxTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入 GPX 轨迹'**
+  String get fenceImportGpxTitle;
+
+  /// No description provided for @fenceImportGpxButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入 GPX'**
+  String get fenceImportGpxButton;
+
+  /// No description provided for @fenceImportStepUpload.
+  ///
+  /// In zh, this message translates to:
+  /// **'上传'**
+  String get fenceImportStepUpload;
+
+  /// No description provided for @fenceImportStepPreview.
+  ///
+  /// In zh, this message translates to:
+  /// **'预览'**
+  String get fenceImportStepPreview;
+
+  /// No description provided for @fenceImportStepResult.
+  ///
+  /// In zh, this message translates to:
+  /// **'生成'**
+  String get fenceImportStepResult;
+
+  /// No description provided for @fenceImportPickFile.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择轨迹文件（GPX / XLSX）'**
+  String get fenceImportPickFile;
+
+  /// No description provided for @fenceImportFormatHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'支持 RTK 手簿轨迹检验线路 XLSX（A 列名称、H 列坐标）与外部工具导出的 GPX 轨迹（trkpt/rtept），坐标为 WGS-84'**
+  String get fenceImportFormatHint;
+
+  /// No description provided for @fenceImportGpxFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'GPX 导入失败: {error}'**
+  String fenceImportGpxFailed(String error);
+
+  /// No description provided for @fenceImportRawPoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'原始点数'**
+  String get fenceImportRawPoints;
+
+  /// No description provided for @fenceImportCleanPoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'清洗后点数'**
+  String get fenceImportCleanPoints;
+
+  /// No description provided for @fenceImportRemovedDuplicates.
+  ///
+  /// In zh, this message translates to:
+  /// **'合并重复点'**
+  String get fenceImportRemovedDuplicates;
+
+  /// No description provided for @fenceImportLength.
+  ///
+  /// In zh, this message translates to:
+  /// **'轨迹全长'**
+  String get fenceImportLength;
+
+  /// No description provided for @fenceImportGenerate.
+  ///
+  /// In zh, this message translates to:
+  /// **'生成围栏范围'**
+  String get fenceImportGenerate;
+
+  /// No description provided for @fenceImportApply.
+  ///
+  /// In zh, this message translates to:
+  /// **'载入围栏'**
+  String get fenceImportApply;
+
+  /// No description provided for @fenceImportMethodConcave.
+  ///
+  /// In zh, this message translates to:
+  /// **'外包络（贴合边线）'**
+  String get fenceImportMethodConcave;
+
+  /// No description provided for @fenceImportMethodConvex.
+  ///
+  /// In zh, this message translates to:
+  /// **'最简外沿（建议修正顶点）'**
+  String get fenceImportMethodConvex;
+
+  /// No description provided for @fenceImportMeters.
+  ///
+  /// In zh, this message translates to:
+  /// **'{length} m'**
+  String fenceImportMeters(String length);
 
   /// No description provided for @fenceFormApply.
   ///
@@ -6869,6 +7091,102 @@ abstract class AppLocalizations {
   /// **'待处理'**
   String get alertSummaryPending;
 
+  /// No description provided for @alertSumActive.
+  ///
+  /// In zh, this message translates to:
+  /// **'活跃告警 · 待处理事项'**
+  String get alertSumActive;
+
+  /// No description provided for @alertSumUnread.
+  ///
+  /// In zh, this message translates to:
+  /// **'未读 · 尚未查看'**
+  String get alertSumUnread;
+
+  /// No description provided for @alertSumInfo.
+  ///
+  /// In zh, this message translates to:
+  /// **'提示'**
+  String get alertSumInfo;
+
+  /// No description provided for @alertSumReconcile.
+  ///
+  /// In zh, this message translates to:
+  /// **'{critical} + {warning} + {info} ＝ {total} 活跃'**
+  String alertSumReconcile(int critical, int warning, int info, int total);
+
+  /// No description provided for @alertRefreshHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'每 30 秒自动更新'**
+  String get alertRefreshHint;
+
+  /// No description provided for @alertRefreshPaused.
+  ///
+  /// In zh, this message translates to:
+  /// **'已暂停（操作中）'**
+  String get alertRefreshPaused;
+
+  /// No description provided for @alertRefreshedJustNow.
+  ///
+  /// In zh, this message translates to:
+  /// **'刚刚已刷新'**
+  String get alertRefreshedJustNow;
+
+  /// No description provided for @alertLoadMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'加载更早的告警'**
+  String get alertLoadMore;
+
+  /// No description provided for @alertShownOf.
+  ///
+  /// In zh, this message translates to:
+  /// **'已显示 {shown}/{total} 条'**
+  String alertShownOf(int shown, int total);
+
+  /// No description provided for @alertFenceStatusTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏状态'**
+  String get alertFenceStatusTitle;
+
+  /// No description provided for @alertFenceAggSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前 {out} 头在栏外 · {near} 头接近（按牲畜去重）'**
+  String alertFenceAggSub(int out, int near);
+
+  /// No description provided for @alertFenceViewAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看全部 {count} 条围栏告警'**
+  String alertFenceViewAll(int count);
+
+  /// No description provided for @alertFenceStateOut.
+  ///
+  /// In zh, this message translates to:
+  /// **'在栏外'**
+  String get alertFenceStateOut;
+
+  /// No description provided for @alertFenceStateNear.
+  ///
+  /// In zh, this message translates to:
+  /// **'接近缓冲带'**
+  String get alertFenceStateNear;
+
+  /// No description provided for @alertEmptyCta.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看 {count} 条已处理记录'**
+  String alertEmptyCta(int count);
+
+  /// No description provided for @alertBackToActive.
+  ///
+  /// In zh, this message translates to:
+  /// **'返回活跃告警'**
+  String get alertBackToActive;
+
   /// No description provided for @alertFilterAll.
   ///
   /// In zh, this message translates to:
@@ -6910,6 +7228,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'牲畜编号'**
   String get alertDetailLivestockCode;
+
+  /// No description provided for @alertDetailDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备'**
+  String get alertDetailDevice;
 
   /// No description provided for @alertDetailLivestockType.
   ///
@@ -7190,7 +7514,7 @@ abstract class AppLocalizations {
   /// No description provided for @alertFenceLivestockCount.
   ///
   /// In zh, this message translates to:
-  /// **'{count} 头牲畜'**
+  /// **'{count} 头'**
   String alertFenceLivestockCount(int count);
 
   /// No description provided for @alertFenceAlertCount.
@@ -7342,6 +7666,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'牲畜总数'**
   String get ranchLivestockTotal;
+
+  /// No description provided for @ranchFenceInFenceCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'栏内 {count} 头'**
+  String ranchFenceInFenceCount(int count);
+
+  /// No description provided for @ranchFenceLocationGap.
+  ///
+  /// In zh, this message translates to:
+  /// **'未定位 {noGps} 头 · 栏外 {outside} 头'**
+  String ranchFenceLocationGap(int noGps, int outside);
 
   /// No description provided for @livestockSheetLastLoc.
   ///
@@ -9706,6 +10042,72 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'获取登记信息失败，请稍后重试或联系厂商'**
   String get loginEnrollmentFailed;
+
+  /// No description provided for @qrScanTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'扫描设备二维码'**
+  String get qrScanTitle;
+
+  /// No description provided for @qrScanHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'将设备二维码或条形码对准取景框'**
+  String get qrScanHint;
+
+  /// No description provided for @qrScanNotEui.
+  ///
+  /// In zh, this message translates to:
+  /// **'该条码不含有效的 LoRa EUI'**
+  String get qrScanNotEui;
+
+  /// No description provided for @qrScanPermissionDenied.
+  ///
+  /// In zh, this message translates to:
+  /// **'相机权限被拒绝，请在系统设置中开启后重试，或手动输入 EUI。'**
+  String get qrScanPermissionDenied;
+
+  /// No description provided for @qrScanGenericError.
+  ///
+  /// In zh, this message translates to:
+  /// **'相机启动失败，请重试或手动输入 EUI。'**
+  String get qrScanGenericError;
+
+  /// No description provided for @qrScanManualEntry.
+  ///
+  /// In zh, this message translates to:
+  /// **'手动输入'**
+  String get qrScanManualEntry;
+
+  /// No description provided for @qrScanRetry.
+  ///
+  /// In zh, this message translates to:
+  /// **'重试'**
+  String get qrScanRetry;
+
+  /// No description provided for @qrScanTorch.
+  ///
+  /// In zh, this message translates to:
+  /// **'手电筒'**
+  String get qrScanTorch;
+
+  /// No description provided for @tbWizardScanEui.
+  ///
+  /// In zh, this message translates to:
+  /// **'扫码填写'**
+  String get tbWizardScanEui;
+
+  /// No description provided for @tbWizardBack.
+  ///
+  /// In zh, this message translates to:
+  /// **'上一步'**
+  String get tbWizardBack;
+
+  /// No description provided for @tbWizardAnother.
+  ///
+  /// In zh, this message translates to:
+  /// **'再开通一台'**
+  String get tbWizardAnother;
 }
 
 class _AppLocalizationsDelegate

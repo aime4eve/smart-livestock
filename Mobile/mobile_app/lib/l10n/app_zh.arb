@@ -844,7 +844,7 @@
       }
     }
   },
-    "fenceFormApply": "应用",
+  "fenceFormApply": "应用",
   "@fenceFormApply": {},
   "fenceFormVersionConflict": "版本冲突",
   "@fenceFormVersionConflict": {},
@@ -3084,6 +3084,63 @@
   "@alertSummaryWarning": {},
   "alertSummaryPending": "待处理",
   "@alertSummaryPending": {},
+  "alertSumActive": "活跃告警 · 待处理事项",
+  "@alertSumActive": {},
+  "alertSumUnread": "未读 · 尚未查看",
+  "@alertSumUnread": {},
+  "alertSumInfo": "提示",
+  "@alertSumInfo": {},
+  "alertSumReconcile": "{critical} + {warning} + {info} ＝ {total} 活跃",
+  "@alertSumReconcile": {
+    "placeholders": {
+      "critical": { "type": "int" },
+      "warning": { "type": "int" },
+      "info": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "alertRefreshHint": "每 30 秒自动更新",
+  "@alertRefreshHint": {},
+  "alertRefreshPaused": "已暂停（操作中）",
+  "@alertRefreshPaused": {},
+  "alertRefreshedJustNow": "刚刚已刷新",
+  "@alertRefreshedJustNow": {},
+  "alertLoadMore": "加载更早的告警",
+  "@alertLoadMore": {},
+  "alertShownOf": "已显示 {shown}/{total} 条",
+  "@alertShownOf": {
+    "placeholders": {
+      "shown": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "alertFenceStatusTitle": "围栏状态",
+  "@alertFenceStatusTitle": {},
+  "alertFenceAggSub": "当前 {out} 头在栏外 · {near} 头接近（按牲畜去重）",
+  "@alertFenceAggSub": {
+    "placeholders": {
+      "out": { "type": "int" },
+      "near": { "type": "int" }
+    }
+  },
+  "alertFenceViewAll": "查看全部 {count} 条围栏告警",
+  "@alertFenceViewAll": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "alertFenceStateOut": "在栏外",
+  "@alertFenceStateOut": {},
+  "alertFenceStateNear": "接近缓冲带",
+  "@alertFenceStateNear": {},
+  "alertEmptyCta": "查看 {count} 条已处理记录",
+  "@alertEmptyCta": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "alertBackToActive": "返回活跃告警",
+  "@alertBackToActive": {},
   "alertFilterAll": "全部",
   "@alertFilterAll": {},
   "alertFilterActive": "活跃",
@@ -3098,6 +3155,8 @@
   "@alertDetailOccurredAt": {},
   "alertDetailLivestockCode": "牲畜编号",
   "@alertDetailLivestockCode": {},
+  "alertDetailDevice": "设备",
+  "@alertDetailDevice": {},
   "alertDetailLivestockType": "牲畜类型",
   "@alertDetailLivestockType": {},
   "alertDetailFence": "所在围栏",
@@ -3208,7 +3267,7 @@
       }
     }
   },
-  "alertFenceLivestockCount": "{count} 头牲畜",
+  "alertFenceLivestockCount": "{count} 头",
   "@alertFenceLivestockCount": {
     "placeholders": {
       "count": {
@@ -3296,6 +3355,27 @@
   "@ranchSectionDeviceAlerts": {},
   "ranchLivestockTotal": "牲畜总数",
   "@ranchLivestockTotal": {},
+  "ranchFenceInFenceCount": "栏内 {count} 头",
+  "@ranchFenceInFenceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ranchFenceInactive": "已停用",
+  "@ranchFenceInactive": {},
+  "ranchFenceLocationGap": "未定位 {noGps} 头 · 栏外 {outside} 头",
+  "@ranchFenceLocationGap": {
+    "placeholders": {
+      "noGps": {
+        "type": "int"
+      },
+      "outside": {
+        "type": "int"
+      }
+    }
+  },
   "livestockSheetLastLoc": "最后定位",
   "@livestockSheetLastLoc": {},
   "livestockSheetCurrentPos": "实时位置",
@@ -4305,5 +4385,27 @@
   "loginEnrollmentCopied": "登记信息已复制，请发送给厂商获取授权文件",
   "@loginEnrollmentCopied": {},
   "loginEnrollmentFailed": "获取登记信息失败，请稍后重试或联系厂商",
-  "@loginEnrollmentFailed": {}
+  "@loginEnrollmentFailed": {},
+  "qrScanTitle": "扫描设备二维码",
+  "@qrScanTitle": {},
+  "qrScanHint": "将设备二维码或条形码对准取景框",
+  "@qrScanHint": {},
+  "qrScanNotEui": "该条码不含有效的 LoRa EUI",
+  "@qrScanNotEui": {},
+  "qrScanPermissionDenied": "相机权限被拒绝，请在系统设置中开启后重试，或手动输入 EUI。",
+  "@qrScanPermissionDenied": {},
+  "qrScanGenericError": "相机启动失败，请重试或手动输入 EUI。",
+  "@qrScanGenericError": {},
+  "qrScanManualEntry": "手动输入",
+  "@qrScanManualEntry": {},
+  "qrScanRetry": "重试",
+  "@qrScanRetry": {},
+  "qrScanTorch": "手电筒",
+  "@qrScanTorch": {},
+  "tbWizardScanEui": "扫码填写",
+  "@tbWizardScanEui": {},
+  "tbWizardBack": "上一步",
+  "@tbWizardBack": {},
+  "tbWizardAnother": "再开通一台",
+  "@tbWizardAnother": {}
 }

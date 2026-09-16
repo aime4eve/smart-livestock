@@ -292,7 +292,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ranchFenceActive => '启用';
 
   @override
-  String get ranchFenceInactive => '停用';
+  String get ranchFenceInactive => '已停用';
 
   @override
   String ranchLivestockCountHead(String count) {
@@ -870,6 +870,130 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get fenceFormManualEntry => '手动录入坐标';
+
+  @override
+  String get fenceTrackMode => '轨迹采集';
+
+  @override
+  String get fenceTrackModeDesc => '沿场地边缘走一圈，自动圈出围栏范围';
+
+  @override
+  String get fenceTrackGuide => '沿场地边缘走一圈，拐角和边线附近务必走到；中途走进场地内部无妨';
+
+  @override
+  String get fenceTrackStart => '开始采集';
+
+  @override
+  String get fenceTrackPause => '暂停';
+
+  @override
+  String get fenceTrackResume => '继续';
+
+  @override
+  String get fenceTrackFinish => '完成采集';
+
+  @override
+  String get fenceTrackDiscard => '放弃轨迹';
+
+  @override
+  String fenceTrackPointCount(int count) {
+    return '已采 $count 点';
+  }
+
+  @override
+  String fenceTrackAccuracy(int meters) {
+    return '精度 ±${meters}m';
+  }
+
+  @override
+  String get fenceTrackPermissionDenied => '需要定位权限才能采集轨迹';
+
+  @override
+  String get fenceTrackServiceDisabled => '请先开启系统定位服务';
+
+  @override
+  String get fenceTrackOpenSettings => '打开系统设置';
+
+  @override
+  String get fenceTrackKeepScreenOn => '采集中请保持屏幕常亮';
+
+  @override
+  String get fenceTrackTooFewPoints => '有效定位点不足，无法生成围栏';
+
+  @override
+  String get fenceTrackDegenerate => '定位点几乎在一条直线上，无法生成围栏范围';
+
+  @override
+  String get fenceTrackMultiArea => '检测到多片区域，已取最大一片';
+
+  @override
+  String get fenceTrackConvexFallback => '边缘点位较稀疏，已按最简外沿生成，建议修正顶点';
+
+  @override
+  String fenceTrackOutliersRemoved(int count) {
+    return '已剔除 $count 个漂移点';
+  }
+
+  @override
+  String fenceTrackVertices(int count) {
+    return '围栏顶点：$count 个';
+  }
+
+  @override
+  String get fenceImportGpxTitle => '导入 GPX 轨迹';
+
+  @override
+  String get fenceImportGpxButton => '导入 GPX';
+
+  @override
+  String get fenceImportStepUpload => '上传';
+
+  @override
+  String get fenceImportStepPreview => '预览';
+
+  @override
+  String get fenceImportStepResult => '生成';
+
+  @override
+  String get fenceImportPickFile => '选择轨迹文件（GPX / XLSX）';
+
+  @override
+  String get fenceImportFormatHint =>
+      '支持 RTK 手簿轨迹检验线路 XLSX（A 列名称、H 列坐标）与外部工具导出的 GPX 轨迹（trkpt/rtept），坐标为 WGS-84';
+
+  @override
+  String fenceImportGpxFailed(String error) {
+    return 'GPX 导入失败: $error';
+  }
+
+  @override
+  String get fenceImportRawPoints => '原始点数';
+
+  @override
+  String get fenceImportCleanPoints => '清洗后点数';
+
+  @override
+  String get fenceImportRemovedDuplicates => '合并重复点';
+
+  @override
+  String get fenceImportLength => '轨迹全长';
+
+  @override
+  String get fenceImportGenerate => '生成围栏范围';
+
+  @override
+  String get fenceImportApply => '载入围栏';
+
+  @override
+  String get fenceImportMethodConcave => '外包络（贴合边线）';
+
+  @override
+  String get fenceImportMethodConvex => '最简外沿（建议修正顶点）';
+
+  @override
+  String fenceImportMeters(String length) {
+    return '$length m';
+  }
 
   @override
   String get fenceFormApply => '应用';
@@ -3668,6 +3792,64 @@ class AppLocalizationsZh extends AppLocalizations {
   String get alertSummaryPending => '待处理';
 
   @override
+  String get alertSumActive => '活跃告警 · 待处理事项';
+
+  @override
+  String get alertSumUnread => '未读 · 尚未查看';
+
+  @override
+  String get alertSumInfo => '提示';
+
+  @override
+  String alertSumReconcile(int critical, int warning, int info, int total) {
+    return '$critical + $warning + $info ＝ $total 活跃';
+  }
+
+  @override
+  String get alertRefreshHint => '每 30 秒自动更新';
+
+  @override
+  String get alertRefreshPaused => '已暂停（操作中）';
+
+  @override
+  String get alertRefreshedJustNow => '刚刚已刷新';
+
+  @override
+  String get alertLoadMore => '加载更早的告警';
+
+  @override
+  String alertShownOf(int shown, int total) {
+    return '已显示 $shown/$total 条';
+  }
+
+  @override
+  String get alertFenceStatusTitle => '围栏状态';
+
+  @override
+  String alertFenceAggSub(int out, int near) {
+    return '当前 $out 头在栏外 · $near 头接近（按牲畜去重）';
+  }
+
+  @override
+  String alertFenceViewAll(int count) {
+    return '查看全部 $count 条围栏告警';
+  }
+
+  @override
+  String get alertFenceStateOut => '在栏外';
+
+  @override
+  String get alertFenceStateNear => '接近缓冲带';
+
+  @override
+  String alertEmptyCta(int count) {
+    return '查看 $count 条已处理记录';
+  }
+
+  @override
+  String get alertBackToActive => '返回活跃告警';
+
+  @override
   String get alertFilterAll => '全部';
 
   @override
@@ -3687,6 +3869,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get alertDetailLivestockCode => '牲畜编号';
+
+  @override
+  String get alertDetailDevice => '设备';
 
   @override
   String get alertDetailLivestockType => '牲畜类型';
@@ -3834,7 +4019,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String alertFenceLivestockCount(int count) {
-    return '$count 头牲畜';
+    return '$count 头';
   }
 
   @override
@@ -3921,6 +4106,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get ranchLivestockTotal => '牲畜总数';
+
+  @override
+  String ranchFenceInFenceCount(int count) {
+    return '栏内 $count 头';
+  }
+
+  @override
+  String ranchFenceLocationGap(int noGps, int outside) {
+    return '未定位 $noGps 头 · 栏外 $outside 头';
+  }
 
   @override
   String get livestockSheetLastLoc => '最后定位';
@@ -5197,4 +5392,37 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get loginEnrollmentFailed => '获取登记信息失败，请稍后重试或联系厂商';
+
+  @override
+  String get qrScanTitle => '扫描设备二维码';
+
+  @override
+  String get qrScanHint => '将设备二维码或条形码对准取景框';
+
+  @override
+  String get qrScanNotEui => '该条码不含有效的 LoRa EUI';
+
+  @override
+  String get qrScanPermissionDenied => '相机权限被拒绝，请在系统设置中开启后重试，或手动输入 EUI。';
+
+  @override
+  String get qrScanGenericError => '相机启动失败，请重试或手动输入 EUI。';
+
+  @override
+  String get qrScanManualEntry => '手动输入';
+
+  @override
+  String get qrScanRetry => '重试';
+
+  @override
+  String get qrScanTorch => '手电筒';
+
+  @override
+  String get tbWizardScanEui => '扫码填写';
+
+  @override
+  String get tbWizardBack => '上一步';
+
+  @override
+  String get tbWizardAnother => '再开通一台';
 }
