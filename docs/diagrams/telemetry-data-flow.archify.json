@@ -43,7 +43,7 @@
       "id": "devices",
       "type": "external",
       "label": "智能项圈 / 耳标",
-      "sublabel": "体温 · 活动 · GPS",
+      "sublabel": "体温 · 活动 · 定位（项圈）",
       "tag": "CAPSULE · TRACKER",
       "stage": 0,
       "row": 1

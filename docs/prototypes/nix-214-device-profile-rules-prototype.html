@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>NIX-214 设备配置（TB Profile）规则管理 — 高保真原型</title>
+<style>
+:root{
+  --primary:#2F6B3B;--primary-dark:#244F2D;--primary-soft:#E3F0E4;--accent:#8BA95A;
+  --surface:#F8F6F0;--surface-alt:#FFFFFF;--surface-muted:#F2F0EA;--border:#D7D2C6;
+  --text-primary:#263126;--text-secondary:#617061;
+  --success:#4C9A5F;--success-strong:#2F7D44;--success-soft:#E4F3E8;
+  --warning:#D28A2D;--warning-strong:#B36A16;--warning-soft:#FFF2DE;
+  --danger:#C2564B;--danger-strong:#B3352C;--danger-soft:#FBE8E6;
+  --info:#4A7F9D;--info-strong:#315F79;--info-soft:#E7F1F6;
+  --capsule:#C25689;--capsule-soft:#F9E6EF;
+  --xs:4px;--sm:8px;--md:12px;--lg:16px;--xl:24px;--xxl:32px;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-pill:999px;
+  --shadow-card:0 1px 3px rgba(38,49,38,.06),0 1px 2px rgba(38,49,38,.04);
+  --shadow-elev:0 4px 16px rgba(38,49,38,.12);
+  --shadow-modal:0 12px 40px rgba(38,49,38,.22);
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:#E0DDD6;color:var(--text-primary);min-height:100vh;padding:24px}
+.page-title{text-align:center;margin-bottom:6px}
+.page-title h1{font-size:22px;font-weight:700}
+.page-title p{font-size:13px;color:var(--text-secondary);margin-top:4px}
+.flow-grid{display:flex;flex-wrap:wrap;gap:32px;justify-content:center;margin-top:28px;align-items:flex-start}
+.screen-group{display:flex;flex-direction:column;gap:10px}
+.screen-label{font-size:13px;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:6px}
+.screen-label .num{width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.screen-label.modal .num{background:var(--info)}
+.screen-label.del .num{background:var(--danger)}
+.screen-sublabel{font-size:11px;color:var(--text-secondary);max-width:640px;line-height:1.5}
+
+/* ===== admin shell ===== */
+.shell{width:900px;height:640px;background:var(--surface);border-radius:14px;overflow:hidden;display:flex;box-shadow:0 0 0 8px #1a1a1a,0 0 0 9px #2a2a2a,0 20px 50px rgba(0,0,0,.25);position:relative}
+.sidebar{width:64px;background:var(--surface-alt);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:8px 0;flex-shrink:0}
+.nav-item{width:48px;height:46px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:2px 0;color:var(--text-secondary);position:relative;font-size:17px;cursor:pointer}
+.nav-item .lbl{font-size:8px;margin-top:2px;line-height:1.1}
+.nav-item:hover{background:var(--surface-muted)}
+.nav-item.active{background:var(--primary-soft);color:var(--primary)}
+.nav-item.active::before{content:"";position:absolute;left:-8px;top:8px;bottom:8px;width:3px;background:var(--primary);border-radius:0 3px 3px 0}
+.nav-item.new::after{content:"";position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--danger)}
+.sep{width:32px;height:1px;background:var(--border);margin:6px 0}
+.spacer{flex:1}
+.content{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:46px;background:var(--surface-alt);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:8px;flex-shrink:0}
+.topbar .t{font-size:14px;font-weight:700}
+.topbar .role-chip{margin-left:auto;font-size:10px;color:var(--info-strong);background:var(--info-soft);border:1px solid var(--info);border-radius:var(--radius-pill);padding:2px 10px}
+.page{flex:1;padding:18px 20px;overflow:auto}
+
+/* ===== toolbar ===== */
+.hint-bar{display:flex;gap:8px;align-items:flex-start;background:var(--info-soft);border:1px solid var(--info);border-radius:var(--radius-sm);padding:8px 12px;font-size:11px;color:var(--info-strong);line-height:1.5;margin-bottom:14px}
+.hint-bar>span{flex:1;min-width:0}
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.stat-line{font-size:12px;color:var(--text-secondary)}
+.stat-line b{color:var(--text-primary)}
+.btn{border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:600;padding:8px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-ghost{background:var(--surface-alt);color:var(--primary);border:1px solid var(--primary)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-neutral{background:var(--surface-muted);color:var(--text-secondary);border:1px solid var(--border)}
+.toolbar .grow{flex:1}
+
+/* ===== table ===== */
+.card{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-card);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:var(--surface-muted);color:var(--text-secondary);font-size:11px;font-weight:600;text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--surface-muted);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surface)}
+.prof-name{font-weight:600;color:var(--text-primary);white-space:nowrap;max-width:250px;overflow:hidden;text-overflow:ellipsis;display:inline-block;vertical-align:middle}
+.prof-name .src{font-size:9px;font-weight:700;border-radius:var(--radius-pill);padding:1px 6px;margin-left:6px;vertical-align:1px}
+.src-tb{background:var(--info-soft);color:var(--info-strong)}
+.src-manual{background:var(--surface-muted);color:var(--text-secondary)}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;border-radius:var(--radius-pill);padding:3px 10px;white-space:nowrap}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%}
+.badge-capsule{background:var(--capsule-soft);color:var(--capsule)}.badge-capsule::before{background:var(--capsule)}
+.badge-tracker{background:var(--info-soft);color:var(--info-strong)}.badge-tracker::before{background:var(--info)}
+.badge-eartag{background:var(--success-soft);color:var(--success-strong)}.badge-eartag::before{background:var(--success)}
+.badge-off{background:var(--surface-muted);color:var(--text-secondary)}.badge-off::before{background:var(--text-secondary)}
+.remark{color:var(--text-secondary);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ts{color:var(--text-secondary);font-size:11px;white-space:nowrap}
+.row-actions{display:flex;gap:6px}
+.link-btn{border:none;background:none;font-size:12px;font-weight:600;color:var(--info);cursor:pointer;padding:2px 4px;white-space:nowrap}
+.link-btn.del{color:var(--danger)}
+
+/* ===== switch ===== */
+.switch{width:34px;height:20px;border-radius:var(--radius-pill);background:#C9C4B8;position:relative;cursor:pointer;transition:background .15s;display:inline-block;vertical-align:middle}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:left .15s}
+.switch.on{background:var(--success)}
+.switch.on::after{left:16px}
+.switch.off-item .switch{background:#C9C4B8}
+tr.disabled-row .prof-name,tr.disabled-row .remark{color:var(--text-secondary)}
+
+/* ===== modal ===== */
+.overlay{position:absolute;inset:0;background:rgba(38,49,38,.45);display:flex;align-items:center;justify-content:center;z-index:20;padding:14px}
+.modal{width:430px;max-height:100%;overflow-y:auto;background:var(--surface-alt);border-radius:var(--radius-lg);box-shadow:var(--shadow-modal)}
+.modal-head{padding:16px 20px 0;display:flex;align-items:center;gap:8px}
+.modal-head h3{font-size:15px;font-weight:700}
+.modal-head .x{margin-left:auto;color:var(--text-secondary);font-size:16px;cursor:pointer;width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.modal-head .x:hover{background:var(--surface-muted)}
+.modal-body{padding:14px 20px 4px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;margin-bottom:6px}
+.field label .req{color:var(--danger)}
+.select-box{display:flex;gap:8px}
+.select{flex:1;height:38px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-alt);display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-size:12px;cursor:pointer;position:relative}
+.select .ph{color:var(--text-secondary)}
+.select.invalid{border-color:var(--danger)}
+.select.invalid .ph{color:var(--danger)}
+.select .caret{color:var(--text-secondary);font-size:10px}
+.icon-btn2{width:38px;height:38px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-alt);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;color:var(--text-secondary)}
+.icon-btn2:hover{background:var(--surface-muted);color:var(--primary)}
+.alt-action{font-size:11px;color:var(--info);margin-top:6px;cursor:pointer}
+.dropdown{border:1px solid var(--border);border-radius:var(--radius-sm);margin-top:6px;box-shadow:var(--shadow-elev);overflow:hidden}
+.dd-item{padding:7px 12px;font-size:11px;display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--surface-alt)}
+.dd-item:hover{background:var(--primary-soft)}
+.dd-item.sel{background:var(--primary-soft);font-weight:600}
+.dd-item .dd-sub{margin-left:auto;font-size:10px;color:var(--text-secondary)}
+.dd-item.taken{color:var(--text-secondary);background:var(--surface-muted);cursor:not-allowed}
+.dd-item.taken .tag{margin-left:auto;font-size:9px;font-weight:700;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-pill);padding:1px 7px}
+.seg{display:flex;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.seg .opt{flex:1;text-align:center;padding:9px 4px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:2px;align-items:center}
+.seg .opt:last-child{border-right:none}
+.seg .opt small{font-size:9px;font-weight:400;color:var(--text-secondary)}
+.seg .opt.on{background:var(--primary-soft);color:var(--primary)}
+.field .help{font-size:10px;color:var(--text-secondary);margin-top:6px;line-height:1.5}
+.switch-row{display:flex;align-items:center;gap:10px}
+.switch-row .sw-label{font-size:12px;font-weight:600}
+textarea{width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;font-size:12px;font-family:inherit;resize:none;color:var(--text-primary);background:var(--surface-alt)}
+textarea::placeholder{color:var(--text-secondary)}
+.modal-foot{padding:14px 20px 18px;display:flex;justify-content:flex-end;gap:10px}
+
+/* ===== delete modal ===== */
+.del-modal{width:400px}
+.del-icon{width:44px;height:44px;border-radius:50%;background:var(--danger-soft);color:var(--danger);display:flex;align-items:center;justify-content:center;font-size:20px}
+.del-body{padding:16px 20px;font-size:12px;line-height:1.7;color:var(--text-primary)}
+.del-body .target{font-weight:700}
+.del-body .warn-box{background:var(--warning-soft);border:1px solid var(--warning);border-radius:var(--radius-sm);padding:8px 12px;font-size:11px;color:var(--warning-strong);margin-top:10px;line-height:1.6}
+
+/* ===== notes ===== */
+.notes{max-width:1560px;margin:32px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.note-card{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 18px;box-shadow:var(--shadow-card)}
+.note-card h4{font-size:13px;font-weight:700;margin-bottom:8px;color:var(--primary)}
+.note-card ul{list-style:none;font-size:11px;color:var(--text-primary);line-height:1.8}
+.note-card ul li::before{content:"· ";color:var(--primary);font-weight:700}
+.note-card .muted{color:var(--text-secondary)}
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <h1>NIX-214 设备配置（TB Profile）规则管理</h1>
+  <p>平台管理者维护「TB 设备配置 → 设备类型」映射，替代开通向导硬编码白名单 · 权限：平台管理员 / B2B 管理员</p>
+</div>
+
+<div class="flow-grid">
+
+  <!-- ========== 屏 A：列表页 ========== -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num">A</span>规则列表（默认态）</div>
+    <div class="shell">
+      <div class="sidebar">
+        <div class="nav-item">🏢<div class="lbl">租户</div></div>
+        <div class="sep"></div>
+        <div class="nav-item">📡<div class="lbl">设备配置</div></div>
+        <div class="nav-item">📍<div class="lbl">GPS</div></div>
+        <div class="nav-item">💰<div class="lbl">对账</div></div>
+        <div class="nav-item">📄<div class="lbl">合同</div></div>
+        <div class="nav-item">⭐<div class="lbl">订阅</div></div>
+        <div class="sep"></div>
+        <div class="nav-item">🎛️<div class="lbl">门控</div></div>
+        <div class="nav-item">🗺️<div class="lbl">瓦片</div></div>
+        <div class="nav-item new">⏬<div class="lbl">遥测导入</div></div>
+        <div class="spacer"></div>
+        <div class="sep"></div>
+        <div class="nav-item" style="color:var(--danger)">⎋<div class="lbl">退出</div></div>
+      </div>
+      <div class="content">
+        <div class="topbar"><span class="t">设备配置管理</span><span class="role-chip">平台管理员</span></div>
+        <div class="page">
+          <div class="hint-bar"><span>ℹ️ 此列表决定<b>设备开通向导</b>认可哪些 TB 设备配置：配置名不在列表（或已停用）的设备，开通校验将显示"等待 TB 设备"。新增接入链路时在此添加映射，<b>无需发版</b>。</span></div>
+          <div class="toolbar">
+            <span class="stat-line">共 <b>3</b> 条规则 · 启用 <b>2</b> · 停用 <b>1</b></span>
+            <span class="grow"></span>
+            <button class="btn btn-ghost">⟳ 从 TB 刷新</button>
+            <button class="btn btn-primary">＋ 新增规则</button>
+          </div>
+          <div class="card">
+            <table>
+              <thead>
+                <tr><th>设备配置（TB Profile）</th><th>设备类型</th><th>状态</th><th>备注</th><th>更新时间</th><th style="text-align:right">操作</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="prof-name">瘤胃胶囊-OC-配置-v2</span><span class="src src-tb">TB</span></td>
+                  <td><span class="badge badge-capsule">瘤胃胶囊</span></td>
+                  <td><span class="switch on"></span></td>
+                  <td class="remark">现行 OC 链路（种子数据）</td>
+                  <td class="ts">2026-09-16 17:02</td>
+                  <td><div class="row-actions" style="justify-content:flex-end"><button class="link-btn">编辑</button><button class="link-btn del">删除</button></div></td>
+                </tr>
+                <tr>
+                  <td><span class="prof-name">牛羊追踪器-OC-配置-v2</span><span class="src src-tb">TB</span></td>
+                  <td><span class="badge badge-tracker">牛羊追踪器</span></td>
+                  <td><span class="switch on"></span></td>
+                  <td class="remark">现行 OC 链路（种子数据）</td>
+                  <td class="ts">2026-09-16 17:02</td>
+                  <td><div class="row-actions" style="justify-content:flex-end"><button class="link-btn">编辑</button><button class="link-btn del">删除</button></div></td>
+                </tr>
+                <tr class="disabled-row">
+                  <td><span class="prof-name">动物追踪器-规则链-v1-kafka 增强版</span><span class="src src-manual">手动</span></td>
+                  <td><span class="badge badge-off">已停用</span></td>
+                  <td><span class="switch"></span></td>
+                  <td class="remark">旧链路配置（64f1/fa 所挂），停用中不参与校验</td>
+                  <td class="ts">2026-09-16 17:20</td>
+                  <td><div class="row-actions" style="justify-content:flex-end"><button class="link-btn">编辑</button><button class="link-btn del">删除</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-sublabel">侧栏新增「设备配置」入口（设备类分组，带 NEW 角标）。行内开关<b>点击即保存</b>；停用行整行置灰、类型位显示"已停用"徽标。「TB / 手动」来源角标区分配置名来自 TB 同步还是手动录入。</div>
+  </div>
+
+  <!-- ========== 屏 B：新建/编辑弹窗 ========== -->
+  <div class="screen-group">
+    <div class="screen-label modal"><span class="num">B</span>新增规则弹窗（TB 下拉选择）</div>
+    <div class="shell">
+      <div class="sidebar" style="filter:grayscale(.4);opacity:.55">
+        <div class="nav-item">🏢<div class="lbl">租户</div></div>
+        <div class="sep"></div>
+        <div class="nav-item active">📡<div class="lbl">设备配置</div></div>
+        <div class="nav-item">📍<div class="lbl">GPS</div></div>
+        <div class="nav-item">💰<div class="lbl">对账</div></div>
+        <div class="nav-item">📄<div class="lbl">合同</div></div>
+        <div class="nav-item">⭐<div class="lbl">订阅</div></div>
+        <div class="spacer"></div>
+        <div class="nav-item" style="color:var(--danger)">⎋<div class="lbl">退出</div></div>
+      </div>
+      <div class="content" style="position:relative">
+        <div class="topbar"><span class="t">设备配置管理</span></div>
+        <div class="page" style="filter:grayscale(.4);opacity:.55">
+          <div class="card"><div style="padding:14px;font-size:12px;color:var(--text-secondary)">（背景列表，示意遮罩）</div></div>
+        </div>
+        <div class="overlay">
+          <div class="modal">
+            <div class="modal-head"><h3>新增设备配置规则</h3><span class="x">✕</span></div>
+            <div class="modal-body">
+              <div class="field">
+                <label>TB 设备配置 <span class="req">*</span></label>
+                <div class="select-box">
+                  <div class="select"><span>动物追踪器-规则链-v1-kafka 增强版</span><span class="caret">▼</span></div>
+                  <div class="icon-btn2" title="从 TB 重新拉取">⟳</div>
+                </div>
+                <div class="alt-action">或 手动输入配置名 →</div>
+                <div class="dropdown">
+                  <div class="dd-item sel">瘤胃胶囊-OC-配置-v2<span class="dd-sub">CAPSULE · 已有规则</span></div>
+                  <div class="dd-item">牛羊追踪器-OC-配置-v2<span class="dd-sub">TRACKER</span></div>
+                  <div class="dd-item">动物追踪器-规则链-v1-kafka 增强版<span class="dd-sub">TRACKER</span></div>
+                  <div class="dd-item taken">牛羊追踪器-测试-profile<span class="tag">已添加</span></div>
+                </div>
+                <div class="help">选项来自 ThingsBoard 设备配置实时列表（⟳ 重新拉取）；已存在规则的项置灰标记。手输模式用于 TB 暂查不到的配置名。</div>
+              </div>
+              <div class="field">
+                <label>设备类型 <span class="req">*</span></label>
+                <div class="seg">
+                  <div class="opt">🐄<small>耳标</small></div>
+                  <div class="opt on">🐮<small>牛羊追踪器</small></div>
+                  <div class="opt">💊<small>瘤胃胶囊</small></div>
+                </div>
+                <div class="help">决定开通后设备的能力口径（GPS / 活动量 / 健康监测）。</div>
+              </div>
+              <div class="field">
+                <div class="switch-row">
+                  <span class="switch on"></span><span class="sw-label">启用</span>
+                </div>
+                <div class="help">停用后该配置下的设备开通校验不通过（显示"等待 TB 设备"），可随时重新启用。</div>
+              </div>
+              <div class="field">
+                <label>备注</label>
+                <textarea rows="2" placeholder="选填，如：旧链路配置，仅兼容存量设备"></textarea>
+              </div>
+            </div>
+            <div class="modal-foot">
+              <button class="btn btn-neutral">取消</button>
+              <button class="btn btn-primary">保存</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-sublabel">编辑复用同一弹窗（标题/按钮变"编辑规则 / 保存"，配置名锁定不可改——改名等于换规则，应删除重建）。下拉首屏即 TB 全量配置，占用项置灰防重复。</div>
+  </div>
+
+  <!-- ========== 屏 C：删除确认 ========== -->
+  <div class="screen-group">
+    <div class="screen-label del"><span class="num">C</span>删除确认弹窗</div>
+    <div class="shell">
+      <div class="sidebar" style="filter:grayscale(.4);opacity:.55">
+        <div class="nav-item">🏢<div class="lbl">租户</div></div>
+        <div class="sep"></div>
+        <div class="nav-item active">📡<div class="lbl">设备配置</div></div>
+        <div class="nav-item">📍<div class="lbl">GPS</div></div>
+        <div class="nav-item">💰<div class="lbl">对账</div></div>
+        <div class="nav-item">📄<div class="lbl">合同</div></div>
+        <div class="nav-item">⭐<div class="lbl">订阅</div></div>
+        <div class="spacer"></div>
+        <div class="nav-item" style="color:var(--danger)">⎋<div class="lbl">退出</div></div>
+      </div>
+      <div class="content" style="position:relative">
+        <div class="topbar"><span class="t">设备配置管理</span></div>
+        <div class="page" style="filter:grayscale(.4);opacity:.55">
+          <div class="card"><div style="padding:14px;font-size:12px;color:var(--text-secondary)">（背景列表，示意遮罩）</div></div>
+        </div>
+        <div class="overlay">
+          <div class="modal del-modal">
+            <div class="modal-head"><span class="del-icon">🗑</span><h3>删除设备配置规则</h3><span class="x">✕</span></div>
+            <div class="del-body">
+              确认删除 <span class="target">「动物追踪器-规则链-v1-kafka 增强版」</span>？
+              <div class="warn-box">⚠️ 删除后，挂在此配置下的设备（如 00956906001264f1 / fa）开通校验将显示"等待 TB 设备"，无法完成开通。不影响 TB 平台上的设备与遥测数据。</div>
+            </div>
+            <div class="modal-foot">
+              <button class="btn btn-neutral">取消</button>
+              <button class="btn btn-danger">删除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-sublabel">删除为硬删除（配置表无业务引用，删除即失去校验资格）。警示框点名受影响设备示例，帮助管理者判断影响面。</div>
+  </div>
+
+</div>
+
+<div class="notes">
+  <div class="note-card">
+    <h4>交互规则</h4>
+    <ul>
+      <li>行内启用开关：点击即保存，成功后行状态即时变化（轻提示，无弹窗）</li>
+      <li>配置名唯一：新建时与已有规则重名 → 保存按钮置灰 + 行内错误提示</li>
+      <li>编辑时配置名只读（改名 = 换规则，走删除重建）；类型/启停/备注可改</li>
+      <li>「从 TB 刷新」：重新拉取 TB 设备配置列表，用于下拉与"配置在 TB 侧已不存在"的标记</li>
+      <li>删除需二次确认；确认框点名受影响设备示例（按当前绑定该配置的本地设备数）</li>
+    </ul>
+  </div>
+  <div class="note-card">
+    <h4>与开通校验的关系</h4>
+    <ul>
+      <li>preflight 顺序不变：NS 建档 → <b>profile 白名单（本功能）</b> → 遥测 key 校验</li>
+      <li>替换 TbDeviceProvisioningService 中两个硬编码常量；种子迁移保证行为不变</li>
+      <li>停用 ≠ 删除：停用的规则保留记录但跳过校验（可快速恢复）</li>
+      <li>遥测 key 约定（result/dataHex）为平台固定协议，不在本功能管理范围</li>
+    </ul>
+  </div>
+  <div class="note-card">
+    <h4>权限与入口</h4>
+    <ul>
+      <li>端点：@PreAuthorize hasAnyRole('PLATFORM_ADMIN','B2B_ADMIN')（与瓦片管理一致）</li>
+      <li>入口：平台管理端侧栏「设备配置」，路径 /admin/device-profile-rules</li>
+      <li>i18n：中英 ARB + 后端 MessageSource 双语同步</li>
+    </ul>
+  </div>
+</div>
+
+</body>
+</html>

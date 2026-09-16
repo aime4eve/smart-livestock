@@ -1,6 +1,6 @@
 # SmartLivestock 市场拓展工具包（内部）
 
-> 版本：v1.0（2026-09-03）
+> 版本：v1.1（2026-09-15）
 > 读者：内部销售、渠道与市场人员｜Market Development Kit
 > **与 `docs/training/01-presales-overseas-playbook.md` 的分工**：01 售前实战手册管**流程与话术细节**（询盘分级、邮件模板、需求问卷、回访节奏、CRM 记录、升级单格式）；本包管**市场定位与转化资产**（客群画像、切入策略、档位与定价建议、竞争差异、FAQ 与电梯陈述）。谈流程查 01，谈定位与商业策略查本包。
 > 价格均为**示例价**（源自系统当前订阅配置），正式报价以商务合同为准；本文档为内部资料，不直接外发客户。
@@ -96,6 +96,9 @@
 | 部署形态 | 云端托管 + 地端离线授权（ONPREM） | 地端完全离线、授权绑定主机、数据不出场——数据驻留敏感客户的决定性选项 |
 | 商业模式 | 免费版起步、可选订阅、无强制月费、365 天试点 | 低门槛进入；对比竞品强制定阅模式 |
 | 设备防拆 | 防拆位随遥测上报，非法拆卸即时触发 CRITICAL 告警 | 项圈被非法摘除立即知晓，配合围栏越界构建防丢防线 |
+| 健康数据实时性 | 健康页 30 秒自动刷新 + 数据更新时间标注 | 牧工打开页面停留即见最新采集数据，不需要手动下拉、不需要培训"记得刷新" |
+| 设备绑定管理 | 千台级设备按编号 / 序列号搜索绑定，牲畜详情页一键解绑 | 大牧场设备换绑、转售不再依赖运营后台操作，牧场主自助完成 |
+| 多时区本地化 | 时间与统计按客户时区显示（中英双语），底图按地区自动适配（中国高德 / 海外 OSM） | 海外项目的语言、时区、地图基础适配已内建，不再是"定制开发"项 |
 
 ---
 
@@ -113,6 +116,7 @@
 | 8 | **能和我们现有系统对接吗？** | 提供 Open API：牲畜 / 围栏 / 告警 / 设备只读查询，API Key 鉴权 + scope 授权 + 限流 + 租户隔离。具体数据对象、频率、安全策略走技术评估（01 手册第 9 节升级），不当场承诺接口清单。 |
 | 9 | **牧场网络信号差怎么办？** | LoRaWAN 免蜂窝覆盖（宣传口径 5–10 公里半径）、设备数据多级容错、App 离线全功能作业。仍需现场勘测网关位置与覆盖（01 手册硬件售前检查清单）。 |
 | 10 | **牧工不会用智能手机 / 不愿意用** | 牧工端界面只聚焦地图、告警、确认三个动作；处理与归档由牧场主完成；培训按角色拆分（01 手册 Demo 结构）。 |
+| 11 | **海外用时区 / 语言 / 地图对得上吗？** | 界面中英双语；所有时间与日 / 小时统计按客户所在时区显示；地图底图按地区自动适配（中国高德，海外 OSM），海外牧场开箱即用。小语种翻译与当地底图细节按项目技术评估（不当场承诺）。 |
 
 ---
 
@@ -135,11 +139,11 @@
 
 ### 7.1 中文 30 秒版
 
-> SmartLivestock 智慧畜牧把 GPS 项圈、瘤胃胶囊这些设备数据变成牧场里"看得见、管得住"的行动：牲畜在地图上可见，越界自动告警，牧工确认、老板闭环，健康数据辅助早发现早处理。平台免费版起步、不强制月费，市场测试期提供 **365 天试点授权**，按专业版能力完整体验。数据敏感的客户可以选择**地端独立部署**——完全离线、授权绑定主机、数据不出场。下一步我们约 30 分钟，确认您的畜种、规模和网络条件，再决定怎么设计试点。
+> SmartLivestock 智慧畜牧把 GPS 项圈、瘤胃胶囊这些设备数据变成牧场里"看得见、管得住"的行动：牲畜在地图上可见，越界自动告警，牧工确认、老板闭环，健康数据自动刷新、辅助早发现早处理。平台免费版起步、不强制月费，市场测试期提供 **365 天试点授权**，按专业版能力完整体验。数据敏感的客户可以选择**地端独立部署**——完全离线、授权绑定主机、数据不出场。下一步我们约 30 分钟，确认您的畜种、规模和网络条件，再决定怎么设计试点。
 
 ### 7.2 英文 30 秒版
 
-> SmartLivestock turns GPS tracker and rumen capsule data into faster action on the farm: animals are visible on a map, geofence breaches raise alerts, workers acknowledge and owners close the loop, and health analytics support earlier decisions. You can start free — no forced monthly fee — and during the market beta we offer a **365-day pilot license** with full PREMIUM capabilities. For strict data-residency needs, the platform ships as an **on-premises deployment** with fully offline licensing, so data never leaves your farm. Let's schedule 30 minutes to confirm your herd profile, scale, and connectivity, and design a pilot together.
+> SmartLivestock turns GPS tracker and rumen capsule data into faster action on the farm: animals are visible on a map, geofence breaches raise alerts, workers acknowledge and owners close the loop, and health analytics support earlier decisions — with health pages auto-refreshing so the latest readings are always on screen. You can start free — no forced monthly fee — and during the market beta we offer a **365-day pilot license** with full PREMIUM capabilities. The app is bilingual and timezone-localized with map baselines matched to your region. For strict data-residency needs, the platform ships as an **on-premises deployment** with fully offline licensing, so data never leaves your farm. Let's schedule 30 minutes to confirm your herd profile, scale, and connectivity, and design a pilot together.
 
 ### 7.3 三个必留钩子（每次陈述后必须落到下一步）
 

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>告警体验升级 V2 · 高保真原型（口径对账 + 未读角标 + 围栏聚合 + 自动刷新）</title>
+<style>
+:root{
+  --primary:#2F6B3B;--primary-dark:#244F2D;--primary-soft:#E3F0E4;--accent:#8BA95A;
+  --surface:#F8F6F0;--surface-alt:#FFFFFF;--border:#D7D2C6;
+  --text-primary:#263126;--text-secondary:#617061;
+  --success:#4C9A5F;--warning:#D28A2D;--danger:#C2564B;--info:#4A7F9D;--estrus:#C25689;
+  --xs:4px;--sm:8px;--md:12px;--lg:16px;--xl:24px;--xxl:32px;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+  --shadow-card:0 1px 3px rgba(38,49,38,.06),0 1px 2px rgba(38,49,38,.04);
+  --shadow-elev:0 4px 16px rgba(38,49,38,.12);
+  --shadow-sheet:0 -4px 24px rgba(38,49,38,.15);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sans-serif;background:#E0DDD6;color:var(--text-primary);min-height:100vh;padding:24px}
+.page-title{text-align:center;margin-bottom:8px}
+.page-title h1{font-size:22px;font-weight:700}
+.page-title p{font-size:13px;color:var(--text-secondary);margin-top:4px}
+.flow-grid{display:flex;flex-wrap:wrap;gap:28px;justify-content:center;margin-top:24px;max-width:2000px;margin-left:auto;margin-right:auto}
+.screen-group{display:flex;flex-direction:column;align-items:center;gap:10px}
+.screen-label{font-size:13px;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:6px}
+.screen-label .num{width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.screen-label .num.info{background:var(--info)}
+.screen-sublabel{font-size:11px;color:var(--text-secondary);max-width:300px;text-align:center;line-height:1.4}
+.phone{width:280px;height:580px;background:var(--surface);border-radius:36px;overflow:hidden;box-shadow:0 0 0 8px #1a1a1a,0 0 0 9px #2a2a2a,0 20px 50px rgba(0,0,0,.25);position:relative;display:flex;flex-direction:column}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:100px;height:22px;background:#1a1a1a;border-radius:0 0 16px 16px;z-index:9999}
+.phone-status{height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:11px;font-weight:600;flex-shrink:0}
+.phone-status .icons{display:flex;gap:4px;font-size:10px}
+.appbar{background:var(--primary);color:#fff;padding:6px 12px;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.appbar .back{font-size:18px;cursor:pointer;width:28px;text-align:center}
+.appbar h1{font-size:13px;font-weight:600;flex:1}
+.appbar .action{background:rgba(255,255,255,.15);border:none;color:#fff;padding:4px 8px;border-radius:6px;font-size:10px;cursor:pointer}
+.scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.scroll-area::-webkit-scrollbar{width:0}
+.bottom-nav{display:flex;border-top:1px solid var(--border);background:var(--surface-alt);flex-shrink:0}
+.nav-item{flex:1;padding:7px 0 9px;text-align:center;font-size:9px;color:var(--text-secondary);cursor:pointer;position:relative}
+.nav-item .nav-icon{display:block;font-size:15px;margin-bottom:1px}
+.nav-item.active{color:var(--primary);font-weight:600}
+.bottom-nav .nav-badge{position:absolute;top:2px;right:calc(50% - 20px);background:var(--danger);color:#fff;font-size:8px;font-weight:700;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+
+/* ═══ 新汇总区：活跃/未读大数 + 严重/警告/提示三格（加总=活跃） ═══ */
+.sum-hero{display:flex;background:var(--surface-alt);border-bottom:1px solid var(--border);flex-shrink:0}
+.sum-hero .hero-cell{flex:1;padding:10px 12px 8px;cursor:pointer}
+.sum-hero .hero-cell + .hero-cell{border-left:1px solid var(--border)}
+.sum-hero .hero-num{font-size:24px;font-weight:700;line-height:1.1;display:flex;align-items:baseline;gap:5px}
+.sum-hero .hero-num .trend{font-size:9px;font-weight:600;color:var(--text-secondary)}
+.sum-hero .hero-label{font-size:9px;color:var(--text-secondary);margin-top:2px}
+.sum-hero .hero-cell.active .hero-num{color:var(--primary)}
+.sum-hero .hero-cell.unread .hero-num{color:var(--danger)}
+.sum-cells{display:flex;background:var(--surface-alt);border-bottom:1px solid var(--border);padding:0 12px 7px;gap:5px;flex-shrink:0}
+.sum-cell{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:4px 0;border-radius:6px;background:var(--surface);cursor:pointer;border:1px solid transparent}
+.sum-cell.selected{border-color:var(--primary);background:var(--primary-soft)}
+.sum-cell .dot{width:6px;height:6px;border-radius:50%}
+.sum-cell .n{font-size:11px;font-weight:700}
+.sum-cell .t{font-size:9px;color:var(--text-secondary)}
+.sum-cell.crit .n{color:var(--danger)}
+.sum-cell.warn .n{color:var(--warning)}
+.sum-cell.info-c .n{color:var(--info)}
+.sum-check{font-size:8px;color:var(--text-secondary);text-align:center;padding:4px 0 0;background:var(--surface-alt);flex-shrink:0}
+.sum-check b{color:var(--primary)}
+
+/* ═══ 筛选区 ═══ */
+.filter-bar{background:var(--surface);padding:6px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.seg-tabs{display:flex;background:var(--border);border-radius:6px;padding:2px;gap:2px}
+.seg-tab{flex:1;padding:5px 0;text-align:center;font-size:10px;font-weight:500;color:var(--text-secondary);cursor:pointer;border-radius:4px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;gap:2px}
+.seg-tab.active{background:var(--surface-alt);color:var(--primary);font-weight:600;box-shadow:var(--shadow-card)}
+.seg-tab .badge{background:var(--danger);color:#fff;font-size:8px;font-weight:700;padding:0 4px;border-radius:6px;min-width:12px;text-align:center}
+.type-chips{display:flex;gap:4px;margin-top:5px;overflow-x:auto}
+.type-chips::-webkit-scrollbar{height:0}
+.type-chip{padding:3px 8px;border-radius:12px;font-size:9px;font-weight:500;white-space:nowrap;cursor:pointer;border:1px solid var(--border);background:var(--surface-alt);color:var(--text-secondary);display:flex;align-items:center;gap:3px}
+.type-chip.active{background:var(--primary-soft);color:var(--primary-dark);border-color:var(--primary);font-weight:600}
+.type-chip .dot{width:5px;height:5px;border-radius:50%}
+
+/* ═══ 自动刷新指示 ═══ */
+.refresh-hint{display:flex;align-items:center;justify-content:center;gap:4px;padding:4px 0;font-size:8px;color:var(--text-secondary);background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.refresh-hint .spin{display:inline-block;width:8px;height:8px;border:1.5px solid var(--border);border-top-color:var(--success);border-radius:50%;animation:spin 1.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.refresh-hint .ok{color:var(--success);font-weight:600}
+
+/* ═══ 日期分组 + 告警卡（沿用 NIX-52 规格） ═══ */
+.date-group{display:flex;align-items:center;gap:6px;padding:8px 12px 2px;font-size:10px;font-weight:600;color:var(--text-secondary)}
+.date-group .line{flex:1;height:1px;background:var(--border)}
+.date-group .cnt{font-size:9px;font-weight:500;background:var(--surface);padding:1px 5px;border-radius:6px;border:1px solid var(--border)}
+.alert-list{padding:0 12px 12px}
+.alert-card{background:var(--surface-alt);border-radius:10px;margin-bottom:6px;overflow:hidden;cursor:pointer;border:1px solid transparent}
+.alert-card.unread{border-color:rgba(47,107,59,.12)}
+.alert-inner{display:flex;align-items:stretch}
+.alert-bar{width:3px;flex-shrink:0}
+.alert-bar.critical{background:var(--danger)}
+.alert-bar.warning{background:var(--warning)}
+.alert-bar.info{background:var(--info)}
+.alert-body{flex:1;padding:8px}
+.alert-top{display:flex;align-items:flex-start;gap:7px;margin-bottom:2px}
+.alert-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.alert-icon.critical{background:rgba(194,86,75,.1)}
+.alert-icon.warning{background:rgba(210,138,45,.1)}
+.alert-icon.info{background:rgba(74,127,157,.1)}
+.alert-icon.estrus{background:rgba(194,86,137,.1)}
+.alert-content{flex:1;min-width:0}
+.alert-title-row{display:flex;align-items:center;gap:4px}
+.alert-title{font-size:11px;font-weight:600;line-height:1.3;flex:1}
+.unread-dot{width:6px;height:6px;border-radius:50%;background:var(--primary);flex-shrink:0}
+.alert-meta{font-size:9px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;margin-top:2px;flex-wrap:wrap}
+.alert-meta .sep{opacity:.5}
+.alert-badges{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
+.type-badge{font-size:8px;font-weight:600;padding:1px 6px;border-radius:4px}
+.type-badge.critical{background:rgba(194,86,75,.1);color:var(--danger)}
+.type-badge.warning{background:rgba(210,138,45,.1);color:var(--warning)}
+.type-badge.estrus{background:rgba(194,86,137,.1);color:var(--estrus)}
+.status-tag{font-size:8px;font-weight:600;padding:1px 6px;border-radius:4px}
+.status-tag.active{background:#FFF3CD;color:#8a6d1a}
+.status-tag.auto{background:rgba(76,154,95,.12);color:var(--success)}
+.source-tag{font-size:8px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--surface);color:var(--text-secondary);border:1px solid var(--border)}
+.load-more{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 14px}
+.load-more .lm-btn{font-size:10px;font-weight:600;color:var(--primary);background:var(--primary-soft);border:none;border-radius:8px;padding:7px 18px;cursor:pointer}
+.load-more .lm-meta{font-size:8px;color:var(--text-secondary)}
+
+/* ═══ 牧场概览 dash 卡（未读红点角标） ═══ */
+.sheet-tabs{display:flex;padding:4px 12px;gap:0;border-bottom:1px solid var(--border);background:var(--surface-alt)}
+.sheet-tab{flex:1;padding:7px 4px;text-align:center;font-size:10px;font-weight:600;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;display:flex;align-items:center;justify-content:center;gap:3px}
+.sheet-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.sheet-tab .tab-badge{background:var(--danger);color:#fff;font-size:8px;font-weight:700;padding:0 4px;border-radius:6px;min-width:12px;text-align:center}
+.dash-row{display:flex;flex-wrap:wrap;gap:8px;padding:8px 12px 4px}
+.dash-card{flex:1 1 calc(50% - 8px);background:var(--surface-alt);border-radius:10px;padding:8px;border:1px solid var(--border);cursor:pointer;position:relative}
+.dash-card.has-alert{border-color:rgba(194,86,75,.3);background:rgba(194,86,75,.03)}
+.dash-card-top{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.dash-card-top .ico{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px}
+.dash-card-top .ico.danger{background:rgba(194,86,75,.1);color:var(--danger)}
+.dash-card-top .ico.warning{background:rgba(210,138,45,.1);color:var(--warning)}
+.dash-card-top .ico.success{background:rgba(76,154,95,.1);color:var(--success)}
+.dash-card-top .ico.info{background:rgba(74,127,157,.1);color:var(--info)}
+.dash-card .count{font-size:16px;font-weight:700;line-height:1}
+.dash-card .label{font-size:9px;color:var(--text-secondary)}
+.unread-pill{position:absolute;top:6px;right:6px;background:var(--danger);color:#fff;font-size:8px;font-weight:700;min-width:15px;height:15px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.unread-legend{font-size:8px;color:var(--text-secondary);padding:2px 12px 6px}
+.unread-legend b{color:var(--danger)}
+
+/* ═══ 围栏聚合状态卡（牧场告警 Tab 顶部） ═══ */
+.agg-card{margin:8px 12px 4px;background:var(--surface-alt);border-radius:12px;border:1px solid rgba(194,86,75,.25);overflow:hidden;box-shadow:var(--shadow-card)}
+.agg-head{display:flex;align-items:center;gap:8px;padding:9px 10px;cursor:pointer}
+.agg-head .agg-ico{width:30px;height:30px;border-radius:9px;background:rgba(194,86,75,.1);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.agg-head .agg-main{flex:1;min-width:0}
+.agg-head .agg-title{font-size:11px;font-weight:700}
+.agg-head .agg-sub{font-size:9px;color:var(--text-secondary);margin-top:1px}
+.agg-head .agg-sub b{color:var(--danger)}
+.agg-head .agg-sub b.near{color:var(--warning)}
+.agg-head .chev{font-size:11px;color:var(--text-secondary)}
+.agg-body{border-top:1px solid var(--border);background:var(--surface)}
+.agg-row{display:flex;align-items:center;gap:7px;padding:6px 10px;border-bottom:1px solid var(--border);cursor:pointer}
+.agg-row:last-of-type{border-bottom:none}
+.agg-row .st{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.agg-row .st.out{background:var(--danger)}
+.agg-row .st.near{background:var(--warning)}
+.agg-row .code{font-size:10px;font-weight:600;width:64px}
+.agg-row .where{flex:1;font-size:9px;color:var(--text-secondary)}
+.agg-row .when{font-size:8px;color:var(--text-secondary)}
+.agg-row .arrow{font-size:10px;color:var(--text-secondary)}
+.agg-foot{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--primary-soft);cursor:pointer}
+.agg-foot .txt{font-size:9px;font-weight:600;color:var(--primary-dark)}
+.agg-foot .arr{font-size:10px;color:var(--primary-dark)}
+
+/* ═══ 空状态 ═══ */
+.empty-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:0 24px;text-align:center}
+.empty-ico{width:64px;height:64px;border-radius:50%;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:28px}
+.empty-title{font-size:13px;font-weight:700}
+.empty-desc{font-size:10px;color:var(--text-secondary);line-height:1.5}
+.empty-link{margin-top:4px;font-size:10px;font-weight:600;color:var(--primary);background:var(--primary-soft);border:none;border-radius:8px;padding:7px 16px;cursor:pointer}
+
+/* ═══ 说明面板 ═══ */
+.notes-panel{max-width:900px;margin:36px auto 0;background:var(--surface-alt);border-radius:var(--radius-lg);padding:20px 24px;box-shadow:var(--shadow-elev)}
+.notes-panel h2{font-size:15px;margin-bottom:10px;color:var(--primary-dark)}
+.notes-panel h3{font-size:12px;margin:14px 0 6px;color:var(--primary)}
+.notes-panel table{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px}
+.notes-panel th,.notes-panel td{border:1px solid var(--border);padding:5px 8px;text-align:left;line-height:1.4}
+.notes-panel th{background:var(--surface);font-weight:700}
+.notes-panel ul{padding-left:18px;font-size:11px;line-height:1.7}
+.notes-panel .before-after{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap}
+.notes-panel .ba{flex:1;min-width:260px;border-radius:10px;padding:10px 12px;font-size:11px;line-height:1.6}
+.notes-panel .ba.before{background:#FCEAE8;border:1px solid rgba(194,86,75,.3)}
+.notes-panel .ba.after{background:var(--primary-soft);border:1px solid rgba(47,107,59,.3)}
+</style>
+</head>
+<body>
+<div class="page-title">
+  <h1>告警体验升级 V2 · 高保真原型</h1>
+  <p>口径对账（严重+警告+提示＝活跃）· 未读角标 · 围栏聚合状态卡 · 30 秒自动刷新 · 真分页</p>
+</div>
+
+<div class="flow-grid">
+
+<!-- ══ Screen 1: 告警中心（活跃 tab 默认 + 新汇总区 + 自动刷新 + 分页） ══ -->
+<div class="screen-group">
+  <div class="screen-label"><span class="num">1</span>告警中心 · 默认「活跃」+ 对账汇总</div>
+  <div class="screen-sublabel">默认落在「活跃」；活跃=严重+警告+提示，账永远对得上；30 秒自动刷新不打断操作；上拉加载摆脱 200 条窗口</div>
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="phone-status"><span>9:41</span><span class="icons">📶 🔋</span></div>
+    <div class="appbar"><span class="back">‹</span><h1>告警中心</h1><button class="action">✓ 全部已读</button></div>
+    <!-- 新汇总区 -->
+    <div class="sum-hero">
+      <div class="hero-cell active"><div class="hero-num">14</div><div class="hero-label">活跃告警 · 待处理事项</div></div>
+      <div class="hero-cell unread"><div class="hero-num">3</div><div class="hero-label">未读 · 尚未查看</div></div>
+    </div>
+    <div class="sum-cells">
+      <div class="sum-cell crit selected"><span class="dot" style="background:var(--danger)"></span><span class="n">13</span><span class="t">严重</span></div>
+      <div class="sum-cell warn"><span class="dot" style="background:var(--warning)"></span><span class="n">1</span><span class="t">警告</span></div>
+      <div class="sum-cell info-c"><span class="dot" style="background:var(--info)"></span><span class="n">0</span><span class="t">提示</span></div>
+    </div>
+    <div class="sum-check">13 + 1 + 0 ＝ 14 活跃 ✓　点击格子按级别筛选</div>
+    <div class="refresh-hint"><span class="spin"></span><span>每 30 秒自动更新 · <span class="ok">刚刚已刷新</span></span></div>
+    <div class="filter-bar">
+      <div class="seg-tabs"><button class="seg-tab active">活跃 <span class="badge">14</span></button><button class="seg-tab">已处理</button><button class="seg-tab">全部</button></div>
+      <div class="type-chips">
+        <div class="type-chip active">全部类型</div>
+        <div class="type-chip"><span class="dot" style="background:var(--danger)"></span>围栏越界</div>
+        <div class="type-chip"><span class="dot" style="background:var(--warning)"></span>接近围栏</div>
+        <div class="type-chip"><span class="dot" style="background:var(--warning)"></span>体温异常</div>
+        <div class="type-chip"><span class="dot" style="background:#7C3AED"></span>AI异常</div>
+        <div class="type-chip"><span class="dot" style="background:var(--warning)"></span>低电量</div>
+      </div>
+    </div>
+    <div class="scroll-area">
+      <div class="alert-list">
+        <div class="date-group"><span>今天</span><div class="line"></div><span class="cnt">14 条</span></div>
+        <div class="alert-card unread"><div class="alert-inner"><div class="alert-bar critical"></div><div class="alert-body"><div class="alert-top"><div class="alert-icon critical">🚧</div><div class="alert-content"><div class="alert-title-row"><span class="alert-title">牲畜 #ST-8aba 越出西区围栏边界</span><span class="unread-dot"></span></div><div class="alert-meta"><span>🏷️ ST-8aba</span><span class="sep">·</span><span>📍 西区围栏</span><span class="sep">·</span><span>⏱️ 2分钟前</span></div><div class="alert-badges"><span class="type-badge critical">围栏越界</span><span class="status-tag active">活跃</span><span class="source-tag">规则触发</span></div></div></div></div></div></div>
+        <div class="alert-card unread"><div class="alert-inner"><div class="alert-bar critical"></div><div class="alert-body"><div class="alert-top"><div class="alert-icon critical">🚧</div><div class="alert-content"><div class="alert-title-row"><span class="alert-title">牲畜 #ST-31c4 越出西区围栏边界</span><span class="unread-dot"></span></div><div class="alert-meta"><span>🏷️ ST-31c4</span><span class="sep">·</span><span>📍 西区围栏</span><span class="sep">·</span><span>⏱️ 9分钟前</span></div><div class="alert-badges"><span class="type-badge critical">围栏越界</span><span class="status-tag active">活跃</span><span class="source-tag">规则触发</span></div></div></div></div></div></div>
+        <div class="alert-card unread"><div class="alert-inner"><div class="alert-bar warning"></div><div class="alert-body"><div class="alert-top"><div class="alert-icon warning">🌡️</div><div class="alert-content"><div class="alert-title-row"><span class="alert-title">牲畜 [ST-22f0] 体温异常：当前 39.64°C</span><span class="unread-dot"></span></div><div class="alert-meta"><span>🏷️ ST-22f0</span><span class="sep">·</span><span>📍 北区放牧区</span><span class="sep">·</span><span>⏱️ 21分钟前</span></div><div class="alert-badges"><span class="type-badge warning">体温异常</span><span class="status-tag active">活跃</span><span class="source-tag">规则触发</span></div></div></div></div></div></div>
+        <div class="alert-card"><div class="alert-inner"><div class="alert-bar critical"></div><div class="alert-body"><div class="alert-top"><div class="alert-icon critical">🚧</div><div class="alert-content"><div class="alert-title-row"><span class="alert-title">牲畜 #ST-77e1 越出东区围栏边界</span></div><div class="alert-meta"><span>🏷️ ST-77e1</span><span class="sep">·</span><span>📍 东区围栏</span><span class="sep">·</span><span>⏱️ 34分钟前</span></div><div class="alert-badges"><span class="type-badge critical">围栏越界</span><span class="status-tag active">活跃</span><span class="source-tag">规则触发</span></div></div></div></div></div></div>
+      </div>
+      <!-- 分页 footer -->
+      <div class="load-more">
+        <button class="lm-btn">↑ 加载更早的告警</button>
+        <div class="lm-meta">已显示 50 / 137 条（全部 137 条中：活跃 14 · 已处理 123）</div>
+      </div>
+    </div>
+    <div class="bottom-nav"><div class="nav-item active"><span class="nav-icon">🗺️</span>牧场</div><div class="nav-item"><span class="nav-icon">👤</span>我的</div></div>
+  </div>
+</div>
+
+<!-- ══ Screen 2: 牧场概览（未读角标口径） ══ -->
+<div class="screen-group">
+  <div class="screen-label"><span class="num">2</span>牧场概览 · 未读角标口径</div>
+  <div class="screen-sublabel">卡片数字＝活跃总数（现状规模）；红点角标＝未读活跃数，处理完归零，有新告警才 +1</div>
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="phone-status"><span>9:41</span><span class="icons">📶 🔋</span></div>
+    <div style="flex:1;background:linear-gradient(135deg,#E8E5DE 0%,#DDD9D0 100%);position:relative">
+      <div style="position:absolute;inset:0;opacity:.3;background-image:linear-gradient(rgba(100,100,100,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(100,100,100,.1) 1px,transparent 1px);background-size:30px 30px"></div>
+      <div style="position:absolute;top:44px;left:10px;right:10px;bottom:0;background:var(--surface-alt);border-radius:16px 16px 0 0;box-shadow:var(--shadow-sheet);display:flex;flex-direction:column">
+        <div style="width:32px;height:3px;background:var(--border);border-radius:2px;margin:8px auto 0"></div>
+        <div class="sheet-tabs">
+          <div class="sheet-tab active">📊 概览</div>
+          <div class="sheet-tab">🚧 围栏</div>
+          <div class="sheet-tab">🔔 告警 <span class="tab-badge">3</span></div>
+        </div>
+        <div class="dash-row">
+          <div class="dash-card has-alert">
+            <div class="unread-pill">2</div>
+            <div class="dash-card-top"><div class="ico danger">🚧</div></div>
+            <div class="count">13</div><div class="label">围栏告警</div>
+          </div>
+          <div class="dash-card has-alert">
+            <div class="unread-pill">1</div>
+            <div class="dash-card-top"><div class="ico warning">❤️</div></div>
+            <div class="count">1</div><div class="label">健康告警</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-top"><div class="ico info">🔋</div></div>
+            <div class="count">0</div><div class="label">设备告警</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-top"><div class="ico success">🐾</div></div>
+            <div class="count">58</div><div class="label">牲畜总数</div>
+          </div>
+        </div>
+        <div class="unread-legend">卡数字＝活跃告警总数　<b class="unread-pill" style="position:static;display:inline-flex;min-width:14px;height:14px">2</b> ＝未读，点卡片看明细</div>
+        <div style="flex:1"></div>
+      </div>
+    </div>
+    <div class="bottom-nav"><div class="nav-item active"><span class="nav-icon">🗺️</span>牧场</div><div class="nav-item"><span class="nav-icon">👤</span>我的 <span class="nav-badge">3</span></div></div>
+  </div>
+</div>
+
+<!-- ══ Screen 3: 牧场告警 Tab（围栏聚合状态卡） ══ -->
+<div class="screen-group">
+  <div class="screen-label"><span class="num info">3</span>牧场告警 Tab · 围栏聚合状态卡</div>
+  <div class="screen-sublabel">事件流水之上先回答「现在什么状态」：按牲畜×围栏聚合（去重），展开看明细；点告警行带类目预筛选跳告警中心</div>
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="phone-status"><span>9:41</span><span class="icons">📶 🔋</span></div>
+    <div style="flex:1;background:linear-gradient(135deg,#E8E5DE 0%,#DDD9D0 100%);position:relative">
+      <div style="position:absolute;inset:0;opacity:.3;background-image:linear-gradient(rgba(100,100,100,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(100,100,100,.1) 1px,transparent 1px);background-size:30px 30px"></div>
+      <div style="position:absolute;top:44px;left:10px;right:10px;bottom:0;background:var(--surface-alt);border-radius:16px 16px 0 0;box-shadow:var(--shadow-sheet);display:flex;flex-direction:column;max-height:88%">
+        <div style="width:32px;height:3px;background:var(--border);border-radius:2px;margin:8px auto 0"></div>
+        <div class="sheet-tabs">
+          <div class="sheet-tab">📊 概览</div>
+          <div class="sheet-tab">🚧 围栏</div>
+          <div class="sheet-tab active">🔔 告警 <span class="tab-badge">3</span></div>
+        </div>
+        <div class="scroll-area">
+          <!-- 围栏聚合状态卡（展开态） -->
+          <div class="agg-card">
+            <div class="agg-head">
+              <div class="agg-ico">🚧</div>
+              <div class="agg-main">
+                <div class="agg-title">围栏状态</div>
+                <div class="agg-sub">当前 <b>3 头</b>在栏外 · <b class="near">1 头</b>接近（按牲畜去重）</div>
+              </div>
+              <div class="chev">▾</div>
+            </div>
+            <div class="agg-body">
+              <div class="agg-row"><span class="st out"></span><span class="code">ST-8aba</span><span class="where">西区围栏 · 在栏外</span><span class="when">09:39</span><span class="arrow">›</span></div>
+              <div class="agg-row"><span class="st out"></span><span class="code">ST-31c4</span><span class="where">西区围栏 · 在栏外</span><span class="when">09:12</span><span class="arrow">›</span></div>
+              <div class="agg-row"><span class="st out"></span><span class="code">ST-77e1</span><span class="where">东区围栏 · 在栏外</span><span class="when">08:47</span><span class="arrow">›</span></div>
+              <div class="agg-row"><span class="st near"></span><span class="code">ST-52b9</span><span class="where">北区围栏 · 接近缓冲带</span><span class="when">08:20</span><span class="arrow">›</span></div>
+              <div class="agg-foot"><span class="txt">查看全部 13 条围栏告警</span><span class="arr">→</span></div>
+            </div>
+          </div>
+          <!-- 事件流水（聚合卡之下） -->
+          <div class="date-group"><span>今天</span><div class="line"></div><span class="cnt">14 条</span></div>
+          <div class="alert-list" style="padding-top:0">
+            <div class="alert-card"><div class="alert-inner"><div class="alert-bar warning"></div><div class="alert-body"><div class="alert-top"><div class="alert-icon warning">🌡️</div><div class="alert-content"><div class="alert-title-row"><span class="alert-title">牲畜 [ST-22f0] 体温异常：当前 39.64°C</span></div><div class="alert-meta"><span>⏱️ 21分钟前</span></div><div class="alert-badges"><span class="type-badge warning">体温异常</span><span class="status-tag active">活跃</span></div></div></div></div></div></div>
+            <div class="alert-card unread"><div class="alert-inner"><div class="alert-bar critical"></div><div class="alert-body"><div class="alert-top"><div class="alert-icon critical">🚧</div><div class="alert-content"><div class="alert-title-row"><span class="alert-title">牲畜 #ST-8aba 越出西区围栏边界</span><span class="unread-dot"></span></div><div class="alert-meta"><span>⏱️ 2分钟前</span></div><div class="alert-badges"><span class="type-badge critical">围栏越界</span><span class="status-tag active">活跃</span></div></div></div></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-nav"><div class="nav-item active"><span class="nav-icon">🗺️</span>牧场</div><div class="nav-item"><span class="nav-icon">👤</span>我的 <span class="nav-badge">3</span></div></div>
+  </div>
+</div>
+
+<!-- ══ Screen 4: 告警中心空状态 ══ -->
+<div class="screen-group">
+  <div class="screen-label"><span class="num info">4</span>告警中心 · 活跃空状态</div>
+  <div class="screen-sublabel">全部处理完时的正反馈；历史进「已处理」仍可查；汇总区保持对账结构（全 0）</div>
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="phone-status"><span>9:41</span><span class="icons">📶 🔋</span></div>
+    <div class="appbar"><span class="back">‹</span><h1>告警中心</h1><button class="action">✓ 全部已读</button></div>
+    <div class="sum-hero">
+      <div class="hero-cell active"><div class="hero-num">0</div><div class="hero-label">活跃告警 · 待处理事项</div></div>
+      <div class="hero-cell unread" style="opacity:.55"><div class="hero-num">0</div><div class="hero-label">未读 · 尚未查看</div></div>
+    </div>
+    <div class="sum-cells">
+      <div class="sum-cell crit"><span class="dot" style="background:var(--danger)"></span><span class="n">0</span><span class="t">严重</span></div>
+      <div class="sum-cell warn"><span class="dot" style="background:var(--warning)"></span><span class="n">0</span><span class="t">警告</span></div>
+      <div class="sum-cell info-c"><span class="dot" style="background:var(--info)"></span><span class="n">0</span><span class="t">提示</span></div>
+    </div>
+    <div class="sum-check">0 + 0 + 0 ＝ 0 活跃 ✓</div>
+    <div class="filter-bar">
+      <div class="seg-tabs"><button class="seg-tab active">活跃</button><button class="seg-tab">已处理 <span class="badge">123</span></button><button class="seg-tab">全部</button></div>
+    </div>
+    <div class="empty-wrap">
+      <div class="empty-ico">✅</div>
+      <div class="empty-title">没有活跃告警</div>
+      <div class="empty-desc">所有告警都已处理或自动消解。<br>牲畜和设备状态正常，我们会持续监控。</div>
+      <button class="empty-link">查看 123 条已处理记录</button>
+      <div class="refresh-hint" style="border:none"><span class="spin"></span>每 30 秒自动更新</div>
+    </div>
+    <div class="bottom-nav"><div class="nav-item active"><span class="nav-icon">🗺️</span>牧场</div><div class="nav-item"><span class="nav-icon">👤</span>我的</div></div>
+  </div>
+</div>
+
+</div>
+
+<!-- ═══════════ 设计说明 ═══════════ -->
+<div class="notes-panel">
+  <h2>设计说明 · 口径定义（本表将进入 spec 锁定）</h2>
+  <table>
+    <tr><th style="width:130px">数字</th><th>计算口径</th><th>数据源</th></tr>
+    <tr><td>活跃（大数）</td><td>status=ACTIVE 的告警总数（不分已读未读）</td><td><b>新端点</b> GET /alerts/summary 全量计数，10s 缓存</td></tr>
+    <tr><td>未读（大数）</td><td>活跃 且 当前用户无已读记录</td><td>同上（unread）</td></tr>
+    <tr><td>严重 / 警告 / 提示</td><td>活跃 且 severity=CRITICAL / WARNING / INFO；三者加总 ≡ 活跃</td><td>同上（active.critical/warning/info）</td></tr>
+    <tr><td>牧场卡片数字</td><td>按类型组的活跃告警数（fence/health/device）</td><td>同上（active.byGroup.*）</td></tr>
+    <tr><td>牧场角标 / 卡片红点</td><td>按类型组的<b>未读</b>活跃数（红点为 0 时隐藏）</td><td>同上（active.byGroupUnread.*）</td></tr>
+    <tr><td>聚合卡「N 头在栏外」</td><td>活跃 FENCE_BREACH 按 牲畜×围栏 去重计数；「接近」=FENCE_APPROACH 同法</td><td>overview.alerts 客户端聚合（无新接口）</td></tr>
+    <tr><td>已处理</td><td>status ∈ {DISMISSED, AUTO_RESOLVED}</td><td>/alerts?status=RESOLVED（真分页）</td></tr>
+  </table>
+  <h3>Before → After</h3>
+  <div class="before-after">
+    <div class="ba before"><b>Before（现状痛点）</b><br>· 「待处理」与「活跃」同屏同义两词<br>· 严重+警告 ≠ 活跃（INFO 无处放，83≠84）<br>· 列表假分页，总数截断 200，汇总随之失真<br>· 角标 84 恒挂，处理完也不变<br>· 14 条活跃混在 186 条历史工单里<br>· 告警中心不自动刷新，两页口径不同源</div>
+    <div class="ba after"><b>After（本方案）</b><br>· 一词一义：活跃=待处理事项，三格加总可验证<br>· INFO 进「提示」格，账永远对得上<br>· 真分页 + summary 全量计数端点（10s 缓存）<br>· 角标=未读活跃，处理完归零，有新告警才涨<br>· 默认「活跃」tab，历史进「已处理」<br>· 30 秒自动刷新（批量操作时暂停）</div>
+  </div>
+  <h3>交互规则</h3>
+  <ul>
+    <li>汇总三格＝级别筛选开关（点选/再点取消），与旧版一致；大数「活跃」点击=清空级别筛选。</li>
+    <li>自动刷新：30s 静默刷新，进后台暂停、回前台立即刷新（复用 AutoRefreshListener）；批量选择模式与弹层打开时暂停；刷新后保持滚动位置。</li>
+    <li>聚合卡：默认展开（有围栏告警时）；「查看全部」带 category=fence 预筛选跳告警中心；行点击定位到该牲畜事件。</li>
+    <li>分页：每页 50 条上拉加载；列表页脚常显「已显示 X/Y」。</li>
+    <li>全部已读：仅对活跃告警生效，成功后未读大数与全部红点归零。</li>
+  </ul>
+</div>
+</body>
+</html>

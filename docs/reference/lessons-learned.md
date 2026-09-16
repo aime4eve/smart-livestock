@@ -399,6 +399,26 @@
 
 ---
 
+## 24. iOS 签名构建反噬 HOME 覆盖：keychain 按 HOME 定位，#4 的沙箱 workaround 会杀死 codesign
+
+- **日期**: 2026-09-15
+- **现象**: `flutter build ipa`（build_ios.sh）在 Agent 会话里稳定失败：flutter 预检直接报 "No valid code signing certificates were found / No development certificates available"。而同一台机器上用户终端 1 小时前刚成功出过包；`security find-identity -v -p codesigning` 在 Agent shell 里也能看到 1 个有效身份（Apple Development，有效期到 2027-09 的付费证书，团队 J62PU4Y357）。
+- **误判**: ① 以为免费开发证书过期/被吊销（KB 有"免费证书不自动续期"前科）——但 `openssl x509 -dates` 显示证书 1 年有效且是付费团队；② 以为证书 CN 括号里的字符串（SSQKW29ZR3）是团队 ID、OU 才是——**反了**：OU 才是 Team ID（J62PU4Y357），CN 括号是证书个体 ID，据此还错误地把 ExportOptions.plist 的 teamID 改成了 SSQKW29ZR3 重跑（仍失败，浪费一轮 8 分钟构建）；③ 怀疑 Bash 沙箱挡了 keychain 私钥访问——`codesign -s <hash>` 探针签名成功，排除。
+- **根因**: **macOS `security` 工具按 `$HOME` 推导默认钥匙串搜索路径（`$HOME/Library/Keychains`）**。经验 #4 的沙箱 workaround `HOME=/private/tmp` 让所有 flutter 命令都在"假 HOME"下跑，flutter 的 codesign 预检走 `security find-identity` 时看到 0 个身份（`HOME=/private/tmp security find-identity` 可复现 0 valid），于是归档前直接拒绝。gen-l10n/analyze/test/build apk/build web 都不碰钥匙串，所以 #4 在这些命令上一直"看起来普适"。
+- **历史教训**: #4（沙箱 Flutter 崩 → HOME=/private/tmp）只覆盖了"flutter 工具链崩"的症状，没覆盖"工具链反过来依赖真实 HOME 的子命令"；与 #1 同属环境层——修复动作本身成为新的故障源。
+- **解决**:
+  1. iOS 签名构建用**真实 HOME + 只关分析**：`FLUTTER_SUPPRESS_ANALYTICS=true ./build_ios.sh test`（不设 HOME）。本次 EXIT=0，29M IPA 正常出包（v0.3.2-b600，含扫码功能，NSCameraUsageDescription 已验内嵌）。
+  2. 签名三步定位法：`security find-identity -v -p codesigning`（身份在不在）→ `security find-certificate -p | openssl x509 -noout -subject -dates`（团队 OU 与有效期）→ `codesign -s <hash> /tmp/探针文件`（私钥可用性）。
+  3. 产物级验证用**不被混淆的常量字符串**（如 `Key('tb-wizard-scan')`）：APK 查 `libapp.so`、IPA 查 `App.framework/App`、Web 查 `main.dart.js` 的 `strings`/grep，比看构建日志可靠。
+  4. Web 端"字符串不在产物里"≠构建陈旧：`kIsWeb` 是 dart2js 编译期常量，`kIsWeb ? null : 扫码按钮` 的 false 分支连同扫码页与其 l10n getter 会被整体 tree-shake（旧键存活 + 新键消失 = 降级按设计生效）。清 `.dart_tool/flutter_build` 重编仍缺新串时，先怀疑死代码消除，别急着定性缓存 bug。
+- **判据**:
+  - flutter 命令分两类用 HOME：**不碰签名**（gen-l10n/analyze/test/build apk/web）→ `HOME=/private/tmp`；**碰 iOS 签名**（build ipa / build_ios*.sh / devicectl 装机）→ 真实 HOME + `FLUTTER_SUPPRESS_ANALYTICS=true`。
+  - 证书身份解读：`Apple Development: <email> (CN括号≠团队)`，**OU 才是 Team ID**；`security find-identity` 结果随 `$HOME` 变化，排查签名先核对当下 HOME。
+  - 磁盘满（本例 Data 卷 100%/888Mi，ZCode 连命令日志都写不下、Bash 全挂）先清可再生大头：`~/Library/Developer/Xcode/iOS DeviceSupport`（本例 17.7G，连真机会自动重拉，可保留现役测试机的那份）；`xcrun simctl delete unavailable` 顺手清失效模拟器。
+  - Web 降级验证：`strings main.dart.js` 找**新功能的 Key 常量**（如 `tb-wizard-scan`）应缺席，旧功能 Key 应存活；APK/IPA 同名 Key 应在场。
+
+---
+
 ## 关键词索引（遇症状按关键词快速定位）
 
 | 编号 | 关键词 |

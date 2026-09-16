@@ -612,7 +612,7 @@
         <ul>
           <li data-i18n="sol.step1.i1">GPS 追踪器（项圈式）</li>
           <li data-i18n="sol.step1.i2">瘤胃胶囊（吞服式）</li>
-          <li data-i18n="sol.step1.i3">智能耳标</li>
+          <li data-i18n="sol.step1.i3">智能耳标（测温 + 计步）</li>
           <li data-i18n="sol.step1.i4">LoRaWAN 网关</li>
         </ul>
       </div>
@@ -649,7 +649,7 @@
       <div class="cap-card reveal reveal-delay-1">
         <div class="cap-card-icon">&#128506;</div>
         <h3 data-i18n="cap1.title">实时定位追踪</h3>
-        <p data-i18n="cap1.desc">GPS + LoRaWAN 双模定位，全球覆盖。支持历史轨迹回放与热力图分析，牲畜位置一目了然。</p>
+        <p data-i18n="cap1.desc">GPS + LoRaWAN 双模定位，全球覆盖。历史轨迹回放与热力图分析，位置一目了然；底图按地区自动适配（中国高德 / 海外 OSM）。</p>
       </div>
       <div class="cap-card reveal reveal-delay-2">
         <div class="cap-card-icon">&#128737;</div>
@@ -659,7 +659,7 @@
       <div class="cap-card reveal reveal-delay-3">
         <div class="cap-card-icon">&#10084;</div>
         <h3 data-i18n="cap3.title">AI 健康监测</h3>
-        <p data-i18n="cap3.desc">发热、消化、发情、疫病四大分析引擎，覆盖牲畜全生命周期。瘤胃温度基线偏离 72h 趋势预警。</p>
+        <p data-i18n="cap3.desc">发热、消化、发情、疫病四大分析引擎，覆盖牲畜全生命周期。健康页每 30 秒自动刷新，数据更新时间一目了然；瘤胃温度基线偏离 72h 趋势预警。</p>
       </div>
       <div class="cap-card reveal reveal-delay-1">
         <div class="cap-card-icon">&#128202;</div>
@@ -669,7 +669,7 @@
       <div class="cap-card reveal reveal-delay-2">
         <div class="cap-card-icon">&#128295;</div>
         <h3 data-i18n="cap5.title">设备全生命周期管理</h3>
-        <p data-i18n="cap5.desc">追踪器、瘤胃胶囊、耳标统一管理。电量、信号、在线状态实时监控，异常主动告警。支持批量入网与安装记录追溯。</p>
+        <p data-i18n="cap5.desc">追踪器、瘤胃胶囊、耳标统一管理。电量、信号、在线状态实时监控，异常主动告警。批量入网与安装追溯；千台级设备搜索绑定，牲畜详情页一键解绑。</p>
       </div>
       <div class="cap-card reveal reveal-delay-3">
         <div class="cap-card-icon">&#128190;</div>
@@ -700,8 +700,8 @@
       <div class="arch-layer arch-layer-api">
         <span class="arch-layer-label" data-i18n="arch.layer.api">API 层</span>
         <div class="arch-layer-items">
-          <span data-i18n="arch.api.controller">REST Controller × 51</span>
-          <span data-i18n="arch.api.endpoint">API 端点 × 187</span>
+          <span data-i18n="arch.api.controller">REST Controller × 63</span>
+          <span data-i18n="arch.api.endpoint">API 端点 × 286</span>
           <span data-i18n="arch.api.tenant">多租户拦截</span>
           <span data-i18n="arch.api.quota">配额门控</span>
           <span data-i18n="arch.api.rate">限流</span>
@@ -1047,7 +1047,7 @@
         'sol.step1': 'IoT 感知层',
         'sol.step1.i1': 'GPS 追踪器（项圈式）',
         'sol.step1.i2': '瘤胃胶囊（吞服式）',
-        'sol.step1.i3': '智能耳标',
+        'sol.step1.i3': '智能耳标（测温 + 计步）',
         'sol.step1.i4': 'LoRaWAN 网关',
         'sol.step2': 'AI 分析引擎',
         'sol.step2.i1': '发热早期检测',
@@ -1064,15 +1064,15 @@
         'cap.title': '六大核心能力',
         'cap.subtitle': '覆盖牲畜管理全场景，从定位到健康一站式解决',
         'cap1.title': '实时定位追踪',
-        'cap1.desc': 'GPS + LoRaWAN 双模定位，全球覆盖。支持历史轨迹回放与热力图分析，牲畜位置一目了然。',
+        'cap1.desc': 'GPS + LoRaWAN 双模定位，全球覆盖。历史轨迹回放与热力图分析，位置一目了然；底图按地区自动适配（中国高德 / 海外 OSM）。',
         'cap2.title': '电子围栏告警',
         'cap2.desc': '手绘多边形或模板快速创建虚拟围栏，越界实时推送告警。支持分时段策略与围栏区域细分管理。',
         'cap3.title': 'AI 健康监测',
-        'cap3.desc': '发热、消化、发情、疫病四大分析引擎，覆盖牲畜全生命周期。瘤胃温度基线偏离 72h 趋势预警。',
+        'cap3.desc': '发热、消化、发情、疫病四大分析引擎，覆盖牲畜全生命周期。健康页每 30 秒自动刷新，数据更新时间一目了然；瘤胃温度基线偏离 72h 趋势预警。',
         'cap4.title': '无监督异常检测',
         'cap4.desc': 'STL 节律剥离 + CUSUM 突变检测，体温、蠕动、活动三维联合分析。规则引擎与 AI 双轨并行，误报率大幅降低。',
         'cap5.title': '设备全生命周期管理',
-        'cap5.desc': '追踪器、瘤胃胶囊、耳标统一管理。电量、信号、在线状态实时监控，异常主动告警。支持批量入网与安装记录追溯。',
+        'cap5.desc': '追踪器、瘤胃胶囊、耳标统一管理。电量、信号、在线状态实时监控，异常主动告警。批量入网与安装追溯；千台级设备搜索绑定，牲畜详情页一键解绑。',
         'cap6.title': '离线全功能作业',
         'cap6.desc': '无网络环境下完整运行：离线地图瓦片、离线围栏数据、离线牲畜缓存。网络恢复后自动同步，牧场深处也不中断。',
         /* Architecture */
@@ -1218,8 +1218,8 @@
         /* Footer */
         'footer': '© 2026 SmartLivestock. 智慧畜牧，数据驱动的精准养殖。',
         /* API layer items (architecture diagram) */
-        'arch.api.controller': 'REST Controller × 51',
-        'arch.api.endpoint': 'API 端点 × 187',
+        'arch.api.controller': 'REST Controller × 63',
+        'arch.api.endpoint': 'API 端点 × 286',
         'arch.api.tenant': '多租户拦截',
         'arch.api.quota': '配额门控',
         'arch.api.rate': '限流',
@@ -1254,7 +1254,7 @@
         'sol.step1': 'IoT Sensing Layer',
         'sol.step1.i1': 'GPS Tracker (Collar)',
         'sol.step1.i2': 'Rumen Capsule (Ingestible)',
-        'sol.step1.i3': 'Smart Ear Tag',
+        'sol.step1.i3': 'Smart ear tag (temp + steps)',
         'sol.step1.i4': 'LoRaWAN Gateway',
         'sol.step2': 'AI Analytics Engine',
         'sol.step2.i1': 'Early Fever Detection',
@@ -1270,15 +1270,15 @@
         'cap.title': 'Six Core Capabilities',
         'cap.subtitle': 'Covering the full spectrum of livestock management, from tracking to health — all in one platform',
         'cap1.title': 'Real-Time GPS Tracking',
-        'cap1.desc': 'GPS + LoRaWAN dual-mode positioning with global coverage. Historical trajectory playback and heatmap analysis provide complete visibility.',
+        'cap1.desc': 'GPS + LoRaWAN dual-mode positioning with global coverage. Historical trajectory playback and heatmap analysis; map baselines adapt automatically by region (AMap in China, OSM elsewhere).',
         'cap2.title': 'Virtual Fence Alerts',
         'cap2.desc': 'Create virtual fences via freehand polygons or templates. Real-time breach alerts with time-based policies and zone segmentation.',
         'cap3.title': 'AI Health Monitoring',
-        'cap3.desc': 'Four analysis engines — fever, digestion, estrus, and epidemic — covering the full livestock lifecycle. 72h rumen temperature baseline deviation alerts.',
+        'cap3.desc': 'Four analysis engines — fever, digestion, estrus, and epidemic — covering the full livestock lifecycle. Health pages auto-refresh every 30 seconds with visible data freshness. 72h rumen temperature baseline deviation alerts.',
         'cap4.title': 'Unsupervised Anomaly Detection',
         'cap4.desc': 'STL seasonal decomposition + CUSUM change detection with 3D joint analysis of temperature, motility, and activity. Rule engine and AI run in parallel for low false positives.',
         'cap5.title': 'Device Lifecycle Management',
-        'cap5.desc': 'Unified management of trackers, rumen capsules, and ear tags. Real-time battery, signal, and online status monitoring with proactive alerts and batch onboarding.',
+        'cap5.desc': 'Unified management of trackers, rumen capsules, and ear tags. Real-time battery, signal, and online status monitoring with proactive alerts. Batch onboarding with installation traceability, keyword-search binding for farms with 1,000+ devices, and one-tap unbinding from the livestock page.',
         'cap6.title': 'Full Offline Operation',
         'cap6.desc': 'Complete functionality without network: offline map tiles, offline fence data, offline livestock cache. Automatic sync when connectivity returns — no interruptions in remote pastures.',
         'arch.title': 'Enterprise-Grade Architecture',
@@ -1311,8 +1311,8 @@
         'arch.arrow.auth': '▼ JWT Dual Token + API Key Authentication ▼',
         'arch.arrow.mq': '▼ RocketMQ Event Bus ▼',
         'arch.arrow.infra': '▼ Infrastructure + AI Platform ▼',
-        'arch.api.controller': 'REST Controller × 51',
-        'arch.api.endpoint': 'API Endpoints × 187',
+        'arch.api.controller': 'REST Controller × 63',
+        'arch.api.endpoint': 'API Endpoints × 286',
         'arch.api.tenant': 'Multi-Tenant',
         'arch.api.quota': 'Quota Gate',
         'arch.api.rate': 'Rate Limit',

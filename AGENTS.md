@@ -117,7 +117,7 @@ Agent 自身出问题时（元故障）：
 
 **环境 / 工具**
 - `._` 污染：UTF-8 解码失败 / git `non-monotonic index` / 工具读到不该读的文件 → 先 `find . -name '._*' | head` — #1 #2
-- 沙箱 Flutter 崩：一律 `HOME=/private/tmp FLUTTER_SUPPRESS_ANALYTICS=true` — #4
+- 沙箱 Flutter 崩：一律 `HOME=/private/tmp FLUTTER_SUPPRESS_ANALYTICS=true`；**例外**：iOS 签名构建（build ipa / build_ios*.sh）必须用真实 HOME——keychain 按 HOME 定位，假 HOME 会报"无开发证书" — #4 #24
 
 **部署 / 前端**
 - 前端入口/功能"缺失"，代码里有 key → 先 grep 容器内 `main.dart.js`，不一致则是 nginx 镜像未重建 — #6

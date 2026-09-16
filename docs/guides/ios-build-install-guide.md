@@ -35,11 +35,20 @@ cd Mobile/mobile_app
 
 免费签名的证书只对**已注册进证书的设备**生效，新手机必须先做一次注册：
 
-1. 手机用数据线连到这台 Mac，手机上点"信任此电脑"
-2. 跑一次 `./build_ios_install.sh test`——编译过程会自动把这台手机注册进证书并完成安装
+1. 手机用数据线连到这台 Mac，手机上点"信任此电脑"（若没弹窗：设置 → 通用 → 传输或还原 iPhone → 还原位置与隐私，再插线重试）
+2. 跑一次 `./build_ios_install.sh test`——编译过程会自动把这台手机注册进证书并完成安装（若弹出 Apple ID 登录，用 sales@hktlora.com 登录）
 3. 记下它的 UDID（`./build_ios_install.sh --list`），以后可以指定设备安装
 
-多人团队时每台新手机都要重复上述一次（都用同一台 Mac）。注册过的手机重装可以走 Wi-Fi（见 §4）。每次重新编译会自动把**所有已注册设备**打包进新证书。
+注意：`--list` 里设备状态为 **available (paired)** 或 **connected** 才能装机；显示 `unavailable` 表示当前未连接或未信任，插线 + 解锁 + 信任后重试。注册新设备重建证书后，其他手机上已装的 App 不受影响（各读各的内嵌证书），但建议顺手都重装一次最新包。多人团队时每台新手机都要重复上述一次（都用同一台 Mac）。注册过的手机重装可以走 Wi-Fi（见 §4）。
+
+**⚠️ 新手机注册不生效时的修复（重要）**：如果编译装机时报 `This provisioning profile cannot be installed on this device`（0xe8008012），说明构建复用了本地缓存的旧证书、没有把新手机注册进去。修法——删掉本地证书缓存强制重新生成（重新生成时会自动注册当前连接的所有设备）：
+
+```bash
+rm ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/*.mobileprovision
+cd Mobile/mobile_app && ./build_ios_install.sh test <UDID>
+```
+
+另外两个前置条件别漏：手机要开**开发者模式**（设置 → 隐私与安全性 → 开发者模式，装开发 App 必须，开关需手机连接过 Mac 后才会出现）；**挂载开发者磁盘镜像时必须断开 VPN**（VPN 假 IP 会劫持苹果签名服务导致 401，报 `DDI could not be mounted / HTTPUnauthorized`）。
 
 ## 4. Wi-Fi 无线装机（不插线重装）
 
@@ -62,10 +71,19 @@ cd Mobile/mobile_app
 
 ```bash
 cd Mobile/mobile_app
-./build_ios_install.sh test     # 重新编译即生成新证书，装上即续 7 天
+./build_ios_install.sh test     # 重新编译装机；若旧证书已过期会生成新证书，再续 7 天
 ```
 
-建议团队约定每周固定时间（如周一早上）集体刷新一次。所有人装完同一版本后版本一致，便于联调。
+**当前批次过期时间：北京时间 2026-09-22（周二）12:21。**（9/15 12:21 因新增设备重新生成证书，7 天从那时起算；证书内含 4 台设备的 UDID，覆盖 XR 与全部已注册的 iPhone 12。）到期前重装一次即可；过期后才装也行（会自动生成新证书，顺延 7 天），只是过期到重装之间 App 打不开。建议团队约定每周固定时间（如周一早上）集体刷新一次，所有人装完同一版本便于联调。
+
+查询当前 IPA 里证书的真实过期时间（以查出来的为准，不要按构建日期估算）：
+
+```bash
+cd Mobile/mobile_app
+unzip -p build/ios/ipa/hkt-smartlivestock-*.ipa Payload/Runner.app/embedded.mobileprovision | security cms -D | grep -A1 ExpirationDate
+```
+
+⚠️ 机制说明：**重新构建不会自动顺延有效期**——只要旧证书还没过期，构建会直接复用它（例如 9/14 11:19 创建的证书，9/15 反复构建后仍是 9/21 过期）。想让有效期"续"到最满，可以在旧证书到期后立刻跑一次构建装机，此后每周同一时间刷新。
 
 ## 6. 常见问题排查
 
@@ -74,6 +92,7 @@ cd Mobile/mobile_app
 | `Launch failed ... device was not, or could not be, unlocked` | 手机锁屏了。解锁手机点图标，或 `./build_ios_install.sh test --launch-only` |
 | `CoreDeviceError 1005 / 260 ... file doesn't exist` | devicectl 用了相对路径。**必须在 `Mobile/mobile_app` 目录下跑脚本**，或给 IPA 绝对路径（脚本内部已处理） |
 | `ERROR: device ... is not connected` | 手机没连/没信任电脑。插线解锁重试；`--list` 确认设备在列表里 |
+| `--list` 里设备状态为 `unavailable` | 当前不可达：没插线/锁屏未信任/Wi-Fi 未配对。插线解锁并点"信任此电脑"后重试；新手机首次注册必须插线（§3） |
 | 点图标闪退（之前能用） | 证书过期，重新编译装机（§5） |
 | `maximum number of apps` / 装不上提示 3 个应用上限 | 免费账号每台手机最多同时装 3 个开发签名 App，删一个不用的再装 |
 | 地图灰瓦片 | 检查手机端 App"我的→时区"设置：中国时区走高德，其他时区走 OpenStreetMap（OSM 国内网络打不开） |
