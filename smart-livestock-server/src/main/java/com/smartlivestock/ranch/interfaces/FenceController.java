@@ -1,9 +1,11 @@
 package com.smartlivestock.ranch.interfaces;
 
 import com.smartlivestock.ranch.application.FenceApplicationService;
+import com.smartlivestock.ranch.application.FenceTrackParseService;
 import com.smartlivestock.ranch.application.command.CreateFenceCommand;
 import com.smartlivestock.ranch.application.command.UpdateFenceCommand;
 import com.smartlivestock.ranch.application.dto.FenceDto;
+import com.smartlivestock.ranch.application.dto.FenceTrackParseResultDto;
 import com.smartlivestock.ranch.domain.model.GpsCoordinate;
 import com.smartlivestock.platform.web.QuotaCheck;
 import com.smartlivestock.shared.common.ApiException;
@@ -13,9 +15,11 @@ import com.smartlivestock.ranch.domain.port.IdentityQueryPort;
 import com.smartlivestock.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -27,6 +31,7 @@ import java.util.Map;
 public class FenceController {
 
     private final FenceApplicationService fenceApplicationService;
+    private final FenceTrackParseService fenceTrackParseService;
     private final IdentityQueryPort identityQueryPort;
 
     private void verifyFarmOwnership(Long farmId) {
@@ -70,6 +75,20 @@ public class FenceController {
         );
         FenceDto fence = fenceApplicationService.createFence(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(fence));
+    }
+
+    /**
+     * Stateless GPX track parse-preview for the fence "import GPX" flow
+     * (NIX-213). Returns statistics + the cleaned point list; nothing is
+     * persisted — the fence itself is still created via POST /fences.
+     */
+    @PostMapping(value = "/track-parse", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
+    public ResponseEntity<ApiResponse<FenceTrackParseResultDto>> parseTrack(
+            @PathVariable Long farmId,
+            @RequestParam("file") MultipartFile file) {
+        verifyFarmOwnership(farmId);
+        return ResponseEntity.ok(ApiResponse.ok(fenceTrackParseService.parse(file)));
     }
 
     @GetMapping("/{fenceId}")

@@ -12,6 +12,7 @@ import com.smartlivestock.ranch.domain.service.BufferPolygonCalculator;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.geom.TopologyException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,7 @@ public class FenceApplicationService {
 
     @Transactional
     public FenceDto createFence(CreateFenceCommand command) {
+        validateVertices(command.vertices());
         Fence fence = new Fence(command.farmId(), command.name(), command.vertices(), command.color());
         if (command.fenceType() != null) {
             fence.setFenceType(command.fenceType());
@@ -55,6 +57,7 @@ public class FenceApplicationService {
 
     @Transactional
     public FenceDto updateFence(Long id, UpdateFenceCommand command) {
+        validateVertices(command.vertices());
         Fence fence = fenceRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "围栏不存在: " + id));
 
@@ -79,6 +82,7 @@ public class FenceApplicationService {
     @Transactional
     public FenceDto forceUpdateFence(Long id, List<GpsCoordinate> vertices,
                                       String name, String color, int version) {
+        validateVertices(vertices);
         Fence fence = fenceRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "围栏不存在: " + id));
         fence.setName(name);
@@ -127,8 +131,23 @@ public class FenceApplicationService {
     private void computeBufferPolygon(Fence fence) {
         if (fence.getVertices() == null || fence.getVertices().size() < 3) return;
         BigDecimal refLat = fence.getVertices().get(0).latitude();
-        List<GpsCoordinate> buffer = bufferPolygonCalculator.computeBuffer(
-                fence.getVertices(), fence.getBufferDistance(), refLat);
-        fence.setBufferPolygon(buffer);
+        try {
+            List<GpsCoordinate> buffer = bufferPolygonCalculator.computeBuffer(
+                    fence.getVertices(), fence.getBufferDistance(), refLat);
+            fence.setBufferPolygon(buffer);
+        } catch (TopologyException e) {
+            // A raw GPS-derived ring can be self-intersecting; surface it as a
+            // 400 validation error instead of letting JTS blow up as a 500
+            // (NIX-213 defensive guard; the client envelope never produces
+            // self-intersections, but manual coordinate entry can).
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.fenceInvalidGeometry");
+        }
+    }
+
+    /** NIX-213 defensive guard: a fence below 3 vertices can never contain a point. */
+    private static void validateVertices(List<GpsCoordinate> vertices) {
+        if (vertices == null || vertices.size() < 3) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.fenceTooFewVertices");
+        }
     }
 }

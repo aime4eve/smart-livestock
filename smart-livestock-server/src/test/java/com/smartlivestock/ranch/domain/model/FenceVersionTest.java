@@ -21,12 +21,18 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class FenceVersionTest {
 
+    /** Valid triangle: NIX-213 vertex validation rejects <3-vertex fences before version logic. */
+    private static final List<com.smartlivestock.ranch.domain.model.GpsCoordinate> TRIANGLE = List.of(
+            new com.smartlivestock.ranch.domain.model.GpsCoordinate("28.20", "112.90"),
+            new com.smartlivestock.ranch.domain.model.GpsCoordinate("28.21", "112.91"),
+            new com.smartlivestock.ranch.domain.model.GpsCoordinate("28.19", "112.92"));
+
     @Mock
     private FenceRepository fenceRepository;
 
     @Test
     void updateFence_keepsVersion_whenExpectedMatches() {
-        Fence fence = new Fence(1L, "test", List.of(), "#FF0000");
+        Fence fence = new Fence(1L, "test", TRIANGLE, "#FF0000");
         fence.setVersion(2);
         when(fenceRepository.findById(1L)).thenReturn(Optional.of(fence));
         when(fenceRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -35,13 +41,13 @@ class FenceVersionTest {
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.AlertRepository.class),
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.FenceZoneRepository.class),
                 new BufferPolygonCalculator());
-        FenceDto result = svc.updateFence(1L, new UpdateFenceCommand("up", List.of(), "#00F", 2));
+        FenceDto result = svc.updateFence(1L, new UpdateFenceCommand("up", TRIANGLE, "#00F", 2));
         assertEquals(2, result.version());
     }
 
     @Test
     void updateFence_rejectsStaleVersion() {
-        Fence fence = new Fence(1L, "test", List.of(), "#FF0000");
+        Fence fence = new Fence(1L, "test", TRIANGLE, "#FF0000");
         fence.setVersion(5);
         when(fenceRepository.findById(1L)).thenReturn(Optional.of(fence));
 
@@ -50,12 +56,12 @@ class FenceVersionTest {
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.FenceZoneRepository.class),
                 new BufferPolygonCalculator());
         assertThrows(ApiException.class,
-            () -> svc.updateFence(1L, new UpdateFenceCommand("up", List.of(), "#00F", 3)));
+            () -> svc.updateFence(1L, new UpdateFenceCommand("up", TRIANGLE, "#00F", 3)));
     }
 
     @Test
     void updateFence_skipsCheck_whenExpectedVersionNull() {
-        Fence fence = new Fence(1L, "test", List.of(), "#FF0000");
+        Fence fence = new Fence(1L, "test", TRIANGLE, "#FF0000");
         fence.setVersion(5);
         when(fenceRepository.findById(1L)).thenReturn(Optional.of(fence));
         when(fenceRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -64,7 +70,7 @@ class FenceVersionTest {
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.AlertRepository.class),
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.FenceZoneRepository.class),
                 new BufferPolygonCalculator());
-        FenceDto result = svc.updateFence(1L, new UpdateFenceCommand("up", List.of(), "#00F", null));
+        FenceDto result = svc.updateFence(1L, new UpdateFenceCommand("up", TRIANGLE, "#00F", null));
         assertEquals(5, result.version());
     }
 }
