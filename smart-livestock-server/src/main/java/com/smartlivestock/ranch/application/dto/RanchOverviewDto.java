@@ -22,7 +22,9 @@ public final class RanchOverviewDto {
             int alertCount,
             int criticalCount,
             double deviceOnlineRate,
-            Double inFenceRate
+            Double inFenceRate,
+            int noGpsCount,
+            int outsideFenceCount
     ) {}
 
     public record SceneSummaryFever(int abnormalCount, int criticalCount) {}
@@ -98,6 +100,8 @@ public final class RanchOverviewDto {
             String message,
             Long livestockId,
             Long fenceId,
+            Long deviceId,
+            String deviceCode,
             Instant occurredAt,
             boolean read,
             String resolvedType,

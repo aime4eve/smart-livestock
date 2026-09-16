@@ -14,11 +14,12 @@ import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.domain.repository.FenceRepository;
 import com.smartlivestock.ranch.domain.repository.FenceZoneRepository;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
+import com.smartlivestock.ranch.domain.service.FenceLivestockCounter;
 import com.smartlivestock.ranch.infrastructure.persistence.SpringDataAlertReadStatusRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -46,8 +47,17 @@ class RanchOverviewApplicationServiceTest {
     @Mock private FenceZoneRepository fenceZoneRepository;
     @Mock private AlertMessageLocalizer alertMessageLocalizer;
 
-    @InjectMocks
     private RanchOverviewApplicationService service;
+
+    @BeforeEach
+    void setUp() {
+        // Real FenceLivestockCounter so fence counts exercise the shared
+        // point-in-polygon logic instead of Mockito defaults.
+        service = new RanchOverviewApplicationService(
+                fenceRepository, livestockRepository, alertRepository, healthQueryPort,
+                ioTQueryPort, identityQueryPort, readStatusRepository, fenceZoneRepository,
+                new FenceLivestockCounter(), null, null, alertMessageLocalizer);
+    }
 
     private void setupDefaultMocks() {
         when(identityQueryPort.findFarmById(1L))
@@ -146,6 +156,12 @@ class RanchOverviewApplicationServiceTest {
 
         assertThat(response.fences().get(0).livestockCount()).isEqualTo(1);
         assertThat(response.fences().get(1).livestockCount()).isZero();
+        // Location breakdown reconciles with totalLivestock:
+        // 3 = 1 inside + 1 outside + 1 without GPS fix
+        assertThat(response.overallStats().totalLivestock()).isEqualTo(3);
+        assertThat(response.overallStats().noGpsCount()).isEqualTo(1);
+        assertThat(response.overallStats().outsideFenceCount()).isEqualTo(1);
+        assertThat(response.overallStats().inFenceRate()).isEqualTo(0.5);
     }
 
     @Test

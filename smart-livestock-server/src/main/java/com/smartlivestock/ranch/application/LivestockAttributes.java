@@ -29,7 +29,13 @@ final class LivestockAttributes {
             Map.entry("西门塔尔牛", "SIMMENTAL"),
             Map.entry("LIMOUSIN", "LIMOUSIN"),
             Map.entry("利木赞", "LIMOUSIN"),
-            Map.entry("利木赞牛", "LIMOUSIN"));
+            Map.entry("利木赞牛", "LIMOUSIN"),
+            // OTHER is a valid canonical code (DB CHECK V20260702150000);
+            // without these entries an explicit "OTHER" from the client was
+            // rejected even though blank input silently maps to OTHER.
+            Map.entry("OTHER", "OTHER"),
+            Map.entry("其他", "OTHER"),
+            Map.entry("其它", "OTHER"));
 
     private static final String BREED_ALLOWED = "ANGUS/WAGYU/SIMMENTAL/LIMOUSIN/OTHER";
 

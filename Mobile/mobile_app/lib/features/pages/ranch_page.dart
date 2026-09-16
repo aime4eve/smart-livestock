@@ -16,8 +16,14 @@ import 'package:hkt_livestock_agentic/features/fence/domain/fence_polygon_contai
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_widget.dart';
+import 'package:hkt_livestock_agentic/features/alerts/domain/alert_summary.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/alerts_controller.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_detail_sheet.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/fence_status_card.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/unread_badge.dart';
 import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/ranch_controller.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/livestock_map_marker.dart';
@@ -35,6 +41,8 @@ class RanchPage extends ConsumerStatefulWidget {
 
 class _RanchPageState extends ConsumerState<RanchPage>
     with TickerProviderStateMixin {
+  static const _fenceAlertTypes = {'FENCE_BREACH', 'FENCE_APPROACH', 'ZONE_APPROACH'};
+
   final _mapController = MapController();
   SmartTileProvider? _tileProvider;
   String? _selectedFenceId;
@@ -54,8 +62,10 @@ class _RanchPageState extends ConsumerState<RanchPage>
     );
     _initTileProvider();
     _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (context.mounted)
+      if (context.mounted) {
         ref.read(ranchControllerProvider.notifier).silentRefresh();
+        ref.read(alertSummaryControllerProvider.notifier).silentRefresh();
+      }
     });
   }
 
@@ -298,9 +308,10 @@ class _RanchPageState extends ConsumerState<RanchPage>
     bool canManage,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    final activeAlerts = overview.alerts
-        .where((a) => a.status == 'ACTIVE')
-        .length;
+    // Badge = UNREAD active alerts (per-user), not the raw active total —
+    // it drops to zero once everything is handled and grows with new alerts.
+    final summary = ref.watch(alertSummaryControllerProvider).value;
+    final unreadAlerts = summary?.unreadTotal ?? 0;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 280),
@@ -392,7 +403,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                 _SheetTab(
                   icon: Icons.notifications,
                   label: l10n.ranchTabAlerts,
-                  badge: activeAlerts,
+                  badge: unreadAlerts,
                   isActive: _sheetTab == 2,
                   onTap: () => setState(() => _sheetTab = 2),
                 ),
@@ -403,11 +414,13 @@ class _RanchPageState extends ConsumerState<RanchPage>
           if (_sheetSnap > 0)
             Flexible(
               child: switch (_sheetTab) {
-                0 => _buildOverviewTab(context, overview),
+                0 => _buildOverviewTab(context, overview, summary),
                 1 => SingleChildScrollView(
                   child: RanchFenceTab(
                     fences: overview.fences,
                     alerts: overview.alerts,
+                    noGpsCount: overview.overallStats.noGpsCount,
+                    outsideFenceCount: overview.overallStats.outsideFenceCount,
                     selectedFenceId: _selectedFenceId,
                     canManage: canManage,
                     onFenceSelected: (id) {
@@ -428,7 +441,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                     },
                   ),
                 ),
-                _ => _buildAlertsTab(context, overview),
+                _ => _buildAlertsTab(context, overview, summary),
               },
             ),
         ],
@@ -436,34 +449,20 @@ class _RanchPageState extends ConsumerState<RanchPage>
     );
   }
 
-  Widget _buildOverviewTab(BuildContext context, RanchOverview overview) {
+  Widget _buildOverviewTab(
+      BuildContext context, RanchOverview overview, RanchAlertSummary? summary) {
     final l10n = AppLocalizations.of(context)!;
-    final activeAlerts = overview.alerts.where((a) => a.status == 'ACTIVE');
-    final fenceTotal = activeAlerts
-        .where(
-          (a) =>
-              a.type == 'FENCE_BREACH' ||
-              a.type == 'FENCE_APPROACH' ||
-              a.type == 'ZONE_APPROACH',
-        )
-        .length;
-    final healthTotal = activeAlerts
-        .where(
-          (a) =>
-              a.type == 'TEMPERATURE_ABNORMAL' ||
-              a.type == 'DIGESTIVE_ABNORMAL' ||
-              a.type == 'ESTRUS' ||
-              a.type == 'EPIDEMIC' ||
-              a.type == 'AI_ANOMALY',
-        )
-        .length;
-    final deviceAlerts = overview.alerts
-        .where(
-          (a) =>
-              a.status == 'ACTIVE' &&
-              (a.type == 'DEVICE_TAMPER' || a.type == 'DEVICE_LOW_BATTERY'),
-        )
-        .length;
+    // Card numbers come from the shared summary endpoint (same source as the
+    // alert center); client-side grouping is only the fallback until it loads.
+    final fenceTotal =
+        summary?.byGroup.fence ?? _clientGroupCount(overview, 'fence');
+    final healthTotal =
+        summary?.byGroup.health ?? _clientGroupCount(overview, 'health');
+    final deviceAlerts =
+        summary?.byGroup.device ?? _clientGroupCount(overview, 'device');
+    final fenceUnread = summary?.byGroupUnread.fence ?? 0;
+    final healthUnread = summary?.byGroupUnread.health ?? 0;
+    final deviceUnread = summary?.byGroupUnread.device ?? 0;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(
@@ -474,28 +473,37 @@ class _RanchPageState extends ConsumerState<RanchPage>
         spacing: AppSpacing.sm,
         runSpacing: AppSpacing.sm,
         children: [
-          _DashCard(
-            icon: Icons.fence,
-            count: fenceTotal,
-            label: l10n.ranchSectionFenceAlerts,
-            color: AppColors.danger,
-            onTap: () => context.push('${AppRoute.alerts.path}?category=fence'),
+          _buildDashCardWithUnread(
+            UnreadBadge(count: fenceUnread),
+            _DashCard(
+              icon: Icons.fence,
+              count: fenceTotal,
+              label: l10n.ranchSectionFenceAlerts,
+              color: AppColors.danger,
+              onTap: () => context.push('${AppRoute.alerts.path}?category=fence'),
+            ),
           ),
-          _DashCard(
-            icon: Icons.favorite,
-            count: healthTotal,
-            label: l10n.ranchSectionHealthAlerts,
-            color: AppColors.warning,
-            onTap: () =>
-                context.push('${AppRoute.alerts.path}?category=health'),
+          _buildDashCardWithUnread(
+            UnreadBadge(count: healthUnread),
+            _DashCard(
+              icon: Icons.favorite,
+              count: healthTotal,
+              label: l10n.ranchSectionHealthAlerts,
+              color: AppColors.warning,
+              onTap: () =>
+                  context.push('${AppRoute.alerts.path}?category=health'),
+            ),
           ),
-          _DashCard(
-            icon: Icons.devices,
-            count: deviceAlerts,
-            label: l10n.ranchSectionDeviceAlerts,
-            color: AppColors.success,
-            onTap: () =>
-                context.push('${AppRoute.alerts.path}?category=device'),
+          _buildDashCardWithUnread(
+            UnreadBadge(count: deviceUnread),
+            _DashCard(
+              icon: Icons.devices,
+              count: deviceAlerts,
+              label: l10n.ranchSectionDeviceAlerts,
+              color: AppColors.success,
+              onTap: () =>
+                  context.push('${AppRoute.alerts.path}?category=device'),
+            ),
           ),
           _DashCard(
             icon: Icons.pets,
@@ -509,7 +517,36 @@ class _RanchPageState extends ConsumerState<RanchPage>
     );
   }
 
-  Widget _buildAlertsTab(BuildContext context, RanchOverview overview) {
+  /// Fallback grouping of overview alerts while the summary endpoint loads.
+  int _clientGroupCount(RanchOverview overview, String group) {
+    final groups = switch (group) {
+      'fence' => _fenceAlertTypes,
+      'device' => const {'DEVICE_TAMPER', 'DEVICE_LOW_BATTERY'},
+      _ => const {
+          'TEMPERATURE_ABNORMAL',
+          'DIGESTIVE_ABNORMAL',
+          'ESTRUS',
+          'EPIDEMIC',
+          'AI_ANOMALY'
+        },
+    };
+    return overview.alerts
+        .where((a) => a.status == 'ACTIVE' && groups.contains(a.type))
+        .length;
+  }
+
+  /// Overlays the unread pill on the card's top-right corner.
+  Widget _buildDashCardWithUnread(Widget badge, Widget card) {
+    return Stack(
+      children: [
+        card,
+        Positioned(top: 6, right: 6, child: badge),
+      ],
+    );
+  }
+
+  Widget _buildAlertsTab(
+      BuildContext context, RanchOverview overview, RanchAlertSummary? summary) {
     final l10n = AppLocalizations.of(context)!;
     final active = overview.alerts.where((a) => a.status == 'ACTIVE').toList();
     if (active.isEmpty) {
@@ -534,11 +571,50 @@ class _RanchPageState extends ConsumerState<RanchPage>
         ),
       );
     }
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      itemCount: active.length,
-      itemBuilder: (context, index) {
-        final alert = active[index];
+    // Aggregated fence status (livestock × fence, deduped) above the raw
+    // event stream — answers "what is the situation now" at a glance.
+    final fenceAlerts =
+        active.where((a) => _fenceAlertTypes.contains(a.type)).toList();
+    final livestockCodes = {
+      for (final m in overview.livestockMarkers) m.livestockId: m.livestockCode,
+    };
+    final fenceNames = {
+      for (final f in overview.fences) f.id: f.name,
+    };
+    final listTiles = <Widget>[
+      if (fenceAlerts.isNotEmpty)
+        FenceStatusCard(
+          alerts: fenceAlerts,
+          livestockCodes: livestockCodes,
+          fenceNames: fenceNames,
+          onViewAll: () => context.push('${AppRoute.alerts.path}?category=fence'),
+          onRowTap: (alert) {
+            final role = ref.read(sessionControllerProvider).role;
+            if (role == null) return;
+            showAlertDetailSheet(
+              context,
+              alert: AlertItem(
+                id: alert.id,
+                title: alert.message,
+                subtitle: '',
+                priority: alert.severity == 'CRITICAL'
+                    ? 'P0'
+                    : (alert.severity == 'WARNING' ? 'P1' : 'P2'),
+                type: alert.type,
+                stage: alert.status.toLowerCase(),
+                livestockCode: alert.livestockId ?? '-',
+                livestockId: alert.livestockId,
+                severity: alert.severity,
+                read: alert.read,
+                occurredAt: alert.occurredAt,
+                resolvedAt: alert.resolvedAt,
+                fenceId: alert.fenceId,
+              ),
+              role: role,
+            );
+          },
+        ),
+      ...active.map((alert) {
         return Card(
           margin: const EdgeInsets.only(bottom: AppSpacing.xs),
           child: ListTile(
@@ -559,11 +635,22 @@ class _RanchPageState extends ConsumerState<RanchPage>
               _alertTypeLabel(AppLocalizations.of(context)!, alert.type),
               style: const TextStyle(fontSize: 10),
             ),
-            onTap: () => context.push(AppRoute.alerts.path),
+            onTap: () => context.push(
+                '${AppRoute.alerts.path}?category=${_categoryOf(alert.type)}'),
           ),
         );
-      },
+      }),
+    ];
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      children: listTiles,
     );
+  }
+
+  String _categoryOf(String type) {
+    if (_fenceAlertTypes.contains(type)) return 'fence';
+    if (type == 'DEVICE_TAMPER' || type == 'DEVICE_LOW_BATTERY') return 'device';
+    return 'health';
   }
 
   IconData _alertIcon(String type) {
@@ -917,25 +1004,9 @@ class _DashCard extends StatelessWidget {
                 child: Icon(icon, size: 12, color: color),
               ),
               const Spacer(),
-              if (count > 0 && hasAlert)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 1,
-                  ),
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(7),
-                  ),
-                  child: Text(
-                    '$count',
-                    style: const TextStyle(
-                      fontSize: 8,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+              // No inline count pill here: the big number already shows the
+              // active total, and the unread pill (UnreadBadge) sits on the
+              // card's top-right corner — two pills would overlap.
             ],
           ),
           const SizedBox(height: 4),

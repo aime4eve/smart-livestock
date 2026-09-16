@@ -18,6 +18,7 @@ import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.domain.repository.FenceRepository;
 import com.smartlivestock.ranch.domain.repository.FenceZoneRepository;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
+import com.smartlivestock.ranch.domain.service.FenceLivestockCounter;
 import com.smartlivestock.ranch.infrastructure.persistence.SpringDataAlertReadStatusRepository;
 import com.smartlivestock.shared.cache.RedisCacheService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,6 +45,7 @@ public class RanchOverviewApplicationService {
     private final IdentityQueryPort identityQueryPort;
     private final SpringDataAlertReadStatusRepository readStatusRepository;
     private final FenceZoneRepository fenceZoneRepository;
+    private final FenceLivestockCounter fenceLivestockCounter;
     private final RedisCacheService redisCacheService;
     private final ObjectMapper objectMapper;
     private final AlertMessageLocalizer alertMessageLocalizer;
@@ -77,7 +79,7 @@ public class RanchOverviewApplicationService {
                         f.getColor(),
                         f.getVertices(),
                         0.0,
-                        countLivestockInFence(livestockList, f),
+                        fenceLivestockCounter.countInFence(livestockList, f),
                         f.getVersion()
                 ))
                 .toList();
@@ -116,6 +118,14 @@ public class RanchOverviewApplicationService {
                 ? readStatusRepository.findReadAlertIdsByUserId(userId,
                         activeAlerts.stream().map(Alert::getId).toList())
                 : Set.of();
+        // Resolve device serials for device-originated alerts once (batch port call)
+        List<Long> alertDeviceIds = activeAlerts.stream()
+                .map(Alert::getDeviceId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        Map<Long, String> alertDeviceCodes = ioTQueryPort.findDeviceCodesByIds(alertDeviceIds);
+
         List<AlertData> alertDataList = activeAlerts.stream()
                 .map(a -> new AlertData(
                         a.getId(),
@@ -125,7 +135,9 @@ public class RanchOverviewApplicationService {
                         alertMessageLocalizer.localize(a),
                         a.getLivestockId(),
                         a.getFenceId(),
-                        null,
+                        a.getDeviceId(),
+                        a.getDeviceId() == null ? null : alertDeviceCodes.get(a.getDeviceId()),
+                        a.getCreatedAt(),
                         readAlertIds.contains(a.getId()),
                         a.getResolvedType(),
                         a.getResolvedAt(),
@@ -145,8 +157,9 @@ public class RanchOverviewApplicationService {
                 ? ioTQueryPort.getDeviceOnlineRate(tenantId)
                 : 0.85;
 
-        // 6. InFenceRate: livestock inside any fence / livestock with GPS
-        Double inFenceRate = calculateInFenceRate(livestockList, fences);
+        // 6. Location breakdown: inFenceRate + no-GPS / outside-fence counts.
+        // total = inside any active fence + outside + no GPS fix.
+        LocationBreakdown breakdown = calculateLocationBreakdown(livestockList, fences);
 
         OverallStats overallStats = new OverallStats(
                 healthOverview.totalLivestock(),
@@ -154,7 +167,9 @@ public class RanchOverviewApplicationService {
                 healthOverview.alertCount(),
                 healthOverview.criticalCount(),
                 deviceOnlineRate,
-                inFenceRate
+                breakdown.inFenceRate(),
+                breakdown.noGpsCount(),
+                breakdown.outsideFenceCount()
         );
 
         SceneSummary sceneSummary = new SceneSummary(
@@ -209,38 +224,41 @@ public class RanchOverviewApplicationService {
     }
 
     /**
-     * Calculate inFenceRate: count of livestock inside any active fence / total with GPS.
+     * Location breakdown of the farm's livestock. Keeps the legacy inFenceRate
+     * semantics (null = N/A; no active fences = 1.0) and adds the absolute
+     * counts the fence tab needs to reconcile against totalLivestock:
+     * total = insideUnion + outsideFenceCount + noGpsCount.
      */
-    private Double calculateInFenceRate(List<Livestock> livestockList, List<Fence> fences) {
+    private LocationBreakdown calculateLocationBreakdown(List<Livestock> livestockList, List<Fence> fences) {
         List<Fence> activeFences = fences.stream().filter(Fence::isActive).toList();
-        if (livestockList.isEmpty()) return null; // no livestock = N/A
-        if (activeFences.isEmpty()) return 1.0; // no fences = all "inside"
 
         long withGps = livestockList.stream()
-                .filter(l -> l.getLastLatitude() != null && l.getLastLongitude() != null)
+                .filter(fenceLivestockCounter::hasGpsFix)
                 .count();
-        if (withGps == 0) return null; // no GPS data = N/A
-
-        long inFence = livestockList.stream()
-                .filter(l -> l.getLastLatitude() != null && l.getLastLongitude() != null)
+        long insideUnion = activeFences.isEmpty() ? 0 : livestockList.stream()
+                .filter(fenceLivestockCounter::hasGpsFix)
                 .filter(l -> {
                     GpsCoordinate pos = new GpsCoordinate(l.getLastLatitude(), l.getLastLongitude());
                     return activeFences.stream().anyMatch(f -> f.contains(pos));
                 })
                 .count();
 
-        return (double) inFence / withGps;
+        Double inFenceRate;
+        if (livestockList.isEmpty() || withGps == 0) {
+            inFenceRate = null; // N/A
+        } else if (activeFences.isEmpty()) {
+            inFenceRate = 1.0; // no fences = legacy "all inside"
+        } else {
+            inFenceRate = (double) insideUnion / withGps;
+        }
+
+        return new LocationBreakdown(
+                inFenceRate,
+                (int) (livestockList.size() - withGps),
+                (int) (withGps - insideUnion));
     }
 
-    private int countLivestockInFence(List<Livestock> livestockList, Fence fence) {
-        if (!fence.isActive()) return 0;
-
-        return (int) livestockList.stream()
-                .filter(l -> l.getLastLatitude() != null && l.getLastLongitude() != null)
-                .filter(l -> fence.contains(
-                        new GpsCoordinate(l.getLastLatitude(), l.getLastLongitude())))
-                .count();
-    }
+    private record LocationBreakdown(Double inFenceRate, int noGpsCount, int outsideFenceCount) {}
 
     /**
      * Build HealthOverview from data already loaded by getOverview(), avoiding the

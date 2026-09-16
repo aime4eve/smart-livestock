@@ -295,6 +295,7 @@ class AlertItem {
     this.fenceName,
     this.resolvedType,
     this.fenceId,
+    this.deviceCode,
   });
 
   final String id;
@@ -313,4 +314,7 @@ class AlertItem {
   final String? fenceName;
   final String? resolvedType; // AUTO | MANUAL_DISMISS
   final String? fenceId;
+
+  /// Device serial for device-originated alerts (DEVICE_LOW_BATTERY etc.).
+  final String? deviceCode;
 }

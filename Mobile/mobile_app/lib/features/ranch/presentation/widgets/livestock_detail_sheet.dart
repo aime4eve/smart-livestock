@@ -83,15 +83,23 @@ class LivestockDetailSheet extends StatelessWidget {
                 ),
                 const Spacer(),
                 GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: () {
                     Navigator.of(context).pop();
                     context.push('/livestock/${marker.livestockId}');
                   },
-                  child: Text(
-                    l10n.ranchLivestockDetailBtn,
-                    style: const TextStyle(
-                      fontSize: 9,
-                      color: AppColors.textSecondary,
+                  child: Container(
+                    // Padded tap target: bare 9px text was untappable on phones.
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 8),
+                    margin: const EdgeInsets.only(left: 8),
+                    child: Text(
+                      l10n.ranchLivestockDetailBtn,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
                 ),

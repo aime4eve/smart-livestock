@@ -10,6 +10,8 @@ class RanchOverviewStats {
     required this.criticalCount,
     required this.deviceOnlineRate,
     required this.inFenceRate,
+    this.noGpsCount = 0,
+    this.outsideFenceCount = 0,
   });
 
   final int totalLivestock;
@@ -19,6 +21,12 @@ class RanchOverviewStats {
   final double deviceOnlineRate;
   final double? inFenceRate;
 
+  /// Livestock without any GPS fix — they belong to no fence.
+  final int noGpsCount;
+
+  /// Livestock with a GPS fix but outside every active fence.
+  final int outsideFenceCount;
+
   factory RanchOverviewStats.fromJson(Map<String, dynamic> m) {
     return RanchOverviewStats(
       totalLivestock: m['totalLivestock'] as int? ?? 0,
@@ -27,6 +35,8 @@ class RanchOverviewStats {
       criticalCount: m['criticalCount'] as int? ?? 0,
       deviceOnlineRate: (m['deviceOnlineRate'] as num?)?.toDouble() ?? 0.0,
       inFenceRate: (m['inFenceRate'] as num?)?.toDouble(),
+      noGpsCount: m['noGpsCount'] as int? ?? 0,
+      outsideFenceCount: m['outsideFenceCount'] as int? ?? 0,
     );
   }
 }
@@ -263,6 +273,7 @@ class RanchAlertData {
     this.direction,
     this.resolvedType,
     this.resolvedAt,
+    this.deviceCode,
   });
 
   final String id;
@@ -279,6 +290,9 @@ class RanchAlertData {
   final String? resolvedType;
   final String? resolvedAt;
 
+  /// Device serial for device-originated alerts (low battery, tamper).
+  final String? deviceCode;
+
   factory RanchAlertData.fromJson(Map<String, dynamic> m) {
     return RanchAlertData(
       id: (m['id'] ?? '').toString(),
@@ -294,6 +308,7 @@ class RanchAlertData {
       direction: m['direction'] as String?,
       resolvedType: m['resolvedType'] as String?,
       resolvedAt: m['resolvedAt'] as String?,
+      deviceCode: m['deviceCode'] as String?,
     );
   }
 
@@ -318,6 +333,7 @@ class RanchAlertData {
       direction: direction ?? this.direction,
       resolvedType: resolvedType ?? this.resolvedType,
       resolvedAt: resolvedAt ?? this.resolvedAt,
+      deviceCode: deviceCode,
     );
   }
 }
