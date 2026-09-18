@@ -1,6 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hkt_livestock_agentic/features/admin/presentation/gateway_overview_page.dart';
+import 'package:hkt_livestock_agentic/features/gateways/domain/gateway_models.dart';
+import 'package:hkt_livestock_agentic/features/gateways/presentation/coverage_diagnostics_page.dart';
+import 'package:hkt_livestock_agentic/features/gateways/presentation/gateway_list_page.dart';
+import 'package:hkt_livestock_agentic/features/gateways/presentation/gateway_mark_page.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/app/main_shell.dart';
@@ -416,6 +421,39 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoute.platformDeviceProfiles.path,
             name: AppRoute.platformDeviceProfiles.routeName,
             builder: (context, state) => const DeviceProfileRulesPage(),
+          ),
+          GoRoute(
+            path: AppRoute.coverageDiagnostics.path,
+            name: AppRoute.coverageDiagnostics.routeName,
+            builder: (context, state) => const CoverageDiagnosticsPage(),
+          ),
+          GoRoute(
+            path: AppRoute.gatewayPositions.path,
+            name: AppRoute.gatewayPositions.routeName,
+            builder: (context, state) => const GatewayListPage(),
+          ),
+          GoRoute(
+            path: AppRoute.gatewayMark.path,
+            name: AppRoute.gatewayMark.routeName,
+            builder: (context, state) {
+              final id = state.pathParameters['gatewayId'] ?? '';
+              final extra = state.extra;
+              final item = extra is GatewayDiscoveryItem
+                  ? extra
+                  : GatewayDiscoveryItem(
+                      gatewayId: Uri.decodeComponent(id),
+                      lastSeen: null,
+                      frames: 0,
+                      avgRssi: null,
+                      registered: false,
+                    );
+              return GatewayMarkPage(item: item);
+            },
+          ),
+          GoRoute(
+            path: AppRoute.platformGatewayOverview.path,
+            name: AppRoute.platformGatewayOverview.routeName,
+            builder: (context, state) => const GatewayOverviewPage(),
           ),
           GoRoute(
             path: AppRoute.platformGpsQuality.path,

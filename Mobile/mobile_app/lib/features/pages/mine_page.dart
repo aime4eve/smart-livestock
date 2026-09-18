@@ -35,8 +35,19 @@ class MinePage extends ConsumerWidget {
             error: (e, _) => Center(child: Text('${l10n.commonLoadFailed}: $e')),
           ),
           
-          if (role == UserRole.owner) ...[
+          if (role == UserRole.platformAdmin || role == UserRole.b2bAdmin) ...[
             const SizedBox(height: AppSpacing.lg),
+            HighfiCard(
+              child: ListTile(
+                key: const Key('mine-gateway-reconciliation'),
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.fact_check_outlined),
+                title: Text(l10n.gatewayAdminTitle),
+                subtitle: Text(l10n.gatewayMineEntryDesc),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.go(AppRoute.platformGatewayOverview.path),
+              ),
+            ),
 
             // 业务管理功能
             Text(
@@ -133,6 +144,32 @@ class MinePage extends ConsumerWidget {
             subtitle: Text(l10n.mineDeviceManagementDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRoute.devices.path),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+
+        HighfiCard(
+          child: ListTile(
+            key: const Key('mine-gateway-positions'),
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.wifi_tethering),
+            title: Text(l10n.gatewayListTitle),
+            subtitle: Text(l10n.gatewayMineEntryDesc),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go(AppRoute.gatewayPositions.path),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+
+        HighfiCard(
+          child: ListTile(
+            key: const Key('mine-coverage-diagnostics'),
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.signal_cellular_alt),
+            title: Text(l10n.coverageTitle),
+            subtitle: Text(l10n.coverageMineEntryDesc),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go(AppRoute.coverageDiagnostics.path),
           ),
         ),
         const SizedBox(height: AppSpacing.md),

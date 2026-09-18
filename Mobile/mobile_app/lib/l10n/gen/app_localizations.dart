@@ -10354,6 +10354,450 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'已存在同名规则'**
   String get deviceProfileRuleDuplicateLocal;
+
+  /// No description provided for @gatewayListTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'网关位置'**
+  String get gatewayListTitle;
+
+  /// No description provided for @gatewayLoadFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'网关列表加载失败'**
+  String get gatewayLoadFailed;
+
+  /// No description provided for @gatewayEmptyHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'本牧场暂无通联网关记录。设备上报数据后，其使用的网关会自动出现在这里。'**
+  String get gatewayEmptyHint;
+
+  /// No description provided for @gatewayHintCard.
+  ///
+  /// In zh, this message translates to:
+  /// **'网关是通讯距离计算的基准点。请把手机带到网关安装点旁（10 米内）再标记。'**
+  String get gatewayHintCard;
+
+  /// No description provided for @gatewaySectionUnmarked.
+  ///
+  /// In zh, this message translates to:
+  /// **'未标记网关（{n}）'**
+  String gatewaySectionUnmarked(int n);
+
+  /// No description provided for @gatewaySectionRegistered.
+  ///
+  /// In zh, this message translates to:
+  /// **'已登记网关（{n}）'**
+  String gatewaySectionRegistered(int n);
+
+  /// No description provided for @gatewayListFootnote.
+  ///
+  /// In zh, this message translates to:
+  /// **'列表来自本牧场设备实际通联记录（近 90 天），不做手工输入 ID。信号分档基于 30 天滑窗 RSSI 均值。'**
+  String get gatewayListFootnote;
+
+  /// No description provided for @gatewayLastSeenUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'最后通信未知'**
+  String get gatewayLastSeenUnknown;
+
+  /// No description provided for @gatewayLastSeenNow.
+  ///
+  /// In zh, this message translates to:
+  /// **'最后通信 1 分钟内'**
+  String get gatewayLastSeenNow;
+
+  /// No description provided for @gatewayLastSeenMinutes.
+  ///
+  /// In zh, this message translates to:
+  /// **'最后通信 {n} 分钟前'**
+  String gatewayLastSeenMinutes(int n);
+
+  /// No description provided for @gatewayLastSeenHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'最后通信 {n} 小时前'**
+  String gatewayLastSeenHours(int n);
+
+  /// No description provided for @gatewayLastSeenDate.
+  ///
+  /// In zh, this message translates to:
+  /// **'最后通信 {d}'**
+  String gatewayLastSeenDate(String d);
+
+  /// No description provided for @gatewayFrames30d.
+  ///
+  /// In zh, this message translates to:
+  /// **'近 30 天 {n} 帧'**
+  String gatewayFrames30d(int n);
+
+  /// No description provided for @gatewayMarkedBy.
+  ///
+  /// In zh, this message translates to:
+  /// **'已登记 · {t} 标记'**
+  String gatewayMarkedBy(String t);
+
+  /// No description provided for @linkTierStable.
+  ///
+  /// In zh, this message translates to:
+  /// **'信号稳定'**
+  String get linkTierStable;
+
+  /// No description provided for @linkTierWeak.
+  ///
+  /// In zh, this message translates to:
+  /// **'信号偏弱'**
+  String get linkTierWeak;
+
+  /// No description provided for @linkTierEdge.
+  ///
+  /// In zh, this message translates to:
+  /// **'信号边缘'**
+  String get linkTierEdge;
+
+  /// No description provided for @linkTierUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'信号未知'**
+  String get linkTierUnknown;
+
+  /// No description provided for @gatewayRemarkAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新标记'**
+  String get gatewayRemarkAction;
+
+  /// No description provided for @gatewayMarkAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'去标记'**
+  String get gatewayMarkAction;
+
+  /// No description provided for @gatewayMarkTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记网关 {id}'**
+  String gatewayMarkTitle(String id);
+
+  /// No description provided for @gatewayLocPermDenied.
+  ///
+  /// In zh, this message translates to:
+  /// **'未获得定位权限，请在系统设置中开启'**
+  String get gatewayLocPermDenied;
+
+  /// No description provided for @gatewayAccuracyTooLow.
+  ///
+  /// In zh, this message translates to:
+  /// **'定位精度过低，请到开阔处重试'**
+  String get gatewayAccuracyTooLow;
+
+  /// No description provided for @gatewayOverwriteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'该网关已有坐标'**
+  String get gatewayOverwriteTitle;
+
+  /// No description provided for @gatewayOverwriteBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'原标记时间 {t}。网关坐标全局唯一，覆盖后所有牧场均按新坐标计算通讯距离。'**
+  String gatewayOverwriteBody(String t);
+
+  /// No description provided for @gatewayOverwriteConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'覆盖标记'**
+  String get gatewayOverwriteConfirm;
+
+  /// No description provided for @gatewayMarkOverwrittenDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'已覆盖原坐标'**
+  String get gatewayMarkOverwrittenDone;
+
+  /// No description provided for @gatewayMarkDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'网关位置已登记'**
+  String get gatewayMarkDone;
+
+  /// No description provided for @gatewayAccuracyReady.
+  ///
+  /// In zh, this message translates to:
+  /// **'GPS 已就绪 · 精度约 ±{m} 米'**
+  String gatewayAccuracyReady(String m);
+
+  /// No description provided for @gatewayLocating.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在获取定位…'**
+  String get gatewayLocating;
+
+  /// No description provided for @gatewayLat.
+  ///
+  /// In zh, this message translates to:
+  /// **'纬度'**
+  String get gatewayLat;
+
+  /// No description provided for @gatewayLng.
+  ///
+  /// In zh, this message translates to:
+  /// **'经度'**
+  String get gatewayLng;
+
+  /// No description provided for @gatewayMarkSubmit.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认标记此位置'**
+  String get gatewayMarkSubmit;
+
+  /// No description provided for @gatewayOverwriteSubmit.
+  ///
+  /// In zh, this message translates to:
+  /// **'覆盖并标记此位置'**
+  String get gatewayOverwriteSubmit;
+
+  /// No description provided for @gatewayMarkFootnote.
+  ///
+  /// In zh, this message translates to:
+  /// **'默认使用当前定位，可在地图上拖动微调；精度大于 ±50m 时建议到开阔处重试。'**
+  String get gatewayMarkFootnote;
+
+  /// No description provided for @gatewayMineEntryDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'登记网关坐标，计算通讯距离'**
+  String get gatewayMineEntryDesc;
+
+  /// No description provided for @gatewayDistanceTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'通讯距离'**
+  String get gatewayDistanceTitle;
+
+  /// No description provided for @gatewayDistanceUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'未知（无定位）'**
+  String get gatewayDistanceUnknown;
+
+  /// No description provided for @gatewayDistanceUnknownHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备未获得 GPS 定位，距离以信号强度档位参考。'**
+  String get gatewayDistanceUnknownHint;
+
+  /// No description provided for @gatewayNearestTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近'**
+  String get gatewayNearestTag;
+
+  /// No description provided for @gatewayMeters.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 米'**
+  String gatewayMeters(int n);
+
+  /// No description provided for @gatewayMedianSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'30 天中位 {n} 米'**
+  String gatewayMedianSub(int n);
+
+  /// No description provided for @gatewayInferredTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'推断'**
+  String get gatewayInferredTag;
+
+  /// No description provided for @gatewayInferredRange.
+  ///
+  /// In zh, this message translates to:
+  /// **'约 {a}–{b} 米'**
+  String gatewayInferredRange(int a, int b);
+
+  /// No description provided for @gatewayAdminTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'网关登记对账'**
+  String get gatewayAdminTitle;
+
+  /// No description provided for @gatewayAdminRegistered.
+  ///
+  /// In zh, this message translates to:
+  /// **'已登记'**
+  String get gatewayAdminRegistered;
+
+  /// No description provided for @gatewayAdminUnmarked.
+  ///
+  /// In zh, this message translates to:
+  /// **'未标记'**
+  String get gatewayAdminUnmarked;
+
+  /// No description provided for @gatewayAdminMarkRate.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记率'**
+  String get gatewayAdminMarkRate;
+
+  /// No description provided for @gatewayAdminUnmarkedList.
+  ///
+  /// In zh, this message translates to:
+  /// **'未标记网关（{n}）'**
+  String gatewayAdminUnmarkedList(int n);
+
+  /// No description provided for @gatewayAdminRegisteredList.
+  ///
+  /// In zh, this message translates to:
+  /// **'已登记网关（{n}）'**
+  String gatewayAdminRegisteredList(int n);
+
+  /// No description provided for @gatewayAdminMarkedBy.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记人 {u} · 来源 {s}'**
+  String gatewayAdminMarkedBy(String u, String s);
+
+  /// No description provided for @gatewayAdminFootnote.
+  ///
+  /// In zh, this message translates to:
+  /// **'对账口径：近 90 天遥测中出现过的非空 gateway_id（剔除仿真网关）与登记表求差。只读视图。'**
+  String get gatewayAdminFootnote;
+
+  /// No description provided for @commonSubmitting.
+  ///
+  /// In zh, this message translates to:
+  /// **'提交中…'**
+  String get commonSubmitting;
+
+  /// No description provided for @gatewayLocUnavailable.
+  ///
+  /// In zh, this message translates to:
+  /// **'浏览器定位不可用，可直接在地图上拖动选点'**
+  String get gatewayLocUnavailable;
+
+  /// No description provided for @coverageTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'信号覆盖诊断'**
+  String get coverageTitle;
+
+  /// No description provided for @coverageMineEntryDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'热力图与网关位置调整建议'**
+  String get coverageMineEntryDesc;
+
+  /// No description provided for @coverageAccumulating.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据积累中：近 30 天窗口已积累 {n} 天。真实设备持续打数满 30 天后，覆盖诊断与调整建议将可用。'**
+  String coverageAccumulating(int n);
+
+  /// No description provided for @coverageWindowFrames.
+  ///
+  /// In zh, this message translates to:
+  /// **'近 30 天 · {n} 帧'**
+  String coverageWindowFrames(int n);
+
+  /// No description provided for @coverageStatStable.
+  ///
+  /// In zh, this message translates to:
+  /// **'稳定'**
+  String get coverageStatStable;
+
+  /// No description provided for @coverageStatWeak.
+  ///
+  /// In zh, this message translates to:
+  /// **'偏弱'**
+  String get coverageStatWeak;
+
+  /// No description provided for @coverageStatEdge.
+  ///
+  /// In zh, this message translates to:
+  /// **'边缘'**
+  String get coverageStatEdge;
+
+  /// No description provided for @coverageLegendGood.
+  ///
+  /// In zh, this message translates to:
+  /// **'信号好'**
+  String get coverageLegendGood;
+
+  /// No description provided for @coverageLegendPoor.
+  ///
+  /// In zh, this message translates to:
+  /// **'信号差'**
+  String get coverageLegendPoor;
+
+  /// No description provided for @coverageLegendNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'无数据'**
+  String get coverageLegendNoData;
+
+  /// No description provided for @coverageAdviceTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'调整建议（方向性 · 百米级）'**
+  String get coverageAdviceTitle;
+
+  /// No description provided for @coverageAdviceNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'覆盖良好，无需调整网关位置'**
+  String get coverageAdviceNone;
+
+  /// No description provided for @coverageAdviceAddGateway.
+  ///
+  /// In zh, this message translates to:
+  /// **'建议增补网关'**
+  String get coverageAdviceAddGateway;
+
+  /// No description provided for @coverageAdviceMoveAntenna.
+  ///
+  /// In zh, this message translates to:
+  /// **'弱区集中{dir}向：建议天线抬高或向该方向迁移'**
+  String coverageAdviceMoveAntenna(String dir);
+
+  /// No description provided for @coverageAdviceAtCluster.
+  ///
+  /// In zh, this message translates to:
+  /// **'弱覆盖活动区'**
+  String get coverageAdviceAtCluster;
+
+  /// No description provided for @coverageAdviceWeakDirection.
+  ///
+  /// In zh, this message translates to:
+  /// **'方向集中'**
+  String get coverageAdviceWeakDirection;
+
+  /// No description provided for @coverageAdviceCoord.
+  ///
+  /// In zh, this message translates to:
+  /// **'建议点位：{lat}, {lng}'**
+  String coverageAdviceCoord(String lat, String lng);
+
+  /// No description provided for @coverageAdviceExpected.
+  ///
+  /// In zh, this message translates to:
+  /// **'预期边缘帧占比 {before}% → {after}%'**
+  String coverageAdviceExpected(int before, int after);
+
+  /// No description provided for @coverageAdviceCaliber.
+  ///
+  /// In zh, this message translates to:
+  /// **'路损模型预测（RSSI 增益约 {gain}dB）· 方向性参考，精度为百米级'**
+  String coverageAdviceCaliber(String gain);
+
+  /// No description provided for @coverageFootnote.
+  ///
+  /// In zh, this message translates to:
+  /// **'热力图基于近 30 天真实上报帧按 100m 网格聚合。动物体位遮挡导致 RSSI 波动约 ±10dB，建议仅作方向性决策参考。'**
+  String get coverageFootnote;
 }
 
 class _AppLocalizationsDelegate

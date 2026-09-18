@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:hkt_livestock_agentic/features/gateways/presentation/gateway_distance_card.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/core/l10n/enum_labels.dart';
@@ -117,6 +118,7 @@ class LivestockDetailPage extends ConsumerWidget {
                   _LivestockInfoCard(detail: detail),
                   const SizedBox(height: AppSpacing.md),
                   _DeviceListCard(detail: detail),
+                  GatewayDistanceCard(livestockId: detail.livestockId),
                   const SizedBox(height: AppSpacing.md),
                   _HealthDataCard(detail: detail),
                   const SizedBox(height: AppSpacing.md),

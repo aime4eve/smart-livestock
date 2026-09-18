@@ -4528,5 +4528,297 @@
   "deviceProfileRuleNameRequired": "Profile name is required",
   "@deviceProfileRuleNameRequired": {},
   "deviceProfileRuleDuplicateLocal": "A rule with this name already exists",
-  "@deviceProfileRuleDuplicateLocal": {}
+  "@deviceProfileRuleDuplicateLocal": {},
+  "gatewayListTitle": "Gateway positions",
+  "@gatewayListTitle": {},
+  "gatewayLoadFailed": "Failed to load gateways",
+  "@gatewayLoadFailed": {},
+  "gatewayEmptyHint": "No gateway records for this farm yet. Gateways used by your devices will appear here once data is reported.",
+  "@gatewayEmptyHint": {},
+  "gatewayHintCard": "Gateways are the reference points for communication distance. Bring your phone within 10 m of the gateway before marking.",
+  "@gatewayHintCard": {},
+  "gatewaySectionUnmarked": "Unmarked gateways ({n})",
+  "@gatewaySectionUnmarked": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewaySectionRegistered": "Registered gateways ({n})",
+  "@gatewaySectionRegistered": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayListFootnote": "Listed from the farm devices' actual links (last 90 days); no manual ID entry. Signal tiers use the 30-day average RSSI.",
+  "@gatewayListFootnote": {},
+  "gatewayLastSeenUnknown": "Last seen unknown",
+  "@gatewayLastSeenUnknown": {},
+  "gatewayLastSeenNow": "Last seen within a minute",
+  "@gatewayLastSeenNow": {},
+  "gatewayLastSeenMinutes": "Last seen {n} min ago",
+  "@gatewayLastSeenMinutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayLastSeenHours": "Last seen {n} h ago",
+  "@gatewayLastSeenHours": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayLastSeenDate": "Last seen {d}",
+  "@gatewayLastSeenDate": {
+    "placeholders": {
+      "d": {
+        "type": "String"
+      }
+    }
+  },
+  "gatewayFrames30d": "{n} frames in 30 days",
+  "@gatewayFrames30d": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayMarkedBy": "Registered · marked {t}",
+  "@gatewayMarkedBy": {
+    "placeholders": {
+      "t": {
+        "type": "String"
+      }
+    }
+  },
+  "linkTierStable": "Stable",
+  "@linkTierStable": {},
+  "linkTierWeak": "Weak",
+  "@linkTierWeak": {},
+  "linkTierEdge": "Edge",
+  "@linkTierEdge": {},
+  "linkTierUnknown": "Unknown",
+  "@linkTierUnknown": {},
+  "gatewayRemarkAction": "Re-mark",
+  "@gatewayRemarkAction": {},
+  "gatewayMarkAction": "Mark",
+  "@gatewayMarkAction": {},
+  "gatewayMarkTitle": "Mark gateway {id}",
+  "@gatewayMarkTitle": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "gatewayLocPermDenied": "Location permission denied. Enable it in system settings.",
+  "@gatewayLocPermDenied": {},
+  "gatewayAccuracyTooLow": "Accuracy too low. Move to an open area and retry.",
+  "@gatewayAccuracyTooLow": {},
+  "gatewayOverwriteTitle": "Gateway already has a position",
+  "@gatewayOverwriteTitle": {},
+  "gatewayOverwriteBody": "Previously marked {t}. Positions are globally unique — overwriting changes distance calculations for all farms.",
+  "@gatewayOverwriteBody": {
+    "placeholders": {
+      "t": {
+        "type": "String"
+      }
+    }
+  },
+  "gatewayOverwriteConfirm": "Overwrite",
+  "@gatewayOverwriteConfirm": {},
+  "gatewayMarkOverwrittenDone": "Position overwritten",
+  "@gatewayMarkOverwrittenDone": {},
+  "gatewayMarkDone": "Gateway position registered",
+  "@gatewayMarkDone": {},
+  "gatewayAccuracyReady": "GPS ready · accuracy ±{m} m",
+  "@gatewayAccuracyReady": {
+    "placeholders": {
+      "m": {
+        "type": "String"
+      }
+    }
+  },
+  "gatewayLocating": "Locating…",
+  "@gatewayLocating": {},
+  "gatewayLat": "Latitude",
+  "@gatewayLat": {},
+  "gatewayLng": "Longitude",
+  "@gatewayLng": {},
+  "gatewayMarkSubmit": "Mark this position",
+  "@gatewayMarkSubmit": {},
+  "gatewayOverwriteSubmit": "Overwrite and mark",
+  "@gatewayOverwriteSubmit": {},
+  "gatewayMarkFootnote": "Uses your current fix; drag the pin to fine-tune. Retry in an open area if accuracy exceeds ±50 m.",
+  "@gatewayMarkFootnote": {},
+  "gatewayMineEntryDesc": "Register gateway positions for distance",
+  "@gatewayMineEntryDesc": {},
+  "gatewayDistanceTitle": "Communication distance",
+  "@gatewayDistanceTitle": {},
+  "gatewayDistanceUnknown": "Unknown (no fix)",
+  "@gatewayDistanceUnknown": {},
+  "gatewayDistanceUnknownHint": "No GPS fix on this device. Signal tier is shown as a reference.",
+  "@gatewayDistanceUnknownHint": {},
+  "gatewayNearestTag": "Nearest",
+  "@gatewayNearestTag": {},
+  "gatewayMeters": "{n} m",
+  "@gatewayMeters": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayMedianSub": "30-day median {n} m",
+  "@gatewayMedianSub": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayInferredTag": "Inferred",
+  "@gatewayInferredTag": {},
+  "gatewayInferredRange": "~{a}–{b} m",
+  "@gatewayInferredRange": {
+    "placeholders": {
+      "a": {
+        "type": "int"
+      },
+      "b": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayAdminTitle": "Gateway reconciliation",
+  "@gatewayAdminTitle": {},
+  "gatewayAdminRegistered": "Registered",
+  "@gatewayAdminRegistered": {},
+  "gatewayAdminUnmarked": "Unmarked",
+  "@gatewayAdminUnmarked": {},
+  "gatewayAdminMarkRate": "Mark rate",
+  "@gatewayAdminMarkRate": {},
+  "gatewayAdminUnmarkedList": "Unmarked gateways ({n})",
+  "@gatewayAdminUnmarkedList": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayAdminRegisteredList": "Registered gateways ({n})",
+  "@gatewayAdminRegisteredList": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayAdminMarkedBy": "Marked by {u} · via {s}",
+  "@gatewayAdminMarkedBy": {
+    "placeholders": {
+      "u": {
+        "type": "String"
+      },
+      "s": {
+        "type": "String"
+      }
+    }
+  },
+  "gatewayAdminFootnote": "Scope: non-blank gateway_ids seen in telemetry over the last 90 days (simulator excluded), diffed against the registry. Read-only.",
+  "@gatewayAdminFootnote": {},
+  "commonSubmitting": "Submitting…",
+  "@commonSubmitting": {},
+  "gatewayLocUnavailable": "Browser location unavailable — drag the pin on the map to pick a position",
+  "@gatewayLocUnavailable": {},
+  "coverageTitle": "Coverage diagnostics",
+  "@coverageTitle": {},
+  "coverageMineEntryDesc": "Heat map & gateway relocation advice",
+  "@coverageMineEntryDesc": {},
+  "coverageAccumulating": "Accumulating data: {n} of the 30-day window collected. Diagnostics and advice unlock after 30 days of real device traffic.",
+  "@coverageAccumulating": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "coverageWindowFrames": "Last 30 days · {n} frames",
+  "@coverageWindowFrames": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "coverageStatStable": "Stable",
+  "@coverageStatStable": {},
+  "coverageStatWeak": "Weak",
+  "@coverageStatWeak": {},
+  "coverageStatEdge": "Edge",
+  "@coverageStatEdge": {},
+  "coverageLegendGood": "Good signal",
+  "@coverageLegendGood": {},
+  "coverageLegendPoor": "Poor signal",
+  "@coverageLegendPoor": {},
+  "coverageLegendNoData": "No data",
+  "@coverageLegendNoData": {},
+  "coverageAdviceTitle": "Advice (directional · 100 m level)",
+  "@coverageAdviceTitle": {},
+  "coverageAdviceNone": "Coverage is good — no gateway change needed",
+  "@coverageAdviceNone": {},
+  "coverageAdviceAddGateway": "Consider adding a gateway",
+  "@coverageAdviceAddGateway": {},
+  "coverageAdviceMoveAntenna": "Weak area concentrated {dir}: raise antenna or relocate toward it",
+  "@coverageAdviceMoveAntenna": {
+    "placeholders": {
+      "dir": {
+        "type": "String"
+      }
+    }
+  },
+  "coverageAdviceAtCluster": "Weak-coverage activity area",
+  "@coverageAdviceAtCluster": {},
+  "coverageAdviceWeakDirection": "Direction concentrated",
+  "@coverageAdviceWeakDirection": {},
+  "coverageAdviceCoord": "Suggested spot: {lat}, {lng}",
+  "@coverageAdviceCoord": {
+    "placeholders": {
+      "lat": {
+        "type": "String"
+      },
+      "lng": {
+        "type": "String"
+      }
+    }
+  },
+  "coverageAdviceExpected": "Expected edge-frame share {before}% → {after}%",
+  "@coverageAdviceExpected": {
+    "placeholders": {
+      "before": {
+        "type": "int"
+      },
+      "after": {
+        "type": "int"
+      }
+    }
+  },
+  "coverageAdviceCaliber": "Path-loss model (RSSI gain ~{gain} dB) · directional reference only, 100 m level",
+  "@coverageAdviceCaliber": {
+    "placeholders": {
+      "gain": {
+        "type": "String"
+      }
+    }
+  },
+  "coverageFootnote": "Heat map aggregates real reported frames over the last 30 days on a 100 m grid. Animal-body RSSI fluctuates ±10 dB — treat advice as directional guidance only.",
+  "@coverageFootnote": {}
 }
