@@ -17,15 +17,30 @@ sync_regions() {
     base=$(basename "$f" .mbtiles)
     size=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f")
     md5hash=$(md5sum "$f" 2>/dev/null | cut -d' ' -f1 || md5 -r "$f" 2>/dev/null | cut -d' ' -f1)
-    bounds=$(python3 -c "import sqlite3;c=sqlite3.connect('$f');r=c.execute(\"SELECT value FROM metadata WHERE name='bounds'\").fetchone();print(r[0] if r else '');c.close()" 2>/dev/null)
-    [ -z "$bounds" ] && continue
-    payload=$(python3 - "$base" "$bounds" "$size" "$md5hash" <<'PY'
-import json,sys
-base,bounds,size,md5=sys.argv[1:5]
-mnlo,mnla,mxlo,mxla=[float(x) for x in bounds.split(',')]
-print(json.dumps({'name':base,'minLon':mnlo,'minLat':mnla,'maxLon':mxlo,'maxLat':mxla,'fileName':base+'.mbtiles','fileSize':int(size),'md5':md5,'status':'ready'}))
+    # bounds + minzoom/maxzoom both come from the MBTiles metadata table.
+    # minZoom/maxZoom must be sent explicitly: the admin API defaults
+    # missing zooms to 11/15, which would overwrite the real 7-10 / 12-14
+    # coverage of the shipped regions on every sync.
+    payload=$(python3 - "$base" "$f" "$size" "$md5hash" <<'PY'
+import json, sqlite3, sys
+base, db, size, md5 = sys.argv[1:5]
+conn = sqlite3.connect(db)
+meta = dict(conn.execute(
+    "SELECT name, value FROM metadata WHERE name IN ('bounds','minzoom','maxzoom')"
+).fetchall())
+conn.close()
+if 'bounds' not in meta:
+    sys.exit(3)
+mnlo, mnla, mxlo, mxla = [float(x) for x in meta['bounds'].split(',')]
+print(json.dumps({
+    'name': base,
+    'minLon': mnlo, 'minLat': mnla, 'maxLon': mxlo, 'maxLat': mxla,
+    'minZoom': int(meta.get('minzoom', 11)), 'maxZoom': int(meta.get('maxzoom', 15)),
+    'fileName': base + '.mbtiles', 'fileSize': int(size),
+    'md5': md5, 'status': 'ready',
+}))
 PY
-)
+) || { echo "  region sync skipped (no readable metadata): $base" >&2; continue; }
     if curl -sf -X POST "$API_URL/admin/tiles/regions" -H "X-API-Key: $API_KEY" -H "Content-Type: application/json" -d "$payload" >/dev/null; then
       echo "  region synced: $base"
     else

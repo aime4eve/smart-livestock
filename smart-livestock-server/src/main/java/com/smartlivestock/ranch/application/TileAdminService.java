@@ -154,6 +154,50 @@ public class TileAdminService {
 
     @Transactional(readOnly = true)
     public FarmTileStatusDto getFarmTileStatus(Long farmId) {
+        // App-side listing: every ready region in the tile registry (which
+        // mirrors the tileserver volume), so any region is downloadable from
+        // any ranch. Regions auto-linked to this farm (bbox intersect) come
+        // first, the rest follow alphabetically.
+        List<FarmTileTask> tasks = farmTileTaskRepository.findByFarmId(farmId);
+        java.util.Map<Long, FarmTileTask> taskByRegion = tasks.stream()
+                .collect(java.util.stream.Collectors.toMap(FarmTileTask::getRegionId, t -> t, (a, b) -> a));
+        List<TileRegion> regions = tileRegionRepository.findByStatus("ready");
+        List<FarmTileStatusDto.RegionStatus> regionStatuses = regions.stream()
+                .map(r -> {
+                    FarmTileTask task = taskByRegion.get(r.getId());
+                    // Linked farms keep their task status; unlinked regions are
+                    // directly downloadable, so the registry status is used.
+                    String status = task != null ? task.getStatus() : r.getStatus();
+                    // file_size must come from the registry: task rows created
+                    // before the region was registered carry 0.
+                    return new FarmTileStatusDto.RegionStatus(
+                            r.getId(),
+                            r.getName(),
+                            status,
+                            r.getFileSize(),
+                            r.getFileName(),
+                            r.getMd5());
+                })
+                .sorted(java.util.Comparator
+                        .comparing((FarmTileStatusDto.RegionStatus r) ->
+                                taskByRegion.containsKey(r.regionId()) ? 0 : 1)
+                        .thenComparing(FarmTileStatusDto.RegionStatus::regionName))
+                .toList();
+        return new FarmTileStatusDto(farmId, regionStatuses, 0, false);
+    }
+
+    @Transactional(readOnly = true)
+    public List<FarmTileStatusDto> listFarmTileStatuses() {
+        List<Long> farmIds = farmTileTaskRepository.findAllDistinctFarmIds();
+        return farmIds.stream()
+                .map(this::getLinkedFarmTileStatus)
+                .filter(s -> !s.regions().isEmpty())
+                .toList();
+    }
+
+    /** Admin view: only the regions linked to the farm (old semantics). */
+    @Transactional(readOnly = true)
+    public FarmTileStatusDto getLinkedFarmTileStatus(Long farmId) {
         List<FarmTileTask> tasks = farmTileTaskRepository.findByFarmId(farmId);
         List<Long> regionIds = tasks.stream().map(FarmTileTask::getRegionId).toList();
         java.util.Map<Long, TileRegion> regionMap = tileRegionRepository.findAllByIds(regionIds).stream()
@@ -171,15 +215,6 @@ public class TileAdminService {
                 })
                 .toList();
         return new FarmTileStatusDto(farmId, regions, 0, false);
-    }
-
-    @Transactional(readOnly = true)
-    public List<FarmTileStatusDto> listFarmTileStatuses() {
-        List<Long> farmIds = farmTileTaskRepository.findAllDistinctFarmIds();
-        return farmIds.stream()
-                .map(this::getFarmTileStatus)
-                .filter(s -> !s.regions().isEmpty())
-                .toList();
     }
 
     @Transactional(readOnly = true)

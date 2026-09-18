@@ -2,6 +2,7 @@ package com.smartlivestock.ranch.infrastructure.persistence;
 
 import com.smartlivestock.ranch.domain.model.TileRegion;
 import com.smartlivestock.ranch.domain.repository.TileRegionRepository;
+import com.smartlivestock.ranch.infrastructure.persistence.entity.TileRegionJpaEntity;
 import com.smartlivestock.ranch.infrastructure.persistence.mapper.TileRegionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -16,7 +17,18 @@ public class TileRegionRepositoryImpl implements TileRegionRepository {
 
     @Override
     public TileRegion save(TileRegion region) {
-        return TileRegionMapper.toDomain(springDataRepo.save(TileRegionMapper.toJpaEntity(region)));
+        // Update the managed entity in place so audit columns (created_at)
+        // survive; building a fresh detached entity writes NULL created_at
+        // and violates the NOT NULL constraint on update.
+        TileRegionJpaEntity jpa = region.getId() != null
+                ? springDataRepo.findById(region.getId()).orElse(null)
+                : null;
+        if (jpa == null) {
+            jpa = TileRegionMapper.toJpaEntity(region);
+        } else {
+            TileRegionMapper.copyToJpaEntity(region, jpa);
+        }
+        return TileRegionMapper.toDomain(springDataRepo.save(jpa));
     }
     @Override
     public Optional<TileRegion> findById(Long id) {
