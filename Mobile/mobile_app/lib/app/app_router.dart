@@ -55,6 +55,7 @@ import 'package:hkt_livestock_agentic/features/admin/presentation/contracts_page
 import 'package:hkt_livestock_agentic/features/admin/presentation/revenue_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/presentation/subscriptions_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/presentation/api_auth_page.dart';
+import 'package:hkt_livestock_agentic/features/mine/presentation/help_support_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/audit_log/presentation/audit_log_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/feature_gate/presentation/feature_gate_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/license/presentation/deployment_license_page.dart';
@@ -396,6 +397,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoute.mineApiAuth.path,
             name: AppRoute.mineApiAuth.routeName,
             builder: (context, state) => const MineApiAuthPage(),
+          ),
+          GoRoute(
+            path: AppRoute.helpSupport.path,
+            name: AppRoute.helpSupport.routeName,
+            builder: (context, state) => const HelpSupportPage(),
           ),
           GoRoute(
             path: AppRoute.platformAuditLog.path,

@@ -528,6 +528,81 @@ class AppLocalizationsZh extends AppLocalizations {
   String get mineHelpSupportComingSoon => '帮助与支持页面开发中...';
 
   @override
+  String get helpSupportGuideTitle => '操作说明';
+
+  @override
+  String get helpSupportGuideBindTitle => '绑定设备';
+
+  @override
+  String get helpSupportGuideBindSteps =>
+      '打开“我的 → 设备管理”，点右上角“+”添加设备\n扫描设备二维码自动读取 EUI，或手动输入\n在牲畜详情页选择牲畜完成绑定\n设备上线后，定位与传感数据自动上报';
+
+  @override
+  String get helpSupportGuideOfflineTitle => '下载离线地图';
+
+  @override
+  String get helpSupportGuideOfflineSteps =>
+      '打开“我的 → 离线地图管理”\n在可用区域列表点“下载”\n等待进度完成，区域进入“已下载”\n弱网或无网络时，地图自动使用本地瓦片';
+
+  @override
+  String get helpSupportGuideAlertTitle => '查看告警';
+
+  @override
+  String get helpSupportGuideAlertSteps =>
+      '在牧场页点击“告警”进入告警中心\n用顶部筛选按类型查看（低电量/设备拆卸等）\n点告警卡片查看详情\n处理完成后标记已读';
+
+  @override
+  String get helpSupportGuideHealthTitle => '查看牲畜健康';
+
+  @override
+  String get helpSupportGuideHealthSteps =>
+      '牧场地图上牲畜标记颜色即健康状态\n点标记查看牲畜概览\n进详情查看体温、瘤胃与活动曲线\n指标异常会自动生成健康告警';
+
+  @override
+  String get helpSupportFaqTitle => '常见问题';
+
+  @override
+  String get helpSupportFaqBindQ => '如何绑定设备？';
+
+  @override
+  String get helpSupportFaqBindA =>
+      '在“设备管理”中添加设备并扫码读取 EUI，或在牲畜详情页为牲畜绑定已登记的设备。绑定后设备数据会自动关联到该牲畜。';
+
+  @override
+  String get helpSupportFaqOfflineQ => '离线地图如何使用？';
+
+  @override
+  String get helpSupportFaqOfflineA =>
+      '在“离线地图管理”中下载牧场所在区域的地图包；弱网或无网络时，地图会自动使用已下载的本地瓦片。';
+
+  @override
+  String get helpSupportFaqAlertQ => '告警在哪里查看？';
+
+  @override
+  String get helpSupportFaqAlertA =>
+      '在牧场页点击“告警”进入告警中心，包含围栏越界、设备与健康告警，列表每 30 秒自动刷新。';
+
+  @override
+  String get helpSupportFaqDataQ => '数据多久更新一次？';
+
+  @override
+  String get helpSupportFaqDataA => '定位与传感器数据按设备上报周期入库，各页面数据会定时自动刷新。';
+
+  @override
+  String get helpSupportFaqHealthQ => '牲畜健康状态怎么看？';
+
+  @override
+  String get helpSupportFaqHealthA =>
+      '健康状态基于体温、瘤胃运动与活动量等指标综合评估，异常会生成健康告警并在地图上标色。';
+
+  @override
+  String get helpSupportContactTitle => '联系我们';
+
+  @override
+  String get helpSupportContactDesc =>
+      '企业客户请联系您的客户经理或部署运维团队获取支持；反馈问题时请附上账号手机号与所在牧场名称。';
+
+  @override
   String get mineBusinessManagement => '业务管理';
 
   @override

@@ -1064,6 +1064,138 @@ abstract class AppLocalizations {
   /// **'帮助与支持页面开发中...'**
   String get mineHelpSupportComingSoon;
 
+  /// No description provided for @helpSupportGuideTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'操作说明'**
+  String get helpSupportGuideTitle;
+
+  /// No description provided for @helpSupportGuideBindTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'绑定设备'**
+  String get helpSupportGuideBindTitle;
+
+  /// No description provided for @helpSupportGuideBindSteps.
+  ///
+  /// In zh, this message translates to:
+  /// **'打开“我的 → 设备管理”，点右上角“+”添加设备\n扫描设备二维码自动读取 EUI，或手动输入\n在牲畜详情页选择牲畜完成绑定\n设备上线后，定位与传感数据自动上报'**
+  String get helpSupportGuideBindSteps;
+
+  /// No description provided for @helpSupportGuideOfflineTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载离线地图'**
+  String get helpSupportGuideOfflineTitle;
+
+  /// No description provided for @helpSupportGuideOfflineSteps.
+  ///
+  /// In zh, this message translates to:
+  /// **'打开“我的 → 离线地图管理”\n在可用区域列表点“下载”\n等待进度完成，区域进入“已下载”\n弱网或无网络时，地图自动使用本地瓦片'**
+  String get helpSupportGuideOfflineSteps;
+
+  /// No description provided for @helpSupportGuideAlertTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看告警'**
+  String get helpSupportGuideAlertTitle;
+
+  /// No description provided for @helpSupportGuideAlertSteps.
+  ///
+  /// In zh, this message translates to:
+  /// **'在牧场页点击“告警”进入告警中心\n用顶部筛选按类型查看（低电量/设备拆卸等）\n点告警卡片查看详情\n处理完成后标记已读'**
+  String get helpSupportGuideAlertSteps;
+
+  /// No description provided for @helpSupportGuideHealthTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看牲畜健康'**
+  String get helpSupportGuideHealthTitle;
+
+  /// No description provided for @helpSupportGuideHealthSteps.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧场地图上牲畜标记颜色即健康状态\n点标记查看牲畜概览\n进详情查看体温、瘤胃与活动曲线\n指标异常会自动生成健康告警'**
+  String get helpSupportGuideHealthSteps;
+
+  /// No description provided for @helpSupportFaqTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'常见问题'**
+  String get helpSupportFaqTitle;
+
+  /// No description provided for @helpSupportFaqBindQ.
+  ///
+  /// In zh, this message translates to:
+  /// **'如何绑定设备？'**
+  String get helpSupportFaqBindQ;
+
+  /// No description provided for @helpSupportFaqBindA.
+  ///
+  /// In zh, this message translates to:
+  /// **'在“设备管理”中添加设备并扫码读取 EUI，或在牲畜详情页为牲畜绑定已登记的设备。绑定后设备数据会自动关联到该牲畜。'**
+  String get helpSupportFaqBindA;
+
+  /// No description provided for @helpSupportFaqOfflineQ.
+  ///
+  /// In zh, this message translates to:
+  /// **'离线地图如何使用？'**
+  String get helpSupportFaqOfflineQ;
+
+  /// No description provided for @helpSupportFaqOfflineA.
+  ///
+  /// In zh, this message translates to:
+  /// **'在“离线地图管理”中下载牧场所在区域的地图包；弱网或无网络时，地图会自动使用已下载的本地瓦片。'**
+  String get helpSupportFaqOfflineA;
+
+  /// No description provided for @helpSupportFaqAlertQ.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警在哪里查看？'**
+  String get helpSupportFaqAlertQ;
+
+  /// No description provided for @helpSupportFaqAlertA.
+  ///
+  /// In zh, this message translates to:
+  /// **'在牧场页点击“告警”进入告警中心，包含围栏越界、设备与健康告警，列表每 30 秒自动刷新。'**
+  String get helpSupportFaqAlertA;
+
+  /// No description provided for @helpSupportFaqDataQ.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据多久更新一次？'**
+  String get helpSupportFaqDataQ;
+
+  /// No description provided for @helpSupportFaqDataA.
+  ///
+  /// In zh, this message translates to:
+  /// **'定位与传感器数据按设备上报周期入库，各页面数据会定时自动刷新。'**
+  String get helpSupportFaqDataA;
+
+  /// No description provided for @helpSupportFaqHealthQ.
+  ///
+  /// In zh, this message translates to:
+  /// **'牲畜健康状态怎么看？'**
+  String get helpSupportFaqHealthQ;
+
+  /// No description provided for @helpSupportFaqHealthA.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康状态基于体温、瘤胃运动与活动量等指标综合评估，异常会生成健康告警并在地图上标色。'**
+  String get helpSupportFaqHealthA;
+
+  /// No description provided for @helpSupportContactTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'联系我们'**
+  String get helpSupportContactTitle;
+
+  /// No description provided for @helpSupportContactDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'企业客户请联系您的客户经理或部署运维团队获取支持；反馈问题时请附上账号手机号与所在牧场名称。'**
+  String get helpSupportContactDesc;
+
   /// No description provided for @mineBusinessManagement.
   ///
   /// In zh, this message translates to:

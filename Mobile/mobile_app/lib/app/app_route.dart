@@ -48,6 +48,7 @@ enum AppRoute {
   b2bAdminRevenueDetail('/b2b/admin/revenue/:id', 'b2b-admin-revenue-detail', '对账详情'),
   b2bWorkerDetail('/b2b/admin/farms/:farmId', 'b2b-worker-detail', '牧工详情'),
   mineApiAuth('/mine/api-auth', 'mine-api-auth', 'API授权管理'),
+  helpSupport('/mine/help', 'help-support', '帮助与支持'),
   farmCreation('/farm/create', 'farm-creation', '创建牧场'),
   platformAuditLog('/admin/audit-logs', 'platform-audit-log', '审计日志'),
   platformFeatureGates('/admin/feature-gates', 'platform-feature-gates', '功能门控'),

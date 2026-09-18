@@ -537,6 +537,82 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mineHelpSupportComingSoon => 'Help & Support page coming soon...';
 
   @override
+  String get helpSupportGuideTitle => 'How-to Guides';
+
+  @override
+  String get helpSupportGuideBindTitle => 'Bind a device';
+
+  @override
+  String get helpSupportGuideBindSteps =>
+      'Open Mine → Device Management and tap + to add a device\nScan the device QR code to read its EUI, or enter it manually\nPick the livestock on its detail page to finish binding\nLocation and sensor data start reporting once the device is online';
+
+  @override
+  String get helpSupportGuideOfflineTitle => 'Download offline maps';
+
+  @override
+  String get helpSupportGuideOfflineSteps =>
+      'Open Mine → Offline Map Management\nTap Download on an available area\nWait for the progress to finish; the area moves to Downloaded\nThe map falls back to local tiles when the network is weak or unavailable';
+
+  @override
+  String get helpSupportGuideAlertTitle => 'View alerts';
+
+  @override
+  String get helpSupportGuideAlertSteps =>
+      'Tap Alerts on the ranch page to open the Alert Center\nFilter by type with the chips (low battery, device removal, ...)\nTap an alert card for details\nMark it as read once handled';
+
+  @override
+  String get helpSupportGuideHealthTitle => 'Check livestock health';
+
+  @override
+  String get helpSupportGuideHealthSteps =>
+      'Marker colors on the ranch map reflect health status\nTap a marker for the livestock overview\nOpen the detail page for temperature, rumen and activity curves\nAbnormal metrics raise health alerts automatically';
+
+  @override
+  String get helpSupportFaqTitle => 'FAQ';
+
+  @override
+  String get helpSupportFaqBindQ => 'How do I bind a device?';
+
+  @override
+  String get helpSupportFaqBindA =>
+      'Add a device in Device Management and scan its EUI code, or bind a registered device from the livestock detail page. Device data is linked to the animal automatically after binding.';
+
+  @override
+  String get helpSupportFaqOfflineQ => 'How does the offline map work?';
+
+  @override
+  String get helpSupportFaqOfflineA =>
+      'Download your ranch area in Offline Map Management; the map automatically falls back to downloaded local tiles when the network is weak or unavailable.';
+
+  @override
+  String get helpSupportFaqAlertQ => 'Where can I see alerts?';
+
+  @override
+  String get helpSupportFaqAlertA =>
+      'Tap Alerts on the ranch page to open the Alert Center, covering fence breaches, device and health alerts. The list refreshes every 30 seconds.';
+
+  @override
+  String get helpSupportFaqDataQ => 'How often is data updated?';
+
+  @override
+  String get helpSupportFaqDataA =>
+      'Location and sensor data arrive on each device\'s reporting cycle, and pages refresh automatically on a schedule.';
+
+  @override
+  String get helpSupportFaqHealthQ => 'How is livestock health shown?';
+
+  @override
+  String get helpSupportFaqHealthA =>
+      'Health is evaluated from body temperature, rumen motion and activity metrics; anomalies raise health alerts and color the map marker.';
+
+  @override
+  String get helpSupportContactTitle => 'Contact Us';
+
+  @override
+  String get helpSupportContactDesc =>
+      'Enterprise customers can reach their account manager or deployment team for support. Include your account phone number and ranch name when reporting issues.';
+
+  @override
   String get mineBusinessManagement => 'Business Management';
 
   @override

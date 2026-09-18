@@ -26,6 +26,7 @@ extension AppRouteL10n on AppRoute {
         return l10n.navAlerts;
       case AppRoute.mine:
       case AppRoute.mineApiAuth:
+      case AppRoute.helpSupport:
       case AppRoute.workerManagement:
       case AppRoute.gatewayPositions:
       case AppRoute.gatewayMark:
