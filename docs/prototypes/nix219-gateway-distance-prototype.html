@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NIX-219 网关位置与通讯距离 — 高保真原型</title>
+  <style>
+    :root {
+      /* 与 App 现行令牌一致（源自 nix-52 / tb-wizard 原型基线） */
+      --primary: #2F6B3B;
+      --primary-dark: #244F2D;
+      --primary-soft: #E3F0E4;
+      --surface: #F8F6F0;
+      --surface-alt: #FFFFFF;
+      --surface-muted: #F2F0EA;
+      --border: #D7D2C6;
+      --text-primary: #263126;
+      --text-secondary: #617061;
+      --success: #4C9A5F;
+      --success-soft: #E4F3E8;
+      --warning: #D28A2D;
+      --warning-soft: #FFF2DE;
+      --danger: #C2564B;
+      --danger-soft: #FBE8E6;
+      --info: #4A7F9D;
+      --info-soft: #E7F1F6;
+      --signal-stable: #4C9A5F;
+      --signal-weak: #D28A2D;
+      --signal-edge: #C2564B;
+      --xs: 4px; --sm: 8px; --md: 12px; --lg: 16px; --xl: 24px;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(38, 49, 38, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #ECE9E1; color: var(--text-primary); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif; }
+    .intro { max-width: 1680px; margin: 0 auto; padding: var(--lg); }
+    .intro h1 { font-size: 20px; margin: 0 0 var(--sm); }
+    .intro p { margin: 0 0 var(--sm); font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+    .intro .review { border-left: 3px solid var(--info); background: var(--info-soft); padding: var(--md); border-radius: 0 var(--radius) var(--radius) 0; font-size: 13px; line-height: 1.7; }
+    .screens { display: flex; gap: var(--xl); padding: var(--lg); overflow-x: auto; align-items: flex-start; }
+    .col { flex: 0 0 auto; }
+    .col > .label { font-size: 13px; font-weight: 700; margin-bottom: var(--sm); color: var(--text-secondary); }
+    .phone { width: 390px; min-height: 780px; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; box-shadow: var(--shadow); }
+    .sheet { padding: var(--lg); padding-bottom: var(--xl); }
+    .handle { width: 40px; height: 4px; border-radius: 2px; background: var(--border); margin: 0 auto var(--md); }
+    h1.title { font-size: 22px; margin: 0 0 var(--md); }
+    h2.sec { font-size: 15px; margin: var(--lg) 0 var(--sm); }
+    .appbar { display: flex; align-items: center; gap: var(--sm); padding: var(--md) var(--lg); background: var(--surface-alt); border-bottom: 1px solid var(--border); }
+    .appbar .back { font-size: 18px; color: var(--primary); }
+    .appbar strong { font-size: 16px; }
+    .card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-alt); box-shadow: var(--shadow); padding: var(--md); margin-bottom: var(--md); }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: var(--sm); font-size: 13px; }
+    .row + .row { margin-top: var(--sm); }
+    .row span:first-child { color: var(--text-secondary); }
+    .badge { display: inline-flex; align-items: center; height: 22px; border-radius: 4px; padding: 0 var(--sm); font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .badge.success { background: var(--success-soft); color: var(--success); }
+    .badge.warning { background: var(--warning-soft); color: var(--warning); }
+    .badge.danger { background: var(--danger-soft); color: var(--danger); }
+    .badge.info { background: var(--info-soft); color: var(--info); }
+    .badge.muted { background: var(--surface-muted); color: var(--text-secondary); }
+    .button { width: 100%; height: 46px; border: 0; border-radius: var(--radius); font-size: 15px; font-weight: 600; }
+    .primary { background: var(--primary); color: #fff; }
+    .secondary { background: var(--surface-muted); color: var(--text-primary); }
+    .gw { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-alt); padding: var(--md); margin-bottom: var(--sm); display: flex; justify-content: space-between; align-items: center; gap: var(--sm); }
+    .gw .id { font-weight: 700; font-size: 15px; }
+    .gw .meta { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+    .dot.stable { background: var(--signal-stable); }
+    .dot.weak { background: var(--signal-weak); }
+    .dot.edge { background: var(--signal-edge); }
+    .mini { height: 34px; border: 0; border-radius: var(--radius); padding: 0 var(--md); font-size: 13px; font-weight: 600; background: var(--primary-soft); color: var(--primary); }
+    .mini.done { background: var(--surface-muted); color: var(--text-secondary); }
+    /* 标记流程：定位精度圈 + 地图 */
+    .accuracy { display: flex; align-items: center; gap: var(--md); background: var(--info-soft); border-radius: var(--radius); padding: var(--md); font-size: 13px; margin-bottom: var(--md); }
+    .accuracy .circle { width: 44px; height: 44px; border-radius: 50%; background: rgba(74, 127, 157, 0.18); border: 2px solid var(--info); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+    .accuracy .circle::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--info); }
+    .map { position: relative; height: 240px; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; background:
+      linear-gradient(0deg, #EAE6D8 1px, transparent 1px) 0 0 / 100% 48px,
+      linear-gradient(90deg, #EAE6D8 1px, transparent 1px) 0 0 / 48px 100%,
+      #F0EDE2; margin-bottom: var(--md); }
+    .map .road { position: absolute; background: #FFF; }
+    .map .road.h { left: 0; right: 0; height: 10px; top: 116px; box-shadow: 0 1px 0 var(--border); }
+    .map .road.v { top: 0; bottom: 0; width: 10px; left: 220px; box-shadow: 1px 0 0 var(--border); }
+    .map .green { position: absolute; background: #DFE9D8; border-radius: 6px; }
+    .pin { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -100%); text-align: center; }
+    .pin .head { width: 26px; height: 26px; border-radius: 50% 50% 50% 0; background: var(--primary); transform: rotate(-45deg); margin: 0 auto; border: 3px solid #fff; box-shadow: var(--shadow); }
+    .pin .acc { margin-top: 6px; width: 110px; height: 110px; border-radius: 50%; background: rgba(74, 127, 157, 0.15); border: 2px dashed var(--info); position: absolute; left: 50%; top: 8px; transform: translateX(-50%); }
+    .pin .tag { position: absolute; left: 50%; transform: translateX(-50%); top: -26px; background: var(--text-primary); color: #fff; font-size: 11px; border-radius: 4px; padding: 2px 6px; white-space: nowrap; }
+    .coords { display: flex; gap: var(--sm); margin-bottom: var(--md); }
+    .coords .field { flex: 1; }
+    .coords label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: var(--xs); }
+    .coords .val { height: 40px; display: flex; align-items: center; justify-content: center; background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; font-variant-numeric: tabular-nums; }
+    /* 覆盖确认弹窗 */
+    .dialog-mask { background: rgba(38, 49, 38, 0.45); padding: var(--xl); margin: -var(--lg); }
+    .dialog { background: var(--surface-alt); border-radius: 12px; padding: var(--lg); box-shadow: var(--shadow); }
+    .dialog h3 { margin: 0 0 var(--sm); font-size: 16px; }
+    .dialog p { margin: 0 0 var(--md); font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+    /* 距离卡片 */
+    .dist-line { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--border); font-size: 13px; }
+    .dist-line:last-child { border-bottom: 0; }
+    .dist-line .gwname { font-weight: 600; }
+    .dist-line .nums { text-align: right; font-variant-numeric: tabular-nums; }
+    .dist-line .nums strong { font-size: 15px; }
+    .dist-line .nums .sub { color: var(--text-secondary); font-size: 11px; margin-left: var(--sm); }
+    .dist-line.inferred { color: var(--text-secondary); }
+    .dist-line.inferred .gwname::after { content: "推断"; margin-left: 6px; font-size: 10px; background: var(--surface-muted); border-radius: 3px; padding: 1px 4px; }
+    .nearest { background: var(--primary-soft); border: 1px solid var(--primary); }
+    .nearest .tag { font-size: 10px; background: var(--primary); color: #fff; border-radius: 3px; padding: 1px 4px; margin-left: 6px; }
+    .stat3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--sm); margin-bottom: var(--md); }
+    .stat3 .cell { background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--sm) var(--md); text-align: center; }
+    .stat3 .cell b { display: block; font-size: 20px; }
+    .stat3 .cell span { font-size: 11px; color: var(--text-secondary); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; background: var(--surface-alt); }
+    th, td { border: 1px solid var(--border); padding: 6px var(--sm); text-align: left; }
+    th { background: var(--surface-muted); color: var(--text-secondary); font-weight: 600; }
+    .footer-note { padding: 0 var(--lg) var(--lg); font-size: 11px; color: var(--text-secondary); line-height: 1.6; }
+    /* 覆盖热力图（F8 v2：连续色带，替换离散网格） */
+    .heatlayer { position: absolute; inset: 0; filter: blur(16px) saturate(1.15); opacity: .9; }
+    .heat { position: absolute; border-radius: 50%; transform: translate(-50%, -50%); }
+    .heat.g { background: radial-gradient(circle, rgba(76,154,95,.95) 0%, rgba(76,154,95,.45) 55%, rgba(76,154,95,0) 72%); }
+    .heat.y { background: radial-gradient(circle, rgba(210,138,45,.95) 0%, rgba(210,138,45,.4) 55%, rgba(210,138,45,0) 72%); }
+    .heat.r { background: radial-gradient(circle, rgba(194,86,75,.95) 0%, rgba(194,86,75,.45) 55%, rgba(194,86,75,0) 72%); }
+    .heatband { display: flex; align-items: center; gap: var(--sm); font-size: 11px; color: var(--text-secondary); margin-bottom: var(--md); }
+    .heatband .bar { flex: 0 0 140px; height: 10px; border-radius: 5px; background: linear-gradient(90deg, rgba(76,154,95,.95), rgba(210,138,45,.95), rgba(194,86,75,.95)); }
+    .heatband .nodata { display: inline-flex; align-items: center; gap: 4px; }
+    .heatband .nodata::before { content: ""; width: 10px; height: 10px; border-radius: 2px; background: #EDEAE0; border: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>NIX-219 网关位置与通讯距离 — 高保真原型（v1 待评审）</h1>
+  <p>四个界面：①「我的」网关位置列表（自动发现 + 标记状态）；②标记流程（当前定位 → 地图微调 → 覆盖确认）；③设备详情「通讯距离」卡片（按网关分组 + 方案B推断 + 未知文案）；④admin 网关对账。设计令牌与现行 App 基线一致（:root CSS 变量，可被 prototype-to-flutter-fidelity 解析）。</p>
+  <div class="review">
+    <strong>待评审决策点</strong>：① 列表条目信息密度（短号 183 vs 全 ID）；② 标记默认进"当前定位"还是地图选点；③ 覆盖确认弹窗文案与权限提示（全局唯一，后标覆盖会影响其他牧场显示）；④ 距离卡片是否需要"最近网关"高亮行；⑤ admin 对账未标记清单是否需要一键复制。
+  </div>
+</div>
+
+<div class="screens">
+
+  <!-- 屏①：网关位置列表 -->
+  <div class="col">
+    <div class="label">① 我的 → 网关位置（自动发现）</div>
+    <main class="phone">
+      <div class="appbar"><span class="back">‹</span><strong>网关位置</strong></div>
+      <section class="sheet">
+        <div class="handle"></div>
+        <h1 class="title">网关位置</h1>
+        <div class="card" style="background: var(--primary-soft); border-color: var(--primary);">
+          <div class="row"><span style="color: var(--text-primary);">网关是通讯距离计算的基准点</span></div>
+          <div class="row" style="margin-top: var(--xs);"><span style="color: var(--text-primary); font-size: 12px;">请把手机带到网关安装点旁（10 米内）再标记</span></div>
+        </div>
+
+        <h2 class="sec">本牧场通联网关（2）</h2>
+        <div class="gw">
+          <div>
+            <div class="id">网关 …000183</div>
+            <div class="meta">最后通信 5 分钟前 · 近 30 天 627 帧 · <span class="dot stable"></span>信号稳定</div>
+          </div>
+          <button class="mini">去标记</button>
+        </div>
+        <div class="gw">
+          <div>
+            <div class="id">网关 …000184</div>
+            <div class="meta">最后通信 12 分钟前 · 近 30 天 776 帧 · <span class="dot weak"></span>信号偏弱</div>
+            <div class="meta" style="margin-top:4px;"><span class="badge info">已登记 · 张场主 09-12 标记</span></div>
+          </div>
+          <button class="mini">重新标记</button>
+        </div>
+
+        <h2 class="sec">30 天内无通信（1）</h2>
+        <div class="gw" style="opacity: 0.65;">
+          <div>
+            <div class="id">网关 …000185</div>
+            <div class="meta">最后通信 09-11</div>
+          </div>
+          <button class="mini done">未登记</button>
+        </div>
+
+        <p class="footer-note">说明：列表来自本牧场设备实际通联记录（近 90 天），不做手工输入 ID。信号分档：稳定 / 偏弱 / 边缘（30 天滑窗 RSSI 均值）。</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- 屏②：标记流程 -->
+  <div class="col">
+    <div class="label">② 标记流程：定位 → 地图微调 → 覆盖确认</div>
+    <main class="phone">
+      <div class="appbar"><span class="back">‹</span><strong>标记网关 …000184</strong></div>
+      <section class="sheet">
+        <div class="handle"></div>
+        <div class="accuracy">
+          <div class="circle"></div>
+          <div>
+            <strong>GPS 已就绪 · 精度约 ±8m</strong><br>
+            <span style="color: var(--text-secondary);">精度大于 ±50m 时建议到开阔处重试</span>
+          </div>
+        </div>
+
+        <div class="map">
+          <div class="road h"></div>
+          <div class="road v"></div>
+          <div class="green" style="left: 24px; top: 24px; width: 90px; height: 70px;"></div>
+          <div class="green" style="right: 24px; bottom: 24px; width: 110px; height: 60px;"></div>
+          <div class="pin">
+            <div class="tag">拖动图钉微调</div>
+            <div class="acc"></div>
+            <div class="head"></div>
+          </div>
+        </div>
+
+        <div class="coords">
+          <div class="field"><label>纬度</label><div class="val">28.2465617</div></div>
+          <div class="field"><label>经度</label><div class="val">112.8513945</div></div>
+        </div>
+
+        <div class="card" style="background: var(--warning-soft); border-color: var(--warning);">
+          <div class="row"><span style="color: var(--text-primary);"><strong>该网关已有坐标</strong></span><span class="badge warning">将覆盖</span></div>
+          <div class="row" style="margin-top: var(--xs);"><span style="color: var(--text-primary); font-size: 12px;">张场主标记于 09-12 14:20 · 全局唯一，覆盖后所有牧场按新坐标计算</span></div>
+        </div>
+
+        <div style="display: flex; gap: var(--sm); margin-top: var(--md);">
+          <button class="button secondary">用地图选点</button>
+          <button class="button primary">确认标记此位置</button>
+        </div>
+        <p class="footer-note">默认进入"当前定位"模式；"地图选点"进入纯拖动模式。精度圈颜色随精度变化（≤10m 绿 / 10–50m 橙 / &gt;50m 红并禁止提交）。</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- 屏③：设备详情通讯距离卡片 -->
+  <div class="col">
+    <div class="label">③ 设备详情 → 通讯距离卡片（F2 / F9）</div>
+    <main class="phone">
+      <div class="appbar"><span class="back">‹</span><strong>牲畜详情 · ST-22</strong></div>
+      <section class="sheet">
+        <div class="handle"></div>
+        <h1 class="title">通讯距离</h1>
+
+        <div class="stat3">
+          <div class="cell"><b>156m</b><span>最新（最近网关）</span></div>
+          <div class="cell"><b>89m</b><span>30 天中位</span></div>
+          <div class="cell"><b>412m</b><span>30 天最远</span></div>
+        </div>
+
+        <div class="card">
+          <div class="dist-line nearest">
+            <div><span class="dot stable"></span><span class="gwname">网关 …000184</span><span class="tag">最近</span></div>
+            <div class="nums"><strong>156m</strong><span class="sub">中位 62m · P95 310m</span></div>
+          </div>
+          <div class="dist-line">
+            <div><span class="dot weak"></span><span class="gwname">网关 …000183</span></div>
+            <div class="nums"><strong>342m</strong><span class="sub">中位 88m · P95 590m</span></div>
+          </div>
+          <div class="dist-line inferred">
+            <div><span class="dot edge"></span><span class="gwname">网关 …00017d</span></div>
+            <div class="nums"><strong>~800m</strong><span class="sub">约 650–1200m · 映射推断</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="row"><span>信号链路</span><span class="badge warning">偏弱 · 平均 -97dBm</span></div>
+          <div class="row"><span>定位状态</span><span class="badge success">有效定位 96%</span></div>
+        </div>
+
+        <h2 class="sec">无定位设备显示（F9）</h2>
+        <div class="card">
+          <div class="row"><span>通讯距离</span><strong>未知（无定位）</strong></div>
+          <div class="row"><span>信号链路</span><span class="badge danger">边缘 · 平均 -108dBm</span></div>
+          <div class="row"><span>说明</span><span style="text-align: right; max-width: 200px; color: var(--text-secondary); font-size: 12px;">设备未获得 GPS 定位，距离以信号强度档位参考</span></div>
+        </div>
+
+        <p class="footer-note">距离按"该帧实际接收的网关"分别计算；网关切换时曲线分线绘制，台阶为正常现象。推断行来自 RSSI→距离映射（映射推断 / 模型推断两种来源），仅对无定位帧展示。</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- 屏④：admin 对账 -->
+  <div class="col">
+    <div class="label">④ admin → 网关登记对账（F10）</div>
+    <main class="phone">
+      <div class="appbar"><span class="back">‹</span><strong>网关登记对账</strong></div>
+      <section class="sheet">
+        <div class="handle"></div>
+        <h1 class="title">网关登记</h1>
+
+        <div class="stat3">
+          <div class="cell"><b>7</b><span>已登记</span></div>
+          <div class="cell"><b>7</b><span>未标记</span></div>
+          <div class="cell"><b>50%</b><span>标记率</span></div>
+        </div>
+
+        <h2 class="sec">未标记网关（7）</h2>
+        <div class="card" style="padding: 0;">
+          <table>
+            <tr><th>网关</th><th>最后通信</th><th>通联设备</th></tr>
+            <tr><td>…00017b</td><td>08-19</td><td>3</td></tr>
+            <tr><td>…000174</td><td>08-11</td><td>1</td></tr>
+            <tr><td>aa55…0018</td><td>09-17</td><td>12</td></tr>
+            <tr><td>24e1…714e</td><td>09-17</td><td>26</td></tr>
+            <tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">… 其余 3 台</td></tr>
+          </table>
+        </div>
+
+        <h2 class="sec">已登记（7）</h2>
+        <div class="card">
+          <div class="row"><span class="gwname">…000184</span><span>28.2465617, 112.8513945</span></div>
+          <div class="row"><span>标记人</span><span>张场主 · 09-12 14:20 · APP</span></div>
+        </div>
+        <div class="card">
+          <div class="row"><span class="gwname">31号点</span><span>28.2465617, 112.8513945</span></div>
+          <div class="row"><span>标记人</span><span>运营导入 · SEED</span></div>
+        </div>
+
+        <p class="footer-note">对账口径：近 90 天遥测中出现过的非空 gateway_id（剔除仿真 datagen-gw-01）与登记表求差。只读，无编辑入口。</p>
+      </section>
+
+  <!-- 屏⑤：覆盖诊断与位置调整建议 -->
+  <div class="col">
+    <div class="label">⑤ 覆盖诊断与网关位置调整建议（F8，P4）</div>
+    <main class="phone">
+      <div class="appbar"><span class="back">‹</span><strong>覆盖诊断 · 主牧场</strong></div>
+      <section class="sheet">
+        <div class="handle"></div>
+        <h1 class="title">信号覆盖诊断</h1>
+        <div class="row" style="margin-bottom: var(--sm);"><span>数据窗口</span><strong>近 30 天 · 6,233 帧</strong></div>
+
+        <div class="map" style="height: 230px;">
+          <div class="road h"></div>
+          <div class="road v"></div>
+          <div class="heatlayer">
+            <!-- 网关周边：信号好（绿） -->
+            <div class="heat g" style="left:30%; top:36%; width:150px; height:150px;"></div>
+            <div class="heat g" style="left:18%; top:22%; width:110px; height:110px;"></div>
+            <div class="heat g" style="left:42%; top:26%; width:90px; height:90px;"></div>
+            <!-- 过渡带：偏弱（黄） -->
+            <div class="heat y" style="left:55%; top:44%; width:130px; height:130px;"></div>
+            <div class="heat y" style="left:24%; top:62%; width:110px; height:110px;"></div>
+            <div class="heat y" style="left:66%; top:24%; width:80px; height:80px;"></div>
+            <!-- 东南牧区：边缘（红，集中成片） -->
+            <div class="heat r" style="left:74%; top:62%; width:150px; height:150px;"></div>
+            <div class="heat r" style="left:62%; top:76%; width:110px; height:110px;"></div>
+            <div class="heat r" style="left:86%; top:50%; width:100px; height:100px;"></div>
+            <div class="heat r" style="left:48%; top:80%; width:80px; height:80px;"></div>
+          </div>
+          <!-- 网关位置 -->
+          <div style="position:absolute; left:31%; top:38%; transform:translate(-50%,-100%); z-index: 2;">
+            <div style="width:22px;height:22px;border-radius:50% 50% 50% 0;background:var(--info);transform:rotate(-45deg);border:3px solid #fff;box-shadow:var(--shadow);"></div>
+            <div style="position:absolute;left:50%;transform:translateX(-50%);top:-22px;background:var(--info);color:#fff;font-size:10px;border-radius:4px;padding:1px 5px;white-space:nowrap;">网关 184</div>
+          </div>
+          <!-- 建议增补点位 -->
+          <div style="position:absolute; left:72%; top:66%; transform:translate(-50%,-50%); z-index: 2;">
+            <div style="width:34px;height:34px;border-radius:50%;border:2px dashed var(--danger);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--danger);background:rgba(255,255,255,.85);font-weight:700;">+</div>
+            <div style="position:absolute;left:50%;transform:translateX(-50%);top:36px;background:var(--danger);color:#fff;font-size:10px;border-radius:4px;padding:1px 5px;white-space:nowrap;">建议增补点位</div>
+          </div>
+        </div>
+        <div class="heatband">
+          <span>信号好</span>
+          <div class="bar"></div>
+          <span>信号差</span>
+          <span class="nodata">无数据</span>
+        </div>
+
+        <h2 class="sec">调整建议（方向性 · 百米级）</h2>
+        <div class="card" style="border-left: 3px solid var(--danger);">
+          <div class="row"><span style="color: var(--text-primary);"><strong>建议增补网关</strong></span><span class="badge danger">弱覆盖活动区</span></div>
+          <div class="row" style="margin-top: var(--xs); font-size:12px; color:var(--text-secondary); line-height:1.6;">
+            <span style="color: var(--text-primary);">东南牧区近 30 天 1,980 帧，平均 -108dBm（边缘档占 62%），且该片有 3 头牛活动轨迹但几乎无上传帧。建议在片区中心（约 28.2440, 112.8560）增补一颗网关。</span>
+          </div>
+          <div class="row" style="margin-top: var(--xs);"><span>预期改善</span><strong>边缘帧占比 62% → 约 18%</strong></div>
+          <div class="row"><span>口径</span><span style="font-size:11px; color:var(--text-secondary);">路损模型预测 · 方向性参考</span></div>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--warning);">
+          <div class="row"><span style="color: var(--text-primary);"><strong>建议调整现有网关天线</strong></span><span class="badge warning">弱区集中西南</span></div>
+          <div class="row" style="margin-top: var(--xs); font-size:12px; color:var(--text-secondary); line-height:1.6;">
+            <span style="color: var(--text-primary);">网关 184 的边缘档帧 71% 来自西南方向；建议天线抬高 2–3m 或向西南迁移 100–200m。</span>
+          </div>
+        </div>
+
+        <p class="footer-note">建议为规则化输出：网格 100m；弱覆盖活动区 = 活动帧数 ≥ 阈值 且 平均 RSSI &lt;-100dBm，按活动量排序。数据积累 &lt;30 天时本页显示"数据积累中（已积累 N 天）"。动物体损导致 RSSI 波动 ±10dB，建议仅作方向性决策参考。</p>
+      </section>
+    </main>
+  </div>
+
+</div>
+
+</body>
+</html>
