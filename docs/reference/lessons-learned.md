@@ -439,10 +439,21 @@
 ## 关键词索引（遇症状按关键词快速定位）
 ---
 
+## 26. 86/223 升级 669：旧栈 down 的三连坑——compose 文件名、env 插值、端口占用
+
+- **日期**: 2026-09-19
+- **场景**: 669 包升级 86/223（604 → 669），按 playbook §4 走"继承 env/certs → down 旧栈 → install"。
+- **症状**: ① `docker compose down` 报 "no configuration file provided: not found"——604 目录里的文件名是 `docker-compose.release.yml`，compose 默认只找 `docker-compose.yml/compose.yaml`；② 加 `-f` 后又报 `POSTGRES_PASSWORD / SMART_LIVESTOCK_API_KEY required`——down 阶段做变量插值同样要读 env；③ 两个都修好后 install 预检仍 FAIL：`host port 80/443 already in use`（旧栈 nginx 没停）+ `Disk: 48G < required 50G`（#23 时的 MIN_DISK_GB=50 覆盖值因盘缩水失效）。
+- **修复**: down 用 `docker compose --env-file .env.release -f docker-compose.release.yml down`；install 用 `MIN_MEM_GB=15 MIN_DISK_GB=40`。
+- **预防**: 升级前先 `docker compose ls` 拿旧栈的真实 CONFIG FILES 与项目名；`df -h` 预判磁盘给 MIN_DISK_GB 留余量；preflight 的每一行 FAIL 都对应一个前置动作没做完，逐条处理不要跳过。
+
+---
+
 ## 关键词索引（遇症状按关键词快速定位）
 
 | 编号 | 关键词 |
 |------|--------|
+| #26 | 升级, down, env-file, compose 文件名, 端口占用, MIN_DISK_GB, preflight |
 | #1 | utf-8, decode, `._`, gen-l10n, arb, apple-double |
  | #2 | non-monotonic index, git, `._`, pack-idx, `/Volumes/DEV` |
  | #3 | 空列表, tile, status, 数据卷, glob, 挂载路径 |
