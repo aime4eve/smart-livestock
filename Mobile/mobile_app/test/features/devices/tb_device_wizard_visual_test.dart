@@ -183,7 +183,7 @@ class _FakeDevicesRepository implements DevicesRepository {
 
   @override
   Future<TbDevicePreflight> preflightTbDevice(String eui) async =>
-      TbDevicePreflight(
+      const TbDevicePreflight(
         eui: _eui,
         status: 'READY_TO_INGEST',
         nsProjectId: 89,

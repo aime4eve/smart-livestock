@@ -48,10 +48,10 @@ class DeviceIdentityLine extends StatelessWidget {
           ],
           if (deviceCode.isNotEmpty) ...[
             if (hasEui)
-              Padding(
-                padding: const EdgeInsets.only(left: AppSpacing.sm),
+              const Padding(
+                padding: EdgeInsets.only(left: AppSpacing.sm),
                 child: Text('·',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 11, color: AppColors.textSecondary)),
               ),
             const SizedBox(width: AppSpacing.xs),

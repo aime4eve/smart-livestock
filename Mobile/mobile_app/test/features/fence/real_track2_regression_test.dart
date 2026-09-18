@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/track_point.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/track_to_envelope_converter.dart';
 
-import 'real_track2_points.dart';
 
 /// 真实故障数据回归（NIX-213）：轨迹检验线路2.xlsx 的 391 点自动追踪轨迹，
 /// 含驻留漂移重合点。修复前在此数据上死循环挂死 UI。
