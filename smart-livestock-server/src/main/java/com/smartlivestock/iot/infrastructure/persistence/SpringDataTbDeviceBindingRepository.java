@@ -17,5 +17,7 @@ public interface SpringDataTbDeviceBindingRepository
 
     Optional<TbDeviceBindingJpaEntity> findByProviderAndExternalDeviceId(String provider, String externalDeviceId);
 
+    Optional<TbDeviceBindingJpaEntity> findByProviderAndDeviceEui(String provider, String deviceEui);
+
     boolean existsByDeviceIdAndProvider(Long deviceId, String provider);
 }

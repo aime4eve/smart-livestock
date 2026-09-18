@@ -54,6 +54,12 @@ public class JpaTbDeviceBindingRepositoryImpl implements TbDeviceBindingReposito
     }
 
     @Override
+    public Optional<TbDeviceBinding> findByProviderAndDeviceEui(String provider, String deviceEui) {
+        return springDataRepo.findByProviderAndDeviceEui(provider, deviceEui)
+                .map(TbDeviceBindingMapper::toDomain);
+    }
+
+    @Override
     public boolean existsByDeviceIdAndProvider(Long deviceId, String provider) {
         return springDataRepo.existsByDeviceIdAndProvider(deviceId, provider);
     }

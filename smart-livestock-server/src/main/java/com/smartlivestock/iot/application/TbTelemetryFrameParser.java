@@ -124,7 +124,16 @@ public final class TbTelemetryFrameParser {
         if (!decoded.path("decodeStatus").asBoolean(false)) {
             return null;
         }
-        JsonNode props = decoded.path("decodeData").path("properties");
+        return mapResultProperties(decoded.path("decodeData").path("properties"));
+    }
+
+    /**
+     * Maps decoded payload properties ({@code decodeData.properties}) to the
+     * standard readings keys. Shared by the TB pull channel (via
+     * {@link #extract}) and the DeviceHub push channel, whose frames carry the
+     * properties map already unwrapped.
+     */
+    public static Map<String, Object> mapResultProperties(JsonNode props) {
         Map<String, Object> readings = new LinkedHashMap<>();
         copyDecimal(readings, props, "latitude");
         copyDecimal(readings, props, "longitude");
@@ -156,6 +165,14 @@ public final class TbTelemetryFrameParser {
             readings.put("temperatures", temperatures);
         }
         return readings;
+    }
+
+    /**
+     * DeviceHub fallback frames carry raw uplink hex when no authoritative
+     * result exists; decode it with the capsule TLV decoder.
+     */
+    public static Map<String, Object> decodeDataHexFallback(String hex, DeviceType deviceType) {
+        return decodeHexFallback(hex, deviceType);
     }
 
     private static Map<String, Object> decodeHexFallback(String hex, DeviceType deviceType) {

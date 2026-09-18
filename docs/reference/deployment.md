@@ -23,6 +23,15 @@ dev stack ↔ blade dev（172.21.2.41），test stack ↔ blade test（172.22.4.
 
 blade dev/test 是两套独立平台：OAuth2 client（`hkt_openapi`）相同，但服务账号各自独立（dev=`2079382969422938112`，test=`2074385063398711296`）。新建环境需按 `business-platform/hkt-blade-device-docking/README.md` 自助流程创建服务账号。设计文档：`docs/superpowers/specs/2026-07-21-blade-env-mapping-design.md`
 
+## HKT-DeviceHub 共享接入通道
+
+统一设备接入微服务 HKT-DeviceHub（仓库 `98-hkt-iot/HKT-DeviceHub/`，独立部署，dev 主机 172.17.10.206）收口 ThingsBoard 设备注册与遥测采集。本项目作为消费方接入：
+
+- 遥测：远程消费 DeviceHub 自带 RocketMQ 集群的 `DEVICEHUB_TELEMETRY_FRAME`（tag=LIVESTOCK，group `devicehub-livestock`），由 `iot/infrastructure/mq/DeviceHubChannelConsumer` 汇入统一入口 `TelemetryIngestionService.ingest(..., TelemetrySource.THINGSBOARD)`，幂等沿用 `(device_id, report_time)`。
+- 注册：`TbDeviceProvisioningController` 的 provision/import/reconcile 端点在开关开启时改走 DeviceHub REST（Feign 直连 URL），本地仍落 `tb_device_bindings`。
+- 配置块 `smartlivestock.devicehub.*`（环境变量 `SMARTLIVESTOCK_DEVICEHUB_ENABLED/SERVICE_URL/MQ_NAME_SERVER/MQ_TOPIC/MQ_CONSUMER_GROUP`），enabled 默认 false；与本地 TB 通道（`SMARTLIVESTOCK_TB_*`）并行灰度，比对达标后关闭本地通道（`SMARTLIVESTOCK_TB_ENABLED=false`），保留代码作回切备份。
+- 事件契约见 DeviceHub 仓库 `docs/telemetry-event-contract.md`；帧解析规则与本地 TB 通道共用 `TbTelemetryFrameParser` 的映射。
+
 ## 一键部署（本地执行）
 
 ```bash
