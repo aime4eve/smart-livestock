@@ -8,9 +8,18 @@
 # which made new frontend releases invisible to returning users.
 set -euo pipefail
 cd "$(dirname "$0")"
+
+# App version shown on the login screen: <majorVersion>-b<build.number>,
+# single source of truth shared with the backend and mobile build scripts.
+SERVER_DIR="../../smart-livestock-server"
+BUILD_NUMBER=$(tr -d '[:space:]' < "${SERVER_DIR}/build.number")
+MAJOR_VERSION=$(grep "def majorVersion" "${SERVER_DIR}/build.gradle" | sed "s/.*?: *'//; s/'.*//")
+APP_VERSION="${MAJOR_VERSION}-b${BUILD_NUMBER}"
+
 flutter build web --no-wasm-dry-run "$@" \
   --pwa-strategy=none \
   --dart-define=API_BASE_URL=/api/v1 \
+  --dart-define=APP_VERSION="$APP_VERSION" \
   --no-source-maps \
   --strip-wasm
 

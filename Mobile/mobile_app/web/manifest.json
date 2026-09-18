@@ -1,11 +1,11 @@
 {
-    "name": "hkt_livestock_agentic",
-    "short_name": "hkt_livestock_agentic",
+    "name": "智慧畜牧",
+    "short_name": "智慧畜牧",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#2F6B3B",
+    "theme_color": "#2F6B3B",
+    "description": "智慧畜牧 SaaS 平台：牲畜、围栏、设备与告警管理",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

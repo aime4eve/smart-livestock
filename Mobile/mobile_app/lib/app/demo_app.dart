@@ -13,6 +13,8 @@ class DemoApp extends ConsumerWidget {
     final router = ref.watch(appRouterProvider);
     final locale = ref.watch(localeControllerProvider);
     return MaterialApp.router(
+      // Browser tab title on web (brand name, not localized copy).
+      title: '智慧畜牧',
       routerConfig: router,
       theme: AppTheme.light(),
       localizationsDelegates: AppLocalizations.localizationsDelegates,

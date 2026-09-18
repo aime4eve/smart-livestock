@@ -50,6 +50,7 @@ fi
 
 flutter build ipa --release \
   --dart-define=API_BASE_URL="$API_BASE_URL" \
+  --dart-define=APP_VERSION="$APP_VERSION" \
   --build-name="$MAJOR_VERSION" \
   --build-number="$BUILD_NUMBER" \
   --export-options-plist=ios/ExportOptions.plist

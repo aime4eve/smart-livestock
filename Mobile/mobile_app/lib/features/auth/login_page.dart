@@ -18,6 +18,11 @@ class LoginPage extends ConsumerStatefulWidget {
   ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
+/// Injected by every build script as --dart-define=APP_VERSION
+/// ("<majorVersion>-b<build.number>", single source: backend build files).
+/// Empty on untagged debug builds — the footer is hidden then.
+const String _appVersion = String.fromEnvironment('APP_VERSION');
+
 class _LoginPageState extends ConsumerState<LoginPage> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -101,10 +106,31 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              l10n.authAppTitle,
-                              style:
-                                  Theme.of(context).textTheme.headlineSmall,
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                Text(
+                                  l10n.authAppTitle,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall,
+                                ),
+                                if (_appVersion.isNotEmpty) ...[
+                                  const SizedBox(width: AppSpacing.sm),
+                                  Text(
+                                    'v$_appVersion',
+                                    key: const Key('login-app-version'),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .outline),
+                                  ),
+                                ],
+                              ],
                             ),
                             const SizedBox(height: AppSpacing.sm),
                             Text(
