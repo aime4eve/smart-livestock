@@ -62,6 +62,8 @@ public class TelemetryIngestionService {
     private final AlertRepository alertRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final GpsDistanceDerivationService gpsDistanceDerivationService;
+    private final GpsDataGovernanceService gpsDataGovernanceService;
+    private final DeviceLinkQualityService deviceLinkQualityService;
     private final ObjectMapper objectMapper;
 
     /**
@@ -99,6 +101,11 @@ public class TelemetryIngestionService {
             }
         }
 
+        // 0. Data governance (NIX-220): flag invalid frames. Raw rows are still
+        // persisted unchanged; geometric consumers must skip coord-flagged frames.
+        gpsDataGovernanceService.evaluateAndFlag(
+                device.getDeviceType(), source, device.getId(), readings, effectiveRecordedAt);
+
         // 1. Update device runtime status snapshot.
         // MANUAL_IMPORT backfills historical rows: it must not rewrite the
         // device's live snapshot (battery/rssi/lastOnlineAt) with stale values.
@@ -124,6 +131,10 @@ public class TelemetryIngestionService {
         // 6. Keep device alerts aligned for the two live platform channels.
         if (source == TelemetrySource.AGENTIC_PLATFORM || source == TelemetrySource.THINGSBOARD) {
             detectDeviceAlerts(device, farmId, readings);
+            // F3 link quality tiering against the receiving gateway (NIX-219).
+            Object gatewayId = readings.get("gatewayId");
+            deviceLinkQualityService.evaluate(device, farmId,
+                    gatewayId != null ? gatewayId.toString() : null);
         }
 
         // 7. Publish telemetry event for cross-context consumption
@@ -217,6 +228,8 @@ public class TelemetryIngestionService {
         BigDecimal latitude = toBigDecimal(readings.get("latitude"));
         BigDecimal longitude = toBigDecimal(readings.get("longitude"));
         if (latitude == null || longitude == null
+                || latitude.abs().compareTo(BigDecimal.valueOf(90)) > 0
+                || longitude.abs().compareTo(BigDecimal.valueOf(180)) > 0
                 || (latitude.compareTo(BigDecimal.ZERO) == 0
                     && longitude.compareTo(BigDecimal.ZERO) == 0)) {
             return;
@@ -347,6 +360,11 @@ public class TelemetryIngestionService {
    }
 
     private void detectDeviceAlerts(Device device, Long farmId, Map<String, Object> readings) {
+        // alerts.farm_id is NOT NULL: an unassigned device must not abort ingestion
+        // (found live on 2026-09-15 with a real low-battery capsule).
+        if (farmId == null) {
+            return;
+        }
         Object antiDis = readings.get("antiDisassemblyStatus");
         if (antiDis != null && toInteger(antiDis) != 0) {
             createDeviceAlertIfNotExists(device, farmId, AlertType.DEVICE_TAMPER, Severity.CRITICAL,
