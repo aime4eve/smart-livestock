@@ -123,6 +123,16 @@ smartlivestock:
       # this many consecutive failed cycles, degrades the device to blade.
       stale-after-ms: ${SMARTLIVESTOCK_TB_FALLBACK_STALE_AFTER_MS:900000}
       failure-threshold: ${SMARTLIVESTOCK_TB_FALLBACK_FAILURE_THRESHOLD:3}
+  # HKT-DeviceHub shared service integration (gray rollout, disabled by default).
+  # enabled=true switches TB device provisioning to DeviceHub REST and assembles
+  # the DeviceHub RocketMQ telemetry consumer; enabled=false keeps the local
+  # NS/TB orchestration unchanged.
+  devicehub:
+    enabled: ${SMARTLIVESTOCK_DEVICEHUB_ENABLED:false}
+    service-url: ${SMARTLIVESTOCK_DEVICEHUB_SERVICE_URL:http://172.17.10.206:8080}
+    mq-name-server: ${SMARTLIVESTOCK_DEVICEHUB_MQ_NAME_SERVER:172.17.10.206:9876}
+    mq-topic: ${SMARTLIVESTOCK_DEVICEHUB_MQ_TOPIC:DEVICEHUB_TELEMETRY_FRAME}
+    mq-consumer-group: ${SMARTLIVESTOCK_DEVICEHUB_MQ_CONSUMER_GROUP:devicehub-livestock}
   # Licensing context (NIX-184): HOSTED = we operate the server, ONPREM =
   # customer-owned server with offline license enforcement.
   license:

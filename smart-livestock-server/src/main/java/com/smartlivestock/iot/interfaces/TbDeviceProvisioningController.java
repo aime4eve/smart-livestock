@@ -1,5 +1,6 @@
 package com.smartlivestock.iot.interfaces;
 
+import com.smartlivestock.iot.application.DeviceHubProvisioningService;
 import com.smartlivestock.iot.application.TbDeviceProvisioningService;
 import com.smartlivestock.iot.application.TbTelemetryChannel;
 import com.smartlivestock.iot.domain.model.DeviceType;
@@ -37,21 +38,25 @@ public class TbDeviceProvisioningController {
     private final NsProperties nsProperties;
     private final TbProperties tbProperties;
     private final ObjectProvider<TbTelemetryChannel> telemetryChannelProvider;
+    private final ObjectProvider<DeviceHubProvisioningService> deviceHubProvisioningProvider;
 
     @GetMapping("/reconcile")
-    public ResponseEntity<ApiResponse<TbDeviceProvisioningService.ReconciliationReport>> reconcile(
+    public ResponseEntity<ApiResponse<?>> reconcile(
             @PathVariable Long farmId,
             @RequestParam Integer projectId) {
+        DeviceHubProvisioningService hub = deviceHubProvisioningProvider.getIfAvailable();
+        if (hub != null) {
+            return ResponseEntity.ok(ApiResponse.ok(hub.reconcile()));
+        }
         requireAutoconfigEnabled();
         return ResponseEntity.ok(ApiResponse.ok(provisioningService.reconcile(
                 projectId, TenantContext.getCurrentTenant())));
     }
 
     @PostMapping("/import")
-    public ResponseEntity<ApiResponse<TbDeviceProvisioningService.ImportReport>> importDevices(
+    public ResponseEntity<ApiResponse<?>> importDevices(
             @PathVariable Long farmId,
             @RequestBody Map<String, Object> body) {
-        requireAutoconfigEnabled();
         Integer projectId = toInteger(body.get("projectId"));
         List<TbDeviceProvisioningService.ImportItem> items = new ArrayList<>();
         Object rawItems = body.get("items");
@@ -67,6 +72,16 @@ public class TbDeviceProvisioningController {
                     (String) map.get("expectedTbDeviceId"),
                     (String) map.get("deviceCode")));
         }
+        DeviceHubProvisioningService hub = deviceHubProvisioningProvider.getIfAvailable();
+        if (hub != null) {
+            return ResponseEntity.ok(ApiResponse.ok(hub.importDevices(
+                    items.stream()
+                            .map(item -> new DeviceHubProvisioningService.ImportItem(
+                                    item.eui(), item.deviceCode()))
+                            .toList(),
+                    TenantContext.getCurrentTenant(), getCurrentUserId())));
+        }
+        requireAutoconfigEnabled();
         TbDeviceProvisioningService.ImportReport report = provisioningService.importDevices(
                 projectId, items, TenantContext.getCurrentTenant(), getCurrentUserId());
         return ResponseEntity.ok(ApiResponse.ok(report));
@@ -82,11 +97,24 @@ public class TbDeviceProvisioningController {
     }
 
     @PostMapping("/provision")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> provision(
+    public ResponseEntity<ApiResponse<?>> provision(
             @PathVariable Long farmId,
             @RequestBody Map<String, Object> body) {
-        requireAutoconfigEnabled();
         DeviceType requestedType = resolveDeviceType((String) body.get("deviceType"));
+        DeviceHubProvisioningService hub = deviceHubProvisioningProvider.getIfAvailable();
+        if (hub != null) {
+            DeviceHubProvisioningService.ProvisionResult hubResult = hub.provision(
+                    new DeviceHubProvisioningService.ProvisionCommand(
+                            (String) body.get("eui"),
+                            (String) body.get("deviceCode"),
+                            requestedType,
+                            toLong(body.get("livestockId"))),
+                    TenantContext.getCurrentTenant(), farmId, getCurrentUserId());
+            return ResponseEntity.ok(ApiResponse.ok(Map.of(
+                    "result", hubResult,
+                    "firstTelemetryTrigger", triggerFirstTelemetry(hubResult.localDeviceId()))));
+        }
+        requireAutoconfigEnabled();
         TbDeviceProvisioningService.ProvisionResult result = provisioningService.provision(
                 new TbDeviceProvisioningService.ProvisionCommand(
                         (String) body.get("eui"),
@@ -95,17 +123,21 @@ public class TbDeviceProvisioningController {
                         toLong(body.get("livestockId"))),
                 TenantContext.getCurrentTenant(), farmId, getCurrentUserId());
 
-        TbTelemetryChannel channel = telemetryChannelProvider.getIfAvailable();
-        String triggerStatus = channel == null
-                ? "TB_TRIGGER_SKIPPED_DISABLED"
-                : switch (channel.pollDevice(result.localDeviceId())) {
-                    case TRIGGERED -> "TB_TRIGGERED";
-                    case BINDING_NOT_FOUND -> "TB_TRIGGER_BINDING_NOT_FOUND";
-                    case TRIGGER_FAILED -> "TB_TRIGGER_FAILED";
-                };
         return ResponseEntity.ok(ApiResponse.ok(Map.of(
                 "result", result,
-                "firstTelemetryTrigger", triggerStatus)));
+                "firstTelemetryTrigger", triggerFirstTelemetry(result.localDeviceId()))));
+    }
+
+    private String triggerFirstTelemetry(Long localDeviceId) {
+        TbTelemetryChannel channel = telemetryChannelProvider.getIfAvailable();
+        if (channel == null || localDeviceId == null) {
+            return "TB_TRIGGER_SKIPPED_DISABLED";
+        }
+        return switch (channel.pollDevice(localDeviceId)) {
+            case TRIGGERED -> "TB_TRIGGERED";
+            case BINDING_NOT_FOUND -> "TB_TRIGGER_BINDING_NOT_FOUND";
+            case TRIGGER_FAILED -> "TB_TRIGGER_FAILED";
+        };
     }
 
     private void requireAutoconfigEnabled() {
