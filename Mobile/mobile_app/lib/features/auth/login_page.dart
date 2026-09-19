@@ -110,11 +110,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               crossAxisAlignment: CrossAxisAlignment.baseline,
                               textBaseline: TextBaseline.alphabetic,
                               children: [
-                                Text(
-                                  l10n.authAppTitle,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineSmall,
+                                Flexible(
+                                  child: Text(
+                                    l10n.authAppTitle,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall,
+                                  ),
                                 ),
                                 if (_appVersion.isNotEmpty) ...[
                                   const SizedBox(width: AppSpacing.sm),
