@@ -1,6 +1,6 @@
 {
-    "name": "智慧畜牧",
-    "short_name": "智慧畜牧",
+    "name": "hkt-smartlivestock",
+    "short_name": "hkt-smartlivestock",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#2F6B3B",
