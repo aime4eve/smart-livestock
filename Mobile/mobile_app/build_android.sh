@@ -40,7 +40,7 @@ flutter build apk --release \
   --build-number="$BUILD_NUMBER"
 
 APK="build/app/outputs/flutter-apk/app-release.apk"
-OUT="build/app/outputs/flutter-apk/hkt-smartlivestock-${APP_VERSION}.apk"
+OUT="build/app/outputs/flutter-apk/hkt-livestock-agentic-${APP_VERSION}.apk"
 cp "$APK" "$OUT"
 echo "==> Done: $OUT"
 ls -lh "$OUT"
