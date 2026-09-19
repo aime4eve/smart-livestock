@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "智慧畜牧 · API 消费者（api_consumer）用户旅程时序图",
+    "locale": "zh-CN",
+    "output": "docs/diagrams/user-journey-api-consumer.html",
+    "viewBox": [
+      1400,
+      800
+    ],
+    "quality_profile": "showcase",
+    "column_fit": "spread"
+  },
+  "participants": [
+    {
+      "id": "consumer",
+      "type": "external",
+      "label": "API 消费者"
+    },
+    {
+      "id": "openapi",
+      "type": "backend",
+      "label": "Open API /api/v1/open"
+    },
+    {
+      "id": "filter",
+      "type": "security",
+      "label": "安全过滤器链"
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "PostgreSQL"
+    }
+  ],
+  "segments": [
+    {
+      "from": 156,
+      "to": 395,
+      "label": "Key 认证"
+    },
+    {
+      "from": 410,
+      "to": 580,
+      "label": "scope 放行调用"
+    },
+    {
+      "from": 595,
+      "to": 745,
+      "label": "越权与限流"
+    }
+  ],
+  "messages": [
+    {
+      "from": "consumer",
+      "to": "openapi",
+      "y": 170,
+      "label": "GET /open/farms/{farmId}/livestock",
+      "variant": "emphasis"
+    },
+    {
+      "from": "openapi",
+      "to": "filter",
+      "y": 208,
+      "label": "X-API-Key: sk_live_…"
+    },
+    {
+      "from": "filter",
+      "to": "db",
+      "y": 246,
+      "label": "校验 Key · tenantId / role / scopes"
+    },
+    {
+      "from": "db",
+      "to": "filter",
+      "y": 284,
+      "label": "ApiKey 有效",
+      "variant": "return"
+    },
+    {
+      "from": "filter",
+      "to": "openapi",
+      "y": 322,
+      "label": "scope 校验 livestock:read ✓",
+      "variant": "security"
+    },
+    {
+      "from": "openapi",
+      "to": "consumer",
+      "y": 360,
+      "label": "200 牲畜清单",
+      "variant": "return"
+    },
+    {
+      "from": "consumer",
+      "to": "openapi",
+      "y": 432,
+      "label": "POST /open/farms/{farmId}/devices 设备登记"
+    },
+    {
+      "from": "openapi",
+      "to": "filter",
+      "y": 470,
+      "label": "需要 device:register scope"
+    },
+    {
+      "from": "filter",
+      "to": "db",
+      "y": 508,
+      "label": "API 调用日志 · 频率计数"
+    },
+    {
+      "from": "openapi",
+      "to": "consumer",
+      "y": 546,
+      "label": "设备登记完成（OpenDeviceRegister）",
+      "variant": "return"
+    },
+    {
+      "from": "consumer",
+      "to": "openapi",
+      "y": 618,
+      "label": "GET /open/farms/{farmId}/alerts（未授权 scope）",
+      "variant": "dashed"
+    },
+    {
+      "from": "filter",
+      "to": "openapi",
+      "y": 656,
+      "label": "缺 alert:read → 403 / 超频 → 429",
+      "variant": "security"
+    },
+    {
+      "from": "openapi",
+      "to": "consumer",
+      "y": 694,
+      "label": "403/429 统一错误体",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "openapi",
+      "from": 164,
+      "to": 368,
+      "type": "backend"
+    },
+    {
+      "participant": "filter",
+      "from": 202,
+      "to": 330,
+      "type": "security"
+    },
+    {
+      "participant": "db",
+      "from": 240,
+      "to": 292,
+      "type": "database"
+    },
+    {
+      "participant": "openapi",
+      "from": 426,
+      "to": 554,
+      "type": "backend"
+    },
+    {
+      "participant": "filter",
+      "from": 464,
+      "to": 516,
+      "type": "security"
+    },
+    {
+      "participant": "db",
+      "from": 502,
+      "to": 516,
+      "type": "database"
+    },
+    {
+      "participant": "openapi",
+      "from": 612,
+      "to": 702,
+      "type": "backend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Key 生命周期",
+      "items": [
+        "Key 由 platform_admin（/admin/api-keys、/admin/portal/keys）或 owner（/mine/api-auth）签发与审批",
+        "无 App 端 UI，仅通过 Open API 访问",
+        "JWT 优先于 API Key，二者不同时生效"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "三层防护",
+      "items": [
+        "ApiKeyAuthFilter 校验签名与租户，失败 401 AUTH_API_KEY_INVALID",
+        "ScopeInterceptor 限定 livestock/fence/alert/device/gps/health:read 与 device:register",
+        "限流与配额由拦截器链的 rate-limit / quota 环节执行"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "牧场作用域豁免",
+      "items": [
+        "Open API 路径跳过牧场归属校验（farmId 仍在 URL 路径中）",
+        "TenantContext 取自 ApiKey 的租户归属",
+        "调用统计经 Analytics 上下文聚合成用量报表"
+      ]
+    }
+  ]
+}

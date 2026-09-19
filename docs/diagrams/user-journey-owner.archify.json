@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "智慧畜牧 · 牧场主（owner）用户旅程时序图",
+    "locale": "zh-CN",
+    "output": "docs/diagrams/user-journey-owner.html",
+    "viewBox": [
+      1360,
+      800
+    ],
+    "quality_profile": "showcase",
+    "column_fit": "spread"
+  },
+  "participants": [
+    {
+      "id": "owner",
+      "type": "external",
+      "label": "牧场主 owner"
+    },
+    {
+      "id": "app",
+      "type": "frontend",
+      "label": "移动端 App"
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Spring Boot API"
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "PostgreSQL"
+    }
+  ],
+  "segments": [
+    {
+      "from": 156,
+      "to": 430,
+      "label": "登录与改密门"
+    },
+    {
+      "from": 445,
+      "to": 575,
+      "label": "牧场运营"
+    },
+    {
+      "from": 590,
+      "to": 740,
+      "label": "告警处理"
+    }
+  ],
+  "messages": [
+    {
+      "from": "owner",
+      "to": "app",
+      "y": 170,
+      "label": "输入手机号 + 密码登录"
+    },
+    {
+      "from": "app",
+      "to": "api",
+      "y": 208,
+      "label": "POST /api/v1/auth/login",
+      "variant": "emphasis"
+    },
+    {
+      "from": "api",
+      "to": "db",
+      "y": 246,
+      "label": "查用户 · BCrypt 校验 · recordLogin"
+    },
+    {
+      "from": "db",
+      "to": "api",
+      "y": 284,
+      "label": "User 聚合",
+      "variant": "return"
+    },
+    {
+      "from": "api",
+      "to": "app",
+      "y": 322,
+      "label": "JWT · mustChangePassword 标志",
+      "variant": "return"
+    },
+    {
+      "from": "app",
+      "to": "api",
+      "y": 360,
+      "label": "首登强制改密 PUT /api/v1/me/password",
+      "variant": "security"
+    },
+    {
+      "from": "api",
+      "to": "app",
+      "y": 398,
+      "label": "改密完成 · 重定向 /ranch",
+      "variant": "return"
+    },
+    {
+      "from": "app",
+      "to": "api",
+      "y": 470,
+      "label": "GET /farms/{farmId}/…（farmGet 走 URL 路径）",
+      "variant": "emphasis"
+    },
+    {
+      "from": "api",
+      "to": "db",
+      "y": 508,
+      "label": "读牲畜 / 围栏 / 健康快照"
+    },
+    {
+      "from": "api",
+      "to": "app",
+      "y": 546,
+      "label": "渲染牧场页 · 告警汇总",
+      "variant": "return"
+    },
+    {
+      "from": "owner",
+      "to": "app",
+      "y": 594,
+      "label": "打开告警中心 · 详情弹层"
+    },
+    {
+      "from": "app",
+      "to": "api",
+      "y": 632,
+      "label": "POST /alerts/{id}/read 标记已读"
+    },
+    {
+      "from": "app",
+      "to": "api",
+      "y": 670,
+      "label": "POST /alerts/{id}/dismiss（仅 owner）",
+      "variant": "security"
+    },
+    {
+      "from": "api",
+      "to": "db",
+      "y": 708,
+      "label": "ACTIVE → DISMISSED"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "app",
+      "from": 164,
+      "to": 406,
+      "type": "frontend"
+    },
+    {
+      "participant": "api",
+      "from": 202,
+      "to": 406,
+      "type": "backend"
+    },
+    {
+      "participant": "db",
+      "from": 240,
+      "to": 292,
+      "type": "database"
+    },
+    {
+      "participant": "app",
+      "from": 464,
+      "to": 678,
+      "type": "frontend"
+    },
+    {
+      "participant": "api",
+      "from": 464,
+      "to": 716,
+      "type": "backend"
+    },
+    {
+      "participant": "db",
+      "from": 502,
+      "to": 716,
+      "type": "database"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "会话与安全",
+      "items": [
+        "JWT 不含 farmId，activeFarmId 由 farmGet 编码进 URL 路径",
+        "首登（Default@123）或被平台重置密码都会触发强制改密锁",
+        "401 时前端自动 POST /auth/refresh（30 分钟宽限期）"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "告警通知中心",
+      "items": [
+        "状态机 ACTIVE → DISMISSED / AUTO_RESOLVED，非法转换返回 409",
+        "已读状态按用户存 alert_read_status，与告警状态解耦",
+        "dismiss 仅 OWNER/B2B_ADMIN；批量处理复用 deprecated batch-handle"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "owner 专属能力",
+      "items": [
+        "围栏增删改、设备开通向导（TB 自动配置）、单设备解绑",
+        "订阅升级 /subscription/plans → checkout，按 tier 功能门控",
+        "牧工管理 /mine/workers 与 API 授权 /mine/api-auth"
+      ]
+    }
+  ]
+}

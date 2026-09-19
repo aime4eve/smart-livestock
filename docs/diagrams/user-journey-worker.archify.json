@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "智慧畜牧 · 牧工（worker）用户旅程时序图",
+    "locale": "zh-CN",
+    "output": "docs/diagrams/user-journey-worker.html",
+    "viewBox": [
+      1360,
+      800
+    ],
+    "quality_profile": "showcase",
+    "column_fit": "spread"
+  },
+  "participants": [
+    {
+      "id": "worker",
+      "type": "external",
+      "label": "牧工 worker"
+    },
+    {
+      "id": "app",
+      "type": "frontend",
+      "label": "移动端 App"
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Spring Boot API"
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "PostgreSQL"
+    }
+  ],
+  "segments": [
+    {
+      "from": 156,
+      "to": 280,
+      "label": "登录"
+    },
+    {
+      "from": 295,
+      "to": 425,
+      "label": "只读浏览"
+    },
+    {
+      "from": 440,
+      "to": 672,
+      "label": "告警确认与权限边界"
+    },
+    {
+      "from": 685,
+      "to": 745,
+      "label": "我的与牧场切换"
+    }
+  ],
+  "messages": [
+    {
+      "from": "worker",
+      "to": "app",
+      "y": 170,
+      "label": "登录（owner/平台创建的账号）"
+    },
+    {
+      "from": "app",
+      "to": "api",
+      "y": 208,
+      "label": "POST /api/v1/auth/login",
+      "variant": "emphasis"
+    },
+    {
+      "from": "api",
+      "to": "app",
+      "y": 246,
+      "label": "JWT role=WORKER · 重定向 /ranch",
+      "variant": "return"
+    },
+    {
+      "from": "worker",
+      "to": "app",
+      "y": 316,
+      "label": "浏览数智孪生 / 围栏（只读）"
+    },
+    {
+      "from": "app",
+      "to": "api",
+      "y": 354,
+      "label": "GET /farms/{farmId}/… 地图 / 牲畜 / 围栏",
+      "variant": "emphasis"
+    },
+    {
+      "from": "api",
+      "to": "app",
+      "y": 392,
+      "label": "只读数据渲染（无编辑按钮）",
+      "variant": "return"
+    },
+    {
+      "from": "worker",
+      "to": "app",
+      "y": 466,
+      "label": "确认告警（标记已读）"
+    },
+    {
+      "from": "app",
+      "to": "api",
+      "y": 504,
+      "label": "POST /alerts/{id}/read（任意登录用户）",
+      "variant": "security"
+    },
+    {
+      "from": "api",
+      "to": "db",
+      "y": 542,
+      "label": "alert_read_status 按用户落库"
+    },
+    {
+      "from": "worker",
+      "to": "app",
+      "y": 580,
+      "label": "批量处理告警（dismiss）"
+    },
+    {
+      "from": "app",
+      "to": "api",
+      "y": 618,
+      "label": "POST /alerts/batch-handle（deprecated）",
+      "variant": "dashed"
+    },
+    {
+      "from": "api",
+      "to": "app",
+      "y": 656,
+      "label": "403 AUTH_FORBIDDEN（仅 OWNER/B2B_ADMIN）",
+      "variant": "security"
+    },
+    {
+      "from": "worker",
+      "to": "app",
+      "y": 694,
+      "label": "我的：个人资料 / 切换牧场"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "app",
+      "from": 164,
+      "to": 252,
+      "type": "frontend"
+    },
+    {
+      "participant": "api",
+      "from": 202,
+      "to": 252,
+      "type": "backend"
+    },
+    {
+      "participant": "app",
+      "from": 310,
+      "to": 400,
+      "type": "frontend"
+    },
+    {
+      "participant": "api",
+      "from": 348,
+      "to": 400,
+      "type": "backend"
+    },
+    {
+      "participant": "app",
+      "from": 460,
+      "to": 664,
+      "type": "frontend"
+    },
+    {
+      "participant": "api",
+      "from": 498,
+      "to": 664,
+      "type": "backend"
+    },
+    {
+      "participant": "db",
+      "from": 536,
+      "to": 552,
+      "type": "database"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "最小权限视图",
+      "items": [
+        "仅 4 Tab：牧场 / 孪生 / 告警 / 我的",
+        "/mine/workers 与 /admin 前缀被守卫重定向回 /ranch",
+        "围栏与孪生只读（canEditFence=false，后端写操作也不含 WORKER）"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "告警确认边界",
+      "items": [
+        "单条标记已读任意登录用户放行——worker 确认可用",
+        "批量 dismiss 走 deprecated batch-handle，worker 收 403",
+        "建议前端按角色隐藏批量处理按钮（见旅程文档 7.4）"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "牧工可参与的操作",
+      "items": [
+        "网关位置查询与更新、漫游查询（NIX-219/220 允许 WORKER）",
+        "覆盖诊断查看（含 PLATFORM_ADMIN 共四角色）",
+        "切换牧场后 FarmScoped 控制器自动重建数据"
+      ]
+    }
+  ]
+}

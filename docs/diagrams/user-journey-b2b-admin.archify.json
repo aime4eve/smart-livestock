@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "智慧畜牧 · B 端管理员（b2b_admin）用户旅程时序图",
+    "locale": "zh-CN",
+    "output": "docs/diagrams/user-journey-b2b-admin.html",
+    "viewBox": [
+      1360,
+      800
+    ],
+    "quality_profile": "showcase",
+    "column_fit": "spread"
+  },
+  "participants": [
+    {
+      "id": "b2b",
+      "type": "external",
+      "label": "B 端管理员"
+    },
+    {
+      "id": "console",
+      "type": "frontend",
+      "label": "B 端控制台 /b2b/admin"
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Spring Boot API"
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "PostgreSQL"
+    }
+  ],
+  "segments": [
+    {
+      "from": 156,
+      "to": 355,
+      "label": "登录与概览"
+    },
+    {
+      "from": 370,
+      "to": 500,
+      "label": "牧场创建与分配"
+    },
+    {
+      "from": 515,
+      "to": 655,
+      "label": "牧工管理"
+    },
+    {
+      "from": 670,
+      "to": 730,
+      "label": "合同与对账"
+    }
+  ],
+  "messages": [
+    {
+      "from": "b2b",
+      "to": "console",
+      "y": 170,
+      "label": "登录 13900139000（归属租户）"
+    },
+    {
+      "from": "console",
+      "to": "api",
+      "y": 208,
+      "label": "POST /api/v1/auth/login",
+      "variant": "emphasis"
+    },
+    {
+      "from": "api",
+      "to": "console",
+      "y": 246,
+      "label": "JWT · 重定向 /b2b/admin",
+      "variant": "return"
+    },
+    {
+      "from": "console",
+      "to": "api",
+      "y": 284,
+      "label": "GET /api/v1/b2b/dashboard",
+      "variant": "emphasis"
+    },
+    {
+      "from": "api",
+      "to": "db",
+      "y": 322,
+      "label": "KPI 聚合（牧场 / 牲畜 / 牧工）"
+    },
+    {
+      "from": "b2b",
+      "to": "console",
+      "y": 394,
+      "label": "创建牧场 → 分配给 owner"
+    },
+    {
+      "from": "console",
+      "to": "api",
+      "y": 432,
+      "label": "POST /farms（指定 ownerId）",
+      "variant": "emphasis"
+    },
+    {
+      "from": "api",
+      "to": "db",
+      "y": 470,
+      "label": "牧场落库 · 归属当前租户"
+    },
+    {
+      "from": "b2b",
+      "to": "console",
+      "y": 508,
+      "label": "进入牧工管理"
+    },
+    {
+      "from": "console",
+      "to": "api",
+      "y": 546,
+      "label": "POST /b2b/users（固定 WORKER 角色）"
+    },
+    {
+      "from": "b2b",
+      "to": "console",
+      "y": 584,
+      "label": "重置牧工密码"
+    },
+    {
+      "from": "console",
+      "to": "api",
+      "y": 622,
+      "label": "PUT /b2b/users/{id}/reset-password",
+      "variant": "security"
+    },
+    {
+      "from": "b2b",
+      "to": "console",
+      "y": 660,
+      "label": "查看合同 / 对账明细"
+    },
+    {
+      "from": "console",
+      "to": "api",
+      "y": 698,
+      "label": "GET /b2b/contract · /b2b/revenue"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "console",
+      "from": 164,
+      "to": 330,
+      "type": "frontend"
+    },
+    {
+      "participant": "api",
+      "from": 202,
+      "to": 330,
+      "type": "backend"
+    },
+    {
+      "participant": "db",
+      "from": 316,
+      "to": 330,
+      "type": "database"
+    },
+    {
+      "participant": "console",
+      "from": 388,
+      "to": 478,
+      "type": "frontend"
+    },
+    {
+      "participant": "api",
+      "from": 426,
+      "to": 478,
+      "type": "backend"
+    },
+    {
+      "participant": "db",
+      "from": 464,
+      "to": 478,
+      "type": "database"
+    },
+    {
+      "participant": "console",
+      "from": 502,
+      "to": 668,
+      "type": "frontend"
+    },
+    {
+      "participant": "api",
+      "from": 540,
+      "to": 668,
+      "type": "backend"
+    },
+    {
+      "participant": "console",
+      "from": 654,
+      "to": 706,
+      "type": "frontend"
+    },
+    {
+      "participant": "api",
+      "from": 692,
+      "to": 706,
+      "type": "backend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "B 端身份边界",
+      "items": [
+        "路由守卫锁定 /b2b/admin 前缀，例外放行 /admin/tiles 与 /admin/datagen",
+        "B2bController 每端点 requireB2bAdmin + requireTenantId",
+        "后端 Ranch/IoT 写操作允许 B2B_ADMIN，但控制台未提供编辑入口"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "牧场与牧工",
+      "items": [
+        "创建牧场 OWNER|B2B_ADMIN 均可，b2b_admin 可指定 ownerId 分配",
+        "牧工创建固定 WORKER 角色，不置强制改密标志",
+        "重置牧工密码不重新武装强制改密（与平台重置行为不一致，见旅程文档 7.8）"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "商业化视图",
+      "items": [
+        "合同页只读（canViewContract）",
+        "对账与分润明细 canViewRevenue，可下钻 /b2b/admin/revenue/:id",
+        "概览 KPI 覆盖牧场 / 牲畜 / 牧工三维度"
+      ]
+    }
+  ]
+}

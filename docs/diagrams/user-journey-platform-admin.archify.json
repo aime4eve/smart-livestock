@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "智慧畜牧 · 平台管理员（platform_admin）用户旅程时序图",
+    "locale": "zh-CN",
+    "output": "docs/diagrams/user-journey-platform-admin.html",
+    "viewBox": [
+      1400,
+      800
+    ],
+    "quality_profile": "showcase",
+    "column_fit": "spread"
+  },
+  "participants": [
+    {
+      "id": "admin",
+      "type": "external",
+      "label": "平台管理员"
+    },
+    {
+      "id": "console",
+      "type": "frontend",
+      "label": "平台后台 /ops/admin"
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Admin API"
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "PostgreSQL"
+    }
+  ],
+  "segments": [
+    {
+      "from": 156,
+      "to": 330,
+      "label": "登录与租户管理"
+    },
+    {
+      "from": 345,
+      "to": 575,
+      "label": "用户与凭证治理"
+    },
+    {
+      "from": 590,
+      "to": 740,
+      "label": "商业化与授权审批"
+    }
+  ],
+  "messages": [
+    {
+      "from": "admin",
+      "to": "console",
+      "y": 170,
+      "label": "登录 13800000000（无租户归属）"
+    },
+    {
+      "from": "console",
+      "to": "api",
+      "y": 208,
+      "label": "POST /api/v1/auth/login",
+      "variant": "emphasis"
+    },
+    {
+      "from": "api",
+      "to": "console",
+      "y": 246,
+      "label": "JWT · 重定向 /ops/admin",
+      "variant": "return"
+    },
+    {
+      "from": "admin",
+      "to": "console",
+      "y": 284,
+      "label": "创建租户 → 进入租户详情"
+    },
+    {
+      "from": "console",
+      "to": "api",
+      "y": 356,
+      "label": "POST /admin/tenants · POST /admin/users",
+      "variant": "emphasis"
+    },
+    {
+      "from": "api",
+      "to": "db",
+      "y": 394,
+      "label": "租户落库 · mustChangePassword=true"
+    },
+    {
+      "from": "api",
+      "to": "console",
+      "y": 432,
+      "label": "默认密码 Default@123 · 首登强制改密",
+      "variant": "return"
+    },
+    {
+      "from": "admin",
+      "to": "console",
+      "y": 470,
+      "label": "重置某用户密码"
+    },
+    {
+      "from": "console",
+      "to": "api",
+      "y": 508,
+      "label": "POST /admin/users/{id}/reset-password",
+      "variant": "security"
+    },
+    {
+      "from": "api",
+      "to": "db",
+      "y": 546,
+      "label": "重新武装强制改密"
+    },
+    {
+      "from": "admin",
+      "to": "console",
+      "y": 594,
+      "label": "合同 / 对账 / 订阅服务管理"
+    },
+    {
+      "from": "console",
+      "to": "api",
+      "y": 632,
+      "label": "GET /admin/contracts · /admin/revenue",
+      "variant": "emphasis"
+    },
+    {
+      "from": "admin",
+      "to": "console",
+      "y": 670,
+      "label": "审批 API 授权 · 审计 / 功能门控"
+    },
+    {
+      "from": "console",
+      "to": "api",
+      "y": 708,
+      "label": "GET /admin/api-keys · POST /admin/portal/keys 审批"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "console",
+      "from": 164,
+      "to": 252,
+      "type": "frontend"
+    },
+    {
+      "participant": "api",
+      "from": 202,
+      "to": 252,
+      "type": "backend"
+    },
+    {
+      "participant": "console",
+      "from": 278,
+      "to": 554,
+      "type": "frontend"
+    },
+    {
+      "participant": "api",
+      "from": 350,
+      "to": 554,
+      "type": "backend"
+    },
+    {
+      "participant": "db",
+      "from": 388,
+      "to": 554,
+      "type": "database"
+    },
+    {
+      "participant": "console",
+      "from": 588,
+      "to": 716,
+      "type": "frontend"
+    },
+    {
+      "participant": "api",
+      "from": 626,
+      "to": 716,
+      "type": "backend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "平台级身份",
+      "items": [
+        "tenantId=null 不归属租户，牧场作用域归属校验跳过",
+        "路由守卫仅放行 /ops/admin 与 /admin/ 前缀",
+        "可访问普通 App 业务页会被重定向回 /ops/admin"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "账号生命周期",
+      "items": [
+        "新建用户密码 Default@123 且 mustChangePassword=true",
+        "平台重置密码重新武装强制改密（B2B 端重置不武装，见旅程文档 7.8）",
+        "强制改密期间后端白名单外接口一律 403"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "平台治理工具集",
+      "items": [
+        "/admin/gps-quality 与 /admin/telemetry-import 仅平台管理员",
+        "/admin/datagen、/admin/tiles、/admin/device-profile-rules 对 B2B_ADMIN 同样开放",
+        "/admin/analytics 后端无权限注解（见旅程文档 7.6）"
+      ]
+    }
+  ]
+}
