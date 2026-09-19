@@ -10,5 +10,8 @@ public enum AlertType {
     EPIDEMIC,
     AI_ANOMALY,
     DEVICE_TAMPER,
-    DEVICE_LOW_BATTERY
+    DEVICE_LOW_BATTERY,
+    LINK_QUALITY,
+    OUTLIER,
+    RETURN_HOME
 }

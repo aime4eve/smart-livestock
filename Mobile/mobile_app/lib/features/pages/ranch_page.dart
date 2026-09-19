@@ -126,8 +126,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
     _centerOnFarmOnce(overview, activeFarmId, shouldTransform);
 
     if (_selectedFenceId != null) {
-      if (!_breathingController.isAnimating)
+      if (!_breathingController.isAnimating) {
         _breathingController.repeat(reverse: true);
+      }
     } else {
       if (_breathingController.isAnimating) {
         _breathingController.stop();
@@ -426,7 +427,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                     onFenceSelected: (id) {
                       setState(() {
                         _selectedFenceId = id.isEmpty ? null : id;
-                        if (!id.isEmpty) {
+                        if (id.isNotEmpty) {
                           final fence = overview.fences
                               .where((f) => f.id == id)
                               .firstOrNull;

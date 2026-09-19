@@ -14,7 +14,8 @@
     "brazil-central": { "mbtiles": "brazil-central.mbtiles" },
     "east-africa": { "mbtiles": "east-africa.mbtiles" },
     "india-northwest": { "mbtiles": "india-northwest.mbtiles" },
-    "south-africa": { "mbtiles": "south-africa.mbtiles" }
+    "south-africa": { "mbtiles": "south-africa.mbtiles" },
+    "usa-great-plains": { "mbtiles": "usa-great-plains.mbtiles" }
   },
   "options": {
     "port": 8080

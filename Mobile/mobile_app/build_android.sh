@@ -35,11 +35,12 @@ echo "==> Building release APK v${APP_VERSION} ($ENV env, $API_BASE_URL)"
 
 flutter build apk --release \
   --dart-define=API_BASE_URL="$API_BASE_URL" \
+  --dart-define=APP_VERSION="$APP_VERSION" \
   --build-name="$MAJOR_VERSION" \
   --build-number="$BUILD_NUMBER"
 
 APK="build/app/outputs/flutter-apk/app-release.apk"
-OUT="build/app/outputs/flutter-apk/hkt-smartlivestock-${APP_VERSION}.apk"
+OUT="build/app/outputs/flutter-apk/hkt-livestock-agentic-${APP_VERSION}.apk"
 cp "$APK" "$OUT"
 echo "==> Done: $OUT"
 ls -lh "$OUT"

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hkt_livestock_agentic/features/gateways/presentation/gateway_distance_card.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
@@ -137,6 +138,8 @@ class LivestockDetailSheet extends StatelessWidget {
               ],
             ),
           ),
+          // 通讯距离（NIX-219 F2/F9）
+          GatewayDistanceCard(livestockId: marker.livestockId),
           // Quick actions
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 4, 14, 8),

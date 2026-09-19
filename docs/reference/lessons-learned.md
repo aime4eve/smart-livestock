@@ -417,12 +417,43 @@
   - 磁盘满（本例 Data 卷 100%/888Mi，ZCode 连命令日志都写不下、Bash 全挂）先清可再生大头：`~/Library/Developer/Xcode/iOS DeviceSupport`（本例 17.7G，连真机会自动重拉，可保留现役测试机的那份）；`xcrun simctl delete unavailable` 顺手清失效模拟器。
   - Web 降级验证：`strings main.dart.js` 找**新功能的 Key 常量**（如 `tb-wizard-scan`）应缺席，旧功能 Key 应存活；APK/IPA 同名 Key 应在场。
 
+## 25. 宣布"完成"后用户首测即中 4 缺陷：编译绿+单测绿替代不了功能可用性验证
+
+- **日期**: 2026-09-18
+- **现象**: NIX-219（网关位置与通讯距离）按 plan 执行完毕、宣布完成后，用户要求"自己用内建浏览器测试一下"。首轮 GUI 走查即发现 4 个缺陷，其中 1 个是 **P0 级 500**：① 牲畜距离端点 `ArrayIndexOutOfBoundsException`（适配器按 6 列映射 5 列原生查询）——核心端点对所有牲畜不可用；② 距离卡片只挂在地图弹层，**牲畜管理详情页漏挂**；③ **F10 对账页三端均无导航入口**（页面+路由存在但用户永远到不了）；④ 标记页 geolocator 在 Web 抛 `MissingPluginException` 异常文本直接裸露给用户、未登记网关卡在"定位中"加载态。另有地图瓦片灰、test/dev 双库误绑定两处次要问题。
+- **误判**: ① 把"compileJava 过 + 3 个目标测试类绿 + flutter analyze 0 error"当成了完成标准——测试 mock 掉了 SpringData 层，原生查询列数与运行时映射的错位编译期和单测都发现不了；② 后端冒烟打了 6 个新端点中的 4 个，**恰好漏掉出 bug 的距离端点**（当时的理由是"等浏览器一起测"）；③ 挂载卡片时只想到最熟悉的地图弹层组件，没有问"原型这张卡片还应该出现在哪些页面"；④ 写完对账页+路由就算完，没有从"用户从哪个入口到达"倒查；⑤ 在 dev 库执行绑定 SQL 前没有核对"环境↔容器名↔库名"，把数据打进了 test 库（dev=sl-dev-postgres-1，test=smart-livestock-server-postgres-1）。
+- **根因**: **用代码正确性验证替代了功能可用性验证，且把端到端 GUI 实测定位成"用户集成测试的前置"而不是自己收口的必选项**。四类逃逸是同一个模式：每一层验证手段（编译/单测/analyze）都只覆盖"逻辑对不对"，没有任何一层覆盖"用户能不能用到、用起来对不对"。冒烟不逐端点枚举、入口不做可达性倒查、Web 平台插件差异（geolocator 无 Web 权限实现）不专门验证，都是这个模式的局部表现。
+- **历史教训**: 与 #19（mock 掉的库约束线上首跑才炸）、#21（契约三方脱节）同属"验证层级缺失"家族——#19 缺真库层、本条缺 UI/端到端层；与 #6/#7（入口缺失、前端无变化）同属"部署完成≠功能生效"家族。
+- **解决**:
+  1. 四缺陷当场修复+重新部署+浏览器复测通过（端点改 5 列映射、详情页补挂卡片、mine 页补平台/B端管理员对账入口、标记页 geolocator 降级为友好文案+默认选点中心）。
+  2. **固化"完成前收口清单"**（新功能宣布完成前逐项打勾，不得下放给用户）：
+     a. **逐端点冒烟**：新增的每一个端点都 curl 一次带真实数据的调用（含典型与空/异常参数），以"响应 200 且业务字段非空"为准，不允许"等 UI 一起测"；
+     b. **可达性倒查**：每个新页面回答"哪个角色、从哪个入口、几次点击能到达"，入口缺失=未完成；
+     c. **挂载点盘点**：对照原型，卡片/组件应出现的每一处页面逐一接线（本项目"牲畜详情"至少有地图弹层与管理详情页两处）；
+     d. **Flutter Web 内建浏览器走查**：登录 → 入口 → 核心动作 → 提交反馈 → 截图留证，作为收口固定动作（语义树可用时优先 locator，遮挡/超时退回坐标 cua + 截图）；
+     e. **环境操作前核对**：执行任何 SQL/部署前核对"环境 ↔ compose 项目 ↔ 库容器名"（dev=sl-dev-postgres-1，test=smart-livestock-server-postgres-1，且 86/223 各自独立）。
+  3. Web 平台专项：Flutter 插件（geolocator/瓦片/权限）在 Web 与移动行为不同，UI 提交前必须在内建浏览器过一遍；插件异常**不得**把 `e.toString()` 直接渲染给用户。
+
+---
+
+## 关键词索引（遇症状按关键词快速定位）
+---
+
+## 26. 86/223 升级 669：旧栈 down 的三连坑——compose 文件名、env 插值、端口占用
+
+- **日期**: 2026-09-19
+- **场景**: 669 包升级 86/223（604 → 669），按 playbook §4 走"继承 env/certs → down 旧栈 → install"。
+- **症状**: ① `docker compose down` 报 "no configuration file provided: not found"——604 目录里的文件名是 `docker-compose.release.yml`，compose 默认只找 `docker-compose.yml/compose.yaml`；② 加 `-f` 后又报 `POSTGRES_PASSWORD / SMART_LIVESTOCK_API_KEY required`——down 阶段做变量插值同样要读 env；③ 两个都修好后 install 预检仍 FAIL：`host port 80/443 already in use`（旧栈 nginx 没停）+ `Disk: 48G < required 50G`（#23 时的 MIN_DISK_GB=50 覆盖值因盘缩水失效）。
+- **修复**: down 用 `docker compose --env-file .env.release -f docker-compose.release.yml down`；install 用 `MIN_MEM_GB=15 MIN_DISK_GB=40`。
+- **预防**: 升级前先 `docker compose ls` 拿旧栈的真实 CONFIG FILES 与项目名；`df -h` 预判磁盘给 MIN_DISK_GB 留余量；preflight 的每一行 FAIL 都对应一个前置动作没做完，逐条处理不要跳过。
+
 ---
 
 ## 关键词索引（遇症状按关键词快速定位）
 
 | 编号 | 关键词 |
 |------|--------|
+| #26 | 升级, down, env-file, compose 文件名, 端口占用, MIN_DISK_GB, preflight |
 | #1 | utf-8, decode, `._`, gen-l10n, arb, apple-double |
  | #2 | non-monotonic index, git, `._`, pack-idx, `/Volumes/DEV` |
  | #3 | 空列表, tile, status, 数据卷, glob, 挂载路径 |
@@ -445,3 +476,4 @@
  | #21 | 契约漂移, breed, gender, check-constraint, scopes, raw-key, api-key, tile-worker, 401, 轮询, 文档示例, 集成测试 |
  | #22 | mawk, awk, interval, {4,}, 区间表达式, verify-release-bundle, sha256sums, 热修, 重装, 预检, ubuntu |
  | #23 | 4环境, 全量部署, 部署顺序, build-release-package, --skip-web, 两跳, 86, 223, main.dart.js, md5, 假成功, pgrep, 自匹配, actuator, 401, min-disk-gb, 免sudo, verify 11/13, build.number |
+| #25 | 浏览器实测, GUI 走查, 完成标准, 逐端点冒烟, 可达性, 挂载点, 入口缺失, geolocator, web, MissingPluginException, 双库, sl-dev-postgres, 收口清单 |

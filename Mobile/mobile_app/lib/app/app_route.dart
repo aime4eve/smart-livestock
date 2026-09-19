@@ -36,6 +36,9 @@ enum AppRoute {
   checkout('/subscription/checkout', 'checkout', '确认支付'),
   subscriptionPlan('/subscription/plans', 'subscription-plan', '套餐选择'),
   workerManagement('/mine/workers', 'worker-management', '牧工管理'),
+  gatewayPositions('/mine/gateways', 'gateway-positions', '网关位置'),
+  gatewayMark('/mine/gateways/:gatewayId', 'gateway-mark', '标记网关'),
+  coverageDiagnostics('/mine/coverage-diagnostics', 'coverage-diagnostics', '覆盖诊断'),
   platformContracts('/admin/contracts', 'platform-contracts', '合同管理'),
   platformRevenue('/admin/revenue', 'platform-revenue', '对账看板'),
   platformSubscriptions('/admin/subscriptions', 'platform-subscriptions', '订阅服务管理'),
@@ -45,6 +48,7 @@ enum AppRoute {
   b2bAdminRevenueDetail('/b2b/admin/revenue/:id', 'b2b-admin-revenue-detail', '对账详情'),
   b2bWorkerDetail('/b2b/admin/farms/:farmId', 'b2b-worker-detail', '牧工详情'),
   mineApiAuth('/mine/api-auth', 'mine-api-auth', 'API授权管理'),
+  helpSupport('/mine/help', 'help-support', '帮助与支持'),
   farmCreation('/farm/create', 'farm-creation', '创建牧场'),
   platformAuditLog('/admin/audit-logs', 'platform-audit-log', '审计日志'),
   platformFeatureGates('/admin/feature-gates', 'platform-feature-gates', '功能门控'),
@@ -54,6 +58,7 @@ enum AppRoute {
   platformGpsQuality('/admin/gps-quality', 'platform-gps-quality', 'GPS 质量检查'),
   platformTelemetryImport('/admin/telemetry-import', 'platform-telemetry-import', '遥测数据导入'),
   platformDatagen('/admin/datagen', 'platform-datagen', '仿真控制'),
+  platformGatewayOverview('/admin/gateway-overview', 'platform-gateway-overview', '网关登记对账'),
   offlineTileManagement('/offline/tiles', 'offline-tile-management', '离线地图管理'),
   fenceConflict('/fence/conflict', 'fence-conflict', '围栏冲突');
 

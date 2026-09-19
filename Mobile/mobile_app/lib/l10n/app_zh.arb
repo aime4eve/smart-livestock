@@ -430,6 +430,28 @@
   "@mineHelpSupportDesc": {},
   "mineHelpSupportComingSoon": "帮助与支持页面开发中...",
   "@mineHelpSupportComingSoon": {},
+  "helpSupportGuideTitle": "操作说明",
+  "helpSupportGuideBindTitle": "绑定设备",
+  "helpSupportGuideBindSteps": "打开“我的 → 设备管理”，点右上角“+”添加设备\n扫描设备二维码自动读取 EUI，或手动输入\n在牲畜详情页选择牲畜完成绑定\n设备上线后，定位与传感数据自动上报",
+  "helpSupportGuideOfflineTitle": "下载离线地图",
+  "helpSupportGuideOfflineSteps": "打开“我的 → 离线地图管理”\n在可用区域列表点“下载”\n等待进度完成，区域进入“已下载”\n弱网或无网络时，地图自动使用本地瓦片",
+  "helpSupportGuideAlertTitle": "查看告警",
+  "helpSupportGuideAlertSteps": "在牧场页点击“告警”进入告警中心\n用顶部筛选按类型查看（低电量/设备拆卸等）\n点告警卡片查看详情\n处理完成后标记已读",
+  "helpSupportGuideHealthTitle": "查看牲畜健康",
+  "helpSupportGuideHealthSteps": "牧场地图上牲畜标记颜色即健康状态\n点标记查看牲畜概览\n进详情查看体温、瘤胃与活动曲线\n指标异常会自动生成健康告警",
+  "helpSupportFaqTitle": "常见问题",
+  "helpSupportFaqBindQ": "如何绑定设备？",
+  "helpSupportFaqBindA": "在“设备管理”中添加设备并扫码读取 EUI，或在牲畜详情页为牲畜绑定已登记的设备。绑定后设备数据会自动关联到该牲畜。",
+  "helpSupportFaqOfflineQ": "离线地图如何使用？",
+  "helpSupportFaqOfflineA": "在“离线地图管理”中下载牧场所在区域的地图包；弱网或无网络时，地图会自动使用已下载的本地瓦片。",
+  "helpSupportFaqAlertQ": "告警在哪里查看？",
+  "helpSupportFaqAlertA": "在牧场页点击“告警”进入告警中心，包含围栏越界、设备与健康告警，列表每 30 秒自动刷新。",
+  "helpSupportFaqDataQ": "数据多久更新一次？",
+  "helpSupportFaqDataA": "定位与传感器数据按设备上报周期入库，各页面数据会定时自动刷新。",
+  "helpSupportFaqHealthQ": "牲畜健康状态怎么看？",
+  "helpSupportFaqHealthA": "健康状态基于体温、瘤胃运动与活动量等指标综合评估，异常会生成健康告警并在地图上标色。",
+  "helpSupportContactTitle": "联系我们",
+  "helpSupportContactDesc": "企业客户请联系您的客户经理或部署运维团队获取支持；反馈问题时请附上账号手机号与所在牧场名称。",
   "mineBusinessManagement": "业务管理",
   "@mineBusinessManagement": {},
   "mineSubscriptionManagementDesc": "查看和升级订阅套餐",
@@ -4525,5 +4547,297 @@
   "deviceProfileRuleNameRequired": "配置名不能为空",
   "@deviceProfileRuleNameRequired": {},
   "deviceProfileRuleDuplicateLocal": "已存在同名规则",
-  "@deviceProfileRuleDuplicateLocal": {}
+  "@deviceProfileRuleDuplicateLocal": {},
+  "gatewayListTitle": "网关位置",
+  "@gatewayListTitle": {},
+  "gatewayLoadFailed": "网关列表加载失败",
+  "@gatewayLoadFailed": {},
+  "gatewayEmptyHint": "本牧场暂无通联网关记录。设备上报数据后，其使用的网关会自动出现在这里。",
+  "@gatewayEmptyHint": {},
+  "gatewayHintCard": "网关是通讯距离计算的基准点。请把手机带到网关安装点旁（10 米内）再标记。",
+  "@gatewayHintCard": {},
+  "gatewaySectionUnmarked": "未标记网关（{n}）",
+  "@gatewaySectionUnmarked": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewaySectionRegistered": "已登记网关（{n}）",
+  "@gatewaySectionRegistered": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayListFootnote": "列表来自本牧场设备实际通联记录（近 90 天），不做手工输入 ID。信号分档基于 30 天滑窗 RSSI 均值。",
+  "@gatewayListFootnote": {},
+  "gatewayLastSeenUnknown": "最后通信未知",
+  "@gatewayLastSeenUnknown": {},
+  "gatewayLastSeenNow": "最后通信 1 分钟内",
+  "@gatewayLastSeenNow": {},
+  "gatewayLastSeenMinutes": "最后通信 {n} 分钟前",
+  "@gatewayLastSeenMinutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayLastSeenHours": "最后通信 {n} 小时前",
+  "@gatewayLastSeenHours": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayLastSeenDate": "最后通信 {d}",
+  "@gatewayLastSeenDate": {
+    "placeholders": {
+      "d": {
+        "type": "String"
+      }
+    }
+  },
+  "gatewayFrames30d": "近 30 天 {n} 帧",
+  "@gatewayFrames30d": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayMarkedBy": "已登记 · {t} 标记",
+  "@gatewayMarkedBy": {
+    "placeholders": {
+      "t": {
+        "type": "String"
+      }
+    }
+  },
+  "linkTierStable": "信号稳定",
+  "@linkTierStable": {},
+  "linkTierWeak": "信号偏弱",
+  "@linkTierWeak": {},
+  "linkTierEdge": "信号边缘",
+  "@linkTierEdge": {},
+  "linkTierUnknown": "信号未知",
+  "@linkTierUnknown": {},
+  "gatewayRemarkAction": "重新标记",
+  "@gatewayRemarkAction": {},
+  "gatewayMarkAction": "去标记",
+  "@gatewayMarkAction": {},
+  "gatewayMarkTitle": "标记网关 {id}",
+  "@gatewayMarkTitle": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "gatewayLocPermDenied": "未获得定位权限，请在系统设置中开启",
+  "@gatewayLocPermDenied": {},
+  "gatewayAccuracyTooLow": "定位精度过低，请到开阔处重试",
+  "@gatewayAccuracyTooLow": {},
+  "gatewayOverwriteTitle": "该网关已有坐标",
+  "@gatewayOverwriteTitle": {},
+  "gatewayOverwriteBody": "原标记时间 {t}。网关坐标全局唯一，覆盖后所有牧场均按新坐标计算通讯距离。",
+  "@gatewayOverwriteBody": {
+    "placeholders": {
+      "t": {
+        "type": "String"
+      }
+    }
+  },
+  "gatewayOverwriteConfirm": "覆盖标记",
+  "@gatewayOverwriteConfirm": {},
+  "gatewayMarkOverwrittenDone": "已覆盖原坐标",
+  "@gatewayMarkOverwrittenDone": {},
+  "gatewayMarkDone": "网关位置已登记",
+  "@gatewayMarkDone": {},
+  "gatewayAccuracyReady": "GPS 已就绪 · 精度约 ±{m} 米",
+  "@gatewayAccuracyReady": {
+    "placeholders": {
+      "m": {
+        "type": "String"
+      }
+    }
+  },
+  "gatewayLocating": "正在获取定位…",
+  "@gatewayLocating": {},
+  "gatewayLat": "纬度",
+  "@gatewayLat": {},
+  "gatewayLng": "经度",
+  "@gatewayLng": {},
+  "gatewayMarkSubmit": "确认标记此位置",
+  "@gatewayMarkSubmit": {},
+  "gatewayOverwriteSubmit": "覆盖并标记此位置",
+  "@gatewayOverwriteSubmit": {},
+  "gatewayMarkFootnote": "默认使用当前定位，可在地图上拖动微调；精度大于 ±50m 时建议到开阔处重试。",
+  "@gatewayMarkFootnote": {},
+  "gatewayMineEntryDesc": "登记网关坐标，计算通讯距离",
+  "@gatewayMineEntryDesc": {},
+  "gatewayDistanceTitle": "通讯距离",
+  "@gatewayDistanceTitle": {},
+  "gatewayDistanceUnknown": "未知（无定位）",
+  "@gatewayDistanceUnknown": {},
+  "gatewayDistanceUnknownHint": "设备未获得 GPS 定位，距离以信号强度档位参考。",
+  "@gatewayDistanceUnknownHint": {},
+  "gatewayNearestTag": "最近",
+  "@gatewayNearestTag": {},
+  "gatewayMeters": "{n} 米",
+  "@gatewayMeters": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayMedianSub": "30 天中位 {n} 米",
+  "@gatewayMedianSub": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayInferredTag": "推断",
+  "@gatewayInferredTag": {},
+  "gatewayInferredRange": "约 {a}–{b} 米",
+  "@gatewayInferredRange": {
+    "placeholders": {
+      "a": {
+        "type": "int"
+      },
+      "b": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayAdminTitle": "网关登记对账",
+  "@gatewayAdminTitle": {},
+  "gatewayAdminRegistered": "已登记",
+  "@gatewayAdminRegistered": {},
+  "gatewayAdminUnmarked": "未标记",
+  "@gatewayAdminUnmarked": {},
+  "gatewayAdminMarkRate": "标记率",
+  "@gatewayAdminMarkRate": {},
+  "gatewayAdminUnmarkedList": "未标记网关（{n}）",
+  "@gatewayAdminUnmarkedList": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayAdminRegisteredList": "已登记网关（{n}）",
+  "@gatewayAdminRegisteredList": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gatewayAdminMarkedBy": "标记人 {u} · 来源 {s}",
+  "@gatewayAdminMarkedBy": {
+    "placeholders": {
+      "u": {
+        "type": "String"
+      },
+      "s": {
+        "type": "String"
+      }
+    }
+  },
+  "gatewayAdminFootnote": "对账口径：近 90 天遥测中出现过的非空 gateway_id（剔除仿真网关）与登记表求差。只读视图。",
+  "@gatewayAdminFootnote": {},
+  "commonSubmitting": "提交中…",
+  "@commonSubmitting": {},
+  "gatewayLocUnavailable": "浏览器定位不可用，可直接在地图上拖动选点",
+  "@gatewayLocUnavailable": {},
+  "coverageTitle": "信号覆盖诊断",
+  "@coverageTitle": {},
+  "coverageMineEntryDesc": "热力图与网关位置调整建议",
+  "@coverageMineEntryDesc": {},
+  "coverageAccumulating": "数据积累中：近 30 天窗口已积累 {n} 天。真实设备持续打数满 30 天后，覆盖诊断与调整建议将可用。",
+  "@coverageAccumulating": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "coverageWindowFrames": "近 30 天 · {n} 帧",
+  "@coverageWindowFrames": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "coverageStatStable": "稳定",
+  "@coverageStatStable": {},
+  "coverageStatWeak": "偏弱",
+  "@coverageStatWeak": {},
+  "coverageStatEdge": "边缘",
+  "@coverageStatEdge": {},
+  "coverageLegendGood": "信号好",
+  "@coverageLegendGood": {},
+  "coverageLegendPoor": "信号差",
+  "@coverageLegendPoor": {},
+  "coverageLegendNoData": "无数据",
+  "@coverageLegendNoData": {},
+  "coverageAdviceTitle": "调整建议（方向性 · 百米级）",
+  "@coverageAdviceTitle": {},
+  "coverageAdviceNone": "覆盖良好，无需调整网关位置",
+  "@coverageAdviceNone": {},
+  "coverageAdviceAddGateway": "建议增补网关",
+  "@coverageAdviceAddGateway": {},
+  "coverageAdviceMoveAntenna": "弱区集中{dir}向：建议天线抬高或向该方向迁移",
+  "@coverageAdviceMoveAntenna": {
+    "placeholders": {
+      "dir": {
+        "type": "String"
+      }
+    }
+  },
+  "coverageAdviceAtCluster": "弱覆盖活动区",
+  "@coverageAdviceAtCluster": {},
+  "coverageAdviceWeakDirection": "方向集中",
+  "@coverageAdviceWeakDirection": {},
+  "coverageAdviceCoord": "建议点位：{lat}, {lng}",
+  "@coverageAdviceCoord": {
+    "placeholders": {
+      "lat": {
+        "type": "String"
+      },
+      "lng": {
+        "type": "String"
+      }
+    }
+  },
+  "coverageAdviceExpected": "预期边缘帧占比 {before}% → {after}%",
+  "@coverageAdviceExpected": {
+    "placeholders": {
+      "before": {
+        "type": "int"
+      },
+      "after": {
+        "type": "int"
+      }
+    }
+  },
+  "coverageAdviceCaliber": "路损模型预测（RSSI 增益约 {gain}dB）· 方向性参考，精度为百米级",
+  "@coverageAdviceCaliber": {
+    "placeholders": {
+      "gain": {
+        "type": "String"
+      }
+    }
+  },
+  "coverageFootnote": "热力图基于近 30 天真实上报帧按 100m 网格聚合。动物体位遮挡导致 RSSI 波动约 ±10dB，建议仅作方向性决策参考。",
+  "@coverageFootnote": {}
 }

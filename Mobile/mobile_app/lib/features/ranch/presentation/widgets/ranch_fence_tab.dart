@@ -266,7 +266,7 @@ class _FenceListItem extends StatelessWidget {
             color: isSelected
                 ? AppColors.info.withValues(alpha: 0.05)
                 : Colors.transparent,
-            border: Border(
+            border: const Border(
               bottom: BorderSide(color: AppColors.border),
             ),
           ),

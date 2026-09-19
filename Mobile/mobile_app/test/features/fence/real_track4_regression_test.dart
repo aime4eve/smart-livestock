@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/track_point.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/track_to_envelope_converter.dart';
 
-import 'real_track4_points.dart';
 
 /// 真实故障数据回归（NIX-213）：轨迹检验线路4.xlsx 的 485 点自动追踪轨迹
 /// （用户首次报告死循环的数据）。

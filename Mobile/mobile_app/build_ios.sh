@@ -10,7 +10,7 @@
 #   DEVELOPMENT_TEAM=ABCD1234 ./build_ios.sh test   # test  env
 #   DEVELOPMENT_TEAM=ABCD1234 ./build_ios.sh dev    # dev   env
 #
-# Output: build/ios/ipa/hkt-smartlivestock-*.ipa
+# Output: build/ios/ipa/hkt-livestock-agentic-*.ipa
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -50,6 +50,7 @@ fi
 
 flutter build ipa --release \
   --dart-define=API_BASE_URL="$API_BASE_URL" \
+  --dart-define=APP_VERSION="$APP_VERSION" \
   --build-name="$MAJOR_VERSION" \
   --build-number="$BUILD_NUMBER" \
   --export-options-plist=ios/ExportOptions.plist
@@ -60,7 +61,7 @@ if [ ! -f "$SRC_IPA" ]; then
   # Flutter may name it differently
   SRC_IPA=$(find build/ios/ipa -name "*.ipa" | head -1)
 fi
-OUT_IPA="build/ios/ipa/hkt-smartlivestock-${APP_VERSION}.ipa"
+OUT_IPA="build/ios/ipa/hkt-livestock-agentic-${APP_VERSION}.ipa"
 cp "$SRC_IPA" "$OUT_IPA"
 echo "==> Done: $OUT_IPA"
 ls -lh "$OUT_IPA"

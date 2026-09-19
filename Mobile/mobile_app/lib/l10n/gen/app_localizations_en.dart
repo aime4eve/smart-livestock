@@ -537,6 +537,82 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mineHelpSupportComingSoon => 'Help & Support page coming soon...';
 
   @override
+  String get helpSupportGuideTitle => 'How-to Guides';
+
+  @override
+  String get helpSupportGuideBindTitle => 'Bind a device';
+
+  @override
+  String get helpSupportGuideBindSteps =>
+      'Open Mine → Device Management and tap + to add a device\nScan the device QR code to read its EUI, or enter it manually\nPick the livestock on its detail page to finish binding\nLocation and sensor data start reporting once the device is online';
+
+  @override
+  String get helpSupportGuideOfflineTitle => 'Download offline maps';
+
+  @override
+  String get helpSupportGuideOfflineSteps =>
+      'Open Mine → Offline Map Management\nTap Download on an available area\nWait for the progress to finish; the area moves to Downloaded\nThe map falls back to local tiles when the network is weak or unavailable';
+
+  @override
+  String get helpSupportGuideAlertTitle => 'View alerts';
+
+  @override
+  String get helpSupportGuideAlertSteps =>
+      'Tap Alerts on the ranch page to open the Alert Center\nFilter by type with the chips (low battery, device removal, ...)\nTap an alert card for details\nMark it as read once handled';
+
+  @override
+  String get helpSupportGuideHealthTitle => 'Check livestock health';
+
+  @override
+  String get helpSupportGuideHealthSteps =>
+      'Marker colors on the ranch map reflect health status\nTap a marker for the livestock overview\nOpen the detail page for temperature, rumen and activity curves\nAbnormal metrics raise health alerts automatically';
+
+  @override
+  String get helpSupportFaqTitle => 'FAQ';
+
+  @override
+  String get helpSupportFaqBindQ => 'How do I bind a device?';
+
+  @override
+  String get helpSupportFaqBindA =>
+      'Add a device in Device Management and scan its EUI code, or bind a registered device from the livestock detail page. Device data is linked to the animal automatically after binding.';
+
+  @override
+  String get helpSupportFaqOfflineQ => 'How does the offline map work?';
+
+  @override
+  String get helpSupportFaqOfflineA =>
+      'Download your ranch area in Offline Map Management; the map automatically falls back to downloaded local tiles when the network is weak or unavailable.';
+
+  @override
+  String get helpSupportFaqAlertQ => 'Where can I see alerts?';
+
+  @override
+  String get helpSupportFaqAlertA =>
+      'Tap Alerts on the ranch page to open the Alert Center, covering fence breaches, device and health alerts. The list refreshes every 30 seconds.';
+
+  @override
+  String get helpSupportFaqDataQ => 'How often is data updated?';
+
+  @override
+  String get helpSupportFaqDataA =>
+      'Location and sensor data arrive on each device\'s reporting cycle, and pages refresh automatically on a schedule.';
+
+  @override
+  String get helpSupportFaqHealthQ => 'How is livestock health shown?';
+
+  @override
+  String get helpSupportFaqHealthA =>
+      'Health is evaluated from body temperature, rumen motion and activity metrics; anomalies raise health alerts and color the map marker.';
+
+  @override
+  String get helpSupportContactTitle => 'Contact Us';
+
+  @override
+  String get helpSupportContactDesc =>
+      'Enterprise customers can reach their account manager or deployment team for support. Include your account phone number and ranch name when reporting issues.';
+
+  @override
   String get mineBusinessManagement => 'Business Management';
 
   @override
@@ -5693,4 +5769,281 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get deviceProfileRuleDuplicateLocal =>
       'A rule with this name already exists';
+
+  @override
+  String get gatewayListTitle => 'Gateway positions';
+
+  @override
+  String get gatewayLoadFailed => 'Failed to load gateways';
+
+  @override
+  String get gatewayEmptyHint =>
+      'No gateway records for this farm yet. Gateways used by your devices will appear here once data is reported.';
+
+  @override
+  String get gatewayHintCard =>
+      'Gateways are the reference points for communication distance. Bring your phone within 10 m of the gateway before marking.';
+
+  @override
+  String gatewaySectionUnmarked(int n) {
+    return 'Unmarked gateways ($n)';
+  }
+
+  @override
+  String gatewaySectionRegistered(int n) {
+    return 'Registered gateways ($n)';
+  }
+
+  @override
+  String get gatewayListFootnote =>
+      'Listed from the farm devices\' actual links (last 90 days); no manual ID entry. Signal tiers use the 30-day average RSSI.';
+
+  @override
+  String get gatewayLastSeenUnknown => 'Last seen unknown';
+
+  @override
+  String get gatewayLastSeenNow => 'Last seen within a minute';
+
+  @override
+  String gatewayLastSeenMinutes(int n) {
+    return 'Last seen $n min ago';
+  }
+
+  @override
+  String gatewayLastSeenHours(int n) {
+    return 'Last seen $n h ago';
+  }
+
+  @override
+  String gatewayLastSeenDate(String d) {
+    return 'Last seen $d';
+  }
+
+  @override
+  String gatewayFrames30d(int n) {
+    return '$n frames in 30 days';
+  }
+
+  @override
+  String gatewayMarkedBy(String t) {
+    return 'Registered · marked $t';
+  }
+
+  @override
+  String get linkTierStable => 'Stable';
+
+  @override
+  String get linkTierWeak => 'Weak';
+
+  @override
+  String get linkTierEdge => 'Edge';
+
+  @override
+  String get linkTierUnknown => 'Unknown';
+
+  @override
+  String get gatewayRemarkAction => 'Re-mark';
+
+  @override
+  String get gatewayMarkAction => 'Mark';
+
+  @override
+  String gatewayMarkTitle(String id) {
+    return 'Mark gateway $id';
+  }
+
+  @override
+  String get gatewayLocPermDenied =>
+      'Location permission denied. Enable it in system settings.';
+
+  @override
+  String get gatewayAccuracyTooLow =>
+      'Accuracy too low. Move to an open area and retry.';
+
+  @override
+  String get gatewayOverwriteTitle => 'Gateway already has a position';
+
+  @override
+  String gatewayOverwriteBody(String t) {
+    return 'Previously marked $t. Positions are globally unique — overwriting changes distance calculations for all farms.';
+  }
+
+  @override
+  String get gatewayOverwriteConfirm => 'Overwrite';
+
+  @override
+  String get gatewayMarkOverwrittenDone => 'Position overwritten';
+
+  @override
+  String get gatewayMarkDone => 'Gateway position registered';
+
+  @override
+  String gatewayAccuracyReady(String m) {
+    return 'GPS ready · accuracy ±$m m';
+  }
+
+  @override
+  String get gatewayLocating => 'Locating…';
+
+  @override
+  String get gatewayLat => 'Latitude';
+
+  @override
+  String get gatewayLng => 'Longitude';
+
+  @override
+  String get gatewayMarkSubmit => 'Mark this position';
+
+  @override
+  String get gatewayOverwriteSubmit => 'Overwrite and mark';
+
+  @override
+  String get gatewayMarkFootnote =>
+      'Uses your current fix; drag the pin to fine-tune. Retry in an open area if accuracy exceeds ±50 m.';
+
+  @override
+  String get gatewayMineEntryDesc => 'Register gateway positions for distance';
+
+  @override
+  String get gatewayDistanceTitle => 'Communication distance';
+
+  @override
+  String get gatewayDistanceUnknown => 'Unknown (no fix)';
+
+  @override
+  String get gatewayDistanceUnknownHint =>
+      'No GPS fix on this device. Signal tier is shown as a reference.';
+
+  @override
+  String get gatewayNearestTag => 'Nearest';
+
+  @override
+  String gatewayMeters(int n) {
+    return '$n m';
+  }
+
+  @override
+  String gatewayMedianSub(int n) {
+    return '30-day median $n m';
+  }
+
+  @override
+  String get gatewayInferredTag => 'Inferred';
+
+  @override
+  String gatewayInferredRange(int a, int b) {
+    return '~$a–$b m';
+  }
+
+  @override
+  String get gatewayAdminTitle => 'Gateway reconciliation';
+
+  @override
+  String get gatewayAdminRegistered => 'Registered';
+
+  @override
+  String get gatewayAdminUnmarked => 'Unmarked';
+
+  @override
+  String get gatewayAdminMarkRate => 'Mark rate';
+
+  @override
+  String gatewayAdminUnmarkedList(int n) {
+    return 'Unmarked gateways ($n)';
+  }
+
+  @override
+  String gatewayAdminRegisteredList(int n) {
+    return 'Registered gateways ($n)';
+  }
+
+  @override
+  String gatewayAdminMarkedBy(String u, String s) {
+    return 'Marked by $u · via $s';
+  }
+
+  @override
+  String get gatewayAdminFootnote =>
+      'Scope: non-blank gateway_ids seen in telemetry over the last 90 days (simulator excluded), diffed against the registry. Read-only.';
+
+  @override
+  String get commonSubmitting => 'Submitting…';
+
+  @override
+  String get gatewayLocUnavailable =>
+      'Browser location unavailable — drag the pin on the map to pick a position';
+
+  @override
+  String get coverageTitle => 'Coverage diagnostics';
+
+  @override
+  String get coverageMineEntryDesc => 'Heat map & gateway relocation advice';
+
+  @override
+  String coverageAccumulating(int n) {
+    return 'Accumulating data: $n of the 30-day window collected. Diagnostics and advice unlock after 30 days of real device traffic.';
+  }
+
+  @override
+  String coverageWindowFrames(int n) {
+    return 'Last 30 days · $n frames';
+  }
+
+  @override
+  String get coverageStatStable => 'Stable';
+
+  @override
+  String get coverageStatWeak => 'Weak';
+
+  @override
+  String get coverageStatEdge => 'Edge';
+
+  @override
+  String get coverageLegendGood => 'Good signal';
+
+  @override
+  String get coverageLegendPoor => 'Poor signal';
+
+  @override
+  String get coverageLegendNoData => 'No data';
+
+  @override
+  String get coverageAdviceTitle => 'Advice (directional · 100 m level)';
+
+  @override
+  String get coverageAdviceNone =>
+      'Coverage is good — no gateway change needed';
+
+  @override
+  String get coverageAdviceAddGateway => 'Consider adding a gateway';
+
+  @override
+  String coverageAdviceMoveAntenna(String dir) {
+    return 'Weak area concentrated $dir: raise antenna or relocate toward it';
+  }
+
+  @override
+  String get coverageAdviceAtCluster => 'Weak-coverage activity area';
+
+  @override
+  String get coverageAdviceWeakDirection => 'Direction concentrated';
+
+  @override
+  String coverageAdviceCoord(String lat, String lng) {
+    return 'Suggested spot: $lat, $lng';
+  }
+
+  @override
+  String coverageAdviceExpected(int before, int after) {
+    return 'Expected edge-frame share $before% → $after%';
+  }
+
+  @override
+  String coverageAdviceCaliber(String gain) {
+    return 'Path-loss model (RSSI gain ~$gain dB) · directional reference only, 100 m level';
+  }
+
+  @override
+  String get coverageFootnote =>
+      'Heat map aggregates real reported frames over the last 30 days on a 100 m grid. Animal-body RSSI fluctuates ±10 dB — treat advice as directional guidance only.';
 }

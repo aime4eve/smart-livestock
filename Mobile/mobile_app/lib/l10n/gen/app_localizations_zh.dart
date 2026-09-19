@@ -528,6 +528,81 @@ class AppLocalizationsZh extends AppLocalizations {
   String get mineHelpSupportComingSoon => '帮助与支持页面开发中...';
 
   @override
+  String get helpSupportGuideTitle => '操作说明';
+
+  @override
+  String get helpSupportGuideBindTitle => '绑定设备';
+
+  @override
+  String get helpSupportGuideBindSteps =>
+      '打开“我的 → 设备管理”，点右上角“+”添加设备\n扫描设备二维码自动读取 EUI，或手动输入\n在牲畜详情页选择牲畜完成绑定\n设备上线后，定位与传感数据自动上报';
+
+  @override
+  String get helpSupportGuideOfflineTitle => '下载离线地图';
+
+  @override
+  String get helpSupportGuideOfflineSteps =>
+      '打开“我的 → 离线地图管理”\n在可用区域列表点“下载”\n等待进度完成，区域进入“已下载”\n弱网或无网络时，地图自动使用本地瓦片';
+
+  @override
+  String get helpSupportGuideAlertTitle => '查看告警';
+
+  @override
+  String get helpSupportGuideAlertSteps =>
+      '在牧场页点击“告警”进入告警中心\n用顶部筛选按类型查看（低电量/设备拆卸等）\n点告警卡片查看详情\n处理完成后标记已读';
+
+  @override
+  String get helpSupportGuideHealthTitle => '查看牲畜健康';
+
+  @override
+  String get helpSupportGuideHealthSteps =>
+      '牧场地图上牲畜标记颜色即健康状态\n点标记查看牲畜概览\n进详情查看体温、瘤胃与活动曲线\n指标异常会自动生成健康告警';
+
+  @override
+  String get helpSupportFaqTitle => '常见问题';
+
+  @override
+  String get helpSupportFaqBindQ => '如何绑定设备？';
+
+  @override
+  String get helpSupportFaqBindA =>
+      '在“设备管理”中添加设备并扫码读取 EUI，或在牲畜详情页为牲畜绑定已登记的设备。绑定后设备数据会自动关联到该牲畜。';
+
+  @override
+  String get helpSupportFaqOfflineQ => '离线地图如何使用？';
+
+  @override
+  String get helpSupportFaqOfflineA =>
+      '在“离线地图管理”中下载牧场所在区域的地图包；弱网或无网络时，地图会自动使用已下载的本地瓦片。';
+
+  @override
+  String get helpSupportFaqAlertQ => '告警在哪里查看？';
+
+  @override
+  String get helpSupportFaqAlertA =>
+      '在牧场页点击“告警”进入告警中心，包含围栏越界、设备与健康告警，列表每 30 秒自动刷新。';
+
+  @override
+  String get helpSupportFaqDataQ => '数据多久更新一次？';
+
+  @override
+  String get helpSupportFaqDataA => '定位与传感器数据按设备上报周期入库，各页面数据会定时自动刷新。';
+
+  @override
+  String get helpSupportFaqHealthQ => '牲畜健康状态怎么看？';
+
+  @override
+  String get helpSupportFaqHealthA =>
+      '健康状态基于体温、瘤胃运动与活动量等指标综合评估，异常会生成健康告警并在地图上标色。';
+
+  @override
+  String get helpSupportContactTitle => '联系我们';
+
+  @override
+  String get helpSupportContactDesc =>
+      '企业客户请联系您的客户经理或部署运维团队获取支持；反馈问题时请附上账号手机号与所在牧场名称。';
+
+  @override
   String get mineBusinessManagement => '业务管理';
 
   @override
@@ -5554,4 +5629,273 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get deviceProfileRuleDuplicateLocal => '已存在同名规则';
+
+  @override
+  String get gatewayListTitle => '网关位置';
+
+  @override
+  String get gatewayLoadFailed => '网关列表加载失败';
+
+  @override
+  String get gatewayEmptyHint => '本牧场暂无通联网关记录。设备上报数据后，其使用的网关会自动出现在这里。';
+
+  @override
+  String get gatewayHintCard => '网关是通讯距离计算的基准点。请把手机带到网关安装点旁（10 米内）再标记。';
+
+  @override
+  String gatewaySectionUnmarked(int n) {
+    return '未标记网关（$n）';
+  }
+
+  @override
+  String gatewaySectionRegistered(int n) {
+    return '已登记网关（$n）';
+  }
+
+  @override
+  String get gatewayListFootnote =>
+      '列表来自本牧场设备实际通联记录（近 90 天），不做手工输入 ID。信号分档基于 30 天滑窗 RSSI 均值。';
+
+  @override
+  String get gatewayLastSeenUnknown => '最后通信未知';
+
+  @override
+  String get gatewayLastSeenNow => '最后通信 1 分钟内';
+
+  @override
+  String gatewayLastSeenMinutes(int n) {
+    return '最后通信 $n 分钟前';
+  }
+
+  @override
+  String gatewayLastSeenHours(int n) {
+    return '最后通信 $n 小时前';
+  }
+
+  @override
+  String gatewayLastSeenDate(String d) {
+    return '最后通信 $d';
+  }
+
+  @override
+  String gatewayFrames30d(int n) {
+    return '近 30 天 $n 帧';
+  }
+
+  @override
+  String gatewayMarkedBy(String t) {
+    return '已登记 · $t 标记';
+  }
+
+  @override
+  String get linkTierStable => '信号稳定';
+
+  @override
+  String get linkTierWeak => '信号偏弱';
+
+  @override
+  String get linkTierEdge => '信号边缘';
+
+  @override
+  String get linkTierUnknown => '信号未知';
+
+  @override
+  String get gatewayRemarkAction => '重新标记';
+
+  @override
+  String get gatewayMarkAction => '去标记';
+
+  @override
+  String gatewayMarkTitle(String id) {
+    return '标记网关 $id';
+  }
+
+  @override
+  String get gatewayLocPermDenied => '未获得定位权限，请在系统设置中开启';
+
+  @override
+  String get gatewayAccuracyTooLow => '定位精度过低，请到开阔处重试';
+
+  @override
+  String get gatewayOverwriteTitle => '该网关已有坐标';
+
+  @override
+  String gatewayOverwriteBody(String t) {
+    return '原标记时间 $t。网关坐标全局唯一，覆盖后所有牧场均按新坐标计算通讯距离。';
+  }
+
+  @override
+  String get gatewayOverwriteConfirm => '覆盖标记';
+
+  @override
+  String get gatewayMarkOverwrittenDone => '已覆盖原坐标';
+
+  @override
+  String get gatewayMarkDone => '网关位置已登记';
+
+  @override
+  String gatewayAccuracyReady(String m) {
+    return 'GPS 已就绪 · 精度约 ±$m 米';
+  }
+
+  @override
+  String get gatewayLocating => '正在获取定位…';
+
+  @override
+  String get gatewayLat => '纬度';
+
+  @override
+  String get gatewayLng => '经度';
+
+  @override
+  String get gatewayMarkSubmit => '确认标记此位置';
+
+  @override
+  String get gatewayOverwriteSubmit => '覆盖并标记此位置';
+
+  @override
+  String get gatewayMarkFootnote => '默认使用当前定位，可在地图上拖动微调；精度大于 ±50m 时建议到开阔处重试。';
+
+  @override
+  String get gatewayMineEntryDesc => '登记网关坐标，计算通讯距离';
+
+  @override
+  String get gatewayDistanceTitle => '通讯距离';
+
+  @override
+  String get gatewayDistanceUnknown => '未知（无定位）';
+
+  @override
+  String get gatewayDistanceUnknownHint => '设备未获得 GPS 定位，距离以信号强度档位参考。';
+
+  @override
+  String get gatewayNearestTag => '最近';
+
+  @override
+  String gatewayMeters(int n) {
+    return '$n 米';
+  }
+
+  @override
+  String gatewayMedianSub(int n) {
+    return '30 天中位 $n 米';
+  }
+
+  @override
+  String get gatewayInferredTag => '推断';
+
+  @override
+  String gatewayInferredRange(int a, int b) {
+    return '约 $a–$b 米';
+  }
+
+  @override
+  String get gatewayAdminTitle => '网关登记对账';
+
+  @override
+  String get gatewayAdminRegistered => '已登记';
+
+  @override
+  String get gatewayAdminUnmarked => '未标记';
+
+  @override
+  String get gatewayAdminMarkRate => '标记率';
+
+  @override
+  String gatewayAdminUnmarkedList(int n) {
+    return '未标记网关（$n）';
+  }
+
+  @override
+  String gatewayAdminRegisteredList(int n) {
+    return '已登记网关（$n）';
+  }
+
+  @override
+  String gatewayAdminMarkedBy(String u, String s) {
+    return '标记人 $u · 来源 $s';
+  }
+
+  @override
+  String get gatewayAdminFootnote =>
+      '对账口径：近 90 天遥测中出现过的非空 gateway_id（剔除仿真网关）与登记表求差。只读视图。';
+
+  @override
+  String get commonSubmitting => '提交中…';
+
+  @override
+  String get gatewayLocUnavailable => '浏览器定位不可用，可直接在地图上拖动选点';
+
+  @override
+  String get coverageTitle => '信号覆盖诊断';
+
+  @override
+  String get coverageMineEntryDesc => '热力图与网关位置调整建议';
+
+  @override
+  String coverageAccumulating(int n) {
+    return '数据积累中：近 30 天窗口已积累 $n 天。真实设备持续打数满 30 天后，覆盖诊断与调整建议将可用。';
+  }
+
+  @override
+  String coverageWindowFrames(int n) {
+    return '近 30 天 · $n 帧';
+  }
+
+  @override
+  String get coverageStatStable => '稳定';
+
+  @override
+  String get coverageStatWeak => '偏弱';
+
+  @override
+  String get coverageStatEdge => '边缘';
+
+  @override
+  String get coverageLegendGood => '信号好';
+
+  @override
+  String get coverageLegendPoor => '信号差';
+
+  @override
+  String get coverageLegendNoData => '无数据';
+
+  @override
+  String get coverageAdviceTitle => '调整建议（方向性 · 百米级）';
+
+  @override
+  String get coverageAdviceNone => '覆盖良好，无需调整网关位置';
+
+  @override
+  String get coverageAdviceAddGateway => '建议增补网关';
+
+  @override
+  String coverageAdviceMoveAntenna(String dir) {
+    return '弱区集中$dir向：建议天线抬高或向该方向迁移';
+  }
+
+  @override
+  String get coverageAdviceAtCluster => '弱覆盖活动区';
+
+  @override
+  String get coverageAdviceWeakDirection => '方向集中';
+
+  @override
+  String coverageAdviceCoord(String lat, String lng) {
+    return '建议点位：$lat, $lng';
+  }
+
+  @override
+  String coverageAdviceExpected(int before, int after) {
+    return '预期边缘帧占比 $before% → $after%';
+  }
+
+  @override
+  String coverageAdviceCaliber(String gain) {
+    return '路损模型预测（RSSI 增益约 ${gain}dB）· 方向性参考，精度为百米级';
+  }
+
+  @override
+  String get coverageFootnote =>
+      '热力图基于近 30 天真实上报帧按 100m 网格聚合。动物体位遮挡导致 RSSI 波动约 ±10dB，建议仅作方向性决策参考。';
 }

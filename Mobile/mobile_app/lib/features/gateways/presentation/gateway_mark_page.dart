@@ -1,0 +1,344 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hkt_livestock_agentic/core/map/map_config.dart';
+import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
+import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
+import 'package:latlong2/latlong.dart';
+
+import 'gateway_controller.dart' show gatewayRepositoryProvider;
+import '../domain/gateway_models.dart';
+
+/// Mark / re-mark a gateway position (NIX-219 F1, prototype screen 2).
+/// Current GPS fix first, drag-to-fine-tune on the map, and an overwrite
+/// confirmation when the gateway already has a (globally unique) position.
+class GatewayMarkPage extends ConsumerStatefulWidget {
+  const GatewayMarkPage({super.key, required this.item});
+
+  final GatewayDiscoveryItem item;
+
+  static Future<void> push(BuildContext context, GatewayDiscoveryItem item) =>
+      context.push('/mine/gateways/${Uri.encodeComponent(item.gatewayId)}',
+          extra: item);
+
+  @override
+  ConsumerState<GatewayMarkPage> createState() => _GatewayMarkPageState();
+}
+
+class _GatewayMarkPageState extends ConsumerState<GatewayMarkPage> {
+  final _mapController = MapController();
+  SmartTileProvider? _tileProvider;
+
+  LatLng? _pin;
+  double? _accuracyM;
+  String? _error;
+  bool _submitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Registered gateways start centred on their existing position (re-mark).
+    final existing = widget.item;
+    if (existing.registered && existing.latitude != null) {
+      _pin = LatLng(existing.latitude!, existing.longitude!);
+    } else {
+      // Unregistered: start at a usable default so map picking always works.
+      _pin = const LatLng(28.2280, 112.9400);
+    }
+    _initTileProvider();
+    _locate();
+  }
+
+  Future<void> _initTileProvider() async {
+    final provider = await loadSmartTileProvider(
+      ref,
+      onSourceChanged: () {
+        if (mounted) setState(() {});
+      },
+    );
+    if (mounted) setState(() => _tileProvider = provider);
+  }
+
+  Future<void> _locate() async {
+    try {
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          setState(() => _error = AppLocalizations.of(context)!.gatewayLocPermDenied);
+        }
+        return;
+      }
+      final pos = await Geolocator.getCurrentPosition();
+      if (!mounted) return;
+      setState(() {
+        _accuracyM = pos.accuracy;
+        _pin ??= LatLng(pos.latitude, pos.longitude);
+        _error = null;
+      });
+      _mapController.move(LatLng(pos.latitude, pos.longitude), 16);
+    } catch (e) {
+      // Browser定位可能不可用（权限拒绝/无实现），地图选点仍然可用。
+      if (mounted) {
+        setState(() {
+          _error = AppLocalizations.of(context)!.gatewayLocUnavailable;
+          _pin ??= const LatLng(28.2280, 112.9400);
+        });
+        _mapController.move(_pin!, 16);
+      }
+    }
+  }
+
+  bool get _accuracyGood => _accuracyM == null || _accuracyM! <= 50;
+
+  Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
+    final pin = _pin;
+    if (pin == null) return;
+    if (!_accuracyGood) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.gatewayAccuracyTooLow)));
+      return;
+    }
+    if (widget.item.registered) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l10n.gatewayOverwriteTitle),
+          content: Text(l10n.gatewayOverwriteBody(widget.item.markedAt == null
+              ? '--'
+              : '${widget.item.markedAt!.month.toString().padLeft(2, '0')}-${widget.item.markedAt!.day.toString().padLeft(2, '0')}')),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l10n.commonCancel)),
+            FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: AppColors.warning),
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(l10n.gatewayOverwriteConfirm)),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+    }
+    setState(() => _submitting = true);
+    try {
+      final farmId =
+          ref.read(sessionControllerProvider.select((s) => s.activeFarmId));
+      if (farmId == null) {
+        throw StateError('No active farm');
+      }
+      await ref.read(gatewayRepositoryProvider).markPosition(
+            farmId,
+            widget.item.gatewayId,
+            latitude: pin.latitude,
+            longitude: pin.longitude,
+          );
+    } catch (e) {
+      if (mounted) {
+        setState(() => _submitting = false);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+      return;
+    }
+    if (mounted) {
+      setState(() => _submitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(widget.item.registered
+              ? l10n.gatewayMarkOverwrittenDone
+              : l10n.gatewayMarkDone)));
+      context.pop();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final pin = _pin;
+
+    return Scaffold(
+      backgroundColor: AppColors.surface,
+      appBar: AppBar(
+          title: Text(l10n.gatewayMarkTitle(widget.item.shortId))),
+      body: ListView(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        children: [
+          _accuracyCard(l10n),
+          const SizedBox(height: AppSpacing.md),
+          SizedBox(
+            height: 240,
+            child: pin == null
+                ? const Center(child: CircularProgressIndicator())
+                : Stack(
+                    children: [
+                      FlutterMap(
+                        mapController: _mapController,
+                        options: MapOptions(
+                          initialCenter: pin,
+                          initialZoom: 16,
+                          interactionOptions:
+                              const InteractionOptions(flags: InteractiveFlag.drag),
+                          onPositionChanged: (_, hasGesture) {
+                            if (!hasGesture) return;
+                            // Keep the pin at the map centre (drag-to-fine-tune).
+                            final centre = _mapController.camera.center;
+                            if (mounted &&
+                                (centre.latitude != pin.latitude ||
+                                    centre.longitude != pin.longitude)) {
+                              setState(() => _pin = centre);
+                            }
+                          },
+                        ),
+                        children: [
+                          TileLayer(
+                            key: ValueKey(_tileProvider?.activeSourceName),
+                            urlTemplate: _tileProvider == null
+                                ? MapConfig.tileUrlTemplate
+                                : null,
+                            tileProvider: _tileProvider,
+                            userAgentPackageName: 'com.smartlivestock.demo',
+                          ),
+                          CircleLayer(circles: [
+                            if (_accuracyM != null)
+                              CircleMarker(
+                                point: pin,
+                                radius: _accuracyM!,
+                                useRadiusInMeter: true,
+                                color: (_accuracyM! <= 10
+                                        ? AppColors.success
+                                        : _accuracyM! <= 50
+                                            ? AppColors.warning
+                                            : AppColors.danger)
+                                    .withValues(alpha: 0.18),
+                                borderColor: _accuracyM! <= 10
+                                    ? AppColors.success
+                                    : _accuracyM! <= 50
+                                        ? AppColors.warning
+                                        : AppColors.danger,
+                                borderStrokeWidth: 2,
+                              ),
+                          ]),
+                          MarkerLayer(markers: [
+                            Marker(
+                              point: pin,
+                              width: 30,
+                              height: 30,
+                              child: const Icon(Icons.location_on,
+                                  color: AppColors.primary, size: 30),
+                            ),
+                          ]),
+                        ],
+                      ),
+                    ],
+                  ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(children: [
+            Expanded(
+              child: _coordBox(l10n.gatewayLat, pin?.latitude.toStringAsFixed(7)),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: _coordBox(l10n.gatewayLng, pin?.longitude.toStringAsFixed(7)),
+            ),
+          ]),
+          if (_error != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(_error!,
+                style:
+                    const TextStyle(color: AppColors.danger, fontSize: 12)),
+          ],
+          const SizedBox(height: AppSpacing.lg),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor:
+                  _accuracyGood ? AppColors.primary : AppColors.textSecondary,
+              minimumSize: const Size.fromHeight(46),
+            ),
+            onPressed: _pin == null || _submitting ? null : _submit,
+            child: Text(_submitting
+                ? l10n.commonSubmitting
+                : widget.item.registered
+                    ? l10n.gatewayOverwriteSubmit
+                    : l10n.gatewayMarkSubmit),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(l10n.gatewayMarkFootnote,
+              style: const TextStyle(
+                  fontSize: 11, color: AppColors.textSecondary, height: 1.6)),
+        ],
+      ),
+    );
+  }
+
+  Widget _accuracyCard(AppLocalizations l10n) {
+    final ready = _accuracyM != null;
+    final good = _accuracyGood;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: ready
+            ? (good ? AppColors.successSoft : AppColors.warningSoft)
+            : AppColors.infoSoft,
+        borderRadius: BorderRadius.circular(AppSpacing.sm),
+      ),
+      child: Row(children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+                color: ready
+                    ? (good ? AppColors.success : AppColors.warning)
+                    : AppColors.info,
+                width: 2),
+            color: AppColors.surfaceAlt,
+          ),
+          child: const Icon(Icons.gps_fixed, size: 18),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Text(
+            ready
+                ? l10n.gatewayAccuracyReady(_accuracyM!.toStringAsFixed(0))
+                : l10n.gatewayLocating,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Widget _coordBox(String label, String? value) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style:
+                  const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          const SizedBox(height: AppSpacing.xs),
+          Container(
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceAlt,
+              border: Border.all(color: AppColors.border),
+              borderRadius: BorderRadius.circular(AppSpacing.sm),
+            ),
+            child: Text(value ?? '--',
+                style: const TextStyle(
+                    fontSize: 14, fontFeatures: [FontFeature.tabularFigures()])),
+          ),
+        ],
+      );
+}

@@ -26,7 +26,11 @@ extension AppRouteL10n on AppRoute {
         return l10n.navAlerts;
       case AppRoute.mine:
       case AppRoute.mineApiAuth:
+      case AppRoute.helpSupport:
       case AppRoute.workerManagement:
+      case AppRoute.gatewayPositions:
+      case AppRoute.gatewayMark:
+      case AppRoute.coverageDiagnostics:
         return l10n.navMine;
       case AppRoute.fence:
       case AppRoute.fenceForm:
@@ -62,9 +66,11 @@ extension AppRouteL10n on AppRoute {
       case AppRoute.platformFeatureGates:
       case AppRoute.platformAnalytics:
       case AppRoute.platformTileAdmin:
+      case AppRoute.platformDeviceProfiles:
       case AppRoute.platformGpsQuality:
       case AppRoute.platformTelemetryImport:
       case AppRoute.platformDatagen:
+      case AppRoute.platformGatewayOverview:
       case AppRoute.offlineTileManagement:
         return label;
     }

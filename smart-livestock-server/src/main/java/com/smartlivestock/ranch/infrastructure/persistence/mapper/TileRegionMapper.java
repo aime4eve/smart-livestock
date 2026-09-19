@@ -8,6 +8,15 @@ public final class TileRegionMapper {
 
     public static TileRegionJpaEntity toJpaEntity(TileRegion r) {
         TileRegionJpaEntity jpa = new TileRegionJpaEntity();
+        copyToJpaEntity(r, jpa);
+        return jpa;
+    }
+
+    // Copies business fields only. created_at/updatedAt are deliberately not
+    // mapped (the domain model does not carry them): the JPA entity must keep
+    // the values it was loaded with, otherwise updating an existing row writes
+    // NULL into the NOT NULL created_at column.
+    public static void copyToJpaEntity(TileRegion r, TileRegionJpaEntity jpa) {
         jpa.setId(r.getId());
         jpa.setName(r.getName());
         jpa.setMinLon(r.getMinLon()); jpa.setMinLat(r.getMinLat());
@@ -16,7 +25,6 @@ public final class TileRegionMapper {
         jpa.setFileName(r.getFileName()); jpa.setFileSize(r.getFileSize());
         jpa.setMd5(r.getMd5()); jpa.setGeneratedAt(r.getGeneratedAt());
         jpa.setStatus(r.getStatus());
-        return jpa;
     }
 
     public static TileRegion toDomain(TileRegionJpaEntity jpa) {

@@ -19,5 +19,7 @@ public interface TbDeviceBindingRepository {
 
     Optional<TbDeviceBinding> findByProviderAndExternalDeviceId(String provider, String externalDeviceId);
 
+    Optional<TbDeviceBinding> findByProviderAndDeviceEui(String provider, String deviceEui);
+
     boolean existsByDeviceIdAndProvider(Long deviceId, String provider);
 }

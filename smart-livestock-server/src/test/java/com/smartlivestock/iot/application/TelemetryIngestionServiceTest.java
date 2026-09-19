@@ -46,6 +46,8 @@ class TelemetryIngestionServiceTest {
     @Mock private GpsIngestionTaskRepository gpsIngestionTaskRepository;
     @Mock private AlertRepository alertRepository;
     @Mock private ApplicationEventPublisher eventPublisher;
+    @Mock private GpsDataGovernanceService gpsDataGovernanceService;
+    @Mock private DeviceLinkQualityService deviceLinkQualityService;
 
     private TelemetryIngestionService service;
 
@@ -55,6 +57,7 @@ class TelemetryIngestionServiceTest {
                 deviceRepository, deviceTelemetryLogRepository, installationRepository,
                 ranchQueryPort, gpsIngestionTaskRepository, alertRepository, eventPublisher,
                 new GpsDistanceDerivationService(),
+                gpsDataGovernanceService, deviceLinkQualityService,
                 new com.fasterxml.jackson.databind.ObjectMapper());
     }
 
@@ -417,7 +420,7 @@ class TelemetryIngestionServiceTest {
         device.setTenantId(1L);
         device.setBatteryLevel(50);
         when(deviceRepository.findById(7L)).thenReturn(Optional.of(device));
-        when(installationRepository.findActiveByDeviceId(7L)).thenReturn(Optional.empty());
+        stubFarmAssignment(7L);
 
         service.ingest(7L, Map.of("antiDisassemblyStatus", 1),
                 Instant.now(), TelemetrySource.AGENTIC_PLATFORM);
@@ -433,7 +436,7 @@ class TelemetryIngestionServiceTest {
         Device device = createTrackerDevice(7L);
         device.setDeviceCode("TRK-TB");
         when(deviceRepository.findById(7L)).thenReturn(Optional.of(device));
-        when(installationRepository.findActiveByDeviceId(7L)).thenReturn(Optional.empty());
+        stubFarmAssignment(7L);
 
         service.ingest(7L, Map.of("antiDisassemblyStatus", 1),
                 Instant.now(), TelemetrySource.THINGSBOARD);
@@ -441,6 +444,29 @@ class TelemetryIngestionServiceTest {
         ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
         verify(alertRepository).save(alertCaptor.capture());
         assertEquals("alert.device.tamper", alertCaptor.getValue().getMessageKey());
+    }
+
+    private void stubFarmAssignment(Long deviceId) {
+        Installation installation = mock(Installation.class);
+        when(installation.getLivestockId()).thenReturn(3L);
+        when(installationRepository.findActiveByDeviceId(deviceId)).thenReturn(Optional.of(installation));
+        when(ranchQueryPort.findLivestockById(3L)).thenReturn(Optional.of(
+                new LivestockInfo(3L, 5L, "ST-3", "F", null, null)));
+    }
+
+    @Test
+    void ingest_unassignedDeviceFault_skipsAlertInsteadOfFailing() {
+        // alerts.farm_id is NOT NULL: an unassigned device must not abort ingestion
+        // nor create an alert (found live 2026-09-15 with a real capsule).
+        Device device = createTrackerDevice(9L);
+        device.setDeviceCode("TRK-9");
+        when(deviceRepository.findById(9L)).thenReturn(Optional.of(device));
+        when(installationRepository.findActiveByDeviceId(9L)).thenReturn(Optional.empty());
+
+        service.ingest(9L, Map.of("antiDisassemblyStatus", 1),
+                Instant.now(), TelemetrySource.AGENTIC_PLATFORM);
+
+        verify(alertRepository, never()).save(any());
     }
 
     @Test
