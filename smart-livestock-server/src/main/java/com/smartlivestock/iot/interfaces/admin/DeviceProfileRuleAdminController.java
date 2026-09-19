@@ -98,7 +98,11 @@ public class DeviceProfileRuleAdminController {
 
     private static boolean parseEnabled(Object value) {
         if (value instanceof Boolean b) return b;
-        return value != null && Boolean.parseBoolean(value.toString());
+        // Absent field means "create enabled": the column default is TRUE and
+        // an allowlist entry that is created disabled is never what callers
+        // mean (it silently breaks the preflight allowlist match).
+        if (value == null) return true;
+        return Boolean.parseBoolean(value.toString());
     }
 
     private static Long getCurrentUserId() {
