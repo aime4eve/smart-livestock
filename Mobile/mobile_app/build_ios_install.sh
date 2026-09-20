@@ -57,14 +57,14 @@ DEV_NAME=$(list_devices | grep "$UDID" | awk '{print $1}')
 echo "==> Target: $DEV_NAME ($UDID)"
 
 # --- build (unless reusing) ----------------------------------------------------
-IPA_PATH=$(ls -t build/ios/ipa/hkt-smartlivestock-*.ipa 2>/dev/null | head -1 || true)
+IPA_PATH=$(ls -t build/ios/ipa/hkt-livestock-agentic-*.ipa 2>/dev/null | head -1 || true)
 if [[ $LAUNCH_ONLY != 1 ]]; then
   if [[ $SKIP_BUILD == 1 ]]; then
     echo "==> Skipping build (reusing newest IPA)"
   else
     ./build_ios.sh "$ENV"
   fi
-  IPA_PATH=$(ls -t build/ios/ipa/hkt-smartlivestock-*.ipa 2>/dev/null | head -1 || true)
+  IPA_PATH=$(ls -t build/ios/ipa/hkt-livestock-agentic-*.ipa 2>/dev/null | head -1 || true)
 fi
 if [[ -z "$IPA_PATH" ]]; then
   echo "ERROR: no IPA found under build/ios/ipa/ — run a build first."; exit 1
