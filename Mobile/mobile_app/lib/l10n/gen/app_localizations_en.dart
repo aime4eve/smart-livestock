@@ -1880,6 +1880,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get offlineTileDownloadSuccess => 'Download complete';
 
   @override
+  String offlineTileDownloadedNamed(String region) {
+    return 'Downloaded $region';
+  }
+
+  @override
+  String get offlineTileWebHint =>
+      'The web map is always online. Use the mobile app to download offline maps.';
+
+  @override
   String get offlineTileDelete => 'Delete';
 
   @override
@@ -6046,4 +6055,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get coverageFootnote =>
       'Heat map aggregates real reported frames over the last 30 days on a 100 m grid. Animal-body RSSI fluctuates ±10 dB — treat advice as directional guidance only.';
+
+  @override
+  String gatewayFollowLive(Object m) {
+    return 'Following phone GPS · accuracy ±$m m (drag map to fine-tune)';
+  }
+
+  @override
+  String get gatewayFollowManual => 'Manual mode';
 }

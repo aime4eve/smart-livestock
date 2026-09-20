@@ -1577,7 +1577,17 @@
   },
   "offlineTileDownloadSuccess": "下载完成",
   "@offlineTileDownloadSuccess": {},
-  "offlineTileDelete": "删除",
+
+  "offlineTileDownloadedNamed": "已下载 {region}",
+  "@offlineTileDownloadedNamed": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineTileWebHint": "网页版地图始终在线可用；离线包下载请使用移动端 App",
+  "@offlineTileWebHint": {},  "offlineTileDelete": "删除",
   "@offlineTileDelete": {},
   "offlineTileDeleteConfirm": "确定删除此离线地图？删除后需要重新下载才能离线使用。",
   "@offlineTileDeleteConfirm": {},
@@ -4839,5 +4849,9 @@
     }
   },
   "coverageFootnote": "热力图基于近 30 天真实上报帧按 100m 网格聚合。动物体位遮挡导致 RSSI 波动约 ±10dB，建议仅作方向性决策参考。",
-  "@coverageFootnote": {}
+  "@coverageFootnote": {},
+  "gatewayFollowLive": "自动跟随手机定位 · 精度约 ±{m} 米（拖动地图可微调）",
+  "@gatewayFollowLive": {},
+  "gatewayFollowManual": "手动模式",
+  "@gatewayFollowManual": {}
 }

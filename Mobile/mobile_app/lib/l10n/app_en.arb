@@ -1580,7 +1580,17 @@
   },
   "offlineTileDownloadSuccess": "Download complete",
   "@offlineTileDownloadSuccess": {},
-  "offlineTileDelete": "Delete",
+
+  "offlineTileDownloadedNamed": "Downloaded {region}",
+  "@offlineTileDownloadedNamed": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineTileWebHint": "The web map is always online. Use the mobile app to download offline maps.",
+  "@offlineTileWebHint": {},  "offlineTileDelete": "Delete",
   "@offlineTileDelete": {},
   "offlineTileDeleteConfirm": "Delete this offline map? You will need to re-download it to use offline.",
   "@offlineTileDeleteConfirm": {},
@@ -4842,5 +4852,9 @@
     }
   },
   "coverageFootnote": "Heat map aggregates real reported frames over the last 30 days on a 100 m grid. Animal-body RSSI fluctuates ±10 dB — treat advice as directional guidance only.",
-  "@coverageFootnote": {}
+  "@coverageFootnote": {},
+  "gatewayFollowLive": "Following phone GPS · accuracy ±{m} m (drag map to fine-tune)",
+  "@gatewayFollowLive": {},
+  "gatewayFollowManual": "Manual mode",
+  "@gatewayFollowManual": {}
 }
