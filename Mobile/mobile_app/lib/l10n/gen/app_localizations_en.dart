@@ -6051,4 +6051,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get coverageFootnote =>
       'Heat map aggregates real reported frames over the last 30 days on a 100 m grid. Animal-body RSSI fluctuates ±10 dB — treat advice as directional guidance only.';
+
+  @override
+  String gatewayFollowLive(Object m) {
+    return 'Following phone GPS · accuracy ±$m m (drag map to fine-tune)';
+  }
+
+  @override
+  String get gatewayFollowManual => 'Manual mode';
 }

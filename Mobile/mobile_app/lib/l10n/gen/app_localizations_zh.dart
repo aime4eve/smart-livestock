@@ -5903,4 +5903,12 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get coverageFootnote =>
       '热力图基于近 30 天真实上报帧按 100m 网格聚合。动物体位遮挡导致 RSSI 波动约 ±10dB，建议仅作方向性决策参考。';
+
+  @override
+  String gatewayFollowLive(Object m) {
+    return '自动跟随手机定位 · 精度约 ±$m 米（拖动地图可微调）';
+  }
+
+  @override
+  String get gatewayFollowManual => '手动模式';
 }

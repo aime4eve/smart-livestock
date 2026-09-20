@@ -1,3 +1,5 @@
+import 'dart:async' show StreamSubscription;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -39,6 +41,8 @@ class _GatewayMarkPageState extends ConsumerState<GatewayMarkPage> {
   double? _accuracyM;
   String? _error;
   bool _submitting = false;
+  StreamSubscription<Position>? _posSub;
+  bool _follow = true; // auto-fill lat/lng from the phone GPS until the user drags
 
   @override
   void initState() {
@@ -52,7 +56,14 @@ class _GatewayMarkPageState extends ConsumerState<GatewayMarkPage> {
       _pin = const LatLng(28.2280, 112.9400);
     }
     _initTileProvider();
-    _locate();
+    _startLocation();
+  }
+
+  @override
+  void dispose() {
+    _posSub?.cancel();
+    _tileProvider?.dispose();
+    super.dispose();
   }
 
   Future<void> _initTileProvider() async {
@@ -65,27 +76,36 @@ class _GatewayMarkPageState extends ConsumerState<GatewayMarkPage> {
     if (mounted) setState(() => _tileProvider = provider);
   }
 
-  Future<void> _locate() async {
+  Future<bool> _ensurePermission() async {
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    return !(permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever);
+  }
+
+  /// Auto-locate from the phone GPS: take an initial fix, then keep streaming —
+  /// while follow mode is on the pin, the map centre and the lat/lng boxes
+  /// fill themselves from the phone signal (NIX-219 marking flow).
+  Future<void> _startLocation() async {
     try {
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
+      if (!await _ensurePermission()) {
         if (mounted) {
-          setState(() => _error = AppLocalizations.of(context)!.gatewayLocPermDenied);
+          setState(() =>
+              _error = AppLocalizations.of(context)!.gatewayLocPermDenied);
         }
         return;
       }
       final pos = await Geolocator.getCurrentPosition();
+      _applyPosition(pos, moveCamera: true);
       if (!mounted) return;
-      setState(() {
-        _accuracyM = pos.accuracy;
-        _pin ??= LatLng(pos.latitude, pos.longitude);
-        _error = null;
-      });
-      _mapController.move(LatLng(pos.latitude, pos.longitude), 16);
+      setState(() => _error = null);
+      _posSub?.cancel();
+      _posSub = Geolocator.getPositionStream(
+        locationSettings:
+            const LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 5),
+      ).listen((pos) => _applyPosition(pos, moveCamera: true));
     } catch (e) {
       // Browser定位可能不可用（权限拒绝/无实现），地图选点仍然可用。
       if (mounted) {
@@ -94,6 +114,46 @@ class _GatewayMarkPageState extends ConsumerState<GatewayMarkPage> {
           _pin ??= const LatLng(28.2280, 112.9400);
         });
         _mapController.move(_pin!, 16);
+      }
+    }
+  }
+
+  void _applyPosition(Position pos, {required bool moveCamera}) {
+    if (!mounted) return;
+    final target = LatLng(pos.latitude, pos.longitude);
+    setState(() {
+      _accuracyM = pos.accuracy;
+      if (_follow) _pin = target;
+      _error = null;
+    });
+    if (moveCamera && _follow) {
+      _mapController.move(target, 16);
+    }
+  }
+
+  /// Re-centre on the phone GPS and resume auto-follow (my-location button).
+  Future<void> _locate() async {
+    try {
+      if (!await _ensurePermission()) {
+        if (mounted) {
+          setState(() =>
+              _error = AppLocalizations.of(context)!.gatewayLocPermDenied);
+        }
+        return;
+      }
+      final pos = await Geolocator.getCurrentPosition();
+      if (!mounted) return;
+      setState(() {
+        _follow = true;
+        _pin = LatLng(pos.latitude, pos.longitude);
+        _accuracyM = pos.accuracy;
+        _error = null;
+      });
+      _mapController.move(LatLng(pos.latitude, pos.longitude), 16);
+    } catch (e) {
+      if (mounted) {
+        setState(() =>
+            _error = AppLocalizations.of(context)!.gatewayLocUnavailable);
       }
     }
   }
@@ -190,13 +250,13 @@ class _GatewayMarkPageState extends ConsumerState<GatewayMarkPage> {
                               const InteractionOptions(flags: InteractiveFlag.drag),
                           onPositionChanged: (_, hasGesture) {
                             if (!hasGesture) return;
-                            // Keep the pin at the map centre (drag-to-fine-tune).
-                            final centre = _mapController.camera.center;
-                            if (mounted &&
-                                (centre.latitude != pin.latitude ||
-                                    centre.longitude != pin.longitude)) {
-                              setState(() => _pin = centre);
+                            // Dragging = manual fine-tune: stop auto-follow so the
+                            // map stops fighting the user; pin stays at the centre.
+                            if (mounted && _follow) {
+                              setState(() => _follow = false);
                             }
+                            final centre = _mapController.camera.center;
+                            if (mounted) setState(() => _pin = centre);
                           },
                         ),
                         children: [
@@ -238,6 +298,20 @@ class _GatewayMarkPageState extends ConsumerState<GatewayMarkPage> {
                             ),
                           ]),
                         ],
+                      ),
+                      Positioned(
+                        right: AppSpacing.md,
+                        bottom: AppSpacing.md,
+                        child: FloatingActionButton.small(
+                          heroTag: 'gateway-my-location',
+                          backgroundColor: AppColors.surfaceAlt,
+                          foregroundColor:
+                              _follow ? AppColors.success : AppColors.info,
+                          onPressed: _locate,
+                          child: Icon(_follow
+                              ? Icons.gps_fixed
+                              : Icons.gps_not_fixed),
+                        ),
                       ),
                     ],
                   ),
@@ -311,11 +385,17 @@ class _GatewayMarkPageState extends ConsumerState<GatewayMarkPage> {
         Expanded(
           child: Text(
             ready
-                ? l10n.gatewayAccuracyReady(_accuracyM!.toStringAsFixed(0))
+                ? (_follow
+                    ? l10n.gatewayFollowLive(_accuracyM!.toStringAsFixed(0))
+                    : l10n.gatewayAccuracyReady(_accuracyM!.toStringAsFixed(0)))
                 : l10n.gatewayLocating,
             style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
           ),
         ),
+        if (ready && !_follow)
+          Text(l10n.gatewayFollowManual,
+              style: const TextStyle(
+                  fontSize: 11, color: AppColors.textSecondary)),
       ]),
     );
   }

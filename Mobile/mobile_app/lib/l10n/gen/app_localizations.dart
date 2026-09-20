@@ -10936,6 +10936,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'热力图基于近 30 天真实上报帧按 100m 网格聚合。动物体位遮挡导致 RSSI 波动约 ±10dB，建议仅作方向性决策参考。'**
   String get coverageFootnote;
+
+  /// No description provided for @gatewayFollowLive.
+  ///
+  /// In zh, this message translates to:
+  /// **'自动跟随手机定位 · 精度约 ±{m} 米（拖动地图可微调）'**
+  String gatewayFollowLive(Object m);
+
+  /// No description provided for @gatewayFollowManual.
+  ///
+  /// In zh, this message translates to:
+  /// **'手动模式'**
+  String get gatewayFollowManual;
 }
 
 class _AppLocalizationsDelegate
