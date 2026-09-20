@@ -110,13 +110,12 @@ class _OfflineTileManagementPageState
                 .offlineTileDownloadedNamed(regionName)),
           ),
         );
-        // Bring the just-finished download into view: the downloaded
-        // section sits at the bottom, below the (potentially long) list
-        // of available regions.
+        // The downloaded section sits at the top; return there so the
+        // finished download is immediately visible.
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!_scrollController.hasClients) return;
           _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
+            0,
             duration: const Duration(milliseconds: 400),
             curve: Curves.easeOut,
           );
@@ -231,6 +230,28 @@ class _OfflineTileManagementPageState
                       const Divider(),
                     ],
 
+                    // Downloaded regions (local)
+                    ListTile(
+                      leading: const Icon(Icons.offline_bolt),
+                      title: Text(l10n.offlineTileDownloadedRegions(_localTiles.length.toString())),
+                    ),
+                    if (_localTiles.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                        child: Center(child: Text(l10n.offlineTileNoDownloaded, style: const TextStyle(color: Colors.grey))),
+                      )
+                    else
+                      ..._localTiles.map((t) => ListTile(
+                        leading: const Icon(Icons.check_circle, color: Colors.green),
+                        title: Text(t.regionName),
+                        subtitle: Text(_formatBytes(t.fileSize)),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () => _deleteRegion(t.regionName),
+                        ),
+                      )),
+                      const Divider(),
+
                     // Available regions (server-side, not yet downloaded)
                     if (_serverRegions.isNotEmpty) ...[
                       ListTile(
@@ -262,26 +283,6 @@ class _OfflineTileManagementPageState
                       const Divider(),
                     ],
 
-                    // Downloaded regions (local)
-                    ListTile(
-                      leading: const Icon(Icons.offline_bolt),
-                      title: Text(l10n.offlineTileDownloadedRegions(_localTiles.length.toString())),
-                    ),
-                    if (_localTiles.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-                        child: Center(child: Text(l10n.offlineTileNoDownloaded, style: const TextStyle(color: Colors.grey))),
-                      )
-                    else
-                      ..._localTiles.map((t) => ListTile(
-                        leading: const Icon(Icons.check_circle, color: Colors.green),
-                        title: Text(t.regionName),
-                        subtitle: Text(_formatBytes(t.fileSize)),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete_outline),
-                          onPressed: () => _deleteRegion(t.regionName),
-                        ),
-                      )),
                   ],
                 ),
     );
