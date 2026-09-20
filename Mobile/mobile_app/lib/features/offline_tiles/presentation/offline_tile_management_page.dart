@@ -16,6 +16,8 @@ class OfflineTileManagementPage extends ConsumerStatefulWidget {
 
 class _OfflineTileManagementPageState
     extends ConsumerState<OfflineTileManagementPage> {
+  final ScrollController _scrollController = ScrollController();
+
   bool _loading = true;
   bool _busy = false;
   String? _error;
@@ -32,6 +34,12 @@ class _OfflineTileManagementPageState
   void initState() {
     super.initState();
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -97,8 +105,22 @@ class _OfflineTileManagementPageState
       await _refreshLocal();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.offlineTileDownloadSuccess)),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!
+                .offlineTileDownloadedNamed(regionName)),
+          ),
         );
+        // Bring the just-finished download into view: the downloaded
+        // section sits at the bottom, below the (potentially long) list
+        // of available regions.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!_scrollController.hasClients) return;
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOut,
+          );
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -172,6 +194,7 @@ class _OfflineTileManagementPageState
           : _error != null
               ? Center(child: Text('${l10n.commonLoadFailed}: $_error'))
               : ListView(
+                  controller: _scrollController,
                   children: [
                     // Storage usage
                     ListTile(

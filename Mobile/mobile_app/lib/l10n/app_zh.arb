@@ -1577,7 +1577,15 @@
   },
   "offlineTileDownloadSuccess": "下载完成",
   "@offlineTileDownloadSuccess": {},
-  "offlineTileDelete": "删除",
+
+  "offlineTileDownloadedNamed": "已下载 {region}",
+  "@offlineTileDownloadedNamed": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },  "offlineTileDelete": "删除",
   "@offlineTileDelete": {},
   "offlineTileDeleteConfirm": "确定删除此离线地图？删除后需要重新下载才能离线使用。",
   "@offlineTileDeleteConfirm": {},

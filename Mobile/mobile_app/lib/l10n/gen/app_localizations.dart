@@ -3406,6 +3406,12 @@ abstract class AppLocalizations {
   /// **'下载完成'**
   String get offlineTileDownloadSuccess;
 
+  /// No description provided for @offlineTileDownloadedNamed.
+  ///
+  /// In zh, this message translates to:
+  /// **'已下载 {region}'**
+  String offlineTileDownloadedNamed(String region);
+
   /// No description provided for @offlineTileDelete.
   ///
   /// In zh, this message translates to:

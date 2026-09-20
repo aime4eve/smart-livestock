@@ -1840,6 +1840,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get offlineTileDownloadSuccess => '下载完成';
 
   @override
+  String offlineTileDownloadedNamed(String region) {
+    return '已下载 $region';
+  }
+
+  @override
   String get offlineTileDelete => '删除';
 
   @override

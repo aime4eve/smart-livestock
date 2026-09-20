@@ -1580,7 +1580,15 @@
   },
   "offlineTileDownloadSuccess": "Download complete",
   "@offlineTileDownloadSuccess": {},
-  "offlineTileDelete": "Delete",
+
+  "offlineTileDownloadedNamed": "Downloaded {region}",
+  "@offlineTileDownloadedNamed": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },  "offlineTileDelete": "Delete",
   "@offlineTileDelete": {},
   "offlineTileDeleteConfirm": "Delete this offline map? You will need to re-download it to use offline.",
   "@offlineTileDeleteConfirm": {},

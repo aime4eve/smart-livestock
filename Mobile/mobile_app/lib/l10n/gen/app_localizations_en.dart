@@ -1880,6 +1880,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get offlineTileDownloadSuccess => 'Download complete';
 
   @override
+  String offlineTileDownloadedNamed(String region) {
+    return 'Downloaded $region';
+  }
+
+  @override
   String get offlineTileDelete => 'Delete';
 
   @override
