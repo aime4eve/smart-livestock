@@ -1885,6 +1885,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get offlineTileWebHint =>
+      'The web map is always online. Use the mobile app to download offline maps.';
+
+  @override
   String get offlineTileDelete => 'Delete';
 
   @override

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -123,8 +124,12 @@ class _OfflineTileManagementPageState
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        // Plugin errors (e.g. path_provider on web) must not leak raw
+        // exception text to users (lessons #25).
+        final detail = kIsWeb ? l10n.offlineTileWebHint : e.toString();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.offlineTileDownloadFailed(e.toString()))),
+          SnackBar(content: Text(l10n.offlineTileDownloadFailed(detail))),
         );
       }
     } finally {
@@ -200,7 +205,21 @@ class _OfflineTileManagementPageState
                       leading: const Icon(Icons.sd_storage),
                       title: Text(l10n.offlineTileStorageUsed(_formatBytes(_storageUsed))),
                     ),
-                    const Divider(),
+                    // Web has no filesystem: offline packs are a mobile-only
+                    // capability, and the web map is always online anyway.
+                    if (kIsWeb) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          l10n.offlineTileWebHint,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: Theme.of(context).colorScheme.outline),
+                        ),
+                      ),
+                      const Divider(),
+                    ],
 
                     // Download progress bar
                     if (_downloadingRegion != null) ...[
@@ -231,16 +250,16 @@ class _OfflineTileManagementPageState
                     ],
 
                     // Downloaded regions (local)
-                    ListTile(
+                    if (!kIsWeb) ListTile(
                       leading: const Icon(Icons.offline_bolt),
                       title: Text(l10n.offlineTileDownloadedRegions(_localTiles.length.toString())),
                     ),
-                    if (_localTiles.isEmpty)
+                    if (!kIsWeb && _localTiles.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
                         child: Center(child: Text(l10n.offlineTileNoDownloaded, style: const TextStyle(color: Colors.grey))),
                       )
-                    else
+                    else if (!kIsWeb)
                       ..._localTiles.map((t) => ListTile(
                         leading: const Icon(Icons.check_circle, color: Colors.green),
                         title: Text(t.regionName),
@@ -274,7 +293,9 @@ class _OfflineTileManagementPageState
                           subtitle: Text(_formatBytes(size)),
                           trailing: status == 'ready'
                               ? FilledButton.tonal(
-                                  onPressed: _downloadingRegion != null ? null : () => _downloadRegion(name),
+                                  onPressed: _downloadingRegion != null || kIsWeb
+                                      ? null
+                                      : () => _downloadRegion(name),
                                   child: Text(l10n.offlineTileDownload),
                                 )
                               : null,

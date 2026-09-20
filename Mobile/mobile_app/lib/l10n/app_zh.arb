@@ -1585,7 +1585,9 @@
         "type": "String"
       }
     }
-  },  "offlineTileDelete": "删除",
+  },
+  "offlineTileWebHint": "网页版地图始终在线可用；离线包下载请使用移动端 App",
+  "@offlineTileWebHint": {},  "offlineTileDelete": "删除",
   "@offlineTileDelete": {},
   "offlineTileDeleteConfirm": "确定删除此离线地图？删除后需要重新下载才能离线使用。",
   "@offlineTileDeleteConfirm": {},

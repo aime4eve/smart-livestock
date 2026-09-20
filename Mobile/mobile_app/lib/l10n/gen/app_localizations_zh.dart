@@ -1845,6 +1845,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get offlineTileWebHint => '网页版地图始终在线可用；离线包下载请使用移动端 App';
+
+  @override
   String get offlineTileDelete => '删除';
 
   @override

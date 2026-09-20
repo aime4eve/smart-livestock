@@ -1588,7 +1588,9 @@
         "type": "String"
       }
     }
-  },  "offlineTileDelete": "Delete",
+  },
+  "offlineTileWebHint": "The web map is always online. Use the mobile app to download offline maps.",
+  "@offlineTileWebHint": {},  "offlineTileDelete": "Delete",
   "@offlineTileDelete": {},
   "offlineTileDeleteConfirm": "Delete this offline map? You will need to re-download it to use offline.",
   "@offlineTileDeleteConfirm": {},

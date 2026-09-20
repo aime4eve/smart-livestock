@@ -3412,6 +3412,12 @@ abstract class AppLocalizations {
   /// **'已下载 {region}'**
   String offlineTileDownloadedNamed(String region);
 
+  /// No description provided for @offlineTileWebHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'网页版地图始终在线可用；离线包下载请使用移动端 App'**
+  String get offlineTileWebHint;
+
   /// No description provided for @offlineTileDelete.
   ///
   /// In zh, this message translates to:
