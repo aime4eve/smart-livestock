@@ -121,8 +121,17 @@ class _RanchPageState extends ConsumerState<RanchPage>
     String? activeFarmId,
   ) {
     final canManage = role != null && RolePermission.canEditFence(role);
-    final shouldTransform =
-        _tileProvider?.shouldTransformCoordinates() ?? false;
+    // Transform decision follows the tiles actually serving the farm area:
+    // 高德 online → GCJ-02, local offline/server OSM tiles → none.
+    final refPoint = overview.fences.isNotEmpty &&
+            overview.fences.first.points.isNotEmpty
+        ? overview.fences.first.points.first
+        : overview.livestockMarkers.isNotEmpty
+            ? overview.livestockMarkers.first.toLatLng()
+            : null;
+    final shouldTransform = refPoint != null
+        ? (_tileProvider?.shouldTransformAt(refPoint) ?? false)
+        : (_tileProvider?.shouldTransformCoordinates() ?? false);
     _centerOnFarmOnce(overview, activeFarmId, shouldTransform);
 
     if (_selectedFenceId != null) {

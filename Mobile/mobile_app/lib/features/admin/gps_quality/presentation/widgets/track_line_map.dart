@@ -57,11 +57,15 @@ class _TrackLineMapState extends ConsumerState<TrackLineMap> {
     super.dispose();
   }
 
-  bool get _shouldTransform =>
-      _tileProvider?.shouldTransformCoordinates() ?? false;
-
-  List<LatLng> _transform(List<LatLng> raw) =>
-      _shouldTransform ? CoordTransform.wgs84ToGcj02All(raw) : raw;
+  /// Transform follows the tiles actually serving the track area:
+  /// 高德 online → GCJ-02; local offline/server OSM tiles → none.
+  List<LatLng> _transform(List<LatLng> raw) {
+    final t = _tileProvider;
+    if (t == null || raw.isEmpty) return raw;
+    return t.shouldTransformAt(raw.first)
+        ? CoordTransform.wgs84ToGcj02All(raw)
+        : raw;
+  }
 
   /// Expand degenerate bounds (single point / zero span) by a small epsilon
   /// to avoid Infinity zoom in flutter_map.
@@ -110,8 +114,10 @@ class _TrackLineMapState extends ConsumerState<TrackLineMap> {
     final bounds = _safeBounds(LatLngBounds.fromPoints(allPoints));
 
     // Re-fit the camera when the tile source switches coordinate system.
-    if (_lastTransformed != _shouldTransform) {
-      _lastTransformed = _shouldTransform;
+    final transformedNow =
+        allPoints.isNotEmpty && _transform([allPoints.first]).first != allPoints.first;
+    if (_lastTransformed != transformedNow) {
+      _lastTransformed = transformedNow;
       _lastBounds = bounds;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _lastBounds != null) {

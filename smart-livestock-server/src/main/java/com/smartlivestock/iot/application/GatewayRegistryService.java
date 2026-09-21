@@ -31,6 +31,7 @@ import java.util.Set;
 public class GatewayRegistryService {
 
     private static final Duration DISCOVERY_WINDOW = Duration.ofDays(90);
+    private static final Duration STATS_WINDOW = Duration.ofDays(30);
     private static final String DATAGEN_GATEWAY = "datagen-gw-01";
     private static final String SOURCE_APP = "APP";
 
@@ -72,16 +73,22 @@ public class GatewayRegistryService {
             double markRate) {
     }
 
-    /** Gateways the farm's actively-installed devices actually communicated with. */
+    /**
+     * Gateways the farm's actively-installed devices actually communicated
+     * with. Which gateways appear is scanned over 90 days (a gateway silent for
+     * a month stays visible for re-marking), while frames / tier use the 30-day
+     * stats window to match the UI "last 30 days" label.
+     */
     public List<GatewayDiscoveryItem> discoverFarmGateways(Long farmId) {
         List<Long> deviceIds = farmDeviceIds(farmId);
         if (deviceIds.isEmpty()) {
             return List.of();
         }
         Instant since = Instant.now().minus(DISCOVERY_WINDOW);
+        Instant statsSince = Instant.now().minus(STATS_WINDOW);
         // Synthetic gateways never belong to a real pasture view (F10 parity).
         List<GatewayUsageSummary> usage =
-                deviceTelemetryLogRepository.aggregateGatewayUsage(deviceIds, since).stream()
+                deviceTelemetryLogRepository.aggregateGatewayUsage(deviceIds, since, statsSince).stream()
                         .filter(u -> !DATAGEN_GATEWAY.equals(u.gatewayId()))
                         .toList();
         return usage.stream()

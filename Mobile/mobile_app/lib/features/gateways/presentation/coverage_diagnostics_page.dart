@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/map/map_config.dart';
+import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
@@ -23,6 +24,17 @@ class CoverageDiagnosticsPage extends ConsumerStatefulWidget {
 class _CoverageDiagnosticsPageState
     extends ConsumerState<CoverageDiagnosticsPage> {
   SmartTileProvider? _tileProvider;
+  final _mapController = MapController();
+
+  // Cell centroids and gateway registry positions are WGS-84. Whether they
+  // are transformed to GCJ-02 for rendering follows the tiles actually
+  // serving each point: 高德 online → yes; local offline/server (OSM) → no.
+  LatLng _toDisplay(LatLng p) {
+    final t = _tileProvider;
+    return t != null && t.shouldTransformAt(p)
+        ? CoordTransform.wgs84ToGcj02(p)
+        : p;
+  }
 
   @override
   void initState() {
@@ -34,10 +46,28 @@ class _CoverageDiagnosticsPageState
     final provider = await loadSmartTileProvider(
       ref,
       onSourceChanged: () {
-        if (mounted) setState(() {});
+        if (mounted) {
+          setState(() {});
+          _recenterOnCells();
+        }
       },
     );
     if (mounted) setState(() => _tileProvider = provider);
+  }
+
+  /// Re-anchor the view when the tile source (and with it the projection)
+  /// changes, so the heat circles stay centred and correctly placed.
+  void _recenterOnCells() {
+    final cell = _firstCell();
+    if (cell != null) _mapController.move(_toDisplay(cell), 14);
+  }
+
+  LatLng? _firstCell() {
+    final cells =
+        (ref.read(coverageDiagnosticControllerProvider).value as Map?)?['cells'] as List?;
+    if (cells == null || cells.isEmpty) return null;
+    final c = cells.first as Map;
+    return LatLng((c['lat'] as num).toDouble(), (c['lng'] as num).toDouble());
   }
 
   @override
@@ -109,57 +139,64 @@ class _CoverageDiagnosticsPageState
               const SizedBox(height: AppSpacing.md),
               SizedBox(
                 height: 260,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(AppSpacing.sm),
-                  child: FlutterMap(
-                    options: MapOptions(
-                      initialCenter: cells.isNotEmpty
-                          ? LatLng((cells.first['lat'] as num).toDouble(),
-                              (cells.first['lng'] as num).toDouble())
-                          : const LatLng(28.2280, 112.9400),
-                      initialZoom: 14,
-                    ),
-                    children: [
-                      TileLayer(
-                        key: ValueKey(_tileProvider?.activeSourceName),
-                        urlTemplate: _tileProvider == null
-                            ? MapConfig.tileUrlTemplate
-                            : null,
-                        tileProvider: _tileProvider,
-                        userAgentPackageName: 'com.smartlivestock.demo',
+                child: _tileProvider == null
+                    ? const Center(child: CircularProgressIndicator())
+                    : ClipRRect(
+                        borderRadius: BorderRadius.circular(AppSpacing.sm),
+                        child: FlutterMap(
+                          mapController: _mapController,
+                          options: MapOptions(
+                            initialCenter: cells.isNotEmpty
+                                ? _toDisplay(LatLng(
+                                    (cells.first['lat'] as num).toDouble(),
+                                    (cells.first['lng'] as num).toDouble()))
+                                : const LatLng(28.2280, 112.9400),
+                            initialZoom: 14,
+                          ),
+                          children: [
+                            TileLayer(
+                              key: ValueKey(_tileProvider?.activeSourceName),
+                              urlTemplate: _tileProvider == null
+                                  ? MapConfig.tileUrlTemplate
+                                  : null,
+                              tileProvider: _tileProvider,
+                              userAgentPackageName:
+                                  'com.smartlivestock.demo',
+                            ),
+                            CircleLayer(
+                              circles: cells.map((c) {
+                                final rssi = (c['avgRssi'] as num).toDouble();
+                                final color = rssi >= -90
+                                    ? AppColors.success
+                                    : rssi >= -100
+                                        ? AppColors.warning
+                                        : AppColors.danger;
+                                return CircleMarker(
+                                  point: _toDisplay(LatLng(
+                                      (c['lat'] as num).toDouble(),
+                                      (c['lng'] as num).toDouble())),
+                                  radius: 60,
+                                  useRadiusInMeter: true,
+                                  color: color.withValues(alpha: 0.35),
+                                );
+                              }).toList(),
+                            ),
+                            MarkerLayer(
+                              markers: gateways.map((g) {
+                                return Marker(
+                                  point: _toDisplay(LatLng(
+                                      (g['lat'] as num).toDouble(),
+                                      (g['lng'] as num).toDouble())),
+                                  width: 26,
+                                  height: 26,
+                                  child: const Icon(Icons.wifi_tethering,
+                                      color: AppColors.info, size: 26),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
                       ),
-                      CircleLayer(
-                        circles: cells.map((c) {
-                          final rssi = (c['avgRssi'] as num).toDouble();
-                          final color = rssi >= -90
-                              ? AppColors.success
-                              : rssi >= -100
-                                  ? AppColors.warning
-                                  : AppColors.danger;
-                          return CircleMarker(
-                            point: LatLng((c['lat'] as num).toDouble(),
-                                (c['lng'] as num).toDouble()),
-                            radius: 60,
-                            useRadiusInMeter: true,
-                            color: color.withValues(alpha: 0.35),
-                          );
-                        }).toList(),
-                      ),
-                      MarkerLayer(
-                        markers: gateways.map((g) {
-                          return Marker(
-                            point: LatLng((g['lat'] as num).toDouble(),
-                                (g['lng'] as num).toDouble()),
-                            width: 26,
-                            height: 26,
-                            child: const Icon(Icons.wifi_tethering,
-                                color: AppColors.info, size: 26),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
-                ),
               ),
               const SizedBox(height: AppSpacing.sm),
               Row(children: [

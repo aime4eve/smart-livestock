@@ -68,12 +68,13 @@ public class JpaDeviceTelemetryLogRepositoryImpl implements DeviceTelemetryLogRe
 
     @Override
     public List<com.smartlivestock.iot.domain.model.GatewayUsageSummary> aggregateGatewayUsage(
-            List<Long> deviceIds, Instant since) {
+            List<Long> deviceIds, Instant since, Instant statsSince) {
         if (deviceIds == null || deviceIds.isEmpty()) return List.of();
-        return springDataRepo.aggregateGatewayUsageRows(deviceIds, since).stream()
+        // Native query: MAX(report_time) comes back as java.sql.Timestamp.
+        return springDataRepo.aggregateGatewayUsageRows(deviceIds, since, statsSince).stream()
                 .map(row -> new com.smartlivestock.iot.domain.model.GatewayUsageSummary(
                         (String) row[0],
-                        (Instant) row[1],
+                        row[1] == null ? null : ((java.sql.Timestamp) row[1]).toInstant(),
                         ((Number) row[2]).longValue(),
                         row[3] == null ? null : ((Number) row[3]).doubleValue()))
                 .toList();
