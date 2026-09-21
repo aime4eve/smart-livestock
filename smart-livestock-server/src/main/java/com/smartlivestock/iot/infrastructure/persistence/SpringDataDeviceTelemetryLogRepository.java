@@ -62,16 +62,26 @@ public interface SpringDataDeviceTelemetryLogRepository extends JpaRepository<De
 
     // --- Gateway distance features (NIX-219) ---
 
-    @Query("""
-            SELECT t.gatewayId, MAX(t.reportTime), COUNT(t), AVG(t.rssi)
-            FROM DeviceTelemetryLogJpaEntity t
-            WHERE t.deviceId IN :deviceIds
-              AND t.reportTime >= :since
-              AND t.gatewayId IS NOT NULL AND t.gatewayId <> ''
-            GROUP BY t.gatewayId
-            """)
+    /**
+     * Per-gateway usage for the discovery list. Which gateways appear is a
+     * 90-day scan, while the displayed frames / tier average stay on the 30-day
+     * stats window (FILTER) to match the UI "last 30 days" label. Native SQL
+     * for FILTER.
+     */
+    @Query(value = """
+            SELECT t.gateway_id,
+                   MAX(t.report_time)                                        AS last_time,
+                   COUNT(*) FILTER (WHERE t.report_time >= :statsSince)      AS frames,
+                   AVG(t.rssi) FILTER (WHERE t.report_time >= :statsSince)   AS avg_rssi
+            FROM device_telemetry_logs t
+            WHERE t.device_id IN (:deviceIds)
+              AND t.report_time >= :since
+              AND t.gateway_id IS NOT NULL AND t.gateway_id <> ''
+            GROUP BY t.gateway_id
+            """, nativeQuery = true)
     List<Object[]> aggregateGatewayUsageRows(@Param("deviceIds") List<Long> deviceIds,
-                                             @Param("since") Instant since);
+                                             @Param("since") Instant since,
+                                             @Param("statsSince") Instant statsSince);
 
     @Query("""
             SELECT DISTINCT t.gatewayId FROM DeviceTelemetryLogJpaEntity t
@@ -203,6 +213,10 @@ public interface SpringDataDeviceTelemetryLogRepository extends JpaRepository<De
                                         @Param("toTime") Instant toTime);
 
     // --- F8 coverage diagnostics ---
+    // All three queries exclude source='DATAGEN': the simulator emits a fixed
+    // strong RSSI (~-56 dBm) at high volume and would dominate every tier
+    // percentage, diluting real edge frames below the advice trigger (AGENTS:
+    // synthetic data must never be passed off as real coverage).
 
     @Query(value = """
             SELECT ROUND(t.latitude / 0.0009)      AS gy,
@@ -215,6 +229,7 @@ public interface SpringDataDeviceTelemetryLogRepository extends JpaRepository<De
             WHERE t.device_id IN (:deviceIds)
               AND t.report_time >= :since
               AND t.gateway_id IS NOT NULL AND t.gateway_id <> ''
+              AND t.source <> 'DATAGEN'
               AND t.rssi IS NOT NULL
               AND t.latitude IS NOT NULL AND t.longitude IS NOT NULL
               AND t.latitude BETWEEN -90 AND 90
@@ -239,6 +254,7 @@ public interface SpringDataDeviceTelemetryLogRepository extends JpaRepository<De
             WHERE t.device_id IN (:deviceIds)
               AND t.report_time >= :since
               AND t.gateway_id IS NOT NULL AND t.gateway_id <> ''
+              AND t.source <> 'DATAGEN'
               AND t.rssi IS NOT NULL
               AND t.latitude IS NOT NULL AND t.longitude IS NOT NULL
               AND t.latitude BETWEEN -90 AND 90
@@ -254,6 +270,7 @@ public interface SpringDataDeviceTelemetryLogRepository extends JpaRepository<De
             WHERE t.device_id IN (:deviceIds)
               AND t.report_time >= :since
               AND t.gateway_id IS NOT NULL AND t.gateway_id <> ''
+              AND t.source <> 'DATAGEN'
               AND t.rssi < -95
               AND t.latitude IS NOT NULL AND t.longitude IS NOT NULL
               AND t.latitude BETWEEN -90 AND 90

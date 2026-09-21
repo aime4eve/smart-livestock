@@ -33,11 +33,13 @@ public interface DeviceTelemetryLogRepository {
     // --- Gateway distance features (NIX-219) ---
 
     /**
-     * Gateway usage aggregation for gateway discovery: which gateways the given
-     * devices talked to since the given time, with last-seen time and frame count.
+     * Gateway usage aggregation for gateway discovery: gateways the given
+     * devices talked to since {@code since} (which gateways appear), while the
+     * frame count and average RSSI are restricted to {@code statsSince} so the
+     * displayed "last 30 days" stats match their label.
      */
     List<com.smartlivestock.iot.domain.model.GatewayUsageSummary> aggregateGatewayUsage(
-            List<Long> deviceIds, Instant since);
+            List<Long> deviceIds, Instant since, Instant statsSince);
 
     /** Distinct non-blank gateway ids seen since the given time (admin reconciliation, F10). */
     List<String> findDistinctGatewayIds(Instant since);

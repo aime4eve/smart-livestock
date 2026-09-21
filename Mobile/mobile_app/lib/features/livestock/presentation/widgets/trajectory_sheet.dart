@@ -353,13 +353,21 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
     return b;
 }
 
- /// Transform ALL points (for bounds calculation).
+  /// Transform follows the tiles actually serving the track area:
+  /// 高德 online → GCJ-02; local offline/server OSM tiles → none.
+  bool _shouldTransformAtFirst() {
+    final t = _tileProvider;
+    if (t == null || _points.isEmpty) return false;
+    return t.shouldTransformAt(LatLng(_points.first.lat, _points.first.lng));
+  }
+
+  /// Transform ALL points (for bounds calculation).
   List<LatLng> _transformAllPoints() {
     final raw =
         _points.map((p) => LatLng(p.lat, p.lng)).toList();
-    final shouldTransform =
-        _tileProvider?.shouldTransformCoordinates() ?? false;
-    return shouldTransform ? CoordTransform.wgs84ToGcj02All(raw) : raw;
+    return _shouldTransformAtFirst()
+        ? CoordTransform.wgs84ToGcj02All(raw)
+        : raw;
   }
 
   /// Transform a sublist (0..idx) for display.
@@ -370,9 +378,9 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
         .sublist(0, end)
         .map((p) => LatLng(p.lat, p.lng))
         .toList();
-    final shouldTransform =
-        _tileProvider?.shouldTransformCoordinates() ?? false;
-    return shouldTransform ? CoordTransform.wgs84ToGcj02All(raw) : raw;
+    return _shouldTransformAtFirst()
+        ? CoordTransform.wgs84ToGcj02All(raw)
+        : raw;
   }
 
   /// Average of ring vertices — label anchor for a fence polygon.
@@ -605,8 +613,7 @@ class _TrajectorySheetState extends ConsumerState<_TrajectorySheet> {
     final bounds = LatLngBounds.fromPoints(allLatLngs);
 
     // Re-fit camera when tile source switches coordinate system
-    final shouldTransform =
-        _tileProvider?.shouldTransformCoordinates() ?? false;
+    final shouldTransform = _shouldTransformAtFirst();
 
     // Farm fences: only in farm-scoped contexts (livestock / farm device
     // overview). Admin device mode has no farm scope — skip entirely.

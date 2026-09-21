@@ -56,11 +56,17 @@ flutter build ipa --release \
   --export-options-plist=ios/ExportOptions.plist
 
 # Rename IPA
-SRC_IPA="build/ios/ipa/hkt_livestock_agentic.ipa"
-if [ ! -f "$SRC_IPA" ]; then
-  # Flutter may name it differently
-  SRC_IPA=$(find build/ios/ipa -name "*.ipa" | head -1)
+# Flutter names the export after the app display name (e.g. "Livestock
+# Agent.ipa") and has used both snake/kebab names in the past — so pick the
+# NEWEST non-versioned IPA instead of any fixed name; a leftover from an
+# earlier naming era must never win.
+SRC_IPA=$(ls -t build/ios/ipa/*.ipa 2>/dev/null \
+          | grep -vE 'hkt-livestock-agentic-[0-9]|hkt-smartlivestock-[0-9]' \
+          | head -1 || true)
+if [ -z "$SRC_IPA" ]; then
+  echo "ERROR: flutter build produced no IPA under build/ios/ipa/"; exit 1
 fi
+echo "==> Source IPA: $SRC_IPA ($(stat -f '%Sm' "$SRC_IPA"))"
 OUT_IPA="build/ios/ipa/hkt-livestock-agentic-${APP_VERSION}.ipa"
 cp "$SRC_IPA" "$OUT_IPA"
 echo "==> Done: $OUT_IPA"

@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
+import 'package:latlong2/latlong.dart';
 import 'package:hkt_livestock_agentic/core/map/mbtiles_tile_provider.dart';
 
 /// Which online source is currently active.
@@ -62,6 +64,28 @@ class SmartTileProvider extends TileProvider {
   /// GCJ-02 transform needed only when serving 高德 tiles online.
   bool shouldTransformCoordinates() =>
       _activeSource != _OnlineSource.offline && onlineIsGcj02;
+
+  /// Whether the tiles ACTUALLY serving [point] are GCJ-02. Per-tile routing
+  /// prefers local mbtiles (downloaded from the self-hosted OSM tileserver,
+  /// WGS-84) over the online source, so on a device with an offline region
+  /// covering the point the drawn coordinates must NOT be transformed even
+  /// though the online source is 高德. The server tileserver fallback is
+  /// WGS-84 too; only the 高德 online source is GCJ-02.
+  bool shouldTransformAt(LatLng point, {int zoom = 14}) {
+    if (!onlineIsGcj02 || _activeSource != _OnlineSource.primary) return false;
+    final n = 1 << zoom;
+    final x = ((point.longitude + 180) / 360 * n).floor();
+    final latRad = point.latitude * math.pi / 180;
+    final y = ((1 -
+                math.log(math.tan(latRad) + 1 / math.cos(latRad)) / math.pi) /
+            2 *
+            n)
+        .floor();
+    for (final p in mbtilesProviders) {
+      if (p.meta.containsTile(zoom, x, y)) return false;
+    }
+    return true;
+  }
 
  void probeConnectivity() {
    _probe();

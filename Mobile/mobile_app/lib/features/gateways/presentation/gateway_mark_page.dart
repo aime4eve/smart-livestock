@@ -6,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/core/map/map_config.dart';
+import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
@@ -44,6 +45,30 @@ class _GatewayMarkPageState extends ConsumerState<GatewayMarkPage> {
   StreamSubscription<Position>? _posSub;
   bool _follow = true; // auto-fill lat/lng from the phone GPS until the user drags
 
+  // Coordinate-system rule (NIX-219): [_pin] is ALWAYS WGS-84 (what gets
+  // saved and what the distance math expects). The rendering transform
+  // follows the tiles actually serving the pin (高德 online → GCJ-02; local
+  // offline/server OSM tiles → none), and a drag is converted back the same
+  // way before it reaches [_pin].
+  LatLng _toDisplay(LatLng p) {
+    final t = _tileProvider;
+    return t != null && t.shouldTransformAt(p)
+        ? CoordTransform.wgs84ToGcj02(p)
+        : p;
+  }
+
+  LatLng _fromDisplay(LatLng p) {
+    final t = _tileProvider;
+    return t != null && t.shouldTransformAt(p)
+        ? CoordTransform.gcj02ToWgs84(p)
+        : p;
+  }
+
+  void _recenterOnPin() {
+    final pin = _pin;
+    if (pin != null) _mapController.move(_toDisplay(pin), 16);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -70,7 +95,12 @@ class _GatewayMarkPageState extends ConsumerState<GatewayMarkPage> {
     final provider = await loadSmartTileProvider(
       ref,
       onSourceChanged: () {
-        if (mounted) setState(() {});
+        if (mounted) {
+          setState(() {});
+          // Projection changed with the tile source — re-anchor the view on
+          // the pin so the marker stays centred and correctly placed.
+          if (_tileProvider != null) _recenterOnPin();
+        }
       },
     );
     if (mounted) setState(() => _tileProvider = provider);
@@ -113,7 +143,7 @@ class _GatewayMarkPageState extends ConsumerState<GatewayMarkPage> {
           _error = AppLocalizations.of(context)!.gatewayLocUnavailable;
           _pin ??= const LatLng(28.2280, 112.9400);
         });
-        _mapController.move(_pin!, 16);
+        _mapController.move(_toDisplay(_pin!), 16);
       }
     }
   }
@@ -127,7 +157,7 @@ class _GatewayMarkPageState extends ConsumerState<GatewayMarkPage> {
       _error = null;
     });
     if (moveCamera && _follow) {
-      _mapController.move(target, 16);
+      _mapController.move(_toDisplay(target), 16);
     }
   }
 
@@ -149,7 +179,7 @@ class _GatewayMarkPageState extends ConsumerState<GatewayMarkPage> {
         _accuracyM = pos.accuracy;
         _error = null;
       });
-      _mapController.move(LatLng(pos.latitude, pos.longitude), 16);
+      _mapController.move(_toDisplay(LatLng(pos.latitude, pos.longitude)), 16);
     } catch (e) {
       if (mounted) {
         setState(() =>
@@ -237,14 +267,14 @@ class _GatewayMarkPageState extends ConsumerState<GatewayMarkPage> {
           const SizedBox(height: AppSpacing.md),
           SizedBox(
             height: 240,
-            child: pin == null
+            child: pin == null || _tileProvider == null
                 ? const Center(child: CircularProgressIndicator())
                 : Stack(
                     children: [
                       FlutterMap(
                         mapController: _mapController,
                         options: MapOptions(
-                          initialCenter: pin,
+                          initialCenter: _toDisplay(pin),
                           initialZoom: 16,
                           interactionOptions:
                               const InteractionOptions(flags: InteractiveFlag.drag),
@@ -256,7 +286,9 @@ class _GatewayMarkPageState extends ConsumerState<GatewayMarkPage> {
                               setState(() => _follow = false);
                             }
                             final centre = _mapController.camera.center;
-                            if (mounted) setState(() => _pin = centre);
+                            // Map centre is in tile coordinates (GCJ-02 on 高德)
+                            // — convert back before it touches the stored pin.
+                            if (mounted) setState(() => _pin = _fromDisplay(centre));
                           },
                         ),
                         children: [
@@ -271,7 +303,7 @@ class _GatewayMarkPageState extends ConsumerState<GatewayMarkPage> {
                           CircleLayer(circles: [
                             if (_accuracyM != null)
                               CircleMarker(
-                                point: pin,
+                                point: _toDisplay(pin),
                                 radius: _accuracyM!,
                                 useRadiusInMeter: true,
                                 color: (_accuracyM! <= 10
@@ -290,7 +322,7 @@ class _GatewayMarkPageState extends ConsumerState<GatewayMarkPage> {
                           ]),
                           MarkerLayer(markers: [
                             Marker(
-                              point: pin,
+                              point: _toDisplay(pin),
                               width: 30,
                               height: 30,
                               child: const Icon(Icons.location_on,
