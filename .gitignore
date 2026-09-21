@@ -128,3 +128,7 @@ data/datasets/**
 !data/datasets/*/
 !data/datasets/**/*.pdf
 .claude/
+
+# ZCode agent session artifacts
+.zcode/
+.zcodeignore

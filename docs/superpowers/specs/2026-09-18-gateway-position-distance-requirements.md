@@ -127,12 +127,28 @@
 | F5 | 归牧点名 | 🟡 | `evaluateReturnHome` + 每日 19:30 Job（cron 可配）；RETURN_HOME 告警 | 同上 | 今晚 19:30 首次自动评估，明日可查告警 |
 | F6 | 游走半径画像 | 🟡 | `aggregateRoamDaily` + 每日 04:20 Job；`LivestockRoamController` 查询端点 | API：roam-radius 200（空列表属预期，Job 明晨首跑） | **无 UI 展示为有意裁决**（原型未画，随画像模块） |
 | F7 | 饮水访问辅助 | ⛔ | — | — | 依赖 NIX-157 水源围栏（P4 协同） |
-| F8 | 覆盖诊断与位置调整建议 | ⛔ | —（算法规则已定稿+test 库 38,567 帧试算验证：当前数据输出"覆盖良好无需调整"） | 试算 SQL+结果已入本文档 F8 节 | 待立项即开工（1–2 天，不依赖数据积累——test 已满 30 天窗口）；建议含"早期模式"（14 天低置信）设计点待确认 |
+| F8 | 覆盖诊断与位置调整建议 | ✅ | `CoverageDiagnosticService` + 三条 SQL（2026-09-21 起排除 source='DATAGEN'）；覆盖诊断页（热力圆/建议卡/ACCUMULATING 态） | GUI：dev/test 浏览器走查截图；API+SQL 双层复算一致（test 真实口径 1080 帧 81/11/8，建议 NONE）；真机双端位置验证通过 | 无（早期模式设计点随 P4 复评） |
 | F9 | 距离未知体验 | ✅ | 距离卡片 unknown 分支 | GUI：SL-2024-047/HKT15 弹层 "Unknown (no fix)+信号档参考" | 无 |
 | F10 | admin 网关登记对账 | 🟡 | `GatewayAdminController`；`gateway_overview_page.dart`；mine 页 platformAdmin/b2bAdmin 入口 | API：overview 200（markRate 正确）；GUI 渲染验证受阻（Flutter web 滚动问题） | 对账页 GUI 渲染待复验（换 platform admin 或真机） |
 | F11 | 数据治理一期（GPS 规则集，NIX-220 承载） | ✅ | `governance/` 规则接口+3 规则；ingest 接入；`GovernanceAdminController` | API：gps-flags 200 且已有真实打数产生 gateway_missing 标记 | 胶囊规则集（后续工单）；抖动管道（NIX-9 主线） |
 
-**总账口径**：✅4 / 🟡5 / ⛔2。🟡 项的"验证受限"均已明确触发条件与复验方式，不构成功能缺失。
+**总账口径**：✅5 / 🟡5 / ⛔1。🟡 项的"验证受限"均已明确触发条件与复验方式，不构成功能缺失。
+
+### 4.6.1 2026-09-21 缺陷修复补记（PR #109，master `43d5e25c`）
+
+主功能合并后用户真机验证发现五项缺陷，当日全部修复并双端验证：
+
+| # | 缺陷 | 根因 | 修复 |
+|---|------|------|------|
+| A | 覆盖诊断混入仿真数据（test 98.6% 帧为 datagen，真实边缘占比被稀释 ~100 倍，永远触发不了迁移/增补建议） | 三条 F8 SQL 未排除仿真来源，违反"仿真不得混充真实效果"规则 | SQL 加 `source <> 'DATAGEN'`；test 修后真实口径 81%/11%/8% |
+| B | 网关列表"近 30 天 N 帧"实为 90 天计数与均值 | `DISCOVERY_WINDOW=90d` 同时用于发现与统计 | 统计改 30d 双窗口（发现仍 90d 留显失联网关） |
+| C | 网关/覆盖两页地图位置整体偏 ~660 米（标记页拖动还会把 GCJ 坐标存库，污染距离计算） | 高德瓦片 GCJ-02 vs 设备 GPS WGS-84 混用，两页无转换，其他页有 | 显示层 `wgs84ToGcj02` 转换 + 拖动反转换 + test 存量 4 条网关坐标一次性修正（距 31号点台账 39m） |
+| D | 下载过离线地图的设备（iPhone）修复 C 后仍偏 660 米 | 本地离线瓦片（OSM/WGS-84）优先路由，转换判定却只看在线高德 | `SmartTileProvider.shouldTransformAt(point)` 点级判定，接入网关/覆盖/牧场/轨迹/轨迹质量六处 |
+| E | iOS 多轮"装机成功"但手机始终是 09-19 旧代码（A–D 修复从未送达） | build_ios.sh 固定文件名回退命中 Flutter 改名前的遗留旧 IPA | 取最新非版本化 IPA + 清理遗留；装机后以 devicectl 版本号核对为新纪律 |
+
+同批：版本 0.6.1-b691；图标名双语（畜牧智能体/Livestock Agent/繁体 畜牧智能體，跟系统语言）。
+
+**遗留**：围栏编辑器族 5 页面仍用旧转换判定（同缺陷 D 暴露面，含存错坐标风险）→ **NIX-237** 已立项（Backlog）。
 
 ## 5. 分期
 
