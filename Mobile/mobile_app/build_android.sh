@@ -26,7 +26,7 @@ APP_VERSION="${MAJOR_VERSION}-b${BUILD_NUMBER}"
 
 ENV="${1:-test}"
 case "$ENV" in
-  test) API_BASE_URL="https://ah.hkttech.cn/api/v1" ;;
+  test) API_BASE_URL="https://livestock.hkttech.cn/api/v1" ;;
   dev)  API_BASE_URL="http://172.22.1.123:19080/api/v1" ;;
   *)    echo "Unknown env: $ENV (expected: test | dev)"; exit 1 ;;
 esac

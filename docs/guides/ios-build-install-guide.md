@@ -2,7 +2,7 @@
 
 > 适用对象：团队内部把智慧畜牧 App 装到 iPhone 真机的开发者/测试者。
 > 当前签名方式：免费个人团队开发签名（Apple ID: sales@hktlora.com，Team `J62PU4Y357`）——**不需要付费开发者账号**，但证书 7 天有效，到期需重新编译装机。
-> 环境对应：`test` = ah.hkttech.cn（云端测试环境）；`dev` = 172.22.1.123:19080（办公室开发环境）。
+> 环境对应：`test` = livestock.hkttech.cn（云端测试环境）；`dev` = 172.22.1.123:19080（办公室开发环境）。
 
 ---
 
@@ -96,7 +96,7 @@ unzip -p build/ios/ipa/hkt-smartlivestock-*.ipa Payload/Runner.app/embedded.mobi
 | 点图标闪退（之前能用） | 证书过期，重新编译装机（§5） |
 | `maximum number of apps` / 装不上提示 3 个应用上限 | 免费账号每台手机最多同时装 3 个开发签名 App，删一个不用的再装 |
 | 地图灰瓦片 | 检查手机端 App"我的→时区"设置：中国时区走高德，其他时区走 OpenStreetMap（OSM 国内网络打不开） |
-| 手机端连不上后端 | test 环境地址 `https://ah.hkttech.cn`，手机需能访问公网；账号找管理员要测试种子号 |
+| 手机端连不上后端 | test 环境地址 `https://livestock.hkttech.cn`，手机需能访问公网；账号找管理员要测试种子号 |
 
 ## 7. 已知的体验限制与升级路径
 

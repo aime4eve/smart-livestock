@@ -103,7 +103,7 @@ POST /api/v1/auth/login { phone, password }
 - 过滤器链：`JwtAuthenticationFilter`（在 `UsernamePasswordAuthenticationFilter` 之前）→ `ApiKeyAuthFilter`（在 JWT 过滤器之后，仅在 JWT 未建立认证时介入）。
 - 公开路径：`/api/v1/auth/login`、`/api/v1/auth/refresh`、`/api/v1/auth/logout`、`/health`、`GET /api/v1/deployment-info`、`GET /api/v1/admin/deployment-license/enrollment`、`POST /api/v1/admin/deployment-license`。
 - 其余所有请求 `authenticated()`（含 `/api/v1/open/**`）。401 返回统一错误体 `{"code":"AUTH_INVALID_TOKEN","message":"未认证，请先登录",...}`。
-- CORS：`http://localhost:*`、`http://127.0.0.1:*`、`http://172.22.1.123:*`、`https://ah.hkttech.cn`。
+- CORS：`http://localhost:*`、`http://127.0.0.1:*`、`http://172.22.1.123:*`、`https://livestock.hkttech.cn`。
 
 **JWT 过滤器**：`shared/security/JwtAuthenticationFilter.java:34-74`
 

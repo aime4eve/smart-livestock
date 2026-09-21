@@ -2,7 +2,7 @@
 ///
 ///   flutter test integration_test/map_diagnosis_test.dart -d <udid> \
 ///     --dart-define=APP_MODE=live \
-///     --dart-define=API_BASE_URL=https://ah.hkttech.cn/api/v1 \
+///     --dart-define=API_BASE_URL=https://livestock.hkttech.cn/api/v1 \
 ///     [--dart-define=DIAG_TZ=UTC]
 library;
 
