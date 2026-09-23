@@ -1351,22 +1351,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subCustomPricing => 'Custom Pricing';
 
   @override
-  String subPerMonth(String price) {
-    return '¥$price/mo';
+  String subPerHeadMonth(String price) {
+    return '$price /head/mo';
   }
 
   @override
-  String subLivestockLimit(String count) {
+  String get subFreeTier => 'Free';
+
+  @override
+  String subHeadCapBounded(String count) {
     return 'Up to $count head';
   }
 
   @override
-  String get subLivestockUnlimited => 'Unlimited livestock';
+  String subHerdBandEntry(String range, String price) {
+    return '$range head $price';
+  }
 
   @override
-  String subExcessFee(String price) {
-    return 'Excess: ¥$price/head/mo';
+  String get subUnitPriceLabel => 'Unit price';
+
+  @override
+  String subMonthlyFeeRow(String count, String price) {
+    return 'Monthly fee ($count head × $price/head/mo)';
   }
+
+  @override
+  String get subLivestockUnlimited => 'Unlimited livestock';
 
   @override
   String subFeatureCountSuffix(String count) {
@@ -1381,11 +1392,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get subFeeBreakdown => 'Fee Breakdown';
-
-  @override
-  String subPlanFee(String tier) {
-    return 'Plan Fee ($tier)';
-  }
 
   @override
   String subTrialEndsAt(String date, Object days) {
@@ -1422,11 +1428,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subSelectPlanHint => 'Choose a plan that fits your ranch';
 
   @override
-  String subExcessDeviceFee(String count, Object price) {
-    return 'Excess device fee ($count head over x $price/head)';
-  }
-
-  @override
   String get subLockedNeedDevice =>
       'This feature requires the corresponding device';
 
@@ -1459,11 +1460,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String subYuanSuffix(String amount) {
-    return '¥$amount';
-  }
-
-  @override
   String subSubscribeSuccess(String tier) {
     return 'Successfully subscribed to $tier';
   }
@@ -1471,11 +1467,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get subSubscribeFailed =>
       'Subscription failed, please try again later';
-
-  @override
-  String subExcessDeviceFeeWithin(String quota) {
-    return 'Excess device fee (within $quota)';
-  }
 
   @override
   String get subCancelSubscription => 'Cancel Subscription';
@@ -1584,14 +1575,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String b2bContractExpiredOn(String date) {
     return '$date  ·  Expired';
-  }
-
-  @override
-  String get subPlanFeeLabel => 'Plan Fee';
-
-  @override
-  String subDeviceFee(String count, Object price) {
-    return 'Device Fee ($count head × ¥$price/head)';
   }
 
   @override

@@ -356,26 +356,44 @@ notifications (平台基础设施，独立于 Commerce，所有上下文可写�
 
 ### 3.1 SubscriptionTier（值对象枚举）
 
-定价统一使用 USD 美分。全部硬编码，后续替换为 API 获取。
+> **2026-09-23 NIX-245 已实施**：定价从"包月基础费 + 含头数 + 超额单价"重构为 **USD 按头/月 × 存栏规模分档**（全球统一 USD、不含 VAT）。旧"包月价 + 含头数 + 超额单价"三字段已删除；付费档（STANDARD/PREMIUM）不再有头数硬上限（原 200/1000 已移除），仅 BASIC 保留 `livestockCap=50`。
 
 ```java
+// NIX-245：USD 按头/月 + 规模分档定价（currency="USD", billingUnit="per_head_month"）
+public record PriceBand(int minHead, int maxHead, int unitPriceUsdCents) {}  // maxHead = -1 表示无上界
+
 public enum SubscriptionTier {
-    BASIC(0, 50, 40),           // $0, 50头, 超出 $0.40/头/月
-    STANDARD(1400, 200, 30),    // $14, 200头, 超出 $0.30/头/月
-    PREMIUM(2800, 1000, 15),    // $28, 1000头, 超出 $0.15/头/月
-    ENTERPRISE(-1, -1, -1);     // 定制
+    // BASIC 免费档：livestockCap=50（≤50 头），单一零价带；7 天数据保留
+    BASIC(50, false, List.of(new PriceBand(0, 50, 0))),
+    // STANDARD：无头数上限（livestockCap=-1），三档规模分带；30 天数据保留
+    STANDARD(-1, false, List.of(
+        new PriceBand(0,   99,  260),      // <100 头：$2.60/头/月
+        new PriceBand(100, 499, 215),      // 100-499 头：$2.15/头/月
+        new PriceBand(500, -1,  140))),    // ≥500 头：$1.40/头/月
+    // PREMIUM：无头数上限，三档规模分带；90 天数据保留
+    PREMIUM(-1, false, List.of(
+        new PriceBand(0,   99,  320),      // <100 头：$3.20/头/月
+        new PriceBand(100, 499, 265),      // 100-499 头：$2.65/头/月
+        new PriceBand(500, -1,  175))),    // ≥500 头：$1.75/头/月
+    // ENTERPRISE：customPricing=true（买断 ≈36 个月订阅价 + 20%/年维保，3 年）
+    ENTERPRISE(-1, true, List.of());
 
-    private final int monthlyPriceCents;
-    private final int includedLivestock;
-    private final int overagePriceCents;
+    private final int livestockCap;             // 头数上限：仅 BASIC=50，付费档 -1（无上限）
+    private final boolean customPricing;        // ENTERPRISE 定制计费
+    private final List<PriceBand> priceBands;   // 规模分档价带
 
+    /** 计费公式：月费 = 存栏头数 × 所在规模档单价（USD 美分） */
     public int calculateMonthlyFee(int livestockCount) {
-        if (this == ENTERPRISE)
+        if (customPricing)
             throw new DomainException(ErrorCode.ENTERPRISE_CUSTOM_PRICING,
                 "Enterprise 需定制计费，不可自动计算");
-        int base = monthlyPriceCents;
-        int overflow = Math.max(0, livestockCount - includedLivestock);
-        return base + overflow * overagePriceCents;
+        PriceBand band = priceBands.stream()
+            .filter(b -> livestockCount >= b.minHead()
+                     && (b.maxHead() == -1 || livestockCount <= b.maxHead()))
+            .findFirst()
+            .orElseThrow(() -> new DomainException(ErrorCode.INVALID_BILLING_MODEL,
+                "存栏头数未命中价带: " + livestockCount));
+        return livestockCount * band.unitPriceUsdCents();
     }
 }
 ```
@@ -772,12 +790,16 @@ ApplicationService.save(aggregate) → DomainEventPublisher.publishDomainEvents(
 
 ## 6. Tier 定价参考
 
-| Tier | 月费 | 含牲畜数 | 超出费用 | 数据保留 | SLA |
-|------|------|---------|---------|---------|-----|
-| basic | $0 | 50 头 | $0.40/头/月 | 7 天 | 99.5% |
-| standard | $14 | 200 头 | $0.30/头/月 | 30 天 | 99.5% |
-| premium | $28 | 1000 头 | $0.15/头/月 | 90 天 | 99.9% |
-| enterprise | 定制 | 无限 | — | 3 年 | 99.99% |
+> **2026-09-23 NIX-245 已实施**：USD 按头/月 × 存栏规模分档，全球统一 USD、不含 VAT。计费公式：月费 = 存栏头数 × 所在规模档单价。付费档（standard/premium）无头数上限（原 200/1000 硬上限已移除）；basic 免费档 `livestockCap=50`。固定折扣表（年付 85 折/两年付 75 折）已删除，折扣按商务合同执行；首年免费 365 天试点与 14 天自助试用不变。
+
+| Tier | 单价（<100 头） | 单价（100-499 头） | 单价（≥500 头） | 头数上限 | 数据保留 | SLA |
+|------|---------------|-------------------|----------------|---------|---------|-----|
+| basic | 免费 | — | — | 50 头（livestockCap） | 7 天 | 99.5% |
+| standard | $2.60/头/月 | $2.15/头/月 | $1.40/头/月 | 无上限 | 30 天 | 99.5% |
+| premium | $3.20/头/月 | $2.65/头/月 | $1.75/头/月 | 无上限 | 90 天 | 99.9% |
+| enterprise | 定制（customPricing） | 定制 | 定制 | 无上限 | 3 年 | 99.99% |
+
+> enterprise 定制口径：买断 ≈36 个月订阅价 + 20%/年维保。硬件（项圈/耳标/胶囊统一价）$65/台一次性客户自购、设备归客户所有；LoRaWAN 网关按牧场另报。
 
 ---
 
@@ -818,7 +840,7 @@ SETTLEMENT_DUPLICATE_CONFIRM,  // 重复确认结算
 | 账单明细模型 | BillingDetail 表 | 需向牧场主展示月度账单明细时 |
 | 真实支付集成 | Mock → 支付宝/微信支付 | 商业化上线时 |
 | 在线心跳机制 | License 文件 → 在线验证 | 有外网的私有云/混合云部署 |
-| 定价 API | 硬编码 → 外部定价服务 | 多币种/动态定价需求 |
+| 定价 API | 硬编码 → 外部定价服务 | 多币种/动态定价需求（2026-09-23 NIX-245 已切换 USD 按头计费，多币种服务仍为演进方向） |
 | Redis 配额缓存 | DB 直查 → Redis 缓存 | 高并发场景 |
 | 分布式锁 | 单实例 → @SchedulerLock | 多实例部署 |
 | RocketMQ 事件总线 | Spring ApplicationEvent → RocketMQ（引入 SpringEventBridge 按 topic 转发） | 微服务拆分 |

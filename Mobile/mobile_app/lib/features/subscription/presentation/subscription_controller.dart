@@ -54,7 +54,7 @@ final subscriptionControllerProvider =
         SubscriptionController.new);
 
 final subscriptionPlansProvider =
-    FutureProvider<List<SubscriptionTierInfo>>((ref) async {
+    FutureProvider<List<PlanInfo>>((ref) async {
   return ref.read(subscriptionRepositoryProvider).loadPlans();
 });
 

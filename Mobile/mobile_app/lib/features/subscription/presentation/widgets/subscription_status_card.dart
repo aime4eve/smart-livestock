@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
-import 'package:hkt_livestock_agentic/core/l10n/l10n.dart';
+import 'package:hkt_livestock_agentic/core/utils/currency_formatter.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
@@ -74,8 +74,6 @@ class SubscriptionStatusCard extends ConsumerWidget {
 
   Widget _buildCard(BuildContext context, WidgetRef ref, SubscriptionStatus status) {
     final l10n = AppLocalizations.of(context)!;
-    final tierInfo = SubscriptionTierInfo.all[status.tier];
-    final isEnterprise = status.tier == SubscriptionTier.enterprise;
     final hasTrialEnd = status.trialEndsAt != null;
     final hasPeriodEnd = status.currentPeriodEnd != null;
     final isActive = status.status == 'active' || status.status == 'trial';
@@ -171,25 +169,34 @@ class SubscriptionStatusCard extends ConsumerWidget {
 
             UsageProgressBar(
               current: status.livestockCount,
-              limit: isEnterprise ? -1 : (tierInfo?.livestockLimit ?? 50),
+              limit: status.livestockCap ?? -1,
               label: l10n.subLivestockCountLabel,
             ),
             const SizedBox(height: AppSpacing.md),
 
-            const Divider(),
-            const SizedBox(height: AppSpacing.sm),
-            _priceRow(context, l10n.subPlanFeeLabel, status.calculatedTierFee),
-            const SizedBox(height: AppSpacing.xs),
-            _priceRow(
-              context,
-              l10n.subDeviceFee('${status.livestockCount}', tierInfo?.perUnitPrice.toStringAsFixed(0) ?? '0'),
-              status.calculatedDeviceFee,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            const Divider(),
-            const SizedBox(height: AppSpacing.xs),
-            _priceRow(context, l10n.subTotal, status.calculatedTotal, bold: true),
-            const SizedBox(height: AppSpacing.lg),
+            if (status.monthlyFeeUsdCents != null) ...[
+              const Divider(),
+              const SizedBox(height: AppSpacing.sm),
+              _priceRow(
+                context,
+                l10n.subUnitPriceLabel,
+                status.unitPriceUsdCents == null || status.unitPriceUsdCents == 0
+                    ? l10n.subFreeTier
+                    : l10n.subPerHeadMonth(formatUsdCents(status.unitPriceUsdCents!)),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              const Divider(),
+              const SizedBox(height: AppSpacing.xs),
+              _priceRow(
+                context,
+                l10n.subTotal,
+                status.unitPriceUsdCents == 0
+                    ? l10n.subFreeTier
+                    : formatUsdCents(status.monthlyFeeUsdCents!),
+                bold: true,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
 
             Row(
               children: [
@@ -249,7 +256,7 @@ class SubscriptionStatusCard extends ConsumerWidget {
   Widget _priceRow(
     BuildContext context,
     String label,
-    double amount, {
+    String value, {
     bool bold = false,
   }) {
     return Row(
@@ -260,7 +267,7 @@ class SubscriptionStatusCard extends ConsumerWidget {
           style: Theme.of(context).textTheme.bodySmall,
         ),
         Text(
-          L10n.instance.subYuanSuffix(amount.toStringAsFixed(2)),
+          value,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
               ),

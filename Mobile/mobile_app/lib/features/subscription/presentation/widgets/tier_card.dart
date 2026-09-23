@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/utils/currency_formatter.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class TierCard extends ConsumerWidget {
   final SubscriptionTier tier;
+  final PlanInfo? plan;
   final bool isCurrentPlan;
   final VoidCallback onSelect;
 
@@ -15,13 +17,14 @@ class TierCard extends ConsumerWidget {
     required this.tier,
     required this.isCurrentPlan,
     required this.onSelect,
+    this.plan,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final info = SubscriptionTierInfo.all[tier]!;
-    final isEnterprise = tier == SubscriptionTier.enterprise;
+    final plan = this.plan;
 
     return Card(
       key: Key('tier-card-${tier.name}'),
@@ -69,23 +72,17 @@ class TierCard extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              isEnterprise ? l10n.subCustomPricing : l10n.subPerMonth(info.monthlyPrice.toStringAsFixed(0)),
+              _headlinePrice(l10n, plan),
+              key: const Key('tier-card-price'),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: AppColors.primary,
                   ),
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              isEnterprise ? l10n.subLivestockUnlimited : l10n.subLivestockLimit('${info.livestockLimit}'),
+              _secondaryLine(l10n, plan),
               style: Theme.of(context).textTheme.bodySmall,
             ),
-            if (info.perUnitPrice > 0) ...[
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                l10n.subExcessFee(info.perUnitPrice.toStringAsFixed(0)),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
             const SizedBox(height: AppSpacing.md),
             const Divider(),
             const SizedBox(height: AppSpacing.sm),
@@ -132,5 +129,29 @@ class TierCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Headline: custom pricing for ENTERPRISE, free for BASIC's zero band,
+  /// otherwise the mainstream (middle) band unit price per head per month.
+  String _headlinePrice(AppLocalizations l10n, PlanInfo? plan) {
+    if (plan == null || plan.customPricing) return l10n.subCustomPricing;
+    final bands = plan.priceBands;
+    if (bands.isEmpty) return l10n.subCustomPricing;
+    final band = bands.length > 1 ? bands[1] : bands.first;
+    if (band.unitPriceUsdCents == 0) return l10n.subFreeTier;
+    return l10n.subPerHeadMonth(formatUsdCents(band.unitPriceUsdCents));
+  }
+
+  /// Under the headline: herd cap for BASIC, the full band table for paid
+  /// tiers, "unlimited" for ENTERPRISE.
+  String _secondaryLine(AppLocalizations l10n, PlanInfo? plan) {
+    if (plan == null) return '';
+    if (plan.customPricing) return l10n.subLivestockUnlimited;
+    if (plan.livestockCap > 0) return l10n.subHeadCapBounded('${plan.livestockCap}');
+    if (plan.priceBands.length < 2) return '';
+    return plan.priceBands
+        .map((b) => l10n.subHerdBandEntry(
+            b.rangeLabel(), formatUsdCents(b.unitPriceUsdCents)))
+        .join(' · ');
   }
 }

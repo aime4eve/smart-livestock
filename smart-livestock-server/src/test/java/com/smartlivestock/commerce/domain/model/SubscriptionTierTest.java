@@ -7,72 +7,97 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.*;
 
+/**
+ * NIX-245 USD per-head-per-month pricing: STANDARD $2.60/$2.15/$1.40,
+ * PREMIUM $3.20/$2.65/$1.75 per head per month for <100 / 100-499 / >=500
+ * head herds (unit prices in US cents: 260/215/140 and 320/265/175).
+ */
 class SubscriptionTierTest {
 
     @Nested
-    class Getters {
+    class PriceBands {
         @Test
-        void basicProperties() {
-            assertThat(SubscriptionTier.BASIC.getMonthlyPriceCents()).isEqualTo(0);
-            assertThat(SubscriptionTier.BASIC.getIncludedLivestock()).isEqualTo(50);
-            assertThat(SubscriptionTier.BASIC.getOveragePriceCents()).isEqualTo(40);
+        void basicIsFreeWithCap() {
+            assertThat(SubscriptionTier.BASIC.getPriceBands())
+                .singleElement()
+                .satisfies(band -> {
+                    assertThat(band.unitPriceUsdCents()).isZero();
+                    assertThat(band.maxHead()).isEqualTo(SubscriptionTier.PriceBand.UNBOUNDED);
+                });
+            assertThat(SubscriptionTier.BASIC.getLivestockCap()).isEqualTo(50);
         }
 
         @Test
-        void standardProperties() {
-            assertThat(SubscriptionTier.STANDARD.getMonthlyPriceCents()).isEqualTo(1400);
-            assertThat(SubscriptionTier.STANDARD.getIncludedLivestock()).isEqualTo(200);
-            assertThat(SubscriptionTier.STANDARD.getOveragePriceCents()).isEqualTo(30);
+        void standardBands() {
+            assertThat(SubscriptionTier.STANDARD.getPriceBands())
+                .extracting(SubscriptionTier.PriceBand::unitPriceUsdCents)
+                .containsExactly(260, 215, 140);
+            assertThat(SubscriptionTier.STANDARD.getLivestockCap()).isEqualTo(-1);
         }
 
         @Test
-        void premiumProperties() {
-            assertThat(SubscriptionTier.PREMIUM.getMonthlyPriceCents()).isEqualTo(2800);
-            assertThat(SubscriptionTier.PREMIUM.getIncludedLivestock()).isEqualTo(1000);
-            assertThat(SubscriptionTier.PREMIUM.getOveragePriceCents()).isEqualTo(15);
+        void premiumBands() {
+            assertThat(SubscriptionTier.PREMIUM.getPriceBands())
+                .extracting(SubscriptionTier.PriceBand::unitPriceUsdCents)
+                .containsExactly(320, 265, 175);
+            assertThat(SubscriptionTier.PREMIUM.getLivestockCap()).isEqualTo(-1);
         }
 
         @Test
-        void enterpriseProperties() {
-            assertThat(SubscriptionTier.ENTERPRISE.getMonthlyPriceCents()).isEqualTo(-1);
-            assertThat(SubscriptionTier.ENTERPRISE.getIncludedLivestock()).isEqualTo(-1);
-            assertThat(SubscriptionTier.ENTERPRISE.getOveragePriceCents()).isEqualTo(-1);
+        void enterpriseHasNoBands() {
+            assertThat(SubscriptionTier.ENTERPRISE.getPriceBands()).isEmpty();
+        }
+
+        @Test
+        void bandBoundariesAreInclusive() {
+            assertThat(SubscriptionTier.STANDARD.bandFor(99).unitPriceUsdCents()).isEqualTo(260);
+            assertThat(SubscriptionTier.STANDARD.bandFor(100).unitPriceUsdCents()).isEqualTo(215);
+            assertThat(SubscriptionTier.STANDARD.bandFor(499).unitPriceUsdCents()).isEqualTo(215);
+            assertThat(SubscriptionTier.STANDARD.bandFor(500).unitPriceUsdCents()).isEqualTo(140);
+            assertThat(SubscriptionTier.PREMIUM.bandFor(1200).maxHead())
+                .isEqualTo(SubscriptionTier.PriceBand.UNBOUNDED);
+        }
+
+        @Test
+        void headCountBelowLowestBandFallsBackToFirstBand() {
+            assertThat(SubscriptionTier.STANDARD.bandFor(0).unitPriceUsdCents()).isEqualTo(260);
         }
     }
 
     @Nested
     class CalculateMonthlyFee {
         @Test
-        void basicZeroLivestock() {
-            assertThat(SubscriptionTier.BASIC.calculateMonthlyFee(0)).isEqualTo(0);
+        void zeroHeadsCostsNothing() {
+            assertThat(SubscriptionTier.STANDARD.calculateMonthlyFee(0)).isZero();
+            assertThat(SubscriptionTier.PREMIUM.calculateMonthlyFee(0)).isZero();
         }
 
         @Test
-        void basicWithOverage() {
-            // 0 + (60 - 50) * 40 = 400
-            assertThat(SubscriptionTier.BASIC.calculateMonthlyFee(60)).isEqualTo(400);
+        void smallHerd() {
+            // 80 × $2.60 = $208.00
+            assertThat(SubscriptionTier.STANDARD.calculateMonthlyFee(80)).isEqualTo(20_800);
+            // 80 × $3.20 = $256.00
+            assertThat(SubscriptionTier.PREMIUM.calculateMonthlyFee(80)).isEqualTo(25_600);
         }
 
         @Test
-        void standardWithinIncluded() {
-            assertThat(SubscriptionTier.STANDARD.calculateMonthlyFee(150)).isEqualTo(1400);
+        void danishMainstreamHerd() {
+            // 260 × $2.15 = $559.00 / 260 × $2.65 = $689.00
+            assertThat(SubscriptionTier.STANDARD.calculateMonthlyFee(260)).isEqualTo(55_900);
+            assertThat(SubscriptionTier.PREMIUM.calculateMonthlyFee(260)).isEqualTo(68_900);
         }
 
         @Test
-        void standardWithOverage() {
-            // 1400 + (250 - 200) * 30 = 2900
-            assertThat(SubscriptionTier.STANDARD.calculateMonthlyFee(250)).isEqualTo(2900);
+        void largeHerd() {
+            // 1000 × $1.40 = $1,400.00 / 1000 × $1.75 = $1,750.00
+            assertThat(SubscriptionTier.STANDARD.calculateMonthlyFee(1000)).isEqualTo(140_000);
+            assertThat(SubscriptionTier.PREMIUM.calculateMonthlyFee(1000)).isEqualTo(175_000);
         }
 
         @Test
-        void premiumAtLimit() {
-            assertThat(SubscriptionTier.PREMIUM.calculateMonthlyFee(1000)).isEqualTo(2800);
-        }
-
-        @Test
-        void premiumWithOverage() {
-            // 2800 + (1015 - 1000) * 15 = 3025
-            assertThat(SubscriptionTier.PREMIUM.calculateMonthlyFee(1015)).isEqualTo(3025);
+        void basicIsAlwaysFree() {
+            assertThat(SubscriptionTier.BASIC.calculateMonthlyFee(0)).isZero();
+            assertThat(SubscriptionTier.BASIC.calculateMonthlyFee(50)).isZero();
         }
 
         @Test

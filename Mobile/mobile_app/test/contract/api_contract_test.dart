@@ -303,16 +303,20 @@ void main() {
     test('SubscriptionStatus.fromJson 解析真实后端响应', () {
       final data = _data('subscription_status.json') as Map<String, dynamic>;
 
-      // 后端 id/tenantId 是 int，fromJson 已做 int→String 兼容
-      // 后端无 livestockCount/calculatedDeviceFee 等字段，fromJson 已做 null→0 兜底
+      // NIX-245 USD 按头/月契约：费用字段由后端计算下发（美分）
       final status = SubscriptionStatus.fromJson(data);
       expect(status.id, isNotEmpty);
       expect(status.tenantId, isNotEmpty);
       expect(status.tier, SubscriptionTier.premium);
       expect(status.status, 'ACTIVE');
       expect(status.currentPeriodEnd, isNotNull);
-      expect(status.livestockCount, 0); // 后端不返回，兜底 0
-      expect(status.calculatedTotal, 0.0); // 后端不返回，兜底 0.0
+      expect(status.livestockCount, 12);
+      expect(status.currency, 'USD');
+      expect(status.unitPriceUsdCents, 320);
+      expect(status.monthlyFeeUsdCents, 12 * 320);
+      expect(status.applicableBand, isNotNull);
+      expect(status.applicableBand!.minHead, 1);
+      expect(status.applicableBand!.maxHead, 99);
     });
 
     test('后端 subscription 响应的实际字段', () {
@@ -327,9 +331,11 @@ void main() {
       expect(data, contains('startedAt'));
       expect(data, contains('expiresAt'));
       expect(data, contains('effectiveTier'));
+      expect(data, contains('livestockCount'));
+      expect(data, contains('currency'));
+      expect(data, contains('applicableBand'));
 
-      // 前端 fromJson 期望但后端没有的字段
-      expect(data, isNot(contains('livestockCount')));
+      // NIX-245 已删除的旧计费字段不再出现
       expect(data, isNot(contains('calculatedDeviceFee')));
       expect(data, isNot(contains('calculatedTierFee')));
       expect(data, isNot(contains('calculatedTotal')));
@@ -346,8 +352,25 @@ void main() {
               (p) =>
           (p as Map<String, dynamic>)['tier'] ==
               'BASIC') as Map<String, dynamic>;
-      expect(basic['monthlyPriceCents'], isA<int>());
-      expect(basic['includedLivestock'], isA<int>());
+      expect(basic['currency'], 'USD');
+      expect(basic['billingUnit'], 'per_head_month');
+      expect(basic['livestockCap'], 50);
+      expect(basic['priceBands'], isA<List>());
+
+      final standard = plans.firstWhere(
+              (p) =>
+          (p as Map<String, dynamic>)['tier'] ==
+              'STANDARD') as Map<String, dynamic>;
+      final bands = standard['priceBands'] as List;
+      expect(bands.length, 3);
+      expect((bands[1] as Map<String, dynamic>)['unitPriceUsdCents'], 215);
+
+      final enterprise = plans.firstWhere(
+              (p) =>
+          (p as Map<String, dynamic>)['tier'] ==
+              'ENTERPRISE') as Map<String, dynamic>;
+      expect(enterprise['customPricing'], true);
+      expect(enterprise['priceBands'], isEmpty);
     });
   });
 

@@ -2,7 +2,7 @@ import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 
 abstract class SubscriptionRepository {
   Future<SubscriptionStatus> loadCurrent();
-  Future<List<SubscriptionTierInfo>> loadPlans();
+  Future<List<PlanInfo>> loadPlans();
   Future<SubscriptionStatus> checkout({
     required String tier,
     required int livestockCount,
@@ -15,7 +15,9 @@ abstract class SubscriptionRepository {
 class SubscriptionUsage {
   const SubscriptionUsage({
     required this.livestockCount,
-    required this.livestockLimit,
+    this.livestockCap = -1,
+    this.unitPriceUsdCents,
+    this.monthlyFeeUsdCents,
     this.fenceCount = 0,
     this.fenceLimit = 0,
     this.alertHistoryDays = 30,
@@ -23,7 +25,9 @@ class SubscriptionUsage {
   });
 
   final int livestockCount;
-  final int livestockLimit;
+  final int livestockCap; // -1 = no cap
+  final int? unitPriceUsdCents;
+  final int? monthlyFeeUsdCents;
   final int fenceCount;
   final int fenceLimit;
   final int alertHistoryDays;

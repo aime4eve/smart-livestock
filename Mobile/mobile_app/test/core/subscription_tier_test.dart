@@ -20,42 +20,75 @@ void main() {
       expect(SubscriptionTierInfo.all.length, 4);
     });
 
-    test('basic tier has correct metadata', () {
-      final info = SubscriptionTierInfo.all[SubscriptionTier.basic]!;
-      expect(info.name, 'basic');
-      expect(info.monthlyPrice, 0);
-      expect(info.livestockLimit, 50);
-      expect(info.perUnitPrice, 3);
-      expect(info.features.isNotEmpty, true);
-    });
-
-    test('standard tier has correct metadata', () {
-      final info = SubscriptionTierInfo.all[SubscriptionTier.standard]!;
-      expect(info.name, 'standard');
-      expect(info.monthlyPrice, 299);
-      expect(info.livestockLimit, 200);
-      expect(info.perUnitPrice, 2);
-    });
-
-    test('premium tier has correct metadata', () {
-      final info = SubscriptionTierInfo.all[SubscriptionTier.premium]!;
-      expect(info.name, 'premium');
-      expect(info.monthlyPrice, 699);
-      expect(info.livestockLimit, 1000);
-      expect(info.perUnitPrice, 1);
-    });
-
-    test('enterprise tier has sentinel values', () {
-      final info = SubscriptionTierInfo.all[SubscriptionTier.enterprise]!;
-      expect(info.name, 'enterprise');
-      expect(info.monthlyPrice, -1);
-      expect(info.livestockLimit, -1);
-    });
-
-    test('enterprise has most features', () {
-      final enterprise = SubscriptionTierInfo.all[SubscriptionTier.enterprise]!;
+    test('tier metadata keeps name and features only (pricing lives in PlanInfo)', () {
       final basic = SubscriptionTierInfo.all[SubscriptionTier.basic]!;
-      expect(enterprise.features.length, greaterThan(basic.features.length));
+      expect(basic.name, 'basic');
+      expect(basic.features.isNotEmpty, true);
+
+      final enterprise = SubscriptionTierInfo.all[SubscriptionTier.enterprise]!;
+      expect(enterprise.name, 'enterprise');
+      expect(
+          enterprise.features.length, greaterThan(basic.features.length));
+    });
+  });
+
+  group('PlanInfo (NIX-245 USD per-head pricing)', () {
+    PlanInfo premiumPlan() => PlanInfo.fromJson({
+          'tier': 'PREMIUM',
+          'currency': 'USD',
+          'billingUnit': 'per_head_month',
+          'customPricing': false,
+          'livestockCap': -1,
+          'priceBands': [
+            {'minHead': 1, 'maxHead': 99, 'unitPriceUsdCents': 320},
+            {'minHead': 100, 'maxHead': 499, 'unitPriceUsdCents': 265},
+            {'minHead': 500, 'maxHead': -1, 'unitPriceUsdCents': 175},
+          ],
+        });
+
+    test('fromJson parses tier, currency and bands', () {
+      final plan = premiumPlan();
+      expect(plan.tier, SubscriptionTier.premium);
+      expect(plan.currency, 'USD');
+      expect(plan.livestockCap, -1);
+      expect(plan.priceBands.length, 3);
+      expect(plan.priceBands[1].unitPriceUsdCents, 265);
+    });
+
+    test('band boundaries are inclusive', () {
+      final plan = premiumPlan();
+      expect(plan.bandFor(99).unitPriceUsdCents, 320);
+      expect(plan.bandFor(100).unitPriceUsdCents, 265);
+      expect(plan.bandFor(499).unitPriceUsdCents, 265);
+      expect(plan.bandFor(500).unitPriceUsdCents, 175);
+      expect(plan.bandFor(1200).unitPriceUsdCents, 175);
+    });
+
+    test('monthly fee = head count × band unit price', () {
+      final plan = premiumPlan();
+      expect(plan.monthlyFeeUsdCents(0), 0);
+      expect(plan.monthlyFeeUsdCents(80), 80 * 320);
+      expect(plan.monthlyFeeUsdCents(260), 260 * 265);
+      expect(plan.monthlyFeeUsdCents(1000), 1000 * 175);
+    });
+
+    test('custom pricing tiers return null fee', () {
+      final plan = PlanInfo.fromJson({
+        'tier': 'ENTERPRISE',
+        'currency': 'USD',
+        'billingUnit': 'per_head_month',
+        'customPricing': true,
+        'livestockCap': -1,
+        'priceBands': [],
+      });
+      expect(plan.monthlyFeeUsdCents(100), isNull);
+    });
+
+    test('rangeLabel renders locale-neutral band ranges', () {
+      final plan = premiumPlan();
+      expect(plan.priceBands[0].rangeLabel(), '＜100');
+      expect(plan.priceBands[1].rangeLabel(), '100–499');
+      expect(plan.priceBands[2].rangeLabel(), '≥500');
     });
   });
 
@@ -69,9 +102,15 @@ void main() {
         'trialEndsAt': '2026-05-12T00:00:00.000Z',
         'currentPeriodEnd': '2026-05-12T00:00:00.000Z',
         'livestockCount': 50,
-        'calculatedDeviceFee': 2250,
-        'calculatedTierFee': 0,
-        'calculatedTotal': 2250,
+        'currency': 'USD',
+        'livestockCap': -1,
+        'applicableBand': {
+          'minHead': 1,
+          'maxHead': 99,
+          'unitPriceUsdCents': 320,
+        },
+        'unitPriceUsdCents': 320,
+        'monthlyFeeUsdCents': 16000,
       };
 
       final status = SubscriptionStatus.fromJson(json);
@@ -83,32 +122,13 @@ void main() {
       expect(status.trialEndsAt!.year, 2026);
       expect(status.currentPeriodEnd, isNotNull);
       expect(status.livestockCount, 50);
-      expect(status.calculatedDeviceFee, 2250.0);
-      expect(status.calculatedTierFee, 0.0);
-      expect(status.calculatedTotal, 2250.0);
+      expect(status.livestockCap, -1);
+      expect(status.unitPriceUsdCents, 320);
+      expect(status.monthlyFeeUsdCents, 16000);
+      expect(status.applicableBand!.maxHead, 99);
     });
 
-    test('fromJson handles null trialEndsAt', () {
-      final json = {
-        'id': 'sub_002',
-        'tenantId': 'tenant_002',
-        'tier': 'standard',
-        'status': 'active',
-        'trialEndsAt': null,
-        'currentPeriodEnd': '2026-06-01T00:00:00.000Z',
-        'livestockCount': 100,
-        'calculatedDeviceFee': 4500,
-        'calculatedTierFee': 299,
-        'calculatedTotal': 4799,
-      };
-
-      final status = SubscriptionStatus.fromJson(json);
-      expect(status.trialEndsAt, isNull);
-      expect(status.status, 'active');
-      expect(status.calculatedTierFee, 299.0);
-    });
-
-    test('fromJson handles null currentPeriodEnd', () {
+    test('fromJson handles missing pricing fields (enterprise)', () {
       final json = {
         'id': 'sub_003',
         'tenantId': 'tenant_003',
@@ -117,33 +137,14 @@ void main() {
         'trialEndsAt': null,
         'currentPeriodEnd': null,
         'livestockCount': 0,
-        'calculatedDeviceFee': 0,
-        'calculatedTierFee': 0,
-        'calculatedTotal': 0,
       };
 
       final status = SubscriptionStatus.fromJson(json);
       expect(status.currentPeriodEnd, isNull);
       expect(status.tier, SubscriptionTier.basic);
-    });
-
-    test('calculatedTotal equals deviceFee + tierFee', () {
-      final json = {
-        'id': 'sub_004',
-        'tenantId': 'tenant_004',
-        'tier': 'premium',
-        'status': 'active',
-        'trialEndsAt': null,
-        'currentPeriodEnd': '2026-06-01T00:00:00.000Z',
-        'livestockCount': 100,
-        'calculatedDeviceFee': 4500,
-        'calculatedTierFee': 699,
-        'calculatedTotal': 5199,
-      };
-
-      final status = SubscriptionStatus.fromJson(json);
-      expect(status.calculatedTotal,
-          status.calculatedDeviceFee + status.calculatedTierFee);
+      expect(status.applicableBand, isNull);
+      expect(status.unitPriceUsdCents, isNull);
+      expect(status.monthlyFeeUsdCents, isNull);
     });
   });
 

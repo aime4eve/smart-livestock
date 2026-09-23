@@ -1,31 +1,77 @@
 {
   "code": "OK",
   "message": "success",
-  "requestId": "3de5e4df-2686-4ed2-8f54-132de7e1eb58",
+  "requestId": "fixture-synthetic-nix245",
   "data": [
     {
       "tier": "BASIC",
-      "monthlyPriceCents": 0,
-      "includedLivestock": 50,
-      "overagePriceCents": 40
+      "currency": "USD",
+      "billingUnit": "per_head_month",
+      "customPricing": false,
+      "livestockCap": 50,
+      "priceBands": [
+        {
+          "minHead": 1,
+          "maxHead": -1,
+          "unitPriceUsdCents": 0
+        }
+      ]
     },
     {
       "tier": "STANDARD",
-      "monthlyPriceCents": 1400,
-      "includedLivestock": 200,
-      "overagePriceCents": 30
+      "currency": "USD",
+      "billingUnit": "per_head_month",
+      "customPricing": false,
+      "livestockCap": -1,
+      "priceBands": [
+        {
+          "minHead": 1,
+          "maxHead": 99,
+          "unitPriceUsdCents": 260
+        },
+        {
+          "minHead": 100,
+          "maxHead": 499,
+          "unitPriceUsdCents": 215
+        },
+        {
+          "minHead": 500,
+          "maxHead": -1,
+          "unitPriceUsdCents": 140
+        }
+      ]
     },
     {
       "tier": "PREMIUM",
-      "monthlyPriceCents": 2800,
-      "includedLivestock": 1000,
-      "overagePriceCents": 15
+      "currency": "USD",
+      "billingUnit": "per_head_month",
+      "customPricing": false,
+      "livestockCap": -1,
+      "priceBands": [
+        {
+          "minHead": 1,
+          "maxHead": 99,
+          "unitPriceUsdCents": 320
+        },
+        {
+          "minHead": 100,
+          "maxHead": 499,
+          "unitPriceUsdCents": 265
+        },
+        {
+          "minHead": 500,
+          "maxHead": -1,
+          "unitPriceUsdCents": 175
+        }
+      ]
     },
     {
       "tier": "ENTERPRISE",
-      "monthlyPriceCents": -1,
-      "includedLivestock": -1,
-      "overagePriceCents": -1
+      "currency": "USD",
+      "billingUnit": "per_head_month",
+      "customPricing": true,
+      "livestockCap": -1,
+      "priceBands": []
     }
   ]
 }

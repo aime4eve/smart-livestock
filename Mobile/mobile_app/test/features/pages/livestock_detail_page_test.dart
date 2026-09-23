@@ -128,9 +128,6 @@ class _FakeSubscriptionRepository implements SubscriptionRepository {
     tier: SubscriptionTier.premium,
     status: 'active',
     livestockCount: 1,
-    calculatedDeviceFee: 0,
-    calculatedTierFee: 0,
-    calculatedTotal: 0,
   );
 
   @override

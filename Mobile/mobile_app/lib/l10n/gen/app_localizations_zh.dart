@@ -1319,22 +1319,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String get subCustomPricing => '按需定价';
 
   @override
-  String subPerMonth(String price) {
-    return '¥$price/月';
+  String subPerHeadMonth(String price) {
+    return '$price /头/月';
   }
 
   @override
-  String subLivestockLimit(String count) {
-    return '最多$count头牲畜';
+  String get subFreeTier => '免费';
+
+  @override
+  String subHeadCapBounded(String count) {
+    return '≤$count 头';
+  }
+
+  @override
+  String subHerdBandEntry(String range, String price) {
+    return '$range 头 $price';
+  }
+
+  @override
+  String get subUnitPriceLabel => '档位单价';
+
+  @override
+  String subMonthlyFeeRow(String count, String price) {
+    return '订阅月费（$count 头 × $price/头/月）';
   }
 
   @override
   String get subLivestockUnlimited => '不限牲畜数量';
-
-  @override
-  String subExcessFee(String price) {
-    return '超出部分 ¥$price/头/月';
-  }
 
   @override
   String subFeatureCountSuffix(String count) {
@@ -1349,11 +1360,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get subFeeBreakdown => '费用明细';
-
-  @override
-  String subPlanFee(String tier) {
-    return '套餐费（$tier）';
-  }
 
   @override
   String subTrialEndsAt(String date, Object days) {
@@ -1390,11 +1396,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get subSelectPlanHint => '选择适合您牧场的套餐方案';
 
   @override
-  String subExcessDeviceFee(String count, Object price) {
-    return '超出设备费（超出$count头 × ¥$price/头）';
-  }
-
-  @override
   String get subLockedNeedDevice => '该功能需要安装相应设备';
 
   @override
@@ -1421,12 +1422,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String subConfirmPay(String amount) {
-    return '确认支付 ¥$amount';
-  }
-
-  @override
-  String subYuanSuffix(String amount) {
-    return '¥$amount 元';
+    return '确认支付 $amount';
   }
 
   @override
@@ -1436,11 +1432,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get subSubscribeFailed => '订阅失败，请稍后重试';
-
-  @override
-  String subExcessDeviceFeeWithin(String quota) {
-    return '超出设备费（在$quota额度内）';
-  }
 
   @override
   String get subCancelSubscription => '取消订阅';
@@ -1549,14 +1540,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String b2bContractExpiredOn(String date) {
     return '$date  ·  已过期';
-  }
-
-  @override
-  String get subPlanFeeLabel => '套餐费';
-
-  @override
-  String subDeviceFee(String count, Object price) {
-    return '设备费（$count头 × ¥$price/头）';
   }
 
   @override

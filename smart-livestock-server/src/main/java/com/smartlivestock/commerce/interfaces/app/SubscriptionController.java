@@ -49,7 +49,8 @@ public class SubscriptionController {
 
     /**
      * GET /api/v1/subscription/plans
-     * Return hardcoded tier pricing from SubscriptionTier enum.
+     * Return USD per-head-per-month tier pricing from SubscriptionTier enum
+     * (NIX-245: herd-size bands, hardware sold separately).
      */
     @GetMapping("/plans")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getPlans() {
@@ -57,9 +58,19 @@ public class SubscriptionController {
                 .map(tier -> {
                     Map<String, Object> plan = new LinkedHashMap<>();
                     plan.put("tier", tier.name());
-                    plan.put("monthlyPriceCents", tier.getMonthlyPriceCents());
-                    plan.put("includedLivestock", tier.getIncludedLivestock());
-                    plan.put("overagePriceCents", tier.getOveragePriceCents());
+                    plan.put("currency", "USD");
+                    plan.put("billingUnit", "per_head_month");
+                    plan.put("customPricing", tier == SubscriptionTier.ENTERPRISE);
+                    plan.put("livestockCap", tier.getLivestockCap());
+                    plan.put("priceBands", tier.getPriceBands().stream()
+                            .map(band -> {
+                                Map<String, Object> b = new LinkedHashMap<String, Object>();
+                                b.put("minHead", band.minHead());
+                                b.put("maxHead", band.maxHead());
+                                b.put("unitPriceUsdCents", band.unitPriceUsdCents());
+                                return b;
+                            })
+                            .toList());
                     return plan;
                 })
                 .toList();
@@ -127,7 +138,8 @@ public class SubscriptionController {
 
     /**
      * GET /api/v1/subscription/usage
-     * Return subscription usage summary with retention days and tier quota.
+     * Return subscription usage summary with retention days, herd cap and
+     * the applicable USD per-head price band.
      */
     @GetMapping("/usage")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getUsage(
@@ -141,16 +153,28 @@ public class SubscriptionController {
                     usage.put("tier", sub.getTier());
                     usage.put("status", sub.getStatus());
                     usage.put("effectiveTier", sub.getEffectiveTier());
+                    usage.put("livestockCount", sub.getLivestockCount());
+                    usage.put("currency", sub.getCurrency());
 
-                    // Tier quota info
                     SubscriptionTier tier = parseTier(sub.getEffectiveTier() != null
                             ? sub.getEffectiveTier() : sub.getTier());
-                    usage.put("includedLivestock", tier.getIncludedLivestock());
-                    usage.put("overagePriceCents", tier.getOveragePriceCents());
+                    usage.put("livestockCap", tier.getLivestockCap());
+                    if (tier != SubscriptionTier.ENTERPRISE) {
+                        SubscriptionTier.PriceBand band = tier.bandFor(sub.getLivestockCount());
+                        Map<String, Object> bandMap = new LinkedHashMap<>();
+                        bandMap.put("minHead", band.minHead());
+                        bandMap.put("maxHead", band.maxHead());
+                        bandMap.put("unitPriceUsdCents", band.unitPriceUsdCents());
+                        usage.put("applicableBand", bandMap);
+                        usage.put("unitPriceUsdCents", band.unitPriceUsdCents());
+                        usage.put("monthlyFeeUsdCents",
+                                tier.calculateMonthlyFee(sub.getLivestockCount()));
+                    }
                 },
                 () -> {
                     usage.put("tier", "BASIC");
                     usage.put("status", "FREE");
+                    usage.put("livestockCap", SubscriptionTier.BASIC.getLivestockCap());
                 }
         );
 

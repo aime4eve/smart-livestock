@@ -55,14 +55,16 @@ curl -s http://<HOST>:18080/api/v1/subscription -H "Authorization: Bearer $OWNER
 curl -s http://<HOST>:18080/api/v1/subscription/plans -H "Authorization: Bearer $OWNER"
 ```
 
-**验证点**: 返回 4 个 Tier，价格正确：
+**验证点**: 返回 4 个 Tier，价格字段结构正确（NIX-245 USD 按头/月 × 规模分档，`currency`="USD"、`billingUnit`="per_head_month"）：
 
-| Tier | 月费 | 含牲畜数 | 超出单价 |
-|------|------|---------|---------|
-| BASIC | $0 | 50 | $0.40/头/月 |
-| STANDARD | $14 | 200 | $0.30/头/月 |
-| PREMIUM | $28 | 1000 | $0.15/头/月 |
-| ENTERPRISE | -1（定制） | -1 | -1 |
+| Tier | <100 头 | 100-499 头 | ≥500 头 | livestockCap | customPricing | priceBands |
+|------|---------|-----------|---------|--------------|---------------|------------|
+| BASIC | 免费（≤50 头） | — | — | 50 | false | 单一零价带 `[{minHead:0, maxHead:50, unitPriceUsdCents:0}]` |
+| STANDARD | $2.60/头/月 | $2.15/头/月 | $1.40/头/月 | -1（无上限） | false | 三带 260/215/140 美分 |
+| PREMIUM | $3.20/头/月 | $2.65/头/月 | $1.75/头/月 | -1（无上限） | false | 三带 320/265/175 美分 |
+| ENTERPRISE | 定制 | 定制 | 定制 | -1 | true | 空 `priceBands` |
+
+**核心验证**: priceBands 结构与月费计算（月费 = 存栏头数 × 所在规模档单价），如 260 头 × 265 = 68900 美分（PREMIUM 100-499 档，即 $689.00/月）；`maxHead=-1` 表示无上界。
 
 ### 1.3 付费订阅（Mock 支付）
 
@@ -121,7 +123,7 @@ curl -s -X PUT http://<HOST>:18080/api/v1/subscription/tier \
 curl -s http://<HOST>:18080/api/v1/subscription/usage -H "Authorization: Bearer $OWNER"
 ```
 
-**验证点**: 返回当前 tier 的牲畜配额和超量单价
+**验证点**: 返回当前 tier 的 `livestockCount`、`currency`（="USD"）、`livestockCap`、`applicableBand`、`unitPriceUsdCents`、`monthlyFeeUsdCents`（月费 = 存栏头数 × 所在规模档单价；NIX-245 已移除旧包月/含头数/超额字段）
 
 ---
 

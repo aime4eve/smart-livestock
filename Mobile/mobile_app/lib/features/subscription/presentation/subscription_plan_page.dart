@@ -24,6 +24,10 @@ class SubscriptionPlanPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final asyncStatus = ref.watch(subscriptionControllerProvider);
+    final asyncPlans = ref.watch(subscriptionPlansProvider);
+    final planByTier = <SubscriptionTier, PlanInfo>{};
+    asyncPlans.whenData(
+        (plans) => planByTier.addEntries(plans.map((p) => MapEntry(p.tier, p))));
 
     return Scaffold(
       key: const Key('subscription-plan-page'),
@@ -55,6 +59,7 @@ class SubscriptionPlanPage extends ConsumerWidget {
                   ),
                   child: TierCard(
                     tier: tier,
+                    plan: planByTier[tier],
                     isCurrentPlan: isCurrent,
                     onSelect: () {
                       if (!isCurrent) {
