@@ -5897,4 +5897,84 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gatewayFollowManual => '手动模式';
+
+  @override
+  String get ranchStatLivestockTotal => '牲畜总数';
+
+  @override
+  String get ranchStatHealthyRate => '健康率';
+
+  @override
+  String get ranchStatActiveAlerts => '活跃告警';
+
+  @override
+  String get ranchStatCritical => '严重异常';
+
+  @override
+  String get ranchStatDeviceOnline => '设备在线率';
+
+  @override
+  String get ranchSceneFeverMgmt => '发热管理';
+
+  @override
+  String get ranchSceneDigestiveMgmt => '消化管理';
+
+  @override
+  String get ranchSceneEstrusMgmt => '发情管理';
+
+  @override
+  String get ranchSceneEpidemic => '疫病防控';
+
+  @override
+  String sceneFeverTileSub(int abnormal, int critical) {
+    return '异$abnormal·严$critical';
+  }
+
+  @override
+  String sceneDigestiveTileSub(int abnormal, int watch) {
+    return '异$abnormal·观$watch';
+  }
+
+  @override
+  String sceneEstrusTileSub(int high) {
+    return '高$high';
+  }
+
+  @override
+  String sceneEpidemicTileSub(String rate) {
+    return '$rate%';
+  }
+
+  @override
+  String get aiObserveTitle => '智能健康观察';
+
+  @override
+  String get aiObserveWatching => '关注中';
+
+  @override
+  String get aiObserveOverall => '整体';
+
+  @override
+  String get aiBandCalm => '平稳';
+
+  @override
+  String get aiBandWatch => '留意';
+
+  @override
+  String get aiBandAlarm => '警惕';
+
+  @override
+  String get reconcileSceneAbnormal => '场景异常';
+
+  @override
+  String get reconcileHeadUnit => '只';
+
+  @override
+  String get reconcileActiveTickets => '活跃健康单';
+
+  @override
+  String get reconcileTicketUnit => '张';
+
+  @override
+  String get reconcileOffBy => '差';
 }

@@ -10936,6 +10936,150 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'手动模式'**
   String get gatewayFollowManual;
+
+  /// No description provided for @ranchStatLivestockTotal.
+  ///
+  /// In zh, this message translates to:
+  /// **'牲畜总数'**
+  String get ranchStatLivestockTotal;
+
+  /// No description provided for @ranchStatHealthyRate.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康率'**
+  String get ranchStatHealthyRate;
+
+  /// No description provided for @ranchStatActiveAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'活跃告警'**
+  String get ranchStatActiveAlerts;
+
+  /// No description provided for @ranchStatCritical.
+  ///
+  /// In zh, this message translates to:
+  /// **'严重异常'**
+  String get ranchStatCritical;
+
+  /// No description provided for @ranchStatDeviceOnline.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备在线率'**
+  String get ranchStatDeviceOnline;
+
+  /// No description provided for @ranchSceneFeverMgmt.
+  ///
+  /// In zh, this message translates to:
+  /// **'发热管理'**
+  String get ranchSceneFeverMgmt;
+
+  /// No description provided for @ranchSceneDigestiveMgmt.
+  ///
+  /// In zh, this message translates to:
+  /// **'消化管理'**
+  String get ranchSceneDigestiveMgmt;
+
+  /// No description provided for @ranchSceneEstrusMgmt.
+  ///
+  /// In zh, this message translates to:
+  /// **'发情管理'**
+  String get ranchSceneEstrusMgmt;
+
+  /// No description provided for @ranchSceneEpidemic.
+  ///
+  /// In zh, this message translates to:
+  /// **'疫病防控'**
+  String get ranchSceneEpidemic;
+
+  /// No description provided for @sceneFeverTileSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'异{abnormal}·严{critical}'**
+  String sceneFeverTileSub(int abnormal, int critical);
+
+  /// No description provided for @sceneDigestiveTileSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'异{abnormal}·观{watch}'**
+  String sceneDigestiveTileSub(int abnormal, int watch);
+
+  /// No description provided for @sceneEstrusTileSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'高{high}'**
+  String sceneEstrusTileSub(int high);
+
+  /// No description provided for @sceneEpidemicTileSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'{rate}%'**
+  String sceneEpidemicTileSub(String rate);
+
+  /// No description provided for @aiObserveTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'智能健康观察'**
+  String get aiObserveTitle;
+
+  /// No description provided for @aiObserveWatching.
+  ///
+  /// In zh, this message translates to:
+  /// **'关注中'**
+  String get aiObserveWatching;
+
+  /// No description provided for @aiObserveOverall.
+  ///
+  /// In zh, this message translates to:
+  /// **'整体'**
+  String get aiObserveOverall;
+
+  /// No description provided for @aiBandCalm.
+  ///
+  /// In zh, this message translates to:
+  /// **'平稳'**
+  String get aiBandCalm;
+
+  /// No description provided for @aiBandWatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'留意'**
+  String get aiBandWatch;
+
+  /// No description provided for @aiBandAlarm.
+  ///
+  /// In zh, this message translates to:
+  /// **'警惕'**
+  String get aiBandAlarm;
+
+  /// No description provided for @reconcileSceneAbnormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'场景异常'**
+  String get reconcileSceneAbnormal;
+
+  /// No description provided for @reconcileHeadUnit.
+  ///
+  /// In zh, this message translates to:
+  /// **'只'**
+  String get reconcileHeadUnit;
+
+  /// No description provided for @reconcileActiveTickets.
+  ///
+  /// In zh, this message translates to:
+  /// **'活跃健康单'**
+  String get reconcileActiveTickets;
+
+  /// No description provided for @reconcileTicketUnit.
+  ///
+  /// In zh, this message translates to:
+  /// **'张'**
+  String get reconcileTicketUnit;
+
+  /// No description provided for @reconcileOffBy.
+  ///
+  /// In zh, this message translates to:
+  /// **'差'**
+  String get reconcileOffBy;
 }
 
 class _AppLocalizationsDelegate

@@ -6046,4 +6046,84 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gatewayFollowManual => 'Manual mode';
+
+  @override
+  String get ranchStatLivestockTotal => 'Livestock';
+
+  @override
+  String get ranchStatHealthyRate => 'Healthy';
+
+  @override
+  String get ranchStatActiveAlerts => 'Active Alerts';
+
+  @override
+  String get ranchStatCritical => 'Critical';
+
+  @override
+  String get ranchStatDeviceOnline => 'Device Online';
+
+  @override
+  String get ranchSceneFeverMgmt => 'Fever';
+
+  @override
+  String get ranchSceneDigestiveMgmt => 'Digestive';
+
+  @override
+  String get ranchSceneEstrusMgmt => 'Estrus';
+
+  @override
+  String get ranchSceneEpidemic => 'Epidemic';
+
+  @override
+  String sceneFeverTileSub(int abnormal, int critical) {
+    return 'Abn $abnormal·Cri $critical';
+  }
+
+  @override
+  String sceneDigestiveTileSub(int abnormal, int watch) {
+    return 'Abn $abnormal·Wch $watch';
+  }
+
+  @override
+  String sceneEstrusTileSub(int high) {
+    return 'High $high';
+  }
+
+  @override
+  String sceneEpidemicTileSub(String rate) {
+    return '$rate%';
+  }
+
+  @override
+  String get aiObserveTitle => 'AI Health Watch';
+
+  @override
+  String get aiObserveWatching => 'Watching';
+
+  @override
+  String get aiObserveOverall => 'Overall';
+
+  @override
+  String get aiBandCalm => 'Calm';
+
+  @override
+  String get aiBandWatch => 'Watch';
+
+  @override
+  String get aiBandAlarm => 'Alarm';
+
+  @override
+  String get reconcileSceneAbnormal => 'Scene abnormal';
+
+  @override
+  String get reconcileHeadUnit => '';
+
+  @override
+  String get reconcileActiveTickets => 'open tickets';
+
+  @override
+  String get reconcileTicketUnit => '';
+
+  @override
+  String get reconcileOffBy => 'off by ';
 }

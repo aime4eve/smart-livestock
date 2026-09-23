@@ -16,6 +16,7 @@ import 'package:hkt_livestock_agentic/features/fence/domain/fence_polygon_contai
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/features/twin_overview/presentation/twin_overview_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_widget.dart';
@@ -274,6 +275,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                       livestockCode: m.livestockCode,
                       healthStatus: m.healthStatus,
                       primaryAlert: m.primaryAlert,
+                      hasHealthTicket: m.hasHealthTicket,
                       fenceStatus: fenceStatusMap[m.livestockId] ?? 'SAFE',
                       onTap: () => _showLivestockDetail(context, m, overview),
                     ),
@@ -474,12 +476,17 @@ class _RanchPageState extends ConsumerState<RanchPage>
     final healthUnread = summary?.byGroupUnread.health ?? 0;
     final deviceUnread = summary?.byGroupUnread.device ?? 0;
 
+    final twinAsync = ref.watch(twinOverviewControllerProvider);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
       ),
-      child: Wrap(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Wrap(
         spacing: AppSpacing.sm,
         runSpacing: AppSpacing.sm,
         children: [
@@ -522,6 +529,261 @@ class _RanchPageState extends ConsumerState<RanchPage>
             color: AppColors.info,
             onTap: () => context.push(AppRoute.livestockList.path),
           ),
+        ],
+          ),
+          if (twinAsync.hasValue) ..._buildHealthIntegration(context, twinAsync.value!),
+        ],
+      ),
+    );
+  }
+
+  // ── NIX-245 健康整合区块：五格统计 + 一行四格场景 + AI 观察 + 对账行 ──
+
+  List<Widget> _buildHealthIntegration(BuildContext context, dynamic data) {
+    final stats = data.stats;
+    final scene = data.sceneSummary;
+    if (stats == null || scene == null) return const [];
+
+    final sceneAbnormal = scene.fever.abnormalCount +
+        scene.digestive.abnormalCount +
+        scene.estrus.highScoreCount;
+    final activeTickets = scene.fever.activeAlertCount +
+        scene.digestive.activeAlertCount +
+        scene.estrus.activeAlertCount +
+        scene.epidemic.activeAlertCount +
+        (scene.ai?.activeAlertCount ?? 0);
+
+    return [
+      const SizedBox(height: AppSpacing.md),
+      _buildTwinStats(context, stats),
+      const SizedBox(height: AppSpacing.md),
+      _buildSceneStrip(context, scene),
+      const SizedBox(height: AppSpacing.sm),
+      _buildAiRow(context, scene.ai),
+      const SizedBox(height: AppSpacing.sm),
+      _buildReconcileLine(context, sceneAbnormal, activeTickets),
+      const SizedBox(height: AppSpacing.sm),
+    ];
+  }
+
+  Widget _buildTwinStats(BuildContext context, dynamic stats) {
+    final l10n = AppLocalizations.of(context)!;
+    Widget cell(String title, String value, Color? color) => Card(
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(value,
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: color ?? AppColors.textPrimary)),
+                const SizedBox(height: 2),
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 10, color: AppColors.textSecondary)),
+              ],
+            ),
+          ),
+        );
+    return GridView.count(
+      crossAxisCount: 3,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: AppSpacing.sm,
+      crossAxisSpacing: AppSpacing.sm,
+      childAspectRatio: 2.6,
+      children: [
+        cell(l10n.ranchStatLivestockTotal, '${stats.totalLivestock}', null),
+        cell(l10n.ranchStatHealthyRate,
+            '${(stats.healthyRate * 100).toStringAsFixed(1)}%', AppColors.success),
+        cell(l10n.ranchStatActiveAlerts, '${stats.alertCount}', null),
+        cell(l10n.ranchStatCritical, '${stats.criticalCount}',
+            stats.criticalCount > 0 ? AppColors.danger : null),
+        cell(l10n.ranchStatDeviceOnline,
+            '${(stats.deviceOnlineRate * 100).toStringAsFixed(1)}%', AppColors.success),
+      ],
+    );
+  }
+
+  Widget _buildSceneStrip(BuildContext context, dynamic scene) {
+    final l10n = AppLocalizations.of(context)!;
+    Widget tile({
+      required IconData icon,
+      required Color color,
+      required String title,
+      required String subtitle,
+      required int tickets,
+      required VoidCallback onTap,
+    }) {
+      return Stack(
+        children: [
+          Card(
+            margin: EdgeInsets.zero,
+            child: InkWell(
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                child: Column(
+                  children: [
+                    Icon(icon, color: color, size: 20),
+                    const SizedBox(height: 4),
+                    Text(title,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 10, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 2),
+                    Text(subtitle,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 9, color: AppColors.textSecondary)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (tickets > 0)
+            Positioned(
+              top: 4,
+              right: 4,
+              child: GestureDetector(
+                onTap: () =>
+                    context.push('${AppRoute.alerts.path}?category=health'),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: AppColors.danger,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text('$tickets',
+                      style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white)),
+                ),
+              ),
+            ),
+        ],
+      );
+    }
+
+    return GridView.count(
+      crossAxisCount: 4,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: AppSpacing.sm,
+      crossAxisSpacing: AppSpacing.sm,
+      childAspectRatio: 1.15,
+      children: [
+        tile(
+          icon: Icons.thermostat,
+          color: Colors.orange,
+          title: l10n.ranchSceneFeverMgmt,
+          subtitle: l10n.sceneFeverTileSub(
+              scene.fever.abnormalCount, scene.fever.criticalCount),
+          tickets: scene.fever.activeAlertCount,
+          onTap: () => context.go(AppRoute.twinFever.path),
+        ),
+        tile(
+          icon: Icons.grain,
+          color: Colors.brown,
+          title: l10n.ranchSceneDigestiveMgmt,
+          subtitle: l10n.sceneDigestiveTileSub(
+              scene.digestive.abnormalCount, scene.digestive.watchCount),
+          tickets: scene.digestive.activeAlertCount,
+          onTap: () => context.go(AppRoute.twinDigestive.path),
+        ),
+        tile(
+          icon: Icons.favorite,
+          color: AppColors.estrus,
+          title: l10n.ranchSceneEstrusMgmt,
+          subtitle: l10n.sceneEstrusTileSub(scene.estrus.highScoreCount),
+          tickets: scene.estrus.activeAlertCount,
+          onTap: () => context.go(AppRoute.twinEstrus.path),
+        ),
+        tile(
+          icon: Icons.shield,
+          color: Colors.teal,
+          title: l10n.ranchSceneEpidemic,
+          subtitle: l10n
+              .sceneEpidemicTileSub((scene.epidemic.abnormalRate * 100).toStringAsFixed(1)),
+          tickets: scene.epidemic.activeAlertCount,
+          onTap: () => context.go(AppRoute.twinEpidemic.path),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAiRow(BuildContext context, dynamic ai) {
+    final l10n = AppLocalizations.of(context)!;
+    if (ai == null) return const SizedBox.shrink();
+    final band = ai.avgScore >= 0.7
+        ? l10n.aiBandAlarm
+        : ai.avgScore >= 0.3
+            ? l10n.aiBandWatch
+            : l10n.aiBandCalm;
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            const Icon(Icons.smart_toy, color: AppColors.info, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(l10n.aiObserveTitle,
+                  style:
+                      const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            ),
+            Text('${l10n.aiObserveWatching} ${ai.anomalyCount}',
+                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+            const SizedBox(width: 12),
+            Text('${l10n.aiObserveOverall} $band',
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: ai.avgScore >= 0.7
+                        ? AppColors.danger
+                        : ai.avgScore >= 0.3
+                            ? AppColors.warning
+                            : AppColors.success)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReconcileLine(BuildContext context, int sceneAbnormal, int tickets) {
+    final l10n = AppLocalizations.of(context)!;
+    final ok = sceneAbnormal == tickets;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.success.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: AppColors.success.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Flexible(
+            child: Text(
+              ok
+                  ? '${l10n.reconcileSceneAbnormal} $sceneAbnormal ${l10n.reconcileHeadUnit} · ${l10n.reconcileActiveTickets} $tickets ${l10n.reconcileTicketUnit}'
+                  : '${l10n.reconcileSceneAbnormal} $sceneAbnormal ${l10n.reconcileHeadUnit} · ${l10n.reconcileActiveTickets} $tickets ${l10n.reconcileTicketUnit} · ${l10n.reconcileOffBy}${(tickets - sceneAbnormal).abs()}',
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.success.withValues(alpha: 0.9)),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Icon(ok ? Icons.check_circle : Icons.error_outline,
+              size: 13, color: ok ? AppColors.success : AppColors.warning),
         ],
       ),
     );

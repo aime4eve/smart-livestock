@@ -59,26 +59,38 @@ class HealthOverviewResponse {
           ? SceneSummaryFever(
               abnormalCount: m['fever']['abnormalCount'] as int? ?? 0,
               criticalCount: m['fever']['criticalCount'] as int? ?? 0,
+              activeAlertCount: m['fever']['activeAlertCount'] as int? ?? 0,
             )
           : const SceneSummaryFever(abnormalCount: 0, criticalCount: 0),
       digestive: m['digestive'] != null
           ? SceneSummaryDigestive(
               abnormalCount: m['digestive']['abnormalCount'] as int? ?? 0,
               watchCount: m['digestive']['watchCount'] as int? ?? 0,
+              activeAlertCount: m['digestive']['activeAlertCount'] as int? ?? 0,
             )
           : const SceneSummaryDigestive(abnormalCount: 0, watchCount: 0),
       estrus: m['estrus'] != null
           ? SceneSummaryEstrus(
               highScoreCount: m['estrus']['highScoreCount'] as int? ?? 0,
               breedingAdvice: m['estrus']['breedingAdvice'] as bool? ?? false,
+              activeAlertCount: m['estrus']['activeAlertCount'] as int? ?? 0,
             )
           : const SceneSummaryEstrus(highScoreCount: 0, breedingAdvice: false),
       epidemic: m['epidemic'] != null
           ? SceneSummaryEpidemic(
               status: m['epidemic']['status'] as String? ?? 'Normal',
               abnormalRate: (m['epidemic']['abnormalRate'] as num?)?.toDouble() ?? 0.0,
+              activeAlertCount: m['epidemic']['activeAlertCount'] as int? ?? 0,
             )
           : const SceneSummaryEpidemic(status: 'Normal', abnormalRate: 0.0),
+      ai: m['ai'] != null
+          ? SceneSummaryAi(
+              anomalyCount: m['ai']['anomalyCount'] as int? ?? 0,
+              highScoreCount: m['ai']['highScoreCount'] as int? ?? 0,
+              avgScore: (m['ai']['avgScore'] as num?)?.toDouble() ?? 0.0,
+              activeAlertCount: m['ai']['activeAlertCount'] as int? ?? 0,
+            )
+          : null,
     );
   }
 

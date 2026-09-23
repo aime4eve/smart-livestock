@@ -88,6 +88,22 @@ public class RanchOverviewApplicationService {
         Map<Long, LivestockHealthState> healthMap = healthStates.stream()
                 .collect(Collectors.toMap(LivestockHealthState::livestockId, h -> h, (a, b) -> a));
 
+        // 3. Alerts (active only) — fetched before markers so the health-ticket
+        // red dot derives from the same list (no extra query)
+        List<Alert> allAlerts = alertRepository.findByFarmId(farmId);
+        List<Alert> activeAlerts = allAlerts.stream()
+                .filter(a -> a.getStatus() == AlertStatus.ACTIVE)
+                .toList();
+        Set<Long> healthTicketLivestockIds = activeAlerts.stream()
+                .filter(a -> a.getLivestockId() != null)
+                .filter(a -> a.getType() == AlertType.TEMPERATURE_ABNORMAL
+                        || a.getType() == AlertType.DIGESTIVE_ABNORMAL
+                        || a.getType() == AlertType.ESTRUS
+                        || a.getType() == AlertType.EPIDEMIC
+                        || a.getType() == AlertType.AI_ANOMALY)
+                .map(Alert::getLivestockId)
+                .collect(Collectors.toSet());
+
         List<LivestockMarker> markers = livestockList.stream()
                 .filter(l -> l.getLastLatitude() != null && l.getLastLongitude() != null)
                 .map(l -> {
@@ -104,15 +120,10 @@ public class RanchOverviewApplicationService {
                             l.getLastLatitude(),
                             l.getLastLongitude(),
                             healthStatus,
-                            primaryAlert
+                            primaryAlert,
+                            healthTicketLivestockIds.contains(l.getId())
                     );
                 })
-                .toList();
-
-        // 3. Alerts (active only)
-        List<Alert> allAlerts = alertRepository.findByFarmId(farmId);
-        List<Alert> activeAlerts = allAlerts.stream()
-                .filter(a -> a.getStatus() == AlertStatus.ACTIVE)
                 .toList();
         Set<Long> readAlertIds = userId != null && !activeAlerts.isEmpty()
                 ? readStatusRepository.findReadAlertIdsByUserId(userId,
