@@ -1,9 +1,9 @@
 # SmartLivestock 市场拓展工具包（内部）
 
-> 版本：v1.1（2026-09-15）
+> 版本：v1.2（2026-09-23，NIX-245 USD 按头定价）
 > 读者：内部销售、渠道与市场人员｜Market Development Kit
 > **与 `docs/training/01-presales-overseas-playbook.md` 的分工**：01 售前实战手册管**流程与话术细节**（询盘分级、邮件模板、需求问卷、回访节奏、CRM 记录、升级单格式）；本包管**市场定位与转化资产**（客群画像、切入策略、档位与定价建议、竞争差异、FAQ 与电梯陈述）。谈流程查 01，谈定位与商业策略查本包。
-> 价格均为**示例价**（源自系统当前订阅配置），正式报价以商务合同为准；本文档为内部资料，不直接外发客户。
+> 价格为 NIX-245 正式报价体系（USD、不含 VAT；硬件 $65/台客户自购 + 订阅按头/月），商务折扣以合同为准；本文档为内部资料，不直接外发客户。
 
 ---
 
@@ -64,21 +64,23 @@
 
 ## 3. 档位与定价建议表
 
-> 对齐系统订阅配置（`SubscriptionTier`：BASIC / STANDARD / PREMIUM / ENTERPRISE）。**示例价**，可随市场策略调整；海外报价需另行确认币种、税费、区域价格与付款周期（见 01 手册第 5 节）。
+> 对齐系统订阅配置（`SubscriptionTier`：BASIC / STANDARD / PREMIUM / ENTERPRISE，NIX-245 USD 按头/月 + 存栏规模分档）。**USD 全球统一、不含 VAT**；设备一次性购买 **$65/台**（客户所有），网关按牧场另报。
 
-| 档位 | 月费（示例价） | 含牲畜数 | 超额单价（示例价） | 数据保留 | 关键能力 | 建议客群 |
+**软件订阅单价（$/头/月）**：
+
+| 档位 | ＜100 头 | 100–499 头 | ≥500 头 | 数据保留 | 关键能力 | 建议客群 |
 |---|---|---|---|---|---|---|
-| BASIC | 免费 | 50 头 | ¥0.40/头/月 | 7 天 | 定位、基础设备管理、围栏 ≤3 | 起步 / 体验客户 |
-| STANDARD | ¥299/月 | 200 头 | ¥0.30/头/月 | 30 天 | + 轨迹回放、体温监测、告警历史 | 小型牧场 |
-| PREMIUM | ¥699/月 | 1,000 头 | ¥0.15/头/月 | 90 天 | + 发情 / 繁殖 / 疫病 / AI 异常检测 | 中大型牧场（主推） |
-| ENTERPRISE | 定制 | 不限 | — | 3 年 | + 集团多牧场、地端部署、定制、API | 集团 / 产业方 |
+| BASIC | 免费（≤50 头） | — | — | 7 天 | 定位、基础设备管理、围栏 ≤3 | 起步 / 体验客户 |
+| STANDARD | $2.60 | $2.15 | $1.40 | 30 天 | + 轨迹回放、体温监测、告警历史 | 小型牧场 |
+| PREMIUM | $3.20 | $2.65 | $1.75 | 90 天 | + 发情 / 繁殖 / 疫病 / AI 异常检测 | 中大型牧场（主推） |
+| ENTERPRISE | 定制（买断 ≈36 个月订阅价 + 20%/年维保） | | | 3 年 | + 集团多牧场、地端部署、定制、API | 集团 / 产业方 |
 
 **定价话术要点**：
 
-1. **升档激励**：含牲畜数为档位硬上限——超过 200 头需从 STANDARD 升档 PREMIUM（支持至 1,000 头）；规模越大单头成本越低，1,000 头时 PREMIUM 月费封顶 ¥699、约 ¥0.70/头/月，STANDARD 满额 200 头约 ¥1.50/头/月，主动帮客户算这笔账。
-2. **无强制月费**：免费版长期可用，与竞品"设备 + 强制定阅"模式形成对比。
-3. **超额可算**：超出包含头数后按头加费，客户扩张成本透明可预估。
-4. **不裸报海外价**：海外询盘先确认规模、设备、网络与合规，再按 01 手册报价清单拆项报价（设备 / 订阅 / 实施 / 支持 / 税费）。
+1. **规模分档递减**：按头计费 + 规模分档，牧场越大单头成本越低——260 头牧场 PREMIUM $2.65/头/月，500 头以上只要 $1.75/头/月；付费档无头数上限，主动帮客户算这笔账。
+2. **首年免费 + 设备买断**：配套软件首年免费（365 天全功能试点），设备 $65/台一次性购买、**归客户所有**——对比竞品"硬件摊入订阅的租赁制"（如 SenseHub GO 5 年合同），我们没有硬件锁定，客户资产有残值。
+3. **比价口径红线**：对竞品**只比 5 年总拥有成本（TCO）**——我方 ≈ SenseHub GO 的 85%（硬件 $65 + 48 个月订阅 vs 对方 60 个月全包月费），**禁止拿我方"订阅月费"直接对竞品"全包月费"比**（口径不同，客户一算硬件会觉得被套路）。
+4. **报价拆项**：海外询盘先确认规模、设备、网络与合规，按 01 手册报价清单拆项报价（设备 $65/台 + 网关 / 订阅按头 / 实施 / 支持 / 税费 VAT）。
 
 ---
 
@@ -94,7 +96,7 @@
 | 数智孪生 | 四大分析场景覆盖全生命周期 | 竞品尚无同类组合能力（以公开资料为准，标注资料日期） |
 | 离线作业 | 离线地图 / 围栏 / 牲畜缓存，恢复自动同步 | 弱网牧场真实可用，而非"有网才能用" |
 | 部署形态 | 云端托管 + 地端离线授权（ONPREM） | 地端完全离线、授权绑定主机、数据不出场——数据驻留敏感客户的决定性选项 |
-| 商业模式 | 免费版起步、可选订阅、无强制月费、365 天试点 | 低门槛进入；对比竞品强制定阅模式 |
+| 商业模式 | 设备 $65/台买断归客户 + 订阅按头/月（首年免费 365 天试点） | 前置投入低且资产归客户；对比竞品"硬件摊入订阅的 5 年租赁锁定"模式，5 年 TCO 约为其 85% |
 | 设备防拆 | 防拆位随遥测上报，非法拆卸即时触发 CRITICAL 告警 | 项圈被非法摘除立即知晓，配合围栏越界构建防丢防线 |
 | 健康数据实时性 | 健康页 30 秒自动刷新 + 数据更新时间标注 | 牧工打开页面停留即见最新采集数据，不需要手动下拉、不需要培训"记得刷新" |
 | 设备绑定管理 | 千台级设备按编号 / 序列号搜索绑定，牲畜详情页一键解绑 | 大牧场设备换绑、转售不再依赖运营后台操作，牧场主自助完成 |
@@ -109,7 +111,7 @@
 | 1 | **数据安全怎么保障？** | 多租户三级隔离、角色分权、API Key 按 scope 授权且密钥哈希存储、关键操作审计留痕。地端部署数据完全留在客户内网。追问合规认证 / 数据驻留细节时，按 01 手册转产品 / 合规负责人，不口头承诺。 |
 | 2 | **能不能完全离线部署？** | 可以。地端独立部署（ONPREM）：离线镜像整包交付、运行不依赖公网、离线授权文件签名校验并绑定主机指纹、数据不出场。适合集团 / 政府客户。 |
 | 3 | **AI 准确率多少？** | 不承诺准确率数字。AI 健康评分为试点能力、持续迭代；与规则引擎双轨并行，AI 不可用时自动静默降级、不影响定位围栏告警主链路。效果用客户现场真实数据的试点评估来验证。 |
-| 4 | **价格贵 / 比竞品贵** | 不陷入单纯比价：① 免费版起步、无强制月费；② 规模越大单头成本越低（超 200 头升 PREMIUM，1,000 头约 ¥0.70/头/月）（升档激励）；③ 用客户自己的丢失损失、人工巡查、空怀天数数字做价值量化（价值公式见 00 赋能手册）；④ 365 天试点先验证再付费。 |
+| 4 | **价格贵 / 比竞品贵** | 不陷入单纯比价：① 按 5 年 TCO 比——我方 ≈ 主流竞品全包订阅的 85%，且**设备归客户所有**（竞品多为硬件摊入月费的租赁制，5 年后设备还是厂商的）；② 规模越大单头越便宜（≥500 头 PREMIUM $1.75/头/月）；③ 用客户自己的丢失损失、人工巡查、空怀天数数字做价值量化（价值公式见 00 赋能手册）；④ 首年免费 + $65/台设备是唯一前置投入，先验证再付费。**注意比价口径：只比 5 年总成本，不拿我方订阅月费对竞品全包月费。** |
 | 5 | **到期后会怎么样？会不会删数据？** | 到期自动降级为基础免费版，**数据保留不删除**，牲畜档案与历史数据完整；续费（人工合同 + 付款确认）后立即恢复对应档位能力。没有任何自动扣款风险。 |
 | 6 | **部署要多久？** | 云端托管：开通即用，设备入网与培训按实施计划。地端部署：离线镜像 + 脚本化安装 + 健康检查，标准环境可按天级完成，具体周期按现场环境评估后承诺（不现场拍数字）。 |
 | 7 | **必须买你们的硬件吗？已有设备能用吗？** | 功能有设备依赖：围栏 / 轨迹需 GPS 追踪器，温度 / 蠕动需瘤胃胶囊，健康评分 / 发情检测需两者齐备。客户已有设备先收集型号、厂商、数据格式做兼容性评估（按 01 手册），不假设"都能接"。 |
@@ -131,7 +133,7 @@
 | API / 平台集成 | 智慧农业平台、监管 / 保险产业方 | Open API 数据接入，scope、调用量、限流与安全审查前置 |
 | 地端交付伙伴 | 面向集团 / 政府客户的集成商 | ONPREM 交付含离线授权流程培训；授权签发始终由我方执行 |
 
-红线：不向渠道透露内部环境、授权签发细节或示例价之外的价格政策；渠道对外材料需我方审核。
+红线：不向渠道透露内部环境、授权签发细节或合同折扣之外的价格政策；渠道对外材料需我方审核。
 
 ---
 
@@ -139,11 +141,11 @@
 
 ### 7.1 中文 30 秒版
 
-> SmartLivestock 智慧畜牧把 GPS 项圈、瘤胃胶囊这些设备数据变成牧场里"看得见、管得住"的行动：牲畜在地图上可见，越界自动告警，牧工确认、老板闭环，健康数据自动刷新、辅助早发现早处理。平台免费版起步、不强制月费，市场测试期提供 **365 天试点授权**，按专业版能力完整体验。数据敏感的客户可以选择**地端独立部署**——完全离线、授权绑定主机、数据不出场。下一步我们约 30 分钟，确认您的畜种、规模和网络条件，再决定怎么设计试点。
+> SmartLivestock 智慧畜牧把 GPS 项圈、瘤胃胶囊这些设备数据变成牧场里"看得见、管得住"的行动：牲畜在地图上可见，越界自动告警，牧工确认、老板闭环，健康数据自动刷新、辅助早发现早处理。设备 **$65 一台买断、归您所有**，配套软件**首年免费**（365 天全功能试点），之后订阅按头计费、规模越大越便宜。数据敏感的客户可以选择**地端独立部署**——完全离线、授权绑定主机、数据不出场。下一步我们约 30 分钟，确认您的畜种、规模和网络条件，再决定怎么设计试点。
 
 ### 7.2 英文 30 秒版
 
-> SmartLivestock turns GPS tracker and rumen capsule data into faster action on the farm: animals are visible on a map, geofence breaches raise alerts, workers acknowledge and owners close the loop, and health analytics support earlier decisions — with health pages auto-refreshing so the latest readings are always on screen. You can start free — no forced monthly fee — and during the market beta we offer a **365-day pilot license** with full PREMIUM capabilities. The app is bilingual and timezone-localized with map baselines matched to your region. For strict data-residency needs, the platform ships as an **on-premises deployment** with fully offline licensing, so data never leaves your farm. Let's schedule 30 minutes to confirm your herd profile, scale, and connectivity, and design a pilot together.
+> SmartLivestock turns GPS tracker and rumen capsule data into faster action on the farm: animals are visible on a map, geofence breaches raise alerts, workers acknowledge and owners close the loop, and health analytics support earlier decisions — with health pages auto-refreshing so the latest readings are always on screen. Devices are a **one-time $65 purchase and stay yours**; the software is **free for the first year** (365-day full-capability pilot), then a per-head monthly subscription that gets cheaper as your herd grows. The app is bilingual and timezone-localized with map baselines matched to your region. For strict data-residency needs, the platform ships as an **on-premises deployment** with fully offline licensing, so data never leaves your farm. Let's schedule 30 minutes to confirm your herd profile, scale, and connectivity, and design a pilot together.
 
 ### 7.3 三个必留钩子（每次陈述后必须落到下一步）
 
@@ -155,7 +157,7 @@
 
 ## 8. 使用红线（与 01 手册售前红线一致）
 
-1. 示例价不得直接作为海外公开报价；报价以商务合同与审批为准。
+1. 报价以 USD 正式价目（第 3 节）+ 商务合同审批为准，不得自行承诺折扣；比价只按 5 年 TCO 口径。
 2. 不承诺 AI 准确率、找回率、误报率或投资回报率。
 3. 不虚构案例、认证与生产效果；仿真数据不作为效果证据。
 4. 不透露内部环境、账号、密钥与授权签发流程细节。

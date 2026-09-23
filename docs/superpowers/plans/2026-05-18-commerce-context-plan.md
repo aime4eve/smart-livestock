@@ -23,7 +23,7 @@
 | File | Responsibility |
 |------|---------------|
 | `domain/model/Subscription.java` | 订阅聚合根（状态机、effectiveTier、billingModel） |
-| `domain/model/SubscriptionTier.java` | Tier 枚举（USD 美分定价、超量计算） |
+| `domain/model/SubscriptionTier.java` | Tier 枚举（USD 美分定价、超量计算）（2026-09-23 NIX-245 已重构为 USD 按头/月 + 规模分档，见 specs/2026-09-23-usd-perhead-pricing-design.md） |
 | `domain/model/SubscriptionStatus.java` | 订阅状态枚举（7 种） |
 | `domain/model/Contract.java` | 合同聚合根（DRAFT→ACTIVE、分润计算） |
 | `domain/model/ContractStatus.java` | 合同状态枚举（5 种，含 DRAFT） |
@@ -124,7 +124,7 @@
 | File | Test Target |
 |------|------------|
 | `domain/model/SubscriptionTest.java` | 订阅聚合根（含 recoverFromRenewalFailure） |
-| `domain/model/SubscriptionTierTest.java` | Tier 定价与超量（USD 美分） |
+| `domain/model/SubscriptionTierTest.java` | Tier 定价与超量（USD 美分）（2026-09-23 NIX-245 已重构为 USD 按头/月 + 规模分档，见 specs/2026-09-23-usd-perhead-pricing-design.md） |
 | `domain/model/ContractTest.java` | 合同聚合根（含 DRAFT→sign） |
 | `domain/model/RevenuePeriodTest.java` | 分润聚合根 |
 | `domain/model/SubscriptionServiceTest.java` | Licensed 服务（含 License 验证） |
@@ -230,6 +230,7 @@ public class DomainException extends RuntimeException {
 - [x] **Step 3: 创建枚举类**
 
 SubscriptionTier: BASIC(0, 50, 40), STANDARD(1400, 200, 30), PREMIUM(2800, 1000, 15), ENTERPRISE(-1, -1, -1)
+（2026-09-23 NIX-245 已重构为 USD 按头/月 + 规模分档，见 specs/2026-09-23-usd-perhead-pricing-design.md）
 SubscriptionStatus: TRIAL, ACTIVE, FREE, SUSPENDED, RENEWAL_FAILED, CANCELLED, EXPIRED
 ContractStatus: DRAFT, ACTIVE, SUSPENDED, EXPIRED, TERMINATED
 RevenueSettlementStatus: PENDING, PLATFORM_CONFIRMED, PARTNER_CONFIRMED, SETTLED

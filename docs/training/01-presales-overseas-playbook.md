@@ -191,7 +191,7 @@ Best regards,
 | 客户信号 | 优先模式 | 销售动作 | 不适合的做法 |
 |---|---|---|---|
 | 单一牧场、owner 决策、想先试用 | direct SaaS 订阅 | 从小规模或标准层级切入，明确设备依赖和升级路径 | 不先看规模就报企业版 |
-| 中大型牧场、有设备采购预算 | 设备买断/租赁 + 订阅 | 分别确认设备数量、安装责任、保修和平台服务范围 | 把硬件和订阅混成一句总价 |
+| 中大型牧场、有设备采购预算 | 设备自购（$65/台）+ 按头/月订阅 | 分别确认设备数量、安装责任、保修和平台服务范围 | 把硬件和订阅混成一句总价 |
 | 经销商或渠道带来多客户 | revenue_share | 转商务负责人确认客户归属、服务边界、分润比例和结算周期 | 口头承诺渠道政策 |
 | 集团客户要私有化、数据驻留或定制集成 | licensed / enterprise | 先做技术评估，再确认部署、集成、支持和运维责任 | 承诺私有化交付时间 |
 | 集成商只要数据接口 | api_usage 或 enterprise 打包 | 确认数据 scope、调用量、频率、限流、SLA 和安全审查 | 直接承诺 API 单价和免费额度 |
@@ -201,11 +201,11 @@ Best regards,
 
 #### SaaS 订阅
 
-> The subscription defines the feature scope, data retention, quotas, and support level. Device requirements are assessed separately, so you can start with a manageable pilot and expand as coverage proves its value.
+> The subscription is priced per head per month with scale-based bands — for example, Standard from $2.60 (under 100 head) to $1.40 (500+ head) and Premium from $3.20 to $1.75 — all in USD, VAT excluded. It defines the feature scope, data retention, and support level, and paid tiers have no head-count cap. Devices are purchased separately at $65 per unit, so you can start with a manageable pilot and expand as coverage proves its value.
 
 #### 设备加订阅
 
-> We can separate the commercial discussion into devices, platform subscription, installation, and support. This makes the pilot scope and long-term cost easier to review.
+> Devices are a one-time customer purchase at $65 per unit (collar, ear tag, or bolus), and LoRaWAN gateways are quoted per farm. We can separate the commercial discussion into devices, per-head subscription, installation, and support. This makes the pilot scope and long-term cost easier to review.
 
 #### 渠道分润
 
@@ -224,15 +224,15 @@ Best regards,
 1. 客户角色和决策链。
 2. 牧场数量、牲畜数量、畜种和扩群计划。
 3. 现有设备型号、厂商、数量、通信方式和数据获取权限。
-4. 需要新购、租赁还是复用设备。
+4. 需要新购设备（$65/台，LoRaWAN 网关按牧场另报）还是复用已有设备。
 5. 目标功能、数据保留和 API 需求。
 6. 部署方式、数据驻留和合规要求。
 7. 实施安装、培训和运维责任。
 8. 支持等级、响应时间和值班窗口。
-9. 币种、税费、付款周期、折扣审批和发票要求。
+9. 付款周期、折扣审批和发票要求；币种统一 USD、不含 VAT 已是标准口径（NIX-245），报价单需注明 VAT 另计。
 10. POC 范围、成功标准、退出条件和后续转化条件。
 
-报价输出建议拆成六栏：设备、平台订阅、实施培训、集成开发、支持服务、税费或其他费用。没有确认的费用不要写“included”，先写“to be confirmed after technical assessment”。
+报价输出建议拆成六栏：硬件（设备 $65/台 + LoRaWAN 网关按牧场另报）、平台订阅（USD 按头/月 × 规模分档）、实施培训、集成开发、支持服务、税费或其他费用（VAT 另计）。没有确认的费用不要写”included”，先写”to be confirmed after technical assessment”。
 
 ## 6. 竞品对比话术
 
@@ -479,14 +479,14 @@ Deadline and reason:
 |---|---|---|---|---|
 | 首响 SLA | Halter/Vence 走 contact sales；Digitanimal 提供线上支持入口 | 不同级别询盘首响、local rep 跟进、技术澄清和报价时限 | 销售/商务 | 团队考核 |
 | 区域策略 | Halter 提供多区域站点；Vence 表单采集国家和州 | 目标市场优先级、区域话术、语言、本地代表、案例和合规差异 | 市场/销售 | 转化率 |
-| 报价模板 | Digitanimal 公开 VAT excluded 设备价；Halter/Vence contact sales | 币种、税费、设备、订阅、实施、支持、物流、质保和退款拆分；哪些可线上公开、哪些必须销售报价 | 商务/财务 | 商务推进 |
+| 报价模板（已确认） | Digitanimal 公开 VAT excluded 设备价；Halter/Vence contact sales | 已确认（NIX-245，2026-09-23）：币种统一 USD、不含 VAT；订阅按头/月 × 规模分档；设备 $65/台客户自购、网关按牧场另报。仍待确认：实施、支持、物流、质保和退款拆分及线上/销售报价渠道 | 商务/财务 | 商务推进 |
 | Demo 环境 | 竞品使用 App 截屏、技术页、案例和研究建立信任 | 海外可访问地址、语言、数据场景、权限、版本、竞品对比演示路径和录制材料 | 产品/运维 | 演示效果 |
 | 案例口径 | Halter 公开独立研究和农场案例；Digitanimal 有客户与项目内容 | 可公开客户、区域、畜种、指标、截图、数据周期和引用格式 | 市场/产品 | 信任建立 |
 | 技术资料包 | Halter 强调覆盖、数据密度和实时性；Digitanimal 公开通信和电池规格 | 可对外架构图、覆盖评估表、设备规格、API 文档、安全问答、数据表和边界声明 | 产品/研发 | 技术澄清 |
 | POC 模板 | Halter ROI 与管理改变绑定；Vence 采集规模和放牧面积 | 范围、设备、时间窗、客户配合、基线指标、成功标准、退出条件、数据清理和转化条件 | 产品/销售 | 商务闭环 |
 | 竞品复核表 | 本节外部快照可作为初稿 | 逐项复核竞品价格、功能、案例、认证、区域页面、资料日期和反证来源 | 市场/产品 | 竞争话术 |
 | 价值计算器 | Halter 用独立研究展示产出、利润和劳动变化 | 输入项、公式、默认值、客户基线采集表、免责声明和输出口径 | 产品/财务 | 商务论证 |
-| 商务模式清单 | Digitanimal 设备 + 12 个月服务 + renewal；Halter/Vence contact sales | API 计费、增值包、设备租赁、服务包含期、断缴、分润、License 和 enterprise 打包规则 | 产品/商务/财务 | 报价口径 |
+| 商务模式清单（部分已确认） | Digitanimal 设备 + 12 个月服务 + renewal；Halter/Vence contact sales | 已确认（NIX-245）：订阅 USD 按头/月 × 规模分档、硬件 $65/台客户自购、增值包能力并入套餐档位、enterprise 买断 ≈36 个月订阅价 + 20%/年维保。仍待确认：API 计费、服务包含期、断缴、分润和 License 打包细则 | 产品/商务/财务 | 报价口径 |
 | 询盘表单 | Vence 采集 Operation Type、Herd Size、面积和国家 | 最低询盘字段、表单语言、自动分级规则、CRM 必填项和去重规则 | 市场/销售 | 商机质量 |
 | 质保退款口径 | Digitanimal 公开 14 天退款和 2 年质保 | 退款窗口、质保范围、人为损坏、物流责任、备件、退换和区域消费者权利 | 法务/供应链 | 商务争议 |
 

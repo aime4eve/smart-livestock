@@ -1020,22 +1020,25 @@ Response 200:
 
 > **权限**: 仅需已认证（JWT 解析出 tenantId），无角色限制；数据按 tenantId 隔离。
 > 含 SubscriptionController（订阅自助，6 端点）与 CommerceController（合作方合同/分润视角，3 端点）。
-> 金额单位均为**分**（cents）。
+> 订阅金额单位均为**美分**（US cents，NIX-245 USD 按头/月计费）；硬件（项圈/耳标/胶囊/网关）为一次性客户自购，不走订阅接口。
 
 ### GET /subscription
 
-当前租户的订阅信息。
+当前租户的订阅信息（含按当前存栏数计算的档位单价与月费）。
 
 ```
 Response 200:
 {
   "code": "OK", "message": "success", "requestId": "req-c1",
   "data": {
-    "id": 801, "tenantId": 7, "tier": "STANDARD",
+    "id": 801, "tenantId": 7, "tier": "PREMIUM",
     "billingModel": "direct", "status": "ACTIVE", "billingCycle": "monthly",
-    "startedAt": "2026-05-01T00:00:00Z", "expiresAt": "2026-06-01T00:00:00Z",
+    "startedAt": "2026-05-01T00:00:00Z", "expiresAt": "2027-05-01T00:00:00Z",
     "trialEndsAt": null, "cancelledAt": null,
-    "effectiveTier": "STANDARD"
+    "effectiveTier": "PREMIUM",
+    "livestockCount": 260, "currency": "USD", "livestockCap": -1,
+    "applicableBand": { "minHead": 100, "maxHead": 499, "unitPriceUsdCents": 265 },
+    "unitPriceUsdCents": 265, "monthlyFeeUsdCents": 68900
   }
 }
 
@@ -1043,24 +1046,38 @@ Error 404:
 { "code": "SUBSCRIPTION_NOT_FOUND", "message": "Subscription not found for tenant: 7", "requestId": "req-c1" }
 ```
 
+> ENTERPRISE 的 `applicableBand/unitPriceUsdCents/monthlyFeeUsdCents` 为 null（定制价）；`livestockCap` 为 -1 表示无头数上限。
+
 ### GET /subscription/plans
 
-各 Tier 定价目录（硬编码自 `SubscriptionTier` 枚举）。
+各 Tier 定价目录（硬编码自 `SubscriptionTier` 枚举，NIX-245 USD 按头/月 + 存栏规模分档）。
 
 ```
 Response 200:
 {
   "code": "OK", "message": "success", "requestId": "req-c2",
   "data": [
-    { "tier": "BASIC", "monthlyPriceCents": 0, "includedLivestock": 50, "overagePriceCents": 40 },
-    { "tier": "STANDARD", "monthlyPriceCents": 1400, "includedLivestock": 200, "overagePriceCents": 30 },
-    { "tier": "PREMIUM", "monthlyPriceCents": 2800, "includedLivestock": 1000, "overagePriceCents": 15 },
-    { "tier": "ENTERPRISE", "monthlyPriceCents": -1, "includedLivestock": -1, "overagePriceCents": -1 }
+    { "tier": "BASIC", "currency": "USD", "billingUnit": "per_head_month", "customPricing": false, "livestockCap": 50,
+      "priceBands": [ { "minHead": 1, "maxHead": -1, "unitPriceUsdCents": 0 } ] },
+    { "tier": "STANDARD", "currency": "USD", "billingUnit": "per_head_month", "customPricing": false, "livestockCap": -1,
+      "priceBands": [
+        { "minHead": 1, "maxHead": 99, "unitPriceUsdCents": 260 },
+        { "minHead": 100, "maxHead": 499, "unitPriceUsdCents": 215 },
+        { "minHead": 500, "maxHead": -1, "unitPriceUsdCents": 140 }
+      ] },
+    { "tier": "PREMIUM", "currency": "USD", "billingUnit": "per_head_month", "customPricing": false, "livestockCap": -1,
+      "priceBands": [
+        { "minHead": 1, "maxHead": 99, "unitPriceUsdCents": 320 },
+        { "minHead": 100, "maxHead": 499, "unitPriceUsdCents": 265 },
+        { "minHead": 500, "maxHead": -1, "unitPriceUsdCents": 175 }
+      ] },
+    { "tier": "ENTERPRISE", "currency": "USD", "billingUnit": "per_head_month", "customPricing": true, "livestockCap": -1,
+      "priceBands": [] }
   ]
 }
 ```
 
-> ENTERPRISE 为定制价（字段 -1），对其调用计费接口返回 `ENTERPRISE_CUSTOM_PRICING`（400）。
+> `maxHead = -1` 表示无上界。月费 = 存栏数 × 所在档 `unitPriceUsdCents`；ENTERPRISE 为定制价（`customPricing: true`，`priceBands` 为空），对其调用计费接口返回 `ENTERPRISE_CUSTOM_PRICING`（400）。
 
 ### POST /subscription/checkout
 
@@ -1119,14 +1136,17 @@ Response 200（有订阅）:
 {
   "code": "OK", "message": "success", "requestId": "req-c6",
   "data": {
-    "subscriptionId": 801, "tier": "STANDARD", "status": "ACTIVE",
-    "effectiveTier": "STANDARD", "includedLivestock": 200, "overagePriceCents": 30,
-    "retentionDays": 30
+    "subscriptionId": 801, "tier": "PREMIUM", "status": "ACTIVE",
+    "effectiveTier": "PREMIUM", "livestockCount": 260, "currency": "USD",
+    "livestockCap": -1,
+    "applicableBand": { "minHead": 100, "maxHead": 499, "unitPriceUsdCents": 265 },
+    "unitPriceUsdCents": 265, "monthlyFeeUsdCents": 68900,
+    "retentionDays": 90
   }
 }
 
 Response 200（无订阅）:
-{ "code": "OK", "message": "success", "requestId": "req-c6", "data": { "tier": "BASIC", "status": "FREE" } }
+{ "code": "OK", "message": "success", "requestId": "req-c6", "data": { "tier": "BASIC", "status": "FREE", "livestockCap": 50 } }
 ```
 
 > `effectiveTier`：试用期内返回 `PREMIUM`（试用享高级），否则为实际 tier。
