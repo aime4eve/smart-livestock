@@ -1,9 +1,12 @@
 package com.smartlivestock.commerce.application.dto;
 
+import com.smartlivestock.commerce.domain.model.SubscriptionTier;
+
 import java.time.Instant;
 
 /**
- * Response DTO for subscription read model.
+ * Response DTO for subscription read model. Pricing fields follow the
+ * NIX-245 USD per-head-per-month model; all amounts are US cents.
  */
 public class SubscriptionResponse {
 
@@ -19,9 +22,11 @@ public class SubscriptionResponse {
     private Instant cancelledAt;
     private String effectiveTier;
     private int livestockCount;
-    private double calculatedTierFee;
-    private double calculatedDeviceFee;
-    private double calculatedTotal;
+    private String currency = "USD";
+    private Integer livestockCap;
+    private SubscriptionTier.PriceBand applicableBand;
+    private Integer unitPriceUsdCents;
+    private Integer monthlyFeeUsdCents;
 
     public SubscriptionResponse() {
     }
@@ -62,12 +67,18 @@ public class SubscriptionResponse {
     public int getLivestockCount() { return livestockCount; }
     public void setLivestockCount(int livestockCount) { this.livestockCount = livestockCount; }
 
-    public double getCalculatedTierFee() { return calculatedTierFee; }
-    public void setCalculatedTierFee(double calculatedTierFee) { this.calculatedTierFee = calculatedTierFee; }
+    public String getCurrency() { return currency; }
+    public void setCurrency(String currency) { this.currency = currency; }
 
-    public double getCalculatedDeviceFee() { return calculatedDeviceFee; }
-    public void setCalculatedDeviceFee(double calculatedDeviceFee) { this.calculatedDeviceFee = calculatedDeviceFee; }
+    public Integer getLivestockCap() { return livestockCap; }
+    public void setLivestockCap(Integer livestockCap) { this.livestockCap = livestockCap; }
 
-    public double getCalculatedTotal() { return calculatedTotal; }
-    public void setCalculatedTotal(double calculatedTotal) { this.calculatedTotal = calculatedTotal; }
+    public SubscriptionTier.PriceBand getApplicableBand() { return applicableBand; }
+    public void setApplicableBand(SubscriptionTier.PriceBand applicableBand) { this.applicableBand = applicableBand; }
+
+    public Integer getUnitPriceUsdCents() { return unitPriceUsdCents; }
+    public void setUnitPriceUsdCents(Integer unitPriceUsdCents) { this.unitPriceUsdCents = unitPriceUsdCents; }
+
+    public Integer getMonthlyFeeUsdCents() { return monthlyFeeUsdCents; }
+    public void setMonthlyFeeUsdCents(Integer monthlyFeeUsdCents) { this.monthlyFeeUsdCents = monthlyFeeUsdCents; }
 }

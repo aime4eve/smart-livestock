@@ -30,22 +30,23 @@ public final class SubscriptionAssembler {
     }
 
     /**
-     * Build response enriched with livestock count and calculated fees.
-     * Fees are in yuan (元), derived from SubscriptionTier pricing (stored in cents).
-     * Enterprise tier is custom-priced: fees are left at 0.
+     * Build response enriched with livestock count and USD per-head pricing.
+     * All amounts are US cents, derived from SubscriptionTier herd-size bands.
+     * Enterprise tier is custom-priced: pricing fields are left null.
      */
     public static SubscriptionResponse toResponse(Subscription domain, long livestockCount) {
         SubscriptionResponse dto = toResponse(domain);
         dto.setLivestockCount((int) livestockCount);
 
         SubscriptionTier tier = domain.effectiveTier();
+        if (tier != null) {
+            dto.setLivestockCap(tier.getLivestockCap());
+        }
         if (tier != null && tier != SubscriptionTier.ENTERPRISE) {
-            double tierFee = tier.getMonthlyPriceCents() / 100.0;
-            int overflow = (int) Math.max(0, livestockCount - tier.getIncludedLivestock());
-            double deviceFee = overflow * tier.getOveragePriceCents() / 100.0;
-            dto.setCalculatedTierFee(tierFee);
-            dto.setCalculatedDeviceFee(deviceFee);
-            dto.setCalculatedTotal(tierFee + deviceFee);
+            SubscriptionTier.PriceBand band = tier.bandFor((int) livestockCount);
+            dto.setApplicableBand(band);
+            dto.setUnitPriceUsdCents(band.unitPriceUsdCents());
+            dto.setMonthlyFeeUsdCents(tier.calculateMonthlyFee((int) livestockCount));
         }
         return dto;
     }
