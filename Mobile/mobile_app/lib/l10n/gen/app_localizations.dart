@@ -2506,29 +2506,47 @@ abstract class AppLocalizations {
   /// **'按需定价'**
   String get subCustomPricing;
 
-  /// No description provided for @subPerMonth.
+  /// No description provided for @subPerHeadMonth.
   ///
   /// In zh, this message translates to:
-  /// **'¥{price}/月'**
-  String subPerMonth(String price);
+  /// **'{price} /头/月'**
+  String subPerHeadMonth(String price);
 
-  /// No description provided for @subLivestockLimit.
+  /// No description provided for @subFreeTier.
   ///
   /// In zh, this message translates to:
-  /// **'最多{count}头牲畜'**
-  String subLivestockLimit(String count);
+  /// **'免费'**
+  String get subFreeTier;
+
+  /// No description provided for @subHeadCapBounded.
+  ///
+  /// In zh, this message translates to:
+  /// **'≤{count} 头'**
+  String subHeadCapBounded(String count);
+
+  /// No description provided for @subHerdBandEntry.
+  ///
+  /// In zh, this message translates to:
+  /// **'{range} 头 {price}'**
+  String subHerdBandEntry(String range, String price);
+
+  /// No description provided for @subUnitPriceLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'档位单价'**
+  String get subUnitPriceLabel;
+
+  /// No description provided for @subMonthlyFeeRow.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅月费（{count} 头 × {price}/头/月）'**
+  String subMonthlyFeeRow(String count, String price);
 
   /// No description provided for @subLivestockUnlimited.
   ///
   /// In zh, this message translates to:
   /// **'不限牲畜数量'**
   String get subLivestockUnlimited;
-
-  /// No description provided for @subExcessFee.
-  ///
-  /// In zh, this message translates to:
-  /// **'超出部分 ¥{price}/头/月'**
-  String subExcessFee(String price);
 
   /// No description provided for @subFeatureCountSuffix.
   ///
@@ -2553,12 +2571,6 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'费用明细'**
   String get subFeeBreakdown;
-
-  /// No description provided for @subPlanFee.
-  ///
-  /// In zh, this message translates to:
-  /// **'套餐费（{tier}）'**
-  String subPlanFee(String tier);
 
   /// No description provided for @subTrialEndsAt.
   ///
@@ -2608,12 +2620,6 @@ abstract class AppLocalizations {
   /// **'选择适合您牧场的套餐方案'**
   String get subSelectPlanHint;
 
-  /// No description provided for @subExcessDeviceFee.
-  ///
-  /// In zh, this message translates to:
-  /// **'超出设备费（超出{count}头 × ¥{price}/头）'**
-  String subExcessDeviceFee(String count, Object price);
-
   /// No description provided for @subLockedNeedDevice.
   ///
   /// In zh, this message translates to:
@@ -2659,14 +2665,8 @@ abstract class AppLocalizations {
   /// No description provided for @subConfirmPay.
   ///
   /// In zh, this message translates to:
-  /// **'确认支付 ¥{amount}'**
+  /// **'确认支付 {amount}'**
   String subConfirmPay(String amount);
-
-  /// No description provided for @subYuanSuffix.
-  ///
-  /// In zh, this message translates to:
-  /// **'¥{amount} 元'**
-  String subYuanSuffix(String amount);
 
   /// No description provided for @subSubscribeSuccess.
   ///
@@ -2679,12 +2679,6 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'订阅失败，请稍后重试'**
   String get subSubscribeFailed;
-
-  /// No description provided for @subExcessDeviceFeeWithin.
-  ///
-  /// In zh, this message translates to:
-  /// **'超出设备费（在{quota}额度内）'**
-  String subExcessDeviceFeeWithin(String quota);
 
   /// No description provided for @subCancelSubscription.
   ///
@@ -2895,18 +2889,6 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'{date}  ·  已过期'**
   String b2bContractExpiredOn(String date);
-
-  /// No description provided for @subPlanFeeLabel.
-  ///
-  /// In zh, this message translates to:
-  /// **'套餐费'**
-  String get subPlanFeeLabel;
-
-  /// No description provided for @subDeviceFee.
-  ///
-  /// In zh, this message translates to:
-  /// **'设备费（{count}头 × ¥{price}/头）'**
-  String subDeviceFee(String count, Object price);
 
   /// No description provided for @subscriptionFeature.
   ///

@@ -73,17 +73,11 @@ class FeatureDefinition {
 class SubscriptionTierInfo {
   final SubscriptionTier tier;
   final String name;
-  final double monthlyPrice;
-  final int livestockLimit;
-  final double perUnitPrice;
   final List<String> features;
 
   const SubscriptionTierInfo({
     required this.tier,
     required this.name,
-    required this.monthlyPrice,
-    required this.livestockLimit,
-    required this.perUnitPrice,
     required this.features,
   });
 
@@ -91,17 +85,11 @@ class SubscriptionTierInfo {
     SubscriptionTier.basic: SubscriptionTierInfo(
       tier: SubscriptionTier.basic,
       name: 'basic',
-      monthlyPrice: 0,
-      livestockLimit: 50,
-      perUnitPrice: 3,
       features: ['gps_location', 'fence_3', 'alert_7', 'retention_7', 'dashboard_basic'],
     ),
     SubscriptionTier.standard: SubscriptionTierInfo(
       tier: SubscriptionTier.standard,
       name: 'standard',
-      monthlyPrice: 299,
-      livestockLimit: 200,
-      perUnitPrice: 2,
       features: [
         'gps_location', 'fence_5', 'alert_30', 'retention_30',
         'dashboard_basic', 'dashboard_advanced', 'trajectory', 'device_management',
@@ -110,9 +98,6 @@ class SubscriptionTierInfo {
     SubscriptionTier.premium: SubscriptionTierInfo(
       tier: SubscriptionTier.premium,
       name: 'premium',
-      monthlyPrice: 699,
-      livestockLimit: 1000,
-      perUnitPrice: 1,
       features: [
         'gps_location', 'fence_10', 'alert_90', 'retention_365',
         'dashboard_basic', 'dashboard_advanced', 'trajectory', 'device_management',
@@ -122,9 +107,6 @@ class SubscriptionTierInfo {
     SubscriptionTier.enterprise: SubscriptionTierInfo(
       tier: SubscriptionTier.enterprise,
       name: 'enterprise',
-      monthlyPrice: -1,
-      livestockLimit: -1,
-      perUnitPrice: 0,
       features: [
         'gps_location', 'fence_unlimited', 'alert_1y', 'retention_3y',
         'dashboard_basic', 'dashboard_advanced', 'trajectory', 'device_management',
@@ -135,6 +117,82 @@ class SubscriptionTierInfo {
   };
 }
 
+/// Herd-size pricing band; maxHead = -1 means unbounded.
+/// Mirrors the backend SubscriptionTier.PriceBand (NIX-245 USD per-head model).
+class PriceBand {
+  final int minHead;
+  final int maxHead;
+  final int unitPriceUsdCents;
+
+  const PriceBand({
+    required this.minHead,
+    required this.maxHead,
+    required this.unitPriceUsdCents,
+  });
+
+  static const int unbounded = -1;
+
+  bool covers(int headCount) =>
+      headCount >= minHead && (maxHead == unbounded || headCount <= maxHead);
+
+  /// Locale-neutral range label: "＜100", "100–499", "≥500".
+  String rangeLabel() {
+    if (maxHead == unbounded) return '≥$minHead';
+    if (minHead <= 1) return '＜${maxHead + 1}';
+    return '$minHead–$maxHead';
+  }
+
+  factory PriceBand.fromJson(Map<String, dynamic> json) => PriceBand(
+        minHead: json['minHead'] as int? ?? 1,
+        maxHead: json['maxHead'] as int? ?? unbounded,
+        unitPriceUsdCents: json['unitPriceUsdCents'] as int? ?? 0,
+      );
+}
+
+/// Pricing plan for one tier, parsed from GET /subscription/plans.
+/// All amounts are US cents; hardware is billed separately (one-time,
+/// customer-owned) and is not part of this subscription fee.
+class PlanInfo {
+  final SubscriptionTier tier;
+  final String currency;
+  final String billingUnit;
+  final bool customPricing;
+  final int livestockCap; // -1 = no cap
+  final List<PriceBand> priceBands;
+
+  const PlanInfo({
+    required this.tier,
+    required this.currency,
+    required this.billingUnit,
+    required this.customPricing,
+    required this.livestockCap,
+    required this.priceBands,
+  });
+
+  PriceBand bandFor(int headCount) => priceBands.firstWhere(
+        (b) => b.covers(headCount),
+        orElse: () => priceBands.first,
+      );
+
+  /// Monthly fee in US cents; null for custom-priced tiers.
+  int? monthlyFeeUsdCents(int headCount) {
+    if (customPricing || priceBands.isEmpty) return null;
+    return bandFor(headCount).unitPriceUsdCents * headCount;
+  }
+
+  factory PlanInfo.fromJson(Map<String, dynamic> json) => PlanInfo(
+        tier: parseSubscriptionTier(json['tier'] as String? ?? ''),
+        currency: json['currency'] as String? ?? 'USD',
+        billingUnit: json['billingUnit'] as String? ?? 'per_head_month',
+        customPricing: json['customPricing'] as bool? ?? false,
+        livestockCap: json['livestockCap'] as int? ?? -1,
+        priceBands: (json['priceBands'] as List? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .map(PriceBand.fromJson)
+            .toList(),
+      );
+}
+
 class SubscriptionStatus {
   final String id;
   final String tenantId;
@@ -143,9 +201,11 @@ class SubscriptionStatus {
   final DateTime? trialEndsAt;
   final DateTime? currentPeriodEnd;
   final int livestockCount;
-  final double calculatedDeviceFee;
-  final double calculatedTierFee;
-  final double calculatedTotal;
+  final String currency;
+  final int? livestockCap;
+  final PriceBand? applicableBand;
+  final int? unitPriceUsdCents;
+  final int? monthlyFeeUsdCents;
 
   const SubscriptionStatus({
     required this.id,
@@ -155,15 +215,18 @@ class SubscriptionStatus {
     this.trialEndsAt,
     this.currentPeriodEnd,
     required this.livestockCount,
-    required this.calculatedDeviceFee,
-    required this.calculatedTierFee,
-    required this.calculatedTotal,
+    this.currency = 'USD',
+    this.livestockCap,
+    this.applicableBand,
+    this.unitPriceUsdCents,
+    this.monthlyFeeUsdCents,
   });
 
   factory SubscriptionStatus.fromJson(Map<String, dynamic> json) {
     // id/tenantId: 后端返回 int，前端统一为 String
     final rawId = json['id'];
     final rawTid = json['tenantId'];
+    final band = json['applicableBand'];
     return SubscriptionStatus(
       id: rawId is int ? rawId.toString() : (rawId as String? ?? ''),
       tenantId: rawTid is int ? rawTid.toString() : (rawTid as String? ?? ''),
@@ -177,12 +240,12 @@ class SubscriptionStatus {
               (json['currentPeriodEnd'] ?? json['expiresAt']) as String)
           : null,
       livestockCount: json['livestockCount'] as int? ?? 0,
-      calculatedDeviceFee:
-          (json['calculatedDeviceFee'] as num?)?.toDouble() ?? 0.0,
-      calculatedTierFee:
-          (json['calculatedTierFee'] as num?)?.toDouble() ?? 0.0,
-      calculatedTotal:
-          (json['calculatedTotal'] as num?)?.toDouble() ?? 0.0,
+      currency: json['currency'] as String? ?? 'USD',
+      livestockCap: json['livestockCap'] as int?,
+      applicableBand:
+          band is Map<String, dynamic> ? PriceBand.fromJson(band) : null,
+      unitPriceUsdCents: json['unitPriceUsdCents'] as int?,
+      monthlyFeeUsdCents: json['monthlyFeeUsdCents'] as int?,
     );
   }
 

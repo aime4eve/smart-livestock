@@ -1064,32 +1064,50 @@
   "@subCurrentTier": {},
   "subCustomPricing": "按需定价",
   "@subCustomPricing": {},
-  "subPerMonth": "¥{price}/月",
-  "@subPerMonth": {
+  "subPerHeadMonth": "{price} /头/月",
+  "@subPerHeadMonth": {
     "placeholders": {
       "price": {
         "type": "String"
       }
     }
   },
-  "subLivestockLimit": "最多{count}头牲畜",
-  "@subLivestockLimit": {
+  "subFreeTier": "免费",
+  "@subFreeTier": {},
+  "subHeadCapBounded": "≤{count} 头",
+  "@subHeadCapBounded": {
     "placeholders": {
       "count": {
         "type": "String"
       }
     }
   },
-  "subLivestockUnlimited": "不限牲畜数量",
-  "@subLivestockUnlimited": {},
-  "subExcessFee": "超出部分 ¥{price}/头/月",
-  "@subExcessFee": {
+  "subHerdBandEntry": "{range} 头 {price}",
+  "@subHerdBandEntry": {
     "placeholders": {
+      "range": {
+        "type": "String"
+      },
       "price": {
         "type": "String"
       }
     }
   },
+  "subUnitPriceLabel": "档位单价",
+  "@subUnitPriceLabel": {},
+  "subMonthlyFeeRow": "订阅月费（{count} 头 × {price}/头/月）",
+  "@subMonthlyFeeRow": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subLivestockUnlimited": "不限牲畜数量",
+  "@subLivestockUnlimited": {},
   "subFeatureCountSuffix": "等{count}项功能",
   "@subFeatureCountSuffix": {
     "placeholders": {
@@ -1104,14 +1122,6 @@
   "@subLivestockCountLabel": {},
   "subFeeBreakdown": "费用明细",
   "@subFeeBreakdown": {},
-  "subPlanFee": "套餐费（{tier}）",
-  "@subPlanFee": {
-    "placeholders": {
-      "tier": {
-        "type": "String"
-      }
-    }
-  },
   "subTrialEndsAt": "试用期至 {date}（剩余{days}天）",
   "@subTrialEndsAt": {
     "placeholders": {
@@ -1158,14 +1168,6 @@
   },
   "subSelectPlanHint": "选择适合您牧场的套餐方案",
   "@subSelectPlanHint": {},
-  "subExcessDeviceFee": "超出设备费（超出{count}头 × ¥{price}/头）",
-  "@subExcessDeviceFee": {
-    "placeholders": {
-      "count": {
-        "type": "String"
-      }
-    }
-  },
   "subLockedNeedDevice": "该功能需要安装相应设备",
   "@subLockedNeedDevice": {},
   "subLockedUpgradeTier": "该功能需要升级到{tier}",
@@ -1195,16 +1197,8 @@
   },
   "subTotal": "合计",
   "@subTotal": {},
-  "subConfirmPay": "确认支付 ¥{amount}",
+  "subConfirmPay": "确认支付 {amount}",
   "@subConfirmPay": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "subYuanSuffix": "¥{amount} 元",
-  "@subYuanSuffix": {
     "placeholders": {
       "amount": {
         "type": "String"
@@ -1221,14 +1215,6 @@
   },
   "subSubscribeFailed": "订阅失败，请稍后重试",
   "@subSubscribeFailed": {},
-  "subExcessDeviceFeeWithin": "超出设备费（在{quota}额度内）",
-  "@subExcessDeviceFeeWithin": {
-    "placeholders": {
-      "quota": {
-        "type": "String"
-      }
-    }
-  },
   "subCancelSubscription": "取消订阅",
   "@subCancelSubscription": {},
   "b2bContractNumber": "编号",
@@ -1307,16 +1293,6 @@
   "@b2bContractExpiredOn": {
     "placeholders": {
       "date": {
-        "type": "String"
-      }
-    }
-  },
-  "subPlanFeeLabel": "套餐费",
-  "@subPlanFeeLabel": {},
-  "subDeviceFee": "设备费（{count}头 × ¥{price}/头）",
-  "@subDeviceFee": {
-    "placeholders": {
-      "count": {
         "type": "String"
       }
     }

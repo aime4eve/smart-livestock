@@ -13,6 +13,16 @@
     "expiresAt": "2026-06-29T15:37:04.198760Z",
     "trialEndsAt": null,
     "cancelledAt": null,
-    "effectiveTier": "PREMIUM"
+    "effectiveTier": "PREMIUM",
+    "livestockCount": 12,
+    "currency": "USD",
+    "livestockCap": -1,
+    "applicableBand": {
+      "minHead": 1,
+      "maxHead": 99,
+      "unitPriceUsdCents": 320
+    },
+    "unitPriceUsdCents": 320,
+    "monthlyFeeUsdCents": 3840
   }
 }

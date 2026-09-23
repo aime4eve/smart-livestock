@@ -1,3 +1,4 @@
+/// Formats monetary values in USD (global quotation currency since NIX-245).
 String formatCurrency(double value) {
   final fixed = value.toStringAsFixed(2);
   final parts = fixed.split('.');
@@ -14,5 +15,8 @@ String formatCurrency(double value) {
   }
   final formattedInt = buffer.toString().split('').reversed.join();
 
-  return '¥$formattedInt.$decPart';
+  return '\$$formattedInt.$decPart';
 }
+
+/// Formats US cents as a USD amount, e.g. 68900 -> "$689.00".
+String formatUsdCents(int cents) => formatCurrency(cents / 100.0);

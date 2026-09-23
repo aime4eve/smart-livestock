@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
-import 'package:hkt_livestock_agentic/core/l10n/l10n.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
+import 'package:hkt_livestock_agentic/core/utils/currency_formatter.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
@@ -43,29 +43,15 @@ class _SubscriptionCheckoutPageState
     super.dispose();
   }
 
-  double get _tierFee {
-    final info = SubscriptionTierInfo.all[widget.tier]!;
-    return info.monthlyPrice < 0 ? 0.0 : info.monthlyPrice;
-  }
-
-  int get _excessCount {
-    final info = SubscriptionTierInfo.all[widget.tier]!;
-    final limit = info.livestockLimit < 0 ? _livestockCount : info.livestockLimit;
-    return _livestockCount > limit ? _livestockCount - limit : 0;
-  }
-
-  double get _deviceFee {
-    final info = SubscriptionTierInfo.all[widget.tier]!;
-    return _excessCount * info.perUnitPrice;
-  }
-
-  double get _total => _tierFee + _deviceFee;
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final tierInfo = SubscriptionTierInfo.all[widget.tier]!;
     final theme = Theme.of(context);
+    final plan = ref
+        .watch(subscriptionPlansProvider)
+        .whenData((plans) => plans.where((p) => p.tier == widget.tier).firstOrNull);
+    final feeCents = plan.value?.monthlyFeeUsdCents(_livestockCount);
 
     return Scaffold(
       key: const Key('subscription-checkout-page'),
@@ -179,19 +165,38 @@ class _SubscriptionCheckoutPageState
                       style: theme.textTheme.titleMedium,
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    _priceRow(context, l10n.subPlanFee(localizedTierName(tierInfo.tier)), _tierFee),
-                    const SizedBox(height: AppSpacing.sm),
-                    _priceRow(
-                      context,
-                      _excessCount > 0
-                          ? l10n.subExcessDeviceFee('$_excessCount', tierInfo.perUnitPrice.toStringAsFixed(0))
-                          : l10n.subExcessDeviceFeeWithin(tierInfo.livestockLimit < 0 ? l10n.subLivestockUnlimited : l10n.subLivestockLimit('${tierInfo.livestockLimit}')),
-                      _deviceFee,
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    const Divider(),
-                    const SizedBox(height: AppSpacing.sm),
-                    _priceRow(context, l10n.subTotal, _total, bold: true),
+                    if (plan.value == null || plan.value!.customPricing) ...[
+                      Text(
+                        l10n.subCustomPricing,
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(color: AppColors.textSecondary),
+                      ),
+                    ] else ...[
+                      _priceRow(
+                        context,
+                        l10n.subUnitPriceLabel,
+                        l10n.subPerHeadMonth(
+                            formatUsdCents(plan.value!.bandFor(_livestockCount).unitPriceUsdCents)),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _priceRow(
+                        context,
+                        l10n.subMonthlyFeeRow(
+                          '$_livestockCount',
+                          formatUsdCents(plan.value!.bandFor(_livestockCount).unitPriceUsdCents),
+                        ),
+                        feeCents == null ? '—' : formatUsdCents(feeCents),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      const Divider(),
+                      const SizedBox(height: AppSpacing.sm),
+                      _priceRow(
+                        context,
+                        l10n.subTotal,
+                        feeCents == null ? '—' : formatUsdCents(feeCents),
+                        bold: true,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -242,7 +247,9 @@ class _SubscriptionCheckoutPageState
                             strokeWidth: 2, color: AppColors.surfaceAlt),
                       )
                     : Text(
-                        l10n.subConfirmPay(_total.toStringAsFixed(2)),
+                        l10n.subConfirmPay(feeCents == null
+                            ? l10n.subCustomPricing
+                            : formatUsdCents(feeCents)),
                         style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w600),
                       ),
@@ -258,7 +265,7 @@ class _SubscriptionCheckoutPageState
   Widget _priceRow(
     BuildContext context,
     String label,
-    double amount, {
+    String value, {
     bool bold = false,
   }) {
     return Row(
@@ -269,7 +276,7 @@ class _SubscriptionCheckoutPageState
           style: Theme.of(context).textTheme.bodySmall,
         ),
         Text(
-          L10n.instance.subYuanSuffix(amount.toStringAsFixed(2)),
+          value,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
               ),

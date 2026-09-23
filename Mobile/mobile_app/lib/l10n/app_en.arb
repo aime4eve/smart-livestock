@@ -1067,32 +1067,50 @@
   "@subCurrentTier": {},
   "subCustomPricing": "Custom Pricing",
   "@subCustomPricing": {},
-  "subPerMonth": "¥{price}/mo",
-  "@subPerMonth": {
+  "subPerHeadMonth": "{price} /head/mo",
+  "@subPerHeadMonth": {
     "placeholders": {
       "price": {
         "type": "String"
       }
     }
   },
-  "subLivestockLimit": "Up to {count} head",
-  "@subLivestockLimit": {
+  "subFreeTier": "Free",
+  "@subFreeTier": {},
+  "subHeadCapBounded": "Up to {count} head",
+  "@subHeadCapBounded": {
     "placeholders": {
       "count": {
         "type": "String"
       }
     }
   },
-  "subLivestockUnlimited": "Unlimited livestock",
-  "@subLivestockUnlimited": {},
-  "subExcessFee": "Excess: ¥{price}/head/mo",
-  "@subExcessFee": {
+  "subHerdBandEntry": "{range} head {price}",
+  "@subHerdBandEntry": {
     "placeholders": {
+      "range": {
+        "type": "String"
+      },
       "price": {
         "type": "String"
       }
     }
   },
+  "subUnitPriceLabel": "Unit price",
+  "@subUnitPriceLabel": {},
+  "subMonthlyFeeRow": "Monthly fee ({count} head × {price}/head/mo)",
+  "@subMonthlyFeeRow": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subLivestockUnlimited": "Unlimited livestock",
+  "@subLivestockUnlimited": {},
   "subFeatureCountSuffix": "+{count} more features",
   "@subFeatureCountSuffix": {
     "placeholders": {
@@ -1107,14 +1125,6 @@
   "@subLivestockCountLabel": {},
   "subFeeBreakdown": "Fee Breakdown",
   "@subFeeBreakdown": {},
-  "subPlanFee": "Plan Fee ({tier})",
-  "@subPlanFee": {
-    "placeholders": {
-      "tier": {
-        "type": "String"
-      }
-    }
-  },
   "subTrialEndsAt": "Trial ends {date} ({days} days left)",
   "@subTrialEndsAt": {
     "placeholders": {
@@ -1161,14 +1171,6 @@
   },
   "subSelectPlanHint": "Choose a plan that fits your ranch",
   "@subSelectPlanHint": {},
-  "subExcessDeviceFee": "Excess device fee ({count} head over x {price}/head)",
-  "@subExcessDeviceFee": {
-    "placeholders": {
-      "count": {
-        "type": "String"
-      }
-    }
-  },
   "subLockedNeedDevice": "This feature requires the corresponding device",
   "@subLockedNeedDevice": {},
   "subLockedUpgradeTier": "This feature requires upgrading to {tier}",
@@ -1206,14 +1208,6 @@
       }
     }
   },
-  "subYuanSuffix": "¥{amount}",
-  "@subYuanSuffix": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
   "subSubscribeSuccess": "Successfully subscribed to {tier}",
   "@subSubscribeSuccess": {
     "placeholders": {
@@ -1224,14 +1218,6 @@
   },
   "subSubscribeFailed": "Subscription failed, please try again later",
   "@subSubscribeFailed": {},
-  "subExcessDeviceFeeWithin": "Excess device fee (within {quota})",
-  "@subExcessDeviceFeeWithin": {
-    "placeholders": {
-      "quota": {
-        "type": "String"
-      }
-    }
-  },
   "subCancelSubscription": "Cancel Subscription",
   "@subCancelSubscription": {},
   "b2bContractNumber": "Contract No.",
@@ -1310,16 +1296,6 @@
   "@b2bContractExpiredOn": {
     "placeholders": {
       "date": {
-        "type": "String"
-      }
-    }
-  },
-  "subPlanFeeLabel": "Plan Fee",
-  "@subPlanFeeLabel": {},
-  "subDeviceFee": "Device Fee ({count} head × ¥{price}/head)",
-  "@subDeviceFee": {
-    "placeholders": {
-      "count": {
         "type": "String"
       }
     }

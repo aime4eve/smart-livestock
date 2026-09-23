@@ -12,24 +12,11 @@ class SubscriptionApiRepository implements SubscriptionRepository {
   }
 
   @override
-  Future<List<SubscriptionTierInfo>> loadPlans() async {
+  Future<List<PlanInfo>> loadPlans() async {
+    // ApiClient wraps non-map payloads as {'value': <list>}.
     final data = await ApiClient.instance.get('/subscription/plans');
-    final items = data['items'] as List? ?? data['plans'] as List? ?? [];
-    if (items.isEmpty) {
-      return SubscriptionTierInfo.all.values.toList();
-    }
-    return items.whereType<Map<String, dynamic>>().map((m) {
-      final tier = parseSubscriptionTier(m['tier'] as String? ?? '');
-      final fallback = SubscriptionTierInfo.all[tier]!;
-      return SubscriptionTierInfo(
-        tier: tier,
-        name: m['name'] as String? ?? fallback.name,
-        monthlyPrice: (m['monthlyPrice'] as num?)?.toDouble() ?? fallback.monthlyPrice,
-        livestockLimit: m['livestockLimit'] as int? ?? fallback.livestockLimit,
-        perUnitPrice: (m['perUnitPrice'] as num?)?.toDouble() ?? fallback.perUnitPrice,
-        features: (m['features'] as List?)?.whereType<String>().toList() ?? fallback.features,
-      );
-    }).toList();
+    final items = data['value'] as List? ?? [];
+    return items.whereType<Map<String, dynamic>>().map(PlanInfo.fromJson).toList();
   }
 
   @override
@@ -63,11 +50,9 @@ class SubscriptionApiRepository implements SubscriptionRepository {
     final data = await ApiClient.instance.get('/subscription/usage');
     return SubscriptionUsage(
       livestockCount: data['livestockCount'] as int? ?? 0,
-      livestockLimit: data['livestockLimit'] as int? ?? -1,
-      fenceCount: data['fenceCount'] as int? ?? 0,
-      fenceLimit: data['fenceLimit'] as int? ?? 0,
-      alertHistoryDays: data['alertHistoryDays'] as int? ?? 30,
-      dataRetentionDays: data['dataRetentionDays'] as int? ?? 365,
+      livestockCap: data['livestockCap'] as int? ?? -1,
+      unitPriceUsdCents: data['unitPriceUsdCents'] as int?,
+      monthlyFeeUsdCents: data['monthlyFeeUsdCents'] as int?,
     );
   }
 }
