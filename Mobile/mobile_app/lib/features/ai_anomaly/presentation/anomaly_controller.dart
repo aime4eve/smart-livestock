@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hkt_livestock_agentic/core/api/farm_scoped_controller.dart';
 import '../data/anomaly_api_repository.dart';
 import 'package:hkt_livestock_agentic/core/models/anomaly_models.dart';
 import '../domain/anomaly_repository.dart';
@@ -7,12 +8,14 @@ final anomalyRepositoryProvider = Provider<AnomalyRepository>(
   (_) => const AnomalyApiRepository(),
 );
 
-class AnomalyDetailController extends AsyncNotifier<AnomalyScoreData> {
+/// Farm-scoped (repository uses farmGet): rebuilds on farm switch.
+class AnomalyDetailController extends FarmScopedAsyncNotifier<AnomalyScoreData> {
   AnomalyDetailController(this.livestockId);
   final String livestockId;
 
   @override
   Future<AnomalyScoreData> build() async {
+    watchActiveFarmId();
     return ref.read(anomalyRepositoryProvider).fetchLatest(livestockId);
   }
 
@@ -29,10 +32,20 @@ final anomalyDetailProvider = AsyncNotifierProvider.family<
   AnomalyDetailController.new,
 );
 
-// History provider for the trend chart.
-final anomalyHistoryProvider =
-    FutureProvider.autoDispose.family<List<AnomalyScoreHistoryItem>, String>(
-  (ref, livestockId) {
+/// Farm-scoped history for the trend chart.
+class AnomalyHistoryController
+    extends FarmScopedAsyncNotifier<List<AnomalyScoreHistoryItem>> {
+  AnomalyHistoryController(this.livestockId);
+  final String livestockId;
+
+  @override
+  Future<List<AnomalyScoreHistoryItem>> build() async {
+    watchActiveFarmId();
     return ref.read(anomalyRepositoryProvider).fetchHistory(livestockId);
-  },
+  }
+}
+
+final anomalyHistoryProvider = AsyncNotifierProvider.family<
+    AnomalyHistoryController, List<AnomalyScoreHistoryItem>, String>(
+  AnomalyHistoryController.new,
 );
