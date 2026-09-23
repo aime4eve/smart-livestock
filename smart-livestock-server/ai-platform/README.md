@@ -15,8 +15,8 @@ uvicorn app.main:app --reload  # 本地起服务（需 PG）
 ## 配置
 
 环境变量见 `app/config.py`。DB 连接：
-- Phase A 临时用 `postgres` 超管账号跑通。
-- **生产切换**：Plan 2 的 `V38__add_ai_anomaly_tables.sql` 创建只读账号后，设 `AI_DB_USER` 为该只读账号。
+- 已切换只读账号 `ai_reader`（迁移 `V20260923100000__ai_platform_readonly_role.sql` 创建，SELECT-only + 未来分区默认权限）；compose 默认 `AI_DB_USER=ai_reader`，凭据见 `docs/reference/deployment.md`。
+- 触发方式（NIX-243）：Java 侧 `HealthAnomalyScheduler` 每 5 分钟对近 2h 有温度数据的牲畜逐头调用 `/ai/health/analyze`，Redis 去重限频每头每小时一次；不再挂在遥测消费事务内（2026-06-30 REQUIRES_NEW 事故教训）。
 
 ## 与 Java 后端的关系
 

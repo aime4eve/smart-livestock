@@ -126,8 +126,10 @@ public class SynthesisService {
             return active;
         }
 
-        List<Long> all = installations.stream()
-                .map(ActiveInstallationInfo::livestockId).distinct().toList();
+        // stream.toList() is immutable — shuffle needs a mutable copy (threw
+        // UnsupportedOperationException on every non-baseline scenario tick)
+        List<Long> all = new java.util.ArrayList<>(installations.stream()
+                .map(ActiveInstallationInfo::livestockId).distinct().toList());
         int count = Math.max(1, (int) Math.round(all.size() * scenario.getPenetrationRate()));
         Collections.shuffle(all);
         return new HashSet<>(all.subList(0, Math.min(count, all.size())));

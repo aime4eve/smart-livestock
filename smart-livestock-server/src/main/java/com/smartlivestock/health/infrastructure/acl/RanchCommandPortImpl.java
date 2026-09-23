@@ -48,6 +48,18 @@ public class RanchCommandPortImpl implements RanchCommandPort {
         }
     }
 
+    @Override
+    public void resolveAlertsBySource(Long livestockId, String source) {
+        var activeAlerts = alertRepository.findByLivestockIdAndStatusAndSource(
+                livestockId,
+                com.smartlivestock.ranch.domain.model.AlertStatus.ACTIVE,
+                source);
+        for (Alert alert : activeAlerts) {
+            alert.autoResolve();
+            alertRepository.save(alert);
+        }
+    }
+
     private String toJson(java.util.List<?> args) {
         if (args == null) return null;
         try {

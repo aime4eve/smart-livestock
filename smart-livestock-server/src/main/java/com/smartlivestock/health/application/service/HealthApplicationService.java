@@ -143,14 +143,9 @@ public class HealthApplicationService {
         refreshSnapshot(livestockId, farmId, deviceType.name(), temperature,
                 motilityFrequency, effectiveSource);
 
-        // AI anomaly detection — temporarily disabled in processTelemetry.
-        // REQUIRES_NEW transaction corruption under backlog caused all telemetry
-        // processing to fail. TODO: move assess() to async scheduler.
-        // try {
-        //     healthAnomalyService.assess(1L, farmId, livestockId);
-        // } catch (Exception e) {
-        //     log.warn("AI anomaly assessment failed for livestock [{}]: {}", livestockId, e.getMessage());
-        // }
+        // AI anomaly assessment no longer runs here — HealthAnomalyScheduler
+        // polls recently active livestock instead (see 2026-06-30 incident:
+        // REQUIRES_NEW inside the consuming transaction corrupted sessions).
     }
 
     private static boolean isPhysiologicallyPlausible(TemperatureLog log) {

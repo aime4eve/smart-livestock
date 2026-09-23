@@ -59,6 +59,12 @@ cd smart-livestock-server
 | b2b_admin（B端管理员） | 13900139000 | 123 | B端管理员，关联 Demo 租户（V13 seed） |
 | owner（牧场主） | 13800138000 | 123 | Demo 租户 owner，关联主牧场 |
 
+## 服务内部凭据
+
+| 用途 | 账号 | 密码 | 来源 |
+|------|------|------|------|
+| ai-platform 只读 DB 账号 | `ai_reader` | `b979c55d2a617883163f9866be604431` | 迁移 V20260923100000 创建（SELECT-only）；compose 默认值注入，轮换时改 `.env*` 的 `AI_DB_PASSWORD` 并 `ALTER ROLE ai_reader PASSWORD '...'` |
+
 ## Seed 密码三步验证流程
 
 Seed 迁移中的 BCrypt hash 必须严格遵循三步验证，不可跳过：

@@ -110,6 +110,13 @@ public class JpaAlertRepositoryImpl implements AlertRepository {
     }
 
     @Override
+    public List<Alert> findByLivestockIdAndStatusAndSource(Long livestockId, AlertStatus status, String source) {
+        return springDataRepo.findByLivestockIdAndStatusAndSource(livestockId, status.name(), source).stream()
+                .map(AlertMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public int deleteByFenceId(Long fenceId) {
         return springDataRepo.deleteByFenceId(fenceId);
     }

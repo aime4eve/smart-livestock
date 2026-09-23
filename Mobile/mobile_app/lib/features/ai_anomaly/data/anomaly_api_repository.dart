@@ -18,7 +18,16 @@ class AnomalyApiRepository implements AnomalyRepository {
       {int limit = 20}) async {
     final data = await ApiClient.instance
         .farmGet('/health/anomaly/$livestockId/history?limit=$limit');
-    final items = data['items'] as List? ?? data as List? ?? [];
+    // farmGet wraps non-map payloads as {'value': [...]}; the endpoint may
+    // also return {'items': [...]} — handle both plus a bare list.
+    final List items;
+    if (data['items'] is List) {
+      items = data['items'] as List;
+    } else if (data['value'] is List) {
+      items = data['value'] as List;
+    } else {
+      items = const [];
+    }
     return items
         .whereType<Map<String, dynamic>>()
         .map(AnomalyScoreHistoryItem.fromJson)

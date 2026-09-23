@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
+import 'package:hkt_livestock_agentic/features/ai_anomaly/presentation/widgets/anomaly_score_chip.dart';
 import 'package:hkt_livestock_agentic/features/gateways/presentation/gateway_distance_card.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
 import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
+import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 /// Enhanced livestock quick panel shown when tapping a map marker.
@@ -82,6 +86,18 @@ class LivestockDetailSheet extends StatelessWidget {
                     ),
                   ),
                 ),
+                // AI anomaly badge (Standard+, hidden when score negligible)
+                Consumer(builder: (context, ref, _) {
+                  final tier = ref.watch(subscriptionControllerProvider).value?.tier ??
+                      SubscriptionTier.basic;
+                  if (!checkTierAccess(tier, FeatureFlags.healthScore)) {
+                    return const SizedBox.shrink();
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: AnomalyScoreChip(livestockId: marker.livestockId),
+                  );
+                }),
                 const Spacer(),
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
