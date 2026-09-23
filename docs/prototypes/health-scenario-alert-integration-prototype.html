@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>健康整合最终形态 · 高保真原型（四场景工作台 + 牲畜详情页融合病程 + 通知枢纽）</title>
+<style>
+:root{
+  --primary:#2F6B3B;--primary-dark:#244F2D;--primary-soft:#E3F0E4;--accent:#8BA95A;
+  --surface:#F8F6F0;--surface-alt:#FFFFFF;--border:#D7D2C6;
+  --text-primary:#263126;--text-secondary:#617061;
+  --success:#4C9A5F;--warning:#D28A2D;--danger:#C2564B;--info:#4A7F9D;--estrus:#C25689;
+  --fever:#D97B29;--digestive:#8D6E4F;--epidemic:#2E7D74;
+  --map-green:#DCE8D5;--map-fence:#2F6B3B;
+  --xs:4px;--sm:8px;--md:12px;--lg:16px;--xl:24px;--xxl:32px;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+  --shadow-card:0 1px 3px rgba(38,49,38,.06),0 1px 2px rgba(38,49,38,.04);
+  --shadow-elev:0 4px 16px rgba(38,49,38,.12);
+  --shadow-sheet:0 -4px 24px rgba(38,49,38,.15);
+  --badge-bg:#C2564B;--badge-text:#FFFFFF;--reconcile-bg:rgba(76,154,95,.08);--reconcile-text:#3D7D4E;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sans-serif;background:#E0DDD6;color:var(--text-primary);min-height:100vh;padding:24px}
+.page-title{text-align:center;margin-bottom:8px}
+.page-title h1{font-size:22px;font-weight:700}
+.page-title p{font-size:13px;color:var(--text-secondary);margin-top:4px}
+.flow-grid{display:flex;flex-wrap:wrap;gap:28px;justify-content:center;margin-top:24px;max-width:2000px;margin-left:auto;margin-right:auto}
+.screen-group{display:flex;flex-direction:column;align-items:center;gap:10px}
+.screen-label{font-size:13px;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:6px}
+.screen-label .num{width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.screen-label .num.info{background:var(--info)}
+.screen-label .num.hero{background:var(--danger);width:26px;height:26px;font-size:13px}
+.screen-sublabel{font-size:11px;color:var(--text-secondary);max-width:300px;text-align:center;line-height:1.4}
+.phone{width:280px;height:580px;background:var(--surface);border-radius:36px;overflow:hidden;box-shadow:0 0 0 8px #1a1a1a,0 0 0 9px #2a2a2a,0 20px 50px rgba(0,0,0,.25);position:relative;display:flex;flex-direction:column}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:100px;height:22px;background:#1a1a1a;border-radius:0 0 16px 16px;z-index:9999}
+.phone-status{height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:11px;font-weight:600;flex-shrink:0}
+.phone-status .icons{display:flex;gap:4px;font-size:10px}
+.appbar{background:var(--primary);color:#fff;padding:6px 12px;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.appbar .back{font-size:18px;cursor:pointer;width:28px;text-align:center}
+.appbar h1{font-size:13px;font-weight:600;flex:1}
+.appbar .action{background:rgba(255,255,255,.15);border:none;color:#fff;padding:4px 8px;border-radius:6px;font-size:10px;cursor:pointer}
+.scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.scroll-area::-webkit-scrollbar{width:0}
+.bottom-nav{display:flex;border-top:1px solid var(--border);background:var(--surface-alt);flex-shrink:0}
+.nav-item{flex:1;padding:7px 0 9px;text-align:center;font-size:9px;color:var(--text-secondary);cursor:pointer;position:relative}
+.nav-item .nav-icon{display:block;font-size:15px;margin-bottom:1px}
+.nav-item.active{color:var(--primary);font-weight:600}
+.bottom-nav .nav-badge{position:absolute;top:2px;right:calc(50% - 20px);background:var(--danger);color:#fff;font-size:8px;font-weight:700;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+
+/* 新增/迁入标注 */
+.new-mark{position:relative}
+.new-mark::after{content:"新增";position:absolute;top:-7px;right:-6px;background:var(--warning);color:#fff;font-size:8px;font-weight:700;padding:1px 5px;border-radius:6px;z-index:5;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.move-mark{position:relative}
+.move-mark::after{content:"迁入";position:absolute;top:-7px;right:-6px;background:var(--info);color:#fff;font-size:8px;font-weight:700;padding:1px 5px;border-radius:6px;z-index:5;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.fuse-mark{position:relative}
+.fuse-mark::after{content:"融合";position:absolute;top:-7px;right:-6px;background:var(--estrus);color:#fff;font-size:8px;font-weight:700;padding:1px 5px;border-radius:6px;z-index:5;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.new-outline{outline:2px dashed rgba(210,138,45,.55);outline-offset:2px}
+.move-outline{outline:2px dashed rgba(74,127,157,.55);outline-offset:2px}
+.fuse-outline{outline:2px dashed rgba(194,86,137,.55);outline-offset:2px}
+
+/* 牧场页：地图 + 底部面板 */
+.ranch-body{flex:1;position:relative;overflow:hidden;background:var(--map-green)}
+.map-deco{position:absolute;inset:0}
+.map-block{position:absolute;background:#CFDECB;border-radius:6px}
+.map-fence{position:absolute;border:2px dashed var(--map-fence);border-radius:10px;opacity:.75}
+.map-fence .fence-label{position:absolute;top:-7px;left:8px;font-size:7.5px;font-weight:600;color:var(--map-fence);background:var(--map-green);padding:0 3px;border-radius:3px}
+.map-marker{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:1px}
+.map-marker .pin{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.3);position:relative}
+.map-marker .pin span{transform:rotate(45deg);font-size:9px}
+.map-marker .pin.ok{background:var(--success)}
+.map-marker .pin.crit{background:var(--danger)}
+.map-marker .pin.warn{background:var(--warning)}
+.map-marker .pin .ticket-dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;background:var(--danger);border:1.5px solid #fff;border-radius:50%;transform:rotate(45deg)}
+.map-marker .code{font-size:7px;font-weight:700;color:var(--text-primary);background:rgba(255,255,255,.85);padding:0 3px;border-radius:3px}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface-alt);border-radius:16px 16px 0 0;box-shadow:var(--shadow-sheet);display:flex;flex-direction:column;max-height:64%}
+.sheet-grab{width:36px;height:4px;border-radius:2px;background:var(--border);margin:6px auto 4px;flex-shrink:0}
+.sheet-tabs{display:flex;padding:2px 12px 6px;gap:6px;flex-shrink:0}
+.sheet-tab{flex:1;padding:5px 0;text-align:center;font-size:9.5px;font-weight:600;color:var(--text-secondary);cursor:pointer;border-radius:7px;border:1px solid transparent;display:flex;align-items:center;justify-content:center;gap:3px}
+.sheet-tab.active{background:var(--primary-soft);color:var(--primary-dark);border-color:var(--primary)}
+.sheet-tab .b{background:var(--danger);color:#fff;font-size:8px;font-weight:700;padding:0 4px;border-radius:6px;min-width:11px;text-align:center}
+.sheet-content{flex:1;overflow-y:auto;padding:0 12px 10px;-webkit-overflow-scrolling:touch}
+.sheet-content::-webkit-scrollbar{width:0}
+.dash-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:9px}
+.dash-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:7px 4px;text-align:center;cursor:pointer}
+.dash-card.has-alert{border-color:rgba(194,86,75,.35);background:rgba(194,86,75,.03)}
+.dash-card .ico{font-size:13px;margin-bottom:2px}
+.dash-card .count{font-size:13px;font-weight:700;line-height:1}
+.dash-card .label{font-size:8px;color:var(--text-secondary);margin-top:2px}
+.ov-section-head{display:flex;align-items:center;gap:5px;margin:2px 0 7px;font-size:11px;font-weight:700}
+.ov-section-head .line{flex:1;height:1px;background:var(--border)}
+.ov-section-head .hint{font-size:8.5px;font-weight:500;color:var(--text-secondary)}
+.scene-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+/* 一行四格紧凑场景入口（与告警四卡同款式样，压缩纵向占用） */
+.scene-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px 2px 7px;cursor:pointer;box-shadow:var(--shadow-card);min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.scene-ico{width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px}
+.scene-ico.fever{background:rgba(217,123,41,.12);color:var(--fever)}
+.scene-ico.digestive{background:rgba(141,110,79,.12);color:var(--digestive)}
+.scene-ico.estrus{background:rgba(194,86,137,.12);color:var(--estrus)}
+.scene-ico.epidemic{background:rgba(46,125,116,.12);color:var(--epidemic)}
+.scene-title{font-size:9.5px;font-weight:700}
+.scene-sub{font-size:8px;color:var(--text-secondary)}
+.scene-sub b{font-weight:700}
+.scene-sub .crit{color:var(--danger)}
+.scene-sub .warn{color:var(--warning)}
+.alert-badge{position:absolute;top:3px;right:3px;background:var(--badge-bg);color:var(--badge-text);font-size:7.5px;font-weight:700;padding:1px 4px;border-radius:7px;display:flex;align-items:center;gap:1px;cursor:pointer;border:none;z-index:2}
+.alert-badge.zero{display:none}
+.ai-card{position:relative;background:var(--surface);border:1px solid rgba(74,127,157,.35);border-radius:10px;padding:7px 9px;margin-top:6px;box-shadow:var(--shadow-card);cursor:pointer;display:flex;align-items:center;gap:8px}
+.ai-head{display:flex;align-items:center;gap:6px;flex:1}
+.ai-head .ai-ico{width:22px;height:22px;border-radius:7px;background:rgba(74,127,157,.12);display:flex;align-items:center;justify-content:center;font-size:12px}
+.ai-head .ai-title{font-size:11.5px;font-weight:700;flex:1}
+.ai-head .go{font-size:9px;color:var(--info);font-weight:700}
+.ai-stats{display:flex;gap:6px}
+.ai-stat{background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;padding:4px 8px;text-align:center}
+.ai-stat .v{font-size:13px;font-weight:700;color:var(--warning)}
+.ai-stat .t{font-size:8.5px;color:var(--text-secondary)}
+.reconcile{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:7px;background:var(--reconcile-bg);border:1px solid rgba(76,154,95,.25);border-radius:9px;padding:5px 7px;font-size:9px;color:var(--reconcile-text);font-weight:600}
+.reconcile .ok{color:var(--success);font-weight:700}
+
+/* 面板展开态五格统计（屏 1b，spec S1 展开态） */
+.sheet.expanded{max-height:96%}
+.stat5-row{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:9px}
+.stat5{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:6px 2px;text-align:center;box-shadow:var(--shadow-card)}
+.stat5 .count{font-size:11.5px;font-weight:700;line-height:1}
+.stat5 .label{font-size:7.5px;color:var(--text-secondary);margin-top:2px}
+
+/* AI 排行（屏 6，spec S5） */
+.rank-chip{width:24px;height:24px;border-radius:50%;background:var(--surface);border:1px solid var(--border);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-secondary)}
+.rank-chip.top{background:rgba(194,86,75,.1);border-color:rgba(194,86,75,.3);color:var(--danger)}
+.rank-chip.mid{background:rgba(210,138,45,.1);border-color:rgba(210,138,45,.3);color:var(--warning)}
+.tagpill.band-alert{background:rgba(194,86,75,.12);color:var(--danger)}
+.tagpill.band-watch{background:rgba(210,138,45,.12);color:var(--warning)}
+.tagpill.band-steady{background:rgba(76,154,95,.12);color:var(--success)}
+
+/* 工作台（场景列表页升级） */
+.scene-rec{display:flex;align-items:center;gap:6px;margin:8px 12px 4px;background:var(--reconcile-bg);border:1px solid rgba(76,154,95,.25);border-radius:10px;padding:7px 10px;font-size:10px;color:var(--reconcile-text);font-weight:600;cursor:pointer}
+.scene-rec .ok{color:var(--success);font-weight:700}
+.scene-rec .go{margin-left:auto;font-size:9px;color:var(--primary);font-weight:700}
+.wb-list{padding:6px 12px 12px}
+.wb-row{display:flex;align-items:center;gap:9px;background:var(--surface-alt);border:1px solid var(--border);border-radius:11px;padding:9px 10px;margin-bottom:6px;cursor:pointer;position:relative}
+.wb-row.unread{border-color:rgba(47,107,59,.25)}
+.wb-row .ur{position:absolute;top:8px;right:8px;width:6px;height:6px;border-radius:50%;background:var(--primary)}
+.wb-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.wb-ico.crit{background:rgba(194,86,75,.1)}
+.wb-ico.warn{background:rgba(210,138,45,.1)}
+.wb-ico.estrus{background:rgba(194,86,137,.1)}
+.wb-ico.epi{background:rgba(46,125,116,.1)}
+.wb-main{flex:1;min-width:0}
+.wb-code{font-size:11.5px;font-weight:700;display:flex;align-items:center;gap:4px}
+.wb-sub{font-size:9px;color:var(--text-secondary);margin-top:2px}
+.wb-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+.wb-val{font-size:12px;font-weight:700}
+.wb-val.hot{color:var(--danger)}
+.wb-val.warm{color:var(--warning)}
+.wb-tags{display:flex;gap:3px;align-items:center}
+.tagpill{font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px}
+.tagpill.crit{background:rgba(194,86,75,.1);color:var(--danger)}
+.tagpill.warn{background:rgba(210,138,45,.1);color:var(--warning)}
+.tagpill.estrus{background:rgba(194,86,137,.1);color:var(--estrus)}
+.tagpill.ai{background:rgba(210,138,45,.08);color:var(--warning)}
+.tagpill.ticket{background:rgba(194,86,75,.08);color:var(--danger);border:1px solid rgba(194,86,75,.3);display:flex;align-items:center;gap:3px}
+.tagpill.ticket .dot{width:4px;height:4px;border-radius:50%;background:var(--danger)}
+.wb-collapsed{margin:2px 12px 10px;text-align:center;font-size:9.5px;color:var(--text-secondary);background:var(--surface);border:1px dashed var(--border);border-radius:9px;padding:7px;cursor:pointer}
+
+/* 牲畜详情页 · 融合健康区 */
+.ld-scroll{padding:10px 12px 16px}
+.ld-head{display:flex;align-items:center;gap:10px;background:var(--surface-alt);border:1px solid var(--border);border-radius:12px;padding:10px;box-shadow:var(--shadow-card)}
+.ld-avatar{width:44px;height:44px;border-radius:12px;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:22px}
+.ld-head .ld-name{font-size:13px;font-weight:700}
+.ld-head .ld-meta{font-size:9px;color:var(--text-secondary);margin-top:2px}
+.ld-status{margin-left:auto;text-align:center}
+.ld-status .pill{font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px}
+.ld-status .pill.crit{background:rgba(194,86,75,.12);color:var(--danger)}
+.ld-status .t{font-size:8px;color:var(--text-secondary);margin-top:2px}
+.ld-section{margin-top:10px;background:var(--surface-alt);border:1px solid var(--border);border-radius:12px;padding:10px;box-shadow:var(--shadow-card)}
+.ld-sec-head{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.ld-sec-head .ico{width:22px;height:22px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px}
+.ld-sec-head .ico.health{background:rgba(217,123,41,.12)}
+.ld-sec-head .ico.ai{background:rgba(74,127,157,.12)}
+.ld-sec-head .ico.contact{background:rgba(46,125,116,.12)}
+.ld-sec-head .t{font-size:12px;font-weight:700;flex:1}
+.ld-sec-head .sev{font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:4px;background:rgba(194,86,75,.1);color:var(--danger)}
+.ld-strip{display:flex;gap:6px;margin-bottom:8px}
+.ld-strip .cell{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 7px}
+.ld-strip .cell .v{font-size:12px;font-weight:700}
+.ld-strip .cell .v.hot{color:var(--danger)}
+.ld-strip .cell .k{font-size:8px;color:var(--text-secondary);margin-top:1px}
+.chart-box{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:8px}
+.chart-title{font-size:9.5px;font-weight:600;display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.chart-title .lg{font-size:8px;color:var(--text-secondary);font-weight:500}
+.tl-row{display:flex;gap:8px;font-size:9.5px;position:relative;padding-bottom:9px}
+.tl-row::before{content:"";position:absolute;left:4px;top:12px;bottom:-2px;width:1.5px;background:var(--border)}
+.tl-row:last-child::before{display:none}
+.tl-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:2px}
+.tl-dot.go{background:var(--danger)}
+.tl-dot.ai{background:var(--warning)}
+.tl-dot.wait{background:var(--warning)}
+.tl-dot.done{background:var(--success)}
+.tl-time{color:var(--text-secondary);flex-shrink:0}
+.tl-txt b{font-weight:700}
+.act-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:9px}
+.act-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:7px 2px;font-size:9px;cursor:pointer}
+.act-btn.primary{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:700}
+.act-btn .a-ico{font-size:14px}
+.gate-note{margin-top:7px;font-size:8.5px;color:var(--text-secondary);background:var(--surface);border:1px dashed var(--border);border-radius:8px;padding:6px 8px;display:flex;align-items:center;gap:5px}
+.gate-note .lock{font-size:11px}
+.ai-inline{display:flex;gap:6px}
+.ai-inline .ai-box{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 8px}
+.ai-inline .ai-box .v{font-size:13px;font-weight:700;color:var(--warning)}
+.ai-inline .ai-box .k{font-size:8px;color:var(--text-secondary)}
+.contact-row{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:7px 9px;margin-bottom:5px}
+.contact-row .c-ico{width:26px;height:26px;border-radius:8px;background:rgba(46,125,116,.1);display:flex;align-items:center;justify-content:center;font-size:13px}
+.contact-row .c-main{flex:1;font-size:10px;font-weight:600}
+.contact-row .c-sub{font-size:8.5px;color:var(--text-secondary);margin-top:1px}
+.contact-row .c-tag{font-size:8px;font-weight:700;padding:1px 6px;border-radius:4px;background:rgba(210,138,45,.1);color:var(--warning)}
+
+/* 告警中心 */
+.sum-hero{display:flex;background:var(--surface-alt);border-bottom:1px solid var(--border);flex-shrink:0}
+.sum-hero .hero-cell{flex:1;padding:10px 12px 8px;cursor:pointer}
+.sum-hero .hero-cell + .hero-cell{border-left:1px solid var(--border)}
+.sum-hero .hero-num{font-size:24px;font-weight:700;line-height:1.1}
+.sum-hero .hero-label{font-size:9px;color:var(--text-secondary);margin-top:2px}
+.sum-hero .hero-cell.active .hero-num{color:var(--primary)}
+.sum-hero .hero-cell.unread .hero-num{color:var(--danger)}
+.sum-cells{display:flex;background:var(--surface-alt);border-bottom:1px solid var(--border);padding:0 12px 7px;gap:5px;flex-shrink:0}
+.sum-cell{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:4px 0;border-radius:6px;background:var(--surface);cursor:pointer;border:1px solid transparent}
+.sum-cell .dot{width:6px;height:6px;border-radius:50%}
+.sum-cell .n{font-size:11px;font-weight:700}
+.sum-cell .t{font-size:9px;color:var(--text-secondary)}
+.sum-cell.crit .n{color:var(--danger)}
+.sum-cell.warn .n{color:var(--warning)}
+.sum-check{font-size:8px;color:var(--text-secondary);text-align:center;padding:4px 0;background:var(--surface-alt);flex-shrink:0}
+.sum-check b{color:var(--primary)}
+.cats{display:flex;padding:8px 12px 8px;gap:6px;border-bottom:1px solid var(--border);background:var(--surface-alt)}
+/* 两行标签页：上行图标+名称，下行统计数字 */
+.cat-tab{flex:1;padding:6px 2px 7px;text-align:center;color:var(--text-secondary);cursor:pointer;border:1px solid var(--border);border-radius:9px;background:var(--surface);display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+.cat-tab.active{background:var(--primary-soft);border-color:var(--primary);color:var(--primary-dark)}
+.cat-tab .ct-label{font-size:10px;font-weight:600;display:flex;align-items:center;gap:3px}
+.cat-tab .ct-count{font-size:16px;font-weight:700;line-height:1}
+.cat-tab .ct-count.zero{color:var(--text-secondary)}
+.cat-tab .ct-count.some{color:var(--danger)}
+.cat-tab .unread-dot{position:absolute;top:5px;right:7px;background:var(--danger);color:#fff;font-size:7.5px;font-weight:700;padding:0 4px;border-radius:7px;min-width:13px;text-align:center}
+.date-group{display:flex;align-items:center;gap:6px;padding:8px 12px 2px;font-size:10px;font-weight:600;color:var(--text-secondary)}
+.date-group .line{flex:1;height:1px;background:var(--border)}
+.date-group .cnt{font-size:9px;font-weight:500;background:var(--surface);padding:1px 5px;border-radius:6px;border:1px solid var(--border)}
+.alert-list{padding:0 12px 12px}
+.alert-card{background:var(--surface-alt);border-radius:10px;margin-bottom:6px;overflow:hidden;cursor:pointer;border:1px solid transparent}
+.alert-inner{display:flex;align-items:stretch}
+.alert-bar{width:3px;flex-shrink:0}
+.alert-bar.critical{background:var(--danger)}
+.alert-bar.warning{background:var(--warning)}
+.alert-body{flex:1;padding:8px}
+.alert-top{display:flex;align-items:flex-start;gap:7px;margin-bottom:2px}
+.alert-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.alert-icon.critical{background:rgba(194,86,75,.1)}
+.alert-icon.warning{background:rgba(210,138,45,.1)}
+.alert-icon.estrus{background:rgba(194,86,137,.1)}
+.alert-content{flex:1;min-width:0}
+.alert-title{font-size:11px;font-weight:600;line-height:1.3}
+.alert-meta{font-size:9px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;margin-top:2px;flex-wrap:wrap}
+.alert-meta .sep{opacity:.5}
+.alert-badges{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;align-items:center}
+.type-badge{font-size:8px;font-weight:600;padding:1px 6px;border-radius:4px}
+.type-badge.critical{background:rgba(194,86,75,.1);color:var(--danger)}
+.type-badge.warning{background:rgba(210,138,45,.1);color:var(--warning)}
+.type-badge.estrus{background:rgba(194,86,137,.1);color:var(--estrus)}
+.status-tag{font-size:8px;font-weight:600;padding:1px 6px;border-radius:4px;background:#FFF3CD;color:#8a6d1a}
+.source-tag{font-size:8px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--surface);color:var(--text-secondary);border:1px solid var(--border)}
+.goto-note{font-size:8px;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:2px}
+
+/* 说明面板 */
+.notes-panel{max-width:1300px;margin:36px auto 0;background:var(--surface-alt);border:1px solid var(--border);border-radius:16px;padding:20px 24px;box-shadow:var(--shadow-card)}
+.notes-panel h2{font-size:16px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.notes-panel h2 .tag{font-size:10px;font-weight:600;background:var(--primary-soft);color:var(--primary-dark);padding:2px 8px;border-radius:6px}
+.rule-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-bottom:18px}
+.rule-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px}
+.rule-card .rc-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.rule-card .rc-num{width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rule-card .rc-title{font-size:13px;font-weight:700}
+.rule-card p{font-size:11.5px;line-height:1.65;color:var(--text-secondary)}
+.rule-card p b{color:var(--text-primary)}
+.match-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:6px}
+.match-table th,.match-table td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.match-table th{font-size:10px;color:var(--text-secondary);font-weight:600;background:var(--surface)}
+.match-table td b{font-weight:700}
+.match-table .out{color:var(--text-secondary)}
+.match-table .sum-row td{background:var(--primary-soft);font-weight:700}
+.token-line{font-size:10px;color:var(--text-secondary);margin-top:10px;line-height:1.6}
+.token-line code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:9.5px;border:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <h1>健康整合 · 最终形态原型（A+B）</h1>
+  <p>四场景工作台 + 牲畜详情页融合病程（不跳转）+ 告警中心作通知枢纽 &nbsp;|&nbsp; 橙=新增 · 蓝=迁入 · 粉=融合</p>
+</div>
+
+<div class="flow-grid">
+
+  <!-- ═══ 屏幕 1：牧场页 · 概览 ═══ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num">1</span>牧场页 · 概览页签</div>
+    <div class="screen-sublabel">孪生内容迁入概览；地图标记新增「有活跃单」小红点（谁有待办一眼可见）</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-status"><span>9:41</span><span class="icons">▮▮▮ ᯤ 84%</span></div>
+      <div class="appbar"><h1>Main Ranch</h1><button class="action">切换牧场</button></div>
+      <div class="ranch-body">
+        <div class="map-deco">
+          <div class="map-block" style="left:-20px;top:10px;width:150px;height:90px"></div>
+          <div class="map-block" style="left:120px;top:30px;width:120px;height:70px"></div>
+          <div class="map-fence" style="left:18px;top:24px;width:180px;height:130px"><span class="fence-label">Grazing Zone A</span></div>
+          <div class="map-marker" style="left:70px;top:70px"><div class="pin ok"><span>🐄</span></div><span class="code">016</span></div>
+          <div class="map-marker" style="left:158px;top:64px"><div class="pin crit"><span>🐄</span><i class="ticket-dot" style="position:absolute;top:-3px;right:-3px;width:9px;height:9px;background:#fff;border:2px solid var(--danger);border-radius:50%"></i></div><span class="code">004</span></div>
+          <div class="map-marker" style="left:88px;top:124px"><div class="pin warn"><span>🐄</span><i style="position:absolute;top:-3px;right:-3px;width:9px;height:9px;background:#fff;border:2px solid var(--danger);border-radius:50%"></i></div><span class="code">HKT-11</span></div>
+        </div>
+        <div class="sheet">
+          <div class="sheet-grab"></div>
+          <div class="sheet-tabs">
+            <div class="sheet-tab active">📊 概览</div>
+            <div class="sheet-tab">🚧 围栏</div>
+            <div class="sheet-tab">🔔 告警 <span class="b">80</span></div>
+          </div>
+          <div class="sheet-content">
+            <div class="dash-row">
+              <div class="dash-card has-alert"><div class="ico">🚧</div><div class="count" style="color:var(--danger)">72</div><div class="label">围栏告警</div></div>
+              <div class="dash-card has-alert"><div class="ico">🩺</div><div class="count" style="color:var(--warning)">8</div><div class="label">健康告警</div></div>
+              <div class="dash-card"><div class="ico">🔋</div><div class="count">0</div><div class="label">设备告警</div></div>
+              <div class="dash-card"><div class="ico">🐄</div><div class="count">58</div><div class="label">牲畜</div></div>
+            </div>
+            <div class="ov-section-head move-mark">健康场景<span class="hint">原孪生页迁入</span><span class="line"></span></div>
+            <div class="scene-grid">
+              <div class="scene-card"><div class="scene-ico fever">🌡️</div><div class="scene-title">发热管理</div><div class="scene-sub">异<b class="warn">3</b>·严<b class="crit">2</b></div><button class="alert-badge">🔔3</button></div>
+              <div class="scene-card"><div class="scene-ico digestive">🌾</div><div class="scene-title">消化管理</div><div class="scene-sub">异0·观0</div></div>
+              <div class="scene-card"><div class="scene-ico estrus">💗</div><div class="scene-title">发情管理</div><div class="scene-sub">高<b class="warn">5</b></div><button class="alert-badge">🔔5</button></div>
+              <div class="scene-card"><div class="scene-ico epidemic">🛡️</div><div class="scene-title">疫病防控</div><div class="scene-sub">0.0%</div></div>
+            </div>
+            <div class="ai-card move-mark">
+              <div class="ai-head"><div class="ai-ico">🤖</div><div class="ai-title">智能健康观察</div>
+                <div class="ai-stat"><div class="v">12</div><div class="t">关注中</div></div>
+                <div class="ai-stat"><div class="v" style="color:var(--success)">平稳</div><div class="t">整体状态</div></div>
+                <span class="go new-mark">谁最需要关注 ›</span>
+              </div>
+            </div>
+            <div class="reconcile">场景异常 8 只（发热 3 + 发情 5）· 活跃健康单 8 张 <span class="ok">✓ 对上了</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active"><span class="nav-icon">🗺️</span>牧场<span class="nav-badge">8</span></div>
+        <div class="nav-item"><span class="nav-icon">👤</span>我的</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 屏幕 1b：牧场页 · 概览面板展开态 ═══ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num">1b</span>牧场页 · 概览面板展开态</div>
+    <div class="screen-sublabel">面板上拉展开：顶部露出<b>五格统计</b>（原孪生顶栏数字迁入）——总账数字的家；其余内容同收起态</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-status"><span>9:41</span><span class="icons">▮▮▮ ᯤ 84%</span></div>
+      <div class="appbar"><h1>Main Ranch</h1><button class="action">切换牧场</button></div>
+      <div class="ranch-body">
+        <div class="sheet expanded">
+          <div class="sheet-grab"></div>
+          <div class="sheet-tabs">
+            <div class="sheet-tab active">📊 概览</div>
+            <div class="sheet-tab">🚧 围栏</div>
+            <div class="sheet-tab">🔔 告警 <span class="b">80</span></div>
+          </div>
+          <div class="sheet-content">
+            <div class="stat5-row move-mark">
+              <div class="stat5"><div class="count">58</div><div class="label">牲畜总数</div></div>
+              <div class="stat5"><div class="count" style="color:var(--success)">86%</div><div class="label">健康率</div></div>
+              <div class="stat5"><div class="count" style="color:var(--danger)">80</div><div class="label">活跃告警</div></div>
+              <div class="stat5"><div class="count" style="color:var(--danger)">2</div><div class="label">严重异常</div></div>
+              <div class="stat5"><div class="count">85%</div><div class="label">设备在线率</div></div>
+            </div>
+            <div class="dash-row">
+              <div class="dash-card has-alert"><div class="ico">🚧</div><div class="count" style="color:var(--danger)">72</div><div class="label">围栏告警</div></div>
+              <div class="dash-card has-alert"><div class="ico">🩺</div><div class="count" style="color:var(--warning)">8</div><div class="label">健康告警</div></div>
+              <div class="dash-card"><div class="ico">🔋</div><div class="count">0</div><div class="label">设备告警</div></div>
+              <div class="dash-card"><div class="ico">🐄</div><div class="count">58</div><div class="label">牲畜</div></div>
+            </div>
+            <div class="ov-section-head">健康场景<span class="hint">原孪生页迁入</span><span class="line"></span></div>
+            <div class="scene-grid">
+              <div class="scene-card"><div class="scene-ico fever">🌡️</div><div class="scene-title">发热管理</div><div class="scene-sub">异<b class="warn">3</b>·严<b class="crit">2</b></div><button class="alert-badge">🔔3</button></div>
+              <div class="scene-card"><div class="scene-ico digestive">🌾</div><div class="scene-title">消化管理</div><div class="scene-sub">异0·观0</div></div>
+              <div class="scene-card"><div class="scene-ico estrus">💗</div><div class="scene-title">发情管理</div><div class="scene-sub">高<b class="warn">5</b></div><button class="alert-badge">🔔5</button></div>
+              <div class="scene-card"><div class="scene-ico epidemic">🛡️</div><div class="scene-title">疫病防控</div><div class="scene-sub">0.0%</div></div>
+            </div>
+            <div class="ai-card">
+              <div class="ai-head"><div class="ai-ico">🤖</div><div class="ai-title">智能健康观察</div>
+                <div class="ai-stat"><div class="v">12</div><div class="t">关注中</div></div>
+                <div class="ai-stat"><div class="v" style="color:var(--success)">平稳</div><div class="t">整体状态</div></div>
+                <span class="go">谁最需要关注 ›</span>
+              </div>
+            </div>
+            <div class="reconcile">场景异常 8 只（发热 3 + 发情 5）· 活跃健康单 8 张 <span class="ok">✓ 对上了</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active"><span class="nav-icon">🗺️</span>牧场<span class="nav-badge">8</span></div>
+        <div class="nav-item"><span class="nav-icon">👤</span>我的</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 屏幕 2：发热管理 ═══ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num">2</span>发热管理（原场景页升级）</div>
+    <div class="screen-sublabel">只列异常牛、每行内嵌单据状态（未读点/级别/AI）；点任意一头 → 牲畜详情页健康区（不再有独立场景详情页）</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-status"><span>9:41</span><span class="icons">▮▮▮ ᯤ 84%</span></div>
+      <div class="appbar"><span class="back">‹</span><h1>发热管理</h1><button class="action">只看未读</button></div>
+      <div class="scroll-area">
+        <div class="scene-rec new-mark">📊 3 只异常 · 3 张活跃单 <span class="ok">✓ 对上了</span><span class="go">查看告警 ›</span></div>
+        <div class="wb-list">
+          <div class="wb-row unread">
+            <span class="ur"></span>
+            <div class="wb-ico crit">🌡️</div>
+            <div class="wb-main">
+              <div class="wb-code">SL-2024-004</div>
+              <div class="wb-sub">41.2°C · 已烧 2.1h · 趋势 ↗</div>
+            </div>
+            <div class="wb-right">
+              <span class="wb-val hot">41.2°</span>
+              <div class="wb-tags"><span class="tagpill ai" style="background:rgba(76,154,95,.1);color:var(--success)">AI 平稳</span><span class="tagpill ticket"><span class="dot"></span>严重</span></div>
+            </div>
+          </div>
+          <div class="wb-row">
+            <div class="wb-ico crit">🌡️</div>
+            <div class="wb-main">
+              <div class="wb-code">SL-2024-008</div>
+              <div class="wb-sub">40.9°C · 已烧 1.8h · 趋势 →</div>
+            </div>
+            <div class="wb-right">
+              <span class="wb-val hot">40.9°</span>
+              <div class="wb-tags"><span class="tagpill ai" style="background:rgba(76,154,95,.1);color:var(--success)">AI 平稳</span><span class="tagpill ticket"><span class="dot"></span>严重</span></div>
+            </div>
+          </div>
+          <div class="wb-row">
+            <div class="wb-ico warn">🌡️</div>
+            <div class="wb-main">
+              <div class="wb-code">SL-2024-032</div>
+              <div class="wb-sub">40.6°C · 已烧 1.6h · 趋势 ↘</div>
+            </div>
+            <div class="wb-right">
+              <span class="wb-val warm">40.6°</span>
+              <div class="wb-tags"><span class="tagpill ai" style="background:rgba(76,154,95,.1);color:var(--success)">AI 平稳</span><span class="tagpill ticket"><span class="dot"></span>警告</span></div>
+            </div>
+          </div>
+          <div class="wb-row" style="opacity:.68">
+            <div class="wb-ico warn">🌡️</div>
+            <div class="wb-main">
+              <div class="wb-code">SL-2024-048</div>
+              <div class="wb-sub">今天已退烧（38.7°C）· 单已自动关闭</div>
+            </div>
+            <div class="wb-right">
+              <span class="wb-val warm">38.7°</span>
+              <div class="wb-tags"><span class="tagpill warn">已恢复</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="wb-collapsed">▾ 展开全部 58 头（含正常）</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 屏幕 3a：牲畜详情页 · 上半（病程融合） ═══ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num hero">3a</span>牲畜详情页 · 病程区（上半）</div>
+    <div class="screen-sublabel">基本信息 + 发烧病程卡内嵌（趋势/AI/单据时间线/操作）——从管理台、告警中心、地图点进来都是这里，不跳转</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-status"><span>9:41</span><span class="icons">▮▮▮ ᯤ 84%</span></div>
+      <div class="appbar"><span class="back">‹</span><h1>SL-2024-004</h1><button class="action">🧭 轨迹</button></div>
+      <div class="scroll-area ld-scroll">
+        <div class="ld-head">
+          <div class="ld-avatar">🐄</div>
+          <div>
+            <div class="ld-name">SL-2024-004</div>
+            <div class="ld-meta">母 · 西门塔尔 · 2 岁 · Main Ranch</div>
+          </div>
+          <div class="ld-status"><span class="pill crit">发烧中</span><div class="t">1 张活跃单</div></div>
+        </div>
+
+        <div class="ld-section fuse-outline fuse-mark">
+          <div class="ld-sec-head">
+            <div class="ico health">🌡️</div>
+            <span class="t">发热管理 · 本次病程</span>
+            <span class="sev">严重</span>
+          </div>
+          <div class="ld-strip">
+            <div class="cell"><div class="v hot">41.2°</div><div class="k">当前体温</div></div>
+            <div class="cell"><div class="v">38.5°</div><div class="k">基线</div></div>
+            <div class="cell"><div class="v">2.1h</div><div class="k">已持续</div></div>
+            <div class="cell"><div class="v hot">41.2°</div><div class="k">最高</div></div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-title">72 小时体温趋势<span class="lg">- - - 基线 38.5° · 发烧段标红</span></div>
+            <svg width="100%" height="66" viewBox="0 0 240 66" preserveAspectRatio="none">
+              <line x1="0" y1="42" x2="240" y2="42" stroke="#617061" stroke-width="1" stroke-dasharray="4 3" opacity=".5"/>
+              <path d="M0,44 L20,43 L40,45 L60,43 L80,44 L100,42 L120,41 L140,40 L160,27 L180,20 L200,16 L220,14 L240,13" fill="none" stroke="#D97B29" stroke-width="2"/>
+              <path d="M160,27 L180,20 L200,16 L220,14 L240,13 L240,66 L160,66 Z" fill="rgba(194,86,75,.10)"/>
+              <circle cx="240" cy="13" r="3" fill="#C2564B"/>
+            </svg>
+          </div>
+          <div class="ld-sec-head" style="margin:9px 0 6px"><div class="ico ai">🤖</div><span class="t" style="font-size:11px">AI 观察</span></div>
+          <div class="ai-inline">
+            <div class="ai-box"><div class="v" style="color:var(--warning)">留意</div><div class="k">观察结论</div></div>
+            <div class="ai-box"><div class="v" style="font-size:10px">体温突然升高</div><div class="k">发现</div></div>
+            <div class="ai-box"><div class="v">08:30</div><div class="k">更新</div></div>
+          </div>
+          <div style="font-size:8px;color:var(--text-secondary);margin-top:5px">AI 每小时把近 24 小时体温/胃蠕动/活动量和这头牛自己的日常相比，给出平稳 · 留意 · 警惕三档结论；警惕时自动开单提醒</div>
+          <div style="margin-top:9px">
+            <div class="tl-row"><span class="tl-dot go"></span><span class="tl-time">08:12</span><span class="tl-txt"><b>体温超标开单</b> · 严重（规则引擎）</span></div>
+            <div class="tl-row"><span class="tl-dot ai"></span><span class="tl-time">08:30</span><span class="tl-txt">AI 观察：留意（体温突然升高）</span></div>
+            <div class="tl-row"><span class="tl-dot wait"></span><span class="tl-time">—</span><span class="tl-txt">等待处理（建议隔离 · 联系兽医）</span></div>
+          </div>
+          <div class="act-row">
+            <div class="act-btn primary"><span class="a-ico">✓</span>处理</div>
+            <div class="act-btn"><span class="a-ico">✕</span>忽略</div>
+            <div class="act-btn"><span class="a-ico">📍</span>定位</div>
+            <div class="act-btn"><span class="a-ico">🧭</span>轨迹</div>
+          </div>
+          <div style="font-size:8px;color:var(--text-secondary);text-align:center;margin-top:4px">处理 = 关闭该单并归入"今日已处理"（一线员工可操作）；忽略 = 仅标记已读不再提醒；牛痊愈后单子自动关闭（用药记录后续单独立项）</div>
+          <div class="gate-note"><span class="lock">🔒</span>发烧时长统计（按日）为 Standard+ 专属，升级后在此处解锁</div>
+        </div>
+        <div class="scroll-hint" style="text-align:center;font-size:8px;color:var(--text-secondary);padding:6px 0 2px">▾ 下滑：消化（胃蠕动曲线）· 发情 · 位置 · 通讯距离 · 设备绑定</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 屏幕 3b：牲畜详情页 · 下半（现有功能全保留，重排） ═══ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num hero">3b</span>牲畜详情页 · 消化/发情/位置/设备（下半）</div>
+    <div class="screen-sublabel">现有功能<b>一个不删</b>：胃蠕动曲线、发情评分曲线（门控）、末次位置+轨迹、通讯距离、设备绑定/解绑——重新分区排版</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-status"><span>9:41</span><span class="icons">▮▮▮ ᯤ 84%</span></div>
+      <div class="appbar"><span class="back">‹</span><h1>SL-2024-004</h1><button class="action">🧭 轨迹</button></div>
+      <div class="scroll-area ld-scroll">
+
+        <div class="ld-section">
+          <div class="ld-sec-head"><div class="ico" style="background:rgba(141,110,79,.12)">🌾</div><span class="t">消化管理</span><span class="tagpill" style="background:rgba(76,154,95,.1);color:var(--success)">正常</span></div>
+          <div class="ld-strip">
+            <div class="cell"><div class="v">3.1</div><div class="k">反刍频率 次/分</div></div>
+            <div class="cell"><div class="v">3.0</div><div class="k">基线</div></div>
+            <div class="cell"><div class="v">112</div><div class="k">活动量</div></div>
+          </div>
+          <div class="chart-box" style="margin-top:7px">
+            <div class="chart-title">胃蠕动频率趋势（72h）<span class="lg">- - - 基线 3.0</span></div>
+            <svg width="100%" height="54" viewBox="0 0 240 54" preserveAspectRatio="none">
+              <line x1="0" y1="24" x2="240" y2="24" stroke="#617061" stroke-width="1" stroke-dasharray="4 3" opacity=".5"/>
+              <path d="M0,26 L20,22 L40,28 L60,24 L80,25 L100,21 L120,27 L140,23 L160,26 L180,22 L200,25 L220,23 L240,24" fill="none" stroke="#8D6E4F" stroke-width="2"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="ld-section">
+          <div class="ld-sec-head"><div class="ico" style="background:rgba(194,86,137,.12)">💗</div><span class="t">发情识别</span><span class="tagpill" style="background:rgba(76,154,95,.1);color:var(--success)">低分</span></div>
+          <div class="chart-box">
+            <div class="chart-title">发情评分趋势<span class="lg">🔒 Premium+ 专属（未升级显示示例）</span></div>
+            <svg width="100%" height="46" viewBox="0 0 240 46" preserveAspectRatio="none" style="opacity:.5">
+              <path d="M0,38 L30,36 L60,39 L90,35 L120,30 L150,38 L180,37 L210,39 L240,38" fill="none" stroke="#C25689" stroke-width="2"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="ld-section">
+          <div class="ld-sec-head"><div class="ico" style="background:rgba(74,127,157,.12)">📍</div><span class="t">位置信息</span></div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="flex:1;font-size:10px;font-weight:600">28.2341°, 112.9418°<div style="font-size:8.5px;color:var(--text-secondary);font-weight:400;margin-top:2px">末次定位 · 更新于 09-23 08:40</div></div>
+            <div class="act-btn" style="padding:6px 10px"><span class="a-ico">🧭</span>轨迹</div>
+          </div>
+        </div>
+
+        <div class="ld-section">
+          <div class="ld-sec-head"><div class="ico" style="background:rgba(74,127,157,.12)">📶</div><span class="t">网关通讯距离</span></div>
+          <div style="display:flex;gap:6px">
+            <div class="ai-box" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 8px"><div class="v" style="color:var(--info)">142m</div><div class="k">最近网关 GW-A</div></div>
+            <div class="ai-box" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 8px"><div class="v" style="color:var(--text-secondary)">良</div><div class="k">信号分档</div></div>
+          </div>
+        </div>
+
+        <div class="ld-section">
+          <div class="ld-sec-head"><div class="ico" style="background:var(--primary-soft)">📟</div><span class="t">绑定设备（2）</span><button style="font-size:9px;font-weight:700;color:var(--primary);background:var(--primary-soft);border:none;border-radius:6px;padding:3px 8px;cursor:pointer">＋ 绑定设备</button></div>
+          <div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:7px 9px;margin-bottom:5px">
+            <span style="font-size:15px">💊</span>
+            <div style="flex:1;font-size:10px;font-weight:600">SIM-CAP-004 · 瘤胃胶囊<div style="font-size:8.5px;color:var(--text-secondary);font-weight:400;margin-top:1px">DevEUI: 001a...0262 · 电量 78% · 信号 良</div></div>
+            <span style="font-size:8px;font-weight:700;color:var(--success)">在线</span>
+            <button style="font-size:8.5px;color:var(--danger);background:none;border:1px solid rgba(194,86,75,.35);border-radius:6px;padding:2px 6px;cursor:pointer">解绑</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:7px 9px">
+            <span style="font-size:15px">📡</span>
+            <div style="flex:1;font-size:10px;font-weight:600">GPS-004 · 追踪器<div style="font-size:8.5px;color:var(--text-secondary);font-weight:400;margin-top:1px">电量 65% · 信号 中</div></div>
+            <span style="font-size:8px;font-weight:700;color:var(--success)">在线</span>
+            <button style="font-size:8.5px;color:var(--danger);background:none;border:1px solid rgba(194,86,75,.35);border-radius:6px;padding:2px 6px;cursor:pointer">解绑</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+<!-- ═══ 屏幕 4：告警中心 · 通知枢纽 ═══ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num">4</span>告警中心 · 三标签页直入</div>
+    <div class="screen-sublabel">顶部统计块整体移除（活跃/未读/三级别/对账行）——进来就是围栏/健康/设备三个标签页，数字只在角标；健康条目点击直达牲畜详情页健康区</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-status"><span>9:41</span><span class="icons">▮▮▮ ᯤ 84%</span></div>
+      <div class="appbar"><span class="back">‹</span><h1>告警中心</h1><button class="action">全部已读</button></div>
+      <div class="cats" style="border-top:1px solid var(--border)">
+        <div class="cat-tab"><span class="ct-label">🚧 围栏放牧</span><span class="ct-count some">72</span></div>
+        <div class="cat-tab active"><span class="unread-dot">3</span><span class="ct-label">🩺 动物健康</span><span class="ct-count some">8</span></div>
+        <div class="cat-tab"><span class="ct-label">🔋 设备健康</span><span class="ct-count zero">0</span></div>
+      </div>
+      <div class="scroll-area">
+        <div class="date-group">今天 <span class="cnt">3 条</span><span class="line"></span></div>
+        <div class="alert-list">
+          <div class="alert-card">
+            <div class="alert-inner">
+              <div class="alert-bar critical"></div>
+              <div class="alert-body">
+                <div class="alert-top">
+                  <div class="alert-icon critical">🌡️</div>
+                  <div class="alert-content">
+                    <div class="alert-title">SL-2024-004 体温异常：41.2°C（基线 38.50°C）</div>
+                    <div class="alert-meta">#4 <span class="sep">·</span> 29 分钟前</div>
+                    <div class="alert-badges"><span class="type-badge critical">体温异常</span><span class="status-tag">活跃</span><span class="source-tag">演示数据</span><span class="goto-note new-mark">牛详情 ›</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="alert-card">
+            <div class="alert-inner">
+              <div class="alert-bar critical"></div>
+              <div class="alert-body">
+                <div class="alert-top">
+                  <div class="alert-icon critical">🌡️</div>
+                  <div class="alert-content">
+                    <div class="alert-title">SL-2024-008 体温异常：40.9°C（基线 38.50°C）</div>
+                    <div class="alert-meta">#8 <span class="sep">·</span> 29 分钟前</div>
+                    <div class="alert-badges"><span class="type-badge critical">体温异常</span><span class="status-tag">活跃</span><span class="source-tag">演示数据</span><span class="goto-note">牛详情 ›</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="alert-card">
+            <div class="alert-inner">
+              <div class="alert-bar critical"></div>
+              <div class="alert-body">
+                <div class="alert-top">
+                  <div class="alert-icon critical">🌡️</div>
+                  <div class="alert-content">
+                    <div class="alert-title">SL-2024-032 体温异常：40.6°C（基线 38.50°C）</div>
+                    <div class="alert-meta">#32 <span class="sep">·</span> 29 分钟前</div>
+                    <div class="alert-badges"><span class="type-badge critical">体温异常</span><span class="status-tag">活跃</span><span class="source-tag">演示数据</span><span class="goto-note">牛详情 ›</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="date-group">今天 · 发情 <span class="cnt">5 条</span><span class="line"></span></div>
+        <div class="alert-list">
+          <div class="alert-card">
+            <div class="alert-inner">
+              <div class="alert-bar warning"></div>
+              <div class="alert-body">
+                <div class="alert-top">
+                  <div class="alert-icon estrus">💗</div>
+                  <div class="alert-content">
+                    <div class="alert-title">HKT-11 发情评分偏高：78 分（配种窗口期）</div>
+                    <div class="alert-meta">#11 <span class="sep">·</span> 2 小时前</div>
+                    <div class="alert-badges"><span class="type-badge estrus">发情</span><span class="status-tag">活跃</span><span class="source-tag">规则</span><span class="goto-note">牛详情 ›</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active"><span class="nav-icon">🗺️</span>牧场</div>
+        <div class="nav-item"><span class="nav-icon">👤</span>我的</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 屏幕 5：疫病防控 ═══ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num info">5</span>疫病防控（本期补齐开单）</div>
+    <div class="screen-sublabel">新增：异常率超阈值自动开单（原无开单路径）；密接追踪保留并挂到患病牛的详情页</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-status"><span>9:41</span><span class="icons">▮▮▮ ᯤ 84%</span></div>
+      <div class="appbar"><span class="back">‹</span><h1>疫病防控</h1></div>
+      <div class="scroll-area">
+        <div class="scene-rec new-mark">🛡️ 全场异常率 0.0% · 阈值 10% <span class="ok">✓ 安全</span></div>
+        <div class="ld-section" style="margin:8px 12px">
+          <div class="ld-sec-head"><div class="ico contact">🛡️</div><span class="t">监测规则</span></div>
+          <div class="ld-strip">
+            <div class="cell"><div class="v" style="color:var(--success)">0%</div><div class="k">当前异常率</div></div>
+            <div class="cell"><div class="v">一成</div><div class="k">预警线</div></div>
+            <div class="cell"><div class="v">7 天</div><div class="k">回看周期</div></div>
+          </div>
+          <div style="font-size:9px;color:var(--text-secondary);line-height:1.6">异常率 = 7 天内健康异常牛占比。超过阈值时全场开<b style="color:var(--danger)">疫情预警单</b>（疫病管理 + 告警中心同步），并自动生成密接名单。</div>
+        </div>
+        <div class="ld-section" style="margin:8px 12px">
+          <div class="ld-sec-head"><div class="ico contact">👥</div><span class="t">密接追踪（示例：上次预警）</span></div>
+          <div class="contact-row"><div class="c-ico">🐄</div><div class="c-main">HKT-13<div class="c-sub">与病牛同栏 · 最近 24h 接触 3 次</div></div><span class="c-tag">高风险</span></div>
+          <div class="contact-row"><div class="c-ico">🐄</div><div class="c-main">HKT-15<div class="c-sub">围栏相邻 · 接触 1 次</div></div><span class="c-tag" style="background:rgba(210,138,45,.08)">低风险</span></div>
+          <div style="font-size:8.5px;color:var(--text-secondary)">完整密接网络从患病牛的详情页进入（疫病病程区块）；本期密接数据为空态——接入位置采集前无实时密接（采集路径另立工单，spec v1.1 §5.9）</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ═══ 屏幕 6：AI 排行 · 谁最需要关注（spec S5） ═══ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num info">6</span>AI 排行 · 谁最需要关注</div>
+    <div class="screen-sublabel">按 AI 档位降序（警惕＞留意＞平稳）；数据源同 episodes 聚合（band→score 排序）；点击任一头进详情页健康区；NIX-243 未就绪时整页空态</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-status"><span>9:41</span><span class="icons">▮▮▮ ᯤ 84%</span></div>
+      <div class="appbar"><span class="back">‹</span><h1>谁最需要关注</h1></div>
+      <div class="scroll-area">
+        <div class="scene-rec new-mark">🤖 关注 12 头 · 警惕 2 · 留意 4 · 平稳 6<span class="go">与总览同源</span></div>
+        <div class="wb-list">
+          <div class="wb-row unread">
+            <span class="ur"></span>
+            <div class="rank-chip top">1</div>
+            <div class="wb-main">
+              <div class="wb-code">SL-2024-019</div>
+              <div class="wb-sub">多项指标同时跑偏 · 体温 41.0°C</div>
+            </div>
+            <div class="wb-right">
+              <div class="wb-tags"><span class="tagpill band-alert">警惕</span></div>
+              <span class="wb-sub">8 分钟前</span>
+            </div>
+          </div>
+          <div class="wb-row">
+            <div class="rank-chip top">2</div>
+            <div class="wb-main">
+              <div class="wb-code">SL-2024-027</div>
+              <div class="wb-sub">体温突然升高 · 40.8°C</div>
+            </div>
+            <div class="wb-right">
+              <div class="wb-tags"><span class="tagpill band-alert">警惕</span></div>
+              <span class="wb-sub">32 分钟前</span>
+            </div>
+          </div>
+          <div class="wb-row">
+            <div class="rank-chip mid">3</div>
+            <div class="wb-main">
+              <div class="wb-code">SL-2024-008</div>
+              <div class="wb-sub">作息规律异常 · 夜间活动增多</div>
+            </div>
+            <div class="wb-right">
+              <div class="wb-tags"><span class="tagpill band-watch">留意</span></div>
+              <span class="wb-sub">1 小时前</span>
+            </div>
+          </div>
+          <div class="wb-row">
+            <div class="rank-chip">4</div>
+            <div class="wb-main">
+              <div class="wb-code">SL-2024-033</div>
+              <div class="wb-sub">体温突然升高 · 40.2°C</div>
+            </div>
+            <div class="wb-right">
+              <div class="wb-tags"><span class="tagpill band-watch">留意</span></div>
+              <span class="wb-sub">2 小时前</span>
+            </div>
+          </div>
+          <div class="wb-row" style="opacity:.68">
+            <div class="rank-chip">5</div>
+            <div class="wb-main">
+              <div class="wb-code">SL-2024-004</div>
+              <div class="wb-sub">指标平稳（发烧单另见病程卡）</div>
+            </div>
+            <div class="wb-right">
+              <div class="wb-tags"><span class="tagpill band-steady">平稳</span></div>
+              <span class="wb-sub">今天 06:20</span>
+            </div>
+          </div>
+          <div class="wb-row" style="opacity:.68">
+            <div class="rank-chip">6</div>
+            <div class="wb-main">
+              <div class="wb-code">SL-2024-016</div>
+              <div class="wb-sub">指标平稳</div>
+            </div>
+            <div class="wb-right">
+              <div class="wb-tags"><span class="tagpill band-steady">平稳</span></div>
+              <span class="wb-sub">昨天 22:40</span>
+            </div>
+          </div>
+        </div>
+        <div class="wb-collapsed">▾ 展开全部 12 头（含平稳档）</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 说明面板 ═══ -->
+<div class="notes-panel">
+  <h2>整合架构 <span class="tag">A+B 一次到位</span></h2>
+  <div class="rule-grid">
+    <div class="rule-card">
+      <div class="rc-head"><span class="rc-num" style="background:var(--danger)">核</span><span class="rc-title">一头牛 = 一个详情页</span></div>
+      <p>牲畜详情页升级为<b>唯一牛级详情</b>：基本信息 + 设备 + 各健康维度区块 + <b>病程卡内嵌</b>（趋势图/AI/单据时间线/处理操作，不跳转）。三张旧场景详情页（发热/消化/发情详情）退役，深链重定向到详情页对应区块。</p>
+    </div>
+    <div class="rule-card">
+      <div class="rc-head"><span class="rc-num">1</span><span class="rc-title">一个场景 = 一个管理台</span></div>
+      <p>发热/消化/发情/疫病四个场景页升级为管理台：<b>只列异常与相关牛</b>（正常牛折叠），行内嵌单据状态（级别/未读/AI），顶部对账条。发情是配种窗口不是病——语气与操作按"配种提醒"设计。</p>
+    </div>
+    <div class="rule-card">
+      <div class="rc-head"><span class="rc-num">2</span><span class="rc-title">一次异常 = 一条病程</span></div>
+      <p>后端新增<b>病程聚合</b>：开单时间（告警）+ 当前状态（快照）+ 趋势（时序日志）+ AI 评分，聚成一条记录。工作台列表、告警中心、地图弹层、详情页病程卡全部吃同一份数据。</p>
+    </div>
+    <div class="rule-card">
+      <div class="rc-head"><span class="rc-num">3</span><span class="rc-title">告警中心 = 通知枢纽</span></div>
+      <p><b>顶部统计块整体移除</b>（用户裁决）：进来就是围栏放牧/动物健康/设备健康三个两行标签页（上名称、下数字，未读为角标）；健康类条目点击<b>直达牲畜详情页健康区</b>。总账数字仍同源——只是家搬到牧场页概览卡与导航红点，告警中心内不再重复展示。</p>
+    </div>
+    <div class="rule-card">
+      <div class="rc-head"><span class="rc-num" style="background:var(--info)">AI</span><span class="rc-title">AI 观察：只有一个家</span></div>
+      <p>AI 结论进每条病程（详情页「AI 观察」区块 + 管理台行内徽章 + 地图弹层）；概览卡<b>「谁最需要关注」入口 → 屏 6 排行页</b>（按档位降序，数据源同 episodes）。达到警惕档自动开单，来源标 AI。NIX-243（AI 链路恢复）未就绪时 AI 元素一律空态。</p>
+    </div>
+    <div class="rule-card">
+      <div class="rc-head"><span class="rc-num" style="background:var(--estrus)">话</span><span class="rc-title">界面说人话（用户裁决）</span></div>
+      <p>界面不出现技术词：评分百分比、样本数、模型名一律翻译成<b>状态词</b>——平稳 · 留意 · 警惕（对应评分 &lt;30% / 30-70% / ≥70%）；发现原因用生活语（"体温突然升高""作息规律异常"）；"仿真"改叫"演示数据"；疫病预警线说"超过一成牛同时不舒服"。百分比只作小字辅助，不进主文案。</p>
+    </div>
+    <div class="rule-card">
+      <div class="rc-head"><span class="rc-num" style="background:var(--epidemic)">疫</span><span class="rc-title">疫病防控补齐闭环</span></div>
+      <p>本期补上<b>疫情开单路径</b>（异常率超阈值开预警单，此前代码里不存在）；密接追踪保留，挂到患病牛详情页的疫病病程区块，工作台提供全场风险概览。</p>
+    </div>
+  </div>
+
+  <table class="match-table" style="margin-bottom:14px">
+    <thead><tr><th colspan="2">实施前冲突裁决（2026-09-23 用户拍板）</th></tr></thead>
+    <tbody>
+      <tr><td>用药记录按钮（系统无此功能）</td><td><b>本期移除</b>，用药记录后续单独立项</td></tr>
+      <tr><td>「处理」按钮语义（现只有已读/忽略/自动关闭）</td><td><b>处理 = 关闭该单（dismiss）</b>，"忽略" = 标记已读；"今日已处理"由关闭时间派生，不新增状态机（spec v1.1 裁决 14，2026-09-23 修订）</td></tr>
+      <tr><td>围栏标签页 72 条展示</td><td><b>牛×围栏聚合卡</b>（默认聚合、点开看明细）</td></tr>
+      <tr><td>健康率口径（修复 105%）</td><td><b>观察态算健康</b>：健康率 = 非异常牛 / 总数</td></tr>
+    </tbody>
+  </table>
+
+  <table class="match-table">
+    <thead><tr><th>界面原文（技术）</th><th>改为（人话）</th></tr></thead>
+    <tbody>
+      <tr><td>AI 异常总览 / Anomaly Count / Average Score</td><td><b>智能健康观察</b>：关注 N 头 · 整体状态（平稳/留意/警惕）</td></tr>
+      <tr><td>异常评分 4.2% / Anomaly Score</td><td>AI 观察：<b>平稳</b>（百分比只作小字辅助，不在主文案出现）</td></tr>
+      <tr><td>有效样本 3 · Assessed health_l1 · nEff</td><td>数据积累中（样本不足时的提示），其余不上界面</td></tr>
+      <tr><td>模式：骤升 / 昼夜节律紊乱 / 多指标偏离</td><td>发现：<b>体温突然升高 / 作息规律异常 / 多项指标同时跑偏</b></td></tr>
+      <tr><td>异常指数趋势（图表）</td><td>AI 观察记录</td></tr>
+      <tr><td>评分 ≥0.7 触发告警</td><td>达到<b>警惕</b>档自动开单提醒</td></tr>
+      <tr><td>来源标签"仿真 / DATAGEN"</td><td><b>演示数据</b></td></tr>
+    </tbody>
+  </table>
+
+  <table class="match-table">
+    <thead><tr><th>原页面/元素</th><th>去向</th></tr></thead>
+    <tbody>
+      <tr><td>数智孪生页（五格统计+场景+AI）</td><td><b>迁入</b>牧场页概览页签；/twin 路由重定向</td></tr>
+      <tr><td>发热/消化/发情详情页（三张）</td><td class="out"><b>退役</b> → 牲畜详情页健康区（深链重定向，订阅门控原样保留）</td></tr>
+      <tr><td>发热/消化/发情/疫病场景列表页</td><td><b>升级</b>为工作台（只列异常+单据状态+对账条）</td></tr>
+      <tr><td>牲畜详情页健康数据卡（体温/活动/反刍三格 + 体温曲线 + 胃蠕动曲线 + 发情曲线）</td><td class="out"><b>融合重排</b>进各健康区块，功能一个不删</td></tr>
+      <tr><td>位置卡 / 通讯距离卡 / 设备绑定卡（绑定·解绑·电量·信号）</td><td class="out"><b>原样保留</b>，重排至详情页下半</td></tr>
+      <tr><td>告警中心健康类目详情弹层</td><td><b>瘦身</b>为通知条目（点击直达详情页健康区）</td></tr>
+      <tr><td>地图标记 / 牲畜弹层</td><td>新增「有活跃单」红点；弹层数字统一同源口径</td></tr>
+      <tr><td>疫病防控异常率</td><td><b>新增</b>开单路径 + 密接区块挂详情页</td></tr>
+      <tr><td>AI 排行页「谁最需要关注」（原无此页）</td><td><b>新增</b>（屏 6）：档位降序列表，点击进详情页健康区；数据源同 episodes 聚合</td></tr>
+      <tr><td>概览面板展开态五格统计（原孪生顶栏）</td><td><b>新增</b>（屏 1b）：面板展开顶部露出，与收起态同屏共存</td></tr>
+      <tr class="sum-row"><td colspan="2">数据底座：病程聚合端点 + 数字同源 + 每小时自愈残留单 + 健康率 105% 修复</td></tr>
+    </tbody>
+  </table>
+
+  <div class="token-line">
+    设计令牌（与告警 V2 一致，可被 prototype-to-flutter-fidelity 解析）：
+    <code>--primary:#2F6B3B</code> <code>--danger:#C2564B</code> <code>--warning:#D28A2D</code> <code>--info:#4A7F9D</code> <code>--estrus:#C25689</code>
+    <code>--fever:#D97B29</code> <code>--digestive:#8D6E4F</code> <code>--epidemic:#2E7D74</code>
+    <code>--radius-sm:8px</code> <code>--radius-md:12px</code> <code>--radius-lg:16px</code> <code>--shadow-card</code>
+    <br>新增令牌：<code>--badge-bg</code> <code>--reconcile-bg/--reconcile-text</code>（danger/success 派生，无新色相）。「新增/迁入/融合」标注色仅评审用，不进实现。
+  </div>
+</div>
+
+</body>
+</html>
