@@ -3,7 +3,6 @@ package com.smartlivestock.health.infrastructure.acl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartlivestock.health.domain.port.RanchCommandPort;
 import com.smartlivestock.health.domain.port.dto.AlertInfo;
-import com.smartlivestock.ranch.application.AlertApplicationService;
 import com.smartlivestock.ranch.domain.model.Alert;
 import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.model.Severity;
@@ -54,6 +53,18 @@ public class RanchCommandPortImpl implements RanchCommandPort {
                 livestockId,
                 com.smartlivestock.ranch.domain.model.AlertStatus.ACTIVE,
                 source);
+        for (Alert alert : activeAlerts) {
+            alert.autoResolve();
+            alertRepository.save(alert);
+        }
+    }
+
+    @Override
+    public void resolveFarmAlertsByType(Long farmId, String alertType) {
+        AlertType type = AlertType.valueOf(alertType);
+        var activeAlerts = alertRepository.findByFarmIdAndTypeAndStatus(
+                farmId, type,
+                com.smartlivestock.ranch.domain.model.AlertStatus.ACTIVE);
         for (Alert alert : activeAlerts) {
             alert.autoResolve();
             alertRepository.save(alert);

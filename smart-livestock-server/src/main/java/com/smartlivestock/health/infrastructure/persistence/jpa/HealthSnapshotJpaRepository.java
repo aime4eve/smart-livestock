@@ -51,4 +51,7 @@ public interface HealthSnapshotJpaRepository extends JpaRepository<HealthSnapsho
             """, nativeQuery = true)
     List<Object[]> findRecentlyActiveLivestock(@Param("cutoff") java.time.Instant cutoff,
                                                @Param("maxRows") int maxRows);
+    /** All farm ids that have snapshots (drives farm-wide health schedulers). */
+    @Query("SELECT DISTINCT s.farmId FROM HealthSnapshotJpaEntity s")
+    List<Long> findDistinctFarmIds();
 }

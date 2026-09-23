@@ -68,6 +68,14 @@ platform:
     months-ahead: ${PARTITION_MONTHS_AHEAD:2}
     check-cron: ${PARTITION_CHECK_CRON:0 10 2 * * *}
 
+health:
+  epidemic:
+    enabled: ${HEALTH_EPIDEMIC_ENABLED:true}
+    check-cron: ${HEALTH_EPIDEMIC_CHECK_CRON:0 20 * * * *}
+  alert-reconcile:
+    enabled: ${HEALTH_ALERT_RECONCILE_ENABLED:true}
+    cron: ${HEALTH_ALERT_RECONCILE_CRON:0 40 * * * *}
+
 ai:
   platform:
     url: ${AI_PLATFORM_URL:http://localhost:18000}

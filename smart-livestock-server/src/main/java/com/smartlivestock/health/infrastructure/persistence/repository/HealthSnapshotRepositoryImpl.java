@@ -46,4 +46,9 @@ public class HealthSnapshotRepositoryImpl implements HealthSnapshotRepository {
                         (String) row[2]))
                 .toList();
     }
+
+    @Override
+    public List<Long> findDistinctFarmIds() {
+        return jpaRepo.findDistinctFarmIds();
+    }
 }

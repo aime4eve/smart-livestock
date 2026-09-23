@@ -160,11 +160,11 @@ public final class HealthDtos {
             double avgAiAnomalyScore
     ) {}
 
-    public record SceneSummaryFever(int abnormalCount, int criticalCount) {}
-    public record SceneSummaryDigestive(int abnormalCount, int watchCount) {}
-    public record SceneSummaryEstrus(int highScoreCount, boolean breedingAdvice) {}
-    public record SceneSummaryEpidemic(String status, double abnormalRate) {}
-    public record SceneSummaryAi(int anomalyCount, int highScoreCount, double avgScore) {}
+    public record SceneSummaryFever(int abnormalCount, int criticalCount, int activeAlertCount) {}
+    public record SceneSummaryDigestive(int abnormalCount, int watchCount, int activeAlertCount) {}
+    public record SceneSummaryEstrus(int highScoreCount, boolean breedingAdvice, int activeAlertCount) {}
+    public record SceneSummaryEpidemic(String status, double abnormalRate, int activeAlertCount) {}
+    public record SceneSummaryAi(int anomalyCount, int highScoreCount, double avgScore, int activeAlertCount) {}
 
     public record SceneSummary(
             SceneSummaryFever fever,
@@ -172,6 +172,42 @@ public final class HealthDtos {
             SceneSummaryEstrus estrus,
             SceneSummaryEpidemic epidemic,
             SceneSummaryAi ai
+    ) {}
+
+    // ── Health episodes (NIX-245 workbenches) ────────────────────
+
+    /**
+     * One workbench row: current scene state + its open ticket + AI view.
+     * Severity/band values are codes — the frontend maps them to localized
+     * plain-language labels (spec §6, "界面说人话").
+     */
+    public record EpisodeRow(
+            Long livestockId,
+            String livestockCode,
+            String statusLevel,        // critical | warning | watch | normal
+            Double currentValue,       // °C / motility freq / estrus score per scene
+            Double baseline,
+            Double durationHours,      // from the open ticket's createdAt
+            String trend,              // up | down | flat (fever scene only)
+            double aiScore,
+            String aiBand,             // calm | watch | alarm (AiHealthBands)
+            String aiFindingCode,      // temp_spike | rhythm_off | multi_shift | none
+            java.time.Instant aiAssessedAt,
+            int activeAlertCount,
+            String alertSeverity,      // CRITICAL | WARNING | null
+            boolean unread
+    ) {}
+
+    public record EpisodeBoard(
+            String scene,              // fever | digestive | estrus | epidemic
+            int totalLivestock,
+            int abnormalCount,
+            int activeAlertCount,
+            boolean reconciled,        // abnormalCount == activeAlertCount
+            double epidemicRate,       // epidemic scene only, else 0
+            List<EpisodeRow> abnormal,
+            List<EpisodeRow> recoveredToday,
+            List<EpisodeRow> normal
     ) {}
 
     public record PendingTask(

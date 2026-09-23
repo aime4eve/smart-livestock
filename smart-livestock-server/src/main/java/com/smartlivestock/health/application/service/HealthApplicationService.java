@@ -441,18 +441,29 @@ public class HealthApplicationService {
         List<LivestockInfo> livestockList = ranchQueryPort.findAllByFarmId(farmId);
         int total = livestockList.size();
 
-        long healthyCount = snapshots.stream()
-                .filter(s -> s.getTempStatus() == TempStatus.NORMAL
-                        && s.getMotilityStatus() == MotilityStatus.NORMAL)
-                .count();
-        Double healthyRate = total > 0 ? (double) healthyCount / total : null;
+        // NIX-245 口径裁决：健康率 = 非异常牛 / 总数（观察态 ELEVATED/LOW 算健康）。
+        // 异常集合与告警桥同源（FEVER/CRITICAL 体温 或 瘤胃 ABNORMAL）；分母用当前
+        // 牲畜清单并对齐分子所在集合，杜绝旧实现 >100% 的口径错位。
+        Set<Long> livestockIds = livestockList.stream()
+                .map(LivestockInfo::id).collect(Collectors.toSet());
+        Set<Long> abnormalIds = snapshots.stream()
+                .filter(s -> (s.getTempStatus() == TempStatus.FEVER || s.getTempStatus() == TempStatus.CRITICAL)
+                        || s.getMotilityStatus() == MotilityStatus.ABNORMAL)
+                .map(HealthSnapshot::getLivestockId)
+                .filter(livestockIds::contains)
+                .collect(Collectors.toSet());
+        Double healthyRate = total > 0 ? (double) (total - abnormalIds.size()) / total : null;
 
         int alertCount = ranchQueryPort.countActiveAlertsByFarmId(farmId);
         int criticalCount = (int) snapshots.stream()
                 .filter(s -> s.getTempStatus() == TempStatus.CRITICAL).count();
 
+        // 与告警桥一致（ELEVATED 也开单），场景"异常"数与活跃单数可对账
         int feverAbnormal = (int) snapshots.stream()
-                .filter(s -> s.getTempStatus() == TempStatus.FEVER || s.getTempStatus() == TempStatus.CRITICAL)
+                .filter(s -> s.getTempStatus() == TempStatus.ELEVATED
+                        || s.getTempStatus() == TempStatus.FEVER
+                        || s.getTempStatus() == TempStatus.CRITICAL)
+                .filter(s -> livestockIds.contains(s.getLivestockId()))
                 .count();
         int feverCritical = (int) snapshots.stream()
                 .filter(s -> s.getTempStatus() == TempStatus.CRITICAL).count();
@@ -462,10 +473,12 @@ public class HealthApplicationService {
         int digestiveWatch = (int) snapshots.stream()
                 .filter(s -> s.getMotilityStatus() == MotilityStatus.LOW).count();
 
-        List<EstrusScore> estrusScores = estrusScoreRepo.findByFarmIdOrderByScoredAtDesc(farmId);
-        int estrusHigh = (int) estrusScores.stream()
-                .filter(e -> e.getScore() >= 70).count();
-        boolean breedingAdvice = estrusScores.stream().anyMatch(e -> e.getScore() >= 70);
+        // 发情高分用当前快照评分（历史评分会重复计数，且与告警桥口径不一致）
+        int estrusHigh = (int) snapshots.stream()
+                .filter(s -> s.getEstrusScore() != null && s.getEstrusScore() >= 70)
+                .filter(s -> livestockIds.contains(s.getLivestockId()))
+                .count();
+        boolean breedingAdvice = estrusHigh > 0;
 
        EpidemicAnalysisService.HerdMetrics metrics = epidemicService.calculateHerdMetrics(snapshots);
        String riskLevel = epidemicService.assessRiskLevel(metrics.abnormalRate());
@@ -487,18 +500,31 @@ public class HealthApplicationService {
                         .mapToDouble(s -> s.getAiAnomalyScore().doubleValue())
                         .average().orElse(0.0);
 
+        // 每场景活跃单数：与告警中心/牧场页同一张表同一次查询（NIX-245 对账行数据源）
+        Map<String, Long> alertsByType = ranchQueryPort
+                .findActiveAlertsByFarmIdAndTypes(farmId, Set.of(
+                        "TEMPERATURE_ABNORMAL", "DIGESTIVE_ABNORMAL", "ESTRUS", "EPIDEMIC", "AI_ANOMALY"))
+                .stream()
+                .filter(a -> a.livestockId() != null || "EPIDEMIC".equals(a.type()))
+                .collect(Collectors.groupingBy(RanchQueryPort.AlertBrief::type, Collectors.counting()));
+        int feverTickets = alertsByType.getOrDefault("TEMPERATURE_ABNORMAL", 0L).intValue();
+        int digestiveTickets = alertsByType.getOrDefault("DIGESTIVE_ABNORMAL", 0L).intValue();
+        int estrusTickets = alertsByType.getOrDefault("ESTRUS", 0L).intValue();
+        int epidemicTickets = alertsByType.getOrDefault("EPIDEMIC", 0L).intValue();
+        int aiTickets = alertsByType.getOrDefault("AI_ANOMALY", 0L).intValue();
+
         HealthOverviewStats stats = new HealthOverviewStats(
                 total, healthyRate != null ? Math.round(healthyRate * 100.0) / 100.0 : null,
                 alertCount, criticalCount, 0.92, "稳定", "↑2",
                 aiAnomalyCount, Math.round(aiAvgAllScore * 1000.0) / 1000.0);
 
         SceneSummary sceneSummary = new SceneSummary(
-                new SceneSummaryFever(feverAbnormal, feverCritical),
-                new SceneSummaryDigestive(digestiveAbnormal, digestiveWatch),
-                new SceneSummaryEstrus(estrusHigh, breedingAdvice),
-                new SceneSummaryEpidemic(riskLevel, metrics.abnormalRate().doubleValue()),
+                new SceneSummaryFever(feverAbnormal, feverCritical, feverTickets),
+                new SceneSummaryDigestive(digestiveAbnormal, digestiveWatch, digestiveTickets),
+                new SceneSummaryEstrus(estrusHigh, breedingAdvice, estrusTickets),
+                new SceneSummaryEpidemic(riskLevel, metrics.abnormalRate().doubleValue(), epidemicTickets),
                 new SceneSummaryAi(aiAnomalyCount, aiHighScoreCount,
-                        Math.round(aiAvgScore * 1000.0) / 1000.0));
+                        Math.round(aiAvgScore * 1000.0) / 1000.0, aiTickets));
 
         List<PendingTask> tasks = new ArrayList<>();
         for (HealthSnapshot snap : snapshots) {

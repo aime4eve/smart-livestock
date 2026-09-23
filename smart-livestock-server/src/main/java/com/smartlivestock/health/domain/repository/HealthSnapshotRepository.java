@@ -16,4 +16,6 @@ public interface HealthSnapshotRepository {
     List<ActiveLivestock> findRecentlyActive(Instant cutoff, int maxRows);
 
     record ActiveLivestock(Long livestockId, Long farmId, String telemetrySource) {}
+    /** All farm ids that have snapshots (drives farm-wide health schedulers). */
+    List<Long> findDistinctFarmIds();
 }
