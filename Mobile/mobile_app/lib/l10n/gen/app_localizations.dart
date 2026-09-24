@@ -10946,8 +10946,26 @@ abstract class AppLocalizations {
   /// No description provided for @ranchStatDeviceOnline.
   ///
   /// In zh, this message translates to:
-  /// **'在线'**
+  /// **'设备在线'**
   String get ranchStatDeviceOnline;
+
+  /// No description provided for @overviewSectionStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧场状态'**
+  String get overviewSectionStatus;
+
+  /// No description provided for @overviewSectionAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警'**
+  String get overviewSectionAlerts;
+
+  /// No description provided for @overviewSectionHealth.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康管理'**
+  String get overviewSectionHealth;
 
   /// No description provided for @ranchSceneFeverMgmt.
   ///
@@ -10976,19 +10994,19 @@ abstract class AppLocalizations {
   /// No description provided for @sceneFeverTileSub.
   ///
   /// In zh, this message translates to:
-  /// **'异{abnormal}·严{critical}'**
+  /// **'异常{abnormal}·严重{critical}'**
   String sceneFeverTileSub(int abnormal, int critical);
 
   /// No description provided for @sceneDigestiveTileSub.
   ///
   /// In zh, this message translates to:
-  /// **'异{abnormal}·观{watch}'**
+  /// **'异常{abnormal}·观察{watch}'**
   String sceneDigestiveTileSub(int abnormal, int watch);
 
   /// No description provided for @sceneEstrusTileSub.
   ///
   /// In zh, this message translates to:
-  /// **'高{high}'**
+  /// **'高分{high}只'**
   String sceneEstrusTileSub(int high);
 
   /// No description provided for @sceneEpidemicTileSub.
@@ -10996,6 +11014,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'{rate}%'**
   String sceneEpidemicTileSub(String rate);
+
+  /// No description provided for @sceneTileSteady.
+  ///
+  /// In zh, this message translates to:
+  /// **'平稳'**
+  String get sceneTileSteady;
 
   /// No description provided for @aiObserveTitle.
   ///
@@ -11008,12 +11032,6 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'关注中'**
   String get aiObserveWatching;
-
-  /// No description provided for @aiObserveOverall.
-  ///
-  /// In zh, this message translates to:
-  /// **'整体'**
-  String get aiObserveOverall;
 
   /// No description provided for @aiBandCalm.
   ///

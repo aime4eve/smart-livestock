@@ -6054,6 +6054,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ranchStatDeviceOnline => 'Online';
 
   @override
+  String get overviewSectionStatus => 'Ranch Status';
+
+  @override
+  String get overviewSectionAlerts => 'Alerts';
+
+  @override
+  String get overviewSectionHealth => 'Health';
+
+  @override
   String get ranchSceneFeverMgmt => 'Fever';
 
   @override
@@ -6086,13 +6095,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get sceneTileSteady => 'Steady';
+
+  @override
   String get aiObserveTitle => 'AI Health Watch';
 
   @override
   String get aiObserveWatching => 'Watching';
-
-  @override
-  String get aiObserveOverall => 'Overall';
 
   @override
   String get aiBandCalm => 'Calm';

@@ -5902,7 +5902,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ranchStatHealthyRate => '健康率';
 
   @override
-  String get ranchStatDeviceOnline => '在线';
+  String get ranchStatDeviceOnline => '设备在线';
+
+  @override
+  String get overviewSectionStatus => '牧场状态';
+
+  @override
+  String get overviewSectionAlerts => '告警';
+
+  @override
+  String get overviewSectionHealth => '健康管理';
 
   @override
   String get ranchSceneFeverMgmt => '发热管理';
@@ -5918,17 +5927,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String sceneFeverTileSub(int abnormal, int critical) {
-    return '异$abnormal·严$critical';
+    return '异常$abnormal·严重$critical';
   }
 
   @override
   String sceneDigestiveTileSub(int abnormal, int watch) {
-    return '异$abnormal·观$watch';
+    return '异常$abnormal·观察$watch';
   }
 
   @override
   String sceneEstrusTileSub(int high) {
-    return '高$high';
+    return '高分$high只';
   }
 
   @override
@@ -5937,13 +5946,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get sceneTileSteady => '平稳';
+
+  @override
   String get aiObserveTitle => '智能健康观察';
 
   @override
   String get aiObserveWatching => '关注中';
-
-  @override
-  String get aiObserveOverall => '整体';
 
   @override
   String get aiBandCalm => '平稳';

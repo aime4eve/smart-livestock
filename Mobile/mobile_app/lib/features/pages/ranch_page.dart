@@ -478,6 +478,12 @@ class _RanchPageState extends ConsumerState<RanchPage>
 
     final twinAsync = ref.watch(twinOverviewControllerProvider);
     final twinStats = twinAsync.value?.stats;
+    final healthyRate = twinStats == null || twinStats.healthyRate <= 0
+        ? '-'
+        : '${(twinStats.healthyRate * 100).toStringAsFixed(0)}%';
+    final onlineRate = twinStats == null || twinStats.deviceOnlineRate <= 0
+        ? '-'
+        : '${(twinStats.deviceOnlineRate * 100).toStringAsFixed(0)}%';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(
@@ -487,82 +493,160 @@ class _RanchPageState extends ConsumerState<RanchPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Wrap(
-        spacing: AppSpacing.sm,
-        runSpacing: AppSpacing.sm,
-        children: [
-          _buildDashCardWithUnread(
-            UnreadBadge(count: fenceUnread),
-            _DashCard(
-              icon: Icons.fence,
-              count: fenceTotal,
-              label: l10n.ranchSectionFenceAlerts,
-              color: AppColors.danger,
-              onTap: () => context.push('${AppRoute.alerts.path}?category=fence'),
-            ),
+          _sectionHeader(l10n.overviewSectionStatus),
+          _buildStatRow(
+            cells: [
+              _statCell(
+                icon: Icons.pets,
+                value: '${overview.overallStats.totalLivestock}',
+                label: l10n.ranchLivestockTotal,
+                onTap: () => context.push(AppRoute.livestockList.path),
+              ),
+              _statCell(
+                icon: Icons.monitor_heart,
+                value: healthyRate,
+                valueColor: AppColors.success,
+                label: l10n.ranchStatHealthyRate,
+                onTap: () =>
+                    context.push('${AppRoute.alerts.path}?category=health'),
+              ),
+              _statCell(
+                icon: Icons.router,
+                value: onlineRate,
+                valueColor: AppColors.success,
+                label: l10n.ranchStatDeviceOnline,
+                onTap: () =>
+                    context.push('${AppRoute.alerts.path}?category=device'),
+              ),
+            ],
           ),
-          _buildDashCardWithUnread(
-            UnreadBadge(count: healthUnread),
-            _DashCard(
-              icon: Icons.favorite,
-              count: healthTotal,
-              label: l10n.ranchSectionHealthAlerts,
-              color: AppColors.warning,
-              onTap: () =>
-                  context.push('${AppRoute.alerts.path}?category=health'),
-            ),
+          const SizedBox(height: AppSpacing.md),
+          _sectionHeader(l10n.overviewSectionAlerts),
+          _buildStatRow(
+            cells: [
+              _statCell(
+                icon: Icons.fence,
+                value: '$fenceTotal',
+                valueColor: fenceTotal > 0 ? AppColors.danger : null,
+                label: l10n.ranchSectionFenceAlerts,
+                unread: fenceUnread,
+                onTap: () =>
+                    context.push('${AppRoute.alerts.path}?category=fence'),
+              ),
+              _statCell(
+                icon: Icons.favorite,
+                value: '$healthTotal',
+                valueColor: healthTotal > 0 ? AppColors.warning : null,
+                label: l10n.ranchSectionHealthAlerts,
+                unread: healthUnread,
+                onTap: () =>
+                    context.push('${AppRoute.alerts.path}?category=health'),
+              ),
+              _statCell(
+                icon: Icons.devices,
+                value: '$deviceAlerts',
+                valueColor: deviceAlerts > 0 ? AppColors.warning : null,
+                label: l10n.ranchSectionDeviceAlerts,
+                unread: deviceUnread,
+                onTap: () =>
+                    context.push('${AppRoute.alerts.path}?category=device'),
+              ),
+            ],
           ),
-          _buildDashCardWithUnread(
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                UnreadBadge(count: deviceUnread),
-                if (twinStats != null)
-                  _dashRateCorner(
-                      l10n.ranchStatDeviceOnline,
-                      '${(twinStats.deviceOnlineRate * 100).toStringAsFixed(0)}%'),
-              ],
-            ),
-            _DashCard(
-              icon: Icons.devices,
-              count: deviceAlerts,
-              label: l10n.ranchSectionDeviceAlerts,
-              color: AppColors.success,
-              onTap: () =>
-                  context.push('${AppRoute.alerts.path}?category=device'),
-            ),
-          ),
-          _buildDashCardWithUnread(
-            twinStats != null
-                ? _dashRateCorner(
-                    l10n.ranchStatHealthyRate,
-                    twinStats.healthyRate > 0
-                        ? '${(twinStats.healthyRate * 100).toStringAsFixed(0)}%'
-                        : '-')
-                : const SizedBox.shrink(),
-            _DashCard(
-              icon: Icons.pets,
-              count: overview.overallStats.totalLivestock,
-              label: l10n.ranchLivestockTotal,
-              color: AppColors.info,
-              onTap: () => context.push(AppRoute.livestockList.path),
-            ),
-          ),
-        ],
-          ),
-          if (twinAsync.hasValue) ..._buildHealthIntegration(context, twinAsync.value!),
+          if (twinAsync.hasValue)
+            ..._buildHealthIntegration(context, twinAsync.value!),
         ],
       ),
     );
   }
 
-  // ── NIX-245 健康整合区块：五格统计 + 一行四格场景 + AI 观察 + 对账行 ──
+  Widget _sectionHeader(String text) => Padding(
+        padding: const EdgeInsets.only(left: 2, bottom: 6),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      );
+
+  /// One bordered row of evenly divided stat cells separated by hairlines.
+  Widget _buildStatRow({required List<Widget> cells}) => Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                for (var i = 0; i < cells.length; i++) ...[
+                  if (i > 0)
+                    Container(width: 1, color: AppColors.border),
+                  Expanded(child: cells[i]),
+                ],
+              ],
+            ),
+          ),
+        ),
+      );
+
+  Widget _statCell({
+    required IconData icon,
+    required String value,
+    required String label,
+    required VoidCallback onTap,
+    Color? valueColor,
+    int? unread,
+  }) {
+    return Stack(
+      children: [
+        InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Column(
+              children: [
+                Icon(icon, size: 15, color: valueColor ?? AppColors.textSecondary),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: valueColor ?? AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 9,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (unread != null && unread > 0)
+          Positioned(top: 6, right: 8, child: UnreadBadge(count: unread)),
+      ],
+    );
+  }
+
+  // ── NIX-245 健康整合区块：场景四格 + AI 观察 + 对账提示（仅异常时） ──
 
   List<Widget> _buildHealthIntegration(BuildContext context, dynamic data) {
-    final stats = data.stats;
     final scene = data.sceneSummary;
-    if (stats == null || scene == null) return const [];
+    if (data.stats == null || scene == null) return const [];
+    final l10n = AppLocalizations.of(context)!;
 
     final sceneAbnormal = scene.fever.abnormalCount +
         scene.digestive.abnormalCount +
@@ -575,76 +659,78 @@ class _RanchPageState extends ConsumerState<RanchPage>
 
     return [
       const SizedBox(height: AppSpacing.md),
+      _sectionHeader(l10n.overviewSectionHealth),
       _buildSceneStrip(context, scene),
       const SizedBox(height: AppSpacing.sm),
       _buildAiRow(context, scene.ai),
       const SizedBox(height: AppSpacing.sm),
       _buildReconcileLine(context, sceneAbnormal, activeTickets),
-      const SizedBox(height: AppSpacing.sm),
     ];
   }
 
   Widget _buildSceneStrip(BuildContext context, dynamic scene) {
     final l10n = AppLocalizations.of(context)!;
+
     Widget tile({
       required IconData icon,
       required Color color,
       required String title,
-      required String subtitle,
-      required int tickets,
+      required String status,
+      required Color statusColor,
       required VoidCallback onTap,
     }) {
-      return Stack(
-        children: [
-          Card(
-            margin: EdgeInsets.zero,
-            child: InkWell(
-              onTap: onTap,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                child: Column(
-                  children: [
-                    Icon(icon, color: color, size: 20),
-                    const SizedBox(height: 4),
-                    Text(title,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            fontSize: 10, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 2),
-                    Text(subtitle,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            fontSize: 9, color: AppColors.textSecondary)),
-                  ],
+      return Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Column(
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  child: Icon(icon, size: 14, color: color),
                 ),
-              ),
+                const SizedBox(height: 6),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  status,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: statusColor,
+                  ),
+                ),
+              ],
             ),
           ),
-          if (tickets > 0)
-            Positioned(
-              top: 4,
-              right: 4,
-              child: GestureDetector(
-                onTap: () =>
-                    context.push('${AppRoute.alerts.path}?category=health'),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: AppColors.danger,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text('$tickets',
-                      style: const TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white)),
-                ),
-              ),
-            ),
-        ],
+        ),
       );
     }
+
+    final feverActive =
+        scene.fever.abnormalCount + scene.fever.criticalCount;
+    final digestiveActive =
+        scene.digestive.abnormalCount + scene.digestive.watchCount;
 
     return GridView.count(
       crossAxisCount: 4,
@@ -652,41 +738,61 @@ class _RanchPageState extends ConsumerState<RanchPage>
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: AppSpacing.sm,
       crossAxisSpacing: AppSpacing.sm,
-      childAspectRatio: 1.15,
+      childAspectRatio: 0.98,
       children: [
         tile(
           icon: Icons.thermostat,
           color: Colors.orange,
           title: l10n.ranchSceneFeverMgmt,
-          subtitle: l10n.sceneFeverTileSub(
-              scene.fever.abnormalCount, scene.fever.criticalCount),
-          tickets: scene.fever.activeAlertCount,
+          status: feverActive == 0
+              ? l10n.sceneTileSteady
+              : l10n.sceneFeverTileSub(
+                  scene.fever.abnormalCount, scene.fever.criticalCount),
+          statusColor: feverActive == 0
+              ? AppColors.success
+              : scene.fever.criticalCount > 0
+                  ? AppColors.danger
+                  : AppColors.warning,
           onTap: () => context.go(AppRoute.twinFever.path),
         ),
         tile(
           icon: Icons.grain,
           color: Colors.brown,
           title: l10n.ranchSceneDigestiveMgmt,
-          subtitle: l10n.sceneDigestiveTileSub(
-              scene.digestive.abnormalCount, scene.digestive.watchCount),
-          tickets: scene.digestive.activeAlertCount,
+          status: digestiveActive == 0
+              ? l10n.sceneTileSteady
+              : l10n.sceneDigestiveTileSub(
+                  scene.digestive.abnormalCount, scene.digestive.watchCount),
+          statusColor: digestiveActive == 0
+              ? AppColors.success
+              : AppColors.warning,
           onTap: () => context.go(AppRoute.twinDigestive.path),
         ),
         tile(
           icon: Icons.favorite,
           color: AppColors.estrus,
           title: l10n.ranchSceneEstrusMgmt,
-          subtitle: l10n.sceneEstrusTileSub(scene.estrus.highScoreCount),
-          tickets: scene.estrus.activeAlertCount,
+          status: scene.estrus.highScoreCount == 0
+              ? l10n.sceneTileSteady
+              : l10n.sceneEstrusTileSub(scene.estrus.highScoreCount),
+          statusColor: scene.estrus.highScoreCount == 0
+              ? AppColors.success
+              : AppColors.estrus,
           onTap: () => context.go(AppRoute.twinEstrus.path),
         ),
         tile(
           icon: Icons.shield,
           color: Colors.teal,
           title: l10n.ranchSceneEpidemic,
-          subtitle: l10n
-              .sceneEpidemicTileSub((scene.epidemic.abnormalRate * 100).toStringAsFixed(1)),
-          tickets: scene.epidemic.activeAlertCount,
+          status: scene.epidemic.abnormalRate <= 0
+              ? l10n.sceneTileSteady
+              : l10n.sceneEpidemicTileSub(
+                  (scene.epidemic.abnormalRate * 100).toStringAsFixed(1)),
+          statusColor: scene.epidemic.abnormalRate <= 0
+              ? AppColors.success
+              : scene.epidemic.abnormalRate >= 0.10
+                  ? AppColors.danger
+                  : AppColors.warning,
           onTap: () => context.go(AppRoute.twinEpidemic.path),
         ),
       ],
@@ -696,70 +802,107 @@ class _RanchPageState extends ConsumerState<RanchPage>
   Widget _buildAiRow(BuildContext context, dynamic ai) {
     final l10n = AppLocalizations.of(context)!;
     if (ai == null) return const SizedBox.shrink();
+    final color = ai.avgScore >= 0.7
+        ? AppColors.danger
+        : ai.avgScore >= 0.3
+            ? AppColors.warning
+            : AppColors.success;
     final band = ai.avgScore >= 0.7
         ? l10n.aiBandAlarm
         : ai.avgScore >= 0.3
             ? l10n.aiBandWatch
             : l10n.aiBandCalm;
-    return Card(
-      margin: EdgeInsets.zero,
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
           children: [
-            const Icon(Icons.smart_toy, color: AppColors.info, size: 18),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(l10n.aiObserveTitle,
-                  style:
-                      const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: AppColors.info.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(7),
+              ),
+              child: const Icon(
+                Icons.smart_toy,
+                size: 14,
+                color: AppColors.info,
+              ),
             ),
-            Text('${l10n.aiObserveWatching} ${ai.anomalyCount}',
-                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-            const SizedBox(width: 12),
-            Text('${l10n.aiObserveOverall} $band',
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                l10n.aiObserveTitle,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Text(
+              '${l10n.aiObserveWatching} ${ai.anomalyCount}',
+              style: const TextStyle(
+                fontSize: 10,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                band,
                 style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: ai.avgScore >= 0.7
-                        ? AppColors.danger
-                        : ai.avgScore >= 0.3
-                            ? AppColors.warning
-                            : AppColors.success)),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
+  /// Hidden while scene counts and open tickets agree; surfaces an amber
+  /// hint only when the two drift apart (e.g. tickets not yet created).
   Widget _buildReconcileLine(BuildContext context, int sceneAbnormal, int tickets) {
     final l10n = AppLocalizations.of(context)!;
-    final ok = sceneAbnormal == tickets;
+    if (sceneAbnormal == tickets) return const SizedBox.shrink();
+    final diff = (tickets - sceneAbnormal).abs();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.success.withValues(alpha: 0.08),
+        color: AppColors.warning.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(9),
-        border: Border.all(color: AppColors.success.withValues(alpha: 0.25)),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.25)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          const Icon(Icons.error_outline, size: 13, color: AppColors.warning),
+          const SizedBox(width: 4),
           Flexible(
             child: Text(
-              ok
-                  ? '${l10n.reconcileSceneAbnormal} $sceneAbnormal ${l10n.reconcileHeadUnit} · ${l10n.reconcileActiveTickets} $tickets ${l10n.reconcileTicketUnit}'
-                  : '${l10n.reconcileSceneAbnormal} $sceneAbnormal ${l10n.reconcileHeadUnit} · ${l10n.reconcileActiveTickets} $tickets ${l10n.reconcileTicketUnit} · ${l10n.reconcileOffBy}${(tickets - sceneAbnormal).abs()}',
+              '${l10n.reconcileSceneAbnormal} $sceneAbnormal ${l10n.reconcileHeadUnit} · ${l10n.reconcileActiveTickets} $tickets ${l10n.reconcileTicketUnit} · ${l10n.reconcileOffBy}$diff',
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.success.withValues(alpha: 0.9)),
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: AppColors.warning.withValues(alpha: 0.9),
+              ),
             ),
           ),
-          const SizedBox(width: 4),
-          Icon(ok ? Icons.check_circle : Icons.error_outline,
-              size: 13, color: ok ? AppColors.success : AppColors.warning),
         ],
       ),
     );
@@ -781,33 +924,6 @@ class _RanchPageState extends ConsumerState<RanchPage>
     return overview.alerts
         .where((a) => a.status == 'ACTIVE' && groups.contains(a.type))
         .length;
-  }
-
-  /// NIX-245: dash-card top-right micro annotation (健康率/在线率)，
-  /// 两行：数值（success 色）+ 微标签（次要色）。
-  Widget _dashRateCorner(String label, String value) => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(value,
-              style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.success)),
-          Text(label,
-              style:
-                  const TextStyle(fontSize: 8, color: AppColors.textSecondary)),
-        ],
-      );
-
-  /// Overlays the unread pill on the card's top-right corner.
-  Widget _buildDashCardWithUnread(Widget badge, Widget card) {
-    return Stack(
-      children: [
-        card,
-        Positioned(top: 6, right: 6, child: badge),
-      ],
-    );
   }
 
   Widget _buildAlertsTab(
@@ -1220,76 +1336,3 @@ class _SheetTab extends StatelessWidget {
   }
 }
 
-// ── Dashboard card for overview tab ──
-
-class _DashCard extends StatelessWidget {
-  const _DashCard({
-    required this.icon,
-    required this.count,
-    required this.label,
-    required this.color,
-    this.onTap,
-  });
-
-  final IconData icon;
-  final int count;
-  final String label;
-  final Color color;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final hasAlert = count > 0 && label.contains('告警');
-    final card = Container(
-      width:
-          (MediaQuery.of(context).size.width -
-              AppSpacing.md * 2 -
-              AppSpacing.sm) /
-          2,
-      padding: const EdgeInsets.all(7),
-      decoration: BoxDecoration(
-        color: hasAlert ? color.withValues(alpha: 0.03) : AppColors.surface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: hasAlert ? color.withValues(alpha: 0.3) : AppColors.border,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Icon(icon, size: 12, color: color),
-              ),
-              const Spacer(),
-              // No inline count pill here: the big number already shows the
-              // active total, and the unread pill (UnreadBadge) sits on the
-              // card's top-right corner — two pills would overlap.
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '$count',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 9, color: AppColors.textSecondary),
-          ),
-        ],
-      ),
-    );
-    return onTap != null ? GestureDetector(onTap: onTap, child: card) : card;
-  }
-}
