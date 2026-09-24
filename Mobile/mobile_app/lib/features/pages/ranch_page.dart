@@ -352,13 +352,13 @@ class _RanchPageState extends ConsumerState<RanchPage>
           // Drag handle — tap to toggle expand/collapse, drag to swipe
           GestureDetector(
             onTap: () => setState(() {
-              // Cycle: peek(0) -> half(1) -> full(2) -> half(1) -> peek(0)
+              // Tap grows the sheet: peek(0) -> half(1) -> full(2) -> half(1).
+              // Collapsing to peek is swipe-down-only — a tap at full must
+              // never dump the user back to a tabs-only sheet.
               if (_sheetSnap == 0) {
                 _sheetSnap = 1;
-              } else if (_sheetSnap == 1) {
-                _sheetSnap = 2;
               } else {
-                _sheetSnap = 0;
+                _sheetSnap = _sheetSnap == 1 ? 2 : 1;
               }
             }),
             onVerticalDragEnd: (details) {
