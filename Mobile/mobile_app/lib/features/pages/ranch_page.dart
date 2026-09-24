@@ -477,6 +477,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
     final deviceUnread = summary?.byGroupUnread.device ?? 0;
 
     final twinAsync = ref.watch(twinOverviewControllerProvider);
+    final twinStats = twinAsync.value?.stats;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(
@@ -512,7 +513,17 @@ class _RanchPageState extends ConsumerState<RanchPage>
             ),
           ),
           _buildDashCardWithUnread(
-            UnreadBadge(count: deviceUnread),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                UnreadBadge(count: deviceUnread),
+                if (twinStats != null)
+                  _dashRateCorner(
+                      l10n.ranchStatDeviceOnline,
+                      '${(twinStats.deviceOnlineRate * 100).toStringAsFixed(0)}%'),
+              ],
+            ),
             _DashCard(
               icon: Icons.devices,
               count: deviceAlerts,
@@ -522,12 +533,21 @@ class _RanchPageState extends ConsumerState<RanchPage>
                   context.push('${AppRoute.alerts.path}?category=device'),
             ),
           ),
-          _DashCard(
-            icon: Icons.pets,
-            count: overview.overallStats.totalLivestock,
-            label: l10n.ranchLivestockTotal,
-            color: AppColors.info,
-            onTap: () => context.push(AppRoute.livestockList.path),
+          _buildDashCardWithUnread(
+            twinStats != null
+                ? _dashRateCorner(
+                    l10n.ranchStatHealthyRate,
+                    twinStats.healthyRate > 0
+                        ? '${(twinStats.healthyRate * 100).toStringAsFixed(0)}%'
+                        : '-')
+                : const SizedBox.shrink(),
+            _DashCard(
+              icon: Icons.pets,
+              count: overview.overallStats.totalLivestock,
+              label: l10n.ranchLivestockTotal,
+              color: AppColors.info,
+              onTap: () => context.push(AppRoute.livestockList.path),
+            ),
           ),
         ],
           ),
@@ -555,8 +575,6 @@ class _RanchPageState extends ConsumerState<RanchPage>
 
     return [
       const SizedBox(height: AppSpacing.md),
-      _buildTwinStats(context, stats),
-      const SizedBox(height: AppSpacing.md),
       _buildSceneStrip(context, scene),
       const SizedBox(height: AppSpacing.sm),
       _buildAiRow(context, scene.ai),
@@ -564,48 +582,6 @@ class _RanchPageState extends ConsumerState<RanchPage>
       _buildReconcileLine(context, sceneAbnormal, activeTickets),
       const SizedBox(height: AppSpacing.sm),
     ];
-  }
-
-  Widget _buildTwinStats(BuildContext context, dynamic stats) {
-    final l10n = AppLocalizations.of(context)!;
-    Widget cell(String title, String value, Color? color) => Card(
-          margin: EdgeInsets.zero,
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(value,
-                    style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: color ?? AppColors.textPrimary)),
-                const SizedBox(height: 2),
-                Text(title,
-                    style: const TextStyle(
-                        fontSize: 10, color: AppColors.textSecondary)),
-              ],
-            ),
-          ),
-        );
-    return GridView.count(
-      crossAxisCount: 3,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: AppSpacing.sm,
-      crossAxisSpacing: AppSpacing.sm,
-      childAspectRatio: 2.6,
-      children: [
-        cell(l10n.ranchStatLivestockTotal, '${stats.totalLivestock}', null),
-        cell(l10n.ranchStatHealthyRate,
-            '${(stats.healthyRate * 100).toStringAsFixed(1)}%', AppColors.success),
-        cell(l10n.ranchStatActiveAlerts, '${stats.alertCount}', null),
-        cell(l10n.ranchStatCritical, '${stats.criticalCount}',
-            stats.criticalCount > 0 ? AppColors.danger : null),
-        cell(l10n.ranchStatDeviceOnline,
-            '${(stats.deviceOnlineRate * 100).toStringAsFixed(1)}%', AppColors.success),
-      ],
-    );
   }
 
   Widget _buildSceneStrip(BuildContext context, dynamic scene) {
@@ -806,6 +782,23 @@ class _RanchPageState extends ConsumerState<RanchPage>
         .where((a) => a.status == 'ACTIVE' && groups.contains(a.type))
         .length;
   }
+
+  /// NIX-245: dash-card top-right micro annotation (健康率/在线率)，
+  /// 两行：数值（success 色）+ 微标签（次要色）。
+  Widget _dashRateCorner(String label, String value) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(value,
+              style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.success)),
+          Text(label,
+              style:
+                  const TextStyle(fontSize: 8, color: AppColors.textSecondary)),
+        ],
+      );
 
   /// Overlays the unread pill on the card's top-right corner.
   Widget _buildDashCardWithUnread(Widget badge, Widget card) {

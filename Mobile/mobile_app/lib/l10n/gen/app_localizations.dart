@@ -10937,34 +10937,16 @@ abstract class AppLocalizations {
   /// **'手动模式'**
   String get gatewayFollowManual;
 
-  /// No description provided for @ranchStatLivestockTotal.
-  ///
-  /// In zh, this message translates to:
-  /// **'牲畜总数'**
-  String get ranchStatLivestockTotal;
-
   /// No description provided for @ranchStatHealthyRate.
   ///
   /// In zh, this message translates to:
   /// **'健康率'**
   String get ranchStatHealthyRate;
 
-  /// No description provided for @ranchStatActiveAlerts.
-  ///
-  /// In zh, this message translates to:
-  /// **'活跃告警'**
-  String get ranchStatActiveAlerts;
-
-  /// No description provided for @ranchStatCritical.
-  ///
-  /// In zh, this message translates to:
-  /// **'严重异常'**
-  String get ranchStatCritical;
-
   /// No description provided for @ranchStatDeviceOnline.
   ///
   /// In zh, this message translates to:
-  /// **'设备在线率'**
+  /// **'在线'**
   String get ranchStatDeviceOnline;
 
   /// No description provided for @ranchSceneFeverMgmt.

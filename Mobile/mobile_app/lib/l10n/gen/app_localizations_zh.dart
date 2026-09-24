@@ -5899,19 +5899,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gatewayFollowManual => '手动模式';
 
   @override
-  String get ranchStatLivestockTotal => '牲畜总数';
-
-  @override
   String get ranchStatHealthyRate => '健康率';
 
   @override
-  String get ranchStatActiveAlerts => '活跃告警';
-
-  @override
-  String get ranchStatCritical => '严重异常';
-
-  @override
-  String get ranchStatDeviceOnline => '设备在线率';
+  String get ranchStatDeviceOnline => '在线';
 
   @override
   String get ranchSceneFeverMgmt => '发热管理';

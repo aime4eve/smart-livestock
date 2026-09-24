@@ -6048,19 +6048,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gatewayFollowManual => 'Manual mode';
 
   @override
-  String get ranchStatLivestockTotal => 'Livestock';
-
-  @override
   String get ranchStatHealthyRate => 'Healthy';
 
   @override
-  String get ranchStatActiveAlerts => 'Active Alerts';
-
-  @override
-  String get ranchStatCritical => 'Critical';
-
-  @override
-  String get ranchStatDeviceOnline => 'Device Online';
+  String get ranchStatDeviceOnline => 'Online';
 
   @override
   String get ranchSceneFeverMgmt => 'Fever';
