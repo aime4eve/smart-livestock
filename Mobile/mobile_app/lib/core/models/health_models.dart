@@ -59,6 +59,7 @@ class HealthOverviewResponse {
           ? SceneSummaryFever(
               abnormalCount: m['fever']['abnormalCount'] as int? ?? 0,
               criticalCount: m['fever']['criticalCount'] as int? ?? 0,
+              elevatedCount: m['fever']['elevatedCount'] as int? ?? 0,
               activeAlertCount: m['fever']['activeAlertCount'] as int? ?? 0,
             )
           : const SceneSummaryFever(abnormalCount: 0, criticalCount: 0),

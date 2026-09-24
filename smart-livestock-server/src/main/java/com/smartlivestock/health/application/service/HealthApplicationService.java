@@ -467,6 +467,10 @@ public class HealthApplicationService {
                 .count();
         int feverCritical = (int) snapshots.stream()
                 .filter(s -> s.getTempStatus() == TempStatus.CRITICAL).count();
+        int feverElevated = (int) snapshots.stream()
+                .filter(s -> s.getTempStatus() == TempStatus.ELEVATED)
+                .filter(s -> livestockIds.contains(s.getLivestockId()))
+                .count();
 
         int digestiveAbnormal = (int) snapshots.stream()
                 .filter(s -> s.getMotilityStatus() == MotilityStatus.ABNORMAL).count();
@@ -519,7 +523,7 @@ public class HealthApplicationService {
                 aiAnomalyCount, Math.round(aiAvgAllScore * 1000.0) / 1000.0);
 
         SceneSummary sceneSummary = new SceneSummary(
-                new SceneSummaryFever(feverAbnormal, feverCritical, feverTickets),
+                new SceneSummaryFever(feverAbnormal, feverCritical, feverElevated, feverTickets),
                 new SceneSummaryDigestive(digestiveAbnormal, digestiveWatch, digestiveTickets),
                 new SceneSummaryEstrus(estrusHigh, breedingAdvice, estrusTickets),
                 new SceneSummaryEpidemic(riskLevel, metrics.abnormalRate().doubleValue(), epidemicTickets),

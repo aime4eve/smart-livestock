@@ -5899,12 +5899,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gatewayFollowManual => '手动模式';
 
   @override
-  String get ranchStatHealthyRate => '健康率';
-
-  @override
-  String get ranchStatDeviceOnline => '设备在线';
-
-  @override
   String get overviewSectionStatus => '牧场状态';
 
   @override
@@ -5926,33 +5920,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ranchSceneEpidemic => '疫病防控';
 
   @override
-  String sceneFeverTileSub(int abnormal, int critical) {
-    return '异常$abnormal·严重$critical';
-  }
-
-  @override
-  String sceneDigestiveTileSub(int abnormal, int watch) {
-    return '异常$abnormal·观察$watch';
-  }
-
-  @override
-  String sceneEstrusTileSub(int high) {
-    return '高分$high只';
-  }
-
-  @override
-  String sceneEpidemicTileSub(String rate) {
-    return '$rate%';
-  }
-
-  @override
-  String get sceneTileSteady => '平稳';
-
-  @override
   String get aiObserveTitle => '智能健康观察';
-
-  @override
-  String get aiObserveWatching => '关注中';
 
   @override
   String get aiBandCalm => '平稳';
@@ -5977,4 +5945,169 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get reconcileOffBy => '差';
+
+  @override
+  String get heroTitleCalm => '牧场一切平稳';
+
+  @override
+  String heroTitleAttention(int n) {
+    return '$n 只需要关注';
+  }
+
+  @override
+  String heroDatePattern(int m, int d, String w) {
+    return '$m月$d日 星期$w';
+  }
+
+  @override
+  String get weekday0 => '日';
+
+  @override
+  String get weekday1 => '一';
+
+  @override
+  String get weekday2 => '二';
+
+  @override
+  String get weekday3 => '三';
+
+  @override
+  String get weekday4 => '四';
+
+  @override
+  String get weekday5 => '五';
+
+  @override
+  String get weekday6 => '六';
+
+  @override
+  String heroSub(int healthy, int total, int fences) {
+    return '$healthy/$total 只健康 · $fences 个围栏需要巡查';
+  }
+
+  @override
+  String get heroRingLabel => '健康率';
+
+  @override
+  String get heroChipHead => '头在养';
+
+  @override
+  String get heroChipDevice => '设备在线';
+
+  @override
+  String get secNeedsAttention => '需要处理';
+
+  @override
+  String secNeedsAttentionTotal(int n) {
+    return '共 $n 起 · 点击进入';
+  }
+
+  @override
+  String get tileFence => '围栏';
+
+  @override
+  String get tileHealth => '健康';
+
+  @override
+  String get tileDevice => '设备';
+
+  @override
+  String tileFenceSub(int n) {
+    return '$n 个围栏越界';
+  }
+
+  @override
+  String get tileFenceSubClear => '无越界';
+
+  @override
+  String get tileHealthSubFever => '发热为主';
+
+  @override
+  String get tileHealthSubDigestive => '消化为主';
+
+  @override
+  String get tileHealthSubEstrus => '发情提醒';
+
+  @override
+  String get tileHealthSubNone => '暂无异常';
+
+  @override
+  String get tileDeviceNormal => '正常';
+
+  @override
+  String get tileDeviceAbnormal => '待处理';
+
+  @override
+  String get secHealthMgmt => '健康管理';
+
+  @override
+  String get secHealthAll => '全部 ›';
+
+  @override
+  String get pillSteady => '平稳';
+
+  @override
+  String pillAbnormal(int n) {
+    return '$n 只异常';
+  }
+
+  @override
+  String pillHigh(int n) {
+    return '$n 只高分';
+  }
+
+  @override
+  String pillRate(String rate) {
+    return '$rate%';
+  }
+
+  @override
+  String sceneFeverFoot(int fever, int low) {
+    return '$fever 只发烧 · $low 只低热';
+  }
+
+  @override
+  String sceneFeverFootOver(int n) {
+    return '，$n 只持续超 6 小时';
+  }
+
+  @override
+  String get sceneFeverCalm => '体温均在正常区间';
+
+  @override
+  String sceneDigestiveFoot(int n) {
+    return '$n 只反刍偏低';
+  }
+
+  @override
+  String get sceneDigestiveCalm => '反刍频率均在正常区间';
+
+  @override
+  String sceneEstrusFoot(int n) {
+    return '$n 只进入配种窗口';
+  }
+
+  @override
+  String get sceneEstrusCalm => '暂无高分个体，适合巡查';
+
+  @override
+  String sceneEpidemicFootBelow(String rate) {
+    return '7 日异常率 $rate%，低于警戒线';
+  }
+
+  @override
+  String sceneEpidemicFootAbove(String rate) {
+    return '7 日异常率 $rate%，已超警戒线';
+  }
+
+  @override
+  String aiSummaryWatching(int n) {
+    return '$n 只持续观察';
+  }
+
+  @override
+  String get aiNotReady => 'AI 观察暂未开启，恢复后自动展示';
+
+  @override
+  String get recHint => '（可能有单未开出，建议巡检）';
 }

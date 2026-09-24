@@ -6048,12 +6048,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gatewayFollowManual => 'Manual mode';
 
   @override
-  String get ranchStatHealthyRate => 'Healthy';
-
-  @override
-  String get ranchStatDeviceOnline => 'Online';
-
-  @override
   String get overviewSectionStatus => 'Ranch Status';
 
   @override
@@ -6075,33 +6069,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ranchSceneEpidemic => 'Epidemic';
 
   @override
-  String sceneFeverTileSub(int abnormal, int critical) {
-    return 'Abn $abnormal·Cri $critical';
-  }
-
-  @override
-  String sceneDigestiveTileSub(int abnormal, int watch) {
-    return 'Abn $abnormal·Wch $watch';
-  }
-
-  @override
-  String sceneEstrusTileSub(int high) {
-    return 'High $high';
-  }
-
-  @override
-  String sceneEpidemicTileSub(String rate) {
-    return '$rate%';
-  }
-
-  @override
-  String get sceneTileSteady => 'Steady';
-
-  @override
   String get aiObserveTitle => 'AI Health Watch';
-
-  @override
-  String get aiObserveWatching => 'Watching';
 
   @override
   String get aiBandCalm => 'Calm';
@@ -6126,4 +6094,170 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reconcileOffBy => 'off by ';
+
+  @override
+  String get heroTitleCalm => 'All calm on the ranch';
+
+  @override
+  String heroTitleAttention(int n) {
+    return '$n need attention';
+  }
+
+  @override
+  String heroDatePattern(int m, int d, String w) {
+    return '$w, $m/$d';
+  }
+
+  @override
+  String get weekday0 => 'Sun';
+
+  @override
+  String get weekday1 => 'Mon';
+
+  @override
+  String get weekday2 => 'Tue';
+
+  @override
+  String get weekday3 => 'Wed';
+
+  @override
+  String get weekday4 => 'Thu';
+
+  @override
+  String get weekday5 => 'Fri';
+
+  @override
+  String get weekday6 => 'Sat';
+
+  @override
+  String heroSub(int healthy, int total, int fences) {
+    return '$healthy/$total healthy · $fences fences to patrol';
+  }
+
+  @override
+  String get heroRingLabel => 'healthy';
+
+  @override
+  String get heroChipHead => 'head';
+
+  @override
+  String get heroChipDevice => 'devices online';
+
+  @override
+  String get secNeedsAttention => 'Needs attention';
+
+  @override
+  String secNeedsAttentionTotal(int n) {
+    return '$n in total · tap to view';
+  }
+
+  @override
+  String get tileFence => 'Fence';
+
+  @override
+  String get tileHealth => 'Health';
+
+  @override
+  String get tileDevice => 'Device';
+
+  @override
+  String tileFenceSub(int n) {
+    return '$n fences breached';
+  }
+
+  @override
+  String get tileFenceSubClear => 'no breach';
+
+  @override
+  String get tileHealthSubFever => 'fever mainly';
+
+  @override
+  String get tileHealthSubDigestive => 'digestive mainly';
+
+  @override
+  String get tileHealthSubEstrus => 'estrus';
+
+  @override
+  String get tileHealthSubNone => 'nothing pending';
+
+  @override
+  String get tileDeviceNormal => 'normal';
+
+  @override
+  String get tileDeviceAbnormal => 'pending';
+
+  @override
+  String get secHealthMgmt => 'Health Management';
+
+  @override
+  String get secHealthAll => 'All ›';
+
+  @override
+  String get pillSteady => 'Steady';
+
+  @override
+  String pillAbnormal(int n) {
+    return '$n abnormal';
+  }
+
+  @override
+  String pillHigh(int n) {
+    return '$n high score';
+  }
+
+  @override
+  String pillRate(String rate) {
+    return '$rate%';
+  }
+
+  @override
+  String sceneFeverFoot(int fever, int low) {
+    return '$fever feverish · $low low-grade';
+  }
+
+  @override
+  String sceneFeverFootOver(int n) {
+    return ', $n over 6 hours';
+  }
+
+  @override
+  String get sceneFeverCalm => 'All temperatures normal';
+
+  @override
+  String sceneDigestiveFoot(int n) {
+    return '$n low rumination';
+  }
+
+  @override
+  String get sceneDigestiveCalm => 'Rumination all in normal range';
+
+  @override
+  String sceneEstrusFoot(int n) {
+    return '$n in breeding window';
+  }
+
+  @override
+  String get sceneEstrusCalm => 'No high scores, good for patrol';
+
+  @override
+  String sceneEpidemicFootBelow(String rate) {
+    return '7-day rate $rate%, below warning line';
+  }
+
+  @override
+  String sceneEpidemicFootAbove(String rate) {
+    return '7-day rate $rate%, above warning line';
+  }
+
+  @override
+  String aiSummaryWatching(int n) {
+    return '$n under watch';
+  }
+
+  @override
+  String get aiNotReady =>
+      'AI watch not started yet; shows up automatically once ready';
+
+  @override
+  String get recHint => ' (tickets may be missing — patrol advised)';
 }

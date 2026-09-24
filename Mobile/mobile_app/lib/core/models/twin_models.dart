@@ -88,11 +88,14 @@ class SceneSummaryFever {
   const SceneSummaryFever({
     required this.abnormalCount,
     required this.criticalCount,
+    this.elevatedCount = 0,
     this.activeAlertCount = 0,
   });
 
   final int abnormalCount;
   final int criticalCount;
+  /// 低热（ELEVATED）头数——方案 D 场景卡副标拆"发烧/低热"用。
+  final int elevatedCount;
   final int activeAlertCount;
 }
 

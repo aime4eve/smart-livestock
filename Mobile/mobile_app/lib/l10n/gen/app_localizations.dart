@@ -10937,18 +10937,6 @@ abstract class AppLocalizations {
   /// **'手动模式'**
   String get gatewayFollowManual;
 
-  /// No description provided for @ranchStatHealthyRate.
-  ///
-  /// In zh, this message translates to:
-  /// **'健康率'**
-  String get ranchStatHealthyRate;
-
-  /// No description provided for @ranchStatDeviceOnline.
-  ///
-  /// In zh, this message translates to:
-  /// **'设备在线'**
-  String get ranchStatDeviceOnline;
-
   /// No description provided for @overviewSectionStatus.
   ///
   /// In zh, this message translates to:
@@ -10991,47 +10979,11 @@ abstract class AppLocalizations {
   /// **'疫病防控'**
   String get ranchSceneEpidemic;
 
-  /// No description provided for @sceneFeverTileSub.
-  ///
-  /// In zh, this message translates to:
-  /// **'异常{abnormal}·严重{critical}'**
-  String sceneFeverTileSub(int abnormal, int critical);
-
-  /// No description provided for @sceneDigestiveTileSub.
-  ///
-  /// In zh, this message translates to:
-  /// **'异常{abnormal}·观察{watch}'**
-  String sceneDigestiveTileSub(int abnormal, int watch);
-
-  /// No description provided for @sceneEstrusTileSub.
-  ///
-  /// In zh, this message translates to:
-  /// **'高分{high}只'**
-  String sceneEstrusTileSub(int high);
-
-  /// No description provided for @sceneEpidemicTileSub.
-  ///
-  /// In zh, this message translates to:
-  /// **'{rate}%'**
-  String sceneEpidemicTileSub(String rate);
-
-  /// No description provided for @sceneTileSteady.
-  ///
-  /// In zh, this message translates to:
-  /// **'平稳'**
-  String get sceneTileSteady;
-
   /// No description provided for @aiObserveTitle.
   ///
   /// In zh, this message translates to:
   /// **'智能健康观察'**
   String get aiObserveTitle;
-
-  /// No description provided for @aiObserveWatching.
-  ///
-  /// In zh, this message translates to:
-  /// **'关注中'**
-  String get aiObserveWatching;
 
   /// No description provided for @aiBandCalm.
   ///
@@ -11080,6 +11032,276 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'差'**
   String get reconcileOffBy;
+
+  /// No description provided for @heroTitleCalm.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧场一切平稳'**
+  String get heroTitleCalm;
+
+  /// No description provided for @heroTitleAttention.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 只需要关注'**
+  String heroTitleAttention(int n);
+
+  /// No description provided for @heroDatePattern.
+  ///
+  /// In zh, this message translates to:
+  /// **'{m}月{d}日 星期{w}'**
+  String heroDatePattern(int m, int d, String w);
+
+  /// No description provided for @weekday0.
+  ///
+  /// In zh, this message translates to:
+  /// **'日'**
+  String get weekday0;
+
+  /// No description provided for @weekday1.
+  ///
+  /// In zh, this message translates to:
+  /// **'一'**
+  String get weekday1;
+
+  /// No description provided for @weekday2.
+  ///
+  /// In zh, this message translates to:
+  /// **'二'**
+  String get weekday2;
+
+  /// No description provided for @weekday3.
+  ///
+  /// In zh, this message translates to:
+  /// **'三'**
+  String get weekday3;
+
+  /// No description provided for @weekday4.
+  ///
+  /// In zh, this message translates to:
+  /// **'四'**
+  String get weekday4;
+
+  /// No description provided for @weekday5.
+  ///
+  /// In zh, this message translates to:
+  /// **'五'**
+  String get weekday5;
+
+  /// No description provided for @weekday6.
+  ///
+  /// In zh, this message translates to:
+  /// **'六'**
+  String get weekday6;
+
+  /// No description provided for @heroSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'{healthy}/{total} 只健康 · {fences} 个围栏需要巡查'**
+  String heroSub(int healthy, int total, int fences);
+
+  /// No description provided for @heroRingLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康率'**
+  String get heroRingLabel;
+
+  /// No description provided for @heroChipHead.
+  ///
+  /// In zh, this message translates to:
+  /// **'头在养'**
+  String get heroChipHead;
+
+  /// No description provided for @heroChipDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备在线'**
+  String get heroChipDevice;
+
+  /// No description provided for @secNeedsAttention.
+  ///
+  /// In zh, this message translates to:
+  /// **'需要处理'**
+  String get secNeedsAttention;
+
+  /// No description provided for @secNeedsAttentionTotal.
+  ///
+  /// In zh, this message translates to:
+  /// **'共 {n} 起 · 点击进入'**
+  String secNeedsAttentionTotal(int n);
+
+  /// No description provided for @tileFence.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏'**
+  String get tileFence;
+
+  /// No description provided for @tileHealth.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康'**
+  String get tileHealth;
+
+  /// No description provided for @tileDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备'**
+  String get tileDevice;
+
+  /// No description provided for @tileFenceSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 个围栏越界'**
+  String tileFenceSub(int n);
+
+  /// No description provided for @tileFenceSubClear.
+  ///
+  /// In zh, this message translates to:
+  /// **'无越界'**
+  String get tileFenceSubClear;
+
+  /// No description provided for @tileHealthSubFever.
+  ///
+  /// In zh, this message translates to:
+  /// **'发热为主'**
+  String get tileHealthSubFever;
+
+  /// No description provided for @tileHealthSubDigestive.
+  ///
+  /// In zh, this message translates to:
+  /// **'消化为主'**
+  String get tileHealthSubDigestive;
+
+  /// No description provided for @tileHealthSubEstrus.
+  ///
+  /// In zh, this message translates to:
+  /// **'发情提醒'**
+  String get tileHealthSubEstrus;
+
+  /// No description provided for @tileHealthSubNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无异常'**
+  String get tileHealthSubNone;
+
+  /// No description provided for @tileDeviceNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'正常'**
+  String get tileDeviceNormal;
+
+  /// No description provided for @tileDeviceAbnormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'待处理'**
+  String get tileDeviceAbnormal;
+
+  /// No description provided for @secHealthMgmt.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康管理'**
+  String get secHealthMgmt;
+
+  /// No description provided for @secHealthAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部 ›'**
+  String get secHealthAll;
+
+  /// No description provided for @pillSteady.
+  ///
+  /// In zh, this message translates to:
+  /// **'平稳'**
+  String get pillSteady;
+
+  /// No description provided for @pillAbnormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 只异常'**
+  String pillAbnormal(int n);
+
+  /// No description provided for @pillHigh.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 只高分'**
+  String pillHigh(int n);
+
+  /// No description provided for @pillRate.
+  ///
+  /// In zh, this message translates to:
+  /// **'{rate}%'**
+  String pillRate(String rate);
+
+  /// No description provided for @sceneFeverFoot.
+  ///
+  /// In zh, this message translates to:
+  /// **'{fever} 只发烧 · {low} 只低热'**
+  String sceneFeverFoot(int fever, int low);
+
+  /// No description provided for @sceneFeverFootOver.
+  ///
+  /// In zh, this message translates to:
+  /// **'，{n} 只持续超 6 小时'**
+  String sceneFeverFootOver(int n);
+
+  /// No description provided for @sceneFeverCalm.
+  ///
+  /// In zh, this message translates to:
+  /// **'体温均在正常区间'**
+  String get sceneFeverCalm;
+
+  /// No description provided for @sceneDigestiveFoot.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 只反刍偏低'**
+  String sceneDigestiveFoot(int n);
+
+  /// No description provided for @sceneDigestiveCalm.
+  ///
+  /// In zh, this message translates to:
+  /// **'反刍频率均在正常区间'**
+  String get sceneDigestiveCalm;
+
+  /// No description provided for @sceneEstrusFoot.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 只进入配种窗口'**
+  String sceneEstrusFoot(int n);
+
+  /// No description provided for @sceneEstrusCalm.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无高分个体，适合巡查'**
+  String get sceneEstrusCalm;
+
+  /// No description provided for @sceneEpidemicFootBelow.
+  ///
+  /// In zh, this message translates to:
+  /// **'7 日异常率 {rate}%，低于警戒线'**
+  String sceneEpidemicFootBelow(String rate);
+
+  /// No description provided for @sceneEpidemicFootAbove.
+  ///
+  /// In zh, this message translates to:
+  /// **'7 日异常率 {rate}%，已超警戒线'**
+  String sceneEpidemicFootAbove(String rate);
+
+  /// No description provided for @aiSummaryWatching.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 只持续观察'**
+  String aiSummaryWatching(int n);
+
+  /// No description provided for @aiNotReady.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 观察暂未开启，恢复后自动展示'**
+  String get aiNotReady;
+
+  /// No description provided for @recHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'（可能有单未开出，建议巡检）'**
+  String get recHint;
 }
 
 class _AppLocalizationsDelegate

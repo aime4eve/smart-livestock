@@ -160,7 +160,7 @@ public final class HealthDtos {
             double avgAiAnomalyScore
     ) {}
 
-    public record SceneSummaryFever(int abnormalCount, int criticalCount, int activeAlertCount) {}
+    public record SceneSummaryFever(int abnormalCount, int criticalCount, int elevatedCount, int activeAlertCount) {}
     public record SceneSummaryDigestive(int abnormalCount, int watchCount, int activeAlertCount) {}
     public record SceneSummaryEstrus(int highScoreCount, boolean breedingAdvice, int activeAlertCount) {}
     public record SceneSummaryEpidemic(String status, double abnormalRate, int activeAlertCount) {}
