@@ -811,58 +811,60 @@ class _RanchPageState extends ConsumerState<RanchPage>
           ],
         ),
         const SizedBox(height: 7),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: tile(
-                colored: fenceTotal > 0,
-                c1: _tileRed1,
-                c2: _tileRed2,
-                label: l10n.tileFence,
-                big: '$fenceTotal',
-                sub: fenceTotal > 0
-                    ? l10n.tileFenceSub(breachedFences)
-                    : l10n.tileFenceSubClear,
-                subColor: AppColors.success,
-                badge: fenceUnread,
-                onTap: () =>
-                    context.push('${AppRoute.alerts.path}?category=fence'),
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: tile(
+                  colored: fenceTotal > 0,
+                  c1: _tileRed1,
+                  c2: _tileRed2,
+                  label: l10n.tileFence,
+                  big: '$fenceTotal',
+                  sub: fenceTotal > 0
+                      ? l10n.tileFenceSub(breachedFences)
+                      : l10n.tileFenceSubClear,
+                  subColor: AppColors.success,
+                  badge: fenceUnread,
+                  onTap: () =>
+                      context.push('${AppRoute.alerts.path}?category=fence'),
+                ),
               ),
-            ),
-            const SizedBox(width: 7),
-            Expanded(
-              child: tile(
-                colored: healthTotal > 0,
-                c1: _tileOrange1,
-                c2: _tileOrange2,
-                label: l10n.tileHealth,
-                big: '$healthTotal',
-                sub: healthSub,
-                subColor: AppColors.textSecondary,
-                onTap: () =>
-                    context.push('${AppRoute.alerts.path}?category=health'),
+              const SizedBox(width: 7),
+              Expanded(
+                child: tile(
+                  colored: healthTotal > 0,
+                  c1: _tileOrange1,
+                  c2: _tileOrange2,
+                  label: l10n.tileHealth,
+                  big: '$healthTotal',
+                  sub: healthSub,
+                  subColor: AppColors.textSecondary,
+                  onTap: () =>
+                      context.push('${AppRoute.alerts.path}?category=health'),
+                ),
               ),
-            ),
-            const SizedBox(width: 7),
-            Expanded(
-              child: tile(
-                colored: deviceAlerts > 0,
-                c1: _tileOrange1,
-                c2: _tileOrange2,
-                label: l10n.tileDevice,
-                big: '$deviceAlerts',
-                sub: deviceAlerts > 0
-                    ? l10n.tileDeviceAbnormal
-                    : l10n.tileDeviceNormal,
-                subColor: deviceAlerts > 0
-                    ? AppColors.textSecondary
-                    : AppColors.success,
-                onTap: () =>
-                    context.push('${AppRoute.alerts.path}?category=device'),
+              const SizedBox(width: 7),
+              Expanded(
+                child: tile(
+                  colored: deviceAlerts > 0,
+                  c1: _tileOrange1,
+                  c2: _tileOrange2,
+                  label: l10n.tileDevice,
+                  big: '$deviceAlerts',
+                  sub: deviceAlerts > 0
+                      ? l10n.tileDeviceAbnormal
+                      : l10n.tileDeviceNormal,
+                  subColor: deviceAlerts > 0
+                      ? AppColors.textSecondary
+                      : AppColors.success,
+                  onTap: () =>
+                      context.push('${AppRoute.alerts.path}?category=device'),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
