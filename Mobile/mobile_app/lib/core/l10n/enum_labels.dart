@@ -69,12 +69,12 @@ String activityStatusLabel(AppLocalizations l10n, String? value) =>
 
 /// TempStatus: NORMAL / ELEVATED / FEVER / CRITICAL.
 String tempStatusLabel(AppLocalizations l10n, String? value) => switch (value) {
-      'NORMAL' => l10n.tempStatusNormal,
-      'ELEVATED' => l10n.tempStatusElevated,
-      'FEVER' => l10n.tempStatusFever,
-      'CRITICAL' => l10n.tempStatusCritical,
-      _ => value ?? '--',
-    };
+  'NORMAL' => l10n.tempStatusNormal,
+  'ELEVATED' => l10n.tempStatusElevated,
+  'FEVER' => l10n.tempStatusFever,
+  'CRITICAL' => l10n.tempStatusCritical,
+  _ => value ?? '--',
+};
 
 /// MotilityStatus: NORMAL / LOW / ABNORMAL.
 String motilityStatusLabel(AppLocalizations l10n, String? value) =>
@@ -103,6 +103,18 @@ extension BreedL10n on Breed {
     }
   }
 }
+
+/// API models pass breed as a raw uppercase code. Translate known breeds and
+/// leave unknown/custom codes visible rather than hiding them as "other".
+String breedStatusLabel(AppLocalizations l10n, String? value) =>
+    switch (value?.toUpperCase()) {
+      'ANGUS' => l10n.livestockBreedAngus,
+      'WAGYU' => l10n.livestockBreedWagyu,
+      'SIMMENTAL' => l10n.livestockBreedSimmental,
+      'LIMOUSIN' => l10n.livestockBreedLimousin,
+      'OTHER' => l10n.livestockBreedOther,
+      _ => value ?? '--',
+    };
 
 // ── SubscriptionTier ────────────────────────────────────────
 
