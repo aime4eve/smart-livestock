@@ -15,6 +15,7 @@ class AlertWorkbenchController
   Set<String> _asset = {'all'};
   String? _fenceId;
   int _page = 1;
+  int _generation = 0;
 
   String get bucket => _bucket;
   Set<String> get asset => _asset;
@@ -32,25 +33,34 @@ class AlertWorkbenchController
   Future<AlertWorkbenchData> build() async {
     watchActiveFarmId();
     _page = 1;
-    return _fetch(1);
+    final generation = ++_generation;
+    final result = await _fetch(1);
+    if (generation != _generation) return state.value ?? result;
+    return result;
   }
 
   Future<void> refresh() async {
+    final generation = ++_generation;
     state = const AsyncLoading();
     state = await AsyncValue.guard(() => _fetch(1));
     _page = 1;
+    if (generation != _generation) return;
   }
 
   Future<void> silentRefresh() async {
     if (_page > 1) return;
+    final generation = ++_generation;
     final next = await AsyncValue.guard(() => _fetch(1));
+    if (generation != _generation) return;
     if (next.hasValue) state = next;
   }
 
   Future<bool> loadMore() async {
     final current = state.value;
     if (current == null || !canLoadMore) return false;
+    final generation = ++_generation;
     final next = await AsyncValue.guard(() => _fetch(_page + 1));
+    if (generation != _generation) return false;
     final more = next.value;
     if (more == null) return false;
     final ids = current.items.map((item) => item.id).toSet();
