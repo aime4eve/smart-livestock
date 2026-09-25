@@ -16,12 +16,22 @@ class EpidemicPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(epidemicControllerProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.epidemicTitle), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: AppBar(
+        title: Text(l10n.epidemicTitle),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go(AppRoute.ranch.path),
+        ),
+      ),
       body: asyncData.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('${l10n.commonLoadFailed}: $e')),
         data: (data) => RefreshIndicator(
-          onRefresh: () => ref.read(epidemicControllerProvider.notifier).refresh(),
+          onRefresh: () =>
+              ref.read(epidemicControllerProvider.notifier).refresh(),
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -36,9 +46,13 @@ class EpidemicPage extends ConsumerWidget {
                 onPressed: () {
                   // SL-2024-048 is the seed infected animal (id varies by DB)
                   // Use livestockId from first contact trace if available
-                  final firstFrom = data.contacts.isNotEmpty ? data.contacts.first.fromId : '';
+                  final firstFrom = data.contacts.isNotEmpty
+                      ? data.contacts.first.fromId
+                      : '';
                   if (firstFrom.isNotEmpty) {
-                    context.go('${AppRoute.twinEpidemicContact.path}/$firstFrom');
+                    context.go(
+                      '${AppRoute.twinEpidemicContact.path}/$firstFrom',
+                    );
                   }
                 },
                 icon: const Icon(Icons.contact_page_outlined),
@@ -58,55 +72,131 @@ class EpidemicPage extends ConsumerWidget {
   Widget _buildMetricsSection(BuildContext context, EpidemicData data) {
     final l10n = AppLocalizations.of(context)!;
     final m = data.metrics;
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(l10n.epidemicHerdHealth, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-      const SizedBox(height: 8),
-      Row(children: [
-        _metricCard(l10n.epidemicAvgTemperature, '${m.avgTemperature.toStringAsFixed(2)}°C', AppColors.info),
-        const SizedBox(width: 8),
-        _metricCard(l10n.epidemicAbnormalRate, '${(m.abnormalRate * 100).toStringAsFixed(1)}%', m.abnormalRate > 0.15 ? AppColors.danger : m.abnormalRate > 0.05 ? AppColors.warning : AppColors.success),
-        const SizedBox(width: 8),
-        _metricCard(l10n.epidemicAbnormalCount, '${m.abnormalCount}头', AppColors.warning),
-      ]),
-    ]);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.epidemicHerdHealth,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            _metricCard(
+              l10n.epidemicAvgTemperature,
+              '${m.avgTemperature.toStringAsFixed(2)}°C',
+              AppColors.info,
+            ),
+            const SizedBox(width: 8),
+            _metricCard(
+              l10n.epidemicAbnormalRate,
+              '${(m.abnormalRate * 100).toStringAsFixed(1)}%',
+              m.abnormalRate > 0.15
+                  ? AppColors.danger
+                  : m.abnormalRate > 0.05
+                  ? AppColors.warning
+                  : AppColors.success,
+            ),
+            const SizedBox(width: 8),
+            _metricCard(
+              l10n.epidemicAbnormalCount,
+              '${m.abnormalCount}头',
+              AppColors.warning,
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   Widget _metricCard(String label, String value, Color color) {
-    return Expanded(child: Card(child: Padding(padding: const EdgeInsets.all(12), child: Column(children: [
-      Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-      const SizedBox(height: 4),
-      Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
-    ]))));
+    return Expanded(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildContactsSection(BuildContext context, EpidemicData data) {
     final l10n = AppLocalizations.of(context)!;
     if (data.contacts.isEmpty) return const SizedBox.shrink();
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(l10n.epidemicContactTracing, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-      const SizedBox(height: 8),
-      ...data.contacts.map((c) => Card(
-        margin: const EdgeInsets.only(bottom: 6),
-        child: ListTile(
-          dense: true,
-          leading: const Icon(Icons.compare_arrows, size: 20, color: AppColors.warning),
-          title: Text('${c.fromId} ↔ ${c.toId}'),
-          subtitle: Text('${c.proximity.toStringAsFixed(1)}m · ${_formatTime(c.lastContact)}'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.epidemicContactTracing,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-      )),
-    ]);
+        const SizedBox(height: 8),
+        ...data.contacts.map(
+          (c) => Card(
+            margin: const EdgeInsets.only(bottom: 6),
+            child: ListTile(
+              dense: true,
+              leading: const Icon(
+                Icons.compare_arrows,
+                size: 20,
+                color: AppColors.warning,
+              ),
+              title: Text('${c.fromId} ↔ ${c.toId}'),
+              subtitle: Text(
+                '${c.proximity.toStringAsFixed(1)}m · ${_formatTime(c.lastContact)}',
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildRiskCard(BuildContext context, EpidemicData data) {
     final l10n = AppLocalizations.of(context)!;
-    final color = data.riskLevel == '警戒' ? AppColors.danger : data.riskLevel == '关注' ? AppColors.warning : AppColors.success;
+    final color = data.riskLevel == '警戒'
+        ? AppColors.danger
+        : data.riskLevel == '关注'
+        ? AppColors.warning
+        : AppColors.success;
     return Card(
       color: color.withValues(alpha: 0.08),
-      child: Padding(padding: const EdgeInsets.all(12), child: Row(children: [
-        Icon(Icons.shield, color: color),
-        const SizedBox(width: 8),
-        Text(l10n.epidemicRiskLevel(data.riskLevel), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
-      ])),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Icon(Icons.shield, color: color),
+            const SizedBox(width: 8),
+            Text(
+              l10n.epidemicRiskLevel(data.riskLevel),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
