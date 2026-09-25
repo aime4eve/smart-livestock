@@ -180,6 +180,8 @@
   "@subscriptionTierBasic": {},
   "subscriptionTierStandard": "Standard",
   "@subscriptionTierStandard": {},
+  "subscriptionTierStandardPlus": "Standard+",
+  "@subscriptionTierStandardPlus": {},
   "subscriptionTierPremium": "Premium",
   "@subscriptionTierPremium": {},
   "subscriptionTierEnterprise": "Enterprise",

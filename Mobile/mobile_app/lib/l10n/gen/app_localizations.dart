@@ -620,6 +620,12 @@ abstract class AppLocalizations {
   /// **'标准版'**
   String get subscriptionTierStandard;
 
+  /// No description provided for @subscriptionTierStandardPlus.
+  ///
+  /// In zh, this message translates to:
+  /// **'标准版+'**
+  String get subscriptionTierStandardPlus;
+
   /// No description provided for @subscriptionTierPremium.
   ///
   /// In zh, this message translates to:

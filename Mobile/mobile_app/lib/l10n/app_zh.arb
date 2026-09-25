@@ -180,6 +180,8 @@
   "@subscriptionTierBasic": {},
   "subscriptionTierStandard": "标准版",
   "@subscriptionTierStandard": {},
+  "subscriptionTierStandardPlus": "标准版+",
+  "@subscriptionTierStandardPlus": {},
   "subscriptionTierPremium": "高级版",
   "@subscriptionTierPremium": {},
   "subscriptionTierEnterprise": "企业版",

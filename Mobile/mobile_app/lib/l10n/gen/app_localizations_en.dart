@@ -276,6 +276,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subscriptionTierStandard => 'Standard';
 
   @override
+  String get subscriptionTierStandardPlus => 'Standard+';
+
+  @override
   String get subscriptionTierPremium => 'Premium';
 
   @override

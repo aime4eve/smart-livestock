@@ -89,6 +89,25 @@ public class HealthApplicationService {
     }
 
     /**
+     * Digestive advice phrases are generated in English. Resolve known phrases
+     * for the current request locale so the detail card follows app language.
+     */
+    private String localizeDigestiveAdvice(String advice) {
+        if (advice == null || advice.isBlank()) return advice;
+        String key = switch (advice) {
+            case "Rumen motility significantly low. Check feed quality and water intake." ->
+                    "health.digestive.advice.abnormal";
+            case "Rumen motility below normal. Monitor feeding behavior." ->
+                    "health.digestive.advice.low";
+            case "Digestive function normal" -> "health.digestive.advice.normal";
+            default -> null;
+        };
+        return key == null
+                ? advice
+                : messageResolver.resolve(key, null, LocaleContextHolder.getLocale());
+    }
+
+    /**
      * Process incoming sensor telemetry from IoT context.
      * <p>
      * Branches on telemetry type:
@@ -646,7 +665,7 @@ public class HealthApplicationService {
                             String.valueOf(s.getLivestockId()), code, breed,
                             s.getMotilityBaseline(), s.getCurrentMotility(),
                             s.getMotilityStatus().name(),
-                            digestiveService.generateAdvice(s.getMotilityStatus()));
+                            localizeDigestiveAdvice(digestiveService.generateAdvice(s.getMotilityStatus())));
                 })
                 .toList();
         return new DigestiveListResponse(items);
@@ -674,7 +693,7 @@ public class HealthApplicationService {
                String.valueOf(livestockId), code,
                snapshot.getMotilityBaseline(),
                snapshot.getMotilityStatus().name(),
-               digestiveService.generateAdvice(snapshot.getMotilityStatus()),
+               localizeDigestiveAdvice(digestiveService.generateAdvice(snapshot.getMotilityStatus())),
                recent24h,
                healthAnomalyService.getLatestSummary(farmId, livestockId).orElse(null));
    }

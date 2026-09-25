@@ -272,6 +272,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get subscriptionTierStandard => '标准版';
 
   @override
+  String get subscriptionTierStandardPlus => '标准版+';
+
+  @override
   String get subscriptionTierPremium => '高级版';
 
   @override
