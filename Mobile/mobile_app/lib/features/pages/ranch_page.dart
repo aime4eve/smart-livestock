@@ -992,7 +992,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: 7,
           crossAxisSpacing: 7,
-          childAspectRatio: 2.5,
+          childAspectRatio: 3.75,
           children: [
             card(
               icon: Icons.thermostat,
@@ -1020,7 +1020,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                       ),
                     )
                   : null,
-              onTap: () => context.go(AppRoute.twinFever.path),
+              onTap: () => context.push(AppRoute.twinFever.path),
             ),
             card(
               icon: Icons.grain,
@@ -1035,7 +1035,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
               foot: scene.digestive.abnormalCount == 0
                   ? l10n.sceneDigestiveCalm
                   : l10n.sceneDigestiveFoot(scene.digestive.abnormalCount),
-              onTap: () => context.go(AppRoute.twinDigestive.path),
+              onTap: () => context.push(AppRoute.twinDigestive.path),
             ),
             card(
               icon: Icons.favorite,
@@ -1050,7 +1050,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
               foot: scene.estrus.highScoreCount == 0
                   ? l10n.sceneEstrusCalm
                   : l10n.sceneEstrusFoot(scene.estrus.highScoreCount),
-              onTap: () => context.go(AppRoute.twinEstrus.path),
+              onTap: () => context.push(AppRoute.twinEstrus.path),
             ),
             card(
               icon: Icons.shield,
@@ -1064,7 +1064,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
               foot: epiOver
                   ? l10n.sceneEpidemicFootAbove(epiRate)
                   : l10n.sceneEpidemicFootBelow(epiRate),
-              onTap: () => context.go(AppRoute.twinEpidemic.path),
+              onTap: () => context.push(AppRoute.twinEpidemic.path),
             ),
           ],
         ),
