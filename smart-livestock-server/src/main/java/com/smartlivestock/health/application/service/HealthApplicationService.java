@@ -13,6 +13,7 @@ import com.smartlivestock.health.domain.repository.*;
 import com.smartlivestock.health.domain.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +45,7 @@ public class HealthApplicationService {
     private final DigestiveAnalysisService digestiveService;
     private final EstrusAnalysisService estrusAnalysisService;
     private final EpidemicAnalysisService epidemicService;
+    private final com.smartlivestock.shared.common.MessageResolver messageResolver;
 
     private static final BigDecimal DEFAULT_BASELINE_TEMP = new BigDecimal("38.5");
     /** Matches DigestiveAnalysisService.DEFAULT_BASELINE; the DB column default stays 3.0. */
@@ -66,6 +68,25 @@ public class HealthApplicationService {
     }
 
     // ── Telemetry Processing (IoT → Health) ────────────────────
+
+    /**
+     * Estrus advice was persisted as English before i18n. Translate the known
+     * legacy phrases at read time while leaving unknown text untouched.
+     */
+    private String localizeEstrusAdvice(String advice) {
+        if (advice == null || advice.isBlank()) return advice;
+        String key = switch (advice) {
+            case "Not in estrus" -> "health.estrus.advice.notInEstrus";
+            case "High estrus score. Breeding recommended within 12 hours." ->
+                    "health.estrus.advice.high";
+            case "Moderately high estrus score. Continue monitoring and prepare for breeding." ->
+                    "health.estrus.advice.moderate";
+            default -> null;
+        };
+        return key == null
+                ? advice
+                : messageResolver.resolve(key, null, LocaleContextHolder.getLocale());
+    }
 
     /**
      * Process incoming sensor telemetry from IoT context.
@@ -688,7 +709,7 @@ public class HealthApplicationService {
                             String.valueOf(e.getLivestockId()), code, breed, gender,
                             e.getScore(), e.getStepIncreasePercent(),
                             e.getTempDelta(), e.getDistanceDelta(),
-                            e.getScoredAt(), e.getAdvice());
+                            e.getScoredAt(), localizeEstrusAdvice(e.getAdvice()));
                 })
                 .toList();
 
@@ -708,14 +729,14 @@ public class HealthApplicationService {
         if (latest == null) {
            return new EstrusDetail(
                    String.valueOf(livestockId), code, 0, null, null, null,
-                   null, estrusAnalysisService.generateAdvice(0), trend7d, null);
+                   null, localizeEstrusAdvice(estrusAnalysisService.generateAdvice(0)), trend7d, null);
        }
 
        return new EstrusDetail(
                String.valueOf(livestockId), code,
                latest.getScore(), latest.getStepIncreasePercent(),
                latest.getTempDelta(), latest.getDistanceDelta(),
-               latest.getScoredAt(), latest.getAdvice(),
+               latest.getScoredAt(), localizeEstrusAdvice(latest.getAdvice()),
                trend7d,
                healthAnomalyService.getLatestSummary(farmId, livestockId).orElse(null));
    }
