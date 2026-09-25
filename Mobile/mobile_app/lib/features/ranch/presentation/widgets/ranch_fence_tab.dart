@@ -1101,7 +1101,7 @@ class _FenceDetailCard extends StatelessWidget {
                             bgColor: AppColors.primarySoft,
                             fgColor: AppColors.primaryDark,
                             onTap: () => context.push(
-                              '${AppRoute.alerts.path}?fenceId=${fence.id}',
+                              '${AppRoute.alerts.path}?asset=fence&fenceId=${fence.id}&source=fence',
                             ),
                           ),
                         ),

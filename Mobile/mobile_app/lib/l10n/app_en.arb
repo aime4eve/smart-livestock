@@ -4970,4 +4970,112 @@
   "aiNotReady": "AI watch not started yet; shows up automatically once ready",
   "recHint": " (tickets may be missing — patrol advised)"
 
+  ,"workbenchImmediate": "Immediate"
+  ,"@workbenchImmediate": {}
+  ,"workbenchImmediateSub": "Breach · epidemic · tamper"
+  ,"@workbenchImmediateSub": {}
+  ,"workbenchField": "Field check"
+  ,"@workbenchFieldSub": "Approach · battery · offline"
+  ,"@workbenchFieldSub": {}
+  ,"workbenchObserve": "Observe"
+  ,"@workbenchObserve": {}
+  ,"workbenchObserveSub": "AI watch · no ticket"
+  ,"@workbenchObserveSub": {}
+  ,"workbenchResolved": "Handled today"
+  ,"@workbenchResolved": {}
+  ,"workbenchResolvedSub": "Closed today"
+  ,"@workbenchResolvedSub": {}
+  ,"workbenchAllBuckets": "All"
+  ,"@workbenchAllBuckets": {}
+  ,"workbenchAllAssets": "All assets"
+  ,"@workbenchAllAssets": {}
+  ,"workbenchLivestock": "Livestock"
+  ,"@workbenchLivestock": {}
+  ,"workbenchHerd": "Herd"
+  ,"@workbenchHerd": {}
+  ,"workbenchFence": "Fence"
+  ,"@workbenchFence": {}
+  ,"workbenchDevice": "Device"
+  ,"@workbenchDevice": {}
+  ,"workbenchActiveUnread": "{active} active · {unread} unread"
+  ,"@workbenchActiveUnread": {"placeholders": {"active": {"type": "int"}, "unread": {"type": "int"}}}
+  ,"workbenchContextOverview": "Overview: ranch state"
+  ,"@workbenchContextOverview": {}
+  ,"workbenchContextFence": "Fence: spatial assets"
+  ,"@workbenchContextFence": {}
+  ,"workbenchContextAlert": "Alerts: unified action"
+  ,"@workbenchContextAlert": {}
+  ,"workbenchViewAll": "View all {count}"
+  ,"@workbenchViewAll": {"placeholders": {"count": {"type": "int"}}}
+  ,"workbenchLoadMore": "Load more"
+  ,"@workbenchLoadMore": {}
+  ,"workbenchShownOf": "Showing {shown} / {total}"
+  ,"@workbenchShownOf": {"placeholders": {"shown": {"type": "int"}, "total": {"type": "int"}}}
+  ,"workbenchNextStep": "Next step"
+  ,"@workbenchNextStep": {}
+  ,"workbenchNow": "Now"
+  ,"@workbenchNow": {}
+  ,"workbenchKeyMetrics": "Key metrics"
+  ,"@workbenchKeyMetrics": {}
+  ,"workbenchEvidence": "Evidence"
+  ,"@workbenchEvidence": {}
+  ,"workbenchLifecycle": "Lifecycle"
+  ,"@workbenchLifecycle": {}
+  ,"workbenchAffected": "Affected"
+  ,"@workbenchAffected": {}
+  ,"workbenchSeverity": "Severity"
+  ,"@workbenchSeverity": {}
+  ,"workbenchFirstReport": "First report"
+  ,"@workbenchFirstReport": {}
+  ,"workbenchAiBand": "AI verdict"
+  ,"@workbenchAiBand": {}
+  ,"workbenchAiScore": "Technical score"
+  ,"@workbenchAiScore": {}
+  ,"workbenchEvidenceCount": "Evidence"
+  ,"@workbenchEvidenceCount": {}
+  ,"workbenchUnread": "Unread"
+  ,"@workbenchUnread": {}
+  ,"workbenchRecommendFence": "Locate the fence and affected livestock first"
+  ,"@workbenchRecommendFence": {}
+  ,"workbenchRecommendLivestock": "Review the episode and key metrics first"
+  ,"@workbenchRecommendLivestock": {}
+  ,"workbenchRecommendDevice": "Check fitment and signal first"
+  ,"@workbenchRecommendDevice": {}
+  ,"workbenchRecommendHerd": "Confirm the herd abnormal distribution first"
+  ,"@workbenchRecommendHerd": {}
+  ,"workbenchRecommendResolved": "Confirm the result and follow-up observation"
+  ,"@workbenchRecommendResolved": {}
+  ,"workbenchActionMap": "Map"
+  ,"@workbenchActionMap": {}
+  ,"workbenchActionTrajectory": "Track"
+  ,"@workbenchActionTrajectory": {}
+  ,"workbenchActionMarkRead": "Mark read"
+  ,"@workbenchActionMarkRead": {}
+  ,"workbenchActionProcess": "Handle"
+  ,"@workbenchActionProcess": {}
+  ,"workbenchActionLivestock": "Cattle"
+  ,"@workbenchActionLivestock": {}
+  ,"workbenchActionFence": "Fence"
+  ,"@workbenchActionFence": {}
+  ,"workbenchActionDevice": "Device"
+  ,"@workbenchActionDevice": {}
+  ,"workbenchActionAi": "AI evidence"
+  ,"@workbenchActionAi": {}
+  ,"workbenchTechnicalEvidence": "Technical evidence folded"
+  ,"@workbenchTechnicalEvidence": {}
+  ,"workbenchResolvedAt": "Resolved at"
+  ,"@workbenchResolvedAt": {}
+  ,"workbenchProcessedToast": "Alert handled"
+  ,"@workbenchProcessedToast": {}
+  ,"workbenchReadToast": "Marked as read"
+  ,"@workbenchReadToast": {}
+  ,"workbenchEmpty": "No alerts for this filter"
+  ,"@workbenchEmpty": {}
+  ,"workbenchEmptyHint": "Try another bucket or asset range"
+  ,"@workbenchEmptyHint": {}
+  ,"workbenchAiRanking": "Who needs attention"
+  ,"@workbenchAiRanking": {}
+  ,"workbenchClose": "Close"
+  ,"@workbenchClose": {}
+
 }

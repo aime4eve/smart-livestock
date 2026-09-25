@@ -92,7 +92,7 @@ public class AlertController {
     }
 
     @PostMapping("/alerts/{alertId}/dismiss")
-    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN', 'WORKER')")
     public ResponseEntity<ApiResponse<AlertDto>> dismissAlert(
             @PathVariable Long farmId,
             @PathVariable Long alertId) {
@@ -127,7 +127,7 @@ public class AlertController {
 
     @PostMapping("/alerts/{alertId}/handle")
     @Deprecated
-    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN', 'WORKER')")
     public ResponseEntity<ApiResponse<AlertDto>> handleAlert(
             @PathVariable Long farmId,
             @PathVariable Long alertId) {

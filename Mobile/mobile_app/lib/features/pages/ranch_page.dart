@@ -18,13 +18,15 @@ import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/features/twin_overview/presentation/twin_overview_controller.dart';
-import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_widget.dart';
 import 'package:hkt_livestock_agentic/features/alerts/domain/alert_summary.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/alerts_controller.dart';
-import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_detail_sheet.dart';
-import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/fence_status_card.dart';
+import 'package:hkt_livestock_agentic/features/alerts/data/alerts_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/alerts/domain/alert_workbench.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/alert_workbench_controller.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_workbench_detail_sheet.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_workbench_view.dart';
 import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/ranch_controller.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/livestock_map_marker.dart';
@@ -43,8 +45,6 @@ class RanchPage extends ConsumerStatefulWidget {
 
 class _RanchPageState extends ConsumerState<RanchPage>
     with TickerProviderStateMixin {
-  static const _fenceAlertTypes = {'FENCE_BREACH', 'FENCE_APPROACH', 'ZONE_APPROACH'};
-
   final _mapController = MapController();
   SmartTileProvider? _tileProvider;
   String? _selectedFenceId;
@@ -751,7 +751,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                   subColor: AppColors.success,
                   badge: fenceUnread,
                   onTap: () =>
-                      context.push('${AppRoute.alerts.path}?category=fence'),
+                      context.push('${AppRoute.alerts.path}?asset=fence&source=overview'),
                 ),
               ),
               const SizedBox(width: 7),
@@ -765,7 +765,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                   sub: healthSub,
                   subColor: AppColors.textSecondary,
                   onTap: () =>
-                      context.push('${AppRoute.alerts.path}?category=health'),
+                      context.push('${AppRoute.alerts.path}?asset=health&source=overview'),
                 ),
               ),
               const SizedBox(width: 7),
@@ -783,7 +783,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                       ? AppColors.textSecondary
                       : AppColors.success,
                   onTap: () =>
-                      context.push('${AppRoute.alerts.path}?category=device'),
+                      context.push('${AppRoute.alerts.path}?asset=device&source=overview'),
                 ),
               ),
             ],
@@ -1122,140 +1122,74 @@ class _RanchPageState extends ConsumerState<RanchPage>
 
   Widget _buildAlertsTab(
       BuildContext context, RanchOverview overview, RanchAlertSummary? summary) {
-    final l10n = AppLocalizations.of(context)!;
-    final active = overview.alerts.where((a) => a.status == 'ACTIVE').toList();
-    if (active.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.notifications_off,
-              size: 32,
-              color: AppColors.textSecondary,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              l10n.alertEmptyTitle,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    // Aggregated fence status (livestock × fence, deduped) above the raw
-    // event stream — answers "what is the situation now" at a glance.
-    final fenceAlerts =
-        active.where((a) => _fenceAlertTypes.contains(a.type)).toList();
-    final livestockCodes = {
-      for (final m in overview.livestockMarkers) m.livestockId: m.livestockCode,
-    };
-    final fenceNames = {
-      for (final f in overview.fences) f.id: f.name,
-    };
-    final listTiles = <Widget>[
-      if (fenceAlerts.isNotEmpty)
-        FenceStatusCard(
-          alerts: fenceAlerts,
-          livestockCodes: livestockCodes,
-          fenceNames: fenceNames,
-          onViewAll: () => context.push('${AppRoute.alerts.path}?category=fence'),
-          onRowTap: (alert) {
-            final role = ref.read(sessionControllerProvider).role;
-            if (role == null) return;
-            showAlertDetailSheet(
-              context,
-              alert: AlertItem(
-                id: alert.id,
-                title: alert.message,
-                subtitle: '',
-                priority: alert.severity == 'CRITICAL'
-                    ? 'P0'
-                    : (alert.severity == 'WARNING' ? 'P1' : 'P2'),
-                type: alert.type,
-                stage: alert.status.toLowerCase(),
-                livestockCode: alert.livestockId ?? '-',
-                livestockId: alert.livestockId,
-                severity: alert.severity,
-                read: alert.read,
-                occurredAt: alert.occurredAt,
-                resolvedAt: alert.resolvedAt,
-                fenceId: alert.fenceId,
-              ),
-              role: role,
-            );
+    final farmId = ref.watch(farmSwitcherControllerProvider).activeFarmId;
+    final asyncData = farmId == null
+        ? const AsyncLoading<AlertWorkbenchData>()
+        : ref.watch(ranchAlertWorkbenchProvider(farmId));
+    return asyncData.when(
+      data: (data) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        child: AlertWorkbenchView(
+          data: data,
+          selectedBucket: 'all',
+          selectedAsset: const {'all'},
+          onBucket: (bucket) => context
+              .push('${AppRoute.alerts.path}?bucket=$bucket&source=overview'),
+          onAsset: (asset) {
+            final value = asset.first;
+            context.push(
+                '${AppRoute.alerts.path}?asset=$value&source=${value == 'fence' ? 'fence' : 'overview'}');
           },
+          onItem: (item) => _openWorkbenchDetail(context, item),
+          onLoadMore: () async {},
+          onRanking: () => showAiRankingSheet(context, data.items),
+          compact: true,
         ),
-      ...active.map((alert) {
-        return Card(
-          margin: const EdgeInsets.only(bottom: AppSpacing.xs),
-          child: ListTile(
-            dense: true,
-            leading: Icon(
-              _alertIcon(alert.type),
-              size: 18,
-              color: alert.severity == 'CRITICAL'
-                  ? AppColors.danger
-                  : AppColors.warning,
+      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Center(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text('$error',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontSize: 9, color: AppColors.textSecondary)),
+          const SizedBox(height: AppSpacing.sm),
+          if (farmId != null)
+            TextButton(
+              onPressed: () => ref.invalidate(ranchAlertWorkbenchProvider(farmId)),
+              child: Text(AppLocalizations.of(context)!.commonRetry),
             ),
-            title: Text(
-              alert.message,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            subtitle: Text(
-              _alertTypeLabel(AppLocalizations.of(context)!, alert.type),
-              style: const TextStyle(fontSize: 10),
-            ),
-            onTap: () => context.push(
-                '${AppRoute.alerts.path}?category=${_categoryOf(alert.type)}'),
-          ),
-        );
-      }),
-    ];
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      children: listTiles,
+        ]),
+      ),
     );
   }
 
-  String _categoryOf(String type) {
-    if (_fenceAlertTypes.contains(type)) return 'fence';
-    if (type == 'DEVICE_TAMPER' || type == 'DEVICE_LOW_BATTERY') return 'device';
-    return 'health';
-  }
-
-  IconData _alertIcon(String type) {
-    return switch (type) {
-      'FENCE_BREACH' => Icons.fence,
-      'FENCE_APPROACH' => Icons.warning_amber,
-      'TEMPERATURE_ABNORMAL' => Icons.thermostat,
-      'ESTRUS' => Icons.favorite,
-      'EPIDEMIC' => Icons.shield,
-      'AI_ANOMALY' => Icons.psychology,
-      'DEVICE_TAMPER' => Icons.sensors,
-      'DEVICE_LOW_BATTERY' => Icons.battery_alert,
-      _ => Icons.notifications,
-    };
-  }
-
-  String _alertTypeLabel(AppLocalizations l10n, String type) {
-    return switch (type) {
-      'FENCE_BREACH' => l10n.alertTypeFenceBreach,
-      'FENCE_APPROACH' => l10n.alertTypeFenceApproach,
-      'ZONE_APPROACH' => l10n.alertTypeZoneApproach,
-      'TEMPERATURE_ABNORMAL' => l10n.alertTypeTemperatureAbnormal,
-      'DIGESTIVE_ABNORMAL' => l10n.alertTypeDigestiveAbnormal,
-      'ESTRUS' => l10n.alertTypeEstrus,
-      'EPIDEMIC' => l10n.alertTypeEpidemic,
-      'AI_ANOMALY' => l10n.alertTypeAiAnomaly,
-      'DEVICE_TAMPER' => l10n.alertTypeDeviceTamper,
-      'DEVICE_LOW_BATTERY' => l10n.alertTypeDeviceLowBattery,
-      _ => type,
-    };
+  Future<void> _openWorkbenchDetail(
+      BuildContext context, WorkbenchItem item) async {
+    final role = ref.read(sessionControllerProvider).role;
+    final farmId = ref.read(farmSwitcherControllerProvider).activeFarmId;
+    if (role == null || farmId == null) return;
+    await showAlertWorkbenchDetailSheet(
+      context,
+      item: item,
+      role: role,
+      onMarkRead: (detail) async {
+        final ids = detail.reasons.where((reason) => !reason.read)
+            .map((reason) => reason.alertId).toList();
+        if (ids.isNotEmpty) {
+          await const AlertsApiRepository().batchRead(ids);
+        }
+        ref.invalidate(ranchAlertWorkbenchProvider(farmId));
+        ref.invalidate(alertSummaryControllerProvider);
+      },
+      onDismiss: (detail) async {
+        for (final reason in detail.reasons) {
+          await const AlertsApiRepository().dismiss(reason.alertId);
+        }
+        ref.invalidate(ranchAlertWorkbenchProvider(farmId));
+        ref.invalidate(alertSummaryControllerProvider);
+      },
+    );
   }
 
   void _handleMapTap(LatLng point) {

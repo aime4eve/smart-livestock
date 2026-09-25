@@ -6150,4 +6150,172 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get recHint => '（可能有单未开出，建议巡检）';
+
+  @override
+  String get workbenchImmediate => '立即处置';
+
+  @override
+  String get workbenchImmediateSub => '越界 · 疫病 · 拆卸';
+
+  @override
+  String get workbenchField => '现场巡检';
+
+  @override
+  String get workbenchFieldSub => '接近 · 低电 · 离线';
+
+  @override
+  String get workbenchObserve => '持续观察';
+
+  @override
+  String get workbenchObserveSub => 'AI 留意 · 未开单';
+
+  @override
+  String get workbenchResolved => '今日已处理';
+
+  @override
+  String get workbenchResolvedSub => '今日关单';
+
+  @override
+  String get workbenchAllBuckets => '全部';
+
+  @override
+  String get workbenchAllAssets => '全部资产';
+
+  @override
+  String get workbenchLivestock => '牲畜';
+
+  @override
+  String get workbenchHerd => '牛群';
+
+  @override
+  String get workbenchFence => '围栏';
+
+  @override
+  String get workbenchDevice => '设备';
+
+  @override
+  String workbenchActiveUnread(int active, int unread) {
+    return '$active 活跃 · $unread 未读';
+  }
+
+  @override
+  String get workbenchContextOverview => '概览：牧场现状';
+
+  @override
+  String get workbenchContextFence => '围栏：空间资产';
+
+  @override
+  String get workbenchContextAlert => '告警：统一处置';
+
+  @override
+  String workbenchViewAll(int count) {
+    return '查看全部 $count 条';
+  }
+
+  @override
+  String get workbenchLoadMore => '加载更多';
+
+  @override
+  String workbenchShownOf(int shown, int total) {
+    return '已显示 $shown / $total';
+  }
+
+  @override
+  String get workbenchNextStep => '下一步建议';
+
+  @override
+  String get workbenchNow => '现在';
+
+  @override
+  String get workbenchKeyMetrics => '关键指标';
+
+  @override
+  String get workbenchEvidence => '证据';
+
+  @override
+  String get workbenchLifecycle => '生命周期';
+
+  @override
+  String get workbenchAffected => '影响数量';
+
+  @override
+  String get workbenchSeverity => '级别';
+
+  @override
+  String get workbenchFirstReport => '最早上报';
+
+  @override
+  String get workbenchAiBand => 'AI 结论';
+
+  @override
+  String get workbenchAiScore => '技术评分';
+
+  @override
+  String get workbenchEvidenceCount => '证据数量';
+
+  @override
+  String get workbenchUnread => '未读';
+
+  @override
+  String get workbenchRecommendFence => '先定位围栏与受影响牲畜';
+
+  @override
+  String get workbenchRecommendLivestock => '先查看病程与关键指标';
+
+  @override
+  String get workbenchRecommendDevice => '先检查设备佩戴与信号';
+
+  @override
+  String get workbenchRecommendHerd => '先确认牛群异常分布';
+
+  @override
+  String get workbenchRecommendResolved => '确认处理结果与后续观察';
+
+  @override
+  String get workbenchActionMap => '联动地图';
+
+  @override
+  String get workbenchActionTrajectory => '轨迹';
+
+  @override
+  String get workbenchActionMarkRead => '标记已读';
+
+  @override
+  String get workbenchActionProcess => '处理';
+
+  @override
+  String get workbenchActionLivestock => '牛详情';
+
+  @override
+  String get workbenchActionFence => '围栏';
+
+  @override
+  String get workbenchActionDevice => '设备';
+
+  @override
+  String get workbenchActionAi => 'AI 证据';
+
+  @override
+  String get workbenchTechnicalEvidence => '技术证据已折叠';
+
+  @override
+  String get workbenchResolvedAt => '处理时间';
+
+  @override
+  String get workbenchProcessedToast => '告警已处理';
+
+  @override
+  String get workbenchReadToast => '已标记为已读';
+
+  @override
+  String get workbenchEmpty => '当前筛选无告警';
+
+  @override
+  String get workbenchEmptyHint => '试试切换风险桶或资产范围';
+
+  @override
+  String get workbenchAiRanking => '谁最需要关注';
+
+  @override
+  String get workbenchClose => '关闭';
 }

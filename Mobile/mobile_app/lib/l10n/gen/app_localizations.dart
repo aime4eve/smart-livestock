@@ -11362,6 +11362,330 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'（可能有单未开出，建议巡检）'**
   String get recHint;
+
+  /// No description provided for @workbenchImmediate.
+  ///
+  /// In zh, this message translates to:
+  /// **'立即处置'**
+  String get workbenchImmediate;
+
+  /// No description provided for @workbenchImmediateSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'越界 · 疫病 · 拆卸'**
+  String get workbenchImmediateSub;
+
+  /// No description provided for @workbenchField.
+  ///
+  /// In zh, this message translates to:
+  /// **'现场巡检'**
+  String get workbenchField;
+
+  /// No description provided for @workbenchFieldSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'接近 · 低电 · 离线'**
+  String get workbenchFieldSub;
+
+  /// No description provided for @workbenchObserve.
+  ///
+  /// In zh, this message translates to:
+  /// **'持续观察'**
+  String get workbenchObserve;
+
+  /// No description provided for @workbenchObserveSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 留意 · 未开单'**
+  String get workbenchObserveSub;
+
+  /// No description provided for @workbenchResolved.
+  ///
+  /// In zh, this message translates to:
+  /// **'今日已处理'**
+  String get workbenchResolved;
+
+  /// No description provided for @workbenchResolvedSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'今日关单'**
+  String get workbenchResolvedSub;
+
+  /// No description provided for @workbenchAllBuckets.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部'**
+  String get workbenchAllBuckets;
+
+  /// No description provided for @workbenchAllAssets.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部资产'**
+  String get workbenchAllAssets;
+
+  /// No description provided for @workbenchLivestock.
+  ///
+  /// In zh, this message translates to:
+  /// **'牲畜'**
+  String get workbenchLivestock;
+
+  /// No description provided for @workbenchHerd.
+  ///
+  /// In zh, this message translates to:
+  /// **'牛群'**
+  String get workbenchHerd;
+
+  /// No description provided for @workbenchFence.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏'**
+  String get workbenchFence;
+
+  /// No description provided for @workbenchDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备'**
+  String get workbenchDevice;
+
+  /// No description provided for @workbenchActiveUnread.
+  ///
+  /// In zh, this message translates to:
+  /// **'{active} 活跃 · {unread} 未读'**
+  String workbenchActiveUnread(int active, int unread);
+
+  /// No description provided for @workbenchContextOverview.
+  ///
+  /// In zh, this message translates to:
+  /// **'概览：牧场现状'**
+  String get workbenchContextOverview;
+
+  /// No description provided for @workbenchContextFence.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏：空间资产'**
+  String get workbenchContextFence;
+
+  /// No description provided for @workbenchContextAlert.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警：统一处置'**
+  String get workbenchContextAlert;
+
+  /// No description provided for @workbenchViewAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看全部 {count} 条'**
+  String workbenchViewAll(int count);
+
+  /// No description provided for @workbenchLoadMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'加载更多'**
+  String get workbenchLoadMore;
+
+  /// No description provided for @workbenchShownOf.
+  ///
+  /// In zh, this message translates to:
+  /// **'已显示 {shown} / {total}'**
+  String workbenchShownOf(int shown, int total);
+
+  /// No description provided for @workbenchNextStep.
+  ///
+  /// In zh, this message translates to:
+  /// **'下一步建议'**
+  String get workbenchNextStep;
+
+  /// No description provided for @workbenchNow.
+  ///
+  /// In zh, this message translates to:
+  /// **'现在'**
+  String get workbenchNow;
+
+  /// No description provided for @workbenchKeyMetrics.
+  ///
+  /// In zh, this message translates to:
+  /// **'关键指标'**
+  String get workbenchKeyMetrics;
+
+  /// No description provided for @workbenchEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'证据'**
+  String get workbenchEvidence;
+
+  /// No description provided for @workbenchLifecycle.
+  ///
+  /// In zh, this message translates to:
+  /// **'生命周期'**
+  String get workbenchLifecycle;
+
+  /// No description provided for @workbenchAffected.
+  ///
+  /// In zh, this message translates to:
+  /// **'影响数量'**
+  String get workbenchAffected;
+
+  /// No description provided for @workbenchSeverity.
+  ///
+  /// In zh, this message translates to:
+  /// **'级别'**
+  String get workbenchSeverity;
+
+  /// No description provided for @workbenchFirstReport.
+  ///
+  /// In zh, this message translates to:
+  /// **'最早上报'**
+  String get workbenchFirstReport;
+
+  /// No description provided for @workbenchAiBand.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 结论'**
+  String get workbenchAiBand;
+
+  /// No description provided for @workbenchAiScore.
+  ///
+  /// In zh, this message translates to:
+  /// **'技术评分'**
+  String get workbenchAiScore;
+
+  /// No description provided for @workbenchEvidenceCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'证据数量'**
+  String get workbenchEvidenceCount;
+
+  /// No description provided for @workbenchUnread.
+  ///
+  /// In zh, this message translates to:
+  /// **'未读'**
+  String get workbenchUnread;
+
+  /// No description provided for @workbenchRecommendFence.
+  ///
+  /// In zh, this message translates to:
+  /// **'先定位围栏与受影响牲畜'**
+  String get workbenchRecommendFence;
+
+  /// No description provided for @workbenchRecommendLivestock.
+  ///
+  /// In zh, this message translates to:
+  /// **'先查看病程与关键指标'**
+  String get workbenchRecommendLivestock;
+
+  /// No description provided for @workbenchRecommendDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'先检查设备佩戴与信号'**
+  String get workbenchRecommendDevice;
+
+  /// No description provided for @workbenchRecommendHerd.
+  ///
+  /// In zh, this message translates to:
+  /// **'先确认牛群异常分布'**
+  String get workbenchRecommendHerd;
+
+  /// No description provided for @workbenchRecommendResolved.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认处理结果与后续观察'**
+  String get workbenchRecommendResolved;
+
+  /// No description provided for @workbenchActionMap.
+  ///
+  /// In zh, this message translates to:
+  /// **'联动地图'**
+  String get workbenchActionMap;
+
+  /// No description provided for @workbenchActionTrajectory.
+  ///
+  /// In zh, this message translates to:
+  /// **'轨迹'**
+  String get workbenchActionTrajectory;
+
+  /// No description provided for @workbenchActionMarkRead.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记已读'**
+  String get workbenchActionMarkRead;
+
+  /// No description provided for @workbenchActionProcess.
+  ///
+  /// In zh, this message translates to:
+  /// **'处理'**
+  String get workbenchActionProcess;
+
+  /// No description provided for @workbenchActionLivestock.
+  ///
+  /// In zh, this message translates to:
+  /// **'牛详情'**
+  String get workbenchActionLivestock;
+
+  /// No description provided for @workbenchActionFence.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏'**
+  String get workbenchActionFence;
+
+  /// No description provided for @workbenchActionDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备'**
+  String get workbenchActionDevice;
+
+  /// No description provided for @workbenchActionAi.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 证据'**
+  String get workbenchActionAi;
+
+  /// No description provided for @workbenchTechnicalEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'技术证据已折叠'**
+  String get workbenchTechnicalEvidence;
+
+  /// No description provided for @workbenchResolvedAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'处理时间'**
+  String get workbenchResolvedAt;
+
+  /// No description provided for @workbenchProcessedToast.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警已处理'**
+  String get workbenchProcessedToast;
+
+  /// No description provided for @workbenchReadToast.
+  ///
+  /// In zh, this message translates to:
+  /// **'已标记为已读'**
+  String get workbenchReadToast;
+
+  /// No description provided for @workbenchEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前筛选无告警'**
+  String get workbenchEmpty;
+
+  /// No description provided for @workbenchEmptyHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'试试切换风险桶或资产范围'**
+  String get workbenchEmptyHint;
+
+  /// No description provided for @workbenchAiRanking.
+  ///
+  /// In zh, this message translates to:
+  /// **'谁最需要关注'**
+  String get workbenchAiRanking;
+
+  /// No description provided for @workbenchClose.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭'**
+  String get workbenchClose;
 }
 
 class _AppLocalizationsDelegate

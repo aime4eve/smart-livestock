@@ -238,9 +238,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
            builder: (context, state) => Consumer(
              builder: (context, ref, child) {
                final role = ref.watch(sessionControllerProvider).role!;
-               final category = state.uri.queryParameters['category'];
-               final fenceId = state.uri.queryParameters['fenceId'];
-               return AlertsPage(role: role, category: category, fenceId: fenceId);
+              final category = state.uri.queryParameters['category'];
+              final fenceId = state.uri.queryParameters['fenceId'];
+               return AlertsPage(
+                 role: role,
+                 bucket: state.uri.queryParameters['bucket'],
+                 asset: state.uri.queryParameters['asset'],
+                 category: category,
+                 fenceId: fenceId,
+                 source: state.uri.queryParameters['source'],
+               );
               },
             ),
           ),

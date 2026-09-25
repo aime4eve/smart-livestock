@@ -4967,4 +4967,113 @@
   "aiNotReady": "AI 观察暂未开启，恢复后自动展示",
   "recHint": "（可能有单未开出，建议巡检）"
 
+  ,"workbenchImmediate": "立即处置"
+  ,"@workbenchImmediate": {}
+  ,"workbenchImmediateSub": "越界 · 疫病 · 拆卸"
+  ,"@workbenchImmediateSub": {}
+  ,"workbenchField": "现场巡检"
+  ,"@workbenchField": {}
+  ,"workbenchFieldSub": "接近 · 低电 · 离线"
+  ,"@workbenchFieldSub": {}
+  ,"workbenchObserve": "持续观察"
+  ,"@workbenchObserve": {}
+  ,"workbenchObserveSub": "AI 留意 · 未开单"
+  ,"@workbenchObserveSub": {}
+  ,"workbenchResolved": "今日已处理"
+  ,"@workbenchResolved": {}
+  ,"workbenchResolvedSub": "今日关单"
+  ,"@workbenchResolvedSub": {}
+  ,"workbenchAllBuckets": "全部"
+  ,"@workbenchAllBuckets": {}
+  ,"workbenchAllAssets": "全部资产"
+  ,"@workbenchAllAssets": {}
+  ,"workbenchLivestock": "牲畜"
+  ,"@workbenchLivestock": {}
+  ,"workbenchHerd": "牛群"
+  ,"@workbenchHerd": {}
+  ,"workbenchFence": "围栏"
+  ,"@workbenchFence": {}
+  ,"workbenchDevice": "设备"
+  ,"@workbenchDevice": {}
+  ,"workbenchActiveUnread": "{active} 活跃 · {unread} 未读"
+  ,"@workbenchActiveUnread": {"placeholders": {"active": {"type": "int"}, "unread": {"type": "int"}}}
+  ,"workbenchContextOverview": "概览：牧场现状"
+  ,"@workbenchContextOverview": {}
+  ,"workbenchContextFence": "围栏：空间资产"
+  ,"@workbenchContextFence": {}
+  ,"workbenchContextAlert": "告警：统一处置"
+  ,"@workbenchContextAlert": {}
+  ,"workbenchViewAll": "查看全部 {count} 条"
+  ,"@workbenchViewAll": {"placeholders": {"count": {"type": "int"}}}
+  ,"workbenchLoadMore": "加载更多"
+  ,"@workbenchLoadMore": {}
+  ,"workbenchShownOf": "已显示 {shown} / {total}"
+  ,"@workbenchShownOf": {"placeholders": {"shown": {"type": "int"}, "total": {"type": "int"}}}
+  ,"workbenchNextStep": "下一步建议"
+  ,"@workbenchNextStep": {}
+  ,"workbenchNow": "现在"
+  ,"@workbenchNow": {}
+  ,"workbenchKeyMetrics": "关键指标"
+  ,"@workbenchKeyMetrics": {}
+  ,"workbenchEvidence": "证据"
+  ,"@workbenchEvidence": {}
+  ,"workbenchLifecycle": "生命周期"
+  ,"@workbenchLifecycle": {}
+  ,"workbenchAffected": "影响数量"
+  ,"@workbenchAffected": {}
+  ,"workbenchSeverity": "级别"
+  ,"@workbenchSeverity": {}
+  ,"workbenchFirstReport": "最早上报"
+  ,"@workbenchFirstReport": {}
+  ,"workbenchAiBand": "AI 结论"
+  ,"@workbenchAiBand": {}
+  ,"workbenchAiScore": "技术评分"
+  ,"@workbenchAiScore": {}
+  ,"workbenchEvidenceCount": "证据数量"
+  ,"@workbenchEvidenceCount": {}
+  ,"workbenchUnread": "未读"
+  ,"@workbenchUnread": {}
+  ,"workbenchRecommendFence": "先定位围栏与受影响牲畜"
+  ,"@workbenchRecommendFence": {}
+  ,"workbenchRecommendLivestock": "先查看病程与关键指标"
+  ,"@workbenchRecommendLivestock": {}
+  ,"workbenchRecommendDevice": "先检查设备佩戴与信号"
+  ,"@workbenchRecommendDevice": {}
+  ,"workbenchRecommendHerd": "先确认牛群异常分布"
+  ,"@workbenchRecommendHerd": {}
+  ,"workbenchRecommendResolved": "确认处理结果与后续观察"
+  ,"@workbenchRecommendResolved": {}
+  ,"workbenchActionMap": "联动地图"
+  ,"@workbenchActionMap": {}
+  ,"workbenchActionTrajectory": "轨迹"
+  ,"@workbenchActionTrajectory": {}
+  ,"workbenchActionMarkRead": "标记已读"
+  ,"@workbenchActionMarkRead": {}
+  ,"workbenchActionProcess": "处理"
+  ,"@workbenchActionProcess": {}
+  ,"workbenchActionLivestock": "牛详情"
+  ,"@workbenchActionLivestock": {}
+  ,"workbenchActionFence": "围栏"
+  ,"@workbenchActionFence": {}
+  ,"workbenchActionDevice": "设备"
+  ,"@workbenchActionDevice": {}
+  ,"workbenchActionAi": "AI 证据"
+  ,"@workbenchActionAi": {}
+  ,"workbenchTechnicalEvidence": "技术证据已折叠"
+  ,"@workbenchTechnicalEvidence": {}
+  ,"workbenchResolvedAt": "处理时间"
+  ,"@workbenchResolvedAt": {}
+  ,"workbenchProcessedToast": "告警已处理"
+  ,"@workbenchProcessedToast": {}
+  ,"workbenchReadToast": "已标记为已读"
+  ,"@workbenchReadToast": {}
+  ,"workbenchEmpty": "当前筛选无告警"
+  ,"@workbenchEmpty": {}
+  ,"workbenchEmptyHint": "试试切换风险桶或资产范围"
+  ,"@workbenchEmptyHint": {}
+  ,"workbenchAiRanking": "谁最需要关注"
+  ,"@workbenchAiRanking": {}
+  ,"workbenchClose": "关闭"
+  ,"@workbenchClose": {}
+
 }

@@ -15,11 +15,13 @@ class RolePermission {
     return role == UserRole.owner || role == UserRole.worker;
   }
 
-  static bool canHandleAlert(UserRole role) => role == UserRole.owner;
+  static bool canHandleAlert(UserRole role) =>
+      role == UserRole.owner || role == UserRole.b2bAdmin || role == UserRole.worker;
 
   static bool canArchiveAlert(UserRole role) => role == UserRole.owner;
 
-  static bool canBatchAlerts(UserRole role) => role == UserRole.owner;
+  static bool canBatchAlerts(UserRole role) =>
+      role == UserRole.owner || role == UserRole.b2bAdmin || role == UserRole.worker;
 
   static bool canTwinBreedingAction(UserRole role) => role == UserRole.owner;
 

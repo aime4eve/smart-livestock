@@ -6300,4 +6300,176 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recHint => ' (tickets may be missing — patrol advised)';
+
+  @override
+  String get workbenchImmediate => 'Immediate';
+
+  @override
+  String get workbenchImmediateSub => 'Breach · epidemic · tamper';
+
+  @override
+  String get workbenchField => 'Field check';
+
+  @override
+  String get workbenchFieldSub => '接近 · 低电 · 离线';
+
+  @override
+  String get workbenchObserve => 'Observe';
+
+  @override
+  String get workbenchObserveSub => 'AI watch · no ticket';
+
+  @override
+  String get workbenchResolved => 'Handled today';
+
+  @override
+  String get workbenchResolvedSub => 'Closed today';
+
+  @override
+  String get workbenchAllBuckets => 'All';
+
+  @override
+  String get workbenchAllAssets => 'All assets';
+
+  @override
+  String get workbenchLivestock => 'Livestock';
+
+  @override
+  String get workbenchHerd => 'Herd';
+
+  @override
+  String get workbenchFence => 'Fence';
+
+  @override
+  String get workbenchDevice => 'Device';
+
+  @override
+  String workbenchActiveUnread(int active, int unread) {
+    return '$active active · $unread unread';
+  }
+
+  @override
+  String get workbenchContextOverview => 'Overview: ranch state';
+
+  @override
+  String get workbenchContextFence => 'Fence: spatial assets';
+
+  @override
+  String get workbenchContextAlert => 'Alerts: unified action';
+
+  @override
+  String workbenchViewAll(int count) {
+    return 'View all $count';
+  }
+
+  @override
+  String get workbenchLoadMore => 'Load more';
+
+  @override
+  String workbenchShownOf(int shown, int total) {
+    return 'Showing $shown / $total';
+  }
+
+  @override
+  String get workbenchNextStep => 'Next step';
+
+  @override
+  String get workbenchNow => 'Now';
+
+  @override
+  String get workbenchKeyMetrics => 'Key metrics';
+
+  @override
+  String get workbenchEvidence => 'Evidence';
+
+  @override
+  String get workbenchLifecycle => 'Lifecycle';
+
+  @override
+  String get workbenchAffected => 'Affected';
+
+  @override
+  String get workbenchSeverity => 'Severity';
+
+  @override
+  String get workbenchFirstReport => 'First report';
+
+  @override
+  String get workbenchAiBand => 'AI verdict';
+
+  @override
+  String get workbenchAiScore => 'Technical score';
+
+  @override
+  String get workbenchEvidenceCount => 'Evidence';
+
+  @override
+  String get workbenchUnread => 'Unread';
+
+  @override
+  String get workbenchRecommendFence =>
+      'Locate the fence and affected livestock first';
+
+  @override
+  String get workbenchRecommendLivestock =>
+      'Review the episode and key metrics first';
+
+  @override
+  String get workbenchRecommendDevice => 'Check fitment and signal first';
+
+  @override
+  String get workbenchRecommendHerd =>
+      'Confirm the herd abnormal distribution first';
+
+  @override
+  String get workbenchRecommendResolved =>
+      'Confirm the result and follow-up observation';
+
+  @override
+  String get workbenchActionMap => 'Map';
+
+  @override
+  String get workbenchActionTrajectory => 'Track';
+
+  @override
+  String get workbenchActionMarkRead => 'Mark read';
+
+  @override
+  String get workbenchActionProcess => 'Handle';
+
+  @override
+  String get workbenchActionLivestock => 'Cattle';
+
+  @override
+  String get workbenchActionFence => 'Fence';
+
+  @override
+  String get workbenchActionDevice => 'Device';
+
+  @override
+  String get workbenchActionAi => 'AI evidence';
+
+  @override
+  String get workbenchTechnicalEvidence => 'Technical evidence folded';
+
+  @override
+  String get workbenchResolvedAt => 'Resolved at';
+
+  @override
+  String get workbenchProcessedToast => 'Alert handled';
+
+  @override
+  String get workbenchReadToast => 'Marked as read';
+
+  @override
+  String get workbenchEmpty => 'No alerts for this filter';
+
+  @override
+  String get workbenchEmptyHint => 'Try another bucket or asset range';
+
+  @override
+  String get workbenchAiRanking => 'Who needs attention';
+
+  @override
+  String get workbenchClose => 'Close';
 }
