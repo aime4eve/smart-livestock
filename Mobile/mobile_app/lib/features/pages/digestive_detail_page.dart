@@ -436,6 +436,7 @@ class DigestiveDetailPage extends ConsumerWidget {
                       tooltipMargin: 0,
                       tooltipPadding: EdgeInsets.zero,
                       tooltipBorder: BorderSide.none,
+                      tooltipHorizontalAlignment: FLHorizontalAlignment.left,
                       getTooltipItems:
                           (spots) => spots
                               .where((spot) => spot.barIndex == 0)

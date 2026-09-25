@@ -16,7 +16,7 @@ LineTouchData healthLineTouchData({
       tooltipBorder: BorderSide.none,
       fitInsideHorizontally: true,
       fitInsideVertically: true,
-      tooltipHorizontalAlignment: FLHorizontalAlignment.right,
+      tooltipHorizontalAlignment: FLHorizontalAlignment.left,
       getTooltipItems: (spots) =>
           spots.where((spot) => spot.barIndex == 0).map((spot) {
             return LineTooltipItem(
