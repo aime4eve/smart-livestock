@@ -27,6 +27,7 @@ import 'package:hkt_livestock_agentic/features/alerts/domain/alert_workbench.dar
 import 'package:hkt_livestock_agentic/features/alerts/presentation/alert_workbench_controller.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_workbench_detail_sheet.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_workbench_view.dart';
+import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
 import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/ranch_controller.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/livestock_map_marker.dart';
@@ -125,12 +126,12 @@ class _RanchPageState extends ConsumerState<RanchPage>
     final canManage = role != null && RolePermission.canEditFence(role);
     // Transform decision follows the tiles actually serving the farm area:
     // 高德 online → GCJ-02, local offline/server OSM tiles → none.
-    final refPoint = overview.fences.isNotEmpty &&
-            overview.fences.first.points.isNotEmpty
+    final refPoint =
+        overview.fences.isNotEmpty && overview.fences.first.points.isNotEmpty
         ? overview.fences.first.points.first
         : overview.livestockMarkers.isNotEmpty
-            ? overview.livestockMarkers.first.toLatLng()
-            : null;
+        ? overview.livestockMarkers.first.toLatLng()
+        : null;
     final shouldTransform = refPoint != null
         ? (_tileProvider?.shouldTransformAt(refPoint) ?? false)
         : (_tileProvider?.shouldTransformCoordinates() ?? false);
@@ -485,7 +486,10 @@ class _RanchPageState extends ConsumerState<RanchPage>
   static const Color _tileOrange2 = Color(0xFFDB9C40);
 
   Widget _buildOverviewTab(
-      BuildContext context, RanchOverview overview, RanchAlertSummary? summary) {
+    BuildContext context,
+    RanchOverview overview,
+    RanchAlertSummary? summary,
+  ) {
     // Card numbers come from the shared summary endpoint (same source as the
     // alert center); client-side grouping is only the fallback until it loads.
     final fenceTotal =
@@ -503,13 +507,19 @@ class _RanchPageState extends ConsumerState<RanchPage>
 
     // 围栏去重数与"持续超 6 小时"发热单：同一份活跃告警列表派生（不加查询）
     final now = DateTime.now();
-    final activeAlerts =
-        overview.alerts.where((a) => a.status == 'ACTIVE').toList();
+    final activeAlerts = overview.alerts
+        .where((a) => a.status == 'ACTIVE')
+        .toList();
     final breachedFences = activeAlerts
-        .where((a) =>
-            (a.fenceId ?? '').isNotEmpty &&
-            const {'FENCE_BREACH', 'FENCE_APPROACH', 'ZONE_APPROACH'}
-                .contains(a.type))
+        .where(
+          (a) =>
+              (a.fenceId ?? '').isNotEmpty &&
+              const {
+                'FENCE_BREACH',
+                'FENCE_APPROACH',
+                'ZONE_APPROACH',
+              }.contains(a.type),
+        )
         .map((a) => a.fenceId)
         .toSet()
         .length;
@@ -527,15 +537,21 @@ class _RanchPageState extends ConsumerState<RanchPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildHeroCard(context,
-              stats: stats, farmName: farmName, breachedFences: breachedFences),
-          _buildNeedsAttentionSection(context,
-              fenceTotal: fenceTotal,
-              fenceUnread: fenceUnread,
-              healthTotal: healthTotal,
-              deviceAlerts: deviceAlerts,
-              breachedFences: breachedFences,
-              scene: scene),
+          _buildHeroCard(
+            context,
+            stats: stats,
+            farmName: farmName,
+            breachedFences: breachedFences,
+          ),
+          _buildNeedsAttentionSection(
+            context,
+            fenceTotal: fenceTotal,
+            fenceUnread: fenceUnread,
+            healthTotal: healthTotal,
+            deviceAlerts: deviceAlerts,
+            breachedFences: breachedFences,
+            scene: scene,
+          ),
           if (scene != null) ...[
             _buildSceneSection(context, scene, feverOver6h: feverOver6h),
             const SizedBox(height: AppSpacing.sm),
@@ -547,10 +563,12 @@ class _RanchPageState extends ConsumerState<RanchPage>
   }
 
   /// Hero 晨报卡：渐变 + 日期/牧场名 + 按健康率生成标题（裁决 24）+ 环形 + 两枚 chip。
-  Widget _buildHeroCard(BuildContext context,
-      {required dynamic stats,
-      required String farmName,
-      required int breachedFences}) {
+  Widget _buildHeroCard(
+    BuildContext context, {
+    required dynamic stats,
+    required String farmName,
+    required int breachedFences,
+  }) {
     final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final weekdays = [
@@ -562,8 +580,11 @@ class _RanchPageState extends ConsumerState<RanchPage>
       l10n.weekday5,
       l10n.weekday6,
     ];
-    final dateText =
-        l10n.heroDatePattern(now.month, now.day, weekdays[now.weekday % 7]);
+    final dateText = l10n.heroDatePattern(
+      now.month,
+      now.day,
+      weekdays[now.weekday % 7],
+    );
 
     final double rate = stats?.healthyRate ?? 0;
     final total = stats?.totalLivestock ?? 0;
@@ -597,7 +618,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
           Text(
             farmName.isNotEmpty ? '$dateText · $farmName' : dateText,
             style: TextStyle(
-                fontSize: 10, color: Colors.white.withValues(alpha: 0.75)),
+              fontSize: 10,
+              color: Colors.white.withValues(alpha: 0.75),
+            ),
           ),
           const SizedBox(height: 5),
           Row(
@@ -606,19 +629,23 @@ class _RanchPageState extends ConsumerState<RanchPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title,
-                        style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            height: 1.3)),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        height: 1.3,
+                      ),
+                    ),
                     const SizedBox(height: 3),
                     Text(
                       l10n.heroSub(healthy, total, breachedFences),
                       style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.white.withValues(alpha: 0.8),
-                          height: 1.5),
+                        fontSize: 10,
+                        color: Colors.white.withValues(alpha: 0.8),
+                        height: 1.5,
+                      ),
                     ),
                   ],
                 ),
@@ -637,15 +664,21 @@ class _RanchPageState extends ConsumerState<RanchPage>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('${(rate * 100).round()}%',
-                            style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white)),
-                        Text(l10n.heroRingLabel,
-                            style: TextStyle(
-                                fontSize: 7,
-                                color: Colors.white.withValues(alpha: 0.75))),
+                        Text(
+                          '${(rate * 100).round()}%',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          l10n.heroRingLabel,
+                          style: TextStyle(
+                            fontSize: 7,
+                            color: Colors.white.withValues(alpha: 0.75),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -659,8 +692,11 @@ class _RanchPageState extends ConsumerState<RanchPage>
               Expanded(child: _heroChip('$total', l10n.heroChipHead)),
               const SizedBox(width: 7),
               Expanded(
-                  child:
-                      _heroChip('${(online * 100).round()}%', l10n.heroChipDevice)),
+                child: _heroChip(
+                  '${(online * 100).round()}%',
+                  l10n.heroChipDevice,
+                ),
+              ),
             ],
           ),
         ],
@@ -669,34 +705,43 @@ class _RanchPageState extends ConsumerState<RanchPage>
   }
 
   Widget _heroChip(String value, String label) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(8),
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+    decoration: BoxDecoration(
+      color: Colors.white.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Row(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
         ),
-        child: Row(
-          children: [
-            Text(value,
-                style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white)),
-            const SizedBox(width: 4),
-            Text(label,
-                style: TextStyle(
-                    fontSize: 9, color: Colors.white.withValues(alpha: 0.78))),
-          ],
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 9,
+            color: Colors.white.withValues(alpha: 0.78),
+          ),
         ),
-      );
+      ],
+    ),
+  );
 
   /// 需要处理段：红围栏 / 橙健康 / 白设备（0=绿"正常"，>0 升橙底）。
-  Widget _buildNeedsAttentionSection(BuildContext context,
-      {required int fenceTotal,
-      required int fenceUnread,
-      required int healthTotal,
-      required int deviceAlerts,
-      required int breachedFences,
-      required dynamic scene}) {
+  Widget _buildNeedsAttentionSection(
+    BuildContext context, {
+    required int fenceTotal,
+    required int fenceUnread,
+    required int healthTotal,
+    required int deviceAlerts,
+    required int breachedFences,
+    required dynamic scene,
+  }) {
     final l10n = AppLocalizations.of(context)!;
     final total = fenceTotal + healthTotal + deviceAlerts;
 
@@ -718,19 +763,26 @@ class _RanchPageState extends ConsumerState<RanchPage>
         Row(
           children: [
             Container(
-                width: 3,
-                height: 10,
-                decoration: BoxDecoration(
-                    color: AppColors.danger,
-                    borderRadius: BorderRadius.circular(2))),
+              width: 3,
+              height: 10,
+              decoration: BoxDecoration(
+                color: AppColors.danger,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
             const SizedBox(width: 5),
-            Text(l10n.secNeedsAttention,
-                style: const TextStyle(
-                    fontSize: 11, fontWeight: FontWeight.w700)),
+            Text(
+              l10n.secNeedsAttention,
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+            ),
             const Spacer(),
-            Text(l10n.secNeedsAttentionTotal(total),
-                style: const TextStyle(
-                    fontSize: 9, color: AppColors.textSecondary)),
+            Text(
+              l10n.secNeedsAttentionTotal(total),
+              style: const TextStyle(
+                fontSize: 9,
+                color: AppColors.textSecondary,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 7),
@@ -750,8 +802,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
                       : l10n.tileFenceSubClear,
                   subColor: AppColors.success,
                   badge: fenceUnread,
-                  onTap: () =>
-                      context.push('${AppRoute.alerts.path}?asset=fence&source=overview'),
+                  onTap: () => context.push(
+                    '${AppRoute.alerts.path}?asset=fence&source=overview',
+                  ),
                 ),
               ),
               const SizedBox(width: 7),
@@ -764,8 +817,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
                   big: '$healthTotal',
                   sub: healthSub,
                   subColor: AppColors.textSecondary,
-                  onTap: () =>
-                      context.push('${AppRoute.alerts.path}?asset=health&source=overview'),
+                  onTap: () => context.push(
+                    '${AppRoute.alerts.path}?asset=health&source=overview',
+                  ),
                 ),
               ),
               const SizedBox(width: 7),
@@ -782,8 +836,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
                   subColor: deviceAlerts > 0
                       ? AppColors.textSecondary
                       : AppColors.success,
-                  onTap: () =>
-                      context.push('${AppRoute.alerts.path}?asset=device&source=overview'),
+                  onTap: () => context.push(
+                    '${AppRoute.alerts.path}?asset=device&source=overview',
+                  ),
                 ),
               ),
             ],
@@ -794,20 +849,28 @@ class _RanchPageState extends ConsumerState<RanchPage>
   }
 
   /// 健康管理段：2×2 场景卡（状态胶囊 + 人话副标）。
-  Widget _buildSceneSection(BuildContext context, dynamic scene,
-      {required int feverOver6h}) {
+  Widget _buildSceneSection(
+    BuildContext context,
+    dynamic scene, {
+    required int feverOver6h,
+  }) {
     final l10n = AppLocalizations.of(context)!;
 
     Widget pill(Color color, String text) => Container(
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(999),
-          ),
-          child: Text(text,
-              style: TextStyle(
-                  fontSize: 8.5, fontWeight: FontWeight.w700, color: color)),
-        );
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 8.5,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
+      ),
+    );
 
     Widget card({
       required IconData icon,
@@ -844,30 +907,43 @@ class _RanchPageState extends ConsumerState<RanchPage>
                   ),
                   const SizedBox(width: 7),
                   Expanded(
-                    child: Text(name,
-                        style: const TextStyle(
-                            fontSize: 11, fontWeight: FontWeight.w700)),
+                    child: Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                   statusPill,
                 ],
               ),
               const SizedBox(height: 6),
               if (footBold != null)
-                Text.rich(TextSpan(children: [
+                Text.rich(
                   TextSpan(
-                      text: foot,
-                      style: const TextStyle(
+                    children: [
+                      TextSpan(
+                        text: foot,
+                        style: const TextStyle(
                           fontSize: 9,
                           height: 1.3,
-                          color: AppColors.textSecondary)),
-                  footBold,
-                ]))
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      footBold,
+                    ],
+                  ),
+                )
               else
-                Text(foot,
-                    style: const TextStyle(
-                        fontSize: 9,
-                        height: 1.3,
-                        color: AppColors.textSecondary)),
+                Text(
+                  foot,
+                  style: const TextStyle(
+                    fontSize: 9,
+                    height: 1.3,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
             ],
           ),
         ),
@@ -886,21 +962,27 @@ class _RanchPageState extends ConsumerState<RanchPage>
         Row(
           children: [
             Container(
-                width: 3,
-                height: 10,
-                decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(2))),
+              width: 3,
+              height: 10,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
             const SizedBox(width: 5),
-            Text(l10n.secHealthMgmt,
-                style: const TextStyle(
-                    fontSize: 11, fontWeight: FontWeight.w700)),
+            Text(
+              l10n.secHealthMgmt,
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+            ),
             const Spacer(),
-            Text(l10n.secHealthAll,
-                style: const TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary)),
+            Text(
+              l10n.secHealthAll,
+              style: const TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 7),
@@ -922,7 +1004,8 @@ class _RanchPageState extends ConsumerState<RanchPage>
                       scene.fever.criticalCount > 0
                           ? AppColors.danger
                           : AppColors.warning,
-                      l10n.pillAbnormal(scene.fever.abnormalCount)),
+                      l10n.pillAbnormal(scene.fever.abnormalCount),
+                    ),
               foot: scene.fever.abnormalCount == 0
                   ? l10n.sceneFeverCalm
                   : l10n.sceneFeverFoot(feverN, lowN),
@@ -930,10 +1013,12 @@ class _RanchPageState extends ConsumerState<RanchPage>
                   ? TextSpan(
                       text: l10n.sceneFeverFootOver(feverOver6h),
                       style: const TextStyle(
-                          fontSize: 9,
-                          height: 1.3,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.danger))
+                        fontSize: 9,
+                        height: 1.3,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.danger,
+                      ),
+                    )
                   : null,
               onTap: () => context.go(AppRoute.twinFever.path),
             ),
@@ -943,8 +1028,10 @@ class _RanchPageState extends ConsumerState<RanchPage>
               name: l10n.ranchSceneDigestiveMgmt,
               statusPill: scene.digestive.abnormalCount == 0
                   ? pill(AppColors.success, l10n.pillSteady)
-                  : pill(AppColors.warning,
-                      l10n.pillAbnormal(scene.digestive.abnormalCount)),
+                  : pill(
+                      AppColors.warning,
+                      l10n.pillAbnormal(scene.digestive.abnormalCount),
+                    ),
               foot: scene.digestive.abnormalCount == 0
                   ? l10n.sceneDigestiveCalm
                   : l10n.sceneDigestiveFoot(scene.digestive.abnormalCount),
@@ -956,8 +1043,10 @@ class _RanchPageState extends ConsumerState<RanchPage>
               name: l10n.ranchSceneEstrusMgmt,
               statusPill: scene.estrus.highScoreCount == 0
                   ? pill(AppColors.success, l10n.pillSteady)
-                  : pill(AppColors.estrus,
-                      l10n.pillHigh(scene.estrus.highScoreCount)),
+                  : pill(
+                      AppColors.estrus,
+                      l10n.pillHigh(scene.estrus.highScoreCount),
+                    ),
               foot: scene.estrus.highScoreCount == 0
                   ? l10n.sceneEstrusCalm
                   : l10n.sceneEstrusFoot(scene.estrus.highScoreCount),
@@ -970,8 +1059,8 @@ class _RanchPageState extends ConsumerState<RanchPage>
               statusPill: epiOver
                   ? pill(AppColors.danger, l10n.pillRate(epiRate))
                   : scene.epidemic.abnormalRate > 0
-                      ? pill(AppColors.warning, l10n.pillRate(epiRate))
-                      : pill(AppColors.success, l10n.pillSteady),
+                  ? pill(AppColors.warning, l10n.pillRate(epiRate))
+                  : pill(AppColors.success, l10n.pillSteady),
               foot: epiOver
                   ? l10n.sceneEpidemicFootAbove(epiRate)
                   : l10n.sceneEpidemicFootBelow(epiRate),
@@ -981,15 +1070,16 @@ class _RanchPageState extends ConsumerState<RanchPage>
         ),
         // 对账提示：仅场景异常数 ≠ 活跃单数时出现（裁决 23）
         _buildReconcileLine(
-            context,
-            scene.fever.abnormalCount +
-                scene.digestive.abnormalCount +
-                scene.estrus.highScoreCount,
-            scene.fever.activeAlertCount +
-                scene.digestive.activeAlertCount +
-                scene.estrus.activeAlertCount +
-                scene.epidemic.activeAlertCount +
-                (scene.ai?.activeAlertCount ?? 0)),
+          context,
+          scene.fever.abnormalCount +
+              scene.digestive.abnormalCount +
+              scene.estrus.highScoreCount,
+          scene.fever.activeAlertCount +
+              scene.digestive.activeAlertCount +
+              scene.estrus.activeAlertCount +
+              scene.epidemic.activeAlertCount +
+              (scene.ai?.activeAlertCount ?? 0),
+        ),
       ],
     );
   }
@@ -1001,15 +1091,15 @@ class _RanchPageState extends ConsumerState<RanchPage>
     final color = empty
         ? AppColors.textSecondary
         : ai.avgScore >= 0.7
-              ? AppColors.danger
-              : ai.avgScore >= 0.3
-                    ? AppColors.warning
-                    : AppColors.success;
+        ? AppColors.danger
+        : ai.avgScore >= 0.3
+        ? AppColors.warning
+        : AppColors.success;
     final band = ai.avgScore >= 0.7
         ? l10n.aiBandAlarm
         : ai.avgScore >= 0.3
-              ? l10n.aiBandWatch
-              : l10n.aiBandCalm;
+        ? l10n.aiBandWatch
+        : l10n.aiBandCalm;
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -1033,16 +1123,22 @@ class _RanchPageState extends ConsumerState<RanchPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.aiObserveTitle,
-                    style: const TextStyle(
-                        fontSize: 11, fontWeight: FontWeight.w700)),
+                Text(
+                  l10n.aiObserveTitle,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(
                   empty
                       ? l10n.aiNotReady
                       : l10n.aiSummaryWatching(ai.anomalyCount),
                   style: const TextStyle(
-                      fontSize: 9, color: AppColors.textSecondary),
+                    fontSize: 9,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -1054,9 +1150,14 @@ class _RanchPageState extends ConsumerState<RanchPage>
                 color: color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(999),
               ),
-              child: Text(band,
-                  style: TextStyle(
-                      fontSize: 8.5, fontWeight: FontWeight.w700, color: color)),
+              child: Text(
+                band,
+                style: TextStyle(
+                  fontSize: 8.5,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
             ),
         ],
       ),
@@ -1065,7 +1166,10 @@ class _RanchPageState extends ConsumerState<RanchPage>
 
   /// 琥珀对账条：场景异常数与活跃健康单不一致时提醒（一致时不渲染）。
   Widget _buildReconcileLine(
-      BuildContext context, int sceneAbnormal, int tickets) {
+    BuildContext context,
+    int sceneAbnormal,
+    int tickets,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     if (sceneAbnormal == tickets) return const SizedBox.shrink();
     final diff = (tickets - sceneAbnormal).abs();
@@ -1088,9 +1192,10 @@ class _RanchPageState extends ConsumerState<RanchPage>
                 '${l10n.reconcileSceneAbnormal} $sceneAbnormal ${l10n.reconcileHeadUnit} · ${l10n.reconcileActiveTickets} $tickets ${l10n.reconcileTicketUnit} · ${l10n.reconcileOffBy}$diff${l10n.recHint}',
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.warning.withValues(alpha: 0.95)),
+                  fontSize: 9,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.warning.withValues(alpha: 0.95),
+                ),
               ),
             ),
           ],
@@ -1107,12 +1212,12 @@ class _RanchPageState extends ConsumerState<RanchPage>
       'fence': fenceTypes,
       'device': deviceTypes,
       'health': const {
-          'TEMPERATURE_ABNORMAL',
-          'DIGESTIVE_ABNORMAL',
-          'ESTRUS',
-          'EPIDEMIC',
-          'AI_ANOMALY'
-        },
+        'TEMPERATURE_ABNORMAL',
+        'DIGESTIVE_ABNORMAL',
+        'ESTRUS',
+        'EPIDEMIC',
+        'AI_ANOMALY',
+      },
     };
     final types = groups[group]!;
     return overview.alerts
@@ -1121,7 +1226,10 @@ class _RanchPageState extends ConsumerState<RanchPage>
   }
 
   Widget _buildAlertsTab(
-      BuildContext context, RanchOverview overview, RanchAlertSummary? summary) {
+    BuildContext context,
+    RanchOverview overview,
+    RanchAlertSummary? summary,
+  ) {
     final farmId = ref.watch(farmSwitcherControllerProvider).activeFarmId;
     final asyncData = farmId == null
         ? const AsyncLoading<AlertWorkbenchData>()
@@ -1133,12 +1241,14 @@ class _RanchPageState extends ConsumerState<RanchPage>
           data: data,
           selectedBucket: 'all',
           selectedAsset: const {'all'},
-          onBucket: (bucket) => context
-              .push('${AppRoute.alerts.path}?bucket=$bucket&source=overview'),
+          onBucket: (bucket) => context.push(
+            '${AppRoute.alerts.path}?bucket=$bucket&source=overview',
+          ),
           onAsset: (asset) {
             final value = asset.first;
             context.push(
-                '${AppRoute.alerts.path}?asset=$value&source=${value == 'fence' ? 'fence' : 'overview'}');
+              '${AppRoute.alerts.path}?asset=$value&source=${value == 'fence' ? 'fence' : 'overview'}',
+            );
           },
           onItem: (item) => _openWorkbenchDetail(context, item),
           onLoadMore: () async {},
@@ -1148,24 +1258,34 @@ class _RanchPageState extends ConsumerState<RanchPage>
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text('$error',
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '$error',
               textAlign: TextAlign.center,
               style: const TextStyle(
-                  fontSize: 9, color: AppColors.textSecondary)),
-          const SizedBox(height: AppSpacing.sm),
-          if (farmId != null)
-            TextButton(
-              onPressed: () => ref.invalidate(ranchAlertWorkbenchProvider(farmId)),
-              child: Text(AppLocalizations.of(context)!.commonRetry),
+                fontSize: 9,
+                color: AppColors.textSecondary,
+              ),
             ),
-        ]),
+            const SizedBox(height: AppSpacing.sm),
+            if (farmId != null)
+              TextButton(
+                onPressed: () =>
+                    ref.invalidate(ranchAlertWorkbenchProvider(farmId)),
+                child: Text(AppLocalizations.of(context)!.commonRetry),
+              ),
+          ],
+        ),
       ),
     );
   }
 
   Future<void> _openWorkbenchDetail(
-      BuildContext context, WorkbenchItem item) async {
+    BuildContext context,
+    WorkbenchItem item,
+  ) async {
     final role = ref.read(sessionControllerProvider).role;
     final farmId = ref.read(farmSwitcherControllerProvider).activeFarmId;
     if (role == null || farmId == null) return;
@@ -1174,8 +1294,10 @@ class _RanchPageState extends ConsumerState<RanchPage>
       item: item,
       role: role,
       onMarkRead: (detail) async {
-        final ids = detail.reasons.where((reason) => !reason.read)
-            .map((reason) => reason.alertId).toList();
+        final ids = detail.reasons
+            .where((reason) => !reason.read)
+            .map((reason) => reason.alertId)
+            .toList();
         if (ids.isNotEmpty) {
           await const AlertsApiRepository().batchRead(ids);
         }
@@ -1189,6 +1311,12 @@ class _RanchPageState extends ConsumerState<RanchPage>
         ref.invalidate(ranchAlertWorkbenchProvider(farmId));
         ref.invalidate(alertSummaryControllerProvider);
       },
+      onNavigate: (route) => context.push(route),
+      onTrajectory: (detail) => showTrajectorySheet(
+        context,
+        detail.asset.id,
+        livestockCode: detail.asset.name,
+      ),
     );
   }
 
@@ -1493,8 +1621,13 @@ class _RingProgressPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 6
       ..strokeCap = StrokeCap.round;
-    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), startAngle,
-        2 * math.pi * progress, false, progressPaint);
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      2 * math.pi * progress,
+      false,
+      progressPaint,
+    );
   }
 
   @override

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
@@ -11,6 +12,7 @@ import 'package:hkt_livestock_agentic/features/alerts/presentation/alert_workben
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_batch_bar.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_workbench_detail_sheet.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_workbench_view.dart';
+import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class AlertsPage extends ConsumerStatefulWidget {
@@ -322,6 +324,12 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
             .markRead(detail),
         onDismiss: (detail) =>
             ref.read(alertWorkbenchControllerProvider.notifier).dismiss(detail),
+        onNavigate: (route) => context.push(route),
+        onTrajectory: (detail) => showTrajectorySheet(
+          context,
+          detail.asset.id,
+          livestockCode: detail.asset.name,
+        ),
       );
     } finally {
       if (mounted) setState(() => _detailOpen = false);

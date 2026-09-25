@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/features/alerts/domain/alert_workbench.dart';
-import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 Future<void> showAlertWorkbenchDetailSheet(
@@ -14,6 +12,8 @@ Future<void> showAlertWorkbenchDetailSheet(
   required UserRole role,
   required Future<void> Function(WorkbenchItem item) onMarkRead,
   required Future<void> Function(WorkbenchItem item) onDismiss,
+  required void Function(String route) onNavigate,
+  required void Function(WorkbenchItem item) onTrajectory,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -24,6 +24,8 @@ Future<void> showAlertWorkbenchDetailSheet(
       role: role,
       onMarkRead: onMarkRead,
       onDismiss: onDismiss,
+      onNavigate: onNavigate,
+      onTrajectory: onTrajectory,
     ),
   );
 }
@@ -35,12 +37,16 @@ class AlertWorkbenchDetailSheet extends StatelessWidget {
     required this.role,
     required this.onMarkRead,
     required this.onDismiss,
+    required this.onNavigate,
+    required this.onTrajectory,
   });
 
   final WorkbenchItem item;
   final UserRole role;
   final Future<void> Function(WorkbenchItem item) onMarkRead;
   final Future<void> Function(WorkbenchItem item) onDismiss;
+  final void Function(String route) onNavigate;
+  final void Function(WorkbenchItem item) onTrajectory;
 
   @override
   Widget build(BuildContext context) {
@@ -136,6 +142,8 @@ class AlertWorkbenchDetailSheet extends StatelessWidget {
               await onDismiss(item);
               if (context.mounted) Navigator.of(context).pop();
             },
+            onNavigate: onNavigate,
+            onTrajectory: onTrajectory,
           ),
         ],
       ),
@@ -737,18 +745,22 @@ class _ActionBar extends StatelessWidget {
     required this.role,
     required this.onMarkRead,
     required this.onDismiss,
+    required this.onNavigate,
+    required this.onTrajectory,
   });
 
   final WorkbenchItem item;
   final UserRole role;
   final Future<void> Function(WorkbenchItem item) onMarkRead;
   final Future<void> Function(WorkbenchItem item) onDismiss;
+  final void Function(String route) onNavigate;
+  final void Function(WorkbenchItem item) onTrajectory;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final canDismiss = RolePermission.canHandleAlert(role) && !item.isResolved;
-    final (primaryLabel, primaryOnTap) = _primaryAction(context);
+    final (primaryLabel, primaryRoute) = _primaryAction(context);
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 7, 10, 10),
       decoration: const BoxDecoration(
@@ -764,29 +776,31 @@ class _ActionBar extends StatelessWidget {
               label: primaryLabel,
               color: AppColors.primary,
               foreground: Colors.white,
-              onTap: primaryOnTap,
+              onTap: primaryRoute == null
+                  ? null
+                  : () {
+                      Navigator.of(context).pop();
+                      onNavigate(primaryRoute);
+                    },
             ),
           ),
-          const SizedBox(width: 5),
-          Expanded(
-            flex: 2,
-            child: _button(
-              context,
-              label: l10n.workbenchActionTrajectory,
-              color: AppColors.surfaceAlt,
-              foreground: AppColors.textPrimary,
-              border: true,
-              onTap:
-                  item.reasons.any(
-                    (reason) =>
-                        reason.type != 'DEVICE_TAMPER' &&
-                        reason.type != 'DEVICE_LOW_BATTERY' &&
-                        reason.type != 'DEVICE_OFFLINE',
-                  )
-                  ? () => _trajectory(context)
-                  : null,
+          if (_canTrajectory) ...[
+            const SizedBox(width: 5),
+            Expanded(
+              flex: 2,
+              child: _button(
+                context,
+                label: l10n.workbenchActionTrajectory,
+                color: AppColors.surfaceAlt,
+                foreground: AppColors.textPrimary,
+                border: true,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  onTrajectory(item);
+                },
+              ),
             ),
-          ),
+          ],
           if (!item.isResolved) ...[
             const SizedBox(width: 5),
             Expanded(
@@ -852,41 +866,39 @@ class _ActionBar extends StatelessWidget {
     );
   }
 
-  void _open(BuildContext context) {
-    Navigator.of(context).pop();
-    context.push('/livestock/${item.asset.id}?section=health');
-  }
+  bool get _canTrajectory =>
+      item.asset.kind == 'livestock' &&
+      item.reasons.any(
+        (reason) =>
+            reason.type != 'DEVICE_TAMPER' &&
+            reason.type != 'DEVICE_LOW_BATTERY' &&
+            reason.type != 'DEVICE_OFFLINE',
+      );
 
-  (String, VoidCallback?) _primaryAction(BuildContext context) {
+  (String, String?) _primaryAction(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     if (item.isResolved) {
       return (
         l10n.workbenchActionLivestock,
-        item.asset.kind == 'livestock' ? () => _open(context) : null,
+        item.asset.kind == 'livestock'
+            ? '/livestock/${item.asset.id}?section=health'
+            : null,
       );
     }
     return switch (item.asset.kind) {
-      'fence' => (l10n.workbenchActionMap, () => _openMap(context)),
-      'device' => (l10n.workbenchActionDevice, () => _openDevice(context)),
-      'herd' => (l10n.workbenchActionLivestock, null),
-      _ => (l10n.workbenchActionLivestock, () => _open(context)),
+      'fence' => (
+        l10n.workbenchActionMap,
+        '${AppRoute.ranch.path}?tab=fence&fenceId=${item.asset.id}',
+      ),
+      'device' => (
+        l10n.workbenchActionDevice,
+        '/devices?deviceId=${item.asset.id}',
+      ),
+      'herd' => (l10n.livestockListTitle, AppRoute.livestockList.path),
+      _ => (
+        l10n.workbenchActionLivestock,
+        '/livestock/${item.asset.id}?section=health',
+      ),
     };
-  }
-
-  void _openMap(BuildContext context) {
-    Navigator.of(context).pop();
-    context.push('${AppRoute.ranch.path}?tab=fence&fenceId=${item.asset.id}');
-  }
-
-  void _openDevice(BuildContext context) {
-    Navigator.of(context).pop();
-    context.push('/devices?deviceId=${item.asset.id}');
-  }
-
-  void _trajectory(BuildContext context) {
-    final id = item.asset.kind == 'livestock' ? item.asset.id : null;
-    if (id == null) return;
-    Navigator.of(context).pop();
-    showTrajectorySheet(context, id, livestockCode: item.asset.name);
   }
 }

@@ -184,7 +184,7 @@ public class AlertWorkbenchService {
             case "livestock" -> "/livestock/" + assetId + "?section=health";
             case "fence" -> "/ranch?tab=fence&fenceId=" + assetId;
             case "device" -> "/devices?deviceId=" + assetId;
-            default -> "/health/epidemic";
+            default -> "/twin/epidemic";
         };
         Instant resolvedAt = alerts.stream().map(Alert::getResolvedAt)
                 .filter(Objects::nonNull).max(Comparator.naturalOrder()).orElse(null);
