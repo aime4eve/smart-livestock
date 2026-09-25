@@ -8,34 +8,22 @@ LineTouchData healthLineTouchData({
 }) {
   return LineTouchData(
     touchTooltipData: LineTouchTooltipData(
-      getTooltipColor: (_) => AppColors.surfaceAlt,
-      tooltipRoundedRadius: 8,
-      tooltipPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      tooltipMargin: 10,
-      maxContentWidth: 140,
-      tooltipBorder: const BorderSide(color: AppColors.border),
+      getTooltipColor: (_) => Colors.transparent,
+      tooltipRoundedRadius: 0,
+      tooltipPadding: EdgeInsets.zero,
+      tooltipMargin: 0,
+      maxContentWidth: 120,
+      tooltipBorder: BorderSide.none,
       fitInsideHorizontally: true,
       fitInsideVertically: true,
       getTooltipItems: (spots) =>
           spots.where((spot) => spot.barIndex == 0).map((spot) {
-            final index = spot.x.toInt();
-            final timestamp = index >= 0 && index < timestamps.length
-                ? timestamps[index]
-                : null;
-            // Backend timestamps are UTC instants; render them in the
-            // device timezone or every label reads 8h stale for UTC+8 users.
-            final local = timestamp?.toLocal();
-            final timeLabel = local == null
-                ? ''
-                : '${local.month}/${local.day} '
-                      '${local.hour.toString().padLeft(2, '0')}:'
-                      '${local.minute.toString().padLeft(2, '0')}';
             return LineTooltipItem(
-              '${formatValue(spot.y)}\n$timeLabel',
+              formatValue(spot.y),
               const TextStyle(
                 color: AppColors.textPrimary,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
               ),
             );
           }).toList(),
