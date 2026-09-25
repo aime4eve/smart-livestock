@@ -169,7 +169,7 @@ class AlertWorkbenchView extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 7,
       crossAxisSpacing: 7,
-      childAspectRatio: compact ? 1.55 : 1.75,
+      childAspectRatio: 2.55,
       children: [
         for (final spec in definitions)
           Material(
@@ -178,7 +178,7 @@ class AlertWorkbenchView extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               onTap: () => onBucket(spec.key),
               child: Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                 decoration: BoxDecoration(
                   gradient: spec.background,
                   color: spec.background == null ? AppColors.surfaceAlt : null,
