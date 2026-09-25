@@ -164,12 +164,12 @@ class AlertWorkbenchView extends StatelessWidget {
       ),
     ];
     return GridView.count(
-      crossAxisCount: 2,
+      crossAxisCount: 4,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 7,
       crossAxisSpacing: 7,
-      childAspectRatio: 2.55,
+      childAspectRatio: 1.3,
       children: [
         for (final spec in definitions)
           Material(
