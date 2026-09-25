@@ -943,6 +943,7 @@ class _FeverTrendSection extends ConsumerWidget {
             Container(
               height: 160,
               padding: const EdgeInsets.all(8),
+              clipBehavior: Clip.hardEdge,
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(8),
@@ -1108,6 +1109,7 @@ class _DigestiveTrendSection extends ConsumerWidget {
             Container(
               height: 160,
               padding: const EdgeInsets.all(8),
+              clipBehavior: Clip.hardEdge,
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(8),
@@ -1296,6 +1298,7 @@ class _EstrusTrendSection extends ConsumerWidget {
             Container(
               height: 160,
               padding: const EdgeInsets.all(8),
+              clipBehavior: Clip.hardEdge,
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(8),
