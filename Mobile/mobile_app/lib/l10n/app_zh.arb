@@ -3402,6 +3402,59 @@
       }
     }
   },
+  "fenceTileActiveSub": "{n} 个启用",
+  "@fenceTileActiveSub": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTileLivestock": "在养",
+  "@fenceTileLivestock": {},
+  "fenceTypeUnknown": "未知类型",
+  "@fenceTypeUnknown": {},
+  "fenceStatusSummary": "{fences} 个围栏 · {livestock} 头在养",
+  "@fenceStatusSummary": {
+    "placeholders": {
+      "fences": {
+        "type": "int"
+      },
+      "livestock": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTileLivestockSubGps": "含 {n} 头无GPS",
+  "@fenceTileLivestockSubGps": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTileLivestockSubOk": "全部已定位",
+  "@fenceTileLivestockSubOk": {},
+  "fenceTileAlertSub": "{n} 个围栏涉及",
+  "@fenceTileAlertSub": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTileAlertClear": "无告警",
+  "@fenceTileAlertClear": {},
+  "fenceListHint": "点击展开仪表盘",
+  "@fenceListHint": {},
+  "fenceNearBoundary": "{n} 头临近边界",
+  "@fenceNearBoundary": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "livestockSheetLastLoc": "最后定位",
   "@livestockSheetLastLoc": {},
   "livestockSheetCurrentPos": "实时位置",

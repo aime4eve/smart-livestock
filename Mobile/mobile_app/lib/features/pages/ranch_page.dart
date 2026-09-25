@@ -31,6 +31,7 @@ import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/livest
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/ranch_fence_tab.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/livestock_detail_sheet.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/fence_buffer_layer.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/ranch_summary_tile.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class RanchPage extends ConsumerStatefulWidget {
@@ -290,7 +291,12 @@ class _RanchPageState extends ConsumerState<RanchPage>
           left: 0,
           right: 0,
           bottom: 0,
-          child: _buildBottomSheet(context, overview, canManage),
+          child: _buildBottomSheet(
+            context,
+            overview,
+            canManage,
+            fenceStatusMap: fenceStatusMap,
+          ),
         ),
         TileSourceWatermark(provider: _tileProvider),
       ],
@@ -317,8 +323,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
   Widget _buildBottomSheet(
     BuildContext context,
     RanchOverview overview,
-    bool canManage,
-  ) {
+    bool canManage, {
+    required Map<String, String> fenceStatusMap,
+  }) {
     final l10n = AppLocalizations.of(context)!;
     // Badge = UNREAD active alerts (per-user), not the raw active total —
     // it drops to zero once everything is handled and grows with new alerts.
@@ -433,6 +440,10 @@ class _RanchPageState extends ConsumerState<RanchPage>
                     alerts: overview.alerts,
                     noGpsCount: overview.overallStats.noGpsCount,
                     outsideFenceCount: overview.overallStats.outsideFenceCount,
+                    totalLivestock: overview.overallStats.totalLivestock,
+                    fenceUnread: summary?.byGroupUnread.fence ?? 0,
+                    fenceStatusMap: fenceStatusMap,
+                    livestockMarkers: overview.livestockMarkers,
                     selectedFenceId: _selectedFenceId,
                     canManage: canManage,
                     onFenceSelected: (id) {
@@ -700,94 +711,6 @@ class _RanchPageState extends ConsumerState<RanchPage>
       }
     }
 
-    Widget tile({
-      required bool colored,
-      required Color c1,
-      required Color c2,
-      required String label,
-      required String big,
-      required String sub,
-      required Color subColor,
-      int? badge,
-      required VoidCallback onTap,
-    }) {
-      final coloredStyle = BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [c1, c2],
-        ),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.10),
-              blurRadius: 10,
-              offset: const Offset(0, 3)),
-        ],
-      );
-      final plainStyle = BoxDecoration(
-        color: AppColors.surface,
-        border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(12),
-      );
-      return InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-          decoration: colored ? coloredStyle : plainStyle,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (badge != null && badge > 0)
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(7)),
-                    child: Text('$badge',
-                        style: const TextStyle(
-                            fontSize: 8,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.danger)),
-                  ),
-                ),
-              Text(label,
-                  style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.3,
-                      color: colored
-                          ? Colors.white
-                          : AppColors.textSecondary)),
-              const SizedBox(height: 2),
-              Text(big,
-                  style: TextStyle(
-                      fontSize: 19,
-                      fontWeight: FontWeight.w800,
-                      height: 1.15,
-                      color:
-                          colored ? Colors.white : AppColors.textPrimary)),
-              const SizedBox(height: 2),
-              Text(sub,
-                  style: TextStyle(
-                      fontSize: 8,
-                      height: 1.3,
-                      fontWeight: !colored && subColor == AppColors.success
-                          ? FontWeight.w700
-                          : FontWeight.w400,
-                      color: colored
-                          ? Colors.white.withValues(alpha: 0.85)
-                          : subColor)),
-            ],
-          ),
-        ),
-      );
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -816,7 +739,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: tile(
+                child: RanchSummaryTile(
                   colored: fenceTotal > 0,
                   c1: _tileRed1,
                   c2: _tileRed2,
@@ -833,7 +756,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
               ),
               const SizedBox(width: 7),
               Expanded(
-                child: tile(
+                child: RanchSummaryTile(
                   colored: healthTotal > 0,
                   c1: _tileOrange1,
                   c2: _tileOrange2,
@@ -847,7 +770,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
               ),
               const SizedBox(width: 7),
               Expanded(
-                child: tile(
+                child: RanchSummaryTile(
                   colored: deviceAlerts > 0,
                   c1: _tileOrange1,
                   c2: _tileOrange2,

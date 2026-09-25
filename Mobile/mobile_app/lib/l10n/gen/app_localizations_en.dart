@@ -4276,6 +4276,46 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String fenceTileActiveSub(int n) {
+    return '$n active';
+  }
+
+  @override
+  String get fenceTileLivestock => 'Livestock';
+
+  @override
+  String get fenceTypeUnknown => 'Unknown';
+
+  @override
+  String fenceStatusSummary(int fences, int livestock) {
+    return '$fences fences · $livestock livestock';
+  }
+
+  @override
+  String fenceTileLivestockSubGps(int n) {
+    return '$n without GPS';
+  }
+
+  @override
+  String get fenceTileLivestockSubOk => 'All located';
+
+  @override
+  String fenceTileAlertSub(int n) {
+    return '$n fences involved';
+  }
+
+  @override
+  String get fenceTileAlertClear => 'No alerts';
+
+  @override
+  String get fenceListHint => 'Tap for dashboard';
+
+  @override
+  String fenceNearBoundary(int n) {
+    return '$n near boundary';
+  }
+
+  @override
   String get livestockSheetLastLoc => 'Last Position';
 
   @override

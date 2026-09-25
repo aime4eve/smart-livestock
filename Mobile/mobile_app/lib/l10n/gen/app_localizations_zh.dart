@@ -4184,6 +4184,46 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String fenceTileActiveSub(int n) {
+    return '$n 个启用';
+  }
+
+  @override
+  String get fenceTileLivestock => '在养';
+
+  @override
+  String get fenceTypeUnknown => '未知类型';
+
+  @override
+  String fenceStatusSummary(int fences, int livestock) {
+    return '$fences 个围栏 · $livestock 头在养';
+  }
+
+  @override
+  String fenceTileLivestockSubGps(int n) {
+    return '含 $n 头无GPS';
+  }
+
+  @override
+  String get fenceTileLivestockSubOk => '全部已定位';
+
+  @override
+  String fenceTileAlertSub(int n) {
+    return '$n 个围栏涉及';
+  }
+
+  @override
+  String get fenceTileAlertClear => '无告警';
+
+  @override
+  String get fenceListHint => '点击展开仪表盘';
+
+  @override
+  String fenceNearBoundary(int n) {
+    return '$n 头临近边界';
+  }
+
+  @override
   String get livestockSheetLastLoc => '最后定位';
 
   @override

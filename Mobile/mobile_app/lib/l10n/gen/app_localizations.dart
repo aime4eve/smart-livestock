@@ -7805,6 +7805,66 @@ abstract class AppLocalizations {
   /// **'未定位 {noGps} 头 · 栏外 {outside} 头'**
   String ranchFenceLocationGap(int noGps, int outside);
 
+  /// No description provided for @fenceTileActiveSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 个启用'**
+  String fenceTileActiveSub(int n);
+
+  /// No description provided for @fenceTileLivestock.
+  ///
+  /// In zh, this message translates to:
+  /// **'在养'**
+  String get fenceTileLivestock;
+
+  /// No description provided for @fenceTypeUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'未知类型'**
+  String get fenceTypeUnknown;
+
+  /// No description provided for @fenceStatusSummary.
+  ///
+  /// In zh, this message translates to:
+  /// **'{fences} 个围栏 · {livestock} 头在养'**
+  String fenceStatusSummary(int fences, int livestock);
+
+  /// No description provided for @fenceTileLivestockSubGps.
+  ///
+  /// In zh, this message translates to:
+  /// **'含 {n} 头无GPS'**
+  String fenceTileLivestockSubGps(int n);
+
+  /// No description provided for @fenceTileLivestockSubOk.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部已定位'**
+  String get fenceTileLivestockSubOk;
+
+  /// No description provided for @fenceTileAlertSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 个围栏涉及'**
+  String fenceTileAlertSub(int n);
+
+  /// No description provided for @fenceTileAlertClear.
+  ///
+  /// In zh, this message translates to:
+  /// **'无告警'**
+  String get fenceTileAlertClear;
+
+  /// No description provided for @fenceListHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'点击展开仪表盘'**
+  String get fenceListHint;
+
+  /// No description provided for @fenceNearBoundary.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 头临近边界'**
+  String fenceNearBoundary(int n);
+
   /// No description provided for @livestockSheetLastLoc.
   ///
   /// In zh, this message translates to:

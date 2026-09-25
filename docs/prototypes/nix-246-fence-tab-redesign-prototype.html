@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIX-246 围栏页视觉重构 · 高保真原型（继承概览晨报语言）</title>
+<style>
+:root{
+  /* Global tokens — same as health-scenario-alert-integration-prototype.html */
+  --primary:#2F6B3B;--primary-dark:#244F2D;--primary-soft:#E3F0E4;--accent:#8BA95A;
+  --surface:#F8F6F0;--surface-alt:#FFFFFF;--border:#D7D2C6;
+  --text-primary:#263126;--text-secondary:#617061;
+  --success:#4C9A5F;--warning:#D28A2D;--danger:#C2564B;--info:#4A7F9D;
+  --xs:4px;--sm:8px;--md:12px;--lg:16px;--xl:24px;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+  --shadow-card:0 1px 3px rgba(38,49,38,.06),0 1px 2px rgba(38,49,38,.04);
+  --shadow-elev:0 4px 16px rgba(38,49,38,.12);
+  --shadow-sheet:0 -4px 24px rgba(38,49,38,.15);
+  /* Overview hero/tile gradients (locked in NIX-246 ruling 23/24) */
+  --hero-g1:#1C3F25;--hero-g2:#2F6B3B;--hero-g3:#3E7F4C;--hero-ring:#8FD694;
+  --tile-red1:#B3453B;--tile-red2:#C9664F;
+  --tile-orange1:#C07A22;--tile-orange2:#DB9C40;
+  /* Fence page additions */
+  --fence-spine-width:3px;
+  --dim-opacity:.5;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sans-serif;background:#E0DDD6;color:var(--text-primary);min-height:100vh;padding:24px}
+.flow-grid{display:flex;flex-wrap:wrap;gap:28px;justify-content:center;margin-top:24px;max-width:1600px;margin-left:auto;margin-right:auto}
+.screen-group{display:flex;flex-direction:column;align-items:center;gap:10px}
+.screen-label{font-size:13px;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:6px}
+.screen-label .num{width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.screen-sublabel{font-size:11px;color:var(--text-secondary);max-width:300px;text-align:center;line-height:1.5}
+.phone{width:280px;height:580px;background:var(--surface);border-radius:36px;overflow:hidden;box-shadow:0 0 0 8px #1a1a1a,0 0 0 9px #2a2a2a,0 20px 50px rgba(0,0,0,.25);position:relative;display:flex;flex-direction:column}
+.phone-status{height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:11px;font-weight:600;flex-shrink:0}
+.ranch-topbar{padding:4px 12px 8px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ranch-topbar h1{font-size:16px;font-weight:800}
+.farm-select{background:var(--surface-alt);border:1px solid var(--border);border-radius:999px;padding:3px 10px;font-size:10px;font-weight:600;display:flex;align-items:center;gap:4px}
+.ranch-body{flex:1;position:relative;overflow:hidden;background:#DCE8D5}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface-alt);border-radius:var(--radius-lg) var(--radius-lg) 0 0;box-shadow:var(--shadow-sheet);display:flex;flex-direction:column;height:78%}
+.sheet-grab{width:36px;height:4px;border-radius:2px;background:var(--border);margin:6px auto 4px;flex-shrink:0}
+.sheet-tabs{display:flex;padding:2px 12px 6px;gap:6px;flex-shrink:0;border-bottom:1px solid var(--border)}
+.sheet-tab{flex:1;padding:5px 0;text-align:center;font-size:9.5px;font-weight:600;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;gap:3px}
+.sheet-tab.active{color:var(--primary-dark);border-bottom:2px solid var(--primary)}
+.sheet-tab .b{background:var(--danger);color:#fff;font-size:8px;font-weight:700;padding:0 4px;border-radius:6px;min-width:11px;text-align:center}
+.tab-content{flex:1;overflow-y:auto;padding:10px 12px 12px}
+.tab-content::-webkit-scrollbar{width:0}
+.bottom-nav{display:flex;border-top:1px solid var(--border);background:var(--surface-alt);flex-shrink:0;padding:6px 12px 10px;gap:8px}
+.nav-pill{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 0;border-radius:999px;font-size:11px;font-weight:700;color:var(--text-secondary)}
+.nav-pill.active{background:var(--primary);color:#fff;position:relative}
+.nav-pill.ghost{background:var(--primary-soft);color:var(--primary-dark)}
+.nav-pill .nav-badge{position:absolute;top:-4px;right:14px;background:var(--danger);color:#fff;font-size:8px;font-weight:700;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+
+/* ── Fence tab shared section head (same pattern as overview) ── */
+.sec-head{display:flex;align-items:center;gap:5px;margin:2px 0 7px}
+.sec-head .dot{width:3px;height:10px;border-radius:2px;background:var(--primary)}
+.sec-head .dot.red{background:var(--danger)}
+.sec-head .t{font-size:11px;font-weight:700}
+.sec-head .sub{margin-left:auto;font-size:9px;color:var(--text-secondary)}
+.sec-head .sub b{color:var(--primary);font-weight:700}
+
+/* ── Summary tiles: overview tile language, compact variant ── */
+.tile3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:13px}
+.tile{border-radius:var(--radius-md);padding:9px 10px;position:relative;box-shadow:var(--shadow-card)}
+.tile .lbl{font-size:9px;font-weight:600;letter-spacing:.3px}
+.tile .big{font-size:19px;font-weight:800;line-height:1.15;margin-top:2px}
+.tile .sub{font-size:8px;line-height:1.3;margin-top:2px}
+.tile.green{background:linear-gradient(135deg,var(--hero-g2),var(--hero-g3));color:#fff}
+.tile.green .sub{color:rgba(255,255,255,.85)}
+.tile.red{background:linear-gradient(135deg,var(--tile-red1),var(--tile-red2));color:#fff}
+.tile.red .sub{color:rgba(255,255,255,.85)}
+.tile.plain{background:var(--surface-alt);border:1px solid var(--border);color:var(--text-primary)}
+.tile.plain .lbl{color:var(--text-secondary)}
+.tile.plain .sub.ok{color:var(--success);font-weight:700}
+.tile .badge{position:absolute;top:6px;right:6px;background:#fff;color:var(--danger);font-size:8px;font-weight:800;padding:1px 4px;border-radius:7px}
+
+/* ── Fence cards ── */
+.fence-list{display:flex;flex-direction:column;gap:7px}
+.fence-card{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-card);overflow:hidden;display:flex}
+.fence-card.dim{opacity:var(--dim-opacity)}
+.fence-card .spine{width:var(--fence-spine-width);flex-shrink:0}
+.fence-card .body{flex:1;padding:8px 10px;min-width:0}
+.fence-row1{display:flex;align-items:center;gap:6px}
+.fence-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+.fence-name{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tag{font-size:8px;font-weight:600;padding:1px 5px;border-radius:4px;flex-shrink:0}
+.tag.type{background:rgba(74,127,157,.1);color:var(--info)}
+.tag.inactive{background:rgba(97,112,97,.1);color:var(--text-secondary)}
+.fence-row2{display:flex;align-items:center;margin-top:4px;font-size:9px;color:var(--text-secondary);gap:4px}
+.fence-row2 .sep{opacity:.5}
+.fence-row2 b{color:var(--text-primary);font-weight:700}
+.alert-chip{margin-left:auto;display:flex;align-items:center;gap:3px;background:rgba(194,86,75,.1);color:var(--danger);font-size:8.5px;font-weight:700;padding:2px 6px;border-radius:999px;flex-shrink:0}
+.alert-chip.ok{background:rgba(76,154,95,.1);color:var(--success)}
+.fence-actions{display:flex;gap:4px;flex-shrink:0;align-items:center;padding-right:8px}
+.icon-btn{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;background:rgba(97,112,97,.06);color:var(--text-secondary)}
+.icon-btn.danger{background:rgba(194,86,75,.1);color:var(--danger)}
+
+/* Selected detail card */
+.detail-card{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-elev);overflow:hidden;display:flex;margin-bottom:9px}
+.detail-card .spine{width:var(--fence-spine-width);flex-shrink:0}
+.detail-card .body{flex:1;padding:10px}
+.detail-head{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.detail-head .name{font-size:12px;font-weight:800}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 8px}
+.meta-field .lbl{font-size:8px;color:var(--text-secondary)}
+.meta-field .val{font-size:13px;font-weight:700;margin-top:1px}
+.meta-field .val.alert{color:var(--danger)}
+.action-row{display:flex;gap:5px;margin-top:9px}
+.action-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 0;border-radius:7px;font-size:10px;font-weight:600}
+.action-btn.primary{background:var(--info);color:#fff}
+.action-btn.soft{background:var(--primary-soft);color:var(--primary-dark)}
+.action-btn.danger-ico{flex:0 0 38px;background:rgba(194,86,75,.1);color:var(--danger);justify-content:center}
+
+/* Reconciliation pill (same language as overview) */
+.reconcile{margin-top:10px;background:rgba(210,138,45,.08);border:1px solid rgba(210,138,45,.25);border-radius:9px;padding:5px 8px;font-size:9px;font-weight:600;color:var(--warning);display:flex;align-items:center;justify-content:center;gap:4px;text-align:center}
+
+/* Add button */
+.add-btn{background:var(--info);color:#fff;font-size:9px;font-weight:600;padding:4px 8px;border-radius:7px;display:flex;align-items:center;gap:3px}
+
+/* Annotation marks */
+.redo-mark{position:relative}
+.redo-mark::after{content:"重做";position:absolute;top:-7px;right:-6px;background:var(--warning);color:#fff;font-size:8px;font-weight:700;padding:1px 5px;border-radius:6px;z-index:5}
+.new-mark{position:relative}
+.new-mark::after{content:"新增";position:absolute;top:-7px;right:-6px;background:var(--info);color:#fff;font-size:8px;font-weight:700;padding:1px 5px;border-radius:6px;z-index:5}
+.keep-mark{position:relative}
+.keep-mark::after{content:"保留";position:absolute;top:-7px;right:-6px;background:var(--text-secondary);color:#fff;font-size:8px;font-weight:700;padding:1px 5px;border-radius:6px;z-index:5}
+
+.decision-table{margin:28px auto 0;max-width:960px;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+.decision-table h2{font-size:14px;padding:12px 16px;background:var(--primary-soft);color:var(--primary-dark)}
+.decision-table table{width:100%;border-collapse:collapse;font-size:12px}
+.decision-table th,.decision-table td{padding:8px 16px;border-top:1px solid var(--border);text-align:left;vertical-align:top;line-height:1.5}
+.decision-table th{white-space:nowrap;background:var(--surface);font-weight:700;width:220px}
+
+/* ═══ 方案 B：渐变大瓷砖网格 ═══ */
+.tile-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.fence-tile{border-radius:var(--radius-md);padding:9px 10px;position:relative;box-shadow:var(--shadow-card);color:#fff;min-height:72px;display:flex;flex-direction:column;justify-content:space-between}
+.fence-tile .name{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:16px}
+.fence-tile .stats{margin-top:4px}
+.fence-tile .big{font-size:19px;font-weight:800;line-height:1.1}
+.fence-tile .sub{font-size:8px;color:rgba(255,255,255,.85);margin-top:1px}
+.fence-tile .alert-badge{position:absolute;top:6px;right:6px;background:#fff;color:var(--danger);font-size:8px;font-weight:800;padding:1px 4px;border-radius:7px}
+.fence-tile .alert-badge.ok{color:var(--success)}
+.fence-tile.inactive{opacity:.55}
+.fence-tile.selected{outline:2px solid var(--primary-dark);outline-offset:1px}
+.fence-tile .type-chip{position:absolute;bottom:8px;right:8px;background:rgba(255,255,255,.22);color:#fff;font-size:8px;font-weight:600;padding:1px 5px;border-radius:4px}
+
+/* ═══ 方案 C：紧凑清单 + 统计条 ═══ */
+.fence-row{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px 8px}
+.fence-row + .fence-row{margin-top:5px}
+.fence-row .top{display:flex;align-items:center;gap:6px}
+.fence-row .stats-line{display:flex;align-items:center;font-size:9px;color:var(--text-secondary);margin-top:3px}
+.fence-row .stats-line b{color:var(--text-primary)}
+.fence-row .alert-pill{margin-left:auto;font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:999px}
+.fence-row .alert-pill.hot{background:rgba(194,86,75,.1);color:var(--danger)}
+.fence-row .alert-pill.calm{background:rgba(76,154,95,.1);color:var(--success)}
+.stat-bar{height:3px;border-radius:2px;background:rgba(47,107,59,.12);margin-top:5px;overflow:hidden;display:flex}
+.stat-bar .fill{height:100%;border-radius:2px}
+
+/* ═══ 方案 B（重做）：围栏图鉴 · 暗色仪表盘 ═══ */
+.gal-card{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-card);margin-bottom:7px}
+.gal-canvas{position:relative;height:72px;background:#14251A;overflow:hidden;background-image:linear-gradient(rgba(143,214,148,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(143,214,148,.06) 1px,transparent 1px);background-size:16px 16px}
+.gal-canvas svg{width:100%;height:100%;display:block}
+.gal-canvas .scan,.ddetail .dark .scan{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(143,214,148,.65),transparent);animation:scanmove 3.8s linear infinite}
+@keyframes scanmove{0%{top:-2px}100%{top:100%}}
+.gal-canvas .coord,.ddetail .dark .coord{position:absolute;left:8px;bottom:6px;font-size:6.5px;color:rgba(143,214,148,.4);font-family:monospace}
+.gal-badge{position:absolute;top:6px;right:6px;background:var(--danger);color:#fff;font-size:8px;font-weight:800;padding:1px 6px;border-radius:7px}
+.gal-badge.ok{background:rgba(76,154,95,.25);color:#8FD694}
+.gal-bar{display:flex;align-items:center;gap:6px;padding:6px 10px}
+.gal-bar .name{font-size:11px;font-weight:700}
+.gal-bar .stats{margin-left:auto;font-size:9px;color:var(--text-secondary)}
+.gal-bar .stats b{color:var(--text-primary);font-size:11px}
+.glow{filter:drop-shadow(0 0 3px rgba(143,214,148,.75))}
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.55}}
+.breathe{animation:breathe 2.8s ease-in-out infinite}
+
+/* ═══ 方案 C（重做）：牧场沙盘 · 畜群分布 ═══ */
+.legend{display:flex;gap:10px;font-size:8px;color:var(--text-secondary);margin:0 0 7px;align-items:center}
+.legend i{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:3px}
+.diorama{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-md);padding:8px 10px;margin-bottom:7px;box-shadow:var(--shadow-card)}
+.diorama.off{opacity:.6}
+.d-head{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.d-head .name{font-size:11px;font-weight:700}
+.d-count{margin-left:auto;font-size:9px;color:var(--text-secondary)}
+.d-count b{color:var(--text-primary);font-size:11px}
+.d-terrain{position:relative;border-radius:8px;overflow:hidden;background:linear-gradient(135deg,#EAF3E6,#DCE8D5)}
+.d-terrain svg{width:100%;height:58px;display:block}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
+.dot-warn{animation:pulse-dot 1.9s ease-in-out infinite}
+.dot-alert{animation:pulse-dot 1.2s ease-in-out infinite}
+.d-foot{display:flex;justify-content:space-between;font-size:8px;color:var(--text-secondary);margin-top:5px}
+.d-foot b{color:var(--text-primary)}
+
+/* ═══ 方案 D：晨报台账 · 形状沙盘（A 骨架 + B 仪表盘 + C 分布） ═══ */
+.rec-mark{position:relative}
+.rec-mark::after{content:"推荐";position:absolute;top:-7px;right:-6px;background:linear-gradient(135deg,var(--hero-g2),var(--hero-g3));color:#fff;font-size:8px;font-weight:700;padding:1px 5px;border-radius:6px;z-index:5}
+.dcard{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-card);overflow:hidden;display:flex;margin-bottom:7px}
+.dcard.dim{opacity:var(--dim-opacity)}
+.dcard .spine{width:var(--fence-spine-width);flex-shrink:0}
+.dcard .terrain{width:92px;height:56px;flex-shrink:0;position:relative;background:linear-gradient(135deg,#EAF3E6,#DCE8D5);border-right:1px solid var(--border)}
+.dcard .terrain svg{width:100%;height:100%;display:block}
+.dcard .info{flex:1;padding:7px 10px;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:3px}
+.dcard .row1{display:flex;align-items:center;gap:5px}
+.dcard .name{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dcard .row2{display:flex;align-items:center;font-size:9px;color:var(--text-secondary)}
+.dcard .row2 b{color:var(--text-primary)}
+.ddetail{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-elev);margin-bottom:9px}
+.ddetail .dark{position:relative;height:108px;background:#14251A;background-image:linear-gradient(rgba(143,214,148,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(143,214,148,.06) 1px,transparent 1px);background-size:16px 16px;overflow:hidden}
+.ddetail .dark svg{width:100%;height:100%;display:block}
+.ddetail .light{padding:10px}
+</style>
+</head>
+<body>
+
+<div style="text-align:center">
+  <h1 style="font-size:22px;font-weight:700">围栏页视觉重构 · NIX-246</h1>
+  <p style="font-size:13px;color:#617061;margin-top:4px">方案 D 整合 A 骨架 + B 仪表盘 + C 畜群分布（推荐）· A / B / C 保留对照</p>
+</div>
+
+<div class="flow-grid">
+
+  <!-- ═══ Screen 1: fence list (manager) ═══ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num">A</span>围栏列表 · 默认态 <span style="font-size:10px;color:var(--text-secondary)">已确认保留</span></div>
+    <div class="screen-sublabel">概览瓷砖语言压缩为三格围栏总账（围栏/在养/告警）；每条围栏升级为独立卡片：色脊 + 类型标签 + 告警胶囊 + 面积。信息架构与现版完全一致。</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>●●● 🐄</span></div>
+      <div class="ranch-topbar"><h1>Main Ranch</h1><div class="farm-select">Main Ranch ▾</div></div>
+      <div class="ranch-body"></div>
+      <div class="sheet">
+        <div class="sheet-grab"></div>
+        <div class="sheet-tabs">
+          <div class="sheet-tab">概览</div>
+          <div class="sheet-tab active">围栏</div>
+          <div class="sheet-tab">告警 <span class="b">75</span></div>
+        </div>
+        <div class="tab-content">
+          <div class="sec-head"><span class="dot"></span><span class="t">围栏状态</span><span class="sub"><b>5</b> 个围栏 · 46 头在养</span></div>
+          <div class="tile3 redo-mark">
+            <div class="tile green"><div class="lbl">围栏</div><div class="big">5</div><div class="sub">4 个启用</div></div>
+            <div class="tile plain"><div class="lbl">在养</div><div class="big">46</div><div class="sub">含 3 头无GPS</div></div>
+            <div class="tile red"><span class="badge">12</span><div class="lbl">告警</div><div class="big">14</div><div class="sub">2 个围栏涉及</div></div>
+          </div>
+          <div class="sec-head"><span class="dot red"></span><span class="t">围栏列表</span><span class="sub">点击展开详情</span><span class="add-btn">＋ 新建</span></div>
+          <div class="fence-list">
+            <div class="fence-card redo-mark">
+              <div class="spine" style="background:#4C9A5F"></div>
+              <div class="body">
+                <div class="fence-row1">
+                  <div class="fence-dot" style="background:#4C9A5F"></div>
+                  <div class="fence-name">北区放牧区</div>
+                  <span class="tag type">多边形</span>
+                </div>
+                <div class="fence-row2">
+                  <b>18</b> 头在养<span class="sep">·</span>52.3 公顷
+                  <span class="alert-chip">⚠ 8 起告警</span>
+                </div>
+              </div>
+              <div class="fence-actions">
+                <div class="icon-btn">✎</div>
+                <div class="icon-btn danger">🗑</div>
+              </div>
+            </div>
+            <div class="fence-card">
+              <div class="spine" style="background:#4A7F9D"></div>
+              <div class="body">
+                <div class="fence-row1">
+                  <div class="fence-dot" style="background:#4A7F9D"></div>
+                  <div class="fence-name">西区围栏</div>
+                  <span class="tag type">矩形</span>
+                </div>
+                <div class="fence-row2">
+                  <b>12</b> 头在养<span class="sep">·</span>31.0 公顷
+                  <span class="alert-chip">⚠ 6 起告警</span>
+                </div>
+              </div>
+              <div class="fence-actions">
+                <div class="icon-btn">✎</div>
+                <div class="icon-btn danger">🗑</div>
+              </div>
+            </div>
+            <div class="fence-card">
+              <div class="spine" style="background:#8BA95A"></div>
+              <div class="body">
+                <div class="fence-row1">
+                  <div class="fence-dot" style="background:#8BA95A"></div>
+                  <div class="fence-name">东区放牧区</div>
+                  <span class="tag type">多边形</span>
+                </div>
+                <div class="fence-row2">
+                  <b>9</b> 头在养<span class="sep">·</span>27.5 公顷
+                  <span class="alert-chip ok">✓ 正常</span>
+                </div>
+              </div>
+              <div class="fence-actions">
+                <div class="icon-btn">✎</div>
+                <div class="icon-btn danger">🗑</div>
+              </div>
+            </div>
+            <div class="fence-card">
+              <div class="spine" style="background:#C25689"></div>
+              <div class="body">
+                <div class="fence-row1">
+                  <div class="fence-dot" style="background:#C25689"></div>
+                  <div class="fence-name">繁殖区</div>
+                  <span class="tag type">圆形</span><span class="tag inactive">停用</span>
+                </div>
+                <div class="fence-row2">
+                  <b>0</b> 头在养<span class="sep">·</span>8.2 公顷
+                  <span class="alert-chip ok">✓ 正常</span>
+                </div>
+              </div>
+              <div class="fence-actions">
+                <div class="icon-btn">✎</div>
+                <div class="icon-btn danger">🗑</div>
+              </div>
+            </div>
+          </div>
+          <div class="reconcile">⚠ 3 头无GPS · 2 头在所有围栏之外 · 未计入在养</div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-pill active">牧场 <span class="nav-badge">75</span></div>
+        <div class="nav-pill ghost">我的</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Screen 2: fence selected (detail expanded) ═══ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num">A</span>围栏选中 · 详情展开</div>
+    <div class="screen-sublabel">选中围栏展开详情卡：色脊 + 2×2 元数据 + 三个操作位；其余围栏半透明。地图同步聚焦该围栏。</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>●●● 🐄</span></div>
+      <div class="ranch-topbar"><h1>Main Ranch</h1><div class="farm-select">Main Ranch ▾</div></div>
+      <div class="ranch-body"></div>
+      <div class="sheet">
+        <div class="sheet-grab"></div>
+        <div class="sheet-tabs">
+          <div class="sheet-tab">概览</div>
+          <div class="sheet-tab active">围栏</div>
+          <div class="sheet-tab">告警 <span class="b">75</span></div>
+        </div>
+        <div class="tab-content">
+          <div class="sec-head"><span class="dot"></span><span class="t">北区放牧区</span><span class="sub">收起 ✕</span></div>
+          <div class="detail-card redo-mark">
+            <div class="spine" style="background:#4C9A5F"></div>
+            <div class="body">
+              <div class="detail-head">
+                <div class="fence-dot" style="background:#4C9A5F"></div>
+                <div class="name">北区放牧区</div>
+                <span class="tag type">多边形</span>
+              </div>
+              <div class="meta-grid">
+                <div class="meta-field"><div class="lbl">面积</div><div class="val">52.3 公顷</div></div>
+                <div class="meta-field"><div class="lbl">类型</div><div class="val">多边形</div></div>
+                <div class="meta-field"><div class="lbl">在养牲畜</div><div class="val">18 头</div></div>
+                <div class="meta-field"><div class="lbl">活跃告警</div><div class="val alert">8 起</div></div>
+              </div>
+              <div class="action-row">
+                <div class="action-btn primary">✎ 编辑边界</div>
+                <div class="action-btn soft">⚠ 围栏告警</div>
+                <div class="action-btn danger-ico">🗑</div>
+              </div>
+            </div>
+          </div>
+          <div class="fence-list">
+            <div class="fence-card">
+              <div class="spine" style="background:#4A7F9D"></div>
+              <div class="body">
+                <div class="fence-row1">
+                  <div class="fence-dot" style="background:#4A7F9D"></div>
+                  <div class="fence-name">西区围栏</div>
+                  <span class="tag type">矩形</span>
+                </div>
+                <div class="fence-row2">
+                  <b>12</b> 头在养<span class="sep">·</span>31.0 公顷
+                  <span class="alert-chip">⚠ 6 起告警</span>
+                </div>
+              </div>
+              <div class="fence-actions">
+                <div class="icon-btn">✎</div>
+                <div class="icon-btn danger">🗑</div>
+              </div>
+            </div>
+            <div class="fence-card dim">
+              <div class="spine" style="background:#8BA95A"></div>
+              <div class="body">
+                <div class="fence-row1">
+                  <div class="fence-dot" style="background:#8BA95A"></div>
+                  <div class="fence-name">东区放牧区</div>
+                  <span class="tag type">多边形</span>
+                </div>
+                <div class="fence-row2">
+                  <b>9</b> 头在养<span class="sep">·</span>27.5 公顷
+                  <span class="alert-chip ok">✓ 正常</span>
+                </div>
+              </div>
+              <div class="fence-actions">
+                <div class="icon-btn">✎</div>
+                <div class="icon-btn danger">🗑</div>
+              </div>
+            </div>
+          </div>
+          <div class="reconcile">⚠ 3 头无GPS · 2 头在所有围栏之外 · 未计入在养</div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-pill active">牧场 <span class="nav-badge">75</span></div>
+        <div class="nav-pill ghost">我的</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Screen 3: worker view (no manage permission) ═══ -->
+ <div class="screen-group">
+    <div class="screen-label"><span class="num">A</span>牧工视角 · 只读</div>
+    <div class="screen-sublabel">无管理权限时隐藏新建/编辑/删除，仅保留查看与告警跳转；总账瓷砖与对账行不变。</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>●●● 🐄</span></div>
+      <div class="ranch-topbar"><h1>Main Ranch</h1><div class="farm-select">Main Ranch ▾</div></div>
+      <div class="ranch-body"></div>
+      <div class="sheet">
+        <div class="sheet-grab"></div>
+        <div class="sheet-tabs">
+          <div class="sheet-tab">概览</div>
+          <div class="sheet-tab active">围栏</div>
+          <div class="sheet-tab">告警 <span class="b">75</span></div>
+        </div>
+        <div class="tab-content">
+          <div class="sec-head"><span class="dot"></span><span class="t">围栏状态</span><span class="sub"><b>5</b> 个围栏 · 46 头在养</span></div>
+          <div class="tile3">
+            <div class="tile green"><div class="lbl">围栏</div><div class="big">5</div><div class="sub">4 个启用</div></div>
+            <div class="tile plain"><div class="lbl">在养</div><div class="big">46</div><div class="sub">含 3 头无GPS</div></div>
+            <div class="tile red"><span class="badge">12</span><div class="lbl">告警</div><div class="big">14</div><div class="sub">2 个围栏涉及</div></div>
+          </div>
+          <div class="sec-head"><span class="dot red"></span><span class="t">围栏列表</span><span class="sub">点击展开详情</span></div>
+          <div class="fence-list">
+            <div class="fence-card">
+              <div class="spine" style="background:#4C9A5F"></div>
+              <div class="body">
+                <div class="fence-row1">
+                  <div class="fence-dot" style="background:#4C9A5F"></div>
+                  <div class="fence-name">北区放牧区</div>
+                  <span class="tag type">多边形</span>
+                </div>
+                <div class="fence-row2">
+                  <b>18</b> 头在养<span class="sep">·</span>52.3 公顷
+                  <span class="alert-chip">⚠ 8 起告警</span>
+                </div>
+              </div>
+            </div>
+            <div class="fence-card">
+              <div class="spine" style="background:#4A7F9D"></div>
+              <div class="body">
+                <div class="fence-row1">
+                  <div class="fence-dot" style="background:#4A7F9D"></div>
+                  <div class="fence-name">西区围栏</div>
+                  <span class="tag type">矩形</span>
+                </div>
+                <div class="fence-row2">
+                  <b>12</b> 头在养<span class="sep">·</span>31.0 公顷
+                  <span class="alert-chip">⚠ 6 起告警</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="reconcile">⚠ 3 头无GPS · 2 头在所有围栏之外 · 未计入在养</div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-pill active">牧场 <span class="nav-badge">75</span></div>
+        <div class="nav-pill ghost">我的</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Plan B (redo): fence gallery · dark instrument panel ═══ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num" style="background:var(--info)">B</span>围栏图鉴 · 暗色仪表盘</div>
+    <div class="screen-sublabel">每条围栏 = 暗色地图仪表盘上的发光多边形（按真实形状绘制），扫描线表达实时监测；形状即身份，一眼认出每块地。数据源：fence.points · CustomPaint 可直接还原。</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>●●● 🐄</span></div>
+      <div class="ranch-topbar"><h1>Main Ranch</h1><div class="farm-select">Main Ranch ▾</div></div>
+      <div class="ranch-body"></div>
+      <div class="sheet">
+        <div class="sheet-grab"></div>
+        <div class="sheet-tabs">
+          <div class="sheet-tab">概览</div>
+          <div class="sheet-tab active">围栏</div>
+          <div class="sheet-tab">告警 <span class="b">75</span></div>
+        </div>
+        <div class="tab-content">
+          <div class="sec-head"><span class="dot"></span><span class="t">围栏状态</span><span class="sub"><b>5</b> 围栏 · <b>46</b> 在养 · <b>14</b> 告警</span></div>
+          <div class="gal-card">
+            <div class="gal-canvas">
+              <svg viewBox="0 0 280 72" preserveAspectRatio="none">
+                <polygon points="40,56 78,18 150,11 226,28 244,60 150,68 66,66" fill="rgba(76,154,95,.30)" stroke="#4C9A5F" stroke-width="2" stroke-dasharray="6 4" class="glow breathe"/>
+                <circle cx="40" cy="56" r="2.2" fill="#8FD694"/><circle cx="78" cy="18" r="2.2" fill="#8FD694"/><circle cx="150" cy="11" r="2.2" fill="#8FD694"/><circle cx="226" cy="28" r="2.2" fill="#8FD694"/><circle cx="244" cy="60" r="2.2" fill="#8FD694"/><circle cx="150" cy="68" r="2.2" fill="#8FD694"/><circle cx="66" cy="66" r="2.2" fill="#8FD694"/>
+              </svg>
+              <div class="scan"></div>
+              <span class="coord">112.938°E 28.229°N</span>
+              <span class="gal-badge">8 起告警</span>
+            </div>
+            <div class="gal-bar">
+              <div class="fence-dot" style="background:#4C9A5F"></div>
+              <span class="name">北区放牧区</span>
+              <span class="tag type">多边形</span>
+              <span class="stats"><b>18</b> 头 · 52.3 公顷</span>
+            </div>
+          </div>
+          <div class="gal-card">
+            <div class="gal-canvas">
+              <svg viewBox="0 0 280 72" preserveAspectRatio="none">
+                <polygon points="70,14 214,14 214,58 70,58" fill="rgba(74,127,157,.30)" stroke="#4A7F9D" stroke-width="2" stroke-dasharray="6 4" class="glow"/>
+                <circle cx="70" cy="14" r="2.2" fill="#8FD694"/><circle cx="214" cy="14" r="2.2" fill="#8FD694"/><circle cx="214" cy="58" r="2.2" fill="#8FD694"/><circle cx="70" cy="58" r="2.2" fill="#8FD694"/>
+              </svg>
+              <span class="coord">112.921°E 28.225°N</span>
+              <span class="gal-badge">6 起告警</span>
+            </div>
+            <div class="gal-bar">
+              <div class="fence-dot" style="background:#4A7F9D"></div>
+              <span class="name">西区围栏</span>
+              <span class="tag type">矩形</span>
+              <span class="stats"><b>12</b> 头 · 31.0 公顷</span>
+            </div>
+          </div>
+          <div class="gal-card">
+            <div class="gal-canvas">
+              <svg viewBox="0 0 280 72" preserveAspectRatio="none">
+                <polygon points="140,12 226,34 204,64 96,62 60,34" fill="rgba(139,169,90,.28)" stroke="#8BA95A" stroke-width="2" stroke-dasharray="6 4"/>
+                <circle cx="140" cy="12" r="2.2" fill="#8FD694"/><circle cx="226" cy="34" r="2.2" fill="#8FD694"/><circle cx="204" cy="64" r="2.2" fill="#8FD694"/><circle cx="96" cy="62" r="2.2" fill="#8FD694"/><circle cx="60" cy="34" r="2.2" fill="#8FD694"/>
+              </svg>
+              <span class="coord">112.945°E 28.231°N</span>
+              <span class="gal-badge ok">✓ 正常</span>
+            </div>
+            <div class="gal-bar">
+              <div class="fence-dot" style="background:#8BA95A"></div>
+              <span class="name">东区放牧区</span>
+              <span class="tag type">多边形</span>
+              <span class="stats"><b>9</b> 头 · 27.5 公顷</span>
+            </div>
+          </div>
+          <div class="gal-card" style="opacity:.6">
+            <div class="gal-canvas">
+              <svg viewBox="0 0 280 72" preserveAspectRatio="none">
+                <circle cx="140" cy="36" r="26" fill="rgba(194,86,137,.22)" stroke="#C25689" stroke-width="2" stroke-dasharray="6 4"/>
+                <circle cx="140" cy="10" r="2.2" fill="#8FD694"/><circle cx="166" cy="36" r="2.2" fill="#8FD694"/><circle cx="140" cy="62" r="2.2" fill="#8FD694"/><circle cx="114" cy="36" r="2.2" fill="#8FD694"/>
+              </svg>
+              <span class="coord">112.915°E 28.218°N</span>
+              <span class="gal-badge ok">✓ 正常</span>
+            </div>
+            <div class="gal-bar">
+              <div class="fence-dot" style="background:#C25689"></div>
+              <span class="name">繁殖区</span>
+              <span class="tag type">圆形</span><span class="tag inactive">停用</span>
+              <span class="stats"><b>0</b> 头 · 8.2 公顷</span>
+            </div>
+          </div>
+          <div class="reconcile">⚠ 3 头无GPS · 2 头在所有围栏之外 · 未计入在养</div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-pill active">牧场 <span class="nav-badge">75</span></div>
+        <div class="nav-pill ghost">我的</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Plan C (redo): pasture diorama · herd distribution ═══ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num" style="background:var(--warning)">C</span>牧场沙盘 · 畜群分布</div>
+    <div class="screen-sublabel">每块围栏 = 一片活体沙盘：牲畜按真实分布渲染为多边形内点阵，红点脉冲 = 告警/临近边界，畜群分布一眼可见。数据源：livestockMarkers 点位过滤（现成）。</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>●●● 🐄</span></div>
+      <div class="ranch-topbar"><h1>Main Ranch</h1><div class="farm-select">Main Ranch ▾</div></div>
+      <div class="ranch-body"></div>
+      <div class="sheet">
+        <div class="sheet-grab"></div>
+        <div class="sheet-tabs">
+          <div class="sheet-tab">概览</div>
+          <div class="sheet-tab active">围栏</div>
+          <div class="sheet-tab">告警 <span class="b">75</span></div>
+        </div>
+        <div class="tab-content">
+          <div class="sec-head"><span class="dot"></span><span class="t">围栏状态</span><span class="sub"><b>5</b> 围栏 · <b>46</b> 头在养</span><span class="add-btn">＋ 新建</span></div>
+          <div class="legend"><span><i style="background:#4C9A5F"></i>正常</span><span><i style="background:#D28A2D"></i>留意</span><span><i style="background:#C2564B"></i>告警 / 临近边界</span></div>
+          <div class="diorama">
+            <div class="d-head">
+              <div class="fence-dot" style="background:#4C9A5F"></div>
+              <span class="name">北区放牧区</span>
+              <span class="tag type">多边形</span>
+              <span class="d-count"><b>18</b> 头</span>
+            </div>
+            <div class="d-terrain">
+              <svg viewBox="0 0 256 58" preserveAspectRatio="none">
+                <polygon points="36,48 72,14 148,8 226,24 244,50 148,56 62,54" fill="rgba(76,154,95,.16)" stroke="#4C9A5F" stroke-width="1.5" stroke-dasharray="5 3"/>
+                <circle cx="120" cy="38" r="2.2" fill="#4C9A5F"/><circle cx="140" cy="28" r="2.2" fill="#4C9A5F"/><circle cx="160" cy="42" r="2.2" fill="#4C9A5F"/><circle cx="108" cy="48" r="2.2" fill="#4C9A5F"/><circle cx="180" cy="46" r="2.2" fill="#4C9A5F"/><circle cx="94" cy="38" r="2.2" fill="#4C9A5F"/><circle cx="198" cy="42" r="2.2" fill="#4C9A5F"/><circle cx="148" cy="52" r="2.2" fill="#4C9A5F"/><circle cx="130" cy="20" r="2.2" fill="#4C9A5F"/><circle cx="170" cy="24" r="2.2" fill="#4C9A5F"/><circle cx="208" cy="40" r="2.2" fill="#4C9A5F"/><circle cx="84" cy="48" r="2.2" fill="#4C9A5F"/><circle cx="188" cy="54" r="2.2" fill="#4C9A5F"/><circle cx="140" cy="46" r="2.2" fill="#4C9A5F"/><circle cx="164" cy="34" r="2.2" fill="#4C9A5F"/>
+                <circle cx="228" cy="36" r="2.4" fill="#D28A2D" class="dot-warn"/><circle cx="218" cy="50" r="2.4" fill="#D28A2D" class="dot-warn"/>
+                <circle cx="240" cy="54" r="2.6" fill="#C2564B" class="dot-alert"/>
+              </svg>
+            </div>
+            <div class="d-foot"><span>52.3 公顷</span><span>1 头临近边界 · 2 头留意</span></div>
+          </div>
+          <div class="diorama">
+            <div class="d-head">
+              <div class="fence-dot" style="background:#4A7F9D"></div>
+              <span class="name">西区围栏</span>
+              <span class="tag type">矩形</span>
+              <span class="d-count"><b>12</b> 头</span>
+            </div>
+            <div class="d-terrain">
+              <svg viewBox="0 0 256 58" preserveAspectRatio="none">
+                <rect x="64" y="10" width="130" height="40" fill="rgba(74,127,157,.14)" stroke="#4A7F9D" stroke-width="1.5" stroke-dasharray="5 3"/>
+                <circle cx="88" cy="26" r="2.2" fill="#4C9A5F"/><circle cx="108" cy="22" r="2.2" fill="#4C9A5F"/><circle cx="128" cy="30" r="2.2" fill="#4C9A5F"/><circle cx="148" cy="24" r="2.2" fill="#4C9A5F"/><circle cx="168" cy="28" r="2.2" fill="#4C9A5F"/><circle cx="98" cy="40" r="2.2" fill="#4C9A5F"/><circle cx="138" cy="42" r="2.2" fill="#4C9A5F"/><circle cx="178" cy="40" r="2.2" fill="#4C9A5F"/><circle cx="118" cy="46" r="2.2" fill="#4C9A5F"/>
+                <circle cx="192" cy="26" r="2.4" fill="#D28A2D" class="dot-warn"/><circle cx="186" cy="44" r="2.4" fill="#D28A2D" class="dot-warn"/>
+              </svg>
+            </div>
+            <div class="d-foot"><span>31.0 公顷</span><span>2 头留意</span></div>
+          </div>
+          <div class="diorama">
+            <div class="d-head">
+              <div class="fence-dot" style="background:#8BA95A"></div>
+              <span class="name">东区放牧区</span>
+              <span class="tag type">多边形</span>
+              <span class="d-count"><b>9</b> 头</span>
+            </div>
+            <div class="d-terrain">
+              <svg viewBox="0 0 256 58" preserveAspectRatio="none">
+                <polygon points="128,10 214,30 192,54 92,52 56,30" fill="rgba(139,169,90,.16)" stroke="#8BA95A" stroke-width="1.5" stroke-dasharray="5 3"/>
+                <circle cx="128" cy="26" r="2.2" fill="#4C9A5F"/><circle cx="108" cy="36" r="2.2" fill="#4C9A5F"/><circle cx="148" cy="36" r="2.2" fill="#4C9A5F"/><circle cx="96" cy="44" r="2.2" fill="#4C9A5F"/><circle cx="176" cy="44" r="2.2" fill="#4C9A5F"/><circle cx="128" cy="46" r="2.2" fill="#4C9A5F"/><circle cx="140" cy="22" r="2.2" fill="#4C9A5F"/><circle cx="106" cy="26" r="2.2" fill="#4C9A5F"/><circle cx="162" cy="26" r="2.2" fill="#4C9A5F"/>
+              </svg>
+            </div>
+            <div class="d-foot"><span>27.5 公顷</span><span>全部正常</span></div>
+          </div>
+          <div class="diorama off">
+            <div class="d-head">
+              <div class="fence-dot" style="background:#C25689"></div>
+              <span class="name">繁殖区</span>
+              <span class="tag type">圆形</span><span class="tag inactive">停用</span>
+              <span class="d-count"><b>0</b> 头</span>
+            </div>
+            <div class="d-terrain">
+              <svg viewBox="0 0 256 58" preserveAspectRatio="none">
+                <circle cx="128" cy="29" r="22" fill="rgba(194,86,137,.12)" stroke="#C25689" stroke-width="1.5" stroke-dasharray="5 3"/>
+              </svg>
+            </div>
+            <div class="d-foot"><span>8.2 公顷</span><span>停用中</span></div>
+          </div>
+          <div class="reconcile">⚠ 3 头无GPS · 2 头在所有围栏之外 · 未计入在养</div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-pill active">牧场 <span class="nav-badge">75</span></div>
+        <div class="nav-pill ghost">我的</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Plan D: morning ledger + shape sandbox (A skeleton + B panel + C dots) ═══ -->
+  <div class="screen-group">
+    <div class="screen-label rec-mark"><span class="num" style="background:linear-gradient(135deg,var(--hero-g2),var(--hero-g3))">D</span>晨报台账 · 形状沙盘</div>
+    <div class="screen-sublabel">列表态 = A 的总账瓷砖与全字段行 + 每行内嵌 C 的 mini 沙盘（真实形状 + 畜群点阵）；密度与 A 持平，形状与分布一眼可见。</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>●●● 🐄</span></div>
+      <div class="ranch-topbar"><h1>Main Ranch</h1><div class="farm-select">Main Ranch ▾</div></div>
+      <div class="ranch-body"></div>
+      <div class="sheet">
+        <div class="sheet-grab"></div>
+        <div class="sheet-tabs">
+          <div class="sheet-tab">概览</div>
+          <div class="sheet-tab active">围栏</div>
+          <div class="sheet-tab">告警 <span class="b">75</span></div>
+        </div>
+        <div class="tab-content">
+          <div class="sec-head"><span class="dot"></span><span class="t">围栏状态</span><span class="sub"><b>5</b> 个围栏 · 46 头在养</span></div>
+          <div class="tile3">
+            <div class="tile green"><div class="lbl">围栏</div><div class="big">5</div><div class="sub">4 个启用</div></div>
+            <div class="tile plain"><div class="lbl">在养</div><div class="big">46</div><div class="sub">含 3 头无GPS</div></div>
+            <div class="tile red"><span class="badge">12</span><div class="lbl">告警</div><div class="big">14</div><div class="sub">2 个围栏涉及</div></div>
+          </div>
+          <div class="sec-head"><span class="dot red"></span><span class="t">围栏列表</span><span class="sub">点击展开仪表盘</span><span class="add-btn">＋ 新建</span></div>
+          <div class="dcard">
+            <div class="spine" style="background:#4C9A5F"></div>
+            <div class="terrain">
+              <svg viewBox="0 0 92 56" preserveAspectRatio="none">
+                <polygon points="14,40 26,14 54,9 82,22 88,44 54,50 26,48" fill="rgba(76,154,95,.16)" stroke="#4C9A5F" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <circle cx="40" cy="30" r="2" fill="#4C9A5F"/><circle cx="54" cy="22" r="2" fill="#4C9A5F"/><circle cx="66" cy="36" r="2" fill="#4C9A5F"/><circle cx="46" cy="42" r="2" fill="#4C9A5F"/><circle cx="74" cy="44" r="2" fill="#4C9A5F"/><circle cx="58" cy="14" r="2" fill="#4C9A5F"/>
+                <circle cx="86" cy="42" r="2.3" fill="#C2564B" class="dot-alert"/>
+              </svg>
+            </div>
+            <div class="info">
+              <div class="row1"><span class="name">北区放牧区</span><span class="tag type">多边形</span></div>
+              <div class="row2"><b>18</b> 头 · 52.3 公顷<span class="alert-chip">⚠ 8 起告警</span></div>
+            </div>
+          </div>
+          <div class="dcard">
+            <div class="spine" style="background:#4A7F9D"></div>
+            <div class="terrain">
+              <svg viewBox="0 0 92 56" preserveAspectRatio="none">
+                <rect x="24" y="14" width="52" height="28" fill="rgba(74,127,157,.14)" stroke="#4A7F9D" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <circle cx="38" cy="24" r="2" fill="#4C9A5F"/><circle cx="52" cy="20" r="2" fill="#4C9A5F"/><circle cx="64" cy="28" r="2" fill="#4C9A5F"/><circle cx="44" cy="34" r="2" fill="#4C9A5F"/><circle cx="70" cy="36" r="2.2" fill="#D28A2D" class="dot-warn"/>
+              </svg>
+            </div>
+            <div class="info">
+              <div class="row1"><span class="name">西区围栏</span><span class="tag type">矩形</span></div>
+              <div class="row2"><b>12</b> 头 · 31.0 公顷<span class="alert-chip">⚠ 6 起告警</span></div>
+            </div>
+          </div>
+          <div class="dcard">
+            <div class="spine" style="background:#8BA95A"></div>
+            <div class="terrain">
+              <svg viewBox="0 0 92 56" preserveAspectRatio="none">
+                <polygon points="46,10 80,26 68,46 30,44 18,26" fill="rgba(139,169,90,.16)" stroke="#8BA95A" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <circle cx="46" cy="24" r="2" fill="#4C9A5F"/><circle cx="36" cy="32" r="2" fill="#4C9A5F"/><circle cx="56" cy="32" r="2" fill="#4C9A5F"/><circle cx="46" cy="38" r="2" fill="#4C9A5F"/>
+              </svg>
+            </div>
+            <div class="info">
+              <div class="row1"><span class="name">东区放牧区</span><span class="tag type">多边形</span></div>
+              <div class="row2"><b>9</b> 头 · 27.5 公顷<span class="alert-chip ok">✓ 正常</span></div>
+            </div>
+          </div>
+          <div class="dcard" style="opacity:.6">
+            <div class="spine" style="background:#C25689"></div>
+            <div class="terrain">
+              <svg viewBox="0 0 92 56" preserveAspectRatio="none">
+                <circle cx="46" cy="28" r="16" fill="rgba(194,86,137,.12)" stroke="#C25689" stroke-width="1.5" stroke-dasharray="4 3"/>
+              </svg>
+            </div>
+            <div class="info">
+              <div class="row1"><span class="name">繁殖区</span><span class="tag type">圆形</span><span class="tag inactive">停用</span></div>
+              <div class="row2"><b>0</b> 头 · 8.2 公顷<span class="alert-chip ok">✓ 正常</span></div>
+            </div>
+          </div>
+          <div class="reconcile">⚠ 3 头无GPS · 2 头在所有围栏之外 · 未计入在养</div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-pill active">牧场 <span class="nav-badge">75</span></div>
+        <div class="nav-pill ghost">我的</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Plan D screen 2: selected → dark instrument detail ═══ -->
+  <div class="screen-group">
+    <div class="screen-label rec-mark"><span class="num" style="background:linear-gradient(135deg,var(--hero-g2),var(--hero-g3))">D</span>选中详情 · 暗色仪表盘</div>
+    <div class="screen-sublabel">详情态 = B 的暗色仪表盘（放大形状 + 扫描线 + 畜群点阵）嵌进 A 的详情卡（2×2 元数据 + 三操作位）；其余围栏半透明。权限规则继承 A。</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>●●● 🐄</span></div>
+      <div class="ranch-topbar"><h1>Main Ranch</h1><div class="farm-select">Main Ranch ▾</div></div>
+      <div class="ranch-body"></div>
+      <div class="sheet">
+        <div class="sheet-grab"></div>
+        <div class="sheet-tabs">
+          <div class="sheet-tab">概览</div>
+          <div class="sheet-tab active">围栏</div>
+          <div class="sheet-tab">告警 <span class="b">75</span></div>
+        </div>
+        <div class="tab-content">
+          <div class="sec-head"><span class="dot"></span><span class="t">北区放牧区</span><span class="sub">收起 ✕</span></div>
+          <div class="ddetail rec-mark">
+            <div class="dark">
+              <svg viewBox="0 0 280 108" preserveAspectRatio="none">
+                <polygon points="40,84 78,30 150,18 226,44 244,88 150,100 66,96" fill="rgba(76,154,95,.30)" stroke="#4C9A5F" stroke-width="2" stroke-dasharray="6 4" class="glow breathe"/>
+                <circle cx="40" cy="84" r="2.2" fill="#8FD694"/><circle cx="78" cy="30" r="2.2" fill="#8FD694"/><circle cx="150" cy="18" r="2.2" fill="#8FD694"/><circle cx="226" cy="44" r="2.2" fill="#8FD694"/><circle cx="244" cy="88" r="2.2" fill="#8FD694"/><circle cx="150" cy="100" r="2.2" fill="#8FD694"/><circle cx="66" cy="96" r="2.2" fill="#8FD694"/>
+                <circle cx="110" cy="52" r="2.2" fill="#4C9A5F"/><circle cx="132" cy="40" r="2.2" fill="#4C9A5F"/><circle cx="156" cy="58" r="2.2" fill="#4C9A5F"/><circle cx="118" cy="70" r="2.2" fill="#4C9A5F"/><circle cx="176" cy="66" r="2.2" fill="#4C9A5F"/><circle cx="96" cy="58" r="2.2" fill="#4C9A5F"/><circle cx="148" cy="82" r="2.2" fill="#4C9A5F"/><circle cx="164" cy="46" r="2.2" fill="#4C9A5F"/>
+                <circle cx="212" cy="58" r="2.4" fill="#D28A2D" class="dot-warn"/><circle cx="202" cy="80" r="2.4" fill="#D28A2D" class="dot-warn"/>
+                <circle cx="234" cy="84" r="2.6" fill="#C2564B" class="dot-alert"/>
+              </svg>
+              <div class="scan"></div>
+              <span class="coord">112.938°E 28.229°N</span>
+              <span class="gal-badge">8 起告警 · 1 头临近边界</span>
+            </div>
+            <div class="light">
+              <div class="detail-head">
+                <div class="fence-dot" style="background:#4C9A5F"></div>
+                <div class="name">北区放牧区</div>
+                <span class="tag type">多边形</span>
+              </div>
+              <div class="meta-grid">
+                <div class="meta-field"><div class="lbl">面积</div><div class="val">52.3 公顷</div></div>
+                <div class="meta-field"><div class="lbl">类型</div><div class="val">多边形</div></div>
+                <div class="meta-field"><div class="lbl">在养牲畜</div><div class="val">18 头</div></div>
+                <div class="meta-field"><div class="lbl">活跃告警</div><div class="val alert">8 起</div></div>
+              </div>
+              <div class="action-row">
+                <div class="action-btn primary">✎ 编辑边界</div>
+                <div class="action-btn soft">⚠ 围栏告警</div>
+                <div class="action-btn danger-ico">🗑</div>
+              </div>
+            </div>
+          </div>
+          <div class="dcard dim">
+            <div class="spine" style="background:#4A7F9D"></div>
+            <div class="terrain">
+              <svg viewBox="0 0 92 56" preserveAspectRatio="none">
+                <rect x="24" y="14" width="52" height="28" fill="rgba(74,127,157,.14)" stroke="#4A7F9D" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <circle cx="44" cy="28" r="2" fill="#4C9A5F"/><circle cx="58" cy="24" r="2" fill="#4C9A5F"/><circle cx="38" cy="34" r="2" fill="#4C9A5F"/>
+              </svg>
+            </div>
+            <div class="info">
+              <div class="row1"><span class="name">西区围栏</span><span class="tag type">矩形</span></div>
+              <div class="row2"><b>12</b> 头 · 31.0 公顷<span class="alert-chip">⚠ 6 起告警</span></div>
+            </div>
+          </div>
+          <div class="dcard dim">
+            <div class="spine" style="background:#8BA95A"></div>
+            <div class="terrain">
+              <svg viewBox="0 0 92 56" preserveAspectRatio="none">
+                <polygon points="46,10 80,26 68,46 30,44 18,26" fill="rgba(139,169,90,.16)" stroke="#8BA95A" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <circle cx="46" cy="26" r="2" fill="#4C9A5F"/><circle cx="38" cy="34" r="2" fill="#4C9A5F"/>
+              </svg>
+            </div>
+            <div class="info">
+              <div class="row1"><span class="name">东区放牧区</span><span class="tag type">多边形</span></div>
+              <div class="row2"><b>9</b> 头 · 27.5 公顷<span class="alert-chip ok">✓ 正常</span></div>
+            </div>
+          </div>
+          <div class="reconcile">⚠ 3 头无GPS · 2 头在所有围栏之外 · 未计入在养</div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-pill active">牧场 <span class="nav-badge">75</span></div>
+        <div class="nav-pill ghost">我的</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="decision-table">
+  <h2>四案对比（拍板后进入 spec）</h2>
+  <table>
+    <tr><th style="width:120px">方案</th><th>视觉强度</th><th>信息密度</th><th>与概览血缘</th><th>适用场景</th></tr>
+    <tr><th>D 晨报台账·形状沙盘（推荐）</th><td>高：列表内嵌 mini 沙盘，详情暗色仪表盘</td><td>高-中：保留 A 行高与全部字段</td><td>最强：A 全套骨架 + B/C 元素内嵌</td><td>日常管理与演示一次到位，密度、形状、分布兼得</td></tr>
+    <tr><th>A 卡片台账（当前稿）</th><td>中</td><td>高：单屏 4-5 条围栏全信息</td><td>强：总账瓷砖 + 琥珀对账直接继承</td><td>围栏多、需在列表内直读面积/告警的日常管理</td></tr>
+    <tr><th>B 围栏图鉴（暗色仪表盘）</th><td>极高：发光多边形 + 扫描线动画</td><td>低-中：单屏 3-4 块</td><td>中：保留告警语言，形态独立</td><td>演示/巡检场景，围栏形状空间记忆最强，"爆款"观感</td></tr>
+    <tr><th>C 牧场沙盘（畜群分布）</th><td>高：活体点阵 + 脉冲告警</td><td>中：单屏 3-4 片沙盘</td><td>强：浅色地形延续牧场基调</td><td>畜群分布直觉可见，快速定位异常个体</td></tr>
+  </table>
+</div>
+
+<div class="decision-table">
+  <h2>方案 A 设计裁决要点（spec 阶段锁定依据）</h2>
+  <table>
+    <tr><th>总账三格瓷砖</th><td>概览瓷砖语言压缩版：围栏=绿色渐变（页签身份）、在养=白卡、告警=&gt;0 红色渐变带未读角标，=0 白卡绿字「正常」。这是围栏页与概览页最强的视觉血缘。</td></tr>
+    <tr><th>围栏卡片</th><td>从"纯文本行"升级为卡片：4px 围栏本色色脊（与地图多边形同色）、类型标签、在养数+面积、告警胶囊（&gt;0 红色 / =0 绿色"正常"）。停用围栏加灰色标签。</td></tr>
+    <tr><th>选中详情卡</th><td>信息架构不变（面积/类型/在养/告警 2×2 + 编辑边界/围栏告警/删除），升级为带 elevation 的独立卡片，其余围栏 50% 透明。</td></tr>
+    <tr><th>对账提示</th><td>沿用概览页琥珀色胶囊语言：无 GPS + 越界数 &gt; 0 时显示，解释总账与逐栏合计的差异。</td></tr>
+    <tr><th>权限差异</th><td>canManage=false：隐藏新建按钮与编辑/删除图标，详情卡只读展示；总账与列表不变。牧工仍可点击围栏看详情与跳转告警。</td></tr>
+    <tr><th>设计令牌</th><td>全部继承概览页 `:root` 令牌（hero 渐变、tile-red、radius-md=12px、shadow-card/elev），新增仅 `--fence-spine-width:3px` 与 `--dim-opacity:.5`。</td></tr>
+  </table>
+</div>
+
+</body>
+</html>

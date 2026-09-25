@@ -3405,6 +3405,59 @@
       }
     }
   },
+  "fenceTileActiveSub": "{n} active",
+  "@fenceTileActiveSub": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTileLivestock": "Livestock",
+  "@fenceTileLivestock": {},
+  "fenceTypeUnknown": "Unknown",
+  "@fenceTypeUnknown": {},
+  "fenceStatusSummary": "{fences} fences · {livestock} livestock",
+  "@fenceStatusSummary": {
+    "placeholders": {
+      "fences": {
+        "type": "int"
+      },
+      "livestock": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTileLivestockSubGps": "{n} without GPS",
+  "@fenceTileLivestockSubGps": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTileLivestockSubOk": "All located",
+  "@fenceTileLivestockSubOk": {},
+  "fenceTileAlertSub": "{n} fences involved",
+  "@fenceTileAlertSub": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTileAlertClear": "No alerts",
+  "@fenceTileAlertClear": {},
+  "fenceListHint": "Tap for dashboard",
+  "@fenceListHint": {},
+  "fenceNearBoundary": "{n} near boundary",
+  "@fenceNearBoundary": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "livestockSheetLastLoc": "Last Position",
   "@livestockSheetLastLoc": {},
   "livestockSheetCurrentPos": "Live Position",
