@@ -822,7 +822,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: AppColors.surface,
             border: Border.all(color: AppColors.border),
@@ -851,14 +851,14 @@ class _RanchPageState extends ConsumerState<RanchPage>
                   statusPill,
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               if (footBold != null)
                 Text.rich(TextSpan(children: [
                   TextSpan(
                       text: foot,
                       style: const TextStyle(
                           fontSize: 9,
-                          height: 1.45,
+                          height: 1.3,
                           color: AppColors.textSecondary)),
                   footBold,
                 ]))
@@ -866,7 +866,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                 Text(foot,
                     style: const TextStyle(
                         fontSize: 9,
-                        height: 1.45,
+                        height: 1.3,
                         color: AppColors.textSecondary)),
             ],
           ),
@@ -910,7 +910,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: 7,
           crossAxisSpacing: 7,
-          childAspectRatio: 2.1,
+          childAspectRatio: 2.5,
           children: [
             card(
               icon: Icons.thermostat,
@@ -931,7 +931,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                       text: l10n.sceneFeverFootOver(feverOver6h),
                       style: const TextStyle(
                           fontSize: 9,
-                          height: 1.45,
+                          height: 1.3,
                           fontWeight: FontWeight.w700,
                           color: AppColors.danger))
                   : null,
