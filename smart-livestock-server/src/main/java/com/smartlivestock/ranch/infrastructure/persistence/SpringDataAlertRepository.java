@@ -14,6 +14,11 @@ public interface SpringDataAlertRepository extends JpaRepository<AlertJpaEntity,
     List<AlertJpaEntity> findByFarmId(Long farmId);
     List<AlertJpaEntity> findByLivestockIdAndTypeAndStatus(Long livestockId, String type, String status);
     List<AlertJpaEntity> findByDeviceIdAndTypeAndStatus(Long deviceId, String type, String status);
+    List<AlertJpaEntity> findByLivestockIdAndStatusAndSource(Long livestockId, String status, String source);
+    List<AlertJpaEntity> findByFarmIdAndTypeInAndStatus(Long farmId, Collection<String> types, String status);
+    List<AlertJpaEntity> findByFarmIdAndTypeAndStatus(Long farmId, String type, String status);
+    List<AlertJpaEntity> findByFarmIdAndTypeInAndStatusInAndResolvedAtGreaterThanEqual(
+            Long farmId, Collection<String> types, Collection<String> statuses, java.time.Instant resolvedAt);
 
     // ── Aggregated counters (alert summary endpoint) ──
 

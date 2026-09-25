@@ -68,12 +68,27 @@ platform:
     months-ahead: ${PARTITION_MONTHS_AHEAD:2}
     check-cron: ${PARTITION_CHECK_CRON:0 10 2 * * *}
 
+health:
+  epidemic:
+    enabled: ${HEALTH_EPIDEMIC_ENABLED:true}
+    check-cron: ${HEALTH_EPIDEMIC_CHECK_CRON:0 20 * * * *}
+  alert-reconcile:
+    enabled: ${HEALTH_ALERT_RECONCILE_ENABLED:true}
+    cron: ${HEALTH_ALERT_RECONCILE_CRON:0 40 * * * *}
+
 ai:
   platform:
     url: ${AI_PLATFORM_URL:http://localhost:18000}
     timeout-ms: ${AI_PLATFORM_TIMEOUT_MS:5000}
+  assessment:
+    enabled: ${AI_ASSESSMENT_ENABLED:true}
+    poll-ms: ${AI_ASSESSMENT_POLL_MS:300000}
+    active-window-minutes: ${AI_ASSESSMENT_ACTIVE_WINDOW_MINUTES:120}
+    max-per-poll: ${AI_ASSESSMENT_MAX_PER_POLL:200}
+    tenant-id: ${AI_ASSESSMENT_TENANT_ID:1}
   alert:
     threshold: ${AI_ALERT_THRESHOLD:0.7}
+    resolve-threshold: ${AI_ALERT_RESOLVE_THRESHOLD:0.5}
   dedup:
     ttl-minutes: ${AI_DEDUP_TTL_MINUTES:60}
 

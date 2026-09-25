@@ -3402,6 +3402,59 @@
       }
     }
   },
+  "fenceTileActiveSub": "{n} 个启用",
+  "@fenceTileActiveSub": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTileLivestock": "在养",
+  "@fenceTileLivestock": {},
+  "fenceTypeUnknown": "未知类型",
+  "@fenceTypeUnknown": {},
+  "fenceStatusSummary": "{fences} 个围栏 · {livestock} 头在养",
+  "@fenceStatusSummary": {
+    "placeholders": {
+      "fences": {
+        "type": "int"
+      },
+      "livestock": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTileLivestockSubGps": "含 {n} 头无GPS",
+  "@fenceTileLivestockSubGps": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTileLivestockSubOk": "全部已定位",
+  "@fenceTileLivestockSubOk": {},
+  "fenceTileAlertSub": "{n} 个围栏涉及",
+  "@fenceTileAlertSub": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTileAlertClear": "无告警",
+  "@fenceTileAlertClear": {},
+  "fenceListHint": "点击展开仪表盘",
+  "@fenceListHint": {},
+  "fenceNearBoundary": "{n} 头临近边界",
+  "@fenceNearBoundary": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "livestockSheetLastLoc": "最后定位",
   "@livestockSheetLastLoc": {},
   "livestockSheetCurrentPos": "实时位置",
@@ -4829,5 +4882,89 @@
   "gatewayFollowLive": "自动跟随手机定位 · 精度约 ±{m} 米（拖动地图可微调）",
   "@gatewayFollowLive": {},
   "gatewayFollowManual": "手动模式",
-  "@gatewayFollowManual": {}
+  "@gatewayFollowManual": {},
+"overviewSectionStatus": "牧场状态",
+"@overviewSectionStatus": {},
+"overviewSectionAlerts": "告警",
+"@overviewSectionAlerts": {},
+"overviewSectionHealth": "健康管理",
+"@overviewSectionHealth": {},
+"ranchSceneFeverMgmt": "发热管理",
+"@ranchSceneFeverMgmt": {},
+"ranchSceneDigestiveMgmt": "消化管理",
+"@ranchSceneDigestiveMgmt": {},
+"ranchSceneEstrusMgmt": "发情管理",
+"@ranchSceneEstrusMgmt": {},
+"ranchSceneEpidemic": "疫病防控",
+"@ranchSceneEpidemic": {},
+"aiObserveTitle": "智能健康观察",
+"@aiObserveTitle": {},
+"aiBandCalm": "平稳",
+"@aiBandCalm": {},
+"aiBandWatch": "留意",
+"@aiBandWatch": {},
+"aiBandAlarm": "警惕",
+"@aiBandAlarm": {},
+"reconcileSceneAbnormal": "场景异常",
+"@reconcileSceneAbnormal": {},
+"reconcileHeadUnit": "只",
+"@reconcileHeadUnit": {},
+"reconcileActiveTickets": "活跃健康单",
+"@reconcileActiveTickets": {},
+"reconcileTicketUnit": "张",
+"@reconcileTicketUnit": {},
+"reconcileOffBy": "差",
+"@reconcileOffBy": {},
+  "heroTitleCalm": "牧场一切平稳",
+  "@heroTitleCalm": {},
+  "heroTitleAttention": "{n} 只需要关注",
+  "@heroTitleAttention": {"placeholders": {"n": {"type": "int"}}},
+  "heroDatePattern": "{m}月{d}日 星期{w}",
+  "@heroDatePattern": {"placeholders": {"m": {"type": "int"}, "d": {"type": "int"}, "w": {"type": "String"}}},
+  "weekday0": "日", "weekday1": "一", "weekday2": "二", "weekday3": "三",
+  "weekday4": "四", "weekday5": "五", "weekday6": "六",
+  "heroSub": "{healthy}/{total} 只健康 · {fences} 个围栏需要巡查",
+  "@heroSub": {"placeholders": {"healthy": {"type": "int"}, "total": {"type": "int"}, "fences": {"type": "int"}}},
+  "heroRingLabel": "健康率",
+  "heroChipHead": "头在养",
+  "heroChipDevice": "设备在线",
+  "secNeedsAttention": "需要处理",
+  "secNeedsAttentionTotal": "共 {n} 起 · 点击进入",
+  "@secNeedsAttentionTotal": {"placeholders": {"n": {"type": "int"}}},
+  "tileFence": "围栏", "tileHealth": "健康", "tileDevice": "设备",
+  "tileFenceSub": "{n} 个围栏越界",
+  "@tileFenceSub": {"placeholders": {"n": {"type": "int"}}},
+  "tileFenceSubClear": "无越界",
+  "tileHealthSubFever": "发热为主", "tileHealthSubDigestive": "消化为主",
+  "tileHealthSubEstrus": "发情提醒", "tileHealthSubNone": "暂无异常",
+  "tileDeviceNormal": "正常", "tileDeviceAbnormal": "待处理",
+  "secHealthMgmt": "健康管理",
+  "secHealthAll": "全部 ›",
+  "pillSteady": "平稳",
+  "pillAbnormal": "{n} 只异常",
+  "@pillAbnormal": {"placeholders": {"n": {"type": "int"}}},
+  "pillHigh": "{n} 只高分",
+  "@pillHigh": {"placeholders": {"n": {"type": "int"}}},
+  "pillRate": "{rate}%",
+  "@pillRate": {"placeholders": {"rate": {"type": "String"}}},
+  "sceneFeverFoot": "{fever} 只发烧 · {low} 只低热",
+  "@sceneFeverFoot": {"placeholders": {"fever": {"type": "int"}, "low": {"type": "int"}}},
+  "sceneFeverFootOver": "，{n} 只持续超 6 小时",
+  "@sceneFeverFootOver": {"placeholders": {"n": {"type": "int"}}},
+  "sceneFeverCalm": "体温均在正常区间",
+  "sceneDigestiveFoot": "{n} 只反刍偏低",
+  "@sceneDigestiveFoot": {"placeholders": {"n": {"type": "int"}}},
+  "sceneDigestiveCalm": "反刍频率均在正常区间",
+  "sceneEstrusFoot": "{n} 只进入配种窗口",
+  "@sceneEstrusFoot": {"placeholders": {"n": {"type": "int"}}},
+  "sceneEstrusCalm": "暂无高分个体，适合巡查",
+  "sceneEpidemicFootBelow": "7 日异常率 {rate}%，低于警戒线",
+  "@sceneEpidemicFootBelow": {"placeholders": {"rate": {"type": "String"}}},
+  "sceneEpidemicFootAbove": "7 日异常率 {rate}%，已超警戒线",
+  "@sceneEpidemicFootAbove": {"placeholders": {"rate": {"type": "String"}}},
+  "aiSummaryWatching": "{n} 只持续观察",
+  "@aiSummaryWatching": {"placeholders": {"n": {"type": "int"}}},
+  "aiNotReady": "AI 观察暂未开启，恢复后自动展示",
+  "recHint": "（可能有单未开出，建议巡检）"
+
 }

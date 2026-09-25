@@ -4184,6 +4184,46 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String fenceTileActiveSub(int n) {
+    return '$n 个启用';
+  }
+
+  @override
+  String get fenceTileLivestock => '在养';
+
+  @override
+  String get fenceTypeUnknown => '未知类型';
+
+  @override
+  String fenceStatusSummary(int fences, int livestock) {
+    return '$fences 个围栏 · $livestock 头在养';
+  }
+
+  @override
+  String fenceTileLivestockSubGps(int n) {
+    return '含 $n 头无GPS';
+  }
+
+  @override
+  String get fenceTileLivestockSubOk => '全部已定位';
+
+  @override
+  String fenceTileAlertSub(int n) {
+    return '$n 个围栏涉及';
+  }
+
+  @override
+  String get fenceTileAlertClear => '无告警';
+
+  @override
+  String get fenceListHint => '点击展开仪表盘';
+
+  @override
+  String fenceNearBoundary(int n) {
+    return '$n 头临近边界';
+  }
+
+  @override
   String get livestockSheetLastLoc => '最后定位';
 
   @override
@@ -5897,4 +5937,217 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gatewayFollowManual => '手动模式';
+
+  @override
+  String get overviewSectionStatus => '牧场状态';
+
+  @override
+  String get overviewSectionAlerts => '告警';
+
+  @override
+  String get overviewSectionHealth => '健康管理';
+
+  @override
+  String get ranchSceneFeverMgmt => '发热管理';
+
+  @override
+  String get ranchSceneDigestiveMgmt => '消化管理';
+
+  @override
+  String get ranchSceneEstrusMgmt => '发情管理';
+
+  @override
+  String get ranchSceneEpidemic => '疫病防控';
+
+  @override
+  String get aiObserveTitle => '智能健康观察';
+
+  @override
+  String get aiBandCalm => '平稳';
+
+  @override
+  String get aiBandWatch => '留意';
+
+  @override
+  String get aiBandAlarm => '警惕';
+
+  @override
+  String get reconcileSceneAbnormal => '场景异常';
+
+  @override
+  String get reconcileHeadUnit => '只';
+
+  @override
+  String get reconcileActiveTickets => '活跃健康单';
+
+  @override
+  String get reconcileTicketUnit => '张';
+
+  @override
+  String get reconcileOffBy => '差';
+
+  @override
+  String get heroTitleCalm => '牧场一切平稳';
+
+  @override
+  String heroTitleAttention(int n) {
+    return '$n 只需要关注';
+  }
+
+  @override
+  String heroDatePattern(int m, int d, String w) {
+    return '$m月$d日 星期$w';
+  }
+
+  @override
+  String get weekday0 => '日';
+
+  @override
+  String get weekday1 => '一';
+
+  @override
+  String get weekday2 => '二';
+
+  @override
+  String get weekday3 => '三';
+
+  @override
+  String get weekday4 => '四';
+
+  @override
+  String get weekday5 => '五';
+
+  @override
+  String get weekday6 => '六';
+
+  @override
+  String heroSub(int healthy, int total, int fences) {
+    return '$healthy/$total 只健康 · $fences 个围栏需要巡查';
+  }
+
+  @override
+  String get heroRingLabel => '健康率';
+
+  @override
+  String get heroChipHead => '头在养';
+
+  @override
+  String get heroChipDevice => '设备在线';
+
+  @override
+  String get secNeedsAttention => '需要处理';
+
+  @override
+  String secNeedsAttentionTotal(int n) {
+    return '共 $n 起 · 点击进入';
+  }
+
+  @override
+  String get tileFence => '围栏';
+
+  @override
+  String get tileHealth => '健康';
+
+  @override
+  String get tileDevice => '设备';
+
+  @override
+  String tileFenceSub(int n) {
+    return '$n 个围栏越界';
+  }
+
+  @override
+  String get tileFenceSubClear => '无越界';
+
+  @override
+  String get tileHealthSubFever => '发热为主';
+
+  @override
+  String get tileHealthSubDigestive => '消化为主';
+
+  @override
+  String get tileHealthSubEstrus => '发情提醒';
+
+  @override
+  String get tileHealthSubNone => '暂无异常';
+
+  @override
+  String get tileDeviceNormal => '正常';
+
+  @override
+  String get tileDeviceAbnormal => '待处理';
+
+  @override
+  String get secHealthMgmt => '健康管理';
+
+  @override
+  String get secHealthAll => '全部 ›';
+
+  @override
+  String get pillSteady => '平稳';
+
+  @override
+  String pillAbnormal(int n) {
+    return '$n 只异常';
+  }
+
+  @override
+  String pillHigh(int n) {
+    return '$n 只高分';
+  }
+
+  @override
+  String pillRate(String rate) {
+    return '$rate%';
+  }
+
+  @override
+  String sceneFeverFoot(int fever, int low) {
+    return '$fever 只发烧 · $low 只低热';
+  }
+
+  @override
+  String sceneFeverFootOver(int n) {
+    return '，$n 只持续超 6 小时';
+  }
+
+  @override
+  String get sceneFeverCalm => '体温均在正常区间';
+
+  @override
+  String sceneDigestiveFoot(int n) {
+    return '$n 只反刍偏低';
+  }
+
+  @override
+  String get sceneDigestiveCalm => '反刍频率均在正常区间';
+
+  @override
+  String sceneEstrusFoot(int n) {
+    return '$n 只进入配种窗口';
+  }
+
+  @override
+  String get sceneEstrusCalm => '暂无高分个体，适合巡查';
+
+  @override
+  String sceneEpidemicFootBelow(String rate) {
+    return '7 日异常率 $rate%，低于警戒线';
+  }
+
+  @override
+  String sceneEpidemicFootAbove(String rate) {
+    return '7 日异常率 $rate%，已超警戒线';
+  }
+
+  @override
+  String aiSummaryWatching(int n) {
+    return '$n 只持续观察';
+  }
+
+  @override
+  String get aiNotReady => 'AI 观察暂未开启，恢复后自动展示';
+
+  @override
+  String get recHint => '（可能有单未开出，建议巡检）';
 }

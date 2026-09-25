@@ -80,6 +80,7 @@ body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sa
 .sheet-tab .b{background:var(--danger);color:#fff;font-size:8px;font-weight:700;padding:0 4px;border-radius:6px;min-width:11px;text-align:center}
 .sheet-content{flex:1;overflow-y:auto;padding:0 12px 10px;-webkit-overflow-scrolling:touch}
 .sheet-content::-webkit-scrollbar{width:0}
+/* 以下为方案 D 之前的旧概览布局（dash 四卡/一行四格场景/五格统计），2026-09-24 起停用，仅存档参考 */
 .dash-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:9px}
 .dash-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:7px 4px;text-align:center;cursor:pointer}
 .dash-card.has-alert{border-color:rgba(194,86,75,.35);background:rgba(194,86,75,.03)}
@@ -116,7 +117,58 @@ body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sa
 .reconcile{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:7px;background:var(--reconcile-bg);border:1px solid rgba(76,154,95,.25);border-radius:9px;padding:5px 7px;font-size:9px;color:var(--reconcile-text);font-weight:600}
 .reconcile .ok{color:var(--success);font-weight:700}
 
-/* 面板展开态五格统计（屏 1b，spec S1 展开态） */
+/* ── 方案 D「晨报看板」（屏 1/1b，2026-09-24 用户拍板 A+C 整合，1:1 实现蓝本） ── */
+.d-hero{background:linear-gradient(135deg,#1C3F25 0%,var(--primary) 62%,#3E7F4C 100%);border-radius:var(--radius-lg);padding:14px 14px 12px;color:#fff;box-shadow:var(--shadow-elev);position:relative;overflow:hidden}
+.d-hero::after{content:"";position:absolute;right:-28px;top:-28px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.06)}
+.d-hero-date{font-size:8.5px;opacity:.75;letter-spacing:.5px}
+.d-hero-row{display:flex;align-items:center;gap:12px;margin-top:5px}
+.d-hero-copy{flex:1;min-width:0}
+.d-hero-title{font-size:15.5px;font-weight:750;line-height:1.3}
+.d-hero-sub{font-size:9px;opacity:.8;margin-top:3px;line-height:1.5}
+.d-hero-ring{width:62px;height:62px;flex-shrink:0;position:relative}
+.d-hero-ring svg{width:62px;height:62px;transform:rotate(-90deg)}
+.d-hero-ring .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.d-hero-ring .val b{font-size:13px;font-weight:750;font-variant-numeric:tabular-nums}
+.d-hero-ring .val span{font-size:6.5px;opacity:.75;margin-top:1px}
+.d-hero-chips{display:flex;gap:7px;margin-top:10px}
+.d-hero-chip{flex:1;background:rgba(255,255,255,.12);border-radius:8px;padding:6px 8px;display:flex;align-items:baseline;gap:4px}
+.d-hero-chip b{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.d-hero-chip span{font-size:8px;opacity:.78}
+.d-sec-head{display:flex;align-items:center;gap:5px;margin:13px 2px 7px;font-size:10.5px;font-weight:700;letter-spacing:.3px}
+.d-sec-head .dot{width:3px;height:10px;border-radius:2px;background:var(--primary)}
+.d-sec-head .dot.red{background:var(--danger)}
+.d-sec-head .sub{margin-left:auto;font-size:8.5px;font-weight:500;color:#9AA59A}
+.d-tile3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.d-tile3 .t{border-radius:var(--radius-md);padding:9px 10px;position:relative;overflow:hidden;cursor:pointer}
+.d-tile3 .lbl{font-size:8px;font-weight:600;letter-spacing:.3px}
+.d-tile3 .big{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.15;margin-top:2px}
+.d-tile3 .sub{font-size:7.5px;margin-top:2px}
+.d-tile3 .s-red{background:linear-gradient(140deg,#B3453B,#C9664F);color:#fff;box-shadow:var(--shadow-elev)}
+.d-tile3 .s-orange{background:linear-gradient(140deg,#C07A22,#DB9C40);color:#fff;box-shadow:var(--shadow-elev)}
+.d-tile3 .s-red .sub,.d-tile3 .s-orange .sub{opacity:.85}
+.d-tile3 .s-plain{background:var(--surface-alt);border:1px solid var(--border);box-shadow:var(--shadow-card)}
+.d-tile3 .s-plain .lbl{color:var(--text-secondary)}
+.d-tile3 .s-plain .sub{color:#9AA59A}
+.d-tile3 .badge{position:absolute;top:8px;right:8px;background:#fff;color:var(--danger);font-size:7.5px;font-weight:800;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.d-scene2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.d-scene2 .card{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-md);padding:10px;box-shadow:var(--shadow-card);cursor:pointer}
+.d-scene2 .top{display:flex;align-items:center;gap:7px}
+.d-scene2 .ico{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.d-scene2 .name{font-size:10.5px;font-weight:700;flex:1}
+.d-scene2 .foot{margin-top:8px;font-size:8.5px;color:var(--text-secondary);line-height:1.45}
+.d-scene2 .foot b.crit{color:var(--danger)}
+.d-pill{display:inline-flex;align-items:center;padding:1px 6px;border-radius:999px;font-size:8px;font-weight:700;flex-shrink:0}
+.d-pill.ok{background:rgba(76,154,95,.12);color:var(--success)}
+.d-pill.warn{background:rgba(210,138,45,.12);color:var(--warning)}
+.d-ai{display:flex;align-items:center;gap:9px;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-md);padding:10px;box-shadow:var(--shadow-card);cursor:pointer}
+.d-ai .ico{width:28px;height:28px;border-radius:8px;background:rgba(74,127,157,.12);display:flex;align-items:center;justify-content:center;font-size:14px}
+.d-ai .body{flex:1;min-width:0}
+.d-ai .t{font-size:10.5px;font-weight:700;display:flex;align-items:center;gap:5px}
+.d-ai .t .go{font-size:8.5px;color:var(--primary);font-weight:700}
+.d-ai .s{font-size:8.5px;color:var(--text-secondary);margin-top:2px}
+.d-rec-warn{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:8px;background:rgba(210,138,45,.08);border:1px solid rgba(210,138,45,.25);border-radius:9px;padding:5px 8px;font-size:8.5px;font-weight:600;color:rgba(210,138,45,.95)}
+
+/* 面板展开态五格统计（屏 1b，spec S1 展开态）——方案 D 起停用，数字并入 Hero 与瓷砖小标题 */
 .sheet.expanded{max-height:96%}
 .stat5-row{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:9px}
 .stat5{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:6px 2px;text-align:center;box-shadow:var(--shadow-card)}
@@ -292,15 +344,15 @@ body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sa
 
 <div class="page-title">
   <h1>健康整合 · 最终形态原型（A+B）</h1>
-  <p>四场景工作台 + 牲畜详情页融合病程（不跳转）+ 告警中心作通知枢纽 &nbsp;|&nbsp; 橙=新增 · 蓝=迁入 · 粉=融合</p>
+  <p>四场景工作台 + 牲畜详情页融合病程（不跳转）+ 告警中心作通知枢纽 &nbsp;|&nbsp; 橙=新增 · 蓝=迁入 · 粉=融合<br>屏 1/1b 已按<b>方案 D「晨报看板」</b>重绘（2026-09-24 拍板 A+C 整合；三方案对照稿见 ranch-overview-redesign-prototype.html）</p>
 </div>
 
 <div class="flow-grid">
 
   <!-- ═══ 屏幕 1：牧场页 · 概览 ═══ -->
   <div class="screen-group">
-    <div class="screen-label"><span class="num">1</span>牧场页 · 概览页签</div>
-    <div class="screen-sublabel">孪生内容迁入概览；地图标记新增「有活跃单」小红点（谁有待办一眼可见）</div>
+    <div class="screen-label"><span class="num">1</span>牧场页 · 概览页签（方案 D 晨报看板）</div>
+    <div class="screen-sublabel">2026-09-24 拍板 A+C 整合：Hero 晨报卡 + 一行三色告警瓷砖 + 2×2 场景卡 + AI 摘要卡；地图标记「有活跃单」小红点；对账提示仅在数字不一致时出现（本屏为一致态，不显示）</div>
     <div class="phone">
       <div class="phone-notch"></div>
       <div class="phone-status"><span>9:41</span><span class="icons">▮▮▮ ᯤ 84%</span></div>
@@ -319,30 +371,63 @@ body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sa
           <div class="sheet-tabs">
             <div class="sheet-tab active">📊 概览</div>
             <div class="sheet-tab">🚧 围栏</div>
-            <div class="sheet-tab">🔔 告警 <span class="b">80</span></div>
+            <div class="sheet-tab">🔔 告警 <span class="b">83</span></div>
           </div>
           <div class="sheet-content">
-            <div class="dash-row">
-              <div class="dash-card has-alert"><div class="ico">🚧</div><div class="count" style="color:var(--danger)">72</div><div class="label">围栏告警</div></div>
-              <div class="dash-card has-alert"><div class="ico">🩺</div><div class="count" style="color:var(--warning)">8</div><div class="label">健康告警</div></div>
-              <div class="dash-card"><div class="ico">🔋</div><div class="count">0</div><div class="label">设备告警</div></div>
-              <div class="dash-card"><div class="ico">🐄</div><div class="count">58</div><div class="label">牲畜</div></div>
-            </div>
-            <div class="ov-section-head move-mark">健康场景<span class="hint">原孪生页迁入</span><span class="line"></span></div>
-            <div class="scene-grid">
-              <div class="scene-card"><div class="scene-ico fever">🌡️</div><div class="scene-title">发热管理</div><div class="scene-sub">异<b class="warn">3</b>·严<b class="crit">2</b></div><button class="alert-badge">🔔3</button></div>
-              <div class="scene-card"><div class="scene-ico digestive">🌾</div><div class="scene-title">消化管理</div><div class="scene-sub">异0·观0</div></div>
-              <div class="scene-card"><div class="scene-ico estrus">💗</div><div class="scene-title">发情管理</div><div class="scene-sub">高<b class="warn">5</b></div><button class="alert-badge">🔔5</button></div>
-              <div class="scene-card"><div class="scene-ico epidemic">🛡️</div><div class="scene-title">疫病防控</div><div class="scene-sub">0.0%</div></div>
-            </div>
-            <div class="ai-card move-mark">
-              <div class="ai-head"><div class="ai-ico">🤖</div><div class="ai-title">智能健康观察</div>
-                <div class="ai-stat"><div class="v">12</div><div class="t">关注中</div></div>
-                <div class="ai-stat"><div class="v" style="color:var(--success)">平稳</div><div class="t">整体状态</div></div>
-                <span class="go new-mark">谁最需要关注 ›</span>
+            <div class="d-hero move-mark">
+              <div class="d-hero-date">9月24日 星期四 · Main Ranch</div>
+              <div class="d-hero-row">
+                <div class="d-hero-copy">
+                  <div class="d-hero-title">牧场一切平稳</div>
+                  <div class="d-hero-sub">56/58 只健康 · 2 个围栏需要巡查</div>
+                </div>
+                <div class="d-hero-ring">
+                  <svg viewBox="0 0 62 62">
+                    <circle cx="31" cy="31" r="27" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="6"/>
+                    <circle cx="31" cy="31" r="27" fill="none" stroke="#8FD694" stroke-width="6" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="3.4"/>
+                  </svg>
+                  <div class="val"><b>98%</b><span>健康率</span></div>
+                </div>
+              </div>
+              <div class="d-hero-chips">
+                <div class="d-hero-chip"><b>58</b><span>头在养</span></div>
+                <div class="d-hero-chip"><b>92%</b><span>设备在线</span></div>
               </div>
             </div>
-            <div class="reconcile">场景异常 8 只（发热 3 + 发情 5）· 活跃健康单 8 张 <span class="ok">✓ 对上了</span></div>
+            <div class="d-sec-head"><span class="dot red"></span>需要处理<span class="sub">83 起 · 点击进入</span></div>
+            <div class="d-tile3">
+              <div class="t s-red"><span class="badge">2</span><div class="lbl">围栏</div><div class="big">77</div><div class="sub">2 个围栏越界</div></div>
+              <div class="t s-orange"><div class="lbl">健康</div><div class="big">6</div><div class="sub">发热为主</div></div>
+              <div class="t s-plain"><div class="lbl">设备</div><div class="big">0</div><div class="sub" style="color:var(--success);font-weight:700">正常</div></div>
+            </div>
+            <div class="d-sec-head"><span class="dot"></span>健康管理<span class="sub">全部 ›</span></div>
+            <div class="d-scene2">
+              <div class="card">
+                <div class="top"><div class="ico" style="background:rgba(217,123,41,.12)">🌡️</div><div class="name">发热管理</div><span class="d-pill warn">6 只异常</span></div>
+                <div class="foot">2 只发烧 · 4 只低热，<b class="crit">1 只</b>持续超 6 小时</div>
+              </div>
+              <div class="card">
+                <div class="top"><div class="ico" style="background:rgba(141,110,79,.12)">🌾</div><div class="name">消化管理</div><span class="d-pill ok">平稳</span></div>
+                <div class="foot">反刍频率均在正常区间</div>
+              </div>
+              <div class="card">
+                <div class="top"><div class="ico" style="background:rgba(194,86,137,.12)">💞</div><div class="name">发情管理</div><span class="d-pill ok">平稳</span></div>
+                <div class="foot">暂无高分个体，适合巡查</div>
+              </div>
+              <div class="card">
+                <div class="top"><div class="ico" style="background:rgba(46,125,116,.12)">🛡️</div><div class="name">疫病防控</div><span class="d-pill warn">1.6%</span></div>
+                <div class="foot">7 日异常率 1.6%，低于警戒线</div>
+              </div>
+            </div>
+            <div class="d-sec-head"><span class="dot"></span>AI 观察</div>
+            <div class="d-ai move-mark">
+              <div class="ico">🤖</div>
+              <div class="body">
+                <div class="t">智能健康观察 <span class="go new-mark">谁最需要关注 ›</span></div>
+                <div class="s">12 只持续观察 · 体温节律整体正常</div>
+              </div>
+              <span class="d-pill warn">留意</span>
+            </div>
           </div>
         </div>
       </div>
@@ -355,8 +440,8 @@ body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sa
 
   <!-- ═══ 屏幕 1b：牧场页 · 概览面板展开态 ═══ -->
   <div class="screen-group">
-    <div class="screen-label"><span class="num">1b</span>牧场页 · 概览面板展开态</div>
-    <div class="screen-sublabel">面板上拉展开：顶部露出<b>五格统计</b>（原孪生顶栏数字迁入）——总账数字的家；其余内容同收起态</div>
+    <div class="screen-label"><span class="num">1b</span>牧场页 · 概览面板展开态（方案 D）</div>
+    <div class="screen-sublabel">与收起态同构（方案 D 取消五格统计，总账数字并入 Hero 卡与瓷砖小标题）；底部演示<b>对账提示的不一致态</b>（琥珀色，仅当场景异常数与活跃单数不一致时出现）</div>
     <div class="phone">
       <div class="phone-notch"></div>
       <div class="phone-status"><span>9:41</span><span class="icons">▮▮▮ ᯤ 84%</span></div>
@@ -367,37 +452,64 @@ body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sa
           <div class="sheet-tabs">
             <div class="sheet-tab active">📊 概览</div>
             <div class="sheet-tab">🚧 围栏</div>
-            <div class="sheet-tab">🔔 告警 <span class="b">80</span></div>
+            <div class="sheet-tab">🔔 告警 <span class="b">83</span></div>
           </div>
           <div class="sheet-content">
-            <div class="stat5-row move-mark">
-              <div class="stat5"><div class="count">58</div><div class="label">牲畜总数</div></div>
-              <div class="stat5"><div class="count" style="color:var(--success)">86%</div><div class="label">健康率</div></div>
-              <div class="stat5"><div class="count" style="color:var(--danger)">80</div><div class="label">活跃告警</div></div>
-              <div class="stat5"><div class="count" style="color:var(--danger)">2</div><div class="label">严重异常</div></div>
-              <div class="stat5"><div class="count">85%</div><div class="label">设备在线率</div></div>
-            </div>
-            <div class="dash-row">
-              <div class="dash-card has-alert"><div class="ico">🚧</div><div class="count" style="color:var(--danger)">72</div><div class="label">围栏告警</div></div>
-              <div class="dash-card has-alert"><div class="ico">🩺</div><div class="count" style="color:var(--warning)">8</div><div class="label">健康告警</div></div>
-              <div class="dash-card"><div class="ico">🔋</div><div class="count">0</div><div class="label">设备告警</div></div>
-              <div class="dash-card"><div class="ico">🐄</div><div class="count">58</div><div class="label">牲畜</div></div>
-            </div>
-            <div class="ov-section-head">健康场景<span class="hint">原孪生页迁入</span><span class="line"></span></div>
-            <div class="scene-grid">
-              <div class="scene-card"><div class="scene-ico fever">🌡️</div><div class="scene-title">发热管理</div><div class="scene-sub">异<b class="warn">3</b>·严<b class="crit">2</b></div><button class="alert-badge">🔔3</button></div>
-              <div class="scene-card"><div class="scene-ico digestive">🌾</div><div class="scene-title">消化管理</div><div class="scene-sub">异0·观0</div></div>
-              <div class="scene-card"><div class="scene-ico estrus">💗</div><div class="scene-title">发情管理</div><div class="scene-sub">高<b class="warn">5</b></div><button class="alert-badge">🔔5</button></div>
-              <div class="scene-card"><div class="scene-ico epidemic">🛡️</div><div class="scene-title">疫病防控</div><div class="scene-sub">0.0%</div></div>
-            </div>
-            <div class="ai-card">
-              <div class="ai-head"><div class="ai-ico">🤖</div><div class="ai-title">智能健康观察</div>
-                <div class="ai-stat"><div class="v">12</div><div class="t">关注中</div></div>
-                <div class="ai-stat"><div class="v" style="color:var(--success)">平稳</div><div class="t">整体状态</div></div>
-                <span class="go">谁最需要关注 ›</span>
+            <div class="d-hero">
+              <div class="d-hero-date">9月24日 星期四 · Main Ranch</div>
+              <div class="d-hero-row">
+                <div class="d-hero-copy">
+                  <div class="d-hero-title">牧场一切平稳</div>
+                  <div class="d-hero-sub">56/58 只健康 · 2 个围栏需要巡查</div>
+                </div>
+                <div class="d-hero-ring">
+                  <svg viewBox="0 0 62 62">
+                    <circle cx="31" cy="31" r="27" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="6"/>
+                    <circle cx="31" cy="31" r="27" fill="none" stroke="#8FD694" stroke-width="6" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="3.4"/>
+                  </svg>
+                  <div class="val"><b>98%</b><span>健康率</span></div>
+                </div>
+              </div>
+              <div class="d-hero-chips">
+                <div class="d-hero-chip"><b>58</b><span>头在养</span></div>
+                <div class="d-hero-chip"><b>92%</b><span>设备在线</span></div>
               </div>
             </div>
-            <div class="reconcile">场景异常 8 只（发热 3 + 发情 5）· 活跃健康单 8 张 <span class="ok">✓ 对上了</span></div>
+            <div class="d-sec-head"><span class="dot red"></span>需要处理<span class="sub">83 起 · 点击进入</span></div>
+            <div class="d-tile3">
+              <div class="t s-red"><span class="badge">2</span><div class="lbl">围栏</div><div class="big">77</div><div class="sub">2 个围栏越界</div></div>
+              <div class="t s-orange"><div class="lbl">健康</div><div class="big">6</div><div class="sub">发热为主</div></div>
+              <div class="t s-plain"><div class="lbl">设备</div><div class="big">0</div><div class="sub" style="color:var(--success);font-weight:700">正常</div></div>
+            </div>
+            <div class="d-sec-head"><span class="dot"></span>健康管理<span class="sub">全部 ›</span></div>
+            <div class="d-scene2">
+              <div class="card">
+                <div class="top"><div class="ico" style="background:rgba(217,123,41,.12)">🌡️</div><div class="name">发热管理</div><span class="d-pill warn">6 只异常</span></div>
+                <div class="foot">2 只发烧 · 4 只低热，<b class="crit">1 只</b>持续超 6 小时</div>
+              </div>
+              <div class="card">
+                <div class="top"><div class="ico" style="background:rgba(141,110,79,.12)">🌾</div><div class="name">消化管理</div><span class="d-pill ok">平稳</span></div>
+                <div class="foot">反刍频率均在正常区间</div>
+              </div>
+              <div class="card">
+                <div class="top"><div class="ico" style="background:rgba(194,86,137,.12)">💞</div><div class="name">发情管理</div><span class="d-pill ok">平稳</span></div>
+                <div class="foot">暂无高分个体，适合巡查</div>
+              </div>
+              <div class="card">
+                <div class="top"><div class="ico" style="background:rgba(46,125,116,.12)">🛡️</div><div class="name">疫病防控</div><span class="d-pill warn">1.6%</span></div>
+                <div class="foot">7 日异常率 1.6%，低于警戒线</div>
+              </div>
+            </div>
+            <div class="d-sec-head"><span class="dot"></span>AI 观察</div>
+            <div class="d-ai">
+              <div class="ico">🤖</div>
+              <div class="body">
+                <div class="t">智能健康观察 <span class="go">谁最需要关注 ›</span></div>
+                <div class="s">12 只持续观察 · 体温节律整体正常</div>
+              </div>
+              <span class="d-pill warn">留意</span>
+            </div>
+            <div class="d-rec-warn">⚠ 场景异常 7 只 · 活跃健康单 6 张 · 差 1（可能有单未开出，建议巡检）</div>
           </div>
         </div>
       </div>
@@ -849,6 +961,7 @@ body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sa
       <tr><td>「处理」按钮语义（现只有已读/忽略/自动关闭）</td><td><b>处理 = 关闭该单（dismiss）</b>，"忽略" = 标记已读；"今日已处理"由关闭时间派生，不新增状态机（spec v1.1 裁决 14，2026-09-23 修订）</td></tr>
       <tr><td>围栏标签页 72 条展示</td><td><b>牛×围栏聚合卡</b>（默认聚合、点开看明细）</td></tr>
       <tr><td>健康率口径（修复 105%）</td><td><b>观察态算健康</b>：健康率 = 非异常牛 / 总数</td></tr>
+      <tr><td>概览视觉（dash 四卡三轮被否"不美观"）</td><td><b>方案 D「晨报看板」（A+C 整合，2026-09-24 拍板）</b>：Hero 晨报卡（按健康率生成标题+环形）+ 一行三色告警瓷砖 + 2×2 场景卡 + AI 摘要卡；五格统计取消，对账提示仅不一致时显示（spec 裁决 23；三方案对照稿见 ranch-overview-redesign-prototype.html）</td></tr>
     </tbody>
   </table>
 
@@ -877,7 +990,7 @@ body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sa
       <tr><td>地图标记 / 牲畜弹层</td><td>新增「有活跃单」红点；弹层数字统一同源口径</td></tr>
       <tr><td>疫病防控异常率</td><td><b>新增</b>开单路径 + 密接区块挂详情页</td></tr>
       <tr><td>AI 排行页「谁最需要关注」（原无此页）</td><td><b>新增</b>（屏 6）：档位降序列表，点击进详情页健康区；数据源同 episodes 聚合</td></tr>
-      <tr><td>概览面板展开态五格统计（原孪生顶栏）</td><td><b>新增</b>（屏 1b）：面板展开顶部露出，与收起态同屏共存</td></tr>
+      <tr><td>概览面板展开态五格统计（原孪生顶栏）</td><td><b>方案 D 取消</b>（2026-09-24）：展开态与收起态同构；总账数字并入 Hero 卡（健康率环形/在养数/在线率）与"需要处理 N 起"小标题；活跃告警/严重异常两格退役（数字家 = 瓷砖行 + 告警中心标签页）</td></tr>
       <tr class="sum-row"><td colspan="2">数据底座：病程聚合端点 + 数字同源 + 每小时自愈残留单 + 健康率 105% 修复</td></tr>
     </tbody>
   </table>
@@ -885,7 +998,7 @@ body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sa
   <div class="token-line">
     设计令牌（与告警 V2 一致，可被 prototype-to-flutter-fidelity 解析）：
     <code>--primary:#2F6B3B</code> <code>--danger:#C2564B</code> <code>--warning:#D28A2D</code> <code>--info:#4A7F9D</code> <code>--estrus:#C25689</code>
-    <code>--fever:#D97B29</code> <code>--digestive:#8D6E4F</code> <code>--epidemic:#2E7D74</code>
+    <code>--fever:#D97B29</code> <code>--digestive:#8D6E4F</code> <code>--epidemic:#2E7D74</code> <code>方案 D 新增：Hero 渐变 #1C3F25→#2F6B3B→#3E7F4C、环形进度 #8FD694、瓷砖渐变 红 #B3453B→#C9664F / 橙 #C07A22→#DB9C40</code>
     <code>--radius-sm:8px</code> <code>--radius-md:12px</code> <code>--radius-lg:16px</code> <code>--shadow-card</code>
     <br>新增令牌：<code>--badge-bg</code> <code>--reconcile-bg/--reconcile-text</code>（danger/success 派生，无新色相）。「新增/迁入/融合」标注色仅评审用，不进实现。
   </div>

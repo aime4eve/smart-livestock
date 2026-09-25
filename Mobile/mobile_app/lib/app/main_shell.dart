@@ -7,6 +7,7 @@ import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/features/auth/data/deployment_info.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/alerts_controller.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_widget.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
@@ -101,21 +102,12 @@ class MainShell extends ConsumerWidget {
               for (var i = 0; i < navItems.length; i++)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: FilledButton.tonal(
-                    key: navItems[i].key,
-                    onPressed: () => context.go(navItems[i].route.path),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: selectedIndex == i
-                          ? Theme.of(context).colorScheme.primaryContainer
-                          : null,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(navItems[i].icon, size: 18),
-                        const SizedBox(width: 6),
-                        Text(navItems[i].label),
-                      ],
-                    ),
+                  child: _NavButton(
+                    item: navItems[i],
+                    selected: selectedIndex == i,
+                    // NIX-246 F19：牧场按钮带未读红点（summary 同源）
+                    badge: navItems[i].route == AppRoute.ranch ? _ranchUnread(ref) : 0,
+                    onTap: () => context.go(navItems[i].route.path),
                   ),
                 ),
             ],
@@ -123,6 +115,13 @@ class MainShell extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+
+  /// NIX-246 F19：牧场导航未读数（告警 summary 同源；加载失败不显示）。
+  int _ranchUnread(WidgetRef ref) {
+    final v = ref.watch(alertSummaryControllerProvider).value;
+    return v?.unread ?? 0;
   }
 
   List<_NavItem> _buildBusinessNavItems(UserRole role, BuildContext context) {
@@ -484,6 +483,68 @@ class _IconSidebarItem extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// 底部导航按钮（含未读红点角标，方案 D/F19）。
+class _NavButton extends StatelessWidget {
+  const _NavButton({
+    required this.item,
+    required this.selected,
+    required this.badge,
+    required this.onTap,
+  });
+
+  final _NavItem item;
+  final bool selected;
+  final int badge;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final child = FilledButton.tonal(
+      key: item.key,
+      onPressed: onTap,
+      style: FilledButton.styleFrom(
+        backgroundColor:
+            selected ? Theme.of(context).colorScheme.primaryContainer : null,
+      ),
+      child: Row(
+        children: [
+          Icon(item.icon, size: 18),
+          const SizedBox(width: 6),
+          Text(item.label),
+        ],
+      ),
+    );
+    if (badge <= 0) return child;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        child,
+        Positioned(
+          top: -4,
+          right: -6,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+            constraints: const BoxConstraints(minWidth: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.error,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              badge > 99 ? '99+' : '$badge',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

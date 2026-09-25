@@ -74,52 +74,80 @@ class TwinSceneSummary {
     required this.digestive,
     required this.estrus,
     required this.epidemic,
+    this.ai,
   });
 
   final SceneSummaryFever fever;
   final SceneSummaryDigestive digestive;
   final SceneSummaryEstrus estrus;
   final SceneSummaryEpidemic epidemic;
+  final SceneSummaryAi? ai;
 }
 
 class SceneSummaryFever {
   const SceneSummaryFever({
     required this.abnormalCount,
     required this.criticalCount,
+    this.elevatedCount = 0,
+    this.activeAlertCount = 0,
   });
 
   final int abnormalCount;
   final int criticalCount;
+  /// 低热（ELEVATED）头数——方案 D 场景卡副标拆"发烧/低热"用。
+  final int elevatedCount;
+  final int activeAlertCount;
 }
 
 class SceneSummaryDigestive {
   const SceneSummaryDigestive({
     required this.abnormalCount,
     required this.watchCount,
+    this.activeAlertCount = 0,
   });
 
   final int abnormalCount;
   final int watchCount;
+  final int activeAlertCount;
 }
 
 class SceneSummaryEstrus {
   const SceneSummaryEstrus({
     required this.highScoreCount,
     required this.breedingAdvice,
+    this.activeAlertCount = 0,
   });
 
   final int highScoreCount;
   final bool breedingAdvice;
+  final int activeAlertCount;
 }
 
 class SceneSummaryEpidemic {
   const SceneSummaryEpidemic({
     required this.status,
     required this.abnormalRate,
+    this.activeAlertCount = 0,
   });
 
   final String status;
   final double abnormalRate;
+  final int activeAlertCount;
+}
+
+/// AI 观察（NIX-245）：档位码 calm/watch/alarm 由前端映射为人话文案。
+class SceneSummaryAi {
+  const SceneSummaryAi({
+    required this.anomalyCount,
+    required this.highScoreCount,
+    required this.avgScore,
+    this.activeAlertCount = 0,
+  });
+
+  final int anomalyCount;
+  final int highScoreCount;
+  final double avgScore;
+  final int activeAlertCount;
 }
 
 class FeverViewData {

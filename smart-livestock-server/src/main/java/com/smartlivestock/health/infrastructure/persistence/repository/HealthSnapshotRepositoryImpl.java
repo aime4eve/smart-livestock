@@ -7,6 +7,7 @@ import com.smartlivestock.health.infrastructure.persistence.mapper.HealthMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,5 +35,20 @@ public class HealthSnapshotRepositoryImpl implements HealthSnapshotRepository {
     @Override
     public void ensureSnapshotExists(Long livestockId, Long farmId) {
         jpaRepo.ensureSnapshotExists(livestockId, farmId);
+    }
+
+    @Override
+    public List<ActiveLivestock> findRecentlyActive(Instant cutoff, int maxRows) {
+        return jpaRepo.findRecentlyActiveLivestock(cutoff, maxRows).stream()
+                .map(row -> new ActiveLivestock(
+                        ((Number) row[0]).longValue(),
+                        ((Number) row[1]).longValue(),
+                        (String) row[2]))
+                .toList();
+    }
+
+    @Override
+    public List<Long> findDistinctFarmIds() {
+        return jpaRepo.findDistinctFarmIds();
     }
 }

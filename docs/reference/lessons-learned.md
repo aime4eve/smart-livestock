@@ -449,10 +449,28 @@
 
 ---
 
+## 27. 方案 D 三色瓷砖"元素在、看不见"：Row+stretch 塌陷于无界高度，Release Web 静默吞掉（NIX-246）
+
+- **日期**: 2026-09-25
+- **现象**: 牧场概览（方案 D 晨报看板）在 dev 上"需要处理"红/橙告警瓷砖、2×2 场景卡、AI 卡全部不可见，页面大片空白；白底设备瓷砖只有深色文字漏出、描边消失。语义树/元素选择器里所有内容与数据完整无缺，用户在多个会话反复报告"一片白"。
+- **误判**: 连续五轮，全部绕开真正的病灶——① 抓手点击循环 bug（修复被用户回滚）；② 半开档 40% 折叠线挡住瓷砖；③ 归因"用户在看 test 旧代码"（环境差异真实存在但解释不了新页面自身画不出）；④ "内置浏览器渲染不了 Flutter 3.41，hello world 也白"（探测方法错误：`querySelectorAll` 与 `.children` 均不穿透 shadow DOM，实际画布在 `flt-glass-pane.shadowRoot` 内健康存在）；⑤ "IAB 内核丢静态图层"（像素证据真实但解释错误）。期间视觉模型对引导性提示词（"请确认是否可见三色瓷砖"）连续多轮顺从式编造"渲染正常"，验证通道被污染；最强线索——用户元素列表里瓷砖语义盒高 465px（设计约 88px）——被当成"语义层伪影"放过。
+- **根因**: `ranch_page.dart` 三色瓷砖行使用 `Row(crossAxisAlignment: CrossAxisAlignment.stretch)`，处于 `SingleChildScrollView → Column` 的无限高度区内，子项拿不到可确定的竖直高度。**Debug 构建对 stretch+无界约束直接抛布局断言；Release Web 静默把容器压成 0 高**——渐变/描边装饰随容器消失（红橙瓷砖不可见）、白字落在白底上隐形、深色文字不受裁剪地溢出可见（设备瓷砖"0 正常"漏出）；该行被撑高的语义盒同时把场景卡与 AI 卡顶出可视区。与浏览器无关，任何环境都复现。修复 = 瓷砖行外包 `IntrinsicHeight`（b383f19a），与围栏页签卡片既有写法一致。场景卡用 `GridView.count(shrinkWrap)` 无此问题，纯属被顶出视野。
+- **历史教训**: 与 #6/#7（部署完成≠功能生效）、#25（验证层级缺失）同属"拿错证据宣布清白"家族；另暴露新变体——**中间视觉模型对引导性提问必然顺从编造**，以及 **DOM 探测不穿 shadow DOM 得出"引擎未渲染"假阴性**。
+- **解决**: ① 瓷砖行包 `IntrinsicHeight` 保持三块等高；② `flutter analyze` + 构建通过后部署 dev，浏览器实测红/橙/白瓷砖、场景卡、AI 卡全部正常；③ 提交 b383f19a。
+- **判据(下次复现即套用)**:
+  - Flutter"语义树/元素选择器里元素在、屏幕上看不到"→ **第一步跑 debug 构建听布局断言，或写 20 行最小复现**；Release Web 会静默吞掉 stretch/Expanded+无界约束类错误，不要在 release 的视觉现象上先做环境归因。
+  - 语义树完整 ≠ 渲染完整；**语义 Rect 尺寸与设计意图差数倍 = 布局塌陷铁证**（465px vs 88px），必须当场查布局，不得当作"语义层伪影"放过。
+  - AI 视觉验证纪律：截图存盘 + 亲眼 Read + `getImageData` 像素采样；提示词中**禁止出现期望看到的元素名**（"请确认是否可见 X"必然得到顺从式回答）；PNG 体积 sanity check（390×280 仅 9KB≈纯色）。
+  - 浏览器 DOM 探测必须递归穿透 `shadowRoot`；`querySelectorAll("canvas")` 为空 ≠ 引擎未渲染。
+  - 宣布某一层（代码/部署/查看器）"清白"前，必须持有该层在真实场景下确凿工作的一手证据；用户重复报告与结论矛盾时，先推翻的是自己的理论框架。
+
+---
+
 ## 关键词索引（遇症状按关键词快速定位）
 
 | 编号 | 关键词 |
 |------|--------|
+| #27 | row, stretch, intrinsic-height, unbounded, scroll-view, release-web, 静默塌陷, 白屏, 语义树, shadow-dom, canvas, 视觉模型, 引导性提示词, 像素采样, flutter |
 | #26 | 升级, down, env-file, compose 文件名, 端口占用, MIN_DISK_GB, preflight |
 | #1 | utf-8, decode, `._`, gen-l10n, arb, apple-double |
  | #2 | non-monotonic index, git, `._`, pack-idx, `/Volumes/DEV` |

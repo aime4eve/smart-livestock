@@ -78,7 +78,9 @@ services:
       ROCKETMQ_NAME_SERVER: rocketmq-namesrv:9876
       AI_PLATFORM_URL: http://ai-platform:8000
       AI_PLATFORM_BEHAVIOR_TIMEOUT_MS: "300000"
-      DATAGEN_ENABLED: "false"
+      # Off by default; set DATAGEN_ENABLED=true in .env.dev for pipeline
+      # verification sessions (clean up with the datagen console afterwards).
+      DATAGEN_ENABLED: ${DATAGEN_ENABLED:-false}
       FLYWAY_LOCATIONS: "classpath:db/migration,classpath:db/demo"
     depends_on:
       postgres:
@@ -98,8 +100,9 @@ services:
       AI_DB_HOST: postgres
       AI_DB_PORT: 5432
       AI_DB_NAME: smart_livestock
-      AI_DB_USER: ${AI_DB_USER:-postgres}
-      AI_DB_PASSWORD: ${AI_DB_PASSWORD:-postgres}
+      # Read-only account created by V20260923100000 (never the superuser).
+      AI_DB_USER: ${AI_DB_USER:-ai_reader}
+      AI_DB_PASSWORD: ${AI_DB_PASSWORD:-b979c55d2a617883163f9866be604431}
       AI_BEHAVIOR_MODEL_DIR: /data/behavior-models
     volumes:
       - behavior-models:/data

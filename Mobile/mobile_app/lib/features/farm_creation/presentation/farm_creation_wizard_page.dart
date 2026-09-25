@@ -47,7 +47,7 @@ class _FarmCreationWizardPageState
   Future<void> _startDashboard() async {
     ref.read(farmDataReadyProvider.notifier).reset();
     ref.read(farmDataReadyProvider.notifier).markReady();
-    if (mounted) context.go('/twin');
+    if (mounted) context.go('/ranch');
   }
 
   void _showBackConfirmDialog(BuildContext context) {

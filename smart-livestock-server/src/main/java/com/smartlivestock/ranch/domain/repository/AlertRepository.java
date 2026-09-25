@@ -15,6 +15,8 @@ public interface AlertRepository {
     List<Alert> findByFarmId(Long farmId);
     List<Alert> findByLivestockIdAndTypeAndStatus(Long livestockId, AlertType type, AlertStatus status);
     List<Alert> findByDeviceIdAndTypeAndStatus(Long deviceId, AlertType type, AlertStatus status);
+    List<Alert> findByLivestockIdAndStatusAndSource(Long livestockId, AlertStatus status, String source);
+    List<Alert> findByFarmIdAndTypeAndStatus(Long farmId, AlertType type, AlertStatus status);
 
     /** One aggregated row per (status, severity, type) combination of the farm. */
     List<StatusSeverityTypeCount> countByFarmGrouped(Long farmId, Collection<String> types);

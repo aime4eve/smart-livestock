@@ -164,6 +164,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoute.twin.path,
             name: AppRoute.twin.routeName,
+            // NIX-245: twin overview merged into the ranch overview tab
+            redirect: (context, state) => state.matchedLocation == AppRoute.twin.path
+                ? AppRoute.ranch.path
+                : null,
             builder: (context, state) => const TwinOverviewPage(),
             routes: [
               GoRoute(

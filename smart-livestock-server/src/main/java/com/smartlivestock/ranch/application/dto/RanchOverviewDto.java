@@ -89,7 +89,8 @@ public final class RanchOverviewDto {
             BigDecimal latitude,
             BigDecimal longitude,
             String healthStatus,
-            String primaryAlert
+            String primaryAlert,
+            boolean hasHealthTicket   // NIX-245: red dot for livestock with open health tickets
     ) {}
 
     public record AlertData(

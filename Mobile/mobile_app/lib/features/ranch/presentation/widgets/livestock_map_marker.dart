@@ -29,6 +29,7 @@ class LivestockMapMarker extends StatefulWidget {
     required this.healthStatus,
     required this.primaryAlert,
     required this.fenceStatus,
+    this.hasHealthTicket = false,
     this.onTap,
   });
 
@@ -36,6 +37,7 @@ class LivestockMapMarker extends StatefulWidget {
   final String healthStatus; // NORMAL / WARNING / CRITICAL
   final String primaryAlert; // FEVER / DIGESTIVE / ESTRUS / EPIDEMIC / '' / ...
   final String fenceStatus; // SAFE / APPROACH / BREACH
+  final bool hasHealthTicket; // NIX-245: open health ticket → red dot
   final VoidCallback? onTap;
 
   @override
@@ -101,6 +103,7 @@ class _LivestockMapMarkerState extends State<LivestockMapMarker>
                     widget.fenceStatus == 'BREACH'
                         ? _breachController.value
                         : 0.0,
+                hasHealthTicket: widget.hasHealthTicket,
               ),
               child: child,
             );
@@ -131,11 +134,13 @@ class _LivestockMarkerPainter extends CustomPainter {
     required this.fillColor,
     required this.fenceStatus,
     required this.breachProgress,
+    this.hasHealthTicket = false,
   });
 
   final Color fillColor;
   final String fenceStatus;
   final double breachProgress;
+  final bool hasHealthTicket;
 
   static const double _baseRadius = 12.0;
 
@@ -161,6 +166,16 @@ class _LivestockMarkerPainter extends CustomPainter {
       ..color = Colors.black.withValues(alpha: 0.15)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
     canvas.drawCircle(center, _baseRadius + 1, shadowPaint);
+
+    // NIX-245: open health ticket → small red dot at top-right
+    if (hasHealthTicket) {
+      final dotCenter = Offset(
+        center.dx + _baseRadius * 0.85,
+        center.dy - _baseRadius * 0.85,
+      );
+      canvas.drawCircle(dotCenter, 5.5, Paint()..color = Colors.white);
+      canvas.drawCircle(dotCenter, 4.0, Paint()..color = AppColors.danger);
+    }
 
     // Fence border
     if (fenceStatus == 'APPROACH') {
@@ -196,6 +211,7 @@ class _LivestockMarkerPainter extends CustomPainter {
   bool shouldRepaint(covariant _LivestockMarkerPainter old) {
     return fillColor != old.fillColor ||
         fenceStatus != old.fenceStatus ||
-        breachProgress != old.breachProgress;
+        breachProgress != old.breachProgress ||
+        hasHealthTicket != old.hasHealthTicket;
   }
 }

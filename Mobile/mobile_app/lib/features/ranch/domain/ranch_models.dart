@@ -233,6 +233,7 @@ class RanchLivestockMarker {
     required this.longitude,
     required this.healthStatus,
     required this.primaryAlert,
+    this.hasHealthTicket = false,
   });
 
   final String livestockId;
@@ -241,6 +242,8 @@ class RanchLivestockMarker {
   final double longitude;
   final String healthStatus;
   final String primaryAlert;
+  /// NIX-245：有活跃健康单（地图红点）。
+  final bool hasHealthTicket;
 
   LatLng toLatLng() => LatLng(latitude, longitude);
 
@@ -252,6 +255,7 @@ class RanchLivestockMarker {
       longitude: (m['longitude'] as num?)?.toDouble() ?? 0.0,
       healthStatus: (m['healthStatus'] ?? 'NORMAL') as String,
       primaryAlert: (m['primaryAlert'] ?? '') as String,
+      hasHealthTicket: m['hasHealthTicket'] as bool? ?? false,
     );
   }
 }
