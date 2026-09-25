@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/features/digestive/presentation/digestive_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/health_models.dart';
+import 'package:hkt_livestock_agentic/core/l10n/enum_labels.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class DigestivePage extends ConsumerWidget {
@@ -52,6 +53,8 @@ class _DigestiveCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final color = _statusColor();
+    final statusLabel = motilityStatusLabel(l10n, item.status);
+    final breedLabel = breedStatusLabel(l10n, item.breed);
     final dropPercent = item.motilityBaseline > 0
         ? ((1 - item.currentFrequency / item.motilityBaseline) * 100).round()
         : 0;
@@ -61,8 +64,8 @@ class _DigestiveCard extends StatelessWidget {
       child: ListTile(
         leading: Icon(item.status == 'ABNORMAL' ? Icons.error : Icons.warning, color: color, size: 28),
         title: Text(item.livestockCode, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(l10n.digestiveItemSubtitle(item.breed ?? '', item.currentFrequency.toStringAsFixed(1), dropPercent.toString())),
-        trailing: Chip(label: Text(item.status, style: const TextStyle(fontSize: 11)), backgroundColor: color.withValues(alpha: 0.15)),
+        subtitle: Text(l10n.digestiveItemSubtitle(breedLabel, item.currentFrequency.toStringAsFixed(1), dropPercent.toString())),
+        trailing: Chip(label: Text(statusLabel, style: const TextStyle(fontSize: 11)), backgroundColor: color.withValues(alpha: 0.15)),
         onTap: () => context.push('/twin/digestive/${item.livestockId}'),
       ),
     );
