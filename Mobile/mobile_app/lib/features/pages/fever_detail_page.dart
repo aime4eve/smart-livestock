@@ -211,6 +211,28 @@ class FeverDetailPage extends ConsumerWidget {
               child: BarChart(
                 BarChartData(
                   maxY: (maxHours > 0 ? maxHours : 1) * 1.2,
+                  barTouchData: BarTouchData(
+                    touchTooltipData: BarTouchTooltipData(
+                      getTooltipColor: (_) => Colors.transparent,
+                      tooltipMargin: 0,
+                      tooltipPadding: EdgeInsets.zero,
+                      tooltipBorder: BorderSide.none,
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        final index = group.x.toInt();
+                        final touchedHours = index >= 0 && index < hours.length
+                            ? hours[index].hours
+                            : rod.toY;
+                        return BarTooltipItem(
+                          '${touchedHours.toInt()}h',
+                          const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                   barGroups: spots
                       .map(
                         (s) => BarChartGroupData(
@@ -438,6 +460,25 @@ class FeverDetailPage extends ConsumerWidget {
                   gridData: const FlGridData(
                     show: true,
                     drawVerticalLine: false,
+                  ),
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipColor: (_) => Colors.transparent,
+                      tooltipMargin: 0,
+                      tooltipPadding: EdgeInsets.zero,
+                      tooltipBorder: BorderSide.none,
+                      getTooltipItems:
+                          (spots) => spots.where((spot) => spot.barIndex == 0).map(
+                                (spot) => LineTooltipItem(
+                                  '${spot.y.toStringAsFixed(1)}°C',
+                                  const TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ).toList(),
+                    ),
                   ),
                   titlesData: FlTitlesData(
                     leftTitles: temperatureAxisTitles(
