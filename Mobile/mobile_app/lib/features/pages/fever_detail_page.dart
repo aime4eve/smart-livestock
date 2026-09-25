@@ -217,6 +217,7 @@ class FeverDetailPage extends ConsumerWidget {
                       tooltipMargin: 0,
                       tooltipPadding: EdgeInsets.zero,
                       tooltipBorder: BorderSide.none,
+                      tooltipHorizontalAlignment: FLHorizontalAlignment.left,
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
                         final index = group.x.toInt();
                         final touchedHours = index >= 0 && index < hours.length
@@ -467,6 +468,7 @@ class FeverDetailPage extends ConsumerWidget {
                       tooltipMargin: 0,
                       tooltipPadding: EdgeInsets.zero,
                       tooltipBorder: BorderSide.none,
+                      tooltipHorizontalAlignment: FLHorizontalAlignment.left,
                       getTooltipItems:
                           (spots) => spots.where((spot) => spot.barIndex == 0).map(
                                 (spot) => LineTooltipItem(
