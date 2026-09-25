@@ -219,6 +219,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deviceTypeGps => 'GPS Tracker';
 
   @override
+  String get deviceDetailTitle => 'Device detail';
+
+  @override
+  String get deviceDetailBasic => 'Basic info';
+
+  @override
+  String get deviceDetailSignal => 'Signal & communication';
+
+  @override
+  String get deviceDetailBinding => 'Binding';
+
+  @override
+  String get deviceDetailRuntime => 'Runtime';
+
+  @override
+  String get deviceDetailLifecycle => 'Lifecycle';
+
+  @override
+  String get deviceDetailLastSync => 'Last sync';
+
+  @override
+  String get deviceDetailGateway => 'Last gateway';
+
+  @override
+  String get deviceDetailSerial => 'Serial no.';
+
+  @override
+  String get deviceDetailPlatform => 'Platform device ID';
+
+  @override
+  String get deviceDetailEui => 'DevEUI';
+
+  @override
+  String get deviceDetailAntiTamper => 'Anti-tamper';
+
+  @override
+  String get deviceDetailNormal => 'Normal';
+
+  @override
+  String get deviceDetailTriggered => 'Triggered';
+
+  @override
+  String get deviceDetailNone => 'Not bound';
+
+  @override
   String get deviceTypeRumenCapsule => 'Rumen Capsule';
 
   @override

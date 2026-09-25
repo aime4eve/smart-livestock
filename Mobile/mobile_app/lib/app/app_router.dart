@@ -25,6 +25,7 @@ import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_worker
 import 'package:hkt_livestock_agentic/features/pages/alerts_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/dashboard_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/devices_page.dart';
+import 'package:hkt_livestock_agentic/features/devices/presentation/device_detail_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/digestive_detail_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/digestive_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/epidemic_page.dart';
@@ -317,6 +318,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
            name: AppRoute.devices.routeName,
            builder: (context, state) => const DevicesPage(),
          ),
+          GoRoute(
+            path: AppRoute.deviceDetail.path,
+            name: AppRoute.deviceDetail.routeName,
+            builder: (context, state) {
+              final deviceId = state.pathParameters['deviceId']!;
+              return DeviceDetailPage(deviceId: deviceId);
+            },
+          ),
           GoRoute(
             path: AppRoute.livestockList.path,
             name: AppRoute.livestockList.routeName,

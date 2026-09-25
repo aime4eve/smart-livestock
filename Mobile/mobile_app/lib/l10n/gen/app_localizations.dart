@@ -506,6 +506,96 @@ abstract class AppLocalizations {
   /// **'GPS定位器'**
   String get deviceTypeGps;
 
+  /// No description provided for @deviceDetailTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备详情'**
+  String get deviceDetailTitle;
+
+  /// No description provided for @deviceDetailBasic.
+  ///
+  /// In zh, this message translates to:
+  /// **'基础信息'**
+  String get deviceDetailBasic;
+
+  /// No description provided for @deviceDetailSignal.
+  ///
+  /// In zh, this message translates to:
+  /// **'信号与通讯'**
+  String get deviceDetailSignal;
+
+  /// No description provided for @deviceDetailBinding.
+  ///
+  /// In zh, this message translates to:
+  /// **'绑定信息'**
+  String get deviceDetailBinding;
+
+  /// No description provided for @deviceDetailRuntime.
+  ///
+  /// In zh, this message translates to:
+  /// **'运行状态'**
+  String get deviceDetailRuntime;
+
+  /// No description provided for @deviceDetailLifecycle.
+  ///
+  /// In zh, this message translates to:
+  /// **'生命周期'**
+  String get deviceDetailLifecycle;
+
+  /// No description provided for @deviceDetailLastSync.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近同步'**
+  String get deviceDetailLastSync;
+
+  /// No description provided for @deviceDetailGateway.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近网关'**
+  String get deviceDetailGateway;
+
+  /// No description provided for @deviceDetailSerial.
+  ///
+  /// In zh, this message translates to:
+  /// **'序列号'**
+  String get deviceDetailSerial;
+
+  /// No description provided for @deviceDetailPlatform.
+  ///
+  /// In zh, this message translates to:
+  /// **'平台设备ID'**
+  String get deviceDetailPlatform;
+
+  /// No description provided for @deviceDetailEui.
+  ///
+  /// In zh, this message translates to:
+  /// **'DevEUI'**
+  String get deviceDetailEui;
+
+  /// No description provided for @deviceDetailAntiTamper.
+  ///
+  /// In zh, this message translates to:
+  /// **'防拆卸'**
+  String get deviceDetailAntiTamper;
+
+  /// No description provided for @deviceDetailNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'正常'**
+  String get deviceDetailNormal;
+
+  /// No description provided for @deviceDetailTriggered.
+  ///
+  /// In zh, this message translates to:
+  /// **'已触发'**
+  String get deviceDetailTriggered;
+
+  /// No description provided for @deviceDetailNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'未绑定'**
+  String get deviceDetailNone;
+
   /// No description provided for @deviceTypeRumenCapsule.
   ///
   /// In zh, this message translates to:

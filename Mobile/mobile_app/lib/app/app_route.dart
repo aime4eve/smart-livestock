@@ -10,6 +10,7 @@ enum AppRoute {
   livestockList('/livestock', 'livestock-list', '牲畜管理'),
   livestockDetail('/livestock/:id', 'livestock-detail', '牲畜详情'),
   devices('/devices', 'devices', '设备管理'),
+  deviceDetail('/devices/:deviceId', 'device-detail', '设备详情'),
   fenceForm('/fence/form', 'fence-form', '围栏表单'),
   stats('/stats', 'stats', '数据统计'),
   twinFever('/twin/fever', 'twin-fever', '发热预警'),

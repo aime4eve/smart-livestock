@@ -779,7 +779,6 @@ class _ActionBar extends StatelessWidget {
               onTap: primaryRoute == null
                   ? null
                   : () {
-                      Navigator.of(context).pop();
                       onNavigate(primaryRoute);
                     },
             ),
@@ -892,7 +891,7 @@ class _ActionBar extends StatelessWidget {
       ),
       'device' => (
         l10n.workbenchActionDevice,
-        '/devices?deviceId=${item.asset.id}',
+        '/devices/${item.asset.id}',
       ),
       'herd' => (l10n.livestockListTitle, AppRoute.livestockList.path),
       _ => (

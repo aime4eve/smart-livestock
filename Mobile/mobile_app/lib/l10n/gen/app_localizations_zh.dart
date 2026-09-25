@@ -215,6 +215,51 @@ class AppLocalizationsZh extends AppLocalizations {
   String get deviceTypeGps => 'GPS定位器';
 
   @override
+  String get deviceDetailTitle => '设备详情';
+
+  @override
+  String get deviceDetailBasic => '基础信息';
+
+  @override
+  String get deviceDetailSignal => '信号与通讯';
+
+  @override
+  String get deviceDetailBinding => '绑定信息';
+
+  @override
+  String get deviceDetailRuntime => '运行状态';
+
+  @override
+  String get deviceDetailLifecycle => '生命周期';
+
+  @override
+  String get deviceDetailLastSync => '最近同步';
+
+  @override
+  String get deviceDetailGateway => '最近网关';
+
+  @override
+  String get deviceDetailSerial => '序列号';
+
+  @override
+  String get deviceDetailPlatform => '平台设备ID';
+
+  @override
+  String get deviceDetailEui => 'DevEUI';
+
+  @override
+  String get deviceDetailAntiTamper => '防拆卸';
+
+  @override
+  String get deviceDetailNormal => '正常';
+
+  @override
+  String get deviceDetailTriggered => '已触发';
+
+  @override
+  String get deviceDetailNone => '未绑定';
+
+  @override
   String get deviceTypeRumenCapsule => '瘤胃胶囊';
 
   @override
