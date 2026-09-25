@@ -430,6 +430,28 @@ class DigestiveDetailPage extends ConsumerWidget {
                     show: true,
                     drawVerticalLine: false,
                   ),
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipColor: (_) => Colors.transparent,
+                      tooltipMargin: 0,
+                      tooltipPadding: EdgeInsets.zero,
+                      tooltipBorder: BorderSide.none,
+                      getTooltipItems:
+                          (spots) => spots
+                              .where((spot) => spot.barIndex == 0)
+                              .map(
+                                (spot) => LineTooltipItem(
+                                  spot.y.toStringAsFixed(2),
+                                  const TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                    ),
+                  ),
                   titlesData: FlTitlesData(
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
