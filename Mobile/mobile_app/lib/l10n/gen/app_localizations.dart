@@ -12208,6 +12208,126 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'关闭'**
   String get workbenchClose;
+
+  /// No description provided for @livestockSignalHealthNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康'**
+  String get livestockSignalHealthNormal;
+
+  /// No description provided for @livestockSignalHealthWatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'关注'**
+  String get livestockSignalHealthWatch;
+
+  /// No description provided for @livestockSignalHealthCritical.
+  ///
+  /// In zh, this message translates to:
+  /// **'异常'**
+  String get livestockSignalHealthCritical;
+
+  /// No description provided for @livestockSignalAiObserve.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 观察'**
+  String get livestockSignalAiObserve;
+
+  /// No description provided for @livestockSignalAiAlert.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 异常'**
+  String get livestockSignalAiAlert;
+
+  /// No description provided for @livestockSignalFenceApproach.
+  ///
+  /// In zh, this message translates to:
+  /// **'接近围栏'**
+  String get livestockSignalFenceApproach;
+
+  /// No description provided for @livestockSignalFenceBreach.
+  ///
+  /// In zh, this message translates to:
+  /// **'越出围栏'**
+  String get livestockSignalFenceBreach;
+
+  /// No description provided for @livestockSignalDeviceOffline.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备离线'**
+  String get livestockSignalDeviceOffline;
+
+  /// No description provided for @livestockSignalDeviceFault.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备故障'**
+  String get livestockSignalDeviceFault;
+
+  /// No description provided for @livestockSignalMoreCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'+{count}'**
+  String livestockSignalMoreCount(int count);
+
+  /// No description provided for @livestockMetricRumenTemperature.
+  ///
+  /// In zh, this message translates to:
+  /// **'瘤胃温度'**
+  String get livestockMetricRumenTemperature;
+
+  /// No description provided for @livestockMetricTemperatureValue.
+  ///
+  /// In zh, this message translates to:
+  /// **'{value}°C'**
+  String livestockMetricTemperatureValue(double value);
+
+  /// No description provided for @livestockMetricRumenMotility.
+  ///
+  /// In zh, this message translates to:
+  /// **'蠕动次数'**
+  String get livestockMetricRumenMotility;
+
+  /// No description provided for @livestockMetricMotilityValue.
+  ///
+  /// In zh, this message translates to:
+  /// **'{value} 次/分'**
+  String livestockMetricMotilityValue(double value);
+
+  /// No description provided for @livestockMetricNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无数据'**
+  String get livestockMetricNoData;
+
+  /// No description provided for @livestockMetricDelayed.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据延迟'**
+  String get livestockMetricDelayed;
+
+  /// No description provided for @livestockMetricStale.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据过期'**
+  String get livestockMetricStale;
+
+  /// No description provided for @mapSignalNoPosition.
+  ///
+  /// In zh, this message translates to:
+  /// **'无定位'**
+  String get mapSignalNoPosition;
+
+  /// No description provided for @mapSignalDelayedPosition.
+  ///
+  /// In zh, this message translates to:
+  /// **'定位延迟'**
+  String get mapSignalDelayedPosition;
+
+  /// No description provided for @mapSignalStalePosition.
+  ///
+  /// In zh, this message translates to:
+  /// **'定位过期'**
+  String get mapSignalStalePosition;
 }
 
 class _AppLocalizationsDelegate

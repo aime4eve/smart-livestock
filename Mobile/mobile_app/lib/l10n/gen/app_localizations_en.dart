@@ -6747,4 +6747,78 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workbenchClose => 'Close';
+
+  @override
+  String get livestockSignalHealthNormal => 'Healthy';
+
+  @override
+  String get livestockSignalHealthWatch => 'Watch';
+
+  @override
+  String get livestockSignalHealthCritical => 'Critical';
+
+  @override
+  String get livestockSignalAiObserve => 'AI observe';
+
+  @override
+  String get livestockSignalAiAlert => 'AI alert';
+
+  @override
+  String get livestockSignalFenceApproach => 'Near fence';
+
+  @override
+  String get livestockSignalFenceBreach => 'Out of fence';
+
+  @override
+  String get livestockSignalDeviceOffline => 'Device offline';
+
+  @override
+  String get livestockSignalDeviceFault => 'Device fault';
+
+  @override
+  String livestockSignalMoreCount(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get livestockMetricRumenTemperature => 'Rumen temp';
+
+  @override
+  String livestockMetricTemperatureValue(double value) {
+    final intl.NumberFormat valueNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String valueString = valueNumberFormat.format(value);
+
+    return '$valueString°C';
+  }
+
+  @override
+  String get livestockMetricRumenMotility => 'Motility';
+
+  @override
+  String livestockMetricMotilityValue(double value) {
+    final intl.NumberFormat valueNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String valueString = valueNumberFormat.format(value);
+
+    return '$valueString contractions/min';
+  }
+
+  @override
+  String get livestockMetricNoData => 'No data';
+
+  @override
+  String get livestockMetricDelayed => 'Delayed data';
+
+  @override
+  String get livestockMetricStale => 'Stale data';
+
+  @override
+  String get mapSignalNoPosition => 'No position';
+
+  @override
+  String get mapSignalDelayedPosition => 'Delayed position';
+
+  @override
+  String get mapSignalStalePosition => 'Stale position';
 }

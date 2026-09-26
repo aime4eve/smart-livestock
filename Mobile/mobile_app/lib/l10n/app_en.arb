@@ -5268,5 +5268,65 @@
   ,"@workbenchAiRanking": {}
   ,"workbenchClose": "Close"
   ,"@workbenchClose": {}
+  ,"livestockSignalHealthNormal": "Healthy"
+  ,"@livestockSignalHealthNormal": {}
+  ,"livestockSignalHealthWatch": "Watch"
+  ,"@livestockSignalHealthWatch": {}
+  ,"livestockSignalHealthCritical": "Critical"
+  ,"@livestockSignalHealthCritical": {}
+  ,"livestockSignalAiObserve": "AI observe"
+  ,"@livestockSignalAiObserve": {}
+  ,"livestockSignalAiAlert": "AI alert"
+  ,"@livestockSignalAiAlert": {}
+  ,"livestockSignalFenceApproach": "Near fence"
+  ,"@livestockSignalFenceApproach": {}
+  ,"livestockSignalFenceBreach": "Out of fence"
+  ,"@livestockSignalFenceBreach": {}
+  ,"livestockSignalDeviceOffline": "Device offline"
+  ,"@livestockSignalDeviceOffline": {}
+  ,"livestockSignalDeviceFault": "Device fault"
+  ,"@livestockSignalDeviceFault": {}
+  ,"livestockSignalMoreCount": "+{count}"
+  ,"@livestockSignalMoreCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
+  ,"livestockMetricRumenTemperature": "Rumen temp"
+  ,"@livestockMetricRumenTemperature": {}
+  ,"livestockMetricTemperatureValue": "{value}°C"
+  ,"@livestockMetricTemperatureValue": {
+    "placeholders": {
+      "value": {
+        "type": "double",
+        "format": "decimalPattern"
+      }
+    }
+  }
+  ,"livestockMetricRumenMotility": "Motility"
+  ,"@livestockMetricRumenMotility": {}
+  ,"livestockMetricMotilityValue": "{value} contractions/min"
+  ,"@livestockMetricMotilityValue": {
+    "placeholders": {
+      "value": {
+        "type": "double",
+        "format": "decimalPattern"
+      }
+    }
+  }
+  ,"livestockMetricNoData": "No data"
+  ,"@livestockMetricNoData": {}
+  ,"livestockMetricDelayed": "Delayed data"
+  ,"@livestockMetricDelayed": {}
+  ,"livestockMetricStale": "Stale data"
+  ,"@livestockMetricStale": {}
+  ,"mapSignalNoPosition": "No position"
+  ,"@mapSignalNoPosition": {}
+  ,"mapSignalDelayedPosition": "Delayed position"
+  ,"@mapSignalDelayedPosition": {}
+  ,"mapSignalStalePosition": "Stale position"
+  ,"@mapSignalStalePosition": {}
 
 }
